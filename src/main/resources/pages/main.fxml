@@ -394,21 +394,21 @@
                                 <Label fx:id="sectionEditors" text="EDITORS" styleClass="sidebar-section-label"/>
 
                                 <Button fx:id="unifiedEditor" mnemonicParsing="false" onAction="#loadPage"
-                                        styleClass="menu_button" text="Editor" VBox.vgrow="ALWAYS">
+                                        styleClass="menu_button" text="Editor" contentDisplay="LEFT" VBox.vgrow="ALWAYS">
                                     <graphic>
                                         <IconifyIcon iconColor="#6f42c1" iconLiteral="bi-stack" iconSize="16"/>
                                     </graphic>
                                 </Button>
 
                                 <Button mnemonicParsing="false" onAction="#loadPage" styleClass="menu_button"
-                                        text="XML Editor" fx:id="xmlUltimate">
+                                        text="XML Editor" contentDisplay="LEFT" fx:id="xmlUltimate">
                                     <graphic>
                                         <IconifyIcon iconLiteral="bi-code-slash" iconSize="16"/>
                                     </graphic>
                                 </Button>
 
                                 <Button fx:id="json" mnemonicParsing="false" onAction="#loadPage"
-                                        styleClass="menu_button" text="JSON Editor" VBox.vgrow="ALWAYS">
+                                        styleClass="menu_button" text="JSON Editor" contentDisplay="LEFT" VBox.vgrow="ALWAYS">
                                     <graphic>
                                         <IconifyIcon iconColor="#fd7e14" iconLiteral="bi-braces" iconSize="16"/>
                                     </graphic>
@@ -418,7 +418,7 @@
                                 <Separator fx:id="separatorSchema" styleClass="sidebar-section-separator"/>
                                 <Label fx:id="sectionSchema" text="SCHEMA" styleClass="sidebar-section-label"/>
 
-                                <Button onAction="#loadPage" styleClass="menu_button" text="XSD Editor" VBox.vgrow="ALWAYS"
+                                <Button onAction="#loadPage" styleClass="menu_button" text="XSD Editor" contentDisplay="LEFT" VBox.vgrow="ALWAYS"
                                         fx:id="xsd">
                                     <graphic>
                                         <IconifyIcon iconColor="#007bff" iconLiteral="bi-diagram-3" iconSize="16"/>
@@ -426,14 +426,14 @@
                                 </Button>
 
                                 <Button mnemonicParsing="false" onAction="#loadPage" styleClass="menu_button"
-                                        text="XSD Validation" VBox.vgrow="ALWAYS" fx:id="xsdValidation">
+                                        text="XSD Validation" contentDisplay="LEFT" VBox.vgrow="ALWAYS" fx:id="xsdValidation">
                                     <graphic>
                                         <IconifyIcon iconLiteral="bi-clipboard-check" iconSize="16"/>
                                     </graphic>
                                 </Button>
 
                                 <Button fx:id="schemaGenerator" mnemonicParsing="false" onAction="#loadPage"
-                                        styleClass="menu_button" text="Schema Generator" VBox.vgrow="ALWAYS">
+                                        styleClass="menu_button" text="Schema Generator" contentDisplay="LEFT" VBox.vgrow="ALWAYS">
                                     <graphic>
                                         <IconifyIcon iconColor="#9c27b0" iconLiteral="bi-diagram-3" iconSize="16"/>
                                     </graphic>
@@ -444,14 +444,14 @@
                                 <Label fx:id="sectionTransforms" text="TRANSFORMS" styleClass="sidebar-section-label"/>
 
                                 <Button mnemonicParsing="false" onAction="#loadPage" styleClass="menu_button"
-                                        text="XSLT Viewer" VBox.vgrow="ALWAYS" fx:id="xslt">
+                                        text="XSLT Viewer" contentDisplay="LEFT" VBox.vgrow="ALWAYS" fx:id="xslt">
                                     <graphic>
                                         <IconifyIcon iconColor="#fd7e14" iconLiteral="bi-arrow-repeat" iconSize="16"/>
                                     </graphic>
                                 </Button>
 
                                 <Button fx:id="xsltDeveloper" mnemonicParsing="false" onAction="#loadPage"
-                                        styleClass="menu_button" text="XSLT Developer" VBox.vgrow="ALWAYS">
+                                        styleClass="menu_button" text="XSLT Developer" contentDisplay="LEFT" VBox.vgrow="ALWAYS">
                                     <graphic>
                                         <IconifyIcon iconColor="#fd7e14" iconLiteral="bi-braces" iconSize="16"/>
                                     </graphic>
@@ -462,21 +462,21 @@
                                 <Label fx:id="sectionTools" text="TOOLS" styleClass="sidebar-section-label"/>
 
                                 <Button mnemonicParsing="false" onAction="#loadPage" styleClass="menu_button"
-                                        text="Schematron Editor" VBox.vgrow="ALWAYS" fx:id="schematron">
+                                        text="Schematron Editor" contentDisplay="LEFT" VBox.vgrow="ALWAYS" fx:id="schematron">
                                     <graphic>
                                         <IconifyIcon iconColor="#ffc107" iconLiteral="bi-shield-check" iconSize="16"/>
                                     </graphic>
                                 </Button>
 
                                 <Button fx:id="fop" mnemonicParsing="false" onAction="#loadPage" styleClass="menu_button"
-                                        text="FOP" VBox.vgrow="ALWAYS">
+                                        text="FOP" contentDisplay="LEFT" VBox.vgrow="ALWAYS">
                                     <graphic>
                                         <IconifyIcon iconColor="#dc3545" iconLiteral="bi-file-earmark-richtext" iconSize="16"/>
                                     </graphic>
                                 </Button>
 
                                 <Button fx:id="signature" mnemonicParsing="false" onAction="#loadPage"
-                                        styleClass="menu_button" text="Signature" VBox.vgrow="ALWAYS">
+                                        styleClass="menu_button" text="Signature" contentDisplay="LEFT" VBox.vgrow="ALWAYS">
                                     <graphic>
                                         <IconifyIcon iconColor="#28a745" iconLiteral="bi-key" iconSize="16"/>
                                     </graphic>
@@ -489,18 +489,18 @@
                             <Separator styleClass="sidebar-section-separator"/>
                             <HBox fx:id="bottomButtonRow" alignment="CENTER" spacing="0">
                                 <Button fx:id="help" mnemonicParsing="false" onAction="#loadPage"
-                                        styleClass="menu_button" text="Help" HBox.hgrow="ALWAYS">
+                                        styleClass="menu_button" text="Help" contentDisplay="LEFT" HBox.hgrow="ALWAYS">
                                     <graphic>
                                         <IconifyIcon iconColor="#17a2b8" iconLiteral="bi-question-square" iconSize="16"/>
                                     </graphic>
                                 </Button>
                                 <Button fx:id="settings" mnemonicParsing="false" onAction="#loadPage"
-                                        styleClass="menu_button" text="Settings" HBox.hgrow="ALWAYS">
+                                        styleClass="menu_button" text="Settings" contentDisplay="LEFT" HBox.hgrow="ALWAYS">
                                     <graphic>
                                         <IconifyIcon iconLiteral="bi-gear-fill" iconSize="16"/>
                                     </graphic>
                                 </Button>
-                                <Button fx:id="exit" styleClass="menu_button" text="Exit" HBox.hgrow="ALWAYS">
+                                <Button fx:id="exit" styleClass="menu_button" text="Exit" contentDisplay="LEFT" HBox.hgrow="ALWAYS">
                                     <graphic>
                                         <IconifyIcon iconColor="#495057" iconLiteral="bi-door-closed" iconSize="16"/>
                                     </graphic>

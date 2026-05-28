@@ -236,14 +236,14 @@
                     <Label text="Create a new XML file or open an existing document to start editing" wrapText="true" textAlignment="CENTER"
                            styleClass="empty-state-description" maxWidth="400"/>
                     <HBox spacing="10" alignment="CENTER">
-                        <Button fx:id="emptyStateNewButton" text="New XML File" styleClass="btn-primary">
+                        <Button fx:id="emptyStateNewButton" text="New XML File" contentDisplay="LEFT" styleClass="btn-primary">
                             <graphic>
-                                <IconifyIcon iconLiteral="bi-file-earmark-plus" iconSize="16" iconColor="white"/>
+                                <IconifyIcon iconLiteral="bi-file-earmark-plus" iconSize="20" iconColor="white"/>
                             </graphic>
                         </Button>
-                        <Button fx:id="emptyStateOpenButton" text="Open XML File" styleClass="btn-secondary">
+                        <Button fx:id="emptyStateOpenButton" text="Open XML File" contentDisplay="LEFT" styleClass="btn-secondary">
                             <graphic>
-                                <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16"/>
+                                <IconifyIcon iconLiteral="bi-folder2-open" iconSize="20"/>
                             </graphic>
                         </Button>
                     </HBox>
@@ -266,20 +266,20 @@
                     <!-- Query Controls Bar -->
                     <HBox spacing="10" alignment="CENTER_LEFT">
                         <Button fx:id="executeQueryButton" onAction="#runXpathQueryPressed"
-                                text="Execute Query" prefWidth="140"
+                                text="Execute Query" contentDisplay="LEFT" prefWidth="140"
                                 styleClass="btn-execute">
                             <graphic>
                                 <IconifyIcon iconColor="white" iconLiteral="bi-play-circle-fill" iconSize="18"/>
                             </graphic>
                         </Button>
-                        <Button fx:id="clearQueryButton" onAction="#clearXpathQuery" text="Clear Query" prefWidth="120">
+                        <Button fx:id="clearQueryButton" onAction="#clearXpathQuery" text="Clear Query" contentDisplay="LEFT" prefWidth="120">
                             <graphic>
                                 <IconifyIcon iconColor="#6c757d" iconLiteral="bi-eraser" iconSize="16"/>
                             </graphic>
                         </Button>
-                        <Button onAction="#reloadXmlText" text="Reset Result" prefWidth="120">
+                        <Button onAction="#reloadXmlText" text="Reset Result" contentDisplay="LEFT" prefWidth="120">
                             <graphic>
-                                <IconifyIcon iconColor="#dc3545" iconLiteral="bi-arrow-counterclockwise" iconSize="16"/>
+                                <IconifyIcon iconColor="#6c757d" iconLiteral="bi-arrow-counterclockwise" iconSize="16"/>
                             </graphic>
                         </Button>
                         <Region HBox.hgrow="ALWAYS"/>
@@ -297,19 +297,19 @@
                                 <HBox spacing="10" alignment="CENTER_LEFT">
                                     <Label text="XPath Expression:" styleClass="label-bold"/>
                                     <Region HBox.hgrow="ALWAYS"/>
-                                    <MenuButton fx:id="savedXPathQueriesMenu" text="Saved Queries" styleClass="label-small">
+                                    <MenuButton fx:id="savedXPathQueriesMenu" text="Saved Queries" contentDisplay="LEFT" styleClass="label-small">
                                         <graphic><IconifyIcon iconLiteral="bi-folder2" iconSize="14" iconColor="#6f42c1"/></graphic>
                                     </MenuButton>
-                                    <Button text="Save" onAction="#saveXPathQuery" styleClass="label-small">
+                                    <Button text="Save" onAction="#saveXPathQuery" contentDisplay="LEFT" styleClass="label-small">
                                         <graphic><IconifyIcon iconLiteral="bi-save" iconSize="14" iconColor="#17a2b8"/></graphic>
                                         <tooltip><Tooltip text="Save query to file"/></tooltip>
                                     </Button>
-                                    <Button text="Load" onAction="#loadXPathQueryFromFile" styleClass="label-small">
+                                    <Button text="Load" onAction="#loadXPathQueryFromFile" contentDisplay="LEFT" styleClass="label-small">
                                         <graphic><IconifyIcon iconLiteral="bi-folder2-open" iconSize="14" iconColor="#007bff"/></graphic>
                                         <tooltip><Tooltip text="Load query from file"/></tooltip>
                                     </Button>
                                     <Separator orientation="VERTICAL"/>
-                                    <MenuButton text="Examples" styleClass="label-small">
+                                    <MenuButton text="Examples" contentDisplay="LEFT" styleClass="label-small">
                                         <graphic><IconifyIcon iconLiteral="bi-collection" iconSize="14"/></graphic>
                                         <items>
                                             <MenuItem text="//node - Select all nodes" onAction="#insertXPathExample1">
@@ -336,19 +336,19 @@
                                 <HBox spacing="10" alignment="CENTER_LEFT">
                                     <Label text="XQuery Expression:" styleClass="label-bold"/>
                                     <Region HBox.hgrow="ALWAYS"/>
-                                    <MenuButton fx:id="savedXQueryQueriesMenu" text="Saved Queries" styleClass="label-small">
+                                    <MenuButton fx:id="savedXQueryQueriesMenu" text="Saved Queries" contentDisplay="LEFT" styleClass="label-small">
                                         <graphic><IconifyIcon iconLiteral="bi-folder2" iconSize="14" iconColor="#20c997"/></graphic>
                                     </MenuButton>
-                                    <Button text="Save" onAction="#saveXQueryQuery" styleClass="label-small">
+                                    <Button text="Save" onAction="#saveXQueryQuery" contentDisplay="LEFT" styleClass="label-small">
                                         <graphic><IconifyIcon iconLiteral="bi-save" iconSize="14" iconColor="#17a2b8"/></graphic>
                                         <tooltip><Tooltip text="Save query to file"/></tooltip>
                                     </Button>
-                                    <Button text="Load" onAction="#loadXQueryQueryFromFile" styleClass="label-small">
+                                    <Button text="Load" onAction="#loadXQueryQueryFromFile" contentDisplay="LEFT" styleClass="label-small">
                                         <graphic><IconifyIcon iconLiteral="bi-folder2-open" iconSize="14" iconColor="#007bff"/></graphic>
                                         <tooltip><Tooltip text="Load query from file"/></tooltip>
                                     </Button>
                                     <Separator orientation="VERTICAL"/>
-                                    <MenuButton text="Examples" styleClass="label-small">
+                                    <MenuButton text="Examples" contentDisplay="LEFT" styleClass="label-small">
                                         <graphic><IconifyIcon iconLiteral="bi-collection" iconSize="14"/></graphic>
                                         <items>
                                             <MenuItem text="for $x in //item return $x" onAction="#insertXQueryExample1">
@@ -381,8 +381,12 @@
                             </padding>
                             <HBox spacing="5" alignment="CENTER_LEFT">
                                 <Label text="XML Source:" styleClass="section-label"/>
-                                <Button fx:id="loadXmlSourceButton" text="Load" onAction="#loadXmlSourceFile"/>
-                                <Button fx:id="saveXmlSourceButton" text="Save" onAction="#saveXmlSourceFile"/>
+                                <Button fx:id="loadXmlSourceButton" text="Load" contentDisplay="LEFT" onAction="#loadXmlSourceFile">
+                                    <graphic><IconifyIcon iconLiteral="bi-folder2-open" iconSize="14" iconColor="#007bff"/></graphic>
+                                </Button>
+                                <Button fx:id="saveXmlSourceButton" text="Save" contentDisplay="LEFT" onAction="#saveXmlSourceFile">
+                                    <graphic><IconifyIcon iconLiteral="bi-save" iconSize="14" iconColor="#17a2b8"/></graphic>
+                                </Button>
                             </HBox>
                             <StackPane fx:id="xmlSourceEditorPane" VBox.vgrow="ALWAYS" minHeight="100"/>
                         </VBox>
@@ -394,11 +398,17 @@
                             </padding>
                             <HBox spacing="5" alignment="CENTER_LEFT">
                                 <Label text="XSLT Stylesheet:" styleClass="section-label"/>
-                                <Button fx:id="loadXsltButton" text="Load" onAction="#loadXsltFile"/>
-                                <Button fx:id="saveXsltButton" text="Save" onAction="#saveXsltFile"/>
+                                <Button fx:id="loadXsltButton" text="Load" contentDisplay="LEFT" onAction="#loadXsltFile">
+                                    <graphic><IconifyIcon iconLiteral="bi-folder2-open" iconSize="14" iconColor="#007bff"/></graphic>
+                                </Button>
+                                <Button fx:id="saveXsltButton" text="Save" contentDisplay="LEFT" onAction="#saveXsltFile">
+                                    <graphic><IconifyIcon iconLiteral="bi-save" iconSize="14" iconColor="#17a2b8"/></graphic>
+                                </Button>
                                 <Separator orientation="VERTICAL"/>
-                                <Button fx:id="transformButton" text="Transform" onAction="#executeTransformation"
-                                        styleClass="btn-primary"/>
+                                <Button fx:id="transformButton" text="Transform" contentDisplay="LEFT" onAction="#executeTransformation"
+                                        styleClass="btn-primary">
+                                    <graphic><IconifyIcon iconLiteral="bi-play-fill" iconSize="14" iconColor="white"/></graphic>
+                                </Button>
                             </HBox>
                             <StackPane fx:id="xsltEditorPane" VBox.vgrow="ALWAYS" minHeight="100"/>
                         </VBox>
@@ -441,10 +451,11 @@
                         </padding>
                         <HBox spacing="5" alignment="CENTER_LEFT">
                             <Label text="Template Parameters:" styleClass="section-label"/>
-                            <Button fx:id="addParameterButton" onAction="#addTemplateParameter">
+                            <Button fx:id="addParameterButton" contentDisplay="GRAPHIC_ONLY" onAction="#addTemplateParameter">
                                 <graphic>
-                                    <IconifyIcon iconLiteral="bi-plus-circle" iconSize="12"/>
+                                    <IconifyIcon iconLiteral="bi-plus-circle" iconSize="14" iconColor="#28a745"/>
                                 </graphic>
+                                <tooltip><Tooltip text="Add template parameter"/></tooltip>
                             </Button>
                         </HBox>
                         <TableView fx:id="templateParametersTable" VBox.vgrow="ALWAYS">
@@ -455,10 +466,14 @@
                             </columns>
                         </TableView>
                         <HBox spacing="5">
-                            <Button fx:id="validateParametersButton" text="Validate" onAction="#validateTemplateParameters"
-                                    styleClass="btn-warning"/>
-                            <Button fx:id="resetParametersButton" text="Reset" onAction="#resetTemplateParameters"
-                                    styleClass="btn-secondary"/>
+                            <Button fx:id="validateParametersButton" text="Validate" contentDisplay="LEFT" onAction="#validateTemplateParameters"
+                                    styleClass="btn-warning">
+                                <graphic><IconifyIcon iconLiteral="bi-check-circle" iconSize="14" iconColor="#ffc107"/></graphic>
+                            </Button>
+                            <Button fx:id="resetParametersButton" text="Reset" contentDisplay="LEFT" onAction="#resetTemplateParameters"
+                                    styleClass="btn-secondary">
+                                <graphic><IconifyIcon iconLiteral="bi-arrow-counterclockwise" iconSize="14" iconColor="#6c757d"/></graphic>
+                            </Button>
                         </HBox>
                     </VBox>
 
@@ -469,10 +484,14 @@
                         </padding>
                         <HBox spacing="5" alignment="CENTER_LEFT">
                             <Label text="Generated XML:" styleClass="section-label"/>
-                            <Button fx:id="generateTemplateButton" text="Generate" onAction="#generateTemplateXml"
-                                    styleClass="btn-success"/>
-                            <Button fx:id="insertTemplateButton" text="Insert" onAction="#insertGeneratedTemplate"
-                                    styleClass="btn-primary"/>
+                            <Button fx:id="generateTemplateButton" text="Generate" contentDisplay="LEFT" onAction="#generateTemplateXml"
+                                    styleClass="btn-success">
+                                <graphic><IconifyIcon iconLiteral="bi-gear" iconSize="14" iconColor="#28a745"/></graphic>
+                            </Button>
+                            <Button fx:id="insertTemplateButton" text="Insert" contentDisplay="LEFT" onAction="#insertGeneratedTemplate"
+                                    styleClass="btn-primary">
+                                <graphic><IconifyIcon iconLiteral="bi-box-arrow-in-down" iconSize="14" iconColor="#007bff"/></graphic>
+                            </Button>
                         </HBox>
                         <TextArea fx:id="templatePreviewArea" VBox.vgrow="ALWAYS" styleClass="code-preview"
                                   wrapText="false"/>
@@ -488,9 +507,9 @@
                     </padding>
                     <HBox spacing="5" alignment="CENTER_LEFT">
                         <Label text="Output Console" styleClass="section-label"/>
-                        <Button text="Clear" onAction="#clearConsole">
+                        <Button text="Clear" contentDisplay="LEFT" onAction="#clearConsole">
                             <graphic>
-                                <IconifyIcon iconLiteral="bi-trash" iconSize="12"/>
+                                <IconifyIcon iconLiteral="bi-trash" iconSize="14" iconColor="#dc3545"/>
                             </graphic>
                         </Button>
                     </HBox>

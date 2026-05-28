@@ -52,8 +52,11 @@ public class WatchPanel extends VBox {
             private final Button btn = new Button();
             {
                 IconifyIcon fi = new IconifyIcon("bi-x-circle");
-                fi.setIconSize(12);
+                fi.setIconSize(14);
+                fi.setIconColor(javafx.scene.paint.Color.web("#dc3545"));
                 btn.setGraphic(fi);
+                btn.setContentDisplay(javafx.scene.control.ContentDisplay.GRAPHIC_ONLY);
+                btn.setTooltip(new javafx.scene.control.Tooltip("Remove watch expression"));
                 btn.getStyleClass().add("btn-flat");
                 btn.setOnAction(e -> {
                     WatchExpression w = getTableView().getItems().get(getIndex());
@@ -78,7 +81,9 @@ public class WatchPanel extends VBox {
         Button addBtn = new Button();
         IconifyIcon addIcon = new IconifyIcon("bi-plus-circle");
         addIcon.setIconSize(14);
+        addIcon.setIconColor(javafx.scene.paint.Color.web("#28a745"));
         addBtn.setGraphic(addIcon);
+        addBtn.setContentDisplay(javafx.scene.control.ContentDisplay.GRAPHIC_ONLY);
         addBtn.setTooltip(new javafx.scene.control.Tooltip("Add watch expression"));
         addBtn.setOnAction(e -> addWatch());
         input.setOnAction(e -> addWatch());

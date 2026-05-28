@@ -81,7 +81,7 @@
         <Button fx:id="addXmlFolderBtn" text="Add" contentDisplay="LEFT" styleClass="toolbar-button"
                 onAction="#handleAddXmlFolderFavorite">
             <graphic>
-                <IconifyIcon iconLiteral="bi-plus-circle" iconSize="16" iconColor="#28a745"
+                <IconifyIcon iconLiteral="bi-plus-circle" iconSize="20" iconColor="#28a745"
                           styleClass="toolbar-icon-success"/>
             </graphic>
             <tooltip>
@@ -96,7 +96,7 @@
         <Button fx:id="addXsltFolderBtn" text="Add" contentDisplay="LEFT" styleClass="toolbar-button"
                 onAction="#handleAddXsltFolderFavorite">
             <graphic>
-                <IconifyIcon iconLiteral="bi-plus-circle" iconSize="16" iconColor="#28a745"
+                <IconifyIcon iconLiteral="bi-plus-circle" iconSize="20" iconColor="#28a745"
                           styleClass="toolbar-icon-success"/>
             </graphic>
             <tooltip>

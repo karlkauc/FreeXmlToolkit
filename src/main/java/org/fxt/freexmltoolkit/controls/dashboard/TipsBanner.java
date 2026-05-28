@@ -7,7 +7,9 @@ import java.util.function.Consumer;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -56,7 +58,11 @@ public class TipsBanner extends VBox {
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
         Button dismissAllButton = new Button();
-        dismissAllButton.setGraphic(new IconifyIcon("bi-x"));
+        IconifyIcon dismissIcon = new IconifyIcon("bi-x");
+        dismissIcon.setIconSize(16);
+        dismissAllButton.setGraphic(dismissIcon);
+        dismissAllButton.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+        dismissAllButton.setTooltip(new Tooltip("Dismiss all tips"));
         dismissAllButton.getStyleClass().add("tips-dismiss-button");
         dismissAllButton.setOnAction(e -> {
             tips.clear();
@@ -96,7 +102,11 @@ public class TipsBanner extends VBox {
         navigationBox.setAlignment(Pos.CENTER);
 
         Button prevButton = new Button();
-        prevButton.setGraphic(new IconifyIcon("bi-chevron-left"));
+        IconifyIcon prevIcon = new IconifyIcon("bi-chevron-left");
+        prevIcon.setIconSize(16);
+        prevButton.setGraphic(prevIcon);
+        prevButton.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+        prevButton.setTooltip(new Tooltip("Previous tip"));
         prevButton.getStyleClass().add("tips-nav-button");
         prevButton.setOnAction(e -> showPreviousTip());
 
@@ -104,7 +114,11 @@ public class TipsBanner extends VBox {
         tipCounter.getStyleClass().add("tips-counter");
 
         Button nextButton = new Button();
-        nextButton.setGraphic(new IconifyIcon("bi-chevron-right"));
+        IconifyIcon nextIcon = new IconifyIcon("bi-chevron-right");
+        nextIcon.setIconSize(16);
+        nextButton.setGraphic(nextIcon);
+        nextButton.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+        nextButton.setTooltip(new Tooltip("Next tip"));
         nextButton.getStyleClass().add("tips-nav-button");
         nextButton.setOnAction(e -> showNextTip());
 

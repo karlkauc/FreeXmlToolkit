@@ -14,6 +14,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.Separator;
@@ -208,7 +209,10 @@ public class XmlSearchReplacePanel extends VBox {
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
         closeButton = new Button();
-        closeButton.setGraphic(new IconifyIcon("bi-x"));
+        IconifyIcon closeIcon = new IconifyIcon("bi-x");
+        closeIcon.setIconSize(16);
+        closeButton.setGraphic(closeIcon);
+        closeButton.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
         closeButton.getStyleClass().addAll("search-close-button", "button-icon");
         closeButton.setTooltip(new Tooltip("Close Search Panel (Esc)"));
 
@@ -325,21 +329,37 @@ public class XmlSearchReplacePanel extends VBox {
         section.getStyleClass().add("search-actions");
 
         findNextButton = new Button("Find Next");
-        findNextButton.setGraphic(new IconifyIcon("bi-arrow-down"));
+        IconifyIcon findNextIcon = new IconifyIcon("bi-arrow-down");
+        findNextIcon.setIconSize(16);
+        findNextButton.setGraphic(findNextIcon);
+        findNextButton.setContentDisplay(ContentDisplay.LEFT);
+        findNextButton.setGraphicTextGap(6);
         findNextButton.getStyleClass().addAll("search-button", "primary-button");
         findNextButton.setDefaultButton(true);
 
         findPreviousButton = new Button("Find Previous");
-        findPreviousButton.setGraphic(new IconifyIcon("bi-arrow-up"));
+        IconifyIcon findPrevIcon = new IconifyIcon("bi-arrow-up");
+        findPrevIcon.setIconSize(16);
+        findPreviousButton.setGraphic(findPrevIcon);
+        findPreviousButton.setContentDisplay(ContentDisplay.LEFT);
+        findPreviousButton.setGraphicTextGap(6);
         findPreviousButton.getStyleClass().addAll("search-button", "secondary-button");
 
         replaceButton = new Button("Replace");
-        replaceButton.setGraphic(new IconifyIcon("bi-arrow-clockwise"));
+        IconifyIcon replaceIcon = new IconifyIcon("bi-arrow-clockwise");
+        replaceIcon.setIconSize(16);
+        replaceButton.setGraphic(replaceIcon);
+        replaceButton.setContentDisplay(ContentDisplay.LEFT);
+        replaceButton.setGraphicTextGap(6);
         replaceButton.getStyleClass().addAll("search-button", "secondary-button");
         replaceButton.setDisable(true);
 
         replaceAllButton = new Button("Replace All");
-        replaceAllButton.setGraphic(new IconifyIcon("bi-arrow-repeat"));
+        IconifyIcon replaceAllIcon = new IconifyIcon("bi-arrow-repeat");
+        replaceAllIcon.setIconSize(16);
+        replaceAllButton.setGraphic(replaceAllIcon);
+        replaceAllButton.setContentDisplay(ContentDisplay.LEFT);
+        replaceAllButton.setGraphicTextGap(6);
         replaceAllButton.getStyleClass().addAll("search-button", "warning-button");
         replaceAllButton.setDisable(true);
 

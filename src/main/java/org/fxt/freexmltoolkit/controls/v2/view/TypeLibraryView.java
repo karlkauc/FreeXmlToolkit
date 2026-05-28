@@ -193,6 +193,8 @@ public class TypeLibraryView extends BorderPane {
         createComplexTypeBtn.setGraphic(new IconifyIcon("bi-file-earmark-plus"));
         ((IconifyIcon) createComplexTypeBtn.getGraphic()).setIconColor(javafx.scene.paint.Color.web("#28a745"));
         ((IconifyIcon) createComplexTypeBtn.getGraphic()).setIconSize(16);
+        createComplexTypeBtn.setContentDisplay(javafx.scene.control.ContentDisplay.LEFT);
+        createComplexTypeBtn.setGraphicTextGap(6);
         createComplexTypeBtn.setStyle("-fx-font-size: 11px;");
         createComplexTypeBtn.setOnAction(e -> {
             if (typeEditorTabManager != null) {
@@ -204,6 +206,8 @@ public class TypeLibraryView extends BorderPane {
         createSimpleTypeBtn.setGraphic(new IconifyIcon("bi-plus-circle"));
         ((IconifyIcon) createSimpleTypeBtn.getGraphic()).setIconColor(javafx.scene.paint.Color.web("#17a2b8"));
         ((IconifyIcon) createSimpleTypeBtn.getGraphic()).setIconSize(16);
+        createSimpleTypeBtn.setContentDisplay(javafx.scene.control.ContentDisplay.LEFT);
+        createSimpleTypeBtn.setGraphicTextGap(6);
         createSimpleTypeBtn.setStyle("-fx-font-size: 11px;");
         createSimpleTypeBtn.setOnAction(e -> {
             if (typeEditorTabManager != null) {

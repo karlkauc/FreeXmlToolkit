@@ -216,7 +216,14 @@ public class IconifyIcon extends Region {
 
     @Override
     protected void layoutChildren() {
-        content.relocate(0, 0);
+        // Map the icon's 16x16 viewBox onto this region's box. The Scale (pivot 0,0)
+        // already converts viewBox coordinates to pixels, so the content group must stay
+        // anchored at the origin (0,0). Do NOT use relocate(): relocate() compensates for
+        // the glyph's actual painted path bounds, which shoves icons that have padding
+        // inside their viewBox (e.g. bi-x, bi-chevron-left, bi-dash) into the top-left
+        // corner and makes them look misaligned and too small.
+        content.setLayoutX(0);
+        content.setLayoutY(0);
     }
 
     // --- CSS metadata ------------------------------------------------------

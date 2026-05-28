@@ -38,14 +38,14 @@
         <!-- File Selection Area -->
         <HBox fx:id="fileSelectionArea" spacing="10" alignment="CENTER_LEFT" disable="true">
             <TextField fx:id="sourceFileField" promptText="Select XML file(s)..." prefWidth="400" editable="false"/>
-            <Button fx:id="browseSourceButton" text="Browse...">
+            <Button fx:id="browseSourceButton" text="Browse..." contentDisplay="LEFT">
                 <graphic>
-                    <IconifyIcon iconLiteral="bi-folder2-open" iconSize="14"/>
+                    <IconifyIcon iconLiteral="bi-folder2-open" iconSize="14" iconColor="#007bff"/>
                 </graphic>
             </Button>
-            <Button fx:id="addMoreFilesButton" text="Add More" disable="true">
+            <Button fx:id="addMoreFilesButton" text="Add More" contentDisplay="LEFT" disable="true">
                 <graphic>
-                    <IconifyIcon iconLiteral="bi-plus-circle" iconSize="14"/>
+                    <IconifyIcon iconLiteral="bi-plus-circle" iconSize="14" iconColor="#28a745"/>
                 </graphic>
             </Button>
         </HBox>
@@ -122,7 +122,7 @@
             <ProgressIndicator fx:id="generationProgress" visible="false" prefWidth="24" prefHeight="24"/>
             <Label fx:id="generationStatusLabel" text="Ready to generate" styleClass="status-label"/>
             <Region HBox.hgrow="ALWAYS"/>
-            <Button fx:id="generateSchemaButton" text="Generate Schema" styleClass="btn-success">
+            <Button fx:id="generateSchemaButton" text="Generate Schema" contentDisplay="LEFT" styleClass="btn-success">
                 <graphic>
                     <IconifyIcon iconLiteral="bi-gear" iconColor="white" iconSize="16"/>
                 </graphic>
@@ -182,24 +182,24 @@
 
     <!-- Action Buttons -->
     <HBox spacing="10" alignment="CENTER_RIGHT">
-        <Button fx:id="validateSchemaButton" text="Validate Generated Schema" styleClass="btn-info">
+        <Button fx:id="validateSchemaButton" text="Validate Generated Schema" contentDisplay="LEFT" styleClass="btn-info">
             <graphic>
-                <IconifyIcon iconLiteral="bi-check-circle" iconSize="14"/>
+                <IconifyIcon iconLiteral="bi-check-circle" iconSize="14" iconColor="#17a2b8"/>
             </graphic>
         </Button>
-        <Button fx:id="saveSchemaButton" text="Save Schema" styleClass="btn-primary">
+        <Button fx:id="saveSchemaButton" text="Save Schema" contentDisplay="LEFT" styleClass="btn-primary">
             <graphic>
-                <IconifyIcon iconLiteral="bi-hdd" iconSize="14"/>
+                <IconifyIcon iconLiteral="bi-hdd" iconSize="14" iconColor="#17a2b8"/>
             </graphic>
         </Button>
-        <Button fx:id="exportSchemaButton" text="Export &amp; Open" styleClass="btn-success">
+        <Button fx:id="exportSchemaButton" text="Export &amp; Open" contentDisplay="LEFT" styleClass="btn-success">
             <graphic>
-                <IconifyIcon iconLiteral="bi-box-arrow-up-right" iconSize="14"/>
+                <IconifyIcon iconLiteral="bi-box-arrow-up-right" iconSize="14" iconColor="#28a745"/>
             </graphic>
         </Button>
-        <Button fx:id="cancelButton" text="Close" styleClass="btn-secondary">
+        <Button fx:id="cancelButton" text="Close" contentDisplay="LEFT" styleClass="btn-secondary">
             <graphic>
-                <IconifyIcon iconLiteral="bi-x-circle" iconSize="14"/>
+                <IconifyIcon iconLiteral="bi-x-circle" iconSize="14" iconColor="#6c757d"/>
             </graphic>
         </Button>
     </HBox>

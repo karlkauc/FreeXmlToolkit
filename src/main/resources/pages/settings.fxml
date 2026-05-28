@@ -127,8 +127,12 @@
                                     <HBox spacing="8" alignment="CENTER_LEFT">
                                         <TextField fx:id="customTempFolder" promptText="C:/temp" HBox.hgrow="ALWAYS"
                                                    styleClass="settings-text-field"/>
-                                        <Button onAction="#selectCustomTempFolder" text="Browse..."
-                                                styleClass="btn-gray"/>
+                                        <Button onAction="#selectCustomTempFolder" text="Browse..." contentDisplay="LEFT"
+                                                styleClass="btn-gray">
+                                            <graphic>
+                                                <IconifyIcon iconLiteral="bi-folder2-open" iconSize="14" iconColor="#007bff"/>
+                                            </graphic>
+                                        </Button>
                                     </HBox>
                                 </VBox>
                             </VBox>
@@ -144,10 +148,10 @@
                                 </VBox>
                                 <HBox spacing="12" alignment="CENTER_LEFT">
                                     <Button fx:id="clearStatisticsButton" mnemonicParsing="false" onAction="#clearStatistics"
-                                            text="Clear Statistics"
+                                            text="Clear Statistics" contentDisplay="LEFT"
                                             styleClass="btn-warning-action">
                                         <graphic>
-                                            <IconifyIcon iconLiteral="bi-trash" iconSize="14"/>
+                                            <IconifyIcon iconLiteral="bi-trash" iconSize="14" iconColor="#dc3545"/>
                                         </graphic>
                                     </Button>
                                     <Label text="This will reset all your progress data"
@@ -182,18 +186,18 @@
 
                                 <HBox spacing="12" alignment="CENTER_LEFT">
                                     <Button fx:id="clearCacheButton" mnemonicParsing="false" onAction="#clearCache"
-                                            text="Clear Local Cache"
+                                            text="Clear Local Cache" contentDisplay="LEFT"
                                             styleClass="btn-danger">
                                         <graphic>
-                                            <IconifyIcon iconLiteral="bi-trash" iconSize="14"/>
+                                            <IconifyIcon iconLiteral="bi-trash" iconSize="14" iconColor="#dc3545"/>
                                         </graphic>
                                     </Button>
                                     <Button fx:id="openCacheFolderButton" mnemonicParsing="false"
                                             onAction="#openCacheFolder"
-                                            text="Open Folder"
+                                            text="Open Folder" contentDisplay="LEFT"
                                             styleClass="btn-gray">
                                         <graphic>
-                                            <IconifyIcon iconLiteral="bi-folder2-open" iconSize="14"/>
+                                            <IconifyIcon iconLiteral="bi-folder2-open" iconSize="14" iconColor="#007bff"/>
                                         </graphic>
                                     </Button>
                                 </HBox>
@@ -274,19 +278,19 @@
                                        styleClass="settings-section-hint"/>
                                 <Button fx:id="checkForUpdatesButton" mnemonicParsing="false"
                                         onAction="#checkForUpdatesNow"
-                                        text="Check for Updates Now"
+                                        text="Check for Updates Now" contentDisplay="LEFT"
                                         styleClass="btn-success-action">
                                     <graphic>
-                                        <IconifyIcon iconLiteral="bi-arrow-repeat" iconSize="14"/>
+                                        <IconifyIcon iconLiteral="bi-arrow-repeat" iconSize="14" iconColor="#6c757d"/>
                                     </graphic>
                                 </Button>
                             </VBox>
 
                             <Button fx:id="checkConnection" mnemonicParsing="false" onAction="#performCheck"
-                                    text="Test Connection"
+                                    text="Test Connection" contentDisplay="LEFT"
                                     styleClass="btn-check-connection">
                                 <graphic>
-                                    <IconifyIcon iconLiteral="bi-plug-fill" iconSize="14"/>
+                                    <IconifyIcon iconLiteral="bi-plug-fill" iconSize="14" iconColor="#17a2b8"/>
                                 </graphic>
                             </Button>
                         </VBox>
@@ -413,10 +417,10 @@
                                         <TextField fx:id="backupDirectoryPath" prefWidth="350"
                                                    promptText="~/.freeXmlToolkit/backups" HBox.hgrow="ALWAYS"
                                                    styleClass="settings-text-field"/>
-                                        <Button fx:id="browseBackupDirectory" onAction="#browseBackupDirectory" text="Browse..."
+                                        <Button fx:id="browseBackupDirectory" onAction="#browseBackupDirectory" text="Browse..." contentDisplay="LEFT"
                                                 styleClass="btn-gray">
                                             <graphic>
-                                                <IconifyIcon iconLiteral="bi-folder2-open" iconSize="14"/>
+                                                <IconifyIcon iconLiteral="bi-folder2-open" iconSize="14" iconColor="#007bff"/>
                                             </graphic>
                                         </Button>
                                     </HBox>
@@ -486,29 +490,29 @@
                                 <!-- Favorites Actions -->
                                 <HBox spacing="8" alignment="CENTER_LEFT"
                                       styleClass="favorites-action-bar">
-                                    <Button fx:id="openFavoriteButton" onAction="#openSelectedFavorite" text="Open"
+                                    <Button fx:id="openFavoriteButton" onAction="#openSelectedFavorite" text="Open" contentDisplay="LEFT"
                                             styleClass="btn-info-action">
                                         <graphic>
-                                            <IconifyIcon iconLiteral="bi-folder2-open" iconSize="14"/>
+                                            <IconifyIcon iconLiteral="bi-folder2-open" iconSize="14" iconColor="#007bff"/>
                                         </graphic>
                                     </Button>
-                                    <Button fx:id="editFavoriteButton" onAction="#editSelectedFavorite" text="Edit"
+                                    <Button fx:id="editFavoriteButton" onAction="#editSelectedFavorite" text="Edit" contentDisplay="LEFT"
                                             styleClass="btn-gray">
                                         <graphic>
-                                            <IconifyIcon iconLiteral="bi-pencil" iconSize="14"/>
+                                            <IconifyIcon iconLiteral="bi-pencil" iconSize="14" iconColor="#6c757d"/>
                                         </graphic>
                                     </Button>
-                                    <Button fx:id="removeFavoriteButton" onAction="#removeSelectedFavorite" text="Remove"
+                                    <Button fx:id="removeFavoriteButton" onAction="#removeSelectedFavorite" text="Remove" contentDisplay="LEFT"
                                             styleClass="btn-danger">
                                         <graphic>
-                                            <IconifyIcon iconLiteral="bi-trash" iconSize="14"/>
+                                            <IconifyIcon iconLiteral="bi-trash" iconSize="14" iconColor="#dc3545"/>
                                         </graphic>
                                     </Button>
                                     <Button fx:id="removeNonExistentButton" onAction="#removeNonExistentFavorites"
-                                            text="Cleanup"
+                                            text="Cleanup" contentDisplay="LEFT"
                                             styleClass="btn-warning-action">
                                         <graphic>
-                                            <IconifyIcon iconLiteral="bi-x-circle" iconSize="14"/>
+                                            <IconifyIcon iconLiteral="bi-x-circle" iconSize="14" iconColor="#ffc107"/>
                                         </graphic>
                                     </Button>
                                 </HBox>
@@ -522,10 +526,10 @@
                                                    HBox.hgrow="ALWAYS"
                                                    styleClass="settings-text-field"/>
                                         <Button fx:id="createCategoryButton" onAction="#createNewCategory"
-                                                text="Create"
+                                                text="Create" contentDisplay="LEFT"
                                                 styleClass="btn-success-action">
                                             <graphic>
-                                                <IconifyIcon iconLiteral="bi-plus-circle" iconSize="14"/>
+                                                <IconifyIcon iconLiteral="bi-plus-circle" iconSize="14" iconColor="#28a745"/>
                                             </graphic>
                                         </Button>
                                     </HBox>
@@ -583,19 +587,19 @@
                                     <Button fx:id="fundsxmlDownloadButton"
                                             mnemonicParsing="false"
                                             onAction="#handleFundsXmlDownload"
-                                            text="Download / Update FundsXML Content"
+                                            text="Download / Update FundsXML Content" contentDisplay="LEFT"
                                             styleClass="btn-success-action">
                                         <graphic>
-                                            <IconifyIcon iconLiteral="bi-cloud-download" iconSize="14"/>
+                                            <IconifyIcon iconLiteral="bi-cloud-download" iconSize="14" iconColor="#28a745"/>
                                         </graphic>
                                     </Button>
                                     <Button fx:id="fundsxmlOpenFolderButton"
                                             mnemonicParsing="false"
                                             onAction="#handleFundsXmlOpenFolder"
-                                            text="Open Cache Folder"
+                                            text="Open Cache Folder" contentDisplay="LEFT"
                                             styleClass="btn-info-action">
                                         <graphic>
-                                            <IconifyIcon iconLiteral="bi-folder2-open" iconSize="14"/>
+                                            <IconifyIcon iconLiteral="bi-folder2-open" iconSize="14" iconColor="#007bff"/>
                                         </graphic>
                                     </Button>
                                 </HBox>
@@ -611,16 +615,16 @@
 
         <!-- Action Buttons -->
         <HBox spacing="12" alignment="CENTER" styleClass="settings-action-bar">
-            <Button mnemonicParsing="false" onAction="#performSave" text="Save Settings"
+            <Button mnemonicParsing="false" onAction="#performSave" text="Save Settings" contentDisplay="LEFT"
                     styleClass="btn-save">
                 <graphic>
-                    <IconifyIcon iconLiteral="bi-save" iconSize="16"/>
+                    <IconifyIcon iconLiteral="bi-save" iconSize="16" iconColor="#17a2b8"/>
                 </graphic>
             </Button>
-            <Button mnemonicParsing="false" onAction="#loadCurrentSettings" text="Cancel"
+            <Button mnemonicParsing="false" onAction="#loadCurrentSettings" text="Cancel" contentDisplay="LEFT"
                     styleClass="btn-cancel">
                 <graphic>
-                    <IconifyIcon iconLiteral="bi-x-circle" iconSize="16"/>
+                    <IconifyIcon iconLiteral="bi-x-circle" iconSize="16" iconColor="#6c757d"/>
                 </graphic>
             </Button>
         </HBox>

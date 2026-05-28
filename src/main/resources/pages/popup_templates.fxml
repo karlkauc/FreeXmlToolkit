@@ -26,13 +26,13 @@
     <HBox spacing="10" alignment="CENTER_LEFT">
         <Label text="Category:" styleClass="form-label"/>
         <ComboBox fx:id="templateCategoryCombo" prefWidth="150" promptText="Select category"/>
-        <Button fx:id="refreshTemplatesButton" text="Refresh" onAction="#refreshTemplates">
+        <Button fx:id="refreshTemplatesButton" text="Refresh" contentDisplay="LEFT" onAction="#refreshTemplates">
             <graphic>
-                <IconifyIcon iconLiteral="bi-arrow-clockwise" iconSize="12"/>
+                <IconifyIcon iconLiteral="bi-arrow-clockwise" iconSize="14" iconColor="#6c757d"/>
             </graphic>
         </Button>
         <Region HBox.hgrow="ALWAYS"/>
-        <Button fx:id="createNewTemplateButton" text="Create New" styleClass="btn-primary"
+        <Button fx:id="createNewTemplateButton" text="Create New" contentDisplay="LEFT" styleClass="btn-primary"
                 onAction="#createNewTemplate">
             <graphic>
                 <IconifyIcon iconLiteral="bi-plus-circle" iconColor="white" iconSize="14"/>
@@ -68,9 +68,9 @@
             <VBox spacing="8">
                 <HBox alignment="CENTER_LEFT" spacing="10">
                     <Label text="Template Parameters:" styleClass="section-label"/>
-                    <Button fx:id="addParameterButton" text="Add Parameter" onAction="#addParameter">
+                    <Button fx:id="addParameterButton" text="Add Parameter" contentDisplay="LEFT" onAction="#addParameter">
                         <graphic>
-                            <IconifyIcon iconLiteral="bi-plus-circle" iconSize="12"/>
+                            <IconifyIcon iconLiteral="bi-plus-circle" iconSize="14" iconColor="#28a745"/>
                         </graphic>
                     </Button>
                 </HBox>
@@ -93,9 +93,9 @@
             <VBox spacing="8" VBox.vgrow="ALWAYS">
                 <HBox alignment="CENTER_LEFT" spacing="10">
                     <Label text="Preview:" styleClass="section-label"/>
-                    <Button fx:id="generatePreviewButton" text="Generate Preview" onAction="#generatePreview">
+                    <Button fx:id="generatePreviewButton" text="Generate Preview" contentDisplay="LEFT" onAction="#generatePreview">
                         <graphic>
-                            <IconifyIcon iconLiteral="bi-eye" iconSize="12"/>
+                            <IconifyIcon iconLiteral="bi-eye" iconSize="14" iconColor="#17a2b8"/>
                         </graphic>
                     </Button>
                 </HBox>
@@ -108,26 +108,26 @@
 
     <!-- Action Buttons -->
     <HBox spacing="10" alignment="CENTER_RIGHT">
-        <Button fx:id="validateTemplateButton" text="Validate Parameters" styleClass="btn-warning"
+        <Button fx:id="validateTemplateButton" text="Validate Parameters" contentDisplay="LEFT" styleClass="btn-warning"
                 onAction="#validateTemplate">
             <graphic>
-                <IconifyIcon iconLiteral="bi-check-circle" iconSize="14"/>
+                <IconifyIcon iconLiteral="bi-check-circle" iconSize="14" iconColor="#ffc107"/>
             </graphic>
         </Button>
-        <Button fx:id="applyTemplateButton" text="Apply to Editor" styleClass="btn-success" onAction="#applyTemplate">
+        <Button fx:id="applyTemplateButton" text="Apply to Editor" contentDisplay="LEFT" styleClass="btn-success" onAction="#applyTemplate">
             <graphic>
-                <IconifyIcon iconLiteral="bi-arrow-right" iconSize="14"/>
+                <IconifyIcon iconLiteral="bi-arrow-right" iconSize="14" iconColor="#28a745"/>
             </graphic>
         </Button>
-        <Button fx:id="insertTemplateButton" text="Insert at Cursor" styleClass="btn-primary"
+        <Button fx:id="insertTemplateButton" text="Insert at Cursor" contentDisplay="LEFT" styleClass="btn-primary"
                 onAction="#insertTemplate">
             <graphic>
-                <IconifyIcon iconLiteral="bi-cursor-text" iconSize="14"/>
+                <IconifyIcon iconLiteral="bi-cursor-text" iconSize="14" iconColor="#007bff"/>
             </graphic>
         </Button>
-        <Button fx:id="cancelButton" text="Cancel" styleClass="btn-secondary">
+        <Button fx:id="cancelButton" text="Cancel" contentDisplay="LEFT" styleClass="btn-secondary">
             <graphic>
-                <IconifyIcon iconLiteral="bi-x-circle" iconSize="14"/>
+                <IconifyIcon iconLiteral="bi-x-circle" iconSize="14" iconColor="#6c757d"/>
             </graphic>
         </Button>
     </HBox>

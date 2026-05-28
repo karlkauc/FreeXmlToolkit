@@ -453,14 +453,14 @@
             </ListView>
 
             <HBox spacing="8">
-                <Button text="Open Selected" onAction="#openSelectedLinkedFile" HBox.hgrow="ALWAYS" maxWidth="Infinity">
+                <Button text="Open Selected" onAction="#openSelectedLinkedFile" contentDisplay="LEFT" HBox.hgrow="ALWAYS" maxWidth="Infinity">
                     <graphic>
-                        <IconifyIcon iconLiteral="bi-folder2-open" iconSize="14" iconColor="#007bff"/>
+                        <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16" iconColor="#007bff"/>
                     </graphic>
                 </Button>
-                <Button text="Open All" onAction="#openAllLinkedFiles">
+                <Button text="Open All" onAction="#openAllLinkedFiles" contentDisplay="LEFT">
                     <graphic>
-                        <IconifyIcon iconLiteral="bi-collection" iconSize="14" iconColor="#28a745"/>
+                        <IconifyIcon iconLiteral="bi-collection" iconSize="16" iconColor="#28a745"/>
                     </graphic>
                 </Button>
             </HBox>

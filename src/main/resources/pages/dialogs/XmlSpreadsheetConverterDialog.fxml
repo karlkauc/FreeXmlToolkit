@@ -76,18 +76,29 @@
                     <!-- Source file selection -->
                     <Label fx:id="sourceLabel" text="Source File:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
                     <TextField fx:id="sourceFileField" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
-                    <Button fx:id="browseSourceButton" text="Browse..." onAction="#browseSourceFile"
-                            GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+                    <Button fx:id="browseSourceButton" text="Browse..." onAction="#browseSourceFile" contentDisplay="LEFT"
+                            GridPane.columnIndex="2" GridPane.rowIndex="0">
+                        <graphic>
+                            <IconifyIcon iconLiteral="bi-folder2-open" iconSize="14" iconColor="#007bff"/>
+                        </graphic>
+                    </Button>
                     <CheckBox fx:id="useCurrentXmlCheckBox" text="Use current" selected="true"
                               GridPane.columnIndex="3" GridPane.rowIndex="0"/>
 
                     <!-- Target file selection -->
                     <Label fx:id="targetLabel" text="Target File:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
                     <TextField fx:id="targetFileField" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
-                    <Button fx:id="browseTargetButton" text="Browse..." onAction="#browseTargetFile"
-                            GridPane.columnIndex="2" GridPane.rowIndex="1"/>
-                    <Button fx:id="autoTargetButton" text="Auto" onAction="#autoGenerateTargetFile"
+                    <Button fx:id="browseTargetButton" text="Browse..." onAction="#browseTargetFile" contentDisplay="LEFT"
+                            GridPane.columnIndex="2" GridPane.rowIndex="1">
+                        <graphic>
+                            <IconifyIcon iconLiteral="bi-folder2-open" iconSize="14" iconColor="#007bff"/>
+                        </graphic>
+                    </Button>
+                    <Button fx:id="autoTargetButton" text="Auto" onAction="#autoGenerateTargetFile" contentDisplay="LEFT"
                             GridPane.columnIndex="3" GridPane.rowIndex="1">
+                        <graphic>
+                            <IconifyIcon iconLiteral="bi-magic" iconSize="14" iconColor="#6f42c1"/>
+                        </graphic>
                         <tooltip>
                             <Tooltip text="Automatically generate target filename"/>
                         </tooltip>
@@ -127,14 +138,14 @@
             <TitledPane text="Preview" collapsible="true" expanded="true" VBox.vgrow="ALWAYS">
                 <VBox VBox.vgrow="ALWAYS">
                     <HBox spacing="10" alignment="CENTER_LEFT" style="-fx-padding: 0 0 10 0;">
-                        <Button fx:id="previewButton" text="Generate Preview" onAction="#generatePreview">
+                        <Button fx:id="previewButton" text="Generate Preview" onAction="#generatePreview" contentDisplay="LEFT">
                             <graphic>
-                                <IconifyIcon iconLiteral="bi-eye" iconSize="14"/>
+                                <IconifyIcon iconLiteral="bi-eye" iconSize="14" iconColor="#17a2b8"/>
                             </graphic>
                         </Button>
-                        <Button fx:id="clearPreviewButton" text="Clear" onAction="#clearPreview">
+                        <Button fx:id="clearPreviewButton" text="Clear" onAction="#clearPreview" contentDisplay="LEFT">
                             <graphic>
-                                <IconifyIcon iconLiteral="bi-x-circle" iconSize="14"/>
+                                <IconifyIcon iconLiteral="bi-x-circle" iconSize="14" iconColor="#dc3545"/>
                             </graphic>
                         </Button>
                         <Region HBox.hgrow="ALWAYS"/>

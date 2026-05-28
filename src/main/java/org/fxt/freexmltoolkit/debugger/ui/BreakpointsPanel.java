@@ -70,8 +70,11 @@ public class BreakpointsPanel extends TableView<Breakpoint> {
             private final Button btn = new Button();
             {
                 IconifyIcon fi = new IconifyIcon("bi-trash");
-                fi.setIconSize(12);
+                fi.setIconSize(14);
+                fi.setIconColor(javafx.scene.paint.Color.web("#dc3545"));
                 btn.setGraphic(fi);
+                btn.setContentDisplay(javafx.scene.control.ContentDisplay.GRAPHIC_ONLY);
+                btn.setTooltip(new javafx.scene.control.Tooltip("Delete breakpoint"));
                 btn.getStyleClass().add("btn-flat");
                 btn.setOnAction(e -> {
                     Breakpoint bp = getTableView().getItems().get(getIndex());

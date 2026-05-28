@@ -113,10 +113,18 @@
                         </HBox>
                     </VBox>
                     <VBox spacing="5" alignment="CENTER_RIGHT">
-                        <Button fx:id="applyTemplateBtn" text="Apply Template" styleClass="btn-success"
-                                onAction="#applySelectedTemplate" disable="true"/>
-                        <Button fx:id="previewTemplateBtn" text="Live Preview" styleClass="btn-info"
-                                onAction="#previewSelectedTemplate" disable="true"/>
+                        <Button fx:id="applyTemplateBtn" text="Apply Template" contentDisplay="LEFT" styleClass="btn-success"
+                                onAction="#applySelectedTemplate" disable="true">
+                            <graphic>
+                                <IconifyIcon iconLiteral="bi-check-circle" iconSize="16" iconColor="#28a745"/>
+                            </graphic>
+                        </Button>
+                        <Button fx:id="previewTemplateBtn" text="Live Preview" contentDisplay="LEFT" styleClass="btn-info"
+                                onAction="#previewSelectedTemplate" disable="true">
+                            <graphic>
+                                <IconifyIcon iconLiteral="bi-eye" iconSize="16" iconColor="#17a2b8"/>
+                            </graphic>
+                        </Button>
                     </VBox>
                 </HBox>
             </VBox>
@@ -126,9 +134,17 @@
                 <HBox alignment="CENTER_LEFT" spacing="10">
                     <Label text="Template Parameters" styleClass="section-header"/>
                     <Region HBox.hgrow="ALWAYS"/>
-                    <Button fx:id="validateParamsBtn" text="Validate" styleClass="btn-warning"
-                            onAction="#validateParameters"/>
-                    <Button fx:id="resetParamsBtn" text="Reset" styleClass="btn-secondary" onAction="#resetParameters"/>
+                    <Button fx:id="validateParamsBtn" text="Validate" contentDisplay="LEFT" styleClass="btn-warning"
+                            onAction="#validateParameters">
+                        <graphic>
+                            <IconifyIcon iconLiteral="bi-check-circle" iconSize="16" iconColor="#ffc107"/>
+                        </graphic>
+                    </Button>
+                    <Button fx:id="resetParamsBtn" text="Reset" contentDisplay="LEFT" styleClass="btn-secondary" onAction="#resetParameters">
+                        <graphic>
+                            <IconifyIcon iconLiteral="bi-arrow-counterclockwise" iconSize="16" iconColor="#6c757d"/>
+                        </graphic>
+                    </Button>
                 </HBox>
 
                 <TableView fx:id="templateParametersTable" VBox.vgrow="ALWAYS">
@@ -148,9 +164,9 @@
                     <Label text="Generated XML Preview" styleClass="section-header"/>
                     <Region HBox.hgrow="ALWAYS"/>
                     <ToggleButton fx:id="livePreviewToggle" text="Live Preview" styleClass="btn-toggle"/>
-                    <Button fx:id="copyToClipboardBtn" text="Copy" styleClass="btn-outline">
+                    <Button fx:id="copyToClipboardBtn" text="Copy" contentDisplay="LEFT" styleClass="btn-outline">
                         <graphic>
-                            <IconifyIcon iconLiteral="bi-clipboard" iconSize="14"/>
+                            <IconifyIcon iconLiteral="bi-clipboard" iconSize="14" iconColor="#6c757d"/>
                         </graphic>
                     </Button>
                 </HBox>

@@ -27,16 +27,16 @@
                     <Label text="Source XSD File:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
                     <HBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="0" HBox.hgrow="ALWAYS">
                         <TextField fx:id="xsdToFlattenPath" promptText="Load the main XSD file..." HBox.hgrow="ALWAYS"/>
-                        <Button onAction="#openXsdToFlattenChooser" text="Load XSD">
-                            <graphic><IconifyIcon iconLiteral="bi-folder2-open"/></graphic>
+                        <Button onAction="#openXsdToFlattenChooser" text="Load XSD" contentDisplay="LEFT">
+                            <graphic><IconifyIcon iconLiteral="bi-folder2-open" iconSize="16" iconColor="#007bff"/></graphic>
                         </Button>
                     </HBox>
 
                     <Label text="Save Flattened XSD to:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
                     <HBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="1" HBox.hgrow="ALWAYS">
                         <TextField fx:id="flattenedXsdPath" promptText="Select where to save..." HBox.hgrow="ALWAYS"/>
-                        <Button onAction="#selectFlattenedXsdPath" text="Save to...">
-                            <graphic><IconifyIcon iconLiteral="bi-save"/></graphic>
+                        <Button onAction="#selectFlattenedXsdPath" text="Save to..." contentDisplay="LEFT">
+                            <graphic><IconifyIcon iconLiteral="bi-save" iconSize="16" iconColor="#17a2b8"/></graphic>
                         </Button>
                     </HBox>
 
@@ -46,8 +46,8 @@
                         <CheckBox fx:id="flattenImportsCheckBox" selected="false" text="Flatten xs:import"/>
                     </VBox>
                 </GridPane>
-                <Button fx:id="flattenXsdButton" onAction="#flattenXsdAction" text="Flatten XSD" disable="true">
-                    <graphic><IconifyIcon iconLiteral="bi-play-fill" iconSize="16"/></graphic>
+                <Button fx:id="flattenXsdButton" onAction="#flattenXsdAction" text="Flatten XSD" disable="true" contentDisplay="LEFT">
+                    <graphic><IconifyIcon iconLiteral="bi-play-fill" iconSize="20" iconColor="#28a745"/></graphic>
                 </Button>
                 <Label fx:id="flattenStatusLabel" style="-fx-padding: 5 0;"/>
             </VBox>

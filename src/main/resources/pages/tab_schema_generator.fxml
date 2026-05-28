@@ -99,14 +99,14 @@
                 <Label text="Load an XML file or paste XML content to generate an XSD schema" wrapText="true" textAlignment="CENTER"
                        styleClass="empty-state-description" maxWidth="400"/>
                 <HBox spacing="10" alignment="CENTER">
-                    <Button fx:id="emptyStateOpenXmlButton" text="Open XML File" styleClass="btn-primary">
+                    <Button fx:id="emptyStateOpenXmlButton" text="Open XML File" contentDisplay="LEFT" styleClass="btn-primary">
                         <graphic>
-                            <IconifyIcon iconLiteral="bi-file-earmark-code" iconSize="16" iconColor="white"/>
+                            <IconifyIcon iconLiteral="bi-file-earmark-code" iconSize="20" iconColor="white"/>
                         </graphic>
                     </Button>
-                    <Button fx:id="emptyStatePasteButton" text="Paste XML" styleClass="btn-secondary">
+                    <Button fx:id="emptyStatePasteButton" text="Paste XML" contentDisplay="LEFT" styleClass="btn-secondary">
                         <graphic>
-                            <IconifyIcon iconLiteral="bi-clipboard" iconSize="16"/>
+                            <IconifyIcon iconLiteral="bi-clipboard" iconSize="20" iconColor="#6c757d"/>
                         </graphic>
                     </Button>
                 </HBox>
@@ -163,14 +163,14 @@
                 <HBox alignment="CENTER_LEFT" spacing="10">
                     <Label text="XML Input" styleClass="section-header"/>
                     <Region HBox.hgrow="ALWAYS"/>
-                    <Button fx:id="pasteXmlBtn" text="Paste" styleClass="btn-outline" onAction="#pasteXml">
+                    <Button fx:id="pasteXmlBtn" text="Paste" contentDisplay="LEFT" styleClass="btn-outline" onAction="#pasteXml">
                         <graphic>
-                            <IconifyIcon iconLiteral="bi-clipboard" iconSize="14"/>
+                            <IconifyIcon iconLiteral="bi-clipboard" iconSize="14" iconColor="#6c757d"/>
                         </graphic>
                     </Button>
-                    <Button fx:id="clearXmlBtn" text="Clear" styleClass="btn-outline" onAction="#clearXml">
+                    <Button fx:id="clearXmlBtn" text="Clear" contentDisplay="LEFT" styleClass="btn-outline" onAction="#clearXml">
                         <graphic>
-                            <IconifyIcon iconLiteral="bi-trash" iconSize="14"/>
+                            <IconifyIcon iconLiteral="bi-trash" iconSize="14" iconColor="#dc3545"/>
                         </graphic>
                     </Button>
                 </HBox>
@@ -197,10 +197,10 @@
                 <Label text="Generated XSD Schema" styleClass="section-header"/>
                 <Region HBox.hgrow="ALWAYS"/>
                 <Label fx:id="generationStatsLabel" text="" styleClass="generation-stats"/>
-                <Button fx:id="exportSchemaBtn" text="Export XSD" styleClass="btn-primary" onAction="#exportSchema"
+                <Button fx:id="exportSchemaBtn" text="Export XSD" contentDisplay="LEFT" styleClass="btn-primary" onAction="#exportSchema"
                         disable="true">
                     <graphic>
-                        <IconifyIcon iconLiteral="bi-download" iconSize="16"/>
+                        <IconifyIcon iconLiteral="bi-download" iconSize="16" iconColor="#007bff"/>
                     </graphic>
                 </Button>
             </HBox>
@@ -217,9 +217,9 @@
                             <CheckBox fx:id="formatXsdOutput" text="Format Output" selected="true"/>
                             <CheckBox fx:id="addComments" text="Add Comments" selected="true"/>
                             <Region HBox.hgrow="ALWAYS"/>
-                            <Button fx:id="copyXsdBtn" text="Copy" styleClass="btn-outline" onAction="#copyXsd">
+                            <Button fx:id="copyXsdBtn" text="Copy" contentDisplay="LEFT" styleClass="btn-outline" onAction="#copyXsd">
                                 <graphic>
-                                    <IconifyIcon iconLiteral="bi-clipboard" iconSize="14"/>
+                                    <IconifyIcon iconLiteral="bi-clipboard" iconSize="14" iconColor="#6c757d"/>
                                 </graphic>
                             </Button>
                         </HBox>

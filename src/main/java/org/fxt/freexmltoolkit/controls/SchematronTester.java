@@ -13,6 +13,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
@@ -28,12 +29,14 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.FileChooser;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.service.SchematronService;
 import org.fxt.freexmltoolkit.service.SchematronServiceImpl;
 
@@ -96,6 +99,12 @@ public class SchematronTester extends VBox {
         schematronFileField.setPrefWidth(400);
 
         browseSchematronButton = new Button("Browse...");
+        IconifyIcon browseIcon = new IconifyIcon("bi-folder2-open");
+        browseIcon.setIconSize(16);
+        browseIcon.setIconColor(Color.web("#007bff"));
+        browseSchematronButton.setGraphic(browseIcon);
+        browseSchematronButton.setContentDisplay(ContentDisplay.LEFT);
+        browseSchematronButton.setGraphicTextGap(6);
         browseSchematronButton.setPrefWidth(80);
 
         // Test files management
@@ -104,19 +113,43 @@ public class SchematronTester extends VBox {
         testFilesListView.setCellFactory(listView -> new TestFileListCell());
 
         addTestFileButton = new Button("Add XML Files");
+        IconifyIcon addIcon = new IconifyIcon("bi-plus-circle");
+        addIcon.setIconSize(16);
+        addIcon.setIconColor(Color.web("#28a745"));
+        addTestFileButton.setGraphic(addIcon);
+        addTestFileButton.setContentDisplay(ContentDisplay.LEFT);
+        addTestFileButton.setGraphicTextGap(6);
         addTestFileButton.getStyleClass().add("primary-button");
 
         removeTestFileButton = new Button("Remove Selected");
+        IconifyIcon removeIcon = new IconifyIcon("bi-trash");
+        removeIcon.setIconSize(16);
+        removeIcon.setIconColor(Color.web("#dc3545"));
+        removeTestFileButton.setGraphic(removeIcon);
+        removeTestFileButton.setContentDisplay(ContentDisplay.LEFT);
+        removeTestFileButton.setGraphicTextGap(6);
         removeTestFileButton.getStyleClass().add("secondary-button");
         removeTestFileButton.setDisable(true);
 
         // Test execution controls
         runTestsButton = new Button("Run Tests");
+        IconifyIcon runIcon = new IconifyIcon("bi-play-fill");
+        runIcon.setIconSize(16);
+        runIcon.setIconColor(Color.web("#28a745"));
+        runTestsButton.setGraphic(runIcon);
+        runTestsButton.setContentDisplay(ContentDisplay.LEFT);
+        runTestsButton.setGraphicTextGap(6);
         runTestsButton.getStyleClass().add("primary-button");
         runTestsButton.setPrefWidth(120);
         runTestsButton.setDisable(true);
 
         clearResultsButton = new Button("Clear Results");
+        IconifyIcon clearIcon = new IconifyIcon("bi-x-circle");
+        clearIcon.setIconSize(16);
+        clearIcon.setIconColor(Color.web("#6c757d"));
+        clearResultsButton.setGraphic(clearIcon);
+        clearResultsButton.setContentDisplay(ContentDisplay.LEFT);
+        clearResultsButton.setGraphicTextGap(6);
         clearResultsButton.getStyleClass().add("secondary-button");
         clearResultsButton.setPrefWidth(120);
 

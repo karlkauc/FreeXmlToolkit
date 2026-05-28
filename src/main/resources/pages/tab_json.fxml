@@ -220,14 +220,14 @@
                 <Label text="Create a new JSON file or open an existing document to start editing" wrapText="true" textAlignment="CENTER"
                        styleClass="empty-state-description" maxWidth="400"/>
                 <HBox spacing="10" alignment="CENTER">
-                    <Button fx:id="emptyStateNewButton" text="New JSON File" styleClass="btn-primary" onAction="#newFile">
+                    <Button fx:id="emptyStateNewButton" text="New JSON File" contentDisplay="LEFT" styleClass="btn-primary" onAction="#newFile">
                         <graphic>
-                            <IconifyIcon iconLiteral="bi-file-earmark-plus" iconSize="16" iconColor="white"/>
+                            <IconifyIcon iconLiteral="bi-file-earmark-plus" iconSize="20" iconColor="white"/>
                         </graphic>
                     </Button>
-                    <Button fx:id="emptyStateOpenButton" text="Open JSON File" styleClass="btn-secondary" onAction="#openFile">
+                    <Button fx:id="emptyStateOpenButton" text="Open JSON File" contentDisplay="LEFT" styleClass="btn-secondary" onAction="#openFile">
                         <graphic>
-                            <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16"/>
+                            <IconifyIcon iconLiteral="bi-folder2-open" iconSize="20" iconColor="#007bff"/>
                         </graphic>
                     </Button>
                 </HBox>
@@ -251,7 +251,7 @@
                 <IconifyIcon iconLiteral="bi-search" iconSize="18" iconColor="#6f42c1"/>
                 <Label text="JSONPath Query" styleClass="section-label"/>
                 <Region HBox.hgrow="ALWAYS"/>
-                <Button onAction="#toggleJsonPath" style="-fx-background-color: transparent;" mnemonicParsing="false">
+                <Button onAction="#toggleJsonPath" contentDisplay="GRAPHIC_ONLY" style="-fx-background-color: transparent;" mnemonicParsing="false">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-x" iconSize="16" iconColor="#6c757d"/>
                     </graphic>
@@ -268,13 +268,13 @@
                     </tooltip>
                 </TextField>
                 <Button fx:id="executeQueryButton" onAction="#runJsonPath"
-                        text="Execute" prefWidth="100"
+                        text="Execute" prefWidth="100" contentDisplay="LEFT"
                         styleClass="btn-execute">
                     <graphic>
                         <IconifyIcon iconColor="white" iconLiteral="bi-play-fill" iconSize="16"/>
                     </graphic>
                 </Button>
-                <Button fx:id="clearQueryButton" onAction="#clearJsonPath" text="Clear" prefWidth="80">
+                <Button fx:id="clearQueryButton" onAction="#clearJsonPath" text="Clear" prefWidth="80" contentDisplay="LEFT">
                     <graphic>
                         <IconifyIcon iconColor="#6c757d" iconLiteral="bi-eraser" iconSize="14"/>
                     </graphic>

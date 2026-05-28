@@ -221,8 +221,9 @@ public class FileExplorer extends VBox {
 
         Button homeButton = new Button();
         IconifyIcon homeIcon = new IconifyIcon("bi-house");
-        homeIcon.setIconSize(16);
+        homeIcon.setIconSize(20);
         homeButton.setGraphic(homeIcon);
+        homeButton.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
         homeButton.setTooltip(new Tooltip("Go to User Home Directory"));
 
         homeButton.setOnAction(event -> {

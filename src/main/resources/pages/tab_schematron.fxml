@@ -107,36 +107,36 @@
             <VBox spacing="0">
                 <!-- Toolbar -->
                 <ToolBar fx:id="toolbar">
-                    <Button fx:id="innerLoadSchematronFileButton" text="Load Schematron" onAction="#loadSchematronFile">
+                    <Button fx:id="innerLoadSchematronFileButton" text="Load Schematron" contentDisplay="LEFT" onAction="#loadSchematronFile">
                         <graphic>
-                            <IconifyIcon iconLiteral="bi-folder2-open" iconColor="#007bff" iconSize="14"/>
+                            <IconifyIcon iconLiteral="bi-folder2-open" iconColor="#007bff" iconSize="16"/>
                         </graphic>
                         <tooltip>
                             <Tooltip text="Load an existing Schematron file"/>
                         </tooltip>
                     </Button>
 
-                    <Button fx:id="innerNewSchematronFileButton" text="New File" onAction="#newSchematronFile">
+                    <Button fx:id="innerNewSchematronFileButton" text="New File" contentDisplay="LEFT" onAction="#newSchematronFile">
                         <graphic>
-                            <IconifyIcon iconLiteral="bi-file-earmark-plus" iconColor="#28a745" iconSize="14"/>
+                            <IconifyIcon iconLiteral="bi-file-earmark-plus" iconColor="#28a745" iconSize="16"/>
                         </graphic>
                         <tooltip>
                             <Tooltip text="Create a new empty Schematron file"/>
                         </tooltip>
                     </Button>
 
-                    <Button fx:id="innerSaveSchematronButton" text="Save" onAction="#saveSchematron">
+                    <Button fx:id="innerSaveSchematronButton" text="Save" contentDisplay="LEFT" onAction="#saveSchematron">
                         <graphic>
-                            <IconifyIcon iconLiteral="bi-save" iconColor="#6c757d" iconSize="14"/>
+                            <IconifyIcon iconLiteral="bi-save" iconColor="#17a2b8" iconSize="16"/>
                         </graphic>
                         <tooltip>
                             <Tooltip text="Save current Schematron file"/>
                         </tooltip>
                     </Button>
 
-                    <Button fx:id="innerSaveAsSchematronButton" text="Save As" onAction="#saveAsSchematron">
+                    <Button fx:id="innerSaveAsSchematronButton" text="Save As" contentDisplay="LEFT" onAction="#saveAsSchematron">
                         <graphic>
-                            <IconifyIcon iconLiteral="bi-hdd-fill" iconColor="#17a2b8" iconSize="14"/>
+                            <IconifyIcon iconLiteral="bi-hdd-fill" iconColor="#17a2b8" iconSize="16"/>
                         </graphic>
                         <tooltip>
                             <Tooltip text="Save Schematron file with new name"/>
@@ -145,18 +145,18 @@
 
                     <Separator orientation="VERTICAL"/>
 
-                    <Button fx:id="innerNewRuleButton" text="New Rule">
+                    <Button fx:id="innerNewRuleButton" text="New Rule" contentDisplay="LEFT">
                         <graphic>
-                            <IconifyIcon iconLiteral="bi-plus-circle" iconColor="#28a745" iconSize="14"/>
+                            <IconifyIcon iconLiteral="bi-plus-circle" iconColor="#28a745" iconSize="16"/>
                         </graphic>
                         <tooltip>
                             <Tooltip text="Insert a new rule template"/>
                         </tooltip>
                     </Button>
 
-                    <Button fx:id="innerNewPatternButton" text="New Pattern">
+                    <Button fx:id="innerNewPatternButton" text="New Pattern" contentDisplay="LEFT">
                         <graphic>
-                            <IconifyIcon iconLiteral="bi-collection" iconColor="#007bff" iconSize="14"/>
+                            <IconifyIcon iconLiteral="bi-collection" iconColor="#007bff" iconSize="16"/>
                         </graphic>
                         <tooltip>
                             <Tooltip text="Insert a new pattern template"/>
@@ -165,27 +165,27 @@
 
                     <Separator orientation="VERTICAL"/>
 
-                    <Button fx:id="innerFormatButton" text="Format" onAction="#formatSchematron">
+                    <Button fx:id="innerFormatButton" text="Format" contentDisplay="LEFT" onAction="#formatSchematron">
                         <graphic>
-                            <IconifyIcon iconLiteral="bi-code" iconColor="#6f42c1" iconSize="14"/>
+                            <IconifyIcon iconLiteral="bi-code" iconColor="#6f42c1" iconSize="16"/>
                         </graphic>
                         <tooltip>
                             <Tooltip text="Format Schematron XML"/>
                         </tooltip>
                     </Button>
 
-                    <Button fx:id="innerValidateButton" text="Validate">
+                    <Button fx:id="innerValidateButton" text="Validate" contentDisplay="LEFT">
                         <graphic>
-                            <IconifyIcon iconLiteral="bi-check-circle" iconColor="#17a2b8" iconSize="14"/>
+                            <IconifyIcon iconLiteral="bi-check-circle" iconColor="#17a2b8" iconSize="16"/>
                         </graphic>
                         <tooltip>
                             <Tooltip text="Validate Schematron syntax"/>
                         </tooltip>
                     </Button>
 
-                    <Button fx:id="innerTestRulesButton" text="Test Rules">
+                    <Button fx:id="innerTestRulesButton" text="Test Rules" contentDisplay="LEFT">
                         <graphic>
-                            <IconifyIcon iconLiteral="bi-play-circle" iconColor="#dc3545" iconSize="14"/>
+                            <IconifyIcon iconLiteral="bi-play-circle" iconColor="#28a745" iconSize="16"/>
                         </graphic>
                         <tooltip>
                             <Tooltip text="Test rules against XML files"/>
@@ -270,9 +270,9 @@
                                        styleClass="label-bold,label-small"/>
                                 <TextField promptText="Enter an XPath expression..."
                                            styleClass="label-small"/>
-                                <Button text="Test" styleClass="sidebar-btn-xs">
+                                <Button text="Test" contentDisplay="LEFT" styleClass="sidebar-btn-xs">
                                     <graphic>
-                                        <IconifyIcon iconLiteral="bi-play" iconSize="10"/>
+                                        <IconifyIcon iconLiteral="bi-play-fill" iconSize="16" iconColor="#28a745"/>
                                     </graphic>
                                 </Button>
 
@@ -346,16 +346,16 @@
                         <Label text="Choose a Schematron schema for validation"
                                styleClass="theme-text-secondary,label-small" wrapText="true"/>
                         <HBox spacing="10">
-                            <Button fx:id="loadSchemaFromFileButton" text="Load Schema from File"
+                            <Button fx:id="loadSchemaFromFileButton" text="Load Schema from File" contentDisplay="LEFT"
                                     onAction="#loadSchemaFromFile">
                                 <graphic>
-                                    <IconifyIcon iconLiteral="bi-folder2-open" iconSize="14"/>
+                                    <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16" iconColor="#007bff"/>
                                 </graphic>
                             </Button>
-                            <Button fx:id="useCurrentSchemaButton" text="Use Current Schema"
+                            <Button fx:id="useCurrentSchemaButton" text="Use Current Schema" contentDisplay="LEFT"
                                     onAction="#useCurrentSchema">
                                 <graphic>
-                                    <IconifyIcon iconLiteral="bi-code-slash" iconSize="14"/>
+                                    <IconifyIcon iconLiteral="bi-code-slash" iconSize="16" iconColor="#6f42c1"/>
                                 </graphic>
                             </Button>
                         </HBox>
@@ -375,19 +375,19 @@
                         <Label text="Add XML files to validate against the schema"
                                styleClass="theme-text-secondary,label-small" wrapText="true"/>
                         <HBox spacing="10">
-                            <Button fx:id="addXmlFileButton" text="Add XML File" onAction="#addXmlFile">
+                            <Button fx:id="addXmlFileButton" text="Add XML File" contentDisplay="LEFT" onAction="#addXmlFile">
                                 <graphic>
-                                    <IconifyIcon iconLiteral="bi-file-earmark-plus" iconSize="14"/>
+                                    <IconifyIcon iconLiteral="bi-file-earmark-plus" iconSize="16" iconColor="#28a745"/>
                                 </graphic>
                             </Button>
-                            <Button fx:id="addFolderButton" text="Add Folder" onAction="#addFolder">
+                            <Button fx:id="addFolderButton" text="Add Folder" contentDisplay="LEFT" onAction="#addFolder">
                                 <graphic>
-                                    <IconifyIcon iconLiteral="bi-folder-plus" iconSize="14"/>
+                                    <IconifyIcon iconLiteral="bi-folder-plus" iconSize="16" iconColor="#007bff"/>
                                 </graphic>
                             </Button>
-                            <Button fx:id="loadSampleXmlsButton" text="Load Samples" onAction="#loadSampleXmls">
+                            <Button fx:id="loadSampleXmlsButton" text="Load Samples" contentDisplay="LEFT" onAction="#loadSampleXmls">
                                 <graphic>
-                                    <IconifyIcon iconLiteral="bi-lightbulb" iconColor="#ffc107" iconSize="14"/>
+                                    <IconifyIcon iconLiteral="bi-lightbulb" iconColor="#ffc107" iconSize="16"/>
                                 </graphic>
                             </Button>
                         </HBox>
@@ -404,10 +404,10 @@
                                 <VBox alignment="CENTER" spacing="10" styleClass="empty-state">
                                     <IconifyIcon iconLiteral="bi-inbox" iconColor="#ced4da" iconSize="64"/>
                                     <Label text="No test files added" styleClass="theme-text-secondary"/>
-                                    <Button fx:id="addFirstXmlFileButton" text="Add First XML File"
+                                    <Button fx:id="addFirstXmlFileButton" text="Add First XML File" contentDisplay="LEFT"
                                             onAction="#addXmlFile">
                                         <graphic>
-                                            <IconifyIcon iconLiteral="bi-plus-circle" iconColor="#28a745" iconSize="14"/>
+                                            <IconifyIcon iconLiteral="bi-plus-circle" iconColor="#28a745" iconSize="20"/>
                                         </graphic>
                                     </Button>
                                 </VBox>
@@ -422,34 +422,34 @@
                         </TableView>
 
                         <HBox spacing="10">
-                            <Button fx:id="addFileButton" text="Add File" onAction="#addXmlFile">
+                            <Button fx:id="addFileButton" text="Add File" contentDisplay="LEFT" onAction="#addXmlFile">
                                 <graphic>
-                                    <IconifyIcon iconLiteral="bi-plus-circle" iconSize="14"/>
+                                    <IconifyIcon iconLiteral="bi-plus-circle" iconSize="16" iconColor="#28a745"/>
                                 </graphic>
                             </Button>
-                            <Button fx:id="removeSelectedButton" text="Remove Selected" onAction="#removeSelected">
+                            <Button fx:id="removeSelectedButton" text="Remove Selected" contentDisplay="LEFT" onAction="#removeSelected">
                                 <graphic>
-                                    <IconifyIcon iconLiteral="bi-dash-circle" iconColor="#dc3545" iconSize="14"/>
+                                    <IconifyIcon iconLiteral="bi-dash-circle" iconColor="#dc3545" iconSize="16"/>
                                 </graphic>
                             </Button>
-                            <Button fx:id="removeAllButton" text="Remove All" onAction="#removeAll">
+                            <Button fx:id="removeAllButton" text="Remove All" contentDisplay="LEFT" onAction="#removeAll">
                                 <graphic>
-                                    <IconifyIcon iconLiteral="bi-trash" iconColor="#dc3545" iconSize="14"/>
+                                    <IconifyIcon iconLiteral="bi-trash" iconColor="#dc3545" iconSize="16"/>
                                 </graphic>
                             </Button>
 
                             <Separator orientation="VERTICAL"/>
 
                             <!-- Test Execution Buttons -->
-                            <Button fx:id="runAllTestsButton" text="Run All Tests (F5)" styleClass="label-bold"
+                            <Button fx:id="runAllTestsButton" text="Run All Tests (F5)" contentDisplay="LEFT" styleClass="label-bold"
                                     onAction="#runAllTests">
                                 <graphic>
-                                    <IconifyIcon iconLiteral="bi-play-fill" iconColor="#28a745" iconSize="14"/>
+                                    <IconifyIcon iconLiteral="bi-play-fill" iconColor="#28a745" iconSize="16"/>
                                 </graphic>
                             </Button>
-                            <Button fx:id="testSingleFileButton" text="Test Selected" onAction="#testSingleFile">
+                            <Button fx:id="testSingleFileButton" text="Test Selected" contentDisplay="LEFT" onAction="#testSingleFile">
                                 <graphic>
-                                    <IconifyIcon iconLiteral="bi-play" iconSize="14"/>
+                                    <IconifyIcon iconLiteral="bi-play" iconSize="16" iconColor="#28a745"/>
                                 </graphic>
                                 <tooltip>
                                     <Tooltip text="Test Selected File (Ctrl+T)"/>
@@ -462,9 +462,9 @@
                     <VBox spacing="10">
                         <HBox alignment="CENTER_LEFT" spacing="10">
                             <Label text="Test Results:" styleClass="label-bold,label-large"/>
-                            <Button fx:id="exportResultsButton" text="Export Results" onAction="#exportResults">
+                            <Button fx:id="exportResultsButton" text="Export Results" contentDisplay="LEFT" onAction="#exportResults">
                                 <graphic>
-                                    <IconifyIcon iconLiteral="bi-download" iconSize="14"/>
+                                    <IconifyIcon iconLiteral="bi-download" iconSize="16" iconColor="#17a2b8"/>
                                 </graphic>
                                 <tooltip>
                                     <Tooltip text="Export Results (Ctrl+E)"/>

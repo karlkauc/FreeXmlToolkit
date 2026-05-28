@@ -100,14 +100,14 @@
                 <Label text="Load XML and XSL-FO files to generate a PDF document" wrapText="true" textAlignment="CENTER"
                        styleClass="empty-state-description" maxWidth="400"/>
                 <HBox spacing="10" alignment="CENTER">
-                    <Button fx:id="emptyStateOpenXmlButton" text="Open XML File" styleClass="btn-primary">
+                    <Button fx:id="emptyStateOpenXmlButton" text="Open XML File" contentDisplay="LEFT" styleClass="btn-primary">
                         <graphic>
-                            <IconifyIcon iconLiteral="bi-file-earmark-code" iconSize="16" iconColor="white"/>
+                            <IconifyIcon iconLiteral="bi-file-earmark-code" iconSize="20" iconColor="white"/>
                         </graphic>
                     </Button>
-                    <Button fx:id="emptyStateFavoritesButton" text="Browse Favorites" styleClass="btn-secondary">
+                    <Button fx:id="emptyStateFavoritesButton" text="Browse Favorites" contentDisplay="LEFT" styleClass="btn-secondary">
                         <graphic>
-                            <IconifyIcon iconLiteral="bi-star-fill" iconSize="16" iconColor="#ffc107"/>
+                            <IconifyIcon iconLiteral="bi-star-fill" iconSize="20" iconColor="#ffc107"/>
                         </graphic>
                     </Button>
                 </HBox>
@@ -128,10 +128,13 @@
                             <HBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="0">
                                 <TextField fx:id="xmlFileName" editable="false" promptText="Select the source XML file"
                                            HBox.hgrow="ALWAYS"/>
-                                <Button onAction="#openXmlFile">
+                                <Button onAction="#openXmlFile" contentDisplay="GRAPHIC_ONLY">
                                     <graphic>
-                                        <IconifyIcon iconLiteral="bi-file-earmark-code" iconSize="16"/>
+                                        <IconifyIcon iconLiteral="bi-file-earmark-code" iconSize="16" iconColor="#007bff"/>
                                     </graphic>
+                                    <tooltip>
+                                        <Tooltip text="Browse for XML source file"/>
+                                    </tooltip>
                                 </Button>
                             </HBox>
 
@@ -141,11 +144,14 @@
                                 <TextField fx:id="xslFileName" editable="false"
                                            promptText="Select the XSL-FO stylesheet"
                                            HBox.hgrow="ALWAYS"/>
-                                <Button onAction="#openXslFile">
+                                <Button onAction="#openXslFile" contentDisplay="GRAPHIC_ONLY">
                                     <graphic>
-                                        <IconifyIcon iconColor="#fd7e14" iconLiteral="bi-arrow-repeat"
+                                        <IconifyIcon iconColor="#007bff" iconLiteral="bi-file-earmark-text"
                                                   iconSize="16"/>
                                     </graphic>
+                                    <tooltip>
+                                        <Tooltip text="Browse for XSL-FO stylesheet"/>
+                                    </tooltip>
                                 </Button>
                             </HBox>
 
@@ -154,10 +160,13 @@
                             <HBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="2">
                                 <TextField fx:id="pdfFileName" editable="false"
                                            promptText="Define the output PDF file path" HBox.hgrow="ALWAYS"/>
-                                <Button onAction="#openPdfFile">
+                                <Button onAction="#openPdfFile" contentDisplay="GRAPHIC_ONLY">
                                     <graphic>
                                         <IconifyIcon iconColor="#dc3545" iconLiteral="bi-file-earmark-richtext" iconSize="16"/>
                                     </graphic>
+                                    <tooltip>
+                                        <Tooltip text="Select output PDF file"/>
+                                    </tooltip>
                                 </Button>
                             </HBox>
 
@@ -210,10 +219,13 @@
                             <HBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="0">
                                 <TextField editable="false" promptText="Optional FOP configuration file"
                                            HBox.hgrow="ALWAYS"/>
-                                <Button>
+                                <Button contentDisplay="GRAPHIC_ONLY">
                                     <graphic>
-                                        <IconifyIcon iconLiteral="bi-gear" iconSize="16"/>
+                                        <IconifyIcon iconLiteral="bi-gear" iconSize="16" iconColor="#6c757d"/>
                                     </graphic>
+                                    <tooltip>
+                                        <Tooltip text="Select FOP configuration file"/>
+                                    </tooltip>
                                 </Button>
                             </HBox>
 

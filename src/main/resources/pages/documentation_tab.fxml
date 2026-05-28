@@ -44,10 +44,11 @@
                                     <HBox spacing="8">
                                         <TextField fx:id="xsdFilePath" promptText="Load an XSD file..." HBox.hgrow="ALWAYS"
                                                    style="-fx-background-radius: 6; -fx-border-radius: 6; -fx-border-color: #d1d5db; -fx-padding: 8 12;"/>
-                                        <Button onAction="#openXsdFileChooser" style="-fx-background-color: #f3f4f6; -fx-background-radius: 6; -fx-border-radius: 6; -fx-border-color: #d1d5db; -fx-padding: 8 12;">
+                                        <Button onAction="#openXsdFileChooser" contentDisplay="GRAPHIC_ONLY" style="-fx-background-color: #f3f4f6; -fx-background-radius: 6; -fx-border-radius: 6; -fx-border-color: #d1d5db; -fx-padding: 8 12;">
                                             <graphic>
-                                                <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16" iconColor="#6b7280"/>
+                                                <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16" iconColor="#007bff"/>
                                             </graphic>
+                                            <tooltip><Tooltip text="Browse for XSD file"/></tooltip>
                                         </Button>
                                     </HBox>
                                 </VBox>
@@ -57,10 +58,11 @@
                                     <HBox spacing="8">
                                         <TextField fx:id="documentationOutputDirPath" promptText="Select an output directory..." HBox.hgrow="ALWAYS"
                                                    style="-fx-background-radius: 6; -fx-border-radius: 6; -fx-border-color: #d1d5db; -fx-padding: 8 12;"/>
-                                        <Button onAction="#openOutputFolderDialog" style="-fx-background-color: #f3f4f6; -fx-background-radius: 6; -fx-border-radius: 6; -fx-border-color: #d1d5db; -fx-padding: 8 12;">
+                                        <Button onAction="#openOutputFolderDialog" contentDisplay="GRAPHIC_ONLY" style="-fx-background-color: #f3f4f6; -fx-background-radius: 6; -fx-border-radius: 6; -fx-border-color: #d1d5db; -fx-padding: 8 12;">
                                             <graphic>
-                                                <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16" iconColor="#6b7280"/>
+                                                <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16" iconColor="#007bff"/>
                                             </graphic>
+                                            <tooltip><Tooltip text="Browse for output folder"/></tooltip>
                                         </Button>
                                     </HBox>
                                 </VBox>
@@ -94,8 +96,11 @@
                                         <HBox fx:id="languageSelectionContainer" spacing="10" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
                                             <!-- CheckComboBox added programmatically -->
                                         </HBox>
-                                        <Button fx:id="scanLanguagesButton" onAction="#scanForLanguages" text="Scan Languages"
+                                        <Button fx:id="scanLanguagesButton" onAction="#scanForLanguages" text="Scan Languages" contentDisplay="LEFT"
                                                 style="-fx-background-color: #4a90d9; -fx-text-fill: white; -fx-background-radius: 6; -fx-padding: 8 16; -fx-font-weight: bold;">
+                                            <graphic>
+                                                <IconifyIcon iconLiteral="bi-search" iconSize="16" iconColor="white"/>
+                                            </graphic>
                                             <tooltip>
                                                 <Tooltip text="Scan the XSD file to discover available documentation languages"/>
                                             </tooltip>
@@ -179,16 +184,16 @@
                         <!-- Generate Button Row -->
                         <HBox alignment="CENTER_RIGHT" spacing="10" style="-fx-padding: 10 0 0 0;">
                             <Button fx:id="cancelDocumentationButton" onAction="#cancelDocumentationGeneration" text="Cancel" prefWidth="150" prefHeight="45"
-                                    visible="false" managed="false"
+                                    visible="false" managed="false" contentDisplay="LEFT"
                                     style="-fx-background-color: #dc3545; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;">
                                 <graphic>
-                                    <IconifyIcon iconLiteral="bi-x-circle" iconSize="18" iconColor="white"/>
+                                    <IconifyIcon iconLiteral="bi-x-circle" iconSize="20" iconColor="white"/>
                                 </graphic>
                             </Button>
-                            <Button fx:id="generateDocumentationButton" onAction="#generateDocumentation" text="Generate" prefWidth="200" prefHeight="45"
+                            <Button fx:id="generateDocumentationButton" onAction="#generateDocumentation" text="Generate" prefWidth="200" prefHeight="45" contentDisplay="LEFT"
                                     style="-fx-background-color: #4a7fd9; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;">
                                 <graphic>
-                                    <IconifyIcon iconLiteral="bi-play-fill" iconSize="18" iconColor="white"/>
+                                    <IconifyIcon iconLiteral="bi-play-fill" iconSize="20" iconColor="white"/>
                                 </graphic>
                             </Button>
                         </HBox>

@@ -27,6 +27,7 @@ import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
@@ -78,7 +79,11 @@ public class JsonTreeView extends VBox implements PropertyChangeListener {
         searchField.setOnAction(e -> search(searchField.getText()));
 
         Button searchButton = new Button();
-        searchButton.setGraphic(new IconifyIcon("bi-search"));
+        IconifyIcon searchIcon = new IconifyIcon("bi-search");
+        searchIcon.setIconSize(16);
+        searchButton.setGraphic(searchIcon);
+        searchButton.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+        searchButton.setTooltip(new Tooltip("Search"));
         searchButton.setOnAction(e -> search(searchField.getText()));
 
         HBox searchBar = new HBox(8, searchField, searchButton);

@@ -24,17 +24,17 @@
             <Region HBox.hgrow="ALWAYS"/>
 
             <!-- Action Buttons -->
-            <Button fx:id="syncButton" styleClass="icon-button">
+            <Button fx:id="syncButton" contentDisplay="GRAPHIC_ONLY" styleClass="icon-button">
                 <graphic>
-                    <IconifyIcon iconLiteral="bi-cloud-arrow-down" iconSize="14" iconColor="#4a90e2"/>
+                    <IconifyIcon iconLiteral="bi-cloud-arrow-down" iconSize="16" iconColor="#4a90e2"/>
                 </graphic>
                 <tooltip>
                     <Tooltip text="Sync Favorites"/>
                 </tooltip>
             </Button>
-            <Button fx:id="settingsButton" styleClass="icon-button">
+            <Button fx:id="settingsButton" contentDisplay="GRAPHIC_ONLY" styleClass="icon-button">
                 <graphic>
-                    <IconifyIcon iconLiteral="bi-gear" iconSize="14" iconColor="#6c757d"/>
+                    <IconifyIcon iconLiteral="bi-gear" iconSize="16" iconColor="#6c757d"/>
                 </graphic>
                 <tooltip>
                     <Tooltip text="Settings"/>
@@ -52,9 +52,9 @@
                 </padding>
             </TextField>
 
-            <MenuButton fx:id="filterButton" text="All"
+            <MenuButton fx:id="filterButton" text="All" contentDisplay="LEFT"
                         style="-fx-background-color: white; -fx-border-color: #4a90e2;">
-                <graphic><IconifyIcon iconLiteral="bi-funnel" iconSize="14" iconColor="#4a90e2"/></graphic>
+                <graphic><IconifyIcon iconLiteral="bi-funnel" iconSize="16" iconColor="#4a90e2"/></graphic>
                 <items>
                     <MenuItem text="All Files">
                         <graphic><IconifyIcon iconLiteral="bi-files" iconSize="14" iconColor="#6c757d"/></graphic>
@@ -81,10 +81,10 @@
                 </items>
             </MenuButton>
 
-            <Button fx:id="addButton" styleClass="primary-button" text="Add"
+            <Button fx:id="addButton" styleClass="primary-button" text="Add" contentDisplay="LEFT"
                     style="-fx-background-color: #4a90e2; -fx-text-fill: white;">
                 <graphic>
-                    <IconifyIcon iconLiteral="bi-plus-circle" iconSize="14" iconColor="white"/>
+                    <IconifyIcon iconLiteral="bi-plus-circle" iconSize="16" iconColor="white"/>
                 </graphic>
             </Button>
         </HBox>

@@ -11,7 +11,7 @@
         <Tooltip text="Schema Analysis - Statistics, Constraints, Validation, Quality Checks"/>
     </tooltip>
     <graphic>
-        <IconifyIcon iconLiteral="bi-clipboard-data"/>
+        <IconifyIcon iconLiteral="bi-clipboard-data" iconSize="16"/>
     </graphic>
     <content>
         <StackPane fx:id="schemaAnalysisStackPane" style="-fx-background-color: #fafafa;">
