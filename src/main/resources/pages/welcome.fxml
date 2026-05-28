@@ -29,7 +29,7 @@
             AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
             AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
 
-    <ScrollPane fitToWidth="true" fitToHeight="true" hbarPolicy="AS_NEEDED" vbarPolicy="AS_NEEDED"
+    <ScrollPane fitToWidth="true" fitToHeight="false" hbarPolicy="AS_NEEDED" vbarPolicy="AS_NEEDED"
                 AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
                 AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0"
                 styleClass="dashboard-scroll">
@@ -58,61 +58,57 @@
             <!-- Action Cards Row 1 -->
             <HBox spacing="16" VBox.vgrow="NEVER">
                 <!-- New XML File Card -->
-                <VBox styleClass="action-card" spacing="8" HBox.hgrow="ALWAYS" minHeight="160" maxHeight="160"
-                      onMouseClicked="#createNewXmlFile">
+                <VBox styleClass="action-card" spacing="8" HBox.hgrow="ALWAYS" minHeight="160"                      onMouseClicked="#createNewXmlFile">
                     <StackPane styleClass="action-card-icon-wrapper, action-card-icon-blue">
                         <IconifyIcon iconLiteral="bi-plus" iconSize="24" iconColor="#2563eb"/>
                     </StackPane>
-                    <Label text="New XML File" styleClass="action-card-title"/>
+                    <Label text="New XML File" styleClass="action-card-title" wrapText="true"/>
                     <Label text="Create a blank XML document." styleClass="action-card-description" wrapText="true"/>
                     <Region VBox.vgrow="ALWAYS"/>
                     <HBox alignment="CENTER_LEFT" spacing="4" styleClass="action-card-link">
-                        <Label text="Create File" styleClass="action-link-text"/>
+                        <Label text="Create File" styleClass="action-link-text" wrapText="true"/>
                         <IconifyIcon iconLiteral="bi-arrow-right" iconSize="14" iconColor="#2563eb"/>
                     </HBox>
                 </VBox>
 
                 <!-- XSD Schema Editor Card -->
-                <VBox styleClass="action-card" spacing="8" HBox.hgrow="ALWAYS" minHeight="160" maxHeight="160"
-                      onMouseClicked="#openXsdTools">
+                <VBox styleClass="action-card" spacing="8" HBox.hgrow="ALWAYS" minHeight="160"                      onMouseClicked="#openXsdTools">
                     <StackPane styleClass="action-card-icon-wrapper, action-card-icon-purple">
                         <IconifyIcon iconLiteral="bi-file-earmark-code" iconSize="24" iconColor="#9333ea"/>
                     </StackPane>
-                    <Label text="XSD Schema Editor" styleClass="action-card-title"/>
+                    <Label text="XSD Schema Editor" styleClass="action-card-title" wrapText="true"/>
                     <Label text="Design schemas visually or via code." styleClass="action-card-description" wrapText="true"/>
                     <Region VBox.vgrow="ALWAYS"/>
                     <HBox alignment="CENTER_LEFT" spacing="4" styleClass="action-card-link">
-                        <Label text="Open Editor" styleClass="action-link-text"/>
+                        <Label text="Open Editor" styleClass="action-link-text" wrapText="true"/>
                         <IconifyIcon iconLiteral="bi-arrow-right" iconSize="14" iconColor="#2563eb"/>
                     </HBox>
                 </VBox>
 
                 <!-- Validate Document Card -->
-                <VBox styleClass="action-card" spacing="8" HBox.hgrow="ALWAYS" minHeight="160" maxHeight="160"
-                      onMouseClicked="#openValidation">
+                <VBox styleClass="action-card" spacing="8" HBox.hgrow="ALWAYS" minHeight="160"                      onMouseClicked="#openValidation">
                     <StackPane styleClass="action-card-icon-wrapper, action-card-icon-green">
                         <IconifyIcon iconLiteral="bi-file-earmark-check" iconSize="24" iconColor="#16a34a"/>
                     </StackPane>
-                    <Label text="Validate Document" styleClass="action-card-title"/>
+                    <Label text="Validate Document" styleClass="action-card-title" wrapText="true"/>
                     <Label text="Validate against XSD or DTD." styleClass="action-card-description" wrapText="true"/>
                     <Region VBox.vgrow="ALWAYS"/>
                     <HBox alignment="CENTER_LEFT" spacing="4" styleClass="action-card-link">
-                        <Label text="Run Validation" styleClass="action-link-text"/>
+                        <Label text="Run Validation" styleClass="action-link-text" wrapText="true"/>
                         <IconifyIcon iconLiteral="bi-arrow-right" iconSize="14" iconColor="#2563eb"/>
                     </HBox>
                 </VBox>
 
                 <!-- XSLT Developer Card -->
-                <VBox styleClass="action-card" spacing="8" HBox.hgrow="ALWAYS" minHeight="160" maxHeight="160"
-                      onMouseClicked="#openXsltDeveloper">
+                <VBox styleClass="action-card" spacing="8" HBox.hgrow="ALWAYS" minHeight="160"                      onMouseClicked="#openXsltDeveloper">
                     <StackPane styleClass="action-card-icon-wrapper, action-card-icon-yellow">
                         <IconifyIcon iconLiteral="bi-arrow-repeat" iconSize="24" iconColor="#d97706"/>
                     </StackPane>
-                    <Label text="XSLT Developer" styleClass="action-card-title"/>
+                    <Label text="XSLT Developer" styleClass="action-card-title" wrapText="true"/>
                     <Label text="Transform XML with XSLT." styleClass="action-card-description" wrapText="true"/>
                     <Region VBox.vgrow="ALWAYS"/>
                     <HBox alignment="CENTER_LEFT" spacing="4" styleClass="action-card-link">
-                        <Label text="Open XSLT" styleClass="action-link-text"/>
+                        <Label text="Open XSLT" styleClass="action-link-text" wrapText="true"/>
                         <IconifyIcon iconLiteral="bi-arrow-right" iconSize="14" iconColor="#2563eb"/>
                     </HBox>
                 </VBox>
@@ -121,92 +117,87 @@
             <!-- Action Cards Row 2 -->
             <HBox spacing="16" VBox.vgrow="NEVER">
                 <!-- JSON Editor Card -->
-                <VBox styleClass="action-card" spacing="8" HBox.hgrow="ALWAYS" minHeight="160" maxHeight="160"
-                      onMouseClicked="#openJsonEditor">
+                <VBox styleClass="action-card" spacing="8" HBox.hgrow="ALWAYS" minHeight="160"                      onMouseClicked="#openJsonEditor">
                     <StackPane styleClass="action-card-icon-wrapper, action-card-icon-orange">
                         <IconifyIcon iconLiteral="bi-braces" iconSize="24" iconColor="#ea580c"/>
                     </StackPane>
-                    <Label text="JSON Editor" styleClass="action-card-title"/>
+                    <Label text="JSON Editor" styleClass="action-card-title" wrapText="true"/>
                     <Label text="Edit, validate and query JSON." styleClass="action-card-description" wrapText="true"/>
                     <Region VBox.vgrow="ALWAYS"/>
                     <HBox alignment="CENTER_LEFT" spacing="4" styleClass="action-card-link">
-                        <Label text="Open JSON Editor" styleClass="action-link-text"/>
+                        <Label text="Open JSON Editor" styleClass="action-link-text" wrapText="true"/>
                         <IconifyIcon iconLiteral="bi-arrow-right" iconSize="14" iconColor="#2563eb"/>
                     </HBox>
                 </VBox>
 
                 <!-- Schematron Card -->
-                <VBox styleClass="action-card" spacing="8" HBox.hgrow="ALWAYS" minHeight="160" maxHeight="160"
-                      onMouseClicked="#openSchematron">
+                <VBox styleClass="action-card" spacing="8" HBox.hgrow="ALWAYS" minHeight="160"                      onMouseClicked="#openSchematron">
                     <StackPane styleClass="action-card-icon-wrapper, action-card-icon-pink">
                         <IconifyIcon iconLiteral="bi-shield-check" iconSize="24" iconColor="#be185d"/>
                     </StackPane>
-                    <Label text="Schematron" styleClass="action-card-title"/>
+                    <Label text="Schematron" styleClass="action-card-title" wrapText="true"/>
                     <Label text="Validate with business rules." styleClass="action-card-description" wrapText="true"/>
                     <Region VBox.vgrow="ALWAYS"/>
                     <HBox alignment="CENTER_LEFT" spacing="4" styleClass="action-card-link">
-                        <Label text="Open Schematron" styleClass="action-link-text"/>
+                        <Label text="Open Schematron" styleClass="action-link-text" wrapText="true"/>
                         <IconifyIcon iconLiteral="bi-arrow-right" iconSize="14" iconColor="#2563eb"/>
                     </HBox>
                 </VBox>
 
                 <!-- Schema Generator Card -->
-                <VBox styleClass="action-card" spacing="8" HBox.hgrow="ALWAYS" minHeight="160" maxHeight="160"
-                      onMouseClicked="#openSchemaGenerator">
+                <VBox styleClass="action-card" spacing="8" HBox.hgrow="ALWAYS" minHeight="160"                      onMouseClicked="#openSchemaGenerator">
                     <StackPane styleClass="action-card-icon-wrapper, action-card-icon-cyan">
                         <IconifyIcon iconLiteral="bi-diagram-3" iconSize="24" iconColor="#0891b2"/>
                     </StackPane>
-                    <Label text="Schema Generator" styleClass="action-card-title"/>
+                    <Label text="Schema Generator" styleClass="action-card-title" wrapText="true"/>
                     <Label text="Generate XSD from XML." styleClass="action-card-description" wrapText="true"/>
                     <Region VBox.vgrow="ALWAYS"/>
                     <HBox alignment="CENTER_LEFT" spacing="4" styleClass="action-card-link">
-                        <Label text="Generate Schema" styleClass="action-link-text"/>
+                        <Label text="Generate Schema" styleClass="action-link-text" wrapText="true"/>
                         <IconifyIcon iconLiteral="bi-arrow-right" iconSize="14" iconColor="#2563eb"/>
                     </HBox>
                 </VBox>
 
                 <!-- PDF Generation Card -->
-                <VBox styleClass="action-card" spacing="8" HBox.hgrow="ALWAYS" minHeight="160" maxHeight="160"
-                      onMouseClicked="#openFop">
+                <VBox styleClass="action-card" spacing="8" HBox.hgrow="ALWAYS" minHeight="160"                      onMouseClicked="#openFop">
                     <StackPane styleClass="action-card-icon-wrapper, action-card-icon-violet">
                         <IconifyIcon iconLiteral="bi-printer" iconSize="24" iconColor="#7c3aed"/>
                     </StackPane>
-                    <Label text="PDF Generation" styleClass="action-card-title"/>
+                    <Label text="PDF Generation" styleClass="action-card-title" wrapText="true"/>
                     <Label text="Generate PDFs with Apache FOP." styleClass="action-card-description" wrapText="true"/>
                     <Region VBox.vgrow="ALWAYS"/>
                     <HBox alignment="CENTER_LEFT" spacing="4" styleClass="action-card-link">
-                        <Label text="Open FOP" styleClass="action-link-text"/>
+                        <Label text="Open FOP" styleClass="action-link-text" wrapText="true"/>
                         <IconifyIcon iconLiteral="bi-arrow-right" iconSize="14" iconColor="#2563eb"/>
                     </HBox>
                 </VBox>
 
                 <!-- XML Digital Signature Card -->
-                <VBox styleClass="action-card" spacing="8" HBox.hgrow="ALWAYS" minHeight="160" maxHeight="160"
-                      onMouseClicked="#openSignature">
+                <VBox styleClass="action-card" spacing="8" HBox.hgrow="ALWAYS" minHeight="160"                      onMouseClicked="#openSignature">
                     <StackPane styleClass="action-card-icon-wrapper, action-card-icon-amber">
                         <IconifyIcon iconLiteral="bi-key" iconSize="24" iconColor="#ca8a04"/>
                     </StackPane>
-                    <Label text="XML Signature" styleClass="action-card-title"/>
+                    <Label text="XML Signature" styleClass="action-card-title" wrapText="true"/>
                     <Label text="Sign and verify XML documents." styleClass="action-card-description" wrapText="true"/>
                     <Region VBox.vgrow="ALWAYS"/>
                     <HBox alignment="CENTER_LEFT" spacing="4" styleClass="action-card-link">
-                        <Label text="Open Signature" styleClass="action-link-text"/>
+                        <Label text="Open Signature" styleClass="action-link-text" wrapText="true"/>
                         <IconifyIcon iconLiteral="bi-arrow-right" iconSize="14" iconColor="#2563eb"/>
                     </HBox>
                 </VBox>
 
                 <!-- FundsXML Extensions Card (opt-in) -->
                 <VBox fx:id="fundsxmlCard" styleClass="action-card" spacing="8" HBox.hgrow="ALWAYS"
-                      minHeight="160" maxHeight="160" visible="false" managed="false"
+                      minHeight="160" visible="false" managed="false"
                       onMouseClicked="#openFundsXmlExtensions">
                     <StackPane styleClass="action-card-icon-wrapper, action-card-icon-green">
                         <IconifyIcon iconLiteral="bi-collection" iconSize="24" iconColor="#28a745"/>
                     </StackPane>
-                    <Label text="FundsXML Extensions" styleClass="action-card-title"/>
+                    <Label text="FundsXML Extensions" styleClass="action-card-title" wrapText="true"/>
                     <Label text="Browse downloaded FundsXML examples and schemas." styleClass="action-card-description" wrapText="true"/>
                     <Region VBox.vgrow="ALWAYS"/>
                     <HBox alignment="CENTER_LEFT" spacing="4" styleClass="action-card-link">
-                        <Label text="Open FundsXML" styleClass="action-link-text"/>
+                        <Label text="Open FundsXML" styleClass="action-link-text" wrapText="true"/>
                         <IconifyIcon iconLiteral="bi-arrow-right" iconSize="14" iconColor="#2563eb"/>
                     </HBox>
                 </VBox>

@@ -1290,6 +1290,7 @@
     -fx-font-size: 16px;
     -fx-font-weight: bold;
     -fx-text-fill: #111827;
+    -fx-wrap-text: true;
 }
 
 .action-card-description {
@@ -1305,6 +1306,7 @@
     -fx-font-size: 13px;
     -fx-font-weight: bold;
     -fx-text-fill: #2563eb;
+    -fx-wrap-text: true;
 }
 
 /* Section Title */
