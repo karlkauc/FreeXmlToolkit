@@ -18,8 +18,8 @@
         <!-- Title Bar -->
         <HBox alignment="CENTER_LEFT" spacing="10">
             <IconifyIcon iconLiteral="bi-star-fill" iconSize="18" iconColor="#ffc107"/>
-            <Label text="Favorites Manager"
-                   style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2c5aa0; 
+            <Label text="Favorites"
+                   style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2c5aa0;
                           -fx-font-family: 'Roboto', 'Segoe UI', Arial, sans-serif;"/>
             <Region HBox.hgrow="ALWAYS"/>
 
@@ -52,9 +52,10 @@
                 </padding>
             </TextField>
 
-            <MenuButton fx:id="filterButton" text="All" contentDisplay="LEFT"
+            <MenuButton fx:id="filterButton" text="All" contentDisplay="GRAPHIC_ONLY"
                         style="-fx-background-color: white; -fx-border-color: #4a90e2;">
                 <graphic><IconifyIcon iconLiteral="bi-funnel" iconSize="16" iconColor="#4a90e2"/></graphic>
+                <tooltip><Tooltip text="Filter favorites by type"/></tooltip>
                 <items>
                     <MenuItem text="All Files">
                         <graphic><IconifyIcon iconLiteral="bi-files" iconSize="14" iconColor="#6c757d"/></graphic>
@@ -81,11 +82,14 @@
                 </items>
             </MenuButton>
 
-            <Button fx:id="addButton" styleClass="primary-button" text="Add" contentDisplay="LEFT"
+            <Button fx:id="addButton" styleClass="primary-button" text="Add" contentDisplay="GRAPHIC_ONLY"
                     style="-fx-background-color: #4a90e2; -fx-text-fill: white;">
                 <graphic>
                     <IconifyIcon iconLiteral="bi-plus-circle" iconSize="16" iconColor="white"/>
                 </graphic>
+                <tooltip>
+                    <Tooltip text="Add to favorites"/>
+                </tooltip>
             </Button>
         </HBox>
     </VBox>

@@ -100,9 +100,9 @@
 
                         <!-- Favorites Dropdown -->
                         <HBox spacing="5" alignment="CENTER_LEFT">
-                            <Label text="Favorites:" styleClass="cursor-info-label" prefWidth="55"/>
+                            <Label text="Favorites:" styleClass="cursor-info-label" prefWidth="68"/>
                             <ComboBox fx:id="xsdFavoritesComboBox" HBox.hgrow="ALWAYS"
-                                      promptText="Select XSD from favorites" styleClass="sidebar-combo-box"/>
+                                      promptText="Select XSD" styleClass="sidebar-combo-box"/>
                             <Button fx:id="resetXsdButton" contentDisplay="GRAPHIC_ONLY" prefWidth="25" maxWidth="25"
                                     styleClass="sidebar-button">
                                 <graphic><IconifyIcon iconLiteral="bi-arrow-counterclockwise" iconSize="14" iconColor="#6c757d"/></graphic>
@@ -112,7 +112,7 @@
 
                         <!-- Validator Type -->
                         <HBox spacing="5" alignment="CENTER_LEFT">
-                            <Label text="Validator:" styleClass="cursor-info-label" prefWidth="55"/>
+                            <Label text="Validator:" styleClass="cursor-info-label" prefWidth="68"/>
                             <ComboBox fx:id="validatorTypeComboBox" HBox.hgrow="ALWAYS"
                                       promptText="Select validator" styleClass="sidebar-combo-box">
                                 <tooltip><Tooltip text="Choose XML validator (Xerces supports XSD 1.1 with assertions)"/></tooltip>

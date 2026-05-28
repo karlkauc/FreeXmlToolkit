@@ -277,7 +277,7 @@
                                 <IconifyIcon iconColor="#6c757d" iconLiteral="bi-eraser" iconSize="16"/>
                             </graphic>
                         </Button>
-                        <Button onAction="#reloadXmlText" text="Reset Result" contentDisplay="LEFT" prefWidth="120">
+                        <Button onAction="#reloadXmlText" text="Reset Result" contentDisplay="LEFT" prefWidth="140">
                             <graphic>
                                 <IconifyIcon iconColor="#6c757d" iconLiteral="bi-arrow-counterclockwise" iconSize="16"/>
                             </graphic>
