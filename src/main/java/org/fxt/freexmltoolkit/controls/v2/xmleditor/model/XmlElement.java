@@ -68,6 +68,14 @@ public class XmlElement extends XmlNode {
     private final List<XmlNode> children = new ArrayList<>();
 
     /**
+     * 1-based line number of this element's start tag in the source document,
+     * or -1 if unknown. Populated by the parser; not serialized. Used to map a
+     * validation error location to a node in the graphic view. May become stale
+     * after in-model edits.
+     */
+    private int sourceLineNumber = -1;
+
+    /**
      * Constructs a new XmlElement with the given name.
      *
      * @param name the element name
@@ -126,6 +134,25 @@ public class XmlElement extends XmlNode {
         String oldName = this.name;
         this.name = name;
         firePropertyChange("name", oldName, name);
+    }
+
+    /**
+     * Returns the 1-based source line number of this element's start tag,
+     * or -1 if unknown.
+     *
+     * @return the source line number, or -1
+     */
+    public int getSourceLineNumber() {
+        return sourceLineNumber;
+    }
+
+    /**
+     * Sets the 1-based source line number of this element's start tag.
+     *
+     * @param sourceLineNumber the line number, or -1 if unknown
+     */
+    public void setSourceLineNumber(int sourceLineNumber) {
+        this.sourceLineNumber = sourceLineNumber;
     }
 
     /**

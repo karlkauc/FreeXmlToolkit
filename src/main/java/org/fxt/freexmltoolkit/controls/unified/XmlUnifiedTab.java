@@ -24,6 +24,8 @@ import org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2;
 import org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2Factory;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.editor.XmlEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlDocument;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.XmlCanvasView;
 import org.fxt.freexmltoolkit.domain.LinkedFileInfo;
 import org.fxt.freexmltoolkit.domain.UnifiedEditorFileType;
@@ -787,6 +789,118 @@ public class XmlUnifiedTab extends AbstractUnifiedEditorTab {
      */
     public boolean isGraphicViewActive() {
         return currentViewMode == ViewMode.TABS && graphicTab.isSelected();
+    }
+
+    /**
+     * Navigates to the location of a validation error in the currently active view.
+     * <p>
+     * In the text view the caret jumps to the error's line/column; in the graphic
+     * view the corresponding element is selected, highlighted and scrolled into
+     * view. In a split mode both views are navigated.
+     *
+     * @param error the validation error to navigate to
+     */
+    public void navigateToError(ValidationError error) {
+        if (error == null || error.lineNumber() <= 0) {
+            return;
+        }
+        boolean splitMode = currentViewMode != ViewMode.TABS;
+        boolean textTarget = splitMode || xmlTab.isSelected();
+        boolean graphicTarget = splitMode || graphicTab.isSelected();
+
+        if (textTarget) {
+            navigateTextToError(error);
+        }
+        if (graphicTarget) {
+            navigateGraphicToError(error);
+        }
+    }
+
+    /**
+     * Moves the text editor caret to the error's line/column and scrolls it into view.
+     */
+    private void navigateTextToError(ValidationError error) {
+        CodeArea codeArea = textEditor.getCodeArea();
+        if (codeArea == null) {
+            return;
+        }
+        try {
+            int targetLine = Math.max(0, error.lineNumber() - 1);
+            int targetColumn = Math.max(0, error.columnNumber() - 1);
+            if (targetLine >= codeArea.getParagraphs().size()) {
+                return;
+            }
+            int lineStart = codeArea.getAbsolutePosition(targetLine, 0);
+            int lineLength = codeArea.getParagraph(targetLine).length();
+            int position = lineStart + Math.min(targetColumn, lineLength);
+            codeArea.moveTo(position);
+            if (targetColumn < lineLength) {
+                int selectionEnd = Math.min(position + 10, lineStart + lineLength);
+                codeArea.selectRange(position, selectionEnd);
+            } else {
+                codeArea.selectRange(position, position);
+            }
+            codeArea.requestFollowCaret();
+            codeArea.requestFocus();
+        } catch (Exception e) {
+            logger.error("Error navigating to validation error in text view: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Selects, highlights and scrolls to the element matching the error's line in
+     * the graphic view, building the view first if necessary.
+     */
+    private void navigateGraphicToError(ValidationError error) {
+        if (graphicView == null) {
+            syncToGraphicView();
+        }
+        if (graphicView == null || graphicViewContext == null) {
+            return;
+        }
+        try {
+            XmlDocument document = graphicViewContext.getDocument();
+            XmlElement root = document != null ? document.getRootElement() : null;
+            if (root == null) {
+                return;
+            }
+            XmlElement target = findElementByLine(root, error.lineNumber());
+            if (target != null) {
+                graphicView.setSelectedNode(target);
+                graphicView.flashHighlightByModel(target);
+            }
+        } catch (Exception e) {
+            logger.error("Error navigating to validation error in graphic view: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Finds the deepest element whose start tag begins on or before the given line.
+     * Source line numbers are populated by the parser; the element with the greatest
+     * {@code sourceLineNumber <= line} is the best match for an error on that line.
+     *
+     * @param root the root element to search from
+     * @param line the 1-based target line number
+     * @return the best-matching element, or null if none qualifies
+     */
+    private XmlElement findElementByLine(XmlElement root, int line) {
+        XmlElement[] best = new XmlElement[1];
+        collectBestByLine(root, line, best);
+        return best[0];
+    }
+
+    private void collectBestByLine(XmlElement element, int line, XmlElement[] best) {
+        int elementLine = element.getSourceLineNumber();
+        if (elementLine > 0 && elementLine <= line) {
+            if (best[0] == null || elementLine >= best[0].getSourceLineNumber()) {
+                best[0] = element;
+            }
+        }
+        for (XmlNode child : element.getChildren()) {
+            if (child instanceof XmlElement childElement) {
+                collectBestByLine(childElement, line, best);
+            }
+        }
     }
 
     /**

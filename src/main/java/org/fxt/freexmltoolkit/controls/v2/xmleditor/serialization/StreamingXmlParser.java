@@ -126,7 +126,8 @@ public class StreamingXmlParser {
                         String namespaceUri = reader.getNamespaceURI();
                         
                         XmlElement element = new XmlElement(localName, prefix, namespaceUri);
-                        
+                        element.setSourceLineNumber(reader.getLocation().getLineNumber());
+
                         // Handle namespace declarations
                         int nsCount = reader.getNamespaceCount();
                         for (int i = 0; i < nsCount; i++) {

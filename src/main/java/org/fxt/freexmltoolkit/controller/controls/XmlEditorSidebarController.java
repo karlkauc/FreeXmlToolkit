@@ -421,8 +421,12 @@ public class XmlEditorSidebarController {
             validationErrorsListView.setOnMouseClicked(event -> {
                 if (event.getClickCount() == 2) { // Double-click
                     ValidationError selectedError = validationErrorsListView.getSelectionModel().getSelectedItem();
-                    if (selectedError != null && xmlEditor != null) {
-                        navigateToError(selectedError);
+                    if (selectedError != null) {
+                        if (xmlEditor != null) {
+                            navigateToError(selectedError);
+                        } else if (xmlUnifiedTab != null) {
+                            xmlUnifiedTab.navigateToError(selectedError);
+                        }
                     }
                 }
             });
