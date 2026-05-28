@@ -34,6 +34,7 @@ import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.XPathIntelliSenseEngine;
 
 import net.sf.saxon.s9api.DocumentBuilder;
 import net.sf.saxon.s9api.Processor;
@@ -90,6 +91,11 @@ public class UnifiedXPathQueryPanel extends VBox {
 
     // Content supplier - gets XML content from active tab
     private Supplier<String> contentSupplier;
+
+    // IntelliSense / autocomplete engines (lazy-initialized on first focus)
+    private XPathIntelliSenseEngine xpathIntelliSenseEngine;
+    private XPathIntelliSenseEngine xqueryIntelliSenseEngine;
+    private boolean intelliSenseInitialized = false;
 
     // Callbacks
     private Runnable onCloseRequested;
@@ -218,6 +224,9 @@ public class UnifiedXPathQueryPanel extends VBox {
         // Setup keyboard shortcuts
         setupKeyboardShortcuts();
 
+        // Setup IntelliSense / autocomplete (lazy on first focus)
+        setupIntelliSense();
+
         logger.info("Unified XPath Query Panel initialized");
     }
 
@@ -302,6 +311,45 @@ public class UnifiedXPathQueryPanel extends VBox {
                 e.consume();
             }
         });
+    }
+
+    /**
+     * Attaches focus listeners that lazily initialize the IntelliSense engines
+     * the first time either query CodeArea gains focus.
+     */
+    private void setupIntelliSense() {
+        xpathCodeArea.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
+            if (isFocused) {
+                initializeIntelliSense();
+            }
+        });
+        xqueryCodeArea.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
+            if (isFocused) {
+                initializeIntelliSense();
+            }
+        });
+    }
+
+    /**
+     * Initializes the XPath/XQuery IntelliSense engines (called lazily on first focus).
+     * The engines pull the current XML content from the active tab via the content supplier.
+     */
+    private void initializeIntelliSense() {
+        if (intelliSenseInitialized) {
+            return;
+        }
+        try {
+            xpathIntelliSenseEngine = new XPathIntelliSenseEngine(xpathCodeArea, false);
+            xqueryIntelliSenseEngine = new XPathIntelliSenseEngine(xqueryCodeArea, true);
+
+            xpathIntelliSenseEngine.setXmlContentSupplier(this::getContent);
+            xqueryIntelliSenseEngine.setXmlContentSupplier(this::getContent);
+
+            intelliSenseInitialized = true;
+            logger.debug("IntelliSense engines initialized for Unified XPath panel");
+        } catch (Exception e) {
+            logger.error("Failed to initialize IntelliSense: {}", e.getMessage(), e);
+        }
     }
 
     /**
@@ -531,6 +579,12 @@ public class UnifiedXPathQueryPanel extends VBox {
      */
     public void dispose() {
         try {
+            if (xpathIntelliSenseEngine != null) {
+                xpathIntelliSenseEngine.dispose();
+            }
+            if (xqueryIntelliSenseEngine != null) {
+                xqueryIntelliSenseEngine.dispose();
+            }
             executorService.shutdownNow();
             logger.debug("Unified XPath Query Panel disposed");
         } catch (Exception e) {
