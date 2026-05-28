@@ -16,8 +16,11 @@ import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.Separator;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
@@ -274,7 +277,48 @@ public class UnifiedXPathQueryPanel extends VBox {
         codeArea.setWrapText(false);
         // Slight gray background to indicate read-only
         codeArea.setStyle(codeArea.getStyle() + "; -fx-background-color: #f8f9fa;");
+        attachResultContextMenu(codeArea);
         return codeArea;
+    }
+
+    /**
+     * Attaches a standard right-click context menu (Copy, Select All, Clear)
+     * to the read-only result CodeArea. Cut/Paste are omitted since the area
+     * is not editable.
+     */
+    private void attachResultContextMenu(CodeArea codeArea) {
+        MenuItem copyItem = new MenuItem("Copy");
+        copyItem.setGraphic(menuIcon("bi-clipboard"));
+        copyItem.setOnAction(e -> codeArea.copy());
+
+        MenuItem selectAllItem = new MenuItem("Select All");
+        selectAllItem.setGraphic(menuIcon("bi-check-all"));
+        selectAllItem.setOnAction(e -> codeArea.selectAll());
+
+        MenuItem clearItem = new MenuItem("Clear");
+        clearItem.setGraphic(menuIcon("bi-trash"));
+        clearItem.setOnAction(e -> clearResult());
+
+        ContextMenu menu = new ContextMenu(copyItem, selectAllItem, new SeparatorMenuItem(), clearItem);
+        // Enable Copy only when there is a selection; disable everything when empty.
+        menu.setOnShowing(e -> {
+            boolean hasSelection = !codeArea.getSelectedText().isEmpty();
+            boolean hasText = codeArea.getLength() > 0;
+            copyItem.setDisable(!hasSelection);
+            selectAllItem.setDisable(!hasText);
+            clearItem.setDisable(!hasText);
+        });
+        codeArea.setContextMenu(menu);
+    }
+
+    /**
+     * Creates a 16px icon graphic for a context menu item.
+     */
+    private IconifyIcon menuIcon(String literal) {
+        IconifyIcon icon = new IconifyIcon(literal);
+        icon.setIconSize(16);
+        icon.setIconColor(Color.web("#6c757d"));
+        return icon;
     }
 
     /**
