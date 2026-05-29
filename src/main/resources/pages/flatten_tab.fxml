@@ -36,7 +36,7 @@
                     <HBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="1" HBox.hgrow="ALWAYS">
                         <TextField fx:id="flattenedXsdPath" promptText="Select where to save..." HBox.hgrow="ALWAYS"/>
                         <Button onAction="#selectFlattenedXsdPath" text="Save to..." contentDisplay="LEFT">
-                            <graphic><IconifyIcon iconLiteral="bi-save" iconSize="16" iconColor="#17a2b8"/></graphic>
+                            <graphic><IconifyIcon iconLiteral="bi-floppy" iconSize="16" iconColor="#17a2b8"/></graphic>
                         </Button>
                     </HBox>
 

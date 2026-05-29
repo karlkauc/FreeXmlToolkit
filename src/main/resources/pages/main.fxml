@@ -51,13 +51,13 @@
                     <SeparatorMenuItem/>
                     <MenuItem fx:id="menuItemSave" onAction="#handleSave" text="Save" accelerator="Shortcut+S">
                         <graphic>
-                            <IconifyIcon iconLiteral="bi-save" iconSize="16" iconColor="#17a2b8"/>
+                            <IconifyIcon iconLiteral="bi-floppy" iconSize="16" iconColor="#17a2b8"/>
                         </graphic>
                     </MenuItem>
                     <MenuItem fx:id="menuItemSaveAs" onAction="#handleSaveAs" text="Save As..."
                               accelerator="Shortcut+Shift+S">
                         <graphic>
-                            <IconifyIcon iconLiteral="bi-save-fill" iconSize="16" iconColor="#17a2b8"/>
+                            <IconifyIcon iconLiteral="bi-floppy-fill" iconSize="16" iconColor="#17a2b8"/>
                         </graphic>
                     </MenuItem>
                     <SeparatorMenuItem/>

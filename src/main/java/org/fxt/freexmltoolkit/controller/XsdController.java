@@ -809,6 +809,15 @@ public class XsdController implements FavoritesParentController, XsdToolHost {
     }
 
     /**
+     * Saves all open documents. The XSD editor edits a single schema at a time,
+     * so this is equivalent to {@link #saveXsdFile()} and exists for toolbar consistency.
+     */
+    @FXML
+    public void handleToolbarSaveAll() {
+        saveXsdFile();
+    }
+
+    /**
      * Open a side-by-side diff between the XSD source editor and a file picked
      * from disk. The text-tab editor's content is the LEFT pane; the picked
      * file is the RIGHT pane. The diff is added as a new tab in the XSD TabPane.

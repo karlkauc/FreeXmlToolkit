@@ -32,7 +32,7 @@
 
         <Button fx:id="saveFile" text="Save" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#saveFile">
             <graphic>
-                <IconifyIcon iconLiteral="bi-save" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
+                <IconifyIcon iconLiteral="bi-floppy" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Save Document (Ctrl+S)"/>
@@ -41,10 +41,19 @@
 
         <Button fx:id="saveAsFile" text="Save As" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#saveAsFile">
             <graphic>
-                <IconifyIcon iconLiteral="bi-save-fill" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
+                <IconifyIcon iconLiteral="bi-floppy-fill" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Save As... (Ctrl+Shift+S)"/>
+            </tooltip>
+        </Button>
+
+        <Button fx:id="saveAllFiles" text="Save All" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#saveAllFiles">
+            <graphic>
+                <IconifyIcon iconLiteral="bi-floppy2" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Save All Open Documents"/>
             </tooltip>
         </Button>
 

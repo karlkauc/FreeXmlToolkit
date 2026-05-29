@@ -1389,6 +1389,61 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
     }
 
     /**
+     * Saves all open XML documents. Tabs that already have an associated file are
+     * written directly; tabs without a file are selected and routed through Save As.
+     */
+    @FXML
+    public void saveAllFiles() {
+        logger.info("Saving all open XML documents");
+        logToConsole("Saving all open XML documents...");
+
+        if (xmlFilesPane == null) {
+            return;
+        }
+
+        int saved = 0;
+        int failed = 0;
+        for (Tab tab : xmlFilesPane.getTabs()) {
+            if (!(tab instanceof XmlEditor editor)) {
+                continue;
+            }
+
+            File editorFile = editor.getXmlFile();
+            if (editorFile == null) {
+                // No backing file yet: switch to the tab and let Save As handle it.
+                xmlFilesPane.getSelectionModel().select(tab);
+                saveAsFile();
+                if (editor.getXmlFile() != null) {
+                    saved++;
+                } else {
+                    failed++;
+                }
+                continue;
+            }
+
+            try {
+                String content = editor.getEditorText();
+                ExportMetadataService metadataService = ServiceRegistry.get(ExportMetadataService.class);
+                String contentWithMetadata = metadataService.addOrUpdateXmlMetadata(content);
+
+                Files.writeString(editorFile.toPath(), contentWithMetadata);
+                editor.notifyEditorFileSaved();
+                tab.setText(editorFile.getName());
+                saved++;
+            } catch (IOException e) {
+                failed++;
+                logger.error("Failed to save file: {}", editorFile, e);
+            }
+        }
+
+        logToConsole("Save All: " + saved + " saved"
+                + (failed > 0 ? ", " + failed + " failed" : ""));
+        if (failed > 0) {
+            showError("Save All", failed + " file(s) could not be saved.");
+        }
+    }
+
+    /**
      * Open a side-by-side diff between the currently active XML editor and a
      * file picked from disk. The editor's content is the LEFT pane; the picked
      * file is the RIGHT pane. The result is added as a new tab.
@@ -2603,7 +2658,7 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
         dialog.setTitle("Save XPath Query");
         dialog.setHeaderText("Save XPath Query to File");
         dialog.setContentText("Query name:");
-        dialog.getDialogPane().setGraphic(new org.fxt.freexmltoolkit.controls.icons.IconifyIcon("bi-save"));
+        dialog.getDialogPane().setGraphic(new org.fxt.freexmltoolkit.controls.icons.IconifyIcon("bi-floppy"));
 
         Optional<String> result = dialog.showAndWait();
         result.ifPresent(name -> {
@@ -2634,7 +2689,7 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
         dialog.setTitle("Save XQuery Query");
         dialog.setHeaderText("Save XQuery to File");
         dialog.setContentText("Query name:");
-        dialog.getDialogPane().setGraphic(new org.fxt.freexmltoolkit.controls.icons.IconifyIcon("bi-save"));
+        dialog.getDialogPane().setGraphic(new org.fxt.freexmltoolkit.controls.icons.IconifyIcon("bi-floppy"));
 
         Optional<String> result = dialog.showAndWait();
         result.ifPresent(name -> {

@@ -288,7 +288,7 @@
                             </Button>
                             <Button fx:id="innerSaveXsltBtn" text="Save" contentDisplay="LEFT" styleClass="btn-outline" onAction="#saveXsltFile">
                                 <graphic>
-                                    <IconifyIcon iconLiteral="bi-save" iconSize="16" iconColor="#17a2b8"/>
+                                    <IconifyIcon iconLiteral="bi-floppy" iconSize="16" iconColor="#17a2b8"/>
                                 </graphic>
                             </Button>
                             <Button fx:id="innerValidateXsltBtn" text="Validate" contentDisplay="LEFT" styleClass="btn-warning"
@@ -319,7 +319,7 @@
                             </Button>
                             <Button fx:id="innerSaveXQueryBtn" text="Save" contentDisplay="LEFT" styleClass="btn-outline" onAction="#saveXQueryFile">
                                 <graphic>
-                                    <IconifyIcon iconLiteral="bi-save" iconSize="16" iconColor="#17a2b8"/>
+                                    <IconifyIcon iconLiteral="bi-floppy" iconSize="16" iconColor="#17a2b8"/>
                                 </graphic>
                             </Button>
                             <Button fx:id="innerValidateXQueryBtn" text="Validate" contentDisplay="LEFT" styleClass="btn-warning"
@@ -464,7 +464,7 @@
                             </Button>
                             <Button fx:id="saveResultBtn" text="Save" contentDisplay="LEFT" styleClass="btn-outline" onAction="#saveResult">
                                 <graphic>
-                                    <IconifyIcon iconLiteral="bi-save" iconSize="16" iconColor="#17a2b8"/>
+                                    <IconifyIcon iconLiteral="bi-floppy" iconSize="16" iconColor="#17a2b8"/>
                                 </graphic>
                                 <tooltip>
                                     <Tooltip text="Save Result (Ctrl+Alt+S)"/>

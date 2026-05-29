@@ -114,10 +114,10 @@ public final class DiffView extends Tab {
     }
 
     private ToolBar buildToolbar() {
-        Button saveLeft = makeButton("Save Left", "bi-save", "#17a2b8", "Save left side to original file");
+        Button saveLeft = makeButton("Save Left", "bi-floppy", "#17a2b8", "Save left side to original file");
         saveLeft.setOnAction(e -> doSaveLeft());
 
-        Button saveRight = makeButton("Save Right", "bi-save", "#17a2b8", "Save right side to picked file");
+        Button saveRight = makeButton("Save Right", "bi-floppy", "#17a2b8", "Save right side to picked file");
         saveRight.setOnAction(e -> doSaveRight());
 
         Button prev = makeButton("Prev", "bi-arrow-up", "#6c757d", "Jump to previous change (Alt+Up)");

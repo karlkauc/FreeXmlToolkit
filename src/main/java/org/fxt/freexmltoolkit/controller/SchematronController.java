@@ -2522,6 +2522,15 @@ public class SchematronController implements FavoritesParentController {
     }
 
     /**
+     * Saves all open documents. The Schematron editor edits a single file at a time,
+     * so this is equivalent to {@link #saveSchematron()} and exists for toolbar consistency.
+     */
+    @FXML
+    public void saveAllSchematron() {
+        saveSchematron();
+    }
+
+    /**
      * Save Schematron content as new file
      */
     private void saveSchematronAs() {

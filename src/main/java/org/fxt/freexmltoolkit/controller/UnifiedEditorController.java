@@ -440,6 +440,18 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
     }
 
     /**
+     * Saves the current tab under a new file name.
+     */
+    @FXML
+    public void saveAsCurrentTab() {
+        if (tabManager.saveAsCurrentTab()) {
+            updateStatus("File saved");
+        } else {
+            updateStatus("Save As cancelled");
+        }
+    }
+
+    /**
      * Saves all open tabs.
      */
     @FXML

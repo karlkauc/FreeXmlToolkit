@@ -32,7 +32,7 @@
 
         <Button fx:id="saveSchematronButton" text="Save" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#saveSchematron">
             <graphic>
-                <IconifyIcon iconLiteral="bi-save" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
+                <IconifyIcon iconLiteral="bi-floppy" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Save Schematron File (Ctrl+S)"/>
@@ -41,10 +41,19 @@
 
         <Button fx:id="saveAsSchematronButton" text="Save As" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#saveAsSchematron">
             <graphic>
-                <IconifyIcon iconLiteral="bi-save-fill" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
+                <IconifyIcon iconLiteral="bi-floppy-fill" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Save As... (Ctrl+Shift+S)"/>
+            </tooltip>
+        </Button>
+
+        <Button fx:id="saveAllSchematronButton" text="Save All" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#saveAllSchematron">
+            <graphic>
+                <IconifyIcon iconLiteral="bi-floppy2" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Save All Open Documents"/>
             </tooltip>
         </Button>
 
@@ -127,7 +136,7 @@
 
                     <Button fx:id="innerSaveSchematronButton" text="Save" contentDisplay="LEFT" onAction="#saveSchematron">
                         <graphic>
-                            <IconifyIcon iconLiteral="bi-save" iconColor="#17a2b8" iconSize="16"/>
+                            <IconifyIcon iconLiteral="bi-floppy" iconColor="#17a2b8" iconSize="16"/>
                         </graphic>
                         <tooltip>
                             <Tooltip text="Save current Schematron file"/>
@@ -136,7 +145,7 @@
 
                     <Button fx:id="innerSaveAsSchematronButton" text="Save As" contentDisplay="LEFT" onAction="#saveAsSchematron">
                         <graphic>
-                            <IconifyIcon iconLiteral="bi-hdd-fill" iconColor="#17a2b8" iconSize="16"/>
+                            <IconifyIcon iconLiteral="bi-floppy-fill" iconColor="#17a2b8" iconSize="16"/>
                         </graphic>
                         <tooltip>
                             <Tooltip text="Save Schematron file with new name"/>

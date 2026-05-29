@@ -618,7 +618,7 @@
             <Button mnemonicParsing="false" onAction="#performSave" text="Save Settings" contentDisplay="LEFT"
                     styleClass="btn-save">
                 <graphic>
-                    <IconifyIcon iconLiteral="bi-save" iconSize="16" iconColor="#17a2b8"/>
+                    <IconifyIcon iconLiteral="bi-floppy" iconSize="16" iconColor="#17a2b8"/>
                 </graphic>
             </Button>
             <Button mnemonicParsing="false" onAction="#loadCurrentSettings" text="Cancel" contentDisplay="LEFT"

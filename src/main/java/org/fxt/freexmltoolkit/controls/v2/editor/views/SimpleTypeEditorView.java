@@ -220,7 +220,7 @@ public class SimpleTypeEditorView extends BorderPane {
         ToolBar toolbar = new ToolBar();
 
         saveBtn = new Button("Save Type");
-        saveBtn.setGraphic(new IconifyIcon("bi-save"));
+        saveBtn.setGraphic(new IconifyIcon("bi-floppy"));
         saveBtn.setTooltip(new Tooltip("Save changes (Ctrl+S)"));
         saveBtn.setStyle("-fx-font-weight: bold;");
         saveBtn.setDisable(true); // Enabled when callback is set

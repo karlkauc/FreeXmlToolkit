@@ -423,6 +423,15 @@ public class JsonController {
     }
 
     /**
+     * Saves all open documents. The JSON editor edits a single document at a time,
+     * so this is equivalent to {@link #saveFile()} and exists for toolbar consistency.
+     */
+    @FXML
+    public void saveAllFiles() {
+        saveFile();
+    }
+
+    /**
      * Saves content to a file.
      */
     private void saveToFile(File file) {

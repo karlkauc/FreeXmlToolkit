@@ -33,7 +33,7 @@
 
         <Button fx:id="saveFile" text="Save" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#saveFile">
             <graphic>
-                <IconifyIcon iconLiteral="bi-save" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
+                <IconifyIcon iconLiteral="bi-floppy" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Save Document (Ctrl+S)"/>
@@ -42,10 +42,19 @@
 
         <Button fx:id="saveAsFile" text="Save As" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#saveAsFile">
             <graphic>
-                <IconifyIcon iconLiteral="bi-save-fill" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
+                <IconifyIcon iconLiteral="bi-floppy-fill" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Save As... (Ctrl+Shift+S)"/>
+            </tooltip>
+        </Button>
+
+        <Button fx:id="saveAllFiles" text="Save All" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#saveAllFiles">
+            <graphic>
+                <IconifyIcon iconLiteral="bi-floppy2" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Save All Open Documents"/>
             </tooltip>
         </Button>
 
@@ -301,7 +310,7 @@
                                         <graphic><IconifyIcon iconLiteral="bi-folder2" iconSize="14" iconColor="#6f42c1"/></graphic>
                                     </MenuButton>
                                     <Button text="Save" onAction="#saveXPathQuery" contentDisplay="LEFT" styleClass="label-small">
-                                        <graphic><IconifyIcon iconLiteral="bi-save" iconSize="14" iconColor="#17a2b8"/></graphic>
+                                        <graphic><IconifyIcon iconLiteral="bi-floppy" iconSize="14" iconColor="#17a2b8"/></graphic>
                                         <tooltip><Tooltip text="Save query to file"/></tooltip>
                                     </Button>
                                     <Button text="Load" onAction="#loadXPathQueryFromFile" contentDisplay="LEFT" styleClass="label-small">
@@ -340,7 +349,7 @@
                                         <graphic><IconifyIcon iconLiteral="bi-folder2" iconSize="14" iconColor="#20c997"/></graphic>
                                     </MenuButton>
                                     <Button text="Save" onAction="#saveXQueryQuery" contentDisplay="LEFT" styleClass="label-small">
-                                        <graphic><IconifyIcon iconLiteral="bi-save" iconSize="14" iconColor="#17a2b8"/></graphic>
+                                        <graphic><IconifyIcon iconLiteral="bi-floppy" iconSize="14" iconColor="#17a2b8"/></graphic>
                                         <tooltip><Tooltip text="Save query to file"/></tooltip>
                                     </Button>
                                     <Button text="Load" onAction="#loadXQueryQueryFromFile" contentDisplay="LEFT" styleClass="label-small">
@@ -385,7 +394,7 @@
                                     <graphic><IconifyIcon iconLiteral="bi-folder2-open" iconSize="14" iconColor="#007bff"/></graphic>
                                 </Button>
                                 <Button fx:id="saveXmlSourceButton" text="Save" contentDisplay="LEFT" onAction="#saveXmlSourceFile">
-                                    <graphic><IconifyIcon iconLiteral="bi-save" iconSize="14" iconColor="#17a2b8"/></graphic>
+                                    <graphic><IconifyIcon iconLiteral="bi-floppy" iconSize="14" iconColor="#17a2b8"/></graphic>
                                 </Button>
                             </HBox>
                             <StackPane fx:id="xmlSourceEditorPane" VBox.vgrow="ALWAYS" minHeight="100"/>
@@ -402,7 +411,7 @@
                                     <graphic><IconifyIcon iconLiteral="bi-folder2-open" iconSize="14" iconColor="#007bff"/></graphic>
                                 </Button>
                                 <Button fx:id="saveXsltButton" text="Save" contentDisplay="LEFT" onAction="#saveXsltFile">
-                                    <graphic><IconifyIcon iconLiteral="bi-save" iconSize="14" iconColor="#17a2b8"/></graphic>
+                                    <graphic><IconifyIcon iconLiteral="bi-floppy" iconSize="14" iconColor="#17a2b8"/></graphic>
                                 </Button>
                                 <Separator orientation="VERTICAL"/>
                                 <Button fx:id="transformButton" text="Transform" contentDisplay="LEFT" onAction="#executeTransformation"

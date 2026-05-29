@@ -264,7 +264,7 @@ public class ContextMenuFactory {
      * @return The created menu item.
      */
     public static MenuItem createSaveItem(String text, Runnable action) {
-        return createItem(text, "bi-save", COLOR_SUCCESS, action);
+        return createItem(text, "bi-floppy", COLOR_SUCCESS, action);
     }
 
     /**

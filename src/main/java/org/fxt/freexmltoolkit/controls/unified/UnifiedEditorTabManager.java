@@ -11,6 +11,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.TabPane;
+import javafx.stage.FileChooser;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -292,6 +293,59 @@ public class UnifiedEditorTabManager {
     public boolean saveCurrentTab() {
         AbstractUnifiedEditorTab currentTab = getCurrentTab();
         return currentTab == null || currentTab.save();
+    }
+
+    /**
+     * Saves the currently selected tab under a new file name chosen by the user.
+     *
+     * @return true if the content was written to a new file, false if cancelled or failed
+     */
+    public boolean saveAsCurrentTab() {
+        AbstractUnifiedEditorTab currentTab = getCurrentTab();
+        if (currentTab == null) {
+            return false;
+        }
+
+        UnifiedEditorFileType type = currentTab.getFileType();
+
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Save As");
+
+        // Extension filter for the tab's file type plus an "All Files" fallback.
+        List<String> patterns = type.getExtensions().stream()
+                .map(ext -> "*." + ext)
+                .collect(Collectors.toList());
+        if (!patterns.isEmpty()) {
+            fileChooser.getExtensionFilters().add(
+                    new FileChooser.ExtensionFilter(type.getDisplayName() + " Files", patterns));
+        }
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("All Files", "*.*"));
+
+        // Pre-fill directory and file name from the current source file, if any.
+        File sourceFile = currentTab.getSourceFile();
+        if (sourceFile != null) {
+            File parent = sourceFile.getParentFile();
+            if (parent != null && parent.isDirectory()) {
+                fileChooser.setInitialDirectory(parent);
+            }
+            fileChooser.setInitialFileName(sourceFile.getName());
+        } else {
+            fileChooser.setInitialFileName("Untitled." + type.getDefaultExtension());
+        }
+
+        var window = tabPane.getScene() != null ? tabPane.getScene().getWindow() : null;
+        File target = fileChooser.showSaveDialog(window);
+        if (target == null) {
+            return false;
+        }
+
+        boolean success = currentTab.saveAs(target);
+        if (success) {
+            logger.info("Saved tab as: {}", target.getAbsolutePath());
+        } else {
+            logger.warn("Failed to save tab as: {}", target.getAbsolutePath());
+        }
+        return success;
     }
 
     /**
