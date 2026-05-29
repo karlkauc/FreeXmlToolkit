@@ -249,9 +249,28 @@ public class EditorHost extends BorderPane {
 
     /** Deletes the selected node (Tree/Graphic) via the command stack. @return success */
     public boolean deleteActiveNode() {
+        return editActive(et -> et.deleteNode(et.currentSelection));
+    }
+
+    /** Adds a child element under the selected node via the command stack. */
+    public boolean addElementToActive(String name) {
+        return editActive(et -> et.addElement(et.currentSelection, name));
+    }
+
+    /** Renames the selected node via the command stack. */
+    public boolean renameActiveNode(String newName) {
+        return editActive(et -> et.renameNode(et.currentSelection, newName));
+    }
+
+    /** Changes the selected node's cardinality via the command stack. */
+    public boolean changeActiveCardinality(int min, int max) {
+        return editActive(et -> et.changeCardinality(et.currentSelection, min, max));
+    }
+
+    private boolean editActive(java.util.function.Predicate<EditorTab> edit) {
         if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et
                 && et.viewMode != ViewMode.TEXT) {
-            boolean ok = et.deleteNode(et.currentSelection);
+            boolean ok = edit.test(et);
             if (ok) {
                 refreshSelectedNode();
             }
@@ -520,17 +539,49 @@ public class EditorHost extends BorderPane {
             }
         }
 
-        /** Deletes the node via the command stack and round-trips the model to text. */
-        boolean deleteNode(XsdNode node) {
-            if (editorContext == null || node == null || node.getParent() == null) {
+        private boolean executeAndApply(
+                org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdCommand command) {
+            if (editorContext == null) {
                 return false;
             }
-            boolean ok = editorContext.getCommandManager().executeCommand(
-                    new org.fxt.freexmltoolkit.controls.v2.editor.commands.DeleteNodeCommand(node));
+            boolean ok = editorContext.getCommandManager().executeCommand(command);
             if (ok) {
                 applyModelChange();
             }
             return ok;
+        }
+
+        /** Deletes the node via the command stack and round-trips the model to text. */
+        boolean deleteNode(XsdNode node) {
+            if (node == null || node.getParent() == null) {
+                return false;
+            }
+            return executeAndApply(
+                    new org.fxt.freexmltoolkit.controls.v2.editor.commands.DeleteNodeCommand(node));
+        }
+
+        boolean addElement(XsdNode parent, String name) {
+            if (parent == null || name == null || name.isBlank()) {
+                return false;
+            }
+            return executeAndApply(
+                    new org.fxt.freexmltoolkit.controls.v2.editor.commands.AddElementCommand(parent, name.trim()));
+        }
+
+        boolean renameNode(XsdNode node, String newName) {
+            if (node == null || newName == null || newName.isBlank()) {
+                return false;
+            }
+            return executeAndApply(
+                    new org.fxt.freexmltoolkit.controls.v2.editor.commands.RenameNodeCommand(node, newName.trim()));
+        }
+
+        boolean changeCardinality(XsdNode node, int min, int max) {
+            if (node == null || min < 0 || (max >= 0 && max < min)) {
+                return false;
+            }
+            return executeAndApply(
+                    new org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeCardinalityCommand(node, min, max));
         }
 
         boolean undoStructured() {
@@ -565,10 +616,33 @@ public class EditorHost extends BorderPane {
                     currentSelection = newV != null ? newV.getValue() : null;
                     selectionCallback.run();
                 });
-                treeView.setOnDeleteRequest(node -> {
-                    currentSelection = node;
-                    if (deleteNode(node)) {
-                        selectionCallback.run();
+                treeView.setEditActions(new org.fxt.freexmltoolkit.controls.shell.schema.NodeEditActions() {
+                    @Override
+                    public void addElement(XsdNode parent, String name) {
+                        if (EditorTab.this.addElement(parent, name)) {
+                            selectionCallback.run();
+                        }
+                    }
+
+                    @Override
+                    public void rename(XsdNode node, String newName) {
+                        if (EditorTab.this.renameNode(node, newName)) {
+                            selectionCallback.run();
+                        }
+                    }
+
+                    @Override
+                    public void changeCardinality(XsdNode node, int min, int max) {
+                        if (EditorTab.this.changeCardinality(node, min, max)) {
+                            selectionCallback.run();
+                        }
+                    }
+
+                    @Override
+                    public void delete(XsdNode node) {
+                        if (EditorTab.this.deleteNode(node)) {
+                            selectionCallback.run();
+                        }
                     }
                 });
                 contentStack.getChildren().add(treeView);

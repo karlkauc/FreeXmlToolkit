@@ -83,6 +83,68 @@ class EditorHostEditingTest {
                 "undo must restore the deleted node");
     }
 
+    @Test
+    void renameThroughCommandUpdatesTextAndUndoRestores(@TempDir Path tmp) throws Exception {
+        openTreeAndSelect(tmp, "UniqueDocumentID");
+        boolean ok = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.renameActiveNode("DocId"));
+
+        assertTrue(ok);
+        assertTrue(host.getActiveText().orElse("").contains("DocId"));
+        assertFalse(host.getActiveText().orElse("").contains("UniqueDocumentID"));
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.undoActive();
+            return null;
+        });
+        assertTrue(host.getActiveText().orElse("").contains("UniqueDocumentID"), "undo restores the name");
+    }
+
+    @Test
+    void changeCardinalityThroughCommandUpdatesText(@TempDir Path tmp) throws Exception {
+        openTreeAndSelect(tmp, "UniqueDocumentID");
+        boolean ok = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.changeActiveCardinality(0, -1));
+
+        assertTrue(ok);
+        String text = host.getActiveText().orElse("");
+        assertTrue(text.contains("minOccurs=\"0\""), "minOccurs should be written: " + text);
+        assertTrue(text.contains("maxOccurs=\"unbounded\""), "unbounded maxOccurs should be written: " + text);
+    }
+
+    @Test
+    void addElementThroughCommandInsertsChild(@TempDir Path tmp) throws Exception {
+        XsdNode child = openTreeAndSelect(tmp, "UniqueDocumentID");
+        XsdNode container = child.getParent(); // the xs:sequence
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.selectNodeInActiveTree(container);
+            return null;
+        });
+        boolean ok = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.addElementToActive("ExtraField"));
+
+        assertTrue(ok, "add element should succeed on a container");
+        assertTrue(host.getActiveText().orElse("").contains("ExtraField"),
+                "new element must appear in the round-tripped text");
+    }
+
+    /** Opens the XSD, switches to Tree, selects the named node, returns it. */
+    private XsdNode openTreeAndSelect(Path tmp, String name) throws Exception {
+        Path xsd = tmp.resolve("schema.xsd");
+        Files.writeString(xsd, XSD);
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xsd));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains(name)).orElse(false));
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.setActiveViewMode(ViewMode.TREE);
+            return null;
+        });
+        XsdNode node = WaitForAsyncUtils.waitForAsyncFx(2000, () ->
+                find(host.getActiveSchemaRoot().orElseThrow(), name));
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.selectNodeInActiveTree(node);
+            return null;
+        });
+        return node;
+    }
+
     private XsdNode find(XsdNode node, String name) {
         if (name.equals(node.getName())) {
             return node;

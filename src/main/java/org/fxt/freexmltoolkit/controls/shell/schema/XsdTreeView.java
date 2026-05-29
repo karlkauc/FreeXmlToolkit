@@ -16,29 +16,80 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
  */
 public class XsdTreeView extends TreeView<XsdNode> {
 
-    private java.util.function.Consumer<XsdNode> onDeleteRequest;
-
     public XsdTreeView() {
         getStyleClass().add("fxt-xsd-tree");
         setShowRoot(true);
         setCellFactory(tv -> new XsdNodeCell());
     }
 
-    /** Installs a context menu whose Delete action invokes the given handler. */
-    public void setOnDeleteRequest(java.util.function.Consumer<XsdNode> handler) {
-        this.onDeleteRequest = handler;
+    /** Installs a context menu (Add Element / Rename / Cardinality / Delete) wired to the actions. */
+    public void setEditActions(NodeEditActions actions) {
         javafx.scene.control.ContextMenu menu = new javafx.scene.control.ContextMenu();
-        IconifyIcon trash = new IconifyIcon("bi-trash");
-        trash.setIconSize(16);
-        javafx.scene.control.MenuItem delete = new javafx.scene.control.MenuItem("Delete", trash);
-        delete.setOnAction(e -> {
-            javafx.scene.control.TreeItem<XsdNode> item = getSelectionModel().getSelectedItem();
-            if (item != null && item.getValue() != null && onDeleteRequest != null) {
-                onDeleteRequest.accept(item.getValue());
+        menu.getItems().addAll(
+                menuItem("Add Element…", "bi-plus-circle", node -> promptAddElement(actions, node)),
+                menuItem("Rename…", "bi-pencil", node -> promptRename(actions, node)),
+                menuItem("Change Cardinality…", "bi-arrows-expand", node -> promptCardinality(actions, node)),
+                new javafx.scene.control.SeparatorMenuItem(),
+                menuItem("Delete", "bi-trash", actions::delete));
+        setContextMenu(menu);
+    }
+
+    private javafx.scene.control.MenuItem menuItem(String text, String icon,
+                                                  java.util.function.Consumer<XsdNode> action) {
+        IconifyIcon graphic = new IconifyIcon(icon);
+        graphic.setIconSize(16);
+        javafx.scene.control.MenuItem item = new javafx.scene.control.MenuItem(text, graphic);
+        item.setOnAction(e -> {
+            javafx.scene.control.TreeItem<XsdNode> selected = getSelectionModel().getSelectedItem();
+            if (selected != null && selected.getValue() != null) {
+                action.accept(selected.getValue());
             }
         });
-        menu.getItems().add(delete);
-        setContextMenu(menu);
+        return item;
+    }
+
+    private void promptAddElement(NodeEditActions actions, XsdNode parent) {
+        javafx.scene.control.TextInputDialog dialog = new javafx.scene.control.TextInputDialog("NewElement");
+        dialog.setTitle("Add Element");
+        dialog.setHeaderText("New element name:");
+        dialog.showAndWait().ifPresent(name -> {
+            if (!name.isBlank()) {
+                actions.addElement(parent, name.trim());
+            }
+        });
+    }
+
+    private void promptRename(NodeEditActions actions, XsdNode node) {
+        javafx.scene.control.TextInputDialog dialog =
+                new javafx.scene.control.TextInputDialog(node.getName() != null ? node.getName() : "");
+        dialog.setTitle("Rename");
+        dialog.setHeaderText("New name:");
+        dialog.showAndWait().ifPresent(name -> {
+            if (!name.isBlank()) {
+                actions.rename(node, name.trim());
+            }
+        });
+    }
+
+    private void promptCardinality(NodeEditActions actions, XsdNode node) {
+        String current = node.getMinOccurs() + ".." + (node.getMaxOccurs() < 0 ? "*" : node.getMaxOccurs());
+        javafx.scene.control.TextInputDialog dialog = new javafx.scene.control.TextInputDialog(current);
+        dialog.setTitle("Change Cardinality");
+        dialog.setHeaderText("Cardinality as min..max (use * for unbounded):");
+        dialog.showAndWait().ifPresent(text -> {
+            String[] parts = text.split("\\.\\.");
+            if (parts.length == 2) {
+                try {
+                    int min = Integer.parseInt(parts[0].trim());
+                    String maxText = parts[1].trim();
+                    int max = (maxText.equals("*") || maxText.equalsIgnoreCase("unbounded"))
+                            ? -1 : Integer.parseInt(maxText);
+                    actions.changeCardinality(node, min, max);
+                } catch (NumberFormatException ignored) {
+                    // invalid input: ignore
+                }
+            }
+        });
     }
 
     /** Renders the given parsed schema. */
