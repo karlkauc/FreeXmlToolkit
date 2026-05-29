@@ -2,7 +2,6 @@ package org.fxt.freexmltoolkit.controls.shell;
 
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
-import javafx.scene.control.TitledPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -32,7 +31,6 @@ import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 public class UnifiedShellView extends BorderPane {
 
     private static final double SIDE_PANEL_WIDTH = 260;
-    private static final double INSPECTOR_WIDTH = 384;
 
     private final ActivitySelectionModel selectionModel = new ActivitySelectionModel();
     private final StackPane sidePanelHost = new StackPane();
@@ -59,7 +57,7 @@ public class UnifiedShellView extends BorderPane {
         Region editorCenter = buildEditorCenter();
         HBox.setHgrow(editorCenter, Priority.ALWAYS);
 
-        Region inspector = buildInspector();
+        Region inspector = new org.fxt.freexmltoolkit.controls.shell.inspector.InspectorPanel(editorHost);
 
         HBox work = new HBox(sidePanelHost, editorCenter, inspector);
         work.getStyleClass().add("fxt-work-area");
@@ -172,29 +170,6 @@ public class UnifiedShellView extends BorderPane {
     /** @return the editor host (for future toolbar / inspector wiring). */
     public org.fxt.freexmltoolkit.controls.shell.editor.EditorHost getEditorHost() {
         return editorHost;
-    }
-
-    private Region buildInspector() {
-        VBox inspector = new VBox();
-        inspector.getStyleClass().add("fxt-inspector");
-        inspector.setPrefWidth(INSPECTOR_WIDTH);
-        inspector.setMinWidth(INSPECTOR_WIDTH);
-
-        Label header = new Label("PROPERTIES");
-        header.getStyleClass().add("fxt-inspector-header");
-        inspector.getChildren().add(header);
-
-        // The four inspector sections required to be identical across all views.
-        for (String section : new String[]{
-                "Node & XPath", "Type & Facets", "Cardinality & Use", "Documentation & Refs"}) {
-            Label body = new Label("—");
-            body.getStyleClass().add("fxt-placeholder-text");
-            TitledPane pane = new TitledPane(section, body);
-            pane.setExpanded(true);
-            pane.getStyleClass().add("fxt-inspector-section");
-            inspector.getChildren().add(pane);
-        }
-        return inspector;
     }
 
     private Region buildStatusBar() {

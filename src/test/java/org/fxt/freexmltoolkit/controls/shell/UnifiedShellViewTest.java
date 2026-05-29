@@ -91,6 +91,10 @@ class UnifiedShellViewTest {
         WaitForAsyncUtils.waitForAsyncFx(3000, () -> shell.getEditorHost().openFile(sample.toPath()));
         WaitForAsyncUtils.waitFor(3, java.util.concurrent.TimeUnit.SECONDS,
                 () -> shell.getEditorHost().getActiveText().map(t -> t.contains("FundsXML4")).orElse(false));
+        // Place the caret inside <UniqueDocumentID> so the inspector is populated.
+        int caret = shell.getEditorHost().getActiveText().orElse("").indexOf("EAM_FUND");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> shell.getEditorHost().moveActiveCaretTo(caret));
+        WaitForAsyncUtils.sleep(400, java.util.concurrent.TimeUnit.MILLISECONDS);
         WaitForAsyncUtils.waitForFxEvents();
         snapshot(new File(dir, "fxt_shell_light.png"));
 

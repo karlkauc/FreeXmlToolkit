@@ -2,6 +2,8 @@ package org.fxt.freexmltoolkit.controls.shell.editor;
 
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
+import javafx.beans.property.ReadOnlyIntegerProperty;
+import javafx.beans.property.ReadOnlyIntegerWrapper;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -32,10 +34,25 @@ public class EditorHost extends BorderPane {
 
     private final TabPane tabPane = new TabPane();
     private final ObservableList<OpenDocument> openDocuments = FXCollections.observableArrayList();
+    private final ReadOnlyIntegerWrapper activeCaret = new ReadOnlyIntegerWrapper(this, "activeCaret", 0);
 
     public EditorHost() {
         getStyleClass().add("fxt-editor-tabs");
         setCenter(tabPane);
+        tabPane.getSelectionModel().selectedItemProperty().addListener((obs, oldT, newT) -> {
+            if (newT instanceof EditorTab et) {
+                activeCaret.set(et.editor.getCodeArea().getCaretPosition());
+            }
+        });
+    }
+
+    /**
+     * @return the caret offset of the active editor; changes on caret movement
+     * (incl. typing) and on tab switches, so observers (e.g. the inspector) can
+     * react. The text is fetched on demand via {@link #getActiveText()}.
+     */
+    public ReadOnlyIntegerProperty activeCaretProperty() {
+        return activeCaret.getReadOnlyProperty();
     }
 
     /** @return the open documents, in tab order (for the Explorer "Open Editors" list). */
@@ -63,6 +80,15 @@ public class EditorHost extends BorderPane {
     /** @return the selected-tab property (for observers). */
     public ReadOnlyObjectProperty<Tab> activeTabProperty() {
         return tabPane.getSelectionModel().selectedItemProperty();
+    }
+
+    /** Moves the active editor's caret to the given offset (e.g. jump-to-node). */
+    public void moveActiveCaretTo(int position) {
+        Tab tab = tabPane.getSelectionModel().getSelectedItem();
+        if (tab instanceof EditorTab et) {
+            var codeArea = et.editor.getCodeArea();
+            codeArea.moveTo(Math.max(0, Math.min(position, codeArea.getLength())));
+        }
     }
 
     /** Focuses the tab backing the given document, if open. */
@@ -130,6 +156,11 @@ public class EditorHost extends BorderPane {
         tabPane.getSelectionModel().select(tab);
         openDocuments.add(tab.document);
         tab.setOnClosed(e -> openDocuments.remove(tab.document));
+        tab.editor.getCodeArea().caretPositionProperty().addListener((obs, oldV, newV) -> {
+            if (tab.isSelected()) {
+                activeCaret.set(newV.intValue());
+            }
+        });
     }
 
     private void loadAsync(EditorTab tab, Path path) {

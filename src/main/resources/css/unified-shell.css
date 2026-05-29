@@ -138,6 +138,22 @@
     -fx-border-color: -fxt-border;
 }
 
+.fxt-inspector-grid {
+    -fx-padding: 4 2 4 2;
+}
+
+.fxt-inspector-key {
+    -fx-text-fill: -fxt-text-secondary;
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 11px;
+}
+
+.fxt-inspector-value {
+    -fx-text-fill: -fxt-text-primary;
+    -fx-font-family: "JetBrains Mono", monospace;
+    -fx-font-size: 11px;
+}
+
 /* ----- Status bar ----------------------------------------------------- */
 .fxt-status-bar {
     -fx-background-color: -fxt-primary;
