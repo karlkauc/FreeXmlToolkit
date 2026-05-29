@@ -59,6 +59,30 @@ class EditorHostTest {
     }
 
     @Test
+    void autoBindsLocalSchemaFromNoNamespaceSchemaLocation(@org.junit.jupiter.api.io.TempDir Path tmp) throws Exception {
+        Path xsd = tmp.resolve("schema.xsd");
+        Files.writeString(xsd, """
+                <?xml version="1.0"?>
+                <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                  <xs:element name="root">
+                    <xs:complexType><xs:sequence>
+                      <xs:element name="item" type="xs:string"/>
+                    </xs:sequence></xs:complexType>
+                  </xs:element>
+                </xs:schema>
+                """);
+        Path xml = tmp.resolve("data.xml");
+        Files.writeString(xml, "<root xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "
+                + "xsi:noNamespaceSchemaLocation=\"schema.xsd\"><item>x</item></root>");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
+        WaitForAsyncUtils.waitFor(4, java.util.concurrent.TimeUnit.SECONDS,
+                () -> host.activeSchemaProperty().get() != null);
+
+        assertEquals(xsd.toFile().getName(), host.activeSchemaProperty().get().getName());
+    }
+
+    @Test
     void saveAsWritesFileAndRetitlesDocument(@org.junit.jupiter.api.io.TempDir Path tmp) throws Exception {
         Path target = tmp.resolve("new.xsd");
 

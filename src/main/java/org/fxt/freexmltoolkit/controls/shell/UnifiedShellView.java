@@ -127,11 +127,39 @@ public class UnifiedShellView extends BorderPane {
     private Region buildEditorToolbar() {
         javafx.scene.control.Button save = toolButton("bi-save", "Save (Ctrl+S)", this::saveActive);
         javafx.scene.control.Button saveAs = toolButton("bi-save2", "Save As…", this::saveActiveAs);
+        javafx.scene.control.Button setXsd = toolButton("bi-diagram-3", "Set XSD schema for IntelliSense", this::setSchema);
 
-        HBox bar = new HBox(6, save, saveAs);
+        javafx.scene.control.Separator sep = new javafx.scene.control.Separator(javafx.geometry.Orientation.VERTICAL);
+
+        Label schemaStatus = new Label();
+        schemaStatus.getStyleClass().add("fxt-toolbar-status");
+        schemaStatus.textProperty().bind(javafx.beans.binding.Bindings.createStringBinding(
+                () -> {
+                    java.io.File xsd = editorHost.activeSchemaProperty().get();
+                    return xsd != null ? "XSD: " + xsd.getName() : "No XSD";
+                },
+                editorHost.activeSchemaProperty()));
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        HBox bar = new HBox(6, save, saveAs, sep, setXsd, spacer, schemaStatus);
         bar.setAlignment(Pos.CENTER_LEFT);
         bar.getStyleClass().add("fxt-editor-toolbar");
         return bar;
+    }
+
+    private void setSchema() {
+        if (editorHost.getActiveDocument().isEmpty()) {
+            return;
+        }
+        javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
+        chooser.setTitle("Select XSD Schema");
+        chooser.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter("XSD Schema", "*.xsd"));
+        java.io.File file = chooser.showOpenDialog(getScene() != null ? getScene().getWindow() : null);
+        if (file != null) {
+            editorHost.setSchemaForActiveDocument(file);
+        }
     }
 
     private javafx.scene.control.Button toolButton(String icon, String tooltip, Runnable action) {

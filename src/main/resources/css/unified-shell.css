@@ -204,6 +204,12 @@
     -fx-icon-color: -fxt-primary;
 }
 
+.fxt-toolbar-status {
+    -fx-text-fill: -fxt-text-muted;
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 11px;
+}
+
 .fxt-open-editors {
     -fx-background-color: transparent;
     -fx-border-color: transparent;

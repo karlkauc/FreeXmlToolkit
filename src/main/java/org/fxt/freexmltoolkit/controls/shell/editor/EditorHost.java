@@ -5,8 +5,11 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.ReadOnlyIntegerWrapper;
 import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+
+import java.io.File;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.layout.BorderPane;
@@ -35,6 +38,7 @@ public class EditorHost extends BorderPane {
     private final TabPane tabPane = new TabPane();
     private final ObservableList<OpenDocument> openDocuments = FXCollections.observableArrayList();
     private final ReadOnlyIntegerWrapper activeCaret = new ReadOnlyIntegerWrapper(this, "activeCaret", 0);
+    private final ReadOnlyObjectWrapper<File> activeSchema = new ReadOnlyObjectWrapper<>(this, "activeSchema", null);
 
     public EditorHost() {
         getStyleClass().add("fxt-editor-tabs");
@@ -42,6 +46,9 @@ public class EditorHost extends BorderPane {
         tabPane.getSelectionModel().selectedItemProperty().addListener((obs, oldT, newT) -> {
             if (newT instanceof EditorTab et) {
                 activeCaret.set(et.editor.getCodeArea().getCaretPosition());
+                activeSchema.set(et.schemaFile);
+            } else {
+                activeSchema.set(null);
             }
         });
     }
@@ -53,6 +60,27 @@ public class EditorHost extends BorderPane {
      */
     public ReadOnlyIntegerProperty activeCaretProperty() {
         return activeCaret.getReadOnlyProperty();
+    }
+
+    /** @return the XSD currently bound to the active document for IntelliSense, or {@code null}. */
+    public ReadOnlyObjectProperty<File> activeSchemaProperty() {
+        return activeSchema.getReadOnlyProperty();
+    }
+
+    /**
+     * Binds an XSD to the active document for schema-aware IntelliSense.
+     *
+     * @return {@code true} if the schema loaded successfully
+     */
+    public boolean setSchemaForActiveDocument(File xsd) {
+        Tab tab = tabPane.getSelectionModel().getSelectedItem();
+        if (tab instanceof EditorTab et && et.schemaProvider.loadSchema(xsd)) {
+            et.schemaFile = xsd;
+            et.editor.invalidateIntelliSenseCache();
+            activeSchema.set(xsd);
+            return true;
+        }
+        return false;
     }
 
     /** @return the open documents, in tab order (for the Explorer "Open Editors" list). */
@@ -167,10 +195,22 @@ public class EditorHost extends BorderPane {
         FxtGui.executorService.submit(() -> {
             try {
                 String content = Files.readString(path, StandardCharsets.UTF_8);
+                // Best-effort: resolve + parse a locally referenced XSD off the UI thread.
+                File autoXsd = SchemaLocationResolver.resolveLocalXsd(content, path)
+                        .filter(p -> tab.schemaProvider.loadSchema(p.toFile()))
+                        .map(java.nio.file.Path::toFile)
+                        .orElse(null);
                 Platform.runLater(() -> {
                     tab.editor.setText(content);
                     tab.document.setDirty(false);
                     tab.attachDirtyTracking();
+                    if (autoXsd != null) {
+                        tab.schemaFile = autoXsd;
+                        tab.editor.invalidateIntelliSenseCache();
+                        if (tab.isSelected()) {
+                            activeSchema.set(autoXsd);
+                        }
+                    }
                 });
             } catch (IOException e) {
                 Platform.runLater(() -> tab.editor.setText("<!-- Could not read " + path + ": " + e.getMessage() + " -->"));
@@ -196,12 +236,14 @@ public class EditorHost extends BorderPane {
     /** A tab bound to one {@link OpenDocument} and its reused text editor. */
     private static final class EditorTab extends Tab {
         private final OpenDocument document;
+        private final MutableXmlSchemaProvider schemaProvider = new MutableXmlSchemaProvider();
         private final XmlCodeEditorV2 editor;
         private boolean dirtyTrackingAttached;
+        private File schemaFile;
 
         EditorTab(OpenDocument document) {
             this.document = document;
-            this.editor = new XmlCodeEditorV2(new MutableXmlSchemaProvider());
+            this.editor = new XmlCodeEditorV2(schemaProvider);
             setContent(editor);
             textProperty().bind(Bindings.createStringBinding(
                     () -> (document.isDirty() ? "● " : "") + document.getDisplayName(),
