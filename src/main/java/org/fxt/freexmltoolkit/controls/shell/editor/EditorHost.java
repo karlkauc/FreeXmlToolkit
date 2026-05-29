@@ -231,6 +231,21 @@ public class EditorHost extends BorderPane {
         return tab.document;
     }
 
+    /**
+     * Opens generated content (e.g. a generated XSD, flattened schema, sample
+     * data) as a new untitled, dirty document.
+     *
+     * @return the new document
+     */
+    public OpenDocument openGeneratedDocument(String content, EditorFileType type, String displayName) {
+        EditorTab tab = new EditorTab(OpenDocument.untitled(displayName, type), this::refreshSelectedNode);
+        addTab(tab);
+        tab.view.setText(content);
+        tab.attachDirtyTracking();
+        tab.document.setDirty(true);
+        return tab.document;
+    }
+
     // ----- saving / editing ------------------------------------------------
 
     /** Saves the active document to its current path (must be titled). @return success */

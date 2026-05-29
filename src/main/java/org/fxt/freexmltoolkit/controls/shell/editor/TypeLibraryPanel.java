@@ -25,7 +25,7 @@ public class TypeLibraryPanel extends VBox {
         this.editorHost = editorHost;
         getStyleClass().add("fxt-side-panel-content");
 
-        Label title = new Label("TYPES");
+        Label title = new Label("SCHEMA");
         title.getStyleClass().add("fxt-side-panel-title");
 
         ListView<XsdNode> list = new ListView<>(types);
@@ -39,11 +39,37 @@ public class TypeLibraryPanel extends VBox {
             }
         });
 
-        getChildren().addAll(title, list);
+        javafx.scene.control.Button generateXsd = new javafx.scene.control.Button("Generate XSD from XML");
+        generateXsd.getStyleClass().add("fxt-tool-button");
+        IconifyIcon genIcon = new IconifyIcon("bi-magic");
+        genIcon.setIconSize(16);
+        generateXsd.setGraphic(genIcon);
+        generateXsd.setOnAction(e -> generateXsdFromActive());
+
+        Label typesLabel = new Label("TYPES");
+        typesLabel.getStyleClass().add("fxt-side-panel-title");
+
+        getChildren().addAll(title, new javafx.scene.layout.HBox(generateXsd), typesLabel, list);
 
         refresh();
         editorHost.activeTabProperty().addListener((obs, oldV, newV) -> refresh());
         editorHost.activeViewModeProperty().addListener((obs, oldV, newV) -> refresh());
+    }
+
+    /** Infers an XSD from the active XML document and opens it as a new tab (async). */
+    public void generateXsdFromActive() {
+        if (editorHost.getActiveDocument().isEmpty()) {
+            return;
+        }
+        String xml = editorHost.getActiveText().orElse("");
+        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            String xsd = SchemaActionRunner.generateXsdFromXml(xml);
+            javafx.application.Platform.runLater(() -> {
+                if (!xsd.startsWith("ERROR:")) {
+                    editorHost.openGeneratedDocument(xsd, EditorFileType.XSD, "Generated.xsd");
+                }
+            });
+        });
     }
 
     private void refresh() {
