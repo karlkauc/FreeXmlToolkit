@@ -27,6 +27,31 @@ public class XsdTreeView extends TreeView<XsdNode> {
         setRoot(XsdTreeBuilder.build(schema));
     }
 
+    /** Selects the tree item backing the given node (by identity), if present. */
+    public void selectNode(XsdNode node) {
+        javafx.scene.control.TreeItem<XsdNode> item = findItem(getRoot(), node);
+        if (item != null) {
+            getSelectionModel().select(item);
+        }
+    }
+
+    private javafx.scene.control.TreeItem<XsdNode> findItem(
+            javafx.scene.control.TreeItem<XsdNode> item, XsdNode target) {
+        if (item == null) {
+            return null;
+        }
+        if (item.getValue() == target) {
+            return item;
+        }
+        for (javafx.scene.control.TreeItem<XsdNode> child : item.getChildren()) {
+            javafx.scene.control.TreeItem<XsdNode> found = findItem(child, target);
+            if (found != null) {
+                return found;
+            }
+        }
+        return null;
+    }
+
     /**
      * Parses XSD text and renders it.
      *

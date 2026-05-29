@@ -137,6 +137,17 @@ class UnifiedShellViewTest {
                     org.fxt.freexmltoolkit.controls.shell.editor.ViewMode.TREE);
             return null;
         });
+        // Select a node so the inspector is driven by the model.
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            shell.getEditorHost().getActiveSchemaRoot().ifPresent(rootNode -> {
+                var target = findNode(rootNode, "UniqueDocumentID");
+                if (target != null) {
+                    shell.getEditorHost().selectNodeInActiveTree(target);
+                }
+            });
+            return null;
+        });
+        WaitForAsyncUtils.sleep(300, java.util.concurrent.TimeUnit.MILLISECONDS);
         WaitForAsyncUtils.waitForFxEvents();
         snapshot(new File(dir, "fxt_shell_tree.png"));
 
@@ -146,6 +157,20 @@ class UnifiedShellViewTest {
             ((Region) scene.getRoot()).layout();
         });
         snapshot(new File(dir, "fxt_shell_dark.png"));
+    }
+
+    private static org.fxt.freexmltoolkit.controls.v2.model.XsdNode findNode(
+            org.fxt.freexmltoolkit.controls.v2.model.XsdNode node, String name) {
+        if (name.equals(node.getName())) {
+            return node;
+        }
+        for (var child : node.getChildren()) {
+            var found = findNode(child, name);
+            if (found != null) {
+                return found;
+            }
+        }
+        return null;
     }
 
     private void snapshot(File target) throws Exception {

@@ -11,13 +11,17 @@ import javafx.util.Duration;
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType;
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.context.XPathCalculator;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 
 /**
- * The Unified shell inspector (UI rebuild Phase 3). Renders the four required
- * sections and keeps them identical across views. In Text mode it fills the
- * "Node &amp; XPath" section from the active editor's caret position (debounced);
- * the type/facets, cardinality and documentation sections become live once the
- * schema-aware views land in later phases.
+ * The Unified shell inspector. Renders the four required sections, kept identical
+ * across views. Two data sources feed it, debounced:
+ * <ul>
+ *   <li><b>Structured selection</b> (Tree/Graphic): the selected {@link XsdNode}
+ *       fills all sections via {@link SelectedNodeInfo} (the real model).</li>
+ *   <li><b>Text caret</b> (Text mode, no selection): the Node &amp; XPath section
+ *       is derived from the caret via {@link NodeXPathInfo}.</li>
+ * </ul>
  */
 public class InspectorPanel extends VBox {
 
@@ -25,12 +29,16 @@ public class InspectorPanel extends VBox {
 
     private final EditorHost editorHost;
     private final XPathCalculator xpathCalculator = new XPathCalculator();
-    private final PauseTransition debounce = new PauseTransition(Duration.millis(180));
+    private final PauseTransition debounce = new PauseTransition(Duration.millis(150));
 
     private final Label kindValue = value();
     private final Label nameValue = value();
     private final Label xpathValue = value();
     private final Label depthValue = value();
+    private final Label typeValue = value();
+    private final Label cardinalityValue = value();
+    private final Label useValue = value();
+    private final Label docValue = value();
 
     public InspectorPanel(EditorHost editorHost) {
         this.editorHost = editorHost;
@@ -42,67 +50,63 @@ public class InspectorPanel extends VBox {
         header.getStyleClass().add("fxt-inspector-header");
         getChildren().add(header);
 
-        getChildren().add(section("Node & XPath", buildNodeXPathBody()));
-        getChildren().add(section("Type & Facets", placeholderBody()));
-        getChildren().add(section("Cardinality & Use", placeholderBody()));
-        getChildren().add(section("Documentation & Refs", placeholderBody()));
+        getChildren().add(section("Node & XPath", grid(
+                "Kind", kindValue, "Name", nameValue, "XPath", xpathValue, "Depth", depthValue)));
+        getChildren().add(section("Type & Facets", grid("Type", typeValue)));
+        getChildren().add(section("Cardinality & Use", grid(
+                "Cardinality", cardinalityValue, "Use", useValue)));
+        getChildren().add(section("Documentation & Refs", grid("Docs", docValue)));
 
         debounce.setOnFinished(e -> refresh());
         editorHost.activeCaretProperty().addListener((obs, oldV, newV) -> debounce.playFromStart());
         editorHost.activeTabProperty().addListener((obs, oldV, newV) -> debounce.playFromStart());
+        editorHost.activeSelectedNodeProperty().addListener((obs, oldV, newV) -> debounce.playFromStart());
         refresh();
     }
 
-    private GridPane buildNodeXPathBody() {
-        GridPane grid = new GridPane();
-        grid.getStyleClass().add("fxt-inspector-grid");
-        grid.setHgap(8);
-        grid.setVgap(4);
-        ColumnConstraints keyCol = new ColumnConstraints();
-        keyCol.setMinWidth(70);
-        ColumnConstraints valCol = new ColumnConstraints();
-        valCol.setHgrow(Priority.ALWAYS);
-        grid.getColumnConstraints().addAll(keyCol, valCol);
-
-        addRow(grid, 0, "Kind", kindValue);
-        addRow(grid, 1, "Name", nameValue);
-        addRow(grid, 2, "XPath", xpathValue);
-        addRow(grid, 3, "Depth", depthValue);
-        return grid;
-    }
-
-    private void addRow(GridPane grid, int row, String key, Label valueLabel) {
-        Label keyLabel = new Label(key);
-        keyLabel.getStyleClass().add("fxt-inspector-key");
-        grid.add(keyLabel, 0, row);
-        grid.add(valueLabel, 1, row);
-    }
-
     private void refresh() {
+        XsdNode selected = editorHost.activeSelectedNodeProperty().get();
+        if (selected != null) {
+            SelectedNodeInfo info = SelectedNodeInfo.of(selected);
+            set(info.kind(), blankToPlaceholder(info.name()), info.xpath(), Integer.toString(info.depth()),
+                    info.type(), info.cardinality(), info.use(), info.documentation());
+            return;
+        }
         var docOpt = editorHost.getActiveDocument();
         if (docOpt.isEmpty()) {
-            setNodeXPath(PLACEHOLDER, PLACEHOLDER, PLACEHOLDER, PLACEHOLDER);
+            clear();
             return;
         }
         if (docOpt.get().getFileType() == EditorFileType.JSON) {
-            // JSON uses JSONPath, not XPath; handled when the JSON view lands.
-            setNodeXPath("JSON", PLACEHOLDER, PLACEHOLDER, PLACEHOLDER);
+            set("JSON", PLACEHOLDER, PLACEHOLDER, PLACEHOLDER, PLACEHOLDER, PLACEHOLDER, PLACEHOLDER, PLACEHOLDER);
             return;
         }
+        // Text mode: caret-derived Node & XPath; other sections need the model.
         String text = editorHost.getActiveText().orElse("");
         int caret = editorHost.activeCaretProperty().get();
         NodeXPathInfo info = NodeXPathInfo.fromCaret(xpathCalculator, text, caret);
-        setNodeXPath(info.kind(),
-                info.name().isEmpty() ? PLACEHOLDER : info.name(),
-                info.xpath(),
-                Integer.toString(info.depth()));
+        set(info.kind(), blankToPlaceholder(info.name()), info.xpath(), Integer.toString(info.depth()),
+                PLACEHOLDER, PLACEHOLDER, PLACEHOLDER, PLACEHOLDER);
     }
 
-    private void setNodeXPath(String kind, String name, String xpath, String depth) {
+    private void clear() {
+        set(PLACEHOLDER, PLACEHOLDER, PLACEHOLDER, PLACEHOLDER, PLACEHOLDER, PLACEHOLDER, PLACEHOLDER, PLACEHOLDER);
+    }
+
+    private void set(String kind, String name, String xpath, String depth,
+                     String type, String cardinality, String use, String doc) {
         kindValue.setText(kind);
         nameValue.setText(name);
         xpathValue.setText(xpath);
         depthValue.setText(depth);
+        typeValue.setText(type);
+        cardinalityValue.setText(cardinality);
+        useValue.setText(use);
+        docValue.setText(doc);
+    }
+
+    private String blankToPlaceholder(String s) {
+        return (s == null || s.isBlank()) ? PLACEHOLDER : s;
     }
 
     private TitledPane section(String title, javafx.scene.Node body) {
@@ -112,10 +116,25 @@ public class InspectorPanel extends VBox {
         return pane;
     }
 
-    private Label placeholderBody() {
-        Label label = new Label(PLACEHOLDER);
-        label.getStyleClass().add("fxt-placeholder-text");
-        return label;
+    /** Builds a two-column key/value grid from alternating key, Label arguments. */
+    private GridPane grid(Object... keyValuePairs) {
+        GridPane grid = new GridPane();
+        grid.getStyleClass().add("fxt-inspector-grid");
+        grid.setHgap(8);
+        grid.setVgap(4);
+        ColumnConstraints keyCol = new ColumnConstraints();
+        keyCol.setMinWidth(80);
+        ColumnConstraints valCol = new ColumnConstraints();
+        valCol.setHgrow(Priority.ALWAYS);
+        grid.getColumnConstraints().addAll(keyCol, valCol);
+
+        for (int i = 0, row = 0; i < keyValuePairs.length; i += 2, row++) {
+            Label key = new Label((String) keyValuePairs[i]);
+            key.getStyleClass().add("fxt-inspector-key");
+            grid.add(key, 0, row);
+            grid.add((Label) keyValuePairs[i + 1], 1, row);
+        }
+        return grid;
     }
 
     private Label value() {
@@ -133,5 +152,15 @@ public class InspectorPanel extends VBox {
     /** @return the current node name value (for tests/observers). */
     public String getNodeNameText() {
         return nameValue.getText();
+    }
+
+    /** @return the current type value (for tests/observers). */
+    public String getTypeText() {
+        return typeValue.getText();
+    }
+
+    /** @return the current cardinality value (for tests/observers). */
+    public String getCardinalityText() {
+        return cardinalityValue.getText();
     }
 }

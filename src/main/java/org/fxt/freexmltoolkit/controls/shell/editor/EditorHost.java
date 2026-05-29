@@ -12,6 +12,7 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.layout.BorderPane;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,6 +36,8 @@ public class EditorHost extends BorderPane {
     private final ReadOnlyObjectWrapper<File> activeSchema = new ReadOnlyObjectWrapper<>(this, "activeSchema", null);
     private final ReadOnlyObjectWrapper<ViewMode> activeViewMode =
             new ReadOnlyObjectWrapper<>(this, "activeViewMode", ViewMode.TEXT);
+    private final ReadOnlyObjectWrapper<XsdNode> activeSelectedNode =
+            new ReadOnlyObjectWrapper<>(this, "activeSelectedNode", null);
 
     public EditorHost() {
         getStyleClass().add("fxt-editor-tabs");
@@ -48,6 +51,7 @@ public class EditorHost extends BorderPane {
             } else {
                 activeSchema.set(null);
             }
+            refreshSelectedNode();
         });
     }
 
@@ -100,7 +104,41 @@ public class EditorHost extends BorderPane {
         withActive(et -> {
             et.setViewMode(mode);
             activeViewMode.set(et.viewMode);
+            refreshSelectedNode();
         });
+    }
+
+    /** @return the node selected in the active structured (Tree/Graphic) view, or {@code null}. */
+    public ReadOnlyObjectProperty<XsdNode> activeSelectedNodeProperty() {
+        return activeSelectedNode.getReadOnlyProperty();
+    }
+
+    /** @return the schema root of the active Tree view, or empty (e.g. Text mode / not parsed). */
+    public Optional<XsdNode> getActiveSchemaRoot() {
+        if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et
+                && et.treeView != null && et.treeView.getRoot() != null) {
+            return Optional.of(et.treeView.getRoot().getValue());
+        }
+        return Optional.empty();
+    }
+
+    /** Selects (reveals) the given node in the active Tree view. */
+    public void selectNodeInActiveTree(XsdNode node) {
+        withActive(et -> {
+            if (et.treeView != null) {
+                et.treeView.selectNode(node);
+            }
+        });
+    }
+
+    private void refreshSelectedNode() {
+        XsdNode selected = null;
+        if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et
+                && et.viewMode != ViewMode.TEXT && et.treeView != null
+                && et.treeView.getSelectionModel().getSelectedItem() != null) {
+            selected = et.treeView.getSelectionModel().getSelectedItem().getValue();
+        }
+        activeSelectedNode.set(selected);
     }
 
     /** @return {@code true} if the active document supports Tree/Graphic views (XSD). */
@@ -129,14 +167,14 @@ public class EditorHost extends BorderPane {
                 return;
             }
         }
-        EditorTab tab = new EditorTab(OpenDocument.forPath(path));
+        EditorTab tab = new EditorTab(OpenDocument.forPath(path), this::refreshSelectedNode);
         addTab(tab);
         loadAsync(tab, path);
     }
 
     /** Creates an empty untitled document of the given type. */
     public OpenDocument newDocument(EditorFileType type) {
-        EditorTab tab = new EditorTab(OpenDocument.untitled(untitledName(), type));
+        EditorTab tab = new EditorTab(OpenDocument.untitled(untitledName(), type), this::refreshSelectedNode);
         addTab(tab);
         tab.attachDirtyTracking();
         return tab.document;
@@ -366,6 +404,7 @@ public class EditorHost extends BorderPane {
     private static final class EditorTab extends Tab {
         private final OpenDocument document;
         private final EditorView view;
+        private final Runnable selectionCallback;
         private final javafx.scene.layout.StackPane contentStack = new javafx.scene.layout.StackPane();
         private org.fxt.freexmltoolkit.controls.shell.schema.XsdTreeView treeView;
         private javafx.scene.layout.Region graphicPlaceholder;
@@ -373,8 +412,9 @@ public class EditorHost extends BorderPane {
         private boolean dirtyTrackingAttached;
         private File schemaFile;
 
-        EditorTab(OpenDocument document) {
+        EditorTab(OpenDocument document, Runnable selectionCallback) {
             this.document = document;
+            this.selectionCallback = selectionCallback;
             this.view = EditorViews.create(document.getFileType());
             contentStack.getChildren().add(view.getNode());
             setContent(contentStack);
@@ -409,6 +449,8 @@ public class EditorHost extends BorderPane {
         private void ensureTree() {
             if (treeView == null) {
                 treeView = new org.fxt.freexmltoolkit.controls.shell.schema.XsdTreeView();
+                treeView.getSelectionModel().selectedItemProperty()
+                        .addListener((obs, oldV, newV) -> selectionCallback.run());
                 contentStack.getChildren().add(treeView);
             }
         }
