@@ -187,7 +187,7 @@ public class MainController implements Initializable {
      * Navigation buttons for switching between different editor tabs.
      */
     @FXML
-    Button xslt, xmlUltimate, xsd, xsdValidation, schematron, fop, signature, help, settings, exit, xsltDeveloper, schemaGenerator, unifiedEditor, json;
+    Button xslt, xmlUltimate, xsd, xsdValidation, schematron, fop, signature, help, settings, exit, xsltDeveloper, schemaGenerator, unifiedEditor, json, unifiedShell;
 
     /**
      * Menu item for exiting the application.
@@ -712,6 +712,7 @@ public class MainController implements Initializable {
             case "schemaGenerator" -> "/pages/tab_schema_generator.fxml";
             case "xsltDeveloper" -> "/pages/tab_xslt_developer.fxml";
             case "unifiedEditor" -> "/pages/tab_unified_editor.fxml";
+            case "unifiedShell" -> "/pages/tab_unified_shell.fxml";
             case "json" -> "/pages/tab_json.fxml";
             default -> null;
         };
@@ -734,7 +735,7 @@ public class MainController implements Initializable {
     private void removeActiveFromAllMenuButtons() {
         Button[] allMenuButtons = {
             xmlUltimate, xsd, xsdValidation, schematron, xslt, fop,
-            signature, help, settings, schemaGenerator, xsltDeveloper, unifiedEditor, json
+            signature, help, settings, schemaGenerator, xsltDeveloper, unifiedEditor, json, unifiedShell
         };
         for (Button btn : allMenuButtons) {
             if (btn != null) {
@@ -774,6 +775,7 @@ public class MainController implements Initializable {
             case "schemaGenerator" -> "/pages/tab_schema_generator.fxml";
             case "xsltDeveloper" -> "/pages/tab_xslt_developer.fxml";
             case "unifiedEditor" -> "/pages/tab_unified_editor.fxml";
+            case "unifiedShell" -> "/pages/tab_unified_shell.fxml";
             case "json" -> "/pages/tab_json.fxml";
             default -> null;
         };
@@ -813,6 +815,7 @@ public class MainController implements Initializable {
             case "settings" -> settings;
             case "schemaGenerator" -> schemaGenerator;
             case "unifiedEditor" -> unifiedEditor;
+            case "unifiedShell" -> unifiedShell;
             case "json" -> json;
             default -> null;
         };
@@ -1033,6 +1036,7 @@ public class MainController implements Initializable {
                 this.jsonController = jsonController1;
                 jsonController1.setParentController(this);
             }
+            case UnifiedShellController _ -> logger.debug("set Unified Shell Controller (preview)");
             case null, default -> {
                 if (controller != null) {
                     logger.error("no valid controller found: {}", controller.getClass());

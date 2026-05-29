@@ -1,0 +1,161 @@
+/*
+ * unified-shell.css — styling for the new Unified shell (UI rebuild Phase 2).
+ *
+ * Built entirely on the -fxt-* design tokens (design-tokens.css), so the shell
+ * themes for light/dark automatically when the root 'fxt-theme-dark' class
+ * toggles. No hard-coded colors.
+ */
+
+.fxt-shell {
+    -fx-background-color: -fxt-bg-canvas;
+}
+
+/* ----- Activity Bar --------------------------------------------------- */
+.fxt-activity-bar {
+    -fx-background-color: -fxt-bg-surface-2;
+    -fx-border-color: -fxt-border;
+    -fx-border-width: 0 1 0 0;
+    -fx-min-width: 56;
+    -fx-pref-width: 56;
+    -fx-padding: 8 0 8 0;
+    -fx-spacing: 4;
+    -fx-alignment: TOP_CENTER;
+}
+
+.fxt-activity-button {
+    -fx-background-color: transparent;
+    -fx-background-radius: 8;
+    -fx-min-width: 40;
+    -fx-min-height: 40;
+    -fx-max-width: 40;
+    -fx-max-height: 40;
+    -fx-alignment: CENTER;
+    -fx-cursor: hand;
+}
+
+.fxt-activity-button .iconify-icon {
+    -fx-icon-color: -fxt-text-muted;
+}
+
+.fxt-activity-button:hover {
+    -fx-background-color: -fxt-bg-subtle;
+}
+
+.fxt-activity-button:hover .iconify-icon {
+    -fx-icon-color: -fxt-text-primary;
+}
+
+.fxt-activity-button:selected {
+    -fx-background-color: -fxt-bg-subtle;
+}
+
+.fxt-activity-button:selected .iconify-icon {
+    -fx-icon-color: -fxt-primary;
+}
+
+/* ----- Work area ------------------------------------------------------ */
+.fxt-work-area {
+    -fx-background-color: -fxt-bg-canvas;
+}
+
+/* ----- Side panel ----------------------------------------------------- */
+.fxt-side-panel {
+    -fx-background-color: -fxt-bg-surface;
+    -fx-border-color: -fxt-border;
+    -fx-border-width: 0 1 0 0;
+}
+
+.fxt-side-panel-content {
+    -fx-padding: 16;
+    -fx-spacing: 8;
+}
+
+.fxt-side-panel-title {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-secondary;
+}
+
+/* ----- Editor host (placeholder / welcome) ---------------------------- */
+.fxt-editor-host {
+    -fx-background-color: -fxt-bg-canvas;
+    -fx-spacing: 12;
+    -fx-padding: 32;
+}
+
+.fxt-editor-host .iconify-icon {
+    -fx-icon-color: -fxt-text-muted;
+}
+
+.fxt-welcome-headline {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-primary;
+}
+
+/* ----- Inspector ------------------------------------------------------ */
+.fxt-inspector {
+    -fx-background-color: -fxt-bg-surface;
+    -fx-border-color: -fxt-border;
+    -fx-border-width: 0 0 0 1;
+    -fx-padding: 12;
+    -fx-spacing: 8;
+}
+
+.fxt-inspector-header {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-secondary;
+}
+
+.fxt-inspector-section {
+    -fx-text-fill: -fxt-text-primary;
+}
+
+/* Token-style the TitledPane header/body so the inspector is readable in both
+   themes regardless of the underlying base theme. */
+.fxt-inspector-section > .title {
+    -fx-background-color: -fxt-bg-surface-2;
+    -fx-background-radius: 6 6 0 0;
+    -fx-text-fill: -fxt-text-primary;
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 12px;
+}
+
+.fxt-inspector-section > .title > .text {
+    -fx-fill: -fxt-text-primary;
+}
+
+.fxt-inspector-section > .title > .arrow-button .arrow {
+    -fx-background-color: -fxt-text-secondary;
+}
+
+.fxt-inspector-section > *.content {
+    -fx-background-color: -fxt-bg-surface;
+    -fx-border-color: -fxt-border;
+}
+
+/* ----- Status bar ----------------------------------------------------- */
+.fxt-status-bar {
+    -fx-background-color: -fxt-primary;
+    -fx-min-height: 24;
+    -fx-pref-height: 24;
+    -fx-padding: 0 12 0 12;
+    -fx-spacing: 16;
+}
+
+.fxt-status-item {
+    -fx-text-fill: -fxt-on-primary;
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 11px;
+}
+
+/* ----- Shared ---------------------------------------------------------- */
+.fxt-placeholder-text {
+    -fx-text-fill: -fxt-text-muted;
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 12px;
+}

@@ -393,6 +393,13 @@
                                 <!-- Section: EDITORS -->
                                 <Label fx:id="sectionEditors" text="EDITORS" styleClass="sidebar-section-label"/>
 
+                                <Button fx:id="unifiedShell" mnemonicParsing="false" onAction="#loadPage"
+                                        styleClass="menu_button" text="Unified Shell (Preview)" contentDisplay="LEFT" VBox.vgrow="ALWAYS">
+                                    <graphic>
+                                        <IconifyIcon iconColor="#3b5bdb" iconLiteral="bi-layout-sidebar-inset" iconSize="16"/>
+                                    </graphic>
+                                </Button>
+
                                 <Button fx:id="unifiedEditor" mnemonicParsing="false" onAction="#loadPage"
                                         styleClass="menu_button" text="Editor" contentDisplay="LEFT" VBox.vgrow="ALWAYS">
                                     <graphic>
