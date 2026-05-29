@@ -389,6 +389,19 @@
     -fx-background-radius: 8;
 }
 
+/* ----- Transform panel ------------------------------------------------- */
+.fxt-transform-output {
+    -fx-font-family: "JetBrains Mono", monospace;
+    -fx-font-size: 11px;
+    -fx-control-inner-background: -fxt-bg-surface-2;
+    -fx-text-fill: -fxt-text-primary;
+}
+
+.fxt-xpath-field {
+    -fx-font-family: "JetBrains Mono", monospace;
+    -fx-font-size: 11px;
+}
+
 /* ----- Shared ---------------------------------------------------------- */
 .fxt-placeholder-text {
     -fx-text-fill: -fxt-text-muted;

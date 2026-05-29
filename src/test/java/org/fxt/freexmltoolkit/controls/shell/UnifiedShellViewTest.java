@@ -226,6 +226,17 @@ class UnifiedShellViewTest {
         WaitForAsyncUtils.waitForFxEvents();
         snapshot(new File(dir, "fxt_shell_validation.png"));
 
+        // Transform activity: show the panel (Set XSLT / Transform / XPath / Result).
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            shell.getSelectionModel().select(org.fxt.freexmltoolkit.controls.shell.Activity.TRANSFORM);
+            if (shell.lookup(".fxt-xpath-field") instanceof javafx.scene.control.TextField field) {
+                field.setText("/root");
+            }
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        snapshot(new File(dir, "fxt_shell_transform.png"));
+
         WaitForAsyncUtils.waitForAsyncFx(3000, () -> {
             shell.getStyleClass().add("fxt-theme-dark");
             shell.applyCss();
