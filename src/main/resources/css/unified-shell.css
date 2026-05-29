@@ -215,6 +215,27 @@
     -fx-border-color: transparent;
 }
 
+.fxt-workspace-tree {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.fxt-workspace-tree .tree-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: -fxt-text-primary;
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 12px;
+}
+
+.fxt-workspace-tree .tree-cell .iconify-icon {
+    -fx-icon-color: -fxt-text-secondary;
+}
+
+.fxt-workspace-tree .tree-cell:filled:selected {
+    -fx-background-color: -fxt-bg-subtle;
+    -fx-text-fill: -fxt-text-primary;
+}
+
 .fxt-open-editors .list-cell {
     -fx-background-color: transparent;
     -fx-text-fill: -fxt-text-primary;

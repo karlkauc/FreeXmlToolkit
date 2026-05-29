@@ -43,6 +43,7 @@ public class EditorHost extends BorderPane {
     public EditorHost() {
         getStyleClass().add("fxt-editor-tabs");
         setCenter(tabPane);
+        setupDragAndDrop();
         tabPane.getSelectionModel().selectedItemProperty().addListener((obs, oldT, newT) -> {
             if (newT instanceof EditorTab et) {
                 activeCaret.set(et.editor.getCodeArea().getCaretPosition());
@@ -108,6 +109,29 @@ public class EditorHost extends BorderPane {
     /** @return the selected-tab property (for observers). */
     public ReadOnlyObjectProperty<Tab> activeTabProperty() {
         return tabPane.getSelectionModel().selectedItemProperty();
+    }
+
+    private void setupDragAndDrop() {
+        setOnDragOver(event -> {
+            if (event.getDragboard().hasFiles()) {
+                event.acceptTransferModes(javafx.scene.input.TransferMode.COPY);
+            }
+            event.consume();
+        });
+        setOnDragDropped(event -> {
+            var dragboard = event.getDragboard();
+            boolean done = false;
+            if (dragboard.hasFiles()) {
+                for (File file : dragboard.getFiles()) {
+                    if (file.isFile()) {
+                        openFile(file.toPath());
+                    }
+                }
+                done = true;
+            }
+            event.setDropCompleted(done);
+            event.consume();
+        });
     }
 
     /** Moves the active editor's caret to the given offset (e.g. jump-to-node). */

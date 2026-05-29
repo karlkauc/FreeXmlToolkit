@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
@@ -9,20 +11,21 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
+import org.fxt.freexmltoolkit.service.PropertiesService;
 
 import java.io.File;
 
 /**
- * The Explorer activity side panel (UI rebuild Phase 3): create/open files and
- * list the currently open documents. Drives the {@link EditorHost}.
- * <p>
- * The full workspace file tree (reusing {@code FileExplorer}) and recent files
- * arrive in a later increment; this gives working open/new + an "Open Editors"
- * list bound to the host.
+ * The Explorer activity side panel (UI rebuild Phase 3, increment 4): a workspace
+ * file tree, the list of open documents, and recent files. Drives the
+ * {@link EditorHost} and reuses {@link PropertiesService} for recent files.
  */
 public class ExplorerPanel extends VBox {
 
     private final EditorHost editorHost;
+    private final PropertiesService propertiesService = resolvePropertiesService();
+    private final ObservableList<File> recentFiles = FXCollections.observableArrayList();
 
     public ExplorerPanel(EditorHost editorHost) {
         this.editorHost = editorHost;
@@ -31,23 +34,50 @@ public class ExplorerPanel extends VBox {
         Label title = new Label("EXPLORER");
         title.getStyleClass().add("fxt-side-panel-title");
 
-        HBox actions = new HBox(8, iconButton("bi-file-earmark-plus", "New file", this::newFile),
+        HBox actions = new HBox(8,
+                iconButton("bi-file-earmark-plus", "New file", this::newFile),
                 iconButton("bi-folder2-open", "Open file…", this::openFile));
+
+        WorkspaceTree workspace = new WorkspaceTree(editorHost::openFile);
+        VBox.setVgrow(workspace, Priority.ALWAYS);
 
         Label openEditors = new Label("OPEN EDITORS");
         openEditors.getStyleClass().add("fxt-side-panel-title");
-
-        ListView<OpenDocument> list = new ListView<>(editorHost.getOpenDocuments());
-        list.getStyleClass().add("fxt-open-editors");
-        VBox.setVgrow(list, Priority.ALWAYS);
-        list.setCellFactory(lv -> new OpenDocumentCell());
-        list.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
+        ListView<OpenDocument> openList = new ListView<>(editorHost.getOpenDocuments());
+        openList.getStyleClass().add("fxt-open-editors");
+        openList.setPrefHeight(120);
+        openList.setCellFactory(lv -> new OpenDocumentCell());
+        openList.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
             if (newV != null) {
                 editorHost.selectDocument(newV);
             }
         });
 
-        getChildren().addAll(title, actions, openEditors, list);
+        Label recentLabel = new Label("RECENT");
+        recentLabel.getStyleClass().add("fxt-side-panel-title");
+        ListView<File> recentList = new ListView<>(recentFiles);
+        recentList.getStyleClass().add("fxt-open-editors");
+        recentList.setPrefHeight(100);
+        recentList.setCellFactory(lv -> new RecentFileCell());
+        recentList.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
+            if (newV != null && newV.isFile()) {
+                editorHost.openFile(newV.toPath());
+            }
+        });
+
+        getChildren().addAll(title, actions, workspace, openEditors, openList, recentLabel, recentList);
+
+        // Track recent files as documents open.
+        refreshRecent();
+        editorHost.getOpenDocuments().addListener((javafx.collections.ListChangeListener<OpenDocument>) c -> {
+            while (c.next()) {
+                if (c.wasAdded()) {
+                    for (OpenDocument doc : c.getAddedSubList()) {
+                        rememberRecent(doc);
+                    }
+                }
+            }
+        });
     }
 
     private void newFile() {
@@ -64,6 +94,28 @@ public class ExplorerPanel extends VBox {
         File file = chooser.showOpenDialog(getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
             editorHost.openFile(file.toPath());
+        }
+    }
+
+    private void rememberRecent(OpenDocument doc) {
+        if (propertiesService == null || doc.getPath() == null) {
+            return;
+        }
+        propertiesService.addLastOpenFile(doc.getPath().toFile());
+        refreshRecent();
+    }
+
+    private void refreshRecent() {
+        if (propertiesService != null) {
+            recentFiles.setAll(propertiesService.getLastOpenFiles());
+        }
+    }
+
+    private static PropertiesService resolvePropertiesService() {
+        try {
+            return ServiceRegistry.get(PropertiesService.class);
+        } catch (Throwable t) {
+            return null; // not available (e.g. in isolated tests)
         }
     }
 
@@ -96,6 +148,23 @@ public class ExplorerPanel extends VBox {
             textProperty().bind(javafx.beans.binding.Bindings.createStringBinding(
                     () -> (item.isDirty() ? "● " : "") + item.getDisplayName(),
                     item.dirtyProperty(), item.displayNameProperty()));
+        }
+    }
+
+    /** Renders a recent file with its file-type icon and name. */
+    private static final class RecentFileCell extends ListCell<File> {
+        @Override
+        protected void updateItem(File item, boolean empty) {
+            super.updateItem(item, empty);
+            if (empty || item == null) {
+                setText(null);
+                setGraphic(null);
+                return;
+            }
+            setText(item.getName());
+            IconifyIcon icon = new IconifyIcon(EditorFileType.fromFileName(item.getName()).icon());
+            icon.setIconSize(14);
+            setGraphic(icon);
         }
     }
 }
