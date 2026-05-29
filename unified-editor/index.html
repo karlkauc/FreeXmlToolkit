@@ -715,6 +715,39 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#compare-merge" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compare &amp; Merge
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#jump-to-validation-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Jump to Validation Errors
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#xpath-xquery-autocomplete" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        XPath / XQuery Autocomplete
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#drag-and-drop" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1946,6 +1979,39 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#compare-merge" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compare &amp; Merge
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#jump-to-validation-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Jump to Validation Errors
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#xpath-xquery-autocomplete" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        XPath / XQuery Autocomplete
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#drag-and-drop" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2188,6 +2254,67 @@
 <blockquote>
 <p><strong>Search in XML files (updated in v1.10):</strong> Pressing <strong>Ctrl+F</strong> opens an inline search bar with up/down chevron arrows for Find Previous / Find Next. The search works in both the <strong>Text</strong> and <strong>Graphic</strong> views of an XML file. In the Graphic view it searches element names, attribute names, and values across the whole document, auto-expands collapsed nodes to reach a match, selects the matching row, and scrolls it into view; matches wrap around when you reach the end. Switching between the Text and Graphic sub-tabs while the bar is open re-targets the search to the active view. <strong>Replace</strong> is available in the Text view only. See <a href="../xml-editor-features/#search-find">XML Editor Features</a> for details.</p>
 </blockquote>
+<h2 id="compare-merge">Compare &amp; Merge<a class="headerlink" href="#compare-merge" title="Permanent link">&para;</a></h2>
+<p>Both the XML and XSD editors include a <strong>Compare</strong> toolbar button (tooltip <em>"Compare with file..."</em>)
+for side-by-side diffing and merging.</p>
+<ol>
+<li>Click <strong>Compare</strong> and pick a file to compare against the current document.</li>
+<li>A new tab opens titled <code>Compare: &lt;left&gt; ↔ &lt;right&gt;</code> with synchronized scrolling and live re-diff.</li>
+<li>Changed lines are highlighted, with intra-line word-level coloring.</li>
+</ol>
+<p>Merge controls let you reconcile the two files:</p>
+<table>
+<thead>
+<tr>
+<th>Control</th>
+<th>Shortcut</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Prev</strong> / <strong>Next</strong></td>
+<td>Alt+Up / Alt+Down</td>
+<td>Jump between changed chunks</td>
+</tr>
+<tr>
+<td>Per-chunk arrows</td>
+<td>-</td>
+<td>Apply a single change left→right or right→left</td>
+</tr>
+<tr>
+<td><strong>All →</strong> / <strong>All ←</strong></td>
+<td>-</td>
+<td>Apply every change in one direction</td>
+</tr>
+<tr>
+<td><strong>Re-compute</strong></td>
+<td>-</td>
+<td>Recompute the diff manually</td>
+</tr>
+<tr>
+<td><strong>Save Left</strong> / <strong>Save Right</strong></td>
+<td>-</td>
+<td>Write a pane back to its file</td>
+</tr>
+</tbody>
+</table>
+<p>The diff recomputes automatically about 300 ms after you stop typing.</p>
+<h2 id="jump-to-validation-errors">Jump to Validation Errors<a class="headerlink" href="#jump-to-validation-errors" title="Permanent link">&para;</a></h2>
+<p>Validation errors appear in the <strong>Properties / Validation</strong> sidebar (Ctrl+Shift+P). <strong>Double-click</strong>
+any error to jump straight to its location:</p>
+<ul>
+<li>In the <strong>Text</strong> view the caret moves to the exact line and column, with the offending text highlighted.</li>
+<li>In the <strong>Graphic</strong> view the matching element is selected, flashed, and scrolled into view.</li>
+<li>In split mode both views navigate at once.</li>
+</ul>
+<h2 id="xpath-xquery-autocomplete">XPath / XQuery Autocomplete<a class="headerlink" href="#xpath-xquery-autocomplete" title="Permanent link">&para;</a></h2>
+<p>The XPath/XQuery console (Ctrl+Shift+X) offers context-aware autocomplete in both the XPath and
+XQuery input fields. Suggestions appear automatically after trigger characters (<code>/</code>, <code>[</code>, <code>@</code>, <code>(</code>,
+<code>$</code>, <code>::</code>) or on demand with <strong>Ctrl+Space</strong>. Depending on context it suggests element names, attribute
+names, XPath axes, functions, and (in XQuery) variables. Navigate with the arrow keys and press
+<strong>Enter</strong> or <strong>Tab</strong> to insert; <strong>Escape</strong> dismisses the popup. Functions and axes are inserted with
+their parentheses / <code>::</code> automatically.</p>
 <h2 id="drag-and-drop">Drag and Drop<a class="headerlink" href="#drag-and-drop" title="Permanent link">&para;</a></h2>
 <p>Drag files from your file manager directly into the editor to open them. Multiple files can be dropped at once.</p>
 <h2 id="relationship-to-other-editor-pages">Relationship to Other Editor Pages<a class="headerlink" href="#relationship-to-other-editor-pages" title="Permanent link">&para;</a></h2>

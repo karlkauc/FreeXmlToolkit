@@ -1960,19 +1960,17 @@
 
 <h1 id="schema-support">Schema Support<a class="headerlink" href="#schema-support" title="Permanent link">&para;</a></h1>
 <blockquote>
-<p><strong>Last Updated:</strong> November 2025 | <strong>Version:</strong> 1.0.0</p>
+<p><strong>Last Updated:</strong> May 2026 | <strong>Version:</strong> 1.10.0</p>
 </blockquote>
 <p>FreeXmlToolkit supports different schema formats for validating your XML files. This page explains what's supported and what isn't.</p>
 <hr />
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
-<p><img alt="Schema Support Overview" src="img/schema-support-overview.png" />
-<em>Screenshot placeholder: Schema support interface</em></p>
 <p>Schemas define rules for your XML documents - what elements are allowed, what order they should be in, and what values they can contain.</p>
 <hr />
 <h2 id="supported-schema-formats">Supported Schema Formats<a class="headerlink" href="#supported-schema-formats" title="Permanent link">&para;</a></h2>
 <h3 id="xsd-xml-schema-definition">XSD (XML Schema Definition)<a class="headerlink" href="#xsd-xml-schema-definition" title="Permanent link">&para;</a></h3>
-<p><img alt="XSD Support" src="img/schema-xsd-support.png" />
-<em>Screenshot placeholder: XSD validation in action</em></p>
+<p><img alt="XSD Support" src="../img/schema-xsd-support.png" />
+<em>The XSD Validation tool - load an XML file and its schema to validate</em></p>
 <p><strong>Full Support</strong> - The main schema format used for XML validation.</p>
 <table>
 <thead>
@@ -2015,8 +2013,8 @@
 - Allowed values
 - Documentation</p>
 <h3 id="schematron">Schematron<a class="headerlink" href="#schematron" title="Permanent link">&para;</a></h3>
-<p><img alt="Schematron Support" src="img/schema-schematron-support.png" />
-<em>Screenshot placeholder: Schematron validation</em></p>
+<p><img alt="Schematron Support" src="../img/schema-schematron-support.png" />
+<em>The Schematron editor with business-rule patterns, structure outline, and XPath tester</em></p>
 <p><strong>Business Rules</strong> - For validation rules that go beyond structure.</p>
 <table>
 <thead>
@@ -2097,16 +2095,12 @@
 <hr />
 <h2 id="how-to-use-schemas">How to Use Schemas<a class="headerlink" href="#how-to-use-schemas" title="Permanent link">&para;</a></h2>
 <h3 id="loading-a-schema">Loading a Schema<a class="headerlink" href="#loading-a-schema" title="Permanent link">&para;</a></h3>
-<p><img alt="Loading Schema" src="img/schema-loading.png" />
-<em>Screenshot placeholder: Schema loading dialog</em></p>
 <ol>
 <li><strong>Automatic:</strong> Open an XML file that references a schema - it loads automatically</li>
 <li><strong>Manual:</strong> Click "Load Schema" and select your XSD file</li>
 <li><strong>Drag &amp; Drop:</strong> Drag a schema file into the application</li>
 </ol>
 <h3 id="validation-workflow">Validation Workflow<a class="headerlink" href="#validation-workflow" title="Permanent link">&para;</a></h3>
-<p><img alt="Validation Workflow" src="img/schema-validation-workflow.png" />
-<em>Screenshot placeholder: Validation process</em></p>
 <ol>
 <li>Open your XML file</li>
 <li>Load (or auto-detect) the schema</li>
@@ -2115,8 +2109,6 @@
 <li>Fix issues and re-validate</li>
 </ol>
 <h3 id="using-both-xsd-and-schematron">Using Both XSD and Schematron<a class="headerlink" href="#using-both-xsd-and-schematron" title="Permanent link">&para;</a></h3>
-<p><img alt="Combined Validation" src="img/schema-combined.png" />
-<em>Screenshot placeholder: Combined XSD and Schematron validation</em></p>
 <p>For the best validation coverage:
 - Use <strong>XSD</strong> for structure (elements, order, types)
 - Use <strong>Schematron</strong> for business rules (relationships, conditions)</p>

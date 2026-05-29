@@ -1529,6 +1529,56 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#interactive-live-debugger" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Interactive Live Debugger
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Interactive Live Debugger">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#setting-breakpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Setting Breakpoints
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-controls" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step Controls
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#inspecting-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Inspecting State
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#output-options" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2521,6 +2571,56 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#interactive-live-debugger" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Interactive Live Debugger
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Interactive Live Debugger">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#setting-breakpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Setting Breakpoints
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-controls" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step Controls
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#inspecting-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Inspecting State
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#output-options" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2658,16 +2758,14 @@
 
 <h1 id="xslt-developer">XSLT Developer<a class="headerlink" href="#xslt-developer" title="Permanent link">&para;</a></h1>
 <blockquote>
-<p><strong>Last Updated:</strong> December 2025 | <strong>Version:</strong> 1.1.0</p>
+<p><strong>Last Updated:</strong> May 2026 | <strong>Version:</strong> 1.10.0</p>
 </blockquote>
 <p>The XSLT Developer is a full-featured development environment for creating and testing XSLT stylesheets and XQuery
 scripts. It includes live transformation, parameter support, batch processing, and debugging tools.</p>
 <hr />
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
-<p><img alt="XSLT Developer Overview" src="img/xslt-developer-overview.png" />
+<p><img alt="XSLT Developer Overview" src="../img/xslt-developer-overview.png" />
 <em>The XSLT Developer with editors, parameters, and result panels</em></p>
-<!-- TODO: Screenshot needed - Show XSLT Developer tab with XML Source tab on left, Result tab on right, and the toolbar with Transform/Live buttons visible -->
-
 <p>The XSLT Developer provides:</p>
 <ul>
 <li><strong>Full code editors</strong> for XML, XSLT, and XQuery</li>
@@ -3111,6 +3209,95 @@ XQuery.</p>
 <li>Enable Debug Mode for detailed execution trace</li>
 <li>Click <strong>Clear</strong> to reset the debug output</li>
 </ol>
+<hr />
+<h2 id="interactive-live-debugger">Interactive Live Debugger<a class="headerlink" href="#interactive-live-debugger" title="Permanent link">&para;</a></h2>
+<p>The XSLT Developer includes a full interactive debugger that lets you pause a transformation,
+step through your stylesheet, and inspect state - similar to debugging in an IDE.</p>
+<h3 id="setting-breakpoints">Setting Breakpoints<a class="headerlink" href="#setting-breakpoints" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Click the slot in the editor's left margin (gutter) next to a line to toggle a red breakpoint.</li>
+<li>Or place the caret on a line and press <strong>F9</strong> (the <strong>Breakpoint</strong> toolbar button).</li>
+<li>The <strong>Breakpoints</strong> panel lists every breakpoint with an enable/disable checkbox and a delete
+  button. Double-click an entry to jump to that line.</li>
+</ul>
+<h3 id="step-controls">Step Controls<a class="headerlink" href="#step-controls" title="Permanent link">&para;</a></h3>
+<p>The debug toolbar provides standard execution controls:</p>
+<table>
+<thead>
+<tr>
+<th>Control</th>
+<th>Shortcut</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Run-Debug</strong></td>
+<td>F5</td>
+<td>Start a debug run from the beginning</td>
+</tr>
+<tr>
+<td><strong>Continue</strong></td>
+<td>F8</td>
+<td>Resume until the next breakpoint</td>
+</tr>
+<tr>
+<td><strong>Pause</strong></td>
+<td>-</td>
+<td>Pause at the next instruction (best-effort on Saxon HE)</td>
+</tr>
+<tr>
+<td><strong>Step Into</strong></td>
+<td>F7</td>
+<td>Step into the current instruction</td>
+</tr>
+<tr>
+<td><strong>Step Over</strong></td>
+<td>F10</td>
+<td>Execute the current instruction without descending</td>
+</tr>
+<tr>
+<td><strong>Step Out</strong></td>
+<td>Shift+F11</td>
+<td>Run until the current template/function returns</td>
+</tr>
+<tr>
+<td><strong>Stop</strong></td>
+<td>-</td>
+<td>Terminate the debug session</td>
+</tr>
+</tbody>
+</table>
+<p>A green arrow in the gutter marks the line currently executing; a hit breakpoint shows a yellow
+arrow over the red circle.</p>
+<h3 id="inspecting-state">Inspecting State<a class="headerlink" href="#inspecting-state" title="Permanent link">&para;</a></h3>
+<p>When execution is paused, four panels show the live state of the transformation:</p>
+<table>
+<thead>
+<tr>
+<th>Panel</th>
+<th>Shows</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Variables</strong></td>
+<td>Name, value, type, and scope (global/local) of every visible variable, plus the context item</td>
+</tr>
+<tr>
+<td><strong>Call Stack</strong></td>
+<td>Active template/function frames with file name and line; double-click a frame to jump to it</td>
+</tr>
+<tr>
+<td><strong>Watch Expressions</strong></td>
+<td>Custom XPath expressions you add to monitor specific values</td>
+</tr>
+<tr>
+<td><strong>Breakpoints</strong></td>
+<td>All breakpoints, persisted across sessions</td>
+</tr>
+</tbody>
+</table>
 <hr />
 <h2 id="output-options">Output Options<a class="headerlink" href="#output-options" title="Permanent link">&para;</a></h2>
 <p>Configure the transformation output:</p>
