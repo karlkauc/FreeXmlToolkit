@@ -99,6 +99,28 @@ class ValidationPanelTest {
         assertTrue(panel.getProblemCount() > 0, "failing Schematron rule must report a problem");
     }
 
+    @Test
+    void batchValidationOpensReport(@TempDir Path tmp) throws Exception {
+        Path sch = tmp.resolve("rules.sch");
+        Files.writeString(sch, SCHEMATRON);
+        Path bad = tmp.resolve("bad.xml");
+        Files.writeString(bad, "<root/>");
+        Path good = tmp.resolve("good.xml");
+        Files.writeString(good, "<root><name>x</name></root>");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(bad));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("root")).orElse(false));
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.setActiveSchematron(sch.toFile());
+            panel.runBatch(java.util.List.of(bad.toFile(), good.toFile()));
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(6, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("Batch Validation Report")).orElse(false));
+        assertTrue(host.getActiveText().orElse("").contains("good.xml: valid"));
+    }
+
     private void open(Path xml, Path xsd) throws Exception {
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
         WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,

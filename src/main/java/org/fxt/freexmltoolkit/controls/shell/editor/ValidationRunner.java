@@ -7,6 +7,8 @@ import org.fxt.freexmltoolkit.service.XmlService;
 import org.xml.sax.SAXParseException;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -49,5 +51,31 @@ public final class ValidationRunner {
             }
         }
         return problems;
+    }
+
+    /**
+     * Validates several XML files against the given XSD and/or Schematron and
+     * returns a plain-text report (one line per file).
+     */
+    public static String batchReport(List<File> xmlFiles, File xsd, File schematron) {
+        StringBuilder report = new StringBuilder("Batch Validation Report\n=======================\n");
+        if (xsd != null) {
+            report.append("XSD: ").append(xsd.getName()).append('\n');
+        }
+        if (schematron != null) {
+            report.append("Schematron: ").append(schematron.getName()).append('\n');
+        }
+        report.append('\n');
+        for (File file : xmlFiles) {
+            try {
+                String content = Files.readString(file.toPath(), StandardCharsets.UTF_8);
+                List<ValidationProblem> problems = run(content, xsd, schematron);
+                report.append(file.getName()).append(": ")
+                        .append(problems.isEmpty() ? "valid" : problems.size() + " problem(s)").append('\n');
+            } catch (Exception e) {
+                report.append(file.getName()).append(": ERROR ").append(e.getMessage()).append('\n');
+            }
+        }
+        return report.toString();
     }
 }

@@ -45,6 +45,10 @@ public class ValidationPanel extends VBox {
         setSchematron.getStyleClass().add("fxt-tool-button");
         setSchematron.setOnAction(e -> chooseSchematron());
 
+        Button batch = new Button("Batch…", icon("bi-files"));
+        batch.getStyleClass().add("fxt-tool-button");
+        batch.setOnAction(e -> chooseBatch());
+
         status.getStyleClass().add("fxt-placeholder-text");
         schematronStatus.getStyleClass().add("fxt-placeholder-text");
         refreshSchematronStatus();
@@ -63,8 +67,8 @@ public class ValidationPanel extends VBox {
             }
         });
 
-        getChildren().addAll(title, new HBox(6, validate, setSchematron), status, schematronStatus,
-                problemsLabel, list);
+        getChildren().addAll(title, new HBox(6, validate, setSchematron), new HBox(6, batch),
+                status, schematronStatus, problemsLabel, list);
     }
 
     /** Runs validation of the active document (XSD + optional Schematron), async. */
@@ -92,6 +96,32 @@ public class ValidationPanel extends VBox {
     /** @return the number of problems currently shown (for tests/observers). */
     public int getProblemCount() {
         return problems.size();
+    }
+
+    /** Validates the given files against the bound XSD/Schematron and opens a report (async). */
+    public void runBatch(java.util.List<File> files) {
+        if (files == null || files.isEmpty()) {
+            return;
+        }
+        File xsd = editorHost.activeSchemaProperty().get();
+        File schematron = editorHost.getActiveSchematron();
+        status.setText("Validating " + files.size() + " file(s)…");
+        FxtGui.executorService.submit(() -> {
+            String report = ValidationRunner.batchReport(files, xsd, schematron);
+            javafx.application.Platform.runLater(() -> {
+                editorHost.openGeneratedDocument(report, EditorFileType.OTHER, "BatchReport.txt");
+                status.setText("Batch report generated");
+            });
+        });
+    }
+
+    private void chooseBatch() {
+        javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
+        chooser.setTitle("Select XML files to validate");
+        chooser.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter("XML", "*.xml"));
+        java.util.List<File> files = chooser.showOpenMultipleDialog(
+                getScene() != null ? getScene().getWindow() : null);
+        runBatch(files);
     }
 
     private void chooseSchematron() {

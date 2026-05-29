@@ -54,4 +54,20 @@ class ValidationRunnerTest {
         assertTrue(ValidationRunner.run("<root/>", null, null).stream()
                 .noneMatch(p -> "Schematron".equals(p.source())));
     }
+
+    @Test
+    void batchReportListsEachFileWithSchematronResult(@TempDir Path tmp) throws Exception {
+        Path sch = tmp.resolve("rules.sch");
+        Files.writeString(sch, SCHEMATRON);
+        Path bad = tmp.resolve("bad.xml");
+        Files.writeString(bad, "<root/>");
+        Path good = tmp.resolve("good.xml");
+        Files.writeString(good, "<root><name>x</name></root>");
+
+        String report = ValidationRunner.batchReport(java.util.List.of(bad.toFile(), good.toFile()), null, sch.toFile());
+
+        assertTrue(report.contains("Batch Validation Report"), report);
+        assertTrue(report.matches("(?s).*bad\\.xml: \\d+ problem.*"), report);
+        assertTrue(report.contains("good.xml: valid"), report);
+    }
 }
