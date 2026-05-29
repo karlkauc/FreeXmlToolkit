@@ -320,6 +320,26 @@ public class EditorHost extends BorderPane {
         return editActive(et -> et.changeCardinality(et.currentSelection, min, max));
     }
 
+    /** Adds an attribute to the selected node via the command stack. */
+    public boolean addAttributeToActive(String name) {
+        return editActive(et -> et.addAttribute(et.currentSelection, name));
+    }
+
+    /** Adds a sequence compositor to the selected element via the command stack. */
+    public boolean addSequenceToActive() {
+        return editActive(et -> et.addSequence(et.currentSelection));
+    }
+
+    /** Adds a choice compositor to the selected element via the command stack. */
+    public boolean addChoiceToActive() {
+        return editActive(et -> et.addChoice(et.currentSelection));
+    }
+
+    /** Changes the selected node's type via the command stack. */
+    public boolean changeActiveType(String newType) {
+        return editActive(et -> et.changeType(et.currentSelection, newType));
+    }
+
     private boolean editActive(java.util.function.Predicate<EditorTab> edit) {
         if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et
                 && et.viewMode != ViewMode.TEXT) {
@@ -661,6 +681,38 @@ public class EditorHost extends BorderPane {
                     new org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeCardinalityCommand(node, min, max));
         }
 
+        boolean addAttribute(XsdNode parent, String name) {
+            if (parent == null || name == null || name.isBlank()) {
+                return false;
+            }
+            return executeAndApply(
+                    new org.fxt.freexmltoolkit.controls.v2.editor.commands.AddAttributeCommand(parent, name.trim()));
+        }
+
+        boolean addSequence(XsdNode node) {
+            if (!(node instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement element)) {
+                return false;
+            }
+            return executeAndApply(
+                    new org.fxt.freexmltoolkit.controls.v2.editor.commands.AddSequenceCommand(element));
+        }
+
+        boolean addChoice(XsdNode node) {
+            if (!(node instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement element)) {
+                return false;
+            }
+            return executeAndApply(
+                    new org.fxt.freexmltoolkit.controls.v2.editor.commands.AddChoiceCommand(element));
+        }
+
+        boolean changeType(XsdNode node, String newType) {
+            if (editorContext == null || node == null || newType == null || newType.isBlank()) {
+                return false;
+            }
+            return executeAndApply(new org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeTypeCommand(
+                    editorContext, node, newType.trim()));
+        }
+
         boolean undoStructured() {
             if (editorContext != null && editorContext.getCommandManager().undo()) {
                 applyModelChange();
@@ -702,8 +754,36 @@ public class EditorHost extends BorderPane {
                     }
 
                     @Override
+                    public void addAttribute(XsdNode parent, String name) {
+                        if (EditorTab.this.addAttribute(parent, name)) {
+                            selectionCallback.run();
+                        }
+                    }
+
+                    @Override
+                    public void addSequence(XsdNode element) {
+                        if (EditorTab.this.addSequence(element)) {
+                            selectionCallback.run();
+                        }
+                    }
+
+                    @Override
+                    public void addChoice(XsdNode element) {
+                        if (EditorTab.this.addChoice(element)) {
+                            selectionCallback.run();
+                        }
+                    }
+
+                    @Override
                     public void rename(XsdNode node, String newName) {
                         if (EditorTab.this.renameNode(node, newName)) {
+                            selectionCallback.run();
+                        }
+                    }
+
+                    @Override
+                    public void changeType(XsdNode node, String newType) {
+                        if (EditorTab.this.changeType(node, newType)) {
                             selectionCallback.run();
                         }
                     }

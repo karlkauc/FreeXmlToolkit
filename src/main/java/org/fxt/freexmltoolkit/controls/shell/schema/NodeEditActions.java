@@ -12,7 +12,15 @@ public interface NodeEditActions {
 
     void addElement(XsdNode parent, String name);
 
+    void addAttribute(XsdNode parent, String name);
+
+    void addSequence(XsdNode element);
+
+    void addChoice(XsdNode element);
+
     void rename(XsdNode node, String newName);
+
+    void changeType(XsdNode node, String newType);
 
     void changeCardinality(XsdNode node, int minOccurs, int maxOccurs);
 

@@ -125,6 +125,31 @@ class EditorHostEditingTest {
                 "new element must appear in the round-tripped text");
     }
 
+    @Test
+    void changeTypeThroughCommandUpdatesText(@TempDir Path tmp) throws Exception {
+        openTreeAndSelect(tmp, "UniqueDocumentID");
+        boolean ok = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.changeActiveType("xs:integer"));
+
+        assertTrue(ok);
+        assertTrue(host.getActiveText().orElse("").contains("xs:integer"),
+                "changed type should be written: " + host.getActiveText().orElse(""));
+    }
+
+    @Test
+    void addAttributeThroughCommandInsertsAttribute(@TempDir Path tmp) throws Exception {
+        XsdNode child = openTreeAndSelect(tmp, "UniqueDocumentID");
+        XsdNode controlData = child.getParent().getParent().getParent(); // sequence -> complexType -> ControlData
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.selectNodeInActiveTree(controlData);
+            return null;
+        });
+        boolean ok = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.addAttributeToActive("version"));
+
+        assertTrue(ok, "add attribute should succeed");
+        assertTrue(host.getActiveText().orElse("").contains("version"),
+                "new attribute must appear: " + host.getActiveText().orElse(""));
+    }
+
     /** Opens the XSD, switches to Tree, selects the named node, returns it. */
     private XsdNode openTreeAndSelect(Path tmp, String name) throws Exception {
         Path xsd = tmp.resolve("schema.xsd");

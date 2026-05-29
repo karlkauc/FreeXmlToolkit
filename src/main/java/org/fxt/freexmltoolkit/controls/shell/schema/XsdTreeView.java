@@ -26,8 +26,13 @@ public class XsdTreeView extends TreeView<XsdNode> {
     public void setEditActions(NodeEditActions actions) {
         javafx.scene.control.ContextMenu menu = new javafx.scene.control.ContextMenu();
         menu.getItems().addAll(
-                menuItem("Add Element…", "bi-plus-circle", node -> promptAddElement(actions, node)),
+                menuItem("Add Element…", "bi-plus-circle", node -> promptName(actions::addElement, node, "Add Element", "NewElement")),
+                menuItem("Add Attribute…", "bi-at", node -> promptName(actions::addAttribute, node, "Add Attribute", "newAttribute")),
+                menuItem("Add Sequence", "bi-list-ol", actions::addSequence),
+                menuItem("Add Choice", "bi-signpost-split", actions::addChoice),
+                new javafx.scene.control.SeparatorMenuItem(),
                 menuItem("Rename…", "bi-pencil", node -> promptRename(actions, node)),
+                menuItem("Change Type…", "bi-type", node -> promptChangeType(actions, node)),
                 menuItem("Change Cardinality…", "bi-arrows-expand", node -> promptCardinality(actions, node)),
                 new javafx.scene.control.SeparatorMenuItem(),
                 menuItem("Delete", "bi-trash", actions::delete));
@@ -48,13 +53,25 @@ public class XsdTreeView extends TreeView<XsdNode> {
         return item;
     }
 
-    private void promptAddElement(NodeEditActions actions, XsdNode parent) {
-        javafx.scene.control.TextInputDialog dialog = new javafx.scene.control.TextInputDialog("NewElement");
-        dialog.setTitle("Add Element");
-        dialog.setHeaderText("New element name:");
+    private void promptName(java.util.function.BiConsumer<XsdNode, String> action, XsdNode node,
+                            String title, String defaultName) {
+        javafx.scene.control.TextInputDialog dialog = new javafx.scene.control.TextInputDialog(defaultName);
+        dialog.setTitle(title);
+        dialog.setHeaderText("Name:");
         dialog.showAndWait().ifPresent(name -> {
             if (!name.isBlank()) {
-                actions.addElement(parent, name.trim());
+                action.accept(node, name.trim());
+            }
+        });
+    }
+
+    private void promptChangeType(NodeEditActions actions, XsdNode node) {
+        javafx.scene.control.TextInputDialog dialog = new javafx.scene.control.TextInputDialog("xs:string");
+        dialog.setTitle("Change Type");
+        dialog.setHeaderText("New type:");
+        dialog.showAndWait().ifPresent(type -> {
+            if (!type.isBlank()) {
+                actions.changeType(node, type.trim());
             }
         });
     }
