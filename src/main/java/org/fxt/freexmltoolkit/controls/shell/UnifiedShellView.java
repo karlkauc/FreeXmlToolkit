@@ -212,10 +212,43 @@ public class UnifiedShellView extends BorderPane {
                 toolButton("bi-text-indent-left", "Format", editorHost::formatActive),
                 vsep(),
                 toolButton("bi-diagram-3", "Set XSD schema for IntelliSense", this::setSchema),
-                spacer, schemaStatus);
+                spacer, buildViewSwitch(), vsep(), schemaStatus);
         bar.setAlignment(Pos.CENTER_LEFT);
         bar.getStyleClass().add("fxt-editor-toolbar");
         return bar;
+    }
+
+    private Region buildViewSwitch() {
+        var group = new javafx.scene.control.ToggleGroup();
+        var buttons = new java.util.EnumMap<org.fxt.freexmltoolkit.controls.shell.editor.ViewMode,
+                javafx.scene.control.ToggleButton>(org.fxt.freexmltoolkit.controls.shell.editor.ViewMode.class);
+        HBox box = new HBox();
+        box.getStyleClass().add("fxt-view-switch");
+
+        for (var mode : org.fxt.freexmltoolkit.controls.shell.editor.ViewMode.values()) {
+            javafx.scene.control.ToggleButton button = new javafx.scene.control.ToggleButton(mode.label());
+            button.setToggleGroup(group);
+            button.getStyleClass().add("fxt-view-seg");
+            button.setFocusTraversable(false);
+            button.setOnAction(e -> editorHost.setActiveViewMode(mode));
+            buttons.put(mode, button);
+            box.getChildren().add(button);
+        }
+
+        Runnable sync = () -> {
+            var active = editorHost.activeViewModeProperty().get();
+            boolean structured = editorHost.activeSupportsStructuredViews();
+            boolean hasDoc = editorHost.getActiveDocument().isPresent();
+            buttons.forEach((mode, button) -> {
+                button.setSelected(mode == active);
+                button.setDisable(!hasDoc
+                        || (mode != org.fxt.freexmltoolkit.controls.shell.editor.ViewMode.TEXT && !structured));
+            });
+        };
+        sync.run();
+        editorHost.activeViewModeProperty().addListener((obs, oldV, newV) -> sync.run());
+        editorHost.activeTabProperty().addListener((obs, oldV, newV) -> sync.run());
+        return box;
     }
 
     private javafx.scene.control.Separator vsep() {

@@ -109,6 +109,37 @@ class UnifiedShellViewTest {
         WaitForAsyncUtils.waitForFxEvents();
         snapshot(new File(dir, "fxt_shell_json.png"));
 
+        // Open an XSD and switch to the Tree view (virtualized renderer).
+        File xsd = File.createTempFile("fxt_shell_schema", ".xsd");
+        java.nio.file.Files.writeString(xsd.toPath(),
+                "<xs:schema xmlns:xs=\"http://www.w3.org/2001/XMLSchema\">\n"
+                        + "  <xs:element name=\"FundsXML4\">\n"
+                        + "    <xs:complexType><xs:sequence>\n"
+                        + "      <xs:element name=\"ControlData\">\n"
+                        + "        <xs:complexType><xs:sequence>\n"
+                        + "          <xs:element name=\"UniqueDocumentID\" type=\"xs:string\"/>\n"
+                        + "          <xs:element name=\"DocumentGenerated\" type=\"xs:dateTime\"/>\n"
+                        + "        </xs:sequence></xs:complexType>\n"
+                        + "      </xs:element>\n"
+                        + "      <xs:element name=\"Funds\">\n"
+                        + "        <xs:complexType><xs:sequence>\n"
+                        + "          <xs:element name=\"Fund\" type=\"xs:string\" maxOccurs=\"unbounded\"/>\n"
+                        + "        </xs:sequence></xs:complexType>\n"
+                        + "      </xs:element>\n"
+                        + "    </xs:sequence></xs:complexType>\n"
+                        + "  </xs:element>\n"
+                        + "</xs:schema>\n");
+        WaitForAsyncUtils.waitForAsyncFx(3000, () -> shell.getEditorHost().openFile(xsd.toPath()));
+        WaitForAsyncUtils.waitFor(3, java.util.concurrent.TimeUnit.SECONDS,
+                () -> shell.getEditorHost().getActiveText().map(t -> t.contains("FundsXML4")).orElse(false));
+        WaitForAsyncUtils.waitForAsyncFx(3000, () -> {
+            shell.getEditorHost().setActiveViewMode(
+                    org.fxt.freexmltoolkit.controls.shell.editor.ViewMode.TREE);
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        snapshot(new File(dir, "fxt_shell_tree.png"));
+
         WaitForAsyncUtils.waitForAsyncFx(3000, () -> {
             shell.getStyleClass().add("fxt-theme-dark");
             shell.applyCss();

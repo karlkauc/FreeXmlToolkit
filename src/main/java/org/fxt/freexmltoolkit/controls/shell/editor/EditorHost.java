@@ -33,6 +33,8 @@ public class EditorHost extends BorderPane {
     private final ObservableList<OpenDocument> openDocuments = FXCollections.observableArrayList();
     private final ReadOnlyIntegerWrapper activeCaret = new ReadOnlyIntegerWrapper(this, "activeCaret", 0);
     private final ReadOnlyObjectWrapper<File> activeSchema = new ReadOnlyObjectWrapper<>(this, "activeSchema", null);
+    private final ReadOnlyObjectWrapper<ViewMode> activeViewMode =
+            new ReadOnlyObjectWrapper<>(this, "activeViewMode", ViewMode.TEXT);
 
     public EditorHost() {
         getStyleClass().add("fxt-editor-tabs");
@@ -42,6 +44,7 @@ public class EditorHost extends BorderPane {
             if (newT instanceof EditorTab et) {
                 activeCaret.set(et.view.getCodeArea().getCaretPosition());
                 activeSchema.set(et.schemaFile);
+                activeViewMode.set(et.viewMode);
             } else {
                 activeSchema.set(null);
             }
@@ -85,6 +88,25 @@ public class EditorHost extends BorderPane {
     /** @return the XSD currently bound to the active document for IntelliSense, or {@code null}. */
     public ReadOnlyObjectProperty<File> activeSchemaProperty() {
         return activeSchema.getReadOnlyProperty();
+    }
+
+    /** @return the active document's current view mode (Text/Tree/Graphic). */
+    public ReadOnlyObjectProperty<ViewMode> activeViewModeProperty() {
+        return activeViewMode.getReadOnlyProperty();
+    }
+
+    /** Switches the active document to the given view mode (structured modes apply to XSD). */
+    public void setActiveViewMode(ViewMode mode) {
+        withActive(et -> {
+            et.setViewMode(mode);
+            activeViewMode.set(et.viewMode);
+        });
+    }
+
+    /** @return {@code true} if the active document supports Tree/Graphic views (XSD). */
+    public boolean activeSupportsStructuredViews() {
+        return tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et
+                && et.supportsStructuredViews();
     }
 
     /** @return the active editor caret as {@code [line, column]} (1-based), or {@code [1,1]}. */
@@ -340,21 +362,75 @@ public class EditorHost extends BorderPane {
         return false;
     }
 
-    /** A tab bound to one {@link OpenDocument} and its file-type-specific editor view. */
+    /** A tab bound to one {@link OpenDocument}, its editor view, and Text/Tree/Graphic modes. */
     private static final class EditorTab extends Tab {
         private final OpenDocument document;
         private final EditorView view;
+        private final javafx.scene.layout.StackPane contentStack = new javafx.scene.layout.StackPane();
+        private org.fxt.freexmltoolkit.controls.shell.schema.XsdTreeView treeView;
+        private javafx.scene.layout.Region graphicPlaceholder;
+        private ViewMode viewMode = ViewMode.TEXT;
         private boolean dirtyTrackingAttached;
         private File schemaFile;
 
         EditorTab(OpenDocument document) {
             this.document = document;
             this.view = EditorViews.create(document.getFileType());
-            setContent(view.getNode());
+            contentStack.getChildren().add(view.getNode());
+            setContent(contentStack);
             textProperty().bind(Bindings.createStringBinding(
                     () -> (document.isDirty() ? "● " : "") + document.getDisplayName(),
                     document.dirtyProperty(), document.displayNameProperty()));
             refreshIcon();
+        }
+
+        /** Structured views (Tree/Graphic) currently apply to XSD only. */
+        boolean supportsStructuredViews() {
+            return document.getFileType() == EditorFileType.XSD;
+        }
+
+        void setViewMode(ViewMode mode) {
+            ViewMode target = (mode != ViewMode.TEXT && !supportsStructuredViews()) ? ViewMode.TEXT : mode;
+            this.viewMode = target;
+            switch (target) {
+                case TEXT -> showOnly(view.getNode());
+                case TREE -> {
+                    ensureTree();
+                    treeView.setXsdFromText(view.getText());
+                    showOnly(treeView);
+                }
+                case GRAPHIC -> {
+                    ensureGraphic();
+                    showOnly(graphicPlaceholder);
+                }
+            }
+        }
+
+        private void ensureTree() {
+            if (treeView == null) {
+                treeView = new org.fxt.freexmltoolkit.controls.shell.schema.XsdTreeView();
+                contentStack.getChildren().add(treeView);
+            }
+        }
+
+        private void ensureGraphic() {
+            if (graphicPlaceholder == null) {
+                javafx.scene.control.Label label =
+                        new javafx.scene.control.Label("Graphic + Grid view — coming in a later increment.");
+                label.getStyleClass().add("fxt-placeholder-text");
+                javafx.scene.layout.StackPane pane = new javafx.scene.layout.StackPane(label);
+                pane.getStyleClass().add("fxt-editor-host");
+                graphicPlaceholder = pane;
+                contentStack.getChildren().add(graphicPlaceholder);
+            }
+        }
+
+        private void showOnly(javafx.scene.Node node) {
+            for (javafx.scene.Node child : contentStack.getChildren()) {
+                boolean visible = child == node;
+                child.setVisible(visible);
+                child.setManaged(visible);
+            }
         }
 
         void attachDirtyTracking() {

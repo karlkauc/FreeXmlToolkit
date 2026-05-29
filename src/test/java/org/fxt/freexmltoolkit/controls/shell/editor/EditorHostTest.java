@@ -139,6 +139,42 @@ class EditorHostTest {
     }
 
     @Test
+    void xsdSupportsSwitchingToTreeView(@org.junit.jupiter.api.io.TempDir Path tmp) throws Exception {
+        Path xsd = tmp.resolve("s.xsd");
+        Files.writeString(xsd, "<xs:schema xmlns:xs=\"http://www.w3.org/2001/XMLSchema\">"
+                + "<xs:element name=\"root\" type=\"xs:string\"/></xs:schema>");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xsd));
+        WaitForAsyncUtils.waitFor(3, java.util.concurrent.TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("xs:element")).orElse(false));
+
+        assertTrue(host.activeSupportsStructuredViews(), "XSD must support structured views");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.setActiveViewMode(ViewMode.TREE);
+            return null;
+        });
+        assertEquals(ViewMode.TREE, host.activeViewModeProperty().get());
+    }
+
+    @Test
+    void xmlDoesNotSupportStructuredViews(@org.junit.jupiter.api.io.TempDir Path tmp) throws Exception {
+        Path xml = tmp.resolve("d.xml");
+        Files.writeString(xml, "<root/>");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
+        WaitForAsyncUtils.waitFor(3, java.util.concurrent.TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("root")).orElse(false));
+
+        assertFalse(host.activeSupportsStructuredViews());
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.setActiveViewMode(ViewMode.TREE);
+            return null;
+        });
+        assertEquals(ViewMode.TEXT, host.activeViewModeProperty().get(),
+                "non-XSD must stay in Text mode");
+    }
+
+    @Test
     void saveAsWritesFileAndRetitlesDocument(@org.junit.jupiter.api.io.TempDir Path tmp) throws Exception {
         Path target = tmp.resolve("new.xsd");
 

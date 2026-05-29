@@ -210,6 +210,31 @@
     -fx-font-size: 11px;
 }
 
+.fxt-view-switch {
+    -fx-border-color: -fxt-border;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+}
+
+.fxt-view-seg {
+    -fx-background-color: transparent;
+    -fx-text-fill: -fxt-text-secondary;
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 11px;
+    -fx-padding: 3 10 3 10;
+    -fx-background-radius: 0;
+    -fx-cursor: hand;
+}
+
+.fxt-view-seg:selected {
+    -fx-background-color: -fxt-primary;
+    -fx-text-fill: -fxt-on-primary;
+}
+
+.fxt-view-seg:disabled {
+    -fx-opacity: 0.4;
+}
+
 .fxt-type-badge {
     -fx-background-color: -fxt-bg-subtle;
     -fx-text-fill: -fxt-primary;
