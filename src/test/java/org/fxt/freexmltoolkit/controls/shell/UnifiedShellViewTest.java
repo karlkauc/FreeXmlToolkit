@@ -98,6 +98,17 @@ class UnifiedShellViewTest {
         WaitForAsyncUtils.waitForFxEvents();
         snapshot(new File(dir, "fxt_shell_light.png"));
 
+        // Open a JSON document to show the JSON editor (file-type polymorphism).
+        File json = File.createTempFile("fxt_shell_sample", ".json");
+        java.nio.file.Files.writeString(json.toPath(),
+                "{\n  \"fund\": {\n    \"id\": \"EAM_FUND_2024\",\n    \"items\": [1, 2, 3]\n  }\n}\n");
+        WaitForAsyncUtils.waitForAsyncFx(3000, () -> shell.getEditorHost().openFile(json.toPath()));
+        WaitForAsyncUtils.waitFor(3, java.util.concurrent.TimeUnit.SECONDS,
+                () -> shell.getEditorHost().getActiveText().map(t -> t.contains("fund")).orElse(false));
+        WaitForAsyncUtils.sleep(400, java.util.concurrent.TimeUnit.MILLISECONDS); // let inspector debounce settle
+        WaitForAsyncUtils.waitForFxEvents();
+        snapshot(new File(dir, "fxt_shell_json.png"));
+
         WaitForAsyncUtils.waitForAsyncFx(3000, () -> {
             shell.getStyleClass().add("fxt-theme-dark");
             shell.applyCss();

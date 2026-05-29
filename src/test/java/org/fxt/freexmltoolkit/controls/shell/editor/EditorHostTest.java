@@ -122,6 +122,23 @@ class EditorHostTest {
     }
 
     @Test
+    void formatActiveReformatsJsonToMultipleLines(@org.junit.jupiter.api.io.TempDir Path tmp) throws Exception {
+        Path file = tmp.resolve("d.json");
+        Files.writeString(file, "{\"a\":1,\"b\":2}");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(file));
+        WaitForAsyncUtils.waitFor(3, java.util.concurrent.TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("\"a\"")).orElse(false));
+
+        boolean ok = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.formatActive());
+
+        assertTrue(ok, "formatActive should reformat valid JSON");
+        assertEquals(EditorFileType.JSON, host.getActiveDocument().orElseThrow().getFileType());
+        assertTrue(host.getActiveText().orElse("").lines().count() > 1,
+                "formatted JSON should span multiple lines");
+    }
+
+    @Test
     void saveAsWritesFileAndRetitlesDocument(@org.junit.jupiter.api.io.TempDir Path tmp) throws Exception {
         Path target = tmp.resolve("new.xsd");
 
