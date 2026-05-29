@@ -153,6 +153,63 @@
     -fx-font-size: 11px;
 }
 
+/* ----- Editor center / toolbar / tabs --------------------------------- */
+.fxt-editor-center {
+    -fx-background-color: -fxt-bg-canvas;
+}
+
+.fxt-editor-area {
+    -fx-background-color: -fxt-bg-surface;
+}
+
+.fxt-editor-toolbar {
+    -fx-background-color: -fxt-bg-surface-2;
+    -fx-border-color: -fxt-border;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 4 8 4 8;
+}
+
+.fxt-tool-button {
+    -fx-background-color: transparent;
+    -fx-background-radius: 6;
+    -fx-padding: 4 8 4 8;
+    -fx-cursor: hand;
+}
+
+.fxt-tool-button .iconify-icon {
+    -fx-icon-color: -fxt-text-secondary;
+}
+
+.fxt-tool-button:hover {
+    -fx-background-color: -fxt-bg-subtle;
+}
+
+.fxt-tool-button:hover .iconify-icon {
+    -fx-icon-color: -fxt-primary;
+}
+
+.fxt-open-editors {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.fxt-open-editors .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: -fxt-text-primary;
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 12px;
+    -fx-padding: 3 6 3 6;
+}
+
+.fxt-open-editors .list-cell .iconify-icon {
+    -fx-icon-color: -fxt-text-secondary;
+}
+
+.fxt-open-editors .list-cell:filled:selected {
+    -fx-background-color: -fxt-bg-subtle;
+    -fx-text-fill: -fxt-text-primary;
+}
+
 /* ----- Shared ---------------------------------------------------------- */
 .fxt-placeholder-text {
     -fx-text-fill: -fxt-text-muted;

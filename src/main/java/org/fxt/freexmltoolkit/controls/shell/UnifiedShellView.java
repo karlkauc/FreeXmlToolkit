@@ -36,6 +36,8 @@ public class UnifiedShellView extends BorderPane {
 
     private final ActivitySelectionModel selectionModel = new ActivitySelectionModel();
     private final StackPane sidePanelHost = new StackPane();
+    private final org.fxt.freexmltoolkit.controls.shell.editor.EditorHost editorHost =
+            new org.fxt.freexmltoolkit.controls.shell.editor.EditorHost();
 
     public UnifiedShellView() {
         getStyleClass().add("fxt-shell");
@@ -54,17 +56,22 @@ public class UnifiedShellView extends BorderPane {
         sidePanelHost.setPrefWidth(SIDE_PANEL_WIDTH);
         sidePanelHost.setMinWidth(SIDE_PANEL_WIDTH);
 
-        Region editorHost = buildEditorPlaceholder();
-        HBox.setHgrow(editorHost, Priority.ALWAYS);
+        Region editorCenter = buildEditorCenter();
+        HBox.setHgrow(editorCenter, Priority.ALWAYS);
 
         Region inspector = buildInspector();
 
-        HBox work = new HBox(sidePanelHost, editorHost, inspector);
+        HBox work = new HBox(sidePanelHost, editorCenter, inspector);
         work.getStyleClass().add("fxt-work-area");
         return work;
     }
 
     private void showSidePanelFor(Activity activity) {
+        if (activity == Activity.EXPLORER) {
+            sidePanelHost.getChildren().setAll(
+                    new org.fxt.freexmltoolkit.controls.shell.editor.ExplorerPanel(editorHost));
+            return;
+        }
         VBox panel = new VBox();
         panel.getStyleClass().add("fxt-side-panel-content");
 
@@ -79,7 +86,31 @@ public class UnifiedShellView extends BorderPane {
         sidePanelHost.getChildren().setAll(panel);
     }
 
-    private Region buildEditorPlaceholder() {
+    /**
+     * The editor center: a welcome placeholder shown while nothing is open,
+     * swapped for the editor toolbar + {@link EditorHost} once a document opens.
+     */
+    private Region buildEditorCenter() {
+        Region welcome = buildWelcome();
+
+        Region toolbar = buildEditorToolbar();
+        VBox editorArea = new VBox(toolbar, editorHost);
+        VBox.setVgrow(editorHost, Priority.ALWAYS);
+        editorArea.getStyleClass().add("fxt-editor-area");
+
+        StackPane center = new StackPane(welcome, editorArea);
+        center.getStyleClass().add("fxt-editor-center");
+
+        // Show the editor only when at least one document is open.
+        editorArea.visibleProperty().bind(
+                javafx.beans.binding.Bindings.isNotEmpty(editorHost.getOpenDocuments()));
+        editorArea.managedProperty().bind(editorArea.visibleProperty());
+        welcome.visibleProperty().bind(editorArea.visibleProperty().not());
+        welcome.managedProperty().bind(welcome.visibleProperty());
+        return center;
+    }
+
+    private Region buildWelcome() {
         IconifyIcon logo = new IconifyIcon("bi-stack");
         logo.setIconSize(64);
 
@@ -93,6 +124,54 @@ public class UnifiedShellView extends BorderPane {
         box.setAlignment(Pos.CENTER);
         box.getStyleClass().add("fxt-editor-host");
         return box;
+    }
+
+    private Region buildEditorToolbar() {
+        javafx.scene.control.Button save = toolButton("bi-save", "Save (Ctrl+S)", this::saveActive);
+        javafx.scene.control.Button saveAs = toolButton("bi-save2", "Save As…", this::saveActiveAs);
+
+        HBox bar = new HBox(6, save, saveAs);
+        bar.setAlignment(Pos.CENTER_LEFT);
+        bar.getStyleClass().add("fxt-editor-toolbar");
+        return bar;
+    }
+
+    private javafx.scene.control.Button toolButton(String icon, String tooltip, Runnable action) {
+        javafx.scene.control.Button button = new javafx.scene.control.Button();
+        button.getStyleClass().add("fxt-tool-button");
+        IconifyIcon graphic = new IconifyIcon(icon);
+        graphic.setIconSize(16);
+        button.setGraphic(graphic);
+        button.setTooltip(new javafx.scene.control.Tooltip(tooltip));
+        button.setOnAction(e -> action.run());
+        return button;
+    }
+
+    private void saveActive() {
+        editorHost.getActiveDocument().ifPresent(doc -> {
+            if (doc.isUntitled()) {
+                saveActiveAs();
+            } else {
+                editorHost.saveActive();
+            }
+        });
+    }
+
+    private void saveActiveAs() {
+        if (editorHost.getActiveDocument().isEmpty()) {
+            return;
+        }
+        javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
+        chooser.setTitle("Save As");
+        java.io.File file = chooser.showSaveDialog(getScene() != null ? getScene().getWindow() : null);
+        if (file != null) {
+            editorHost.saveActiveAs(file.toPath());
+        }
+    }
+
+    /** @return the editor host (for future toolbar / inspector wiring). */
+    public org.fxt.freexmltoolkit.controls.shell.editor.EditorHost getEditorHost() {
+        return editorHost;
     }
 
     private Region buildInspector() {

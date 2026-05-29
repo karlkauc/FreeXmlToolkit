@@ -77,7 +77,21 @@ class UnifiedShellViewTest {
             return; // image output is opt-in; keep the normal suite side-effect free
         }
         File dir = new File(System.getProperty("java.io.tmpdir"));
-        WaitForAsyncUtils.waitForAsyncFx(3000, () -> shell.getSelectionModel().select(Activity.SCHEMA));
+
+        // Open a real XML document so the snapshot shows the editor in context.
+        File sample = File.createTempFile("fxt_shell_sample", ".xml");
+        java.nio.file.Files.writeString(sample.toPath(),
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                        + "<FundsXML4 xmlns=\"http://www.fundsxml.org\">\n"
+                        + "    <ControlData>\n"
+                        + "        <UniqueDocumentID>EAM_FUND_2024_0926</UniqueDocumentID>\n"
+                        + "        <DocumentGenerated>2024-09-26T18:37:12</DocumentGenerated>\n"
+                        + "    </ControlData>\n"
+                        + "</FundsXML4>\n");
+        WaitForAsyncUtils.waitForAsyncFx(3000, () -> shell.getEditorHost().openFile(sample.toPath()));
+        WaitForAsyncUtils.waitFor(3, java.util.concurrent.TimeUnit.SECONDS,
+                () -> shell.getEditorHost().getActiveText().map(t -> t.contains("FundsXML4")).orElse(false));
+        WaitForAsyncUtils.waitForFxEvents();
         snapshot(new File(dir, "fxt_shell_light.png"));
 
         WaitForAsyncUtils.waitForAsyncFx(3000, () -> {
