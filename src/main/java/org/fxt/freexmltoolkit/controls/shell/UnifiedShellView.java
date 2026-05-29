@@ -144,6 +144,11 @@ public class UnifiedShellView extends BorderPane {
                     new org.fxt.freexmltoolkit.controls.shell.editor.FavoritesActivityPanel(editorHost));
             return;
         }
+        if (activity == Activity.PDF_FOP) {
+            sidePanelHost.getChildren().setAll(
+                    new org.fxt.freexmltoolkit.controls.shell.editor.FopPanel(editorHost));
+            return;
+        }
         VBox panel = new VBox();
         panel.getStyleClass().add("fxt-side-panel-content");
 
