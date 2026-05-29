@@ -31,4 +31,10 @@ class TransformRunnerTest {
         String output = TransformRunner.xsltTransform(XML, "<xsl:not-a-stylesheet/>");
         assertTrue(output.startsWith("ERROR:"), "a broken stylesheet should yield an error message: " + output);
     }
+
+    @Test
+    void evaluatesJsonPath() {
+        String result = TransformRunner.runJsonPath("{\"fund\":{\"id\":\"EAM_2024\"}}", "$.fund.id");
+        assertTrue(result.contains("EAM_2024"), result);
+    }
 }

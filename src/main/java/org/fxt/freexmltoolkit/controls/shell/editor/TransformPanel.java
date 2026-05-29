@@ -30,6 +30,7 @@ public class TransformPanel extends VBox {
     private final EditorHost editorHost;
     private final TextArea output = new TextArea();
     private final TextField xpathField = new TextField();
+    private final Label pathLabel = new Label("XPATH");
     private final Label xsltStatus = new Label("XSLT: none");
     private File xsltFile;
 
@@ -44,12 +45,12 @@ public class TransformPanel extends VBox {
         Button transform = button("Transform", "bi-arrow-repeat", this::transform);
         xsltStatus.getStyleClass().add("fxt-placeholder-text");
 
-        Label xpathLabel = new Label("XPATH");
-        xpathLabel.getStyleClass().add("fxt-side-panel-title");
-        xpathField.setPromptText("/root/element");
+        pathLabel.getStyleClass().add("fxt-side-panel-title");
         xpathField.getStyleClass().add("fxt-xpath-field");
         Button runXPath = button("Run", "bi-lightning-charge", this::runXPath);
         xpathField.setOnAction(e -> runXPath());
+        updatePathMode();
+        editorHost.activeTabProperty().addListener((obs, oldV, newV) -> updatePathMode());
 
         Label resultLabel = new Label("RESULT");
         resultLabel.getStyleClass().add("fxt-side-panel-title");
@@ -58,7 +59,7 @@ public class TransformPanel extends VBox {
         VBox.setVgrow(output, Priority.ALWAYS);
 
         getChildren().addAll(title, new HBox(6, setXslt, transform), xsltStatus,
-                xpathLabel, new HBox(6, xpathField, runXPath),
+                pathLabel, new HBox(6, xpathField, runXPath),
                 resultLabel, output);
     }
 
@@ -99,16 +100,29 @@ public class TransformPanel extends VBox {
             output.setText("No document open.");
             return;
         }
-        String xml = editorHost.getActiveText().orElse("");
-        String xpath = xpathField.getText();
-        if (xpath == null || xpath.isBlank()) {
+        String content = editorHost.getActiveText().orElse("");
+        String path = xpathField.getText();
+        if (path == null || path.isBlank()) {
             return;
         }
+        boolean json = isJsonActive();
         output.setText("Running…");
         FxtGui.executorService.submit(() -> {
-            String result = TransformRunner.runXPath(xml, xpath);
+            String result = json ? TransformRunner.runJsonPath(content, path)
+                    : TransformRunner.runXPath(content, path);
             Platform.runLater(() -> output.setText(result));
         });
+    }
+
+    private boolean isJsonActive() {
+        return editorHost.getActiveDocument()
+                .map(d -> d.getFileType() == EditorFileType.JSON).orElse(false);
+    }
+
+    private void updatePathMode() {
+        boolean json = isJsonActive();
+        pathLabel.setText(json ? "JSONPATH" : "XPATH");
+        xpathField.setPromptText(json ? "$.root.element" : "/root/element");
     }
 
     /** @return the current output text (for tests/observers). */

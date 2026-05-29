@@ -37,4 +37,13 @@ public final class TransformRunner {
             return "ERROR: " + t.getMessage();
         }
     }
+
+    /** Evaluates a JSONPath expression against {@code json}; returns the result or an error message. */
+    public static String runJsonPath(String json, String jsonPath) {
+        try {
+            return new org.fxt.freexmltoolkit.service.JsonService().executeJsonPathAsString(json, jsonPath);
+        } catch (Throwable t) {
+            return "ERROR: " + t.getMessage();
+        }
+    }
 }

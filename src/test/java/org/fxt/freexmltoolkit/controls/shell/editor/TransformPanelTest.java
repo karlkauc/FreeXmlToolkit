@@ -71,6 +71,23 @@ class TransformPanelTest {
         assertTrue(panel.getOutputText().contains("Hello"), panel.getOutputText());
     }
 
+    @Test
+    void evaluatesJsonPathAgainstActiveJson(@TempDir Path tmp) throws Exception {
+        Path json = tmp.resolve("data.json");
+        Files.writeString(json, "{\"fund\":{\"id\":\"EAM_2024\"}}");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(json));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("fund")).orElse(false));
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.setXPathExpression("$.fund.id");
+            panel.runXPath();
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS, () -> panel.getOutputText().contains("EAM_2024"));
+        assertTrue(panel.getOutputText().contains("EAM_2024"), panel.getOutputText());
+    }
+
     private void openGreeting(Path tmp) throws Exception {
         Path xml = tmp.resolve("doc.xml");
         Files.writeString(xml, XML);
