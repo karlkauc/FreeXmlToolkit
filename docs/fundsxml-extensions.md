@@ -1,6 +1,6 @@
 # FundsXML Extensions
 
-> **Last Updated:** May 2026 | **Version:** 1.0.0
+> **Last Updated:** May 2026 | **Version:** 1.10.0
 
 Optional integration with the [FundsXML](https://fundsxml.org/) standard for the fund management industry. When enabled, FreeXmlToolkit can download and manage the official FundsXML schemas, sample documents, Schematron rules, and XPath/XQuery snippets - and use them for quick validation of your own files.
 

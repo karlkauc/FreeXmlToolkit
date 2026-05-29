@@ -1,6 +1,6 @@
 # XML Digital Signatures
 
-> **Last Updated:** December 2025 | **Version:** 1.1.0
+> **Last Updated:** May 2026 | **Version:** 1.10.0
 
 This tool lets you digitally sign XML documents and verify signatures. A digital signature proves that a document is authentic and hasn't been changed.
 
@@ -39,7 +39,6 @@ Before signing documents, you need a digital certificate (like a digital ID card
 ![Create Certificate](img/signature-create-cert.png)
 *Certificate creation form with DN details*
 
-<!-- TODO: Screenshot needed - Show Create Certificate tab with all fields -->
 
 ### Certificate Details (Distinguished Name)
 
@@ -77,7 +76,6 @@ Before signing documents, you need a digital certificate (like a digital ID card
 ![Sign Document](img/signature-sign-process.png)
 *Document signing interface*
 
-<!-- TODO: Screenshot needed - Show Sign XML File tab with all sections -->
 
 ### Input Files
 
@@ -151,7 +149,6 @@ For users who need more control over the signing process.
 ![Expert Mode](img/signature-expert.png)
 *Expert mode with advanced options*
 
-<!-- TODO: Screenshot needed - Show Expert Mode tab with all options -->
 
 ### Key Generation Options
 

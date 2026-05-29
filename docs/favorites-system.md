@@ -1,6 +1,6 @@
 # Favorites System
 
-> **Last Updated:** November 2025 | **Version:** 1.0.0
+> **Last Updated:** May 2026 | **Version:** 1.10.0
 
 Save your frequently used files for quick access. The favorites system works across all editors in FreeXmlToolkit.
 
@@ -9,7 +9,7 @@ Save your frequently used files for quick access. The favorites system works acr
 ## Overview
 
 ![Favorites Overview](img/favorites-overview.png)
-*Screenshot placeholder: Favorites menu in the toolbar*
+*The Favorites panel with Smart Collections, Categories, Projects, and Templates & Snippets*
 
 The favorites system helps you quickly access the files you use most often. Save any file as a favorite and open it with one click from any editor.
 
@@ -19,9 +19,6 @@ The favorites system helps you quickly access the files you use most often. Save
 
 ### Quick Access
 
-![Quick Access](img/favorites-quick-access.png)
-*Screenshot placeholder: One-click file loading*
-
 | Feature | Description |
 |---------|-------------|
 | **Works Everywhere** | Access favorites from any editor |
@@ -29,9 +26,6 @@ The favorites system helps you quickly access the files you use most often. Save
 | **One-Click Loading** | Open files instantly |
 
 ### Organization
-
-![Organization](img/favorites-organization.png)
-*Screenshot placeholder: Favorites organized in categories*
 
 | Feature | Description |
 |---------|-------------|
@@ -53,9 +47,6 @@ The favorites system helps you quickly access the files you use most often. Save
 
 ### Adding Files to Favorites
 
-![Adding Favorites](img/favorites-add.png)
-*Screenshot placeholder: Add to favorites dialog*
-
 1. **Open a file** in any editor
 2. **Click the star button** in the toolbar
 3. **Fill in the form:**
@@ -65,17 +56,11 @@ The favorites system helps you quickly access the files you use most often. Save
 
 ### Opening Favorites
 
-![Opening Favorites](img/favorites-open.png)
-*Screenshot placeholder: Favorites dropdown menu*
-
 1. **Click "Favorites"** in any editor toolbar
 2. **Browse categories** if you have multiple
 3. **Click any file** to open it immediately
 
 ### Managing Favorites
-
-![Managing Favorites](img/favorites-manage.png)
-*Screenshot placeholder: Favorites management options*
 
 The favorites menu includes:
 - **Remove missing files** - Clean up favorites that point to deleted files

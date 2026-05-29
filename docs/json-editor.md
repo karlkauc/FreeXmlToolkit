@@ -2,7 +2,7 @@
 
 The JSON Editor provides a powerful environment for editing, validating, and querying JSON files with support for multiple JSON formats.
 
-> **Last Updated:** January 2026 | **Version:** 1.2.1
+> **Last Updated:** May 2026 | **Version:** 1.10.0
 
 ## Overview
 

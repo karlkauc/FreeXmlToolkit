@@ -1,6 +1,6 @@
 # XSLT Viewer
 
-> **Last Updated:** December 2025 | **Version:** 1.1.0
+> **Last Updated:** May 2026 | **Version:** 1.10.0
 
 The XSLT Viewer allows you to quickly transform XML documents using XSLT stylesheets. Simply select your files and view
 the results immediately.
@@ -15,7 +15,6 @@ like live editing, parameters, and batch processing, use the [XSLT Developer](xs
 ![XSLT Viewer Overview](img/xslt-viewer-overview.png)
 *The XSLT Viewer with file selection and result preview*
 
-<!-- TODO: Screenshot needed - Show XSLT Viewer tab with XML and XSLT file selectors on left, and HTML Preview tab showing rendered output on right -->
 
 ---
 

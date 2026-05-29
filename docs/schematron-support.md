@@ -1,6 +1,6 @@
 # Schematron Validation
 
-> **Last Updated:** December 2025 | **Version:** 1.1.0
+> **Last Updated:** May 2026 | **Version:** 1.10.0
 
 Schematron lets you create custom validation rules that go beyond what XSD schemas can check. It's perfect for validating business rules and data relationships.
 

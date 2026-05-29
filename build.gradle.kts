@@ -305,6 +305,48 @@ tasks.test {
 
     // Forward the opt-in flag for FundsXmlDownloadIntegrationTest (real GitHub).
     System.getProperty("fundsxml.integration")?.let { systemProperty("fundsxml.integration", it) }
+
+    // The documentation screenshot generator must NOT run as part of the normal test suite:
+    // it requires a real (non-Monocle) display and writes binary assets into docs/img.
+    filter { excludeTestsMatching("*DocScreenshotGenerator*") }
+}
+
+// Documentation screenshot generator.
+// Launches the REAL application on a real X display (run under `xvfb-run`) with software
+// rendering, drives navigation programmatically, and captures full-window PNGs into docs/img.
+// Unlike `test`, it deliberately omits the Monocle/headless system properties so that JavaFX
+// popups render as real windows and java.awt.Robot can capture them.
+//   xvfb-run -a -s "-screen 0 1680x1050x24" ./gradlew docScreenshots
+tasks.register<Test>("docScreenshots") {
+    group = "documentation"
+    description = "Generate missing documentation screenshots into docs/img (run under xvfb-run)."
+    useJUnitPlatform()
+    maxHeapSize = "8G"
+    testClassesDirs = sourceSets["test"].output.classesDirs
+    classpath = sourceSets["test"].runtimeClasspath
+    testLogging { events("passed", "skipped", "failed") }
+    filter { includeTestsMatching("*DocScreenshotGenerator*") }
+    // Same module opens/exports as `test`, but with a real display + software rendering.
+    jvmArgs(
+        "--add-opens", "java.base/java.lang=ALL-UNNAMED",
+        "--add-opens", "java.base/java.lang.reflect=ALL-UNNAMED",
+        "--add-opens", "java.base/java.util=ALL-UNNAMED",
+        "--add-opens", "java.base/java.io=ALL-UNNAMED",
+        "--add-opens", "java.base/java.nio=ALL-UNNAMED",
+        "--add-opens", "javafx.graphics/com.sun.javafx.application=ALL-UNNAMED",
+        "--add-opens", "javafx.graphics/com.sun.glass.ui=ALL-UNNAMED",
+        "--add-opens", "javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED",
+        "--add-opens", "javafx.graphics/com.sun.prism=ALL-UNNAMED",
+        "--add-opens", "javafx.graphics/javafx.stage=ALL-UNNAMED",
+        "--add-opens", "javafx.graphics/javafx.scene=ALL-UNNAMED",
+        "--add-exports", "javafx.graphics/com.sun.glass.ui=ALL-UNNAMED",
+        "--add-exports", "javafx.graphics/com.sun.javafx.application=ALL-UNNAMED",
+        "-Djava.awt.headless=false",
+        "-Dtestfx.robot=awt",
+        "-Dprism.order=sw",
+        "-Dprism.text=t2k",
+        "-Dglass.gtk.uiScale=1.0"
+    )
 }
 
 // JaCoCo Code Coverage Configuration

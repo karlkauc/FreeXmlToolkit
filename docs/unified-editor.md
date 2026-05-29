@@ -119,6 +119,45 @@ When editing an XSLT file:
 
 > **Search in XML files (updated in v1.10):** Pressing **Ctrl+F** opens an inline search bar with up/down chevron arrows for Find Previous / Find Next. The search works in both the **Text** and **Graphic** views of an XML file. In the Graphic view it searches element names, attribute names, and values across the whole document, auto-expands collapsed nodes to reach a match, selects the matching row, and scrolls it into view; matches wrap around when you reach the end. Switching between the Text and Graphic sub-tabs while the bar is open re-targets the search to the active view. **Replace** is available in the Text view only. See [XML Editor Features](xml-editor-features.md#search-find) for details.
 
+## Compare & Merge
+
+Both the XML and XSD editors include a **Compare** toolbar button (tooltip *"Compare with file..."*)
+for side-by-side diffing and merging.
+
+1. Click **Compare** and pick a file to compare against the current document.
+2. A new tab opens titled `Compare: <left> ↔ <right>` with synchronized scrolling and live re-diff.
+3. Changed lines are highlighted, with intra-line word-level coloring.
+
+Merge controls let you reconcile the two files:
+
+| Control | Shortcut | Action |
+|---------|----------|--------|
+| **Prev** / **Next** | Alt+Up / Alt+Down | Jump between changed chunks |
+| Per-chunk arrows | - | Apply a single change left→right or right→left |
+| **All →** / **All ←** | - | Apply every change in one direction |
+| **Re-compute** | - | Recompute the diff manually |
+| **Save Left** / **Save Right** | - | Write a pane back to its file |
+
+The diff recomputes automatically about 300 ms after you stop typing.
+
+## Jump to Validation Errors
+
+Validation errors appear in the **Properties / Validation** sidebar (Ctrl+Shift+P). **Double-click**
+any error to jump straight to its location:
+
+- In the **Text** view the caret moves to the exact line and column, with the offending text highlighted.
+- In the **Graphic** view the matching element is selected, flashed, and scrolled into view.
+- In split mode both views navigate at once.
+
+## XPath / XQuery Autocomplete
+
+The XPath/XQuery console (Ctrl+Shift+X) offers context-aware autocomplete in both the XPath and
+XQuery input fields. Suggestions appear automatically after trigger characters (`/`, `[`, `@`, `(`,
+`$`, `::`) or on demand with **Ctrl+Space**. Depending on context it suggests element names, attribute
+names, XPath axes, functions, and (in XQuery) variables. Navigate with the arrow keys and press
+**Enter** or **Tab** to insert; **Escape** dismisses the popup. Functions and axes are inserted with
+their parentheses / `::` automatically.
+
 ## Drag and Drop
 
 Drag files from your file manager directly into the editor to open them. Multiple files can be dropped at once.

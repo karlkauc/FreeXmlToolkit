@@ -1,6 +1,6 @@
 # XSD Tools
 
-> **Last Updated:** April 2026 | **Version:** 1.7.0
+> **Last Updated:** May 2026 | **Version:** 1.10.0
 
 This part of the application provides tools for working with XML Schemas (XSD). These tools help you understand,
 document, and use XSD files effectively.
@@ -67,7 +67,6 @@ The Type Library provides a comprehensive view of all types defined in your sche
 ![Type Library](img/xsd-type-library.png)
 *Type Library showing all SimpleTypes and ComplexTypes*
 
-<!-- TODO: Screenshot needed - Show Type Library tab with filter dropdown set to "All Types", search field, and type table with columns: Name, Kind, Base Type, Usage Count -->
 
 ### Features
 
@@ -107,7 +106,6 @@ The Type Editor provides dedicated editing for ComplexTypes and SimpleTypes.
 ![Type Editor](img/xsd-type-editor.png)
 *Type Editor with graphical editing for ComplexTypes*
 
-<!-- TODO: Screenshot needed - Show Type Editor tab with a ComplexType open, showing the graphical tree view and properties panel -->
 
 ### Features
 
@@ -173,7 +171,6 @@ The Schema Analysis tab provides comprehensive analysis tools for your XSD.
 ![Schema Analysis](img/xsd-schema-analysis.png)
 *Schema Analysis with statistics and quality checks*
 
-<!-- TODO: Screenshot needed - Show Schema Analysis tab with Statistics sub-tab visible, showing element counts, type counts, and namespace info -->
 
 ### Sub-Tabs
 

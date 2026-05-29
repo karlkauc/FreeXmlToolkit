@@ -1,6 +1,6 @@
 # Auto-Completion (IntelliSense)
 
-> **Last Updated:** November 2025 | **Version:** 1.0.0
+> **Last Updated:** May 2026 | **Version:** 1.10.0
 
 The XML Editor includes smart auto-completion that helps you write XML faster and with fewer errors.
 
@@ -9,7 +9,7 @@ The XML Editor includes smart auto-completion that helps you write XML faster an
 ## Overview
 
 ![Auto-Completion in Action](img/intellisense-overview.png)
-*Screenshot placeholder: Auto-completion popup showing element suggestions*
+*The XML Editor with a schema-backed document - typing `<` shows context-valid element suggestions*
 
 When you type `<` in the XML Editor, a popup appears showing only the elements that are valid at your current position. This is based on your XSD schema.
 
@@ -19,17 +19,11 @@ When you type `<` in the XML Editor, a popup appears showing only the elements t
 
 ### 1. Smart Element Suggestions
 
-![Element Suggestions](img/intellisense-elements.png)
-*Screenshot placeholder: Context-specific element suggestions*
-
 - **Context-Aware**: Shows only valid child elements for your current location
 - **Based on Schema**: Suggestions come from your loaded XSD schema
 - **Reduces Errors**: You can't accidentally add invalid elements
 
 ### 2. Path-Specific Values
-
-![Enumeration Values](img/intellisense-enums.png)
-*Screenshot placeholder: Enumeration value suggestions*
 
 Elements with the same name at different locations show their correct values:
 
@@ -53,9 +47,6 @@ When you type an opening tag like `<element>`, the editor automatically adds the
 3. Select your XSD file
 
 ### Step 2: Use Auto-Completion
-
-![Using Auto-Completion](img/intellisense-usage.png)
-*Screenshot placeholder: Step-by-step auto-completion usage*
 
 1. Position your cursor where you want to add an element
 2. Type `<`

@@ -1,6 +1,6 @@
 # FreeXmlToolkit Documentation
 
-> **Last Updated:** April 2026 | **Version:** 1.7.0
+> **Last Updated:** May 2026 | **Version:** 1.10.0
 
 ## Welcome
 

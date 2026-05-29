@@ -1,6 +1,6 @@
 # XSD Validation
 
-> **Last Updated:** December 2025 | **Version:** 1.1.0
+> **Last Updated:** May 2026 | **Version:** 1.10.0
 
 Validate your XML files against XSD schemas to check if documents follow the rules defined in the schema. Supports both single file and batch validation.
 
@@ -59,7 +59,7 @@ If validation fails, you'll see a list of errors with:
 - **Line number** - Where the problem is
 - **Severity** - Error, Warning, or Info
 
-Click an error to see more details.
+Click an error to see more details. When validating inside the [Unified Editor](unified-editor.md#jump-to-validation-errors), **double-click** an error to jump straight to its line in the Text view and the matching element in the Graphic view.
 
 ---
 
@@ -70,7 +70,6 @@ Validate multiple XML files at once. Useful for testing entire folders of XML do
 ![Batch Validation](img/xsd-validation-batch.png)
 *Batch validation with multiple files*
 
-<!-- TODO: Screenshot needed - Show Batch Validation tab with files table, progress bar, and summary -->
 
 ### XSD Mode Selection
 

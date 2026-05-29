@@ -1,6 +1,6 @@
 # Security Features
 
-> **Last Updated:** December 2025 | **Version:** 1.1.0
+> **Last Updated:** May 2026 | **Version:** 1.10.0
 
 This page describes the security measures built into FreeXmlToolkit to protect you from XML-based attacks.
 

@@ -1,6 +1,6 @@
 # Template Management
 
-> **Last Updated:** November 2025 | **Version:** 1.0.0
+> **Last Updated:** May 2026 | **Version:** 1.10.0
 
 Create and manage reusable XML templates, XPath snippets, and code patterns to speed up your work.
 
@@ -9,7 +9,7 @@ Create and manage reusable XML templates, XPath snippets, and code patterns to s
 ## Overview
 
 ![Template Manager Overview](img/templates-overview.png)
-*Screenshot placeholder: Template manager interface*
+*The XML Editor with the Template Development panel and the Templates toolbar action*
 
 Templates let you create reusable document structures with placeholders for content that changes. Instead of typing the same XML structure repeatedly, save it as a template and fill in the blanks each time.
 
@@ -19,9 +19,6 @@ Templates let you create reusable document structures with placeholders for cont
 
 ### Template Creation
 
-![Template Editor](img/templates-editor.png)
-*Screenshot placeholder: Visual template editor*
-
 | Feature | Description |
 |---------|-------------|
 | **Visual Editor** | Create templates without writing code |
@@ -30,9 +27,6 @@ Templates let you create reusable document structures with placeholders for cont
 | **Categories** | Organize templates into groups |
 
 ### XPath Snippets
-
-![XPath Snippets](img/templates-xpath.png)
-*Screenshot placeholder: XPath snippet library*
 
 Pre-built XPath expressions for common tasks:
 - Find elements with specific attributes
@@ -81,9 +75,6 @@ Ready-to-use validation patterns:
 
 ### Creating a New Template
 
-![Creating Template](img/templates-create.png)
-*Screenshot placeholder: New template dialog*
-
 1. Open **Template Manager** from the toolbar
 2. Click **"New Template"**
 3. Choose template type
@@ -94,9 +85,6 @@ Ready-to-use validation patterns:
 
 ### Using a Template
 
-![Using Template](img/templates-use.png)
-*Screenshot placeholder: Template insertion dialog*
-
 1. Open the template library in any editor
 2. Browse or search for the template you need
 3. Select the template
@@ -104,9 +92,6 @@ Ready-to-use validation patterns:
 5. Insert the generated content
 
 ### Managing Templates
-
-![Managing Templates](img/templates-manage.png)
-*Screenshot placeholder: Template library management*
 
 | Action | Description |
 |--------|-------------|

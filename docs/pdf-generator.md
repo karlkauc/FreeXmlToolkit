@@ -1,6 +1,6 @@
 # PDF Generator (FOP)
 
-> **Last Updated:** December 2025 | **Version:** 1.1.0
+> **Last Updated:** May 2026 | **Version:** 1.10.0
 
 Create professional PDF documents from your XML files using Apache FOP (Formatting Objects Processor).
 

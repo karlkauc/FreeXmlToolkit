@@ -2,7 +2,7 @@
 
 FreeXmlToolkit is built using modern Java technologies and libraries to provide a robust, cross-platform XML and JSON processing environment.
 
-> **Last Updated:** March 2026 | **Version:** 1.6.3
+> **Last Updated:** May 2026 | **Version:** 1.10.0
 
 ## Core Technologies
 

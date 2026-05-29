@@ -1,6 +1,6 @@
 # XSLT Developer
 
-> **Last Updated:** December 2025 | **Version:** 1.1.0
+> **Last Updated:** May 2026 | **Version:** 1.10.0
 
 The XSLT Developer is a full-featured development environment for creating and testing XSLT stylesheets and XQuery
 scripts. It includes live transformation, parameter support, batch processing, and debugging tools.
@@ -12,7 +12,6 @@ scripts. It includes live transformation, parameter support, batch processing, a
 ![XSLT Developer Overview](img/xslt-developer-overview.png)
 *The XSLT Developer with editors, parameters, and result panels*
 
-<!-- TODO: Screenshot needed - Show XSLT Developer tab with XML Source tab on left, Result tab on right, and the toolbar with Transform/Live buttons visible -->
 
 The XSLT Developer provides:
 
@@ -396,6 +395,48 @@ Enable **Debug Mode** to see the sequence of template calls.
 2. Check the Debug tab for warnings about unused variables or templates
 3. Enable Debug Mode for detailed execution trace
 4. Click **Clear** to reset the debug output
+
+---
+
+## Interactive Live Debugger
+
+The XSLT Developer includes a full interactive debugger that lets you pause a transformation,
+step through your stylesheet, and inspect state - similar to debugging in an IDE.
+
+### Setting Breakpoints
+
+- Click the slot in the editor's left margin (gutter) next to a line to toggle a red breakpoint.
+- Or place the caret on a line and press **F9** (the **Breakpoint** toolbar button).
+- The **Breakpoints** panel lists every breakpoint with an enable/disable checkbox and a delete
+  button. Double-click an entry to jump to that line.
+
+### Step Controls
+
+The debug toolbar provides standard execution controls:
+
+| Control | Shortcut | Description |
+|---------|----------|-------------|
+| **Run-Debug** | F5 | Start a debug run from the beginning |
+| **Continue** | F8 | Resume until the next breakpoint |
+| **Pause** | - | Pause at the next instruction (best-effort on Saxon HE) |
+| **Step Into** | F7 | Step into the current instruction |
+| **Step Over** | F10 | Execute the current instruction without descending |
+| **Step Out** | Shift+F11 | Run until the current template/function returns |
+| **Stop** | - | Terminate the debug session |
+
+A green arrow in the gutter marks the line currently executing; a hit breakpoint shows a yellow
+arrow over the red circle.
+
+### Inspecting State
+
+When execution is paused, four panels show the live state of the transformation:
+
+| Panel | Shows |
+|-------|-------|
+| **Variables** | Name, value, type, and scope (global/local) of every visible variable, plus the context item |
+| **Call Stack** | Active template/function frames with file name and line; double-click a frame to jump to it |
+| **Watch Expressions** | Custom XPath expressions you add to monitor specific values |
+| **Breakpoints** | All breakpoints, persisted across sessions |
 
 ---
 

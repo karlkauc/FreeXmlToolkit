@@ -1,15 +1,12 @@
 # Schema Support
 
-> **Last Updated:** November 2025 | **Version:** 1.0.0
+> **Last Updated:** May 2026 | **Version:** 1.10.0
 
 FreeXmlToolkit supports different schema formats for validating your XML files. This page explains what's supported and what isn't.
 
 ---
 
 ## Overview
-
-![Schema Support Overview](img/schema-support-overview.png)
-*Screenshot placeholder: Schema support interface*
 
 Schemas define rules for your XML documents - what elements are allowed, what order they should be in, and what values they can contain.
 
@@ -20,7 +17,7 @@ Schemas define rules for your XML documents - what elements are allowed, what or
 ### XSD (XML Schema Definition)
 
 ![XSD Support](img/schema-xsd-support.png)
-*Screenshot placeholder: XSD validation in action*
+*The XSD Validation tool - load an XML file and its schema to validate*
 
 **Full Support** - The main schema format used for XML validation.
 
@@ -43,7 +40,7 @@ Schemas define rules for your XML documents - what elements are allowed, what or
 ### Schematron
 
 ![Schematron Support](img/schema-schematron-support.png)
-*Screenshot placeholder: Schematron validation*
+*The Schematron editor with business-rule patterns, structure outline, and XPath tester*
 
 **Business Rules** - For validation rules that go beyond structure.
 
@@ -88,17 +85,11 @@ Schemas define rules for your XML documents - what elements are allowed, what or
 
 ### Loading a Schema
 
-![Loading Schema](img/schema-loading.png)
-*Screenshot placeholder: Schema loading dialog*
-
 1. **Automatic:** Open an XML file that references a schema - it loads automatically
 2. **Manual:** Click "Load Schema" and select your XSD file
 3. **Drag & Drop:** Drag a schema file into the application
 
 ### Validation Workflow
-
-![Validation Workflow](img/schema-validation-workflow.png)
-*Screenshot placeholder: Validation process*
 
 1. Open your XML file
 2. Load (or auto-detect) the schema
@@ -107,9 +98,6 @@ Schemas define rules for your XML documents - what elements are allowed, what or
 5. Fix issues and re-validate
 
 ### Using Both XSD and Schematron
-
-![Combined Validation](img/schema-combined.png)
-*Screenshot placeholder: Combined XSD and Schematron validation*
 
 For the best validation coverage:
 - Use **XSD** for structure (elements, order, types)

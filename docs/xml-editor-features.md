@@ -1,6 +1,6 @@
 # XML Editor Features
 
-> **Last Updated:** May 2026 | **Version:** 1.0.0
+> **Last Updated:** May 2026 | **Version:** 1.10.0
 
 This page describes the advanced features available in the XML Editor.
 
@@ -113,7 +113,7 @@ Changes made in either mode are synchronized automatically.
 ## Code Folding
 
 ![Code Folding](img/xml-editor-folding.png)
-*Screenshot placeholder: Collapsed XML sections*
+*Code folding - collapse XML sections to focus on the parts that matter*
 
 ### Hide Sections for Better Navigation
 
