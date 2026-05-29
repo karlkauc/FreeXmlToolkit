@@ -16,10 +16,29 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
  */
 public class XsdTreeView extends TreeView<XsdNode> {
 
+    private java.util.function.Consumer<XsdNode> onDeleteRequest;
+
     public XsdTreeView() {
         getStyleClass().add("fxt-xsd-tree");
         setShowRoot(true);
         setCellFactory(tv -> new XsdNodeCell());
+    }
+
+    /** Installs a context menu whose Delete action invokes the given handler. */
+    public void setOnDeleteRequest(java.util.function.Consumer<XsdNode> handler) {
+        this.onDeleteRequest = handler;
+        javafx.scene.control.ContextMenu menu = new javafx.scene.control.ContextMenu();
+        IconifyIcon trash = new IconifyIcon("bi-trash");
+        trash.setIconSize(16);
+        javafx.scene.control.MenuItem delete = new javafx.scene.control.MenuItem("Delete", trash);
+        delete.setOnAction(e -> {
+            javafx.scene.control.TreeItem<XsdNode> item = getSelectionModel().getSelectedItem();
+            if (item != null && item.getValue() != null && onDeleteRequest != null) {
+                onDeleteRequest.accept(item.getValue());
+            }
+        });
+        menu.getItems().add(delete);
+        setContextMenu(menu);
     }
 
     /** Renders the given parsed schema. */

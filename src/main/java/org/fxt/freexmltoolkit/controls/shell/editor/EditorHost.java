@@ -53,6 +53,13 @@ public class EditorHost extends BorderPane {
             }
             refreshSelectedNode();
         });
+        // Delete key removes the selected node in structured views (not in Text mode).
+        addEventHandler(javafx.scene.input.KeyEvent.KEY_PRESSED, event -> {
+            if (event.getCode() == javafx.scene.input.KeyCode.DELETE
+                    && activeViewMode.get() != ViewMode.TEXT && deleteActiveNode()) {
+                event.consume();
+            }
+        });
     }
 
     // ----- observable state ------------------------------------------------
@@ -217,12 +224,40 @@ public class EditorHost extends BorderPane {
         return saved;
     }
 
+    /** Undo: command stack in structured (Tree/Graphic) mode, editor undo in Text mode. */
     public void undoActive() {
-        withActive(et -> et.view.undo());
+        if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et
+                && et.viewMode != ViewMode.TEXT && et.editorContext != null) {
+            if (et.undoStructured()) {
+                refreshSelectedNode();
+            }
+        } else {
+            withActive(et -> et.view.undo());
+        }
     }
 
     public void redoActive() {
-        withActive(et -> et.view.redo());
+        if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et
+                && et.viewMode != ViewMode.TEXT && et.editorContext != null) {
+            if (et.redoStructured()) {
+                refreshSelectedNode();
+            }
+        } else {
+            withActive(et -> et.view.redo());
+        }
+    }
+
+    /** Deletes the selected node (Tree/Graphic) via the command stack. @return success */
+    public boolean deleteActiveNode() {
+        if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et
+                && et.viewMode != ViewMode.TEXT) {
+            boolean ok = et.deleteNode(et.currentSelection);
+            if (ok) {
+                refreshSelectedNode();
+            }
+            return ok;
+        }
+        return false;
     }
 
     /** Pretty-prints the active document (XML or JSON). @return {@code true} if reformatted. */
@@ -414,6 +449,7 @@ public class EditorHost extends BorderPane {
         private final javafx.scene.layout.StackPane contentStack = new javafx.scene.layout.StackPane();
         private org.fxt.freexmltoolkit.controls.shell.schema.XsdTreeView treeView;
         private org.fxt.freexmltoolkit.controls.shell.schema.XsdGraphicView graphicView;
+        private org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext editorContext;
         private XsdNode currentSelection;
         private ViewMode viewMode = ViewMode.TEXT;
         private boolean dirtyTrackingAttached;
@@ -437,22 +473,89 @@ public class EditorHost extends BorderPane {
         }
 
         void setViewMode(ViewMode mode) {
+            ViewMode previous = this.viewMode;
             ViewMode target = (mode != ViewMode.TEXT && !supportsStructuredViews()) ? ViewMode.TEXT : mode;
             this.viewMode = target;
             this.currentSelection = null;
+            // Build/refresh the model when entering a structured view from Text;
+            // keep it (with its undo history) when switching Tree <-> Graphic.
+            if (target != ViewMode.TEXT && (previous == ViewMode.TEXT || editorContext == null)) {
+                parseModel();
+            }
             switch (target) {
                 case TEXT -> showOnly(view.getNode());
                 case TREE -> {
                     ensureTree();
-                    treeView.setXsdFromText(view.getText());
+                    renderStructured();
                     showOnly(treeView);
                 }
                 case GRAPHIC -> {
                     ensureGraphic();
-                    graphicView.setXsdFromText(view.getText());
+                    renderStructured();
                     showOnly(graphicView);
                 }
             }
+        }
+
+        private void parseModel() {
+            try {
+                editorContext = new org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext(
+                        new org.fxt.freexmltoolkit.controls.v2.model.XsdNodeFactory().fromString(view.getText()));
+            } catch (Exception e) {
+                editorContext = null;
+            }
+        }
+
+        private void renderStructured() {
+            if (editorContext != null) {
+                if (viewMode == ViewMode.TREE && treeView != null) {
+                    treeView.setSchema(editorContext.getSchema());
+                } else if (viewMode == ViewMode.GRAPHIC && graphicView != null) {
+                    graphicView.setSchema(editorContext.getSchema());
+                }
+            } else if (viewMode == ViewMode.TREE && treeView != null) {
+                treeView.setXsdFromText(view.getText());
+            } else if (viewMode == ViewMode.GRAPHIC && graphicView != null) {
+                graphicView.setXsdFromText(view.getText());
+            }
+        }
+
+        /** Deletes the node via the command stack and round-trips the model to text. */
+        boolean deleteNode(XsdNode node) {
+            if (editorContext == null || node == null || node.getParent() == null) {
+                return false;
+            }
+            boolean ok = editorContext.getCommandManager().executeCommand(
+                    new org.fxt.freexmltoolkit.controls.v2.editor.commands.DeleteNodeCommand(node));
+            if (ok) {
+                applyModelChange();
+            }
+            return ok;
+        }
+
+        boolean undoStructured() {
+            if (editorContext != null && editorContext.getCommandManager().undo()) {
+                applyModelChange();
+                return true;
+            }
+            return false;
+        }
+
+        boolean redoStructured() {
+            if (editorContext != null && editorContext.getCommandManager().redo()) {
+                applyModelChange();
+                return true;
+            }
+            return false;
+        }
+
+        private void applyModelChange() {
+            String xml = new org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSerializer()
+                    .serialize(editorContext.getSchema());
+            view.setText(xml);
+            document.setDirty(true);
+            currentSelection = null;
+            renderStructured();
         }
 
         private void ensureTree() {
@@ -461,6 +564,12 @@ public class EditorHost extends BorderPane {
                 treeView.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
                     currentSelection = newV != null ? newV.getValue() : null;
                     selectionCallback.run();
+                });
+                treeView.setOnDeleteRequest(node -> {
+                    currentSelection = node;
+                    if (deleteNode(node)) {
+                        selectionCallback.run();
+                    }
                 });
                 contentStack.getChildren().add(treeView);
             }
