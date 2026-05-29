@@ -250,6 +250,7 @@ public class UnifiedShellView extends BorderPane {
                 toolButton("bi-arrow-clockwise", "Redo (Ctrl+Y)", editorHost::redoActive),
                 vsep(),
                 toolButton("bi-text-indent-left", "Format", editorHost::formatActive),
+                toolButton("bi-filetype-csv", "Export to CSV", this::exportCsv),
                 vsep(),
                 toolButton("bi-diagram-3", "Set XSD schema for IntelliSense", this::setSchema),
                 spacer, buildViewSwitch(), vsep(), schemaStatus);
@@ -310,6 +311,29 @@ public class UnifiedShellView extends BorderPane {
         if (file != null) {
             editorHost.openFile(file.toPath());
         }
+    }
+
+    private void exportCsv() {
+        if (editorHost.getActiveDocument().isEmpty()) {
+            return;
+        }
+        javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
+        chooser.setTitle("Export to CSV");
+        chooser.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter("CSV", "*.csv"));
+        java.io.File file = chooser.showSaveDialog(getScene() != null ? getScene().getWindow() : null);
+        if (file == null) {
+            return;
+        }
+        String xml = editorHost.getActiveText().orElse("");
+        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            String result = org.fxt.freexmltoolkit.controls.shell.editor.SpreadsheetActionRunner
+                    .exportToCsv(xml, file);
+            javafx.application.Platform.runLater(() -> {
+                if (result.startsWith("OK:") && file.exists()) {
+                    editorHost.openFile(file.toPath());
+                }
+            });
+        });
     }
 
     private void setSchema() {
