@@ -33,6 +33,7 @@ class UnifiedShellViewTest {
 
     @Start
     void start(Stage stage) {
+        org.fxt.freexmltoolkit.di.ServiceRegistry.initialize();
         shell = new UnifiedShellView();
         scene = new Scene(shell, 1280, 800);
         scene.getStylesheets().addAll(
@@ -195,6 +196,35 @@ class UnifiedShellViewTest {
         WaitForAsyncUtils.sleep(300, java.util.concurrent.TimeUnit.MILLISECONDS);
         WaitForAsyncUtils.waitForFxEvents();
         snapshot(new File(dir, "fxt_shell_schema_activity.png"));
+
+        // Validation activity: invalid XML against a schema -> problems list.
+        File vXsd = File.createTempFile("fxt_shell_v", ".xsd");
+        java.nio.file.Files.writeString(vXsd.toPath(),
+                "<xs:schema xmlns:xs=\"http://www.w3.org/2001/XMLSchema\">\n"
+                        + "  <xs:element name=\"root\"><xs:complexType><xs:sequence>\n"
+                        + "    <xs:element name=\"name\" type=\"xs:string\"/>\n"
+                        + "  </xs:sequence></xs:complexType></xs:element>\n"
+                        + "</xs:schema>\n");
+        File vXml = File.createTempFile("fxt_shell_v", ".xml");
+        java.nio.file.Files.writeString(vXml.toPath(), "<root>\n  <wrong/>\n</root>\n");
+        WaitForAsyncUtils.waitForAsyncFx(3000, () -> shell.getEditorHost().openFile(vXml.toPath()));
+        WaitForAsyncUtils.waitFor(3, java.util.concurrent.TimeUnit.SECONDS,
+                () -> shell.getEditorHost().getActiveText().map(t -> t.contains("wrong")).orElse(false));
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            shell.getEditorHost().setSchemaForActiveDocument(vXsd);
+            shell.getSelectionModel().select(org.fxt.freexmltoolkit.controls.shell.Activity.VALIDATION);
+            return null;
+        });
+        // Trigger the panel's Validate button.
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            shell.lookupAll(".button").stream()
+                    .filter(n -> n instanceof javafx.scene.control.Button b && "Validate".equals(b.getText()))
+                    .findFirst().ifPresent(b -> ((javafx.scene.control.Button) b).fire());
+            return null;
+        });
+        WaitForAsyncUtils.sleep(700, java.util.concurrent.TimeUnit.MILLISECONDS);
+        WaitForAsyncUtils.waitForFxEvents();
+        snapshot(new File(dir, "fxt_shell_validation.png"));
 
         WaitForAsyncUtils.waitForAsyncFx(3000, () -> {
             shell.getStyleClass().add("fxt-theme-dark");

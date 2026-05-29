@@ -353,6 +353,19 @@ public class EditorHost extends BorderPane {
 
     // ----- navigation ------------------------------------------------------
 
+    /** Switches to Text mode and moves the caret to the given 1-based line (jump-to-problem). */
+    public void goToLine(int line) {
+        setActiveViewMode(ViewMode.TEXT);
+        withActive(et -> {
+            var codeArea = et.view.getCodeArea();
+            int paragraphs = codeArea.getParagraphs().size();
+            int paragraph = Math.max(0, Math.min(line - 1, Math.max(0, paragraphs - 1)));
+            codeArea.moveTo(paragraph, 0);
+            codeArea.requestFollowCaret();
+            et.view.getNode().requestFocus();
+        });
+    }
+
     /** Moves the active editor's caret to the given offset (e.g. jump-to-node). */
     public void moveActiveCaretTo(int position) {
         withActive(et -> {
