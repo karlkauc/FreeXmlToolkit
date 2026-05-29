@@ -151,6 +151,16 @@ class UnifiedShellViewTest {
         WaitForAsyncUtils.waitForFxEvents();
         snapshot(new File(dir, "fxt_shell_tree.png"));
 
+        // Switch the same XSD to the Graphic view (cards + embedded grid).
+        WaitForAsyncUtils.waitForAsyncFx(3000, () -> {
+            shell.getEditorHost().setActiveViewMode(
+                    org.fxt.freexmltoolkit.controls.shell.editor.ViewMode.GRAPHIC);
+            return null;
+        });
+        WaitForAsyncUtils.sleep(300, java.util.concurrent.TimeUnit.MILLISECONDS);
+        WaitForAsyncUtils.waitForFxEvents();
+        snapshot(new File(dir, "fxt_shell_graphic.png"));
+
         WaitForAsyncUtils.waitForAsyncFx(3000, () -> {
             shell.getStyleClass().add("fxt-theme-dark");
             shell.applyCss();

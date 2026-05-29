@@ -288,6 +288,92 @@
     -fx-text-fill: -fxt-text-primary;
 }
 
+/* ----- Graphic view (scene-graph diagram) ----------------------------- */
+.fxt-graphic-view {
+    -fx-background-color: -fxt-bg-canvas;
+}
+
+.fxt-graphic-view > .viewport {
+    -fx-background-color: -fxt-bg-canvas;
+}
+
+.fxt-graphic-canvas {
+    -fx-padding: 12;
+    -fx-spacing: 2;
+}
+
+.fxt-graphic-node {
+    -fx-spacing: 2;
+}
+
+.fxt-graphic-header {
+    -fx-padding: 4 10 4 6;
+    -fx-background-color: -fxt-bg-surface;
+    -fx-border-color: -fxt-border;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+}
+
+.fxt-graphic-header:hover {
+    -fx-border-color: -fxt-primary;
+}
+
+.fxt-graphic-header.selected {
+    -fx-background-color: -fxt-bg-subtle;
+    -fx-border-color: -fxt-primary;
+}
+
+.fxt-graphic-header .iconify-icon {
+    -fx-icon-color: -fxt-text-secondary;
+}
+
+.fxt-graphic-chevron {
+    -fx-text-fill: -fxt-text-muted;
+    -fx-min-width: 12;
+    -fx-cursor: hand;
+}
+
+.fxt-graphic-label {
+    -fx-text-fill: -fxt-text-primary;
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 12px;
+}
+
+.fxt-graphic-children {
+    -fx-padding: 2 0 2 18;
+    -fx-spacing: 2;
+    -fx-border-color: -fxt-border;
+    -fx-border-width: 0 0 0 1;
+}
+
+/* Embedded grid for repeating same-type elements (XMLSpy style) */
+.fxt-grid {
+    -fx-border-color: -fxt-border;
+    -fx-border-radius: 4;
+    -fx-background-color: -fxt-bg-surface-2;
+    -fx-padding: 0;
+}
+
+.fxt-grid-cell {
+    -fx-padding: 4 10 4 10;
+    -fx-border-color: -fxt-border;
+    -fx-border-width: 0 1 0 0;
+    -fx-text-fill: -fxt-text-primary;
+    -fx-font-family: "JetBrains Mono", monospace;
+    -fx-font-size: 11px;
+}
+
+.fxt-grid-badge {
+    -fx-background-color: -fxt-accent;
+    -fx-text-fill: -fxt-on-primary;
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 9px;
+    -fx-font-weight: bold;
+    -fx-padding: 1 6 1 6;
+    -fx-background-radius: 8;
+}
+
 /* ----- Shared ---------------------------------------------------------- */
 .fxt-placeholder-text {
     -fx-text-fill: -fxt-text-muted;

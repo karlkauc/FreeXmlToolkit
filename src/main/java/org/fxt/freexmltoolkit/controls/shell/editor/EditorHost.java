@@ -113,20 +113,27 @@ public class EditorHost extends BorderPane {
         return activeSelectedNode.getReadOnlyProperty();
     }
 
-    /** @return the schema root of the active Tree view, or empty (e.g. Text mode / not parsed). */
+    /** @return the schema root of the active structured view, or empty (Text mode / not parsed). */
     public Optional<XsdNode> getActiveSchemaRoot() {
-        if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et
-                && et.treeView != null && et.treeView.getRoot() != null) {
-            return Optional.of(et.treeView.getRoot().getValue());
+        if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et) {
+            if (et.viewMode == ViewMode.TREE && et.treeView != null && et.treeView.getRoot() != null) {
+                return Optional.of(et.treeView.getRoot().getValue());
+            }
+            if (et.viewMode == ViewMode.GRAPHIC && et.graphicView != null
+                    && et.graphicView.getSchemaRoot() != null) {
+                return Optional.of(et.graphicView.getSchemaRoot());
+            }
         }
         return Optional.empty();
     }
 
-    /** Selects (reveals) the given node in the active Tree view. */
+    /** Selects (reveals) the given node in the active structured view (Tree or Graphic). */
     public void selectNodeInActiveTree(XsdNode node) {
         withActive(et -> {
-            if (et.treeView != null) {
+            if (et.viewMode == ViewMode.TREE && et.treeView != null) {
                 et.treeView.selectNode(node);
+            } else if (et.viewMode == ViewMode.GRAPHIC && et.graphicView != null) {
+                et.graphicView.selectNode(node);
             }
         });
     }
@@ -134,9 +141,8 @@ public class EditorHost extends BorderPane {
     private void refreshSelectedNode() {
         XsdNode selected = null;
         if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et
-                && et.viewMode != ViewMode.TEXT && et.treeView != null
-                && et.treeView.getSelectionModel().getSelectedItem() != null) {
-            selected = et.treeView.getSelectionModel().getSelectedItem().getValue();
+                && et.viewMode != ViewMode.TEXT) {
+            selected = et.currentSelection;
         }
         activeSelectedNode.set(selected);
     }
@@ -407,7 +413,8 @@ public class EditorHost extends BorderPane {
         private final Runnable selectionCallback;
         private final javafx.scene.layout.StackPane contentStack = new javafx.scene.layout.StackPane();
         private org.fxt.freexmltoolkit.controls.shell.schema.XsdTreeView treeView;
-        private javafx.scene.layout.Region graphicPlaceholder;
+        private org.fxt.freexmltoolkit.controls.shell.schema.XsdGraphicView graphicView;
+        private XsdNode currentSelection;
         private ViewMode viewMode = ViewMode.TEXT;
         private boolean dirtyTrackingAttached;
         private File schemaFile;
@@ -432,6 +439,7 @@ public class EditorHost extends BorderPane {
         void setViewMode(ViewMode mode) {
             ViewMode target = (mode != ViewMode.TEXT && !supportsStructuredViews()) ? ViewMode.TEXT : mode;
             this.viewMode = target;
+            this.currentSelection = null;
             switch (target) {
                 case TEXT -> showOnly(view.getNode());
                 case TREE -> {
@@ -441,7 +449,8 @@ public class EditorHost extends BorderPane {
                 }
                 case GRAPHIC -> {
                     ensureGraphic();
-                    showOnly(graphicPlaceholder);
+                    graphicView.setXsdFromText(view.getText());
+                    showOnly(graphicView);
                 }
             }
         }
@@ -449,21 +458,21 @@ public class EditorHost extends BorderPane {
         private void ensureTree() {
             if (treeView == null) {
                 treeView = new org.fxt.freexmltoolkit.controls.shell.schema.XsdTreeView();
-                treeView.getSelectionModel().selectedItemProperty()
-                        .addListener((obs, oldV, newV) -> selectionCallback.run());
+                treeView.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
+                    currentSelection = newV != null ? newV.getValue() : null;
+                    selectionCallback.run();
+                });
                 contentStack.getChildren().add(treeView);
             }
         }
 
         private void ensureGraphic() {
-            if (graphicPlaceholder == null) {
-                javafx.scene.control.Label label =
-                        new javafx.scene.control.Label("Graphic + Grid view — coming in a later increment.");
-                label.getStyleClass().add("fxt-placeholder-text");
-                javafx.scene.layout.StackPane pane = new javafx.scene.layout.StackPane(label);
-                pane.getStyleClass().add("fxt-editor-host");
-                graphicPlaceholder = pane;
-                contentStack.getChildren().add(graphicPlaceholder);
+            if (graphicView == null) {
+                graphicView = new org.fxt.freexmltoolkit.controls.shell.schema.XsdGraphicView(node -> {
+                    currentSelection = node;
+                    selectionCallback.run();
+                });
+                contentStack.getChildren().add(graphicView);
             }
         }
 
