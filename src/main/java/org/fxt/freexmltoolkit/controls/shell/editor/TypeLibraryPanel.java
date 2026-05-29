@@ -39,17 +39,15 @@ public class TypeLibraryPanel extends VBox {
             }
         });
 
-        javafx.scene.control.Button generateXsd = new javafx.scene.control.Button("Generate XSD from XML");
-        generateXsd.getStyleClass().add("fxt-tool-button");
-        IconifyIcon genIcon = new IconifyIcon("bi-magic");
-        genIcon.setIconSize(16);
-        generateXsd.setGraphic(genIcon);
-        generateXsd.setOnAction(e -> generateXsdFromActive());
+        javafx.scene.layout.VBox actions = new javafx.scene.layout.VBox(4,
+                actionButton("Generate XSD from XML", "bi-magic", this::generateXsdFromActive),
+                actionButton("Flatten Schema", "bi-layers", this::flattenActive),
+                actionButton("Statistics", "bi-bar-chart", this::statisticsActive));
 
         Label typesLabel = new Label("TYPES");
         typesLabel.getStyleClass().add("fxt-side-panel-title");
 
-        getChildren().addAll(title, new javafx.scene.layout.HBox(generateXsd), typesLabel, list);
+        getChildren().addAll(title, actions, typesLabel, list);
 
         refresh();
         editorHost.activeTabProperty().addListener((obs, oldV, newV) -> refresh());
@@ -58,18 +56,47 @@ public class TypeLibraryPanel extends VBox {
 
     /** Infers an XSD from the active XML document and opens it as a new tab (async). */
     public void generateXsdFromActive() {
+        runAsync(SchemaActionRunner::generateXsdFromXml, EditorFileType.XSD, "Generated.xsd");
+    }
+
+    /** Flattens the active XSD (resolves includes) and opens the result (async). */
+    public void flattenActive() {
+        var doc = editorHost.getActiveDocument();
+        java.nio.file.Path baseDir = doc.map(OpenDocument::getPath)
+                .map(java.nio.file.Path::getParent).orElse(null);
+        runAsync(content -> SchemaActionRunner.flatten(content, baseDir),
+                EditorFileType.XSD, "Flattened.xsd");
+    }
+
+    /** Collects statistics for the active XSD and opens a text report (async). */
+    public void statisticsActive() {
+        runAsync(SchemaActionRunner::statistics, EditorFileType.OTHER, "Statistics.txt");
+    }
+
+    private void runAsync(java.util.function.Function<String, String> action,
+                          EditorFileType outputType, String outputName) {
         if (editorHost.getActiveDocument().isEmpty()) {
             return;
         }
-        String xml = editorHost.getActiveText().orElse("");
+        String content = editorHost.getActiveText().orElse("");
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
-            String xsd = SchemaActionRunner.generateXsdFromXml(xml);
+            String result = action.apply(content);
             javafx.application.Platform.runLater(() -> {
-                if (!xsd.startsWith("ERROR:")) {
-                    editorHost.openGeneratedDocument(xsd, EditorFileType.XSD, "Generated.xsd");
+                if (!result.startsWith("ERROR:")) {
+                    editorHost.openGeneratedDocument(result, outputType, outputName);
                 }
             });
         });
+    }
+
+    private javafx.scene.control.Button actionButton(String text, String icon, Runnable action) {
+        IconifyIcon graphic = new IconifyIcon(icon);
+        graphic.setIconSize(16);
+        javafx.scene.control.Button button = new javafx.scene.control.Button(text, graphic);
+        button.getStyleClass().add("fxt-tool-button");
+        button.setMaxWidth(Double.MAX_VALUE);
+        button.setOnAction(e -> action.run());
+        return button;
     }
 
     private void refresh() {

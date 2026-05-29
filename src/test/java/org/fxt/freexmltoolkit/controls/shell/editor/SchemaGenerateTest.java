@@ -58,4 +58,43 @@ class SchemaGenerateTest {
                 "generated document should be an XSD");
         assertEquals(2, host.getOpenDocuments().size(), "original XML + generated XSD are open");
     }
+
+    @Test
+    void statisticsOpensReport(@TempDir Path tmp) throws Exception {
+        Path xsd = tmp.resolve("schema.xsd");
+        Files.writeString(xsd, "<xs:schema xmlns:xs=\"http://www.w3.org/2001/XMLSchema\">"
+                + "<xs:element name=\"root\" type=\"xs:string\"/></xs:schema>");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xsd));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("xs:element")).orElse(false));
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.statisticsActive();
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(6, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("Schema Statistics")).orElse(false));
+        assertTrue(host.getActiveText().orElse("").contains("Elements:"));
+    }
+
+    @Test
+    void flattenOpensXsd(@TempDir Path tmp) throws Exception {
+        Path xsd = tmp.resolve("schema.xsd");
+        Files.writeString(xsd, "<xs:schema xmlns:xs=\"http://www.w3.org/2001/XMLSchema\">"
+                + "<xs:complexType name=\"T\"><xs:sequence>"
+                + "<xs:element name=\"a\" type=\"xs:string\"/></xs:sequence></xs:complexType>"
+                + "<xs:element name=\"root\" type=\"T\"/></xs:schema>");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xsd));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("complexType")).orElse(false));
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.flattenActive();
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(6, TimeUnit.SECONDS, () ->
+                host.getOpenDocuments().size() == 2
+                        && host.getActiveText().map(t -> t.contains("schema")).orElse(false));
+        assertEquals(EditorFileType.XSD, host.getActiveDocument().orElseThrow().getFileType());
+    }
 }
