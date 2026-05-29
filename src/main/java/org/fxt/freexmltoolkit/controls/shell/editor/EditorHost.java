@@ -353,6 +353,16 @@ public class EditorHost extends BorderPane {
 
     // ----- navigation ------------------------------------------------------
 
+    /** @return the Schematron file bound to the active document, or {@code null}. */
+    public File getActiveSchematron() {
+        return tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et ? et.schematronFile : null;
+    }
+
+    /** Binds a Schematron file to the active document for the Validation activity. */
+    public void setActiveSchematron(File schematron) {
+        withActive(et -> et.schematronFile = schematron);
+    }
+
     /** Switches to Text mode and moves the caret to the given 1-based line (jump-to-problem). */
     public void goToLine(int line) {
         setActiveViewMode(ViewMode.TEXT);
@@ -524,6 +534,7 @@ public class EditorHost extends BorderPane {
         private ViewMode viewMode = ViewMode.TEXT;
         private boolean dirtyTrackingAttached;
         private File schemaFile;
+        private File schematronFile;
 
         EditorTab(OpenDocument document, Runnable selectionCallback) {
             this.document = document;

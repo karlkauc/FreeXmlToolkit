@@ -72,6 +72,33 @@ class ValidationPanelTest {
         assertEquals(0, panel.getProblemCount(), "valid XML must report no problems");
     }
 
+    private static final String SCHEMATRON = """
+            <sch:schema xmlns:sch="http://purl.oclc.org/dsdl/schematron">
+              <sch:pattern><sch:rule context="root">
+                <sch:assert test="name">root must have a name child</sch:assert>
+              </sch:rule></sch:pattern>
+            </sch:schema>
+            """;
+
+    @Test
+    void reportsSchematronProblems(@TempDir Path tmp) throws Exception {
+        Path sch = tmp.resolve("rules.sch");
+        Files.writeString(sch, SCHEMATRON);
+        Path xml = tmp.resolve("doc.xml");
+        Files.writeString(xml, "<root/>");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("root")).orElse(false));
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.setActiveSchematron(sch.toFile());
+            panel.revalidate();
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS, () -> panel.getProblemCount() > 0);
+        assertTrue(panel.getProblemCount() > 0, "failing Schematron rule must report a problem");
+    }
+
     private void open(Path xml, Path xsd) throws Exception {
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
         WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
