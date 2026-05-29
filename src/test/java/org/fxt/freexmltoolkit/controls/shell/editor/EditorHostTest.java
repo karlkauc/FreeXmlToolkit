@@ -83,6 +83,45 @@ class EditorHostTest {
     }
 
     @Test
+    void saveAllPersistsDirtyTitledDocuments(@org.junit.jupiter.api.io.TempDir Path tmp) throws Exception {
+        Path f1 = tmp.resolve("a.xml");
+        Files.writeString(f1, "<a/>");
+        Path f2 = tmp.resolve("b.xml");
+        Files.writeString(f2, "<b/>");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(f1));
+        WaitForAsyncUtils.waitForFxEvents();
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(f2));
+        WaitForAsyncUtils.waitFor(3, java.util.concurrent.TimeUnit.SECONDS,
+                () -> host.getOpenDocuments().size() == 2);
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.getOpenDocuments().forEach(d -> d.setDirty(true));
+            return null;
+        });
+        int saved = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.saveAll());
+
+        assertEquals(2, saved);
+        assertTrue(host.getOpenDocuments().stream().noneMatch(OpenDocument::isDirty));
+    }
+
+    @Test
+    void formatActiveReformatsXmlToMultipleLines(@org.junit.jupiter.api.io.TempDir Path tmp) throws Exception {
+        Path file = tmp.resolve("c.xml");
+        Files.writeString(file, "<a><b>x</b></a>");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(file));
+        WaitForAsyncUtils.waitFor(3, java.util.concurrent.TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("<b>")).orElse(false));
+
+        boolean ok = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.formatActive());
+
+        assertTrue(ok, "formatActive should reformat valid XML");
+        assertTrue(host.getActiveText().orElse("").lines().count() > 1,
+                "formatted XML should span multiple lines");
+    }
+
+    @Test
     void saveAsWritesFileAndRetitlesDocument(@org.junit.jupiter.api.io.TempDir Path tmp) throws Exception {
         Path target = tmp.resolve("new.xsd");
 

@@ -37,6 +37,10 @@ public class UnifiedShellView extends BorderPane {
     private final org.fxt.freexmltoolkit.controls.shell.editor.EditorHost editorHost =
             new org.fxt.freexmltoolkit.controls.shell.editor.EditorHost();
 
+    private final Label statusPosition = statusLabel("Ln 1, Col 1");
+    private final Label statusType = statusLabel("");
+    private final Label statusFile = statusLabel("No file open");
+
     public UnifiedShellView() {
         getStyleClass().add("fxt-shell");
 
@@ -47,6 +51,56 @@ public class UnifiedShellView extends BorderPane {
         // React to activity changes: swap the side panel.
         showSidePanelFor(selectionModel.getActive());
         selectionModel.activeProperty().addListener((obs, oldV, newV) -> showSidePanelFor(newV));
+
+        // Keep the status bar in sync with the active editor.
+        editorHost.activeCaretProperty().addListener((obs, oldV, newV) -> updateStatusBar());
+        editorHost.activeTabProperty().addListener((obs, oldV, newV) -> updateStatusBar());
+        updateStatusBar();
+
+        // File-operation keyboard shortcuts (scoped to the shell).
+        addEventHandler(javafx.scene.input.KeyEvent.KEY_PRESSED, this::handleShortcut);
+    }
+
+    private void handleShortcut(javafx.scene.input.KeyEvent event) {
+        if (!event.isShortcutDown()) {
+            return;
+        }
+        switch (event.getCode()) {
+            case N -> {
+                if (!event.isShiftDown()) {
+                    newDocument();
+                    event.consume();
+                }
+            }
+            case O -> {
+                openFile();
+                event.consume();
+            }
+            case S -> {
+                if (event.isShiftDown()) {
+                    saveActiveAs();
+                } else {
+                    saveActive();
+                }
+                event.consume();
+            }
+            default -> { /* let other shortcuts (e.g. editor undo/redo/find) through */ }
+        }
+    }
+
+    private void updateStatusBar() {
+        var docOpt = editorHost.getActiveDocument();
+        if (docOpt.isEmpty()) {
+            statusPosition.setText("Ln 1, Col 1");
+            statusType.setText("");
+            statusFile.setText("No file open");
+            return;
+        }
+        int[] pos = editorHost.getActiveCaretLineColumn();
+        statusPosition.setText("Ln " + pos[0] + ", Col " + pos[1]);
+        var doc = docOpt.get();
+        statusType.setText(doc.getFileType().label());
+        statusFile.setText(doc.getPath() != null ? doc.getPath().toString() : doc.getDisplayName());
     }
 
     private Region buildWorkArea() {
@@ -125,11 +179,12 @@ public class UnifiedShellView extends BorderPane {
     }
 
     private Region buildEditorToolbar() {
-        javafx.scene.control.Button save = toolButton("bi-save", "Save (Ctrl+S)", this::saveActive);
-        javafx.scene.control.Button saveAs = toolButton("bi-save2", "Save As…", this::saveActiveAs);
-        javafx.scene.control.Button setXsd = toolButton("bi-diagram-3", "Set XSD schema for IntelliSense", this::setSchema);
-
-        javafx.scene.control.Separator sep = new javafx.scene.control.Separator(javafx.geometry.Orientation.VERTICAL);
+        Label badge = new Label();
+        badge.getStyleClass().add("fxt-type-badge");
+        badge.textProperty().bind(javafx.beans.binding.Bindings.createStringBinding(
+                () -> editorHost.getActiveDocument()
+                        .map(d -> d.getFileType().label()).orElse("—"),
+                editorHost.activeTabProperty()));
 
         Label schemaStatus = new Label();
         schemaStatus.getStyleClass().add("fxt-toolbar-status");
@@ -143,10 +198,45 @@ public class UnifiedShellView extends BorderPane {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        HBox bar = new HBox(6, save, saveAs, sep, setXsd, spacer, schemaStatus);
+        HBox bar = new HBox(4,
+                badge, vsep(),
+                toolButton("bi-file-earmark-plus", "New (Ctrl+N)", this::newDocument),
+                toolButton("bi-folder2-open", "Open (Ctrl+O)", this::openFile),
+                toolButton("bi-save", "Save (Ctrl+S)", this::saveActive),
+                toolButton("bi-save2", "Save As (Ctrl+Shift+S)", this::saveActiveAs),
+                toolButton("bi-files", "Save All", editorHost::saveAll),
+                vsep(),
+                toolButton("bi-arrow-counterclockwise", "Undo (Ctrl+Z)", editorHost::undoActive),
+                toolButton("bi-arrow-clockwise", "Redo (Ctrl+Y)", editorHost::redoActive),
+                vsep(),
+                toolButton("bi-text-indent-left", "Format", editorHost::formatActive),
+                vsep(),
+                toolButton("bi-diagram-3", "Set XSD schema for IntelliSense", this::setSchema),
+                spacer, schemaStatus);
         bar.setAlignment(Pos.CENTER_LEFT);
         bar.getStyleClass().add("fxt-editor-toolbar");
         return bar;
+    }
+
+    private javafx.scene.control.Separator vsep() {
+        return new javafx.scene.control.Separator(javafx.geometry.Orientation.VERTICAL);
+    }
+
+    private void newDocument() {
+        editorHost.newDocument(org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.XML);
+    }
+
+    private void openFile() {
+        javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
+        chooser.setTitle("Open File");
+        chooser.getExtensionFilters().addAll(
+                new javafx.stage.FileChooser.ExtensionFilter("XML / XSD / XSLT / Schematron / JSON",
+                        "*.xml", "*.xsd", "*.xsl", "*.xslt", "*.sch", "*.schematron", "*.json"),
+                new javafx.stage.FileChooser.ExtensionFilter("All files", "*.*"));
+        java.io.File file = chooser.showOpenDialog(getScene() != null ? getScene().getWindow() : null);
+        if (file != null) {
+            editorHost.openFile(file.toPath());
+        }
     }
 
     private void setSchema() {
@@ -209,11 +299,11 @@ public class UnifiedShellView extends BorderPane {
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
         bar.getChildren().addAll(
-                statusLabel("Ln 1, Col 1"),
+                statusPosition,
+                statusType,
                 statusLabel("UTF-8"),
-                statusLabel("Spaces: 2"),
                 spacer,
-                statusLabel("No file open"));
+                statusFile);
         return bar;
     }
 

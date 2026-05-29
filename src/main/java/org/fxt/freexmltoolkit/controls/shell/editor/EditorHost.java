@@ -203,11 +203,113 @@ public class EditorHost extends BorderPane {
         return false;
     }
 
+    /** Saves all titled, dirty documents. @return the number of files written. */
+    public int saveAll() {
+        int saved = 0;
+        for (Tab tab : tabPane.getTabs()) {
+            if (tab instanceof EditorTab et && !et.document.isUntitled() && et.document.isDirty()
+                    && write(et, et.document.getPath())) {
+                saved++;
+            }
+        }
+        return saved;
+    }
+
+    /** Undo in the active editor. */
+    public void undoActive() {
+        withActive(et -> et.editor.getCodeArea().undo());
+    }
+
+    /** Redo in the active editor. */
+    public void redoActive() {
+        withActive(et -> et.editor.getCodeArea().redo());
+    }
+
+    /**
+     * Pretty-prints the active XML-family document (no-op for JSON, handled
+     * separately). @return {@code true} if reformatted.
+     */
+    public boolean formatActive() {
+        Tab tab = tabPane.getSelectionModel().getSelectedItem();
+        if (tab instanceof EditorTab et && et.document.getFileType() != EditorFileType.JSON) {
+            try {
+                String formatted = org.fxt.freexmltoolkit.service.XmlService.prettyFormat(et.editor.getText(), 2);
+                if (formatted != null && !formatted.isBlank()) {
+                    et.editor.setText(formatted);
+                    et.document.setDirty(true);
+                    return true;
+                }
+            } catch (Exception ignored) {
+                // invalid XML: leave the text untouched
+            }
+        }
+        return false;
+    }
+
+    /** @return the active editor caret as {@code [line, column]} (1-based), or {@code [1,1]}. */
+    public int[] getActiveCaretLineColumn() {
+        Tab tab = tabPane.getSelectionModel().getSelectedItem();
+        if (tab instanceof EditorTab et) {
+            var codeArea = et.editor.getCodeArea();
+            return new int[]{codeArea.getCurrentParagraph() + 1, codeArea.getCaretColumn() + 1};
+        }
+        return new int[]{1, 1};
+    }
+
+    private void withActive(java.util.function.Consumer<EditorTab> action) {
+        if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et) {
+            action.accept(et);
+        }
+    }
+
+    private void confirmCloseIfDirty(EditorTab tab, javafx.event.Event closeEvent) {
+        if (!tab.document.isDirty()) {
+            return;
+        }
+        tabPane.getSelectionModel().select(tab);
+        javafx.scene.control.Alert alert =
+                new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Unsaved Changes");
+        alert.setHeaderText("Save changes to " + tab.document.getDisplayName() + "?");
+        alert.setContentText("Your changes will be lost if you don't save them.");
+        javafx.scene.control.ButtonType save =
+                new javafx.scene.control.ButtonType("Save", javafx.scene.control.ButtonBar.ButtonData.YES);
+        javafx.scene.control.ButtonType discard =
+                new javafx.scene.control.ButtonType("Don't Save", javafx.scene.control.ButtonBar.ButtonData.NO);
+        javafx.scene.control.ButtonType cancel =
+                new javafx.scene.control.ButtonType("Cancel", javafx.scene.control.ButtonBar.ButtonData.CANCEL_CLOSE);
+        alert.getButtonTypes().setAll(save, discard, cancel);
+
+        var choice = alert.showAndWait();
+        if (choice.isEmpty() || choice.get() == cancel) {
+            closeEvent.consume();
+        } else if (choice.get() == save) {
+            boolean ok = tab.document.isUntitled() ? saveTabAs(tab) : write(tab, tab.document.getPath());
+            if (!ok) {
+                closeEvent.consume();
+            }
+        }
+        // 'Don't Save' falls through and the tab closes.
+    }
+
+    private boolean saveTabAs(EditorTab tab) {
+        javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
+        chooser.setTitle("Save As");
+        File file = chooser.showSaveDialog(getScene() != null ? getScene().getWindow() : null);
+        if (file != null && write(tab, file.toPath())) {
+            tab.document.setPath(file.toPath());
+            tab.refreshIcon();
+            return true;
+        }
+        return false;
+    }
+
     private void addTab(EditorTab tab) {
         tabPane.getTabs().add(tab);
         tabPane.getSelectionModel().select(tab);
         openDocuments.add(tab.document);
         tab.setOnClosed(e -> openDocuments.remove(tab.document));
+        tab.setOnCloseRequest(e -> confirmCloseIfDirty(tab, e));
         tab.editor.getCodeArea().caretPositionProperty().addListener((obs, oldV, newV) -> {
             if (tab.isSelected()) {
                 activeCaret.set(newV.intValue());
