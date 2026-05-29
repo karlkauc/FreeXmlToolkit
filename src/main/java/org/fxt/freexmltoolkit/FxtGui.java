@@ -318,7 +318,12 @@ public class FxtGui extends Application {
             String[] fonts = {
                     "Roboto-Regular", "Roboto-Bold", "Roboto-Italic", "Roboto-Light",
                     "Roboto-Thin", "Roboto-Medium", "Roboto-Black", "Roboto-BoldItalic",
-                    "Roboto-LightItalic", "Roboto-MediumItalic", "Roboto-ThinItalic", "Roboto-BlackItalic"
+                    "Roboto-LightItalic", "Roboto-MediumItalic", "Roboto-ThinItalic", "Roboto-BlackItalic",
+                    // Design-token UI font (Inter) — see DesignTokens.FONT_FAMILY_UI / design-tokens.css
+                    "Inter-Regular", "Inter-Medium", "Inter-SemiBold", "Inter-Bold",
+                    // Design-token code font (JetBrains Mono) — see DesignTokens.FONT_FAMILY_MONO
+                    "JetBrainsMono-Regular", "JetBrainsMono-Medium", "JetBrainsMono-Bold",
+                    "JetBrainsMono-Italic", "JetBrainsMono-BoldItalic"
             };
             for (String font : fonts) {
                 try {
