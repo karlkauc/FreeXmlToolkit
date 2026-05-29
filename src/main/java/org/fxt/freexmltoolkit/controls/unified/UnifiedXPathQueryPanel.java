@@ -1,9 +1,12 @@
 package org.fxt.freexmltoolkit.controls.unified;
 
+import java.io.File;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Supplier;
@@ -15,15 +18,18 @@ import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Separator;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.KeyCode;
@@ -31,6 +37,8 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -39,6 +47,8 @@ import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.XPathIntelliSenseEngine;
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
+import org.fxt.freexmltoolkit.service.FavoritesService;
 
 import net.sf.saxon.s9api.DocumentBuilder;
 import net.sf.saxon.s9api.Processor;
@@ -83,7 +93,14 @@ public class UnifiedXPathQueryPanel extends VBox {
     private final Button clearQueryButton;
     private final Button clearResultButton;
     private final Button closeButton;
+    private final Button saveButton;
+    private final Button loadButton;
+    private final MenuButton savedQueriesMenu;
+    private final MenuButton examplesMenu;
     private final SplitPane contentSplitPane;
+
+    // Saved-query persistence (shared with the XML Editor)
+    private final FavoritesService favoritesService = ServiceRegistry.get(FavoritesService.class);
 
     // Saxon processor for execution
     private final Processor saxonProcessor;
@@ -140,6 +157,21 @@ public class UnifiedXPathQueryPanel extends VBox {
         clearResultButton = createIconButton("bi-trash", "Clear result", "#6c757d");
         clearResultButton.setOnAction(e -> clearResult());
 
+        // Query management: Saved Queries / Save / Load / Examples (context-sensitive to active tab)
+        savedQueriesMenu = createTextMenuButton("Saved Queries", "bi-folder2", "#6f42c1",
+                "Load a saved query");
+        savedQueriesMenu.setOnShowing(e -> refreshSavedQueriesMenu());
+
+        saveButton = createIconButton("bi-floppy", "Save query to file", "#17a2b8");
+        saveButton.setOnAction(e -> saveCurrentQuery());
+
+        loadButton = createIconButton("bi-folder2-open", "Load query from file", "#007bff");
+        loadButton.setOnAction(e -> loadQueryFromFile());
+
+        examplesMenu = createTextMenuButton("Examples", "bi-collection", "#6c757d",
+                "Insert an example query");
+        examplesMenu.setOnShowing(e -> refreshExamplesMenu());
+
         statusLabel = new Label("Ready");
         statusLabel.getStyleClass().add("theme-text-secondary");
         statusLabel.setStyle("-fx-font-size: 12px;");
@@ -167,6 +199,11 @@ public class UnifiedXPathQueryPanel extends VBox {
                 executeButton,
                 clearQueryButton,
                 clearResultButton,
+                new Separator(Orientation.VERTICAL),
+                savedQueriesMenu,
+                saveButton,
+                loadButton,
+                examplesMenu,
                 new Separator(Orientation.VERTICAL),
                 statusLabel
         );
@@ -378,6 +415,275 @@ public class UnifiedXPathQueryPanel extends VBox {
         button.setOnMouseEntered(e -> button.setStyle("-fx-padding: 5;"));
         button.setOnMouseExited(e -> button.setStyle("-fx-background-color: transparent; -fx-padding: 5;"));
         return button;
+    }
+
+    /**
+     * Creates a small text MenuButton with a leading icon, used for the
+     * "Saved Queries" and "Examples" dropdowns in the toolbar.
+     */
+    private MenuButton createTextMenuButton(String text, String iconLiteral, String iconColor, String tooltip) {
+        MenuButton menuButton = new MenuButton(text);
+        IconifyIcon icon = new IconifyIcon(iconLiteral);
+        icon.setIconSize(14);
+        icon.setIconColor(Color.web(iconColor));
+        menuButton.setGraphic(icon);
+        menuButton.setTooltip(new Tooltip(tooltip));
+        menuButton.setStyle("-fx-font-size: 12px;");
+        return menuButton;
+    }
+
+    // ========== Query Save / Load / Examples (context-sensitive to active tab) ==========
+
+    /**
+     * Returns {@code true} when the XPath tab is the active query tab.
+     */
+    private boolean isXPathActive() {
+        return queryTabPane.getSelectionModel().getSelectedItem() == xPathTab;
+    }
+
+    /**
+     * Returns the CodeArea of the currently active query tab.
+     */
+    private CodeArea activeQueryCodeArea() {
+        return isXPathActive() ? xpathCodeArea : xqueryCodeArea;
+    }
+
+    /**
+     * Rebuilds the "Saved Queries" dropdown for the active tab's query type.
+     * Lists previously saved queries plus management actions.
+     */
+    private void refreshSavedQueriesMenu() {
+        boolean isXPath = isXPathActive();
+        savedQueriesMenu.getItems().clear();
+
+        List<File> queries = isXPath
+                ? favoritesService.getSavedXPathQueries()
+                : favoritesService.getSavedXQueryQueries();
+
+        if (queries == null || queries.isEmpty()) {
+            MenuItem noQueriesItem = new MenuItem("No saved queries");
+            noQueriesItem.setDisable(true);
+            savedQueriesMenu.getItems().add(noQueriesItem);
+        } else {
+            String itemIcon = isXPath ? "bi-code-slash" : "bi-braces";
+            for (File queryFile : queries) {
+                MenuItem item = new MenuItem(FavoritesService.getQueryName(queryFile));
+                item.setGraphic(menuIcon(itemIcon));
+                item.setOnAction(e -> loadSavedQuery(queryFile, isXPath));
+                savedQueriesMenu.getItems().add(item);
+            }
+        }
+
+        savedQueriesMenu.getItems().add(new SeparatorMenuItem());
+
+        MenuItem addToFavoritesItem = new MenuItem("Add Current Query to Favorites...");
+        addToFavoritesItem.setGraphic(menuIcon("bi-star"));
+        addToFavoritesItem.setOnAction(e -> addCurrentQueryToFavorites(isXPath));
+        savedQueriesMenu.getItems().add(addToFavoritesItem);
+
+        MenuItem openFolderItem = new MenuItem("Open Queries Folder...");
+        openFolderItem.setGraphic(menuIcon("bi-folder2-open"));
+        openFolderItem.setOnAction(e -> openQueriesFolder(isXPath));
+        savedQueriesMenu.getItems().add(openFolderItem);
+    }
+
+    /**
+     * Rebuilds the "Examples" dropdown with sample expressions for the active
+     * tab's query type.
+     */
+    private void refreshExamplesMenu() {
+        boolean isXPath = isXPathActive();
+        examplesMenu.getItems().clear();
+
+        if (isXPath) {
+            examplesMenu.getItems().addAll(
+                    exampleItem("//node - Select all nodes", "//node", "bi-diagram-3", "#007bff"),
+                    exampleItem("/root/child[@attr='value']", "/root/child[@attr='value']", "bi-funnel", "#ffc107"),
+                    exampleItem("//text() - All text nodes", "//text()", "bi-text-left", "#28a745"),
+                    exampleItem("count(//element)", "count(//element)", "bi-hash", "#6f42c1")
+            );
+        } else {
+            examplesMenu.getItems().addAll(
+                    exampleItem("for $x in //item return $x",
+                            "for $x in //item return $x", "bi-arrow-repeat", "#007bff"),
+                    exampleItem("for $x in //item where $x/@id='1' return $x/name",
+                            "for $x in //item where $x/@id='1' return $x/name", "bi-funnel-fill", "#ffc107")
+            );
+        }
+    }
+
+    /**
+     * Builds a single "Examples" menu item that inserts the given expression
+     * into the active query CodeArea.
+     */
+    private MenuItem exampleItem(String label, String expression, String iconLiteral, String iconColor) {
+        MenuItem item = new MenuItem(label);
+        IconifyIcon icon = new IconifyIcon(iconLiteral);
+        icon.setIconSize(14);
+        icon.setIconColor(Color.web(iconColor));
+        item.setGraphic(icon);
+        item.setOnAction(e -> activeQueryCodeArea().replaceText(expression));
+        return item;
+    }
+
+    /**
+     * Loads a previously saved query file into the matching query CodeArea.
+     */
+    private void loadSavedQuery(File queryFile, boolean isXPath) {
+        String content = favoritesService.loadQuery(queryFile);
+        if (content != null) {
+            CodeArea target = isXPath ? xpathCodeArea : xqueryCodeArea;
+            target.replaceText(content);
+            queryTabPane.getSelectionModel().select(isXPath ? xPathTab : xQueryTab);
+            setStatus("Loaded query: " + queryFile.getName(), false);
+        } else {
+            setStatus("Error: failed to load " + queryFile.getName(), true);
+            showAlert(Alert.AlertType.ERROR, "Load Error",
+                    "Failed to load query from file: " + queryFile.getName());
+        }
+    }
+
+    /**
+     * Prompts for a name and saves the active query to the query store.
+     */
+    private void saveCurrentQuery() {
+        boolean isXPath = isXPathActive();
+        String content = activeQueryCodeArea().getText();
+        String type = isXPath ? "XPath" : "XQuery";
+
+        if (content == null || content.isBlank()) {
+            showAlert(Alert.AlertType.WARNING, "Empty Query",
+                    "Please enter an " + type + " expression first.");
+            return;
+        }
+
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Save " + type + " Query");
+        dialog.setHeaderText("Save " + type + " Query to File");
+        dialog.setContentText("Query name:");
+        dialog.getDialogPane().setGraphic(new IconifyIcon("bi-floppy"));
+
+        Optional<String> result = dialog.showAndWait();
+        result.ifPresent(name -> {
+            if (name.isBlank()) {
+                showAlert(Alert.AlertType.WARNING, "Invalid Name", "Please enter a valid query name.");
+                return;
+            }
+            File savedFile = isXPath
+                    ? favoritesService.saveXPathQuery(name, content)
+                    : favoritesService.saveXQueryQuery(name, content);
+            if (savedFile != null) {
+                setStatus(type + " query saved as: " + name, false);
+                showAlert(Alert.AlertType.INFORMATION, "Query Saved", type + " query saved as: " + name);
+            } else {
+                showAlert(Alert.AlertType.ERROR, "Save Error", "Failed to save " + type + " query.");
+            }
+        });
+    }
+
+    /**
+     * Opens a file chooser to load a query from disk into the active CodeArea.
+     */
+    private void loadQueryFromFile() {
+        boolean isXPath = isXPathActive();
+        FileChooser fileChooser = new FileChooser();
+        File initialDir = isXPath
+                ? favoritesService.getXPathQueriesDir().toFile()
+                : favoritesService.getXQueryQueriesDir().toFile();
+        if (initialDir.exists()) {
+            fileChooser.setInitialDirectory(initialDir);
+        }
+        if (isXPath) {
+            fileChooser.setTitle("Open XPath Query File");
+            fileChooser.getExtensionFilters().addAll(
+                    new FileChooser.ExtensionFilter("XPath Files", "*.xpath"),
+                    new FileChooser.ExtensionFilter("All Files", "*.*"));
+        } else {
+            fileChooser.setTitle("Open XQuery File");
+            fileChooser.getExtensionFilters().addAll(
+                    new FileChooser.ExtensionFilter("XQuery Files", "*.xquery", "*.xq"),
+                    new FileChooser.ExtensionFilter("All Files", "*.*"));
+        }
+
+        Stage stage = getScene() != null ? (Stage) getScene().getWindow() : null;
+        File file = fileChooser.showOpenDialog(stage);
+        if (file != null) {
+            String content = favoritesService.loadQuery(file);
+            if (content != null) {
+                activeQueryCodeArea().replaceText(content);
+                setStatus("Loaded query from: " + file.getName(), false);
+            } else {
+                showAlert(Alert.AlertType.ERROR, "Load Error", "Failed to load query from file.");
+            }
+        }
+    }
+
+    /**
+     * Saves the active query and registers it as a favorite.
+     */
+    private void addCurrentQueryToFavorites(boolean isXPath) {
+        String content = (isXPath ? xpathCodeArea : xqueryCodeArea).getText();
+        String type = isXPath ? "XPath" : "XQuery";
+
+        if (content == null || content.isBlank()) {
+            showAlert(Alert.AlertType.WARNING, "Empty Query",
+                    "Please enter an " + type + " expression first.");
+            return;
+        }
+
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Add " + type + " Query to Favorites");
+        dialog.setHeaderText("Save and add " + type + " query to favorites");
+        dialog.setContentText("Query name:");
+        dialog.getDialogPane().setGraphic(new IconifyIcon("bi-star"));
+
+        Optional<String> result = dialog.showAndWait();
+        result.ifPresent(name -> {
+            if (name.isBlank()) {
+                showAlert(Alert.AlertType.WARNING, "Invalid Name", "Please enter a valid query name.");
+                return;
+            }
+            File savedFile = isXPath
+                    ? favoritesService.saveXPathQuery(name, content)
+                    : favoritesService.saveXQueryQuery(name, content);
+            if (savedFile != null) {
+                favoritesService.addFavorite(savedFile.getAbsolutePath(), name,
+                        isXPath ? "XPath Queries" : "XQuery Queries");
+                setStatus(type + " query added to favorites: " + name, false);
+                showAlert(Alert.AlertType.INFORMATION, "Added to Favorites",
+                        type + " query '" + name + "' added to favorites.");
+            } else {
+                showAlert(Alert.AlertType.ERROR, "Error", "Failed to save " + type + " query.");
+            }
+        });
+    }
+
+    /**
+     * Opens the on-disk folder holding saved queries of the given type.
+     */
+    private void openQueriesFolder(boolean isXPath) {
+        try {
+            File folder = isXPath
+                    ? favoritesService.getXPathQueriesDir().toFile()
+                    : favoritesService.getXQueryQueriesDir().toFile();
+            if (folder.exists()) {
+                java.awt.Desktop.getDesktop().open(folder);
+            }
+        } catch (Exception e) {
+            logger.error("Failed to open queries folder", e);
+        }
+    }
+
+    /**
+     * Shows a simple alert dialog.
+     */
+    private void showAlert(Alert.AlertType type, String title, String message) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.initOwner(getScene() != null ? getScene().getWindow() : null);
+        alert.showAndWait();
     }
 
     /**

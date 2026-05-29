@@ -160,6 +160,20 @@ names, XPath axes, functions, and (in XQuery) variables. Navigate with the arrow
 **Enter** or **Tab** to insert; **Escape** dismisses the popup. Functions and axes are inserted with
 their parentheses / `::` automatically.
 
+### Saving, Loading and Examples
+
+The XPath/XQuery console toolbar provides the same query management as the XML Editor, acting on
+whichever tab (XPath or XQuery) is currently active:
+
+- **Saved Queries** - dropdown of previously saved queries of the active type. It also offers
+  *Add Current Query to Favorites…* and *Open Queries Folder…*.
+- **Save** - store the current expression under a name (kept alongside the XML Editor's queries).
+- **Load** - open a saved query file (`*.xpath` / `*.xquery` / `*.xq`) into the active tab.
+- **Examples** - insert ready-made sample expressions for the active query type.
+
+Queries are stored in the shared query folder, so anything saved here is also available from the XML
+Editor's XPath/XQuery panel and vice versa.
+
 ## Drag and Drop
 
 Drag files from your file manager directly into the editor to open them. Multiple files can be dropped at once.
