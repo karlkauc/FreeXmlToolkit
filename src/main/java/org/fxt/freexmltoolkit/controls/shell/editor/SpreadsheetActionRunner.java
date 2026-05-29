@@ -23,6 +23,13 @@ public final class SpreadsheetActionRunner {
         try {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             factory.setNamespaceAware(true);
+            // Harden against XXE: no DOCTYPE / external entities / external DTD / XInclude.
+            factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+            factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+            factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+            factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+            factory.setXIncludeAware(false);
+            factory.setExpandEntityReferences(false);
             Document doc = factory.newDocumentBuilder().parse(new InputSource(new StringReader(xmlContent)));
             new XmlSpreadsheetConverterService().convertXmlToCsv(
                     doc, output, CsvHandler.CsvConfig.comma(),

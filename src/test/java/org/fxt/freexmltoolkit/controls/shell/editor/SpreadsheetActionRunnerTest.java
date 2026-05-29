@@ -31,4 +31,13 @@ class SpreadsheetActionRunnerTest {
         assertTrue(SpreadsheetActionRunner.exportToCsv("<not-closed>", tmp.resolve("x.csv").toFile())
                 .startsWith("ERROR:"));
     }
+
+    @Test
+    void rejectsDoctypeToPreventXxe(@TempDir Path tmp) {
+        String xxe = "<?xml version=\"1.0\"?>"
+                + "<!DOCTYPE root [<!ENTITY xxe SYSTEM \"file:///etc/passwd\">]>"
+                + "<root>&xxe;</root>";
+        String result = SpreadsheetActionRunner.exportToCsv(xxe, tmp.resolve("x.csv").toFile());
+        assertTrue(result.startsWith("ERROR:"), "DOCTYPE must be rejected (XXE hardening): " + result);
+    }
 }
