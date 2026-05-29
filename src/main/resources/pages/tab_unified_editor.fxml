@@ -136,7 +136,7 @@
 
         <Button fx:id="formatButton" text="Format" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#formatCurrentTab">
             <graphic>
-                <IconifyIcon iconLiteral="bi-text-left" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon-secondary"/>
+                <IconifyIcon iconLiteral="bi-code-square" iconSize="20" iconColor="#20c997" styleClass="toolbar-icon-teal"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Format/Pretty Print (Ctrl+Shift+F)"/>
@@ -147,7 +147,7 @@
 
         <Button fx:id="undoButton" text="Undo" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#undo">
             <graphic>
-                <IconifyIcon iconLiteral="bi-arrow-counterclockwise" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon-secondary"/>
+                <IconifyIcon iconLiteral="bi-arrow-counterclockwise" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Undo (Ctrl+Z)"/>
@@ -156,7 +156,7 @@
 
         <Button fx:id="redoButton" text="Redo" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#redo">
             <graphic>
-                <IconifyIcon iconLiteral="bi-arrow-clockwise" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon-secondary"/>
+                <IconifyIcon iconLiteral="bi-arrow-clockwise" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Redo (Ctrl+Y)"/>
@@ -219,8 +219,8 @@
         <Button fx:id="templatesButton" text="Templates" contentDisplay="LEFT" styleClass="toolbar-button"
                 onAction="#showTemplates">
             <graphic>
-                <IconifyIcon iconLiteral="bi-file-earmark-ruled" iconSize="20" iconColor="#ffc107"
-                          styleClass="toolbar-icon-warning"/>
+                <IconifyIcon iconLiteral="bi-file-text" iconSize="20" iconColor="#28a745"
+                          styleClass="toolbar-icon-success"/>
             </graphic>
             <tooltip>
                 <Tooltip text="XML Templates (Ctrl+T)"/>
@@ -230,8 +230,8 @@
         <Button fx:id="generatorButton" text="Generator" contentDisplay="LEFT" styleClass="toolbar-button"
                 onAction="#showGenerator">
             <graphic>
-                <IconifyIcon iconLiteral="bi-lightning" iconSize="20" iconColor="#6f42c1"
-                          styleClass="toolbar-icon-purple"/>
+                <IconifyIcon iconLiteral="bi-diagram-3" iconSize="20" iconColor="#007bff"
+                          styleClass="toolbar-icon-primary"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Generate XSD from XML (Ctrl+G)"/>
@@ -390,7 +390,7 @@
 
         <ToggleButton fx:id="xpathPanelToggle" text="XPath" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#toggleXPathPanel">
             <graphic>
-                <IconifyIcon iconLiteral="bi-search" iconSize="20" iconColor="#fd7e14" styleClass="toolbar-icon-orange"/>
+                <IconifyIcon iconLiteral="bi-code-slash" iconSize="20" iconColor="#6f42c1" styleClass="toolbar-icon-purple"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Toggle XPath/XQuery Panel (Ctrl+Shift+X)"/>
@@ -399,7 +399,7 @@
 
         <ToggleButton fx:id="propertiesToggle" text="Properties" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#togglePropertiesPanel">
             <graphic>
-                <IconifyIcon iconLiteral="bi-sliders" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
+                <IconifyIcon iconLiteral="bi-layout-sidebar-inset-reverse" iconSize="20" iconColor="#6f42c1" styleClass="toolbar-icon-purple"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Toggle Properties Panel (Ctrl+Shift+P)"/>
@@ -408,7 +408,7 @@
 
         <Button fx:id="favoritesButton" text="Favorites" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#showFavoritesPanel">
             <graphic>
-                <IconifyIcon iconLiteral="bi-star" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
+                <IconifyIcon iconLiteral="bi-star-fill" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Show Favorites (Ctrl+Shift+B)"/>
@@ -417,7 +417,7 @@
 
         <Button fx:id="addFavoriteButton" text="Add Favorite" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#addCurrentFileToFavorites">
             <graphic>
-                <IconifyIcon iconLiteral="bi-star-fill" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
+                <IconifyIcon iconLiteral="bi-star" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Add Current File to Favorites (Ctrl+D)"/>
