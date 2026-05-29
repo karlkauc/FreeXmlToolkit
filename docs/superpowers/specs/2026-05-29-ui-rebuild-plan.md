@@ -69,6 +69,25 @@
 1 000+ node schema; all old features still reachable; tests green.
 **Rollback:** preview entry is opt-in; old shell is default.
 
+#### Spike result (feasibility — 2026-05-29)
+
+Measured by `VirtualizedRendererSpikeTest` (TestFX/Monocle) on a 5 050-node model
+in a ~760 px viewport at 24 px rows:
+
+| Assumption (D2) | Result | Budget | Verdict |
+|---|---|---|---|
+| Virtualization (only viewport cells materialized) | **17 cells** for 5 050 nodes | « total | ✅ scales with viewport, not model |
+| Expand a 100-child node | **42 ms** | ≤ 100 ms | ✅ |
+| A virtualized row hosts an embedded grid (TableView) for repeating same-type siblings | rendered without breaking virtualization | — | ✅ |
+
+**Conclusion:** JavaFX `VirtualFlow` (as used by `TreeView`/`TableView`) virtualizes
+effectively and supports composite cells, so the embedded XMLSpy-style grid fits inside a
+virtualized row. **Recommendation for Phase 4:** build the production Tree/Graphic+Grid
+renderer on a `VirtualFlow`/scene-graph foundation with custom cells (a cell becomes an
+embedded grid when a node has repeating same-type siblings), driven by the V2 `XsdNode`
+model and incremental, per-cell updates — *not* a full-canvas redraw. This validates the
+greenfield direction; `XsdGraphView` stays reachable until the new renderer reaches parity.
+
 ---
 
 ## Phase 3 — Explorer + editor host + Text view (XML/JSON parity)
