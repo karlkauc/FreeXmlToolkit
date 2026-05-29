@@ -24,6 +24,7 @@ The XML Editor is the main feature of FreeXmlToolkit. It provides a powerful and
 | **Open** | Ctrl+O | Open XML file |
 | **Save** | Ctrl+S | Save current file |
 | **Save As** | Ctrl+Shift+S | Save with new name |
+| **Save All** | - | Save all open document tabs at once |
 | **Recent** | Ctrl+Shift+R | Open recent files menu |
 | **Undo** | Ctrl+Z | Undo last change |
 | **Redo** | Ctrl+Y | Redo undone change |
@@ -50,8 +51,9 @@ The XML Editor is the main feature of FreeXmlToolkit. It provides a powerful and
 *File toolbar with Open, Save, and New buttons*
 
 - **Open Files**: Click "Open" or use `Ctrl+O` to browse for XML files
-- **Save Files**: Click "Save" or use `Ctrl+S` to save changes
-- **Save As**: Use `Ctrl+Shift+S` to save with a new name
+- **Save Files**: Click "Save" or use `Ctrl+S` to save changes to the current file
+- **Save As**: Use `Ctrl+Shift+S` to save the current file with a new name
+- **Save All**: Click "Save All" to save every open document tab at once (untitled tabs prompt you for a file name)
 - **Create New**: Click "New" to start with an empty XML document
 - **Drag & Drop**: Drag files from your file explorer into the editor
 - **Recent Files**: Quick access to recently opened files

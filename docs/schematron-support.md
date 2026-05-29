@@ -33,6 +33,7 @@ While XSD schemas check the structure of your XML (which elements can appear whe
 | **Open** | - | Open existing Schematron file |
 | **Save** | Ctrl+S | Save current file |
 | **Save As** | Ctrl+Shift+S | Save with new name |
+| **Save All** | - | Save the current file (shown for toolbar consistency across editors) |
 | **Add Rule** | Ctrl+R | Add a new rule template |
 | **Add Favorite** | Ctrl+D | Add to favorites |
 | **Favorites** | Ctrl+Shift+D | Toggle favorites panel |
@@ -50,7 +51,7 @@ The Code tab provides a full-featured Schematron editor:
 |--------|-------------|
 | **Load Schematron** | Open an existing file |
 | **New File** | Create empty Schematron |
-| **Save** / **Save As** | Save current file |
+| **Save** / **Save As** / **Save All** | Save current file (Save All mirrors Save for this single-document editor) |
 | **New Rule** | Insert rule template |
 | **New Pattern** | Insert pattern template |
 | **Format** | Format/prettify the XML |

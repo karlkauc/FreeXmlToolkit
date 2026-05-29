@@ -140,6 +140,7 @@ The validator supports:
 | **Open** | Open an existing JSON file |
 | **Save** | Save the current document |
 | **Save As** | Save with a new name |
+| **Save All** | Save the current document (shown for toolbar consistency across editors) |
 | **Recent** | Access recently opened files |
 | **Undo/Redo** | Undo or redo changes |
 | **Format** | Pretty-print the JSON |

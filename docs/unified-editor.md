@@ -40,7 +40,9 @@ The toolbar provides common operations and context-sensitive buttons:
 ### Always Visible
 - **New** - Create XML, XSD, XSLT, Schematron, or JSON files
 - **Open** (Ctrl+O) - Open one or more files
-- **Save** (Ctrl+S) / **Save All** (Ctrl+Shift+S)
+- **Save** (Ctrl+S) - Save the current tab
+- **Save As** - Save the current tab under a new name (a file chooser opens, pre-set to the tab's file type)
+- **Save All** (Ctrl+Shift+S) - Save every open tab at once
 - **Recent** (Ctrl+Shift+R) - Recently opened files
 - **Close** (Ctrl+W) - Close current tab
 - **Validate** (F5) - Validate current document
@@ -101,8 +103,8 @@ When editing an XSLT file:
 | Shortcut | Action |
 |----------|--------|
 | Ctrl+O | Open file |
-| Ctrl+S | Save |
-| Ctrl+Shift+S | Save all |
+| Ctrl+S | Save current tab |
+| Ctrl+Shift+S | Save all tabs |
 | Ctrl+W | Close tab |
 | Ctrl+Z / Ctrl+Y | Undo / Redo |
 | Ctrl+F | Find |
