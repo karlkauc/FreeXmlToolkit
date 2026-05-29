@@ -134,6 +134,44 @@ public class EditorHost extends BorderPane {
         return Optional.empty();
     }
 
+    /** @return the top-level named types of the active XSD (from the model or a parse of the text). */
+    public java.util.List<XsdNode> getActiveNamedTypes() {
+        XsdNode schema = getActiveSchemaRoot().orElse(null);
+        if (schema == null) {
+            var doc = getActiveDocument();
+            if (doc.isPresent() && doc.get().getFileType() == EditorFileType.XSD) {
+                try {
+                    schema = new org.fxt.freexmltoolkit.controls.v2.model.XsdNodeFactory()
+                            .fromString(getActiveText().orElse(""));
+                } catch (Exception ignored) {
+                    return java.util.List.of();
+                }
+            }
+        }
+        return org.fxt.freexmltoolkit.controls.shell.schema.TypeLibrary.collectNamedTypes(schema);
+    }
+
+    /** Reveals a named type in the Tree view (switching to Tree if needed). */
+    public void revealTypeByName(String typeName) {
+        if (typeName == null
+                || !(tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et)
+                || !et.supportsStructuredViews()) {
+            return;
+        }
+        setActiveViewMode(ViewMode.TREE);
+        getActiveSchemaRoot().ifPresent(root -> {
+            for (XsdNode child : root.getChildren()) {
+                boolean isType =
+                        child.getNodeType() == org.fxt.freexmltoolkit.controls.v2.model.XsdNodeType.SIMPLE_TYPE
+                        || child.getNodeType() == org.fxt.freexmltoolkit.controls.v2.model.XsdNodeType.COMPLEX_TYPE;
+                if (isType && typeName.equals(child.getName())) {
+                    selectNodeInActiveTree(child);
+                    return;
+                }
+            }
+        });
+    }
+
     /** Selects (reveals) the given node in the active structured view (Tree or Graphic). */
     public void selectNodeInActiveTree(XsdNode node) {
         withActive(et -> {

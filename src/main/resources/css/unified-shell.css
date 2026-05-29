@@ -154,6 +154,21 @@
     -fx-font-size: 11px;
 }
 
+.fxt-facet-table {
+    -fx-background-color: transparent;
+    -fx-font-size: 11px;
+}
+
+.fxt-facet-table .column-header .label {
+    -fx-text-fill: -fxt-text-secondary;
+    -fx-font-family: "Inter", sans-serif;
+}
+
+.fxt-facet-table .table-cell {
+    -fx-text-fill: -fxt-text-primary;
+    -fx-font-family: "JetBrains Mono", monospace;
+}
+
 /* ----- Status bar ----------------------------------------------------- */
 .fxt-status-bar {
     -fx-background-color: -fxt-primary;

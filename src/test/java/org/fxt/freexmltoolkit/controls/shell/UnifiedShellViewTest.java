@@ -63,11 +63,12 @@ class UnifiedShellViewTest {
 
     @Test
     void selectingAnActivitySwapsTheSidePanel() {
-        WaitForAsyncUtils.waitForAsyncFx(2000, () -> shell.getSelectionModel().select(Activity.SCHEMA));
+        // VALIDATION still uses the generic placeholder panel (Explorer/Schema have real panels).
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> shell.getSelectionModel().select(Activity.VALIDATION));
         WaitForAsyncUtils.waitForFxEvents();
         Label title = (Label) shell.lookup(".fxt-side-panel-title");
         assertNotNull(title, "side panel title must exist");
-        assertEquals("SCHEMA", title.getText(), "side panel must follow the active activity");
+        assertEquals("VALIDATION", title.getText(), "side panel must follow the active activity");
     }
 
     @Test
@@ -160,6 +161,40 @@ class UnifiedShellViewTest {
         WaitForAsyncUtils.sleep(300, java.util.concurrent.TimeUnit.MILLISECONDS);
         WaitForAsyncUtils.waitForFxEvents();
         snapshot(new File(dir, "fxt_shell_graphic.png"));
+
+        // Schema activity: Type Library side panel + facets in the inspector.
+        File facetXsd = File.createTempFile("fxt_shell_facets", ".xsd");
+        java.nio.file.Files.writeString(facetXsd.toPath(),
+                "<xs:schema xmlns:xs=\"http://www.w3.org/2001/XMLSchema\">\n"
+                        + "  <xs:element name=\"Age\">\n"
+                        + "    <xs:simpleType><xs:restriction base=\"xs:integer\">\n"
+                        + "      <xs:minInclusive value=\"0\"/>\n"
+                        + "      <xs:maxInclusive value=\"150\"/>\n"
+                        + "    </xs:restriction></xs:simpleType>\n"
+                        + "  </xs:element>\n"
+                        + "  <xs:complexType name=\"PersonType\">\n"
+                        + "    <xs:sequence><xs:element name=\"name\" type=\"xs:string\"/></xs:sequence>\n"
+                        + "  </xs:complexType>\n"
+                        + "</xs:schema>\n");
+        WaitForAsyncUtils.waitForAsyncFx(3000, () -> shell.getEditorHost().openFile(facetXsd.toPath()));
+        WaitForAsyncUtils.waitFor(3, java.util.concurrent.TimeUnit.SECONDS,
+                () -> shell.getEditorHost().getActiveText().map(t -> t.contains("PersonType")).orElse(false));
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            shell.getSelectionModel().select(org.fxt.freexmltoolkit.controls.shell.Activity.SCHEMA);
+            shell.getEditorHost().setActiveViewMode(
+                    org.fxt.freexmltoolkit.controls.shell.editor.ViewMode.TREE);
+            return null;
+        });
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            var ageNode = findNode(shell.getEditorHost().getActiveSchemaRoot().orElseThrow(), "Age");
+            if (ageNode != null) {
+                shell.getEditorHost().selectNodeInActiveTree(ageNode);
+            }
+            return null;
+        });
+        WaitForAsyncUtils.sleep(300, java.util.concurrent.TimeUnit.MILLISECONDS);
+        WaitForAsyncUtils.waitForFxEvents();
+        snapshot(new File(dir, "fxt_shell_schema_activity.png"));
 
         WaitForAsyncUtils.waitForAsyncFx(3000, () -> {
             shell.getStyleClass().add("fxt-theme-dark");

@@ -8,9 +8,14 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
+import javafx.collections.FXCollections;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType;
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost;
+import org.fxt.freexmltoolkit.controls.shell.schema.SchemaFacets;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.context.XPathCalculator;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdFacet;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 
 /**
@@ -39,6 +44,7 @@ public class InspectorPanel extends VBox {
     private final Label cardinalityValue = value();
     private final Label useValue = value();
     private final Label docValue = value();
+    private final TableView<XsdFacet> facetTable = new TableView<>();
 
     public InspectorPanel(EditorHost editorHost) {
         this.editorHost = editorHost;
@@ -52,7 +58,7 @@ public class InspectorPanel extends VBox {
 
         getChildren().add(section("Node & XPath", grid(
                 "Kind", kindValue, "Name", nameValue, "XPath", xpathValue, "Depth", depthValue)));
-        getChildren().add(section("Type & Facets", grid("Type", typeValue)));
+        getChildren().add(section("Type & Facets", buildTypeFacetsBody()));
         getChildren().add(section("Cardinality & Use", grid(
                 "Cardinality", cardinalityValue, "Use", useValue)));
         getChildren().add(section("Documentation & Refs", grid("Docs", docValue)));
@@ -64,8 +70,33 @@ public class InspectorPanel extends VBox {
         refresh();
     }
 
+    @SuppressWarnings("unchecked")
+    private javafx.scene.Node buildTypeFacetsBody() {
+        TableColumn<XsdFacet, String> nameCol = new TableColumn<>("Facet");
+        nameCol.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(
+                c.getValue().getFacetType().getXmlName()));
+        nameCol.setPrefWidth(140);
+        TableColumn<XsdFacet, String> valueCol = new TableColumn<>("Value");
+        valueCol.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(
+                c.getValue().getValue()));
+        valueCol.setPrefWidth(180);
+        facetTable.getColumns().setAll(nameCol, valueCol);
+        facetTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+        facetTable.setPrefHeight(120);
+        facetTable.getStyleClass().add("fxt-facet-table");
+        facetTable.setPlaceholder(new Label("No facets"));
+
+        VBox body = new VBox(4, grid("Type", typeValue), facetTable);
+        return body;
+    }
+
+    private void updateFacets(XsdNode node) {
+        facetTable.getItems().setAll(node != null ? SchemaFacets.collect(node) : FXCollections.emptyObservableList());
+    }
+
     private void refresh() {
         XsdNode selected = editorHost.activeSelectedNodeProperty().get();
+        updateFacets(selected);
         if (selected != null) {
             SelectedNodeInfo info = SelectedNodeInfo.of(selected);
             set(info.kind(), blankToPlaceholder(info.name()), info.xpath(), Integer.toString(info.depth()),
@@ -162,5 +193,10 @@ public class InspectorPanel extends VBox {
     /** @return the current cardinality value (for tests/observers). */
     public String getCardinalityText() {
         return cardinalityValue.getText();
+    }
+
+    /** @return the number of facets currently shown (for tests/observers). */
+    public int getFacetCount() {
+        return facetTable.getItems().size();
     }
 }
