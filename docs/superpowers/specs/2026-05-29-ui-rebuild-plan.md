@@ -274,7 +274,7 @@ PDF/FOP · Signature (sign+validate) · Favorites · Help · Settings (live them
 
 | Prio | Feature | Notes / why deferred |
 |---|---|---|
-| 1 | Welcome/Recent dashboard parity | shell Explorer has Recent; confirm parity, then drop welcome-on-boot dependency |
+| ~~1~~ ✅ | Welcome/Recent parity | DONE 2026-05-30 (commit d39c6d9c): EditorHost welcome empty-state with New XML/XSD/JSON + Open + recent-files list (reuses `PropertiesService`); Explorer also has Recent. Remaining welcome-dashboard *extras* (stats/tips/sparkline) demoted to P4. |
 | 1 | Doc export (HTML/PDF/Word) + Sample-data | needs old file-based `XsdDocumentationData` pipeline (v2 `XsdDocumentationHtmlService.export` is a stub) |
 | 2 | JSON Tree view mode | own renderer; only Text JSON today |
 | 2 | XSLT-Developer params / saved queries / output-format | extend TransformPanel |
@@ -283,6 +283,7 @@ PDF/FOP · Signature (sign+validate) · Favorites · Help · Settings (live them
 | 3 | Full spreadsheet converter dialog (Excel, CSV options, Excel→XML) | only one-click CSV today |
 | 3 | Certificate creation (signature expert) | sign+validate done |
 | 4 | Auto-Update UI · FundsXML menu integration | cross-cutting; still served by legacy chrome |
+| 4 | Welcome-dashboard extras (stats cards, trend sparkline, feature-progress, tips banner) | nice-to-have analytics; core "new/open/recent" already covered by the empty-state |
 
 **Polish (track, fix opportunistically):** preserve expand/collapse view-state after edits · graphic
 context menu parity · remove the duplicated status line · de-flake occasional TestFX timing.
