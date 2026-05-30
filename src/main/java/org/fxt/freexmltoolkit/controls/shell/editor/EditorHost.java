@@ -286,6 +286,24 @@ public class EditorHost extends BorderPane {
         return diff;
     }
 
+    /**
+     * Opens an in-app preview of {@code pdf} as a new tab (lazy page rendering).
+     *
+     * @return the preview control, or {@code null} if the PDF cannot be read
+     */
+    public PdfPreview openPdfPreview(File pdf) {
+        try {
+            PdfPreview preview = new PdfPreview(pdf);
+            Tab tab = new Tab(pdf.getName(), preview);
+            tab.setGraphic(new IconifyIcon("bi-file-earmark-pdf"));
+            tabPane.getTabs().add(tab);
+            tabPane.getSelectionModel().select(tab);
+            return preview;
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
     /** Shows the welcome empty-state when no tab is open, the tab pane otherwise. */
     private void updateCenter() {
         if (tabPane.getTabs().isEmpty()) {

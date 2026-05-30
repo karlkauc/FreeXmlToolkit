@@ -25,6 +25,7 @@ public class FopPanel extends VBox {
     private final Label xslStatus = new Label("XSL: none");
     private final Label status = new Label("No PDF generated");
     private final Button openButton;
+    private final Button previewButton;
     private File xslFile;
     private File lastPdf;
 
@@ -37,13 +38,16 @@ public class FopPanel extends VBox {
 
         Button setXsl = button("Set XSL-FO…", "bi-file-earmark-code", this::chooseXsl);
         Button generate = button("Generate PDF…", "bi-file-earmark-pdf", this::chooseTargetAndGenerate);
+        previewButton = button("Preview", "bi-eye", this::previewPdf);
+        previewButton.setDisable(true);
         openButton = button("Open PDF", "bi-box-arrow-up-right", this::openPdf);
         openButton.setDisable(true);
 
         xslStatus.getStyleClass().add("fxt-placeholder-text");
         status.getStyleClass().add("fxt-placeholder-text");
 
-        getChildren().addAll(title, new HBox(6, setXsl, generate), xslStatus, status, new HBox(openButton));
+        getChildren().addAll(title, new HBox(6, setXsl, generate), xslStatus, status,
+                new HBox(6, previewButton, openButton));
     }
 
     /** Sets the XSL(-FO) stylesheet (also from the file chooser). */
@@ -74,6 +78,8 @@ public class FopPanel extends VBox {
                 if (ok) {
                     lastPdf = pdfOutput;
                     openButton.setDisable(false);
+                    previewButton.setDisable(false);
+                    previewPdf(); // show the result in-app immediately
                 }
             });
         });
@@ -120,6 +126,13 @@ public class FopPanel extends VBox {
         File file = chooser.showSaveDialog(getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
             generateTo(file);
+        }
+    }
+
+    /** Opens the last generated PDF in an in-app preview tab. */
+    public void previewPdf() {
+        if (lastPdf != null && lastPdf.exists()) {
+            editorHost.openPdfPreview(lastPdf);
         }
     }
 
