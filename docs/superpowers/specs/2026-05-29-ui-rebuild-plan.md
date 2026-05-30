@@ -276,7 +276,7 @@ PDF/FOP · Signature (sign+validate) · Favorites · Help · Settings (live them
 |---|---|---|
 | ~~1~~ ✅ | Welcome/Recent parity | DONE 2026-05-30 (commit d39c6d9c): EditorHost welcome empty-state with New XML/XSD/JSON + Open + recent-files list (reuses `PropertiesService`); Explorer also has Recent. Remaining welcome-dashboard *extras* (stats/tips/sparkline) demoted to P4. |
 | ~~1~~ ✅ | Doc export (HTML/PDF/Word) | DONE 2026-05-30 (commit 7c099aee): `DocumentationRunner` reuses the old file-based pipeline (`XsdDocumentationService` HTML; Word/PDF services from parsed `XsdDocumentationData`); Schema panel "Generate Documentation" action (format + output chooser, async). v2 export stub bypassed. Diagram images disabled for now. |
-| 2 | Sample-data: full sample-XML instance from XSD | per-element `XsdSampleDataGenerator` is reused inside doc export; a standalone "generate sample XML document" action is still to be wired into the shell |
+| ~~2~~ ✅ | Sample-data: full sample-XML instance from XSD | DONE 2026-05-30 (commit 07659345): `SampleXmlRunner` wraps `XsdDocumentationService.generateSampleXml`; Schema panel "Generate Sample XML" opens the instance as a new tab. (Profiled/advanced options — mandatory-only toggle, max-occurrences, ProfiledXmlGeneratorService profiles — not yet surfaced.) |
 | 2 | JSON Tree view mode | own renderer; only Text JSON today |
 | 2 | XSLT-Developer params / saved queries / output-format | extend TransformPanel |
 | 2 | Diff/Compare two documents | self-contained |
