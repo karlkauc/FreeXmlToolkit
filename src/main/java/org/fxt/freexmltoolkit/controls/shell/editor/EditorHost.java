@@ -248,6 +248,38 @@ public class EditorHost extends BorderPane {
         }
     }
 
+    /**
+     * Opens a side-by-side diff comparing the active document (left) against
+     * {@code rightFile} (right), reusing the existing {@link org.fxt.freexmltoolkit.controls.diff.DiffView}.
+     * Saving the left side writes back to the active document (and its file, if any).
+     *
+     * @return the created diff tab, or {@code null} if no document is active
+     */
+    public org.fxt.freexmltoolkit.controls.diff.DiffView openDiffWithFile(File rightFile) {
+        if (!(tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab left)) {
+            return null;
+        }
+        String leftName = left.document.getDisplayName();
+        String leftText = left.view.getText();
+        java.util.function.Consumer<String> leftSave = newText -> {
+            left.view.setText(newText);
+            Path path = left.document.getPath();
+            if (path != null) {
+                try {
+                    Files.writeString(path, newText, StandardCharsets.UTF_8);
+                    left.document.setDirty(false);
+                } catch (IOException e) {
+                    // surface via the document staying dirty; the diff view reports save errors itself
+                }
+            }
+        };
+        org.fxt.freexmltoolkit.controls.diff.DiffView diff =
+                new org.fxt.freexmltoolkit.controls.diff.DiffView(leftName, leftText, leftSave, rightFile);
+        tabPane.getTabs().add(diff);
+        tabPane.getSelectionModel().select(diff);
+        return diff;
+    }
+
     /** Shows the welcome empty-state when no tab is open, the tab pane otherwise. */
     private void updateCenter() {
         if (tabPane.getTabs().isEmpty()) {

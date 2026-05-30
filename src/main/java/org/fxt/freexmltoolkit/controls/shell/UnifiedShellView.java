@@ -250,6 +250,7 @@ public class UnifiedShellView extends BorderPane {
                 toolButton("bi-arrow-clockwise", "Redo (Ctrl+Y)", editorHost::redoActive),
                 vsep(),
                 toolButton("bi-text-indent-left", "Format", editorHost::formatActive),
+                toolButton("bi-layout-split", "Compare with File…", this::compareWithFile),
                 toolButton("bi-filetype-csv", "Export to CSV", this::exportCsv),
                 vsep(),
                 toolButton("bi-diagram-3", "Set XSD schema for IntelliSense", this::setSchema),
@@ -334,6 +335,22 @@ public class UnifiedShellView extends BorderPane {
                 }
             });
         });
+    }
+
+    private void compareWithFile() {
+        if (editorHost.getActiveDocument().isEmpty()) {
+            return;
+        }
+        javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
+        chooser.setTitle("Compare with File…");
+        chooser.getExtensionFilters().addAll(
+                new javafx.stage.FileChooser.ExtensionFilter("XML / XSD / XSLT / Schematron / JSON",
+                        "*.xml", "*.xsd", "*.xsl", "*.xslt", "*.sch", "*.schematron", "*.json"),
+                new javafx.stage.FileChooser.ExtensionFilter("All files", "*.*"));
+        java.io.File file = chooser.showOpenDialog(getScene() != null ? getScene().getWindow() : null);
+        if (file != null) {
+            editorHost.openDiffWithFile(file);
+        }
     }
 
     private void setSchema() {
