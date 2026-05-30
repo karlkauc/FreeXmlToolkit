@@ -95,6 +95,74 @@
     -fx-text-fill: -fxt-text-primary;
 }
 
+/* ----- Editor empty-state (welcome landing on boot / no document) ----- */
+.fxt-editor-empty-state {
+    -fx-background-color: -fxt-bg-canvas;
+}
+
+.fxt-welcome-title {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 26px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-primary;
+}
+
+.fxt-welcome-subtitle {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 13px;
+    -fx-text-fill: -fxt-text-secondary;
+}
+
+.fxt-welcome-action {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 13px;
+    -fx-background-color: -fxt-bg-surface;
+    -fx-border-color: -fxt-border;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-padding: 10 16;
+    -fx-cursor: hand;
+    -fx-graphic-text-gap: 8;
+}
+
+.fxt-welcome-action:hover {
+    -fx-background-color: -fxt-bg-subtle;
+    -fx-border-color: -fxt-accent;
+}
+
+.fxt-welcome-action .iconify-icon {
+    -fx-icon-color: -fxt-accent;
+}
+
+.fxt-welcome-recent {
+    -fx-background-color: transparent;
+    -fx-border-color: -fxt-border;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+}
+
+.fxt-welcome-recent .list-cell {
+    -fx-background-color: transparent;
+    -fx-padding: 6 10;
+    -fx-cursor: hand;
+}
+
+.fxt-welcome-recent .list-cell:filled:hover {
+    -fx-background-color: -fxt-bg-subtle;
+}
+
+.fxt-recent-name {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 13px;
+    -fx-text-fill: -fxt-text-primary;
+}
+
+.fxt-recent-path {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 11px;
+    -fx-text-fill: -fxt-text-muted;
+}
+
 /* ----- Inspector ------------------------------------------------------ */
 .fxt-inspector {
     -fx-background-color: -fxt-bg-surface;

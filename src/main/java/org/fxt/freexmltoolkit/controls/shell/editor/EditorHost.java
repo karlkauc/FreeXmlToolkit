@@ -39,10 +39,16 @@ public class EditorHost extends BorderPane {
     private final ReadOnlyObjectWrapper<XsdNode> activeSelectedNode =
             new ReadOnlyObjectWrapper<>(this, "activeSelectedNode", null);
 
+    private final EditorWelcomePane welcomePane = new EditorWelcomePane(
+            this::newDocument, this::openFileChooser, this::openFile);
+
     public EditorHost() {
         getStyleClass().add("fxt-editor-tabs");
-        setCenter(tabPane);
         setupDragAndDrop();
+        // Show the welcome empty-state while no document is open; swap to the tab
+        // pane as soon as one opens, and back again when the last tab closes.
+        tabPane.getTabs().addListener((javafx.collections.ListChangeListener<Tab>) c -> updateCenter());
+        updateCenter();
         tabPane.getSelectionModel().selectedItemProperty().addListener((obs, oldT, newT) -> {
             if (newT instanceof EditorTab et) {
                 activeCaret.set(et.view.getCodeArea().getCaretPosition());
@@ -221,6 +227,45 @@ public class EditorHost extends BorderPane {
         EditorTab tab = new EditorTab(OpenDocument.forPath(path), this::refreshSelectedNode);
         addTab(tab);
         loadAsync(tab, path);
+    }
+
+    /** Convenience overload of {@link #openFile(Path)} for {@link File} call sites. */
+    public void openFile(File file) {
+        openFile(file.toPath());
+    }
+
+    /** Shows a file chooser and opens the chosen file (used by the welcome empty-state). */
+    public void openFileChooser() {
+        javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
+        chooser.setTitle("Open File");
+        chooser.getExtensionFilters().addAll(
+                new javafx.stage.FileChooser.ExtensionFilter("XML / XSD / XSLT / Schematron / JSON",
+                        "*.xml", "*.xsd", "*.xsl", "*.xslt", "*.sch", "*.schematron", "*.json"),
+                new javafx.stage.FileChooser.ExtensionFilter("All files", "*.*"));
+        File file = chooser.showOpenDialog(getScene() != null ? getScene().getWindow() : null);
+        if (file != null) {
+            openFile(file.toPath());
+        }
+    }
+
+    /** Shows the welcome empty-state when no tab is open, the tab pane otherwise. */
+    private void updateCenter() {
+        if (tabPane.getTabs().isEmpty()) {
+            welcomePane.setRecentFiles(recentFiles());
+            setCenter(welcomePane);
+        } else {
+            setCenter(tabPane);
+        }
+    }
+
+    private java.util.List<File> recentFiles() {
+        try {
+            return org.fxt.freexmltoolkit.di.ServiceRegistry
+                    .get(org.fxt.freexmltoolkit.service.PropertiesService.class)
+                    .getLastOpenFiles();
+        } catch (Throwable t) {
+            return java.util.List.of();
+        }
     }
 
     /** Creates an empty untitled document of the given type. */
