@@ -279,7 +279,7 @@ PDF/FOP · Signature (sign+validate) · Favorites · Help · Settings (live them
 | ~~2~~ ✅ | Sample-data: full sample-XML instance from XSD | DONE 2026-05-30 (commit 07659345): `SampleXmlRunner` wraps `XsdDocumentationService.generateSampleXml`; Schema panel "Generate Sample XML" opens the instance as a new tab. (Profiled/advanced options — mandatory-only toggle, max-occurrences, ProfiledXmlGeneratorService profiles — not yet surfaced.) |
 | 2 | JSON Tree view mode | own renderer; only Text JSON today |
 | 2 | XSLT-Developer params / saved queries / output-format | extend TransformPanel |
-| 2 | Diff/Compare two documents | self-contained |
+| ~~2~~ ✅ | Diff/Compare two documents | DONE 2026-05-30 (commit 02d27c2e): `EditorHost.openDiffWithFile` reuses `controls/diff` `DiffView`/`DiffEngine`; toolbar "Compare with File…". Save-from-diff writes back to the active doc. |
 | 3 | PDF preview pane | FOP generates; preview pane missing |
 | 3 | Full spreadsheet converter dialog (Excel, CSV options, Excel→XML) | only one-click CSV today |
 | 3 | Certificate creation (signature expert) | sign+validate done |
