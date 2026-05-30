@@ -45,6 +45,7 @@ public class TypeLibraryPanel extends VBox {
                 actionButton("Generate XSD from XML", "bi-magic", this::generateXsdFromActive),
                 actionButton("Flatten Schema", "bi-layers", this::flattenActive),
                 actionButton("Statistics", "bi-bar-chart", this::statisticsActive),
+                actionButton("Generate Sample XML", "bi-filetype-xml", this::generateSampleXmlForActive),
                 actionButton("Generate Documentation", "bi-file-earmark-text", this::generateDocumentationForActive));
 
         Label typesLabel = new Label("TYPES");
@@ -82,26 +83,8 @@ public class TypeLibraryPanel extends VBox {
      * thread via {@link DocumentationRunner} and reports the result.
      */
     public void generateDocumentationForActive() {
-        var docOpt = editorHost.getActiveDocument();
-        if (docOpt.isEmpty() || docOpt.get().getFileType() != EditorFileType.XSD) {
-            alert(javafx.scene.control.Alert.AlertType.WARNING,
-                    "Generate Documentation", "Open an XSD schema first.");
-            return;
-        }
-        // The documentation pipeline reads the schema from disk; use the saved
-        // file, or fall back to a temp copy of the current (possibly unsaved) text.
-        File xsd;
-        try {
-            java.nio.file.Path path = docOpt.get().getPath();
-            if (path != null) {
-                xsd = path.toFile();
-            } else {
-                xsd = File.createTempFile("fxt-doc-", ".xsd");
-                xsd.deleteOnExit();
-                java.nio.file.Files.writeString(xsd.toPath(), editorHost.getActiveText().orElse(""));
-            }
-        } catch (Exception e) {
-            alert(javafx.scene.control.Alert.AlertType.ERROR, "Generate Documentation", e.getMessage());
+        File xsd = activeXsdFileOrAlert("Generate Documentation");
+        if (xsd == null) {
             return;
         }
 
@@ -116,7 +99,7 @@ public class TypeLibraryPanel extends VBox {
         }
 
         var window = getScene() != null ? getScene().getWindow() : null;
-        String baseName = docOpt.get().getDisplayName().replace('.', '_');
+        String baseName = xsd.getName().replaceFirst("\\.[^.]+$", "");
         File target;
         java.util.function.Function<File, String> export;
         switch (format.get()) {
@@ -152,6 +135,53 @@ public class TypeLibraryPanel extends VBox {
                 }
             });
         });
+    }
+
+    /**
+     * Generates a sample XML instance from the active schema (off the UI thread)
+     * and opens it as a new editor tab.
+     */
+    public void generateSampleXmlForActive() {
+        File xsd = activeXsdFileOrAlert("Generate Sample XML");
+        if (xsd == null) {
+            return;
+        }
+        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            String result = SampleXmlRunner.generate(xsd, false, 2);
+            javafx.application.Platform.runLater(() -> {
+                if (result.startsWith("ERROR:")) {
+                    alert(javafx.scene.control.Alert.AlertType.ERROR, "Generate Sample XML", result);
+                } else {
+                    editorHost.openGeneratedDocument(result, EditorFileType.XML, "Sample.xml");
+                }
+            });
+        });
+    }
+
+    /**
+     * Resolves the active document to an XSD file on disk (its saved path, or a
+     * temp copy of the current text for unsaved schemas). Shows an alert and
+     * returns {@code null} when the active document is not an XSD.
+     */
+    private File activeXsdFileOrAlert(String title) {
+        var docOpt = editorHost.getActiveDocument();
+        if (docOpt.isEmpty() || docOpt.get().getFileType() != EditorFileType.XSD) {
+            alert(javafx.scene.control.Alert.AlertType.WARNING, title, "Open an XSD schema first.");
+            return null;
+        }
+        try {
+            java.nio.file.Path path = docOpt.get().getPath();
+            if (path != null) {
+                return path.toFile();
+            }
+            File tmp = File.createTempFile("fxt-schema-", ".xsd");
+            tmp.deleteOnExit();
+            java.nio.file.Files.writeString(tmp.toPath(), editorHost.getActiveText().orElse(""));
+            return tmp;
+        } catch (Exception e) {
+            alert(javafx.scene.control.Alert.AlertType.ERROR, title, e.getMessage());
+            return null;
+        }
     }
 
     private File chooseFile(javafx.stage.Window window, String initialName, String label, String glob) {

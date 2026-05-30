@@ -32,8 +32,19 @@ class TypeLibraryPanelTest {
     @Test
     void exposesTheGenerateDocumentationAction() {
         WaitForAsyncUtils.waitForFxEvents();
-        boolean present = panel.lookupAll(".button").stream()
-                .anyMatch(n -> n instanceof Button b && "Generate Documentation".equals(b.getText()));
-        assertTrue(present, "Schema panel must offer the 'Generate Documentation' action");
+        assertTrue(hasButton("Generate Documentation"),
+                "Schema panel must offer the 'Generate Documentation' action");
+    }
+
+    @Test
+    void exposesTheGenerateSampleXmlAction() {
+        WaitForAsyncUtils.waitForFxEvents();
+        assertTrue(hasButton("Generate Sample XML"),
+                "Schema panel must offer the 'Generate Sample XML' action");
+    }
+
+    private boolean hasButton(String text) {
+        return panel.lookupAll(".button").stream()
+                .anyMatch(n -> n instanceof Button b && text.equals(b.getText()));
     }
 }
