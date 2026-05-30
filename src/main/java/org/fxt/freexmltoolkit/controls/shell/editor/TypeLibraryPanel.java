@@ -11,6 +11,8 @@ import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.shell.schema.XsdNodeLabels;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 
+import java.io.File;
+
 /**
  * The Schema activity side panel: lists the active XSD's top-level named types
  * (Type Library). Selecting a type reveals it in the Tree view. Bound to the
@@ -42,7 +44,8 @@ public class TypeLibraryPanel extends VBox {
         javafx.scene.layout.VBox actions = new javafx.scene.layout.VBox(4,
                 actionButton("Generate XSD from XML", "bi-magic", this::generateXsdFromActive),
                 actionButton("Flatten Schema", "bi-layers", this::flattenActive),
-                actionButton("Statistics", "bi-bar-chart", this::statisticsActive));
+                actionButton("Statistics", "bi-bar-chart", this::statisticsActive),
+                actionButton("Generate Documentation", "bi-file-earmark-text", this::generateDocumentationForActive));
 
         Label typesLabel = new Label("TYPES");
         typesLabel.getStyleClass().add("fxt-side-panel-title");
@@ -71,6 +74,110 @@ public class TypeLibraryPanel extends VBox {
     /** Collects statistics for the active XSD and opens a text report (async). */
     public void statisticsActive() {
         runAsync(SchemaActionRunner::statistics, EditorFileType.OTHER, "Statistics.txt");
+    }
+
+    /**
+     * Exports XSD documentation for the active schema: asks for a format
+     * (HTML / PDF / Word) and an output location, then generates it off the UI
+     * thread via {@link DocumentationRunner} and reports the result.
+     */
+    public void generateDocumentationForActive() {
+        var docOpt = editorHost.getActiveDocument();
+        if (docOpt.isEmpty() || docOpt.get().getFileType() != EditorFileType.XSD) {
+            alert(javafx.scene.control.Alert.AlertType.WARNING,
+                    "Generate Documentation", "Open an XSD schema first.");
+            return;
+        }
+        // The documentation pipeline reads the schema from disk; use the saved
+        // file, or fall back to a temp copy of the current (possibly unsaved) text.
+        File xsd;
+        try {
+            java.nio.file.Path path = docOpt.get().getPath();
+            if (path != null) {
+                xsd = path.toFile();
+            } else {
+                xsd = File.createTempFile("fxt-doc-", ".xsd");
+                xsd.deleteOnExit();
+                java.nio.file.Files.writeString(xsd.toPath(), editorHost.getActiveText().orElse(""));
+            }
+        } catch (Exception e) {
+            alert(javafx.scene.control.Alert.AlertType.ERROR, "Generate Documentation", e.getMessage());
+            return;
+        }
+
+        javafx.scene.control.ChoiceDialog<String> formatDialog =
+                new javafx.scene.control.ChoiceDialog<>("HTML", "HTML", "PDF", "Word");
+        formatDialog.setTitle("Generate Documentation");
+        formatDialog.setHeaderText("Choose the documentation format");
+        formatDialog.setContentText("Format:");
+        var format = formatDialog.showAndWait();
+        if (format.isEmpty()) {
+            return;
+        }
+
+        var window = getScene() != null ? getScene().getWindow() : null;
+        String baseName = docOpt.get().getDisplayName().replace('.', '_');
+        File target;
+        java.util.function.Function<File, String> export;
+        switch (format.get()) {
+            case "PDF" -> {
+                target = chooseFile(window, baseName + ".pdf", "PDF", "*.pdf");
+                export = out -> DocumentationRunner.exportPdf(xsd, out);
+            }
+            case "Word" -> {
+                target = chooseFile(window, baseName + ".docx", "Word", "*.docx");
+                export = out -> DocumentationRunner.exportWord(xsd, out);
+            }
+            default -> {
+                javafx.stage.DirectoryChooser dc = new javafx.stage.DirectoryChooser();
+                dc.setTitle("Choose output directory for HTML documentation");
+                target = dc.showDialog(window);
+                export = out -> DocumentationRunner.exportHtml(xsd, out);
+            }
+        }
+        if (target == null) {
+            return;
+        }
+
+        final File output = target;
+        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            String result = export.apply(output);
+            javafx.application.Platform.runLater(() -> {
+                if (result.startsWith("ERROR:")) {
+                    alert(javafx.scene.control.Alert.AlertType.ERROR, "Generate Documentation", result);
+                } else {
+                    alert(javafx.scene.control.Alert.AlertType.INFORMATION,
+                            "Generate Documentation", "Documentation generated:\n" + result.substring(3).trim());
+                    openInDesktop(output.isDirectory() ? new File(output, "index.html") : output);
+                }
+            });
+        });
+    }
+
+    private File chooseFile(javafx.stage.Window window, String initialName, String label, String glob) {
+        javafx.stage.FileChooser fc = new javafx.stage.FileChooser();
+        fc.setTitle("Save documentation as " + label);
+        fc.setInitialFileName(initialName);
+        fc.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter(label, glob));
+        return fc.showSaveDialog(window);
+    }
+
+    private static void openInDesktop(File file) {
+        try {
+            if (file.exists() && java.awt.Desktop.isDesktopSupported()) {
+                java.awt.Desktop.getDesktop().open(file);
+            }
+        } catch (Throwable ignored) {
+            // best-effort preview; never fail the action because the OS can't open it
+        }
+    }
+
+    private void alert(javafx.scene.control.Alert.AlertType type, String title, String message) {
+        javafx.scene.control.Alert alert = new javafx.scene.control.Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 
     private void runAsync(java.util.function.Function<String, String> action,
