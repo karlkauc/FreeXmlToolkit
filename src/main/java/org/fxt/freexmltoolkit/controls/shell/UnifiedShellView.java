@@ -279,12 +279,10 @@ public class UnifiedShellView extends BorderPane {
 
         Runnable sync = () -> {
             var active = editorHost.activeViewModeProperty().get();
-            boolean structured = editorHost.activeSupportsStructuredViews();
             boolean hasDoc = editorHost.getActiveDocument().isPresent();
             buttons.forEach((mode, button) -> {
                 button.setSelected(mode == active);
-                button.setDisable(!hasDoc
-                        || (mode != org.fxt.freexmltoolkit.controls.shell.editor.ViewMode.TEXT && !structured));
+                button.setDisable(!hasDoc || !editorHost.activeSupportsView(mode));
             });
         };
         sync.run();

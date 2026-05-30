@@ -204,6 +204,12 @@ public class EditorHost extends BorderPane {
                 && et.supportsStructuredViews();
     }
 
+    /** @return {@code true} if the active document offers the given view mode. */
+    public boolean activeSupportsView(ViewMode mode) {
+        return tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et
+                && et.supportsView(mode);
+    }
+
     /** @return the active editor caret as {@code [line, column]} (1-based), or {@code [1,1]}. */
     public int[] getActiveCaretLineColumn() {
         Tab tab = tabPane.getSelectionModel().getSelectedItem();
@@ -641,6 +647,7 @@ public class EditorHost extends BorderPane {
         private final javafx.scene.layout.StackPane contentStack = new javafx.scene.layout.StackPane();
         private org.fxt.freexmltoolkit.controls.shell.schema.XsdTreeView treeView;
         private org.fxt.freexmltoolkit.controls.shell.schema.XsdGraphicView graphicView;
+        private org.fxt.freexmltoolkit.controls.jsoneditor.view.JsonTreeView jsonTreeView;
         private org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext editorContext;
         private XsdNode currentSelection;
         private ViewMode viewMode = ViewMode.TEXT;
@@ -660,23 +667,43 @@ public class EditorHost extends BorderPane {
             refreshIcon();
         }
 
-        /** Structured views (Tree/Graphic) currently apply to XSD only. */
+        /** XSD-backed structured views (Tree/Graphic with the V2 model + commands). */
         boolean supportsStructuredViews() {
             return document.getFileType() == EditorFileType.XSD;
         }
 
+        /** Which view modes this document offers: XSD = Text/Tree/Graphic, JSON = Text/Tree. */
+        boolean supportsView(ViewMode mode) {
+            return switch (mode) {
+                case TEXT -> true;
+                case TREE -> document.getFileType() == EditorFileType.XSD
+                        || document.getFileType() == EditorFileType.JSON;
+                case GRAPHIC -> document.getFileType() == EditorFileType.XSD;
+            };
+        }
+
         void setViewMode(ViewMode mode) {
             ViewMode previous = this.viewMode;
-            ViewMode target = (mode != ViewMode.TEXT && !supportsStructuredViews()) ? ViewMode.TEXT : mode;
+            ViewMode target = supportsView(mode) ? mode : ViewMode.TEXT;
             this.viewMode = target;
             this.currentSelection = null;
-            // Build/refresh the model when entering a structured view from Text;
+            if (target == ViewMode.TEXT) {
+                showOnly(view.getNode());
+                return;
+            }
+            // JSON offers a read-only Tree view (no XSD model / commands).
+            if (document.getFileType() == EditorFileType.JSON) {
+                ensureJsonTree();
+                renderJsonTree();
+                showOnly(jsonTreeView);
+                return;
+            }
+            // XSD structured views: build/refresh the model when entering from Text;
             // keep it (with its undo history) when switching Tree <-> Graphic.
-            if (target != ViewMode.TEXT && (previous == ViewMode.TEXT || editorContext == null)) {
+            if (previous == ViewMode.TEXT || editorContext == null) {
                 parseModel();
             }
             switch (target) {
-                case TEXT -> showOnly(view.getNode());
                 case TREE -> {
                     ensureTree();
                     renderStructured();
@@ -687,6 +714,7 @@ public class EditorHost extends BorderPane {
                     renderStructured();
                     showOnly(graphicView);
                 }
+                default -> showOnly(view.getNode());
             }
         }
 
@@ -890,6 +918,23 @@ public class EditorHost extends BorderPane {
                     selectionCallback.run();
                 });
                 contentStack.getChildren().add(graphicView);
+            }
+        }
+
+        private void ensureJsonTree() {
+            if (jsonTreeView == null) {
+                jsonTreeView = new org.fxt.freexmltoolkit.controls.jsoneditor.view.JsonTreeView();
+                contentStack.getChildren().add(jsonTreeView);
+            }
+        }
+
+        /** Parses the current JSON text into the tree; an invalid document shows an empty tree. */
+        private void renderJsonTree() {
+            try {
+                jsonTreeView.setDocument(
+                        org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonNodeFactory.parse(view.getText()));
+            } catch (Exception e) {
+                jsonTreeView.setDocument(new org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonDocument());
             }
         }
 
