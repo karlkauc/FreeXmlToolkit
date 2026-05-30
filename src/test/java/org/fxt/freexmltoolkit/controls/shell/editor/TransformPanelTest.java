@@ -88,6 +88,30 @@ class TransformPanelTest {
         assertTrue(panel.getOutputText().contains("EAM_2024"), panel.getOutputText());
     }
 
+    @Test
+    void passesParametersAndHonorsTextOutputFormat(@TempDir Path tmp) throws Exception {
+        openGreeting(tmp);
+        Path xslt = tmp.resolve("param.xslt");
+        Files.writeString(xslt, """
+                <xsl:stylesheet version="2.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+                  <xsl:param name="who" select="'nobody'"/>
+                  <xsl:output method="text"/>
+                  <xsl:template match="/">Hi <xsl:value-of select="$who"/></xsl:template>
+                </xsl:stylesheet>
+                """);
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.setXsltFile(xslt.toFile());
+            panel.addParameter("who", "Karl");
+            panel.setOutputFormat(org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat.TEXT);
+            panel.transform();
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS, () -> panel.getOutputText().contains("Hi Karl"));
+        assertTrue(panel.getOutputText().contains("Hi Karl"), panel.getOutputText());
+        assertFalse(panel.getOutputText().contains("<?xml"), "text output must not be wrapped as XML");
+    }
+
     private void openGreeting(Path tmp) throws Exception {
         Path xml = tmp.resolve("doc.xml");
         Files.writeString(xml, XML);

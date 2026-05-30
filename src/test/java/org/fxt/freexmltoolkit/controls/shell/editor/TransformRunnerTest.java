@@ -37,4 +37,28 @@ class TransformRunnerTest {
         String result = TransformRunner.runJsonPath("{\"fund\":{\"id\":\"EAM_2024\"}}", "$.fund.id");
         assertTrue(result.contains("EAM_2024"), result);
     }
+
+    private static final String PARAM_XSLT = """
+            <xsl:stylesheet version="2.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+              <xsl:param name="greeting" select="'default'"/>
+              <xsl:output method="text"/>
+              <xsl:template match="/"><xsl:value-of select="$greeting"/></xsl:template>
+            </xsl:stylesheet>
+            """;
+
+    @Test
+    void passesParametersToTheStylesheet() {
+        String out = TransformRunner.xsltTransform("<doc/>", PARAM_XSLT,
+                java.util.Map.of("greeting", "Hello"),
+                org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat.TEXT);
+        assertEquals("Hello", out.strip(), out);
+    }
+
+    @Test
+    void usesParameterDefaultWhenNoneProvided() {
+        String out = TransformRunner.xsltTransform("<doc/>", PARAM_XSLT,
+                java.util.Map.of(),
+                org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat.TEXT);
+        assertEquals("default", out.strip(), out);
+    }
 }

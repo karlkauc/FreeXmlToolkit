@@ -2,6 +2,7 @@ package org.fxt.freexmltoolkit.controls.shell.editor;
 
 import javafx.application.Platform;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
@@ -11,10 +12,13 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import org.fxt.freexmltoolkit.FxtGui;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * The Transform activity side panel: transforms the active XML with a chosen
@@ -22,8 +26,8 @@ import java.nio.file.Files;
  * (Saxon / XmlService); runs off the UI thread and shows the result in a panel
  * output area.
  * <p>
- * Full XSLT-developer features (parameters, live preview, saved XQueries) are
- * follow-up increments.
+ * Supports XSLT parameters (name/value rows) and the output format (XML / HTML /
+ * XHTML / TEXT / JSON). Live preview and saved XQueries are follow-up increments.
  */
 public class TransformPanel extends VBox {
 
@@ -32,6 +36,8 @@ public class TransformPanel extends VBox {
     private final TextField xpathField = new TextField();
     private final Label pathLabel = new Label("XPATH");
     private final Label xsltStatus = new Label("XSLT: none");
+    private final VBox paramRows = new VBox(4);
+    private final ComboBox<OutputFormat> outputFormat = new ComboBox<>();
     private File xsltFile;
 
     public TransformPanel(EditorHost editorHost) {
@@ -44,6 +50,16 @@ public class TransformPanel extends VBox {
         Button setXslt = button("Set XSLT…", "bi-file-earmark-code", this::chooseXslt);
         Button transform = button("Transform", "bi-arrow-repeat", this::transform);
         xsltStatus.getStyleClass().add("fxt-placeholder-text");
+
+        // XSLT parameters (name/value rows) + output format.
+        Label paramsLabel = new Label("PARAMETERS");
+        paramsLabel.getStyleClass().add("fxt-side-panel-title");
+        Button addParam = button("Add Parameter", "bi-plus-circle", () -> addParameter("", ""));
+
+        outputFormat.getItems().setAll(OutputFormat.values());
+        outputFormat.setValue(OutputFormat.XML);
+        Label outputFormatLabel = new Label("OUTPUT");
+        outputFormatLabel.getStyleClass().add("fxt-side-panel-title");
 
         pathLabel.getStyleClass().add("fxt-side-panel-title");
         xpathField.getStyleClass().add("fxt-xpath-field");
@@ -59,8 +75,31 @@ public class TransformPanel extends VBox {
         VBox.setVgrow(output, Priority.ALWAYS);
 
         getChildren().addAll(title, new HBox(6, setXslt, transform), xsltStatus,
+                paramsLabel, paramRows, addParam,
+                outputFormatLabel, outputFormat,
                 pathLabel, new HBox(6, xpathField, runXPath),
                 resultLabel, output);
+    }
+
+    /** Adds an XSLT parameter row (used by the "Add Parameter" button and tests). */
+    public void addParameter(String name, String value) {
+        paramRows.getChildren().add(new ParamRow(name, value));
+    }
+
+    /** Collects the non-blank parameter rows into a name→value map. */
+    Map<String, Object> collectParameters() {
+        Map<String, Object> params = new LinkedHashMap<>();
+        for (var node : paramRows.getChildren()) {
+            if (node instanceof ParamRow row && !row.name().isBlank()) {
+                params.put(row.name(), row.value());
+            }
+        }
+        return params;
+    }
+
+    /** Sets the output format (also from the combo); used by tests. */
+    public void setOutputFormat(OutputFormat format) {
+        outputFormat.setValue(format);
     }
 
     /** Sets the stylesheet used by {@link #transform()} (also from the file chooser). */
@@ -81,11 +120,14 @@ public class TransformPanel extends VBox {
         }
         String xml = editorHost.getActiveText().orElse("");
         File xslt = xsltFile;
+        Map<String, Object> params = collectParameters();
+        OutputFormat format = outputFormat.getValue() != null ? outputFormat.getValue() : OutputFormat.XML;
         output.setText("Transforming…");
         FxtGui.executorService.submit(() -> {
             String result;
             try {
-                result = TransformRunner.xsltTransform(xml, Files.readString(xslt.toPath(), StandardCharsets.UTF_8));
+                String xsltContent = Files.readString(xslt.toPath(), StandardCharsets.UTF_8);
+                result = TransformRunner.xsltTransform(xml, xsltContent, params, format);
             } catch (Exception e) {
                 result = "ERROR: " + e.getMessage();
             }
@@ -152,5 +194,30 @@ public class TransformPanel extends VBox {
         button.getStyleClass().add("fxt-tool-button");
         button.setOnAction(e -> action.run());
         return button;
+    }
+
+    /** A single editable XSLT parameter (name, value) with a remove button. */
+    private final class ParamRow extends HBox {
+        private final TextField nameField = new TextField();
+        private final TextField valueField = new TextField();
+
+        ParamRow(String name, String value) {
+            super(6);
+            nameField.setPromptText("name");
+            nameField.setText(name);
+            valueField.setPromptText("value");
+            valueField.setText(value);
+            HBox.setHgrow(valueField, Priority.ALWAYS);
+            Button remove = button("", "bi-x-circle", () -> paramRows.getChildren().remove(this));
+            getChildren().addAll(nameField, valueField, remove);
+        }
+
+        String name() {
+            return nameField.getText() == null ? "" : nameField.getText().trim();
+        }
+
+        String value() {
+            return valueField.getText() == null ? "" : valueField.getText();
+        }
     }
 }

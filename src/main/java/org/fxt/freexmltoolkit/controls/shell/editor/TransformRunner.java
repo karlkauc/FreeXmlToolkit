@@ -17,11 +17,29 @@ public final class TransformRunner {
     private TransformRunner() {
     }
 
-    /** Transforms {@code xml} with {@code xsltContent}; returns output or an error message. */
+    /** Transforms {@code xml} with {@code xsltContent} (no parameters, XML output). */
     public static String xsltTransform(String xml, String xsltContent) {
         try {
             XsltTransformationResult result =
                     XsltTransformationEngine.getInstance().quickTransform(xml, xsltContent);
+            return result.isSuccess() ? result.getOutputContent() : "ERROR: " + result.getErrorMessage();
+        } catch (Exception e) {
+            return "ERROR: " + e.getMessage();
+        }
+    }
+
+    /**
+     * Transforms {@code xml} with {@code xsltContent}, passing the given stylesheet
+     * parameters and producing the chosen output format.
+     *
+     * @return the transformation output, or {@code "ERROR: …"}
+     */
+    public static String xsltTransform(String xml, String xsltContent,
+                                       java.util.Map<String, Object> parameters,
+                                       XsltTransformationEngine.OutputFormat outputFormat) {
+        try {
+            XsltTransformationResult result = XsltTransformationEngine.getInstance()
+                    .transform(xml, xsltContent, parameters, outputFormat);
             return result.isSuccess() ? result.getOutputContent() : "ERROR: " + result.getErrorMessage();
         } catch (Exception e) {
             return "ERROR: " + e.getMessage();
