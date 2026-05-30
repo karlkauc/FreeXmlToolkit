@@ -4,14 +4,18 @@ import javafx.application.Platform;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuButton;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import org.fxt.freexmltoolkit.FxtGui;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.service.FavoritesService;
 import org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat;
 
 import java.io.File;
@@ -38,6 +42,7 @@ public class TransformPanel extends VBox {
     private final Label xsltStatus = new Label("XSLT: none");
     private final VBox paramRows = new VBox(4);
     private final ComboBox<OutputFormat> outputFormat = new ComboBox<>();
+    private final MenuButton savedQueriesMenu;
     private File xsltFile;
 
     public TransformPanel(EditorHost editorHost) {
@@ -63,10 +68,18 @@ public class TransformPanel extends VBox {
 
         pathLabel.getStyleClass().add("fxt-side-panel-title");
         xpathField.getStyleClass().add("fxt-xpath-field");
+        HBox.setHgrow(xpathField, Priority.ALWAYS);
         Button runXPath = button("Run", "bi-lightning-charge", this::runXPath);
         xpathField.setOnAction(e -> runXPath());
         updatePathMode();
         editorHost.activeTabProperty().addListener((obs, oldV, newV) -> updatePathMode());
+
+        // Saved queries (reuses FavoritesService storage).
+        Button saveQuery = button("Save Query", "bi-save", this::saveCurrentQuery);
+        savedQueriesMenu = new MenuButton("Saved");
+        savedQueriesMenu.setGraphic(icon("bi-collection"));
+        savedQueriesMenu.getStyleClass().add("fxt-tool-button");
+        savedQueriesMenu.setOnShowing(e -> refreshSavedQueriesMenu());
 
         Label resultLabel = new Label("RESULT");
         resultLabel.getStyleClass().add("fxt-side-panel-title");
@@ -78,6 +91,7 @@ public class TransformPanel extends VBox {
                 paramsLabel, paramRows, addParam,
                 outputFormatLabel, outputFormat,
                 pathLabel, new HBox(6, xpathField, runXPath),
+                new HBox(6, saveQuery, savedQueriesMenu),
                 resultLabel, output);
     }
 
@@ -175,6 +189,62 @@ public class TransformPanel extends VBox {
     /** Sets the XPath expression (for tests/observers). */
     public void setXPathExpression(String expression) {
         xpathField.setText(expression);
+    }
+
+    /** @return the current query expression text. */
+    public String getQueryText() {
+        return xpathField.getText();
+    }
+
+    /** Loads a saved query file's content into the query field. */
+    public void loadQueryFromFile(File file) {
+        try {
+            xpathField.setText(Files.readString(file.toPath(), StandardCharsets.UTF_8).strip());
+        } catch (Exception e) {
+            output.setText("Could not load query: " + e.getMessage());
+        }
+    }
+
+    /** Saves the current query expression under a chosen name (reuses FavoritesService). */
+    public void saveCurrentQuery() {
+        String expression = xpathField.getText();
+        if (expression == null || expression.isBlank()) {
+            output.setText("Enter a query expression to save.");
+            return;
+        }
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Save Query");
+        dialog.setHeaderText(null);
+        dialog.setContentText("Query name:");
+        dialog.showAndWait().ifPresent(name -> {
+            if (name.isBlank()) {
+                return;
+            }
+            File saved = FavoritesService.getInstance().saveXPathQuery(name.trim(), expression);
+            output.setText(saved != null ? "Saved query: " + saved.getName() : "Could not save query.");
+        });
+    }
+
+    private void refreshSavedQueriesMenu() {
+        savedQueriesMenu.getItems().clear();
+        var files = FavoritesService.getInstance().getSavedXPathQueries();
+        if (files.isEmpty()) {
+            MenuItem empty = new MenuItem("(no saved queries)");
+            empty.setDisable(true);
+            savedQueriesMenu.getItems().add(empty);
+            return;
+        }
+        for (File file : files) {
+            MenuItem item = new MenuItem(file.getName().replaceFirst("\\.xpath$", ""));
+            item.setOnAction(e -> loadQueryFromFile(file));
+            savedQueriesMenu.getItems().add(item);
+        }
+    }
+
+    private IconifyIcon icon(String literal) {
+        IconifyIcon graphic = new IconifyIcon(literal);
+        graphic.setIconSize(16);
+        return graphic;
     }
 
     private void chooseXslt() {

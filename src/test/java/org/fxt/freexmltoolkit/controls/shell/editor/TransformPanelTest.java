@@ -112,6 +112,28 @@ class TransformPanelTest {
         assertFalse(panel.getOutputText().contains("<?xml"), "text output must not be wrapped as XML");
     }
 
+    @Test
+    void loadsASavedQueryFileIntoTheField(@TempDir Path tmp) throws Exception {
+        Path q = tmp.resolve("q.xpath");
+        Files.writeString(q, "/root/item[@id]\n");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.loadQueryFromFile(q.toFile());
+            return null;
+        });
+        assertEquals("/root/item[@id]", panel.getQueryText());
+    }
+
+    @Test
+    void exposesSaveAndSavedQueryControls() {
+        WaitForAsyncUtils.waitForFxEvents();
+        boolean hasSave = panel.lookupAll(".button").stream()
+                .anyMatch(n -> n instanceof javafx.scene.control.Button b && "Save Query".equals(b.getText()));
+        boolean hasSaved = panel.lookupAll(".menu-button").stream()
+                .anyMatch(n -> n instanceof javafx.scene.control.MenuButton b && "Saved".equals(b.getText()));
+        assertTrue(hasSave, "panel must offer a 'Save Query' action");
+        assertTrue(hasSaved, "panel must offer a 'Saved' queries menu");
+    }
+
     private void openGreeting(Path tmp) throws Exception {
         Path xml = tmp.resolve("doc.xml");
         Files.writeString(xml, XML);
