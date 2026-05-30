@@ -278,7 +278,8 @@ PDF/FOP · Signature (sign+validate) · Favorites · Help · Settings (live them
 | ~~1~~ ✅ | Doc export (HTML/PDF/Word) | DONE 2026-05-30 (commit 7c099aee): `DocumentationRunner` reuses the old file-based pipeline (`XsdDocumentationService` HTML; Word/PDF services from parsed `XsdDocumentationData`); Schema panel "Generate Documentation" action (format + output chooser, async). v2 export stub bypassed. Diagram images disabled for now. |
 | ~~2~~ ✅ | Sample-data: full sample-XML instance from XSD | DONE 2026-05-30 (commit 07659345): `SampleXmlRunner` wraps `XsdDocumentationService.generateSampleXml`; Schema panel "Generate Sample XML" opens the instance as a new tab. (Profiled/advanced options — mandatory-only toggle, max-occurrences, ProfiledXmlGeneratorService profiles — not yet surfaced.) |
 | 2 | JSON Tree view mode | own renderer; only Text JSON today |
-| 2 | XSLT-Developer params / saved queries / output-format | extend TransformPanel |
+| ~~2~~ ✅ | XSLT-Developer params + output-format | DONE 2026-05-30 (commit 3a30f9d8): TransformPanel parameter rows + output-format combo (XML/HTML/XHTML/TEXT/JSON); `TransformRunner.xsltTransform(xml, xslt, params, OutputFormat)`. |
+| 3 | XSLT live preview + saved XQueries | follow-ups to the param work (saved-query console exists in the legacy unified editor) |
 | ~~2~~ ✅ | Diff/Compare two documents | DONE 2026-05-30 (commit 02d27c2e): `EditorHost.openDiffWithFile` reuses `controls/diff` `DiffView`/`DiffEngine`; toolbar "Compare with File…". Save-from-diff writes back to the active doc. |
 | 3 | PDF preview pane | FOP generates; preview pane missing |
 | 3 | Full spreadsheet converter dialog (Excel, CSV options, Excel→XML) | only one-click CSV today |
