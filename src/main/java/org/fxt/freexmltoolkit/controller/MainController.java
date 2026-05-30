@@ -1959,9 +1959,10 @@ public class MainController implements Initializable {
         // Initialize drag and drop
         initializeDragAndDrop();
 
-        // Load the welcome page on startup
+        // Boot directly into the Unified Shell (cutover). The legacy sidebar
+        // tools remain reachable as a bridge for not-yet-migrated features.
         Platform.runLater(() -> {
-            loadWelcomePage();
+            navigateToPage("unifiedShell");
             applyTheme();
             setupKeyboardShortcuts();
 

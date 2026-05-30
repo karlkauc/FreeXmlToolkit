@@ -246,3 +246,46 @@ code removed, performance results, deviations from plan).
 | 8 | PDF/FOP + Signature | #33–38 | Fop/Signature shells |
 | 9 | Favorites/Help/Settings/Welcome/cross-cut | #39, 41–48 | — |
 | 10 | Cutover & cleanup | full matrix ☑ | main.fxml nav, unified-editor, controls/unified/*, leftover tabs/CSS |
+
+---
+
+## Cutover progress & remaining backlog (updated 2026-05-30)
+
+**Strategy chosen:** *Early cutover + legacy bridge* (a pragmatic reading of D3). Rather than
+migrating every last feature before flipping the default, the shell becomes the default landing
+surface now, while the **old sidebar tools stay reachable** (the "Editor (Legacy)" button + every
+existing per-tool button) so **no feature is lost**. Remaining features are migrated by usage
+priority afterwards, and old code is removed piece-by-piece only once its replacement is verified.
+
+**Cutover step 1 — DONE (2026-05-30):**
+- App boots into the Unified Shell (`MainController.initialize` → `navigateToPage("unifiedShell")`).
+- Sidebar: new shell is the primary **"Editor"**; the old unified editor is **"Editor (Legacy)"**;
+  all legacy tool buttons remain (the bridge).
+- Guards: `AppBootsIntoShellTest` (boots into `.fxt-shell`) + `UnifiedShellIntegrationTest`
+  (shell loads inside the fully-initialized app). Full suite + `IconifyIconCoverageTest` green.
+
+**Migrated into the shell so far (service-backed):** Explorer/Recent/D&D · XML & JSON editing +
+IntelliSense · XSD Text/Tree/Graphic+Grid + Inspector + structured editing (Add Element/Attribute/
+Sequence/Choice, Rename, Change Type/Cardinality, Delete via commands) · Type Library + facets ·
+Generate XSD · Flatten · Statistics · XSD & Schematron & batch validation · XSLT/XPath/JSONPath ·
+PDF/FOP · Signature (sign+validate) · Favorites · Help · Settings (live theme) · XML→CSV export.
+
+**Remaining backlog (priority order — migrate, then remove the legacy counterpart):**
+
+| Prio | Feature | Notes / why deferred |
+|---|---|---|
+| 1 | Welcome/Recent dashboard parity | shell Explorer has Recent; confirm parity, then drop welcome-on-boot dependency |
+| 1 | Doc export (HTML/PDF/Word) + Sample-data | needs old file-based `XsdDocumentationData` pipeline (v2 `XsdDocumentationHtmlService.export` is a stub) |
+| 2 | JSON Tree view mode | own renderer; only Text JSON today |
+| 2 | XSLT-Developer params / saved queries / output-format | extend TransformPanel |
+| 2 | Diff/Compare two documents | self-contained |
+| 3 | PDF preview pane | FOP generates; preview pane missing |
+| 3 | Full spreadsheet converter dialog (Excel, CSV options, Excel→XML) | only one-click CSV today |
+| 3 | Certificate creation (signature expert) | sign+validate done |
+| 4 | Auto-Update UI · FundsXML menu integration | cross-cutting; still served by legacy chrome |
+
+**Polish (track, fix opportunistically):** preserve expand/collapse view-state after edits · graphic
+context menu parity · remove the duplicated status line · de-flake occasional TestFX timing.
+
+**Phase 10 (full cleanup) gate unchanged:** remove legacy nav/tabs/controllers/CSS only once the
+matrix row for each is ☑ and a reference search proves no live use (constraints #2/#3).
