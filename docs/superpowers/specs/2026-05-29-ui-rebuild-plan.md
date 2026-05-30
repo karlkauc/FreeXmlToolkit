@@ -279,7 +279,8 @@ PDF/FOP · Signature (sign+validate) · Favorites · Help · Settings (live them
 | ~~2~~ ✅ | Sample-data: full sample-XML instance from XSD | DONE 2026-05-30 (commit 07659345): `SampleXmlRunner` wraps `XsdDocumentationService.generateSampleXml`; Schema panel "Generate Sample XML" opens the instance as a new tab. (Profiled/advanced options — mandatory-only toggle, max-occurrences, ProfiledXmlGeneratorService profiles — not yet surfaced.) |
 | ~~2~~ ✅ | JSON Tree view mode | DONE 2026-05-30 (commit a9f760e6): reuses `controls/jsoneditor` `JsonTreeView`; per-mode `supportsView` (JSON = Text+Tree, Graphic stays XSD-only). Read-only tree for now (no JSON editing via tree). |
 | ~~2~~ ✅ | XSLT-Developer params + output-format | DONE 2026-05-30 (commit 3a30f9d8): TransformPanel parameter rows + output-format combo (XML/HTML/XHTML/TEXT/JSON); `TransformRunner.xsltTransform(xml, xslt, params, OutputFormat)`. |
-| 3 | XSLT live preview + saved XQueries | follow-ups to the param work (saved-query console exists in the legacy unified editor) |
+| 3 | Saved queries | DONE 2026-05-30 (commit 85bfbc83): TransformPanel "Save Query" + "Saved" menu reuse `FavoritesService` (.xpath storage). |
+| 3 | XSLT live preview + XQuery execution | follow-ups (live re-transform on edit; the shell query field is XPath/JSONPath — standalone XQuery execution not yet wired) |
 | ~~2~~ ✅ | Diff/Compare two documents | DONE 2026-05-30 (commit 02d27c2e): `EditorHost.openDiffWithFile` reuses `controls/diff` `DiffView`/`DiffEngine`; toolbar "Compare with File…". Save-from-diff writes back to the active doc. |
 | ~~3~~ ✅ | PDF preview pane | DONE 2026-05-30 (commit b6f98432): `PdfPreview` + `PdfPreviewRenderer` (PDFBox, lazy per-page — fixes the legacy all-pages-rasterised hotspot); `EditorHost.openPdfPreview`; FopPanel "Preview" + auto-preview after generate. |
 | 3 | Full spreadsheet converter dialog (Excel, CSV options, Excel→XML) | only one-click CSV today |
