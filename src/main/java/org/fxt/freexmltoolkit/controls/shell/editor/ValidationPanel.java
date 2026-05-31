@@ -1,9 +1,11 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
@@ -11,6 +13,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
+import javafx.util.Duration;
 import org.fxt.freexmltoolkit.FxtGui;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 
@@ -21,7 +24,8 @@ import java.util.List;
  * The Validation activity side panel: validates the active XML against its bound
  * XSD (see {@link EditorHost#activeSchemaProperty()}) and an optional Schematron
  * file, listing the problems; selecting one jumps to its line. Validation runs
- * off the UI thread via {@link ValidationRunner}.
+ * off the UI thread via {@link ValidationRunner}. Supports continuous (debounced)
+ * validation while typing, toggleable via the "Validate while typing" checkbox.
  */
 public class ValidationPanel extends VBox {
 
@@ -29,6 +33,8 @@ public class ValidationPanel extends VBox {
     private final ObservableList<ValidationProblem> problems = FXCollections.observableArrayList();
     private final Label status = new Label("Not validated");
     private final Label schematronStatus = new Label("Schematron: none");
+    private final CheckBox liveValidation = new CheckBox("Validate while typing");
+    private final PauseTransition debounce = new PauseTransition(Duration.millis(600));
 
     public ValidationPanel(EditorHost editorHost) {
         this.editorHost = editorHost;
@@ -67,8 +73,36 @@ public class ValidationPanel extends VBox {
             }
         });
 
+        // Continuous (debounced) validation: re-validate shortly after the active
+        // document changes (typing / tab switch / schema binding), when enabled.
+        liveValidation.setSelected(true);
+        liveValidation.setOnAction(e -> scheduleRevalidation());
+        debounce.setOnFinished(e -> {
+            if (liveValidation.isSelected()) {
+                revalidate();
+            }
+        });
+        editorHost.activeCaretProperty().addListener((obs, oldV, newV) -> scheduleRevalidation());
+        editorHost.activeTabProperty().addListener((obs, oldV, newV) -> scheduleRevalidation());
+        editorHost.activeSchemaProperty().addListener((obs, oldV, newV) -> scheduleRevalidation());
+
         getChildren().addAll(title, new HBox(6, validate, setSchematron), new HBox(6, batch),
-                status, schematronStatus, problemsLabel, list);
+                liveValidation, status, schematronStatus, problemsLabel, list);
+    }
+
+    /** Schedules a debounced re-validation if live validation is on and the active doc is XML-family. */
+    private void scheduleRevalidation() {
+        if (liveValidation.isSelected() && isXmlFamilyActive()) {
+            debounce.playFromStart();
+        }
+    }
+
+    /** @return {@code true} if the active document is XML-family (not JSON / other). */
+    private boolean isXmlFamilyActive() {
+        return editorHost.getActiveDocument().map(d -> switch (d.getFileType()) {
+            case XML, XSD, XSLT, SCHEMATRON -> true;
+            default -> false;
+        }).orElse(false);
     }
 
     /** Runs validation of the active document (XSD + optional Schematron), async. */

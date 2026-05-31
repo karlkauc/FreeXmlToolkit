@@ -121,6 +121,29 @@ class ValidationPanelTest {
         assertTrue(host.getActiveText().orElse("").contains("good.xml: valid"));
     }
 
+    @Test
+    void autoValidatesAfterChangesWhenLiveEnabled(@TempDir Path tmp) throws Exception {
+        Path xsd = tmp.resolve("schema.xsd");
+        Files.writeString(xsd, XSD);
+        Path invalid = tmp.resolve("invalid.xml");
+        Files.writeString(invalid, "<root><wrong/></root>");
+
+        // Open + bind schema, but do NOT call revalidate() manually — the debounced
+        // continuous validation must report problems on its own.
+        open(invalid, xsd);
+        WaitForAsyncUtils.waitFor(6, TimeUnit.SECONDS, () -> panel.getProblemCount() > 0);
+        assertTrue(panel.getProblemCount() > 0, "live validation must auto-report problems without a manual run");
+    }
+
+    @Test
+    void liveValidationToggleIsOnByDefault() {
+        WaitForAsyncUtils.waitForFxEvents();
+        boolean present = panel.lookupAll(".check-box").stream()
+                .anyMatch(n -> n instanceof javafx.scene.control.CheckBox cb
+                        && "Validate while typing".equals(cb.getText()) && cb.isSelected());
+        assertTrue(present, "the 'Validate while typing' toggle must exist and default to on");
+    }
+
     private void open(Path xml, Path xsd) throws Exception {
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
         WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
