@@ -45,7 +45,11 @@ public class ExplorerPanel extends VBox {
 
         Label openEditors = new Label("OPEN EDITORS");
         openEditors.getStyleClass().add("fxt-side-panel-title");
-        ListView<OpenDocument> openList = new ListView<>(editorHost.getOpenDocuments());
+        // Back the ListView with a private copy (not the live list) and sync via
+        // clearSelection + setAll, to avoid a JavaFX ListViewBehavior crash that
+        // can occur when the bound items list is mutated while a row is selected.
+        ObservableList<OpenDocument> openItems = FXCollections.observableArrayList(editorHost.getOpenDocuments());
+        ListView<OpenDocument> openList = new ListView<>(openItems);
         openList.getStyleClass().add("fxt-open-editors");
         openList.setPrefHeight(120);
         openList.setCellFactory(lv -> new OpenDocumentCell());
@@ -68,16 +72,19 @@ public class ExplorerPanel extends VBox {
 
         getChildren().addAll(title, actions, workspace, openEditors, openList, recentLabel, recentList);
 
-        // Track recent files as documents open.
+        // Track recent files as documents open, and keep the Open Editors list in
+        // sync (selection cleared before each replace — see above).
         refreshRecent();
         editorHost.getOpenDocuments().addListener((javafx.collections.ListChangeListener<OpenDocument>) c -> {
+            java.util.List<OpenDocument> added = new java.util.ArrayList<>();
             while (c.next()) {
                 if (c.wasAdded()) {
-                    for (OpenDocument doc : c.getAddedSubList()) {
-                        rememberRecent(doc);
-                    }
+                    added.addAll(c.getAddedSubList());
                 }
             }
+            openList.getSelectionModel().clearSelection();
+            openItems.setAll(editorHost.getOpenDocuments());
+            added.forEach(this::rememberRecent);
         });
     }
 
