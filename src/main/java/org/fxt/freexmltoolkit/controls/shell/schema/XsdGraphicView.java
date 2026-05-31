@@ -11,6 +11,8 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNodeFactory;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Consumer;
 
 /**
@@ -39,11 +41,56 @@ public class XsdGraphicView extends ScrollPane {
     private static final int DEFAULT_EXPAND_DEPTH = 8;
 
     public void setSchema(XsdSchema schema) {
+        // Preserve the user's expand/collapse state (by node id) across re-renders,
+        // e.g. after a structured edit where the model nodes persist (matrix #50).
+        boolean hadPriorRender = getContent() instanceof VBox c && !c.getChildren().isEmpty()
+                && c.getChildren().get(0) instanceof NodeCard;
+        Set<String> expandedIds = currentExpandedIds();
         NodeCard root = new NodeCard(schema, true);
         VBox canvas = new VBox(root);
         canvas.getStyleClass().add("fxt-graphic-canvas");
         setContent(canvas);
-        expandToDepth(root, DEFAULT_EXPAND_DEPTH);
+        if (hadPriorRender) {
+            restoreExpansion(root, expandedIds); // empty set ⇒ everything collapsed (user's choice)
+        } else {
+            expandToDepth(root, DEFAULT_EXPAND_DEPTH);
+        }
+    }
+
+    /** @return the node ids of all currently-expanded container cards. */
+    private Set<String> currentExpandedIds() {
+        Set<String> ids = new HashSet<>();
+        if (getContent() instanceof VBox canvas && !canvas.getChildren().isEmpty()
+                && canvas.getChildren().get(0) instanceof NodeCard root) {
+            collectExpanded(root, ids);
+        }
+        return ids;
+    }
+
+    private void collectExpanded(NodeCard card, Set<String> ids) {
+        if (card.container && card.expanded) {
+            ids.add(card.node.getId());
+            if (card.childrenBox != null) {
+                for (var child : card.childrenBox.getChildren()) {
+                    if (child instanceof NodeCard nested) {
+                        collectExpanded(nested, ids);
+                    }
+                }
+            }
+        }
+    }
+
+    private void restoreExpansion(NodeCard card, Set<String> ids) {
+        if (card.container && ids.contains(card.node.getId())) {
+            card.setExpanded(true);
+            if (card.childrenBox != null) {
+                for (var child : card.childrenBox.getChildren()) {
+                    if (child instanceof NodeCard nested) {
+                        restoreExpansion(nested, ids);
+                    }
+                }
+            }
+        }
     }
 
     private void expandToDepth(NodeCard card, int depth) {
@@ -82,13 +129,37 @@ public class XsdGraphicView extends ScrollPane {
 
     /** Selects (reveals) the card for the given node, if present. */
     public void selectNode(XsdNode node) {
-        if (getContent() instanceof VBox canvas && !canvas.getChildren().isEmpty()
-                && canvas.getChildren().get(0) instanceof NodeCard root) {
+        NodeCard root = rootCard();
+        if (root != null) {
             NodeCard card = root.find(node);
             if (card != null) {
                 card.select();
             }
         }
+    }
+
+    /** Expands or collapses the card for {@code node} (e.g. for expand/collapse-all). */
+    public void setNodeExpanded(XsdNode node, boolean expanded) {
+        NodeCard root = rootCard();
+        NodeCard card = root != null ? root.find(node) : null;
+        if (card != null) {
+            card.setExpanded(expanded);
+        }
+    }
+
+    /** @return {@code true} if the card for {@code node} is currently expanded. */
+    public boolean isNodeExpanded(XsdNode node) {
+        NodeCard root = rootCard();
+        NodeCard card = root != null ? root.find(node) : null;
+        return card != null && card.expanded;
+    }
+
+    private NodeCard rootCard() {
+        if (getContent() instanceof VBox canvas && !canvas.getChildren().isEmpty()
+                && canvas.getChildren().get(0) instanceof NodeCard root) {
+            return root;
+        }
+        return null;
     }
 
     private void select(NodeCard card) {

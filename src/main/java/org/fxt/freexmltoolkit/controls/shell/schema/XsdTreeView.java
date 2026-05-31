@@ -1,11 +1,15 @@
 package org.fxt.freexmltoolkit.controls.shell.schema;
 
 import javafx.scene.control.TreeCell;
+import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNodeFactory;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Virtualized Tree view of an XSD (UI rebuild Phase 4, increment 1). Reuses the
@@ -109,9 +113,45 @@ public class XsdTreeView extends TreeView<XsdNode> {
         });
     }
 
-    /** Renders the given parsed schema. */
+    /**
+     * Renders the given parsed schema, preserving the user's expand/collapse
+     * state (by node id) across re-renders — e.g. after a structured edit, where
+     * the model nodes (and their immutable ids) persist (matrix #50).
+     */
     public void setSchema(XsdSchema schema) {
-        setRoot(XsdTreeBuilder.build(schema));
+        Map<String, Boolean> expansion = captureExpansion(getRoot(), new HashMap<>());
+        TreeItem<XsdNode> root = XsdTreeBuilder.build(schema);
+        if (!expansion.isEmpty()) {
+            applyExpansion(root, expansion);
+        }
+        setRoot(root);
+    }
+
+    /** Records {@code nodeId -> isExpanded} for every non-leaf item in the current tree. */
+    private Map<String, Boolean> captureExpansion(TreeItem<XsdNode> item, Map<String, Boolean> acc) {
+        if (item == null) {
+            return acc;
+        }
+        if (item.getValue() != null && !item.isLeaf()) {
+            acc.put(item.getValue().getId(), item.isExpanded());
+        }
+        for (TreeItem<XsdNode> child : item.getChildren()) {
+            captureExpansion(child, acc);
+        }
+        return acc;
+    }
+
+    /** Restores the captured expand/collapse state onto the freshly built tree (by node id). */
+    private void applyExpansion(TreeItem<XsdNode> item, Map<String, Boolean> expansion) {
+        if (item.getValue() != null) {
+            Boolean expanded = expansion.get(item.getValue().getId());
+            if (expanded != null) {
+                item.setExpanded(expanded);
+            }
+        }
+        for (TreeItem<XsdNode> child : item.getChildren()) {
+            applyExpansion(child, expansion);
+        }
     }
 
     /** Selects the tree item backing the given node (by identity), if present. */
