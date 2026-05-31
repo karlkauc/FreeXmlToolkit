@@ -252,6 +252,10 @@ public class MainController implements Initializable {
     @FXML
     HBox bottomButtonRow;
 
+    /** The legacy bottom footer (version + memory). Hidden when the Unified Shell is shown. */
+    @FXML
+    HBox bottomLine;
+
     /**
      * Left menu VBox container for navigation buttons.
      */
@@ -834,6 +838,15 @@ public class MainController implements Initializable {
             javafx.scene.layout.AnchorPane.setBottomAnchor(newLoadedPane, 0.0);
             javafx.scene.layout.AnchorPane.setLeftAnchor(newLoadedPane, 0.0);
             javafx.scene.layout.AnchorPane.setRightAnchor(newLoadedPane, 0.0);
+
+            // The Unified Shell has its own status bar; hide the legacy footer so the
+            // shell extends to the very bottom of the screen.
+            boolean isShell = loader.getController()
+                    instanceof org.fxt.freexmltoolkit.controller.UnifiedShellController;
+            if (bottomLine != null) {
+                bottomLine.setVisible(!isShell);
+                bottomLine.setManaged(!isShell);
+            }
 
             // Fade-in animation for tab content
             newLoadedPane.setOpacity(0);

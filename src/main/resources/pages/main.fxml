@@ -359,7 +359,7 @@
             </MenuBar>
         </top>
         <bottom>
-            <HBox styleClass="bottom_line" BorderPane.alignment="CENTER">
+            <HBox fx:id="bottomLine" styleClass="bottom_line" BorderPane.alignment="CENTER">
                 <VBox alignment="CENTER_LEFT">
                     <Label fx:id="version" contentDisplay="CENTER" text="Version">
                         <font>

@@ -70,4 +70,25 @@ class UnifiedShellIntegrationTest {
         assertEquals(containerHeight, shell.getHeight(), 1.0,
                 "the shell must fill the content area's height (status bar pinned to the bottom)");
     }
+
+    @Test
+    void hidesLegacyFooterInShellMode() {
+        WaitForAsyncUtils.waitForFxEvents();
+        WaitForAsyncUtils.waitForAsyncFx(3000, () -> {
+            mainController.navigateToPage("unifiedShell");
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        javafx.scene.Node footer = root.lookup(".bottom_line");
+        assertNotNull(footer, "the legacy footer node exists");
+        assertFalse(footer.isManaged(), "the legacy footer must be hidden (unmanaged) in shell mode");
+
+        // Switching to a legacy page restores the footer.
+        WaitForAsyncUtils.waitForAsyncFx(3000, () -> {
+            mainController.navigateToPage("help");
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        assertTrue(root.lookup(".bottom_line").isManaged(), "the legacy footer returns for legacy pages");
+    }
 }
