@@ -51,6 +51,21 @@ class HelpAndSettingsPanelTest {
     }
 
     @Test
+    void settingsLoadsEditorAndProxyControls() {
+        WaitForAsyncUtils.waitForFxEvents();
+        int expectedIndent = org.fxt.freexmltoolkit.di.ServiceRegistry
+                .get(org.fxt.freexmltoolkit.service.PropertiesService.class).getXmlIndentSpaces();
+        assertEquals(expectedIndent, settings.getIndentValue(),
+                "indent spinner must load the persisted XML indent setting");
+        boolean hasProxyHost = settings.lookupAll(".text-field").stream()
+                .anyMatch(n -> n instanceof javafx.scene.control.TextField t && "host".equals(t.getPromptText()));
+        boolean hasSave = settings.lookupAll(".button").stream()
+                .anyMatch(n -> n instanceof javafx.scene.control.Button b && "Save Settings".equals(b.getText()));
+        assertTrue(hasProxyHost, "proxy host field must be present");
+        assertTrue(hasSave, "'Save Settings' button must be present");
+    }
+
+    @Test
     void settingsTogglesDesignTokenThemeOnRoot() {
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
             settings.applyTheme(true);
