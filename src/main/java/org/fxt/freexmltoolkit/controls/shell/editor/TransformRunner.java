@@ -46,6 +46,24 @@ public final class TransformRunner {
         }
     }
 
+    /**
+     * Executes an XQuery against {@code xml} with the given external variables and
+     * output format (reuses {@link XsltTransformationEngine#transformXQuery}).
+     *
+     * @return the query output, or {@code "ERROR: …"}
+     */
+    public static String runXQuery(String xml, String xqueryContent,
+                                   java.util.Map<String, Object> externalVariables,
+                                   XsltTransformationEngine.OutputFormat outputFormat) {
+        try {
+            XsltTransformationResult result = XsltTransformationEngine.getInstance()
+                    .transformXQuery(xml, xqueryContent, externalVariables, outputFormat);
+            return result.isSuccess() ? result.getOutputContent() : "ERROR: " + result.getErrorMessage();
+        } catch (Exception e) {
+            return "ERROR: " + e.getMessage();
+        }
+    }
+
     /** Evaluates an XPath expression against {@code xml}; returns the result or an error message. */
     public static String runXPath(String xml, String xpath) {
         try {

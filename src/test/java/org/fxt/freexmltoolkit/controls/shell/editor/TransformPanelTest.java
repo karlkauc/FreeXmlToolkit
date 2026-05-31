@@ -135,6 +135,19 @@ class TransformPanelTest {
         assertTrue(hasSaved, "panel must offer a 'Saved' queries menu");
     }
 
+    @Test
+    void runsXQueryAgainstActiveXml(@TempDir Path tmp) throws Exception {
+        openGreeting(tmp);
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.setOutputFormat(org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat.TEXT);
+            panel.setXQuery("string(/greeting)");
+            panel.runXQuery();
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS, () -> panel.getOutputText().contains("Hello"));
+        assertTrue(panel.getOutputText().contains("Hello"), panel.getOutputText());
+    }
+
     private void openGreeting(Path tmp) throws Exception {
         Path xml = tmp.resolve("doc.xml");
         Files.writeString(xml, XML);

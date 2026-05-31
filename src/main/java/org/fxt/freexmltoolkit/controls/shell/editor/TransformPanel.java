@@ -31,13 +31,15 @@ import org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat;
  * (Saxon / XmlService); runs off the UI thread and shows the result in a panel
  * output area.
  * <p>
- * Supports XSLT parameters (name/value rows) and the output format (XML / HTML /
- * XHTML / TEXT / JSON). Live preview and saved XQueries are follow-up increments.
+ * Supports XSLT parameters (name/value rows), the output format (XML / HTML /
+ * XHTML / TEXT / JSON), XPath/JSONPath evaluation, and an XQuery console. Live
+ * preview is a follow-up increment.
  */
 public class TransformPanel extends VBox {
 
     private final EditorHost editorHost;
     private final TextArea output = new TextArea();
+    private final TextArea xqueryArea = new TextArea();
     private final TextField xpathField = new TextField();
     private final Label pathLabel = new Label("XPATH");
     private final Label xsltStatus = new Label("XSLT: none");
@@ -88,12 +90,45 @@ public class TransformPanel extends VBox {
         output.getStyleClass().add("fxt-transform-output");
         VBox.setVgrow(output, Priority.ALWAYS);
 
+        Label xqueryLabel = new Label("XQUERY");
+        xqueryLabel.getStyleClass().add("fxt-side-panel-title");
+        xqueryArea.setPromptText("for $x in /root/item return string($x)");
+        xqueryArea.setPrefRowCount(4);
+        xqueryArea.getStyleClass().add("fxt-xpath-field");
+        Button runXQuery = button("Run XQuery", "bi-braces", this::runXQuery);
+
         getChildren().addAll(title, new HBox(6, setXslt, transform), xsltStatus,
                 paramsLabel, paramRows, addParam,
                 outputFormatLabel, outputFormat,
                 pathLabel, new HBox(6, xpathField, runXPath),
                 new HBox(6, saveQuery, savedQueriesMenu),
+                xqueryLabel, xqueryArea, new HBox(6, runXQuery),
                 resultLabel, output);
+    }
+
+    /** Executes the XQuery against the active XML (async), honouring params + output format. */
+    public void runXQuery() {
+        if (editorHost.getActiveDocument().isEmpty()) {
+            output.setText("No document open.");
+            return;
+        }
+        String xquery = xqueryArea.getText();
+        if (xquery == null || xquery.isBlank()) {
+            return;
+        }
+        String xml = editorHost.getActiveText().orElse("");
+        Map<String, Object> params = collectParameters();
+        OutputFormat format = outputFormat.getValue() != null ? outputFormat.getValue() : OutputFormat.XML;
+        output.setText("Running…");
+        FxtGui.executorService.submit(() -> {
+            String result = TransformRunner.runXQuery(xml, xquery, params, format);
+            Platform.runLater(() -> output.setText(result));
+        });
+    }
+
+    /** Sets the XQuery text (for tests/observers). */
+    public void setXQuery(String xquery) {
+        xqueryArea.setText(xquery);
     }
 
     /** Adds an XSLT parameter row (used by the "Add Parameter" button and tests). */

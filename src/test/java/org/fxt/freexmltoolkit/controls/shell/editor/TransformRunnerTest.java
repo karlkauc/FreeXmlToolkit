@@ -61,4 +61,21 @@ class TransformRunnerTest {
                 org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat.TEXT);
         assertEquals("default", out.strip(), out);
     }
+
+    @Test
+    void runsXQueryAgainstTheActiveXml() {
+        String out = TransformRunner.runXQuery(
+                "<root><item>a</item><item>b</item></root>",
+                "string-join(/root/item, ',')",
+                java.util.Map.of(),
+                org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat.TEXT);
+        assertEquals("a,b", out.strip(), out);
+    }
+
+    @Test
+    void brokenXQueryReturnsErrorMessage() {
+        String out = TransformRunner.runXQuery("<doc/>", "for $x in", java.util.Map.of(),
+                org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat.TEXT);
+        assertTrue(out.startsWith("ERROR:"), out);
+    }
 }
