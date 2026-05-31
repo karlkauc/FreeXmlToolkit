@@ -445,6 +445,10 @@ FundsXML/update/cache ✗) · 46 Memory monitor (legacy bottom bar; not in shell
   several XML samples via `SchemaActionRunner.generateXsdFromMultiple` (engine multi-document analysis).
 - 31 XSLT live preview — DONE 2026-05-31 (commit 7a00fce2): Transform panel 'Live preview' debounced auto-transform
   on edit (params/recent already done; XSLT-Developer #31 now complete bar minor recent-files chrome).
+- 37/38 Signature detailed validation — DONE 2026-05-31 (commit cad7beef): 'Validate (Details)' report (validity +
+  signing-cert subject/issuer/validity/serial). **Finding:** the legacy "expert validation" was a UI stub (no real
+  chain/trust/revocation/timestamp). True chain/trust/revocation/timestamp is net-new security work, NOT a migration —
+  flagged as a separate task; not claimed as done.
 
 ✅ 28 Schematron tools — DONE 2026-05-31 (commit ec6c34ab): Rule Templates / Tester / Visual Builder reused as
 shell tool-tabs via `EditorHost.openToolTab`. (Error-detector + docs generation remain follow-ups.)
