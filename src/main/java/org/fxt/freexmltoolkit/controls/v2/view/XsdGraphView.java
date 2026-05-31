@@ -1696,21 +1696,67 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
     }
 
     /**
-     * Selects the visual card backing the given model node (reveal-and-select),
-     * used by the shell to mirror a selection made elsewhere. No-op if the node
-     * is not currently materialized in the visual tree.
+     * Reveals and selects the visual card backing the given model node: expands its
+     * ancestors (loading lazy subtrees if needed), selects it and scrolls it into
+     * view. Used by the shell to mirror a selection made elsewhere (e.g. Find Usage).
+     * No-op if the node cannot be located in the schema.
      *
-     * @param modelNode the model node to select
+     * @param modelNode the model node to reveal and select
      */
     public void selectModelNode(org.fxt.freexmltoolkit.controls.v2.model.XsdNode modelNode) {
         if (modelNode == null || rootNode == null) {
             return;
         }
         VisualNode match = findVisualByModel(rootNode, modelNode);
-        if (match != null) {
-            getSelectionModel().select(match);
-            redraw();
+        if (match == null) {
+            // The card may live in a not-yet-loaded lazy subtree: expand along the
+            // model ancestry to materialize it, then look again.
+            materializeAlongPath(modelNode);
+            match = findVisualByModel(rootNode, modelNode);
         }
+        if (match == null) {
+            return;
+        }
+        // Expand every ancestor so the node is laid out and actually visible (P3).
+        for (VisualNode ancestor = match.getParent(); ancestor != null; ancestor = ancestor.getParent()) {
+            ancestor.setExpanded(true);
+        }
+        redraw(); // recompute coordinates after expansion before scrolling
+        getSelectionModel().select(match);
+        VisualNode target = match;
+        Platform.runLater(() -> scrollToNode(target));
+    }
+
+    /**
+     * Walks the model ancestry from the root down to {@code target}, expanding each
+     * matching visual node so lazy children are loaded along the path.
+     */
+    private void materializeAlongPath(org.fxt.freexmltoolkit.controls.v2.model.XsdNode target) {
+        java.util.Deque<org.fxt.freexmltoolkit.controls.v2.model.XsdNode> path = new java.util.ArrayDeque<>();
+        for (org.fxt.freexmltoolkit.controls.v2.model.XsdNode n = target; n != null; n = n.getParent()) {
+            path.push(n);
+        }
+        VisualNode current = rootNode;
+        while (!path.isEmpty() && current != null) {
+            org.fxt.freexmltoolkit.controls.v2.model.XsdNode wanted = path.pop();
+            if (current.getModelObject() != wanted) {
+                return; // visual/model structure diverges; the caller's full search will retry
+            }
+            current.setExpanded(true); // triggers loadChildrenIfNeeded() for lazy nodes
+            if (!path.isEmpty()) {
+                current = childForModel(current, path.peek());
+            }
+        }
+    }
+
+    private VisualNode childForModel(
+            VisualNode parent, org.fxt.freexmltoolkit.controls.v2.model.XsdNode model) {
+        for (VisualNode child : parent.getChildren()) {
+            if (child.getModelObject() == model) {
+                return child;
+            }
+        }
+        return null;
     }
 
     private VisualNode findVisualByModel(

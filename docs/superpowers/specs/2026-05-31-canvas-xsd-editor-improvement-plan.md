@@ -65,7 +65,7 @@ addressed by this plan.
 - **Acceptance:** edit in Tree, switch to Graphic, `undo()` reverts the Tree edit;
   switch back, redo works.
 
-### P3 — Reveal-and-select for collapsed nodes (addresses I4)
+### P3 — Reveal-and-select for collapsed nodes (addresses I4) — ✅ DONE (2026-05-31)
 - In `selectModelNode`, walk the model ancestry and expand the corresponding visual
   nodes (load lazy children) before selecting; then `scrollTo` the card.
 - **Acceptance:** "Find usage" / type reveal scrolls to and highlights a node inside a
@@ -102,7 +102,9 @@ addressed by this plan.
    `PauseTransition` coalesces model-event bursts into one round-trip (flushed on
    view switch); the context is parsed once and reused unless the text changed since
    the last parse (`lastParsedText` guard).
-2. **P3** (reveal) — small, user-visible.
+2. **P3** (reveal) — ✅ done. `XsdGraphView.selectModelNode` now expands the target's
+   ancestors (loading lazy subtrees by walking the model path), selects it and scrolls
+   it into view. Test: `XsdGraphViewRevealTest`.
 3. **P5** (toolbar) — cosmetic, needs design sign-off.
 4. **P4** (incremental redraw) — larger; do once P1/P2 land and we can measure.
 5. **P6**/**P7** — stretch / cleanup.
