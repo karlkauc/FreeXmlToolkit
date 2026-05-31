@@ -433,6 +433,11 @@ FundsXML/update/cache ✗) · 46 Memory monitor (legacy bottom bar; not in shell
   expand/collapse by node id across re-renders.
 - ✅ 26 Continuous (debounced) validation — DONE 2026-05-31 (commit 0631ece4): ValidationPanel auto-validates the
   active XML-family document while typing (600ms debounce, toggle on by default), live Problems list.
+- ✅ 13 Graphic context menu — DONE 2026-05-31 (commit e30a37b3): shared `NodeContextMenu` gives the Graphic view
+  the same right-click editing as the Tree (select card → Add/Rename/Change/Delete).
+- ◐→ 14 Graphical editing — the Graphic view now edits via the command stack with the same 8 commands as the Tree
+  (Add Element/Attribute/Sequence/Choice, Rename, Change Type/Cardinality, Delete); the remaining ~27 commands are
+  still pending for both views.
 
 **Verdict:** the shell is at parity for the **core daily workflows** (open/edit/validate/transform/sign/convert/document
 across XML/XSD/JSON), smoke-verified in the full app. It is **not** at full parity for the long tail (☐ + the ✗ parts of
