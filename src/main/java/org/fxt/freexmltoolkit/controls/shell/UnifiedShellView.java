@@ -37,6 +37,8 @@ public class UnifiedShellView extends BorderPane {
     private final StackPane sidePanelHost = new StackPane();
     private final org.fxt.freexmltoolkit.controls.shell.editor.EditorHost editorHost =
             new org.fxt.freexmltoolkit.controls.shell.editor.EditorHost();
+    private final org.fxt.freexmltoolkit.controls.unified.UnifiedSearchBar searchBar =
+            new org.fxt.freexmltoolkit.controls.unified.UnifiedSearchBar();
 
     private final Label statusPosition = statusLabel("Ln 1, Col 1");
     private final Label statusType = statusLabel("");
@@ -85,7 +87,15 @@ public class UnifiedShellView extends BorderPane {
                 }
                 event.consume();
             }
-            default -> { /* let other shortcuts (e.g. editor undo/redo/find) through */ }
+            case F -> {
+                showSearch(false);
+                event.consume();
+            }
+            case H -> {
+                showSearch(true);
+                event.consume();
+            }
+            default -> { /* let other shortcuts (e.g. editor undo/redo) through */ }
         }
     }
 
@@ -186,10 +196,25 @@ public class UnifiedShellView extends BorderPane {
      */
     private Region buildEditorCenter() {
         Region toolbar = buildEditorToolbar();
-        VBox editorArea = new VBox(toolbar, editorHost);
+        searchBar.hide(); // shown on Ctrl+F / Ctrl+H
+        VBox editorArea = new VBox(searchBar, toolbar, editorHost);
         VBox.setVgrow(editorHost, Priority.ALWAYS);
         editorArea.getStyleClass().addAll("fxt-editor-area", "fxt-editor-center");
         return editorArea;
+    }
+
+    /** Shows the find (or find+replace) bar bound to the active editor. */
+    private void showSearch(boolean replace) {
+        var codeArea = editorHost.getActiveCodeArea();
+        if (codeArea == null) {
+            return;
+        }
+        searchBar.setCurrentCodeArea(codeArea);
+        if (replace) {
+            searchBar.showReplace();
+        } else {
+            searchBar.show();
+        }
     }
 
     private Region buildEditorToolbar() {
@@ -224,6 +249,7 @@ public class UnifiedShellView extends BorderPane {
                 toolButton("bi-arrow-clockwise", "Redo (Ctrl+Y)", editorHost::redoActive),
                 vsep(),
                 toolButton("bi-text-indent-left", "Format", editorHost::formatActive),
+                toolButton("bi-arrows-collapse", "Minify", editorHost::minifyActive),
                 toolButton("bi-puzzle", "Insert Template…", this::insertTemplate),
                 toolButton("bi-layout-split", "Compare with File…", this::compareWithFile),
                 toolButton("bi-table", "Spreadsheet Converter… (Excel / CSV ↔ XML)", this::convertSpreadsheet),

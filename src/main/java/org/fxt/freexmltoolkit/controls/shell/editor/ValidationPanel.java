@@ -36,6 +36,7 @@ public class ValidationPanel extends VBox {
     private final Label schematronStatus = new Label("Schematron: none");
     private final CheckBox liveValidation = new CheckBox("Validate while typing");
     private final PauseTransition debounce = new PauseTransition(Duration.millis(600));
+    private File jsonSchemaFile;
 
     public ValidationPanel(EditorHost editorHost) {
         this.editorHost = editorHost;
@@ -51,6 +52,10 @@ public class ValidationPanel extends VBox {
         Button setSchematron = new Button("Schematron…", icon("bi-shield-check"));
         setSchematron.getStyleClass().add("fxt-tool-button");
         setSchematron.setOnAction(e -> chooseSchematron());
+
+        Button setJsonSchema = new Button("JSON Schema…", icon("bi-braces-asterisk"));
+        setJsonSchema.getStyleClass().add("fxt-tool-button");
+        setJsonSchema.setOnAction(e -> chooseJsonSchema());
 
         Button batch = new Button("Batch…", icon("bi-files"));
         batch.getStyleClass().add("fxt-tool-button");
@@ -99,7 +104,7 @@ public class ValidationPanel extends VBox {
         builder.getStyleClass().add("fxt-tool-button");
         builder.setOnAction(e -> openSchematronBuilder());
 
-        getChildren().addAll(title, new HBox(6, validate, setSchematron), new HBox(6, batch),
+        getChildren().addAll(title, new HBox(6, validate, setSchematron), new HBox(6, setJsonSchema, batch),
                 liveValidation, status, schematronStatus,
                 toolsLabel, new HBox(6, templates, tester), new HBox(6, builder),
                 problemsLabel, list);
@@ -150,16 +155,22 @@ public class ValidationPanel extends VBox {
             problems.clear();
             return;
         }
-        String xml = editorHost.getActiveText().orElse("");
+        String content = editorHost.getActiveText().orElse("");
+        boolean json = editorHost.getActiveDocument()
+                .map(d -> d.getFileType() == EditorFileType.JSON).orElse(false);
         File xsd = editorHost.activeSchemaProperty().get();
         File schematron = editorHost.getActiveSchematron();
+        File jsonSchema = this.jsonSchemaFile;
         status.setText("Validating…");
         FxtGui.executorService.submit(() -> {
-            List<ValidationProblem> result = ValidationRunner.run(xml, xsd, schematron);
+            List<ValidationProblem> result = json
+                    ? ValidationRunner.validateJson(content, jsonSchema)
+                    : ValidationRunner.run(content, xsd, schematron);
             Platform.runLater(() -> {
                 problems.setAll(result);
+                boolean hasSchema = json ? jsonSchema != null : (xsd != null || schematron != null);
                 status.setText(result.isEmpty()
-                        ? (xsd != null || schematron != null ? "Valid" : "Well-formed")
+                        ? (hasSchema ? "Valid" : "Well-formed")
                         : result.size() + " problem(s)");
             });
         });
@@ -206,6 +217,23 @@ public class ValidationPanel extends VBox {
             editorHost.setActiveSchematron(file);
             refreshSchematronStatus();
         }
+    }
+
+    private void chooseJsonSchema() {
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Select JSON Schema");
+        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("JSON Schema", "*.json"));
+        File file = chooser.showOpenDialog(getScene() != null ? getScene().getWindow() : null);
+        if (file != null) {
+            jsonSchemaFile = file;
+            schematronStatus.setText("JSON Schema: " + file.getName());
+            revalidate();
+        }
+    }
+
+    /** Sets the JSON Schema used when validating a JSON document (for tests/observers). */
+    public void setJsonSchema(File schema) {
+        this.jsonSchemaFile = schema;
     }
 
     private void refreshSchematronStatus() {

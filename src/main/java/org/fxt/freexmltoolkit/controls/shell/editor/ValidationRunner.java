@@ -30,6 +30,30 @@ public final class ValidationRunner {
      * @param schematron the Schematron file, or {@code null} to skip Schematron
      * @return all problems found (empty if valid)
      */
+    /**
+     * Validates JSON for well-formedness and (optionally) against a JSON Schema,
+     * reusing {@link org.fxt.freexmltoolkit.service.JsonService}.
+     *
+     * @param json       the JSON content
+     * @param jsonSchema the JSON Schema file, or {@code null} (well-formedness only)
+     * @return all problems found (empty if valid)
+     */
+    public static List<ValidationProblem> validateJson(String json, File jsonSchema) {
+        List<ValidationProblem> problems = new ArrayList<>();
+        var service = new org.fxt.freexmltoolkit.service.JsonService();
+        String wellFormed = service.validateJson(json);
+        if (wellFormed != null) {
+            problems.add(new ValidationProblem("JSON", "error", -1, wellFormed));
+            return problems;
+        }
+        if (jsonSchema != null) {
+            for (String error : service.validateAgainstSchema(json, jsonSchema)) {
+                problems.add(new ValidationProblem("JSON Schema", "error", -1, error));
+            }
+        }
+        return problems;
+    }
+
     public static List<ValidationProblem> run(String xml, File xsd, File schematron) {
         List<ValidationProblem> problems = new ArrayList<>();
         try {

@@ -507,6 +507,34 @@ public class EditorHost extends BorderPane {
         return false;
     }
 
+    /** Minifies the active document (XML: drop inter-tag whitespace; JSON: compact). @return success */
+    public boolean minifyActive() {
+        Tab tab = tabPane.getSelectionModel().getSelectedItem();
+        if (!(tab instanceof EditorTab et)) {
+            return false;
+        }
+        try {
+            String text = et.view.getText();
+            String minified = et.document.getFileType() == EditorFileType.JSON
+                    ? new org.fxt.freexmltoolkit.service.JsonService().compactJson(text)
+                    : text.replaceAll(">\\s+<", "><").strip();
+            if (minified != null && !minified.isBlank()) {
+                et.view.setText(minified);
+                et.document.setDirty(true);
+                return true;
+            }
+        } catch (Exception ignored) {
+            // invalid content: leave the text untouched
+        }
+        return false;
+    }
+
+    /** @return the active editor's code area, or {@code null} (no editor tab in front). */
+    public org.fxmisc.richtext.CodeArea getActiveCodeArea() {
+        Tab tab = tabPane.getSelectionModel().getSelectedItem();
+        return tab instanceof EditorTab et ? et.view.getCodeArea() : null;
+    }
+
     /** Binds an XSD to the active document for schema-aware IntelliSense. @return success */
     public boolean setSchemaForActiveDocument(File xsd) {
         Tab tab = tabPane.getSelectionModel().getSelectedItem();

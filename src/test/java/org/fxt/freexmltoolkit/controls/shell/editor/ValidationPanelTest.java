@@ -166,6 +166,26 @@ class ValidationPanelTest {
         assertFalse(host.isEmpty(), "opening the Schematron tester must add a tab");
     }
 
+    @Test
+    void validatesJsonAgainstAJsonSchema(@TempDir Path tmp) throws Exception {
+        Path schema = tmp.resolve("schema.json");
+        Files.writeString(schema, "{\"type\":\"object\",\"required\":[\"name\"],"
+                + "\"properties\":{\"name\":{\"type\":\"string\"}}}");
+        Path json = tmp.resolve("doc.json");
+        Files.writeString(json, "{}"); // missing required 'name'
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(json));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("{}")).orElse(false));
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.setJsonSchema(schema.toFile());
+            panel.revalidate();
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS, () -> panel.getProblemCount() > 0);
+        assertTrue(panel.getProblemCount() > 0, "JSON invalid against its schema must report problems");
+    }
+
     private void open(Path xml, Path xsd) throws Exception {
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
         WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
