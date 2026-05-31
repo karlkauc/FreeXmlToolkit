@@ -176,8 +176,14 @@ public class TypeLibraryPanel extends VBox {
         if (xsd == null) {
             return;
         }
+        var options = new SampleXmlOptionsDialog().showAndWait();
+        if (options.isEmpty()) {
+            return;
+        }
+        boolean mandatoryOnly = options.get().mandatoryOnly();
+        int maxOccurrences = options.get().maxOccurrences();
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
-            String result = SampleXmlRunner.generate(xsd, false, 2);
+            String result = SampleXmlRunner.generate(xsd, mandatoryOnly, maxOccurrences);
             javafx.application.Platform.runLater(() -> {
                 if (result.startsWith("ERROR:")) {
                     alert(javafx.scene.control.Alert.AlertType.ERROR, "Generate Sample XML", result);
