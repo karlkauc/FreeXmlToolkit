@@ -456,8 +456,15 @@ Phase 10 is reframed from "one big cutover + delete" to **incremental, parity-ga
 **Already done (cutover step 1):** shell is the default landing surface; legacy tools reachable via the sidebar
 (commit 968e8f9b). No feature lost.
 
-**10a — Safe deletions now (fully-superseded, zero ◐/☐ dependency).** For each, run a static reference search first
-(constraint #2/#3); delete only if no live use:
+**10a — STARTED 2026-05-31 (commit d51fd0f0): removed 33 zero-reference dead classes** (orphaned refactor helpers,
+an unused DI module, and legacy panels/services never wired by the bridge or shell). Proven via clean compile + full
+green suite (incl. real-app boot tests). More 10a passes possible as 10b retires owners.
+
+> **Side finding:** `./gradlew build` fails at `spotlessJavaCheck` — 100+ files (the whole rebuild) were committed
+> without `spotlessApply` (the branch has been gated on `./gradlew test`, which skips the style check). Not a
+> correctness issue; a one-shot `spotlessApply` formatting commit is advisable before the final PR.
+
+For each remaining deletion, run a static reference search first (constraint #2/#3); delete only if no live use:
 - Dead V1 scaffolding already marked deprecated and not on the shell path (verify, then remove).
 - The **old Phase-2 shell placeholder** path is already gone (commit 4d29c008).
 - *Candidates to verify:* `controls/unified/*` + `UnifiedEditorController`/`tab_unified_editor.fxml` **iff** the
