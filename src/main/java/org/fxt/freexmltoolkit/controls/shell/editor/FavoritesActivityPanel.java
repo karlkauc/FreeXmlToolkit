@@ -2,6 +2,7 @@ package org.fxt.freexmltoolkit.controls.shell.editor;
 
 import java.nio.file.Path;
 
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.Button;
@@ -27,6 +28,7 @@ public class FavoritesActivityPanel extends VBox {
 
     private final EditorHost editorHost;
     private final ObservableList<FileFavorite> favorites = FXCollections.observableArrayList();
+    private final ListView<FileFavorite> list = new ListView<>(favorites);
 
     public FavoritesActivityPanel(EditorHost editorHost) {
         this.editorHost = editorHost;
@@ -39,14 +41,17 @@ public class FavoritesActivityPanel extends VBox {
         addCurrent.getStyleClass().add("fxt-tool-button");
         addCurrent.setOnAction(e -> addCurrent());
 
-        ListView<FileFavorite> list = new ListView<>(favorites);
         list.getStyleClass().add("fxt-open-editors");
         VBox.setVgrow(list, Priority.ALWAYS);
         list.setPlaceholder(new Label("No favorites"));
         list.setCellFactory(lv -> new FavoriteCell());
         list.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
             if (newV != null && newV.getFilePath() != null) {
-                editorHost.openFile(Path.of(newV.getFilePath()));
+                // Defer opening to the next pulse so it does not run *inside* the
+                // ListView's selection-change processing (re-entering the
+                // ListViewBehavior listener triggered an IndexOutOfBoundsException).
+                String path = newV.getFilePath();
+                Platform.runLater(() -> editorHost.openFile(Path.of(path)));
             }
         });
 
@@ -82,6 +87,7 @@ public class FavoritesActivityPanel extends VBox {
     }
 
     private void refresh() {
+        list.getSelectionModel().clearSelection();
         favorites.setAll(FavoritesService.getInstance().getAllFavorites());
     }
 

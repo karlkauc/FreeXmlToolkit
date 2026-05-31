@@ -41,7 +41,10 @@ public class TypeLibraryPanel extends VBox {
         list.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
             selectedTypeName = newV != null ? newV.getName() : null;
             if (selectedTypeName != null) {
-                editorHost.revealTypeByName(selectedTypeName);
+                String typeName = selectedTypeName;
+                // Defer out of the selection-change processing (avoids re-entering
+                // the ListViewBehavior listener: IndexOutOfBoundsException).
+                javafx.application.Platform.runLater(() -> editorHost.revealTypeByName(typeName));
             }
         });
 

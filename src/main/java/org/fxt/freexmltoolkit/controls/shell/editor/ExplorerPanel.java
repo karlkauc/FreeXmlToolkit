@@ -55,7 +55,9 @@ public class ExplorerPanel extends VBox {
         openList.setCellFactory(lv -> new OpenDocumentCell());
         openList.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
             if (newV != null) {
-                editorHost.selectDocument(newV);
+                // Defer out of the selection-change processing to avoid re-entering
+                // the ListViewBehavior listener (IndexOutOfBoundsException).
+                javafx.application.Platform.runLater(() -> editorHost.selectDocument(newV));
             }
         });
 
@@ -66,7 +68,8 @@ public class ExplorerPanel extends VBox {
         recentList.setCellFactory(lv -> new RecentFileCell());
         recentList.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
             if (newV != null && newV.isFile()) {
-                editorHost.openFile(newV.toPath());
+                java.io.File file = newV;
+                javafx.application.Platform.runLater(() -> editorHost.openFile(file.toPath()));
             }
         });
 

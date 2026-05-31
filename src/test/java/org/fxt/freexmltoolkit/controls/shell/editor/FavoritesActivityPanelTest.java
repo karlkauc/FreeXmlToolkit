@@ -26,16 +26,51 @@ import org.testfx.util.WaitForAsyncUtils;
 @ExtendWith(ApplicationExtension.class)
 class FavoritesActivityPanelTest {
 
+    private static final String DEMO_FAV =
+            new java.io.File("release/examples/xsd/context-sensitive-demo.xsd").getAbsolutePath();
+
     private EditorHost host;
     private FavoritesActivityPanel panel;
+    private final java.util.concurrent.atomic.AtomicReference<Throwable> fxError =
+            new java.util.concurrent.atomic.AtomicReference<>();
 
     @Start
     void start(Stage stage) {
         org.fxt.freexmltoolkit.di.ServiceRegistry.initialize();
+        // Pre-add the demo XSD so the panel lists it on construction (repro for the
+        // "open from favorites" crash); capture any FX-thread exception.
+        FavoritesService.getInstance().addFavorite(new java.io.File(DEMO_FAV));
+        Thread.currentThread().setUncaughtExceptionHandler((t, e) -> fxError.set(e));
         host = new EditorHost();
         panel = new FavoritesActivityPanel(host);
         stage.setScene(new Scene(new HBox(host, panel), 1000, 600));
         stage.show();
+    }
+
+    @org.junit.jupiter.api.AfterEach
+    void cleanupDemoFavorite() {
+        FavoritesService.getInstance().removeFavoriteByPath(DEMO_FAV);
+    }
+
+    @Test
+    void openingAFavoriteDoesNotCrashTheListView() throws Exception {
+        WaitForAsyncUtils.waitForFxEvents();
+        assertTrue(panel.getFavoriteCount() > 0, "the demo XSD favorite must be listed");
+
+        // Selecting the favorite opens it — must not raise an FX-thread exception
+        // (JavaFX ListViewBehavior IndexOutOfBoundsException).
+        WaitForAsyncUtils.waitForAsyncFx(3000, () -> {
+            javafx.scene.control.ListView<?> list = (javafx.scene.control.ListView<?>) panel.lookupAll(".list-view")
+                    .stream().filter(n -> n instanceof javafx.scene.control.ListView).findFirst().orElseThrow();
+            list.getSelectionModel().select(0);
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS,
+                () -> !host.getOpenDocuments().isEmpty() || fxError.get() != null);
+
+        assertNull(fxError.get(), "opening a favorite must not crash on the FX thread: " + fxError.get());
+        assertFalse(host.getOpenDocuments().isEmpty(), "the favorite should have opened");
     }
 
     @Test
