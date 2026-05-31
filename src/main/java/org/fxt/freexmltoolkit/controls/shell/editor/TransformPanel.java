@@ -6,8 +6,10 @@ import java.nio.file.Files;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuButton;
@@ -19,6 +21,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
+import javafx.util.Duration;
 
 import org.fxt.freexmltoolkit.FxtGui;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
@@ -32,8 +35,8 @@ import org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat;
  * output area.
  * <p>
  * Supports XSLT parameters (name/value rows), the output format (XML / HTML /
- * XHTML / TEXT / JSON), XPath/JSONPath evaluation, and an XQuery console. Live
- * preview is a follow-up increment.
+ * XHTML / TEXT / JSON), XPath/JSONPath evaluation, an XQuery console, and a
+ * debounced live preview that re-transforms while the document is edited.
  */
 public class TransformPanel extends VBox {
 
@@ -46,6 +49,8 @@ public class TransformPanel extends VBox {
     private final VBox paramRows = new VBox(4);
     private final ComboBox<OutputFormat> outputFormat = new ComboBox<>();
     private final MenuButton savedQueriesMenu;
+    private final CheckBox livePreview = new CheckBox("Live preview");
+    private final PauseTransition liveDebounce = new PauseTransition(Duration.millis(600));
     private File xsltFile;
 
     public TransformPanel(EditorHost editorHost) {
@@ -58,6 +63,17 @@ public class TransformPanel extends VBox {
         Button setXslt = button("Set XSLT…", "bi-file-earmark-code", this::chooseXslt);
         Button transform = button("Transform", "bi-arrow-repeat", this::transform);
         xsltStatus.getStyleClass().add("fxt-placeholder-text");
+
+        // Live preview: re-run the XSLT transform shortly after the active document
+        // changes (typing / tab switch), when enabled and a stylesheet is set.
+        liveDebounce.setOnFinished(e -> {
+            if (livePreview.isSelected() && xsltFile != null && editorHost.getActiveDocument().isPresent()) {
+                transform();
+            }
+        });
+        livePreview.setOnAction(e -> scheduleLivePreview());
+        editorHost.activeCaretProperty().addListener((obs, oldV, newV) -> scheduleLivePreview());
+        editorHost.activeTabProperty().addListener((obs, oldV, newV) -> scheduleLivePreview());
 
         // XSLT parameters (name/value rows) + output format.
         Label paramsLabel = new Label("PARAMETERS");
@@ -97,7 +113,7 @@ public class TransformPanel extends VBox {
         xqueryArea.getStyleClass().add("fxt-xpath-field");
         Button runXQuery = button("Run XQuery", "bi-braces", this::runXQuery);
 
-        getChildren().addAll(title, new HBox(6, setXslt, transform), xsltStatus,
+        getChildren().addAll(title, new HBox(6, setXslt, transform), livePreview, xsltStatus,
                 paramsLabel, paramRows, addParam,
                 outputFormatLabel, outputFormat,
                 pathLabel, new HBox(6, xpathField, runXPath),
@@ -156,6 +172,19 @@ public class TransformPanel extends VBox {
     public void setXsltFile(File file) {
         this.xsltFile = file;
         xsltStatus.setText(file != null ? "XSLT: " + file.getName() : "XSLT: none");
+    }
+
+    /** Enables/disables XSLT live preview (for tests/observers). */
+    public void setLivePreview(boolean enabled) {
+        livePreview.setSelected(enabled);
+        scheduleLivePreview();
+    }
+
+    /** Schedules a debounced live re-transform when live preview is on and a stylesheet is set. */
+    private void scheduleLivePreview() {
+        if (livePreview.isSelected() && xsltFile != null) {
+            liveDebounce.playFromStart();
+        }
     }
 
     /** Transforms the active XML with the selected XSLT (async). */

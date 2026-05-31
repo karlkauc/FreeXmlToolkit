@@ -136,6 +136,22 @@ class TransformPanelTest {
     }
 
     @Test
+    void livePreviewAutoTransformsWhenEnabled(@TempDir Path tmp) throws Exception {
+        openGreeting(tmp);
+        Path xslt = tmp.resolve("t.xslt");
+        Files.writeString(xslt, XSLT);
+
+        // Enable live preview with a stylesheet set — do NOT call transform() manually.
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.setXsltFile(xslt.toFile());
+            panel.setLivePreview(true);
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> panel.getOutputText().contains("<out>Hello</out>"));
+        assertTrue(panel.getOutputText().contains("<out>Hello</out>"), panel.getOutputText());
+    }
+
+    @Test
     void runsXQueryAgainstActiveXml(@TempDir Path tmp) throws Exception {
         openGreeting(tmp);
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
