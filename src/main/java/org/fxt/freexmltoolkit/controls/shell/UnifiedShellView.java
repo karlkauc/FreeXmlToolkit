@@ -179,43 +179,16 @@ public class UnifiedShellView extends BorderPane {
     }
 
     /**
-     * The editor center: a welcome placeholder shown while nothing is open,
-     * swapped for the editor toolbar + {@link EditorHost} once a document opens.
+     * The editor center: the editor toolbar plus the {@link EditorHost}. The host
+     * shows its own welcome empty-state (quick actions + recent files) while no
+     * document is open, so the toolbar stays available at all times.
      */
     private Region buildEditorCenter() {
-        Region welcome = buildWelcome();
-
         Region toolbar = buildEditorToolbar();
         VBox editorArea = new VBox(toolbar, editorHost);
         VBox.setVgrow(editorHost, Priority.ALWAYS);
-        editorArea.getStyleClass().add("fxt-editor-area");
-
-        StackPane center = new StackPane(welcome, editorArea);
-        center.getStyleClass().add("fxt-editor-center");
-
-        // Show the editor only when at least one document is open.
-        editorArea.visibleProperty().bind(
-                javafx.beans.binding.Bindings.isNotEmpty(editorHost.getOpenDocuments()));
-        editorArea.managedProperty().bind(editorArea.visibleProperty());
-        welcome.visibleProperty().bind(editorArea.visibleProperty().not());
-        welcome.managedProperty().bind(welcome.visibleProperty());
-        return center;
-    }
-
-    private Region buildWelcome() {
-        IconifyIcon logo = new IconifyIcon("bi-stack");
-        logo.setIconSize(64);
-
-        Label headline = new Label("Unified Editor");
-        headline.getStyleClass().add("fxt-welcome-headline");
-
-        Label subtitle = new Label("Open a file from the Explorer to start editing.");
-        subtitle.getStyleClass().add("fxt-placeholder-text");
-
-        VBox box = new VBox(logo, headline, subtitle);
-        box.setAlignment(Pos.CENTER);
-        box.getStyleClass().add("fxt-editor-host");
-        return box;
+        editorArea.getStyleClass().addAll("fxt-editor-area", "fxt-editor-center");
+        return editorArea;
     }
 
     private Region buildEditorToolbar() {
