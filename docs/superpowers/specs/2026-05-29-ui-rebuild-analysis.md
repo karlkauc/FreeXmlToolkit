@@ -443,6 +443,8 @@ FundsXML/update/cache ✗) · 46 Memory monitor (legacy bottom bar; not in shell
   management remain a follow-up.
 - 21 Batch schema generation — DONE 2026-05-31 (commit d9503f3f): "Generate XSD (Batch)…" infers one XSD from
   several XML samples via `SchemaActionRunner.generateXsdFromMultiple` (engine multi-document analysis).
+- 31 XSLT live preview — DONE 2026-05-31 (commit 7a00fce2): Transform panel 'Live preview' debounced auto-transform
+  on edit (params/recent already done; XSLT-Developer #31 now complete bar minor recent-files chrome).
 
 ✅ 28 Schematron tools — DONE 2026-05-31 (commit ec6c34ab): Rule Templates / Tester / Visual Builder reused as
 shell tool-tabs via `EditorHost.openToolTab`. (Error-detector + docs generation remain follow-ups.)
