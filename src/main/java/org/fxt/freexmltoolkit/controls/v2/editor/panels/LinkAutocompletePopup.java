@@ -138,6 +138,9 @@ public class LinkAutocompletePopup extends Popup {
         }
 
         List<XsdElementPathExtractor.LinkSuggestion> suggestions = pathExtractor.suggestLinks(filter);
+        // Clear selection before replacing items (avoids a JavaFX ListViewBehavior
+        // IndexOutOfBoundsException during selectedIndices recompute).
+        listView.getSelectionModel().clearSelection();
         listView.getItems().setAll(suggestions);
 
         if (!suggestions.isEmpty()) {
