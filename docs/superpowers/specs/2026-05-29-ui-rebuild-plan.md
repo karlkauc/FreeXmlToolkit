@@ -196,19 +196,26 @@ async with progress. **Remove** `XsdValidationController`/`SchematronController`
 
 ## Phase 10 — Cutover & cleanup
 
-**Goal:** new shell is the only shell; dead code gone.
+> **Reframed 2026-05-31 after the matrix reconciliation + smoke test.** The original "one big
+> cutover + delete everything" is replaced by the **staged, parity-gated** plan in
+> [`analysis §G.1/§G.2`](2026-05-29-ui-rebuild-analysis.md#g1-matrix-reconciliation-2026-05-31-after-smoke-test).
+> Reason: the shell is at parity for the **core daily workflows** (smoke-verified) but **6 features are
+> not migrated** and ~19 are partial, so a wholesale legacy deletion would violate constraint #1.
 
-- Make the Unified shell the **default**; remove the preview entry.
-- Remove remaining old shell: `main.fxml` button-nav, `UnifiedEditorController`/`tab_unified_editor`,
-  `controls/unified/*`, leftover `tab_*.fxml`/controller shells, superseded per-tool CSS — each
-  gated by a static reference search proving no live use (constraint #2/#3).
-- Final pass on budgets (analysis §D.3); regenerate docs (`docs-updater`) + screenshots
-  (`xvfb-run ./gradlew docScreenshots`).
+- **Done:** cutover step 1 — shell is the default landing surface; legacy bridge kept (commit 968e8f9b).
+- **10a:** delete only fully-superseded dead code, each gated by a clean reference search (#2/#3).
+- **10b:** migrate the remaining ☐/◐ gaps in priority order (view-state, continuous validation,
+  remaining graphical commands + graphic context menu, Type Editor, Templates, Schematron tools, full
+  Settings, Auto-update, FundsXML, editor niceties) — see §G.2.
+- **10c:** retire each legacy subsystem (controller + `tab_*.fxml` + sidebar button + CSS) once **all its
+  matrix rows are ✅** and a reference search is clean; `main.fxml` nav + old shells go last.
+- **10d:** drop the "Editor (Legacy)" entry, dead-code/`dependencyUpdates` sweep, regenerate docs
+  (`docs-updater`) + screenshots (`xvfb-run ./gradlew docScreenshots`), measure §D.3 budgets, open the PR.
 
-**Tests/acceptance:** full matrix complete (all ☑); all tests green; `IconifyIconCoverageTest`
-green; budgets met; `./gradlew run` verified.
-**Deliverable:** PR `feature/ui-rebuild-unified-editor` → `main` with summary (features migrated,
-code removed, performance results, deviations from plan).
+**Gate (unchanged):** no legacy file deleted until every matrix row it backs is ✅ **and** no live caller
+remains. Each deletion is its own revertible commit.
+**Deliverable:** PR `feature/ui-rebuild-unified-editor` → `main` with summary (features migrated, code
+removed, performance results, deviations from plan).
 
 ---
 

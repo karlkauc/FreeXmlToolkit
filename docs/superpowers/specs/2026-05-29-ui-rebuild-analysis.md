@@ -400,3 +400,70 @@ Acceptance checklist for "no feature loss." Each feature must be reachable & wor
 
 > The phase plan in the companion document sequences these into runnable milestones, each with its
 > own subset of this matrix as its acceptance checklist.
+
+---
+
+# G.1 Matrix reconciliation (2026-05-31, after smoke test)
+
+Status legend: ✅ at parity in the shell · ◐ core migrated, advanced sub-features still legacy-only ·
+☐ not migrated (legacy-only).
+
+**✅ At parity (24):** 1 New/Open/Save/SaveAs/SaveAll · 2 Recent · 3 Undo/Redo · 6 Highlight/fold/line-nums/status ·
+7 Font/drag-drop/diff · 8 XML IntelliSense · 11 XML↔Excel/CSV · 12 XSD text load/save/format · 15 Properties (Inspector) ·
+17 Facets · 19 Flatten · 20 Doc export HTML/PDF/Word · 23 XSD IntelliSense + XPath panel · 24 XSD validation single ·
+25 XSD validation batch · 29 Problems/jump-to-line · 33 FOP PDF · 34 PDF preview · 35 Create certificate · 36 Sign ·
+39 Favorites · 42 Help/About · 44 Theme switch · 49 Diff/compare. (48 shortcuts/drag-drop ≈ ✅.)
+
+**◐ Partial — core in shell, advanced pending (≈19):** 4 Minify (format ✅, minify ✗) · 5 Find/Replace (widget supports it;
+no explicit Find UI/Ctrl+F in shell) · 9 JSON (edit/tree/JSONPath ✅; schema-validate/minify ✗) · 13 Graphic view
+(render ✅; context menu + expand/collapse-state ✗) · 14 Graphical editing (8 of 35 commands) · 16 Type Editor
+(library list ✅; Simple/Complex editor tabs + usage finder ✗) · 18 Schema analysis (statistics ✅; quality/identity ✗) ·
+21 Schema generator (single ✅; batch ✗) · 22 Sample data (basic ✅; profiled profiles ✗) · 27 Schematron (validate ✅;
+edit/builder ✗) · 30 XSLT viewer (transform+formats ✅; browser/stats/file-watch ✗) · 31 XSLT Developer (params+formats ✅;
+live preview/recent ✗) · 32 XPath/XQuery console (XPath+saved ✅; XQuery FLWOR/table/examples ✗) · 37 Validate signature
+(basic ✅; expert chain/trust/revocation/timestamp ✗) · 38 Signature expert (cert creation ✅; expert validation opts ✗) ·
+40 XSD favorites quick-select · 41 Welcome (empty-state ✅; dashboard stats/tips ✗) · 43 Settings (theme ✅; proxy/temp/
+FundsXML/update/cache ✗) · 46 Memory monitor (legacy bottom bar; not in shell status bar).
+
+**☐ Not migrated (6):** 10 Templates · 26 Continuous (debounced) validation · 28 Schematron tools (builder/docs/templates/
+tester/detector) · 45 Auto-update UI · 47 FundsXML extension menu · 50 View-state preservation (Tree/Graphic rebuild loses
+expand/collapse).
+
+**Verdict:** the shell is at parity for the **core daily workflows** (open/edit/validate/transform/sign/convert/document
+across XML/XSD/JSON), smoke-verified in the full app. It is **not** at full parity for the long tail (☐ + the ✗ parts of
+◐). Per hard constraint #1 (no feature loss) and decision D5 (early cutover + legacy bridge), a **wholesale Phase-10
+deletion is therefore premature** — the legacy bridge must remain until those items are migrated or explicitly retired.
+
+# G.2 Phase 10 — realistic, staged cutover & cleanup
+
+Phase 10 is reframed from "one big cutover + delete" to **incremental, parity-gated retirement**, matching D5.
+
+**Already done (cutover step 1):** shell is the default landing surface; legacy tools reachable via the sidebar
+(commit 968e8f9b). No feature lost.
+
+**10a — Safe deletions now (fully-superseded, zero ◐/☐ dependency).** For each, run a static reference search first
+(constraint #2/#3); delete only if no live use:
+- Dead V1 scaffolding already marked deprecated and not on the shell path (verify, then remove).
+- The **old Phase-2 shell placeholder** path is already gone (commit 4d29c008).
+- *Candidates to verify:* `controls/unified/*` + `UnifiedEditorController`/`tab_unified_editor.fxml` **iff** the
+  "Editor (Legacy)" bridge entry is dropped first — but keep until 10c.
+
+**10b — Migrate the remaining gaps (unblocks deletion of their legacy owners).** Priority order:
+1. View-state preservation (#50) — usability constraint; affects Tree/Graphic every edit.
+2. Continuous/debounced validation (#26) + Problems live update.
+3. Remaining graphical-editing commands (#14) + Graphic context menu (#13).
+4. Type Editor tabs + usage finder (#16); schema quality/identity (#18); batch schema-gen (#21); profiled data (#22).
+5. Templates (#10); Schematron editing/tools (#27/#28).
+6. Full Settings (#43): proxy/temp/cache/FundsXML/update; then Auto-update UI (#45), FundsXML menu (#47), memory in status bar (#46).
+7. Editor niceties: Find/Replace UI (#5), Minify (#4), JSON schema-validate (#9); XSLT live preview + XQuery console (#30–32); signature expert validation (#37/#38); dashboard extras (#41).
+
+**10c — Retire legacy, per subsystem, once its matrix rows are all ✅.** Remove that tool's controller + `tab_*.fxml`
++ sidebar button + superseded CSS, each gated by a clean reference search. Order mirrors 10b completion. The
+`main.fxml` button-nav and remaining old shells are deleted last, when the sidebar bridge is no longer needed.
+
+**10d — Finalize.** Drop the "Editor (Legacy)" entry, run `dependencyUpdates`/dead-code sweep, regenerate docs
+(`docs-updater`) + screenshots (`xvfb-run ./gradlew docScreenshots`), measure against the §D.3 budgets, open the PR
+`feature/ui-rebuild-unified-editor → main`.
+
+**Gate (unchanged):** no legacy file is deleted until every matrix row it backs is ✅ **and** a reference search proves
+no live caller (constraint #2/#3). Each deletion is its own revertible commit.
