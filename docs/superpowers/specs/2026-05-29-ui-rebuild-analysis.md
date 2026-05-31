@@ -425,9 +425,11 @@ live preview/recent ✗) · 32 XPath/XQuery console (XPath+saved ✅; XQuery FLW
 40 XSD favorites quick-select · 41 Welcome (empty-state ✅; dashboard stats/tips ✗) · 43 Settings (theme ✅; proxy/temp/
 FundsXML/update/cache ✗) · 46 Memory monitor (legacy bottom bar; not in shell status bar).
 
-**☐ Not migrated (6):** 10 Templates · 26 Continuous (debounced) validation · 28 Schematron tools (builder/docs/templates/
-tester/detector) · 45 Auto-update UI · 47 FundsXML extension menu · 50 View-state preservation (Tree/Graphic rebuild loses
-expand/collapse).
+**☐ Not migrated (5):** 10 Templates · 26 Continuous (debounced) validation · 28 Schematron tools (builder/docs/templates/
+tester/detector) · 45 Auto-update UI · 47 FundsXML extension menu.
+
+**Resolved since reconciliation:** ✅ 50 View-state preservation — DONE 2026-05-31 (commit a4292f89): both
+XsdTreeView and XsdGraphicView preserve expand/collapse by node id across re-renders (10b item 1).
 
 **Verdict:** the shell is at parity for the **core daily workflows** (open/edit/validate/transform/sign/convert/document
 across XML/XSD/JSON), smoke-verified in the full app. It is **not** at full parity for the long tail (☐ + the ✗ parts of
