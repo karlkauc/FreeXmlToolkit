@@ -51,4 +51,23 @@ class UnifiedShellIntegrationTest {
         assertNotNull(root.lookup(".fxt-activity-bar"), "Activity bar must render");
         assertFalse(root.lookupAll(".fxt-activity-button").isEmpty(), "activity buttons must render");
     }
+
+    @Test
+    void shellFillsTheContentAreaVertically() {
+        WaitForAsyncUtils.waitForFxEvents();
+        WaitForAsyncUtils.waitForAsyncFx(3000, () -> {
+            mainController.navigateToPage("unifiedShell");
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+
+        javafx.scene.layout.Region shell = (javafx.scene.layout.Region) root.lookup(".fxt-shell");
+        assertNotNull(shell);
+        // The shell must stretch to its container (the content AnchorPane), so the
+        // status bar is pinned to the bottom rather than floating at preferred size.
+        double containerHeight = ((javafx.scene.layout.Region) shell.getParent()).getHeight();
+        assertTrue(containerHeight > 300, "content area must have a real height: " + containerHeight);
+        assertEquals(containerHeight, shell.getHeight(), 1.0,
+                "the shell must fill the content area's height (status bar pinned to the bottom)");
+    }
 }

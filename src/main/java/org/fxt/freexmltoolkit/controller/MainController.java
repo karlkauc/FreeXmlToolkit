@@ -828,6 +828,12 @@ public class MainController implements Initializable {
             setParentController(loader.getController());
             contentPane.getChildren().clear();
             contentPane.getChildren().add(newLoadedPane);
+            // Stretch the loaded page to fill the content area, so e.g. the shell's
+            // status bar stays pinned to the bottom of the screen.
+            javafx.scene.layout.AnchorPane.setTopAnchor(newLoadedPane, 0.0);
+            javafx.scene.layout.AnchorPane.setBottomAnchor(newLoadedPane, 0.0);
+            javafx.scene.layout.AnchorPane.setLeftAnchor(newLoadedPane, 0.0);
+            javafx.scene.layout.AnchorPane.setRightAnchor(newLoadedPane, 0.0);
 
             // Fade-in animation for tab content
             newLoadedPane.setOpacity(0);
