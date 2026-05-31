@@ -26,91 +26,12 @@ public class XsdTreeView extends TreeView<XsdNode> {
         setCellFactory(tv -> new XsdNodeCell());
     }
 
-    /** Installs a context menu (Add Element / Rename / Cardinality / Delete) wired to the actions. */
+    /** Installs the shared node-editing context menu wired to the actions. */
     public void setEditActions(NodeEditActions actions) {
-        javafx.scene.control.ContextMenu menu = new javafx.scene.control.ContextMenu();
-        menu.getItems().addAll(
-                menuItem("Add Element…", "bi-plus-circle", node -> promptName(actions::addElement, node, "Add Element", "NewElement")),
-                menuItem("Add Attribute…", "bi-at", node -> promptName(actions::addAttribute, node, "Add Attribute", "newAttribute")),
-                menuItem("Add Sequence", "bi-list-ol", actions::addSequence),
-                menuItem("Add Choice", "bi-signpost-split", actions::addChoice),
-                new javafx.scene.control.SeparatorMenuItem(),
-                menuItem("Rename…", "bi-pencil", node -> promptRename(actions, node)),
-                menuItem("Change Type…", "bi-type", node -> promptChangeType(actions, node)),
-                menuItem("Change Cardinality…", "bi-arrows-expand", node -> promptCardinality(actions, node)),
-                new javafx.scene.control.SeparatorMenuItem(),
-                menuItem("Delete", "bi-trash", actions::delete));
-        setContextMenu(menu);
-    }
-
-    private javafx.scene.control.MenuItem menuItem(String text, String icon,
-                                                  java.util.function.Consumer<XsdNode> action) {
-        IconifyIcon graphic = new IconifyIcon(icon);
-        graphic.setIconSize(16);
-        javafx.scene.control.MenuItem item = new javafx.scene.control.MenuItem(text, graphic);
-        item.setOnAction(e -> {
+        setContextMenu(NodeContextMenu.build(actions, () -> {
             javafx.scene.control.TreeItem<XsdNode> selected = getSelectionModel().getSelectedItem();
-            if (selected != null && selected.getValue() != null) {
-                action.accept(selected.getValue());
-            }
-        });
-        return item;
-    }
-
-    private void promptName(java.util.function.BiConsumer<XsdNode, String> action, XsdNode node,
-                            String title, String defaultName) {
-        javafx.scene.control.TextInputDialog dialog = new javafx.scene.control.TextInputDialog(defaultName);
-        dialog.setTitle(title);
-        dialog.setHeaderText("Name:");
-        dialog.showAndWait().ifPresent(name -> {
-            if (!name.isBlank()) {
-                action.accept(node, name.trim());
-            }
-        });
-    }
-
-    private void promptChangeType(NodeEditActions actions, XsdNode node) {
-        javafx.scene.control.TextInputDialog dialog = new javafx.scene.control.TextInputDialog("xs:string");
-        dialog.setTitle("Change Type");
-        dialog.setHeaderText("New type:");
-        dialog.showAndWait().ifPresent(type -> {
-            if (!type.isBlank()) {
-                actions.changeType(node, type.trim());
-            }
-        });
-    }
-
-    private void promptRename(NodeEditActions actions, XsdNode node) {
-        javafx.scene.control.TextInputDialog dialog =
-                new javafx.scene.control.TextInputDialog(node.getName() != null ? node.getName() : "");
-        dialog.setTitle("Rename");
-        dialog.setHeaderText("New name:");
-        dialog.showAndWait().ifPresent(name -> {
-            if (!name.isBlank()) {
-                actions.rename(node, name.trim());
-            }
-        });
-    }
-
-    private void promptCardinality(NodeEditActions actions, XsdNode node) {
-        String current = node.getMinOccurs() + ".." + (node.getMaxOccurs() < 0 ? "*" : node.getMaxOccurs());
-        javafx.scene.control.TextInputDialog dialog = new javafx.scene.control.TextInputDialog(current);
-        dialog.setTitle("Change Cardinality");
-        dialog.setHeaderText("Cardinality as min..max (use * for unbounded):");
-        dialog.showAndWait().ifPresent(text -> {
-            String[] parts = text.split("\\.\\.");
-            if (parts.length == 2) {
-                try {
-                    int min = Integer.parseInt(parts[0].trim());
-                    String maxText = parts[1].trim();
-                    int max = (maxText.equals("*") || maxText.equalsIgnoreCase("unbounded"))
-                            ? -1 : Integer.parseInt(maxText);
-                    actions.changeCardinality(node, min, max);
-                } catch (NumberFormatException ignored) {
-                    // invalid input: ignore
-                }
-            }
-        });
+            return selected != null ? selected.getValue() : null;
+        }));
     }
 
     /**

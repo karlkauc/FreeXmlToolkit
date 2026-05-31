@@ -868,63 +868,7 @@ public class EditorHost extends BorderPane {
                     currentSelection = newV != null ? newV.getValue() : null;
                     selectionCallback.run();
                 });
-                treeView.setEditActions(new org.fxt.freexmltoolkit.controls.shell.schema.NodeEditActions() {
-                    @Override
-                    public void addElement(XsdNode parent, String name) {
-                        if (EditorTab.this.addElement(parent, name)) {
-                            selectionCallback.run();
-                        }
-                    }
-
-                    @Override
-                    public void addAttribute(XsdNode parent, String name) {
-                        if (EditorTab.this.addAttribute(parent, name)) {
-                            selectionCallback.run();
-                        }
-                    }
-
-                    @Override
-                    public void addSequence(XsdNode element) {
-                        if (EditorTab.this.addSequence(element)) {
-                            selectionCallback.run();
-                        }
-                    }
-
-                    @Override
-                    public void addChoice(XsdNode element) {
-                        if (EditorTab.this.addChoice(element)) {
-                            selectionCallback.run();
-                        }
-                    }
-
-                    @Override
-                    public void rename(XsdNode node, String newName) {
-                        if (EditorTab.this.renameNode(node, newName)) {
-                            selectionCallback.run();
-                        }
-                    }
-
-                    @Override
-                    public void changeType(XsdNode node, String newType) {
-                        if (EditorTab.this.changeType(node, newType)) {
-                            selectionCallback.run();
-                        }
-                    }
-
-                    @Override
-                    public void changeCardinality(XsdNode node, int min, int max) {
-                        if (EditorTab.this.changeCardinality(node, min, max)) {
-                            selectionCallback.run();
-                        }
-                    }
-
-                    @Override
-                    public void delete(XsdNode node) {
-                        if (EditorTab.this.deleteNode(node)) {
-                            selectionCallback.run();
-                        }
-                    }
-                });
+                treeView.setEditActions(createEditActions());
                 contentStack.getChildren().add(treeView);
             }
         }
@@ -935,8 +879,70 @@ public class EditorHost extends BorderPane {
                     currentSelection = node;
                     selectionCallback.run();
                 });
+                graphicView.setEditActions(createEditActions()); // Tree-parity editing via right-click
                 contentStack.getChildren().add(graphicView);
             }
+        }
+
+        /** Editing actions shared by the Tree and Graphic views: run a command, then refresh selection. */
+        private org.fxt.freexmltoolkit.controls.shell.schema.NodeEditActions createEditActions() {
+            return new org.fxt.freexmltoolkit.controls.shell.schema.NodeEditActions() {
+                @Override
+                public void addElement(XsdNode parent, String name) {
+                    if (EditorTab.this.addElement(parent, name)) {
+                        selectionCallback.run();
+                    }
+                }
+
+                @Override
+                public void addAttribute(XsdNode parent, String name) {
+                    if (EditorTab.this.addAttribute(parent, name)) {
+                        selectionCallback.run();
+                    }
+                }
+
+                @Override
+                public void addSequence(XsdNode element) {
+                    if (EditorTab.this.addSequence(element)) {
+                        selectionCallback.run();
+                    }
+                }
+
+                @Override
+                public void addChoice(XsdNode element) {
+                    if (EditorTab.this.addChoice(element)) {
+                        selectionCallback.run();
+                    }
+                }
+
+                @Override
+                public void rename(XsdNode node, String newName) {
+                    if (EditorTab.this.renameNode(node, newName)) {
+                        selectionCallback.run();
+                    }
+                }
+
+                @Override
+                public void changeType(XsdNode node, String newType) {
+                    if (EditorTab.this.changeType(node, newType)) {
+                        selectionCallback.run();
+                    }
+                }
+
+                @Override
+                public void changeCardinality(XsdNode node, int min, int max) {
+                    if (EditorTab.this.changeCardinality(node, min, max)) {
+                        selectionCallback.run();
+                    }
+                }
+
+                @Override
+                public void delete(XsdNode node) {
+                    if (EditorTab.this.deleteNode(node)) {
+                        selectionCallback.run();
+                    }
+                }
+            };
         }
 
         private void ensureJsonTree() {

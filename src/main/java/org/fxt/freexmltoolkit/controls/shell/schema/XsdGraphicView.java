@@ -30,11 +30,17 @@ public class XsdGraphicView extends ScrollPane {
 
     private final Consumer<XsdNode> onSelect;
     private NodeCard selectedCard;
+    private javafx.scene.control.ContextMenu contextMenu;
 
     public XsdGraphicView(Consumer<XsdNode> onSelect) {
         this.onSelect = onSelect;
         getStyleClass().add("fxt-graphic-view");
         setFitToWidth(true);
+    }
+
+    /** Installs the shared node-editing context menu (right-click a card) — Tree-parity editing. */
+    public void setEditActions(NodeEditActions actions) {
+        this.contextMenu = NodeContextMenu.build(actions, () -> selectedCard != null ? selectedCard.node : null);
     }
 
     /** Top levels expanded by default for a useful overview; deeper nodes stay lazy. */
@@ -216,6 +222,13 @@ public class XsdGraphicView extends ScrollPane {
             chevron.setOnMouseClicked(e -> {
                 if (container) {
                     setExpanded(!expanded);
+                    e.consume();
+                }
+            });
+            header.setOnContextMenuRequested(e -> {
+                XsdGraphicView.this.select(this);
+                if (contextMenu != null) {
+                    contextMenu.show(header, e.getScreenX(), e.getScreenY());
                     e.consume();
                 }
             });
