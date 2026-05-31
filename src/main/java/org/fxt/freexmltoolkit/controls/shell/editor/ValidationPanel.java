@@ -32,6 +32,7 @@ public class ValidationPanel extends VBox {
 
     private final EditorHost editorHost;
     private final ObservableList<ValidationProblem> problems = FXCollections.observableArrayList();
+    private final ListView<ValidationProblem> problemsList = new ListView<>(problems);
     private final Label status = new Label("Not validated");
     private final Label schematronStatus = new Label("Schematron: none");
     private final CheckBox liveValidation = new CheckBox("Validate while typing");
@@ -68,7 +69,7 @@ public class ValidationPanel extends VBox {
         Label problemsLabel = new Label("PROBLEMS");
         problemsLabel.getStyleClass().add("fxt-side-panel-title");
 
-        ListView<ValidationProblem> list = new ListView<>(problems);
+        ListView<ValidationProblem> list = problemsList;
         list.getStyleClass().add("fxt-open-editors");
         VBox.setVgrow(list, Priority.ALWAYS);
         list.setPlaceholder(new Label("No problems"));
@@ -152,10 +153,16 @@ public class ValidationPanel extends VBox {
     public void revalidate() {
         if (editorHost.getActiveDocument().isEmpty()) {
             status.setText("No document open");
-            problems.clear();
+            setProblems(List.of());
             return;
         }
         String content = editorHost.getActiveText().orElse("");
+        if (content.isBlank()) {
+            // Nothing to validate (e.g. a document still loading) — avoid parsing empty text.
+            status.setText("Empty document");
+            setProblems(List.of());
+            return;
+        }
         boolean json = editorHost.getActiveDocument()
                 .map(d -> d.getFileType() == EditorFileType.JSON).orElse(false);
         File xsd = editorHost.activeSchemaProperty().get();
@@ -167,13 +174,24 @@ public class ValidationPanel extends VBox {
                     ? ValidationRunner.validateJson(content, jsonSchema)
                     : ValidationRunner.run(content, xsd, schematron);
             Platform.runLater(() -> {
-                problems.setAll(result);
+                setProblems(result);
                 boolean hasSchema = json ? jsonSchema != null : (xsd != null || schematron != null);
                 status.setText(result.isEmpty()
                         ? (hasSchema ? "Valid" : "Well-formed")
                         : result.size() + " problem(s)");
             });
         });
+    }
+
+    /**
+     * Replaces the problems list, clearing the ListView selection first. This
+     * avoids a JavaFX {@code ListViewBehavior} {@code IndexOutOfBoundsException}
+     * that can occur when {@code items.setAll(...)} runs (e.g. on every keystroke
+     * via continuous validation) while a row is selected.
+     */
+    private void setProblems(List<ValidationProblem> result) {
+        problemsList.getSelectionModel().clearSelection();
+        problems.setAll(result);
     }
 
     /** @return the number of problems currently shown (for tests/observers). */

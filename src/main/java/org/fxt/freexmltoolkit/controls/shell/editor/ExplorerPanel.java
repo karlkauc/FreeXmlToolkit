@@ -27,6 +27,7 @@ public class ExplorerPanel extends VBox {
     private final EditorHost editorHost;
     private final PropertiesService propertiesService = resolvePropertiesService();
     private final ObservableList<File> recentFiles = FXCollections.observableArrayList();
+    private final ListView<File> recentList = new ListView<>(recentFiles);
 
     public ExplorerPanel(EditorHost editorHost) {
         this.editorHost = editorHost;
@@ -56,7 +57,6 @@ public class ExplorerPanel extends VBox {
 
         Label recentLabel = new Label("RECENT");
         recentLabel.getStyleClass().add("fxt-side-panel-title");
-        ListView<File> recentList = new ListView<>(recentFiles);
         recentList.getStyleClass().add("fxt-open-editors");
         recentList.setPrefHeight(100);
         recentList.setCellFactory(lv -> new RecentFileCell());
@@ -108,6 +108,7 @@ public class ExplorerPanel extends VBox {
 
     private void refreshRecent() {
         if (propertiesService != null) {
+            recentList.getSelectionModel().clearSelection();
             recentFiles.setAll(propertiesService.getLastOpenFiles());
         }
     }

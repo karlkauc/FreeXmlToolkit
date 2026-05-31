@@ -167,6 +167,37 @@ class ValidationPanelTest {
     }
 
     @Test
+    void reValidatingWhileAProblemIsSelectedDoesNotCrash(@TempDir Path tmp) throws Exception {
+        Path xsd = tmp.resolve("schema.xsd");
+        Files.writeString(xsd, XSD);
+        Path invalid = tmp.resolve("invalid.xml");
+        Files.writeString(invalid, "<root><wrong/></root>");
+        open(invalid, xsd);
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.revalidate();
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS, () -> panel.getProblemCount() > 0);
+
+        // Select a problem, then re-validate repeatedly — must not throw the JavaFX
+        // ListViewBehavior IndexOutOfBoundsException (items.setAll with a selection).
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            ((javafx.scene.control.ListView<?>) panel.lookup(".list-view"))
+                    .getSelectionModel().select(0);
+            return null;
+        });
+        for (int i = 0; i < 3; i++) {
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+                panel.revalidate();
+                return null;
+            });
+            WaitForAsyncUtils.waitForFxEvents();
+        }
+        assertTrue(panel.getProblemCount() > 0, "still reports problems after re-validation");
+    }
+
+    @Test
     void validatesJsonAgainstAJsonSchema(@TempDir Path tmp) throws Exception {
         Path schema = tmp.resolve("schema.json");
         Files.writeString(schema, "{\"type\":\"object\",\"required\":[\"name\"],"

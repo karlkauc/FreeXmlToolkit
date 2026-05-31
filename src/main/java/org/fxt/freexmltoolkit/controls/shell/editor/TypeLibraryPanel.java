@@ -23,6 +23,7 @@ public class TypeLibraryPanel extends VBox {
 
     private final EditorHost editorHost;
     private final ObservableList<XsdNode> types = FXCollections.observableArrayList();
+    private final ListView<XsdNode> typesList = new ListView<>(types);
     private String selectedTypeName;
 
     public TypeLibraryPanel(EditorHost editorHost) {
@@ -32,7 +33,7 @@ public class TypeLibraryPanel extends VBox {
         Label title = new Label("SCHEMA");
         title.getStyleClass().add("fxt-side-panel-title");
 
-        ListView<XsdNode> list = new ListView<>(types);
+        ListView<XsdNode> list = typesList;
         list.getStyleClass().add("fxt-open-editors");
         VBox.setVgrow(list, Priority.ALWAYS);
         list.setPlaceholder(new Label("No named types"));
@@ -299,6 +300,8 @@ public class TypeLibraryPanel extends VBox {
     }
 
     private void refresh() {
+        // Clear selection before replacing items (avoids a JavaFX ListView setAll bug).
+        typesList.getSelectionModel().clearSelection();
         types.setAll(editorHost.getActiveNamedTypes());
     }
 
