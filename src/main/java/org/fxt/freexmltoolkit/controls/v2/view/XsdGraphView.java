@@ -430,7 +430,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         zoomOutBtn.setTooltip(new Tooltip("Zoom Out (Ctrl -)"));
         zoomOutBtn.setOnAction(e -> zoomOut());
 
-        Button zoomResetBtn = new Button("100%");
+        Button zoomResetBtn = new Button("Reset");
         zoomResetBtn.setStyle("-fx-padding: 5 10;");
         zoomResetBtn.setTooltip(new Tooltip("Reset Zoom to 100% (Ctrl 0)"));
         zoomResetBtn.setOnAction(e -> zoomReset());
@@ -443,9 +443,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         currentSourceFileLabel.setStyle("-fx-padding: 5; -fx-text-fill: #0369a1; -fx-font-style: italic;");
         currentSourceFileLabel.setVisible(false);
 
-        Label infoLabel = new Label("XSD Editor V2 - Graphical View");
-        infoLabel.getStyleClass().add("info-label-secondary");
-
+        // A trailing spacer pushes the (functional) source-file indicator to the right.
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
@@ -453,8 +451,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
                 expandAllBtn, collapseAllBtn, fitBtn,
                 separator,
                 zoomInBtn, zoomOutBtn, zoomResetBtn, zoomLabel,
-                currentSourceFileLabel,
-                spacer, infoLabel
+                spacer, currentSourceFileLabel
         );
 
         return toolbar;

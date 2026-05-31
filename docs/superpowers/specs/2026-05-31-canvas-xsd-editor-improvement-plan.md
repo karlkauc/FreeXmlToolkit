@@ -91,11 +91,19 @@ Test `XsdGraphViewIncrementalRepaintTest` asserts a selection change repaints re
 and renders far fewer cards than a full draw (render-work proxy; wall-clock not asserted to
 avoid flakiness). RED-verified by reverting the listener to a full `redraw()`.
 
-### P5 — Toolbar integration (addresses I5)
+### P5 — Toolbar integration (addresses I5) — ✅ DONE (2026-05-31, slim graph-only toolbar)
 - Hide the internal "XSD Editor V2 — Graphical View" label; optionally lift Zoom /
   Fit / Expand-Collapse into the shell's view toolbar for one consistent control strip,
   or keep a slim graph-only toolbar. Decide with the Figma owner.
 - **Acceptance:** no dev-ish labels; one obvious place for zoom/fit.
+- **Done:** chose the documented "slim graph-only toolbar" alternative (the lift into the
+  shell strip is deferred pending Figma sign-off). Removed the dev-ish
+  "XSD Editor V2 - Graphical View" label and its dangling spacer; relabelled the zoom
+  reset button "100%" → "Reset" to kill the "100% 100%" duplication next to the live zoom
+  label. The toolbar is now `Expand All · Collapse All · Fit to View | + − Reset 100%`
+  with the source-file indicator pushed right. Test: `XsdGraphViewToolbarTest`
+  (no dev label; zoom/fit/expand controls retained). Verified visually
+  (`/tmp/fxt_smoke/04_schema_graphic.png`).
 
 ### P6 — Incremental serialization (addresses I6) — optional / stretch
 - Teach `XsdSerializer` (or a thin diff layer) to update only the changed subtree's text
@@ -117,7 +125,8 @@ avoid flakiness). RED-verified by reverting the listener to a full `redraw()`.
 2. **P3** (reveal) — ✅ done. `XsdGraphView.selectModelNode` now expands the target's
    ancestors (loading lazy subtrees by walking the model path), selects it and scrolls
    it into view. Test: `XsdGraphViewRevealTest`.
-3. **P5** (toolbar) — cosmetic, needs design sign-off.
+3. **P5** (toolbar) — ✅ done (slim graph-only toolbar; dev label removed). The optional
+   lift of zoom/fit into the shell strip remains deferred pending Figma sign-off.
 4. **P4** (incremental redraw) — ✅ done for paint-only changes (selection/hover);
    layout-affecting changes still full-redraw (future work).
 5. **P6**/**P7** — stretch / cleanup.
