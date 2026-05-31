@@ -299,6 +299,47 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
     }
 
     /**
+     * Replaces only the {@code [start, oldEnd)} character region with
+     * {@code replacement} instead of the whole document, then refreshes syntax
+     * highlighting and folding. Unlike {@link #setText(String)} it does not move the
+     * caret, so a caret outside the changed region is preserved (P6 round-trip).
+     *
+     * @param start       region start offset
+     * @param oldEnd      region end offset (exclusive)
+     * @param replacement the replacement text for the region
+     */
+    public void replaceTextRegion(int start, int oldEnd, String replacement) {
+        int caret = codeArea.getCaretPosition();
+        codeArea.replaceText(start, oldEnd, replacement);
+
+        // replaceText() puts the caret at the end of the insertion; restore the user's
+        // caret, shifting it only if the change happened before it.
+        int restored;
+        if (caret <= start) {
+            restored = caret;
+        } else if (caret >= oldEnd) {
+            restored = caret + (replacement.length() - (oldEnd - start));
+        } else {
+            restored = start + replacement.length();
+        }
+        codeArea.moveTo(Math.max(0, Math.min(restored, codeArea.getLength())));
+
+        String full = codeArea.getText();
+        if (!full.isEmpty()) {
+            Platform.runLater(() -> {
+                syntaxManager.applySyntaxHighlighting(full);
+                if (foldingEnabled) {
+                    foldingManager.updateFoldingRegions(full);
+                }
+                // Force paragraph graphics refresh (folding gutter) after the edit.
+                var factory = codeArea.getParagraphGraphicFactory();
+                codeArea.setParagraphGraphicFactory(null);
+                codeArea.setParagraphGraphicFactory(factory);
+            });
+        }
+    }
+
+    /**
      * Gets the current text content.
      *
      * @return the text

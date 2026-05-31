@@ -33,6 +33,11 @@ final class XmlEditorView implements EditorView {
     }
 
     @Override
+    public void replaceTextRegion(int start, int oldEnd, String replacement) {
+        editor.replaceTextRegion(start, oldEnd, replacement);
+    }
+
+    @Override
     public CodeArea getCodeArea() {
         return editor.getCodeArea();
     }

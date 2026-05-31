@@ -25,6 +25,20 @@ public interface EditorView {
     /** @return the current editor text. */
     String getText();
 
+    /**
+     * Replaces only the {@code [start, oldEnd)} character region with
+     * {@code replacement}, preserving the caret/scroll in the untouched parts of the
+     * document (the thin diff layer, P6). The default replaces the region on the code
+     * area directly; editors with extra refresh work (e.g. syntax highlighting) override.
+     *
+     * @param start       region start offset
+     * @param oldEnd      region end offset (exclusive) in the current text
+     * @param replacement the text to put in place of the region
+     */
+    default void replaceTextRegion(int start, int oldEnd, String replacement) {
+        getCodeArea().replaceText(start, oldEnd, replacement);
+    }
+
     /** @return the underlying code area (caret, undo, text property). */
     CodeArea getCodeArea();
 

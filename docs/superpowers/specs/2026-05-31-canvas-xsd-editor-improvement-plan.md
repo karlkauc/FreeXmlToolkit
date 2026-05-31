@@ -105,10 +105,24 @@ avoid flakiness). RED-verified by reverting the listener to a full `redraw()`.
   (no dev label; zoom/fit/expand controls retained). Verified visually
   (`/tmp/fxt_smoke/04_schema_graphic.png`).
 
-### P6 — Incremental serialization (addresses I6) — optional / stretch
+### P6 — Incremental serialization (addresses I6) — ✅ DONE (2026-05-31, thin diff layer)
 - Teach `XsdSerializer` (or a thin diff layer) to update only the changed subtree's text
   region instead of re-emitting the whole document.
 - **Acceptance:** round-trip cost is ~constant w.r.t. document size for a local edit.
+- **Done (thin diff layer scope):** the round-trip still serializes the full schema, but it
+  no longer replaces the whole editor document. `TextDiff.minimalReplaceRegion` computes the
+  single contiguous changed region (common prefix/suffix) and only that region is rewritten
+  via the new `EditorView.replaceTextRegion` → `XmlCodeEditorV2.replaceTextRegion` (replace +
+  re-highlight, **no** caret reset; the caret is restored, shifted only if the edit was
+  before it). This avoids replacing/re-laying-out the entire `CodeArea` and preserves the
+  caret/scroll in untouched text. **Honest residual:** serialization and syntax
+  re-highlighting are still O(n) in document size — true constant-time round-trip needs the
+  model to carry source ranges (a much larger change), so the literal "constant cost"
+  acceptance is only partially met; the document-write cost is now proportional to the edit.
+  Tests: `TextDiffTest` (pure diff, incl. one-char edit in a 16k-line doc → one-char region),
+  `EditorViewIncrementalReplaceTest` (region replace updates text and preserves the caret).
+  Future work: incremental re-highlight of only the changed paragraphs; source-range tracking
+  for incremental serialization.
 
 ### P7 — Retire unused renderer (addresses I7) — Phase 10c
 - After parity is confirmed in real use, delete `controls/shell/schema/XsdGraphicView`
@@ -129,7 +143,9 @@ avoid flakiness). RED-verified by reverting the listener to a full `redraw()`.
    lift of zoom/fit into the shell strip remains deferred pending Figma sign-off.
 4. **P4** (incremental redraw) — ✅ done for paint-only changes (selection/hover);
    layout-affecting changes still full-redraw (future work).
-5. **P6**/**P7** — stretch / cleanup.
+5. **P6** — ✅ done as a thin diff layer (write only the changed text region; caret/scroll
+   preserved). Serialize + re-highlight remain O(n) (source-range tracking is future work).
+6. **P7** — cleanup (retire unused `XsdGraphicView`/`SchemaGridModel` in Phase 10c).
 
 ## 6. Test strategy
 

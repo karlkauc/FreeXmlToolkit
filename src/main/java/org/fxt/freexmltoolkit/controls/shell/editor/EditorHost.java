@@ -973,7 +973,16 @@ public class EditorHost extends BorderPane {
             roundTripDebounce.stop(); // we are doing the work now; cancel any pending run
             String xml = new org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSerializer()
                     .serialize(editorContext.getSchema());
-            view.setText(xml);
+            String current = view.getText();
+            // Thin diff layer (P6): rewrite only the region that actually changed, instead of
+            // replacing the whole document — preserves the editor caret/scroll and avoids
+            // re-styling untouched text.
+            int[] region = TextDiff.minimalReplaceRegion(current, xml);
+            if (region[0] == region[1] && region[0] == region[2]) {
+                lastParsedText = current; // already in sync; nothing to write
+                return;
+            }
+            view.replaceTextRegion(region[0], region[1], xml.substring(region[0], region[2]));
             // The text now mirrors the model, so it must not look like an external edit (P2).
             lastParsedText = view.getText();
             document.setDirty(true);
