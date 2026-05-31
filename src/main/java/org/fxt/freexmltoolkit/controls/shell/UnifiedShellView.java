@@ -223,6 +223,7 @@ public class UnifiedShellView extends BorderPane {
                 toolButton("bi-arrow-clockwise", "Redo (Ctrl+Y)", editorHost::redoActive),
                 vsep(),
                 toolButton("bi-text-indent-left", "Format", editorHost::formatActive),
+                toolButton("bi-puzzle", "Insert Template…", this::insertTemplate),
                 toolButton("bi-layout-split", "Compare with File…", this::compareWithFile),
                 toolButton("bi-table", "Spreadsheet Converter… (Excel / CSV ↔ XML)", this::convertSpreadsheet),
                 vsep(),
@@ -359,6 +360,24 @@ public class UnifiedShellView extends BorderPane {
         alert.setHeaderText(null);
         alert.setContentText(ok ? "Done: " + file.getAbsolutePath() : result);
         alert.showAndWait();
+    }
+
+    private void insertTemplate() {
+        if (editorHost.getActiveDocument().isEmpty()) {
+            return;
+        }
+        var dialog = new org.fxt.freexmltoolkit.controls.shell.editor.TemplateInsertDialog();
+        if (getScene() != null) {
+            dialog.initOwner(getScene().getWindow());
+        }
+        dialog.showAndWait().ifPresent(template -> {
+            String content = org.fxt.freexmltoolkit.controls.shell.editor.TemplateRunner
+                    .render(template, java.util.Map.of());
+            if (!content.startsWith("ERROR:")) {
+                editorHost.insertTextAtCaret(content);
+                org.fxt.freexmltoolkit.service.TemplateRepository.getInstance().recordUsage(template.getId());
+            }
+        });
     }
 
     private void compareWithFile() {

@@ -240,6 +240,14 @@ public class EditorHost extends BorderPane {
         openFile(file.toPath());
     }
 
+    /** Inserts {@code text} at the active editor's caret (replacing any selection). */
+    public void insertTextAtCaret(String text) {
+        if (text != null
+                && tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et) {
+            et.view.getCodeArea().replaceSelection(text);
+        }
+    }
+
     /** Shows a file chooser and opens the chosen file (used by the welcome empty-state). */
     public void openFileChooser() {
         javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
