@@ -430,6 +430,10 @@ FundsXML/update/cache ✗) · 46 Memory monitor (legacy bottom bar; not in shell
 ✅ 28 Schematron tools — DONE 2026-05-31 (commit ec6c34ab): Rule Templates / Tester / Visual Builder reused as
 shell tool-tabs via `EditorHost.openToolTab`. (Error-detector + docs generation remain follow-ups.)
 
+✅ 4/5/9 Editor niceties — DONE 2026-05-31 (commit d36518fa): Find/Replace (UnifiedSearchBar via Ctrl+F/Ctrl+H),
+Minify (XML + JSON), and JSON-Schema validation (ValidationPanel + `ValidationRunner.validateJson`). JSON edit/tree/
+JSONPath were already ✅, so #9 JSON is now complete.
+
 **Resolved since reconciliation (10b):**
 - ✅ 50 View-state preservation — DONE 2026-05-31 (commit a4292f89): XsdTreeView + XsdGraphicView preserve
   expand/collapse by node id across re-renders.
