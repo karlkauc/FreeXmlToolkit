@@ -283,7 +283,7 @@ PDF/FOP · Signature (sign+validate) · Favorites · Help · Settings (live them
 | 3 | XSLT live preview + XQuery execution | follow-ups (live re-transform on edit; the shell query field is XPath/JSONPath — standalone XQuery execution not yet wired) |
 | ~~2~~ ✅ | Diff/Compare two documents | DONE 2026-05-30 (commit 02d27c2e): `EditorHost.openDiffWithFile` reuses `controls/diff` `DiffView`/`DiffEngine`; toolbar "Compare with File…". Save-from-diff writes back to the active doc. |
 | ~~3~~ ✅ | PDF preview pane | DONE 2026-05-30 (commit b6f98432): `PdfPreview` + `PdfPreviewRenderer` (PDFBox, lazy per-page — fixes the legacy all-pages-rasterised hotspot); `EditorHost.openPdfPreview`; FopPanel "Preview" + auto-preview after generate. |
-| 3 | Full spreadsheet converter dialog (Excel, CSV options, Excel→XML) | only one-click CSV today |
+| ~~3~~ ✅ | Full spreadsheet converter dialog (Excel, CSV options, Excel→XML) | DONE 2026-05-31 (commit fff5c256): `SpreadsheetConverterDialog` (direction/format/delimiter/options) + `SpreadsheetActionRunner` Excel export & Excel/CSV→XML import; replaced the one-click CSV button. Excel auto-size made best-effort (headless robustness). |
 | 3 | Certificate creation (signature expert) | sign+validate done |
 | 4 | Auto-Update UI · FundsXML menu integration | cross-cutting; still served by legacy chrome |
 | 4 | Welcome-dashboard extras (stats cards, trend sparkline, feature-progress, tips banner) | nice-to-have analytics; core "new/open/recent" already covered by the empty-state |
