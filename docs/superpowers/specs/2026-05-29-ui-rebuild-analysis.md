@@ -425,7 +425,7 @@ live preview/recent ✗) · 32 XPath/XQuery console (XPath+saved ✅; XQuery FLW
 40 XSD favorites quick-select · 41 Welcome (empty-state ✅; dashboard stats/tips ✗) · 43 Settings (theme ✅; proxy/temp/
 FundsXML/update/cache ✗) · 46 Memory monitor (legacy bottom bar; not in shell status bar).
 
-**☐ Not migrated (4):** 10 Templates · 28 Schematron tools (builder/docs/templates/tester/detector) · 45 Auto-update UI ·
+**☐ Not migrated (3):** 28 Schematron tools (builder/docs/templates/tester/detector) · 45 Auto-update UI ·
 47 FundsXML extension menu.
 
 **Resolved since reconciliation (10b):**
@@ -435,6 +435,9 @@ FundsXML/update/cache ✗) · 46 Memory monitor (legacy bottom bar; not in shell
   active XML-family document while typing (600ms debounce, toggle on by default), live Problems list.
 - ✅ 13 Graphic context menu — DONE 2026-05-31 (commit e30a37b3): shared `NodeContextMenu` gives the Graphic view
   the same right-click editing as the Tree (select card → Add/Rename/Change/Delete).
+- ✅ 10 Templates — DONE 2026-05-31 (commit 2d623b55): `TemplateRunner` + `TemplateInsertDialog` reuse
+  `TemplateRepository`; "Insert Template…" toolbar action renders (with defaults) and inserts at the caret. Per-template
+  parameter entry is a follow-up.
 - ◐→ 14 Graphical editing — the Graphic view now edits via the command stack with the same 8 commands as the Tree
   (Add Element/Attribute/Sequence/Choice, Rename, Change Type/Cardinality, Delete); the remaining ~27 commands are
   still pending for both views.
