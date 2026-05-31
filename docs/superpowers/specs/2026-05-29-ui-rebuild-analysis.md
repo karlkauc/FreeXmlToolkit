@@ -429,8 +429,12 @@ FundsXML/update/cache ✗) · 46 Memory monitor (legacy bottom bar; not in shell
 - ✅ 45 Auto-update UI — DONE 2026-05-31 (commit d53c2565): Help panel "Check for Updates" (UpdateActionRunner).
 - ✅ 47 FundsXML extension — DONE 2026-05-31 (commit d53c2565): conditional Help section (FundsXmlActionRunner).
 
-**◐→✅ polish completed:** 32 XQuery console — DONE 2026-05-31 (commit 7b9ffd33): Transform panel XQuery area +
-`TransformRunner.runXQuery` (XPath/JSONPath/saved-queries were already done; only the XQuery result-table remains).
+**◐→✅ polish completed:**
+- 32 XQuery console — DONE 2026-05-31 (commit 7b9ffd33): Transform panel XQuery area + `TransformRunner.runXQuery`
+  (XPath/JSONPath/saved-queries were already done; only the XQuery result-table remains).
+- 16 Type Library + usage — DONE 2026-05-31 (commit 1a3347ce): "Find Usage" (TypeUsageRunner reusing
+  TypeUsageFinder) opens a usage report. The legacy graphical Simple/Complex *type-editor tabs* are superseded by
+  the shell's native Tree/Graphic editing (types are editable there via the command stack) — not a feature loss.
 
 ✅ 28 Schematron tools — DONE 2026-05-31 (commit ec6c34ab): Rule Templates / Tester / Visual Builder reused as
 shell tool-tabs via `EditorHost.openToolTab`. (Error-detector + docs generation remain follow-ups.)
