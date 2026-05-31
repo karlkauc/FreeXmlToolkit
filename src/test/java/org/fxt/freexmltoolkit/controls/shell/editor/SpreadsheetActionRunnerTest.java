@@ -3,6 +3,7 @@ package org.fxt.freexmltoolkit.controls.shell.editor;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -30,6 +31,48 @@ class SpreadsheetActionRunnerTest {
     void invalidXmlReturnsError(@TempDir Path tmp) {
         assertTrue(SpreadsheetActionRunner.exportToCsv("<not-closed>", tmp.resolve("x.csv").toFile())
                 .startsWith("ERROR:"));
+    }
+
+    @Test
+    void exportsXmlToExcel(@TempDir Path tmp) throws Exception {
+        Path xlsx = tmp.resolve("out.xlsx");
+        String result = SpreadsheetActionRunner.exportToExcel(
+                "<root><a>alpha</a><b>beta</b></root>", xlsx.toFile());
+
+        assertTrue(result.startsWith("OK:"), result);
+        assertTrue(Files.exists(xlsx) && Files.size(xlsx) > 0, "xlsx must be created");
+        byte[] header = new byte[2];
+        try (var in = Files.newInputStream(xlsx)) {
+            assertEquals(2, in.read(header));
+        }
+        assertEquals("PK", new String(header), "xlsx is a zip (PK header)");
+    }
+
+    @Test
+    void excelRoundTripBackToXml(@TempDir Path tmp) {
+        Path xlsx = tmp.resolve("rt.xlsx");
+        assertTrue(SpreadsheetActionRunner.exportToExcel(
+                "<root><a>alpha</a><b>beta</b></root>", xlsx.toFile()).startsWith("OK:"));
+
+        String xml = SpreadsheetActionRunner.excelToXml(xlsx.toFile());
+        assertFalse(xml.startsWith("ERROR:"), xml);
+        assertTrue(xml.contains("alpha") && xml.contains("beta"), xml);
+    }
+
+    @Test
+    void csvBackToXml(@TempDir Path tmp) {
+        Path csv = tmp.resolve("rt.csv");
+        assertTrue(SpreadsheetActionRunner.exportToCsv(
+                "<root><a>alpha</a></root>", csv.toFile()).startsWith("OK:"));
+
+        String xml = SpreadsheetActionRunner.csvToXml(csv.toFile());
+        assertFalse(xml.startsWith("ERROR:"), xml);
+        assertTrue(xml.contains("alpha"), xml);
+    }
+
+    @Test
+    void importErrorsAreReported() {
+        assertTrue(SpreadsheetActionRunner.excelToXml(new File("/no/such.xlsx")).startsWith("ERROR:"));
     }
 
     @Test

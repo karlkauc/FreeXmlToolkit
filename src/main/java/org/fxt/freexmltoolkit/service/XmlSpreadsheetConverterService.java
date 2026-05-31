@@ -520,11 +520,17 @@ public class XmlSpreadsheetConverterService {
      * Formats Excel sheet
      */
     private void formatExcelSheet(Sheet sheet, ConversionConfig config) {
-        // Auto-size columns
-        sheet.autoSizeColumn(0);
-        sheet.autoSizeColumn(1);
-        if (config.isIncludeTypeColumn()) {
-            sheet.autoSizeColumn(2);
+        // Auto-size columns. This relies on AWT font metrics, which can be
+        // unavailable in some headless environments; column sizing is cosmetic,
+        // so a failure here must not abort an otherwise valid export.
+        try {
+            sheet.autoSizeColumn(0);
+            sheet.autoSizeColumn(1);
+            if (config.isIncludeTypeColumn()) {
+                sheet.autoSizeColumn(2);
+            }
+        } catch (Throwable t) {
+            logger.warn("Skipping Excel column auto-size (font metrics unavailable): {}", t.toString());
         }
 
         // Set XPath column as text format

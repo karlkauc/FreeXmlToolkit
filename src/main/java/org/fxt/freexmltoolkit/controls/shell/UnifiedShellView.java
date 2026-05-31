@@ -251,7 +251,7 @@ public class UnifiedShellView extends BorderPane {
                 vsep(),
                 toolButton("bi-text-indent-left", "Format", editorHost::formatActive),
                 toolButton("bi-layout-split", "Compare with File…", this::compareWithFile),
-                toolButton("bi-filetype-csv", "Export to CSV", this::exportCsv),
+                toolButton("bi-table", "Spreadsheet Converter… (Excel / CSV ↔ XML)", this::convertSpreadsheet),
                 vsep(),
                 toolButton("bi-diagram-3", "Set XSD schema for IntelliSense", this::setSchema),
                 spacer, buildViewSwitch(), vsep(), schemaStatus);
@@ -312,27 +312,80 @@ public class UnifiedShellView extends BorderPane {
         }
     }
 
-    private void exportCsv() {
-        if (editorHost.getActiveDocument().isEmpty()) {
-            return;
+    private void convertSpreadsheet() {
+        var dialog = new org.fxt.freexmltoolkit.controls.shell.editor.SpreadsheetConverterDialog();
+        if (getScene() != null) {
+            dialog.initOwner(getScene().getWindow());
         }
-        javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
-        chooser.setTitle("Export to CSV");
-        chooser.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter("CSV", "*.csv"));
-        java.io.File file = chooser.showSaveDialog(getScene() != null ? getScene().getWindow() : null);
-        if (file == null) {
-            return;
-        }
-        String xml = editorHost.getActiveText().orElse("");
-        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
-            String result = org.fxt.freexmltoolkit.controls.shell.editor.SpreadsheetActionRunner
-                    .exportToCsv(xml, file);
-            javafx.application.Platform.runLater(() -> {
-                if (result.startsWith("OK:") && file.exists()) {
-                    editorHost.openFile(file.toPath());
-                }
+        dialog.showAndWait().ifPresent(this::performConversion);
+    }
+
+    private void performConversion(
+            org.fxt.freexmltoolkit.controls.shell.editor.SpreadsheetConverterDialog.Settings settings) {
+        var window = getScene() != null ? getScene().getWindow() : null;
+        boolean excel = settings.format()
+                == org.fxt.freexmltoolkit.controls.shell.editor.SpreadsheetConverterDialog.Format.EXCEL;
+        if (settings.direction()
+                == org.fxt.freexmltoolkit.controls.shell.editor.SpreadsheetConverterDialog.Direction.XML_TO_SPREADSHEET) {
+            if (editorHost.getActiveDocument().isEmpty()) {
+                return;
+            }
+            String xml = editorHost.getActiveText().orElse("");
+            javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
+            chooser.setTitle("Save spreadsheet");
+            chooser.getExtensionFilters().add(excel
+                    ? new javafx.stage.FileChooser.ExtensionFilter("Excel", "*.xlsx")
+                    : new javafx.stage.FileChooser.ExtensionFilter("CSV", "*.csv"));
+            java.io.File out = chooser.showSaveDialog(window);
+            if (out == null) {
+                return;
+            }
+            org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+                String result = excel
+                        ? org.fxt.freexmltoolkit.controls.shell.editor.SpreadsheetActionRunner
+                                .exportToExcel(xml, out, settings.config())
+                        : org.fxt.freexmltoolkit.controls.shell.editor.SpreadsheetActionRunner
+                                .exportToCsv(xml, out, settings.delimiter().config(), settings.config());
+                javafx.application.Platform.runLater(() -> reportConversion(result, out, false));
             });
-        });
+        } else {
+            javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
+            chooser.setTitle("Import spreadsheet");
+            chooser.getExtensionFilters().add(
+                    new javafx.stage.FileChooser.ExtensionFilter("Excel / CSV", "*.xlsx", "*.csv"));
+            java.io.File in = chooser.showOpenDialog(window);
+            if (in == null) {
+                return;
+            }
+            // Infer the actual format from the chosen file's extension.
+            boolean isExcel = in.getName().toLowerCase().endsWith(".xlsx");
+            org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+                String xml = isExcel
+                        ? org.fxt.freexmltoolkit.controls.shell.editor.SpreadsheetActionRunner
+                                .excelToXml(in, settings.config())
+                        : org.fxt.freexmltoolkit.controls.shell.editor.SpreadsheetActionRunner
+                                .csvToXml(in, settings.delimiter().config(), settings.config());
+                javafx.application.Platform.runLater(() -> {
+                    if (xml.startsWith("ERROR:")) {
+                        reportConversion(xml, in, true);
+                    } else {
+                        editorHost.openGeneratedDocument(xml,
+                                org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.XML, "Imported.xml");
+                    }
+                });
+            });
+        }
+    }
+
+    private void reportConversion(String result, java.io.File file, boolean imported) {
+        boolean ok = result.startsWith("OK:") || (imported && !result.startsWith("ERROR:"));
+        javafx.scene.control.Alert alert = new javafx.scene.control.Alert(ok
+                ? javafx.scene.control.Alert.AlertType.INFORMATION
+                : javafx.scene.control.Alert.AlertType.ERROR);
+        alert.setTitle("Spreadsheet Converter");
+        alert.setHeaderText(null);
+        alert.setContentText(ok ? "Done: " + file.getAbsolutePath() : result);
+        alert.showAndWait();
     }
 
     private void compareWithFile() {
