@@ -121,13 +121,25 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
      * @since 2.0
      */
     public XsdGraphView(XsdSchema schema) {
-        if (schema == null) {
+        this(buildOwnContext(schema));
+    }
+
+    /**
+     * Creates a graphical view that adopts an existing {@link XsdEditorContext},
+     * sharing its schema, command stack and selection model. Used when the view is
+     * embedded in the unified shell so that graphical edits, inspector edits and
+     * undo/redo all run through one context.
+     *
+     * @param context the editor context to adopt (must hold a non-null schema)
+     */
+    public XsdGraphView(XsdEditorContext context) {
+        if (context == null || context.getSchema() == null) {
             throw new IllegalArgumentException("Schema cannot be null");
         }
 
-        this.xsdSchema = schema;
+        this.xsdSchema = context.getSchema();
         this.renderer = new XsdNodeRenderer();
-        this.selectionModel = new SelectionModel();
+        this.selectionModel = context.getSelectionModel();
 
         // Create canvas for drawing
         this.canvas = new Canvas(2000, 2000);
@@ -135,11 +147,18 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         scrollPane.setPannable(true);
         scrollPane.getStyleClass().add("theme-bg-primary");
 
-        // Pass the existing selectionModel to EditorContext so they share the same instance
-        this.editorContext = new XsdEditorContext(schema, this.selectionModel);
+        this.editorContext = context;
         this.contextMenuFactory = new XsdContextMenuFactory(editorContext);
 
         initializeUI();
+    }
+
+    /** Builds a fresh, self-owned context for the schema-only constructor. */
+    private static XsdEditorContext buildOwnContext(XsdSchema schema) {
+        if (schema == null) {
+            throw new IllegalArgumentException("Schema cannot be null");
+        }
+        return new XsdEditorContext(schema, new SelectionModel());
     }
 
     /**
@@ -1674,6 +1693,38 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
             return editorContext.getSelectionModel();
         }
         return selectionModel;
+    }
+
+    /**
+     * Selects the visual card backing the given model node (reveal-and-select),
+     * used by the shell to mirror a selection made elsewhere. No-op if the node
+     * is not currently materialized in the visual tree.
+     *
+     * @param modelNode the model node to select
+     */
+    public void selectModelNode(org.fxt.freexmltoolkit.controls.v2.model.XsdNode modelNode) {
+        if (modelNode == null || rootNode == null) {
+            return;
+        }
+        VisualNode match = findVisualByModel(rootNode, modelNode);
+        if (match != null) {
+            getSelectionModel().select(match);
+            redraw();
+        }
+    }
+
+    private VisualNode findVisualByModel(
+            VisualNode node, org.fxt.freexmltoolkit.controls.v2.model.XsdNode modelNode) {
+        if (node.getModelObject() == modelNode) {
+            return node;
+        }
+        for (VisualNode child : node.getChildren()) {
+            VisualNode found = findVisualByModel(child, modelNode);
+            if (found != null) {
+                return found;
+            }
+        }
+        return null;
     }
 
     /**

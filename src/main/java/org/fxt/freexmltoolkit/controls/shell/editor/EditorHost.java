@@ -136,9 +136,9 @@ public class EditorHost extends BorderPane {
             if (et.viewMode == ViewMode.TREE && et.treeView != null && et.treeView.getRoot() != null) {
                 return Optional.of(et.treeView.getRoot().getValue());
             }
-            if (et.viewMode == ViewMode.GRAPHIC && et.graphicView != null
-                    && et.graphicView.getSchemaRoot() != null) {
-                return Optional.of(et.graphicView.getSchemaRoot());
+            if (et.viewMode == ViewMode.GRAPHIC && et.editorContext != null
+                    && et.editorContext.getSchema() != null) {
+                return Optional.of(et.editorContext.getSchema());
             }
         }
         return Optional.empty();
@@ -187,8 +187,8 @@ public class EditorHost extends BorderPane {
         withActive(et -> {
             if (et.viewMode == ViewMode.TREE && et.treeView != null) {
                 et.treeView.selectNode(node);
-            } else if (et.viewMode == ViewMode.GRAPHIC && et.graphicView != null) {
-                et.graphicView.selectNode(node);
+            } else if (et.viewMode == ViewMode.GRAPHIC && et.xsdGraphView != null) {
+                et.xsdGraphView.selectModelNode(node);
             }
         });
     }
@@ -724,7 +724,7 @@ public class EditorHost extends BorderPane {
         private final Runnable selectionCallback;
         private final javafx.scene.layout.StackPane contentStack = new javafx.scene.layout.StackPane();
         private org.fxt.freexmltoolkit.controls.shell.schema.XsdTreeView treeView;
-        private org.fxt.freexmltoolkit.controls.shell.schema.XsdGraphicView graphicView;
+        private org.fxt.freexmltoolkit.controls.v2.view.XsdGraphView xsdGraphView;
         private org.fxt.freexmltoolkit.controls.jsoneditor.view.JsonTreeView jsonTreeView;
         private org.fxt.freexmltoolkit.controls.shell.schema.XmlInstanceTreeView xmlInstanceTreeView;
         private org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext editorContext;
@@ -798,9 +798,14 @@ public class EditorHost extends BorderPane {
                     showOnly(treeView);
                 }
                 case GRAPHIC -> {
-                    ensureGraphic();
-                    renderStructured();
-                    showOnly(graphicView);
+                    ensureCanvasGraphic();
+                    if (xsdGraphView != null) {
+                        showOnly(xsdGraphView);
+                    } else {
+                        // Model did not parse: fall back to Text.
+                        viewMode = ViewMode.TEXT;
+                        showOnly(view.getNode());
+                    }
                 }
                 default -> showOnly(view.getNode());
             }
@@ -816,16 +821,16 @@ public class EditorHost extends BorderPane {
         }
 
         private void renderStructured() {
+            // The Graphic view (Canvas XsdGraphView) is bound to the model at build
+            // time and redraws itself from PropertyChangeEvents, so only the Tree
+            // needs an explicit refresh here.
+            if (viewMode != ViewMode.TREE || treeView == null) {
+                return;
+            }
             if (editorContext != null) {
-                if (viewMode == ViewMode.TREE && treeView != null) {
-                    treeView.setSchema(editorContext.getSchema());
-                } else if (viewMode == ViewMode.GRAPHIC && graphicView != null) {
-                    graphicView.setSchema(editorContext.getSchema());
-                }
-            } else if (viewMode == ViewMode.TREE && treeView != null) {
+                treeView.setSchema(editorContext.getSchema());
+            } else {
                 treeView.setXsdFromText(view.getText());
-            } else if (viewMode == ViewMode.GRAPHIC && graphicView != null) {
-                graphicView.setXsdFromText(view.getText());
             }
         }
 
@@ -923,12 +928,20 @@ public class EditorHost extends BorderPane {
         }
 
         private void applyModelChange() {
+            roundTripModelToText();
+            currentSelection = null;
+            renderStructured();
+        }
+
+        /** Serializes the current model back into the editor text and marks it dirty. */
+        private void roundTripModelToText() {
+            if (editorContext == null) {
+                return;
+            }
             String xml = new org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSerializer()
                     .serialize(editorContext.getSchema());
             view.setText(xml);
             document.setDirty(true);
-            currentSelection = null;
-            renderStructured();
         }
 
         private void ensureTree() {
@@ -943,15 +956,39 @@ public class EditorHost extends BorderPane {
             }
         }
 
-        private void ensureGraphic() {
-            if (graphicView == null) {
-                graphicView = new org.fxt.freexmltoolkit.controls.shell.schema.XsdGraphicView(node -> {
-                    currentSelection = node;
-                    selectionCallback.run();
-                });
-                graphicView.setEditActions(createEditActions()); // Tree-parity editing via right-click
-                contentStack.getChildren().add(graphicView);
+        /**
+         * (Re)builds the Canvas-based {@link org.fxt.freexmltoolkit.controls.v2.view.XsdGraphView}
+         * editor over the current {@link #editorContext}, sharing its command stack and
+         * selection so graphical edits, inspector edits and undo/redo are unified. The view
+         * is rebuilt whenever the model is re-parsed (a new context) and reused otherwise.
+         */
+        private void ensureCanvasGraphic() {
+            if (editorContext == null) {
+                return;
             }
+            if (xsdGraphView != null && xsdGraphView.getEditorContext() == editorContext) {
+                return; // already bound to the current model
+            }
+            if (xsdGraphView != null) {
+                contentStack.getChildren().remove(xsdGraphView);
+            }
+            editorContext.setEditMode(true);
+            org.fxt.freexmltoolkit.controls.v2.view.XsdGraphView built =
+                    new org.fxt.freexmltoolkit.controls.v2.view.XsdGraphView(editorContext);
+            built.getSelectionModel().addSelectionListener((oldSel, newSel) -> {
+                var primary = built.getSelectionModel().getPrimarySelection();
+                currentSelection = primary != null
+                        && primary.getModelObject() instanceof XsdNode node ? node : null;
+                selectionCallback.run();
+            });
+            // Round-trip graphical/internal edits (drag, right-click, keyboard) to the text.
+            editorContext.getSchema().addPropertyChangeListener(evt -> {
+                if (viewMode == ViewMode.GRAPHIC) {
+                    roundTripModelToText();
+                }
+            });
+            xsdGraphView = built;
+            contentStack.getChildren().add(xsdGraphView);
         }
 
         /** Editing actions shared by the Tree and Graphic views: run a command, then refresh selection. */
