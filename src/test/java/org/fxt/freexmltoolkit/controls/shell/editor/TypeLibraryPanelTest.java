@@ -44,6 +44,12 @@ class TypeLibraryPanelTest {
                 "Schema panel must offer the 'Generate Sample XML' action");
     }
 
+    @Test
+    void exposesTheFindUsageAction() {
+        WaitForAsyncUtils.waitForFxEvents();
+        assertTrue(hasButton("Find Usage"), "Schema panel must offer the 'Find Usage' action");
+    }
+
     private boolean hasButton(String text) {
         return panel.lookupAll(".button").stream()
                 .anyMatch(n -> n instanceof Button b && text.equals(b.getText()));

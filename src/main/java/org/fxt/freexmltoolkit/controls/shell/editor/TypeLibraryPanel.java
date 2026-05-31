@@ -23,6 +23,7 @@ public class TypeLibraryPanel extends VBox {
 
     private final EditorHost editorHost;
     private final ObservableList<XsdNode> types = FXCollections.observableArrayList();
+    private String selectedTypeName;
 
     public TypeLibraryPanel(EditorHost editorHost) {
         this.editorHost = editorHost;
@@ -37,8 +38,9 @@ public class TypeLibraryPanel extends VBox {
         list.setPlaceholder(new Label("No named types"));
         list.setCellFactory(lv -> new TypeCell());
         list.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
-            if (newV != null && newV.getName() != null) {
-                editorHost.revealTypeByName(newV.getName());
+            selectedTypeName = newV != null ? newV.getName() : null;
+            if (selectedTypeName != null) {
+                editorHost.revealTypeByName(selectedTypeName);
             }
         });
 
@@ -52,11 +54,38 @@ public class TypeLibraryPanel extends VBox {
         Label typesLabel = new Label("TYPES");
         typesLabel.getStyleClass().add("fxt-side-panel-title");
 
-        getChildren().addAll(title, actions, typesLabel, list);
+        getChildren().addAll(title, actions, typesLabel, list,
+                actionButton("Find Usage", "bi-search", this::findUsageOfSelectedType));
 
         refresh();
         editorHost.activeTabProperty().addListener((obs, oldV, newV) -> refresh());
         editorHost.activeViewModeProperty().addListener((obs, oldV, newV) -> refresh());
+    }
+
+    /**
+     * Finds where the selected named type is used and opens a report (async).
+     * Reuses {@link TypeUsageRunner} (which reuses {@code TypeUsageFinder}).
+     */
+    public void findUsageOfSelectedType() {
+        String typeName = selectedTypeName;
+        if (typeName == null || typeName.isBlank() || editorHost.getActiveDocument().isEmpty()) {
+            return;
+        }
+        String xsd = editorHost.getActiveText().orElse("");
+        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            java.util.List<String> usages = TypeUsageRunner.findUsages(xsd, typeName);
+            StringBuilder report = new StringBuilder("Usages of type '").append(typeName).append("'\n");
+            report.append("=".repeat(report.length() - 1)).append('\n');
+            if (usages.isEmpty()) {
+                report.append("\nNo usages found.\n");
+            } else {
+                report.append('\n').append(usages.size()).append(" usage(s):\n\n");
+                usages.forEach(u -> report.append("  • ").append(u).append('\n'));
+            }
+            javafx.application.Platform.runLater(() ->
+                    editorHost.openGeneratedDocument(report.toString(), EditorFileType.OTHER,
+                            "Usages-" + typeName + ".txt"));
+        });
     }
 
     /** Infers an XSD from the active XML document and opens it as a new tab (async). */
