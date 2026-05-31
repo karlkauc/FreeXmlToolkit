@@ -25,6 +25,7 @@ class HelpAndSettingsPanelTest {
 
     @Start
     void start(Stage stage) {
+        org.fxt.freexmltoolkit.di.ServiceRegistry.initialize();
         help = new HelpPanel();
         settings = new SettingsPanel();
         rootBox = new HBox(help, settings);
@@ -36,6 +37,17 @@ class HelpAndSettingsPanelTest {
     void helpShowsVersion() {
         WaitForAsyncUtils.waitForFxEvents();
         assertTrue(help.getVersionText().startsWith("Version "), help.getVersionText());
+    }
+
+    @Test
+    void helpExposesCheckForUpdatesAndHidesFundsXmlByDefault() {
+        WaitForAsyncUtils.waitForFxEvents();
+        boolean hasUpdate = help.lookupAll(".button").stream()
+                .anyMatch(n -> n instanceof javafx.scene.control.Button b && "Check for Updates".equals(b.getText()));
+        assertTrue(hasUpdate, "Help must offer 'Check for Updates'");
+        boolean fundsShown = help.lookupAll(".label").stream()
+                .anyMatch(n -> n instanceof javafx.scene.control.Label l && "FUNDSXML".equals(l.getText()));
+        assertFalse(fundsShown, "FundsXML section must be hidden unless enabled in settings");
     }
 
     @Test
