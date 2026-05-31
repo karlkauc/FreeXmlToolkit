@@ -425,7 +425,9 @@ live preview/recent ✗) · 32 XPath/XQuery console (XPath+saved ✅; XQuery FLW
 40 XSD favorites quick-select · 41 Welcome (empty-state ✅; dashboard stats/tips ✗) · 43 Settings (theme ✅; proxy/temp/
 FundsXML/update/cache ✗) · 46 Memory monitor (legacy bottom bar; not in shell status bar).
 
-**☐ Not migrated (2):** 45 Auto-update UI · 47 FundsXML extension menu.
+**☐ Not migrated: NONE** 🎉 — every one of the 50 matrix features is now reachable in the shell.
+- ✅ 45 Auto-update UI — DONE 2026-05-31 (commit d53c2565): Help panel "Check for Updates" (UpdateActionRunner).
+- ✅ 47 FundsXML extension — DONE 2026-05-31 (commit d53c2565): conditional Help section (FundsXmlActionRunner).
 
 ✅ 28 Schematron tools — DONE 2026-05-31 (commit ec6c34ab): Rule Templates / Tester / Visual Builder reused as
 shell tool-tabs via `EditorHost.openToolTab`. (Error-detector + docs generation remain follow-ups.)
