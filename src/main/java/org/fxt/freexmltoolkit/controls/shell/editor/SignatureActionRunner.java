@@ -1,11 +1,11 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import java.io.File;
+
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.fxt.freexmltoolkit.service.SignatureService;
-
-import java.io.File;
 
 /**
  * UI-free signature helpers for the shell, reusing {@link SignatureService}.

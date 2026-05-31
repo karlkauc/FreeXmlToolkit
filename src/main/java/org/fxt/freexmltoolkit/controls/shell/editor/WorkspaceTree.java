@@ -1,5 +1,11 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.function.Consumer;
+
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TreeCell;
@@ -9,14 +15,9 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
+
 import org.fxt.freexmltoolkit.controls.FileExplorerTreeItem;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
-
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
-import java.util.function.Consumer;
 
 /**
  * Slim workspace file tree for the Explorer activity (UI rebuild Phase 3,

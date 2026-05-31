@@ -1,8 +1,8 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests {@link SchemaActionRunner#generateXsdFromXml(String)} (no UI / no service
@@ -52,4 +52,3 @@ class SchemaActionRunnerTest {
         assertTrue(flattened.contains("PersonType"), flattened);
     }
 }
-

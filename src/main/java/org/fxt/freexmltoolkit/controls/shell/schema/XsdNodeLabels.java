@@ -1,10 +1,10 @@
 package org.fxt.freexmltoolkit.controls.shell.schema;
 
+import java.util.Locale;
+
 import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNodeType;
-
-import java.util.Locale;
 
 /**
  * UI-free presentation helpers for rendering {@link XsdNode}s in the Schema views:

@@ -1,17 +1,18 @@
 package org.fxt.freexmltoolkit.controls.shell;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+
 import org.fxt.freexmltoolkit.controller.MainController;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
 import org.testfx.util.WaitForAsyncUtils;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Integration smoke test: loads the real application shell ({@code main.fxml} +

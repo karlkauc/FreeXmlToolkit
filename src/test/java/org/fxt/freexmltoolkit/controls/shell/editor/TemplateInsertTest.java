@@ -1,14 +1,6 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
-import javafx.scene.Scene;
-import javafx.stage.Stage;
-import org.fxt.freexmltoolkit.domain.XmlTemplate;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.io.TempDir;
-import org.testfx.framework.junit5.ApplicationExtension;
-import org.testfx.framework.junit5.Start;
-import org.testfx.util.WaitForAsyncUtils;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -16,7 +8,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.jupiter.api.Assertions.*;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
+
+import org.fxt.freexmltoolkit.domain.XmlTemplate;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
+import org.testfx.framework.junit5.ApplicationExtension;
+import org.testfx.framework.junit5.Start;
+import org.testfx.util.WaitForAsyncUtils;
 
 /**
  * Verifies template insertion: the dialog lists/returns a template, and the

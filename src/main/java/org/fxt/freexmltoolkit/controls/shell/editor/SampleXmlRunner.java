@@ -1,8 +1,8 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
-import org.fxt.freexmltoolkit.service.XsdDocumentationService;
-
 import java.io.File;
+
+import org.fxt.freexmltoolkit.service.XsdDocumentationService;
 
 /**
  * UI-free generation of a sample XML instance from an XSD, reusing

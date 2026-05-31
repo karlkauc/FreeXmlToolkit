@@ -1,13 +1,13 @@
 package org.fxt.freexmltoolkit.controls.shell.inspector;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.Locale;
+
 import org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNodeType;
-
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.Locale;
 
 /**
  * UI-free projection of a selected {@link XsdNode} into the inspector's sections

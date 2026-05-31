@@ -1,16 +1,16 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
-import org.fxt.freexmltoolkit.di.ServiceRegistry;
-import org.fxt.freexmltoolkit.service.SchematronService;
-import org.fxt.freexmltoolkit.service.SchematronServiceImpl;
-import org.fxt.freexmltoolkit.service.XmlService;
-import org.xml.sax.SAXParseException;
-
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
+import org.fxt.freexmltoolkit.service.SchematronService;
+import org.fxt.freexmltoolkit.service.SchematronServiceImpl;
+import org.fxt.freexmltoolkit.service.XmlService;
+import org.xml.sax.SAXParseException;
 
 /**
  * UI-free validation orchestration for the Validation activity: validates XML

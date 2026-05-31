@@ -1,12 +1,12 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
-import org.fxmisc.richtext.CodeArea;
-import org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2;
-import org.fxt.freexmltoolkit.controls.v2.editor.services.MutableXmlSchemaProvider;
+import java.io.File;
 
 import javafx.scene.layout.Region;
 
-import java.io.File;
+import org.fxmisc.richtext.CodeArea;
+import org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2;
+import org.fxt.freexmltoolkit.controls.v2.editor.services.MutableXmlSchemaProvider;
 
 /**
  * {@link EditorView} adapter for the XML-family text editor ({@code XmlCodeEditorV2}),

@@ -1,5 +1,8 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import java.io.File;
+import java.io.IOException;
+
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Pos;
@@ -9,11 +12,9 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+
 import org.fxt.freexmltoolkit.FxtGui;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
-
-import java.io.File;
-import java.io.IOException;
 
 /**
  * In-app PDF preview: renders one page at a time (via {@link PdfPreviewRenderer})

@@ -1,6 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.schema;
 
 import javafx.scene.control.TreeItem;
+
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 
 /**

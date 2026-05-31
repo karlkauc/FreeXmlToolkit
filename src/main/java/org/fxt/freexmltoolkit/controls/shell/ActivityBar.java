@@ -1,17 +1,18 @@
 package org.fxt.freexmltoolkit.controls.shell;
 
-import javafx.scene.control.Tooltip;
+import java.util.EnumMap;
+import java.util.EnumSet;
+import java.util.Map;
+
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
-import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 
-import java.util.EnumMap;
-import java.util.EnumSet;
-import java.util.Map;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 
 /**
  * The slim, VS-Code-style left rail of the Unified shell. Renders one icon

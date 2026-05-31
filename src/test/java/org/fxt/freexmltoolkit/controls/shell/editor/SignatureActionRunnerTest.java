@@ -1,7 +1,6 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
 import java.io.InputStream;
@@ -10,7 +9,8 @@ import java.nio.file.Path;
 import java.security.KeyStore;
 import java.util.Comparator;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests {@link SignatureActionRunner} certificate/keystore creation (no UI),

@@ -1,9 +1,9 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import javafx.scene.layout.Region;
+
 import org.fxmisc.richtext.CodeArea;
 import org.fxt.freexmltoolkit.controls.jsoneditor.editor.JsonCodeEditor;
-
-import javafx.scene.layout.Region;
 
 /**
  * {@link EditorView} adapter for the JSON text editor ({@code JsonCodeEditor}),

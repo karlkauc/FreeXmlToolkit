@@ -1,5 +1,9 @@
 package org.fxt.freexmltoolkit.controls.shell;
 
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.util.concurrent.atomic.AtomicInteger;
+
 import javafx.scene.Scene;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TreeCell;
@@ -7,15 +11,12 @@ import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
 import org.testfx.util.WaitForAsyncUtils;
-
-import java.util.concurrent.atomic.AtomicInteger;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Phase-2 feasibility spike for the new virtualized Tree/Graphic+Grid renderer

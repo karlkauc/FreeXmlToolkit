@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import java.util.List;
+
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
@@ -8,9 +10,8 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import org.fxt.freexmltoolkit.domain.XmlTemplate;
 
-import java.util.List;
+import org.fxt.freexmltoolkit.domain.XmlTemplate;
 
 /**
  * Lets the user pick an XML template to insert. Lists the available templates

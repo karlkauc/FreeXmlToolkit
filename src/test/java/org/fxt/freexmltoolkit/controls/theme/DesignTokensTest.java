@@ -1,9 +1,10 @@
 package org.fxt.freexmltoolkit.controls.theme;
 
-import javafx.scene.paint.Color;
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.*;
+
+import javafx.scene.paint.Color;
+
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests for {@link DesignTokens}, the Java mirror of the Figma design tokens

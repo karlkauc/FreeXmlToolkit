@@ -1,10 +1,10 @@
 package org.fxt.freexmltoolkit.controls.shell.schema;
 
-import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdNodeType;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdNodeType;
 
 /**
  * UI-free collection of a schema's top-level named simple/complex types for the

@@ -1,12 +1,12 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
-import org.apache.pdfbox.Loader;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.rendering.PDFRenderer;
-
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+
+import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.rendering.PDFRenderer;
 
 /**
  * UI-free PDF rasterisation for the in-app preview, reusing PDFBox. Pages are

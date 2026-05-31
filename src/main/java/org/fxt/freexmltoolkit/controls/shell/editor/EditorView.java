@@ -1,10 +1,10 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
-import org.fxmisc.richtext.CodeArea;
+import java.io.File;
 
 import javafx.scene.layout.Region;
 
-import java.io.File;
+import org.fxmisc.richtext.CodeArea;
 
 /**
  * Abstraction over the concrete text editors the Unified host can embed, so the

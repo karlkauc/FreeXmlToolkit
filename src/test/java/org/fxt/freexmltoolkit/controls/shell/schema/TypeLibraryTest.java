@@ -1,14 +1,14 @@
 package org.fxt.freexmltoolkit.controls.shell.schema;
 
-import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdNodeFactory;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdNodeFactory;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests for {@link TypeLibrary}: collecting the top-level named simple/complex

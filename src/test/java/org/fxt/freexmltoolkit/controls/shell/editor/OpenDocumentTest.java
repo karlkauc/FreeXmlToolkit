@@ -1,11 +1,11 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests for {@link OpenDocument}, the per-tab model of the Unified editor host

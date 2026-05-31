@@ -1,17 +1,18 @@
 package org.fxt.freexmltoolkit.controls.shell.schema;
 
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.util.concurrent.atomic.AtomicReference;
+
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
 import org.testfx.util.WaitForAsyncUtils;
-
-import java.util.concurrent.atomic.AtomicReference;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * TestFX verification of {@link XsdGraphicView}: renders a parsed XSD, exposes a

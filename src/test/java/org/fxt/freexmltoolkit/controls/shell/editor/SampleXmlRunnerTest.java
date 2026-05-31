@@ -1,10 +1,10 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests {@link SampleXmlRunner} (no UI): generates a sample XML instance from an

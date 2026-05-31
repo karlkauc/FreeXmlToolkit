@@ -1,13 +1,13 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import java.io.File;
+
 import org.fxt.freexmltoolkit.domain.PdfDocumentationConfig;
 import org.fxt.freexmltoolkit.domain.WordDocumentationConfig;
 import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
 import org.fxt.freexmltoolkit.service.XsdDocumentationPdfService;
 import org.fxt.freexmltoolkit.service.XsdDocumentationService;
 import org.fxt.freexmltoolkit.service.XsdDocumentationWordService;
-
-import java.io.File;
 
 /**
  * UI-free XSD documentation export for the shell, reusing the existing

@@ -1,10 +1,10 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
-import org.fxt.freexmltoolkit.domain.PDFSettings;
-import org.fxt.freexmltoolkit.service.FOPService;
-
 import java.io.File;
 import java.util.HashMap;
+
+import org.fxt.freexmltoolkit.domain.PDFSettings;
+import org.fxt.freexmltoolkit.service.FOPService;
 
 /**
  * UI-free PDF generation for the PDF/FOP activity: transforms an XML file with

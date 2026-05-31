@@ -1,12 +1,12 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
-import org.fxt.freexmltoolkit.domain.TemplateParameter;
-import org.fxt.freexmltoolkit.domain.XmlTemplate;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.fxt.freexmltoolkit.domain.TemplateParameter;
+import org.fxt.freexmltoolkit.domain.XmlTemplate;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests {@link TemplateRunner} (no UI): renders an {@link XmlTemplate} with its

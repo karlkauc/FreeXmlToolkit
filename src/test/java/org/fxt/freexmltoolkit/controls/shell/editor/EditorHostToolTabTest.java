@@ -1,16 +1,17 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import javafx.scene.Scene;
 import javafx.scene.control.Tab;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
 import org.testfx.util.WaitForAsyncUtils;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Verifies the EditorHost can host an arbitrary tool UI as a closable tab, and

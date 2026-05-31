@@ -1,14 +1,15 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import java.io.File;
+import java.io.StringReader;
+
+import javax.xml.parsers.DocumentBuilderFactory;
+
 import org.fxt.freexmltoolkit.service.CsvHandler;
 import org.fxt.freexmltoolkit.service.XmlSpreadsheetConverterService;
 import org.fxt.freexmltoolkit.service.XmlSpreadsheetConverterService.ConversionConfig;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
-
-import javax.xml.parsers.DocumentBuilderFactory;
-import java.io.File;
-import java.io.StringReader;
 
 /**
  * UI-free XML &harr; spreadsheet conversion for the shell, reusing

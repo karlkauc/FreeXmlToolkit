@@ -1,12 +1,12 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
-import org.fxt.freexmltoolkit.controls.icons.IconifyIconService;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIconService;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests for {@link EditorFileType}, which classifies files opened in the Unified

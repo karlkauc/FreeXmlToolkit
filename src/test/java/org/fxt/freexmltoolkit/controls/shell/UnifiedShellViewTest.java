@@ -1,5 +1,12 @@
 package org.fxt.freexmltoolkit.controls.shell;
 
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.io.File;
+import java.util.Set;
+
+import javax.imageio.ImageIO;
+
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
@@ -7,17 +14,12 @@ import javafx.scene.control.TitledPane;
 import javafx.scene.image.WritableImage;
 import javafx.scene.layout.Region;
 import javafx.stage.Stage;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.testfx.framework.junit5.Start;
 import org.testfx.framework.junit5.ApplicationExtension;
+import org.testfx.framework.junit5.Start;
 import org.testfx.util.WaitForAsyncUtils;
-
-import javax.imageio.ImageIO;
-import java.io.File;
-import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Renders the {@link UnifiedShellView} skeleton headlessly (Monocle) and verifies

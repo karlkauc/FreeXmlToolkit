@@ -1,15 +1,16 @@
 package org.fxt.freexmltoolkit.controls.shell.schema;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
+
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNodeFactory;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Virtualized Tree view of an XSD (UI rebuild Phase 4, increment 1). Reuses the

@@ -1,12 +1,12 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import java.nio.file.Path;
+import java.util.Objects;
+
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-
-import java.nio.file.Path;
-import java.util.Objects;
 
 /**
  * Per-tab model of the Unified editor host: the file (or untitled placeholder),

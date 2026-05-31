@@ -1,12 +1,12 @@
 package org.fxt.freexmltoolkit.controls.shell;
 
-import org.fxt.freexmltoolkit.controls.icons.IconifyIconService;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Arrays;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIconService;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests for {@link Activity}, the catalog of left-rail activities in the new

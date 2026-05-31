@@ -1,8 +1,8 @@
 package org.fxt.freexmltoolkit.controls.shell.inspector;
 
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests for {@link NodeXPathInfo}, the UI-free derivation of the inspector's

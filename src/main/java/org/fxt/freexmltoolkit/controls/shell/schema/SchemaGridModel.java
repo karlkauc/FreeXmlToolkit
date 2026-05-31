@@ -1,10 +1,10 @@
 package org.fxt.freexmltoolkit.controls.shell.schema;
 
-import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdNodeType;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdNodeType;
 
 /**
  * UI-free logic for the embedded grid in the Graphic view: which nodes repeat

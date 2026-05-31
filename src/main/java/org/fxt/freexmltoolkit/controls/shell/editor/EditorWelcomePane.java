@@ -1,5 +1,9 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import java.io.File;
+import java.util.List;
+import java.util.function.Consumer;
+
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -10,11 +14,8 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
-import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 
-import java.io.File;
-import java.util.List;
-import java.util.function.Consumer;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 
 /**
  * The editor empty-state landing shown when no document is open (e.g. on boot

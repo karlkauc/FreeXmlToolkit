@@ -1,12 +1,13 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import java.net.URI;
+
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
+
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.util.VersionUtil;
-
-import java.net.URI;
 
 /**
  * The Help activity side panel: about / version information and quick links.

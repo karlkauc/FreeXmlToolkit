@@ -1,9 +1,9 @@
 package org.fxt.freexmltoolkit.controls.shell;
 
+import java.util.Objects;
+
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-
-import java.util.Objects;
 
 /**
  * Tracks the currently active {@link Activity} in the Unified shell.

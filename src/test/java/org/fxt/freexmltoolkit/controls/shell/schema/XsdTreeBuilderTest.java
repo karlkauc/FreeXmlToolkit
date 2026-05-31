@@ -1,15 +1,16 @@
 package org.fxt.freexmltoolkit.controls.shell.schema;
 
-import javafx.scene.control.TreeItem;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdNodeFactory;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import javafx.scene.control.TreeItem;
+
+import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdNodeFactory;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests for {@link XsdTreeBuilder}, the UI-free conversion of an XsdNode model

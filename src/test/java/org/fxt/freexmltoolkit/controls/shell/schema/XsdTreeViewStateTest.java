@@ -1,8 +1,11 @@
 package org.fxt.freexmltoolkit.controls.shell.schema;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import javafx.scene.Scene;
 import javafx.scene.control.TreeItem;
 import javafx.stage.Stage;
+
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNodeFactory;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
@@ -11,8 +14,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
 import org.testfx.util.WaitForAsyncUtils;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Verifies the XSD Tree view preserves the user's expand/collapse state across a

@@ -1,5 +1,9 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import static org.junit.jupiter.api.Assertions.*;
+
+import javafx.stage.Stage;
+
 import org.fxt.freexmltoolkit.controls.jsoneditor.editor.JsonCodeEditor;
 import org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2;
 import org.junit.jupiter.api.Test;
@@ -7,10 +11,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
 import org.testfx.util.WaitForAsyncUtils;
-
-import javafx.stage.Stage;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Verifies the editor host is file-type polymorphic: JSON files get the JSON

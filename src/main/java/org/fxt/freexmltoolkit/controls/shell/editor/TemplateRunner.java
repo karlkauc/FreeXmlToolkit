@@ -1,10 +1,10 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
-import org.fxt.freexmltoolkit.domain.XmlTemplate;
-import org.fxt.freexmltoolkit.service.TemplateRepository;
-
 import java.util.List;
 import java.util.Map;
+
+import org.fxt.freexmltoolkit.domain.XmlTemplate;
+import org.fxt.freexmltoolkit.service.TemplateRepository;
 
 /**
  * UI-free access to XML templates for the shell, reusing {@link TemplateRepository}
