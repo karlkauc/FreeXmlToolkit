@@ -21,8 +21,10 @@ import org.fxt.freexmltoolkit.service.SignatureService;
  * (enveloped XML-DSig) and validates a signed document. Reuses
  * {@link SignatureService}; signing/validation run off the UI thread.
  * <p>
- * Also offers self-signed certificate / keystore creation (expert section), via
- * {@link SignatureActionRunner}.
+ * Also offers self-signed certificate / keystore creation and a detailed
+ * validation report (validity + signing-certificate details), via
+ * {@link SignatureActionRunner}. Certificate-chain/trust/revocation/timestamp
+ * checks are out of scope (require a trust store / online checks).
  */
 public class SignaturePanel extends VBox {
 
@@ -56,13 +58,15 @@ public class SignaturePanel extends VBox {
 
         Button sign = button("Sign", "bi-shield-lock", this::signActive);
         Button validate = button("Validate", "bi-shield-check", this::validateActive);
+        Button validateDetails = button("Validate (Details)", "bi-card-list", this::validateDetailsActive);
 
         status.getStyleClass().add("fxt-placeholder-text");
         status.setWrapText(true);
 
         getChildren().addAll(title, new HBox(chooseKeystore), keystoreStatus,
                 alias, keystorePassword, aliasPassword,
-                new HBox(6, sign, validate), status, buildCreateCertificateSection());
+                new HBox(6, sign, validate), new HBox(6, validateDetails),
+                status, buildCreateCertificateSection());
     }
 
     /** Expert section: create a self-signed certificate / JKS keystore (collapsed by default). */
@@ -186,6 +190,26 @@ public class SignaturePanel extends VBox {
             }
             boolean result = valid;
             Platform.runLater(() -> status.setText(result ? "Signature valid ✓" : "Signature invalid / none"));
+        });
+    }
+
+    /**
+     * Validates the active document's signature and opens a detailed report
+     * (validity + signing-certificate details) as a new tab (async).
+     */
+    public void validateDetailsActive() {
+        File xml = activeXmlFile();
+        if (xml == null) {
+            status.setText("No document open.");
+            return;
+        }
+        status.setText("Validating…");
+        FxtGui.executorService.submit(() -> {
+            String report = SignatureActionRunner.describeSignature(xml);
+            Platform.runLater(() -> {
+                status.setText("Validation report opened");
+                editorHost.openGeneratedDocument(report, EditorFileType.OTHER, "Signature-Report.txt");
+            });
         });
     }
 
