@@ -425,8 +425,10 @@ live preview/recent ✗) · 32 XPath/XQuery console (XPath+saved ✅; XQuery FLW
 40 XSD favorites quick-select · 41 Welcome (empty-state ✅; dashboard stats/tips ✗) · 43 Settings (theme ✅; proxy/temp/
 FundsXML/update/cache ✗) · 46 Memory monitor (legacy bottom bar; not in shell status bar).
 
-**☐ Not migrated (3):** 28 Schematron tools (builder/docs/templates/tester/detector) · 45 Auto-update UI ·
-47 FundsXML extension menu.
+**☐ Not migrated (2):** 45 Auto-update UI · 47 FundsXML extension menu.
+
+✅ 28 Schematron tools — DONE 2026-05-31 (commit ec6c34ab): Rule Templates / Tester / Visual Builder reused as
+shell tool-tabs via `EditorHost.openToolTab`. (Error-detector + docs generation remain follow-ups.)
 
 **Resolved since reconciliation (10b):**
 - ✅ 50 View-state preservation — DONE 2026-05-31 (commit a4292f89): XsdTreeView + XsdGraphicView preserve
