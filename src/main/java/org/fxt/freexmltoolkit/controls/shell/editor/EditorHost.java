@@ -727,6 +727,7 @@ public class EditorHost extends BorderPane {
         private org.fxt.freexmltoolkit.controls.v2.view.XsdGraphView xsdGraphView;
         private org.fxt.freexmltoolkit.controls.jsoneditor.view.JsonTreeView jsonTreeView;
         private org.fxt.freexmltoolkit.controls.shell.schema.XmlInstanceTreeView xmlInstanceTreeView;
+        private XmlGridView xmlGridView;
         private org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext editorContext;
         private XsdNode currentSelection;
         private ViewMode viewMode = ViewMode.TEXT;
@@ -760,6 +761,12 @@ public class EditorHost extends BorderPane {
                 case TEXT -> true;
                 case TREE -> document.getFileType() != EditorFileType.OTHER;
                 case GRAPHIC -> document.getFileType() == EditorFileType.XSD;
+                case GRID -> switch (document.getFileType()) {
+                    // The instance grid applies to XML-family instances, not the XSD
+                    // schema (which has the Graphic diagram) nor JSON.
+                    case XML, XSLT, SCHEMATRON -> true;
+                    default -> false;
+                };
             };
         }
 
@@ -770,6 +777,13 @@ public class EditorHost extends BorderPane {
             this.currentSelection = null;
             if (target == ViewMode.TEXT) {
                 showOnly(view.getNode());
+                return;
+            }
+            // XML-family instances offer an editable XMLSpy-style grid.
+            if (target == ViewMode.GRID) {
+                ensureXmlGrid();
+                xmlGridView.setXml(view.getText());
+                showOnly(xmlGridView);
                 return;
             }
             // JSON offers a read-only Tree view (no XSD model / commands).
@@ -975,6 +989,9 @@ public class EditorHost extends BorderPane {
             editorContext.setEditMode(true);
             org.fxt.freexmltoolkit.controls.v2.view.XsdGraphView built =
                     new org.fxt.freexmltoolkit.controls.v2.view.XsdGraphView(editorContext);
+            // The shell owns the inspector (right dock), so suppress the view's own
+            // embedded properties panel to avoid a duplicate, overlapping panel.
+            built.hideEmbeddedPropertiesPanel();
             built.getSelectionModel().addSelectionListener((oldSel, newSel) -> {
                 var primary = built.getSelectionModel().getPrimarySelection();
                 currentSelection = primary != null
@@ -1056,6 +1073,17 @@ public class EditorHost extends BorderPane {
             if (jsonTreeView == null) {
                 jsonTreeView = new org.fxt.freexmltoolkit.controls.jsoneditor.view.JsonTreeView();
                 contentStack.getChildren().add(jsonTreeView);
+            }
+        }
+
+        private void ensureXmlGrid() {
+            if (xmlGridView == null) {
+                xmlGridView = new XmlGridView();
+                xmlGridView.setOnModified(xml -> {
+                    view.setText(xml);
+                    document.setDirty(true);
+                });
+                contentStack.getChildren().add(xmlGridView);
             }
         }
 
