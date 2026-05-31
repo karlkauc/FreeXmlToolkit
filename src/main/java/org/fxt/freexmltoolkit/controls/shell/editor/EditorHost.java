@@ -732,6 +732,11 @@ public class EditorHost extends BorderPane {
         private XsdNode currentSelection;
         private ViewMode viewMode = ViewMode.TEXT;
         private boolean dirtyTrackingAttached;
+        /** Editor text the current {@link #editorContext} was parsed from (P2: avoid needless re-parse). */
+        private String lastParsedText;
+        /** Coalesces bursts of model-change events into a single round-trip (P1). */
+        private final javafx.animation.PauseTransition roundTripDebounce =
+                new javafx.animation.PauseTransition(javafx.util.Duration.millis(150));
         private File schemaFile;
         private File schematronFile;
 
@@ -744,6 +749,7 @@ public class EditorHost extends BorderPane {
             textProperty().bind(Bindings.createStringBinding(
                     () -> (document.isDirty() ? "● " : "") + document.getDisplayName(),
                     document.dirtyProperty(), document.displayNameProperty()));
+            roundTripDebounce.setOnFinished(e -> roundTripModelToText());
             refreshIcon();
         }
 
@@ -771,7 +777,9 @@ public class EditorHost extends BorderPane {
         }
 
         void setViewMode(ViewMode mode) {
-            ViewMode previous = this.viewMode;
+            // Persist any pending (debounced) graphical edit before switching, so the
+            // text we read below — and the new view — see the latest model state.
+            flushPendingRoundTrip();
             ViewMode target = supportsView(mode) ? mode : ViewMode.TEXT;
             this.viewMode = target;
             this.currentSelection = null;
@@ -800,11 +808,10 @@ public class EditorHost extends BorderPane {
                 showOnly(xmlInstanceTreeView);
                 return;
             }
-            // XSD structured views: build/refresh the model when entering from Text;
-            // keep it (with its undo history) when switching Tree <-> Graphic.
-            if (previous == ViewMode.TEXT || editorContext == null) {
-                parseModel();
-            }
+            // XSD structured views share one model+context across Tree/Graphic; it is
+            // (re)parsed only when missing or when the text changed since the last parse
+            // (P2), so undo history survives switching modes — even via a Text detour.
+            ensureModelParsed();
             switch (target) {
                 case TREE -> {
                     ensureTree();
@@ -825,12 +832,23 @@ public class EditorHost extends BorderPane {
             }
         }
 
+        /** (Re)parses the model only when missing or when the text changed since the last parse (P2). */
+        private void ensureModelParsed() {
+            if (editorContext == null || !java.util.Objects.equals(view.getText(), lastParsedText)) {
+                parseModel();
+            }
+        }
+
         private void parseModel() {
             try {
                 editorContext = new org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext(
                         new org.fxt.freexmltoolkit.controls.v2.model.XsdNodeFactory().fromString(view.getText()));
+                lastParsedText = view.getText();
+                // A new context means a new schema: ensureCanvasGraphic() rebuilds the
+                // Graphic view (it compares getEditorContext() and discards the stale one).
             } catch (Exception e) {
                 editorContext = null;
+                lastParsedText = null;
             }
         }
 
@@ -952,10 +970,25 @@ public class EditorHost extends BorderPane {
             if (editorContext == null) {
                 return;
             }
+            roundTripDebounce.stop(); // we are doing the work now; cancel any pending run
             String xml = new org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSerializer()
                     .serialize(editorContext.getSchema());
             view.setText(xml);
+            // The text now mirrors the model, so it must not look like an external edit (P2).
+            lastParsedText = view.getText();
             document.setDirty(true);
+        }
+
+        /** Coalesces a burst of model-change events into a single debounced round-trip (P1). */
+        private void scheduleRoundTrip() {
+            roundTripDebounce.playFromStart();
+        }
+
+        /** Runs a pending debounced round-trip immediately, if one is scheduled (P1). */
+        private void flushPendingRoundTrip() {
+            if (roundTripDebounce.getStatus() == javafx.animation.Animation.Status.RUNNING) {
+                roundTripModelToText();
+            }
         }
 
         private void ensureTree() {
@@ -998,10 +1031,11 @@ public class EditorHost extends BorderPane {
                         && primary.getModelObject() instanceof XsdNode node ? node : null;
                 selectionCallback.run();
             });
-            // Round-trip graphical/internal edits (drag, right-click, keyboard) to the text.
+            // Round-trip graphical/internal edits (drag, right-click, keyboard) to the
+            // text, coalescing bursts of model events into a single debounced run (P1).
             editorContext.getSchema().addPropertyChangeListener(evt -> {
                 if (viewMode == ViewMode.GRAPHIC) {
-                    roundTripModelToText();
+                    scheduleRoundTrip();
                 }
             });
             xsdGraphView = built;

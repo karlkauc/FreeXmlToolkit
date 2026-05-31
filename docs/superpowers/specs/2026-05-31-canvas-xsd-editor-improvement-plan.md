@@ -50,7 +50,7 @@ addressed by this plan.
 
 ## 4. Improvement plan (prioritized)
 
-### P1 — Debounce + coalesce the round-trip (addresses I2, partially I1/I6)
+### P1 — Debounce + coalesce the round-trip (addresses I2, partially I1/I6) — ✅ DONE (2026-05-31)
 - Coalesce schema-change events into a single `Platform.runLater` round-trip per pulse
   (a `pending` flag), so one user edit serializes once.
 - Add a short debounce (≈150 ms, matching the view's existing redraw debounce) for
@@ -58,7 +58,7 @@ addressed by this plan.
 - **Acceptance:** editing a name in a 1000-node schema serializes once per commit, not
   per keystroke event; no visible text flicker.
 
-### P2 — Unify the editor context across modes (addresses I3)
+### P2 — Unify the editor context across modes (addresses I3) — ✅ DONE (2026-05-31)
 - Build the `XsdEditorContext` once per document (lazily on first structured view) and
   **share it across Tree and Graphic**, instead of re-parsing on each `TEXT→structured`
   entry. Re-parse only when the text actually changed since the last parse (track a hash).
@@ -96,7 +96,12 @@ addressed by this plan.
 
 ## 5. Sequencing
 
-1. **P1** (debounce) and **P2** (shared context) — biggest correctness/feel wins, low risk.
+1. **P1** (debounce) and **P2** (shared context) — ✅ done (commit follows). Tests:
+   `EditorHostGraphicContextTest` (debounced graphical round-trip; undo survives
+   Tree→Text→Graphic). Implementation in `EditorHost.EditorTab`: a 150 ms
+   `PauseTransition` coalesces model-event bursts into one round-trip (flushed on
+   view switch); the context is parsed once and reused unless the text changed since
+   the last parse (`lastParsedText` guard).
 2. **P3** (reveal) — small, user-visible.
 3. **P5** (toolbar) — cosmetic, needs design sign-off.
 4. **P4** (incremental redraw) — larger; do once P1/P2 land and we can measure.
