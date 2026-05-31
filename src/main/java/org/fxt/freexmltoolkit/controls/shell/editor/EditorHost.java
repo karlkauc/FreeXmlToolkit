@@ -726,6 +726,7 @@ public class EditorHost extends BorderPane {
         private org.fxt.freexmltoolkit.controls.shell.schema.XsdTreeView treeView;
         private org.fxt.freexmltoolkit.controls.shell.schema.XsdGraphicView graphicView;
         private org.fxt.freexmltoolkit.controls.jsoneditor.view.JsonTreeView jsonTreeView;
+        private org.fxt.freexmltoolkit.controls.shell.schema.XmlInstanceTreeView xmlInstanceTreeView;
         private org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext editorContext;
         private XsdNode currentSelection;
         private ViewMode viewMode = ViewMode.TEXT;
@@ -750,12 +751,14 @@ public class EditorHost extends BorderPane {
             return document.getFileType() == EditorFileType.XSD;
         }
 
-        /** Which view modes this document offers: XSD = Text/Tree/Graphic, JSON = Text/Tree. */
+        /**
+         * Which view modes this document offers: every recognized type has a Tree
+         * (XSD schema tree / JSON tree / XML-instance DOM tree); Graphic is XSD-only.
+         */
         boolean supportsView(ViewMode mode) {
             return switch (mode) {
                 case TEXT -> true;
-                case TREE -> document.getFileType() == EditorFileType.XSD
-                        || document.getFileType() == EditorFileType.JSON;
+                case TREE -> document.getFileType() != EditorFileType.OTHER;
                 case GRAPHIC -> document.getFileType() == EditorFileType.XSD;
             };
         }
@@ -774,6 +777,13 @@ public class EditorHost extends BorderPane {
                 ensureJsonTree();
                 renderJsonTree();
                 showOnly(jsonTreeView);
+                return;
+            }
+            // XML instances (incl. XSLT/Schematron) get a read-only DOM tree (Tree only).
+            if (document.getFileType() != EditorFileType.XSD) {
+                ensureXmlInstanceTree();
+                xmlInstanceTreeView.setXml(view.getText());
+                showOnly(xmlInstanceTreeView);
                 return;
             }
             // XSD structured views: build/refresh the model when entering from Text;
@@ -1009,6 +1019,13 @@ public class EditorHost extends BorderPane {
             if (jsonTreeView == null) {
                 jsonTreeView = new org.fxt.freexmltoolkit.controls.jsoneditor.view.JsonTreeView();
                 contentStack.getChildren().add(jsonTreeView);
+            }
+        }
+
+        private void ensureXmlInstanceTree() {
+            if (xmlInstanceTreeView == null) {
+                xmlInstanceTreeView = new org.fxt.freexmltoolkit.controls.shell.schema.XmlInstanceTreeView();
+                contentStack.getChildren().add(xmlInstanceTreeView);
             }
         }
 

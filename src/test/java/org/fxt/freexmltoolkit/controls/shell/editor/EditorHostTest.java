@@ -158,21 +158,24 @@ class EditorHostTest {
     }
 
     @Test
-    void xmlDoesNotSupportStructuredViews(@org.junit.jupiter.api.io.TempDir Path tmp) throws Exception {
+    void xmlHasATreeButNoXsdCommandEditingNorGraphic(@org.junit.jupiter.api.io.TempDir Path tmp) throws Exception {
         Path xml = tmp.resolve("d.xml");
-        Files.writeString(xml, "<root/>");
+        Files.writeString(xml, "<root><child>v</child></root>");
 
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
         WaitForAsyncUtils.waitFor(3, java.util.concurrent.TimeUnit.SECONDS,
                 () -> host.getActiveText().map(t -> t.contains("root")).orElse(false));
 
-        assertFalse(host.activeSupportsStructuredViews());
+        // XML has no XSD command-backed structured editing and no Graphic (schema) view…
+        assertFalse(host.activeSupportsStructuredViews(), "XML has no XSD command editing");
+        assertFalse(host.activeSupportsView(ViewMode.GRAPHIC), "XML has no Graphic (schema) view");
+        // …but it does get a read-only DOM Tree view.
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
             host.setActiveViewMode(ViewMode.TREE);
             return null;
         });
-        assertEquals(ViewMode.TEXT, host.activeViewModeProperty().get(),
-                "non-XSD must stay in Text mode");
+        assertEquals(ViewMode.TREE, host.activeViewModeProperty().get(),
+                "XML supports a Tree (DOM) view");
     }
 
     @Test
