@@ -435,6 +435,9 @@ FundsXML/update/cache ✗) · 46 Memory monitor (legacy bottom bar; not in shell
 - 16 Type Library + usage — DONE 2026-05-31 (commit 1a3347ce): "Find Usage" (TypeUsageRunner reusing
   TypeUsageFinder) opens a usage report. The legacy graphical Simple/Complex *type-editor tabs* are superseded by
   the shell's native Tree/Graphic editing (types are editable there via the command stack) — not a feature loss.
+- 22 Sample-data options — DONE 2026-05-31 (commit 173bb1f7): SampleXmlOptionsDialog (mandatory-only + max
+  occurrences) feeds SampleXmlRunner. Advanced profiles (per-element rules, batch, named profiles via
+  ProfiledXmlGeneratorService) remain a follow-up.
 
 ✅ 28 Schematron tools — DONE 2026-05-31 (commit ec6c34ab): Rule Templates / Tester / Visual Builder reused as
 shell tool-tabs via `EditorHost.openToolTab`. (Error-detector + docs generation remain follow-ups.)
