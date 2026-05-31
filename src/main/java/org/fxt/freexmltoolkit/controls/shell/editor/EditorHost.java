@@ -1034,6 +1034,10 @@ public class EditorHost extends BorderPane {
             // The shell owns the inspector (right dock), so suppress the view's own
             // embedded properties panel to avoid a duplicate, overlapping panel.
             built.hideEmbeddedPropertiesPanel();
+            // Match the Figma "Schema (graphical)" frame: no bulky second toolbar — just a
+            // breadcrumb top-left and a small zoom pill at the bottom (the shell provides
+            // the editor toolbar above).
+            built.useMinimalChrome();
             built.getSelectionModel().addSelectionListener((oldSel, newSel) -> {
                 var primary = built.getSelectionModel().getPrimarySelection();
                 currentSelection = primary != null

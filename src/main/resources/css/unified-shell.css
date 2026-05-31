@@ -476,3 +476,55 @@
     -fx-font-family: "Inter", sans-serif;
     -fx-font-size: 12px;
 }
+
+/* ----- Canvas XSD editor: minimal (shell) chrome — Figma "Schema (graphical)" ----- */
+/* Breadcrumb shown at the top-left of the diagram instead of an action toolbar. */
+.fxt-graph-breadcrumb {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-secondary;
+    -fx-padding: 3 10 3 10;
+    -fx-background-color: -fxt-bg-surface;
+    -fx-background-radius: 6;
+    -fx-border-color: -fxt-border;
+    -fx-border-radius: 6;
+}
+
+/* Small floating zoom pill at the bottom-centre of the diagram: [ - 100% + ]. */
+.fxt-graph-zoom-pill {
+    -fx-background-color: -fxt-bg-surface;
+    -fx-background-radius: 18;
+    -fx-border-color: -fxt-border;
+    -fx-border-radius: 18;
+    -fx-padding: 2 4 2 4;
+    -fx-spacing: 2;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.12), 8, 0, 0, 2);
+}
+
+.fxt-graph-zoom-button {
+    -fx-background-color: transparent;
+    -fx-background-radius: 14;
+    -fx-text-fill: -fxt-text-secondary;
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-min-width: 26;
+    -fx-min-height: 26;
+    -fx-padding: 0;
+    -fx-cursor: hand;
+}
+
+.fxt-graph-zoom-button:hover {
+    -fx-background-color: -fxt-bg-subtle;
+    -fx-text-fill: -fxt-primary;
+}
+
+.fxt-graph-zoom-label {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-secondary;
+    -fx-padding: 0 8 0 8;
+    -fx-cursor: hand;
+}

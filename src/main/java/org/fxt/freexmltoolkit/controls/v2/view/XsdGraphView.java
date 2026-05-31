@@ -9,6 +9,8 @@ import java.util.Set;
 
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.CacheHint;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -27,6 +29,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
 
@@ -94,6 +97,10 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
 
     // Source file indicator for include support
     private Label currentSourceFileLabel;
+
+    // Minimal (shell) chrome: a top-left breadcrumb shown instead of the action toolbar,
+    // matching the Figma "Schema (graphical)" frame. Null in the default toolbar chrome.
+    private Label breadcrumbLabel;
 
     // Drag & Drop state
     private boolean isDragging = false;
@@ -193,8 +200,9 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
             if (primarySelection != null) {
                 primarySelection.setFocused(true);
             }
-            // Update source file indicator
+            // Update source file indicator + minimal-chrome breadcrumb
             updateSourceFileIndicator();
+            updateBreadcrumb();
             // Selection does not affect layout: repaint only the affected node regions (P4).
             java.util.List<VisualNode> affected = new java.util.ArrayList<>(oldSelection);
             affected.addAll(newSelection);
@@ -815,6 +823,77 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
      */
     public void setViewportCullingEnabled(boolean enabled) {
         this.viewportCullingEnabled = enabled;
+    }
+
+    /**
+     * Switches to the minimal "shell" chrome that matches the Figma
+     * "Redesign · Unified — Schema (graphical)" frame: the bulky top action toolbar is
+     * removed (the unified shell provides the editor toolbar above), a slim breadcrumb is
+     * shown at the top-left of the canvas, and zoom moves to a small pill at the
+     * bottom-centre. Expand/collapse stay reachable via node chevrons and the context menu.
+     */
+    public void useMinimalChrome() {
+        // 1. Drop the top action toolbar (Expand/Collapse/Fit/zoom buttons).
+        setTop(null);
+
+        javafx.scene.Node center = getCenter();
+        if (center == null) {
+            return;
+        }
+
+        // 2. Breadcrumb (top-left), updated from the current selection.
+        breadcrumbLabel = new Label();
+        breadcrumbLabel.getStyleClass().add("fxt-graph-breadcrumb");
+        breadcrumbLabel.setMouseTransparent(true);
+        StackPane.setAlignment(breadcrumbLabel, Pos.TOP_LEFT);
+        StackPane.setMargin(breadcrumbLabel, new Insets(8, 0, 0, 10));
+        updateBreadcrumb();
+
+        // 3. Zoom pill (bottom-centre): [ - 100% + ].
+        Button zoomOutPill = new Button("-");
+        zoomOutPill.getStyleClass().add("fxt-graph-zoom-button");
+        zoomOutPill.setTooltip(new Tooltip("Zoom Out (Ctrl -)"));
+        zoomOutPill.setOnAction(e -> zoomOut());
+
+        Button zoomInPill = new Button("+");
+        zoomInPill.getStyleClass().add("fxt-graph-zoom-button");
+        zoomInPill.setTooltip(new Tooltip("Zoom In (Ctrl +)"));
+        zoomInPill.setOnAction(e -> zoomIn());
+
+        // Re-point the live zoom label (the old one went away with the toolbar).
+        zoomLabel = new Label(String.format("%.0f%%", zoomLevel * 100));
+        zoomLabel.getStyleClass().add("fxt-graph-zoom-label");
+        zoomLabel.setTooltip(new Tooltip("Reset Zoom to 100% (Ctrl 0)"));
+        zoomLabel.setOnMouseClicked(e -> zoomReset());
+
+        HBox zoomPill = new HBox(zoomOutPill, zoomLabel, zoomInPill);
+        zoomPill.getStyleClass().add("fxt-graph-zoom-pill");
+        zoomPill.setAlignment(Pos.CENTER);
+        zoomPill.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
+        StackPane.setAlignment(zoomPill, Pos.BOTTOM_CENTER);
+        StackPane.setMargin(zoomPill, new Insets(0, 0, 12, 0));
+
+        // 4. Overlay the breadcrumb and pill on top of the canvas.
+        StackPane overlay = new StackPane(center, breadcrumbLabel, zoomPill);
+        setCenter(overlay);
+    }
+
+    /** Updates the breadcrumb text from the primary selection (or the schema root). */
+    private void updateBreadcrumb() {
+        if (breadcrumbLabel == null) {
+            return;
+        }
+        VisualNode primary = getSelectionModel().getPrimarySelection();
+        String text;
+        if (primary != null) {
+            String detail = primary.getDetail();
+            text = primary.getLabel() + (detail != null && !detail.isBlank() ? "  ·  " + detail : "");
+        } else if (xsdSchema != null && xsdSchema.getName() != null) {
+            text = xsdSchema.getName();
+        } else {
+            text = "Schema";
+        }
+        breadcrumbLabel.setText(text);
     }
 
     /**
