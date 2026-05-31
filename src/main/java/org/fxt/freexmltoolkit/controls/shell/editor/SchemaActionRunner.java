@@ -35,6 +35,31 @@ public final class SchemaActionRunner {
         }
     }
 
+    /**
+     * Infers a single XSD from several XML sample files (batch), reusing the
+     * engine's multi-document analysis. @return the XSD content, or {@code "ERROR: …"}.
+     */
+    public static String generateXsdFromMultiple(java.util.List<java.io.File> xmlFiles) {
+        if (xmlFiles == null || xmlFiles.isEmpty()) {
+            return "ERROR: no XML files selected";
+        }
+        try {
+            java.util.List<String> documents = new java.util.ArrayList<>();
+            for (java.io.File file : xmlFiles) {
+                documents.add(java.nio.file.Files.readString(file.toPath()));
+            }
+            SchemaGenerationResult result = SchemaGenerationEngine.getInstance()
+                    .generateSchemaFromMultipleDocuments(documents, new SchemaGenerationOptions());
+            if (!result.isSuccess()) {
+                return "ERROR: " + result.getErrorMessage();
+            }
+            String formatted = result.getFormattedXsdContent();
+            return (formatted != null && !formatted.isBlank()) ? formatted : result.getXsdContent();
+        } catch (Exception e) {
+            return "ERROR: " + e.getMessage();
+        }
+    }
+
     /** Collects schema statistics into a plain-text report. @return report or {@code "ERROR: …"}. */
     public static String statistics(String xsdContent) {
         try {

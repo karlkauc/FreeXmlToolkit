@@ -46,6 +46,7 @@ public class TypeLibraryPanel extends VBox {
 
         javafx.scene.layout.VBox actions = new javafx.scene.layout.VBox(4,
                 actionButton("Generate XSD from XML", "bi-magic", this::generateXsdFromActive),
+                actionButton("Generate XSD (Batch)…", "bi-files", this::generateXsdBatch),
                 actionButton("Flatten Schema", "bi-layers", this::flattenActive),
                 actionButton("Statistics", "bi-bar-chart", this::statisticsActive),
                 actionButton("Generate Sample XML", "bi-filetype-xml", this::generateSampleXmlForActive),
@@ -85,6 +86,31 @@ public class TypeLibraryPanel extends VBox {
             javafx.application.Platform.runLater(() ->
                     editorHost.openGeneratedDocument(report.toString(), EditorFileType.OTHER,
                             "Usages-" + typeName + ".txt"));
+        });
+    }
+
+    /**
+     * Infers a single XSD from several user-selected XML files (batch) and opens
+     * the result as a new tab (async). Reuses {@link SchemaActionRunner#generateXsdFromMultiple}.
+     */
+    public void generateXsdBatch() {
+        javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
+        chooser.setTitle("Select XML files to infer a schema from");
+        chooser.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter("XML", "*.xml"));
+        java.util.List<File> files = chooser.showOpenMultipleDialog(
+                getScene() != null ? getScene().getWindow() : null);
+        if (files == null || files.isEmpty()) {
+            return;
+        }
+        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            String result = SchemaActionRunner.generateXsdFromMultiple(files);
+            javafx.application.Platform.runLater(() -> {
+                if (result.startsWith("ERROR:")) {
+                    alert(javafx.scene.control.Alert.AlertType.ERROR, "Generate XSD (Batch)", result);
+                } else {
+                    editorHost.openGeneratedDocument(result, EditorFileType.XSD, "Generated.xsd");
+                }
+            });
         });
     }
 

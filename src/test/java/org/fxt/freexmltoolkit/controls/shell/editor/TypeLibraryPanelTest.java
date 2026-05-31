@@ -50,6 +50,12 @@ class TypeLibraryPanelTest {
         assertTrue(hasButton("Find Usage"), "Schema panel must offer the 'Find Usage' action");
     }
 
+    @Test
+    void exposesTheBatchSchemaGenAction() {
+        WaitForAsyncUtils.waitForFxEvents();
+        assertTrue(hasButton("Generate XSD (Batch)…"), "Schema panel must offer batch XSD generation");
+    }
+
     private boolean hasButton(String text) {
         return panel.lookupAll(".button").stream()
                 .anyMatch(n -> n instanceof Button b && text.equals(b.getText()));
