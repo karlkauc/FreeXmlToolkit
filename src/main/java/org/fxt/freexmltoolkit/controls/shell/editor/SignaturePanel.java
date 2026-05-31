@@ -5,6 +5,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TitledPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
@@ -19,7 +20,8 @@ import java.io.File;
  * (enveloped XML-DSig) and validates a signed document. Reuses
  * {@link SignatureService}; signing/validation run off the UI thread.
  * <p>
- * Self-signed certificate creation (expert options) is a follow-up increment.
+ * Also offers self-signed certificate / keystore creation (expert section), via
+ * {@link SignatureActionRunner}.
  */
 public class SignaturePanel extends VBox {
 
@@ -29,6 +31,13 @@ public class SignaturePanel extends VBox {
     private final PasswordField aliasPassword = new PasswordField();
     private final Label keystoreStatus = new Label("Keystore: none");
     private final Label status = new Label("Not signed/validated");
+    private final TextField cnField = new TextField();
+    private final TextField ouField = new TextField();
+    private final TextField orgField = new TextField();
+    private final TextField localityField = new TextField();
+    private final TextField stateField = new TextField();
+    private final TextField countryField = new TextField();
+    private final TextField emailField = new TextField();
     private File keystoreFile;
 
     public SignaturePanel(EditorHost editorHost) {
@@ -52,7 +61,62 @@ public class SignaturePanel extends VBox {
 
         getChildren().addAll(title, new HBox(chooseKeystore), keystoreStatus,
                 alias, keystorePassword, aliasPassword,
-                new HBox(6, sign, validate), status);
+                new HBox(6, sign, validate), status, buildCreateCertificateSection());
+    }
+
+    /** Expert section: create a self-signed certificate / JKS keystore (collapsed by default). */
+    private TitledPane buildCreateCertificateSection() {
+        cnField.setPromptText("Common Name (CN)");
+        orgField.setPromptText("Organization (O)");
+        ouField.setPromptText("Organizational Unit (OU)");
+        localityField.setPromptText("Locality (L)");
+        stateField.setPromptText("State (ST)");
+        countryField.setPromptText("Country (C)");
+        emailField.setPromptText("Email");
+        Button create = button("Create Certificate", "bi-patch-plus", this::createCertificate);
+        VBox box = new VBox(6, new Label("Uses the alias + passwords above."),
+                cnField, orgField, ouField, localityField, stateField, countryField, emailField, create);
+        TitledPane pane = new TitledPane("Create Self-Signed Certificate", box);
+        pane.setExpanded(false);
+        return pane;
+    }
+
+    /**
+     * Creates a self-signed certificate / JKS keystore from the DN fields and the
+     * alias + passwords above (async). On success the new keystore is selected so
+     * the document can be signed with it immediately.
+     */
+    public void createCertificate() {
+        String aliasName = alias.getText();
+        if (aliasName == null || aliasName.isBlank()
+                || keystorePassword.getText().isBlank() || aliasPassword.getText().isBlank()) {
+            status.setText("Alias and both passwords are required to create a certificate.");
+            return;
+        }
+        SignatureActionRunner.CertificateInfo info = new SignatureActionRunner.CertificateInfo(
+                cnField.getText(), ouField.getText(), orgField.getText(), localityField.getText(),
+                stateField.getText(), countryField.getText(), emailField.getText());
+        String ksPw = keystorePassword.getText();
+        String aliasPw = aliasPassword.getText();
+        status.setText("Creating certificate…");
+        FxtGui.executorService.submit(() -> {
+            String result;
+            File created = null;
+            try {
+                created = SignatureActionRunner.createKeystore(info, aliasName, ksPw, aliasPw);
+                result = "Created keystore: " + created.getAbsolutePath();
+            } catch (Exception e) {
+                result = "ERROR: " + e.getMessage();
+            }
+            File ks = created;
+            String finalResult = result;
+            Platform.runLater(() -> {
+                status.setText(finalResult);
+                if (ks != null) {
+                    setKeystore(ks); // ready to sign with the new keystore
+                }
+            });
+        });
     }
 
     /** Sets the keystore file (also from the file chooser). */

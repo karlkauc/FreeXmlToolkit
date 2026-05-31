@@ -51,4 +51,29 @@ class SignaturePanelTest {
         WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS, () -> !panel.getStatusText().equals("Validating…"));
         assertTrue(panel.getStatusText().contains("invalid"), panel.getStatusText());
     }
+
+    @Test
+    void exposesTheCreateCertificateSection() {
+        WaitForAsyncUtils.waitForFxEvents();
+        boolean hasSection = panel.lookupAll(".titled-pane").stream()
+                .anyMatch(n -> n instanceof javafx.scene.control.TitledPane tp
+                        && "Create Self-Signed Certificate".equals(tp.getText()));
+        boolean hasButton = panel.lookupAll(".button").stream()
+                .anyMatch(n -> n instanceof javafx.scene.control.Button b
+                        && "Create Certificate".equals(b.getText()));
+        assertTrue(hasSection, "panel must offer the certificate-creation section");
+        assertTrue(hasButton, "panel must offer a 'Create Certificate' action");
+    }
+
+    @Test
+    void rejectsCertificateCreationWithoutCredentials() {
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.setCredentials("", "", "");
+            panel.createCertificate();
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        assertTrue(panel.getStatusText().toLowerCase().contains("required"),
+                "creation without alias/passwords must be rejected: " + panel.getStatusText());
+    }
 }
