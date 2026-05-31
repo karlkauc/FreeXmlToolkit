@@ -86,8 +86,45 @@ public class ValidationPanel extends VBox {
         editorHost.activeTabProperty().addListener((obs, oldV, newV) -> scheduleRevalidation());
         editorHost.activeSchemaProperty().addListener((obs, oldV, newV) -> scheduleRevalidation());
 
+        Label toolsLabel = new Label("SCHEMATRON TOOLS");
+        toolsLabel.getStyleClass().add("fxt-side-panel-title");
+        Button templates = new Button("Rule Templates", icon("bi-collection"));
+        templates.getStyleClass().add("fxt-tool-button");
+        templates.setOnAction(e -> openSchematronTemplates());
+        Button tester = new Button("Tester", icon("bi-play-circle"));
+        tester.getStyleClass().add("fxt-tool-button");
+        tester.setOnAction(e -> openSchematronTester());
+        Button builder = new Button("Rule Builder", icon("bi-tools"));
+        builder.getStyleClass().add("fxt-tool-button");
+        builder.setOnAction(e -> openSchematronBuilder());
+
         getChildren().addAll(title, new HBox(6, validate, setSchematron), new HBox(6, batch),
-                liveValidation, status, schematronStatus, problemsLabel, list);
+                liveValidation, status, schematronStatus,
+                toolsLabel, new HBox(6, templates, tester), new HBox(6, builder),
+                problemsLabel, list);
+    }
+
+    /** Opens the Schematron rule-template library as a tool tab; inserts into the active editor. */
+    public void openSchematronTemplates() {
+        var library = new org.fxt.freexmltoolkit.controls.SchematronTemplateLibrary();
+        library.setTemplateInsertCallback(editorHost::insertTextAtCaret);
+        editorHost.openToolTab("Schematron Templates", "bi-collection", library);
+    }
+
+    /** Opens the Schematron tester as a tool tab, pre-loading the bound Schematron if any. */
+    public void openSchematronTester() {
+        var tester = new org.fxt.freexmltoolkit.controls.SchematronTester();
+        File schematron = editorHost.getActiveSchematron();
+        if (schematron != null) {
+            tester.setSchematronFile(schematron);
+        }
+        editorHost.openToolTab("Schematron Tester", "bi-play-circle", tester);
+    }
+
+    /** Opens the visual Schematron rule builder as a tool tab. */
+    public void openSchematronBuilder() {
+        editorHost.openToolTab("Schematron Builder", "bi-tools",
+                new org.fxt.freexmltoolkit.controls.SchematronVisualBuilder());
     }
 
     /** Schedules a debounced re-validation if live validation is on and the active doc is XML-family. */

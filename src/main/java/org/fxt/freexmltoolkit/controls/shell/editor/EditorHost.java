@@ -38,6 +38,8 @@ public class EditorHost extends BorderPane {
             new ReadOnlyObjectWrapper<>(this, "activeViewMode", ViewMode.TEXT);
     private final ReadOnlyObjectWrapper<XsdNode> activeSelectedNode =
             new ReadOnlyObjectWrapper<>(this, "activeSelectedNode", null);
+    /** The most recently active editor tab — insertion target when a tool tab is in front. */
+    private EditorTab lastEditorTab;
 
     private final EditorWelcomePane welcomePane = new EditorWelcomePane(
             this::newDocument, this::openFileChooser, this::openFile);
@@ -51,6 +53,7 @@ public class EditorHost extends BorderPane {
         updateCenter();
         tabPane.getSelectionModel().selectedItemProperty().addListener((obs, oldT, newT) -> {
             if (newT instanceof EditorTab et) {
+                lastEditorTab = et;
                 activeCaret.set(et.view.getCodeArea().getCaretPosition());
                 activeSchema.set(et.schemaFile);
                 activeViewMode.set(et.viewMode);
@@ -240,12 +243,32 @@ public class EditorHost extends BorderPane {
         openFile(file.toPath());
     }
 
-    /** Inserts {@code text} at the active editor's caret (replacing any selection). */
+    /**
+     * Inserts {@code text} at the caret of the active editor — or, if a non-editor
+     * tab (e.g. a tool) is in front, the most recently active editor.
+     */
     public void insertTextAtCaret(String text) {
-        if (text != null
-                && tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et) {
-            et.view.getCodeArea().replaceSelection(text);
+        if (text == null) {
+            return;
         }
+        EditorTab target = tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et
+                ? et : lastEditorTab;
+        if (target != null) {
+            target.view.getCodeArea().replaceSelection(text);
+        }
+    }
+
+    /**
+     * Opens an arbitrary tool UI (e.g. a Schematron tool) as a closable tab.
+     *
+     * @return the created tab
+     */
+    public Tab openToolTab(String title, String iconLiteral, javafx.scene.layout.Region content) {
+        Tab tab = new Tab(title, content);
+        tab.setGraphic(new IconifyIcon(iconLiteral));
+        tabPane.getTabs().add(tab);
+        tabPane.getSelectionModel().select(tab);
+        return tab;
     }
 
     /** Shows a file chooser and opens the chosen file (used by the welcome empty-state). */

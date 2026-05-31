@@ -144,6 +144,27 @@ class ValidationPanelTest {
         assertTrue(present, "the 'Validate while typing' toggle must exist and default to on");
     }
 
+    @Test
+    void exposesSchematronToolButtons() {
+        WaitForAsyncUtils.waitForFxEvents();
+        for (String label : new String[]{"Rule Templates", "Tester", "Rule Builder"}) {
+            boolean present = panel.lookupAll(".button").stream()
+                    .anyMatch(n -> n instanceof javafx.scene.control.Button b && label.equals(b.getText()));
+            assertTrue(present, "Validation panel must offer the '" + label + "' Schematron tool");
+        }
+    }
+
+    @Test
+    void opensSchematronTesterAsTab() {
+        assertTrue(host.isEmpty(), "host starts empty");
+        WaitForAsyncUtils.waitForAsyncFx(3000, () -> {
+            panel.openSchematronTester();
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        assertFalse(host.isEmpty(), "opening the Schematron tester must add a tab");
+    }
+
     private void open(Path xml, Path xsd) throws Exception {
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
         WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
