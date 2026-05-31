@@ -441,6 +441,8 @@ FundsXML/update/cache ✗) · 46 Memory monitor (legacy bottom bar; not in shell
 - 43 Settings — DONE 2026-05-31 (commit 77d5db28): Settings panel now has editor (indent + auto-format) + HTTP
   proxy (system/manual host/port) alongside the theme switch, persisted via PropertiesService. Temp-dir/cache
   management remain a follow-up.
+- 21 Batch schema generation — DONE 2026-05-31 (commit d9503f3f): "Generate XSD (Batch)…" infers one XSD from
+  several XML samples via `SchemaActionRunner.generateXsdFromMultiple` (engine multi-document analysis).
 
 ✅ 28 Schematron tools — DONE 2026-05-31 (commit ec6c34ab): Rule Templates / Tester / Visual Builder reused as
 shell tool-tabs via `EditorHost.openToolTab`. (Error-detector + docs generation remain follow-ups.)
