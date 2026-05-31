@@ -71,13 +71,25 @@ addressed by this plan.
 - **Acceptance:** "Find usage" / type reveal scrolls to and highlights a node inside a
   collapsed subtree.
 
-### P4 — Incremental redraw (addresses I1)
+### P4 — Incremental redraw (addresses I1) — ✅ DONE (2026-05-31, paint-only changes)
 - Replace full-canvas repaint with dirty-region repaint: track changed `VisualNode`s and
   repaint only their bounds (+ connectors). Keep viewport culling.
 - Alternatively, evaluate a hybrid: keep Canvas for connectors, promote node bodies to
   cached `WritableImage` tiles.
 - **Acceptance:** edit latency on a 2000-node schema is dominated by serialization
   (see P1/P6), not by repaint; measured redraw < 16 ms for a single-node change.
+
+**Done (paint-only scope):** the high-frequency paint-only changes — **selection** and
+**hover** — now repaint only the affected node regions via `repaintRegion`/`repaintNodes`
+(clip + clear + redraw of intersecting nodes and connectors) instead of relaying-out and
+clearing the whole canvas. Previously every hover/selection over a large schema repainted
+all visible cards. Layout-affecting changes (structural edits, expand/collapse, zoom) still
+do a full redraw — correct and safe; promoting those to incremental is future work (would
+need dirty-rect layout tracking). Read-only diagnostics `getLastRenderedNodeCount()` /
+`wasLastPaintRegional()` (and a `setViewportCullingEnabled`/`repaint()` helper) added.
+Test `XsdGraphViewIncrementalRepaintTest` asserts a selection change repaints regionally
+and renders far fewer cards than a full draw (render-work proxy; wall-clock not asserted to
+avoid flakiness). RED-verified by reverting the listener to a full `redraw()`.
 
 ### P5 — Toolbar integration (addresses I5)
 - Hide the internal "XSD Editor V2 — Graphical View" label; optionally lift Zoom /
@@ -106,7 +118,8 @@ addressed by this plan.
    ancestors (loading lazy subtrees by walking the model path), selects it and scrolls
    it into view. Test: `XsdGraphViewRevealTest`.
 3. **P5** (toolbar) — cosmetic, needs design sign-off.
-4. **P4** (incremental redraw) — larger; do once P1/P2 land and we can measure.
+4. **P4** (incremental redraw) — ✅ done for paint-only changes (selection/hover);
+   layout-affecting changes still full-redraw (future work).
 5. **P6**/**P7** — stretch / cleanup.
 
 ## 6. Test strategy

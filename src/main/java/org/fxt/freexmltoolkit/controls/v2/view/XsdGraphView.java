@@ -78,6 +78,13 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
     private VisualNode hoveredNode;
     private final Map<String, VisualNode> nodeMap = new HashMap<>();
 
+    // Incremental redraw (P4): paint-only changes (selection, hover) repaint just the
+    // affected node regions instead of the whole canvas. Counters are read-only
+    // diagnostics used by tests to confirm a change did not trigger a full repaint.
+    private static final double REPAINT_MARGIN = 24.0;
+    private int renderedNodeCount;
+    private boolean lastPaintWasRegional;
+
     // Zoom state
     private double zoomLevel = 1.0;
     private static final double ZOOM_MIN = 0.1;
@@ -188,8 +195,10 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
             }
             // Update source file indicator
             updateSourceFileIndicator();
-            // Redraw to show selection changes
-            redraw();
+            // Selection does not affect layout: repaint only the affected node regions (P4).
+            java.util.List<VisualNode> affected = new java.util.ArrayList<>(oldSelection);
+            affected.addAll(newSelection);
+            repaintNodes(affected);
         });
 
         // Setup UI
@@ -676,6 +685,8 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
 
         // Render tree - wrap in try-catch to handle rendering failures gracefully
         try {
+            renderedNodeCount = 0;
+            lastPaintWasRegional = false;
             renderTree(gc, rootNode);
         } catch (Exception e) {
             logger.error("Failed to render tree: {}. Schema may be too large for graphical display.", e.getMessage());
@@ -684,6 +695,129 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
             gc.fillText("Error: Schema too large for graphical display. Try collapsing some nodes.", 50, 50);
             gc.fillText("Details: " + e.getMessage(), 50, 70);
         }
+    }
+
+    /**
+     * Incrementally repaints only the regions occupied by the given nodes (P4).
+     * Used for paint-only changes (selection, hover) that do not affect layout, so the
+     * whole canvas need not be relaid-out and cleared. Falls back to a full
+     * {@link #redraw()} if the layout has not been computed yet.
+     *
+     * @param nodes the nodes whose appearance changed (may contain nulls)
+     */
+    private void repaintNodes(java.util.Collection<VisualNode> nodes) {
+        if (rootNode == null || canvas.getWidth() <= 0 || canvas.getHeight() <= 0) {
+            redraw();
+            return;
+        }
+        double minX = Double.MAX_VALUE;
+        double minY = Double.MAX_VALUE;
+        double maxX = -Double.MAX_VALUE;
+        double maxY = -Double.MAX_VALUE;
+        int count = 0;
+        for (VisualNode n : nodes) {
+            if (n == null) {
+                continue;
+            }
+            minX = Math.min(minX, n.getX());
+            minY = Math.min(minY, n.getY());
+            maxX = Math.max(maxX, n.getX() + n.getWidth());
+            maxY = Math.max(maxY, n.getY() + n.getHeight());
+            count++;
+        }
+        if (count == 0) {
+            return;
+        }
+        repaintRegion(minX - REPAINT_MARGIN, minY - REPAINT_MARGIN,
+                (maxX - minX) + 2 * REPAINT_MARGIN, (maxY - minY) + 2 * REPAINT_MARGIN);
+    }
+
+    /**
+     * Clears and redraws a single rectangular region (canvas coordinates), restoring
+     * every node and connection that intersects it. A clip keeps painting inside the
+     * region so partially-overlapping neighbours and connector lines are not corrupted.
+     */
+    private void repaintRegion(double rx, double ry, double rw, double rh) {
+        GraphicsContext gc = canvas.getGraphicsContext2D();
+        gc.save();
+        try {
+            gc.beginPath();
+            gc.rect(rx, ry, rw, rh);
+            gc.clip();
+            gc.setFill(Color.WHITE);
+            gc.fillRect(rx, ry, rw, rh);
+            renderedNodeCount = 0;
+            lastPaintWasRegional = true;
+            renderTreeInRegion(gc, rootNode, rx, ry, rw, rh);
+        } catch (Exception e) {
+            logger.error("Region repaint failed ({}); falling back to full redraw", e.getMessage());
+            gc.restore();
+            redraw();
+            return;
+        }
+        gc.restore();
+    }
+
+    /**
+     * Renders only the nodes and connections intersecting the given region. The
+     * surrounding {@link #repaintRegion} clip guarantees nothing paints outside it.
+     */
+    private void renderTreeInRegion(GraphicsContext gc, VisualNode node,
+            double rx, double ry, double rw, double rh) {
+        if (isNodeInViewport(node)
+                && rectsIntersect(node.getX(), node.getY(), node.getWidth(), node.getHeight(),
+                        rx, ry, rw, rh)) {
+            renderer.renderNode(gc, node, node.getX(), node.getY());
+            renderedNodeCount++;
+        }
+        if (node.isExpanded() && node.hasChildren()) {
+            for (VisualNode child : node.getChildren()) {
+                if (connectionIntersectsRegion(node, child, rx, ry, rw, rh)) {
+                    renderer.renderConnection(gc, node, child);
+                }
+                renderTreeInRegion(gc, child, rx, ry, rw, rh);
+            }
+        }
+    }
+
+    /** @return whether the bounding box spanning {@code parent} and {@code child} meets the region. */
+    private boolean connectionIntersectsRegion(VisualNode parent, VisualNode child,
+            double rx, double ry, double rw, double rh) {
+        double cx = Math.min(parent.getX(), child.getX());
+        double cy = Math.min(parent.getY(), child.getY());
+        double cw = Math.max(parent.getX() + parent.getWidth(), child.getX() + child.getWidth()) - cx;
+        double ch = Math.max(parent.getY() + parent.getHeight(), child.getY() + child.getHeight()) - cy;
+        return rectsIntersect(cx, cy, cw, ch, rx, ry, rw, rh);
+    }
+
+    private static boolean rectsIntersect(double ax, double ay, double aw, double ah,
+            double bx, double by, double bw, double bh) {
+        return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
+    }
+
+    /** Forces a full relayout and repaint of the whole canvas. */
+    public void repaint() {
+        redraw();
+    }
+
+    /** @return number of node cards drawn in the last paint (diagnostics/tests). */
+    public int getLastRenderedNodeCount() {
+        return renderedNodeCount;
+    }
+
+    /** @return whether the last paint was an incremental region repaint, not a full redraw (diagnostics/tests). */
+    public boolean wasLastPaintRegional() {
+        return lastPaintWasRegional;
+    }
+
+    /**
+     * Enables or disables viewport culling (rendering only nodes inside the visible
+     * viewport). Enabled by default; disabling renders every node (useful for tests).
+     *
+     * @param enabled whether to cull off-screen nodes
+     */
+    public void setViewportCullingEnabled(boolean enabled) {
+        this.viewportCullingEnabled = enabled;
     }
 
     /**
@@ -795,6 +929,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         // Render node only if visible
         if (nodeVisible) {
             renderer.renderNode(gc, node, node.getX(), node.getY());
+            renderedNodeCount++;
         }
 
         // Render connections and children
@@ -914,14 +1049,15 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
                 hoveredNode.setHovered(false);
             }
 
+            VisualNode previousHover = hoveredNode;
             // Set new hover
             hoveredNode = nodeAtPosition;
             if (hoveredNode != null) {
                 hoveredNode.setHovered(true);
             }
 
-            // Redraw to show hover effect
-            redraw();
+            // Hover does not affect layout: repaint only the two affected node regions (P4).
+            repaintNodes(java.util.Arrays.asList(previousHover, hoveredNode));
         }
     }
 
