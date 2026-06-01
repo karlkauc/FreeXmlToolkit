@@ -34,6 +34,7 @@ import org.fxt.freexmltoolkit.util.VersionUtil;
 public class EditorWelcomePane extends VBox {
 
     private final ObservableList<File> recentFiles = FXCollections.observableArrayList();
+    private ListView<File> recentList;
 
     /**
      * @param onNew         invoked with {@link EditorFileType#XML} for the New File card
@@ -66,6 +67,11 @@ public class EditorWelcomePane extends VBox {
 
     /** Replaces the recent-files list (most-recent first). */
     public void setRecentFiles(List<File> files) {
+        // Clear the selection before replacing the items to avoid a JavaFX
+        // ListViewBehavior IndexOutOfBoundsException (see javafx-listview-setall-crash).
+        if (recentList != null) {
+            recentList.getSelectionModel().clearSelection();
+        }
         recentFiles.setAll(files);
     }
 
@@ -171,14 +177,19 @@ public class EditorWelcomePane extends VBox {
         HBox headerRow = new HBox(header, spacer, clear);
         headerRow.setAlignment(Pos.CENTER_LEFT);
 
-        ListView<File> recentList = new ListView<>(recentFiles);
+        recentList = new ListView<>(recentFiles);
         recentList.getStyleClass().add("fxt-welcome-recent");
         recentList.setPlaceholder(new Label("No recent files"));
         recentList.setCellFactory(lv -> new RecentCell());
         recentList.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
             if (newV != null) {
-                onOpenRecent.accept(newV);
-                recentList.getSelectionModel().clearSelection();
+                // Defer out of the selection-change processing (opening builds an editor and
+                // mutates other lists); running it inline re-enters the ListViewBehavior
+                // listener and throws (see javafx-listview-setall-crash).
+                javafx.application.Platform.runLater(() -> {
+                    recentList.getSelectionModel().clearSelection();
+                    onOpenRecent.accept(newV);
+                });
             }
         });
         VBox.setVgrow(recentList, Priority.ALWAYS);
