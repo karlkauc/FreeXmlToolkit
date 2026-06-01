@@ -88,6 +88,10 @@ public class InspectorPanel extends VBox {
     private final TableView<AttrEntry> xmlAttrTable = new TableView<>();
     private Label xmlTextLabel;
     private VBox xmlAttrBox;
+    // XSD-derived, read-only info shown for an XML element when a schema is bound
+    private final Label xmlSchemaTypeValue = roLabel();
+    private final Label xmlSchemaDocValue = roLabel();
+    private VBox xmlSchemaBox;
     private TitledPane typeFacetsSection;
     private TitledPane cardUseSection;
     private TitledPane docSection;
@@ -287,7 +291,8 @@ public class InspectorPanel extends VBox {
         Label attrLabel = new Label("Attributes");
         attrLabel.getStyleClass().add("fxt-inspector-key");
         xmlAttrBox = new VBox(4, attrLabel, xmlAttrTable);
-        return new VBox(4, xmlTextLabel, xmlTextArea, xmlAttrBox);
+        xmlSchemaBox = new VBox(4, row("Schema type", xmlSchemaTypeValue), row("Documentation", xmlSchemaDocValue));
+        return new VBox(4, xmlTextLabel, xmlTextArea, xmlAttrBox, xmlSchemaBox);
     }
 
     private void wireEditing() {
@@ -460,8 +465,24 @@ public class InspectorPanel extends VBox {
         xmlAttrTable.getItems().setAll(entries);
         show(xmlAttrBox, true);
 
+        // XSD-derived read-only info, when a schema is bound to the document.
+        var info = editorHost.resolveActiveXmlElementInfo(xmlXPath(el));
+        if (info.isPresent()) {
+            xmlSchemaTypeValue.setText(blankToPlaceholder(info.get().typeName()));
+            String doc = info.get().documentation();
+            xmlSchemaDocValue.setText(doc == null || stripHtml(doc).isBlank() ? PLACEHOLDER : stripHtml(doc));
+            show(xmlSchemaBox, true);
+        } else {
+            show(xmlSchemaBox, false);
+        }
+
         showXsdSections(false);
         show(valueAttrSection, true);
+    }
+
+    /** Strips HTML tags so schema documentation (which may be rendered HTML) reads as plain text. */
+    private static String stripHtml(String html) {
+        return html == null ? "" : html.replaceAll("<[^>]+>", " ").replaceAll("\\s+", " ").trim();
     }
 
     /** Read-only JSON node info: key, kind (node type) and scalar value. */
@@ -479,6 +500,7 @@ public class InspectorPanel extends VBox {
         xmlTextArea.setEditable(false);
         xmlTextArea.setText(jsonValue(node));
         show(xmlAttrBox, false);
+        show(xmlSchemaBox, false);
 
         showXsdSections(false);
         show(valueAttrSection, true);
@@ -712,6 +734,16 @@ public class InspectorPanel extends VBox {
     /** @return the value shown for a selected JSON node (for tests/observers). */
     public String getJsonValueText() {
         return xmlTextArea.getText() == null ? "" : xmlTextArea.getText();
+    }
+
+    /** @return the XSD-derived type shown for a selected XML element (for tests/observers). */
+    public String getSchemaTypeText() {
+        return xmlSchemaTypeValue.getText() == null ? "" : xmlSchemaTypeValue.getText();
+    }
+
+    /** @return the XSD-derived documentation shown for a selected XML element (for tests/observers). */
+    public String getSchemaDocText() {
+        return xmlSchemaDocValue.getText() == null ? "" : xmlSchemaDocValue.getText();
     }
 
     /** @return the number of facets currently shown (for tests/observers). */

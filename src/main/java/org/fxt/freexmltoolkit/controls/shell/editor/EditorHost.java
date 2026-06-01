@@ -780,6 +780,7 @@ public class EditorHost extends BorderPane {
             et.schemaFile = xsd;
             et.view.invalidateIntelliSenseCache();
             activeSchema.set(xsd);
+            loadXmlSchemaProviderAsync(et, xsd);
             return true;
         }
         return false;
@@ -864,6 +865,7 @@ public class EditorHost extends BorderPane {
                         if (tab.isSelected()) {
                             activeSchema.set(autoXsd);
                         }
+                        loadXmlSchemaProviderAsync(tab, autoXsd);
                     }
                 });
             } catch (IOException e) {
@@ -900,6 +902,52 @@ public class EditorHost extends BorderPane {
             // detection is best-effort; a malformed document simply binds no schema
         }
         return null;
+    }
+
+    /**
+     * Builds the read-only, XSD-derived schema provider for an XML-instance document off the
+     * UI thread (parsing the XSD is expensive), then attaches it to the tab and — if the tab is
+     * front-most — refreshes the inspector so the selected element shows its declared type and
+     * documentation. Best-effort: a malformed/missing XSD simply binds no provider.
+     */
+    private void loadXmlSchemaProviderAsync(EditorTab tab, File xsd) {
+        if (xsd == null || tab.document.getFileType() != EditorFileType.XML) {
+            return;
+        }
+        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            try {
+                var service = new org.fxt.freexmltoolkit.service.XsdDocumentationService();
+                service.setXsdFilePath(xsd.getAbsolutePath());
+                service.processXsd(Boolean.TRUE);
+                var adapter = new org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XsdSchemaAdapter();
+                adapter.setXsdDocumentationData(service.xsdDocumentationData);
+                Platform.runLater(() -> {
+                    tab.xmlSchemaProvider = adapter;
+                    if (tab.xmlGridView != null && tab.xmlGridView.getContext() != null) {
+                        tab.xmlGridView.getContext().setSchemaProvider(adapter);
+                    }
+                    if (tab.isSelected()) {
+                        refreshSelectedNode();
+                    }
+                });
+            } catch (Exception e) {
+                // schema-derived info is best-effort; ignore failures
+            }
+        });
+    }
+
+    /**
+     * @return XSD-derived type/documentation for an XML-instance element at the given XPath, if
+     * a schema is bound to the active document; otherwise empty.
+     */
+    public java.util.Optional<
+            org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider.ElementTypeInfo>
+            resolveActiveXmlElementInfo(String elementXPath) {
+        Tab tab = tabPane.getSelectionModel().getSelectedItem();
+        if (tab instanceof EditorTab et && et.xmlSchemaProvider != null && elementXPath != null) {
+            return et.xmlSchemaProvider.getElementTypeInfo(elementXPath);
+        }
+        return java.util.Optional.empty();
     }
 
     private boolean write(EditorTab tab, Path target) {
@@ -1005,6 +1053,8 @@ public class EditorHost extends BorderPane {
                 new javafx.animation.PauseTransition(javafx.util.Duration.millis(150));
         private File schemaFile;
         private File schematronFile;
+        /** XSD-derived, read-only schema info for XML-instance nodes (lazily built off-thread). */
+        private org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider xmlSchemaProvider;
 
         EditorTab(OpenDocument document, Runnable selectionCallback) {
             this.document = document;
