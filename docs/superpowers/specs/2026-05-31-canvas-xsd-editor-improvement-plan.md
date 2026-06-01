@@ -124,9 +124,14 @@ avoid flakiness). RED-verified by reverting the listener to a full `redraw()`.
   Future work: incremental re-highlight of only the changed paragraphs; source-range tracking
   for incremental serialization.
 
-### P7 — Retire unused renderer (addresses I7) — Phase 10c
+### P7 — Retire unused renderer (addresses I7) — Phase 10c — ✅ DONE (2026-06-01)
 - After parity is confirmed in real use, delete `controls/shell/schema/XsdGraphicView`
   and `SchemaGridModel` (and their tests), since the shell no longer uses them.
+- **Done:** deleted `XsdGraphicView.java` + `SchemaGridModel.java` and their tests
+  (`XsdGraphicViewTest`, `XsdGraphicViewStateTest`, `SchemaGridModelTest`). A reference
+  search confirmed the only remaining mention was a javadoc `{@link}` in `NodeContextMenu`
+  (now corrected). `NodeContextMenu`, `NodeEditActions` and `XsdNodeLabels` stay — still
+  used by the Tree view. Compile + spotless + the shell.schema/graphic suites stay green.
 
 ## 5. Sequencing
 
@@ -145,7 +150,13 @@ avoid flakiness). RED-verified by reverting the listener to a full `redraw()`.
    layout-affecting changes still full-redraw (future work).
 5. **P6** — ✅ done as a thin diff layer (write only the changed text region; caret/scroll
    preserved). Serialize + re-highlight remain O(n) (source-range tracking is future work).
-6. **P7** — cleanup (retire unused `XsdGraphicView`/`SchemaGridModel` in Phase 10c).
+6. **P7** — ✅ done. Retired the unused `XsdGraphicView`/`SchemaGridModel` (+ tests).
+
+**All of P1–P7 are now complete.** Remaining future work (not in the original P-list):
+incremental re-highlight of only the changed paragraphs and source-range tracking for
+truly constant-time serialization (P6 residual); promoting layout-affecting changes to
+incremental redraw (P4 residual); lifting zoom/fit into the shell strip pending Figma
+sign-off (P5 residual).
 
 ## 6. Test strategy
 

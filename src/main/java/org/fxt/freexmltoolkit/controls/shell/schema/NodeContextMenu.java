@@ -14,10 +14,9 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 
 /**
  * Builds the shared XSD node-editing context menu (Add Element/Attribute/
- * Sequence/Choice, Rename, Change Type, Change Cardinality, Delete) used by both
- * the {@link XsdTreeView} and the {@link XsdGraphicView}, so the two structured
- * views offer identical editing. The menu acts on the node supplied by
- * {@code currentNode} (the selected tree item / graphic card).
+ * Sequence/Choice, Rename, Change Type, Change Cardinality, Delete) used by the
+ * {@link XsdTreeView}. The menu acts on the node supplied by {@code currentNode}
+ * (the selected tree item).
  */
 public final class NodeContextMenu {
 
