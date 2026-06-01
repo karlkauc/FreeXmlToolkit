@@ -121,6 +121,23 @@ class FundsXmlInspectorSmokeTest {
                 + "  kind=" + inspector.getKindText()
                 + "  facets=" + inspector.getFacetCount());
 
+        // 4) Open a named complex type and a simple type in dedicated editor tabs.
+        var complexTab = WaitForAsyncUtils.waitForAsyncFx(4000,
+                () -> host.openTypeEditorTab("DataSupplierType"));
+        settle();
+        Thread.sleep(400);
+        shot("fundsxml_04_complextype_tab");
+        System.out.println("[SMOKE] ComplexType tab opened=" + (complexTab != null)
+                + " title=" + (complexTab != null ? complexTab.getText() : "-"));
+
+        var simpleTab = WaitForAsyncUtils.waitForAsyncFx(4000,
+                () -> host.openTypeEditorTab("ISOCountryCodeType"));
+        settle();
+        Thread.sleep(300);
+        shot("fundsxml_05_simpletype_tab");
+        System.out.println("[SMOKE] SimpleType tab opened=" + (simpleTab != null)
+                + " title=" + (simpleTab != null ? simpleTab.getText() : "-"));
+
         System.out.println("[SMOKE] Screenshots written to " + OUT);
     }
 

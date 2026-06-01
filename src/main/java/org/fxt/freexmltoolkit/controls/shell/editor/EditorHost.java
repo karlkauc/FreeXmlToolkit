@@ -328,6 +328,110 @@ public class EditorHost extends BorderPane {
         return tab;
     }
 
+    /** Open type-editor tabs, keyed by type name, so a type is edited in at most one tab. */
+    private final java.util.Map<String, Tab> openTypeTabs = new java.util.HashMap<>();
+
+    /**
+     * Opens a named XSD type in a dedicated editor tab: a 5-panel form for a simple type, a
+     * focused graphical editor for a complex type. Both are backed by the active document's live
+     * {@link org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext}; edits round-trip to the
+     * XSD text (the simple-type form edits the shared model directly; the complex-type editor
+     * merges its changes back on Save). Re-opening a type re-selects its existing tab.
+     *
+     * @return the opened (or re-selected) tab, or {@code null} if no such named type exists
+     */
+    public Tab openTypeEditorTab(String typeName) {
+        if (typeName == null) {
+            return null;
+        }
+        // Re-select an already-open tab for this type — works even when a tool tab is active.
+        Tab existing = openTypeTabs.get(typeName);
+        if (existing != null && tabPane.getTabs().contains(existing)) {
+            tabPane.getSelectionModel().select(existing);
+            return existing;
+        }
+        EditorTab et = resolveStructuredEditorTab();
+        if (et == null) {
+            return null;
+        }
+        et.ensureModelParsed();
+        var ctx = et.editorContext;
+        if (ctx == null || ctx.getSchema() == null) {
+            return null;
+        }
+        XsdNode type = findNamedType(ctx.getSchema(), typeName);
+        Tab tab;
+        if (type instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType simpleType) {
+            var view = new org.fxt.freexmltoolkit.controls.v2.editor.views.SimpleTypeEditorView(simpleType, ctx);
+            tab = openToolTab("Type: " + typeName, "bi-braces-asterisk", view);
+        } else if (type instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType complexType) {
+            tab = openToolTab("Type: " + typeName, "bi-diagram-3",
+                    buildComplexTypeEditor(complexType, ctx.getSchema(), et));
+        } else {
+            return null;
+        }
+        // Round-trip edits made on the shared model for this tab's lifetime, independent of the
+        // XSD tab's current view mode (the standing graphic listener only fires in GRAPHIC mode).
+        java.beans.PropertyChangeListener roundTrip = evt -> et.scheduleRoundTrip();
+        ctx.getSchema().addPropertyChangeListener(roundTrip);
+        tab.setOnClosed(e -> {
+            ctx.getSchema().removePropertyChangeListener(roundTrip);
+            openTypeTabs.remove(typeName);
+        });
+        openTypeTabs.put(typeName, tab);
+        return tab;
+    }
+
+    /** The XSD source tab for type editing: the active one if structured, else the first such tab. */
+    private EditorTab resolveStructuredEditorTab() {
+        if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab active
+                && active.supportsStructuredViews()) {
+            return active;
+        }
+        for (Tab t : tabPane.getTabs()) {
+            if (t instanceof EditorTab e && e.supportsStructuredViews()) {
+                return e;
+            }
+        }
+        return null;
+    }
+
+    private XsdNode findNamedType(XsdNode schema, String name) {
+        for (XsdNode child : schema.getChildren()) {
+            var t = child.getNodeType();
+            boolean isType = t == org.fxt.freexmltoolkit.controls.v2.model.XsdNodeType.SIMPLE_TYPE
+                    || t == org.fxt.freexmltoolkit.controls.v2.model.XsdNodeType.COMPLEX_TYPE;
+            if (isType && name.equals(child.getName())) {
+                return child;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Wraps the V2 complex-type graphical editor with a small Save toolbar. The editor works on an
+     * isolated virtual schema; Save merges its changes back into the main schema (which then
+     * round-trips to text via the tab's shared-schema listener).
+     */
+    private javafx.scene.layout.Region buildComplexTypeEditor(
+            org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType complexType,
+            org.fxt.freexmltoolkit.controls.v2.model.XsdSchema schema, EditorTab et) {
+        var view = new org.fxt.freexmltoolkit.controls.v2.editor.views.ComplexTypeEditorView(complexType, schema);
+        javafx.scene.control.Button save = new javafx.scene.control.Button("Save to schema",
+                new IconifyIcon("bi-save"));
+        save.getStyleClass().add("fxt-tool-button");
+        save.setOnAction(e -> {
+            if (view.save()) {
+                et.scheduleRoundTrip();
+            }
+        });
+        javafx.scene.control.ToolBar bar = new javafx.scene.control.ToolBar(save);
+        bar.getStyleClass().add("fxt-editor-actionbar");
+        javafx.scene.layout.BorderPane wrapper = new javafx.scene.layout.BorderPane(view);
+        wrapper.setTop(bar);
+        return wrapper;
+    }
+
     /** Shows a file chooser and opens the chosen file (used by the welcome empty-state). */
     public void openFileChooser() {
         javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();

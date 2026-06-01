@@ -47,6 +47,13 @@ public class TypeLibraryPanel extends VBox {
                 javafx.application.Platform.runLater(() -> editorHost.revealTypeByName(typeName));
             }
         });
+        // Double-click opens the type in its own focused editor tab.
+        list.setOnMouseClicked(e -> {
+            if (e.getClickCount() == 2 && selectedTypeName != null) {
+                String typeName = selectedTypeName;
+                javafx.application.Platform.runLater(() -> editorHost.openTypeEditorTab(typeName));
+            }
+        });
 
         javafx.scene.layout.VBox actions = new javafx.scene.layout.VBox(4,
                 actionButton("Generate XSD from XML", "bi-magic", this::generateXsdFromActive),
