@@ -46,38 +46,98 @@ public final class SchemaFacets {
         if (node == null || schemaRoot == null) {
             return new ArrayList<>();
         }
-        String typeName = referencedTypeName(node);
-        if (typeName == null) {
+        List<XsdFacet> out = new ArrayList<>();
+        addNamedTypeFacets(referencedTypeName(node), schemaRoot, out, new java.util.HashSet<>());
+        return out;
+    }
+
+    /**
+     * Resolves the facets contributed by a node's {@code xs:list} item type or {@code xs:union}
+     * member types when those reference named simple types (the V2 list/union gap). Inline item/
+     * member types are already covered by {@link #collect}.
+     */
+    public static List<XsdFacet> resolveListUnionFacets(XsdNode node, XsdNode schemaRoot) {
+        if (node == null || schemaRoot == null) {
             return new ArrayList<>();
         }
+        List<XsdFacet> out = new ArrayList<>();
+        collectListUnion(node, schemaRoot, out, new java.util.HashSet<>());
+        return out;
+    }
+
+    /** Adds the effective facets of the named simple type (its inline facets, else its list/union). */
+    private static void addNamedTypeFacets(String typeName, XsdNode schemaRoot,
+            List<XsdFacet> out, java.util.Set<String> visited) {
+        if (typeName == null || !visited.add(typeName)) {
+            return; // unknown/builtin, or already visited (circular reference guard)
+        }
+        XsdNode named = null;
         for (XsdNode child : schemaRoot.getChildren()) {
             if (child.getNodeType() == org.fxt.freexmltoolkit.controls.v2.model.XsdNodeType.SIMPLE_TYPE
                     && typeName.equals(child.getName())) {
-                return collect(child);
+                named = child;
+                break;
             }
         }
-        return new ArrayList<>();
+        if (named == null) {
+            return;
+        }
+        List<XsdFacet> inline = collect(named);
+        if (!inline.isEmpty()) {
+            out.addAll(inline);
+        } else {
+            collectListUnion(named, schemaRoot, out, visited);
+        }
+    }
+
+    /** Descends simple-type constructs and resolves named list item / union member type facets. */
+    private static void collectListUnion(XsdNode node, XsdNode schemaRoot,
+            List<XsdFacet> out, java.util.Set<String> visited) {
+        for (XsdNode child : node.getChildren()) {
+            switch (child.getNodeType()) {
+                case SIMPLE_TYPE, RESTRICTION -> collectListUnion(child, schemaRoot, out, visited);
+                case LIST -> {
+                    if (child instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdList list) {
+                        addNamedTypeFacets(localTypeName(list.getItemType()), schemaRoot, out, visited);
+                    }
+                }
+                case UNION -> {
+                    if (child instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdUnion union) {
+                        for (String member : union.getMemberTypes()) {
+                            addNamedTypeFacets(localTypeName(member), schemaRoot, out, visited);
+                        }
+                    }
+                }
+                default -> {
+                    // not a simple-type construct
+                }
+            }
+        }
     }
 
     /** @return the local name of the node's {@code type} reference, or {@code null} for none/builtins. */
     private static String referencedTypeName(XsdNode node) {
-        String type = null;
         if (node instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement element) {
-            type = element.getType();
-        } else if (node instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute attribute) {
-            type = attribute.getType();
+            return localTypeName(element.getType());
         }
+        if (node instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute attribute) {
+            return localTypeName(attribute.getType());
+        }
+        return null;
+    }
+
+    /** @return the local part of a (possibly prefixed) type name, or {@code null} for blank/builtins. */
+    private static String localTypeName(String type) {
         if (type == null || type.isBlank()) {
             return null;
         }
         int colon = type.indexOf(':');
         String prefix = colon >= 0 ? type.substring(0, colon) : "";
-        String local = colon >= 0 ? type.substring(colon + 1) : type;
         // XSD built-in types carry no schema-defined facets to inherit.
         if (prefix.equals("xs") || prefix.equals("xsd")) {
             return null;
         }
-        return local;
+        return colon >= 0 ? type.substring(colon + 1) : type;
     }
 
     private static XsdRestriction findRestriction0(XsdNode node) {

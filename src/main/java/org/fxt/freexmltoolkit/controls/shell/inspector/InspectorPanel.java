@@ -684,9 +684,16 @@ public class InspectorPanel extends VBox {
             return;
         }
         java.util.List<XsdFacet> facets = new java.util.ArrayList<>(SchemaFacets.collect(node));
-        // No inline facets but the node references a named simple type → show its facets inherited.
-        if (facets.isEmpty() && (node instanceof XsdElement || node instanceof XsdAttribute)) {
-            java.util.List<XsdFacet> inherited = SchemaFacets.resolveReferencedTypeFacets(node, schemaRoot);
+        // No inline facets: show facets inherited via a named-type reference (element/attribute)
+        // or via an xs:list item type / xs:union member types (a list/union simple type).
+        if (facets.isEmpty()) {
+            java.util.List<XsdFacet> inherited = new java.util.ArrayList<>();
+            if (node instanceof XsdElement || node instanceof XsdAttribute) {
+                inherited.addAll(SchemaFacets.resolveReferencedTypeFacets(node, schemaRoot));
+            }
+            if (inherited.isEmpty()) {
+                inherited.addAll(SchemaFacets.resolveListUnionFacets(node, schemaRoot));
+            }
             inheritedFacets.addAll(inherited);
             facets.addAll(inherited);
         }
