@@ -56,12 +56,15 @@ public final class ValidationRunner {
 
     public static List<ValidationProblem> run(String xml, File xsd, File schematron) {
         List<ValidationProblem> problems = new ArrayList<>();
+        // Without an XSD this is a well-formedness (structural) check; with one it also
+        // validates against the schema. Label problems by their actual source.
+        String source = xsd != null ? "XSD" : "Well-formed";
         try {
             for (SAXParseException e : ServiceRegistry.get(XmlService.class).validateText(xml, xsd)) {
-                problems.add(new ValidationProblem("XSD", "error", e.getLineNumber(), e.getMessage()));
+                problems.add(new ValidationProblem(source, "error", e.getLineNumber(), e.getMessage()));
             }
         } catch (Throwable ignored) {
-            // XSD validation unavailable (e.g. no service registry) — skip
+            // validation unavailable (e.g. no service registry) — skip
         }
         if (schematron != null) {
             try {

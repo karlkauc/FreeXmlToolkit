@@ -212,6 +212,11 @@ public class ValidationPanel extends VBox {
         return problems.size();
     }
 
+    /** @return the current validation status text (e.g. "Well-formed", "Valid", "N problem(s)"). */
+    public String getStatusText() {
+        return status.getText();
+    }
+
     /** Validates the given files against the bound XSD/Schematron and opens a report (async). */
     public void runBatch(java.util.List<File> files) {
         if (files == null || files.isEmpty()) {

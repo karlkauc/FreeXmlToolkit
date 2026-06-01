@@ -35,6 +35,8 @@ public class UnifiedShellView extends BorderPane {
 
     private final ActivitySelectionModel selectionModel = new ActivitySelectionModel();
     private final StackPane sidePanelHost = new StackPane();
+    /** Cached so the editor toolbar "Validate" action can drive the same panel. */
+    private org.fxt.freexmltoolkit.controls.shell.editor.ValidationPanel validationPanel;
     private final org.fxt.freexmltoolkit.controls.shell.editor.EditorHost editorHost =
             new org.fxt.freexmltoolkit.controls.shell.editor.EditorHost();
     private final org.fxt.freexmltoolkit.controls.unified.UnifiedSearchBar searchBar =
@@ -168,8 +170,7 @@ public class UnifiedShellView extends BorderPane {
             return;
         }
         if (activity == Activity.VALIDATION) {
-            sidePanelHost.getChildren().setAll(
-                    new org.fxt.freexmltoolkit.controls.shell.editor.ValidationPanel(editorHost));
+            sidePanelHost.getChildren().setAll(validationPanel());
             return;
         }
         if (activity == Activity.TRANSFORM) {
@@ -214,6 +215,27 @@ public class UnifiedShellView extends BorderPane {
 
         panel.getChildren().addAll(title, hint);
         sidePanelHost.getChildren().setAll(panel);
+    }
+
+    /** @return the cached Validation panel (created on first use). */
+    private org.fxt.freexmltoolkit.controls.shell.editor.ValidationPanel validationPanel() {
+        if (validationPanel == null) {
+            validationPanel = new org.fxt.freexmltoolkit.controls.shell.editor.ValidationPanel(editorHost);
+        }
+        return validationPanel;
+    }
+
+    /**
+     * Validates the active document from the editor toolbar: well-formedness only when
+     * no XSD is bound, and against the bound XSD when one is. Switches to the Validation
+     * activity so the result and any problems are shown.
+     */
+    private void validateActive() {
+        if (editorHost.getActiveDocument().isEmpty()) {
+            return;
+        }
+        selectionModel.select(Activity.VALIDATION);
+        validationPanel().revalidate();
     }
 
     /**
@@ -264,6 +286,14 @@ public class UnifiedShellView extends BorderPane {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
+        IconifyIcon validateIcon = new IconifyIcon("bi-check2-circle");
+        validateIcon.setIconSize(15);
+        javafx.scene.control.Button validate = new javafx.scene.control.Button("Validate", validateIcon);
+        validate.getStyleClass().addAll("fxt-tool-button", "fxt-validate-button");
+        validate.setTooltip(new javafx.scene.control.Tooltip(
+                "Validate the document (well-formedness, or against the bound XSD)"));
+        validate.setOnAction(e -> validateActive());
+
         HBox bar = new HBox(4,
                 badge, vsep(),
                 toolButton("bi-file-earmark-plus", "New (Ctrl+N)", this::newDocument),
@@ -282,6 +312,7 @@ public class UnifiedShellView extends BorderPane {
                 toolButton("bi-table", "Spreadsheet Converter… (Excel / CSV ↔ XML)", this::convertSpreadsheet),
                 vsep(),
                 toolButton("bi-diagram-3", "Set XSD schema for IntelliSense", this::setSchema),
+                validate,
                 spacer, buildViewSwitch(), vsep(), schemaStatus);
         bar.setAlignment(Pos.CENTER_LEFT);
         bar.getStyleClass().add("fxt-editor-toolbar");

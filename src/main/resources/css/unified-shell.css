@@ -707,3 +707,22 @@
     -fx-font-size: 11px;
     -fx-text-fill: -fxt-text-muted;
 }
+
+/* ----- Editor toolbar: primary Validate button (Figma) ----- */
+.fxt-validate-button {
+    -fx-background-color: -fxt-primary;
+    -fx-background-radius: 6;
+    -fx-text-fill: white;
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-padding: 4 12 4 12;
+    -fx-graphic-text-gap: 6;
+    -fx-cursor: hand;
+}
+.fxt-validate-button .iconify-icon {
+    -fx-icon-color: white;
+}
+.fxt-validate-button:hover {
+    -fx-background-color: derive(-fxt-primary, -8%);
+}
