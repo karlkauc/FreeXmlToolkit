@@ -528,3 +528,157 @@
     -fx-padding: 0 8 0 8;
     -fx-cursor: hand;
 }
+
+/* ----- Welcome / Dashboard (Figma "Redesign · Unified — Welcome / Dashboard") ----- */
+.fxt-welcome-scroll, .fxt-welcome-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+.fxt-welcome-content {
+    -fx-background-color: transparent;
+}
+
+/* Hero */
+.fxt-welcome-hero-icon {
+    -fx-background-color: -fxt-primary;
+    -fx-background-radius: 16;
+    -fx-min-width: 64; -fx-min-height: 64;
+    -fx-max-width: 64; -fx-max-height: 64;
+    -fx-icon-color: white;
+}
+.fxt-welcome-hero-icon .ikon-font-icon, .fxt-welcome-hero-icon .iconify-icon {
+    -fx-fill: white;
+}
+.fxt-welcome-hero-title {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-primary;
+}
+.fxt-welcome-hero-subtitle {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 13px;
+    -fx-text-fill: -fxt-text-secondary;
+}
+.fxt-welcome-version-badge {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1f9d55;
+    -fx-background-color: rgba(40, 167, 69, 0.12);
+    -fx-background-radius: 10;
+    -fx-padding: 1 8 1 8;
+    -fx-graphic-text-gap: 5;
+}
+
+/* Section titles + Clear link */
+.fxt-welcome-section-title {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-primary;
+}
+.fxt-welcome-clear {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 12px;
+    -fx-text-fill: -fxt-primary;
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+}
+
+/* Quick-action + tool cards */
+.fxt-quick-card, .fxt-tool-card {
+    -fx-background-color: -fxt-bg-surface;
+    -fx-background-radius: 10;
+    -fx-border-color: -fxt-border;
+    -fx-border-radius: 10;
+    -fx-padding: 16;
+    -fx-cursor: hand;
+}
+.fxt-quick-card:hover, .fxt-tool-card:hover {
+    -fx-border-color: -fxt-primary;
+    -fx-background-color: -fxt-bg-subtle;
+}
+.fxt-quick-card-primary {
+    -fx-background-color: -fxt-primary;
+    -fx-border-color: -fxt-primary;
+}
+.fxt-quick-card-primary:hover {
+    -fx-background-color: derive(-fxt-primary, -8%);
+    -fx-border-color: derive(-fxt-primary, -8%);
+}
+
+/* Card icon tiles */
+.fxt-card-icon {
+    -fx-background-color: rgba(59, 91, 219, 0.10);
+    -fx-background-radius: 8;
+    -fx-min-width: 36; -fx-min-height: 36;
+    -fx-max-width: 36; -fx-max-height: 36;
+    -fx-icon-color: -fxt-primary;
+}
+.fxt-card-icon-primary {
+    -fx-background-color: rgba(255, 255, 255, 0.18);
+    -fx-background-radius: 8;
+    -fx-min-width: 36; -fx-min-height: 36;
+    -fx-max-width: 36; -fx-max-height: 36;
+    -fx-icon-color: white;
+}
+
+/* Card text */
+.fxt-card-title {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-primary;
+}
+.fxt-card-subtitle {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 11px;
+    -fx-text-fill: -fxt-text-secondary;
+}
+.fxt-card-title-on-primary {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+}
+.fxt-card-subtitle-on-primary {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 11px;
+    -fx-text-fill: rgba(255, 255, 255, 0.82);
+}
+.fxt-tool-card .iconify-icon, .fxt-tool-card .ikonli-font-icon {
+    -fx-icon-color: -fxt-text-muted;
+}
+
+/* Recent files list as a card */
+.fxt-welcome-recent {
+    -fx-background-color: -fxt-bg-surface;
+    -fx-background-radius: 10;
+    -fx-border-color: -fxt-border;
+    -fx-border-radius: 10;
+    -fx-padding: 4;
+}
+.fxt-welcome-recent .list-cell {
+    -fx-background-color: transparent;
+    -fx-padding: 8 10 8 10;
+}
+.fxt-welcome-recent .list-cell:hover {
+    -fx-background-color: -fxt-bg-subtle;
+    -fx-background-radius: 6;
+}
+.fxt-recent-name {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-primary;
+}
+.fxt-recent-path {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 11px;
+    -fx-text-fill: -fxt-text-muted;
+}
+.fxt-recent-time {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 11px;
+    -fx-text-fill: -fxt-text-muted;
+}

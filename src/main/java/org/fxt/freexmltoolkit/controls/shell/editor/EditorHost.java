@@ -42,8 +42,12 @@ public class EditorHost extends BorderPane {
     /** The most recently active editor tab — insertion target when a tool tab is in front. */
     private EditorTab lastEditorTab;
 
+    /** Handler for Welcome/Dashboard action keys (activity ids, open-folder); set by the shell. */
+    private java.util.function.Consumer<String> welcomeActionHandler = key -> { };
+
     private final EditorWelcomePane welcomePane = new EditorWelcomePane(
-            this::newDocument, this::openFileChooser, this::openFile);
+            this::newDocument, this::openFileChooser, this::openFile,
+            this::clearRecentFiles, this::fireWelcomeAction);
 
     public EditorHost() {
         getStyleClass().add("fxt-editor-tabs");
@@ -354,6 +358,82 @@ public class EditorHost extends BorderPane {
         } catch (Throwable t) {
             return java.util.List.of();
         }
+    }
+
+    /**
+     * Sets the handler for Welcome/Dashboard tool/action keys (activity ids and
+     * {@code open-folder}); the shell wires this to its activity selection. The
+     * {@code from-url} action is handled internally by {@link #openFromUrl()}.
+     */
+    public void setWelcomeActionHandler(java.util.function.Consumer<String> handler) {
+        this.welcomeActionHandler = handler != null ? handler : key -> { };
+    }
+
+    private void fireWelcomeAction(String key) {
+        if ("from-url".equals(key)) {
+            openFromUrl();
+        } else {
+            welcomeActionHandler.accept(key);
+        }
+    }
+
+    /** Clears the recent-files list (and refreshes the welcome list). */
+    private void clearRecentFiles() {
+        try {
+            org.fxt.freexmltoolkit.di.ServiceRegistry
+                    .get(org.fxt.freexmltoolkit.service.PropertiesService.class)
+                    .clearLastOpenFiles();
+        } catch (Throwable ignored) {
+            // service not available (e.g. isolated tests): just clear the displayed list
+        }
+        welcomePane.setRecentFiles(java.util.List.of());
+    }
+
+    /** Prompts for a URL and opens its fetched content as a new document (Welcome "From URL"). */
+    public void openFromUrl() {
+        javafx.scene.control.TextInputDialog dialog = new javafx.scene.control.TextInputDialog();
+        dialog.setTitle("Open from URL");
+        dialog.setHeaderText("Fetch and open a document from a URL");
+        dialog.setContentText("URL:");
+        if (getScene() != null) {
+            dialog.initOwner(getScene().getWindow());
+        }
+        dialog.showAndWait().map(String::trim).filter(s -> !s.isBlank()).ifPresent(this::fetchUrlAsync);
+    }
+
+    private void fetchUrlAsync(String url) {
+        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            try {
+                java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
+                java.net.http.HttpResponse<String> response = client.send(
+                        java.net.http.HttpRequest.newBuilder(java.net.URI.create(url)).GET().build(),
+                        java.net.http.HttpResponse.BodyHandlers.ofString());
+                String body = response.body();
+                String name = urlFileName(url);
+                EditorFileType type = EditorFileType.fromFileName(name);
+                Platform.runLater(() -> openGeneratedDocument(body, type, name));
+            } catch (Exception e) {
+                Platform.runLater(() -> {
+                    javafx.scene.control.Alert alert =
+                            new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.ERROR);
+                    alert.setTitle("Open from URL");
+                    alert.setHeaderText("Could not fetch the URL");
+                    alert.setContentText(e.getMessage());
+                    alert.showAndWait();
+                });
+            }
+        });
+    }
+
+    private static String urlFileName(String url) {
+        String path = url;
+        int q = path.indexOf('?');
+        if (q >= 0) {
+            path = path.substring(0, q);
+        }
+        int slash = path.lastIndexOf('/');
+        String name = slash >= 0 ? path.substring(slash + 1) : path;
+        return name.isBlank() ? "Untitled" : name;
     }
 
     /** Creates an empty untitled document of the given type. */

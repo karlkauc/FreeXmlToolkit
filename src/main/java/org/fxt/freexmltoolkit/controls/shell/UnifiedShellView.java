@@ -62,6 +62,18 @@ public class UnifiedShellView extends BorderPane {
 
         // File-operation keyboard shortcuts (scoped to the shell).
         addEventHandler(javafx.scene.input.KeyEvent.KEY_PRESSED, this::handleShortcut);
+
+        // Welcome/Dashboard tool cards switch activities (and "open-folder" → Explorer).
+        editorHost.setWelcomeActionHandler(this::handleWelcomeAction);
+    }
+
+    /** Routes a Welcome/Dashboard action key to the matching activity. */
+    private void handleWelcomeAction(String key) {
+        if ("open-folder".equals(key)) {
+            selectionModel.select(Activity.EXPLORER);
+            return;
+        }
+        Activity.fromId(key).ifPresent(selectionModel::select);
     }
 
     private void handleShortcut(javafx.scene.input.KeyEvent event) {
@@ -126,6 +138,21 @@ public class UnifiedShellView extends BorderPane {
 
         HBox work = new HBox(sidePanelHost, editorCenter, inspector);
         work.getStyleClass().add("fxt-work-area");
+
+        // The Welcome / Dashboard is full-width (Figma): while no document is open, hide
+        // the side panel and inspector so the dashboard uses the whole work area; restore
+        // them as soon as a document opens.
+        Runnable updateChrome = () -> {
+            boolean hasDocument = !editorHost.isEmpty();
+            sidePanelHost.setVisible(hasDocument);
+            sidePanelHost.setManaged(hasDocument);
+            inspector.setVisible(hasDocument);
+            inspector.setManaged(hasDocument);
+        };
+        updateChrome.run();
+        editorHost.getOpenDocuments().addListener(
+                (javafx.collections.ListChangeListener<org.fxt.freexmltoolkit.controls.shell.editor.OpenDocument>)
+                        c -> updateChrome.run());
         return work;
     }
 
