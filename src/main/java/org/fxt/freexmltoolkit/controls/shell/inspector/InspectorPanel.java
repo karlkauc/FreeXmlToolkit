@@ -141,7 +141,16 @@ public class InspectorPanel extends VBox {
         TableColumn<XsdFacet, String> valueCol = new TableColumn<>("Value");
         valueCol.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(c.getValue().getValue()));
         valueCol.setPrefWidth(180);
+        // Editable facet value: commit via the EditorHost command stack.
+        valueCol.setCellFactory(javafx.scene.control.cell.TextFieldTableCell.forTableColumn());
+        valueCol.setEditable(true);
+        valueCol.setOnEditCommit(e -> {
+            if (!updating && e.getRowValue() != null) {
+                editorHost.editActiveFacet(e.getRowValue(), e.getNewValue());
+            }
+        });
         facetTable.getColumns().setAll(nameCol, valueCol);
+        facetTable.setEditable(true);
         facetTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         facetTable.setPrefHeight(120);
         facetTable.getStyleClass().add("fxt-facet-table");
