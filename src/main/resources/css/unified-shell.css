@@ -750,3 +750,31 @@
 .fxt-inspector-invalid-badge .iconify-icon {
     -fx-icon-color: #dc3545;
 }
+
+/* ----- Inspector editable fields (Phase: editable properties pane) ----- */
+.fxt-inspector-row {
+    -fx-padding: 2 0 2 0;
+}
+.fxt-inspector-edit {
+    -fx-background-color: -fxt-bg-surface;
+    -fx-background-radius: 4;
+    -fx-border-color: -fxt-border;
+    -fx-border-radius: 4;
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 12px;
+    -fx-text-fill: -fxt-text-primary;
+}
+.fxt-inspector-edit:focused {
+    -fx-border-color: -fxt-primary;
+}
+.fxt-inspector-edit .text-field,
+.fxt-inspector-edit .text-input,
+.fxt-inspector-edit .text {
+    -fx-text-fill: -fxt-text-primary;
+    -fx-fill: -fxt-text-primary;
+    -fx-background-color: transparent;
+}
+.fxt-inspector-edit.text-area,
+.fxt-inspector-edit.text-area .content {
+    -fx-background-color: -fxt-bg-surface;
+}
