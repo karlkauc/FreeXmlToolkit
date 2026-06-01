@@ -82,6 +82,8 @@ public class InspectorPanel extends VBox {
     private final TextArea docArea = new TextArea();
     private final TableView<XsdFacet> facetTable = new TableView<>();
     private VBox facetBox;
+    /** Facets currently shown that are inherited via a named-type reference (read-only). */
+    private final java.util.Set<XsdFacet> inheritedFacets = new java.util.HashSet<>();
     private final ComboBox<org.fxt.freexmltoolkit.controls.v2.model.XsdFacetType> facetTypeCombo = new ComboBox<>();
     private final TextField facetValueField = new TextField();
     // XML-instance value/attributes
@@ -165,12 +167,34 @@ public class InspectorPanel extends VBox {
         TableColumn<XsdFacet, String> valueCol = new TableColumn<>("Value");
         valueCol.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(c.getValue().getValue()));
         valueCol.setPrefWidth(180);
-        // Editable facet value: commit via the EditorHost command stack.
-        valueCol.setCellFactory(javafx.scene.control.cell.TextFieldTableCell.forTableColumn());
+        // Editable facet value (inline facets); inherited facets are read-only.
+        valueCol.setCellFactory(col -> new javafx.scene.control.cell.TextFieldTableCell<XsdFacet, String>(
+                new javafx.util.converter.DefaultStringConverter()) {
+            @Override
+            public void startEdit() {
+                XsdFacet f = getTableRow() == null ? null : getTableRow().getItem();
+                if (f != null && inheritedFacets.contains(f)) {
+                    return; // inherited from a referenced named type — not editable here
+                }
+                super.startEdit();
+            }
+        });
         valueCol.setEditable(true);
         valueCol.setOnEditCommit(e -> {
-            if (!updating && e.getRowValue() != null) {
+            if (!updating && e.getRowValue() != null && !inheritedFacets.contains(e.getRowValue())) {
                 editorHost.editActiveFacet(e.getRowValue(), e.getNewValue());
+            }
+        });
+        // Render inherited facet rows in muted italics, with a hint tooltip.
+        facetTable.setRowFactory(tv -> new javafx.scene.control.TableRow<>() {
+            @Override
+            protected void updateItem(XsdFacet item, boolean empty) {
+                super.updateItem(item, empty);
+                boolean inherited = !empty && item != null && inheritedFacets.contains(item);
+                setStyle(inherited ? "-fx-font-style: italic; -fx-opacity: 0.8;" : "");
+                setTooltip(inherited
+                        ? new javafx.scene.control.Tooltip("Inherited from the referenced named type")
+                        : null);
             }
         });
         facetTable.getColumns().setAll(nameCol, valueCol);
@@ -222,7 +246,7 @@ public class InspectorPanel extends VBox {
         delBtn.setId("inspector-facet-delete");
         delBtn.setOnAction(e -> {
             XsdFacet sel = facetTable.getSelectionModel().getSelectedItem();
-            if (sel != null) {
+            if (sel != null && !inheritedFacets.contains(sel)) {
                 editorHost.deleteActiveFacet(sel);
             }
         });
@@ -464,7 +488,7 @@ public class InspectorPanel extends VBox {
 
         // Section visibility: TYPE & FACETS only when a type field or facets apply;
         // CARDINALITY & USE only for elements/attributes; DOCUMENTATION for all nodes.
-        boolean facets = facetsApplicable(node);
+        boolean facets = facetsApplicable(node, editorHost.getActiveSchemaRoot().orElse(null));
         show(facetBox, facets);
         show(typeFacetsSection, isElement || isAttribute || facets);
         show(cardUseSection, isElement || isAttribute);
@@ -653,17 +677,33 @@ public class InspectorPanel extends VBox {
     }
 
     private void updateFacets(XsdNode node) {
-        facetTable.getItems().setAll(node != null && facetsApplicable(node)
-                ? SchemaFacets.collect(node) : FXCollections.emptyObservableList());
+        inheritedFacets.clear();
+        XsdNode schemaRoot = editorHost.getActiveSchemaRoot().orElse(null);
+        if (node == null || !facetsApplicable(node, schemaRoot)) {
+            facetTable.getItems().setAll(FXCollections.emptyObservableList());
+            return;
+        }
+        java.util.List<XsdFacet> facets = new java.util.ArrayList<>(SchemaFacets.collect(node));
+        // No inline facets but the node references a named simple type → show its facets inherited.
+        if (facets.isEmpty() && (node instanceof XsdElement || node instanceof XsdAttribute)) {
+            java.util.List<XsdFacet> inherited = SchemaFacets.resolveReferencedTypeFacets(node, schemaRoot);
+            inheritedFacets.addAll(inherited);
+            facets.addAll(inherited);
+        }
+        facetTable.getItems().setAll(facets);
     }
 
     /**
-     * Facets are meaningful only for a node that bears a simple-type restriction at one level:
-     * an attribute, a simple type / restriction / list / union, or an element with an inline
-     * restriction. For the schema root and complex-type containers they must NOT be shown —
-     * otherwise {@link SchemaFacets#collect} aggregates every facet of every global type.
+     * Facets are meaningful for a node that bears a simple-type restriction at one level: an
+     * attribute, a simple type / restriction / list / union, or an element with an inline
+     * restriction or a {@code type} reference to a named simple type (inherited facets). For the
+     * schema root and complex-type containers they must NOT be shown — otherwise
+     * {@link SchemaFacets#collect} aggregates every facet of every global type.
      */
-    private static boolean facetsApplicable(XsdNode node) {
+    private static boolean facetsApplicable(XsdNode node, XsdNode schemaRoot) {
+        if (node == null) {
+            return false;
+        }
         if (node instanceof XsdAttribute) {
             return true;
         }
@@ -674,7 +714,9 @@ public class InspectorPanel extends VBox {
         if (simpleTypeNode) {
             return true;
         }
-        return node instanceof XsdElement && SchemaFacets.findRestriction(node) != null;
+        return node instanceof XsdElement
+                && (SchemaFacets.findRestriction(node) != null
+                || !SchemaFacets.resolveReferencedTypeFacets(node, schemaRoot).isEmpty());
     }
 
     private void updateValidationBadge(EditorHost.ValidationStatus status) {
@@ -828,6 +870,11 @@ public class InspectorPanel extends VBox {
     /** @return the number of facets currently shown (for tests/observers). */
     public int getFacetCount() {
         return facetTable.getItems().size();
+    }
+
+    /** @return how many of the shown facets are read-only inherited (for tests/observers). */
+    public int getInheritedFacetCount() {
+        return inheritedFacets.size();
     }
 
     /** @return the number of XML attributes currently shown (for tests/observers). */
