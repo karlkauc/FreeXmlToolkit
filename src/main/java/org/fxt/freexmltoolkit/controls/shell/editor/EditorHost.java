@@ -555,12 +555,12 @@ public class EditorHost extends BorderPane {
 
     /** Renames the selected node via the command stack. */
     public boolean renameActiveNode(String newName) {
-        return editActive(et -> et.renameNode(et.currentSelection, newName));
+        return editActivePreservingSelection(et -> et.renameNode(et.currentSelection, newName));
     }
 
     /** Changes the selected node's cardinality via the command stack. */
     public boolean changeActiveCardinality(int min, int max) {
-        return editActive(et -> et.changeCardinality(et.currentSelection, min, max));
+        return editActivePreservingSelection(et -> et.changeCardinality(et.currentSelection, min, max));
     }
 
     /** Adds an attribute to the selected node via the command stack. */
@@ -580,13 +580,61 @@ public class EditorHost extends BorderPane {
 
     /** Changes the selected node's type via the command stack. */
     public boolean changeActiveType(String newType) {
-        return editActive(et -> et.changeType(et.currentSelection, newType));
+        return editActivePreservingSelection(et -> et.changeType(et.currentSelection, newType));
+    }
+
+    /** Changes the selected attribute's use (required/optional/prohibited). */
+    public boolean changeActiveUse(String use) {
+        return editActivePreservingSelection(et -> et.changeUse(et.currentSelection, use));
+    }
+
+    /** Changes the selected node's form (qualified/unqualified). */
+    public boolean changeActiveForm(String form) {
+        return editActivePreservingSelection(et -> et.changeForm(et.currentSelection, form));
+    }
+
+    /** Changes the selected element's constraints (nillable / abstract / fixed). */
+    public boolean changeActiveConstraints(boolean nillable, boolean abstractFlag, String fixed) {
+        return editActivePreservingSelection(
+                et -> et.changeConstraints(et.currentSelection, nillable, abstractFlag, fixed));
+    }
+
+    /** Changes the selected element's substitution group. */
+    public boolean changeActiveSubstitutionGroup(String substitutionGroup) {
+        return editActivePreservingSelection(
+                et -> et.changeSubstitutionGroup(et.currentSelection, substitutionGroup));
+    }
+
+    /** Changes the selected node's documentation text. */
+    public boolean changeActiveDocumentation(String documentation) {
+        return editActivePreservingSelection(et -> et.changeDocumentation(et.currentSelection, documentation));
     }
 
     private boolean editActive(java.util.function.Predicate<EditorTab> edit) {
         if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et
                 && et.viewMode != ViewMode.TEXT) {
             boolean ok = edit.test(et);
+            if (ok) {
+                refreshSelectedNode();
+            }
+            return ok;
+        }
+        return false;
+    }
+
+    /**
+     * Like {@link #editActive} but keeps the same node selected after the edit. Property
+     * edits (rename, type, cardinality, use, …) preserve the model node, so the inspector
+     * should keep showing it instead of clearing (which {@code applyModelChange} would cause).
+     */
+    private boolean editActivePreservingSelection(java.util.function.Predicate<EditorTab> edit) {
+        if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et
+                && et.viewMode != ViewMode.TEXT) {
+            XsdNode node = et.currentSelection;
+            boolean ok = edit.test(et);
+            if (ok && node != null) {
+                et.reselect(node);
+            }
             if (ok) {
                 refreshSelectedNode();
             }
@@ -1077,6 +1125,58 @@ public class EditorHost extends BorderPane {
             }
             return executeAndApply(new org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeTypeCommand(
                     editorContext, node, newType.trim()));
+        }
+
+        boolean changeUse(XsdNode node, String use) {
+            if (editorContext == null || node == null || use == null) {
+                return false;
+            }
+            return executeAndApply(new org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeUseCommand(
+                    editorContext, node, use));
+        }
+
+        boolean changeForm(XsdNode node, String form) {
+            if (editorContext == null || node == null || form == null) {
+                return false;
+            }
+            return executeAndApply(new org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeFormCommand(
+                    editorContext, node, form));
+        }
+
+        boolean changeConstraints(XsdNode node, boolean nillable, boolean abstractFlag, String fixed) {
+            if (editorContext == null || node == null) {
+                return false;
+            }
+            return executeAndApply(new org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeConstraintsCommand(
+                    editorContext, node, nillable, abstractFlag, fixed));
+        }
+
+        boolean changeSubstitutionGroup(XsdNode node, String substitutionGroup) {
+            if (editorContext == null || node == null) {
+                return false;
+            }
+            return executeAndApply(
+                    new org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeSubstitutionGroupCommand(
+                            editorContext, node, substitutionGroup));
+        }
+
+        boolean changeDocumentation(XsdNode node, String documentation) {
+            if (editorContext == null || node == null) {
+                return false;
+            }
+            return executeAndApply(
+                    new org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeDocumentationCommand(
+                            editorContext, node, documentation));
+        }
+
+        /** Restores selection to {@code node} after a property edit (re-selects it in the view). */
+        void reselect(XsdNode node) {
+            currentSelection = node;
+            if (viewMode == ViewMode.TREE && treeView != null) {
+                treeView.selectNode(node);
+            } else if (viewMode == ViewMode.GRAPHIC && xsdGraphView != null) {
+                xsdGraphView.selectModelNode(node);
+            }
         }
 
         boolean undoStructured() {
