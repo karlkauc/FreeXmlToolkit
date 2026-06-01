@@ -32,6 +32,8 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdFacet;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode;
 
 /**
  * The Unified shell inspector — the editable properties pane. It keeps the Figma flat
@@ -54,6 +56,7 @@ public class InspectorPanel extends VBox {
     /** True while repopulating controls from the model — suppresses edit commits. */
     private boolean updating;
     private XsdNode currentXsdNode;
+    private XmlNode currentXmlNode;
 
     private final Label nodeHeaderName = new Label(PLACEHOLDER);
     private final Label nodeHeaderKind = new Label();
@@ -77,6 +80,13 @@ public class InspectorPanel extends VBox {
     private final TextField substField = editField("inspector-subst");
     private final TextArea docArea = new TextArea();
     private final TableView<XsdFacet> facetTable = new TableView<>();
+    // XML-instance value/attributes
+    private final TextArea xmlTextArea = new TextArea();
+    private final TableView<AttrEntry> xmlAttrTable = new TableView<>();
+    private TitledPane typeFacetsSection;
+    private TitledPane cardUseSection;
+    private TitledPane docSection;
+    private TitledPane valueAttrSection;
 
     // Rows toggled by node type
     private HBox typeRow;
@@ -117,9 +127,11 @@ public class InspectorPanel extends VBox {
 
         getChildren().add(section("NODE & XPATH", new VBox(4,
                 row("Kind", kindValue), row("Name", nameField), row("XPath", xpathValue), row("Depth", depthValue))));
-        getChildren().add(section("TYPE & FACETS", buildTypeFacetsBody()));
-        getChildren().add(section("CARDINALITY & USE", buildCardinalityBody()));
-        getChildren().add(section("DOCUMENTATION & REFS", buildDocBody()));
+        typeFacetsSection = section("TYPE & FACETS", buildTypeFacetsBody());
+        valueAttrSection = section("VALUE & ATTRIBUTES", buildValueAttrBody());
+        cardUseSection = section("CARDINALITY & USE", buildCardinalityBody());
+        docSection = section("DOCUMENTATION & REFS", buildDocBody());
+        getChildren().addAll(typeFacetsSection, valueAttrSection, cardUseSection, docSection);
 
         wireEditing();
 
@@ -127,6 +139,7 @@ public class InspectorPanel extends VBox {
         editorHost.activeCaretProperty().addListener((obs, oldV, newV) -> debounce.playFromStart());
         editorHost.activeTabProperty().addListener((obs, oldV, newV) -> debounce.playFromStart());
         editorHost.activeSelectedNodeProperty().addListener((obs, oldV, newV) -> debounce.playFromStart());
+        editorHost.activeXmlNodeProperty().addListener((obs, oldV, newV) -> debounce.playFromStart());
         refresh();
     }
 
@@ -184,13 +197,52 @@ public class InspectorPanel extends VBox {
         return docBox;
     }
 
+    @SuppressWarnings("unchecked")
+    private Node buildValueAttrBody() {
+        xmlTextArea.setId("inspector-xml-text");
+        xmlTextArea.getStyleClass().add("fxt-inspector-edit");
+        xmlTextArea.setWrapText(true);
+        xmlTextArea.setPrefRowCount(2);
+        xmlTextArea.focusedProperty().addListener((o, was, isNow) -> {
+            if (!isNow) {
+                commit(() -> editorHost.setActiveXmlElementText(xmlTextArea.getText()));
+            }
+        });
+
+        TableColumn<AttrEntry, String> nameCol = new TableColumn<>("Attribute");
+        nameCol.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(c.getValue().getName()));
+        nameCol.setPrefWidth(140);
+        TableColumn<AttrEntry, String> valueCol = new TableColumn<>("Value");
+        valueCol.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(c.getValue().getValue()));
+        valueCol.setCellFactory(javafx.scene.control.cell.TextFieldTableCell.forTableColumn());
+        valueCol.setEditable(true);
+        valueCol.setOnEditCommit(e -> {
+            if (!updating && e.getRowValue() != null) {
+                editorHost.setActiveXmlAttribute(e.getRowValue().getName(), e.getNewValue());
+            }
+        });
+        xmlAttrTable.getColumns().setAll(nameCol, valueCol);
+        xmlAttrTable.setEditable(true);
+        xmlAttrTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+        xmlAttrTable.setId("inspector-xml-attrs");
+        xmlAttrTable.setPrefHeight(120);
+        xmlAttrTable.getStyleClass().add("fxt-facet-table");
+        xmlAttrTable.setPlaceholder(new Label("No attributes"));
+
+        Label textLabel = new Label("Text");
+        textLabel.getStyleClass().add("fxt-inspector-key");
+        Label attrLabel = new Label("Attributes");
+        attrLabel.getStyleClass().add("fxt-inspector-key");
+        return new VBox(4, textLabel, xmlTextArea, attrLabel, xmlAttrTable);
+    }
+
     private void wireEditing() {
         useCombo.getItems().setAll("optional", "required", "prohibited");
         formCombo.getItems().setAll("", "qualified", "unqualified");
         minSpinner.setEditable(true);
         maxSpinner.setEditable(true);
 
-        commitOnEnterAndBlur(nameField, () -> editorHost.renameActiveNode(nameField.getText().trim()));
+        commitOnEnterAndBlur(nameField, this::commitName);
         typeCombo.setOnAction(e -> commit(() -> editorHost.changeActiveType(comboText(typeCombo))));
         minSpinner.valueProperty().addListener((o, ov, nv) -> commit(this::commitCardinality));
         maxSpinner.valueProperty().addListener((o, ov, nv) -> commit(this::commitCardinality));
@@ -225,8 +277,17 @@ public class InspectorPanel extends VBox {
 
     /** Runs an edit only if it is a genuine user change (not a programmatic repopulate) on a node. */
     private void commit(Runnable edit) {
-        if (!updating && currentXsdNode != null) {
+        if (!updating && (currentXsdNode != null || currentXmlNode != null)) {
             edit.run();
+        }
+    }
+
+    private void commitName() {
+        String name = nameField.getText() == null ? "" : nameField.getText().trim();
+        if (currentXsdNode != null) {
+            editorHost.renameActiveNode(name);
+        } else if (currentXmlNode != null) {
+            editorHost.renameActiveXmlNode(name);
         }
     }
 
@@ -234,12 +295,16 @@ public class InspectorPanel extends VBox {
 
     private void refresh() {
         XsdNode selected = editorHost.activeSelectedNodeProperty().get();
+        XmlNode xmlSelected = editorHost.activeXmlNodeProperty().get();
         currentXsdNode = selected;
+        currentXmlNode = selected == null ? xmlSelected : null;
         updateFacets(selected);
         updating = true;
         try {
             if (selected != null) {
                 populateXsdNode(selected);
+            } else if (currentXmlNode instanceof XmlElement el) {
+                populateXmlNode(el);
             } else {
                 populateCaret();
             }
@@ -315,6 +380,49 @@ public class InspectorPanel extends VBox {
         docArea.setEditable(true);
         docArea.setText(node.getDocumentation() == null ? "" : node.getDocumentation());
         show(docBox, true);
+
+        showXsdSections(true);
+        show(valueAttrSection, false);
+    }
+
+    /** XML-instance node: editable name + text + attributes; hide the XSD-only sections. */
+    private void populateXmlNode(XmlElement el) {
+        setHeader(el.getName(), "Element");
+        kindValue.setText("Element");
+        nameField.setEditable(true);
+        nameField.setText(el.getName());
+        xpathValue.setText(xmlXPath(el));
+        depthValue.setText(Integer.toString(xmlDepth(el)));
+
+        xmlTextArea.setText(el.getTextContent() == null ? "" : el.getTextContent());
+        List<AttrEntry> entries = new ArrayList<>();
+        el.getAttributes().forEach((k, v) -> entries.add(new AttrEntry(k, v)));
+        xmlAttrTable.getItems().setAll(entries);
+
+        showXsdSections(false);
+        show(valueAttrSection, true);
+    }
+
+    private String xmlXPath(XmlNode node) {
+        java.util.Deque<String> parts = new java.util.ArrayDeque<>();
+        for (XmlNode n = node; n instanceof XmlElement e; n = n.getParent()) {
+            parts.push(e.getName());
+        }
+        return parts.isEmpty() ? "/" : "/" + String.join("/", parts);
+    }
+
+    private int xmlDepth(XmlNode node) {
+        int depth = 0;
+        for (XmlNode n = node.getParent(); n instanceof XmlElement; n = n.getParent()) {
+            depth++;
+        }
+        return depth;
+    }
+
+    private void showXsdSections(boolean visible) {
+        show(typeFacetsSection, visible);
+        show(cardUseSection, visible);
+        show(docSection, visible);
     }
 
     /** Text/caret mode (no XSD node): show read-only Node & XPath, hide the editable rows. */
@@ -347,6 +455,8 @@ public class InspectorPanel extends VBox {
             showRow(r, false);
         }
         show(docBox, false);
+        showXsdSections(false);
+        show(valueAttrSection, false);
     }
 
     private void setHeader(String name, String kind) {
@@ -486,5 +596,29 @@ public class InspectorPanel extends VBox {
     /** @return the number of facets currently shown (for tests/observers). */
     public int getFacetCount() {
         return facetTable.getItems().size();
+    }
+
+    /** @return the number of XML attributes currently shown (for tests/observers). */
+    public int getXmlAttributeCount() {
+        return xmlAttrTable.getItems().size();
+    }
+
+    /** A name/value row in the XML attributes table. */
+    public static final class AttrEntry {
+        private final String name;
+        private final String value;
+
+        AttrEntry(String name, String value) {
+            this.name = name;
+            this.value = value;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getValue() {
+            return value;
+        }
     }
 }

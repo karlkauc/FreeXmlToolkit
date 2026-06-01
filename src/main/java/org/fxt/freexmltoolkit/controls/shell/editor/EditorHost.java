@@ -39,6 +39,8 @@ public class EditorHost extends BorderPane {
             new ReadOnlyObjectWrapper<>(this, "activeViewMode", ViewMode.TEXT);
     private final ReadOnlyObjectWrapper<XsdNode> activeSelectedNode =
             new ReadOnlyObjectWrapper<>(this, "activeSelectedNode", null);
+    private final ReadOnlyObjectWrapper<org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode> activeXmlNode =
+            new ReadOnlyObjectWrapper<>(this, "activeXmlNode", null);
     private final ReadOnlyObjectWrapper<ValidationStatus> validationStatus =
             new ReadOnlyObjectWrapper<>(this, "validationStatus", ValidationStatus.NONE);
 
@@ -154,6 +156,12 @@ public class EditorHost extends BorderPane {
         return activeSelectedNode.getReadOnlyProperty();
     }
 
+    /** @return the XML-instance node selected in the active Grid view, or {@code null}. */
+    public ReadOnlyObjectProperty<org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode>
+            activeXmlNodeProperty() {
+        return activeXmlNode.getReadOnlyProperty();
+    }
+
     /** @return the active document's validation status (for the inspector badge). */
     public ReadOnlyObjectProperty<ValidationStatus> validationStatusProperty() {
         return validationStatus.getReadOnlyProperty();
@@ -229,11 +237,14 @@ public class EditorHost extends BorderPane {
 
     private void refreshSelectedNode() {
         XsdNode selected = null;
+        org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode xmlSelected = null;
         if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et
                 && et.viewMode != ViewMode.TEXT) {
             selected = et.currentSelection;
+            xmlSelected = et.currentXmlSelection;
         }
         activeSelectedNode.set(selected);
+        activeXmlNode.set(xmlSelected);
     }
 
     /** @return {@code true} if the active document supports Tree/Graphic views (XSD). */
@@ -615,6 +626,49 @@ public class EditorHost extends BorderPane {
         return editActivePreservingSelection(et -> et.editFacet(facet, newValue));
     }
 
+    // ----- XML instance editing (Grid selection) ---------------------------
+
+    /** Renames the selected XML element via the XML command stack. */
+    public boolean renameActiveXmlNode(String name) {
+        return editActiveXml(el ->
+                new org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.RenameNodeCommand(el, name));
+    }
+
+    /** Sets the selected XML element's text content. */
+    public boolean setActiveXmlElementText(String text) {
+        return editActiveXml(el ->
+                new org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.SetElementTextCommand(el, text));
+    }
+
+    /** Sets (adds or updates) an attribute on the selected XML element. */
+    public boolean setActiveXmlAttribute(String name, String value) {
+        return editActiveXml(el ->
+                new org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.SetAttributeCommand(el, name, value));
+    }
+
+    /** Removes an attribute from the selected XML element. */
+    public boolean removeActiveXmlAttribute(String name) {
+        return editActiveXml(el ->
+                new org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.RemoveAttributeCommand(el, name));
+    }
+
+    private boolean editActiveXml(
+            java.util.function.Function<org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement,
+                    org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.XmlCommand> factory) {
+        if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et
+                && et.currentXmlSelection
+                        instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement el) {
+            boolean ok = et.editXml(factory.apply(el));
+            if (ok) {
+                // Same node object edited in place: force the inspector to re-read it.
+                activeXmlNode.set(null);
+                refreshSelectedNode();
+            }
+            return ok;
+        }
+        return false;
+    }
+
     private boolean editActive(java.util.function.Predicate<EditorTab> edit) {
         if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et
                 && et.viewMode != ViewMode.TEXT) {
@@ -919,6 +973,7 @@ public class EditorHost extends BorderPane {
         private XmlGridView xmlGridView;
         private org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext editorContext;
         private XsdNode currentSelection;
+        private org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode currentXmlSelection;
         private ViewMode viewMode = ViewMode.TEXT;
         private boolean dirtyTrackingAttached;
         /** Editor text the current {@link #editorContext} was parsed from (P2: avoid needless re-parse). */
@@ -972,6 +1027,7 @@ public class EditorHost extends BorderPane {
             ViewMode target = supportsView(mode) ? mode : ViewMode.TEXT;
             this.viewMode = target;
             this.currentSelection = null;
+            this.currentXmlSelection = null;
             if (target == ViewMode.TEXT) {
                 showOnly(view.getNode());
                 return;
@@ -1379,8 +1435,26 @@ public class EditorHost extends BorderPane {
                     view.setText(xml);
                     document.setDirty(true);
                 });
+                xmlGridView.setOnSelectionChanged(node -> {
+                    currentXmlSelection = node;
+                    selectionCallback.run();
+                });
                 contentStack.getChildren().add(xmlGridView);
             }
+        }
+
+        /** Executes an XML-instance command on the grid's context and round-trips to text. */
+        boolean editXml(org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.XmlCommand command) {
+            if (xmlGridView == null || command == null) {
+                return false;
+            }
+            org.fxt.freexmltoolkit.controls.v2.xmleditor.editor.XmlEditorContext ctx = xmlGridView.getContext();
+            if (ctx == null || !ctx.executeCommand(command)) {
+                return false;
+            }
+            view.setText(ctx.serializeToString());
+            document.setDirty(true);
+            return true;
         }
 
         private void ensureXmlInstanceTree() {

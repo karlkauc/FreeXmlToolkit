@@ -8,6 +8,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.editor.XmlEditorContext;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.XmlCanvasView;
 
 /**
@@ -21,10 +22,22 @@ import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.XmlCanvasView;
 public class XmlGridView extends StackPane {
 
     private Consumer<String> onModified;
+    private Consumer<XmlNode> onSelectionChanged;
+    private XmlEditorContext context;
 
     public XmlGridView() {
         getStyleClass().add("fxt-xml-grid");
         setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+    }
+
+    /** @return the current grid's editor context (model + command stack), or {@code null}. */
+    public XmlEditorContext getContext() {
+        return context;
+    }
+
+    /** Sets the callback invoked when the grid's selected node changes (for the inspector). */
+    public void setOnSelectionChanged(Consumer<XmlNode> onSelectionChanged) {
+        this.onSelectionChanged = onSelectionChanged;
     }
 
     /**
@@ -45,19 +58,26 @@ public class XmlGridView extends StackPane {
      */
     public void setXml(String xml) {
         getChildren().clear();
+        context = null;
         if (xml == null || xml.isBlank()) {
             getChildren().add(placeholder("No XML content to display."));
             return;
         }
-        XmlEditorContext context = new XmlEditorContext();
+        XmlEditorContext ctx = new XmlEditorContext();
         try {
-            context.loadDocumentFromString(xml);
+            ctx.loadDocumentFromString(xml);
         } catch (Exception e) {
             getChildren().add(placeholder("Cannot display grid:\n\n"
                     + e.getMessage() + "\n\nFix the XML errors first."));
             return;
         }
-        XmlCanvasView view = new XmlCanvasView(context);
+        this.context = ctx;
+        ctx.getSelectionModel().addPropertyChangeListener("selectedNode", evt -> {
+            if (onSelectionChanged != null) {
+                onSelectionChanged.accept((XmlNode) evt.getNewValue());
+            }
+        });
+        XmlCanvasView view = new XmlCanvasView(ctx);
         view.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
         view.setToastContainer(this);
         view.setOnDocumentModified(modified -> {
