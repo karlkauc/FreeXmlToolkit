@@ -81,6 +81,7 @@ public class InspectorPanel extends VBox {
     private final TextField substField = editField("inspector-subst");
     private final TextArea docArea = new TextArea();
     private final TableView<XsdFacet> facetTable = new TableView<>();
+    private VBox facetBox;
     private final ComboBox<org.fxt.freexmltoolkit.controls.v2.model.XsdFacetType> facetTypeCombo = new ComboBox<>();
     private final TextField facetValueField = new TextField();
     // XML-instance value/attributes
@@ -180,7 +181,8 @@ public class InspectorPanel extends VBox {
         facetTable.setPlaceholder(new Label("No facets"));
 
         typeRow = row("Type", typeCombo);
-        return new VBox(4, typeRow, facetTable, buildFacetAddRow());
+        facetBox = new VBox(4, facetTable, buildFacetAddRow());
+        return new VBox(4, typeRow, facetBox);
     }
 
     /** Row to add a facet (type + value) and delete the selected one. */
@@ -444,7 +446,13 @@ public class InspectorPanel extends VBox {
         docArea.setText(node.getDocumentation() == null ? "" : node.getDocumentation());
         show(docBox, true);
 
-        showXsdSections(true);
+        // Section visibility: TYPE & FACETS only when a type field or facets apply;
+        // CARDINALITY & USE only for elements/attributes; DOCUMENTATION for all nodes.
+        boolean facets = facetsApplicable(node);
+        show(facetBox, facets);
+        show(typeFacetsSection, isElement || isAttribute || facets);
+        show(cardUseSection, isElement || isAttribute);
+        show(docSection, true);
         show(valueAttrSection, false);
     }
 
@@ -600,7 +608,28 @@ public class InspectorPanel extends VBox {
     }
 
     private void updateFacets(XsdNode node) {
-        facetTable.getItems().setAll(node != null ? SchemaFacets.collect(node) : FXCollections.emptyObservableList());
+        facetTable.getItems().setAll(node != null && facetsApplicable(node)
+                ? SchemaFacets.collect(node) : FXCollections.emptyObservableList());
+    }
+
+    /**
+     * Facets are meaningful only for a node that bears a simple-type restriction at one level:
+     * an attribute, a simple type / restriction / list / union, or an element with an inline
+     * restriction. For the schema root and complex-type containers they must NOT be shown —
+     * otherwise {@link SchemaFacets#collect} aggregates every facet of every global type.
+     */
+    private static boolean facetsApplicable(XsdNode node) {
+        if (node instanceof XsdAttribute) {
+            return true;
+        }
+        boolean simpleTypeNode = switch (node.getNodeType()) {
+            case SIMPLE_TYPE, RESTRICTION, LIST, UNION -> true;
+            default -> false;
+        };
+        if (simpleTypeNode) {
+            return true;
+        }
+        return node instanceof XsdElement && SchemaFacets.findRestriction(node) != null;
     }
 
     private void updateValidationBadge(EditorHost.ValidationStatus status) {
