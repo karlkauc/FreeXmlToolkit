@@ -129,7 +129,10 @@ class AppSmokeTourTest {
     }
 
     private void shot(String name) throws Exception {
-        var img = WaitForAsyncUtils.waitForAsyncFx(5000, () -> root.snapshot(new SnapshotParameters(), null));
+        var img = WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
+            javafx.scene.Node target = shell != null ? shell : root;
+            return target.snapshot(new SnapshotParameters(), null);
+        });
         ImageIO.write(SwingFXUtils.fromFXImage(img, null), "png", OUT.resolve(name + ".png").toFile());
     }
 }
