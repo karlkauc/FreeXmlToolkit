@@ -54,14 +54,16 @@ class UnifiedShellViewTest {
     }
 
     @Test
-    void inspectorRendersTheFourRequiredSections() {
+    void inspectorRendersTheRequiredSections() {
         WaitForAsyncUtils.waitForFxEvents();
-        Set<javafx.scene.Node> sections = shell.lookupAll(".fxt-inspector-section");
-        assertEquals(4, sections.size(), "Inspector must show the four required sections");
-        boolean hasNodeXpath = sections.stream()
+        Set<String> titles = shell.lookupAll(".fxt-inspector-section").stream()
                 .map(n -> ((TitledPane) n).getText())
-                .anyMatch("Node & XPath"::equals);
-        assertTrue(hasNodeXpath, "Inspector must contain the 'Node & XPath' section");
+                .collect(java.util.stream.Collectors.toSet());
+        // The editable inspector has five flat sections (VALUE & ATTRIBUTES was added for
+        // XML-instance / JSON nodes alongside the original four).
+        assertEquals(Set.of("NODE & XPATH", "TYPE & FACETS", "VALUE & ATTRIBUTES",
+                "CARDINALITY & USE", "DOCUMENTATION & REFS"), titles,
+                "Inspector must show the five flat sections");
     }
 
     @Test

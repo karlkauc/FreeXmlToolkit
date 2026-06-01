@@ -293,6 +293,19 @@
     -fx-padding: 4 8 4 8;
 }
 
+/* The action ToolBar is flush with the editor toolbar: no chrome, just its buttons.
+   Its built-in overflow chevron appears only when the editor area is too narrow. */
+.fxt-editor-actionbar {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+    -fx-border-width: 0;
+}
+
+.fxt-editor-actionbar > .container {
+    -fx-spacing: 2;
+}
+
 .fxt-tool-button {
     -fx-background-color: transparent;
     -fx-background-radius: 6;

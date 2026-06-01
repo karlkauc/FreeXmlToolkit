@@ -300,26 +300,38 @@ public class UnifiedShellView extends BorderPane {
                 "Validate the document (well-formedness, or against the bound XSD) — F8"));
         validate.setOnAction(e -> validateActive());
 
-        HBox bar = new HBox(4,
-                badge, vsep(),
+        // The icon actions live in a ToolBar so that, when the editor area is narrow, the
+        // surplus collapses into the standard overflow chevron instead of compressing the
+        // whole HBox and ellipsizing the readable controls (badge, Validate, view switch).
+        javafx.scene.control.ToolBar actions = new javafx.scene.control.ToolBar(
                 toolButton("bi-file-earmark-plus", "New (Ctrl+N)", this::newDocument),
                 toolButton("bi-folder2-open", "Open (Ctrl+O)", this::openFile),
                 toolButton("bi-save", "Save (Ctrl+S)", this::saveActive),
                 toolButton("bi-save2", "Save As (Ctrl+Shift+S)", this::saveActiveAs),
                 toolButton("bi-files", "Save All", editorHost::saveAll),
-                vsep(),
+                new javafx.scene.control.Separator(javafx.geometry.Orientation.VERTICAL),
                 toolButton("bi-arrow-counterclockwise", "Undo (Ctrl+Z)", editorHost::undoActive),
                 toolButton("bi-arrow-clockwise", "Redo (Ctrl+Y)", editorHost::redoActive),
-                vsep(),
+                new javafx.scene.control.Separator(javafx.geometry.Orientation.VERTICAL),
                 toolButton("bi-text-indent-left", "Format", editorHost::formatActive),
                 toolButton("bi-arrows-collapse", "Minify", editorHost::minifyActive),
                 toolButton("bi-puzzle", "Insert Template…", this::insertTemplate),
                 toolButton("bi-layout-split", "Compare with File…", this::compareWithFile),
                 toolButton("bi-table", "Spreadsheet Converter… (Excel / CSV ↔ XML)", this::convertSpreadsheet),
-                vsep(),
-                toolButton("bi-diagram-3", "Set XSD schema for IntelliSense", this::setSchema),
-                validate,
-                spacer, buildViewSwitch(), vsep(), schemaStatus);
+                new javafx.scene.control.Separator(javafx.geometry.Orientation.VERTICAL),
+                toolButton("bi-diagram-3", "Set XSD schema for IntelliSense", this::setSchema));
+        actions.getStyleClass().add("fxt-editor-actionbar");
+        actions.setMinWidth(0);
+
+        // Only the action ToolBar (via its overflow chevron) may shrink when the editor area is
+        // narrow; the readable controls keep their preferred width so they never ellipsize to "…".
+        Region viewSwitch = buildViewSwitch();
+        badge.setMinWidth(Region.USE_PREF_SIZE);
+        validate.setMinWidth(Region.USE_PREF_SIZE);
+        viewSwitch.setMinWidth(Region.USE_PREF_SIZE);
+        schemaStatus.setMinWidth(Region.USE_PREF_SIZE);
+
+        HBox bar = new HBox(4, badge, vsep(), actions, validate, spacer, viewSwitch, vsep(), schemaStatus);
         bar.setAlignment(Pos.CENTER_LEFT);
         bar.getStyleClass().add("fxt-editor-toolbar");
         return bar;
