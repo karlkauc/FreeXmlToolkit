@@ -25,6 +25,11 @@ public record NodeXPathInfo(String kind, String name, String xpath, int depth) {
         String safeText = text != null ? text : "";
         int safeCaret = Math.max(0, Math.min(caret, safeText.length()));
         XPathContext ctx = calculator.calculate(safeText, safeCaret);
+        if (ctx == null) {
+            // The analyzer yields no context for some inputs (and caches the null) — treat the
+            // caret as being at document level rather than crashing the inspector.
+            return new NodeXPathInfo("Document", "", "/", 0);
+        }
 
         String current = ctx.getCurrentElement();
         boolean hasElement = current != null && !current.isBlank();
