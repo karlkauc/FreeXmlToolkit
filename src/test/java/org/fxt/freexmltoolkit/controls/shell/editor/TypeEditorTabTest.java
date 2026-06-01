@@ -84,5 +84,13 @@ class TypeEditorTabTest {
         // Unknown / non-type name opens nothing.
         Tab none = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openTypeEditorTab("DoesNotExist"));
         assertNull(none, "an unknown type name must not open a tab");
+
+        // Cosmetic polish: the Type Library stays populated while a type tool tab is focused
+        // (a complex-type tab is the active tab at this point, not an XSD document tab).
+        var names = WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> host.getActiveNamedTypes().stream()
+                        .map(org.fxt.freexmltoolkit.controls.v2.model.XsdNode::getName).toList());
+        assertTrue(names.contains("Code") && names.contains("PersonType"),
+                "named types must stay listed while a type tab is focused, was: " + names);
     }
 }

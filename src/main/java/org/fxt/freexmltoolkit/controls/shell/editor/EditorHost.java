@@ -208,15 +208,31 @@ public class EditorHost extends BorderPane {
                 }
             }
         }
+        if (schema == null && !(tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab)) {
+            // A tool tab (e.g. a type editor) is active — keep listing the structured XSD tab's types.
+            EditorTab et = resolveStructuredEditorTab();
+            if (et != null) {
+                et.ensureModelParsed();
+                if (et.editorContext != null) {
+                    schema = et.editorContext.getSchema();
+                }
+            }
+        }
         return org.fxt.freexmltoolkit.controls.shell.schema.TypeLibrary.collectNamedTypes(schema);
     }
 
-    /** Reveals a named type in the Tree view (switching to Tree if needed). */
+    /** Reveals a named type in the Tree view (switching to the XSD tab + Tree if needed). */
     public void revealTypeByName(String typeName) {
-        if (typeName == null
-                || !(tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et)
-                || !et.supportsStructuredViews()) {
+        if (typeName == null) {
             return;
+        }
+        EditorTab et = resolveStructuredEditorTab();
+        if (et == null) {
+            return;
+        }
+        // A type-editor tool tab may be focused — bring the XSD document tab to the front first.
+        if (tabPane.getSelectionModel().getSelectedItem() != et) {
+            tabPane.getSelectionModel().select(et);
         }
         setActiveViewMode(ViewMode.TREE);
         getActiveSchemaRoot().ifPresent(root -> {
@@ -363,7 +379,13 @@ public class EditorHost extends BorderPane {
         Tab tab;
         if (type instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType simpleType) {
             var view = new org.fxt.freexmltoolkit.controls.v2.editor.views.SimpleTypeEditorView(simpleType, ctx);
+            // The form edits the shared model live; round-trip each change to the XSD text.
+            view.setOnChangeCallback(et::scheduleRoundTrip);
+            view.setOnSaveCallback(et::scheduleRoundTrip);
+            view.setOnFindUsageCallback(() -> revealTypeByName(typeName));
             tab = openToolTab("Type: " + typeName, "bi-braces-asterisk", view);
+            Tab created = tab;
+            view.setOnCloseCallback(() -> tabPane.getTabs().remove(created));
         } else if (type instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType complexType) {
             tab = openToolTab("Type: " + typeName, "bi-diagram-3",
                     buildComplexTypeEditor(complexType, ctx.getSchema(), et));
@@ -417,6 +439,12 @@ public class EditorHost extends BorderPane {
             org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType complexType,
             org.fxt.freexmltoolkit.controls.v2.model.XsdSchema schema, EditorTab et) {
         var view = new org.fxt.freexmltoolkit.controls.v2.editor.views.ComplexTypeEditorView(complexType, schema);
+        // Slim the embedded graph to the shell's minimal chrome (breadcrumb + zoom pill) — the
+        // embedded properties panel stays (it edits the type's nodes; the shell inspector is for
+        // the document, not this tool tab).
+        if (view.getGraphView() != null) {
+            view.getGraphView().useMinimalChrome();
+        }
         javafx.scene.control.Button save = new javafx.scene.control.Button("Save to schema",
                 new IconifyIcon("bi-save"));
         save.getStyleClass().add("fxt-tool-button");
