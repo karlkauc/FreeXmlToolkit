@@ -695,11 +695,7 @@ public class EditorHost extends BorderPane {
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
             try {
                 String content = Files.readString(path, StandardCharsets.UTF_8);
-                File autoXsd = tab.view.supportsSchema()
-                        ? SchemaLocationResolver.resolveLocalXsd(content, path)
-                        .filter(p -> tab.view.loadSchema(p.toFile()))
-                        .map(Path::toFile).orElse(null)
-                        : null;
+                File autoXsd = detectSchemaFor(tab, path);
                 Platform.runLater(() -> {
                     tab.view.setText(content);
                     tab.document.setDirty(false);
@@ -716,6 +712,36 @@ public class EditorHost extends BorderPane {
                 Platform.runLater(() -> tab.view.setText("Could not read " + path + ": " + e.getMessage()));
             }
         });
+    }
+
+    /**
+     * Auto-detects and binds the XSD for an opened XML document, matching the legacy
+     * editor: reuses {@link org.fxt.freexmltoolkit.service.XmlService#loadSchemaFromXMLFile()},
+     * which resolves both {@code xsi:schemaLocation} (namespaced) and
+     * {@code xsi:noNamespaceSchemaLocation}, local and remote (http/https, downloaded and
+     * cached) references. A fresh service instance keeps detection per-tab and stateless.
+     * Runs on the loader thread (remote download must not block the UI).
+     *
+     * @return the resolved, schema-bound XSD file, or {@code null} if none was found
+     */
+    private File detectSchemaFor(EditorTab tab, Path path) {
+        if (!tab.view.supportsSchema()) {
+            return null;
+        }
+        try {
+            org.fxt.freexmltoolkit.service.XmlService service =
+                    new org.fxt.freexmltoolkit.service.XmlServiceImpl();
+            service.setCurrentXmlFile(path.toFile());
+            if (service.loadSchemaFromXMLFile()) {
+                File xsd = service.getCurrentXsdFile();
+                if (xsd != null && xsd.exists() && tab.view.loadSchema(xsd)) {
+                    return xsd;
+                }
+            }
+        } catch (Exception e) {
+            // detection is best-effort; a malformed document simply binds no schema
+        }
+        return null;
     }
 
     private boolean write(EditorTab tab, Path target) {

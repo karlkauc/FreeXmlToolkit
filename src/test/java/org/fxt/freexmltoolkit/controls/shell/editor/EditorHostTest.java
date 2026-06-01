@@ -84,6 +84,29 @@ class EditorHostTest {
     }
 
     @Test
+    void autoBindsSchemaFromNamespacedSchemaLocation(@org.junit.jupiter.api.io.TempDir Path tmp) throws Exception {
+        Path xsd = tmp.resolve("ns-schema.xsd");
+        Files.writeString(xsd, """
+                <?xml version="1.0"?>
+                <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                           xmlns="http://example.com/po" targetNamespace="http://example.com/po">
+                  <xs:element name="po" type="xs:string"/>
+                </xs:schema>
+                """);
+        Path xml = tmp.resolve("order.xml");
+        Files.writeString(xml, "<po xmlns=\"http://example.com/po\" "
+                + "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "
+                + "xsi:schemaLocation=\"http://example.com/po ns-schema.xsd\">x</po>");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
+        WaitForAsyncUtils.waitFor(5, java.util.concurrent.TimeUnit.SECONDS,
+                () -> host.activeSchemaProperty().get() != null);
+
+        assertEquals(xsd.toFile().getName(), host.activeSchemaProperty().get().getName(),
+                "the XSD from a namespaced xsi:schemaLocation must be auto-detected");
+    }
+
+    @Test
     void saveAllPersistsDirtyTitledDocuments(@org.junit.jupiter.api.io.TempDir Path tmp) throws Exception {
         Path f1 = tmp.resolve("a.xml");
         Files.writeString(f1, "<a/>");
