@@ -8,7 +8,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 
@@ -63,9 +62,10 @@ public class SignaturePanel extends VBox {
         status.getStyleClass().add("fxt-placeholder-text");
         status.setWrapText(true);
 
-        getChildren().addAll(title, new HBox(chooseKeystore), keystoreStatus,
+        getChildren().addAll(title, SidePanelLayout.fill(chooseKeystore), keystoreStatus,
                 alias, keystorePassword, aliasPassword,
-                new HBox(6, sign, validate), new HBox(6, validateDetails),
+                SidePanelLayout.fill(sign), SidePanelLayout.fill(validate),
+                SidePanelLayout.fill(validateDetails),
                 status, buildCreateCertificateSection());
     }
 

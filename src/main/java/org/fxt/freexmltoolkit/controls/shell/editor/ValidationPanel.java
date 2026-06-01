@@ -12,7 +12,6 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
@@ -118,9 +117,12 @@ public class ValidationPanel extends VBox {
         builder.getStyleClass().add("fxt-tool-button");
         builder.setOnAction(e -> openSchematronBuilder());
 
-        getChildren().addAll(title, new HBox(6, validate, setXsd), new HBox(6, setSchematron, setJsonSchema),
-                new HBox(6, batch), liveValidation, status, xsdStatus, schematronStatus,
-                toolsLabel, new HBox(6, templates, tester), new HBox(6, builder),
+        getChildren().addAll(title,
+                SidePanelLayout.fill(validate), SidePanelLayout.fill(setXsd),
+                SidePanelLayout.fill(setSchematron), SidePanelLayout.fill(setJsonSchema),
+                SidePanelLayout.fill(batch), liveValidation, status, xsdStatus, schematronStatus,
+                toolsLabel, SidePanelLayout.fill(templates), SidePanelLayout.fill(tester),
+                SidePanelLayout.fill(builder),
                 problemsLabel, list);
     }
 

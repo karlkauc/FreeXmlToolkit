@@ -7,7 +7,6 @@ import java.nio.file.Files;
 import javafx.application.Platform;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 
@@ -47,8 +46,9 @@ public class FopPanel extends VBox {
         xslStatus.getStyleClass().add("fxt-placeholder-text");
         status.getStyleClass().add("fxt-placeholder-text");
 
-        getChildren().addAll(title, new HBox(6, setXsl, generate), xslStatus, status,
-                new HBox(6, previewButton, openButton));
+        getChildren().addAll(title,
+                SidePanelLayout.fill(setXsl), SidePanelLayout.fill(generate), xslStatus, status,
+                SidePanelLayout.fill(previewButton), SidePanelLayout.fill(openButton));
     }
 
     /** Sets the XSL(-FO) stylesheet (also from the file chooser). */

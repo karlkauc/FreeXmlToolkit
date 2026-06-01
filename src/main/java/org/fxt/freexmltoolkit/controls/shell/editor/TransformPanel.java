@@ -113,12 +113,13 @@ public class TransformPanel extends VBox {
         xqueryArea.getStyleClass().add("fxt-xpath-field");
         Button runXQuery = button("Run XQuery", "bi-braces", this::runXQuery);
 
-        getChildren().addAll(title, new HBox(6, setXslt, transform), livePreview, xsltStatus,
-                paramsLabel, paramRows, addParam,
+        getChildren().addAll(title,
+                SidePanelLayout.fill(setXslt), SidePanelLayout.fill(transform), livePreview, xsltStatus,
+                paramsLabel, paramRows, SidePanelLayout.fill(addParam),
                 outputFormatLabel, outputFormat,
                 pathLabel, new HBox(6, xpathField, runXPath),
                 new HBox(6, saveQuery, savedQueriesMenu),
-                xqueryLabel, xqueryArea, new HBox(6, runXQuery),
+                xqueryLabel, xqueryArea, SidePanelLayout.fill(runXQuery),
                 resultLabel, output);
     }
 
