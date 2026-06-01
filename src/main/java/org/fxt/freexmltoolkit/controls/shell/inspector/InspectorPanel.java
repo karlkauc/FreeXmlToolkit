@@ -57,6 +57,7 @@ public class InspectorPanel extends VBox {
     private boolean updating;
     private XsdNode currentXsdNode;
     private XmlNode currentXmlNode;
+    private org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonNode currentJsonNode;
 
     private final Label nodeHeaderName = new Label(PLACEHOLDER);
     private final Label nodeHeaderKind = new Label();
@@ -85,6 +86,8 @@ public class InspectorPanel extends VBox {
     // XML-instance value/attributes
     private final TextArea xmlTextArea = new TextArea();
     private final TableView<AttrEntry> xmlAttrTable = new TableView<>();
+    private Label xmlTextLabel;
+    private VBox xmlAttrBox;
     private TitledPane typeFacetsSection;
     private TitledPane cardUseSection;
     private TitledPane docSection;
@@ -142,6 +145,7 @@ public class InspectorPanel extends VBox {
         editorHost.activeTabProperty().addListener((obs, oldV, newV) -> debounce.playFromStart());
         editorHost.activeSelectedNodeProperty().addListener((obs, oldV, newV) -> debounce.playFromStart());
         editorHost.activeXmlNodeProperty().addListener((obs, oldV, newV) -> debounce.playFromStart());
+        editorHost.activeJsonNodeProperty().addListener((obs, oldV, newV) -> debounce.playFromStart());
         refresh();
     }
 
@@ -278,11 +282,12 @@ public class InspectorPanel extends VBox {
         xmlAttrTable.getStyleClass().add("fxt-facet-table");
         xmlAttrTable.setPlaceholder(new Label("No attributes"));
 
-        Label textLabel = new Label("Text");
-        textLabel.getStyleClass().add("fxt-inspector-key");
+        xmlTextLabel = new Label("Text");
+        xmlTextLabel.getStyleClass().add("fxt-inspector-key");
         Label attrLabel = new Label("Attributes");
         attrLabel.getStyleClass().add("fxt-inspector-key");
-        return new VBox(4, textLabel, xmlTextArea, attrLabel, xmlAttrTable);
+        xmlAttrBox = new VBox(4, attrLabel, xmlAttrTable);
+        return new VBox(4, xmlTextLabel, xmlTextArea, xmlAttrBox);
     }
 
     private void wireEditing() {
@@ -345,8 +350,10 @@ public class InspectorPanel extends VBox {
     private void refresh() {
         XsdNode selected = editorHost.activeSelectedNodeProperty().get();
         XmlNode xmlSelected = editorHost.activeXmlNodeProperty().get();
+        var jsonSelected = editorHost.activeJsonNodeProperty().get();
         currentXsdNode = selected;
         currentXmlNode = selected == null ? xmlSelected : null;
+        currentJsonNode = (selected == null && xmlSelected == null) ? jsonSelected : null;
         updateFacets(selected);
         updating = true;
         try {
@@ -354,6 +361,8 @@ public class InspectorPanel extends VBox {
                 populateXsdNode(selected);
             } else if (currentXmlNode instanceof XmlElement el) {
                 populateXmlNode(el);
+            } else if (currentJsonNode != null) {
+                populateJsonNode(currentJsonNode);
             } else {
                 populateCaret();
             }
@@ -443,13 +452,65 @@ public class InspectorPanel extends VBox {
         xpathValue.setText(xmlXPath(el));
         depthValue.setText(Integer.toString(xmlDepth(el)));
 
+        xmlTextLabel.setText("Text");
+        xmlTextArea.setEditable(true);
         xmlTextArea.setText(el.getTextContent() == null ? "" : el.getTextContent());
         List<AttrEntry> entries = new ArrayList<>();
         el.getAttributes().forEach((k, v) -> entries.add(new AttrEntry(k, v)));
         xmlAttrTable.getItems().setAll(entries);
+        show(xmlAttrBox, true);
 
         showXsdSections(false);
         show(valueAttrSection, true);
+    }
+
+    /** Read-only JSON node info: key, kind (node type) and scalar value. */
+    private void populateJsonNode(org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonNode node) {
+        String key = node.getKey();
+        String kind = node.getNodeType() == null ? "JSON" : node.getNodeType().name();
+        setHeader(blankToPlaceholder(key), kind);
+        kindValue.setText(kind);
+        nameField.setEditable(false);
+        nameField.setText(key == null ? "" : key);
+        xpathValue.setText(jsonPath(node));
+        depthValue.setText(Integer.toString(jsonDepth(node)));
+
+        xmlTextLabel.setText("Value");
+        xmlTextArea.setEditable(false);
+        xmlTextArea.setText(jsonValue(node));
+        show(xmlAttrBox, false);
+
+        showXsdSections(false);
+        show(valueAttrSection, true);
+    }
+
+    /** The scalar value, unquoted, for primitives; a type summary for objects/arrays. */
+    private String jsonValue(org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonNode node) {
+        if (node instanceof org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonPrimitive p) {
+            Object v = p.getValue();
+            return v == null ? "null" : v.toString();
+        }
+        String s = node.getValueAsString();
+        return s == null ? "" : s;
+    }
+
+    private String jsonPath(org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonNode node) {
+        java.util.Deque<String> parts = new java.util.ArrayDeque<>();
+        for (var n = node; n != null; n = n.getParent()) {
+            String k = n.getKey();
+            if (k != null && !k.isBlank()) {
+                parts.push(k);
+            }
+        }
+        return parts.isEmpty() ? "$" : "$." + String.join(".", parts);
+    }
+
+    private int jsonDepth(org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonNode node) {
+        int depth = 0;
+        for (var n = node.getParent(); n != null; n = n.getParent()) {
+            depth++;
+        }
+        return depth;
     }
 
     private String xmlXPath(XmlNode node) {
@@ -640,6 +701,17 @@ public class InspectorPanel extends VBox {
     /** @return the current type value (for tests/observers). */
     public String getTypeText() {
         return comboText(typeCombo);
+    }
+
+    /** @return the current Kind value (for tests/observers). */
+    public String getKindText() {
+        String t = kindValue.getText();
+        return t == null ? "" : t;
+    }
+
+    /** @return the value shown for a selected JSON node (for tests/observers). */
+    public String getJsonValueText() {
+        return xmlTextArea.getText() == null ? "" : xmlTextArea.getText();
     }
 
     /** @return the number of facets currently shown (for tests/observers). */

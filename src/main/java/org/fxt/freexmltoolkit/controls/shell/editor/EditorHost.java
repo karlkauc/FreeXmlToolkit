@@ -41,6 +41,8 @@ public class EditorHost extends BorderPane {
             new ReadOnlyObjectWrapper<>(this, "activeSelectedNode", null);
     private final ReadOnlyObjectWrapper<org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode> activeXmlNode =
             new ReadOnlyObjectWrapper<>(this, "activeXmlNode", null);
+    private final ReadOnlyObjectWrapper<org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonNode> activeJsonNode =
+            new ReadOnlyObjectWrapper<>(this, "activeJsonNode", null);
     private final ReadOnlyObjectWrapper<ValidationStatus> validationStatus =
             new ReadOnlyObjectWrapper<>(this, "validationStatus", ValidationStatus.NONE);
 
@@ -162,6 +164,12 @@ public class EditorHost extends BorderPane {
         return activeXmlNode.getReadOnlyProperty();
     }
 
+    /** @return the JSON node selected in the active Tree view, or {@code null}. */
+    public ReadOnlyObjectProperty<org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonNode>
+            activeJsonNodeProperty() {
+        return activeJsonNode.getReadOnlyProperty();
+    }
+
     /** @return the active document's validation status (for the inspector badge). */
     public ReadOnlyObjectProperty<ValidationStatus> validationStatusProperty() {
         return validationStatus.getReadOnlyProperty();
@@ -238,13 +246,16 @@ public class EditorHost extends BorderPane {
     private void refreshSelectedNode() {
         XsdNode selected = null;
         org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode xmlSelected = null;
+        org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonNode jsonSelected = null;
         if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et
                 && et.viewMode != ViewMode.TEXT) {
             selected = et.currentSelection;
             xmlSelected = et.currentXmlSelection;
+            jsonSelected = et.currentJsonSelection;
         }
         activeSelectedNode.set(selected);
         activeXmlNode.set(xmlSelected);
+        activeJsonNode.set(jsonSelected);
     }
 
     /** @return {@code true} if the active document supports Tree/Graphic views (XSD). */
@@ -984,6 +995,7 @@ public class EditorHost extends BorderPane {
         private org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext editorContext;
         private XsdNode currentSelection;
         private org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode currentXmlSelection;
+        private org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonNode currentJsonSelection;
         private ViewMode viewMode = ViewMode.TEXT;
         private boolean dirtyTrackingAttached;
         /** Editor text the current {@link #editorContext} was parsed from (P2: avoid needless re-parse). */
@@ -1038,6 +1050,7 @@ public class EditorHost extends BorderPane {
             this.viewMode = target;
             this.currentSelection = null;
             this.currentXmlSelection = null;
+            this.currentJsonSelection = null;
             if (target == ViewMode.TEXT) {
                 showOnly(view.getNode());
                 return;
@@ -1469,6 +1482,10 @@ public class EditorHost extends BorderPane {
         private void ensureJsonTree() {
             if (jsonTreeView == null) {
                 jsonTreeView = new org.fxt.freexmltoolkit.controls.jsoneditor.view.JsonTreeView();
+                jsonTreeView.setOnSelectionChanged(node -> {
+                    currentJsonSelection = node;
+                    selectionCallback.run();
+                });
                 contentStack.getChildren().add(jsonTreeView);
             }
         }
