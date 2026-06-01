@@ -71,6 +71,27 @@ class UnifiedShellValidateTest {
         assertEquals("Well-formed", validationPanel().getStatusText());
     }
 
+    @Test
+    void f8ShortcutValidatesTheActiveDocument(@TempDir Path tmp) throws Exception {
+        Path xml = tmp.resolve("malformed2.xml");
+        Files.writeString(xml, "<root><a></root>"); // not well-formed
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> shell.getEditorHost().openFile(xml));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> shell.getEditorHost().getActiveText().map(t -> t.contains("root")).orElse(false));
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            shell.fireEvent(new javafx.scene.input.KeyEvent(javafx.scene.input.KeyEvent.KEY_PRESSED,
+                    "", "", javafx.scene.input.KeyCode.F8, false, false, false, false));
+            return null;
+        });
+
+        WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS, () -> validationPanel() != null
+                && validationPanel().getProblemCount() > 0);
+        assertTrue(validationPanel().getProblemCount() > 0,
+                "pressing F8 must validate the active document");
+    }
+
     private void clickToolbarValidate() {
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
             Button validate = shell.lookupAll(".button").stream()

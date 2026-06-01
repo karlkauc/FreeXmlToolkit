@@ -79,6 +79,12 @@ public class UnifiedShellView extends BorderPane {
     }
 
     private void handleShortcut(javafx.scene.input.KeyEvent event) {
+        // F8 validates the active document (no modifier).
+        if (event.getCode() == javafx.scene.input.KeyCode.F8) {
+            validateActive();
+            event.consume();
+            return;
+        }
         if (!event.isShortcutDown()) {
             return;
         }
@@ -291,7 +297,7 @@ public class UnifiedShellView extends BorderPane {
         javafx.scene.control.Button validate = new javafx.scene.control.Button("Validate", validateIcon);
         validate.getStyleClass().addAll("fxt-tool-button", "fxt-validate-button");
         validate.setTooltip(new javafx.scene.control.Tooltip(
-                "Validate the document (well-formedness, or against the bound XSD)"));
+                "Validate the document (well-formedness, or against the bound XSD) — F8"));
         validate.setOnAction(e -> validateActive());
 
         HBox bar = new HBox(4,
