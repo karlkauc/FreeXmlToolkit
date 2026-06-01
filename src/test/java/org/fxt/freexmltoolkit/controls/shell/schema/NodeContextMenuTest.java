@@ -51,6 +51,26 @@ class NodeContextMenuTest {
     }
 
     @Test
+    void firesAddAllDuplicateAndMoveOnTheCurrentNode() {
+        XsdNode node = new XsdElement("Target");
+        RecordingActions actions = new RecordingActions();
+        ContextMenu menu = WaitForAsyncUtils.waitForAsyncFx(2000, () -> NodeContextMenu.build(actions, () -> node));
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            find(menu, "Add All").fire();
+            find(menu, "Duplicate").fire();
+            find(menu, "Move Up").fire();
+            find(menu, "Move Down").fire();
+            return null;
+        });
+
+        assertSame(node, actions.alled, "Add All must act on the supplied node");
+        assertSame(node, actions.duplicated, "Duplicate must act on the supplied node");
+        assertSame(node, actions.movedUp, "Move Up must act on the supplied node");
+        assertSame(node, actions.movedDown, "Move Down must act on the supplied node");
+    }
+
+    @Test
     void doesNothingWhenNoCurrentNode() {
         RecordingActions actions = new RecordingActions();
         ContextMenu menu = WaitForAsyncUtils.waitForAsyncFx(2000, () -> NodeContextMenu.build(actions, () -> null));
@@ -66,6 +86,10 @@ class NodeContextMenuTest {
         XsdNode deleted;
         XsdNode sequenced;
         XsdNode choiced;
+        XsdNode alled;
+        XsdNode duplicated;
+        XsdNode movedUp;
+        XsdNode movedDown;
 
         @Override
         public void addElement(XsdNode parent, String name) {
@@ -83,6 +107,26 @@ class NodeContextMenuTest {
         @Override
         public void addChoice(XsdNode element) {
             choiced = element;
+        }
+
+        @Override
+        public void addAll(XsdNode element) {
+            alled = element;
+        }
+
+        @Override
+        public void duplicate(XsdNode node) {
+            duplicated = node;
+        }
+
+        @Override
+        public void moveUp(XsdNode node) {
+            movedUp = node;
+        }
+
+        @Override
+        public void moveDown(XsdNode node) {
+            movedDown = node;
         }
 
         @Override

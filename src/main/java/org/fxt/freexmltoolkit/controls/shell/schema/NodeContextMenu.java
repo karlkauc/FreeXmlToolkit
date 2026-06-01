@@ -33,10 +33,15 @@ public final class NodeContextMenu {
                         node -> promptName(actions::addAttribute, node, "Add Attribute", "newAttribute")),
                 item("Add Sequence", "bi-list-ol", currentNode, actions::addSequence),
                 item("Add Choice", "bi-signpost-split", currentNode, actions::addChoice),
+                item("Add All", "bi-list-check", currentNode, actions::addAll),
                 new SeparatorMenuItem(),
                 item("Rename…", "bi-pencil", currentNode, node -> promptRename(actions, node)),
                 item("Change Type…", "bi-type", currentNode, node -> promptChangeType(actions, node)),
                 item("Change Cardinality…", "bi-arrows-expand", currentNode, node -> promptCardinality(actions, node)),
+                new SeparatorMenuItem(),
+                item("Duplicate", "bi-copy", currentNode, actions::duplicate),
+                item("Move Up", "bi-arrow-up", currentNode, actions::moveUp),
+                item("Move Down", "bi-arrow-down", currentNode, actions::moveDown),
                 new SeparatorMenuItem(),
                 item("Delete", "bi-trash", currentNode, actions::delete));
         return menu;

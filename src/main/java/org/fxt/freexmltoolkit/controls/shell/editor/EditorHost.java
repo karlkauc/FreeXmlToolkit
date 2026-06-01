@@ -732,6 +732,26 @@ public class EditorHost extends BorderPane {
         return editActive(et -> et.addChoice(et.currentSelection));
     }
 
+    /** Adds an all compositor to the selected element via the command stack. */
+    public boolean addAllToActive() {
+        return editActive(et -> et.addAll(et.currentSelection));
+    }
+
+    /** Duplicates the selected node (as a sibling) via the command stack. */
+    public boolean duplicateActiveNode() {
+        return editActive(et -> et.duplicate(et.currentSelection));
+    }
+
+    /** Moves the selected node up among its siblings via the command stack. */
+    public boolean moveActiveNodeUp() {
+        return editActive(et -> et.moveNode(et.currentSelection, -1));
+    }
+
+    /** Moves the selected node down among its siblings via the command stack. */
+    public boolean moveActiveNodeDown() {
+        return editActive(et -> et.moveNode(et.currentSelection, 1));
+    }
+
     /** Changes the selected node's type via the command stack. */
     public boolean changeActiveType(String newType) {
         return editActivePreservingSelection(et -> et.changeType(et.currentSelection, newType));
@@ -1385,6 +1405,37 @@ public class EditorHost extends BorderPane {
                     new org.fxt.freexmltoolkit.controls.v2.editor.commands.AddChoiceCommand(element));
         }
 
+        boolean addAll(XsdNode node) {
+            if (!(node instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement element)) {
+                return false;
+            }
+            return executeAndApply(
+                    new org.fxt.freexmltoolkit.controls.v2.editor.commands.AddAllCommand(element));
+        }
+
+        boolean duplicate(XsdNode node) {
+            if (node == null || node.getParent() == null) {
+                return false;
+            }
+            return executeAndApply(
+                    new org.fxt.freexmltoolkit.controls.v2.editor.commands.DuplicateNodeCommand(node));
+        }
+
+        /** Reorders a node among its siblings by {@code delta} (-1 = up, +1 = down). */
+        boolean moveNode(XsdNode node, int delta) {
+            if (node == null || node.getParent() == null) {
+                return false;
+            }
+            XsdNode parent = node.getParent();
+            int index = parent.getChildren().indexOf(node);
+            int target = index + delta;
+            if (index < 0 || target < 0 || target >= parent.getChildren().size()) {
+                return false; // already at the boundary
+            }
+            return executeAndApply(
+                    new org.fxt.freexmltoolkit.controls.v2.editor.commands.MoveNodeCommand(node, parent, target));
+        }
+
         boolean changeType(XsdNode node, String newType) {
             if (editorContext == null || node == null || newType == null || newType.isBlank()) {
                 return false;
@@ -1627,6 +1678,34 @@ public class EditorHost extends BorderPane {
                 @Override
                 public void addChoice(XsdNode element) {
                     if (EditorTab.this.addChoice(element)) {
+                        selectionCallback.run();
+                    }
+                }
+
+                @Override
+                public void addAll(XsdNode element) {
+                    if (EditorTab.this.addAll(element)) {
+                        selectionCallback.run();
+                    }
+                }
+
+                @Override
+                public void duplicate(XsdNode node) {
+                    if (EditorTab.this.duplicate(node)) {
+                        selectionCallback.run();
+                    }
+                }
+
+                @Override
+                public void moveUp(XsdNode node) {
+                    if (EditorTab.this.moveNode(node, -1)) {
+                        selectionCallback.run();
+                    }
+                }
+
+                @Override
+                public void moveDown(XsdNode node) {
+                    if (EditorTab.this.moveNode(node, 1)) {
                         selectionCallback.run();
                     }
                 }

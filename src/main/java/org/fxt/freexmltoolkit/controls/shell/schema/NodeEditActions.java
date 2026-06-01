@@ -18,6 +18,14 @@ public interface NodeEditActions {
 
     void addChoice(XsdNode element);
 
+    void addAll(XsdNode element);
+
+    void duplicate(XsdNode node);
+
+    void moveUp(XsdNode node);
+
+    void moveDown(XsdNode node);
+
     void rename(XsdNode node, String newName);
 
     void changeType(XsdNode node, String newType);
