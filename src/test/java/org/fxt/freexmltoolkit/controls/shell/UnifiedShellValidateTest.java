@@ -10,6 +10,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.stage.Stage;
 
+import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost;
 import org.fxt.freexmltoolkit.controls.shell.editor.ValidationPanel;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -51,6 +52,9 @@ class UnifiedShellValidateTest {
                 && validationPanel().getProblemCount() > 0);
         assertTrue(validationPanel().getProblemCount() > 0,
                 "a not-well-formed XML must report a structural problem even without an XSD");
+        assertEquals(EditorHost.ValidationState.INVALID,
+                shell.getEditorHost().validationStatusProperty().get().state(),
+                "the validation result must be published to the host for the inspector badge");
     }
 
     @Test

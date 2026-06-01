@@ -726,3 +726,27 @@
 .fxt-validate-button:hover {
     -fx-background-color: derive(-fxt-primary, -8%);
 }
+
+/* ----- Inspector validation badge (Figma node header "✓ Valid") ----- */
+.fxt-inspector-valid-badge, .fxt-inspector-invalid-badge {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 8;
+    -fx-padding: 1 8 1 8;
+    -fx-graphic-text-gap: 4;
+}
+.fxt-inspector-valid-badge {
+    -fx-text-fill: #1f9d55;
+    -fx-background-color: rgba(40, 167, 69, 0.12);
+}
+.fxt-inspector-valid-badge .iconify-icon {
+    -fx-icon-color: #28a745;
+}
+.fxt-inspector-invalid-badge {
+    -fx-text-fill: #c0392b;
+    -fx-background-color: rgba(220, 53, 69, 0.12);
+}
+.fxt-inspector-invalid-badge .iconify-icon {
+    -fx-icon-color: #dc3545;
+}

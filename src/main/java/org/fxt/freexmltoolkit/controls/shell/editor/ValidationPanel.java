@@ -167,6 +167,7 @@ public class ValidationPanel extends VBox {
         if (editorHost.getActiveDocument().isEmpty()) {
             status.setText("No document open");
             setProblems(List.of());
+            editorHost.setValidationStatus(EditorHost.ValidationState.NOT_VALIDATED, 0, "Not validated");
             return;
         }
         String content = editorHost.getActiveText().orElse("");
@@ -174,6 +175,7 @@ public class ValidationPanel extends VBox {
             // Nothing to validate (e.g. a document still loading) — avoid parsing empty text.
             status.setText("Empty document");
             setProblems(List.of());
+            editorHost.setValidationStatus(EditorHost.ValidationState.NOT_VALIDATED, 0, "Not validated");
             return;
         }
         boolean json = editorHost.getActiveDocument()
@@ -189,9 +191,13 @@ public class ValidationPanel extends VBox {
             Platform.runLater(() -> {
                 setProblems(result);
                 boolean hasSchema = json ? jsonSchema != null : (xsd != null || schematron != null);
-                status.setText(result.isEmpty()
+                String summary = result.isEmpty()
                         ? (hasSchema ? "Valid" : "Well-formed")
-                        : result.size() + " problem(s)");
+                        : result.size() + " problem(s)";
+                status.setText(summary);
+                editorHost.setValidationStatus(
+                        result.isEmpty() ? EditorHost.ValidationState.VALID : EditorHost.ValidationState.INVALID,
+                        result.size(), summary);
             });
         });
     }

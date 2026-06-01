@@ -14,6 +14,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType;
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost;
 import org.fxt.freexmltoolkit.controls.shell.schema.SchemaFacets;
@@ -41,6 +42,7 @@ public class InspectorPanel extends VBox {
 
     private final Label nodeHeaderName = new Label(PLACEHOLDER);
     private final Label nodeHeaderKind = new Label();
+    private final Label validationBadge = new Label();
     private final Label kindValue = value();
     private final Label nameValue = value();
     private final Label xpathValue = value();
@@ -61,13 +63,22 @@ public class InspectorPanel extends VBox {
         header.getStyleClass().add("fxt-inspector-header");
         getChildren().add(header);
 
-        // Node header: the selected node's name + a kind chip (Figma node header).
+        // Node header: the selected node's name + a kind chip + the document's validation
+        // badge (Figma node header "✓ Valid").
         nodeHeaderName.getStyleClass().add("fxt-inspector-node-name");
         nodeHeaderKind.getStyleClass().add("fxt-inspector-kind-chip");
-        HBox nodeHeader = new HBox(8, nodeHeaderName, nodeHeaderKind);
+        validationBadge.setId("inspector-validation-badge");
+        validationBadge.setVisible(false);
+        validationBadge.setManaged(false);
+        javafx.scene.layout.Region headerSpacer = new javafx.scene.layout.Region();
+        HBox.setHgrow(headerSpacer, Priority.ALWAYS);
+        HBox nodeHeader = new HBox(8, nodeHeaderName, nodeHeaderKind, headerSpacer, validationBadge);
         nodeHeader.setAlignment(Pos.CENTER_LEFT);
         nodeHeader.getStyleClass().add("fxt-inspector-node-header");
         getChildren().add(nodeHeader);
+
+        editorHost.validationStatusProperty().addListener((obs, oldV, newV) -> updateValidationBadge(newV));
+        updateValidationBadge(editorHost.validationStatusProperty().get());
 
         getChildren().add(section("NODE & XPATH", grid(
                 "Kind", kindValue, "Name", nameValue, "XPath", xpathValue, "Depth", depthValue)));
@@ -156,6 +167,24 @@ public class InspectorPanel extends VBox {
 
     private String blankToPlaceholder(String s) {
         return (s == null || s.isBlank()) ? PLACEHOLDER : s;
+    }
+
+    /** Updates the validation badge from the active document's validation status. */
+    private void updateValidationBadge(EditorHost.ValidationStatus status) {
+        if (status == null || status.state() == EditorHost.ValidationState.NOT_VALIDATED) {
+            validationBadge.setVisible(false);
+            validationBadge.setManaged(false);
+            return;
+        }
+        boolean valid = status.state() == EditorHost.ValidationState.VALID;
+        IconifyIcon icon = new IconifyIcon(valid ? "bi-check-circle-fill" : "bi-x-circle-fill");
+        icon.setIconSize(12);
+        validationBadge.setGraphic(icon);
+        validationBadge.setText(status.summary());
+        validationBadge.getStyleClass().removeAll("fxt-inspector-valid-badge", "fxt-inspector-invalid-badge");
+        validationBadge.getStyleClass().add(valid ? "fxt-inspector-valid-badge" : "fxt-inspector-invalid-badge");
+        validationBadge.setVisible(true);
+        validationBadge.setManaged(true);
     }
 
     private TitledPane section(String title, javafx.scene.Node body) {

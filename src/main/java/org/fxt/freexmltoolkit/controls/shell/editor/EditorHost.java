@@ -39,6 +39,23 @@ public class EditorHost extends BorderPane {
             new ReadOnlyObjectWrapper<>(this, "activeViewMode", ViewMode.TEXT);
     private final ReadOnlyObjectWrapper<XsdNode> activeSelectedNode =
             new ReadOnlyObjectWrapper<>(this, "activeSelectedNode", null);
+    private final ReadOnlyObjectWrapper<ValidationStatus> validationStatus =
+            new ReadOnlyObjectWrapper<>(this, "validationStatus", ValidationStatus.NONE);
+
+    /** Coarse validation outcome of the active document, surfaced in the inspector. */
+    public enum ValidationState { NOT_VALIDATED, VALID, INVALID }
+
+    /**
+     * The active document's validation result.
+     *
+     * @param state        valid / invalid / not-yet-validated
+     * @param problemCount the number of problems (0 when valid)
+     * @param summary      a short human-readable label (e.g. "Valid", "Well-formed", "3 problem(s)")
+     */
+    public record ValidationStatus(ValidationState state, int problemCount, String summary) {
+        public static final ValidationStatus NONE =
+                new ValidationStatus(ValidationState.NOT_VALIDATED, 0, "Not validated");
+    }
     /** The most recently active editor tab — insertion target when a tool tab is in front. */
     private EditorTab lastEditorTab;
 
@@ -65,6 +82,9 @@ public class EditorHost extends BorderPane {
             } else {
                 activeSchema.set(null);
             }
+            // A different document's last result must not linger; validation re-runs
+            // (continuous, or via Validate/F8) for the newly active document.
+            validationStatus.set(ValidationStatus.NONE);
             refreshSelectedNode();
         });
         // Delete key removes the selected node in structured views (not in Text mode).
@@ -132,6 +152,16 @@ public class EditorHost extends BorderPane {
     /** @return the node selected in the active structured (Tree/Graphic) view, or {@code null}. */
     public ReadOnlyObjectProperty<XsdNode> activeSelectedNodeProperty() {
         return activeSelectedNode.getReadOnlyProperty();
+    }
+
+    /** @return the active document's validation status (for the inspector badge). */
+    public ReadOnlyObjectProperty<ValidationStatus> validationStatusProperty() {
+        return validationStatus.getReadOnlyProperty();
+    }
+
+    /** Publishes a validation result for the active document (called by the Validation panel). */
+    public void setValidationStatus(ValidationState state, int problemCount, String summary) {
+        validationStatus.set(new ValidationStatus(state, problemCount, summary));
     }
 
     /** @return the schema root of the active structured view, or empty (Text mode / not parsed). */
