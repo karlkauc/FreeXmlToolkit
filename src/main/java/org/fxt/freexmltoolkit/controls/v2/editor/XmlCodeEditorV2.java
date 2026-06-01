@@ -137,11 +137,35 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
         // Setup combined paragraph graphics (fold indicators + line numbers)
         codeArea.setParagraphGraphicFactory(createCombinedParagraphGraphicFactory());
 
+        // Highlight the caret's line (Figma current-line tint).
+        codeArea.currentParagraphProperty().addListener(
+                (obs, oldP, newP) -> updateCurrentLineStyle(newP.intValue()));
+        updateCurrentLineStyle(codeArea.getCurrentParagraph());
+
         // Layout: scrollpane + status line
         VBox.setVgrow(scrollPane, Priority.ALWAYS);
         getChildren().addAll(scrollPane, statusLineManager.getStatusLine());
 
         logger.debug("UI initialized");
+    }
+
+    /** Paragraph index currently carrying the {@code current-line} style. */
+    private int currentLineIndex = -1;
+
+    /**
+     * Moves the {@code current-line} paragraph style to the caret's line so the
+     * stylesheet can tint it (Figma current-line highlight). Cheap: it only
+     * re-styles the previous and new paragraphs.
+     */
+    private void updateCurrentLineStyle(int newIndex) {
+        int count = codeArea.getParagraphs().size();
+        if (currentLineIndex >= 0 && currentLineIndex < count && currentLineIndex != newIndex) {
+            codeArea.setParagraphStyle(currentLineIndex, java.util.Collections.emptyList());
+        }
+        if (newIndex >= 0 && newIndex < count) {
+            codeArea.setParagraphStyle(newIndex, java.util.Collections.singletonList("current-line"));
+        }
+        currentLineIndex = newIndex;
     }
 
     /**
@@ -174,9 +198,13 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
                 hbox.getChildren().add(spacer);
             }
 
-            // Add line number label
+            // Add line number label — the caret's line is indigo + bold (Figma).
             javafx.scene.control.Label lineNumber = new javafx.scene.control.Label(String.format("%4d", lineIndex + 1));
-            lineNumber.setStyle("-fx-font-family: monospace; -fx-text-fill: gray;");
+            lineNumber.styleProperty().bind(javafx.beans.binding.Bindings.createStringBinding(
+                    () -> codeArea.getCurrentParagraph() == lineIndex
+                            ? "-fx-font-family: 'JetBrains Mono', monospace; -fx-text-fill: #3b5bdb; -fx-font-weight: bold;"
+                            : "-fx-font-family: 'JetBrains Mono', monospace; -fx-text-fill: #8a93a0;",
+                    codeArea.currentParagraphProperty()));
             hbox.getChildren().add(lineNumber);
 
             return hbox;

@@ -69,6 +69,11 @@
     -fx-font-size: 13px;
 }
 
+/* Current line tint (Figma) — applied as a paragraph style on the caret's line. */
+.current-line {
+    -fx-background-color: #f2f6ff;
+}
+
 /* ==================== V2 XML Syntax Highlighting ==================== */
 
 /* XML Tags (opening/closing) */
