@@ -477,8 +477,8 @@ public class InspectorPanel extends VBox {
         var info = editorHost.resolveActiveXmlElementInfo(xmlXPath(el));
         if (info.isPresent()) {
             xmlSchemaTypeValue.setText(blankToPlaceholder(info.get().typeName()));
-            String doc = info.get().documentation();
-            xmlSchemaDocValue.setText(doc == null || stripHtml(doc).isBlank() ? PLACEHOLDER : stripHtml(doc));
+            String doc = htmlToPlainText(info.get().documentation());
+            xmlSchemaDocValue.setText(doc.isBlank() ? PLACEHOLDER : doc);
             show(xmlSchemaBox, true);
         } else {
             show(xmlSchemaBox, false);
@@ -488,9 +488,38 @@ public class InspectorPanel extends VBox {
         show(valueAttrSection, true);
     }
 
-    /** Strips HTML tags so schema documentation (which may be rendered HTML) reads as plain text. */
-    private static String stripHtml(String html) {
-        return html == null ? "" : html.replaceAll("<[^>]+>", " ").replaceAll("\\s+", " ").trim();
+    /**
+     * Renders (possibly HTML) schema documentation as plain text: block boundaries
+     * ({@code <br>}, {@code </p>}, {@code </div>}, list items, headings) become line breaks so
+     * multiple documentation entries (e.g. English + German) stay separated; remaining tags are
+     * dropped, common entities decoded, and intra-line whitespace collapsed.
+     */
+    static String htmlToPlainText(String html) {
+        if (html == null) {
+            return "";
+        }
+        String s = html
+                .replaceAll("(?i)<\\s*br\\s*/?>", "\n")
+                .replaceAll("(?i)</\\s*(p|div|li|tr|h[1-6])\\s*>", "\n")
+                .replaceAll("<[^>]+>", " ")
+                .replace("&nbsp;", " ")
+                .replace("&amp;", "&")
+                .replace("&lt;", "<")
+                .replace("&gt;", ">")
+                .replace("&quot;", "\"")
+                .replace("&#39;", "'")
+                .replace("&apos;", "'");
+        StringBuilder out = new StringBuilder();
+        for (String line : s.split("\n")) {
+            String t = line.replaceAll("[ \\t\\x0B\\f\\r]+", " ").trim();
+            if (!t.isEmpty()) {
+                if (out.length() > 0) {
+                    out.append('\n');
+                }
+                out.append(t);
+            }
+        }
+        return out.toString();
     }
 
     /** Read-only JSON node info: key, kind (node type) and scalar value. */
