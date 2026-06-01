@@ -179,31 +179,56 @@
     -fx-text-fill: -fxt-text-secondary;
 }
 
+/* Flat, Figma-style sections: a small uppercase title with a chevron and a thin
+   bottom divider — no boxy TitledPane bar/border. */
 .fxt-inspector-section {
     -fx-text-fill: -fxt-text-primary;
+    -fx-border-color: -fxt-border;
+    -fx-border-width: 0 0 1 0;
 }
 
-/* Token-style the TitledPane header/body so the inspector is readable in both
-   themes regardless of the underlying base theme. */
 .fxt-inspector-section > .title {
-    -fx-background-color: -fxt-bg-surface-2;
-    -fx-background-radius: 6 6 0 0;
-    -fx-text-fill: -fxt-text-primary;
+    -fx-background-color: transparent;
+    -fx-background-radius: 0;
+    -fx-padding: 9 0 5 0;
+    -fx-text-fill: -fxt-text-secondary;
     -fx-font-family: "Inter", sans-serif;
-    -fx-font-size: 12px;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
 }
 
 .fxt-inspector-section > .title > .text {
-    -fx-fill: -fxt-text-primary;
+    -fx-fill: -fxt-text-secondary;
 }
 
 .fxt-inspector-section > .title > .arrow-button .arrow {
-    -fx-background-color: -fxt-text-secondary;
+    -fx-background-color: -fxt-text-muted;
 }
 
 .fxt-inspector-section > *.content {
-    -fx-background-color: -fxt-bg-surface;
-    -fx-border-color: -fxt-border;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 0 0 10 0;
+}
+
+/* Node header: the selected node's name + a kind chip (Figma node header). */
+.fxt-inspector-node-header {
+    -fx-padding: 4 0 8 0;
+}
+.fxt-inspector-node-name {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-primary;
+}
+.fxt-inspector-kind-chip {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-primary;
+    -fx-background-color: rgba(59, 91, 219, 0.10);
+    -fx-background-radius: 8;
+    -fx-padding: 1 8 1 8;
 }
 
 .fxt-inspector-grid {

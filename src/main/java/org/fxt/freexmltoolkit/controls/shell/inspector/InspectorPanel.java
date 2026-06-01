@@ -2,12 +2,14 @@ package org.fxt.freexmltoolkit.controls.shell.inspector;
 
 import javafx.animation.PauseTransition;
 import javafx.collections.FXCollections;
+import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
@@ -37,6 +39,8 @@ public class InspectorPanel extends VBox {
     private final XPathCalculator xpathCalculator = new XPathCalculator();
     private final PauseTransition debounce = new PauseTransition(Duration.millis(150));
 
+    private final Label nodeHeaderName = new Label(PLACEHOLDER);
+    private final Label nodeHeaderKind = new Label();
     private final Label kindValue = value();
     private final Label nameValue = value();
     private final Label xpathValue = value();
@@ -57,12 +61,20 @@ public class InspectorPanel extends VBox {
         header.getStyleClass().add("fxt-inspector-header");
         getChildren().add(header);
 
-        getChildren().add(section("Node & XPath", grid(
+        // Node header: the selected node's name + a kind chip (Figma node header).
+        nodeHeaderName.getStyleClass().add("fxt-inspector-node-name");
+        nodeHeaderKind.getStyleClass().add("fxt-inspector-kind-chip");
+        HBox nodeHeader = new HBox(8, nodeHeaderName, nodeHeaderKind);
+        nodeHeader.setAlignment(Pos.CENTER_LEFT);
+        nodeHeader.getStyleClass().add("fxt-inspector-node-header");
+        getChildren().add(nodeHeader);
+
+        getChildren().add(section("NODE & XPATH", grid(
                 "Kind", kindValue, "Name", nameValue, "XPath", xpathValue, "Depth", depthValue)));
-        getChildren().add(section("Type & Facets", buildTypeFacetsBody()));
-        getChildren().add(section("Cardinality & Use", grid(
+        getChildren().add(section("TYPE & FACETS", buildTypeFacetsBody()));
+        getChildren().add(section("CARDINALITY & USE", grid(
                 "Cardinality", cardinalityValue, "Use", useValue)));
-        getChildren().add(section("Documentation & Refs", grid("Docs", docValue)));
+        getChildren().add(section("DOCUMENTATION & REFS", grid("Docs", docValue)));
 
         debounce.setOnFinished(e -> refresh());
         editorHost.activeCaretProperty().addListener((obs, oldV, newV) -> debounce.playFromStart());
@@ -127,6 +139,11 @@ public class InspectorPanel extends VBox {
 
     private void set(String kind, String name, String xpath, String depth,
                      String type, String cardinality, String use, String doc) {
+        nodeHeaderName.setText(name);
+        boolean hasKind = kind != null && !PLACEHOLDER.equals(kind) && !kind.isBlank();
+        nodeHeaderKind.setText(hasKind ? kind : "");
+        nodeHeaderKind.setVisible(hasKind);
+        nodeHeaderKind.setManaged(hasKind);
         kindValue.setText(kind);
         nameValue.setText(name);
         xpathValue.setText(xpath);

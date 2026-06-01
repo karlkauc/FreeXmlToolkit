@@ -34,6 +34,7 @@ public class ValidationPanel extends VBox {
     private final ObservableList<ValidationProblem> problems = FXCollections.observableArrayList();
     private final ListView<ValidationProblem> problemsList = new ListView<>(problems);
     private final Label status = new Label("Not validated");
+    private final Label xsdStatus = new Label("XSD: none");
     private final Label schematronStatus = new Label("Schematron: none");
     private final CheckBox liveValidation = new CheckBox("Validate while typing");
     private final PauseTransition debounce = new PauseTransition(Duration.millis(600));
@@ -50,6 +51,10 @@ public class ValidationPanel extends VBox {
         validate.getStyleClass().add("fxt-tool-button");
         validate.setOnAction(e -> revalidate());
 
+        Button setXsd = new Button("Set XSD…", icon("bi-diagram-3"));
+        setXsd.getStyleClass().add("fxt-tool-button");
+        setXsd.setOnAction(e -> chooseXsd());
+
         Button setSchematron = new Button("Schematron…", icon("bi-shield-check"));
         setSchematron.getStyleClass().add("fxt-tool-button");
         setSchematron.setOnAction(e -> chooseSchematron());
@@ -63,8 +68,10 @@ public class ValidationPanel extends VBox {
         batch.setOnAction(e -> chooseBatch());
 
         status.getStyleClass().add("fxt-placeholder-text");
+        xsdStatus.getStyleClass().add("fxt-placeholder-text");
         schematronStatus.getStyleClass().add("fxt-placeholder-text");
         refreshSchematronStatus();
+        refreshXsdStatus();
 
         Label problemsLabel = new Label("PROBLEMS");
         problemsLabel.getStyleClass().add("fxt-side-panel-title");
@@ -90,8 +97,14 @@ public class ValidationPanel extends VBox {
             }
         });
         editorHost.activeCaretProperty().addListener((obs, oldV, newV) -> scheduleRevalidation());
-        editorHost.activeTabProperty().addListener((obs, oldV, newV) -> scheduleRevalidation());
-        editorHost.activeSchemaProperty().addListener((obs, oldV, newV) -> scheduleRevalidation());
+        editorHost.activeTabProperty().addListener((obs, oldV, newV) -> {
+            refreshXsdStatus();
+            scheduleRevalidation();
+        });
+        editorHost.activeSchemaProperty().addListener((obs, oldV, newV) -> {
+            refreshXsdStatus();
+            scheduleRevalidation();
+        });
 
         Label toolsLabel = new Label("SCHEMATRON TOOLS");
         toolsLabel.getStyleClass().add("fxt-side-panel-title");
@@ -105,8 +118,8 @@ public class ValidationPanel extends VBox {
         builder.getStyleClass().add("fxt-tool-button");
         builder.setOnAction(e -> openSchematronBuilder());
 
-        getChildren().addAll(title, new HBox(6, validate, setSchematron), new HBox(6, setJsonSchema, batch),
-                liveValidation, status, schematronStatus,
+        getChildren().addAll(title, new HBox(6, validate, setXsd), new HBox(6, setSchematron, setJsonSchema),
+                new HBox(6, batch), liveValidation, status, xsdStatus, schematronStatus,
                 toolsLabel, new HBox(6, templates, tester), new HBox(6, builder),
                 problemsLabel, list);
     }
@@ -223,6 +236,35 @@ public class ValidationPanel extends VBox {
         java.util.List<File> files = chooser.showOpenMultipleDialog(
                 getScene() != null ? getScene().getWindow() : null);
         runBatch(files);
+    }
+
+    /** Lets the user pick an XSD to validate the active XML document against. */
+    private void chooseXsd() {
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Select XSD schema");
+        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML Schema", "*.xsd"));
+        File file = chooser.showOpenDialog(getScene() != null ? getScene().getWindow() : null);
+        if (file != null) {
+            useXsd(file);
+        }
+    }
+
+    /**
+     * Binds {@code xsd} to the active document (for validation and IntelliSense) and
+     * re-validates against it. No-op if the active editor does not support schemas.
+     *
+     * @param xsd the schema file to validate against
+     */
+    public void useXsd(File xsd) {
+        if (editorHost.setSchemaForActiveDocument(xsd)) {
+            refreshXsdStatus();
+            revalidate();
+        }
+    }
+
+    private void refreshXsdStatus() {
+        File xsd = editorHost.activeSchemaProperty().get();
+        xsdStatus.setText(xsd != null ? "XSD: " + xsd.getName() : "XSD: none");
     }
 
     private void chooseSchematron() {

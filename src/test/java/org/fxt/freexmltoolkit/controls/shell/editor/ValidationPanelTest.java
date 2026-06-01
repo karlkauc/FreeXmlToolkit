@@ -217,6 +217,31 @@ class ValidationPanelTest {
         assertTrue(panel.getProblemCount() > 0, "JSON invalid against its schema must report problems");
     }
 
+    @Test
+    void setXsdViaPanelBindsAndValidates(@TempDir Path tmp) throws Exception {
+        Path xsd = tmp.resolve("schema.xsd");
+        Files.writeString(xsd, XSD);
+        Path invalid = tmp.resolve("invalid.xml");
+        Files.writeString(invalid, "<root><wrong/></root>");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(invalid));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("root")).orElse(false));
+        assertNull(host.activeSchemaProperty().get(), "no schema is bound from the document itself");
+
+        // Choosing an XSD in the Validation panel binds it and validates the XML against it.
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.useXsd(xsd.toFile());
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS, () -> panel.getProblemCount() > 0);
+
+        assertEquals(xsd.toFile().getName(), host.activeSchemaProperty().get().getName(),
+                "the chosen XSD must be bound to the document");
+        assertTrue(panel.getProblemCount() > 0,
+                "validating the XML against the chosen XSD must report the invalid element");
+    }
+
     private void open(Path xml, Path xsd) throws Exception {
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
         WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
