@@ -346,10 +346,26 @@ public class InspectorPanel extends VBox {
     private void commitName() {
         String name = nameField.getText() == null ? "" : nameField.getText().trim();
         if (currentXsdNode != null) {
-            editorHost.renameActiveNode(name);
+            if (nameEditable(currentXsdNode)) {
+                editorHost.renameActiveNode(name);
+            }
         } else if (currentXmlNode != null) {
             editorHost.renameActiveXmlNode(name);
         }
+    }
+
+    /**
+     * Name-bearing nodes whose name may be edited: elements, attributes, and named types/groups.
+     * The schema root and structural compositors (sequence/choice/restriction/content models …)
+     * have no name attribute — a rename there is meaningless and could corrupt the document.
+     */
+    private static boolean nameEditable(XsdNode node) {
+        return switch (node.getNodeType()) {
+            case ELEMENT, ATTRIBUTE -> true;
+            case COMPLEX_TYPE, SIMPLE_TYPE, GROUP, ATTRIBUTE_GROUP ->
+                    node.getName() != null && !node.getName().isBlank();
+            default -> false;
+        };
     }
 
     // ----- refresh / populate ---------------------------------------------
@@ -388,7 +404,7 @@ public class InspectorPanel extends VBox {
         boolean isElement = node instanceof XsdElement;
         boolean isAttribute = node instanceof XsdAttribute;
 
-        nameField.setEditable(true);
+        nameField.setEditable(nameEditable(node));
         nameField.setText(blankToPlaceholder(info.name()).equals(PLACEHOLDER) ? "" : info.name());
 
         // Type
@@ -770,6 +786,11 @@ public class InspectorPanel extends VBox {
     /** @return the current "Node &amp; XPath" XPath value (for tests/observers). */
     public String getXPathText() {
         return xpathValue.getText();
+    }
+
+    /** @return whether the Name field is currently editable (for tests/observers). */
+    public boolean isNameEditable() {
+        return nameField.isEditable();
     }
 
     /** @return the current node name (for tests/observers). */
