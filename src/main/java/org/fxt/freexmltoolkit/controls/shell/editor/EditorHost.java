@@ -626,6 +626,16 @@ public class EditorHost extends BorderPane {
         return editActivePreservingSelection(et -> et.editFacet(facet, newValue));
     }
 
+    /** Deletes a facet (incl. pattern/enumeration/assertion) from the selected node's restriction. */
+    public boolean deleteActiveFacet(org.fxt.freexmltoolkit.controls.v2.model.XsdFacet facet) {
+        return editActivePreservingSelection(et -> et.deleteFacet(facet));
+    }
+
+    /** Adds a facet of the given type/value to the selected node's restriction. */
+    public boolean addActiveFacet(org.fxt.freexmltoolkit.controls.v2.model.XsdFacetType type, String value) {
+        return editActivePreservingSelection(et -> et.addFacet(type, value));
+    }
+
     // ----- XML instance editing (Grid selection) ---------------------------
 
     /** Renames the selected XML element via the XML command stack. */
@@ -1236,6 +1246,41 @@ public class EditorHost extends BorderPane {
             }
             return executeAndApply(new org.fxt.freexmltoolkit.controls.v2.editor.commands.EditFacetCommand(
                     facet, newValue));
+        }
+
+        boolean deleteFacet(org.fxt.freexmltoolkit.controls.v2.model.XsdFacet facet) {
+            if (editorContext == null || facet == null
+                    || !(facet.getParent()
+                            instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdRestriction restriction)) {
+                return false;
+            }
+            return executeAndApply(new org.fxt.freexmltoolkit.controls.v2.editor.commands.DeleteFacetCommand(
+                    restriction, facet));
+        }
+
+        boolean addFacet(org.fxt.freexmltoolkit.controls.v2.model.XsdFacetType type, String value) {
+            if (editorContext == null || currentSelection == null || type == null || value == null) {
+                return false;
+            }
+            org.fxt.freexmltoolkit.controls.v2.model.XsdRestriction restriction =
+                    org.fxt.freexmltoolkit.controls.shell.schema.SchemaFacets.findRestriction(currentSelection);
+            if (restriction != null) {
+                return executeAndApply(new org.fxt.freexmltoolkit.controls.v2.editor.commands.AddFacetCommand(
+                        restriction, type, value));
+            }
+            // No restriction yet: pattern/enumeration/assertion commands create one from the node.
+            return switch (type) {
+                case PATTERN -> executeAndApply(
+                        new org.fxt.freexmltoolkit.controls.v2.editor.commands.AddPatternCommand(
+                                editorContext, currentSelection, value));
+                case ENUMERATION -> executeAndApply(
+                        new org.fxt.freexmltoolkit.controls.v2.editor.commands.AddEnumerationCommand(
+                                editorContext, currentSelection, value));
+                case ASSERTION -> executeAndApply(
+                        new org.fxt.freexmltoolkit.controls.v2.editor.commands.AddAssertionCommand(
+                                editorContext, currentSelection, value));
+                default -> false;
+            };
         }
 
         /** Restores selection to {@code node} after a property edit (re-selects it in the view). */

@@ -80,6 +80,8 @@ public class InspectorPanel extends VBox {
     private final TextField substField = editField("inspector-subst");
     private final TextArea docArea = new TextArea();
     private final TableView<XsdFacet> facetTable = new TableView<>();
+    private final ComboBox<org.fxt.freexmltoolkit.controls.v2.model.XsdFacetType> facetTypeCombo = new ComboBox<>();
+    private final TextField facetValueField = new TextField();
     // XML-instance value/attributes
     private final TextArea xmlTextArea = new TextArea();
     private final TableView<AttrEntry> xmlAttrTable = new TableView<>();
@@ -170,7 +172,54 @@ public class InspectorPanel extends VBox {
         facetTable.setPlaceholder(new Label("No facets"));
 
         typeRow = row("Type", typeCombo);
-        return new VBox(4, typeRow, facetTable);
+        return new VBox(4, typeRow, facetTable, buildFacetAddRow());
+    }
+
+    /** Row to add a facet (type + value) and delete the selected one. */
+    private Node buildFacetAddRow() {
+        facetTypeCombo.getItems().setAll(
+                org.fxt.freexmltoolkit.controls.v2.model.XsdFacetType.values());
+        facetTypeCombo.setId("inspector-facet-type");
+        facetTypeCombo.getStyleClass().add("fxt-inspector-edit");
+        facetTypeCombo.setConverter(new javafx.util.StringConverter<>() {
+            @Override
+            public String toString(org.fxt.freexmltoolkit.controls.v2.model.XsdFacetType t) {
+                return t == null ? "" : t.getXmlName();
+            }
+
+            @Override
+            public org.fxt.freexmltoolkit.controls.v2.model.XsdFacetType fromString(String s) {
+                return null;
+            }
+        });
+
+        facetValueField.setId("inspector-facet-value");
+        facetValueField.getStyleClass().add("fxt-inspector-edit");
+        facetValueField.setPromptText("value");
+        HBox.setHgrow(facetValueField, Priority.ALWAYS);
+
+        javafx.scene.control.Button addBtn = new javafx.scene.control.Button("Add");
+        addBtn.setId("inspector-facet-add");
+        addBtn.setOnAction(e -> {
+            var type = facetTypeCombo.getValue();
+            String value = facetValueField.getText();
+            if (type != null && value != null && !value.isBlank()) {
+                editorHost.addActiveFacet(type, value.trim());
+                facetValueField.clear();
+            }
+        });
+        javafx.scene.control.Button delBtn = new javafx.scene.control.Button("Delete");
+        delBtn.setId("inspector-facet-delete");
+        delBtn.setOnAction(e -> {
+            XsdFacet sel = facetTable.getSelectionModel().getSelectedItem();
+            if (sel != null) {
+                editorHost.deleteActiveFacet(sel);
+            }
+        });
+
+        HBox addRow = new HBox(6, facetTypeCombo, facetValueField, addBtn, delBtn);
+        addRow.setAlignment(Pos.CENTER_LEFT);
+        return addRow;
     }
 
     private Node buildCardinalityBody() {
