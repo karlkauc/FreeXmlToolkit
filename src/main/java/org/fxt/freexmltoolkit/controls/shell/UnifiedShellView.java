@@ -474,8 +474,21 @@ public class UnifiedShellView extends BorderPane {
             dialog.initOwner(getScene().getWindow());
         }
         dialog.showAndWait().ifPresent(template -> {
+            // Prompt for parameter values when the template is parameterized.
+            java.util.Map<String, String> params = java.util.Map.of();
+            if (template.getParameters() != null && !template.getParameters().isEmpty()) {
+                var paramDialog = new org.fxt.freexmltoolkit.controls.shell.editor.TemplateParameterDialog(template);
+                if (getScene() != null) {
+                    paramDialog.initOwner(getScene().getWindow());
+                }
+                var entered = paramDialog.showAndWait();
+                if (entered.isEmpty()) {
+                    return; // parameter entry cancelled
+                }
+                params = entered.get();
+            }
             String content = org.fxt.freexmltoolkit.controls.shell.editor.TemplateRunner
-                    .render(template, java.util.Map.of());
+                    .render(template, params);
             if (!content.startsWith("ERROR:")) {
                 editorHost.insertTextAtCaret(content);
                 org.fxt.freexmltoolkit.service.TemplateRepository.getInstance().recordUsage(template.getId());
