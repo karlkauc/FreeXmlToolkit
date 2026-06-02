@@ -65,7 +65,29 @@ public final class SchemaFacets {
         return out;
     }
 
-    /** Adds the effective facets of the named simple type (its inline facets, else its list/union). */
+    /**
+     * Resolves the facets a node inherits through its {@code xs:restriction base="..."} chain of
+     * named simple types (recursively, excluding the node's own inline facets which {@link #collect}
+     * returns). Built-in bases and cycles are handled.
+     */
+    public static List<XsdFacet> resolveBaseChainFacets(XsdNode node, XsdNode schemaRoot) {
+        if (node == null || schemaRoot == null) {
+            return new ArrayList<>();
+        }
+        List<XsdFacet> out = new ArrayList<>();
+        java.util.Set<String> visited = new java.util.HashSet<>();
+        // Seed the start node so a cyclic base chain doesn't loop back and re-collect its own facets.
+        if (node.getName() != null) {
+            visited.add(node.getName());
+        }
+        collectBaseChain(node, schemaRoot, out, visited);
+        return out;
+    }
+
+    /**
+     * Adds the <em>effective</em> facets of the named simple type: its own inline facets, the facets
+     * of its {@code restriction base} chain, and its {@code list}/{@code union} item-type facets.
+     */
     private static void addNamedTypeFacets(String typeName, XsdNode schemaRoot,
             List<XsdFacet> out, java.util.Set<String> visited) {
         if (typeName == null || !visited.add(typeName)) {
@@ -82,11 +104,17 @@ public final class SchemaFacets {
         if (named == null) {
             return;
         }
-        List<XsdFacet> inline = collect(named);
-        if (!inline.isEmpty()) {
-            out.addAll(inline);
-        } else {
-            collectListUnion(named, schemaRoot, out, visited);
+        out.addAll(collect(named));
+        collectBaseChain(named, schemaRoot, out, visited);
+        collectListUnion(named, schemaRoot, out, visited);
+    }
+
+    /** Follows the node's inline restriction's named {@code base} to its effective facets. */
+    private static void collectBaseChain(XsdNode node, XsdNode schemaRoot,
+            List<XsdFacet> out, java.util.Set<String> visited) {
+        XsdRestriction restriction = findRestriction(node);
+        if (restriction != null) {
+            addNamedTypeFacets(localTypeName(restriction.getBase()), schemaRoot, out, visited);
         }
     }
 

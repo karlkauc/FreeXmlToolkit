@@ -683,20 +683,21 @@ public class InspectorPanel extends VBox {
             facetTable.getItems().setAll(FXCollections.emptyObservableList());
             return;
         }
-        java.util.List<XsdFacet> facets = new java.util.ArrayList<>(SchemaFacets.collect(node));
-        // No inline facets: show facets inherited via a named-type reference (element/attribute)
-        // or via an xs:list item type / xs:union member types (a list/union simple type).
-        if (facets.isEmpty()) {
-            java.util.List<XsdFacet> inherited = new java.util.ArrayList<>();
-            if (node instanceof XsdElement || node instanceof XsdAttribute) {
-                inherited.addAll(SchemaFacets.resolveReferencedTypeFacets(node, schemaRoot));
-            }
-            if (inherited.isEmpty()) {
-                inherited.addAll(SchemaFacets.resolveListUnionFacets(node, schemaRoot));
-            }
-            inheritedFacets.addAll(inherited);
-            facets.addAll(inherited);
+        java.util.List<XsdFacet> inline = SchemaFacets.collect(node);
+        java.util.List<XsdFacet> facets = new java.util.ArrayList<>(inline);
+        java.util.List<XsdFacet> inherited = new java.util.ArrayList<>();
+        // An element/attribute referencing a named type (no inline facets): the referenced type's
+        // full effective facets are inherited (own + restriction-base chain + list/union).
+        if (inline.isEmpty() && (node instanceof XsdElement || node instanceof XsdAttribute)) {
+            inherited.addAll(SchemaFacets.resolveReferencedTypeFacets(node, schemaRoot));
         }
+        // A type node (simple type / element with an inline restriction): its restriction-base
+        // chain and any xs:list item / xs:union member facets are inherited (read-only), shown
+        // alongside its own inline facets.
+        inherited.addAll(SchemaFacets.resolveBaseChainFacets(node, schemaRoot));
+        inherited.addAll(SchemaFacets.resolveListUnionFacets(node, schemaRoot));
+        inheritedFacets.addAll(inherited);
+        facets.addAll(inherited);
         facetTable.getItems().setAll(facets);
     }
 
