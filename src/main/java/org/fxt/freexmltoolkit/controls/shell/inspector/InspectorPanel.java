@@ -106,6 +106,11 @@ public class InspectorPanel extends VBox {
     private final TextField piTargetField = editField("inspector-pi-target");
     private final TextField piDataField = editField("inspector-pi-data");
     private TitledPane piSection;
+    // XML declaration (document node)
+    private final TextField declVersionField = editField("inspector-decl-version");
+    private final TextField declEncodingField = editField("inspector-decl-encoding");
+    private final ComboBox<String> declStandaloneCombo = new ComboBox<>();
+    private TitledPane declarationSection;
     // XSD-derived, read-only info shown for an XML element when a schema is bound
     private final Label xmlSchemaTypeValue = roLabel();
     private final Label xmlSchemaDocValue = roLabel();
@@ -162,11 +167,12 @@ public class InspectorPanel extends VBox {
         valueAttrSection = section("VALUE & ATTRIBUTES", buildValueAttrBody());
         contentSection = section("CONTENT", buildContentBody());
         piSection = section("PROCESSING INSTRUCTION", buildPiBody());
+        declarationSection = section("XML DECLARATION", buildDeclarationBody());
         cardUseSection = section("CARDINALITY & USE", buildCardinalityBody());
         constraintsSection = section("CONSTRAINTS", buildConstraintsBody());
         docSection = section("DOCUMENTATION & REFS", buildDocBody());
         getChildren().addAll(typeFacetsSection, namespaceSection, valueAttrSection, contentSection,
-                piSection, cardUseSection, constraintsSection, docSection);
+                piSection, declarationSection, cardUseSection, constraintsSection, docSection);
 
         wireEditing();
 
@@ -431,6 +437,30 @@ public class InspectorPanel extends VBox {
         commit(() -> editorHost.setActiveProcessingInstruction(piTargetField.getText(), piDataField.getText()));
     }
 
+    /** Editable XML declaration: version, encoding, standalone (yes/no/omit). */
+    private Node buildDeclarationBody() {
+        declStandaloneCombo.setId("inspector-decl-standalone");
+        declStandaloneCombo.getStyleClass().add("fxt-inspector-edit");
+        declStandaloneCombo.getItems().setAll("(omit)", "yes", "no");
+        commitOnEnterAndBlur(declVersionField, this::commitDeclaration);
+        commitOnEnterAndBlur(declEncodingField, this::commitDeclaration);
+        declStandaloneCombo.valueProperty().addListener((o, was, isNow) -> commitDeclaration());
+        return new VBox(4, row("Version", declVersionField), row("Encoding", declEncodingField),
+                row("Standalone", declStandaloneCombo));
+    }
+
+    private void commitDeclaration() {
+        if (updating || currentXmlNode == null) {
+            return;
+        }
+        Boolean standalone = switch (declStandaloneCombo.getValue() == null ? "" : declStandaloneCombo.getValue()) {
+            case "yes" -> Boolean.TRUE;
+            case "no" -> Boolean.FALSE;
+            default -> null;
+        };
+        editorHost.setActiveXmlDeclaration(declVersionField.getText(), declEncodingField.getText(), standalone);
+    }
+
     /** Editable element namespace prefix + URI; both commit via setActiveElementNamespace. */
     private Node buildNamespaceBody() {
         commitOnEnterAndBlur(nsPrefixField, this::commitNamespace);
@@ -548,6 +578,7 @@ public class InspectorPanel extends VBox {
         show(valueAttrSection, false);
         show(contentSection, false);
         show(piSection, false);
+        show(declarationSection, false);
     }
 
     /** Non-element XML nodes: comment / CDATA / text content, or a processing instruction. */
@@ -570,6 +601,14 @@ public class InspectorPanel extends VBox {
             piTargetField.setText(pi.getTarget() == null ? "" : pi.getTarget());
             piDataField.setText(pi.getData() == null ? "" : pi.getData());
             show(piSection, true);
+        } else if (node instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlDocument doc) {
+            setHeader("XML Document", "Document");
+            kindValue.setText("Document");
+            declVersionField.setText(doc.getVersion() == null ? "" : doc.getVersion());
+            declEncodingField.setText(doc.getEncoding() == null ? "" : doc.getEncoding());
+            declStandaloneCombo.setValue(doc.getStandalone() == null ? "(omit)"
+                    : (doc.getStandalone() ? "yes" : "no"));
+            show(declarationSection, true);
         } else {
             setHeader(PLACEHOLDER, "Node");
             kindValue.setText("Node");
@@ -1136,6 +1175,16 @@ public class InspectorPanel extends VBox {
     /** @return whether the PROCESSING INSTRUCTION section is visible (for tests/observers). */
     public boolean isPiSectionVisible() {
         return piSection.isVisible();
+    }
+
+    /** @return the XML declaration version shown (for tests/observers). */
+    public String getDeclarationVersionText() {
+        return declVersionField.getText() == null ? "" : declVersionField.getText();
+    }
+
+    /** @return whether the XML DECLARATION section is visible (for tests/observers). */
+    public boolean isDeclarationSectionVisible() {
+        return declarationSection.isVisible();
     }
 
     /** A name/value row in the XML attributes table. */

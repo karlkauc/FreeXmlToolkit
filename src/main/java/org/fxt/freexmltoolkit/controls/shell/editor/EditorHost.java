@@ -904,6 +904,14 @@ public class EditorHost extends BorderPane {
                                 .SetProcessingInstructionCommand(pi, target, data) : null);
     }
 
+    /** Sets the selected document's XML declaration (version / encoding / standalone). */
+    public boolean setActiveXmlDeclaration(String version, String encoding, Boolean standalone) {
+        return editActiveXmlNode(n ->
+                n instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlDocument doc
+                        ? new org.fxt.freexmltoolkit.controls.v2.xmleditor.commands
+                                .SetXmlDeclarationCommand(doc, version, encoding, standalone) : null);
+    }
+
     /** Runs a command on the selected XML node (any type) via the XML command stack + round-trip. */
     private boolean editActiveXmlNode(
             java.util.function.Function<org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode,

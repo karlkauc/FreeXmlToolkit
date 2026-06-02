@@ -76,6 +76,42 @@ class EditorHostXmlNodeEditTest {
                 () -> host.getActiveText().orElse("").contains("newdata"));
     }
 
+    @Test
+    void xmlDeclarationRoundTrips(@TempDir Path tmp) throws Exception {
+        Path xml = tmp.resolve("decl.xml");
+        Files.writeString(xml, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<root/>\n");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("root")).orElse(false));
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.setActiveViewMode(ViewMode.GRID);
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        XmlGridView grid = (XmlGridView) host.lookupAll("*").stream()
+                .filter(n -> n instanceof XmlGridView).findFirst().orElseThrow();
+
+        // Select the document node itself.
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            grid.getContext().getSelectionModel().setSelectedNode(grid.getContext().getDocument());
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(2, TimeUnit.SECONDS,
+                () -> host.activeXmlNodeProperty().get()
+                        instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlDocument);
+
+        assertTrue(WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> host.setActiveXmlDeclaration("1.1", "UTF-16", Boolean.TRUE)));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> {
+            String t = host.getActiveText().orElse("");
+            return t.contains("version=\"1.1\"") && t.contains("encoding=\"UTF-16\"")
+                    && t.contains("standalone=\"yes\"");
+        });
+        String text = host.getActiveText().orElse("");
+        assertTrue(text.contains("version=\"1.1\""), text);
+        assertTrue(text.contains("standalone=\"yes\""), text);
+    }
+
     private void selectFirst(XmlGridView grid, Class<? extends XmlNode> type, boolean documentLevel)
             throws Exception {
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {

@@ -41,4 +41,20 @@ class XmlNodeContentCommandTest {
         assertTrue(cmd.undo());
         assertEquals("type=\"text/xsl\"", pi.getData());
     }
+
+    @Test
+    void xmlDeclarationRoundTrips() {
+        org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlDocument doc =
+                new org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlDocument();
+        String oldEncoding = doc.getEncoding();
+        SetXmlDeclarationCommand cmd = new SetXmlDeclarationCommand(doc, "1.1", "ISO-8859-1", Boolean.TRUE);
+        assertTrue(cmd.execute());
+        assertEquals("1.1", doc.getVersion());
+        assertEquals("ISO-8859-1", doc.getEncoding());
+        assertEquals(Boolean.TRUE, doc.getStandalone());
+        assertTrue(cmd.undo());
+        assertEquals("1.0", doc.getVersion());
+        assertEquals(oldEncoding, doc.getEncoding());
+        assertNull(doc.getStandalone());
+    }
 }
