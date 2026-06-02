@@ -89,16 +89,23 @@ class InspectorEditTest {
     @Test
     void useFieldIsAttributeOnly(@TempDir Path tmp) throws Exception {
         selectInTree("child", tmp.resolve("schema.xsd")); // element
-        WaitForAsyncUtils.waitForFxEvents();
-        ComboBox<?> useForElement = (ComboBox<?>) inspector.lookup("#inspector-use");
-        assertFalse(useForElement.isVisible(), "Use must be hidden for elements");
+        // Wait for the element selection to settle into "Use hidden" (the inspector refresh is
+        // debounced, so assert on the combined condition rather than a transient snapshot).
+        WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS,
+                () -> "child".equals(inspector.getNodeNameText())
+                        && !((ComboBox<?>) inspector.lookup("#inspector-use")).isVisible());
+        assertFalse(((ComboBox<?>) inspector.lookup("#inspector-use")).isVisible(),
+                "Use must be hidden for elements");
 
         XsdNode attr = WaitForAsyncUtils.waitForAsyncFx(2000, () -> find(host.getActiveSchemaRoot().orElseThrow(), "id"));
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
             host.selectNodeInActiveTree(attr);
             return null;
         });
-        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> "id".equals(inspector.getNodeNameText()));
+        // Wait for the attribute selection to settle into "Use visible" (name + visibility together).
+        WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS,
+                () -> "id".equals(inspector.getNodeNameText())
+                        && ((ComboBox<?>) inspector.lookup("#inspector-use")).isVisible());
         assertTrue(((ComboBox<?>) inspector.lookup("#inspector-use")).isVisible(),
                 "Use must be visible for attributes");
     }

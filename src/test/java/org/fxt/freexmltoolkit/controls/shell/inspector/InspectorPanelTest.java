@@ -49,7 +49,11 @@ class InspectorPanelTest {
         int caret = "<root><item>".length() + 1; // inside "value"
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.moveActiveCaretTo(caret));
 
-        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> "item".equals(inspector.getNodeNameText()));
+        // Wait for the debounced refresh to settle into the final state (name AND xpath together),
+        // so a trailing refresh can't leave one updated and the other still at the placeholder.
+        WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS,
+                () -> "item".equals(inspector.getNodeNameText())
+                        && "/root/item".equals(inspector.getXPathText()));
         assertEquals("item", inspector.getNodeNameText());
         assertEquals("/root/item", inspector.getXPathText());
     }
