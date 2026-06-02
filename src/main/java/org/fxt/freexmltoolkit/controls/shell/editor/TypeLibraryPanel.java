@@ -225,8 +225,9 @@ public class TypeLibraryPanel extends VBox {
         }
         boolean mandatoryOnly = options.get().mandatoryOnly();
         int maxOccurrences = options.get().maxOccurrences();
+        boolean realistic = options.get().realistic();
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
-            String result = SampleXmlRunner.generate(xsd, mandatoryOnly, maxOccurrences);
+            String result = SampleXmlRunner.generate(xsd, mandatoryOnly, maxOccurrences, realistic);
             javafx.application.Platform.runLater(() -> {
                 if (result.startsWith("ERROR:")) {
                     alert(javafx.scene.control.Alert.AlertType.ERROR, "Generate Sample XML", result);

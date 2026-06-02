@@ -22,13 +22,30 @@ public final class SampleXmlRunner {
      * @return the sample XML document, or {@code "ERROR: …"}
      */
     public static String generate(File xsd, boolean mandatoryOnly, int maxOccurrences) {
+        return generate(xsd, mandatoryOnly, maxOccurrences, false);
+    }
+
+    /**
+     * @param realistic when {@code true}, generate facet/enumeration/pattern-aware leaf values via
+     *                  the profiled generator instead of plain type-based placeholders
+     * @see #generate(File, boolean, int)
+     */
+    public static String generate(File xsd, boolean mandatoryOnly, int maxOccurrences, boolean realistic) {
         if (!xsd.isFile()) {
             return "ERROR: file not found: " + xsd;
         }
         try {
             XsdDocumentationService service = new XsdDocumentationService();
             service.setXsdFilePath(xsd.getAbsolutePath());
-            return service.generateSampleXml(mandatoryOnly, maxOccurrences);
+            if (!realistic) {
+                return service.generateSampleXml(mandatoryOnly, maxOccurrences);
+            }
+            service.processXsd(Boolean.TRUE);
+            var profile = new org.fxt.freexmltoolkit.domain.GenerationProfile("Realistic");
+            profile.setMandatoryOnly(mandatoryOnly);
+            profile.setMaxOccurrences(maxOccurrences);
+            return new org.fxt.freexmltoolkit.service.ProfiledXmlGeneratorService()
+                    .generateRealistic(profile, service.xsdDocumentationData, xsd.getAbsolutePath());
         } catch (Exception e) {
             return "ERROR: " + e.getMessage();
         }

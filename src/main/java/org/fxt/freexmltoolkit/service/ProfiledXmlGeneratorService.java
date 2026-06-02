@@ -126,6 +126,25 @@ public class ProfiledXmlGeneratorService {
     }
 
     /**
+     * Generates XML using the rich, facet/enumeration/pattern-aware traversal regardless of whether
+     * the profile carries rules — i.e. it never falls back to the plain generator. Use this for a
+     * "realistic values" sample where leaf values should honour the schema's restrictions even
+     * without per-XPath rules (AUTO strategy backed by {@link XsdSampleDataGenerator}).
+     *
+     * @param profile     generation profile (mandatoryOnly / maxOccurrences honoured; rules optional)
+     * @param data        the parsed XSD documentation data
+     * @param xsdFilePath the path to the XSD file
+     * @return the generated XML as a string
+     */
+    public String generateRealistic(GenerationProfile profile, XsdDocumentationData data, String xsdFilePath) {
+        XsdSampleDataGenerator sampleGenerator = new XsdSampleDataGenerator();
+        setupTypeResolver(sampleGenerator, data);
+        ValueStrategyFactory strategyFactory = new ValueStrategyFactory(sampleGenerator);
+        GenerationContext context = new GenerationContext();
+        return buildXmlDocument(profile, data, xsdFilePath, strategyFactory, context);
+    }
+
+    /**
      * Generates multiple XML documents in batch mode.
      *
      * <p>When the profile has no enabled non-AUTO rules, each batch entry is produced via
