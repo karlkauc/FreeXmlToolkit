@@ -306,7 +306,7 @@ public class EditorHost extends BorderPane {
                 return;
             }
         }
-        EditorTab tab = new EditorTab(OpenDocument.forPath(path), this::refreshSelectedNode);
+        EditorTab tab = new EditorTab(OpenDocument.forPath(path), this::refreshSelectedNode, nodeClipboard);
         addTab(tab);
         loadAsync(tab, path);
     }
@@ -346,6 +346,10 @@ public class EditorHost extends BorderPane {
 
     /** Open type-editor tabs, keyed by type name, so a type is edited in at most one tab. */
     private final java.util.Map<String, Tab> openTypeTabs = new java.util.HashMap<>();
+
+    /** Shell-wide clipboard for copy/cut/paste of XSD nodes across the structured views. */
+    private final org.fxt.freexmltoolkit.controls.v2.editor.clipboard.XsdClipboard nodeClipboard =
+            new org.fxt.freexmltoolkit.controls.v2.editor.clipboard.XsdClipboard();
 
     /**
      * Opens a named XSD type in a dedicated editor tab: a 5-panel form for a simple type, a
@@ -622,7 +626,7 @@ public class EditorHost extends BorderPane {
 
     /** Creates an empty untitled document of the given type. */
     public OpenDocument newDocument(EditorFileType type) {
-        EditorTab tab = new EditorTab(OpenDocument.untitled(untitledName(), type), this::refreshSelectedNode);
+        EditorTab tab = new EditorTab(OpenDocument.untitled(untitledName(), type), this::refreshSelectedNode, nodeClipboard);
         addTab(tab);
         tab.attachDirtyTracking();
         return tab.document;
@@ -635,7 +639,7 @@ public class EditorHost extends BorderPane {
      * @return the new document
      */
     public OpenDocument openGeneratedDocument(String content, EditorFileType type, String displayName) {
-        EditorTab tab = new EditorTab(OpenDocument.untitled(displayName, type), this::refreshSelectedNode);
+        EditorTab tab = new EditorTab(OpenDocument.untitled(displayName, type), this::refreshSelectedNode, nodeClipboard);
         addTab(tab);
         tab.view.setText(content);
         tab.attachDirtyTracking();
@@ -750,6 +754,36 @@ public class EditorHost extends BorderPane {
     /** Moves the selected node down among its siblings via the command stack. */
     public boolean moveActiveNodeDown() {
         return editActive(et -> et.moveNode(et.currentSelection, 1));
+    }
+
+    /** Copies the selected node to the shell clipboard (no model change). @return success */
+    public boolean copyActiveNode() {
+        if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et
+                && et.currentSelection != null) {
+            nodeClipboard.copy(et.currentSelection);
+            return true;
+        }
+        return false;
+    }
+
+    /** Cuts the selected node to the shell clipboard (the original is removed on paste). */
+    public boolean cutActiveNode() {
+        if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et
+                && et.currentSelection != null) {
+            nodeClipboard.cut(et.currentSelection);
+            return true;
+        }
+        return false;
+    }
+
+    /** Pastes the clipboard's node under the selected node via the command stack. */
+    public boolean pasteIntoActive() {
+        return editActive(et -> et.pasteNode(et.currentSelection));
+    }
+
+    /** @return whether the shell clipboard currently holds a node to paste. */
+    public boolean canPaste() {
+        return nodeClipboard.hasContent();
     }
 
     /** Changes the selected node's type via the command stack. */
@@ -1186,6 +1220,8 @@ public class EditorHost extends BorderPane {
         private final OpenDocument document;
         private final EditorView view;
         private final Runnable selectionCallback;
+        /** Shared shell clipboard (passed in because EditorTab is a static nested class). */
+        private final org.fxt.freexmltoolkit.controls.v2.editor.clipboard.XsdClipboard clipboard;
         private final javafx.scene.layout.StackPane contentStack = new javafx.scene.layout.StackPane();
         private org.fxt.freexmltoolkit.controls.shell.schema.XsdTreeView treeView;
         private org.fxt.freexmltoolkit.controls.v2.view.XsdGraphView xsdGraphView;
@@ -1208,9 +1244,11 @@ public class EditorHost extends BorderPane {
         /** XSD-derived, read-only schema info for XML-instance nodes (lazily built off-thread). */
         private org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider xmlSchemaProvider;
 
-        EditorTab(OpenDocument document, Runnable selectionCallback) {
+        EditorTab(OpenDocument document, Runnable selectionCallback,
+                org.fxt.freexmltoolkit.controls.v2.editor.clipboard.XsdClipboard clipboard) {
             this.document = document;
             this.selectionCallback = selectionCallback;
+            this.clipboard = clipboard;
             this.view = EditorViews.create(document.getFileType());
             contentStack.getChildren().add(view.getNode());
             setContent(contentStack);
@@ -1419,6 +1457,15 @@ public class EditorHost extends BorderPane {
             }
             return executeAndApply(
                     new org.fxt.freexmltoolkit.controls.v2.editor.commands.DuplicateNodeCommand(node));
+        }
+
+        /** Pastes the shell clipboard's node under {@code target} (cut originals are removed). */
+        boolean pasteNode(XsdNode target) {
+            if (target == null || !clipboard.hasContent()) {
+                return false;
+            }
+            return executeAndApply(
+                    new org.fxt.freexmltoolkit.controls.v2.editor.commands.PasteNodeCommand(clipboard, target));
         }
 
         /** Reorders a node among its siblings by {@code delta} (-1 = up, +1 = down). */
@@ -1708,6 +1755,32 @@ public class EditorHost extends BorderPane {
                     if (EditorTab.this.moveNode(node, 1)) {
                         selectionCallback.run();
                     }
+                }
+
+                @Override
+                public void copy(XsdNode node) {
+                    if (node != null) {
+                        clipboard.copy(node);
+                    }
+                }
+
+                @Override
+                public void cut(XsdNode node) {
+                    if (node != null) {
+                        clipboard.cut(node);
+                    }
+                }
+
+                @Override
+                public void paste(XsdNode target) {
+                    if (EditorTab.this.pasteNode(target)) {
+                        selectionCallback.run();
+                    }
+                }
+
+                @Override
+                public boolean canPaste() {
+                    return clipboard.hasContent();
                 }
 
                 @Override

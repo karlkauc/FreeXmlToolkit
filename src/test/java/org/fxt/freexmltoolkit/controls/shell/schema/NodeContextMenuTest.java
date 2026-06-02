@@ -22,8 +22,22 @@ import org.testfx.util.WaitForAsyncUtils;
 @ExtendWith(ApplicationExtension.class)
 class NodeContextMenuTest {
 
+    private Stage stage;
+
     @Start
     void start(Stage stage) {
+        this.stage = stage;
+    }
+
+    /** Invokes the menu's onShowing handler directly (headless popups don't fire it reliably). */
+    private void fireShowing(ContextMenu menu) {
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            if (menu.getOnShowing() != null) {
+                menu.getOnShowing().handle(
+                        new javafx.stage.WindowEvent(stage, javafx.stage.WindowEvent.WINDOW_SHOWING));
+            }
+            return null;
+        });
     }
 
     private MenuItem find(ContextMenu menu, String text) {
@@ -71,6 +85,32 @@ class NodeContextMenuTest {
     }
 
     @Test
+    void firesCopyCutPasteAndDisablesPasteWhenClipboardEmpty() {
+        XsdNode node = new XsdElement("Target");
+        RecordingActions actions = new RecordingActions();
+        ContextMenu menu = WaitForAsyncUtils.waitForAsyncFx(2000, () -> NodeContextMenu.build(actions, () -> node));
+
+        // Clipboard empty → showing the menu disables Paste.
+        actions.canPaste = false;
+        fireShowing(menu);
+        assertTrue(find(menu, "Paste").isDisable(), "Paste must be disabled when the clipboard is empty");
+
+        // Clipboard has content → Paste enabled; fire copy/cut/paste.
+        actions.canPaste = true;
+        fireShowing(menu);
+        assertFalse(find(menu, "Paste").isDisable(), "Paste must be enabled when the clipboard has content");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            find(menu, "Copy").fire();
+            find(menu, "Cut").fire();
+            find(menu, "Paste").fire();
+            return null;
+        });
+        assertSame(node, actions.copied, "Copy must act on the supplied node");
+        assertSame(node, actions.cutted, "Cut must act on the supplied node");
+        assertSame(node, actions.pasted, "Paste must target the supplied node");
+    }
+
+    @Test
     void doesNothingWhenNoCurrentNode() {
         RecordingActions actions = new RecordingActions();
         ContextMenu menu = WaitForAsyncUtils.waitForAsyncFx(2000, () -> NodeContextMenu.build(actions, () -> null));
@@ -90,6 +130,10 @@ class NodeContextMenuTest {
         XsdNode duplicated;
         XsdNode movedUp;
         XsdNode movedDown;
+        XsdNode copied;
+        XsdNode cutted;
+        XsdNode pasted;
+        boolean canPaste;
 
         @Override
         public void addElement(XsdNode parent, String name) {
@@ -117,6 +161,26 @@ class NodeContextMenuTest {
         @Override
         public void duplicate(XsdNode node) {
             duplicated = node;
+        }
+
+        @Override
+        public void copy(XsdNode node) {
+            copied = node;
+        }
+
+        @Override
+        public void cut(XsdNode node) {
+            cutted = node;
+        }
+
+        @Override
+        public void paste(XsdNode target) {
+            pasted = target;
+        }
+
+        @Override
+        public boolean canPaste() {
+            return canPaste;
         }
 
         @Override

@@ -26,6 +26,7 @@ public final class NodeContextMenu {
     /** @return a context menu whose items invoke {@code actions} on {@code currentNode.get()}. */
     public static ContextMenu build(NodeEditActions actions, Supplier<XsdNode> currentNode) {
         ContextMenu menu = new ContextMenu();
+        MenuItem paste = item("Paste", "bi-clipboard-plus", currentNode, actions::paste);
         menu.getItems().addAll(
                 item("Add Element…", "bi-plus-circle", currentNode,
                         node -> promptName(actions::addElement, node, "Add Element", "NewElement")),
@@ -39,11 +40,17 @@ public final class NodeContextMenu {
                 item("Change Type…", "bi-type", currentNode, node -> promptChangeType(actions, node)),
                 item("Change Cardinality…", "bi-arrows-expand", currentNode, node -> promptCardinality(actions, node)),
                 new SeparatorMenuItem(),
+                item("Copy", "bi-clipboard", currentNode, actions::copy),
+                item("Cut", "bi-scissors", currentNode, actions::cut),
+                paste,
+                new SeparatorMenuItem(),
                 item("Duplicate", "bi-copy", currentNode, actions::duplicate),
                 item("Move Up", "bi-arrow-up", currentNode, actions::moveUp),
                 item("Move Down", "bi-arrow-down", currentNode, actions::moveDown),
                 new SeparatorMenuItem(),
                 item("Delete", "bi-trash", currentNode, actions::delete));
+        // Enable Paste only when the clipboard holds a node (re-checked on each open).
+        menu.setOnShowing(e -> paste.setDisable(!actions.canPaste()));
         return menu;
     }
 

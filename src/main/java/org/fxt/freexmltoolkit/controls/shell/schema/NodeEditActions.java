@@ -26,6 +26,15 @@ public interface NodeEditActions {
 
     void moveDown(XsdNode node);
 
+    void copy(XsdNode node);
+
+    void cut(XsdNode node);
+
+    void paste(XsdNode target);
+
+    /** @return whether the clipboard currently holds a node to paste. */
+    boolean canPaste();
+
     void rename(XsdNode node, String newName);
 
     void changeType(XsdNode node, String newType);
