@@ -93,12 +93,15 @@ public final class SchemaFacets {
         if (typeName == null || !visited.add(typeName)) {
             return; // unknown/builtin, or already visited (circular reference guard)
         }
-        XsdNode named = null;
-        for (XsdNode child : schemaRoot.getChildren()) {
-            if (child.getNodeType() == org.fxt.freexmltoolkit.controls.v2.model.XsdNodeType.SIMPLE_TYPE
-                    && typeName.equals(child.getName())) {
-                named = child;
-                break;
+        XsdNode named = findSimpleType(schemaRoot, typeName);
+        // xs:include inlines types as children of the main schema (found above); xs:import keeps
+        // them in separate imported schemas, so search those too.
+        if (named == null && schemaRoot instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdSchema xsdSchema) {
+            for (var imported : xsdSchema.getImportedSchemas().values()) {
+                named = findSimpleType(imported, typeName);
+                if (named != null) {
+                    break;
+                }
             }
         }
         if (named == null) {
@@ -107,6 +110,20 @@ public final class SchemaFacets {
         out.addAll(collect(named));
         collectBaseChain(named, schemaRoot, out, visited);
         collectListUnion(named, schemaRoot, out, visited);
+    }
+
+    /** @return the direct {@code xs:simpleType} child of {@code schema} with the given name. */
+    private static XsdNode findSimpleType(XsdNode schema, String typeName) {
+        if (schema == null) {
+            return null;
+        }
+        for (XsdNode child : schema.getChildren()) {
+            if (child.getNodeType() == org.fxt.freexmltoolkit.controls.v2.model.XsdNodeType.SIMPLE_TYPE
+                    && typeName.equals(child.getName())) {
+                return child;
+            }
+        }
+        return null;
     }
 
     /** Follows the node's inline restriction's named {@code base} to its effective facets. */

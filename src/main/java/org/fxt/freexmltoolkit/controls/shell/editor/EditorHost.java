@@ -1354,8 +1354,16 @@ public class EditorHost extends BorderPane {
 
         private void parseModel() {
             try {
-                editorContext = new org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext(
-                        new org.fxt.freexmltoolkit.controls.v2.model.XsdNodeFactory().fromString(view.getText()));
+                var factory = new org.fxt.freexmltoolkit.controls.v2.model.XsdNodeFactory();
+                java.nio.file.Path path = document.getPath();
+                // Resolve xs:include / xs:import relative to the file's directory when on disk, so
+                // the Type Library and facet/type resolution see externally defined types. The
+                // included nodes are tagged isFromInclude (preserveIncludeStructure) and are
+                // excluded again on round-trip so the include structure is never flattened.
+                org.fxt.freexmltoolkit.controls.v2.model.XsdSchema schema = path != null
+                        ? factory.fromStringWithSchemaFile(view.getText(), path, path.getParent())
+                        : factory.fromString(view.getText());
+                editorContext = new org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext(schema);
                 lastParsedText = view.getText();
                 // A new context means a new schema: ensureCanvasGraphic() rebuilds the
                 // Graphic view (it compares getEditorContext() and discards the stale one).
@@ -1628,8 +1636,11 @@ public class EditorHost extends BorderPane {
                 return;
             }
             roundTripDebounce.stop(); // we are doing the work now; cancel any pending run
-            String xml = new org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSerializer()
-                    .serialize(editorContext.getSchema());
+            var serializer = new org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSerializer();
+            // Keep the xs:include/xs:import directives but never write back the inlined external
+            // content, so editing the main schema does not flatten its includes.
+            serializer.setExcludeIncludedNodes(true);
+            String xml = serializer.serialize(editorContext.getSchema());
             String current = view.getText();
             // Thin diff layer (P6): rewrite only the region that actually changed, instead of
             // replacing the whole document — preserves the editor caret/scroll and avoids
