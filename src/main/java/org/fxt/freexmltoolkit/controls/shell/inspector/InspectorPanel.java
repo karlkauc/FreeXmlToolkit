@@ -91,7 +91,14 @@ public class InspectorPanel extends VBox {
     private final TextArea xmlTextArea = new TextArea();
     private final TableView<AttrEntry> xmlAttrTable = new TableView<>();
     private Label xmlTextLabel;
+    private VBox xmlTextBox;
     private VBox xmlAttrBox;
+    private final TextField attrNameField = new TextField();
+    private final TextField attrValueField = new TextField();
+    // XML element namespace (prefix + URI)
+    private final TextField nsPrefixField = editField("inspector-ns-prefix");
+    private final TextField nsUriField = editField("inspector-ns-uri");
+    private TitledPane namespaceSection;
     // XSD-derived, read-only info shown for an XML element when a schema is bound
     private final Label xmlSchemaTypeValue = roLabel();
     private final Label xmlSchemaDocValue = roLabel();
@@ -144,11 +151,13 @@ public class InspectorPanel extends VBox {
         getChildren().add(section("NODE & XPATH", new VBox(4,
                 row("Kind", kindValue), row("Name", nameField), row("XPath", xpathValue), row("Depth", depthValue))));
         typeFacetsSection = section("TYPE & FACETS", buildTypeFacetsBody());
+        namespaceSection = section("NAMESPACE", buildNamespaceBody());
         valueAttrSection = section("VALUE & ATTRIBUTES", buildValueAttrBody());
         cardUseSection = section("CARDINALITY & USE", buildCardinalityBody());
         constraintsSection = section("CONSTRAINTS", buildConstraintsBody());
         docSection = section("DOCUMENTATION & REFS", buildDocBody());
-        getChildren().addAll(typeFacetsSection, valueAttrSection, cardUseSection, constraintsSection, docSection);
+        getChildren().addAll(typeFacetsSection, namespaceSection, valueAttrSection, cardUseSection,
+                constraintsSection, docSection);
 
         wireEditing();
 
@@ -239,6 +248,7 @@ public class InspectorPanel extends VBox {
 
         javafx.scene.control.Button addBtn = new javafx.scene.control.Button("Add");
         addBtn.setId("inspector-facet-add");
+        addBtn.setMinWidth(javafx.scene.layout.Region.USE_PREF_SIZE);
         addBtn.setOnAction(e -> {
             var type = facetTypeCombo.getValue();
             String value = facetValueField.getText();
@@ -249,6 +259,7 @@ public class InspectorPanel extends VBox {
         });
         javafx.scene.control.Button delBtn = new javafx.scene.control.Button("Delete");
         delBtn.setId("inspector-facet-delete");
+        delBtn.setMinWidth(javafx.scene.layout.Region.USE_PREF_SIZE);
         delBtn.setOnAction(e -> {
             XsdFacet sel = facetTable.getSelectionModel().getSelectedItem();
             if (sel != null && !inheritedFacets.contains(sel)) {
@@ -299,7 +310,14 @@ public class InspectorPanel extends VBox {
 
         TableColumn<AttrEntry, String> nameCol = new TableColumn<>("Attribute");
         nameCol.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(c.getValue().getName()));
+        nameCol.setCellFactory(javafx.scene.control.cell.TextFieldTableCell.forTableColumn());
         nameCol.setPrefWidth(140);
+        nameCol.setEditable(true);
+        nameCol.setOnEditCommit(e -> {
+            if (!updating && e.getRowValue() != null && !e.getNewValue().isBlank()) {
+                editorHost.renameActiveXmlAttribute(e.getRowValue().getName(), e.getNewValue().trim());
+            }
+        });
         TableColumn<AttrEntry, String> valueCol = new TableColumn<>("Value");
         valueCol.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(c.getValue().getValue()));
         valueCol.setCellFactory(javafx.scene.control.cell.TextFieldTableCell.forTableColumn());
@@ -319,11 +337,59 @@ public class InspectorPanel extends VBox {
 
         xmlTextLabel = new Label("Text");
         xmlTextLabel.getStyleClass().add("fxt-inspector-key");
+        xmlTextBox = new VBox(4, xmlTextLabel, xmlTextArea);
         Label attrLabel = new Label("Attributes");
         attrLabel.getStyleClass().add("fxt-inspector-key");
-        xmlAttrBox = new VBox(4, attrLabel, xmlAttrTable);
+        xmlAttrBox = new VBox(4, attrLabel, xmlAttrTable, buildXmlAttrAddRow());
         xmlSchemaBox = new VBox(4, row("Schema type", xmlSchemaTypeValue), row("Documentation", xmlSchemaDocValue));
-        return new VBox(4, xmlTextLabel, xmlTextArea, xmlAttrBox, xmlSchemaBox);
+        return new VBox(4, xmlTextBox, xmlAttrBox, xmlSchemaBox);
+    }
+
+    /** Add-attribute (name + value) and Delete (selected) row for the XML attributes table. */
+    private Node buildXmlAttrAddRow() {
+        attrNameField.setId("inspector-xml-attr-name");
+        attrNameField.getStyleClass().add("fxt-inspector-edit");
+        attrNameField.setPromptText("name");
+        attrValueField.setId("inspector-xml-attr-value");
+        attrValueField.getStyleClass().add("fxt-inspector-edit");
+        attrValueField.setPromptText("value");
+        HBox.setHgrow(attrValueField, Priority.ALWAYS);
+
+        javafx.scene.control.Button add = new javafx.scene.control.Button("Add");
+        add.setId("inspector-xml-attr-add");
+        add.setMinWidth(javafx.scene.layout.Region.USE_PREF_SIZE);
+        add.setOnAction(e -> {
+            String name = attrNameField.getText();
+            if (name != null && !name.isBlank()) {
+                editorHost.setActiveXmlAttribute(name.trim(),
+                        attrValueField.getText() == null ? "" : attrValueField.getText());
+                attrNameField.clear();
+                attrValueField.clear();
+            }
+        });
+        javafx.scene.control.Button del = new javafx.scene.control.Button("Delete");
+        del.setId("inspector-xml-attr-delete");
+        del.setMinWidth(javafx.scene.layout.Region.USE_PREF_SIZE);
+        del.setOnAction(e -> {
+            AttrEntry sel = xmlAttrTable.getSelectionModel().getSelectedItem();
+            if (sel != null) {
+                editorHost.removeActiveXmlAttribute(sel.getName());
+            }
+        });
+        HBox addRow = new HBox(6, attrNameField, attrValueField, add, del);
+        addRow.setAlignment(Pos.CENTER_LEFT);
+        return addRow;
+    }
+
+    /** Editable element namespace prefix + URI; both commit via setActiveElementNamespace. */
+    private Node buildNamespaceBody() {
+        commitOnEnterAndBlur(nsPrefixField, this::commitNamespace);
+        commitOnEnterAndBlur(nsUriField, this::commitNamespace);
+        return new VBox(4, row("Prefix", nsPrefixField), row("URI", nsUriField));
+    }
+
+    private void commitNamespace() {
+        commit(() -> editorHost.setActiveElementNamespace(nsPrefixField.getText(), nsUriField.getText()));
     }
 
     private void wireEditing() {
@@ -502,6 +568,7 @@ public class InspectorPanel extends VBox {
         constraintsTable.getItems().setAll(constraints);
         show(constraintsSection, !constraints.isEmpty());
         show(docSection, true);
+        show(namespaceSection, false);
         show(valueAttrSection, false);
     }
 
@@ -514,9 +581,18 @@ public class InspectorPanel extends VBox {
         xpathValue.setText(xmlXPath(el));
         depthValue.setText(Integer.toString(xmlDepth(el)));
 
+        // Namespace (prefix + URI).
+        nsPrefixField.setText(el.getNamespacePrefix() == null ? "" : el.getNamespacePrefix());
+        nsUriField.setText(el.getNamespaceURI() == null ? "" : el.getNamespaceURI());
+        show(namespaceSection, true);
+
+        // Text content is only editable for leaf elements (no child elements → no mixed content).
+        boolean leaf = !el.hasElementChildren();
         xmlTextLabel.setText("Text");
         xmlTextArea.setEditable(true);
-        xmlTextArea.setText(el.getTextContent() == null ? "" : el.getTextContent());
+        xmlTextArea.setText(leaf && el.getTextContent() != null ? el.getTextContent() : "");
+        show(xmlTextBox, leaf);
+
         List<AttrEntry> entries = new ArrayList<>();
         el.getAttributes().forEach((k, v) -> entries.add(new AttrEntry(k, v)));
         xmlAttrTable.getItems().setAll(entries);
@@ -585,10 +661,12 @@ public class InspectorPanel extends VBox {
         xmlTextLabel.setText("Value");
         xmlTextArea.setEditable(false);
         xmlTextArea.setText(jsonValue(node));
+        show(xmlTextBox, true);
         show(xmlAttrBox, false);
         show(xmlSchemaBox, false);
 
         showXsdSections(false);
+        show(namespaceSection, false);
         show(valueAttrSection, true);
     }
 
@@ -694,6 +772,7 @@ public class InspectorPanel extends VBox {
         }
         show(docBox, false);
         showXsdSections(false);
+        show(namespaceSection, false);
         show(valueAttrSection, false);
     }
 
@@ -922,6 +1001,26 @@ public class InspectorPanel extends VBox {
     /** @return the number of XML attributes currently shown (for tests/observers). */
     public int getXmlAttributeCount() {
         return xmlAttrTable.getItems().size();
+    }
+
+    /** @return the element namespace prefix shown (for tests/observers). */
+    public String getNamespacePrefixText() {
+        return nsPrefixField.getText() == null ? "" : nsPrefixField.getText();
+    }
+
+    /** @return the element namespace URI shown (for tests/observers). */
+    public String getNamespaceUriText() {
+        return nsUriField.getText() == null ? "" : nsUriField.getText();
+    }
+
+    /** @return whether the NAMESPACE section is visible (for tests/observers). */
+    public boolean isNamespaceSectionVisible() {
+        return namespaceSection.isVisible();
+    }
+
+    /** @return whether the editable Text box is visible (hidden for container elements). */
+    public boolean isXmlTextVisible() {
+        return xmlTextBox.isVisible();
     }
 
     /** A name/value row in the XML attributes table. */

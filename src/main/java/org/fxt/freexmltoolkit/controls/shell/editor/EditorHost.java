@@ -864,6 +864,20 @@ public class EditorHost extends BorderPane {
                 new org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.RemoveAttributeCommand(el, name));
     }
 
+    /** Renames an attribute key on the selected XML element (value + position preserved). */
+    public boolean renameActiveXmlAttribute(String oldName, String newName) {
+        return editActiveXml(el ->
+                new org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.RenameAttributeCommand(
+                        el, oldName, newName));
+    }
+
+    /** Sets the selected XML element's namespace prefix + URI (maintaining the xmlns declaration). */
+    public boolean setActiveElementNamespace(String prefix, String uri) {
+        return editActiveXml(el ->
+                new org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.SetElementNamespaceCommand(
+                        el, prefix, uri));
+    }
+
     private boolean editActiveXml(
             java.util.function.Function<org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement,
                     org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.XmlCommand> factory) {

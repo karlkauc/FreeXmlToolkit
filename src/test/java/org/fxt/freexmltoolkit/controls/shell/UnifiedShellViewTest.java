@@ -59,9 +59,9 @@ class UnifiedShellViewTest {
         Set<String> titles = shell.lookupAll(".fxt-inspector-section").stream()
                 .map(n -> ((TitledPane) n).getText())
                 .collect(java.util.stream.Collectors.toSet());
-        // The editable inspector's flat sections (VALUE & ATTRIBUTES added for XML/JSON nodes,
+        // The editable inspector's flat sections (NAMESPACE + VALUE & ATTRIBUTES for XML nodes,
         // CONSTRAINTS for read-only identity constraints / assertions).
-        assertEquals(Set.of("NODE & XPATH", "TYPE & FACETS", "VALUE & ATTRIBUTES",
+        assertEquals(Set.of("NODE & XPATH", "TYPE & FACETS", "NAMESPACE", "VALUE & ATTRIBUTES",
                 "CARDINALITY & USE", "CONSTRAINTS", "DOCUMENTATION & REFS"), titles,
                 "Inspector must show the flat sections");
     }
