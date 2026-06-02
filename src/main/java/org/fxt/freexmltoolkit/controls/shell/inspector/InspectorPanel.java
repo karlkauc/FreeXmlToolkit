@@ -26,6 +26,7 @@ import javafx.util.Duration;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType;
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost;
+import org.fxt.freexmltoolkit.controls.shell.schema.SchemaConstraints;
 import org.fxt.freexmltoolkit.controls.shell.schema.SchemaFacets;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.context.XPathCalculator;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute;
@@ -99,6 +100,9 @@ public class InspectorPanel extends VBox {
     private TitledPane cardUseSection;
     private TitledPane docSection;
     private TitledPane valueAttrSection;
+    private TitledPane constraintsSection;
+    // Read-only identity constraints / assertions of the selected node.
+    private final TableView<SchemaConstraints.ConstraintInfo> constraintsTable = new TableView<>();
 
     // Rows toggled by node type
     private HBox typeRow;
@@ -142,8 +146,9 @@ public class InspectorPanel extends VBox {
         typeFacetsSection = section("TYPE & FACETS", buildTypeFacetsBody());
         valueAttrSection = section("VALUE & ATTRIBUTES", buildValueAttrBody());
         cardUseSection = section("CARDINALITY & USE", buildCardinalityBody());
+        constraintsSection = section("CONSTRAINTS", buildConstraintsBody());
         docSection = section("DOCUMENTATION & REFS", buildDocBody());
-        getChildren().addAll(typeFacetsSection, valueAttrSection, cardUseSection, docSection);
+        getChildren().addAll(typeFacetsSection, valueAttrSection, cardUseSection, constraintsSection, docSection);
 
         wireEditing();
 
@@ -492,6 +497,10 @@ public class InspectorPanel extends VBox {
         show(facetBox, facets);
         show(typeFacetsSection, isElement || isAttribute || facets);
         show(cardUseSection, isElement || isAttribute);
+        // Identity constraints / assertions (read-only) — shown only when the node has any.
+        java.util.List<SchemaConstraints.ConstraintInfo> constraints = SchemaConstraints.collect(node);
+        constraintsTable.getItems().setAll(constraints);
+        show(constraintsSection, !constraints.isEmpty());
         show(docSection, true);
         show(valueAttrSection, false);
     }
@@ -628,9 +637,29 @@ public class InspectorPanel extends VBox {
         return depth;
     }
 
+    @SuppressWarnings("unchecked")
+    private Node buildConstraintsBody() {
+        TableColumn<SchemaConstraints.ConstraintInfo, String> kindCol = new TableColumn<>("Kind");
+        kindCol.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(c.getValue().kind()));
+        kindCol.setPrefWidth(70);
+        TableColumn<SchemaConstraints.ConstraintInfo, String> nameCol = new TableColumn<>("Name");
+        nameCol.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(c.getValue().name()));
+        nameCol.setPrefWidth(90);
+        TableColumn<SchemaConstraints.ConstraintInfo, String> detailCol = new TableColumn<>("Detail");
+        detailCol.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(c.getValue().detail()));
+        detailCol.setPrefWidth(200);
+        constraintsTable.getColumns().setAll(kindCol, nameCol, detailCol);
+        constraintsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+        constraintsTable.setPrefHeight(110);
+        constraintsTable.getStyleClass().add("fxt-facet-table");
+        constraintsTable.setPlaceholder(new Label("No constraints"));
+        return constraintsTable;
+    }
+
     private void showXsdSections(boolean visible) {
         show(typeFacetsSection, visible);
         show(cardUseSection, visible);
+        show(constraintsSection, visible);
         show(docSection, visible);
     }
 
@@ -883,6 +912,11 @@ public class InspectorPanel extends VBox {
     /** @return how many of the shown facets are read-only inherited (for tests/observers). */
     public int getInheritedFacetCount() {
         return inheritedFacets.size();
+    }
+
+    /** @return the number of identity constraints / assertions shown (for tests/observers). */
+    public int getConstraintCount() {
+        return constraintsTable.getItems().size();
     }
 
     /** @return the number of XML attributes currently shown (for tests/observers). */
