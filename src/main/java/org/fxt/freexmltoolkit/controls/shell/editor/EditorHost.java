@@ -1206,6 +1206,118 @@ public class EditorHost extends BorderPane {
         return java.util.Optional.empty();
     }
 
+    /** @return the schema-allowed child element (local) names for the element at the given XPath. */
+    public java.util.List<String> resolveValidChildren(String elementXPath) {
+        var map = activeXsdElementMap();
+        var element = activeXsdElement(elementXPath);
+        if (map == null || element == null) {
+            return java.util.List.of();
+        }
+        java.util.List<String> out = new java.util.ArrayList<>();
+        collectChildElementNames(element, map, out, new java.util.HashSet<>());
+        return out.stream().distinct().toList();
+    }
+
+    /** Collects real child element names, descending through compositor nodes (sequence/choice/all). */
+    private void collectChildElementNames(org.fxt.freexmltoolkit.domain.XsdExtendedElement element,
+            java.util.Map<String, org.fxt.freexmltoolkit.domain.XsdExtendedElement> map,
+            java.util.List<String> out, java.util.Set<String> visited) {
+        if (element.getChildren() == null) {
+            return;
+        }
+        for (String childXPath : element.getChildren()) {
+            if (childXPath == null || childXPath.contains("@") || !visited.add(childXPath)) {
+                continue; // attributes / cycles
+            }
+            String local = localXmlName(childXPath);
+            if (isCompositorName(local)) {
+                var child = map.get(childXPath);
+                if (child != null) {
+                    collectChildElementNames(child, map, out, visited);
+                }
+            } else if (local != null && !local.isBlank()) {
+                out.add(local);
+            }
+        }
+    }
+
+    /** @return true for the synthetic compositor node names the documentation model inserts. */
+    private static boolean isCompositorName(String name) {
+        return name != null && name.matches("(?i)(SEQUENCE|CHOICE|ALL|GROUP)(_\\d+)?");
+    }
+
+    /** @return example/allowed values for the element at the given XPath (xs:example, else enumeration). */
+    public java.util.List<String> resolveExampleValues(String elementXPath) {
+        var element = activeXsdElement(elementXPath);
+        java.util.List<String> values = new java.util.ArrayList<>();
+        if (element != null && element.getExampleValues() != null) {
+            values.addAll(element.getExampleValues());
+        }
+        if (values.isEmpty()) {
+            resolveActiveXmlElementInfo(elementXPath).ifPresent(info -> {
+                if (info.enumerationValues() != null) {
+                    values.addAll(info.enumerationValues());
+                }
+            });
+        }
+        return values.stream().filter(s -> s != null && !s.isBlank()).distinct().toList();
+    }
+
+    /** Adds a new child element with the given name to the selected XML element. */
+    public boolean addActiveXmlChildElement(String name) {
+        return editActiveXml(el -> new org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.AddElementCommand(
+                el, new org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement(name)));
+    }
+
+    /** @return the active document's XSD element map (xpath → extended element), or {@code null}. */
+    private java.util.Map<String, org.fxt.freexmltoolkit.domain.XsdExtendedElement> activeXsdElementMap() {
+        Tab tab = tabPane.getSelectionModel().getSelectedItem();
+        if (tab instanceof EditorTab et
+                && et.xmlSchemaProvider
+                        instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XsdSchemaAdapter adapter
+                && adapter.getXsdDocumentationData() != null) {
+            return adapter.getXsdDocumentationData().getExtendedXsdElementMap();
+        }
+        return null;
+    }
+
+    private org.fxt.freexmltoolkit.domain.XsdExtendedElement activeXsdElement(String xpath) {
+        var map = activeXsdElementMap();
+        if (map == null || xpath == null) {
+            return null;
+        }
+        if (map.containsKey(xpath)) {
+            return map.get(xpath);
+        }
+        String norm = xpath.startsWith("/") ? xpath : "/" + xpath;
+        if (map.containsKey(norm)) {
+            return map.get(norm);
+        }
+        String local = localXmlName(xpath);
+        if (local != null) {
+            for (var entry : map.entrySet()) {
+                if (entry.getKey().endsWith("/" + local)) {
+                    return entry.getValue();
+                }
+            }
+        }
+        return null;
+    }
+
+    /** @return the local element name from an XPath/child reference (last segment, no prefix/predicate). */
+    private static String localXmlName(String ref) {
+        if (ref == null || ref.isBlank()) {
+            return null;
+        }
+        String last = ref.substring(ref.lastIndexOf('/') + 1);
+        int bracket = last.indexOf('[');
+        if (bracket >= 0) {
+            last = last.substring(0, bracket);
+        }
+        int colon = last.indexOf(':');
+        return colon >= 0 ? last.substring(colon + 1) : last;
+    }
+
     private boolean write(EditorTab tab, Path target) {
         try {
             Files.writeString(target, tab.view.getText(), StandardCharsets.UTF_8);

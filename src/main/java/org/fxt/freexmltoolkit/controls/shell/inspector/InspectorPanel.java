@@ -114,6 +114,8 @@ public class InspectorPanel extends VBox {
     // XSD-derived, read-only info shown for an XML element when a schema is bound
     private final Label xmlSchemaTypeValue = roLabel();
     private final Label xmlSchemaDocValue = roLabel();
+    private final javafx.scene.control.ListView<String> validChildrenList = new javafx.scene.control.ListView<>();
+    private final javafx.scene.control.ListView<String> exampleValuesList = new javafx.scene.control.ListView<>();
     private VBox xmlSchemaBox;
     private TitledPane typeFacetsSection;
     private TitledPane cardUseSection;
@@ -356,7 +358,30 @@ public class InspectorPanel extends VBox {
         Label attrLabel = new Label("Attributes");
         attrLabel.getStyleClass().add("fxt-inspector-key");
         xmlAttrBox = new VBox(4, attrLabel, xmlAttrTable, buildXmlAttrAddRow());
-        xmlSchemaBox = new VBox(4, row("Schema type", xmlSchemaTypeValue), row("Documentation", xmlSchemaDocValue));
+        validChildrenList.setId("inspector-valid-children");
+        validChildrenList.setPrefHeight(90);
+        validChildrenList.setPlaceholder(new Label("—"));
+        validChildrenList.setOnMouseClicked(e -> {
+            String sel = validChildrenList.getSelectionModel().getSelectedItem();
+            if (e.getClickCount() == 2 && sel != null) {
+                editorHost.addActiveXmlChildElement(sel);
+            }
+        });
+        exampleValuesList.setId("inspector-example-values");
+        exampleValuesList.setPrefHeight(70);
+        exampleValuesList.setPlaceholder(new Label("—"));
+        exampleValuesList.setOnMouseClicked(e -> {
+            String sel = exampleValuesList.getSelectionModel().getSelectedItem();
+            if (e.getClickCount() == 2 && sel != null) {
+                editorHost.setActiveXmlElementText(sel);
+            }
+        });
+        Label childrenLabel = new Label("Valid children (double-click to add)");
+        childrenLabel.getStyleClass().add("fxt-inspector-key");
+        Label examplesLabel = new Label("Example values (double-click to set)");
+        examplesLabel.getStyleClass().add("fxt-inspector-key");
+        xmlSchemaBox = new VBox(4, row("Schema type", xmlSchemaTypeValue), row("Documentation", xmlSchemaDocValue),
+                childrenLabel, validChildrenList, examplesLabel, exampleValuesList);
         return new VBox(4, xmlTextBox, xmlAttrBox, xmlSchemaBox);
     }
 
@@ -733,11 +758,14 @@ public class InspectorPanel extends VBox {
         show(xmlAttrBox, true);
 
         // XSD-derived read-only info, when a schema is bound to the document.
-        var info = editorHost.resolveActiveXmlElementInfo(xmlXPath(el));
+        String xpath = xmlXPath(el);
+        var info = editorHost.resolveActiveXmlElementInfo(xpath);
         if (info.isPresent()) {
             xmlSchemaTypeValue.setText(blankToPlaceholder(info.get().typeName()));
             String doc = htmlToPlainText(info.get().documentation());
             xmlSchemaDocValue.setText(doc.isBlank() ? PLACEHOLDER : doc);
+            validChildrenList.getItems().setAll(editorHost.resolveValidChildren(xpath));
+            exampleValuesList.getItems().setAll(editorHost.resolveExampleValues(xpath));
             show(xmlSchemaBox, true);
         } else {
             show(xmlSchemaBox, false);
@@ -1115,6 +1143,16 @@ public class InspectorPanel extends VBox {
     /** @return the XSD-derived documentation shown for a selected XML element (for tests/observers). */
     public String getSchemaDocText() {
         return xmlSchemaDocValue.getText() == null ? "" : xmlSchemaDocValue.getText();
+    }
+
+    /** @return the number of valid child elements listed (for tests/observers). */
+    public int getValidChildCount() {
+        return validChildrenList.getItems().size();
+    }
+
+    /** @return the number of example values listed (for tests/observers). */
+    public int getExampleValueCount() {
+        return exampleValuesList.getItems().size();
     }
 
     /** @return the number of facets currently shown (for tests/observers). */
