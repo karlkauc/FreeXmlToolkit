@@ -3,6 +3,7 @@ package org.fxt.freexmltoolkit.controls.shell.editor;
 import java.nio.file.Path;
 
 import org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSerializer;
+import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdQualityChecker;
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdStatistics;
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdStatisticsCollector;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNodeFactory;
@@ -102,6 +103,67 @@ public final class SchemaActionRunner {
         } catch (Exception e) {
             return "ERROR: " + e.getMessage();
         }
+    }
+
+    /**
+     * Runs the V2 {@link XsdQualityChecker} and renders a readable report: overall score, naming
+     * convention, checks passed, and the issues grouped by severity (with suggestion + location).
+     *
+     * @return the report text, or {@code "ERROR: …"} if the schema could not be parsed
+     */
+    public static String qualityReport(String xsdContent) {
+        try {
+            XsdSchema schema = new XsdNodeFactory().fromString(xsdContent);
+            XsdQualityChecker.QualityResult result = new XsdQualityChecker(schema).check();
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("Schema Quality Report\n")
+                    .append("=====================\n")
+                    .append("Score:             ").append(result.score()).append(" / 100 (")
+                    .append(result.getScoreDescription()).append(")\n")
+                    .append("Naming convention: ")
+                    .append(result.dominantNamingConvention() == null
+                            ? "—" : result.dominantNamingConvention().getDisplayName()).append("\n")
+                    .append("Checks passed:     ").append(result.passedChecks())
+                    .append(" / ").append(result.totalChecks()).append("\n")
+                    .append("Issues:            ").append(result.issues().size()).append("\n");
+
+            for (XsdQualityChecker.IssueSeverity severity : XsdQualityChecker.IssueSeverity.values()) {
+                var bySeverity = result.issues().stream()
+                        .filter(i -> i.severity() == severity).toList();
+                if (bySeverity.isEmpty()) {
+                    continue;
+                }
+                String header = severity + " (" + bySeverity.size() + ")";
+                sb.append("\n").append(header).append("\n").append("-".repeat(header.length())).append("\n");
+                for (XsdQualityChecker.QualityIssue issue : bySeverity) {
+                    sb.append("• ").append(issue.message());
+                    String where = issueLocation(issue);
+                    if (!where.isEmpty()) {
+                        sb.append("  [").append(where).append("]");
+                    }
+                    sb.append("\n");
+                    if (issue.suggestion() != null && !issue.suggestion().isBlank()) {
+                        sb.append("    ↳ ").append(issue.suggestion()).append("\n");
+                    }
+                }
+            }
+            return sb.toString();
+        } catch (Exception e) {
+            return "ERROR: " + e.getMessage();
+        }
+    }
+
+    /** @return a short location hint for an issue (xpath, affected elements, or source file). */
+    private static String issueLocation(XsdQualityChecker.QualityIssue issue) {
+        if (issue.xpath() != null && !issue.xpath().isBlank()) {
+            return issue.xpath();
+        }
+        if (issue.affectedElements() != null && !issue.affectedElements().isEmpty()) {
+            return String.join(", ", issue.affectedElements());
+        }
+        String file = issue.getSourceFileName();
+        return file == null ? "" : file;
     }
 
     /**

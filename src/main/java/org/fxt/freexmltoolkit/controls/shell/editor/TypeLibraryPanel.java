@@ -60,6 +60,7 @@ public class TypeLibraryPanel extends VBox {
                 actionButton("Generate XSD (Batch)…", "bi-files", this::generateXsdBatch),
                 actionButton("Flatten Schema", "bi-layers", this::flattenActive),
                 actionButton("Statistics", "bi-bar-chart", this::statisticsActive),
+                actionButton("Schema Quality", "bi-patch-check", this::qualityActive),
                 actionButton("Generate Sample XML", "bi-filetype-xml", this::generateSampleXmlForActive),
                 actionButton("Generate Documentation", "bi-file-earmark-text", this::generateDocumentationForActive));
 
@@ -142,6 +143,11 @@ public class TypeLibraryPanel extends VBox {
     /** Collects statistics for the active XSD and opens a text report (async). */
     public void statisticsActive() {
         runAsync(SchemaActionRunner::statistics, EditorFileType.OTHER, "Statistics.txt");
+    }
+
+    /** Runs the schema quality checker and opens its report in a new tab. */
+    public void qualityActive() {
+        runAsync(SchemaActionRunner::qualityReport, EditorFileType.OTHER, "SchemaQuality.txt");
     }
 
     /**
