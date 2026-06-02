@@ -6,6 +6,7 @@ import org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSerializer;
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdStatistics;
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdStatisticsCollector;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNodeFactory;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdNodeType;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.fxt.freexmltoolkit.service.SchemaGenerationEngine;
 import org.fxt.freexmltoolkit.service.SchemaGenerationOptions;
@@ -65,8 +66,14 @@ public final class SchemaActionRunner {
         try {
             XsdSchema schema = new XsdNodeFactory().fromString(xsdContent);
             XsdStatistics s = new XsdStatisticsCollector(schema).collect();
+            java.util.Set<String> unused = s.unusedTypes() == null
+                    ? java.util.Set.of() : s.unusedTypes();
+            String unusedList = unused.isEmpty() ? ""
+                    : "  (" + unused.stream().sorted().limit(20).collect(java.util.stream.Collectors.joining(", "))
+                    + (unused.size() > 20 ? ", …" : "") + ")";
             return "Schema Statistics\n"
                     + "=================\n"
+                    + "XSD version:     " + (s.isXsd11() ? "1.1" : "1.0") + "\n"
                     + "Elements:        " + s.getElementCount() + "\n"
                     + "Attributes:      " + s.getAttributeCount() + "\n"
                     + "Complex types:   " + s.getComplexTypeCount() + "\n"
@@ -74,7 +81,24 @@ public final class SchemaActionRunner {
                     + "Groups:          " + s.getGroupCount() + "\n"
                     + "Attribute groups:" + s.getAttributeGroupCount() + "\n"
                     + "Includes:        " + s.getIncludeCount() + "\n"
-                    + "Imports:         " + s.getImportCount() + "\n";
+                    + "Imports:         " + s.getImportCount() + "\n"
+                    + "\nConstraints\n"
+                    + "-----------\n"
+                    + "Keys:            " + s.getNodeCount(XsdNodeType.KEY) + "\n"
+                    + "Key refs:        " + s.getNodeCount(XsdNodeType.KEYREF) + "\n"
+                    + "Unique:          " + s.getNodeCount(XsdNodeType.UNIQUE) + "\n"
+                    + "Assertions:      " + s.getNodeCount(XsdNodeType.ASSERT) + "\n"
+                    + "\nCardinality\n"
+                    + "-----------\n"
+                    + "Optional elements:  " + s.optionalElements() + "\n"
+                    + "Required elements:  " + s.requiredElements() + "\n"
+                    + "Unbounded elements: " + s.unboundedElements() + "\n"
+                    + "\nQuality\n"
+                    + "-------\n"
+                    + "Documentation coverage: "
+                    + String.format(java.util.Locale.ROOT, "%.1f%%", s.documentationCoveragePercent()) + "\n"
+                    + "Unused named types:     " + unused.size() + unusedList + "\n"
+                    + "Total nodes:            " + s.totalNodeCount() + "\n";
         } catch (Exception e) {
             return "ERROR: " + e.getMessage();
         }
