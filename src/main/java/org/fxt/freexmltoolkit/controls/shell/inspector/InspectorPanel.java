@@ -99,6 +99,13 @@ public class InspectorPanel extends VBox {
     private final TextField nsPrefixField = editField("inspector-ns-prefix");
     private final TextField nsUriField = editField("inspector-ns-uri");
     private TitledPane namespaceSection;
+    // Non-element XML nodes: comment / CDATA / text content, and processing instructions
+    private final TextArea contentArea = new TextArea();
+    private Label contentLabel;
+    private TitledPane contentSection;
+    private final TextField piTargetField = editField("inspector-pi-target");
+    private final TextField piDataField = editField("inspector-pi-data");
+    private TitledPane piSection;
     // XSD-derived, read-only info shown for an XML element when a schema is bound
     private final Label xmlSchemaTypeValue = roLabel();
     private final Label xmlSchemaDocValue = roLabel();
@@ -153,11 +160,13 @@ public class InspectorPanel extends VBox {
         typeFacetsSection = section("TYPE & FACETS", buildTypeFacetsBody());
         namespaceSection = section("NAMESPACE", buildNamespaceBody());
         valueAttrSection = section("VALUE & ATTRIBUTES", buildValueAttrBody());
+        contentSection = section("CONTENT", buildContentBody());
+        piSection = section("PROCESSING INSTRUCTION", buildPiBody());
         cardUseSection = section("CARDINALITY & USE", buildCardinalityBody());
         constraintsSection = section("CONSTRAINTS", buildConstraintsBody());
         docSection = section("DOCUMENTATION & REFS", buildDocBody());
-        getChildren().addAll(typeFacetsSection, namespaceSection, valueAttrSection, cardUseSection,
-                constraintsSection, docSection);
+        getChildren().addAll(typeFacetsSection, namespaceSection, valueAttrSection, contentSection,
+                piSection, cardUseSection, constraintsSection, docSection);
 
         wireEditing();
 
@@ -381,6 +390,47 @@ public class InspectorPanel extends VBox {
         return addRow;
     }
 
+    /** Editable content for a comment / CDATA / text node (dispatched by the selected node type). */
+    private Node buildContentBody() {
+        contentLabel = new Label("Content");
+        contentLabel.getStyleClass().add("fxt-inspector-key");
+        contentArea.setId("inspector-content");
+        contentArea.getStyleClass().add("fxt-inspector-edit");
+        contentArea.setWrapText(true);
+        contentArea.setPrefRowCount(3);
+        contentArea.focusedProperty().addListener((o, was, isNow) -> {
+            if (!isNow) {
+                commitContent();
+            }
+        });
+        return new VBox(4, contentLabel, contentArea);
+    }
+
+    private void commitContent() {
+        if (updating) {
+            return;
+        }
+        String text = contentArea.getText();
+        if (currentXmlNode instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlComment) {
+            editorHost.setActiveCommentText(text);
+        } else if (currentXmlNode instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlCData) {
+            editorHost.setActiveCDataText(text);
+        } else if (currentXmlNode instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlText) {
+            editorHost.setActiveTextContent(text);
+        }
+    }
+
+    /** Editable processing-instruction target + data. */
+    private Node buildPiBody() {
+        commitOnEnterAndBlur(piTargetField, this::commitPi);
+        commitOnEnterAndBlur(piDataField, this::commitPi);
+        return new VBox(4, row("Target", piTargetField), row("Data", piDataField));
+    }
+
+    private void commitPi() {
+        commit(() -> editorHost.setActiveProcessingInstruction(piTargetField.getText(), piDataField.getText()));
+    }
+
     /** Editable element namespace prefix + URI; both commit via setActiveElementNamespace. */
     private Node buildNamespaceBody() {
         commitOnEnterAndBlur(nsPrefixField, this::commitNamespace);
@@ -475,10 +525,13 @@ public class InspectorPanel extends VBox {
         updateFacets(selected);
         updating = true;
         try {
+            resetXmlNodeSections();
             if (selected != null) {
                 populateXsdNode(selected);
             } else if (currentXmlNode instanceof XmlElement el) {
                 populateXmlNode(el);
+            } else if (currentXmlNode != null) {
+                populateXmlOtherNode(currentXmlNode);
             } else if (currentJsonNode != null) {
                 populateJsonNode(currentJsonNode);
             } else {
@@ -487,6 +540,48 @@ public class InspectorPanel extends VBox {
         } finally {
             updating = false;
         }
+    }
+
+    /** Hides all XML-node-specific sections; each populate path re-shows what it needs. */
+    private void resetXmlNodeSections() {
+        show(namespaceSection, false);
+        show(valueAttrSection, false);
+        show(contentSection, false);
+        show(piSection, false);
+    }
+
+    /** Non-element XML nodes: comment / CDATA / text content, or a processing instruction. */
+    private void populateXmlOtherNode(XmlNode node) {
+        nameField.setEditable(false);
+        nameField.setText("");
+        xpathValue.setText(PLACEHOLDER);
+        depthValue.setText(PLACEHOLDER);
+        showXsdSections(false);
+
+        if (node instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlComment comment) {
+            populateContent("Comment", "Comment", comment.getText());
+        } else if (node instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlCData cdata) {
+            populateContent("CDATA", "CDATA", cdata.getText());
+        } else if (node instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlText text) {
+            populateContent("Text", "Text", text.getText());
+        } else if (node instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlProcessingInstruction pi) {
+            setHeader(pi.getTarget(), "Processing Instruction");
+            kindValue.setText("Processing Instruction");
+            piTargetField.setText(pi.getTarget() == null ? "" : pi.getTarget());
+            piDataField.setText(pi.getData() == null ? "" : pi.getData());
+            show(piSection, true);
+        } else {
+            setHeader(PLACEHOLDER, "Node");
+            kindValue.setText("Node");
+        }
+    }
+
+    private void populateContent(String kind, String label, String text) {
+        setHeader(kind, kind);
+        kindValue.setText(kind);
+        contentLabel.setText(label);
+        contentArea.setText(text == null ? "" : text);
+        show(contentSection, true);
     }
 
     private void populateXsdNode(XsdNode node) {
@@ -1021,6 +1116,26 @@ public class InspectorPanel extends VBox {
     /** @return whether the editable Text box is visible (hidden for container elements). */
     public boolean isXmlTextVisible() {
         return xmlTextBox.isVisible();
+    }
+
+    /** @return the comment/CDATA/text CONTENT editor value (for tests/observers). */
+    public String getContentText() {
+        return contentArea.getText() == null ? "" : contentArea.getText();
+    }
+
+    /** @return whether the CONTENT section is visible (for tests/observers). */
+    public boolean isContentSectionVisible() {
+        return contentSection.isVisible();
+    }
+
+    /** @return the processing-instruction target shown (for tests/observers). */
+    public String getPiTargetText() {
+        return piTargetField.getText() == null ? "" : piTargetField.getText();
+    }
+
+    /** @return whether the PROCESSING INSTRUCTION section is visible (for tests/observers). */
+    public boolean isPiSectionVisible() {
+        return piSection.isVisible();
     }
 
     /** A name/value row in the XML attributes table. */

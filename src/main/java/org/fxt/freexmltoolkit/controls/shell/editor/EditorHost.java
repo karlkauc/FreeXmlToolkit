@@ -878,6 +878,49 @@ public class EditorHost extends BorderPane {
                         el, prefix, uri));
     }
 
+    /** Sets the selected comment node's text. */
+    public boolean setActiveCommentText(String text) {
+        return editActiveXmlNode(n -> n instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlComment c
+                ? new org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.SetCommentTextCommand(c, text) : null);
+    }
+
+    /** Sets the selected CDATA section's content. */
+    public boolean setActiveCDataText(String text) {
+        return editActiveXmlNode(n -> n instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlCData c
+                ? new org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.SetCDataTextCommand(c, text) : null);
+    }
+
+    /** Sets the selected text node's content. */
+    public boolean setActiveTextContent(String text) {
+        return editActiveXmlNode(n -> n instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlText t
+                ? new org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.SetTextCommand(t, text) : null);
+    }
+
+    /** Sets the selected processing instruction's target + data. */
+    public boolean setActiveProcessingInstruction(String target, String data) {
+        return editActiveXmlNode(n ->
+                n instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlProcessingInstruction pi
+                        ? new org.fxt.freexmltoolkit.controls.v2.xmleditor.commands
+                                .SetProcessingInstructionCommand(pi, target, data) : null);
+    }
+
+    /** Runs a command on the selected XML node (any type) via the XML command stack + round-trip. */
+    private boolean editActiveXmlNode(
+            java.util.function.Function<org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode,
+                    org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.XmlCommand> factory) {
+        if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et
+                && et.currentXmlSelection != null) {
+            var command = factory.apply(et.currentXmlSelection);
+            if (command == null || !et.editXml(command)) {
+                return false;
+            }
+            activeXmlNode.set(null);
+            refreshSelectedNode();
+            return true;
+        }
+        return false;
+    }
+
     private boolean editActiveXml(
             java.util.function.Function<org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement,
                     org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.XmlCommand> factory) {

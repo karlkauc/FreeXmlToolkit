@@ -62,7 +62,8 @@ class UnifiedShellViewTest {
         // The editable inspector's flat sections (NAMESPACE + VALUE & ATTRIBUTES for XML nodes,
         // CONSTRAINTS for read-only identity constraints / assertions).
         assertEquals(Set.of("NODE & XPATH", "TYPE & FACETS", "NAMESPACE", "VALUE & ATTRIBUTES",
-                "CARDINALITY & USE", "CONSTRAINTS", "DOCUMENTATION & REFS"), titles,
+                "CONTENT", "PROCESSING INSTRUCTION", "CARDINALITY & USE", "CONSTRAINTS",
+                "DOCUMENTATION & REFS"), titles,
                 "Inspector must show the flat sections");
     }
 
