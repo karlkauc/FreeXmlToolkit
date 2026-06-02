@@ -140,6 +140,10 @@ class NodeContextMenuTest {
         }
 
         @Override
+        public void addContainerElement(XsdNode parent, String name) {
+        }
+
+        @Override
         public void addAttribute(XsdNode parent, String name) {
         }
 

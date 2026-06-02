@@ -711,6 +711,11 @@ public class EditorHost extends BorderPane {
         return editActive(et -> et.addElement(et.currentSelection, name));
     }
 
+    /** Adds a container element (inline complexType + sequence) under the selected node. */
+    public boolean addContainerElementToActive(String name) {
+        return editActive(et -> et.addContainerElement(et.currentSelection, name));
+    }
+
     /** Renames the selected node via the command stack. */
     public boolean renameActiveNode(String newName) {
         return editActivePreservingSelection(et -> et.renameNode(et.currentSelection, newName));
@@ -1403,6 +1408,15 @@ public class EditorHost extends BorderPane {
                     new org.fxt.freexmltoolkit.controls.v2.editor.commands.AddElementCommand(parent, name.trim()));
         }
 
+        boolean addContainerElement(XsdNode parent, String name) {
+            if (parent == null || name == null || name.isBlank()) {
+                return false;
+            }
+            return executeAndApply(
+                    new org.fxt.freexmltoolkit.controls.v2.editor.commands.AddContainerElementCommand(
+                            parent, name.trim()));
+        }
+
         boolean renameNode(XsdNode node, String newName) {
             if (node == null || newName == null || newName.isBlank()) {
                 return false;
@@ -1704,6 +1718,13 @@ public class EditorHost extends BorderPane {
                 @Override
                 public void addElement(XsdNode parent, String name) {
                     if (EditorTab.this.addElement(parent, name)) {
+                        selectionCallback.run();
+                    }
+                }
+
+                @Override
+                public void addContainerElement(XsdNode parent, String name) {
+                    if (EditorTab.this.addContainerElement(parent, name)) {
                         selectionCallback.run();
                     }
                 }

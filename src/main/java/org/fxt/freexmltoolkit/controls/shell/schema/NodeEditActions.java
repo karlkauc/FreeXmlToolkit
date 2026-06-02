@@ -12,6 +12,9 @@ public interface NodeEditActions {
 
     void addElement(XsdNode parent, String name);
 
+    /** Adds a container element (inline complexType + sequence) able to hold child elements. */
+    void addContainerElement(XsdNode parent, String name);
+
     void addAttribute(XsdNode parent, String name);
 
     void addSequence(XsdNode element);

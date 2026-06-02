@@ -30,6 +30,8 @@ public final class NodeContextMenu {
         menu.getItems().addAll(
                 item("Add Element…", "bi-plus-circle", currentNode,
                         node -> promptName(actions::addElement, node, "Add Element", "NewElement")),
+                item("Add Container Element…", "bi-node-plus", currentNode,
+                        node -> promptName(actions::addContainerElement, node, "Add Container Element", "NewContainer")),
                 item("Add Attribute…", "bi-at", currentNode,
                         node -> promptName(actions::addAttribute, node, "Add Attribute", "newAttribute")),
                 item("Add Sequence", "bi-list-ol", currentNode, actions::addSequence),

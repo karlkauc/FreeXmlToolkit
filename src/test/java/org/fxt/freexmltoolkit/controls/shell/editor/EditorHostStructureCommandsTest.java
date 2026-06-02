@@ -83,6 +83,38 @@ class EditorHostStructureCommandsTest {
         assertTrue(host.getActiveText().orElse("").contains(":all"), "an xs:all compositor must round-trip");
     }
 
+    @Test
+    void addContainerElementRoundTrips(@TempDir Path tmp) throws Exception {
+        Path xsd = tmp.resolve("schema.xsd");
+        Files.writeString(xsd, XSD);
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xsd));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("name=\"box\"")).orElse(false));
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.setActiveViewMode(ViewMode.TREE);
+            return null;
+        });
+        XsdNode root = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.getActiveSchemaRoot().orElseThrow());
+
+        // Add a container element under the schema root: an element with an inline complexType.
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.selectNodeInActiveTree(root);
+            return null;
+        });
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.addContainerElementToActive("NewBox"));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().orElse("").contains("name=\"NewBox\""));
+
+        // The new element must be a container (carry its own complexType), not a typed leaf.
+        XsdNode created = WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> find(host.getActiveSchemaRoot().orElseThrow(), "NewBox"));
+        assertNotNull(created, "NewBox must exist");
+        boolean hasComplexType = created.getChildren().stream()
+                .anyMatch(c -> c.getNodeType()
+                        == org.fxt.freexmltoolkit.controls.v2.model.XsdNodeType.COMPLEX_TYPE);
+        assertTrue(hasComplexType, "a container element carries an inline complexType");
+    }
+
     private void selectAndRun(XsdNode root, String name, Runnable action) {
         XsdNode target = find(root, name);
         assertNotNull(target, "node not found: " + name);
