@@ -104,6 +104,28 @@ class FundsXmlInspectorSmokeTest {
                 + "  doc=" + abbreviate(inspector.getSchemaDocText())
                 + "  schemaInfoResolved=" + gotType);
 
+        // 2b) Select the root element: namespace + attributes + valid children, then add an attribute.
+        onFx(() -> grid.getContext().getSelectionModel()
+                .setSelectedNode(grid.getContext().getDocument().getRootElement()));
+        WaitForAsyncUtils.waitFor(6, TimeUnit.SECONDS, () -> inspector.getXmlAttributeCount() > 0);
+        settle();
+        shot("fundsxml_06_element_attrs_namespace");
+        int attrsBefore = inspector.getXmlAttributeCount();
+        boolean attrAdded = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.setActiveXmlAttribute("smoke", "1"));
+        WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS, () -> host.getActiveText().orElse("").contains("smoke=\"1\""));
+        System.out.println("[SMOKE] root element  attrs=" + attrsBefore
+                + "  ns=" + abbreviate(inspector.getNamespaceUriText())
+                + "  validChildren=" + inspector.getValidChildCount()
+                + "  attrAdded=" + attrAdded);
+
+        // 2c) Select the document node: the XML declaration is editable.
+        onFx(() -> grid.getContext().getSelectionModel().setSelectedNode(grid.getContext().getDocument()));
+        WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS, () -> inspector.isDeclarationSectionVisible());
+        settle();
+        shot("fundsxml_07_xml_declaration");
+        System.out.println("[SMOKE] document      declVisible=" + inspector.isDeclarationSectionVisible()
+                + "  version=" + inspector.getDeclarationVersionText());
+
         // 3) Open the XSD itself and inspect an element in the Schema tree.
         onFx(() -> host.openFile(xsd.toPath()));
         WaitForAsyncUtils.waitFor(8, TimeUnit.SECONDS,
