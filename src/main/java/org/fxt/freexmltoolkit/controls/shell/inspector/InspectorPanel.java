@@ -711,9 +711,11 @@ public class InspectorPanel extends VBox {
         showRow(fixedRow, isElement || isAttribute);
         showRow(substRow, isElement);
 
-        // Documentation (all nodes)
+        // Documentation (all nodes). The parser stores annotation text in the multi-language
+        // `documentations` list (the legacy single `documentation` String is only set after an
+        // inline edit), so read the list first and fall back to the legacy field.
         docArea.setEditable(true);
-        docArea.setText(node.getDocumentation() == null ? "" : node.getDocumentation());
+        docArea.setText(resolveXsdDocText(node));
         show(docBox, true);
 
         // Section visibility: TYPE & FACETS only when a type field or facets apply;
@@ -773,6 +775,25 @@ public class InspectorPanel extends VBox {
 
         showXsdSections(false);
         show(valueAttrSection, true);
+    }
+
+    /**
+     * @return the documentation text to show/edit for an XSD node: the multi-language
+     * {@code documentations} list joined by blank lines (the parser populates this), falling back to
+     * the legacy single {@code documentation} String (set after an inline edit).
+     */
+    private static String resolveXsdDocText(XsdNode node) {
+        var docs = node.getDocumentations();
+        if (docs != null && !docs.isEmpty()) {
+            String joined = docs.stream()
+                    .map(d -> d.getText() == null ? "" : d.getText())
+                    .filter(s -> !s.isBlank())
+                    .collect(java.util.stream.Collectors.joining("\n\n"));
+            if (!joined.isBlank()) {
+                return joined;
+            }
+        }
+        return node.getDocumentation() == null ? "" : node.getDocumentation();
     }
 
     /**
@@ -1127,6 +1148,12 @@ public class InspectorPanel extends VBox {
     /** @return the current Kind value (for tests/observers). */
     public String getKindText() {
         String t = kindValue.getText();
+        return t == null ? "" : t;
+    }
+
+    /** @return the current Documentation text shown in the editable XSD-node doc area (for tests). */
+    public String getDocumentationText() {
+        String t = docArea.getText();
         return t == null ? "" : t;
     }
 

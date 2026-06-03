@@ -14,8 +14,11 @@ import org.fxmisc.richtext.model.StyleSpansBuilder;
  */
 public final class XmlSyntaxHighlighter {
 
-    // Syntax Highlighting Patterns
-    private static final Pattern XML_TAG = Pattern.compile("(?<ELEMENT>(</?\\h*)(\\w+)([^<>]*?)(\\h*/?>))"
+    // Syntax Highlighting Patterns.
+    // The element-name group includes the namespace separator ':' (and the other XML name characters
+    // '.' and '-'), so namespace-prefixed tags such as <xs:element> are fully highlighted — not just
+    // the "xs" prefix, which previously left XSD documents looking unhighlighted.
+    private static final Pattern XML_TAG = Pattern.compile("(?<ELEMENT>(</?\\h*)([\\w:.-]+)([^<>]*?)(\\h*/?>))"
             + "|(?<COMMENT><!--[^<>]+-->)");
     private static final Pattern ATTRIBUTES = Pattern.compile("(\\w+\\h*)(=)(\\h*\"[^\"]+\")");
 
