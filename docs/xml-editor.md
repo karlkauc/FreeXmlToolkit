@@ -1,6 +1,6 @@
 # XML Editor
 
-> **Last Updated:** May 2026 | **Version:** 1.10.0
+> **Last Updated:** June 2026 | **Version:** 1.10.0
 
 The XML Editor is the main feature of FreeXmlToolkit. It provides a powerful and easy-to-use interface for working with XML files.
 
@@ -78,6 +78,8 @@ The text editor provides:
 - **Code Folding**: Click arrows to collapse or expand sections
 - **Auto-Completion**: Type `<` to see suggestions for valid elements
 - **Error Highlighting**: Invalid XML is highlighted in red
+- **Edit Properties**: Move the text cursor into an element and edit its properties in the
+  Properties inspector - see [Properties Inspector](#properties-inspector)
 
 ### Tree View
 
@@ -85,9 +87,10 @@ The text editor provides:
 *Tree view showing XML structure*
 
 - See your XML document as a hierarchical tree
-- Drag and drop elements to reorganize structure
+- Click any node (element, text, comment, CDATA, or processing instruction) to select it
+- Edit the selected node's properties in the Properties inspector - see
+  [Properties Inspector](#properties-inspector)
 - Right-click for context menu options
-- Double-click to edit element values
 
 ### Grid Mode
 
@@ -100,6 +103,69 @@ The grid editor provides:
 - **Direct Cell Editing**: Click cells to edit values directly
 - **Easy Navigation**: Move through the document using arrow keys
 - **Sorting**: Sort data by clicking column headers
+- **Structural Editing**: Add, delete, and move nodes through the right-click context menu
+- **Edit Properties**: Select a row to edit its properties in the Properties inspector -
+  see [Properties Inspector](#properties-inspector)
+
+---
+
+## Properties Inspector
+
+> **Updated in v1.10** - The Properties inspector now lets you view **and edit** a node's
+> properties in **all three** XML views - Text, Tree, and Grid. Previously, property editing
+> was only available in the Grid view.
+
+The Properties inspector shows the details of the currently selected node and lets you change
+them. Toggle the panel with **Ctrl+P** (or the **Properties** toolbar button); it appears on
+the right side of the editor.
+
+> **Screenshot note:** The existing XML editor screenshots predate this change. The Properties
+> inspector now appears alongside the Text, Tree, and Grid views (not only the Grid view).
+
+### Selecting a Node
+
+How you select a node depends on the active view:
+
+- **Text view** - Move the text caret into an element. That element is selected automatically
+  and shown in the inspector. If the caret is not inside a well-formed element, the inspector
+  shows a read-only view with the node's name and XPath.
+- **Tree view** - Click a node in the tree (element, text, comment, CDATA, or processing
+  instruction).
+- **Grid view** - Select a row in the grid.
+
+### What You Can Edit
+
+Depending on the node type, the inspector lets you edit:
+
+- **Element name** and its **namespace** (prefix and URI)
+- **Attributes** - add, rename, and remove them
+- **Text content** of leaf elements
+- **Text** of comments, CDATA sections, and processing instructions
+
+Your edits are written straight back to the document, so the source text always stays in sync.
+In the Text view, edits are applied as a minimal change that keeps your caret and scroll
+position in place.
+
+### Read-Only Schema Hints
+
+When the XML file is bound to an XSD schema, the inspector also shows helpful, read-only
+information for the selected element:
+
+- The **schema type** derived from the XSD
+- The element's **documentation**
+- Lists of **valid child elements** and **example values**
+
+These hints help you fill in correct content but cannot be edited from the inspector.
+
+### Shared Across Views
+
+All three views share a single in-memory model for each open document. This means your edits -
+and your full **Undo / Redo** history - are preserved when you switch between the Text, Tree,
+and Grid views.
+
+> **Note:** Adding, deleting, or moving whole nodes (structural editing) is done in the
+> **Grid** view via its right-click context menu. The Text and Tree views provide property
+> editing through the inspector.
 
 ---
 

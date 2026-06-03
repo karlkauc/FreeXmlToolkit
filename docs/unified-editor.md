@@ -70,7 +70,10 @@ The toolbar provides common operations and context-sensitive buttons:
 
 - **Linked** (Ctrl+L) - Show/hide linked files panel
 - **XPath** (Ctrl+Shift+X) - Show/hide XPath/XQuery query panel
-- **Properties** (Ctrl+Shift+P) - Show/hide properties and validation sidebar
+- **Properties** (Ctrl+Shift+P) - Show/hide properties and validation sidebar. For XML files,
+  the properties inspector lets you view **and edit** a node's properties (element name,
+  namespace, attributes, and text content) from **all three** views - Text, Tree, and Grid -
+  not just the Grid view. See [XML Properties Inspector](#xml-properties-inspector) below.
 - **Favorites** (Ctrl+Shift+B) - Show/hide favorites panel
 
 ## XSD Sub-Tabs
@@ -150,6 +153,28 @@ any error to jump straight to its location:
 - In the **Text** view the caret moves to the exact line and column, with the offending text highlighted.
 - In the **Graphic** view the matching element is selected, flashed, and scrolled into view.
 - In split mode both views navigate at once.
+
+## XML Properties Inspector
+
+> **Updated in v1.10** - Property editing now works in **all** XML views (Text, Tree, and
+> Grid). Previously it was available only in the Grid view.
+
+When an XML file is open, the Properties sidebar (Ctrl+Shift+P) shows the selected node and
+lets you edit it from whichever view you are in:
+
+- **Text view** - Move the text caret into an element to select it. The inspector shows the
+  element's name, namespace, attributes, and text as editable fields, plus read-only,
+  schema-derived hints (type, documentation, valid child elements, and example values) when a
+  schema is bound. Edits round-trip into the source as a minimal change that preserves your
+  caret and scroll position. If the caret is not inside a well-formed element, the inspector
+  falls back to a read-only name/XPath view.
+- **Tree view** - Click any node (element, text, comment, CDATA, or processing instruction) to
+  edit its properties.
+- **Grid view** - Select a row to edit its properties. The Grid view also handles structural
+  editing (adding, deleting, and moving nodes) through its right-click context menu.
+
+All three views share one in-memory model per open document, so your edits and Undo/Redo
+history are preserved when you switch between Text, Tree, and Grid.
 
 ## XPath / XQuery Autocomplete
 
