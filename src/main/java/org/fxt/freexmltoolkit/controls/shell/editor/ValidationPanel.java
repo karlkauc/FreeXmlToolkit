@@ -116,13 +116,19 @@ public class ValidationPanel extends VBox {
         Button builder = new Button("Rule Builder", icon("bi-tools"));
         builder.getStyleClass().add("fxt-tool-button");
         builder.setOnAction(e -> openSchematronBuilder());
+        Button check = new Button("Check Rules", icon("bi-bug"));
+        check.getStyleClass().add("fxt-tool-button");
+        check.setOnAction(e -> openSchematronCheck());
+        Button docs = new Button("Documentation", icon("bi-file-earmark-text"));
+        docs.getStyleClass().add("fxt-tool-button");
+        docs.setOnAction(e -> openSchematronDocumentation());
 
         getChildren().addAll(title,
                 SidePanelLayout.fill(validate), SidePanelLayout.fill(setXsd),
                 SidePanelLayout.fill(setSchematron), SidePanelLayout.fill(setJsonSchema),
                 SidePanelLayout.fill(batch), liveValidation, status, xsdStatus, schematronStatus,
                 toolsLabel, SidePanelLayout.fill(templates), SidePanelLayout.fill(tester),
-                SidePanelLayout.fill(builder),
+                SidePanelLayout.fill(builder), SidePanelLayout.fill(check), SidePanelLayout.fill(docs),
                 problemsLabel, list);
     }
 
@@ -147,6 +153,25 @@ public class ValidationPanel extends VBox {
     public void openSchematronBuilder() {
         editorHost.openToolTab("Schematron Builder", "bi-tools",
                 new org.fxt.freexmltoolkit.controls.SchematronVisualBuilder());
+    }
+
+    /**
+     * Runs the Schematron error detector over the active document (off-thread) and shows the
+     * categorised issues (XML-syntax / structural / XPath / semantic / best-practice) in a tool tab.
+     */
+    public void openSchematronCheck() {
+        String text = editorHost.getActiveText().orElse("");
+        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            var issues = SchematronCheckRunner.check(text);
+            javafx.application.Platform.runLater(() -> editorHost.openToolTab(
+                    "Schematron Check", "bi-bug", new SchematronCheckResultView(issues)));
+        });
+    }
+
+    /** Opens the Schematron documentation generator as a tool tab. */
+    public void openSchematronDocumentation() {
+        editorHost.openToolTab("Schematron Documentation", "bi-file-earmark-text",
+                new org.fxt.freexmltoolkit.controls.SchematronDocumentationGenerator());
     }
 
     /** Schedules a debounced re-validation if live validation is on and the active doc is XML-family. */
