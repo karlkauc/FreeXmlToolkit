@@ -10,17 +10,21 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.cell.ComboBoxTableCell;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
@@ -28,6 +32,7 @@ import org.fxt.freexmltoolkit.domain.GenerationProfile;
 import org.fxt.freexmltoolkit.domain.GenerationStrategy;
 import org.fxt.freexmltoolkit.domain.XPathInfo;
 import org.fxt.freexmltoolkit.domain.XPathRule;
+import org.fxt.freexmltoolkit.service.GenerationProfileService;
 
 /**
  * Advanced sample-XML generation dialog: turns the schema's extracted XPaths into a table of editable
@@ -140,16 +145,105 @@ public class ProfiledSampleDialog extends Dialog<GenerationProfile> {
         hint.setWrapText(true);
         hint.getStyleClass().add("fxt-inspector-hint");
 
-        VBox box = new VBox(10, new Label("Per-XPath generation rules:"), table, hint, opts);
+        VBox box = new VBox(10, buildProfilesBar(), new Label("Per-XPath generation rules:"),
+                table, hint, opts);
         box.setPadding(new Insets(16));
         VBox.setVgrow(table, Priority.ALWAYS);
         return box;
+    }
+
+    /** A saved-profile selector with Load / Save As… backed by {@link GenerationProfileService}. */
+    private HBox buildProfilesBar() {
+        ComboBox<String> profileCombo = new ComboBox<>();
+        profileCombo.setPromptText("(saved profiles)");
+        refreshProfileNames(profileCombo);
+
+        Button loadBtn = new Button("Load");
+        loadBtn.setOnAction(e -> {
+            String name = profileCombo.getValue();
+            if (name != null && !name.isBlank()) {
+                GenerationProfile loaded = GenerationProfileService.getInstance().load(name);
+                applyProfile(loaded);
+            }
+        });
+
+        Button saveBtn = new Button("Save As…");
+        saveBtn.setOnAction(e -> {
+            TextInputDialog prompt = new TextInputDialog(
+                    profileCombo.getValue() != null ? profileCombo.getValue() : "Profile");
+            prompt.setTitle("Save Profile");
+            prompt.setHeaderText(null);
+            prompt.setContentText("Profile name:");
+            prompt.showAndWait().ifPresent(name -> {
+                if (!name.isBlank()) {
+                    GenerationProfile profile = currentProfile();
+                    profile.setName(name.trim());
+                    GenerationProfileService.getInstance().save(profile);
+                    refreshProfileNames(profileCombo);
+                    profileCombo.setValue(name.trim());
+                }
+            });
+        });
+
+        HBox bar = new HBox(8, new Label("Profile:"), profileCombo, loadBtn, saveBtn);
+        bar.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        return bar;
+    }
+
+    private static void refreshProfileNames(ComboBox<String> combo) {
+        try {
+            combo.getItems().setAll(GenerationProfileService.getInstance().loadAll().stream()
+                    .map(GenerationProfile::getName).sorted().toList());
+        } catch (Exception e) {
+            // best-effort: no saved profiles available
+        }
     }
 
     /** Sets the batch options (for tests/observers). */
     public void setBatch(int count, String pattern) {
         batchCount.getValueFactory().setValue(count);
         fileNamePattern.setText(pattern);
+    }
+
+    /**
+     * Loads a saved {@link GenerationProfile} into the controls: applies its batch/mandatory options
+     * and, for each rule whose XPath matches a row, sets that row's strategy + config. Rows without a
+     * matching rule are reset to {@code AUTO}. Inverse of {@link #currentProfile()}.
+     */
+    public void applyProfile(GenerationProfile profile) {
+        if (profile == null) {
+            return;
+        }
+        mandatoryOnly.setSelected(profile.isMandatoryOnly());
+        maxOccurrences.getValueFactory().setValue(profile.getMaxOccurrences() <= 0 ? 2 : profile.getMaxOccurrences());
+        batchCount.getValueFactory().setValue(Math.max(1, profile.getBatchCount()));
+        if (profile.getFileNamePattern() != null && !profile.getFileNamePattern().isBlank()) {
+            fileNamePattern.setText(profile.getFileNamePattern());
+        }
+        for (RuleRow row : rows) {
+            row.strategyProperty().set(GenerationStrategy.AUTO);
+            row.configProperty().set("");
+        }
+        for (XPathRule rule : profile.getRules()) {
+            for (RuleRow row : rows) {
+                if (row.getXpath().equals(rule.getXpath())) {
+                    row.strategyProperty().set(rule.getStrategy());
+                    row.configProperty().set(singleConfigValue(rule));
+                }
+            }
+        }
+    }
+
+    /** Extracts the single config value for a rule (inverse of {@link #configFor}). */
+    private static String singleConfigValue(XPathRule rule) {
+        String value = switch (rule.getStrategy()) {
+            case FIXED -> rule.getConfigValue("value");
+            case SEQUENCE, TEMPLATE -> rule.getConfigValue("pattern");
+            case RANDOM_FROM_LIST -> rule.getConfigValue("values");
+            case XPATH_REF -> rule.getConfigValue("ref");
+            default -> "";
+        };
+        return value == null ? "" : value;
     }
 
     /** @return the editable rule rows (for tests/observers). */

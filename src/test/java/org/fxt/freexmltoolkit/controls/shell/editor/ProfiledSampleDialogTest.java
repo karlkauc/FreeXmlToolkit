@@ -60,4 +60,28 @@ class ProfiledSampleDialogTest {
         assertEquals(5, profile.getBatchCount());
         assertEquals("order_{seq:3}.xml", profile.getFileNamePattern());
     }
+
+    @Test
+    void applyProfileLoadsRulesAndBatchIntoTheRows() {
+        GenerationProfile saved = new GenerationProfile("saved");
+        saved.setBatchCount(7);
+        saved.setFileNamePattern("x_{seq:2}.xml");
+        saved.addRule(new XPathRule("/order/country", GenerationStrategy.FIXED,
+                java.util.Map.of("value", "DE")));
+
+        GenerationProfile rebuilt = WaitForAsyncUtils.waitForAsyncFx(3000, () -> {
+            dialog.applyProfile(saved);
+            var countryRow = dialog.getRows().stream()
+                    .filter(r -> r.getXpath().endsWith("country")).findFirst().orElseThrow();
+            assertEquals(GenerationStrategy.FIXED, countryRow.strategyProperty().get());
+            assertEquals("DE", countryRow.configProperty().get());
+            return dialog.currentProfile();
+        });
+
+        // Round-trips: applying then re-building yields the same rule + batch options.
+        assertEquals(7, rebuilt.getBatchCount());
+        assertEquals("x_{seq:2}.xml", rebuilt.getFileNamePattern());
+        assertEquals(1, rebuilt.getRules().size());
+        assertEquals("DE", rebuilt.getRules().get(0).getConfigValue("value"));
+    }
 }
