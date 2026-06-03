@@ -263,11 +263,14 @@ public class EditorHost extends BorderPane {
         XsdNode selected = null;
         org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode xmlSelected = null;
         org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonNode jsonSelected = null;
-        if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et
-                && et.viewMode != ViewMode.TEXT) {
-            selected = et.currentSelection;
+        if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et) {
+            if (et.viewMode != ViewMode.TEXT) {
+                selected = et.currentSelection;
+                jsonSelected = et.currentJsonSelection;
+            }
+            // XML nodes may be selected from any view, including the Text view (caret-driven),
+            // so the inspector can edit XML properties without leaving the text editor.
             xmlSelected = et.currentXmlSelection;
-            jsonSelected = et.currentJsonSelection;
         }
         activeSelectedNode.set(selected);
         activeXmlNode.set(xmlSelected);
@@ -1142,6 +1145,12 @@ public class EditorHost extends BorderPane {
         tab.view.getCodeArea().caretPositionProperty().addListener((obs, oldV, newV) -> {
             if (tab.isSelected()) {
                 activeCaret.set(newV.intValue());
+                // In the Text view of an XML instance, map the caret line to a model node so the
+                // inspector can show + edit that node's properties (debounced; XML-instance only).
+                if (tab.viewMode == ViewMode.TEXT && tab.document.getFileType() != EditorFileType.XSD
+                        && tab.document.getFileType() != EditorFileType.JSON) {
+                    tab.xmlCaretDebounce.playFromStart();
+                }
             }
         });
     }
@@ -1465,6 +1474,9 @@ public class EditorHost extends BorderPane {
         /** Coalesces bursts of model-change events into a single round-trip (P1). */
         private final javafx.animation.PauseTransition roundTripDebounce =
                 new javafx.animation.PauseTransition(javafx.util.Duration.millis(150));
+        /** Coalesces caret movement into a single Text-view caret&rarr;node resolution. */
+        private final javafx.animation.PauseTransition xmlCaretDebounce =
+                new javafx.animation.PauseTransition(javafx.util.Duration.millis(120));
         private File schemaFile;
         private File schematronFile;
         /** XSD-derived, read-only schema info for XML-instance nodes (lazily built off-thread). */
@@ -1482,6 +1494,7 @@ public class EditorHost extends BorderPane {
                     () -> (document.isDirty() ? "● " : "") + document.getDisplayName(),
                     document.dirtyProperty(), document.displayNameProperty()));
             roundTripDebounce.setOnFinished(e -> roundTripModelToText());
+            xmlCaretDebounce.setOnFinished(e -> resolveCaretXmlNode());
             refreshIcon();
         }
 
@@ -1615,8 +1628,11 @@ public class EditorHost extends BorderPane {
                 return;
             }
             try {
-                var ctx = new org.fxt.freexmltoolkit.controls.v2.xmleditor.editor.XmlEditorContext();
-                ctx.loadDocumentFromString(text);
+                // Use the line-aware streaming parser so XmlElement.getSourceLineNumber() is
+                // populated — the Text view maps the caret line to a model node from it.
+                var doc = new org.fxt.freexmltoolkit.controls.v2.xmleditor.serialization
+                        .StreamingXmlParser().parse(text);
+                var ctx = new org.fxt.freexmltoolkit.controls.v2.xmleditor.editor.XmlEditorContext(doc);
                 if (xmlSchemaProvider != null) {
                     ctx.setSchemaProvider(xmlSchemaProvider);
                 }
@@ -1643,6 +1659,59 @@ public class EditorHost extends BorderPane {
             view.replaceTextRegion(region[0], region[1], xml.substring(region[0], region[2]));
             lastParsedXmlText = view.getText();
             document.setDirty(true);
+        }
+
+        /**
+         * Resolves the model element at the current text caret (by source line) and publishes it as
+         * the active XML node, so the inspector shows it editable. Falls back to no selection (the
+         * inspector's read-only caret/XPath view) when the document is malformed or the caret is not
+         * inside an element. XML-instance files only.
+         */
+        private void resolveCaretXmlNode() {
+            if (viewMode != ViewMode.TEXT || document.getFileType() == EditorFileType.XSD) {
+                return;
+            }
+            ensureXmlModelParsed();
+            org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode resolved = null;
+            if (xmlEditorContext != null && xmlEditorContext.getDocument() != null) {
+                org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement root =
+                        xmlEditorContext.getDocument().getRootElement();
+                int line = view.getCodeArea().getCurrentParagraph() + 1;
+                resolved = findElementByLine(root, line);
+            }
+            currentXmlSelection = resolved;
+            selectionCallback.run();
+        }
+
+        /**
+         * Finds the deepest element whose start tag begins on or before {@code line} (1-based) — the
+         * element with the greatest {@code sourceLineNumber <= line}. Source line numbers are
+         * populated by {@code StreamingXmlParser}. Returns {@code null} if none qualifies.
+         */
+        private static org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement findElementByLine(
+                org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement root, int line) {
+            if (root == null) {
+                return null;
+            }
+            org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement[] best =
+                    new org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement[1];
+            collectBestByLine(root, line, best);
+            return best[0];
+        }
+
+        private static void collectBestByLine(
+                org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement element, int line,
+                org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement[] best) {
+            int elementLine = element.getSourceLineNumber();
+            if (elementLine > 0 && elementLine <= line
+                    && (best[0] == null || elementLine >= best[0].getSourceLineNumber())) {
+                best[0] = element;
+            }
+            for (org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode child : element.getChildren()) {
+                if (child instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement childElement) {
+                    collectBestByLine(childElement, line, best);
+                }
+            }
         }
 
         private void renderStructured() {
