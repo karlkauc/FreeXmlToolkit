@@ -265,11 +265,11 @@ public class EditorHost extends BorderPane {
         org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonNode jsonSelected = null;
         if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et) {
             if (et.viewMode != ViewMode.TEXT) {
-                selected = et.currentSelection;
                 jsonSelected = et.currentJsonSelection;
             }
-            // XML nodes may be selected from any view, including the Text view (caret-driven),
-            // so the inspector can edit XML properties without leaving the text editor.
+            // XSD and XML nodes may be selected from any view, including the Text view (caret-driven),
+            // so the inspector can edit their properties without leaving the text editor.
+            selected = et.currentSelection;
             xmlSelected = et.currentXmlSelection;
         }
         activeSelectedNode.set(selected);
@@ -990,10 +990,14 @@ public class EditorHost extends BorderPane {
     }
 
     private boolean editActive(java.util.function.Predicate<EditorTab> edit) {
-        if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et
-                && et.viewMode != ViewMode.TEXT) {
+        if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et) {
             boolean ok = edit.test(et);
             if (ok) {
+                // applyModelChange clears the selection; in the Text view re-resolve the node at the
+                // caret so the inspector keeps showing it (Tree/Graphic re-render their selection).
+                if (et.viewMode == ViewMode.TEXT && et.document.getFileType() == EditorFileType.XSD) {
+                    et.resolveCaretXsdNode();
+                }
                 refreshSelectedNode();
             }
             return ok;
@@ -1007,8 +1011,7 @@ public class EditorHost extends BorderPane {
      * should keep showing it instead of clearing (which {@code applyModelChange} would cause).
      */
     private boolean editActivePreservingSelection(java.util.function.Predicate<EditorTab> edit) {
-        if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et
-                && et.viewMode != ViewMode.TEXT) {
+        if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et) {
             XsdNode node = et.currentSelection;
             boolean ok = edit.test(et);
             if (ok && node != null) {
@@ -1145,10 +1148,10 @@ public class EditorHost extends BorderPane {
         tab.view.getCodeArea().caretPositionProperty().addListener((obs, oldV, newV) -> {
             if (tab.isSelected()) {
                 activeCaret.set(newV.intValue());
-                // In the Text view of an XML instance, map the caret line to a model node so the
-                // inspector can show + edit that node's properties (debounced; XML-instance only).
-                if (tab.viewMode == ViewMode.TEXT && tab.document.getFileType() != EditorFileType.XSD
-                        && tab.document.getFileType() != EditorFileType.JSON) {
+                // In the Text view, map the caret line to a model node so the inspector can show +
+                // edit that node's properties (debounced). XSD resolves an XsdNode, other XML-family
+                // files an XmlNode; JSON has no model-node caret mapping.
+                if (tab.viewMode == ViewMode.TEXT && tab.document.getFileType() != EditorFileType.JSON) {
                     tab.xmlCaretDebounce.playFromStart();
                 }
             }
@@ -1494,7 +1497,13 @@ public class EditorHost extends BorderPane {
                     () -> (document.isDirty() ? "● " : "") + document.getDisplayName(),
                     document.dirtyProperty(), document.displayNameProperty()));
             roundTripDebounce.setOnFinished(e -> roundTripModelToText());
-            xmlCaretDebounce.setOnFinished(e -> resolveCaretXmlNode());
+            xmlCaretDebounce.setOnFinished(e -> {
+                if (document.getFileType() == EditorFileType.XSD) {
+                    resolveCaretXsdNode();
+                } else {
+                    resolveCaretXmlNode();
+                }
+            });
             refreshIcon();
         }
 
@@ -1746,6 +1755,126 @@ public class EditorHost extends BorderPane {
                 cur = kids.get(idx);
             }
             return cur;
+        }
+
+        /**
+         * XSD counterpart of {@link #resolveCaretXmlNode()}: resolves the {@link XsdNode} at the
+         * current text caret and publishes it as the active selection, so the inspector shows it
+         * editable in the Text view (Tree/Graphic already do). {@code XsdNode} carries no source line,
+         * so the caret line is mapped against a transient line-aware parse of the CURRENT text (cached
+         * by text), and the resulting structural index path is navigated in the shared XSD model —
+         * keeping node identity and undo history intact. The XSD model is a 1:1 mirror of the
+         * {@code xs:*} element tree except that {@code xs:annotation} is folded (no child node), so the
+         * index path skips annotation elements on the source side and comment/annotation nodes on the
+         * model side. Falls back to no selection (read-only caret/XPath) when malformed or off-element.
+         */
+        private void resolveCaretXsdNode() {
+            if (viewMode != ViewMode.TEXT || document.getFileType() != EditorFileType.XSD) {
+                return;
+            }
+            ensureModelParsed();
+            XsdNode resolved = null;
+            if (editorContext != null && editorContext.getSchema() != null) {
+                String text = view.getText();
+                if (!java.util.Objects.equals(text, caretMapText)) {
+                    try {
+                        caretMapDoc = new org.fxt.freexmltoolkit.controls.v2.xmleditor.serialization
+                                .StreamingXmlParser().parse(text);
+                    } catch (Exception e) {
+                        caretMapDoc = null;
+                    }
+                    caretMapText = text;
+                }
+                if (caretMapDoc != null && caretMapDoc.getRootElement() != null) {
+                    int line = view.getCodeArea().getCurrentParagraph() + 1;
+                    var target = findElementByLine(caretMapDoc.getRootElement(), line);
+                    java.util.List<Integer> path = xsdSourceIndexPath(caretMapDoc.getRootElement(), target);
+                    resolved = navigateXsd(editorContext.getSchema(), path);
+                }
+            }
+            currentSelection = resolved;
+            selectionCallback.run();
+        }
+
+        /**
+         * Child-index path from {@code root} to {@code target} counting only structural {@code xs:*}
+         * elements (skipping {@code xs:annotation}/{@code documentation}/{@code appinfo}), so it aligns
+         * with the XSD model's children. {@code null} if target is null/not under root or is itself an
+         * annotation-family element (which has no model node).
+         */
+        private static java.util.List<Integer> xsdSourceIndexPath(
+                org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement root,
+                org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement target) {
+            if (target == null || root == null) {
+                return null;
+            }
+            java.util.LinkedList<Integer> path = new java.util.LinkedList<>();
+            org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement cur = target;
+            while (cur != null && cur != root) {
+                if (!(cur.getParent() instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement pe)) {
+                    return null;
+                }
+                int idx = -1;
+                int i = 0;
+                for (var child : pe.getChildElements()) {
+                    if (isXsdAnnotationLike(child)) {
+                        continue;
+                    }
+                    if (child == cur) {
+                        idx = i;
+                        break;
+                    }
+                    i++;
+                }
+                if (idx < 0) {
+                    return null; // cur is an annotation-family element → no model node
+                }
+                path.addFirst(idx);
+                cur = pe;
+            }
+            return cur == root ? path : null;
+        }
+
+        private static boolean isXsdAnnotationLike(
+                org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement e) {
+            String n = e.getName();
+            return "annotation".equals(n) || "documentation".equals(n) || "appinfo".equals(n);
+        }
+
+        /** Navigates the structural-child index {@code path} from {@code root}; {@code null} if out of range. */
+        private static XsdNode navigateXsd(XsdNode root, java.util.List<Integer> path) {
+            if (root == null || path == null) {
+                return null;
+            }
+            XsdNode cur = root;
+            for (int idx : path) {
+                XsdNode next = null;
+                int i = 0;
+                for (XsdNode child : cur.getChildren()) {
+                    if (isNonStructuralXsd(child)) {
+                        continue;
+                    }
+                    if (i == idx) {
+                        next = child;
+                        break;
+                    }
+                    i++;
+                }
+                if (next == null) {
+                    return null;
+                }
+                cur = next;
+            }
+            return cur;
+        }
+
+        /** Comment/annotation-family nodes are not counted when index-aligning with the source tree. */
+        private static boolean isNonStructuralXsd(XsdNode n) {
+            org.fxt.freexmltoolkit.controls.v2.model.XsdNodeType t = n.getNodeType();
+            return t == org.fxt.freexmltoolkit.controls.v2.model.XsdNodeType.COMMENT
+                    || t == org.fxt.freexmltoolkit.controls.v2.model.XsdNodeType.ANNOTATION
+                    || t == org.fxt.freexmltoolkit.controls.v2.model.XsdNodeType.DOCUMENTATION
+                    || t == org.fxt.freexmltoolkit.controls.v2.model.XsdNodeType.APPINFO;
         }
 
         /**

@@ -175,6 +175,25 @@ class FundsXmlInspectorSmokeTest {
                 + "  kind=" + inspector.getKindText()
                 + "  facets=" + inspector.getFacetCount());
 
+        // 3b) XSD Text view: moving the caret onto a named type selects it (editable inspector).
+        onFx(() -> host.setActiveViewMode(ViewMode.TEXT));
+        settle();
+        int xsdCaret = host.getActiveText().orElse("").indexOf("name=\"DataSupplierType\"") + 7;
+        if (xsdCaret > 7) {
+            onFx(() -> host.moveActiveCaretTo(xsdCaret));
+            try {
+                WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS,
+                        () -> "DataSupplierType".equals(inspector.getNodeNameText()));
+            } catch (Exception ignored) {
+                // manual aid: snapshot regardless of what the caret resolved
+            }
+        }
+        settle();
+        shot("fundsxml_10_xsd_text_caret_inspector");
+        System.out.println("[SMOKE] XSD text caret name=" + inspector.getNodeNameText()
+                + "  kind=" + inspector.getKindText()
+                + "  xpath=" + inspector.getXPathText());
+
         // 4) Open a named complex type and a simple type in dedicated editor tabs.
         var complexTab = WaitForAsyncUtils.waitForAsyncFx(4000,
                 () -> host.openTypeEditorTab("DataSupplierType"));
