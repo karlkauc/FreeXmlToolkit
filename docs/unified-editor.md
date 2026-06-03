@@ -73,14 +73,16 @@ The toolbar provides common operations and context-sensitive buttons:
 - **Properties** (Ctrl+Shift+P) - Show/hide properties and validation sidebar. For XML files,
   the properties inspector lets you view **and edit** a node's properties (element name,
   namespace, attributes, and text content) from **all three** views - Text, Tree, and Grid -
-  not just the Grid view. See [XML Properties Inspector](#xml-properties-inspector) below.
+  not just the Grid view. For XSD files, the same inspector lets you edit a schema node's
+  properties from **all three** XSD views - Text, Tree, and Graphic. See
+  [Properties Inspector](#properties-inspector) below.
 - **Favorites** (Ctrl+Shift+B) - Show/hide favorites panel
 
 ## XSD Sub-Tabs
 
 When editing an XSD file, the editor provides additional sub-tabs:
 
-- **Text** - Source code editing with syntax highlighting
+- **Text** - Source code editing with syntax highlighting; moving the caret into a schema construct also lets you edit its properties in the Properties pane (see [Properties Inspector](#properties-inspector))
 - **Graphic** - Visual XMLSpy-style schema diagram
 - **Type Library** - Browse all types with filtering, search, and usage counts
 - **Type Editor** - Edit ComplexTypes graphically, SimpleTypes with form editor
@@ -154,10 +156,15 @@ any error to jump straight to its location:
 - In the **Graphic** view the matching element is selected, flashed, and scrolled into view.
 - In split mode both views navigate at once.
 
-## XML Properties Inspector
+## Properties Inspector
 
-> **Updated in v1.10** - Property editing now works in **all** XML views (Text, Tree, and
-> Grid). Previously it was available only in the Grid view.
+> **Updated in v1.10** - For XML files, property editing works in **all** XML views (Text, Tree,
+> and Grid). Previously it was available only in the Grid view.
+>
+> **Updated June 2026** - For XSD files, property editing now works in the **Text** view too,
+> matching the Tree and Graphic views. See [XSD Files](#xsd-files) below.
+
+### XML Files
 
 When an XML file is open, the Properties sidebar (Ctrl+Shift+P) shows the selected node and
 lets you edit it from whichever view you are in:
@@ -175,6 +182,26 @@ lets you edit it from whichever view you are in:
 
 All three views share one in-memory model per open document, so your edits and Undo/Redo
 history are preserved when you switch between Text, Tree, and Grid.
+
+### XSD Files
+
+When an XSD (schema) file is open, the Properties sidebar shows the selected schema node and
+lets you edit it from whichever view you are in. XSD files have three views - **Text**, **Tree**,
+and **Graphic** (there is no Grid view for XSD):
+
+- **Tree** and **Graphic** views - Select a schema node to edit its name, type,
+  cardinality/occurrence, use, form, constraints, documentation, and facets. (Unchanged.)
+- **Text** view - Move the text caret into an XSD construct (such as an `xs:element`,
+  `xs:complexType`, `xs:simpleType`, `xs:attribute`, a compositor, or a facet) to select the
+  matching schema node and edit the same properties you would in the Tree and Graphic views -
+  without leaving the source editor. Edits round-trip into the schema text as a minimal change
+  that preserves your caret and scroll position. If the caret is not inside a recognizable
+  construct (for example inside an `xs:annotation`, a comment, or blank space), the pane falls
+  back to a read-only caret/XPath view.
+
+All three XSD views share one in-memory schema model, so your edits and Undo/Redo history are
+preserved when you switch between Text, Tree, and Graphic. Structural editing (adding, deleting,
+and moving nodes) remains a Tree/Graphic capability through the right-click context menu.
 
 ## XPath / XQuery Autocomplete
 

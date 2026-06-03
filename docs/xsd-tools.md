@@ -47,9 +47,13 @@ The Graphic View lets you explore and edit your schemas visually.
 2. Open your XSD file
 3. The schema appears as an interactive tree
 4. **Select** an element by clicking on it
-5. **Edit properties** in the panel on the right
+5. **Edit properties** in the panel on the right (name, type, cardinality/occurrence, use, form, constraints, documentation, and facets)
 6. **Add children** using the context menu (right-click)
 7. **Drag** elements to move them
+
+> **Editing properties from any view (updated June 2026):** The same Properties pane is now
+> available in the **Text** view as well, not just the Graphic and Tree views. See
+> [Editing Schema Properties from Any View](#editing-schema-properties-from-any-view) below.
 
 ### Tips
 
@@ -155,6 +159,10 @@ The Text View provides raw XSD source code editing.
 ![XSD Text View](img/xsd-editor-text.png)
 *XSD code editor with syntax highlighting*
 
+> **Screenshot note:** Existing XSD Text view screenshots predate the editable Properties pane.
+> The Properties pane now also appears alongside the Text view when the caret is inside a schema
+> construct.
+
 ### Features
 
 - **Full Code Editor**: View and edit the raw XSD source code
@@ -162,6 +170,34 @@ The Text View provides raw XSD source code editing.
 - **Search and Replace**: Find and change text quickly
 - **XPath/XQuery Panel**: Query the schema with XPath
 - **Save as Favorite**: Quick access to frequently used schemas
+- **Editable Properties pane**: Move the text caret into a schema construct to select it and edit its properties without leaving the text editor (see below)
+
+### Editing Schema Properties from Any View
+
+> **New in June 2026** - You can now edit a schema node's properties directly from the
+> **Text** view, the same way you already could in the **Tree** and **Graphic** views.
+
+The XSD editor has three views - **Text**, **Tree**, and **Graphic** - and all three share one
+in-memory schema model. The Properties pane works in every view:
+
+- **Tree** and **Graphic** views: Select a node to edit its name, type, cardinality/occurrence,
+  use, form, constraints, documentation, and facets. (Unchanged.)
+- **Text** view: Move the text caret into an XSD construct - such as an `xs:element`,
+  `xs:complexType`, `xs:simpleType`, `xs:attribute`, a compositor (`xs:sequence`, `xs:choice`,
+  `xs:all`), or a facet - and the Properties pane selects the matching schema node and shows it
+  **editable**. You get the same property editing as in the Tree and Graphic views, without
+  leaving the source editor. Your edits round-trip back into the schema text as a minimal change
+  that preserves your caret and scroll position.
+
+If the caret is not inside a recognizable construct - for example inside an `xs:annotation`, a
+comment, or blank space - the pane falls back to a read-only caret/XPath view.
+
+Because all three views share one model, your edits and your **Undo/Redo** history are preserved
+when you switch between Text, Tree, and Graphic.
+
+> **Note:** Structural editing (adding, deleting, and moving nodes) remains a **Tree** and
+> **Graphic** capability via the right-click context menu. The **Text** view provides
+> *property* editing through the Properties pane.
 
 ---
 
