@@ -535,9 +535,31 @@ public class EditorHost extends BorderPane {
     private void updateCenter() {
         if (tabPane.getTabs().isEmpty()) {
             welcomePane.setRecentFiles(recentFiles());
+            welcomePane.setStats(welcomeStats());
             setCenter(welcomePane);
         } else {
             setCenter(tabPane);
+        }
+    }
+
+    /** @return the dashboard counters (recent / favorites / templates / saved queries), best-effort. */
+    private EditorWelcomePane.WelcomeStats welcomeStats() {
+        int recent = recentFiles().size();
+        int favorites = safeCount(() -> org.fxt.freexmltoolkit.service.FavoritesService.getInstance()
+                .getAllFavorites().size());
+        int templates = safeCount(() -> TemplateRunner.list().size());
+        int queries = safeCount(() -> {
+            var favorites2 = org.fxt.freexmltoolkit.service.FavoritesService.getInstance();
+            return favorites2.getSavedXPathQueries().size() + favorites2.getSavedXQueryQueries().size();
+        });
+        return new EditorWelcomePane.WelcomeStats(recent, favorites, templates, queries);
+    }
+
+    private static int safeCount(java.util.concurrent.Callable<Integer> counter) {
+        try {
+            return counter.call();
+        } catch (Throwable t) {
+            return 0;
         }
     }
 
@@ -578,6 +600,7 @@ public class EditorHost extends BorderPane {
             // service not available (e.g. isolated tests): just clear the displayed list
         }
         welcomePane.setRecentFiles(java.util.List.of());
+        welcomePane.setStats(welcomeStats());
     }
 
     /** Prompts for a URL and opens its fetched content as a new document (Welcome "From URL"). */

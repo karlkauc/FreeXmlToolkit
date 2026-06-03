@@ -35,6 +35,14 @@ public class EditorWelcomePane extends VBox {
 
     private final ObservableList<File> recentFiles = FXCollections.observableArrayList();
     private ListView<File> recentList;
+    private final Label recentStat = new Label("0");
+    private final Label favoritesStat = new Label("0");
+    private final Label templatesStat = new Label("0");
+    private final Label queriesStat = new Label("0");
+
+    /** Data-backed dashboard counters (recent files, favorites, templates, saved queries). */
+    public record WelcomeStats(int recentFiles, int favorites, int templates, int savedQueries) {
+    }
 
     /**
      * @param onNew         invoked with {@link EditorFileType#XML} for the New File card
@@ -53,6 +61,8 @@ public class EditorWelcomePane extends VBox {
         VBox content = new VBox(24,
                 buildHero(),
                 buildQuickActions(onNew, onOpen, onAction),
+                buildStats(),
+                buildTips(),
                 buildLowerRow(onOpenRecent, onClearRecent, onAction));
         content.getStyleClass().add("fxt-welcome-content");
         content.setPadding(new Insets(40));
@@ -73,6 +83,57 @@ public class EditorWelcomePane extends VBox {
             recentList.getSelectionModel().clearSelection();
         }
         recentFiles.setAll(files);
+    }
+
+    /** Updates the dashboard stat cards with the latest counts. */
+    public void setStats(WelcomeStats stats) {
+        if (stats == null) {
+            return;
+        }
+        recentStat.setText(Integer.toString(stats.recentFiles()));
+        favoritesStat.setText(Integer.toString(stats.favorites()));
+        templatesStat.setText(Integer.toString(stats.templates()));
+        queriesStat.setText(Integer.toString(stats.savedQueries()));
+    }
+
+    // ----- stats + tips ----------------------------------------------------
+
+    private Region buildStats() {
+        HBox row = new HBox(16,
+                statCard("welcome-stat-recent", "bi-clock-history", "Recent files", recentStat),
+                statCard("welcome-stat-favorites", "bi-star", "Favorites", favoritesStat),
+                statCard("welcome-stat-templates", "bi-collection", "Templates", templatesStat),
+                statCard("welcome-stat-queries", "bi-braces", "Saved queries", queriesStat));
+        for (javafx.scene.Node card : row.getChildren()) {
+            HBox.setHgrow(card, Priority.ALWAYS);
+        }
+        return row;
+    }
+
+    private Region statCard(String numberId, String iconLiteral, String label, Label numberLabel) {
+        StackPane tile = new StackPane(icon(iconLiteral, 16));
+        tile.getStyleClass().add("fxt-card-icon");
+
+        numberLabel.setId(numberId);
+        numberLabel.getStyleClass().add("fxt-welcome-stat-number");
+        Label caption = new Label(label);
+        caption.getStyleClass().add("fxt-welcome-stat-label");
+
+        HBox card = new HBox(12, tile, new VBox(0, numberLabel, caption));
+        card.setAlignment(Pos.CENTER_LEFT);
+        card.setMaxWidth(Double.MAX_VALUE);
+        card.getStyleClass().add("fxt-welcome-stat-card");
+        return card;
+    }
+
+    private Region buildTips() {
+        Label tip = new Label("Tip: drag a file onto the window to open it · Ctrl+F to find, Ctrl+H to "
+                + "replace · drop an XSD on an XML to bind it for validation.");
+        tip.setWrapText(true);
+        HBox banner = new HBox(10, icon("bi-lightbulb", 16), tip);
+        banner.setAlignment(Pos.CENTER_LEFT);
+        banner.getStyleClass().add("fxt-welcome-tips");
+        return banner;
     }
 
     // ----- hero ------------------------------------------------------------

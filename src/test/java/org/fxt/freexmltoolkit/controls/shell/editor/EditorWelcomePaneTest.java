@@ -99,6 +99,25 @@ class EditorWelcomePaneTest {
         assertEquals(recent, openedRecent.get());
     }
 
+    @Test
+    void showsDataBackedStatCards() {
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            pane.setStats(new EditorWelcomePane.WelcomeStats(7, 3, 12, 5));
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        assertEquals("7", statText("#welcome-stat-recent"));
+        assertEquals("3", statText("#welcome-stat-favorites"));
+        assertEquals("12", statText("#welcome-stat-templates"));
+        assertEquals("5", statText("#welcome-stat-queries"));
+        assertTrue(hasLabel("Recent files") && hasLabel("Favorites") && hasLabel("Templates"),
+                "stat card labels must be present");
+    }
+
+    private String statText(String id) {
+        return WaitForAsyncUtils.waitForAsyncFx(2000, () -> ((Label) pane.lookup(id)).getText());
+    }
+
     private void fire(String id) {
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
             ButtonBase b = (ButtonBase) pane.lookup(id);

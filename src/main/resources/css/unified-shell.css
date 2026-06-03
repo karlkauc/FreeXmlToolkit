@@ -684,6 +684,42 @@
     -fx-font-size: 11px;
     -fx-text-fill: rgba(255, 255, 255, 0.82);
 }
+
+/* Dashboard stat cards */
+.fxt-welcome-stat-card {
+    -fx-background-color: -fxt-bg-surface;
+    -fx-background-radius: 10;
+    -fx-border-color: -fxt-border;
+    -fx-border-radius: 10;
+    -fx-padding: 14 16;
+}
+.fxt-welcome-stat-number {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-primary;
+}
+.fxt-welcome-stat-label {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 11px;
+    -fx-text-fill: -fxt-text-secondary;
+}
+
+/* Tips banner */
+.fxt-welcome-tips {
+    -fx-background-color: rgba(59, 91, 219, 0.08);
+    -fx-background-radius: 10;
+    -fx-border-color: rgba(59, 91, 219, 0.20);
+    -fx-border-radius: 10;
+    -fx-padding: 12 16;
+}
+.fxt-welcome-tips .label {
+    -fx-text-fill: -fxt-text-secondary;
+    -fx-font-size: 12px;
+}
+.fxt-welcome-tips .iconify-icon {
+    -fx-icon-color: -fxt-primary;
+}
 .fxt-tool-card .iconify-icon, .fxt-tool-card .ikonli-font-icon {
     -fx-icon-color: -fxt-text-muted;
 }
