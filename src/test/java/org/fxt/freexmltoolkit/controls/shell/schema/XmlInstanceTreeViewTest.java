@@ -6,15 +6,17 @@ import javafx.scene.Scene;
 import javafx.scene.control.TreeItem;
 import javafx.stage.Stage;
 
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.editor.XmlEditorContext;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
 import org.testfx.util.WaitForAsyncUtils;
-import org.w3c.dom.Node;
 
 /**
- * Verifies the XML-instance tree renders an XML document's element/text structure.
+ * Verifies the XML-instance tree renders the shared {@link XmlNode} model's element structure.
  */
 @ExtendWith(ApplicationExtension.class)
 class XmlInstanceTreeViewTest {
@@ -28,24 +30,39 @@ class XmlInstanceTreeViewTest {
         stage.show();
     }
 
+    private XmlEditorContext context(String xml) {
+        XmlEditorContext ctx = new XmlEditorContext();
+        ctx.loadDocumentFromString(xml);
+        return ctx;
+    }
+
     @Test
     void rendersElementTree() {
-        boolean ok = WaitForAsyncUtils.waitForAsyncFx(2000,
-                () -> tree.setXml("<order id=\"1\"><item>a</item><item>b</item></order>"));
-        assertTrue(ok);
-        TreeItem<Node> root = WaitForAsyncUtils.waitForAsyncFx(2000, () -> tree.getRoot());
+        XmlEditorContext ctx = context("<order id=\"1\"><item>a</item><item>b</item></order>");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            tree.setModel(ctx);
+            return null;
+        });
+        TreeItem<XmlNode> root = WaitForAsyncUtils.waitForAsyncFx(2000, () -> tree.getRoot());
         assertNotNull(root);
-        assertEquals("order", root.getValue().getNodeName());
-        // two <item> element children (whitespace text nodes ignored)
+        assertEquals("order", ((XmlElement) root.getValue()).getQualifiedName());
         long elementChildren = root.getChildren().stream()
-                .filter(c -> c.getValue().getNodeType() == Node.ELEMENT_NODE).count();
+                .filter(c -> c.getValue() instanceof XmlElement).count();
         assertEquals(2, elementChildren, "two <item> children expected");
     }
 
     @Test
-    void invalidXmlClearsTheTree() {
-        boolean ok = WaitForAsyncUtils.waitForAsyncFx(2000, () -> tree.setXml("<not-closed>"));
-        assertFalse(ok);
+    void nullModelClearsTheTree() {
+        XmlEditorContext ctx = context("<order id=\"1\"><item>a</item></order>");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            tree.setModel(ctx);
+            return null;
+        });
+        assertNotNull(WaitForAsyncUtils.waitForAsyncFx(2000, () -> tree.getRoot()));
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            tree.setModel(null);
+            return null;
+        });
         assertNull(WaitForAsyncUtils.waitForAsyncFx(2000, () -> tree.getRoot()));
     }
 }

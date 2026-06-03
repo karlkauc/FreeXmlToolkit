@@ -917,6 +917,7 @@ public class EditorHost extends BorderPane {
         if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et && et.undoXml()) {
             activeXmlNode.set(null);
             refreshSelectedNode();
+            rebuildActiveXmlTree();
             return true;
         }
         return false;
@@ -927,9 +928,26 @@ public class EditorHost extends BorderPane {
         if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et && et.redoXml()) {
             activeXmlNode.set(null);
             refreshSelectedNode();
+            rebuildActiveXmlTree();
             return true;
         }
         return false;
+    }
+
+    /** Rebuilds the XML Tree from the shared model (undo/redo may have changed structure). */
+    private void rebuildActiveXmlTree() {
+        if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et
+                && et.viewMode == ViewMode.TREE && et.xmlInstanceTreeView != null) {
+            et.xmlInstanceTreeView.setModel(et.xmlEditorContext);
+        }
+    }
+
+    /** Refreshes the XML Tree cells in place (labels reflect edits) when the Tree view is active. */
+    private void refreshActiveXmlTree() {
+        if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et
+                && et.viewMode == ViewMode.TREE && et.xmlInstanceTreeView != null) {
+            et.xmlInstanceTreeView.refresh();
+        }
     }
 
     /** Runs a command on the selected XML node (any type) via the XML command stack + round-trip. */
@@ -944,6 +962,7 @@ public class EditorHost extends BorderPane {
             }
             activeXmlNode.set(null);
             refreshSelectedNode();
+            refreshActiveXmlTree();
             return true;
         }
         return false;
@@ -960,6 +979,7 @@ public class EditorHost extends BorderPane {
                 // Same node object edited in place: force the inspector to re-read it.
                 activeXmlNode.set(null);
                 refreshSelectedNode();
+                refreshActiveXmlTree();
             }
             return ok;
         }
@@ -1516,10 +1536,11 @@ public class EditorHost extends BorderPane {
                 showOnly(jsonTreeView);
                 return;
             }
-            // XML instances (incl. XSLT/Schematron) get a read-only DOM tree (Tree only).
+            // XML instances (incl. XSLT/Schematron) get a selectable Tree over the shared model.
             if (document.getFileType() != EditorFileType.XSD) {
                 ensureXmlInstanceTree();
-                xmlInstanceTreeView.setXml(view.getText());
+                ensureXmlModelParsed();
+                xmlInstanceTreeView.setModel(xmlEditorContext);
                 showOnly(xmlInstanceTreeView);
                 return;
             }
@@ -2156,6 +2177,10 @@ public class EditorHost extends BorderPane {
         private void ensureXmlInstanceTree() {
             if (xmlInstanceTreeView == null) {
                 xmlInstanceTreeView = new org.fxt.freexmltoolkit.controls.shell.schema.XmlInstanceTreeView();
+                xmlInstanceTreeView.setOnSelectionChanged(node -> {
+                    currentXmlSelection = node;
+                    selectionCallback.run();
+                });
                 contentStack.getChildren().add(xmlInstanceTreeView);
             }
         }
