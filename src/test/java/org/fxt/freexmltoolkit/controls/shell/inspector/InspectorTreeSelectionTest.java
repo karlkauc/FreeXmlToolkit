@@ -78,7 +78,10 @@ class InspectorTreeSelectionTest {
         WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
                 () -> "UniqueDocumentID".equals(inspector.getNodeNameText()));
         assertEquals("UniqueDocumentID", inspector.getNodeNameText());
-        assertEquals("/FundsXML4/ControlData/UniqueDocumentID", inspector.getXPathText());
+        // The inspector shows the XSD schema XPath (mirrors XsdNode.getXPath()).
+        assertTrue(inspector.getXPathText().startsWith("/xs:schema/"), inspector.getXPathText());
+        assertTrue(inspector.getXPathText().endsWith("xs:element[@name='UniqueDocumentID']"),
+                inspector.getXPathText());
         assertEquals("xs:string", inspector.getTypeText());
     }
 

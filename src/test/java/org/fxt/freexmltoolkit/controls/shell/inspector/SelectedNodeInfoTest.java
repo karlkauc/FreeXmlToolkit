@@ -25,19 +25,33 @@ class SelectedNodeInfoTest {
                   <xs:element name="Fund" type="xs:string" maxOccurs="unbounded"/>
                 </xs:sequence></xs:complexType>
               </xs:element>
+              <xs:complexType name="DataSupplierType"><xs:sequence>
+                <xs:element name="Short" type="xs:string"/>
+              </xs:sequence></xs:complexType>
             </xs:schema>
             """;
 
     @Test
-    void projectsElementNameTypeXpathAndCardinality() throws Exception {
+    void projectsElementNameTypeAndCardinality() throws Exception {
         XsdSchema schema = new XsdNodeFactory().fromString(XSD);
-        SelectedNodeInfo info = SelectedNodeInfo.of(find(schema, "UniqueDocumentID"));
+        XsdNode node = find(schema, "UniqueDocumentID");
+        SelectedNodeInfo info = SelectedNodeInfo.of(node);
 
         assertEquals("Element", info.kind());
         assertEquals("UniqueDocumentID", info.name());
-        assertEquals("/FundsXML4/ControlData/UniqueDocumentID", info.xpath());
         assertEquals("xs:string", info.type());
         assertEquals("1..1", info.cardinality());
+        // The inspector shows the XSD schema XPath (mirrors XsdNode.getXPath()), not an instance path.
+        assertEquals(node.getXPath(), info.xpath());
+        assertTrue(info.xpath().startsWith("/xs:schema/"), info.xpath());
+        assertTrue(info.xpath().endsWith("xs:element[@name='UniqueDocumentID']"), info.xpath());
+    }
+
+    @Test
+    void namedComplexTypeShowsSchemaXPath() throws Exception {
+        XsdSchema schema = new XsdNodeFactory().fromString(XSD);
+        SelectedNodeInfo info = SelectedNodeInfo.of(find(schema, "DataSupplierType"));
+        assertEquals("/xs:schema/xs:complexType[@name='DataSupplierType']", info.xpath());
     }
 
     @Test
@@ -45,7 +59,7 @@ class SelectedNodeInfoTest {
         XsdSchema schema = new XsdNodeFactory().fromString(XSD);
         SelectedNodeInfo info = SelectedNodeInfo.of(find(schema, "Fund"));
         assertEquals("1..*", info.cardinality());
-        assertEquals("/FundsXML4/Fund", info.xpath());
+        assertTrue(info.xpath().endsWith("xs:element[@name='Fund']"), info.xpath());
     }
 
     @Test

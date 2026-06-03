@@ -26,10 +26,14 @@ public record SelectedNodeInfo(String kind, String name, String xpath, int depth
             return new SelectedNodeInfo("", "", "/", 0, NONE, NONE, NONE, NONE);
         }
         String[] path = instancePath(node);
+        // Show the XSD schema XPath (e.g. /xs:schema/xs:complexType[@name='DataSupplierType']) — it
+        // is well-defined for every node type, including named types and compositors that have no
+        // instance path (which previously collapsed to "/"). Depth stays the named-ancestor depth.
+        String xpath = node.getXPath();
         return new SelectedNodeInfo(
                 kind(node.getNodeType()),
                 node.getName() != null ? node.getName() : "",
-                path[0],
+                (xpath == null || xpath.isBlank()) ? "/" : xpath,
                 Integer.parseInt(path[1]),
                 type(node),
                 cardinality(node),
