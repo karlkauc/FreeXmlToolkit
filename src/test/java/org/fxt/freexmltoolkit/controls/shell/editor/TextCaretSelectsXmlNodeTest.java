@@ -66,4 +66,25 @@ class TextCaretSelectsXmlNodeTest {
         assertTrue(WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.renameActiveXmlAttribute("x", "y")));
         WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> host.getActiveText().orElse("").contains("y=\"1\""));
     }
+
+    private static final String NESTED = "<root>\n  <a>x</a>\n  <parent>\n    <kid>v</kid>\n  </parent>\n</root>\n";
+
+    @Test
+    void caretSelectsContainerElementWithPrecedingSibling(@TempDir Path tmp) throws Exception {
+        Path xml = tmp.resolve("nested.xml");
+        Files.writeString(xml, NESTED);
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("parent")).orElse(false));
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.setActiveViewMode(ViewMode.TEXT);
+            return null;
+        });
+
+        int caret = NESTED.indexOf("<parent>") + 2; // line 3, inside <parent>
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.moveActiveCaretTo(caret));
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> "parent".equals(inspector.getNodeNameText()));
+        assertEquals("parent", inspector.getNodeNameText());
+    }
 }

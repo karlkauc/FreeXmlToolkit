@@ -1661,26 +1661,91 @@ public class EditorHost extends BorderPane {
             document.setDirty(true);
         }
 
+        /** Current text the {@link #caretMapDoc} was parsed from (line numbers match THIS text). */
+        private String caretMapText;
+        /** Transient line-aware parse of the CURRENT text, used only to map a caret line to a node path. */
+        private org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlDocument caretMapDoc;
+
         /**
-         * Resolves the model element at the current text caret (by source line) and publishes it as
-         * the active XML node, so the inspector shows it editable. Falls back to no selection (the
-         * inspector's read-only caret/XPath view) when the document is malformed or the caret is not
-         * inside an element. XML-instance files only.
+         * Resolves the model element at the current text caret and publishes it as the active XML
+         * node, so the inspector shows it editable. The shared model's source line numbers go stale
+         * after a round-trip reformats the text, so the caret line is mapped against a transient
+         * line-aware parse of the CURRENT text (cached by text); the resulting structural index path
+         * is then navigated in the shared model — which keeps node identity and undo history intact.
+         * Falls back to no selection (the inspector's read-only caret/XPath view) when the document is
+         * malformed or the caret is not inside an element. XML-instance files only.
          */
         private void resolveCaretXmlNode() {
-            if (viewMode != ViewMode.TEXT || document.getFileType() == EditorFileType.XSD) {
+            if (viewMode != ViewMode.TEXT || document.getFileType() == EditorFileType.XSD
+                    || document.getFileType() == EditorFileType.JSON) {
                 return;
             }
             ensureXmlModelParsed();
             org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode resolved = null;
             if (xmlEditorContext != null && xmlEditorContext.getDocument() != null) {
-                org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement root =
-                        xmlEditorContext.getDocument().getRootElement();
-                int line = view.getCodeArea().getCurrentParagraph() + 1;
-                resolved = findElementByLine(root, line);
+                String text = view.getText();
+                if (!java.util.Objects.equals(text, caretMapText)) {
+                    try {
+                        caretMapDoc = new org.fxt.freexmltoolkit.controls.v2.xmleditor.serialization
+                                .StreamingXmlParser().parse(text);
+                    } catch (Exception e) {
+                        caretMapDoc = null;
+                    }
+                    caretMapText = text;
+                }
+                if (caretMapDoc != null && caretMapDoc.getRootElement() != null) {
+                    int line = view.getCodeArea().getCurrentParagraph() + 1;
+                    var target = findElementByLine(caretMapDoc.getRootElement(), line);
+                    java.util.List<Integer> path = indexPath(caretMapDoc.getRootElement(), target);
+                    resolved = navigate(xmlEditorContext.getDocument().getRootElement(), path);
+                }
             }
             currentXmlSelection = resolved;
             selectionCallback.run();
+        }
+
+        /**
+         * @return the child-element index path from {@code root} to {@code target} (empty list if
+         * {@code target == root}), or {@code null} if {@code target} is null or not under {@code root}.
+         */
+        private static java.util.List<Integer> indexPath(
+                org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement root,
+                org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement target) {
+            if (target == null || root == null) {
+                return null;
+            }
+            java.util.LinkedList<Integer> path = new java.util.LinkedList<>();
+            org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement cur = target;
+            while (cur != null && cur != root) {
+                if (!(cur.getParent() instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement pe)) {
+                    return null;
+                }
+                int idx = pe.getChildElements().indexOf(cur);
+                if (idx < 0) {
+                    return null;
+                }
+                path.addFirst(idx);
+                cur = pe;
+            }
+            return cur == root ? path : null;
+        }
+
+        /** Navigates the child-element index {@code path} from {@code root}; {@code null} if out of range. */
+        private static org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement navigate(
+                org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement root,
+                java.util.List<Integer> path) {
+            if (root == null || path == null) {
+                return null;
+            }
+            org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement cur = root;
+            for (int idx : path) {
+                var kids = cur.getChildElements();
+                if (idx < 0 || idx >= kids.size()) {
+                    return null;
+                }
+                cur = kids.get(idx);
+            }
+            return cur;
         }
 
         /**

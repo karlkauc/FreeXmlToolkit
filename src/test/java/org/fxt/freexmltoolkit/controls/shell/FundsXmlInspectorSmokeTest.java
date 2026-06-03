@@ -126,6 +126,38 @@ class FundsXmlInspectorSmokeTest {
         System.out.println("[SMOKE] document      declVisible=" + inspector.isDeclarationSectionVisible()
                 + "  version=" + inspector.getDeclarationVersionText());
 
+        // 2d) Tree view: selecting a node feeds the same editable inspector as the Grid.
+        onFx(() -> host.setActiveViewMode(ViewMode.TREE));
+        settle();
+        Thread.sleep(300);
+        var tree = (org.fxt.freexmltoolkit.controls.shell.schema.XmlInstanceTreeView)
+                root.lookupAll("*").stream()
+                        .filter(n -> n instanceof org.fxt.freexmltoolkit.controls.shell.schema.XmlInstanceTreeView)
+                        .findFirst().orElseThrow();
+        onFx(() -> tree.getSelectionModel().select(tree.getRoot().getChildren().get(0)));
+        WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS,
+                () -> inspector.getNodeNameText() != null && !inspector.getNodeNameText().isBlank());
+        settle();
+        shot("fundsxml_08_tree_inspector");
+        System.out.println("[SMOKE] tree node     name=" + inspector.getNodeNameText()
+                + "  attrs=" + inspector.getXmlAttributeCount());
+
+        // 2e) Text view: moving the caret into an element selects it (editable inspector).
+        onFx(() -> host.setActiveViewMode(ViewMode.TEXT));
+        settle();
+        int caretAt = host.getActiveText().orElse("").indexOf("<DataSupplier") + 3;
+        onFx(() -> host.moveActiveCaretTo(caretAt));
+        try {
+            WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS,
+                    () -> "DataSupplier".equals(inspector.getNodeNameText()));
+        } catch (Exception ignored) {
+            // manual aid: snapshot the state regardless of what the caret resolved
+        }
+        settle();
+        shot("fundsxml_09_text_caret_inspector");
+        System.out.println("[SMOKE] text caret    name=" + inspector.getNodeNameText()
+                + "  xpath=" + inspector.getXPathText());
+
         // 3) Open the XSD itself and inspect an element in the Schema tree.
         onFx(() -> host.openFile(xsd.toPath()));
         WaitForAsyncUtils.waitFor(8, TimeUnit.SECONDS,
