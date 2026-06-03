@@ -78,6 +78,28 @@ public final class ProfiledSampleRunner {
         }
     }
 
+    /**
+     * Writes each generated file into {@code dir} (named by its {@code fileName}).
+     *
+     * @return the files actually written
+     */
+    public static List<File> writeBatch(File dir, List<GeneratedFile> files) {
+        List<File> written = new java.util.ArrayList<>();
+        if (dir == null || files == null) {
+            return written;
+        }
+        for (GeneratedFile file : files) {
+            try {
+                File out = new File(dir, file.fileName());
+                java.nio.file.Files.writeString(out.toPath(), file.content());
+                written.add(out);
+            } catch (Exception e) {
+                // best-effort: skip files that fail to write
+            }
+        }
+        return written;
+    }
+
     /** Parses the XSD into the documentation data the generator needs; {@code null} on failure. */
     private static XsdDocumentationData process(File xsd) {
         if (xsd == null || !xsd.isFile()) {

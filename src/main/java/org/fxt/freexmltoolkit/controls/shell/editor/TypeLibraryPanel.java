@@ -62,6 +62,7 @@ public class TypeLibraryPanel extends VBox {
                 actionButton("Statistics", "bi-bar-chart", this::statisticsActive),
                 actionButton("Schema Quality", "bi-patch-check", this::qualityActive),
                 actionButton("Generate Sample XML", "bi-filetype-xml", this::generateSampleXmlForActive),
+                actionButton("Generate Sample XML (Advanced)…", "bi-sliders", this::generateProfiledSampleForActive),
                 actionButton("Generate Documentation", "bi-file-earmark-text", this::generateDocumentationForActive));
 
         Label typesLabel = new Label("TYPES");
@@ -235,6 +236,62 @@ public class TypeLibraryPanel extends VBox {
                     editorHost.openGeneratedDocument(result, EditorFileType.XML, "Sample.xml");
                 }
             });
+        });
+    }
+
+    /**
+     * Advanced sample generation: extracts the schema's XPaths (off-thread), opens the
+     * {@link ProfiledSampleDialog} for per-XPath rules + batch options, then generates a single
+     * document (new tab) or a batch of files written to a chosen directory.
+     */
+    public void generateProfiledSampleForActive() {
+        String title = "Generate Sample XML (Advanced)";
+        File xsd = activeXsdFileOrAlert(title);
+        if (xsd == null) {
+            return;
+        }
+        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            var xpaths = ProfiledSampleRunner.extractXPaths(xsd);
+            javafx.application.Platform.runLater(() -> {
+                if (xpaths.isEmpty()) {
+                    alert(javafx.scene.control.Alert.AlertType.WARNING, title,
+                            "Could not extract any XPaths from the schema.");
+                    return;
+                }
+                var profileOpt = new ProfiledSampleDialog(xpaths).showAndWait();
+                profileOpt.ifPresent(profile -> runProfiledGeneration(xsd, profile, title));
+            });
+        });
+    }
+
+    private void runProfiledGeneration(File xsd,
+            org.fxt.freexmltoolkit.domain.GenerationProfile profile, String title) {
+        if (profile.getBatchCount() <= 1) {
+            org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+                String result = ProfiledSampleRunner.generate(xsd, profile);
+                javafx.application.Platform.runLater(() -> {
+                    if (result.startsWith("ERROR")) {
+                        alert(javafx.scene.control.Alert.AlertType.ERROR, title, result);
+                    } else {
+                        editorHost.openGeneratedDocument(result, EditorFileType.XML, "Sample.xml");
+                    }
+                });
+            });
+            return;
+        }
+        javafx.stage.DirectoryChooser chooser = new javafx.stage.DirectoryChooser();
+        chooser.setTitle("Choose output folder for " + profile.getBatchCount() + " files");
+        File dir = chooser.showDialog(getScene() != null ? getScene().getWindow() : null);
+        if (dir == null) {
+            return;
+        }
+        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            var files = ProfiledSampleRunner.generateBatch(xsd, profile);
+            var written = ProfiledSampleRunner.writeBatch(dir, files);
+            javafx.application.Platform.runLater(() -> alert(
+                    javafx.scene.control.Alert.AlertType.INFORMATION, title,
+                    "Wrote " + written.size() + " of " + profile.getBatchCount()
+                            + " files to:\n" + dir.getAbsolutePath()));
         });
     }
 

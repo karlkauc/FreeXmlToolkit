@@ -81,6 +81,24 @@ class ProfiledSampleRunnerTest {
     }
 
     @Test
+    void writeBatchWritesEachFileToDisk(@TempDir Path tmp) throws Exception {
+        File xsd = writeXsd(tmp);
+        GenerationProfile profile = new GenerationProfile("batch");
+        profile.setBatchCount(2);
+        profile.setFileNamePattern("order_{seq:2}.xml");
+        List<GeneratedFile> files = ProfiledSampleRunner.generateBatch(xsd, profile);
+
+        Path outDir = Files.createDirectory(tmp.resolve("out"));
+        List<File> written = ProfiledSampleRunner.writeBatch(outDir.toFile(), files);
+
+        assertEquals(2, written.size());
+        for (File f : written) {
+            assertTrue(f.isFile(), "file must exist: " + f);
+            assertTrue(Files.readString(f.toPath()).contains("<order"), "file must hold generated XML");
+        }
+    }
+
+    @Test
     void missingFileYieldsErrorOrEmpty(@TempDir Path tmp) {
         File missing = tmp.resolve("nope.xsd").toFile();
         assertTrue(ProfiledSampleRunner.generate(missing, new GenerationProfile("x")).startsWith("ERROR"));
