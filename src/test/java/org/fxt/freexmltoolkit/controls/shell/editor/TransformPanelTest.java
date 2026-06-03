@@ -164,6 +164,26 @@ class TransformPanelTest {
         assertTrue(panel.getOutputText().contains("Hello"), panel.getOutputText());
     }
 
+    @Test
+    void xqueryResultIsShownAsTable(@TempDir Path tmp) throws Exception {
+        Path xml = tmp.resolve("order.xml");
+        Files.writeString(xml, "<order><item><sku>A</sku><qty>2</qty></item>"
+                + "<item><sku>B</sku><qty>5</qty></item></order>");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("order")).orElse(false));
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.setXQuery("for $i in /order/item return $i");
+            panel.runXQuery();
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> panel.getResultRowCount() == 2);
+        assertEquals(java.util.List.of("sku", "qty"), panel.getResultColumns());
+        assertEquals(2, panel.getResultRowCount());
+        assertTrue(panel.isResultTableShown(), "the table view must be shown for a tabular XQuery result");
+    }
+
     private void openGreeting(Path tmp) throws Exception {
         Path xml = tmp.resolve("doc.xml");
         Files.writeString(xml, XML);

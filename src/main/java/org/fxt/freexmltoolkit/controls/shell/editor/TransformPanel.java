@@ -4,21 +4,29 @@ import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
+import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.util.Duration;
@@ -42,6 +50,9 @@ public class TransformPanel extends VBox {
 
     private final EditorHost editorHost;
     private final TextArea output = new TextArea();
+    private final TableView<List<String>> resultTable = new TableView<>();
+    private final ToggleButton textToggle = new ToggleButton("Text");
+    private final ToggleButton tableToggle = new ToggleButton("Table");
     private final TextArea xqueryArea = new TextArea();
     private final TextField xpathField = new TextField();
     private final Label pathLabel = new Label("XPATH");
@@ -104,7 +115,30 @@ public class TransformPanel extends VBox {
         resultLabel.getStyleClass().add("fxt-side-panel-title");
         output.setEditable(false);
         output.getStyleClass().add("fxt-transform-output");
-        VBox.setVgrow(output, Priority.ALWAYS);
+
+        // Result area: a Text view (the serialized output) and a Table view (an XQuery result
+        // sequence projected into rows/columns), switched by a Text/Table toggle.
+        ToggleGroup resultMode = new ToggleGroup();
+        textToggle.setToggleGroup(resultMode);
+        tableToggle.setToggleGroup(resultMode);
+        textToggle.setSelected(true);
+        textToggle.getStyleClass().add("fxt-tool-button");
+        tableToggle.getStyleClass().add("fxt-tool-button");
+        resultMode.selectedToggleProperty().addListener((obs, oldT, newT) -> {
+            if (newT == null) {
+                oldT.setSelected(true); // keep one always selected
+            } else {
+                updateResultView();
+            }
+        });
+        resultTable.setPlaceholder(new Label("Run an XQuery returning a sequence to see a table."));
+        StackPane resultStack = new StackPane(output, resultTable);
+        VBox.setVgrow(resultStack, Priority.ALWAYS);
+        Region resultSpacer = new Region();
+        HBox.setHgrow(resultSpacer, Priority.ALWAYS);
+        HBox resultHeader = new HBox(8, resultLabel, resultSpacer, textToggle, tableToggle);
+        resultHeader.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        updateResultView();
 
         Label xqueryLabel = new Label("XQUERY");
         xqueryLabel.getStyleClass().add("fxt-side-panel-title");
@@ -120,7 +154,34 @@ public class TransformPanel extends VBox {
                 pathLabel, new HBox(6, xpathField, runXPath),
                 new HBox(6, saveQuery, savedQueriesMenu),
                 xqueryLabel, xqueryArea, SidePanelLayout.fill(runXQuery),
-                resultLabel, output);
+                resultHeader, resultStack);
+    }
+
+    /** Shows either the Text output or the Table view per the toggle selection. */
+    private void updateResultView() {
+        boolean table = tableToggle.isSelected();
+        output.setVisible(!table);
+        output.setManaged(!table);
+        resultTable.setVisible(table);
+        resultTable.setManaged(table);
+    }
+
+    /** Rebuilds the result table from a tabular XQuery result (columns + string rows). */
+    private void populateResultTable(XQueryTableRunner.XQueryTable table) {
+        resultTable.getColumns().clear();
+        resultTable.getItems().clear();
+        if (table.isError()) {
+            return;
+        }
+        List<String> columns = table.columns();
+        for (int i = 0; i < columns.size(); i++) {
+            final int index = i;
+            TableColumn<List<String>, String> column = new TableColumn<>(columns.get(i));
+            column.setCellValueFactory(cell -> new ReadOnlyStringWrapper(
+                    index < cell.getValue().size() ? cell.getValue().get(index) : ""));
+            resultTable.getColumns().add(column);
+        }
+        resultTable.getItems().setAll(table.rows());
     }
 
     /** Executes the XQuery against the active XML (async), honouring params + output format. */
@@ -139,13 +200,34 @@ public class TransformPanel extends VBox {
         output.setText("Running…");
         FxtGui.executorService.submit(() -> {
             String result = TransformRunner.runXQuery(xml, xquery, params, format);
-            Platform.runLater(() -> output.setText(result));
+            XQueryTableRunner.XQueryTable table = XQueryTableRunner.run(xml, xquery);
+            Platform.runLater(() -> {
+                output.setText(result);
+                populateResultTable(table);
+                // Prefer the table view when the result is a non-empty sequence; otherwise show text.
+                (!table.isError() && !table.isEmpty() ? tableToggle : textToggle).setSelected(true);
+            });
         });
     }
 
     /** Sets the XQuery text (for tests/observers). */
     public void setXQuery(String xquery) {
         xqueryArea.setText(xquery);
+    }
+
+    /** @return the current result-table column headers (for tests/observers). */
+    public List<String> getResultColumns() {
+        return resultTable.getColumns().stream().map(TableColumn::getText).toList();
+    }
+
+    /** @return the current result-table row count (for tests/observers). */
+    public int getResultRowCount() {
+        return resultTable.getItems().size();
+    }
+
+    /** @return {@code true} if the Table view (not the Text view) is currently shown. */
+    public boolean isResultTableShown() {
+        return tableToggle.isSelected();
     }
 
     /** Adds an XSLT parameter row (used by the "Add Parameter" button and tests). */
@@ -212,7 +294,7 @@ public class TransformPanel extends VBox {
                 result = "ERROR: " + e.getMessage();
             }
             String finalResult = result;
-            Platform.runLater(() -> output.setText(finalResult));
+            Platform.runLater(() -> { output.setText(finalResult); textToggle.setSelected(true); });
         });
     }
 
@@ -232,7 +314,7 @@ public class TransformPanel extends VBox {
         FxtGui.executorService.submit(() -> {
             String result = json ? TransformRunner.runJsonPath(content, path)
                     : TransformRunner.runXPath(content, path);
-            Platform.runLater(() -> output.setText(result));
+            Platform.runLater(() -> { output.setText(result); textToggle.setSelected(true); });
         });
     }
 
