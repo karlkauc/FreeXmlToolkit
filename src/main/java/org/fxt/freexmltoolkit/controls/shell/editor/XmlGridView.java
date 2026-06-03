@@ -51,15 +51,15 @@ public class XmlGridView extends StackPane {
     }
 
     /**
-     * (Re)builds the grid from the given XML. A blank document or a parse error
-     * shows a placeholder instead of the grid.
+     * (Re)builds the grid from the given XML by parsing it into a fresh context. A blank document
+     * or a parse error shows a placeholder instead of the grid.
      *
      * @param xml the XML to display (may be {@code null})
      */
     public void setXml(String xml) {
-        getChildren().clear();
-        context = null;
         if (xml == null || xml.isBlank()) {
+            getChildren().clear();
+            context = null;
             getChildren().add(placeholder("No XML content to display."));
             return;
         }
@@ -67,11 +67,34 @@ public class XmlGridView extends StackPane {
         try {
             ctx.loadDocumentFromString(xml);
         } catch (Exception e) {
+            getChildren().clear();
+            context = null;
             getChildren().add(placeholder("Cannot display grid:\n\n"
                     + e.getMessage() + "\n\nFix the XML errors first."));
             return;
         }
+        setContext(ctx);
+    }
+
+    /**
+     * Renders the given (already parsed) editor context — the shell shares ONE
+     * {@link XmlEditorContext} across its Text/Tree/Grid views, so edits and undo history are
+     * preserved when switching modes. A {@code null}/empty context shows a placeholder. Rendering
+     * the context already shown is a no-op (avoids rebinding the selection listener).
+     *
+     * @param ctx the shared context to render (may be {@code null})
+     */
+    public void setContext(XmlEditorContext ctx) {
+        if (ctx == this.context && !getChildren().isEmpty()
+                && getChildren().get(0) instanceof XmlCanvasView) {
+            return; // already showing this context
+        }
+        getChildren().clear();
         this.context = ctx;
+        if (ctx == null || ctx.getDocument() == null) {
+            getChildren().add(placeholder("No XML content to display."));
+            return;
+        }
         ctx.getSelectionModel().addPropertyChangeListener("selectedNode", evt -> {
             if (onSelectionChanged != null) {
                 onSelectionChanged.accept((XmlNode) evt.getNewValue());

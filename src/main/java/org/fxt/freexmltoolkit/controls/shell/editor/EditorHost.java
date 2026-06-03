@@ -912,6 +912,26 @@ public class EditorHost extends BorderPane {
                                 .SetXmlDeclarationCommand(doc, version, encoding, standalone) : null);
     }
 
+    /** Undoes the last XML-instance edit on the shared context and round-trips to text. */
+    public boolean undoXml() {
+        if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et && et.undoXml()) {
+            activeXmlNode.set(null);
+            refreshSelectedNode();
+            return true;
+        }
+        return false;
+    }
+
+    /** Redoes the last undone XML-instance edit on the shared context and round-trips to text. */
+    public boolean redoXml() {
+        if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et && et.redoXml()) {
+            activeXmlNode.set(null);
+            refreshSelectedNode();
+            return true;
+        }
+        return false;
+    }
+
     /** Runs a command on the selected XML node (any type) via the XML command stack + round-trip. */
     private boolean editActiveXmlNode(
             java.util.function.Function<org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode,
@@ -1179,8 +1199,8 @@ public class EditorHost extends BorderPane {
                 adapter.setXsdDocumentationData(service.xsdDocumentationData);
                 Platform.runLater(() -> {
                     tab.xmlSchemaProvider = adapter;
-                    if (tab.xmlGridView != null && tab.xmlGridView.getContext() != null) {
-                        tab.xmlGridView.getContext().setSchemaProvider(adapter);
+                    if (tab.xmlEditorContext != null) {
+                        tab.xmlEditorContext.setSchemaProvider(adapter);
                     }
                     if (tab.isSelected()) {
                         refreshSelectedNode();
@@ -1418,6 +1438,10 @@ public class EditorHost extends BorderPane {
         private boolean dirtyTrackingAttached;
         /** Editor text the current {@link #editorContext} was parsed from (P2: avoid needless re-parse). */
         private String lastParsedText;
+        /** Shared XML-instance model+command context across Text/Tree/Grid (mirrors {@link #editorContext}). */
+        private org.fxt.freexmltoolkit.controls.v2.xmleditor.editor.XmlEditorContext xmlEditorContext;
+        /** Editor text {@link #xmlEditorContext} was parsed from (avoid needless re-parse; detect external edits). */
+        private String lastParsedXmlText;
         /** Coalesces bursts of model-change events into a single round-trip (P1). */
         private final javafx.animation.PauseTransition roundTripDebounce =
                 new javafx.animation.PauseTransition(javafx.util.Duration.millis(150));
@@ -1477,10 +1501,11 @@ public class EditorHost extends BorderPane {
                 showOnly(view.getNode());
                 return;
             }
-            // XML-family instances offer an editable XMLSpy-style grid.
+            // XML-family instances offer an editable XMLSpy-style grid over the shared context.
             if (target == ViewMode.GRID) {
                 ensureXmlGrid();
-                xmlGridView.setXml(view.getText());
+                ensureXmlModelParsed();
+                xmlGridView.setContext(xmlEditorContext);
                 showOnly(xmlGridView);
                 return;
             }
@@ -1548,6 +1573,55 @@ public class EditorHost extends BorderPane {
                 editorContext = null;
                 lastParsedText = null;
             }
+        }
+
+        /**
+         * (Re)parses the shared XML-instance model, only when missing or when the text changed since
+         * the last parse — so the model, its undo history and the current selection survive view
+         * switches (the XML counterpart of {@link #ensureModelParsed()}).
+         */
+        private void ensureXmlModelParsed() {
+            if (xmlEditorContext == null || !java.util.Objects.equals(view.getText(), lastParsedXmlText)) {
+                parseXmlModel();
+            }
+        }
+
+        private void parseXmlModel() {
+            String text = view.getText();
+            if (text == null || text.isBlank()) {
+                xmlEditorContext = null;
+                lastParsedXmlText = null;
+                return;
+            }
+            try {
+                var ctx = new org.fxt.freexmltoolkit.controls.v2.xmleditor.editor.XmlEditorContext();
+                ctx.loadDocumentFromString(text);
+                if (xmlSchemaProvider != null) {
+                    ctx.setSchemaProvider(xmlSchemaProvider);
+                }
+                xmlEditorContext = ctx;
+                lastParsedXmlText = text;
+            } catch (Exception e) {
+                xmlEditorContext = null;
+                lastParsedXmlText = null;
+            }
+        }
+
+        /** Serializes the shared XML model back into the editor text via a minimal diff (caret/scroll preserved). */
+        private void roundTripXmlModelToText() {
+            if (xmlEditorContext == null) {
+                return;
+            }
+            String xml = xmlEditorContext.serializeToString();
+            String current = view.getText();
+            int[] region = TextDiff.minimalReplaceRegion(current, xml);
+            if (region[0] == region[1] && region[0] == region[2]) {
+                lastParsedXmlText = current; // already in sync
+                return;
+            }
+            view.replaceTextRegion(region[0], region[1], xml.substring(region[0], region[2]));
+            lastParsedXmlText = view.getText();
+            document.setDirty(true);
         }
 
         private void renderStructured() {
@@ -1788,6 +1862,26 @@ public class EditorHost extends BorderPane {
         boolean undoStructured() {
             if (editorContext != null && editorContext.getCommandManager().undo()) {
                 applyModelChange();
+                return true;
+            }
+            return false;
+        }
+
+        /** Undo on the shared XML-instance context; round-trips the reverted model to text. */
+        boolean undoXml() {
+            if (xmlEditorContext != null && xmlEditorContext.undo()) {
+                currentXmlSelection = null;
+                roundTripXmlModelToText();
+                return true;
+            }
+            return false;
+        }
+
+        /** Redo on the shared XML-instance context; round-trips the re-applied model to text. */
+        boolean redoXml() {
+            if (xmlEditorContext != null && xmlEditorContext.redo()) {
+                currentXmlSelection = null;
+                roundTripXmlModelToText();
                 return true;
             }
             return false;
@@ -2036,10 +2130,8 @@ public class EditorHost extends BorderPane {
         private void ensureXmlGrid() {
             if (xmlGridView == null) {
                 xmlGridView = new XmlGridView();
-                xmlGridView.setOnModified(xml -> {
-                    view.setText(xml);
-                    document.setDirty(true);
-                });
+                // Grid edits mutate the shared context directly; round-trip it via a minimal diff.
+                xmlGridView.setOnModified(xml -> roundTripXmlModelToText());
                 xmlGridView.setOnSelectionChanged(node -> {
                     currentXmlSelection = node;
                     selectionCallback.run();
@@ -2048,17 +2140,16 @@ public class EditorHost extends BorderPane {
             }
         }
 
-        /** Executes an XML-instance command on the grid's context and round-trips to text. */
+        /** Executes an XML-instance command on the shared context and round-trips to text. */
         boolean editXml(org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.XmlCommand command) {
-            if (xmlGridView == null || command == null) {
+            if (command == null) {
                 return false;
             }
-            org.fxt.freexmltoolkit.controls.v2.xmleditor.editor.XmlEditorContext ctx = xmlGridView.getContext();
-            if (ctx == null || !ctx.executeCommand(command)) {
+            ensureXmlModelParsed();
+            if (xmlEditorContext == null || !xmlEditorContext.executeCommand(command)) {
                 return false;
             }
-            view.setText(ctx.serializeToString());
-            document.setDirty(true);
+            roundTripXmlModelToText();
             return true;
         }
 
