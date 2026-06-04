@@ -870,6 +870,11 @@ public class EditorHost extends BorderPane {
         return editActivePreservingSelection(et -> et.editComment(et.currentSelection, content));
     }
 
+    /** Deletes an identity-constraint / assertion node (key/keyref/unique/assert) via the command stack. */
+    public boolean deleteConstraintNode(XsdNode node) {
+        return editActivePreservingSelection(et -> et.deleteNode(node));
+    }
+
     /** Edits a facet's value on the selected node's restriction (Type &amp; Facets table). */
     public boolean editActiveFacet(org.fxt.freexmltoolkit.controls.v2.model.XsdFacet facet, String newValue) {
         return editActivePreservingSelection(et -> et.editFacet(facet, newValue));
@@ -2169,6 +2174,7 @@ public class EditorHost extends BorderPane {
             return executeAndApply(
                     new org.fxt.freexmltoolkit.controls.v2.editor.commands.EditCommentCommand(comment, content));
         }
+
 
         boolean editFacet(org.fxt.freexmltoolkit.controls.v2.model.XsdFacet facet, String newValue) {
             if (editorContext == null || facet == null || newValue == null) {

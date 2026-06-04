@@ -20,8 +20,8 @@ public final class SchemaConstraints {
     private SchemaConstraints() {
     }
 
-    /** A single constraint, flattened for display. */
-    public record ConstraintInfo(String kind, String name, String detail) {
+    /** A single constraint, flattened for display, with its source model node (for deletion). */
+    public record ConstraintInfo(String kind, String name, String detail, XsdNode node) {
     }
 
     /** @return the identity constraints and assertions declared directly under the node. */
@@ -32,12 +32,12 @@ public final class SchemaConstraints {
         }
         for (XsdNode child : node.getChildren()) {
             switch (child.getNodeType()) {
-                case KEY -> out.add(identity("key", (XsdIdentityConstraint) child, null));
-                case UNIQUE -> out.add(identity("unique", (XsdIdentityConstraint) child, null));
-                case KEYREF -> out.add(identity("keyref", (XsdKeyRef) child, ((XsdKeyRef) child).getRefer()));
+                case KEY -> out.add(identity("key", (XsdIdentityConstraint) child, null, child));
+                case UNIQUE -> out.add(identity("unique", (XsdIdentityConstraint) child, null, child));
+                case KEYREF -> out.add(identity("keyref", (XsdKeyRef) child, ((XsdKeyRef) child).getRefer(), child));
                 case ASSERT -> {
                     String test = ((XsdAssert) child).getTest();
-                    out.add(new ConstraintInfo("assert", "", test == null ? "" : test));
+                    out.add(new ConstraintInfo("assert", "", test == null ? "" : test, child));
                 }
                 default -> {
                     // not a constraint
@@ -47,7 +47,7 @@ public final class SchemaConstraints {
         return out;
     }
 
-    private static ConstraintInfo identity(String kind, XsdIdentityConstraint ic, String refer) {
+    private static ConstraintInfo identity(String kind, XsdIdentityConstraint ic, String refer, XsdNode node) {
         StringBuilder detail = new StringBuilder();
         if (ic.getSelector() != null && ic.getSelector().getXpath() != null) {
             detail.append("selector: ").append(ic.getSelector().getXpath());
@@ -60,7 +60,7 @@ public final class SchemaConstraints {
         if (refer != null && !refer.isBlank()) {
             append(detail, "refer: " + refer);
         }
-        return new ConstraintInfo(kind, ic.getName() == null ? "" : ic.getName(), detail.toString());
+        return new ConstraintInfo(kind, ic.getName() == null ? "" : ic.getName(), detail.toString(), node);
     }
 
     private static void append(StringBuilder sb, String part) {

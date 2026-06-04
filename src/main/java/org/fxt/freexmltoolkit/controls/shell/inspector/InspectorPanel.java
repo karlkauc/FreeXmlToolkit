@@ -945,7 +945,19 @@ public class InspectorPanel extends VBox {
         constraintsTable.setPrefHeight(110);
         constraintsTable.getStyleClass().add("fxt-facet-table");
         constraintsTable.setPlaceholder(new Label("No constraints"));
-        return constraintsTable;
+
+        // Identity constraints (key/keyref/unique) and assertions can be deleted via the command stack.
+        javafx.scene.control.Button deleteConstraint = new javafx.scene.control.Button("Delete constraint");
+        deleteConstraint.setMinWidth(javafx.scene.layout.Region.USE_PREF_SIZE);
+        deleteConstraint.disableProperty().bind(
+                constraintsTable.getSelectionModel().selectedItemProperty().isNull());
+        deleteConstraint.setOnAction(e -> {
+            var sel = constraintsTable.getSelectionModel().getSelectedItem();
+            if (sel != null && sel.node() != null) {
+                commit(() -> editorHost.deleteConstraintNode(sel.node()));
+            }
+        });
+        return new VBox(4, constraintsTable, deleteConstraint);
     }
 
     private void showXsdSections(boolean visible) {
