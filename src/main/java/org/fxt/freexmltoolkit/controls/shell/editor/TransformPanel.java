@@ -53,6 +53,7 @@ public class TransformPanel extends VBox {
     private final TableView<List<String>> resultTable = new TableView<>();
     private final ToggleButton textToggle = new ToggleButton("Text");
     private final ToggleButton tableToggle = new ToggleButton("Table");
+    private final Label statsLabel = new Label();
     private final TextArea xqueryArea = new TextArea();
     private final TextField xpathField = new TextField();
     private final Label pathLabel = new Label("XPATH");
@@ -140,7 +141,8 @@ public class TransformPanel extends VBox {
         VBox.setVgrow(resultStack, Priority.ALWAYS);
         Region resultSpacer = new Region();
         HBox.setHgrow(resultSpacer, Priority.ALWAYS);
-        HBox resultHeader = new HBox(8, resultLabel, resultSpacer, textToggle, tableToggle);
+        statsLabel.getStyleClass().add("fxt-placeholder-text");
+        HBox resultHeader = new HBox(8, resultLabel, statsLabel, resultSpacer, textToggle, tableToggle);
         resultHeader.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
         updateResultView();
 
@@ -203,10 +205,13 @@ public class TransformPanel extends VBox {
         OutputFormat format = outputFormat.getValue() != null ? outputFormat.getValue() : OutputFormat.XML;
         output.setText("Running…");
         FxtGui.executorService.submit(() -> {
+            long start = System.nanoTime();
             String result = TransformRunner.runXQuery(xml, xquery, params, format);
             XQueryTableRunner.XQueryTable table = XQueryTableRunner.run(xml, xquery);
+            long elapsedMs = (System.nanoTime() - start) / 1_000_000;
             Platform.runLater(() -> {
                 output.setText(result);
+                statsLabel.setText(statsText(result, elapsedMs));
                 populateResultTable(table);
                 // Prefer the table view when the result is a non-empty sequence; otherwise show text.
                 (!table.isError() && !table.isEmpty() ? tableToggle : textToggle).setSelected(true);
@@ -346,6 +351,7 @@ public class TransformPanel extends VBox {
         OutputFormat format = outputFormat.getValue() != null ? outputFormat.getValue() : OutputFormat.XML;
         output.setText("Transforming…");
         FxtGui.executorService.submit(() -> {
+            long start = System.nanoTime();
             String result;
             try {
                 String xsltContent = Files.readString(xslt.toPath(), StandardCharsets.UTF_8);
@@ -353,9 +359,27 @@ public class TransformPanel extends VBox {
             } catch (Exception e) {
                 result = "ERROR: " + e.getMessage();
             }
+            long elapsedMs = (System.nanoTime() - start) / 1_000_000;
             String finalResult = result;
-            Platform.runLater(() -> { output.setText(finalResult); textToggle.setSelected(true); });
+            Platform.runLater(() -> {
+                output.setText(finalResult);
+                statsLabel.setText(statsText(finalResult, elapsedMs));
+                textToggle.setSelected(true);
+            });
         });
+    }
+
+    /** @return a compact "N ms · M chars" stat, or "error" for a failed run. */
+    private static String statsText(String result, long elapsedMs) {
+        if (result == null || result.startsWith("ERROR")) {
+            return "error";
+        }
+        return elapsedMs + " ms · " + result.length() + " chars";
+    }
+
+    /** @return the last transform/query stats text (for tests/observers). */
+    public String getTransformStats() {
+        return statsLabel.getText();
     }
 
     /** Evaluates the XPath field against the active XML (async). */

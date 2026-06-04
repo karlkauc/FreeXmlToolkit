@@ -57,6 +57,9 @@ class TransformPanelTest {
         });
         WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS, () -> panel.getOutputText().contains("<out>Hello</out>"));
         assertTrue(panel.getOutputText().contains("<out>Hello</out>"), panel.getOutputText());
+        // Transform stats are shown (elapsed time + output size).
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> panel.getTransformStats().contains("chars"));
+        assertTrue(panel.getTransformStats().matches("\\d+ ms · \\d+ chars"), panel.getTransformStats());
     }
 
     @Test
