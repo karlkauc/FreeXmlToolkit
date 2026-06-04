@@ -80,7 +80,7 @@ public class InspectorPanel extends VBox {
     private final CheckBox abstractCheck = new CheckBox();
     private final TextField fixedField = editField("inspector-fixed");
     private final TextField substField = editField("inspector-subst");
-    private final TextArea docArea = new TextArea();
+    private final DocLanguagesEditor docEditor = new DocLanguagesEditor();
     private final TextArea appinfoArea = new TextArea();
     private final TableView<XsdFacet> facetTable = new TableView<>();
     private VBox facetBox;
@@ -306,10 +306,8 @@ public class InspectorPanel extends VBox {
     }
 
     private Node buildDocBody() {
-        docArea.setId("inspector-doc");
-        docArea.getStyleClass().add("fxt-inspector-edit");
-        docArea.setWrapText(true);
-        docArea.setPrefRowCount(3);
+        docEditor.setId("inspector-doc");
+        docEditor.setOnChange(docs -> commit(() -> editorHost.changeActiveDocumentations(docs)));
         appinfoArea.setId("inspector-appinfo");
         appinfoArea.getStyleClass().add("fxt-inspector-edit");
         appinfoArea.setWrapText(true);
@@ -317,7 +315,7 @@ public class InspectorPanel extends VBox {
         appinfoArea.setPromptText("xs:appinfo (machine-readable metadata)");
         Label appinfoLabel = new Label("App info");
         appinfoLabel.getStyleClass().add("fxt-inspector-sub-label");
-        docBox = new VBox(4, docArea, appinfoLabel, appinfoArea);
+        docBox = new VBox(4, docEditor, appinfoLabel, appinfoArea);
         return docBox;
     }
 
@@ -526,11 +524,6 @@ public class InspectorPanel extends VBox {
         abstractCheck.selectedProperty().addListener((o, ov, nv) -> commit(this::commitConstraints));
         commitOnEnterAndBlur(fixedField, this::commitConstraints);
         commitOnEnterAndBlur(substField, () -> editorHost.changeActiveSubstitutionGroup(substField.getText().trim()));
-        docArea.focusedProperty().addListener((o, was, isNow) -> {
-            if (!isNow) {
-                commit(() -> editorHost.changeActiveDocumentation(docArea.getText()));
-            }
-        });
         appinfoArea.focusedProperty().addListener((o, was, isNow) -> {
             if (!isNow) {
                 commit(() -> editorHost.changeActiveAppinfo(appinfoArea.getText()));
@@ -727,8 +720,7 @@ public class InspectorPanel extends VBox {
         // Documentation (all nodes). The parser stores annotation text in the multi-language
         // `documentations` list (the legacy single `documentation` String is only set after an
         // inline edit), so read the list first and fall back to the legacy field.
-        docArea.setEditable(true);
-        docArea.setText(resolveXsdDocText(node));
+        docEditor.setEntries(resolveXsdDocEntries(node));
         appinfoArea.setEditable(true);
         appinfoArea.setText(node.getAppinfoAsString() == null ? "" : node.getAppinfoAsString());
         show(docBox, true);
@@ -797,18 +789,17 @@ public class InspectorPanel extends VBox {
      * {@code documentations} list joined by blank lines (the parser populates this), falling back to
      * the legacy single {@code documentation} String (set after an inline edit).
      */
-    private static String resolveXsdDocText(XsdNode node) {
+    private static java.util.List<org.fxt.freexmltoolkit.controls.v2.model.XsdDocumentation>
+            resolveXsdDocEntries(XsdNode node) {
         var docs = node.getDocumentations();
         if (docs != null && !docs.isEmpty()) {
-            String joined = docs.stream()
-                    .map(d -> d.getText() == null ? "" : d.getText())
-                    .filter(s -> !s.isBlank())
-                    .collect(java.util.stream.Collectors.joining("\n\n"));
-            if (!joined.isBlank()) {
-                return joined;
-            }
+            return docs;
         }
-        return node.getDocumentation() == null ? "" : node.getDocumentation();
+        String legacy = node.getDocumentation();
+        if (legacy != null && !legacy.isBlank()) {
+            return java.util.List.of(new org.fxt.freexmltoolkit.controls.v2.model.XsdDocumentation(legacy));
+        }
+        return java.util.List.of();
     }
 
     /**
@@ -1174,8 +1165,7 @@ public class InspectorPanel extends VBox {
 
     /** @return the current Documentation text shown in the editable XSD-node doc area (for tests). */
     public String getDocumentationText() {
-        String t = docArea.getText();
-        return t == null ? "" : t;
+        return docEditor.getCombinedText();
     }
 
     /** @return the value shown for a selected JSON node (for tests/observers). */
