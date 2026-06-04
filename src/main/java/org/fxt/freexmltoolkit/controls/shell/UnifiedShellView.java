@@ -45,6 +45,7 @@ public class UnifiedShellView extends BorderPane {
     private final Label statusPosition = statusLabel("Ln 1, Col 1");
     private final Label statusType = statusLabel("");
     private final Label statusFile = statusLabel("No file open");
+    private final Label statusMemory = statusLabel("");
 
     public UnifiedShellView() {
         getStyleClass().add("fxt-shell");
@@ -571,13 +572,34 @@ public class UnifiedShellView extends BorderPane {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
+        statusMemory.setTooltip(new javafx.scene.control.Tooltip("JVM heap (used / max) — click to run GC"));
+        statusMemory.setOnMouseClicked(e -> {
+            System.gc();
+            statusMemory.setText(memoryText());
+        });
+        statusMemory.setText(memoryText());
+        javafx.animation.Timeline memoryTimer = new javafx.animation.Timeline(
+                new javafx.animation.KeyFrame(javafx.util.Duration.seconds(2),
+                        e -> statusMemory.setText(memoryText())));
+        memoryTimer.setCycleCount(javafx.animation.Animation.INDEFINITE);
+        memoryTimer.play();
+
         bar.getChildren().addAll(
                 statusPosition,
                 statusType,
                 statusLabel("UTF-8"),
                 spacer,
+                statusMemory,
                 statusFile);
         return bar;
+    }
+
+    /** @return the JVM heap usage formatted as {@code "used / max MB"}. */
+    static String memoryText() {
+        Runtime runtime = Runtime.getRuntime();
+        long usedMb = (runtime.totalMemory() - runtime.freeMemory()) / (1024 * 1024);
+        long maxMb = runtime.maxMemory() / (1024 * 1024);
+        return usedMb + " / " + maxMb + " MB";
     }
 
     private Label statusLabel(String text) {
