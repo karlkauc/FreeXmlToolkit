@@ -184,6 +184,20 @@ class TransformPanelTest {
         assertTrue(panel.isResultTableShown(), "the table view must be shown for a tabular XQuery result");
     }
 
+    @Test
+    void recordsAndListsRecentXslt(@TempDir Path tmp) throws Exception {
+        Path xslt = tmp.resolve("recent.xslt");
+        Files.writeString(xslt, XSLT);
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.setXsltFile(xslt.toFile());
+            panel.refreshRecentXsltMenu();
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        assertTrue(panel.recentXsltNames().contains("recent.xslt"),
+                "the chosen stylesheet must appear in the Recent XSLT menu, was: " + panel.recentXsltNames());
+    }
+
     private void openGreeting(Path tmp) throws Exception {
         Path xml = tmp.resolve("doc.xml");
         Files.writeString(xml, XML);

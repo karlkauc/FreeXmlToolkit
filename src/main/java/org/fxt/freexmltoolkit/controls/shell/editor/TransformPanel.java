@@ -60,6 +60,7 @@ public class TransformPanel extends VBox {
     private final VBox paramRows = new VBox(4);
     private final ComboBox<OutputFormat> outputFormat = new ComboBox<>();
     private final MenuButton savedQueriesMenu;
+    private final MenuButton recentXsltMenu = new MenuButton("Recent");
     private final CheckBox livePreview = new CheckBox("Live preview");
     private final PauseTransition liveDebounce = new PauseTransition(Duration.millis(600));
     private File xsltFile;
@@ -72,6 +73,9 @@ public class TransformPanel extends VBox {
         title.getStyleClass().add("fxt-side-panel-title");
 
         Button setXslt = button("Set XSLT…", "bi-file-earmark-code", this::chooseXslt);
+        recentXsltMenu.setGraphic(icon("bi-clock-history"));
+        recentXsltMenu.getStyleClass().add("fxt-tool-button");
+        recentXsltMenu.setOnShowing(e -> refreshRecentXsltMenu());
         Button transform = button("Transform", "bi-arrow-repeat", this::transform);
         xsltStatus.getStyleClass().add("fxt-placeholder-text");
 
@@ -148,7 +152,7 @@ public class TransformPanel extends VBox {
         Button runXQuery = button("Run XQuery", "bi-braces", this::runXQuery);
 
         getChildren().addAll(title,
-                SidePanelLayout.fill(setXslt), SidePanelLayout.fill(transform), livePreview, xsltStatus,
+                xsltRow(setXslt), SidePanelLayout.fill(transform), livePreview, xsltStatus,
                 paramsLabel, paramRows, SidePanelLayout.fill(addParam),
                 outputFormatLabel, outputFormat,
                 pathLabel, new HBox(6, xpathField, runXPath),
@@ -255,6 +259,62 @@ public class TransformPanel extends VBox {
     public void setXsltFile(File file) {
         this.xsltFile = file;
         xsltStatus.setText(file != null ? "XSLT: " + file.getName() : "XSLT: none");
+        if (file != null) {
+            try {
+                org.fxt.freexmltoolkit.di.ServiceRegistry
+                        .get(org.fxt.freexmltoolkit.service.PropertiesService.class).addRecentXsltFile(file);
+            } catch (Throwable ignored) {
+                // properties service unavailable — no recent-files persistence
+            }
+        }
+    }
+
+    private HBox xsltRow(Button setXslt) {
+        HBox.setHgrow(setXslt, Priority.ALWAYS);
+        setXslt.setMaxWidth(Double.MAX_VALUE);
+        HBox row = new HBox(6, setXslt, recentXsltMenu);
+        return row;
+    }
+
+    /** Rebuilds the Recent XSLT menu from the persisted recent-stylesheet list. */
+    public void refreshRecentXsltMenu() {
+        recentXsltMenu.getItems().clear();
+        java.util.List<File> recent;
+        try {
+            recent = org.fxt.freexmltoolkit.di.ServiceRegistry
+                    .get(org.fxt.freexmltoolkit.service.PropertiesService.class).getRecentXsltFiles();
+        } catch (Throwable t) {
+            recent = java.util.List.of();
+        }
+        for (File file : recent) {
+            MenuItem item = new MenuItem(file.getName());
+            item.setOnAction(e -> setXsltFile(file));
+            recentXsltMenu.getItems().add(item);
+        }
+        recentXsltMenu.setDisable(recentXsltMenu.getItems().isEmpty());
+        if (!recentXsltMenu.getItems().isEmpty()) {
+            MenuItem clear = new MenuItem("Clear recent");
+            clear.setOnAction(e -> {
+                try {
+                    org.fxt.freexmltoolkit.di.ServiceRegistry
+                            .get(org.fxt.freexmltoolkit.service.PropertiesService.class).clearRecentXsltFiles();
+                } catch (Throwable ignored) {
+                    // ignore
+                }
+                refreshRecentXsltMenu();
+            });
+            recentXsltMenu.getItems().add(new javafx.scene.control.SeparatorMenuItem());
+            recentXsltMenu.getItems().add(clear);
+        }
+    }
+
+    /** @return the recent-XSLT file names currently in the menu (for tests/observers). */
+    public java.util.List<String> recentXsltNames() {
+        return recentXsltMenu.getItems().stream()
+                .filter(i -> !(i instanceof javafx.scene.control.SeparatorMenuItem))
+                .map(MenuItem::getText)
+                .filter(t -> !"Clear recent".equals(t))
+                .toList();
     }
 
     /** Enables/disables XSLT live preview (for tests/observers). */
