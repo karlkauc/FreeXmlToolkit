@@ -195,6 +195,24 @@ comment, or blank space - the pane falls back to a read-only caret/XPath view.
 Because all three views share one model, your edits and your **Undo/Redo** history are preserved
 when you switch between Text, Tree, and Graphic.
 
+### What You Can Edit in the Properties Pane
+
+> **New in June 2026** - The Properties pane gained app-info editing, multi-language
+> documentation, comment editing, and constraint deletion.
+
+For the selected schema node you can edit:
+
+- **Name, type, cardinality/occurrence, use, form** - The core properties of the node.
+- **Facets** - Add, edit, and remove facets such as patterns, enumerations, and length limits.
+- **App info (`xs:appinfo`)** - The machine-readable metadata attached to the node (for example
+  the technical tags described in [Documentation Generator](#6-documentation-generator)).
+- **Multi-language documentation (`xs:documentation`)** - One row per language. Use **Add
+  language** to add a translation and the **✕** button to remove one.
+- **Comments** - Select an XSD comment in the tree to edit its text. To add a comment, choose
+  **Add Comment…** from a node's right-click context menu.
+- **Constraints** - In the **CONSTRAINTS** section, select a `key`, `keyref`, `unique`, or
+  `assert` constraint and click **Delete constraint** to remove it.
+
 > **Note:** Structural editing (adding, deleting, and moving nodes) remains a **Tree** and
 > **Graphic** capability via the right-click context menu. The **Text** view provides
 > *property* editing through the Properties pane.
@@ -349,12 +367,18 @@ Create sample XML files based on your XSD schema. This is useful for testing, da
 ![Sample XML Generator](img/xsd-sample-generator.png)
 *Sample XML generator with rules table and XML preview*
 
+> **Unified Editor (June 2026):** In the [Unified Editor](unified-editor.md), sample-data
+> generation lives in the **Schema** panel. It offers two actions: **Generate Sample XML** for
+> the basic generation described below, and **Generate Sample XML (Advanced)…** for the
+> rule-based, batch-capable generation. The screenshots above predate the advanced dialog.
+
 ### Quick Start (Basic Generation)
 
 For simple use cases, you can generate sample XML in seconds:
 
 1. Load your XSD file
-2. Go to the **Generate Example Data** tab
+2. Go to the **Generate Example Data** tab (or click **Generate Sample XML** in the Unified
+   Editor's Schema panel)
 3. Choose your options:
     - **Mandatory Only**: Include only required elements
     - **Max Occurrences**: Limit repeating elements
@@ -364,7 +388,9 @@ For simple use cases, you can generate sample XML in seconds:
 
 ### Profiled Generation (Advanced)
 
-For more control, you can define rules that specify exactly how each element or attribute gets its value. The Generate Example Data tab now includes:
+For more control, you can define rules that specify exactly how each element or attribute gets
+its value. Open it from the **Generate Example Data** tab, or from
+**Generate Sample XML (Advanced)…** in the Unified Editor's Schema panel. It includes:
 
 | Feature | Description |
 |---------|-------------|

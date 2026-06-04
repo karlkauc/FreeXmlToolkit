@@ -142,6 +142,44 @@ The signed file includes the original content plus a digital signature block.
 
 ---
 
+## 3b. Trust Validation
+
+> **New in June 2026** - In addition to checking that a signature is mathematically valid, you
+> can now check whether the signing certificate is actually **trusted**.
+
+Basic validation confirms that a signature is intact and matches its certificate. **Trust
+validation** goes further: it checks the signing certificate's chain against a **trust store** -
+a collection of certificate authorities you trust - to decide whether the certificate really
+comes from a trusted source.
+
+In the Unified Editor's **Signature** panel, the action is **Validate (Trust)**.
+
+### How to Run Trust Validation
+
+1. Open the signed XML document.
+2. (Optional) Click **Trust store…** to choose the trust store to validate against. By default
+   the application uses the JVM's built-in `cacerts` store, which contains well-known public
+   certificate authorities.
+3. (Optional) Tick **Check revocation (OCSP/CRL)** to also verify that the certificate has not
+   been revoked.
+4. Click **Validate (Trust)**.
+5. A trust report opens in a new tab.
+
+### What the Trust Report Tells You
+
+| Item | What It Means |
+|------|---------------|
+| **Trusted** | Whether the signing certificate chains up to a certificate in the trust store |
+| **Trust anchor** | The trusted certificate (certificate authority) at the top of the chain |
+| **Revocation** | Whether the certificate has been revoked (only when revocation checking is on) |
+| **Timestamp** | Timestamp information found with the signature, if any |
+
+> **Note:** A signature can be mathematically **valid** but **not trusted** if its certificate
+> is self-signed or issued by an authority that is not in your trust store. Trust validation is
+> the step that tells the two situations apart.
+
+---
+
 ## 4. Expert Mode
 
 For users who need more control over the signing process.

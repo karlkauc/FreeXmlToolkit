@@ -103,6 +103,185 @@ When editing an XSLT file:
 - **Debug** tab - Messages, warnings, template execution trace
 - **Open in Browser** - View HTML output in default browser
 
+## Transform Panel
+
+> **New in June 2026** - Added recent-stylesheet history, a watch-and-rerun option,
+> result timing, and an XQuery result table.
+
+The **Transform** panel (open it from the **Transform** icon in the activity bar on the
+left) runs XSLT transformations and XQuery expressions against the active XML document.
+
+### Choosing a Stylesheet
+
+- **Set XSLT…** - Pick the XSLT stylesheet to apply.
+- **Recent** - A drop-down menu listing the XSLT stylesheets you used most recently, so you
+  can reapply one in a single click. The menu also offers **Clear recent** to empty the list.
+- **Watch file** - When checked, the transform re-runs automatically whenever the chosen
+  stylesheet changes on disk. This is handy while you edit a stylesheet in another tool and
+  want to see the effect immediately.
+
+### Running and Viewing Results
+
+1. Set an XSLT stylesheet (or type an XQuery, see below).
+2. Click **Transform** (XSLT) or **Run XQuery** (XQuery).
+3. The result appears in the **RESULT** area.
+
+The RESULT header shows a compact **timing stat** in the form `N ms · M chars` so you can
+see how long the run took and how large the output is.
+
+- **Browser** - Opens the result (typically HTML) in your system web browser.
+
+### XQuery Result Table
+
+The RESULT area has a **Text / Table** toggle:
+
+- **Text** - Shows the raw result as text (the default).
+- **Table** - When an XQuery returns a **sequence** of items, the result is shown as a table.
+  Each item becomes a row, and the columns are taken from each item's child elements (or, if
+  an item has no child elements, its attributes). A sequence of plain values is shown in a
+  single **value** column.
+
+To use it, write an XQuery that returns a sequence (for example
+`for $x in /root/item return $x`), click **Run XQuery**, then switch the toggle to **Table**.
+
+## Validation Panel
+
+Open the **Validation** panel from the activity bar to validate the active document.
+
+### Binding a Schema
+
+- **Set XSD…** - Pick an XSD schema to validate the document against.
+- **Favorites** - A quick-select menu that lists your favorited XSD schemas. Pick one to bind
+  it in a single click, without browsing the file system. (See [Favorites](favorites-system.md).)
+- **Schematron…** - Pick a Schematron file to apply business-rule validation.
+
+### Schematron Tools
+
+When a Schematron file is involved, the panel offers a set of Schematron tools:
+
+| Tool | What It Does |
+|------|--------------|
+| **Rule Templates** | Insert ready-made Schematron rule patterns |
+| **Tester** | Run the Schematron rules against an XML file |
+| **Rule Builder** | Build rules visually |
+| **Check Rules** | Run an error detector over the Schematron itself and show a categorised issue table |
+| **Documentation** | Open the Schematron documentation generator |
+
+> **Check Rules (new in June 2026)** inspects the Schematron file for problems and lists them
+> by category - XML syntax, structural, XPath, semantic, and best-practice issues - so you can
+> fix mistakes in the rules before you rely on them. See
+> [Schematron Validation](schematron-support.md) for details.
+
+## Schema Panel: Sample-Data Generation
+
+Open the **Schema** panel from the activity bar while an XSD file is active. Alongside type
+browsing, the panel offers actions to generate sample XML from the schema:
+
+- **Generate Sample XML** - The simple generator. It builds one sample document using
+  mandatory-only / maximum-occurrence options and realistic example values.
+- **Generate Sample XML (Advanced)…** - Opens a dialog for full control over how the sample
+  data is built (see below).
+
+### Advanced Sample-Data Generation
+
+> **New in June 2026** - A rule-based generator with per-XPath strategies, batch output, and
+> reusable profiles.
+
+The advanced dialog turns the schema's XPaths into an editable table. For each XPath you
+choose a generation **Strategy** plus a value or pattern:
+
+| Strategy | What It Produces |
+|----------|------------------|
+| **Auto** | Type-based automatic value (the default) |
+| **Fixed Value** | A fixed literal you type |
+| **Sequence** | An auto-incrementing value from a pattern (for example `ORD-{seq:4}`) |
+| **Enum Cycle** | Cycles through the allowed enumeration values |
+| **Template** | A string built from a template with placeholders |
+| **Random from List** | A random pick from a comma-separated list |
+| **XPath Reference** | Copies the value from another XPath |
+| **XSD Example** | An example value taken from the schema's annotations |
+| **Omit / Empty / Null** | Skip the node, leave it empty, or set `xsi:nil` |
+
+You can also set **batch options** - a **count** and a **file-name pattern** (for example
+`order_001.xml`, `order_002.xml`) - and **Save** / **Load** named **profiles** so you can reuse
+a configuration later.
+
+The dialog can either generate a **single document** (which opens in a new tab) or a **batch**
+of files written to a folder you choose. For a full walkthrough, see
+[Profiled XML Generation](profiled-xml-generation.md) and the
+[Sample XML Generator](xsd-tools.md#7-sample-xml-generator) section of the XSD Tools guide.
+
+## Inspector (XSD Properties)
+
+> **New in June 2026** - The XSD Properties inspector gained app-info editing, multi-language
+> documentation, comment editing, and constraint deletion.
+
+When an XSD file is open, the **Properties** inspector (Ctrl+Shift+P) shows the selected schema
+node. In addition to name, type, cardinality, facets, and constraints, you can now:
+
+- **Edit the node's `xs:appinfo`** - The machine-readable metadata attached to the node.
+- **Edit multi-language `xs:documentation`** - One row per language. Use **Add language** to add
+  a translation and the **✕** button to remove one.
+- **Edit comments** - Select an XSD comment in the tree to edit its text. To add a new comment,
+  use **Add Comment…** in a node's right-click context menu.
+- **Delete a constraint** - In the **CONSTRAINTS** section, select a `key`, `keyref`, `unique`,
+  or `assert` constraint and click **Delete constraint** to remove it.
+
+## Signature Panel: Trust Validation
+
+> **New in June 2026** - Real trust-chain validation against a trust store.
+
+The **Signature** panel (open it from the activity bar) signs and validates XML signatures.
+Alongside **Sign**, the basic **Validate**, the detailed **Validate (Details)**, and
+**Create Certificate**, it now offers:
+
+- **Validate (Trust)** - Performs full PKIX validation of the signing certificate chain against
+  a **trust store**, producing a trust report (trusted / trust anchor / revocation / timestamp).
+- **Trust store…** - Choose the trust store to validate against. It defaults to the JVM's
+  built-in `cacerts` store.
+- **Check revocation (OCSP/CRL)** - When checked, the validation also checks whether the
+  certificate has been revoked, using OCSP or CRL.
+
+See [XML Digital Signatures](digital-signatures.md) for full details.
+
+## Settings Panel
+
+> **Expanded in June 2026** - The Settings panel now exposes the full application
+> configuration, grouped into sections.
+
+Open the **Settings** panel from the gear icon at the bottom of the activity bar. Change any
+option and click **Save Settings** to apply (theme changes apply immediately).
+
+| Section | Options |
+|---------|---------|
+| **Theme** | Switch between **Light** and **Dark**. |
+| **Editor** | XML indent and JSON indent (spaces); **Auto-format after loading**; **Pretty-print XSD on save**; **Pretty-print Schematron on load**. |
+| **XSD** | **Auto-save** (with an interval in minutes); **Create backups on save** (with the number of versions to keep, and an optional **separate backup directory**). |
+| **Parser** | **XML parser** engine (Xerces or Saxon); **Allow XSLT extension functions**. |
+| **Temp & Cache** | **Use system temp folder** or a custom temp folder; **Clear Temp Folder** to free disk space. |
+| **General** | **Check for updates on startup**; **Use small icons**. |
+| **HTTP Proxy** | **Use system proxy**, or enter a proxy host and port. |
+
+## Welcome / Dashboard
+
+> **New in June 2026** - The welcome screen now shows live statistics and quick tips.
+
+When no document is open, the editor shows a welcome dashboard with:
+
+- **Stat cards** - At-a-glance counts of your **Recent files**, **Favorites**, **Templates**,
+  and **Saved queries**.
+- **Tips banner** - A short hint banner with handy shortcuts (for example, drag a file onto the
+  window to open it, or use Ctrl+F / Ctrl+H to find and replace).
+- **Recent files** list - Click an entry to reopen it.
+
+## Status Bar
+
+> **New in June 2026** - A memory monitor was added to the status bar.
+
+The status bar at the bottom of the window includes a **memory monitor** showing the JVM heap
+usage as **used / max MB**. **Click it** to run garbage collection, which can free memory after
+working with large files.
+
 ## Keyboard Shortcuts
 
 | Shortcut | Action |

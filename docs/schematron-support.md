@@ -94,6 +94,42 @@ Test XPath expressions against sample XML:
 
 ---
 
+## Schematron Tools in the Unified Editor
+
+> **Updated June 2026** - Added **Check Rules** and **Documentation** to the Schematron tools.
+
+When you work with a Schematron file in the [Unified Editor](unified-editor.md), the
+**Validation** panel offers a set of Schematron tools:
+
+| Tool | What It Does |
+|------|--------------|
+| **Rule Templates** | Insert ready-made Schematron rule patterns |
+| **Tester** | Run the rules against an XML file |
+| **Rule Builder** | Build rules visually |
+| **Check Rules** | Inspect the Schematron file itself for problems |
+| **Documentation** | Generate documentation for the Schematron file |
+
+### Check Rules
+
+**Check Rules** runs an error detector over your Schematron file and shows the issues it finds
+in a categorised table, so you can fix mistakes in the rules before relying on them. Issues are
+grouped into categories:
+
+| Category | Examples |
+|----------|----------|
+| **XML syntax** | Malformed XML, unclosed tags |
+| **Structural** | Missing or misplaced patterns, rules, or assertions |
+| **XPath** | Invalid XPath expressions in contexts or tests |
+| **Semantic** | Rules that can never match, or contradictory conditions |
+| **Best practice** | Style and maintainability suggestions |
+
+### Documentation
+
+**Documentation** opens the Schematron documentation generator, which produces readable
+documentation describing the patterns, rules, and assertions in your Schematron file.
+
+---
+
 ## Creating Schematron Rules
 
 ### Basic Structure
