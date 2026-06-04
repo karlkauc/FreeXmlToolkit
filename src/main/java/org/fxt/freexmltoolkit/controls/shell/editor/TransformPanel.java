@@ -155,7 +155,9 @@ public class TransformPanel extends VBox {
         Region resultSpacer = new Region();
         HBox.setHgrow(resultSpacer, Priority.ALWAYS);
         statsLabel.getStyleClass().add("fxt-placeholder-text");
-        HBox resultHeader = new HBox(8, resultLabel, statsLabel, resultSpacer, textToggle, tableToggle);
+        Button openBrowser = button("Browser", "bi-box-arrow-up-right", this::openInBrowser);
+        HBox resultHeader = new HBox(8, resultLabel, statsLabel, resultSpacer,
+                openBrowser, textToggle, tableToggle);
         resultHeader.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
         updateResultView();
 
@@ -412,6 +414,27 @@ public class TransformPanel extends VBox {
     /** @return the last transform/query stats text (for tests/observers). */
     public String getTransformStats() {
         return statsLabel.getText();
+    }
+
+    /** Writes {@code html} to a temporary {@code .html} file (for the browser preview). */
+    public static File writeHtmlPreview(String html) throws java.io.IOException {
+        File file = File.createTempFile("fxt-transform-", ".html");
+        file.deleteOnExit();
+        Files.writeString(file.toPath(), html == null ? "" : html, StandardCharsets.UTF_8);
+        return file;
+    }
+
+    /** Opens the current result in the system browser (renders HTML output). */
+    public void openInBrowser() {
+        try {
+            File file = writeHtmlPreview(output.getText());
+            if (java.awt.Desktop.isDesktopSupported()
+                    && java.awt.Desktop.getDesktop().isSupported(java.awt.Desktop.Action.BROWSE)) {
+                java.awt.Desktop.getDesktop().browse(file.toURI());
+            }
+        } catch (Exception e) {
+            statsLabel.setText("browser: " + e.getMessage());
+        }
     }
 
     /** Evaluates the XPath field against the active XML (async). */
