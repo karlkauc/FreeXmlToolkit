@@ -12,6 +12,9 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
+import javafx.scene.control.MenuButton;
+import javafx.scene.control.MenuItem;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
@@ -34,6 +37,7 @@ public class ValidationPanel extends VBox {
     private final ListView<ValidationProblem> problemsList = new ListView<>(problems);
     private final Label status = new Label("Not validated");
     private final Label xsdStatus = new Label("XSD: none");
+    private final MenuButton xsdFavoritesMenu = new MenuButton("Favorites");
     private final Label schematronStatus = new Label("Schematron: none");
     private final CheckBox liveValidation = new CheckBox("Validate while typing");
     private final PauseTransition debounce = new PauseTransition(Duration.millis(600));
@@ -53,6 +57,9 @@ public class ValidationPanel extends VBox {
         Button setXsd = new Button("Set XSD…", icon("bi-diagram-3"));
         setXsd.getStyleClass().add("fxt-tool-button");
         setXsd.setOnAction(e -> chooseXsd());
+        xsdFavoritesMenu.setGraphic(icon("bi-star"));
+        xsdFavoritesMenu.getStyleClass().add("fxt-tool-button");
+        xsdFavoritesMenu.setOnShowing(e -> refreshXsdFavoritesMenu());
 
         Button setSchematron = new Button("Schematron…", icon("bi-shield-check"));
         setSchematron.getStyleClass().add("fxt-tool-button");
@@ -123,8 +130,11 @@ public class ValidationPanel extends VBox {
         docs.getStyleClass().add("fxt-tool-button");
         docs.setOnAction(e -> openSchematronDocumentation());
 
+        HBox setXsdRow = new HBox(6, setXsd, xsdFavoritesMenu);
+        HBox.setHgrow(setXsd, javafx.scene.layout.Priority.ALWAYS);
+        setXsd.setMaxWidth(Double.MAX_VALUE);
         getChildren().addAll(title,
-                SidePanelLayout.fill(validate), SidePanelLayout.fill(setXsd),
+                SidePanelLayout.fill(validate), setXsdRow,
                 SidePanelLayout.fill(setSchematron), SidePanelLayout.fill(setJsonSchema),
                 SidePanelLayout.fill(batch), liveValidation, status, xsdStatus, schematronStatus,
                 toolsLabel, SidePanelLayout.fill(templates), SidePanelLayout.fill(tester),
@@ -293,6 +303,31 @@ public class ValidationPanel extends VBox {
      *
      * @param xsd the schema file to validate against
      */
+    /** Rebuilds the XSD-favorites quick-select menu from the favorites store (type XSD). */
+    public void refreshXsdFavoritesMenu() {
+        xsdFavoritesMenu.getItems().clear();
+        java.util.List<org.fxt.freexmltoolkit.domain.FileFavorite> favorites;
+        try {
+            favorites = org.fxt.freexmltoolkit.service.FavoritesService.getInstance()
+                    .getFavoritesByType(org.fxt.freexmltoolkit.domain.FileFavorite.FileType.XSD);
+        } catch (Throwable t) {
+            favorites = java.util.List.of();
+        }
+        for (var favorite : favorites) {
+            String name = favorite.getName() != null && !favorite.getName().isBlank()
+                    ? favorite.getName() : new File(favorite.getFilePath()).getName();
+            MenuItem item = new MenuItem(name);
+            item.setOnAction(e -> useXsd(new File(favorite.getFilePath())));
+            xsdFavoritesMenu.getItems().add(item);
+        }
+        xsdFavoritesMenu.setDisable(xsdFavoritesMenu.getItems().isEmpty());
+    }
+
+    /** @return the favorite-XSD names currently in the quick-select menu (for tests/observers). */
+    public java.util.List<String> xsdFavoriteNames() {
+        return xsdFavoritesMenu.getItems().stream().map(MenuItem::getText).toList();
+    }
+
     public void useXsd(File xsd) {
         if (editorHost.setSchemaForActiveDocument(xsd)) {
             refreshXsdStatus();
