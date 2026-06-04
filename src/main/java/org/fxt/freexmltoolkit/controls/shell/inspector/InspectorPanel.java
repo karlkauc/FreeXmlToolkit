@@ -448,6 +448,10 @@ public class InspectorPanel extends VBox {
             return;
         }
         String text = contentArea.getText();
+        if (currentXsdNode instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdComment) {
+            editorHost.changeActiveComment(text);
+            return;
+        }
         if (currentXmlNode instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlComment) {
             editorHost.setActiveCommentText(text);
         } else if (currentXmlNode instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlCData) {
@@ -654,7 +658,28 @@ public class InspectorPanel extends VBox {
         show(contentSection, true);
     }
 
+    /** An XSD comment node: only its editable content is shown (reusing the CONTENT section). */
+    private void populateXsdComment(org.fxt.freexmltoolkit.controls.v2.model.XsdComment comment) {
+        SelectedNodeInfo info = SelectedNodeInfo.of(comment);
+        xpathValue.setText(info.xpath());
+        depthValue.setText(Integer.toString(info.depth()));
+        nameField.setEditable(false);
+        nameField.setText("");
+        contentArea.setEditable(true);
+        populateContent("Comment", "Comment", comment.getContent());
+        show(typeFacetsSection, false);
+        show(cardUseSection, false);
+        show(docSection, false);
+        show(constraintsSection, false);
+        show(namespaceSection, false);
+        show(valueAttrSection, false);
+    }
+
     private void populateXsdNode(XsdNode node) {
+        if (node instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdComment comment) {
+            populateXsdComment(comment);
+            return;
+        }
         SelectedNodeInfo info = SelectedNodeInfo.of(node);
         setHeader(blankToPlaceholder(info.name()), info.kind());
         kindValue.setText(info.kind());
