@@ -4,6 +4,7 @@ import java.io.File;
 
 import javafx.application.Platform;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
@@ -33,6 +34,9 @@ public class SignaturePanel extends VBox {
     private final PasswordField aliasPassword = new PasswordField();
     private final Label keystoreStatus = new Label("Keystore: none");
     private final Label status = new Label("Not signed/validated");
+    private final Label trustStoreStatus = new Label("Trust store: default (cacerts)");
+    private final CheckBox checkRevocation = new CheckBox("Check revocation (OCSP/CRL)");
+    private File trustStoreFile;
     private final TextField cnField = new TextField();
     private final TextField ouField = new TextField();
     private final TextField orgField = new TextField();
@@ -58,6 +62,9 @@ public class SignaturePanel extends VBox {
         Button sign = button("Sign", "bi-shield-lock", this::signActive);
         Button validate = button("Validate", "bi-shield-check", this::validateActive);
         Button validateDetails = button("Validate (Details)", "bi-card-list", this::validateDetailsActive);
+        Button validateTrust = button("Validate (Trust)", "bi-patch-check", this::validateTrustActive);
+        Button chooseTrustStore = button("Trust store…", "bi-folder2-open", this::chooseTrustStore);
+        trustStoreStatus.getStyleClass().add("fxt-placeholder-text");
 
         status.getStyleClass().add("fxt-placeholder-text");
         status.setWrapText(true);
@@ -66,6 +73,8 @@ public class SignaturePanel extends VBox {
                 alias, keystorePassword, aliasPassword,
                 SidePanelLayout.fill(sign), SidePanelLayout.fill(validate),
                 SidePanelLayout.fill(validateDetails),
+                SidePanelLayout.fill(chooseTrustStore), trustStoreStatus, checkRevocation,
+                SidePanelLayout.fill(validateTrust),
                 status, buildCreateCertificateSection());
     }
 
@@ -211,6 +220,69 @@ public class SignaturePanel extends VBox {
                 editorHost.openGeneratedDocument(report, EditorFileType.OTHER, "Signature-Report.txt");
             });
         });
+    }
+
+    /** Picks a trust store (.jks/.p12) whose trusted certificates are the validation anchors. */
+    public void chooseTrustStore() {
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Select trust store");
+        chooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("Key/Trust store", "*.jks", "*.p12", "*.pfx", "*.keystore"));
+        File file = chooser.showOpenDialog(getScene() != null ? getScene().getWindow() : null);
+        if (file != null) {
+            trustStoreFile = file;
+            trustStoreStatus.setText("Trust store: " + file.getName());
+        }
+    }
+
+    /**
+     * Validates the active signed document's certificate chain against the trust store (PKIX:
+     * chain + trust anchor + optional revocation + timestamp presence) and opens the report.
+     */
+    public void validateTrustActive() {
+        File xml = activeXmlFile();
+        if (xml == null) {
+            status.setText("No document open.");
+            return;
+        }
+        File store = trustStoreFile;
+        boolean revocation = checkRevocation.isSelected();
+        char[] storePassword = keystorePassword.getText().isBlank() ? null : keystorePassword.getText().toCharArray();
+        status.setText("Validating trust…");
+        FxtGui.executorService.submit(() -> {
+            String report;
+            try {
+                java.security.KeyStore trustStore = loadTrustStore(store, storePassword);
+                SignatureTrustValidator.TrustResult result =
+                        SignatureTrustValidator.validate(xml, trustStore, revocation);
+                report = "Trust validation of " + xml.getName() + "\n\n" + result.report();
+            } catch (Exception e) {
+                report = "ERROR: " + e.getMessage();
+            }
+            String finalReport = report;
+            Platform.runLater(() -> {
+                status.setText("Trust report opened");
+                editorHost.openGeneratedDocument(finalReport, EditorFileType.OTHER, "Signature-Trust-Report.txt");
+            });
+        });
+    }
+
+    /** Loads the chosen trust store, or the JVM default {@code cacerts} when none is selected. */
+    private static java.security.KeyStore loadTrustStore(File storeFile, char[] password) throws Exception {
+        if (storeFile != null) {
+            String type = storeFile.getName().toLowerCase().matches(".*\\.(p12|pfx)$") ? "PKCS12" : "JKS";
+            java.security.KeyStore ks = java.security.KeyStore.getInstance(type);
+            try (var in = new java.io.FileInputStream(storeFile)) {
+                ks.load(in, password);
+            }
+            return ks;
+        }
+        File cacerts = new File(System.getProperty("java.home"), "lib/security/cacerts");
+        java.security.KeyStore ks = java.security.KeyStore.getInstance("JKS");
+        try (var in = new java.io.FileInputStream(cacerts)) {
+            ks.load(in, null);
+        }
+        return ks;
     }
 
     /** @return the current status text (for tests/observers). */
