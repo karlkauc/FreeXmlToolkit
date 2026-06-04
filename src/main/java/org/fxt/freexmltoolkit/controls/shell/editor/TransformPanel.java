@@ -63,8 +63,10 @@ public class TransformPanel extends VBox {
     private final MenuButton savedQueriesMenu;
     private final MenuButton recentXsltMenu = new MenuButton("Recent");
     private final CheckBox livePreview = new CheckBox("Live preview");
+    private final CheckBox watchXslt = new CheckBox("Watch file");
     private final PauseTransition liveDebounce = new PauseTransition(Duration.millis(600));
     private File xsltFile;
+    private long lastXsltModified;
 
     public TransformPanel(EditorHost editorHost) {
         this.editorHost = editorHost;
@@ -90,6 +92,17 @@ public class TransformPanel extends VBox {
         livePreview.setOnAction(e -> scheduleLivePreview());
         editorHost.activeCaretProperty().addListener((obs, oldV, newV) -> scheduleLivePreview());
         editorHost.activeTabProperty().addListener((obs, oldV, newV) -> scheduleLivePreview());
+
+        // Watch the stylesheet file: re-transform when it changes on disk (e.g. edited externally).
+        javafx.animation.Timeline xsltWatch = new javafx.animation.Timeline(
+                new javafx.animation.KeyFrame(Duration.millis(1500), e -> {
+                    if (watchXslt.isSelected() && xsltFile != null && pollXsltChanged()
+                            && editorHost.getActiveDocument().isPresent()) {
+                        transform();
+                    }
+                }));
+        xsltWatch.setCycleCount(javafx.animation.Animation.INDEFINITE);
+        xsltWatch.play();
 
         // XSLT parameters (name/value rows) + output format.
         Label paramsLabel = new Label("PARAMETERS");
@@ -154,7 +167,8 @@ public class TransformPanel extends VBox {
         Button runXQuery = button("Run XQuery", "bi-braces", this::runXQuery);
 
         getChildren().addAll(title,
-                xsltRow(setXslt), SidePanelLayout.fill(transform), livePreview, xsltStatus,
+                xsltRow(setXslt), SidePanelLayout.fill(transform),
+                new HBox(12, livePreview, watchXslt), xsltStatus,
                 paramsLabel, paramRows, SidePanelLayout.fill(addParam),
                 outputFormatLabel, outputFormat,
                 pathLabel, new HBox(6, xpathField, runXPath),
@@ -260,9 +274,27 @@ public class TransformPanel extends VBox {
         outputFormat.setValue(format);
     }
 
+    /**
+     * Polls whether the stylesheet file changed on disk since the last check (consuming the change).
+     *
+     * @return {@code true} once after each external modification of the current XSLT file
+     */
+    public boolean pollXsltChanged() {
+        if (xsltFile == null || !xsltFile.isFile()) {
+            return false;
+        }
+        long modified = xsltFile.lastModified();
+        if (modified != lastXsltModified) {
+            lastXsltModified = modified;
+            return true;
+        }
+        return false;
+    }
+
     /** Sets the stylesheet used by {@link #transform()} (also from the file chooser). */
     public void setXsltFile(File file) {
         this.xsltFile = file;
+        this.lastXsltModified = file != null ? file.lastModified() : 0L;
         xsltStatus.setText(file != null ? "XSLT: " + file.getName() : "XSLT: none");
         if (file != null) {
             try {

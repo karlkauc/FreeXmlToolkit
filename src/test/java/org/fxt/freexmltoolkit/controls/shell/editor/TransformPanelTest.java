@@ -188,6 +188,24 @@ class TransformPanelTest {
     }
 
     @Test
+    void detectsExternalXsltFileChange(@TempDir Path tmp) throws Exception {
+        Path xslt = tmp.resolve("watch.xslt");
+        Files.writeString(xslt, XSLT);
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.setXsltFile(xslt.toFile());
+            return null;
+        });
+        // No change right after setting the file.
+        assertFalse(WaitForAsyncUtils.waitForAsyncFx(2000, () -> panel.pollXsltChanged()));
+        // Modify the stylesheet on disk with a later timestamp → detected.
+        Files.writeString(xslt, XSLT + "\n<!-- edited -->");
+        xslt.toFile().setLastModified(System.currentTimeMillis() + 3000);
+        assertTrue(WaitForAsyncUtils.waitForAsyncFx(2000, () -> panel.pollXsltChanged()));
+        // ...and consumed (no second trigger until it changes again).
+        assertFalse(WaitForAsyncUtils.waitForAsyncFx(2000, () -> panel.pollXsltChanged()));
+    }
+
+    @Test
     void recordsAndListsRecentXslt(@TempDir Path tmp) throws Exception {
         Path xslt = tmp.resolve("recent.xslt");
         Files.writeString(xslt, XSLT);
