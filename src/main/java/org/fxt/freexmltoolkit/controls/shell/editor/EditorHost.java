@@ -767,6 +767,11 @@ public class EditorHost extends BorderPane {
         return editActive(et -> et.addChoice(et.currentSelection));
     }
 
+    /** Adds an {@code <!-- … -->} comment as a child of the selected XSD node via the command stack. */
+    public boolean addCommentToActive(String content) {
+        return editActive(et -> et.addComment(et.currentSelection, content));
+    }
+
     /** Adds an all compositor to the selected element via the command stack. */
     public boolean addAllToActive() {
         return editActive(et -> et.addAll(et.currentSelection));
@@ -1990,6 +1995,14 @@ public class EditorHost extends BorderPane {
                     new org.fxt.freexmltoolkit.controls.v2.editor.commands.AddElementCommand(parent, name.trim()));
         }
 
+        boolean addComment(XsdNode parent, String content) {
+            if (parent == null || content == null || content.isBlank()) {
+                return false;
+            }
+            return executeAndApply(
+                    new org.fxt.freexmltoolkit.controls.v2.editor.commands.AddCommentCommand(parent, content.trim()));
+        }
+
         boolean addContainerElement(XsdNode parent, String name) {
             if (parent == null || name == null || name.isBlank()) {
                 return false;
@@ -2351,6 +2364,13 @@ public class EditorHost extends BorderPane {
                 @Override
                 public void addElement(XsdNode parent, String name) {
                     if (EditorTab.this.addElement(parent, name)) {
+                        selectionCallback.run();
+                    }
+                }
+
+                @Override
+                public void addComment(XsdNode parent, String content) {
+                    if (EditorTab.this.addComment(parent, content)) {
                         selectionCallback.run();
                     }
                 }

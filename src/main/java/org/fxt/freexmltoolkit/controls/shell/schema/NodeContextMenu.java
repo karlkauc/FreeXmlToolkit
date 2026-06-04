@@ -37,6 +37,8 @@ public final class NodeContextMenu {
                 item("Add Sequence", "bi-list-ol", currentNode, actions::addSequence),
                 item("Add Choice", "bi-signpost-split", currentNode, actions::addChoice),
                 item("Add All", "bi-list-check", currentNode, actions::addAll),
+                item("Add Comment…", "bi-chat-left-text", currentNode,
+                        node -> promptComment(actions, node)),
                 new SeparatorMenuItem(),
                 item("Rename…", "bi-pencil", currentNode, node -> promptRename(actions, node)),
                 item("Change Type…", "bi-type", currentNode, node -> promptChangeType(actions, node)),
@@ -67,6 +69,17 @@ public final class NodeContextMenu {
             }
         });
         return menuItem;
+    }
+
+    private static void promptComment(NodeEditActions actions, XsdNode node) {
+        TextInputDialog dialog = new TextInputDialog("comment");
+        dialog.setTitle("Add Comment");
+        dialog.setHeaderText("Comment text:");
+        dialog.showAndWait().ifPresent(text -> {
+            if (!text.isBlank()) {
+                actions.addComment(node, text.trim());
+            }
+        });
     }
 
     private static void promptName(BiConsumer<XsdNode, String> action, XsdNode node,
