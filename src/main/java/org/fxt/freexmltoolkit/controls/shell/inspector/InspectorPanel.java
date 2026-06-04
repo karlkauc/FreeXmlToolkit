@@ -81,6 +81,7 @@ public class InspectorPanel extends VBox {
     private final TextField fixedField = editField("inspector-fixed");
     private final TextField substField = editField("inspector-subst");
     private final TextArea docArea = new TextArea();
+    private final TextArea appinfoArea = new TextArea();
     private final TableView<XsdFacet> facetTable = new TableView<>();
     private VBox facetBox;
     /** Facets currently shown that are inherited via a named-type reference (read-only). */
@@ -309,7 +310,14 @@ public class InspectorPanel extends VBox {
         docArea.getStyleClass().add("fxt-inspector-edit");
         docArea.setWrapText(true);
         docArea.setPrefRowCount(3);
-        docBox = new VBox(docArea);
+        appinfoArea.setId("inspector-appinfo");
+        appinfoArea.getStyleClass().add("fxt-inspector-edit");
+        appinfoArea.setWrapText(true);
+        appinfoArea.setPrefRowCount(2);
+        appinfoArea.setPromptText("xs:appinfo (machine-readable metadata)");
+        Label appinfoLabel = new Label("App info");
+        appinfoLabel.getStyleClass().add("fxt-inspector-sub-label");
+        docBox = new VBox(4, docArea, appinfoLabel, appinfoArea);
         return docBox;
     }
 
@@ -523,6 +531,11 @@ public class InspectorPanel extends VBox {
                 commit(() -> editorHost.changeActiveDocumentation(docArea.getText()));
             }
         });
+        appinfoArea.focusedProperty().addListener((o, was, isNow) -> {
+            if (!isNow) {
+                commit(() -> editorHost.changeActiveAppinfo(appinfoArea.getText()));
+            }
+        });
     }
 
     private void commitCardinality() {
@@ -716,6 +729,8 @@ public class InspectorPanel extends VBox {
         // inline edit), so read the list first and fall back to the legacy field.
         docArea.setEditable(true);
         docArea.setText(resolveXsdDocText(node));
+        appinfoArea.setEditable(true);
+        appinfoArea.setText(node.getAppinfoAsString() == null ? "" : node.getAppinfoAsString());
         show(docBox, true);
 
         // Section visibility: TYPE & FACETS only when a type field or facets apply;
@@ -1148,6 +1163,12 @@ public class InspectorPanel extends VBox {
     /** @return the current Kind value (for tests/observers). */
     public String getKindText() {
         String t = kindValue.getText();
+        return t == null ? "" : t;
+    }
+
+    /** @return the current App-info text shown in the editable XSD-node appinfo area (for tests). */
+    public String getAppinfoText() {
+        String t = appinfoArea.getText();
         return t == null ? "" : t;
     }
 

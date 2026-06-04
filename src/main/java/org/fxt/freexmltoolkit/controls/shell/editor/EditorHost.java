@@ -849,6 +849,11 @@ public class EditorHost extends BorderPane {
         return editActivePreservingSelection(et -> et.changeDocumentation(et.currentSelection, documentation));
     }
 
+    /** Changes the selected XSD node's {@code xs:appinfo} content via the command stack. */
+    public boolean changeActiveAppinfo(String appinfo) {
+        return editActivePreservingSelection(et -> et.changeAppinfo(et.currentSelection, appinfo));
+    }
+
     /** Edits a facet's value on the selected node's restriction (Type &amp; Facets table). */
     public boolean editActiveFacet(org.fxt.freexmltoolkit.controls.v2.model.XsdFacet facet, String newValue) {
         return editActivePreservingSelection(et -> et.editFacet(facet, newValue));
@@ -2111,6 +2116,15 @@ public class EditorHost extends BorderPane {
             return executeAndApply(
                     new org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeDocumentationCommand(
                             editorContext, node, documentation));
+        }
+
+        boolean changeAppinfo(XsdNode node, String appinfo) {
+            if (editorContext == null || node == null) {
+                return false;
+            }
+            return executeAndApply(
+                    new org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeAppinfoCommand(
+                            editorContext, node, appinfo));
         }
 
         boolean editFacet(org.fxt.freexmltoolkit.controls.v2.model.XsdFacet facet, String newValue) {
