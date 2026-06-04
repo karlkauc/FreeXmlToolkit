@@ -400,13 +400,6 @@
                                     </graphic>
                                 </Button>
 
-                                <Button fx:id="unifiedEditor" mnemonicParsing="false" onAction="#loadPage"
-                                        styleClass="menu_button" text="Editor (Legacy)" contentDisplay="LEFT" VBox.vgrow="ALWAYS">
-                                    <graphic>
-                                        <IconifyIcon iconColor="#6f42c1" iconLiteral="bi-stack" iconSize="16"/>
-                                    </graphic>
-                                </Button>
-
                                 <Button mnemonicParsing="false" onAction="#loadPage" styleClass="menu_button"
                                         text="XML Editor" contentDisplay="LEFT" fx:id="xmlUltimate">
                                     <graphic>

@@ -144,11 +144,6 @@ public class MainController implements Initializable {
     TemplatesController templatesController;
 
     /**
-     * Controller for unified editor view combining multiple editing modes.
-     */
-    UnifiedEditorController unifiedEditorController;
-
-    /**
      * Controller for JSON editing and conversion functionality.
      */
     JsonController jsonController;
@@ -187,7 +182,7 @@ public class MainController implements Initializable {
      * Navigation buttons for switching between different editor tabs.
      */
     @FXML
-    Button xslt, xmlUltimate, xsd, xsdValidation, schematron, fop, signature, help, settings, exit, xsltDeveloper, schemaGenerator, unifiedEditor, json, unifiedShell;
+    Button xslt, xmlUltimate, xsd, xsdValidation, schematron, fop, signature, help, settings, exit, xsltDeveloper, schemaGenerator, json, unifiedShell;
 
     /**
      * Menu item for exiting the application.
@@ -633,11 +628,6 @@ public class MainController implements Initializable {
             logger.debug("Refreshed JSON Controller toolbar icons");
         }
 
-        // Refresh Unified Editor Controller toolbar
-        if (unifiedEditorController != null) {
-            unifiedEditorController.refreshToolbarIcons();
-            logger.debug("Refreshed Unified Editor Controller toolbar icons");
-        }
 
         logger.info("Toolbar icon refresh completed for all controllers");
     }
@@ -715,7 +705,6 @@ public class MainController implements Initializable {
             // case "templates" -> "/pages/tab_templates.fxml"; // Removed from menu
             case "schemaGenerator" -> "/pages/tab_schema_generator.fxml";
             case "xsltDeveloper" -> "/pages/tab_xslt_developer.fxml";
-            case "unifiedEditor" -> "/pages/tab_unified_editor.fxml";
             case "unifiedShell" -> "/pages/tab_unified_shell.fxml";
             case "json" -> "/pages/tab_json.fxml";
             default -> null;
@@ -739,7 +728,7 @@ public class MainController implements Initializable {
     private void removeActiveFromAllMenuButtons() {
         Button[] allMenuButtons = {
             xmlUltimate, xsd, xsdValidation, schematron, xslt, fop,
-            signature, help, settings, schemaGenerator, xsltDeveloper, unifiedEditor, json, unifiedShell
+            signature, help, settings, schemaGenerator, xsltDeveloper, json, unifiedShell
         };
         for (Button btn : allMenuButtons) {
             if (btn != null) {
@@ -778,7 +767,6 @@ public class MainController implements Initializable {
             case "settings" -> "/pages/settings.fxml";
             case "schemaGenerator" -> "/pages/tab_schema_generator.fxml";
             case "xsltDeveloper" -> "/pages/tab_xslt_developer.fxml";
-            case "unifiedEditor" -> "/pages/tab_unified_editor.fxml";
             case "unifiedShell" -> "/pages/tab_unified_shell.fxml";
             case "json" -> "/pages/tab_json.fxml";
             default -> null;
@@ -818,7 +806,6 @@ public class MainController implements Initializable {
             case "help" -> help;
             case "settings" -> settings;
             case "schemaGenerator" -> schemaGenerator;
-            case "unifiedEditor" -> unifiedEditor;
             case "unifiedShell" -> unifiedShell;
             case "json" -> json;
             default -> null;
@@ -1044,11 +1031,6 @@ public class MainController implements Initializable {
             case XsltDeveloperController xsltDeveloperController1 -> {
                 logger.debug("set Advanced XSLT Developer Controller");
                 this.xsltDeveloperController = xsltDeveloperController1;
-            }
-            case UnifiedEditorController unifiedEditorController1 -> {
-                logger.debug("set Unified Editor Controller");
-                this.unifiedEditorController = unifiedEditorController1;
-                unifiedEditorController1.setParentController(this);
             }
             case JsonController jsonController1 -> {
                 logger.debug("set JSON Editor Controller");
@@ -1553,12 +1535,12 @@ public class MainController implements Initializable {
         logger.debug("Show Menu: {}", showMenu);
         if (showMenu) {
             setMenuSize(50, ">>", "", 15, 75);
-            setButtonSize("menu_button_collapsed", xmlUltimate, json, xsd, xsdValidation, schematron, xslt, fop, help, settings, exit, signature, schemaGenerator, xsltDeveloper, unifiedEditor);
+            setButtonSize("menu_button_collapsed", xmlUltimate, json, xsd, xsdValidation, schematron, xslt, fop, help, settings, exit, signature, schemaGenerator, xsltDeveloper);
             setSectionLabelsVisible(false);
             setBottomBarLayout(true);
         } else {
             setMenuSize(200, "FundsXML Toolkit", "Enterprise Edition", 75, 100);
-            setButtonSize("menu_button", xmlUltimate, json, xsd, xsdValidation, schematron, xslt, fop, help, settings, exit, signature, schemaGenerator, xsltDeveloper, unifiedEditor);
+            setButtonSize("menu_button", xmlUltimate, json, xsd, xsdValidation, schematron, xslt, fop, help, settings, exit, signature, schemaGenerator, xsltDeveloper);
             setSectionLabelsVisible(true);
             setBottomBarLayout(false);
         }
@@ -1678,8 +1660,6 @@ public class MainController implements Initializable {
             button.setText("XSLT Developer");
         } else if (button == schemaGenerator) {
             button.setText("Schema Generator");
-        } else if (button == unifiedEditor) {
-            button.setText("Unified Editor");
         }
     }
 
