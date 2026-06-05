@@ -1,6 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
 import java.net.URI;
+import java.util.List;
 
 import javafx.application.Platform;
 import javafx.scene.control.Button;
@@ -18,6 +19,9 @@ import org.fxt.freexmltoolkit.util.VersionUtil;
 public class HelpPanel extends VBox {
 
     private static final String GITHUB_URL = "https://github.com/karlkauc/FreeXmlToolkit";
+    private static final String DOCS_URL = "https://karlkauc.github.io/FreeXmlToolkit";
+    private static final String FUNDSXML_SITE_URL = "http://www.fundsxml.org";
+    private static final String SCHEMA_DOCS_URL = "https://fundsxml.github.io/";
 
     private final Label version = new Label();
     private final Label updateStatus = new Label();
@@ -41,11 +45,21 @@ public class HelpPanel extends VBox {
 
         Button github = button("GitHub", "bi-github", () -> browse(GITHUB_URL));
 
+        // Documentation quick links — open in the system browser (replaces the legacy
+        // Help tab's embedded WebViews for the FXT docs, FundsXML site and schema docs).
+        Label linksTitle = new Label("DOCUMENTATION");
+        linksTitle.getStyleClass().add("fxt-side-panel-title");
+        Button docs = button("Documentation", "bi-book", () -> browse(DOCS_URL));
+        Button fundsSite = button("FundsXML Website", "bi-globe", () -> browse(FUNDSXML_SITE_URL));
+        Button schemaDocs = button("FundsXML4 Schema Docs", "bi-file-earmark-text", () -> browse(SCHEMA_DOCS_URL));
+
         Button checkUpdates = button("Check for Updates", "bi-arrow-clockwise", this::checkForUpdates);
         updateStatus.getStyleClass().add("fxt-placeholder-text");
         updateStatus.setWrapText(true);
 
-        getChildren().addAll(title, appName, version, build, vendor, github, checkUpdates, updateStatus);
+        getChildren().addAll(title, appName, version, build, vendor, github,
+                linksTitle, docs, fundsSite, schemaDocs,
+                checkUpdates, updateStatus);
 
         // FundsXML extension — only when enabled in the settings (conditional).
         if (FundsXmlActionRunner.isEnabled()) {
@@ -80,6 +94,14 @@ public class HelpPanel extends VBox {
     /** @return the version line (for tests/observers). */
     public String getVersionText() {
         return version.getText();
+    }
+
+    /**
+     * @return the documentation quick-link URLs offered by the panel (GitHub plus
+     *         the FXT docs, FundsXML site and schema docs the legacy Help tab embedded).
+     */
+    public List<String> getQuickLinkUrls() {
+        return List.of(GITHUB_URL, DOCS_URL, FUNDSXML_SITE_URL, SCHEMA_DOCS_URL);
     }
 
     private void browse(String url) {

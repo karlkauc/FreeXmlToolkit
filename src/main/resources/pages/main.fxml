@@ -488,15 +488,6 @@
                         <VBox fx:id="bottomButtonBar" alignment="CENTER" styleClass="sidebar-bottom-bar">
                             <Separator styleClass="sidebar-section-separator"/>
                             <HBox fx:id="bottomButtonRow" alignment="CENTER" spacing="0">
-                                <Button fx:id="help" mnemonicParsing="false" onAction="#loadPage"
-                                        styleClass="menu_button" text="Help" contentDisplay="GRAPHIC_ONLY" HBox.hgrow="ALWAYS">
-                                    <graphic>
-                                        <IconifyIcon iconColor="#17a2b8" iconLiteral="bi-question-square" iconSize="16"/>
-                                    </graphic>
-                                    <tooltip>
-                                        <Tooltip text="Help"/>
-                                    </tooltip>
-                                </Button>
                                 <Button fx:id="settings" mnemonicParsing="false" onAction="#loadPage"
                                         styleClass="menu_button" text="Settings" contentDisplay="GRAPHIC_ONLY" HBox.hgrow="ALWAYS">
                                     <graphic>

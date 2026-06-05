@@ -778,11 +778,12 @@ public class WelcomeController {
     }
 
     /**
-     * Opens the help page.
+     * Opens the application shell, where Help is available as an activity
+     * (the standalone legacy Help page has been retired).
      */
     @FXML
     public void openHelp() {
-        navigateTo("help");
+        navigateTo("unifiedShell");
     }
 
     /**

@@ -11,9 +11,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * Test for HelpController to verify proxy and SSL configuration integration
+ * Verifies proxy and SSL system-property configuration derived from the
+ * application properties (the WebEngine proxy/SSL setup formerly performed by
+ * the retired HelpController; the logic now lives in the connection settings).
  */
-public class HelpControllerTest {
+public class ProxyConfigurationTest {
 
     private PropertiesService propertiesService;
     private Properties testProperties;

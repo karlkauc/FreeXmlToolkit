@@ -85,7 +85,7 @@ class UnifiedShellIntegrationTest {
 
         // Switching to a legacy page restores the footer.
         WaitForAsyncUtils.waitForAsyncFx(3000, () -> {
-            mainController.navigateToPage("help");
+            mainController.navigateToPage("signature");
             return null;
         });
         WaitForAsyncUtils.waitForFxEvents();

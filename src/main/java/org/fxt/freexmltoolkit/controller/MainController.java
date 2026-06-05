@@ -182,7 +182,7 @@ public class MainController implements Initializable {
      * Navigation buttons for switching between different editor tabs.
      */
     @FXML
-    Button xslt, xmlUltimate, xsd, xsdValidation, schematron, fop, signature, help, settings, exit, xsltDeveloper, schemaGenerator, json, unifiedShell;
+    Button xslt, xmlUltimate, xsd, xsdValidation, schematron, fop, signature, settings, exit, xsltDeveloper, schemaGenerator, json, unifiedShell;
 
     /**
      * Menu item for exiting the application.
@@ -699,7 +699,6 @@ public class MainController implements Initializable {
             case "schematron" -> "/pages/tab_schematron.fxml";
             case "fop" -> "/pages/tab_fop.fxml";
             case "signature" -> "/pages/tab_signature.fxml";
-            case "help" -> "/pages/tab_help.fxml";
             case "settings" -> "/pages/settings.fxml";
             // Revolutionary Features - Alleinstellungsmerkmale
             // case "templates" -> "/pages/tab_templates.fxml"; // Removed from menu
@@ -728,7 +727,7 @@ public class MainController implements Initializable {
     private void removeActiveFromAllMenuButtons() {
         Button[] allMenuButtons = {
             xmlUltimate, xsd, xsdValidation, schematron, xslt, fop,
-            signature, help, settings, schemaGenerator, xsltDeveloper, json, unifiedShell
+            signature, settings, schemaGenerator, xsltDeveloper, json, unifiedShell
         };
         for (Button btn : allMenuButtons) {
             if (btn != null) {
@@ -763,7 +762,6 @@ public class MainController implements Initializable {
             case "schematron" -> "/pages/tab_schematron.fxml";
             case "fop" -> "/pages/tab_fop.fxml";
             case "signature" -> "/pages/tab_signature.fxml";
-            case "help" -> "/pages/tab_help.fxml";
             case "settings" -> "/pages/settings.fxml";
             case "schemaGenerator" -> "/pages/tab_schema_generator.fxml";
             case "xsltDeveloper" -> "/pages/tab_xslt_developer.fxml";
@@ -803,7 +801,6 @@ public class MainController implements Initializable {
             case "xslt", "xsltDeveloper" -> xsltDeveloper;
             case "fop" -> fop;
             case "signature" -> signature;
-            case "help" -> help;
             case "settings" -> settings;
             case "schemaGenerator" -> schemaGenerator;
             case "unifiedShell" -> unifiedShell;
@@ -1016,9 +1013,6 @@ public class MainController implements Initializable {
             case SignatureController signatureController -> {
                 logger.debug("set Signature Controller");
                 signatureController.setParentController(this);
-            }
-            case HelpController _ -> {
-                logger.debug("set Help Controller");
             }
             case TemplatesController templatesController1 -> {
                 logger.debug("set Smart Templates Controller");
@@ -1535,12 +1529,12 @@ public class MainController implements Initializable {
         logger.debug("Show Menu: {}", showMenu);
         if (showMenu) {
             setMenuSize(50, ">>", "", 15, 75);
-            setButtonSize("menu_button_collapsed", xmlUltimate, json, xsd, xsdValidation, schematron, xslt, fop, help, settings, exit, signature, schemaGenerator, xsltDeveloper);
+            setButtonSize("menu_button_collapsed", xmlUltimate, json, xsd, xsdValidation, schematron, xslt, fop, settings, exit, signature, schemaGenerator, xsltDeveloper);
             setSectionLabelsVisible(false);
             setBottomBarLayout(true);
         } else {
             setMenuSize(200, "FundsXML Toolkit", "Enterprise Edition", 75, 100);
-            setButtonSize("menu_button", xmlUltimate, json, xsd, xsdValidation, schematron, xslt, fop, help, settings, exit, signature, schemaGenerator, xsltDeveloper);
+            setButtonSize("menu_button", xmlUltimate, json, xsd, xsdValidation, schematron, xslt, fop, settings, exit, signature, schemaGenerator, xsltDeveloper);
             setSectionLabelsVisible(true);
             setBottomBarLayout(false);
         }
@@ -1650,8 +1644,6 @@ public class MainController implements Initializable {
             button.setText("FOP");
         } else if (button == signature) {
             button.setText("Signature");
-        } else if (button == help) {
-            button.setText("Help");
         } else if (button == settings) {
             button.setText("Settings");
         } else if (button == exit) {
