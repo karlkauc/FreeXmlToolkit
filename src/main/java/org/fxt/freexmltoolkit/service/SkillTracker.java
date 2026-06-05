@@ -144,7 +144,7 @@ public class SkillTracker {
         FEATURES.put("pdf_generation", new FeatureDefinition(
             "pdf_generation", "PDF Generation (FOP)", "Export",
             "Create PDFs from XML using XSL-FO",
-            "bi-file-earmark-richtext", "fop", 8
+            "bi-file-earmark-richtext", "unifiedShell", 8
         ));
         FEATURES.put("xsd_documentation", new FeatureDefinition(
             "xsd_documentation", "XSD Documentation Export", "Export",

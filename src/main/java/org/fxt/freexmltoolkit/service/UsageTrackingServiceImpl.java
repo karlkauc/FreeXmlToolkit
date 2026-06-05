@@ -480,7 +480,7 @@ public class UsageTrackingServiceImpl implements UsageTrackingService {
             case "pdf_generation" -> new FeatureTip(
                 feature.getFeatureId(),
                 "Generate professional PDF documents from XML using XSL-FO templates.",
-                "fop",
+                "unifiedShell",
                 5,
                 "bi-file-earmark-richtext"
             );

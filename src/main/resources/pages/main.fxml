@@ -212,18 +212,12 @@
                     </items>
                 </Menu>
 
-                <!-- PDF & Signatures Menu -->
-                <Menu text="PDF &amp; Signatures">
+                <!-- Signatures Menu -->
+                <Menu text="Signatures">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-shield-lock" iconSize="16" iconColor="#dc3545"/>
                     </graphic>
                     <items>
-                        <MenuItem fx:id="menuGeneratePdf" text="Generate PDF (FOP)..." onAction="#openGeneratePdf">
-                            <graphic>
-                                <IconifyIcon iconLiteral="bi-file-earmark-richtext" iconSize="16" iconColor="#dc3545"/>
-                            </graphic>
-                        </MenuItem>
-                        <SeparatorMenuItem/>
                         <MenuItem fx:id="menuCreateCertificate" text="Create Certificate..." onAction="#openCreateCertificate">
                             <graphic>
                                 <IconifyIcon iconLiteral="bi-award" iconSize="16" iconColor="#ffc107"/>
@@ -465,13 +459,6 @@
                                         text="Schematron Editor" contentDisplay="LEFT" VBox.vgrow="ALWAYS" fx:id="schematron">
                                     <graphic>
                                         <IconifyIcon iconColor="#ffc107" iconLiteral="bi-shield-check" iconSize="16"/>
-                                    </graphic>
-                                </Button>
-
-                                <Button fx:id="fop" mnemonicParsing="false" onAction="#loadPage" styleClass="menu_button"
-                                        text="FOP" contentDisplay="LEFT" VBox.vgrow="ALWAYS">
-                                    <graphic>
-                                        <IconifyIcon iconColor="#dc3545" iconLiteral="bi-file-earmark-richtext" iconSize="16"/>
                                     </graphic>
                                 </Button>
 

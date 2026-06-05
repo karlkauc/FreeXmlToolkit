@@ -119,11 +119,6 @@ public class MainController implements Initializable {
     XsdValidationController xsdValidationController;
 
     /**
-     * Controller for FOP (Formatting Objects Processor) PDF generation.
-     */
-    FopController fopController;
-
-    /**
      * Controller for XSLT transformations.
      */
     XsltController xsltController;
@@ -182,7 +177,7 @@ public class MainController implements Initializable {
      * Navigation buttons for switching between different editor tabs.
      */
     @FXML
-    Button xslt, xmlUltimate, xsd, xsdValidation, schematron, fop, signature, settings, exit, xsltDeveloper, schemaGenerator, json, unifiedShell;
+    Button xslt, xmlUltimate, xsd, xsdValidation, schematron, signature, settings, exit, xsltDeveloper, schemaGenerator, json, unifiedShell;
 
     /**
      * Menu item for exiting the application.
@@ -598,12 +593,6 @@ public class MainController implements Initializable {
             logger.debug("Refreshed XSLT Developer Controller toolbar icons");
         }
 
-        // Refresh FOP Controller toolbar
-        if (fopController != null) {
-            fopController.refreshToolbarIcons();
-            logger.debug("Refreshed FOP Controller toolbar icons");
-        }
-
         // Refresh Schema Generator Controller toolbar
         if (schemaGeneratorController != null) {
             schemaGeneratorController.refreshToolbarIcons();
@@ -697,7 +686,6 @@ public class MainController implements Initializable {
             case "xsd" -> "/pages/tab_xsd.fxml";
             case "xsdValidation" -> "/pages/tab_validation.fxml";
             case "schematron" -> "/pages/tab_schematron.fxml";
-            case "fop" -> "/pages/tab_fop.fxml";
             case "signature" -> "/pages/tab_signature.fxml";
             case "settings" -> "/pages/settings.fxml";
             // Revolutionary Features - Alleinstellungsmerkmale
@@ -726,7 +714,7 @@ public class MainController implements Initializable {
      */
     private void removeActiveFromAllMenuButtons() {
         Button[] allMenuButtons = {
-            xmlUltimate, xsd, xsdValidation, schematron, xslt, fop,
+            xmlUltimate, xsd, xsdValidation, schematron, xslt,
             signature, settings, schemaGenerator, xsltDeveloper, json, unifiedShell
         };
         for (Button btn : allMenuButtons) {
@@ -748,7 +736,7 @@ public class MainController implements Initializable {
      * Navigates to a page by its ID.
      * This method can be called from other controllers (like WelcomeController) to switch pages.
      *
-     * @param pageId the page ID (e.g., "xmlUltimate", "xsd", "schematron", "fop", "signature", etc.)
+     * @param pageId the page ID (e.g., "xmlUltimate", "xsd", "schematron", "signature", etc.)
      */
     public void navigateToPage(String pageId) {
         String pagePath = switch (pageId) {
@@ -760,7 +748,6 @@ public class MainController implements Initializable {
             case "xsd" -> "/pages/tab_xsd.fxml";
             case "xsdValidation" -> "/pages/tab_validation.fxml";
             case "schematron" -> "/pages/tab_schematron.fxml";
-            case "fop" -> "/pages/tab_fop.fxml";
             case "signature" -> "/pages/tab_signature.fxml";
             case "settings" -> "/pages/settings.fxml";
             case "schemaGenerator" -> "/pages/tab_schema_generator.fxml";
@@ -799,7 +786,6 @@ public class MainController implements Initializable {
             case "xsdValidation" -> xsdValidation;
             case "schematron" -> schematron;
             case "xslt", "xsltDeveloper" -> xsltDeveloper;
-            case "fop" -> fop;
             case "signature" -> signature;
             case "settings" -> settings;
             case "schemaGenerator" -> schemaGenerator;
@@ -1004,11 +990,6 @@ public class MainController implements Initializable {
                 logger.debug("set XSLT Controller");
                 this.xsltController = xsltController1;
                 xsltController1.setParentController(this);
-            }
-            case FopController fopController1 -> {
-                logger.debug("set FOP Controller");
-                this.fopController = fopController1;
-                fopController1.setParentController(this);
             }
             case SignatureController signatureController -> {
                 logger.debug("set Signature Controller");
@@ -1431,15 +1412,6 @@ public class MainController implements Initializable {
 
     // --- PDF & Signatures Menu Handlers ---
 
-    /**
-     * Opens the PDF Generation page.
-     */
-    @FXML
-    public void openGeneratePdf() {
-        removeActiveFromAllMenuButtons();
-        fop.getStyleClass().add("active");
-        loadPageFromPath("/pages/tab_fop.fxml");
-    }
 
     /**
      * Opens the Create Certificate tab in the Signature editor.
@@ -1529,12 +1501,12 @@ public class MainController implements Initializable {
         logger.debug("Show Menu: {}", showMenu);
         if (showMenu) {
             setMenuSize(50, ">>", "", 15, 75);
-            setButtonSize("menu_button_collapsed", xmlUltimate, json, xsd, xsdValidation, schematron, xslt, fop, settings, exit, signature, schemaGenerator, xsltDeveloper);
+            setButtonSize("menu_button_collapsed", xmlUltimate, json, xsd, xsdValidation, schematron, xslt, settings, exit, signature, schemaGenerator, xsltDeveloper);
             setSectionLabelsVisible(false);
             setBottomBarLayout(true);
         } else {
             setMenuSize(200, "FundsXML Toolkit", "Enterprise Edition", 75, 100);
-            setButtonSize("menu_button", xmlUltimate, json, xsd, xsdValidation, schematron, xslt, fop, settings, exit, signature, schemaGenerator, xsltDeveloper);
+            setButtonSize("menu_button", xmlUltimate, json, xsd, xsdValidation, schematron, xslt, settings, exit, signature, schemaGenerator, xsltDeveloper);
             setSectionLabelsVisible(true);
             setBottomBarLayout(false);
         }
@@ -1640,8 +1612,6 @@ public class MainController implements Initializable {
             button.setText("Schematron Editor");
         } else if (button == xslt) {
             button.setText("XSLT Viewer");
-        } else if (button == fop) {
-            button.setText("FOP");
         } else if (button == signature) {
             button.setText("Signature");
         } else if (button == settings) {
@@ -2305,12 +2275,6 @@ public class MainController implements Initializable {
                     logger.debug("F5: Triggered XSD validation");
                 }
             }
-            case "fop" -> {
-                if (fopController != null) {
-                    fopController.buttonConversion();
-                    logger.debug("F5: Triggered PDF generation");
-                }
-            }
             case "xsltDeveloper" -> {
                 if (xsltDeveloperController != null) {
                     xsltDeveloperController.executeTransformation();
@@ -2443,12 +2407,6 @@ public class MainController implements Initializable {
                 if (xsdValidationController != null) {
                     xsdValidationController.toggleFavoritesPanelPublic();
                     logger.debug("Ctrl+Shift+D: Toggled Validation favorites panel");
-                }
-            }
-            case "fop" -> {
-                if (fopController != null) {
-                    fopController.toggleFavoritesPanelPublic();
-                    logger.debug("Ctrl+Shift+D: Toggled FOP favorites panel");
                 }
             }
             case "xsltDeveloper" -> {

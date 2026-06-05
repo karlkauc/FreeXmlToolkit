@@ -754,11 +754,12 @@ public class WelcomeController {
     }
 
     /**
-     * Opens the FOP (PDF generation) page.
+     * Opens the application shell, where PDF/FOP generation is available as an
+     * activity (the standalone legacy FOP page has been retired).
      */
     @FXML
     public void openFop() {
-        navigateTo("fop");
+        navigateTo("unifiedShell");
     }
 
     /**
