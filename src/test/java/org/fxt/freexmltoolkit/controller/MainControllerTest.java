@@ -133,7 +133,6 @@ class MainControllerTest {
             "/pages/tab_signature.fxml",
             "/pages/settings.fxml",
             "/pages/tab_templates.fxml",
-            "/pages/tab_schema_generator.fxml",
             "/pages/tab_xslt_developer.fxml",
             "/pages/welcome.fxml"
         };
@@ -151,7 +150,7 @@ class MainControllerTest {
         String[] buttonIds = {
             "xslt", "xml", "xmlEnhanced", "xmlNew", "xmlUltimate",
             "xsd", "xsdValidation", "schematron", "signature",
-            "settings", "templates", "schemaGenerator", "xsltDeveloper"
+            "settings", "templates", "xsltDeveloper"
         };
 
         for (String id : buttonIds) {
@@ -335,14 +334,11 @@ class MainControllerTest {
     @DisplayName("Should validate revolutionary features tab IDs")
     void testRevolutionaryFeaturesTabIds() {
         String templatesId = "templates";
-        String schemaGeneratorId = "schemaGenerator";
         String xsltDeveloperId = "xsltDeveloper";
 
         assertNotNull(templatesId);
-        assertNotNull(schemaGeneratorId);
         assertNotNull(xsltDeveloperId);
         assertEquals("templates", templatesId);
-        assertEquals("schemaGenerator", schemaGeneratorId);
         assertEquals("xsltDeveloper", xsltDeveloperId);
     }
 

@@ -130,7 +130,7 @@ public class SkillTracker {
         FEATURES.put("schema_generation", new FeatureDefinition(
             "schema_generation", "Schema Generation", "Tools",
             "Generate XSD schemas from XML samples",
-            "bi-gear", "schemaGenerator", 8
+            "bi-gear", "unifiedShell", 8
         ));
 
         // Security Features

@@ -128,10 +128,6 @@ public class MainController implements Initializable {
      */
     XsltDeveloperController xsltDeveloperController;
 
-    /**
-     * Controller for intelligent schema generation from XML samples.
-     */
-    SchemaGeneratorController schemaGeneratorController;
 
     /**
      * Controller for smart templates functionality.
@@ -177,7 +173,7 @@ public class MainController implements Initializable {
      * Navigation buttons for switching between different editor tabs.
      */
     @FXML
-    Button xslt, xmlUltimate, xsd, xsdValidation, schematron, signature, settings, exit, xsltDeveloper, schemaGenerator, json, unifiedShell;
+    Button xslt, xmlUltimate, xsd, xsdValidation, schematron, signature, settings, exit, xsltDeveloper, json, unifiedShell;
 
     /**
      * Menu item for exiting the application.
@@ -474,11 +470,6 @@ public class MainController implements Initializable {
             xsltDeveloperController.shutdown();
         }
 
-        // Shutdown SchemaGeneratorController
-        if (schemaGeneratorController != null) {
-            schemaGeneratorController.shutdown();
-        }
-
         // Shutdown UpdateCheckService
         try {
             UpdateCheckService updateCheckService = ServiceRegistry.get(UpdateCheckService.class);
@@ -593,11 +584,6 @@ public class MainController implements Initializable {
             logger.debug("Refreshed XSLT Developer Controller toolbar icons");
         }
 
-        // Refresh Schema Generator Controller toolbar
-        if (schemaGeneratorController != null) {
-            schemaGeneratorController.refreshToolbarIcons();
-            logger.debug("Refreshed Schema Generator Controller toolbar icons");
-        }
 
         // Refresh XSD Validation Controller toolbar
         if (xsdValidationController != null) {
@@ -690,7 +676,7 @@ public class MainController implements Initializable {
             case "settings" -> "/pages/settings.fxml";
             // Revolutionary Features - Alleinstellungsmerkmale
             // case "templates" -> "/pages/tab_templates.fxml"; // Removed from menu
-            case "schemaGenerator" -> "/pages/tab_schema_generator.fxml";
+            // case "schemaGenerator" -> ...; // Retired (Phase 10c) — use the shell's Generate XSD
             case "xsltDeveloper" -> "/pages/tab_xslt_developer.fxml";
             case "unifiedShell" -> "/pages/tab_unified_shell.fxml";
             case "json" -> "/pages/tab_json.fxml";
@@ -715,7 +701,7 @@ public class MainController implements Initializable {
     private void removeActiveFromAllMenuButtons() {
         Button[] allMenuButtons = {
             xmlUltimate, xsd, xsdValidation, schematron, xslt,
-            signature, settings, schemaGenerator, xsltDeveloper, json, unifiedShell
+            signature, settings, xsltDeveloper, json, unifiedShell
         };
         for (Button btn : allMenuButtons) {
             if (btn != null) {
@@ -750,7 +736,6 @@ public class MainController implements Initializable {
             case "schematron" -> "/pages/tab_schematron.fxml";
             case "signature" -> "/pages/tab_signature.fxml";
             case "settings" -> "/pages/settings.fxml";
-            case "schemaGenerator" -> "/pages/tab_schema_generator.fxml";
             case "xsltDeveloper" -> "/pages/tab_xslt_developer.fxml";
             case "unifiedShell" -> "/pages/tab_unified_shell.fxml";
             case "json" -> "/pages/tab_json.fxml";
@@ -788,7 +773,6 @@ public class MainController implements Initializable {
             case "xslt", "xsltDeveloper" -> xsltDeveloper;
             case "signature" -> signature;
             case "settings" -> settings;
-            case "schemaGenerator" -> schemaGenerator;
             case "unifiedShell" -> unifiedShell;
             case "json" -> json;
             default -> null;
@@ -998,10 +982,6 @@ public class MainController implements Initializable {
             case TemplatesController templatesController1 -> {
                 logger.debug("set Smart Templates Controller");
                 this.templatesController = templatesController1;
-            }
-            case SchemaGeneratorController schemaGeneratorController1 -> {
-                logger.debug("set Intelligent Schema Generator Controller");
-                this.schemaGeneratorController = schemaGeneratorController1;
             }
             case XsltDeveloperController xsltDeveloperController1 -> {
                 logger.debug("set Advanced XSLT Developer Controller");
@@ -1501,12 +1481,12 @@ public class MainController implements Initializable {
         logger.debug("Show Menu: {}", showMenu);
         if (showMenu) {
             setMenuSize(50, ">>", "", 15, 75);
-            setButtonSize("menu_button_collapsed", xmlUltimate, json, xsd, xsdValidation, schematron, xslt, settings, exit, signature, schemaGenerator, xsltDeveloper);
+            setButtonSize("menu_button_collapsed", xmlUltimate, json, xsd, xsdValidation, schematron, xslt, settings, exit, signature, xsltDeveloper);
             setSectionLabelsVisible(false);
             setBottomBarLayout(true);
         } else {
             setMenuSize(200, "FundsXML Toolkit", "Enterprise Edition", 75, 100);
-            setButtonSize("menu_button", xmlUltimate, json, xsd, xsdValidation, schematron, xslt, settings, exit, signature, schemaGenerator, xsltDeveloper);
+            setButtonSize("menu_button", xmlUltimate, json, xsd, xsdValidation, schematron, xslt, settings, exit, signature, xsltDeveloper);
             setSectionLabelsVisible(true);
             setBottomBarLayout(false);
         }
@@ -1620,8 +1600,6 @@ public class MainController implements Initializable {
             button.setText("Exit");
         } else if (button == xsltDeveloper) {
             button.setText("XSLT Developer");
-        } else if (button == schemaGenerator) {
-            button.setText("Schema Generator");
         }
     }
 
@@ -2281,12 +2259,6 @@ public class MainController implements Initializable {
                     logger.debug("F5: Triggered XSLT transformation");
                 }
             }
-            case "schemaGenerator" -> {
-                if (schemaGeneratorController != null) {
-                    schemaGeneratorController.generateSchema();
-                    logger.debug("F5: Triggered schema generation");
-                }
-            }
             default -> logger.debug("F5: No action defined for tab '{}'", activeTabId);
         }
     }
@@ -2413,12 +2385,6 @@ public class MainController implements Initializable {
                 if (xsltDeveloperController != null) {
                     xsltDeveloperController.toggleFavoritesPanelPublic();
                     logger.debug("Ctrl+Shift+D: Toggled XSLT Developer favorites panel");
-                }
-            }
-            case "schemaGenerator" -> {
-                if (schemaGeneratorController != null) {
-                    schemaGeneratorController.toggleFavoritesPanelPublic();
-                    logger.debug("Ctrl+Shift+D: Toggled Schema Generator favorites panel");
                 }
             }
             default -> logger.debug("Ctrl+Shift+D: No toggle favorites action defined for tab '{}'", activeTabId);

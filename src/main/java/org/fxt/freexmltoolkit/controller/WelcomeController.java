@@ -771,11 +771,12 @@ public class WelcomeController {
     }
 
     /**
-     * Opens the Schema Generator page.
+     * Opens the application shell, where XSD generation from XML is available
+     * (the standalone legacy Schema Generator page has been retired).
      */
     @FXML
     public void openSchemaGenerator() {
-        navigateTo("schemaGenerator");
+        navigateTo("unifiedShell");
     }
 
     /**

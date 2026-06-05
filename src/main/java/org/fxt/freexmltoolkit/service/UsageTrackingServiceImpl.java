@@ -487,7 +487,7 @@ public class UsageTrackingServiceImpl implements UsageTrackingService {
             case "schema_generation" -> new FeatureTip(
                 feature.getFeatureId(),
                 "Automatically generate XSD schemas from your XML sample documents.",
-                "schemaGenerator",
+                "unifiedShell",
                 4,
                 "bi-gear"
             );

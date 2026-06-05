@@ -426,13 +426,6 @@
                                     </graphic>
                                 </Button>
 
-                                <Button fx:id="schemaGenerator" mnemonicParsing="false" onAction="#loadPage"
-                                        styleClass="menu_button" text="Schema Generator" contentDisplay="LEFT" VBox.vgrow="ALWAYS">
-                                    <graphic>
-                                        <IconifyIcon iconColor="#9c27b0" iconLiteral="bi-diagram-3" iconSize="16"/>
-                                    </graphic>
-                                </Button>
-
                                 <!-- Section: TRANSFORMS -->
                                 <Separator fx:id="separatorTransforms" styleClass="sidebar-section-separator"/>
                                 <Label fx:id="sectionTransforms" text="TRANSFORMS" styleClass="sidebar-section-label"/>
