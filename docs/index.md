@@ -179,13 +179,13 @@ Learn more: [FundsXML Extensions Guide](fundsxml-extensions.md)
 
 ### Your First Steps
 
-1. **Open a file**: Click "Editor" in the sidebar, then use Open (Ctrl+O) or drag files into the window
-2. **Edit multiple files**: The Unified Editor supports XML, XSD, XSLT, Schematron, and JSON files in tabs
+1. **Open a file**: The app opens into the Unified Shell - use the Explorer activity or Open (Ctrl+O), or drag files into the window
+2. **Edit multiple files**: The shell handles XML, XSD, XSLT, Schematron and JSON files in tabs, each with Text / Tree / Graphic / Grid views
 3. **Start editing**: Type `<` to see auto-completion suggestions
-4. **Validate**: Click "Validate" (F5) to check your document for errors
-5. **Use specialized tools**: Click the dedicated pages in the sidebar (XSD Editor, XSLT Developer, etc.) for advanced workflows
+4. **Validate**: Use the Validation activity (or F5) to check your document for errors
+5. **Reach every tool**: Pick a tool from the activity bar on the left (Transform, Validation, Signature, Type Library, FOP, …)
 
-Learn more: [Unified Editor Guide](unified-editor.md)
+Learn more: [Unified Shell Guide](unified-shell.md)
 
 ### Sample Files
 

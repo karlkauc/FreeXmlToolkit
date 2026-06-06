@@ -65,7 +65,7 @@ If validation fails, you'll see a list of errors with:
 - **Line number** - Where the problem is
 - **Severity** - Error, Warning, or Info
 
-Click an error to see more details. When validating inside the [Unified Editor](unified-editor.md#jump-to-validation-errors), **double-click** an error to jump straight to its line in the Text view and the matching element in the Graphic view.
+Click an error to see more details. When validating inside the [Unified Shell](unified-shell.md#jump-to-validation-errors), **double-click** an error to jump straight to its line in the Text view and the matching element in the Graphic view.
 
 ---
 

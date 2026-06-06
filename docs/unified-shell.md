@@ -1,27 +1,42 @@
-# Unified Editor
+# Unified Shell
 
-> **New in v1.7** - A multi-file editor that combines XML, XSD, XSLT, Schematron, and JSON editing in one view.
+> The application opens directly into the **Unified Shell** - one workspace that
+> combines XML, XSD, XSLT, Schematron and JSON editing with all the validation,
+> transformation, signing and documentation tools. The separate legacy tabs have
+> been consolidated here.
 
 ## Overview
 
-The Unified Editor lets you work with multiple related files simultaneously in a single tabbed interface. Instead of switching between different editor pages, you can open XML files alongside their XSD schemas, XSLT stylesheets, and Schematron rules - all in one place.
+The Unified Shell is the single workspace for everything FreeXmlToolkit does. Instead of
+switching between separate editor pages, you open files as tabs in the central **editor
+host** and reach every tool through the **activity bar** on the left. You can work with an
+XML file next to its XSD schema, XSLT stylesheets and Schematron rules at the same time.
+
+### Layout
+
+| Area | Purpose |
+|------|---------|
+| **Activity bar** (far left) | Switch tools / side panels: Explorer, Transform, Validation, Signature, Type Library, FOP/PDF, Favorites, Settings, Help. |
+| **Side panel** | The panel for the selected activity (e.g. the Transform panel, the Validation panel). |
+| **Editor host** (center) | Tabs of open documents, each with view modes - Text, Tree, Graphic (XSD), Grid (XML). |
+| **Inspector** (right) | View **and edit** the selected node's properties from any view. |
+| **Status bar** (bottom) | Caret position, validation status and a memory indicator. |
 
 ### Key Features
 
 - **Multi-tab editing** - Open multiple files of different types in one view
 - **Automatic file type detection** - Files are recognized by extension (.xml, .xsd, .xsl, .sch, .json)
-- **Linked file detection** - Automatically discovers related files (imported schemas, included stylesheets)
-- **Unified toolbar** - Common operations (Save, Validate, Format) work across all file types
-- **Context-sensitive tools** - Toolbar buttons change based on the active file type
-- **Integrated XPath/XQuery** - Query panel works with any XML-based file
-- **Search & Replace** - Unified search across all editor types; in XML files it works in both the Text and Graphic views (see note below)
+- **View modes per document** - Text, Tree, Graphic (XSD) and Grid (XML), all over one shared model
+- **Inspector editing everywhere** - edit node properties from the Text, Tree, Grid and Graphic views, not just one
+- **Integrated XPath/XQuery** - the Transform panel queries any XML-based file
+- **Search & Replace** - Ctrl+F / Ctrl+H across the editor
 - **Favorites** - Quick access to frequently used files
 
 ## Getting Started
 
-1. Click **"Editor"** in the sidebar (or it opens automatically on startup)
-2. Click **New** to create a new file, or **Open** to load existing files
-3. Files open as tabs - switch between them by clicking the tab headers
+1. The Unified Shell opens automatically on startup.
+2. Use the **Explorer** activity (or **File → Open**) to open files; **File → New** creates a new file.
+3. Files open as tabs in the editor host - switch tabs by clicking their headers, and switch view modes (Text / Tree / Graphic / Grid) with the view toggle.
 
 ## Supported File Types
 
@@ -78,9 +93,9 @@ The toolbar provides common operations and context-sensitive buttons:
   [Properties Inspector](#properties-inspector) below.
 - **Favorites** (Ctrl+Shift+B) - Show/hide favorites panel
 
-## XSD Sub-Tabs
+## XSD Views & Tools
 
-When editing an XSD file, the editor provides additional sub-tabs:
+When editing an XSD file, the editor host and the **Type Library** activity provide:
 
 - **Text** - Source code editing with syntax highlighting; moving the caret into a schema construct also lets you edit its properties in the Properties pane (see [Properties Inspector](#properties-inspector))
 - **Graphic** - Visual XMLSpy-style schema diagram
@@ -409,6 +424,24 @@ Editor's XPath/XQuery panel and vice versa.
 
 Drag files from your file manager directly into the editor to open them. Multiple files can be dropped at once.
 
-## Relationship to Other Editor Pages
+## Where the former tabs went
 
-The Unified Editor provides a consolidated editing experience. The dedicated editor pages (XML Editor, XSD Editor, etc.) remain available in the sidebar for their full feature sets, including advanced workflows like XSD documentation generation, Schematron batch testing, and XSLT batch processing.
+The Unified Shell consolidates what used to be separate sidebar tabs. The earlier
+standalone editors - XSD Editor, XSD Validation, JSON Editor, XSLT Viewer, Schematron,
+Schema Generator, Digital Signatures and FOP/PDF - have been **retired** and their
+functionality now lives in the shell:
+
+| Former tab | Now in the shell |
+|------------|------------------|
+| XSD Editor / Tools | Open an `.xsd`: Text/Tree/Graphic views + inspector; **Type Library** activity for type editing, documentation, flatten and schema analysis |
+| XSD Validation | **Validation** activity (single + batch, XSD & Schematron) |
+| JSON Editor | Open a `.json`: Text + Tree views |
+| XSLT Viewer | **Transform** panel (set stylesheet, transform, preview, browser) |
+| Schematron | **Validation** activity: check rules, templates, tester, builder, documentation, CSV/JSON export |
+| Schema Generator | **Type Library** / Generate XSD from XML |
+| Digital Signatures | **Signature** activity (sign, validate, trust validation, certificate creation) |
+| FOP / PDF | **FOP** activity (XSL-FO → PDF + preview) |
+
+The **XSLT Developer** (advanced IDE with debugger, profiler and batch processing) and the
+**XML Editor** (XML Ultimate, with IntelliSense) remain as dedicated sidebar tools for their
+full feature sets.

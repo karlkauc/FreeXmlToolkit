@@ -375,7 +375,7 @@ Create sample XML files based on your XSD schema. This is useful for testing, da
 ![Sample XML Generator](img/xsd-sample-generator.png)
 *Sample XML generator with rules table and XML preview*
 
-> **Unified Editor (June 2026):** In the [Unified Editor](unified-editor.md), sample-data
+> **Unified Editor (June 2026):** In the [Unified Shell](unified-shell.md), sample-data
 > generation lives in the **Schema** panel. It offers two actions: **Generate Sample XML** for
 > the basic generation described below, and **Generate Sample XML (Advanced)…** for the
 > rule-based, batch-capable generation. The screenshots above predate the advanced dialog.

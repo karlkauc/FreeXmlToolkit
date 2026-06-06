@@ -105,7 +105,7 @@ Test XPath expressions against sample XML:
 
 > **Updated June 2026** - Added **Check Rules** and **Documentation** to the Schematron tools.
 
-When you work with a Schematron file in the [Unified Editor](unified-editor.md), the
+When you work with a Schematron file in the [Unified Shell](unified-shell.md), the
 **Validation** panel offers a set of Schematron tools:
 
 | Tool | What It Does |
