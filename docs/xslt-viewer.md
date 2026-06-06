@@ -21,8 +21,8 @@ The XSLT Viewer is designed for quick transformations where you want to see resu
 from the **Transform** icon in the activity bar). For advanced features like live editing, parameters, and
 batch processing, use the [XSLT Developer](xslt-developer.md).
 
-![XSLT Viewer Overview](img/xslt-viewer-overview.png)
-*The XSLT Viewer with file selection and result preview*
+![Transform panel in the Unified Shell](img/unified-shell-transform.png)
+*Quick XSLT/XQuery transformations now live in the Unified Shell's Transform panel*
 
 
 ---

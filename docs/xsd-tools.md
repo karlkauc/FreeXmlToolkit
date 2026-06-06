@@ -38,8 +38,8 @@ When you open an `.xsd` file in the [Unified Shell](unified-shell.md), the edito
 
 The Graphic View lets you explore and edit your schemas visually.
 
-![XSD Graphical View](img/xsd-editor-graphic.png)
-*The XSD schema displayed as an interactive tree*
+![XSD Graphic view in the Unified Shell](img/unified-shell-schema-graphic.png)
+*An XSD open in the Unified Shell's Graphic view, with the Schema activity panel on the left*
 
 ### Features
 
@@ -77,8 +77,8 @@ The Graphic View lets you explore and edit your schemas visually.
 
 The Type Library provides a comprehensive view of all types defined in your schema.
 
-![Type Library](img/xsd-type-library.png)
-*Type Library showing all SimpleTypes and ComplexTypes*
+![Type Library in the Unified Shell](img/unified-shell-type-library.png)
+*The Schema activity's Type Library, with the schema diagram in the editor host*
 
 
 ### Features

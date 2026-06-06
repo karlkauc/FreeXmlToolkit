@@ -21,8 +21,8 @@ The XSD Validation tool provides two modes:
 | **Single File** | Validate one XML file at a time |
 | **Batch Validation** | Validate multiple XML files at once |
 
-![XSD Validation Overview](img/xsd-validation.png)
-*The XSD Validation interface*
+![Validation activity in the Unified Shell](img/unified-shell-validation.png)
+*XSD and Schematron validation now live in the Unified Shell's Validation activity panel*
 
 ### What Does It Check?
 

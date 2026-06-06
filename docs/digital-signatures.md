@@ -14,8 +14,8 @@ This tool lets you digitally sign XML documents and verify signatures. A digital
 
 ## Overview
 
-![Digital Signatures Overview](img/signature-sign.png)
-*The digital signature interface*
+![Signature activity in the Unified Shell](img/unified-shell-signature.png)
+*Signing, validation and certificate creation now live in the Unified Shell's Signature activity panel*
 
 ### What Can You Do?
 

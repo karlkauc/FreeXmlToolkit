@@ -17,8 +17,8 @@ FreeXmlToolkit includes a full-featured JSON Editor that supports:
 - **JSONC** - JSON with Comments (single-line `//` and block `/* */`)
 - **JSON5** - Extended JSON with trailing commas, unquoted keys, and comments
 
-![JSON Editor](img/json-editor.png)
-***Screenshot: JSON Editor with Tree View***
+![JSON in the Unified Shell](img/unified-shell-json-tree.png)
+***JSON editing (text + tree view) in the Unified Shell***
 
 ## Features
 
