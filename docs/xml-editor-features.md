@@ -92,8 +92,8 @@ Learn more: [Auto-Completion Guide](context-sensitive-intellisense.md)
 
 ## Grid Editor Mode
 
-![Grid Editor](img/xml-editor-grid-detail.png)
-*Grid editor with data cells*
+![XML Grid view in the Unified Shell](img/unified-shell-xml-grid.png)
+*The Grid view in the Unified Shell — table-like editing with the inspector*
 
 ### Edit XML Like a Spreadsheet
 

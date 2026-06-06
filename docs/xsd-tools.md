@@ -164,8 +164,8 @@ For SimpleTypes, you get a 5-panel form editor:
 
 The Text View provides raw XSD source code editing.
 
-![XSD Text View](img/xsd-editor-text.png)
-*XSD code editor with syntax highlighting*
+![XSD Text view in the Unified Shell](img/unified-shell-schema-text.png)
+*The XSD in the Unified Shell's Text view (Schema activity panel on the left, inspector on the right)*
 
 > **Screenshot note:** Existing XSD Text view screenshots predate the editable Properties pane.
 > The Properties pane now also appears alongside the Text view when the caret is inside a schema
@@ -231,8 +231,8 @@ For the selected schema node you can edit:
 
 The Schema Analysis view (in the **Type Library** activity) provides comprehensive analysis tools for your XSD.
 
-![Schema Analysis](img/xsd-schema-analysis.png)
-*Schema Analysis with statistics and quality checks*
+![Schema statistics in the Unified Shell](img/unified-shell-schema-statistics.png)
+*Schema statistics open as a report tab from the Schema activity's **Statistics** action*
 
 
 ### Sub-Tabs

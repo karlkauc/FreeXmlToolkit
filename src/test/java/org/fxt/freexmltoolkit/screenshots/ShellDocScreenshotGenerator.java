@@ -48,6 +48,7 @@ class ShellDocScreenshotGenerator {
 
     private Parent root;
     private UnifiedShellView shell;
+    private final org.testfx.api.FxRobot robot = new org.testfx.api.FxRobot();
 
     @Start
     void start(Stage stage) throws Exception {
@@ -93,7 +94,17 @@ class ShellDocScreenshotGenerator {
             onFx(() -> host.setActiveViewMode(ViewMode.GRAPHIC));
             settle(900);
             shot("unified-shell-schema-graphic");
+            onFx(() -> host.setActiveViewMode(ViewMode.TREE));
+            settle();
+            shot("unified-shell-schema-tree");
             onFx(() -> host.setActiveViewMode(ViewMode.TEXT));
+            settle();
+            shot("unified-shell-schema-text");
+
+            // Schema statistics open as an in-shell text tab (best-effort: click the button).
+            clickButton("Statistics");
+            settle(900);
+            shot("unified-shell-schema-statistics");
         }
 
         // --- Activity panels (selecting the activity shows its side panel) ---
@@ -119,6 +130,26 @@ class ShellDocScreenshotGenerator {
         onFx(() -> host.setActiveViewMode(ViewMode.TREE));
         settle();
         shot("unified-shell-json-tree");
+
+        // --- XML document in the Grid (XMLSpy-style) view ---
+        if (xml.exists()) {
+            onFx(() -> shell.getSelectionModel().select(Activity.EXPLORER));
+            onFx(() -> host.openFile(xml.toPath())); // re-selects the already-open XML tab
+            settle();
+            onFx(() -> host.setActiveViewMode(ViewMode.GRID));
+            settle();
+            shot("unified-shell-xml-grid");
+        }
+    }
+
+    /** Clicks a button by its visible text (best-effort; never aborts the run). */
+    private void clickButton(String text) {
+        try {
+            robot.clickOn(text);
+            WaitForAsyncUtils.waitForFxEvents();
+        } catch (Exception e) {
+            System.out.println("[shell-screenshot] could not click '" + text + "': " + e);
+        }
     }
 
     private void onFx(Runnable action) {

@@ -105,6 +105,9 @@ When editing an XSD file, the editor host and the **Schema** activity provide:
 *An XSD open in the Graphic view, with the Schema activity panel (Type Library, Flatten,
 Statistics, Schema Quality, Generate Sample XML / Documentation) on the left.*
 
+![XSD schema in the Tree view](img/unified-shell-schema-tree.png)
+*The same schema in the Tree view - select a node to edit its properties in the inspector.*
+
 - **Text** - Source code editing with syntax highlighting; moving the caret into a schema construct also lets you edit its properties in the Properties pane (see [Properties Inspector](#properties-inspector))
 - **Graphic** - Visual XMLSpy-style schema diagram
 - **Type Library** - Browse all types with filtering, search, and usage counts

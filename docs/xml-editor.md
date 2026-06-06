@@ -94,8 +94,8 @@ The text editor provides:
 
 ### Grid Mode
 
-![Grid Mode Editing](img/xml-editor-grid-mode.png)
-*Grid editor showing table-like XML editing*
+![XML Grid view in the Unified Shell](img/unified-shell-xml-grid.png)
+*The XML in the Unified Shell's Grid view (XMLSpy-style table editing)*
 
 The grid editor provides:
 
