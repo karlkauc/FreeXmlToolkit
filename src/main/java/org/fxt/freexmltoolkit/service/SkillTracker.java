@@ -72,7 +72,7 @@ public class SkillTracker {
         FEATURES.put("xml_validation", new FeatureDefinition(
             "xml_validation", "XML Validation", "Validation",
             "Validate XML documents against XSD schemas",
-            "bi-check-circle", "xmlUltimate", 5
+            "bi-check-circle", "unifiedShell", 5
         ));
         FEATURES.put("xsd_validation", new FeatureDefinition(
             "xsd_validation", "XSD Schema Validation", "Validation",
@@ -94,7 +94,7 @@ public class SkillTracker {
         FEATURES.put("xml_formatting", new FeatureDefinition(
             "xml_formatting", "Format/Pretty Print", "Editing",
             "Format and beautify XML documents",
-            "bi-text-indent-left", "xmlUltimate", 3
+            "bi-text-indent-left", "unifiedShell", 3
         ));
         FEATURES.put("xsd_visualization", new FeatureDefinition(
             "xsd_visualization", "XSD Visual Editor", "Editing",
@@ -104,19 +104,19 @@ public class SkillTracker {
         FEATURES.put("intellisense", new FeatureDefinition(
             "intellisense", "IntelliSense Auto-complete", "Editing",
             "Context-aware code completion",
-            "bi-lightning", "xmlUltimate", 7
+            "bi-lightning", "unifiedShell", 7
         ));
 
         // Query Features
         FEATURES.put("xpath_queries", new FeatureDefinition(
             "xpath_queries", "XPath Queries", "Query",
             "Query XML data using XPath expressions",
-            "bi-search", "xmlUltimate", 7
+            "bi-search", "unifiedShell", 7
         ));
         FEATURES.put("xquery_execution", new FeatureDefinition(
             "xquery_execution", "XQuery Execution", "Query",
             "Execute XQuery for advanced data manipulation",
-            "bi-code-slash", "xmlUltimate", 10
+            "bi-code-slash", "unifiedShell", 10
         ));
 
         // Transformation Features
@@ -156,7 +156,7 @@ public class SkillTracker {
         FEATURES.put("favorites_system", new FeatureDefinition(
             "favorites_system", "Favorites Management", "Organization",
             "Save and organize frequently used files",
-            "bi-star", "xmlUltimate", 3
+            "bi-star", "unifiedShell", 3
         ));
     }
 

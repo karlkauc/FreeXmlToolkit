@@ -98,10 +98,6 @@ public class MainController implements Initializable {
 
     private final PropertiesService propertiesService = ServiceRegistry.get(PropertiesService.class);
 
-    /**
-     * Controller for XML editing functionality.
-     */
-    XmlUltimateController xmlUltimateController;
 
 
 
@@ -153,7 +149,7 @@ public class MainController implements Initializable {
      * Navigation buttons for switching between different editor tabs.
      */
     @FXML
-    Button xmlUltimate, settings, exit, xsltDeveloper, unifiedShell;
+    Button settings, exit, xsltDeveloper, unifiedShell;
 
     /**
      * Menu item for exiting the application.
@@ -430,10 +426,6 @@ public class MainController implements Initializable {
 
         logger.info("Application is shutting down. Starting cleanup tasks...");
 
-        // Shutdown XmlUltimateController and its ExecutorService
-        if (xmlUltimateController != null) {
-            xmlUltimateController.shutdown();
-        }
 
 
 
@@ -526,11 +518,6 @@ public class MainController implements Initializable {
     public void refreshToolbarIcons() {
         logger.debug("Refreshing toolbar icons across all controllers");
 
-        // Refresh XML Ultimate Controller toolbar
-        if (xmlUltimateController != null) {
-            xmlUltimateController.refreshToolbarIcons();
-            logger.debug("Refreshed XML Ultimate Controller toolbar icons");
-        }
 
 
 
@@ -614,7 +601,6 @@ public class MainController implements Initializable {
             case "xml" -> "/pages/tab_xml.fxml";
             case "xmlEnhanced" -> "/pages/tab_xml_enhanced.fxml";
             case "xmlNew" -> "/pages/tab_xml_new.fxml";
-            case "xmlUltimate" -> "/pages/tab_xml_ultimate.fxml";
             case "settings" -> "/pages/settings.fxml";
             // Revolutionary Features - Alleinstellungsmerkmale
             // case "templates" -> "/pages/tab_templates.fxml"; // Removed from menu
@@ -641,7 +627,6 @@ public class MainController implements Initializable {
      */
     private void removeActiveFromAllMenuButtons() {
         Button[] allMenuButtons = {
-            xmlUltimate,
             settings, xsltDeveloper, unifiedShell
         };
         for (Button btn : allMenuButtons) {
@@ -670,7 +655,6 @@ public class MainController implements Initializable {
             case "xml" -> "/pages/tab_xml.fxml";
             case "xmlEnhanced" -> "/pages/tab_xml_enhanced.fxml";
             case "xmlNew" -> "/pages/tab_xml_new.fxml";
-            case "xmlUltimate" -> "/pages/tab_xml_ultimate.fxml";
             case "settings" -> "/pages/settings.fxml";
             case "xsltDeveloper" -> "/pages/tab_xslt_developer.fxml";
             case "unifiedShell" -> "/pages/tab_unified_shell.fxml";
@@ -701,7 +685,6 @@ public class MainController implements Initializable {
      */
     private Button getButtonForPageId(String pageId) {
         return switch (pageId) {
-            case "xmlUltimate" -> xmlUltimate;
             case "xsltDeveloper" -> xsltDeveloper;
             case "settings" -> settings;
             case "unifiedShell" -> unifiedShell;
@@ -749,24 +732,7 @@ public class MainController implements Initializable {
      * @param fileToLoad the XML file to load
      */
     public void switchToXmlViewAndLoadFile(File fileToLoad) {
-        if (xmlUltimate == null) {
-            logger.error("XML-Button ist nicht initialisiert, Tab-Wechsel nicht möglich.");
-            return;
-        }
-        removeActiveFromAllMenuButtons();
-        xmlUltimate.getStyleClass().add("active");
-
-        loadPageFromPath("/pages/tab_xml_ultimate.fxml");
-
-        // Wait for controller to be initialized, then load the file
-        Platform.runLater(() -> {
-            if (this.xmlUltimateController != null && fileToLoad != null && fileToLoad.exists()) {
-                logger.debug("Loading file through XmlUltimateController: {}", fileToLoad.getAbsolutePath());
-                this.xmlUltimateController.loadXmlFile(fileToLoad);
-            } else {
-                logger.warn("XML Ultimate Controller ist nicht verfügbar oder die Datei existiert nicht. Kann die Datei nicht laden: {}", fileToLoad);
-            }
-        });
+        openFileInShell(fileToLoad);
     }
 
     /**
@@ -871,15 +837,6 @@ public class MainController implements Initializable {
 
     private void setParentController(Object controller) {
         switch (controller) {
-            case XmlUltimateController xmlUltimateController1 -> {
-                logger.debug("set Ultimate XML Controller");
-                this.xmlUltimateController = xmlUltimateController1;
-                xmlUltimateController1.setParentController(this);
-                Platform.runLater(() -> {
-                    boolean isVisible = isXPathQueryPaneVisible();
-                    xmlUltimateController1.setDevelopmentPaneVisible(isVisible);
-                });
-            }
             case SettingsController settingsController -> settingsController.setParentController(this);
             case WelcomeController welcomeController -> welcomeController.setParentController(this);
             case TemplatesController templatesController1 -> {
@@ -1160,53 +1117,35 @@ public class MainController implements Initializable {
     // --- XML Tools Menu Handlers ---
 
     /**
-     * Opens the XSLT Developer tab in the XML Ultimate editor.
+     * Opens the XSLT Developer (kept as a dedicated tool).
      */
     @FXML
     public void openXsltDeveloper() {
-        switchToXmlUltimateAndSelectSubTab("xsltDevTab");
+        xsltDeveloper.fire();
     }
 
     /**
-     * Opens the Template Builder tab in the XML Ultimate editor.
+     * Template development now lives in the Unified Shell.
      */
     @FXML
     public void openTemplateBuilder() {
-        switchToXmlUltimateAndSelectSubTab("templateTab");
+        navigateToPage("unifiedShell");
     }
 
     /**
-     * Opens the XML to CSV converter tab in the XML Ultimate editor.
+     * XML-to-CSV / spreadsheet conversion now lives in the Unified Shell.
      */
     @FXML
     public void openXmlToCsv() {
-        switchToXmlUltimateAndSelectSubTab("convertTab");
+        navigateToPage("unifiedShell");
     }
 
     /**
-     * Opens the Generate Schema tab in the XML Ultimate editor.
+     * Schema generation from XML now lives in the Unified Shell.
      */
     @FXML
     public void openGenerateSchema() {
-        switchToXmlUltimateAndSelectSubTab("generatorTab");
-    }
-
-
-    // --- PDF & Signatures Menu Handlers ---
-
-
-    // --- Helper Methods for Menu Navigation ---
-
-
-    private void switchToXmlUltimateAndSelectSubTab(String subTabId) {
-        removeActiveFromAllMenuButtons();
-        xmlUltimate.getStyleClass().add("active");
-        loadPageFromPath("/pages/tab_xml_ultimate.fxml");
-        Platform.runLater(() -> {
-            if (xmlUltimateController != null) {
-                xmlUltimateController.selectSubTab(subTabId);
-            }
-        });
+        navigateToPage("unifiedShell");
     }
 
 
@@ -1219,12 +1158,12 @@ public class MainController implements Initializable {
         logger.debug("Show Menu: {}", showMenu);
         if (showMenu) {
             setMenuSize(50, ">>", "", 15, 75);
-            setButtonSize("menu_button_collapsed", xmlUltimate, settings, exit, xsltDeveloper);
+            setButtonSize("menu_button_collapsed", settings, exit, xsltDeveloper);
             setSectionLabelsVisible(false);
             setBottomBarLayout(true);
         } else {
             setMenuSize(200, "FundsXML Toolkit", "Enterprise Edition", 75, 100);
-            setButtonSize("menu_button", xmlUltimate, settings, exit, xsltDeveloper);
+            setButtonSize("menu_button", settings, exit, xsltDeveloper);
             setSectionLabelsVisible(true);
             setBottomBarLayout(false);
         }
@@ -1318,9 +1257,7 @@ public class MainController implements Initializable {
     }
 
     private void restoreButtonText(Button button) {
-        if (button == xmlUltimate) {
-            button.setText("XML Editor");
-        } else if (button == settings) {
+        if (button == settings) {
             button.setText("Settings");
         } else if (button == exit) {
             button.setText("Exit");
@@ -1341,10 +1278,6 @@ public class MainController implements Initializable {
         logger.debug("Toggle XML Editor Sidebar: {}", isVisible);
 
         propertiesService.set("xmlEditorSidebar.visible", String.valueOf(isVisible));
-
-        if (xmlUltimateController != null) {
-            xmlUltimateController.setXmlEditorSidebarVisible(isVisible);
-        }
     }
 
     /**
@@ -1371,10 +1304,6 @@ public class MainController implements Initializable {
         }
 
         propertiesService.set("xmlEditorSidebar.visible", String.valueOf(visible));
-
-        if (xmlUltimateController != null) {
-            xmlUltimateController.setXmlEditorSidebarVisible(visible);
-        }
     }
 
     /**
@@ -1389,12 +1318,6 @@ public class MainController implements Initializable {
         logger.debug("Toggle XPath Query Pane: {}", isVisible);
 
         propertiesService.set("xpathQueryPane.visible", String.valueOf(isVisible));
-
-        if (xmlUltimateController != null) {
-            xmlUltimateController.setDevelopmentPaneVisible(isVisible);
-        } else {
-            logger.debug("XML Ultimate Controller not yet available - preference saved, will be applied when XML tab is loaded");
-        }
     }
 
     /**
@@ -1420,10 +1343,6 @@ public class MainController implements Initializable {
         }
 
         propertiesService.set("xpathQueryPane.visible", String.valueOf(visible));
-
-        if (xmlUltimateController != null) {
-            xmlUltimateController.setDevelopmentPaneVisible(visible);
-        }
     }
 
     /**
@@ -1442,12 +1361,7 @@ public class MainController implements Initializable {
             logger.debug("Selected file type: {}", fileType);
             switch (fileType) {
                 case "XML" -> {
-                    xmlUltimate.fire();
-                    Platform.runLater(() -> {
-                        if (xmlUltimateController != null) {
-                            xmlUltimateController.newFilePressed();
-                        }
-                    });
+                    navigateToPage("unifiedShell");
                 }
                 case "XSD" -> {
                     navigateToPage("unifiedShell");
@@ -1518,13 +1432,7 @@ public class MainController implements Initializable {
 
             String fileName = selectedFile.getName().toLowerCase();
             if (fileName.endsWith(".xml")) {
-                xmlUltimate.fire();
-                Platform.runLater(() -> {
-                    if (xmlUltimateController != null) {
-                        logger.debug("Loading selected XML file through XmlUltimateController: {}", selectedFile.getAbsolutePath());
-                        xmlUltimateController.loadXmlFile(selectedFile);
-                    }
-                });
+                openFileInShell(selectedFile);
             } else if (fileName.endsWith(".xsd")) {
                 openFileInShell(selectedFile);
             } else if (fileName.endsWith(".sch") || fileName.endsWith(".schematron")) {
@@ -1532,13 +1440,7 @@ public class MainController implements Initializable {
             } else if (fileName.endsWith(".xsl") || fileName.endsWith(".xslt")) {
                 xsltDeveloper.fire();
             } else {
-                xmlUltimate.fire();
-                Platform.runLater(() -> {
-                    if (xmlUltimateController != null) {
-                        logger.debug("Loading unknown file type as XML through XmlUltimateController: {}", selectedFile.getAbsolutePath());
-                        xmlUltimateController.loadXmlFile(selectedFile);
-                    }
-                });
+                openFileInShell(selectedFile);
             }
 
             addFileToRecentFiles(selectedFile);
@@ -1553,10 +1455,9 @@ public class MainController implements Initializable {
      * @param file the XML file to open
      */
     public void openXmlFileInEditor(File file) {
-        if (file != null && xmlUltimateController != null) {
-            xmlUltimate.fire(); // Switch to XML tab
-            Platform.runLater(() -> xmlUltimateController.loadXmlFile(file));
-            logger.info("Opening XML file in editor: {}", file.getAbsolutePath());
+        if (file != null) {
+            openFileInShell(file);
+            logger.info("Opening XML file in the shell: {}", file.getAbsolutePath());
         }
     }
 
@@ -1937,12 +1838,6 @@ public class MainController implements Initializable {
         logger.debug("F5 pressed - Active tab: {}", activeTabId);
 
         switch (activeTabId) {
-            case "xmlUltimate" -> {
-                if (xmlUltimateController != null) {
-                    xmlUltimateController.validateXml();
-                    logger.debug("F5: Triggered XML validation");
-                }
-            }
             case "xsltDeveloper" -> {
                 if (xsltDeveloperController != null) {
                     xsltDeveloperController.executeTransformation();
@@ -1960,12 +1855,6 @@ public class MainController implements Initializable {
         logger.debug("Ctrl+S pressed - Active tab: {}", activeTabId);
 
         switch (activeTabId) {
-            case "xmlUltimate" -> {
-                if (xmlUltimateController != null) {
-                    xmlUltimateController.saveFile();
-                    logger.debug("Ctrl+S: Triggered XML save");
-                }
-            }
             default -> logger.debug("Ctrl+S: No save action defined for tab '{}'", activeTabId);
         }
     }
@@ -1977,12 +1866,6 @@ public class MainController implements Initializable {
         logger.debug("Ctrl+Shift+S pressed - Active tab: {}", activeTabId);
 
         switch (activeTabId) {
-            case "xmlUltimate" -> {
-                if (xmlUltimateController != null) {
-                    xmlUltimateController.saveAsFile();
-                    logger.debug("Ctrl+Shift+S: Triggered XML Save As");
-                }
-            }
             default -> logger.debug("Ctrl+Shift+S: No Save As action defined for tab '{}'", activeTabId);
         }
     }
@@ -1994,12 +1877,6 @@ public class MainController implements Initializable {
         logger.debug("Ctrl+D pressed - Add to Favorites - Active tab: {}", activeTabId);
 
         switch (activeTabId) {
-            case "xmlUltimate" -> {
-                if (xmlUltimateController != null) {
-                    xmlUltimateController.addCurrentFileToFavorites();
-                    logger.debug("Ctrl+D: Added XML file to favorites");
-                }
-            }
             default -> logger.debug("Ctrl+D: No add favorites action defined for tab '{}'", activeTabId);
         }
     }
@@ -2011,12 +1888,6 @@ public class MainController implements Initializable {
         logger.debug("Ctrl+Shift+D pressed - Toggle Favorites Panel - Active tab: {}", activeTabId);
 
         switch (activeTabId) {
-            case "xmlUltimate" -> {
-                if (xmlUltimateController != null) {
-                    xmlUltimateController.toggleFavoritesPanel();
-                    logger.debug("Ctrl+Shift+D: Toggled XML favorites panel");
-                }
-            }
             case "xsltDeveloper" -> {
                 if (xsltDeveloperController != null) {
                     xsltDeveloperController.toggleFavoritesPanelPublic();
@@ -2156,7 +2027,7 @@ public class MainController implements Initializable {
      */
     @FXML
     public void validateAgainstFundsXml() {
-        String xml = xmlUltimateController != null ? xmlUltimateController.getCurrentXmlContent() : null;
+        String xml = unifiedShellController != null ? unifiedShellController.getActiveText() : null;
         org.fxt.freexmltoolkit.service.fundsxml.FundsXmlValidator validator =
                 new org.fxt.freexmltoolkit.service.fundsxml.FundsXmlValidator(
                         FundsXmlCache.getInstance(),

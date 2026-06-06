@@ -51,4 +51,10 @@ public class UnifiedShellController {
             shellView.openXsdAndReveal(file.toPath(), elementName);
         }
     }
+
+    /** @return the text of the shell's active document, or {@code null} if none. */
+    public String getActiveText() {
+        return shellView == null ? null
+                : shellView.getEditorHost().getActiveText().orElse(null);
+    }
 }

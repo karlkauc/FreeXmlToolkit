@@ -213,7 +213,7 @@ public class WelcomeController {
     @FXML
     public void openFundsXmlExtensions() {
         logger.debug("Opening FundsXML Extensions from welcome screen");
-        navigateTo("xmlUltimate");
+        navigateTo("unifiedShell");
     }
 
     /**
@@ -701,7 +701,7 @@ public class WelcomeController {
     @FXML
     public void createNewXmlFile() {
         // Navigate to XML editor to create a new file
-        navigateTo("xmlUltimate");
+        navigateTo("unifiedShell");
     }
 
     /**
@@ -709,7 +709,7 @@ public class WelcomeController {
      */
     @FXML
     public void openXmlEditor() {
-        navigateTo("xmlUltimate");
+        navigateTo("unifiedShell");
     }
 
     /**
@@ -718,7 +718,7 @@ public class WelcomeController {
     @FXML
     public void openXmlEditorAndFormat() {
         // Navigate to XML editor - format functionality is available there
-        navigateTo("xmlUltimate");
+        navigateTo("unifiedShell");
     }
 
     /**
@@ -808,7 +808,7 @@ public class WelcomeController {
     @FXML
     public void openCompare() {
         // Compare functionality - navigate to XML editor which has compare features
-        navigateTo("xmlUltimate");
+        navigateTo("unifiedShell");
     }
 
     /**

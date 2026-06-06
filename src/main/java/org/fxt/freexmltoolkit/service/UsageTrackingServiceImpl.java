@@ -445,7 +445,7 @@ public class UsageTrackingServiceImpl implements UsageTrackingService {
             case "xpath_queries" -> new FeatureTip(
                 feature.getFeatureId(),
                 "Did you know? XPath queries help you quickly locate specific elements in large XML documents.",
-                "xmlUltimate",
+                "unifiedShell",
                 10,
                 "bi-search"
             );
@@ -494,7 +494,7 @@ public class UsageTrackingServiceImpl implements UsageTrackingService {
             case "xquery_execution" -> new FeatureTip(
                 feature.getFeatureId(),
                 "Use XQuery for powerful querying and transforming of XML data.",
-                "xmlUltimate",
+                "unifiedShell",
                 3,
                 "bi-code"
             );

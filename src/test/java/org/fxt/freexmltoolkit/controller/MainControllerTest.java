@@ -125,7 +125,6 @@ class MainControllerTest {
     void testTabPaths() {
         String[] tabPaths = {
             "/pages/tab_xml.fxml",
-            "/pages/tab_xml_ultimate.fxml",
             "/pages/settings.fxml",
             "/pages/tab_templates.fxml",
             "/pages/tab_xslt_developer.fxml",
@@ -143,7 +142,7 @@ class MainControllerTest {
     @DisplayName("Should validate button IDs for navigation")
     void testButtonIds() {
         String[] buttonIds = {
-            "xml", "xmlEnhanced", "xmlNew", "xmlUltimate",
+            "xml", "xmlEnhanced", "xmlNew",
             "settings", "templates", "xsltDeveloper"
         };
 
