@@ -859,6 +859,29 @@ public class MainController implements Initializable {
     }
 
     /**
+     * Opens an XSD file in the Unified Shell and reveals the named element/type in the
+     * Graphic view. Bridge for the XML editor's "go to schema definition" after the legacy
+     * XSD editor's navigateToElementInGraphView was retired.
+     *
+     * @param file        the XSD file to open
+     * @param elementName the element/type to reveal
+     */
+    public void openXsdInShellAndNavigate(File file, String elementName) {
+        if (file == null) {
+            return;
+        }
+        if (!"unifiedShell".equals(activeTabId)) {
+            navigateToPage("unifiedShell");
+        }
+        UnifiedShellController shell = this.unifiedShellController;
+        if (shell != null) {
+            Platform.runLater(() -> shell.openXsdAndReveal(file, elementName));
+        } else {
+            logger.warn("Unified Shell controller not available; cannot open XSD: {}", file);
+        }
+    }
+
+    /**
      * Opens the specified Schematron file in the Unified Shell. The standalone
      * Schematron editor tab was retired (Phase 10c); Schematron editing/validation
      * lives in the shell.

@@ -38,4 +38,17 @@ public class UnifiedShellController {
             shellView.openFile(file);
         }
     }
+
+    /**
+     * Opens an XSD file in the shell and reveals the named element/type in the Graphic
+     * view. Bridge for the XML editor's "go to schema definition".
+     *
+     * @param file        the XSD file to open
+     * @param elementName the element/type to reveal (may be {@code null} to just open)
+     */
+    public void openXsdAndReveal(java.io.File file, String elementName) {
+        if (shellView != null && file != null) {
+            shellView.openXsdAndReveal(file.toPath(), elementName);
+        }
+    }
 }

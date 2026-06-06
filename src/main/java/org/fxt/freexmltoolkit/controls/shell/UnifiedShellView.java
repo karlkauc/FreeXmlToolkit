@@ -410,6 +410,16 @@ public class UnifiedShellView extends BorderPane {
         }
     }
 
+    /**
+     * Opens an XSD file and reveals the named element/type in the Graphic view (bridge for
+     * the XML editor's "go to schema definition", replacing the retired legacy XSD editor).
+     */
+    public void openXsdAndReveal(java.nio.file.Path path, String elementName) {
+        if (path != null) {
+            editorHost.openXsdAndReveal(path, elementName);
+        }
+    }
+
     private void convertSpreadsheet() {
         var dialog = new org.fxt.freexmltoolkit.controls.shell.editor.SpreadsheetConverterDialog();
         if (getScene() != null) {

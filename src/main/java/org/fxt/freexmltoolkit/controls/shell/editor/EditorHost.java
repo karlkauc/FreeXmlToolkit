@@ -248,6 +248,74 @@ public class EditorHost extends BorderPane {
         });
     }
 
+    /**
+     * Opens an XSD file in the shell and, once it has loaded and parsed, switches to the
+     * Graphic view and selects the named element (preferred) or type. Bridge replacing the
+     * retired legacy XSD editor's {@code navigateToElementInGraphView}, used by the XML
+     * editor's "go to schema definition". Navigation is deferred until the async load
+     * completes; if {@code elementName} is blank the file is just opened.
+     */
+    public void openXsdAndReveal(java.nio.file.Path path, String elementName) {
+        if (path == null) {
+            return;
+        }
+        openFile(path);
+        if (elementName != null && !elementName.isBlank()) {
+            revealInGraphAfterLoad(path, elementName, 80);
+        }
+    }
+
+    private void revealInGraphAfterLoad(java.nio.file.Path path, String name, int attemptsLeft) {
+        var doc = getActiveDocument();
+        boolean loaded = doc.isPresent() && path.equals(doc.get().getPath())
+                && getActiveText().map(t -> !t.isBlank()).orElse(false);
+        if (loaded) {
+            setActiveViewMode(ViewMode.GRAPHIC);
+            XsdNode node = findNodeByName(getActiveSchemaRoot().orElse(null), name);
+            if (node != null) {
+                selectNodeInActiveTree(node);
+                return;
+            }
+        }
+        if (attemptsLeft > 0) {
+            // Space out retries so the async file load + model parse can complete
+            // (a tight runLater chain would exhaust all attempts in milliseconds).
+            javafx.animation.PauseTransition pause =
+                    new javafx.animation.PauseTransition(javafx.util.Duration.millis(50));
+            pause.setOnFinished(e -> revealInGraphAfterLoad(path, name, attemptsLeft - 1));
+            pause.play();
+        }
+    }
+
+    /** Depth-first search for a named node, preferring elements over types; cycle-safe. */
+    private static XsdNode findNodeByName(XsdNode root, String name) {
+        if (root == null || name == null) {
+            return null;
+        }
+        XsdNode fallback = null;
+        java.util.Set<XsdNode> visited = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+        java.util.Deque<XsdNode> stack = new java.util.ArrayDeque<>();
+        stack.push(root);
+        while (!stack.isEmpty()) {
+            XsdNode n = stack.pop();
+            if (!visited.add(n)) {
+                continue;
+            }
+            if (name.equals(n.getName())) {
+                if (n.getNodeType() == org.fxt.freexmltoolkit.controls.v2.model.XsdNodeType.ELEMENT) {
+                    return n;
+                }
+                if (fallback == null) {
+                    fallback = n;
+                }
+            }
+            for (XsdNode c : n.getChildren()) {
+                stack.push(c);
+            }
+        }
+        return fallback;
+    }
+
     /** Selects (reveals) the given node in the active structured view (Tree or Graphic). */
     public void selectNodeInActiveTree(XsdNode node) {
         withActive(et -> {
