@@ -184,8 +184,7 @@ public class XmlEditorSidebarController {
 
     private XmlEditor xmlEditor;
 
-    // Support for Unified Editor (XmlUnifiedTab)
-    private org.fxt.freexmltoolkit.controls.unified.XmlUnifiedTab xmlUnifiedTab;
+    // Standalone XSD documentation data (when not hosted by an XmlEditor)
     private org.fxt.freexmltoolkit.domain.XsdDocumentationData unifiedTabXsdData;
 
     // Services - injected via ServiceRegistry
@@ -213,21 +212,6 @@ public class XmlEditorSidebarController {
 
     public void setXmlEditor(XmlEditor xmlEditor) {
         this.xmlEditor = xmlEditor;
-    }
-
-    /**
-     * Sets the XmlUnifiedTab for use in the Unified Editor.
-     * This provides an alternative to setXmlEditor for the new unified editor architecture.
-     */
-    public void setXmlUnifiedTab(org.fxt.freexmltoolkit.controls.unified.XmlUnifiedTab tab) {
-        this.xmlUnifiedTab = tab;
-        if (tab != null) {
-            // Load XSD if tab has one linked
-            File xsdFile = tab.getXsdFile();
-            if (xsdFile != null) {
-                loadXsdForUnifiedTab(xsdFile);
-            }
-        }
     }
 
     /**
@@ -268,9 +252,6 @@ public class XmlEditorSidebarController {
     public void setXsdFileDirectly(File xsdFile) {
         if (xmlEditor != null) {
             xmlEditor.setXsdFile(xsdFile);
-        } else if (xmlUnifiedTab != null) {
-            xmlUnifiedTab.setXsdFile(xsdFile);
-            loadXsdForUnifiedTab(xsdFile);
         } else {
             // Standalone mode - just load the XSD
             loadXsdForUnifiedTab(xsdFile);
@@ -337,8 +318,6 @@ public class XmlEditorSidebarController {
             File initialDir = null;
             if (xmlEditor != null && xmlEditor.getXmlFile() != null && xmlEditor.getXmlFile().getParentFile() != null) {
                 initialDir = xmlEditor.getXmlFile().getParentFile();
-            } else if (xmlUnifiedTab != null && xmlUnifiedTab.getSourceFile() != null && xmlUnifiedTab.getSourceFile().getParentFile() != null) {
-                initialDir = xmlUnifiedTab.getSourceFile().getParentFile();
             }
             if (initialDir != null && initialDir.exists()) {
                 fileChooser.setInitialDirectory(initialDir);
@@ -374,8 +353,6 @@ public class XmlEditorSidebarController {
             if (continuousValidationCheckBox.isSelected()) {
                 if (xmlEditor != null) {
                     xmlEditor.validateXml();
-                } else if (xmlUnifiedTab != null) {
-                    performUnifiedTabValidation();
                 }
             }
         });
@@ -384,8 +361,6 @@ public class XmlEditorSidebarController {
             if (continuousSchematronValidationCheckBox.isSelected()) {
                 if (xmlEditor != null) {
                     xmlEditor.validateSchematron();
-                } else if (xmlUnifiedTab != null) {
-                    performUnifiedTabSchematronValidation();
                 }
             }
         });
@@ -424,8 +399,6 @@ public class XmlEditorSidebarController {
                     if (selectedError != null) {
                         if (xmlEditor != null) {
                             navigateToError(selectedError);
-                        } else if (xmlUnifiedTab != null) {
-                            xmlUnifiedTab.navigateToError(selectedError);
                         }
                     }
                 }
@@ -1129,8 +1102,6 @@ public class XmlEditorSidebarController {
                 if (originalXsdFile == null) {
                     if (xmlEditor != null && xmlEditor.getXsdFile() != null) {
                         originalXsdFile = xmlEditor.getXsdFile();
-                    } else if (xmlUnifiedTab != null && xmlUnifiedTab.getXsdFile() != null) {
-                        originalXsdFile = xmlUnifiedTab.getXsdFile();
                     }
                 }
 
@@ -1736,54 +1707,6 @@ public class XmlEditorSidebarController {
         return xsdLinked;
     }
 
-    // ==================== Unified Tab Validation ====================
-
-    /**
-     * Performs XML validation for the unified tab and updates the sidebar.
-     */
-    public void performUnifiedTabValidation() {
-        if (xmlUnifiedTab == null) {
-            return;
-        }
-
-        try {
-            var errors = xmlUnifiedTab.validateXml();
-            boolean isValid = errors.isEmpty();
-
-            String status = isValid ? "Valid" : errors.size() + " error(s)";
-            String color = isValid ? "#28a745" : "#dc3545";
-
-            updateValidationStatus(status, color, errors);
-            logger.debug("Unified tab validation: {} (errors={})", status, errors.size());
-        } catch (Exception e) {
-            logger.error("Error during unified tab validation: {}", e.getMessage());
-            updateValidationStatus("Error: " + e.getMessage(), "#dc3545", List.of());
-        }
-    }
-
-    /**
-     * Performs Schematron validation for the unified tab and updates the sidebar.
-     */
-    public void performUnifiedTabSchematronValidation() {
-        if (xmlUnifiedTab == null) {
-            return;
-        }
-
-        try {
-            var errors = xmlUnifiedTab.validateSchematron();
-            boolean isValid = errors.isEmpty();
-
-            String status = isValid ? "Valid" : errors.size() + " error(s)";
-            String color = isValid ? "#28a745" : "#dc3545";
-
-            updateSchematronValidationStatus(status, color, errors);
-            logger.debug("Unified tab Schematron validation: {} (errors={})", status, errors.size());
-        } catch (Exception e) {
-            logger.error("Error during unified tab Schematron validation: {}", e.getMessage());
-            updateSchematronValidationStatus("Error: " + e.getMessage(), "#dc3545", null);
-        }
-    }
-
     // ==================== Document Structure Tree ====================
 
     /**
@@ -2028,8 +1951,6 @@ public class XmlEditorSidebarController {
         String xmlContent = null;
         if (xmlEditor != null) {
             xmlContent = xmlEditor.getEditorText();
-        } else if (xmlUnifiedTab != null) {
-            xmlContent = xmlUnifiedTab.getText();
         }
 
         if (xmlContent != null && !xmlContent.isEmpty()) {
