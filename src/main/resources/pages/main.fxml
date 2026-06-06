@@ -430,13 +430,6 @@
                                 <Separator fx:id="separatorTransforms" styleClass="sidebar-section-separator"/>
                                 <Label fx:id="sectionTransforms" text="TRANSFORMS" styleClass="sidebar-section-label"/>
 
-                                <Button mnemonicParsing="false" onAction="#loadPage" styleClass="menu_button"
-                                        text="XSLT Viewer" contentDisplay="LEFT" VBox.vgrow="ALWAYS" fx:id="xslt">
-                                    <graphic>
-                                        <IconifyIcon iconColor="#fd7e14" iconLiteral="bi-arrow-repeat" iconSize="16"/>
-                                    </graphic>
-                                </Button>
-
                                 <Button fx:id="xsltDeveloper" mnemonicParsing="false" onAction="#loadPage"
                                         styleClass="menu_button" text="XSLT Developer" contentDisplay="LEFT" VBox.vgrow="ALWAYS">
                                     <graphic>

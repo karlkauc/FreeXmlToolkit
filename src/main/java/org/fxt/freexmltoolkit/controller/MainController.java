@@ -119,11 +119,6 @@ public class MainController implements Initializable {
     XsdValidationController xsdValidationController;
 
     /**
-     * Controller for XSLT transformations.
-     */
-    XsltController xsltController;
-
-    /**
      * Controller for advanced XSLT development features.
      */
     XsltDeveloperController xsltDeveloperController;
@@ -173,7 +168,7 @@ public class MainController implements Initializable {
      * Navigation buttons for switching between different editor tabs.
      */
     @FXML
-    Button xslt, xmlUltimate, xsd, xsdValidation, schematron, signature, settings, exit, xsltDeveloper, json, unifiedShell;
+    Button xmlUltimate, xsd, xsdValidation, schematron, signature, settings, exit, xsltDeveloper, json, unifiedShell;
 
     /**
      * Menu item for exiting the application.
@@ -460,10 +455,6 @@ public class MainController implements Initializable {
             xsdController.shutdown();
         }
 
-        // Shutdown XsltController
-        if (xsltController != null) {
-            xsltController.shutdown();
-        }
 
         // Shutdown XsltDeveloperController
         if (xsltDeveloperController != null) {
@@ -572,11 +563,6 @@ public class MainController implements Initializable {
             logger.debug("Refreshed Schematron Controller toolbar icons");
         }
 
-        // Refresh XSLT Controller toolbar
-        if (xsltController != null) {
-            xsltController.refreshToolbarIcons();
-            logger.debug("Refreshed XSLT Controller toolbar icons");
-        }
 
         // Refresh XSLT Developer Controller toolbar
         if (xsltDeveloperController != null) {
@@ -664,7 +650,6 @@ public class MainController implements Initializable {
         Button currentButton = (Button) ae.getSource();
         String buttonId = currentButton.getId();
         String pagePath = switch (buttonId) {
-            case "xslt" -> "/pages/tab_xslt.fxml";
             case "xml" -> "/pages/tab_xml.fxml";
             case "xmlEnhanced" -> "/pages/tab_xml_enhanced.fxml";
             case "xmlNew" -> "/pages/tab_xml_new.fxml";
@@ -700,7 +685,7 @@ public class MainController implements Initializable {
      */
     private void removeActiveFromAllMenuButtons() {
         Button[] allMenuButtons = {
-            xmlUltimate, xsd, xsdValidation, schematron, xslt,
+            xmlUltimate, xsd, xsdValidation, schematron,
             signature, settings, xsltDeveloper, json, unifiedShell
         };
         for (Button btn : allMenuButtons) {
@@ -726,7 +711,6 @@ public class MainController implements Initializable {
      */
     public void navigateToPage(String pageId) {
         String pagePath = switch (pageId) {
-            case "xslt" -> "/pages/tab_xslt.fxml";
             case "xml" -> "/pages/tab_xml.fxml";
             case "xmlEnhanced" -> "/pages/tab_xml_enhanced.fxml";
             case "xmlNew" -> "/pages/tab_xml_new.fxml";
@@ -770,7 +754,7 @@ public class MainController implements Initializable {
             case "xsd" -> xsd;
             case "xsdValidation" -> xsdValidation;
             case "schematron" -> schematron;
-            case "xslt", "xsltDeveloper" -> xsltDeveloper;
+            case "xsltDeveloper" -> xsltDeveloper;
             case "signature" -> signature;
             case "settings" -> settings;
             case "unifiedShell" -> unifiedShell;
@@ -969,11 +953,6 @@ public class MainController implements Initializable {
                 this.schematronController = schematronController1;
                 schematronController1.setParentController(this);
                 initializeIntegrationService();
-            }
-            case XsltController xsltController1 -> {
-                logger.debug("set XSLT Controller");
-                this.xsltController = xsltController1;
-                xsltController1.setParentController(this);
             }
             case SignatureController signatureController -> {
                 logger.debug("set Signature Controller");
@@ -1481,12 +1460,12 @@ public class MainController implements Initializable {
         logger.debug("Show Menu: {}", showMenu);
         if (showMenu) {
             setMenuSize(50, ">>", "", 15, 75);
-            setButtonSize("menu_button_collapsed", xmlUltimate, json, xsd, xsdValidation, schematron, xslt, settings, exit, signature, xsltDeveloper);
+            setButtonSize("menu_button_collapsed", xmlUltimate, json, xsd, xsdValidation, schematron, settings, exit, signature, xsltDeveloper);
             setSectionLabelsVisible(false);
             setBottomBarLayout(true);
         } else {
             setMenuSize(200, "FundsXML Toolkit", "Enterprise Edition", 75, 100);
-            setButtonSize("menu_button", xmlUltimate, json, xsd, xsdValidation, schematron, xslt, settings, exit, signature, xsltDeveloper);
+            setButtonSize("menu_button", xmlUltimate, json, xsd, xsdValidation, schematron, settings, exit, signature, xsltDeveloper);
             setSectionLabelsVisible(true);
             setBottomBarLayout(false);
         }
@@ -1590,8 +1569,6 @@ public class MainController implements Initializable {
             button.setText("XSD Validation");
         } else if (button == schematron) {
             button.setText("Schematron Editor");
-        } else if (button == xslt) {
-            button.setText("XSLT Viewer");
         } else if (button == signature) {
             button.setText("Signature");
         } else if (button == settings) {
@@ -1727,7 +1704,7 @@ public class MainController implements Initializable {
                     xsd.fire();
                 }
                 case "XSLT" -> {
-                    xslt.fire();
+                    xsltDeveloper.fire();
                 }
                 default -> { }
             }
@@ -1820,7 +1797,7 @@ public class MainController implements Initializable {
                     }
                 });
             } else if (fileName.endsWith(".xsl") || fileName.endsWith(".xslt")) {
-                xslt.fire();
+                xsltDeveloper.fire();
             } else {
                 xmlUltimate.fire();
                 Platform.runLater(() -> {

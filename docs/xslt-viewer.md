@@ -2,6 +2,13 @@
 
 > **Last Updated:** May 2026 | **Version:** 1.10.0
 
+> **Note (Phase 10c):** The standalone *XSLT Viewer* tab has been retired. Quick
+> XSLT transformations now live in the **Unified Shell's Transform panel**
+> (set a stylesheet, transform, preview the result, open in browser), and full
+> editing/parameters/batch processing remain in the
+> [XSLT Developer](xslt-developer.md). The workflow below is unchanged in spirit;
+> the controls are now part of the Transform side panel rather than a dedicated tab.
+
 The XSLT Viewer allows you to quickly transform XML documents using XSLT stylesheets. Simply select your files and view
 the results immediately.
 

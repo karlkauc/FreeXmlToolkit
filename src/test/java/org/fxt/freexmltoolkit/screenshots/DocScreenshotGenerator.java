@@ -146,12 +146,8 @@ class DocScreenshotGenerator {
             capture("xslt-developer-overview");
         });
 
-        // --- XSLT Viewer ---
-        safe("xslt viewer", () -> {
-            runFx(() -> mainController.navigateToPage("xslt"));
-            settle(2500);
-            capture("xslt-viewer-overview");
-        });
+        // (XSLT Viewer retired in Phase 10c — quick XSLT transforms live in the
+        // Unified Shell's Transform panel and the XSLT Developer.)
 
         // --- XSD Validation: single-file view (used for schema-xsd-support) ---
         safe("xsd validation single", () -> {
