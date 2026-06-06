@@ -18,8 +18,24 @@ public class UnifiedShellController {
     @FXML
     private StackPane shellRoot;
 
+    private UnifiedShellView shellView;
+
     @FXML
     public void initialize() {
-        shellRoot.getChildren().setAll(new UnifiedShellView());
+        shellView = new UnifiedShellView();
+        shellRoot.getChildren().setAll(shellView);
+    }
+
+    /**
+     * Opens the given file as a document in the shell's editor. Bridge used by
+     * {@code MainController} to route a file (e.g. a {@code .sch} opened via legacy
+     * file routing) into the shell after a legacy editor tab has been retired.
+     *
+     * @param file the file to open (ignored if {@code null} or the view is not ready)
+     */
+    public void openFile(java.io.File file) {
+        if (shellView != null && file != null) {
+            shellView.openFile(file);
+        }
     }
 }

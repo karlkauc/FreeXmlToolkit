@@ -132,6 +132,9 @@ public class MainController implements Initializable {
     // Integration service for cross-controller communication
     private org.fxt.freexmltoolkit.service.SchematronXmlIntegrationService integrationService;
 
+    /** The Unified Shell controller (set on injection); used to route files into the shell. */
+    private UnifiedShellController unifiedShellController;
+
     /**
      * Scheduled executor service for periodic background tasks such as memory monitoring.
      */
@@ -852,6 +855,27 @@ public class MainController implements Initializable {
     }
 
     /**
+     * Opens a file in the Unified Shell, navigating to it first if needed. Bridge for
+     * legacy file routing of types whose dedicated tab has been retired (e.g. {@code .sch}).
+     *
+     * @param file the file to open in the shell
+     */
+    public void openFileInShell(File file) {
+        if (file == null) {
+            return;
+        }
+        if (!"unifiedShell".equals(activeTabId)) {
+            navigateToPage("unifiedShell");
+        }
+        UnifiedShellController shell = this.unifiedShellController;
+        if (shell != null) {
+            Platform.runLater(() -> shell.openFile(file));
+        } else {
+            logger.warn("Unified Shell controller not available; cannot open file: {}", file);
+        }
+    }
+
+    /**
      * Switches to the Schematron editor view and loads the specified file.
      *
      * @param fileToLoad the Schematron file to load
@@ -937,7 +961,10 @@ public class MainController implements Initializable {
                 logger.debug("set Advanced XSLT Developer Controller");
                 this.xsltDeveloperController = xsltDeveloperController1;
             }
-            case UnifiedShellController _ -> logger.debug("set Unified Shell Controller (preview)");
+            case UnifiedShellController unifiedShellController1 -> {
+                logger.debug("set Unified Shell Controller");
+                this.unifiedShellController = unifiedShellController1;
+            }
             case null, default -> {
                 if (controller != null) {
                     logger.error("no valid controller found: {}", controller.getClass());

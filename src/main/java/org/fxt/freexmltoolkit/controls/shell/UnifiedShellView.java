@@ -390,6 +390,26 @@ public class UnifiedShellView extends BorderPane {
         }
     }
 
+    /**
+     * Opens the given file as a document in the shell's editor host. Public bridge
+     * used by {@code MainController} to hand a file (e.g. a {@code .sch} opened via
+     * legacy file routing) to the shell after a legacy editor tab has been retired.
+     *
+     * @param path the file to open (ignored if {@code null})
+     */
+    public void openFile(java.nio.file.Path path) {
+        if (path != null) {
+            editorHost.openFile(path);
+        }
+    }
+
+    /** {@link File} convenience overload of {@link #openFile(java.nio.file.Path)}. */
+    public void openFile(java.io.File file) {
+        if (file != null) {
+            editorHost.openFile(file.toPath());
+        }
+    }
+
     private void convertSpreadsheet() {
         var dialog = new org.fxt.freexmltoolkit.controls.shell.editor.SpreadsheetConverterDialog();
         if (getScene() != null) {
