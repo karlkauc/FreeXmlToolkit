@@ -108,10 +108,6 @@ public class MainController implements Initializable {
      */
     XsdController xsdController;
 
-    /**
-     * Controller for Schematron validation.
-     */
-    SchematronController schematronController;
 
 
     /**
@@ -130,8 +126,6 @@ public class MainController implements Initializable {
     private String activeTabId = "welcome";
 
     // Integration service for cross-controller communication
-    private org.fxt.freexmltoolkit.service.SchematronXmlIntegrationService integrationService;
-
     /** The Unified Shell controller (set on injection); used to route files into the shell. */
     private UnifiedShellController unifiedShellController;
 
@@ -163,7 +157,7 @@ public class MainController implements Initializable {
      * Navigation buttons for switching between different editor tabs.
      */
     @FXML
-    Button xmlUltimate, xsd, schematron, signature, settings, exit, xsltDeveloper, unifiedShell;
+    Button xmlUltimate, xsd, signature, settings, exit, xsltDeveloper, unifiedShell;
 
     /**
      * Menu item for exiting the application.
@@ -552,11 +546,6 @@ public class MainController implements Initializable {
             logger.debug("Refreshed XSD Controller toolbar icons");
         }
 
-        // Refresh Schematron Controller toolbar
-        if (schematronController != null) {
-            schematronController.refreshToolbarIcons();
-            logger.debug("Refreshed Schematron Controller toolbar icons");
-        }
 
 
         // Refresh XSLT Developer Controller toolbar
@@ -640,7 +629,6 @@ public class MainController implements Initializable {
             case "xmlNew" -> "/pages/tab_xml_new.fxml";
             case "xmlUltimate" -> "/pages/tab_xml_ultimate.fxml";
             case "xsd" -> "/pages/tab_xsd.fxml";
-            case "schematron" -> "/pages/tab_schematron.fxml";
             case "signature" -> "/pages/tab_signature.fxml";
             case "settings" -> "/pages/settings.fxml";
             // Revolutionary Features - Alleinstellungsmerkmale
@@ -668,7 +656,7 @@ public class MainController implements Initializable {
      */
     private void removeActiveFromAllMenuButtons() {
         Button[] allMenuButtons = {
-            xmlUltimate, xsd, schematron,
+            xmlUltimate, xsd,
             signature, settings, xsltDeveloper, unifiedShell
         };
         for (Button btn : allMenuButtons) {
@@ -699,7 +687,6 @@ public class MainController implements Initializable {
             case "xmlNew" -> "/pages/tab_xml_new.fxml";
             case "xmlUltimate" -> "/pages/tab_xml_ultimate.fxml";
             case "xsd" -> "/pages/tab_xsd.fxml";
-            case "schematron" -> "/pages/tab_schematron.fxml";
             case "signature" -> "/pages/tab_signature.fxml";
             case "settings" -> "/pages/settings.fxml";
             case "xsltDeveloper" -> "/pages/tab_xslt_developer.fxml";
@@ -733,7 +720,6 @@ public class MainController implements Initializable {
         return switch (pageId) {
             case "xmlUltimate" -> xmlUltimate;
             case "xsd" -> xsd;
-            case "schematron" -> schematron;
             case "xsltDeveloper" -> xsltDeveloper;
             case "signature" -> signature;
             case "settings" -> settings;
@@ -876,27 +862,14 @@ public class MainController implements Initializable {
     }
 
     /**
-     * Switches to the Schematron editor view and loads the specified file.
+     * Opens the specified Schematron file in the Unified Shell. The standalone
+     * Schematron editor tab was retired (Phase 10c); Schematron editing/validation
+     * lives in the shell.
      *
      * @param fileToLoad the Schematron file to load
      */
     public void switchToSchematronViewAndLoadFile(File fileToLoad) {
-        if (schematron == null) {
-            logger.error("Schematron-Button ist nicht initialisiert, Tab-Wechsel nicht möglich.");
-            return;
-        }
-        removeActiveFromAllMenuButtons();
-        schematron.getStyleClass().add("active");
-
-        loadPageFromPath("/pages/tab_schematron.fxml");
-
-        if (this.schematronController != null && fileToLoad != null && fileToLoad.exists()) {
-            Platform.runLater(() -> {
-                schematronController.loadSchematronFile(fileToLoad);
-            });
-        } else {
-            logger.warn("SchematronController ist nicht verfügbar oder die Datei existiert nicht. Kann die Datei nicht laden: {}", fileToLoad);
-        }
+        openFileInShell(fileToLoad);
     }
 
     /**
@@ -934,7 +907,6 @@ public class MainController implements Initializable {
                     boolean isVisible = isXPathQueryPaneVisible();
                     xmlUltimateController1.setDevelopmentPaneVisible(isVisible);
                 });
-                initializeIntegrationService();
             }
             case SettingsController settingsController -> settingsController.setParentController(this);
             case WelcomeController welcomeController -> welcomeController.setParentController(this);
@@ -942,12 +914,6 @@ public class MainController implements Initializable {
                 logger.debug("set XSD Controller");
                 this.xsdController = xsdController1;
                 xsdController1.setParentController(this);
-            }
-            case SchematronController schematronController1 -> {
-                logger.debug("set Schematron Controller");
-                this.schematronController = schematronController1;
-                schematronController1.setParentController(this);
-                initializeIntegrationService();
             }
             case SignatureController signatureController -> {
                 logger.debug("set Signature Controller");
@@ -978,30 +944,6 @@ public class MainController implements Initializable {
         }
     }
 
-    /**
-     * Initialize the integration service for cross-controller communication
-     */
-    private void initializeIntegrationService() {
-        if (integrationService == null) {
-            integrationService = new org.fxt.freexmltoolkit.service.SchematronXmlIntegrationService();
-        }
-
-        // Initialize the service with available controllers
-        integrationService.initialize(this, xmlUltimateController, schematronController);
-
-        logger.debug("Integration service initialized with XML: {}, Schematron: {}",
-                xmlUltimateController != null, schematronController != null);
-    }
-
-    /**
-     * Gets the integration service for cross-controller communication.
-     * This service enables coordination between XML and Schematron controllers.
-     *
-     * @return the SchematronXmlIntegrationService instance, or null if not initialized
-     */
-    public org.fxt.freexmltoolkit.service.SchematronXmlIntegrationService getIntegrationService() {
-        return integrationService;
-    }
 
     /**
      * Handles the About menu action by displaying a modern application information dialog.
@@ -1336,31 +1278,6 @@ public class MainController implements Initializable {
         switchToXmlUltimateAndSelectSubTab("generatorTab");
     }
 
-    // --- Schematron Tools Menu Handlers ---
-
-    /**
-     * Opens the Visual Builder tab in the Schematron editor.
-     */
-    @FXML
-    public void openSchematronBuilder() {
-        switchToSchematronAndSelectSubTab("visualBuilderTab");
-    }
-
-    /**
-     * Opens the Test tab in the Schematron editor.
-     */
-    @FXML
-    public void openSchematronTest() {
-        switchToSchematronAndSelectSubTab("testTab");
-    }
-
-    /**
-     * Opens the Documentation tab in the Schematron editor.
-     */
-    @FXML
-    public void openSchematronDocumentation() {
-        switchToSchematronAndSelectSubTab("documentationTab");
-    }
 
     // --- PDF & Signatures Menu Handlers ---
 
@@ -1421,16 +1338,6 @@ public class MainController implements Initializable {
         });
     }
 
-    private void switchToSchematronAndSelectSubTab(String subTabId) {
-        removeActiveFromAllMenuButtons();
-        schematron.getStyleClass().add("active");
-        loadPageFromPath("/pages/tab_schematron.fxml");
-        Platform.runLater(() -> {
-            if (schematronController != null) {
-                schematronController.selectSubTab(subTabId);
-            }
-        });
-    }
 
     private void switchToSignatureAndSelectSubTab(String subTabId) {
         removeActiveFromAllMenuButtons();
@@ -1453,12 +1360,12 @@ public class MainController implements Initializable {
         logger.debug("Show Menu: {}", showMenu);
         if (showMenu) {
             setMenuSize(50, ">>", "", 15, 75);
-            setButtonSize("menu_button_collapsed", xmlUltimate, xsd, schematron, settings, exit, signature, xsltDeveloper);
+            setButtonSize("menu_button_collapsed", xmlUltimate, xsd, settings, exit, signature, xsltDeveloper);
             setSectionLabelsVisible(false);
             setBottomBarLayout(true);
         } else {
             setMenuSize(200, "FundsXML Toolkit", "Enterprise Edition", 75, 100);
-            setButtonSize("menu_button", xmlUltimate, xsd, schematron, settings, exit, signature, xsltDeveloper);
+            setButtonSize("menu_button", xmlUltimate, xsd, settings, exit, signature, xsltDeveloper);
             setSectionLabelsVisible(true);
             setBottomBarLayout(false);
         }
@@ -1556,8 +1463,6 @@ public class MainController implements Initializable {
             button.setText("XML Editor");
         } else if (button == xsd) {
             button.setText("XSD Editor");
-        } else if (button == schematron) {
-            button.setText("Schematron Editor");
         } else if (button == signature) {
             button.setText("Signature");
         } else if (button == settings) {
@@ -1779,12 +1684,7 @@ public class MainController implements Initializable {
                     }
                 });
             } else if (fileName.endsWith(".sch") || fileName.endsWith(".schematron")) {
-                schematron.fire();
-                Platform.runLater(() -> {
-                    if (schematronController != null) {
-                        schematronController.loadSchematronFile(selectedFile);
-                    }
-                });
+                openFileInShell(selectedFile);
             } else if (fileName.endsWith(".xsl") || fileName.endsWith(".xslt")) {
                 xsltDeveloper.fire();
             } else {
@@ -1835,10 +1735,9 @@ public class MainController implements Initializable {
      * @param file the Schematron file to open
      */
     public void openSchematronFileInEditor(File file) {
-        if (file != null && schematronController != null) {
-            schematron.fire(); // Switch to Schematron tab
-            Platform.runLater(() -> schematronController.loadSchematronFile(file));
-            logger.info("Opening Schematron file in editor: {}", file.getAbsolutePath());
+        if (file != null) {
+            openFileInShell(file);
+            logger.info("Opening Schematron file in the shell: {}", file.getAbsolutePath());
         }
     }
 
@@ -2207,12 +2106,6 @@ public class MainController implements Initializable {
                     logger.debug("F5: Triggered XSD validation");
                 }
             }
-            case "schematron" -> {
-                if (schematronController != null) {
-                    schematronController.runAllTests();
-                    logger.debug("F5: Triggered Schematron tests");
-                }
-            }
             case "xsltDeveloper" -> {
                 if (xsltDeveloperController != null) {
                     xsltDeveloperController.executeTransformation();
@@ -2242,12 +2135,6 @@ public class MainController implements Initializable {
                     logger.debug("Ctrl+S: Triggered XSD save");
                 }
             }
-            case "schematron" -> {
-                if (schematronController != null) {
-                    schematronController.saveSchematronPublic();
-                    logger.debug("Ctrl+S: Triggered Schematron save");
-                }
-            }
             default -> logger.debug("Ctrl+S: No save action defined for tab '{}'", activeTabId);
         }
     }
@@ -2269,12 +2156,6 @@ public class MainController implements Initializable {
                 if (xsdController != null) {
                     xsdController.handleToolbarSaveAs();
                     logger.debug("Ctrl+Shift+S: Triggered XSD Save As");
-                }
-            }
-            case "schematron" -> {
-                if (schematronController != null) {
-                    schematronController.saveSchematronAsPublic();
-                    logger.debug("Ctrl+Shift+S: Triggered Schematron Save As");
                 }
             }
             default -> logger.debug("Ctrl+Shift+S: No Save As action defined for tab '{}'", activeTabId);
@@ -2300,12 +2181,6 @@ public class MainController implements Initializable {
                     logger.debug("Ctrl+D: Added XSD file to favorites");
                 }
             }
-            case "schematron" -> {
-                if (schematronController != null) {
-                    schematronController.addCurrentToFavoritesPublic();
-                    logger.debug("Ctrl+D: Added Schematron file to favorites");
-                }
-            }
             default -> logger.debug("Ctrl+D: No add favorites action defined for tab '{}'", activeTabId);
         }
     }
@@ -2327,12 +2202,6 @@ public class MainController implements Initializable {
                 if (xsdController != null) {
                     xsdController.handleToolbarShowFavorites();
                     logger.debug("Ctrl+Shift+D: Toggled XSD favorites panel");
-                }
-            }
-            case "schematron" -> {
-                if (schematronController != null) {
-                    schematronController.toggleFavoritesPanelPublic();
-                    logger.debug("Ctrl+Shift+D: Toggled Schematron favorites panel");
                 }
             }
             case "xsltDeveloper" -> {

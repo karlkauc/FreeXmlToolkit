@@ -142,13 +142,8 @@ class DocScreenshotGenerator {
         // (XSD Validation retired in Phase 10c — XSD/Schematron validation, single
         // and batch, lives in the Unified Shell's Validation activity panel.)
 
-        // --- Schematron editor (used for schema-schematron-support) ---
-        safe("schematron", () -> {
-            File sch = example("schematron", "funds-business-rules-validation.sch");
-            runFx(() -> mainController.switchToSchematronViewAndLoadFile(sch));
-            settle(3000);
-            capture("schema-schematron-support");
-        });
+        // (Schematron editor retired in Phase 10c — Schematron editing/validation
+        // and the rule tools live in the Unified Shell's Validation activity panel.)
 
         // --- Templates (Template Builder sub-tab) ---
         safe("templates", () -> {

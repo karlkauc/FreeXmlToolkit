@@ -730,11 +730,12 @@ public class WelcomeController {
     }
 
     /**
-     * Opens the Schematron validation page.
+     * Opens the application shell, where Schematron validation/editing lives
+     * (the standalone legacy Schematron page has been retired).
      */
     @FXML
     public void openSchematron() {
-        navigateTo("schematron");
+        navigateTo("unifiedShell");
     }
 
     /**

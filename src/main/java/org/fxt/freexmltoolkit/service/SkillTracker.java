@@ -82,7 +82,7 @@ public class SkillTracker {
         FEATURES.put("schematron_validation", new FeatureDefinition(
             "schematron_validation", "Schematron Rules", "Validation",
             "Apply business rules validation with Schematron",
-            "bi-shield-check", "schematron", 10
+            "bi-shield-check", "unifiedShell", 10
         ));
         FEATURES.put("batch_validation", new FeatureDefinition(
             "batch_validation", "Batch Validation", "Validation",

@@ -2,6 +2,13 @@
 
 > **Last Updated:** May 2026 | **Version:** 1.10.0
 
+> **Note (Phase 10c):** The standalone *Schematron* editor tab has been retired.
+> Schematron editing and validation — rule check, templates, tester, visual
+> builder, documentation, and CSV/JSON export of results — now live in the
+> **Unified Shell's Validation activity panel**. Open a `.sch` file and use the
+> Validation panel's Schematron tools. The capabilities below are unchanged; they
+> are reached through the shell rather than a dedicated sidebar tab.
+
 Schematron lets you create custom validation rules that go beyond what XSD schemas can check. It's perfect for validating business rules and data relationships.
 
 ---

@@ -188,30 +188,6 @@
                     </items>
                 </Menu>
 
-                <!-- Schematron Tools Menu -->
-                <Menu text="Schematron Tools">
-                    <graphic>
-                        <IconifyIcon iconLiteral="bi-shield-check" iconSize="16" iconColor="#ffc107"/>
-                    </graphic>
-                    <items>
-                        <MenuItem fx:id="menuSchematronBuilder" text="Visual Rule Builder..." onAction="#openSchematronBuilder">
-                            <graphic>
-                                <IconifyIcon iconLiteral="bi-bricks" iconSize="16" iconColor="#ffc107"/>
-                            </graphic>
-                        </MenuItem>
-                        <MenuItem fx:id="menuSchematronTest" text="Test Rules..." onAction="#openSchematronTest">
-                            <graphic>
-                                <IconifyIcon iconLiteral="bi-check2-circle" iconSize="16" iconColor="#28a745"/>
-                            </graphic>
-                        </MenuItem>
-                        <MenuItem fx:id="menuSchematronDocs" text="Generate Documentation..." onAction="#openSchematronDocumentation">
-                            <graphic>
-                                <IconifyIcon iconLiteral="bi-journal-text" iconSize="16" iconColor="#007bff"/>
-                            </graphic>
-                        </MenuItem>
-                    </items>
-                </Menu>
-
                 <!-- Signatures Menu -->
                 <Menu text="Signatures">
                     <graphic>
@@ -426,13 +402,6 @@
                                 <!-- Section: TOOLS -->
                                 <Separator fx:id="separatorTools" styleClass="sidebar-section-separator"/>
                                 <Label fx:id="sectionTools" text="TOOLS" styleClass="sidebar-section-label"/>
-
-                                <Button mnemonicParsing="false" onAction="#loadPage" styleClass="menu_button"
-                                        text="Schematron Editor" contentDisplay="LEFT" VBox.vgrow="ALWAYS" fx:id="schematron">
-                                    <graphic>
-                                        <IconifyIcon iconColor="#ffc107" iconLiteral="bi-shield-check" iconSize="16"/>
-                                    </graphic>
-                                </Button>
 
                                 <Button fx:id="signature" mnemonicParsing="false" onAction="#loadPage"
                                         styleClass="menu_button" text="Signature" contentDisplay="LEFT" VBox.vgrow="ALWAYS">

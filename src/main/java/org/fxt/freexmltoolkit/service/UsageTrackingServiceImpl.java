@@ -459,7 +459,7 @@ public class UsageTrackingServiceImpl implements UsageTrackingService {
             case "schematron_validation" -> new FeatureTip(
                 feature.getFeatureId(),
                 "Schematron rules enable business rule validation beyond what XSD can express.",
-                "schematron",
+                "unifiedShell",
                 8,
                 "bi-shield-check"
             );
