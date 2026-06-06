@@ -239,6 +239,7 @@ If the interface appears blurry or animations are slow, your system may be using
 
 | Page                                          | Description                              |
 |-----------------------------------------------|------------------------------------------|
+| [Unified Shell](unified-shell.md)             | The single workspace - start here        |
 | [XML Editor](xml-editor.md)                   | How to edit XML files                    |
 | [XML Editor Features](xml-editor-features.md) | Detailed editor features                 |
 | [JSON Editor](json-editor.md)                 | How to edit JSON files                   |
@@ -281,7 +282,7 @@ If the interface appears blurry or animations are slow, your system may be using
 
 ## Quick Links
 
-**Editors:** [XML Editor](xml-editor.md) | [XML Features](xml-editor-features.md) | [JSON Editor](json-editor.md) | [XSD Tools](xsd-tools.md) | [Profiled XML Generation](profiled-xml-generation.md) | [XSD Validation](xsd-validation.md) | [XSLT Viewer](xslt-viewer.md) | [XSLT Developer](xslt-developer.md) | [PDF/FOP](pdf-generator.md) | [Signatures](digital-signatures.md)
+**Editors:** [Unified Shell](unified-shell.md) | [XML Editor](xml-editor.md) | [XML Features](xml-editor-features.md) | [JSON Editor](json-editor.md) | [XSD Tools](xsd-tools.md) | [Profiled XML Generation](profiled-xml-generation.md) | [XSD Validation](xsd-validation.md) | [XSLT Viewer](xslt-viewer.md) | [XSLT Developer](xslt-developer.md) | [PDF/FOP](pdf-generator.md) | [Signatures](digital-signatures.md)
 
 **Features:** [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [FundsXML Extensions](fundsxml-extensions.md) | [Schema Support](schema-support.md) | [Favorites](favorites-system.md) | [Templates](template-management.md)
 
