@@ -77,7 +77,7 @@ public class SkillTracker {
         FEATURES.put("xsd_validation", new FeatureDefinition(
             "xsd_validation", "XSD Schema Validation", "Validation",
             "Validate XSD schema files for correctness",
-            "bi-file-earmark-check", "xsdValidation", 5
+            "bi-file-earmark-check", "unifiedShell", 5
         ));
         FEATURES.put("schematron_validation", new FeatureDefinition(
             "schematron_validation", "Schematron Rules", "Validation",
@@ -87,7 +87,7 @@ public class SkillTracker {
         FEATURES.put("batch_validation", new FeatureDefinition(
             "batch_validation", "Batch Validation", "Validation",
             "Validate multiple XML files at once",
-            "bi-list-check", "xsdValidation", 8
+            "bi-list-check", "unifiedShell", 8
         ));
 
         // Editing Features

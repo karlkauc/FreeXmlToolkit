@@ -412,13 +412,6 @@
                                     </graphic>
                                 </Button>
 
-                                <Button mnemonicParsing="false" onAction="#loadPage" styleClass="menu_button"
-                                        text="XSD Validation" contentDisplay="LEFT" VBox.vgrow="ALWAYS" fx:id="xsdValidation">
-                                    <graphic>
-                                        <IconifyIcon iconLiteral="bi-clipboard-check" iconSize="16"/>
-                                    </graphic>
-                                </Button>
-
                                 <!-- Section: TRANSFORMS -->
                                 <Separator fx:id="separatorTransforms" styleClass="sidebar-section-separator"/>
                                 <Label fx:id="sectionTransforms" text="TRANSFORMS" styleClass="sidebar-section-label"/>

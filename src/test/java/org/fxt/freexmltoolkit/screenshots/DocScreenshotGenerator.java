@@ -24,7 +24,6 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.testfx.api.FxRobot;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
 import org.testfx.util.WaitForAsyncUtils;
@@ -52,7 +51,6 @@ class DocScreenshotGenerator {
     private static final File IMG_DIR = new File("docs/img");
 
     private static MainController mainController;
-    private final FxRobot robot = new FxRobot();
 
     @Start
     private void start(Stage stage) throws Exception {
@@ -141,21 +139,8 @@ class DocScreenshotGenerator {
         // (XSLT Viewer retired in Phase 10c — quick XSLT transforms live in the
         // Unified Shell's Transform panel and the XSLT Developer.)
 
-        // --- XSD Validation: single-file view (used for schema-xsd-support) ---
-        safe("xsd validation single", () -> {
-            runFx(() -> mainController.navigateToPage("xsdValidation"));
-            settle(2500);
-            capture("schema-xsd-support");
-        });
-
-        // --- XSD Validation: batch view ---
-        safe("xsd validation batch", () -> {
-            runFx(() -> mainController.navigateToPage("xsdValidation"));
-            settle(1500);
-            clickText("Batch Validation");
-            settle(1500);
-            capture("xsd-validation-batch");
-        });
+        // (XSD Validation retired in Phase 10c — XSD/Schematron validation, single
+        // and batch, lives in the Unified Shell's Validation activity panel.)
 
         // --- Schematron editor (used for schema-schematron-support) ---
         safe("schematron", () -> {
@@ -327,15 +312,6 @@ class DocScreenshotGenerator {
             }
         }
         return best;
-    }
-
-    private void clickText(String text) {
-        try {
-            robot.clickOn(text);
-        } catch (Exception e) {
-            System.out.println("[screenshot] could not click '" + text + "': " + e);
-        }
-        WaitForAsyncUtils.waitForFxEvents();
     }
 
     private void settle(long millis) throws InterruptedException {

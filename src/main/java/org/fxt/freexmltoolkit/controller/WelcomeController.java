@@ -790,11 +790,12 @@ public class WelcomeController {
     }
 
     /**
-     * Opens the XSD validation page.
+     * Opens the application shell, where XSD/Schematron validation (single +
+     * batch) is available (the standalone legacy XSD Validation page has been retired).
      */
     @FXML
     public void openValidation() {
-        navigateTo("xsdValidation");
+        navigateTo("unifiedShell");
     }
 
     /**

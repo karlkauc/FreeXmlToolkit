@@ -113,10 +113,6 @@ public class MainController implements Initializable {
      */
     SchematronController schematronController;
 
-    /**
-     * Controller for XSD validation operations.
-     */
-    XsdValidationController xsdValidationController;
 
     /**
      * Controller for advanced XSLT development features.
@@ -164,7 +160,7 @@ public class MainController implements Initializable {
      * Navigation buttons for switching between different editor tabs.
      */
     @FXML
-    Button xmlUltimate, xsd, xsdValidation, schematron, signature, settings, exit, xsltDeveloper, unifiedShell;
+    Button xmlUltimate, xsd, schematron, signature, settings, exit, xsltDeveloper, unifiedShell;
 
     /**
      * Menu item for exiting the application.
@@ -567,11 +563,6 @@ public class MainController implements Initializable {
         }
 
 
-        // Refresh XSD Validation Controller toolbar
-        if (xsdValidationController != null) {
-            xsdValidationController.refreshToolbarIcons();
-            logger.debug("Refreshed XSD Validation Controller toolbar icons");
-        }
 
         // Refresh Templates Controller toolbar
         if (templatesController != null) {
@@ -646,7 +637,6 @@ public class MainController implements Initializable {
             case "xmlNew" -> "/pages/tab_xml_new.fxml";
             case "xmlUltimate" -> "/pages/tab_xml_ultimate.fxml";
             case "xsd" -> "/pages/tab_xsd.fxml";
-            case "xsdValidation" -> "/pages/tab_validation.fxml";
             case "schematron" -> "/pages/tab_schematron.fxml";
             case "signature" -> "/pages/tab_signature.fxml";
             case "settings" -> "/pages/settings.fxml";
@@ -675,7 +665,7 @@ public class MainController implements Initializable {
      */
     private void removeActiveFromAllMenuButtons() {
         Button[] allMenuButtons = {
-            xmlUltimate, xsd, xsdValidation, schematron,
+            xmlUltimate, xsd, schematron,
             signature, settings, xsltDeveloper, unifiedShell
         };
         for (Button btn : allMenuButtons) {
@@ -706,7 +696,6 @@ public class MainController implements Initializable {
             case "xmlNew" -> "/pages/tab_xml_new.fxml";
             case "xmlUltimate" -> "/pages/tab_xml_ultimate.fxml";
             case "xsd" -> "/pages/tab_xsd.fxml";
-            case "xsdValidation" -> "/pages/tab_validation.fxml";
             case "schematron" -> "/pages/tab_schematron.fxml";
             case "signature" -> "/pages/tab_signature.fxml";
             case "settings" -> "/pages/settings.fxml";
@@ -741,7 +730,6 @@ public class MainController implements Initializable {
         return switch (pageId) {
             case "xmlUltimate" -> xmlUltimate;
             case "xsd" -> xsd;
-            case "xsdValidation" -> xsdValidation;
             case "schematron" -> schematron;
             case "xsltDeveloper" -> xsltDeveloper;
             case "signature" -> signature;
@@ -923,11 +911,6 @@ public class MainController implements Initializable {
                     xmlUltimateController1.setDevelopmentPaneVisible(isVisible);
                 });
                 initializeIntegrationService();
-            }
-            case XsdValidationController xsdValidationController1 -> {
-                logger.debug("set XSD Validation Controller");
-                this.xsdValidationController = xsdValidationController1;
-                xsdValidationController1.setParentController(this);
             }
             case SettingsController settingsController -> settingsController.setParentController(this);
             case WelcomeController welcomeController -> welcomeController.setParentController(this);
@@ -1443,12 +1426,12 @@ public class MainController implements Initializable {
         logger.debug("Show Menu: {}", showMenu);
         if (showMenu) {
             setMenuSize(50, ">>", "", 15, 75);
-            setButtonSize("menu_button_collapsed", xmlUltimate, xsd, xsdValidation, schematron, settings, exit, signature, xsltDeveloper);
+            setButtonSize("menu_button_collapsed", xmlUltimate, xsd, schematron, settings, exit, signature, xsltDeveloper);
             setSectionLabelsVisible(false);
             setBottomBarLayout(true);
         } else {
             setMenuSize(200, "FundsXML Toolkit", "Enterprise Edition", 75, 100);
-            setButtonSize("menu_button", xmlUltimate, xsd, xsdValidation, schematron, settings, exit, signature, xsltDeveloper);
+            setButtonSize("menu_button", xmlUltimate, xsd, schematron, settings, exit, signature, xsltDeveloper);
             setSectionLabelsVisible(true);
             setBottomBarLayout(false);
         }
@@ -1546,8 +1529,6 @@ public class MainController implements Initializable {
             button.setText("XML Editor");
         } else if (button == xsd) {
             button.setText("XSD Editor");
-        } else if (button == xsdValidation) {
-            button.setText("XSD Validation");
         } else if (button == schematron) {
             button.setText("Schematron Editor");
         } else if (button == signature) {
@@ -2205,12 +2186,6 @@ public class MainController implements Initializable {
                     logger.debug("F5: Triggered Schematron tests");
                 }
             }
-            case "xsdValidation" -> {
-                if (xsdValidationController != null) {
-                    xsdValidationController.processXmlFile();
-                    logger.debug("F5: Triggered XSD validation");
-                }
-            }
             case "xsltDeveloper" -> {
                 if (xsltDeveloperController != null) {
                     xsltDeveloperController.executeTransformation();
@@ -2331,12 +2306,6 @@ public class MainController implements Initializable {
                 if (schematronController != null) {
                     schematronController.toggleFavoritesPanelPublic();
                     logger.debug("Ctrl+Shift+D: Toggled Schematron favorites panel");
-                }
-            }
-            case "xsdValidation" -> {
-                if (xsdValidationController != null) {
-                    xsdValidationController.toggleFavoritesPanelPublic();
-                    logger.debug("Ctrl+Shift+D: Toggled Validation favorites panel");
                 }
             }
             case "xsltDeveloper" -> {

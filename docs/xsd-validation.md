@@ -2,6 +2,12 @@
 
 > **Last Updated:** May 2026 | **Version:** 1.10.0
 
+> **Note (Phase 10c):** The standalone *XSD Validation* tab has been retired.
+> Validation — XSD and Schematron, single-file and batch — now lives in the
+> **Unified Shell's Validation activity panel**. The capabilities below are
+> unchanged; they are reached through the shell's Validation panel rather than a
+> dedicated sidebar tab.
+
 Validate your XML files against XSD schemas to check if documents follow the rules defined in the schema. Supports both single file and batch validation.
 
 ---
