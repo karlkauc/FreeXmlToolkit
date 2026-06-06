@@ -118,46 +118,6 @@
                     </MenuItem>
                 </Menu>
 
-                <!-- XSD Tools Menu -->
-                <Menu text="XSD Tools">
-                    <graphic>
-                        <IconifyIcon iconLiteral="bi-diagram-3" iconSize="16" iconColor="#9c27b0"/>
-                    </graphic>
-                    <items>
-                        <MenuItem fx:id="menuTypeLibrary" text="Type Library..." onAction="#openTypeLibrary">
-                            <graphic>
-                                <IconifyIcon iconLiteral="bi-collection" iconSize="16" iconColor="#6f42c1"/>
-                            </graphic>
-                        </MenuItem>
-                        <MenuItem fx:id="menuTypeEditor" text="Type Editor..." onAction="#openTypeEditor">
-                            <graphic>
-                                <IconifyIcon iconLiteral="bi-pencil-square" iconSize="16" iconColor="#6f42c1"/>
-                            </graphic>
-                        </MenuItem>
-                        <MenuItem fx:id="menuSchemaAnalysis" text="Schema Analysis..." onAction="#openSchemaAnalysis">
-                            <graphic>
-                                <IconifyIcon iconLiteral="bi-bar-chart-line" iconSize="16" iconColor="#17a2b8"/>
-                            </graphic>
-                        </MenuItem>
-                        <SeparatorMenuItem/>
-                        <MenuItem fx:id="menuXsdDocumentation" text="Documentation Generator..." onAction="#openXsdDocumentation">
-                            <graphic>
-                                <IconifyIcon iconLiteral="bi-book" iconSize="16" iconColor="#007bff"/>
-                            </graphic>
-                        </MenuItem>
-                        <MenuItem fx:id="menuGenerateExampleData" text="Generate Example Data..." onAction="#openGenerateExampleData">
-                            <graphic>
-                                <IconifyIcon iconLiteral="bi-file-earmark-plus" iconSize="16" iconColor="#28a745"/>
-                            </graphic>
-                        </MenuItem>
-                        <MenuItem fx:id="menuFlattenSchema" text="Flatten Schema..." onAction="#openFlattenSchema">
-                            <graphic>
-                                <IconifyIcon iconLiteral="bi-layers" iconSize="16" iconColor="#fd7e14"/>
-                            </graphic>
-                        </MenuItem>
-                    </items>
-                </Menu>
-
                 <!-- XML Tools Menu -->
                 <Menu text="XML Tools">
                     <graphic>
@@ -345,17 +305,6 @@
                                         text="XML Editor" contentDisplay="LEFT" fx:id="xmlUltimate">
                                     <graphic>
                                         <IconifyIcon iconLiteral="bi-code-slash" iconSize="16"/>
-                                    </graphic>
-                                </Button>
-
-                                <!-- Section: SCHEMA -->
-                                <Separator fx:id="separatorSchema" styleClass="sidebar-section-separator"/>
-                                <Label fx:id="sectionSchema" text="SCHEMA" styleClass="sidebar-section-label"/>
-
-                                <Button onAction="#loadPage" styleClass="menu_button" text="XSD Editor" contentDisplay="LEFT" VBox.vgrow="ALWAYS"
-                                        fx:id="xsd">
-                                    <graphic>
-                                        <IconifyIcon iconColor="#007bff" iconLiteral="bi-diagram-3" iconSize="16"/>
                                     </graphic>
                                 </Button>
 

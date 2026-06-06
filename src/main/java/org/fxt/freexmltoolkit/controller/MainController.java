@@ -103,10 +103,6 @@ public class MainController implements Initializable {
      */
     XmlUltimateController xmlUltimateController;
 
-    /**
-     * Controller for XSD schema visualization and documentation.
-     */
-    XsdController xsdController;
 
 
 
@@ -157,7 +153,7 @@ public class MainController implements Initializable {
      * Navigation buttons for switching between different editor tabs.
      */
     @FXML
-    Button xmlUltimate, xsd, settings, exit, xsltDeveloper, unifiedShell;
+    Button xmlUltimate, settings, exit, xsltDeveloper, unifiedShell;
 
     /**
      * Menu item for exiting the application.
@@ -205,10 +201,10 @@ public class MainController implements Initializable {
      * Section labels in the left sidebar for grouping navigation buttons.
      */
     @FXML
-    Label sectionEditors, sectionSchema, sectionTransforms;
+    Label sectionEditors, sectionTransforms;
 
     @FXML
-    Separator separatorSchema, separatorTransforms;
+    Separator separatorTransforms;
 
     /**
      * Bottom button bar container (Help, Settings, Exit) in the sidebar.
@@ -439,10 +435,6 @@ public class MainController implements Initializable {
             xmlUltimateController.shutdown();
         }
 
-        // Shutdown XsdController
-        if (xsdController != null) {
-            xsdController.shutdown();
-        }
 
 
         // Shutdown XsltDeveloperController
@@ -540,11 +532,6 @@ public class MainController implements Initializable {
             logger.debug("Refreshed XML Ultimate Controller toolbar icons");
         }
 
-        // Refresh XSD Controller toolbar
-        if (xsdController != null) {
-            xsdController.refreshToolbarIcons();
-            logger.debug("Refreshed XSD Controller toolbar icons");
-        }
 
 
 
@@ -628,7 +615,6 @@ public class MainController implements Initializable {
             case "xmlEnhanced" -> "/pages/tab_xml_enhanced.fxml";
             case "xmlNew" -> "/pages/tab_xml_new.fxml";
             case "xmlUltimate" -> "/pages/tab_xml_ultimate.fxml";
-            case "xsd" -> "/pages/tab_xsd.fxml";
             case "settings" -> "/pages/settings.fxml";
             // Revolutionary Features - Alleinstellungsmerkmale
             // case "templates" -> "/pages/tab_templates.fxml"; // Removed from menu
@@ -655,7 +641,7 @@ public class MainController implements Initializable {
      */
     private void removeActiveFromAllMenuButtons() {
         Button[] allMenuButtons = {
-            xmlUltimate, xsd,
+            xmlUltimate,
             settings, xsltDeveloper, unifiedShell
         };
         for (Button btn : allMenuButtons) {
@@ -685,7 +671,6 @@ public class MainController implements Initializable {
             case "xmlEnhanced" -> "/pages/tab_xml_enhanced.fxml";
             case "xmlNew" -> "/pages/tab_xml_new.fxml";
             case "xmlUltimate" -> "/pages/tab_xml_ultimate.fxml";
-            case "xsd" -> "/pages/tab_xsd.fxml";
             case "settings" -> "/pages/settings.fxml";
             case "xsltDeveloper" -> "/pages/tab_xslt_developer.fxml";
             case "unifiedShell" -> "/pages/tab_unified_shell.fxml";
@@ -717,7 +702,6 @@ public class MainController implements Initializable {
     private Button getButtonForPageId(String pageId) {
         return switch (pageId) {
             case "xmlUltimate" -> xmlUltimate;
-            case "xsd" -> xsd;
             case "xsltDeveloper" -> xsltDeveloper;
             case "settings" -> settings;
             case "unifiedShell" -> unifiedShell;
@@ -791,23 +775,7 @@ public class MainController implements Initializable {
      * @param fileToLoad the XSD file to load
      */
     public void switchToXsdViewAndLoadFile(File fileToLoad) {
-        if (xsd == null) {
-            logger.error("XSD-Button ist nicht initialisiert, Tab-Wechsel nicht möglich.");
-            return;
-        }
-        removeActiveFromAllMenuButtons();
-        xsd.getStyleClass().add("active");
-
-        loadPageFromPath("/pages/tab_xsd.fxml");
-
-        if (this.xsdController != null && fileToLoad != null && fileToLoad.exists()) {
-            Platform.runLater(() -> {
-                xsdController.openXsdFile(fileToLoad);
-                xsdController.selectTextTab();
-            });
-        } else {
-            logger.warn("XsdController ist nicht verfügbar oder die Datei existiert nicht. Kann die Datei nicht laden: {}", fileToLoad);
-        }
+        openFileInShell(fileToLoad);
     }
 
     /**
@@ -818,23 +786,7 @@ public class MainController implements Initializable {
      * @param elementName the element name to navigate to
      */
     public void switchToXsdViewAndNavigate(File fileToLoad, String elementName) {
-        if (xsd == null) {
-            logger.error("XSD-Button ist nicht initialisiert, Tab-Wechsel nicht möglich.");
-            return;
-        }
-        removeActiveFromAllMenuButtons();
-        xsd.getStyleClass().add("active");
-
-        loadPageFromPath("/pages/tab_xsd.fxml");
-
-        if (this.xsdController != null && fileToLoad != null && fileToLoad.exists()) {
-            Platform.runLater(() -> {
-                xsdController.openXsdFile(fileToLoad);
-                Platform.runLater(() -> xsdController.navigateToElementInGraphView(elementName));
-            });
-        } else {
-            logger.warn("XsdController ist nicht verfügbar oder die Datei existiert nicht. Kann die Datei nicht laden: {}", fileToLoad);
-        }
+        openXsdInShellAndNavigate(fileToLoad, elementName);
     }
 
     /**
@@ -930,11 +882,6 @@ public class MainController implements Initializable {
             }
             case SettingsController settingsController -> settingsController.setParentController(this);
             case WelcomeController welcomeController -> welcomeController.setParentController(this);
-            case XsdController xsdController1 -> {
-                logger.debug("set XSD Controller");
-                this.xsdController = xsdController1;
-                xsdController1.setParentController(this);
-            }
             case TemplatesController templatesController1 -> {
                 logger.debug("set Smart Templates Controller");
                 this.templatesController = templatesController1;
@@ -1210,56 +1157,6 @@ public class MainController implements Initializable {
     // Menu Handlers for Tools Menus (XSD Tools, XML Tools, Schematron Tools, PDF & Signatures)
     // ======================================================================
 
-    // --- XSD Tools Menu Handlers ---
-
-    /**
-     * Opens the Type Library tab in the XSD editor.
-     */
-    @FXML
-    public void openTypeLibrary() {
-        switchToXsdAndSelectSubTab("typeLibraryTab");
-    }
-
-    /**
-     * Opens the Type Editor tab in the XSD editor.
-     */
-    @FXML
-    public void openTypeEditor() {
-        switchToXsdAndSelectSubTab("typeEditorTab");
-    }
-
-    /**
-     * Opens the Schema Analysis tab in the XSD editor.
-     */
-    @FXML
-    public void openSchemaAnalysis() {
-        switchToXsdAndSelectSubTab("schemaAnalysisTab");
-    }
-
-    /**
-     * Opens the Documentation tab in the XSD editor.
-     */
-    @FXML
-    public void openXsdDocumentation() {
-        switchToXsdAndSelectSubTab("documentation");
-    }
-
-    /**
-     * Opens the Generate Example Data tab in the XSD editor.
-     */
-    @FXML
-    public void openGenerateExampleData() {
-        switchToXsdAndSelectSubTab("generateExampleData");
-    }
-
-    /**
-     * Opens the Flatten Schema tab in the XSD editor.
-     */
-    @FXML
-    public void openFlattenSchema() {
-        switchToXsdAndSelectSubTab("flattenTab");
-    }
-
     // --- XML Tools Menu Handlers ---
 
     /**
@@ -1300,16 +1197,6 @@ public class MainController implements Initializable {
 
     // --- Helper Methods for Menu Navigation ---
 
-    private void switchToXsdAndSelectSubTab(String subTabId) {
-        removeActiveFromAllMenuButtons();
-        xsd.getStyleClass().add("active");
-        loadPageFromPath("/pages/tab_xsd.fxml");
-        Platform.runLater(() -> {
-            if (xsdController != null) {
-                xsdController.selectSubTab(subTabId);
-            }
-        });
-    }
 
     private void switchToXmlUltimateAndSelectSubTab(String subTabId) {
         removeActiveFromAllMenuButtons();
@@ -1332,12 +1219,12 @@ public class MainController implements Initializable {
         logger.debug("Show Menu: {}", showMenu);
         if (showMenu) {
             setMenuSize(50, ">>", "", 15, 75);
-            setButtonSize("menu_button_collapsed", xmlUltimate, xsd, settings, exit, xsltDeveloper);
+            setButtonSize("menu_button_collapsed", xmlUltimate, settings, exit, xsltDeveloper);
             setSectionLabelsVisible(false);
             setBottomBarLayout(true);
         } else {
             setMenuSize(200, "FundsXML Toolkit", "Enterprise Edition", 75, 100);
-            setButtonSize("menu_button", xmlUltimate, xsd, settings, exit, xsltDeveloper);
+            setButtonSize("menu_button", xmlUltimate, settings, exit, xsltDeveloper);
             setSectionLabelsVisible(true);
             setBottomBarLayout(false);
         }
@@ -1349,13 +1236,13 @@ public class MainController implements Initializable {
      * Labels are hidden when the sidebar is collapsed since they don't fit in the narrow width.
      */
     private void setSectionLabelsVisible(boolean visible) {
-        for (Label label : new Label[]{sectionEditors, sectionSchema, sectionTransforms}) {
+        for (Label label : new Label[]{sectionEditors, sectionTransforms}) {
             if (label != null) {
                 label.setVisible(visible);
                 label.setManaged(visible);
             }
         }
-        for (Separator sep : new Separator[]{separatorSchema, separatorTransforms}) {
+        for (Separator sep : new Separator[]{separatorTransforms}) {
             if (sep != null) {
                 sep.setVisible(visible);
                 sep.setManaged(visible);
@@ -1433,8 +1320,6 @@ public class MainController implements Initializable {
     private void restoreButtonText(Button button) {
         if (button == xmlUltimate) {
             button.setText("XML Editor");
-        } else if (button == xsd) {
-            button.setText("XSD Editor");
         } else if (button == settings) {
             button.setText("Settings");
         } else if (button == exit) {
@@ -1565,7 +1450,7 @@ public class MainController implements Initializable {
                     });
                 }
                 case "XSD" -> {
-                    xsd.fire();
+                    navigateToPage("unifiedShell");
                 }
                 case "XSLT" -> {
                     xsltDeveloper.fire();
@@ -1580,12 +1465,9 @@ public class MainController implements Initializable {
      */
     @FXML
     public void handleUndo() {
-        logger.debug("Undo action triggered");
-
-        // Check if XSD tab is active and has undo capability
-        if (xsdController != null && xsdController.isXsdTabActive()) {
-            xsdController.performUndo();
-        }
+        // The legacy global Undo only ever acted on the retired XSD editor tab;
+        // the Unified Shell handles its own undo/redo internally.
+        logger.debug("Undo action triggered (handled within the shell)");
     }
 
     /**
@@ -1593,12 +1475,9 @@ public class MainController implements Initializable {
      */
     @FXML
     public void handleRedo() {
-        logger.debug("Redo action triggered");
-
-        // Check if XSD tab is active and has redo capability
-        if (xsdController != null && xsdController.isXsdTabActive()) {
-            xsdController.performRedo();
-        }
+        // The legacy global Redo only ever acted on the retired XSD editor tab;
+        // the Unified Shell handles its own undo/redo internally.
+        logger.debug("Redo action triggered (handled within the shell)");
     }
 
     /**
@@ -1647,12 +1526,7 @@ public class MainController implements Initializable {
                     }
                 });
             } else if (fileName.endsWith(".xsd")) {
-                xsd.fire();
-                Platform.runLater(() -> {
-                    if (xsdController != null) {
-                        xsdController.openXsdFile(selectedFile);
-                    }
-                });
+                openFileInShell(selectedFile);
             } else if (fileName.endsWith(".sch") || fileName.endsWith(".schematron")) {
                 openFileInShell(selectedFile);
             } else if (fileName.endsWith(".xsl") || fileName.endsWith(".xslt")) {
@@ -1692,10 +1566,9 @@ public class MainController implements Initializable {
      * @param file the XSD file to open
      */
     public void openXsdFileInEditor(File file) {
-        if (file != null && xsdController != null) {
-            xsd.fire(); // Switch to XSD tab
-            Platform.runLater(() -> xsdController.openXsdFile(file));
-            logger.info("Opening XSD file in editor: {}", file.getAbsolutePath());
+        if (file != null) {
+            openFileInShell(file);
+            logger.info("Opening XSD file in the shell: {}", file.getAbsolutePath());
         }
     }
 
@@ -2070,12 +1943,6 @@ public class MainController implements Initializable {
                     logger.debug("F5: Triggered XML validation");
                 }
             }
-            case "xsd" -> {
-                if (xsdController != null) {
-                    xsdController.handleToolbarValidate();
-                    logger.debug("F5: Triggered XSD validation");
-                }
-            }
             case "xsltDeveloper" -> {
                 if (xsltDeveloperController != null) {
                     xsltDeveloperController.executeTransformation();
@@ -2099,12 +1966,6 @@ public class MainController implements Initializable {
                     logger.debug("Ctrl+S: Triggered XML save");
                 }
             }
-            case "xsd" -> {
-                if (xsdController != null) {
-                    xsdController.handleToolbarSave();
-                    logger.debug("Ctrl+S: Triggered XSD save");
-                }
-            }
             default -> logger.debug("Ctrl+S: No save action defined for tab '{}'", activeTabId);
         }
     }
@@ -2120,12 +1981,6 @@ public class MainController implements Initializable {
                 if (xmlUltimateController != null) {
                     xmlUltimateController.saveAsFile();
                     logger.debug("Ctrl+Shift+S: Triggered XML Save As");
-                }
-            }
-            case "xsd" -> {
-                if (xsdController != null) {
-                    xsdController.handleToolbarSaveAs();
-                    logger.debug("Ctrl+Shift+S: Triggered XSD Save As");
                 }
             }
             default -> logger.debug("Ctrl+Shift+S: No Save As action defined for tab '{}'", activeTabId);
@@ -2145,12 +2000,6 @@ public class MainController implements Initializable {
                     logger.debug("Ctrl+D: Added XML file to favorites");
                 }
             }
-            case "xsd" -> {
-                if (xsdController != null) {
-                    xsdController.handleToolbarAddFavorite();
-                    logger.debug("Ctrl+D: Added XSD file to favorites");
-                }
-            }
             default -> logger.debug("Ctrl+D: No add favorites action defined for tab '{}'", activeTabId);
         }
     }
@@ -2166,12 +2015,6 @@ public class MainController implements Initializable {
                 if (xmlUltimateController != null) {
                     xmlUltimateController.toggleFavoritesPanel();
                     logger.debug("Ctrl+Shift+D: Toggled XML favorites panel");
-                }
-            }
-            case "xsd" -> {
-                if (xsdController != null) {
-                    xsdController.handleToolbarShowFavorites();
-                    logger.debug("Ctrl+Shift+D: Toggled XSD favorites panel");
                 }
             }
             case "xsltDeveloper" -> {

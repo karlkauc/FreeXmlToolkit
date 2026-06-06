@@ -722,11 +722,13 @@ public class WelcomeController {
     }
 
     /**
-     * Opens the XSD tools page.
+     * Opens the application shell, where XSD editing/visualization and tools
+     * (type library, documentation, flatten, analysis) live (the standalone
+     * legacy XSD editor page has been retired).
      */
     @FXML
     public void openXsdTools() {
-        navigateTo("xsd");
+        navigateTo("unifiedShell");
     }
 
     /**

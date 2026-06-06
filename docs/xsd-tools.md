@@ -2,6 +2,14 @@
 
 > **Last Updated:** May 2026 | **Version:** 1.10.0
 
+> **Note (Phase 10c):** The standalone *XSD Editor* tab has been retired. XSD
+> editing — the Text/Tree/Graphic views, the inspector, the Type Library, type
+> editing, documentation generation, schema flattening and schema analysis —
+> now lives in the **Unified Shell** (open an `.xsd` file; "go to schema
+> definition" from the XML editor opens the schema's graphic view at the
+> element). The capabilities below are unchanged; they are reached through the
+> shell rather than a dedicated sidebar tab.
+
 This part of the application provides tools for working with XML Schemas (XSD). These tools help you understand,
 document, and use XSD files effectively.
 

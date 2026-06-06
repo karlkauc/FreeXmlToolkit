@@ -99,7 +99,7 @@ public class SkillTracker {
         FEATURES.put("xsd_visualization", new FeatureDefinition(
             "xsd_visualization", "XSD Visual Editor", "Editing",
             "Graphically view and edit XSD schemas",
-            "bi-diagram-3", "xsd", 8
+            "bi-diagram-3", "unifiedShell", 8
         ));
         FEATURES.put("intellisense", new FeatureDefinition(
             "intellisense", "IntelliSense Auto-complete", "Editing",
@@ -149,7 +149,7 @@ public class SkillTracker {
         FEATURES.put("xsd_documentation", new FeatureDefinition(
             "xsd_documentation", "XSD Documentation Export", "Export",
             "Generate documentation from XSD schemas",
-            "bi-book", "xsd", 7
+            "bi-book", "unifiedShell", 7
         ));
 
         // Organization Features

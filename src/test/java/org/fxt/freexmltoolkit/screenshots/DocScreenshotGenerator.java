@@ -8,7 +8,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BooleanSupplier;
 
 import javax.imageio.ImageIO;
 
@@ -19,9 +18,6 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 import org.fxt.freexmltoolkit.controller.MainController;
-import org.fxt.freexmltoolkit.controls.v2.editor.TypeEditorTabManager;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.framework.junit5.ApplicationExtension;
@@ -75,39 +71,8 @@ class DocScreenshotGenerator {
         IMG_DIR.mkdirs();
         settle(2500);
 
-        // --- XSD tools (Type Library / Type Editor / Schema Analysis) ---
-        safe("xsd tools", () -> {
-            File xsd = example("xsd", "FundsXML4.xsd");
-            runFx(() -> mainController.switchToXsdViewAndLoadFile(xsd));
-            boolean ready = waitFor(() -> {
-                try {
-                    return field(controller("xsdController"), "cachedXsdSchema") != null;
-                } catch (Exception e) {
-                    return false;
-                }
-            }, 120_000);
-            System.out.println("[screenshot] XSD schema ready=" + ready);
-            settle(2000); // let updateTypeLibrary/updateTypeEditor populate the views
-
-            // NOTE: MainController.openTypeLibrary()/openTypeEditor()/openSchemaAnalysis() reload
-            // the XSD page (loadPageFromPath), which would discard the loaded schema. Select the
-            // sub-tabs directly on the SAME controller instead.
-            invokeStr("xsdController", "selectSubTab", "typeLibraryTab");
-            settle(2000);
-            capture("xsd-type-library");
-
-            invokeStr("xsdController", "selectSubTab", "typeEditorTab");
-            settle(1000);
-            // The Type Editor opens with no type tabs; open a substantial complex type so the
-            // graphical editor is visible.
-            openComplexTypeInEditor();
-            settle(2500);
-            capture("xsd-type-editor");
-
-            invokeStr("xsdController", "selectSubTab", "schemaAnalysisTab");
-            settle(3000);
-            capture("xsd-schema-analysis");
-        });
+        // (XSD tools retired in Phase 10c — XSD editing, Type Library/Editor, documentation,
+        // flatten and schema analysis live in the Unified Shell.)
 
         // (Digital signatures retired in Phase 10c — signing, validation, trust
         // validation and certificate creation live in the Unified Shell's Signature panel.)
@@ -189,53 +154,10 @@ class DocScreenshotGenerator {
         WaitForAsyncUtils.waitForFxEvents();
     }
 
-    /** Poll a condition (evaluated on the FX thread) until true or timeout. */
-    private boolean waitFor(BooleanSupplier condition, long timeoutMs) throws Exception {
-        long deadline = System.nanoTime() + timeoutMs * 1_000_000L;
-        while (System.nanoTime() < deadline) {
-            boolean[] result = new boolean[1];
-            runFx(() -> result[0] = condition.getAsBoolean());
-            if (result[0]) {
-                return true;
-            }
-            Thread.sleep(500);
-        }
-        return false;
-    }
-
     private Object controller(String field) throws Exception {
         Field f = MainController.class.getDeclaredField(field);
         f.setAccessible(true);
         return f.get(mainController);
-    }
-
-    private static Object field(Object target, String name) {
-        if (target == null) {
-            return null;
-        }
-        try {
-            Field f = target.getClass().getDeclaredField(name);
-            f.setAccessible(true);
-            return f.get(target);
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-
-    private void invokeStr(String controllerField, String method, String arg) throws Exception {
-        Object controller = controller(controllerField);
-        if (controller == null) {
-            throw new IllegalStateException("Controller " + controllerField + " is null");
-        }
-        Method m = controller.getClass().getMethod(method, String.class);
-        runFx(() -> {
-            try {
-                m.invoke(controller, arg);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        });
     }
 
     private void invokeNoArg(String controllerField, String method) throws Exception {
@@ -251,48 +173,6 @@ class DocScreenshotGenerator {
                 throw new RuntimeException(e);
             }
         });
-    }
-
-    /** Find a content-rich complex type in the loaded schema and open it in the Type Editor. */
-    private void openComplexTypeInEditor() throws Exception {
-        Object xsdController = controller("xsdController");
-        Object schema = field(xsdController, "cachedXsdSchema");
-        Object mgr = field(xsdController, "currentTypeEditorManager");
-        if (!(schema instanceof XsdNode root) || !(mgr instanceof TypeEditorTabManager manager)) {
-            throw new IllegalStateException("schema or type-editor manager unavailable");
-        }
-        XsdComplexType best = findBestComplexType(root);
-        if (best == null) {
-            throw new IllegalStateException("no complex type found");
-        }
-        runFx(() -> manager.openComplexTypeTab(best));
-    }
-
-    private XsdComplexType findBestComplexType(XsdNode root) {
-        XsdComplexType best = null;
-        int bestChildren = -1;
-        java.util.Deque<XsdNode> stack = new java.util.ArrayDeque<>();
-        stack.push(root);
-        java.util.Set<XsdNode> seen = new java.util.HashSet<>();
-        while (!stack.isEmpty()) {
-            XsdNode node = stack.pop();
-            if (!seen.add(node)) {
-                continue;
-            }
-            if (node instanceof XsdComplexType ct && ct.getName() != null) {
-                int count = ct.getChildren() == null ? 0 : ct.getChildren().size();
-                if (count > bestChildren) {
-                    bestChildren = count;
-                    best = ct;
-                }
-            }
-            if (node.getChildren() != null) {
-                for (XsdNode child : node.getChildren()) {
-                    stack.push(child);
-                }
-            }
-        }
-        return best;
     }
 
     private void settle(long millis) throws InterruptedException {

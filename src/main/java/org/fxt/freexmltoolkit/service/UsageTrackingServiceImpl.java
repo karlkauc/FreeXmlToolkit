@@ -466,7 +466,7 @@ public class UsageTrackingServiceImpl implements UsageTrackingService {
             case "xsd_visualization" -> new FeatureTip(
                 feature.getFeatureId(),
                 "Visualize complex XSD schemas with our graphical editor for better understanding.",
-                "xsd",
+                "unifiedShell",
                 7,
                 "bi-diagram-3"
             );
