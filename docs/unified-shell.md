@@ -12,6 +12,10 @@ switching between separate editor pages, you open files as tabs in the central *
 host** and reach every tool through the **activity bar** on the left. You can work with an
 XML file next to its XSD schema, XSLT stylesheets and Schematron rules at the same time.
 
+![Unified Shell overview](img/unified-shell-overview.png)
+*The Unified Shell: activity bar (left), Explorer side panel, editor host with an XML file
+(Text/Tree/Graphic/Grid view toggle), the Properties inspector (right) and the status bar.*
+
 ### Layout
 
 | Area | Purpose |
@@ -95,7 +99,11 @@ The toolbar provides common operations and context-sensitive buttons:
 
 ## XSD Views & Tools
 
-When editing an XSD file, the editor host and the **Type Library** activity provide:
+When editing an XSD file, the editor host and the **Schema** activity provide:
+
+![XSD schema in the Graphic view](img/unified-shell-schema-graphic.png)
+*An XSD open in the Graphic view, with the Schema activity panel (Type Library, Flatten,
+Statistics, Schema Quality, Generate Sample XML / Documentation) on the left.*
 
 - **Text** - Source code editing with syntax highlighting; moving the caret into a schema construct also lets you edit its properties in the Properties pane (see [Properties Inspector](#properties-inspector))
 - **Graphic** - Visual XMLSpy-style schema diagram
