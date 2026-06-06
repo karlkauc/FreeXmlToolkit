@@ -15,11 +15,12 @@ document, and use XSD files effectively.
 
 ---
 
-## Tab Overview
+## Overview
 
-The XSD Tools section contains several tabs, each with a specific purpose:
+When you open an `.xsd` file in the [Unified Shell](unified-shell.md), the editor host and the
+**Type Library** activity provide several capabilities, each with a specific purpose:
 
-| Tab                       | Description                                             |
+| Capability                | Description                                             |
 |---------------------------|---------------------------------------------------------|
 | **Graphic View**          | Visual schema editor with interactive tree              |
 | **Type Library**          | Browse and analyze all types in your schema             |
@@ -51,13 +52,12 @@ The Graphic View lets you explore and edit your schemas visually.
 
 ### How to Use
 
-1. Go to the **XSD** tab
-2. Open your XSD file
-3. The schema appears as an interactive tree
-4. **Select** an element by clicking on it
-5. **Edit properties** in the panel on the right (name, type, cardinality/occurrence, use, form, constraints, documentation, and facets)
-6. **Add children** using the context menu (right-click)
-7. **Drag** elements to move them
+1. Open your XSD file in the editor host and switch to the **Graphic** view
+2. The schema appears as an interactive tree
+3. **Select** an element by clicking on it
+4. **Edit properties** in the panel on the right (name, type, cardinality/occurrence, use, form, constraints, documentation, and facets)
+5. **Add children** using the context menu (right-click)
+6. **Drag** elements to move them
 
 > **Editing properties from any view (updated June 2026):** The same Properties pane is now
 > available in the **Text** view as well, not just the Graphic and Tree views. See
@@ -96,7 +96,7 @@ The Type Library provides a comprehensive view of all types defined in your sche
 ### How to Use
 
 1. Open your XSD file
-2. Go to the **Type Library** tab
+2. Open the **Type Library** activity from the activity bar
 3. Browse or search for types
 4. Click on a type to see its details
 5. Use the filter dropdown to narrow results
@@ -229,7 +229,7 @@ For the selected schema node you can edit:
 
 ## 5. Schema Analysis
 
-The Schema Analysis tab provides comprehensive analysis tools for your XSD.
+The Schema Analysis view (in the **Type Library** activity) provides comprehensive analysis tools for your XSD.
 
 ![Schema Analysis](img/xsd-schema-analysis.png)
 *Schema Analysis with statistics and quality checks*
@@ -237,7 +237,7 @@ The Schema Analysis tab provides comprehensive analysis tools for your XSD.
 
 ### Sub-Tabs
 
-The Schema Analysis tab contains four sub-tabs:
+The Schema Analysis view contains four sub-tabs:
 
 #### Statistics
 
@@ -308,8 +308,8 @@ Create professional documentation from your XSD file automatically.
 
 ### How to Generate Documentation
 
-1. Load your XSD file in the XSD Tools
-2. Click on the **Documentation** tab
+1. Open your XSD file in the editor host
+2. Open the **Documentation** view from the **Type Library** activity
 3. Select your output format (HTML, Word, or PDF)
 4. Choose diagram format (PNG or SVG)
 5. Configure options
@@ -375,7 +375,7 @@ Create sample XML files based on your XSD schema. This is useful for testing, da
 ![Sample XML Generator](img/xsd-sample-generator.png)
 *Sample XML generator with rules table and XML preview*
 
-> **Unified Editor (June 2026):** In the [Unified Shell](unified-shell.md), sample-data
+> **Unified Shell (June 2026):** In the [Unified Shell](unified-shell.md), sample-data
 > generation lives in the **Schema** panel. It offers two actions: **Generate Sample XML** for
 > the basic generation described below, and **Generate Sample XML (Advanced)…** for the
 > rule-based, batch-capable generation. The screenshots above predate the advanced dialog.
@@ -385,8 +385,7 @@ Create sample XML files based on your XSD schema. This is useful for testing, da
 For simple use cases, you can generate sample XML in seconds:
 
 1. Load your XSD file
-2. Go to the **Generate Example Data** tab (or click **Generate Sample XML** in the Unified
-   Editor's Schema panel)
+2. Open the **Schema** panel from the activity bar and click **Generate Sample XML**
 3. Choose your options:
     - **Mandatory Only**: Include only required elements
     - **Max Occurrences**: Limit repeating elements
@@ -397,8 +396,7 @@ For simple use cases, you can generate sample XML in seconds:
 ### Profiled Generation (Advanced)
 
 For more control, you can define rules that specify exactly how each element or attribute gets
-its value. Open it from the **Generate Example Data** tab, or from
-**Generate Sample XML (Advanced)…** in the Unified Editor's Schema panel. It includes:
+its value. Open it from **Generate Sample XML (Advanced)…** in the Schema panel. It includes:
 
 | Feature | Description |
 |---------|-------------|

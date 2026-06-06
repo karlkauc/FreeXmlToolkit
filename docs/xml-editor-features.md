@@ -32,7 +32,7 @@ If you switch between the **Text** and **Graphic** sub-tabs while the search bar
 | Editor | How Search Appears |
 |--------|--------------------|
 | **XML** tab | A Find / Replace dialog (opens with Ctrl+F) |
-| **Unified Editor** | An inline search bar with up/down chevron arrows |
+| **Unified Shell** | An inline search bar with up/down chevron arrows |
 
 > **Note:** In the **Graphic** view, search is for finding and navigating only - **Replace** is not available there. To replace text, use the **Text** view.
 

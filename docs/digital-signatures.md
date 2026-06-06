@@ -19,7 +19,10 @@ This tool lets you digitally sign XML documents and verify signatures. A digital
 
 ### What Can You Do?
 
-| Tab | Description |
+In the [Unified Shell](unified-shell.md), open the **Signature** activity from the activity bar.
+The panel offers:
+
+| Action | Description |
 |-----|-------------|
 | **Create Certificate** | Generate your own digital ID (keystore) |
 | **Sign XML File** | Add a digital signature to XML files |
@@ -66,7 +69,7 @@ Before signing documents, you need a digital certificate (like a digital ID card
 
 ### How to Create a Certificate
 
-1. Go to the **"Create Certificate"** tab
+1. In the **Signature** panel, choose **Create Certificate**
 2. Fill in the Distinguished Name fields
 3. Set passwords for the keystore and key
 4. Click **"Create Certificate"**
@@ -106,7 +109,7 @@ Before signing documents, you need a digital certificate (like a digital ID card
 
 ### How to Sign a Document
 
-1. Go to the **"Sign XML File"** tab
+1. In the **Signature** panel, choose **Sign XML File**
 2. Click **"Browse"** to select your XML file
 3. Click **"Browse"** to select your keystore file
 4. Enter your keystore password and key password
@@ -125,7 +128,7 @@ The signed file includes the original content plus a digital signature block.
 
 ### How to Verify a Signature
 
-1. Go to the **"Validate Signed File"** tab
+1. In the **Signature** panel, choose **Validate Signed File**
 2. Click **"Browse"** to select the signed XML file
 3. Click **"Validate"**
 4. See the result in the status area
@@ -158,7 +161,7 @@ validation** goes further: it checks the signing certificate's chain against a *
 a collection of certificate authorities you trust - to decide whether the certificate really
 comes from a trusted source.
 
-In the Unified Editor's **Signature** panel, the action is **Validate (Trust)**.
+In the Unified Shell's **Signature** panel, the action is **Validate (Trust)**.
 
 ### How to Run Trust Validation
 

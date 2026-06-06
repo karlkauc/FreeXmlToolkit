@@ -101,7 +101,7 @@ Test XPath expressions against sample XML:
 
 ---
 
-## Schematron Tools in the Unified Editor
+## Schematron Tools in the Unified Shell
 
 > **Updated June 2026** - Added **Check Rules** and **Documentation** to the Schematron tools.
 
