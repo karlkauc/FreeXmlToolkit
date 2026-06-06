@@ -128,15 +128,7 @@ class DocScreenshotGenerator {
             capture("signature-expert");
         });
 
-        // --- JSON editor ---
-        safe("json editor", () -> {
-            File json = writeTempJson();
-            runFx(() -> mainController.navigateToPage("json"));
-            settle(1500);
-            invokeFile("jsonController", "loadJsonFile", json);
-            settle(2000);
-            capture("json-editor");
-        });
+        // (JSON editor retired in Phase 10c — JSON editing/tree view lives in the Unified Shell.)
 
         // --- XSLT Developer ---
         safe("xslt developer", () -> {
@@ -216,25 +208,6 @@ class DocScreenshotGenerator {
         return new File(new File(EXAMPLES, sub), name);
     }
 
-    private File writeTempJson() throws Exception {
-        File f = File.createTempFile("doc-sample", ".json");
-        java.nio.file.Files.writeString(f.toPath(), """
-                {
-                  "fund": {
-                    "name": "Global Bond Fund",
-                    "currency": "EUR",
-                    "shareClasses": [
-                      { "isin": "LU0000000001", "nav": 102.45, "active": true },
-                      { "isin": "LU0000000002", "nav": 98.10, "active": false }
-                    ],
-                    "totalAssets": 1532000000
-                  }
-                }
-                """);
-        f.deleteOnExit();
-        return f;
-    }
-
     private void runFx(Runnable action) throws InterruptedException {
         CountDownLatch latch = new CountDownLatch(1);
         Platform.runLater(() -> {
@@ -283,20 +256,6 @@ class DocScreenshotGenerator {
         }
     }
 
-    private void invokeFile(String controllerField, String method, File arg) throws Exception {
-        Object controller = controller(controllerField);
-        if (controller == null) {
-            throw new IllegalStateException("Controller " + controllerField + " is null");
-        }
-        Method m = controller.getClass().getMethod(method, File.class);
-        runFx(() -> {
-            try {
-                m.invoke(controller, arg);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        });
-    }
 
     private void invokeStr(String controllerField, String method, String arg) throws Exception {
         Object controller = controller(controllerField);

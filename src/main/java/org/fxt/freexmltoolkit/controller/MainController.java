@@ -129,10 +129,6 @@ public class MainController implements Initializable {
      */
     TemplatesController templatesController;
 
-    /**
-     * Controller for JSON editing and conversion functionality.
-     */
-    JsonController jsonController;
 
     // Track currently active tab
     private String activeTabId = "welcome";
@@ -168,7 +164,7 @@ public class MainController implements Initializable {
      * Navigation buttons for switching between different editor tabs.
      */
     @FXML
-    Button xmlUltimate, xsd, xsdValidation, schematron, signature, settings, exit, xsltDeveloper, json, unifiedShell;
+    Button xmlUltimate, xsd, xsdValidation, schematron, signature, settings, exit, xsltDeveloper, unifiedShell;
 
     /**
      * Menu item for exiting the application.
@@ -583,11 +579,6 @@ public class MainController implements Initializable {
             logger.debug("Refreshed Templates Controller toolbar icons");
         }
 
-        // Refresh JSON Controller toolbar
-        if (jsonController != null) {
-            jsonController.refreshToolbarIcons();
-            logger.debug("Refreshed JSON Controller toolbar icons");
-        }
 
 
         logger.info("Toolbar icon refresh completed for all controllers");
@@ -664,7 +655,6 @@ public class MainController implements Initializable {
             // case "schemaGenerator" -> ...; // Retired (Phase 10c) — use the shell's Generate XSD
             case "xsltDeveloper" -> "/pages/tab_xslt_developer.fxml";
             case "unifiedShell" -> "/pages/tab_unified_shell.fxml";
-            case "json" -> "/pages/tab_json.fxml";
             default -> null;
         };
 
@@ -686,7 +676,7 @@ public class MainController implements Initializable {
     private void removeActiveFromAllMenuButtons() {
         Button[] allMenuButtons = {
             xmlUltimate, xsd, xsdValidation, schematron,
-            signature, settings, xsltDeveloper, json, unifiedShell
+            signature, settings, xsltDeveloper, unifiedShell
         };
         for (Button btn : allMenuButtons) {
             if (btn != null) {
@@ -722,7 +712,6 @@ public class MainController implements Initializable {
             case "settings" -> "/pages/settings.fxml";
             case "xsltDeveloper" -> "/pages/tab_xslt_developer.fxml";
             case "unifiedShell" -> "/pages/tab_unified_shell.fxml";
-            case "json" -> "/pages/tab_json.fxml";
             default -> null;
         };
 
@@ -758,7 +747,6 @@ public class MainController implements Initializable {
             case "signature" -> signature;
             case "settings" -> settings;
             case "unifiedShell" -> unifiedShell;
-            case "json" -> json;
             default -> null;
         };
     }
@@ -965,11 +953,6 @@ public class MainController implements Initializable {
             case XsltDeveloperController xsltDeveloperController1 -> {
                 logger.debug("set Advanced XSLT Developer Controller");
                 this.xsltDeveloperController = xsltDeveloperController1;
-            }
-            case JsonController jsonController1 -> {
-                logger.debug("set JSON Editor Controller");
-                this.jsonController = jsonController1;
-                jsonController1.setParentController(this);
             }
             case UnifiedShellController _ -> logger.debug("set Unified Shell Controller (preview)");
             case null, default -> {
@@ -1460,12 +1443,12 @@ public class MainController implements Initializable {
         logger.debug("Show Menu: {}", showMenu);
         if (showMenu) {
             setMenuSize(50, ">>", "", 15, 75);
-            setButtonSize("menu_button_collapsed", xmlUltimate, json, xsd, xsdValidation, schematron, settings, exit, signature, xsltDeveloper);
+            setButtonSize("menu_button_collapsed", xmlUltimate, xsd, xsdValidation, schematron, settings, exit, signature, xsltDeveloper);
             setSectionLabelsVisible(false);
             setBottomBarLayout(true);
         } else {
             setMenuSize(200, "FundsXML Toolkit", "Enterprise Edition", 75, 100);
-            setButtonSize("menu_button", xmlUltimate, json, xsd, xsdValidation, schematron, settings, exit, signature, xsltDeveloper);
+            setButtonSize("menu_button", xmlUltimate, xsd, xsdValidation, schematron, settings, exit, signature, xsltDeveloper);
             setSectionLabelsVisible(true);
             setBottomBarLayout(false);
         }
@@ -1561,8 +1544,6 @@ public class MainController implements Initializable {
     private void restoreButtonText(Button button) {
         if (button == xmlUltimate) {
             button.setText("XML Editor");
-        } else if (button == json) {
-            button.setText("JSON Editor");
         } else if (button == xsd) {
             button.setText("XSD Editor");
         } else if (button == xsdValidation) {

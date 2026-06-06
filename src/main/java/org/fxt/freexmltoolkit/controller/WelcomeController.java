@@ -738,11 +738,12 @@ public class WelcomeController {
     }
 
     /**
-     * Opens the JSON editor page.
+     * Opens the application shell, where JSON editing (text + tree view) is
+     * available (the standalone legacy JSON Editor page has been retired).
      */
     @FXML
     public void openJsonEditor() {
-        navigateTo("json");
+        navigateTo("unifiedShell");
     }
 
     /**

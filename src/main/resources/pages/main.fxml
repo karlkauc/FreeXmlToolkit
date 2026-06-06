@@ -401,13 +401,6 @@
                                     </graphic>
                                 </Button>
 
-                                <Button fx:id="json" mnemonicParsing="false" onAction="#loadPage"
-                                        styleClass="menu_button" text="JSON Editor" contentDisplay="LEFT" VBox.vgrow="ALWAYS">
-                                    <graphic>
-                                        <IconifyIcon iconColor="#fd7e14" iconLiteral="bi-braces" iconSize="16"/>
-                                    </graphic>
-                                </Button>
-
                                 <!-- Section: SCHEMA -->
                                 <Separator fx:id="separatorSchema" styleClass="sidebar-section-separator"/>
                                 <Label fx:id="sectionSchema" text="SCHEMA" styleClass="sidebar-section-label"/>

@@ -4,6 +4,12 @@ The JSON Editor provides a powerful environment for editing, validating, and que
 
 > **Last Updated:** May 2026 | **Version:** 1.10.0
 
+> **Note (Phase 10c):** The standalone *JSON Editor* tab has been retired. JSON
+> editing — text editing plus the tree view and validation — now lives in the
+> **Unified Shell**: open a `.json` file and the JSON editor view (text/tree) is
+> available there. The capabilities below are unchanged; they are now part of the
+> shell rather than a dedicated sidebar tab.
+
 ## Overview
 
 FreeXmlToolkit includes a full-featured JSON Editor that supports:
