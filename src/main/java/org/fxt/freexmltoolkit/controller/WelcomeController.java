@@ -765,11 +765,12 @@ public class WelcomeController {
     }
 
     /**
-     * Opens the XML signature page.
+     * Opens the application shell, where XML signing/validation lives (the
+     * standalone legacy Signature page has been retired).
      */
     @FXML
     public void openSignature() {
-        navigateTo("signature");
+        navigateTo("unifiedShell");
     }
 
     /**

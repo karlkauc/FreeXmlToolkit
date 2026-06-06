@@ -127,7 +127,6 @@ class MainControllerTest {
             "/pages/tab_xml.fxml",
             "/pages/tab_xml_ultimate.fxml",
             "/pages/tab_xsd.fxml",
-            "/pages/tab_signature.fxml",
             "/pages/settings.fxml",
             "/pages/tab_templates.fxml",
             "/pages/tab_xslt_developer.fxml",
@@ -146,7 +145,7 @@ class MainControllerTest {
     void testButtonIds() {
         String[] buttonIds = {
             "xml", "xmlEnhanced", "xmlNew", "xmlUltimate",
-            "xsd", "signature",
+            "xsd",
             "settings", "templates", "xsltDeveloper"
         };
 

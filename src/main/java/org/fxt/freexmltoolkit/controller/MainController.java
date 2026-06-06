@@ -157,7 +157,7 @@ public class MainController implements Initializable {
      * Navigation buttons for switching between different editor tabs.
      */
     @FXML
-    Button xmlUltimate, xsd, signature, settings, exit, xsltDeveloper, unifiedShell;
+    Button xmlUltimate, xsd, settings, exit, xsltDeveloper, unifiedShell;
 
     /**
      * Menu item for exiting the application.
@@ -205,10 +205,10 @@ public class MainController implements Initializable {
      * Section labels in the left sidebar for grouping navigation buttons.
      */
     @FXML
-    Label sectionEditors, sectionSchema, sectionTransforms, sectionTools;
+    Label sectionEditors, sectionSchema, sectionTransforms;
 
     @FXML
-    Separator separatorSchema, separatorTransforms, separatorTools;
+    Separator separatorSchema, separatorTransforms;
 
     /**
      * Bottom button bar container (Help, Settings, Exit) in the sidebar.
@@ -629,7 +629,6 @@ public class MainController implements Initializable {
             case "xmlNew" -> "/pages/tab_xml_new.fxml";
             case "xmlUltimate" -> "/pages/tab_xml_ultimate.fxml";
             case "xsd" -> "/pages/tab_xsd.fxml";
-            case "signature" -> "/pages/tab_signature.fxml";
             case "settings" -> "/pages/settings.fxml";
             // Revolutionary Features - Alleinstellungsmerkmale
             // case "templates" -> "/pages/tab_templates.fxml"; // Removed from menu
@@ -657,7 +656,7 @@ public class MainController implements Initializable {
     private void removeActiveFromAllMenuButtons() {
         Button[] allMenuButtons = {
             xmlUltimate, xsd,
-            signature, settings, xsltDeveloper, unifiedShell
+            settings, xsltDeveloper, unifiedShell
         };
         for (Button btn : allMenuButtons) {
             if (btn != null) {
@@ -687,7 +686,6 @@ public class MainController implements Initializable {
             case "xmlNew" -> "/pages/tab_xml_new.fxml";
             case "xmlUltimate" -> "/pages/tab_xml_ultimate.fxml";
             case "xsd" -> "/pages/tab_xsd.fxml";
-            case "signature" -> "/pages/tab_signature.fxml";
             case "settings" -> "/pages/settings.fxml";
             case "xsltDeveloper" -> "/pages/tab_xslt_developer.fxml";
             case "unifiedShell" -> "/pages/tab_unified_shell.fxml";
@@ -721,7 +719,6 @@ public class MainController implements Initializable {
             case "xmlUltimate" -> xmlUltimate;
             case "xsd" -> xsd;
             case "xsltDeveloper" -> xsltDeveloper;
-            case "signature" -> signature;
             case "settings" -> settings;
             case "unifiedShell" -> unifiedShell;
             default -> null;
@@ -914,10 +911,6 @@ public class MainController implements Initializable {
                 logger.debug("set XSD Controller");
                 this.xsdController = xsdController1;
                 xsdController1.setParentController(this);
-            }
-            case SignatureController signatureController -> {
-                logger.debug("set Signature Controller");
-                signatureController.setParentController(this);
             }
             case TemplatesController templatesController1 -> {
                 logger.debug("set Smart Templates Controller");
@@ -1282,38 +1275,6 @@ public class MainController implements Initializable {
     // --- PDF & Signatures Menu Handlers ---
 
 
-    /**
-     * Opens the Create Certificate tab in the Signature editor.
-     */
-    @FXML
-    public void openCreateCertificate() {
-        switchToSignatureAndSelectSubTab("createCertificateTab");
-    }
-
-    /**
-     * Opens the Sign XML tab in the Signature editor.
-     */
-    @FXML
-    public void openSignXml() {
-        switchToSignatureAndSelectSubTab("signXmlTab");
-    }
-
-    /**
-     * Opens the Validate Signature tab in the Signature editor.
-     */
-    @FXML
-    public void openValidateSignature() {
-        switchToSignatureAndSelectSubTab("validateTab");
-    }
-
-    /**
-     * Opens the Expert Signing Mode tab in the Signature editor.
-     */
-    @FXML
-    public void openExpertSigning() {
-        switchToSignatureAndSelectSubTab("expertModeTab");
-    }
-
     // --- Helper Methods for Menu Navigation ---
 
     private void switchToXsdAndSelectSubTab(String subTabId) {
@@ -1339,18 +1300,6 @@ public class MainController implements Initializable {
     }
 
 
-    private void switchToSignatureAndSelectSubTab(String subTabId) {
-        removeActiveFromAllMenuButtons();
-        signature.getStyleClass().add("active");
-        loadPageFromPath("/pages/tab_signature.fxml");
-        Platform.runLater(() -> {
-            // SignatureController is obtained from page loading
-            Object controller = contentPane.getUserData();
-            if (controller instanceof SignatureController sc) {
-                sc.selectSubTab(subTabId);
-            }
-        });
-    }
 
     /**
      * Toggles the left menu bar between expanded and collapsed states.
@@ -1360,12 +1309,12 @@ public class MainController implements Initializable {
         logger.debug("Show Menu: {}", showMenu);
         if (showMenu) {
             setMenuSize(50, ">>", "", 15, 75);
-            setButtonSize("menu_button_collapsed", xmlUltimate, xsd, settings, exit, signature, xsltDeveloper);
+            setButtonSize("menu_button_collapsed", xmlUltimate, xsd, settings, exit, xsltDeveloper);
             setSectionLabelsVisible(false);
             setBottomBarLayout(true);
         } else {
             setMenuSize(200, "FundsXML Toolkit", "Enterprise Edition", 75, 100);
-            setButtonSize("menu_button", xmlUltimate, xsd, settings, exit, signature, xsltDeveloper);
+            setButtonSize("menu_button", xmlUltimate, xsd, settings, exit, xsltDeveloper);
             setSectionLabelsVisible(true);
             setBottomBarLayout(false);
         }
@@ -1377,13 +1326,13 @@ public class MainController implements Initializable {
      * Labels are hidden when the sidebar is collapsed since they don't fit in the narrow width.
      */
     private void setSectionLabelsVisible(boolean visible) {
-        for (Label label : new Label[]{sectionEditors, sectionSchema, sectionTransforms, sectionTools}) {
+        for (Label label : new Label[]{sectionEditors, sectionSchema, sectionTransforms}) {
             if (label != null) {
                 label.setVisible(visible);
                 label.setManaged(visible);
             }
         }
-        for (Separator sep : new Separator[]{separatorSchema, separatorTransforms, separatorTools}) {
+        for (Separator sep : new Separator[]{separatorSchema, separatorTransforms}) {
             if (sep != null) {
                 sep.setVisible(visible);
                 sep.setManaged(visible);
@@ -1463,8 +1412,6 @@ public class MainController implements Initializable {
             button.setText("XML Editor");
         } else if (button == xsd) {
             button.setText("XSD Editor");
-        } else if (button == signature) {
-            button.setText("Signature");
         } else if (button == settings) {
             button.setText("Settings");
         } else if (button == exit) {

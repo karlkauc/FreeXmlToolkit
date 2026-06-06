@@ -473,7 +473,7 @@ public class UsageTrackingServiceImpl implements UsageTrackingService {
             case "digital_signature" -> new FeatureTip(
                 feature.getFeatureId(),
                 "Sign and verify XML documents for security and authenticity.",
-                "signature",
+                "unifiedShell",
                 6,
                 "bi-key"
             );

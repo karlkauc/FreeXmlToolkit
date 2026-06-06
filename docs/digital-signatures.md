@@ -2,6 +2,12 @@
 
 > **Last Updated:** May 2026 | **Version:** 1.10.0
 
+> **Note (Phase 10c):** The standalone *Signature* tab has been retired. Signing,
+> signature validation (including detailed and PKIX trust/chain/revocation/timestamp
+> validation) and self-signed certificate creation now live in the **Unified Shell's
+> Signature activity panel**. The capabilities below are unchanged; they are reached
+> through the shell rather than a dedicated sidebar tab.
+
 This tool lets you digitally sign XML documents and verify signatures. A digital signature proves that a document is authentic and hasn't been changed.
 
 ---

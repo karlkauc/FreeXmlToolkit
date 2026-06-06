@@ -109,22 +109,8 @@ class DocScreenshotGenerator {
             capture("xsd-schema-analysis");
         });
 
-        // --- Digital signatures sub-tabs ---
-        safe("signature create-cert", () -> {
-            runFx(() -> mainController.openCreateCertificate());
-            settle(1500);
-            capture("signature-create-cert");
-        });
-        safe("signature sign", () -> {
-            runFx(() -> mainController.openSignXml());
-            settle(1500);
-            capture("signature-sign-process");
-        });
-        safe("signature expert", () -> {
-            runFx(() -> mainController.openExpertSigning());
-            settle(1500);
-            capture("signature-expert");
-        });
+        // (Digital signatures retired in Phase 10c — signing, validation, trust
+        // validation and certificate creation live in the Unified Shell's Signature panel.)
 
         // (JSON editor retired in Phase 10c — JSON editing/tree view lives in the Unified Shell.)
 

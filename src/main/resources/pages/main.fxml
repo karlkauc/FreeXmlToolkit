@@ -188,35 +188,6 @@
                     </items>
                 </Menu>
 
-                <!-- Signatures Menu -->
-                <Menu text="Signatures">
-                    <graphic>
-                        <IconifyIcon iconLiteral="bi-shield-lock" iconSize="16" iconColor="#dc3545"/>
-                    </graphic>
-                    <items>
-                        <MenuItem fx:id="menuCreateCertificate" text="Create Certificate..." onAction="#openCreateCertificate">
-                            <graphic>
-                                <IconifyIcon iconLiteral="bi-award" iconSize="16" iconColor="#ffc107"/>
-                            </graphic>
-                        </MenuItem>
-                        <MenuItem fx:id="menuSignXml" text="Sign XML Document..." onAction="#openSignXml">
-                            <graphic>
-                                <IconifyIcon iconLiteral="bi-pen" iconSize="16" iconColor="#007bff"/>
-                            </graphic>
-                        </MenuItem>
-                        <MenuItem fx:id="menuValidateSignature" text="Validate Signature..." onAction="#openValidateSignature">
-                            <graphic>
-                                <IconifyIcon iconLiteral="bi-patch-check" iconSize="16" iconColor="#28a745"/>
-                            </graphic>
-                        </MenuItem>
-                        <MenuItem fx:id="menuExpertSigning" text="Expert Signing Mode..." onAction="#openExpertSigning">
-                            <graphic>
-                                <IconifyIcon iconLiteral="bi-sliders" iconSize="16" iconColor="#6c757d"/>
-                            </graphic>
-                        </MenuItem>
-                    </items>
-                </Menu>
-
                 <Menu fx:id="fundsxmlMenu" text="FundsXML" visible="false">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-collection" iconSize="16" iconColor="#28a745"/>
@@ -399,16 +370,6 @@
                                     </graphic>
                                 </Button>
 
-                                <!-- Section: TOOLS -->
-                                <Separator fx:id="separatorTools" styleClass="sidebar-section-separator"/>
-                                <Label fx:id="sectionTools" text="TOOLS" styleClass="sidebar-section-label"/>
-
-                                <Button fx:id="signature" mnemonicParsing="false" onAction="#loadPage"
-                                        styleClass="menu_button" text="Signature" contentDisplay="LEFT" VBox.vgrow="ALWAYS">
-                                    <graphic>
-                                        <IconifyIcon iconColor="#28a745" iconLiteral="bi-key" iconSize="16"/>
-                                    </graphic>
-                                </Button>
                             </VBox>
                         </ScrollPane>
                     </center>

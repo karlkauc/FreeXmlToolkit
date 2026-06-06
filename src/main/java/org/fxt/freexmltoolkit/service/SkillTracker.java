@@ -137,7 +137,7 @@ public class SkillTracker {
         FEATURES.put("digital_signature", new FeatureDefinition(
             "digital_signature", "XML Digital Signatures", "Security",
             "Sign and verify XML documents",
-            "bi-key", "signature", 10
+            "bi-key", "unifiedShell", 10
         ));
 
         // Export Features
