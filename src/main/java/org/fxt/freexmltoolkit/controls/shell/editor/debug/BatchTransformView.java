@@ -162,17 +162,8 @@ public class BatchTransformView extends VBox {
             return;
         }
         int written = BatchTransformRunner.writeAll(lastResults, Path.of(dir.getAbsolutePath()),
-                extensionFor(format));
+                format.getFileExtension());
         summary.setText("Wrote " + written + " file(s) to " + dir.getName());
-    }
-
-    private static String extensionFor(OutputFormat format) {
-        return switch (format) {
-            case HTML, XHTML -> "html";
-            case TEXT -> "txt";
-            case JSON -> "json";
-            default -> "xml";
-        };
     }
 
     public int getFileCount() {

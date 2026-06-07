@@ -52,6 +52,24 @@ class BatchTransformRunnerTest {
         assertTrue(Files.exists(out.resolve("a.txt")));
     }
 
+    @Test
+    void writeAllAutoSuffixesSameBasenameOutputs(@TempDir Path dir) throws Exception {
+        Path subA = Files.createDirectory(dir.resolve("a"));
+        Path subB = Files.createDirectory(dir.resolve("b"));
+        File in1 = write(subA, "data.xml", "<root><item/><item/></root>");
+        File in2 = write(subB, "data.xml", "<root><item/></root>");
+
+        List<BatchFileResult> results = BatchTransformRunner.runXsltBatch(
+                List.of(in1, in2), XSLT, Map.of(), OutputFormat.TEXT);
+        Path out = Files.createDirectory(dir.resolve("out"));
+
+        int written = BatchTransformRunner.writeAll(results, out, "txt");
+
+        assertEquals(2, written);
+        assertTrue(Files.exists(out.resolve("data.txt")), "first output keeps base name");
+        assertTrue(Files.exists(out.resolve("data_1.txt")), "second output is auto-suffixed");
+    }
+
     private static File write(Path dir, String name, String content) throws Exception {
         Path p = dir.resolve(name);
         Files.writeString(p, content);
