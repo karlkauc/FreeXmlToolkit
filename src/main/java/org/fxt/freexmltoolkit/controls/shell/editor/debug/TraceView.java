@@ -25,8 +25,8 @@ public class TraceView extends VBox {
 
         Label matchTitle = new Label("TEMPLATE MATCHES");
         matchTitle.getStyleClass().add("fxt-side-panel-title");
-        matches.getColumns().add(matchCol("Pattern", t -> t.pattern(), 200));
-        matches.getColumns().add(matchCol("Name", t -> t.name(), 140));
+        matches.getColumns().add(matchCol("Pattern", t -> t.pattern() != null ? t.pattern() : "", 200));
+        matches.getColumns().add(matchCol("Name", t -> t.name() != null ? t.name() : "", 140));
         matches.getColumns().add(matchCol("Line", t -> Integer.toString(t.lineNumber()), 60));
         matches.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         matches.setPlaceholder(new Label("No template matches captured."));

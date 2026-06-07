@@ -437,6 +437,8 @@ public class TransformPanel extends VBox {
         File xslt = xsltFile;
         Map<String, Object> params = collectParameters();
         OutputFormat format = outputFormat.getValue() != null ? outputFormat.getValue() : OutputFormat.XML;
+        boolean wantProfile = profileCheck.isSelected();
+        boolean wantTrace = traceCheck.isSelected();
         output.setText("Transforming…");
         FxtGui.executorService.submit(() -> {
             long start = System.nanoTime();
@@ -450,8 +452,6 @@ public class TransformPanel extends VBox {
             }
             long elapsedMs = (System.nanoTime() - start) / 1_000_000;
             String finalResult = result;
-            boolean wantProfile = profileCheck.isSelected();
-            boolean wantTrace = traceCheck.isSelected();
             org.fxt.freexmltoolkit.service.XsltTransformationResult report =
                     (wantProfile || wantTrace) && !xsltContent.isBlank()
                             ? TransformRunner.transformForReport(xml, xsltContent, params, format)
