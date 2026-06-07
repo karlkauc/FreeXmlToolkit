@@ -33,6 +33,10 @@ class HelpDialogsTest {
     void shortcutsDialogBuilds() {
         Dialog<?> dialog = WaitForAsyncUtils.waitForAsyncFx(3000, () -> KeyboardShortcutsDialog.build());
         assertNotNull(dialog.getDialogPane(), "shortcuts dialog pane");
+        assertNotNull(dialog.getDialogPane().getContent(), "shortcuts content");
+        // DialogHelper renders each shortcut's KEY string as a Label; verify a known one is present.
+        String text = dialogText(dialog);
+        assertTrue(text.contains("Ctrl+Z"), "shows Ctrl+Z shortcut");
     }
 
     private static String dialogText(Dialog<?> dialog) {
@@ -42,8 +46,24 @@ class HelpDialogsTest {
     }
 
     private static void collect(javafx.scene.Node node, StringBuilder sb) {
+        if (node == null) {
+            return;
+        }
         if (node instanceof javafx.scene.control.Label l) {
             sb.append(l.getText()).append('\n');
+        }
+        // ScrollPane / BorderPane content children are not always reachable via
+        // getChildrenUnmodifiable() before the dialog is shown (no skin applied),
+        // so descend into their logical content explicitly.
+        if (node instanceof javafx.scene.control.ScrollPane sp) {
+            collect(sp.getContent(), sb);
+        }
+        if (node instanceof javafx.scene.layout.BorderPane bp) {
+            collect(bp.getTop(), sb);
+            collect(bp.getCenter(), sb);
+            collect(bp.getBottom(), sb);
+            collect(bp.getLeft(), sb);
+            collect(bp.getRight(), sb);
         }
         if (node instanceof javafx.scene.Parent p) {
             for (javafx.scene.Node child : p.getChildrenUnmodifiable()) {

@@ -59,13 +59,17 @@ public final class AboutDialog {
                 AboutDialog.class.getResource("/css/dialog-theme.css")).toExternalForm());
         dialogPane.setPrefWidth(560);
 
-        try {
-            javafx.stage.Stage stage = (javafx.stage.Stage) dialogPane.getScene().getWindow();
-            stage.getIcons().add(new Image(Objects.requireNonNull(
-                    AboutDialog.class.getResourceAsStream("/img/logo.png"))));
-        } catch (Exception e) {
-            logger.warn("Could not load logo for about dialog window.", e);
-        }
+        // Set the window icon once the dialog is showing (the Scene/Window does not
+        // exist yet at build time, so this cannot be done here directly).
+        dialog.setOnShowing(evt -> {
+            try {
+                javafx.stage.Stage stage = (javafx.stage.Stage) dialogPane.getScene().getWindow();
+                stage.getIcons().add(new javafx.scene.image.Image(java.util.Objects.requireNonNull(
+                        AboutDialog.class.getResourceAsStream("/img/logo.png"))));
+            } catch (Exception e) {
+                logger.warn("Could not load logo for about dialog window.", e);
+            }
+        });
 
         ImageView logo = null;
         try {
