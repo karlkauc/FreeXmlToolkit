@@ -15,12 +15,15 @@ public final class ThemeManager {
     private ThemeManager() {
     }
 
-    /** Applies the light or dark theme to {@code scene} and persists {@code ui.theme}. */
+    /**
+     * Applies the light or dark theme to {@code scene} and persists {@code ui.theme}.
+     * <p>Must be called on the JavaFX Application Thread.</p>
+     */
     public static void apply(Scene scene, boolean dark) {
         if (scene == null) {
             return;
         }
-        scene.getStylesheets().removeIf(s -> s.contains("light-theme.css") || s.contains("dark-theme.css"));
+        scene.getStylesheets().removeIf(s -> s.endsWith("light-theme.css") || s.endsWith("dark-theme.css"));
         String css = dark ? "/css/dark-theme.css" : "/css/light-theme.css";
         var url = ThemeManager.class.getResource(css);
         if (url != null) {
