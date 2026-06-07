@@ -379,6 +379,13 @@ public class EditorHost extends BorderPane {
         }
         EditorTab tab = new EditorTab(OpenDocument.forPath(path), this::refreshSelectedNode, nodeClipboard);
         addTab(tab);
+        try {
+            org.fxt.freexmltoolkit.di.ServiceRegistry
+                    .get(org.fxt.freexmltoolkit.service.PropertiesService.class)
+                    .addLastOpenFile(path.toFile());
+        } catch (Throwable ignored) {
+            // properties service unavailable — no recent-files persistence
+        }
         loadAsync(tab, path);
     }
 
