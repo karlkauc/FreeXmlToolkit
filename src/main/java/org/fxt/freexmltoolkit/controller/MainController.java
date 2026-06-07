@@ -1418,11 +1418,8 @@ public class MainController implements Initializable {
             applyTheme();
             setupKeyboardShortcuts();
 
-            // Check for updates asynchronously after startup (with small delay)
-            scheduler.schedule(this::checkForUpdatesOnStartup, 2, TimeUnit.SECONDS);
-
-            // FundsXML release check (throttled to once per 24h)
-            scheduler.schedule(this::checkFundsXmlUpdatesOnStartup, 5, TimeUnit.SECONDS);
+            // Startup update checks (app-update + FundsXML release) now owned by ShellBootstrap.
+            org.fxt.freexmltoolkit.controls.shell.ShellBootstrap.getInstance().scheduleStartupTasks();
         });
     }
 

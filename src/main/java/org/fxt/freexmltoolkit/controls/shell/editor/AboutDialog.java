@@ -256,7 +256,7 @@ public final class AboutDialog {
     }
 
     // Ported from MainController.showUpdateDialog (helper of checkForUpdatesFromAbout).
-    private static void showUpdateDialog(UpdateInfo updateInfo) {
+    public static void showUpdateDialog(UpdateInfo updateInfo) {
         try {
             UpdateNotificationDialog dialog = new UpdateNotificationDialog(updateInfo);
             dialog.showAndWait().ifPresent(action -> {
