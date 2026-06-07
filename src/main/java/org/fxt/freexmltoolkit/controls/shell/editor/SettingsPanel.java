@@ -22,6 +22,7 @@ import org.fxt.freexmltoolkit.controls.theme.DesignTokens;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.XmlParserType;
 import org.fxt.freexmltoolkit.service.PropertiesService;
+import org.fxt.freexmltoolkit.service.UsageTrackingServiceImpl;
 
 /**
  * The Settings activity side panel. Surfaces the full {@link PropertiesService} configuration in
@@ -78,6 +79,7 @@ public class SettingsPanel extends VBox {
 
     // Usage statistics
     private final CheckBox trackingEnabled = new CheckBox("Enable usage tracking");
+    private final Label usageStatus = new Label();
 
     public SettingsPanel() {
         getStyleClass().add("fxt-side-panel-content");
@@ -103,6 +105,7 @@ public class SettingsPanel extends VBox {
         customTempDir.setPromptText("custom temp folder");
         customTempDir.disableProperty().bind(useSystemTemp.selectedProperty());
         tempStatus.getStyleClass().add("fxt-placeholder-text");
+        usageStatus.getStyleClass().add("fxt-placeholder-text");
 
         proxyHost.setPromptText("host");
         proxyPort.setPromptText("port");
@@ -120,8 +123,18 @@ public class SettingsPanel extends VBox {
         Button clearStats = new Button("Clear statistics", iconGraphic("bi-trash"));
         clearStats.getStyleClass().add("fxt-tool-button");
         clearStats.setOnAction(e -> {
-            org.fxt.freexmltoolkit.service.UsageTrackingServiceImpl.getInstance().clearStatistics();
-            tempStatus.setText("Usage statistics cleared.");
+            javafx.scene.control.Alert confirm =
+                    new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.CONFIRMATION);
+            confirm.setTitle("Clear Statistics");
+            confirm.setHeaderText("Clear all progress data?");
+            confirm.setContentText("This will permanently delete all your usage statistics. "
+                    + "This action cannot be undone.");
+            confirm.showAndWait().ifPresent(btn -> {
+                if (btn == javafx.scene.control.ButtonType.OK) {
+                    UsageTrackingServiceImpl.getInstance().clearStatistics();
+                    usageStatus.setText("Usage statistics cleared.");
+                }
+            });
         });
 
         Button save = new Button("Save Settings", iconGraphic("bi-save"));
@@ -156,7 +169,7 @@ public class SettingsPanel extends VBox {
                 section("SECURITY"),
                 trustAllCerts,
                 section("USAGE STATISTICS"),
-                trackingEnabled, fill(clearStats),
+                trackingEnabled, fill(clearStats), usageStatus,
                 section("HTTP PROXY"),
                 useSystemProxy, proxyHost, proxyPort,
                 fill(save));
@@ -265,7 +278,7 @@ public class SettingsPanel extends VBox {
             trustAllCerts.setSelected(Boolean.parseBoolean(
                     props.get("ssl.trustAllCerts") == null ? "false" : props.get("ssl.trustAllCerts")));
             trackingEnabled.setSelected(
-                    org.fxt.freexmltoolkit.service.UsageTrackingServiceImpl.getInstance().isTrackingEnabled());
+                    UsageTrackingServiceImpl.getInstance().isTrackingEnabled());
         } catch (Throwable ignored) {
             // properties service unavailable (e.g. tests) — controls keep their defaults
         }
@@ -302,7 +315,7 @@ public class SettingsPanel extends VBox {
             props.set("user.email", userEmail.getText().trim());
             props.set("user.company", userCompany.getText().trim());
             props.set("ssl.trustAllCerts", String.valueOf(trustAllCerts.isSelected()));
-            org.fxt.freexmltoolkit.service.UsageTrackingServiceImpl.getInstance()
+            UsageTrackingServiceImpl.getInstance()
                     .setTrackingEnabled(trackingEnabled.isSelected());
         } catch (Throwable ignored) {
             // properties service unavailable — nothing to persist
