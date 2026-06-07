@@ -34,6 +34,7 @@ public class UnifiedShellView extends BorderPane {
     private static final double SIDE_PANEL_WIDTH = 260;
 
     private final ActivitySelectionModel selectionModel = new ActivitySelectionModel();
+    private final ActivityBar activityBar = new ActivityBar(selectionModel);
     private final StackPane sidePanelHost = new StackPane();
     /** Cached so the editor toolbar "Validate" action can drive the same panel. */
     private org.fxt.freexmltoolkit.controls.shell.editor.ValidationPanel validationPanel;
@@ -50,7 +51,7 @@ public class UnifiedShellView extends BorderPane {
     public UnifiedShellView() {
         getStyleClass().add("fxt-shell");
 
-        setLeft(new ActivityBar(selectionModel));
+        setLeft(activityBar);
         setCenter(buildWorkArea());
         setBottom(buildStatusBar());
 
@@ -200,14 +201,20 @@ public class UnifiedShellView extends BorderPane {
                     new org.fxt.freexmltoolkit.controls.shell.editor.SignaturePanel(editorHost));
             return;
         }
+        if (activity == Activity.FUNDSXML) {
+            sidePanelHost.getChildren().setAll(
+                    new org.fxt.freexmltoolkit.controls.shell.editor.FundsXmlPanel(editorHost));
+            return;
+        }
         if (activity == Activity.HELP) {
             sidePanelHost.getChildren().setAll(
                     new org.fxt.freexmltoolkit.controls.shell.editor.HelpPanel());
             return;
         }
         if (activity == Activity.SETTINGS) {
-            sidePanelHost.getChildren().setAll(
-                    new org.fxt.freexmltoolkit.controls.shell.editor.SettingsPanel());
+            var settings = new org.fxt.freexmltoolkit.controls.shell.editor.SettingsPanel();
+            settings.setOnSaved(activityBar::refresh);
+            sidePanelHost.getChildren().setAll(settings);
             return;
         }
         VBox panel = new VBox();

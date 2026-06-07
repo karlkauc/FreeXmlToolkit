@@ -81,6 +81,12 @@ public class SettingsPanel extends VBox {
     private final CheckBox trackingEnabled = new CheckBox("Enable usage tracking");
     private final Label usageStatus = new Label();
 
+    // FundsXML extension
+    private final CheckBox fundsXmlEnabled = new CheckBox("Enable FundsXML extensions");
+
+    /** Optional hook invoked after {@link #saveSettings()} (e.g. to refresh the activity bar). */
+    private Runnable onSaved;
+
     public SettingsPanel() {
         getStyleClass().add("fxt-side-panel-content");
 
@@ -170,6 +176,8 @@ public class SettingsPanel extends VBox {
                 trustAllCerts,
                 section("USAGE STATISTICS"),
                 trackingEnabled, fill(clearStats), usageStatus,
+                section("FUNDSXML"),
+                fundsXmlEnabled,
                 section("HTTP PROXY"),
                 useSystemProxy, proxyHost, proxyPort,
                 fill(save));
@@ -279,6 +287,10 @@ public class SettingsPanel extends VBox {
                     props.get("ssl.trustAllCerts") == null ? "false" : props.get("ssl.trustAllCerts")));
             trackingEnabled.setSelected(
                     UsageTrackingServiceImpl.getInstance().isTrackingEnabled());
+            fundsXmlEnabled.setSelected(Boolean.parseBoolean(
+                    props.get(org.fxt.freexmltoolkit.service.fundsxml.FundsXmlPropertyKeys.ENABLED) == null
+                            ? "false"
+                            : props.get(org.fxt.freexmltoolkit.service.fundsxml.FundsXmlPropertyKeys.ENABLED)));
         } catch (Throwable ignored) {
             // properties service unavailable (e.g. tests) — controls keep their defaults
         }
@@ -317,9 +329,19 @@ public class SettingsPanel extends VBox {
             props.set("ssl.trustAllCerts", String.valueOf(trustAllCerts.isSelected()));
             UsageTrackingServiceImpl.getInstance()
                     .setTrackingEnabled(trackingEnabled.isSelected());
+            props.set(org.fxt.freexmltoolkit.service.fundsxml.FundsXmlPropertyKeys.ENABLED,
+                    String.valueOf(fundsXmlEnabled.isSelected()));
         } catch (Throwable ignored) {
             // properties service unavailable — nothing to persist
         }
+        if (onSaved != null) {
+            onSaved.run();
+        }
+    }
+
+    /** Sets a callback invoked after settings are persisted (e.g. to refresh the activity bar). */
+    public void setOnSaved(Runnable onSaved) {
+        this.onSaved = onSaved;
     }
 
     // ----- test/observer accessors ----------------------------------------

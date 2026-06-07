@@ -29,16 +29,31 @@ public class ActivityBar extends VBox {
 
     private final ActivitySelectionModel selectionModel;
     private final Map<Activity, ToggleButton> buttons = new EnumMap<>(Activity.class);
+    private final ToggleGroup group = new ToggleGroup();
 
     public ActivityBar(ActivitySelectionModel selectionModel) {
         this.selectionModel = selectionModel;
         getStyleClass().add("fxt-activity-bar");
         setFillWidth(true);
 
-        ToggleGroup group = new ToggleGroup();
+        rebuild(group);
 
+        syncSelection();
+        selectionModel.activeProperty().addListener((obs, oldV, newV) -> syncSelection());
+    }
+
+    /**
+     * Rebuilds the bar's buttons into {@code group}. The conditional
+     * {@link Activity#FUNDSXML} button is only added when the FundsXML extension
+     * is enabled.
+     */
+    private void rebuild(ToggleGroup group) {
         for (Activity a : Activity.values()) {
             if (BOTTOM.contains(a)) {
+                continue;
+            }
+            if (a == Activity.FUNDSXML
+                    && !org.fxt.freexmltoolkit.controls.shell.editor.FundsXmlRunner.isEnabled()) {
                 continue;
             }
             getChildren().add(createButton(a, group));
@@ -51,9 +66,17 @@ public class ActivityBar extends VBox {
         for (Activity a : BOTTOM) {
             getChildren().add(createButton(a, group));
         }
+    }
 
+    /**
+     * Rebuilds the activity bar so a change to the FundsXML enable flag adds or
+     * removes its button. Selection state is re-synced from the model.
+     */
+    public void refresh() {
+        getChildren().clear();
+        buttons.clear();
+        rebuild(group);
         syncSelection();
-        selectionModel.activeProperty().addListener((obs, oldV, newV) -> syncSelection());
     }
 
     private ToggleButton createButton(Activity activity, ToggleGroup group) {

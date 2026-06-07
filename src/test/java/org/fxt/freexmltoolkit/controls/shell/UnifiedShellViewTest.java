@@ -49,8 +49,12 @@ class UnifiedShellViewTest {
     void activityBarRendersOneButtonPerActivity() {
         WaitForAsyncUtils.waitForFxEvents();
         Set<javafx.scene.Node> buttons = shell.lookupAll(".fxt-activity-button");
-        assertEquals(Activity.values().length, buttons.size(),
-                "Activity Bar must render one button per activity");
+        // FUNDSXML is conditional — only rendered when the extension is enabled.
+        boolean fundsXmlEnabled =
+                org.fxt.freexmltoolkit.controls.shell.editor.FundsXmlRunner.isEnabled();
+        int expected = Activity.values().length - (fundsXmlEnabled ? 0 : 1);
+        assertEquals(expected, buttons.size(),
+                "Activity Bar must render one button per (visible) activity");
     }
 
     @Test

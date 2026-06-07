@@ -19,6 +19,7 @@ public enum Activity {
     SCHEMA("schema", "Schema", "bi-diagram-3"),
     PDF_FOP("pdf", "PDF / FOP", "bi-file-earmark-pdf"),
     SIGNATURE("signature", "Signature", "bi-shield-lock"),
+    FUNDSXML("fundsxml", "FundsXML", "bi-file-earmark-code"),
     HELP("help", "Help", "bi-question-circle"),
     SETTINGS("settings", "Settings", "bi-gear");
 
