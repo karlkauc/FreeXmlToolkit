@@ -63,4 +63,18 @@ public interface EditorView {
     /** Invalidates IntelliSense caches after a schema change (no-op if unsupported). */
     default void invalidateIntelliSenseCache() {
     }
+
+    /**
+     * Installs (or clears, when {@code factory} is null) an extra gutter component
+     * (breakpoint dots / execution arrow) on the editor's line strip.
+     *
+     * @return {@code true} if this editor supports a gutter (XML family); {@code false} otherwise.
+     */
+    default boolean setExtraGutterFactory(java.util.function.IntFunction<javafx.scene.Node> factory) {
+        return false;
+    }
+
+    /** Re-renders the gutter (e.g. after breakpoint/execution-line changes). No-op if unsupported. */
+    default void refreshGutter() {
+    }
 }

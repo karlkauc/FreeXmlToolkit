@@ -56,4 +56,15 @@ final class XmlEditorView implements EditorView {
     public void invalidateIntelliSenseCache() {
         editor.invalidateIntelliSenseCache();
     }
+
+    @Override
+    public boolean setExtraGutterFactory(java.util.function.IntFunction<javafx.scene.Node> factory) {
+        editor.setExtraGutterFactory(factory);
+        return true;
+    }
+
+    @Override
+    public void refreshGutter() {
+        editor.refreshGutter();
+    }
 }

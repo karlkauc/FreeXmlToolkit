@@ -1238,6 +1238,38 @@ public class EditorHost extends BorderPane {
         });
     }
 
+    /**
+     * Attaches an extra gutter factory (breakpoint markers / execution arrow) to the
+     * currently active editor tab.
+     *
+     * @return {@code true} if the active tab is an XML-family editor that accepted it.
+     */
+    public boolean setActiveEditorGutterFactory(java.util.function.IntFunction<javafx.scene.Node> factory) {
+        Tab tab = tabPane.getSelectionModel().getSelectedItem();
+        return tab instanceof EditorTab et && et.view.setExtraGutterFactory(factory);
+    }
+
+    /** Re-renders the gutter on a specific open document's editor tab (if open). */
+    public void refreshGutterFor(OpenDocument document) {
+        for (Tab tab : tabPane.getTabs()) {
+            if (tab instanceof EditorTab et && et.document == document) {
+                et.view.refreshGutter();
+                return;
+            }
+        }
+    }
+
+    /** Attaches a gutter factory to a specific open document's editor tab (if open). */
+    public boolean setGutterFactoryFor(OpenDocument document,
+            java.util.function.IntFunction<javafx.scene.Node> factory) {
+        for (Tab tab : tabPane.getTabs()) {
+            if (tab instanceof EditorTab et && et.document == document) {
+                return et.view.setExtraGutterFactory(factory);
+            }
+        }
+        return false;
+    }
+
     /** Focuses the tab backing the given document, if open. */
     public void selectDocument(OpenDocument document) {
         for (Tab tab : tabPane.getTabs()) {
