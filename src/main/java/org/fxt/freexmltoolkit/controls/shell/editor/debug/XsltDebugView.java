@@ -1,5 +1,6 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.debug;
 
+import java.beans.PropertyChangeListener;
 import java.util.function.IntConsumer;
 import java.util.function.Supplier;
 
@@ -32,6 +33,7 @@ public class XsltDebugView extends VBox {
 
     private final IntConsumer onCurrentLine;  // updates the gutter arrow (line, or -1 to clear)
     private final Runnable onShowInEditor;    // jumps the editor to the paused line
+    private final PropertyChangeListener stateListener;  // session state subscription (detached on dispose)
 
     public XsltDebugView(XsltDebugController controller,
             String xsltFilePath,
@@ -61,11 +63,17 @@ public class XsltDebugView extends VBox {
 
         getChildren().addAll(toolbar, status, panels);
 
-        controller.getSession().addPropertyChangeListener(evt -> {
+        this.stateListener = evt -> {
             if (DebugSession.PROP_STATE.equals(evt.getPropertyName())) {
                 Platform.runLater(() -> onStateChanged((DebugSession.State) evt.getNewValue()));
             }
-        });
+        };
+        controller.getSession().addPropertyChangeListener(stateListener);
+    }
+
+    /** Detaches the session state listener; call when the Debug tab is closed. */
+    public void dispose() {
+        controller.getSession().removePropertyChangeListener(stateListener);
     }
 
     private HBox buildToolbar() {

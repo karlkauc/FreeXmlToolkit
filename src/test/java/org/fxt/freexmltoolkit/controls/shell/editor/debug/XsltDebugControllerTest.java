@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.fxt.freexmltoolkit.debugger.Breakpoint;
@@ -28,24 +29,28 @@ class XsltDebugControllerTest {
     @Test
     @Timeout(20)
     void pausesAtBreakpointThenRunsToCompletion() throws Exception {
-        XsltDebugController controller =
-                new XsltDebugController(Executors.newSingleThreadExecutor());
-        DebugSession session = controller.getSession();
-        // Breakpoint on the <xsl:value-of> line (line 4 in the block above, 1-based).
-        session.addBreakpoint(new Breakpoint("", 4, true));
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        try {
+            XsltDebugController controller = new XsltDebugController(executor);
+            DebugSession session = controller.getSession();
+            // Breakpoint on the <xsl:value-of> line (line 4 in the block above, 1-based).
+            session.addBreakpoint(new Breakpoint("", 4, true));
 
-        controller.start(XML, XSLT, Map.of(), OutputFormat.XML);
+            controller.start(XML, XSLT, Map.of(), OutputFormat.XML);
 
-        // Wait until the Saxon thread blocks at the breakpoint.
-        waitForState(session, DebugSession.State.PAUSED);
-        assertNotNull(session.getPausedSnapshot(), "snapshot captured at pause");
+            // Wait until the Saxon thread blocks at the breakpoint.
+            waitForState(session, DebugSession.State.PAUSED);
+            assertNotNull(session.getPausedSnapshot(), "snapshot captured at pause");
 
-        controller.continueRun();
+            controller.continueRun();
 
-        // After continue, the transform completes and the session closes (IDLE).
-        waitForState(session, DebugSession.State.IDLE);
-        assertNotNull(controller.getLastResult(), "result produced");
-        assertTrue(controller.getLastResult().isSuccess(), "transform succeeded");
+            // After continue, the transform completes and the session closes (IDLE).
+            waitForState(session, DebugSession.State.IDLE);
+            assertNotNull(controller.getLastResult(), "result produced");
+            assertTrue(controller.getLastResult().isSuccess(), "transform succeeded");
+        } finally {
+            executor.shutdownNow();
+        }
     }
 
     private static void waitForState(DebugSession session, DebugSession.State target)

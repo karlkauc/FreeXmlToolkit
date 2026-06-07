@@ -1294,6 +1294,25 @@ public class EditorHost extends BorderPane {
             return;
         }
 
+        // Read the stylesheet up front: if it cannot be read, surface a clear error and abort
+        // rather than silently running Saxon on an empty stylesheet.
+        final String xsltContent;
+        try {
+            xsltContent = java.nio.file.Files.readString(
+                    xsltFile.toPath(), java.nio.charset.StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            javafx.scene.control.Alert alert =
+                    new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.ERROR);
+            alert.setTitle("XSLT Debug");
+            alert.setHeaderText("Could not start the debugger");
+            alert.setContentText("Could not read stylesheet: " + e.getMessage());
+            if (getScene() != null) {
+                alert.initOwner(getScene().getWindow());
+            }
+            alert.showAndWait();
+            return;
+        }
+
         // 2. Build the debug controller + gutter and attach the gutter to the XSLT tab.
         var controller = new org.fxt.freexmltoolkit.controls.shell.editor.debug.XsltDebugController();
         var gutter = new org.fxt.freexmltoolkit.debugger.ui.BreakpointGutterFactory(
@@ -1315,15 +1334,31 @@ public class EditorHost extends BorderPane {
                         goToLine(line);
                     }
                 });
-        openToolTab("Debug", "bi-bug", debugView);
+        // Call-stack / breakpoint double-click must jump to the selected frame's own line,
+        // not the current pause line.
+        debugView.getCallStackView().setOnJumpToLine(line -> {
+            selectDocument(xsltDoc);
+            if (line > 0) {
+                goToLine(line);
+            }
+        });
+        debugView.getBreakpointsView().setOnJumpToLine(line -> {
+            selectDocument(xsltDoc);
+            if (line > 0) {
+                goToLine(line);
+            }
+        });
+        Tab debugTab = openToolTab("Debug", "bi-bug", debugView);
+        // Closing the Debug tab stops the session, detaches the listener and the gutter.
+        debugTab.setOnClosed(e -> {
+            controller.stop();
+            controller.close();
+            debugView.dispose();
+            setGutterFactoryFor(xsltDoc, null);
+            refreshGutterFor(xsltDoc);
+        });
 
         // 4. Start the run (any breakpoints set via the gutter are already on the session).
-        String xsltContent;
-        try {
-            xsltContent = java.nio.file.Files.readString(xsltFile.toPath(), java.nio.charset.StandardCharsets.UTF_8);
-        } catch (Exception e) {
-            xsltContent = "";
-        }
         controller.start(xml, xsltContent, parameters, format);
     }
 

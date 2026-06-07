@@ -82,19 +82,25 @@ public class WatchView extends VBox {
         evaluateAll();
     }
 
-    /** Re-evaluates every watch against the current XML (call on each pause). */
+    /**
+     * Re-evaluates every watch against the current XML (call on each pause). The XPath
+     * evaluation runs off the FX thread; results are applied back on the FX thread.
+     */
     public void evaluateAll() {
-        String xml = xmlSupplier.get();
-        for (WatchRow row : table.getItems()) {
-            try {
-                String result = ServiceRegistry.get(XmlService.class)
-                        .getXmlFromXpath(xml, row.expression);
-                row.value = result == null ? "" : result;
-            } catch (Throwable t) {
-                row.value = "ERROR: " + t.getMessage();
+        final String xml = xmlSupplier.get();
+        final java.util.List<WatchRow> rows = new java.util.ArrayList<>(table.getItems());
+        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            for (WatchRow row : rows) {
+                try {
+                    String result = ServiceRegistry.get(XmlService.class)
+                            .getXmlFromXpath(xml, row.expression);
+                    row.value = result == null ? "" : result;
+                } catch (Throwable t) {
+                    row.value = "ERROR: " + t.getMessage();
+                }
             }
-        }
-        table.refresh();
+            javafx.application.Platform.runLater(table::refresh);
+        });
     }
 
     public int getRowCount() {
