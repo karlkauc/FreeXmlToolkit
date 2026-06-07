@@ -45,6 +45,11 @@ public class HelpPanel extends VBox {
 
         Button github = button("GitHub", "bi-github", () -> browse(GITHUB_URL));
 
+        Button aboutBtn = button("About", "bi-info-circle",
+                () -> AboutDialog.show(getScene() != null ? getScene().getWindow() : null));
+        Button shortcutsBtn = button("Keyboard Shortcuts", "bi-keyboard",
+                KeyboardShortcutsDialog::show);
+
         // Documentation quick links — open in the system browser (replaces the legacy
         // Help tab's embedded WebViews for the FXT docs, FundsXML site and schema docs).
         Label linksTitle = new Label("DOCUMENTATION");
@@ -58,6 +63,7 @@ public class HelpPanel extends VBox {
         updateStatus.setWrapText(true);
 
         getChildren().addAll(title, appName, version, build, vendor, github,
+                aboutBtn, shortcutsBtn,
                 linksTitle, docs, fundsSite, schemaDocs,
                 checkUpdates, updateStatus);
 
