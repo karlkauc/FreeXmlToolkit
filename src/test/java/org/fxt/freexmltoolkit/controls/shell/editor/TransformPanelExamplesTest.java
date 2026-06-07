@@ -4,8 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import javafx.stage.Stage;
 
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
 import org.testfx.util.WaitForAsyncUtils;
@@ -20,12 +21,13 @@ class TransformPanelExamplesTest {
         panel = new TransformPanel(new EditorHost());
     }
 
-    @Test
-    void insertsAnXQueryExample() {
+    @ParameterizedTest
+    @ValueSource(strings = {"simple", "flwor", "html", "dq"})
+    void insertsAnXQueryExample(String key) {
         String text = WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
-            panel.insertXQueryExample("simple");
+            panel.insertXQueryExample(key);
             return panel.getXQueryText();
         });
-        assertFalse(text.isBlank(), "example inserted");
+        assertFalse(text.isBlank(), "example inserted for key: " + key);
     }
 }

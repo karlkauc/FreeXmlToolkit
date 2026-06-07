@@ -266,6 +266,7 @@ public class TransformPanel extends VBox {
     /** Inserts a built-in XQuery example by key (simple, flwor, html, dq). */
     public void insertXQueryExample(String key) {
         String example = switch (key) {
+            case "simple" -> "for $x in //item return string($x)";
             case "flwor" -> "for $x in //item\norder by $x\nreturn <row>{string($x)}</row>";
             case "html" -> "<html><body><ul>{\n  for $x in //item return <li>{string($x)}</li>\n}</ul></body></html>";
             case "dq" -> "(: data-quality: items missing a value :)\nfor $x in //item[not(normalize-space())]\nreturn <missing>{name($x)}</missing>";
