@@ -42,6 +42,10 @@ public final class ShellBootstrap {
         if (scheduled) {
             return;
         }
+        if (scheduler.isShutdown()) {
+            logger.warn("ShellBootstrap scheduler already shut down; ignoring scheduleStartupTasks()");
+            return;
+        }
         scheduled = true;
         scheduler.schedule(this::checkForAppUpdate, 2, TimeUnit.SECONDS);
         scheduler.schedule(this::checkForFundsXmlUpdate, 5, TimeUnit.SECONDS);
@@ -55,6 +59,8 @@ public final class ShellBootstrap {
             }
             svc.checkForUpdates().thenAccept(info -> {
                 if (info != null && info.updateAvailable()) {
+                    // Reuses the shared update-notification flow (boot → dialog dependency,
+                    // intentional for now; extract an UpdateNotificationService if it grows).
                     Platform.runLater(() -> AboutDialog.showUpdateDialog(info));
                 }
             }).exceptionally(ex -> {
@@ -73,6 +79,8 @@ public final class ShellBootstrap {
                     props,
                     ServiceRegistry.get(org.fxt.freexmltoolkit.service.fundsxml.FundsXmlExtensionService.class),
                     org.fxt.freexmltoolkit.service.fundsxml.FundsXmlCache.getInstance());
+            // runIfDue() performs a synchronous (blocking) GitHub call; it runs here on the
+            // daemon scheduler thread (never the FX thread), so blocking is acceptable.
             checker.runIfDue().ifPresent(release -> Platform.runLater(() -> {
                 String body = "A newer FundsXML schema release is available on GitHub:\n\n"
                         + "  • Tag: " + release.tagName() + "\n"
