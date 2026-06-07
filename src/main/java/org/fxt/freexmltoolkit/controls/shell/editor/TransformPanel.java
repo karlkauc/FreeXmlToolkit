@@ -7,6 +7,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.fxt.freexmltoolkit.controls.shell.editor.debug.BatchTransformView;
+
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyStringWrapper;
@@ -301,9 +303,31 @@ public class TransformPanel extends VBox {
                 outputFormat.getValue() != null ? outputFormat.getValue() : OutputFormat.XML);
     }
 
-    /** Opens the batch-transform tool tab. (Implemented in Task 3.) */
+    /** Opens the batch-transform tool tab for the active stylesheet/XQuery. */
     public void openBatch() {
-        output.setText("Batch processing is not yet available.");
+        OutputFormat format = outputFormat.getValue() != null ? outputFormat.getValue() : OutputFormat.XML;
+        String xqueryText = xqueryArea.getText();
+        BatchTransformView view;
+        if (xsltFile != null) {
+            String xsltContent;
+            try {
+                xsltContent = Files.readString(xsltFile.toPath(), StandardCharsets.UTF_8);
+            } catch (Exception e) {
+                output.setText("Could not read stylesheet: " + e.getMessage());
+                return;
+            }
+            view = new org.fxt.freexmltoolkit.controls.shell.editor.debug.BatchTransformView(
+                    org.fxt.freexmltoolkit.controls.shell.editor.debug.BatchTransformView.Kind.XSLT,
+                    xsltContent, collectParameters(), format);
+        } else if (xqueryText != null && !xqueryText.isBlank()) {
+            view = new org.fxt.freexmltoolkit.controls.shell.editor.debug.BatchTransformView(
+                    org.fxt.freexmltoolkit.controls.shell.editor.debug.BatchTransformView.Kind.XQUERY,
+                    xqueryText, collectParameters(), format);
+        } else {
+            output.setText("Set an XSLT stylesheet or enter an XQuery first.");
+            return;
+        }
+        editorHost.openToolTab("Batch", "bi-files", view);
     }
 
     /**
