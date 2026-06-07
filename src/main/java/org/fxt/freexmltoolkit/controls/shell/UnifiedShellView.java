@@ -69,6 +69,37 @@ public class UnifiedShellView extends BorderPane {
 
         // Welcome/Dashboard tool cards switch activities (and "open-folder" → Explorer).
         editorHost.setWelcomeActionHandler(this::handleWelcomeAction);
+
+        setOnDragOver(e -> {
+            if (e.getDragboard().hasFiles() && acceptsDrop(e.getDragboard().getFiles())) {
+                e.acceptTransferModes(javafx.scene.input.TransferMode.COPY);
+            }
+            e.consume();
+        });
+        setOnDragDropped(e -> {
+            boolean ok = false;
+            if (e.getDragboard().hasFiles()) {
+                ok = openDroppedFiles(e.getDragboard().getFiles()) > 0;
+            }
+            e.setDropCompleted(ok);
+            e.consume();
+        });
+    }
+
+    /** @return {@code true} if {@code files} contains at least one XML-family file the shell can open. */
+    public static boolean acceptsDrop(java.util.List<java.io.File> files) {
+        return files != null && org.fxt.freexmltoolkit.service.DragDropService
+                .hasFilesWithExtensions(files, org.fxt.freexmltoolkit.service.DragDropService.ALL_XML_RELATED);
+    }
+
+    /** Opens every supported (XML-family) file from {@code files} in the editor host. @return the count opened. */
+    public int openDroppedFiles(java.util.List<java.io.File> files) {
+        java.util.List<java.io.File> supported = org.fxt.freexmltoolkit.service.DragDropService
+                .filterByExtensions(files, org.fxt.freexmltoolkit.service.DragDropService.ALL_XML_RELATED);
+        for (java.io.File f : supported) {
+            editorHost.openFile(f.toPath());
+        }
+        return supported.size();
     }
 
     /** Routes a Welcome/Dashboard action key to the matching activity. */
