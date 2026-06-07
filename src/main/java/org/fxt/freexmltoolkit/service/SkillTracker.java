@@ -123,7 +123,7 @@ public class SkillTracker {
         FEATURES.put("xslt_transformation", new FeatureDefinition(
             "xslt_transformation", "XSLT Transformation", "Transformation",
             "Transform XML using XSLT stylesheets",
-            "bi-arrow-repeat", "xsltDeveloper", 8
+            "bi-arrow-repeat", "unifiedShell", 8
         ));
 
         // Tools Features

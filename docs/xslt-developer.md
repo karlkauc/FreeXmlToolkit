@@ -2,6 +2,15 @@
 
 > **Last Updated:** May 2026 | **Version:** 1.10.0
 
+> **Note (Phase 10c):** The standalone *XSLT Developer* tab has been retired. Its
+> capabilities now live in the **[Unified Shell](unified-shell.md)'s Transform panel**
+> (Set XSLT, transform, XPath/XQuery, parameters, output formats) together with its
+> **Advanced** tools — the interactive **Debugger** (breakpoints, step, variables,
+> call stack, watch), **Batch** processing, **Profile**, and **Trace**. Open the
+> Transform panel from the **Transform** icon in the activity bar; the Advanced tools
+> are available from that panel. The feature description below is retained for
+> reference; the controls now live in the Unified Shell rather than a dedicated tab.
+
 The XSLT Developer is a full-featured development environment for creating and testing XSLT stylesheets and XQuery
 scripts. It includes live transformation, parameter support, batch processing, and debugging tools.
 

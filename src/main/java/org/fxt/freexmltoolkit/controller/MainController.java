@@ -103,12 +103,6 @@ public class MainController implements Initializable {
 
 
     /**
-     * Controller for advanced XSLT development features.
-     */
-    XsltDeveloperController xsltDeveloperController;
-
-
-    /**
      * Controller for smart templates functionality.
      */
     TemplatesController templatesController;
@@ -149,7 +143,7 @@ public class MainController implements Initializable {
      * Navigation buttons for switching between different editor tabs.
      */
     @FXML
-    Button settings, exit, xsltDeveloper, unifiedShell;
+    Button settings, exit, unifiedShell;
 
     /**
      * Menu item for exiting the application.
@@ -197,10 +191,7 @@ public class MainController implements Initializable {
      * Section labels in the left sidebar for grouping navigation buttons.
      */
     @FXML
-    Label sectionEditors, sectionTransforms;
-
-    @FXML
-    Separator separatorTransforms;
+    Label sectionEditors;
 
     /**
      * Bottom button bar container (Help, Settings, Exit) in the sidebar.
@@ -429,11 +420,6 @@ public class MainController implements Initializable {
 
 
 
-        // Shutdown XsltDeveloperController
-        if (xsltDeveloperController != null) {
-            xsltDeveloperController.shutdown();
-        }
-
         // Shutdown UpdateCheckService
         try {
             UpdateCheckService updateCheckService = ServiceRegistry.get(UpdateCheckService.class);
@@ -522,14 +508,6 @@ public class MainController implements Initializable {
 
 
 
-        // Refresh XSLT Developer Controller toolbar
-        if (xsltDeveloperController != null) {
-            xsltDeveloperController.refreshToolbarIcons();
-            logger.debug("Refreshed XSLT Developer Controller toolbar icons");
-        }
-
-
-
         // Refresh Templates Controller toolbar
         if (templatesController != null) {
             templatesController.refreshToolbarIcons();
@@ -605,7 +583,6 @@ public class MainController implements Initializable {
             // Revolutionary Features - Alleinstellungsmerkmale
             // case "templates" -> "/pages/tab_templates.fxml"; // Removed from menu
             // case "schemaGenerator" -> ...; // Retired (Phase 10c) — use the shell's Generate XSD
-            case "xsltDeveloper" -> "/pages/tab_xslt_developer.fxml";
             case "unifiedShell" -> "/pages/tab_unified_shell.fxml";
             default -> null;
         };
@@ -627,7 +604,7 @@ public class MainController implements Initializable {
      */
     private void removeActiveFromAllMenuButtons() {
         Button[] allMenuButtons = {
-            settings, xsltDeveloper, unifiedShell
+            settings, unifiedShell
         };
         for (Button btn : allMenuButtons) {
             if (btn != null) {
@@ -656,7 +633,6 @@ public class MainController implements Initializable {
             case "xmlEnhanced" -> "/pages/tab_xml_enhanced.fxml";
             case "xmlNew" -> "/pages/tab_xml_new.fxml";
             case "settings" -> "/pages/settings.fxml";
-            case "xsltDeveloper" -> "/pages/tab_xslt_developer.fxml";
             case "unifiedShell" -> "/pages/tab_unified_shell.fxml";
             default -> null;
         };
@@ -685,7 +661,6 @@ public class MainController implements Initializable {
      */
     private Button getButtonForPageId(String pageId) {
         return switch (pageId) {
-            case "xsltDeveloper" -> xsltDeveloper;
             case "settings" -> settings;
             case "unifiedShell" -> unifiedShell;
             default -> null;
@@ -810,31 +785,6 @@ public class MainController implements Initializable {
         openFileInShell(fileToLoad);
     }
 
-    /**
-     * Switch to XSLT Developer view and load the specified XSLT file.
-     *
-     * @param fileToLoad the XSLT file to load
-     */
-    public void switchToXsltDeveloperAndLoadFile(File fileToLoad) {
-        if (xsltDeveloper == null) {
-            logger.error("XSLT Developer Button is not initialized, cannot switch tabs.");
-            return;
-        }
-        removeActiveFromAllMenuButtons();
-        xsltDeveloper.getStyleClass().add("active");
-
-        loadPageFromPath("/pages/tab_xslt_developer.fxml");
-        activeTabId = "xsltDeveloper";
-
-        if (this.xsltDeveloperController != null && fileToLoad != null && fileToLoad.exists()) {
-            Platform.runLater(() -> {
-                xsltDeveloperController.loadXsltFileExternal(fileToLoad);
-            });
-        } else {
-            logger.warn("XsltDeveloperController is not available or file does not exist. Cannot load file: {}", fileToLoad);
-        }
-    }
-
     private void setParentController(Object controller) {
         switch (controller) {
             case SettingsController settingsController -> settingsController.setParentController(this);
@@ -842,10 +792,6 @@ public class MainController implements Initializable {
             case TemplatesController templatesController1 -> {
                 logger.debug("set Smart Templates Controller");
                 this.templatesController = templatesController1;
-            }
-            case XsltDeveloperController xsltDeveloperController1 -> {
-                logger.debug("set Advanced XSLT Developer Controller");
-                this.xsltDeveloperController = xsltDeveloperController1;
             }
             case UnifiedShellController unifiedShellController1 -> {
                 logger.debug("set Unified Shell Controller");
@@ -1117,14 +1063,6 @@ public class MainController implements Initializable {
     // --- XML Tools Menu Handlers ---
 
     /**
-     * Opens the XSLT Developer (kept as a dedicated tool).
-     */
-    @FXML
-    public void openXsltDeveloper() {
-        xsltDeveloper.fire();
-    }
-
-    /**
      * Template development now lives in the Unified Shell.
      */
     @FXML
@@ -1158,12 +1096,12 @@ public class MainController implements Initializable {
         logger.debug("Show Menu: {}", showMenu);
         if (showMenu) {
             setMenuSize(50, ">>", "", 15, 75);
-            setButtonSize("menu_button_collapsed", settings, exit, xsltDeveloper);
+            setButtonSize("menu_button_collapsed", settings, exit);
             setSectionLabelsVisible(false);
             setBottomBarLayout(true);
         } else {
             setMenuSize(200, "FundsXML Toolkit", "Enterprise Edition", 75, 100);
-            setButtonSize("menu_button", settings, exit, xsltDeveloper);
+            setButtonSize("menu_button", settings, exit);
             setSectionLabelsVisible(true);
             setBottomBarLayout(false);
         }
@@ -1175,16 +1113,10 @@ public class MainController implements Initializable {
      * Labels are hidden when the sidebar is collapsed since they don't fit in the narrow width.
      */
     private void setSectionLabelsVisible(boolean visible) {
-        for (Label label : new Label[]{sectionEditors, sectionTransforms}) {
+        for (Label label : new Label[]{sectionEditors}) {
             if (label != null) {
                 label.setVisible(visible);
                 label.setManaged(visible);
-            }
-        }
-        for (Separator sep : new Separator[]{separatorTransforms}) {
-            if (sep != null) {
-                sep.setVisible(visible);
-                sep.setManaged(visible);
             }
         }
     }
@@ -1261,8 +1193,6 @@ public class MainController implements Initializable {
             button.setText("Settings");
         } else if (button == exit) {
             button.setText("Exit");
-        } else if (button == xsltDeveloper) {
-            button.setText("XSLT Developer");
         }
     }
 
@@ -1367,7 +1297,7 @@ public class MainController implements Initializable {
                     navigateToPage("unifiedShell");
                 }
                 case "XSLT" -> {
-                    xsltDeveloper.fire();
+                    navigateToPage("unifiedShell");
                 }
                 default -> { }
             }
@@ -1438,7 +1368,7 @@ public class MainController implements Initializable {
             } else if (fileName.endsWith(".sch") || fileName.endsWith(".schematron")) {
                 openFileInShell(selectedFile);
             } else if (fileName.endsWith(".xsl") || fileName.endsWith(".xslt")) {
-                xsltDeveloper.fire();
+                openFileInShell(selectedFile);
             } else {
                 openFileInShell(selectedFile);
             }
@@ -1731,7 +1661,7 @@ public class MainController implements Initializable {
         switch (fileType) {
             case XSD -> switchToXsdViewAndLoadFile(file);
             case SCHEMATRON -> switchToSchematronViewAndLoadFile(file);
-            case XSLT -> switchToXsltDeveloperAndLoadFile(file);
+            case XSLT -> openFileInShell(file);
             case WSDL, XML -> switchToXmlViewAndLoadFile(file);
             default -> {
                 logger.warn("Unknown file type for '{}', opening in XML editor", file.getName());
@@ -1838,12 +1768,6 @@ public class MainController implements Initializable {
         logger.debug("F5 pressed - Active tab: {}", activeTabId);
 
         switch (activeTabId) {
-            case "xsltDeveloper" -> {
-                if (xsltDeveloperController != null) {
-                    xsltDeveloperController.executeTransformation();
-                    logger.debug("F5: Triggered XSLT transformation");
-                }
-            }
             default -> logger.debug("F5: No action defined for tab '{}'", activeTabId);
         }
     }
@@ -1888,12 +1812,6 @@ public class MainController implements Initializable {
         logger.debug("Ctrl+Shift+D pressed - Toggle Favorites Panel - Active tab: {}", activeTabId);
 
         switch (activeTabId) {
-            case "xsltDeveloper" -> {
-                if (xsltDeveloperController != null) {
-                    xsltDeveloperController.toggleFavoritesPanelPublic();
-                    logger.debug("Ctrl+Shift+D: Toggled XSLT Developer favorites panel");
-                }
-            }
             default -> logger.debug("Ctrl+Shift+D: No toggle favorites action defined for tab '{}'", activeTabId);
         }
     }

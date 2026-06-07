@@ -452,7 +452,7 @@ public class UsageTrackingServiceImpl implements UsageTrackingService {
             case "xslt_transformation" -> new FeatureTip(
                 feature.getFeatureId(),
                 "Transform your XML documents to HTML, text, or other formats using XSLT.",
-                "xsltDeveloper",
+                "unifiedShell",
                 9,
                 "bi-arrow-repeat"
             );

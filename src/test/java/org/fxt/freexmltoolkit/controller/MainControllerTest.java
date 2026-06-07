@@ -127,7 +127,6 @@ class MainControllerTest {
             "/pages/tab_xml.fxml",
             "/pages/settings.fxml",
             "/pages/tab_templates.fxml",
-            "/pages/tab_xslt_developer.fxml",
             "/pages/welcome.fxml"
         };
 
@@ -143,7 +142,7 @@ class MainControllerTest {
     void testButtonIds() {
         String[] buttonIds = {
             "xml", "xmlEnhanced", "xmlNew",
-            "settings", "templates", "xsltDeveloper"
+            "settings", "templates"
         };
 
         for (String id : buttonIds) {
@@ -327,12 +326,9 @@ class MainControllerTest {
     @DisplayName("Should validate revolutionary features tab IDs")
     void testRevolutionaryFeaturesTabIds() {
         String templatesId = "templates";
-        String xsltDeveloperId = "xsltDeveloper";
 
         assertNotNull(templatesId);
-        assertNotNull(xsltDeveloperId);
         assertEquals("templates", templatesId);
-        assertEquals("xsltDeveloper", xsltDeveloperId);
     }
 
     @Test

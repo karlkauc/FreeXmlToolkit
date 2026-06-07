@@ -4,8 +4,6 @@ import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -79,13 +77,8 @@ class DocScreenshotGenerator {
 
         // (JSON editor retired in Phase 10c — JSON editing/tree view lives in the Unified Shell.)
 
-        // --- XSLT Developer ---
-        safe("xslt developer", () -> {
-            File xslt = example("xslt", "FundsXML_Factsheet.xslt");
-            runFx(() -> mainController.switchToXsltDeveloperAndLoadFile(xslt));
-            settle(3000);
-            capture("xslt-developer-overview");
-        });
+        // (XSLT Developer retired in Phase 10c — XSLT/XQuery editing, transform,
+        // debugger, batch, profile and trace live in the Unified Shell's Transform panel.)
 
         // (XSLT Viewer retired in Phase 10c — quick XSLT transforms live in the
         // Unified Shell's Transform panel and the XSLT Developer.)
@@ -101,15 +94,6 @@ class DocScreenshotGenerator {
             runFx(() -> mainController.openTemplateBuilder());
             settle(2500);
             capture("templates-overview");
-        });
-
-        // --- Favorites panel ---
-        safe("favorites", () -> {
-            runFx(() -> mainController.navigateToPage("xsltDeveloper"));
-            settle(1500);
-            invokeNoArg("xsltDeveloperController", "toggleFavoritesPanelPublic");
-            settle(2000);
-            capture("favorites-overview");
         });
 
         // --- IntelliSense (XML editor with schema-backed document) ---
@@ -152,27 +136,6 @@ class DocScreenshotGenerator {
             throw new IllegalStateException("FX action timed out");
         }
         WaitForAsyncUtils.waitForFxEvents();
-    }
-
-    private Object controller(String field) throws Exception {
-        Field f = MainController.class.getDeclaredField(field);
-        f.setAccessible(true);
-        return f.get(mainController);
-    }
-
-    private void invokeNoArg(String controllerField, String method) throws Exception {
-        Object controller = controller(controllerField);
-        if (controller == null) {
-            throw new IllegalStateException("Controller " + controllerField + " is null");
-        }
-        Method m = controller.getClass().getMethod(method);
-        runFx(() -> {
-            try {
-                m.invoke(controller);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        });
     }
 
     private void settle(long millis) throws InterruptedException {

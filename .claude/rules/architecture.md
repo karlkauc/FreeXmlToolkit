@@ -93,7 +93,6 @@ updater dispatch:
 | `SchemaAnalysisTabController` | XSD > Analysis | Schema statistics, identity constraints |
 | `XsdValidationController` | XSD Validation | Schema validation results |
 | `XsltController` | XSLT | Transformations |
-| `XsltDeveloperController` | XSLT Developer | Full XSLT/XQuery development environment |
 | `SchematronController` | Schematron | Business rule validation |
 | `FopController` | FOP | PDF generation |
 | `SignatureController` | Signature | Digital signatures |
@@ -139,7 +138,6 @@ public void setName(String name) {
 | `tab_xsd.fxml` | XSD tools tab |
 | `tab_json.fxml` | JSON editor tab |
 | `tab_xslt.fxml` | XSLT viewer tab |
-| `tab_xslt_developer.fxml` | XSLT developer tab |
 | `tab_schematron.fxml` | Schematron tab |
 | `tab_fop.fxml` | FOP/PDF tab |
 | `tab_signature.fxml` | Digital signatures tab |

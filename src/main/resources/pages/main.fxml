@@ -124,11 +124,6 @@
                         <IconifyIcon iconLiteral="bi-file-earmark-code" iconSize="16" iconColor="#fd7e14"/>
                     </graphic>
                     <items>
-                        <MenuItem fx:id="menuXsltDeveloper" text="XSLT Developer..." onAction="#openXsltDeveloper">
-                            <graphic>
-                                <IconifyIcon iconLiteral="bi-arrow-repeat" iconSize="16" iconColor="#fd7e14"/>
-                            </graphic>
-                        </MenuItem>
                         <MenuItem fx:id="menuTemplateBuilder" text="Template Builder..." onAction="#openTemplateBuilder">
                             <graphic>
                                 <IconifyIcon iconLiteral="bi-file-earmark-ruled" iconSize="16" iconColor="#007bff"/>
@@ -298,17 +293,6 @@
                                         styleClass="menu_button" text="Editor" contentDisplay="LEFT" VBox.vgrow="ALWAYS">
                                     <graphic>
                                         <IconifyIcon iconColor="#3b5bdb" iconLiteral="bi-layout-sidebar-inset" iconSize="16"/>
-                                    </graphic>
-                                </Button>
-
-                                <!-- Section: TRANSFORMS -->
-                                <Separator fx:id="separatorTransforms" styleClass="sidebar-section-separator"/>
-                                <Label fx:id="sectionTransforms" text="TRANSFORMS" styleClass="sidebar-section-label"/>
-
-                                <Button fx:id="xsltDeveloper" mnemonicParsing="false" onAction="#loadPage"
-                                        styleClass="menu_button" text="XSLT Developer" contentDisplay="LEFT" VBox.vgrow="ALWAYS">
-                                    <graphic>
-                                        <IconifyIcon iconColor="#fd7e14" iconLiteral="bi-braces" iconSize="16"/>
                                     </graphic>
                                 </Button>
 

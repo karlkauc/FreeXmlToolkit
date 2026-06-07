@@ -568,7 +568,7 @@ public class WelcomeController {
         switch (fileType) {
             case XSD -> parentController.switchToXsdViewAndLoadFile(file);
             case SCHEMATRON -> parentController.switchToSchematronViewAndLoadFile(file);
-            case XSLT -> parentController.switchToXsltDeveloperAndLoadFile(file);
+            case XSLT -> parentController.openFileInShell(file);
             default -> parentController.switchToXmlViewAndLoadFile(file);
         }
 
@@ -625,7 +625,7 @@ public class WelcomeController {
             switch (fileType) {
                 case XSD -> parentController.switchToXsdViewAndLoadFile(file);
                 case SCHEMATRON -> parentController.switchToSchematronViewAndLoadFile(file);
-                case XSLT -> parentController.switchToXsltDeveloperAndLoadFile(file);
+                case XSLT -> parentController.openFileInShell(file);
                 case WSDL, XML -> parentController.switchToXmlViewAndLoadFile(file);
                 default -> {
                     logger.warn("Unknown file type for '{}', opening in XML editor", file.getName());
@@ -747,14 +747,6 @@ public class WelcomeController {
     @FXML
     public void openJsonEditor() {
         navigateTo("unifiedShell");
-    }
-
-    /**
-     * Opens the XSLT Developer page.
-     */
-    @FXML
-    public void openXsltDeveloper() {
-        navigateTo("xsltDeveloper");
     }
 
     /**

@@ -99,19 +99,6 @@
                     </HBox>
                 </VBox>
 
-                <!-- XSLT Developer Card -->
-                <VBox styleClass="action-card" spacing="8" HBox.hgrow="ALWAYS" minHeight="160"                      onMouseClicked="#openXsltDeveloper">
-                    <StackPane styleClass="action-card-icon-wrapper, action-card-icon-yellow">
-                        <IconifyIcon iconLiteral="bi-arrow-repeat" iconSize="24" iconColor="#d97706"/>
-                    </StackPane>
-                    <Label text="XSLT Developer" styleClass="action-card-title" wrapText="true"/>
-                    <Label text="Transform XML with XSLT." styleClass="action-card-description" wrapText="true"/>
-                    <Region VBox.vgrow="ALWAYS"/>
-                    <HBox alignment="CENTER_LEFT" spacing="4" styleClass="action-card-link">
-                        <Label text="Open XSLT" styleClass="action-link-text" wrapText="true"/>
-                        <IconifyIcon iconLiteral="bi-arrow-right" iconSize="14" iconColor="#2563eb"/>
-                    </HBox>
-                </VBox>
             </HBox>
 
             <!-- Action Cards Row 2 -->
