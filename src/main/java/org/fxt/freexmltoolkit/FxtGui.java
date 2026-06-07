@@ -347,8 +347,8 @@ public class FxtGui extends Application {
      * It performs the following cleanup operations:
      * <ul>
      *   <li>Shuts down the global executor service</li>
-     *   <li>Shuts down scheduler and service executors from MainController</li>
-     *   <li>Calls shutdown on the MainController for controller-specific cleanup</li>
+     *   <li>Shuts down the shared executor and the ShellBootstrap scheduler</li>
+     *   <li>Shuts down the update-check service and the XSLT/XPath engines and the thread-pool manager</li>
      *   <li>Records application runtime duration</li>
      *   <li>Saves runtime statistics to application properties</li>
      * </ul>
@@ -360,7 +360,6 @@ public class FxtGui extends Application {
     @Override
     public void stop() {
         logger.debug("stopping Application");
-        executorService.shutdown();
         shutdownExecutor(executorService);
 
         // Shell startup scheduler
