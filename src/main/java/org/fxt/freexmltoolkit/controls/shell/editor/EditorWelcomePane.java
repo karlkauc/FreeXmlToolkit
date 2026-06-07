@@ -163,7 +163,8 @@ public class EditorWelcomePane extends VBox {
                 double progress = org.fxt.freexmltoolkit.service.SkillTracker
                         .getCategoryProgress(cat.name(), statsModel);
                 Label name = new Label(cat.name());
-                javafx.scene.control.ProgressBar bar = new javafx.scene.control.ProgressBar(progress);
+                // getCategoryProgress returns a 0–100 percentage; ProgressBar wants 0.0–1.0.
+                javafx.scene.control.ProgressBar bar = new javafx.scene.control.ProgressBar(progress / 100.0);
                 bar.setPrefWidth(140);
                 grid.add(name, 0, row);
                 grid.add(bar, 1, row);

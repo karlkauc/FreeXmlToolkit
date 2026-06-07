@@ -705,6 +705,16 @@
     -fx-text-fill: -fxt-text-secondary;
 }
 
+/* Activity trend + sparkline */
+.fxt-welcome-trend {
+    -fx-spacing: 8;
+}
+.fxt-welcome-sparkline {
+    -fx-stroke: -fxt-primary;
+    -fx-stroke-width: 2;
+    -fx-fill: transparent;
+}
+
 /* Tips banner */
 .fxt-welcome-tips {
     -fx-background-color: rgba(59, 91, 219, 0.08);

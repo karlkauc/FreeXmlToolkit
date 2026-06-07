@@ -21,6 +21,13 @@ class WelcomeTrendTest {
     }
 
     @Test
+    void singleElementSeriesIsFlatZero() {
+        List<Double> norm = WelcomeTrend.normalize(List.of(5));
+        assertEquals(1, norm.size());
+        assertEquals(0.0, norm.get(0), 1e-9);
+    }
+
+    @Test
     void allZeroSeriesIsFlatZero() {
         List<Double> norm = WelcomeTrend.normalize(List.of(0, 0, 0));
         assertTrue(norm.stream().allMatch(v -> v == 0.0));
