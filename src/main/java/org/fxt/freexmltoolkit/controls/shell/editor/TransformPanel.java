@@ -64,6 +64,8 @@ public class TransformPanel extends VBox {
     private final MenuButton recentXsltMenu = new MenuButton("Recent");
     private final CheckBox livePreview = new CheckBox("Live preview");
     private final CheckBox watchXslt = new CheckBox("Watch file");
+    private final CheckBox profileCheck = new CheckBox("Profile");
+    private final CheckBox traceCheck = new CheckBox("Trace");
     private final PauseTransition liveDebounce = new PauseTransition(Duration.millis(600));
     private File xsltFile;
     private long lastXsltModified;
@@ -168,6 +170,13 @@ public class TransformPanel extends VBox {
         xqueryArea.getStyleClass().add("fxt-xpath-field");
         Button runXQuery = button("Run XQuery", "bi-braces", this::runXQuery);
 
+        Label advancedLabel = new Label("ADVANCED");
+        advancedLabel.getStyleClass().add("fxt-side-panel-title");
+        Button debugButton = button("Debug", "bi-bug", this::startDebug);
+        Button batchButton = button("Batch…", "bi-files", this::openBatch);
+        HBox advancedButtons = new HBox(6, debugButton, batchButton);
+        HBox advancedChecks = new HBox(12, profileCheck, traceCheck);
+
         getChildren().addAll(title,
                 xsltRow(setXslt), SidePanelLayout.fill(transform),
                 new HBox(12, livePreview, watchXslt), xsltStatus,
@@ -176,6 +185,7 @@ public class TransformPanel extends VBox {
                 pathLabel, new HBox(6, xpathField, runXPath),
                 new HBox(6, saveQuery, savedQueriesMenu),
                 xqueryLabel, xqueryArea, SidePanelLayout.fill(runXQuery),
+                advancedLabel, advancedButtons, advancedChecks,
                 resultHeader, resultStack);
     }
 
@@ -274,6 +284,26 @@ public class TransformPanel extends VBox {
     /** Sets the output format (also from the combo); used by tests. */
     public void setOutputFormat(OutputFormat format) {
         outputFormat.setValue(format);
+    }
+
+    /** Launches the interactive XSLT debugger for the active XML + selected stylesheet. */
+    public void startDebug() {
+        if (xsltFile == null) {
+            output.setText("Select an XSLT stylesheet first.");
+            return;
+        }
+        if (editorHost.getActiveDocument().isEmpty()) {
+            output.setText("No document open.");
+            return;
+        }
+        String xml = editorHost.getActiveText().orElse("");
+        editorHost.startXsltDebug(xsltFile, xml, collectParameters(),
+                outputFormat.getValue() != null ? outputFormat.getValue() : OutputFormat.XML);
+    }
+
+    /** Opens the batch-transform tool tab. (Implemented in Task 3.) */
+    public void openBatch() {
+        output.setText("Batch processing is not yet available.");
     }
 
     /**

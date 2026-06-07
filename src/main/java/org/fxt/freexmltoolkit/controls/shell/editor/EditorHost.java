@@ -1280,6 +1280,53 @@ public class EditorHost extends BorderPane {
         }
     }
 
+    /**
+     * Launches an interactive XSLT debug session: opens the stylesheet as an editor
+     * document, attaches a breakpoint gutter, and opens the Debug tool tab.
+     */
+    public void startXsltDebug(java.io.File xsltFile, String xml,
+            java.util.Map<String, Object> parameters,
+            org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat format) {
+        // 1. Open (or focus) the stylesheet as an editor document.
+        openFile(xsltFile);
+        OpenDocument xsltDoc = getActiveDocument().orElse(null);
+        if (xsltDoc == null) {
+            return;
+        }
+
+        // 2. Build the debug controller + gutter and attach the gutter to the XSLT tab.
+        var controller = new org.fxt.freexmltoolkit.controls.shell.editor.debug.XsltDebugController();
+        var gutter = new org.fxt.freexmltoolkit.debugger.ui.BreakpointGutterFactory(
+                controller.getSession(), v -> refreshGutterFor(xsltDoc));
+        gutter.setFilePath(xsltFile.getAbsolutePath());
+        setGutterFactoryFor(xsltDoc, gutter);
+
+        // 3. Open the Debug tool tab; wire current-line + show-in-editor back to this host.
+        var debugView = new org.fxt.freexmltoolkit.controls.shell.editor.debug.XsltDebugView(
+                controller,
+                xsltFile.getAbsolutePath(),
+                () -> getActiveText().orElse(xml),
+                line -> { gutter.setCurrentExecutionLine(line); refreshGutterFor(xsltDoc); },
+                () -> {
+                    selectDocument(xsltDoc);
+                    int line = controller.getSession().getPausedSnapshot() != null
+                            ? controller.getSession().getPausedSnapshot().lineNumber() : 1;
+                    if (line > 0) {
+                        goToLine(line);
+                    }
+                });
+        openToolTab("Debug", "bi-bug", debugView);
+
+        // 4. Start the run (any breakpoints set via the gutter are already on the session).
+        String xsltContent;
+        try {
+            xsltContent = java.nio.file.Files.readString(xsltFile.toPath(), java.nio.charset.StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            xsltContent = "";
+        }
+        controller.start(xml, xsltContent, parameters, format);
+    }
+
     // ----- internals -------------------------------------------------------
 
     private void withActive(java.util.function.Consumer<EditorTab> action) {
