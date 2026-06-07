@@ -39,6 +39,7 @@ public class EditorWelcomePane extends VBox {
     private final Label favoritesStat = new Label("0");
     private final Label templatesStat = new Label("0");
     private final Label queriesStat = new Label("0");
+    private int sparklinePointCount;
 
     /** Data-backed dashboard counters (recent files, favorites, templates, saved queries). */
     public record WelcomeStats(int recentFiles, int favorites, int templates, int savedQueries) {
@@ -62,6 +63,7 @@ public class EditorWelcomePane extends VBox {
                 buildHero(),
                 buildQuickActions(onNew, onOpen, onAction),
                 buildStats(),
+                buildTrend(),
                 buildTips(),
                 buildLowerRow(onOpenRecent, onClearRecent, onAction));
         content.getStyleClass().add("fxt-welcome-content");
@@ -124,6 +126,63 @@ public class EditorWelcomePane extends VBox {
         card.setMaxWidth(Double.MAX_VALUE);
         card.getStyleClass().add("fxt-welcome-stat-card");
         return card;
+    }
+
+    private javafx.scene.layout.Region buildTrend() {
+        javafx.scene.layout.VBox box = new javafx.scene.layout.VBox(8);
+        box.getStyleClass().add("fxt-welcome-trend");
+
+        Label title = new Label("ACTIVITY (LAST 7 DAYS)");
+        title.getStyleClass().add("fxt-side-panel-title");
+
+        java.util.List<Double> norm = WelcomeTrend.normalize(WelcomeTrend.dailyTotals(7));
+        javafx.scene.shape.Polyline line = new javafx.scene.shape.Polyline();
+        line.getStyleClass().add("fxt-welcome-sparkline");
+        double w = 220, h = 40;
+        if (norm.size() >= 2) {
+            double step = w / (norm.size() - 1);
+            for (int i = 0; i < norm.size(); i++) {
+                line.getPoints().addAll(i * step, h - norm.get(i) * h);
+            }
+        }
+        this.sparklinePointCount = line.getPoints().size() / 2;
+        javafx.scene.layout.Pane spark = new javafx.scene.layout.Pane(line);
+        spark.setMinSize(w, h);
+        spark.setPrefSize(w, h);
+        spark.setMaxSize(w, h);
+
+        // Feature-progress grid: one labelled progress bar per category.
+        javafx.scene.layout.GridPane grid = new javafx.scene.layout.GridPane();
+        grid.setHgap(10);
+        grid.setVgap(6);
+        var stats = org.fxt.freexmltoolkit.service.UsageTrackingServiceImpl.getInstance();
+        int row = 0;
+        try {
+            var statsModel = stats.getStatistics();
+            for (var cat : org.fxt.freexmltoolkit.service.SkillTracker.getFeaturesByCategory()) {
+                double progress = org.fxt.freexmltoolkit.service.SkillTracker
+                        .getCategoryProgress(cat.name(), statsModel);
+                Label name = new Label(cat.name());
+                javafx.scene.control.ProgressBar bar = new javafx.scene.control.ProgressBar(progress);
+                bar.setPrefWidth(140);
+                grid.add(name, 0, row);
+                grid.add(bar, 1, row);
+                row++;
+            }
+        } catch (Throwable ignored) {
+            // no stats model available → omit the grid gracefully
+        }
+
+        box.getChildren().addAll(title, spark);
+        if (row > 0) {
+            box.getChildren().add(grid);
+        }
+        return box;
+    }
+
+    /** @return the number of points in the rendered sparkline (for tests/observers). */
+    public int getSparklinePointCount() {
+        return sparklinePointCount;
     }
 
     private Region buildTips() {
