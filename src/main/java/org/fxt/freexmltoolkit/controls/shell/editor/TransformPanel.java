@@ -441,18 +441,35 @@ public class TransformPanel extends VBox {
         FxtGui.executorService.submit(() -> {
             long start = System.nanoTime();
             String result;
+            String xsltContent = "";
             try {
-                String xsltContent = Files.readString(xslt.toPath(), StandardCharsets.UTF_8);
+                xsltContent = Files.readString(xslt.toPath(), StandardCharsets.UTF_8);
                 result = TransformRunner.xsltTransform(xml, xsltContent, params, format);
             } catch (Exception e) {
                 result = "ERROR: " + e.getMessage();
             }
             long elapsedMs = (System.nanoTime() - start) / 1_000_000;
             String finalResult = result;
+            boolean wantProfile = profileCheck.isSelected();
+            boolean wantTrace = traceCheck.isSelected();
+            org.fxt.freexmltoolkit.service.XsltTransformationResult report =
+                    (wantProfile || wantTrace) && !xsltContent.isBlank()
+                            ? TransformRunner.transformForReport(xml, xsltContent, params, format)
+                            : null;
             Platform.runLater(() -> {
                 output.setText(finalResult);
                 statsLabel.setText(statsText(finalResult, elapsedMs));
                 textToggle.setSelected(true);
+                if (report != null && report.isSuccess()) {
+                    if (wantProfile) {
+                        editorHost.openToolTab("Profile", "bi-speedometer2",
+                                new org.fxt.freexmltoolkit.controls.shell.editor.debug.ProfileView(report));
+                    }
+                    if (wantTrace) {
+                        editorHost.openToolTab("Trace", "bi-list-columns",
+                                new org.fxt.freexmltoolkit.controls.shell.editor.debug.TraceView(report));
+                    }
+                }
             });
         });
     }
