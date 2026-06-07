@@ -7,7 +7,6 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
-import org.fxt.freexmltoolkit.controller.MainController;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.framework.junit5.ApplicationExtension;
@@ -15,23 +14,21 @@ import org.testfx.framework.junit5.Start;
 import org.testfx.util.WaitForAsyncUtils;
 
 /**
- * Integration smoke test: loads the real application shell ({@code main.fxml} +
- * {@link MainController}) and navigates to the Unified Shell preview, asserting
- * it renders within the full app (CSS, service registry, controller wiring) —
- * not just in isolation. Guards the upcoming cutover.
+ * Integration smoke test: loads the real shell FXML ({@code tab_unified_shell.fxml})
+ * exactly as {@code FxtGui} now boots it — as the root scene, with no MainController
+ * and no navigation. Asserts the Unified Shell renders within the full app context
+ * (CSS, service registry, controller wiring), not just in isolation.
  */
 @ExtendWith(ApplicationExtension.class)
 class UnifiedShellIntegrationTest {
 
     private Parent root;
-    private MainController mainController;
 
     @Start
     void start(Stage stage) throws Exception {
         org.fxt.freexmltoolkit.di.ServiceRegistry.initialize();
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/pages/main.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/pages/tab_unified_shell.fxml"));
         root = loader.load();
-        mainController = loader.getController();
         // Keep below the Monocle headless screen size (~1280x800) to avoid a
         // blit BufferOverflow; this test verifies wiring, not pixel rendering.
         stage.setScene(new Scene(root, 1024, 720));
@@ -41,11 +38,6 @@ class UnifiedShellIntegrationTest {
     @Test
     void unifiedShellLoadsInsideTheRealApp() {
         WaitForAsyncUtils.waitForFxEvents();
-        WaitForAsyncUtils.waitForAsyncFx(3000, () -> {
-            mainController.navigateToPage("unifiedShell");
-            return null;
-        });
-        WaitForAsyncUtils.waitForFxEvents();
 
         assertNotNull(root.lookup(".fxt-shell"), "Unified shell root must render in the full app");
         assertNotNull(root.lookup(".fxt-activity-bar"), "Activity bar must render");
@@ -53,42 +45,16 @@ class UnifiedShellIntegrationTest {
     }
 
     @Test
-    void shellFillsTheContentAreaVertically() {
-        WaitForAsyncUtils.waitForFxEvents();
-        WaitForAsyncUtils.waitForAsyncFx(3000, () -> {
-            mainController.navigateToPage("unifiedShell");
-            return null;
-        });
+    void shellFillsTheSceneVertically() {
         WaitForAsyncUtils.waitForFxEvents();
 
         javafx.scene.layout.Region shell = (javafx.scene.layout.Region) root.lookup(".fxt-shell");
         assertNotNull(shell);
-        // The shell must stretch to its container (the content AnchorPane), so the
-        // status bar is pinned to the bottom rather than floating at preferred size.
-        double containerHeight = ((javafx.scene.layout.Region) shell.getParent()).getHeight();
-        assertTrue(containerHeight > 300, "content area must have a real height: " + containerHeight);
-        assertEquals(containerHeight, shell.getHeight(), 1.0,
-                "the shell must fill the content area's height (status bar pinned to the bottom)");
-    }
-
-    @Test
-    void hidesLegacyFooterInShellMode() {
-        WaitForAsyncUtils.waitForFxEvents();
-        WaitForAsyncUtils.waitForAsyncFx(3000, () -> {
-            mainController.navigateToPage("unifiedShell");
-            return null;
-        });
-        WaitForAsyncUtils.waitForFxEvents();
-        javafx.scene.Node footer = root.lookup(".bottom_line");
-        assertNotNull(footer, "the legacy footer node exists");
-        assertFalse(footer.isManaged(), "the legacy footer must be hidden (unmanaged) in shell mode");
-
-        // Switching to a legacy page restores the footer.
-        WaitForAsyncUtils.waitForAsyncFx(3000, () -> {
-            mainController.navigateToPage("settings");
-            return null;
-        });
-        WaitForAsyncUtils.waitForFxEvents();
-        assertTrue(root.lookup(".bottom_line").isManaged(), "the legacy footer returns for legacy pages");
+        // The shell is the scene root, so it must stretch to the scene height with
+        // the status bar pinned to the bottom rather than floating at preferred size.
+        double sceneHeight = shell.getScene().getHeight();
+        assertTrue(sceneHeight > 300, "scene must have a real height: " + sceneHeight);
+        assertEquals(sceneHeight, shell.getHeight(), 1.0,
+                "the shell must fill the scene height (status bar pinned to the bottom)");
     }
 }

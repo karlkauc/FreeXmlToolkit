@@ -227,13 +227,15 @@ public class FxtGui extends Application {
             try {
                 splash.updateProgress(LoadingStep.LOADING_UI);
 
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("/pages/main.fxml"));
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/pages/tab_unified_shell.fxml"));
                 Parent root = loader.load();
-                mainController = loader.getController();
 
                 splash.updateProgress(LoadingStep.CONFIGURING);
 
                 var scene = new Scene(root, 1024, 768);
+
+                org.fxt.freexmltoolkit.controls.shell.ThemeManager.apply(scene,
+                        org.fxt.freexmltoolkit.controls.shell.ThemeManager.currentIsDark());
 
                 setupTaskbarIcons(primaryStage);
 
@@ -261,6 +263,8 @@ public class FxtGui extends Application {
                 readyPause.play();
 
                 startUsageTracking();
+
+                org.fxt.freexmltoolkit.controls.shell.ShellBootstrap.getInstance().scheduleStartupTasks();
             } catch (IOException e) {
                 logger.error("Failed to load main UI", e);
                 splash.dismiss(null);
@@ -357,21 +361,40 @@ public class FxtGui extends Application {
     public void stop() {
         logger.debug("stopping Application");
         executorService.shutdown();
-        mainController.scheduler.shutdown();
-
         shutdownExecutor(executorService);
-        shutdownExecutor(mainController.scheduler);
-        shutdownExecutor(mainController.service);
 
-        // Shutdown centralized thread pool manager
+        // Shell startup scheduler
         try {
-            ThreadPoolManager.getInstance().shutdown();
-            logger.debug("ThreadPoolManager shut down successfully");
-        } catch (Exception e) {
-            logger.warn("Error shutting down ThreadPoolManager", e);
+            org.fxt.freexmltoolkit.controls.shell.ShellBootstrap.getInstance().shutdown();
+        } catch (Throwable t) {
+            logger.warn("Error shutting down ShellBootstrap: {}", t.getMessage());
         }
 
-        mainController.shutdown();
+        // Application services (previously shut down by MainController.shutdown())
+        try {
+            org.fxt.freexmltoolkit.service.UpdateCheckService svc =
+                    ServiceRegistry.get(org.fxt.freexmltoolkit.service.UpdateCheckService.class);
+            if (svc != null) {
+                svc.shutdown();
+            }
+        } catch (Throwable t) {
+            logger.warn("Error shutting down UpdateCheckService: {}", t.getMessage());
+        }
+        try {
+            org.fxt.freexmltoolkit.service.XsltTransformationEngine.getInstance().shutdown();
+        } catch (Throwable t) {
+            logger.warn("Error shutting down XsltTransformationEngine: {}", t.getMessage());
+        }
+        try {
+            org.fxt.freexmltoolkit.service.XPathExecutionEngine.getInstance().shutdown();
+        } catch (Throwable t) {
+            logger.warn("Error shutting down XPathExecutionEngine: {}", t.getMessage());
+        }
+        try {
+            ThreadPoolManager.getInstance().shutdown();
+        } catch (Throwable t) {
+            logger.warn("Error shutting down ThreadPoolManager: {}", t.getMessage());
+        }
 
         // End usage tracking session
         try {
