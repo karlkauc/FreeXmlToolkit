@@ -106,6 +106,13 @@ public class TransformPanel extends VBox {
                 }));
         xsltWatch.setCycleCount(javafx.animation.Animation.INDEFINITE);
         xsltWatch.play();
+        // Stop polling once this panel leaves the scene (a new TransformPanel is created
+        // on each activity switch) so the Timeline does not leak across switches.
+        sceneProperty().addListener((obs, oldScene, newScene) -> {
+            if (newScene == null) {
+                xsltWatch.stop();
+            }
+        });
 
         // XSLT parameters (name/value rows) + output format.
         Label paramsLabel = new Label("PARAMETERS");

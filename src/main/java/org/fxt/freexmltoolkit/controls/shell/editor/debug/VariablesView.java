@@ -2,10 +2,8 @@ package org.fxt.freexmltoolkit.controls.shell.editor.debug;
 
 import java.util.List;
 
-import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
-import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -24,10 +22,10 @@ public class VariablesView extends VBox {
         Label title = new Label("VARIABLES");
         title.getStyleClass().add("fxt-side-panel-title");
 
-        table.getColumns().add(col("Name", b -> b.name(), 120));
-        table.getColumns().add(col("Value", b -> b.value(), -1));
-        table.getColumns().add(col("Type", b -> b.type(), 110));
-        table.getColumns().add(col("Scope", b -> b.scope().name(), 80));
+        table.getColumns().add(DebugTableColumns.col("Name", b -> b.name(), 120));
+        table.getColumns().add(DebugTableColumns.col("Value", b -> b.value(), -1));
+        table.getColumns().add(DebugTableColumns.col("Type", b -> b.type(), 110));
+        table.getColumns().add(DebugTableColumns.col("Scope", b -> b.scope().name(), 80));
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         table.setPlaceholder(new Label("Not paused."));
         VBox.setVgrow(table, Priority.ALWAYS);
@@ -44,15 +42,5 @@ public class VariablesView extends VBox {
 
     public int getRowCount() {
         return table.getItems().size();
-    }
-
-    private static TableColumn<VariableBinding, String> col(String title,
-            java.util.function.Function<VariableBinding, String> value, double prefWidth) {
-        TableColumn<VariableBinding, String> column = new TableColumn<>(title);
-        column.setCellValueFactory(c -> new ReadOnlyStringWrapper(value.apply(c.getValue())));
-        if (prefWidth > 0) {
-            column.setPrefWidth(prefWidth);
-        }
-        return column;
     }
 }

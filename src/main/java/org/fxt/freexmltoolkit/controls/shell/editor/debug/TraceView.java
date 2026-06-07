@@ -1,9 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.debug;
 
-import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
-import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -25,9 +23,9 @@ public class TraceView extends VBox {
 
         Label matchTitle = new Label("TEMPLATE MATCHES");
         matchTitle.getStyleClass().add("fxt-side-panel-title");
-        matches.getColumns().add(matchCol("Pattern", t -> t.pattern() != null ? t.pattern() : "", 200));
-        matches.getColumns().add(matchCol("Name", t -> t.name() != null ? t.name() : "", 140));
-        matches.getColumns().add(matchCol("Line", t -> Integer.toString(t.lineNumber()), 60));
+        matches.getColumns().add(DebugTableColumns.col("Pattern", t -> t.pattern() != null ? t.pattern() : "", 200));
+        matches.getColumns().add(DebugTableColumns.col("Name", t -> t.name() != null ? t.name() : "", 140));
+        matches.getColumns().add(DebugTableColumns.col("Line", t -> Integer.toString(t.lineNumber()), 60));
         matches.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         matches.setPlaceholder(new Label("No template matches captured."));
         if (result.getTemplateMatches() != null) {
@@ -37,8 +35,8 @@ public class TraceView extends VBox {
 
         Label msgTitle = new Label("MESSAGES");
         msgTitle.getStyleClass().add("fxt-side-panel-title");
-        messages.getColumns().add(msgCol("Level", TransformationMessage::getLevel, 80));
-        messages.getColumns().add(msgCol("Message", TransformationMessage::getMessage, -1));
+        messages.getColumns().add(DebugTableColumns.col("Level", TransformationMessage::getLevel, 80));
+        messages.getColumns().add(DebugTableColumns.col("Message", TransformationMessage::getMessage, -1));
         messages.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         messages.setPlaceholder(new Label("No xsl:message output."));
         if (result.getMessages() != null) {
@@ -55,25 +53,5 @@ public class TraceView extends VBox {
 
     public int getMessageCount() {
         return messages.getItems().size();
-    }
-
-    private static TableColumn<TemplateMatchInfo, String> matchCol(String title,
-            java.util.function.Function<TemplateMatchInfo, String> value, double prefWidth) {
-        TableColumn<TemplateMatchInfo, String> column = new TableColumn<>(title);
-        column.setCellValueFactory(c -> new ReadOnlyStringWrapper(value.apply(c.getValue())));
-        if (prefWidth > 0) {
-            column.setPrefWidth(prefWidth);
-        }
-        return column;
-    }
-
-    private static TableColumn<TransformationMessage, String> msgCol(String title,
-            java.util.function.Function<TransformationMessage, String> value, double prefWidth) {
-        TableColumn<TransformationMessage, String> column = new TableColumn<>(title);
-        column.setCellValueFactory(c -> new ReadOnlyStringWrapper(value.apply(c.getValue())));
-        if (prefWidth > 0) {
-            column.setPrefWidth(prefWidth);
-        }
-        return column;
     }
 }

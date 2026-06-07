@@ -7,11 +7,9 @@ import java.util.List;
 import java.util.Map;
 
 import javafx.application.Platform;
-import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.HBox;
@@ -64,9 +62,9 @@ public class BatchTransformView extends VBox {
         Button clear = button("Clear", "bi-trash", () -> { inputFiles.clear(); refreshFileTable(); });
         HBox fileButtons = new HBox(6, addFiles, addDir, removeSel, clear);
 
-        table.getColumns().add(col("File", r -> r.file().getName(), 200));
-        table.getColumns().add(col("Status", r -> r.ok() ? "OK" : "ERROR", 80));
-        table.getColumns().add(col("ms", r -> Long.toString(r.timeMs()), 60));
+        table.getColumns().add(DebugTableColumns.col("File", r -> r.file().getName(), 200));
+        table.getColumns().add(DebugTableColumns.col("Status", r -> r.ok() ? "OK" : "ERROR", 80));
+        table.getColumns().add(DebugTableColumns.col("ms", r -> Long.toString(r.timeMs()), 60));
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         table.setPlaceholder(new Label("Add XML files to process."));
         table.getSelectionModel().selectedItemProperty().addListener((obs, o, sel) ->
@@ -113,10 +111,19 @@ public class BatchTransformView extends VBox {
 
     private void removeSelected() {
         BatchFileResult sel = table.getSelectionModel().getSelectedItem();
-        if (sel != null) {
-            inputFiles.remove(sel.file());
-            refreshFileTable();
+        if (sel == null) {
+            return;
         }
+        // Keep inputFiles, lastResults and the visible table consistent across both states:
+        // pre-run the table shows placeholder rows over inputFiles; post-run it shows lastResults.
+        inputFiles.remove(sel.file());
+        if (!lastResults.isEmpty()) {
+            List<BatchFileResult> remaining = new ArrayList<>(lastResults);
+            remaining.remove(sel);
+            lastResults = remaining;
+        }
+        table.getItems().remove(sel);
+        summary.setText(inputFiles.size() + " file(s).");
     }
 
     /** Shows the current input files (un-run) as placeholder rows. */
@@ -183,15 +190,5 @@ public class BatchTransformView extends VBox {
         button.getStyleClass().add("fxt-tool-button");
         button.setOnAction(e -> action.run());
         return button;
-    }
-
-    private static TableColumn<BatchFileResult, String> col(String title,
-            java.util.function.Function<BatchFileResult, String> value, double prefWidth) {
-        TableColumn<BatchFileResult, String> column = new TableColumn<>(title);
-        column.setCellValueFactory(c -> new ReadOnlyStringWrapper(value.apply(c.getValue())));
-        if (prefWidth > 0) {
-            column.setPrefWidth(prefWidth);
-        }
-        return column;
     }
 }

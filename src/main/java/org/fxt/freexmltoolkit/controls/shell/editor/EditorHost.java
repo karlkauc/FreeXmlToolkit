@@ -1287,6 +1287,15 @@ public class EditorHost extends BorderPane {
     public void startXsltDebug(java.io.File xsltFile, String xml,
             java.util.Map<String, Object> parameters,
             org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat format) {
+        // A Debug session mutates the singleton transformation-engine state; only one at a time.
+        // If a Debug tab is already open, bring it to the front instead of starting a second.
+        for (Tab t : tabPane.getTabs()) {
+            if (t.getContent() instanceof org.fxt.freexmltoolkit.controls.shell.editor.debug.XsltDebugView) {
+                tabPane.getSelectionModel().select(t);
+                return;
+            }
+        }
+
         // 1. Open (or focus) the stylesheet as an editor document.
         openFile(xsltFile);
         OpenDocument xsltDoc = getActiveDocument().orElse(null);

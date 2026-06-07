@@ -2,11 +2,9 @@ package org.fxt.freexmltoolkit.controls.shell.editor.debug;
 
 import java.util.function.Supplier;
 
-import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
@@ -43,8 +41,8 @@ public class WatchView extends VBox {
         Label title = new Label("WATCH");
         title.getStyleClass().add("fxt-side-panel-title");
 
-        table.getColumns().add(col("Expression", WatchRow::getExpression, 180));
-        table.getColumns().add(col("Value", WatchRow::getValue, -1));
+        table.getColumns().add(DebugTableColumns.col("Expression", WatchRow::getExpression, 180));
+        table.getColumns().add(DebugTableColumns.col("Value", WatchRow::getValue, -1));
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         table.setPlaceholder(new Label("No watches."));
         VBox.setVgrow(table, Priority.ALWAYS);
@@ -105,15 +103,5 @@ public class WatchView extends VBox {
 
     public int getRowCount() {
         return table.getItems().size();
-    }
-
-    private static TableColumn<WatchRow, String> col(String title,
-            java.util.function.Function<WatchRow, String> value, double prefWidth) {
-        TableColumn<WatchRow, String> column = new TableColumn<>(title);
-        column.setCellValueFactory(c -> new ReadOnlyStringWrapper(value.apply(c.getValue())));
-        if (prefWidth > 0) {
-            column.setPrefWidth(prefWidth);
-        }
-        return column;
     }
 }

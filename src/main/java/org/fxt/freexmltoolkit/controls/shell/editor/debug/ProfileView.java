@@ -1,9 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.debug;
 
-import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
-import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -29,9 +27,9 @@ public class ProfileView extends VBox {
         summary.setText("Total " + totalMs + " ms · output " + outputSize + " chars · "
                 + templateCount + " template match(es)");
 
-        table.getColumns().add(col("Template", t -> displayName(t), 240));
-        table.getColumns().add(col("Line", t -> Integer.toString(t.lineNumber()), 60));
-        table.getColumns().add(col("Time (ms)", t -> Long.toString(t.executionTime()), 90));
+        table.getColumns().add(DebugTableColumns.col("Template", t -> displayName(t), 240));
+        table.getColumns().add(DebugTableColumns.col("Line", t -> Integer.toString(t.lineNumber()), 60));
+        table.getColumns().add(DebugTableColumns.col("Time (ms)", t -> Long.toString(t.executionTime()), 90));
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         table.setPlaceholder(new Label("No template timing captured."));
         if (result.getTemplateMatches() != null) {
@@ -57,15 +55,5 @@ public class ProfileView extends VBox {
 
     public String getSummaryText() {
         return summary.getText();
-    }
-
-    private static TableColumn<TemplateMatchInfo, String> col(String title,
-            java.util.function.Function<TemplateMatchInfo, String> value, double prefWidth) {
-        TableColumn<TemplateMatchInfo, String> column = new TableColumn<>(title);
-        column.setCellValueFactory(c -> new ReadOnlyStringWrapper(value.apply(c.getValue())));
-        if (prefWidth > 0) {
-            column.setPrefWidth(prefWidth);
-        }
-        return column;
     }
 }
