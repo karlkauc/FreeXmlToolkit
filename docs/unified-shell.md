@@ -170,6 +170,26 @@ The RESULT area has a **Text / Table** toggle:
 To use it, write an XQuery that returns a sequence (for example
 `for $x in /root/item return $x`), click **Run XQuery**, then switch the toggle to **Table**.
 
+### Advanced XSLT tools
+
+The Transform side panel's **Advanced** section adds:
+
+- **Debug** - opens the stylesheet as a document with a breakpoint gutter and a
+  Debug tool tab (step into/over/out, continue, stop; variables, call stack,
+  breakpoints, and XPath watches).
+- **Batch…** - runs the active stylesheet/XQuery over many XML files, with
+  per-file results and "Save All".
+- **Profile** / **Trace** - when checked, a transform also opens a read-only
+  Profile (timings + per-template execution times) or Trace (template matches +
+  `xsl:message` output) tool tab.
+
+The XQuery console offers built-in **Examples** (simple, FLWOR, HTML report,
+data-quality check).
+
+> XSLT version selection (1.0/2.0/3.0) is intentionally not offered: Saxon HE
+> auto-detects the version from the stylesheet's `version` attribute, so an
+> explicit selector would be cosmetic.
+
 ## Validation Panel
 
 Open the **Validation** panel from the activity bar to validate the active document.

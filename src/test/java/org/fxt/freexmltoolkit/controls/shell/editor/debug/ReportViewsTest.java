@@ -6,6 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Map;
 
+import javafx.stage.Stage;
+
 import org.fxt.freexmltoolkit.controls.shell.editor.TransformRunner;
 import org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat;
 import org.fxt.freexmltoolkit.service.XsltTransformationResult;
@@ -14,8 +16,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
 import org.testfx.util.WaitForAsyncUtils;
-
-import javafx.stage.Stage;
 
 /**
  * Smoke test: {@link ProfileView} and {@link TraceView} render a real

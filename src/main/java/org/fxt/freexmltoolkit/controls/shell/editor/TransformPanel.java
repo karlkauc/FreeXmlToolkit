@@ -7,8 +7,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.fxt.freexmltoolkit.controls.shell.editor.debug.BatchTransformView;
-
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyStringWrapper;
@@ -35,6 +33,7 @@ import javafx.util.Duration;
 
 import org.fxt.freexmltoolkit.FxtGui;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.controls.shell.editor.debug.BatchTransformView;
 import org.fxt.freexmltoolkit.service.FavoritesService;
 import org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat;
 
@@ -171,6 +170,13 @@ public class TransformPanel extends VBox {
         xqueryArea.setPrefRowCount(4);
         xqueryArea.getStyleClass().add("fxt-xpath-field");
         Button runXQuery = button("Run XQuery", "bi-braces", this::runXQuery);
+        MenuButton examplesMenu = new MenuButton("Examples");
+        examplesMenu.getStyleClass().add("fxt-tool-button");
+        examplesMenu.getItems().addAll(
+                exampleItem("Simple", "simple"),
+                exampleItem("FLWOR", "flwor"),
+                exampleItem("HTML report", "html"),
+                exampleItem("Data-quality check", "dq"));
 
         Label advancedLabel = new Label("ADVANCED");
         advancedLabel.getStyleClass().add("fxt-side-panel-title");
@@ -186,7 +192,7 @@ public class TransformPanel extends VBox {
                 outputFormatLabel, outputFormat,
                 pathLabel, new HBox(6, xpathField, runXPath),
                 new HBox(6, saveQuery, savedQueriesMenu),
-                xqueryLabel, xqueryArea, SidePanelLayout.fill(runXQuery),
+                xqueryLabel, xqueryArea, new HBox(6, runXQuery, examplesMenu),
                 advancedLabel, advancedButtons, advancedChecks,
                 resultHeader, resultStack);
     }
@@ -250,6 +256,28 @@ public class TransformPanel extends VBox {
     /** Sets the XQuery text (for tests/observers). */
     public void setXQuery(String xquery) {
         xqueryArea.setText(xquery);
+    }
+
+    /** @return the current XQuery text (for tests/observers). */
+    public String getXQueryText() {
+        return xqueryArea.getText();
+    }
+
+    /** Inserts a built-in XQuery example by key (simple, flwor, html, dq). */
+    public void insertXQueryExample(String key) {
+        String example = switch (key) {
+            case "flwor" -> "for $x in //item\norder by $x\nreturn <row>{string($x)}</row>";
+            case "html" -> "<html><body><ul>{\n  for $x in //item return <li>{string($x)}</li>\n}</ul></body></html>";
+            case "dq" -> "(: data-quality: items missing a value :)\nfor $x in //item[not(normalize-space())]\nreturn <missing>{name($x)}</missing>";
+            default -> "for $x in //item return string($x)";
+        };
+        xqueryArea.setText(example);
+    }
+
+    private MenuItem exampleItem(String label, String key) {
+        MenuItem item = new MenuItem(label);
+        item.setOnAction(e -> insertXQueryExample(key));
+        return item;
     }
 
     /** @return the current result-table column headers (for tests/observers). */
