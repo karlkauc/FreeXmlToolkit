@@ -140,6 +140,25 @@ public class ValidationPanel extends VBox {
                 toolsLabel, SidePanelLayout.fill(templates), SidePanelLayout.fill(tester),
                 SidePanelLayout.fill(builder), SidePanelLayout.fill(check), SidePanelLayout.fill(docs),
                 problemsLabel, list);
+
+        // FundsXML extension — only when enabled in the settings (conditional). The
+        // FundsXML activity is its primary home; a link remains here in the Validation
+        // panel so FundsXML validation is reachable from the validation context too.
+        if (FundsXmlRunner.isEnabled()) {
+            Label fundsTitle = new Label("FUNDSXML");
+            fundsTitle.getStyleClass().add("fxt-side-panel-title");
+            Button fundsValidate = new Button("Validate against FundsXML", icon("bi-check2-circle"));
+            fundsValidate.getStyleClass().add("fxt-tool-button");
+            fundsValidate.setOnAction(e -> {
+                String xml = editorHost.getActiveText().orElse(null);
+                status.setText("Validating against FundsXML…");
+                FxtGui.executorService.submit(() -> {
+                    String summary = FundsXmlRunner.validateSummary(xml);
+                    Platform.runLater(() -> status.setText(summary));
+                });
+            });
+            getChildren().addAll(fundsTitle, SidePanelLayout.fill(fundsValidate));
+        }
     }
 
     /** Opens the Schematron rule-template library as a tool tab; inserts into the active editor. */

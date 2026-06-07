@@ -242,6 +242,27 @@ class ValidationPanelTest {
                 "validating the XML against the chosen XSD must report the invalid element");
     }
 
+    @Test
+    void constructsWithFundsXmlSectionGatedOnFeatureFlag() {
+        // The FUNDSXML "Validate against FundsXML" link is conditional on the feature
+        // flag and may be absent when it is off — construction must succeed either way,
+        // and when the section is present its button must be wired.
+        ValidationPanel[] built = new ValidationPanel[1];
+        assertDoesNotThrow(() -> WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            built[0] = new ValidationPanel(host);
+            return null;
+        }));
+        WaitForAsyncUtils.waitForFxEvents();
+        assertNotNull(built[0], "ValidationPanel must construct");
+
+        boolean fundsButtonPresent = built[0].lookupAll(".button").stream()
+                .anyMatch(n -> n instanceof javafx.scene.control.Button b
+                        && "Validate against FundsXML".equals(b.getText()));
+        // The section is flag-gated; when enabled the button must be present.
+        assertEquals(FundsXmlRunner.isEnabled(), fundsButtonPresent,
+                "the FundsXML validation link must be present iff the feature flag is enabled");
+    }
+
     private void open(Path xml, Path xsd) throws Exception {
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
         WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
