@@ -68,6 +68,17 @@ public class SettingsPanel extends VBox {
     private final TextField proxyHost = new TextField();
     private final TextField proxyPort = new TextField();
 
+    // User info
+    private final TextField userName = new TextField();
+    private final TextField userEmail = new TextField();
+    private final TextField userCompany = new TextField();
+
+    // Security
+    private final CheckBox trustAllCerts = new CheckBox("Trust all certificates");
+
+    // Usage statistics
+    private final CheckBox trackingEnabled = new CheckBox("Enable usage tracking");
+
     public SettingsPanel() {
         getStyleClass().add("fxt-side-panel-content");
 
@@ -102,6 +113,17 @@ public class SettingsPanel extends VBox {
         clearTemp.getStyleClass().add("fxt-tool-button");
         clearTemp.setOnAction(e -> tempStatus.setText("Cleared " + clearTempFolder() + " file(s)."));
 
+        userName.setPromptText("name");
+        userEmail.setPromptText("email");
+        userCompany.setPromptText("company");
+
+        Button clearStats = new Button("Clear statistics", iconGraphic("bi-trash"));
+        clearStats.getStyleClass().add("fxt-tool-button");
+        clearStats.setOnAction(e -> {
+            org.fxt.freexmltoolkit.service.UsageTrackingServiceImpl.getInstance().clearStatistics();
+            tempStatus.setText("Usage statistics cleared.");
+        });
+
         Button save = new Button("Save Settings", iconGraphic("bi-save"));
         save.getStyleClass().add("fxt-tool-button");
         save.setOnAction(e -> {
@@ -128,6 +150,13 @@ public class SettingsPanel extends VBox {
                 fill(clearTemp), tempStatus,
                 section("GENERAL"),
                 updateCheck, smallIcons,
+                section("USER INFO"),
+                labeled("Name:", userName), labeled("Email:", userEmail),
+                labeled("Company:", userCompany),
+                section("SECURITY"),
+                trustAllCerts,
+                section("USAGE STATISTICS"),
+                trackingEnabled, fill(clearStats),
                 section("HTTP PROXY"),
                 useSystemProxy, proxyHost, proxyPort,
                 fill(save));
@@ -230,6 +259,13 @@ public class SettingsPanel extends VBox {
             useSystemProxy.setSelected(!"false".equalsIgnoreCase(orEmpty(props.get("useSystemProxy"))));
             proxyHost.setText(orEmpty(props.get("http.proxy.host")));
             proxyPort.setText(orEmpty(props.get("http.proxy.port")));
+            userName.setText(props.get("user.name") == null ? "" : props.get("user.name"));
+            userEmail.setText(props.get("user.email") == null ? "" : props.get("user.email"));
+            userCompany.setText(props.get("user.company") == null ? "" : props.get("user.company"));
+            trustAllCerts.setSelected(Boolean.parseBoolean(
+                    props.get("ssl.trustAllCerts") == null ? "false" : props.get("ssl.trustAllCerts")));
+            trackingEnabled.setSelected(
+                    org.fxt.freexmltoolkit.service.UsageTrackingServiceImpl.getInstance().isTrackingEnabled());
         } catch (Throwable ignored) {
             // properties service unavailable (e.g. tests) — controls keep their defaults
         }
@@ -262,6 +298,12 @@ public class SettingsPanel extends VBox {
             props.set("manualProxy", String.valueOf(!useSystemProxy.isSelected()));
             props.set("http.proxy.host", proxyHost.getText());
             props.set("http.proxy.port", proxyPort.getText());
+            props.set("user.name", userName.getText().trim());
+            props.set("user.email", userEmail.getText().trim());
+            props.set("user.company", userCompany.getText().trim());
+            props.set("ssl.trustAllCerts", String.valueOf(trustAllCerts.isSelected()));
+            org.fxt.freexmltoolkit.service.UsageTrackingServiceImpl.getInstance()
+                    .setTrackingEnabled(trackingEnabled.isSelected());
         } catch (Throwable ignored) {
             // properties service unavailable — nothing to persist
         }
@@ -296,6 +338,26 @@ public class SettingsPanel extends VBox {
 
     public String getCustomTempText() {
         return customTempDir.getText();
+    }
+
+    public void setUserName(String v) {
+        userName.setText(v);
+    }
+
+    public void setUserEmail(String v) {
+        userEmail.setText(v);
+    }
+
+    public void setUserCompany(String v) {
+        userCompany.setText(v);
+    }
+
+    public String getUserName() {
+        return userName.getText();
+    }
+
+    public boolean isTrustAllCertsSelected() {
+        return trustAllCerts.isSelected();
     }
 
     private static String orEmpty(String s) {
