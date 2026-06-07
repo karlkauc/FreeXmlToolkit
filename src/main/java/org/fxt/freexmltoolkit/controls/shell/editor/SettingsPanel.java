@@ -331,11 +331,12 @@ public class SettingsPanel extends VBox {
                     .setTrackingEnabled(trackingEnabled.isSelected());
             props.set(org.fxt.freexmltoolkit.service.fundsxml.FundsXmlPropertyKeys.ENABLED,
                     String.valueOf(fundsXmlEnabled.isSelected()));
+            // Only notify once every write above succeeded.
+            if (onSaved != null) {
+                onSaved.run();
+            }
         } catch (Throwable ignored) {
             // properties service unavailable — nothing to persist
-        }
-        if (onSaved != null) {
-            onSaved.run();
         }
     }
 

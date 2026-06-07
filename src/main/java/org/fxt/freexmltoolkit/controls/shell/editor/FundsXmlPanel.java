@@ -74,10 +74,19 @@ public class FundsXmlPanel extends VBox {
         FxtGui.executorService.submit(() -> {
             String msg;
             try {
-                org.fxt.freexmltoolkit.service.fundsxml.FundsXmlExtensionService.getInstance()
+                var result = org.fxt.freexmltoolkit.service.fundsxml.FundsXmlExtensionService.getInstance()
                         .downloadOrUpdate(
                                 org.fxt.freexmltoolkit.service.fundsxml.DownloadProgressCallback.NO_OP);
-                msg = "Download complete.";
+                if (result == null) {
+                    msg = "Download complete.";
+                } else if (!result.isSuccess()) {
+                    msg = "Download failed: "
+                            + (result.error() == null ? "unknown error" : result.error());
+                } else if (result.schemaVersion() != null) {
+                    msg = "Download complete — schema version " + result.schemaVersion() + ".";
+                } else {
+                    msg = "Download complete.";
+                }
             } catch (Throwable t) {
                 msg = "Download failed: " + t.getMessage();
             }

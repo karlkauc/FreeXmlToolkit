@@ -68,19 +68,35 @@ public final class FundsXmlRunner {
     }
 
     public static Path examplesDir() {
-        return FundsXmlCache.getInstance().getExamplesDir();
+        try {
+            return FundsXmlCache.getInstance().getExamplesDir();
+        } catch (Throwable t) {
+            return null;
+        }
     }
 
     public static Path schemaDir() {
-        return FundsXmlCache.getInstance().getSchemaDir();
+        try {
+            return FundsXmlCache.getInstance().getSchemaDir();
+        } catch (Throwable t) {
+            return null;
+        }
     }
 
     public static Path schematronDir() {
-        return FundsXmlCache.getInstance().getSchematronDir();
+        try {
+            return FundsXmlCache.getInstance().getSchematronDir();
+        } catch (Throwable t) {
+            return null;
+        }
     }
 
     public static Path activeSchemaFile() {
-        return FundsXmlCache.getInstance().getActiveSchemaFile();
+        try {
+            return FundsXmlCache.getInstance().getActiveSchemaFile();
+        } catch (Throwable t) {
+            return null;
+        }
     }
 
     /** Generates schema documentation for the active schema into the cache's docs dir; returns the dir. */

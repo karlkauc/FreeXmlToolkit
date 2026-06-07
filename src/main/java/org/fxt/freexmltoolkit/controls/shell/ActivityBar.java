@@ -76,6 +76,13 @@ public class ActivityBar extends VBox {
         getChildren().clear();
         buttons.clear();
         rebuild(group);
+        Activity active = selectionModel.getActive();
+        if (active == null || !buttons.containsKey(active)) {
+            // The previously-active activity (e.g. FUNDSXML) is gone after the
+            // rebuild. Fall back to the default so the side-panel listener fires
+            // and swaps away the now-orphaned panel.
+            selectionModel.select(Activity.defaultActivity());
+        }
         syncSelection();
     }
 
