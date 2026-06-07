@@ -322,35 +322,9 @@ public class MainController implements Initializable {
      * This method loads the appropriate CSS stylesheet for the selected theme.
      */
     public void applyTheme() {
-        try {
-            Scene scene = contentPane.getScene();
-            if (scene == null) {
-                logger.warn("Scene not available. Cannot apply theme yet.");
-                return;
-            }
-
-            scene.getStylesheets().removeIf(s -> s.contains("light-theme.css") || s.contains("dark-theme.css"));
-
-            String theme = propertiesService.get("ui.theme");
-            logger.debug("Attempting to apply theme: {}", theme);
-
-            if ("dark".equals(theme)) {
-                scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/css/dark-theme.css")).toExternalForm());
-                logger.info("Dark theme applied.");
-            } else {
-                scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/css/light-theme.css")).toExternalForm());
-                logger.info("Light theme applied.");
-            }
-
-            // Toggle the design-token root style class (design-tokens.css, rebuild decision D4).
-            // Additive: drives the -fxt-* looked-up colors for opt-in controls; existing
-            // selectors are unaffected.
-            var root = scene.getRoot();
-            root.getStyleClass().removeAll("fxt-theme-dark", "fxt-theme-light");
-            root.getStyleClass().add("dark".equals(theme) ? "fxt-theme-dark" : "fxt-theme-light");
-        } catch (Exception e) {
-            logger.error("Could not apply theme. Make sure dark-theme.css and light-theme.css are in the resources/css folder.", e);
-        }
+        Scene scene = contentPane.getScene();
+        boolean dark = "dark".equals(propertiesService.get("ui.theme"));
+        org.fxt.freexmltoolkit.controls.shell.ThemeManager.apply(scene, dark);
     }
 
     private void loadXmlEditorTheme() {

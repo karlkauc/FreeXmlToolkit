@@ -409,16 +409,7 @@ public class SettingsPanel extends VBox {
     /** Applies the theme to the scene and persists it (for tests/observers). */
     public void applyTheme(boolean darkTheme) {
         (darkTheme ? dark : light).setSelected(true);
-        if (getScene() != null && getScene().getRoot() != null) {
-            var root = getScene().getRoot();
-            root.getStyleClass().removeAll("fxt-theme-dark", "fxt-theme-light");
-            root.getStyleClass().add(darkTheme ? "fxt-theme-dark" : "fxt-theme-light");
-        }
-        try {
-            ServiceRegistry.get(PropertiesService.class).set("ui.theme", darkTheme ? "dark" : "light");
-        } catch (Throwable ignored) {
-            // properties service unavailable (e.g. tests) — visual switch still applied
-        }
+        org.fxt.freexmltoolkit.controls.shell.ThemeManager.apply(getScene(), darkTheme);
     }
 
     /** @return {@code true} if Dark is currently selected (for tests/observers). */
