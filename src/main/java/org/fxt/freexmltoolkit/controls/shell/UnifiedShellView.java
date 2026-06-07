@@ -97,7 +97,12 @@ public class UnifiedShellView extends BorderPane {
         java.util.List<java.io.File> supported = org.fxt.freexmltoolkit.service.DragDropService
                 .filterByExtensions(files, org.fxt.freexmltoolkit.service.DragDropService.ALL_XML_RELATED);
         for (java.io.File f : supported) {
-            editorHost.openFile(f.toPath());
+            try {
+                editorHost.openFile(f.toPath());
+            } catch (Exception ex) {
+                org.apache.logging.log4j.LogManager.getLogger(UnifiedShellView.class)
+                        .warn("Could not open dropped file '{}': {}", f.getName(), ex.getMessage());
+            }
         }
         return supported.size();
     }

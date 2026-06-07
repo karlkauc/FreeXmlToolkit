@@ -21,6 +21,7 @@ import javafx.scene.layout.BorderPane;
 
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
+import org.fxt.freexmltoolkit.service.DragDropService;
 
 /**
  * The file-type-aware center of the Unified shell: a tab pane of open documents.
@@ -1633,7 +1634,9 @@ public class EditorHost extends BorderPane {
 
     private void setupDragAndDrop() {
         setOnDragOver(event -> {
-            if (event.getDragboard().hasFiles()) {
+            var dragboard = event.getDragboard();
+            if (dragboard.hasFiles()
+                    && DragDropService.hasFilesWithExtensions(dragboard.getFiles(), DragDropService.ALL_XML_RELATED)) {
                 event.acceptTransferModes(javafx.scene.input.TransferMode.COPY);
             }
             event.consume();
@@ -1642,12 +1645,16 @@ public class EditorHost extends BorderPane {
             var dragboard = event.getDragboard();
             boolean done = false;
             if (dragboard.hasFiles()) {
-                for (File file : dragboard.getFiles()) {
-                    if (file.isFile()) {
+                for (File file : DragDropService.filterByExtensions(dragboard.getFiles(),
+                        DragDropService.ALL_XML_RELATED)) {
+                    try {
                         openFile(file.toPath());
+                        done = true;
+                    } catch (Exception ex) {
+                        org.apache.logging.log4j.LogManager.getLogger(EditorHost.class)
+                                .warn("Could not open dropped file '{}': {}", file.getName(), ex.getMessage());
                     }
                 }
-                done = true;
             }
             event.setDropCompleted(done);
             event.consume();
