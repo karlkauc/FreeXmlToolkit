@@ -499,8 +499,9 @@ The **Query Console** is a panel that opens along the **bottom of the editor**. 
 document is currently active, so it is the fastest way to probe an XML or JSON file while you work.
 
 ![Query Console docked at the bottom of the editor](img/unified-shell-query-console.png)
-*The Query Console: query input with the XPath / XQuery mode toggle and Run on the left, the
-results pane with Copy on the right.*
+*The Query Console with IntelliSense: typing `/` in the XPath input opens the completion popup
+(document elements and axes). The mode toggle and Run are on the left, the results pane with
+Copy on the right.*
 
 ### Layout
 

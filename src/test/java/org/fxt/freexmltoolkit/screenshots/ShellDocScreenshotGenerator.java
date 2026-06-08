@@ -131,14 +131,34 @@ class ShellDocScreenshotGenerator {
         shot("unified-shell-json-tree");
 
         // --- Query Console docked at the bottom (XPath/XQuery against the open document) ---
+        // Captured via a real screen grab (java.awt.Robot) so the IntelliSense completion
+        // popup — a separate top-level window that an FX node snapshot cannot include — is
+        // visible in the screenshot.
         if (xml.exists()) {
             onFx(() -> shell.getSelectionModel().select(Activity.EXPLORER));
             onFx(() -> host.openFile(xml.toPath()));
             settle();
             onFx(() -> host.setActiveViewMode(ViewMode.TEXT));
             onFx(shell::toggleQueryConsole);
+            settle(600);
+            try {
+                // Focus the visible XPath input and type '/' to open the completion popup.
+                Node xpathInput = robot.lookup(".fxt-query-input").match(Node::isVisible).query();
+                robot.clickOn(xpathInput);
+                settle(200);
+                robot.write("/");
+                // Wait until the popup has rendered as a real window.
+                WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS,
+                        () -> robot.lookup(".intellisense-list").tryQuery().isPresent());
+                settle(500);
+                shotScreen("unified-shell-query-console");
+                robot.push(javafx.scene.input.KeyCode.ESCAPE);
+            } catch (Exception e) {
+                System.out.println("[shell-screenshot] IntelliSense popup capture failed, "
+                        + "falling back to a node snapshot: " + e);
+                shot("unified-shell-query-console");
+            }
             settle();
-            shot("unified-shell-query-console");
             onFx(shell::toggleQueryConsole); // hide again so later shots are unaffected
             settle();
         }
@@ -190,5 +210,23 @@ class ShellDocScreenshotGenerator {
         ImageIO.write(SwingFXUtils.fromFXImage(img, null), "png", out);
         System.out.println("[shell-screenshot] wrote " + out.getAbsolutePath()
                 + " (" + (int) img.getWidth() + "x" + (int) img.getHeight() + ")");
+    }
+
+    /**
+     * Captures the whole X screen with {@link java.awt.Robot} (not an FX node snapshot), so any
+     * popup windows that are open — e.g. the IntelliSense completion list — appear in the image.
+     * Run the {@code docScreenshots} task under an xvfb screen sized to the window (1680x1000)
+     * so the captured screen is exactly the app.
+     */
+    private void shotScreen(String name) throws Exception {
+        settle(300);
+        java.awt.Dimension screen = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
+        java.awt.Robot awt = new java.awt.Robot();
+        java.awt.image.BufferedImage img = awt.createScreenCapture(
+                new java.awt.Rectangle(0, 0, screen.width, screen.height));
+        File out = new File(IMG_DIR, name + ".png");
+        ImageIO.write(img, "png", out);
+        System.out.println("[shell-screenshot] (screen) wrote " + out.getAbsolutePath()
+                + " (" + img.getWidth() + "x" + img.getHeight() + ")");
     }
 }
