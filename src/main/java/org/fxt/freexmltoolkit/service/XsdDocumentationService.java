@@ -40,6 +40,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.IdentityHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -141,8 +142,7 @@ public class XsdDocumentationService {
 
     // Per-run memo of XPath-independent identity-constraint results, keyed by the source DOM node.
     // Repeated expansions of a shared type reuse the cached result instead of re-parsing constraints.
-    private final java.util.Map<org.w3c.dom.Node, org.fxt.freexmltoolkit.domain.XsdExtendedElement>
-            identityConstraintMemo = new java.util.IdentityHashMap<>();
+    private final Map<Node, XsdExtendedElement> identityConstraintMemo = new IdentityHashMap<>();
 
     // Thread-local storage for element reference nodes (to preserve cardinality attributes)
     private static final ThreadLocal<Node> referenceNodeThreadLocal = new ThreadLocal<>();
@@ -3061,6 +3061,8 @@ public class XsdDocumentationService {
             // are immutable metadata describing the definition, so sharing them is safe.
             to.setIdentityConstraints(constraints);
         }
+        // else: the donor node has no constraints — nothing to copy; the target keeps its
+        // default empty list (the common case, since most elements carry no key/keyref/unique).
     }
 
     /**
