@@ -61,6 +61,9 @@ public class QueryConsole extends Region {
     // The Run button, created in buildInput() so the constructor can wire enablement.
     private Button runButton;
 
+    /** Monotonic run id; a late async result is dropped if a newer run has started (FX-thread only). */
+    private int runGeneration;
+
     // The snippets menu, refreshed from FavoritesService on showing.
     private final MenuButton snippetsMenu = new MenuButton("Snippets");
 
@@ -185,9 +188,6 @@ public class QueryConsole extends Region {
      * Evaluates the XPath field against the active document (async), mirroring
      * {@link TransformPanel#runXPath()}. Uses JSONPath for JSON documents.
      */
-    /** Monotonic run id; a late async result is dropped if a newer run has started (FX-thread only). */
-    private int runGeneration;
-
     private void runXPath() {
         if (editorHost.getActiveDocument().isEmpty()) {
             resultsArea.setText("No document open.");
