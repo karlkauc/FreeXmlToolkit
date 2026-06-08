@@ -308,7 +308,12 @@ tasks.test {
 
     // The documentation screenshot generator must NOT run as part of the normal test suite:
     // it requires a real (non-Monocle) display and writes binary assets into docs/img.
-    filter { excludeTestsMatching("*DocScreenshotGenerator*") }
+    // PerfBenchmark is a non-gating ~30s benchmark (no assertions) — run it via the
+    // dedicated `perfBenchmark` task instead. Both excludes must apply.
+    filter {
+        excludeTestsMatching("*DocScreenshotGenerator*")
+        excludeTestsMatching("*PerfBenchmark*")
+    }
 }
 
 // Documentation screenshot generator.
@@ -347,6 +352,25 @@ tasks.register<Test>("docScreenshots") {
         "-Dprism.text=t2k",
         "-Dglass.gtk.uiScale=1.0"
     )
+}
+
+// Non-gating performance benchmark.
+// PerfBenchmark prints median timings (no assertions) and takes ~30s, so it is excluded
+// from the normal `test` task and run on demand for before/after measurement:
+//   ./gradlew perfBenchmark
+tasks.register<Test>("perfBenchmark") {
+    group = "verification"
+    description = "Run the non-gating PerfBenchmark (prints PERF median timings; ~30s)."
+    useJUnitPlatform()
+    maxHeapSize = "8G"
+    testClassesDirs = sourceSets["test"].output.classesDirs
+    classpath = sourceSets["test"].runtimeClasspath
+    testLogging {
+        events("passed", "skipped", "failed")
+        showStandardStreams = true
+    }
+    filter { includeTestsMatching("*PerfBenchmark*") }
+    jvmArgs("--enable-preview", "--enable-native-access=ALL-UNNAMED")
 }
 
 // JaCoCo Code Coverage Configuration

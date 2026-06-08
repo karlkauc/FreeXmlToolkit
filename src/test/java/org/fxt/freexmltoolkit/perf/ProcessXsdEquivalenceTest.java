@@ -22,6 +22,9 @@ class ProcessXsdEquivalenceTest {
 
     private static final Path BIG_XSD = Path.of("src/test/resources/FundsXML_428.xsd");
 
+    /** ASCII SOH (U+0001) — a field separator that can't occur in XSD/XPath text. */
+    private static final char SEP = '';
+
     // Captured from the CURRENT (pre-optimization) code in Task 1 step 4. DO NOT edit after capture.
     private static final String EXPECTED_SHA256 = "9c43873e2920fb7fbe574dbefe8a0e75b014e5076d239e6fcb492670f3d7c178";
 
@@ -47,18 +50,19 @@ class ProcessXsdEquivalenceTest {
             List<String> children = x.getChildren() == null ? List.of() : x.getChildren();
             List<String> sortedChildren = new java.util.ArrayList<>(children);
             java.util.Collections.sort(sortedChildren);
-            sb.append(e.getKey()).append('')
-              .append(nz(x.getElementName())).append('')
-              .append(nz(x.getElementType())).append('')
-              .append(nz(x.getParentXpath())).append('')
-              .append(x.getLevel()).append('')
+            sb.append(e.getKey()).append(SEP)
+              .append(nz(x.getElementName())).append(SEP)
+              .append(nz(x.getElementType())).append(SEP)
+              .append(nz(x.getParentXpath())).append(SEP)
+              .append(x.getLevel()).append(SEP)
               // NOTE: getDisplaySampleData() is intentionally EXCLUDED — sample values are
               // generated with ThreadLocalRandom/Math.random() (XsdSampleDataGenerator) and
               // are non-deterministic run-to-run. Including them made the golden hash
               // unstable. The remaining fields are XPath/structure metadata and reproducible.
-              .append(restr(x.getRestrictionInfo())).append('')
-              .append(String.valueOf(x.getDocumentations())).append('')
-              .append(idc(x.getIdentityConstraints())).append('')
+              .append(restr(x.getRestrictionInfo())).append(SEP)
+              // documentations is an ArrayList in DOM-traversal (document) order — stable across runs, no sort needed.
+              .append(String.valueOf(x.getDocumentations())).append(SEP)
+              .append(idc(x.getIdentityConstraints())).append(SEP)
               .append(sortedChildren)
               .append('');
         }
