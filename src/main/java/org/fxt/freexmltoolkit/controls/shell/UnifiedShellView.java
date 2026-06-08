@@ -72,13 +72,13 @@ public class UnifiedShellView extends BorderPane {
     private Runnable chromeUpdater;
 
     /** Type-gated document-action toolbar buttons (created in {@link #buildEditorToolbar()}). */
-    private javafx.scene.control.Button actionValidate;
     private javafx.scene.control.Button actionTransform;
     private javafx.scene.control.Button actionGenerateDocs;
     private javafx.scene.control.Button actionTypeEditor;
 
     private final Label statusPosition = statusLabel("Ln 1, Col 1");
     private final Label statusType = statusLabel("");
+    private final Label statusSchema = statusLabel("No XSD");
     private final Label statusFile = statusLabel("No file open");
     private final Label statusMemory = statusLabel("");
 
@@ -532,22 +532,6 @@ public class UnifiedShellView extends BorderPane {
     }
 
     private Region buildEditorToolbar() {
-        Label badge = new Label();
-        badge.getStyleClass().add("fxt-type-badge");
-        badge.textProperty().bind(javafx.beans.binding.Bindings.createStringBinding(
-                () -> editorHost.getActiveDocument()
-                        .map(d -> d.getFileType().label()).orElse("—"),
-                editorHost.activeTabProperty()));
-
-        Label schemaStatus = new Label();
-        schemaStatus.getStyleClass().add("fxt-toolbar-status");
-        schemaStatus.textProperty().bind(javafx.beans.binding.Bindings.createStringBinding(
-                () -> {
-                    java.io.File xsd = editorHost.activeSchemaProperty().get();
-                    return xsd != null ? "XSD: " + xsd.getName() : "No XSD";
-                },
-                editorHost.activeSchemaProperty()));
-
         IconifyIcon validateIcon = new IconifyIcon("bi-check2-circle");
         validateIcon.setIconSize(15);
         javafx.scene.control.Button validate = new javafx.scene.control.Button("Validate", validateIcon);
@@ -558,9 +542,6 @@ public class UnifiedShellView extends BorderPane {
 
         // Editor-level document actions (type-gated): run per-document operations without
         // switching the Activity Bar; results open as the shell's standard tool tabs.
-        actionValidate = documentActionButton("doc-action-validate", "bi-check2-circle",
-                "Validate the active document — results in a tool tab",
-                () -> editorActions.validateActive());
         actionTransform = documentActionButton("doc-action-transform", "bi-arrow-left-right",
                 "Transform with XSLT… (choose a stylesheet)",
                 () -> editorActions.transformActiveWithXslt(window()));
@@ -571,10 +552,15 @@ public class UnifiedShellView extends BorderPane {
                 "Open Type Editor… (pick a named type from the active XSD)",
                 editorActions::openTypeEditorActive);
 
-        // The icon actions live in a wrapping FlowPane: when the editor area is narrow they
-        // wrap onto a second row so EVERY action stays visible and directly clickable (no
+        // The icon actions live in a wrapping FlowPane that spans the full toolbar width
+        // (between the left panel toggle and the view switch): when the editor area is narrow
+        // they wrap onto a second row so EVERY action stays visible and directly clickable (no
         // overflow chevron that can hide trailing buttons — Spreadsheet, Query Console, …).
+        // The prominent Validate button is the band's first item, so it wraps with the rest
+        // instead of leaving an empty vertical margin beside a taller wrapped flow.
         javafx.scene.layout.FlowPane actions = new javafx.scene.layout.FlowPane(
+                validate,
+                new javafx.scene.control.Separator(javafx.geometry.Orientation.VERTICAL),
                 toolButton("action-new", "bi-file-earmark-plus", "New (Ctrl+N)", this::newDocument),
                 toolButton("action-open", "bi-folder2-open", "Open (Ctrl+O)", this::openFile),
                 toolButton("action-save", "bi-save", "Save (Ctrl+S)", this::saveActive),
@@ -592,7 +578,7 @@ public class UnifiedShellView extends BorderPane {
                         "Spreadsheet Converter… (Excel / CSV ↔ XML)", this::convertSpreadsheet),
                 toolButton("action-query-console", "bi-terminal",
                         "Query Console (XPath/XQuery)  Ctrl+Shift+X", this::toggleQueryConsole),
-                actionValidate, actionTransform, actionGenerateDocs, actionTypeEditor,
+                actionTransform, actionGenerateDocs, actionTypeEditor,
                 new javafx.scene.control.Separator(javafx.geometry.Orientation.VERTICAL),
                 toolButton("action-set-schema", "bi-diagram-3", "Set XSD schema for IntelliSense", this::setSchema));
         actions.getStyleClass().add("fxt-editor-actionbar");
@@ -607,13 +593,10 @@ public class UnifiedShellView extends BorderPane {
         refreshDocumentActionGating();
         editorHost.activeTabProperty().addListener((obs, oldV, newV) -> refreshDocumentActionGating());
 
-        // Only the action ToolBar (via its overflow chevron) may shrink when the editor area is
-        // narrow; the readable controls keep their preferred width so they never ellipsize to "…".
+        // Only the action flow may shrink/wrap when the editor area is narrow; the view switch
+        // keeps its preferred width and stays anchored on the right edge.
         Region viewSwitch = buildViewSwitch();
-        badge.setMinWidth(Region.USE_PREF_SIZE);
-        validate.setMinWidth(Region.USE_PREF_SIZE);
         viewSwitch.setMinWidth(Region.USE_PREF_SIZE);
-        schemaStatus.setMinWidth(Region.USE_PREF_SIZE);
 
         // Re-open toggles for the collapsed side panels — same mechanism on both sides
         // (recognition value). They mirror the panels' open state and sit at the toolbar edges.
@@ -626,10 +609,10 @@ public class UnifiedShellView extends BorderPane {
             chromeUpdater.run();
         }
 
-        // Layout: left controls | wrapping action flow (grows) | right cluster. The flow
-        // takes the slack (replacing the old spacer) and wraps instead of overflowing.
-        HBox bar = new HBox(4, leftPanelToggle, badge, validate, vsep(), actions,
-                viewSwitch, vsep(), schemaStatus, inspectorToggle);
+        // Layout: left panel toggle | full-width wrapping action flow (grows) | view switch |
+        // inspector toggle. Identity/status (file type, bound XSD) lives in the bottom status
+        // bar, so the toolbar is a pure action band that uses the entire available width.
+        HBox bar = new HBox(4, leftPanelToggle, actions, viewSwitch, inspectorToggle);
         bar.setAlignment(Pos.CENTER_LEFT);
         bar.getStyleClass().add("fxt-editor-toolbar");
         return bar;
@@ -664,10 +647,6 @@ public class UnifiedShellView extends BorderPane {
         editorHost.activeViewModeProperty().addListener((obs, oldV, newV) -> sync.run());
         editorHost.activeTabProperty().addListener((obs, oldV, newV) -> sync.run());
         return box;
-    }
-
-    private javafx.scene.control.Separator vsep() {
-        return new javafx.scene.control.Separator(javafx.geometry.Orientation.VERTICAL);
     }
 
     private void newDocument() {
@@ -917,8 +896,6 @@ public class UnifiedShellView extends BorderPane {
      */
     private void refreshDocumentActionGating() {
         var type = editorActions.activeFileType();
-        actionValidate.setDisable(!org.fxt.freexmltoolkit.controls.shell.editor.EditorActions
-                .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.VALIDATE));
         actionTransform.setDisable(!org.fxt.freexmltoolkit.controls.shell.editor.EditorActions
                 .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.TRANSFORM));
         actionGenerateDocs.setDisable(!org.fxt.freexmltoolkit.controls.shell.editor.EditorActions
@@ -979,9 +956,18 @@ public class UnifiedShellView extends BorderPane {
         memoryTimer.setCycleCount(javafx.animation.Animation.INDEFINITE);
         memoryTimer.play();
 
+        // The bound XSD (relocated from the editor toolbar) tracks the active document's schema.
+        statusSchema.textProperty().bind(javafx.beans.binding.Bindings.createStringBinding(
+                () -> {
+                    java.io.File xsd = editorHost.activeSchemaProperty().get();
+                    return xsd != null ? "XSD: " + xsd.getName() : "No XSD";
+                },
+                editorHost.activeSchemaProperty()));
+
         bar.getChildren().addAll(
                 statusPosition,
                 statusType,
+                statusSchema,
                 statusLabel("UTF-8"),
                 spacer,
                 statusMemory,

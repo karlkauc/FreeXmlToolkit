@@ -291,6 +291,8 @@
     -fx-border-color: -fxt-border;
     -fx-border-width: 0 0 1 0;
     -fx-padding: 4 8 4 8;
+    /* Stable height for a single action row so the bar doesn't jump on 1<->2 row changes. */
+    -fx-min-height: 38;
 }
 
 /* The action ToolBar is flush with the editor toolbar: no chrome, just its buttons.
@@ -377,16 +379,6 @@
 
 .fxt-view-seg:disabled {
     -fx-opacity: 0.4;
-}
-
-.fxt-type-badge {
-    -fx-background-color: -fxt-bg-subtle;
-    -fx-text-fill: -fxt-primary;
-    -fx-font-family: "Inter", sans-serif;
-    -fx-font-size: 11px;
-    -fx-font-weight: bold;
-    -fx-padding: 2 8 2 8;
-    -fx-background-radius: 4;
 }
 
 .fxt-open-editors {
