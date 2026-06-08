@@ -77,4 +77,12 @@ public interface EditorView {
     /** Re-renders the gutter (e.g. after breakpoint/execution-line changes). No-op if unsupported. */
     default void refreshGutter() {
     }
+
+    /**
+     * Installs a handler invoked when the user triggers "Go to Definition" on an XML element
+     * that has a bound XSD. No-op for editors without an XSD-navigation concept (e.g. JSON).
+     */
+    default void setGoToDefinitionHandler(
+            java.util.function.Consumer<org.fxt.freexmltoolkit.controls.v2.editor.core.NavigationRequest> handler) {
+    }
 }

@@ -380,6 +380,9 @@ public class EditorHost extends BorderPane {
         }
         EditorTab tab = new EditorTab(OpenDocument.forPath(path), this::refreshSelectedNode, nodeClipboard);
         addTab(tab);
+        // Wire "Go to Definition": open the bound XSD and reveal the element (no-op for non-XML views).
+        tab.view.setGoToDefinitionHandler(req ->
+                openXsdAndReveal(req.xsdFile().toPath(), req.elementName()));
         try {
             org.fxt.freexmltoolkit.di.ServiceRegistry
                     .get(org.fxt.freexmltoolkit.service.PropertiesService.class)
@@ -1198,6 +1201,12 @@ public class EditorHost extends BorderPane {
     public org.fxmisc.richtext.CodeArea getActiveCodeArea() {
         Tab tab = tabPane.getSelectionModel().getSelectedItem();
         return tab instanceof EditorTab et ? et.view.getCodeArea() : null;
+    }
+
+    /** @return the active editor tab's view, or {@code null} if no editor tab is in front. */
+    EditorView activeEditorView() {
+        Tab tab = tabPane.getSelectionModel().getSelectedItem();
+        return tab instanceof EditorTab et ? et.view : null;
     }
 
     /** Binds an XSD to the active document for schema-aware IntelliSense. @return success */

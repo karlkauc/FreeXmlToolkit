@@ -67,4 +67,15 @@ final class XmlEditorView implements EditorView {
     public void refreshGutter() {
         editor.refreshGutter();
     }
+
+    @Override
+    public void setGoToDefinitionHandler(
+            java.util.function.Consumer<org.fxt.freexmltoolkit.controls.v2.editor.core.NavigationRequest> handler) {
+        editor.getEditorContext().setGoToDefinitionHandler(handler);
+    }
+
+    /** @return the wrapped editor's context (for go-to-definition wiring / tests). */
+    org.fxt.freexmltoolkit.controls.v2.editor.core.EditorContext getEditorContext() {
+        return editor.getEditorContext();
+    }
 }

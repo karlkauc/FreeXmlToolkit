@@ -33,7 +33,7 @@ public class EditorContext {
     // IntelliSense (will be set after construction)
     private IntelliSenseEngine intelliSenseEngine;
 
-    // Navigation callback (set by XmlEditor when MainController is available)
+    // Navigation callback (wired by the shell's EditorHost to open the bound XSD)
     private Consumer<NavigationRequest> goToDefinitionHandler;
 
     /**
@@ -110,7 +110,7 @@ public class EditorContext {
 
     /**
      * Sets the go-to-definition handler.
-     * Called by XmlEditor when MainController is available.
+     * Wired by the shell's {@code EditorHost} to open the bound XSD and reveal the element.
      *
      * @param handler the navigation handler
      */
