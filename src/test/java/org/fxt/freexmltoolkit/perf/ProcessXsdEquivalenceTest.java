@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.fxt.freexmltoolkit.domain.IdentityConstraint;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
 import org.fxt.freexmltoolkit.service.XsdDocumentationService;
 import org.junit.jupiter.api.Test;
@@ -22,7 +23,7 @@ class ProcessXsdEquivalenceTest {
     private static final Path BIG_XSD = Path.of("src/test/resources/FundsXML_428.xsd");
 
     // Captured from the CURRENT (pre-optimization) code in Task 1 step 4. DO NOT edit after capture.
-    private static final String EXPECTED_SHA256 = "dc4c5f35d45ecebcff43982101ae40d2364ba8d69ab15f6816964fde7f356de0";
+    private static final String EXPECTED_SHA256 = "9c43873e2920fb7fbe574dbefe8a0e75b014e5076d239e6fcb492670f3d7c178";
 
     @Test
     void expandedElementMapIsByteIdentical() throws Exception {
@@ -57,6 +58,7 @@ class ProcessXsdEquivalenceTest {
               // unstable. The remaining fields are XPath/structure metadata and reproducible.
               .append(restr(x.getRestrictionInfo())).append('')
               .append(String.valueOf(x.getDocumentations())).append('')
+              .append(idc(x.getIdentityConstraints())).append('')
               .append(sortedChildren)
               .append('');
         }
@@ -81,6 +83,29 @@ class ProcessXsdEquivalenceTest {
             sb.append(key).append('=').append(vals).append(';');
         }
         return sb.append('}').toString();
+    }
+
+    /**
+     * Deterministic serialization of the identity-constraint list. Each constraint's fields
+     * are emitted explicitly (type, name, selector, fields, refer, documentation). The
+     * {@code fields} list order is XSD-significant and preserved; the outer list of
+     * constraints is sorted by its serialized form so list ordering cannot affect the hash.
+     */
+    private static String idc(List<IdentityConstraint> list) {
+        if (list == null || list.isEmpty()) {
+            return "[]";
+        }
+        java.util.List<String> parts = new java.util.ArrayList<>(list.size());
+        for (IdentityConstraint c : list) {
+            parts.add("{type=" + c.getType()
+                    + ",name=" + nz(c.getName())
+                    + ",selector=" + nz(c.getSelector())
+                    + ",fields=" + c.getFields()
+                    + ",refer=" + nz(c.getRefer())
+                    + ",doc=" + nz(c.getDocumentation()) + "}");
+        }
+        java.util.Collections.sort(parts);
+        return parts.toString();
     }
 
     private static String sha256(String s) throws Exception {
