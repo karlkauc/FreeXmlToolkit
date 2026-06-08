@@ -165,6 +165,9 @@ public class QueryConsole extends Region {
      * Evaluates the XPath field against the active document (async), mirroring
      * {@link TransformPanel#runXPath()}. Uses JSONPath for JSON documents.
      */
+    /** Monotonic run id; a late async result is dropped if a newer run has started (FX-thread only). */
+    private int runGeneration;
+
     private void runXPath() {
         if (editorHost.getActiveDocument().isEmpty()) {
             resultsArea.setText("No document open.");
@@ -177,10 +180,15 @@ public class QueryConsole extends Region {
         }
         boolean json = isJsonActive();
         resultsArea.setText("Running…");
+        final int gen = ++runGeneration;
         FxtGui.executorService.submit(() -> {
             String result = json ? TransformRunner.runJsonPath(content, path)
                     : TransformRunner.runXPath(content, path);
-            Platform.runLater(() -> resultsArea.setText(result));
+            Platform.runLater(() -> {
+                if (gen == runGeneration) {
+                    resultsArea.setText(result);
+                }
+            });
         });
     }
 
@@ -199,12 +207,15 @@ public class QueryConsole extends Region {
             return;
         }
         String xml = editorHost.getActiveText().orElse("");
-        Map<String, Object> params = new java.util.LinkedHashMap<>();
-        OutputFormat format = OutputFormat.XML;
         resultsArea.setText("Running…");
+        final int gen = ++runGeneration;
         FxtGui.executorService.submit(() -> {
-            String result = TransformRunner.runXQuery(xml, xquery, params, format);
-            Platform.runLater(() -> resultsArea.setText(result));
+            String result = TransformRunner.runXQuery(xml, xquery, Map.of(), OutputFormat.XML);
+            Platform.runLater(() -> {
+                if (gen == runGeneration) {
+                    resultsArea.setText(result);
+                }
+            });
         });
     }
 
