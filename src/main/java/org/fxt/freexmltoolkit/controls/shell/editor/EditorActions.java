@@ -95,10 +95,12 @@ public final class EditorActions {
         File xsd = editorHost.activeSchemaProperty().get();
         File schematron = editorHost.getActiveSchematron();
         FxtGui.executorService.submit(() -> {
+            // v1: a JSON Schema bound via the Validation panel is not surfaced here — toolbar
+            // JSON validation is well-formedness only (the schema lives in ValidationPanel state).
             List<ValidationProblem> result = json
                     ? ValidationRunner.validateJson(content, null)
                     : ValidationRunner.run(content, xsd, schematron);
-            boolean hasSchema = json ? false : (xsd != null || schematron != null);
+            boolean hasSchema = !json && (xsd != null || schematron != null);
             Platform.runLater(() -> {
                 String summary = result.isEmpty()
                         ? (hasSchema ? "Valid" : "Well-formed")
@@ -185,6 +187,7 @@ public final class EditorActions {
             return;
         }
         ChoiceDialog<String> formatDialog = new ChoiceDialog<>("HTML", "HTML", "PDF", "Word");
+        formatDialog.initOwner(window);
         formatDialog.setTitle("Generate Documentation");
         formatDialog.setHeaderText("Choose the documentation format");
         formatDialog.setContentText("Format:");
@@ -233,6 +236,11 @@ public final class EditorActions {
      * copy of the current text for an unsaved schema). Shows an alert and returns
      * {@code null} when the active document is not an XSD. Mirrors
      * {@code TypeLibraryPanel.activeXsdFileOrAlert}.
+     * <p>
+     * Note: a document that HAS a path but unsaved edits is documented from its
+     * on-disk (last-saved) version, not the current buffer — this keeps relative
+     * {@code xs:include}/{@code xs:import} resolution anchored at the real file
+     * location. Save before generating to document the latest edits.
      */
     private File activeXsdFileOrAlert(String title) {
         var docOpt = editorHost.getActiveDocument();
