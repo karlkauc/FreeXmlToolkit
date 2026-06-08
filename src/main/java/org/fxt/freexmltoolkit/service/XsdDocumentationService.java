@@ -1468,7 +1468,9 @@ public class XsdDocumentationService {
                 // Handle elements from external namespaces (e.g., ds:Signature from XML Digital Signature)
                 // These are included in documentation but marked as external references
                 if (ref.contains(":") && isExternalNamespaceReference(ref)) {
-                    logger.debug("Processing external namespace reference for documentation: {}", ref);
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Processing external namespace reference for documentation: {}", ref);
+                    }
                     processExternalNamespaceReference(node, ref, currentXPath, parentXPath, level, visitedOnPath);
                     return;
                 }
@@ -1671,8 +1673,10 @@ public class XsdDocumentationService {
                                 // Use the base type (e.g., xs:decimal) for sample data generation
                                 // since the generator needs the primitive type, not the named type
                                 resolvedType = baseType;
-                                logger.debug("Resolved named type '{}' to base type '{}' via simpleContent extension",
-                                        typeName, baseType);
+                                if (logger.isDebugEnabled()) {
+                                    logger.debug("Resolved named type '{}' to base type '{}' via simpleContent extension",
+                                            typeName, baseType);
+                                }
                             }
                         }
                     }
@@ -2458,7 +2462,9 @@ public class XsdDocumentationService {
                         .toList();
 
                 if (!containerChildren.isEmpty()) {
-                    logger.debug("Processing {} container with {} children", elementName, containerChildren.size());
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Processing {} container with {} children", elementName, containerChildren.size());
+                    }
                     // Recursively process children (they may contain nested CHOICE/SEQUENCE)
                     processChildElementsForGeneration(sb, containerChildren, mandatoryOnly, maxOccurrences, indentLevel, constraintTracker);
                 }
@@ -2954,12 +2960,16 @@ public class XsdDocumentationService {
 
         List<IdentityConstraint> identityConstraints = new ArrayList<>();
 
-        logger.debug("Processing identity constraints for element: {}, node type: {}",
-                extendedElem.getElementName(), elementNode.getLocalName());
+        if (logger.isDebugEnabled()) {
+            logger.debug("Processing identity constraints for element: {}, node type: {}",
+                    extendedElem.getElementName(), elementNode.getLocalName());
+        }
 
         for (Node child : getDirectChildElements(elementNode)) {
             String localName = child.getLocalName();
-            logger.debug("Checking child node: {}", localName);
+            if (logger.isDebugEnabled()) {
+                logger.debug("Checking child node: {}", localName);
+            }
             IdentityConstraint.Type type = null;
 
             // Determine the type of identity constraint
@@ -3007,8 +3017,10 @@ public class XsdDocumentationService {
                 }
 
                 identityConstraints.add(constraint);
-                logger.debug("Found identity constraint: {} of type {} on element {}",
-                        constraint.getName(), type, extendedElem.getElementName());
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Found identity constraint: {} of type {} on element {}",
+                            constraint.getName(), type, extendedElem.getElementName());
+                }
             }
         }
 
