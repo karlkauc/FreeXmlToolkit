@@ -130,6 +130,19 @@ class ShellDocScreenshotGenerator {
         settle();
         shot("unified-shell-json-tree");
 
+        // --- Query Console docked at the bottom (XPath/XQuery against the open document) ---
+        if (xml.exists()) {
+            onFx(() -> shell.getSelectionModel().select(Activity.EXPLORER));
+            onFx(() -> host.openFile(xml.toPath()));
+            settle();
+            onFx(() -> host.setActiveViewMode(ViewMode.TEXT));
+            onFx(shell::toggleQueryConsole);
+            settle();
+            shot("unified-shell-query-console");
+            onFx(shell::toggleQueryConsole); // hide again so later shots are unaffected
+            settle();
+        }
+
         // --- XML document in the Grid (XMLSpy-style) view ---
         if (xml.exists()) {
             onFx(() -> shell.getSelectionModel().select(Activity.EXPLORER));

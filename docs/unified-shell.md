@@ -32,7 +32,10 @@ XML file next to its XSD schema, XSLT stylesheets and Schematron rules at the sa
 - **Automatic file type detection** - Files are recognized by extension (.xml, .xsd, .xsl, .sch, .json)
 - **View modes per document** - Text, Tree, Graphic (XSD) and Grid (XML), all over one shared model
 - **Inspector editing everywhere** - edit node properties from the Text, Tree, Grid and Graphic views, not just one
-- **Integrated XPath/XQuery** - the Transform panel queries any XML-based file
+- **Integrated XPath/XQuery** - a bottom [Query Console](#query-console) queries the active
+  XML/JSON file right from the editor (Ctrl+Shift+X)
+- **Editor toolbar actions** - run [Validate, Transform, Generate Documentation and Open Type
+  Editor](#editor-toolbar-document-actions) for the active document without switching activities
 - **Search & Replace** - Ctrl+F / Ctrl+H across the editor
 - **Favorites** - Quick access to frequently used files
 
@@ -72,6 +75,21 @@ The toolbar provides common operations and context-sensitive buttons:
 - **Templates** (Ctrl+T) - XML template system
 - **Generator** (Ctrl+G) - Generate XSD from XML
 - **Tools** - Open FOP (PDF Generation) or Digital Signatures as tool tabs
+- **Query Console** (Ctrl+Shift+X) - Toggle the bottom XPath/XQuery console (terminal icon)
+
+### Document Actions (type-gated)
+
+> **New in June 2026** - Run the most common per-document operations straight from the editor
+> toolbar, without switching the left activity bar.
+
+These toolbar buttons act on the **active document** and only light up when they apply to its
+type. Each one opens its result as a tool tab. See
+[Editor Toolbar Document Actions](#editor-toolbar-document-actions) below.
+
+- **Validate** - Validate the active document (XML, XSD, XSLT, Schematron, JSON).
+- **Transform with XSLT…** - Pick a stylesheet and transform the active **XML** document.
+- **Generate Documentation…** - Generate HTML/PDF/Word documentation for the active **XSD**.
+- **Open Type Editor…** - Pick a named type from the active **XSD** and edit it in a focused tab.
 
 ### Shown for XML Files
 - **Console** - Toggle log output panel
@@ -88,7 +106,8 @@ The toolbar provides common operations and context-sensitive buttons:
 ## Panel Toggles
 
 - **Linked** (Ctrl+L) - Show/hide linked files panel
-- **XPath** (Ctrl+Shift+X) - Show/hide XPath/XQuery query panel
+- **Query Console** (Ctrl+Shift+X) - Show/hide the bottom XPath/XQuery query console (terminal
+  icon in the editor toolbar). See [Query Console](#query-console) below.
 - **Properties** (Ctrl+Shift+P) - Show/hide properties and validation sidebar. For XML files,
   the properties inspector lets you view **and edit** a node's properties (element name,
   namespace, attributes, and text content) from **all three** views - Text, Tree, and Grid -
@@ -343,7 +362,7 @@ working with large files.
 | Ctrl+Shift+F | Format |
 | Ctrl+D | Add to favorites |
 | Ctrl+L | Toggle linked files |
-| Ctrl+Shift+X | Toggle XPath panel |
+| Ctrl+Shift+X | Toggle Query Console (XPath/XQuery) |
 | Ctrl+Shift+P | Toggle properties |
 | Ctrl+E | XML to Spreadsheet |
 | Ctrl+T | Templates |
@@ -428,9 +447,92 @@ All three XSD views share one in-memory schema model, so your edits and Undo/Red
 preserved when you switch between Text, Tree, and Graphic. Structural editing (adding, deleting,
 and moving nodes) remains a Tree/Graphic capability through the right-click context menu.
 
+## Editor Toolbar Document Actions
+
+> **New in June 2026** - Trigger per-document operations from the editor toolbar without leaving
+> the editor or switching the left activity bar.
+
+The editor toolbar includes a group of **document-action** buttons that act on the **active
+document**. Each button is **type-gated**: it is enabled only when the action applies to the
+active document's type, and disabled (greyed out) otherwise. Each action's output opens as a
+**tool tab**.
+
+| Action | Applies to | What it does |
+|--------|-----------|--------------|
+| **Validate** | XML, XSD, XSLT, Schematron, JSON | Validates the active document and lists any problems (or reports it is valid / well-formed). For an XML document this uses the bound XSD/Schematron if one is set; JSON is checked for well-formedness. |
+| **Transform with XSLT…** | XML | Prompts you to pick an XSLT stylesheet, then transforms the active XML with it and shows the output. |
+| **Generate Documentation…** | XSD | Lets you choose a format - **HTML**, **PDF**, or **Word** - and an output location, then generates the schema documentation there. |
+| **Open Type Editor…** | XSD | Lets you pick one of the schema's named types and opens it in a focused Type Editor tab. |
+
+These actions reuse the same engines as the corresponding activity-bar panels - they are simply a
+faster way to reach them. In this version, **Transform with XSLT…** produces **XML** output with no
+parameters; for output-format options, parameters, recent stylesheets, and watch-and-rerun, use the
+[Transform Panel](#transform-panel).
+
+!!! tip
+    Generate Documentation works from the schema's **last-saved** version on disk so that relative
+    `xs:include` / `xs:import` references resolve correctly. **Save** the XSD first to document your
+    latest edits.
+
+## Query Console
+
+> **New in June 2026** - Run XPath and XQuery against the open document right from the editor,
+> without switching to the Transform activity.
+
+The **Query Console** is a panel that opens along the **bottom of the editor**. Toggle it with the
+**terminal icon** in the editor toolbar or with **Ctrl+Shift+X**. It runs against whichever
+document is currently active, so it is the fastest way to probe an XML or JSON file while you work.
+
+![Query Console docked at the bottom of the editor](img/unified-shell-query-console.png)
+*The Query Console: query input with the XPath / XQuery mode toggle and Run on the left, the
+results pane with Copy on the right.*
+
+### Layout
+
+- **Left - the query:**
+  - An **XPath / XQuery** mode toggle. XPath uses a single-line input; XQuery uses a multi-line one.
+  - The query input. In XPath mode, press **Enter** to run.
+  - **Run** - Execute the query against the active document.
+  - **Save** - Save the current expression as a reusable snippet (see below).
+  - **Snippets** - A menu of your saved XPath and XQuery snippets; pick one to load it (the console
+    switches to the matching mode automatically).
+- **Right - the results:**
+  - A read-only, selectable text area showing the query result.
+  - **Copy** - Copy the full result to the clipboard.
+
+### Running a Query
+
+1. Open the console (terminal icon or **Ctrl+Shift+X**) - it opens focused on the query input.
+2. Choose **XPath** or **XQuery** with the mode toggle.
+3. Type your expression, then click **Run** (in XPath mode, **Enter** also runs).
+4. The result appears on the right. Use **Copy** to put it on the clipboard.
+
+The console always runs against the **active** document. For an **XML** document it evaluates the
+expression directly; for a **JSON** document the XPath input is evaluated as a **JSONPath**
+expression. When no document is open, **Run** is disabled and the results pane shows
+*"No document open."*
+
+!!! note
+    The Query Console is an additional, faster access point - it does not replace the **Transform**
+    activity. For recent-stylesheet history, watch-and-rerun, result timing, and the XQuery result
+    table, use the [Transform Panel](#transform-panel).
+
+### Saving and Loading Snippets
+
+Reusable XPath **and** XQuery expressions are saved as **snippets**:
+
+- **Save** - Prompts for a name and stores the current expression. XPath snippets are saved as
+  `.xpath` files and XQuery snippets as `.xquery` files.
+- **Snippets** - Lists every saved snippet, prefixed with its kind (*XPath* / *XQuery*). Selecting
+  one loads it into the console and switches to the matching mode.
+
+Snippets are kept in the shared query folder, so anything saved here is also available from the XML
+Editor's XPath/XQuery panel and vice versa.
+
 ## XPath / XQuery Autocomplete
 
-The XPath/XQuery console (Ctrl+Shift+X) offers context-aware autocomplete in both the XPath and
+The XPath/XQuery inputs (in the Query Console and in the Transform panel) offer context-aware
+autocomplete in both the XPath and
 XQuery input fields. Suggestions appear automatically after trigger characters (`/`, `[`, `@`, `(`,
 `$`, `::`) or on demand with **Ctrl+Space**. Depending on context it suggests element names, attribute
 names, XPath axes, functions, and (in XQuery) variables. Navigate with the arrow keys and press
@@ -439,8 +541,9 @@ their parentheses / `::` automatically.
 
 ### Saving, Loading and Examples
 
-The XPath/XQuery console toolbar provides the same query management as the XML Editor, acting on
-whichever tab (XPath or XQuery) is currently active:
+The Transform panel's XPath/XQuery toolbar provides the same query management as the XML Editor,
+acting on whichever tab (XPath or XQuery) is currently active. (The bottom
+[Query Console](#query-console) offers a lighter Save / Snippets pair instead.)
 
 - **Saved Queries** - dropdown of previously saved queries of the active type. It also offers
   *Add Current Query to Favorites…* and *Open Queries Folder…*.
