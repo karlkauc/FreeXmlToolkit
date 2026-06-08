@@ -105,6 +105,18 @@ class UnifiedShellViewTest {
     }
 
     @Test
+    void documentActionToolbarButtonsArePresentAndGatedWhenNoDocument() {
+        WaitForAsyncUtils.waitForFxEvents();
+        for (String id : new String[]{"doc-action-validate", "doc-action-transform",
+                "doc-action-generate-docs", "doc-action-type-editor"}) {
+            javafx.scene.Node node = shell.lookup("#" + id);
+            assertNotNull(node, "document-action toolbar button must exist: " + id);
+            assertTrue(((javafx.scene.control.Button) node).isDisable(),
+                    "with no document open, " + id + " must be disabled");
+        }
+    }
+
+    @Test
     void writesLightAndDarkSnapshotsWhenRequested() throws Exception {
         if (!Boolean.getBoolean("fxt.shell.snapshot")
                 && !"true".equals(System.getenv("FXT_SHELL_SNAPSHOT"))) {

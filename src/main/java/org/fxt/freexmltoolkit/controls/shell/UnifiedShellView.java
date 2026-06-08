@@ -45,11 +45,21 @@ public class UnifiedShellView extends BorderPane {
     private final org.fxt.freexmltoolkit.controls.unified.UnifiedSearchBar searchBar =
             new org.fxt.freexmltoolkit.controls.unified.UnifiedSearchBar();
 
+    /** Editor-level document actions (Validate / Transform / Generate Docs / Open Type Editor). */
+    private final org.fxt.freexmltoolkit.controls.shell.editor.EditorActions editorActions =
+            new org.fxt.freexmltoolkit.controls.shell.editor.EditorActions(editorHost);
+
     /** Long-lived Query Console (XPath/XQuery against the active document); docked as a collapsible bottom strip. */
     private final org.fxt.freexmltoolkit.controls.shell.editor.QueryConsole queryConsole =
             new org.fxt.freexmltoolkit.controls.shell.editor.QueryConsole(editorHost);
     /** Vertical split: item 0 = work area (grows), item 1 = {@link #queryConsole} when shown. */
     private SplitPane workSplit;
+
+    /** Type-gated document-action toolbar buttons (created in {@link #buildEditorToolbar()}). */
+    private javafx.scene.control.Button actionValidate;
+    private javafx.scene.control.Button actionTransform;
+    private javafx.scene.control.Button actionGenerateDocs;
+    private javafx.scene.control.Button actionTypeEditor;
 
     private final Label statusPosition = statusLabel("Ln 1, Col 1");
     private final Label statusType = statusLabel("");
@@ -405,6 +415,21 @@ public class UnifiedShellView extends BorderPane {
                 "Validate the document (well-formedness, or against the bound XSD) — F8"));
         validate.setOnAction(e -> validateActive());
 
+        // Editor-level document actions (type-gated): run per-document operations without
+        // switching the Activity Bar; results open as the shell's standard tool tabs.
+        actionValidate = documentActionButton("doc-action-validate", "bi-check2-circle",
+                "Validate the active document — results in a tool tab",
+                () -> editorActions.validateActive());
+        actionTransform = documentActionButton("doc-action-transform", "bi-arrow-left-right",
+                "Transform with XSLT… (choose a stylesheet)",
+                () -> editorActions.transformActiveWithXslt(window()));
+        actionGenerateDocs = documentActionButton("doc-action-generate-docs", "bi-file-earmark-text",
+                "Generate Documentation… (HTML / PDF / Word) for the active XSD",
+                () -> editorActions.generateDocsActive(window()));
+        actionTypeEditor = documentActionButton("doc-action-type-editor", "bi-braces-asterisk",
+                "Open Type Editor… (pick a named type from the active XSD)",
+                editorActions::openTypeEditorActive);
+
         // The icon actions live in a ToolBar so that, when the editor area is narrow, the
         // surplus collapses into the standard overflow chevron instead of compressing the
         // whole HBox and ellipsizing the readable controls (badge, Validate, view switch).
@@ -424,10 +449,15 @@ public class UnifiedShellView extends BorderPane {
                 toolButton("bi-layout-split", "Compare with File…", this::compareWithFile),
                 toolButton("bi-table", "Spreadsheet Converter… (Excel / CSV ↔ XML)", this::convertSpreadsheet),
                 toolButton("bi-terminal", "Query Console (XPath/XQuery)  Ctrl+Shift+X", this::toggleQueryConsole),
+                actionValidate, actionTransform, actionGenerateDocs, actionTypeEditor,
                 new javafx.scene.control.Separator(javafx.geometry.Orientation.VERTICAL),
                 toolButton("bi-diagram-3", "Set XSD schema for IntelliSense", this::setSchema));
         actions.getStyleClass().add("fxt-editor-actionbar");
         actions.setMinWidth(0);
+
+        // Type-gate the document-actions group against the active document's file type.
+        refreshDocumentActionGating();
+        editorHost.activeTabProperty().addListener((obs, oldV, newV) -> refreshDocumentActionGating());
 
         // Only the action ToolBar (via its overflow chevron) may shrink when the editor area is
         // narrow; the readable controls keep their preferred width so they never ellipsize to "…".
@@ -670,6 +700,36 @@ public class UnifiedShellView extends BorderPane {
         button.setTooltip(new javafx.scene.control.Tooltip(tooltip));
         button.setOnAction(e -> action.run());
         return button;
+    }
+
+    /** Builds a type-gated document-action toolbar button with a stable {@code id} for tests. */
+    private javafx.scene.control.Button documentActionButton(
+            String id, String icon, String tooltip, Runnable action) {
+        javafx.scene.control.Button button = toolButton(icon, tooltip, action);
+        button.setId(id);
+        return button;
+    }
+
+    /**
+     * Enables/disables the document-action buttons based on the active document's
+     * {@link org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType}. With no
+     * active document all four are disabled.
+     */
+    private void refreshDocumentActionGating() {
+        var type = editorActions.activeFileType();
+        actionValidate.setDisable(!org.fxt.freexmltoolkit.controls.shell.editor.EditorActions
+                .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.VALIDATE));
+        actionTransform.setDisable(!org.fxt.freexmltoolkit.controls.shell.editor.EditorActions
+                .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.TRANSFORM));
+        actionGenerateDocs.setDisable(!org.fxt.freexmltoolkit.controls.shell.editor.EditorActions
+                .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.GENERATE_DOCS));
+        actionTypeEditor.setDisable(!org.fxt.freexmltoolkit.controls.shell.editor.EditorActions
+                .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.TYPE_EDITOR));
+    }
+
+    /** @return the shell's owning window, or {@code null} when not yet shown. */
+    private javafx.stage.Window window() {
+        return getScene() != null ? getScene().getWindow() : null;
     }
 
     private void saveActive() {
