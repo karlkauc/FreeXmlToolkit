@@ -33,6 +33,8 @@ import org.fxt.freexmltoolkit.service.DragDropService;
 public class EditorHost extends BorderPane {
 
     private final TabPane tabPane = new TabPane();
+    /** Tab pane plus an overlaid view-mode switch pinned to the top-right of the tab header. */
+    private final javafx.scene.layout.StackPane tabArea = new javafx.scene.layout.StackPane();
     private final ObservableList<OpenDocument> openDocuments = FXCollections.observableArrayList();
     private final ReadOnlyIntegerWrapper activeCaret = new ReadOnlyIntegerWrapper(this, "activeCaret", 0);
     private final ReadOnlyObjectWrapper<File> activeSchema = new ReadOnlyObjectWrapper<>(this, "activeSchema", null);
@@ -73,6 +75,17 @@ public class EditorHost extends BorderPane {
 
     public EditorHost() {
         getStyleClass().add("fxt-editor-tabs");
+
+        // The view-mode switch (Text/Tree/Graphic/Grid) lives here, overlaid on the top-right of
+        // the tab header — not in the editor toolbar — so the toolbar stays a single-row action
+        // band and the per-document view mode reads as part of the document's tab strip. CSS
+        // (.fxt-editor-tabs > .tab-header-area) reserves matching right padding so the tabs and
+        // their overflow button never slide underneath it.
+        javafx.scene.layout.Region viewSwitch = buildViewSwitch();
+        javafx.scene.layout.StackPane.setAlignment(viewSwitch, javafx.geometry.Pos.TOP_RIGHT);
+        javafx.scene.layout.StackPane.setMargin(viewSwitch, new javafx.geometry.Insets(5, 8, 0, 0));
+        tabArea.getChildren().setAll(tabPane, viewSwitch);
+
         setupDragAndDrop();
         // Show the welcome empty-state while no document is open; swap to the tab
         // pane as soon as one opens, and back again when the last tab closes.
@@ -617,8 +630,46 @@ public class EditorHost extends BorderPane {
             welcomePane.setStats(welcomeStats());
             setCenter(welcomePane);
         } else {
-            setCenter(tabPane);
+            setCenter(tabArea);
         }
+    }
+
+    /**
+     * Builds the segmented view-mode switch (Text / Tree / Graphic / Grid). Buttons reflect the
+     * active view mode and disable for modes the active document does not support. The control is
+     * kept at its preferred size so the overlay {@link javafx.scene.layout.StackPane} positions it
+     * top-right instead of stretching it across the tab area.
+     */
+    private javafx.scene.layout.Region buildViewSwitch() {
+        var group = new javafx.scene.control.ToggleGroup();
+        var buttons = new java.util.EnumMap<ViewMode, javafx.scene.control.ToggleButton>(ViewMode.class);
+        javafx.scene.layout.HBox box = new javafx.scene.layout.HBox();
+        box.getStyleClass().add("fxt-view-switch");
+        box.setMaxWidth(javafx.scene.layout.Region.USE_PREF_SIZE);
+        box.setMaxHeight(javafx.scene.layout.Region.USE_PREF_SIZE);
+
+        for (var mode : ViewMode.values()) {
+            javafx.scene.control.ToggleButton button = new javafx.scene.control.ToggleButton(mode.label());
+            button.setToggleGroup(group);
+            button.getStyleClass().add("fxt-view-seg");
+            button.setFocusTraversable(false);
+            button.setOnAction(e -> setActiveViewMode(mode));
+            buttons.put(mode, button);
+            box.getChildren().add(button);
+        }
+
+        Runnable sync = () -> {
+            ViewMode active = activeViewMode.get();
+            boolean hasDoc = getActiveDocument().isPresent();
+            buttons.forEach((mode, button) -> {
+                button.setSelected(mode == active);
+                button.setDisable(!hasDoc || !activeSupportsView(mode));
+            });
+        };
+        sync.run();
+        activeViewMode.addListener((obs, oldV, newV) -> sync.run());
+        activeTabProperty().addListener((obs, oldV, newV) -> sync.run());
+        return box;
     }
 
     /** @return the dashboard counters (recent / favorites / templates / saved queries), best-effort. */

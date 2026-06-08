@@ -593,11 +593,6 @@ public class UnifiedShellView extends BorderPane {
         refreshDocumentActionGating();
         editorHost.activeTabProperty().addListener((obs, oldV, newV) -> refreshDocumentActionGating());
 
-        // Only the action flow may shrink/wrap when the editor area is narrow; the view switch
-        // keeps its preferred width and stays anchored on the right edge.
-        Region viewSwitch = buildViewSwitch();
-        viewSwitch.setMinWidth(Region.USE_PREF_SIZE);
-
         // Re-open toggles for the collapsed side panels — same mechanism on both sides
         // (recognition value). They mirror the panels' open state and sit at the toolbar edges.
         leftPanelToggle = panelToggle("toggle-left-panel", "bi-chevron-double-right",
@@ -609,44 +604,14 @@ public class UnifiedShellView extends BorderPane {
             chromeUpdater.run();
         }
 
-        // Layout: left panel toggle | full-width wrapping action flow (grows) | view switch |
-        // inspector toggle. Identity/status (file type, bound XSD) lives in the bottom status
-        // bar, so the toolbar is a pure action band that uses the entire available width.
-        HBox bar = new HBox(4, leftPanelToggle, actions, viewSwitch, inspectorToggle);
+        // Layout: left panel toggle | full-width action flow (grows) | inspector toggle. The
+        // view-mode switch now lives on the tab header (see EditorHost), and identity/status
+        // (file type, bound XSD) lives in the bottom status bar, so the toolbar is a pure action
+        // band that uses the entire available width — single-row at the 1512 px MacBook width.
+        HBox bar = new HBox(4, leftPanelToggle, actions, inspectorToggle);
         bar.setAlignment(Pos.CENTER_LEFT);
         bar.getStyleClass().add("fxt-editor-toolbar");
         return bar;
-    }
-
-    private Region buildViewSwitch() {
-        var group = new javafx.scene.control.ToggleGroup();
-        var buttons = new java.util.EnumMap<org.fxt.freexmltoolkit.controls.shell.editor.ViewMode,
-                javafx.scene.control.ToggleButton>(org.fxt.freexmltoolkit.controls.shell.editor.ViewMode.class);
-        HBox box = new HBox();
-        box.getStyleClass().add("fxt-view-switch");
-
-        for (var mode : org.fxt.freexmltoolkit.controls.shell.editor.ViewMode.values()) {
-            javafx.scene.control.ToggleButton button = new javafx.scene.control.ToggleButton(mode.label());
-            button.setToggleGroup(group);
-            button.getStyleClass().add("fxt-view-seg");
-            button.setFocusTraversable(false);
-            button.setOnAction(e -> editorHost.setActiveViewMode(mode));
-            buttons.put(mode, button);
-            box.getChildren().add(button);
-        }
-
-        Runnable sync = () -> {
-            var active = editorHost.activeViewModeProperty().get();
-            boolean hasDoc = editorHost.getActiveDocument().isPresent();
-            buttons.forEach((mode, button) -> {
-                button.setSelected(mode == active);
-                button.setDisable(!hasDoc || !editorHost.activeSupportsView(mode));
-            });
-        };
-        sync.run();
-        editorHost.activeViewModeProperty().addListener((obs, oldV, newV) -> sync.run());
-        editorHost.activeTabProperty().addListener((obs, oldV, newV) -> sync.run());
-        return box;
     }
 
     private void newDocument() {

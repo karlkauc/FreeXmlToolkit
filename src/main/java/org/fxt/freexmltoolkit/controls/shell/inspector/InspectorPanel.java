@@ -141,8 +141,11 @@ public class InspectorPanel extends VBox {
     public InspectorPanel(EditorHost editorHost) {
         this.editorHost = editorHost;
         getStyleClass().add("fxt-inspector");
-        setPrefWidth(384);
-        setMinWidth(384);
+        // Compact width tuned for a MacBook Pro 14" (1512 logical px): the panel was 384 px —
+        // a quarter of the screen, mostly empty for document-level selections. 288 returns ~96 px
+        // to the editor; the inspector tables use CONSTRAINED_RESIZE_POLICY so they still fit.
+        setPrefWidth(288);
+        setMinWidth(288);
 
         Label header = new Label("PROPERTIES");
         header.getStyleClass().add("fxt-inspector-header");

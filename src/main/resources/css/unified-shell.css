@@ -357,9 +357,16 @@
 }
 
 .fxt-view-switch {
+    -fx-background-color: -fxt-bg-surface;
     -fx-border-color: -fxt-border;
     -fx-border-radius: 6;
     -fx-background-radius: 6;
+}
+
+/* The view switch is overlaid on the top-right of the tab header (see EditorHost). Reserve
+   matching right padding so the tabs and their overflow button never slide underneath it. */
+.fxt-editor-tabs > .tab-header-area {
+    -fx-padding: 0 226 0 0;
 }
 
 .fxt-view-seg {
