@@ -19,6 +19,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.control.Tooltip;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.layout.HBox;
@@ -92,6 +93,8 @@ public class QueryConsole extends Region {
         xqueryToggle.setToggleGroup(modeGroup);
         xpathToggle.getStyleClass().add("fxt-tool-button");
         xqueryToggle.getStyleClass().add("fxt-tool-button");
+        xpathToggle.setTooltip(new Tooltip("Evaluate an XPath expression against the active document"));
+        xqueryToggle.setTooltip(new Tooltip("Run an XQuery script against the active document"));
         xpathToggle.setSelected(true);
         modeGroup.selectedToggleProperty().addListener((obs, oldT, newT) -> {
             if (newT == null) {
@@ -115,14 +118,17 @@ public class QueryConsole extends Region {
         updateMode();
 
         Button run = button("Run", "bi-play-fill", this::run);
+        run.setTooltip(new Tooltip("Run the query against the active document (Enter)"));
         runButton = run;
 
         Button saveSnippet = button("Save", "bi-save", this::saveSnippet);
+        saveSnippet.setTooltip(new Tooltip("Save the current query as a reusable snippet"));
 
         IconifyIcon snippetsIcon = new IconifyIcon("bi-folder2-open");
         snippetsIcon.setIconSize(16);
         snippetsMenu.setGraphic(snippetsIcon);
         snippetsMenu.getStyleClass().add("fxt-tool-button");
+        snippetsMenu.setTooltip(new Tooltip("Load a saved XPath/XQuery snippet"));
         snippetsMenu.setOnShowing(e -> refreshSnippetsMenu());
 
         HBox runRow = new HBox(6, run, saveSnippet, snippetsMenu);
@@ -139,6 +145,7 @@ public class QueryConsole extends Region {
         title.getStyleClass().add("fxt-side-panel-title");
 
         Button copy = button("Copy", "bi-clipboard", this::copyResults);
+        copy.setTooltip(new Tooltip("Copy the full result to the clipboard"));
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
         HBox header = new HBox(8, title, spacer, copy);

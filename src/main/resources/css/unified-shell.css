@@ -508,6 +508,38 @@
     -fx-font-size: 11px;
 }
 
+/* ----- Query Console (collapsible bottom dock) ------------------------- */
+/* A distinct docked panel below the editor: a clear top border separates it
+   from the editor area, and a surface background marks it as its own pane. The
+   inner panes already use .fxt-side-panel-content for padding/spacing. */
+.fxt-query-console {
+    -fx-background-color: -fxt-bg-surface;
+    -fx-border-color: -fxt-border;
+    -fx-border-width: 1 0 0 0;
+}
+
+/* The console's inner SplitPane and its left/right panes should read as part of
+   the surface, not the canvas. */
+.fxt-query-console > .split-pane {
+    -fx-background-color: -fxt-bg-surface;
+    -fx-padding: 0;
+}
+
+/* Keep the query results monospace and consistent with the transform output even
+   if the .fxt-transform-output rule order ever changes. */
+.fxt-query-console .fxt-transform-output {
+    -fx-font-family: "JetBrains Mono", monospace;
+    -fx-font-size: 11px;
+}
+
+/* The drag handle between editor and console: a thin, theme-aware divider that
+   is visible without being heavy. */
+.fxt-work-split > .split-pane-divider {
+    -fx-background-color: -fxt-border;
+    -fx-padding: 0 0 0 0;
+    -fx-pref-height: 2;
+}
+
 /* ----- Shared ---------------------------------------------------------- */
 .fxt-placeholder-text {
     -fx-text-fill: -fxt-text-muted;
