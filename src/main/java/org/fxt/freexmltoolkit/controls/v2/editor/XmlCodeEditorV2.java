@@ -149,6 +149,19 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
         logger.debug("UI initialized");
     }
 
+    /**
+     * Shows or hides the built-in status line. The Unified Shell hosts its own global status bar
+     * (Ln/Col · type · schema · encoding · chars), so it hides this per-editor strip to avoid a
+     * duplicated status row in Text view.
+     *
+     * @param visible {@code true} to show the status line, {@code false} to hide and unmanage it
+     */
+    public void setStatusLineVisible(boolean visible) {
+        javafx.scene.Node statusLine = statusLineManager.getStatusLine();
+        statusLine.setVisible(visible);
+        statusLine.setManaged(visible);
+    }
+
     /** Paragraph index currently carrying the {@code current-line} style. */
     private int currentLineIndex = -1;
 

@@ -75,11 +75,14 @@ public class EditorHost extends BorderPane {
 
     public EditorHost() {
         getStyleClass().add("fxt-editor-tabs");
+        // The style class on the TabPane itself (not this BorderPane) so CSS can set
+        // -fx-tab-max-width and target the tab header / tabs directly.
+        tabPane.getStyleClass().add("fxt-editor-tabpane");
 
         // The view-mode switch (Text/Tree/Graphic/Grid) lives here, overlaid on the top-right of
         // the tab header — not in the editor toolbar — so the toolbar stays a single-row action
         // band and the per-document view mode reads as part of the document's tab strip. CSS
-        // (.fxt-editor-tabs > .tab-header-area) reserves matching right padding so the tabs and
+        // (.fxt-editor-tabpane > .tab-header-area) reserves matching right padding so the tabs and
         // their overflow button never slide underneath it.
         javafx.scene.layout.Region viewSwitch = buildViewSwitch();
         javafx.scene.layout.StackPane.setAlignment(viewSwitch, javafx.geometry.Pos.TOP_RIGHT);

@@ -77,6 +77,7 @@ public class UnifiedShellView extends BorderPane {
     private javafx.scene.control.Button actionTypeEditor;
 
     private final Label statusPosition = statusLabel("Ln 1, Col 1");
+    private final Label statusChars = statusLabel("");
     private final Label statusType = statusLabel("");
     private final Label statusSchema = statusLabel("No XSD");
     private final Label statusFile = statusLabel("No file open");
@@ -207,6 +208,7 @@ public class UnifiedShellView extends BorderPane {
         var docOpt = editorHost.getActiveDocument();
         if (docOpt.isEmpty()) {
             statusPosition.setText("Ln 1, Col 1");
+            statusChars.setText("");
             statusType.setText("");
             statusFile.setText("No file open");
             return;
@@ -215,6 +217,9 @@ public class UnifiedShellView extends BorderPane {
         statusPosition.setText("Ln " + pos[0] + ", Col " + pos[1]);
         var doc = docOpt.get();
         statusType.setText(doc.getFileType().label());
+        // Character count (relocated from the per-editor status line, which the shell hides).
+        statusChars.setText(editorHost.getActiveText()
+                .map(t -> String.format("%,d chars", t.length())).orElse(""));
         statusFile.setText(doc.getPath() != null ? doc.getPath().toString() : doc.getDisplayName());
     }
 
@@ -921,16 +926,25 @@ public class UnifiedShellView extends BorderPane {
         memoryTimer.setCycleCount(javafx.animation.Animation.INDEFINITE);
         memoryTimer.play();
 
-        // The bound XSD (relocated from the editor toolbar) tracks the active document's schema.
+        // The bound XSD (relocated from the editor toolbar) tracks the active document's schema —
+        // but only for schema-aware (XML-family) documents. For JSON / plain text an "XSD" label
+        // is meaningless, so it is blanked and the label collapses out of the bar entirely.
         statusSchema.textProperty().bind(javafx.beans.binding.Bindings.createStringBinding(
                 () -> {
+                    var doc = editorHost.getActiveDocument().orElse(null);
+                    if (doc == null || !isSchemaAware(doc.getFileType())) {
+                        return "";
+                    }
                     java.io.File xsd = editorHost.activeSchemaProperty().get();
                     return xsd != null ? "XSD: " + xsd.getName() : "No XSD";
                 },
-                editorHost.activeSchemaProperty()));
+                editorHost.activeSchemaProperty(), editorHost.activeTabProperty()));
+        statusSchema.managedProperty().bind(statusSchema.textProperty().isNotEmpty());
+        statusSchema.visibleProperty().bind(statusSchema.textProperty().isNotEmpty());
 
         bar.getChildren().addAll(
                 statusPosition,
+                statusChars,
                 statusType,
                 statusSchema,
                 statusLabel("UTF-8"),
@@ -938,6 +952,17 @@ public class UnifiedShellView extends BorderPane {
                 statusMemory,
                 statusFile);
         return bar;
+    }
+
+    /**
+     * @return {@code true} when the file type can carry an XSD schema (XML family); {@code false}
+     *         for JSON / plain text, where the status bar's "XSD" indicator is meaningless.
+     */
+    private static boolean isSchemaAware(org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType type) {
+        return switch (type) {
+            case XML, XSD, XSLT, SCHEMATRON -> true;
+            default -> false;
+        };
     }
 
     /** @return the JVM heap usage formatted as {@code "used / max MB"}. */

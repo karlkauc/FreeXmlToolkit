@@ -364,9 +364,20 @@
 }
 
 /* The view switch is overlaid on the top-right of the tab header (see EditorHost). Reserve
-   matching right padding so the tabs and their overflow button never slide underneath it. */
-.fxt-editor-tabs > .tab-header-area {
+   matching right padding so the tabs and their overflow button never slide underneath it.
+   Targets the TabPane (.fxt-editor-tabpane), not the outer BorderPane (.fxt-editor-tabs). */
+.fxt-editor-tabpane > .tab-header-area {
     -fx-padding: 0 226 0 0;
+}
+
+/* Compact tabs so more fit before overflow at the 1512px MacBook width: cap each tab's width
+   (TabPane's own -fx-tab-max-width, which ellipsizes long titles) and tighten the padding. */
+.fxt-editor-tabpane {
+    -fx-tab-max-width: 170;
+}
+
+.fxt-editor-tabpane .tab {
+    -fx-padding: 2 6 2 8;
 }
 
 .fxt-view-seg {

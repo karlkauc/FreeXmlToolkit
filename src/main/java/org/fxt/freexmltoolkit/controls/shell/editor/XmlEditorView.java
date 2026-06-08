@@ -17,6 +17,12 @@ final class XmlEditorView implements EditorView {
     private final MutableXmlSchemaProvider schemaProvider = new MutableXmlSchemaProvider();
     private final XmlCodeEditorV2 editor = new XmlCodeEditorV2(schemaProvider);
 
+    XmlEditorView() {
+        // The Unified Shell provides a single global status bar; hide the editor's own status
+        // line so Text view does not show a duplicate Ln/Col · encoding · schema strip.
+        editor.setStatusLineVisible(false);
+    }
+
     @Override
     public Region getNode() {
         return editor;
