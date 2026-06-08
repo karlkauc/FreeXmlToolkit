@@ -48,6 +48,12 @@ plugins:
   - search:
       lang: en
 
+# Internal planning/spec documents live under docs/superpowers/ for developer reference
+# but are not part of the published site (gitignore-style patterns).
+exclude_docs: |
+  superpowers/plans/
+  superpowers/specs/
+
 markdown_extensions:
   - admonition
   - pymdownx.details
