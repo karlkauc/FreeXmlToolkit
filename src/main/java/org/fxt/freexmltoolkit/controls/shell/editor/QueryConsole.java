@@ -153,6 +153,7 @@ public class QueryConsole extends Region {
 
         resultsArea.setEditable(false);
         resultsArea.setWrapText(false);
+        resultsArea.setPromptText("Run a query to see results here.");
         resultsArea.getStyleClass().add("fxt-transform-output");
         VBox.setVgrow(resultsArea, Priority.ALWAYS);
 
@@ -178,7 +179,13 @@ public class QueryConsole extends Region {
             runButton.setDisable(noDoc);
         }
         if (noDoc) {
-            resultsArea.setText("No document open.");
+            // Only hint when nothing has been shown yet — never clobber a real result.
+            if (resultsArea.getText() == null || resultsArea.getText().isBlank()) {
+                resultsArea.setText("No document open.");
+            }
+        } else if ("No document open.".equals(resultsArea.getText())) {
+            // A document is now open — clear the stale startup hint.
+            resultsArea.clear();
         }
     }
 
