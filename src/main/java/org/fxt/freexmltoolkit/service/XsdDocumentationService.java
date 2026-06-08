@@ -139,6 +139,11 @@ public class XsdDocumentationService {
     private boolean addMetadataInOutput = false; // Whether to add metadata comments to generated HTML files
     private String faviconPath = null; // Optional path to custom favicon for HTML documentation
 
+    // Per-run memo of XPath-independent identity-constraint results, keyed by the source DOM node.
+    // Repeated expansions of a shared type reuse the cached result instead of re-parsing constraints.
+    private final java.util.Map<org.w3c.dom.Node, org.fxt.freexmltoolkit.domain.XsdExtendedElement>
+            identityConstraintMemo = new java.util.IdentityHashMap<>();
+
     // Thread-local storage for element reference nodes (to preserve cardinality attributes)
     private static final ThreadLocal<Node> referenceNodeThreadLocal = new ThreadLocal<>();
     private static final ThreadLocal<String> forcedNamespacePrefixThreadLocal = new ThreadLocal<>();
@@ -442,6 +447,9 @@ public class XsdDocumentationService {
         // Configure the sample data generator with type resolver BEFORE traversal
         // so that sample data generation can resolve named types to base XML types
         configureTypeResolver();
+
+        // Reset per-run node-metadata memo before traversal
+        identityConstraintMemo.clear();
 
         // Start traversal from global elements
         counter = 0;
@@ -1769,9 +1777,17 @@ public class XsdDocumentationService {
             processAssertions(restrictionNode, extendedElem);
         }
 
-        // Process XSD 1.0 identity constraints (key, keyref, unique) on elements
+        // Process XSD 1.0 identity constraints (key, keyref, unique) on elements.
+        // Identity constraints are XPath-independent (they describe the element's own
+        // key/keyref/unique definitions), so memoize per source node across expansions.
         if (!isAttribute && !isContainer) {
-            processIdentityConstraints(node, extendedElem);
+            XsdExtendedElement donor = identityConstraintMemo.get(node);
+            if (donor != null) {
+                copyIdentityConstraints(donor, extendedElem);
+            } else {
+                processIdentityConstraints(node, extendedElem);
+                identityConstraintMemo.put(node, extendedElem);
+            }
         }
 
         // Process XSD 1.1 type alternatives on elements
@@ -3026,6 +3042,24 @@ public class XsdDocumentationService {
 
         if (!identityConstraints.isEmpty()) {
             extendedElem.setIdentityConstraints(identityConstraints);
+        }
+    }
+
+    /**
+     * Copies the identity-constraint result from a previously-processed donor entry onto
+     * a new entry, instead of re-parsing the (XPath-independent) constraints from the DOM.
+     * Mirrors exactly the single field {@link #processIdentityConstraints} sets.
+     * The setter performs a defensive copy of the list, so the entries do not share state.
+     *
+     * @param from the donor element whose identity constraints were already parsed
+     * @param to   the new element to receive a copy of the constraints
+     */
+    private void copyIdentityConstraints(XsdExtendedElement from, XsdExtendedElement to) {
+        List<IdentityConstraint> constraints = from.getIdentityConstraints();
+        if (constraints != null && !constraints.isEmpty()) {
+            // setIdentityConstraints() makes a fresh ArrayList; IdentityConstraint instances
+            // are immutable metadata describing the definition, so sharing them is safe.
+            to.setIdentityConstraints(constraints);
         }
     }
 
