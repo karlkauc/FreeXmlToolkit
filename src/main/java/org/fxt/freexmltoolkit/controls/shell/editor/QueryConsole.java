@@ -1,5 +1,9 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.List;
 import java.util.Map;
 
 import javafx.application.Platform;
@@ -7,9 +11,12 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuButton;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.input.Clipboard;
@@ -22,6 +29,7 @@ import javafx.scene.layout.VBox;
 
 import org.fxt.freexmltoolkit.FxtGui;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.service.FavoritesService;
 import org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat;
 
 /**
@@ -52,6 +60,9 @@ public class QueryConsole extends Region {
 
     // The Run button, created in buildInput() so the constructor can wire enablement.
     private Button runButton;
+
+    // The snippets menu, refreshed from FavoritesService on showing.
+    private final MenuButton snippetsMenu = new MenuButton("Snippets");
 
     public QueryConsole(EditorHost editorHost) {
         this.editorHost = editorHost;
@@ -102,7 +113,16 @@ public class QueryConsole extends Region {
 
         Button run = button("Run", "bi-play-fill", this::run);
         runButton = run;
-        HBox runRow = new HBox(6, run);
+
+        Button saveSnippet = button("Save", "bi-save", this::saveSnippet);
+
+        IconifyIcon snippetsIcon = new IconifyIcon("bi-folder2-open");
+        snippetsIcon.setIconSize(16);
+        snippetsMenu.setGraphic(snippetsIcon);
+        snippetsMenu.getStyleClass().add("fxt-tool-button");
+        snippetsMenu.setOnShowing(e -> refreshSnippetsMenu());
+
+        HBox runRow = new HBox(6, run, saveSnippet, snippetsMenu);
         runRow.setAlignment(Pos.CENTER_LEFT);
 
         VBox box = new VBox(8, title, modeRow, inputStack, runRow);
@@ -231,6 +251,122 @@ public class QueryConsole extends Region {
         Clipboard.getSystemClipboard().setContent(content);
     }
 
+    // ---------------------------------------------------------------------
+    // Snippet save/load (XPath + XQuery), backed by FavoritesService.
+    // ---------------------------------------------------------------------
+
+    /** Whether the XQuery mode is currently active (otherwise XPath). */
+    private boolean isXQueryMode() {
+        return xqueryToggle.isSelected();
+    }
+
+    /** The current mode's expression text (XPath field or XQuery area). */
+    private String currentExpression() {
+        return isXQueryMode() ? xqueryArea.getText() : xpathField.getText();
+    }
+
+    /**
+     * Prompts for a name and saves the current mode's expression via
+     * {@link FavoritesService} (XPath snippets as {@code .xpath}, XQuery as
+     * {@code .xquery}). Blank expressions are rejected with a hint in the results
+     * pane and no prompt.
+     */
+    public void saveSnippet() {
+        String expression = currentExpression();
+        if (expression == null || expression.isBlank()) {
+            resultsArea.setText("Enter a query to save.");
+            return;
+        }
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Save Snippet");
+        dialog.setHeaderText(null);
+        dialog.setContentText("Snippet name:");
+        dialog.showAndWait().ifPresent(name -> {
+            if (name.isBlank()) {
+                return;
+            }
+            saveSnippetForTest(name.trim());
+        });
+    }
+
+    /**
+     * Saves the current mode's expression under {@code name} (no prompt), used by
+     * {@link #saveSnippet()} and tests. XPath mode persists an {@code .xpath}
+     * snippet; XQuery mode persists an {@code .xquery} snippet.
+     *
+     * @param name the snippet name (without extension)
+     * @return the saved file, or {@code null} when the save failed
+     */
+    File saveSnippetForTest(String name) {
+        FavoritesService favorites = FavoritesService.getInstance();
+        File saved = isXQueryMode()
+                ? favorites.saveXQueryQuery(name, xqueryArea.getText())
+                : favorites.saveXPathQuery(name, xpathField.getText());
+        resultsArea.setText(saved != null ? "Saved snippet: " + saved.getName() : "Could not save snippet.");
+        return saved;
+    }
+
+    /**
+     * Rebuilds the snippets menu from both XPath and XQuery saved queries. Each
+     * item is labelled with the file name minus its extension and prefixed with
+     * its kind ("XPath" / "XQuery"). A disabled placeholder is shown when nothing
+     * is saved.
+     */
+    private void refreshSnippetsMenu() {
+        snippetsMenu.getItems().clear();
+        List<File> xpathFiles = FavoritesService.getInstance().getSavedXPathQueries();
+        List<File> xqueryFiles = FavoritesService.getInstance().getSavedXQueryQueries();
+
+        if (xpathFiles.isEmpty() && xqueryFiles.isEmpty()) {
+            MenuItem empty = new MenuItem("(no saved snippets)");
+            empty.setDisable(true);
+            snippetsMenu.getItems().add(empty);
+            return;
+        }
+
+        for (File file : xpathFiles) {
+            snippetsMenu.getItems().add(snippetItem(file, false));
+        }
+        for (File file : xqueryFiles) {
+            snippetsMenu.getItems().add(snippetItem(file, true));
+        }
+    }
+
+    /** Builds a menu item that loads {@code file} as an XPath or XQuery snippet. */
+    private MenuItem snippetItem(File file, boolean xquery) {
+        String extension = xquery ? "\\.xquery$" : "\\.xpath$";
+        String label = (xquery ? "XQuery: " : "XPath: ") + file.getName().replaceFirst(extension, "");
+        IconifyIcon graphic = new IconifyIcon(xquery ? "bi-code-square" : "bi-slash-square");
+        graphic.setIconSize(16);
+        MenuItem item = new MenuItem(label, graphic);
+        item.setOnAction(e -> loadSnippet(file, xquery));
+        return item;
+    }
+
+    /**
+     * Loads {@code file}'s text into the matching input, switching the mode to
+     * match the snippet kind. Mirrors {@link TransformPanel#loadQueryFromFile(File)}.
+     *
+     * @param file    the saved snippet file
+     * @param xquery  {@code true} to load into XQuery mode, {@code false} for XPath
+     */
+    void loadSnippet(File file, boolean xquery) {
+        try {
+            String content = Files.readString(file.toPath(), StandardCharsets.UTF_8).strip();
+            if (xquery) {
+                xqueryToggle.setSelected(true);
+                updateMode();
+                xqueryArea.setText(content);
+            } else {
+                xpathToggle.setSelected(true);
+                updateMode();
+                xpathField.setText(content);
+            }
+        } catch (Exception e) {
+            resultsArea.setText("Could not load snippet: " + e.getMessage());
+        }
+    }
+
     private Button button(String text, String icon, Runnable action) {
         IconifyIcon graphic = new IconifyIcon(icon);
         graphic.setIconSize(16);
@@ -272,5 +408,20 @@ public class QueryConsole extends Region {
     /** Test seam: whether the Run button is currently disabled. */
     boolean isRunDisabledForTest() {
         return runButton != null && runButton.isDisable();
+    }
+
+    /** Test seam: whether XQuery mode is currently active. */
+    boolean isXQueryModeForTest() {
+        return isXQueryMode();
+    }
+
+    /** Test seam: the current XPath field text. */
+    String getXPathTextForTest() {
+        return xpathField.getText();
+    }
+
+    /** Test seam: the current XQuery area text. */
+    String getXQueryTextForTest() {
+        return xqueryArea.getText();
     }
 }

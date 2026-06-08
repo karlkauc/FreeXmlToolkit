@@ -1,15 +1,22 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import javafx.stage.Stage;
 
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
+import org.fxt.freexmltoolkit.service.FavoritesService;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
@@ -27,10 +34,25 @@ class QueryConsoleTest {
 
     private EditorHost host;
 
+    // Snippet files created by the save tests, deleted in @AfterEach. FavoritesService
+    // writes to a fixed user-home config directory and cannot be redirected, so the
+    // tests use unique names and clean up after themselves to avoid polluting it.
+    private final List<File> createdSnippets = new ArrayList<>();
+
     @Start
     void start(Stage stage) {
         ServiceRegistry.initialize();
         host = new EditorHost();
+    }
+
+    @AfterEach
+    void deleteCreatedSnippets() {
+        for (File file : createdSnippets) {
+            if (file != null) {
+                file.delete();
+            }
+        }
+        createdSnippets.clear();
     }
 
     @Test
@@ -80,5 +102,60 @@ class QueryConsoleTest {
                 "no results should be produced without an active document");
         assertTrue(console.getResultsText().contains("No document open."),
                 "the console should report that no document is open");
+    }
+
+    @Test
+    void snippetsRoundTripForBothXPathAndXQuery() {
+        QueryConsole console = WaitForAsyncUtils.waitForAsyncFx(2000, () -> new QueryConsole(host));
+        WaitForAsyncUtils.waitForFxEvents();
+
+        // Unique, deterministic names so we never clobber real user favorites.
+        String suffix = "_qctest_" + getClass().getSimpleName() + "_" + System.nanoTime();
+        String xpathName = "snippet_xpath" + suffix;
+        String xqueryName = "snippet_xquery" + suffix;
+
+        // Save an XPath snippet from XPath mode.
+        File xpathFile = WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            console.setXPath("//item[@id='1']");
+            return console.saveSnippetForTest(xpathName);
+        });
+        createdSnippets.add(xpathFile);
+        assertNotNull(xpathFile, "saving an XPath snippet must return a file");
+
+        // Save an XQuery snippet from XQuery mode.
+        File xqueryFile = WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            console.setXQuery("for $x in /root/item return string($x)");
+            return console.saveSnippetForTest(xqueryName);
+        });
+        createdSnippets.add(xqueryFile);
+        assertNotNull(xqueryFile, "saving an XQuery snippet must return a file");
+
+        // FavoritesService round-trips both kinds.
+        FavoritesService favorites = FavoritesService.getInstance();
+        assertTrue(favorites.getSavedXPathQueries().stream().anyMatch(f -> f.equals(xpathFile)),
+                "the saved XPath snippet should be listed by FavoritesService");
+        assertTrue(favorites.getSavedXQueryQueries().stream().anyMatch(f -> f.equals(xqueryFile)),
+                "the saved XQuery snippet should be listed by FavoritesService");
+
+        // Loading an XPath snippet switches to XPath mode and fills the field.
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            console.setXQuery("placeholder"); // start in XQuery mode to prove the switch
+            console.loadSnippet(xpathFile, false);
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        assertEquals("//item[@id='1']", console.getXPathTextForTest(),
+                "loading an XPath snippet should fill the XPath field");
+        assertFalse(console.isXQueryModeForTest(), "loading an XPath snippet should switch to XPath mode");
+
+        // Loading an XQuery snippet switches to XQuery mode and fills the area.
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            console.loadSnippet(xqueryFile, true);
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        assertEquals("for $x in /root/item return string($x)", console.getXQueryTextForTest(),
+                "loading an XQuery snippet should fill the XQuery area");
+        assertTrue(console.isXQueryModeForTest(), "loading an XQuery snippet should switch to XQuery mode");
     }
 }
