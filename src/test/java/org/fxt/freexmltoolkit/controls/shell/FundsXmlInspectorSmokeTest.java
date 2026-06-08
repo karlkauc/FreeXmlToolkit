@@ -44,7 +44,7 @@ class FundsXmlInspectorSmokeTest {
     @Start
     void start(Stage stage) throws Exception {
         org.fxt.freexmltoolkit.di.ServiceRegistry.initialize();
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/pages/main.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/pages/tab_unified_shell.fxml"));
         root = loader.load();
         stage.setScene(new Scene(root, 1260, 780));
         stage.show();

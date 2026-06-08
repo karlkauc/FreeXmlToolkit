@@ -29,11 +29,10 @@ import org.testfx.util.WaitForAsyncUtils;
  * Generates the <strong>Unified Shell</strong> documentation screenshots into
  * {@code docs/img/} (file names {@code unified-shell-*.png}).
  *
- * <p>Boots the real application ({@code main.fxml} + {@code MainController}, which lands on the
- * Unified Shell), then drives the shell's activities and editor view modes and writes a
- * JavaFX {@code snapshot} of the shell node for each. Unlike {@link DocScreenshotGenerator}
- * (legacy tabs, AWT-Robot capture), this uses node snapshots so it works with software
- * rendering and captures the shell content cleanly.
+ * <p>Loads the Unified Shell FXML ({@code tab_unified_shell.fxml}) directly — the same root
+ * {@code FxtGui} boots into — then drives the shell's activities and editor view modes and
+ * writes a JavaFX {@code snapshot} of the shell node for each. This uses node snapshots so it
+ * works with software rendering and captures the shell content cleanly.
  *
  * <p>Run via the dedicated {@code docScreenshots} Gradle task on a real display:
  * <pre>{@code
@@ -54,7 +53,7 @@ class ShellDocScreenshotGenerator {
     void start(Stage stage) throws Exception {
         org.fxt.freexmltoolkit.di.ServiceRegistry.initialize();
         org.fxt.freexmltoolkit.controls.v2.view.XsdTypeIconPaths.registerAll();
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/pages/main.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/pages/tab_unified_shell.fxml"));
         root = loader.load();
         stage.setScene(new Scene(root, 1680, 1000));
         stage.setX(0);

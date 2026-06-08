@@ -23,9 +23,10 @@ import org.testfx.framework.junit5.Start;
 import org.testfx.util.WaitForAsyncUtils;
 
 /**
- * Guided real-app smoke tour: boots the full application ({@code main.fxml} +
- * {@code MainController}, which now lands on the Unified Shell), drives every
- * activity, and writes a series of screenshots to {@code /tmp/fxt_smoke/}.
+ * Guided real-app smoke tour: loads the Unified Shell FXML
+ * ({@code tab_unified_shell.fxml}) directly — the same root {@code FxtGui} boots
+ * into — drives every activity, and writes a series of screenshots to
+ * {@code /tmp/fxt_smoke/}.
  *
  * <p>Gated by {@code FXT_SHELL_SNAPSHOT=true} so it does not run (or slow) the
  * normal suite — it is a manual verification aid.
@@ -40,7 +41,7 @@ class AppSmokeTourTest {
     @Start
     void start(Stage stage) throws Exception {
         org.fxt.freexmltoolkit.di.ServiceRegistry.initialize();
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/pages/main.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/pages/tab_unified_shell.fxml"));
         root = loader.load();
         // Stay at/under the Monocle headless screen to avoid a blit overflow.
         stage.setScene(new Scene(root, 1260, 780));
