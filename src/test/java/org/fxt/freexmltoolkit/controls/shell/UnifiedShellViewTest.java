@@ -82,6 +82,29 @@ class UnifiedShellViewTest {
     }
 
     @Test
+    void queryConsoleHiddenByDefaultAndTogglesOnAndOff() {
+        WaitForAsyncUtils.waitForFxEvents();
+        // Hidden by default: no QueryConsole in the scene graph and toggle state is off.
+        assertFalse(shell.isQueryConsoleShown(), "Query Console must be hidden on startup");
+        assertNull(shell.lookup(".fxt-query-console"),
+                "Query Console node must not be in the scene graph before it is toggled on");
+
+        // Toggle on -> shown and findable.
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> shell.toggleQueryConsole());
+        WaitForAsyncUtils.waitForFxEvents();
+        assertTrue(shell.isQueryConsoleShown(), "Query Console must be shown after toggling on");
+        assertNotNull(shell.lookup(".fxt-query-console"),
+                "Query Console node must be part of the scene graph after toggling on");
+
+        // Toggle off -> hidden again.
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> shell.toggleQueryConsole());
+        WaitForAsyncUtils.waitForFxEvents();
+        assertFalse(shell.isQueryConsoleShown(), "Query Console must be hidden after toggling off");
+        assertNull(shell.lookup(".fxt-query-console"),
+                "Query Console node must be removed from the scene graph after toggling off");
+    }
+
+    @Test
     void writesLightAndDarkSnapshotsWhenRequested() throws Exception {
         if (!Boolean.getBoolean("fxt.shell.snapshot")
                 && !"true".equals(System.getenv("FXT_SHELL_SNAPSHOT"))) {

@@ -175,6 +175,15 @@ public class QueryConsole extends Region {
         }
     }
 
+    /** Requests focus on the active mode's query input (XPath field or XQuery area). */
+    public void focusInput() {
+        if (isXQueryMode()) {
+            xqueryArea.requestFocus();
+        } else {
+            xpathField.requestFocus();
+        }
+    }
+
     /** Runs the current query (XPath or XQuery) against the active document. */
     public void run() {
         if (xqueryToggle.isSelected()) {

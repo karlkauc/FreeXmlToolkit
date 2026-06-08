@@ -1,7 +1,9 @@
 package org.fxt.freexmltoolkit.controls.shell;
 
+import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
+import javafx.scene.control.SplitPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -43,6 +45,12 @@ public class UnifiedShellView extends BorderPane {
     private final org.fxt.freexmltoolkit.controls.unified.UnifiedSearchBar searchBar =
             new org.fxt.freexmltoolkit.controls.unified.UnifiedSearchBar();
 
+    /** Long-lived Query Console (XPath/XQuery against the active document); docked as a collapsible bottom strip. */
+    private final org.fxt.freexmltoolkit.controls.shell.editor.QueryConsole queryConsole =
+            new org.fxt.freexmltoolkit.controls.shell.editor.QueryConsole(editorHost);
+    /** Vertical split: item 0 = work area (grows), item 1 = {@link #queryConsole} when shown. */
+    private SplitPane workSplit;
+
     private final Label statusPosition = statusLabel("Ln 1, Col 1");
     private final Label statusType = statusLabel("");
     private final Label statusFile = statusLabel("No file open");
@@ -52,7 +60,7 @@ public class UnifiedShellView extends BorderPane {
         getStyleClass().add("fxt-shell");
 
         setLeft(activityBar);
-        setCenter(buildWorkArea());
+        setCenter(buildCenter());
         setBottom(buildStatusBar());
 
         // React to activity changes: swap the side panel.
@@ -153,6 +161,12 @@ public class UnifiedShellView extends BorderPane {
                 showSearch(true);
                 event.consume();
             }
+            case X -> {
+                if (event.isShiftDown()) {
+                    toggleQueryConsole();
+                    event.consume();
+                }
+            }
             default -> { /* let other shortcuts (e.g. editor undo/redo) through */ }
         }
     }
@@ -170,6 +184,53 @@ public class UnifiedShellView extends BorderPane {
         var doc = docOpt.get();
         statusType.setText(doc.getFileType().label());
         statusFile.setText(doc.getPath() != null ? doc.getPath().toString() : doc.getDisplayName());
+    }
+
+    /**
+     * Builds the shell center: a vertical {@link SplitPane} whose top item is the
+     * work area (activity side panel | editor | inspector) and whose bottom item is
+     * the collapsible {@link #queryConsole}. The console is removed from the split's
+     * items while hidden, so the default layout is unchanged on startup.
+     *
+     * @return the center region for the shell {@link BorderPane}
+     */
+    private Region buildCenter() {
+        Region work = buildWorkArea();
+
+        queryConsole.setMinHeight(180);
+        queryConsole.setPrefHeight(220);
+
+        workSplit = new SplitPane(work);
+        workSplit.setOrientation(Orientation.VERTICAL);
+        workSplit.getStyleClass().add("fxt-work-split");
+        // The work area should keep the extra space when the window resizes.
+        SplitPane.setResizableWithParent(work, true);
+        return workSplit;
+    }
+
+    /**
+     * Toggles the bottom Query Console: shows it (as the split's second item, with the
+     * work area taking ~70%) if hidden, hides it (removes it from the split) if shown.
+     * On show, focuses the query input for immediate typing.
+     */
+    public void toggleQueryConsole() {
+        if (isQueryConsoleShown()) {
+            workSplit.getItems().remove(queryConsole);
+        } else {
+            workSplit.getItems().add(queryConsole);
+            workSplit.setDividerPositions(0.7);
+            queryConsole.focusInput();
+        }
+    }
+
+    /** @return {@code true} while the Query Console is docked (visible) in the bottom split. */
+    public boolean isQueryConsoleShown() {
+        return workSplit != null && workSplit.getItems().contains(queryConsole);
+    }
+
+    /** @return the Query Console instance (long-lived; for tests and toolbar wiring). */
+    org.fxt.freexmltoolkit.controls.shell.editor.QueryConsole getQueryConsole() {
+        return queryConsole;
     }
 
     private Region buildWorkArea() {
@@ -362,6 +423,7 @@ public class UnifiedShellView extends BorderPane {
                 toolButton("bi-puzzle", "Insert Template…", this::insertTemplate),
                 toolButton("bi-layout-split", "Compare with File…", this::compareWithFile),
                 toolButton("bi-table", "Spreadsheet Converter… (Excel / CSV ↔ XML)", this::convertSpreadsheet),
+                toolButton("bi-terminal", "Query Console (XPath/XQuery)  Ctrl+Shift+X", this::toggleQueryConsole),
                 new javafx.scene.control.Separator(javafx.geometry.Orientation.VERTICAL),
                 toolButton("bi-diagram-3", "Set XSD schema for IntelliSense", this::setSchema));
         actions.getStyleClass().add("fxt-editor-actionbar");
