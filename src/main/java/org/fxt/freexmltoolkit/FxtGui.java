@@ -44,7 +44,6 @@ import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.fxt.freexmltoolkit.app.SplashScreen;
 import org.fxt.freexmltoolkit.app.SplashScreen.LoadingStep;
-import org.fxt.freexmltoolkit.controller.MainController;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
@@ -116,8 +115,6 @@ public class FxtGui extends Application {
         }
         return propertiesService;
     }
-
-    MainController mainController;
 
     StopWatch startWatch = new StopWatch();
 

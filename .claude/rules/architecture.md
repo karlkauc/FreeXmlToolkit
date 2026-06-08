@@ -85,7 +85,6 @@ updater dispatch:
 
 | Controller | Tab / Context | Responsibility |
 |------------|---------------|----------------|
-| `MainController` | - | Navigation, lifecycle, memory monitoring |
 | `XmlUltimateController` | XML | Multi-tab XML editing, IntelliSense |
 | `XsdController` | XSD | Tab orchestration, graphical/text view, Type Library/Editor |
 | `DocumentationTabController` | XSD > Documentation | XSD documentation export (HTML, PDF, Word) |
@@ -131,9 +130,6 @@ public void setName(String name) {
 | File | Purpose |
 |------|---------|
 | `FxtGui.java` | Application main class |
-| `main.fxml` | Root layout |
-| `welcome.fxml` | Welcome screen |
-| `settings.fxml` | Application settings |
 | `tab_xml_ultimate.fxml` | XML editor tab |
 | `tab_xsd.fxml` | XSD tools tab |
 | `tab_json.fxml` | JSON editor tab |
