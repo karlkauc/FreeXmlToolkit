@@ -505,8 +505,13 @@ results pane with Copy on the right.*
 ### Layout
 
 - **Left - the query:**
-  - An **XPath / XQuery** mode toggle. XPath uses a single-line input; XQuery uses a multi-line one.
-  - The query input. In XPath mode, press **Enter** to run.
+  - An **XPath / XQuery** mode toggle.
+  - The query input **with IntelliSense** (autocomplete): suggestions pop up as you type after
+    `/`, `//`, `@`, `[`, `(`, `$` and `::`, or on demand with **Ctrl+Space**. It suggests element
+    and attribute names from the active document, XPath/XQuery functions, axes, operators and
+    (in XQuery mode) FLWOR keywords. Use ↑/↓ to navigate and **Enter**/**Tab** to accept.
+  - To run: in **XPath** mode press **Enter**; in **XQuery** mode press **Ctrl+Enter** (Enter
+    inserts a newline). The **Run** button works in both modes.
   - **Run** - Execute the query against the active document.
   - **Save** - Save the current expression as a reusable snippet (see below).
   - **Snippets** - A menu of your saved XPath and XQuery snippets; pick one to load it (the console

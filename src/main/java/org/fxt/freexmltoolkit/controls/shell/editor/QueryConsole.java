@@ -15,21 +15,24 @@ import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
+import org.fxmisc.richtext.CodeArea;
 import org.fxt.freexmltoolkit.FxtGui;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.XPathIntelliSenseEngine;
 import org.fxt.freexmltoolkit.service.FavoritesService;
 import org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat;
 
@@ -54,10 +57,15 @@ public class QueryConsole extends Region {
 
     private final ToggleButton xpathToggle = new ToggleButton("XPath");
     private final ToggleButton xqueryToggle = new ToggleButton("XQuery");
-    private final TextField xpathField = new TextField();
-    private final TextArea xqueryArea = new TextArea();
+    // RichTextFX CodeAreas so the XPath/XQuery IntelliSense engine can attach (autocomplete).
+    private final CodeArea xpathField = new CodeArea();
+    private final CodeArea xqueryArea = new CodeArea();
     private final StackPane inputStack = new StackPane(xpathField, xqueryArea);
     private final TextArea resultsArea = new TextArea();
+
+    // XPath/XQuery autocompletion engines, one per input (created in buildInput()).
+    private XPathIntelliSenseEngine xpathIntelliSense;
+    private XPathIntelliSenseEngine xqueryIntelliSense;
 
     // The Run button, created in buildInput() so the constructor can wire enablement.
     private Button runButton;
@@ -106,19 +114,45 @@ public class QueryConsole extends Region {
         HBox modeRow = new HBox(6, xpathToggle, xqueryToggle);
         modeRow.setAlignment(Pos.CENTER_LEFT);
 
-        xpathField.getStyleClass().add("fxt-xpath-field");
-        xpathField.setPromptText("/root/element");
-        xpathField.setOnAction(e -> run()); // Enter runs
+        xpathField.getStyleClass().addAll("fxt-xpath-field", "fxt-query-input");
+        xpathField.setWrapText(true);
 
-        xqueryArea.getStyleClass().add("fxt-xpath-field");
-        xqueryArea.setPromptText("for $x in /root/item return string($x)");
-        xqueryArea.setPrefRowCount(4);
+        xqueryArea.getStyleClass().addAll("fxt-xpath-field", "fxt-query-input");
+        xqueryArea.setWrapText(false);
+        xqueryArea.setPrefHeight(96);
+
+        // Restore XPath/XQuery IntelliSense (autocomplete): context-aware element/attribute,
+        // function, axis and (XQuery) keyword completion. Triggers on '/', '@', '[', '(', '$',
+        // '::' and Ctrl+Space; the document text feeds element/attribute suggestions.
+        xpathIntelliSense = new XPathIntelliSenseEngine(xpathField, false);
+        xqueryIntelliSense = new XPathIntelliSenseEngine(xqueryArea, true);
+        java.util.function.Supplier<String> activeXml = () -> editorHost.getActiveText().orElse("");
+        xpathIntelliSense.setXmlContentSupplier(activeXml);
+        xqueryIntelliSense.setXmlContentSupplier(activeXml);
+
+        // XPath is a single expression: Enter runs it. While the completion popup is open the
+        // engine consumes Enter first (to accept the highlighted suggestion), so this filter —
+        // added after the engine's — only fires when no popup is showing.
+        xpathField.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
+            if (e.getCode() == KeyCode.ENTER && !xpathIntelliSense.isPopupShowing()) {
+                run();
+                e.consume();
+            }
+        });
+        // XQuery is multi-line: Enter inserts a newline (or accepts a suggestion); Ctrl+Enter runs.
+        xqueryArea.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
+            if (e.getCode() == KeyCode.ENTER && e.isShortcutDown()
+                    && !xqueryIntelliSense.isPopupShowing()) {
+                run();
+                e.consume();
+            }
+        });
 
         VBox.setVgrow(inputStack, Priority.ALWAYS);
         updateMode();
 
         Button run = button("Run", "bi-play-fill", this::run);
-        run.setTooltip(new Tooltip("Run the query against the active document (Enter)"));
+        run.setTooltip(new Tooltip("Run the query against the active document (XPath: Enter, XQuery: Ctrl+Enter)"));
         runButton = run;
 
         Button saveSnippet = button("Save", "bi-save", this::saveSnippet);
@@ -379,11 +413,11 @@ public class QueryConsole extends Region {
             if (xquery) {
                 xqueryToggle.setSelected(true);
                 updateMode();
-                xqueryArea.setText(content);
+                setText(xqueryArea, content);
             } else {
                 xpathToggle.setSelected(true);
                 updateMode();
-                xpathField.setText(content);
+                setText(xpathField, content);
             }
         } catch (Exception e) {
             resultsArea.setText("Could not load snippet: " + e.getMessage());
@@ -408,14 +442,19 @@ public class QueryConsole extends Region {
     void setXPath(String expression) {
         xpathToggle.setSelected(true);
         updateMode();
-        xpathField.setText(expression);
+        setText(xpathField, expression);
     }
 
     /** Test seam: sets the XQuery expression (switches to XQuery mode). */
     void setXQuery(String expression) {
         xqueryToggle.setSelected(true);
         updateMode();
-        xqueryArea.setText(expression);
+        setText(xqueryArea, expression);
+    }
+
+    /** Replaces the entire text of a query {@link CodeArea} (null-safe). */
+    private static void setText(CodeArea area, String text) {
+        area.replaceText(text == null ? "" : text);
     }
 
     /** Test seam: runs the current query (same as the Run button / Enter). */
@@ -446,5 +485,15 @@ public class QueryConsole extends Region {
     /** Test seam: the current XQuery area text. */
     String getXQueryTextForTest() {
         return xqueryArea.getText();
+    }
+
+    /** Test seam: the XPath-mode IntelliSense engine (autocomplete). */
+    XPathIntelliSenseEngine xpathIntelliSenseForTest() {
+        return xpathIntelliSense;
+    }
+
+    /** Test seam: the XQuery-mode IntelliSense engine (autocomplete). */
+    XPathIntelliSenseEngine xqueryIntelliSenseForTest() {
+        return xqueryIntelliSense;
     }
 }

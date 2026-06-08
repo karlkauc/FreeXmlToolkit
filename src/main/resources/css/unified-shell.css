@@ -531,6 +531,24 @@
     -fx-font-size: 11px;
 }
 
+/* Query input CodeAreas (XPath/XQuery, with IntelliSense): read as bordered input fields. */
+.fxt-query-input {
+    -fx-background-color: -fxt-bg-canvas;
+    -fx-border-color: -fxt-border;
+    -fx-border-width: 1;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-padding: 2;
+}
+
+.fxt-query-input .content {
+    -fx-background-color: transparent;
+}
+
+.fxt-query-input .text {
+    -fx-fill: -fxt-text-primary;
+}
+
 /* ----- Query Console (collapsible bottom dock) ------------------------- */
 /* A distinct docked panel below the editor: a clear top border separates it
    from the editor area, and a surface background marks it as its own pane. The
