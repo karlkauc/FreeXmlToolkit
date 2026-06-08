@@ -88,7 +88,7 @@ class PerfBenchmark {
 
 ```bash
 git rm src/test/java/org/fxt/freexmltoolkit/perf/PerfHotspotHarness.java
-./gradlew test --tests "org.fxt.freexmltoolkit.perf.PerfBenchmark"
+./gradlew perfBenchmark
 ```
 Find the `PERF processXsd median=...` and `PERF analyze@eod median=...` lines in the test output (`build/test-results/test/TEST-...PerfBenchmark.xml`, the `system-out` section, or the console). **Record both numbers — these are the BEFORE baseline** (report them at the end). Expected ballpark: processXsd ~5000 ms, analyze@eod ~20 ms.
 
@@ -299,7 +299,7 @@ Expected: PASS (logging changes can't affect the map → hash unchanged).
 
 - [ ] **Step 3: Measure**
 
-Run: `./gradlew test --tests "org.fxt.freexmltoolkit.perf.PerfBenchmark"`
+Run: `./gradlew perfBenchmark`
 Read the new `PERF processXsd median=...` line; note it (intermediate "after A" number).
 
 - [ ] **Step 4: Commit**
@@ -364,7 +364,7 @@ Expected: PASS. If it FAILS, the memo copied a path-dependent field — narrow `
 
 - [ ] **Step 4: Measure**
 
-Run: `./gradlew test --tests "org.fxt.freexmltoolkit.perf.PerfBenchmark"`
+Run: `./gradlew perfBenchmark`
 Read the new `PERF processXsd median=...`; note it ("after A+C" number).
 
 - [ ] **Step 5: (Optional, only if more win is needed) Extend the memo to annotations**
@@ -467,7 +467,7 @@ Expected: PASS.
 
 - [ ] **Step 4: Measure**
 
-Run: `./gradlew test --tests "org.fxt.freexmltoolkit.perf.PerfBenchmark"`
+Run: `./gradlew perfBenchmark`
 Read the new `PERF analyze@eod median=...`; note it ("#2 after" number).
 
 - [ ] **Step 5: Commit**
@@ -485,7 +485,7 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 
 - [ ] **Step 1: Re-run the benchmark for the final numbers**
 
-Run: `./gradlew test --tests "org.fxt.freexmltoolkit.perf.PerfBenchmark"`
+Run: `./gradlew perfBenchmark`
 Collect the final `PERF processXsd median=...` and `PERF analyze@eod median=...`.
 
 - [ ] **Step 2: Produce the before/after summary**
