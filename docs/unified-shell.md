@@ -20,11 +20,24 @@ XML file next to its XSD schema, XSLT stylesheets and Schematron rules at the sa
 
 | Area | Purpose |
 |------|---------|
-| **Activity bar** (far left) | Switch tools / side panels: Explorer, Transform, Validation, Signature, Type Library, FOP/PDF, Favorites, Settings, Help. |
-| **Side panel** | The panel for the selected activity (e.g. the Transform panel, the Validation panel). |
+| **Activity bar** (far left) | Switch tools / side panels: Explorer, Transform, Validation, Signature, Type Library, FOP/PDF, Favorites, Settings, Help. **Always visible** - it cannot be collapsed. |
+| **Side panel** | The panel for the selected activity (e.g. the Transform panel, the Validation panel). **Collapsible** (see [Collapsing the side panels](#collapsing-the-side-panels)). |
 | **Editor host** (center) | Tabs of open documents, each with view modes - Text, Tree, Graphic (XSD), Grid (XML). |
-| **Inspector** (right) | View **and edit** the selected node's properties from any view. |
+| **Inspector** (right) | View **and edit** the selected node's properties from any view. **Collapsible** (see [Collapsing the side panels](#collapsing-the-side-panels)). |
 | **Status bar** (bottom) | Caret position, validation status and a memory indicator. |
+
+#### Collapsing the side panels
+
+Both the **left side panel** and the **right Properties inspector** can be collapsed to give the
+editor more room - the activity bar always stays visible.
+
+- **Collapse**: click the discreet double-chevron at the panel's inner edge (`<<` on the left
+  panel, `>>` on the inspector). The panel is hidden completely.
+- **Re-open**: click the matching toggle button in the editor toolbar (left-most toggle for the
+  side panel, right-most for the inspector) - the same mechanism on both sides. Selecting any
+  activity from the activity bar also re-opens the left side panel.
+- The collapsed/expanded state is **remembered across restarts** and can also be changed under
+  **Settings → General** ("Show left side panel" / "Show Properties (inspector) panel").
 
 ### Key Features
 
@@ -57,7 +70,9 @@ XML file next to its XSD schema, XSLT stylesheets and Schematron rules at the sa
 
 ## Toolbar
 
-The toolbar provides common operations and context-sensitive buttons:
+The toolbar provides common operations and context-sensitive buttons. The action icons wrap
+onto a second row when the editor area is narrow, so **every action stays visible and clickable**
+(there is no hidden "overflow" menu).
 
 ### Always Visible
 - **New** - Create XML, XSD, XSLT, Schematron, or JSON files

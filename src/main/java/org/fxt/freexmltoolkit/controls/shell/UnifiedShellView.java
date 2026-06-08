@@ -55,6 +55,22 @@ public class UnifiedShellView extends BorderPane {
     /** Vertical split: item 0 = work area (grows), item 1 = {@link #queryConsole} when shown. */
     private SplitPane workSplit;
 
+    /** Property keys for the persisted side-panel visibility (editable in Settings). */
+    private static final String LEFT_PANEL_KEY = "shell.leftPanel.visible";
+    private static final String INSPECTOR_KEY = "shell.inspector.visible";
+
+    /** User collapse state for the two side panels (persisted across restarts; default open). */
+    private boolean leftPanelOpen = loadPanelPref(LEFT_PANEL_KEY);
+    private boolean inspectorOpen = loadPanelPref(INSPECTOR_KEY);
+    /** Wrappers added to the work HBox (each carries an in-edge collapse chevron). */
+    private StackPane leftPanelWrapper;
+    private StackPane inspectorWrapper;
+    /** Toolbar toggles that re-open a collapsed panel (same mechanism for both sides). */
+    private javafx.scene.control.ToggleButton leftPanelToggle;
+    private javafx.scene.control.ToggleButton inspectorToggle;
+    /** Recomputes panel/toggle visibility; combines document-open state with collapse state. */
+    private Runnable chromeUpdater;
+
     /** Type-gated document-action toolbar buttons (created in {@link #buildEditorToolbar()}). */
     private javafx.scene.control.Button actionValidate;
     private javafx.scene.control.Button actionTransform;
@@ -73,9 +89,15 @@ public class UnifiedShellView extends BorderPane {
         setCenter(buildCenter());
         setBottom(buildStatusBar());
 
-        // React to activity changes: swap the side panel.
+        // React to activity changes: swap the side panel. Choosing an activity also reveals
+        // the (possibly collapsed) left panel — selecting one whose panel stays hidden would
+        // be pointless. The initial call above does NOT reveal, so a persisted collapsed
+        // state survives startup.
         showSidePanelFor(selectionModel.getActive());
-        selectionModel.activeProperty().addListener((obs, oldV, newV) -> showSidePanelFor(newV));
+        selectionModel.activeProperty().addListener((obs, oldV, newV) -> {
+            setLeftPanelVisible(true);
+            showSidePanelFor(newV);
+        });
 
         // Keep the status bar in sync with the active editor.
         editorHost.activeCaretProperty().addListener((obs, oldV, newV) -> updateStatusBar());
@@ -253,24 +275,143 @@ public class UnifiedShellView extends BorderPane {
 
         Region inspector = new org.fxt.freexmltoolkit.controls.shell.inspector.InspectorPanel(editorHost);
 
-        HBox work = new HBox(sidePanelHost, editorCenter, inspector);
+        // Wrap both side panels so each carries a discreet in-edge collapse chevron
+        // (left: "<<", right: ">>") — same visual mechanism on both sides.
+        leftPanelWrapper = wrapCollapsible(sidePanelHost, true);
+        inspectorWrapper = wrapCollapsible(inspector, false);
+
+        HBox work = new HBox(leftPanelWrapper, editorCenter, inspectorWrapper);
         work.getStyleClass().add("fxt-work-area");
 
-        // The Welcome / Dashboard is full-width (Figma): while no document is open, hide
-        // the side panel and inspector so the dashboard uses the whole work area; restore
-        // them as soon as a document opens.
-        Runnable updateChrome = () -> {
+        // Visibility combines two concerns:
+        //  - the Welcome / Dashboard is full-width (Figma): while no document is open, both
+        //    side panels are hidden so the dashboard uses the whole work area;
+        //  - the user collapse state (persisted) hides a panel even when a document is open.
+        chromeUpdater = () -> {
             boolean hasDocument = !editorHost.isEmpty();
-            sidePanelHost.setVisible(hasDocument);
-            sidePanelHost.setManaged(hasDocument);
-            inspector.setVisible(hasDocument);
-            inspector.setManaged(hasDocument);
+            boolean showLeft = hasDocument && leftPanelOpen;
+            boolean showRight = hasDocument && inspectorOpen;
+            leftPanelWrapper.setVisible(showLeft);
+            leftPanelWrapper.setManaged(showLeft);
+            inspectorWrapper.setVisible(showRight);
+            inspectorWrapper.setManaged(showRight);
+            // The re-open toggles are only meaningful while a document is open.
+            if (leftPanelToggle != null) {
+                leftPanelToggle.setDisable(!hasDocument);
+                leftPanelToggle.setSelected(leftPanelOpen);
+            }
+            if (inspectorToggle != null) {
+                inspectorToggle.setDisable(!hasDocument);
+                inspectorToggle.setSelected(inspectorOpen);
+            }
         };
-        updateChrome.run();
+        chromeUpdater.run();
         editorHost.getOpenDocuments().addListener(
                 (javafx.collections.ListChangeListener<org.fxt.freexmltoolkit.controls.shell.editor.OpenDocument>)
-                        c -> updateChrome.run());
+                        c -> chromeUpdater.run());
         return work;
+    }
+
+    /**
+     * Wraps a side-panel region in a {@link StackPane} that overlays a discreet collapse
+     * chevron in the panel's inner corner. The wrapped content keeps its own preferred
+     * width and layout; only the chevron is added.
+     *
+     * @param content  the panel content (keeps its own width)
+     * @param leftSide {@code true} for the left side panel (chevron "<<", top-right),
+     *                 {@code false} for the inspector (chevron ">>", top-left)
+     * @return the wrapper to place in the work {@link HBox}
+     */
+    private StackPane wrapCollapsible(Region content, boolean leftSide) {
+        javafx.scene.control.Button chevron = new javafx.scene.control.Button();
+        chevron.getStyleClass().addAll("fxt-tool-button", "fxt-panel-collapse");
+        IconifyIcon icon = new IconifyIcon(leftSide ? "bi-chevron-double-left" : "bi-chevron-double-right");
+        icon.setIconSize(14);
+        chevron.setGraphic(icon);
+        chevron.setFocusTraversable(false);
+        chevron.setTooltip(new javafx.scene.control.Tooltip(
+                leftSide ? "Collapse the side panel" : "Collapse the Properties panel"));
+        chevron.setOnAction(e -> {
+            if (leftSide) {
+                setLeftPanelVisible(false);
+            } else {
+                setInspectorVisible(false);
+            }
+        });
+
+        StackPane wrapper = new StackPane(content, chevron);
+        StackPane.setAlignment(chevron, leftSide ? Pos.TOP_RIGHT : Pos.TOP_LEFT);
+        StackPane.setMargin(chevron, new javafx.geometry.Insets(4));
+        return wrapper;
+    }
+
+    /** Shows/hides the left side panel and persists the choice (default open). */
+    public void setLeftPanelVisible(boolean open) {
+        leftPanelOpen = open;
+        savePanelPref(LEFT_PANEL_KEY, open);
+        if (chromeUpdater != null) {
+            chromeUpdater.run();
+        }
+    }
+
+    /** Shows/hides the right inspector (Properties) panel and persists the choice (default open). */
+    public void setInspectorVisible(boolean open) {
+        inspectorOpen = open;
+        savePanelPref(INSPECTOR_KEY, open);
+        if (chromeUpdater != null) {
+            chromeUpdater.run();
+        }
+    }
+
+    /** @return {@code true} while the left side panel is set to open (regardless of document state). */
+    public boolean isLeftPanelOpen() {
+        return leftPanelOpen;
+    }
+
+    /** @return {@code true} while the inspector (Properties) panel is set to open. */
+    public boolean isInspectorOpen() {
+        return inspectorOpen;
+    }
+
+    /** @return the left side-panel wrapper (for tests/host wiring). */
+    Region getLeftPanelWrapper() {
+        return leftPanelWrapper;
+    }
+
+    /** @return the inspector wrapper (for tests/host wiring). */
+    Region getInspectorWrapper() {
+        return inspectorWrapper;
+    }
+
+    /** Re-reads the persisted panel visibility (e.g. after the Settings panel saves) and applies it live. */
+    private void reloadPanelPrefs() {
+        leftPanelOpen = loadPanelPref(LEFT_PANEL_KEY);
+        inspectorOpen = loadPanelPref(INSPECTOR_KEY);
+        if (chromeUpdater != null) {
+            chromeUpdater.run();
+        }
+    }
+
+    /** @return the persisted panel visibility for {@code key}, defaulting to open ({@code true}). */
+    private static boolean loadPanelPref(String key) {
+        try {
+            String value = org.fxt.freexmltoolkit.di.ServiceRegistry
+                    .get(org.fxt.freexmltoolkit.service.PropertiesService.class).get(key);
+            return value == null || Boolean.parseBoolean(value);
+        } catch (Throwable t) {
+            return true; // properties service unavailable (e.g. tests) — default to open
+        }
+    }
+
+    /** Persists the panel visibility for {@code key}; silently ignores an unavailable service. */
+    private static void savePanelPref(String key, boolean value) {
+        try {
+            org.fxt.freexmltoolkit.di.ServiceRegistry
+                    .get(org.fxt.freexmltoolkit.service.PropertiesService.class)
+                    .set(key, String.valueOf(value));
+        } catch (Throwable ignored) {
+            // properties service unavailable — nothing to persist
+        }
     }
 
     private void showSidePanelFor(Activity activity) {
@@ -320,7 +461,10 @@ public class UnifiedShellView extends BorderPane {
         }
         if (activity == Activity.SETTINGS) {
             var settings = new org.fxt.freexmltoolkit.controls.shell.editor.SettingsPanel();
-            settings.setOnSaved(activityBar::refresh);
+            settings.setOnSaved(() -> {
+                activityBar.refresh();
+                reloadPanelPrefs();
+            });
             sidePanelHost.getChildren().setAll(settings);
             return;
         }
@@ -404,9 +548,6 @@ public class UnifiedShellView extends BorderPane {
                 },
                 editorHost.activeSchemaProperty()));
 
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-
         IconifyIcon validateIcon = new IconifyIcon("bi-check2-circle");
         validateIcon.setIconSize(15);
         javafx.scene.control.Button validate = new javafx.scene.control.Button("Validate", validateIcon);
@@ -430,30 +571,37 @@ public class UnifiedShellView extends BorderPane {
                 "Open Type Editor… (pick a named type from the active XSD)",
                 editorActions::openTypeEditorActive);
 
-        // The icon actions live in a ToolBar so that, when the editor area is narrow, the
-        // surplus collapses into the standard overflow chevron instead of compressing the
-        // whole HBox and ellipsizing the readable controls (badge, Validate, view switch).
-        javafx.scene.control.ToolBar actions = new javafx.scene.control.ToolBar(
-                toolButton("bi-file-earmark-plus", "New (Ctrl+N)", this::newDocument),
-                toolButton("bi-folder2-open", "Open (Ctrl+O)", this::openFile),
-                toolButton("bi-save", "Save (Ctrl+S)", this::saveActive),
-                toolButton("bi-save2", "Save As (Ctrl+Shift+S)", this::saveActiveAs),
-                toolButton("bi-files", "Save All", editorHost::saveAll),
+        // The icon actions live in a wrapping FlowPane: when the editor area is narrow they
+        // wrap onto a second row so EVERY action stays visible and directly clickable (no
+        // overflow chevron that can hide trailing buttons — Spreadsheet, Query Console, …).
+        javafx.scene.layout.FlowPane actions = new javafx.scene.layout.FlowPane(
+                toolButton("action-new", "bi-file-earmark-plus", "New (Ctrl+N)", this::newDocument),
+                toolButton("action-open", "bi-folder2-open", "Open (Ctrl+O)", this::openFile),
+                toolButton("action-save", "bi-save", "Save (Ctrl+S)", this::saveActive),
+                toolButton("action-save-as", "bi-save2", "Save As (Ctrl+Shift+S)", this::saveActiveAs),
+                toolButton("action-save-all", "bi-files", "Save All", editorHost::saveAll),
                 new javafx.scene.control.Separator(javafx.geometry.Orientation.VERTICAL),
-                toolButton("bi-arrow-counterclockwise", "Undo (Ctrl+Z)", editorHost::undoActive),
-                toolButton("bi-arrow-clockwise", "Redo (Ctrl+Y)", editorHost::redoActive),
+                toolButton("action-undo", "bi-arrow-counterclockwise", "Undo (Ctrl+Z)", editorHost::undoActive),
+                toolButton("action-redo", "bi-arrow-clockwise", "Redo (Ctrl+Y)", editorHost::redoActive),
                 new javafx.scene.control.Separator(javafx.geometry.Orientation.VERTICAL),
-                toolButton("bi-text-indent-left", "Format", editorHost::formatActive),
-                toolButton("bi-arrows-collapse", "Minify", editorHost::minifyActive),
-                toolButton("bi-puzzle", "Insert Template…", this::insertTemplate),
-                toolButton("bi-layout-split", "Compare with File…", this::compareWithFile),
-                toolButton("bi-table", "Spreadsheet Converter… (Excel / CSV ↔ XML)", this::convertSpreadsheet),
-                toolButton("bi-terminal", "Query Console (XPath/XQuery)  Ctrl+Shift+X", this::toggleQueryConsole),
+                toolButton("action-format", "bi-text-indent-left", "Format", editorHost::formatActive),
+                toolButton("action-minify", "bi-arrows-collapse", "Minify", editorHost::minifyActive),
+                toolButton("action-insert-template", "bi-puzzle", "Insert Template…", this::insertTemplate),
+                toolButton("action-compare", "bi-layout-split", "Compare with File…", this::compareWithFile),
+                toolButton("action-spreadsheet", "bi-table",
+                        "Spreadsheet Converter… (Excel / CSV ↔ XML)", this::convertSpreadsheet),
+                toolButton("action-query-console", "bi-terminal",
+                        "Query Console (XPath/XQuery)  Ctrl+Shift+X", this::toggleQueryConsole),
                 actionValidate, actionTransform, actionGenerateDocs, actionTypeEditor,
                 new javafx.scene.control.Separator(javafx.geometry.Orientation.VERTICAL),
-                toolButton("bi-diagram-3", "Set XSD schema for IntelliSense", this::setSchema));
+                toolButton("action-set-schema", "bi-diagram-3", "Set XSD schema for IntelliSense", this::setSchema));
         actions.getStyleClass().add("fxt-editor-actionbar");
+        actions.setHgap(2);
+        actions.setVgap(2);
+        actions.setRowValignment(javafx.geometry.VPos.CENTER);
         actions.setMinWidth(0);
+        // Take the slack between the left controls and the right cluster, wrapping within it.
+        HBox.setHgrow(actions, Priority.ALWAYS);
 
         // Type-gate the document-actions group against the active document's file type.
         refreshDocumentActionGating();
@@ -467,7 +615,21 @@ public class UnifiedShellView extends BorderPane {
         viewSwitch.setMinWidth(Region.USE_PREF_SIZE);
         schemaStatus.setMinWidth(Region.USE_PREF_SIZE);
 
-        HBox bar = new HBox(4, badge, vsep(), actions, validate, spacer, viewSwitch, vsep(), schemaStatus);
+        // Re-open toggles for the collapsed side panels — same mechanism on both sides
+        // (recognition value). They mirror the panels' open state and sit at the toolbar edges.
+        leftPanelToggle = panelToggle("toggle-left-panel", "bi-chevron-double-right",
+                "Show / hide the side panel", true);
+        inspectorToggle = panelToggle("toggle-inspector", "bi-chevron-double-left",
+                "Show / hide the Properties panel", false);
+        // Sync the toggles' selected/disabled state with the current panel/document state.
+        if (chromeUpdater != null) {
+            chromeUpdater.run();
+        }
+
+        // Layout: left controls | wrapping action flow (grows) | right cluster. The flow
+        // takes the slack (replacing the old spacer) and wraps instead of overflowing.
+        HBox bar = new HBox(4, leftPanelToggle, badge, validate, vsep(), actions,
+                viewSwitch, vsep(), schemaStatus, inspectorToggle);
         bar.setAlignment(Pos.CENTER_LEFT);
         bar.getStyleClass().add("fxt-editor-toolbar");
         return bar;
@@ -699,6 +861,44 @@ public class UnifiedShellView extends BorderPane {
         button.setGraphic(graphic);
         button.setTooltip(new javafx.scene.control.Tooltip(tooltip));
         button.setOnAction(e -> action.run());
+        return button;
+    }
+
+    /** {@link #toolButton(String, String, Runnable)} with a stable {@code id} for tests/automation. */
+    private javafx.scene.control.Button toolButton(String id, String icon, String tooltip, Runnable action) {
+        javafx.scene.control.Button button = toolButton(icon, tooltip, action);
+        button.setId(id);
+        return button;
+    }
+
+    /**
+     * Builds a side-panel re-open toggle button (identical style for both sides). The toggle
+     * reflects the panel's open state; its action shows/hides the matching panel.
+     *
+     * @param id       stable id for tests
+     * @param icon     the chevron literal (reveal direction: left panel ">>", inspector "<<")
+     * @param tooltip  the button tooltip
+     * @param leftSide {@code true} drives the left side panel, {@code false} the inspector
+     * @return the configured toggle button
+     */
+    private javafx.scene.control.ToggleButton panelToggle(
+            String id, String icon, String tooltip, boolean leftSide) {
+        javafx.scene.control.ToggleButton button = new javafx.scene.control.ToggleButton();
+        button.setId(id);
+        button.getStyleClass().addAll("fxt-tool-button", "fxt-panel-toggle");
+        IconifyIcon graphic = new IconifyIcon(icon);
+        graphic.setIconSize(16);
+        button.setGraphic(graphic);
+        button.setTooltip(new javafx.scene.control.Tooltip(tooltip));
+        button.setFocusTraversable(false);
+        button.setMinWidth(Region.USE_PREF_SIZE);
+        button.setOnAction(e -> {
+            if (leftSide) {
+                setLeftPanelVisible(button.isSelected());
+            } else {
+                setInspectorVisible(button.isSelected());
+            }
+        });
         return button;
     }
 

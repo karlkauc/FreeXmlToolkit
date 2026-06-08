@@ -325,6 +325,29 @@
     -fx-icon-color: -fxt-primary;
 }
 
+/* Discreet in-edge collapse chevron overlaid on each side panel ("<<" / ">>"). */
+.fxt-panel-collapse {
+    -fx-padding: 2 4 2 4;
+    -fx-opacity: 0.55;
+}
+
+.fxt-panel-collapse:hover {
+    -fx-opacity: 1.0;
+}
+
+.fxt-panel-collapse .iconify-icon {
+    -fx-icon-color: -fxt-text-muted;
+}
+
+/* Toolbar re-open toggles for the side panels — identical on both sides. */
+.fxt-panel-toggle:selected {
+    -fx-background-color: -fxt-bg-subtle;
+}
+
+.fxt-panel-toggle:selected .iconify-icon {
+    -fx-icon-color: -fxt-primary;
+}
+
 .fxt-toolbar-status {
     -fx-text-fill: -fxt-text-muted;
     -fx-font-family: "Inter", sans-serif;

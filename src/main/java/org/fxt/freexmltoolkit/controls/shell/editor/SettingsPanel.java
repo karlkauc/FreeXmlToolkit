@@ -63,6 +63,8 @@ public class SettingsPanel extends VBox {
     // General
     private final CheckBox updateCheck = new CheckBox("Check for updates on startup");
     private final CheckBox smallIcons = new CheckBox("Use small icons");
+    private final CheckBox showLeftPanel = new CheckBox("Show left side panel");
+    private final CheckBox showInspector = new CheckBox("Show Properties (inspector) panel");
 
     // Proxy
     private final CheckBox useSystemProxy = new CheckBox("Use system proxy");
@@ -168,7 +170,7 @@ public class SettingsPanel extends VBox {
                 useSystemTemp, browseRow(customTempDir, this::chooseTempDir),
                 fill(clearTemp), tempStatus,
                 section("GENERAL"),
-                updateCheck, smallIcons,
+                updateCheck, smallIcons, showLeftPanel, showInspector,
                 section("USER INFO"),
                 labeled("Name:", userName), labeled("Email:", userEmail),
                 labeled("Company:", userCompany),
@@ -277,6 +279,9 @@ public class SettingsPanel extends VBox {
             customTempDir.setText(orEmpty(props.getCustomTempFolder()));
             updateCheck.setSelected(props.isUpdateCheckEnabled());
             smallIcons.setSelected(props.isUseSmallIcons());
+            // Side-panel visibility (shared with UnifiedShellView; default open).
+            showLeftPanel.setSelected(!"false".equalsIgnoreCase(orEmpty(props.get("shell.leftPanel.visible"))));
+            showInspector.setSelected(!"false".equalsIgnoreCase(orEmpty(props.get("shell.inspector.visible"))));
             useSystemProxy.setSelected(!"false".equalsIgnoreCase(orEmpty(props.get("useSystemProxy"))));
             proxyHost.setText(orEmpty(props.get("http.proxy.host")));
             proxyPort.setText(orEmpty(props.get("http.proxy.port")));
@@ -319,6 +324,8 @@ public class SettingsPanel extends VBox {
             props.setCustomTempFolder(customTempDir.getText());
             props.setUpdateCheckEnabled(updateCheck.isSelected());
             props.setUseSmallIcons(smallIcons.isSelected());
+            props.set("shell.leftPanel.visible", String.valueOf(showLeftPanel.isSelected()));
+            props.set("shell.inspector.visible", String.valueOf(showInspector.isSelected()));
             props.set("useSystemProxy", String.valueOf(useSystemProxy.isSelected()));
             props.set("manualProxy", String.valueOf(!useSystemProxy.isSelected()));
             props.set("http.proxy.host", proxyHost.getText());
