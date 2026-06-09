@@ -97,6 +97,16 @@ public class QueryConsole extends Region {
         Label title = new Label("QUERY");
         title.getStyleClass().add("fxt-side-panel-title");
 
+        // Make explicit which document the query runs against (always the active editor tab).
+        Label target = new Label();
+        target.getStyleClass().add("fxt-toolbar-status");
+        target.setMaxWidth(200);
+        target.setTooltip(new Tooltip("The query runs against the active document"));
+        target.textProperty().bind(javafx.beans.binding.Bindings.createStringBinding(
+                () -> editorHost.getActiveDocument()
+                        .map(d -> "→ " + d.getDisplayName()).orElse("→ no document"),
+                editorHost.activeTabProperty()));
+
         ToggleGroup modeGroup = new ToggleGroup();
         xpathToggle.setToggleGroup(modeGroup);
         xqueryToggle.setToggleGroup(modeGroup);
@@ -169,10 +179,15 @@ public class QueryConsole extends Region {
         snippetsMenu.setTooltip(new Tooltip("Load a saved XPath/XQuery snippet"));
         snippetsMenu.setOnShowing(e -> refreshSnippetsMenu());
 
-        HBox runRow = new HBox(6, run, saveSnippet, snippetsMenu);
-        runRow.setAlignment(Pos.CENTER_LEFT);
+        // Run / Save / snippets live in the header (top-right, mirroring the RESULTS "Copy"
+        // button) so they stay visible and are never hidden by the IntelliSense completion
+        // popup, which opens downward from the input field.
+        Region headerSpacer = new Region();
+        HBox.setHgrow(headerSpacer, Priority.ALWAYS);
+        HBox header = new HBox(8, title, target, headerSpacer, run, saveSnippet, snippetsMenu);
+        header.setAlignment(Pos.CENTER_LEFT);
 
-        VBox box = new VBox(8, title, modeRow, inputStack, runRow);
+        VBox box = new VBox(8, header, modeRow, inputStack);
         box.setPadding(new Insets(8));
         box.getStyleClass().add("fxt-side-panel-content");
         return box;
