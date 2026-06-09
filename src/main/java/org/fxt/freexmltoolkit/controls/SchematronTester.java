@@ -225,7 +225,7 @@ public class SchematronTester extends VBox {
         timestampColumn.setCellValueFactory(new PropertyValueFactory<>("timestamp"));
         timestampColumn.setPrefWidth(150);
 
-        table.getColumns().addAll(fileColumn, statusColumn, errorsColumn, warningsColumn, durationColumn, timestampColumn);
+        table.getColumns().addAll(java.util.List.of(fileColumn, statusColumn, errorsColumn, warningsColumn, durationColumn, timestampColumn));
 
         return table;
     }

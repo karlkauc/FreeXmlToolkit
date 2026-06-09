@@ -194,7 +194,7 @@ public class SchematronVisualBuilder extends VBox {
         });
         actionsColumn.setPrefWidth(80);
 
-        table.getColumns().addAll(testColumn, messageColumn, flagColumn, actionsColumn);
+        table.getColumns().addAll(java.util.List.of(testColumn, messageColumn, flagColumn, actionsColumn));
         table.setItems(assertions);
 
         return table;
@@ -267,7 +267,7 @@ public class SchematronVisualBuilder extends VBox {
         });
         actionsColumn.setPrefWidth(80);
 
-        table.getColumns().addAll(testColumn, messageColumn, flagColumn, actionsColumn);
+        table.getColumns().addAll(java.util.List.of(testColumn, messageColumn, flagColumn, actionsColumn));
         table.setItems(reports);
 
         return table;

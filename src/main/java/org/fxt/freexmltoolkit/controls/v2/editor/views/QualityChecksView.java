@@ -476,7 +476,7 @@ public class QualityChecksView extends BorderPane {
         });
         sourceCol.setPrefWidth(120);
 
-        issuesTable.getColumns().addAll(severityCol, categoryCol, messageCol, affectedCol, sourceCol);
+        issuesTable.getColumns().addAll(java.util.List.of(severityCol, categoryCol, messageCol, affectedCol, sourceCol));
 
         // Selection listener
         issuesTable.getSelectionModel().selectedItemProperty().addListener(

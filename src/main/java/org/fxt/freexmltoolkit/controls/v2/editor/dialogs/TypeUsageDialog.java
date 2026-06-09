@@ -194,7 +194,7 @@ public class TypeUsageDialog extends Dialog<TypeUsageLocation> {
                 new SimpleStringProperty(data.getValue().getSourceFileName()));
         fileCol.setPrefWidth(100);
 
-        tableView.getColumns().addAll(nodeNameCol, nodeTypeCol, refTypeCol, pathCol, fileCol);
+        tableView.getColumns().addAll(java.util.List.of(nodeNameCol, nodeTypeCol, refTypeCol, pathCol, fileCol));
         tableView.setItems(FXCollections.observableArrayList(usages));
 
         // Selection mode

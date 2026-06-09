@@ -354,7 +354,7 @@ public class SchemaStatisticsView extends BorderPane {
         typesCol.setCellValueFactory(data -> new SimpleStringProperty(String.valueOf(data.getValue().typeCount())));
         typesCol.setPrefWidth(60);
 
-        schemaReferencesTable.getColumns().addAll(typeCol, locationCol, statusCol, namespaceCol, elementsCol, typesCol);
+        schemaReferencesTable.getColumns().addAll(java.util.List.of(typeCol, locationCol, statusCol, namespaceCol, elementsCol, typesCol));
 
         content.getChildren().addAll(schemaReferencesWarningLabel, schemaReferencesTable);
 
