@@ -1339,7 +1339,7 @@ tasks.withType<com.github.spotbugs.snom.SpotBugsTask>().configureEach {
 // Gate production code (src/main) strictly, but keep static analysis of the test sources
 // report-only: test code is held to a lower bar and the rulesets are tuned for main code.
 tasks.named<Checkstyle>("checkstyleTest") { isIgnoreFailures = true }
-tasks.named<Pmd>("pmdTest") { isIgnoreFailures = true }
+tasks.named<Pmd>("pmdTest") { ignoreFailures = true }
 tasks.named<com.github.spotbugs.snom.SpotBugsTask>("spotbugsTest") { ignoreFailures = true }
 
 spotless {
