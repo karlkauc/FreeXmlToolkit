@@ -75,9 +75,15 @@ public class EditorHost extends BorderPane {
 
     public EditorHost() {
         getStyleClass().add("fxt-editor-tabs");
-        // The style class on the TabPane itself (not this BorderPane) so CSS can set
-        // -fx-tab-max-width and target the tab header / tabs directly.
+        // The style class on the TabPane itself (not this BorderPane) so CSS can target the
+        // tab header / tabs directly.
         tabPane.getStyleClass().add("fxt-editor-tabpane");
+        // Cap each tab's width relative to the available tab-pane width: narrow screens (e.g. a
+        // 1512px MacBook) stay compact, while wide screens (1920px+) show fuller titles before
+        // ellipsizing. Clamped so tabs never get tiny or absurdly wide.
+        tabPane.tabMaxWidthProperty().bind(javafx.beans.binding.Bindings.createDoubleBinding(
+                () -> Math.max(170.0, Math.min(340.0, tabPane.getWidth() * 0.22)),
+                tabPane.widthProperty()));
 
         // The view-mode switch (Text/Tree/Graphic/Grid) lives here, overlaid on the top-right of
         // the tab header — not in the editor toolbar — so the toolbar stays a single-row action

@@ -370,12 +370,8 @@
     -fx-padding: 0 226 0 0;
 }
 
-/* Compact tabs so more fit before overflow at the 1512px MacBook width: cap each tab's width
-   (TabPane's own -fx-tab-max-width, which ellipsizes long titles) and tighten the padding. */
-.fxt-editor-tabpane {
-    -fx-tab-max-width: 170;
-}
-
+/* Compact tabs: tighten the padding. The per-tab width cap is set dynamically in EditorHost
+   (scaled to the available width) so wide screens show fuller titles than the 1512px MacBook. */
 .fxt-editor-tabpane .tab {
     -fx-padding: 2 6 2 8;
 }
