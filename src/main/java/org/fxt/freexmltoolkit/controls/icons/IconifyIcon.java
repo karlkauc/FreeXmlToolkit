@@ -239,11 +239,9 @@ public class IconifyIcon extends Region {
                 }
 
                 @Override
-                @SuppressWarnings("unchecked")
                 public StyleableProperty<Number> getStyleableProperty(IconifyIcon n) {
                     if (n.iconSizeStyleable == null) {
-                        n.iconSizeStyleable = (StyleableProperty<Number>) (StyleableProperty<?>)
-                                new StyleableNumberBridge(n);
+                        n.iconSizeStyleable = new StyleableNumberBridge(n);
                     }
                     return n.iconSizeStyleable;
                 }

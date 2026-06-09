@@ -30,7 +30,7 @@ public class EditFacetCommand implements XsdCommand {
      * @param newValue the new facet value
      */
     public EditFacetCommand(XsdFacet facet, String newValue) {
-        this(facet, newValue, facet != null ? facet.isFixed() : false);
+        this(facet, newValue, facet != null && facet.isFixed());
     }
 
     /**

@@ -187,15 +187,13 @@ public class XmlSpreadsheetConverterService {
         List<RowData> rows = extractRowsFromXml(doc, config);
 
         boolean isXlsx = outputFile.getName().toLowerCase().endsWith(".xlsx");
-        Workbook workbook = isXlsx ? new XSSFWorkbook() : new HSSFWorkbook();
+        try (Workbook workbook = isXlsx ? new XSSFWorkbook() : new HSSFWorkbook()) {
+            // Set document metadata for XLSX files
+            if (isXlsx && workbook instanceof XSSFWorkbook xssfWorkbook) {
+                ExportMetadataService metadataService = ServiceRegistry.get(ExportMetadataService.class);
+                metadataService.setExcelMetadata(xssfWorkbook, "XML to Excel Conversion");
+            }
 
-        // Set document metadata for XLSX files
-        if (isXlsx && workbook instanceof XSSFWorkbook xssfWorkbook) {
-            ExportMetadataService metadataService = ServiceRegistry.get(ExportMetadataService.class);
-            metadataService.setExcelMetadata(xssfWorkbook, "XML to Excel Conversion");
-        }
-
-        try {
             Sheet sheet = workbook.createSheet("XML Structure");
             createExcelHeader(sheet, config);
             populateExcelSheet(sheet, rows, config);
@@ -206,8 +204,6 @@ public class XmlSpreadsheetConverterService {
             }
 
             logger.info("Successfully converted XML to Excel with {} rows", rows.size());
-        } finally {
-            workbook.close();
         }
     }
 

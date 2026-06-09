@@ -184,7 +184,7 @@ public class FxtGui extends Application {
             }
             
             if (externalConfigFile.exists()) {
-                LoggerContext context = (LoggerContext) LogManager.getContext(false);
+                LoggerContext context = (LoggerContext) LogManager.getContext(false); // NOPMD - shared Log4j context, must not be closed here
                 context.setConfigLocation(externalConfigFile.toURI());
                 context.reconfigure();
                 logger.info("Using external log4j2.xml configuration: {}", externalConfigFile.getAbsolutePath());

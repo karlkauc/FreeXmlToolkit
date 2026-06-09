@@ -168,7 +168,8 @@ public class XmlServiceImpl implements XmlService {
                 result = true;
             }
 
-        } catch (IOException ignore) {
+        } catch (IOException ignored) {
+            // BOM detection is best-effort; treat read errors as "no BOM".
         }
 
         return result;
@@ -202,7 +203,8 @@ public class XmlServiceImpl implements XmlService {
                     remoteXsdLocation = schemaLocation.get();
                 }
             }
-        } catch (Exception ignore) {
+        } catch (Exception ignored) {
+            // Schema-location detection is best-effort; leave remoteXsdLocation unset on failure.
         }
 
         try {
@@ -690,12 +692,13 @@ public class XmlServiceImpl implements XmlService {
 
                 row.setHeight((short) -1);
             }
-            FileOutputStream outputStream = new FileOutputStream(file);
-            workbook.write(outputStream);
-            outputStream.close();
+            try (FileOutputStream outputStream = new FileOutputStream(file)) {
+                workbook.write(outputStream);
+            }
 
             return file;
         } catch (Exception ignored) {
+            // Best-effort export; callers handle a null result.
         }
 
         return null;
@@ -1228,8 +1231,7 @@ public class XmlServiceImpl implements XmlService {
     @Override
     public Optional<String> getSchemaNameFromCurrentXMLFile() {
         if (this.currentXmlFile != null && this.currentXmlFile.exists()) {
-            try {
-                FileInputStream fileIS = new FileInputStream(this.currentXmlFile);
+            try (FileInputStream fileIS = new FileInputStream(this.currentXmlFile)) {
                 builder = builderFactory.newDocumentBuilder();
                 xmlDocument = builder.parse(fileIS);
 
@@ -1317,8 +1319,7 @@ public class XmlServiceImpl implements XmlService {
     @Override
     public Optional<String> getLinkedStylesheetFromCurrentXMLFile() {
         if (this.currentXmlFile != null && this.currentXmlFile.exists()) {
-            try {
-                FileInputStream fileIS = new FileInputStream(this.currentXmlFile);
+            try (FileInputStream fileIS = new FileInputStream(this.currentXmlFile)) {
                 builder = builderFactory.newDocumentBuilder();
                 xmlDocument = builder.parse(fileIS);
 

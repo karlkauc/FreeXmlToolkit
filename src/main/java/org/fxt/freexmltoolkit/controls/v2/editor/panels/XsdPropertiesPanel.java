@@ -2693,10 +2693,8 @@ public class XsdPropertiesPanel extends BorderPane {
 
             facetFields.put(facetType, textField);
 
-            // Add to grid (if not already added above)
-            if (!isFixed && !facetsFromReferencedType) {
-                // Already added in the else branch above
-            } else if (isFixed) {
+            // Fixed facets are added here; the editable / referenced-type cases were already added above.
+            if (isFixed) {
                 facetsGridPane.add(label, 0, row);
                 facetsGridPane.add(textField, 1, row);
             }

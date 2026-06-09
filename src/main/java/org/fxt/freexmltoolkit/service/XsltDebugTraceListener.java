@@ -399,7 +399,7 @@ public class XsltDebugTraceListener implements TraceListener {
 
         // 2. Focus — position() and last()
         try {
-            var iter = context.getCurrentIterator();
+            var iter = context.getCurrentIterator(); // NOPMD - borrowed iterator owned by the Saxon context
             if (iter != null) {
                 bindings.add(new VariableBinding("position()",
                         String.valueOf(iter.position()),

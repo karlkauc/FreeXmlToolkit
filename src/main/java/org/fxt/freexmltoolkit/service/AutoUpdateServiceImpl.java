@@ -644,8 +644,8 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
                 }
             });
         } catch (RuntimeException e) {
-            if (e.getCause() instanceof IOException) {
-                throw (IOException) e.getCause();
+            if (e.getCause() instanceof IOException ioCause) {
+                throw ioCause; // NOPMD - intentionally unwrap and rethrow the original IOException (keeps its own trace)
             }
             throw e;
         }
