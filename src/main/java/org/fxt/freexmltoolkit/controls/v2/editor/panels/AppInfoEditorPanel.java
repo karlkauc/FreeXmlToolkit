@@ -444,19 +444,17 @@ public class AppInfoEditorPanel extends VBox {
         // Add autocomplete to the dialog's text field
         TextField dialogField = dialog.getEditor();
         dialogField.textProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null && LinkAutocompletePopup.isLinkTrigger(newVal)) {
-                if (autocompletePopup != null) {
-                    int triggerPos = LinkAutocompletePopup.findLinkTriggerPosition(newVal);
-                    autocompletePopup.showFor(dialogField, triggerPos, linkText -> {
-                        String currentText = dialogField.getText();
-                        int pos = LinkAutocompletePopup.findLinkTriggerPosition(currentText);
-                        if (pos >= 0) {
-                            String finalText = currentText.substring(0, pos) + linkText;
-                            dialogField.setText(finalText);
-                            dialogField.positionCaret(finalText.length());
-                        }
-                    });
-                }
+            if (newVal != null && LinkAutocompletePopup.isLinkTrigger(newVal) && autocompletePopup != null) {
+                int triggerPos = LinkAutocompletePopup.findLinkTriggerPosition(newVal);
+                autocompletePopup.showFor(dialogField, triggerPos, linkText -> {
+                    String currentText = dialogField.getText();
+                    int pos = LinkAutocompletePopup.findLinkTriggerPosition(currentText);
+                    if (pos >= 0) {
+                        String finalText = currentText.substring(0, pos) + linkText;
+                        dialogField.setText(finalText);
+                        dialogField.positionCaret(finalText.length());
+                    }
+                });
             }
         });
 

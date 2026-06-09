@@ -40,8 +40,7 @@ public class WatchExpression {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        return o instanceof WatchExpression that && xpath.equals(that.xpath);
+        return this == o || (o instanceof WatchExpression that && xpath.equals(that.xpath));
     }
 
     @Override

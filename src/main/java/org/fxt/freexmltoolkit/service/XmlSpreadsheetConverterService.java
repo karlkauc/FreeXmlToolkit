@@ -189,7 +189,7 @@ public class XmlSpreadsheetConverterService {
         boolean isXlsx = outputFile.getName().toLowerCase().endsWith(".xlsx");
         try (Workbook workbook = isXlsx ? new XSSFWorkbook() : new HSSFWorkbook()) {
             // Set document metadata for XLSX files
-            if (isXlsx && workbook instanceof XSSFWorkbook xssfWorkbook) {
+            if (isXlsx && workbook instanceof XSSFWorkbook xssfWorkbook) { // NOPMD - same workbook, closed by the enclosing try-with-resources
                 ExportMetadataService metadataService = ServiceRegistry.get(ExportMetadataService.class);
                 metadataService.setExcelMetadata(xssfWorkbook, "XML to Excel Conversion");
             }

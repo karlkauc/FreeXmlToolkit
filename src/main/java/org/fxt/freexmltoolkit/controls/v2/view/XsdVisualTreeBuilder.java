@@ -537,15 +537,10 @@ public class XsdVisualTreeBuilder {
             }
         }
 
-        // Check for type reference
+        // A non-builtin type reference (ComplexType) would have children, as would an element reference.
         String elementType = element.getType();
-        if (elementType != null && !elementType.isEmpty() && !elementType.startsWith("xs:")) {
-            // Type reference to a ComplexType would have children
-            return true;
-        }
-
-        // Check for element reference
-        return element.getRef() != null && !element.getRef().isEmpty();
+        return (elementType != null && !elementType.isEmpty() && !elementType.startsWith("xs:"))
+                || (element.getRef() != null && !element.getRef().isEmpty());
     }
 
     /**
