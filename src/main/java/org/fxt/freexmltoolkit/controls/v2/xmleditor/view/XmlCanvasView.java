@@ -104,7 +104,6 @@ public class XmlCanvasView extends Pane implements XmlSearchTarget {
 
     private static final double ROW_HEIGHT = 24;
     private static final double INDENT = 20;
-    private static final double ICON_WIDTH = 18;
     private static final double ICON_AREA_WIDTH = 24;
     private static final double EXPAND_BAR_WIDTH = 12;
     private static final double SCROLLBAR_WIDTH = 14;
@@ -916,7 +915,7 @@ public class XmlCanvasView extends Pane implements XmlSearchTarget {
         int hi = visibleRows.size() - 1;
 
         while (lo <= hi) {
-            int mid = (lo + hi) / 2;
+            int mid = lo + (hi - lo) / 2;
             double rowTop = rowYPositions[mid];
             double rowBottom = rowTop + getRowTotalHeight(mid);
 

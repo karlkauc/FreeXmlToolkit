@@ -19,8 +19,12 @@
 package org.fxt.freexmltoolkit.controller;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.StringReader;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
@@ -59,6 +63,8 @@ import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
@@ -73,6 +79,9 @@ import org.xml.sax.InputSource;
  * Controller for the XML&lt;-&gt;Spreadsheet Converter Dialog
  */
 public class XmlSpreadsheetConverterDialogController implements Initializable {
+
+    private static final Logger logger = LogManager.getLogger(XmlSpreadsheetConverterDialogController.class);
+
     // Services
     private final XmlSpreadsheetConverterService converterService = new XmlSpreadsheetConverterService();
     private final ExecutorService executorService = Executors.newCachedThreadPool(r -> {
@@ -117,8 +126,6 @@ public class XmlSpreadsheetConverterDialogController implements Initializable {
     @FXML
     private TextField targetFileField;
     @FXML
-    private Button browseTargetButton;
-    @FXML
     private Button autoTargetButton;
 
     // Conversion Options
@@ -140,8 +147,6 @@ public class XmlSpreadsheetConverterDialogController implements Initializable {
     // Preview Controls
     @FXML
     private Button previewButton;
-    @FXML
-    private Button clearPreviewButton;
     @FXML
     private Label previewStatsLabel;
     @FXML
@@ -664,6 +669,11 @@ public class XmlSpreadsheetConverterDialogController implements Initializable {
                 ConversionConfig config = createConversionConfig();
                 File targetFile = new File(targetFileField.getText());
 
+                // Optionally back up an existing target file before overwriting it.
+                if (createBackupCheckBox.isSelected() && targetFile.exists()) {
+                    backupExistingFile(targetFile);
+                }
+
                 if (xmlToSpreadsheetRadio.isSelected()) {
                     Document doc = getSourceDocument();
                     String format = formatCombo.getValue();
@@ -686,6 +696,12 @@ public class XmlSpreadsheetConverterDialogController implements Initializable {
                     }
 
                     String xmlContent = converterService.documentToString(doc, config);
+
+                    // Optionally verify the generated XML is well-formed before writing it out.
+                    if (validateXmlCheckBox.isSelected()) {
+                        validateXmlWellFormed(xmlContent);
+                    }
+
                     java.nio.file.Files.writeString(targetFile.toPath(), xmlContent);
                 }
 
@@ -719,5 +735,31 @@ public class XmlSpreadsheetConverterDialogController implements Initializable {
         });
 
         executorService.submit(conversionTask);
+    }
+
+    /**
+     * Creates a {@code .bak} backup copy of an existing target file before it is overwritten.
+     *
+     * @param targetFile the file about to be overwritten
+     * @throws IOException if the backup copy cannot be written
+     */
+    private void backupExistingFile(File targetFile) throws IOException {
+        Path source = targetFile.toPath();
+        Path backup = source.resolveSibling(targetFile.getName() + ".bak");
+        Files.copy(source, backup, StandardCopyOption.REPLACE_EXISTING);
+        logger.info("Created backup of existing target file: {}", backup);
+    }
+
+    /**
+     * Parses the given XML content to verify it is well-formed, throwing if it is not.
+     * Used to guard the generated output when "Validate generated XML" is enabled.
+     *
+     * @param xmlContent the serialized XML to validate
+     * @throws Exception if the content is not well-formed XML
+     */
+    private void validateXmlWellFormed(String xmlContent) throws Exception {
+        DocumentBuilderFactory factory = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureDocumentBuilderFactory();
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        builder.parse(new InputSource(new StringReader(xmlContent)));
     }
 }

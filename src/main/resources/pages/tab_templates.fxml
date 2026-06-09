@@ -134,13 +134,13 @@
                 <HBox alignment="CENTER_LEFT" spacing="10">
                     <Label text="Template Parameters" styleClass="section-header"/>
                     <Region HBox.hgrow="ALWAYS"/>
-                    <Button fx:id="validateParamsBtn" text="Validate" contentDisplay="LEFT" styleClass="btn-warning"
+                    <Button text="Validate" contentDisplay="LEFT" styleClass="btn-warning"
                             onAction="#validateParameters">
                         <graphic>
                             <IconifyIcon iconLiteral="bi-check-circle" iconSize="16" iconColor="#ffc107"/>
                         </graphic>
                     </Button>
-                    <Button fx:id="resetParamsBtn" text="Reset" contentDisplay="LEFT" styleClass="btn-secondary" onAction="#resetParameters">
+                    <Button text="Reset" contentDisplay="LEFT" styleClass="btn-secondary" onAction="#resetParameters">
                         <graphic>
                             <IconifyIcon iconLiteral="bi-arrow-counterclockwise" iconSize="16" iconColor="#6c757d"/>
                         </graphic>
@@ -164,14 +164,14 @@
                     <Label text="Generated XML Preview" styleClass="section-header"/>
                     <Region HBox.hgrow="ALWAYS"/>
                     <ToggleButton fx:id="livePreviewToggle" text="Live Preview" styleClass="btn-toggle"/>
-                    <Button fx:id="copyToClipboardBtn" text="Copy" contentDisplay="LEFT" styleClass="btn-outline">
+                    <Button text="Copy" contentDisplay="LEFT" styleClass="btn-outline" onAction="#copyToClipboard">
                         <graphic>
                             <IconifyIcon iconLiteral="bi-clipboard" iconSize="14" iconColor="#6c757d"/>
                         </graphic>
                     </Button>
                 </HBox>
 
-                <TabPane fx:id="previewTabPane" prefHeight="200">
+                <TabPane prefHeight="200">
                     <Tab text="XML Source" closable="false">
                         <graphic>
                             <IconifyIcon iconLiteral="bi-code-slash" iconSize="16" iconColor="#007bff"/>

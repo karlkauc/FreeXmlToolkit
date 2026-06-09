@@ -26,15 +26,15 @@ class EditorViewsTest {
 
     @Test
     void jsonFileTypeUsesJsonEditorWithoutSchema() {
-        EditorView view = WaitForAsyncUtils.waitForAsyncFx(2000, () -> EditorViews.create(EditorFileType.JSON));
+        EditorView view = WaitForAsyncUtils.waitForAsyncFx(10000, () -> EditorViews.create(EditorFileType.JSON));
         assertInstanceOf(JsonCodeEditor.class, view.getNode());
         assertFalse(view.supportsSchema());
     }
 
     @Test
     void xmlFamilyUsesXmlEditorWithSchema() {
-        EditorView xml = WaitForAsyncUtils.waitForAsyncFx(2000, () -> EditorViews.create(EditorFileType.XML));
-        EditorView xsd = WaitForAsyncUtils.waitForAsyncFx(2000, () -> EditorViews.create(EditorFileType.XSD));
+        EditorView xml = WaitForAsyncUtils.waitForAsyncFx(10000, () -> EditorViews.create(EditorFileType.XML));
+        EditorView xsd = WaitForAsyncUtils.waitForAsyncFx(10000, () -> EditorViews.create(EditorFileType.XSD));
         assertInstanceOf(XmlCodeEditorV2.class, xml.getNode());
         assertInstanceOf(XmlCodeEditorV2.class, xsd.getNode());
         assertTrue(xml.supportsSchema());

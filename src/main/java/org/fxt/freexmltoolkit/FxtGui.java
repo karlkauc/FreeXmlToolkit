@@ -83,11 +83,11 @@ public class FxtGui extends Application {
         // Default constructor
     }
 
+    private static final Logger logger = LogManager.getLogger(FxtGui.class);
+
     static {
         configureLogging();
     }
-
-    private static final Logger logger = LogManager.getLogger(FxtGui.class);
 
     private static final java.util.concurrent.atomic.AtomicInteger threadCounter = new java.util.concurrent.atomic.AtomicInteger(1);
 
@@ -187,13 +187,12 @@ public class FxtGui extends Application {
                 LoggerContext context = (LoggerContext) LogManager.getContext(false);
                 context.setConfigLocation(externalConfigFile.toURI());
                 context.reconfigure();
-                System.out.println("Using external log4j2.xml configuration: " + externalConfigFile.getAbsolutePath());
+                logger.info("Using external log4j2.xml configuration: {}", externalConfigFile.getAbsolutePath());
             } else {
-                System.out.println("External log4j2.xml not found, using embedded configuration");
+                logger.info("External log4j2.xml not found, using embedded configuration");
             }
         } catch (Exception e) {
-            System.err.println("Failed to configure external logging: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("Failed to configure external logging: {}", e.getMessage(), e);
         }
     }
 
@@ -411,11 +410,11 @@ public class FxtGui extends Application {
             prop = getPropertiesService().loadProperties();
         }
 
-        // 1. Lesen Sie den Wert sicher aus. Wenn "usageDuration" nicht existiert,
-        //    wird der Standardwert "0" verwendet. Das verhindert 'null'.
+        // 1. Read the value safely. If "usageDuration" does not exist, the
+        //    default value "0" is used. This prevents a 'null' result.
         String usageDurationStr = prop.getProperty("usageDuration", "0");
 
-        // 2. Jetzt ist die Umwandlung in eine Zahl sicher.
+        // 2. The conversion to a number is now safe.
         var oldSeconds = Integer.parseInt(usageDurationStr);
         var newSeconds = oldSeconds + currentDuration.getSeconds();
 
@@ -508,8 +507,7 @@ public class FxtGui extends Application {
         setPropertyIfAbsent("prism.cacheshapes", "true");
 
         // Log which rendering pipeline is being used
-        System.out.println("JavaFX hardware acceleration configured:");
-        System.out.println("  prism.order: " + System.getProperty("prism.order"));
+        logger.info("JavaFX hardware acceleration configured: prism.order={}", System.getProperty("prism.order"));
     }
 
     /**

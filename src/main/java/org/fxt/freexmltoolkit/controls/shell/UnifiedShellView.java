@@ -72,6 +72,7 @@ public class UnifiedShellView extends BorderPane {
     private Runnable chromeUpdater;
 
     /** Type-gated document-action toolbar buttons (created in {@link #buildEditorToolbar()}). */
+    private javafx.scene.control.Button actionValidate;
     private javafx.scene.control.Button actionTransform;
     private javafx.scene.control.Button actionGenerateDocs;
     private javafx.scene.control.Button actionTypeEditor;
@@ -540,10 +541,12 @@ public class UnifiedShellView extends BorderPane {
         IconifyIcon validateIcon = new IconifyIcon("bi-check2-circle");
         validateIcon.setIconSize(15);
         javafx.scene.control.Button validate = new javafx.scene.control.Button("Validate", validateIcon);
+        validate.setId("doc-action-validate");
         validate.getStyleClass().addAll("fxt-tool-button", "fxt-validate-button");
         validate.setTooltip(new javafx.scene.control.Tooltip(
                 "Validate the document (well-formedness, or against the bound XSD) — F8"));
         validate.setOnAction(e -> validateActive());
+        actionValidate = validate;
 
         // Editor-level document actions (type-gated): run per-document operations without
         // switching the Activity Bar; results open as the shell's standard tool tabs.
@@ -866,6 +869,8 @@ public class UnifiedShellView extends BorderPane {
      */
     private void refreshDocumentActionGating() {
         var type = editorActions.activeFileType();
+        actionValidate.setDisable(!org.fxt.freexmltoolkit.controls.shell.editor.EditorActions
+                .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.VALIDATE));
         actionTransform.setDisable(!org.fxt.freexmltoolkit.controls.shell.editor.EditorActions
                 .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.TRANSFORM));
         actionGenerateDocs.setDisable(!org.fxt.freexmltoolkit.controls.shell.editor.EditorActions
