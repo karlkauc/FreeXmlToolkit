@@ -140,10 +140,8 @@ public class AddContainerElementCommand implements XsdCommand {
 
         if (current instanceof XsdSchema schema) {
             for (XsdNode child : schema.getChildren()) {
-                if (child instanceof XsdComplexType complexType) {
-                    if (typeName.equals(complexType.getName())) {
-                        return complexType;
-                    }
+                if (child instanceof XsdComplexType complexType && typeName.equals(complexType.getName())) {
+                    return complexType;
                 }
             }
         }

@@ -526,10 +526,8 @@ public class FacetsPanel extends VBox {
         }
 
         for (XsdNode child : editorContext.getSchema().getChildren()) {
-            if (child instanceof XsdSimpleType simpleType) {
-                if (typeName.equals(simpleType.getName())) {
-                    return simpleType;
-                }
+            if (child instanceof XsdSimpleType simpleType && typeName.equals(simpleType.getName())) {
+                return simpleType;
             }
         }
         return null;

@@ -366,11 +366,10 @@ public class XsdModelAdapter {
         NodeList children = element.getChildNodes();
         for (int i = 0; i < children.getLength(); i++) {
             Node node = children.item(i);
-            if (node instanceof Element child && XSD_NS.equals(child.getNamespaceURI())) {
-                if ("attribute".equals(child.getLocalName())) {
-                    XsdAttribute attr = parseAttribute(child);
-                    attrGroup.addChild(attr);
-                }
+            if (node instanceof Element child && XSD_NS.equals(child.getNamespaceURI())
+                    && "attribute".equals(child.getLocalName())) {
+                XsdAttribute attr = parseAttribute(child);
+                attrGroup.addChild(attr);
             }
         }
 

@@ -224,10 +224,9 @@ public class InlineDocumentationEditor extends VBox implements PropertyChangeLis
 
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-        if ("documentations".equals(evt.getPropertyName()) || "documentation".equals(evt.getPropertyName())) {
-            if (!updating) {
-                loadFromModel();
-            }
+        if (("documentations".equals(evt.getPropertyName()) || "documentation".equals(evt.getPropertyName()))
+                && !updating) {
+            loadFromModel();
         }
     }
 

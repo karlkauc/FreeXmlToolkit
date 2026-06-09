@@ -162,12 +162,11 @@ public class ContextAnalyzer {
                 int fullClose = fullText.indexOf('>', nextOpen);
                 if (fullClose != -1) {
                     String tag = fullText.substring(nextOpen + 1, fullClose);
-                    if (!tag.startsWith("!--") && !tag.startsWith("![CDATA[") && !tag.startsWith("?")) {
-                        if (!tag.startsWith("/") && !tag.endsWith("/")) {
-                            String elementName = extractElementName(tag);
-                            if (elementName != null && !elementName.isEmpty()) {
-                                elementStack.push(elementName);
-                            }
+                    if (!tag.startsWith("!--") && !tag.startsWith("![CDATA[") && !tag.startsWith("?")
+                            && !tag.startsWith("/") && !tag.endsWith("/")) {
+                        String elementName = extractElementName(tag);
+                        if (elementName != null && !elementName.isEmpty()) {
+                            elementStack.push(elementName);
                         }
                     }
                 }

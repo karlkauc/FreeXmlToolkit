@@ -271,19 +271,18 @@ public class IdentityConstraintTracker {
         }
 
         // Respect maxLength if available (only for non-enumeration and non-pattern values)
-        if ((enumerations == null || enumerations.isEmpty()) && !hasPattern(element)) {
-            if (element != null && element.getRestrictionInfo() != null) {
-                int maxLength = getMaxLength(element.getRestrictionInfo());
-                if (maxLength > 0 && uniqueValue.length() > maxLength) {
-                    // Truncate base and re-append suffix to fit
-                    String suffix = "_" + counter;
-                    int availableLength = maxLength - suffix.length();
-                    if (availableLength > 0 && baseSampleData != null) {
-                        uniqueValue = baseSampleData.substring(0, Math.min(baseSampleData.length(), availableLength)) + suffix;
-                    } else {
-                        // If even the suffix doesn't fit, just use the counter
-                        uniqueValue = String.valueOf(counter);
-                    }
+        if ((enumerations == null || enumerations.isEmpty()) && !hasPattern(element)
+                && element != null && element.getRestrictionInfo() != null) {
+            int maxLength = getMaxLength(element.getRestrictionInfo());
+            if (maxLength > 0 && uniqueValue.length() > maxLength) {
+                // Truncate base and re-append suffix to fit
+                String suffix = "_" + counter;
+                int availableLength = maxLength - suffix.length();
+                if (availableLength > 0 && baseSampleData != null) {
+                    uniqueValue = baseSampleData.substring(0, Math.min(baseSampleData.length(), availableLength)) + suffix;
+                } else {
+                    // If even the suffix doesn't fit, just use the counter
+                    uniqueValue = String.valueOf(counter);
                 }
             }
         }

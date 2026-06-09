@@ -294,12 +294,11 @@ public class XmlSpreadsheetConverterDialogController implements Initializable {
     private void customizeButtonText() {
         // Find the DialogPane and customize the OK button text
         Platform.runLater(() -> {
-            if (formatCombo.getScene() != null && formatCombo.getScene().getWindow() instanceof Stage stage) {
-                if (stage.getScene().getRoot() instanceof DialogPane dialogPane) {
-                    Button okButton = (Button) dialogPane.lookupButton(ButtonType.OK);
-                    if (okButton != null) {
-                        okButton.setText("Convert");
-                    }
+            if (formatCombo.getScene() != null && formatCombo.getScene().getWindow() instanceof Stage stage
+                    && stage.getScene().getRoot() instanceof DialogPane dialogPane) {
+                Button okButton = (Button) dialogPane.lookupButton(ButtonType.OK);
+                if (okButton != null) {
+                    okButton.setText("Convert");
                 }
             }
         });

@@ -1581,11 +1581,9 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
 
         // Find node at click position
         VisualNode nodeAtPosition = findNodeAt(rootNode, x, y);
-        if (nodeAtPosition != null) {
-            // Don't allow dragging if clicking on expand button
-            if (!nodeAtPosition.expandButtonContainsPoint(x, y)) {
-                draggedNode = nodeAtPosition;
-            }
+        // Don't start a drag when the click is on the expand button.
+        if (nodeAtPosition != null && !nodeAtPosition.expandButtonContainsPoint(x, y)) {
+            draggedNode = nodeAtPosition;
         }
 
         // Reset drag state

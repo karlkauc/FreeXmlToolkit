@@ -314,12 +314,10 @@ public class XPathParser {
                 Element targetElement = findOrCreateChildElement(doc, currentElement,
                         component.getElementName(), component.getPosition());
 
-                if (isLastComponent) {
-                    // Set value if this is a simple element
-                    if (value != null && !value.trim().isEmpty() &&
-                            !hasElementChildren(targetElement)) {
-                        targetElement.setTextContent(value);
-                    }
+                // Set value if this is the last component and a simple (childless) element.
+                if (isLastComponent && value != null && !value.trim().isEmpty()
+                        && !hasElementChildren(targetElement)) {
+                    targetElement.setTextContent(value);
                 }
 
                 currentElement = targetElement;

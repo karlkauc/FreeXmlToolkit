@@ -198,13 +198,11 @@ public class SchematronErrorDetector {
      */
     private void validatePatternStructure(Element pattern, SchematronErrorResult result) {
         // Check for required context attribute in abstract patterns
-        if ("true".equals(pattern.getAttribute("abstract"))) {
-            if (pattern.getAttribute("id").isEmpty()) {
-                result.addError(new SchematronError(ErrorType.STRUCTURAL,
-                        getLineNumber(pattern), 1,
-                        "Abstract pattern must have an 'id' attribute",
-                        ErrorSeverity.ERROR));
-            }
+        if ("true".equals(pattern.getAttribute("abstract")) && pattern.getAttribute("id").isEmpty()) {
+            result.addError(new SchematronError(ErrorType.STRUCTURAL,
+                    getLineNumber(pattern), 1,
+                    "Abstract pattern must have an 'id' attribute",
+                    ErrorSeverity.ERROR));
         }
 
         // Check for rules within pattern
