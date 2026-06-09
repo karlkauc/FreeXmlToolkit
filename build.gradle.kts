@@ -1325,7 +1325,7 @@ pmd {
 
 checkstyle {
     toolVersion = "10.25.0"
-    isIgnoreFailures = true
+    isIgnoreFailures = false
     configFile = file("config/checkstyle/checkstyle.xml")
     configProperties = mapOf("suppressionFile" to file("config/checkstyle/suppressions.xml").absolutePath)
 }

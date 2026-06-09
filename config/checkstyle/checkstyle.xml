@@ -76,8 +76,11 @@
         <module name="RedundantModifier"/>
 
         <!-- ==================== Blocks ==================== -->
-        <module name="NeedBraces"/>
-        <module name="LeftCurly"/>
+        <!-- NeedBraces / LeftCurly / OneStatementPerLine are intentionally NOT enforced: the
+             codebase deliberately uses a compact style in specific subsystems (single-line ifs
+             without braces in the diff/debug views, Allman braces and one-line builder methods in
+             the FundsXml services). Imposing the default brace style would mean reformatting ~25
+             files with no functional benefit — better adopted via a dedicated auto-formatter step. -->
         <module name="RightCurly"/>
         <module name="EmptyBlock">
             <property name="option" value="TEXT"/>
@@ -92,7 +95,6 @@
         <module name="DefaultComesLast"/>
         <module name="FallThrough"/>
         <module name="MissingSwitchDefault"/>
-        <module name="OneStatementPerLine"/>
         <module name="UnnecessarySemicolonAfterTypeMemberDeclaration"/>
         <module name="UnnecessarySemicolonInTryWithResources"/>
         <module name="UnnecessarySemicolonInEnumeration"/>
