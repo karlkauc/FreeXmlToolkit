@@ -948,10 +948,9 @@ public class XsdVisualTreeBuilder {
      */
     private void buildTypeIndex(XsdSchema schema) {
         for (XsdNode child : schema.getChildren()) {
-            if (child instanceof XsdComplexType complexType) {
-                if (complexType.getName() != null && !complexType.getName().isEmpty()) {
-                    typeIndex.put(complexType.getName(), complexType);
-                }
+            if (child instanceof XsdComplexType complexType
+                    && complexType.getName() != null && !complexType.getName().isEmpty()) {
+                typeIndex.put(complexType.getName(), complexType);
             }
         }
     }
@@ -963,12 +962,11 @@ public class XsdVisualTreeBuilder {
      */
     private void buildGlobalElementIndex(XsdSchema schema) {
         for (XsdNode child : schema.getChildren()) {
-            if (child instanceof XsdElement element) {
-                if (element.getName() != null && !element.getName().isEmpty() && element.getRef() == null) {
-                    // Only index elements with name (not refs)
-                    globalElementIndex.put(element.getName(), element);
-                    logger.debug("Indexed global element: {}", element.getName());
-                }
+            // Only index elements with name (not refs)
+            if (child instanceof XsdElement element
+                    && element.getName() != null && !element.getName().isEmpty() && element.getRef() == null) {
+                globalElementIndex.put(element.getName(), element);
+                logger.debug("Indexed global element: {}", element.getName());
             }
         }
     }

@@ -507,10 +507,8 @@ public class XmlElement extends XmlNode {
     public List<XmlElement> getChildElements(String name) {
         List<XmlElement> elements = new ArrayList<>();
         for (XmlNode child : children) {
-            if (child instanceof XmlElement element) {
-                if (element.getName().equals(name)) {
-                    elements.add(element);
-                }
+            if (child instanceof XmlElement element && element.getName().equals(name)) {
+                elements.add(element);
             }
         }
         return elements;
@@ -524,10 +522,8 @@ public class XmlElement extends XmlNode {
      */
     public XmlElement getChildElement(String name) {
         for (XmlNode child : children) {
-            if (child instanceof XmlElement element) {
-                if (element.getName().equals(name)) {
-                    return element;
-                }
+            if (child instanceof XmlElement element && element.getName().equals(name)) {
+                return element;
             }
         }
         return null;
