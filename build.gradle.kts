@@ -30,7 +30,6 @@ plugins {
     id("com.github.spotbugs") version "6.4.8"
     id("com.diffplug.spotless") version "8.3.0"
     id("com.github.ben-manes.versions") version "0.53.0"
-    id("org.gradle.test-retry") version "1.6.2"
 }
 
 version = "1.10.0"
@@ -253,19 +252,12 @@ tasks.test {
     // of all ~513, a modest heap is sufficient (the old 16G was only needed to survive the
     // whole suite accumulating in one JVM).
     forkEvery = 1
-    maxParallelForks = 2
+    // Run forks sequentially: the headless TestFX/Monocle UI tests are sensitive to async-timing
+    // races, and two forks competing for the toolkit/CPU is the main trigger. A single fork lane
+    // keeps the suite deterministic. (The Gradle test-retry plugin is intentionally NOT used: its
+    // bundled ASM cannot parse Java 25 class files and corrupts failure handling.)
+    maxParallelForks = 1
     maxHeapSize = "3g"
-
-    // The headless TestFX/Monocle UI tests are occasionally subject to async-timing races
-    // (e.g. an FX edit that hasn't propagated when an assertion runs) that surface as a
-    // different ~1 flaky failure per full run. Retry failed tests so transient races pass on
-    // a second attempt, while genuinely broken tests still fail every attempt. maxFailures
-    // guards against masking a mass breakage.
-    retry {
-        maxRetries.set(2)
-        maxFailures.set(20)
-        failOnPassedAfterRetry.set(false)
-    }
 
     testLogging {
         events("passed", "skipped", "failed")

@@ -156,15 +156,16 @@ public final class ServiceRegistry {
             initialize();
         }
 
-        // Create instance using factory (thread-safe singleton)
-        return (T) instances.computeIfAbsent(type, t -> {
-            Supplier<?> factory = factories.get(t);
-            if (factory == null) {
-                // Fallback: try legacy getInstance() pattern
-                return getLegacyInstance(type);
-            }
-            return factory.get();
-        });
+        // Create the instance, then publish it atomically. We deliberately do NOT use
+        // instances.computeIfAbsent here: a factory may re-entrantly call get() to resolve
+        // its own dependencies (e.g. ConnectionServiceImpl needs PropertiesService), and
+        // ConcurrentHashMap forbids a recursive update from within computeIfAbsent
+        // ("Recursive update"). Building outside the map and using putIfAbsent allows that
+        // re-entrancy; under a rare creation race the duplicate is simply discarded.
+        Supplier<?> factory = factories.get(type);
+        Object created = (factory != null) ? factory.get() : getLegacyInstance(type);
+        Object previous = instances.putIfAbsent(type, created);
+        return (T) (previous != null ? previous : created);
     }
 
     /**
