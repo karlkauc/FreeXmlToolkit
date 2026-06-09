@@ -24,7 +24,6 @@
             <property name="checkAll" value="false"/>
         </properties>
     </rule>
-    <rule ref="category/java/bestpractices.xml/UnusedAssignment"/>
 
     <!-- ==================== Error-Prone ==================== -->
     <rule ref="category/java/errorprone.xml/EmptyCatchBlock">
@@ -48,7 +47,6 @@
 
     <!-- ==================== Design ==================== -->
     <rule ref="category/java/design.xml/SimplifyBooleanReturns"/>
-    <rule ref="category/java/design.xml/FinalFieldCouldBeStatic"/>
     <rule ref="category/java/design.xml/CollapsibleIfStatements"/>
     <rule ref="category/java/design.xml/SimplifiedTernary"/>
     <rule ref="category/java/design.xml/UselessOverridingMethod"/>
@@ -82,6 +80,12 @@
         - GuardLogStatement: ~997 hits; pointless with Log4j2 parameterized ("{}")
           logging, which this project uses.
         - AvoidReassigningParameters: debatable style preference.
+        - UnusedAssignment: ~15 hits, mostly false positives on re-entrancy/debounce
+          guard flags (e.g. `updating`, `suppressDebounce`) whose reads live in listener
+          callbacks PMD's intra-procedural analysis cannot see. Removing the assignments
+          would break the guards.
+        - FinalFieldCouldBeStatic: the lone hit is a per-instance mutable array
+          (`boolean[] dirty`); making it static would be a bug.
         - CyclomaticComplexity / NPathComplexity / NcssCount / ExcessiveParameterList /
           TooManyFields / TooManyMethods: ~291 hits; flag large existing methods/classes.
           Refactoring is high-risk and belongs in dedicated, separately-reviewed work,
