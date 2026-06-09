@@ -247,7 +247,7 @@ public class XPathValidationView extends BorderPane {
         messageCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().message()));
         messageCol.setPrefWidth(250);
 
-        issuesTable.getColumns().addAll(severityCol, sourceCol, constraintCol, xpathCol, messageCol);
+        issuesTable.getColumns().addAll(java.util.List.of(severityCol, sourceCol, constraintCol, xpathCol, messageCol));
 
         // Selection listener
         issuesTable.getSelectionModel().selectedItemProperty().addListener(

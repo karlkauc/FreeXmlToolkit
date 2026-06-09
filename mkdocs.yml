@@ -48,6 +48,15 @@ plugins:
   - search:
       lang: en
 
+# Internal developer-reference documents that are not part of the published site
+# (gitignore-style patterns): planning/spec notes plus a few orphan dev docs.
+exclude_docs: |
+  superpowers/plans/
+  superpowers/specs/
+  REFACTORING_PLAN.md
+  ThreadPoolArchitecture.md
+  testing/auto-update-windows.md
+
 markdown_extensions:
   - admonition
   - pymdownx.details
@@ -80,7 +89,7 @@ copyright: Copyright &copy; 2024-2026 Karl Kauc
 
 nav:
   - Home: index.md
-  - Unified Editor: unified-editor.md
+  - Unified Shell: unified-shell.md
   - XML Editing:
     - XML Editor: xml-editor.md
     - Editor Features: xml-editor-features.md

@@ -15,11 +15,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.testfx.framework.junit5.ApplicationExtension;
 
 /**
  * Unit tests for TemplatesController.
  * Tests the Smart Templates System - Revolutionary Feature #4.
  */
+@ExtendWith(ApplicationExtension.class)
 @ExtendWith(MockitoExtension.class)
 class TemplatesControllerTest {
 
@@ -54,6 +56,10 @@ class TemplatesControllerTest {
 
     @Mock
     private ToggleButton mockLivePreviewToggle;
+
+    // ApplicationExtension initializes the JavaFX (Monocle headless) toolkit before tests run,
+    // so that mocking JavaFX controls (ComboBox, TableView, ...) - which triggers their class
+    // initialization - succeeds.
 
     @BeforeEach
     void setUp() {

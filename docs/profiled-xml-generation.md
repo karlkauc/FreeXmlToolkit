@@ -21,11 +21,11 @@ Profiled generation solves these by letting you define rules for individual XPat
 
 ## Getting Started
 
-1. Open your XSD file in the **XSD** tab.
-2. Go to the **Generate Example Data** sub-tab.
+1. Open your XSD file in the [Unified Shell](unified-shell.md) so it is the active document.
+2. Open the **Schema** panel from the activity bar and choose **Generate Sample XML (Advanced)…**.
 3. You will see the generation workspace with a rules table on the left and an XML preview on the right.
 
-If you have used this tab before: the basic controls (mandatory only, max occurrences) are still there. Without any rules, generation works exactly as it did before.
+If you have used this before: the basic controls (mandatory only, max occurrences) are still there. Without any rules, generation works exactly as it did before.
 
 ---
 
@@ -302,8 +302,8 @@ The file name pattern supports the `{seq:N}` placeholder, where `N` is the numbe
 
 ### Generate Test Data with Sequential IDs
 
-1. Load your XSD file.
-2. Go to **Generate Example Data**.
+1. Open your XSD file.
+2. In the **Schema** panel, choose **Generate Sample XML (Advanced)…**.
 3. Click **Auto-fill from XSD**.
 4. Find the ID element in the rules table (for example, `/order/@id`).
 5. Change its strategy to **Sequence**.
@@ -372,4 +372,4 @@ If you do not configure any rules, the generator behaves exactly as it did befor
 |----------|------|------|
 | [XSD Tools](xsd-tools.md) | [Home](index.md) | [XSD Validation](xsd-validation.md) |
 
-**All Pages:** [XML Editor](xml-editor.md) | [XML Features](xml-editor-features.md) | [XSD Tools](xsd-tools.md) | [Profiled XML Generation](profiled-xml-generation.md) | [XSD Validation](xsd-validation.md) | [XSLT Viewer](xslt-viewer.md) | [XSLT Developer](xslt-developer.md) | [FOP/PDF](pdf-generator.md) | [Signatures](digital-signatures.md) | [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [Favorites](favorites-system.md) | [Templates](template-management.md) | [Tech Stack](technology-stack.md) | [Licenses](licenses.md)
+**All Pages:** [Unified Shell](unified-shell.md) | [XML Editor](xml-editor.md) | [XML Features](xml-editor-features.md) | [JSON Editor](json-editor.md) | [XSD Tools](xsd-tools.md) | [Profiled XML Generation](profiled-xml-generation.md) | [XSD Validation](xsd-validation.md) | [XSLT Viewer](xslt-viewer.md) | [XSLT Developer](xslt-developer.md) | [FOP/PDF](pdf-generator.md) | [Signatures](digital-signatures.md) | [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [FundsXML Extensions](fundsxml-extensions.md) | [Favorites](favorites-system.md) | [Templates](template-management.md) | [Tech Stack](technology-stack.md) | [Security](SECURITY.md) | [Licenses](licenses.md)

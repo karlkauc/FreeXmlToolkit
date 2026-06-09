@@ -2,6 +2,12 @@
 
 > **Last Updated:** May 2026 | **Version:** 1.10.0
 
+> **Note (Phase 10c):** The standalone *XSD Validation* tab has been retired.
+> Validation — XSD and Schematron, single-file and batch — now lives in the
+> **Unified Shell's Validation activity panel**. The capabilities below are
+> unchanged; they are reached through the shell's Validation panel rather than a
+> dedicated sidebar tab.
+
 Validate your XML files against XSD schemas to check if documents follow the rules defined in the schema. Supports both single file and batch validation.
 
 ---
@@ -15,8 +21,8 @@ The XSD Validation tool provides two modes:
 | **Single File** | Validate one XML file at a time |
 | **Batch Validation** | Validate multiple XML files at once |
 
-![XSD Validation Overview](img/xsd-validation.png)
-*The XSD Validation interface*
+![Validation activity in the Unified Shell](img/unified-shell-validation.png)
+*XSD and Schematron validation now live in the Unified Shell's Validation activity panel*
 
 ### What Does It Check?
 
@@ -59,7 +65,7 @@ If validation fails, you'll see a list of errors with:
 - **Line number** - Where the problem is
 - **Severity** - Error, Warning, or Info
 
-Click an error to see more details. When validating inside the [Unified Editor](unified-editor.md#jump-to-validation-errors), **double-click** an error to jump straight to its line in the Text view and the matching element in the Graphic view.
+Click an error to see more details. When validating inside the [Unified Shell](unified-shell.md#jump-to-validation-errors), **double-click** an error to jump straight to its line in the Text view and the matching element in the Graphic view.
 
 ---
 
@@ -215,4 +221,4 @@ The validation engine uses Xerces 2.12.2 with full XSD 1.1 support.
 |----------|------|------|
 | [Profiled XML Generation](profiled-xml-generation.md) | [Home](index.md) | [XSLT Viewer](xslt-viewer.md) |
 
-**All Pages:** [XML Editor](xml-editor.md) | [XML Features](xml-editor-features.md) | [XSD Tools](xsd-tools.md) | [Profiled XML Generation](profiled-xml-generation.md) | [XSD Validation](xsd-validation.md) | [XSLT Viewer](xslt-viewer.md) | [XSLT Developer](xslt-developer.md) | [FOP/PDF](pdf-generator.md) | [Signatures](digital-signatures.md) | [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [Favorites](favorites-system.md) | [Templates](template-management.md) | [Tech Stack](technology-stack.md) | [Licenses](licenses.md)
+**All Pages:** [Unified Shell](unified-shell.md) | [XML Editor](xml-editor.md) | [XML Features](xml-editor-features.md) | [JSON Editor](json-editor.md) | [XSD Tools](xsd-tools.md) | [Profiled XML Generation](profiled-xml-generation.md) | [XSD Validation](xsd-validation.md) | [XSLT Viewer](xslt-viewer.md) | [XSLT Developer](xslt-developer.md) | [FOP/PDF](pdf-generator.md) | [Signatures](digital-signatures.md) | [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [FundsXML Extensions](fundsxml-extensions.md) | [Favorites](favorites-system.md) | [Templates](template-management.md) | [Tech Stack](technology-stack.md) | [Security](SECURITY.md) | [Licenses](licenses.md)

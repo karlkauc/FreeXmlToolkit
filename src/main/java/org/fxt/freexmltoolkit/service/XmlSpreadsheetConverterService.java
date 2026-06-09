@@ -187,15 +187,13 @@ public class XmlSpreadsheetConverterService {
         List<RowData> rows = extractRowsFromXml(doc, config);
 
         boolean isXlsx = outputFile.getName().toLowerCase().endsWith(".xlsx");
-        Workbook workbook = isXlsx ? new XSSFWorkbook() : new HSSFWorkbook();
+        try (Workbook workbook = isXlsx ? new XSSFWorkbook() : new HSSFWorkbook()) {
+            // Set document metadata for XLSX files
+            if (isXlsx && workbook instanceof XSSFWorkbook xssfWorkbook) { // NOPMD - same workbook, closed by the enclosing try-with-resources
+                ExportMetadataService metadataService = ServiceRegistry.get(ExportMetadataService.class);
+                metadataService.setExcelMetadata(xssfWorkbook, "XML to Excel Conversion");
+            }
 
-        // Set document metadata for XLSX files
-        if (isXlsx && workbook instanceof XSSFWorkbook xssfWorkbook) {
-            ExportMetadataService metadataService = ServiceRegistry.get(ExportMetadataService.class);
-            metadataService.setExcelMetadata(xssfWorkbook, "XML to Excel Conversion");
-        }
-
-        try {
             Sheet sheet = workbook.createSheet("XML Structure");
             createExcelHeader(sheet, config);
             populateExcelSheet(sheet, rows, config);
@@ -206,8 +204,6 @@ public class XmlSpreadsheetConverterService {
             }
 
             logger.info("Successfully converted XML to Excel with {} rows", rows.size());
-        } finally {
-            workbook.close();
         }
     }
 
@@ -450,27 +446,6 @@ public class XmlSpreadsheetConverterService {
     }
 
     /**
-     * Checks if element has only CDATA content
-     */
-    private boolean hasOnlyCDataContent(Element element) {
-        NodeList children = element.getChildNodes();
-        int cdataCount = 0;
-        for (int i = 0; i < children.getLength(); i++) {
-            Node child = children.item(i);
-            if (child.getNodeType() == Node.ELEMENT_NODE) {
-                return false;
-            } else if (child.getNodeType() == Node.CDATA_SECTION_NODE) {
-                cdataCount++;
-            } else if (child.getNodeType() == Node.TEXT_NODE &&
-                    child.getNodeValue() != null &&
-                    !child.getNodeValue().trim().isEmpty()) {
-                return false; // Mixed content
-            }
-        }
-        return cdataCount == 1;
-    }
-
-    /**
      * Creates Excel header row
      */
     private void createExcelHeader(Sheet sheet, ConversionConfig config) {
@@ -520,11 +495,17 @@ public class XmlSpreadsheetConverterService {
      * Formats Excel sheet
      */
     private void formatExcelSheet(Sheet sheet, ConversionConfig config) {
-        // Auto-size columns
-        sheet.autoSizeColumn(0);
-        sheet.autoSizeColumn(1);
-        if (config.isIncludeTypeColumn()) {
-            sheet.autoSizeColumn(2);
+        // Auto-size columns. This relies on AWT font metrics, which can be
+        // unavailable in some headless environments; column sizing is cosmetic,
+        // so a failure here must not abort an otherwise valid export.
+        try {
+            sheet.autoSizeColumn(0);
+            sheet.autoSizeColumn(1);
+            if (config.isIncludeTypeColumn()) {
+                sheet.autoSizeColumn(2);
+            }
+        } catch (Throwable t) {
+            logger.warn("Skipping Excel column auto-size (font metrics unavailable): {}", t.toString());
         }
 
         // Set XPath column as text format

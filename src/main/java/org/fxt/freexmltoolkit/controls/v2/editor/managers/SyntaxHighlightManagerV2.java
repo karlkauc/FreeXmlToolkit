@@ -32,9 +32,11 @@ public class SyntaxHighlightManagerV2 {
     private static final Logger logger = LogManager.getLogger(SyntaxHighlightManagerV2.class);
 
     private static final long LARGE_FILE_THRESHOLD = 500 * 1024;        // 500KB
-    private static final long VERY_LARGE_FILE_THRESHOLD = 2 * 1024 * 1024; // 2MB
+    private static final long VERY_LARGE_FILE_THRESHOLD = 2 * 1024 * 1024; // 2MB → viewport mode
     private static final long LARGE_FILE_DEBOUNCE_MS = 800;
     private static final int MAX_HIGHLIGHTABLE_LINE_LENGTH = 200 * 1024; // 200KB
+    /** Extra paragraphs highlighted above/below the visible range (covers tags spanning the edge). */
+    private static final int VIEWPORT_BUFFER_PARAGRAPHS = 80;
 
     private final CodeArea codeArea;
     private final ScheduledExecutorService scheduler;
@@ -46,6 +48,8 @@ public class SyntaxHighlightManagerV2 {
     // Debouncing: pending scheduled task (cancelled on new input)
     private Future<?> pendingHighlight;
     private boolean highlightingDisabled = false;
+    // Viewport mode: for very large files only the visible region is highlighted (kept fast).
+    private volatile boolean viewportMode = false;
 
     /**
      * Returns whether syntax highlighting is currently disabled.
@@ -79,6 +83,13 @@ public class SyntaxHighlightManagerV2 {
             return t;
         });
 
+        // In viewport mode, re-highlight the newly visible region when the user scrolls.
+        codeArea.estimatedScrollYProperty().addListener((obs, oldV, newV) -> {
+            if (viewportMode) {
+                scheduleViewportHighlight();
+            }
+        });
+
         logger.info("SyntaxHighlightManagerV2 created (debounce: {}ms)", debounceMillis);
     }
 
@@ -95,26 +106,19 @@ public class SyntaxHighlightManagerV2 {
             return;
         }
 
-        // Very large file guard: disable highlighting
-        if (text.length() > VERY_LARGE_FILE_THRESHOLD) {
-            if (!highlightingDisabled) {
-                highlightingDisabled = true;
-                logger.info("Syntax highlighting disabled for very large content ({}KB)", text.length() / 1024);
-            }
-            return;
-        }
-
-        // Long line guard: disable highlighting for extremely long lines
+        // Long line guard: disable highlighting for extremely long lines. Viewport mode highlights
+        // whole paragraphs, so it cannot tame a single multi-hundred-KB line — keep disabling those.
         if (hasExtremelyLongLine(text)) {
             if (!highlightingDisabled) {
                 highlightingDisabled = true;
                 logger.info("Syntax highlighting disabled - line exceeds {}KB",
                         MAX_HIGHLIGHTABLE_LINE_LENGTH / 1024);
             }
+            viewportMode = false;
             return;
         }
 
-        // Re-enable if file shrunk below threshold
+        // Re-enable if previously disabled
         if (highlightingDisabled) {
             highlightingDisabled = false;
             logger.info("Syntax highlighting re-enabled (content size: {}KB)", text.length() / 1024);
@@ -125,16 +129,79 @@ public class SyntaxHighlightManagerV2 {
             pendingHighlight.cancel(false);
         }
 
-        // Use longer debounce for large files
         long effectiveDebounce = text.length() > LARGE_FILE_THRESHOLD ? LARGE_FILE_DEBOUNCE_MS : debounceMillis;
 
-        // Schedule new highlight with debounce delay
+        // Very large files: highlight only the visible region (viewport mode), so highlighting stays
+        // responsive regardless of file size instead of being disabled entirely.
+        if (text.length() > VERY_LARGE_FILE_THRESHOLD) {
+            if (!viewportMode) {
+                viewportMode = true;
+                logger.info("Syntax highlighting in viewport mode for large content ({}KB)", text.length() / 1024);
+            }
+            scheduleViewportHighlight();
+            return;
+        }
+
+        // Normal files: highlight the whole document.
+        viewportMode = false;
         final String textToHighlight = text;
         pendingHighlight = scheduler.schedule(
                 () -> processHighlighting(textToHighlight),
                 effectiveDebounce,
                 TimeUnit.MILLISECONDS
         );
+    }
+
+    /** Schedules a debounced re-highlight of the visible region (viewport mode). */
+    private void scheduleViewportHighlight() {
+        if (pendingHighlight != null && !pendingHighlight.isDone()) {
+            pendingHighlight.cancel(false);
+        }
+        pendingHighlight = scheduler.schedule(
+                () -> Platform.runLater(this::highlightVisibleRegion),
+                LARGE_FILE_DEBOUNCE_MS,
+                TimeUnit.MILLISECONDS);
+    }
+
+    /**
+     * Highlights only the currently visible paragraph range (plus a buffer) and applies the styles at
+     * the corresponding absolute offset. Reads the live {@link CodeArea} content, so it stays correct
+     * after edits/round-trips. Must run on the FX thread. Falls back to the top of the document when
+     * the viewport is not laid out yet.
+     */
+    private void highlightVisibleRegion() {
+        if (!viewportMode) {
+            return;
+        }
+        try {
+            int totalLen = codeArea.getLength();
+            int paraCount = codeArea.getParagraphs().size();
+            if (totalLen == 0 || paraCount == 0) {
+                return;
+            }
+            int firstPar = 0;
+            int lastPar = Math.min(paraCount - 1, VIEWPORT_BUFFER_PARAGRAPHS * 2);
+            try {
+                int fv = codeArea.firstVisibleParToAllParIndex();
+                int lv = codeArea.lastVisibleParToAllParIndex();
+                firstPar = Math.max(0, fv - VIEWPORT_BUFFER_PARAGRAPHS);
+                lastPar = Math.min(paraCount - 1, lv + VIEWPORT_BUFFER_PARAGRAPHS);
+            } catch (Exception notLaidOut) {
+                // viewport not available yet — highlight the top chunk as a fallback
+            }
+            int start = codeArea.getAbsolutePosition(firstPar, 0);
+            int end = codeArea.getAbsolutePosition(lastPar, codeArea.getParagraphLength(lastPar));
+            if (end <= start || start < 0 || end > totalLen) {
+                return;
+            }
+            String sub = codeArea.getText(start, end);
+            StyleSpans<Collection<String>> spans = computeHighlighting(sub);
+            if (start + spans.length() <= totalLen) {
+                codeArea.setStyleSpans(start, spans);
+            }
+        } catch (Exception e) {
+            logger.debug("Viewport highlighting failed: {}", e.getMessage());
+        }
     }
 
     /**

@@ -12,32 +12,18 @@ import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.testfx.framework.junit5.ApplicationExtension;
 
 @DisplayName("DialogHelper Tests")
+@ExtendWith(ApplicationExtension.class)
 public class DialogHelperTest {
 
-    @BeforeAll
-    static void initJavaFX() throws InterruptedException {
-        // Force headless mode for Monocle
-        System.setProperty("testfx.robot", "glass");
-        System.setProperty("testfx.headless", "true");
-        System.setProperty("prism.order", "sw");
-        System.setProperty("glass.platform", "Monocle");
-        System.setProperty("monocle.platform", "Headless");
-
-        // Initialize JavaFX Platform
-        CountDownLatch latch = new CountDownLatch(1);
-        try {
-            Platform.startup(latch::countDown);
-        } catch (IllegalStateException e) {
-            // Platform already started
-            latch.countDown();
-        }
-        latch.await(5, TimeUnit.SECONDS);
-    }
+    // ApplicationExtension initializes the JavaFX (Monocle headless) toolkit before tests run.
+    // A bare Platform.startup() does not register the Monocle glass platform when a test class
+    // runs in its own forked JVM (forkEvery = 1), so we rely on the extension instead.
 
     private void runAndWait(Runnable action) {
         CountDownLatch latch = new CountDownLatch(1);

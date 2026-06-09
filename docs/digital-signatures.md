@@ -2,18 +2,27 @@
 
 > **Last Updated:** May 2026 | **Version:** 1.10.0
 
+> **Note (Phase 10c):** The standalone *Signature* tab has been retired. Signing,
+> signature validation (including detailed and PKIX trust/chain/revocation/timestamp
+> validation) and self-signed certificate creation now live in the **Unified Shell's
+> Signature activity panel**. The capabilities below are unchanged; they are reached
+> through the shell rather than a dedicated sidebar tab.
+
 This tool lets you digitally sign XML documents and verify signatures. A digital signature proves that a document is authentic and hasn't been changed.
 
 ---
 
 ## Overview
 
-![Digital Signatures Overview](img/signature-sign.png)
-*The digital signature interface*
+![Signature activity in the Unified Shell](img/unified-shell-signature.png)
+*Signing, validation and certificate creation now live in the Unified Shell's Signature activity panel*
 
 ### What Can You Do?
 
-| Tab | Description |
+In the [Unified Shell](unified-shell.md), open the **Signature** activity from the activity bar.
+The panel offers:
+
+| Action | Description |
 |-----|-------------|
 | **Create Certificate** | Generate your own digital ID (keystore) |
 | **Sign XML File** | Add a digital signature to XML files |
@@ -60,7 +69,7 @@ Before signing documents, you need a digital certificate (like a digital ID card
 
 ### How to Create a Certificate
 
-1. Go to the **"Create Certificate"** tab
+1. In the **Signature** panel, choose **Create Certificate**
 2. Fill in the Distinguished Name fields
 3. Set passwords for the keystore and key
 4. Click **"Create Certificate"**
@@ -100,7 +109,7 @@ Before signing documents, you need a digital certificate (like a digital ID card
 
 ### How to Sign a Document
 
-1. Go to the **"Sign XML File"** tab
+1. In the **Signature** panel, choose **Sign XML File**
 2. Click **"Browse"** to select your XML file
 3. Click **"Browse"** to select your keystore file
 4. Enter your keystore password and key password
@@ -119,7 +128,7 @@ The signed file includes the original content plus a digital signature block.
 
 ### How to Verify a Signature
 
-1. Go to the **"Validate Signed File"** tab
+1. In the **Signature** panel, choose **Validate Signed File**
 2. Click **"Browse"** to select the signed XML file
 3. Click **"Validate"**
 4. See the result in the status area
@@ -139,6 +148,44 @@ The signed file includes the original content plus a digital signature block.
 | **Authenticity** | The signature was created by the certificate holder |
 | **Integrity** | The document hasn't been changed since signing |
 | **Certificate** | The signing certificate is valid |
+
+---
+
+## 3b. Trust Validation
+
+> **New in June 2026** - In addition to checking that a signature is mathematically valid, you
+> can now check whether the signing certificate is actually **trusted**.
+
+Basic validation confirms that a signature is intact and matches its certificate. **Trust
+validation** goes further: it checks the signing certificate's chain against a **trust store** -
+a collection of certificate authorities you trust - to decide whether the certificate really
+comes from a trusted source.
+
+In the Unified Shell's **Signature** panel, the action is **Validate (Trust)**.
+
+### How to Run Trust Validation
+
+1. Open the signed XML document.
+2. (Optional) Click **Trust store…** to choose the trust store to validate against. By default
+   the application uses the JVM's built-in `cacerts` store, which contains well-known public
+   certificate authorities.
+3. (Optional) Tick **Check revocation (OCSP/CRL)** to also verify that the certificate has not
+   been revoked.
+4. Click **Validate (Trust)**.
+5. A trust report opens in a new tab.
+
+### What the Trust Report Tells You
+
+| Item | What It Means |
+|------|---------------|
+| **Trusted** | Whether the signing certificate chains up to a certificate in the trust store |
+| **Trust anchor** | The trusted certificate (certificate authority) at the top of the chain |
+| **Revocation** | Whether the certificate has been revoked (only when revocation checking is on) |
+| **Timestamp** | Timestamp information found with the signature, if any |
+
+> **Note:** A signature can be mathematically **valid** but **not trusted** if its certificate
+> is self-signed or issued by an authority that is not in your trust store. Trust validation is
+> the step that tells the two situations apart.
 
 ---
 
@@ -258,4 +305,4 @@ No, this tool is specifically for XML documents. Use the PDF Generator for PDF-r
 |----------|------|------|
 | [PDF Generator (FOP)](pdf-generator.md) | [Home](index.md) | [Auto-Completion](context-sensitive-intellisense.md) |
 
-**All Pages:** [XML Editor](xml-editor.md) | [XML Features](xml-editor-features.md) | [XSD Tools](xsd-tools.md) | [XSD Validation](xsd-validation.md) | [XSLT Viewer](xslt-viewer.md) | [XSLT Developer](xslt-developer.md) | [FOP/PDF](pdf-generator.md) | [Signatures](digital-signatures.md) | [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [Favorites](favorites-system.md) | [Templates](template-management.md) | [Tech Stack](technology-stack.md) | [Licenses](licenses.md)
+**All Pages:** [Unified Shell](unified-shell.md) | [XML Editor](xml-editor.md) | [XML Features](xml-editor-features.md) | [JSON Editor](json-editor.md) | [XSD Tools](xsd-tools.md) | [Profiled XML Generation](profiled-xml-generation.md) | [XSD Validation](xsd-validation.md) | [XSLT Viewer](xslt-viewer.md) | [XSLT Developer](xslt-developer.md) | [FOP/PDF](pdf-generator.md) | [Signatures](digital-signatures.md) | [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [FundsXML Extensions](fundsxml-extensions.md) | [Favorites](favorites-system.md) | [Templates](template-management.md) | [Tech Stack](technology-stack.md) | [Security](SECURITY.md) | [Licenses](licenses.md)

@@ -137,11 +137,48 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
         // Setup combined paragraph graphics (fold indicators + line numbers)
         codeArea.setParagraphGraphicFactory(createCombinedParagraphGraphicFactory());
 
+        // Highlight the caret's line (Figma current-line tint).
+        codeArea.currentParagraphProperty().addListener(
+                (obs, oldP, newP) -> updateCurrentLineStyle(newP.intValue()));
+        updateCurrentLineStyle(codeArea.getCurrentParagraph());
+
         // Layout: scrollpane + status line
         VBox.setVgrow(scrollPane, Priority.ALWAYS);
         getChildren().addAll(scrollPane, statusLineManager.getStatusLine());
 
         logger.debug("UI initialized");
+    }
+
+    /**
+     * Shows or hides the built-in status line. The Unified Shell hosts its own global status bar
+     * (Ln/Col · type · schema · encoding · chars), so it hides this per-editor strip to avoid a
+     * duplicated status row in Text view.
+     *
+     * @param visible {@code true} to show the status line, {@code false} to hide and unmanage it
+     */
+    public void setStatusLineVisible(boolean visible) {
+        javafx.scene.Node statusLine = statusLineManager.getStatusLine();
+        statusLine.setVisible(visible);
+        statusLine.setManaged(visible);
+    }
+
+    /** Paragraph index currently carrying the {@code current-line} style. */
+    private int currentLineIndex = -1;
+
+    /**
+     * Moves the {@code current-line} paragraph style to the caret's line so the
+     * stylesheet can tint it (Figma current-line highlight). Cheap: it only
+     * re-styles the previous and new paragraphs.
+     */
+    private void updateCurrentLineStyle(int newIndex) {
+        int count = codeArea.getParagraphs().size();
+        if (currentLineIndex >= 0 && currentLineIndex < count && currentLineIndex != newIndex) {
+            codeArea.setParagraphStyle(currentLineIndex, java.util.Collections.emptyList());
+        }
+        if (newIndex >= 0 && newIndex < count) {
+            codeArea.setParagraphStyle(newIndex, java.util.Collections.singletonList("current-line"));
+        }
+        currentLineIndex = newIndex;
     }
 
     /**
@@ -174,9 +211,13 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
                 hbox.getChildren().add(spacer);
             }
 
-            // Add line number label
+            // Add line number label — the caret's line is indigo + bold (Figma).
             javafx.scene.control.Label lineNumber = new javafx.scene.control.Label(String.format("%4d", lineIndex + 1));
-            lineNumber.setStyle("-fx-font-family: monospace; -fx-text-fill: gray;");
+            lineNumber.styleProperty().bind(javafx.beans.binding.Bindings.createStringBinding(
+                    () -> codeArea.getCurrentParagraph() == lineIndex
+                            ? "-fx-font-family: 'JetBrains Mono', monospace; -fx-text-fill: #3b5bdb; -fx-font-weight: bold;"
+                            : "-fx-font-family: 'JetBrains Mono', monospace; -fx-text-fill: #8a93a0;",
+                    codeArea.currentParagraphProperty()));
             hbox.getChildren().add(lineNumber);
 
             return hbox;
@@ -291,6 +332,47 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
 
                 // Force paragraph graphics refresh after folding regions are updated
                 logger.debug("Refreshing paragraph graphics after setText()");
+                var factory = codeArea.getParagraphGraphicFactory();
+                codeArea.setParagraphGraphicFactory(null);
+                codeArea.setParagraphGraphicFactory(factory);
+            });
+        }
+    }
+
+    /**
+     * Replaces only the {@code [start, oldEnd)} character region with
+     * {@code replacement} instead of the whole document, then refreshes syntax
+     * highlighting and folding. Unlike {@link #setText(String)} it does not move the
+     * caret, so a caret outside the changed region is preserved (P6 round-trip).
+     *
+     * @param start       region start offset
+     * @param oldEnd      region end offset (exclusive)
+     * @param replacement the replacement text for the region
+     */
+    public void replaceTextRegion(int start, int oldEnd, String replacement) {
+        int caret = codeArea.getCaretPosition();
+        codeArea.replaceText(start, oldEnd, replacement);
+
+        // replaceText() puts the caret at the end of the insertion; restore the user's
+        // caret, shifting it only if the change happened before it.
+        int restored;
+        if (caret <= start) {
+            restored = caret;
+        } else if (caret >= oldEnd) {
+            restored = caret + (replacement.length() - (oldEnd - start));
+        } else {
+            restored = start + replacement.length();
+        }
+        codeArea.moveTo(Math.max(0, Math.min(restored, codeArea.getLength())));
+
+        String full = codeArea.getText();
+        if (!full.isEmpty()) {
+            Platform.runLater(() -> {
+                syntaxManager.applySyntaxHighlighting(full);
+                if (foldingEnabled) {
+                    foldingManager.updateFoldingRegions(full);
+                }
+                // Force paragraph graphics refresh (folding gutter) after the edit.
                 var factory = codeArea.getParagraphGraphicFactory();
                 codeArea.setParagraphGraphicFactory(null);
                 codeArea.setParagraphGraphicFactory(factory);
@@ -583,6 +665,7 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
      * @param forward    true to search forward, false to search backward
      * @return true if text was found
      */
+    @Override
     public boolean find(String searchText, boolean forward) {
         if (searchText == null || searchText.isEmpty()) {
             return false;
@@ -634,6 +717,7 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
      * @param searchText the text to find
      * @return the number of occurrences found
      */
+    @Override
     public int findAll(String searchText) {
         if (searchText == null || searchText.isEmpty()) {
             return 0;
@@ -740,6 +824,7 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
     /**
      * Clears the search state.
      */
+    @Override
     public void clearSearch() {
         lastSearchText = "";
     }

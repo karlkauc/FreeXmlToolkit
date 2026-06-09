@@ -43,7 +43,6 @@ import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
-import javafx.scene.control.TabPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
@@ -117,12 +116,6 @@ public class TemplatesController {
     private Button applyTemplateBtn;
     @FXML
     private Button previewTemplateBtn;
-    @FXML
-    private Button validateParamsBtn;
-    @FXML
-    private Button resetParamsBtn;
-    @FXML
-    private Button copyToClipboardBtn;
 
     // UI Components - Parameters Table
     @FXML
@@ -143,8 +136,6 @@ public class TemplatesController {
     private Button helpBtn;
 
     // UI Components - Preview
-    @FXML
-    private TabPane previewTabPane;
     @FXML
     private TextArea xmlPreviewArea;
     @FXML

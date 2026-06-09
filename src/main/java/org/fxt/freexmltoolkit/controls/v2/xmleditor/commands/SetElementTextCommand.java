@@ -108,11 +108,8 @@ public class SetElementTextCommand implements XmlCommand {
 
     @Override
     public boolean canMergeWith(XmlCommand other) {
-        if (!(other instanceof SetElementTextCommand otherCmd)) {
-            return false;
-        }
-
-        return this.element == otherCmd.element;
+        return other instanceof SetElementTextCommand otherCmd
+                && this.element == otherCmd.element;
     }
 
     @Override

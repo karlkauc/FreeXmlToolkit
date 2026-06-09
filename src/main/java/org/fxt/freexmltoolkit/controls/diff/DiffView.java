@@ -203,16 +203,26 @@ public final class DiffView extends Tab {
         boolean[] updating = {false};
 
         leftScroll.addListener((obs, o, n) -> {
-            if (updating[0]) return;
+            if (updating[0]) {
+                return;
+            }
             updating[0] = true;
-            try { rightScroll.setValue(n.doubleValue()); }
-            finally { updating[0] = false; }
+            try {
+                rightScroll.setValue(n);
+            } finally {
+                updating[0] = false;
+            }
         });
         rightScroll.addListener((obs, o, n) -> {
-            if (updating[0]) return;
+            if (updating[0]) {
+                return;
+            }
             updating[0] = true;
-            try { leftScroll.setValue(n.doubleValue()); }
-            finally { updating[0] = false; }
+            try {
+                leftScroll.setValue(n);
+            } finally {
+                updating[0] = false;
+            }
         });
     }
 

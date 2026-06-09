@@ -72,10 +72,7 @@ public class XsdVersion {
      * @return true if the feature is supported
      */
     public boolean supports(Xsd11Feature feature) {
-        if (feature == null) {
-            return false;
-        }
-        return isVersion11();
+        return feature != null && isVersion11();
     }
 
     /**

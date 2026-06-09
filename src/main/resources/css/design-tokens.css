@@ -1,0 +1,97 @@
+/*
+ * design-tokens.css — single source of truth for the FreeXmlToolkit color palette.
+ *
+ * Mirrors the Figma file "FreeXmlToolkit — UI Modernization"
+ * (key oqJVcInD6RgKaQ4dYmMWYh) and the Java class
+ * org.fxt.freexmltoolkit.controls.theme.DesignTokens.
+ *
+ * Theming model (UI rebuild decision D4):
+ *   - Colors are JavaFX "looked-up colors" (-fxt-*) defined on .root.
+ *   - Light is the default; Dark overrides the same variables when the root
+ *     node carries the style class "fxt-theme-dark".
+ *   - Switching theme = toggling that single root style class.
+ *
+ * This file is ADDITIVE: it only declares variables (and a few opt-in utility
+ * classes). It does not restyle any existing selector, so adding it to a scene
+ * changes nothing visually until a control opts in via -fxt-* / .fxt-* .
+ */
+
+/* ----- Light (default) ------------------------------------------------ */
+.root {
+    /* Brand */
+    -fxt-on-primary: #ffffff;
+    -fxt-primary: #3b5bdb;
+    -fxt-accent: #f08c2e;
+
+    /* Backgrounds & borders */
+    -fxt-bg-canvas: #f5f7fa;
+    -fxt-bg-surface: #ffffff;
+    -fxt-bg-surface-2: #f2f4f8;
+    -fxt-bg-subtle: #e7ecfd;
+    -fxt-border: #dde1e7;
+
+    /* Text */
+    -fxt-text-primary: #1a1d21;
+    -fxt-text-secondary: #5a6472;
+    -fxt-text-muted: #8a93a0;
+
+    /* Semantic — success */
+    -fxt-success: #2f9e44;
+    -fxt-success-bg: #eaf6ee;
+    -fxt-success-text: #1f7a35;
+    -fxt-success-border: #bfe3cb;
+
+    /* Code syntax */
+    -fxt-code-text: #1a1d21;
+    -fxt-code-elem: #1f6fb2;
+    -fxt-code-attr: #c56a12;
+    -fxt-code-val: #2e8b40;
+    -fxt-code-decl: #9a6bd6;
+    -fxt-code-punct: #7a8392;
+    -fxt-code-curline: #f2f6ff;
+}
+
+/* ----- Dark (root style class "fxt-theme-dark") ----------------------- */
+.root.fxt-theme-dark {
+    /* Brand */
+    -fxt-on-primary: #ffffff;
+    -fxt-primary: #5c7cfa;
+    -fxt-accent: #f59f46;
+
+    /* Backgrounds & borders */
+    -fxt-bg-canvas: #0f1419;
+    -fxt-bg-surface: #161b22;
+    -fxt-bg-surface-2: #1c232c;
+    -fxt-bg-subtle: #20305c;
+    -fxt-border: #2a323d;
+
+    /* Text */
+    -fxt-text-primary: #e6eaf0;
+    -fxt-text-secondary: #9ba6b3;
+    -fxt-text-muted: #6b7480;
+
+    /* Semantic — success */
+    -fxt-success: #51cf66;
+    -fxt-success-bg: #14301e;
+    -fxt-success-text: #8ce0a0;
+    -fxt-success-border: #2b5a3a;
+
+    /* Code syntax */
+    -fxt-code-text: #e6eaf0;
+    -fxt-code-elem: #6cb6ff;
+    -fxt-code-attr: #e0a458;
+    -fxt-code-val: #7ee787;
+    -fxt-code-decl: #c09bf0;
+    -fxt-code-punct: #6b7480;
+    -fxt-code-curline: #1b2438;
+}
+
+/* ----- Opt-in typography utilities ------------------------------------ */
+/* UI font (Inter is bundled). Code font prefers JetBrains Mono with fallbacks. */
+.fxt-font-ui {
+    -fx-font-family: "Inter", "Open Sans", "Segoe UI", sans-serif;
+}
+
+.fxt-font-mono {
+    -fx-font-family: "JetBrains Mono", "Roboto Mono", "Consolas", "Liberation Mono", monospace;
+}

@@ -1,0 +1,186 @@
+package org.fxt.freexmltoolkit.controls.shell.editor;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.concurrent.TimeUnit;
+
+import javafx.scene.Scene;
+import javafx.stage.Stage;
+
+import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
+import org.testfx.framework.junit5.ApplicationExtension;
+import org.testfx.framework.junit5.Start;
+import org.testfx.util.WaitForAsyncUtils;
+
+/**
+ * End-to-end TestFX verification of structured editing: deleting a node in the
+ * Tree view goes through the command stack, mutates the model, round-trips to
+ * the text editor (marking it dirty), and is reversible via undo.
+ */
+@ExtendWith(ApplicationExtension.class)
+class EditorHostEditingTest {
+
+    private static final String XSD = """
+            <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+              <xs:element name="ControlData">
+                <xs:complexType><xs:sequence>
+                  <xs:element name="UniqueDocumentID" type="xs:string"/>
+                  <xs:element name="DocumentGenerated" type="xs:dateTime"/>
+                </xs:sequence></xs:complexType>
+              </xs:element>
+            </xs:schema>
+            """;
+
+    private EditorHost host;
+
+    @Start
+    void start(Stage stage) {
+        host = new EditorHost();
+        stage.setScene(new Scene(host, 900, 600));
+        stage.show();
+    }
+
+    @Test
+    void deleteThroughCommandStackMutatesModelAndUndoRestores(@TempDir Path tmp) throws Exception {
+        Path xsd = tmp.resolve("schema.xsd");
+        Files.writeString(xsd, XSD);
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xsd));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("DocumentGenerated")).orElse(false));
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.setActiveViewMode(ViewMode.TREE);
+            return null;
+        });
+
+        // Select the node to delete, then delete it via the command stack.
+        XsdNode target = WaitForAsyncUtils.waitForAsyncFx(2000, () ->
+                find(host.getActiveSchemaRoot().orElseThrow(), "DocumentGenerated"));
+        assertNotNull(target);
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.selectNodeInActiveTree(target);
+            return null;
+        });
+        boolean deleted = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.deleteActiveNode());
+
+        assertTrue(deleted, "delete should succeed");
+        assertFalse(host.getActiveText().orElse("").contains("DocumentGenerated"),
+                "deleted node must be gone from the round-tripped text");
+        assertTrue(host.getActiveText().orElse("").contains("UniqueDocumentID"),
+                "sibling must remain");
+        assertTrue(host.getActiveDocument().orElseThrow().isDirty(), "editing marks the document dirty");
+
+        // Undo restores it.
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.undoActive();
+            return null;
+        });
+        assertTrue(host.getActiveText().orElse("").contains("DocumentGenerated"),
+                "undo must restore the deleted node");
+    }
+
+    @Test
+    void renameThroughCommandUpdatesTextAndUndoRestores(@TempDir Path tmp) throws Exception {
+        openTreeAndSelect(tmp, "UniqueDocumentID");
+        boolean ok = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.renameActiveNode("DocId"));
+
+        assertTrue(ok);
+        assertTrue(host.getActiveText().orElse("").contains("DocId"));
+        assertFalse(host.getActiveText().orElse("").contains("UniqueDocumentID"));
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.undoActive();
+            return null;
+        });
+        assertTrue(host.getActiveText().orElse("").contains("UniqueDocumentID"), "undo restores the name");
+    }
+
+    @Test
+    void changeCardinalityThroughCommandUpdatesText(@TempDir Path tmp) throws Exception {
+        openTreeAndSelect(tmp, "UniqueDocumentID");
+        boolean ok = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.changeActiveCardinality(0, -1));
+
+        assertTrue(ok);
+        String text = host.getActiveText().orElse("");
+        assertTrue(text.contains("minOccurs=\"0\""), "minOccurs should be written: " + text);
+        assertTrue(text.contains("maxOccurs=\"unbounded\""), "unbounded maxOccurs should be written: " + text);
+    }
+
+    @Test
+    void addElementThroughCommandInsertsChild(@TempDir Path tmp) throws Exception {
+        XsdNode child = openTreeAndSelect(tmp, "UniqueDocumentID");
+        XsdNode container = child.getParent(); // the xs:sequence
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.selectNodeInActiveTree(container);
+            return null;
+        });
+        boolean ok = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.addElementToActive("ExtraField"));
+
+        assertTrue(ok, "add element should succeed on a container");
+        assertTrue(host.getActiveText().orElse("").contains("ExtraField"),
+                "new element must appear in the round-tripped text");
+    }
+
+    @Test
+    void changeTypeThroughCommandUpdatesText(@TempDir Path tmp) throws Exception {
+        openTreeAndSelect(tmp, "UniqueDocumentID");
+        boolean ok = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.changeActiveType("xs:integer"));
+
+        assertTrue(ok);
+        assertTrue(host.getActiveText().orElse("").contains("xs:integer"),
+                "changed type should be written: " + host.getActiveText().orElse(""));
+    }
+
+    @Test
+    void addAttributeThroughCommandInsertsAttribute(@TempDir Path tmp) throws Exception {
+        XsdNode child = openTreeAndSelect(tmp, "UniqueDocumentID");
+        XsdNode controlData = child.getParent().getParent().getParent(); // sequence -> complexType -> ControlData
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.selectNodeInActiveTree(controlData);
+            return null;
+        });
+        boolean ok = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.addAttributeToActive("version"));
+
+        assertTrue(ok, "add attribute should succeed");
+        assertTrue(host.getActiveText().orElse("").contains("version"),
+                "new attribute must appear: " + host.getActiveText().orElse(""));
+    }
+
+    /** Opens the XSD, switches to Tree, selects the named node, returns it. */
+    private XsdNode openTreeAndSelect(Path tmp, String name) throws Exception {
+        Path xsd = tmp.resolve("schema.xsd");
+        Files.writeString(xsd, XSD);
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xsd));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains(name)).orElse(false));
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.setActiveViewMode(ViewMode.TREE);
+            return null;
+        });
+        XsdNode node = WaitForAsyncUtils.waitForAsyncFx(2000, () ->
+                find(host.getActiveSchemaRoot().orElseThrow(), name));
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.selectNodeInActiveTree(node);
+            return null;
+        });
+        return node;
+    }
+
+    private XsdNode find(XsdNode node, String name) {
+        if (name.equals(node.getName())) {
+            return node;
+        }
+        for (XsdNode child : node.getChildren()) {
+            XsdNode found = find(child, name);
+            if (found != null) {
+                return found;
+            }
+        }
+        return null;
+    }
+}

@@ -537,19 +537,10 @@ public class XsdVisualTreeBuilder {
             }
         }
 
-        // Check for type reference
+        // A non-builtin type reference (ComplexType) would have children, as would an element reference.
         String elementType = element.getType();
-        if (elementType != null && !elementType.isEmpty() && !elementType.startsWith("xs:")) {
-            // Type reference to a ComplexType would have children
-            return true;
-        }
-
-        // Check for element reference
-        if (element.getRef() != null && !element.getRef().isEmpty()) {
-            return true;
-        }
-
-        return false;
+        return (elementType != null && !elementType.isEmpty() && !elementType.startsWith("xs:"))
+                || (element.getRef() != null && !element.getRef().isEmpty());
     }
 
     /**
@@ -952,10 +943,9 @@ public class XsdVisualTreeBuilder {
      */
     private void buildTypeIndex(XsdSchema schema) {
         for (XsdNode child : schema.getChildren()) {
-            if (child instanceof XsdComplexType complexType) {
-                if (complexType.getName() != null && !complexType.getName().isEmpty()) {
-                    typeIndex.put(complexType.getName(), complexType);
-                }
+            if (child instanceof XsdComplexType complexType
+                    && complexType.getName() != null && !complexType.getName().isEmpty()) {
+                typeIndex.put(complexType.getName(), complexType);
             }
         }
     }
@@ -967,12 +957,11 @@ public class XsdVisualTreeBuilder {
      */
     private void buildGlobalElementIndex(XsdSchema schema) {
         for (XsdNode child : schema.getChildren()) {
-            if (child instanceof XsdElement element) {
-                if (element.getName() != null && !element.getName().isEmpty() && element.getRef() == null) {
-                    // Only index elements with name (not refs)
-                    globalElementIndex.put(element.getName(), element);
-                    logger.debug("Indexed global element: {}", element.getName());
-                }
+            // Only index elements with name (not refs)
+            if (child instanceof XsdElement element
+                    && element.getName() != null && !element.getName().isEmpty() && element.getRef() == null) {
+                globalElementIndex.put(element.getName(), element);
+                logger.debug("Indexed global element: {}", element.getName());
             }
         }
     }

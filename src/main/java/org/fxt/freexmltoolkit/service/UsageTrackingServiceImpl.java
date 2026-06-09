@@ -445,56 +445,56 @@ public class UsageTrackingServiceImpl implements UsageTrackingService {
             case "xpath_queries" -> new FeatureTip(
                 feature.getFeatureId(),
                 "Did you know? XPath queries help you quickly locate specific elements in large XML documents.",
-                "xmlUltimate",
+                "unifiedShell",
                 10,
                 "bi-search"
             );
             case "xslt_transformation" -> new FeatureTip(
                 feature.getFeatureId(),
                 "Transform your XML documents to HTML, text, or other formats using XSLT.",
-                "xsltDeveloper",
+                "unifiedShell",
                 9,
                 "bi-arrow-repeat"
             );
             case "schematron_validation" -> new FeatureTip(
                 feature.getFeatureId(),
                 "Schematron rules enable business rule validation beyond what XSD can express.",
-                "schematron",
+                "unifiedShell",
                 8,
                 "bi-shield-check"
             );
             case "xsd_visualization" -> new FeatureTip(
                 feature.getFeatureId(),
                 "Visualize complex XSD schemas with our graphical editor for better understanding.",
-                "xsd",
+                "unifiedShell",
                 7,
                 "bi-diagram-3"
             );
             case "digital_signature" -> new FeatureTip(
                 feature.getFeatureId(),
                 "Sign and verify XML documents for security and authenticity.",
-                "signature",
+                "unifiedShell",
                 6,
                 "bi-key"
             );
             case "pdf_generation" -> new FeatureTip(
                 feature.getFeatureId(),
                 "Generate professional PDF documents from XML using XSL-FO templates.",
-                "fop",
+                "unifiedShell",
                 5,
                 "bi-file-earmark-richtext"
             );
             case "schema_generation" -> new FeatureTip(
                 feature.getFeatureId(),
                 "Automatically generate XSD schemas from your XML sample documents.",
-                "schemaGenerator",
+                "unifiedShell",
                 4,
                 "bi-gear"
             );
             case "xquery_execution" -> new FeatureTip(
                 feature.getFeatureId(),
                 "Use XQuery for powerful querying and transforming of XML data.",
-                "xmlUltimate",
+                "unifiedShell",
                 3,
                 "bi-code"
             );

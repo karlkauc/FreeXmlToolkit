@@ -126,6 +126,25 @@ public class ProfiledXmlGeneratorService {
     }
 
     /**
+     * Generates XML using the rich, facet/enumeration/pattern-aware traversal regardless of whether
+     * the profile carries rules — i.e. it never falls back to the plain generator. Use this for a
+     * "realistic values" sample where leaf values should honour the schema's restrictions even
+     * without per-XPath rules (AUTO strategy backed by {@link XsdSampleDataGenerator}).
+     *
+     * @param profile     generation profile (mandatoryOnly / maxOccurrences honoured; rules optional)
+     * @param data        the parsed XSD documentation data
+     * @param xsdFilePath the path to the XSD file
+     * @return the generated XML as a string
+     */
+    public String generateRealistic(GenerationProfile profile, XsdDocumentationData data, String xsdFilePath) {
+        XsdSampleDataGenerator sampleGenerator = new XsdSampleDataGenerator();
+        setupTypeResolver(sampleGenerator, data);
+        ValueStrategyFactory strategyFactory = new ValueStrategyFactory(sampleGenerator);
+        GenerationContext context = new GenerationContext();
+        return buildXmlDocument(profile, data, xsdFilePath, strategyFactory, context);
+    }
+
+    /**
      * Generates multiple XML documents in batch mode.
      *
      * <p>When the profile has no enabled non-AUTO rules, each batch entry is produced via
@@ -182,10 +201,7 @@ public class ProfiledXmlGeneratorService {
      * change repeat counts) so they must keep the profiled path active.</p>
      */
     static boolean hasNoEffectiveRules(GenerationProfile profile) {
-        if (profile == null) {
-            return true;
-        }
-        return profile.getEnabledRules().stream()
+        return profile == null || profile.getEnabledRules().stream()
                 .allMatch(r -> r.getStrategy() == GenerationStrategy.AUTO && !hasStructuralConfig(r));
     }
 
@@ -501,10 +517,9 @@ public class ProfiledXmlGeneratorService {
         }
 
         // Apply constraint tracking
-        if (constraintTracker != null && fixedOrDefault == null) {
-            if (constraintTracker.isConstrainedField(attrXpath) || constraintTracker.isKeyrefField(attrXpath)) {
-                attrValue = constraintTracker.getUniqueValue(attrXpath, attrValue, attr);
-            }
+        if (constraintTracker != null && fixedOrDefault == null
+                && (constraintTracker.isConstrainedField(attrXpath) || constraintTracker.isKeyrefField(attrXpath))) {
+            attrValue = constraintTracker.getUniqueValue(attrXpath, attrValue, attr);
         }
 
         sb.append(" ").append(attrName).append("=\"").append(escapeXml(attrValue)).append("\"");
@@ -538,10 +553,9 @@ public class ProfiledXmlGeneratorService {
         }
 
         // Apply constraint tracking
-        if (constraintTracker != null && !value.isEmpty()) {
-            if (constraintTracker.isConstrainedField(xpath) || constraintTracker.isKeyrefField(xpath)) {
-                value = constraintTracker.getUniqueValue(xpath, value, element);
-            }
+        if (constraintTracker != null && !value.isEmpty()
+                && (constraintTracker.isConstrainedField(xpath) || constraintTracker.isKeyrefField(xpath))) {
+            value = constraintTracker.getUniqueValue(xpath, value, element);
         }
 
         return value;
@@ -970,10 +984,10 @@ public class ProfiledXmlGeneratorService {
             return "example_" + fileNumber + ".xml";
         }
         // Replace {seq:N} with zero-padded file number
-        return SequenceValueStrategy_replaceSequencePlaceholders(pattern, fileNumber);
+        return replaceSequencePlaceholders(pattern, fileNumber);
     }
 
-    private String SequenceValueStrategy_replaceSequencePlaceholders(String pattern, int value) {
+    private String replaceSequencePlaceholders(String pattern, int value) {
         java.util.regex.Matcher matcher = Pattern.compile("\\{seq(?::(\\d+))?}").matcher(pattern);
         StringBuilder result = new StringBuilder();
         while (matcher.find()) {

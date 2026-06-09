@@ -213,10 +213,8 @@ public class FileExplorerTreeItem extends TreeItem<Path> {
 
         // Recursively force refresh all children
         for (TreeItem<Path> child : super.getChildren()) {
-            if (child instanceof FileExplorerTreeItem fileExplorerChild) {
-                if (Files.isDirectory(child.getValue())) {
-                    fileExplorerChild.forceRefresh();
-                }
+            if (child instanceof FileExplorerTreeItem fileExplorerChild && Files.isDirectory(child.getValue())) {
+                fileExplorerChild.forceRefresh();
             }
         }
     }

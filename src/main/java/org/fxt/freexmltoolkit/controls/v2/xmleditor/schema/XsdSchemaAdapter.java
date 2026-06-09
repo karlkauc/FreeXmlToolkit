@@ -402,10 +402,8 @@ public class XsdSchemaAdapter implements XmlSchemaProvider {
         }
 
         // Check enumeration
-        if (enumerationValues != null && !enumerationValues.isEmpty()) {
-            if (!enumerationValues.contains(value)) {
-                return ValidationResult.warning("Value should be one of: " + String.join(", ", enumerationValues));
-            }
+        if (enumerationValues != null && !enumerationValues.isEmpty() && !enumerationValues.contains(value)) {
+            return ValidationResult.warning("Value should be one of: " + String.join(", ", enumerationValues));
         }
 
         // Check pattern
@@ -494,11 +492,10 @@ public class XsdSchemaAdapter implements XmlSchemaProvider {
         }
 
         // Boolean validation
-        if (xsdType == XsdType.BOOLEAN && !value.isEmpty()) {
-            if (!value.equals("true") && !value.equals("false") &&
-                    !value.equals("1") && !value.equals("0")) {
-                return ValidationResult.warning("Value must be 'true', 'false', '1', or '0'");
-            }
+        if (xsdType == XsdType.BOOLEAN && !value.isEmpty()
+                && !value.equals("true") && !value.equals("false")
+                && !value.equals("1") && !value.equals("0")) {
+            return ValidationResult.warning("Value must be 'true', 'false', '1', or '0'");
         }
 
         return ValidationResult.valid();

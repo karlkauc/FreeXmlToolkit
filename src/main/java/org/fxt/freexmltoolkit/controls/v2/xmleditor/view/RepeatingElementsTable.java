@@ -1729,30 +1729,13 @@ public class RepeatingElementsTable {
 
         String v = value.trim();
 
-        // ISO 8601: 2024-01-15 or 2024-01-15T10:30:00
-        if (v.matches("\\d{4}-\\d{2}-\\d{2}(T.*)?")) {
-            return true;
-        }
-
-        // European: 15.01.2024
-        if (v.matches("\\d{2}\\.\\d{2}\\.\\d{4}")) {
-            return true;
-        }
-
-        // US format: 01/15/2024
-        if (v.matches("\\d{2}/\\d{2}/\\d{4}")) {
-            return true;
-        }
-
-        // Short formats: 2024-01, 01/2024
-        if (v.matches("\\d{4}-\\d{2}")) {
-            return true;
-        }
-        if (v.matches("\\d{2}/\\d{4}")) {
-            return true;
-        }
-
-        return false;
+        // Accept common date formats: ISO 8601 (2024-01-15[T...]), European (15.01.2024),
+        // US (01/15/2024), and short forms (2024-01, 01/2024).
+        return v.matches("\\d{4}-\\d{2}-\\d{2}(T.*)?")
+                || v.matches("\\d{2}\\.\\d{2}\\.\\d{4}")
+                || v.matches("\\d{2}/\\d{2}/\\d{4}")
+                || v.matches("\\d{4}-\\d{2}")
+                || v.matches("\\d{2}/\\d{4}");
     }
 
     // ==================== Static Factory ====================

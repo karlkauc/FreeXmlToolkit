@@ -83,6 +83,11 @@ public interface PropertiesService {
     void addLastOpenFile(File file);
 
     /**
+     * Clears the entire recently opened files list.
+     */
+    void clearLastOpenFiles();
+
+    /**
      * Gets the last directory that was opened by the file chooser.
      *
      * <p>This is used to remember the user's preferred directory location

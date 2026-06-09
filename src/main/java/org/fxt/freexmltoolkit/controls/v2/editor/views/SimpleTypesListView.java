@@ -347,7 +347,7 @@ public class SimpleTypesListView extends BorderPane {
             }
         });
 
-        table.getColumns().addAll(nameCol, baseTypeCol, facetsCol, usageCol, actionsCol);
+        table.getColumns().addAll(java.util.List.of(nameCol, baseTypeCol, facetsCol, usageCol, actionsCol));
         table.setPrefHeight(300);
 
         // Double-click to edit

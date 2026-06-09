@@ -8,6 +8,9 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import javafx.application.Platform;
@@ -78,12 +81,6 @@ public class FavoritesPanelController implements Initializable {
     private VBox contentArea;
     @FXML
     private TitledPane smartCollectionsPane;
-    @FXML
-    private TitledPane categoriesPane;
-    @FXML
-    private TitledPane projectsPane;
-    @FXML
-    private TitledPane templatesPane;
 
     @FXML
     private TreeView<FavoriteTreeItem> categoriesTreeView;
@@ -107,6 +104,7 @@ public class FavoritesPanelController implements Initializable {
     private FavoritesParentController parentController;
     private ObservableList<FileFavorite> allFavorites;
     private ObservableList<FileFavorite> filteredFavorites;
+    private ScheduledExecutorService refreshScheduler;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -402,7 +400,9 @@ public class FavoritesPanelController implements Initializable {
 
     private void handleTreeDoubleClick(MouseEvent event) {
         if (event.getClickCount() == 2) {
-            TreeView<FavoriteTreeItem> tree = (TreeView<FavoriteTreeItem>) event.getSource();
+            // Both tree views share this handler; resolve the source without an unchecked cast.
+            TreeView<FavoriteTreeItem> tree =
+                    event.getSource() == categoriesTreeView ? categoriesTreeView : projectsTreeView;
             TreeItem<FavoriteTreeItem> selected = tree.getSelectionModel().getSelectedItem();
             if (selected != null && selected.getValue().favorite() != null) {
                 openFavorite(selected.getValue().favorite());
@@ -542,17 +542,27 @@ public class FavoritesPanelController implements Initializable {
     }
 
     private void startAutoRefresh() {
-        // Auto-refresh every 30 seconds to update smart collections
-        new Thread(() -> {
-            while (true) {
-                try {
-                    Thread.sleep(30000);
-                    Platform.runLater(this::updateSmartCollectionCounts);
-                } catch (InterruptedException e) {
-                    break;
-                }
-            }
-        }).start();
+        // Auto-refresh every 30 seconds to update smart collections.
+        // Uses a managed daemon scheduler so it never blocks JVM shutdown
+        // and can be stopped explicitly via shutdown().
+        refreshScheduler = Executors.newSingleThreadScheduledExecutor(runnable -> {
+            Thread thread = new Thread(runnable, "favorites-auto-refresh");
+            thread.setDaemon(true);
+            return thread;
+        });
+        refreshScheduler.scheduleAtFixedRate(
+                () -> Platform.runLater(this::updateSmartCollectionCounts),
+                30, 30, TimeUnit.SECONDS);
+    }
+
+    /**
+     * Stops the background auto-refresh scheduler. Should be called when the
+     * panel is disposed to release the daemon thread promptly.
+     */
+    public void shutdown() {
+        if (refreshScheduler != null) {
+            refreshScheduler.shutdownNow();
+        }
     }
 
     private String getCategoryForFile(String filePath) {

@@ -455,10 +455,8 @@ public class FlatRow {
                 childCount++;
             } else if (child instanceof XmlCData) {
                 childCount++;
-            } else if (child instanceof XmlText text) {
-                if (!text.isWhitespace() && hasElementChildren) {
-                    childCount++;
-                }
+            } else if (child instanceof XmlText text && !text.isWhitespace() && hasElementChildren) {
+                childCount++;
             }
         }
 
@@ -520,14 +518,11 @@ public class FlatRow {
             } else if (child instanceof XmlCData cdata) {
                 rows.add(new FlatRow(RowType.CDATA, depth + 1, cdata, elementRow,
                         null, cdata.getText(), 0));
-            } else if (child instanceof XmlText text) {
-                // Mixed content: emit a TEXT row only for non-whitespace text
-                // when the element also has child elements
-                if (!text.isWhitespace() && element.hasElementChildren()) {
-                    rows.add(new FlatRow(RowType.TEXT, depth + 1, text, elementRow,
-                            null, text.getText().strip(), 0));
-                }
-                // Pure-leaf text: already captured via extractTextContent(), no separate row
+            } else if (child instanceof XmlText text && !text.isWhitespace() && element.hasElementChildren()) {
+                // Mixed content: emit a TEXT row only for non-whitespace text when the element
+                // also has child elements. (Pure-leaf text is captured via extractTextContent().)
+                rows.add(new FlatRow(RowType.TEXT, depth + 1, text, elementRow,
+                        null, text.getText().strip(), 0));
             }
         }
     }

@@ -62,10 +62,8 @@ public class EditCommentCommand implements XsdCommand {
 
     @Override
     public boolean canMergeWith(XsdCommand other) {
-        if (!(other instanceof EditCommentCommand otherCmd)) {
-            return false;
-        }
-        return this.comment.getId().equals(otherCmd.comment.getId());
+        return other instanceof EditCommentCommand otherCmd
+                && this.comment.getId().equals(otherCmd.comment.getId());
     }
 
     @Override

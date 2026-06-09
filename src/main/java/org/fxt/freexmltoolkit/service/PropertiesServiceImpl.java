@@ -196,6 +196,16 @@ public class PropertiesServiceImpl implements PropertiesService {
     }
 
     @Override
+    public void clearLastOpenFiles() {
+        List<Object> keysToRemove = properties.keySet().stream()
+                .filter(key -> ((String) key).startsWith("LastOpenFile."))
+                .toList();
+        keysToRemove.forEach(properties::remove);
+        saveProperties(properties);
+        logger.debug("Cleared last open files list");
+    }
+
+    @Override
     public String getLastOpenDirectory() {
         return properties.getProperty(LAST_OPEN_DIRECTORY_KEY, System.getProperty("user.home"));
     }

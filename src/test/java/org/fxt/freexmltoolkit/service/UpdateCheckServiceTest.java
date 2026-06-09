@@ -613,6 +613,10 @@ class UpdateCheckServiceTest {
         }
 
         @Override
+        public void clearLastOpenFiles() {
+        }
+
+        @Override
         public String getLastOpenDirectory() {
             return System.getProperty("user.home");
         }

@@ -25,8 +25,6 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
@@ -45,8 +43,6 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
  * @since 2.0
  */
 public class TypeDocumentationPanel extends BorderPane {
-
-    private static final Logger logger = LogManager.getLogger(TypeDocumentationPanel.class);
 
     private final XsdEditorContext editorContext;
     private XsdNode currentNode;

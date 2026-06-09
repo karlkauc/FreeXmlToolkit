@@ -1,0 +1,236 @@
+package org.fxt.freexmltoolkit.controls.shell.editor;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.concurrent.TimeUnit;
+
+import javafx.scene.Scene;
+import javafx.scene.layout.HBox;
+import javafx.stage.Stage;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
+import org.testfx.framework.junit5.ApplicationExtension;
+import org.testfx.framework.junit5.Start;
+import org.testfx.util.WaitForAsyncUtils;
+
+/**
+ * TestFX verification of the Transform panel: XSLT transformation of the active
+ * XML, and XPath evaluation, both producing output.
+ */
+@ExtendWith(ApplicationExtension.class)
+class TransformPanelTest {
+
+    private static final String XML = "<greeting>Hello</greeting>";
+    private static final String XSLT = """
+            <xsl:stylesheet version="2.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+              <xsl:output method="xml"/>
+              <xsl:template match="/greeting"><out><xsl:value-of select="."/></out></xsl:template>
+            </xsl:stylesheet>
+            """;
+
+    private EditorHost host;
+    private TransformPanel panel;
+
+    @Start
+    void start(Stage stage) {
+        org.fxt.freexmltoolkit.di.ServiceRegistry.initialize();
+        host = new EditorHost();
+        panel = new TransformPanel(host);
+        stage.setScene(new Scene(new HBox(host, panel), 1100, 600));
+        stage.show();
+    }
+
+    @Test
+    void transformsActiveXmlWithXslt(@TempDir Path tmp) throws Exception {
+        openGreeting(tmp);
+        Path xslt = tmp.resolve("t.xslt");
+        Files.writeString(xslt, XSLT);
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.setXsltFile(xslt.toFile());
+            panel.transform();
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS, () -> panel.getOutputText().contains("<out>Hello</out>"));
+        assertTrue(panel.getOutputText().contains("<out>Hello</out>"), panel.getOutputText());
+        // Transform stats are shown (elapsed time + output size).
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> panel.getTransformStats().contains("chars"));
+        assertTrue(panel.getTransformStats().matches("\\d+ ms · \\d+ chars"), panel.getTransformStats());
+    }
+
+    @Test
+    void evaluatesXPathAgainstActiveXml(@TempDir Path tmp) throws Exception {
+        openGreeting(tmp);
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.setXPathExpression("/greeting");
+            panel.runXPath();
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS, () -> panel.getOutputText().contains("Hello"));
+        assertTrue(panel.getOutputText().contains("Hello"), panel.getOutputText());
+    }
+
+    @Test
+    void evaluatesJsonPathAgainstActiveJson(@TempDir Path tmp) throws Exception {
+        Path json = tmp.resolve("data.json");
+        Files.writeString(json, "{\"fund\":{\"id\":\"EAM_2024\"}}");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(json));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("fund")).orElse(false));
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.setXPathExpression("$.fund.id");
+            panel.runXPath();
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS, () -> panel.getOutputText().contains("EAM_2024"));
+        assertTrue(panel.getOutputText().contains("EAM_2024"), panel.getOutputText());
+    }
+
+    @Test
+    void passesParametersAndHonorsTextOutputFormat(@TempDir Path tmp) throws Exception {
+        openGreeting(tmp);
+        Path xslt = tmp.resolve("param.xslt");
+        Files.writeString(xslt, """
+                <xsl:stylesheet version="2.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+                  <xsl:param name="who" select="'nobody'"/>
+                  <xsl:output method="text"/>
+                  <xsl:template match="/">Hi <xsl:value-of select="$who"/></xsl:template>
+                </xsl:stylesheet>
+                """);
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.setXsltFile(xslt.toFile());
+            panel.addParameter("who", "Karl");
+            panel.setOutputFormat(org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat.TEXT);
+            panel.transform();
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS, () -> panel.getOutputText().contains("Hi Karl"));
+        assertTrue(panel.getOutputText().contains("Hi Karl"), panel.getOutputText());
+        assertFalse(panel.getOutputText().contains("<?xml"), "text output must not be wrapped as XML");
+    }
+
+    @Test
+    void loadsASavedQueryFileIntoTheField(@TempDir Path tmp) throws Exception {
+        Path q = tmp.resolve("q.xpath");
+        Files.writeString(q, "/root/item[@id]\n");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.loadQueryFromFile(q.toFile());
+            return null;
+        });
+        assertEquals("/root/item[@id]", panel.getQueryText());
+    }
+
+    @Test
+    void exposesSaveAndSavedQueryControls() {
+        WaitForAsyncUtils.waitForFxEvents();
+        boolean hasSave = panel.lookupAll(".button").stream()
+                .anyMatch(n -> n instanceof javafx.scene.control.Button b && "Save Query".equals(b.getText()));
+        boolean hasSaved = panel.lookupAll(".menu-button").stream()
+                .anyMatch(n -> n instanceof javafx.scene.control.MenuButton b && "Saved".equals(b.getText()));
+        assertTrue(hasSave, "panel must offer a 'Save Query' action");
+        assertTrue(hasSaved, "panel must offer a 'Saved' queries menu");
+    }
+
+    @Test
+    void livePreviewAutoTransformsWhenEnabled(@TempDir Path tmp) throws Exception {
+        openGreeting(tmp);
+        Path xslt = tmp.resolve("t.xslt");
+        Files.writeString(xslt, XSLT);
+
+        // Enable live preview with a stylesheet set — do NOT call transform() manually.
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.setXsltFile(xslt.toFile());
+            panel.setLivePreview(true);
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> panel.getOutputText().contains("<out>Hello</out>"));
+        assertTrue(panel.getOutputText().contains("<out>Hello</out>"), panel.getOutputText());
+    }
+
+    @Test
+    void runsXQueryAgainstActiveXml(@TempDir Path tmp) throws Exception {
+        openGreeting(tmp);
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.setOutputFormat(org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat.TEXT);
+            panel.setXQuery("string(/greeting)");
+            panel.runXQuery();
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS, () -> panel.getOutputText().contains("Hello"));
+        assertTrue(panel.getOutputText().contains("Hello"), panel.getOutputText());
+    }
+
+    @Test
+    void xqueryResultIsShownAsTable(@TempDir Path tmp) throws Exception {
+        Path xml = tmp.resolve("order.xml");
+        Files.writeString(xml, "<order><item><sku>A</sku><qty>2</qty></item>"
+                + "<item><sku>B</sku><qty>5</qty></item></order>");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("order")).orElse(false));
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.setXQuery("for $i in /order/item return $i");
+            panel.runXQuery();
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> panel.getResultRowCount() == 2);
+        assertEquals(java.util.List.of("sku", "qty"), panel.getResultColumns());
+        assertEquals(2, panel.getResultRowCount());
+        assertTrue(panel.isResultTableShown(), "the table view must be shown for a tabular XQuery result");
+    }
+
+    @Test
+    void writesHtmlPreviewFile() throws Exception {
+        java.io.File file = TransformPanel.writeHtmlPreview("<html><body>Preview Hi</body></html>");
+        assertTrue(file.isFile() && file.getName().endsWith(".html"), file.toString());
+        assertTrue(Files.readString(file.toPath()).contains("Preview Hi"));
+    }
+
+    @Test
+    void detectsExternalXsltFileChange(@TempDir Path tmp) throws Exception {
+        Path xslt = tmp.resolve("watch.xslt");
+        Files.writeString(xslt, XSLT);
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.setXsltFile(xslt.toFile());
+            return null;
+        });
+        // No change right after setting the file.
+        assertFalse(WaitForAsyncUtils.waitForAsyncFx(2000, () -> panel.pollXsltChanged()));
+        // Modify the stylesheet on disk with a later timestamp → detected.
+        Files.writeString(xslt, XSLT + "\n<!-- edited -->");
+        xslt.toFile().setLastModified(System.currentTimeMillis() + 3000);
+        assertTrue(WaitForAsyncUtils.waitForAsyncFx(2000, () -> panel.pollXsltChanged()));
+        // ...and consumed (no second trigger until it changes again).
+        assertFalse(WaitForAsyncUtils.waitForAsyncFx(2000, () -> panel.pollXsltChanged()));
+    }
+
+    @Test
+    void recordsAndListsRecentXslt(@TempDir Path tmp) throws Exception {
+        Path xslt = tmp.resolve("recent.xslt");
+        Files.writeString(xslt, XSLT);
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.setXsltFile(xslt.toFile());
+            panel.refreshRecentXsltMenu();
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        assertTrue(panel.recentXsltNames().contains("recent.xslt"),
+                "the chosen stylesheet must appear in the Recent XSLT menu, was: " + panel.recentXsltNames());
+    }
+
+    private void openGreeting(Path tmp) throws Exception {
+        Path xml = tmp.resolve("doc.xml");
+        Files.writeString(xml, XML);
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("greeting")).orElse(false));
+    }
+}

@@ -146,36 +146,34 @@ public class ContextAnalyzer {
      * @param caretPosition the cursor position
      */
     private static XPathContext buildXPathContext(String fullText, int caretPosition) {
-        String textBeforeCaret = fullText.substring(0, caretPosition);
         Stack<String> elementStack = new Stack<>();
 
         int pos = 0;
-        while (pos < textBeforeCaret.length()) {
-            int nextOpen = textBeforeCaret.indexOf('<', pos);
-            if (nextOpen == -1) {
+        while (pos < caretPosition) {
+            int nextOpen = fullText.indexOf('<', pos);
+            if (nextOpen == -1 || nextOpen >= caretPosition) {
                 break;
             }
 
-            int nextClose = textBeforeCaret.indexOf('>', nextOpen);
-            if (nextClose == -1) {
-                // Incomplete tag — cursor is inside a tag. Look ahead in the
-                // full text to get the complete tag name.
+            int nextClose = fullText.indexOf('>', nextOpen);
+            if (nextClose == -1 || nextClose >= caretPosition) {
+                // Incomplete tag — cursor is inside a tag. Look ahead in the full text
+                // to get the complete tag name.
                 int fullClose = fullText.indexOf('>', nextOpen);
                 if (fullClose != -1) {
                     String tag = fullText.substring(nextOpen + 1, fullClose);
-                    if (!tag.startsWith("!--") && !tag.startsWith("![CDATA[") && !tag.startsWith("?")) {
-                        if (!tag.startsWith("/") && !tag.endsWith("/")) {
-                            String elementName = extractElementName(tag);
-                            if (elementName != null && !elementName.isEmpty()) {
-                                elementStack.push(elementName);
-                            }
+                    if (!tag.startsWith("!--") && !tag.startsWith("![CDATA[") && !tag.startsWith("?")
+                            && !tag.startsWith("/") && !tag.endsWith("/")) {
+                        String elementName = extractElementName(tag);
+                        if (elementName != null && !elementName.isEmpty()) {
+                            elementStack.push(elementName);
                         }
                     }
                 }
                 break;
             }
 
-            String tag = textBeforeCaret.substring(nextOpen + 1, nextClose);
+            String tag = fullText.substring(nextOpen + 1, nextClose);
 
             // Skip comments, CDATA, processing instructions
             if (tag.startsWith("!--") || tag.startsWith("![CDATA[") || tag.startsWith("?")) {
@@ -184,13 +182,11 @@ public class ContextAnalyzer {
             }
 
             if (tag.startsWith("/")) {
-                // Closing tag
                 String elementName = tag.substring(1).trim();
                 if (!elementStack.isEmpty() && elementStack.peek().equals(elementName)) {
                     elementStack.pop();
                 }
             } else if (!tag.endsWith("/")) {
-                // Opening tag (not self-closing)
                 String elementName = extractElementName(tag);
                 if (elementName != null) {
                     elementStack.push(elementName);

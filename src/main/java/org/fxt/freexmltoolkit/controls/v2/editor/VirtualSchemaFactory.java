@@ -141,12 +141,10 @@ public class VirtualSchemaFactory {
                         virtualSchema.addChild(ct);
                         copiedComplexTypes++;
                     }
-                } else if (child instanceof XsdSimpleType st) {
+                } else if (child instanceof XsdSimpleType st && st.getName() != null) {
                     // Copy SimpleType definitions for type references
-                    if (st.getName() != null) {
-                        virtualSchema.addChild(st);
-                        copiedSimpleTypes++;
-                    }
+                    virtualSchema.addChild(st);
+                    copiedSimpleTypes++;
                 }
             }
 
@@ -273,11 +271,9 @@ public class VirtualSchemaFactory {
 
         // The root element is typically the first element in the virtual schema
         for (XsdNode child : virtualSchema.getChildren()) {
-            if (child instanceof XsdElement element) {
-                if (typeName.equals(element.getName())) {
-                    logger.debug("Found root element '{}' in virtual schema", typeName);
-                    return element;
-                }
+            if (child instanceof XsdElement element && typeName.equals(element.getName())) {
+                logger.debug("Found root element '{}' in virtual schema", typeName);
+                return element;
             }
         }
 
@@ -301,11 +297,9 @@ public class VirtualSchemaFactory {
 
         // Search for ComplexType in schema's direct children
         for (XsdNode child : virtualSchema.getChildren()) {
-            if (child instanceof XsdComplexType complexType) {
-                if (typeName.equals(complexType.getName())) {
-                    logger.debug("Found ComplexType '{}' in virtual schema", typeName);
-                    return complexType;
-                }
+            if (child instanceof XsdComplexType complexType && typeName.equals(complexType.getName())) {
+                logger.debug("Found ComplexType '{}' in virtual schema", typeName);
+                return complexType;
             }
         }
 

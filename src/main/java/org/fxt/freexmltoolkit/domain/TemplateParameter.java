@@ -407,11 +407,8 @@ public class TemplateParameter {
                 String expectedValue = parts[1].trim();
                 String actualValue = parameters.get(paramName);
 
-                if (condition.contains("!=")) {
-                    return !Objects.equals(actualValue, expectedValue);
-                } else {
-                    return Objects.equals(actualValue, expectedValue);
-                }
+                // "!=" condition negates the equality test.
+                return condition.contains("!=") != Objects.equals(actualValue, expectedValue);
             }
         }
 

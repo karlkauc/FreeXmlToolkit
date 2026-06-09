@@ -497,7 +497,7 @@ public class TypeLibraryView extends BorderPane {
             }
         });
 
-        table.getColumns().addAll(typeCol, nameCol, baseCol, docCol, usageCol, locationsCol);
+        table.getColumns().addAll(java.util.List.of(typeCol, nameCol, baseCol, docCol, usageCol, locationsCol));
 
         // Double-click to edit type
         table.setOnMouseClicked(event -> {

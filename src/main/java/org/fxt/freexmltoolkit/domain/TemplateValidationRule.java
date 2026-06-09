@@ -136,10 +136,7 @@ public class TemplateValidationRule {
     }
 
     private boolean validateCustom(Map<String, String> parameters) {
-        if (customValidator != null) {
-            return customValidator.test(parameters);
-        }
-        return true;
+        return customValidator == null || customValidator.test(parameters);
     }
 
     /**

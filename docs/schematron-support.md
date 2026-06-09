@@ -2,6 +2,13 @@
 
 > **Last Updated:** May 2026 | **Version:** 1.10.0
 
+> **Note (Phase 10c):** The standalone *Schematron* editor tab has been retired.
+> Schematron editing and validation — rule check, templates, tester, visual
+> builder, documentation, and CSV/JSON export of results — now live in the
+> **Unified Shell's Validation activity panel**. Open a `.sch` file and use the
+> Validation panel's Schematron tools. The capabilities below are unchanged; they
+> are reached through the shell rather than a dedicated sidebar tab.
+
 Schematron lets you create custom validation rules that go beyond what XSD schemas can check. It's perfect for validating business rules and data relationships.
 
 ---
@@ -91,6 +98,42 @@ Test XPath expressions against sample XML:
 1. Enter an XPath expression
 2. Click **Test**
 3. See the result
+
+---
+
+## Schematron Tools in the Unified Shell
+
+> **Updated June 2026** - Added **Check Rules** and **Documentation** to the Schematron tools.
+
+When you work with a Schematron file in the [Unified Shell](unified-shell.md), the
+**Validation** panel offers a set of Schematron tools:
+
+| Tool | What It Does |
+|------|--------------|
+| **Rule Templates** | Insert ready-made Schematron rule patterns |
+| **Tester** | Run the rules against an XML file |
+| **Rule Builder** | Build rules visually |
+| **Check Rules** | Inspect the Schematron file itself for problems |
+| **Documentation** | Generate documentation for the Schematron file |
+
+### Check Rules
+
+**Check Rules** runs an error detector over your Schematron file and shows the issues it finds
+in a categorised table, so you can fix mistakes in the rules before relying on them. Issues are
+grouped into categories:
+
+| Category | Examples |
+|----------|----------|
+| **XML syntax** | Malformed XML, unclosed tags |
+| **Structural** | Missing or misplaced patterns, rules, or assertions |
+| **XPath** | Invalid XPath expressions in contexts or tests |
+| **Semantic** | Rules that can never match, or contradictory conditions |
+| **Best practice** | Style and maintainability suggestions |
+
+### Documentation
+
+**Documentation** opens the Schematron documentation generator, which produces readable
+documentation describing the patterns, rules, and assertions in your Schematron file.
 
 ---
 
@@ -278,4 +321,4 @@ Common XPath expressions for Schematron rules:
 |----------|------|------|
 | [IntelliSense](context-sensitive-intellisense.md) | [Home](index.md) | [Schema Support](schema-support.md) |
 
-**All Pages:** [XML Editor](xml-editor.md) | [XML Features](xml-editor-features.md) | [XSD Tools](xsd-tools.md) | [XSD Validation](xsd-validation.md) | [XSLT Viewer](xslt-viewer.md) | [XSLT Developer](xslt-developer.md) | [FOP/PDF](pdf-generator.md) | [Signatures](digital-signatures.md) | [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [Favorites](favorites-system.md) | [Templates](template-management.md) | [Tech Stack](technology-stack.md) | [Licenses](licenses.md)
+**All Pages:** [Unified Shell](unified-shell.md) | [XML Editor](xml-editor.md) | [XML Features](xml-editor-features.md) | [JSON Editor](json-editor.md) | [XSD Tools](xsd-tools.md) | [Profiled XML Generation](profiled-xml-generation.md) | [XSD Validation](xsd-validation.md) | [XSLT Viewer](xslt-viewer.md) | [XSLT Developer](xslt-developer.md) | [FOP/PDF](pdf-generator.md) | [Signatures](digital-signatures.md) | [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [FundsXML Extensions](fundsxml-extensions.md) | [Favorites](favorites-system.md) | [Templates](template-management.md) | [Tech Stack](technology-stack.md) | [Security](SECURITY.md) | [Licenses](licenses.md)

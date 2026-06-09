@@ -233,18 +233,16 @@ public class SchemaResolver {
                     Node importedNode = document.importNode(nodeToImport, true);
 
                     // Add source file appinfo if enabled and node is an XSD element
-                    if (options.isAddSourceFileAsAppinfo() && importedNode instanceof Element importedElement) {
-                        // Only add to top-level XSD constructs (elements, types, groups, etc.)
-                        if (isXsdElement(importedElement, "element") ||
-                            isXsdElement(importedElement, "complexType") ||
-                            isXsdElement(importedElement, "simpleType") ||
-                            isXsdElement(importedElement, "group") ||
-                            isXsdElement(importedElement, "attributeGroup") ||
-                            isXsdElement(importedElement, "attribute")) {
-
-                            addSourceFileAppinfo(document, importedElement, sourceFileName);
-                            fxtNamespaceNeeded = true;
-                        }
+                    // Only add to top-level XSD constructs (elements, types, groups, etc.)
+                    if (options.isAddSourceFileAsAppinfo() && importedNode instanceof Element importedElement
+                            && (isXsdElement(importedElement, "element")
+                            || isXsdElement(importedElement, "complexType")
+                            || isXsdElement(importedElement, "simpleType")
+                            || isXsdElement(importedElement, "group")
+                            || isXsdElement(importedElement, "attributeGroup")
+                            || isXsdElement(importedElement, "attribute"))) {
+                        addSourceFileAppinfo(document, importedElement, sourceFileName);
+                        fxtNamespaceNeeded = true;
                     }
 
                     schemaElement.insertBefore(importedNode, includeElement);

@@ -16,29 +16,33 @@
  *
  */
 
+/* Syntax palette aligned with the Figma "Unified Editor" code view:
+   brackets/punctuation grey, element names blue, attribute names orange,
+   attribute values green, comments muted italic. */
 .tagmark {
-    -fx-fill: rgb(0, 0, 255);
+    -fx-fill: #7a8392;
 }
 
 .anytag {
-    -fx-fill: rgb(128, 0, 0);
+    -fx-fill: #1f6fb2;
 }
 
 .paren {
-    -fx-fill: firebrick;
+    -fx-fill: #7a8392;
     -fx-font-weight: bold;
 }
 
 .attribute {
-    -fx-fill: darkviolet;
+    -fx-fill: #c56a12;
 }
 
 .avalue {
-    -fx-fill: black;
+    -fx-fill: #2e8b40;
 }
 
 .comment {
-    -fx-fill: teal;
+    -fx-fill: #8a93a0;
+    -fx-font-style: italic;
 }
 
 .enumeration {
@@ -53,14 +57,21 @@
     -fx-background-color: #ffff00;
 }
 
-/* line Number */
+/* line Number — clean gutter (no grey band), muted grey numbers like the mockup */
 .lineno {
-    -fx-background-color: #e3e3e3;
+    -fx-background-color: transparent;
+    -fx-text-fill: #8a93a0;
 }
 
-/* defaults */
+/* defaults — JetBrains Mono code font (bundled + loaded in FxtGui) */
 .code-area {
-    -fx-font-family: monospace;
+    -fx-font-family: "JetBrains Mono", monospace;
+    -fx-font-size: 13px;
+}
+
+/* Current line tint (Figma) — applied as a paragraph style on the caret's line. */
+.current-line {
+    -fx-background-color: #f2f6ff;
 }
 
 /* ==================== V2 XML Syntax Highlighting ==================== */

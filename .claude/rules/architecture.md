@@ -85,7 +85,6 @@ updater dispatch:
 
 | Controller | Tab / Context | Responsibility |
 |------------|---------------|----------------|
-| `MainController` | - | Navigation, lifecycle, memory monitoring |
 | `XmlUltimateController` | XML | Multi-tab XML editing, IntelliSense |
 | `XsdController` | XSD | Tab orchestration, graphical/text view, Type Library/Editor |
 | `DocumentationTabController` | XSD > Documentation | XSD documentation export (HTML, PDF, Word) |
@@ -93,7 +92,6 @@ updater dispatch:
 | `SchemaAnalysisTabController` | XSD > Analysis | Schema statistics, identity constraints |
 | `XsdValidationController` | XSD Validation | Schema validation results |
 | `XsltController` | XSLT | Transformations |
-| `XsltDeveloperController` | XSLT Developer | Full XSLT/XQuery development environment |
 | `SchematronController` | Schematron | Business rule validation |
 | `FopController` | FOP | PDF generation |
 | `SignatureController` | Signature | Digital signatures |
@@ -132,14 +130,10 @@ public void setName(String name) {
 | File | Purpose |
 |------|---------|
 | `FxtGui.java` | Application main class |
-| `main.fxml` | Root layout |
-| `welcome.fxml` | Welcome screen |
-| `settings.fxml` | Application settings |
 | `tab_xml_ultimate.fxml` | XML editor tab |
 | `tab_xsd.fxml` | XSD tools tab |
 | `tab_json.fxml` | JSON editor tab |
 | `tab_xslt.fxml` | XSLT viewer tab |
-| `tab_xslt_developer.fxml` | XSLT developer tab |
 | `tab_schematron.fxml` | Schematron tab |
 | `tab_fop.fxml` | FOP/PDF tab |
 | `tab_signature.fxml` | Digital signatures tab |

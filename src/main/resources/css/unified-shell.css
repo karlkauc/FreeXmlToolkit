@@ -1,0 +1,918 @@
+/*
+ * unified-shell.css — styling for the new Unified shell (UI rebuild Phase 2).
+ *
+ * Built entirely on the -fxt-* design tokens (design-tokens.css), so the shell
+ * themes for light/dark automatically when the root 'fxt-theme-dark' class
+ * toggles. No hard-coded colors.
+ */
+
+.fxt-shell {
+    -fx-background-color: -fxt-bg-canvas;
+}
+
+/* ----- Activity Bar --------------------------------------------------- */
+.fxt-activity-bar {
+    -fx-background-color: -fxt-bg-surface-2;
+    -fx-border-color: -fxt-border;
+    -fx-border-width: 0 1 0 0;
+    -fx-min-width: 56;
+    -fx-pref-width: 56;
+    -fx-padding: 8 0 8 0;
+    -fx-spacing: 4;
+    -fx-alignment: TOP_CENTER;
+}
+
+.fxt-activity-button {
+    -fx-background-color: transparent;
+    -fx-background-radius: 8;
+    -fx-min-width: 40;
+    -fx-min-height: 40;
+    -fx-max-width: 40;
+    -fx-max-height: 40;
+    -fx-alignment: CENTER;
+    -fx-cursor: hand;
+}
+
+.fxt-activity-button .iconify-icon {
+    -fx-icon-color: -fxt-text-muted;
+}
+
+.fxt-activity-button:hover {
+    -fx-background-color: -fxt-bg-subtle;
+}
+
+.fxt-activity-button:hover .iconify-icon {
+    -fx-icon-color: -fxt-text-primary;
+}
+
+.fxt-activity-button:selected {
+    -fx-background-color: -fxt-bg-subtle;
+}
+
+.fxt-activity-button:selected .iconify-icon {
+    -fx-icon-color: -fxt-primary;
+}
+
+/* ----- Work area ------------------------------------------------------ */
+.fxt-work-area {
+    -fx-background-color: -fxt-bg-canvas;
+}
+
+/* ----- Side panel ----------------------------------------------------- */
+.fxt-side-panel {
+    -fx-background-color: -fxt-bg-surface;
+    -fx-border-color: -fxt-border;
+    -fx-border-width: 0 1 0 0;
+}
+
+.fxt-side-panel-content {
+    -fx-padding: 16;
+    -fx-spacing: 8;
+}
+
+.fxt-side-panel-title {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-secondary;
+}
+
+/* ----- Editor host (placeholder / welcome) ---------------------------- */
+.fxt-editor-host {
+    -fx-background-color: -fxt-bg-canvas;
+    -fx-spacing: 12;
+    -fx-padding: 32;
+}
+
+.fxt-editor-host .iconify-icon {
+    -fx-icon-color: -fxt-text-muted;
+}
+
+.fxt-welcome-headline {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-primary;
+}
+
+/* ----- Editor empty-state (welcome landing on boot / no document) ----- */
+.fxt-editor-empty-state {
+    -fx-background-color: -fxt-bg-canvas;
+}
+
+.fxt-welcome-title {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 26px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-primary;
+}
+
+.fxt-welcome-subtitle {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 13px;
+    -fx-text-fill: -fxt-text-secondary;
+}
+
+.fxt-welcome-action {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 13px;
+    -fx-background-color: -fxt-bg-surface;
+    -fx-border-color: -fxt-border;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-padding: 10 16;
+    -fx-cursor: hand;
+    -fx-graphic-text-gap: 8;
+}
+
+.fxt-welcome-action:hover {
+    -fx-background-color: -fxt-bg-subtle;
+    -fx-border-color: -fxt-accent;
+}
+
+.fxt-welcome-action .iconify-icon {
+    -fx-icon-color: -fxt-accent;
+}
+
+.fxt-welcome-recent {
+    -fx-background-color: transparent;
+    -fx-border-color: -fxt-border;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+}
+
+.fxt-welcome-recent .list-cell {
+    -fx-background-color: transparent;
+    -fx-padding: 6 10;
+    -fx-cursor: hand;
+}
+
+.fxt-welcome-recent .list-cell:filled:hover {
+    -fx-background-color: -fxt-bg-subtle;
+}
+
+.fxt-recent-name {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 13px;
+    -fx-text-fill: -fxt-text-primary;
+}
+
+.fxt-recent-path {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 11px;
+    -fx-text-fill: -fxt-text-muted;
+}
+
+/* ----- Inspector ------------------------------------------------------ */
+.fxt-inspector {
+    -fx-background-color: -fxt-bg-surface;
+    -fx-border-color: -fxt-border;
+    -fx-border-width: 0 0 0 1;
+    -fx-padding: 12;
+    -fx-spacing: 8;
+}
+
+.fxt-inspector-header {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-secondary;
+}
+
+/* Flat, Figma-style sections: a small uppercase title with a chevron and a thin
+   bottom divider — no boxy TitledPane bar/border. */
+.fxt-inspector-section {
+    -fx-text-fill: -fxt-text-primary;
+    -fx-border-color: -fxt-border;
+    -fx-border-width: 0 0 1 0;
+}
+
+.fxt-inspector-section > .title {
+    -fx-background-color: transparent;
+    -fx-background-radius: 0;
+    -fx-padding: 9 0 5 0;
+    -fx-text-fill: -fxt-text-secondary;
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+
+.fxt-inspector-section > .title > .text {
+    -fx-fill: -fxt-text-secondary;
+}
+
+.fxt-inspector-section > .title > .arrow-button .arrow {
+    -fx-background-color: -fxt-text-muted;
+}
+
+.fxt-inspector-section > *.content {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 0 0 10 0;
+}
+
+/* Node header: the selected node's name + a kind chip (Figma node header). */
+.fxt-inspector-node-header {
+    -fx-padding: 4 0 8 0;
+}
+.fxt-inspector-node-name {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-primary;
+}
+.fxt-inspector-kind-chip {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-primary;
+    -fx-background-color: rgba(59, 91, 219, 0.10);
+    -fx-background-radius: 8;
+    -fx-padding: 1 8 1 8;
+}
+
+.fxt-inspector-grid {
+    -fx-padding: 4 2 4 2;
+}
+
+.fxt-inspector-key {
+    -fx-text-fill: -fxt-text-secondary;
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 11px;
+}
+
+.fxt-inspector-value {
+    -fx-text-fill: -fxt-text-primary;
+    -fx-font-family: "JetBrains Mono", monospace;
+    -fx-font-size: 11px;
+}
+
+.fxt-facet-table {
+    -fx-background-color: transparent;
+    -fx-font-size: 11px;
+}
+
+.fxt-facet-table .column-header .label {
+    -fx-text-fill: -fxt-text-secondary;
+    -fx-font-family: "Inter", sans-serif;
+}
+
+.fxt-facet-table .table-cell {
+    -fx-text-fill: -fxt-text-primary;
+    -fx-font-family: "JetBrains Mono", monospace;
+}
+
+/* ----- Status bar ----------------------------------------------------- */
+.fxt-status-bar {
+    -fx-background-color: -fxt-primary;
+    -fx-min-height: 24;
+    -fx-pref-height: 24;
+    -fx-padding: 0 12 0 12;
+    -fx-spacing: 16;
+}
+
+.fxt-status-item {
+    -fx-text-fill: -fxt-on-primary;
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 11px;
+}
+
+/* ----- Editor center / toolbar / tabs --------------------------------- */
+.fxt-editor-center {
+    -fx-background-color: -fxt-bg-canvas;
+}
+
+.fxt-editor-area {
+    -fx-background-color: -fxt-bg-surface;
+}
+
+.fxt-editor-toolbar {
+    -fx-background-color: -fxt-bg-surface-2;
+    -fx-border-color: -fxt-border;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 4 8 4 8;
+    /* Stable height for a single action row so the bar doesn't jump on 1<->2 row changes. */
+    -fx-min-height: 38;
+}
+
+/* The action ToolBar is flush with the editor toolbar: no chrome, just its buttons.
+   Its built-in overflow chevron appears only when the editor area is too narrow. */
+.fxt-editor-actionbar {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+    -fx-border-width: 0;
+}
+
+.fxt-editor-actionbar > .container {
+    -fx-spacing: 2;
+}
+
+.fxt-tool-button {
+    -fx-background-color: transparent;
+    -fx-background-radius: 6;
+    -fx-padding: 4 8 4 8;
+    -fx-cursor: hand;
+}
+
+.fxt-tool-button .iconify-icon {
+    -fx-icon-color: -fxt-text-secondary;
+}
+
+.fxt-tool-button:hover {
+    -fx-background-color: -fxt-bg-subtle;
+}
+
+.fxt-tool-button:hover .iconify-icon {
+    -fx-icon-color: -fxt-primary;
+}
+
+/* Discreet in-edge collapse chevron overlaid on each side panel ("<<" / ">>"). */
+.fxt-panel-collapse {
+    -fx-padding: 2 4 2 4;
+    -fx-opacity: 0.55;
+}
+
+.fxt-panel-collapse:hover {
+    -fx-opacity: 1.0;
+}
+
+.fxt-panel-collapse .iconify-icon {
+    -fx-icon-color: -fxt-text-muted;
+}
+
+/* Toolbar re-open toggles for the side panels — identical on both sides. */
+.fxt-panel-toggle:selected {
+    -fx-background-color: -fxt-bg-subtle;
+}
+
+.fxt-panel-toggle:selected .iconify-icon {
+    -fx-icon-color: -fxt-primary;
+}
+
+.fxt-toolbar-status {
+    -fx-text-fill: -fxt-text-muted;
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 11px;
+}
+
+.fxt-view-switch {
+    -fx-background-color: -fxt-bg-surface;
+    -fx-border-color: -fxt-border;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+}
+
+/* The view switch is overlaid on the top-right of the tab header (see EditorHost). Reserve
+   matching right padding so the tabs and their overflow button never slide underneath it.
+   Targets the TabPane (.fxt-editor-tabpane), not the outer BorderPane (.fxt-editor-tabs). */
+.fxt-editor-tabpane > .tab-header-area {
+    -fx-padding: 0 226 0 0;
+}
+
+/* Compact tabs: tighten the padding. The per-tab width cap is set dynamically in EditorHost
+   (scaled to the available width) so wide screens show fuller titles than the 1512px MacBook. */
+.fxt-editor-tabpane .tab {
+    -fx-padding: 2 6 2 8;
+}
+
+.fxt-view-seg {
+    -fx-background-color: transparent;
+    -fx-text-fill: -fxt-text-secondary;
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 11px;
+    -fx-padding: 3 10 3 10;
+    -fx-background-radius: 0;
+    -fx-cursor: hand;
+}
+
+.fxt-view-seg:selected {
+    -fx-background-color: -fxt-primary;
+    -fx-text-fill: -fxt-on-primary;
+}
+
+.fxt-view-seg:disabled {
+    -fx-opacity: 0.4;
+}
+
+.fxt-open-editors {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.fxt-workspace-tree {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.fxt-workspace-tree .tree-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: -fxt-text-primary;
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 12px;
+}
+
+.fxt-workspace-tree .tree-cell .iconify-icon {
+    -fx-icon-color: -fxt-text-secondary;
+}
+
+.fxt-workspace-tree .tree-cell:filled:selected {
+    -fx-background-color: -fxt-bg-subtle;
+    -fx-text-fill: -fxt-text-primary;
+}
+
+.fxt-open-editors .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: -fxt-text-primary;
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 12px;
+    -fx-padding: 3 6 3 6;
+}
+
+.fxt-open-editors .list-cell .iconify-icon {
+    -fx-icon-color: -fxt-text-secondary;
+}
+
+.fxt-open-editors .list-cell:filled:selected {
+    -fx-background-color: -fxt-bg-subtle;
+    -fx-text-fill: -fxt-text-primary;
+}
+
+/* ----- Graphic view (scene-graph diagram) ----------------------------- */
+.fxt-graphic-view {
+    -fx-background-color: -fxt-bg-canvas;
+}
+
+.fxt-graphic-view > .viewport {
+    -fx-background-color: -fxt-bg-canvas;
+}
+
+.fxt-graphic-canvas {
+    -fx-padding: 12;
+    -fx-spacing: 2;
+}
+
+.fxt-graphic-node {
+    -fx-spacing: 2;
+}
+
+.fxt-graphic-header {
+    -fx-padding: 4 10 4 6;
+    -fx-background-color: -fxt-bg-surface;
+    -fx-border-color: -fxt-border;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+}
+
+.fxt-graphic-header:hover {
+    -fx-border-color: -fxt-primary;
+}
+
+.fxt-graphic-header.selected {
+    -fx-background-color: -fxt-bg-subtle;
+    -fx-border-color: -fxt-primary;
+}
+
+.fxt-graphic-header .iconify-icon {
+    -fx-icon-color: -fxt-text-secondary;
+}
+
+.fxt-graphic-chevron {
+    -fx-text-fill: -fxt-text-muted;
+    -fx-min-width: 12;
+    -fx-cursor: hand;
+}
+
+.fxt-graphic-label {
+    -fx-text-fill: -fxt-text-primary;
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 12px;
+}
+
+.fxt-graphic-children {
+    -fx-padding: 2 0 2 18;
+    -fx-spacing: 2;
+    -fx-border-color: -fxt-border;
+    -fx-border-width: 0 0 0 1;
+}
+
+/* Embedded grid for repeating same-type elements (XMLSpy style) */
+.fxt-grid {
+    -fx-border-color: -fxt-border;
+    -fx-border-radius: 4;
+    -fx-background-color: -fxt-bg-surface-2;
+    -fx-padding: 0;
+}
+
+.fxt-grid-cell {
+    -fx-padding: 4 10 4 10;
+    -fx-border-color: -fxt-border;
+    -fx-border-width: 0 1 0 0;
+    -fx-text-fill: -fxt-text-primary;
+    -fx-font-family: "JetBrains Mono", monospace;
+    -fx-font-size: 11px;
+}
+
+.fxt-grid-badge {
+    -fx-background-color: -fxt-accent;
+    -fx-text-fill: -fxt-on-primary;
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 9px;
+    -fx-font-weight: bold;
+    -fx-padding: 1 6 1 6;
+    -fx-background-radius: 8;
+}
+
+/* ----- Transform panel ------------------------------------------------- */
+.fxt-transform-output {
+    -fx-font-family: "JetBrains Mono", monospace;
+    -fx-font-size: 11px;
+    -fx-control-inner-background: -fxt-bg-surface-2;
+    -fx-text-fill: -fxt-text-primary;
+}
+
+.fxt-xpath-field {
+    -fx-font-family: "JetBrains Mono", monospace;
+    -fx-font-size: 11px;
+}
+
+/* Query input CodeAreas (XPath/XQuery, with IntelliSense): read as bordered input fields. */
+.fxt-query-input {
+    -fx-background-color: -fxt-bg-canvas;
+    -fx-border-color: -fxt-border;
+    -fx-border-width: 1;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-padding: 2;
+}
+
+.fxt-query-input .content {
+    -fx-background-color: transparent;
+}
+
+.fxt-query-input .text {
+    -fx-fill: -fxt-text-primary;
+}
+
+/* ----- Query Console (collapsible bottom dock) ------------------------- */
+/* A distinct docked panel below the editor: a clear top border separates it
+   from the editor area, and a surface background marks it as its own pane. The
+   inner panes already use .fxt-side-panel-content for padding/spacing. */
+.fxt-query-console {
+    -fx-background-color: -fxt-bg-surface;
+    -fx-border-color: -fxt-border;
+    -fx-border-width: 1 0 0 0;
+}
+
+/* The console's inner SplitPane and its left/right panes should read as part of
+   the surface, not the canvas. */
+.fxt-query-console > .split-pane {
+    -fx-background-color: -fxt-bg-surface;
+    -fx-padding: 0;
+}
+
+/* Keep the query results monospace and consistent with the transform output even
+   if the .fxt-transform-output rule order ever changes. */
+.fxt-query-console .fxt-transform-output {
+    -fx-font-family: "JetBrains Mono", monospace;
+    -fx-font-size: 11px;
+}
+
+/* The drag handle between editor and console: a thin, theme-aware divider that
+   is visible without being heavy. */
+.fxt-work-split > .split-pane-divider {
+    -fx-background-color: -fxt-border;
+    -fx-padding: 0 0 0 0;
+    -fx-pref-height: 2;
+}
+
+/* ----- Shared ---------------------------------------------------------- */
+.fxt-placeholder-text {
+    -fx-text-fill: -fxt-text-muted;
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 12px;
+}
+
+/* ----- Canvas XSD editor: minimal (shell) chrome — Figma "Schema (graphical)" ----- */
+/* Breadcrumb shown at the top-left of the diagram instead of an action toolbar. */
+.fxt-graph-breadcrumb {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-secondary;
+    -fx-padding: 3 10 3 10;
+    -fx-background-color: -fxt-bg-surface;
+    -fx-background-radius: 6;
+    -fx-border-color: -fxt-border;
+    -fx-border-radius: 6;
+}
+
+/* Small floating zoom pill at the bottom-centre of the diagram: [ - 100% + ]. */
+.fxt-graph-zoom-pill {
+    -fx-background-color: -fxt-bg-surface;
+    -fx-background-radius: 18;
+    -fx-border-color: -fxt-border;
+    -fx-border-radius: 18;
+    -fx-padding: 2 4 2 4;
+    -fx-spacing: 2;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.12), 8, 0, 0, 2);
+}
+
+.fxt-graph-zoom-button {
+    -fx-background-color: transparent;
+    -fx-background-radius: 14;
+    -fx-text-fill: -fxt-text-secondary;
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-min-width: 26;
+    -fx-min-height: 26;
+    -fx-padding: 0;
+    -fx-cursor: hand;
+}
+
+.fxt-graph-zoom-button:hover {
+    -fx-background-color: -fxt-bg-subtle;
+    -fx-text-fill: -fxt-primary;
+}
+
+.fxt-graph-zoom-label {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-secondary;
+    -fx-padding: 0 8 0 8;
+    -fx-cursor: hand;
+}
+
+/* ----- Welcome / Dashboard (Figma "Redesign · Unified — Welcome / Dashboard") ----- */
+.fxt-welcome-scroll, .fxt-welcome-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+.fxt-welcome-content {
+    -fx-background-color: transparent;
+}
+
+/* Hero */
+.fxt-welcome-hero-icon {
+    -fx-background-color: -fxt-primary;
+    -fx-background-radius: 16;
+    -fx-min-width: 64; -fx-min-height: 64;
+    -fx-max-width: 64; -fx-max-height: 64;
+    -fx-icon-color: white;
+}
+.fxt-welcome-hero-icon .ikon-font-icon, .fxt-welcome-hero-icon .iconify-icon {
+    -fx-fill: white;
+}
+.fxt-welcome-hero-title {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-primary;
+}
+.fxt-welcome-hero-subtitle {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 13px;
+    -fx-text-fill: -fxt-text-secondary;
+}
+.fxt-welcome-version-badge {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1f9d55;
+    -fx-background-color: rgba(40, 167, 69, 0.12);
+    -fx-background-radius: 10;
+    -fx-padding: 1 8 1 8;
+    -fx-graphic-text-gap: 5;
+}
+
+/* Section titles + Clear link */
+.fxt-welcome-section-title {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-primary;
+}
+.fxt-welcome-clear {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 12px;
+    -fx-text-fill: -fxt-primary;
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+}
+
+/* Quick-action + tool cards */
+.fxt-quick-card, .fxt-tool-card {
+    -fx-background-color: -fxt-bg-surface;
+    -fx-background-radius: 10;
+    -fx-border-color: -fxt-border;
+    -fx-border-radius: 10;
+    -fx-padding: 16;
+    -fx-cursor: hand;
+}
+.fxt-quick-card:hover, .fxt-tool-card:hover {
+    -fx-border-color: -fxt-primary;
+    -fx-background-color: -fxt-bg-subtle;
+}
+.fxt-quick-card-primary {
+    -fx-background-color: -fxt-primary;
+    -fx-border-color: -fxt-primary;
+}
+.fxt-quick-card-primary:hover {
+    -fx-background-color: derive(-fxt-primary, -8%);
+    -fx-border-color: derive(-fxt-primary, -8%);
+}
+
+/* Card icon tiles */
+.fxt-card-icon {
+    -fx-background-color: rgba(59, 91, 219, 0.10);
+    -fx-background-radius: 8;
+    -fx-min-width: 36; -fx-min-height: 36;
+    -fx-max-width: 36; -fx-max-height: 36;
+    -fx-icon-color: -fxt-primary;
+}
+.fxt-card-icon-primary {
+    -fx-background-color: rgba(255, 255, 255, 0.18);
+    -fx-background-radius: 8;
+    -fx-min-width: 36; -fx-min-height: 36;
+    -fx-max-width: 36; -fx-max-height: 36;
+    -fx-icon-color: white;
+}
+
+/* Card text */
+.fxt-card-title {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-primary;
+}
+.fxt-card-subtitle {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 11px;
+    -fx-text-fill: -fxt-text-secondary;
+}
+.fxt-card-title-on-primary {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+}
+.fxt-card-subtitle-on-primary {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 11px;
+    -fx-text-fill: rgba(255, 255, 255, 0.82);
+}
+
+/* Dashboard stat cards */
+.fxt-welcome-stat-card {
+    -fx-background-color: -fxt-bg-surface;
+    -fx-background-radius: 10;
+    -fx-border-color: -fxt-border;
+    -fx-border-radius: 10;
+    -fx-padding: 14 16;
+}
+.fxt-welcome-stat-number {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-primary;
+}
+.fxt-welcome-stat-label {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 11px;
+    -fx-text-fill: -fxt-text-secondary;
+}
+
+/* Activity trend + sparkline */
+.fxt-welcome-trend {
+    -fx-spacing: 8;
+}
+.fxt-welcome-sparkline {
+    -fx-stroke: -fxt-primary;
+    -fx-stroke-width: 2;
+    -fx-fill: transparent;
+}
+
+/* Tips banner */
+.fxt-welcome-tips {
+    -fx-background-color: rgba(59, 91, 219, 0.08);
+    -fx-background-radius: 10;
+    -fx-border-color: rgba(59, 91, 219, 0.20);
+    -fx-border-radius: 10;
+    -fx-padding: 12 16;
+}
+.fxt-welcome-tips .label {
+    -fx-text-fill: -fxt-text-secondary;
+    -fx-font-size: 12px;
+}
+.fxt-welcome-tips .iconify-icon {
+    -fx-icon-color: -fxt-primary;
+}
+.fxt-tool-card .iconify-icon, .fxt-tool-card .ikonli-font-icon {
+    -fx-icon-color: -fxt-text-muted;
+}
+
+/* Recent files list as a card */
+.fxt-welcome-recent {
+    -fx-background-color: -fxt-bg-surface;
+    -fx-background-radius: 10;
+    -fx-border-color: -fxt-border;
+    -fx-border-radius: 10;
+    -fx-padding: 4;
+}
+.fxt-welcome-recent .list-cell {
+    -fx-background-color: transparent;
+    -fx-padding: 8 10 8 10;
+}
+.fxt-welcome-recent .list-cell:hover {
+    -fx-background-color: -fxt-bg-subtle;
+    -fx-background-radius: 6;
+}
+.fxt-recent-name {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-primary;
+}
+.fxt-recent-path {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 11px;
+    -fx-text-fill: -fxt-text-muted;
+}
+.fxt-recent-time {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 11px;
+    -fx-text-fill: -fxt-text-muted;
+}
+
+/* ----- Editor toolbar: primary Validate button (Figma) ----- */
+.fxt-validate-button {
+    -fx-background-color: -fxt-primary;
+    -fx-background-radius: 6;
+    -fx-text-fill: white;
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-padding: 4 12 4 12;
+    -fx-graphic-text-gap: 6;
+    -fx-cursor: hand;
+}
+.fxt-validate-button .iconify-icon {
+    -fx-icon-color: white;
+}
+.fxt-validate-button:hover {
+    -fx-background-color: derive(-fxt-primary, -8%);
+}
+
+/* ----- Inspector validation badge (Figma node header "✓ Valid") ----- */
+.fxt-inspector-valid-badge, .fxt-inspector-invalid-badge {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 8;
+    -fx-padding: 1 8 1 8;
+    -fx-graphic-text-gap: 4;
+}
+.fxt-inspector-valid-badge {
+    -fx-text-fill: #1f9d55;
+    -fx-background-color: rgba(40, 167, 69, 0.12);
+}
+.fxt-inspector-valid-badge .iconify-icon {
+    -fx-icon-color: #28a745;
+}
+.fxt-inspector-invalid-badge {
+    -fx-text-fill: #c0392b;
+    -fx-background-color: rgba(220, 53, 69, 0.12);
+}
+.fxt-inspector-invalid-badge .iconify-icon {
+    -fx-icon-color: #dc3545;
+}
+
+/* ----- Inspector editable fields (Phase: editable properties pane) ----- */
+.fxt-inspector-row {
+    -fx-padding: 2 0 2 0;
+}
+.fxt-inspector-edit {
+    -fx-background-color: -fxt-bg-surface;
+    -fx-background-radius: 4;
+    -fx-border-color: -fxt-border;
+    -fx-border-radius: 4;
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 12px;
+    -fx-text-fill: -fxt-text-primary;
+}
+.fxt-inspector-edit:focused {
+    -fx-border-color: -fxt-primary;
+}
+.fxt-inspector-edit .text-field,
+.fxt-inspector-edit .text-input,
+.fxt-inspector-edit .text {
+    -fx-text-fill: -fxt-text-primary;
+    -fx-fill: -fxt-text-primary;
+    -fx-background-color: transparent;
+}
+.fxt-inspector-edit.text-area,
+.fxt-inspector-edit.text-area .content {
+    -fx-background-color: -fxt-bg-surface;
+}

@@ -147,11 +147,9 @@ public class AddElementCommand implements XsdCommand {
         if (current instanceof XsdSchema schema) {
             // Search for ComplexType in schema's children
             for (XsdNode child : schema.getChildren()) {
-                if (child instanceof XsdComplexType complexType) {
-                    if (typeName.equals(complexType.getName())) {
-                        logger.debug("Found ComplexType '{}' in schema", typeName);
-                        return complexType;
-                    }
+                if (child instanceof XsdComplexType complexType && typeName.equals(complexType.getName())) {
+                    logger.debug("Found ComplexType '{}' in schema", typeName);
+                    return complexType;
                 }
             }
         }

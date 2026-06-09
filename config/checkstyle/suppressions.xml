@@ -14,6 +14,14 @@
     <!-- Suppress naming checks for FXML-injected fields (often match component IDs) -->
     <suppress files=".*Controller\.java$" checks="MemberName" message=".*"/>
 
-    <!-- Suppress line length for FXML string literals and long method chains -->
-    <suppress checks="LineLength" files=".*\.java$" lines="0"/>
+    <!-- Suppress LineLength only for files dominated by long literal data/markup that cannot be
+         meaningfully wrapped: bundled icon path data and the SVG/HTML/image documentation generators. -->
+    <suppress checks="LineLength" files="BootstrapIconPaths\.java$"/>
+    <suppress checks="LineLength" files="XsdTypeIconPaths\.java$"/>
+    <suppress checks="LineLength" files="XsdDocumentationSvgService\.java$"/>
+    <suppress checks="LineLength" files="XsdDocumentationImageService\.java$"/>
+    <suppress checks="LineLength" files="XsdDocumentationHtmlService\.java$"/>
+    <suppress checks="LineLength" files="ModernXmlThemeManager\.java$"/>
+    <suppress checks="LineLength" files="XsdNodeRenderer\.java$"/>
+    <suppress checks="LineLength" files="SectionSettingsPopup\.java$"/>
 </suppressions>

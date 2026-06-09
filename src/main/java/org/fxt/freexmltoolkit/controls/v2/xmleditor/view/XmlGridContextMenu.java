@@ -1223,17 +1223,11 @@ public class XmlGridContextMenu {
     }
 
     private void expandAll() {
-        // This will be handled by the view
-        if (refreshCallback != null) {
-            // Signal to expand all nodes
-        }
+        // Expand-all is handled by the view; placeholder no-op (no callback wired yet).
     }
 
     private void collapseAll() {
-        // This will be handled by the view
-        if (refreshCallback != null) {
-            // Signal to collapse all nodes
-        }
+        // Collapse-all is handled by the view; placeholder no-op (no callback wired yet).
     }
 
     private String getNodeName(XmlNode node) {

@@ -504,18 +504,21 @@ class XmlSyntaxHighlighterTest {
     class NamespaceTests {
 
         @Test
-        @DisplayName("Namespaced element xs:element — prefix is anytag")
+        @DisplayName("Namespaced element xs:element — the whole qualified name is anytag")
         void namespacedElement() {
-            // The regex \\w+ matches word characters (letters, digits, underscore)
-            // 'xs' matches as the element name, ':element' goes to attributes section
+            //  <xs:element/>
+            //  0123456789...
             String text = "<xs:element/>";
             StyleSpans<Collection<String>> spans = XmlSyntaxHighlighter.computeHighlighting(text);
 
             assertEquals(text.length(), spans.length());
             assertEquals("tagmark", styleAt(spans, 0), "< is tagmark");
+            // The full "xs:element" qualified name — prefix, ':' and local name — is anytag.
             assertEquals("anytag", styleAt(spans, 1), "x is anytag");
             assertEquals("anytag", styleAt(spans, 2), "s is anytag");
-            // : and element go into attributes section (unstyled, no = so not attribute)
+            assertEquals("anytag", styleAt(spans, 3), "':' is anytag");
+            assertEquals("anytag", styleAt(spans, 4), "e (local name) is anytag");
+            assertEquals("anytag", styleAt(spans, 10), "t (last name char) is anytag");
             assertEquals("tagmark", styleAt(spans, text.length() - 2), "/ is tagmark");
             assertEquals("tagmark", styleAt(spans, text.length() - 1), "> is tagmark");
         }
@@ -591,6 +594,30 @@ class XmlSyntaxHighlighterTest {
             assertEquals("anytag", styleAt(spans, rootStart + 1), "R of Root");
             assertEquals("tagmark", styleAt(spans, rootStart + 5), "/ of />");
             assertEquals("tagmark", styleAt(spans, rootStart + 6), "> of />");
+        }
+    }
+
+    @Nested
+    @DisplayName("Namespace-prefixed element names (e.g. XSD)")
+    class PrefixedTagTests {
+
+        @Test
+        @DisplayName("the whole prefixed element name is highlighted as a tag")
+        void prefixedElementNameIsFullyHighlighted() {
+            //  <xs:element name="root"/>
+            String text = "<xs:element name=\"root\"/>";
+            StyleSpans<Collection<String>> spans = XmlSyntaxHighlighter.computeHighlighting(text);
+
+            assertEquals(text.length(), spans.length());
+            // Every character of the qualified name "xs:element" must be "anytag", including the
+            // local part after the ':' (the bug coloured only the "xs" prefix, leaving XSD looking
+            // unhighlighted).
+            assertEquals("anytag", styleAt(spans, 1), "x of xs");
+            assertEquals("anytag", styleAt(spans, 3), "the ':' separator");
+            assertEquals("anytag", styleAt(spans, 4), "e of element (local name)");
+            assertEquals("anytag", styleAt(spans, 10), "t of element (last name char)");
+            // The attribute after the name is still recognised.
+            assertEquals("attribute", styleAt(spans, text.indexOf("name=")), "attribute name");
         }
     }
 }

@@ -257,4 +257,19 @@
         <Bug pattern="UPM_UNCALLED_PRIVATE_METHOD"/>
     </Match>
 
+    <!-- getClassCssMetaData "hides" the inherited static method by the standard JavaFX
+         CSS pattern - every styleable control re-declares it to expose its own metadata. -->
+    <Match>
+        <Bug pattern="HSM_HIDING_METHOD"/>
+        <Class name="org.fxt.freexmltoolkit.controls.icons.IconifyIcon"/>
+        <Method name="getClassCssMetaData"/>
+    </Match>
+
+    <!-- Deliberate user-triggered GC: the status-bar memory indicator runs GC on click
+         (see its tooltip "click to run GC"). This is an intentional affordance, not a bug. -->
+    <Match>
+        <Bug pattern="DM_GC"/>
+        <Class name="org.fxt.freexmltoolkit.controls.shell.UnifiedShellView"/>
+    </Match>
+
 </FindBugsFilter>

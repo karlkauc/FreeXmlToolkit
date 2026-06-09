@@ -447,7 +447,7 @@ public class ThreadPoolManager {
     }
 
     private int getActiveThreadCount(ExecutorService executor) {
-        if (executor instanceof ThreadPoolExecutor tpe) {
+        if (executor instanceof ThreadPoolExecutor tpe) { // NOPMD - borrowed executor, not owned here
             return tpe.getActiveCount();
         }
         return -1; // Unknown

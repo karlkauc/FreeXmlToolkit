@@ -116,6 +116,7 @@ public class BreakpointsPanel extends TableView<Breakpoint> {
     }
 
     /** Replaces all rows from the session. Safe from any thread. */
+    @Override
     public void refresh() {
         Runnable r = () -> {
             data.clear();

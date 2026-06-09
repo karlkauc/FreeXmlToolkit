@@ -88,11 +88,10 @@ public class JsonSchemaProvider {
 
         // Check cache
         CachedSchema cached = schemaCache.get(path);
-        if (cached != null && System.currentTimeMillis() - cached.timestamp < CACHE_TTL) {
-            // Check if file was modified
-            if (schemaFile.lastModified() < cached.timestamp) {
-                return cached.schema;
-            }
+        // Use the cache only if the file has not been modified since it was cached.
+        if (cached != null && System.currentTimeMillis() - cached.timestamp < CACHE_TTL
+                && schemaFile.lastModified() < cached.timestamp) {
+            return cached.schema;
         }
 
         // Load and parse schema

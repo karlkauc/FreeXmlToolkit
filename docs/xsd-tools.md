@@ -2,16 +2,25 @@
 
 > **Last Updated:** May 2026 | **Version:** 1.10.0
 
+> **Note (Phase 10c):** The standalone *XSD Editor* tab has been retired. XSD
+> editing — the Text/Tree/Graphic views, the inspector, the Type Library, type
+> editing, documentation generation, schema flattening and schema analysis —
+> now lives in the **Unified Shell** (open an `.xsd` file; "go to schema
+> definition" from the XML editor opens the schema's graphic view at the
+> element). The capabilities below are unchanged; they are reached through the
+> shell rather than a dedicated sidebar tab.
+
 This part of the application provides tools for working with XML Schemas (XSD). These tools help you understand,
 document, and use XSD files effectively.
 
 ---
 
-## Tab Overview
+## Overview
 
-The XSD Tools section contains several tabs, each with a specific purpose:
+When you open an `.xsd` file in the [Unified Shell](unified-shell.md), the editor host and the
+**Type Library** activity provide several capabilities, each with a specific purpose:
 
-| Tab                       | Description                                             |
+| Capability                | Description                                             |
 |---------------------------|---------------------------------------------------------|
 | **Graphic View**          | Visual schema editor with interactive tree              |
 | **Type Library**          | Browse and analyze all types in your schema             |
@@ -29,8 +38,8 @@ The XSD Tools section contains several tabs, each with a specific purpose:
 
 The Graphic View lets you explore and edit your schemas visually.
 
-![XSD Graphical View](img/xsd-editor-graphic.png)
-*The XSD schema displayed as an interactive tree*
+![XSD Graphic view in the Unified Shell](img/unified-shell-schema-graphic.png)
+*An XSD open in the Unified Shell's Graphic view, with the Schema activity panel on the left*
 
 ### Features
 
@@ -43,13 +52,16 @@ The Graphic View lets you explore and edit your schemas visually.
 
 ### How to Use
 
-1. Go to the **XSD** tab
-2. Open your XSD file
-3. The schema appears as an interactive tree
-4. **Select** an element by clicking on it
-5. **Edit properties** in the panel on the right
-6. **Add children** using the context menu (right-click)
-7. **Drag** elements to move them
+1. Open your XSD file in the editor host and switch to the **Graphic** view
+2. The schema appears as an interactive tree
+3. **Select** an element by clicking on it
+4. **Edit properties** in the panel on the right (name, type, cardinality/occurrence, use, form, constraints, documentation, and facets)
+5. **Add children** using the context menu (right-click)
+6. **Drag** elements to move them
+
+> **Editing properties from any view (updated June 2026):** The same Properties pane is now
+> available in the **Text** view as well, not just the Graphic and Tree views. See
+> [Editing Schema Properties from Any View](#editing-schema-properties-from-any-view) below.
 
 ### Tips
 
@@ -65,8 +77,8 @@ The Graphic View lets you explore and edit your schemas visually.
 
 The Type Library provides a comprehensive view of all types defined in your schema.
 
-![Type Library](img/xsd-type-library.png)
-*Type Library showing all SimpleTypes and ComplexTypes*
+![Type Library in the Unified Shell](img/unified-shell-type-library.png)
+*The Schema activity's Type Library, with the schema diagram in the editor host*
 
 
 ### Features
@@ -84,7 +96,7 @@ The Type Library provides a comprehensive view of all types defined in your sche
 ### How to Use
 
 1. Open your XSD file
-2. Go to the **Type Library** tab
+2. Open the **Type Library** activity from the activity bar
 3. Browse or search for types
 4. Click on a type to see its details
 5. Use the filter dropdown to narrow results
@@ -152,8 +164,12 @@ For SimpleTypes, you get a 5-panel form editor:
 
 The Text View provides raw XSD source code editing.
 
-![XSD Text View](img/xsd-editor-text.png)
-*XSD code editor with syntax highlighting*
+![XSD Text view in the Unified Shell](img/unified-shell-schema-text.png)
+*The XSD in the Unified Shell's Text view (Schema activity panel on the left, inspector on the right)*
+
+> **Screenshot note:** Existing XSD Text view screenshots predate the editable Properties pane.
+> The Properties pane now also appears alongside the Text view when the caret is inside a schema
+> construct.
 
 ### Features
 
@@ -162,20 +178,66 @@ The Text View provides raw XSD source code editing.
 - **Search and Replace**: Find and change text quickly
 - **XPath/XQuery Panel**: Query the schema with XPath
 - **Save as Favorite**: Quick access to frequently used schemas
+- **Editable Properties pane**: Move the text caret into a schema construct to select it and edit its properties without leaving the text editor (see below)
+
+### Editing Schema Properties from Any View
+
+> **New in June 2026** - You can now edit a schema node's properties directly from the
+> **Text** view, the same way you already could in the **Tree** and **Graphic** views.
+
+The XSD editor has three views - **Text**, **Tree**, and **Graphic** - and all three share one
+in-memory schema model. The Properties pane works in every view:
+
+- **Tree** and **Graphic** views: Select a node to edit its name, type, cardinality/occurrence,
+  use, form, constraints, documentation, and facets. (Unchanged.)
+- **Text** view: Move the text caret into an XSD construct - such as an `xs:element`,
+  `xs:complexType`, `xs:simpleType`, `xs:attribute`, a compositor (`xs:sequence`, `xs:choice`,
+  `xs:all`), or a facet - and the Properties pane selects the matching schema node and shows it
+  **editable**. You get the same property editing as in the Tree and Graphic views, without
+  leaving the source editor. Your edits round-trip back into the schema text as a minimal change
+  that preserves your caret and scroll position.
+
+If the caret is not inside a recognizable construct - for example inside an `xs:annotation`, a
+comment, or blank space - the pane falls back to a read-only caret/XPath view.
+
+Because all three views share one model, your edits and your **Undo/Redo** history are preserved
+when you switch between Text, Tree, and Graphic.
+
+### What You Can Edit in the Properties Pane
+
+> **New in June 2026** - The Properties pane gained app-info editing, multi-language
+> documentation, comment editing, and constraint deletion.
+
+For the selected schema node you can edit:
+
+- **Name, type, cardinality/occurrence, use, form** - The core properties of the node.
+- **Facets** - Add, edit, and remove facets such as patterns, enumerations, and length limits.
+- **App info (`xs:appinfo`)** - The machine-readable metadata attached to the node (for example
+  the technical tags described in [Documentation Generator](#6-documentation-generator)).
+- **Multi-language documentation (`xs:documentation`)** - One row per language. Use **Add
+  language** to add a translation and the **✕** button to remove one.
+- **Comments** - Select an XSD comment in the tree to edit its text. To add a comment, choose
+  **Add Comment…** from a node's right-click context menu.
+- **Constraints** - In the **CONSTRAINTS** section, select a `key`, `keyref`, `unique`, or
+  `assert` constraint and click **Delete constraint** to remove it.
+
+> **Note:** Structural editing (adding, deleting, and moving nodes) remains a **Tree** and
+> **Graphic** capability via the right-click context menu. The **Text** view provides
+> *property* editing through the Properties pane.
 
 ---
 
 ## 5. Schema Analysis
 
-The Schema Analysis tab provides comprehensive analysis tools for your XSD.
+The Schema Analysis view (in the **Type Library** activity) provides comprehensive analysis tools for your XSD.
 
-![Schema Analysis](img/xsd-schema-analysis.png)
-*Schema Analysis with statistics and quality checks*
+![Schema statistics in the Unified Shell](img/unified-shell-schema-statistics.png)
+*Schema statistics open as a report tab from the Schema activity's **Statistics** action*
 
 
 ### Sub-Tabs
 
-The Schema Analysis tab contains four sub-tabs:
+The Schema Analysis view contains four sub-tabs:
 
 #### Statistics
 
@@ -246,8 +308,8 @@ Create professional documentation from your XSD file automatically.
 
 ### How to Generate Documentation
 
-1. Load your XSD file in the XSD Tools
-2. Click on the **Documentation** tab
+1. Open your XSD file in the editor host
+2. Open the **Documentation** view from the **Type Library** activity
 3. Select your output format (HTML, Word, or PDF)
 4. Choose diagram format (PNG or SVG)
 5. Configure options
@@ -313,12 +375,17 @@ Create sample XML files based on your XSD schema. This is useful for testing, da
 ![Sample XML Generator](img/xsd-sample-generator.png)
 *Sample XML generator with rules table and XML preview*
 
+> **Unified Shell (June 2026):** In the [Unified Shell](unified-shell.md), sample-data
+> generation lives in the **Schema** panel. It offers two actions: **Generate Sample XML** for
+> the basic generation described below, and **Generate Sample XML (Advanced)…** for the
+> rule-based, batch-capable generation. The screenshots above predate the advanced dialog.
+
 ### Quick Start (Basic Generation)
 
 For simple use cases, you can generate sample XML in seconds:
 
 1. Load your XSD file
-2. Go to the **Generate Example Data** tab
+2. Open the **Schema** panel from the activity bar and click **Generate Sample XML**
 3. Choose your options:
     - **Mandatory Only**: Include only required elements
     - **Max Occurrences**: Limit repeating elements
@@ -328,7 +395,8 @@ For simple use cases, you can generate sample XML in seconds:
 
 ### Profiled Generation (Advanced)
 
-For more control, you can define rules that specify exactly how each element or attribute gets its value. The Generate Example Data tab now includes:
+For more control, you can define rules that specify exactly how each element or attribute gets
+its value. Open it from **Generate Sample XML (Advanced)…** in the Schema panel. It includes:
 
 | Feature | Description |
 |---------|-------------|
@@ -415,4 +483,4 @@ When saving schemas from the graphical editor, `xs:include` and `xs:import` decl
 |-----------------------------------------------|------------------|-------------------------------------|
 | [XML Editor Features](xml-editor-features.md) | [Home](index.md) | [Profiled XML Generation](profiled-xml-generation.md) |
 
-**All Pages:** [XML Editor](xml-editor.md) | [XML Features](xml-editor-features.md) | [XSD Tools](xsd-tools.md) | [Profiled XML Generation](profiled-xml-generation.md) | [XSD Validation](xsd-validation.md) | [XSLT Viewer](xslt-viewer.md) | [XSLT Developer](xslt-developer.md) | [FOP/PDF](pdf-generator.md) | [Signatures](digital-signatures.md) | [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [Favorites](favorites-system.md) | [Templates](template-management.md) | [Tech Stack](technology-stack.md) | [Licenses](licenses.md)
+**All Pages:** [Unified Shell](unified-shell.md) | [XML Editor](xml-editor.md) | [XML Features](xml-editor-features.md) | [JSON Editor](json-editor.md) | [XSD Tools](xsd-tools.md) | [Profiled XML Generation](profiled-xml-generation.md) | [XSD Validation](xsd-validation.md) | [XSLT Viewer](xslt-viewer.md) | [XSLT Developer](xslt-developer.md) | [FOP/PDF](pdf-generator.md) | [Signatures](digital-signatures.md) | [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [FundsXML Extensions](fundsxml-extensions.md) | [Favorites](favorites-system.md) | [Templates](template-management.md) | [Tech Stack](technology-stack.md) | [Security](SECURITY.md) | [Licenses](licenses.md)

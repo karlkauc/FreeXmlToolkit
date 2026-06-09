@@ -40,8 +40,6 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 
@@ -57,7 +55,6 @@ import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
  */
 public class CustomizableSectionContainer extends VBox {
 
-    private static final Logger logger = LogManager.getLogger(CustomizableSectionContainer.class);
     private static final DataFormat SECTION_DATA_FORMAT = new DataFormat("application/x-section-id");
 
     private final String containerId;
@@ -70,7 +67,6 @@ public class CustomizableSectionContainer extends VBox {
 
     private SectionSettingsPopup settingsPopup;
     private long lastPopupHiddenTime = 0;
-    private String dragSourceId;
 
     public CustomizableSectionContainer(String containerId) {
         this.containerId = containerId;
@@ -302,7 +298,6 @@ public class CustomizableSectionContainer extends VBox {
             ClipboardContent content = new ClipboardContent();
             content.put(SECTION_DATA_FORMAT, sectionId);
             db.setContent(content);
-            dragSourceId = sectionId;
 
             wrapper.getStyleClass().add("section-dragging");
             event.consume();
@@ -310,7 +305,6 @@ public class CustomizableSectionContainer extends VBox {
 
         wrapper.setOnDragDone(event -> {
             wrapper.getStyleClass().remove("section-dragging");
-            dragSourceId = null;
             event.consume();
         });
     }

@@ -111,6 +111,10 @@ public class IntelliSensePopup {
             return;
         }
 
+        // Clear selection before replacing items to avoid a JavaFX ListViewBehavior
+        // IndexOutOfBoundsException (getAddedSubList) when selectedIndices is
+        // recomputed during the items change.
+        listView.getSelectionModel().clearSelection();
         listView.getItems().setAll(items);
 
         // Select first item by default
@@ -176,6 +180,9 @@ public class IntelliSensePopup {
         }
 
         CompletionItem previousSelection = getSelectedItem();
+        // Clear selection before replacing items (avoids the JavaFX ListViewBehavior
+        // getAddedSubList IndexOutOfBoundsException during selectedIndices recompute).
+        listView.getSelectionModel().clearSelection();
         listView.getItems().setAll(items);
 
         // Try to preserve selection

@@ -236,7 +236,7 @@ public class XmlFileCollectionResolver implements CollectionFinder {
                     resources.add(new NodeResource(nodeInfo, file.toURI().toString()));
                 } catch (SaxonApiException e) {
                     logger.error("Failed to load XML file: {}", file.getAbsolutePath(), e);
-                    throw new XPathException("Failed to load file: " + file.getName() + " - " + e.getMessage());
+                    throw new XPathException("Failed to load file: " + file.getName(), e);
                 }
             }
 

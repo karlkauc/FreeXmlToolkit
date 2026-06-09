@@ -135,7 +135,7 @@ public class SchematronTemplateLibrary extends VBox {
         descColumn.setCellValueFactory(new PropertyValueFactory<>("description"));
         descColumn.setPrefWidth(300);
 
-        table.getColumns().addAll(nameColumn, categoryColumn, descColumn);
+        table.getColumns().addAll(java.util.List.of(nameColumn, categoryColumn, descColumn));
 
         return table;
     }

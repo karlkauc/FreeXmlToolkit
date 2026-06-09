@@ -352,7 +352,7 @@ public class SchemaGenerationResult {
         }
 
         // Calculate elements processed per second
-        double elementsPerSecond = (double) totalElementsGenerated / (generationTimeMs / 1000.0);
+        double elementsPerSecond = totalElementsGenerated / (generationTimeMs / 1000.0);
 
         // Normalize to 0-100 scale (assume 1000 elements/second is optimal)
         return Math.min(100.0, elementsPerSecond / 10.0);

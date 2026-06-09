@@ -44,7 +44,6 @@ import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.fxt.freexmltoolkit.app.SplashScreen;
 import org.fxt.freexmltoolkit.app.SplashScreen.LoadingStep;
-import org.fxt.freexmltoolkit.controller.MainController;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
@@ -84,11 +83,11 @@ public class FxtGui extends Application {
         // Default constructor
     }
 
+    private static final Logger logger = LogManager.getLogger(FxtGui.class);
+
     static {
         configureLogging();
     }
-
-    private static final Logger logger = LogManager.getLogger(FxtGui.class);
 
     private static final java.util.concurrent.atomic.AtomicInteger threadCounter = new java.util.concurrent.atomic.AtomicInteger(1);
 
@@ -116,8 +115,6 @@ public class FxtGui extends Application {
         }
         return propertiesService;
     }
-
-    MainController mainController;
 
     StopWatch startWatch = new StopWatch();
 
@@ -187,16 +184,15 @@ public class FxtGui extends Application {
             }
             
             if (externalConfigFile.exists()) {
-                LoggerContext context = (LoggerContext) LogManager.getContext(false);
+                LoggerContext context = (LoggerContext) LogManager.getContext(false); // NOPMD - shared Log4j context, must not be closed here
                 context.setConfigLocation(externalConfigFile.toURI());
                 context.reconfigure();
-                System.out.println("Using external log4j2.xml configuration: " + externalConfigFile.getAbsolutePath());
+                logger.info("Using external log4j2.xml configuration: {}", externalConfigFile.getAbsolutePath());
             } else {
-                System.out.println("External log4j2.xml not found, using embedded configuration");
+                logger.info("External log4j2.xml not found, using embedded configuration");
             }
         } catch (Exception e) {
-            System.err.println("Failed to configure external logging: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("Failed to configure external logging: {}", e.getMessage(), e);
         }
     }
 
@@ -227,13 +223,15 @@ public class FxtGui extends Application {
             try {
                 splash.updateProgress(LoadingStep.LOADING_UI);
 
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("/pages/main.fxml"));
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/pages/tab_unified_shell.fxml"));
                 Parent root = loader.load();
-                mainController = loader.getController();
 
                 splash.updateProgress(LoadingStep.CONFIGURING);
 
                 var scene = new Scene(root, 1024, 768);
+
+                org.fxt.freexmltoolkit.controls.shell.ThemeManager.apply(scene,
+                        org.fxt.freexmltoolkit.controls.shell.ThemeManager.currentIsDark());
 
                 setupTaskbarIcons(primaryStage);
 
@@ -261,6 +259,8 @@ public class FxtGui extends Application {
                 readyPause.play();
 
                 startUsageTracking();
+
+                org.fxt.freexmltoolkit.controls.shell.ShellBootstrap.getInstance().scheduleStartupTasks();
             } catch (IOException e) {
                 logger.error("Failed to load main UI", e);
                 splash.dismiss(null);
@@ -279,13 +279,15 @@ public class FxtGui extends Application {
             final Toolkit defaultToolkit = Toolkit.getDefaultToolkit();
             final Taskbar taskbar = Taskbar.getTaskbar();
             taskbar.setIconImage(defaultToolkit.getImage(FxtGui.class.getClassLoader().getResource(APP_ICON_PATH)));
-        } catch (UnsupportedOperationException ignore) {
+        } catch (UnsupportedOperationException ignored) {
+            // Taskbar icon is not supported on this platform; non-fatal.
         }
 
         // Icon in Taskbar WINDOWS
         try {
             primaryStage.getIcons().add(new javafx.scene.image.Image(Objects.requireNonNull(FxtGui.class.getResourceAsStream("/" + APP_ICON_PATH))));
-        } catch (Exception ignore) {
+        } catch (Exception ignored) {
+            // Stage icon could not be set; non-fatal.
         }
     }
 
@@ -318,7 +320,12 @@ public class FxtGui extends Application {
             String[] fonts = {
                     "Roboto-Regular", "Roboto-Bold", "Roboto-Italic", "Roboto-Light",
                     "Roboto-Thin", "Roboto-Medium", "Roboto-Black", "Roboto-BoldItalic",
-                    "Roboto-LightItalic", "Roboto-MediumItalic", "Roboto-ThinItalic", "Roboto-BlackItalic"
+                    "Roboto-LightItalic", "Roboto-MediumItalic", "Roboto-ThinItalic", "Roboto-BlackItalic",
+                    // Design-token UI font (Inter) — see DesignTokens.FONT_FAMILY_UI / design-tokens.css
+                    "Inter-Regular", "Inter-Medium", "Inter-SemiBold", "Inter-Bold",
+                    // Design-token code font (JetBrains Mono) — see DesignTokens.FONT_FAMILY_MONO
+                    "JetBrainsMono-Regular", "JetBrainsMono-Medium", "JetBrainsMono-Bold",
+                    "JetBrainsMono-Italic", "JetBrainsMono-BoldItalic"
             };
             for (String font : fonts) {
                 try {
@@ -338,8 +345,8 @@ public class FxtGui extends Application {
      * It performs the following cleanup operations:
      * <ul>
      *   <li>Shuts down the global executor service</li>
-     *   <li>Shuts down scheduler and service executors from MainController</li>
-     *   <li>Calls shutdown on the MainController for controller-specific cleanup</li>
+     *   <li>Shuts down the shared executor and the ShellBootstrap scheduler</li>
+     *   <li>Shuts down the update-check service and the XSLT/XPath engines and the thread-pool manager</li>
      *   <li>Records application runtime duration</li>
      *   <li>Saves runtime statistics to application properties</li>
      * </ul>
@@ -351,22 +358,40 @@ public class FxtGui extends Application {
     @Override
     public void stop() {
         logger.debug("stopping Application");
-        executorService.shutdown();
-        mainController.scheduler.shutdown();
-
         shutdownExecutor(executorService);
-        shutdownExecutor(mainController.scheduler);
-        shutdownExecutor(mainController.service);
 
-        // Shutdown centralized thread pool manager
+        // Shell startup scheduler
         try {
-            ThreadPoolManager.getInstance().shutdown();
-            logger.debug("ThreadPoolManager shut down successfully");
-        } catch (Exception e) {
-            logger.warn("Error shutting down ThreadPoolManager", e);
+            org.fxt.freexmltoolkit.controls.shell.ShellBootstrap.getInstance().shutdown();
+        } catch (Throwable t) {
+            logger.warn("Error shutting down ShellBootstrap: {}", t.getMessage());
         }
 
-        mainController.shutdown();
+        // Application services (previously shut down by MainController.shutdown())
+        try {
+            org.fxt.freexmltoolkit.service.UpdateCheckService svc =
+                    ServiceRegistry.get(org.fxt.freexmltoolkit.service.UpdateCheckService.class);
+            if (svc != null) {
+                svc.shutdown();
+            }
+        } catch (Throwable t) {
+            logger.warn("Error shutting down UpdateCheckService: {}", t.getMessage());
+        }
+        try {
+            org.fxt.freexmltoolkit.service.XsltTransformationEngine.getInstance().shutdown();
+        } catch (Throwable t) {
+            logger.warn("Error shutting down XsltTransformationEngine: {}", t.getMessage());
+        }
+        try {
+            org.fxt.freexmltoolkit.service.XPathExecutionEngine.getInstance().shutdown();
+        } catch (Throwable t) {
+            logger.warn("Error shutting down XPathExecutionEngine: {}", t.getMessage());
+        }
+        try {
+            ThreadPoolManager.getInstance().shutdown();
+        } catch (Throwable t) {
+            logger.warn("Error shutting down ThreadPoolManager: {}", t.getMessage());
+        }
 
         // End usage tracking session
         try {
@@ -387,11 +412,11 @@ public class FxtGui extends Application {
             prop = getPropertiesService().loadProperties();
         }
 
-        // 1. Lesen Sie den Wert sicher aus. Wenn "usageDuration" nicht existiert,
-        //    wird der Standardwert "0" verwendet. Das verhindert 'null'.
+        // 1. Read the value safely. If "usageDuration" does not exist, the
+        //    default value "0" is used. This prevents a 'null' result.
         String usageDurationStr = prop.getProperty("usageDuration", "0");
 
-        // 2. Jetzt ist die Umwandlung in eine Zahl sicher.
+        // 2. The conversion to a number is now safe.
         var oldSeconds = Integer.parseInt(usageDurationStr);
         var newSeconds = oldSeconds + currentDuration.getSeconds();
 
@@ -484,8 +509,7 @@ public class FxtGui extends Application {
         setPropertyIfAbsent("prism.cacheshapes", "true");
 
         // Log which rendering pipeline is being used
-        System.out.println("JavaFX hardware acceleration configured:");
-        System.out.println("  prism.order: " + System.getProperty("prism.order"));
+        logger.info("JavaFX hardware acceleration configured: prism.order={}", System.getProperty("prism.order"));
     }
 
     /**

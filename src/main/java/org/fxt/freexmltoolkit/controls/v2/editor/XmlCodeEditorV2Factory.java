@@ -2,9 +2,7 @@ package org.fxt.freexmltoolkit.controls.v2.editor;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.controls.XmlEditor;
 import org.fxt.freexmltoolkit.controls.v2.editor.services.XmlSchemaProvider;
-import org.fxt.freexmltoolkit.controls.v2.editor.services.XmlSchemaProviderImpl;
 
 /**
  * Factory for creating XmlCodeEditorV2 instances.
@@ -29,17 +27,6 @@ public class XmlCodeEditorV2Factory {
         return new XmlCodeEditorV2(schemaProvider);
     }
 
-    /**
-     * Creates an editor that uses an XmlEditor as schema source.
-     *
-     * @param xmlEditor the parent XML editor
-     * @return the editor instance
-     */
-    public static XmlCodeEditorV2 createForXmlEditor(XmlEditor xmlEditor) {
-        logger.debug("Creating XmlCodeEditorV2 for XmlEditor");
-        XmlSchemaProvider provider = new XmlSchemaProviderImpl(xmlEditor);
-        return new XmlCodeEditorV2(provider);
-    }
 
     /**
      * Creates an editor without schema support.

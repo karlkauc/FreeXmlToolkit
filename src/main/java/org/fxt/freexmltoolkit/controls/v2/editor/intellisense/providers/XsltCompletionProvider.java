@@ -190,12 +190,9 @@ public class XsltCompletionProvider implements CompletionProvider {
                           "namespace-alias", "preserve-space", "strip-space").contains(element);
         }
 
-        // Template children (most elements are valid)
-        if ("template".equals(parent)) {
-            return !List.of("stylesheet", "transform", "template", "include", "import").contains(element);
-        }
-
-        return true; // Default: allow all
+        // Default: allow all; inside a template, the top-level-only elements are not valid children.
+        return !"template".equals(parent)
+                || !List.of("stylesheet", "transform", "template", "include", "import").contains(element);
     }
 
     /**

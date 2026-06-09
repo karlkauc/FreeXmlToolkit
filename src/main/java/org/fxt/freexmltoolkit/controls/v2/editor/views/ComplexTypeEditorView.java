@@ -307,4 +307,12 @@ public class ComplexTypeEditorView extends BorderPane {
     public void setOnCloseCallback(Runnable callback) {
         this.onCloseCallback = callback;
     }
+
+    /**
+     * @return the embedded graphical view (may be {@code null} if initialization failed), so a
+     * host can slim its chrome (e.g. {@code useMinimalChrome()}).
+     */
+    public XsdGraphView getGraphView() {
+        return graphView;
+    }
 }

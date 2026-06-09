@@ -2,6 +2,13 @@
 
 > **Last Updated:** May 2026 | **Version:** 1.10.0
 
+> **Note (Phase 10c):** The standalone *XSLT Viewer* tab has been retired. Quick
+> XSLT transformations now live in the **Unified Shell's Transform panel**
+> (set a stylesheet, transform, preview the result, open in browser), and full
+> editing/parameters/batch processing remain in the
+> [XSLT Developer](xslt-developer.md). The workflow below is unchanged in spirit;
+> the controls are now part of the Transform side panel rather than a dedicated tab.
+
 The XSLT Viewer allows you to quickly transform XML documents using XSLT stylesheets. Simply select your files and view
 the results immediately.
 
@@ -9,11 +16,13 @@ the results immediately.
 
 ## Overview
 
-The XSLT Viewer is designed for quick transformations where you want to see results immediately. For advanced features
-like live editing, parameters, and batch processing, use the [XSLT Developer](xslt-developer.md) tab.
+The XSLT Viewer is designed for quick transformations where you want to see results immediately. In the
+[Unified Shell](unified-shell.md) these quick transformations live in the **Transform** panel (open it
+from the **Transform** icon in the activity bar). For advanced features like live editing, parameters, and
+batch processing, use the [XSLT Developer](xslt-developer.md).
 
-![XSLT Viewer Overview](img/xslt-viewer-overview.png)
-*The XSLT Viewer with file selection and result preview*
+![Transform panel in the Unified Shell](img/unified-shell-transform.png)
+*Quick XSLT/XQuery transformations now live in the Unified Shell's Transform panel*
 
 
 ---
@@ -40,16 +49,14 @@ structure.
 
 ### Step 1: Select Your Files
 
-1. **Choose an XML source file** using the file explorer on the left
-2. **Choose an XSLT stylesheet** using the file explorer below
+1. Open your XML source file in the editor host so it is the active document
+2. In the **Transform** panel, click **Set XSLT…** to choose an XSLT stylesheet
 
-The transformation runs automatically when both files are selected.
+### Step 2: Run and View the Results
 
-### Step 2: View the Results
+Click **Transform** to run the transformation. The result appears in the panel's **RESULT** area:
 
-The results appear in the tabbed panel on the right:
-
-| Tab              | Description                                   |
+| View             | Description                                   |
 |------------------|-----------------------------------------------|
 | **Text View**    | Shows the raw output with syntax highlighting |
 | **HTML Preview** | Renders HTML output as a web page             |
@@ -57,14 +64,13 @@ The results appear in the tabbed panel on the right:
 
 ---
 
-## Toolbar Actions
+## Transform Panel Actions
 
-| Button      | Description                                   |
-|-------------|-----------------------------------------------|
-| **Reload**  | Re-runs the transformation with current files |
-| **Browser** | Opens the result in your default web browser  |
-| **Editor**  | Opens the result in your default text editor  |
-| **Help**    | Shows help information                        |
+| Button        | Description                                          |
+|---------------|------------------------------------------------------|
+| **Transform** | Runs the transformation with the current stylesheet  |
+| **Watch file**| Re-runs automatically when the stylesheet changes    |
+| **Browser**   | Opens the result in your default web browser         |
 
 ---
 
@@ -348,7 +354,7 @@ After each transformation, you can view performance metrics in the **Performance
 - **Check the error panel** - If transformation fails, check the error messages
 - **Use the HTML preview** - For HTML output, the preview shows you exactly how it will look
 - **Try the example files** - Learn from the included examples in the `examples/` folder
-- **Need more features?** - Use the [XSLT Developer](xslt-developer.md) tab for advanced editing
+- **Need more features?** - Use the [XSLT Developer](xslt-developer.md) for advanced editing
 
 ---
 
@@ -365,5 +371,4 @@ After each transformation, you can view performance metrics in the **Performance
 |-------------------------------------|------------------|-------------------------------------|
 | [XSD Validation](xsd-validation.md) | [Home](index.md) | [XSLT Developer](xslt-developer.md) |
 
-**All Pages:
-** [XML Editor](xml-editor.md) | [XML Features](xml-editor-features.md) | [XSD Tools](xsd-tools.md) | [XSD Validation](xsd-validation.md) | [XSLT Viewer](xslt-viewer.md) | [XSLT Developer](xslt-developer.md) | [FOP/PDF](pdf-generator.md) | [Signatures](digital-signatures.md) | [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [Favorites](favorites-system.md) | [Templates](template-management.md) | [Tech Stack](technology-stack.md) | [Licenses](licenses.md)
+**All Pages:** [Unified Shell](unified-shell.md) | [XML Editor](xml-editor.md) | [XML Features](xml-editor-features.md) | [JSON Editor](json-editor.md) | [XSD Tools](xsd-tools.md) | [Profiled XML Generation](profiled-xml-generation.md) | [XSD Validation](xsd-validation.md) | [XSLT Viewer](xslt-viewer.md) | [XSLT Developer](xslt-developer.md) | [FOP/PDF](pdf-generator.md) | [Signatures](digital-signatures.md) | [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [FundsXML Extensions](fundsxml-extensions.md) | [Favorites](favorites-system.md) | [Templates](template-management.md) | [Tech Stack](technology-stack.md) | [Security](SECURITY.md) | [Licenses](licenses.md)

@@ -211,7 +211,7 @@ public class IdentityConstraintsView extends BorderPane {
         });
         sourceCol.setPrefWidth(100);
 
-        constraintsTable.getColumns().addAll(typeCol, nameCol, parentCol, selectorCol, statusCol, sourceCol);
+        constraintsTable.getColumns().addAll(java.util.List.of(typeCol, nameCol, parentCol, selectorCol, statusCol, sourceCol));
 
         // Selection listener
         constraintsTable.getSelectionModel().selectedItemProperty().addListener(

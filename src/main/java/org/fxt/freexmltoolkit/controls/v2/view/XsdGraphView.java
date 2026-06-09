@@ -9,6 +9,8 @@ import java.util.Set;
 
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.CacheHint;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -27,6 +29,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
 
@@ -78,6 +81,13 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
     private VisualNode hoveredNode;
     private final Map<String, VisualNode> nodeMap = new HashMap<>();
 
+    // Incremental redraw (P4): paint-only changes (selection, hover) repaint just the
+    // affected node regions instead of the whole canvas. Counters are read-only
+    // diagnostics used by tests to confirm a change did not trigger a full repaint.
+    private static final double REPAINT_MARGIN = 24.0;
+    private int renderedNodeCount;
+    private boolean lastPaintWasRegional;
+
     // Zoom state
     private double zoomLevel = 1.0;
     private static final double ZOOM_MIN = 0.1;
@@ -87,6 +97,10 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
 
     // Source file indicator for include support
     private Label currentSourceFileLabel;
+
+    // Minimal (shell) chrome: a top-left breadcrumb shown instead of the action toolbar,
+    // matching the Figma "Schema (graphical)" frame. Null in the default toolbar chrome.
+    private Label breadcrumbLabel;
 
     // Drag & Drop state
     private boolean isDragging = false;
@@ -121,13 +135,25 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
      * @since 2.0
      */
     public XsdGraphView(XsdSchema schema) {
-        if (schema == null) {
+        this(buildOwnContext(schema));
+    }
+
+    /**
+     * Creates a graphical view that adopts an existing {@link XsdEditorContext},
+     * sharing its schema, command stack and selection model. Used when the view is
+     * embedded in the unified shell so that graphical edits, inspector edits and
+     * undo/redo all run through one context.
+     *
+     * @param context the editor context to adopt (must hold a non-null schema)
+     */
+    public XsdGraphView(XsdEditorContext context) {
+        if (context == null || context.getSchema() == null) {
             throw new IllegalArgumentException("Schema cannot be null");
         }
 
-        this.xsdSchema = schema;
+        this.xsdSchema = context.getSchema();
         this.renderer = new XsdNodeRenderer();
-        this.selectionModel = new SelectionModel();
+        this.selectionModel = context.getSelectionModel();
 
         // Create canvas for drawing
         this.canvas = new Canvas(2000, 2000);
@@ -135,11 +161,18 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         scrollPane.setPannable(true);
         scrollPane.getStyleClass().add("theme-bg-primary");
 
-        // Pass the existing selectionModel to EditorContext so they share the same instance
-        this.editorContext = new XsdEditorContext(schema, this.selectionModel);
+        this.editorContext = context;
         this.contextMenuFactory = new XsdContextMenuFactory(editorContext);
 
         initializeUI();
+    }
+
+    /** Builds a fresh, self-owned context for the schema-only constructor. */
+    private static XsdEditorContext buildOwnContext(XsdSchema schema) {
+        if (schema == null) {
+            throw new IllegalArgumentException("Schema cannot be null");
+        }
+        return new XsdEditorContext(schema, new SelectionModel());
     }
 
     /**
@@ -167,10 +200,13 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
             if (primarySelection != null) {
                 primarySelection.setFocused(true);
             }
-            // Update source file indicator
+            // Update source file indicator + minimal-chrome breadcrumb
             updateSourceFileIndicator();
-            // Redraw to show selection changes
-            redraw();
+            updateBreadcrumb();
+            // Selection does not affect layout: repaint only the affected node regions (P4).
+            java.util.List<VisualNode> affected = new java.util.ArrayList<>(oldSelection);
+            affected.addAll(newSelection);
+            repaintNodes(affected);
         });
 
         // Setup UI
@@ -402,7 +438,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         zoomOutBtn.setTooltip(new Tooltip("Zoom Out (Ctrl -)"));
         zoomOutBtn.setOnAction(e -> zoomOut());
 
-        Button zoomResetBtn = new Button("100%");
+        Button zoomResetBtn = new Button("Reset");
         zoomResetBtn.setStyle("-fx-padding: 5 10;");
         zoomResetBtn.setTooltip(new Tooltip("Reset Zoom to 100% (Ctrl 0)"));
         zoomResetBtn.setOnAction(e -> zoomReset());
@@ -415,9 +451,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         currentSourceFileLabel.setStyle("-fx-padding: 5; -fx-text-fill: #0369a1; -fx-font-style: italic;");
         currentSourceFileLabel.setVisible(false);
 
-        Label infoLabel = new Label("XSD Editor V2 - Graphical View");
-        infoLabel.getStyleClass().add("info-label-secondary");
-
+        // A trailing spacer pushes the (functional) source-file indicator to the right.
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
@@ -425,8 +459,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
                 expandAllBtn, collapseAllBtn, fitBtn,
                 separator,
                 zoomInBtn, zoomOutBtn, zoomResetBtn, zoomLabel,
-                currentSourceFileLabel,
-                spacer, infoLabel
+                spacer, currentSourceFileLabel
         );
 
         return toolbar;
@@ -657,6 +690,8 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
 
         // Render tree - wrap in try-catch to handle rendering failures gracefully
         try {
+            renderedNodeCount = 0;
+            lastPaintWasRegional = false;
             renderTree(gc, rootNode);
         } catch (Exception e) {
             logger.error("Failed to render tree: {}. Schema may be too large for graphical display.", e.getMessage());
@@ -665,6 +700,200 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
             gc.fillText("Error: Schema too large for graphical display. Try collapsing some nodes.", 50, 50);
             gc.fillText("Details: " + e.getMessage(), 50, 70);
         }
+    }
+
+    /**
+     * Incrementally repaints only the regions occupied by the given nodes (P4).
+     * Used for paint-only changes (selection, hover) that do not affect layout, so the
+     * whole canvas need not be relaid-out and cleared. Falls back to a full
+     * {@link #redraw()} if the layout has not been computed yet.
+     *
+     * @param nodes the nodes whose appearance changed (may contain nulls)
+     */
+    private void repaintNodes(java.util.Collection<VisualNode> nodes) {
+        if (rootNode == null || canvas.getWidth() <= 0 || canvas.getHeight() <= 0) {
+            redraw();
+            return;
+        }
+        double minX = Double.MAX_VALUE;
+        double minY = Double.MAX_VALUE;
+        double maxX = -Double.MAX_VALUE;
+        double maxY = -Double.MAX_VALUE;
+        int count = 0;
+        for (VisualNode n : nodes) {
+            if (n == null) {
+                continue;
+            }
+            minX = Math.min(minX, n.getX());
+            minY = Math.min(minY, n.getY());
+            maxX = Math.max(maxX, n.getX() + n.getWidth());
+            maxY = Math.max(maxY, n.getY() + n.getHeight());
+            count++;
+        }
+        if (count == 0) {
+            return;
+        }
+        repaintRegion(minX - REPAINT_MARGIN, minY - REPAINT_MARGIN,
+                (maxX - minX) + 2 * REPAINT_MARGIN, (maxY - minY) + 2 * REPAINT_MARGIN);
+    }
+
+    /**
+     * Clears and redraws a single rectangular region (canvas coordinates), restoring
+     * every node and connection that intersects it. A clip keeps painting inside the
+     * region so partially-overlapping neighbours and connector lines are not corrupted.
+     */
+    private void repaintRegion(double rx, double ry, double rw, double rh) {
+        GraphicsContext gc = canvas.getGraphicsContext2D();
+        gc.save();
+        try {
+            gc.beginPath();
+            gc.rect(rx, ry, rw, rh);
+            gc.clip();
+            gc.setFill(Color.WHITE);
+            gc.fillRect(rx, ry, rw, rh);
+            renderedNodeCount = 0;
+            lastPaintWasRegional = true;
+            renderTreeInRegion(gc, rootNode, rx, ry, rw, rh);
+        } catch (Exception e) {
+            logger.error("Region repaint failed ({}); falling back to full redraw", e.getMessage());
+            gc.restore();
+            redraw();
+            return;
+        }
+        gc.restore();
+    }
+
+    /**
+     * Renders only the nodes and connections intersecting the given region. The
+     * surrounding {@link #repaintRegion} clip guarantees nothing paints outside it.
+     */
+    private void renderTreeInRegion(GraphicsContext gc, VisualNode node,
+            double rx, double ry, double rw, double rh) {
+        if (isNodeInViewport(node)
+                && rectsIntersect(node.getX(), node.getY(), node.getWidth(), node.getHeight(),
+                        rx, ry, rw, rh)) {
+            renderer.renderNode(gc, node, node.getX(), node.getY());
+            renderedNodeCount++;
+        }
+        if (node.isExpanded() && node.hasChildren()) {
+            for (VisualNode child : node.getChildren()) {
+                if (connectionIntersectsRegion(node, child, rx, ry, rw, rh)) {
+                    renderer.renderConnection(gc, node, child);
+                }
+                renderTreeInRegion(gc, child, rx, ry, rw, rh);
+            }
+        }
+    }
+
+    /** @return whether the bounding box spanning {@code parent} and {@code child} meets the region. */
+    private boolean connectionIntersectsRegion(VisualNode parent, VisualNode child,
+            double rx, double ry, double rw, double rh) {
+        double cx = Math.min(parent.getX(), child.getX());
+        double cy = Math.min(parent.getY(), child.getY());
+        double cw = Math.max(parent.getX() + parent.getWidth(), child.getX() + child.getWidth()) - cx;
+        double ch = Math.max(parent.getY() + parent.getHeight(), child.getY() + child.getHeight()) - cy;
+        return rectsIntersect(cx, cy, cw, ch, rx, ry, rw, rh);
+    }
+
+    private static boolean rectsIntersect(double ax, double ay, double aw, double ah,
+            double bx, double by, double bw, double bh) {
+        return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
+    }
+
+    /** Forces a full relayout and repaint of the whole canvas. */
+    public void repaint() {
+        redraw();
+    }
+
+    /** @return number of node cards drawn in the last paint (diagnostics/tests). */
+    public int getLastRenderedNodeCount() {
+        return renderedNodeCount;
+    }
+
+    /** @return whether the last paint was an incremental region repaint, not a full redraw (diagnostics/tests). */
+    public boolean wasLastPaintRegional() {
+        return lastPaintWasRegional;
+    }
+
+    /**
+     * Enables or disables viewport culling (rendering only nodes inside the visible
+     * viewport). Enabled by default; disabling renders every node (useful for tests).
+     *
+     * @param enabled whether to cull off-screen nodes
+     */
+    public void setViewportCullingEnabled(boolean enabled) {
+        this.viewportCullingEnabled = enabled;
+    }
+
+    /**
+     * Switches to the minimal "shell" chrome that matches the Figma
+     * "Redesign · Unified — Schema (graphical)" frame: the bulky top action toolbar is
+     * removed (the unified shell provides the editor toolbar above), a slim breadcrumb is
+     * shown at the top-left of the canvas, and zoom moves to a small pill at the
+     * bottom-centre. Expand/collapse stay reachable via node chevrons and the context menu.
+     */
+    public void useMinimalChrome() {
+        // 1. Drop the top action toolbar (Expand/Collapse/Fit/zoom buttons).
+        setTop(null);
+
+        javafx.scene.Node center = getCenter();
+        if (center == null) {
+            return;
+        }
+
+        // 2. Breadcrumb (top-left), updated from the current selection.
+        breadcrumbLabel = new Label();
+        breadcrumbLabel.getStyleClass().add("fxt-graph-breadcrumb");
+        breadcrumbLabel.setMouseTransparent(true);
+        StackPane.setAlignment(breadcrumbLabel, Pos.TOP_LEFT);
+        StackPane.setMargin(breadcrumbLabel, new Insets(8, 0, 0, 10));
+        updateBreadcrumb();
+
+        // 3. Zoom pill (bottom-centre): [ - 100% + ].
+        Button zoomOutPill = new Button("-");
+        zoomOutPill.getStyleClass().add("fxt-graph-zoom-button");
+        zoomOutPill.setTooltip(new Tooltip("Zoom Out (Ctrl -)"));
+        zoomOutPill.setOnAction(e -> zoomOut());
+
+        Button zoomInPill = new Button("+");
+        zoomInPill.getStyleClass().add("fxt-graph-zoom-button");
+        zoomInPill.setTooltip(new Tooltip("Zoom In (Ctrl +)"));
+        zoomInPill.setOnAction(e -> zoomIn());
+
+        // Re-point the live zoom label (the old one went away with the toolbar).
+        zoomLabel = new Label(String.format("%.0f%%", zoomLevel * 100));
+        zoomLabel.getStyleClass().add("fxt-graph-zoom-label");
+        zoomLabel.setTooltip(new Tooltip("Reset Zoom to 100% (Ctrl 0)"));
+        zoomLabel.setOnMouseClicked(e -> zoomReset());
+
+        HBox zoomPill = new HBox(zoomOutPill, zoomLabel, zoomInPill);
+        zoomPill.getStyleClass().add("fxt-graph-zoom-pill");
+        zoomPill.setAlignment(Pos.CENTER);
+        zoomPill.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
+        StackPane.setAlignment(zoomPill, Pos.BOTTOM_CENTER);
+        StackPane.setMargin(zoomPill, new Insets(0, 0, 12, 0));
+
+        // 4. Overlay the breadcrumb and pill on top of the canvas.
+        StackPane overlay = new StackPane(center, breadcrumbLabel, zoomPill);
+        setCenter(overlay);
+    }
+
+    /** Updates the breadcrumb text from the primary selection (or the schema root). */
+    private void updateBreadcrumb() {
+        if (breadcrumbLabel == null) {
+            return;
+        }
+        VisualNode primary = getSelectionModel().getPrimarySelection();
+        String text;
+        if (primary != null) {
+            String detail = primary.getDetail();
+            text = primary.getLabel() + (detail != null && !detail.isBlank() ? "  ·  " + detail : "");
+        } else if (xsdSchema != null && xsdSchema.getName() != null) {
+            text = xsdSchema.getName();
+        } else {
+            text = "Schema";
+        }
+        breadcrumbLabel.setText(text);
     }
 
     /**
@@ -776,6 +1005,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         // Render node only if visible
         if (nodeVisible) {
             renderer.renderNode(gc, node, node.getX(), node.getY());
+            renderedNodeCount++;
         }
 
         // Render connections and children
@@ -895,14 +1125,15 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
                 hoveredNode.setHovered(false);
             }
 
+            VisualNode previousHover = hoveredNode;
             // Set new hover
             hoveredNode = nodeAtPosition;
             if (hoveredNode != null) {
                 hoveredNode.setHovered(true);
             }
 
-            // Redraw to show hover effect
-            redraw();
+            // Hover does not affect layout: repaint only the two affected node regions (P4).
+            repaintNodes(java.util.Arrays.asList(previousHover, hoveredNode));
         }
     }
 
@@ -1350,11 +1581,9 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
 
         // Find node at click position
         VisualNode nodeAtPosition = findNodeAt(rootNode, x, y);
-        if (nodeAtPosition != null) {
-            // Don't allow dragging if clicking on expand button
-            if (!nodeAtPosition.expandButtonContainsPoint(x, y)) {
-                draggedNode = nodeAtPosition;
-            }
+        // Don't start a drag when the click is on the expand button.
+        if (nodeAtPosition != null && !nodeAtPosition.expandButtonContainsPoint(x, y)) {
+            draggedNode = nodeAtPosition;
         }
 
         // Reset drag state
@@ -1674,6 +1903,84 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
             return editorContext.getSelectionModel();
         }
         return selectionModel;
+    }
+
+    /**
+     * Reveals and selects the visual card backing the given model node: expands its
+     * ancestors (loading lazy subtrees if needed), selects it and scrolls it into
+     * view. Used by the shell to mirror a selection made elsewhere (e.g. Find Usage).
+     * No-op if the node cannot be located in the schema.
+     *
+     * @param modelNode the model node to reveal and select
+     */
+    public void selectModelNode(org.fxt.freexmltoolkit.controls.v2.model.XsdNode modelNode) {
+        if (modelNode == null || rootNode == null) {
+            return;
+        }
+        VisualNode match = findVisualByModel(rootNode, modelNode);
+        if (match == null) {
+            // The card may live in a not-yet-loaded lazy subtree: expand along the
+            // model ancestry to materialize it, then look again.
+            materializeAlongPath(modelNode);
+            match = findVisualByModel(rootNode, modelNode);
+        }
+        if (match == null) {
+            return;
+        }
+        // Expand every ancestor so the node is laid out and actually visible (P3).
+        for (VisualNode ancestor = match.getParent(); ancestor != null; ancestor = ancestor.getParent()) {
+            ancestor.setExpanded(true);
+        }
+        redraw(); // recompute coordinates after expansion before scrolling
+        getSelectionModel().select(match);
+        VisualNode target = match;
+        Platform.runLater(() -> scrollToNode(target));
+    }
+
+    /**
+     * Walks the model ancestry from the root down to {@code target}, expanding each
+     * matching visual node so lazy children are loaded along the path.
+     */
+    private void materializeAlongPath(org.fxt.freexmltoolkit.controls.v2.model.XsdNode target) {
+        java.util.Deque<org.fxt.freexmltoolkit.controls.v2.model.XsdNode> path = new java.util.ArrayDeque<>();
+        for (org.fxt.freexmltoolkit.controls.v2.model.XsdNode n = target; n != null; n = n.getParent()) {
+            path.push(n);
+        }
+        VisualNode current = rootNode;
+        while (!path.isEmpty() && current != null) {
+            org.fxt.freexmltoolkit.controls.v2.model.XsdNode wanted = path.pop();
+            if (current.getModelObject() != wanted) {
+                return; // visual/model structure diverges; the caller's full search will retry
+            }
+            current.setExpanded(true); // triggers loadChildrenIfNeeded() for lazy nodes
+            if (!path.isEmpty()) {
+                current = childForModel(current, path.peek());
+            }
+        }
+    }
+
+    private VisualNode childForModel(
+            VisualNode parent, org.fxt.freexmltoolkit.controls.v2.model.XsdNode model) {
+        for (VisualNode child : parent.getChildren()) {
+            if (child.getModelObject() == model) {
+                return child;
+            }
+        }
+        return null;
+    }
+
+    private VisualNode findVisualByModel(
+            VisualNode node, org.fxt.freexmltoolkit.controls.v2.model.XsdNode modelNode) {
+        if (node.getModelObject() == modelNode) {
+            return node;
+        }
+        for (VisualNode child : node.getChildren()) {
+            VisualNode found = findVisualByModel(child, modelNode);
+            if (found != null) {
+                return found;
+            }
+        }
+        return null;
     }
 
     /**

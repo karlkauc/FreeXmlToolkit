@@ -72,91 +72,91 @@ public class SkillTracker {
         FEATURES.put("xml_validation", new FeatureDefinition(
             "xml_validation", "XML Validation", "Validation",
             "Validate XML documents against XSD schemas",
-            "bi-check-circle", "xmlUltimate", 5
+            "bi-check-circle", "unifiedShell", 5
         ));
         FEATURES.put("xsd_validation", new FeatureDefinition(
             "xsd_validation", "XSD Schema Validation", "Validation",
             "Validate XSD schema files for correctness",
-            "bi-file-earmark-check", "xsdValidation", 5
+            "bi-file-earmark-check", "unifiedShell", 5
         ));
         FEATURES.put("schematron_validation", new FeatureDefinition(
             "schematron_validation", "Schematron Rules", "Validation",
             "Apply business rules validation with Schematron",
-            "bi-shield-check", "schematron", 10
+            "bi-shield-check", "unifiedShell", 10
         ));
         FEATURES.put("batch_validation", new FeatureDefinition(
             "batch_validation", "Batch Validation", "Validation",
             "Validate multiple XML files at once",
-            "bi-list-check", "xsdValidation", 8
+            "bi-list-check", "unifiedShell", 8
         ));
 
         // Editing Features
         FEATURES.put("xml_formatting", new FeatureDefinition(
             "xml_formatting", "Format/Pretty Print", "Editing",
             "Format and beautify XML documents",
-            "bi-text-indent-left", "xmlUltimate", 3
+            "bi-text-indent-left", "unifiedShell", 3
         ));
         FEATURES.put("xsd_visualization", new FeatureDefinition(
             "xsd_visualization", "XSD Visual Editor", "Editing",
             "Graphically view and edit XSD schemas",
-            "bi-diagram-3", "xsd", 8
+            "bi-diagram-3", "unifiedShell", 8
         ));
         FEATURES.put("intellisense", new FeatureDefinition(
             "intellisense", "IntelliSense Auto-complete", "Editing",
             "Context-aware code completion",
-            "bi-lightning", "xmlUltimate", 7
+            "bi-lightning", "unifiedShell", 7
         ));
 
         // Query Features
         FEATURES.put("xpath_queries", new FeatureDefinition(
             "xpath_queries", "XPath Queries", "Query",
             "Query XML data using XPath expressions",
-            "bi-search", "xmlUltimate", 7
+            "bi-search", "unifiedShell", 7
         ));
         FEATURES.put("xquery_execution", new FeatureDefinition(
             "xquery_execution", "XQuery Execution", "Query",
             "Execute XQuery for advanced data manipulation",
-            "bi-code-slash", "xmlUltimate", 10
+            "bi-code-slash", "unifiedShell", 10
         ));
 
         // Transformation Features
         FEATURES.put("xslt_transformation", new FeatureDefinition(
             "xslt_transformation", "XSLT Transformation", "Transformation",
             "Transform XML using XSLT stylesheets",
-            "bi-arrow-repeat", "xsltDeveloper", 8
+            "bi-arrow-repeat", "unifiedShell", 8
         ));
 
         // Tools Features
         FEATURES.put("schema_generation", new FeatureDefinition(
             "schema_generation", "Schema Generation", "Tools",
             "Generate XSD schemas from XML samples",
-            "bi-gear", "schemaGenerator", 8
+            "bi-gear", "unifiedShell", 8
         ));
 
         // Security Features
         FEATURES.put("digital_signature", new FeatureDefinition(
             "digital_signature", "XML Digital Signatures", "Security",
             "Sign and verify XML documents",
-            "bi-key", "signature", 10
+            "bi-key", "unifiedShell", 10
         ));
 
         // Export Features
         FEATURES.put("pdf_generation", new FeatureDefinition(
             "pdf_generation", "PDF Generation (FOP)", "Export",
             "Create PDFs from XML using XSL-FO",
-            "bi-file-earmark-richtext", "fop", 8
+            "bi-file-earmark-richtext", "unifiedShell", 8
         ));
         FEATURES.put("xsd_documentation", new FeatureDefinition(
             "xsd_documentation", "XSD Documentation Export", "Export",
             "Generate documentation from XSD schemas",
-            "bi-book", "xsd", 7
+            "bi-book", "unifiedShell", 7
         ));
 
         // Organization Features
         FEATURES.put("favorites_system", new FeatureDefinition(
             "favorites_system", "Favorites Management", "Organization",
             "Save and organize frequently used files",
-            "bi-star", "xmlUltimate", 3
+            "bi-star", "unifiedShell", 3
         ));
     }
 

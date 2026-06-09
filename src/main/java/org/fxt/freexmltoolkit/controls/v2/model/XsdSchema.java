@@ -425,10 +425,8 @@ public class XsdSchema extends XsdNode {
         }
 
         // Check for assertion facet in restrictions
-        if (node instanceof XsdFacet facet) {
-            if (facet.getFacetType() == XsdFacetType.ASSERTION) {
-                return true;
-            }
+        if (node instanceof XsdFacet facet && facet.getFacetType() == XsdFacetType.ASSERTION) {
+            return true;
         }
 
         // Recursively check children

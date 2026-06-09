@@ -297,21 +297,19 @@ public class FileExplorer extends VBox {
 
         // The root is a dummy node (hostname). We need to start the search from its children (the drive roots).
         for (TreeItem<Path> driveRoot : this.root.getChildren()) {
-            if (driveRoot instanceof FileExplorerTreeItem) {
-                // Check if the path is on this drive
-                if (path.startsWith(driveRoot.getValue())) {
-                    TreeItem<Path> targetItem = ((FileExplorerTreeItem) driveRoot).expandAndFind(path);
-                    if (targetItem != null) {
-                        // Once the item is found, we select it and scroll to it on the FX thread.
-                        Platform.runLater(() -> {
-                            fileTreeView.getSelectionModel().select(targetItem);
-                            int rowIndex = fileTreeView.getRow(targetItem);
-                            if (rowIndex >= 0) {
-                                fileTreeView.scrollTo(rowIndex);
-                            }
-                        });
-                        return; // Found it, no need to check other drives
-                    }
+            // Check if the path is on this drive
+            if (driveRoot instanceof FileExplorerTreeItem && path.startsWith(driveRoot.getValue())) {
+                TreeItem<Path> targetItem = ((FileExplorerTreeItem) driveRoot).expandAndFind(path);
+                if (targetItem != null) {
+                    // Once the item is found, we select it and scroll to it on the FX thread.
+                    Platform.runLater(() -> {
+                        fileTreeView.getSelectionModel().select(targetItem);
+                        int rowIndex = fileTreeView.getRow(targetItem);
+                        if (rowIndex >= 0) {
+                            fileTreeView.scrollTo(rowIndex);
+                        }
+                    });
+                    return; // Found it, no need to check other drives
                 }
             }
         }
@@ -493,10 +491,8 @@ public class FileExplorer extends VBox {
 
                 // Refresh all expanded drive roots
                 for (javafx.scene.control.TreeItem<Path> driveRoot : root.getChildren()) {
-                    if (driveRoot instanceof FileExplorerTreeItem fileExplorerItem) {
-                        if (driveRoot.isExpanded()) {
-                            fileExplorerItem.refresh();
-                        }
+                    if (driveRoot instanceof FileExplorerTreeItem fileExplorerItem && driveRoot.isExpanded()) {
+                        fileExplorerItem.refresh();
                     }
                 }
 

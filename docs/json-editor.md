@@ -4,6 +4,12 @@ The JSON Editor provides a powerful environment for editing, validating, and que
 
 > **Last Updated:** May 2026 | **Version:** 1.10.0
 
+> **Note (Phase 10c):** The standalone *JSON Editor* tab has been retired. JSON
+> editing — text editing plus the tree view and validation — now lives in the
+> **Unified Shell**: open a `.json` file and the JSON editor view (text/tree) is
+> available there. The capabilities below are unchanged; they are now part of the
+> shell rather than a dedicated sidebar tab.
+
 ## Overview
 
 FreeXmlToolkit includes a full-featured JSON Editor that supports:
@@ -11,8 +17,8 @@ FreeXmlToolkit includes a full-featured JSON Editor that supports:
 - **JSONC** - JSON with Comments (single-line `//` and block `/* */`)
 - **JSON5** - Extended JSON with trailing commas, unquoted keys, and comments
 
-![JSON Editor](img/json-editor.png)
-***Screenshot: JSON Editor with Tree View***
+![JSON in the Unified Shell](img/unified-shell-json-tree.png)
+***JSON editing (text + tree view) in the Unified Shell***
 
 ## Features
 
@@ -185,4 +191,4 @@ The validator supports:
 |----------|------|------|
 | [Schematron](schematron-support.md) | [Home](index.md) | [XML Editor](xml-editor.md) |
 
-**All Pages:** [XML Editor](xml-editor.md) | [XML Features](xml-editor-features.md) | [JSON Editor](json-editor.md) | [XSD Tools](xsd-tools.md) | [XSD Validation](xsd-validation.md) | [XSLT](xslt-viewer.md) | [FOP/PDF](pdf-generator.md) | [Signatures](digital-signatures.md) | [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [Favorites](favorites-system.md) | [Templates](template-management.md) | [Tech Stack](technology-stack.md) | [Security](SECURITY.md) | [Licenses](licenses.md)
+**All Pages:** [Unified Shell](unified-shell.md) | [XML Editor](xml-editor.md) | [XML Features](xml-editor-features.md) | [JSON Editor](json-editor.md) | [XSD Tools](xsd-tools.md) | [Profiled XML Generation](profiled-xml-generation.md) | [XSD Validation](xsd-validation.md) | [XSLT Viewer](xslt-viewer.md) | [XSLT Developer](xslt-developer.md) | [FOP/PDF](pdf-generator.md) | [Signatures](digital-signatures.md) | [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [FundsXML Extensions](fundsxml-extensions.md) | [Favorites](favorites-system.md) | [Templates](template-management.md) | [Tech Stack](technology-stack.md) | [Security](SECURITY.md) | [Licenses](licenses.md)

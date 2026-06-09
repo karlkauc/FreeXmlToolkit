@@ -128,10 +128,8 @@ public class EventHandlerManager {
 
         codeArea.addEventHandler(KeyEvent.KEY_TYPED, event -> {
             String character = event.getCharacter();
-            if (character != null && character.length() == 1) {
-                if (intelliSenseEngine != null) {
-                    intelliSenseEngine.getTriggerSystem().handleCharTyped(character.charAt(0));
-                }
+            if (character != null && character.length() == 1 && intelliSenseEngine != null) {
+                intelliSenseEngine.getTriggerSystem().handleCharTyped(character.charAt(0));
             }
         });
 
@@ -149,11 +147,9 @@ public class EventHandlerManager {
                     if (onIncreaseFontSize != null) {
                         onIncreaseFontSize.run();
                     }
-                } else if (event.getDeltaY() < 0) {
+                } else if (event.getDeltaY() < 0 && onDecreaseFontSize != null) {
                     // Scroll down = decrease font size
-                    if (onDecreaseFontSize != null) {
-                        onDecreaseFontSize.run();
-                    }
+                    onDecreaseFontSize.run();
                 }
                 event.consume();
             }

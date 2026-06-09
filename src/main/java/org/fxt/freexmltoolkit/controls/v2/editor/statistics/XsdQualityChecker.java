@@ -546,16 +546,14 @@ public class XsdQualityChecker {
         }
 
         // Check for unbounded maxOccurs
-        if (node instanceof XsdElement element) {
-            if (element.getMaxOccurs() == -1) { // UNBOUNDED
-                issues.add(QualityIssue.bestPracticeIssue(
-                        IssueSeverity.INFO,
-                        "Element '" + element.getName() + "' has unbounded maxOccurs",
-                        "Consider setting a reasonable upper limit",
-                        List.of(element.getName()),
-                        element
-                ));
-            }
+        if (node instanceof XsdElement element && element.getMaxOccurs() == -1) { // UNBOUNDED
+            issues.add(QualityIssue.bestPracticeIssue(
+                    IssueSeverity.INFO,
+                    "Element '" + element.getName() + "' has unbounded maxOccurs",
+                    "Consider setting a reasonable upper limit",
+                    List.of(element.getName()),
+                    element
+            ));
         }
 
         // Check for deep nesting (depth > 10)
@@ -570,18 +568,17 @@ public class XsdQualityChecker {
         }
 
         // Check for anonymous complex types (could be global)
-        if (node instanceof XsdComplexType complexType) {
-            if (complexType.getName() == null || complexType.getName().isBlank()) {
-                XsdNode parent = complexType.getParent();
-                if (parent instanceof XsdElement element) {
-                    issues.add(QualityIssue.bestPracticeIssue(
-                            IssueSeverity.SUGGESTION,
-                            "Anonymous complex type in element '" + element.getName() + "'",
-                            "Consider defining as a named global type for reusability",
-                            List.of(element.getName()),
-                            complexType
-                    ));
-                }
+        if (node instanceof XsdComplexType complexType
+                && (complexType.getName() == null || complexType.getName().isBlank())) {
+            XsdNode parent = complexType.getParent();
+            if (parent instanceof XsdElement element) {
+                issues.add(QualityIssue.bestPracticeIssue(
+                        IssueSeverity.SUGGESTION,
+                        "Anonymous complex type in element '" + element.getName() + "'",
+                        "Consider defining as a named global type for reusability",
+                        List.of(element.getName()),
+                        complexType
+                ));
             }
         }
     }
@@ -1392,21 +1389,18 @@ public class XsdQualityChecker {
         }
 
         // Compare mixed attribute for complexType
-        if (v1.node instanceof XsdComplexType ct1 && v2.node instanceof XsdComplexType ct2) {
-            if (ct1.isMixed() != ct2.isMixed()) {
-                differences.add("Variant " + v1.number + (ct1.isMixed() ? " has mixed=\"true\"" : " has mixed=\"false\" (or unset)") +
-                               ", Variant " + v2.number + (ct2.isMixed() ? " has mixed=\"true\"" : " has mixed=\"false\" (or unset)"));
-            }
+        if (v1.node instanceof XsdComplexType ct1 && v2.node instanceof XsdComplexType ct2
+                && ct1.isMixed() != ct2.isMixed()) {
+            differences.add("Variant " + v1.number + (ct1.isMixed() ? " has mixed=\"true\"" : " has mixed=\"false\" (or unset)") +
+                           ", Variant " + v2.number + (ct2.isMixed() ? " has mixed=\"true\"" : " has mixed=\"false\" (or unset)"));
         }
 
         // Check for complexType child with mixed attribute
         XsdComplexType ct1 = findComplexTypeChild(v1.node);
         XsdComplexType ct2 = findComplexTypeChild(v2.node);
-        if (ct1 != null && ct2 != null) {
-            if (ct1.isMixed() != ct2.isMixed()) {
-                differences.add("Variant " + v1.number + " complexType " + (ct1.isMixed() ? "has mixed=\"true\"" : "has no mixed attribute") +
-                               ", Variant " + v2.number + " complexType " + (ct2.isMixed() ? "has mixed=\"true\"" : "has no mixed attribute"));
-            }
+        if (ct1 != null && ct2 != null && ct1.isMixed() != ct2.isMixed()) {
+            differences.add("Variant " + v1.number + " complexType " + (ct1.isMixed() ? "has mixed=\"true\"" : "has no mixed attribute") +
+                           ", Variant " + v2.number + " complexType " + (ct2.isMixed() ? "has mixed=\"true\"" : "has no mixed attribute"));
         }
 
         // Compare compositor types (sequence, choice, all)

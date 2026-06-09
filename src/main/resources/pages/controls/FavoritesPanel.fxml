@@ -139,21 +139,21 @@
             </TitledPane>
 
             <!-- Categories Section -->
-            <TitledPane fx:id="categoriesPane" text="Categories" expanded="true"
+            <TitledPane text="Categories" expanded="true"
                         styleClass="favorites-section">
                 <TreeView fx:id="categoriesTreeView" prefHeight="200"
                           style="-fx-background-color: white; -fx-border-color: #e0e0e0;"/>
             </TitledPane>
 
             <!-- Projects Section -->
-            <TitledPane fx:id="projectsPane" text="Projects" expanded="false"
+            <TitledPane text="Projects" expanded="false"
                         styleClass="favorites-section">
                 <TreeView fx:id="projectsTreeView" prefHeight="200"
                           style="-fx-background-color: white; -fx-border-color: #e0e0e0;"/>
             </TitledPane>
 
             <!-- Templates & Snippets Section -->
-            <TitledPane fx:id="templatesPane" text="Templates &amp; Snippets" expanded="false"
+            <TitledPane text="Templates &amp; Snippets" expanded="false"
                         styleClass="favorites-section">
                 <VBox spacing="5">
                     <ListView fx:id="templatesListView" prefHeight="150"

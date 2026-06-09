@@ -2,6 +2,15 @@
 
 > **Last Updated:** May 2026 | **Version:** 1.10.0
 
+> **Note (Phase 10c):** The standalone *XSLT Developer* tab has been retired. Its
+> capabilities now live in the **[Unified Shell](unified-shell.md)'s Transform panel**
+> (Set XSLT, transform, XPath/XQuery, parameters, output formats) together with its
+> **Advanced** tools — the interactive **Debugger** (breakpoints, step, variables,
+> call stack, watch), **Batch** processing, **Profile**, and **Trace**. Open the
+> Transform panel from the **Transform** icon in the activity bar; the Advanced tools
+> are available from that panel. The feature description below is retained for
+> reference; the controls now live in the Unified Shell rather than a dedicated tab.
+
 The XSLT Developer is a full-featured development environment for creating and testing XSLT stylesheets and XQuery
 scripts. It includes live transformation, parameter support, batch processing, and debugging tools.
 
@@ -555,4 +564,4 @@ return <categorized>
 |-------------------------------|------------------|-----------------------------------------|
 | [XSLT Viewer](xslt-viewer.md) | [Home](index.md) | [PDF Generator (FOP)](pdf-generator.md) |
 
-**All Pages:** [XML Editor](xml-editor.md) | [XML Features](xml-editor-features.md) | [XSD Tools](xsd-tools.md) | [XSD Validation](xsd-validation.md) | [XSLT Viewer](xslt-viewer.md) | [XSLT Developer](xslt-developer.md) | [FOP/PDF](pdf-generator.md) | [Signatures](digital-signatures.md) | [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [Favorites](favorites-system.md) | [Templates](template-management.md) | [Tech Stack](technology-stack.md) | [Security](SECURITY.md) | [Licenses](licenses.md)
+**All Pages:** [Unified Shell](unified-shell.md) | [XML Editor](xml-editor.md) | [XML Features](xml-editor-features.md) | [JSON Editor](json-editor.md) | [XSD Tools](xsd-tools.md) | [Profiled XML Generation](profiled-xml-generation.md) | [XSD Validation](xsd-validation.md) | [XSLT Viewer](xslt-viewer.md) | [XSLT Developer](xslt-developer.md) | [FOP/PDF](pdf-generator.md) | [Signatures](digital-signatures.md) | [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [FundsXML Extensions](fundsxml-extensions.md) | [Favorites](favorites-system.md) | [Templates](template-management.md) | [Tech Stack](technology-stack.md) | [Security](SECURITY.md) | [Licenses](licenses.md)

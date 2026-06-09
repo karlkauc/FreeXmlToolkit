@@ -37,6 +37,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -138,6 +139,10 @@ public class XsdDocumentationService {
     private boolean generateSvgOverviewPage = true; // Whether to generate the schema-svg.html overview page
     private boolean addMetadataInOutput = false; // Whether to add metadata comments to generated HTML files
     private String faviconPath = null; // Optional path to custom favicon for HTML documentation
+
+    // Per-run memo of XPath-independent identity-constraint results, keyed by the source DOM node.
+    // Repeated expansions of a shared type reuse the cached result instead of re-parsing constraints.
+    private final Map<Node, XsdExtendedElement> identityConstraintMemo = new IdentityHashMap<>();
 
     // Thread-local storage for element reference nodes (to preserve cardinality attributes)
     private static final ThreadLocal<Node> referenceNodeThreadLocal = new ThreadLocal<>();
@@ -442,6 +447,9 @@ public class XsdDocumentationService {
         // Configure the sample data generator with type resolver BEFORE traversal
         // so that sample data generation can resolve named types to base XML types
         configureTypeResolver();
+
+        // Reset per-run node-metadata memo before traversal
+        identityConstraintMemo.clear();
 
         // Start traversal from global elements
         counter = 0;
@@ -1075,11 +1083,9 @@ public class XsdDocumentationService {
             // For choice, we need to handle differently - usually only one child is mandatory
             // For now, we'll add the first mandatory child from the choice
             for (Node child : getDirectChildElements(contentNode)) {
-                if ("element".equals(child.getLocalName())) {
-                    if (isMandatoryElement(child)) {
-                        processMandatoryElement(child, mandatoryChildren);
-                        break; // Only take first mandatory element from choice
-                    }
+                if ("element".equals(child.getLocalName()) && isMandatoryElement(child)) {
+                    processMandatoryElement(child, mandatoryChildren);
+                    break; // Only take first mandatory element from choice
                 }
             }
         } else if ("extension".equals(localName)) {
@@ -1468,7 +1474,9 @@ public class XsdDocumentationService {
                 // Handle elements from external namespaces (e.g., ds:Signature from XML Digital Signature)
                 // These are included in documentation but marked as external references
                 if (ref.contains(":") && isExternalNamespaceReference(ref)) {
-                    logger.debug("Processing external namespace reference for documentation: {}", ref);
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Processing external namespace reference for documentation: {}", ref);
+                    }
                     processExternalNamespaceReference(node, ref, currentXPath, parentXPath, level, visitedOnPath);
                     return;
                 }
@@ -1671,8 +1679,10 @@ public class XsdDocumentationService {
                                 // Use the base type (e.g., xs:decimal) for sample data generation
                                 // since the generator needs the primitive type, not the named type
                                 resolvedType = baseType;
-                                logger.debug("Resolved named type '{}' to base type '{}' via simpleContent extension",
-                                        typeName, baseType);
+                                if (logger.isDebugEnabled()) {
+                                    logger.debug("Resolved named type '{}' to base type '{}' via simpleContent extension",
+                                            typeName, baseType);
+                                }
                             }
                         }
                     }
@@ -1765,9 +1775,17 @@ public class XsdDocumentationService {
             processAssertions(restrictionNode, extendedElem);
         }
 
-        // Process XSD 1.0 identity constraints (key, keyref, unique) on elements
+        // Process XSD 1.0 identity constraints (key, keyref, unique) on elements.
+        // Identity constraints are XPath-independent (they describe the element's own
+        // key/keyref/unique definitions), so memoize per source node across expansions.
         if (!isAttribute && !isContainer) {
-            processIdentityConstraints(node, extendedElem);
+            XsdExtendedElement donor = identityConstraintMemo.get(node);
+            if (donor != null) {
+                copyIdentityConstraints(donor, extendedElem);
+            } else {
+                processIdentityConstraints(node, extendedElem);
+                identityConstraintMemo.put(node, extendedElem);
+            }
         }
 
         // Process XSD 1.1 type alternatives on elements
@@ -2392,10 +2410,9 @@ public class XsdDocumentationService {
 
                 // Apply constraint tracking for attributes
                 String attrXpath = element.getCurrentXpath() + "/@" + attrName;
-                if (constraintTracker != null && fixedOrDefault == null) {
-                    if (constraintTracker.isConstrainedField(attrXpath) || constraintTracker.isKeyrefField(attrXpath)) {
-                        attrValue = constraintTracker.getUniqueValue(attrXpath, attrValue, attr);
-                    }
+                if (constraintTracker != null && fixedOrDefault == null
+                        && (constraintTracker.isConstrainedField(attrXpath) || constraintTracker.isKeyrefField(attrXpath))) {
+                    attrValue = constraintTracker.getUniqueValue(attrXpath, attrValue, attr);
                 }
 
                 sb.append(" ").append(attrName).append("=\"").append(escapeXml(attrValue)).append("\"");
@@ -2458,7 +2475,9 @@ public class XsdDocumentationService {
                         .toList();
 
                 if (!containerChildren.isEmpty()) {
-                    logger.debug("Processing {} container with {} children", elementName, containerChildren.size());
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Processing {} container with {} children", elementName, containerChildren.size());
+                    }
                     // Recursively process children (they may contain nested CHOICE/SEQUENCE)
                     processChildElementsForGeneration(sb, containerChildren, mandatoryOnly, maxOccurrences, indentLevel, constraintTracker);
                 }
@@ -2693,14 +2712,17 @@ public class XsdDocumentationService {
         XPathFactory xPathFactory = XPathFactory.newInstance();
         xpath = xPathFactory.newXPath();
         xpath.setNamespaceContext(new NamespaceContext() {
+            @Override
             public String getNamespaceURI(String prefix) {
                 return NS_PREFIX.equals(prefix) ? NS_URI : null;
             }
 
+            @Override
             public String getPrefix(String uri) {
                 return null;
             }
 
+            @Override
             public Iterator<String> getPrefixes(String uri) {
                 return null;
             }
@@ -2954,12 +2976,16 @@ public class XsdDocumentationService {
 
         List<IdentityConstraint> identityConstraints = new ArrayList<>();
 
-        logger.debug("Processing identity constraints for element: {}, node type: {}",
-                extendedElem.getElementName(), elementNode.getLocalName());
+        if (logger.isDebugEnabled()) {
+            logger.debug("Processing identity constraints for element: {}, node type: {}",
+                    extendedElem.getElementName(), elementNode.getLocalName());
+        }
 
         for (Node child : getDirectChildElements(elementNode)) {
             String localName = child.getLocalName();
-            logger.debug("Checking child node: {}", localName);
+            if (logger.isDebugEnabled()) {
+                logger.debug("Checking child node: {}", localName);
+            }
             IdentityConstraint.Type type = null;
 
             // Determine the type of identity constraint
@@ -3007,14 +3033,36 @@ public class XsdDocumentationService {
                 }
 
                 identityConstraints.add(constraint);
-                logger.debug("Found identity constraint: {} of type {} on element {}",
-                        constraint.getName(), type, extendedElem.getElementName());
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Found identity constraint: {} of type {} on element {}",
+                            constraint.getName(), type, extendedElem.getElementName());
+                }
             }
         }
 
         if (!identityConstraints.isEmpty()) {
             extendedElem.setIdentityConstraints(identityConstraints);
         }
+    }
+
+    /**
+     * Copies the identity-constraint result from a previously-processed donor entry onto
+     * a new entry, instead of re-parsing the (XPath-independent) constraints from the DOM.
+     * Mirrors exactly the single field {@link #processIdentityConstraints} sets.
+     * The setter performs a defensive copy of the list, so the entries do not share state.
+     *
+     * @param from the donor element whose identity constraints were already parsed
+     * @param to   the new element to receive a copy of the constraints
+     */
+    private void copyIdentityConstraints(XsdExtendedElement from, XsdExtendedElement to) {
+        List<IdentityConstraint> constraints = from.getIdentityConstraints();
+        if (constraints != null && !constraints.isEmpty()) {
+            // setIdentityConstraints() makes a fresh ArrayList; IdentityConstraint instances
+            // are immutable metadata describing the definition, so sharing them is safe.
+            to.setIdentityConstraints(constraints);
+        }
+        // else: the donor node has no constraints — nothing to copy; the target keeps its
+        // default empty list (the common case, since most elements carry no key/keyref/unique).
     }
 
     /**

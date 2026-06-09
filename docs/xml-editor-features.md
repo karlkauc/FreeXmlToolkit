@@ -32,7 +32,7 @@ If you switch between the **Text** and **Graphic** sub-tabs while the search bar
 | Editor | How Search Appears |
 |--------|--------------------|
 | **XML** tab | A Find / Replace dialog (opens with Ctrl+F) |
-| **Unified Editor** | An inline search bar with up/down chevron arrows |
+| **Unified Shell** | An inline search bar with up/down chevron arrows |
 
 > **Note:** In the **Graphic** view, search is for finding and navigating only - **Replace** is not available there. To replace text, use the **Text** view.
 
@@ -92,8 +92,8 @@ Learn more: [Auto-Completion Guide](context-sensitive-intellisense.md)
 
 ## Grid Editor Mode
 
-![Grid Editor](img/xml-editor-grid-detail.png)
-*Grid editor with data cells*
+![XML Grid view in the Unified Shell](img/unified-shell-xml-grid.png)
+*The Grid view in the Unified Shell — table-like editing with the inspector*
 
 ### Edit XML Like a Spreadsheet
 
@@ -104,9 +104,33 @@ The grid editor displays your XML data in a table format, making it easy to edit
 1. Open an XML file in the XML Editor
 2. Switch to the "Grid" tab
 3. Click cells to edit values directly
-4. Switch back to "XML" tab to see the updated code
+4. Add, delete, or move nodes using the right-click context menu
+5. Select a row to view and edit its properties in the Properties inspector
+6. Switch back to "XML" tab to see the updated code
 
-Changes made in either mode are synchronized automatically.
+Changes made in any view are synchronized automatically.
+
+---
+
+## Properties Inspector
+
+> **Updated in v1.10** - You can now view **and edit** a node's properties from **all three**
+> XML views (Text, Tree, and Grid), not just the Grid view.
+
+The Properties inspector shows the details of the selected node and lets you edit them. Toggle
+it with **Ctrl+P** or the **Properties** toolbar button.
+
+- **Select a node** by moving the text caret into an element (Text view), clicking a node
+  (Tree view), or selecting a row (Grid view).
+- **Edit** the element name, namespace (prefix/URI), attributes (add/rename/remove), leaf text,
+  and the text of comments, CDATA, and processing instructions.
+- Edits are written straight back to the document text, keeping everything in sync.
+- When a schema is bound, the inspector also shows read-only hints: the schema-derived type,
+  documentation, and lists of valid child elements and example values.
+- All views share one in-memory model, so edits and Undo/Redo history carry over when you
+  switch views.
+
+See the [Properties Inspector](xml-editor.md#properties-inspector) section for full details.
 
 ---
 
@@ -137,6 +161,8 @@ The tree view shows your XML document as a hierarchical structure:
 - **Navigate**: Click on tree nodes to jump to that location in the text
 - **Understand Structure**: Quickly see how your document is organized
 - **Expand/Collapse**: Click arrows to show or hide child elements
+- **Edit Properties**: Click a node to select it and edit its properties in the
+  [Properties Inspector](#properties-inspector)
 
 ---
 
@@ -157,5 +183,4 @@ The tree view shows your XML document as a hierarchical structure:
 |-----------------------------|------------------|---------------------------|
 | [XML Editor](xml-editor.md) | [Home](index.md) | [XSD Tools](xsd-tools.md) |
 
-**All Pages:
-** [XML Editor](xml-editor.md) | [XML Features](xml-editor-features.md) | [XSD Tools](xsd-tools.md) | [XSD Validation](xsd-validation.md) | [XSLT](xslt-viewer.md) | [FOP/PDF](pdf-generator.md) | [Signatures](digital-signatures.md) | [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [Favorites](favorites-system.md) | [Templates](template-management.md) | [Tech Stack](technology-stack.md) | [Licenses](licenses.md)
+**All Pages:** [Unified Shell](unified-shell.md) | [XML Editor](xml-editor.md) | [XML Features](xml-editor-features.md) | [JSON Editor](json-editor.md) | [XSD Tools](xsd-tools.md) | [Profiled XML Generation](profiled-xml-generation.md) | [XSD Validation](xsd-validation.md) | [XSLT Viewer](xslt-viewer.md) | [XSLT Developer](xslt-developer.md) | [FOP/PDF](pdf-generator.md) | [Signatures](digital-signatures.md) | [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [FundsXML Extensions](fundsxml-extensions.md) | [Favorites](favorites-system.md) | [Templates](template-management.md) | [Tech Stack](technology-stack.md) | [Security](SECURITY.md) | [Licenses](licenses.md)
