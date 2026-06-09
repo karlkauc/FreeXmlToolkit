@@ -106,13 +106,9 @@ public class ChangeAppinfoCommand implements XsdCommand {
 
     @Override
     public boolean canMergeWith(XsdCommand other) {
-        // Allow merging consecutive appinfo changes on the same node
-        if (!(other instanceof ChangeAppinfoCommand otherCmd)) {
-            return false;
-        }
-
-        // Only merge if it's the same node
-        return this.node.getId().equals(otherCmd.node.getId());
+        // Allow merging consecutive appinfo changes on the same node (same node only)
+        return other instanceof ChangeAppinfoCommand otherCmd
+                && this.node.getId().equals(otherCmd.node.getId());
     }
 
     /**

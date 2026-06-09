@@ -75,10 +75,7 @@ public class JsonObject extends JsonNode {
      */
     public boolean removeProperty(String key) {
         JsonNode toRemove = getProperty(key);
-        if (toRemove != null) {
-            return removeChild(toRemove);
-        }
-        return false;
+        return toRemove != null && removeChild(toRemove);
     }
 
     /**

@@ -128,12 +128,8 @@ public class ChangeUseCommand implements XsdCommand {
     @Override
     public boolean canMergeWith(XsdCommand other) {
         // Allow merging consecutive use changes on the same attribute
-        if (!(other instanceof ChangeUseCommand otherCmd)) {
-            return false;
-        }
-
-        // Only merge if it's the same attribute
-        return this.attribute.getId().equals(otherCmd.attribute.getId());
+        return other instanceof ChangeUseCommand otherCmd
+                && this.attribute.getId().equals(otherCmd.attribute.getId());
     }
 
     /**

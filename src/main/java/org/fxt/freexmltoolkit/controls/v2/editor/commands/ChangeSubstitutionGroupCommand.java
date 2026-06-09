@@ -112,12 +112,8 @@ public class ChangeSubstitutionGroupCommand implements XsdCommand {
     @Override
     public boolean canMergeWith(XsdCommand other) {
         // Allow merging consecutive substitution group changes on the same element
-        if (!(other instanceof ChangeSubstitutionGroupCommand otherCmd)) {
-            return false;
-        }
-
-        // Only merge if it's the same element
-        return this.element.getId().equals(otherCmd.element.getId());
+        return other instanceof ChangeSubstitutionGroupCommand otherCmd
+                && this.element.getId().equals(otherCmd.element.getId());
     }
 
     /**

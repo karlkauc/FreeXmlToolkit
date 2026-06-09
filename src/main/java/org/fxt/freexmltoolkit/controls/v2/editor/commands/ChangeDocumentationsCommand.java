@@ -143,12 +143,8 @@ public class ChangeDocumentationsCommand implements XsdCommand {
     @Override
     public boolean canMergeWith(XsdCommand other) {
         // Allow merging consecutive documentation changes on the same node
-        if (!(other instanceof ChangeDocumentationsCommand otherCmd)) {
-            return false;
-        }
-
-        // Only merge if it's the same node
-        return this.node.getId().equals(otherCmd.node.getId());
+        return other instanceof ChangeDocumentationsCommand otherCmd
+                && this.node.getId().equals(otherCmd.node.getId());
     }
 
     @Override

@@ -130,12 +130,8 @@ public class ChangeConstraintsCommand implements XsdCommand {
     @Override
     public boolean canMergeWith(XsdCommand other) {
         // Allow merging consecutive constraint changes on the same element
-        if (!(other instanceof ChangeConstraintsCommand otherCmd)) {
-            return false;
-        }
-
-        // Only merge if it's the same element
-        return this.element.getId().equals(otherCmd.element.getId());
+        return other instanceof ChangeConstraintsCommand otherCmd
+                && this.element.getId().equals(otherCmd.element.getId());
     }
 
     /**

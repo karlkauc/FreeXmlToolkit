@@ -131,12 +131,8 @@ public class ChangeFormCommand implements XsdCommand {
     @Override
     public boolean canMergeWith(XsdCommand other) {
         // Allow merging consecutive form changes on the same node
-        if (!(other instanceof ChangeFormCommand otherCmd)) {
-            return false;
-        }
-
-        // Only merge if it's the same node
-        return this.node.getId().equals(otherCmd.node.getId());
+        return other instanceof ChangeFormCommand otherCmd
+                && this.node.getId().equals(otherCmd.node.getId());
     }
 
     /**
