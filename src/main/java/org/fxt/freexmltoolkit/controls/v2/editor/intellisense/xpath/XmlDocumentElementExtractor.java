@@ -236,17 +236,16 @@ public class XmlDocumentElementExtractor {
 
         // Also include general attributes that might not be on this element yet
         for (String attr : attributeNames) {
-            if (!attrs.contains(attr)) {
-                if (lowerPrefix.isEmpty() || attr.toLowerCase().startsWith(lowerPrefix)) {
-                    items.add(new CompletionItem.Builder(
-                            attr,
-                            attr,
-                            CompletionItemType.ATTRIBUTE
-                    )
-                            .description("XML Attribute")
-                            .relevanceScore(baseScore)
-                            .build());
-                }
+            if (!attrs.contains(attr)
+                    && (lowerPrefix.isEmpty() || attr.toLowerCase().startsWith(lowerPrefix))) {
+                items.add(new CompletionItem.Builder(
+                        attr,
+                        attr,
+                        CompletionItemType.ATTRIBUTE
+                )
+                        .description("XML Attribute")
+                        .relevanceScore(baseScore)
+                        .build());
             }
         }
 
@@ -312,18 +311,17 @@ public class XmlDocumentElementExtractor {
 
         // If no parent specified, return root element only
         if (parentElement == null) {
-            if (rootElement != null) {
-                if (prefix == null || prefix.isEmpty() ||
-                        rootElement.toLowerCase().startsWith(prefix.toLowerCase())) {
-                    items.add(new CompletionItem.Builder(
-                            rootElement,
-                            rootElement,
-                            CompletionItemType.ELEMENT
-                    )
-                            .description("Root Element")
-                            .relevanceScore(baseScore + 20)
-                            .build());
-                }
+            if (rootElement != null
+                    && (prefix == null || prefix.isEmpty()
+                    || rootElement.toLowerCase().startsWith(prefix.toLowerCase()))) {
+                items.add(new CompletionItem.Builder(
+                        rootElement,
+                        rootElement,
+                        CompletionItemType.ELEMENT
+                )
+                        .description("Root Element")
+                        .relevanceScore(baseScore + 20)
+                        .build());
             }
             return items;
         }
@@ -447,17 +445,15 @@ public class XmlDocumentElementExtractor {
 
                 String attrName = attrQName != null && !attrQName.isEmpty() ? attrQName : attrLocalName;
 
-                if (attrName != null && !attrName.isEmpty()) {
-                    // Skip xmlns declarations for attribute completions
-                    if (!attrName.startsWith("xmlns")) {
-                        attributeNames.add(attrName);
-                        attrsForElement.add(attrName);
+                // Skip xmlns declarations for attribute completions
+                if (attrName != null && !attrName.isEmpty() && !attrName.startsWith("xmlns")) {
+                    attributeNames.add(attrName);
+                    attrsForElement.add(attrName);
 
-                        // Also add local name if different
-                        if (attrLocalName != null && !attrLocalName.isEmpty() && !attrLocalName.equals(attrName)) {
-                            attributeNames.add(attrLocalName);
-                            attrsForElement.add(attrLocalName);
-                        }
+                    // Also add local name if different
+                    if (attrLocalName != null && !attrLocalName.isEmpty() && !attrLocalName.equals(attrName)) {
+                        attributeNames.add(attrLocalName);
+                        attrsForElement.add(attrLocalName);
                     }
                 }
 
