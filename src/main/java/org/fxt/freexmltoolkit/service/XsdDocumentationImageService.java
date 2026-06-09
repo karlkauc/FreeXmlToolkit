@@ -1044,12 +1044,11 @@ public class XsdDocumentationImageService {
         for (int i = 0; i < textElements.getLength(); i++) {
             Element textElement = (Element) textElements.item(i);
             String fontFamily = textElement.getAttribute("font-family");
-            if (fontFamily != null && !fontFamily.isEmpty()) {
-                // Replace complex font stack with simple one
-                if (fontFamily.contains("-apple-system") || fontFamily.contains("BlinkMacSystemFont") ||
-                        fontFamily.contains("Inter") || fontFamily.contains("Segoe UI")) {
-                    textElement.setAttribute("font-family", batikSafeFontFamily);
-                }
+            // Replace complex font stack with simple one
+            if (fontFamily != null && !fontFamily.isEmpty()
+                    && (fontFamily.contains("-apple-system") || fontFamily.contains("BlinkMacSystemFont")
+                    || fontFamily.contains("Inter") || fontFamily.contains("Segoe UI"))) {
+                textElement.setAttribute("font-family", batikSafeFontFamily);
             }
         }
 
@@ -1058,11 +1057,10 @@ public class XsdDocumentationImageService {
         for (int i = 0; i < tspanElements.getLength(); i++) {
             Element tspanElement = (Element) tspanElements.item(i);
             String fontFamily = tspanElement.getAttribute("font-family");
-            if (fontFamily != null && !fontFamily.isEmpty()) {
-                if (fontFamily.contains("-apple-system") || fontFamily.contains("BlinkMacSystemFont") ||
-                        fontFamily.contains("Inter") || fontFamily.contains("Segoe UI")) {
-                    tspanElement.setAttribute("font-family", batikSafeFontFamily);
-                }
+            if (fontFamily != null && !fontFamily.isEmpty()
+                    && (fontFamily.contains("-apple-system") || fontFamily.contains("BlinkMacSystemFont")
+                    || fontFamily.contains("Inter") || fontFamily.contains("Segoe UI"))) {
+                tspanElement.setAttribute("font-family", batikSafeFontFamily);
             }
         }
 

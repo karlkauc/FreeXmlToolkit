@@ -517,10 +517,9 @@ public class ProfiledXmlGeneratorService {
         }
 
         // Apply constraint tracking
-        if (constraintTracker != null && fixedOrDefault == null) {
-            if (constraintTracker.isConstrainedField(attrXpath) || constraintTracker.isKeyrefField(attrXpath)) {
-                attrValue = constraintTracker.getUniqueValue(attrXpath, attrValue, attr);
-            }
+        if (constraintTracker != null && fixedOrDefault == null
+                && (constraintTracker.isConstrainedField(attrXpath) || constraintTracker.isKeyrefField(attrXpath))) {
+            attrValue = constraintTracker.getUniqueValue(attrXpath, attrValue, attr);
         }
 
         sb.append(" ").append(attrName).append("=\"").append(escapeXml(attrValue)).append("\"");
@@ -554,10 +553,9 @@ public class ProfiledXmlGeneratorService {
         }
 
         // Apply constraint tracking
-        if (constraintTracker != null && !value.isEmpty()) {
-            if (constraintTracker.isConstrainedField(xpath) || constraintTracker.isKeyrefField(xpath)) {
-                value = constraintTracker.getUniqueValue(xpath, value, element);
-            }
+        if (constraintTracker != null && !value.isEmpty()
+                && (constraintTracker.isConstrainedField(xpath) || constraintTracker.isKeyrefField(xpath))) {
+            value = constraintTracker.getUniqueValue(xpath, value, element);
         }
 
         return value;

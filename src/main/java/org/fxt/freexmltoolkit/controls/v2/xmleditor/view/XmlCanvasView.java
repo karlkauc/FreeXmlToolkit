@@ -2339,11 +2339,9 @@ public class XmlCanvasView extends Pane implements XmlSearchTarget {
                     if (modelNode instanceof XmlElement element) {
                         context.executeCommand(new SetElementTextCommand(element, newValue));
                     }
-                } else if (editingRow.getType() == FlatRow.RowType.TEXT) {
+                } else if (editingRow.getType() == FlatRow.RowType.TEXT && modelNode instanceof XmlText text) {
                     // Text node
-                    if (modelNode instanceof XmlText text) {
-                        context.executeCommand(new SetTextCommand(text, newValue));
-                    }
+                    context.executeCommand(new SetTextCommand(text, newValue));
                 }
             }
 
@@ -2378,11 +2376,9 @@ public class XmlCanvasView extends Pane implements XmlSearchTarget {
             context.executeCommand(new SetAttributeCommand(rowElement, editingTableColumnName, newValue));
         } else if (col.getType() == RepeatingElementsTable.ColumnType.CHILD_ELEMENT) {
             for (XmlNode child : rowElement.getChildren()) {
-                if (child instanceof XmlElement childElement) {
-                    if (childElement.getName().equals(editingTableColumnName)) {
-                        context.executeCommand(new SetElementTextCommand(childElement, newValue));
-                        break;
-                    }
+                if (child instanceof XmlElement childElement && childElement.getName().equals(editingTableColumnName)) {
+                    context.executeCommand(new SetElementTextCommand(childElement, newValue));
+                    break;
                 }
             }
         } else if (col.getType() == RepeatingElementsTable.ColumnType.TEXT_CONTENT) {

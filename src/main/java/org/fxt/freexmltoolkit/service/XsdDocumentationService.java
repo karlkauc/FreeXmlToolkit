@@ -1083,11 +1083,9 @@ public class XsdDocumentationService {
             // For choice, we need to handle differently - usually only one child is mandatory
             // For now, we'll add the first mandatory child from the choice
             for (Node child : getDirectChildElements(contentNode)) {
-                if ("element".equals(child.getLocalName())) {
-                    if (isMandatoryElement(child)) {
-                        processMandatoryElement(child, mandatoryChildren);
-                        break; // Only take first mandatory element from choice
-                    }
+                if ("element".equals(child.getLocalName()) && isMandatoryElement(child)) {
+                    processMandatoryElement(child, mandatoryChildren);
+                    break; // Only take first mandatory element from choice
                 }
             }
         } else if ("extension".equals(localName)) {
@@ -2412,10 +2410,9 @@ public class XsdDocumentationService {
 
                 // Apply constraint tracking for attributes
                 String attrXpath = element.getCurrentXpath() + "/@" + attrName;
-                if (constraintTracker != null && fixedOrDefault == null) {
-                    if (constraintTracker.isConstrainedField(attrXpath) || constraintTracker.isKeyrefField(attrXpath)) {
-                        attrValue = constraintTracker.getUniqueValue(attrXpath, attrValue, attr);
-                    }
+                if (constraintTracker != null && fixedOrDefault == null
+                        && (constraintTracker.isConstrainedField(attrXpath) || constraintTracker.isKeyrefField(attrXpath))) {
+                    attrValue = constraintTracker.getUniqueValue(attrXpath, attrValue, attr);
                 }
 
                 sb.append(" ").append(attrName).append("=\"").append(escapeXml(attrValue)).append("\"");
