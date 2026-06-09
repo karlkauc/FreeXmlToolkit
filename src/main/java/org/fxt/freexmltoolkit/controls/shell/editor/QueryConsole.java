@@ -190,6 +190,10 @@ public class QueryConsole extends Region {
         VBox box = new VBox(8, header, modeRow, inputStack);
         box.setPadding(new Insets(8));
         box.getStyleClass().add("fxt-side-panel-content");
+        // Cap the query column so it does not get needlessly wide on large screens (a single-line
+        // XPath needs little room); the SplitPane clamps to this max and gives the slack to the
+        // results pane. On narrow screens the 0.38 divider proportion still applies (< the cap).
+        box.setMaxWidth(560);
         return box;
     }
 
