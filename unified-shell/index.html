@@ -12,7 +12,7 @@
         <meta name="author" content="Karl Kauc">
       
       
-        <link rel="canonical" href="https://karlkauc.github.io/FreeXmlToolkit/unified-editor/">
+        <link rel="canonical" href="https://karlkauc.github.io/FreeXmlToolkit/unified-shell/">
       
       
         <link rel="prev" href="..">
@@ -29,7 +29,7 @@
     
     
       
-        <title>Unified Editor - FreeXmlToolkit Documentation</title>
+        <title>Unified Shell - FreeXmlToolkit Documentation</title>
       
     
     
@@ -82,7 +82,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#unified-editor" class="md-skip">
+        <a href="#unified-shell" class="md-skip">
           Skip to content
         </a>
       
@@ -115,7 +115,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Unified Editor
+              Unified Shell
             
           </span>
         </div>
@@ -255,7 +255,7 @@
   
     
   
-  Unified Editor
+  Unified Shell
 
       </a>
     </li>
@@ -516,7 +516,7 @@
   <span class="md-ellipsis">
     
   
-    Unified Editor
+    Unified Shell
   
 
     
@@ -534,7 +534,7 @@
   <span class="md-ellipsis">
     
   
-    Unified Editor
+    Unified Shell
   
 
     
@@ -570,6 +570,34 @@
   
     <nav class="md-nav" aria-label="Overview">
       <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Layout
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Layout">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#collapsing-the-side-panels" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Collapsing the side panels
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
         
           <li class="md-nav__item">
   <a href="#key-features" class="md-nav__link">
@@ -633,6 +661,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#document-actions-type-gated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Document Actions (type-gated)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#shown-for-xml-files" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -682,10 +721,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#xsd-sub-tabs" class="md-nav__link">
+  <a href="#xsd-views-tools" class="md-nav__link">
     <span class="md-ellipsis">
       
-        XSD Sub-Tabs
+        XSD Views &amp; Tools
       
     </span>
   </a>
@@ -697,6 +736,189 @@
     <span class="md-ellipsis">
       
         XSLT Features
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#transform-panel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Transform Panel
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Transform Panel">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#choosing-a-stylesheet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Choosing a Stylesheet
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#running-and-viewing-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running and Viewing Results
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#xquery-result-table" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        XQuery Result Table
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#advanced-xslt-tools" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Advanced XSLT tools
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#validation-panel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation Panel
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Validation Panel">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#binding-a-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Binding a Schema
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schematron-tools" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Schematron Tools
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#schema-panel-sample-data-generation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Schema Panel: Sample-Data Generation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Schema Panel: Sample-Data Generation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#advanced-sample-data-generation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Advanced Sample-Data Generation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#inspector-xsd-properties" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Inspector (XSD Properties)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#signature-panel-trust-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Signature Panel: Trust Validation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#settings-panel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Settings Panel
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#welcome-dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Welcome / Dashboard
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#status-bar" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Status Bar
       
     </span>
   </a>
@@ -733,6 +955,106 @@
       
     </span>
   </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#properties-inspector" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Properties Inspector
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Properties Inspector">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#xml-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        XML Files
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#xsd-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        XSD Files
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#editor-toolbar-document-actions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Editor Toolbar Document Actions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#query-console" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Query Console
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Query Console">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#layout_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Layout
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#running-a-query" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running a Query
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#saving-and-loading-snippets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Saving and Loading Snippets
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -776,10 +1098,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#relationship-to-other-editor-pages" class="md-nav__link">
+  <a href="#where-the-former-tabs-went" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Relationship to Other Editor Pages
+        Where the former tabs went
       
     </span>
   </a>
@@ -1853,6 +2175,34 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Layout
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Layout">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#collapsing-the-side-panels" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Collapsing the side panels
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#key-features" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1914,6 +2264,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#document-actions-type-gated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Document Actions (type-gated)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#shown-for-xml-files" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1963,10 +2324,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#xsd-sub-tabs" class="md-nav__link">
+  <a href="#xsd-views-tools" class="md-nav__link">
     <span class="md-ellipsis">
       
-        XSD Sub-Tabs
+        XSD Views &amp; Tools
       
     </span>
   </a>
@@ -1978,6 +2339,189 @@
     <span class="md-ellipsis">
       
         XSLT Features
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#transform-panel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Transform Panel
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Transform Panel">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#choosing-a-stylesheet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Choosing a Stylesheet
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#running-and-viewing-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running and Viewing Results
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#xquery-result-table" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        XQuery Result Table
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#advanced-xslt-tools" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Advanced XSLT tools
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#validation-panel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation Panel
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Validation Panel">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#binding-a-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Binding a Schema
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schematron-tools" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Schematron Tools
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#schema-panel-sample-data-generation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Schema Panel: Sample-Data Generation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Schema Panel: Sample-Data Generation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#advanced-sample-data-generation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Advanced Sample-Data Generation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#inspector-xsd-properties" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Inspector (XSD Properties)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#signature-panel-trust-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Signature Panel: Trust Validation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#settings-panel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Settings Panel
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#welcome-dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Welcome / Dashboard
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#status-bar" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Status Bar
       
     </span>
   </a>
@@ -2014,6 +2558,106 @@
       
     </span>
   </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#properties-inspector" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Properties Inspector
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Properties Inspector">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#xml-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        XML Files
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#xsd-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        XSD Files
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#editor-toolbar-document-actions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Editor Toolbar Document Actions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#query-console" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Query Console
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Query Console">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#layout_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Layout
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#running-a-query" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running a Query
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#saving-and-loading-snippets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Saving and Loading Snippets
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -2057,10 +2701,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#relationship-to-other-editor-pages" class="md-nav__link">
+  <a href="#where-the-former-tabs-went" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Relationship to Other Editor Pages
+        Where the former tabs went
       
     </span>
   </a>
@@ -2087,28 +2731,82 @@
   
 
 
-<h1 id="unified-editor">Unified Editor<a class="headerlink" href="#unified-editor" title="Permanent link">&para;</a></h1>
+<h1 id="unified-shell">Unified Shell<a class="headerlink" href="#unified-shell" title="Permanent link">&para;</a></h1>
 <blockquote>
-<p><strong>New in v1.7</strong> - A multi-file editor that combines XML, XSD, XSLT, Schematron, and JSON editing in one view.</p>
+<p>The application opens directly into the <strong>Unified Shell</strong> - one workspace that
+combines XML, XSD, XSLT, Schematron and JSON editing with all the validation,
+transformation, signing and documentation tools. The separate legacy tabs have
+been consolidated here.</p>
 </blockquote>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
-<p>The Unified Editor lets you work with multiple related files simultaneously in a single tabbed interface. Instead of switching between different editor pages, you can open XML files alongside their XSD schemas, XSLT stylesheets, and Schematron rules - all in one place.</p>
+<p>The Unified Shell is the single workspace for everything FreeXmlToolkit does. Instead of
+switching between separate editor pages, you open files as tabs in the central <strong>editor
+host</strong> and reach every tool through the <strong>activity bar</strong> on the left. You can work with an
+XML file next to its XSD schema, XSLT stylesheets and Schematron rules at the same time.</p>
+<p><img alt="Unified Shell overview" src="../img/unified-shell-overview.png" />
+<em>The Unified Shell: activity bar (left), Explorer side panel, editor host with an XML file
+(Text/Tree/Graphic/Grid view toggle), the Properties inspector (right) and the status bar.</em></p>
+<h3 id="layout">Layout<a class="headerlink" href="#layout" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Area</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Activity bar</strong> (far left)</td>
+<td>Switch tools / side panels: Explorer, Transform, Validation, Signature, Type Library, FOP/PDF, Favorites, Settings, Help. <strong>Always visible</strong> - it cannot be collapsed.</td>
+</tr>
+<tr>
+<td><strong>Side panel</strong></td>
+<td>The panel for the selected activity (e.g. the Transform panel, the Validation panel). <strong>Collapsible</strong> (see <a href="#collapsing-the-side-panels">Collapsing the side panels</a>).</td>
+</tr>
+<tr>
+<td><strong>Editor host</strong> (center)</td>
+<td>Tabs of open documents, each with view modes - Text, Tree, Graphic (XSD), Grid (XML).</td>
+</tr>
+<tr>
+<td><strong>Inspector</strong> (right)</td>
+<td>View <strong>and edit</strong> the selected node's properties from any view. <strong>Collapsible</strong> (see <a href="#collapsing-the-side-panels">Collapsing the side panels</a>).</td>
+</tr>
+<tr>
+<td><strong>Status bar</strong> (bottom)</td>
+<td>Caret position, validation status and a memory indicator.</td>
+</tr>
+</tbody>
+</table>
+<h4 id="collapsing-the-side-panels">Collapsing the side panels<a class="headerlink" href="#collapsing-the-side-panels" title="Permanent link">&para;</a></h4>
+<p>Both the <strong>left side panel</strong> and the <strong>right Properties inspector</strong> can be collapsed to give the
+editor more room - the activity bar always stays visible.</p>
+<ul>
+<li><strong>Collapse</strong>: click the discreet double-chevron at the panel's inner edge (<code>&lt;&lt;</code> on the left
+  panel, <code>&gt;&gt;</code> on the inspector). The panel is hidden completely.</li>
+<li><strong>Re-open</strong>: click the matching toggle button in the editor toolbar (left-most toggle for the
+  side panel, right-most for the inspector) - the same mechanism on both sides. Selecting any
+  activity from the activity bar also re-opens the left side panel.</li>
+<li>The collapsed/expanded state is <strong>remembered across restarts</strong> and can also be changed under
+  <strong>Settings → General</strong> ("Show left side panel" / "Show Properties (inspector) panel").</li>
+</ul>
 <h3 id="key-features">Key Features<a class="headerlink" href="#key-features" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Multi-tab editing</strong> - Open multiple files of different types in one view</li>
 <li><strong>Automatic file type detection</strong> - Files are recognized by extension (.xml, .xsd, .xsl, .sch, .json)</li>
-<li><strong>Linked file detection</strong> - Automatically discovers related files (imported schemas, included stylesheets)</li>
-<li><strong>Unified toolbar</strong> - Common operations (Save, Validate, Format) work across all file types</li>
-<li><strong>Context-sensitive tools</strong> - Toolbar buttons change based on the active file type</li>
-<li><strong>Integrated XPath/XQuery</strong> - Query panel works with any XML-based file</li>
-<li><strong>Search &amp; Replace</strong> - Unified search across all editor types; in XML files it works in both the Text and Graphic views (see note below)</li>
+<li><strong>View modes per document</strong> - Text, Tree, Graphic (XSD) and Grid (XML), all over one shared model</li>
+<li><strong>Inspector editing everywhere</strong> - edit node properties from the Text, Tree, Grid and Graphic views, not just one</li>
+<li><strong>Integrated XPath/XQuery</strong> - a bottom <a href="#query-console">Query Console</a> queries the active
+  XML/JSON file right from the editor (Ctrl+Shift+X)</li>
+<li><strong>Editor toolbar actions</strong> - run <a href="#editor-toolbar-document-actions">Validate, Transform, Generate Documentation and Open Type
+  Editor</a> for the active document without switching activities</li>
+<li><strong>Search &amp; Replace</strong> - Ctrl+F / Ctrl+H across the editor</li>
 <li><strong>Favorites</strong> - Quick access to frequently used files</li>
 </ul>
 <h2 id="getting-started">Getting Started<a class="headerlink" href="#getting-started" title="Permanent link">&para;</a></h2>
 <ol>
-<li>Click <strong>"Editor"</strong> in the sidebar (or it opens automatically on startup)</li>
-<li>Click <strong>New</strong> to create a new file, or <strong>Open</strong> to load existing files</li>
-<li>Files open as tabs - switch between them by clicking the tab headers</li>
+<li>The Unified Shell opens automatically on startup.</li>
+<li>Use the <strong>Explorer</strong> activity (or <strong>File → Open</strong>) to open files; <strong>File → New</strong> creates a new file.</li>
+<li>Files open as tabs in the editor host - switch tabs by clicking their headers, and switch view modes (Text / Tree / Graphic / Grid) with the view toggle.</li>
 </ol>
 <h2 id="supported-file-types">Supported File Types<a class="headerlink" href="#supported-file-types" title="Permanent link">&para;</a></h2>
 <table>
@@ -2148,7 +2846,9 @@
 </tbody>
 </table>
 <h2 id="toolbar">Toolbar<a class="headerlink" href="#toolbar" title="Permanent link">&para;</a></h2>
-<p>The toolbar provides common operations and context-sensitive buttons:</p>
+<p>The toolbar provides common operations and context-sensitive buttons. The action icons wrap
+onto a second row when the editor area is narrow, so <strong>every action stays visible and clickable</strong>
+(there is no hidden "overflow" menu).</p>
 <h3 id="always-visible">Always Visible<a class="headerlink" href="#always-visible" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>New</strong> - Create XML, XSD, XSLT, Schematron, or JSON files</li>
@@ -2166,6 +2866,21 @@
 <li><strong>Templates</strong> (Ctrl+T) - XML template system</li>
 <li><strong>Generator</strong> (Ctrl+G) - Generate XSD from XML</li>
 <li><strong>Tools</strong> - Open FOP (PDF Generation) or Digital Signatures as tool tabs</li>
+<li><strong>Query Console</strong> (Ctrl+Shift+X) - Toggle the bottom XPath/XQuery console (terminal icon)</li>
+</ul>
+<h3 id="document-actions-type-gated">Document Actions (type-gated)<a class="headerlink" href="#document-actions-type-gated" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p><strong>New in June 2026</strong> - Run the most common per-document operations straight from the editor
+toolbar, without switching the left activity bar.</p>
+</blockquote>
+<p>These toolbar buttons act on the <strong>active document</strong> and only light up when they apply to its
+type. Each one opens its result as a tool tab. See
+<a href="#editor-toolbar-document-actions">Editor Toolbar Document Actions</a> below.</p>
+<ul>
+<li><strong>Validate</strong> - Validate the active document (XML, XSD, XSLT, Schematron, JSON).</li>
+<li><strong>Transform with XSLT…</strong> - Pick a stylesheet and transform the active <strong>XML</strong> document.</li>
+<li><strong>Generate Documentation…</strong> - Generate HTML/PDF/Word documentation for the active <strong>XSD</strong>.</li>
+<li><strong>Open Type Editor…</strong> - Pick a named type from the active <strong>XSD</strong> and edit it in a focused tab.</li>
 </ul>
 <h3 id="shown-for-xml-files">Shown for XML Files<a class="headerlink" href="#shown-for-xml-files" title="Permanent link">&para;</a></h3>
 <ul>
@@ -2185,14 +2900,25 @@
 <h2 id="panel-toggles">Panel Toggles<a class="headerlink" href="#panel-toggles" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>Linked</strong> (Ctrl+L) - Show/hide linked files panel</li>
-<li><strong>XPath</strong> (Ctrl+Shift+X) - Show/hide XPath/XQuery query panel</li>
-<li><strong>Properties</strong> (Ctrl+Shift+P) - Show/hide properties and validation sidebar</li>
+<li><strong>Query Console</strong> (Ctrl+Shift+X) - Show/hide the bottom XPath/XQuery query console (terminal
+  icon in the editor toolbar). See <a href="#query-console">Query Console</a> below.</li>
+<li><strong>Properties</strong> (Ctrl+Shift+P) - Show/hide properties and validation sidebar. For XML files,
+  the properties inspector lets you view <strong>and edit</strong> a node's properties (element name,
+  namespace, attributes, and text content) from <strong>all three</strong> views - Text, Tree, and Grid -
+  not just the Grid view. For XSD files, the same inspector lets you edit a schema node's
+  properties from <strong>all three</strong> XSD views - Text, Tree, and Graphic. See
+  <a href="#properties-inspector">Properties Inspector</a> below.</li>
 <li><strong>Favorites</strong> (Ctrl+Shift+B) - Show/hide favorites panel</li>
 </ul>
-<h2 id="xsd-sub-tabs">XSD Sub-Tabs<a class="headerlink" href="#xsd-sub-tabs" title="Permanent link">&para;</a></h2>
-<p>When editing an XSD file, the editor provides additional sub-tabs:</p>
+<h2 id="xsd-views-tools">XSD Views &amp; Tools<a class="headerlink" href="#xsd-views-tools" title="Permanent link">&para;</a></h2>
+<p>When editing an XSD file, the editor host and the <strong>Schema</strong> activity provide:</p>
+<p><img alt="XSD schema in the Graphic view" src="../img/unified-shell-schema-graphic.png" />
+<em>An XSD open in the Graphic view, with the Schema activity panel (Type Library, Flatten,
+Statistics, Schema Quality, Generate Sample XML / Documentation) on the left.</em></p>
+<p><img alt="XSD schema in the Tree view" src="../img/unified-shell-schema-tree.png" />
+<em>The same schema in the Tree view - select a node to edit its properties in the inspector.</em></p>
 <ul>
-<li><strong>Text</strong> - Source code editing with syntax highlighting</li>
+<li><strong>Text</strong> - Source code editing with syntax highlighting; moving the caret into a schema construct also lets you edit its properties in the Properties pane (see <a href="#properties-inspector">Properties Inspector</a>)</li>
 <li><strong>Graphic</strong> - Visual XMLSpy-style schema diagram</li>
 <li><strong>Type Library</strong> - Browse all types with filtering, search, and usage counts</li>
 <li><strong>Type Editor</strong> - Edit ComplexTypes graphically, SimpleTypes with form editor</li>
@@ -2212,6 +2938,275 @@
 <li><strong>Debug</strong> tab - Messages, warnings, template execution trace</li>
 <li><strong>Open in Browser</strong> - View HTML output in default browser</li>
 </ul>
+<h2 id="transform-panel">Transform Panel<a class="headerlink" href="#transform-panel" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p><strong>New in June 2026</strong> - Added recent-stylesheet history, a watch-and-rerun option,
+result timing, and an XQuery result table.</p>
+</blockquote>
+<p>The <strong>Transform</strong> panel (open it from the <strong>Transform</strong> icon in the activity bar on the
+left) runs XSLT transformations and XQuery expressions against the active XML document.</p>
+<h3 id="choosing-a-stylesheet">Choosing a Stylesheet<a class="headerlink" href="#choosing-a-stylesheet" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Set XSLT…</strong> - Pick the XSLT stylesheet to apply.</li>
+<li><strong>Recent</strong> - A drop-down menu listing the XSLT stylesheets you used most recently, so you
+  can reapply one in a single click. The menu also offers <strong>Clear recent</strong> to empty the list.</li>
+<li><strong>Watch file</strong> - When checked, the transform re-runs automatically whenever the chosen
+  stylesheet changes on disk. This is handy while you edit a stylesheet in another tool and
+  want to see the effect immediately.</li>
+</ul>
+<h3 id="running-and-viewing-results">Running and Viewing Results<a class="headerlink" href="#running-and-viewing-results" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Set an XSLT stylesheet (or type an XQuery, see below).</li>
+<li>Click <strong>Transform</strong> (XSLT) or <strong>Run XQuery</strong> (XQuery).</li>
+<li>The result appears in the <strong>RESULT</strong> area.</li>
+</ol>
+<p>The RESULT header shows a compact <strong>timing stat</strong> in the form <code>N ms · M chars</code> so you can
+see how long the run took and how large the output is.</p>
+<ul>
+<li><strong>Browser</strong> - Opens the result (typically HTML) in your system web browser.</li>
+</ul>
+<h3 id="xquery-result-table">XQuery Result Table<a class="headerlink" href="#xquery-result-table" title="Permanent link">&para;</a></h3>
+<p>The RESULT area has a <strong>Text / Table</strong> toggle:</p>
+<ul>
+<li><strong>Text</strong> - Shows the raw result as text (the default).</li>
+<li><strong>Table</strong> - When an XQuery returns a <strong>sequence</strong> of items, the result is shown as a table.
+  Each item becomes a row, and the columns are taken from each item's child elements (or, if
+  an item has no child elements, its attributes). A sequence of plain values is shown in a
+  single <strong>value</strong> column.</li>
+</ul>
+<p>To use it, write an XQuery that returns a sequence (for example
+<code>for $x in /root/item return $x</code>), click <strong>Run XQuery</strong>, then switch the toggle to <strong>Table</strong>.</p>
+<h3 id="advanced-xslt-tools">Advanced XSLT tools<a class="headerlink" href="#advanced-xslt-tools" title="Permanent link">&para;</a></h3>
+<p>The Transform side panel's <strong>Advanced</strong> section adds:</p>
+<ul>
+<li><strong>Debug</strong> - opens the stylesheet as a document with a breakpoint gutter and a
+  Debug tool tab (step into/over/out, continue, stop; variables, call stack,
+  breakpoints, and XPath watches).</li>
+<li><strong>Batch…</strong> - runs the active stylesheet/XQuery over many XML files, with
+  per-file results and "Save All".</li>
+<li><strong>Profile</strong> / <strong>Trace</strong> - when checked, a transform also opens a read-only
+  Profile (timings + per-template execution times) or Trace (template matches +
+  <code>xsl:message</code> output) tool tab.</li>
+</ul>
+<p>The XQuery console offers built-in <strong>Examples</strong> (simple, FLWOR, HTML report,
+data-quality check).</p>
+<blockquote>
+<p>XSLT version selection (1.0/2.0/3.0) is intentionally not offered: Saxon HE
+auto-detects the version from the stylesheet's <code>version</code> attribute, so an
+explicit selector would be cosmetic.</p>
+</blockquote>
+<h2 id="validation-panel">Validation Panel<a class="headerlink" href="#validation-panel" title="Permanent link">&para;</a></h2>
+<p>Open the <strong>Validation</strong> panel from the activity bar to validate the active document.</p>
+<h3 id="binding-a-schema">Binding a Schema<a class="headerlink" href="#binding-a-schema" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Set XSD…</strong> - Pick an XSD schema to validate the document against.</li>
+<li><strong>Favorites</strong> - A quick-select menu that lists your favorited XSD schemas. Pick one to bind
+  it in a single click, without browsing the file system. (See <a href="../favorites-system/">Favorites</a>.)</li>
+<li><strong>Schematron…</strong> - Pick a Schematron file to apply business-rule validation.</li>
+</ul>
+<h3 id="schematron-tools">Schematron Tools<a class="headerlink" href="#schematron-tools" title="Permanent link">&para;</a></h3>
+<p>When a Schematron file is involved, the panel offers a set of Schematron tools:</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>What It Does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Rule Templates</strong></td>
+<td>Insert ready-made Schematron rule patterns</td>
+</tr>
+<tr>
+<td><strong>Tester</strong></td>
+<td>Run the Schematron rules against an XML file</td>
+</tr>
+<tr>
+<td><strong>Rule Builder</strong></td>
+<td>Build rules visually</td>
+</tr>
+<tr>
+<td><strong>Check Rules</strong></td>
+<td>Run an error detector over the Schematron itself and show a categorised issue table</td>
+</tr>
+<tr>
+<td><strong>Documentation</strong></td>
+<td>Open the Schematron documentation generator</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Check Rules (new in June 2026)</strong> inspects the Schematron file for problems and lists them
+by category - XML syntax, structural, XPath, semantic, and best-practice issues - so you can
+fix mistakes in the rules before you rely on them. See
+<a href="../schematron-support/">Schematron Validation</a> for details.</p>
+</blockquote>
+<h2 id="schema-panel-sample-data-generation">Schema Panel: Sample-Data Generation<a class="headerlink" href="#schema-panel-sample-data-generation" title="Permanent link">&para;</a></h2>
+<p>Open the <strong>Schema</strong> panel from the activity bar while an XSD file is active. Alongside type
+browsing, the panel offers actions to generate sample XML from the schema:</p>
+<ul>
+<li><strong>Generate Sample XML</strong> - The simple generator. It builds one sample document using
+  mandatory-only / maximum-occurrence options and realistic example values.</li>
+<li><strong>Generate Sample XML (Advanced)…</strong> - Opens a dialog for full control over how the sample
+  data is built (see below).</li>
+</ul>
+<h3 id="advanced-sample-data-generation">Advanced Sample-Data Generation<a class="headerlink" href="#advanced-sample-data-generation" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p><strong>New in June 2026</strong> - A rule-based generator with per-XPath strategies, batch output, and
+reusable profiles.</p>
+</blockquote>
+<p>The advanced dialog turns the schema's XPaths into an editable table. For each XPath you
+choose a generation <strong>Strategy</strong> plus a value or pattern:</p>
+<table>
+<thead>
+<tr>
+<th>Strategy</th>
+<th>What It Produces</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Auto</strong></td>
+<td>Type-based automatic value (the default)</td>
+</tr>
+<tr>
+<td><strong>Fixed Value</strong></td>
+<td>A fixed literal you type</td>
+</tr>
+<tr>
+<td><strong>Sequence</strong></td>
+<td>An auto-incrementing value from a pattern (for example <code>ORD-{seq:4}</code>)</td>
+</tr>
+<tr>
+<td><strong>Enum Cycle</strong></td>
+<td>Cycles through the allowed enumeration values</td>
+</tr>
+<tr>
+<td><strong>Template</strong></td>
+<td>A string built from a template with placeholders</td>
+</tr>
+<tr>
+<td><strong>Random from List</strong></td>
+<td>A random pick from a comma-separated list</td>
+</tr>
+<tr>
+<td><strong>XPath Reference</strong></td>
+<td>Copies the value from another XPath</td>
+</tr>
+<tr>
+<td><strong>XSD Example</strong></td>
+<td>An example value taken from the schema's annotations</td>
+</tr>
+<tr>
+<td><strong>Omit / Empty / Null</strong></td>
+<td>Skip the node, leave it empty, or set <code>xsi:nil</code></td>
+</tr>
+</tbody>
+</table>
+<p>You can also set <strong>batch options</strong> - a <strong>count</strong> and a <strong>file-name pattern</strong> (for example
+<code>order_001.xml</code>, <code>order_002.xml</code>) - and <strong>Save</strong> / <strong>Load</strong> named <strong>profiles</strong> so you can reuse
+a configuration later.</p>
+<p>The dialog can either generate a <strong>single document</strong> (which opens in a new tab) or a <strong>batch</strong>
+of files written to a folder you choose. For a full walkthrough, see
+<a href="../profiled-xml-generation/">Profiled XML Generation</a> and the
+<a href="../xsd-tools/#7-sample-xml-generator">Sample XML Generator</a> section of the XSD Tools guide.</p>
+<h2 id="inspector-xsd-properties">Inspector (XSD Properties)<a class="headerlink" href="#inspector-xsd-properties" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p><strong>New in June 2026</strong> - The XSD Properties inspector gained app-info editing, multi-language
+documentation, comment editing, and constraint deletion.</p>
+</blockquote>
+<p>When an XSD file is open, the <strong>Properties</strong> inspector (Ctrl+Shift+P) shows the selected schema
+node. In addition to name, type, cardinality, facets, and constraints, you can now:</p>
+<ul>
+<li><strong>Edit the node's <code>xs:appinfo</code></strong> - The machine-readable metadata attached to the node.</li>
+<li><strong>Edit multi-language <code>xs:documentation</code></strong> - One row per language. Use <strong>Add language</strong> to add
+  a translation and the <strong>✕</strong> button to remove one.</li>
+<li><strong>Edit comments</strong> - Select an XSD comment in the tree to edit its text. To add a new comment,
+  use <strong>Add Comment…</strong> in a node's right-click context menu.</li>
+<li><strong>Delete a constraint</strong> - In the <strong>CONSTRAINTS</strong> section, select a <code>key</code>, <code>keyref</code>, <code>unique</code>,
+  or <code>assert</code> constraint and click <strong>Delete constraint</strong> to remove it.</li>
+</ul>
+<h2 id="signature-panel-trust-validation">Signature Panel: Trust Validation<a class="headerlink" href="#signature-panel-trust-validation" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p><strong>New in June 2026</strong> - Real trust-chain validation against a trust store.</p>
+</blockquote>
+<p>The <strong>Signature</strong> panel (open it from the activity bar) signs and validates XML signatures.
+Alongside <strong>Sign</strong>, the basic <strong>Validate</strong>, the detailed <strong>Validate (Details)</strong>, and
+<strong>Create Certificate</strong>, it now offers:</p>
+<ul>
+<li><strong>Validate (Trust)</strong> - Performs full PKIX validation of the signing certificate chain against
+  a <strong>trust store</strong>, producing a trust report (trusted / trust anchor / revocation / timestamp).</li>
+<li><strong>Trust store…</strong> - Choose the trust store to validate against. It defaults to the JVM's
+  built-in <code>cacerts</code> store.</li>
+<li><strong>Check revocation (OCSP/CRL)</strong> - When checked, the validation also checks whether the
+  certificate has been revoked, using OCSP or CRL.</li>
+</ul>
+<p>See <a href="../digital-signatures/">XML Digital Signatures</a> for full details.</p>
+<h2 id="settings-panel">Settings Panel<a class="headerlink" href="#settings-panel" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p><strong>Expanded in June 2026</strong> - The Settings panel now exposes the full application
+configuration, grouped into sections.</p>
+</blockquote>
+<p>Open the <strong>Settings</strong> panel from the gear icon at the bottom of the activity bar. Change any
+option and click <strong>Save Settings</strong> to apply (theme changes apply immediately).</p>
+<table>
+<thead>
+<tr>
+<th>Section</th>
+<th>Options</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Theme</strong></td>
+<td>Switch between <strong>Light</strong> and <strong>Dark</strong>.</td>
+</tr>
+<tr>
+<td><strong>Editor</strong></td>
+<td>XML indent and JSON indent (spaces); <strong>Auto-format after loading</strong>; <strong>Pretty-print XSD on save</strong>; <strong>Pretty-print Schematron on load</strong>.</td>
+</tr>
+<tr>
+<td><strong>XSD</strong></td>
+<td><strong>Auto-save</strong> (with an interval in minutes); <strong>Create backups on save</strong> (with the number of versions to keep, and an optional <strong>separate backup directory</strong>).</td>
+</tr>
+<tr>
+<td><strong>Parser</strong></td>
+<td><strong>XML parser</strong> engine (Xerces or Saxon); <strong>Allow XSLT extension functions</strong>.</td>
+</tr>
+<tr>
+<td><strong>Temp &amp; Cache</strong></td>
+<td><strong>Use system temp folder</strong> or a custom temp folder; <strong>Clear Temp Folder</strong> to free disk space.</td>
+</tr>
+<tr>
+<td><strong>General</strong></td>
+<td><strong>Check for updates on startup</strong>; <strong>Use small icons</strong>.</td>
+</tr>
+<tr>
+<td><strong>HTTP Proxy</strong></td>
+<td><strong>Use system proxy</strong>, or enter a proxy host and port.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="welcome-dashboard">Welcome / Dashboard<a class="headerlink" href="#welcome-dashboard" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p><strong>New in June 2026</strong> - The welcome screen now shows live statistics and quick tips.</p>
+</blockquote>
+<p>When no document is open, the editor shows a welcome dashboard with:</p>
+<ul>
+<li><strong>Stat cards</strong> - At-a-glance counts of your <strong>Recent files</strong>, <strong>Favorites</strong>, <strong>Templates</strong>,
+  and <strong>Saved queries</strong>.</li>
+<li><strong>Tips banner</strong> - A short hint banner with handy shortcuts (for example, drag a file onto the
+  window to open it, or use Ctrl+F / Ctrl+H to find and replace).</li>
+<li><strong>Recent files</strong> list - Click an entry to reopen it.</li>
+</ul>
+<h2 id="status-bar">Status Bar<a class="headerlink" href="#status-bar" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p><strong>New in June 2026</strong> - A memory monitor was added to the status bar.</p>
+</blockquote>
+<p>The status bar at the bottom of the window includes a <strong>memory monitor</strong> showing the JVM heap
+usage as <strong>used / max MB</strong>. <strong>Click it</strong> to run garbage collection, which can free memory after
+working with large files.</p>
 <h2 id="keyboard-shortcuts">Keyboard Shortcuts<a class="headerlink" href="#keyboard-shortcuts" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -2267,7 +3262,7 @@
 </tr>
 <tr>
 <td>Ctrl+Shift+X</td>
-<td>Toggle XPath panel</td>
+<td>Toggle Query Console (XPath/XQuery)</td>
 </tr>
 <tr>
 <td>Ctrl+Shift+P</td>
@@ -2344,16 +3339,167 @@ any error to jump straight to its location:</p>
 <li>In the <strong>Graphic</strong> view the matching element is selected, flashed, and scrolled into view.</li>
 <li>In split mode both views navigate at once.</li>
 </ul>
+<h2 id="properties-inspector">Properties Inspector<a class="headerlink" href="#properties-inspector" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p><strong>Updated in v1.10</strong> - For XML files, property editing works in <strong>all</strong> XML views (Text, Tree,
+and Grid). Previously it was available only in the Grid view.</p>
+<p><strong>Updated June 2026</strong> - For XSD files, property editing now works in the <strong>Text</strong> view too,
+matching the Tree and Graphic views. See <a href="#xsd-files">XSD Files</a> below.</p>
+</blockquote>
+<h3 id="xml-files">XML Files<a class="headerlink" href="#xml-files" title="Permanent link">&para;</a></h3>
+<p>When an XML file is open, the Properties sidebar (Ctrl+Shift+P) shows the selected node and
+lets you edit it from whichever view you are in:</p>
+<ul>
+<li><strong>Text view</strong> - Move the text caret into an element to select it. The inspector shows the
+  element's name, namespace, attributes, and text as editable fields, plus read-only,
+  schema-derived hints (type, documentation, valid child elements, and example values) when a
+  schema is bound. Edits round-trip into the source as a minimal change that preserves your
+  caret and scroll position. If the caret is not inside a well-formed element, the inspector
+  falls back to a read-only name/XPath view.</li>
+<li><strong>Tree view</strong> - Click any node (element, text, comment, CDATA, or processing instruction) to
+  edit its properties.</li>
+<li><strong>Grid view</strong> - Select a row to edit its properties. The Grid view also handles structural
+  editing (adding, deleting, and moving nodes) through its right-click context menu.</li>
+</ul>
+<p>All three views share one in-memory model per open document, so your edits and Undo/Redo
+history are preserved when you switch between Text, Tree, and Grid.</p>
+<h3 id="xsd-files">XSD Files<a class="headerlink" href="#xsd-files" title="Permanent link">&para;</a></h3>
+<p>When an XSD (schema) file is open, the Properties sidebar shows the selected schema node and
+lets you edit it from whichever view you are in. XSD files have three views - <strong>Text</strong>, <strong>Tree</strong>,
+and <strong>Graphic</strong> (there is no Grid view for XSD):</p>
+<ul>
+<li><strong>Tree</strong> and <strong>Graphic</strong> views - Select a schema node to edit its name, type,
+  cardinality/occurrence, use, form, constraints, documentation, and facets. (Unchanged.)</li>
+<li><strong>Text</strong> view - Move the text caret into an XSD construct (such as an <code>xs:element</code>,
+  <code>xs:complexType</code>, <code>xs:simpleType</code>, <code>xs:attribute</code>, a compositor, or a facet) to select the
+  matching schema node and edit the same properties you would in the Tree and Graphic views -
+  without leaving the source editor. Edits round-trip into the schema text as a minimal change
+  that preserves your caret and scroll position. If the caret is not inside a recognizable
+  construct (for example inside an <code>xs:annotation</code>, a comment, or blank space), the pane falls
+  back to a read-only caret/XPath view.</li>
+</ul>
+<p>All three XSD views share one in-memory schema model, so your edits and Undo/Redo history are
+preserved when you switch between Text, Tree, and Graphic. Structural editing (adding, deleting,
+and moving nodes) remains a Tree/Graphic capability through the right-click context menu.</p>
+<h2 id="editor-toolbar-document-actions">Editor Toolbar Document Actions<a class="headerlink" href="#editor-toolbar-document-actions" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p><strong>New in June 2026</strong> - Trigger per-document operations from the editor toolbar without leaving
+the editor or switching the left activity bar.</p>
+</blockquote>
+<p>The editor toolbar includes a group of <strong>document-action</strong> buttons that act on the <strong>active
+document</strong>. Each button is <strong>type-gated</strong>: it is enabled only when the action applies to the
+active document's type, and disabled (greyed out) otherwise. Each action's output opens as a
+<strong>tool tab</strong>.</p>
+<table>
+<thead>
+<tr>
+<th>Action</th>
+<th>Applies to</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Validate</strong></td>
+<td>XML, XSD, XSLT, Schematron, JSON</td>
+<td>Validates the active document and lists any problems (or reports it is valid / well-formed). For an XML document this uses the bound XSD/Schematron if one is set; JSON is checked for well-formedness.</td>
+</tr>
+<tr>
+<td><strong>Transform with XSLT…</strong></td>
+<td>XML</td>
+<td>Prompts you to pick an XSLT stylesheet, then transforms the active XML with it and shows the output.</td>
+</tr>
+<tr>
+<td><strong>Generate Documentation…</strong></td>
+<td>XSD</td>
+<td>Lets you choose a format - <strong>HTML</strong>, <strong>PDF</strong>, or <strong>Word</strong> - and an output location, then generates the schema documentation there.</td>
+</tr>
+<tr>
+<td><strong>Open Type Editor…</strong></td>
+<td>XSD</td>
+<td>Lets you pick one of the schema's named types and opens it in a focused Type Editor tab.</td>
+</tr>
+</tbody>
+</table>
+<p>These actions reuse the same engines as the corresponding activity-bar panels - they are simply a
+faster way to reach them. In this version, <strong>Transform with XSLT…</strong> produces <strong>XML</strong> output with no
+parameters; for output-format options, parameters, recent stylesheets, and watch-and-rerun, use the
+<a href="#transform-panel">Transform Panel</a>.</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Generate Documentation works from the schema's <strong>last-saved</strong> version on disk so that relative
+<code>xs:include</code> / <code>xs:import</code> references resolve correctly. <strong>Save</strong> the XSD first to document your
+latest edits.</p>
+</div>
+<h2 id="query-console">Query Console<a class="headerlink" href="#query-console" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p><strong>New in June 2026</strong> - Run XPath and XQuery against the open document right from the editor,
+without switching to the Transform activity.</p>
+</blockquote>
+<p>The <strong>Query Console</strong> is a panel that opens along the <strong>bottom of the editor</strong>. Toggle it with the
+<strong>terminal icon</strong> in the editor toolbar or with <strong>Ctrl+Shift+X</strong>. It runs against whichever
+document is currently active, so it is the fastest way to probe an XML or JSON file while you work.</p>
+<p><img alt="Query Console docked at the bottom of the editor" src="../img/unified-shell-query-console.png" />
+<em>The Query Console with IntelliSense: typing <code>/</code> in the XPath input opens the completion popup
+(document elements and axes). The mode toggle and Run are on the left, the results pane with
+Copy on the right.</em></p>
+<h3 id="layout_1">Layout<a class="headerlink" href="#layout_1" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Left - the query:</strong></li>
+<li>An <strong>XPath / XQuery</strong> mode toggle.</li>
+<li>The query input <strong>with IntelliSense</strong> (autocomplete): suggestions pop up as you type after
+    <code>/</code>, <code>//</code>, <code>@</code>, <code>[</code>, <code>(</code>, <code>$</code> and <code>::</code>, or on demand with <strong>Ctrl+Space</strong>. It suggests element
+    and attribute names from the active document, XPath/XQuery functions, axes, operators and
+    (in XQuery mode) FLWOR keywords. Use ↑/↓ to navigate and <strong>Enter</strong>/<strong>Tab</strong> to accept.</li>
+<li>To run: in <strong>XPath</strong> mode press <strong>Enter</strong>; in <strong>XQuery</strong> mode press <strong>Ctrl+Enter</strong> (Enter
+    inserts a newline). The <strong>Run</strong> button works in both modes.</li>
+<li><strong>Run</strong> - Execute the query against the active document.</li>
+<li><strong>Save</strong> - Save the current expression as a reusable snippet (see below).</li>
+<li><strong>Snippets</strong> - A menu of your saved XPath and XQuery snippets; pick one to load it (the console
+    switches to the matching mode automatically).</li>
+<li><strong>Right - the results:</strong></li>
+<li>A read-only, selectable text area showing the query result.</li>
+<li><strong>Copy</strong> - Copy the full result to the clipboard.</li>
+</ul>
+<h3 id="running-a-query">Running a Query<a class="headerlink" href="#running-a-query" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Open the console (terminal icon or <strong>Ctrl+Shift+X</strong>) - it opens focused on the query input.</li>
+<li>Choose <strong>XPath</strong> or <strong>XQuery</strong> with the mode toggle.</li>
+<li>Type your expression, then click <strong>Run</strong> (in XPath mode, <strong>Enter</strong> also runs).</li>
+<li>The result appears on the right. Use <strong>Copy</strong> to put it on the clipboard.</li>
+</ol>
+<p>The console always runs against the <strong>active</strong> document. For an <strong>XML</strong> document it evaluates the
+expression directly; for a <strong>JSON</strong> document the XPath input is evaluated as a <strong>JSONPath</strong>
+expression. When no document is open, <strong>Run</strong> is disabled and the results pane shows
+<em>"No document open."</em></p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The Query Console is an additional, faster access point - it does not replace the <strong>Transform</strong>
+activity. For recent-stylesheet history, watch-and-rerun, result timing, and the XQuery result
+table, use the <a href="#transform-panel">Transform Panel</a>.</p>
+</div>
+<h3 id="saving-and-loading-snippets">Saving and Loading Snippets<a class="headerlink" href="#saving-and-loading-snippets" title="Permanent link">&para;</a></h3>
+<p>Reusable XPath <strong>and</strong> XQuery expressions are saved as <strong>snippets</strong>:</p>
+<ul>
+<li><strong>Save</strong> - Prompts for a name and stores the current expression. XPath snippets are saved as
+  <code>.xpath</code> files and XQuery snippets as <code>.xquery</code> files.</li>
+<li><strong>Snippets</strong> - Lists every saved snippet, prefixed with its kind (<em>XPath</em> / <em>XQuery</em>). Selecting
+  one loads it into the console and switches to the matching mode.</li>
+</ul>
+<p>Snippets are kept in the shared query folder, so anything saved here is also available from the XML
+Editor's XPath/XQuery panel and vice versa.</p>
 <h2 id="xpath-xquery-autocomplete">XPath / XQuery Autocomplete<a class="headerlink" href="#xpath-xquery-autocomplete" title="Permanent link">&para;</a></h2>
-<p>The XPath/XQuery console (Ctrl+Shift+X) offers context-aware autocomplete in both the XPath and
+<p>The XPath/XQuery inputs (in the Query Console and in the Transform panel) offer context-aware
+autocomplete in both the XPath and
 XQuery input fields. Suggestions appear automatically after trigger characters (<code>/</code>, <code>[</code>, <code>@</code>, <code>(</code>,
 <code>$</code>, <code>::</code>) or on demand with <strong>Ctrl+Space</strong>. Depending on context it suggests element names, attribute
 names, XPath axes, functions, and (in XQuery) variables. Navigate with the arrow keys and press
 <strong>Enter</strong> or <strong>Tab</strong> to insert; <strong>Escape</strong> dismisses the popup. Functions and axes are inserted with
 their parentheses / <code>::</code> automatically.</p>
 <h3 id="saving-loading-and-examples">Saving, Loading and Examples<a class="headerlink" href="#saving-loading-and-examples" title="Permanent link">&para;</a></h3>
-<p>The XPath/XQuery console toolbar provides the same query management as the XML Editor, acting on
-whichever tab (XPath or XQuery) is currently active:</p>
+<p>The Transform panel's XPath/XQuery toolbar provides the same query management as the XML Editor,
+acting on whichever tab (XPath or XQuery) is currently active. (The bottom
+<a href="#query-console">Query Console</a> offers a lighter Save / Snippets pair instead.)</p>
 <ul>
 <li><strong>Saved Queries</strong> - dropdown of previously saved queries of the active type. It also offers
   <em>Add Current Query to Favorites…</em> and <em>Open Queries Folder…</em>.</li>
@@ -2365,8 +3511,56 @@ whichever tab (XPath or XQuery) is currently active:</p>
 Editor's XPath/XQuery panel and vice versa.</p>
 <h2 id="drag-and-drop">Drag and Drop<a class="headerlink" href="#drag-and-drop" title="Permanent link">&para;</a></h2>
 <p>Drag files from your file manager directly into the editor to open them. Multiple files can be dropped at once.</p>
-<h2 id="relationship-to-other-editor-pages">Relationship to Other Editor Pages<a class="headerlink" href="#relationship-to-other-editor-pages" title="Permanent link">&para;</a></h2>
-<p>The Unified Editor provides a consolidated editing experience. The dedicated editor pages (XML Editor, XSD Editor, etc.) remain available in the sidebar for their full feature sets, including advanced workflows like XSD documentation generation, Schematron batch testing, and XSLT batch processing.</p>
+<h2 id="where-the-former-tabs-went">Where the former tabs went<a class="headerlink" href="#where-the-former-tabs-went" title="Permanent link">&para;</a></h2>
+<p>The Unified Shell consolidates what used to be separate sidebar tabs. The earlier
+standalone editors - XSD Editor, XSD Validation, JSON Editor, XSLT Viewer, Schematron,
+Schema Generator, Digital Signatures and FOP/PDF - have been <strong>retired</strong> and their
+functionality now lives in the shell:</p>
+<table>
+<thead>
+<tr>
+<th>Former tab</th>
+<th>Now in the shell</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>XSD Editor / Tools</td>
+<td>Open an <code>.xsd</code>: Text/Tree/Graphic views + inspector; <strong>Type Library</strong> activity for type editing, documentation, flatten and schema analysis</td>
+</tr>
+<tr>
+<td>XSD Validation</td>
+<td><strong>Validation</strong> activity (single + batch, XSD &amp; Schematron)</td>
+</tr>
+<tr>
+<td>JSON Editor</td>
+<td>Open a <code>.json</code>: Text + Tree views</td>
+</tr>
+<tr>
+<td>XSLT Viewer</td>
+<td><strong>Transform</strong> panel (set stylesheet, transform, preview, browser)</td>
+</tr>
+<tr>
+<td>Schematron</td>
+<td><strong>Validation</strong> activity: check rules, templates, tester, builder, documentation, CSV/JSON export</td>
+</tr>
+<tr>
+<td>Schema Generator</td>
+<td><strong>Type Library</strong> / Generate XSD from XML</td>
+</tr>
+<tr>
+<td>Digital Signatures</td>
+<td><strong>Signature</strong> activity (sign, validate, trust validation, certificate creation)</td>
+</tr>
+<tr>
+<td>FOP / PDF</td>
+<td><strong>FOP</strong> activity (XSL-FO → PDF + preview)</td>
+</tr>
+</tbody>
+</table>
+<p>The <strong>XSLT Developer</strong> (advanced IDE with debugger, profiler and batch processing) and the
+<strong>XML Editor</strong> (XML Ultimate, with IntelliSense) remain as dedicated sidebar tools for their
+full feature sets.</p>
 
 
 

@@ -247,13 +247,13 @@
   
   
     <li class="md-tabs__item">
-      <a href="../unified-editor/" class="md-tabs__link">
+      <a href="../unified-shell/" class="md-tabs__link">
         
   
   
     
   
-  Unified Editor
+  Unified Shell
 
       </a>
     </li>
@@ -500,14 +500,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../unified-editor/" class="md-nav__link">
+      <a href="../unified-shell/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Unified Editor
+    Unified Shell
   
 
     
@@ -1658,6 +1658,45 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#3b-trust-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3b. Trust Validation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3b. Trust Validation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-to-run-trust-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to Run Trust Validation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-the-trust-report-tells-you" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What the Trust Report Tells You
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#4-expert-mode" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2205,6 +2244,45 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#3b-trust-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3b. Trust Validation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3b. Trust Validation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-to-run-trust-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to Run Trust Validation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-the-trust-report-tells-you" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What the Trust Report Tells You
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#4-expert-mode" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2415,17 +2493,24 @@
 <h1 id="xml-digital-signatures">XML Digital Signatures<a class="headerlink" href="#xml-digital-signatures" title="Permanent link">&para;</a></h1>
 <blockquote>
 <p><strong>Last Updated:</strong> May 2026 | <strong>Version:</strong> 1.10.0</p>
+<p><strong>Note (Phase 10c):</strong> The standalone <em>Signature</em> tab has been retired. Signing,
+signature validation (including detailed and PKIX trust/chain/revocation/timestamp
+validation) and self-signed certificate creation now live in the <strong>Unified Shell's
+Signature activity panel</strong>. The capabilities below are unchanged; they are reached
+through the shell rather than a dedicated sidebar tab.</p>
 </blockquote>
 <p>This tool lets you digitally sign XML documents and verify signatures. A digital signature proves that a document is authentic and hasn't been changed.</p>
 <hr />
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
-<p><img alt="Digital Signatures Overview" src="../img/signature-sign.png" />
-<em>The digital signature interface</em></p>
+<p><img alt="Signature activity in the Unified Shell" src="../img/unified-shell-signature.png" />
+<em>Signing, validation and certificate creation now live in the Unified Shell's Signature activity panel</em></p>
 <h3 id="what-can-you-do">What Can You Do?<a class="headerlink" href="#what-can-you-do" title="Permanent link">&para;</a></h3>
+<p>In the <a href="../unified-shell/">Unified Shell</a>, open the <strong>Signature</strong> activity from the activity bar.
+The panel offers:</p>
 <table>
 <thead>
 <tr>
-<th>Tab</th>
+<th>Action</th>
 <th>Description</th>
 </tr>
 </thead>
@@ -2544,7 +2629,7 @@
 </table>
 <h3 id="how-to-create-a-certificate">How to Create a Certificate<a class="headerlink" href="#how-to-create-a-certificate" title="Permanent link">&para;</a></h3>
 <ol>
-<li>Go to the <strong>"Create Certificate"</strong> tab</li>
+<li>In the <strong>Signature</strong> panel, choose <strong>Create Certificate</strong></li>
 <li>Fill in the Distinguished Name fields</li>
 <li>Set passwords for the keystore and key</li>
 <li>Click <strong>"Create Certificate"</strong></li>
@@ -2615,7 +2700,7 @@
 </table>
 <h3 id="how-to-sign-a-document">How to Sign a Document<a class="headerlink" href="#how-to-sign-a-document" title="Permanent link">&para;</a></h3>
 <ol>
-<li>Go to the <strong>"Sign XML File"</strong> tab</li>
+<li>In the <strong>Signature</strong> panel, choose <strong>Sign XML File</strong></li>
 <li>Click <strong>"Browse"</strong> to select your XML file</li>
 <li>Click <strong>"Browse"</strong> to select your keystore file</li>
 <li>Enter your keystore password and key password</li>
@@ -2630,7 +2715,7 @@
 <em>Verifying a signed document</em></p>
 <h3 id="how-to-verify-a-signature">How to Verify a Signature<a class="headerlink" href="#how-to-verify-a-signature" title="Permanent link">&para;</a></h3>
 <ol>
-<li>Go to the <strong>"Validate Signed File"</strong> tab</li>
+<li>In the <strong>Signature</strong> panel, choose <strong>Validate Signed File</strong></li>
 <li>Click <strong>"Browse"</strong> to select the signed XML file</li>
 <li>Click <strong>"Validate"</strong></li>
 <li>See the result in the status area</li>
@@ -2681,6 +2766,60 @@
 </tr>
 </tbody>
 </table>
+<hr />
+<h2 id="3b-trust-validation">3b. Trust Validation<a class="headerlink" href="#3b-trust-validation" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p><strong>New in June 2026</strong> - In addition to checking that a signature is mathematically valid, you
+can now check whether the signing certificate is actually <strong>trusted</strong>.</p>
+</blockquote>
+<p>Basic validation confirms that a signature is intact and matches its certificate. <strong>Trust
+validation</strong> goes further: it checks the signing certificate's chain against a <strong>trust store</strong> -
+a collection of certificate authorities you trust - to decide whether the certificate really
+comes from a trusted source.</p>
+<p>In the Unified Shell's <strong>Signature</strong> panel, the action is <strong>Validate (Trust)</strong>.</p>
+<h3 id="how-to-run-trust-validation">How to Run Trust Validation<a class="headerlink" href="#how-to-run-trust-validation" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Open the signed XML document.</li>
+<li>(Optional) Click <strong>Trust store…</strong> to choose the trust store to validate against. By default
+   the application uses the JVM's built-in <code>cacerts</code> store, which contains well-known public
+   certificate authorities.</li>
+<li>(Optional) Tick <strong>Check revocation (OCSP/CRL)</strong> to also verify that the certificate has not
+   been revoked.</li>
+<li>Click <strong>Validate (Trust)</strong>.</li>
+<li>A trust report opens in a new tab.</li>
+</ol>
+<h3 id="what-the-trust-report-tells-you">What the Trust Report Tells You<a class="headerlink" href="#what-the-trust-report-tells-you" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Item</th>
+<th>What It Means</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Trusted</strong></td>
+<td>Whether the signing certificate chains up to a certificate in the trust store</td>
+</tr>
+<tr>
+<td><strong>Trust anchor</strong></td>
+<td>The trusted certificate (certificate authority) at the top of the chain</td>
+</tr>
+<tr>
+<td><strong>Revocation</strong></td>
+<td>Whether the certificate has been revoked (only when revocation checking is on)</td>
+</tr>
+<tr>
+<td><strong>Timestamp</strong></td>
+<td>Timestamp information found with the signature, if any</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Note:</strong> A signature can be mathematically <strong>valid</strong> but <strong>not trusted</strong> if its certificate
+is self-signed or issued by an authority that is not in your trust store. Trust validation is
+the step that tells the two situations apart.</p>
+</blockquote>
 <hr />
 <h2 id="4-expert-mode">4. Expert Mode<a class="headerlink" href="#4-expert-mode" title="Permanent link">&para;</a></h2>
 <p>For users who need more control over the signing process.</p>
@@ -2873,7 +3012,7 @@
 </tr>
 </tbody>
 </table>
-<p><strong>All Pages:</strong> <a href="../xml-editor/">XML Editor</a> | <a href="../xml-editor-features/">XML Features</a> | <a href="../xsd-tools/">XSD Tools</a> | <a href="../xsd-validation/">XSD Validation</a> | <a href="../xslt-viewer/">XSLT Viewer</a> | <a href="../xslt-developer/">XSLT Developer</a> | <a href="../pdf-generator/">FOP/PDF</a> | <a href="./">Signatures</a> | <a href="../context-sensitive-intellisense/">IntelliSense</a> | <a href="../schematron-support/">Schematron</a> | <a href="../favorites-system/">Favorites</a> | <a href="../template-management/">Templates</a> | <a href="../technology-stack/">Tech Stack</a> | <a href="../licenses/">Licenses</a></p>
+<p><strong>All Pages:</strong> <a href="../unified-shell/">Unified Shell</a> | <a href="../xml-editor/">XML Editor</a> | <a href="../xml-editor-features/">XML Features</a> | <a href="../json-editor/">JSON Editor</a> | <a href="../xsd-tools/">XSD Tools</a> | <a href="../profiled-xml-generation/">Profiled XML Generation</a> | <a href="../xsd-validation/">XSD Validation</a> | <a href="../xslt-viewer/">XSLT Viewer</a> | <a href="../xslt-developer/">XSLT Developer</a> | <a href="../pdf-generator/">FOP/PDF</a> | <a href="./">Signatures</a> | <a href="../context-sensitive-intellisense/">IntelliSense</a> | <a href="../schematron-support/">Schematron</a> | <a href="../fundsxml-extensions/">FundsXML Extensions</a> | <a href="../favorites-system/">Favorites</a> | <a href="../template-management/">Templates</a> | <a href="../technology-stack/">Tech Stack</a> | <a href="../SECURITY/">Security</a> | <a href="../licenses/">Licenses</a></p>
 
 
 

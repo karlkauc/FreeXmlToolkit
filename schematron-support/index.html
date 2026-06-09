@@ -247,13 +247,13 @@
   
   
     <li class="md-tabs__item">
-      <a href="../unified-editor/" class="md-tabs__link">
+      <a href="../unified-shell/" class="md-tabs__link">
         
   
   
     
   
-  Unified Editor
+  Unified Shell
 
       </a>
     </li>
@@ -500,14 +500,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../unified-editor/" class="md-nav__link">
+      <a href="../unified-shell/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Unified Editor
+    Unified Shell
   
 
     
@@ -1380,6 +1380,45 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#schematron-tools-in-the-unified-shell" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Schematron Tools in the Unified Shell
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Schematron Tools in the Unified Shell">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#check-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Check Rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#creating-schematron-rules" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2100,6 +2139,45 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#schematron-tools-in-the-unified-shell" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Schematron Tools in the Unified Shell
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Schematron Tools in the Unified Shell">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#check-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Check Rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#creating-schematron-rules" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2349,6 +2427,12 @@
 <h1 id="schematron-validation">Schematron Validation<a class="headerlink" href="#schematron-validation" title="Permanent link">&para;</a></h1>
 <blockquote>
 <p><strong>Last Updated:</strong> May 2026 | <strong>Version:</strong> 1.10.0</p>
+<p><strong>Note (Phase 10c):</strong> The standalone <em>Schematron</em> editor tab has been retired.
+Schematron editing and validation — rule check, templates, tester, visual
+builder, documentation, and CSV/JSON export of results — now live in the
+<strong>Unified Shell's Validation activity panel</strong>. Open a <code>.sch</code> file and use the
+Validation panel's Schematron tools. The capabilities below are unchanged; they
+are reached through the shell rather than a dedicated sidebar tab.</p>
 </blockquote>
 <p>Schematron lets you create custom validation rules that go beyond what XSD schemas can check. It's perfect for validating business rules and data relationships.</p>
 <hr />
@@ -2513,6 +2597,80 @@
 1. Enter an XPath expression
 2. Click <strong>Test</strong>
 3. See the result</p>
+<hr />
+<h2 id="schematron-tools-in-the-unified-shell">Schematron Tools in the Unified Shell<a class="headerlink" href="#schematron-tools-in-the-unified-shell" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p><strong>Updated June 2026</strong> - Added <strong>Check Rules</strong> and <strong>Documentation</strong> to the Schematron tools.</p>
+</blockquote>
+<p>When you work with a Schematron file in the <a href="../unified-shell/">Unified Shell</a>, the
+<strong>Validation</strong> panel offers a set of Schematron tools:</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>What It Does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Rule Templates</strong></td>
+<td>Insert ready-made Schematron rule patterns</td>
+</tr>
+<tr>
+<td><strong>Tester</strong></td>
+<td>Run the rules against an XML file</td>
+</tr>
+<tr>
+<td><strong>Rule Builder</strong></td>
+<td>Build rules visually</td>
+</tr>
+<tr>
+<td><strong>Check Rules</strong></td>
+<td>Inspect the Schematron file itself for problems</td>
+</tr>
+<tr>
+<td><strong>Documentation</strong></td>
+<td>Generate documentation for the Schematron file</td>
+</tr>
+</tbody>
+</table>
+<h3 id="check-rules">Check Rules<a class="headerlink" href="#check-rules" title="Permanent link">&para;</a></h3>
+<p><strong>Check Rules</strong> runs an error detector over your Schematron file and shows the issues it finds
+in a categorised table, so you can fix mistakes in the rules before relying on them. Issues are
+grouped into categories:</p>
+<table>
+<thead>
+<tr>
+<th>Category</th>
+<th>Examples</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>XML syntax</strong></td>
+<td>Malformed XML, unclosed tags</td>
+</tr>
+<tr>
+<td><strong>Structural</strong></td>
+<td>Missing or misplaced patterns, rules, or assertions</td>
+</tr>
+<tr>
+<td><strong>XPath</strong></td>
+<td>Invalid XPath expressions in contexts or tests</td>
+</tr>
+<tr>
+<td><strong>Semantic</strong></td>
+<td>Rules that can never match, or contradictory conditions</td>
+</tr>
+<tr>
+<td><strong>Best practice</strong></td>
+<td>Style and maintainability suggestions</td>
+</tr>
+</tbody>
+</table>
+<h3 id="documentation">Documentation<a class="headerlink" href="#documentation" title="Permanent link">&para;</a></h3>
+<p><strong>Documentation</strong> opens the Schematron documentation generator, which produces readable
+documentation describing the patterns, rules, and assertions in your Schematron file.</p>
 <hr />
 <h2 id="creating-schematron-rules">Creating Schematron Rules<a class="headerlink" href="#creating-schematron-rules" title="Permanent link">&para;</a></h2>
 <h3 id="basic-structure">Basic Structure<a class="headerlink" href="#basic-structure" title="Permanent link">&para;</a></h3>
@@ -2770,7 +2928,7 @@
 </tr>
 </tbody>
 </table>
-<p><strong>All Pages:</strong> <a href="../xml-editor/">XML Editor</a> | <a href="../xml-editor-features/">XML Features</a> | <a href="../xsd-tools/">XSD Tools</a> | <a href="../xsd-validation/">XSD Validation</a> | <a href="../xslt-viewer/">XSLT Viewer</a> | <a href="../xslt-developer/">XSLT Developer</a> | <a href="../pdf-generator/">FOP/PDF</a> | <a href="../digital-signatures/">Signatures</a> | <a href="../context-sensitive-intellisense/">IntelliSense</a> | <a href="./">Schematron</a> | <a href="../favorites-system/">Favorites</a> | <a href="../template-management/">Templates</a> | <a href="../technology-stack/">Tech Stack</a> | <a href="../licenses/">Licenses</a></p>
+<p><strong>All Pages:</strong> <a href="../unified-shell/">Unified Shell</a> | <a href="../xml-editor/">XML Editor</a> | <a href="../xml-editor-features/">XML Features</a> | <a href="../json-editor/">JSON Editor</a> | <a href="../xsd-tools/">XSD Tools</a> | <a href="../profiled-xml-generation/">Profiled XML Generation</a> | <a href="../xsd-validation/">XSD Validation</a> | <a href="../xslt-viewer/">XSLT Viewer</a> | <a href="../xslt-developer/">XSLT Developer</a> | <a href="../pdf-generator/">FOP/PDF</a> | <a href="../digital-signatures/">Signatures</a> | <a href="../context-sensitive-intellisense/">IntelliSense</a> | <a href="./">Schematron</a> | <a href="../fundsxml-extensions/">FundsXML Extensions</a> | <a href="../favorites-system/">Favorites</a> | <a href="../template-management/">Templates</a> | <a href="../technology-stack/">Tech Stack</a> | <a href="../SECURITY/">Security</a> | <a href="../licenses/">Licenses</a></p>
 
 
 

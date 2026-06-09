@@ -247,13 +247,13 @@
   
   
     <li class="md-tabs__item">
-      <a href="../unified-editor/" class="md-tabs__link">
+      <a href="../unified-shell/" class="md-tabs__link">
         
   
   
     
   
-  Unified Editor
+  Unified Shell
 
       </a>
     </li>
@@ -500,14 +500,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../unified-editor/" class="md-nav__link">
+      <a href="../unified-shell/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Unified Editor
+    Unified Shell
   
 
     
@@ -934,10 +934,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#tab-overview" class="md-nav__link">
+  <a href="#overview" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Tab Overview
+        Overview
       
     </span>
   </a>
@@ -1122,6 +1122,28 @@
     <span class="md-ellipsis">
       
         Features
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#editing-schema-properties-from-any-view" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Editing Schema Properties from Any View
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-you-can-edit-in-the-properties-pane" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What You Can Edit in the Properties Pane
       
     </span>
   </a>
@@ -2100,10 +2122,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#tab-overview" class="md-nav__link">
+  <a href="#overview" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Tab Overview
+        Overview
       
     </span>
   </a>
@@ -2288,6 +2310,28 @@
     <span class="md-ellipsis">
       
         Features
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#editing-schema-properties-from-any-view" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Editing Schema Properties from Any View
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-you-can-edit-in-the-properties-pane" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What You Can Edit in the Properties Pane
       
     </span>
   </a>
@@ -2605,16 +2649,24 @@
 <h1 id="xsd-tools">XSD Tools<a class="headerlink" href="#xsd-tools" title="Permanent link">&para;</a></h1>
 <blockquote>
 <p><strong>Last Updated:</strong> May 2026 | <strong>Version:</strong> 1.10.0</p>
+<p><strong>Note (Phase 10c):</strong> The standalone <em>XSD Editor</em> tab has been retired. XSD
+editing — the Text/Tree/Graphic views, the inspector, the Type Library, type
+editing, documentation generation, schema flattening and schema analysis —
+now lives in the <strong>Unified Shell</strong> (open an <code>.xsd</code> file; "go to schema
+definition" from the XML editor opens the schema's graphic view at the
+element). The capabilities below are unchanged; they are reached through the
+shell rather than a dedicated sidebar tab.</p>
 </blockquote>
 <p>This part of the application provides tools for working with XML Schemas (XSD). These tools help you understand,
 document, and use XSD files effectively.</p>
 <hr />
-<h2 id="tab-overview">Tab Overview<a class="headerlink" href="#tab-overview" title="Permanent link">&para;</a></h2>
-<p>The XSD Tools section contains several tabs, each with a specific purpose:</p>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p>When you open an <code>.xsd</code> file in the <a href="../unified-shell/">Unified Shell</a>, the editor host and the
+<strong>Type Library</strong> activity provide several capabilities, each with a specific purpose:</p>
 <table>
 <thead>
 <tr>
-<th>Tab</th>
+<th>Capability</th>
 <th>Description</th>
 </tr>
 </thead>
@@ -2660,8 +2712,8 @@ document, and use XSD files effectively.</p>
 <hr />
 <h2 id="1-graphic-view">1. Graphic View<a class="headerlink" href="#1-graphic-view" title="Permanent link">&para;</a></h2>
 <p>The Graphic View lets you explore and edit your schemas visually.</p>
-<p><img alt="XSD Graphical View" src="../img/xsd-editor-graphic.png" />
-<em>The XSD schema displayed as an interactive tree</em></p>
+<p><img alt="XSD Graphic view in the Unified Shell" src="../img/unified-shell-schema-graphic.png" />
+<em>An XSD open in the Unified Shell's Graphic view, with the Schema activity panel on the left</em></p>
 <h3 id="features">Features<a class="headerlink" href="#features" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Visual Tree</strong>: See your XSD as an interactive, hierarchical tree</li>
@@ -2673,14 +2725,18 @@ document, and use XSD files effectively.</p>
 </ul>
 <h3 id="how-to-use">How to Use<a class="headerlink" href="#how-to-use" title="Permanent link">&para;</a></h3>
 <ol>
-<li>Go to the <strong>XSD</strong> tab</li>
-<li>Open your XSD file</li>
+<li>Open your XSD file in the editor host and switch to the <strong>Graphic</strong> view</li>
 <li>The schema appears as an interactive tree</li>
 <li><strong>Select</strong> an element by clicking on it</li>
-<li><strong>Edit properties</strong> in the panel on the right</li>
+<li><strong>Edit properties</strong> in the panel on the right (name, type, cardinality/occurrence, use, form, constraints, documentation, and facets)</li>
 <li><strong>Add children</strong> using the context menu (right-click)</li>
 <li><strong>Drag</strong> elements to move them</li>
 </ol>
+<blockquote>
+<p><strong>Editing properties from any view (updated June 2026):</strong> The same Properties pane is now
+available in the <strong>Text</strong> view as well, not just the Graphic and Tree views. See
+<a href="#editing-schema-properties-from-any-view">Editing Schema Properties from Any View</a> below.</p>
+</blockquote>
 <h3 id="tips">Tips<a class="headerlink" href="#tips" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Double-click</strong> an element to edit its name</li>
@@ -2692,8 +2748,8 @@ document, and use XSD files effectively.</p>
 <hr />
 <h2 id="2-type-library">2. Type Library<a class="headerlink" href="#2-type-library" title="Permanent link">&para;</a></h2>
 <p>The Type Library provides a comprehensive view of all types defined in your schema.</p>
-<p><img alt="Type Library" src="../img/xsd-type-library.png" />
-<em>Type Library showing all SimpleTypes and ComplexTypes</em></p>
+<p><img alt="Type Library in the Unified Shell" src="../img/unified-shell-type-library.png" />
+<em>The Schema activity's Type Library, with the schema diagram in the editor host</em></p>
 <h3 id="features_1">Features<a class="headerlink" href="#features_1" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -2736,7 +2792,7 @@ document, and use XSD files effectively.</p>
 <h3 id="how-to-use_1">How to Use<a class="headerlink" href="#how-to-use_1" title="Permanent link">&para;</a></h3>
 <ol>
 <li>Open your XSD file</li>
-<li>Go to the <strong>Type Library</strong> tab</li>
+<li>Open the <strong>Type Library</strong> activity from the activity bar</li>
 <li>Browse or search for types</li>
 <li>Click on a type to see its details</li>
 <li>Use the filter dropdown to narrow results</li>
@@ -2851,8 +2907,13 @@ document, and use XSD files effectively.</p>
 <hr />
 <h2 id="4-text-view">4. Text View<a class="headerlink" href="#4-text-view" title="Permanent link">&para;</a></h2>
 <p>The Text View provides raw XSD source code editing.</p>
-<p><img alt="XSD Text View" src="../img/xsd-editor-text.png" />
-<em>XSD code editor with syntax highlighting</em></p>
+<p><img alt="XSD Text view in the Unified Shell" src="../img/unified-shell-schema-text.png" />
+<em>The XSD in the Unified Shell's Text view (Schema activity panel on the left, inspector on the right)</em></p>
+<blockquote>
+<p><strong>Screenshot note:</strong> Existing XSD Text view screenshots predate the editable Properties pane.
+The Properties pane now also appears alongside the Text view when the caret is inside a schema
+construct.</p>
+</blockquote>
 <h3 id="features_3">Features<a class="headerlink" href="#features_3" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Full Code Editor</strong>: View and edit the raw XSD source code</li>
@@ -2860,14 +2921,59 @@ document, and use XSD files effectively.</p>
 <li><strong>Search and Replace</strong>: Find and change text quickly</li>
 <li><strong>XPath/XQuery Panel</strong>: Query the schema with XPath</li>
 <li><strong>Save as Favorite</strong>: Quick access to frequently used schemas</li>
+<li><strong>Editable Properties pane</strong>: Move the text caret into a schema construct to select it and edit its properties without leaving the text editor (see below)</li>
 </ul>
+<h3 id="editing-schema-properties-from-any-view">Editing Schema Properties from Any View<a class="headerlink" href="#editing-schema-properties-from-any-view" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p><strong>New in June 2026</strong> - You can now edit a schema node's properties directly from the
+<strong>Text</strong> view, the same way you already could in the <strong>Tree</strong> and <strong>Graphic</strong> views.</p>
+</blockquote>
+<p>The XSD editor has three views - <strong>Text</strong>, <strong>Tree</strong>, and <strong>Graphic</strong> - and all three share one
+in-memory schema model. The Properties pane works in every view:</p>
+<ul>
+<li><strong>Tree</strong> and <strong>Graphic</strong> views: Select a node to edit its name, type, cardinality/occurrence,
+  use, form, constraints, documentation, and facets. (Unchanged.)</li>
+<li><strong>Text</strong> view: Move the text caret into an XSD construct - such as an <code>xs:element</code>,
+  <code>xs:complexType</code>, <code>xs:simpleType</code>, <code>xs:attribute</code>, a compositor (<code>xs:sequence</code>, <code>xs:choice</code>,
+  <code>xs:all</code>), or a facet - and the Properties pane selects the matching schema node and shows it
+  <strong>editable</strong>. You get the same property editing as in the Tree and Graphic views, without
+  leaving the source editor. Your edits round-trip back into the schema text as a minimal change
+  that preserves your caret and scroll position.</li>
+</ul>
+<p>If the caret is not inside a recognizable construct - for example inside an <code>xs:annotation</code>, a
+comment, or blank space - the pane falls back to a read-only caret/XPath view.</p>
+<p>Because all three views share one model, your edits and your <strong>Undo/Redo</strong> history are preserved
+when you switch between Text, Tree, and Graphic.</p>
+<h3 id="what-you-can-edit-in-the-properties-pane">What You Can Edit in the Properties Pane<a class="headerlink" href="#what-you-can-edit-in-the-properties-pane" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p><strong>New in June 2026</strong> - The Properties pane gained app-info editing, multi-language
+documentation, comment editing, and constraint deletion.</p>
+</blockquote>
+<p>For the selected schema node you can edit:</p>
+<ul>
+<li><strong>Name, type, cardinality/occurrence, use, form</strong> - The core properties of the node.</li>
+<li><strong>Facets</strong> - Add, edit, and remove facets such as patterns, enumerations, and length limits.</li>
+<li><strong>App info (<code>xs:appinfo</code>)</strong> - The machine-readable metadata attached to the node (for example
+  the technical tags described in <a href="#6-documentation-generator">Documentation Generator</a>).</li>
+<li><strong>Multi-language documentation (<code>xs:documentation</code>)</strong> - One row per language. Use <strong>Add
+  language</strong> to add a translation and the <strong>✕</strong> button to remove one.</li>
+<li><strong>Comments</strong> - Select an XSD comment in the tree to edit its text. To add a comment, choose
+  <strong>Add Comment…</strong> from a node's right-click context menu.</li>
+<li><strong>Constraints</strong> - In the <strong>CONSTRAINTS</strong> section, select a <code>key</code>, <code>keyref</code>, <code>unique</code>, or
+  <code>assert</code> constraint and click <strong>Delete constraint</strong> to remove it.</li>
+</ul>
+<blockquote>
+<p><strong>Note:</strong> Structural editing (adding, deleting, and moving nodes) remains a <strong>Tree</strong> and
+<strong>Graphic</strong> capability via the right-click context menu. The <strong>Text</strong> view provides
+<em>property</em> editing through the Properties pane.</p>
+</blockquote>
 <hr />
 <h2 id="5-schema-analysis">5. Schema Analysis<a class="headerlink" href="#5-schema-analysis" title="Permanent link">&para;</a></h2>
-<p>The Schema Analysis tab provides comprehensive analysis tools for your XSD.</p>
-<p><img alt="Schema Analysis" src="../img/xsd-schema-analysis.png" />
-<em>Schema Analysis with statistics and quality checks</em></p>
+<p>The Schema Analysis view (in the <strong>Type Library</strong> activity) provides comprehensive analysis tools for your XSD.</p>
+<p><img alt="Schema statistics in the Unified Shell" src="../img/unified-shell-schema-statistics.png" />
+<em>Schema statistics open as a report tab from the Schema activity's </em><em>Statistics</em><em> action</em></p>
 <h3 id="sub-tabs">Sub-Tabs<a class="headerlink" href="#sub-tabs" title="Permanent link">&para;</a></h3>
-<p>The Schema Analysis tab contains four sub-tabs:</p>
+<p>The Schema Analysis view contains four sub-tabs:</p>
 <h4 id="statistics">Statistics<a class="headerlink" href="#statistics" title="Permanent link">&para;</a></h4>
 <p>View schema metrics at a glance:</p>
 <table>
@@ -3004,8 +3110,8 @@ document, and use XSD files effectively.</p>
 </table>
 <h3 id="how-to-generate-documentation">How to Generate Documentation<a class="headerlink" href="#how-to-generate-documentation" title="Permanent link">&para;</a></h3>
 <ol>
-<li>Load your XSD file in the XSD Tools</li>
-<li>Click on the <strong>Documentation</strong> tab</li>
+<li>Open your XSD file in the editor host</li>
+<li>Open the <strong>Documentation</strong> view from the <strong>Type Library</strong> activity</li>
 <li>Select your output format (HTML, Word, or PDF)</li>
 <li>Choose diagram format (PNG or SVG)</li>
 <li>Configure options</li>
@@ -3084,11 +3190,17 @@ document, and use XSD files effectively.</p>
 <p>Create sample XML files based on your XSD schema. This is useful for testing, data migration, or as a starting template.</p>
 <p><img alt="Sample XML Generator" src="../img/xsd-sample-generator.png" />
 <em>Sample XML generator with rules table and XML preview</em></p>
+<blockquote>
+<p><strong>Unified Shell (June 2026):</strong> In the <a href="../unified-shell/">Unified Shell</a>, sample-data
+generation lives in the <strong>Schema</strong> panel. It offers two actions: <strong>Generate Sample XML</strong> for
+the basic generation described below, and <strong>Generate Sample XML (Advanced)…</strong> for the
+rule-based, batch-capable generation. The screenshots above predate the advanced dialog.</p>
+</blockquote>
 <h3 id="quick-start-basic-generation">Quick Start (Basic Generation)<a class="headerlink" href="#quick-start-basic-generation" title="Permanent link">&para;</a></h3>
 <p>For simple use cases, you can generate sample XML in seconds:</p>
 <ol>
 <li>Load your XSD file</li>
-<li>Go to the <strong>Generate Example Data</strong> tab</li>
+<li>Open the <strong>Schema</strong> panel from the activity bar and click <strong>Generate Sample XML</strong></li>
 <li>Choose your options:<ul>
 <li><strong>Mandatory Only</strong>: Include only required elements</li>
 <li><strong>Max Occurrences</strong>: Limit repeating elements</li>
@@ -3099,7 +3211,8 @@ document, and use XSD files effectively.</p>
 <li>Save or copy the generated XML</li>
 </ol>
 <h3 id="profiled-generation-advanced">Profiled Generation (Advanced)<a class="headerlink" href="#profiled-generation-advanced" title="Permanent link">&para;</a></h3>
-<p>For more control, you can define rules that specify exactly how each element or attribute gets its value. The Generate Example Data tab now includes:</p>
+<p>For more control, you can define rules that specify exactly how each element or attribute gets
+its value. Open it from <strong>Generate Sample XML (Advanced)…</strong> in the Schema panel. It includes:</p>
 <table>
 <thead>
 <tr>
@@ -3270,7 +3383,7 @@ document, and use XSD files effectively.</p>
 </tr>
 </tbody>
 </table>
-<p><strong>All Pages:</strong> <a href="../xml-editor/">XML Editor</a> | <a href="../xml-editor-features/">XML Features</a> | <a href="./">XSD Tools</a> | <a href="../profiled-xml-generation/">Profiled XML Generation</a> | <a href="../xsd-validation/">XSD Validation</a> | <a href="../xslt-viewer/">XSLT Viewer</a> | <a href="../xslt-developer/">XSLT Developer</a> | <a href="../pdf-generator/">FOP/PDF</a> | <a href="../digital-signatures/">Signatures</a> | <a href="../context-sensitive-intellisense/">IntelliSense</a> | <a href="../schematron-support/">Schematron</a> | <a href="../favorites-system/">Favorites</a> | <a href="../template-management/">Templates</a> | <a href="../technology-stack/">Tech Stack</a> | <a href="../licenses/">Licenses</a></p>
+<p><strong>All Pages:</strong> <a href="../unified-shell/">Unified Shell</a> | <a href="../xml-editor/">XML Editor</a> | <a href="../xml-editor-features/">XML Features</a> | <a href="../json-editor/">JSON Editor</a> | <a href="./">XSD Tools</a> | <a href="../profiled-xml-generation/">Profiled XML Generation</a> | <a href="../xsd-validation/">XSD Validation</a> | <a href="../xslt-viewer/">XSLT Viewer</a> | <a href="../xslt-developer/">XSLT Developer</a> | <a href="../pdf-generator/">FOP/PDF</a> | <a href="../digital-signatures/">Signatures</a> | <a href="../context-sensitive-intellisense/">IntelliSense</a> | <a href="../schematron-support/">Schematron</a> | <a href="../fundsxml-extensions/">FundsXML Extensions</a> | <a href="../favorites-system/">Favorites</a> | <a href="../template-management/">Templates</a> | <a href="../technology-stack/">Tech Stack</a> | <a href="../SECURITY/">Security</a> | <a href="../licenses/">Licenses</a></p>
 
 
 

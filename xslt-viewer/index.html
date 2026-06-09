@@ -247,13 +247,13 @@
   
   
     <li class="md-tabs__item">
-      <a href="../unified-editor/" class="md-tabs__link">
+      <a href="../unified-shell/" class="md-tabs__link">
         
   
   
     
   
-  Unified Editor
+  Unified Shell
 
       </a>
     </li>
@@ -500,14 +500,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../unified-editor/" class="md-nav__link">
+      <a href="../unified-shell/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Unified Editor
+    Unified Shell
   
 
     
@@ -1152,10 +1152,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#step-2-view-the-results" class="md-nav__link">
+  <a href="#step-2-run-and-view-the-results" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Step 2: View the Results
+        Step 2: Run and View the Results
       
     </span>
   </a>
@@ -1168,10 +1168,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#toolbar-actions" class="md-nav__link">
+  <a href="#transform-panel-actions" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Toolbar Actions
+        Transform Panel Actions
       
     </span>
   </a>
@@ -1872,10 +1872,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#step-2-view-the-results" class="md-nav__link">
+  <a href="#step-2-run-and-view-the-results" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Step 2: View the Results
+        Step 2: Run and View the Results
       
     </span>
   </a>
@@ -1888,10 +1888,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#toolbar-actions" class="md-nav__link">
+  <a href="#transform-panel-actions" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Toolbar Actions
+        Transform Panel Actions
       
     </span>
   </a>
@@ -2059,15 +2059,23 @@
 <h1 id="xslt-viewer">XSLT Viewer<a class="headerlink" href="#xslt-viewer" title="Permanent link">&para;</a></h1>
 <blockquote>
 <p><strong>Last Updated:</strong> May 2026 | <strong>Version:</strong> 1.10.0</p>
+<p><strong>Note (Phase 10c):</strong> The standalone <em>XSLT Viewer</em> tab has been retired. Quick
+XSLT transformations now live in the <strong>Unified Shell's Transform panel</strong>
+(set a stylesheet, transform, preview the result, open in browser), and full
+editing/parameters/batch processing remain in the
+<a href="../xslt-developer/">XSLT Developer</a>. The workflow below is unchanged in spirit;
+the controls are now part of the Transform side panel rather than a dedicated tab.</p>
 </blockquote>
 <p>The XSLT Viewer allows you to quickly transform XML documents using XSLT stylesheets. Simply select your files and view
 the results immediately.</p>
 <hr />
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
-<p>The XSLT Viewer is designed for quick transformations where you want to see results immediately. For advanced features
-like live editing, parameters, and batch processing, use the <a href="../xslt-developer/">XSLT Developer</a> tab.</p>
-<p><img alt="XSLT Viewer Overview" src="../img/xslt-viewer-overview.png" />
-<em>The XSLT Viewer with file selection and result preview</em></p>
+<p>The XSLT Viewer is designed for quick transformations where you want to see results immediately. In the
+<a href="../unified-shell/">Unified Shell</a> these quick transformations live in the <strong>Transform</strong> panel (open it
+from the <strong>Transform</strong> icon in the activity bar). For advanced features like live editing, parameters, and
+batch processing, use the <a href="../xslt-developer/">XSLT Developer</a>.</p>
+<p><img alt="Transform panel in the Unified Shell" src="../img/unified-shell-transform.png" />
+<em>Quick XSLT/XQuery transformations now live in the Unified Shell's Transform panel</em></p>
 <hr />
 <h2 id="what-is-xslt">What is XSLT?<a class="headerlink" href="#what-is-xslt" title="Permanent link">&para;</a></h2>
 <p>XSLT (Extensible Stylesheet Language Transformations) is a language for transforming XML documents. Think of it like a
@@ -2086,16 +2094,15 @@ structure.</p>
 <h2 id="how-to-use">How to Use<a class="headerlink" href="#how-to-use" title="Permanent link">&para;</a></h2>
 <h3 id="step-1-select-your-files">Step 1: Select Your Files<a class="headerlink" href="#step-1-select-your-files" title="Permanent link">&para;</a></h3>
 <ol>
-<li><strong>Choose an XML source file</strong> using the file explorer on the left</li>
-<li><strong>Choose an XSLT stylesheet</strong> using the file explorer below</li>
+<li>Open your XML source file in the editor host so it is the active document</li>
+<li>In the <strong>Transform</strong> panel, click <strong>Set XSLT…</strong> to choose an XSLT stylesheet</li>
 </ol>
-<p>The transformation runs automatically when both files are selected.</p>
-<h3 id="step-2-view-the-results">Step 2: View the Results<a class="headerlink" href="#step-2-view-the-results" title="Permanent link">&para;</a></h3>
-<p>The results appear in the tabbed panel on the right:</p>
+<h3 id="step-2-run-and-view-the-results">Step 2: Run and View the Results<a class="headerlink" href="#step-2-run-and-view-the-results" title="Permanent link">&para;</a></h3>
+<p>Click <strong>Transform</strong> to run the transformation. The result appears in the panel's <strong>RESULT</strong> area:</p>
 <table>
 <thead>
 <tr>
-<th>Tab</th>
+<th>View</th>
 <th>Description</th>
 </tr>
 </thead>
@@ -2115,7 +2122,7 @@ structure.</p>
 </tbody>
 </table>
 <hr />
-<h2 id="toolbar-actions">Toolbar Actions<a class="headerlink" href="#toolbar-actions" title="Permanent link">&para;</a></h2>
+<h2 id="transform-panel-actions">Transform Panel Actions<a class="headerlink" href="#transform-panel-actions" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
@@ -2125,20 +2132,16 @@ structure.</p>
 </thead>
 <tbody>
 <tr>
-<td><strong>Reload</strong></td>
-<td>Re-runs the transformation with current files</td>
+<td><strong>Transform</strong></td>
+<td>Runs the transformation with the current stylesheet</td>
+</tr>
+<tr>
+<td><strong>Watch file</strong></td>
+<td>Re-runs automatically when the stylesheet changes</td>
 </tr>
 <tr>
 <td><strong>Browser</strong></td>
 <td>Opens the result in your default web browser</td>
-</tr>
-<tr>
-<td><strong>Editor</strong></td>
-<td>Opens the result in your default text editor</td>
-</tr>
-<tr>
-<td><strong>Help</strong></td>
-<td>Shows help information</td>
 </tr>
 </tbody>
 </table>
@@ -2404,7 +2407,7 @@ structure.</p>
 <li><strong>Check the error panel</strong> - If transformation fails, check the error messages</li>
 <li><strong>Use the HTML preview</strong> - For HTML output, the preview shows you exactly how it will look</li>
 <li><strong>Try the example files</strong> - Learn from the included examples in the <code>examples/</code> folder</li>
-<li><strong>Need more features?</strong> - Use the <a href="../xslt-developer/">XSLT Developer</a> tab for advanced editing</li>
+<li><strong>Need more features?</strong> - Use the <a href="../xslt-developer/">XSLT Developer</a> for advanced editing</li>
 </ul>
 <hr />
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
@@ -2430,8 +2433,7 @@ structure.</p>
 </tr>
 </tbody>
 </table>
-<p>**All Pages:
-** <a href="../xml-editor/">XML Editor</a> | <a href="../xml-editor-features/">XML Features</a> | <a href="../xsd-tools/">XSD Tools</a> | <a href="../xsd-validation/">XSD Validation</a> | <a href="./">XSLT Viewer</a> | <a href="../xslt-developer/">XSLT Developer</a> | <a href="../pdf-generator/">FOP/PDF</a> | <a href="../digital-signatures/">Signatures</a> | <a href="../context-sensitive-intellisense/">IntelliSense</a> | <a href="../schematron-support/">Schematron</a> | <a href="../favorites-system/">Favorites</a> | <a href="../template-management/">Templates</a> | <a href="../technology-stack/">Tech Stack</a> | <a href="../licenses/">Licenses</a></p>
+<p><strong>All Pages:</strong> <a href="../unified-shell/">Unified Shell</a> | <a href="../xml-editor/">XML Editor</a> | <a href="../xml-editor-features/">XML Features</a> | <a href="../json-editor/">JSON Editor</a> | <a href="../xsd-tools/">XSD Tools</a> | <a href="../profiled-xml-generation/">Profiled XML Generation</a> | <a href="../xsd-validation/">XSD Validation</a> | <a href="./">XSLT Viewer</a> | <a href="../xslt-developer/">XSLT Developer</a> | <a href="../pdf-generator/">FOP/PDF</a> | <a href="../digital-signatures/">Signatures</a> | <a href="../context-sensitive-intellisense/">IntelliSense</a> | <a href="../schematron-support/">Schematron</a> | <a href="../fundsxml-extensions/">FundsXML Extensions</a> | <a href="../favorites-system/">Favorites</a> | <a href="../template-management/">Templates</a> | <a href="../technology-stack/">Tech Stack</a> | <a href="../SECURITY/">Security</a> | <a href="../licenses/">Licenses</a></p>
 
 
 
