@@ -124,6 +124,7 @@ public class XsltDebugView extends VBox {
                 callStackView.clear();
                 status.setText("Finished.");
             }
+            default -> { /* no UI change for other states */ }
         }
     }
 

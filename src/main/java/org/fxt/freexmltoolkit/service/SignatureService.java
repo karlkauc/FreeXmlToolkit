@@ -424,7 +424,9 @@ public class SignatureService {
      * @throws NoSuchAlgorithmException if the keystore algorithm is not available
      * @throws CertificateException     if certificate operations fail
      */
-    private File createAndSaveKeyStore(Path outputDir, String alias, KeyPair keyPair, X509Certificate certificate, String aliasPassword, String keystorePassword) throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException {
+    private File createAndSaveKeyStore(Path outputDir, String alias, KeyPair keyPair, X509Certificate certificate,
+                                       String aliasPassword, String keystorePassword)
+            throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException {
         KeyStore keyStore = KeyStore.getInstance(KEYSTORE_TYPE);
         keyStore.load(null, null); // Initialize new, empty keystore
 

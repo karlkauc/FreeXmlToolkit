@@ -756,6 +756,7 @@ public class XmlCanvasView extends Pane implements XmlSearchTarget {
                 gc.strokeLine(cx - size * 0.3, cy - size * 0.4, cx + size * 0.3, cy - size * 0.4);
                 gc.strokeLine(cx - size * 0.3, cy, cx + size * 0.3, cy);
             }
+            default -> { /* other row types draw no icon */ }
         }
     }
 

@@ -23,10 +23,10 @@ import org.fxt.freexmltoolkit.service.XmlSpreadsheetConverterService.ConversionC
 public class SpreadsheetConverterDialog extends Dialog<SpreadsheetConverterDialog.Settings> {
 
     /** Conversion direction. */
-    public enum Direction {XML_TO_SPREADSHEET, SPREADSHEET_TO_XML}
+    public enum Direction { XML_TO_SPREADSHEET, SPREADSHEET_TO_XML }
 
     /** Target/source spreadsheet format. */
-    public enum Format {EXCEL, CSV}
+    public enum Format { EXCEL, CSV }
 
     /** Delimiter choice for CSV. */
     public enum Delimiter {

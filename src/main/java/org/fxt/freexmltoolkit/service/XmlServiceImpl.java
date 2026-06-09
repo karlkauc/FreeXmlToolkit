@@ -111,7 +111,7 @@ public class XmlServiceImpl implements XmlService {
     private final XmlValidationService saxonValidationService = new SaxonXmlValidationService();
     private final XmlValidationService xercesValidationService = new XercesXmlValidationService();
 
-    final String CACHE_DIR = FileUtils.getUserDirectory().getAbsolutePath() + File.separator + ".freeXmlToolkit" + File.separator + "cache";
+    private static final String CACHE_DIR = FileUtils.getUserDirectory().getAbsolutePath() + File.separator + ".freeXmlToolkit" + File.separator + "cache";
     Processor processor = new Processor(false);
     XsltCompiler compiler = processor.newXsltCompiler();
     StringWriter sw;

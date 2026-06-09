@@ -185,6 +185,7 @@ public class DebugSession {
             case STEP_OVER -> pause = depth <= stepTargetDepth;
             case STEP_OUT -> pause = depth < stepTargetDepth;
             case NONE -> pause = false;
+            default -> pause = false;
         }
 
         if (!pause) {

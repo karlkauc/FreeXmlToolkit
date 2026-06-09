@@ -984,10 +984,10 @@ public class ProfiledXmlGeneratorService {
             return "example_" + fileNumber + ".xml";
         }
         // Replace {seq:N} with zero-padded file number
-        return SequenceValueStrategy_replaceSequencePlaceholders(pattern, fileNumber);
+        return replaceSequencePlaceholders(pattern, fileNumber);
     }
 
-    private String SequenceValueStrategy_replaceSequencePlaceholders(String pattern, int value) {
+    private String replaceSequencePlaceholders(String pattern, int value) {
         java.util.regex.Matcher matcher = Pattern.compile("\\{seq(?::(\\d+))?}").matcher(pattern);
         StringBuilder result = new StringBuilder();
         while (matcher.find()) {
