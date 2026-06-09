@@ -81,7 +81,8 @@ public class QueryConsole extends Region {
         getStyleClass().add("fxt-query-console");
 
         SplitPane split = new SplitPane(buildInput(), buildResults());
-        split.setDividerPositions(0.45);
+        // Favour the results side: queries (especially XPath) are short, while results need room.
+        split.setDividerPositions(0.38);
 
         // Fill this Region with the SplitPane.
         getChildren().add(split);
@@ -116,6 +117,10 @@ public class QueryConsole extends Region {
 
         xpathField.getStyleClass().addAll("fxt-xpath-field", "fxt-query-input");
         xpathField.setWrapText(true);
+        // XPath is a short single expression: keep the field compact (it wraps/scrolls for long
+        // ones) instead of letting it grow into a tall empty box. XQuery keeps its 96px area.
+        xpathField.setPrefHeight(48);
+        xpathField.setMaxHeight(96);
 
         xqueryArea.getStyleClass().addAll("fxt-xpath-field", "fxt-query-input");
         xqueryArea.setWrapText(false);
@@ -148,7 +153,6 @@ public class QueryConsole extends Region {
             }
         });
 
-        VBox.setVgrow(inputStack, Priority.ALWAYS);
         updateMode();
 
         Button run = button("Run", "bi-play-fill", this::run);
@@ -204,6 +208,10 @@ public class QueryConsole extends Region {
         xqueryArea.setManaged(xquery);
         xpathField.setVisible(!xquery);
         xpathField.setManaged(!xquery);
+        // XQuery (multi-line) grows to fill the console; XPath (single expression) stays compact
+        // so it does not balloon into a tall empty box.
+        VBox.setVgrow(inputStack, xquery ? Priority.ALWAYS : Priority.NEVER);
+        inputStack.setMaxHeight(xquery ? Double.MAX_VALUE : Region.USE_PREF_SIZE);
     }
 
     /** Enables/disables Run based on whether a document is currently open. */
