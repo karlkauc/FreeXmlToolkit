@@ -835,6 +835,7 @@ public class XmlServiceImpl implements XmlService {
         }
     }
 
+    @Override
     public List<SAXParseException> validate() {
         logger.debug("Validate File [{}] with schema [{}].", currentXmlFile.toPath().toString(), currentXsdFile.toPath().toString());
         return validateFile(currentXmlFile, currentXsdFile);

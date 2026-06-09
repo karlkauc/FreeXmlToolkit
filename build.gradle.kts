@@ -1317,6 +1317,8 @@ tasks.register("generateLocReport") {
 
 pmd {
     toolVersion = "7.14.0"
+    // Report-only until the full-strict violation cleanup completes; flip to false (build-failing)
+    // once the count reaches zero. The ruleset itself is now functional again (see ruleset.xml fix).
     isIgnoreFailures = true
     ruleSetFiles = files("config/pmd/ruleset.xml")
     ruleSets = listOf()
@@ -1330,7 +1332,7 @@ checkstyle {
 }
 
 spotbugs {
-    ignoreFailures = true
+    ignoreFailures = false
     excludeFilter = file("config/spotbugs/exclude.xml")
     effort = com.github.spotbugs.snom.Effort.DEFAULT
     reportLevel = com.github.spotbugs.snom.Confidence.DEFAULT

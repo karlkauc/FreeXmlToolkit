@@ -2715,14 +2715,17 @@ public class XsdDocumentationService {
         XPathFactory xPathFactory = XPathFactory.newInstance();
         xpath = xPathFactory.newXPath();
         xpath.setNamespaceContext(new NamespaceContext() {
+            @Override
             public String getNamespaceURI(String prefix) {
                 return NS_PREFIX.equals(prefix) ? NS_URI : null;
             }
 
+            @Override
             public String getPrefix(String uri) {
                 return null;
             }
 
+            @Override
             public Iterator<String> getPrefixes(String uri) {
                 return null;
             }

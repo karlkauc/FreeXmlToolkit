@@ -665,6 +665,7 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
      * @param forward    true to search forward, false to search backward
      * @return true if text was found
      */
+    @Override
     public boolean find(String searchText, boolean forward) {
         if (searchText == null || searchText.isEmpty()) {
             return false;
@@ -716,6 +717,7 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
      * @param searchText the text to find
      * @return the number of occurrences found
      */
+    @Override
     public int findAll(String searchText) {
         if (searchText == null || searchText.isEmpty()) {
             return 0;
@@ -822,6 +824,7 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
     /**
      * Clears the search state.
      */
+    @Override
     public void clearSearch() {
         lastSearchText = "";
     }

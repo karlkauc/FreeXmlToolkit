@@ -140,7 +140,6 @@ public class XsdDocumentationImageService {
 
     // Legacy compatibility
     private static final String COLOR_ICON = COLOR_STROKE_ELEMENT;
-    private static final String COLOR_ACCENT = COLOR_STROKE_CHOICE;
     private static final String COLOR_BOX_FILL_STRUCTURAL = COLOR_BOX_FILL_SEQUENCE;
 
     // Style strings matching XsdDiagramView

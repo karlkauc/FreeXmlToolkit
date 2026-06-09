@@ -66,7 +66,7 @@
         </properties>
     </rule>
     <rule ref="category/java/errorprone.xml/ReturnFromFinallyBlock"/>
-    <rule ref="category/java/errorprone.xml/AvoidCatchingGenericException"/>
+    <rule ref="category/java/design.xml/AvoidCatchingGenericException"/>
     <rule ref="category/java/errorprone.xml/CloseResource"/>
     <rule ref="category/java/errorprone.xml/ImplicitSwitchFallThrough"/>
     <rule ref="category/java/errorprone.xml/ConstructorCallsOverridableMethod"/>

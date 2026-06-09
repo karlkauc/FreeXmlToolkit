@@ -279,13 +279,15 @@ public class FxtGui extends Application {
             final Toolkit defaultToolkit = Toolkit.getDefaultToolkit();
             final Taskbar taskbar = Taskbar.getTaskbar();
             taskbar.setIconImage(defaultToolkit.getImage(FxtGui.class.getClassLoader().getResource(APP_ICON_PATH)));
-        } catch (UnsupportedOperationException ignore) {
+        } catch (UnsupportedOperationException ignored) {
+            // Taskbar icon is not supported on this platform; non-fatal.
         }
 
         // Icon in Taskbar WINDOWS
         try {
             primaryStage.getIcons().add(new javafx.scene.image.Image(Objects.requireNonNull(FxtGui.class.getResourceAsStream("/" + APP_ICON_PATH))));
-        } catch (Exception ignore) {
+        } catch (Exception ignored) {
+            // Stage icon could not be set; non-fatal.
         }
     }
 
