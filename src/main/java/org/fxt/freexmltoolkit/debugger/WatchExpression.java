@@ -41,8 +41,7 @@ public class WatchExpression {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof WatchExpression that)) return false;
-        return xpath.equals(that.xpath);
+        return o instanceof WatchExpression that && xpath.equals(that.xpath);
     }
 
     @Override

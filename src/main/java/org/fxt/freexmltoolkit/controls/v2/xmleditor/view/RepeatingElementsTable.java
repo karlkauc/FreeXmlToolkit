@@ -1748,11 +1748,7 @@ public class RepeatingElementsTable {
         if (v.matches("\\d{4}-\\d{2}")) {
             return true;
         }
-        if (v.matches("\\d{2}/\\d{4}")) {
-            return true;
-        }
-
-        return false;
+        return v.matches("\\d{2}/\\d{4}");
     }
 
     // ==================== Static Factory ====================

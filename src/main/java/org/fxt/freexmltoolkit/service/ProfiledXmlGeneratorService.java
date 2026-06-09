@@ -201,10 +201,7 @@ public class ProfiledXmlGeneratorService {
      * change repeat counts) so they must keep the profiled path active.</p>
      */
     static boolean hasNoEffectiveRules(GenerationProfile profile) {
-        if (profile == null) {
-            return true;
-        }
-        return profile.getEnabledRules().stream()
+        return profile == null || profile.getEnabledRules().stream()
                 .allMatch(r -> r.getStrategy() == GenerationStrategy.AUTO && !hasStructuralConfig(r));
     }
 

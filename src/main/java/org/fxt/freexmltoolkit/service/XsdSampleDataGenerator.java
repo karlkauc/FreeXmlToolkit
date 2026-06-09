@@ -400,14 +400,10 @@ public class XsdSampleDataGenerator {
             return true;
         }
 
-        // Common email pattern indicators that cause issues
-        if (pattern.contains("@") && (pattern.contains("+") || pattern.contains("*"))) {
-            // Email-like patterns often cause recursion issues in Generex
-            return true;
-        }
-
-        // Very long patterns are often problematic
-        return pattern.length() > 500;
+        // Email-like patterns (with + or *) cause recursion issues in Generex, and very long
+        // patterns are often problematic too.
+        return (pattern.contains("@") && (pattern.contains("+") || pattern.contains("*")))
+                || pattern.length() > 500;
     }
 
     /**

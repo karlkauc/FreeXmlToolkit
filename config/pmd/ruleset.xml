@@ -60,7 +60,6 @@
 
     <!-- ==================== Performance ==================== -->
     <rule ref="category/java/performance.xml/StringInstantiation"/>
-    <rule ref="category/java/performance.xml/UseStringBufferForStringAppends"/>
     <rule ref="category/java/performance.xml/AvoidArrayLoops"/>
 
     <!--
@@ -86,6 +85,9 @@
           would break the guards.
         - FinalFieldCouldBeStatic: the lone hit is a per-instance mutable array
           (`boolean[] dirty`); making it static would be a bug.
+        - UseStringBufferForStringAppends: all hits are single conditional string
+          concatenations (e.g. `name += ":" + x`), not loop accumulation; a StringBuilder
+          would only obscure them.
         - CyclomaticComplexity / NPathComplexity / NcssCount / ExcessiveParameterList /
           TooManyFields / TooManyMethods: ~291 hits; flag large existing methods/classes.
           Refactoring is high-risk and belongs in dedicated, separately-reviewed work,

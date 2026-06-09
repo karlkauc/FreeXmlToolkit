@@ -316,11 +316,9 @@ public class XslFoCompletionProvider implements CompletionProvider {
             return "list-item".equals(element);
         }
 
-        if ("list-item".equals(parent)) {
-            return List.of("list-item-label", "list-item-body").contains(element);
-        }
-
-        return true; // Default: allow all
+        // Default: allow all, except list-item only permits its label/body children.
+        return !"list-item".equals(parent)
+                || List.of("list-item-label", "list-item-body").contains(element);
     }
 
     /**

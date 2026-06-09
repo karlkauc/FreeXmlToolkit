@@ -1056,12 +1056,10 @@ public class InspectorPanel extends VBox {
             case SIMPLE_TYPE, RESTRICTION, LIST, UNION -> true;
             default -> false;
         };
-        if (simpleTypeNode) {
-            return true;
-        }
-        return node instanceof XsdElement
+        return simpleTypeNode
+                || (node instanceof XsdElement
                 && (SchemaFacets.findRestriction(node) != null
-                || !SchemaFacets.resolveReferencedTypeFacets(node, schemaRoot).isEmpty());
+                || !SchemaFacets.resolveReferencedTypeFacets(node, schemaRoot).isEmpty()));
     }
 
     private void updateValidationBadge(EditorHost.ValidationStatus status) {

@@ -2316,26 +2316,20 @@ public class EditorHost extends BorderPane {
         }
 
         boolean addSequence(XsdNode node) {
-            if (!(node instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement element)) {
-                return false;
-            }
-            return executeAndApply(
+            return node instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement element
+                    && executeAndApply(
                     new org.fxt.freexmltoolkit.controls.v2.editor.commands.AddSequenceCommand(element));
         }
 
         boolean addChoice(XsdNode node) {
-            if (!(node instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement element)) {
-                return false;
-            }
-            return executeAndApply(
+            return node instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement element
+                    && executeAndApply(
                     new org.fxt.freexmltoolkit.controls.v2.editor.commands.AddChoiceCommand(element));
         }
 
         boolean addAll(XsdNode node) {
-            if (!(node instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement element)) {
-                return false;
-            }
-            return executeAndApply(
+            return node instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement element
+                    && executeAndApply(
                     new org.fxt.freexmltoolkit.controls.v2.editor.commands.AddAllCommand(element));
         }
 

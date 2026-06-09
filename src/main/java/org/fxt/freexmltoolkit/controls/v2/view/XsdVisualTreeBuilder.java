@@ -545,11 +545,7 @@ public class XsdVisualTreeBuilder {
         }
 
         // Check for element reference
-        if (element.getRef() != null && !element.getRef().isEmpty()) {
-            return true;
-        }
-
-        return false;
+        return element.getRef() != null && !element.getRef().isEmpty();
     }
 
     /**

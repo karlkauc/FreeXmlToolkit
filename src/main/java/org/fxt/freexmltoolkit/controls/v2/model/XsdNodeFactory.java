@@ -1715,11 +1715,7 @@ public class XsdNodeFactory {
         // Second check: element has no namespace (xmlns="") but has matching local name
         // This handles special XSD files like xmldsig-core-schema.xsd from W3C
         String namespaceURI = element.getNamespaceURI();
-        if ((namespaceURI == null || namespaceURI.isEmpty()) && localName.equals(elementLocalName)) {
-            return true;
-        }
-
-        return false;
+        return (namespaceURI == null || namespaceURI.isEmpty()) && localName.equals(elementLocalName);
     }
 
     /**
