@@ -450,27 +450,6 @@ public class XmlSpreadsheetConverterService {
     }
 
     /**
-     * Checks if element has only CDATA content
-     */
-    private boolean hasOnlyCDataContent(Element element) {
-        NodeList children = element.getChildNodes();
-        int cdataCount = 0;
-        for (int i = 0; i < children.getLength(); i++) {
-            Node child = children.item(i);
-            if (child.getNodeType() == Node.ELEMENT_NODE) {
-                return false;
-            } else if (child.getNodeType() == Node.CDATA_SECTION_NODE) {
-                cdataCount++;
-            } else if (child.getNodeType() == Node.TEXT_NODE &&
-                    child.getNodeValue() != null &&
-                    !child.getNodeValue().trim().isEmpty()) {
-                return false; // Mixed content
-            }
-        }
-        return cdataCount == 1;
-    }
-
-    /**
      * Creates Excel header row
      */
     private void createExcelHeader(Sheet sheet, ConversionConfig config) {

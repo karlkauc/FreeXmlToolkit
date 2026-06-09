@@ -55,7 +55,6 @@ public class SectionSettingsPopup {
     private final VBox content;
     private final VBox itemsBox;
     private List<String> localOrder;
-    private String dragSourceId;
 
     public SectionSettingsPopup(CustomizableSectionContainer container) {
         this.container = container;
@@ -222,14 +221,12 @@ public class SectionSettingsPopup {
             ClipboardContent cc = new ClipboardContent();
             cc.put(POPUP_SECTION_FORMAT, sectionId);
             db.setContent(cc);
-            dragSourceId = sectionId;
             row.setOpacity(0.5);
             event.consume();
         });
 
         row.setOnDragDone(event -> {
             row.setOpacity(1.0);
-            dragSourceId = null;
             event.consume();
         });
     }

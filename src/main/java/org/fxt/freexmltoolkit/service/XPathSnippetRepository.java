@@ -112,11 +112,6 @@ public class XPathSnippetRepository {
         }
     }
 
-    private void loadSnippetFromFile(Path filePath) {
-        // Note: JSON deserialization temporarily disabled
-        logger.debug("Skipping snippet file load (JSON support not available): {}", filePath);
-    }
-
     // ========== CRUD Operations ==========
 
     /**

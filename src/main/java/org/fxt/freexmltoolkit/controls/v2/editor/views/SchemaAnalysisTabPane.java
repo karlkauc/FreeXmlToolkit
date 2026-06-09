@@ -80,11 +80,6 @@ public class SchemaAnalysisTabPane extends TabPane {
     private QualityChecksView qualityChecksView;
 
     /**
-     * Sample XML document used for XPath expression testing.
-     */
-    private Document sampleXml;
-
-    /**
      * Listener that handles schema property changes and triggers view refresh.
      */
     private final PropertyChangeListener schemaChangeListener = this::onSchemaChanged;
@@ -214,7 +209,6 @@ public class SchemaAnalysisTabPane extends TabPane {
      * @param sampleXml the sample XML document to use for XPath testing; may be null to clear the sample
      */
     public void setSampleXml(Document sampleXml) {
-        this.sampleXml = sampleXml;
         if (xpathValidationView != null) {
             xpathValidationView.setSampleXml(sampleXml);
         }

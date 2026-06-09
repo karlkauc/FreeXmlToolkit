@@ -87,7 +87,6 @@ public class InlineDocumentationEditor extends VBox implements PropertyChangeLis
     private XsdNode currentNode;
     private List<XsdDocumentation> documentations = new ArrayList<>();
     private int selectedIndex = -1;
-    private boolean editMode = false;
     private boolean updating = false;
 
     /**
@@ -210,7 +209,6 @@ public class InlineDocumentationEditor extends VBox implements PropertyChangeLis
      * @param edit true to enable editing
      */
     public void setEditMode(boolean edit) {
-        this.editMode = edit;
         addButton.setDisable(!edit);
         docTextArea.setEditable(edit);
         langComboBox.setDisable(!edit);
