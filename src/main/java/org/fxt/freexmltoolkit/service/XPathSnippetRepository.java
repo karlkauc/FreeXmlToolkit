@@ -361,24 +361,21 @@ public class XPathSnippetRepository {
 
     private boolean matchesAdvancedCriteria(XPathSnippet snippet, AdvancedSearchCriteria criteria) {
         // Text search
-        if (criteria.getSearchText() != null && !criteria.getSearchText().isEmpty()) {
-            if (!matchesSearch(snippet, criteria.getSearchText().toLowerCase())) {
-                return false;
-            }
+        if (criteria.getSearchText() != null && !criteria.getSearchText().isEmpty()
+                && !matchesSearch(snippet, criteria.getSearchText().toLowerCase())) {
+            return false;
         }
 
         // Category filter
-        if (criteria.getCategories() != null && !criteria.getCategories().isEmpty()) {
-            if (!criteria.getCategories().contains(snippet.getCategory())) {
-                return false;
-            }
+        if (criteria.getCategories() != null && !criteria.getCategories().isEmpty()
+                && !criteria.getCategories().contains(snippet.getCategory())) {
+            return false;
         }
 
         // Type filter
-        if (criteria.getTypes() != null && !criteria.getTypes().isEmpty()) {
-            if (!criteria.getTypes().contains(snippet.getType())) {
-                return false;
-            }
+        if (criteria.getTypes() != null && !criteria.getTypes().isEmpty()
+                && !criteria.getTypes().contains(snippet.getType())) {
+            return false;
         }
 
         // Tags filter

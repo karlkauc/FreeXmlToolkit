@@ -157,43 +157,33 @@ public class TypeUsageFinder {
      */
     private void checkNodeForTypeUsage(XsdNode node, String typeName, Path sourceFile, List<TypeUsageLocation> usages) {
         // Check XsdElement type attribute
-        if (node instanceof XsdElement element) {
-            if (matchesTypeName(element.getType(), typeName)) {
-                usages.add(new TypeUsageLocation(node, UsageReferenceType.ELEMENT_TYPE, sourceFile));
-                logger.trace("Found element type usage: {}", element.getName());
-            }
+        if (node instanceof XsdElement element && matchesTypeName(element.getType(), typeName)) {
+            usages.add(new TypeUsageLocation(node, UsageReferenceType.ELEMENT_TYPE, sourceFile));
+            logger.trace("Found element type usage: {}", element.getName());
         }
 
         // Check XsdAttribute type attribute
-        if (node instanceof XsdAttribute attribute) {
-            if (matchesTypeName(attribute.getType(), typeName)) {
-                usages.add(new TypeUsageLocation(node, UsageReferenceType.ATTRIBUTE_TYPE, sourceFile));
-                logger.trace("Found attribute type usage: {}", attribute.getName());
-            }
+        if (node instanceof XsdAttribute attribute && matchesTypeName(attribute.getType(), typeName)) {
+            usages.add(new TypeUsageLocation(node, UsageReferenceType.ATTRIBUTE_TYPE, sourceFile));
+            logger.trace("Found attribute type usage: {}", attribute.getName());
         }
 
         // Check XsdRestriction base attribute
-        if (node instanceof XsdRestriction restriction) {
-            if (matchesTypeName(restriction.getBase(), typeName)) {
-                usages.add(new TypeUsageLocation(node, UsageReferenceType.RESTRICTION_BASE, sourceFile));
-                logger.trace("Found restriction base usage in: {}", getParentName(node));
-            }
+        if (node instanceof XsdRestriction restriction && matchesTypeName(restriction.getBase(), typeName)) {
+            usages.add(new TypeUsageLocation(node, UsageReferenceType.RESTRICTION_BASE, sourceFile));
+            logger.trace("Found restriction base usage in: {}", getParentName(node));
         }
 
         // Check XsdExtension base attribute
-        if (node instanceof XsdExtension extension) {
-            if (matchesTypeName(extension.getBase(), typeName)) {
-                usages.add(new TypeUsageLocation(node, UsageReferenceType.EXTENSION_BASE, sourceFile));
-                logger.trace("Found extension base usage in: {}", getParentName(node));
-            }
+        if (node instanceof XsdExtension extension && matchesTypeName(extension.getBase(), typeName)) {
+            usages.add(new TypeUsageLocation(node, UsageReferenceType.EXTENSION_BASE, sourceFile));
+            logger.trace("Found extension base usage in: {}", getParentName(node));
         }
 
         // Check XsdList itemType attribute
-        if (node instanceof XsdList list) {
-            if (matchesTypeName(list.getItemType(), typeName)) {
-                usages.add(new TypeUsageLocation(node, UsageReferenceType.LIST_ITEM_TYPE, sourceFile));
-                logger.trace("Found list itemType usage in: {}", getParentName(node));
-            }
+        if (node instanceof XsdList list && matchesTypeName(list.getItemType(), typeName)) {
+            usages.add(new TypeUsageLocation(node, UsageReferenceType.LIST_ITEM_TYPE, sourceFile));
+            logger.trace("Found list itemType usage in: {}", getParentName(node));
         }
 
         // Check XsdUnion memberTypes attribute
@@ -211,11 +201,9 @@ public class TypeUsageFinder {
         }
 
         // Check XsdAlternative type attribute (XSD 1.1)
-        if (node instanceof XsdAlternative alternative) {
-            if (matchesTypeName(alternative.getType(), typeName)) {
-                usages.add(new TypeUsageLocation(node, UsageReferenceType.ALTERNATIVE_TYPE, sourceFile));
-                logger.trace("Found alternative type usage in: {}", getParentName(node));
-            }
+        if (node instanceof XsdAlternative alternative && matchesTypeName(alternative.getType(), typeName)) {
+            usages.add(new TypeUsageLocation(node, UsageReferenceType.ALTERNATIVE_TYPE, sourceFile));
+            logger.trace("Found alternative type usage in: {}", getParentName(node));
         }
     }
 
