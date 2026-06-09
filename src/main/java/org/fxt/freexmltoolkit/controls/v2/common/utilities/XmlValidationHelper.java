@@ -186,15 +186,13 @@ public class XmlValidationHelper {
                 String elementName = element.getAttribute("name");
                 String elementType = element.getAttribute("type");
 
-                if (!elementName.isEmpty() && !elementType.isEmpty()) {
-                    // If this element has a type, check if we have mandatory children for that type
-                    if (!elementType.startsWith("xs:")) {
-                        List<String> childElements = contextElementNames.get(elementType);
-                        if (childElements != null && !childElements.isEmpty()) {
-                            contextElementNames.put(elementName, new ArrayList<>(childElements));
-                            logger.debug("Mapped element '{}' to type '{}' with {} children",
-                                    elementName, elementType, childElements.size());
-                        }
+                // If this element has a (non-builtin) type, map its mandatory children.
+                if (!elementName.isEmpty() && !elementType.isEmpty() && !elementType.startsWith("xs:")) {
+                    List<String> childElements = contextElementNames.get(elementType);
+                    if (childElements != null && !childElements.isEmpty()) {
+                        contextElementNames.put(elementName, new ArrayList<>(childElements));
+                        logger.debug("Mapped element '{}' to type '{}' with {} children",
+                                elementName, elementType, childElements.size());
                     }
                 }
             }
@@ -261,10 +259,8 @@ public class XmlValidationHelper {
                 String minOccurs = element.getAttribute("minOccurs");
 
                 // Only add if mandatory (minOccurs is 0 or not specified, default is 1)
-                if (isMandatoryFromMinOccurs(minOccurs)) {
-                    if (!mandatoryChildren.contains(elementName)) {
-                        mandatoryChildren.add(elementName);
-                    }
+                if (isMandatoryFromMinOccurs(minOccurs) && !mandatoryChildren.contains(elementName)) {
+                    mandatoryChildren.add(elementName);
                 }
             }
         }
