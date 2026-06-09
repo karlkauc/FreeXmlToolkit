@@ -1477,53 +1477,52 @@ public class XsdPropertiesPanel extends BorderPane {
             XsdNode node = (XsdNode) modelObject;
 
             // Check if we're setting a type on an element that has a compositor
-            if (node instanceof XsdElement element && newType != null && !newType.isEmpty()) {
-                if (element.hasCompositor()) {
-                    // Element has compositor, ask user what to do
-                    Alert confirmDialog = new Alert(Alert.AlertType.CONFIRMATION);
-                    confirmDialog.setTitle("Compositor Present");
-                    confirmDialog.setHeaderText("Element '" + element.getName() + "' already has a Compositor (Sequence/Choice/All)");
-                    confirmDialog.setContentText("Should the Compositor be removed to set a type?");
+            // When setting a type on an element that already has a compositor, ask the user first.
+            if (node instanceof XsdElement element && newType != null && !newType.isEmpty()
+                    && element.hasCompositor()) {
+                Alert confirmDialog = new Alert(Alert.AlertType.CONFIRMATION);
+                confirmDialog.setTitle("Compositor Present");
+                confirmDialog.setHeaderText("Element '" + element.getName() + "' already has a Compositor (Sequence/Choice/All)");
+                confirmDialog.setContentText("Should the Compositor be removed to set a type?");
 
-                    ButtonType removeButton = new ButtonType("Yes, remove Compositor");
-                    ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
-                    confirmDialog.getButtonTypes().setAll(removeButton, cancelButton);
+                ButtonType removeButton = new ButtonType("Yes, remove Compositor");
+                ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+                confirmDialog.getButtonTypes().setAll(removeButton, cancelButton);
 
-                    Optional<ButtonType> result = confirmDialog.showAndWait();
-                    if (!result.isPresent() || result.get() != removeButton) {
-                        logger.debug("User cancelled type change due to existing compositor");
-                        // Reset the combobox to the old value
-                        updating = true;
-                        typeComboBox.setValue(currentType);
-                        updating = false;
-                        return;
-                    }
+                Optional<ButtonType> result = confirmDialog.showAndWait();
+                if (!result.isPresent() || result.get() != removeButton) {
+                    logger.debug("User cancelled type change due to existing compositor");
+                    // Reset the combobox to the old value
+                    updating = true;
+                    typeComboBox.setValue(currentType);
+                    updating = false;
+                    return;
+                }
 
-                    // User confirmed removal - we'll remove compositor below
-                    // First, remove the compositor
-                    for (XsdNode child : new java.util.ArrayList<>(element.getChildren())) {
-                        if (child instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType complexType) {
-                            // Remove compositor from complexType
-                            for (XsdNode ctChild : new java.util.ArrayList<>(complexType.getChildren())) {
-                                if (ctChild instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdSequence ||
-                                    ctChild instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdChoice ||
-                                    ctChild instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdAll) {
-                                    // Remove the compositor via command (for undo/redo support)
-                                    DeleteNodeCommand deleteCmd = new DeleteNodeCommand(ctChild);
-                                    editorContext.getCommandManager().executeCommand(deleteCmd);
-                                    logger.info("Removed compositor '{}' from element '{}'",
-                                            ctChild.getClass().getSimpleName(), element.getName());
-                                    break;
-                                }
+                // User confirmed removal - we'll remove compositor below
+                // First, remove the compositor
+                for (XsdNode child : new java.util.ArrayList<>(element.getChildren())) {
+                    if (child instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType complexType) {
+                        // Remove compositor from complexType
+                        for (XsdNode ctChild : new java.util.ArrayList<>(complexType.getChildren())) {
+                            if (ctChild instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdSequence ||
+                                ctChild instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdChoice ||
+                                ctChild instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdAll) {
+                                // Remove the compositor via command (for undo/redo support)
+                                DeleteNodeCommand deleteCmd = new DeleteNodeCommand(ctChild);
+                                editorContext.getCommandManager().executeCommand(deleteCmd);
+                                logger.info("Removed compositor '{}' from element '{}'",
+                                        ctChild.getClass().getSimpleName(), element.getName());
+                                break;
                             }
-                            // If complexType is now empty (no other children), remove it too
-                            if (complexType.getChildren().isEmpty()) {
-                                DeleteNodeCommand deleteComplexTypeCmd = new DeleteNodeCommand(complexType);
-                                editorContext.getCommandManager().executeCommand(deleteComplexTypeCmd);
-                                logger.info("Removed empty complexType from element '{}'", element.getName());
-                            }
-                            break;
                         }
+                        // If complexType is now empty (no other children), remove it too
+                        if (complexType.getChildren().isEmpty()) {
+                            DeleteNodeCommand deleteComplexTypeCmd = new DeleteNodeCommand(complexType);
+                            editorContext.getCommandManager().executeCommand(deleteComplexTypeCmd);
+                            logger.info("Removed empty complexType from element '{}'", element.getName());
+                        }
+                        break;
                     }
                 }
             }
@@ -2154,20 +2153,18 @@ public class XsdPropertiesPanel extends BorderPane {
         java.util.List<String> patterns = new java.util.ArrayList<>();
 
         for (XsdNode child : schema.getChildren()) {
-            if (child instanceof XsdSimpleType simpleType) {
-                if (typeName.equals(simpleType.getName())) {
-                    // Found the type, now extract patterns from restriction
-                    for (XsdNode typeChild : simpleType.getChildren()) {
-                        if (typeChild instanceof XsdRestriction restriction) {
-                            for (org.fxt.freexmltoolkit.controls.v2.model.XsdFacet facet : restriction.getFacets()) {
-                                if (facet.getFacetType() == org.fxt.freexmltoolkit.controls.v2.model.XsdFacetType.PATTERN) {
-                                    patterns.add(facet.getValue());
-                                }
+            if (child instanceof XsdSimpleType simpleType && typeName.equals(simpleType.getName())) {
+                // Found the type, now extract patterns from restriction
+                for (XsdNode typeChild : simpleType.getChildren()) {
+                    if (typeChild instanceof XsdRestriction restriction) {
+                        for (org.fxt.freexmltoolkit.controls.v2.model.XsdFacet facet : restriction.getFacets()) {
+                            if (facet.getFacetType() == org.fxt.freexmltoolkit.controls.v2.model.XsdFacetType.PATTERN) {
+                                patterns.add(facet.getValue());
                             }
                         }
                     }
-                    break;
                 }
+                break;
             }
         }
 
@@ -2239,20 +2236,18 @@ public class XsdPropertiesPanel extends BorderPane {
         java.util.List<String> enumerations = new java.util.ArrayList<>();
 
         for (XsdNode child : schema.getChildren()) {
-            if (child instanceof XsdSimpleType simpleType) {
-                if (typeName.equals(simpleType.getName())) {
-                    // Found the type, now extract enumerations from restriction
-                    for (XsdNode typeChild : simpleType.getChildren()) {
-                        if (typeChild instanceof XsdRestriction restriction) {
-                            for (org.fxt.freexmltoolkit.controls.v2.model.XsdFacet facet : restriction.getFacets()) {
-                                if (facet.getFacetType() == org.fxt.freexmltoolkit.controls.v2.model.XsdFacetType.ENUMERATION) {
-                                    enumerations.add(facet.getValue());
-                                }
+            if (child instanceof XsdSimpleType simpleType && typeName.equals(simpleType.getName())) {
+                // Found the type, now extract enumerations from restriction
+                for (XsdNode typeChild : simpleType.getChildren()) {
+                    if (typeChild instanceof XsdRestriction restriction) {
+                        for (org.fxt.freexmltoolkit.controls.v2.model.XsdFacet facet : restriction.getFacets()) {
+                            if (facet.getFacetType() == org.fxt.freexmltoolkit.controls.v2.model.XsdFacetType.ENUMERATION) {
+                                enumerations.add(facet.getValue());
                             }
                         }
                     }
-                    break;
                 }
+                break;
             }
         }
 
@@ -2325,36 +2320,32 @@ public class XsdPropertiesPanel extends BorderPane {
         java.util.List<String> assertions = new java.util.ArrayList<>();
 
         for (XsdNode child : schema.getChildren()) {
-            if (child instanceof XsdSimpleType simpleType) {
-                if (typeName.equals(simpleType.getName())) {
-                    // Found the type, now extract assertions from restriction
-                    for (XsdNode typeChild : simpleType.getChildren()) {
-                        if (typeChild instanceof XsdRestriction restriction) {
-                            for (org.fxt.freexmltoolkit.controls.v2.model.XsdFacet facet : restriction.getFacets()) {
-                                if (facet.getFacetType() == org.fxt.freexmltoolkit.controls.v2.model.XsdFacetType.ASSERTION) {
-                                    assertions.add(facet.getValue());
-                                }
+            if (child instanceof XsdSimpleType simpleType && typeName.equals(simpleType.getName())) {
+                // Found the type, now extract assertions from restriction
+                for (XsdNode typeChild : simpleType.getChildren()) {
+                    if (typeChild instanceof XsdRestriction restriction) {
+                        for (org.fxt.freexmltoolkit.controls.v2.model.XsdFacet facet : restriction.getFacets()) {
+                            if (facet.getFacetType() == org.fxt.freexmltoolkit.controls.v2.model.XsdFacetType.ASSERTION) {
+                                assertions.add(facet.getValue());
                             }
                         }
                     }
-                    break;
                 }
+                break;
             }
             // Also check ComplexTypes for assertions (XSD 1.1)
-            if (child instanceof XsdComplexType complexType) {
-                if (typeName.equals(complexType.getName())) {
-                    // ComplexTypes can have assertions directly or in their content model
-                    // Check for XsdAssert children
-                    for (XsdNode typeChild : complexType.getChildren()) {
-                        if (typeChild instanceof XsdAssert assertNode) {
-                            String test = assertNode.getTest();
-                            if (test != null && !test.isEmpty()) {
-                                assertions.add(test);
-                            }
+            if (child instanceof XsdComplexType complexType && typeName.equals(complexType.getName())) {
+                // ComplexTypes can have assertions directly or in their content model
+                // Check for XsdAssert children
+                for (XsdNode typeChild : complexType.getChildren()) {
+                    if (typeChild instanceof XsdAssert assertNode) {
+                        String test = assertNode.getTest();
+                        if (test != null && !test.isEmpty()) {
+                            assertions.add(test);
                         }
                     }
-                    break;
                 }
+                break;
             }
         }
 
@@ -2435,18 +2426,16 @@ public class XsdPropertiesPanel extends BorderPane {
         java.util.Map<XsdFacetType, String> facets = new java.util.HashMap<>();
 
         for (XsdNode child : schema.getChildren()) {
-            if (child instanceof XsdSimpleType simpleType) {
-                if (typeName.equals(simpleType.getName())) {
-                    // Found the type, now extract facets from restriction
-                    for (XsdNode typeChild : simpleType.getChildren()) {
-                        if (typeChild instanceof XsdRestriction restriction) {
-                            for (org.fxt.freexmltoolkit.controls.v2.model.XsdFacet facet : restriction.getFacets()) {
-                                facets.put(facet.getFacetType(), facet.getValue());
-                            }
+            if (child instanceof XsdSimpleType simpleType && typeName.equals(simpleType.getName())) {
+                // Found the type, now extract facets from restriction
+                for (XsdNode typeChild : simpleType.getChildren()) {
+                    if (typeChild instanceof XsdRestriction restriction) {
+                        for (org.fxt.freexmltoolkit.controls.v2.model.XsdFacet facet : restriction.getFacets()) {
+                            facets.put(facet.getFacetType(), facet.getValue());
                         }
                     }
-                    break;
                 }
+                break;
             }
         }
 
