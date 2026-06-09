@@ -19,11 +19,6 @@
     <rule ref="category/java/bestpractices.xml/UnusedPrivateField"/>
     <rule ref="category/java/bestpractices.xml/UnusedPrivateMethod"/>
     <rule ref="category/java/bestpractices.xml/UnusedLocalVariable"/>
-    <rule ref="category/java/bestpractices.xml/UnusedFormalParameter">
-        <properties>
-            <property name="checkAll" value="false"/>
-        </properties>
-    </rule>
 
     <!-- ==================== Error-Prone ==================== -->
     <rule ref="category/java/errorprone.xml/EmptyCatchBlock">
@@ -88,6 +83,11 @@
         - UseStringBufferForStringAppends: all hits are single conditional string
           concatenations (e.g. `name += ":" + x`), not loop accumulation; a StringBuilder
           would only obscure them.
+        - UnusedFormalParameter: ~40 of the hits are parameters deliberately marked with a
+          leading underscore (e.g. `_element`, `_context`, `_indent`) — the codebase's
+          convention for a parameter that is intentionally unused but required by an
+          interface/override/recursive signature. PMD cannot tell these from accidental
+          dead parameters, so the rule is not gated.
         - CyclomaticComplexity / NPathComplexity / NcssCount / ExcessiveParameterList /
           TooManyFields / TooManyMethods: ~291 hits; flag large existing methods/classes.
           Refactoring is high-risk and belongs in dedicated, separately-reviewed work,

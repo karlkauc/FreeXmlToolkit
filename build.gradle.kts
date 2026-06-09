@@ -1317,9 +1317,8 @@ tasks.register("generateLocReport") {
 
 pmd {
     toolVersion = "7.14.0"
-    // Report-only until the full-strict violation cleanup completes; flip to false (build-failing)
-    // once the count reaches zero. The ruleset itself is now functional again (see ruleset.xml fix).
-    isIgnoreFailures = true
+    // Build-failing gate: the ruleset is tuned to a no-false-positive set and the codebase is clean.
+    isIgnoreFailures = false
     ruleSetFiles = files("config/pmd/ruleset.xml")
     ruleSets = listOf()
 }
