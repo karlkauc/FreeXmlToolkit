@@ -166,6 +166,99 @@ public class XsltTransformationEngine {
                 logger.warn("Could not disable XSLT extensions: {}", e.getMessage());
             }
         }
+
+        // Restrict resource access regardless of the extension setting: a malicious stylesheet
+        // must not be able to reach internal/remote URLs via doc()/document()/unparsed-text()
+        // (SSRF and remote data exfiltration). Local file resolution is preserved so that
+        // legitimate transforms referencing sibling data files keep working.
+        configureResourceAccess(config);
+    }
+
+    /**
+     * Installs resolvers that block network access from doc()/document() and unparsed-text().
+     *
+     * <p>References over http/https/ftp are rejected; local (file / relative) references fall
+     * through to Saxon's default resolution. This blocks SSRF and remote exfiltration without
+     * preventing legitimate local data access.
+     *
+     * @param config the Saxon configuration to harden
+     */
+    private void configureResourceAccess(Configuration config) {
+        try {
+            // doc() / document() (and other resource lookups) go through the ResourceResolver in
+            // Saxon 12. Capture the existing (default) resolver, then install a wrapper that blocks
+            // remote references and delegates everything local to the default.
+            final net.sf.saxon.lib.ResourceResolver defaultResolver = config.getResourceResolver();
+            config.setResourceResolver(request -> {
+                if (request != null && isRemoteScheme(schemeOfRequest(request))) {
+                    throw new net.sf.saxon.trans.XPathException(
+                            "Blocked remote resource reference (doc()/document()): " + request.uri);
+                }
+                // Local / relative reference: delegate to the default resolver (null = Saxon default).
+                return defaultResolver != null ? defaultResolver.resolve(request) : null;
+            });
+
+            // unparsed-text() / unparsed-text-lines(): block remote, delegate local to Saxon's
+            // standard resolver so encoding handling is preserved.
+            final net.sf.saxon.lib.UnparsedTextURIResolver standardUnparsedText =
+                    new net.sf.saxon.lib.StandardUnparsedTextResolver();
+            config.setUnparsedTextURIResolver((absoluteURI, encoding, cfg) -> {
+                if (absoluteURI != null && isRemoteScheme(absoluteURI.getScheme())) {
+                    throw new net.sf.saxon.trans.XPathException(
+                            "Blocked remote resource reference in unparsed-text(): " + absoluteURI);
+                }
+                return standardUnparsedText.resolve(absoluteURI, encoding, cfg);
+            });
+
+            logger.info("SECURITY: XSLT/XQuery network resource access (doc(), unparsed-text()) is blocked");
+        } catch (Exception e) {
+            logger.warn("Could not install restrictive resource resolvers: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * Determines whether a URI scheme denotes a network protocol that should be blocked.
+     *
+     * @param scheme the URI scheme (may be {@code null})
+     * @return true for http/https/ftp
+     */
+    private static boolean isRemoteScheme(String scheme) {
+        if (scheme == null) {
+            return false;
+        }
+        String s = scheme.toLowerCase();
+        return s.equals("http") || s.equals("https") || s.equals("ftp");
+    }
+
+    /**
+     * Extracts the effective URI scheme of a Saxon {@link net.sf.saxon.lib.ResourceRequest},
+     * resolving a relative reference against its base URI when necessary.
+     *
+     * @param request the resource request
+     * @return the lower-case scheme, or {@code null} if it cannot be determined (treated as local)
+     */
+    private static String schemeOfRequest(net.sf.saxon.lib.ResourceRequest request) {
+        try {
+            if (request.uri != null && !request.uri.isBlank()) {
+                java.net.URI u = java.net.URI.create(request.uri.trim());
+                if (u.getScheme() != null) {
+                    return u.getScheme().toLowerCase();
+                }
+            }
+            if (request.relativeUri != null && request.baseUri != null
+                    && !request.baseUri.isBlank()) {
+                java.net.URI resolved = java.net.URI.create(request.baseUri.trim())
+                        .resolve(request.relativeUri.trim());
+                return resolved.getScheme() != null ? resolved.getScheme().toLowerCase() : null;
+            }
+            if (request.baseUri != null && !request.baseUri.isBlank()) {
+                return java.net.URI.create(request.baseUri.trim()).getScheme();
+            }
+        } catch (IllegalArgumentException e) {
+            logger.debug("Could not parse resource request URI (uri={}, base={}): {}",
+                    request.uri, request.baseUri, e.getMessage());
+        }
+        return null;
     }
 
     public static synchronized XsltTransformationEngine getInstance() {
