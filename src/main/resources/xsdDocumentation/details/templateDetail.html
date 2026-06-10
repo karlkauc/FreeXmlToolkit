@@ -353,7 +353,9 @@
             <section th:if="${appInfos != null and not #lists.isEmpty(appInfos)}">
                 <h2 id="additional-information" class="text-lg font-semibold text-slate-800 mb-3">Additional Information</h2>
                 <div class="space-y-2">
-                    <div th:each="appInfo: ${appInfos}" th:utext="${appInfo}"
+                    <!-- th:text (escaped): appInfo is plain text content extracted from xs:appinfo
+                         (getTextContent()) and must not be rendered as raw HTML (stored XSS). -->
+                    <div th:each="appInfo: ${appInfos}" th:text="${appInfo}"
                          class="p-3 bg-slate-100 rounded-md text-sm text-slate-700 font-mono">
                     </div>
                 </div>

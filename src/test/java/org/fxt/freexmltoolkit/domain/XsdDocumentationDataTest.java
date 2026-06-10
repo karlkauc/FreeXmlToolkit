@@ -218,6 +218,25 @@ class XsdDocumentationDataTest {
             assertTrue(result.contains("xs='http://www.w3.org/2001/XMLSchema'"));
             assertTrue(result.contains("tns='http://example.com/schema'"));
         }
+
+        @Test
+        @DisplayName("Escapes HTML in namespace prefix and URI (stored XSS prevention)")
+        void escapesHtmlInNamespaceValues() {
+            // The result is rendered with th:utext (raw HTML) because of the <br /> separators,
+            // so attacker-controlled prefixes/URIs from the schema must be HTML-escaped.
+            Map<String, String> namespaces = new LinkedHashMap<>();
+            namespaces.put("evil", "http://x/\"><img src=x onerror=alert(1)>");
+            docData.setNamespaces(namespaces);
+
+            String result = docData.getNameSpacesAsString();
+
+            assertFalse(result.contains("<img"),
+                    "Raw injected markup must not appear in the output: " + result);
+            assertTrue(result.contains("&lt;img"), "Angle brackets must be escaped: " + result);
+            // The intentional <br /> separators are still allowed (it is the only markup we emit).
+            assertTrue(result.contains("&quot;") || !result.contains("\""),
+                    "Double quotes in the URI must be escaped: " + result);
+        }
     }
 
     @Nested
