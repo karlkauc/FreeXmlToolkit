@@ -81,10 +81,65 @@ public final class ValidationRunner {
     }
 
     /**
+     * The per-file outcome of a batch validation run (one entry per input file).
+     * Backs the Validation panel's RESULTS list.
+     *
+     * @param file      the validated file
+     * @param problems  the problems found (empty when valid or unreadable)
+     * @param readError a message when the file could not be read, else {@code null}
+     */
+    public record FileValidationResult(File file, List<ValidationProblem> problems, String readError) {
+
+        /** @return {@code true} when the file is unreadable or has at least one non-warning problem */
+        public boolean failed() {
+            return readError != null || errorCount() > 0;
+        }
+
+        /** @return the number of error-severity problems (an unreadable file counts as one) */
+        public long errorCount() {
+            if (readError != null) {
+                return 1;
+            }
+            return problems.stream().filter(p -> !isWarning(p)).count();
+        }
+
+        /** @return the number of warning-severity problems */
+        public long warningCount() {
+            return problems.stream().filter(FileValidationResult::isWarning).count();
+        }
+
+        private static boolean isWarning(ValidationProblem p) {
+            return "warning".equalsIgnoreCase(p.severity());
+        }
+    }
+
+    /**
+     * Validates several XML files against the given XSD and/or Schematron,
+     * returning one structured {@link FileValidationResult} per file (in input order).
+     */
+    public static List<FileValidationResult> batch(List<File> xmlFiles, File xsd, File schematron) {
+        List<FileValidationResult> results = new ArrayList<>();
+        for (File file : xmlFiles) {
+            try {
+                String content = Files.readString(file.toPath(), StandardCharsets.UTF_8);
+                results.add(new FileValidationResult(file, run(content, xsd, schematron), null));
+            } catch (Exception e) {
+                results.add(new FileValidationResult(file, List.of(), String.valueOf(e.getMessage())));
+            }
+        }
+        return results;
+    }
+
+    /**
      * Validates several XML files against the given XSD and/or Schematron and
-     * returns a plain-text report (one line per file).
+     * returns a plain-text report (one line per file). Delegates to {@link #batch}.
      */
     public static String batchReport(List<File> xmlFiles, File xsd, File schematron) {
+        return report(batch(xmlFiles, xsd, schematron), xsd, schematron);
+    }
+
+    /** Renders already-computed batch results as the plain-text report. */
+    public static String report(List<FileValidationResult> results, File xsd, File schematron) {
         StringBuilder report = new StringBuilder("Batch Validation Report\n=======================\n");
         if (xsd != null) {
             report.append("XSD: ").append(xsd.getName()).append('\n');
@@ -93,15 +148,16 @@ public final class ValidationRunner {
             report.append("Schematron: ").append(schematron.getName()).append('\n');
         }
         report.append('\n');
-        for (File file : xmlFiles) {
-            try {
-                String content = Files.readString(file.toPath(), StandardCharsets.UTF_8);
-                List<ValidationProblem> problems = run(content, xsd, schematron);
-                report.append(file.getName()).append(": ")
-                        .append(problems.isEmpty() ? "valid" : problems.size() + " problem(s)").append('\n');
-            } catch (Exception e) {
-                report.append(file.getName()).append(": ERROR ").append(e.getMessage()).append('\n');
+        for (FileValidationResult result : results) {
+            report.append(result.file().getName()).append(": ");
+            if (result.readError() != null) {
+                report.append("ERROR ").append(result.readError());
+            } else if (result.problems().isEmpty()) {
+                report.append("valid");
+            } else {
+                report.append(result.problems().size()).append(" problem(s)");
             }
+            report.append('\n');
         }
         return report.toString();
     }
