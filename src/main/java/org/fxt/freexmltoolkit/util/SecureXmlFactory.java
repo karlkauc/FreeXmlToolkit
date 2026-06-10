@@ -9,9 +9,13 @@ import javax.xml.parsers.SAXParserFactory;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerFactory;
+import javax.xml.validation.SchemaFactory;
+
+import java.net.URI;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.w3c.dom.ls.LSResourceResolver;
 
 /**
  * Factory for creating secure XML processing components.
@@ -226,6 +230,159 @@ public final class SecureXmlFactory {
         }
 
         return factory;
+    }
+
+    /**
+     * Protocols allowed by default for external schema references (xs:import / xs:include /
+     * xs:redefine). Local files and classpath jar resources are permitted so that legitimate
+     * multi-file schemas keep working, while network protocols (http, https, ftp) are blocked
+     * to prevent SSRF and remote-file disclosure when validating an untrusted schema.
+     */
+    public static final String DEFAULT_ALLOWED_SCHEMA_PROTOCOLS = "file,jar:file";
+
+    /**
+     * Protocol set for services that <b>intentionally</b> support resolving schemas from remote
+     * locations (e.g. the XSD validation services with HTTP/HTTPS schema caching). Adds network
+     * protocols on top of {@link #DEFAULT_ALLOWED_SCHEMA_PROTOCOLS}. Prefer
+     * {@link #DEFAULT_ALLOWED_SCHEMA_PROTOCOLS} unless remote schema resolution is a required feature.
+     */
+    public static final String LOCAL_AND_REMOTE_SCHEMA_PROTOCOLS = "file,jar:file,http,https";
+
+    /**
+     * Creates a secure {@link SchemaFactory} for the given schema language with XXE / SSRF
+     * protection enabled.
+     *
+     * <p>The returned factory has:
+     * <ul>
+     *   <li>{@code FEATURE_SECURE_PROCESSING} enabled (entity-expansion limits, etc.)</li>
+     *   <li>External DTD access fully blocked ({@code ACCESS_EXTERNAL_DTD = ""})</li>
+     *   <li>External schema access restricted to {@value #DEFAULT_ALLOWED_SCHEMA_PROTOCOLS},
+     *       which permits local {@code xs:import}/{@code xs:include} while blocking network
+     *       protocols (http/https/ftp) to prevent SSRF.</li>
+     * </ul>
+     *
+     * <p>Callers that install a custom {@code LSResourceResolver} for relative imports remain
+     * fully compatible: the resolver still intercepts references first; the access restriction
+     * only governs what the default resolver is allowed to fetch.
+     *
+     * @param schemaLanguage the schema language URI, e.g.
+     *                        {@link XMLConstants#W3C_XML_SCHEMA_NS_URI}
+     * @return a secure SchemaFactory instance
+     */
+    public static SchemaFactory createSecureSchemaFactory(String schemaLanguage) {
+        return createSecureSchemaFactory(SchemaFactory.newInstance(schemaLanguage), DEFAULT_ALLOWED_SCHEMA_PROTOCOLS);
+    }
+
+    /**
+     * Applies secure XXE / SSRF settings to an existing {@link SchemaFactory}, restricting
+     * external schema references to {@value #DEFAULT_ALLOWED_SCHEMA_PROTOCOLS}.
+     *
+     * <p>Use this overload when the factory must be obtained from a specific implementation
+     * (for example the Xerces XSD 1.1 {@code XMLSchema11Factory}) rather than via
+     * {@link SchemaFactory#newInstance(String)}.
+     *
+     * @param factory the factory to harden
+     * @return the same factory instance, hardened
+     */
+    public static SchemaFactory createSecureSchemaFactory(SchemaFactory factory) {
+        return createSecureSchemaFactory(factory, DEFAULT_ALLOWED_SCHEMA_PROTOCOLS);
+    }
+
+    /**
+     * Applies secure XXE / SSRF settings to an existing {@link SchemaFactory}.
+     *
+     * <p>Always enables {@code FEATURE_SECURE_PROCESSING} and fully blocks external DTD access
+     * (DTDs in schemas are essentially never legitimate and are a pure attack vector). The set
+     * of protocols permitted for external schema references ({@code xs:import}/{@code xs:include}/
+     * {@code xs:redefine}) is caller-controlled via {@code allowedSchemaProtocols}.
+     *
+     * @param factory                the factory to harden
+     * @param allowedSchemaProtocols comma-separated protocol list for {@code ACCESS_EXTERNAL_SCHEMA}
+     *                               (e.g. {@value #DEFAULT_ALLOWED_SCHEMA_PROTOCOLS} for local-only,
+     *                               or {@code "file,jar:file,http,https"} for services that
+     *                               intentionally support remote schemas). Use {@code ""} to block
+     *                               all external schema access.
+     * @return the same factory instance, hardened
+     */
+    public static SchemaFactory createSecureSchemaFactory(SchemaFactory factory, String allowedSchemaProtocols) {
+        try {
+            factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+        } catch (Exception e) {
+            logger.warn("Could not enable secure processing on SchemaFactory: {}", e.getMessage());
+        }
+        try {
+            factory.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+            factory.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, allowedSchemaProtocols);
+            logger.trace("SchemaFactory configured with XXE/SSRF protection (schema protocols: {})", allowedSchemaProtocols);
+        } catch (Exception e) {
+            // Some SchemaFactory implementations may not support these properties
+            logger.debug("SchemaFactory does not support external access restrictions: {}", e.getMessage());
+        }
+
+        // The bundled (exist-db) Xerces fork does not reliably enforce ACCESS_EXTERNAL_SCHEMA, so
+        // when remote protocols are not explicitly allowed we additionally install a resolver that
+        // actively blocks network references. Callers that need remote schema resolution pass a
+        // protocol list containing "http"/"https" and manage their own resolver.
+        if (!allowedSchemaProtocols.toLowerCase().contains("http")) {
+            factory.setResourceResolver(createLocalOnlySchemaResolver());
+        }
+        return factory;
+    }
+
+    /**
+     * Creates an {@link LSResourceResolver} that blocks schema references over network protocols
+     * (http/https/ftp) while delegating local (file / classpath) resolution to the processor's
+     * default handling (by returning {@code null}).
+     *
+     * <p>This is the effective SSRF control for schema resolution, independent of whether the
+     * underlying parser honours the JAXP {@code ACCESS_EXTERNAL_SCHEMA} property.
+     *
+     * @return a resolver that throws {@link SecurityException} on remote references
+     */
+    public static LSResourceResolver createLocalOnlySchemaResolver() {
+        return (type, namespaceURI, publicId, systemId, baseURI) -> {
+            String scheme = resolveScheme(systemId, baseURI);
+            if (scheme != null && (scheme.equals("http") || scheme.equals("https") || scheme.equals("ftp"))) {
+                throw new SecurityException(
+                        "Blocked remote schema reference (" + scheme + "): systemId=" + systemId
+                                + ", base=" + baseURI);
+            }
+            // Local / relative references: let the processor resolve them as usual.
+            return null;
+        };
+    }
+
+    /**
+     * Determines the URI scheme of a (possibly relative) schema reference, resolving it against the
+     * supplied base URI when necessary.
+     *
+     * @param systemId the referenced system identifier (may be relative or {@code null})
+     * @param baseURI  the base URI the reference is resolved against (may be {@code null})
+     * @return the lower-case scheme (e.g. {@code "http"}, {@code "file"}), or {@code null} if it
+     *         cannot be determined (treated as local)
+     */
+    private static String resolveScheme(String systemId, String baseURI) {
+        try {
+            if (systemId != null && !systemId.isBlank()) {
+                URI sys = URI.create(systemId.trim());
+                if (sys.getScheme() != null) {
+                    return sys.getScheme().toLowerCase();
+                }
+                // Relative systemId: resolve against the base URI to discover the effective scheme.
+                if (baseURI != null && !baseURI.isBlank()) {
+                    URI resolved = URI.create(baseURI.trim()).resolve(sys);
+                    return resolved.getScheme() != null ? resolved.getScheme().toLowerCase() : null;
+                }
+            } else if (baseURI != null && !baseURI.isBlank()) {
+                URI base = URI.create(baseURI.trim());
+                return base.getScheme() != null ? base.getScheme().toLowerCase() : null;
+            }
+        } catch (IllegalArgumentException e) {
+            // Malformed URI - treat as local/unknown; the processor will reject it if invalid.
+            logger.debug("Could not parse schema reference scheme (systemId={}, base={}): {}",
+                    systemId, baseURI, e.getMessage());
+        }
+        return null;
     }
 
     /**

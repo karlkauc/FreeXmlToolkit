@@ -271,4 +271,97 @@ class SecureXmlFactoryTest {
         var factory = SecureXmlFactory.createSecureTransformerFactory();
         assertNotNull(factory, "TransformerFactory should be created");
     }
+
+    // =========================================================================
+    // SchemaFactory Tests (XXE / SSRF hardening)
+    // =========================================================================
+
+    private static final String VALID_SCHEMA = """
+            <?xml version="1.0"?>
+            <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <xs:element name="root" type="xs:string"/>
+            </xs:schema>
+            """;
+
+    @Test
+    @DisplayName("SecureSchemaFactory compiles a valid self-contained schema")
+    void secureSchemaFactory_compilesValidSchema() throws Exception {
+        var factory = SecureXmlFactory.createSecureSchemaFactory(
+                javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI);
+        var schema = factory.newSchema(new javax.xml.transform.stream.StreamSource(
+                new StringReader(VALID_SCHEMA)));
+        assertNotNull(schema, "A valid self-contained schema should compile");
+    }
+
+    @Test
+    @DisplayName("SecureSchemaFactory (local-only) blocks an http xs:include (SSRF protection)")
+    void secureSchemaFactory_blocksRemoteInclude() {
+        // Local-only default must reject schema references over network protocols, preventing
+        // a malicious schema from triggering SSRF / internal-resource access. An xs:include is
+        // a mandatory reference, so a blocked network fetch surfaces as a fatal error (proving
+        // the processor never reached out over the network).
+        String remoteIncludeSchema = """
+                <?xml version="1.0"?>
+                <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                    <xs:include schemaLocation="http://169.254.169.254/evil.xsd"/>
+                    <xs:element name="root" type="xs:string"/>
+                </xs:schema>
+                """;
+
+        var factory = SecureXmlFactory.createSecureSchemaFactory(
+                javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI);
+
+        Exception ex = assertThrows(Exception.class, () ->
+                        factory.newSchema(new javax.xml.transform.stream.StreamSource(
+                                new StringReader(remoteIncludeSchema))),
+                "An http xs:include must be blocked");
+        // The local-only resolver throws SecurityException; depending on the parser it may surface
+        // directly or wrapped. Verify the block reason appears somewhere in the exception chain.
+        String chain = throwableChainText(ex);
+        assertTrue(chain.toLowerCase().contains("blocked remote schema")
+                        || chain.toLowerCase().contains("access"),
+                "Failure should be due to the remote-schema block, was: " + chain);
+    }
+
+    /** Concatenates the messages of an exception and all its causes for assertion purposes. */
+    private static String throwableChainText(Throwable t) {
+        StringBuilder sb = new StringBuilder();
+        for (Throwable c = t; c != null && c != c.getCause(); c = c.getCause()) {
+            if (c.getMessage() != null) {
+                sb.append(c.getMessage()).append(" | ");
+            }
+        }
+        return sb.toString();
+    }
+
+    @Test
+    @DisplayName("SecureSchemaFactory (local-only) still allows a local xs:import")
+    void secureSchemaFactory_allowsLocalImport() throws Exception {
+        // Legitimate multi-file schemas using local relative imports must keep working.
+        Path typesXsd = tempDir.resolve("types.xsd");
+        Files.writeString(typesXsd, """
+                <?xml version="1.0"?>
+                <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                           targetNamespace="http://example.com/types">
+                    <xs:simpleType name="MyString">
+                        <xs:restriction base="xs:string"/>
+                    </xs:simpleType>
+                </xs:schema>
+                """);
+
+        Path mainXsd = tempDir.resolve("main.xsd");
+        Files.writeString(mainXsd, """
+                <?xml version="1.0"?>
+                <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                           xmlns:t="http://example.com/types">
+                    <xs:import namespace="http://example.com/types" schemaLocation="types.xsd"/>
+                    <xs:element name="root" type="t:MyString"/>
+                </xs:schema>
+                """);
+
+        var factory = SecureXmlFactory.createSecureSchemaFactory(
+                javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI);
+        var schema = factory.newSchema(mainXsd.toFile());
+        assertNotNull(schema, "A schema with a local relative import should still compile");
+    }
 }

@@ -34,12 +34,19 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.sax.SAXResult;
 import javax.xml.transform.stream.StreamSource;
 
+import java.io.IOException;
+import java.net.URI;
+
 import org.apache.fop.apps.FOUserAgent;
 import org.apache.fop.apps.Fop;
 import org.apache.fop.apps.FopFactory;
+import org.apache.fop.apps.FopFactoryBuilder;
 import org.apache.fop.apps.MimeConstants;
+import org.apache.fop.apps.io.ResourceResolverFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.xmlgraphics.io.Resource;
+import org.apache.xmlgraphics.io.ResourceResolver;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.PDFSettings;
 
@@ -85,7 +92,7 @@ public class FOPService {
             logger.debug("PDF Output: {}", pdfOutput);
             logger.debug("Transforming...");
 
-            final FopFactory fopFactory = FopFactory.newInstance(new File(".").toURI());
+            final FopFactory fopFactory = createSecureFopFactory(new File(".").toURI());
             FOUserAgent foUserAgent = fopFactory.newFOUserAgent();
             if (!pdfSettings.producer().isEmpty()) {
                 foUserAgent.setProducer(pdfSettings.producer());
@@ -141,6 +148,58 @@ public class FOPService {
             throw new FOPServiceException("Unexpected error during PDF generation: " + e.getMessage(), e);
         }
         return pdfOutput;
+    }
+
+    /**
+     * Creates a {@link FopFactory} whose resource resolver blocks references to network protocols
+     * (http/https/ftp).
+     *
+     * <p>This prevents a malicious FO document (or embedded SVG) from using
+     * {@code <fo:external-graphic src="http://...">} or {@code xlink:href} to perform SSRF / reach
+     * internal endpoints, or to exfiltrate data by forcing the renderer to fetch attacker-controlled
+     * URLs. Local resources (e.g. logos referenced by relative/file paths) continue to resolve via
+     * FOP's default resolver. SVG is rendered by FOP's static Batik bridge, which does not execute
+     * ECMAScript, and its external references are subject to the same resolver.
+     *
+     * @param baseUri the base URI used to resolve relative resource references
+     * @return a hardened FopFactory
+     */
+    private FopFactory createSecureFopFactory(URI baseUri) {
+        final ResourceResolver defaultResolver = ResourceResolverFactory.createDefaultResourceResolver();
+        ResourceResolver restrictedResolver = new ResourceResolver() {
+            @Override
+            public Resource getResource(URI uri) throws IOException {
+                if (isRemoteUri(uri)) {
+                    logger.warn("SECURITY: blocked remote resource reference in FO/SVG: {}", uri);
+                    throw new IOException("Blocked remote resource reference: " + uri);
+                }
+                return defaultResolver.getResource(uri);
+            }
+
+            @Override
+            public OutputStream getOutputStream(URI uri) throws IOException {
+                if (isRemoteUri(uri)) {
+                    logger.warn("SECURITY: blocked remote output URI in FO processing: {}", uri);
+                    throw new IOException("Blocked remote output reference: " + uri);
+                }
+                return defaultResolver.getOutputStream(uri);
+            }
+        };
+        return new FopFactoryBuilder(baseUri, restrictedResolver).build();
+    }
+
+    /**
+     * Determines whether a URI uses a network protocol that must be blocked during FO processing.
+     *
+     * @param uri the URI to test (may be {@code null})
+     * @return true for http/https/ftp
+     */
+    private static boolean isRemoteUri(URI uri) {
+        if (uri == null || uri.getScheme() == null) {
+            return false;
+        }
+        String scheme = uri.getScheme().toLowerCase();
+        return scheme.equals("http") || scheme.equals("https") || scheme.equals("ftp");
     }
 
     /**

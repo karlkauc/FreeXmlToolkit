@@ -187,4 +187,75 @@ class XsltSecurityTest {
                     "Quick transform should also block reflexive extensions");
         }
     }
+
+    @Test
+    @DisplayName("Blocks remote doc() (SSRF) without a network call")
+    void blocksRemoteDoc() {
+        // doc() pointed at a non-routable address must be rejected by the resolver immediately,
+        // not attempted over the network (which would hang until a timeout).
+        String xslt = """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <xsl:stylesheet version="2.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+                    <xsl:template match="/">
+                        <result><xsl:copy-of select="doc('http://169.254.169.254/evil.xml')"/></result>
+                    </xsl:template>
+                </xsl:stylesheet>
+                """;
+
+        long start = System.currentTimeMillis();
+        XsltTransformationResult result = transformationEngine.quickTransform(SIMPLE_XML, xslt);
+        long elapsed = System.currentTimeMillis() - start;
+
+        assertFalse(result.isSuccess(), "Remote doc() must cause the transformation to fail");
+        assertTrue(elapsed < 10000,
+                "Remote doc() must be blocked immediately, not attempted over the network (took "
+                        + elapsed + " ms)");
+    }
+
+    @Test
+    @DisplayName("Blocks remote unparsed-text() (SSRF) without a network call")
+    void blocksRemoteUnparsedText() {
+        String xslt = """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <xsl:stylesheet version="2.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+                    <xsl:template match="/">
+                        <result><xsl:value-of select="unparsed-text('http://169.254.169.254/evil.txt')"/></result>
+                    </xsl:template>
+                </xsl:stylesheet>
+                """;
+
+        long start = System.currentTimeMillis();
+        XsltTransformationResult result = transformationEngine.quickTransform(SIMPLE_XML, xslt);
+        long elapsed = System.currentTimeMillis() - start;
+
+        assertFalse(result.isSuccess(), "Remote unparsed-text() must cause the transformation to fail");
+        assertTrue(elapsed < 10000,
+                "Remote unparsed-text() must be blocked immediately (took " + elapsed + " ms)");
+    }
+
+    @Test
+    @DisplayName("Still allows local doc() of a sibling file")
+    void allowsLocalDoc() throws Exception {
+        // Legitimate transforms that read a local data file via doc() must keep working.
+        Path dataFile = tempDir.resolve("data.xml");
+        java.nio.file.Files.writeString(dataFile, "<data><value>LocalDocValue</value></data>");
+        String dataUri = dataFile.toUri().toString();
+
+        String xslt = """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <xsl:stylesheet version="2.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+                    <xsl:template match="/">
+                        <result><xsl:value-of select="doc('%s')/data/value"/></result>
+                    </xsl:template>
+                </xsl:stylesheet>
+                """.formatted(dataUri);
+
+        XsltTransformationResult result = transformationEngine.quickTransform(SIMPLE_XML, xslt);
+
+        assertTrue(result.isSuccess(),
+                "Local doc() should still work. Error: " + result.getErrorMessage());
+        assertTrue(result.getOutputContent() != null
+                        && result.getOutputContent().contains("LocalDocValue"),
+                "Output should contain the local document value");
+    }
 }

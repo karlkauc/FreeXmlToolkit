@@ -455,6 +455,64 @@ class FOPServiceTest {
         assertTrue(result.length() > 100, "Complex PDF should have substantial size");
     }
 
+    // ===== SECURITY TESTS =====
+
+    @Test
+    @DisplayName("Should block remote fo:external-graphic (SSRF) without a network call")
+    void testBlocksRemoteExternalGraphic() throws Exception {
+        // A malicious FO referencing a remote image must not cause FOP to reach out over the
+        // network. The hardened resource resolver rejects the reference immediately; FOP logs the
+        // missing image and still produces a PDF. We assert the run completes quickly (no network
+        // connect attempt to the non-routable address).
+        String xmlContent = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <document><content>Test</content></document>
+            """;
+
+        String xslContent = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <xsl:stylesheet version="1.0"
+                xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+                xmlns:fo="http://www.w3.org/1999/XSL/Format">
+                <xsl:template match="/">
+                    <fo:root>
+                        <fo:layout-master-set>
+                            <fo:simple-page-master master-name="A4"
+                                page-height="297mm" page-width="210mm" margin="20mm">
+                                <fo:region-body/>
+                            </fo:simple-page-master>
+                        </fo:layout-master-set>
+                        <fo:page-sequence master-reference="A4">
+                            <fo:flow flow-name="xsl-region-body">
+                                <fo:block>
+                                    <fo:external-graphic src="url('http://169.254.169.254/evil.png')"/>
+                                </fo:block>
+                            </fo:flow>
+                        </fo:page-sequence>
+                    </fo:root>
+                </xsl:template>
+            </xsl:stylesheet>
+            """;
+
+        Path xmlFile = tempDir.resolve("ssrf.xml");
+        Path xslFile = tempDir.resolve("ssrf.xsl");
+        Path pdfFile = tempDir.resolve("ssrf.pdf");
+        Files.writeString(xmlFile, xmlContent);
+        Files.writeString(xslFile, xslContent);
+
+        PDFSettings settings = new PDFSettings(new HashMap<>(), "", "", "", "", "", "");
+
+        long start = System.currentTimeMillis();
+        File result = fopService.createPdfFile(xmlFile.toFile(), xslFile.toFile(), pdfFile.toFile(), settings);
+        long elapsed = System.currentTimeMillis() - start;
+
+        assertNotNull(result);
+        assertTrue(result.exists(), "PDF should still be produced (with the remote image omitted)");
+        assertTrue(elapsed < 15000,
+                "Remote image must be blocked immediately, not fetched over the network (took "
+                        + elapsed + " ms)");
+    }
+
     // ===== FAILURE SCENARIO TESTS =====
 
     @Test

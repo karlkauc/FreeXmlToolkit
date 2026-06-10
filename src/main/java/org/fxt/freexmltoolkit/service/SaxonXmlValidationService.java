@@ -39,6 +39,7 @@ import org.fxt.freexmltoolkit.service.xsd.SchemaResolver;
 import org.fxt.freexmltoolkit.service.xsd.XsdParseOptions;
 import org.fxt.freexmltoolkit.service.xsd.XsdParsingService;
 import org.fxt.freexmltoolkit.service.xsd.XsdParsingServiceImpl;
+import org.fxt.freexmltoolkit.util.SecureXmlFactory;
 import org.w3c.dom.ls.LSResourceResolver;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
@@ -68,7 +69,12 @@ public class SaxonXmlValidationService implements XmlValidationService {
         this.schemaResolver = new SchemaResolver(XsdParseOptions.defaults());
         this.resourceResolver = (SchemaResolver.ValidationResourceResolver) schemaResolver.createLSResourceResolver(null);
 
-        this.factory = SchemaFactory.newInstance("http://www.w3.org/2001/XMLSchema");
+        // SECURITY: harden against XXE/SSRF. This service intentionally supports remote
+        // (http/https) schema resolution, so network protocols stay enabled while external
+        // DTD access is fully blocked and secure processing is on.
+        this.factory = SecureXmlFactory.createSecureSchemaFactory(
+                SchemaFactory.newInstance("http://www.w3.org/2001/XMLSchema"),
+                SecureXmlFactory.LOCAL_AND_REMOTE_SCHEMA_PROTOCOLS);
         this.factory.setResourceResolver(resourceResolver);
 
         // Initialize the unified XsdParsingService for schema parsing

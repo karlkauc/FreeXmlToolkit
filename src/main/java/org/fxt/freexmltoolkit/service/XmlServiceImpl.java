@@ -117,7 +117,9 @@ public class XmlServiceImpl implements XmlService {
     StringWriter sw;
     Xslt30Transformer transformer;
     UrlValidator urlValidator = new UrlValidator();
-    SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+    SchemaFactory factory = SecureXmlFactory.createSecureSchemaFactory(
+            SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI),
+            SecureXmlFactory.LOCAL_AND_REMOTE_SCHEMA_PROTOCOLS);
     Transformer transform;
     XsltExecutable stylesheet;
     private File cachedXsltFile = null; // Added for caching compiled stylesheet
@@ -353,7 +355,9 @@ public class XmlServiceImpl implements XmlService {
             // STEP 2: Try to create a Schema object (optional, for XSD 1.0 validation)
             // This may fail for XSD 1.1 features (assert, alternative, etc.), but that's okay
             try {
-                SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+                SchemaFactory schemaFactory = SecureXmlFactory.createSecureSchemaFactory(
+                        SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI),
+                        SecureXmlFactory.LOCAL_AND_REMOTE_SCHEMA_PROTOCOLS);
                 this.schema = schemaFactory.newSchema(xsdFile);
                 logger.debug("Successfully created Schema object from XSD file");
             } catch (SAXException e) {

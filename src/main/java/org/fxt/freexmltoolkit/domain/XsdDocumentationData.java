@@ -178,8 +178,28 @@ public class XsdDocumentationData {
         if (namespaces == null || namespaces.isEmpty()) {
             return "";
         }
+        // The result is rendered as raw HTML (th:utext) because of the <br /> separators, so the
+        // schema-derived prefixes and URIs MUST be HTML-escaped to prevent stored XSS in the
+        // generated documentation.
         return namespaces.entrySet().stream()
-                .map(entry -> entry.getKey() + "='" + entry.getValue() + "'")
+                .map(entry -> escapeHtml(entry.getKey()) + "='" + escapeHtml(entry.getValue()) + "'")
                 .collect(Collectors.joining("<br />"));
+    }
+
+    /**
+     * Escapes HTML special characters to prevent injection when the value is rendered as raw HTML.
+     *
+     * @param text the text to escape (may be {@code null})
+     * @return the escaped text, or an empty string if {@code text} is {@code null}
+     */
+    private static String escapeHtml(String text) {
+        if (text == null) {
+            return "";
+        }
+        return text.replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&#x27;");
     }
 }

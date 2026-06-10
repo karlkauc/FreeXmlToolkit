@@ -291,4 +291,36 @@ class AutoUpdateServiceTest {
                     "Non-existent directory should not be writable");
         }
     }
+
+    @Nested
+    @DisplayName("PowerShell Argument Escaping Tests")
+    class PowerShellEscapingTests {
+
+        @Test
+        @DisplayName("Doubles embedded single quotes so paths cannot break out of quoting")
+        void escapesSingleQuotes() {
+            // e.g. a Windows user named "O'Brien": C:\Users\O'Brien\AppData\Local\Temp\helper.exe
+            String path = "C:\\Users\\O'Brien\\AppData\\Local\\Temp\\fxt-helper.exe";
+            String escaped = AutoUpdateServiceImpl.escapePowerShellSingleQuoted(path);
+
+            assertEquals("C:\\Users\\O''Brien\\AppData\\Local\\Temp\\fxt-helper.exe", escaped);
+            // When wrapped in single quotes, no lone single quote may survive.
+            String wrapped = "'" + escaped + "'";
+            assertFalse(wrapped.contains("O'Brien"),
+                    "A lone single quote must not survive: " + wrapped);
+        }
+
+        @Test
+        @DisplayName("Leaves quote-free paths unchanged")
+        void leavesNormalPathsUnchanged() {
+            String path = "C:\\Users\\karl\\AppData\\Local\\Temp\\fxt-helper.exe";
+            assertEquals(path, AutoUpdateServiceImpl.escapePowerShellSingleQuoted(path));
+        }
+
+        @Test
+        @DisplayName("Handles null defensively")
+        void handlesNull() {
+            assertEquals("", AutoUpdateServiceImpl.escapePowerShellSingleQuoted(null));
+        }
+    }
 }

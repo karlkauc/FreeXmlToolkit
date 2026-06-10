@@ -115,15 +115,15 @@ public class ConnectionServiceImpl implements ConnectionService {
                     testProperties.getProperty("http.proxy.host", "not set"),
                     System.getProperty("socksProxyHost", "not set"));
 
-            // Configure SSL bypass if enabled
+            // Read the SSL-bypass opt-in. SECURITY: the bypass is applied ONLY to this specific
+            // connection (see applySslBypassToConnection below), never to the JVM-global
+            // HttpsURLConnection defaults. Poisoning the global defaults would silently disable
+            // certificate validation for every other HTTPS connection in the process - including
+            // auto-update downloads - which must always validate certificates.
             boolean trustAllCerts = Boolean.parseBoolean(testProperties.getProperty("ssl.trustAllCerts", "false"));
             if (trustAllCerts) {
-                try {
-                    configureTrustAllSSL();
-                    logger.warn("!!! SECURITY WARNING !!! SSL certificate validation is disabled.");
-                } catch (Exception sslEx) {
-                    logger.error("Failed to configure SSL bypass, proceeding with default SSL settings: {}", sslEx.getMessage());
-                }
+                logger.warn("!!! SECURITY WARNING !!! SSL certificate validation is disabled for this "
+                        + "connection test only ({}).", uri);
             }
 
             // Configure proxy authentication
@@ -260,38 +260,12 @@ public class ConnectionServiceImpl implements ConnectionService {
     }
 
     /**
-     * Configures SSL to trust all certificates if enabled (global settings)
-     */
-    private void configureTrustAllSSL() throws NoSuchAlgorithmException, KeyManagementException {
-        // Create trust-all manager
-        TrustManager[] trustAllCerts = new TrustManager[]{
-                new X509TrustManager() {
-                    @Override
-                    public X509Certificate[] getAcceptedIssuers() {
-                        return new X509Certificate[0];
-                    }
-
-                    @Override
-                    public void checkClientTrusted(X509Certificate[] certs, String authType) {
-                        // Trust all
-                    }
-
-                    @Override
-                    public void checkServerTrusted(X509Certificate[] certs, String authType) {
-                        // Trust all
-                    }
-                }
-        };
-        
-        // Install trust-all SSL context
-        SSLContext sc = SSLContext.getInstance("TLS");
-        sc.init(null, trustAllCerts, new java.security.SecureRandom());
-        HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-        HttpsURLConnection.setDefaultHostnameVerifier((hostname, session) -> true);
-    }
-
-    /**
-     * Applies SSL bypass settings to a specific HTTPS connection
+     * Applies SSL bypass settings to a specific HTTPS connection.
+     *
+     * <p><b>Security:</b> the trust-all behaviour is intentionally scoped to the single supplied
+     * connection. The JVM-global {@code HttpsURLConnection} defaults are never modified, so
+     * disabling certificate validation here cannot leak into unrelated HTTPS connections (e.g.
+     * auto-update downloads), which must always validate certificates.
      */
     private void applySslBypassToConnection(HttpsURLConnection httpsConnection) throws NoSuchAlgorithmException, KeyManagementException {
         // Create trust-all manager for this specific connection
