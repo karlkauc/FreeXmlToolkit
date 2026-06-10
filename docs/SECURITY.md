@@ -1,6 +1,6 @@
 # Security Features
 
-> **Last Updated:** May 2026 | **Version:** 1.10.0
+> **Last Updated:** June 2026 | **Version:** 1.10.0
 
 This page describes the security measures built into FreeXmlToolkit to protect you from XML-based attacks.
 
@@ -17,6 +17,7 @@ When working with XML files, there are several potential security risks - especi
 | [SSRF Protection](#ssrf-server-side-request-forgery-protection) | Documents accessing your internal network |
 | [Path Traversal Protection](#path-traversal-protection) | Files accessing restricted system directories |
 | [XPath Injection Protection](#xpath-injection-protection) | Malicious input breaking XPath queries |
+| [Update Integrity Verification](#automatic-update-integrity) | Tampered or man-in-the-middle update downloads |
 
 These protections work automatically in the background - you do not need to configure them for normal use.
 
@@ -262,6 +263,45 @@ This prevents the user input from breaking out of the string literal and modifyi
 
 ---
 
+## Automatic Update Integrity
+
+### What Is This?
+
+When FreeXmlToolkit downloads an application update, it verifies that the downloaded file is exactly the one published by the official release - and was not tampered with in transit (for example by a man-in-the-middle on an untrusted network) or swapped on the download server.
+
+### How It Works
+
+1. The update package (a ZIP) is downloaded from the official GitHub release over HTTPS.
+2. Before the package is extracted or launched, its **SHA-256 checksum** is computed locally.
+3. That checksum is compared against the SHA-256 **digest that GitHub publishes for the release asset**, fetched over a separate TLS-protected connection to the GitHub API.
+4. **If the checksums do not match, the update is aborted** and the downloaded file is deleted. Nothing is installed.
+
+This means that even if an attacker could intercept or replace the download, the mismatch would be detected and the update refused.
+
+> **Note:** The certificate-validation bypass setting (`ssl.trustAllCerts`, used only for connection testing) never applies to update downloads. Update traffic always validates TLS certificates.
+
+### When No Published Checksum Is Available
+
+GitHub only began publishing per-asset digests in 2025, so some older releases may not have one. By default, when no trustworthy digest is available, the update **proceeds with a warning** written to the application log (preserving compatibility with those releases).
+
+If you prefer a stricter policy, you can require a verified checksum for **every** update - any update without one will be refused:
+
+```
+update.requireChecksum=true
+```
+
+| Behavior | `update.requireChecksum=false` (default) | `update.requireChecksum=true` |
+|----------|------------------------------------------|-------------------------------|
+| Checksum present and matches | Update proceeds | Update proceeds |
+| Checksum present but **mismatches** | **Update aborted** | **Update aborted** |
+| No checksum published | Update proceeds (logged warning) | **Update aborted** |
+
+### What This Means for You
+
+**For normal use you do not need to change anything** - integrity verification runs automatically. Set `update.requireChecksum=true` only if your environment requires that no update is ever installed without a cryptographically verified checksum.
+
+---
+
 ## How to Configure Security Settings
 
 ### Finding Security Settings
@@ -283,6 +323,7 @@ For advanced users, security settings are stored in the application properties f
 | Property | Values | Description |
 |----------|--------|-------------|
 | `security.xslt.allow.extensions` | `true` / `false` | Enable/disable Java extensions in XSLT |
+| `update.requireChecksum` | `true` / `false` | Require a verified SHA-256 checksum for every update; refuse updates that have no published checksum (default `false`) |
 
 ### Best Practices
 
@@ -320,6 +361,18 @@ For advanced users, security settings are stored in the application properties f
 
 **Solution:** Check your schema imports and includes for unusual paths. Use absolute paths or properly relative paths that stay within your project directory.
 
+### "Integrity verification failed" during an update
+
+**Cause:** The downloaded update did not match the checksum published for the release. This usually indicates a corrupted download or interference on the network, and the update was refused.
+
+**Solution:** Retry the update on a trusted network connection. If it keeps failing, download the latest release manually from the official GitHub releases page.
+
+### An update was refused with "no published checksum"
+
+**Cause:** You set `update.requireChecksum=true`, and the target release does not have a published checksum.
+
+**Solution:** Either update manually from the official release page, or set `update.requireChecksum=false` to allow updates that have no published checksum (the default behavior).
+
 ---
 
 ## Technical Reference
@@ -340,6 +393,13 @@ All XML parsers use these security features:
 
 - `Feature.ALLOW_EXTERNAL_FUNCTIONS` = false (by default)
 - Configurable via application settings
+
+### Update Integrity Verification
+
+- Downloaded update artifact is hashed with `SHA-256` and compared against the digest GitHub publishes for the release asset (retrieved over TLS from the Releases API).
+- Mismatch aborts the update and deletes the artifact before any extraction or launch.
+- The `ssl.trustAllCerts` connection-test bypass is never applied to update downloads, which always perform standard certificate validation.
+- `update.requireChecksum=true` additionally refuses any update that has no published digest.
 
 ### URL Validation
 
