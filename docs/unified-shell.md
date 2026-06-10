@@ -242,26 +242,57 @@ data-quality check).
 
 Open the **Validation** panel from the activity bar to validate the active document.
 
-### Binding a Schema
+> **Redesigned in June 2026** - the panel now follows the application's modern design:
+> a SOURCES section, a Single file / Batch mode toggle, a primary **Run Validation**
+> button, and a color-coded RESULTS list.
 
-- **Set XSD…** - Pick an XSD schema to validate the document against.
-- **Favorites** - A quick-select menu that lists your favorited XSD schemas. Pick one to bind
-  it in a single click, without browsing the file system. (See [Favorites](favorites-system.md).)
-- **Schematron…** - Pick a Schematron file to apply business-rule validation.
+### Sources
 
-### Schematron Tools
+The **SOURCES** section shows the XSD and Schematron files bound to the active document.
+Click **Change** next to a source to pick a different file. The star button on the XSD row
+opens a quick-select menu of your favorited XSD schemas - pick one to bind it in a single
+click, without browsing the file system. (See [Favorites](favorites-system.md).)
 
-When a Schematron file is involved, the panel offers a set of Schematron tools:
+### Running a Validation
 
-| Tool | What It Does |
+1. Pick a mode with the **Single file | Batch** toggle.
+2. Click **Run Validation**.
+
+- **Single file** validates the active document against the bound XSD and/or Schematron.
+- **Batch** asks for a set of XML files and validates each one. The **RESULTS** list then
+  shows one row per file with a status icon (red ✕ = errors, orange ⚠ = warnings only,
+  green ✓ = valid) and a badge with the problem count. Select a row to see that file's
+  problems; double-click to open the file. The plain-text batch report is available via
+  the ⋮ menu (**Open last batch report**).
+
+### Problems
+
+Problems appear in two places:
+
+- The **PROBLEMS** list at the bottom of the side panel.
+- The **PROBLEMS panel below the editor** (new in June 2026): it appears automatically when
+  validation finds problems, shows error/warning counts in its header, and can be collapsed
+  to just the header. Each row shows the message and the file/line in a monospaced label.
+
+Selecting a problem in either list jumps to its line in the editor.
+
+### The ⋮ Menu
+
+Secondary tools live in the panel header's ⋮ (overflow) menu:
+
+| Entry | What It Does |
 |------|--------------|
-| **Rule Templates** | Insert ready-made Schematron rule patterns |
-| **Tester** | Run the Schematron rules against an XML file |
-| **Rule Builder** | Build rules visually |
-| **Check Rules** | Run an error detector over the Schematron itself and show a categorised issue table |
-| **Documentation** | Open the Schematron documentation generator |
+| **Schematron Tools → Rule Templates** | Insert ready-made Schematron rule patterns |
+| **Schematron Tools → Tester** | Run the Schematron rules against an XML file |
+| **Schematron Tools → Rule Builder** | Build rules visually |
+| **Schematron Tools → Check Rules** | Run an error detector over the Schematron itself and show a categorised issue table |
+| **Schematron Tools → Documentation** | Open the Schematron documentation generator |
+| **JSON Schema…** | Pick a JSON Schema for validating JSON documents |
+| **Validate against FundsXML** | (When the FundsXML extension is enabled) validate against the FundsXML schema |
+| **Validate while typing** | Toggle continuous (debounced) validation |
+| **Open last batch report** | Open the plain-text report of the last batch run |
 
-> **Check Rules (new in June 2026)** inspects the Schematron file for problems and lists them
+> **Check Rules** inspects the Schematron file for problems and lists them
 > by category - XML syntax, structural, XPath, semantic, and best-practice issues - so you can
 > fix mistakes in the rules before you rely on them. See
 > [Schematron Validation](schematron-support.md) for details.
