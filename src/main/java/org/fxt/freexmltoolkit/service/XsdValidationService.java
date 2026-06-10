@@ -28,6 +28,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.service.xsd.SchemaResolver;
 import org.fxt.freexmltoolkit.service.xsd.XsdParseOptions;
+import org.fxt.freexmltoolkit.util.SecureXmlFactory;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
@@ -437,7 +438,9 @@ public class XsdValidationService {
      */
     private Schema loadSchema(String xsdPath) {
         try {
-            SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+            SchemaFactory schemaFactory = SecureXmlFactory.createSecureSchemaFactory(
+                    SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI),
+                    SecureXmlFactory.LOCAL_AND_REMOTE_SCHEMA_PROTOCOLS);
 
             // Configure unified schema resolver to handle relative schema references (xs:import, xs:include)
             SchemaResolver schemaResolver = new SchemaResolver(XsdParseOptions.defaults());

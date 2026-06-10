@@ -20,6 +20,7 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdNodeFactory;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.service.ConnectionService;
+import org.fxt.freexmltoolkit.util.SecureXmlFactory;
 import org.w3c.dom.Comment;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -291,7 +292,7 @@ public class XsdParsingServiceImpl implements XsdParsingService {
                 case XSD_1_1 -> XSD_1_1_NS;
             };
 
-            SchemaFactory schemaFactory = SchemaFactory.newInstance(schemaLanguage);
+            SchemaFactory schemaFactory = SecureXmlFactory.createSecureSchemaFactory(schemaLanguage);
 
             // If we have a source file, use it directly
             if (parsedSchema.getSourceFile().isPresent()) {

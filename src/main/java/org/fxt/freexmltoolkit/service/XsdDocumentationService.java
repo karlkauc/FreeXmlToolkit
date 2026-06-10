@@ -84,6 +84,7 @@ import org.fxt.freexmltoolkit.domain.XsdExtendedElement.RestrictionInfo;
 import org.fxt.freexmltoolkit.service.TaskProgressListener.ProgressUpdate;
 import org.fxt.freexmltoolkit.service.TaskProgressListener.ProgressUpdate.Status;
 import org.fxt.freexmltoolkit.util.PathValidator;
+import org.fxt.freexmltoolkit.util.SecureXmlFactory;
 import org.jspecify.annotations.NonNull;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -2116,19 +2117,25 @@ public class XsdDocumentationService {
             SchemaFactory factory;
             if (requiresXsd11) {
                 // Use Xerces XSD 1.1 factory
-                factory = new org.apache.xerces.jaxp.validation.XMLSchema11Factory();
+                factory = SecureXmlFactory.createSecureSchemaFactory(
+                        new org.apache.xerces.jaxp.validation.XMLSchema11Factory());
                 logger.debug("Using XSD 1.1 schema factory for validation");
             } else {
-                factory = SchemaFactory.newInstance(javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI);
+                factory = SecureXmlFactory.createSecureSchemaFactory(
+                        javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI);
                 logger.debug("Using XSD 1.0 schema factory for validation");
             }
 
             // Set up resource resolver for imports/includes
             File schemaFile = new File(xsdFilePath);
             File schemaDir = schemaFile.getParentFile();
+            // SECURITY: block remote (http/https/ftp) schema references to prevent SSRF; this guard
+            // throws on a remote reference and is a no-op (returns null) for local references.
+            final org.w3c.dom.ls.LSResourceResolver remoteGuard = SecureXmlFactory.createLocalOnlySchemaResolver();
             factory.setResourceResolver(new org.w3c.dom.ls.LSResourceResolver() {
                 @Override
                 public org.w3c.dom.ls.LSInput resolveResource(String type, String namespaceURI, String publicId, String systemId, String baseURI) {
+                    remoteGuard.resolveResource(type, namespaceURI, publicId, systemId, baseURI);
                     if (systemId != null && schemaDir != null) {
                         // SECURITY: Validate systemId before resolving
                         int traversalCount = PathValidator.countParentTraversals(systemId);

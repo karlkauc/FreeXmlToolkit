@@ -176,6 +176,23 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
                     return UpdateResult.failure("Update cancelled by user");
                 }
 
+                // Stage 2b: Integrity verification
+                // SECURITY: verify the downloaded artifact against the SHA-256 digest that GitHub
+                // publishes for the release asset (fetched over TLS from the Releases API). This
+                // prevents a tampered/MITM'd download from being extracted and executed.
+                reportProgress(progressCallback, UpdateStage.DOWNLOADING, Files.size(zipFile),
+                        Files.size(zipFile), "Verifying download integrity...");
+                try {
+                    verifyDownloadIntegrity(zipFile, downloadUrl, updateInfo, debugLog);
+                } catch (SecurityException se) {
+                    writeDebugLog(debugLog, "SECURITY: integrity verification FAILED: " + se.getMessage());
+                    logger.error("Update integrity verification failed: {}", se.getMessage());
+                    Files.deleteIfExists(zipFile);
+                    reportProgress(progressCallback, UpdateStage.FAILED, 0, -1,
+                            "Integrity check failed: " + se.getMessage());
+                    return UpdateResult.failure("Integrity verification failed: " + se.getMessage());
+                }
+
                 // Stage 3: Extracting
                 reportProgress(progressCallback, UpdateStage.EXTRACTING, 0, -1,
                         "Extracting update...");
@@ -770,6 +787,160 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
                 "https://github.com/%s/%s/releases/download/v%s/FreeXmlToolkit-%s-app-image-%s.zip",
                 GITHUB_OWNER, GITHUB_REPO, version, platform, version
         );
+    }
+
+    /**
+     * Verifies the integrity of a downloaded release artifact against the SHA-256 digest that
+     * GitHub publishes for the asset.
+     *
+     * <p>The expected digest is read from the GitHub Releases API (over TLS) for the release tag
+     * matching the update version, and compared against the locally computed SHA-256 of the
+     * downloaded file. A mismatch throws {@link SecurityException}, aborting the update.
+     *
+     * <p>GitHub only began populating the per-asset {@code digest} field in 2025, so it may be
+     * absent for older releases. When no trustworthy digest is available the behaviour is governed
+     * by the {@code update.requireChecksum} property (default {@code false}): when disabled, the
+     * update proceeds with a prominent warning (preserving compatibility with pre-digest releases);
+     * when enabled, the update is aborted.
+     *
+     * @param zipFile     the downloaded artifact
+     * @param downloadUrl the URL the artifact was downloaded from (its last path segment is the asset name)
+     * @param updateInfo  the update info (provides the release version/tag)
+     * @param debugLog    the debug log file
+     * @throws SecurityException if the digest does not match, or no digest is available and strict mode is on
+     * @throws IOException       if the file cannot be read
+     */
+    private void verifyDownloadIntegrity(Path zipFile, String downloadUrl, UpdateInfo updateInfo,
+                                         Path debugLog) throws IOException {
+        String assetName = downloadUrl.substring(downloadUrl.lastIndexOf('/') + 1);
+        String expectedSha256 = fetchExpectedSha256(updateInfo, assetName, debugLog);
+
+        if (expectedSha256 == null || expectedSha256.isBlank()) {
+            boolean strict = isChecksumRequired();
+            String msg = "No published SHA-256 digest available for asset '" + assetName + "'";
+            if (strict) {
+                throw new SecurityException(msg + " and update.requireChecksum is enabled");
+            }
+            logger.warn("SECURITY: {} - proceeding without integrity verification "
+                    + "(set update.requireChecksum=true to enforce)", msg);
+            writeDebugLog(debugLog, "WARNING: " + msg + " - integrity NOT verified");
+            return;
+        }
+
+        String actualSha256 = computeSha256(zipFile);
+        writeDebugLog(debugLog, "Expected SHA-256: " + expectedSha256);
+        writeDebugLog(debugLog, "Actual   SHA-256: " + actualSha256);
+
+        if (!expectedSha256.equalsIgnoreCase(actualSha256)) {
+            throw new SecurityException("SHA-256 mismatch for " + assetName
+                    + " (expected " + expectedSha256 + ", got " + actualSha256 + ")");
+        }
+        logger.info("Update integrity verified: SHA-256 matches published digest for {}", assetName);
+        writeDebugLog(debugLog, "Integrity verification PASSED for " + assetName);
+    }
+
+    /**
+     * Fetches the expected SHA-256 digest for the named release asset from the GitHub Releases API.
+     *
+     * @param updateInfo the update info providing the release version/tag
+     * @param assetName  the asset file name to look up
+     * @param debugLog   the debug log file
+     * @return the lower-case hex SHA-256 digest, or {@code null} if unavailable
+     */
+    private String fetchExpectedSha256(UpdateInfo updateInfo, String assetName, Path debugLog) {
+        try {
+            String version = updateInfo.latestVersion();
+            if (version != null && version.startsWith("v")) {
+                version = version.substring(1);
+            }
+            String apiUrl = String.format(
+                    "https://api.github.com/repos/%s/%s/releases/tags/v%s",
+                    GITHUB_OWNER, GITHUB_REPO, version);
+
+            ConnectionService connectionService = ServiceRegistry.get(ConnectionService.class);
+            var result = connectionService.executeHttpRequest(URI.create(apiUrl));
+            if (result == null || result.httpStatus() == null || result.httpStatus() != 200
+                    || result.resultBody() == null || result.resultBody().isBlank()) {
+                writeDebugLog(debugLog, "Could not fetch release metadata for digest lookup (status: "
+                        + (result != null ? result.httpStatus() : "null") + ")");
+                return null;
+            }
+
+            com.google.gson.JsonObject release =
+                    com.google.gson.JsonParser.parseString(result.resultBody()).getAsJsonObject();
+            if (!release.has("assets") || !release.get("assets").isJsonArray()) {
+                return null;
+            }
+            for (var element : release.getAsJsonArray("assets")) {
+                com.google.gson.JsonObject asset = element.getAsJsonObject();
+                String name = asset.has("name") && !asset.get("name").isJsonNull()
+                        ? asset.get("name").getAsString() : null;
+                if (!assetName.equals(name)) {
+                    continue;
+                }
+                if (asset.has("digest") && !asset.get("digest").isJsonNull()) {
+                    String digest = asset.get("digest").getAsString();
+                    // GitHub formats the digest as "sha256:<hex>"
+                    if (digest.toLowerCase().startsWith("sha256:")) {
+                        return digest.substring("sha256:".length()).trim().toLowerCase();
+                    }
+                    writeDebugLog(debugLog, "Asset digest present but not SHA-256: " + digest);
+                }
+                return null; // matched asset but no usable digest
+            }
+            writeDebugLog(debugLog, "Asset '" + assetName + "' not found in release metadata");
+            return null;
+        } catch (Exception e) {
+            logger.warn("Failed to fetch expected SHA-256 digest: {}", e.getMessage());
+            writeDebugLog(debugLog, "ERROR fetching digest: " + e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Computes the SHA-256 digest of a file as a lower-case hex string.
+     *
+     * @param file the file to hash
+     * @return the lower-case hex SHA-256 digest
+     * @throws IOException if the file cannot be read or SHA-256 is unavailable
+     */
+    private String computeSha256(Path file) throws IOException {
+        try {
+            java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
+            try (InputStream in = new BufferedInputStream(Files.newInputStream(file))) {
+                byte[] buffer = new byte[BUFFER_SIZE];
+                int read;
+                while ((read = in.read(buffer)) != -1) {
+                    digest.update(buffer, 0, read);
+                }
+            }
+            byte[] hash = digest.digest();
+            StringBuilder sb = new StringBuilder(hash.length * 2);
+            for (byte b : hash) {
+                sb.append(Character.forDigit((b >> 4) & 0xF, 16));
+                sb.append(Character.forDigit(b & 0xF, 16));
+            }
+            return sb.toString();
+        } catch (java.security.NoSuchAlgorithmException e) {
+            throw new IOException("SHA-256 algorithm not available", e);
+        }
+    }
+
+    /**
+     * Returns whether a published checksum is mandatory for updates to proceed.
+     * Controlled by the {@code update.requireChecksum} property (default {@code false}).
+     *
+     * @return true if updates must be aborted when no published digest is available
+     */
+    private boolean isChecksumRequired() {
+        try {
+            PropertiesService propertiesService = ServiceRegistry.get(PropertiesService.class);
+            return Boolean.parseBoolean(
+                    propertiesService.loadProperties().getProperty("update.requireChecksum", "false"));
+        } catch (Exception e) {
+            logger.debug("Could not read update.requireChecksum, defaulting to false: {}", e.getMessage());
+            return false;
+        }
     }
 
     /**

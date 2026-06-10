@@ -28,6 +28,7 @@ import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.model.StyleSpans;
 import org.fxmisc.richtext.model.StyleSpansBuilder;
 import org.fxt.freexmltoolkit.controls.v2.editor.core.EditorContext;
+import org.fxt.freexmltoolkit.util.SecureXmlFactory;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
@@ -314,7 +315,8 @@ public class ValidationManagerV2 {
         }
 
         logger.debug("Creating new Schema for: {}", filePath);
-        SchemaFactory schemaFactory = SchemaFactory.newInstance(javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI);
+        SchemaFactory schemaFactory = SecureXmlFactory.createSecureSchemaFactory(
+                javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI);
         cachedSchema = schemaFactory.newSchema(schemaFile);
         cachedSchemaFilePath = filePath;
         cachedSchemaLastModified = lastModified;

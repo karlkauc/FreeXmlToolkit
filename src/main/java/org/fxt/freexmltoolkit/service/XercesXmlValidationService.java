@@ -39,6 +39,7 @@ import org.fxt.freexmltoolkit.service.xsd.SchemaResolver;
 import org.fxt.freexmltoolkit.service.xsd.XsdParseOptions;
 import org.fxt.freexmltoolkit.service.xsd.XsdParsingService;
 import org.fxt.freexmltoolkit.service.xsd.XsdParsingServiceImpl;
+import org.fxt.freexmltoolkit.util.SecureXmlFactory;
 import org.w3c.dom.ls.LSResourceResolver;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
@@ -90,7 +91,12 @@ public class XercesXmlValidationService implements XmlValidationService {
         }
         
         // Create schema factory for XSD 1.0
-        this.schemaFactory10 = new org.apache.xerces.jaxp.validation.XMLSchemaFactory();
+        // SECURITY: harden against XXE/SSRF; this service intentionally supports remote
+        // (http/https) schema resolution, so network protocols stay enabled while external
+        // DTD access is fully blocked and secure processing is on.
+        this.schemaFactory10 = SecureXmlFactory.createSecureSchemaFactory(
+                new org.apache.xerces.jaxp.validation.XMLSchemaFactory(),
+                SecureXmlFactory.LOCAL_AND_REMOTE_SCHEMA_PROTOCOLS);
 
         // Create schema factory for XSD 1.1
         // For XSD 1.1 support with assertions, we need to use the special Xerces XSD 1.1 implementation
@@ -139,7 +145,9 @@ public class XercesXmlValidationService implements XmlValidationService {
             // Fallback to XSD 1.0 factory
             tempFactory11 = this.schemaFactory10;
         }
-        this.schemaFactory11 = tempFactory11;
+        // SECURITY: apply the same XXE/SSRF hardening to the XSD 1.1 factory.
+        this.schemaFactory11 = SecureXmlFactory.createSecureSchemaFactory(
+                tempFactory11, SecureXmlFactory.LOCAL_AND_REMOTE_SCHEMA_PROTOCOLS);
 
         // Configure Xerces features for better validation
         try {
