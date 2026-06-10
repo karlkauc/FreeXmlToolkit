@@ -1,21 +1,29 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.geometry.Pos;
 import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
+import javafx.scene.control.CheckMenuItem;
+import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
+import javafx.scene.control.Menu;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.util.Duration;
@@ -24,70 +32,135 @@ import org.fxt.freexmltoolkit.FxtGui;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 
 /**
- * The Validation activity side panel: validates the active XML against its bound
- * XSD (see {@link EditorHost#activeSchemaProperty()}) and an optional Schematron
- * file, listing the problems; selecting one jumps to its line. Validation runs
- * off the UI thread via {@link ValidationRunner}. Supports continuous (debounced)
- * validation while typing, toggleable via the "Validate while typing" checkbox.
+ * The Validation activity side panel, laid out after the Figma mockup
+ * "Redesign · Unified — Validation" (node 40:48): a SOURCES section showing the
+ * bound XSD/Schematron with "Change" links, a Single-file/Batch segmented
+ * toggle, a primary "Run Validation" button, a RESULTS list with per-file
+ * severity icons and problem-count badges (batch runs), and the PROBLEMS list.
+ * Secondary features (Schematron tools, JSON Schema, FundsXML, the
+ * validate-while-typing toggle, the batch text report) live in the header's
+ * overflow (⋮) menu. Validation runs off the UI thread via
+ * {@link ValidationRunner}; selecting a problem jumps to its line.
  */
 public class ValidationPanel extends VBox {
 
     private final EditorHost editorHost;
     private final ObservableList<ValidationProblem> problems = FXCollections.observableArrayList();
     private final ListView<ValidationProblem> problemsList = new ListView<>(problems);
+    private final ObservableList<ValidationRunner.FileValidationResult> batchResults =
+            FXCollections.observableArrayList();
+    private final ListView<ValidationRunner.FileValidationResult> batchList = new ListView<>(batchResults);
     private final Label status = new Label("Not validated");
-    private final Label xsdStatus = new Label("XSD: none");
-    private final MenuButton xsdFavoritesMenu = new MenuButton("Favorites");
-    private final Label schematronStatus = new Label("Schematron: none");
-    private final CheckBox liveValidation = new CheckBox("Validate while typing");
+    private final Label xsdName = new Label("none");
+    private final Label schematronName = new Label("none");
+    private final Label resultsHeaderLabel = new Label("RESULTS");
+    private final MenuButton xsdFavoritesMenu = new MenuButton();
+    private final MenuButton overflowMenu = new MenuButton();
+    private final MenuItem openBatchReport = new MenuItem("Open last batch report");
+    private final CheckMenuItem liveValidation = new CheckMenuItem("Validate while typing");
+    private final ToggleButton singleMode = new ToggleButton("Single file");
+    private final ToggleButton batchMode = new ToggleButton("Batch");
     private final PauseTransition debounce = new PauseTransition(Duration.millis(600));
     private File jsonSchemaFile;
+    private String lastBatchReport;
 
     public ValidationPanel(EditorHost editorHost) {
         this.editorHost = editorHost;
-        getStyleClass().add("fxt-side-panel-content");
+        getStyleClass().add("fxt-validation-panel");
 
+        // --- header: VALIDATION ........ ⋮ -------------------------------
         Label title = new Label("VALIDATION");
-        title.getStyleClass().add("fxt-side-panel-title");
+        title.getStyleClass().add("fxt-vp-title");
+        Region headerSpacer = new Region();
+        HBox.setHgrow(headerSpacer, Priority.ALWAYS);
+        overflowMenu.setId("validation-overflow");
+        overflowMenu.setGraphic(icon("bi-three-dots-vertical", 15));
+        overflowMenu.getStyleClass().add("fxt-vp-overflow");
+        buildOverflowMenu();
+        HBox header = new HBox(title, headerSpacer, overflowMenu);
+        header.getStyleClass().add("fxt-vp-header");
+        header.setAlignment(Pos.CENTER_LEFT);
 
-        Button validate = new Button("Validate", icon("bi-check2-circle"));
-        validate.getStyleClass().add("fxt-tool-button");
-        validate.setOnAction(e -> revalidate());
-
-        Button setXsd = new Button("Set XSD…", icon("bi-diagram-3"));
-        setXsd.getStyleClass().add("fxt-tool-button");
-        setXsd.setOnAction(e -> chooseXsd());
-        xsdFavoritesMenu.setGraphic(icon("bi-star"));
-        xsdFavoritesMenu.getStyleClass().add("fxt-tool-button");
+        // --- SOURCES ------------------------------------------------------
+        xsdName.getStyleClass().add("fxt-vp-source-name");
+        schematronName.getStyleClass().add("fxt-vp-source-name");
+        xsdFavoritesMenu.setGraphic(icon("bi-star", 13));
+        xsdFavoritesMenu.getStyleClass().add("fxt-vp-source-fav");
         xsdFavoritesMenu.setOnShowing(e -> refreshXsdFavoritesMenu());
-
-        Button setSchematron = new Button("Schematron…", icon("bi-shield-check"));
-        setSchematron.getStyleClass().add("fxt-tool-button");
-        setSchematron.setOnAction(e -> chooseSchematron());
-
-        Button setJsonSchema = new Button("JSON Schema…", icon("bi-braces-asterisk"));
-        setJsonSchema.getStyleClass().add("fxt-tool-button");
-        setJsonSchema.setOnAction(e -> chooseJsonSchema());
-
-        Button batch = new Button("Batch…", icon("bi-files"));
-        batch.getStyleClass().add("fxt-tool-button");
-        batch.setOnAction(e -> chooseBatch());
-
-        status.getStyleClass().add("fxt-placeholder-text");
-        xsdStatus.getStyleClass().add("fxt-placeholder-text");
-        schematronStatus.getStyleClass().add("fxt-placeholder-text");
+        HBox xsdRow = sourceRow("bi-diagram-3", xsdName, this::chooseXsd, xsdFavoritesMenu);
+        HBox schematronRow = sourceRow("bi-ui-checks-grid", schematronName, this::chooseSchematron);
         refreshSchematronStatus();
         refreshXsdStatus();
 
-        Label problemsLabel = new Label("PROBLEMS");
-        problemsLabel.getStyleClass().add("fxt-side-panel-title");
+        // --- mode toggle + Run Validation ---------------------------------
+        ToggleGroup modeGroup = new ToggleGroup();
+        singleMode.setToggleGroup(modeGroup);
+        batchMode.setToggleGroup(modeGroup);
+        singleMode.getStyleClass().add("fxt-seg");
+        batchMode.getStyleClass().add("fxt-seg");
+        singleMode.setMaxWidth(Double.MAX_VALUE);
+        batchMode.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(singleMode, Priority.ALWAYS);
+        HBox.setHgrow(batchMode, Priority.ALWAYS);
+        singleMode.setSelected(true);
+        // A segmented control always has exactly one active segment.
+        modeGroup.selectedToggleProperty().addListener((obs, oldV, newV) -> {
+            if (newV == null) {
+                modeGroup.selectToggle(oldV);
+            }
+        });
+        HBox segGroup = new HBox(2, singleMode, batchMode);
+        segGroup.getStyleClass().add("fxt-seg-group");
 
-        ListView<ValidationProblem> list = problemsList;
-        list.getStyleClass().add("fxt-open-editors");
-        VBox.setVgrow(list, Priority.ALWAYS);
-        list.setPlaceholder(new Label("No problems"));
-        list.setCellFactory(lv -> new ProblemCell());
-        list.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
+        Button run = new Button("Run Validation", icon("bi-play-fill", 14));
+        run.setId("validation-run");
+        run.getStyleClass().add("fxt-primary-button");
+        run.setMaxWidth(Double.MAX_VALUE);
+        run.setOnAction(e -> {
+            if (isBatchMode()) {
+                chooseBatch();
+            } else {
+                revalidate();
+            }
+        });
+
+        VBox runBox = new VBox(10, segGroup, run);
+        runBox.getStyleClass().add("fxt-vp-run-box");
+
+        status.getStyleClass().add("fxt-vp-status");
+
+        // --- RESULTS (batch) -----------------------------------------------
+        resultsHeaderLabel.setId("validation-results-header");
+        HBox resultsHeader = sectionHeader(resultsHeaderLabel);
+        batchList.setId("validation-results-list");
+        batchList.getStyleClass().add("fxt-vp-results");
+        batchList.setCellFactory(lv -> new BatchResultCell());
+        batchList.setVisible(false);
+        batchList.setManaged(false);
+        batchList.prefHeightProperty().bind(javafx.beans.binding.Bindings.createDoubleBinding(
+                () -> Math.min(180.0, batchResults.size() * 32.0 + 4),
+                javafx.beans.binding.Bindings.size(batchResults)));
+        batchList.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
+            if (newV != null) {
+                setProblems(newV.problems());
+            }
+        });
+        batchList.setOnMouseClicked(e -> {
+            var selected = batchList.getSelectionModel().getSelectedItem();
+            if (e.getClickCount() == 2 && selected != null && selected.file().exists()) {
+                editorHost.openFile(selected.file().toPath());
+            }
+        });
+
+        // --- PROBLEMS -------------------------------------------------------
+        Label problemsLabel = new Label("PROBLEMS");
+        HBox problemsHeader = sectionHeader(problemsLabel);
+        problemsList.setId("validation-problems-list");
+        problemsList.getStyleClass().add("fxt-vp-problems");
+        VBox.setVgrow(problemsList, Priority.ALWAYS);
+        problemsList.setPlaceholder(new Label("No problems"));
+        problemsList.setCellFactory(lv -> new ProblemCell());
+        problemsList.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
             if (newV != null && newV.line() > 0) {
                 editorHost.goToLine(newV.line());
             }
@@ -112,53 +185,78 @@ public class ValidationPanel extends VBox {
             scheduleRevalidation();
         });
 
-        Label toolsLabel = new Label("SCHEMATRON TOOLS");
-        toolsLabel.getStyleClass().add("fxt-side-panel-title");
-        Button templates = new Button("Rule Templates", icon("bi-collection"));
-        templates.getStyleClass().add("fxt-tool-button");
-        templates.setOnAction(e -> openSchematronTemplates());
-        Button tester = new Button("Tester", icon("bi-play-circle"));
-        tester.getStyleClass().add("fxt-tool-button");
-        tester.setOnAction(e -> openSchematronTester());
-        Button builder = new Button("Rule Builder", icon("bi-tools"));
-        builder.getStyleClass().add("fxt-tool-button");
-        builder.setOnAction(e -> openSchematronBuilder());
-        Button check = new Button("Check Rules", icon("bi-bug"));
-        check.getStyleClass().add("fxt-tool-button");
-        check.setOnAction(e -> openSchematronCheck());
-        Button docs = new Button("Documentation", icon("bi-file-earmark-text"));
-        docs.getStyleClass().add("fxt-tool-button");
-        docs.setOnAction(e -> openSchematronDocumentation());
+        getChildren().addAll(header,
+                sectionHeader(new Label("SOURCES")), xsdRow, schematronRow,
+                runBox, status,
+                resultsHeader, batchList,
+                problemsHeader, problemsList);
+    }
 
-        HBox setXsdRow = new HBox(6, setXsd, xsdFavoritesMenu);
-        HBox.setHgrow(setXsd, javafx.scene.layout.Priority.ALWAYS);
-        setXsd.setMaxWidth(Double.MAX_VALUE);
-        getChildren().addAll(title,
-                SidePanelLayout.fill(validate), setXsdRow,
-                SidePanelLayout.fill(setSchematron), SidePanelLayout.fill(setJsonSchema),
-                SidePanelLayout.fill(batch), liveValidation, status, xsdStatus, schematronStatus,
-                toolsLabel, SidePanelLayout.fill(templates), SidePanelLayout.fill(tester),
-                SidePanelLayout.fill(builder), SidePanelLayout.fill(check), SidePanelLayout.fill(docs),
-                problemsLabel, list);
-
-        // FundsXML extension — only when enabled in the settings (conditional). The
-        // FundsXML activity is its primary home; a link remains here in the Validation
-        // panel so FundsXML validation is reachable from the validation context too.
+    /** Builds the ⋮ overflow menu (tools that are not part of the mockup's main flow). */
+    private void buildOverflowMenu() {
+        Menu schematronTools = new Menu("Schematron Tools");
+        schematronTools.getItems().addAll(
+                menuItem("Rule Templates", this::openSchematronTemplates),
+                menuItem("Tester", this::openSchematronTester),
+                menuItem("Rule Builder", this::openSchematronBuilder),
+                menuItem("Check Rules", this::openSchematronCheck),
+                menuItem("Documentation", this::openSchematronDocumentation));
+        overflowMenu.getItems().addAll(schematronTools,
+                new SeparatorMenuItem(), menuItem("JSON Schema…", this::chooseJsonSchema));
+        // FundsXML extension — only when enabled in the settings. The FundsXML activity
+        // is its primary home; this link keeps it reachable from the validation context.
         if (FundsXmlRunner.isEnabled()) {
-            Label fundsTitle = new Label("FUNDSXML");
-            fundsTitle.getStyleClass().add("fxt-side-panel-title");
-            Button fundsValidate = new Button("Validate against FundsXML", icon("bi-check2-circle"));
-            fundsValidate.getStyleClass().add("fxt-tool-button");
-            fundsValidate.setOnAction(e -> {
-                String xml = editorHost.getActiveText().orElse(null);
-                status.setText("Validating against FundsXML…");
-                FxtGui.executorService.submit(() -> {
-                    String summary = FundsXmlRunner.validateSummary(xml);
-                    Platform.runLater(() -> status.setText(summary));
-                });
-            });
-            getChildren().addAll(fundsTitle, SidePanelLayout.fill(fundsValidate));
+            overflowMenu.getItems().add(menuItem("Validate against FundsXML", this::validateFundsXml));
         }
+        openBatchReport.setDisable(true);
+        openBatchReport.setOnAction(e -> {
+            if (lastBatchReport != null) {
+                editorHost.openGeneratedDocument(lastBatchReport, EditorFileType.OTHER, "BatchReport.txt");
+            }
+        });
+        overflowMenu.getItems().addAll(new SeparatorMenuItem(), liveValidation,
+                new SeparatorMenuItem(), openBatchReport);
+    }
+
+    private static MenuItem menuItem(String text, Runnable action) {
+        MenuItem item = new MenuItem(text);
+        item.setOnAction(e -> action.run());
+        return item;
+    }
+
+    /** A SOURCES/RESULTS/PROBLEMS section header: chevron + small bold label. */
+    private static HBox sectionHeader(Label label) {
+        IconifyIcon chevron = new IconifyIcon("bi-chevron-down");
+        chevron.setIconSize(11);
+        HBox header = new HBox(6, chevron, label);
+        header.getStyleClass().add("fxt-vp-section-header");
+        header.setAlignment(Pos.CENTER_LEFT);
+        return header;
+    }
+
+    /** A source row: file-type icon · file name · (extras) · "Change" link. */
+    private HBox sourceRow(String iconLiteral, Label nameLabel, Runnable changeAction,
+                           javafx.scene.Node... extras) {
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        Hyperlink change = new Hyperlink("Change");
+        change.getStyleClass().add("fxt-vp-change");
+        change.setOnAction(e -> changeAction.run());
+        HBox row = new HBox(8, icon(iconLiteral, 15), nameLabel, spacer);
+        row.getChildren().addAll(extras);
+        row.getChildren().add(change);
+        row.getStyleClass().add("fxt-vp-source-row");
+        row.setAlignment(Pos.CENTER_LEFT);
+        return row;
+    }
+
+    private void validateFundsXml() {
+        String xml = editorHost.getActiveText().orElse(null);
+        status.setText("Validating against FundsXML…");
+        FxtGui.executorService.submit(() -> {
+            String summary = FundsXmlRunner.validateSummary(xml);
+            Platform.runLater(() -> status.setText(summary));
+        });
     }
 
     /** Opens the Schematron rule-template library as a tool tab; inserts into the active editor. */
@@ -262,11 +360,13 @@ public class ValidationPanel extends VBox {
      * Replaces the problems list, clearing the ListView selection first. This
      * avoids a JavaFX {@code ListViewBehavior} {@code IndexOutOfBoundsException}
      * that can occur when {@code items.setAll(...)} runs (e.g. on every keystroke
-     * via continuous validation) while a row is selected.
+     * via continuous validation) while a row is selected. Also publishes the
+     * problems to the host so the PROBLEMS panel below the editor mirrors them.
      */
     private void setProblems(List<ValidationProblem> result) {
         problemsList.getSelectionModel().clearSelection();
         problems.setAll(result);
+        editorHost.setActiveProblems(result);
     }
 
     /** @return the number of problems currently shown (for tests/observers). */
@@ -279,7 +379,53 @@ public class ValidationPanel extends VBox {
         return status.getText();
     }
 
-    /** Validates the given files against the bound XSD/Schematron and opens a report (async). */
+    /** @return {@code true} while the "Validate while typing" toggle is on (for tests/observers). */
+    public boolean isLiveValidationEnabled() {
+        return liveValidation.isSelected();
+    }
+
+    /** @return all ⋮-menu item texts, flattened including submenu entries (for tests/observers). */
+    public List<String> overflowMenuItemTexts() {
+        List<String> texts = new ArrayList<>();
+        collectMenuTexts(overflowMenu.getItems(), texts);
+        return texts;
+    }
+
+    private static void collectMenuTexts(List<MenuItem> items, List<String> into) {
+        for (MenuItem item : items) {
+            if (item instanceof SeparatorMenuItem) {
+                continue;
+            }
+            if (item.getText() != null) {
+                into.add(item.getText());
+            }
+            if (item instanceof Menu menu) {
+                collectMenuTexts(menu.getItems(), into);
+            }
+        }
+    }
+
+    /** Switches between Single-file and Batch mode (the segmented toggle). */
+    public void setBatchMode(boolean batch) {
+        (batch ? batchMode : singleMode).setSelected(true);
+    }
+
+    /** @return {@code true} while the Batch segment is active. */
+    public boolean isBatchMode() {
+        return batchMode.isSelected();
+    }
+
+    /** @return the number of per-file batch results currently shown (for tests/observers). */
+    public int batchResultCount() {
+        return batchResults.size();
+    }
+
+    /** @return how many of the shown batch results failed (for tests/observers). */
+    public long batchFailedCount() {
+        return batchResults.stream().filter(ValidationRunner.FileValidationResult::failed).count();
+    }
+
+    /** Validates the given files against the bound XSD/Schematron and fills the RESULTS list (async). */
     public void runBatch(java.util.List<File> files) {
         if (files == null || files.isEmpty()) {
             return;
@@ -288,12 +434,27 @@ public class ValidationPanel extends VBox {
         File schematron = editorHost.getActiveSchematron();
         status.setText("Validating " + files.size() + " file(s)…");
         FxtGui.executorService.submit(() -> {
-            String report = ValidationRunner.batchReport(files, xsd, schematron);
-            javafx.application.Platform.runLater(() -> {
-                editorHost.openGeneratedDocument(report, EditorFileType.OTHER, "BatchReport.txt");
-                status.setText("Batch report generated");
-            });
+            List<ValidationRunner.FileValidationResult> results = ValidationRunner.batch(files, xsd, schematron);
+            String report = ValidationRunner.report(results, xsd, schematron);
+            javafx.application.Platform.runLater(() -> showBatchResults(results, report));
         });
+    }
+
+    /** Publishes a finished batch run: RESULTS header + list and the ⋮ report entry. */
+    void showBatchResults(List<ValidationRunner.FileValidationResult> results, String report) {
+        batchList.getSelectionModel().clearSelection();
+        batchResults.setAll(results);
+        lastBatchReport = report;
+        openBatchReport.setDisable(false);
+        long failed = batchFailedCount();
+        resultsHeaderLabel.setText(failed > 0
+                ? "RESULTS · " + failed + " OF " + results.size() + " FAILED"
+                : "RESULTS · " + results.size() + " OK");
+        batchList.setVisible(!results.isEmpty());
+        batchList.setManaged(!results.isEmpty());
+        status.setText(failed > 0
+                ? failed + " of " + results.size() + " file(s) failed"
+                : results.size() + " file(s) valid");
     }
 
     private void chooseBatch() {
@@ -316,12 +477,6 @@ public class ValidationPanel extends VBox {
         }
     }
 
-    /**
-     * Binds {@code xsd} to the active document (for validation and IntelliSense) and
-     * re-validates against it. No-op if the active editor does not support schemas.
-     *
-     * @param xsd the schema file to validate against
-     */
     /** Rebuilds the XSD-favorites quick-select menu from the favorites store (type XSD). */
     public void refreshXsdFavoritesMenu() {
         xsdFavoritesMenu.getItems().clear();
@@ -347,6 +502,12 @@ public class ValidationPanel extends VBox {
         return xsdFavoritesMenu.getItems().stream().map(MenuItem::getText).toList();
     }
 
+    /**
+     * Binds {@code xsd} to the active document (for validation and IntelliSense) and
+     * re-validates against it. No-op if the active editor does not support schemas.
+     *
+     * @param xsd the schema file to validate against
+     */
     public void useXsd(File xsd) {
         if (editorHost.setSchemaForActiveDocument(xsd)) {
             refreshXsdStatus();
@@ -356,7 +517,22 @@ public class ValidationPanel extends VBox {
 
     private void refreshXsdStatus() {
         File xsd = editorHost.activeSchemaProperty().get();
-        xsdStatus.setText(xsd != null ? "XSD: " + xsd.getName() : "XSD: none");
+        setSourceName(xsdName, xsd != null ? xsd.getName() : null);
+    }
+
+    private void refreshSchematronStatus() {
+        File schematron = editorHost.getActiveSchematron();
+        setSourceName(schematronName, schematron != null ? schematron.getName() : null);
+    }
+
+    /** Shows the file name, or a muted "none" while the source is unset. */
+    private static void setSourceName(Label label, String name) {
+        label.setText(name != null ? name : "none");
+        if (name != null) {
+            label.getStyleClass().remove("fxt-vp-source-none");
+        } else if (!label.getStyleClass().contains("fxt-vp-source-none")) {
+            label.getStyleClass().add("fxt-vp-source-none");
+        }
     }
 
     private void chooseSchematron() {
@@ -378,7 +554,7 @@ public class ValidationPanel extends VBox {
         File file = chooser.showOpenDialog(getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
             jsonSchemaFile = file;
-            schematronStatus.setText("JSON Schema: " + file.getName());
+            status.setText("JSON Schema: " + file.getName());
             revalidate();
         }
     }
@@ -388,19 +564,19 @@ public class ValidationPanel extends VBox {
         this.jsonSchemaFile = schema;
     }
 
-    private void refreshSchematronStatus() {
-        File schematron = editorHost.getActiveSchematron();
-        schematronStatus.setText(schematron != null ? "Schematron: " + schematron.getName() : "Schematron: none");
-    }
-
-    private IconifyIcon icon(String literal) {
+    private static IconifyIcon icon(String literal, int size) {
         IconifyIcon icon = new IconifyIcon(literal);
-        icon.setIconSize(16);
+        icon.setIconSize(size);
         return icon;
     }
 
-    /** Renders a problem as "[source] Ln N: message" with a severity icon. */
+    /** Renders a problem as "[source] Ln N: message" with a colored severity icon. */
     private static final class ProblemCell extends ListCell<ValidationProblem> {
+        private ProblemCell() {
+            // Follow the ListView width (ellipsize) instead of forcing a horizontal scrollbar.
+            setPrefWidth(0);
+        }
+
         @Override
         protected void updateItem(ValidationProblem item, boolean empty) {
             super.updateItem(item, empty);
@@ -412,9 +588,52 @@ public class ValidationPanel extends VBox {
             String line = item.line() > 0 ? "Ln " + item.line() + ": " : "";
             setText("[" + item.source() + "] " + line + item.message());
             boolean warning = "warning".equalsIgnoreCase(item.severity());
-            IconifyIcon icon = new IconifyIcon(warning ? "bi-exclamation-triangle" : "bi-x-circle");
-            icon.setIconSize(13);
+            IconifyIcon icon = icon(warning ? "bi-exclamation-triangle-fill" : "bi-x-circle", 13);
+            icon.getStyleClass().add(warning ? "sev-warning" : "sev-error");
             setGraphic(icon);
+        }
+    }
+
+    /** A batch result row: severity icon · file name · error/warning count badge. */
+    private static final class BatchResultCell extends ListCell<ValidationRunner.FileValidationResult> {
+        private BatchResultCell() {
+            // Follow the ListView width (ellipsize) instead of forcing a horizontal scrollbar.
+            setPrefWidth(0);
+        }
+
+        @Override
+        protected void updateItem(ValidationRunner.FileValidationResult item, boolean empty) {
+            super.updateItem(item, empty);
+            getStyleClass().remove("failed");
+            if (empty || item == null) {
+                setText(null);
+                setGraphic(null);
+                return;
+            }
+            boolean failed = item.failed();
+            boolean warningsOnly = !failed && item.warningCount() > 0;
+            IconifyIcon icon = icon(failed ? "bi-x-circle"
+                    : warningsOnly ? "bi-exclamation-triangle-fill" : "bi-check-circle-fill", 15);
+            icon.getStyleClass().add(failed ? "sev-error" : warningsOnly ? "sev-warning" : "sev-ok");
+
+            Label name = new Label(item.file().getName());
+            name.getStyleClass().add(failed ? "fxt-vp-result-name-failed" : "fxt-vp-result-name");
+            Region spacer = new Region();
+            HBox.setHgrow(spacer, Priority.ALWAYS);
+
+            HBox row = new HBox(8, icon, name, spacer);
+            long badgeCount = failed ? item.errorCount() : item.warningCount();
+            if (badgeCount > 0) {
+                Label badge = new Label(String.valueOf(badgeCount));
+                badge.getStyleClass().add(failed ? "fxt-badge-danger" : "fxt-badge-warning");
+                row.getChildren().add(badge);
+            }
+            row.setAlignment(Pos.CENTER_LEFT);
+            if (failed) {
+                getStyleClass().add("failed");
+            }
+            setText(null);
+            setGraphic(row);
         }
     }
 }

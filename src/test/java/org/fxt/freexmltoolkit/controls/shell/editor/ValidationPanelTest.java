@@ -101,7 +101,7 @@ class ValidationPanelTest {
     }
 
     @Test
-    void batchValidationOpensReport(@TempDir Path tmp) throws Exception {
+    void batchValidationPopulatesResults(@TempDir Path tmp) throws Exception {
         Path sch = tmp.resolve("rules.sch");
         Files.writeString(sch, SCHEMATRON);
         Path bad = tmp.resolve("bad.xml");
@@ -117,9 +117,10 @@ class ValidationPanelTest {
             panel.runBatch(java.util.List.of(bad.toFile(), good.toFile()));
             return null;
         });
-        WaitForAsyncUtils.waitFor(6, TimeUnit.SECONDS,
-                () -> host.getActiveText().map(t -> t.contains("Batch Validation Report")).orElse(false));
-        assertTrue(host.getActiveText().orElse("").contains("good.xml: valid"));
+        WaitForAsyncUtils.waitFor(6, TimeUnit.SECONDS, () -> panel.batchResultCount() == 2);
+        assertEquals(1, panel.batchFailedCount(), "only bad.xml fails the Schematron rule");
+        var header = (javafx.scene.control.Label) panel.lookup("#validation-results-header");
+        assertTrue(header.getText().contains("1 OF 2 FAILED"), header.getText());
     }
 
     @Test
@@ -139,19 +140,20 @@ class ValidationPanelTest {
     @Test
     void liveValidationToggleIsOnByDefault() {
         WaitForAsyncUtils.waitForFxEvents();
-        boolean present = panel.lookupAll(".check-box").stream()
-                .anyMatch(n -> n instanceof javafx.scene.control.CheckBox cb
-                        && "Validate while typing".equals(cb.getText()) && cb.isSelected());
-        assertTrue(present, "the 'Validate while typing' toggle must exist and default to on");
+        // The toggle lives in the ⋮ overflow menu (MenuItems are not in the scene graph).
+        assertTrue(panel.overflowMenuItemTexts().contains("Validate while typing"),
+                "the 'Validate while typing' toggle must exist in the overflow menu");
+        assertTrue(panel.isLiveValidationEnabled(), "live validation must default to on");
     }
 
     @Test
-    void exposesSchematronToolButtons() {
+    void exposesSchematronToolsInOverflowMenu() {
         WaitForAsyncUtils.waitForFxEvents();
-        for (String label : new String[]{"Rule Templates", "Tester", "Rule Builder"}) {
-            boolean present = panel.lookupAll(".button").stream()
-                    .anyMatch(n -> n instanceof javafx.scene.control.Button b && label.equals(b.getText()));
-            assertTrue(present, "Validation panel must offer the '" + label + "' Schematron tool");
+        var texts = panel.overflowMenuItemTexts();
+        for (String label : new String[]{"Rule Templates", "Tester", "Rule Builder",
+                "Check Rules", "Documentation"}) {
+            assertTrue(texts.contains(label),
+                    "the ⋮ menu must offer the '" + label + "' Schematron tool: " + texts);
         }
     }
 
@@ -183,7 +185,7 @@ class ValidationPanelTest {
         // Select a problem, then re-validate repeatedly — must not throw the JavaFX
         // ListViewBehavior IndexOutOfBoundsException (items.setAll with a selection).
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
-            ((javafx.scene.control.ListView<?>) panel.lookup(".list-view"))
+            ((javafx.scene.control.ListView<?>) panel.lookup("#validation-problems-list"))
                     .getSelectionModel().select(0);
             return null;
         });
@@ -243,10 +245,9 @@ class ValidationPanelTest {
     }
 
     @Test
-    void constructsWithFundsXmlSectionGatedOnFeatureFlag() {
-        // The FUNDSXML "Validate against FundsXML" link is conditional on the feature
-        // flag and may be absent when it is off — construction must succeed either way,
-        // and when the section is present its button must be wired.
+    void constructsWithFundsXmlEntryGatedOnFeatureFlag() {
+        // The "Validate against FundsXML" ⋮-menu entry is conditional on the feature
+        // flag and may be absent when it is off — construction must succeed either way.
         ValidationPanel[] built = new ValidationPanel[1];
         assertDoesNotThrow(() -> WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
             built[0] = new ValidationPanel(host);
@@ -255,12 +256,10 @@ class ValidationPanelTest {
         WaitForAsyncUtils.waitForFxEvents();
         assertNotNull(built[0], "ValidationPanel must construct");
 
-        boolean fundsButtonPresent = built[0].lookupAll(".button").stream()
-                .anyMatch(n -> n instanceof javafx.scene.control.Button b
-                        && "Validate against FundsXML".equals(b.getText()));
-        // The section is flag-gated; when enabled the button must be present.
-        assertEquals(FundsXmlRunner.isEnabled(), fundsButtonPresent,
-                "the FundsXML validation link must be present iff the feature flag is enabled");
+        boolean fundsEntryPresent = built[0].overflowMenuItemTexts()
+                .contains("Validate against FundsXML");
+        assertEquals(FundsXmlRunner.isEnabled(), fundsEntryPresent,
+                "the FundsXML validation entry must be present iff the feature flag is enabled");
     }
 
     private void open(Path xml, Path xsd) throws Exception {

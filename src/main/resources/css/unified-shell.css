@@ -8,6 +8,9 @@
 
 .fxt-shell {
     -fx-background-color: -fxt-bg-canvas;
+    /* Design-token UI font: inherited by every control in the shell. Code
+       editors keep their own explicit mono font (e.g. .code-area). */
+    -fx-font-family: "Inter", "Segoe UI", sans-serif;
 }
 
 /* ----- Activity Bar --------------------------------------------------- */
@@ -915,4 +918,323 @@
 .fxt-inspector-edit.text-area,
 .fxt-inspector-edit.text-area .content {
     -fx-background-color: -fxt-bg-surface;
+}
+
+/* ----- PROBLEMS panel below the editor (Figma node 42:3) -------------- */
+.fxt-problems-panel {
+    -fx-background-color: -fxt-bg-surface;
+    -fx-border-color: -fxt-border;
+    -fx-border-width: 1 0 0 0;
+}
+
+.fxt-problems-header {
+    -fx-min-height: 32;
+    -fx-pref-height: 32;
+    -fx-padding: 0 8 0 16;
+    -fx-spacing: 10;
+    -fx-background-color: -fxt-bg-surface-2;
+    -fx-border-color: -fxt-border;
+    -fx-border-width: 0 0 1 0;
+}
+
+.fxt-problems-title {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-secondary;
+}
+
+.fxt-problems-chip-error {
+    -fx-font-size: 11.5px;
+    -fx-text-fill: -fxt-danger;
+    -fx-graphic-text-gap: 4;
+}
+
+.fxt-problems-chip-error .iconify-icon {
+    -fx-icon-color: -fxt-danger;
+}
+
+.fxt-problems-chip-warning {
+    -fx-font-size: 11.5px;
+    -fx-text-fill: -fxt-warning;
+    -fx-graphic-text-gap: 4;
+}
+
+.fxt-problems-chip-warning .iconify-icon {
+    -fx-icon-color: -fxt-warning;
+}
+
+.fxt-problems-collapse {
+    -fx-background-color: transparent;
+    -fx-padding: 2 6 2 6;
+    -fx-cursor: hand;
+}
+
+.fxt-problems-collapse .iconify-icon {
+    -fx-icon-color: -fxt-text-secondary;
+}
+
+.fxt-problems-list {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.fxt-problems-list .list-cell {
+    -fx-padding: 9 16 9 16;
+    -fx-background-color: transparent;
+    -fx-border-color: -fxt-border;
+    -fx-border-width: 0 0 1 0;
+}
+
+.fxt-problems-list .list-cell:filled:selected {
+    -fx-background-color: -fxt-bg-subtle;
+}
+
+.fxt-problems-list .list-cell .iconify-icon.sev-error {
+    -fx-icon-color: -fxt-danger;
+}
+
+.fxt-problems-list .list-cell .iconify-icon.sev-warning {
+    -fx-icon-color: -fxt-warning;
+}
+
+.fxt-problems-msg {
+    -fx-font-size: 12.5px;
+    -fx-text-fill: -fxt-text-primary;
+}
+
+.fxt-problems-loc {
+    -fx-font-family: "JetBrains Mono", "Consolas", monospace;
+    -fx-font-size: 11.5px;
+    -fx-text-fill: -fxt-text-muted;
+}
+
+/* ----- Validation side panel (Figma node 40:48) ------------------------ */
+.fxt-validation-panel {
+    -fx-background-color: -fxt-bg-surface;
+}
+
+.fxt-vp-header {
+    -fx-padding: 8 8 2 16;
+}
+
+.fxt-vp-title {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-muted;
+}
+
+.fxt-vp-overflow {
+    -fx-background-color: transparent;
+    -fx-padding: 2 6 2 6;
+    -fx-cursor: hand;
+}
+
+.fxt-vp-overflow > .arrow-button {
+    -fx-padding: 0;
+}
+
+.fxt-vp-overflow > .arrow-button > .arrow {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.fxt-vp-overflow .iconify-icon {
+    -fx-icon-color: -fxt-text-secondary;
+}
+
+.fxt-vp-section-header {
+    -fx-padding: 12 12 6 12;
+}
+
+.fxt-vp-section-header .label {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-secondary;
+}
+
+.fxt-vp-section-header .iconify-icon {
+    -fx-icon-color: -fxt-text-muted;
+}
+
+.fxt-vp-source-row {
+    -fx-padding: 6 12 6 14;
+}
+
+.fxt-vp-source-row .iconify-icon {
+    -fx-icon-color: -fxt-text-secondary;
+}
+
+.fxt-vp-source-name {
+    -fx-font-size: 12.5px;
+    -fx-text-fill: -fxt-text-primary;
+}
+
+.fxt-vp-source-none {
+    -fx-text-fill: -fxt-text-muted;
+}
+
+.fxt-vp-source-fav {
+    -fx-background-color: transparent;
+    -fx-padding: 0 2 0 2;
+    -fx-cursor: hand;
+}
+
+.fxt-vp-source-fav > .arrow-button {
+    -fx-padding: 0;
+}
+
+.fxt-vp-source-fav > .arrow-button > .arrow {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.fxt-vp-source-fav .iconify-icon {
+    -fx-icon-color: -fxt-text-muted;
+}
+
+.fxt-vp-source-fav:hover .iconify-icon {
+    -fx-icon-color: -fxt-accent;
+}
+
+.fxt-vp-change {
+    -fx-font-size: 11.5px;
+    -fx-text-fill: -fxt-primary;
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+    -fx-underline: false;
+}
+
+.fxt-vp-change:visited {
+    -fx-text-fill: -fxt-primary;
+}
+
+.fxt-vp-change:hover {
+    -fx-underline: true;
+}
+
+.fxt-vp-run-box {
+    -fx-padding: 10 14 4 14;
+}
+
+.fxt-seg-group {
+    -fx-background-color: -fxt-bg-surface-2;
+    -fx-background-radius: 8;
+    -fx-padding: 3;
+}
+
+.fxt-seg {
+    -fx-background-color: transparent;
+    -fx-background-radius: 6;
+    -fx-font-size: 12px;
+    -fx-text-fill: -fxt-text-secondary;
+    -fx-padding: 4 0 4 0;
+    -fx-cursor: hand;
+}
+
+.fxt-seg:selected {
+    -fx-background-color: -fxt-bg-surface;
+    -fx-background-radius: 6;
+    -fx-border-color: -fxt-border;
+    -fx-border-radius: 6;
+    -fx-text-fill: -fxt-primary;
+    -fx-font-weight: bold;
+}
+
+.fxt-primary-button {
+    -fx-background-color: -fxt-primary;
+    -fx-background-radius: 7;
+    -fx-text-fill: -fxt-on-primary;
+    -fx-font-size: 12.5px;
+    -fx-font-weight: bold;
+    -fx-padding: 9 12 9 12;
+    -fx-graphic-text-gap: 7;
+    -fx-cursor: hand;
+}
+
+.fxt-primary-button .iconify-icon {
+    -fx-icon-color: -fxt-on-primary;
+}
+
+.fxt-primary-button:hover {
+    -fx-background-color: derive(-fxt-primary, -10%);
+}
+
+.fxt-vp-status {
+    -fx-padding: 6 14 0 14;
+    -fx-font-size: 11.5px;
+    -fx-text-fill: -fxt-text-muted;
+}
+
+.fxt-vp-results {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.fxt-vp-results .list-cell {
+    -fx-padding: 7 12 7 14;
+    -fx-background-color: transparent;
+}
+
+.fxt-vp-results .list-cell:filled:selected,
+.fxt-vp-results .list-cell.failed {
+    -fx-background-color: -fxt-bg-subtle;
+}
+
+.fxt-vp-result-name {
+    -fx-font-size: 12.5px;
+    -fx-text-fill: -fxt-text-primary;
+}
+
+.fxt-vp-result-name-failed {
+    -fx-font-size: 12.5px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-primary;
+}
+
+.fxt-badge-danger {
+    -fx-font-size: 10.5px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-on-primary;
+    -fx-background-color: -fxt-danger;
+    -fx-background-radius: 999;
+    -fx-padding: 1 7 1 7;
+}
+
+.fxt-badge-warning {
+    -fx-font-size: 10.5px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-on-primary;
+    -fx-background-color: -fxt-warning;
+    -fx-background-radius: 999;
+    -fx-padding: 1 7 1 7;
+}
+
+.fxt-vp-results .iconify-icon.sev-error,
+.fxt-vp-problems .list-cell .iconify-icon.sev-error {
+    -fx-icon-color: -fxt-danger;
+}
+
+.fxt-vp-results .iconify-icon.sev-warning,
+.fxt-vp-problems .list-cell .iconify-icon.sev-warning {
+    -fx-icon-color: -fxt-warning;
+}
+
+.fxt-vp-results .iconify-icon.sev-ok {
+    -fx-icon-color: -fxt-success;
+}
+
+.fxt-vp-problems {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.fxt-vp-problems .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: -fxt-text-primary;
+    -fx-font-size: 12px;
+    -fx-padding: 4 12 4 14;
+}
+
+.fxt-vp-problems .list-cell:filled:selected {
+    -fx-background-color: -fxt-bg-subtle;
 }
