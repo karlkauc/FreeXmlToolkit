@@ -537,8 +537,15 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
                 pb = new ProcessBuilder(tempHelper.toString(), configFile.toString());
                 writeDebugLog(debugLog, "Launching Rust helper directly (no elevation)");
             } else {
-                String command = "Start-Process -FilePath '" + tempHelper +
-                    "' -ArgumentList '" + configFile + "' -Verb RunAs";
+                // SECURITY/ROBUSTNESS: build the PowerShell command with properly escaped
+                // single-quoted literals. PowerShell single-quoted strings are literal (backticks
+                // and $ are NOT interpreted), so the only required escaping is doubling embedded
+                // single quotes. Without this, a path containing an apostrophe (e.g. a Windows
+                // user "O'Brien") would break out of the quoting.
+                String psFilePath = escapePowerShellSingleQuoted(tempHelper.toString());
+                String psArgument = escapePowerShellSingleQuoted(configFile.toString());
+                String command = "Start-Process -FilePath '" + psFilePath +
+                    "' -ArgumentList '" + psArgument + "' -Verb RunAs";
                 pb = new ProcessBuilder("powershell.exe", "-NoProfile", "-Command", command);
                 writeDebugLog(debugLog, "Launching Rust helper via PowerShell elevation: " + command);
             }
@@ -941,6 +948,20 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
             logger.debug("Could not read update.requireChecksum, defaulting to false: {}", e.getMessage());
             return false;
         }
+    }
+
+    /**
+     * Escapes a value for safe inclusion inside a PowerShell single-quoted string literal.
+     *
+     * <p>PowerShell single-quoted strings are literal: backticks, {@code $} and other metacharacters
+     * are not interpreted. The only character requiring escaping is the single quote itself, which
+     * is escaped by doubling it.
+     *
+     * @param value the raw value (e.g. a file path)
+     * @return the value safe to embed between single quotes in a PowerShell command
+     */
+    static String escapePowerShellSingleQuoted(String value) {
+        return value == null ? "" : value.replace("'", "''");
     }
 
     /**
