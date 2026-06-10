@@ -2940,11 +2940,15 @@ Statistics, Schema Quality, Generate Sample XML / Documentation) on the left.</e
 </ul>
 <h2 id="transform-panel">Transform Panel<a class="headerlink" href="#transform-panel" title="Permanent link">&para;</a></h2>
 <blockquote>
-<p><strong>New in June 2026</strong> - Added recent-stylesheet history, a watch-and-rerun option,
+<p><strong>New in June 2026</strong> - Transform results now open as <strong>regular editor tabs</strong>, the
+output format is <strong>auto-detected</strong> from the stylesheet, and HTML results get a
+<strong>rendered preview tab</strong>. Also: recent-stylesheet history, a watch-and-rerun option,
 result timing, and an XQuery result table.</p>
 </blockquote>
 <p>The <strong>Transform</strong> panel (open it from the <strong>Transform</strong> icon in the activity bar on the
-left) runs XSLT transformations and XQuery expressions against the active XML document.</p>
+left) runs XSLT transformations and XQuery expressions against the active XML document.
+On short windows the panel's controls scroll, while the RESULT area stays pinned at the
+bottom.</p>
 <h3 id="choosing-a-stylesheet">Choosing a Stylesheet<a class="headerlink" href="#choosing-a-stylesheet" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Set XSLT…</strong> - Pick the XSLT stylesheet to apply.</li>
@@ -2958,11 +2962,20 @@ left) runs XSLT transformations and XQuery expressions against the active XML do
 <ol>
 <li>Set an XSLT stylesheet (or type an XQuery, see below).</li>
 <li>Click <strong>Transform</strong> (XSLT) or <strong>Run XQuery</strong> (XQuery).</li>
-<li>The result appears in the <strong>RESULT</strong> area.</li>
+<li>An XSLT result opens as a <strong>regular editor tab</strong> (<code>Transform-Result.xml</code> / <code>.html</code> /
+   <code>.json</code> / <code>.txt</code>) that you can edit and save like any other document. Re-running the
+   transformation updates the same tab — even while the result tab is active, the original
+   source document is transformed again. XQuery/XPath results appear in the <strong>RESULT</strong> area.</li>
+<li>For <strong>HTML/XHTML</strong> output, an additional <strong>HTML Preview</strong> tool tab shows the result
+   rendered as a web page; it refreshes on every re-run.</li>
 </ol>
+<p>The <strong>OUTPUT</strong> combo defaults to <strong>Auto</strong>: the output format is detected from the
+stylesheet's <code>xsl:output</code> declaration (XML, HTML, XHTML, Text, or JSON). Choose a concrete
+format to override the detection.</p>
 <p>The RESULT header shows a compact <strong>timing stat</strong> in the form <code>N ms · M chars</code> so you can
 see how long the run took and how large the output is.</p>
 <ul>
+<li><strong>Editor</strong> - Opens the current RESULT text as a new editor tab.</li>
 <li><strong>Browser</strong> - Opens the result (typically HTML) in your system web browser.</li>
 </ul>
 <h3 id="xquery-result-table">XQuery Result Table<a class="headerlink" href="#xquery-result-table" title="Permanent link">&para;</a></h3>

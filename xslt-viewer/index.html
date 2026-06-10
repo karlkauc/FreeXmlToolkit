@@ -2098,7 +2098,11 @@ structure.</p>
 <li>In the <strong>Transform</strong> panel, click <strong>Set XSLT…</strong> to choose an XSLT stylesheet</li>
 </ol>
 <h3 id="step-2-run-and-view-the-results">Step 2: Run and View the Results<a class="headerlink" href="#step-2-run-and-view-the-results" title="Permanent link">&para;</a></h3>
-<p>Click <strong>Transform</strong> to run the transformation. The result appears in the panel's <strong>RESULT</strong> area:</p>
+<p>Click <strong>Transform</strong> to run the transformation. The result opens as a <strong>regular editor tab</strong>
+(<code>Transform-Result.xml</code>, <code>.html</code>, <code>.json</code>, or <code>.txt</code> depending on the output format), so you can
+inspect, edit, and save it like any other document. Re-running the transformation updates the
+same result tab — even while the result tab itself is active, the original source document is
+transformed again.</p>
 <table>
 <thead>
 <tr>
@@ -2108,19 +2112,22 @@ structure.</p>
 </thead>
 <tbody>
 <tr>
-<td><strong>Text View</strong></td>
-<td>Shows the raw output with syntax highlighting</td>
+<td><strong>Result editor tab</strong></td>
+<td>The transformation output as an editable, savable document</td>
 </tr>
 <tr>
-<td><strong>HTML Preview</strong></td>
-<td>Renders HTML output as a web page</td>
+<td><strong>HTML Preview tab</strong></td>
+<td>For HTML/XHTML output: the result rendered as a web page</td>
 </tr>
 <tr>
-<td><strong>Performance</strong></td>
-<td>Shows transformation statistics</td>
+<td><strong>RESULT area</strong></td>
+<td>Quick XPath/XQuery results, errors, and transformation statistics</td>
 </tr>
 </tbody>
 </table>
+<p>The <strong>OUTPUT</strong> format defaults to <strong>Auto</strong>: the format (XML, HTML, XHTML, Text, JSON) is
+detected from the stylesheet's <code>xsl:output</code> declaration. Pick a concrete format in the combo
+box to override the detection.</p>
 <hr />
 <h2 id="transform-panel-actions">Transform Panel Actions<a class="headerlink" href="#transform-panel-actions" title="Permanent link">&para;</a></h2>
 <table>
@@ -2138,6 +2145,10 @@ structure.</p>
 <tr>
 <td><strong>Watch file</strong></td>
 <td>Re-runs automatically when the stylesheet changes</td>
+</tr>
+<tr>
+<td><strong>Editor</strong></td>
+<td>Opens the current RESULT text as a new editor tab</td>
 </tr>
 <tr>
 <td><strong>Browser</strong></td>
