@@ -69,8 +69,11 @@ public class ValidationPanel extends VBox {
         getStyleClass().add("fxt-validation-panel");
 
         // --- header: VALIDATION ........ ⋮ -------------------------------
+        // Carries the shared side-panel-title class too: the shell convention (and
+        // UnifiedShellViewTest) identify the active panel's title by it; the later
+        // .fxt-vp-title rule wins the visual styling.
         Label title = new Label("VALIDATION");
-        title.getStyleClass().add("fxt-vp-title");
+        title.getStyleClass().addAll("fxt-side-panel-title", "fxt-vp-title");
         Region headerSpacer = new Region();
         HBox.setHgrow(headerSpacer, Priority.ALWAYS);
         overflowMenu.setId("validation-overflow");
