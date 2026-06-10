@@ -117,9 +117,12 @@ class ValidationPanelTest {
             panel.runBatch(java.util.List.of(bad.toFile(), good.toFile()));
             return null;
         });
-        WaitForAsyncUtils.waitFor(6, TimeUnit.SECONDS, () -> panel.batchResultCount() == 2);
-        assertEquals(1, panel.batchFailedCount(), "only bad.xml fails the Schematron rule");
+        // Poll the LAST side effect of showBatchResults (the header text) — asserting
+        // a sibling effect of the same runLater right after the first one is racy.
         var header = (javafx.scene.control.Label) panel.lookup("#validation-results-header");
+        WaitForAsyncUtils.waitFor(6, TimeUnit.SECONDS,
+                () -> panel.batchResultCount() == 2 && header.getText().contains("1 OF 2 FAILED"));
+        assertEquals(1, panel.batchFailedCount(), "only bad.xml fails the Schematron rule");
         assertTrue(header.getText().contains("1 OF 2 FAILED"), header.getText());
     }
 

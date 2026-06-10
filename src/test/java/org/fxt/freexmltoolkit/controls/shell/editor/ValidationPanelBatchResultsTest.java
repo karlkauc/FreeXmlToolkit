@@ -63,9 +63,11 @@ class ValidationPanelBatchResultsTest {
             panel.runBatch(java.util.List.of(bad.toFile(), good.toFile()));
             return null;
         });
-        WaitForAsyncUtils.waitFor(6, TimeUnit.SECONDS, () -> panel.batchResultCount() == 2);
-
+        // Poll the combined condition: list visibility is a sibling effect of the same
+        // runLater that fills the results — asserting it right after the count is racy.
         ListView<?> results = (ListView<?>) panel.lookup("#validation-results-list");
+        WaitForAsyncUtils.waitFor(6, TimeUnit.SECONDS,
+                () -> panel.batchResultCount() == 2 && results.isVisible());
         assertTrue(results.isVisible(), "the RESULTS list must show after a batch run");
 
         // Selecting the failed file (index 0 = bad.xml) shows its problems.
