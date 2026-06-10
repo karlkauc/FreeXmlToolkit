@@ -38,6 +38,18 @@ class DesignTokensTest {
     }
 
     @Test
+    void dangerAndWarningMatchFigmaTokens() {
+        assertEquals(Color.web("#e03131"),
+                DesignTokens.ColorToken.DANGER.color(DesignTokens.Theme.LIGHT));
+        assertEquals(Color.web("#ff6b6b"),
+                DesignTokens.ColorToken.DANGER.color(DesignTokens.Theme.DARK));
+        assertEquals(Color.web("#f08c00"),
+                DesignTokens.ColorToken.WARNING.color(DesignTokens.Theme.LIGHT));
+        assertEquals(Color.web("#fab005"),
+                DesignTokens.ColorToken.WARNING.color(DesignTokens.Theme.DARK));
+    }
+
+    @Test
     void canvasAndSurfaceMatchFigmaTokens() {
         assertEquals(Color.web("#f5f7fa"),
                 DesignTokens.ColorToken.BG_CANVAS.color(DesignTokens.Theme.LIGHT));

@@ -41,6 +41,10 @@
     -fxt-success-text: #1f7a35;
     -fxt-success-border: #bfe3cb;
 
+    /* Semantic — danger / warning */
+    -fxt-danger: #e03131;
+    -fxt-warning: #f08c00;
+
     /* Code syntax */
     -fxt-code-text: #1a1d21;
     -fxt-code-elem: #1f6fb2;
@@ -75,6 +79,10 @@
     -fxt-success-bg: #14301e;
     -fxt-success-text: #8ce0a0;
     -fxt-success-border: #2b5a3a;
+
+    /* Semantic — danger / warning */
+    -fxt-danger: #ff6b6b;
+    -fxt-warning: #fab005;
 
     /* Code syntax */
     -fxt-code-text: #e6eaf0;

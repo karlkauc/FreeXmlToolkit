@@ -62,6 +62,9 @@ public final class DesignTokens {
         SUCCESS_TEXT("-fxt-success-text", "#1f7a35", "#8ce0a0"),
         SUCCESS_BORDER("-fxt-success-border", "#bfe3cb", "#2b5a3a"),
 
+        DANGER("-fxt-danger", "#e03131", "#ff6b6b"),
+        WARNING("-fxt-warning", "#f08c00", "#fab005"),
+
         CODE_TEXT("-fxt-code-text", "#1a1d21", "#e6eaf0"),
         CODE_ELEM("-fxt-code-elem", "#1f6fb2", "#6cb6ff"),
         CODE_ATTR("-fxt-code-attr", "#c56a12", "#e0a458"),
