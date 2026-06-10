@@ -84,6 +84,38 @@ public final class TransformRunner {
         }
     }
 
+    /**
+     * Pattern for the {@code method} attribute of a stylesheet's {@code xsl:output}
+     * declaration (any namespace prefix).
+     */
+    private static final java.util.regex.Pattern XSL_OUTPUT_METHOD = java.util.regex.Pattern.compile(
+            "<\\w+:output\\b[^>]*\\bmethod\\s*=\\s*[\"'](?:\\w+:)?(\\w+)[\"']",
+            java.util.regex.Pattern.CASE_INSENSITIVE);
+
+    /**
+     * Detects the output format a stylesheet produces: the {@code method} of its
+     * {@code xsl:output} declaration if present; otherwise the XSLT default rule
+     * (a literal {@code <html>} result element implies {@code html}, else {@code xml}).
+     */
+    public static XsltTransformationEngine.OutputFormat detectXsltOutputFormat(String xsltContent) {
+        if (xsltContent == null) {
+            return XsltTransformationEngine.OutputFormat.XML;
+        }
+        java.util.regex.Matcher matcher = XSL_OUTPUT_METHOD.matcher(xsltContent);
+        if (matcher.find()) {
+            return switch (matcher.group(1).toLowerCase()) {
+                case "html" -> XsltTransformationEngine.OutputFormat.HTML;
+                case "xhtml" -> XsltTransformationEngine.OutputFormat.XHTML;
+                case "text" -> XsltTransformationEngine.OutputFormat.TEXT;
+                case "json" -> XsltTransformationEngine.OutputFormat.JSON;
+                default -> XsltTransformationEngine.OutputFormat.XML;
+            };
+        }
+        return xsltContent.matches("(?is).*<html[\\s>/].*")
+                ? XsltTransformationEngine.OutputFormat.HTML
+                : XsltTransformationEngine.OutputFormat.XML;
+    }
+
     /** Evaluates an XPath expression against {@code xml}; returns the result or an error message. */
     public static String runXPath(String xml, String xpath) {
         try {

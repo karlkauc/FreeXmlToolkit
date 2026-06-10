@@ -147,6 +147,16 @@ public class EditorHost extends BorderPane {
         return tab instanceof EditorTab et ? Optional.of(et.view.getText()) : Optional.empty();
     }
 
+    /** @return the text of the given (possibly non-active) open document, or empty if closed. */
+    public Optional<String> getDocumentText(OpenDocument document) {
+        for (Tab tab : tabPane.getTabs()) {
+            if (tab instanceof EditorTab editorTab && editorTab.document == document) {
+                return Optional.of(editorTab.view.getText());
+            }
+        }
+        return Optional.empty();
+    }
+
     /** @return the selected-tab property (for observers). */
     public ReadOnlyObjectProperty<Tab> activeTabProperty() {
         return tabPane.getSelectionModel().selectedItemProperty();
@@ -810,6 +820,22 @@ public class EditorHost extends BorderPane {
         tab.attachDirtyTracking();
         tab.document.setDirty(true);
         return tab.document;
+    }
+
+    /**
+     * Replaces the text of a still-open generated document (e.g. a re-run transform
+     * result) without changing the tab selection.
+     *
+     * @return {@code true} if the document's tab is still open and was updated
+     */
+    public boolean updateGeneratedDocument(OpenDocument document, String content) {
+        for (Tab tab : tabPane.getTabs()) {
+            if (tab instanceof EditorTab editorTab && editorTab.document == document) {
+                editorTab.view.setText(content);
+                return true;
+            }
+        }
+        return false;
     }
 
     // ----- saving / editing ------------------------------------------------

@@ -78,4 +78,47 @@ class TransformRunnerTest {
                 org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat.TEXT);
         assertTrue(out.startsWith("ERROR:"), out);
     }
+
+    // ----- output-format auto-detection -------------------------------------------------------
+
+    @Test
+    void detectsOutputFormatFromXslOutputMethod() {
+        assertEquals(org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat.HTML,
+                TransformRunner.detectXsltOutputFormat(stylesheetWithMethod("html")));
+        assertEquals(org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat.XHTML,
+                TransformRunner.detectXsltOutputFormat(stylesheetWithMethod("xhtml")));
+        assertEquals(org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat.TEXT,
+                TransformRunner.detectXsltOutputFormat(stylesheetWithMethod("text")));
+        assertEquals(org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat.JSON,
+                TransformRunner.detectXsltOutputFormat(stylesheetWithMethod("json")));
+        assertEquals(org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat.XML,
+                TransformRunner.detectXsltOutputFormat(stylesheetWithMethod("xml")));
+    }
+
+    @Test
+    void detectionDefaultsToXmlWithoutXslOutput() {
+        assertEquals(org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat.XML,
+                TransformRunner.detectXsltOutputFormat(XSLT.replace("<xsl:output method=\"xml\"/>", "")));
+    }
+
+    @Test
+    void detectionFallsBackToHtmlForLiteralHtmlResultElement() {
+        // XSLT default output rule: a literal <html> result element implies the html method.
+        String xslt = """
+                <xsl:stylesheet version="2.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+                  <xsl:template match="/"><html><body><xsl:value-of select="."/></body></html></xsl:template>
+                </xsl:stylesheet>
+                """;
+        assertEquals(org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat.HTML,
+                TransformRunner.detectXsltOutputFormat(xslt));
+    }
+
+    private static String stylesheetWithMethod(String method) {
+        return """
+                <xsl:stylesheet version="2.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+                  <xsl:output method="%s"/>
+                  <xsl:template match="/"><xsl:value-of select="."/></xsl:template>
+                </xsl:stylesheet>
+                """.formatted(method);
+    }
 }

@@ -40,12 +40,15 @@ import org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat;
 /**
  * The Transform activity side panel: transforms the active XML with a chosen
  * XSLT, and evaluates XPath expressions against it. Reuses {@link TransformRunner}
- * (Saxon / XmlService); runs off the UI thread and shows the result in a panel
- * output area.
+ * (Saxon / XmlService); runs off the UI thread. A successful transform opens the
+ * result as a regular editor tab (re-used across runs); HTML results additionally
+ * get a rendered preview tab. The panel's own RESULT area shows quick XPath/XQuery
+ * results and errors.
  * <p>
- * Supports XSLT parameters (name/value rows), the output format (XML / HTML /
- * XHTML / TEXT / JSON), XPath/JSONPath evaluation, an XQuery console, and a
- * debounced live preview that re-transforms while the document is edited.
+ * Supports XSLT parameters (name/value rows), the output format (Auto-detected
+ * from the stylesheet's {@code xsl:output}, or fixed XML / HTML / XHTML / TEXT /
+ * JSON), XPath/JSONPath evaluation, an XQuery console, and a debounced live
+ * preview that re-transforms while the document is edited.
  */
 public class TransformPanel extends VBox {
 
@@ -60,7 +63,7 @@ public class TransformPanel extends VBox {
     private final Label pathLabel = new Label("XPATH");
     private final Label xsltStatus = new Label("XSLT: none");
     private final VBox paramRows = new VBox(4);
-    private final ComboBox<OutputFormat> outputFormat = new ComboBox<>();
+    private final ComboBox<FormatChoice> outputFormat = new ComboBox<>();
     private final MenuButton savedQueriesMenu;
     private final MenuButton recentXsltMenu = new MenuButton("Recent");
     private final CheckBox livePreview = new CheckBox("Live preview");
@@ -70,6 +73,15 @@ public class TransformPanel extends VBox {
     private final PauseTransition liveDebounce = new PauseTransition(Duration.millis(600));
     private File xsltFile;
     private long lastXsltModified;
+    /** The (re-used) editor tab holding the latest transform result, if still open. */
+    private OpenDocument resultDocument;
+    /** The source document of the latest transform (so a re-run from the result tab works). */
+    private OpenDocument sourceDocument;
+    /** The rendered HTML preview tool tab + its content updater, if still open. */
+    private javafx.scene.control.Tab htmlPreviewTab;
+    private java.util.function.Consumer<String> htmlPreviewUpdater;
+    /** The output format of the most recent successful run (for the Editor button). */
+    private OutputFormat lastResultFormat = OutputFormat.XML;
 
     public TransformPanel(EditorHost editorHost) {
         this.editorHost = editorHost;
@@ -87,8 +99,9 @@ public class TransformPanel extends VBox {
 
         // Live preview: re-run the XSLT transform shortly after the active document
         // changes (typing / tab switch), when enabled and a stylesheet is set.
+        // Never re-transform the transform-result tab itself (feedback loop).
         liveDebounce.setOnFinished(e -> {
-            if (livePreview.isSelected() && xsltFile != null && editorHost.getActiveDocument().isPresent()) {
+            if (livePreview.isSelected() && xsltFile != null && isTransformableDocumentActive()) {
                 transform();
             }
         });
@@ -100,7 +113,7 @@ public class TransformPanel extends VBox {
         javafx.animation.Timeline xsltWatch = new javafx.animation.Timeline(
                 new javafx.animation.KeyFrame(Duration.millis(1500), e -> {
                     if (watchXslt.isSelected() && xsltFile != null && pollXsltChanged()
-                            && editorHost.getActiveDocument().isPresent()) {
+                            && isTransformableDocumentActive()) {
                         transform();
                     }
                 }));
@@ -119,8 +132,8 @@ public class TransformPanel extends VBox {
         paramsLabel.getStyleClass().add("fxt-side-panel-title");
         Button addParam = button("Add Parameter", "bi-plus-circle", () -> addParameter("", ""));
 
-        outputFormat.getItems().setAll(OutputFormat.values());
-        outputFormat.setValue(OutputFormat.XML);
+        outputFormat.getItems().setAll(FormatChoice.values());
+        outputFormat.setValue(FormatChoice.AUTO);
         Label outputFormatLabel = new Label("OUTPUT");
         outputFormatLabel.getStyleClass().add("fxt-side-panel-title");
 
@@ -166,8 +179,9 @@ public class TransformPanel extends VBox {
         HBox.setHgrow(resultSpacer, Priority.ALWAYS);
         statsLabel.getStyleClass().add("fxt-placeholder-text");
         Button openBrowser = button("Browser", "bi-box-arrow-up-right", this::openInBrowser);
+        Button openEditor = button("Editor", "bi-file-earmark-plus", this::openResultInEditor);
         HBox resultHeader = new HBox(8, resultLabel, statsLabel, resultSpacer,
-                openBrowser, textToggle, tableToggle);
+                openEditor, openBrowser, textToggle, tableToggle);
         resultHeader.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
         updateResultView();
 
@@ -192,7 +206,9 @@ public class TransformPanel extends VBox {
         HBox advancedButtons = new HBox(6, debugButton, batchButton);
         HBox advancedChecks = new HBox(12, profileCheck, traceCheck);
 
-        getChildren().addAll(title,
+        // The controls scroll on short windows; the RESULT area stays pinned (and visible)
+        // at the bottom so a transform never appears to "do nothing" off-screen.
+        VBox controls = new VBox(
                 xsltRow(setXslt), SidePanelLayout.fill(transform),
                 new HBox(12, livePreview, watchXslt), xsltStatus,
                 paramsLabel, paramRows, SidePanelLayout.fill(addParam),
@@ -200,8 +216,16 @@ public class TransformPanel extends VBox {
                 pathLabel, new HBox(6, xpathField, runXPath),
                 new HBox(6, saveQuery, savedQueriesMenu),
                 xqueryLabel, xqueryArea, new HBox(6, runXQuery, examplesMenu),
-                advancedLabel, advancedButtons, advancedChecks,
-                resultHeader, resultStack);
+                advancedLabel, advancedButtons, advancedChecks);
+        controls.setSpacing(getSpacing());
+        javafx.scene.control.ScrollPane controlsScroll = new javafx.scene.control.ScrollPane(controls);
+        controlsScroll.setFitToWidth(true);
+        controlsScroll.setHbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER);
+        controlsScroll.getStyleClass().add("edge-to-edge");
+        controlsScroll.setMinHeight(80);
+        resultStack.setMinHeight(140);
+
+        getChildren().addAll(title, controlsScroll, resultHeader, resultStack);
     }
 
     /** Shows either the Text output or the Table view per the toggle selection. */
@@ -243,7 +267,8 @@ public class TransformPanel extends VBox {
         }
         String xml = editorHost.getActiveText().orElse("");
         Map<String, Object> params = collectParameters();
-        OutputFormat format = outputFormat.getValue() != null ? outputFormat.getValue() : OutputFormat.XML;
+        // AUTO defers to the XQuery's own output declaration (the engine detects it).
+        OutputFormat format = chosenFormat(OutputFormat.XML);
         output.setText("Running…");
         FxtGui.executorService.submit(() -> {
             long start = System.nanoTime();
@@ -251,6 +276,7 @@ public class TransformPanel extends VBox {
             XQueryTableRunner.XQueryTable table = XQueryTableRunner.run(xml, xquery);
             long elapsedMs = (System.nanoTime() - start) / 1_000_000;
             Platform.runLater(() -> {
+                lastResultFormat = format;
                 output.setText(result);
                 statsLabel.setText(statsText(result, elapsedMs));
                 populateResultTable(table);
@@ -319,9 +345,32 @@ public class TransformPanel extends VBox {
         return params;
     }
 
-    /** Sets the output format (also from the combo); used by tests. */
+    /** Sets the output format to a concrete value (also from the combo); used by tests. */
     public void setOutputFormat(OutputFormat format) {
-        outputFormat.setValue(format);
+        for (FormatChoice choice : FormatChoice.values()) {
+            if (choice.format == format) {
+                outputFormat.setValue(choice);
+                return;
+            }
+        }
+        outputFormat.setValue(FormatChoice.AUTO);
+    }
+
+    /**
+     * Resolves the combo selection to a concrete format, falling back to
+     * {@code autoFallback} for the Auto choice.
+     */
+    private OutputFormat chosenFormat(OutputFormat autoFallback) {
+        FormatChoice choice = outputFormat.getValue();
+        return choice != null && choice.format != null ? choice.format : autoFallback;
+    }
+
+    /**
+     * Resolves the combo selection for an XSLT run: Auto detects the format from
+     * the stylesheet's {@code xsl:output} declaration.
+     */
+    private OutputFormat resolveXsltFormat(String xsltContent) {
+        return chosenFormat(TransformRunner.detectXsltOutputFormat(xsltContent));
     }
 
     /** Launches the interactive XSLT debugger for the active XML + selected stylesheet. */
@@ -335,13 +384,17 @@ public class TransformPanel extends VBox {
             return;
         }
         String xml = editorHost.getActiveText().orElse("");
-        editorHost.startXsltDebug(xsltFile, xml, collectParameters(),
-                outputFormat.getValue() != null ? outputFormat.getValue() : OutputFormat.XML);
+        OutputFormat format;
+        try {
+            format = resolveXsltFormat(Files.readString(xsltFile.toPath(), StandardCharsets.UTF_8));
+        } catch (Exception e) {
+            format = chosenFormat(OutputFormat.XML);
+        }
+        editorHost.startXsltDebug(xsltFile, xml, collectParameters(), format);
     }
 
     /** Opens the batch-transform tool tab for the active stylesheet/XQuery. */
     public void openBatch() {
-        OutputFormat format = outputFormat.getValue() != null ? outputFormat.getValue() : OutputFormat.XML;
         String xqueryText = xqueryArea.getText();
         BatchTransformView view;
         if (xsltFile != null) {
@@ -354,11 +407,11 @@ public class TransformPanel extends VBox {
             }
             view = new org.fxt.freexmltoolkit.controls.shell.editor.debug.BatchTransformView(
                     org.fxt.freexmltoolkit.controls.shell.editor.debug.BatchTransformView.Kind.XSLT,
-                    xsltContent, collectParameters(), format);
+                    xsltContent, collectParameters(), resolveXsltFormat(xsltContent));
         } else if (xqueryText != null && !xqueryText.isBlank()) {
             view = new org.fxt.freexmltoolkit.controls.shell.editor.debug.BatchTransformView(
                     org.fxt.freexmltoolkit.controls.shell.editor.debug.BatchTransformView.Kind.XQUERY,
-                    xqueryText, collectParameters(), format);
+                    xqueryText, collectParameters(), chosenFormat(OutputFormat.XML));
         } else {
             output.setText("Set an XSLT stylesheet or enter an XQuery first.");
             return;
@@ -459,35 +512,53 @@ public class TransformPanel extends VBox {
         }
     }
 
-    /** Transforms the active XML with the selected XSLT (async). */
+    /** Transforms the active XML (or the remembered source, when the result tab is active). */
     public void transform() {
         if (xsltFile == null) {
             output.setText("Select an XSLT stylesheet first.");
             return;
         }
-        if (editorHost.getActiveDocument().isEmpty()) {
+        OpenDocument active = editorHost.getActiveDocument().orElse(null);
+        if (active == null) {
             output.setText("No document open.");
             return;
         }
-        String xml = editorHost.getActiveText().orElse("");
+        String xml;
+        if (active == resultDocument) {
+            // Re-run from the result tab: transform the original source again.
+            java.util.Optional<String> sourceText = sourceDocument != null
+                    ? editorHost.getDocumentText(sourceDocument) : java.util.Optional.empty();
+            if (sourceText.isEmpty()) {
+                output.setText("Select the source document to transform.");
+                return;
+            }
+            xml = sourceText.get();
+        } else {
+            sourceDocument = active;
+            xml = editorHost.getActiveText().orElse("");
+        }
         File xslt = xsltFile;
         Map<String, Object> params = collectParameters();
-        OutputFormat format = outputFormat.getValue() != null ? outputFormat.getValue() : OutputFormat.XML;
         boolean wantProfile = profileCheck.isSelected();
         boolean wantTrace = traceCheck.isSelected();
+        OutputFormat chosen = chosenFormat(null); // null = Auto, resolved from the stylesheet below
         output.setText("Transforming…");
         FxtGui.executorService.submit(() -> {
             long start = System.nanoTime();
             String result;
             String xsltContent = "";
+            OutputFormat format = chosen != null ? chosen : OutputFormat.XML;
             try {
                 xsltContent = Files.readString(xslt.toPath(), StandardCharsets.UTF_8);
+                // Auto: detect the format from the stylesheet's xsl:output declaration.
+                format = chosen != null ? chosen : TransformRunner.detectXsltOutputFormat(xsltContent);
                 result = TransformRunner.xsltTransform(xml, xsltContent, params, format);
             } catch (Exception e) {
                 result = "ERROR: " + e.getMessage();
             }
             long elapsedMs = (System.nanoTime() - start) / 1_000_000;
             String finalResult = result;
+            OutputFormat finalFormat = format;
             org.fxt.freexmltoolkit.service.XsltTransformationResult report =
                     (wantProfile || wantTrace) && !xsltContent.isBlank()
                             ? TransformRunner.transformForReport(xml, xsltContent, params, format)
@@ -496,6 +567,10 @@ public class TransformPanel extends VBox {
                 output.setText(finalResult);
                 statsLabel.setText(statsText(finalResult, elapsedMs));
                 textToggle.setSelected(true);
+                if (!finalResult.startsWith("ERROR")) {
+                    lastResultFormat = finalFormat;
+                    showResultInEditor(finalResult, finalFormat);
+                }
                 if (report != null && report.isSuccess()) {
                     if (wantProfile) {
                         editorHost.openToolTab("Profile", "bi-speedometer2",
@@ -542,6 +617,87 @@ public class TransformPanel extends VBox {
         } catch (Exception e) {
             statsLabel.setText("browser: " + e.getMessage());
         }
+    }
+
+    /** Opens (or refreshes) the current result text as an untitled editor tab. */
+    public void openResultInEditor() {
+        String result = output.getText();
+        if (result == null || result.isBlank() || result.startsWith("ERROR")
+                || "Transforming…".equals(result) || "Running…".equals(result)) {
+            output.setText(result != null && result.startsWith("ERROR") ? result
+                    : "Run a transform or query first.");
+            return;
+        }
+        showResultInEditor(result, lastResultFormat);
+    }
+
+    /**
+     * Shows a successful result as a regular editor tab — re-using the previous
+     * result tab (without stealing the tab selection) when it is still open and
+     * the format has not changed. An HTML/XHTML result additionally gets a
+     * rendered preview tool tab.
+     */
+    private void showResultInEditor(String result, OutputFormat format) {
+        EditorFileType type = switch (format) {
+            case JSON -> EditorFileType.JSON;
+            case TEXT -> EditorFileType.OTHER;
+            default -> EditorFileType.XML; // XML / HTML / XHTML
+        };
+        String name = "Transform-Result." + switch (format) {
+            case JSON -> "json";
+            case TEXT -> "txt";
+            case HTML, XHTML -> "html";
+            default -> "xml";
+        };
+        boolean sameTab = resultDocument != null && name.equals(resultDocument.getDisplayName());
+        if (!sameTab || !editorHost.updateGeneratedDocument(resultDocument, result)) {
+            resultDocument = editorHost.openGeneratedDocument(result, type, name);
+        }
+        if (format == OutputFormat.HTML || format == OutputFormat.XHTML) {
+            showHtmlPreview(result);
+        }
+    }
+
+    /** Opens (or refreshes) the rendered HTML preview tool tab for {@code html}. */
+    private void showHtmlPreview(String html) {
+        if (isHtmlPreviewOpen() && htmlPreviewUpdater != null) {
+            htmlPreviewUpdater.accept(html);
+            return;
+        }
+        htmlPreviewTab = editorHost.openToolTab("HTML Preview", "bi-eye", htmlPreviewRegion(html));
+    }
+
+    /**
+     * Builds the rendered preview region: a WebView when available, otherwise a
+     * read-only text fallback (e.g. in stripped-down runtimes).
+     */
+    private Region htmlPreviewRegion(String html) {
+        try {
+            javafx.scene.web.WebView view = new javafx.scene.web.WebView();
+            view.getEngine().loadContent(html == null ? "" : html);
+            htmlPreviewUpdater = content -> view.getEngine().loadContent(content == null ? "" : content);
+            return new StackPane(view);
+        } catch (Throwable t) {
+            TextArea fallback = new TextArea(html);
+            fallback.setEditable(false);
+            htmlPreviewUpdater = fallback::setText;
+            return new StackPane(fallback);
+        }
+    }
+
+    /** @return {@code true} while the rendered HTML preview tab is open (for tests/observers). */
+    public boolean isHtmlPreviewOpen() {
+        return htmlPreviewTab != null && htmlPreviewTab.getTabPane() != null;
+    }
+
+    /**
+     * @return {@code true} if a document other than the transform-result tab is active —
+     * guards the automatic re-transform triggers against transforming their own output
+     */
+    private boolean isTransformableDocumentActive() {
+        return editorHost.getActiveDocument()
+                .map(document -> document != resultDocument)
+                .orElse(false);
     }
 
     /** Evaluates the XPath field against the active XML (async). */
@@ -682,6 +838,33 @@ public class TransformPanel extends VBox {
 
         String value() {
             return valueField.getText() == null ? "" : valueField.getText();
+        }
+    }
+
+    /**
+     * The OUTPUT combo choices: a concrete serialization format, or {@link #AUTO}
+     * which defers to the stylesheet's own {@code xsl:output} declaration.
+     */
+    public enum FormatChoice {
+        AUTO("Auto", null),
+        XML("XML", OutputFormat.XML),
+        HTML("HTML", OutputFormat.HTML),
+        XHTML("XHTML", OutputFormat.XHTML),
+        TEXT("Text", OutputFormat.TEXT),
+        JSON("JSON", OutputFormat.JSON);
+
+        private final String label;
+        /** The concrete format, or {@code null} for {@link #AUTO}. */
+        final OutputFormat format;
+
+        FormatChoice(String label, OutputFormat format) {
+            this.label = label;
+            this.format = format;
+        }
+
+        @Override
+        public String toString() {
+            return label;
         }
     }
 }

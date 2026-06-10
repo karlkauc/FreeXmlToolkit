@@ -165,11 +165,15 @@ When editing an XSLT file:
 
 ## Transform Panel
 
-> **New in June 2026** - Added recent-stylesheet history, a watch-and-rerun option,
+> **New in June 2026** - Transform results now open as **regular editor tabs**, the
+> output format is **auto-detected** from the stylesheet, and HTML results get a
+> **rendered preview tab**. Also: recent-stylesheet history, a watch-and-rerun option,
 > result timing, and an XQuery result table.
 
 The **Transform** panel (open it from the **Transform** icon in the activity bar on the
 left) runs XSLT transformations and XQuery expressions against the active XML document.
+On short windows the panel's controls scroll, while the RESULT area stays pinned at the
+bottom.
 
 ### Choosing a Stylesheet
 
@@ -184,11 +188,21 @@ left) runs XSLT transformations and XQuery expressions against the active XML do
 
 1. Set an XSLT stylesheet (or type an XQuery, see below).
 2. Click **Transform** (XSLT) or **Run XQuery** (XQuery).
-3. The result appears in the **RESULT** area.
+3. An XSLT result opens as a **regular editor tab** (`Transform-Result.xml` / `.html` /
+   `.json` / `.txt`) that you can edit and save like any other document. Re-running the
+   transformation updates the same tab — even while the result tab is active, the original
+   source document is transformed again. XQuery/XPath results appear in the **RESULT** area.
+4. For **HTML/XHTML** output, an additional **HTML Preview** tool tab shows the result
+   rendered as a web page; it refreshes on every re-run.
+
+The **OUTPUT** combo defaults to **Auto**: the output format is detected from the
+stylesheet's `xsl:output` declaration (XML, HTML, XHTML, Text, or JSON). Choose a concrete
+format to override the detection.
 
 The RESULT header shows a compact **timing stat** in the form `N ms · M chars` so you can
 see how long the run took and how large the output is.
 
+- **Editor** - Opens the current RESULT text as a new editor tab.
 - **Browser** - Opens the result (typically HTML) in your system web browser.
 
 ### XQuery Result Table

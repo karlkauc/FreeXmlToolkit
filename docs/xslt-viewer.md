@@ -54,13 +54,21 @@ structure.
 
 ### Step 2: Run and View the Results
 
-Click **Transform** to run the transformation. The result appears in the panel's **RESULT** area:
+Click **Transform** to run the transformation. The result opens as a **regular editor tab**
+(`Transform-Result.xml`, `.html`, `.json`, or `.txt` depending on the output format), so you can
+inspect, edit, and save it like any other document. Re-running the transformation updates the
+same result tab — even while the result tab itself is active, the original source document is
+transformed again.
 
-| View             | Description                                   |
-|------------------|-----------------------------------------------|
-| **Text View**    | Shows the raw output with syntax highlighting |
-| **HTML Preview** | Renders HTML output as a web page             |
-| **Performance**  | Shows transformation statistics               |
+| View                 | Description                                                        |
+|----------------------|--------------------------------------------------------------------|
+| **Result editor tab**| The transformation output as an editable, savable document         |
+| **HTML Preview tab** | For HTML/XHTML output: the result rendered as a web page           |
+| **RESULT area**      | Quick XPath/XQuery results, errors, and transformation statistics  |
+
+The **OUTPUT** format defaults to **Auto**: the format (XML, HTML, XHTML, Text, JSON) is
+detected from the stylesheet's `xsl:output` declaration. Pick a concrete format in the combo
+box to override the detection.
 
 ---
 
@@ -70,6 +78,7 @@ Click **Transform** to run the transformation. The result appears in the panel's
 |---------------|------------------------------------------------------|
 | **Transform** | Runs the transformation with the current stylesheet  |
 | **Watch file**| Re-runs automatically when the stylesheet changes    |
+| **Editor**    | Opens the current RESULT text as a new editor tab    |
 | **Browser**   | Opens the result in your default web browser         |
 
 ---
