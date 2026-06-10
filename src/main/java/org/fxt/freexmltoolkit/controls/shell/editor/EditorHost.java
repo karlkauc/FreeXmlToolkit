@@ -48,6 +48,7 @@ public class EditorHost extends BorderPane {
             new ReadOnlyObjectWrapper<>(this, "activeJsonNode", null);
     private final ReadOnlyObjectWrapper<ValidationStatus> validationStatus =
             new ReadOnlyObjectWrapper<>(this, "validationStatus", ValidationStatus.NONE);
+    private final ObservableList<ValidationProblem> activeProblems = FXCollections.observableArrayList();
 
     /** Coarse validation outcome of the active document, surfaced in the inspector. */
     public enum ValidationState { NOT_VALIDATED, VALID, INVALID }
@@ -112,6 +113,7 @@ public class EditorHost extends BorderPane {
             // A different document's last result must not linger; validation re-runs
             // (continuous, or via Validate/F8) for the newly active document.
             validationStatus.set(ValidationStatus.NONE);
+            activeProblems.clear();
             refreshSelectedNode();
         });
         // Delete key removes the selected node in structured views (not in Text mode).
@@ -211,6 +213,19 @@ public class EditorHost extends BorderPane {
     /** Publishes a validation result for the active document (called by the Validation panel). */
     public void setValidationStatus(ValidationState state, int problemCount, String summary) {
         validationStatus.set(new ValidationStatus(state, problemCount, summary));
+    }
+
+    /**
+     * @return the active document's validation problems (read-only by convention) —
+     * the data behind the PROBLEMS panel below the editor. Cleared on tab switch.
+     */
+    public ObservableList<ValidationProblem> getActiveProblems() {
+        return activeProblems;
+    }
+
+    /** Publishes the active document's validation problems (called by the Validation panel). */
+    public void setActiveProblems(java.util.List<ValidationProblem> problems) {
+        activeProblems.setAll(problems);
     }
 
     /** @return the schema root of the active structured view, or empty (Text mode / not parsed). */

@@ -96,6 +96,31 @@ class UnifiedShellValidateTest {
                 "pressing F8 must validate the active document");
     }
 
+    @Test
+    void problemsPanelBelowEditorShowsAfterFailedValidation(@TempDir Path tmp) throws Exception {
+        Path xml = tmp.resolve("malformed3.xml");
+        Files.writeString(xml, "<root><a></root>"); // not well-formed
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> shell.getEditorHost().openFile(xml));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> shell.getEditorHost().getActiveText().map(t -> t.contains("root")).orElse(false));
+
+        var problemsPanel = (org.fxt.freexmltoolkit.controls.shell.editor.ProblemsPanel)
+                shell.lookup(".fxt-problems-panel");
+        assertNotNull(problemsPanel, "the shell must embed a ProblemsPanel below the editor");
+        assertFalse(problemsPanel.isVisible(), "the panel hides while there are no problems");
+
+        clickToolbarValidate();
+
+        WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS,
+                () -> problemsPanel.isVisible() && problemsPanel.getProblemCount() > 0);
+        assertTrue(problemsPanel.isVisible(),
+                "the PROBLEMS panel below the editor must auto-show on a failed validation");
+        var errorChip = (javafx.scene.control.Label) problemsPanel.lookup(".fxt-problems-chip-error");
+        assertTrue(errorChip.isVisible() && Integer.parseInt(errorChip.getText()) > 0,
+                "the header must show the error count");
+    }
+
     private void clickToolbarValidate() {
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
             Button validate = shell.lookupAll(".button").stream()

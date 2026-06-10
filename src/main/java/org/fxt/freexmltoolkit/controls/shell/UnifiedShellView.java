@@ -517,7 +517,9 @@ public class UnifiedShellView extends BorderPane {
     private Region buildEditorCenter() {
         Region toolbar = buildEditorToolbar();
         searchBar.hide(); // shown on Ctrl+F / Ctrl+H
-        VBox editorArea = new VBox(searchBar, toolbar, editorHost);
+        // PROBLEMS panel below the editor (Figma node 42:3); hides itself while empty.
+        var problemsPanel = new org.fxt.freexmltoolkit.controls.shell.editor.ProblemsPanel(editorHost);
+        VBox editorArea = new VBox(searchBar, toolbar, editorHost, problemsPanel);
         VBox.setVgrow(editorHost, Priority.ALWAYS);
         editorArea.getStyleClass().addAll("fxt-editor-area", "fxt-editor-center");
         return editorArea;
