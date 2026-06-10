@@ -370,4 +370,28 @@ class ConnectionServiceTest {
         assertEquals(200, result.httpStatus(), "Should complete before timeout");
         assertTrue(result.duration() < 30000, "Should complete well before 30s timeout");
     }
+
+    @Test
+    @DisplayName("trustAllCerts must NOT poison the JVM-global HTTPS defaults")
+    void trustAllCerts_doesNotModifyGlobalSslDefaults() {
+        // SECURITY: enabling the SSL bypass for a connection test must not disable certificate
+        // validation process-wide. Otherwise unrelated HTTPS connections (e.g. auto-update
+        // downloads) would silently inherit a trust-all SSL context.
+        var beforeFactory = javax.net.ssl.HttpsURLConnection.getDefaultSSLSocketFactory();
+        var beforeVerifier = javax.net.ssl.HttpsURLConnection.getDefaultHostnameVerifier();
+
+        Properties props = new Properties();
+        props.setProperty("ssl.trustAllCerts", "true");
+        props.setProperty("manualProxy", "false");
+        props.setProperty("useSystemProxy", "false");
+
+        // Target an unreachable HTTPS endpoint - the request fails, but the SSL configuration
+        // (the part under test) runs regardless of connection success.
+        connectionService.testHttpRequest(URI.create("https://127.0.0.1:1/"), props);
+
+        assertSame(beforeFactory, javax.net.ssl.HttpsURLConnection.getDefaultSSLSocketFactory(),
+                "Global default SSLSocketFactory must not be replaced by trustAllCerts");
+        assertSame(beforeVerifier, javax.net.ssl.HttpsURLConnection.getDefaultHostnameVerifier(),
+                "Global default HostnameVerifier must not be replaced by trustAllCerts");
+    }
 }
