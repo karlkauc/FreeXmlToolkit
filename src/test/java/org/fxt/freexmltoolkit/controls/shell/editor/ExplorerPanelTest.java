@@ -114,6 +114,37 @@ class ExplorerPanelTest {
         assertTrue(texts.contains("Clear recent"), texts.toString());
     }
 
+    @Test
+    void clickingASectionHeaderCollapsesAndExpandsItsContent() {
+        WaitForAsyncUtils.waitForFxEvents();
+        ListView<?> open = openEditorsList();
+        assertTrue(open.isVisible(), "OPEN EDITORS starts expanded");
+
+        var header = panel.lookup("#explorer-open-editors-header");
+        assertNotNull(header, "the OPEN EDITORS header must exist");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            fireHeaderClick(header);
+            return null;
+        });
+        assertFalse(open.isVisible(), "clicking the header collapses the section");
+        assertFalse(open.isManaged(), "a collapsed section frees its layout space");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            fireHeaderClick(header);
+            return null;
+        });
+        assertTrue(open.isVisible(), "clicking again expands the section");
+        assertTrue(open.isManaged());
+    }
+
+    /** Fires a primary-button click on a section header (synthetic — headless-safe). */
+    private static void fireHeaderClick(javafx.scene.Node header) {
+        header.fireEvent(new javafx.scene.input.MouseEvent(
+                javafx.scene.input.MouseEvent.MOUSE_CLICKED, 0, 0, 0, 0,
+                javafx.scene.input.MouseButton.PRIMARY, 1,
+                false, false, false, false, true, false, false, true, false, false, null));
+    }
+
     @SuppressWarnings("unchecked")
     private ListView<OpenDocument> openEditorsList() {
         // The Open Editors list is the first .fxt-open-editors ListView in the panel.

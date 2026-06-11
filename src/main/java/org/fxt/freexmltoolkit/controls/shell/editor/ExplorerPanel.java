@@ -107,10 +107,16 @@ public class ExplorerPanel extends VBox {
             }
         });
 
+        HBox openHeader = sectionHeader(new Label("OPEN EDITORS"), openList);
+        openHeader.setId("explorer-open-editors-header");
+        HBox workspaceHeader = sectionHeader(workspaceTitle, workspace);
+        workspaceHeader.setId("explorer-workspace-header");
+        HBox recentHeader = sectionHeader(new Label("RECENT"), recentList);
+        recentHeader.setId("explorer-recent-header");
         getChildren().addAll(header,
-                sectionHeader(new Label("OPEN EDITORS")), openList,
-                sectionHeader(workspaceTitle), workspace,
-                sectionHeader(new Label("RECENT")), recentList);
+                openHeader, openList,
+                workspaceHeader, workspace,
+                recentHeader, recentList);
 
         // Track recent files as documents open, keep the Open Editors list in
         // sync (selection cleared before each replace — see above) and mirror
@@ -241,13 +247,22 @@ public class ExplorerPanel extends VBox {
         }
     }
 
-    /** A section header: chevron + small bold label (shared style with the Validation panel). */
-    private static HBox sectionHeader(Label label) {
+    /**
+     * A collapsible section header: chevron + small bold label (shared style with the
+     * Validation panel). Clicking the header hides/shows {@code content} and flips the chevron.
+     */
+    private static HBox sectionHeader(Label label, javafx.scene.Node content) {
         IconifyIcon chevron = new IconifyIcon("bi-chevron-down");
         chevron.setIconSize(11);
         HBox header = new HBox(6, chevron, label);
         header.getStyleClass().add("fxt-sp-section-header");
         header.setAlignment(Pos.CENTER_LEFT);
+        header.setOnMouseClicked(e -> {
+            boolean expand = !content.isVisible();
+            content.setVisible(expand);
+            content.setManaged(expand);
+            chevron.setIconLiteral(expand ? "bi-chevron-down" : "bi-chevron-right");
+        });
         return header;
     }
 
