@@ -48,7 +48,7 @@ class FundsXmlCaretSequenceTest {
 
         // Grid: select root, add an attribute (round-trips).
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
-            host.setActiveViewMode(ViewMode.GRID);
+            host.setActiveViewMode(ViewMode.GRAPHIC);
             return null;
         });
         WaitForAsyncUtils.waitForFxEvents();

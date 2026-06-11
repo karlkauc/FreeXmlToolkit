@@ -168,7 +168,7 @@ class ShellDocScreenshotGenerator {
             onFx(() -> shell.getSelectionModel().select(Activity.EXPLORER));
             onFx(() -> host.openFile(xml.toPath())); // re-selects the already-open XML tab
             settle();
-            onFx(() -> host.setActiveViewMode(ViewMode.GRID));
+            onFx(() -> host.setActiveViewMode(ViewMode.GRAPHIC));
             settle();
             shot("unified-shell-xml-grid");
         }

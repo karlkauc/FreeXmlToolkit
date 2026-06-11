@@ -43,7 +43,7 @@ class EditorHostXmlEditTest {
         WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
                 () -> host.getActiveText().map(t -> t.contains("item")).orElse(false));
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
-            host.setActiveViewMode(ViewMode.GRID);
+            host.setActiveViewMode(ViewMode.GRAPHIC);
             return null;
         });
         WaitForAsyncUtils.waitForFxEvents();
@@ -81,7 +81,7 @@ class EditorHostXmlEditTest {
         WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
                 () -> host.getActiveText().map(t -> t.contains("template")).orElse(false));
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
-            host.setActiveViewMode(ViewMode.GRID);
+            host.setActiveViewMode(ViewMode.GRAPHIC);
             return null;
         });
         WaitForAsyncUtils.waitForFxEvents();

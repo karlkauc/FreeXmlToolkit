@@ -473,6 +473,18 @@ public class EditorHost extends BorderPane {
         return tab;
     }
 
+    /** @return whether the given tab is still open in this host. */
+    public boolean containsTab(Tab tab) {
+        return tab != null && tabPane.getTabs().contains(tab);
+    }
+
+    /** Brings the given (already open) tab to the front. */
+    public void selectTab(Tab tab) {
+        if (containsTab(tab)) {
+            tabPane.getSelectionModel().select(tab);
+        }
+    }
+
     /** Open type-editor tabs, keyed by type name, so a type is edited in at most one tab. */
     private final java.util.Map<String, Tab> openTypeTabs = new java.util.HashMap<>();
 
@@ -669,10 +681,11 @@ public class EditorHost extends BorderPane {
     }
 
     /**
-     * Builds the segmented view-mode switch (Text / Tree / Graphic / Grid). Buttons reflect the
-     * active view mode and disable for modes the active document does not support. The control is
-     * kept at its preferred size so the overlay {@link javafx.scene.layout.StackPane} positions it
-     * top-right instead of stretching it across the tab area.
+     * Builds the segmented view-mode switch (Text / Tree / Graphic, each with its icon —
+     * per the Figma mockup). Buttons reflect the active view mode and disable for modes
+     * the active document does not support. The control is kept at its preferred size so
+     * the overlay {@link javafx.scene.layout.StackPane} positions it top-right instead of
+     * stretching it across the tab area.
      */
     private javafx.scene.layout.Region buildViewSwitch() {
         var group = new javafx.scene.control.ToggleGroup();
@@ -683,7 +696,10 @@ public class EditorHost extends BorderPane {
         box.setMaxHeight(javafx.scene.layout.Region.USE_PREF_SIZE);
 
         for (var mode : ViewMode.values()) {
-            javafx.scene.control.ToggleButton button = new javafx.scene.control.ToggleButton(mode.label());
+            var icon = new org.fxt.freexmltoolkit.controls.icons.IconifyIcon(mode.icon());
+            icon.setIconSize(13);
+            javafx.scene.control.ToggleButton button =
+                    new javafx.scene.control.ToggleButton(mode.label(), icon);
             button.setToggleGroup(group);
             button.getStyleClass().add("fxt-view-seg");
             button.setFocusTraversable(false);
@@ -1878,17 +1894,15 @@ public class EditorHost extends BorderPane {
 
         /**
          * Which view modes this document offers: every recognized type has a Tree
-         * (XSD schema tree / JSON tree / XML-instance DOM tree); Graphic is XSD-only.
+         * (XSD schema tree / JSON tree / XML-instance DOM tree); Graphic covers the
+         * XSD diagram for schemas and the instance grid for XML-family instances.
          */
         boolean supportsView(ViewMode mode) {
             return switch (mode) {
                 case TEXT -> true;
                 case TREE -> document.getFileType() != EditorFileType.OTHER;
-                case GRAPHIC -> document.getFileType() == EditorFileType.XSD;
-                case GRID -> switch (document.getFileType()) {
-                    // The instance grid applies to XML-family instances, not the XSD
-                    // schema (which has the Graphic diagram) nor JSON.
-                    case XML, XSLT, SCHEMATRON -> true;
+                case GRAPHIC -> switch (document.getFileType()) {
+                    case XSD, XML, XSLT, SCHEMATRON -> true;
                     default -> false;
                 };
             };
@@ -1907,8 +1921,9 @@ public class EditorHost extends BorderPane {
                 showOnly(view.getNode());
                 return;
             }
-            // XML-family instances offer an editable XMLSpy-style grid over the shared context.
-            if (target == ViewMode.GRID) {
+            // For XML-family instances, Graphic is the editable XMLSpy-style grid
+            // over the shared context (the XSD diagram below covers schemas).
+            if (target == ViewMode.GRAPHIC && document.getFileType() != EditorFileType.XSD) {
                 ensureXmlGrid();
                 ensureXmlModelParsed();
                 xmlGridView.setContext(xmlEditorContext);

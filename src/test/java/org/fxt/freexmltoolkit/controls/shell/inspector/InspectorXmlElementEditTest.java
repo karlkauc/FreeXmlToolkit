@@ -50,7 +50,7 @@ class InspectorXmlElementEditTest {
         WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
                 () -> host.getActiveText().map(t -> t.contains("leaf")).orElse(false));
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
-            host.setActiveViewMode(ViewMode.GRID);
+            host.setActiveViewMode(ViewMode.GRAPHIC);
             return null;
         });
         WaitForAsyncUtils.waitForFxEvents();

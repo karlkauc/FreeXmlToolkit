@@ -74,7 +74,7 @@ class FundsXmlInspectorSmokeTest {
         shot("fundsxml_01_xml_text");
 
         // 2) Grid view, select the DataSupplier element.
-        onFx(() -> host.setActiveViewMode(ViewMode.GRID));
+        onFx(() -> host.setActiveViewMode(ViewMode.GRAPHIC));
         settle();
         Thread.sleep(500);
         XmlGridView grid = (XmlGridView) root.lookupAll("*").stream()

@@ -47,7 +47,7 @@ class InspectorXmlOtherNodeTest {
         WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
                 () -> host.getActiveText().map(t -> t.contains("hello")).orElse(false));
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
-            host.setActiveViewMode(ViewMode.GRID);
+            host.setActiveViewMode(ViewMode.GRAPHIC);
             return null;
         });
         WaitForAsyncUtils.waitForFxEvents();

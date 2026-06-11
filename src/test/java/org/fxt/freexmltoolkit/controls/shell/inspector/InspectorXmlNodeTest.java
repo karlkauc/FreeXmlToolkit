@@ -48,7 +48,7 @@ class InspectorXmlNodeTest {
         WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
                 () -> host.getActiveText().map(t -> t.contains("item")).orElse(false));
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
-            host.setActiveViewMode(ViewMode.GRID);
+            host.setActiveViewMode(ViewMode.GRAPHIC);
             return null;
         });
         // Let the grid finish building (it may auto-select the root) before selecting our node.

@@ -60,7 +60,7 @@ class EditorHostXmlSchemaAssistTest {
                 () -> host.getActiveText().map(t -> t.contains("root")).orElse(false));
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.setSchemaForActiveDocument(xsd.toFile()));
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
-            host.setActiveViewMode(ViewMode.GRID);
+            host.setActiveViewMode(ViewMode.GRAPHIC);
             return null;
         });
         WaitForAsyncUtils.waitForFxEvents();

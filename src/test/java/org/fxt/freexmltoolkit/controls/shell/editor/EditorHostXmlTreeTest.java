@@ -33,10 +33,11 @@ class EditorHostXmlTreeTest {
     }
 
     @Test
-    void xmlDocumentSupportsTreeButNotGraphic(@TempDir Path tmp) throws Exception {
+    void xmlDocumentSupportsTreeAndGraphic(@TempDir Path tmp) throws Exception {
         openXml(tmp);
         assertTrue(host.activeSupportsView(ViewMode.TREE), "XML must support a Tree view");
-        assertFalse(host.activeSupportsView(ViewMode.GRAPHIC), "XML instances have no Graphic (schema) view");
+        assertTrue(host.activeSupportsView(ViewMode.GRAPHIC),
+                "XML must support Graphic (the instance grid lives there)");
     }
 
     @Test

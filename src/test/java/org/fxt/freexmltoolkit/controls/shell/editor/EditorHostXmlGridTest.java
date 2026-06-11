@@ -56,11 +56,11 @@ class EditorHostXmlGridTest {
         WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
                 () -> host.getActiveText().map(t -> t.contains("item")).orElse(false));
 
-        assertTrue(WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.activeSupportsView(ViewMode.GRID)),
+        assertTrue(WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.activeSupportsView(ViewMode.GRAPHIC)),
                 "XML must offer a Grid view");
 
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
-            host.setActiveViewMode(ViewMode.GRID);
+            host.setActiveViewMode(ViewMode.GRAPHIC);
             return null;
         });
         WaitForAsyncUtils.waitForFxEvents();
@@ -71,7 +71,7 @@ class EditorHostXmlGridTest {
     }
 
     @Test
-    void xsdHasNoGridView(@TempDir Path tmp) throws Exception {
+    void xsdGraphicIsTheSchemaDiagramNotTheInstanceGrid(@TempDir Path tmp) throws Exception {
         Path xsd = tmp.resolve("schema.xsd");
         Files.writeString(xsd, XSD);
 
@@ -79,7 +79,17 @@ class EditorHostXmlGridTest {
         WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
                 () -> host.getActiveText().map(t -> t.contains("schema")).orElse(false));
 
-        assertFalse(WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.activeSupportsView(ViewMode.GRID)),
-                "XSD has the Graphic (Canvas) view, not the XML instance Grid");
+        // Graphic is one switch position for all: XSD gets the schema diagram there…
+        assertTrue(WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.activeSupportsView(ViewMode.GRAPHIC)),
+                "XSD must offer the Graphic view");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.setActiveViewMode(ViewMode.GRAPHIC);
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        // …and never the XML instance grid.
+        boolean hasGrid = WaitForAsyncUtils.waitForAsyncFx(2000, () ->
+                host.lookupAll("*").stream().anyMatch(n -> n instanceof XmlCanvasView));
+        assertFalse(hasGrid, "XSD's Graphic view is the schema diagram, not the XML instance grid");
     }
 }

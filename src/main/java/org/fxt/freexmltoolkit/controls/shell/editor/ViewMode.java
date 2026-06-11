@@ -1,18 +1,19 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
 /**
- * The editor view modes: Text, Tree, Graphic and Grid.
+ * The editor view modes: Text, Tree and Graphic (per the Figma mockup
+ * "Redesign · Unified — Graphic + Grid" there is no standalone Grid mode).
  * <ul>
  *   <li><b>Tree</b> — XSD schema tree / JSON tree / XML-instance DOM tree.</li>
- *   <li><b>Graphic</b> — the Canvas-based XSD schema diagram editor (XSD only).</li>
- *   <li><b>Grid</b> — the XMLSpy-style instance grid (XML-family instances only).</li>
+ *   <li><b>Graphic</b> — the Canvas-based XSD schema diagram for schemas, and
+ *       the XMLSpy-style editable instance grid for XML-family instances
+ *       (one switch position, one mental model: "the structured visual view").</li>
  * </ul>
  */
 public enum ViewMode {
-    TEXT("Text", "bi-code-slash"),
+    TEXT("Text", "bi-type"),
     TREE("Tree", "bi-list-nested"),
-    GRAPHIC("Graphic", "bi-diagram-3"),
-    GRID("Grid", "bi-table");
+    GRAPHIC("Graphic", "bi-diagram-2");
 
     private final String label;
     private final String icon;

@@ -189,9 +189,9 @@ class EditorHostTest {
         WaitForAsyncUtils.waitFor(3, java.util.concurrent.TimeUnit.SECONDS,
                 () -> host.getActiveText().map(t -> t.contains("root")).orElse(false));
 
-        // XML has no XSD command-backed structured editing and no Graphic (schema) view…
+        // XML has no XSD command-backed structured editing, but Graphic (the instance grid) works…
         assertFalse(host.activeSupportsStructuredViews(), "XML has no XSD command editing");
-        assertFalse(host.activeSupportsView(ViewMode.GRAPHIC), "XML has no Graphic (schema) view");
+        assertTrue(host.activeSupportsView(ViewMode.GRAPHIC), "XML's Graphic view is the instance grid");
         // …but it does get a read-only DOM Tree view.
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
             host.setActiveViewMode(ViewMode.TREE);

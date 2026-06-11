@@ -2,11 +2,16 @@ package org.fxt.freexmltoolkit.controls.shell.editor;
 
 import java.util.function.Consumer;
 
+import javafx.geometry.Pos;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.editor.XmlEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.XmlCanvasView;
@@ -86,7 +91,8 @@ public class XmlGridView extends StackPane {
      */
     public void setContext(XmlEditorContext ctx) {
         if (ctx == this.context && !getChildren().isEmpty()
-                && getChildren().get(0) instanceof XmlCanvasView) {
+                && getChildren().get(0) instanceof VBox box
+                && box.getChildren().stream().anyMatch(n -> n instanceof XmlCanvasView)) {
             return; // already showing this context
         }
         getChildren().clear();
@@ -108,7 +114,32 @@ public class XmlGridView extends StackPane {
                 onModified.accept(modified);
             }
         });
-        getChildren().add(view);
+        VBox.setVgrow(view, Priority.ALWAYS);
+        getChildren().add(new VBox(buildHeader(view), view));
+    }
+
+    /** The mockup's grid header: table icon · "Grid view" · subtitle ·…· Collapse all. */
+    private HBox buildHeader(XmlCanvasView view) {
+        Label title = new Label("Grid view", icon("bi-table", 15));
+        title.getStyleClass().add("fxt-grid-title");
+        Label subtitle = new Label("· nested · repeating elements as embedded grids");
+        subtitle.getStyleClass().add("fxt-grid-subtitle");
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        Button collapseAll = new Button("Collapse all", icon("bi-arrows-collapse", 13));
+        collapseAll.setId("grid-collapse-all");
+        collapseAll.getStyleClass().add("fxt-tool-button");
+        collapseAll.setOnAction(e -> view.collapseAll());
+        HBox header = new HBox(8, title, subtitle, spacer, collapseAll);
+        header.getStyleClass().add("fxt-grid-header");
+        header.setAlignment(Pos.CENTER_LEFT);
+        return header;
+    }
+
+    private static IconifyIcon icon(String literal, int size) {
+        IconifyIcon icon = new IconifyIcon(literal);
+        icon.setIconSize(size);
+        return icon;
     }
 
     private VBox placeholder(String message) {

@@ -203,14 +203,17 @@ public class XmlCanvasView extends Pane implements XmlSearchTarget {
     // Child count
     private static final Color CHILD_COUNT_COLOR = Color.rgb(156, 163, 175);
 
-    // Table colors (kept for repeating table integration)
-    private static final Color TABLE_HEADER_BG = Color.rgb(236, 253, 245);
-    private static final Color TABLE_HEADER_TEXT = Color.rgb(5, 150, 105);
-    private static final Color TABLE_BORDER = Color.rgb(167, 243, 208);
+    // Accent (the design system's indigo primary — used for the {} value-row icon)
+    private static final Color ACCENT = Color.rgb(59, 91, 219);
+
+    // Table colors (neutral slate per the Figma "Graphic + Grid" mockup)
+    private static final Color TABLE_HEADER_BG = Color.rgb(248, 250, 252);
+    private static final Color TABLE_HEADER_TEXT = Color.rgb(71, 85, 105);
+    private static final Color TABLE_BORDER = Color.rgb(226, 232, 240);
     private static final Color TABLE_ROW_EVEN = Color.WHITE;
     private static final Color TABLE_ROW_ODD = Color.rgb(249, 250, 251);
-    private static final Color TABLE_ROW_HOVER = Color.rgb(236, 253, 245);
-    private static final Color TABLE_ROW_SELECTED = Color.rgb(209, 250, 229);
+    private static final Color TABLE_ROW_HOVER = Color.rgb(241, 245, 249);
+    private static final Color TABLE_ROW_SELECTED = Color.rgb(239, 246, 255);
 
     // ==================== Fonts ====================
 
@@ -630,7 +633,7 @@ public class XmlCanvasView extends Pane implements XmlSearchTarget {
         // -- Icon --
         double iconX = LEFT_MARGIN + (row.getDepth() + 1) * INDENT;
         double iconCenterY = y + ROW_HEIGHT / 2;
-        drawRowIcon(row.getType(), iconX, iconCenterY);
+        drawRowIcon(row, iconX, iconCenterY);
 
         // -- Label text --
         double labelX = iconX + ICON_AREA_WIDTH;
@@ -693,19 +696,49 @@ public class XmlCanvasView extends Pane implements XmlSearchTarget {
             gc.setTextAlign(TextAlignment.LEFT);
             gc.fillText(countText, countX, iconCenterY);
             gc.setTextAlign(TextAlignment.LEFT);
+
+            // Collapsed containers get a muted right-aligned "collapsed" hint with a faint
+            // leader line (per the Figma "Graphic + Grid" mockup).
+            if (!row.isExpanded()) {
+                double rightEdge = canvas.getWidth() + scrollOffsetX - 16;
+                double hintStart = countX + countText.length() * 6.5 + 18;
+                if (rightEdge - 70 > hintStart) {
+                    gc.setStroke(ROW_SEPARATOR);
+                    gc.setLineWidth(1);
+                    gc.strokeLine(hintStart, iconCenterY, rightEdge - 70, iconCenterY);
+                }
+                gc.setFont(SMALL_FONT);
+                gc.setFill(CHILD_COUNT_COLOR);
+                gc.setTextAlign(TextAlignment.RIGHT);
+                gc.fillText("collapsed", rightEdge, iconCenterY);
+                gc.setTextAlign(TextAlignment.LEFT);
+            }
         }
     }
 
     /**
-     * Draws the type-specific icon for a row.
+     * Draws the type-specific icon for a row. Leaf elements with a simple value get
+     * the accent-colored {@code {}} marker (per the Figma "Graphic + Grid" mockup);
+     * container elements keep the {@code <>} angle brackets.
      */
-    private void drawRowIcon(FlatRow.RowType type, double x, double cy) {
+    private void drawRowIcon(FlatRow row, double x, double cy) {
+        FlatRow.RowType type = row.getType();
         gc.setLineWidth(1.5);
         double size = 4;
         double cx = x + ICON_AREA_WIDTH / 2;
 
         switch (type) {
             case ELEMENT -> {
+                if (row.isLeafWithValue()) {
+                    // {} braces in the accent color (simple value row)
+                    gc.setFont(ICON_FONT);
+                    gc.setFill(ACCENT);
+                    gc.setTextAlign(TextAlignment.CENTER);
+                    gc.setTextBaseline(VPos.CENTER);
+                    gc.fillText("{}", cx, cy);
+                    gc.setTextAlign(TextAlignment.LEFT);
+                    return;
+                }
                 // <> angle brackets in blue
                 gc.setStroke(TEXT_ELEMENT);
                 gc.strokeLine(cx - size, cy, cx - size / 2, cy - size);
@@ -1220,7 +1253,7 @@ public class XmlCanvasView extends Pane implements XmlSearchTarget {
 
             // Draw icon
             double iconX = contentX + (row.isExpandable() ? EXPAND_BAR_WIDTH : 0);
-            drawRowIcon(row.getType(), iconX, rowCenterY);
+            drawRowIcon(row, iconX, rowCenterY);
 
             // Draw label
             double labelX = iconX + ICON_AREA_WIDTH;
