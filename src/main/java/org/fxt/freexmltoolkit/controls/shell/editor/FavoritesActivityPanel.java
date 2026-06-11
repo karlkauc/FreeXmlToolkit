@@ -1,6 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
 import java.nio.file.Path;
+import java.util.Comparator;
 
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -14,21 +15,38 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.domain.FileFavorite;
 import org.fxt.freexmltoolkit.service.FavoritesService;
 
 /**
- * The Favorites activity side panel: lists saved file favorites, opens one on
- * click, and adds the active document. Reuses {@link FavoritesService} (the same
- * store as the rest of the app, so favorites are shared).
+ * The Favorites activity side panel: lists saved file favorites grouped by file
+ * type (XML, XSD, …) with one type-colored icon per entry, opens one on click,
+ * and adds the active document. Reuses {@link FavoritesService} (the same store
+ * as the rest of the app, so favorites are shared).
  */
 public class FavoritesActivityPanel extends VBox {
 
+    /** One list row: either a favorite, or a type-group header ({@code favorite == null}). */
+    record Row(FileFavorite favorite, FileFavorite.FileType header) {
+        static Row of(FileFavorite favorite) {
+            return new Row(favorite, null);
+        }
+
+        static Row header(FileFavorite.FileType type) {
+            return new Row(null, type);
+        }
+
+        boolean isHeader() {
+            return favorite == null;
+        }
+    }
+
     private final EditorHost editorHost;
-    private final ObservableList<FileFavorite> favorites = FXCollections.observableArrayList();
-    private final ListView<FileFavorite> list = new ListView<>(favorites);
+    private final ObservableList<Row> rows = FXCollections.observableArrayList();
+    private final ListView<Row> list = new ListView<>(rows);
 
     public FavoritesActivityPanel(EditorHost editorHost) {
         this.editorHost = editorHost;
@@ -46,11 +64,11 @@ public class FavoritesActivityPanel extends VBox {
         list.setPlaceholder(new Label("No favorites"));
         list.setCellFactory(lv -> new FavoriteCell());
         list.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
-            if (newV != null && newV.getFilePath() != null) {
+            if (newV != null && !newV.isHeader() && newV.favorite().getFilePath() != null) {
                 // Defer opening to the next pulse so it does not run *inside* the
                 // ListView's selection-change processing (re-entering the
                 // ListViewBehavior listener triggered an IndexOutOfBoundsException).
-                String path = newV.getFilePath();
+                String path = newV.favorite().getFilePath();
                 Platform.runLater(() -> editorHost.openFile(Path.of(path)));
             }
         });
@@ -58,9 +76,9 @@ public class FavoritesActivityPanel extends VBox {
         ContextMenu menu = new ContextMenu();
         MenuItem remove = new MenuItem("Remove", icon("bi-trash"));
         remove.setOnAction(e -> {
-            FileFavorite selected = list.getSelectionModel().getSelectedItem();
-            if (selected != null) {
-                FavoritesService.getInstance().removeFavorite(selected);
+            Row selected = list.getSelectionModel().getSelectedItem();
+            if (selected != null && !selected.isHeader()) {
+                FavoritesService.getInstance().removeFavorite(selected.favorite());
                 refresh();
             }
         });
@@ -81,14 +99,45 @@ public class FavoritesActivityPanel extends VBox {
                 });
     }
 
-    /** @return the number of favorites currently listed (for tests/observers). */
+    /** @return the number of favorites currently listed (group headers excluded). */
     public int getFavoriteCount() {
-        return favorites.size();
+        return (int) rows.stream().filter(r -> !r.isHeader()).count();
     }
 
+    /** @return the group-header texts in display order (for tests/observers). */
+    public java.util.List<String> groupHeaderTexts() {
+        return rows.stream().filter(Row::isHeader)
+                .map(r -> r.header().getDisplayName()).toList();
+    }
+
+    /** @return the row index of the first favorite (non-header) row, or -1 (for tests). */
+    int firstFavoriteRowIndex() {
+        for (int i = 0; i < rows.size(); i++) {
+            if (!rows.get(i).isHeader()) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    /** Rebuilds the rows: one header per file type (enum order), favorites sorted by name. */
     private void refresh() {
         list.getSelectionModel().clearSelection();
-        favorites.setAll(FavoritesService.getInstance().getAllFavorites());
+        var byType = FavoritesService.getInstance().getAllFavorites().stream()
+                .collect(java.util.stream.Collectors.groupingBy(FileFavorite::getFileType));
+        java.util.List<Row> next = new java.util.ArrayList<>();
+        for (FileFavorite.FileType type : FileFavorite.FileType.values()) {
+            var group = byType.get(type);
+            if (group == null || group.isEmpty()) {
+                continue;
+            }
+            group.sort(Comparator.comparing(
+                    f -> f.getName() != null ? f.getName() : f.getFileName(),
+                    String.CASE_INSENSITIVE_ORDER));
+            next.add(Row.header(type));
+            group.forEach(f -> next.add(Row.of(f)));
+        }
+        rows.setAll(next);
     }
 
     private IconifyIcon icon(String literal) {
@@ -97,19 +146,36 @@ public class FavoritesActivityPanel extends VBox {
         return icon;
     }
 
-    /** Renders a favorite with a star icon and its name. */
-    private static final class FavoriteCell extends ListCell<FileFavorite> {
+    /** Renders a type-group header, or a favorite with its type-colored file icon. */
+    private static final class FavoriteCell extends ListCell<Row> {
         @Override
-        protected void updateItem(FileFavorite item, boolean empty) {
+        protected void updateItem(Row item, boolean empty) {
             super.updateItem(item, empty);
+            getStyleClass().remove("fxt-favorites-group");
             if (empty || item == null) {
                 setText(null);
                 setGraphic(null);
                 return;
             }
-            setText(item.getName() != null ? item.getName() : item.getFileName());
-            IconifyIcon icon = new IconifyIcon("bi-star-fill");
-            icon.setIconSize(13);
+            if (item.isHeader()) {
+                setText(item.header().getDisplayName().toUpperCase(java.util.Locale.ROOT));
+                setGraphic(null);
+                getStyleClass().add("fxt-favorites-group");
+                return;
+            }
+            FileFavorite favorite = item.favorite();
+            setText(favorite.getName() != null ? favorite.getName() : favorite.getFileName());
+            FileFavorite.FileType type = favorite.getFileType();
+            IconifyIcon icon = new IconifyIcon(type.getIconLiteral());
+            icon.setIconSize(14);
+            try {
+                // Bind (not set): the list's CSS -fx-icon-color rule must not
+                // override the per-type color (CSS skips bound properties).
+                icon.iconColorProperty().bind(
+                        new javafx.beans.property.SimpleObjectProperty<>(Color.web(type.getDefaultColor())));
+            } catch (IllegalArgumentException ignored) {
+                // unparsable color: keep the default icon color
+            }
             setGraphic(icon);
         }
     }

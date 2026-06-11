@@ -58,11 +58,14 @@ class FavoritesActivityPanelTest {
         assertTrue(panel.getFavoriteCount() > 0, "the demo XSD favorite must be listed");
 
         // Selecting the favorite opens it — must not raise an FX-thread exception
-        // (JavaFX ListViewBehavior IndexOutOfBoundsException).
+        // (JavaFX ListViewBehavior IndexOutOfBoundsException). Row 0 is the
+        // type-group header, so select the first actual favorite row.
         WaitForAsyncUtils.waitForAsyncFx(3000, () -> {
             javafx.scene.control.ListView<?> list = (javafx.scene.control.ListView<?>) panel.lookupAll(".list-view")
                     .stream().filter(n -> n instanceof javafx.scene.control.ListView).findFirst().orElseThrow();
-            list.getSelectionModel().select(0);
+            int index = panel.firstFavoriteRowIndex();
+            assertTrue(index >= 0, "a favorite row must exist below its group header");
+            list.getSelectionModel().select(index);
             return null;
         });
         WaitForAsyncUtils.waitForFxEvents();
@@ -71,6 +74,17 @@ class FavoritesActivityPanelTest {
 
         assertNull(fxError.get(), "opening a favorite must not crash on the FX thread: " + fxError.get());
         assertFalse(host.getOpenDocuments().isEmpty(), "the favorite should have opened");
+    }
+
+    @Test
+    void favoritesAreGroupedByFileType() {
+        WaitForAsyncUtils.waitForFxEvents();
+        // The demo favorite is an XSD, so its type-group header must be shown.
+        var headers = panel.groupHeaderTexts();
+        assertTrue(headers.contains("XSD Schema"),
+                "the XSD group header must be listed, got: " + headers);
+        assertTrue(panel.firstFavoriteRowIndex() > 0,
+                "favorites must be listed below their group header");
     }
 
     @Test
