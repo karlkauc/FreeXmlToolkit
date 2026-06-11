@@ -441,6 +441,68 @@
     -fx-text-fill: -fxt-text-primary;
 }
 
+/* Favorites type-group header rows (XML, XSD, …): small bold caption, not selectable-looking */
+.fxt-open-editors .list-cell.fxt-favorites-group {
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-secondary;
+    -fx-padding: 8 6 2 6;
+}
+
+.fxt-open-editors .list-cell.fxt-favorites-group:filled:selected {
+    -fx-background-color: transparent;
+    -fx-text-fill: -fxt-text-secondary;
+}
+
+/* ----- Settings page (main editor area, color-coded section cards) ----- */
+.fxt-settings-page {
+    -fx-padding: 24 28 24 28;
+}
+
+.fxt-settings-card {
+    -fx-background-color: -fxt-bg-surface;
+    -fx-background-radius: 0 0 10 10;
+    -fx-padding: 14 16 14 16;
+    -fx-effect: dropshadow(gaussian, rgba(15, 23, 42, 0.06), 6, 0, 0, 1);
+}
+
+.fxt-settings-card-icon {
+    -fx-background-radius: 8;
+    -fx-min-width: 30;
+    -fx-min-height: 30;
+    -fx-max-width: 30;
+    -fx-max-height: 30;
+    -fx-alignment: center;
+}
+
+.fxt-settings-card-title {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-primary;
+}
+
+/* ----- XML instance grid (Graphic view for XML, per the mockup) -------- */
+.fxt-grid-header {
+    -fx-padding: 10 14 10 14;
+    -fx-background-color: -fxt-bg-canvas;
+    -fx-border-color: transparent transparent -fxt-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.fxt-grid-title {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-primary;
+}
+
+.fxt-grid-subtitle {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 11px;
+    -fx-text-fill: -fxt-text-secondary;
+}
+
 /* ----- Graphic view (scene-graph diagram) ----------------------------- */
 .fxt-graphic-view {
     -fx-background-color: -fxt-bg-canvas;

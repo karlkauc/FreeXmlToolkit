@@ -117,6 +117,45 @@ class UnifiedShellViewTest {
     }
 
     @Test
+    void settingsActivityOpensTheSettingsPageInTheMainArea() {
+        WaitForAsyncUtils.waitForAsyncFx(3000, () -> {
+            shell.getSelectionModel().select(Activity.SETTINGS);
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        assertNotNull(shell.lookup(".fxt-settings-page"),
+                "selecting the Settings activity must open the Settings page as a main-area tab");
+        // Re-selecting must reuse the existing tab (no duplicate Settings pages).
+        WaitForAsyncUtils.waitForAsyncFx(3000, () -> {
+            shell.getSelectionModel().select(Activity.EXPLORER);
+            shell.getSelectionModel().select(Activity.SETTINGS);
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        assertEquals(1, shell.lookupAll(".fxt-settings-page").size(),
+                "re-selecting Settings must reuse the open Settings tab");
+    }
+
+    @Test
+    void statusBarXsdIndicatorIsTheSchemaBindingEntryPoint(@org.junit.jupiter.api.io.TempDir java.nio.file.Path tmp)
+            throws Exception {
+        java.nio.file.Path xml = tmp.resolve("doc.xml");
+        java.nio.file.Files.writeString(xml, "<root/>");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            shell.openFile(xml);
+            return null;
+        });
+        javafx.scene.control.Label schema = (javafx.scene.control.Label) shell.lookup("#status-schema");
+        assertNotNull(schema, "the status bar must show the XSD indicator for XML documents");
+        WaitForAsyncUtils.waitFor(3, java.util.concurrent.TimeUnit.SECONDS,
+                () -> "No XSD".equals(schema.getText()) && schema.isVisible());
+        assertNotNull(schema.getOnMouseClicked(),
+                "clicking the XSD indicator must open the schema chooser");
+        assertEquals(javafx.scene.Cursor.HAND, schema.getCursor(),
+                "the XSD indicator must advertise its clickability");
+    }
+
+    @Test
     void writesLightAndDarkSnapshotsWhenRequested() throws Exception {
         if (!Boolean.getBoolean("fxt.shell.snapshot")
                 && !"true".equals(System.getenv("FXT_SHELL_SNAPSHOT"))) {

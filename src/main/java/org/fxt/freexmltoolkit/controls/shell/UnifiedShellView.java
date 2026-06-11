@@ -40,6 +40,8 @@ public class UnifiedShellView extends BorderPane {
     private final StackPane sidePanelHost = new StackPane();
     /** Cached so the editor toolbar "Validate" action can drive the same panel. */
     private org.fxt.freexmltoolkit.controls.shell.editor.ValidationPanel validationPanel;
+    /** The Settings page tab in the main editor area (reused across activity selections). */
+    private javafx.scene.control.Tab settingsTab;
     private final org.fxt.freexmltoolkit.controls.shell.editor.EditorHost editorHost =
             new org.fxt.freexmltoolkit.controls.shell.editor.EditorHost();
     private final org.fxt.freexmltoolkit.controls.unified.UnifiedSearchBar searchBar =
@@ -466,12 +468,18 @@ public class UnifiedShellView extends BorderPane {
             return;
         }
         if (activity == Activity.SETTINGS) {
-            var settings = new org.fxt.freexmltoolkit.controls.shell.editor.SettingsPanel();
-            settings.setOnSaved(() -> {
-                activityBar.refresh();
-                reloadPanelPrefs();
-            });
-            sidePanelHost.getChildren().setAll(settings);
+            // Settings live in the main editor area (a full Settings page), not in the
+            // narrow side panel; the panel only carries a pointer to it.
+            openSettingsTab();
+            VBox panel = new VBox();
+            panel.getStyleClass().add("fxt-side-panel-content");
+            Label settingsTitle = new Label("SETTINGS");
+            settingsTitle.getStyleClass().add("fxt-side-panel-title");
+            Label settingsHint = new Label("Settings are edited in the main window.");
+            settingsHint.getStyleClass().add("fxt-placeholder-text");
+            settingsHint.setWrapText(true);
+            panel.getChildren().addAll(settingsTitle, settingsHint);
+            sidePanelHost.getChildren().setAll(panel);
             return;
         }
         VBox panel = new VBox();
@@ -486,6 +494,23 @@ public class UnifiedShellView extends BorderPane {
 
         panel.getChildren().addAll(title, hint);
         sidePanelHost.getChildren().setAll(panel);
+    }
+
+    /**
+     * Opens (or re-selects) the Settings page as a tab in the main editor area —
+     * the Settings activity's content lives there, not in the narrow side panel.
+     */
+    private void openSettingsTab() {
+        if (settingsTab != null && editorHost.containsTab(settingsTab)) {
+            editorHost.selectTab(settingsTab);
+            return;
+        }
+        var settings = new org.fxt.freexmltoolkit.controls.shell.editor.SettingsPanel();
+        settings.setOnSaved(() -> {
+            activityBar.refresh();
+            reloadPanelPrefs();
+        });
+        settingsTab = editorHost.openToolTab("Settings", "bi-gear", settings);
     }
 
     /** @return the cached Validation panel (created on first use). */
@@ -590,7 +615,8 @@ public class UnifiedShellView extends BorderPane {
                         "Query Console (XPath/XQuery)  Ctrl+Shift+X", this::toggleQueryConsole),
                 actionTransform, actionGenerateDocs, actionTypeEditor,
                 new javafx.scene.control.Separator(javafx.geometry.Orientation.VERTICAL),
-                toolButton("action-set-schema", "bi-diagram-3", "Set XSD schema for IntelliSense", this::setSchema));
+                toolButton("action-set-schema", "bi-diagram-3",
+                        "Set XSD Schema… (IntelliSense & validation)", this::setSchema));
         actions.getStyleClass().add("fxt-editor-actionbar");
         actions.setHgap(2);
         actions.setVgap(2);
@@ -948,6 +974,13 @@ public class UnifiedShellView extends BorderPane {
                 editorHost.activeSchemaProperty(), editorHost.activeTabProperty()));
         statusSchema.managedProperty().bind(statusSchema.textProperty().isNotEmpty());
         statusSchema.visibleProperty().bind(statusSchema.textProperty().isNotEmpty());
+        // The XSD indicator doubles as the binding entry point (VS-Code style): clicking
+        // it picks an XSD and binds it to the active document via setSchemaForActiveDocument.
+        statusSchema.setId("status-schema");
+        statusSchema.setTooltip(new javafx.scene.control.Tooltip(
+                "Click to bind an XSD schema to this document (IntelliSense & validation)"));
+        statusSchema.setCursor(javafx.scene.Cursor.HAND);
+        statusSchema.setOnMouseClicked(e -> setSchema());
 
         bar.getChildren().addAll(
                 statusPosition,
