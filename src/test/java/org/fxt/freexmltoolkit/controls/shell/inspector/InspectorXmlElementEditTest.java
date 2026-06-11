@@ -57,11 +57,14 @@ class InspectorXmlElementEditTest {
         XmlGridView grid = (XmlGridView) host.lookupAll("*").stream()
                 .filter(n -> n instanceof XmlGridView).findFirst().orElseThrow();
 
-        // Leaf element: NAMESPACE section + editable Text are shown.
+        // Leaf element: NAMESPACE section + editable Text are shown. Poll the
+        // attribute count as part of the combined condition — it is a sibling
+        // effect of the same populate pass (asserting it right away is racy).
         selectChild(grid, "leaf");
         WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS,
                 () -> "leaf".equals(inspector.getNodeNameText())
-                        && inspector.isNamespaceSectionVisible() && inspector.isXmlTextVisible());
+                        && inspector.isNamespaceSectionVisible() && inspector.isXmlTextVisible()
+                        && inspector.getXmlAttributeCount() == 1);
         assertEquals(1, inspector.getXmlAttributeCount());
 
         // Add an attribute via the inspector's Add row.
