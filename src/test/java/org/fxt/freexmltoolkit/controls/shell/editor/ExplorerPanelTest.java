@@ -59,6 +59,61 @@ class ExplorerPanelTest {
         assertEquals(2, openEditorsList().getItems().size(), "Open Editors list mirrors both documents");
     }
 
+    @Test
+    void activeDocumentRowFollowsTheHostsActiveTab(@TempDir Path tmp) throws Exception {
+        Path a = tmp.resolve("a.xml");
+        Path b = tmp.resolve("b.xml");
+        Files.writeString(a, "<a/>");
+        Files.writeString(b, "<b/>");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(a));
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(b));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> host.getOpenDocuments().size() == 2);
+        WaitForAsyncUtils.waitForFxEvents();
+
+        // b.xml opened last → it is the active document and the selected row.
+        OpenDocument selected = openEditorsList().getSelectionModel().getSelectedItem();
+        assertNotNull(selected, "the active document's row must be selected");
+        assertEquals("b.xml", selected.getDisplayName());
+
+        // Switching the active document re-selects its row.
+        OpenDocument first = host.getOpenDocuments().get(0);
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.selectDocument(first);
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> {
+            OpenDocument now = openEditorsList().getSelectionModel().getSelectedItem();
+            return now != null && "a.xml".equals(now.getDisplayName());
+        });
+        assertEquals("a.xml", openEditorsList().getSelectionModel().getSelectedItem().getDisplayName());
+    }
+
+    @Test
+    void workspaceSectionTitleShowsTheFolderName(@TempDir Path tmp) throws Exception {
+        Files.writeString(tmp.resolve("a.xml"), "<a/>");
+
+        assertEquals("WORKSPACE", panel.getWorkspaceTitle(), "placeholder title while no folder is open");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.setWorkspaceFolder(tmp);
+            return null;
+        });
+        assertEquals(tmp.getFileName().toString().toUpperCase(java.util.Locale.ROOT),
+                panel.getWorkspaceTitle(), "the workspace section is titled after the folder");
+    }
+
+    @Test
+    void headerOffersFlatActionsAndOverflowMenu() {
+        WaitForAsyncUtils.waitForFxEvents();
+        for (String id : new String[]{"#explorer-new-file", "#explorer-open-folder",
+                "#explorer-refresh", "#explorer-overflow"}) {
+            assertNotNull(panel.lookup(id), "the Explorer header must offer the " + id + " action");
+        }
+        var texts = panel.overflowMenuItemTexts();
+        assertTrue(texts.contains("Open file…"), texts.toString());
+        assertTrue(texts.contains("Clear recent"), texts.toString());
+    }
+
     @SuppressWarnings("unchecked")
     private ListView<OpenDocument> openEditorsList() {
         // The Open Editors list is the first .fxt-open-editors ListView in the panel.

@@ -238,6 +238,23 @@ data-quality check).
 > auto-detects the version from the stylesheet's `version` attribute, so an
 > explicit selector would be cosmetic.
 
+## Explorer Panel
+
+Open the **Explorer** panel from the activity bar to manage files.
+
+> **Redesigned in June 2026** - the panel now follows the application's modern design with
+> flat header actions and full-width sections.
+
+- **Header actions** (top right): New file, Open folder, Refresh workspace, and a ⋮ menu
+  with **Open file…** and **Clear recent**.
+- **OPEN EDITORS** - one row per open document. The **active document is highlighted**
+  (blue, bold) and unsaved documents show a **dot** on the right. Click a row to switch to
+  that document.
+- **Workspace** - the file tree of the opened folder; the section is titled after the
+  folder's name. Folders expand with their chevron; double-click (or Enter) opens a file.
+  Only XML-family and JSON files are shown.
+- **RECENT** - recently opened files; click to reopen.
+
 ## Validation Panel
 
 Open the **Validation** panel from the activity bar to validate the active document.

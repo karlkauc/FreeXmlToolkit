@@ -1,20 +1,15 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
-import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.function.Consumer;
 
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
 import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import javafx.stage.DirectoryChooser;
 
 import org.fxt.freexmltoolkit.controls.FileExplorerTreeItem;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
@@ -35,24 +30,11 @@ public class WorkspaceTree extends VBox {
 
     public WorkspaceTree(Consumer<Path> fileOpener) {
         this.fileOpener = fileOpener;
-        getStyleClass().add("fxt-side-panel-content");
 
-        Label title = new Label("WORKSPACE");
-        title.getStyleClass().add("fxt-side-panel-title");
-
-        Button openFolder = new Button();
-        openFolder.getStyleClass().add("fxt-tool-button");
-        IconifyIcon icon = new IconifyIcon("bi-folder2-open");
-        icon.setIconSize(16);
-        openFolder.setGraphic(icon);
-        openFolder.setTooltip(new javafx.scene.control.Tooltip("Open folder…"));
-        openFolder.setOnAction(e -> chooseFolder());
-
-        HBox header = new HBox(8, title, openFolder);
-        header.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-
+        // Full-bleed per the Figma Explorer mockup (28:48): the panel owns the
+        // section header (the workspace folder's name) and the folder actions.
         tree.getStyleClass().add("fxt-workspace-tree");
-        tree.setShowRoot(true);
+        tree.setShowRoot(false);
         tree.setCellFactory(tv -> new PathCell());
         VBox.setVgrow(tree, Priority.ALWAYS);
 
@@ -67,7 +49,7 @@ public class WorkspaceTree extends VBox {
             }
         });
 
-        getChildren().addAll(header, tree);
+        getChildren().add(tree);
     }
 
     /** Sets the workspace root folder and expands it. */
@@ -78,6 +60,14 @@ public class WorkspaceTree extends VBox {
         FileExplorerTreeItem root = new FileExplorerTreeItem(folder, ALLOWED);
         root.setExpanded(true);
         tree.setRoot(root);
+    }
+
+    /** Re-reads the current root folder from disk (no-op without a root). */
+    public void refresh() {
+        TreeItem<Path> root = tree.getRoot();
+        if (root != null) {
+            setRootFolder(root.getValue());
+        }
     }
 
     /** @return the current workspace root, or {@code null}. */
@@ -118,17 +108,16 @@ public class WorkspaceTree extends VBox {
         }
     }
 
-    private void chooseFolder() {
-        DirectoryChooser chooser = new DirectoryChooser();
-        chooser.setTitle("Open Folder");
-        File dir = chooser.showDialog(getScene() != null ? getScene().getWindow() : null);
-        if (dir != null) {
-            setRootFolder(dir.toPath());
-        }
-    }
-
-    /** Renders a path with a folder/file-type icon. */
+    /**
+     * Renders a path: folders show just their name next to the disclosure chevron
+     * (no folder icon, per the mockup), files show their file-type icon.
+     */
     private static final class PathCell extends TreeCell<Path> {
+        private PathCell() {
+            // Follow the TreeView width instead of forcing a horizontal scrollbar.
+            setPrefWidth(0);
+        }
+
         @Override
         protected void updateItem(Path item, boolean empty) {
             super.updateItem(item, empty);
@@ -139,11 +128,16 @@ public class WorkspaceTree extends VBox {
             }
             Path name = item.getFileName();
             setText(name != null ? name.toString() : item.toString());
-            String iconLiteral = Files.isDirectory(item)
-                    ? "bi-folder"
-                    : EditorFileType.fromFileName(item.toString()).icon();
-            IconifyIcon icon = new IconifyIcon(iconLiteral);
-            icon.setIconSize(14);
+            if (Files.isDirectory(item)) {
+                setGraphic(null);
+                if (!getStyleClass().contains("fxt-tree-folder")) {
+                    getStyleClass().add("fxt-tree-folder");
+                }
+                return;
+            }
+            getStyleClass().remove("fxt-tree-folder");
+            IconifyIcon icon = new IconifyIcon(EditorFileType.fromFileName(item.toString()).icon());
+            icon.setIconSize(15);
             setGraphic(icon);
         }
     }

@@ -1238,3 +1238,109 @@
 .fxt-vp-problems .list-cell:filled:selected {
     -fx-background-color: -fxt-bg-subtle;
 }
+
+/* ----- Explorer side panel (Figma node 28:48) -------------------------- */
+/* Generic .fxt-sp-* side-panel building blocks (same look as the Validation
+   panel's .fxt-vp-* — shared mockup language). */
+.fxt-explorer-panel {
+    -fx-background-color: -fxt-bg-surface;
+}
+
+.fxt-sp-header {
+    -fx-padding: 8 8 2 16;
+}
+
+.fxt-sp-title {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-muted;
+}
+
+.fxt-sp-action {
+    -fx-background-color: transparent;
+    -fx-padding: 3 5 3 5;
+    -fx-cursor: hand;
+}
+
+.fxt-sp-action .iconify-icon {
+    -fx-icon-color: -fxt-text-secondary;
+}
+
+.fxt-sp-action:hover .iconify-icon {
+    -fx-icon-color: -fxt-primary;
+}
+
+.fxt-sp-overflow {
+    -fx-background-color: transparent;
+    -fx-padding: 3 5 3 5;
+    -fx-cursor: hand;
+}
+
+.fxt-sp-overflow > .arrow-button {
+    -fx-padding: 0;
+}
+
+.fxt-sp-overflow > .arrow-button > .arrow {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.fxt-sp-overflow .iconify-icon {
+    -fx-icon-color: -fxt-text-secondary;
+}
+
+.fxt-sp-section-header {
+    -fx-padding: 10 12 6 12;
+}
+
+.fxt-sp-section-header .label {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-secondary;
+}
+
+.fxt-sp-section-header .iconify-icon {
+    -fx-icon-color: -fxt-text-muted;
+}
+
+/* Open-editors rows (Figma: active row = subtle bg, primary semibold name,
+   dirty dot right). */
+.fxt-open-editors .list-cell.active {
+    -fx-background-color: -fxt-bg-subtle;
+}
+
+.fxt-open-name {
+    -fx-font-size: 12.5px;
+    -fx-text-fill: -fxt-text-primary;
+}
+
+.fxt-open-name-active {
+    -fx-font-size: 12.5px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-primary;
+}
+
+.fxt-dirty-dot {
+    -fx-background-color: -fxt-primary;
+    -fx-background-radius: 999;
+    -fx-min-width: 7;
+    -fx-min-height: 7;
+    -fx-max-width: 7;
+    -fx-max-height: 7;
+}
+
+/* Workspace tree: folders are chevron + name only (no folder icon), files
+   show their type icon; 12.5px per the mockup. */
+.fxt-workspace-tree .tree-cell {
+    -fx-font-size: 12.5px;
+}
+
+/* Explorer lists: rows indented under their section header (Figma pl-28),
+   tree disclosure arrows in muted token color. */
+.fxt-explorer-list .list-cell {
+    -fx-padding: 4 12 4 26;
+}
+
+.fxt-workspace-tree .tree-cell > .tree-disclosure-node > .arrow {
+    -fx-background-color: -fxt-text-muted;
+}
