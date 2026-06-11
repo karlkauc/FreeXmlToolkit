@@ -853,6 +853,23 @@ public class EditorHost extends BorderPane {
         return tab.document;
     }
 
+    /** The lazily created transform OUTPUT dock below the editor tabs, see {@link TransformOutputPanel}. */
+    private TransformOutputPanel transformOutput;
+
+    /**
+     * The transform OUTPUT panel docked below the editor tabs (spans the editor
+     * column only — the inspector stays full height). Created lazily on first
+     * access and kept across activity switches so results survive them.
+     */
+    public TransformOutputPanel transformOutputPanel() {
+        if (transformOutput == null) {
+            transformOutput = new TransformOutputPanel(this);
+            transformOutput.hide();
+            setBottom(transformOutput);
+        }
+        return transformOutput;
+    }
+
     /**
      * Replaces the text of a still-open generated document (e.g. a re-run transform
      * result) without changing the tab selection.

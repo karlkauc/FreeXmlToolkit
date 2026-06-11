@@ -252,18 +252,7 @@ public class ExplorerPanel extends VBox {
      * Validation panel). Clicking the header hides/shows {@code content} and flips the chevron.
      */
     private static HBox sectionHeader(Label label, javafx.scene.Node content) {
-        IconifyIcon chevron = new IconifyIcon("bi-chevron-down");
-        chevron.setIconSize(11);
-        HBox header = new HBox(6, chevron, label);
-        header.getStyleClass().add("fxt-sp-section-header");
-        header.setAlignment(Pos.CENTER_LEFT);
-        header.setOnMouseClicked(e -> {
-            boolean expand = !content.isVisible();
-            content.setVisible(expand);
-            content.setManaged(expand);
-            chevron.setIconLiteral(expand ? "bi-chevron-down" : "bi-chevron-right");
-        });
-        return header;
+        return SidePanelLayout.sectionHeader(label, content);
     }
 
     /** A flat 14px header icon action (no button chrome, per the mockup). */

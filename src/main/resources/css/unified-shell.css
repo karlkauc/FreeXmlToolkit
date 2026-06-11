@@ -652,6 +652,81 @@
     -fx-pref-height: 2;
 }
 
+/* ----- Transform side panel (Figma node 46:48) -------------------------- */
+/* Shares the .fxt-vp-* / .fxt-sp-* mockup building blocks with the Validation
+   and Explorer panels; only the panel-specific bits live here. */
+.fxt-transform-panel {
+    -fx-background-color: -fxt-bg-surface;
+}
+
+/* Content blocks under a section header (XPath/XQuery consoles, parameters,
+   the format grid): indented to the section text, like .fxt-vp-source-row. */
+.fxt-tp-section-body,
+.fxt-tp-params,
+.fxt-tp-format-grid {
+    -fx-padding: 2 14 6 14;
+}
+
+.fxt-tp-format-grid {
+    -fx-spacing: 2;
+}
+
+/* The "=" between a parameter's name and value fields. */
+.fxt-param-eq {
+    -fx-text-fill: -fxt-text-muted;
+    -fx-font-size: 12px;
+}
+
+/* ----- Transform OUTPUT panel (docked below the editor, Figma node 47:3) ---- */
+.fxt-output-panel {
+    -fx-background-color: -fxt-bg-surface;
+    -fx-border-color: -fxt-border;
+    -fx-border-width: 1 0 0 0;
+}
+
+.fxt-output-header {
+    -fx-min-height: 35;
+    -fx-pref-height: 35;
+    -fx-padding: 0 8 0 16;
+    -fx-background-color: -fxt-bg-surface-2;
+    -fx-border-color: -fxt-border;
+    -fx-border-width: 0 0 1 0;
+}
+
+.fxt-output-title {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-secondary;
+}
+
+.fxt-output-badge {
+    -fx-font-size: 9px;
+    -fx-font-weight: bold;
+    -fx-padding: 1 6 1 6;
+    -fx-background-radius: 8;
+    -fx-background-color: -fxt-bg-subtle;
+    -fx-text-fill: -fxt-text-secondary;
+}
+
+.fxt-output-status {
+    -fx-font-size: 11px;
+    -fx-text-fill: -fxt-text-secondary;
+}
+
+.fxt-output-header .iconify-icon.sev-ok {
+    -fx-icon-color: -fxt-success;
+}
+
+.fxt-output-header .iconify-icon.sev-error {
+    -fx-icon-color: -fxt-danger;
+}
+
+/* Keep the output panel's view toggles compact (header height is fixed). */
+.fxt-output-header .fxt-seg {
+    -fx-padding: 2 10 2 10;
+    -fx-font-size: 11px;
+}
+
 /* ----- Shared ---------------------------------------------------------- */
 .fxt-placeholder-text {
     -fx-text-fill: -fxt-text-muted;

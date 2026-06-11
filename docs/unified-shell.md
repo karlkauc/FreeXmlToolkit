@@ -182,90 +182,144 @@ Statistics, Schema Quality, Generate Sample XML / Documentation) on the left.*
 
 ## XSLT Features
 
-When editing an XSLT file:
+XSLT work happens in the [Transform Panel](#transform-panel) (Activity Bar → **Transform**):
 
-- **Transform** - Run XSLT transformation with XML input
-- **Live Transform** - Auto-execute on changes
-- **Parameters** - Define XSLT parameters (name/value pairs)
-- **Output Format** - Choose XML, HTML, or Text output
-- **Performance** tab - Execution time, throughput, star rating
-- **Debug** tab - Messages, warnings, template execution trace
-- **Open in Browser** - View HTML output in default browser
+- **Run Transform** - Run an XSLT transformation against the chosen input
+- **Live preview** (⋮ menu) - Re-run automatically while you edit
+- **Parameters** - Define XSLT parameters (name = value rows)
+- **Output method** - Auto-detect or choose XML, HTML, XHTML, Text, or JSON output
+- **Timing** - The OUTPUT panel status shows execution time and output size
+- **Profile / Trace / Debug** (⋮ menu) - Per-template timings, template-match trace with
+  `xsl:message` output, and the interactive debugger
+- **Open in browser** - View HTML output in your default browser from the OUTPUT panel
 
 ## Transform Panel
 
-> **New in June 2026** - Transform results now open as **regular editor tabs**, the
-> output format is **auto-detected** from the stylesheet, and HTML results get a
-> **rendered preview tab**. Also: recent-stylesheet history, a watch-and-rerun option,
-> result timing, and an XQuery result table.
+> **Redesigned in June 2026** - The panel is now organized into **collapsible sections**
+> (STYLESHEET, INPUT, OUTPUT METHOD, PARAMETERS, XPATH, XQUERY) with a single primary
+> **Run Transform** button. Results no longer open as an editor tab automatically -
+> they appear in a new **[OUTPUT panel](#the-output-panel-results)** docked below the
+> editor. All secondary toggles and tools moved into the panel header's ⋮ (overflow) menu.
 
 The **Transform** panel (open it from the **Transform** icon in the activity bar on the
-left) runs XSLT transformations and XQuery expressions against the active XML document.
-On short windows the panel's controls scroll, while the RESULT area stays pinned at the
-bottom.
+left) runs XSLT transformations, XPath/JSONPath queries, and XQuery expressions. The panel
+header reads **TRANSFORM** and carries a **⋮ (overflow) menu** with the secondary options
+(see [The ⋮ Menu](#the-transform-menu) below). Each section header is clickable to collapse
+or expand that section.
 
-### Choosing a Stylesheet
+### STYLESHEET
 
-- **Set XSLT…** - Pick the XSLT stylesheet to apply.
-- **Recent** - A drop-down menu listing the XSLT stylesheets you used most recently, so you
-  can reapply one in a single click. The menu also offers **Clear recent** to empty the list.
-- **Watch file** - When checked, the transform re-runs automatically whenever the chosen
-  stylesheet changes on disk. This is handy while you edit a stylesheet in another tool and
-  want to see the effect immediately.
+- Shows the **name of the chosen XSLT stylesheet** (or *none* if no stylesheet is set yet).
+- **Change** - pick an `.xsl` / `.xslt` file from disk.
+- The **clock icon** opens the **recent stylesheets** menu: reapply a recently used
+  stylesheet in a single click, or choose **Clear recent** to empty the list.
 
-### Running and Viewing Results
+### INPUT
 
-1. Set an XSLT stylesheet (or type an XQuery, see below).
-2. Click **Transform** (XSLT) or **Run XQuery** (XQuery).
-3. An XSLT result opens as a **regular editor tab** (`Transform-Result.xml` / `.html` /
-   `.json` / `.txt`) that you can edit and save like any other document. Re-running the
-   transformation updates the same tab — even while the result tab is active, the original
-   source document is transformed again. XQuery/XPath results appear in the **RESULT** area.
-4. For **HTML/XHTML** output, an additional **HTML Preview** tool tab shows the result
-   rendered as a web page; it refreshes on every re-run.
+The INPUT section shows which document the transform will use as its input:
 
-The **OUTPUT** combo defaults to **Auto**: the output format is detected from the
-stylesheet's `xsl:output` declaration (XML, HTML, XHTML, Text, or JSON). Choose a concrete
-format to override the detection.
+- By default the input **follows the active editor document**: switch to another tab and
+  the next run transforms that document (the shown input name updates live).
+- **Change** opens a small menu with two options:
+    - **Select XML file…** - transform a fixed XML file from disk instead, regardless of
+      which editor tab is active.
+    - **Use active editor** - go back to following the active tab.
 
-The RESULT header shows a compact **timing stat** in the form `N ms · M chars` so you can
-see how long the run took and how large the output is.
+### OUTPUT METHOD
 
-- **Editor** - Opens the current RESULT text as a new editor tab.
-- **Browser** - Opens the result (typically HTML) in your system web browser.
+A segmented control with **Auto · XML · HTML · XHTML · Text · JSON**. **Auto** (the
+default) detects the output format from the stylesheet's `xsl:output` declaration; pick a
+concrete format to override the detection.
 
-### XQuery Result Table
+### PARAMETERS
 
-The RESULT area has a **Text / Table** toggle:
+Define XSLT parameters as **name = value** rows:
 
-- **Text** - Shows the raw result as text (the default).
-- **Table** - When an XQuery returns a **sequence** of items, the result is shown as a table.
-  Each item becomes a row, and the columns are taken from each item's child elements (or, if
-  an item has no child elements, its attributes). A sequence of plain values is shown in a
-  single **value** column.
+- **Add parameter** adds a new row.
+- Each row has its own **remove** button.
+- The values are passed to the stylesheet on every run.
 
-To use it, write an XQuery that returns a sequence (for example
-`for $x in /root/item return $x`), click **Run XQuery**, then switch the toggle to **Table**.
+### Running a Transformation
 
-### Advanced XSLT tools
+1. Choose a stylesheet (**STYLESHEET → Change**, or pick one from the recent menu).
+2. Check the **INPUT** section shows the document you want to transform.
+3. Click **Run Transform**.
 
-The Transform side panel's **Advanced** section adds:
+The result appears in the **OUTPUT panel** below the editor - see
+[The OUTPUT Panel](#the-output-panel-results) below.
 
-- **Debug** - opens the stylesheet as a document with a breakpoint gutter and a
-  Debug tool tab (step into/over/out, continue, stop; variables, call stack,
-  breakpoints, and XPath watches).
-- **Batch…** - runs the active stylesheet/XQuery over many XML files, with
-  per-file results and "Save All".
-- **Profile** / **Trace** - when checked, a transform also opens a read-only
-  Profile (timings + per-template execution times) or Trace (template matches +
-  `xsl:message` output) tool tab.
+### XPATH and XQUERY
 
-The XQuery console offers built-in **Examples** (simple, FLWOR, HTML report,
-data-quality check).
+Two further sections, **collapsed by default**, run queries against the transform input:
+
+- **XPATH** - a query field with **Run**, **Save Query** (store the current expression
+  under a name), and a **Saved** menu listing your saved queries (pick one to load it).
+  When the active document is **JSON**, the section is titled **JSONPATH** and the field
+  evaluates a JSONPath expression instead.
+- **XQUERY** - a multi-line query area with **Run XQuery** and an **Examples** menu
+  (Simple, FLWOR, HTML report, Data-quality check).
+
+Both inputs offer context-aware [autocomplete](#xpath-xquery-autocomplete). Query results
+appear in the same OUTPUT panel below the editor.
+
+### The Transform ⋮ Menu
+
+The secondary toggles and tools (the former **Advanced** section) live in the panel
+header's ⋮ (overflow) menu:
+
+| Entry | What it does |
+|-------|--------------|
+| **Live preview** | Re-runs the transform automatically (debounced) while you edit the input document. |
+| **Watch stylesheet file** | Re-runs the transform whenever the chosen stylesheet changes on disk - handy while editing the stylesheet in another tool. |
+| **Profile run** | A transform also opens a read-only **Profile** tool tab (timings + per-template execution times). |
+| **Trace run** | A transform also opens a **Trace** tool tab (template matches + `xsl:message` output). |
+| **Auto-open result tab** | Additionally opens every successful result as a regular editor tab. **Off by default.** |
+| **Debug XSLT…** | Opens the stylesheet as a document with a breakpoint gutter and a Debug tool tab (step into/over/out, continue, stop; variables, call stack, breakpoints, and XPath watches). |
+| **Batch Transform…** | Runs the active stylesheet/XQuery over many XML files, with per-file results and "Save All". |
 
 > XSLT version selection (1.0/2.0/3.0) is intentionally not offered: Saxon HE
 > auto-detects the version from the stylesheet's `version` attribute, so an
 > explicit selector would be cosmetic.
+
+### The OUTPUT Panel (Results)
+
+> **New in June 2026** - Transform and query results now appear in an **OUTPUT panel
+> docked below the editor** instead of automatically opening editor tabs and a separate
+> HTML-preview tool tab.
+
+All Transform-panel results - XSLT transforms, XPath/JSONPath queries, and XQuery runs -
+appear in an **OUTPUT panel** that docks **below the editor**: the source document stays
+on top and the result shows underneath, while the Properties inspector keeps its full
+height. The panel **persists across activity switches**, so the last result stays visible
+while you work elsewhere.
+
+The OUTPUT panel header shows:
+
+- A **format badge** (XML, HTML, …) for the result.
+- A **status**: a green check with `Transformed · N ms · M chars` on success (how long the
+  run took and how large the output is), or a red error icon with the error message on
+  failure.
+- **View toggles** - **Preview | Text | Table**:
+    - **Text** - the raw result as text (the default).
+    - **Preview** - the result rendered as a web page; available for **HTML/XHTML**
+      results only.
+    - **Table** - available for **XQuery** results that return a **sequence** of items
+      (auto-selected when applicable). Each item becomes a row, and the columns are taken
+      from each item's child elements (or, if an item has no child elements, its
+      attributes). A sequence of plain values is shown in a single **value** column.
+- **Actions**:
+    - **Open result as editor tab** - opens the result as a regular document
+      (`Transform-Result.xml` / `.html` / `.json` / `.txt`) that you can edit and save.
+    - **Open in browser** - opens the result (typically HTML) in your system web browser.
+    - **Save result…** - writes the result straight to a file.
+    - **✕** - hides the OUTPUT panel; it reappears automatically on the next run.
+
+!!! note
+    In earlier versions, every transform opened a `Transform-Result.*` editor tab, and HTML
+    output additionally opened an "HTML Preview" tool tab. Both were replaced by the OUTPUT
+    panel: an editor tab now opens only via the panel's **Open result as editor tab** action
+    or the **Auto-open result tab** toggle in the ⋮ menu, and HTML is rendered inline via
+    the panel's **Preview** view.
 
 ## Explorer Panel
 
@@ -674,8 +728,8 @@ expression. When no document is open, **Run** is disabled and the results pane s
 
 !!! note
     The Query Console is an additional, faster access point - it does not replace the **Transform**
-    activity. For recent-stylesheet history, watch-and-rerun, result timing, and the XQuery result
-    table, use the [Transform Panel](#transform-panel).
+    activity. For XSLT transformations, parameters, recent-stylesheet history, watch-and-rerun, and
+    the OUTPUT panel's result table and HTML preview, use the [Transform Panel](#transform-panel).
 
 ### Saving and Loading Snippets
 
@@ -701,15 +755,13 @@ their parentheses / `::` automatically.
 
 ### Saving, Loading and Examples
 
-The Transform panel's XPath/XQuery toolbar provides the same query management as the XML Editor,
-acting on whichever tab (XPath or XQuery) is currently active. (The bottom
-[Query Console](#query-console) offers a lighter Save / Snippets pair instead.)
+The Transform panel's query sections provide query management (the bottom
+[Query Console](#query-console) offers a lighter Save / Snippets pair instead):
 
-- **Saved Queries** - dropdown of previously saved queries of the active type. It also offers
-  *Add Current Query to Favorites…* and *Open Queries Folder…*.
-- **Save** - store the current expression under a name (kept alongside the XML Editor's queries).
-- **Load** - open a saved query file (`*.xpath` / `*.xquery` / `*.xq`) into the active tab.
-- **Examples** - insert ready-made sample expressions for the active query type.
+- **XPATH section** - **Save Query** stores the current expression under a name, and the
+  **Saved** menu lists every saved query; pick one to load it back into the field.
+- **XQUERY section** - the **Examples** menu inserts ready-made sample expressions
+  (Simple, FLWOR, HTML report, Data-quality check).
 
 Queries are stored in the shared query folder, so anything saved here is also available from the XML
 Editor's XPath/XQuery panel and vice versa.

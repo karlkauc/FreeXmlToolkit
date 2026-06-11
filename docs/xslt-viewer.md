@@ -49,37 +49,42 @@ structure.
 
 ### Step 1: Select Your Files
 
-1. Open your XML source file in the editor host so it is the active document
-2. In the **Transform** panel, click **Set XSLT…** to choose an XSLT stylesheet
+1. Open your XML source file in the editor host so it is the active document - the panel's
+   **INPUT** section follows the active tab by default (use **Change → Select XML file…** to
+   transform a fixed file from disk instead)
+2. In the **STYLESHEET** section, click **Change** to choose an XSLT stylesheet (the clock
+   icon offers your recently used stylesheets)
 
 ### Step 2: Run and View the Results
 
-Click **Transform** to run the transformation. The result opens as a **regular editor tab**
-(`Transform-Result.xml`, `.html`, `.json`, or `.txt` depending on the output format), so you can
-inspect, edit, and save it like any other document. Re-running the transformation updates the
-same result tab — even while the result tab itself is active, the original source document is
-transformed again.
+Click **Run Transform**. The result appears in the **OUTPUT panel** that docks **below the
+editor** - the source stays on top, the result shows underneath. The panel header shows a
+format badge, a success/error status with timing (`Transformed · N ms · M chars`), and view
+toggles:
 
-| View                 | Description                                                        |
-|----------------------|--------------------------------------------------------------------|
-| **Result editor tab**| The transformation output as an editable, savable document         |
-| **HTML Preview tab** | For HTML/XHTML output: the result rendered as a web page           |
-| **RESULT area**      | Quick XPath/XQuery results, errors, and transformation statistics  |
+| View        | Description                                                              |
+|-------------|--------------------------------------------------------------------------|
+| **Text**    | The raw result as text (the default)                                     |
+| **Preview** | For HTML/XHTML output: the result rendered as a web page                 |
+| **Table**   | For XQuery results that return a sequence: the items shown as a table    |
 
-The **OUTPUT** format defaults to **Auto**: the format (XML, HTML, XHTML, Text, JSON) is
-detected from the stylesheet's `xsl:output` declaration. Pick a concrete format in the combo
-box to override the detection.
+The **OUTPUT METHOD** defaults to **Auto**: the format (XML, HTML, XHTML, Text, JSON) is
+detected from the stylesheet's `xsl:output` declaration. Pick a concrete segment to
+override the detection.
 
 ---
 
 ## Transform Panel Actions
 
-| Button        | Description                                          |
-|---------------|------------------------------------------------------|
-| **Transform** | Runs the transformation with the current stylesheet  |
-| **Watch file**| Re-runs automatically when the stylesheet changes    |
-| **Editor**    | Opens the current RESULT text as a new editor tab    |
-| **Browser**   | Opens the result in your default web browser         |
+| Control                       | Description                                                                  |
+|-------------------------------|------------------------------------------------------------------------------|
+| **Run Transform**             | Runs the transformation with the current stylesheet and input                |
+| **Open result as editor tab** | (OUTPUT panel) Opens the result as an editable, savable document             |
+| **Open in browser**           | (OUTPUT panel) Opens the result in your default web browser                  |
+| **Save result…**              | (OUTPUT panel) Writes the result straight to a file                          |
+| **⋮ → Watch stylesheet file** | Re-runs automatically when the stylesheet changes on disk                    |
+| **⋮ → Live preview**          | Re-runs automatically (debounced) while you edit the input document          |
+| **⋮ → Auto-open result tab**  | Also opens every successful result as an editor tab (off by default)         |
 
 ---
 
@@ -349,19 +354,22 @@ Use these with the example XML file `examples/xml/FundsXML_422_Bond_Fund.xml`.
 
 ## Performance Statistics
 
-After each transformation, you can view performance metrics in the **Performance** tab:
+After each transformation, the OUTPUT panel's status line shows compact statistics in the
+form `Transformed · N ms · M chars`:
 
-- **Execution time** - How long the transformation took
-- **Output size** - Size of the generated output
-- **Memory usage** - Memory consumed during transformation
+- **Execution time** - How long the transformation took (milliseconds)
+- **Output size** - Size of the generated output (characters)
+
+For detailed per-template timings, enable **Profile run** in the Transform panel's ⋮ menu -
+the next run also opens a read-only Profile tool tab.
 
 ---
 
 ## Tips
 
 - **Validate first** - Make sure your XML and XSLT files are valid before transformation
-- **Check the error panel** - If transformation fails, check the error messages
-- **Use the HTML preview** - For HTML output, the preview shows you exactly how it will look
+- **Check the OUTPUT panel status** - If a transformation fails, the red error status in the OUTPUT panel header shows the error message
+- **Use the Preview view** - For HTML output, the OUTPUT panel's **Preview** toggle shows you exactly how it will look
 - **Try the example files** - Learn from the included examples in the `examples/` folder
 - **Need more features?** - Use the [XSLT Developer](xslt-developer.md) for advanced editing
 

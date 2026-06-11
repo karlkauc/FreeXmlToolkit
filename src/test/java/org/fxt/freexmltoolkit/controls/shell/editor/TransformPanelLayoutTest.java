@@ -21,9 +21,10 @@ import org.testfx.util.WaitForAsyncUtils;
 
 /**
  * Layout/usability verification of the Transform panel on small windows: the panel
- * is hosted in a narrow (~260px) activity side panel without its own scrolling, so
- * the RESULT area at the bottom must stay visible even when the window is short —
- * otherwise a transform appears to "do nothing" because its output is clipped.
+ * is hosted in a narrow (~260px) activity side panel, so its controls must stay
+ * reachable via scrolling, and the OUTPUT panel docked below the editor must stay
+ * visible even when the window is short — otherwise a transform appears to "do
+ * nothing" because its output is clipped.
  * Also verifies that a transform result can be opened as a regular editor tab.
  */
 @ExtendWith(ApplicationExtension.class)
@@ -57,18 +58,19 @@ class TransformPanelLayoutTest {
     }
 
     @Test
-    void resultAreaStaysVisibleInAShortWindow(@TempDir Path tmp) throws Exception {
+    void outputPanelStaysVisibleInAShortWindow(@TempDir Path tmp) throws Exception {
         transformGreeting(tmp);
 
-        Node output = panel.lookup(".fxt-transform-output");
-        assertNotNull(output, "the transform output area must exist");
+        Node outputPanel = host.lookup(".fxt-output-panel");
+        assertNotNull(outputPanel, "the docked OUTPUT panel must exist below the editor");
+        assertTrue(outputPanel.isVisible(), "the OUTPUT panel must be shown after a transform");
         Bounds bounds = WaitForAsyncUtils.waitForAsyncFx(2000,
-                () -> output.localToScene(output.getBoundsInLocal()));
+                () -> outputPanel.localToScene(outputPanel.getBoundsInLocal()));
         assertTrue(bounds.getMaxY() <= SCENE_HEIGHT + 0.5,
-                "the RESULT output must not be clipped below the window (maxY=" + bounds.getMaxY()
+                "the OUTPUT panel must not be clipped below the window (maxY=" + bounds.getMaxY()
                         + ", window height=" + SCENE_HEIGHT + ")");
         assertTrue(bounds.getHeight() >= 100,
-                "the RESULT output must keep a usable height, was " + bounds.getHeight());
+                "the OUTPUT panel must keep a usable height, was " + bounds.getHeight());
     }
 
     @Test
@@ -79,9 +81,9 @@ class TransformPanelLayoutTest {
                         && scroll.getContent() != null
                         && scroll.getContent().lookupAll(".button").stream()
                         .anyMatch(n -> n instanceof javafx.scene.control.Button b
-                                && "Transform".equals(b.getText())));
+                                && "Run Transform".equals(b.getText())));
         assertTrue(transformInScrollPane,
-                "the panel controls (incl. Transform) must sit in a ScrollPane so they stay reachable");
+                "the panel controls (incl. Run Transform) must sit in a ScrollPane so they stay reachable");
     }
 
     @Test

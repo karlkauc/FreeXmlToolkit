@@ -48,6 +48,9 @@ class TransformPanelResultTabTest {
         org.fxt.freexmltoolkit.di.ServiceRegistry.initialize();
         host = new EditorHost();
         panel = new TransformPanel(host);
+        // The redesigned panel shows results in the docked OUTPUT panel by default;
+        // these tests verify the (optional) result-as-editor-tab behaviour.
+        panel.setAutoOpenResultTab(true);
         stage.setScene(new Scene(new HBox(host, panel), 1100, 600));
         stage.show();
     }

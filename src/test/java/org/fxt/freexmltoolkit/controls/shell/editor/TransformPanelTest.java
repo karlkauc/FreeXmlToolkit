@@ -189,7 +189,7 @@ class TransformPanelTest {
 
     @Test
     void writesHtmlPreviewFile() throws Exception {
-        java.io.File file = TransformPanel.writeHtmlPreview("<html><body>Preview Hi</body></html>");
+        java.io.File file = TransformOutputPanel.writeHtmlPreview("<html><body>Preview Hi</body></html>");
         assertTrue(file.isFile() && file.getName().endsWith(".html"), file.toString());
         assertTrue(Files.readString(file.toPath()).contains("Preview Hi"));
     }
