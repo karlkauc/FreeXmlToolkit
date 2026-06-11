@@ -215,7 +215,7 @@ Universal file management across all editors: Save XML/XSD/Schematron files as f
 org.fxt.freexmltoolkit/
 ├── FxtGui.java                          # Main entry point (loads tab_unified_shell.fxml)
 ├── app/                                 # Application-level utilities
-├── controller/                          # Only UnifiedShellController, TemplatesController + dialogs
+├── controller/                          # Only UnifiedShellController
 ├── controls/
 │   ├── shell/                          # THE UI: Unified Shell (see architecture.md)
 │   │   ├── UnifiedShellView.java       # Shell layout + activity wiring
@@ -243,7 +243,7 @@ org.fxt.freexmltoolkit/
 ```
 
 ### Resources
-- **FXML:** `src/main/resources/pages/` (tab_unified_shell.fxml, tab_templates.fxml, controls/, dialogs/)
+- **FXML:** `src/main/resources/pages/` (tab_unified_shell.fxml only)
 - **CSS:** `src/main/resources/css/` (design-tokens.css, unified-shell.css)
 - **Icons:** `src/main/resources/icons/iconify/bi.json`
 - **Images:** `src/main/resources/img/`

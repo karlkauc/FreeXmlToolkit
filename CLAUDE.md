@@ -52,7 +52,7 @@ including in IDE / `./gradlew run` mode.
 
 ## Architecture Overview
 
-**The UI is the Unified Shell** (`controls/shell/`, VS-Code-style): an Activity Bar switches the left side panel (Explorer, Favorites, Validation, Transform, Schema, PDF/FOP, Signature, FundsXML, Help, Settings); the center is one `EditorHost` with file tabs and per-document view modes (Text / Tree / Graphic); right is the Properties Inspector. There is **no** per-tool tab/controller architecture anymore — only `UnifiedShellController`, `TemplatesController` and a few dialog controllers remain in `controller/`.
+**The UI is the Unified Shell** (`controls/shell/`, VS-Code-style): an Activity Bar switches the left side panel (Explorer, Favorites, Validation, Transform, Schema, PDF/FOP, Signature, FundsXML, Help, Settings); the center is one `EditorHost` with file tabs and per-document view modes (Text / Tree / Graphic); right is the Properties Inspector. There is **no** per-tool tab/controller architecture anymore — `controller/` only contains `UnifiedShellController`.
 
 **Pattern:** Shell views are plain JavaFX (code-built, almost no FXML). The XSD Editor V2 model layer (`controls/v2/`) uses MVVM with Command Pattern and backs the shell's structured views.
 

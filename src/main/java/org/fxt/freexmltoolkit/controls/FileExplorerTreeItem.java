@@ -48,7 +48,6 @@ import org.apache.logging.log4j.Logger;
  * alphabetically (case-insensitive).</p>
  *
  * @see javafx.scene.control.TreeItem
- * @see FileExplorer
  */
 public class FileExplorerTreeItem extends TreeItem<Path> {
 

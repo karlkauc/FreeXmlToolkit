@@ -18,7 +18,7 @@ FxtGui → /pages/tab_unified_shell.fxml → UnifiedShellController → UnifiedS
 
 Everything lives in `controls/shell/` and is **built in code** (no FXML except the
 bootstrap page). Legacy per-tool tabs/controllers are gone; `controller/` only keeps
-`UnifiedShellController`, `TemplatesController`, and dialog controllers.
+`UnifiedShellController`.
 
 ## Key Shell Classes
 
@@ -120,13 +120,11 @@ public void setName(String name) {
 
 ---
 
-## FXML (only a handful of pages remain)
+## FXML (only the bootstrap page remains)
 
 | File | Purpose |
 |------|---------|
 | `tab_unified_shell.fxml` | Bootstrap page hosting `UnifiedShellView` |
-| `tab_templates.fxml` | Templates management |
-| `pages/controls/*.fxml`, `pages/dialogs/*.fxml` | Reusable controls/dialogs |
 
 ## CSS
 
