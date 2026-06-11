@@ -1,6 +1,6 @@
 # XSD Validation
 
-> **Last Updated:** May 2026 | **Version:** 1.10.0
+> **Last Updated:** June 2026 | **Version:** 1.10.0
 
 > **Note (Phase 10c):** The standalone *XSD Validation* tab has been retired.
 > Validation — XSD and Schematron, single-file and batch — now lives in the
@@ -42,10 +42,12 @@ Use this mode to validate one XML file against a schema.
 
 ### Step 1: Load Your Files
 
-1. **Open XML File**: Click "Open XML" in the toolbar or use the Browse button
-2. **Schema Selection**:
-   - **Autodetect** (default): Automatically finds schema references in the XML
-   - **Manual**: Uncheck Autodetect and select an XSD file manually
+1. **Open the XML file** in the editor (Ctrl+O, the Explorer, or drag & drop).
+2. **Schema selection**:
+   - **Automatic**: Schema references inside the XML (`xsi:schemaLocation`) are found automatically.
+   - **Manual**: Bind an XSD yourself - click the **"No XSD"** indicator in the status bar (or
+     use the toolbar's **Set XSD Schema…** action), or pick a schema in the Validation panel's
+     **SOURCES** section. The binding drives both validation and IntelliSense.
 
 ### Step 2: Validate
 
@@ -86,55 +88,41 @@ Choose how schemas are determined for each file:
 | **Auto-detect XSD per file** | Each XML file uses its own referenced schema |
 | **Use same XSD for all files** | All files are validated against a single schema you select |
 
-### Adding Files
-
-| Button | Description |
-|--------|-------------|
-| **Add Files** | Select individual XML files |
-| **Add Folder** | Add all XML files from a folder (recursive) |
-| **Remove Selected** | Remove selected files from the list |
-| **Clear All** | Remove all files |
-
 ### Running Batch Validation
 
-1. Add your XML files
-2. Choose the XSD mode
-3. Click **Run Validation**
-4. Watch progress in the progress bar
+> **Updated in June 2026** - In the Validation panel's **Batch** mode, **Run Validation** now
+> opens a small menu so you can pick files or a whole folder in one step.
 
-You can **Cancel** a running batch validation at any time.
+1. Open the **Validation** panel and switch the mode toggle to **Batch**.
+2. Click **Run Validation** and choose how to pick the files:
+   - **Select XML files…** - a file chooser where you select one or more XML files.
+   - **Select folder…** - a folder chooser; every `*.xml` file in the folder **and all of its
+     subfolders** is validated.
+3. Watch progress while the files are validated.
 
-### Results Table
+### Results
 
-The results table shows:
+The **RESULTS** list shows one row per file:
 
-| Column | Description |
-|--------|-------------|
-| **File Name** | Name of the XML file |
-| **Path** | Full path to the file |
-| **Status** | Valid, Invalid, or Error |
-| **Errors** | Number of validation errors |
-| **XSD Used** | Which schema was used |
-| **Duration** | How long validation took |
+| Indicator | Description |
+|-----------|-------------|
+| **Status icon** | Red ✕ = errors, orange ⚠ = warnings only, green ✓ = valid |
+| **File name** | Name of the XML file |
+| **Badge** | Number of problems found in that file |
+
+Select a row to see that file's problems; **double-click** a row to open the file in the
+editor. A plain-text report of the run is available via the panel's ⋮ menu
+(**Open last batch report**).
 
 ### Summary
 
-Below the table, you'll see a summary:
+The RESULTS header shows a summary of the run, for example:
 
 ```
-Total: 25 | Passed: 20 | Failed: 5
+RESULTS · 2 OF 25 FAILED
 ```
 
-### Filter Results
-
-Use the filter dropdown to show:
-- **All** - All files
-- **Passed** - Only valid files
-- **Failed** - Only files with errors
-
-### Error Details
-
-Click on a file to see its validation errors in the **Error Details** panel below the table.
+and the panel's status line repeats it ("2 of 25 file(s) failed").
 
 ---
 

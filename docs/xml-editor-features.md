@@ -1,6 +1,6 @@
 # XML Editor Features
 
-> **Last Updated:** May 2026 | **Version:** 1.10.0
+> **Last Updated:** June 2026 | **Version:** 1.10.0
 
 This page describes the advanced features available in the XML Editor.
 
@@ -90,38 +90,50 @@ Learn more: [Auto-Completion Guide](context-sensitive-intellisense.md)
 
 ---
 
-## Grid Editor Mode
+## Grid Editor (Graphic View)
+
+> **Updated in June 2026** - The separate "Grid" view mode has been merged into the **Graphic**
+> view: for XML (and XSLT/Schematron) documents, switching to **Graphic** opens the editable
+> XMLSpy-style grid.
 
 ![XML Grid view in the Unified Shell](img/unified-shell-xml-grid.png)
-*The Grid view in the Unified Shell — table-like editing with the inspector*
+*The grid in the Unified Shell's Graphic view — table-like editing with the inspector*
 
 ### Edit XML Like a Spreadsheet
 
-The grid editor displays your XML data in a table format, making it easy to edit structured data.
+The grid displays your XML data in a table format, making it easy to edit structured data.
 
 ### How to Use
 
-1. Open an XML file in the XML Editor
-2. Switch to the "Grid" tab
+1. Open an XML file in the editor
+2. Switch to the **Graphic** view with the segmented view switch
 3. Click cells to edit values directly
 4. Add, delete, or move nodes using the right-click context menu
 5. Select a row to view and edit its properties in the Properties inspector
-6. Switch back to "XML" tab to see the updated code
+6. Switch back to the **Text** view to see the updated code
 
 Changes made in any view are synchronized automatically.
+
+### Reading the Grid
+
+- The **header strip** at the top reads *"Grid view · nested · repeating elements as embedded
+  grids"* and offers a **Collapse all** button that folds every container at once.
+- Rows holding a simple value are marked with **`{}`**.
+- Collapsed containers show a **"collapsed"** hint so you know there is hidden content.
+- Repeating elements appear as **embedded grids** - small tables nested inside the row.
 
 ---
 
 ## Properties Inspector
 
 > **Updated in v1.10** - You can now view **and edit** a node's properties from **all three**
-> XML views (Text, Tree, and Grid), not just the Grid view.
+> XML views (Text, Tree, and Graphic), not just the grid.
 
 The Properties inspector shows the details of the selected node and lets you edit them. Toggle
 it with **Ctrl+P** or the **Properties** toolbar button.
 
 - **Select a node** by moving the text caret into an element (Text view), clicking a node
-  (Tree view), or selecting a row (Grid view).
+  (Tree view), or selecting a row in the grid (Graphic view).
 - **Edit** the element name, namespace (prefix/URI), attributes (add/rename/remove), leaf text,
   and the text of comments, CDATA, and processing instructions.
 - Edits are written straight back to the document text, keeping everything in sync.

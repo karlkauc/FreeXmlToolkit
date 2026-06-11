@@ -14,15 +14,15 @@ XML file next to its XSD schema, XSLT stylesheets and Schematron rules at the sa
 
 ![Unified Shell overview](img/unified-shell-overview.png)
 *The Unified Shell: activity bar (left), Explorer side panel, editor host with an XML file
-(Text/Tree/Graphic/Grid view toggle), the Properties inspector (right) and the status bar.*
+(Text/Tree/Graphic view toggle), the Properties inspector (right) and the status bar.*
 
 ### Layout
 
 | Area | Purpose |
 |------|---------|
-| **Activity bar** (far left) | Switch tools / side panels: Explorer, Transform, Validation, Signature, Type Library, FOP/PDF, Favorites, Settings, Help. **Always visible** - it cannot be collapsed. |
+| **Activity bar** (far left) | Switch tools / side panels: Explorer, Transform, Validation, Signature, Type Library, FOP/PDF, Favorites, Settings, Help. **Always visible** - it cannot be collapsed. (Settings opens as a full page in the editor area - see [Settings Page](#settings-page).) |
 | **Side panel** | The panel for the selected activity (e.g. the Transform panel, the Validation panel). **Collapsible** (see [Collapsing the side panels](#collapsing-the-side-panels)). |
-| **Editor host** (center) | Tabs of open documents, each with view modes - Text, Tree, Graphic (XSD), Grid (XML). |
+| **Editor host** (center) | Tabs of open documents, each with three view modes - Text, Tree, Graphic (see [View Modes](#view-modes)). |
 | **Inspector** (right) | View **and edit** the selected node's properties from any view. **Collapsible** (see [Collapsing the side panels](#collapsing-the-side-panels)). |
 | **Status bar** (bottom) | Caret position, validation status and a memory indicator. |
 
@@ -43,8 +43,8 @@ editor more room - the activity bar always stays visible.
 
 - **Multi-tab editing** - Open multiple files of different types in one view
 - **Automatic file type detection** - Files are recognized by extension (.xml, .xsd, .xsl, .sch, .json)
-- **View modes per document** - Text, Tree, Graphic (XSD) and Grid (XML), all over one shared model
-- **Inspector editing everywhere** - edit node properties from the Text, Tree, Grid and Graphic views, not just one
+- **View modes per document** - Text, Tree and Graphic, all over one shared model (see [View Modes](#view-modes))
+- **Inspector editing everywhere** - edit node properties from the Text, Tree and Graphic views, not just one
 - **Integrated XPath/XQuery** - a bottom [Query Console](#query-console) queries the active
   XML/JSON file right from the editor (Ctrl+Shift+X)
 - **Editor toolbar actions** - run [Validate, Transform, Generate Documentation and Open Type
@@ -56,7 +56,36 @@ editor more room - the activity bar always stays visible.
 
 1. The Unified Shell opens automatically on startup.
 2. Use the **Explorer** activity (or **File → Open**) to open files; **File → New** creates a new file.
-3. Files open as tabs in the editor host - switch tabs by clicking their headers, and switch view modes (Text / Tree / Graphic / Grid) with the view toggle.
+3. Files open as tabs in the editor host - switch tabs by clicking their headers, and switch view modes (Text / Tree / Graphic) with the segmented view switch.
+
+## View Modes
+
+> **Updated in June 2026** - There are now exactly **three** view modes - **Text**, **Tree**, and
+> **Graphic** - each with its own icon in the segmented view switch. The former separate **Grid**
+> mode has been merged into **Graphic**.
+
+Every document tab offers the same three view modes:
+
+| Mode | What it shows |
+|------|---------------|
+| **Text** | Source code editing with syntax highlighting |
+| **Tree** | The document as a hierarchical tree |
+| **Graphic** | A visual editor that depends on the document type: for **XML**, **XSLT**, and **Schematron** files it shows the editable XMLSpy-style **grid**; for **XSD** files it shows the **schema diagram** |
+
+All views share one in-memory model per document, so edits and Undo/Redo history are preserved
+when you switch views.
+
+### The Grid (Graphic view for XML)
+
+When an XML-instance document (XML, XSLT, or Schematron) is in the **Graphic** view, the editor
+shows the editable grid:
+
+- A **header strip** at the top reads *"Grid view · nested · repeating elements as embedded
+  grids"* and offers a **Collapse all** button that folds every container at once.
+- Rows with a simple value are marked with a **`{}`** marker so you can tell value rows from
+  containers at a glance.
+- Collapsed containers show a **"collapsed"** hint, so you always know there is hidden content.
+- Repeating elements are rendered as **embedded grids** (tables inside the row).
 
 ## Supported File Types
 
@@ -125,8 +154,8 @@ type. Each one opens its result as a tool tab. See
   icon in the editor toolbar). See [Query Console](#query-console) below.
 - **Properties** (Ctrl+Shift+P) - Show/hide properties and validation sidebar. For XML files,
   the properties inspector lets you view **and edit** a node's properties (element name,
-  namespace, attributes, and text content) from **all three** views - Text, Tree, and Grid -
-  not just the Grid view. For XSD files, the same inspector lets you edit a schema node's
+  namespace, attributes, and text content) from **all three** views - Text, Tree, and Graphic
+  (the grid). For XSD files, the same inspector lets you edit a schema node's
   properties from **all three** XSD views - Text, Tree, and Graphic. See
   [Properties Inspector](#properties-inspector) below.
 - **Favorites** (Ctrl+Shift+B) - Show/hide favorites panel
@@ -254,6 +283,22 @@ Open the **Explorer** panel from the activity bar to manage files.
   folder's name. Folders expand with their chevron; double-click (or Enter) opens a file.
   Only XML-family and JSON files are shown.
 - **RECENT** - recently opened files; click to reopen.
+- **Collapsible sections** *(new in June 2026)* - the **OPEN EDITORS**, workspace, and
+  **RECENT** section headers are clickable: click a header to collapse or expand its section
+  (the chevron next to the title flips accordingly). Use this to give the file tree more room
+  when you have many open editors or recent files.
+
+## Favorites Panel
+
+Open the **Favorites** panel from the star icon in the activity bar for one-click access to
+your saved files.
+
+> **Updated in June 2026** - Favorites are now **grouped by file type** (XML Document,
+> XSD Schema, Schematron Rules, XSLT Stylesheet, …), and every entry shows a **colored type
+> icon** so you can tell the file kinds apart at a glance.
+
+Click a favorite to open it as an editor tab. See [Favorites System](favorites-system.md) for
+adding, naming, and organizing favorites.
 
 ## Validation Panel
 
@@ -270,17 +315,28 @@ Click **Change** next to a source to pick a different file. The star button on t
 opens a quick-select menu of your favorited XSD schemas - pick one to bind it in a single
 click, without browsing the file system. (See [Favorites](favorites-system.md).)
 
+!!! tip
+    You can also bind an XSD **without opening the Validation panel**: click the
+    **"No XSD" / "XSD: name"** indicator in the status bar (or use the editor toolbar's
+    **Set XSD Schema…** action) and pick an `.xsd` file. The binding drives both
+    **IntelliSense** and **schema validation**.
+
 ### Running a Validation
 
 1. Pick a mode with the **Single file | Batch** toggle.
 2. Click **Run Validation**.
 
 - **Single file** validates the active document against the bound XSD and/or Schematron.
-- **Batch** asks for a set of XML files and validates each one. The **RESULTS** list then
-  shows one row per file with a status icon (red ✕ = errors, orange ⚠ = warnings only,
-  green ✓ = valid) and a badge with the problem count. Select a row to see that file's
-  problems; double-click to open the file. The plain-text batch report is available via
-  the ⋮ menu (**Open last batch report**).
+- **Batch** validates a whole set of XML files. In Batch mode, **Run Validation** opens a
+  small menu with two ways to pick the files *(new in June 2026)*:
+    - **Select XML files…** - a file chooser where you pick one or more XML files.
+    - **Select folder…** - a folder chooser; every `*.xml` file in the folder **and all of
+      its subfolders** is validated.
+
+  The **RESULTS** list then shows one row per file with a status icon (red ✕ = errors,
+  orange ⚠ = warnings only, green ✓ = valid) and a badge with the problem count. Select a
+  row to see that file's problems; double-click to open the file. The plain-text batch
+  report is available via the ⋮ menu (**Open last batch report**).
 
 ### Problems
 
@@ -386,13 +442,16 @@ Alongside **Sign**, the basic **Validate**, the detailed **Validate (Details)**,
 
 See [XML Digital Signatures](digital-signatures.md) for full details.
 
-## Settings Panel
+## Settings Page
 
-> **Expanded in June 2026** - The Settings panel now exposes the full application
-> configuration, grouped into sections.
+> **Updated in June 2026** - Settings now open as a **full page** (a tab in the main editor
+> area) instead of being squeezed into the narrow left side panel. The sections are presented
+> as **color-coded cards**, and a **Clear Cache Folder** button was added.
 
-Open the **Settings** panel from the gear icon at the bottom of the activity bar. Change any
-option and click **Save Settings** to apply (theme changes apply immediately).
+Click the gear icon at the bottom of the activity bar: the **Settings page opens as a tab in
+the main editor area**, where there is room for all options (the left side panel just shows a
+short note that settings are edited in the main window). Change any option and click
+**Save Settings** to apply (theme changes apply immediately).
 
 | Section | Options |
 |---------|---------|
@@ -400,13 +459,21 @@ option and click **Save Settings** to apply (theme changes apply immediately).
 | **Editor** | XML indent and JSON indent (spaces); **Auto-format after loading**; **Pretty-print XSD on save**; **Pretty-print Schematron on load**. |
 | **XSD** | **Auto-save** (with an interval in minutes); **Create backups on save** (with the number of versions to keep, and an optional **separate backup directory**). |
 | **Parser** | **XML parser** engine (Xerces or Saxon); **Allow XSLT extension functions**. |
-| **Temp & Cache** | **Use system temp folder** or a custom temp folder; **Clear Temp Folder** to free disk space. |
+| **Temp & Cache** | **Use system temp folder** or a custom temp folder; **Clear Temp Folder** to free disk space; **Clear Cache Folder** to delete cached files (downloaded schemas etc.). |
 | **General** | **Check for updates on startup**; **Use small icons**. |
 | **HTTP Proxy** | **Use system proxy**, or enter a proxy host and port. |
 
+### Clearing the Cache Folder
+
+The **Clear Cache Folder** button in the **TEMP & CACHE** section deletes the contents of the
+application's local cache folder (`~/.freeXmlToolkit/cache`) - for example downloaded schemas.
+A confirmation dialog is shown first, because the action cannot be undone. The cache folder
+itself is kept; only its contents are removed.
+
 ## Welcome / Dashboard
 
-> **New in June 2026** - The welcome screen now shows live statistics and quick tips.
+> **New in June 2026** - The welcome screen now shows live statistics and quick tips, and the
+> Tools grid covers **every** page - including the new **Explorer** and **Settings** cards.
 
 When no document is open, the editor shows a welcome dashboard with:
 
@@ -415,14 +482,24 @@ When no document is open, the editor shows a welcome dashboard with:
 - **Tips banner** - A short hint banner with handy shortcuts (for example, drag a file onto the
   window to open it, or use Ctrl+F / Ctrl+H to find and replace).
 - **Recent files** list - Click an entry to reopen it.
+- **Tools grid** - One card per tool; clicking a card opens the matching activity. Alongside
+  **Validate**, **Transform**, **Schema**, **PDF / FOP**, **Signature**, and **Favorites**,
+  two cards are new in June 2026: **Explorer** (files & workspace) and **Settings**
+  (application preferences) - so every page can be opened directly from the start screen.
 
 ## Status Bar
 
-> **New in June 2026** - A memory monitor was added to the status bar.
+> **New in June 2026** - A memory monitor and a clickable XSD indicator were added to the
+> status bar.
 
-The status bar at the bottom of the window includes a **memory monitor** showing the JVM heap
-usage as **used / max MB**. **Click it** to run garbage collection, which can free memory after
-working with large files.
+The status bar at the bottom of the window includes:
+
+- An **XSD indicator** showing the schema bound to the active document - **"No XSD"** when none
+  is bound, or **"XSD: name"** otherwise. **Click it** to choose an `.xsd` file and bind it to
+  the active document; the binding drives both **IntelliSense** and **schema validation**. (The
+  editor toolbar's **Set XSD Schema…** action does the same.)
+- A **memory monitor** showing the JVM heap usage as **used / max MB**. **Click it** to run
+  garbage collection, which can free memory after working with large files.
 
 ## Keyboard Shortcuts
 
@@ -480,7 +557,7 @@ any error to jump straight to its location:
 ## Properties Inspector
 
 > **Updated in v1.10** - For XML files, property editing works in **all** XML views (Text, Tree,
-> and Grid). Previously it was available only in the Grid view.
+> and Graphic). Previously it was available only in the grid.
 >
 > **Updated June 2026** - For XSD files, property editing now works in the **Text** view too,
 > matching the Tree and Graphic views. See [XSD Files](#xsd-files) below.
@@ -498,17 +575,17 @@ lets you edit it from whichever view you are in:
   falls back to a read-only name/XPath view.
 - **Tree view** - Click any node (element, text, comment, CDATA, or processing instruction) to
   edit its properties.
-- **Grid view** - Select a row to edit its properties. The Grid view also handles structural
-  editing (adding, deleting, and moving nodes) through its right-click context menu.
+- **Graphic view** (the grid) - Select a row to edit its properties. The grid also handles
+  structural editing (adding, deleting, and moving nodes) through its right-click context menu.
 
 All three views share one in-memory model per open document, so your edits and Undo/Redo
-history are preserved when you switch between Text, Tree, and Grid.
+history are preserved when you switch between Text, Tree, and Graphic.
 
 ### XSD Files
 
 When an XSD (schema) file is open, the Properties sidebar shows the selected schema node and
-lets you edit it from whichever view you are in. XSD files have three views - **Text**, **Tree**,
-and **Graphic** (there is no Grid view for XSD):
+lets you edit it from whichever view you are in. XSD files have the same three views - **Text**,
+**Tree**, and **Graphic** (for XSD, the Graphic view shows the schema diagram):
 
 - **Tree** and **Graphic** views - Select a schema node to edit its name, type,
   cardinality/occurrence, use, form, constraints, documentation, and facets. (Unchanged.)

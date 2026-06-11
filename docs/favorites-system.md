@@ -1,6 +1,6 @@
 # Favorites System
 
-> **Last Updated:** May 2026 | **Version:** 1.10.0
+> **Last Updated:** June 2026 | **Version:** 1.10.0
 
 Save your frequently used files for quick access. The favorites system works across all editors in FreeXmlToolkit.
 
@@ -40,6 +40,15 @@ The favorites system helps you quickly access the files you use most often. Save
 | **Custom Names** | Give favorites easy-to-remember names |
 | **Descriptions** | Add notes about what each file is for |
 | **File Icons** | Quickly see file types at a glance |
+
+### Grouped by File Type (Unified Shell)
+
+> **New in June 2026**
+
+The **Favorites panel** in the Unified Shell (star icon in the activity bar) groups your
+favorites **by file type** - for example **XML Document**, **XSD Schema**, **Schematron
+Rules**, and **XSLT Stylesheet**. Each entry shows a **colored type icon**, so you can tell
+the file kinds apart at a glance. Click an entry to open it as an editor tab.
 
 ---
 

@@ -1,6 +1,6 @@
 # Auto-Completion (IntelliSense)
 
-> **Last Updated:** May 2026 | **Version:** 1.10.0
+> **Last Updated:** June 2026 | **Version:** 1.10.0
 
 The XML Editor includes smart auto-completion that helps you write XML faster and with fewer errors.
 
@@ -42,9 +42,16 @@ When you type an opening tag like `<element>`, the editor automatically adds the
 
 ### Step 1: Load an XSD Schema
 
-1. Open the XML Editor
-2. Click "..." in the XSD Schema section
+If your XML already references its schema (via `xsi:schemaLocation`), it is picked up
+automatically. Otherwise, bind one yourself *(updated June 2026)*:
+
+1. Open your XML file in the editor
+2. Click the **"No XSD"** indicator in the **status bar** (or use the toolbar's
+   **Set XSD Schema…** action)
 3. Select your XSD file
+
+The indicator changes to **"XSD: name"**, and the binding drives both auto-completion **and**
+schema validation.
 
 ### Step 2: Use Auto-Completion
 

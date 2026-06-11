@@ -12,7 +12,7 @@ The XML Editor is the main feature of FreeXmlToolkit. It provides a powerful and
 *The XML Editor in text mode with syntax highlighting*
 
 ![XML Editor - Grid Mode](img/xml-editor-graphic.png)
-*The XML Editor in grid mode for structured editing*
+*The XML Editor in the Graphic view (grid) for structured editing*
 
 ---
 
@@ -92,14 +92,21 @@ The text editor provides:
   [Properties Inspector](#properties-inspector)
 - Right-click for context menu options
 
-### Grid Mode
+### Graphic Mode (Grid)
+
+> **Updated in June 2026** - The separate "Grid" view mode has been merged into the **Graphic**
+> view. For XML documents, the Graphic view shows the editable XMLSpy-style grid.
 
 ![XML Grid view in the Unified Shell](img/unified-shell-xml-grid.png)
-*The XML in the Unified Shell's Grid view (XMLSpy-style table editing)*
+*An XML document in the Graphic view (XMLSpy-style grid editing)*
 
-The grid editor provides:
+The grid provides:
 
 - **Table View**: Edit XML data in a spreadsheet-like interface
+- **Header Strip**: A header at the top ("Grid view · nested · repeating elements as embedded
+  grids") with a **Collapse all** button that folds every container at once
+- **Value Markers**: Rows with a simple value are marked with `{}`; collapsed containers show a
+  "collapsed" hint
 - **Direct Cell Editing**: Click cells to edit values directly
 - **Easy Navigation**: Move through the document using arrow keys
 - **Sorting**: Sort data by clicking column headers
@@ -112,15 +119,15 @@ The grid editor provides:
 ## Properties Inspector
 
 > **Updated in v1.10** - The Properties inspector now lets you view **and edit** a node's
-> properties in **all three** XML views - Text, Tree, and Grid. Previously, property editing
-> was only available in the Grid view.
+> properties in **all three** XML views - Text, Tree, and Graphic. Previously, property editing
+> was only available in the grid.
 
 The Properties inspector shows the details of the currently selected node and lets you change
 them. Toggle the panel with **Ctrl+P** (or the **Properties** toolbar button); it appears on
 the right side of the editor.
 
 > **Screenshot note:** The existing XML editor screenshots predate this change. The Properties
-> inspector now appears alongside the Text, Tree, and Grid views (not only the Grid view).
+> inspector now appears alongside the Text, Tree, and Graphic views (not only the grid).
 
 ### Selecting a Node
 
@@ -131,7 +138,7 @@ How you select a node depends on the active view:
   shows a read-only view with the node's name and XPath.
 - **Tree view** - Click a node in the tree (element, text, comment, CDATA, or processing
   instruction).
-- **Grid view** - Select a row in the grid.
+- **Graphic view** - Select a row in the grid.
 
 ### What You Can Edit
 
@@ -161,11 +168,11 @@ These hints help you fill in correct content but cannot be edited from the inspe
 
 All three views share a single in-memory model for each open document. This means your edits -
 and your full **Undo / Redo** history - are preserved when you switch between the Text, Tree,
-and Grid views.
+and Graphic views.
 
 > **Note:** Adding, deleting, or moving whole nodes (structural editing) is done in the
-> **Grid** view via its right-click context menu. The Text and Tree views provide property
-> editing through the inspector.
+> **Graphic** view (the grid) via its right-click context menu. The Text and Tree views provide
+> property editing through the inspector.
 
 ---
 
@@ -204,6 +211,24 @@ Learn more: [Auto-Completion Guide](context-sensitive-intellisense.md)
 
 ---
 
+## Binding an XSD Schema
+
+> **New in June 2026** - Bind an XSD to the active document directly from the editor.
+
+If your XML does not reference its schema (or you want to use a different one), you can bind an
+XSD by hand:
+
+1. Click the **"No XSD"** indicator in the **status bar** (it shows **"XSD: name"** once a
+   schema is bound), or use the toolbar's **Set XSD Schema…** action.
+2. Choose an `.xsd` file.
+
+The binding applies to the active document and drives **both** features at once:
+
+- **IntelliSense** - auto-completion suggests the elements and attributes the schema allows.
+- **Schema validation** - Validate (F5) and continuous validation check against the bound XSD.
+
+---
+
 ## Formatting Tools
 
 ### Pretty Print
@@ -226,7 +251,8 @@ Click **Format** or use `Ctrl+Alt+F` to format your XML with proper indentation.
 ### How to Validate
 
 1. Click **Validate** or press **F5**
-2. If your XML references a schema, it's loaded automatically
+2. If your XML references a schema, it's loaded automatically - or bind one yourself, see
+   [Binding an XSD Schema](#binding-an-xsd-schema)
 3. Errors and warnings appear in the validation panel
 4. Click an error to jump to the problem location
 
