@@ -124,6 +124,22 @@ public class SettingsPanel extends VBox {
         clearTemp.getStyleClass().add("fxt-tool-button");
         clearTemp.setOnAction(e -> tempStatus.setText("Cleared " + clearTempFolder() + " file(s)."));
 
+        Button clearCache = new Button("Clear Cache Folder", iconGraphic("bi-trash"));
+        clearCache.getStyleClass().add("fxt-tool-button");
+        clearCache.setOnAction(e -> {
+            javafx.scene.control.Alert confirm =
+                    new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.CONFIRMATION);
+            confirm.setTitle("Clear Cache");
+            confirm.setHeaderText("Clear the local cache folder?");
+            confirm.setContentText("This deletes all cached files (downloaded schemas etc.) under\n"
+                    + cacheFolder().getAbsolutePath() + "\n\nThis action cannot be undone.");
+            confirm.showAndWait().ifPresent(btn -> {
+                if (btn == javafx.scene.control.ButtonType.OK) {
+                    tempStatus.setText("Cleared " + clearCacheFolder() + " cached file(s).");
+                }
+            });
+        });
+
         userName.setPromptText("name");
         userEmail.setPromptText("email");
         userCompany.setPromptText("company");
@@ -154,35 +170,41 @@ public class SettingsPanel extends VBox {
 
         loadSettings();
 
-        VBox content = new VBox(8,
-                title,
-                section("THEME"), new HBox(6, light, dark),
-                section("EDITOR"),
-                labeled("XML indent:", indentSpaces), labeled("JSON indent:", jsonIndent),
-                autoFormat, xsdPrettyPrint, schematronPretty,
-                section("XSD"),
-                xsdAutoSave, labeled("Interval (min):", xsdAutoSaveInterval),
-                xsdBackup, labeled("Keep versions:", xsdBackupVersions),
-                backupSeparateDir, browseRow(backupDir, this::chooseBackupDir),
-                section("PARSER"),
-                labeled("XML parser:", parserType), xsltExtensions,
-                section("TEMP & CACHE"),
-                useSystemTemp, browseRow(customTempDir, this::chooseTempDir),
-                fill(clearTemp), tempStatus,
-                section("GENERAL"),
-                updateCheck, smallIcons, showLeftPanel, showInspector,
-                section("USER INFO"),
-                labeled("Name:", userName), labeled("Email:", userEmail),
-                labeled("Company:", userCompany),
-                section("SECURITY"),
-                trustAllCerts,
-                section("USAGE STATISTICS"),
-                trackingEnabled, fill(clearStats), usageStatus,
-                section("FUNDSXML"),
-                fundsXmlEnabled,
-                section("HTTP PROXY"),
-                useSystemProxy, proxyHost, proxyPort,
-                fill(save));
+        // Section cards, color-coded by topic (the panel now lives in the main editor
+        // area as a Settings page, so there is room for a two-column card layout).
+        javafx.scene.layout.FlowPane cards = new javafx.scene.layout.FlowPane(16, 16,
+                card("THEME", "bi-palette", "#3B5BDB",
+                        new HBox(6, light, dark)),
+                card("EDITOR", "bi-pencil-square", "#17a2b8",
+                        labeled("XML indent:", indentSpaces), labeled("JSON indent:", jsonIndent),
+                        autoFormat, xsdPrettyPrint, schematronPretty),
+                card("XSD", "bi-diagram-3", "#6f42c1",
+                        xsdAutoSave, labeled("Interval (min):", xsdAutoSaveInterval),
+                        xsdBackup, labeled("Keep versions:", xsdBackupVersions),
+                        backupSeparateDir, browseRow(backupDir, this::chooseBackupDir)),
+                card("PARSER", "bi-cpu", "#fd7e14",
+                        labeled("XML parser:", parserType), xsltExtensions),
+                card("TEMP & CACHE", "bi-trash", "#ffc107",
+                        useSystemTemp, browseRow(customTempDir, this::chooseTempDir),
+                        fill(clearTemp), fill(clearCache), tempStatus),
+                card("GENERAL", "bi-sliders", "#007bff",
+                        updateCheck, smallIcons, showLeftPanel, showInspector),
+                card("USER INFO", "bi-person", "#28a745",
+                        labeled("Name:", userName), labeled("Email:", userEmail),
+                        labeled("Company:", userCompany)),
+                card("SECURITY", "bi-shield-lock", "#dc3545",
+                        trustAllCerts),
+                card("USAGE STATISTICS", "bi-graph-up", "#6c757d",
+                        trackingEnabled, fill(clearStats), usageStatus),
+                card("FUNDSXML", "bi-file-earmark-code", "#20c997",
+                        fundsXmlEnabled),
+                card("HTTP PROXY", "bi-globe", "#6610f2",
+                        useSystemProxy, proxyHost, proxyPort));
+        cards.setPrefWrapLength(820);
+
+        save.getStyleClass().add("fxt-primary-button");
+        VBox content = new VBox(16, title, cards, fill(save));
+        content.getStyleClass().add("fxt-settings-page");
 
         ScrollPane scroll = new ScrollPane(content);
         scroll.setFitToWidth(true);
@@ -192,10 +214,28 @@ public class SettingsPanel extends VBox {
         getChildren().add(scroll);
     }
 
-    private static Label section(String text) {
-        Label label = new Label(text);
-        label.getStyleClass().add("fxt-side-panel-title");
-        return label;
+    /** A color-coded settings card: tinted icon tile + title, then the section's controls. */
+    private static VBox card(String titleText, String iconLiteral, String color, Region... controls) {
+        IconifyIcon icon = new IconifyIcon(iconLiteral);
+        icon.setIconSize(15);
+        icon.iconColorProperty().bind(new javafx.beans.property.SimpleObjectProperty<>(
+                javafx.scene.paint.Color.web(color)));
+        javafx.scene.layout.StackPane tile = new javafx.scene.layout.StackPane(icon);
+        tile.getStyleClass().add("fxt-settings-card-icon");
+        tile.setStyle("-fx-background-color: " + color + "22;"); // ~13% alpha tint
+
+        Label label = new Label(titleText);
+        label.getStyleClass().add("fxt-settings-card-title");
+        HBox header = new HBox(10, tile, label);
+        header.setAlignment(Pos.CENTER_LEFT);
+
+        VBox card = new VBox(8, header);
+        card.getStyleClass().add("fxt-settings-card");
+        card.setStyle("-fx-border-color: " + color + "55 transparent transparent transparent;"
+                + "-fx-border-width: 3 0 0 0;");
+        card.getChildren().addAll(controls);
+        card.setPrefWidth(390);
+        return card;
     }
 
     private static HBox labeled(String text, Region control) {
@@ -232,6 +272,34 @@ public class SettingsPanel extends VBox {
         if (dir != null) {
             field.setText(dir.getAbsolutePath());
         }
+    }
+
+    /** @return the application cache folder ({@code ~/.freeXmlToolkit/cache}), e.g. for downloaded schemas. */
+    public static File cacheFolder() {
+        return new File(System.getProperty("user.home"),
+                ".freeXmlToolkit" + File.separator + "cache");
+    }
+
+    /** Recursively deletes everything inside the cache folder. @return the number of files deleted. */
+    public int clearCacheFolder() {
+        return deleteContents(cacheFolder());
+    }
+
+    static int deleteContents(File directory) {
+        File[] files = directory.listFiles();
+        if (files == null) {
+            return 0;
+        }
+        int deleted = 0;
+        for (File file : files) {
+            if (file.isDirectory()) {
+                deleted += deleteContents(file);
+                file.delete();
+            } else if (file.delete()) {
+                deleted++;
+            }
+        }
+        return deleted;
     }
 
     /** Deletes the files directly inside the effective temp folder. @return the number deleted. */
