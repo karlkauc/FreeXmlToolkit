@@ -77,6 +77,18 @@ class EditorWelcomePaneTest {
     }
 
     @Test
+    void explorerToolCardSwitchesToExplorer() {
+        fire("#tool-explorer");
+        assertEquals("explorer", action.get(), "the Explorer card must request the explorer activity");
+    }
+
+    @Test
+    void settingsToolCardSwitchesToSettings() {
+        fire("#tool-settings");
+        assertEquals("settings", action.get(), "the Settings card must request the settings activity");
+    }
+
+    @Test
     void clearLinkInvokesTheClearCallback() {
         fire("#welcome-clear");
         assertTrue(clearCalled.get());

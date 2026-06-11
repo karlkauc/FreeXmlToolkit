@@ -52,8 +52,8 @@ public class EditorWelcomePane extends VBox {
      * @param onClearRecent invoked when the Clear link is pressed
      * @param onAction      invoked with an action key for the remaining cards:
      *                      {@code open-folder}, {@code from-url}, and the tool/activity ids
-     *                      {@code validation}, {@code transform}, {@code schema}, {@code pdf},
-     *                      {@code signature}, {@code favorites}
+     *                      {@code explorer}, {@code validation}, {@code transform}, {@code schema},
+     *                      {@code pdf}, {@code signature}, {@code favorites}, {@code settings}
      */
     public EditorWelcomePane(Consumer<EditorFileType> onNew, Runnable onOpen, Consumer<File> onOpenRecent,
             Runnable onClearRecent, Consumer<String> onAction) {
@@ -328,12 +328,14 @@ public class EditorWelcomePane extends VBox {
         grid.getColumnConstraints().addAll(equalColumn(), equalColumn());
 
         Button[] cards = {
+                toolCard("tool-explorer", "explorer", "bi-folder2-open", "Explorer", "Files & workspace", onAction),
                 toolCard("tool-validation", "validation", "bi-check2-circle", "Validate", "XSD & Schematron", onAction),
                 toolCard("tool-transform", "transform", "bi-arrow-repeat", "Transform", "XSLT 3.0 / XQuery", onAction),
                 toolCard("tool-schema", "schema", "bi-diagram-3", "Schema", "Graphical XSD editor", onAction),
                 toolCard("tool-pdf", "pdf", "bi-file-earmark-pdf", "PDF / FOP", "XSL-FO to PDF", onAction),
                 toolCard("tool-signature", "signature", "bi-shield-lock", "Signature", "XML-DSig sign & verify", onAction),
-                toolCard("tool-favorites", "favorites", "bi-star", "Favorites", "Pinned files", onAction)
+                toolCard("tool-favorites", "favorites", "bi-star", "Favorites", "Pinned files", onAction),
+                toolCard("tool-settings", "settings", "bi-gear", "Settings", "Application preferences", onAction)
         };
         for (int i = 0; i < cards.length; i++) {
             grid.add(cards[i], i % 2, i / 2);
