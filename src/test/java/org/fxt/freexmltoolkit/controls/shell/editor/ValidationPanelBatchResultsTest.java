@@ -81,6 +81,36 @@ class ValidationPanelBatchResultsTest {
     }
 
     @Test
+    void runBatchForDirectoryValidatesAllXmlFilesRecursively(@TempDir Path tmp) throws Exception {
+        Path sch = tmp.resolve("rules.sch");
+        Files.writeString(sch, SCHEMATRON);
+        Path bad = tmp.resolve("a.xml");
+        Files.writeString(bad, "<root/>");
+        Path sub = Files.createDirectory(tmp.resolve("sub"));
+        Path good = sub.resolve("b.xml");
+        Files.writeString(good, "<root><name>x</name></root>");
+        Files.writeString(tmp.resolve("notes.txt"), "not xml");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(bad));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("root")).orElse(false));
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.setActiveSchematron(sch.toFile());
+            panel.runBatchForDirectory(tmp.toFile());
+            return null;
+        });
+        // The scan only picks up *.xml (recursively): a.xml + sub/b.xml, not rules.sch
+        // or notes.txt. Poll count and visibility together (same-pulse sibling effects).
+        ListView<?> results = (ListView<?>) panel.lookup("#validation-results-list");
+        WaitForAsyncUtils.waitFor(6, TimeUnit.SECONDS,
+                () -> panel.batchResultCount() == 2 && results.isVisible());
+        assertEquals(2, panel.batchResultCount(),
+                "the recursive folder scan must find exactly the two .xml files");
+        assertEquals(1, panel.batchFailedCount(),
+                "only a.xml violates the Schematron rule");
+    }
+
+    @Test
     void segmentedToggleSwitchesBetweenSingleAndBatchMode() {
         WaitForAsyncUtils.waitForFxEvents();
         assertFalse(panel.isBatchMode(), "Single file is the default mode");

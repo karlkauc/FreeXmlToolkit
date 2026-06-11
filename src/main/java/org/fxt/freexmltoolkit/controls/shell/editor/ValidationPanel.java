@@ -9,8 +9,10 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
+import javafx.geometry.Side;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckMenuItem;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
@@ -25,6 +27,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.util.Duration;
 
@@ -60,6 +63,7 @@ public class ValidationPanel extends VBox {
     private final CheckMenuItem liveValidation = new CheckMenuItem("Validate while typing");
     private final ToggleButton singleMode = new ToggleButton("Single file");
     private final ToggleButton batchMode = new ToggleButton("Batch");
+    private final ContextMenu batchSourceMenu = new ContextMenu();
     private final PauseTransition debounce = new PauseTransition(Duration.millis(600));
     private File jsonSchemaFile;
     private String lastBatchReport;
@@ -119,9 +123,14 @@ public class ValidationPanel extends VBox {
         run.setId("validation-run");
         run.getStyleClass().add("fxt-primary-button");
         run.setMaxWidth(Double.MAX_VALUE);
+        MenuItem batchFilesItem = new MenuItem("Select XML files…", icon("bi-file-earmark-text", 16));
+        batchFilesItem.setOnAction(e -> chooseBatch());
+        MenuItem batchFolderItem = new MenuItem("Select folder…", icon("bi-folder2-open", 16));
+        batchFolderItem.setOnAction(e -> chooseBatchFolder());
+        batchSourceMenu.getItems().addAll(batchFilesItem, batchFolderItem);
         run.setOnAction(e -> {
             if (isBatchMode()) {
-                chooseBatch();
+                batchSourceMenu.show(run, Side.BOTTOM, 0, 0);
             } else {
                 revalidate();
             }
@@ -469,6 +478,46 @@ public class ValidationPanel extends VBox {
         java.util.List<File> files = chooser.showOpenMultipleDialog(
                 getScene() != null ? getScene().getWindow() : null);
         runBatch(files);
+    }
+
+    private void chooseBatchFolder() {
+        DirectoryChooser chooser = new DirectoryChooser();
+        chooser.setTitle("Select folder with XML files");
+        File dir = chooser.showDialog(getScene() != null ? getScene().getWindow() : null);
+        if (dir != null) {
+            runBatchForDirectory(dir);
+        }
+    }
+
+    /**
+     * Recursively collects every {@code *.xml} file under {@code dir} (async) and
+     * validates the result like {@link #runBatch(java.util.List)}.
+     */
+    public void runBatchForDirectory(File dir) {
+        if (dir == null || !dir.isDirectory()) {
+            return;
+        }
+        status.setText("Scanning " + dir.getName() + "…");
+        FxtGui.executorService.submit(() -> {
+            List<File> files;
+            try (var paths = java.nio.file.Files.walk(dir.toPath())) {
+                files = paths.filter(java.nio.file.Files::isRegularFile)
+                        .filter(p -> p.getFileName().toString().toLowerCase().endsWith(".xml"))
+                        .map(java.nio.file.Path::toFile)
+                        .sorted()
+                        .toList();
+            } catch (java.io.IOException ex) {
+                Platform.runLater(() -> status.setText("Could not scan " + dir.getName() + ": " + ex.getMessage()));
+                return;
+            }
+            Platform.runLater(() -> {
+                if (files.isEmpty()) {
+                    status.setText("No XML files found in " + dir.getName());
+                } else {
+                    runBatch(files);
+                }
+            });
+        });
     }
 
     /** Lets the user pick an XSD to validate the active XML document against. */
