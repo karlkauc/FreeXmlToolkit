@@ -2094,15 +2094,17 @@ structure.</p>
 <h2 id="how-to-use">How to Use<a class="headerlink" href="#how-to-use" title="Permanent link">&para;</a></h2>
 <h3 id="step-1-select-your-files">Step 1: Select Your Files<a class="headerlink" href="#step-1-select-your-files" title="Permanent link">&para;</a></h3>
 <ol>
-<li>Open your XML source file in the editor host so it is the active document</li>
-<li>In the <strong>Transform</strong> panel, click <strong>Set XSLT…</strong> to choose an XSLT stylesheet</li>
+<li>Open your XML source file in the editor host so it is the active document - the panel's
+   <strong>INPUT</strong> section follows the active tab by default (use <strong>Change → Select XML file…</strong> to
+   transform a fixed file from disk instead)</li>
+<li>In the <strong>STYLESHEET</strong> section, click <strong>Change</strong> to choose an XSLT stylesheet (the clock
+   icon offers your recently used stylesheets)</li>
 </ol>
 <h3 id="step-2-run-and-view-the-results">Step 2: Run and View the Results<a class="headerlink" href="#step-2-run-and-view-the-results" title="Permanent link">&para;</a></h3>
-<p>Click <strong>Transform</strong> to run the transformation. The result opens as a <strong>regular editor tab</strong>
-(<code>Transform-Result.xml</code>, <code>.html</code>, <code>.json</code>, or <code>.txt</code> depending on the output format), so you can
-inspect, edit, and save it like any other document. Re-running the transformation updates the
-same result tab — even while the result tab itself is active, the original source document is
-transformed again.</p>
+<p>Click <strong>Run Transform</strong>. The result appears in the <strong>OUTPUT panel</strong> that docks <strong>below the
+editor</strong> - the source stays on top, the result shows underneath. The panel header shows a
+format badge, a success/error status with timing (<code>Transformed · N ms · M chars</code>), and view
+toggles:</p>
 <table>
 <thead>
 <tr>
@@ -2112,47 +2114,59 @@ transformed again.</p>
 </thead>
 <tbody>
 <tr>
-<td><strong>Result editor tab</strong></td>
-<td>The transformation output as an editable, savable document</td>
+<td><strong>Text</strong></td>
+<td>The raw result as text (the default)</td>
 </tr>
 <tr>
-<td><strong>HTML Preview tab</strong></td>
+<td><strong>Preview</strong></td>
 <td>For HTML/XHTML output: the result rendered as a web page</td>
 </tr>
 <tr>
-<td><strong>RESULT area</strong></td>
-<td>Quick XPath/XQuery results, errors, and transformation statistics</td>
+<td><strong>Table</strong></td>
+<td>For XQuery results that return a sequence: the items shown as a table</td>
 </tr>
 </tbody>
 </table>
-<p>The <strong>OUTPUT</strong> format defaults to <strong>Auto</strong>: the format (XML, HTML, XHTML, Text, JSON) is
-detected from the stylesheet's <code>xsl:output</code> declaration. Pick a concrete format in the combo
-box to override the detection.</p>
+<p>The <strong>OUTPUT METHOD</strong> defaults to <strong>Auto</strong>: the format (XML, HTML, XHTML, Text, JSON) is
+detected from the stylesheet's <code>xsl:output</code> declaration. Pick a concrete segment to
+override the detection.</p>
 <hr />
 <h2 id="transform-panel-actions">Transform Panel Actions<a class="headerlink" href="#transform-panel-actions" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
-<th>Button</th>
+<th>Control</th>
 <th>Description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><strong>Transform</strong></td>
-<td>Runs the transformation with the current stylesheet</td>
+<td><strong>Run Transform</strong></td>
+<td>Runs the transformation with the current stylesheet and input</td>
 </tr>
 <tr>
-<td><strong>Watch file</strong></td>
-<td>Re-runs automatically when the stylesheet changes</td>
+<td><strong>Open result as editor tab</strong></td>
+<td>(OUTPUT panel) Opens the result as an editable, savable document</td>
 </tr>
 <tr>
-<td><strong>Editor</strong></td>
-<td>Opens the current RESULT text as a new editor tab</td>
+<td><strong>Open in browser</strong></td>
+<td>(OUTPUT panel) Opens the result in your default web browser</td>
 </tr>
 <tr>
-<td><strong>Browser</strong></td>
-<td>Opens the result in your default web browser</td>
+<td><strong>Save result…</strong></td>
+<td>(OUTPUT panel) Writes the result straight to a file</td>
+</tr>
+<tr>
+<td><strong>⋮ → Watch stylesheet file</strong></td>
+<td>Re-runs automatically when the stylesheet changes on disk</td>
+</tr>
+<tr>
+<td><strong>⋮ → Live preview</strong></td>
+<td>Re-runs automatically (debounced) while you edit the input document</td>
+</tr>
+<tr>
+<td><strong>⋮ → Auto-open result tab</strong></td>
+<td>Also opens every successful result as an editor tab (off by default)</td>
 </tr>
 </tbody>
 </table>
@@ -2405,18 +2419,20 @@ box to override the detection.</p>
 <p>Use these with the example XML file <code>examples/xml/FundsXML_422_Bond_Fund.xml</code>.</p>
 <hr />
 <h2 id="performance-statistics">Performance Statistics<a class="headerlink" href="#performance-statistics" title="Permanent link">&para;</a></h2>
-<p>After each transformation, you can view performance metrics in the <strong>Performance</strong> tab:</p>
+<p>After each transformation, the OUTPUT panel's status line shows compact statistics in the
+form <code>Transformed · N ms · M chars</code>:</p>
 <ul>
-<li><strong>Execution time</strong> - How long the transformation took</li>
-<li><strong>Output size</strong> - Size of the generated output</li>
-<li><strong>Memory usage</strong> - Memory consumed during transformation</li>
+<li><strong>Execution time</strong> - How long the transformation took (milliseconds)</li>
+<li><strong>Output size</strong> - Size of the generated output (characters)</li>
 </ul>
+<p>For detailed per-template timings, enable <strong>Profile run</strong> in the Transform panel's ⋮ menu -
+the next run also opens a read-only Profile tool tab.</p>
 <hr />
 <h2 id="tips">Tips<a class="headerlink" href="#tips" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>Validate first</strong> - Make sure your XML and XSLT files are valid before transformation</li>
-<li><strong>Check the error panel</strong> - If transformation fails, check the error messages</li>
-<li><strong>Use the HTML preview</strong> - For HTML output, the preview shows you exactly how it will look</li>
+<li><strong>Check the OUTPUT panel status</strong> - If a transformation fails, the red error status in the OUTPUT panel header shows the error message</li>
+<li><strong>Use the Preview view</strong> - For HTML output, the OUTPUT panel's <strong>Preview</strong> toggle shows you exactly how it will look</li>
 <li><strong>Try the example files</strong> - Learn from the included examples in the <code>examples/</code> folder</li>
 <li><strong>Need more features?</strong> - Use the <a href="../xslt-developer/">XSLT Developer</a> for advanced editing</li>
 </ul>

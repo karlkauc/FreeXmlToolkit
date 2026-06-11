@@ -783,10 +783,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#choosing-a-stylesheet" class="md-nav__link">
+  <a href="#stylesheet" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Choosing a Stylesheet
+        STYLESHEET
       
     </span>
   </a>
@@ -794,10 +794,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#running-and-viewing-results" class="md-nav__link">
+  <a href="#input" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Running and Viewing Results
+        INPUT
       
     </span>
   </a>
@@ -805,10 +805,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#xquery-result-table" class="md-nav__link">
+  <a href="#output-method" class="md-nav__link">
     <span class="md-ellipsis">
       
-        XQuery Result Table
+        OUTPUT METHOD
       
     </span>
   </a>
@@ -816,10 +816,54 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#advanced-xslt-tools" class="md-nav__link">
+  <a href="#parameters" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Advanced XSLT tools
+        PARAMETERS
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#running-a-transformation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running a Transformation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#xpath-and-xquery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        XPATH and XQUERY
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-transform-menu" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Transform ⋮ Menu
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-output-panel-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The OUTPUT Panel (Results)
       
     </span>
   </a>
@@ -2475,10 +2519,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#choosing-a-stylesheet" class="md-nav__link">
+  <a href="#stylesheet" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Choosing a Stylesheet
+        STYLESHEET
       
     </span>
   </a>
@@ -2486,10 +2530,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#running-and-viewing-results" class="md-nav__link">
+  <a href="#input" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Running and Viewing Results
+        INPUT
       
     </span>
   </a>
@@ -2497,10 +2541,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#xquery-result-table" class="md-nav__link">
+  <a href="#output-method" class="md-nav__link">
     <span class="md-ellipsis">
       
-        XQuery Result Table
+        OUTPUT METHOD
       
     </span>
   </a>
@@ -2508,10 +2552,54 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#advanced-xslt-tools" class="md-nav__link">
+  <a href="#parameters" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Advanced XSLT tools
+        PARAMETERS
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#running-a-transformation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running a Transformation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#xpath-and-xquery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        XPATH and XQUERY
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-transform-menu" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Transform ⋮ Menu
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-output-panel-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The OUTPUT Panel (Results)
       
     </span>
   </a>
@@ -3148,86 +3236,170 @@ Statistics, Schema Quality, Generate Sample XML / Documentation) on the left.</e
 <li><strong>Flatten</strong> - Merge included/imported schemas into a single file</li>
 </ul>
 <h2 id="xslt-features">XSLT Features<a class="headerlink" href="#xslt-features" title="Permanent link">&para;</a></h2>
-<p>When editing an XSLT file:</p>
+<p>XSLT work happens in the <a href="#transform-panel">Transform Panel</a> (Activity Bar → <strong>Transform</strong>):</p>
 <ul>
-<li><strong>Transform</strong> - Run XSLT transformation with XML input</li>
-<li><strong>Live Transform</strong> - Auto-execute on changes</li>
-<li><strong>Parameters</strong> - Define XSLT parameters (name/value pairs)</li>
-<li><strong>Output Format</strong> - Choose XML, HTML, or Text output</li>
-<li><strong>Performance</strong> tab - Execution time, throughput, star rating</li>
-<li><strong>Debug</strong> tab - Messages, warnings, template execution trace</li>
-<li><strong>Open in Browser</strong> - View HTML output in default browser</li>
+<li><strong>Run Transform</strong> - Run an XSLT transformation against the chosen input</li>
+<li><strong>Live preview</strong> (⋮ menu) - Re-run automatically while you edit</li>
+<li><strong>Parameters</strong> - Define XSLT parameters (name = value rows)</li>
+<li><strong>Output method</strong> - Auto-detect or choose XML, HTML, XHTML, Text, or JSON output</li>
+<li><strong>Timing</strong> - The OUTPUT panel status shows execution time and output size</li>
+<li><strong>Profile / Trace / Debug</strong> (⋮ menu) - Per-template timings, template-match trace with
+  <code>xsl:message</code> output, and the interactive debugger</li>
+<li><strong>Open in browser</strong> - View HTML output in your default browser from the OUTPUT panel</li>
 </ul>
 <h2 id="transform-panel">Transform Panel<a class="headerlink" href="#transform-panel" title="Permanent link">&para;</a></h2>
 <blockquote>
-<p><strong>New in June 2026</strong> - Transform results now open as <strong>regular editor tabs</strong>, the
-output format is <strong>auto-detected</strong> from the stylesheet, and HTML results get a
-<strong>rendered preview tab</strong>. Also: recent-stylesheet history, a watch-and-rerun option,
-result timing, and an XQuery result table.</p>
+<p><strong>Redesigned in June 2026</strong> - The panel is now organized into <strong>collapsible sections</strong>
+(STYLESHEET, INPUT, OUTPUT METHOD, PARAMETERS, XPATH, XQUERY) with a single primary
+<strong>Run Transform</strong> button. Results no longer open as an editor tab automatically -
+they appear in a new <strong><a href="#the-output-panel-results">OUTPUT panel</a></strong> docked below the
+editor. All secondary toggles and tools moved into the panel header's ⋮ (overflow) menu.</p>
 </blockquote>
 <p>The <strong>Transform</strong> panel (open it from the <strong>Transform</strong> icon in the activity bar on the
-left) runs XSLT transformations and XQuery expressions against the active XML document.
-On short windows the panel's controls scroll, while the RESULT area stays pinned at the
-bottom.</p>
-<h3 id="choosing-a-stylesheet">Choosing a Stylesheet<a class="headerlink" href="#choosing-a-stylesheet" title="Permanent link">&para;</a></h3>
+left) runs XSLT transformations, XPath/JSONPath queries, and XQuery expressions. The panel
+header reads <strong>TRANSFORM</strong> and carries a <strong>⋮ (overflow) menu</strong> with the secondary options
+(see <a href="#the-transform-menu">The ⋮ Menu</a> below). Each section header is clickable to collapse
+or expand that section.</p>
+<h3 id="stylesheet">STYLESHEET<a class="headerlink" href="#stylesheet" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>Set XSLT…</strong> - Pick the XSLT stylesheet to apply.</li>
-<li><strong>Recent</strong> - A drop-down menu listing the XSLT stylesheets you used most recently, so you
-  can reapply one in a single click. The menu also offers <strong>Clear recent</strong> to empty the list.</li>
-<li><strong>Watch file</strong> - When checked, the transform re-runs automatically whenever the chosen
-  stylesheet changes on disk. This is handy while you edit a stylesheet in another tool and
-  want to see the effect immediately.</li>
+<li>Shows the <strong>name of the chosen XSLT stylesheet</strong> (or <em>none</em> if no stylesheet is set yet).</li>
+<li><strong>Change</strong> - pick an <code>.xsl</code> / <code>.xslt</code> file from disk.</li>
+<li>The <strong>clock icon</strong> opens the <strong>recent stylesheets</strong> menu: reapply a recently used
+  stylesheet in a single click, or choose <strong>Clear recent</strong> to empty the list.</li>
 </ul>
-<h3 id="running-and-viewing-results">Running and Viewing Results<a class="headerlink" href="#running-and-viewing-results" title="Permanent link">&para;</a></h3>
+<h3 id="input">INPUT<a class="headerlink" href="#input" title="Permanent link">&para;</a></h3>
+<p>The INPUT section shows which document the transform will use as its input:</p>
+<ul>
+<li>By default the input <strong>follows the active editor document</strong>: switch to another tab and
+  the next run transforms that document (the shown input name updates live).</li>
+<li><strong>Change</strong> opens a small menu with two options:<ul>
+<li><strong>Select XML file…</strong> - transform a fixed XML file from disk instead, regardless of
+  which editor tab is active.</li>
+<li><strong>Use active editor</strong> - go back to following the active tab.</li>
+</ul>
+</li>
+</ul>
+<h3 id="output-method">OUTPUT METHOD<a class="headerlink" href="#output-method" title="Permanent link">&para;</a></h3>
+<p>A segmented control with <strong>Auto · XML · HTML · XHTML · Text · JSON</strong>. <strong>Auto</strong> (the
+default) detects the output format from the stylesheet's <code>xsl:output</code> declaration; pick a
+concrete format to override the detection.</p>
+<h3 id="parameters">PARAMETERS<a class="headerlink" href="#parameters" title="Permanent link">&para;</a></h3>
+<p>Define XSLT parameters as <strong>name = value</strong> rows:</p>
+<ul>
+<li><strong>Add parameter</strong> adds a new row.</li>
+<li>Each row has its own <strong>remove</strong> button.</li>
+<li>The values are passed to the stylesheet on every run.</li>
+</ul>
+<h3 id="running-a-transformation">Running a Transformation<a class="headerlink" href="#running-a-transformation" title="Permanent link">&para;</a></h3>
 <ol>
-<li>Set an XSLT stylesheet (or type an XQuery, see below).</li>
-<li>Click <strong>Transform</strong> (XSLT) or <strong>Run XQuery</strong> (XQuery).</li>
-<li>An XSLT result opens as a <strong>regular editor tab</strong> (<code>Transform-Result.xml</code> / <code>.html</code> /
-   <code>.json</code> / <code>.txt</code>) that you can edit and save like any other document. Re-running the
-   transformation updates the same tab — even while the result tab is active, the original
-   source document is transformed again. XQuery/XPath results appear in the <strong>RESULT</strong> area.</li>
-<li>For <strong>HTML/XHTML</strong> output, an additional <strong>HTML Preview</strong> tool tab shows the result
-   rendered as a web page; it refreshes on every re-run.</li>
+<li>Choose a stylesheet (<strong>STYLESHEET → Change</strong>, or pick one from the recent menu).</li>
+<li>Check the <strong>INPUT</strong> section shows the document you want to transform.</li>
+<li>Click <strong>Run Transform</strong>.</li>
 </ol>
-<p>The <strong>OUTPUT</strong> combo defaults to <strong>Auto</strong>: the output format is detected from the
-stylesheet's <code>xsl:output</code> declaration (XML, HTML, XHTML, Text, or JSON). Choose a concrete
-format to override the detection.</p>
-<p>The RESULT header shows a compact <strong>timing stat</strong> in the form <code>N ms · M chars</code> so you can
-see how long the run took and how large the output is.</p>
+<p>The result appears in the <strong>OUTPUT panel</strong> below the editor - see
+<a href="#the-output-panel-results">The OUTPUT Panel</a> below.</p>
+<h3 id="xpath-and-xquery">XPATH and XQUERY<a class="headerlink" href="#xpath-and-xquery" title="Permanent link">&para;</a></h3>
+<p>Two further sections, <strong>collapsed by default</strong>, run queries against the transform input:</p>
 <ul>
-<li><strong>Editor</strong> - Opens the current RESULT text as a new editor tab.</li>
-<li><strong>Browser</strong> - Opens the result (typically HTML) in your system web browser.</li>
+<li><strong>XPATH</strong> - a query field with <strong>Run</strong>, <strong>Save Query</strong> (store the current expression
+  under a name), and a <strong>Saved</strong> menu listing your saved queries (pick one to load it).
+  When the active document is <strong>JSON</strong>, the section is titled <strong>JSONPATH</strong> and the field
+  evaluates a JSONPath expression instead.</li>
+<li><strong>XQUERY</strong> - a multi-line query area with <strong>Run XQuery</strong> and an <strong>Examples</strong> menu
+  (Simple, FLWOR, HTML report, Data-quality check).</li>
 </ul>
-<h3 id="xquery-result-table">XQuery Result Table<a class="headerlink" href="#xquery-result-table" title="Permanent link">&para;</a></h3>
-<p>The RESULT area has a <strong>Text / Table</strong> toggle:</p>
-<ul>
-<li><strong>Text</strong> - Shows the raw result as text (the default).</li>
-<li><strong>Table</strong> - When an XQuery returns a <strong>sequence</strong> of items, the result is shown as a table.
-  Each item becomes a row, and the columns are taken from each item's child elements (or, if
-  an item has no child elements, its attributes). A sequence of plain values is shown in a
-  single <strong>value</strong> column.</li>
-</ul>
-<p>To use it, write an XQuery that returns a sequence (for example
-<code>for $x in /root/item return $x</code>), click <strong>Run XQuery</strong>, then switch the toggle to <strong>Table</strong>.</p>
-<h3 id="advanced-xslt-tools">Advanced XSLT tools<a class="headerlink" href="#advanced-xslt-tools" title="Permanent link">&para;</a></h3>
-<p>The Transform side panel's <strong>Advanced</strong> section adds:</p>
-<ul>
-<li><strong>Debug</strong> - opens the stylesheet as a document with a breakpoint gutter and a
-  Debug tool tab (step into/over/out, continue, stop; variables, call stack,
-  breakpoints, and XPath watches).</li>
-<li><strong>Batch…</strong> - runs the active stylesheet/XQuery over many XML files, with
-  per-file results and "Save All".</li>
-<li><strong>Profile</strong> / <strong>Trace</strong> - when checked, a transform also opens a read-only
-  Profile (timings + per-template execution times) or Trace (template matches +
-  <code>xsl:message</code> output) tool tab.</li>
-</ul>
-<p>The XQuery console offers built-in <strong>Examples</strong> (simple, FLWOR, HTML report,
-data-quality check).</p>
+<p>Both inputs offer context-aware <a href="#xpath-xquery-autocomplete">autocomplete</a>. Query results
+appear in the same OUTPUT panel below the editor.</p>
+<h3 id="the-transform-menu">The Transform ⋮ Menu<a class="headerlink" href="#the-transform-menu" title="Permanent link">&para;</a></h3>
+<p>The secondary toggles and tools (the former <strong>Advanced</strong> section) live in the panel
+header's ⋮ (overflow) menu:</p>
+<table>
+<thead>
+<tr>
+<th>Entry</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Live preview</strong></td>
+<td>Re-runs the transform automatically (debounced) while you edit the input document.</td>
+</tr>
+<tr>
+<td><strong>Watch stylesheet file</strong></td>
+<td>Re-runs the transform whenever the chosen stylesheet changes on disk - handy while editing the stylesheet in another tool.</td>
+</tr>
+<tr>
+<td><strong>Profile run</strong></td>
+<td>A transform also opens a read-only <strong>Profile</strong> tool tab (timings + per-template execution times).</td>
+</tr>
+<tr>
+<td><strong>Trace run</strong></td>
+<td>A transform also opens a <strong>Trace</strong> tool tab (template matches + <code>xsl:message</code> output).</td>
+</tr>
+<tr>
+<td><strong>Auto-open result tab</strong></td>
+<td>Additionally opens every successful result as a regular editor tab. <strong>Off by default.</strong></td>
+</tr>
+<tr>
+<td><strong>Debug XSLT…</strong></td>
+<td>Opens the stylesheet as a document with a breakpoint gutter and a Debug tool tab (step into/over/out, continue, stop; variables, call stack, breakpoints, and XPath watches).</td>
+</tr>
+<tr>
+<td><strong>Batch Transform…</strong></td>
+<td>Runs the active stylesheet/XQuery over many XML files, with per-file results and "Save All".</td>
+</tr>
+</tbody>
+</table>
 <blockquote>
 <p>XSLT version selection (1.0/2.0/3.0) is intentionally not offered: Saxon HE
 auto-detects the version from the stylesheet's <code>version</code> attribute, so an
 explicit selector would be cosmetic.</p>
 </blockquote>
+<h3 id="the-output-panel-results">The OUTPUT Panel (Results)<a class="headerlink" href="#the-output-panel-results" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p><strong>New in June 2026</strong> - Transform and query results now appear in an <strong>OUTPUT panel
+docked below the editor</strong> instead of automatically opening editor tabs and a separate
+HTML-preview tool tab.</p>
+</blockquote>
+<p>All Transform-panel results - XSLT transforms, XPath/JSONPath queries, and XQuery runs -
+appear in an <strong>OUTPUT panel</strong> that docks <strong>below the editor</strong>: the source document stays
+on top and the result shows underneath, while the Properties inspector keeps its full
+height. The panel <strong>persists across activity switches</strong>, so the last result stays visible
+while you work elsewhere.</p>
+<p>The OUTPUT panel header shows:</p>
+<ul>
+<li>A <strong>format badge</strong> (XML, HTML, …) for the result.</li>
+<li>A <strong>status</strong>: a green check with <code>Transformed · N ms · M chars</code> on success (how long the
+  run took and how large the output is), or a red error icon with the error message on
+  failure.</li>
+<li><strong>View toggles</strong> - <strong>Preview | Text | Table</strong>:<ul>
+<li><strong>Text</strong> - the raw result as text (the default).</li>
+<li><strong>Preview</strong> - the result rendered as a web page; available for <strong>HTML/XHTML</strong>
+  results only.</li>
+<li><strong>Table</strong> - available for <strong>XQuery</strong> results that return a <strong>sequence</strong> of items
+  (auto-selected when applicable). Each item becomes a row, and the columns are taken
+  from each item's child elements (or, if an item has no child elements, its
+  attributes). A sequence of plain values is shown in a single <strong>value</strong> column.</li>
+</ul>
+</li>
+<li><strong>Actions</strong>:<ul>
+<li><strong>Open result as editor tab</strong> - opens the result as a regular document
+  (<code>Transform-Result.xml</code> / <code>.html</code> / <code>.json</code> / <code>.txt</code>) that you can edit and save.</li>
+<li><strong>Open in browser</strong> - opens the result (typically HTML) in your system web browser.</li>
+<li><strong>Save result…</strong> - writes the result straight to a file.</li>
+<li><strong>✕</strong> - hides the OUTPUT panel; it reappears automatically on the next run.</li>
+</ul>
+</li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In earlier versions, every transform opened a <code>Transform-Result.*</code> editor tab, and HTML
+output additionally opened an "HTML Preview" tool tab. Both were replaced by the OUTPUT
+panel: an editor tab now opens only via the panel's <strong>Open result as editor tab</strong> action
+or the <strong>Auto-open result tab</strong> toggle in the ⋮ menu, and HTML is rendered inline via
+the panel's <strong>Preview</strong> view.</p>
+</div>
 <h2 id="explorer-panel">Explorer Panel<a class="headerlink" href="#explorer-panel" title="Permanent link">&para;</a></h2>
 <p>Open the <strong>Explorer</strong> panel from the activity bar to manage files.</p>
 <blockquote>
@@ -3815,8 +3987,8 @@ expression. When no document is open, <strong>Run</strong> is disabled and the r
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>The Query Console is an additional, faster access point - it does not replace the <strong>Transform</strong>
-activity. For recent-stylesheet history, watch-and-rerun, result timing, and the XQuery result
-table, use the <a href="#transform-panel">Transform Panel</a>.</p>
+activity. For XSLT transformations, parameters, recent-stylesheet history, watch-and-rerun, and
+the OUTPUT panel's result table and HTML preview, use the <a href="#transform-panel">Transform Panel</a>.</p>
 </div>
 <h3 id="saving-and-loading-snippets">Saving and Loading Snippets<a class="headerlink" href="#saving-and-loading-snippets" title="Permanent link">&para;</a></h3>
 <p>Reusable XPath <strong>and</strong> XQuery expressions are saved as <strong>snippets</strong>:</p>
@@ -3837,15 +4009,13 @@ names, XPath axes, functions, and (in XQuery) variables. Navigate with the arrow
 <strong>Enter</strong> or <strong>Tab</strong> to insert; <strong>Escape</strong> dismisses the popup. Functions and axes are inserted with
 their parentheses / <code>::</code> automatically.</p>
 <h3 id="saving-loading-and-examples">Saving, Loading and Examples<a class="headerlink" href="#saving-loading-and-examples" title="Permanent link">&para;</a></h3>
-<p>The Transform panel's XPath/XQuery toolbar provides the same query management as the XML Editor,
-acting on whichever tab (XPath or XQuery) is currently active. (The bottom
-<a href="#query-console">Query Console</a> offers a lighter Save / Snippets pair instead.)</p>
+<p>The Transform panel's query sections provide query management (the bottom
+<a href="#query-console">Query Console</a> offers a lighter Save / Snippets pair instead):</p>
 <ul>
-<li><strong>Saved Queries</strong> - dropdown of previously saved queries of the active type. It also offers
-  <em>Add Current Query to Favorites…</em> and <em>Open Queries Folder…</em>.</li>
-<li><strong>Save</strong> - store the current expression under a name (kept alongside the XML Editor's queries).</li>
-<li><strong>Load</strong> - open a saved query file (<code>*.xpath</code> / <code>*.xquery</code> / <code>*.xq</code>) into the active tab.</li>
-<li><strong>Examples</strong> - insert ready-made sample expressions for the active query type.</li>
+<li><strong>XPATH section</strong> - <strong>Save Query</strong> stores the current expression under a name, and the
+  <strong>Saved</strong> menu lists every saved query; pick one to load it back into the field.</li>
+<li><strong>XQUERY section</strong> - the <strong>Examples</strong> menu inserts ready-made sample expressions
+  (Simple, FLWOR, HTML report, Data-quality check).</li>
 </ul>
 <p>Queries are stored in the shared query folder, so anything saved here is also available from the XML
 Editor's XPath/XQuery panel and vice versa.</p>
