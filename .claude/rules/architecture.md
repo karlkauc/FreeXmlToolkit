@@ -1,31 +1,52 @@
 # Architecture Quick-Reference
 
-## Application Layers
+## The Unified Shell (the entire UI)
+
 ```
-View (FXML/JavaFX) → Controller → Service → Model
+FxtGui → /pages/tab_unified_shell.fxml → UnifiedShellController → UnifiedShellView
+┌──┬──────────────┬──────────────────────────────────────┬─────────────┐
+│A │ Side panel   │ header (breadcrumb · search · theme) │ Inspector   │
+│c │ (per         ├──────────────────────────────────────┤ (Properties │
+│t │  activity)   │ file tabs · editor toolbar           │  panel)     │
+│i │              ├──────────────────────────────────────┤             │
+│v │              │ EditorHost (Text/Tree/Graphic views) │             │
+│B │              │                                      │             │
+│a ├──────────────┴──────────────────────────────────────┴─────────────┤
+│r │ status bar (Ln/Col · type · XSD indicator · memory · file)        │
+└──┴───────────────────────────────────────────────────────────────────┘
 ```
 
-## Package Structure
-- `controller/` - FXML Controllers (MainController, XmlController, XsdController + sub-controllers)
-- `util/` - Utility classes (FormattingUtils)
-- `service/` - Business logic (XmlService, PropertiesService, ThreadPoolManager)
-- `controls/v2/` - XSD Editor V2 (primary architecture)
-- `domain/` - Domain models
+Everything lives in `controls/shell/` and is **built in code** (no FXML except the
+bootstrap page). Legacy per-tool tabs/controllers are gone; `controller/` only keeps
+`UnifiedShellController`, `TemplatesController`, and dialog controllers.
 
----
+## Key Shell Classes
 
-## XSD Editor V2 Architecture (MVVM)
+| Class | Purpose | Location |
+|-------|---------|----------|
+| `UnifiedShellView` | Shell layout, editor toolbar, status bar, activity→panel wiring | `controls/shell/` |
+| `Activity` / `ActivityBar` / `ActivitySelectionModel` | Activity Bar (Explorer…Settings), stable ids | `controls/shell/` |
+| `ShellBootstrap` | Startup/shutdown tasks, scheduler | `controls/shell/` |
+| `EditorHost` | Center: file tabs (`EditorTab`), view-mode switching, schema/schematron binding, tool tabs, welcome page | `controls/shell/editor/` |
+| `ViewMode` | `TEXT` / `TREE` / `GRAPHIC` (no Grid mode — Graphic shows the XSD diagram for schemas, the XMLSpy-style instance grid for XML-family files) | `controls/shell/editor/` |
+| `EditorView` + `XmlEditorView`/`JsonEditorView` (`EditorViews` factory) | Per-file-type text editor adapter (wraps `XmlCodeEditorV2`) | `controls/shell/editor/` |
+| `ExplorerPanel`, `ValidationPanel`, `TransformPanel`, `FavoritesActivityPanel`, `FopPanel`, `SignaturePanel`, `FundsXmlPanel`, `HelpPanel`, `SettingsPanel` | Side-panel content per activity (Settings opens as a main-area tab instead) | `controls/shell/editor/` |
+| `EditorWelcomePane` | Welcome/Dashboard (quick actions, stats, tools grid) | `controls/shell/editor/` |
+| `XmlGridView` → `XmlCanvasView` | Instance grid shown in Graphic mode for XML | `controls/shell/editor/`, `controls/v2/xmleditor/view/` |
+| `InspectorPanel` | Right-hand Properties panel | `controls/shell/inspector/` |
+| `XsdTreeView`, `TypeLibrary`, `NodeContextMenu`, … | Schema activity views | `controls/shell/schema/` |
+| `*Runner` (ValidationRunner, TransformRunner, FopRunner, …) | Off-thread workhorses for panel actions | `controls/shell/editor/` |
+
+## XSD Editor V2 (model layer under the shell)
 
 ### Data Flow
 ```
-XSD File → XsdNodeFactory → XsdNode Tree → VisualNode → UI
+XSD File → XsdNodeFactory → XsdNode Tree → shell views (Tree/Graphic)
                               ↓
                      PropertyChangeEvents
                               ↓
                     Commands (execute/undo)
 ```
-
-### Critical Classes
 
 | Class | Purpose | Location |
 |-------|---------|----------|
@@ -34,6 +55,10 @@ XSD File → XsdNodeFactory → XsdNode Tree → VisualNode → UI
 | `SelectionModel` | Tracks selected nodes | `controls/v2/editor/selection/` |
 | `XsdSerializer` | Model → XSD XML | `controls/v2/editor/serialization/` |
 | `XsdNodeFactory` | XSD XML → Model | `controls/v2/model/` |
+
+The XML-instance counterpart lives in `controls/v2/xmleditor/` (`XmlEditorContext`,
+own `commands/`, `StreamingXmlParser`, canvas views). `EditorHost` keeps ONE shared
+context per document across Text/Tree/Graphic so undo history survives mode switches.
 
 ### Command Pattern (CRITICAL)
 ```java
@@ -60,7 +85,7 @@ commandManager.executeCommand(new RenameNodeCommand(element, "NewName"));
 |---------|---------|
 | UI Updates | `Platform.runLater(() -> { ... })` |
 | Background Work | `FxtGui.executorService.submit(() -> { ... })` |
-| Periodic Tasks | `MainController.scheduler` |
+| Periodic Tasks | `ShellBootstrap` scheduler |
 | Thread Pool | `ThreadPoolManager` (centralized) |
 
 ---
@@ -81,36 +106,6 @@ updater dispatch:
 
 ---
 
-## Key Controllers (25 total)
-
-| Controller | Tab / Context | Responsibility |
-|------------|---------------|----------------|
-| `XmlUltimateController` | XML | Multi-tab XML editing, IntelliSense |
-| `XsdController` | XSD | Tab orchestration, graphical/text view, Type Library/Editor |
-| `DocumentationTabController` | XSD > Documentation | XSD documentation export (HTML, PDF, Word) |
-| `FlattenTabController` | XSD > Flatten | Schema flattening with options |
-| `SchemaAnalysisTabController` | XSD > Analysis | Schema statistics, identity constraints |
-| `XsdValidationController` | XSD Validation | Schema validation results |
-| `XsltController` | XSLT | Transformations |
-| `SchematronController` | Schematron | Business rule validation |
-| `FopController` | FOP | PDF generation |
-| `SignatureController` | Signature | Digital signatures |
-| `JsonController` | JSON | JSON editing and validation |
-| `SchemaGeneratorController` | Schema Generator | XSD generation from XML |
-| `TemplatesController` | Templates | Template management |
-| `UnifiedEditorController` | Unified Editor | Unified editing view |
-| `SettingsController` | Settings | Application settings |
-| `HelpController` | Help | Help and about information |
-| `WelcomeController` | Welcome | Welcome screen |
-| `FavoritesParentController` | - | Favorites coordination |
-| `SchemaGeneratorPopupController` | Popup | Schema generator popup dialog |
-| `TemplateManagerPopupController` | Popup | Template manager popup dialog |
-| `XmlSpreadsheetConverterDialogController` | Dialog | XML-to-spreadsheet conversion |
-| `XmlEditorSidebarController` | Control | XML editor sidebar panel |
-| `FavoritesPanelController` | Control | Favorites panel component |
-
----
-
 ## Observable Model Pattern
 ```java
 // All XsdNode subclasses use PropertyChangeSupport
@@ -125,28 +120,16 @@ public void setName(String name) {
 
 ---
 
-## Entry Points (24 FXML files)
+## FXML (only a handful of pages remain)
 
 | File | Purpose |
 |------|---------|
-| `FxtGui.java` | Application main class |
-| `tab_xml_ultimate.fxml` | XML editor tab |
-| `tab_xsd.fxml` | XSD tools tab |
-| `tab_json.fxml` | JSON editor tab |
-| `tab_xslt.fxml` | XSLT viewer tab |
-| `tab_schematron.fxml` | Schematron tab |
-| `tab_fop.fxml` | FOP/PDF tab |
-| `tab_signature.fxml` | Digital signatures tab |
-| `tab_schema_generator.fxml` | Schema generator tab |
-| `tab_templates.fxml` | Templates tab |
-| `tab_help.fxml` | Help tab |
-| `tab_unified_editor.fxml` | Unified editor tab |
-| `tab_validation.fxml` | XSD validation tab |
-| `documentation_tab.fxml` | XSD documentation sub-tab |
-| `flatten_tab.fxml` | XSD flatten sub-tab |
-| `schema_analysis_tab.fxml` | XSD schema analysis sub-tab |
-| `popup_schema_generator.fxml` | Schema generator popup |
-| `popup_templates.fxml` | Template manager popup |
-| `dialogs/XmlSpreadsheetConverterDialog.fxml` | Spreadsheet converter dialog |
-| `controls/FavoritesPanel.fxml` | Favorites panel component |
-| `controls/XmlEditorSidebar.fxml` | XML editor sidebar component |
+| `tab_unified_shell.fxml` | Bootstrap page hosting `UnifiedShellView` |
+| `tab_templates.fxml` | Templates management |
+| `pages/controls/*.fxml`, `pages/dialogs/*.fxml` | Reusable controls/dialogs |
+
+## CSS
+
+- `css/design-tokens.css` — `-fxt-*` variables (Light + Dark), Indigo `#3B5BDB` primary
+- `css/unified-shell.css` — all shell styling (`fxt-*` classes)
+- Figma source of truth: file `oqJVcInD6RgKaQ4dYmMWYh` ("FreeXmlToolkit — UI Modernization")

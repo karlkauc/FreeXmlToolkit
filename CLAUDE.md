@@ -48,15 +48,15 @@ including in IDE / `./gradlew run` mode.
 
 ## Application Entry Point
 
-**Main Class:** `org.fxt.freexmltoolkit.FxtGui` — extends `javafx.application.Application`, loads FXML from `/pages/main.fxml`, initializes maximized window with logging, fonts, CSS hot-reloading, platform icons.
-
-**Main Controller:** `org.fxt.freexmltoolkit.controller.MainController` — manages tab-based navigation, coordinates specialized controllers, handles lifecycle and executor services.
+**Main Class:** `org.fxt.freexmltoolkit.FxtGui` — extends `javafx.application.Application`, loads `/pages/tab_unified_shell.fxml` (→ `UnifiedShellController` → `UnifiedShellView`), initializes logging, fonts, CSS hot-reloading, platform icons, and `ShellBootstrap` startup tasks.
 
 ## Architecture Overview
 
-**Pattern:** MVC with Service Layer. The XSD Editor V2 (`controls/v2/`) uses MVVM with Command Pattern.
+**The UI is the Unified Shell** (`controls/shell/`, VS-Code-style): an Activity Bar switches the left side panel (Explorer, Favorites, Validation, Transform, Schema, PDF/FOP, Signature, FundsXML, Help, Settings); the center is one `EditorHost` with file tabs and per-document view modes (Text / Tree / Graphic); right is the Properties Inspector. There is **no** per-tool tab/controller architecture anymore — only `UnifiedShellController`, `TemplatesController` and a few dialog controllers remain in `controller/`.
 
-See `.claude/rules/architecture.md` for layer diagrams, controller table, threading model, and observable pattern. See `.claude/rules/xsd-editor-v2-details.md` for V2 internals.
+**Pattern:** Shell views are plain JavaFX (code-built, almost no FXML). The XSD Editor V2 model layer (`controls/v2/`) uses MVVM with Command Pattern and backs the shell's structured views.
+
+See `.claude/rules/architecture.md` for the shell layout, panel/class table, threading model, and observable pattern. See `.claude/rules/xsd-editor-v2-details.md` for V2 internals.
 
 **Key Principle:** All model modifications MUST go through commands (never modify XsdNode directly from UI code). See `.claude/rules/quick-reference.md` for the wrong/right example.
 
@@ -139,8 +139,12 @@ Requires `<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>`.
 
 - **Icons:** Use `IconifyIcon` with `bi-*` names. Unknown names no longer crash (placeholder +
   log), but `IconifyIconCoverageTest` fails the build for them — keep literals valid.
+- **CSS beats `setIconColor()`:** themed CSS rules (`-fx-icon-color`) override programmatically
+  *set* styleable properties on every CSS pass — `bind()` the property to keep a per-item color.
 - **XSD Infinite Loops:** Child nodes can reference parent types. Always check circular references.
 - **FXML Controller Methods:** All `@FXML` methods MUST be `public` (module system requirement for jpackage).
+- **Stale search hits:** ignore `.claude/worktrees/*` — old git worktrees may contain outdated
+  copies of the sources.
 
 ## Project-Specific Patterns
 
@@ -172,7 +176,7 @@ Requires `<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>`.
 
 **Architecture:** `docs/ThreadPoolArchitecture.md`
 
-**Features:** `docs/context-sensitive-intellisense.md`, `docs/favorites-system.md`, `docs/xml-editor-features.md`
+**Features:** `docs/unified-shell.md` (shell user guide), `docs/context-sensitive-intellisense.md`, `docs/favorites-system.md`, `docs/xml-editor-features.md`
 
 **User Documentation:** `docs/index.md` (MkDocs site), `README.md`
 

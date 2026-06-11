@@ -213,50 +213,42 @@ Universal file management across all editors: Save XML/XSD/Schematron files as f
 
 ```
 org.fxt.freexmltoolkit/
-├── FxtGui.java                          # Main entry point
+├── FxtGui.java                          # Main entry point (loads tab_unified_shell.fxml)
 ├── app/                                 # Application-level utilities
-├── controller/                          # MVC Controllers
-│   ├── MainController.java             # Main tab navigation
-│   ├── XmlUltimateController.java      # XML editor with IntelliSense
-│   ├── XsdController.java              # XSD tab orchestration
-│   ├── DocumentationTabController.java # XSD documentation export
-│   ├── FlattenTabController.java       # XSD schema flattening
-│   ├── SchemaAnalysisTabController.java# Schema analysis views
-│   ├── SchematronController.java       # Schematron validation
-│   └── controls/                       # Sub-controllers
-├── controls/                            # Custom JavaFX components
-│   ├── commands/                       # Legacy command pattern
-│   ├── dialogs/                        # Reusable dialogs
-│   ├── editor/                         # Deprecated V1
-│   ├── intellisense/                   # IntelliSense engine (deprecated V1)
-│   ├── shared/                         # Shared utilities (XmlSyntaxHighlighter)
-│   ├── XmlEditor.java                  # XML tab component (uses V2)
-│   └── XmlCodeEditor.java              # Deprecated V1 (Schematron only)
-├── controls/v2/                        # XSD Editor V2 (Primary)
-│   ├── common/utilities/               # Utility helpers (Phase 3)
+├── controller/                          # Only UnifiedShellController, TemplatesController + dialogs
+├── controls/
+│   ├── shell/                          # THE UI: Unified Shell (see architecture.md)
+│   │   ├── UnifiedShellView.java       # Shell layout + activity wiring
+│   │   ├── Activity*.java              # Activity Bar
+│   │   ├── editor/                     # EditorHost, panels, runners, views
+│   │   ├── inspector/                  # Properties panel
+│   │   └── schema/                     # Schema activity views
+│   ├── icons/                          # IconifyIcon control
+│   ├── theme/                          # DesignTokens, ThemeManager
+│   ├── shared/, dialogs/, jsoneditor/  # Shared utilities, dialogs, JSON editor
+│   └── Schematron*.java                # Schematron tooling controls
+├── controls/v2/                        # Model/editor layer (used by the shell)
 │   ├── model/                          # XSD domain model (38 classes)
+│   ├── editor/                         # XsdEditorContext, 31 commands, panels,
+│   │   │                               #   selection, menu, serialization
+│   ├── xmleditor/                      # XML-instance counterpart (XmlEditorContext,
+│   │   │                               #   commands, StreamingXmlParser, canvas views)
 │   ├── view/                           # Visual representation layer
-│   ├── editor/                         # Editor orchestration
-│   │   ├── XsdEditorContext.java       # Central context
-│   │   ├── commands/                   # 31 commands
-│   │   ├── panels/                     # Property panels + helpers
-│   │   ├── selection/                  # Selection model
-│   │   ├── menu/                       # Context menus
-│   │   └── serialization/              # Model-to-XML
-│   ├── rendering/                      # SVG/visual rendering
-│   └── controller/                     # V2 controllers
+│   └── common/                         # Utility helpers
+├── di/                                  # ServiceRegistry
 ├── domain/                              # Domain models
 ├── service/                             # Business logic layer
 ├── util/                                # Utility classes
-└── demo/                               # Demo applications
+└── debugger/                            # XSLT debugger
 ```
 
 ### Resources
-- **FXML:** `src/main/resources/pages/` (main.fxml, tab_*.fxml, documentation_tab.fxml, flatten_tab.fxml, schema_analysis_tab.fxml)
-- **CSS:** `src/main/resources/css/` (AtlantaFX theme customizations)
+- **FXML:** `src/main/resources/pages/` (tab_unified_shell.fxml, tab_templates.fxml, controls/, dialogs/)
+- **CSS:** `src/main/resources/css/` (design-tokens.css, unified-shell.css)
+- **Icons:** `src/main/resources/icons/iconify/bi.json`
 - **Images:** `src/main/resources/img/`
 - **XSD Templates:** `src/main/resources/xsdDocumentation/`
-- **Examples:** `examples/` folder
+- **Examples:** `release/examples/` folder
 
 ### Service Layer
 - **XmlService:** Parsing, validation, transformation, XPath/XQuery
