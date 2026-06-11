@@ -140,9 +140,11 @@ public class ValidationPanel extends VBox {
         batchList.setCellFactory(lv -> new BatchResultCell());
         batchList.setVisible(false);
         batchList.setManaged(false);
+        batchList.setFixedCellSize(31);
+        // Depend on the list itself (not Bindings.size(...)): a lazy size binding
+        // that is never read stops firing after its first invalidation.
         batchList.prefHeightProperty().bind(javafx.beans.binding.Bindings.createDoubleBinding(
-                () -> Math.min(180.0, batchResults.size() * 32.0 + 4),
-                javafx.beans.binding.Bindings.size(batchResults)));
+                () -> Math.min(180.0, batchResults.size() * 31.0 + 2), batchResults));
         batchList.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
             if (newV != null) {
                 setProblems(newV.problems());
