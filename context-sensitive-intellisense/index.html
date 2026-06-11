@@ -2004,7 +2004,7 @@
 
 <h1 id="auto-completion-intellisense">Auto-Completion (IntelliSense)<a class="headerlink" href="#auto-completion-intellisense" title="Permanent link">&para;</a></h1>
 <blockquote>
-<p><strong>Last Updated:</strong> May 2026 | <strong>Version:</strong> 1.10.0</p>
+<p><strong>Last Updated:</strong> June 2026 | <strong>Version:</strong> 1.10.0</p>
 </blockquote>
 <p>The XML Editor includes smart auto-completion that helps you write XML faster and with fewer errors.</p>
 <hr />
@@ -2045,11 +2045,16 @@
 <hr />
 <h2 id="how-to-use">How to Use<a class="headerlink" href="#how-to-use" title="Permanent link">&para;</a></h2>
 <h3 id="step-1-load-an-xsd-schema">Step 1: Load an XSD Schema<a class="headerlink" href="#step-1-load-an-xsd-schema" title="Permanent link">&para;</a></h3>
+<p>If your XML already references its schema (via <code>xsi:schemaLocation</code>), it is picked up
+automatically. Otherwise, bind one yourself <em>(updated June 2026)</em>:</p>
 <ol>
-<li>Open the XML Editor</li>
-<li>Click "..." in the XSD Schema section</li>
+<li>Open your XML file in the editor</li>
+<li>Click the <strong>"No XSD"</strong> indicator in the <strong>status bar</strong> (or use the toolbar's
+   <strong>Set XSD Schema…</strong> action)</li>
 <li>Select your XSD file</li>
 </ol>
+<p>The indicator changes to <strong>"XSD: name"</strong>, and the binding drives both auto-completion <strong>and</strong>
+schema validation.</p>
 <h3 id="step-2-use-auto-completion">Step 2: Use Auto-Completion<a class="headerlink" href="#step-2-use-auto-completion" title="Permanent link">&para;</a></h3>
 <ol>
 <li>Position your cursor where you want to add an element</li>

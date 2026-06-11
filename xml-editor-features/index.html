@@ -833,15 +833,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#grid-editor-mode" class="md-nav__link">
+  <a href="#grid-editor-graphic-view" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Grid Editor Mode
+        Grid Editor (Graphic View)
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Grid Editor Mode">
+    <nav class="md-nav" aria-label="Grid Editor (Graphic View)">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -860,6 +860,17 @@
     <span class="md-ellipsis">
       
         How to Use
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reading-the-grid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reading the Grid
       
     </span>
   </a>
@@ -2067,15 +2078,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#grid-editor-mode" class="md-nav__link">
+  <a href="#grid-editor-graphic-view" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Grid Editor Mode
+        Grid Editor (Graphic View)
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Grid Editor Mode">
+    <nav class="md-nav" aria-label="Grid Editor (Graphic View)">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -2094,6 +2105,17 @@
     <span class="md-ellipsis">
       
         How to Use
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reading-the-grid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reading the Grid
       
     </span>
   </a>
@@ -2216,7 +2238,7 @@
 
 <h1 id="xml-editor-features">XML Editor Features<a class="headerlink" href="#xml-editor-features" title="Permanent link">&para;</a></h1>
 <blockquote>
-<p><strong>Last Updated:</strong> May 2026 | <strong>Version:</strong> 1.10.0</p>
+<p><strong>Last Updated:</strong> June 2026 | <strong>Version:</strong> 1.10.0</p>
 </blockquote>
 <p>This page describes the advanced features available in the XML Editor.</p>
 <hr />
@@ -2294,32 +2316,45 @@
 <p>When you type an opening tag like <code>&lt;element&gt;</code>, the editor automatically adds the closing tag <code>&lt;/element&gt;</code> and places your cursor between them.</p>
 <p>Learn more: <a href="../context-sensitive-intellisense/">Auto-Completion Guide</a></p>
 <hr />
-<h2 id="grid-editor-mode">Grid Editor Mode<a class="headerlink" href="#grid-editor-mode" title="Permanent link">&para;</a></h2>
+<h2 id="grid-editor-graphic-view">Grid Editor (Graphic View)<a class="headerlink" href="#grid-editor-graphic-view" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p><strong>Updated in June 2026</strong> - The separate "Grid" view mode has been merged into the <strong>Graphic</strong>
+view: for XML (and XSLT/Schematron) documents, switching to <strong>Graphic</strong> opens the editable
+XMLSpy-style grid.</p>
+</blockquote>
 <p><img alt="XML Grid view in the Unified Shell" src="../img/unified-shell-xml-grid.png" />
-<em>The Grid view in the Unified Shell — table-like editing with the inspector</em></p>
+<em>The grid in the Unified Shell's Graphic view — table-like editing with the inspector</em></p>
 <h3 id="edit-xml-like-a-spreadsheet">Edit XML Like a Spreadsheet<a class="headerlink" href="#edit-xml-like-a-spreadsheet" title="Permanent link">&para;</a></h3>
-<p>The grid editor displays your XML data in a table format, making it easy to edit structured data.</p>
+<p>The grid displays your XML data in a table format, making it easy to edit structured data.</p>
 <h3 id="how-to-use">How to Use<a class="headerlink" href="#how-to-use" title="Permanent link">&para;</a></h3>
 <ol>
-<li>Open an XML file in the XML Editor</li>
-<li>Switch to the "Grid" tab</li>
+<li>Open an XML file in the editor</li>
+<li>Switch to the <strong>Graphic</strong> view with the segmented view switch</li>
 <li>Click cells to edit values directly</li>
 <li>Add, delete, or move nodes using the right-click context menu</li>
 <li>Select a row to view and edit its properties in the Properties inspector</li>
-<li>Switch back to "XML" tab to see the updated code</li>
+<li>Switch back to the <strong>Text</strong> view to see the updated code</li>
 </ol>
 <p>Changes made in any view are synchronized automatically.</p>
+<h3 id="reading-the-grid">Reading the Grid<a class="headerlink" href="#reading-the-grid" title="Permanent link">&para;</a></h3>
+<ul>
+<li>The <strong>header strip</strong> at the top reads <em>"Grid view · nested · repeating elements as embedded
+  grids"</em> and offers a <strong>Collapse all</strong> button that folds every container at once.</li>
+<li>Rows holding a simple value are marked with <strong><code>{}</code></strong>.</li>
+<li>Collapsed containers show a <strong>"collapsed"</strong> hint so you know there is hidden content.</li>
+<li>Repeating elements appear as <strong>embedded grids</strong> - small tables nested inside the row.</li>
+</ul>
 <hr />
 <h2 id="properties-inspector">Properties Inspector<a class="headerlink" href="#properties-inspector" title="Permanent link">&para;</a></h2>
 <blockquote>
 <p><strong>Updated in v1.10</strong> - You can now view <strong>and edit</strong> a node's properties from <strong>all three</strong>
-XML views (Text, Tree, and Grid), not just the Grid view.</p>
+XML views (Text, Tree, and Graphic), not just the grid.</p>
 </blockquote>
 <p>The Properties inspector shows the details of the selected node and lets you edit them. Toggle
 it with <strong>Ctrl+P</strong> or the <strong>Properties</strong> toolbar button.</p>
 <ul>
 <li><strong>Select a node</strong> by moving the text caret into an element (Text view), clicking a node
-  (Tree view), or selecting a row (Grid view).</li>
+  (Tree view), or selecting a row in the grid (Graphic view).</li>
 <li><strong>Edit</strong> the element name, namespace (prefix/URI), attributes (add/rename/remove), leaf text,
   and the text of comments, CDATA, and processing instructions.</li>
 <li>Edits are written straight back to the document text, keeping everything in sync.</li>

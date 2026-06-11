@@ -1091,17 +1091,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#adding-files" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Adding Files
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#running-batch-validation" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1113,10 +1102,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#results-table" class="md-nav__link">
+  <a href="#results" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Results Table
+        Results
       
     </span>
   </a>
@@ -1128,28 +1117,6 @@
     <span class="md-ellipsis">
       
         Summary
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#filter-results" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Filter Results
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#error-details" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Error Details
       
     </span>
   </a>
@@ -1995,17 +1962,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#adding-files" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Adding Files
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#running-batch-validation" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2017,10 +1973,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#results-table" class="md-nav__link">
+  <a href="#results" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Results Table
+        Results
       
     </span>
   </a>
@@ -2032,28 +1988,6 @@
     <span class="md-ellipsis">
       
         Summary
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#filter-results" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Filter Results
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#error-details" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Error Details
       
     </span>
   </a>
@@ -2192,7 +2126,7 @@
 
 <h1 id="xsd-validation">XSD Validation<a class="headerlink" href="#xsd-validation" title="Permanent link">&para;</a></h1>
 <blockquote>
-<p><strong>Last Updated:</strong> May 2026 | <strong>Version:</strong> 1.10.0</p>
+<p><strong>Last Updated:</strong> June 2026 | <strong>Version:</strong> 1.10.0</p>
 <p><strong>Note (Phase 10c):</strong> The standalone <em>XSD Validation</em> tab has been retired.
 Validation — XSD and Schematron, single-file and batch — now lives in the
 <strong>Unified Shell's Validation activity panel</strong>. The capabilities below are
@@ -2259,10 +2193,12 @@ dedicated sidebar tab.</p>
 <p>Use this mode to validate one XML file against a schema.</p>
 <h3 id="step-1-load-your-files">Step 1: Load Your Files<a class="headerlink" href="#step-1-load-your-files" title="Permanent link">&para;</a></h3>
 <ol>
-<li><strong>Open XML File</strong>: Click "Open XML" in the toolbar or use the Browse button</li>
-<li><strong>Schema Selection</strong>:</li>
-<li><strong>Autodetect</strong> (default): Automatically finds schema references in the XML</li>
-<li><strong>Manual</strong>: Uncheck Autodetect and select an XSD file manually</li>
+<li><strong>Open the XML file</strong> in the editor (Ctrl+O, the Explorer, or drag &amp; drop).</li>
+<li><strong>Schema selection</strong>:</li>
+<li><strong>Automatic</strong>: Schema references inside the XML (<code>xsi:schemaLocation</code>) are found automatically.</li>
+<li><strong>Manual</strong>: Bind an XSD yourself - click the <strong>"No XSD"</strong> indicator in the status bar (or
+     use the toolbar's <strong>Set XSD Schema…</strong> action), or pick a schema in the Validation panel's
+     <strong>SOURCES</strong> section. The binding drives both validation and IntelliSense.</li>
 </ol>
 <h3 id="step-2-validate">Step 2: Validate<a class="headerlink" href="#step-2-validate" title="Permanent link">&para;</a></h3>
 <p>Click <strong>Validate</strong> or press <strong>F5</strong> to start validation.</p>
@@ -2316,88 +2252,51 @@ dedicated sidebar tab.</p>
 </tr>
 </tbody>
 </table>
-<h3 id="adding-files">Adding Files<a class="headerlink" href="#adding-files" title="Permanent link">&para;</a></h3>
-<table>
-<thead>
-<tr>
-<th>Button</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Add Files</strong></td>
-<td>Select individual XML files</td>
-</tr>
-<tr>
-<td><strong>Add Folder</strong></td>
-<td>Add all XML files from a folder (recursive)</td>
-</tr>
-<tr>
-<td><strong>Remove Selected</strong></td>
-<td>Remove selected files from the list</td>
-</tr>
-<tr>
-<td><strong>Clear All</strong></td>
-<td>Remove all files</td>
-</tr>
-</tbody>
-</table>
 <h3 id="running-batch-validation">Running Batch Validation<a class="headerlink" href="#running-batch-validation" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p><strong>Updated in June 2026</strong> - In the Validation panel's <strong>Batch</strong> mode, <strong>Run Validation</strong> now
+opens a small menu so you can pick files or a whole folder in one step.</p>
+</blockquote>
 <ol>
-<li>Add your XML files</li>
-<li>Choose the XSD mode</li>
-<li>Click <strong>Run Validation</strong></li>
-<li>Watch progress in the progress bar</li>
+<li>Open the <strong>Validation</strong> panel and switch the mode toggle to <strong>Batch</strong>.</li>
+<li>Click <strong>Run Validation</strong> and choose how to pick the files:</li>
+<li><strong>Select XML files…</strong> - a file chooser where you select one or more XML files.</li>
+<li><strong>Select folder…</strong> - a folder chooser; every <code>*.xml</code> file in the folder <strong>and all of its
+     subfolders</strong> is validated.</li>
+<li>Watch progress while the files are validated.</li>
 </ol>
-<p>You can <strong>Cancel</strong> a running batch validation at any time.</p>
-<h3 id="results-table">Results Table<a class="headerlink" href="#results-table" title="Permanent link">&para;</a></h3>
-<p>The results table shows:</p>
+<h3 id="results">Results<a class="headerlink" href="#results" title="Permanent link">&para;</a></h3>
+<p>The <strong>RESULTS</strong> list shows one row per file:</p>
 <table>
 <thead>
 <tr>
-<th>Column</th>
+<th>Indicator</th>
 <th>Description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><strong>File Name</strong></td>
+<td><strong>Status icon</strong></td>
+<td>Red ✕ = errors, orange ⚠ = warnings only, green ✓ = valid</td>
+</tr>
+<tr>
+<td><strong>File name</strong></td>
 <td>Name of the XML file</td>
 </tr>
 <tr>
-<td><strong>Path</strong></td>
-<td>Full path to the file</td>
-</tr>
-<tr>
-<td><strong>Status</strong></td>
-<td>Valid, Invalid, or Error</td>
-</tr>
-<tr>
-<td><strong>Errors</strong></td>
-<td>Number of validation errors</td>
-</tr>
-<tr>
-<td><strong>XSD Used</strong></td>
-<td>Which schema was used</td>
-</tr>
-<tr>
-<td><strong>Duration</strong></td>
-<td>How long validation took</td>
+<td><strong>Badge</strong></td>
+<td>Number of problems found in that file</td>
 </tr>
 </tbody>
 </table>
+<p>Select a row to see that file's problems; <strong>double-click</strong> a row to open the file in the
+editor. A plain-text report of the run is available via the panel's ⋮ menu
+(<strong>Open last batch report</strong>).</p>
 <h3 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">&para;</a></h3>
-<p>Below the table, you'll see a summary:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Total: 25 | Passed: 20 | Failed: 5
+<p>The RESULTS header shows a summary of the run, for example:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>RESULTS · 2 OF 25 FAILED
 </code></pre></div>
-<h3 id="filter-results">Filter Results<a class="headerlink" href="#filter-results" title="Permanent link">&para;</a></h3>
-<p>Use the filter dropdown to show:
-- <strong>All</strong> - All files
-- <strong>Passed</strong> - Only valid files
-- <strong>Failed</strong> - Only files with errors</p>
-<h3 id="error-details">Error Details<a class="headerlink" href="#error-details" title="Permanent link">&para;</a></h3>
-<p>Click on a file to see its validation errors in the <strong>Error Details</strong> panel below the table.</p>
+<p>and the panel's status line repeats it ("2 of 25 file(s) failed").</p>
 <hr />
 <h2 id="exporting-results">Exporting Results<a class="headerlink" href="#exporting-results" title="Permanent link">&para;</a></h2>
 <h3 id="single-file-export">Single File Export<a class="headerlink" href="#single-file-export" title="Permanent link">&para;</a></h3>

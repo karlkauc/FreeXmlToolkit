@@ -739,10 +739,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#grid-mode" class="md-nav__link">
+  <a href="#graphic-mode-grid" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Grid Mode
+        Graphic Mode (Grid)
       
     </span>
   </a>
@@ -831,6 +831,17 @@
     <span class="md-ellipsis">
       
         Auto-Completion (IntelliSense)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#binding-an-xsd-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Binding an XSD Schema
       
     </span>
   </a>
@@ -2111,10 +2122,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#grid-mode" class="md-nav__link">
+  <a href="#graphic-mode-grid" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Grid Mode
+        Graphic Mode (Grid)
       
     </span>
   </a>
@@ -2203,6 +2214,17 @@
     <span class="md-ellipsis">
       
         Auto-Completion (IntelliSense)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#binding-an-xsd-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Binding an XSD Schema
       
     </span>
   </a>
@@ -2444,7 +2466,7 @@
 <p><img alt="XML Editor - Text Mode" src="../img/xml-editor-text.png" />
 <em>The XML Editor in text mode with syntax highlighting</em></p>
 <p><img alt="XML Editor - Grid Mode" src="../img/xml-editor-graphic.png" />
-<em>The XML Editor in grid mode for structured editing</em></p>
+<em>The XML Editor in the Graphic view (grid) for structured editing</em></p>
 <hr />
 <h2 id="toolbar">Toolbar<a class="headerlink" href="#toolbar" title="Permanent link">&para;</a></h2>
 <table>
@@ -2599,12 +2621,20 @@
   <a href="#properties-inspector">Properties Inspector</a></li>
 <li>Right-click for context menu options</li>
 </ul>
-<h3 id="grid-mode">Grid Mode<a class="headerlink" href="#grid-mode" title="Permanent link">&para;</a></h3>
+<h3 id="graphic-mode-grid">Graphic Mode (Grid)<a class="headerlink" href="#graphic-mode-grid" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p><strong>Updated in June 2026</strong> - The separate "Grid" view mode has been merged into the <strong>Graphic</strong>
+view. For XML documents, the Graphic view shows the editable XMLSpy-style grid.</p>
+</blockquote>
 <p><img alt="XML Grid view in the Unified Shell" src="../img/unified-shell-xml-grid.png" />
-<em>The XML in the Unified Shell's Grid view (XMLSpy-style table editing)</em></p>
-<p>The grid editor provides:</p>
+<em>An XML document in the Graphic view (XMLSpy-style grid editing)</em></p>
+<p>The grid provides:</p>
 <ul>
 <li><strong>Table View</strong>: Edit XML data in a spreadsheet-like interface</li>
+<li><strong>Header Strip</strong>: A header at the top ("Grid view · nested · repeating elements as embedded
+  grids") with a <strong>Collapse all</strong> button that folds every container at once</li>
+<li><strong>Value Markers</strong>: Rows with a simple value are marked with <code>{}</code>; collapsed containers show a
+  "collapsed" hint</li>
 <li><strong>Direct Cell Editing</strong>: Click cells to edit values directly</li>
 <li><strong>Easy Navigation</strong>: Move through the document using arrow keys</li>
 <li><strong>Sorting</strong>: Sort data by clicking column headers</li>
@@ -2616,15 +2646,15 @@
 <h2 id="properties-inspector">Properties Inspector<a class="headerlink" href="#properties-inspector" title="Permanent link">&para;</a></h2>
 <blockquote>
 <p><strong>Updated in v1.10</strong> - The Properties inspector now lets you view <strong>and edit</strong> a node's
-properties in <strong>all three</strong> XML views - Text, Tree, and Grid. Previously, property editing
-was only available in the Grid view.</p>
+properties in <strong>all three</strong> XML views - Text, Tree, and Graphic. Previously, property editing
+was only available in the grid.</p>
 </blockquote>
 <p>The Properties inspector shows the details of the currently selected node and lets you change
 them. Toggle the panel with <strong>Ctrl+P</strong> (or the <strong>Properties</strong> toolbar button); it appears on
 the right side of the editor.</p>
 <blockquote>
 <p><strong>Screenshot note:</strong> The existing XML editor screenshots predate this change. The Properties
-inspector now appears alongside the Text, Tree, and Grid views (not only the Grid view).</p>
+inspector now appears alongside the Text, Tree, and Graphic views (not only the grid).</p>
 </blockquote>
 <h3 id="selecting-a-node">Selecting a Node<a class="headerlink" href="#selecting-a-node" title="Permanent link">&para;</a></h3>
 <p>How you select a node depends on the active view:</p>
@@ -2634,7 +2664,7 @@ inspector now appears alongside the Text, Tree, and Grid views (not only the Gri
   shows a read-only view with the node's name and XPath.</li>
 <li><strong>Tree view</strong> - Click a node in the tree (element, text, comment, CDATA, or processing
   instruction).</li>
-<li><strong>Grid view</strong> - Select a row in the grid.</li>
+<li><strong>Graphic view</strong> - Select a row in the grid.</li>
 </ul>
 <h3 id="what-you-can-edit">What You Can Edit<a class="headerlink" href="#what-you-can-edit" title="Permanent link">&para;</a></h3>
 <p>Depending on the node type, the inspector lets you edit:</p>
@@ -2659,11 +2689,11 @@ information for the selected element:</p>
 <h3 id="shared-across-views">Shared Across Views<a class="headerlink" href="#shared-across-views" title="Permanent link">&para;</a></h3>
 <p>All three views share a single in-memory model for each open document. This means your edits -
 and your full <strong>Undo / Redo</strong> history - are preserved when you switch between the Text, Tree,
-and Grid views.</p>
+and Graphic views.</p>
 <blockquote>
 <p><strong>Note:</strong> Adding, deleting, or moving whole nodes (structural editing) is done in the
-<strong>Grid</strong> view via its right-click context menu. The Text and Tree views provide property
-editing through the inspector.</p>
+<strong>Graphic</strong> view (the grid) via its right-click context menu. The Text and Tree views provide
+property editing through the inspector.</p>
 </blockquote>
 <hr />
 <h2 id="search-find">Search (Find)<a class="headerlink" href="#search-find" title="Permanent link">&para;</a></h2>
@@ -2692,6 +2722,23 @@ editing through the inspector.</p>
 <p>The suggestions are context-sensitive - only elements valid at your current position are shown.</p>
 <p>Learn more: <a href="../context-sensitive-intellisense/">Auto-Completion Guide</a></p>
 <hr />
+<h2 id="binding-an-xsd-schema">Binding an XSD Schema<a class="headerlink" href="#binding-an-xsd-schema" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p><strong>New in June 2026</strong> - Bind an XSD to the active document directly from the editor.</p>
+</blockquote>
+<p>If your XML does not reference its schema (or you want to use a different one), you can bind an
+XSD by hand:</p>
+<ol>
+<li>Click the <strong>"No XSD"</strong> indicator in the <strong>status bar</strong> (it shows <strong>"XSD: name"</strong> once a
+   schema is bound), or use the toolbar's <strong>Set XSD Schema…</strong> action.</li>
+<li>Choose an <code>.xsd</code> file.</li>
+</ol>
+<p>The binding applies to the active document and drives <strong>both</strong> features at once:</p>
+<ul>
+<li><strong>IntelliSense</strong> - auto-completion suggests the elements and attributes the schema allows.</li>
+<li><strong>Schema validation</strong> - Validate (F5) and continuous validation check against the bound XSD.</li>
+</ul>
+<hr />
 <h2 id="formatting-tools">Formatting Tools<a class="headerlink" href="#formatting-tools" title="Permanent link">&para;</a></h2>
 <h3 id="pretty-print">Pretty Print<a class="headerlink" href="#pretty-print" title="Permanent link">&para;</a></h3>
 <p><img alt="Pretty Print Before" src="../img/xml-editor-pretty-print-before.png" />
@@ -2706,7 +2753,8 @@ editing through the inspector.</p>
 <h3 id="how-to-validate">How to Validate<a class="headerlink" href="#how-to-validate" title="Permanent link">&para;</a></h3>
 <ol>
 <li>Click <strong>Validate</strong> or press <strong>F5</strong></li>
-<li>If your XML references a schema, it's loaded automatically</li>
+<li>If your XML references a schema, it's loaded automatically - or bind one yourself, see
+   <a href="#binding-an-xsd-schema">Binding an XSD Schema</a></li>
 <li>Errors and warnings appear in the validation panel</li>
 <li>Click an error to jump to the problem location</li>
 </ol>
