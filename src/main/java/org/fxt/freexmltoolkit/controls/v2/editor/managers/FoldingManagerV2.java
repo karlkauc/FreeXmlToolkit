@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
@@ -30,7 +29,9 @@ import org.fxmisc.richtext.CodeArea;
  * <p>Manages XML element folding in the code editor, providing:</p>
  * <ul>
  *   <li>Automatic detection of foldable XML regions</li>
- *   <li>Fold/unfold operations with text preservation</li>
+ *   <li>PURELY VISUAL fold/unfold via RichTextFX paragraph folding — the
+ *       document text is never modified, so validation/XPath/save always see
+ *       the complete XML</li>
  *   <li>Visual fold indicators (+/- buttons)</li>
  *   <li>Batch operations (fold all, unfold all)</li>
  * </ul>
@@ -56,9 +57,6 @@ public class FoldingManagerV2 {
 
     // Tracks which regions are currently folded
     private final Set<Integer> foldedRegions = new HashSet<>();
-
-    // Maps collapsed regions to their original text
-    private final Map<Integer, String> collapsedText = new HashMap<>();
 
     // Pattern to match XML opening tags (excluding self-closing)
     private static final Pattern OPEN_TAG_PATTERN = Pattern.compile(
@@ -300,8 +298,14 @@ public class FoldingManagerV2 {
     }
 
     /**
-     * Folds a region at the specified line.
-     * Replaces the folded lines with a placeholder like &lt;elementName.../&gt;
+     * Folds a region at the specified line — PURELY VISUALLY, via RichTextFX
+     * paragraph folding ({@code foldParagraphs}): the paragraphs after the
+     * region's start line get the "collapse" paragraph style (hidden by the
+     * library's built-in {@code .styled-text-area .collapse} CSS). The document
+     * text is NOT modified, so validation, XPath and save always see the
+     * complete XML. (The previous implementation replaced the folded lines with
+     * a {@code <name.../>} placeholder in the real text, which made the
+     * document schema-invalid and broke XPath while folded.)
      *
      * @param line 0-based line number of the region start
      */
@@ -316,72 +320,23 @@ public class FoldingManagerV2 {
         }
 
         try {
-            int oldCaret = codeArea.getCaretPosition();
-            int oldAnchor = codeArea.getAnchor();
-
-            // Save current viewport position
-            int currentParagraph = codeArea.getCurrentParagraph();
-            double estimatedScrollY = codeArea.getEstimatedScrollY();
-
-            String text = codeArea.getText();
-            String[] lines = text.split("\n");
-
-            // Calculate the text to hide
-            int startLine = region.startLine();
-            int endLine = Math.min(region.endLine(), lines.length - 1);
-
-            // Create placeholder text
-            String placeholder = String.format("<%s.../>", region.elementName());
-
-            // Store the original hidden text
-            StringBuilder hiddenText = new StringBuilder();
-            for (int i = startLine + 1; i <= endLine; i++) {
-                hiddenText.append(lines[i]);
-                if (i < endLine) {
-                    hiddenText.append("\n");
-                }
+            int endLine = Math.min(region.endLine(), codeArea.getParagraphs().size() - 1);
+            if (endLine <= line) {
+                return;
             }
-            collapsedText.put(line, hiddenText.toString());
-
-            // Calculate positions
-            int endPos = getLineEndPosition(endLine);
-
-            // Replace the content with placeholder
-            String beforeFold = text.substring(0, getLineEndPosition(startLine));
-            String afterFold = endPos < text.length() ? text.substring(endPos) : "";
-
-            String newText = beforeFold + " " + placeholder + afterFold;
-
-            // Update the text
-            codeArea.replaceText(newText);
-
-            // Restore caret/selection as best as possible
-            int len = codeArea.getLength();
-            int restoreCaret = Math.max(0, Math.min(oldCaret, len));
-            int restoreAnchor = Math.max(0, Math.min(oldAnchor, len));
-            if (restoreCaret != restoreAnchor) {
-                codeArea.selectRange(restoreAnchor, restoreCaret);
-            } else {
-                codeArea.moveTo(restoreCaret);
+            // Move the caret out of the range that is about to be hidden.
+            int caret = codeArea.getCaretPosition();
+            int hideStart = codeArea.getAbsolutePosition(line, codeArea.getParagraphLength(line));
+            int hideEnd = codeArea.getAbsolutePosition(endLine, codeArea.getParagraphLength(endLine));
+            if (caret > hideStart && caret <= hideEnd) {
+                codeArea.moveTo(hideStart);
             }
 
-            // Restore viewport position - prevent jumping to top
-            javafx.application.Platform.runLater(() -> {
-                try {
-                    // Restore the paragraph that was visible before folding
-                    int newParagraph = Math.min(currentParagraph, codeArea.getParagraphs().size() - 1);
-                    codeArea.showParagraphAtTop(newParagraph);
-                    codeArea.scrollYBy(estimatedScrollY - codeArea.getEstimatedScrollY());
-                } catch (Exception ex) {
-                    logger.debug("Could not restore viewport position: {}", ex.getMessage());
-                }
-            });
-
-            // Mark as folded
+            // Hides paragraphs line+1..endLine "into" the (still visible) start line.
+            codeArea.foldParagraphs(line, endLine);
             foldedRegions.add(line);
 
             logger.debug("Folded region at line {}: {}", line, region);
-
         } catch (Exception e) {
             logger.error("Error folding region at line {}: {}", line, e.getMessage(), e);
         } finally {
@@ -390,8 +345,8 @@ public class FoldingManagerV2 {
     }
 
     /**
-     * Unfolds a region at the specified line.
-     * Restores the original text that was hidden.
+     * Unfolds a region at the specified line by removing the "collapse"
+     * paragraph style from the hidden block. The document text is untouched.
      *
      * @param line 0-based line number of the region start
      */
@@ -400,69 +355,16 @@ public class FoldingManagerV2 {
             return;
         }
 
-        String originalText = collapsedText.get(line);
-        if (originalText == null) {
-            return;
-        }
-
         if (!isFoldingInProgress.compareAndSet(false, true)) {
             return; // Already folding/unfolding
         }
 
         try {
-            int oldCaret = codeArea.getCaretPosition();
-            int oldAnchor = codeArea.getAnchor();
+            // Unfolds the folded block following the (visible) start paragraph.
+            codeArea.unfoldParagraphs(line);
+            foldedRegions.remove(line);
 
-            // Save current viewport position
-            int currentParagraph = codeArea.getCurrentParagraph();
-            double estimatedScrollY = codeArea.getEstimatedScrollY();
-
-            FoldingRegion region = foldingRegions.get(line);
-            String text = codeArea.getText();
-
-            // Find the placeholder
-            String placeholder = String.format("<%s.../>", region.elementName());
-            int placeholderIndex = text.indexOf(placeholder, getLineStartPosition(line));
-
-            if (placeholderIndex != -1) {
-                // Replace placeholder with original text
-                String beforeUnfold = text.substring(0, placeholderIndex - 1); // Remove extra space
-                String afterUnfold = text.substring(placeholderIndex + placeholder.length());
-
-                String newText = beforeUnfold + "\n" + originalText + afterUnfold;
-
-                // Update the text
-                codeArea.replaceText(newText);
-
-                // Restore caret/selection as best as possible
-                int len = codeArea.getLength();
-                int restoreCaret = Math.max(0, Math.min(oldCaret, len));
-                int restoreAnchor = Math.max(0, Math.min(oldAnchor, len));
-                if (restoreCaret != restoreAnchor) {
-                    codeArea.selectRange(restoreAnchor, restoreCaret);
-                } else {
-                    codeArea.moveTo(restoreCaret);
-                }
-
-                // Restore viewport position - prevent jumping to top
-                javafx.application.Platform.runLater(() -> {
-                    try {
-                        // Restore the paragraph that was visible before unfolding
-                        int newParagraph = Math.min(currentParagraph, codeArea.getParagraphs().size() - 1);
-                        codeArea.showParagraphAtTop(newParagraph);
-                        codeArea.scrollYBy(estimatedScrollY - codeArea.getEstimatedScrollY());
-                    } catch (Exception ex) {
-                        logger.debug("Could not restore viewport position: {}", ex.getMessage());
-                    }
-                });
-
-                // Remove from folded set
-                foldedRegions.remove(line);
-                collapsedText.remove(line);
-
-                logger.debug("Unfolded region at line {}", line);
-            }
-
+            logger.debug("Unfolded region at line {}", line);
         } catch (Exception e) {
             logger.error("Error unfolding region at line {}: {}", line, e.getMessage(), e);
         } finally {
@@ -474,26 +376,13 @@ public class FoldingManagerV2 {
      * Folds all foldable regions.
      */
     public void foldAll() {
-        List<Integer> foldableLines = new ArrayList<>(foldingRegions.keySet());
-        int oldCaret = codeArea.getCaretPosition();
-        int oldAnchor = codeArea.getAnchor();
-
-        for (Integer line : foldableLines) {
+        // Outermost first (TreeMap order): folding a parent also hides nested
+        // regions; folding the nested ones afterwards is a harmless style add.
+        for (Integer line : new ArrayList<>(foldingRegions.keySet())) {
             if (!foldedRegions.contains(line)) {
                 fold(line);
             }
         }
-
-        // Restore caret
-        int len = codeArea.getLength();
-        int restoreCaret = Math.max(0, Math.min(oldCaret, len));
-        int restoreAnchor = Math.max(0, Math.min(oldAnchor, len));
-        if (restoreCaret != restoreAnchor) {
-            codeArea.selectRange(restoreAnchor, restoreCaret);
-        } else {
-            codeArea.moveTo(restoreCaret);
-        }
-
         logger.debug("Folded all regions");
     }
 
@@ -501,24 +390,9 @@ public class FoldingManagerV2 {
      * Unfolds all folded regions.
      */
     public void unfoldAll() {
-        List<Integer> foldedLines = new ArrayList<>(foldedRegions);
-        int oldCaret = codeArea.getCaretPosition();
-        int oldAnchor = codeArea.getAnchor();
-
-        for (Integer line : foldedLines) {
+        for (Integer line : new ArrayList<>(foldedRegions)) {
             unfold(line);
         }
-
-        // Restore caret
-        int len = codeArea.getLength();
-        int restoreCaret = Math.max(0, Math.min(oldCaret, len));
-        int restoreAnchor = Math.max(0, Math.min(oldAnchor, len));
-        if (restoreCaret != restoreAnchor) {
-            codeArea.selectRange(restoreAnchor, restoreCaret);
-        } else {
-            codeArea.moveTo(restoreCaret);
-        }
-
         logger.debug("Unfolded all regions");
     }
 
@@ -576,41 +450,6 @@ public class FoldingManagerV2 {
     }
 
     // Helper methods
-
-    /**
-     * Gets the character position of the start of a line.
-     *
-     * @param line 0-based line index
-     * @return character position in the text
-     */
-    private int getLineStartPosition(int line) {
-        String text = codeArea.getText();
-        String[] lines = text.split("\n");
-        int pos = 0;
-        for (int i = 0; i < line && i < lines.length; i++) {
-            pos += lines[i].length() + 1; // +1 for newline
-        }
-        return pos;
-    }
-
-    /**
-     * Gets the character position of the end of a line.
-     *
-     * @param line 0-based line index
-     * @return character position in the text
-     */
-    private int getLineEndPosition(int line) {
-        String text = codeArea.getText();
-        String[] lines = text.split("\n");
-        int pos = 0;
-        for (int i = 0; i <= line && i < lines.length; i++) {
-            pos += lines[i].length();
-            if (i < line) {
-                pos++; // +1 for newline
-            }
-        }
-        return pos;
-    }
 
     /**
      * Calculates the indentation level of a line.
