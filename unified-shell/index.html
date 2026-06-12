@@ -3359,8 +3359,9 @@ grouped into <strong>GLOBAL ELEMENTS</strong>, <strong>COMPLEX TYPES</strong>, a
 sections), with a <strong>filter field</strong> on top. Click a declaration to reveal it in the Tree
 view; double-click a type to open it in its dedicated <strong>Type Editor</strong> tab; right-click for
 <strong>Reveal in Tree / Open Type Editor / Find Usage</strong>. The schema tools (Generate XSD from
-XML / batch, Sample XML, Flatten, Statistics, Schema Quality, Documentation) live in the
-header's ⋮ menu.</p>
+XML / batch, Sample XML plain/advanced, Flatten, Statistics, Schema Quality,
+Documentation) sit as a <strong>strip of icon buttons directly above the filter</strong> - hover for
+the tool's name.</p>
 <h3 id="documentation-generator-editor-area">Documentation Generator (editor area)<a class="headerlink" href="#documentation-generator-editor-area" title="Permanent link">&para;</a></h3>
 <p><strong>Generate Documentation…</strong> (Schema panel ⋮ or the editor toolbar) opens the generator as
 a tab in the main editor area with the full option set:</p>
@@ -3369,7 +3370,8 @@ a tab in the main editor area with the full option set:</p>
   (HTML) or file (PDF/Word).</li>
 <li><strong>FORMAT</strong> - HTML, PDF, or Word.</li>
 <li><strong>OPTIONS</strong> - Markdown renderer, type definitions in source code, documentation in
-  diagrams, SVG overview page, metadata, and the diagram image format (SVG/PNG/JPG).</li>
+  diagrams, SVG overview page, metadata, the diagram image format (SVG/PNG/JPG), and a
+  <strong>favicon</strong> (.ico/.png/.svg) embedded into the generated HTML site.</li>
 <li><strong>LANGUAGES</strong> - <strong>Scan languages</strong> discovers the <code>xml:lang</code> documentation languages in
   the schema; pick which to include and the fallback language.</li>
 <li><strong>PROGRESS</strong> - the right-hand log streams the pipeline's task messages live while
@@ -3804,7 +3806,11 @@ passwords):</p>
   the document to sign (the active document, changeable via <em>Browse</em>), the keystore alias
   and password (shared with the KEYSTORE section), the signature type (enveloped XML-DSig)
   and algorithm (RSA-SHA256 · C14N exclusive), and a <strong>Sign Document</strong> button. The signed
-  copy is written next to the original (<code>name.signed.xml</code>) and opened.</li>
+  copy is written next to the original (<code>name.signed.xml</code>) and opened.
+  <strong>Show certificate details</strong> loads the keystore's certificate and shows the mockup's
+  certificate inspector: subject (CN/O/C) with a self-signed/CA badge, the validity window
+  with a <em>"Valid · N days remaining"</em> banner (red when expired), serial, signature
+  algorithm, key usage, and the <strong>SHA-256 fingerprint</strong> with a copy button.</li>
 <li><strong>Validate Signature</strong> - <strong>Validate Signature</strong> checks the active document's signature;
   <strong>Validate (Details)</strong> opens a detailed report (validity + signing-certificate details).</li>
 <li><strong>Create Certificate</strong> - Creates a self-signed certificate / keystore from the DN fields,
