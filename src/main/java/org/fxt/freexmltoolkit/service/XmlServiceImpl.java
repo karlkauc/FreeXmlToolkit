@@ -561,6 +561,29 @@ public class XmlServiceImpl implements XmlService {
         }
     }
 
+    /**
+     * Pre-save gate for downloaded schemas: accepts any well-formed XML document whose root
+     * element is {@code schema} in the XSD namespace. A full compilation (like
+     * {@link #isSchemaValid(String)}) would reject schemas with relative
+     * {@code xs:import}/{@code xs:include} references, because those siblings are only
+     * downloaded after the main schema has been cached.
+     */
+    static boolean isPlausibleSchemaDocument(String schemaContent) {
+        if (schemaContent == null || schemaContent.isBlank()) {
+            return false;
+        }
+        try {
+            DocumentBuilder db = SecureXmlFactory.createSecureDocumentBuilder(true);
+            Document document = db.parse(new org.xml.sax.InputSource(new StringReader(schemaContent)));
+            Element root = document.getDocumentElement();
+            return root != null
+                    && "schema".equals(root.getLocalName())
+                    && XMLConstants.W3C_XML_SCHEMA_NS_URI.equals(root.getNamespaceURI());
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     @Override
     public List<SAXParseException> validateText(String xmlString, File schemaFile) {
         // Get the appropriate validation service based on schema content and user settings
@@ -1196,8 +1219,11 @@ public class XmlServiceImpl implements XmlService {
                             try {
                                 long downloadStart = System.currentTimeMillis();
                                 String textContent = connectionService.getTextContentFromURL(new URI(temp));
-                                // NEU: Schema-Inhalt vor dem Speichern validieren
-                                if (isSchemaValid(textContent)) {
+                                // Pre-save gate: keep HTML error pages / garbage out of the cache.
+                                // Deliberately NOT a full schema compilation - that would reject
+                                // schemas with relative imports (e.g. FundsXML -> xmldsig-core-schema.xsd)
+                                // whose siblings are only cached by downloadImportedSchemas() below.
+                                if (isPlausibleSchemaDocument(textContent)) {
                                     byte[] contentBytes = textContent.getBytes(StandardCharsets.UTF_8);
                                     Files.write(pathNew, contentBytes);
                                     logger.debug("Write new file '{}' with {} Bytes.", pathNew.toFile().getAbsoluteFile(), pathNew.toFile().length());

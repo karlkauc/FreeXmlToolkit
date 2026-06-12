@@ -1583,6 +1583,37 @@ public class EditorHost extends BorderPane {
      *
      * @return the resolved, schema-bound XSD file, or {@code null} if none was found
      */
+    /**
+     * Re-runs the schema auto-detection ({@code xsi:schemaLocation} /
+     * {@code xsi:noNamespaceSchemaLocation}, local and remote) for the active document
+     * when it has no schema bound yet — e.g. when the Validation panel opens and the
+     * reference was added after the file was opened, or an earlier remote download
+     * failed. No-op for untitled documents and when a schema is already bound, so an
+     * explicit user choice is never overridden.
+     */
+    public void redetectSchemaForActiveDocument() {
+        if (!(tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab tab)) {
+            return;
+        }
+        if (tab.schemaFile != null || tab.document.getPath() == null || !tab.view.supportsSchema()) {
+            return;
+        }
+        Path path = tab.document.getPath();
+        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            File autoXsd = detectSchemaFor(tab, path);
+            if (autoXsd != null) {
+                Platform.runLater(() -> {
+                    tab.schemaFile = autoXsd;
+                    tab.view.invalidateIntelliSenseCache();
+                    if (tab.isSelected()) {
+                        activeSchema.set(autoXsd);
+                    }
+                    loadXmlSchemaProviderAsync(tab, autoXsd);
+                });
+            }
+        });
+    }
+
     private File detectSchemaFor(EditorTab tab, Path path) {
         if (!tab.view.supportsSchema()) {
             return null;

@@ -50,6 +50,35 @@ class ValidationRunnerTest {
     }
 
     @Test
+    void schematronProblemsResolveTheirSourceLine(@TempDir Path tmp) throws Exception {
+        // The failing element sits on a known line; SVRL has no line number but a
+        // location XPath that must be resolved so the problem can navigate there.
+        Path sch = tmp.resolve("rules.sch");
+        Files.writeString(sch, """
+                <sch:schema xmlns:sch="http://purl.oclc.org/dsdl/schematron">
+                  <sch:pattern>
+                    <sch:rule context="item">
+                      <sch:assert test="@id">item must have an id</sch:assert>
+                    </sch:rule>
+                  </sch:pattern>
+                </sch:schema>
+                """);
+        String xml = """
+                <root>
+                  <item id="1"/>
+                  <item/>
+                </root>
+                """;
+
+        List<ValidationProblem> problems = ValidationRunner.run(xml, null, sch.toFile());
+
+        ValidationProblem problem = problems.stream()
+                .filter(p -> "Schematron".equals(p.source()) && p.message().contains("id"))
+                .findFirst().orElseThrow();
+        assertEquals(3, problem.line(), "the problem must point at the failing <item/> line: " + problems);
+    }
+
+    @Test
     void nullSchematronSkipsSchematronStage() {
         assertTrue(ValidationRunner.run("<root/>", null, null).stream()
                 .noneMatch(p -> "Schematron".equals(p.source())));

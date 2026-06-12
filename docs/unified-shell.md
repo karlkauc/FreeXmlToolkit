@@ -369,6 +369,14 @@ Click **Change** next to a source to pick a different file. The star button on t
 opens a quick-select menu of your favorited XSD schemas - pick one to bind it in a single
 click, without browsing the file system. (See [Favorites](favorites-system.md).)
 
+- **The referenced XSD binds automatically.** When the XML declares its schema
+  (`xsi:schemaLocation` / `xsi:noNamespaceSchemaLocation` - local or remote), that XSD is
+  bound when the file is opened, and the Validation panel re-checks when it opens, so the
+  declared schema is the default. A schema you picked yourself (via **Change**, a favorite,
+  or the status bar) is never overridden.
+- **Click a bound source name to open the file in the editor** - one click on the XSD or
+  Schematron name opens it as a tab for direct editing.
+
 !!! tip
     You can also bind an XSD **without opening the Validation panel**: click the
     **"No XSD" / "XSD: name"** indicator in the status bar (or use the editor toolbar's
@@ -401,7 +409,9 @@ Problems appear in two places:
   validation finds problems, shows error/warning counts in its header, and can be collapsed
   to just the header. Each row shows the message and the file/line in a monospaced label.
 
-Selecting a problem in either list jumps to its line in the editor.
+Selecting a problem in either list jumps to its line in the editor. This works for
+**Schematron problems too**: the failing rule's context node is resolved back to its
+line in the XML, so a click navigates straight to the offending element.
 
 ### The ⋮ Menu
 

@@ -96,8 +96,15 @@ public class ValidationPanel extends VBox {
         xsdFavoritesMenu.setOnShowing(e -> refreshXsdFavoritesMenu());
         HBox xsdRow = sourceRow("bi-diagram-3", xsdName, this::chooseXsd, xsdFavoritesMenu);
         HBox schematronRow = sourceRow("bi-ui-checks-grid", schematronName, this::chooseSchematron);
+        // One click on a bound source opens it in the editor for direct editing.
+        makeSourceNameOpenable(xsdName, () -> editorHost.activeSchemaProperty().get());
+        makeSourceNameOpenable(schematronName, editorHost::getActiveSchematron);
         refreshSchematronStatus();
         refreshXsdStatus();
+        // Opening the panel binds the schema referenced inside the XML (xsi:schemaLocation /
+        // xsi:noNamespaceSchemaLocation) when none is bound yet; an explicit Change or
+        // favorite choice still wins because a bound schema is never overridden.
+        editorHost.redetectSchemaForActiveDocument();
 
         // --- mode toggle + Run Validation ---------------------------------
         ToggleGroup modeGroup = new ToggleGroup();
@@ -192,6 +199,7 @@ public class ValidationPanel extends VBox {
         editorHost.activeCaretProperty().addListener((obs, oldV, newV) -> scheduleRevalidation());
         editorHost.activeTabProperty().addListener((obs, oldV, newV) -> {
             refreshXsdStatus();
+            editorHost.redetectSchemaForActiveDocument();
             scheduleRevalidation();
         });
         editorHost.activeSchemaProperty().addListener((obs, oldV, newV) -> {
@@ -577,6 +585,21 @@ public class ValidationPanel extends VBox {
     private void refreshSchematronStatus() {
         File schematron = editorHost.getActiveSchematron();
         setSourceName(schematronName, schematron != null ? schematron.getName() : null);
+    }
+
+    /**
+     * Makes a source-row file name clickable: one click opens the currently bound
+     * file in the editor for direct editing (no-op while the source is unset).
+     */
+    private void makeSourceNameOpenable(Label label, java.util.function.Supplier<File> file) {
+        label.getStyleClass().add("fxt-vp-source-open");
+        label.setTooltip(new javafx.scene.control.Tooltip("Open in editor"));
+        label.setOnMouseClicked(e -> {
+            File bound = file.get();
+            if (bound != null && bound.exists()) {
+                editorHost.openFile(bound.toPath());
+            }
+        });
     }
 
     /** Shows the file name, or a muted "none" while the source is unset. */

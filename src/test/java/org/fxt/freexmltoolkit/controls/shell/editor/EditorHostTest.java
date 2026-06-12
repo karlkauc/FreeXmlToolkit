@@ -84,6 +84,37 @@ class EditorHostTest {
     }
 
     @Test
+    void redetectBindsSchemaReferenceAddedAfterOpening(@org.junit.jupiter.api.io.TempDir Path tmp) throws Exception {
+        Path xsd = tmp.resolve("late.xsd");
+        Files.writeString(xsd, """
+                <?xml version="1.0"?>
+                <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                  <xs:element name="root" type="xs:string"/>
+                </xs:schema>
+                """);
+        Path xml = tmp.resolve("data.xml");
+        Files.writeString(xml, "<root>x</root>"); // no schema reference yet
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
+        WaitForAsyncUtils.waitFor(3, java.util.concurrent.TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("root")).orElse(false));
+        assertNull(host.activeSchemaProperty().get(), "no reference, no schema");
+
+        // The reference appears later (external edit / save) — e.g. before the
+        // Validation panel triggers a redetect.
+        Files.writeString(xml, "<root xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "
+                + "xsi:noNamespaceSchemaLocation=\"late.xsd\">x</root>");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.redetectSchemaForActiveDocument();
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(4, java.util.concurrent.TimeUnit.SECONDS,
+                () -> host.activeSchemaProperty().get() != null);
+
+        assertEquals("late.xsd", host.activeSchemaProperty().get().getName());
+    }
+
+    @Test
     void autoBindsSchemaFromNamespacedSchemaLocation(@org.junit.jupiter.api.io.TempDir Path tmp) throws Exception {
         Path xsd = tmp.resolve("ns-schema.xsd");
         Files.writeString(xsd, """

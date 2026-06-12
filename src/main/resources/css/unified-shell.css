@@ -1210,6 +1210,26 @@
     -fx-text-fill: -fxt-text-muted;
 }
 
+/* A bound source name is clickable (opens the file in the editor). */
+.fxt-vp-source-open {
+    -fx-cursor: hand;
+}
+
+.fxt-vp-source-open:hover {
+    -fx-underline: true;
+    -fx-text-fill: -fxt-primary;
+}
+
+/* ...but not while the source is unset ("none" placeholder). */
+.fxt-vp-source-open.fxt-vp-source-none {
+    -fx-cursor: default;
+}
+
+.fxt-vp-source-open.fxt-vp-source-none:hover {
+    -fx-underline: false;
+    -fx-text-fill: -fxt-text-muted;
+}
+
 .fxt-vp-source-fav {
     -fx-background-color: transparent;
     -fx-padding: 0 2 0 2;

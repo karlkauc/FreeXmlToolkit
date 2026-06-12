@@ -265,6 +265,49 @@ class ValidationPanelTest {
                 "the FundsXML validation entry must be present iff the feature flag is enabled");
     }
 
+    @Test
+    void clickingTheBoundXsdNameOpensItInTheEditor(@TempDir Path tmp) throws Exception {
+        Path xsd = tmp.resolve("schema.xsd");
+        Files.writeString(xsd, XSD);
+        Path xml = tmp.resolve("doc.xml");
+        Files.writeString(xml, "<root><name>ok</name></root>");
+        open(xml, xsd);
+
+        javafx.scene.control.Label name = (javafx.scene.control.Label) panel.lookup(".fxt-vp-source-open");
+        assertNotNull(name, "the XSD source name must be the clickable open-in-editor link");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            name.getOnMouseClicked().handle(new javafx.scene.input.MouseEvent(
+                    javafx.scene.input.MouseEvent.MOUSE_CLICKED, 0, 0, 0, 0,
+                    javafx.scene.input.MouseButton.PRIMARY, 1,
+                    false, false, false, false, true, false, false, true, false, true, null));
+            return null;
+        });
+
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> host.getOpenDocuments().stream()
+                .anyMatch(d -> d.getPath() != null && d.getPath().equals(xsd)));
+    }
+
+    @Test
+    void openingThePanelBindsTheReferencedXsd(@TempDir Path tmp) throws Exception {
+        Path xsd = tmp.resolve("auto.xsd");
+        Files.writeString(xsd, XSD);
+        Path xml = tmp.resolve("doc.xml");
+        Files.writeString(xml, "<root>x</root>"); // opened without a reference
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("root")).orElse(false));
+        assertNull(host.activeSchemaProperty().get());
+
+        // The reference appears later; re-creating the panel (= switching to the
+        // Validation activity) must auto-bind the referenced schema.
+        Files.writeString(xml, "<root xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "
+                + "xsi:noNamespaceSchemaLocation=\"auto.xsd\">x</root>");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> new ValidationPanel(host));
+
+        WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS, () -> host.activeSchemaProperty().get() != null);
+        assertEquals("auto.xsd", host.activeSchemaProperty().get().getName());
+    }
+
     private void open(Path xml, Path xsd) throws Exception {
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
         WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,

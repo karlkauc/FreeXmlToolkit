@@ -69,9 +69,16 @@ public final class ValidationRunner {
         if (schematron != null) {
             try {
                 SchematronService service = new SchematronServiceImpl();
-                for (SchematronService.SchematronValidationError e : service.validateXml(xml, schematron)) {
+                List<SchematronService.SchematronValidationError> errors = service.validateXml(xml, schematron);
+                // SVRL carries the failing node's XPath (context) but no line number;
+                // resolve it against the document so problems navigate to their line.
+                SchematronLineResolver resolver = errors.stream().anyMatch(e -> e.lineNumber() <= 0)
+                        ? new SchematronLineResolver(xml) : null;
+                for (SchematronService.SchematronValidationError e : errors) {
+                    int line = e.lineNumber() > 0 ? e.lineNumber()
+                            : (resolver != null ? resolver.lineOf(e.context()) : 0);
                     problems.add(new ValidationProblem("Schematron",
-                            e.severity() != null ? e.severity() : "error", e.lineNumber(), e.message()));
+                            e.severity() != null ? e.severity() : "error", line, e.message()));
                 }
             } catch (Exception ignored) {
                 // invalid/unloadable schematron — skip its stage
