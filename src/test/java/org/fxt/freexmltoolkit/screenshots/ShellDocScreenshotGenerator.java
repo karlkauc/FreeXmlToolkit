@@ -100,8 +100,14 @@ class ShellDocScreenshotGenerator {
             settle();
             shot("unified-shell-schema-text");
 
-            // Schema statistics open as an in-shell text tab (best-effort: click the button).
-            clickButton("Statistics");
+            // Schema statistics open as an in-shell text tab. The action moved into
+            // the panel's ⋮ overflow menu, so drive the panel directly.
+            onFx(() -> {
+                var panel = shell.lookup(".fxt-schema-panel");
+                if (panel instanceof org.fxt.freexmltoolkit.controls.shell.editor.TypeLibraryPanel library) {
+                    library.statisticsActive();
+                }
+            });
             settle(900);
             shot("unified-shell-schema-statistics");
         }
@@ -171,16 +177,6 @@ class ShellDocScreenshotGenerator {
             onFx(() -> host.setActiveViewMode(ViewMode.GRAPHIC));
             settle();
             shot("unified-shell-xml-grid");
-        }
-    }
-
-    /** Clicks a button by its visible text (best-effort; never aborts the run). */
-    private void clickButton(String text) {
-        try {
-            robot.clickOn(text);
-            WaitForAsyncUtils.waitForFxEvents();
-        } catch (Exception e) {
-            System.out.println("[shell-screenshot] could not click '" + text + "': " + e);
         }
     }
 

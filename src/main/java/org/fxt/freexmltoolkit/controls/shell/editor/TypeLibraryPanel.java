@@ -1,79 +1,206 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
 import java.io.File;
+import java.util.List;
+import java.util.Locale;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.geometry.Pos;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
+import javafx.scene.control.MenuButton;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.shell.schema.XsdNodeLabels;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdNodeType;
 
 /**
- * The Schema activity side panel: lists the active XSD's top-level named types
- * (Type Library). Selecting a type reveals it in the Tree view. Bound to the
+ * The Schema activity side panel, laid out after the Figma mockup
+ * "Redesign · Unified — Schema (graphical)" (node 37:2): a filter field and the
+ * active XSD's top-level declarations grouped into GLOBAL ELEMENTS, COMPLEX
+ * TYPES, and SIMPLE TYPES. Selecting an entry reveals it in the Tree view;
+ * double-clicking a type opens its dedicated editor tab; the context menu adds
+ * Find Usage. The schema tools (generate/flatten/statistics/quality/sample/
+ * documentation) live in the header's ⋮ overflow menu. Bound to the
  * {@link EditorHost}; refreshes on tab / view-mode changes.
  */
 public class TypeLibraryPanel extends VBox {
 
     private final EditorHost editorHost;
-    private final ObservableList<XsdNode> types = FXCollections.observableArrayList();
-    private final ListView<XsdNode> typesList = new ListView<>(types);
+    private final TextField filter = new TextField();
+    private final MenuButton overflowMenu = new MenuButton();
+    private final ObservableList<XsdNode> elements = FXCollections.observableArrayList();
+    private final ObservableList<XsdNode> complexTypes = FXCollections.observableArrayList();
+    private final ObservableList<XsdNode> simpleTypes = FXCollections.observableArrayList();
+    private final ListView<XsdNode> elementsList = new ListView<>(elements);
+    private final ListView<XsdNode> complexList = new ListView<>(complexTypes);
+    private final ListView<XsdNode> simpleList = new ListView<>(simpleTypes);
     private String selectedTypeName;
+    private boolean syncingSelection;
+    private boolean lastRefreshEmpty = true;
+    private final javafx.animation.PauseTransition refreshDebounce =
+            new javafx.animation.PauseTransition(javafx.util.Duration.millis(400));
 
     public TypeLibraryPanel(EditorHost editorHost) {
         this.editorHost = editorHost;
-        getStyleClass().add("fxt-side-panel-content");
+        getStyleClass().add("fxt-schema-panel");
 
+        // --- header: SCHEMA ........ ⋮ ------------------------------------------
         Label title = new Label("SCHEMA");
-        title.getStyleClass().add("fxt-side-panel-title");
+        title.getStyleClass().addAll("fxt-side-panel-title", "fxt-vp-title");
+        Region headerSpacer = new Region();
+        HBox.setHgrow(headerSpacer, Priority.ALWAYS);
+        overflowMenu.setId("schema-overflow");
+        overflowMenu.setGraphic(icon("bi-three-dots-vertical", 15));
+        overflowMenu.getStyleClass().add("fxt-vp-overflow");
+        buildOverflowMenu();
+        HBox header = new HBox(title, headerSpacer, overflowMenu);
+        header.getStyleClass().add("fxt-vp-header");
+        header.setAlignment(Pos.CENTER_LEFT);
 
-        ListView<XsdNode> list = typesList;
-        list.getStyleClass().add("fxt-open-editors");
-        VBox.setVgrow(list, Priority.ALWAYS);
-        list.setPlaceholder(new Label("No named types"));
-        list.setCellFactory(lv -> new TypeCell());
-        list.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
-            selectedTypeName = newV != null ? newV.getName() : null;
-            if (selectedTypeName != null) {
-                String typeName = selectedTypeName;
-                // Defer out of the selection-change processing (avoids re-entering
-                // the ListViewBehavior listener: IndexOutOfBoundsException).
-                javafx.application.Platform.runLater(() -> editorHost.revealTypeByName(typeName));
-            }
-        });
-        // Double-click opens the type in its own focused editor tab.
-        list.setOnMouseClicked(e -> {
-            if (e.getClickCount() == 2 && selectedTypeName != null) {
-                String typeName = selectedTypeName;
-                javafx.application.Platform.runLater(() -> editorHost.openTypeEditorTab(typeName));
-            }
-        });
+        // --- filter ----------------------------------------------------------------
+        filter.setId("schema-filter");
+        filter.setPromptText("Filter types…");
+        filter.textProperty().addListener((obs, oldV, newV) -> refresh());
+        VBox filterBox = new VBox(filter);
+        filterBox.getStyleClass().add("fxt-tp-section-body");
 
-        javafx.scene.layout.VBox actions = new javafx.scene.layout.VBox(4,
-                actionButton("Generate XSD from XML", "bi-magic", this::generateXsdFromActive),
-                actionButton("Generate XSD (Batch)…", "bi-files", this::generateXsdBatch),
-                actionButton("Flatten Schema", "bi-layers", this::flattenActive),
-                actionButton("Statistics", "bi-bar-chart", this::statisticsActive),
-                actionButton("Schema Quality", "bi-patch-check", this::qualityActive),
-                actionButton("Generate Sample XML", "bi-filetype-xml", this::generateSampleXmlForActive),
-                actionButton("Generate Sample XML (Advanced)…", "bi-sliders", this::generateProfiledSampleForActive),
-                actionButton("Generate Documentation", "bi-file-earmark-text", this::generateDocumentationForActive));
+        // --- grouped declaration lists ----------------------------------------------
+        configureList(elementsList, "schema-elements-list", elements, false);
+        configureList(complexList, "schema-complex-list", complexTypes, true);
+        configureList(simpleList, "schema-simple-list", simpleTypes, true);
 
-        Label typesLabel = new Label("TYPES");
-        typesLabel.getStyleClass().add("fxt-side-panel-title");
+        HBox elementsHeader = SidePanelLayout.sectionHeader(new Label("GLOBAL ELEMENTS"), elementsList);
+        HBox complexHeader = SidePanelLayout.sectionHeader(new Label("COMPLEX TYPES"), complexList);
+        HBox simpleHeader = SidePanelLayout.sectionHeader(new Label("SIMPLE TYPES"), simpleList);
 
-        getChildren().addAll(title, actions, typesLabel, list,
-                actionButton("Find Usage", "bi-search", this::findUsageOfSelectedType));
+        VBox content = new VBox(filterBox,
+                elementsHeader, elementsList,
+                complexHeader, complexList,
+                simpleHeader, simpleList);
+        ScrollPane scroll = new ScrollPane(content);
+        scroll.setFitToWidth(true);
+        scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scroll.getStyleClass().add("edge-to-edge");
+        VBox.setVgrow(scroll, Priority.ALWAYS);
+
+        getChildren().addAll(header, scroll);
 
         refresh();
         editorHost.activeTabProperty().addListener((obs, oldV, newV) -> refresh());
         editorHost.activeViewModeProperty().addListener((obs, oldV, newV) -> refresh());
+        // The document text loads asynchronously AFTER the tab change. Refresh again
+        // once content lands - but ONLY while the library is still unpopulated:
+        // refresh parses the XSD text, so it must not run per keystroke.
+        refreshDebounce.setOnFinished(e -> refresh());
+        editorHost.activeCaretProperty().addListener((obs, oldV, newV) -> {
+            if (lastRefreshEmpty) {
+                refreshDebounce.playFromStart();
+            }
+        });
+    }
+
+    /** The schema tools (⋮ menu): everything that creates/derives something from the schema. */
+    private void buildOverflowMenu() {
+        overflowMenu.getItems().addAll(
+                menuItem("Generate XSD from XML", "bi-magic", this::generateXsdFromActive),
+                menuItem("Generate XSD (Batch)…", "bi-files", this::generateXsdBatch),
+                new SeparatorMenuItem(),
+                menuItem("Generate Sample XML…", "bi-filetype-xml", this::generateSampleXmlForActive),
+                menuItem("Generate Sample XML (Advanced)…", "bi-sliders", this::generateProfiledSampleForActive),
+                new SeparatorMenuItem(),
+                menuItem("Flatten Schema", "bi-layers", this::flattenActive),
+                menuItem("Statistics", "bi-bar-chart", this::statisticsActive),
+                menuItem("Schema Quality", "bi-patch-check", this::qualityActive),
+                new SeparatorMenuItem(),
+                menuItem("Generate Documentation…", "bi-file-earmark-text", this::generateDocumentationForActive));
+    }
+
+    /** @return the ⋮ menu item texts (MenuItems are not scene-graph lookupable; for tests). */
+    public List<String> overflowMenuItemTexts() {
+        return overflowMenu.getItems().stream()
+                .map(MenuItem::getText)
+                .filter(text -> text != null && !text.isBlank())
+                .toList();
+    }
+
+    /** @return the type context-menu item texts (for tests/observers). */
+    List<String> typeContextMenuItemTexts() {
+        return complexList.getContextMenu().getItems().stream()
+                .map(MenuItem::getText)
+                .filter(text -> text != null && !text.isBlank())
+                .toList();
+    }
+
+    /** Shared list styling + selection/double-click/context-menu wiring. */
+    private void configureList(ListView<XsdNode> list, String id,
+                               ObservableList<XsdNode> items, boolean isTypeList) {
+        list.setId(id);
+        list.getStyleClass().addAll("fxt-open-editors", "fxt-explorer-list");
+        list.setCellFactory(lv -> new TypeCell());
+        list.setFixedCellSize(26);
+        list.setPlaceholder(new Label("None"));
+        list.prefHeightProperty().bind(javafx.beans.binding.Bindings.createDoubleBinding(
+                () -> Math.min(234.0, Math.max(1, items.size()) * 26.0 + 2), items));
+        list.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
+            if (newV == null || syncingSelection) {
+                return;
+            }
+            // One selection across the three group lists.
+            syncingSelection = true;
+            try {
+                for (ListView<XsdNode> other : List.of(elementsList, complexList, simpleList)) {
+                    if (other != list) {
+                        other.getSelectionModel().clearSelection();
+                    }
+                }
+            } finally {
+                syncingSelection = false;
+            }
+            selectedTypeName = newV.getName();
+            String typeName = selectedTypeName;
+            // Defer out of the selection-change processing (avoids re-entering
+            // the ListViewBehavior listener: IndexOutOfBoundsException).
+            javafx.application.Platform.runLater(() -> editorHost.revealTypeByName(typeName));
+        });
+        if (isTypeList) {
+            // Double-click opens the type in its own focused editor tab.
+            list.setOnMouseClicked(e -> {
+                if (e.getClickCount() == 2 && selectedTypeName != null) {
+                    String typeName = selectedTypeName;
+                    javafx.application.Platform.runLater(() -> editorHost.openTypeEditorTab(typeName));
+                }
+            });
+        }
+        ContextMenu menu = new ContextMenu();
+        MenuItem reveal = menuItem("Reveal in Tree", "bi-list-nested", () -> {
+            if (selectedTypeName != null) {
+                editorHost.revealTypeByName(selectedTypeName);
+            }
+        });
+        menu.getItems().add(reveal);
+        if (isTypeList) {
+            menu.getItems().addAll(
+                    menuItem("Open Type Editor", "bi-pencil-square", () -> {
+                        if (selectedTypeName != null) {
+                            editorHost.openTypeEditorTab(selectedTypeName);
+                        }
+                    }),
+                    menuItem("Find Usage", "bi-search", this::findUsageOfSelectedType));
+        }
+        list.setContextMenu(menu);
     }
 
     /**
@@ -152,63 +279,13 @@ public class TypeLibraryPanel extends VBox {
     }
 
     /**
-     * Exports XSD documentation for the active schema: asks for a format
-     * (HTML / PDF / Word) and an output location, then generates it off the UI
-     * thread via {@link DocumentationRunner} and reports the result.
+     * Opens the documentation generator in the editor area ({@link DocumentationView}):
+     * the full option set (format, HTML rendering options, languages, output) with a
+     * live progress log — "big" editing happens in the main window.
      */
     public void generateDocumentationForActive() {
-        File xsd = activeXsdFileOrAlert("Generate Documentation");
-        if (xsd == null) {
-            return;
-        }
-
-        javafx.scene.control.ChoiceDialog<String> formatDialog =
-                new javafx.scene.control.ChoiceDialog<>("HTML", "HTML", "PDF", "Word");
-        formatDialog.setTitle("Generate Documentation");
-        formatDialog.setHeaderText("Choose the documentation format");
-        formatDialog.setContentText("Format:");
-        var format = formatDialog.showAndWait();
-        if (format.isEmpty()) {
-            return;
-        }
-
-        var window = getScene() != null ? getScene().getWindow() : null;
-        String baseName = xsd.getName().replaceFirst("\\.[^.]+$", "");
-        File target;
-        java.util.function.Function<File, String> export;
-        switch (format.get()) {
-            case "PDF" -> {
-                target = chooseFile(window, baseName + ".pdf", "PDF", "*.pdf");
-                export = out -> DocumentationRunner.exportPdf(xsd, out);
-            }
-            case "Word" -> {
-                target = chooseFile(window, baseName + ".docx", "Word", "*.docx");
-                export = out -> DocumentationRunner.exportWord(xsd, out);
-            }
-            default -> {
-                javafx.stage.DirectoryChooser dc = new javafx.stage.DirectoryChooser();
-                dc.setTitle("Choose output directory for HTML documentation");
-                target = dc.showDialog(window);
-                export = out -> DocumentationRunner.exportHtml(xsd, out);
-            }
-        }
-        if (target == null) {
-            return;
-        }
-
-        final File output = target;
-        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
-            String result = export.apply(output);
-            javafx.application.Platform.runLater(() -> {
-                if (result.startsWith("ERROR:")) {
-                    alert(javafx.scene.control.Alert.AlertType.ERROR, "Generate Documentation", result);
-                } else {
-                    alert(javafx.scene.control.Alert.AlertType.INFORMATION,
-                            "Generate Documentation", "Documentation generated:\n" + result.substring(3).trim());
-                    openInDesktop(output.isDirectory() ? new File(output, "index.html") : output);
-                }
-            });
-        });
+        editorHost.openOrFocusToolTab("Documentation", "bi-file-earmark-text",
+                () -> new DocumentationView(editorHost));
     }
 
     /**
@@ -321,30 +398,12 @@ public class TypeLibraryPanel extends VBox {
         }
     }
 
-    private File chooseFile(javafx.stage.Window window, String initialName, String label, String glob) {
-        javafx.stage.FileChooser fc = new javafx.stage.FileChooser();
-        fc.setTitle("Save documentation as " + label);
-        fc.setInitialFileName(initialName);
-        fc.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter(label, glob));
-        return fc.showSaveDialog(window);
-    }
-
-    private static void openInDesktop(File file) {
-        try {
-            if (file.exists() && java.awt.Desktop.isDesktopSupported()) {
-                java.awt.Desktop.getDesktop().open(file);
-            }
-        } catch (Throwable ignored) {
-            // best-effort preview; never fail the action because the OS can't open it
-        }
-    }
-
     private void alert(javafx.scene.control.Alert.AlertType type, String title, String message) {
-        javafx.scene.control.Alert alert = new javafx.scene.control.Alert(type);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
+        switch (type) {
+            case ERROR -> org.fxt.freexmltoolkit.util.DialogHelper.showError(title, null, message);
+            case WARNING -> org.fxt.freexmltoolkit.util.DialogHelper.showWarning(title, null, message);
+            default -> org.fxt.freexmltoolkit.util.DialogHelper.showInformation(title, null, message);
+        }
     }
 
     private void runAsync(java.util.function.Function<String, String> action,
@@ -363,24 +422,51 @@ public class TypeLibraryPanel extends VBox {
         });
     }
 
-    private javafx.scene.control.Button actionButton(String text, String icon, Runnable action) {
-        IconifyIcon graphic = new IconifyIcon(icon);
-        graphic.setIconSize(16);
-        javafx.scene.control.Button button = new javafx.scene.control.Button(text, graphic);
-        button.getStyleClass().add("fxt-tool-button");
-        button.setMaxWidth(Double.MAX_VALUE);
-        button.setOnAction(e -> action.run());
-        return button;
-    }
-
+    /** Rebuilds the three group lists, honouring the filter text. */
     private void refresh() {
-        // Clear selection before replacing items (avoids a JavaFX ListView setAll bug).
-        typesList.getSelectionModel().clearSelection();
-        types.setAll(editorHost.getActiveNamedTypes());
+        String query = filter.getText() != null ? filter.getText().strip().toLowerCase(Locale.ROOT) : "";
+        syncingSelection = true;
+        try {
+            elementsList.getSelectionModel().clearSelection();
+            complexList.getSelectionModel().clearSelection();
+            simpleList.getSelectionModel().clearSelection();
+        } finally {
+            syncingSelection = false;
+        }
+        List<XsdNode> globalElements = editorHost.getActiveGlobalElements();
+        List<XsdNode> types = editorHost.getActiveNamedTypes();
+        lastRefreshEmpty = globalElements.isEmpty() && types.isEmpty();
+        elements.setAll(filtered(globalElements, query, null));
+        complexTypes.setAll(filtered(types, query, XsdNodeType.COMPLEX_TYPE));
+        simpleTypes.setAll(filtered(types, query, XsdNodeType.SIMPLE_TYPE));
     }
 
-    /** Renders a named type with its node-type icon. */
+    private static List<XsdNode> filtered(List<XsdNode> nodes, String query, XsdNodeType type) {
+        return nodes.stream()
+                .filter(n -> type == null || n.getNodeType() == type)
+                .filter(n -> query.isEmpty()
+                        || (n.getName() != null && n.getName().toLowerCase(Locale.ROOT).contains(query)))
+                .toList();
+    }
+
+    private MenuItem menuItem(String text, String iconLiteral, Runnable action) {
+        MenuItem item = new MenuItem(text, icon(iconLiteral, 16));
+        item.setOnAction(e -> action.run());
+        return item;
+    }
+
+    private static IconifyIcon icon(String literal, int size) {
+        IconifyIcon icon = new IconifyIcon(literal);
+        icon.setIconSize(size);
+        return icon;
+    }
+
+    /** Renders a declaration with its node-type icon. */
     private static final class TypeCell extends ListCell<XsdNode> {
+        private TypeCell() {
+            setPrefWidth(0);
+        }
+
         @Override
         protected void updateItem(XsdNode item, boolean empty) {
             super.updateItem(item, empty);

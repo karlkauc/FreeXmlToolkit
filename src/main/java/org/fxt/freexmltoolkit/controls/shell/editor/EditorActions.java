@@ -174,93 +174,15 @@ public final class EditorActions {
     // ---------------------------------------------------------------------------------------------
 
     /**
-     * Generates XSD documentation for the active schema — mirrors
-     * {@code TypeLibraryPanel.generateDocumentationForActive()}: a format choice
-     * (HTML / PDF / Word) and an output location, then runs the matching
-     * {@link DocumentationRunner} export off the FX thread and reports the result.
+     * Opens the documentation generator in the editor area ({@link DocumentationView}):
+     * the full option set (format, HTML rendering options, languages, output) with a
+     * live progress log — same target as the Schema panel's ⋮ entry.
      *
-     * @param window the owner window for the choosers (may be {@code null})
+     * @param window unused (kept for the toolbar wiring's signature)
      */
     public void generateDocsActive(Window window) {
-        File xsd = activeXsdFileOrAlert("Generate Documentation");
-        if (xsd == null) {
-            return;
-        }
-        ChoiceDialog<String> formatDialog = new ChoiceDialog<>("HTML", "HTML", "PDF", "Word");
-        formatDialog.initOwner(window);
-        formatDialog.setTitle("Generate Documentation");
-        formatDialog.setHeaderText("Choose the documentation format");
-        formatDialog.setContentText("Format:");
-        var format = formatDialog.showAndWait();
-        if (format.isEmpty()) {
-            return;
-        }
-        String baseName = xsd.getName().replaceFirst("\\.[^.]+$", "");
-        File target;
-        java.util.function.Function<File, String> export;
-        switch (format.get()) {
-            case "PDF" -> {
-                target = chooseSaveFile(window, baseName + ".pdf", "PDF", "*.pdf");
-                export = out -> DocumentationRunner.exportPdf(xsd, out);
-            }
-            case "Word" -> {
-                target = chooseSaveFile(window, baseName + ".docx", "Word", "*.docx");
-                export = out -> DocumentationRunner.exportWord(xsd, out);
-            }
-            default -> {
-                javafx.stage.DirectoryChooser dc = new javafx.stage.DirectoryChooser();
-                dc.setTitle("Choose output directory for HTML documentation");
-                target = dc.showDialog(window);
-                export = out -> DocumentationRunner.exportHtml(xsd, out);
-            }
-        }
-        if (target == null) {
-            return;
-        }
-        final File output = target;
-        FxtGui.executorService.submit(() -> {
-            String result = export.apply(output);
-            Platform.runLater(() -> {
-                if (result.startsWith("ERROR:")) {
-                    alert(Alert.AlertType.ERROR, "Generate Documentation", result);
-                } else {
-                    alert(Alert.AlertType.INFORMATION, "Generate Documentation",
-                            "Documentation generated:\n" + result.substring(3).trim());
-                }
-            });
-        });
-    }
-
-    /**
-     * Resolves the active document to an XSD file on disk (its saved path, or a temp
-     * copy of the current text for an unsaved schema). Shows an alert and returns
-     * {@code null} when the active document is not an XSD. Mirrors
-     * {@code TypeLibraryPanel.activeXsdFileOrAlert}.
-     * <p>
-     * Note: a document that HAS a path but unsaved edits is documented from its
-     * on-disk (last-saved) version, not the current buffer — this keeps relative
-     * {@code xs:include}/{@code xs:import} resolution anchored at the real file
-     * location. Save before generating to document the latest edits.
-     */
-    private File activeXsdFileOrAlert(String title) {
-        var docOpt = editorHost.getActiveDocument();
-        if (docOpt.isEmpty() || docOpt.get().getFileType() != EditorFileType.XSD) {
-            alert(Alert.AlertType.WARNING, title, "Open an XSD schema first.");
-            return null;
-        }
-        try {
-            java.nio.file.Path path = docOpt.get().getPath();
-            if (path != null) {
-                return path.toFile();
-            }
-            File tmp = File.createTempFile("fxt-schema-", ".xsd");
-            tmp.deleteOnExit();
-            Files.writeString(tmp.toPath(), editorHost.getActiveText().orElse(""));
-            return tmp;
-        } catch (Exception e) {
-            alert(Alert.AlertType.ERROR, title, e.getMessage());
-            return null;
-        }
+        editorHost.openOrFocusToolTab("Documentation", "bi-file-earmark-text",
+                () -> new DocumentationView(editorHost));
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -295,14 +217,6 @@ public final class EditorActions {
     // Helpers
     // ---------------------------------------------------------------------------------------------
 
-    private File chooseSaveFile(Window window, String initialName, String label, String glob) {
-        FileChooser fc = new FileChooser();
-        fc.setTitle("Save documentation as " + label);
-        fc.setInitialFileName(initialName);
-        fc.getExtensionFilters().add(new FileChooser.ExtensionFilter(label, glob));
-        return fc.showSaveDialog(window);
-    }
-
     private static Region messageRegion(String message) {
         Label label = new Label(message);
         label.getStyleClass().add("fxt-placeholder-text");
@@ -323,10 +237,10 @@ public final class EditorActions {
     }
 
     private static void alert(Alert.AlertType type, String title, String message) {
-        Alert alert = new Alert(type);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
+        switch (type) {
+            case ERROR -> org.fxt.freexmltoolkit.util.DialogHelper.showError(title, null, message);
+            case WARNING -> org.fxt.freexmltoolkit.util.DialogHelper.showWarning(title, null, message);
+            default -> org.fxt.freexmltoolkit.util.DialogHelper.showInformation(title, null, message);
+        }
     }
 }

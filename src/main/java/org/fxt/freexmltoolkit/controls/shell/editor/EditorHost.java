@@ -244,6 +244,18 @@ public class EditorHost extends BorderPane {
 
     /** @return the top-level named types of the active XSD (from the model or a parse of the text). */
     public java.util.List<XsdNode> getActiveNamedTypes() {
+        return org.fxt.freexmltoolkit.controls.shell.schema.TypeLibrary
+                .collectNamedTypes(resolveActiveSchemaForLibrary());
+    }
+
+    /** @return the top-level (global) element declarations of the active XSD. */
+    public java.util.List<XsdNode> getActiveGlobalElements() {
+        return org.fxt.freexmltoolkit.controls.shell.schema.TypeLibrary
+                .collectGlobalElements(resolveActiveSchemaForLibrary());
+    }
+
+    /** Resolves the active XSD's schema root for the Type Library (model, text parse, or tool-tab source). */
+    private XsdNode resolveActiveSchemaForLibrary() {
         XsdNode schema = getActiveSchemaRoot().orElse(null);
         if (schema == null) {
             var doc = getActiveDocument();
@@ -252,7 +264,7 @@ public class EditorHost extends BorderPane {
                     schema = new org.fxt.freexmltoolkit.controls.v2.model.XsdNodeFactory()
                             .fromString(getActiveText().orElse(""));
                 } catch (Exception ignored) {
-                    return java.util.List.of();
+                    return null;
                 }
             }
         }
@@ -266,7 +278,7 @@ public class EditorHost extends BorderPane {
                 }
             }
         }
-        return org.fxt.freexmltoolkit.controls.shell.schema.TypeLibrary.collectNamedTypes(schema);
+        return schema;
     }
 
     /** Reveals a named type in the Tree view (switching to the XSD tab + Tree if needed). */
@@ -285,10 +297,12 @@ public class EditorHost extends BorderPane {
         setActiveViewMode(ViewMode.TREE);
         getActiveSchemaRoot().ifPresent(root -> {
             for (XsdNode child : root.getChildren()) {
-                boolean isType =
+                // Named types and global element declarations (the Type Library lists both).
+                boolean revealable =
                         child.getNodeType() == org.fxt.freexmltoolkit.controls.v2.model.XsdNodeType.SIMPLE_TYPE
-                        || child.getNodeType() == org.fxt.freexmltoolkit.controls.v2.model.XsdNodeType.COMPLEX_TYPE;
-                if (isType && typeName.equals(child.getName())) {
+                        || child.getNodeType() == org.fxt.freexmltoolkit.controls.v2.model.XsdNodeType.COMPLEX_TYPE
+                        || child.getNodeType() == org.fxt.freexmltoolkit.controls.v2.model.XsdNodeType.ELEMENT;
+                if (revealable && typeName.equals(child.getName())) {
                     selectNodeInActiveTree(child);
                     return;
                 }
@@ -824,14 +838,8 @@ public class EditorHost extends BorderPane {
                 EditorFileType type = EditorFileType.fromFileName(name);
                 Platform.runLater(() -> openGeneratedDocument(body, type, name));
             } catch (Exception e) {
-                Platform.runLater(() -> {
-                    javafx.scene.control.Alert alert =
-                            new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.ERROR);
-                    alert.setTitle("Open from URL");
-                    alert.setHeaderText("Could not fetch the URL");
-                    alert.setContentText(e.getMessage());
-                    alert.showAndWait();
-                });
+                Platform.runLater(() -> org.fxt.freexmltoolkit.util.DialogHelper.showError(
+                        "Open from URL", "Could not fetch the URL", e.getMessage()));
             }
         });
     }
@@ -1478,11 +1486,9 @@ public class EditorHost extends BorderPane {
             xsltContent = java.nio.file.Files.readString(
                     xsltFile.toPath(), java.nio.charset.StandardCharsets.UTF_8);
         } catch (Exception e) {
-            javafx.scene.control.Alert alert =
-                    new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.ERROR);
-            alert.setTitle("XSLT Debug");
-            alert.setHeaderText("Could not start the debugger");
-            alert.setContentText("Could not read stylesheet: " + e.getMessage());
+            javafx.scene.control.Alert alert = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
+                    javafx.scene.control.Alert.AlertType.ERROR, "XSLT Debug",
+                    "Could not start the debugger", "Could not read stylesheet: " + e.getMessage());
             if (getScene() != null) {
                 alert.initOwner(getScene().getWindow());
             }
@@ -1881,11 +1887,10 @@ public class EditorHost extends BorderPane {
             return;
         }
         tabPane.getSelectionModel().select(tab);
-        javafx.scene.control.Alert alert =
-                new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Unsaved Changes");
-        alert.setHeaderText("Save changes to " + tab.document.getDisplayName() + "?");
-        alert.setContentText("Your changes will be lost if you don't save them.");
+        javafx.scene.control.Alert alert = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
+                javafx.scene.control.Alert.AlertType.CONFIRMATION, "Unsaved Changes",
+                "Save changes to " + tab.document.getDisplayName() + "?",
+                "Your changes will be lost if you don't save them.");
         javafx.scene.control.ButtonType save =
                 new javafx.scene.control.ButtonType("Save", javafx.scene.control.ButtonBar.ButtonData.YES);
         javafx.scene.control.ButtonType discard =

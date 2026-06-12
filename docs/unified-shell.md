@@ -180,12 +180,36 @@ Statistics, Schema Quality, Generate Sample XML / Documentation) on the left.*
 
 - **Text** - Source code editing with syntax highlighting; moving the caret into a schema construct also lets you edit its properties in the Properties pane (see [Properties Inspector](#properties-inspector))
 - **Graphic** - Visual XMLSpy-style schema diagram
-- **Type Library** - Browse all types with filtering, search, and usage counts
 - **Type Editor** - Edit ComplexTypes graphically, SimpleTypes with form editor
 - **Analysis** - Schema statistics, identity constraints, quality checks
-- **Documentation** - Generate HTML/Word/PDF documentation
+- **Documentation** - Generate HTML/Word/PDF documentation (see below)
 - **Sample Data** - Generate sample XML from the schema
 - **Flatten** - Merge included/imported schemas into a single file
+
+### The Schema Panel
+
+The **Schema** activity's side panel lists the active schema's top-level declarations,
+grouped into **GLOBAL ELEMENTS**, **COMPLEX TYPES**, and **SIMPLE TYPES** (collapsible
+sections), with a **filter field** on top. Click a declaration to reveal it in the Tree
+view; double-click a type to open it in its dedicated **Type Editor** tab; right-click for
+**Reveal in Tree / Open Type Editor / Find Usage**. The schema tools (Generate XSD from
+XML / batch, Sample XML, Flatten, Statistics, Schema Quality, Documentation) live in the
+header's ⋮ menu.
+
+### Documentation Generator (editor area)
+
+**Generate Documentation…** (Schema panel ⋮ or the editor toolbar) opens the generator as
+a tab in the main editor area with the full option set:
+
+- **SOURCE & OUTPUT** - the XSD (the active schema is pre-filled) and the output folder
+  (HTML) or file (PDF/Word).
+- **FORMAT** - HTML, PDF, or Word.
+- **OPTIONS** - Markdown renderer, type definitions in source code, documentation in
+  diagrams, SVG overview page, metadata, and the diagram image format (SVG/PNG/JPG).
+- **LANGUAGES** - **Scan languages** discovers the `xml:lang` documentation languages in
+  the schema; pick which to include and the fallback language.
+- **PROGRESS** - the right-hand log streams the pipeline's task messages live while
+  generating; the run can be **cancelled**, and the result can open automatically.
 
 ## XSLT Features
 
