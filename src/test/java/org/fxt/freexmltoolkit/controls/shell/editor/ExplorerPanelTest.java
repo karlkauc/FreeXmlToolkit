@@ -76,6 +76,38 @@ class ExplorerPanelTest {
     }
 
     @Test
+    void removingAFavoriteKeepsTheFileOnDisk() throws Exception {
+        WaitForAsyncUtils.waitForFxEvents();
+        @SuppressWarnings("unchecked")
+        ListView<org.fxt.freexmltoolkit.domain.FileFavorite> favorites =
+                (ListView<org.fxt.freexmltoolkit.domain.FileFavorite>) panel.lookup("#explorer-favorites-list");
+        int index = -1;
+        for (int i = 0; i < favorites.getItems().size(); i++) {
+            if (favXml.toString().equals(favorites.getItems().get(i).getFilePath())) {
+                index = i;
+                break;
+            }
+        }
+        assertTrue(index >= 0, "the seeded favorite must be listed");
+
+        int select = index;
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            favorites.getSelectionModel().select(select);
+            panel.removeSelectedFavorite();
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+
+        assertTrue(favorites.getItems().stream()
+                        .noneMatch(f -> favXml.toString().equals(f.getFilePath())),
+                "the favorite entry must be gone from the list");
+        assertTrue(Files.exists(favXml), "removing a favorite must NOT delete the file itself");
+        assertTrue(panel.lookup(".context-menu") != null
+                        || favorites.getContextMenu() != null,
+                "the FAVORITES list must offer the remove action via its context menu");
+    }
+
+    @Test
     void openingDocumentsWhileAnEntryIsSelectedDoesNotCrash(@TempDir Path tmp) throws Exception {
         Path a = tmp.resolve("a.xml");
         Path b = tmp.resolve("b.xml");

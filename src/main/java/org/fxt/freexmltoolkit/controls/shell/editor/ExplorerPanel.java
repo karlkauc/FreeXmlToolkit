@@ -126,6 +126,11 @@ public class ExplorerPanel extends VBox {
                 }
             }
         });
+        javafx.scene.control.ContextMenu favoritesMenu = new javafx.scene.control.ContextMenu();
+        MenuItem removeFavorite = new MenuItem("Remove from favorites", icon("bi-x-circle", 16));
+        removeFavorite.setOnAction(e -> removeSelectedFavorite());
+        favoritesMenu.getItems().add(removeFavorite);
+        favoritesList.setContextMenu(favoritesMenu);
 
         HBox openHeader = sectionHeader(new Label("OPEN EDITORS"), openList);
         openHeader.setId("explorer-open-editors-header");
@@ -364,6 +369,23 @@ public class ExplorerPanel extends VBox {
             icon.setIconSize(15);
             setGraphic(icon);
         }
+    }
+
+    /**
+     * Removes the selected entry from the favorites store - the file on disk is
+     * untouched. Wired to the FAVORITES list's context menu.
+     */
+    void removeSelectedFavorite() {
+        var selected = favoritesList.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            return;
+        }
+        try {
+            org.fxt.freexmltoolkit.service.FavoritesService.getInstance().removeFavorite(selected);
+        } catch (Throwable t) {
+            // no favorites store (tests) - just refresh the view
+        }
+        refreshFavorites();
     }
 
     /** Reloads the FAVORITES list from the favorites store (best-effort). */
