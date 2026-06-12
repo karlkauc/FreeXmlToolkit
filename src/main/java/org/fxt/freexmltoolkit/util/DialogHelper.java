@@ -212,6 +212,28 @@ public class DialogHelper {
     }
 
     /**
+     * Creates a themed, icon-decorated alert WITHOUT showing it, so callers can
+     * customize it first (custom button types, owner window, …) and call
+     * {@code showAndWait()} themselves. The icon follows the alert type
+     * (info/question/warning/error in the matching semantic color).
+     *
+     * @param type    the alert type
+     * @param title   the alert window title
+     * @param header  the alert header text
+     * @param content the alert content text
+     * @return the configured, styled alert
+     */
+    public static Alert createStyledAlert(Alert.AlertType type, String title, String header, String content) {
+        String iconLiteral = switch (type) {
+            case WARNING -> "bi-exclamation-triangle";
+            case ERROR -> "bi-x-circle";
+            case CONFIRMATION -> "bi-question-circle";
+            default -> "bi-info-circle";
+        };
+        return createAlert(type, title, header, content, iconLiteral);
+    }
+
+    /**
      * Shows a confirmation dialog with custom button labels.
      *
      * @param title the dialog title

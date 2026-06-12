@@ -105,10 +105,8 @@ public class SimpleTypeEditorTab extends AbstractTypeEditorTab {
      * Phase 6: Error Handling & Validation
      */
     private void showSuccessMessage(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
+        Alert alert = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
+                Alert.AlertType.INFORMATION, title, null, message);
         alert.showAndWait();
     }
 
@@ -117,10 +115,8 @@ public class SimpleTypeEditorTab extends AbstractTypeEditorTab {
      * Phase 6: Error Handling & Validation
      */
     private void showErrorMessage(String title, String header, String content) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle(title);
-        alert.setHeaderText(header);
-        alert.setContentText(content);
+        Alert alert = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
+                Alert.AlertType.ERROR, title, header, content);
         alert.showAndWait();
     }
 
@@ -135,9 +131,8 @@ public class SimpleTypeEditorTab extends AbstractTypeEditorTab {
         java.util.List<UsageInfo> usages = findTypeUsages(simpleType.getName());
 
         // Create dialog
-        Alert dialog = new Alert(Alert.AlertType.INFORMATION);
-        dialog.setTitle("Find Usage");
-        dialog.setHeaderText("Usage of SimpleType: " + simpleType.getName());
+        Alert dialog = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
+                Alert.AlertType.INFORMATION, "Find Usage", "Usage of SimpleType: " + simpleType.getName(), null);
         dialog.setResizable(true);
 
         if (usages.isEmpty()) {

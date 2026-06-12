@@ -88,10 +88,8 @@ public class XmlValidationHelper {
      * @param message the message to display
      */
     public static void showValidationAlert(Alert.AlertType alertType, String title, String message) {
-        Alert alert = new Alert(alertType);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
+        Alert alert = org.fxt.freexmltoolkit.util.DialogHelper
+                .createStyledAlert(alertType, title, null, message);
         alert.getDialogPane().setMinWidth(450);
         alert.showAndWait();
     }

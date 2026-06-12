@@ -111,10 +111,8 @@ public class ComplexTypeEditorTab extends AbstractTypeEditorTab {
      * Phase 6: Error Handling & Validation
      */
     private void showSuccessMessage(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
+        Alert alert = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
+                Alert.AlertType.INFORMATION, title, null, message);
         alert.showAndWait();
     }
 
@@ -123,10 +121,8 @@ public class ComplexTypeEditorTab extends AbstractTypeEditorTab {
      * Phase 6: Error Handling & Validation
      */
     private void showErrorMessage(String title, String header, String content) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle(title);
-        alert.setHeaderText(header);
-        alert.setContentText(content);
+        Alert alert = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
+                Alert.AlertType.ERROR, title, header, content);
         alert.showAndWait();
     }
 

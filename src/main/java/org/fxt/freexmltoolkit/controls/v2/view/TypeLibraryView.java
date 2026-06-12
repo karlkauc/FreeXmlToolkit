@@ -710,9 +710,8 @@ public class TypeLibraryView extends BorderPane {
         }
 
         // Show dialog with all usage locations
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Type Usages");
-        alert.setHeaderText("Type '" + typeInfo.name + "' is used in " + typeInfo.usageCount + " location(s)");
+        Alert alert = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
+                Alert.AlertType.INFORMATION, "Type Usages", "Type '" + typeInfo.name + "' is used in " + typeInfo.usageCount + " location(s)", null);
 
         // Create a TextArea with the locations
         TextArea textArea = new TextArea();
@@ -744,9 +743,8 @@ public class TypeLibraryView extends BorderPane {
         // Check usage
         if (typeInfo.usageCount > 0) {
             // Warning: Type is in use
-            Alert alert = new Alert(Alert.AlertType.WARNING);
-            alert.setTitle("Type In Use");
-            alert.setHeaderText("Cannot delete type '" + typeInfo.name + "'");
+            Alert alert = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
+                    Alert.AlertType.WARNING, "Type In Use", "Cannot delete type '" + typeInfo.name + "'", null);
 
             String locationsList = typeInfo.usageLocations.stream()
                 .limit(5)
@@ -762,10 +760,8 @@ public class TypeLibraryView extends BorderPane {
         }
 
         // Confirmation dialog
-        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
-        confirm.setTitle("Delete Type");
-        confirm.setHeaderText("Delete type '" + typeInfo.name + "'?");
-        confirm.setContentText("This type is not used and can be safely deleted.");
+        Alert confirm = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
+                Alert.AlertType.CONFIRMATION, "Delete Type", "Delete type '" + typeInfo.name + "'?", "This type is not used and can be safely deleted.");
 
         confirm.showAndWait().ifPresent(result -> {
             if (result == ButtonType.OK) {
@@ -786,8 +782,8 @@ public class TypeLibraryView extends BorderPane {
         IncludeSourceInfo sourceInfo = node.getSourceInfo();
         String fileName = sourceInfo != null ? sourceInfo.getFileName() : "external file";
 
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("External Schema Type");
+        Alert alert = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
+                Alert.AlertType.INFORMATION, "External Schema Type", null, null);
 
         if ("delete".equals(action)) {
             alert.setHeaderText("Cannot delete type from external schema");
@@ -1000,11 +996,9 @@ public class TypeLibraryView extends BorderPane {
     }
 
     private void showAlert(Alert.AlertType type, String title, String message) {
-        Alert alert = new Alert(type);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
+        org.fxt.freexmltoolkit.util.DialogHelper
+                .createStyledAlert(type, title, null, message)
+                .showAndWait();
     }
 
     /**

@@ -969,10 +969,8 @@ public class QualityChecksView extends BorderPane {
      * Shows an info alert.
      */
     private void showInfo(String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Export Successful");
-        alert.setHeaderText(null);
-        alert.setContentText(message);
+        Alert alert = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
+                Alert.AlertType.INFORMATION, "Export Successful", null, message);
         alert.showAndWait();
     }
 
@@ -980,10 +978,8 @@ public class QualityChecksView extends BorderPane {
      * Shows a warning alert.
      */
     private void showWarning(String message) {
-        Alert alert = new Alert(Alert.AlertType.WARNING);
-        alert.setTitle("Warning");
-        alert.setHeaderText(null);
-        alert.setContentText(message);
+        Alert alert = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
+                Alert.AlertType.WARNING, "Warning", null, message);
         alert.showAndWait();
     }
 
@@ -991,10 +987,8 @@ public class QualityChecksView extends BorderPane {
      * Shows an error alert.
      */
     private void showError(String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Export Failed");
-        alert.setHeaderText(null);
-        alert.setContentText(message);
+        Alert alert = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
+                Alert.AlertType.ERROR, "Export Failed", null, message);
         alert.showAndWait();
     }
 

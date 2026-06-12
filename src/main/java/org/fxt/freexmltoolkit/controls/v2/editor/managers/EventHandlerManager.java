@@ -386,10 +386,8 @@ public class EventHandlerManager {
 
         logger.debug("Element Info displayed for: {}", elementInfo.getElementName());
 
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Element Information");
-        alert.setHeaderText("Element: " + elementInfo.getElementName());
-        alert.setContentText(info.toString());
+        Alert alert = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
+                Alert.AlertType.INFORMATION, "Element Information", "Element: " + elementInfo.getElementName(), info.toString());
         alert.showAndWait();
     }
 

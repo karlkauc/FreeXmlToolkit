@@ -786,13 +786,13 @@ public class UnifiedShellView extends BorderPane {
 
     private void reportConversion(String result, java.io.File file, boolean imported) {
         boolean ok = result.startsWith("OK:") || (imported && !result.startsWith("ERROR:"));
-        javafx.scene.control.Alert alert = new javafx.scene.control.Alert(ok
-                ? javafx.scene.control.Alert.AlertType.INFORMATION
-                : javafx.scene.control.Alert.AlertType.ERROR);
-        alert.setTitle("Spreadsheet Converter");
-        alert.setHeaderText(null);
-        alert.setContentText(ok ? "Done: " + file.getAbsolutePath() : result);
-        alert.showAndWait();
+        if (ok) {
+            org.fxt.freexmltoolkit.util.DialogHelper.showInformation("Spreadsheet Converter",
+                    "Conversion finished", "Done: " + file.getAbsolutePath());
+        } else {
+            org.fxt.freexmltoolkit.util.DialogHelper.showError("Spreadsheet Converter",
+                    "Conversion failed", result);
+        }
     }
 
     private void insertTemplate() {

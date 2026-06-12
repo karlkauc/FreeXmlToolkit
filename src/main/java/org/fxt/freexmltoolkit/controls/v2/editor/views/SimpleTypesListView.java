@@ -657,10 +657,8 @@ public class SimpleTypesListView extends BorderPane {
         logger.info("Delete type requested: {}", simpleType.getName());
 
         // Show confirmation dialog
-        Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
-        confirmAlert.setTitle("Confirm Delete");
-        confirmAlert.setHeaderText("Delete SimpleType: " + simpleType.getName());
-        confirmAlert.setContentText("Are you sure you want to delete this SimpleType?\nThis action cannot be undone.");
+        Alert confirmAlert = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
+                Alert.AlertType.CONFIRMATION, "Confirm Delete", "Delete SimpleType: " + simpleType.getName(), "Are you sure you want to delete this SimpleType?\nThis action cannot be undone.");
 
         confirmAlert.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {

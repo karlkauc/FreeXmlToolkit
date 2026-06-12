@@ -238,10 +238,8 @@ public class TypeEditorTabManager {
 
                 if (!usages.isEmpty()) {
                     // Type is used - show warning dialog
-                    Alert warningAlert = new Alert(Alert.AlertType.WARNING);
-                    warningAlert.setTitle("Type In Use");
-                    warningAlert.setHeaderText("Cannot delete type '" + simpleType.getName() + "'");
-                    warningAlert.setContentText("This type is used in " + usages.size() +
+                    Alert warningAlert = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
+                            Alert.AlertType.WARNING, "Type In Use", "Cannot delete type '" + simpleType.getName() + "'", "This type is used in " + usages.size() +
                             " location(s). Remove all usages before deleting.\n\n" +
                             "Click 'Show Usages' to see where this type is used.");
 
@@ -258,10 +256,8 @@ public class TypeEditorTabManager {
                     // Don't delete - type is still in use
                 } else {
                     // Type is not used - confirm deletion
-                    Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
-                    confirmAlert.setTitle("Confirm Deletion");
-                    confirmAlert.setHeaderText("Delete type '" + simpleType.getName() + "'?");
-                    confirmAlert.setContentText("This type is not used anywhere and can be safely deleted.");
+                    Alert confirmAlert = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
+                            Alert.AlertType.CONFIRMATION, "Confirm Deletion", "Delete type '" + simpleType.getName() + "'?", "This type is not used anywhere and can be safely deleted.");
 
                     Optional<ButtonType> result = confirmAlert.showAndWait();
                     if (result.isPresent() && result.get() == ButtonType.OK) {
@@ -367,10 +363,8 @@ public class TypeEditorTabManager {
     private boolean handleTabCloseRequest(AbstractTypeEditorTab tab) {
         if (tab.isDirty()) {
             // Show confirmation dialog
-            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-            alert.setTitle("Unsaved Changes");
-            alert.setHeaderText("Tab has unsaved changes");
-            alert.setContentText("Do you want to save changes before closing?");
+            Alert alert = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
+                    Alert.AlertType.CONFIRMATION, "Unsaved Changes", "Tab has unsaved changes", "Do you want to save changes before closing?");
 
             ButtonType saveBtn = new ButtonType("Save");
             ButtonType discardBtn = new ButtonType("Discard");
@@ -582,10 +576,8 @@ public class TypeEditorTabManager {
      * @param content the alert content
      */
     private void showErrorAlert(String title, String header, String content) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle(title);
-        alert.setHeaderText(header);
-        alert.setContentText(content);
+        Alert alert = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
+                Alert.AlertType.ERROR, title, header, content);
         alert.showAndWait();
     }
 }

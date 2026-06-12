@@ -789,10 +789,8 @@ public class SchemaStatisticsView extends BorderPane {
      * Shows an error message.
      */
     private void showError(String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Error");
-        alert.setHeaderText(null);
-        alert.setContentText(message);
+        Alert alert = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
+                Alert.AlertType.ERROR, "Error", null, message);
         alert.showAndWait();
     }
 
@@ -800,10 +798,8 @@ public class SchemaStatisticsView extends BorderPane {
      * Shows an info message.
      */
     private void showInfo(String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Information");
-        alert.setHeaderText(null);
-        alert.setContentText(message);
+        Alert alert = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
+                Alert.AlertType.INFORMATION, "Information", null, message);
         alert.showAndWait();
     }
 

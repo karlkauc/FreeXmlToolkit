@@ -338,6 +338,13 @@ public class RepeatingElementsTable {
         private final Map<String, XmlElement> complexChildren = new LinkedHashMap<>();
 
         /**
+         * Display-only attribute summaries per column (e.g. {@code ccy=EUR} for
+         * {@code <Amount ccy="EUR">…</Amount>}). Kept SEPARATE from {@link #values}
+         * so cell editing still round-trips the bare text value.
+         */
+        private final Map<String, String> attributeSuffixes = new LinkedHashMap<>();
+
+        /**
          * Whether this row is expanded to show additional details.
          */
         private boolean expanded = false;
@@ -376,6 +383,19 @@ public class RepeatingElementsTable {
          */
         public Map<String, XmlElement> getComplexChildren() {
             return complexChildren;
+        }
+
+        /**
+         * @return the display-only attribute summary for a column (e.g. {@code ccy=EUR}),
+         * or {@code null} when the cell's element has no attributes
+         */
+        public String getAttributeSuffix(String columnName) {
+            return attributeSuffixes.get(columnName);
+        }
+
+        /** @return the mutable attribute-summary map (populated while building rows). */
+        public Map<String, String> getAttributeSuffixes() {
+            return attributeSuffixes;
         }
 
         /**
@@ -767,6 +787,12 @@ public class RepeatingElementsTable {
                             String text = extractElementText(childEl);
                             if (!row.getValues().containsKey(childName)) {
                                 row.getValues().put(childName, text);
+                                // The cell element's own attributes (e.g. ccy="EUR" on an
+                                // Amount) are shown as a display-only suffix next to the value.
+                                if (!childEl.getAttributes().isEmpty()) {
+                                    row.getAttributeSuffixes().put(childName,
+                                            formatAttributes(childEl));
+                                }
                                 // Store complex children for later expansion
                                 if (hasElementChildren(childEl)) {
                                     row.getComplexChildren().put(childName, childEl);
@@ -785,6 +811,21 @@ public class RepeatingElementsTable {
 
             rows.add(row);
         }
+    }
+
+    /**
+     * Formats an element's attributes as a compact display summary, e.g.
+     * {@code ccy=EUR} or {@code ccy=EUR lang=de}.
+     */
+    private static String formatAttributes(XmlElement element) {
+        StringBuilder summary = new StringBuilder();
+        for (Map.Entry<String, String> attribute : element.getAttributes().entrySet()) {
+            if (summary.length() > 0) {
+                summary.append(' ');
+            }
+            summary.append(attribute.getKey()).append('=').append(attribute.getValue());
+        }
+        return summary.toString();
     }
 
     /**

@@ -1480,10 +1480,8 @@ public class XsdPropertiesPanel extends BorderPane {
             // When setting a type on an element that already has a compositor, ask the user first.
             if (node instanceof XsdElement element && newType != null && !newType.isEmpty()
                     && element.hasCompositor()) {
-                Alert confirmDialog = new Alert(Alert.AlertType.CONFIRMATION);
-                confirmDialog.setTitle("Compositor Present");
-                confirmDialog.setHeaderText("Element '" + element.getName() + "' already has a Compositor (Sequence/Choice/All)");
-                confirmDialog.setContentText("Should the Compositor be removed to set a type?");
+                Alert confirmDialog = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
+                        Alert.AlertType.CONFIRMATION, "Compositor Present", "Element '" + element.getName() + "' already has a Compositor (Sequence/Choice/All)", "Should the Compositor be removed to set a type?");
 
                 ButtonType removeButton = new ButtonType("Yes, remove Compositor");
                 ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);

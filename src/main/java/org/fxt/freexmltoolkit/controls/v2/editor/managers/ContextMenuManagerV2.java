@@ -416,10 +416,8 @@ public class ContextMenuManagerV2 implements XmlContextMenuManager.XmlContextAct
         logger.debug("Element Info displayed for: {}", elementInfo.getElementName());
 
         Platform.runLater(() -> {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("Element Information");
-            alert.setHeaderText("Element: " + elementInfo.getElementName());
-            alert.setContentText(info.toString());
+            Alert alert = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
+                    Alert.AlertType.INFORMATION, "Element Information", "Element: " + elementInfo.getElementName(), info.toString());
             alert.showAndWait();
         });
     }
@@ -459,10 +457,8 @@ public class ContextMenuManagerV2 implements XmlContextMenuManager.XmlContextAct
         } catch (Exception e) {
             logger.error("Error formatting XML: {}", e.getMessage(), e);
             Platform.runLater(() -> {
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setTitle("Format Error");
-                alert.setHeaderText("Unable to format XML");
-                alert.setContentText(e.getMessage());
+                Alert alert = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
+                        Alert.AlertType.ERROR, "Format Error", "Unable to format XML", e.getMessage());
                 alert.showAndWait();
             });
         }

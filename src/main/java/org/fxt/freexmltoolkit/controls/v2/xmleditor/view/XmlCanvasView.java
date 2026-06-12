@@ -1143,8 +1143,23 @@ public class XmlCanvasView extends Pane implements XmlSearchTarget {
                     gc.setFill(TEXT_CONTENT);
                 }
 
-                gc.fillText(truncateText(value, colWidth - RepeatingElementsTable.CELL_PADDING * 2 - textOffsetX),
-                        cellX + RepeatingElementsTable.CELL_PADDING + textOffsetX, cellCenterY);
+                double cellTextWidth = colWidth - RepeatingElementsTable.CELL_PADDING * 2 - textOffsetX;
+                String shownValue = truncateText(value, cellTextWidth);
+                gc.fillText(shownValue, cellX + RepeatingElementsTable.CELL_PADDING + textOffsetX, cellCenterY);
+
+                // The cell element's own attributes (display-only, e.g. ccy=EUR) in the
+                // attribute color, right after the value.
+                String attributeSuffix = row.getAttributeSuffix(colName);
+                if (attributeSuffix != null && !attributeSuffix.isEmpty()) {
+                    double valueWidth = shownValue.length() * 7; // same approximation as truncateText
+                    double suffixSpace = cellTextWidth - valueWidth - 8;
+                    if (suffixSpace > 20) {
+                        gc.setFill(TEXT_ATTRIBUTE_NAME);
+                        gc.fillText(truncateText(attributeSuffix, suffixSpace),
+                                cellX + RepeatingElementsTable.CELL_PADDING + textOffsetX + valueWidth + 8,
+                                cellCenterY);
+                    }
+                }
 
                 // Draw expanded cell content as a full tree (sub-rows below the summary line)
                 if (row.isColumnExpanded(colName)) {

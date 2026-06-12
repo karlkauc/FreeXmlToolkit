@@ -127,17 +127,12 @@ public class SettingsPanel extends VBox {
         Button clearCache = new Button("Clear Cache Folder", iconGraphic("bi-trash"));
         clearCache.getStyleClass().add("fxt-tool-button");
         clearCache.setOnAction(e -> {
-            javafx.scene.control.Alert confirm =
-                    new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.CONFIRMATION);
-            confirm.setTitle("Clear Cache");
-            confirm.setHeaderText("Clear the local cache folder?");
-            confirm.setContentText("This deletes all cached files (downloaded schemas etc.) under\n"
-                    + cacheFolder().getAbsolutePath() + "\n\nThis action cannot be undone.");
-            confirm.showAndWait().ifPresent(btn -> {
-                if (btn == javafx.scene.control.ButtonType.OK) {
-                    tempStatus.setText("Cleared " + clearCacheFolder() + " cached file(s).");
-                }
-            });
+            if (org.fxt.freexmltoolkit.util.DialogHelper.showConfirmation("Clear Cache",
+                    "Clear the local cache folder?",
+                    "This deletes all cached files (downloaded schemas etc.) under\n"
+                            + cacheFolder().getAbsolutePath() + "\n\nThis action cannot be undone.")) {
+                tempStatus.setText("Cleared " + clearCacheFolder() + " cached file(s).");
+            }
         });
 
         userName.setPromptText("name");
@@ -147,18 +142,13 @@ public class SettingsPanel extends VBox {
         Button clearStats = new Button("Clear statistics", iconGraphic("bi-trash"));
         clearStats.getStyleClass().add("fxt-tool-button");
         clearStats.setOnAction(e -> {
-            javafx.scene.control.Alert confirm =
-                    new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.CONFIRMATION);
-            confirm.setTitle("Clear Statistics");
-            confirm.setHeaderText("Clear all progress data?");
-            confirm.setContentText("This will permanently delete all your usage statistics. "
-                    + "This action cannot be undone.");
-            confirm.showAndWait().ifPresent(btn -> {
-                if (btn == javafx.scene.control.ButtonType.OK) {
-                    UsageTrackingServiceImpl.getInstance().clearStatistics();
-                    usageStatus.setText("Usage statistics cleared.");
-                }
-            });
+            if (org.fxt.freexmltoolkit.util.DialogHelper.showConfirmation("Clear Statistics",
+                    "Clear all progress data?",
+                    "This will permanently delete all your usage statistics. "
+                            + "This action cannot be undone.")) {
+                UsageTrackingServiceImpl.getInstance().clearStatistics();
+                usageStatus.setText("Usage statistics cleared.");
+            }
         });
 
         Button save = new Button("Save Settings", iconGraphic("bi-save"));

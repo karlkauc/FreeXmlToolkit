@@ -1208,10 +1208,8 @@ public class XmlGridContextMenu {
         }
 
         // Confirm deletion
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Delete Element");
-        alert.setHeaderText("Delete \"" + getNodeName(selected) + "\"?");
-        alert.setContentText("This action cannot be undone from this dialog.");
+        Alert alert = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
+                Alert.AlertType.CONFIRMATION, "Delete Element", "Delete \"" + getNodeName(selected) + "\"?", "This action cannot be undone from this dialog.");
 
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
@@ -1341,10 +1339,8 @@ public class XmlGridContextMenu {
      * @param message the warning message
      */
     private void showWarningAlert(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.WARNING);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
+        Alert alert = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
+                Alert.AlertType.WARNING, title, null, message);
         alert.showAndWait();
     }
 }

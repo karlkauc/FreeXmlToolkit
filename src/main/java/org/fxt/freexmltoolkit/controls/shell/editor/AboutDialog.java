@@ -233,14 +233,14 @@ public final class AboutDialog {
                     if (updateInfo != null && updateInfo.updateAvailable()) {
                         showUpdateDialog(updateInfo);
                     } else {
-                        Alert info = new Alert(Alert.AlertType.INFORMATION);
+                        Alert info = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
+                                Alert.AlertType.INFORMATION, "Up to date",
+                                "You are running the latest version.",
+                                "FreeXmlToolkit "
+                                        + (updateInfo != null ? updateInfo.currentVersion()
+                                                : VersionUtil.getVersion())
+                                        + " is current.");
                         info.initOwner(trigger.getScene().getWindow());
-                        info.setTitle("Up to date");
-                        info.setHeaderText("You are running the latest version.");
-                        info.setContentText("FreeXmlToolkit "
-                                + (updateInfo != null ? updateInfo.currentVersion()
-                                        : VersionUtil.getVersion())
-                                + " is current.");
                         info.showAndWait();
                     }
                 }));
@@ -248,11 +248,9 @@ public final class AboutDialog {
 
     // Ported from MainController.showUpdateCheckError (helper of checkForUpdatesFromAbout).
     private static void showUpdateCheckError(Throwable ex) {
-        Alert err = new Alert(Alert.AlertType.WARNING);
-        err.setTitle("Update check failed");
-        err.setHeaderText("Could not check for updates");
-        err.setContentText(ex.getMessage() != null ? ex.getMessage() : ex.toString());
-        err.showAndWait();
+        org.fxt.freexmltoolkit.util.DialogHelper.showWarning("Update check failed",
+                "Could not check for updates",
+                ex.getMessage() != null ? ex.getMessage() : ex.toString());
     }
 
     // Ported from MainController.showUpdateDialog (helper of checkForUpdatesFromAbout).
@@ -279,14 +277,10 @@ public final class AboutDialog {
                 logger.info("Auto-update initiated successfully. Application will restart.");
             } else {
                 logger.warn("Auto-update failed: {}", result.errorMessage());
-                Platform.runLater(() -> {
-                    Alert errorAlert = new Alert(Alert.AlertType.ERROR);
-                    errorAlert.setTitle("Update Failed");
-                    errorAlert.setHeaderText("Could not complete the update");
-                    errorAlert.setContentText(result.errorMessage() +
-                            "\n\nYou can try again or download the update manually from GitHub.");
-                    errorAlert.showAndWait();
-                });
+                Platform.runLater(() -> org.fxt.freexmltoolkit.util.DialogHelper.showError(
+                        "Update Failed", "Could not complete the update",
+                        result.errorMessage()
+                                + "\n\nYou can try again or download the update manually from GitHub."));
             }
         });
     }
