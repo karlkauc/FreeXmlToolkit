@@ -112,4 +112,49 @@ class FavoritesActivityPanelTest {
             FavoritesService.getInstance().removeFavoriteByPath(path);
         }
     }
+
+    @Test
+    void searchFiltersTheList() {
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.setSearch("definitely-no-such-favorite-xyz");
+            return null;
+        });
+        assertEquals(0, panel.getFavoriteCount(), "a non-matching search must empty the list");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.setSearch("");
+            return null;
+        });
+        assertTrue(panel.getFavoriteCount() > 0, "clearing the search shows the favorites again");
+    }
+
+    @Test
+    void renameAndFolderGroupingWorkFromThePanel() {
+        var favorite = FavoritesService.getInstance().getAllFavorites().stream()
+                .filter(f -> DEMO_FAV.equals(f.getFilePath()))
+                .findFirst().orElseThrow();
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.renameFavorite(favorite, "Demo Schema (renamed)");
+            panel.moveToFolder(favorite, "Demo Folder");
+            return null;
+        });
+
+        assertEquals("Demo Schema (renamed)", favorite.getName());
+        assertEquals("Demo Folder", favorite.getFolderName());
+        assertTrue(panel.groupHeaderTexts().contains("Demo Folder"),
+                "with a folder present the panel groups by folder: " + panel.groupHeaderTexts());
+    }
+
+    @Test
+    void manageButtonOpensTheManagerInTheEditorAreaOnce() {
+        assertNotNull(panel.lookup("#favorites-manage"), "the panel must offer Manage…");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.openManager();
+            panel.openManager(); // second call must focus, not duplicate
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        assertEquals(1, host.lookupAll(".fxt-favmgr").size(),
+                "the manager view must open exactly once in the editor area");
+    }
 }

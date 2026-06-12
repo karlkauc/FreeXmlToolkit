@@ -1530,6 +1530,37 @@
     -fx-background-color: -fxt-bg-surface;
 }
 
+/* ----- Favorites manager (editor-area tool tab) --------------------------- */
+.fxt-favmgr {
+    -fx-background-color: -fxt-bg-canvas;
+}
+
+.fxt-favmgr-card {
+    -fx-background-color: -fxt-bg-surface;
+    -fx-background-radius: 12;
+    -fx-padding: 24;
+    -fx-effect: dropshadow(gaussian, rgba(15, 23, 42, 0.10), 24, 0, 0, 6);
+}
+
+.fxt-favmgr-header {
+    -fx-padding: 0 0 4 0;
+}
+
+.fxt-favmgr-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-primary;
+}
+
+.fxt-favmgr-title .iconify-icon {
+    -fx-icon-color: -fxt-warning;
+}
+
+.fxt-favmgr-subtitle {
+    -fx-font-size: 12px;
+    -fx-text-fill: -fxt-text-secondary;
+}
+
 /* ----- Explorer side panel (Figma node 28:48) -------------------------- */
 /* Generic .fxt-sp-* side-panel building blocks (same look as the Validation
    panel's .fxt-vp-* — shared mockup language). */

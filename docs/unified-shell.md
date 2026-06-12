@@ -357,12 +357,27 @@ Open the **Explorer** panel from the activity bar to manage files.
 Open the **Favorites** panel from the star icon in the activity bar for one-click access to
 your saved files.
 
-> **Updated in June 2026** - Favorites are now **grouped by file type** (XML Document,
-> XSD Schema, Schematron Rules, XSLT Stylesheet, …), and every entry shows a **colored type
-> icon** so you can tell the file kinds apart at a glance.
+- Favorites are grouped by their **folder** as soon as you use folders (the rest gathers
+  under *Uncategorized*); without folders they group by **file type**. Every entry shows a
+  **colored type icon**.
+- The **search field** filters the list by name or path as you type.
+- Click a favorite to open it as an editor tab. Right-click for **Open**, **Rename…**,
+  **Move to folder** (existing folders, *(No folder)*, or **New folder…**), and **Remove**.
+- **Add current** stars the active document.
 
-Click a favorite to open it as an editor tab. See [Favorites System](favorites-system.md) for
-adding, naming, and organizing favorites.
+### Manage Favorites (editor area)
+
+Click **Manage…** to open the full management view as a tab in the main editor area:
+
+- A **FOLDERS** list on the left filters the table (*All*, *Uncategorized*, your folders)
+  and offers **New…**, **Rename…**, and **Delete** (deleting a folder moves its favorites
+  to *Uncategorized* - nothing is lost).
+- The **table** lists Name / Type / Folder / Path: double-click the **Name** cell to rename
+  inline, pick a different **Folder** directly in the cell, double-click a row to open the
+  file, right-click to **Open** or **Remove from favorites**.
+- The **search field** (top right) filters across all favorites by name or path.
+
+See [Favorites System](favorites-system.md) for more.
 
 ## Validation Panel
 

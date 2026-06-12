@@ -473,6 +473,23 @@ public class EditorHost extends BorderPane {
         return tab;
     }
 
+    /**
+     * Focuses the tool tab with the given title if one is already open, else opens
+     * a new one with the supplied content. Used by singleton tool views (e.g. the
+     * favorites manager) whose owning side panel is recreated on every activity
+     * switch and therefore cannot hold the tab reference itself.
+     */
+    public Tab openOrFocusToolTab(String title, String iconLiteral,
+                                  java.util.function.Supplier<javafx.scene.layout.Region> content) {
+        for (Tab tab : tabPane.getTabs()) {
+            if (!(tab instanceof EditorTab) && title.equals(tab.getText())) {
+                tabPane.getSelectionModel().select(tab);
+                return tab;
+            }
+        }
+        return openToolTab(title, iconLiteral, content.get());
+    }
+
     /** @return whether the given tab is still open in this host. */
     public boolean containsTab(Tab tab) {
         return tab != null && tabPane.getTabs().contains(tab);
