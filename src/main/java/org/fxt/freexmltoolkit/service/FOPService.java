@@ -76,6 +76,21 @@ public class FOPService {
      * @throws FOPServiceException if PDF generation fails due to malformed input, transformation errors, or I/O issues
      */
     public File createPdfFile(File xmlFile, File xslFile, File pdfOutput, PDFSettings pdfSettings) throws FOPServiceException {
+        return createPdfFile(xmlFile, xslFile, pdfOutput, pdfSettings, null, false);
+    }
+
+    /**
+     * Like {@link #createPdfFile(File, File, File, PDFSettings)}, with the two options the
+     * {@link PDFSettings} record does not carry: the PDF subject metadata and PDF/A-1b
+     * conformance (FOP's {@code pdf-a-mode} renderer option).
+     *
+     * @param subject       the PDF subject metadata, or {@code null}/empty to skip
+     * @param pdfACompliant render in PDF/A-1b mode (requires embeddable fonts)
+     * @return the created PDF file
+     * @throws FOPServiceException if PDF generation fails due to malformed input, transformation errors, or I/O issues
+     */
+    public File createPdfFile(File xmlFile, File xslFile, File pdfOutput, PDFSettings pdfSettings,
+                              String subject, boolean pdfACompliant) throws FOPServiceException {
 
         if (!xmlFile.exists()) {
             throw new FOPServiceException("XML file does not exist: " + xmlFile.getAbsolutePath());
@@ -91,7 +106,7 @@ public class FOPService {
             logger.debug("PDF Output: {}", pdfOutput);
             logger.debug("Transforming...");
 
-            final FopFactory fopFactory = createSecureFopFactory(new File(".").toURI());
+            final FopFactory fopFactory = createSecureFopFactory(new File(".").toURI(), pdfACompliant);
             FOUserAgent foUserAgent = fopFactory.newFOUserAgent();
             if (!pdfSettings.producer().isEmpty()) {
                 foUserAgent.setProducer(pdfSettings.producer());
@@ -107,6 +122,14 @@ public class FOPService {
             }
             if (!pdfSettings.keywords().isEmpty()) {
                 foUserAgent.setKeywords(pdfSettings.keywords());
+            }
+            if (subject != null && !subject.isEmpty()) {
+                foUserAgent.setSubject(subject);
+            }
+            if (pdfACompliant) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> rendererOptions = foUserAgent.getRendererOptions();
+                rendererOptions.put("pdf-a-mode", "PDF/A-1b");
             }
 
             Files.createDirectories(pdfOutput.toPath().getParent());
@@ -163,7 +186,7 @@ public class FOPService {
      * @param baseUri the base URI used to resolve relative resource references
      * @return a hardened FopFactory
      */
-    private FopFactory createSecureFopFactory(URI baseUri) {
+    private FopFactory createSecureFopFactory(URI baseUri, boolean autoDetectFonts) {
         final ResourceResolver defaultResolver = ResourceResolverFactory.createDefaultResourceResolver();
         ResourceResolver restrictedResolver = new ResourceResolver() {
             @Override
@@ -184,7 +207,29 @@ public class FOPService {
                 return defaultResolver.getOutputStream(uri);
             }
         };
-        return new FopFactoryBuilder(baseUri, restrictedResolver).build();
+        FopFactoryBuilder builder = new FopFactoryBuilder(baseUri, restrictedResolver);
+        if (autoDetectFonts) {
+            // PDF/A requires every font to be embedded - the base-14 fonts cannot be.
+            // Auto-detection registers the system fonts (embeddable), so stylesheets
+            // using a system font family can produce conformant PDFs.
+            try {
+                String fontConfig = """
+                        <fop version="1.0">
+                          <renderers>
+                            <renderer mime="application/pdf">
+                              <fonts><auto-detect/></fonts>
+                            </renderer>
+                          </renderers>
+                        </fop>""";
+                org.apache.fop.configuration.DefaultConfigurationBuilder configBuilder =
+                        new org.apache.fop.configuration.DefaultConfigurationBuilder();
+                builder.setConfiguration(configBuilder.build(
+                        new java.io.ByteArrayInputStream(fontConfig.getBytes(java.nio.charset.StandardCharsets.UTF_8))));
+            } catch (Exception e) {
+                logger.warn("Could not enable font auto-detection: {}", e.getMessage());
+            }
+        }
+        return builder.build();
     }
 
     /**

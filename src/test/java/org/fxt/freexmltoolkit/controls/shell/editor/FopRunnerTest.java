@@ -51,6 +51,61 @@ class FopRunnerTest {
     }
 
     @Test
+    void optionsCarryMetadataIntoThePdf(@TempDir Path tmp) throws Exception {
+        Path xml = tmp.resolve("doc.xml");
+        Files.writeString(xml, XML);
+        Path xsl = tmp.resolve("to-fo.xslt");
+        Files.writeString(xsl, XSLT_FO);
+        Path pdf = tmp.resolve("out.pdf");
+
+        String result = FopRunner.generate(xml.toFile(), xsl.toFile(), pdf.toFile(),
+                new FopRunner.PdfOptions("Fact Sheet 2026", "Erste AM", "Monthly Factsheet",
+                        false, "A4", "Portrait"));
+
+        assertTrue(result.startsWith("OK:"), result);
+        String raw = new String(Files.readAllBytes(pdf), java.nio.charset.StandardCharsets.ISO_8859_1);
+        assertTrue(raw.contains("Fact Sheet 2026"), "title metadata must be embedded");
+        assertTrue(raw.contains("Monthly Factsheet"), "subject metadata must be embedded");
+    }
+
+    @Test
+    void pdfACompliantModeProducesAPdfWithEmbeddableFonts(@TempDir Path tmp) throws Exception {
+        // PDF/A requires embedded fonts; auto-detection registers the system fonts.
+        org.junit.jupiter.api.Assumptions.assumeTrue(
+                Files.exists(Path.of("/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf")),
+                "needs an embeddable system font");
+        Path xml = tmp.resolve("doc.xml");
+        Files.writeString(xml, XML);
+        Path xsl = tmp.resolve("to-fo.xslt");
+        Files.writeString(xsl, XSLT_FO.replace("<fo:block>",
+                "<fo:block font-family=\"Liberation Sans\">"));
+        Path pdf = tmp.resolve("out.pdf");
+
+        String result = FopRunner.generate(xml.toFile(), xsl.toFile(), pdf.toFile(),
+                new FopRunner.PdfOptions("t", "a", "s", true, "", ""));
+
+        assertTrue(result.startsWith("OK:"), result);
+        String raw = new String(Files.readAllBytes(pdf), java.nio.charset.StandardCharsets.ISO_8859_1);
+        assertTrue(raw.contains("pdfaid"), "PDF must carry the PDF/A identification schema");
+    }
+
+    @Test
+    void pdfAModeWithBase14FontsExplainsTheFontRequirement(@TempDir Path tmp) throws Exception {
+        // The default Helvetica is a base-14 font that cannot be embedded - the
+        // error must surface FOP's explanation instead of failing silently.
+        Path xml = tmp.resolve("doc.xml");
+        Files.writeString(xml, XML);
+        Path xsl = tmp.resolve("to-fo.xslt");
+        Files.writeString(xsl, XSLT_FO);
+        Path pdf = tmp.resolve("out.pdf");
+
+        String result = FopRunner.generate(xml.toFile(), xsl.toFile(), pdf.toFile(),
+                new FopRunner.PdfOptions("t", "a", "s", true, "", ""));
+
+        assertTrue(result.startsWith("ERROR:") && result.contains("embedded"), result);
+    }
+
+    @Test
     void brokenStylesheetReturnsError(@TempDir Path tmp) throws Exception {
         Path xml = tmp.resolve("doc.xml");
         Files.writeString(xml, XML);

@@ -25,17 +25,17 @@ XML Data + XSL-FO Stylesheet = PDF Document
 
 ---
 
-## Toolbar
+## The PDF / FOP Panel
 
-| Button | Shortcut | Description |
-|--------|----------|-------------|
-| **Open XML** | Ctrl+1 | Load XML source file |
-| **Open XSL** | Ctrl+2 | Load XSL-FO stylesheet |
-| **PDF Out** | Ctrl+3 | Select output PDF location |
-| **Generate** | F5 | Create the PDF |
-| **Add Favorite** | Ctrl+D | Add current file to favorites |
-| **Favorites** | Ctrl+Shift+D | Toggle favorites panel |
-| **Help** | F1 | Show help |
+In the [Unified Shell](unified-shell.md), open the **PDF / FOP** activity from the activity
+bar. The panel is organized into three sections plus the primary action:
+
+| Section | Contents |
+|---------|----------|
+| **INPUT** | The XML (follows the active editor; *Change* fixes it to a file) and the XSL-FO stylesheet |
+| **METADATA** | PDF **Title**, **Author** (pre-filled from your user name), **Subject** |
+| **OPTIONS** | **PDF/A-1b compliant** toggle and the **Page size** (A4/Letter · Portrait/Landscape) |
+| **Generate PDF** | Asks for the output file and renders off the UI thread |
 
 ---
 
@@ -43,23 +43,29 @@ XML Data + XSL-FO Stylesheet = PDF Document
 
 ### Step 1: Select Your Files
 
-1. Click **Open XML** to select your XML data file
-2. Click **Open XSL** to select your XSL-FO stylesheet
-3. Click **PDF Out** to choose where to save the PDF
+1. Open your XML data file in the editor (or pick one via the INPUT section's *Change*)
+2. Click **Change** on the stylesheet row to select your XSL-FO stylesheet
 
 You can also drag and drop files directly into the application.
 
 ### Step 2: Set PDF Metadata (Optional)
 
-Add metadata to your PDF document:
+Add metadata to your PDF document in the **METADATA** section:
 
 | Field | Description |
 |-------|-------------|
-| **Author** | Your name or organization |
 | **Title** | Document title |
-| **Keywords** | Search terms for the document |
-| **Producer** | Application that created the PDF |
-| **Creation Date** | Automatically set |
+| **Author** | Your name or organization (pre-filled from the configured user name) |
+| **Subject** | What the document is about |
+
+### Step 3: Options (Optional)
+
+- **PDF/A-1b compliant** - produces an archival-grade PDF. The stylesheet must use
+  embeddable **system fonts** (e.g. `Liberation Sans`); the PDF base-14 fonts
+  (Helvetica, Times, Courier) cannot be embedded and FOP will report exactly that.
+- **Page size** - passed to the stylesheet as the XSLT parameters `page-size`
+  (`A4`/`Letter`) and `page-orientation` (`Portrait`/`Landscape`). Stylesheets that
+  declare these parameters can switch their `fo:simple-page-master` accordingly.
 
 ### Step 3: Configure Options (Optional)
 

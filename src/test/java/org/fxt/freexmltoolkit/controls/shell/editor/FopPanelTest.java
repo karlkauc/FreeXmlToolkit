@@ -55,6 +55,72 @@ class FopPanelTest {
     }
 
     @Test
+    void titleFollowsTheSharedSidePanelConvention() {
+        WaitForAsyncUtils.waitForFxEvents();
+        javafx.scene.control.Label title =
+                (javafx.scene.control.Label) panel.lookup(".fxt-side-panel-title");
+        assertNotNull(title, "panel must keep the shared side-panel title class");
+        assertEquals("PDF / FOP", title.getText());
+    }
+
+    @Test
+    void exposesInputMetadataAndOptionsSections(@TempDir Path tmp) throws Exception {
+        WaitForAsyncUtils.waitForFxEvents();
+        assertNotNull(panel.lookup("#fop-xml-name"), "INPUT must show the XML source");
+        assertNotNull(panel.lookup("#fop-xsl-name"), "INPUT must show the XSL source");
+        assertNotNull(panel.lookup("#fop-meta-title"), "METADATA must offer a title field");
+        assertNotNull(panel.lookup("#fop-meta-author"), "METADATA must offer an author field");
+        assertNotNull(panel.lookup("#fop-meta-subject"), "METADATA must offer a subject field");
+        assertNotNull(panel.lookup("#fop-pdfa"), "OPTIONS must offer the PDF/A toggle");
+        assertNotNull(panel.lookup("#fop-page-size"), "OPTIONS must offer the page size");
+        assertNotNull(panel.lookup("#fop-generate"), "the primary Generate PDF button must exist");
+
+        Path xsl = tmp.resolve("sheet.xsl");
+        Files.writeString(xsl, XSLT_FO);
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.setXslFile(xsl.toFile());
+            return null;
+        });
+        javafx.scene.control.Label xslName = (javafx.scene.control.Label) panel.lookup("#fop-xsl-name");
+        assertEquals("sheet.xsl", xslName.getText());
+    }
+
+    @Test
+    void metadataFieldsFlowIntoTheGenerationOptions() {
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.setMetadata("Fact Sheet", "Erste AM", "Monthly");
+            return null;
+        });
+        FopRunner.PdfOptions options = panel.currentOptions();
+        assertEquals("Fact Sheet", options.title());
+        assertEquals("Erste AM", options.author());
+        assertEquals("Monthly", options.subject());
+        assertFalse(options.pdfACompliant(), "PDF/A must be off by default");
+        assertEquals("A4", options.pageSize());
+        assertEquals("Portrait", options.orientation());
+    }
+
+    @Test
+    void xmlInputFollowsTheActiveEditorAndSupportsOverride(@TempDir Path tmp) throws Exception {
+        Path xml = tmp.resolve("doc.xml");
+        Files.writeString(xml, XML);
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
+        WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS, () -> {
+            javafx.scene.control.Label name = (javafx.scene.control.Label) panel.lookup("#fop-xml-name");
+            return name != null && "doc.xml".equals(name.getText());
+        });
+
+        Path other = tmp.resolve("other.xml");
+        Files.writeString(other, XML);
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.setXmlOverride(other.toFile());
+            return null;
+        });
+        javafx.scene.control.Label name = (javafx.scene.control.Label) panel.lookup("#fop-xml-name");
+        assertEquals("other.xml", name.getText(), "the override must win over the active editor");
+    }
+
+    @Test
     void generatesPdfFromActiveXml(@TempDir Path tmp) throws Exception {
         Path xml = tmp.resolve("doc.xml");
         Files.writeString(xml, XML);

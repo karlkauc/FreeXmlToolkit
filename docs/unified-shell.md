@@ -510,6 +510,24 @@ passwords):
 
 See [XML Digital Signatures](digital-signatures.md) for full details.
 
+## PDF / FOP Panel
+
+The **PDF / FOP** panel renders the XML to PDF with an XSL-FO stylesheet (Apache FOP):
+
+- **INPUT** - The XML (follows the active editor; *Change* can fix it to a file) and the
+  **XSL-FO stylesheet** (*Change*).
+- **METADATA** - PDF document **Title**, **Author** (pre-filled from your configured user
+  name) and **Subject**, embedded into the generated PDF.
+- **OPTIONS** - **PDF/A-1b compliant** renders an archival-grade PDF (requires the
+  stylesheet to use embeddable system fonts - the built-in base-14 fonts like Helvetica
+  cannot be embedded, and the error message will say so). **Page size** (A4/Letter,
+  Portrait/Landscape) is passed to the stylesheet as the XSLT parameters `page-size` and
+  `page-orientation` for stylesheets that support them.
+- **Generate PDF** asks for the output file, renders off the UI thread, and opens the
+  result in the in-app **PDF preview**; **Preview** and **Open PDF** re-open it any time.
+
+See [PDF Generator](pdf-generator.md) for stylesheet guidance.
+
 ## Settings Page
 
 > **Updated in June 2026** - Settings now open as a **full page** (a tab in the main editor

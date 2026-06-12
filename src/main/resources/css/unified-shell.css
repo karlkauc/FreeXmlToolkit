@@ -1450,6 +1450,11 @@
     -fx-text-fill: -fxt-text-muted;
 }
 
+/* ----- PDF/FOP side panel (Figma node 49:2) ------------------------------ */
+.fxt-fop-panel {
+    -fx-background-color: -fxt-bg-surface;
+}
+
 /* ----- Explorer side panel (Figma node 28:48) -------------------------- */
 /* Generic .fxt-sp-* side-panel building blocks (same look as the Validation
    panel's .fxt-vp-* — shared mockup language). */
