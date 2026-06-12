@@ -55,7 +55,21 @@ public class DocumentationView extends BorderPane {
                       boolean useMarkdown, boolean includeTypeDefs, boolean showDocInSvg,
                       boolean svgOverview, boolean addMetadata, String imageFormat,
                       Set<String> languages, String fallbackLanguage, boolean openAfter,
-                      File favicon) {
+                      File favicon, FormatOptions formatOptions) {
+    }
+
+    /**
+     * The PDF/Word detail options (display names; the {@code colorScheme}/
+     * {@code watermark}/{@code pageNumbers}/{@code bookmarks} parts apply to PDF only).
+     */
+    record FormatOptions(String pageSize, boolean landscape, boolean coverPage, boolean toc,
+                         boolean dataDictionary, boolean schemaDiagram, boolean elementDiagrams,
+                         String colorScheme, String watermark, boolean pageNumbers, boolean bookmarks) {
+
+        static FormatOptions defaults() {
+            return new FormatOptions("A4", false, false, true, true, true, false,
+                    "Blue", "None", true, true);
+        }
     }
 
     private final EditorHost editorHost;
@@ -74,6 +88,22 @@ public class DocumentationView extends BorderPane {
     private final ComboBox<String> fallbackLanguage = new ComboBox<>();
     private final Label languagesStatus = new Label("Not scanned - all languages are included.");
     private final Label faviconName = new Label("none");
+    // PDF/Word detail options (the section shows only for those formats).
+    private final Label formatOptionsLabel = new Label("PDF OPTIONS");
+    private final VBox formatOptionsBox = new VBox(8);
+    private final VBox pdfOnlyBox = new VBox(8);
+    private final ComboBox<String> docPageSize = new ComboBox<>();
+    private final ToggleButton portrait = segment("Portrait");
+    private final ToggleButton landscape = segment("Landscape");
+    private final CheckBox coverPage = new CheckBox("Cover page");
+    private final CheckBox tableOfContents = new CheckBox("Table of contents");
+    private final CheckBox dataDictionary = new CheckBox("Data dictionary");
+    private final CheckBox schemaDiagram = new CheckBox("Schema diagram");
+    private final CheckBox elementDiagrams = new CheckBox("Element diagrams");
+    private final ComboBox<String> pdfColorScheme = new ComboBox<>();
+    private final ComboBox<String> pdfWatermark = new ComboBox<>();
+    private final CheckBox pageNumbers = new CheckBox("Page numbers");
+    private final CheckBox pdfBookmarks = new CheckBox("PDF bookmarks");
     private final CheckBox openAfter = new CheckBox("Open the generated documentation after creation");
     private final Button generate = new Button("Generate Documentation");
     private final Button cancel = new Button("Cancel");
@@ -121,10 +151,54 @@ public class DocumentationView extends BorderPane {
             } else {
                 outputTarget = null; // folder vs. file depends on the format
                 refreshNames();
+                refreshFormatOptions();
             }
         });
         HBox formatSeg = new HBox(2, html, pdf, word);
         formatSeg.getStyleClass().add("fxt-seg-group");
+
+        // --- PDF/WORD detail options (visible only for those formats) ----------------
+        docPageSize.setId("docgen-page-size");
+        docPageSize.setMaxWidth(Double.MAX_VALUE);
+        ToggleGroup orientationGroup = new ToggleGroup();
+        portrait.setToggleGroup(orientationGroup);
+        landscape.setToggleGroup(orientationGroup);
+        portrait.setSelected(true);
+        orientationGroup.selectedToggleProperty().addListener((obs, oldV, newV) -> {
+            if (newV == null) {
+                orientationGroup.selectToggle(oldV);
+            }
+        });
+        HBox orientationSeg = new HBox(2, portrait, landscape);
+        orientationSeg.getStyleClass().add("fxt-seg-group");
+        tableOfContents.setSelected(true);
+        dataDictionary.setSelected(true);
+        schemaDiagram.setSelected(true);
+        pdfColorScheme.setId("docgen-color-scheme");
+        for (PdfDocumentationConfig.ColorScheme scheme : PdfDocumentationConfig.ColorScheme.values()) {
+            pdfColorScheme.getItems().add(scheme.getDisplayName());
+        }
+        pdfColorScheme.getSelectionModel().selectFirst();
+        pdfWatermark.setId("docgen-watermark");
+        for (PdfDocumentationConfig.Watermark mark : PdfDocumentationConfig.Watermark.values()) {
+            pdfWatermark.getItems().add(mark.getDisplayName());
+        }
+        pdfWatermark.getSelectionModel().selectFirst();
+        pageNumbers.setSelected(true);
+        pdfBookmarks.setSelected(true);
+        pdfOnlyBox.setId("docgen-pdf-only");
+        pdfOnlyBox.getChildren().addAll(
+                fieldLabel("Color scheme"), pdfColorScheme,
+                fieldLabel("Watermark"), pdfWatermark,
+                pageNumbers, pdfBookmarks);
+        formatOptionsLabel.getStyleClass().add("fxt-sign-section-label");
+        formatOptionsBox.setId("docgen-format-options");
+        formatOptionsBox.getChildren().addAll(formatOptionsLabel,
+                fieldLabel("Page size"), docPageSize,
+                fieldLabel("Orientation"), orientationSeg,
+                coverPage, tableOfContents, dataDictionary, schemaDiagram, elementDiagrams,
+                pdfOnlyBox);
+        refreshFormatOptions();
 
         // --- OPTIONS ----------------------------------------------------------------------
         useMarkdown.setSelected(true);
@@ -190,6 +264,7 @@ public class DocumentationView extends BorderPane {
                 sectionLabel("SOURCE & OUTPUT"), xsdRow, outputRow,
                 sectionLabel("FORMAT"), formatSeg,
                 sectionLabel("OPTIONS"), optionsBox,
+                formatOptionsBox,
                 sectionLabel("LANGUAGES"), languagesBox,
                 openAfter, runRow, status);
         form.setPrefWidth(430);
@@ -223,10 +298,16 @@ public class DocumentationView extends BorderPane {
                 languages.add(box.getText());
             }
         }
+        FormatOptions format = new FormatOptions(
+                docPageSize.getValue() != null ? docPageSize.getValue() : "A4",
+                landscape.isSelected(), coverPage.isSelected(), tableOfContents.isSelected(),
+                dataDictionary.isSelected(), schemaDiagram.isSelected(), elementDiagrams.isSelected(),
+                pdfColorScheme.getValue(), pdfWatermark.getValue(),
+                pageNumbers.isSelected(), pdfBookmarks.isSelected());
         return new DocOptions(xsdFile, outputTarget, selectedFormat(),
                 useMarkdown.isSelected(), includeTypeDefs.isSelected(), showDocInSvg.isSelected(),
                 svgOverview.isSelected(), addMetadata.isSelected(), imageFormat.getValue(),
-                languages, fallbackLanguage.getValue(), openAfter.isSelected(), faviconFile);
+                languages, fallbackLanguage.getValue(), openAfter.isSelected(), faviconFile, format);
     }
 
     String selectedFormat() {
@@ -340,7 +421,7 @@ public class DocumentationView extends BorderPane {
                 if (options.languages() != null && !options.languages().isEmpty()) {
                     pdfService.setIncludedLanguages(options.languages());
                 }
-                pdfService.setConfig(new PdfDocumentationConfig());
+                pdfService.setConfig(pdfConfig(options.formatOptions()));
                 XsdDocumentationImageService imageService = new XsdDocumentationImageService(
                         service.xsdDocumentationData.getExtendedXsdElementMap());
                 imageService.setShowDocumentation(options.showDocInSvg());
@@ -354,7 +435,7 @@ public class DocumentationView extends BorderPane {
                 if (options.languages() != null && !options.languages().isEmpty()) {
                     wordService.setIncludedLanguages(options.languages());
                 }
-                wordService.setConfig(new WordDocumentationConfig());
+                wordService.setConfig(wordConfig(options.formatOptions()));
                 XsdDocumentationImageService imageService = new XsdDocumentationImageService(
                         service.xsdDocumentationData.getExtendedXsdElementMap());
                 imageService.setShowDocumentation(options.showDocInSvg());
@@ -363,6 +444,82 @@ public class DocumentationView extends BorderPane {
             }
             default -> service.generateXsdDocumentation(options.output());
         }
+    }
+
+    /** Builds the PDF config from the captured options ({@code null} = defaults). */
+    private static PdfDocumentationConfig pdfConfig(FormatOptions options) {
+        PdfDocumentationConfig config = new PdfDocumentationConfig();
+        if (options == null) {
+            return config;
+        }
+        config.setPageSize(switch (options.pageSize() != null ? options.pageSize() : "A4") {
+            case "Letter" -> PdfDocumentationConfig.PageSize.LETTER;
+            case "Legal" -> PdfDocumentationConfig.PageSize.LEGAL;
+            case "A3" -> PdfDocumentationConfig.PageSize.A3;
+            default -> PdfDocumentationConfig.PageSize.A4;
+        });
+        config.setOrientation(options.landscape()
+                ? PdfDocumentationConfig.Orientation.LANDSCAPE
+                : PdfDocumentationConfig.Orientation.PORTRAIT);
+        config.setIncludeCoverPage(options.coverPage());
+        config.setIncludeToc(options.toc());
+        config.setIncludeDataDictionary(options.dataDictionary());
+        config.setIncludeSchemaDiagram(options.schemaDiagram());
+        config.setIncludeElementDiagrams(options.elementDiagrams());
+        for (PdfDocumentationConfig.ColorScheme scheme : PdfDocumentationConfig.ColorScheme.values()) {
+            if (scheme.getDisplayName().equals(options.colorScheme())) {
+                config.setColorScheme(scheme);
+            }
+        }
+        for (PdfDocumentationConfig.Watermark mark : PdfDocumentationConfig.Watermark.values()) {
+            if (mark.getDisplayName().equals(options.watermark())) {
+                config.setWatermark(mark);
+            }
+        }
+        config.setIncludePageNumbers(options.pageNumbers());
+        config.setGenerateBookmarks(options.bookmarks());
+        return config;
+    }
+
+    /** Builds the Word config from the captured options ({@code null} = defaults). */
+    private static WordDocumentationConfig wordConfig(FormatOptions options) {
+        WordDocumentationConfig config = new WordDocumentationConfig();
+        if (options == null) {
+            return config;
+        }
+        config.setPageSize(switch (options.pageSize() != null ? options.pageSize() : "A4") {
+            case "Letter" -> WordDocumentationConfig.PageSize.LETTER;
+            case "Legal" -> WordDocumentationConfig.PageSize.LEGAL;
+            default -> WordDocumentationConfig.PageSize.A4;
+        });
+        config.setOrientation(options.landscape()
+                ? WordDocumentationConfig.Orientation.LANDSCAPE
+                : WordDocumentationConfig.Orientation.PORTRAIT);
+        config.setIncludeCoverPage(options.coverPage());
+        config.setIncludeToc(options.toc());
+        config.setIncludeDataDictionary(options.dataDictionary());
+        config.setIncludeSchemaDiagram(options.schemaDiagram());
+        config.setIncludeElementDiagrams(options.elementDiagrams());
+        return config;
+    }
+
+    /** Selects a format programmatically (also used by tests). */
+    void selectFormat(String format) {
+        switch (format) {
+            case "PDF" -> pdf.setSelected(true);
+            case "Word" -> word.setSelected(true);
+            default -> html.setSelected(true);
+        }
+    }
+
+    /** @return the PDF/Word options section (visibility checks in tests). */
+    VBox formatOptionsBoxForTests() {
+        return formatOptionsBox;
+    }
+
+    /** @return the page-size choices currently offered (for tests). */
+    java.util.List<String> pageSizeChoices() {
+        return java.util.List.copyOf(docPageSize.getItems());
     }
 
     private void cancelRunning() {
@@ -516,6 +673,43 @@ public class DocumentationView extends BorderPane {
         Label label = new Label(text);
         label.getStyleClass().add("fxt-sign-section-label");
         return label;
+    }
+
+    private static Label fieldLabel(String text) {
+        Label label = new Label(text);
+        label.getStyleClass().add("fxt-sig-field-label");
+        return label;
+    }
+
+    /**
+     * Shows/hides the PDF/WORD detail-options section for the selected format and
+     * swaps the page-size choices (Word has no A3). The selection survives the
+     * swap when the size exists in both sets.
+     */
+    private void refreshFormatOptions() {
+        String format = selectedFormat();
+        boolean show = !"HTML".equals(format);
+        formatOptionsBox.setVisible(show);
+        formatOptionsBox.setManaged(show);
+        if (!show) {
+            return;
+        }
+        formatOptionsLabel.setText("PDF".equals(format) ? "PDF OPTIONS" : "WORD OPTIONS");
+        pdfOnlyBox.setVisible("PDF".equals(format));
+        pdfOnlyBox.setManaged("PDF".equals(format));
+        String keep = docPageSize.getValue();
+        docPageSize.getItems().clear();
+        if ("PDF".equals(format)) {
+            for (PdfDocumentationConfig.PageSize size : PdfDocumentationConfig.PageSize.values()) {
+                docPageSize.getItems().add(size.getDisplayName());
+            }
+        } else {
+            for (WordDocumentationConfig.PageSize size : WordDocumentationConfig.PageSize.values()) {
+                docPageSize.getItems().add(size.getDisplayName());
+            }
+        }
+        docPageSize.getSelectionModel().select(
+                keep != null && docPageSize.getItems().contains(keep) ? keep : "A4");
     }
 
     private static ToggleButton segment(String text) {

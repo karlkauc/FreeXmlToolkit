@@ -208,6 +208,11 @@ a tab in the main editor area with the full option set:
 - **OPTIONS** - Markdown renderer, type definitions in source code, documentation in
   diagrams, SVG overview page, metadata, the diagram image format (SVG/PNG/JPG), and a
   **favicon** (.ico/.png/.svg) embedded into the generated HTML site.
+- **PDF/WORD OPTIONS** *(shown for those formats)* - page size (A4/Letter/Legal, PDF also
+  A3), orientation, and the content building blocks (cover page, table of contents, data
+  dictionary, schema/element diagrams). PDF additionally offers the **color scheme**
+  (Blue/Green/Purple/Grayscale/Professional), a **watermark** (Draft/Confidential/Internal
+  Use Only), page numbers, and PDF bookmarks.
 - **LANGUAGES** - **Scan languages** discovers the `xml:lang` documentation languages in
   the schema; pick which to include and the fallback language.
 - **PROGRESS** - the right-hand log streams the pipeline's task messages live while
