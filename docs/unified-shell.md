@@ -496,8 +496,11 @@ Its top is an **action nav** - selecting an entry shows the matching form below 
 the shared **KEYSTORE** section (keystore file with a *Change* link, alias, and the two
 passwords):
 
-- **Sign XML File** *(default)* - Shows the active document and a **Sign Document** button.
-  The signed copy is written next to the original (`name.signed.xml`) and opened.
+- **Sign XML File** *(default)* - Opens the **Sign XML Document card in the editor area**:
+  the document to sign (the active document, changeable via *Browse*), the keystore alias
+  and password (shared with the KEYSTORE section), the signature type (enveloped XML-DSig)
+  and algorithm (RSA-SHA256 · C14N exclusive), and a **Sign Document** button. The signed
+  copy is written next to the original (`name.signed.xml`) and opened.
 - **Validate Signature** - **Validate Signature** checks the active document's signature;
   **Validate (Details)** opens a detailed report (validity + signing-certificate details).
 - **Create Certificate** - Creates a self-signed certificate / keystore from the DN fields,

@@ -65,9 +65,14 @@ class SignaturePanelTest {
     }
 
     @Test
-    void signActionIsSelectedByDefaultAndShowsOnlyItsSection() {
+    void signIsTheDefaultActionAndKeepsThePanelFormFree() {
+        // Per the mockup the sign form lives in the editor area, not in the panel:
+        // SIGN is selected by default and no panel form section is visible.
         WaitForAsyncUtils.waitForFxEvents();
-        assertTrue(panel.lookup("#sig-section-sign").isVisible(), "sign section must be visible by default");
+        javafx.scene.control.ToggleButton signNav =
+                (javafx.scene.control.ToggleButton) panel.lookup("#sig-nav-sign");
+        assertTrue(signNav.isSelected(), "Sign XML File must be the default nav action");
+        assertNull(panel.lookup("#sig-section-sign"), "the sign form must not live in the panel");
         assertFalse(panel.lookup("#sig-section-validate").isVisible());
         assertFalse(panel.lookup("#sig-section-create").isVisible());
         assertFalse(panel.lookup("#sig-section-expert").isVisible());
@@ -81,7 +86,6 @@ class SignaturePanelTest {
         });
         WaitForAsyncUtils.waitForFxEvents();
         assertTrue(panel.lookup("#sig-section-validate").isVisible());
-        assertFalse(panel.lookup("#sig-section-sign").isVisible());
 
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
             panel.selectAction(SignaturePanel.Action.EXPERT);
@@ -90,6 +94,26 @@ class SignaturePanelTest {
         WaitForAsyncUtils.waitForFxEvents();
         assertTrue(panel.lookup("#sig-section-expert").isVisible());
         assertFalse(panel.lookup("#sig-section-validate").isVisible());
+    }
+
+    @Test
+    void signNavOpensTheSignCardInTheEditorArea(@TempDir Path tmp) throws Exception {
+        Path xml = tmp.resolve("doc.xml");
+        Files.writeString(xml, "<root/>");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("root")).orElse(false));
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            ((javafx.scene.control.ToggleButton) panel.lookup("#sig-nav-sign")).fire();
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+
+        Label docName = (Label) host.lookup("#sign-doc-name");
+        assertNotNull(docName, "the Sign card must open in the editor area");
+        assertEquals("doc.xml", docName.getText(), "the card must show the active document");
+        assertNotNull(host.lookup("#sign-card-run"), "the card must offer Sign Document");
     }
 
     @Test
@@ -136,18 +160,6 @@ class SignaturePanelTest {
         });
         WaitForAsyncUtils.waitForFxEvents();
         assertEquals("keystore.jks", name.getText());
-    }
-
-    @Test
-    void documentRowFollowsTheActiveEditor(@TempDir Path tmp) throws Exception {
-        Path xml = tmp.resolve("doc.xml");
-        Files.writeString(xml, "<root/>");
-        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
-        // Poll the combined condition: tab open AND the row label updated (same-pulse race).
-        WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS, () -> {
-            Label name = (Label) panel.lookup("#sig-document-name");
-            return name != null && "doc.xml".equals(name.getText());
-        });
     }
 
     @Test

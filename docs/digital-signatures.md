@@ -26,7 +26,7 @@ the shared **KEYSTORE** section (keystore file, alias, passwords):
 | Action | Description |
 |-----|-------------|
 | **Create Certificate** | Generate your own digital ID (keystore) |
-| **Sign XML File** | Add a digital signature to the active XML document *(default)* |
+| **Sign XML File** | Opens the **Sign XML Document card** in the editor area *(default)* |
 | **Validate Signature** | Check if the signed document is valid (plus a detailed report) |
 | **Expert Mode** | PKIX trust validation against a trust store, with optional revocation check |
 

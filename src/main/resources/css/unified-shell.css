@@ -1450,6 +1450,81 @@
     -fx-text-fill: -fxt-text-muted;
 }
 
+/* The "Sign XML Document" card in the editor area (Figma 50:2). */
+.fxt-sign-view,
+.fxt-sign-view > .viewport {
+    -fx-background-color: -fxt-bg-canvas;
+}
+
+.fxt-sign-view-wrap {
+    -fx-padding: 48 24 48 24;
+}
+
+.fxt-sign-card {
+    -fx-background-color: -fxt-bg-surface;
+    -fx-background-radius: 12;
+    -fx-padding: 28;
+    -fx-effect: dropshadow(gaussian, rgba(15, 23, 42, 0.10), 24, 0, 0, 6);
+}
+
+.fxt-sign-icon-tile {
+    -fx-background-color: -fxt-bg-subtle;
+    -fx-background-radius: 10;
+    -fx-min-width: 44;
+    -fx-min-height: 44;
+    -fx-max-width: 44;
+    -fx-max-height: 44;
+}
+
+.fxt-sign-icon-tile .iconify-icon {
+    -fx-icon-color: -fxt-primary;
+}
+
+.fxt-sign-card-title {
+    -fx-font-size: 17px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-primary;
+}
+
+.fxt-sign-card-sub {
+    -fx-font-size: 12px;
+    -fx-text-fill: -fxt-text-secondary;
+}
+
+.fxt-sign-section-label {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-secondary;
+    -fx-padding: 6 0 0 0;
+}
+
+.fxt-sign-doc-row {
+    -fx-background-color: -fxt-bg-surface-2;
+    -fx-background-radius: 8;
+    -fx-padding: 12 14 12 14;
+}
+
+.fxt-sign-doc-row .iconify-icon {
+    -fx-icon-color: -fxt-primary;
+}
+
+.fxt-sign-doc-name {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-primary;
+}
+
+.fxt-sign-doc-info {
+    -fx-font-size: 11.5px;
+    -fx-text-fill: -fxt-text-muted;
+}
+
+.fxt-sign-algo {
+    -fx-font-size: 12.5px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-primary;
+}
+
 /* ----- PDF/FOP side panel (Figma node 49:2) ------------------------------ */
 .fxt-fop-panel {
     -fx-background-color: -fxt-bg-surface;

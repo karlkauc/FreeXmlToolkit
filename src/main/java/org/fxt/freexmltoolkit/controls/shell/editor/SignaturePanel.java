@@ -45,7 +45,6 @@ public class SignaturePanel extends VBox {
     private final PasswordField keystorePassword = new PasswordField();
     private final PasswordField aliasPassword = new PasswordField();
     private final Label keystoreName = new Label("none");
-    private final Label documentName = new Label("none");
     private final Label trustStoreName = new Label("default (cacerts)");
     private final Label status = new Label("Not signed/validated");
     private final CheckBox checkRevocation = new CheckBox("Check revocation (OCSP/CRL)");
@@ -60,6 +59,8 @@ public class SignaturePanel extends VBox {
     private final Map<Action, VBox> sections = new EnumMap<>(Action.class);
     private File keystoreFile;
     private File trustStoreFile;
+    private javafx.scene.control.Tab signTab;
+    private SignDocumentView signView;
 
     public SignaturePanel(EditorHost editorHost) {
         this.editorHost = editorHost;
@@ -106,17 +107,8 @@ public class SignaturePanel extends VBox {
         HBox keystoreHeader = SidePanelLayout.sectionHeader(
                 new Label("KEYSTORE"), keystoreRow, keystoreFields);
 
-        // --- SIGN section -------------------------------------------------------
-        documentName.setId("sig-document-name");
-        documentName.getStyleClass().add("fxt-vp-source-name");
-        HBox documentRow = new HBox(8, icon("bi-code-slash", 15), documentName);
-        documentRow.getStyleClass().add("fxt-vp-source-row");
-        documentRow.setAlignment(Pos.CENTER_LEFT);
-        refreshDocumentName();
-        editorHost.activeTabProperty().addListener((obs, oldV, newV) -> refreshDocumentName());
-        Button sign = primaryButton("Sign Document", "bi-shield-lock", "sig-sign-run", this::signActive);
-        VBox signSection = section(Action.SIGN, "sig-section-sign",
-                SidePanelLayout.sectionHeader(new Label("DOCUMENT"), documentRow), documentRow, runBox(sign));
+        // SIGN has no panel section: per the mockup the sign form is a card in the
+        // main editor area (SignDocumentView), opened by the nav entry.
 
         // --- VALIDATE section ---------------------------------------------------
         Button validate = primaryButton("Validate Signature", "bi-shield-check",
@@ -163,7 +155,7 @@ public class SignaturePanel extends VBox {
 
         VBox content = new VBox(navBox,
                 keystoreHeader, keystoreRow, keystoreFields,
-                signSection, validateSection, createSection, expertSection,
+                validateSection, createSection, expertSection,
                 status);
         ScrollPane scroll = new ScrollPane(content);
         scroll.setFitToWidth(true);
@@ -175,7 +167,11 @@ public class SignaturePanel extends VBox {
         selectAction(Action.SIGN);
     }
 
-    /** Selects a nav action and shows only its form section (mockup nav behavior). */
+    /**
+     * Selects a nav action and shows only its form section (mockup nav behavior).
+     * SIGN has no panel section - its form is the {@link SignDocumentView} card
+     * in the editor area (opened on the nav click, not on programmatic selection).
+     */
     void selectAction(Action action) {
         nav.get(action).setSelected(true);
         sections.forEach((a, box) -> {
@@ -183,6 +179,34 @@ public class SignaturePanel extends VBox {
             box.setVisible(show);
             box.setManaged(show);
         });
+    }
+
+    /** Opens (or focuses) the "Sign XML Document" card in the editor area. */
+    void openSignCard() {
+        if (signTab != null && editorHost.containsTab(signTab) && signView != null) {
+            signView.setDocument(activeXmlFile());
+            editorHost.selectTab(signTab);
+            return;
+        }
+        signView = new SignDocumentView(this, editorHost);
+        signTab = editorHost.openToolTab("Sign", "bi-pencil", signView);
+    }
+
+    // ----- shared state for the SignDocumentView card -------------------------
+
+    /** @return the alias field (the card binds to it bidirectionally). */
+    TextField aliasField() {
+        return alias;
+    }
+
+    /** @return the keystore password field (the card binds to it bidirectionally). */
+    PasswordField keystorePasswordField() {
+        return keystorePassword;
+    }
+
+    /** @return the status text property (the card mirrors it). */
+    javafx.beans.property.ReadOnlyStringProperty statusTextProperty() {
+        return status.textProperty();
     }
 
     /**
@@ -238,7 +262,11 @@ public class SignaturePanel extends VBox {
 
     /** Signs the active XML to {@code <name>.signed.xml} next to it (async). */
     public void signActive() {
-        File xml = activeXmlFile();
+        signFile(activeXmlFile());
+    }
+
+    /** Signs {@code xml} to {@code <name>.signed.xml} next to it (async). */
+    public void signFile(File xml) {
         if (xml == null) {
             status.setText("No document open.");
             return;
@@ -402,13 +430,10 @@ public class SignaturePanel extends VBox {
         }
     }
 
-    /** Updates the SIGN section's DOCUMENT row to the active editor document (live). */
-    private void refreshDocumentName() {
-        String name = editorHost.getActiveDocument().map(OpenDocument::getDisplayName).orElse(null);
-        setSourceName(documentName, name);
-    }
-
-    /** A nav row: icon + label, full width; selecting it shows the matching section. */
+    /**
+     * A nav row: icon + label, full width; selecting it shows the matching section.
+     * Clicking "Sign XML File" additionally opens the sign card in the editor area.
+     */
     private ToggleButton navItem(Action action, String text, String iconLiteral, ToggleGroup group) {
         ToggleButton item = new ToggleButton(text, icon(iconLiteral, 15));
         item.setId("sig-nav-" + action.name().toLowerCase());
@@ -416,7 +441,12 @@ public class SignaturePanel extends VBox {
         item.setToggleGroup(group);
         item.setMaxWidth(Double.MAX_VALUE);
         item.setAlignment(Pos.CENTER_LEFT);
-        item.setOnAction(e -> selectAction(action));
+        item.setOnAction(e -> {
+            selectAction(action);
+            if (action == Action.SIGN) {
+                openSignCard();
+            }
+        });
         nav.put(action, item);
         return item;
     }
