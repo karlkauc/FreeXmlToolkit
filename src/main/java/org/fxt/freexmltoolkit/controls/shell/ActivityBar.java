@@ -30,6 +30,7 @@ public class ActivityBar extends VBox {
     private final ActivitySelectionModel selectionModel;
     private final Map<Activity, ToggleButton> buttons = new EnumMap<>(Activity.class);
     private final ToggleGroup group = new ToggleGroup();
+    private Runnable onUserSelect;
 
     public ActivityBar(ActivitySelectionModel selectionModel) {
         this.selectionModel = selectionModel;
@@ -86,8 +87,18 @@ public class ActivityBar extends VBox {
         syncSelection();
     }
 
+    /**
+     * Called on every BUTTON press, even when the pressed activity is already the
+     * active one (which fires no model change event). The shell uses this to
+     * reveal the side panel from the full-width dashboard.
+     */
+    public void setOnUserSelect(Runnable callback) {
+        this.onUserSelect = callback;
+    }
+
     private ToggleButton createButton(Activity activity, ToggleGroup group) {
         ToggleButton button = new ToggleButton();
+        button.setId("activity-" + activity.id());
         button.setToggleGroup(group);
         button.getStyleClass().add("fxt-activity-button");
         button.setFocusTraversable(false);
@@ -103,7 +114,12 @@ public class ActivityBar extends VBox {
 
         // A ToggleButton in a group would otherwise allow deselecting the active one;
         // route every press through the model, which keeps exactly one active.
-        button.setOnAction(e -> selectionModel.select(activity));
+        button.setOnAction(e -> {
+            selectionModel.select(activity);
+            if (onUserSelect != null) {
+                onUserSelect.run();
+            }
+        });
 
         buttons.put(activity, button);
         return button;

@@ -72,6 +72,26 @@ class UnifiedShellViewTest {
     }
 
     @Test
+    void choosingAnActivityOnTheDashboardRevealsTheSidePanel() {
+        // No document open = full-width dashboard: the side panel starts hidden …
+        WaitForAsyncUtils.waitForFxEvents();
+        javafx.scene.Node sidePanel = shell.lookup(".fxt-side-panel");
+        assertFalse(sidePanel.getParent().isVisible(),
+                "the dashboard must start full-width (side panel hidden)");
+
+        // … but pressing an Activity Bar button must reveal it, even without a document
+        // and even when the pressed activity (Explorer) is already the active default,
+        // which fires no model change event.
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            ((javafx.scene.control.ToggleButton) shell.lookup("#activity-explorer")).fire();
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        assertTrue(sidePanel.getParent().isVisible(),
+                "choosing an activity on the dashboard must show its side panel");
+    }
+
+    @Test
     void selectingAnActivitySwapsTheSidePanel() {
         // VALIDATION still uses the generic placeholder panel (Explorer/Schema have real panels).
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> shell.getSelectionModel().select(Activity.VALIDATION));

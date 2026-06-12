@@ -64,6 +64,8 @@ public class UnifiedShellView extends BorderPane {
     /** User collapse state for the two side panels (persisted across restarts; default open). */
     private boolean leftPanelOpen = loadPanelPref(LEFT_PANEL_KEY);
     private boolean inspectorOpen = loadPanelPref(INSPECTOR_KEY);
+    /** Set once the user explicitly picks an activity - shows its panel on the dashboard too. */
+    private boolean activityChosen;
     /** Wrappers added to the work HBox (each carries an in-edge collapse chevron). */
     private StackPane leftPanelWrapper;
     private StackPane inspectorWrapper;
@@ -99,9 +101,13 @@ public class UnifiedShellView extends BorderPane {
         // state survives startup.
         showSidePanelFor(selectionModel.getActive());
         selectionModel.activeProperty().addListener((obs, oldV, newV) -> {
-            setLeftPanelVisible(true);
+            revealSidePanel();
             showSidePanelFor(newV);
         });
+        // A press on the already-active activity fires no model change event, but the
+        // user still expects to land in that panel - especially from the full-width
+        // dashboard, where the side panel starts hidden.
+        activityBar.setOnUserSelect(this::revealSidePanel);
 
         // Keep the status bar in sync with the active editor.
         editorHost.activeCaretProperty().addListener((obs, oldV, newV) -> updateStatusBar());
@@ -155,9 +161,13 @@ public class UnifiedShellView extends BorderPane {
     private void handleWelcomeAction(String key) {
         if ("open-folder".equals(key)) {
             selectionModel.select(Activity.EXPLORER);
+            revealSidePanel();
             return;
         }
-        Activity.fromId(key).ifPresent(selectionModel::select);
+        Activity.fromId(key).ifPresent(activity -> {
+            selectionModel.select(activity);
+            revealSidePanel();
+        });
     }
 
     private void handleShortcut(javafx.scene.input.KeyEvent event) {
@@ -297,17 +307,20 @@ public class UnifiedShellView extends BorderPane {
         //  - the user collapse state (persisted) hides a panel even when a document is open.
         chromeUpdater = () -> {
             boolean hasDocument = !editorHost.isEmpty();
-            boolean showLeft = hasDocument && leftPanelOpen;
+            // The dashboard starts full-width, but once the user explicitly picks an
+            // activity, its side panel shows even while no document is open.
+            boolean leftArea = hasDocument || activityChosen;
+            boolean showLeft = leftArea && leftPanelOpen;
             boolean showRight = hasDocument && inspectorOpen;
             leftPanelWrapper.setVisible(showLeft);
             leftPanelWrapper.setManaged(showLeft);
             inspectorWrapper.setVisible(showRight);
             inspectorWrapper.setManaged(showRight);
-            // The re-open toggles are only meaningful while a document is open.
             if (leftPanelToggle != null) {
-                leftPanelToggle.setDisable(!hasDocument);
+                leftPanelToggle.setDisable(!leftArea);
                 leftPanelToggle.setSelected(leftPanelOpen);
             }
+            // The inspector re-open toggle is only meaningful while a document is open.
             if (inspectorToggle != null) {
                 inspectorToggle.setDisable(!hasDocument);
                 inspectorToggle.setSelected(inspectorOpen);
@@ -360,6 +373,15 @@ public class UnifiedShellView extends BorderPane {
         if (chromeUpdater != null) {
             chromeUpdater.run();
         }
+    }
+
+    /**
+     * Reveals the left side panel after an explicit activity choice - also from the
+     * full-width dashboard, where the panel is hidden while no document is open.
+     */
+    private void revealSidePanel() {
+        activityChosen = true;
+        setLeftPanelVisible(true);
     }
 
     /** Shows/hides the right inspector (Properties) panel and persists the choice (default open). */
