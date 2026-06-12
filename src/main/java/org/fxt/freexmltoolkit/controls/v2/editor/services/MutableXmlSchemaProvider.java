@@ -54,12 +54,15 @@ public class MutableXmlSchemaProvider implements XmlSchemaProvider {
     }
 
     /**
-     * Loads an XSD schema from a file.
+     * Loads an XSD schema from a file. Synchronized: the underlying
+     * {@link XsdDocumentationService} (one instance per provider) parses into a
+     * Xerces deferred DOM that is not thread-safe - concurrent loads corrupted
+     * it (IndexOutOfBoundsException from DeferredDocumentImpl).
      *
      * @param xsdFile the XSD file to load
      * @return true if the schema was loaded successfully, false otherwise
      */
-    public boolean loadSchema(File xsdFile) {
+    public synchronized boolean loadSchema(File xsdFile) {
         if (xsdFile == null || !xsdFile.exists()) {
             logger.warn("Cannot load XSD: file is null or does not exist");
             return false;

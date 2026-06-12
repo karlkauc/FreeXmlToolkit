@@ -1570,7 +1570,17 @@ public class EditorHost extends BorderPane {
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
             try {
                 String content = Files.readString(path, StandardCharsets.UTF_8);
-                File autoXsd = detectSchemaFor(tab, path);
+                File detected = null;
+                // Same per-tab guard as redetectSchemaForActiveDocument: never run two
+                // schema detections for one tab concurrently (Xerces DOM is not thread-safe).
+                if (tab.schemaDetecting.compareAndSet(false, true)) {
+                    try {
+                        detected = detectSchemaFor(tab, path);
+                    } finally {
+                        tab.schemaDetecting.set(false);
+                    }
+                }
+                File autoXsd = detected;
                 Platform.runLater(() -> {
                     tab.view.setText(content);
                     tab.document.setDirty(false);
@@ -1617,7 +1627,21 @@ public class EditorHost extends BorderPane {
         }
         Path path = tab.document.getPath();
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
-            File autoXsd = detectSchemaFor(tab, path);
+            // One detection at a time per tab: the open-time detection (loadAsync) or a
+            // second redetect may still be running, and the schema pipeline's Xerces
+            // deferred DOM is not thread-safe (concurrent runs corrupted it).
+            if (!tab.schemaDetecting.compareAndSet(false, true)) {
+                return;
+            }
+            File autoXsd;
+            try {
+                if (tab.schemaFile != null) {
+                    return; // the other detection won while we waited
+                }
+                autoXsd = detectSchemaFor(tab, path);
+            } finally {
+                tab.schemaDetecting.set(false);
+            }
             if (autoXsd != null) {
                 Platform.runLater(() -> {
                     tab.schemaFile = autoXsd;
@@ -1927,6 +1951,13 @@ public class EditorHost extends BorderPane {
                 new javafx.animation.PauseTransition(javafx.util.Duration.millis(120));
         private File schemaFile;
         private File schematronFile;
+        /**
+         * Guards against CONCURRENT schema detections for this tab (open-time
+         * detection vs. the Validation panel's redetect): the schema pipeline
+         * (Xerces deferred DOM in XsdDocumentationService) is not thread-safe.
+         */
+        private final java.util.concurrent.atomic.AtomicBoolean schemaDetecting =
+                new java.util.concurrent.atomic.AtomicBoolean(false);
         /** XSD-derived, read-only schema info for XML-instance nodes (lazily built off-thread). */
         private org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider xmlSchemaProvider;
 
