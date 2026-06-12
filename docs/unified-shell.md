@@ -84,8 +84,15 @@ shows the editable grid:
   grids"* and offers a **Collapse all** button that folds every container at once.
 - Rows with a simple value are marked with a **`{}`** marker so you can tell value rows from
   containers at a glance.
+- **Attributes always show** as `@name` rows directly beneath their element - also while the
+  element itself is collapsed.
 - Collapsed containers show a **"collapsed"** hint, so you always know there is hidden content.
 - Repeating elements are rendered as **embedded grids** (tables inside the row).
+- **Keyboard navigation** works as soon as the view opens (no click needed):
+  **↑/↓** walk the rows, **→** expands a collapsed element, **←** collapses it (or jumps to
+  the parent), **Enter** toggles a container / starts editing a value, **Home/End** jump to
+  the first/last row, **F2** renames, and the usual **Ctrl+C/X/V**, **Ctrl+D** (duplicate)
+  and **Delete** act on the selected node.
 
 ## Supported File Types
 

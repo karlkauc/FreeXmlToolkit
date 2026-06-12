@@ -116,6 +116,8 @@ public class XmlGridView extends StackPane {
         });
         VBox.setVgrow(view, Priority.ALWAYS);
         getChildren().add(new VBox(buildHeader(view), view));
+        // Arrow-key navigation should work right away, without a mouse click first.
+        javafx.application.Platform.runLater(view::focusCanvas);
     }
 
     /** The mockup's grid header: table icon · "Grid view" · subtitle ·…· Collapse all. */

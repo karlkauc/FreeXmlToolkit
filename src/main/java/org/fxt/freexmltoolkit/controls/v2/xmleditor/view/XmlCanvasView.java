@@ -456,30 +456,11 @@ public class XmlCanvasView extends Pane implements XmlSearchTarget {
 
     /**
      * Recalculates which rows are visible based on the expand/collapse state.
-     * A row is visible if all its ancestors are expanded.
+     * Delegates to {@link FlatRow#applyVisibility(List)}, which keeps direct
+     * attribute rows visible alongside their (possibly collapsed) element.
      */
     private void recalculateVisibility() {
-        for (FlatRow row : allRows) {
-            if (row.getParentRow() == null) {
-                row.setVisible(true);
-            } else {
-                row.setVisible(isAncestorChainExpanded(row));
-            }
-        }
-    }
-
-    /**
-     * Checks whether all ancestors of a row are expanded (meaning the row should be visible).
-     */
-    private boolean isAncestorChainExpanded(FlatRow row) {
-        FlatRow parent = row.getParentRow();
-        while (parent != null) {
-            if (!parent.isExpanded()) {
-                return false;
-            }
-            parent = parent.getParentRow();
-        }
-        return true;
+        FlatRow.applyVisibility(allRows);
     }
 
     /**
@@ -1693,9 +1674,11 @@ public class XmlCanvasView extends Pane implements XmlSearchTarget {
             e.consume();
         });
 
-        // Keyboard shortcuts
+        // Keyboard shortcuts: registered on the view (not only the canvas), so
+        // navigation also works while the focus sits on the pane or a scrollbar -
+        // key events from the focused canvas bubble up here anyway.
         canvas.setFocusTraversable(true);
-        canvas.addEventHandler(KeyEvent.KEY_PRESSED, this::handleKeyPress);
+        addEventHandler(KeyEvent.KEY_PRESSED, this::handleKeyPress);
 
         // Request focus when clicked (but not if editing)
         canvas.setOnMousePressed(e -> {
@@ -2621,6 +2604,14 @@ public class XmlCanvasView extends Pane implements XmlSearchTarget {
         recalculateVisibleRows();
         updateScrollBars();
         render();
+    }
+
+    /**
+     * Gives the canvas keyboard focus so arrow-key navigation works immediately
+     * (e.g. right after the Graphic view is shown), without a mouse click first.
+     */
+    public void focusCanvas() {
+        canvas.requestFocus();
     }
 
     public XmlNode getSelectedNode() {

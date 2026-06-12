@@ -474,4 +474,79 @@ class FlatRowTest {
         assertNotNull(FlatRow.RowType.PROCESSING_INSTRUCTION);
         assertNotNull(FlatRow.RowType.DOCUMENT);
     }
+
+    // ==================== applyVisibility Tests ====================
+
+    /**
+     * Builds: root[id] > child[a,b] > grand[g] — root expanded (default),
+     * child and grand collapsed (default).
+     */
+    private List<FlatRow> attributedTree() {
+        XmlDocument document = new XmlDocument();
+        XmlElement root = new XmlElement("root");
+        root.setAttribute("id", "r1");
+        XmlElement child = new XmlElement("child");
+        child.setAttribute("a", "1");
+        child.setAttribute("b", "2");
+        XmlElement grand = new XmlElement("grand");
+        grand.setAttribute("g", "9");
+        grand.addChild(new XmlText("text"));
+        child.addChild(grand);
+        root.addChild(child);
+        document.addChild(root);
+        return FlatRow.flatten(document);
+    }
+
+    private FlatRow row(List<FlatRow> rows, FlatRow.RowType type, String label) {
+        return rows.stream()
+                .filter(r -> r.getType() == type && label.equals(r.getLabel()))
+                .findFirst().orElseThrow();
+    }
+
+    /**
+     * The XMLSpy-style rule: an element's attribute rows are always shown
+     * alongside it, even while the element itself is collapsed. Before this
+     * fix, the initial visibility pass hid every attribute of a collapsed
+     * element, so a freshly opened document showed no attributes at all.
+     */
+    @Test
+    void applyVisibilityKeepsAttributesOfCollapsedElementsVisible() {
+        List<FlatRow> rows = attributedTree();
+        FlatRow.applyVisibility(rows);
+
+        assertTrue(row(rows, FlatRow.RowType.ELEMENT, "root").isVisible());
+        assertTrue(row(rows, FlatRow.RowType.ATTRIBUTE, "id").isVisible());
+        assertTrue(row(rows, FlatRow.RowType.ELEMENT, "child").isVisible(),
+                "root is expanded by default, so child shows");
+        assertTrue(row(rows, FlatRow.RowType.ATTRIBUTE, "a").isVisible(),
+                "attributes show alongside their (collapsed) element");
+        assertTrue(row(rows, FlatRow.RowType.ATTRIBUTE, "b").isVisible());
+        assertFalse(row(rows, FlatRow.RowType.ELEMENT, "grand").isVisible(),
+                "children of a collapsed element stay hidden");
+        assertFalse(row(rows, FlatRow.RowType.ATTRIBUTE, "g").isVisible(),
+                "attributes of a hidden element stay hidden");
+    }
+
+    /**
+     * Expanding an element reveals its children; the grandchild's attributes
+     * then follow the grandchild's own visibility.
+     */
+    @Test
+    void applyVisibilityFollowsExpandState() {
+        List<FlatRow> rows = attributedTree();
+        FlatRow child = row(rows, FlatRow.RowType.ELEMENT, "child");
+        child.setExpanded(true);
+        FlatRow.applyVisibility(rows);
+
+        assertTrue(row(rows, FlatRow.RowType.ELEMENT, "grand").isVisible());
+        assertTrue(row(rows, FlatRow.RowType.ATTRIBUTE, "g").isVisible(),
+                "the now-visible grandchild shows its attributes (collapsed or not)");
+
+        child.setExpanded(false);
+        FlatRow.applyVisibility(rows);
+        assertFalse(row(rows, FlatRow.RowType.ELEMENT, "grand").isVisible());
+        assertFalse(row(rows, FlatRow.RowType.ATTRIBUTE, "g").isVisible());
+        assertTrue(row(rows, FlatRow.RowType.ATTRIBUTE, "a").isVisible(),
+                "the collapsed element keeps its own attributes visible");
+    }
 }

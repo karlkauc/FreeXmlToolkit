@@ -562,6 +562,37 @@ public class FlatRow {
      * @param elementRow the element row to toggle
      * @param allRows    the complete flat row list
      */
+    /**
+     * Recomputes every row's visibility from the expand state: a row is visible
+     * when all its ancestor element rows are expanded. ATTRIBUTE rows follow the
+     * same rule as {@link #toggleExpand}: they always show alongside their parent
+     * element row, i.e. they are visible whenever the element row itself is —
+     * even while that element is collapsed.
+     *
+     * @param rows the complete flat row list
+     */
+    public static void applyVisibility(List<FlatRow> rows) {
+        for (FlatRow row : rows) {
+            // An attribute's visibility anchors on its element row, not on the
+            // element's expanded state.
+            FlatRow anchor = (row.getType() == RowType.ATTRIBUTE) ? row.getParentRow() : row;
+            row.setVisible(anchor == null || ancestorsExpanded(anchor));
+        }
+    }
+
+    private static boolean ancestorsExpanded(FlatRow row) {
+        FlatRow parent = row.getParentRow();
+        while (parent != null) {
+            // Virtual anchor rows (depth < 0, see flattenElement(XmlElement)) do not
+            // gate visibility.
+            if (parent.getDepth() >= 0 && !parent.isExpanded()) {
+                return false;
+            }
+            parent = parent.getParentRow();
+        }
+        return true;
+    }
+
     public static void toggleExpand(FlatRow elementRow, List<FlatRow> allRows) {
         if (elementRow.getType() != RowType.ELEMENT) {
             return; // Only elements are expandable
