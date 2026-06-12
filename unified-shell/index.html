@@ -895,6 +895,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Favorites Panel">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#manage-favorites-editor-area" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Manage Favorites (editor area)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2642,6 +2659,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Favorites Panel">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#manage-favorites-editor-area" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Manage Favorites (editor area)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -3456,13 +3490,27 @@ flat header actions and full-width sections.</p>
 <h2 id="favorites-panel">Favorites Panel<a class="headerlink" href="#favorites-panel" title="Permanent link">&para;</a></h2>
 <p>Open the <strong>Favorites</strong> panel from the star icon in the activity bar for one-click access to
 your saved files.</p>
-<blockquote>
-<p><strong>Updated in June 2026</strong> - Favorites are now <strong>grouped by file type</strong> (XML Document,
-XSD Schema, Schematron Rules, XSLT Stylesheet, …), and every entry shows a <strong>colored type
-icon</strong> so you can tell the file kinds apart at a glance.</p>
-</blockquote>
-<p>Click a favorite to open it as an editor tab. See <a href="../favorites-system/">Favorites System</a> for
-adding, naming, and organizing favorites.</p>
+<ul>
+<li>Favorites are grouped by their <strong>folder</strong> as soon as you use folders (the rest gathers
+  under <em>Uncategorized</em>); without folders they group by <strong>file type</strong>. Every entry shows a
+  <strong>colored type icon</strong>.</li>
+<li>The <strong>search field</strong> filters the list by name or path as you type.</li>
+<li>Click a favorite to open it as an editor tab. Right-click for <strong>Open</strong>, <strong>Rename…</strong>,
+  <strong>Move to folder</strong> (existing folders, <em>(No folder)</em>, or <strong>New folder…</strong>), and <strong>Remove</strong>.</li>
+<li><strong>Add current</strong> stars the active document.</li>
+</ul>
+<h3 id="manage-favorites-editor-area">Manage Favorites (editor area)<a class="headerlink" href="#manage-favorites-editor-area" title="Permanent link">&para;</a></h3>
+<p>Click <strong>Manage…</strong> to open the full management view as a tab in the main editor area:</p>
+<ul>
+<li>A <strong>FOLDERS</strong> list on the left filters the table (<em>All</em>, <em>Uncategorized</em>, your folders)
+  and offers <strong>New…</strong>, <strong>Rename…</strong>, and <strong>Delete</strong> (deleting a folder moves its favorites
+  to <em>Uncategorized</em> - nothing is lost).</li>
+<li>The <strong>table</strong> lists Name / Type / Folder / Path: double-click the <strong>Name</strong> cell to rename
+  inline, pick a different <strong>Folder</strong> directly in the cell, double-click a row to open the
+  file, right-click to <strong>Open</strong> or <strong>Remove from favorites</strong>.</li>
+<li>The <strong>search field</strong> (top right) filters across all favorites by name or path.</li>
+</ul>
+<p>See <a href="../favorites-system/">Favorites System</a> for more.</p>
 <h2 id="validation-panel">Validation Panel<a class="headerlink" href="#validation-panel" title="Permanent link">&para;</a></h2>
 <p>Open the <strong>Validation</strong> panel from the activity bar to validate the active document.</p>
 <blockquote>
