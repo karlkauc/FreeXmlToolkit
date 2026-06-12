@@ -470,6 +470,32 @@ class RepeatingElementsTableTest {
     // ==================== Helper Methods ====================
 
     /**
+     * A cell element's own attributes (e.g. {@code <Amount ccy="EUR">…</Amount>})
+     * must surface as a display-only suffix — while the cell VALUE stays the bare
+     * text, so inline editing keeps round-tripping correctly.
+     */
+    @Test
+    void testCellAttributesSurfaceAsDisplaySuffix() {
+        XmlElement nav1 = new XmlElement("TotalNetAssetValue");
+        XmlElement amount1 = createElementWithText("Amount", "255355819.05");
+        amount1.setAttribute("ccy", "EUR");
+        nav1.addChild(amount1);
+        XmlElement nav2 = new XmlElement("TotalNetAssetValue");
+        nav2.addChild(createElementWithText("Amount", "100.00")); // no attributes
+
+        RepeatingElementsTable table = new RepeatingElementsTable(
+                "TotalNetAssetValue", List.of(nav1, nav2), 0, () -> {});
+
+        RepeatingElementsTable.TableRow first = table.getRows().get(0);
+        assertEquals("255355819.05", first.getValues().get("Amount"),
+                "the cell value must stay the bare text (editing round-trips it)");
+        assertEquals("ccy=EUR", first.getAttributeSuffix("Amount"),
+                "the cell element's attributes must surface as a display suffix");
+        assertNull(table.getRows().get(1).getAttributeSuffix("Amount"),
+                "no attributes, no suffix");
+    }
+
+    /**
      * Creates an XmlElement with a text child.
      */
     private XmlElement createElementWithText(String name, String text) {
