@@ -34,6 +34,10 @@ public class SignDocumentView extends ScrollPane {
 
     private final Label docName = new Label("none");
     private final Label docInfo = new Label("no document open");
+    private final VBox certificateBox = new VBox(8);
+    private ToggleButton enveloped;
+    private ToggleButton enveloping;
+    private ToggleButton detached;
     private File xmlFile;
 
     SignDocumentView(SignaturePanel panel, EditorHost editorHost) {
@@ -48,7 +52,7 @@ public class SignDocumentView extends ScrollPane {
         iconTile.getStyleClass().add("fxt-sign-icon-tile");
         Label title = new Label("Sign XML Document");
         title.getStyleClass().add("fxt-sign-card-title");
-        Label subtitle = new Label("XML Digital Signature · XML-DSig (enveloped)");
+        Label subtitle = new Label("XML Digital Signature · XML-DSig");
         subtitle.getStyleClass().add("fxt-sign-card-sub");
         HBox head = new HBox(14, iconTile, new VBox(2, title, subtitle));
         head.setAlignment(Pos.CENTER_LEFT);
@@ -88,14 +92,16 @@ public class SignDocumentView extends ScrollPane {
         Label typeLabel = new Label("Signature type");
         typeLabel.getStyleClass().add("fxt-sig-field-label");
         ToggleGroup typeGroup = new ToggleGroup();
-        ToggleButton enveloped = segment("Enveloped", typeGroup);
+        enveloped = segment("Enveloped", typeGroup);
+        enveloped.setId("sign-type-enveloped");
         enveloped.setSelected(true);
-        ToggleButton enveloping = segment("Enveloping", typeGroup);
-        enveloping.setDisable(true);
-        enveloping.setTooltip(new Tooltip("Not supported yet"));
-        ToggleButton detached = segment("Detached", typeGroup);
-        detached.setDisable(true);
-        detached.setTooltip(new Tooltip("Not supported yet"));
+        enveloped.setTooltip(new Tooltip("The signature is inserted into the signed document"));
+        enveloping = segment("Enveloping", typeGroup);
+        enveloping.setId("sign-type-enveloping");
+        enveloping.setTooltip(new Tooltip("The signed content is wrapped inside the signature document"));
+        detached = segment("Detached", typeGroup);
+        detached.setId("sign-type-detached");
+        detached.setTooltip(new Tooltip("A standalone .sig.xml referencing the file - keep both together"));
         typeGroup.selectedToggleProperty().addListener((obs, oldV, newV) -> {
             if (newV == null) {
                 typeGroup.selectToggle(oldV);
@@ -118,17 +124,28 @@ public class SignDocumentView extends ScrollPane {
         sign.setId("sign-card-run");
         sign.getStyleClass().add("fxt-primary-button");
         sign.setMaxWidth(Double.MAX_VALUE);
-        sign.setOnAction(e -> panel.signFile(xmlFile));
+        sign.setOnAction(e -> panel.signFile(xmlFile, selectedSignatureType()));
         Label status = new Label();
         status.getStyleClass().add("fxt-vp-status");
         status.setWrapText(true);
         status.textProperty().bind(panel.statusTextProperty());
 
+        // --- CERTIFICATE (the mockup's certificate inspector) -----------------------
+        Hyperlink showCertificate = new Hyperlink("Show certificate details");
+        showCertificate.setId("sign-cert-load");
+        showCertificate.getStyleClass().add("fxt-vp-change");
+        showCertificate.setOnAction(e -> loadCertificate(panel, alias.getText(), password.getText()));
+        certificateBox.setId("sign-cert-box");
+        certificateBox.setVisible(false);
+        certificateBox.setManaged(false);
+
         VBox card = new VBox(16, head,
                 sectionLabel("DOCUMENT"), docRow,
                 credentials,
                 optionsLabel, typeLabel, typeSeg, algoRow,
-                sign, status);
+                sign, status,
+                new HBox(sectionLabel("CERTIFICATE"), hSpacer(), showCertificate),
+                certificateBox);
         card.getStyleClass().add("fxt-sign-card");
         card.setMaxWidth(560);
 
@@ -139,6 +156,22 @@ public class SignDocumentView extends ScrollPane {
 
         setDocument(editorHost.getActiveDocument()
                 .map(OpenDocument::getPath).map(p -> p != null ? p.toFile() : null).orElse(null));
+    }
+
+    /** @return the certificate box (lookups on an unskinned ScrollPane cannot reach the content; for tests). */
+    VBox certificateBoxForTests() {
+        return certificateBox;
+    }
+
+    /** @return the signature structure selected in the SIGNATURE OPTIONS segmented control. */
+    org.fxt.freexmltoolkit.service.SignatureService.SignatureType selectedSignatureType() {
+        if (enveloping.isSelected()) {
+            return org.fxt.freexmltoolkit.service.SignatureService.SignatureType.ENVELOPING;
+        }
+        if (detached.isSelected()) {
+            return org.fxt.freexmltoolkit.service.SignatureService.SignatureType.DETACHED;
+        }
+        return org.fxt.freexmltoolkit.service.SignatureService.SignatureType.ENVELOPED;
     }
 
     /** Sets the document to sign and refreshes the DOCUMENT row. */
@@ -152,6 +185,104 @@ public class SignDocumentView extends ScrollPane {
             docName.setText("none");
             docInfo.setText("no document open");
         }
+    }
+
+    /** Loads the keystore's certificate off the UI thread and shows its details. */
+    private void loadCertificate(SignaturePanel panel, String alias, String password) {
+        File keystore = panel.currentKeystoreFile();
+        if (keystore == null || alias == null || alias.isBlank()) {
+            showCertificateMessage("Select a keystore (side panel) and enter the alias first.");
+            return;
+        }
+        showCertificateMessage("Loading…");
+        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            try {
+                var details = CertificateDetailsRunner.fromKeystore(keystore, password, alias);
+                javafx.application.Platform.runLater(() -> showCertificate(details));
+            } catch (Exception e) {
+                javafx.application.Platform.runLater(() ->
+                        showCertificateMessage("Could not load the certificate: " + e.getMessage()));
+            }
+        });
+    }
+
+    private void showCertificateMessage(String message) {
+        Label label = new Label(message);
+        label.getStyleClass().add("fxt-vp-status");
+        label.setWrapText(true);
+        certificateBox.getChildren().setAll(label);
+        certificateBox.setVisible(true);
+        certificateBox.setManaged(true);
+    }
+
+    /** Renders the certificate details (the mockup's CERTIFICATE inspector content). */
+    void showCertificate(CertificateDetailsRunner.CertificateDetails details) {
+        IconifyIcon shield = icon("bi-shield-check", 16);
+        Label name = new Label(details.subjectCn());
+        name.setId("sign-cert-name");
+        name.getStyleClass().add("fxt-sign-doc-name");
+        Label badge = new Label(details.selfSigned() ? "self-signed" : "CA-issued");
+        badge.getStyleClass().add("fxt-cert-badge");
+        HBox headerRow = new HBox(8, shield, name, badge);
+        headerRow.setAlignment(Pos.CENTER_LEFT);
+
+        Label validity = new Label(details.currentlyValid()
+                ? "Valid · " + details.daysRemaining() + " days remaining"
+                : (details.daysRemaining() < 0
+                        ? "Expired " + Math.abs(details.daysRemaining()) + " days ago"
+                        : "Not yet valid"));
+        validity.setId("sign-cert-validity");
+        validity.setMaxWidth(Double.MAX_VALUE);
+        validity.getStyleClass().add(details.currentlyValid() ? "fxt-cert-valid" : "fxt-cert-expired");
+
+        java.time.format.DateTimeFormatter day = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        VBox rows = new VBox(4,
+                certRow("Subject", details.subjectCn()
+                        + (details.subjectO() != null ? " · " + details.subjectO() : "")
+                        + (details.subjectC() != null ? " · " + details.subjectC() : "")),
+                certRow("Issued", details.issued().format(day)),
+                certRow("Expires", details.expires().format(day)),
+                certRow("Serial", details.serialHex()),
+                certRow("Signature", details.signatureAlgorithm()),
+                certRow("Key usage", details.keyUsage() != null ? details.keyUsage() : "–"));
+
+        Label fingerprint = new Label(details.sha256Fingerprint());
+        fingerprint.getStyleClass().add("fxt-cert-fingerprint");
+        fingerprint.setWrapText(true);
+        Button copy = new Button(null, icon("bi-clipboard", 13));
+        copy.getStyleClass().add("fxt-tool-button");
+        copy.setTooltip(new Tooltip("Copy fingerprint"));
+        copy.setOnAction(e -> {
+            javafx.scene.input.ClipboardContent content = new javafx.scene.input.ClipboardContent();
+            content.putString(details.sha256Fingerprint());
+            javafx.scene.input.Clipboard.getSystemClipboard().setContent(content);
+        });
+        HBox fingerprintRow = new HBox(8, fingerprint, copy);
+        fingerprintRow.setAlignment(Pos.CENTER_LEFT);
+        Label fingerprintLabel = new Label("SHA-256 fingerprint");
+        fingerprintLabel.getStyleClass().add("fxt-sig-field-label");
+
+        certificateBox.getChildren().setAll(headerRow, validity, rows, fingerprintLabel, fingerprintRow);
+        certificateBox.setVisible(true);
+        certificateBox.setManaged(true);
+    }
+
+    private static HBox certRow(String key, String value) {
+        Label keyLabel = new Label(key);
+        keyLabel.getStyleClass().add("fxt-sig-field-label");
+        keyLabel.setMinWidth(90);
+        Label valueLabel = new Label(value != null ? value : "–");
+        valueLabel.getStyleClass().add("fxt-favmgr-detail");
+        valueLabel.setWrapText(true);
+        HBox row = new HBox(8, keyLabel, valueLabel);
+        row.setAlignment(Pos.CENTER_LEFT);
+        return row;
+    }
+
+    private static Region hSpacer() {
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        return spacer;
     }
 
     private void chooseDocument() {

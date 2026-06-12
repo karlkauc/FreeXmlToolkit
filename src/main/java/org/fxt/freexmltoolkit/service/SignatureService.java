@@ -60,6 +60,7 @@ import javax.xml.crypto.dsig.Reference;
 import javax.xml.crypto.dsig.SignatureMethod;
 import javax.xml.crypto.dsig.SignedInfo;
 import javax.xml.crypto.dsig.Transform;
+import javax.xml.crypto.dsig.XMLObject;
 import javax.xml.crypto.dsig.XMLSignature;
 import javax.xml.crypto.dsig.XMLSignatureException;
 import javax.xml.crypto.dsig.XMLSignatureFactory;
@@ -166,9 +167,38 @@ public class SignatureService {
      * @throws SignatureServiceException if signing fails due to configuration or crypto errors.
      */
     public File signDocument(File documentToSign, File keystore, String keystorePassword, String alias, String aliasPassword, String outputFileName) {
+        return signDocument(documentToSign, keystore, keystorePassword, alias, aliasPassword,
+                outputFileName, SignatureType.ENVELOPED);
+    }
+
+    /** The XML-DSig signature structure. */
+    public enum SignatureType {
+        /** The signature is inserted INTO the signed document (reference URI {@code ""}). */
+        ENVELOPED,
+        /** The signed content is wrapped INSIDE the signature's {@code ds:Object}. */
+        ENVELOPING,
+        /** A standalone signature document referencing the signed file by relative URI. */
+        DETACHED
+    }
+
+    /**
+     * Signs an XML document using a private key from a keystore, with the given
+     * signature structure.
+     *
+     * @param documentToSign   the XML document to sign
+     * @param keystore         the keystore file containing the private key
+     * @param keystorePassword the password for the keystore
+     * @param alias            the alias of the key in the keystore
+     * @param aliasPassword    the password for the alias
+     * @param outputFileName   the name of the output file to save the signed document
+     * @param type             the signature structure (enveloped/enveloping/detached)
+     * @return the signed XML document as a File
+     * @throws SignatureServiceException if signing fails due to configuration or crypto errors.
+     */
+    public File signDocument(File documentToSign, File keystore, String keystorePassword, String alias,
+                             String aliasPassword, String outputFileName, SignatureType type) {
         try {
             DocumentBuilder db = dbf.newDocumentBuilder();
-            Document doc = db.parse(documentToSign);
 
             KeyStore ks = KeyStore.getInstance(KEYSTORE_TYPE);
             try (FileInputStream fis = new FileInputStream(keystore)) {
@@ -182,32 +212,74 @@ public class SignatureService {
             }
 
             XMLSignatureFactory fac = XMLSignatureFactory.getInstance("DOM");
-
-            Reference ref = fac.newReference("", fac.newDigestMethod(DIGEST_METHOD_XML, null),
-                    Collections.singletonList(fac.newTransform(Transform.ENVELOPED, (TransformParameterSpec) null)), null, null);
-
-            SignedInfo si = fac.newSignedInfo(
-                    fac.newCanonicalizationMethod(CanonicalizationMethod.EXCLUSIVE, (C14NMethodParameterSpec) null),
-                    fac.newSignatureMethod(SIGNATURE_METHOD_XML, null),
-                    Collections.singletonList(ref));
-
             KeyInfoFactory kif = fac.getKeyInfoFactory();
             KeyValue kv = kif.newKeyValue(cert.getPublicKey());
             X509Data x509Data = kif.newX509Data(Collections.singletonList(cert));
             KeyInfo ki = kif.newKeyInfo(List.of(kv, x509Data));
 
-            DOMSignContext dsc = new DOMSignContext(privateKey, doc.getDocumentElement());
-            XMLSignature signature = fac.newXMLSignature(si, ki);
-            signature.sign(dsc);
+            Document outputDoc;
+            switch (type) {
+                case ENVELOPING -> {
+                    // The signed content moves into a ds:Object INSIDE the signature,
+                    // which becomes the root of a new document.
+                    Document source = db.parse(documentToSign);
+                    Document sigDoc = db.newDocument();
+                    Node content = sigDoc.importNode(source.getDocumentElement(), true);
+                    // Namespace fixup: a no-namespace root carries no xmlns attribute, but it
+                    // will sit under the signature's default xmldsig namespace. Santuario's
+                    // c14n renders namespace declarations from ATTRIBUTES, while the
+                    // serializer renders them from node namespaces - without an explicit
+                    // xmlns="" the sign-time digest and the re-parsed file would disagree.
+                    if (content instanceof org.w3c.dom.Element contentElement
+                            && contentElement.getNamespaceURI() == null) {
+                        contentElement.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns", "");
+                    }
+                    XMLObject object = fac.newXMLObject(
+                            List.of(new javax.xml.crypto.dom.DOMStructure(content)),
+                            "signed-content", null, null);
+                    // No transform: the node-set is digested with the default (inclusive)
+                    // canonicalization - the form of the reference JSR-105 enveloping
+                    // example, which round-trips serialization reliably.
+                    Reference ref = fac.newReference("#signed-content",
+                            fac.newDigestMethod(DIGEST_METHOD_XML, null));
+                    XMLSignature signature = fac.newXMLSignature(signedInfo(fac, ref), ki,
+                            List.of(object), null, null);
+                    signature.sign(new DOMSignContext(privateKey, sigDoc));
+                    outputDoc = sigDoc;
+                }
+                case DETACHED -> {
+                    // A standalone signature document; the reference is the signed file's
+                    // (URI-encoded) name, resolved against the file's directory.
+                    String relativeUri = documentToSign.getParentFile().toURI()
+                            .relativize(documentToSign.toURI()).toString();
+                    Reference ref = fac.newReference(relativeUri,
+                            fac.newDigestMethod(DIGEST_METHOD_XML, null), null, null, null);
+                    Document sigDoc = db.newDocument();
+                    DOMSignContext dsc = new DOMSignContext(privateKey, sigDoc);
+                    dsc.setBaseURI(documentToSign.getParentFile().toURI().toString());
+                    XMLSignature signature = fac.newXMLSignature(signedInfo(fac, ref), ki);
+                    signature.sign(dsc);
+                    outputDoc = sigDoc;
+                }
+                default -> {
+                    Document doc = db.parse(documentToSign);
+                    Reference ref = fac.newReference("", fac.newDigestMethod(DIGEST_METHOD_XML, null),
+                            Collections.singletonList(fac.newTransform(Transform.ENVELOPED,
+                                    (TransformParameterSpec) null)), null, null);
+                    XMLSignature signature = fac.newXMLSignature(signedInfo(fac, ref), ki);
+                    signature.sign(new DOMSignContext(privateKey, doc.getDocumentElement()));
+                    outputDoc = doc;
+                }
+            }
 
             File outputFile = new File(outputFileName);
             try (FileOutputStream fos = new FileOutputStream(outputFile)) {
                 TransformerFactory tf = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureTransformerFactory();
                 Transformer trans = tf.newTransformer();
-                trans.transform(new DOMSource(doc), new StreamResult(fos));
+                trans.transform(new DOMSource(outputDoc), new StreamResult(fos));
             }
 
-            logger.info("Document successfully signed and saved to '{}'", outputFile.getAbsolutePath());
+            logger.info("Document successfully signed ({}) and saved to '{}'", type, outputFile.getAbsolutePath());
             return outputFile;
 
         } catch (ParserConfigurationException | SAXException | IOException | KeyStoreException |
@@ -217,6 +289,14 @@ public class SignatureService {
             logger.error("Failed to sign the document.", e);
             throw new SignatureServiceException("Failed to sign the document: " + e.getMessage(), e);
         }
+    }
+
+    private SignedInfo signedInfo(XMLSignatureFactory fac, Reference ref)
+            throws NoSuchAlgorithmException, InvalidAlgorithmParameterException {
+        return fac.newSignedInfo(
+                fac.newCanonicalizationMethod(CanonicalizationMethod.EXCLUSIVE, (C14NMethodParameterSpec) null),
+                fac.newSignatureMethod(SIGNATURE_METHOD_XML, null),
+                Collections.singletonList(ref));
     }
 
     /**
@@ -246,7 +326,45 @@ public class SignatureService {
 
             DOMValidateContext valContext = new DOMValidateContext(new X509KeySelector(), signatureNode);
 
+            // ENVELOPING signatures reference their ds:Object by #Id. After re-parsing
+            // from a file, DOM no longer knows that 'Id' is an XML ID attribute, so the
+            // same-document dereferencer would fail - register it explicitly.
+            NodeList objectNodes = doc.getElementsByTagNameNS(XMLSignature.XMLNS, "Object");
+            for (int i = 0; i < objectNodes.getLength(); i++) {
+                if (objectNodes.item(i) instanceof org.w3c.dom.Element objectElement
+                        && objectElement.hasAttribute("Id")) {
+                    valContext.setIdAttributeNS(objectElement, null, "Id");
+                }
+            }
+
             XMLSignatureFactory fac = XMLSignatureFactory.getInstance("DOM");
+            // DETACHED signatures reference the signed file by a relative URI. The JDK's
+            // secure validation forbids file: base URIs, so we dereference the sibling
+            // file OURSELVES - restricted to plain relative names inside the signature
+            // file's own directory (no scheme, no path traversal) - and keep secure
+            // validation enabled. Everything else (same-document #refs) stays with the
+            // default dereferencer.
+            File signatureDir = signedFile.getParentFile();
+            valContext.setURIDereferencer((uriReference, context) -> {
+                String uri = uriReference.getURI();
+                if (signatureDir != null && uri != null && !uri.isEmpty()
+                        && !uri.startsWith("#") && !uri.contains(":") && !uri.contains("/")) {
+                    try {
+                        String name = java.net.URLDecoder.decode(uri, java.nio.charset.StandardCharsets.UTF_8);
+                        File target = new File(signatureDir, name);
+                        if (target.isFile() && signatureDir.getCanonicalFile()
+                                .equals(target.getCanonicalFile().getParentFile())) {
+                            return new javax.xml.crypto.OctetStreamData(
+                                    new FileInputStream(target), uri, null);
+                        }
+                    } catch (IOException e) {
+                        throw new javax.xml.crypto.URIReferenceException(
+                                "Cannot read detached reference '" + uri + "': " + e.getMessage(), e);
+                    }
+                }
+                return fac.getURIDereferencer().dereference(uriReference, context);
+            });
+
             XMLSignature signature = fac.unmarshalXMLSignature(valContext);
 
             boolean coreValidity = signature.validate(valContext);
@@ -254,6 +372,18 @@ public class SignatureService {
                 logger.info("Signature in '{}' is valid.", signedFile.getName());
             } else {
                 logger.warn("Signature in '{}' is INVALID.", signedFile.getName());
+                // Diagnose WHAT failed: the signature value, or which reference digest.
+                try {
+                    logger.warn("  signature value valid: {}",
+                            signature.getSignatureValue().validate(valContext));
+                    for (Object referenceObject : signature.getSignedInfo().getReferences()) {
+                        Reference reference = (Reference) referenceObject;
+                        logger.warn("  reference '{}' digest valid: {}",
+                                reference.getURI(), reference.validate(valContext));
+                    }
+                } catch (XMLSignatureException diagnosticFailure) {
+                    logger.warn("  (could not diagnose: {})", diagnosticFailure.getMessage());
+                }
             }
             return coreValidity;
 

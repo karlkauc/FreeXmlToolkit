@@ -163,6 +163,31 @@ class SignaturePanelTest {
     }
 
     @Test
+    void signCardRendersCertificateDetails() {
+        java.util.concurrent.atomic.AtomicReference<SignDocumentView> ref = new java.util.concurrent.atomic.AtomicReference<>();
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            SignDocumentView view = new SignDocumentView(panel, host);
+            view.showCertificate(new CertificateDetailsRunner.CertificateDetails(
+                    "fxt-signer", "FreeXmlToolkit", "AT", true,
+                    java.time.LocalDateTime.now().minusDays(1),
+                    java.time.LocalDateTime.now().plusDays(612),
+                    612, true, "0x4F2A9C1E", "SHA256withRSA", "digitalSignature",
+                    "A1:B2:C3"));
+            ref.set(view);
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+
+        // Lookup via the certificate box: an unskinned ScrollPane (not in a scene)
+        // does not traverse into its content.
+        var box = ref.get().certificateBoxForTests();
+        assertEquals("fxt-signer", ((Label) box.lookup("#sign-cert-name")).getText());
+        assertTrue(((Label) box.lookup("#sign-cert-validity")).getText().contains("612 days remaining"),
+                "the validity banner must show the remaining days");
+        assertTrue(box.isVisible());
+    }
+
+    @Test
     void rejectsCertificateCreationWithoutCredentials() {
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
             panel.setCredentials("", "", "");

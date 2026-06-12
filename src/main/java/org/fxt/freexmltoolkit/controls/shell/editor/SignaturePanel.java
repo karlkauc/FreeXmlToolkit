@@ -209,6 +209,11 @@ public class SignaturePanel extends VBox {
         return status.textProperty();
     }
 
+    /** @return the chosen keystore file, or {@code null} (the card's certificate inspector reads it). */
+    File currentKeystoreFile() {
+        return keystoreFile;
+    }
+
     /**
      * Creates a self-signed certificate / JKS keystore from the DN fields and the
      * keystore alias + passwords (async). On success the new keystore is selected
@@ -260,13 +265,22 @@ public class SignaturePanel extends VBox {
         aliasPassword.setText(aliasPw);
     }
 
-    /** Signs the active XML to {@code <name>.signed.xml} next to it (async). */
+    /** Signs the active XML (enveloped) to {@code <name>.signed.xml} next to it (async). */
     public void signActive() {
         signFile(activeXmlFile());
     }
 
-    /** Signs {@code xml} to {@code <name>.signed.xml} next to it (async). */
+    /** Signs {@code xml} (enveloped) to {@code <name>.signed.xml} next to it (async). */
     public void signFile(File xml) {
+        signFile(xml, SignatureService.SignatureType.ENVELOPED);
+    }
+
+    /**
+     * Signs {@code xml} with the given signature structure (async). Enveloped and
+     * enveloping signatures are written to {@code <name>.signed.xml}; a detached
+     * signature is a standalone document written to {@code <name>.sig.xml}.
+     */
+    public void signFile(File xml, SignatureService.SignatureType type) {
         if (xml == null) {
             status.setText("No document open.");
             return;
@@ -279,13 +293,14 @@ public class SignaturePanel extends VBox {
         String aliasName = alias.getText();
         String ksPw = keystorePassword.getText();
         String aliasPw = aliasPassword.getText();
-        File output = siblingSignedFile(xml);
+        File output = type == SignatureService.SignatureType.DETACHED
+                ? siblingFile(xml, ".sig.xml") : siblingFile(xml, ".signed.xml");
         status.setText("Signing…");
         FxtGui.executorService.submit(() -> {
             String result;
             try {
                 File signed = new SignatureService()
-                        .signDocument(xml, keystore, ksPw, aliasName, aliasPw, output.getAbsolutePath());
+                        .signDocument(xml, keystore, ksPw, aliasName, aliasPw, output.getAbsolutePath(), type);
                 result = "Signed: " + signed.getName();
             } catch (Exception e) {
                 result = "ERROR: " + e.getMessage();
@@ -415,8 +430,8 @@ public class SignaturePanel extends VBox {
         return (doc.isPresent() && doc.get().getPath() != null) ? doc.get().getPath().toFile() : null;
     }
 
-    private File siblingSignedFile(File xml) {
-        String name = xml.getName().replaceFirst("\\.xml$", "") + ".signed.xml";
+    private File siblingFile(File xml, String suffix) {
+        String name = xml.getName().replaceFirst("\\.xml$", "") + suffix;
         return new File(xml.getParentFile(), name);
     }
 

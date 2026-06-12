@@ -557,6 +557,10 @@ passwords):
   and password (shared with the KEYSTORE section), the signature type (enveloped XML-DSig)
   and algorithm (RSA-SHA256 · C14N exclusive), and a **Sign Document** button. The signed
   copy is written next to the original (`name.signed.xml`) and opened.
+  **Show certificate details** loads the keystore's certificate and shows the mockup's
+  certificate inspector: subject (CN/O/C) with a self-signed/CA badge, the validity window
+  with a *"Valid · N days remaining"* banner (red when expired), serial, signature
+  algorithm, key usage, and the **SHA-256 fingerprint** with a copy button.
 - **Validate Signature** - **Validate Signature** checks the active document's signature;
   **Validate (Details)** opens a detailed report (validity + signing-certificate details).
 - **Create Certificate** - Creates a self-signed certificate / keystore from the DN fields,

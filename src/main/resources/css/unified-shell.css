@@ -1525,6 +1525,41 @@
     -fx-text-fill: -fxt-text-primary;
 }
 
+/* Certificate inspector inside the sign card (Figma 50:2 right column). */
+.fxt-cert-badge {
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-primary;
+    -fx-background-color: -fxt-bg-subtle;
+    -fx-background-radius: 8;
+    -fx-padding: 1 8 1 8;
+}
+
+.fxt-cert-valid {
+    -fx-font-size: 12px;
+    -fx-text-fill: #1d7a3d;
+    -fx-background-color: rgba(40, 167, 69, 0.12);
+    -fx-background-radius: 6;
+    -fx-padding: 6 10 6 10;
+}
+
+.fxt-cert-expired {
+    -fx-font-size: 12px;
+    -fx-text-fill: -fxt-danger;
+    -fx-background-color: rgba(220, 53, 69, 0.12);
+    -fx-background-radius: 6;
+    -fx-padding: 6 10 6 10;
+}
+
+.fxt-cert-fingerprint {
+    -fx-font-family: "JetBrains Mono", monospace;
+    -fx-font-size: 10.5px;
+    -fx-text-fill: -fxt-text-secondary;
+    -fx-background-color: -fxt-bg-surface-2;
+    -fx-background-radius: 6;
+    -fx-padding: 6 10 6 10;
+}
+
 /* ----- PDF/FOP side panel (Figma node 49:2) ------------------------------ */
 .fxt-fop-panel {
     -fx-background-color: -fxt-bg-surface;
