@@ -59,7 +59,7 @@ class DocumentationViewTest {
 
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
             view.generate(new DocumentationView.DocOptions(xsd.toFile(), out.toFile(), "HTML",
-                    true, false, false, false, false, "SVG", Set.of(), null, false));
+                    true, false, false, false, false, "SVG", Set.of(), null, false, null));
             return null;
         });
         WaitForAsyncUtils.waitFor(60, TimeUnit.SECONDS,
@@ -86,6 +86,16 @@ class DocumentationViewTest {
         assertTrue(options.openAfter(), "open-after defaults to on");
         assertEquals("SVG", options.imageFormat());
         assertEquals(xsd.toFile(), options.xsd());
+        assertNull(options.favicon(), "no favicon by default");
+
+        Path favicon = tmp.resolve("logo.png");
+        Files.writeString(favicon, "stub");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            view.setFavicon(favicon.toFile());
+            return null;
+        });
+        assertEquals(favicon.toFile(), view.currentOptions().favicon(),
+                "the chosen favicon must flow into the generation options");
     }
 
     @Test
@@ -111,7 +121,7 @@ class DocumentationViewTest {
         Files.writeString(xsd, XSD);
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
             view.generate(new DocumentationView.DocOptions(xsd.toFile(), null, "HTML",
-                    true, false, false, false, false, "SVG", Set.of(), null, false));
+                    true, false, false, false, false, "SVG", Set.of(), null, false, null));
             return null;
         });
         WaitForAsyncUtils.waitForFxEvents();

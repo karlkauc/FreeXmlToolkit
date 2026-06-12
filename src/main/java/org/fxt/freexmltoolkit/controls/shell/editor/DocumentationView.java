@@ -54,7 +54,8 @@ public class DocumentationView extends BorderPane {
     record DocOptions(File xsd, File output, String format,
                       boolean useMarkdown, boolean includeTypeDefs, boolean showDocInSvg,
                       boolean svgOverview, boolean addMetadata, String imageFormat,
-                      Set<String> languages, String fallbackLanguage, boolean openAfter) {
+                      Set<String> languages, String fallbackLanguage, boolean openAfter,
+                      File favicon) {
     }
 
     private final EditorHost editorHost;
@@ -72,6 +73,7 @@ public class DocumentationView extends BorderPane {
     private final FlowPane languagesPane = new FlowPane(10, 6);
     private final ComboBox<String> fallbackLanguage = new ComboBox<>();
     private final Label languagesStatus = new Label("Not scanned - all languages are included.");
+    private final Label faviconName = new Label("none");
     private final CheckBox openAfter = new CheckBox("Open the generated documentation after creation");
     private final Button generate = new Button("Generate Documentation");
     private final Button cancel = new Button("Cancel");
@@ -80,6 +82,7 @@ public class DocumentationView extends BorderPane {
     private final Label status = new Label("Ready.");
     private File xsdFile;
     private File outputTarget;
+    private File faviconFile;
     private Future<?> running;
 
     public DocumentationView(EditorHost editorHost) {
@@ -130,8 +133,23 @@ public class DocumentationView extends BorderPane {
         imageFormat.getSelectionModel().selectFirst();
         Label imageLabel = new Label("Diagram image format");
         imageLabel.getStyleClass().add("fxt-sig-field-label");
+        Label faviconLabel = new Label("Favicon (HTML)");
+        faviconLabel.getStyleClass().add("fxt-sig-field-label");
+        faviconName.setId("docgen-favicon-name");
+        faviconName.getStyleClass().addAll("fxt-vp-source-name", "fxt-vp-source-none");
+        Hyperlink chooseFavicon = new Hyperlink("Browse");
+        chooseFavicon.getStyleClass().add("fxt-vp-change");
+        chooseFavicon.setOnAction(e -> chooseFavicon());
+        Hyperlink clearFavicon = new Hyperlink("Clear");
+        clearFavicon.getStyleClass().add("fxt-vp-change");
+        clearFavicon.setOnAction(e -> setFavicon(null));
+        Region faviconSpacer = new Region();
+        HBox.setHgrow(faviconSpacer, Priority.ALWAYS);
+        HBox faviconRow = new HBox(8, icon("bi-image", 15), faviconName, faviconSpacer,
+                chooseFavicon, clearFavicon);
+        faviconRow.setAlignment(Pos.CENTER_LEFT);
         VBox optionsBox = new VBox(8, useMarkdown, includeTypeDefs, showDocInSvg, svgOverview,
-                addMetadata, imageLabel, imageFormat);
+                addMetadata, imageLabel, imageFormat, faviconLabel, faviconRow);
 
         // --- LANGUAGES -----------------------------------------------------------------------
         Hyperlink scan = new Hyperlink("Scan languages");
@@ -208,7 +226,7 @@ public class DocumentationView extends BorderPane {
         return new DocOptions(xsdFile, outputTarget, selectedFormat(),
                 useMarkdown.isSelected(), includeTypeDefs.isSelected(), showDocInSvg.isSelected(),
                 svgOverview.isSelected(), addMetadata.isSelected(), imageFormat.getValue(),
-                languages, fallbackLanguage.getValue(), openAfter.isSelected());
+                languages, fallbackLanguage.getValue(), openAfter.isSelected(), faviconFile);
     }
 
     String selectedFormat() {
@@ -295,6 +313,9 @@ public class DocumentationView extends BorderPane {
         }
         if (options.fallbackLanguage() != null && !options.fallbackLanguage().isBlank()) {
             service.setFallbackLanguage(options.fallbackLanguage());
+        }
+        if (options.favicon() != null && options.favicon().isFile()) {
+            service.setFaviconPath(options.favicon().getAbsolutePath());
         }
         service.setMethod(switch (options.imageFormat() != null ? options.imageFormat() : "SVG") {
             case "PNG" -> XsdDocumentationService.ImageOutputMethod.PNG;
@@ -401,6 +422,23 @@ public class DocumentationView extends BorderPane {
                     xsdFile = doc.getPath().toFile();
                     refreshNames();
                 });
+    }
+
+    /** Sets the HTML favicon file (or {@code null} to clear; also used by tests). */
+    void setFavicon(File file) {
+        this.faviconFile = file;
+        setSourceName(faviconName, file != null ? file.getName() : null);
+    }
+
+    private void chooseFavicon() {
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Select favicon");
+        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(
+                "Favicon", "*.ico", "*.png", "*.svg", "*.gif"));
+        File file = chooser.showOpenDialog(getScene() != null ? getScene().getWindow() : null);
+        if (file != null) {
+            setFavicon(file);
+        }
     }
 
     private void chooseXsd() {

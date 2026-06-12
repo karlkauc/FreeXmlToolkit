@@ -206,7 +206,8 @@ a tab in the main editor area with the full option set:
   (HTML) or file (PDF/Word).
 - **FORMAT** - HTML, PDF, or Word.
 - **OPTIONS** - Markdown renderer, type definitions in source code, documentation in
-  diagrams, SVG overview page, metadata, and the diagram image format (SVG/PNG/JPG).
+  diagrams, SVG overview page, metadata, the diagram image format (SVG/PNG/JPG), and a
+  **favicon** (.ico/.png/.svg) embedded into the generated HTML site.
 - **LANGUAGES** - **Scan languages** discovers the `xml:lang` documentation languages in
   the schema; pick which to include and the fallback language.
 - **PROGRESS** - the right-hand log streams the pipeline's task messages live while
