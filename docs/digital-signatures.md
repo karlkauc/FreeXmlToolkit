@@ -20,14 +20,15 @@ This tool lets you digitally sign XML documents and verify signatures. A digital
 ### What Can You Do?
 
 In the [Unified Shell](unified-shell.md), open the **Signature** activity from the activity bar.
-The panel offers:
+The top of the panel is an **action nav** - selecting an entry shows the matching form below
+the shared **KEYSTORE** section (keystore file, alias, passwords):
 
 | Action | Description |
 |-----|-------------|
 | **Create Certificate** | Generate your own digital ID (keystore) |
-| **Sign XML File** | Add a digital signature to XML files |
-| **Validate Signed File** | Check if signed documents are valid |
-| **Expert Mode** | Advanced options for power users |
+| **Sign XML File** | Add a digital signature to the active XML document *(default)* |
+| **Validate Signature** | Check if the signed document is valid (plus a detailed report) |
+| **Expert Mode** | PKIX trust validation against a trust store, with optional revocation check |
 
 ---
 

@@ -7,6 +7,8 @@ import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
 
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 
@@ -18,9 +20,10 @@ import org.testfx.framework.junit5.Start;
 import org.testfx.util.WaitForAsyncUtils;
 
 /**
- * TestFX verification that the Signature panel validates the active document and
- * reports an unsigned document as invalid. (A full sign+verify round-trip needs
- * a keystore and is a follow-up increment.)
+ * TestFX verification of the Signature panel (Figma mockup node 50:2): an action
+ * nav (Create Certificate / Sign XML File / Validate Signature / Expert Mode)
+ * switching the visible form section, a shared KEYSTORE section, and the
+ * existing sign/validate/create behaviors.
  */
 @ExtendWith(ApplicationExtension.class)
 class SignaturePanelTest {
@@ -32,7 +35,7 @@ class SignaturePanelTest {
     void start(Stage stage) {
         host = new EditorHost();
         panel = new SignaturePanel(host);
-        stage.setScene(new Scene(new HBox(host, panel), 1000, 600));
+        stage.setScene(new Scene(new HBox(host, panel), 1000, 700));
         stage.show();
     }
 
@@ -54,24 +57,97 @@ class SignaturePanelTest {
     }
 
     @Test
-    void exposesTheCreateCertificateSection() {
+    void titleFollowsTheSharedSidePanelConvention() {
         WaitForAsyncUtils.waitForFxEvents();
-        boolean hasSection = panel.lookupAll(".titled-pane").stream()
-                .anyMatch(n -> n instanceof javafx.scene.control.TitledPane tp
-                        && "Create Self-Signed Certificate".equals(tp.getText()));
-        boolean hasButton = panel.lookupAll(".button").stream()
-                .anyMatch(n -> n instanceof javafx.scene.control.Button b
-                        && "Create Certificate".equals(b.getText()));
-        assertTrue(hasSection, "panel must offer the certificate-creation section");
-        assertTrue(hasButton, "panel must offer a 'Create Certificate' action");
+        Label title = (Label) panel.lookup(".fxt-side-panel-title");
+        assertNotNull(title, "panel must keep the shared side-panel title class");
+        assertEquals("SIGNATURE", title.getText());
+    }
+
+    @Test
+    void signActionIsSelectedByDefaultAndShowsOnlyItsSection() {
+        WaitForAsyncUtils.waitForFxEvents();
+        assertTrue(panel.lookup("#sig-section-sign").isVisible(), "sign section must be visible by default");
+        assertFalse(panel.lookup("#sig-section-validate").isVisible());
+        assertFalse(panel.lookup("#sig-section-create").isVisible());
+        assertFalse(panel.lookup("#sig-section-expert").isVisible());
+    }
+
+    @Test
+    void selectingANavActionSwitchesTheVisibleSection() {
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.selectAction(SignaturePanel.Action.VALIDATE);
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        assertTrue(panel.lookup("#sig-section-validate").isVisible());
+        assertFalse(panel.lookup("#sig-section-sign").isVisible());
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.selectAction(SignaturePanel.Action.EXPERT);
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        assertTrue(panel.lookup("#sig-section-expert").isVisible());
+        assertFalse(panel.lookup("#sig-section-validate").isVisible());
+    }
+
+    @Test
+    void exposesCertificateCreationViaTheNav() {
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.selectAction(SignaturePanel.Action.CREATE);
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        assertTrue(panel.lookup("#sig-section-create").isVisible(), "create section must show");
+        Button create = (Button) panel.lookup("#sig-create-run");
+        assertNotNull(create, "panel must offer a 'Create Certificate' action");
+        assertEquals("Create Certificate", create.getText());
     }
 
     @Test
     void exposesTheDetailedValidationAction() {
         WaitForAsyncUtils.waitForFxEvents();
         boolean present = panel.lookupAll(".button").stream()
-                .anyMatch(n -> n instanceof javafx.scene.control.Button b && "Validate (Details)".equals(b.getText()));
+                .anyMatch(n -> n instanceof Button b && "Validate (Details)".equals(b.getText()));
         assertTrue(present, "panel must offer the detailed-validation action");
+    }
+
+    @Test
+    void exposesTheTrustValidationInTheExpertSection() {
+        WaitForAsyncUtils.waitForFxEvents();
+        Button trust = (Button) panel.lookup("#sig-trust-run");
+        assertNotNull(trust, "expert section must offer the trust validation");
+        assertEquals("Validate (Trust)", trust.getText());
+        assertNotNull(panel.lookup("#sig-truststore-name"), "expert section must show the trust store");
+    }
+
+    @Test
+    void keystoreRowShowsTheChosenFile(@TempDir Path tmp) throws Exception {
+        Path ks = tmp.resolve("keystore.jks");
+        Files.writeString(ks, "stub");
+        Label name = (Label) panel.lookup("#sig-keystore-name");
+        assertNotNull(name, "keystore section must show the keystore file");
+        assertEquals("none", name.getText());
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.setKeystore(ks.toFile());
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        assertEquals("keystore.jks", name.getText());
+    }
+
+    @Test
+    void documentRowFollowsTheActiveEditor(@TempDir Path tmp) throws Exception {
+        Path xml = tmp.resolve("doc.xml");
+        Files.writeString(xml, "<root/>");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
+        // Poll the combined condition: tab open AND the row label updated (same-pulse race).
+        WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS, () -> {
+            Label name = (Label) panel.lookup("#sig-document-name");
+            return name != null && "doc.xml".equals(name.getText());
+        });
     }
 
     @Test

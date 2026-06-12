@@ -1376,6 +1376,60 @@
     -fx-background-color: -fxt-bg-subtle;
 }
 
+/* ----- Signature side panel (Figma node 50:2) --------------------------- */
+.fxt-signature-panel {
+    -fx-background-color: -fxt-bg-surface;
+}
+
+/* The action nav (Create Certificate / Sign XML File / Validate Signature /
+   Expert Mode): flat rows, selected = subtle indigo bg + primary text. */
+.fxt-sig-nav-box {
+    -fx-padding: 4 8 4 8;
+    -fx-spacing: 2;
+}
+
+.fxt-sig-nav {
+    -fx-background-color: transparent;
+    -fx-background-radius: 6;
+    -fx-border-color: transparent;
+    -fx-padding: 6 10 6 10;
+    -fx-font-size: 12.5px;
+    -fx-text-fill: -fxt-text-primary;
+    -fx-graphic-text-gap: 8;
+    -fx-cursor: hand;
+}
+
+.fxt-sig-nav .iconify-icon {
+    -fx-icon-color: -fxt-text-secondary;
+}
+
+.fxt-sig-nav:hover {
+    -fx-background-color: -fxt-bg-subtle;
+}
+
+.fxt-sig-nav:selected {
+    -fx-background-color: -fxt-bg-subtle;
+    -fx-text-fill: -fxt-primary;
+    -fx-font-weight: bold;
+}
+
+.fxt-sig-nav:selected .iconify-icon {
+    -fx-icon-color: -fxt-primary;
+}
+
+/* Small muted label above a keystore input field. */
+.fxt-sig-field-label {
+    -fx-font-size: 11px;
+    -fx-text-fill: -fxt-text-secondary;
+    -fx-padding: 4 0 0 0;
+}
+
+/* Explanatory hint inside a form section. */
+.fxt-sig-hint {
+    -fx-font-size: 11.5px;
+    -fx-text-fill: -fxt-text-muted;
+}
+
 /* ----- Explorer side panel (Figma node 28:48) -------------------------- */
 /* Generic .fxt-sp-* side-panel building blocks (same look as the Validation
    panel's .fxt-vp-* — shared mockup language). */

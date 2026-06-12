@@ -479,20 +479,24 @@ node. In addition to name, type, cardinality, facets, and constraints, you can n
 - **Delete a constraint** - In the **CONSTRAINTS** section, select a `key`, `keyref`, `unique`,
   or `assert` constraint and click **Delete constraint** to remove it.
 
-## Signature Panel: Trust Validation
-
-> **New in June 2026** - Real trust-chain validation against a trust store.
+## Signature Panel
 
 The **Signature** panel (open it from the activity bar) signs and validates XML signatures.
-Alongside **Sign**, the basic **Validate**, the detailed **Validate (Details)**, and
-**Create Certificate**, it now offers:
+Its top is an **action nav** - selecting an entry shows the matching form below it, next to
+the shared **KEYSTORE** section (keystore file with a *Change* link, alias, and the two
+passwords):
 
-- **Validate (Trust)** - Performs full PKIX validation of the signing certificate chain against
-  a **trust store**, producing a trust report (trusted / trust anchor / revocation / timestamp).
-- **Trust store…** - Choose the trust store to validate against. It defaults to the JVM's
-  built-in `cacerts` store.
-- **Check revocation (OCSP/CRL)** - When checked, the validation also checks whether the
-  certificate has been revoked, using OCSP or CRL.
+- **Sign XML File** *(default)* - Shows the active document and a **Sign Document** button.
+  The signed copy is written next to the original (`name.signed.xml`) and opened.
+- **Validate Signature** - **Validate Signature** checks the active document's signature;
+  **Validate (Details)** opens a detailed report (validity + signing-certificate details).
+- **Create Certificate** - Creates a self-signed certificate / keystore from the DN fields,
+  using the alias and passwords from the KEYSTORE section. The new keystore is selected
+  automatically so you can sign immediately.
+- **Expert Mode** - Full PKIX trust validation: choose a **trust store** (defaults to the
+  JVM's built-in `cacerts`), optionally **Check revocation (OCSP/CRL)**, then
+  **Validate (Trust)** produces a trust report (trusted / trust anchor / revocation /
+  timestamp).
 
 See [XML Digital Signatures](digital-signatures.md) for full details.
 
