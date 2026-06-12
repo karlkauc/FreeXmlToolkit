@@ -998,10 +998,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#signature-panel-trust-validation" class="md-nav__link">
+  <a href="#signature-panel" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Signature Panel: Trust Validation
+        Signature Panel
       
     </span>
   </a>
@@ -2734,10 +2734,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#signature-panel-trust-validation" class="md-nav__link">
+  <a href="#signature-panel" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Signature Panel: Trust Validation
+        Signature Panel
       
     </span>
   </a>
@@ -3443,6 +3443,15 @@ button, and a color-coded RESULTS list.</p>
 Click <strong>Change</strong> next to a source to pick a different file. The star button on the XSD row
 opens a quick-select menu of your favorited XSD schemas - pick one to bind it in a single
 click, without browsing the file system. (See <a href="../favorites-system/">Favorites</a>.)</p>
+<ul>
+<li><strong>The referenced XSD binds automatically.</strong> When the XML declares its schema
+  (<code>xsi:schemaLocation</code> / <code>xsi:noNamespaceSchemaLocation</code> - local or remote), that XSD is
+  bound when the file is opened, and the Validation panel re-checks when it opens, so the
+  declared schema is the default. A schema you picked yourself (via <strong>Change</strong>, a favorite,
+  or the status bar) is never overridden.</li>
+<li><strong>Click a bound source name to open the file in the editor</strong> - one click on the XSD or
+  Schematron name opens it as a tab for direct editing.</li>
+</ul>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
 <p>You can also bind an XSD <strong>without opening the Validation panel</strong>: click the
@@ -3479,7 +3488,9 @@ click, without browsing the file system. (See <a href="../favorites-system/">Fav
   validation finds problems, shows error/warning counts in its header, and can be collapsed
   to just the header. Each row shows the message and the file/line in a monospaced label.</li>
 </ul>
-<p>Selecting a problem in either list jumps to its line in the editor.</p>
+<p>Selecting a problem in either list jumps to its line in the editor. This works for
+<strong>Schematron problems too</strong>: the failing rule's context node is resolved back to its
+line in the XML, so a click navigates straight to the offending element.</p>
 <h3 id="the-menu">The ⋮ Menu<a class="headerlink" href="#the-menu" title="Permanent link">&para;</a></h3>
 <p>Secondary tools live in the panel header's ⋮ (overflow) menu:</p>
 <table>
@@ -3619,20 +3630,23 @@ node. In addition to name, type, cardinality, facets, and constraints, you can n
 <li><strong>Delete a constraint</strong> - In the <strong>CONSTRAINTS</strong> section, select a <code>key</code>, <code>keyref</code>, <code>unique</code>,
   or <code>assert</code> constraint and click <strong>Delete constraint</strong> to remove it.</li>
 </ul>
-<h2 id="signature-panel-trust-validation">Signature Panel: Trust Validation<a class="headerlink" href="#signature-panel-trust-validation" title="Permanent link">&para;</a></h2>
-<blockquote>
-<p><strong>New in June 2026</strong> - Real trust-chain validation against a trust store.</p>
-</blockquote>
+<h2 id="signature-panel">Signature Panel<a class="headerlink" href="#signature-panel" title="Permanent link">&para;</a></h2>
 <p>The <strong>Signature</strong> panel (open it from the activity bar) signs and validates XML signatures.
-Alongside <strong>Sign</strong>, the basic <strong>Validate</strong>, the detailed <strong>Validate (Details)</strong>, and
-<strong>Create Certificate</strong>, it now offers:</p>
+Its top is an <strong>action nav</strong> - selecting an entry shows the matching form below it, next to
+the shared <strong>KEYSTORE</strong> section (keystore file with a <em>Change</em> link, alias, and the two
+passwords):</p>
 <ul>
-<li><strong>Validate (Trust)</strong> - Performs full PKIX validation of the signing certificate chain against
-  a <strong>trust store</strong>, producing a trust report (trusted / trust anchor / revocation / timestamp).</li>
-<li><strong>Trust store…</strong> - Choose the trust store to validate against. It defaults to the JVM's
-  built-in <code>cacerts</code> store.</li>
-<li><strong>Check revocation (OCSP/CRL)</strong> - When checked, the validation also checks whether the
-  certificate has been revoked, using OCSP or CRL.</li>
+<li><strong>Sign XML File</strong> <em>(default)</em> - Shows the active document and a <strong>Sign Document</strong> button.
+  The signed copy is written next to the original (<code>name.signed.xml</code>) and opened.</li>
+<li><strong>Validate Signature</strong> - <strong>Validate Signature</strong> checks the active document's signature;
+  <strong>Validate (Details)</strong> opens a detailed report (validity + signing-certificate details).</li>
+<li><strong>Create Certificate</strong> - Creates a self-signed certificate / keystore from the DN fields,
+  using the alias and passwords from the KEYSTORE section. The new keystore is selected
+  automatically so you can sign immediately.</li>
+<li><strong>Expert Mode</strong> - Full PKIX trust validation: choose a <strong>trust store</strong> (defaults to the
+  JVM's built-in <code>cacerts</code>), optionally <strong>Check revocation (OCSP/CRL)</strong>, then
+  <strong>Validate (Trust)</strong> produces a trust report (trusted / trust anchor / revocation /
+  timestamp).</li>
 </ul>
 <p>See <a href="../digital-signatures/">XML Digital Signatures</a> for full details.</p>
 <h2 id="settings-page">Settings Page<a class="headerlink" href="#settings-page" title="Permanent link">&para;</a></h2>

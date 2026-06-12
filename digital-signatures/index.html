@@ -2506,7 +2506,8 @@ through the shell rather than a dedicated sidebar tab.</p>
 <em>Signing, validation and certificate creation now live in the Unified Shell's Signature activity panel</em></p>
 <h3 id="what-can-you-do">What Can You Do?<a class="headerlink" href="#what-can-you-do" title="Permanent link">&para;</a></h3>
 <p>In the <a href="../unified-shell/">Unified Shell</a>, open the <strong>Signature</strong> activity from the activity bar.
-The panel offers:</p>
+The top of the panel is an <strong>action nav</strong> - selecting an entry shows the matching form below
+the shared <strong>KEYSTORE</strong> section (keystore file, alias, passwords):</p>
 <table>
 <thead>
 <tr>
@@ -2521,15 +2522,15 @@ The panel offers:</p>
 </tr>
 <tr>
 <td><strong>Sign XML File</strong></td>
-<td>Add a digital signature to XML files</td>
+<td>Add a digital signature to the active XML document <em>(default)</em></td>
 </tr>
 <tr>
-<td><strong>Validate Signed File</strong></td>
-<td>Check if signed documents are valid</td>
+<td><strong>Validate Signature</strong></td>
+<td>Check if the signed document is valid (plus a detailed report)</td>
 </tr>
 <tr>
 <td><strong>Expert Mode</strong></td>
-<td>Advanced options for power users</td>
+<td>PKIX trust validation against a trust store, with optional revocation check</td>
 </tr>
 </tbody>
 </table>
