@@ -3135,8 +3135,15 @@ shows the editable grid:</p>
   grids"</em> and offers a <strong>Collapse all</strong> button that folds every container at once.</li>
 <li>Rows with a simple value are marked with a <strong><code>{}</code></strong> marker so you can tell value rows from
   containers at a glance.</li>
+<li><strong>Attributes always show</strong> as <code>@name</code> rows directly beneath their element - also while the
+  element itself is collapsed.</li>
 <li>Collapsed containers show a <strong>"collapsed"</strong> hint, so you always know there is hidden content.</li>
 <li>Repeating elements are rendered as <strong>embedded grids</strong> (tables inside the row).</li>
+<li><strong>Keyboard navigation</strong> works as soon as the view opens (no click needed):
+  <strong>↑/↓</strong> walk the rows, <strong>→</strong> expands a collapsed element, <strong>←</strong> collapses it (or jumps to
+  the parent), <strong>Enter</strong> toggles a container / starts editing a value, <strong>Home/End</strong> jump to
+  the first/last row, <strong>F2</strong> renames, and the usual <strong>Ctrl+C/X/V</strong>, <strong>Ctrl+D</strong> (duplicate)
+  and <strong>Delete</strong> act on the selected node.</li>
 </ul>
 <h2 id="supported-file-types">Supported File Types<a class="headerlink" href="#supported-file-types" title="Permanent link">&para;</a></h2>
 <table>
@@ -3438,10 +3445,13 @@ flat header actions and full-width sections.</p>
   folder's name. Folders expand with their chevron; double-click (or Enter) opens a file.
   Only XML-family and JSON files are shown.</li>
 <li><strong>RECENT</strong> - recently opened files; click to reopen.</li>
-<li><strong>Collapsible sections</strong> <em>(new in June 2026)</em> - the <strong>OPEN EDITORS</strong>, workspace, and
-  <strong>RECENT</strong> section headers are clickable: click a header to collapse or expand its section
-  (the chevron next to the title flips accordingly). Use this to give the file tree more room
-  when you have many open editors or recent files.</li>
+<li><strong>FAVORITES</strong> - your favorited files with their type-colored icons; click one to open it
+  directly, without switching to the Favorites activity. (Manage favorites - add, rename,
+  remove - in the <a href="#favorites-panel">Favorites panel</a>.)</li>
+<li><strong>Collapsible sections</strong> <em>(new in June 2026)</em> - the <strong>OPEN EDITORS</strong>, workspace,
+  <strong>RECENT</strong>, and <strong>FAVORITES</strong> section headers are clickable: click a header to collapse or
+  expand its section (the chevron next to the title flips accordingly). Use this to give the
+  file tree more room when you have many open editors or recent files.</li>
 </ul>
 <h2 id="favorites-panel">Favorites Panel<a class="headerlink" href="#favorites-panel" title="Permanent link">&para;</a></h2>
 <p>Open the <strong>Favorites</strong> panel from the star icon in the activity bar for one-click access to
