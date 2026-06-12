@@ -1570,6 +1570,11 @@
     -fx-background-color: -fxt-bg-surface;
 }
 
+/* The visible schema-tools strip above the filter (flat icon buttons). */
+.fxt-schema-tools {
+    -fx-padding: 0 0 2 0;
+}
+
 /* ----- Favorites manager (editor-area tool tab) --------------------------- */
 .fxt-favmgr {
     -fx-background-color: -fxt-bg-canvas;

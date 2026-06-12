@@ -11,10 +11,8 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
-import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -40,7 +38,6 @@ public class TypeLibraryPanel extends VBox {
 
     private final EditorHost editorHost;
     private final TextField filter = new TextField();
-    private final MenuButton overflowMenu = new MenuButton();
     private final ObservableList<XsdNode> elements = FXCollections.observableArrayList();
     private final ObservableList<XsdNode> complexTypes = FXCollections.observableArrayList();
     private final ObservableList<XsdNode> simpleTypes = FXCollections.observableArrayList();
@@ -57,24 +54,33 @@ public class TypeLibraryPanel extends VBox {
         this.editorHost = editorHost;
         getStyleClass().add("fxt-schema-panel");
 
-        // --- header: SCHEMA ........ ⋮ ------------------------------------------
+        // --- header: SCHEMA -----------------------------------------------------
         Label title = new Label("SCHEMA");
         title.getStyleClass().addAll("fxt-side-panel-title", "fxt-vp-title");
         Region headerSpacer = new Region();
         HBox.setHgrow(headerSpacer, Priority.ALWAYS);
-        overflowMenu.setId("schema-overflow");
-        overflowMenu.setGraphic(icon("bi-three-dots-vertical", 15));
-        overflowMenu.getStyleClass().add("fxt-vp-overflow");
-        buildOverflowMenu();
-        HBox header = new HBox(title, headerSpacer, overflowMenu);
+        HBox header = new HBox(title, headerSpacer);
         header.getStyleClass().add("fxt-vp-header");
         header.setAlignment(Pos.CENTER_LEFT);
+
+        // --- schema tools (visible, directly above the filter) ----------------------
+        javafx.scene.layout.FlowPane tools = new javafx.scene.layout.FlowPane(2, 2,
+                toolButton("schema-tool-generate", "Generate XSD from XML", "bi-magic", this::generateXsdFromActive),
+                toolButton("schema-tool-generate-batch", "Generate XSD (Batch)…", "bi-files", this::generateXsdBatch),
+                toolButton("schema-tool-sample", "Generate Sample XML…", "bi-filetype-xml", this::generateSampleXmlForActive),
+                toolButton("schema-tool-sample-advanced", "Generate Sample XML (Advanced)…", "bi-sliders", this::generateProfiledSampleForActive),
+                toolButton("schema-tool-flatten", "Flatten Schema", "bi-layers", this::flattenActive),
+                toolButton("schema-tool-statistics", "Statistics", "bi-bar-chart", this::statisticsActive),
+                toolButton("schema-tool-quality", "Schema Quality", "bi-patch-check", this::qualityActive),
+                toolButton("schema-tool-documentation", "Generate Documentation…", "bi-file-earmark-text", this::generateDocumentationForActive));
+        tools.setId("schema-tools");
+        tools.getStyleClass().add("fxt-schema-tools");
 
         // --- filter ----------------------------------------------------------------
         filter.setId("schema-filter");
         filter.setPromptText("Filter types…");
         filter.textProperty().addListener((obs, oldV, newV) -> refresh());
-        VBox filterBox = new VBox(filter);
+        VBox filterBox = new VBox(6, tools, filter);
         filterBox.getStyleClass().add("fxt-tp-section-body");
 
         // --- grouped declaration lists ----------------------------------------------
@@ -112,27 +118,25 @@ public class TypeLibraryPanel extends VBox {
         });
     }
 
-    /** The schema tools (⋮ menu): everything that creates/derives something from the schema. */
-    private void buildOverflowMenu() {
-        overflowMenu.getItems().addAll(
-                menuItem("Generate XSD from XML", "bi-magic", this::generateXsdFromActive),
-                menuItem("Generate XSD (Batch)…", "bi-files", this::generateXsdBatch),
-                new SeparatorMenuItem(),
-                menuItem("Generate Sample XML…", "bi-filetype-xml", this::generateSampleXmlForActive),
-                menuItem("Generate Sample XML (Advanced)…", "bi-sliders", this::generateProfiledSampleForActive),
-                new SeparatorMenuItem(),
-                menuItem("Flatten Schema", "bi-layers", this::flattenActive),
-                menuItem("Statistics", "bi-bar-chart", this::statisticsActive),
-                menuItem("Schema Quality", "bi-patch-check", this::qualityActive),
-                new SeparatorMenuItem(),
-                menuItem("Generate Documentation…", "bi-file-earmark-text", this::generateDocumentationForActive));
+    /** A flat icon-only schema-tool button (the full name is the tooltip). */
+    private javafx.scene.control.Button toolButton(String id, String name, String iconLiteral, Runnable action) {
+        javafx.scene.control.Button button = new javafx.scene.control.Button(null, icon(iconLiteral, 16));
+        button.setId(id);
+        button.getStyleClass().add("fxt-sp-action");
+        button.setTooltip(new javafx.scene.control.Tooltip(name));
+        button.setOnAction(e -> action.run());
+        return button;
     }
 
-    /** @return the ⋮ menu item texts (MenuItems are not scene-graph lookupable; for tests). */
-    public List<String> overflowMenuItemTexts() {
-        return overflowMenu.getItems().stream()
-                .map(MenuItem::getText)
-                .filter(text -> text != null && !text.isBlank())
+    /** @return the tool buttons' tooltip texts in display order (for tests/observers). */
+    public List<String> toolNames() {
+        javafx.scene.Node tools = lookup("#schema-tools");
+        if (!(tools instanceof javafx.scene.layout.FlowPane pane)) {
+            return List.of();
+        }
+        return pane.getChildren().stream()
+                .filter(n -> n instanceof javafx.scene.control.Button)
+                .map(n -> ((javafx.scene.control.Button) n).getTooltip().getText())
                 .toList();
     }
 

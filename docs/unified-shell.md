@@ -193,8 +193,9 @@ grouped into **GLOBAL ELEMENTS**, **COMPLEX TYPES**, and **SIMPLE TYPES** (colla
 sections), with a **filter field** on top. Click a declaration to reveal it in the Tree
 view; double-click a type to open it in its dedicated **Type Editor** tab; right-click for
 **Reveal in Tree / Open Type Editor / Find Usage**. The schema tools (Generate XSD from
-XML / batch, Sample XML, Flatten, Statistics, Schema Quality, Documentation) live in the
-header's ⋮ menu.
+XML / batch, Sample XML plain/advanced, Flatten, Statistics, Schema Quality,
+Documentation) sit as a **strip of icon buttons directly above the filter** - hover for
+the tool's name.
 
 ### Documentation Generator (editor area)
 

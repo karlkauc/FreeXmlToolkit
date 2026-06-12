@@ -112,17 +112,19 @@ class TypeLibraryPanelTest {
     }
 
     @Test
-    void schemaToolsLiveInTheOverflowMenu() {
+    void schemaToolsAreVisibleAboveTheFilter() {
         WaitForAsyncUtils.waitForFxEvents();
-        var items = panel.overflowMenuItemTexts();
-        assertTrue(items.contains("Generate XSD from XML"), items.toString());
-        assertTrue(items.contains("Generate XSD (Batch)…"), items.toString());
-        assertTrue(items.contains("Generate Sample XML…"), items.toString());
-        assertTrue(items.contains("Generate Sample XML (Advanced)…"), items.toString());
-        assertTrue(items.contains("Flatten Schema"), items.toString());
-        assertTrue(items.contains("Statistics"), items.toString());
-        assertTrue(items.contains("Schema Quality"), items.toString());
-        assertTrue(items.contains("Generate Documentation…"), items.toString());
+        var names = panel.toolNames();
+        assertTrue(names.contains("Generate XSD from XML"), names.toString());
+        assertTrue(names.contains("Generate XSD (Batch)…"), names.toString());
+        assertTrue(names.contains("Generate Sample XML…"), names.toString());
+        assertTrue(names.contains("Generate Sample XML (Advanced)…"), names.toString());
+        assertTrue(names.contains("Flatten Schema"), names.toString());
+        assertTrue(names.contains("Statistics"), names.toString());
+        assertTrue(names.contains("Schema Quality"), names.toString());
+        assertTrue(names.contains("Generate Documentation…"), names.toString());
+        assertNotNull(panel.lookup("#schema-tool-documentation"),
+                "the tools must be visible buttons (not hidden in an overflow menu)");
     }
 
     @Test
