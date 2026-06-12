@@ -1191,10 +1191,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#toolbar" class="md-nav__link">
+  <a href="#the-pdf-fop-panel" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Toolbar
+        The PDF / FOP Panel
       
     </span>
   </a>
@@ -1229,6 +1229,17 @@
     <span class="md-ellipsis">
       
         Step 2: Set PDF Metadata (Optional)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-options-optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Options (Optional)
       
     </span>
   </a>
@@ -1861,10 +1872,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#toolbar" class="md-nav__link">
+  <a href="#the-pdf-fop-panel" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Toolbar
+        The PDF / FOP Panel
       
     </span>
   </a>
@@ -1899,6 +1910,17 @@
     <span class="md-ellipsis">
       
         Step 2: Set PDF Metadata (Optional)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-options-optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Options (Optional)
       
     </span>
   </a>
@@ -2087,50 +2109,32 @@
 <li><strong>PDF Output</strong> - The generated document</li>
 </ol>
 <hr />
-<h2 id="toolbar">Toolbar<a class="headerlink" href="#toolbar" title="Permanent link">&para;</a></h2>
+<h2 id="the-pdf-fop-panel">The PDF / FOP Panel<a class="headerlink" href="#the-pdf-fop-panel" title="Permanent link">&para;</a></h2>
+<p>In the <a href="../unified-shell/">Unified Shell</a>, open the <strong>PDF / FOP</strong> activity from the activity
+bar. The panel is organized into three sections plus the primary action:</p>
 <table>
 <thead>
 <tr>
-<th>Button</th>
-<th>Shortcut</th>
-<th>Description</th>
+<th>Section</th>
+<th>Contents</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><strong>Open XML</strong></td>
-<td>Ctrl+1</td>
-<td>Load XML source file</td>
+<td><strong>INPUT</strong></td>
+<td>The XML (follows the active editor; <em>Change</em> fixes it to a file) and the XSL-FO stylesheet</td>
 </tr>
 <tr>
-<td><strong>Open XSL</strong></td>
-<td>Ctrl+2</td>
-<td>Load XSL-FO stylesheet</td>
+<td><strong>METADATA</strong></td>
+<td>PDF <strong>Title</strong>, <strong>Author</strong> (pre-filled from your user name), <strong>Subject</strong></td>
 </tr>
 <tr>
-<td><strong>PDF Out</strong></td>
-<td>Ctrl+3</td>
-<td>Select output PDF location</td>
+<td><strong>OPTIONS</strong></td>
+<td><strong>PDF/A-1b compliant</strong> toggle and the <strong>Page size</strong> (A4/Letter · Portrait/Landscape)</td>
 </tr>
 <tr>
-<td><strong>Generate</strong></td>
-<td>F5</td>
-<td>Create the PDF</td>
-</tr>
-<tr>
-<td><strong>Add Favorite</strong></td>
-<td>Ctrl+D</td>
-<td>Add current file to favorites</td>
-</tr>
-<tr>
-<td><strong>Favorites</strong></td>
-<td>Ctrl+Shift+D</td>
-<td>Toggle favorites panel</td>
-</tr>
-<tr>
-<td><strong>Help</strong></td>
-<td>F1</td>
-<td>Show help</td>
+<td><strong>Generate PDF</strong></td>
+<td>Asks for the output file and renders off the UI thread</td>
 </tr>
 </tbody>
 </table>
@@ -2138,13 +2142,12 @@
 <h2 id="step-by-step-guide">Step-by-Step Guide<a class="headerlink" href="#step-by-step-guide" title="Permanent link">&para;</a></h2>
 <h3 id="step-1-select-your-files">Step 1: Select Your Files<a class="headerlink" href="#step-1-select-your-files" title="Permanent link">&para;</a></h3>
 <ol>
-<li>Click <strong>Open XML</strong> to select your XML data file</li>
-<li>Click <strong>Open XSL</strong> to select your XSL-FO stylesheet</li>
-<li>Click <strong>PDF Out</strong> to choose where to save the PDF</li>
+<li>Open your XML data file in the editor (or pick one via the INPUT section's <em>Change</em>)</li>
+<li>Click <strong>Change</strong> on the stylesheet row to select your XSL-FO stylesheet</li>
 </ol>
 <p>You can also drag and drop files directly into the application.</p>
 <h3 id="step-2-set-pdf-metadata-optional">Step 2: Set PDF Metadata (Optional)<a class="headerlink" href="#step-2-set-pdf-metadata-optional" title="Permanent link">&para;</a></h3>
-<p>Add metadata to your PDF document:</p>
+<p>Add metadata to your PDF document in the <strong>METADATA</strong> section:</p>
 <table>
 <thead>
 <tr>
@@ -2154,27 +2157,28 @@
 </thead>
 <tbody>
 <tr>
-<td><strong>Author</strong></td>
-<td>Your name or organization</td>
-</tr>
-<tr>
 <td><strong>Title</strong></td>
 <td>Document title</td>
 </tr>
 <tr>
-<td><strong>Keywords</strong></td>
-<td>Search terms for the document</td>
+<td><strong>Author</strong></td>
+<td>Your name or organization (pre-filled from the configured user name)</td>
 </tr>
 <tr>
-<td><strong>Producer</strong></td>
-<td>Application that created the PDF</td>
-</tr>
-<tr>
-<td><strong>Creation Date</strong></td>
-<td>Automatically set</td>
+<td><strong>Subject</strong></td>
+<td>What the document is about</td>
 </tr>
 </tbody>
 </table>
+<h3 id="step-3-options-optional">Step 3: Options (Optional)<a class="headerlink" href="#step-3-options-optional" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>PDF/A-1b compliant</strong> - produces an archival-grade PDF. The stylesheet must use
+  embeddable <strong>system fonts</strong> (e.g. <code>Liberation Sans</code>); the PDF base-14 fonts
+  (Helvetica, Times, Courier) cannot be embedded and FOP will report exactly that.</li>
+<li><strong>Page size</strong> - passed to the stylesheet as the XSLT parameters <code>page-size</code>
+  (<code>A4</code>/<code>Letter</code>) and <code>page-orientation</code> (<code>Portrait</code>/<code>Landscape</code>). Stylesheets that
+  declare these parameters can switch their <code>fo:simple-page-master</code> accordingly.</li>
+</ul>
 <h3 id="step-3-configure-options-optional">Step 3: Configure Options (Optional)<a class="headerlink" href="#step-3-configure-options-optional" title="Permanent link">&para;</a></h3>
 <table>
 <thead>

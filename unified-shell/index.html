@@ -1009,6 +1009,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#pdf-fop-panel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PDF / FOP Panel
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#settings-page" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2745,6 +2756,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#pdf-fop-panel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PDF / FOP Panel
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#settings-page" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3636,8 +3658,11 @@ Its top is an <strong>action nav</strong> - selecting an entry shows the matchin
 the shared <strong>KEYSTORE</strong> section (keystore file with a <em>Change</em> link, alias, and the two
 passwords):</p>
 <ul>
-<li><strong>Sign XML File</strong> <em>(default)</em> - Shows the active document and a <strong>Sign Document</strong> button.
-  The signed copy is written next to the original (<code>name.signed.xml</code>) and opened.</li>
+<li><strong>Sign XML File</strong> <em>(default)</em> - Opens the <strong>Sign XML Document card in the editor area</strong>:
+  the document to sign (the active document, changeable via <em>Browse</em>), the keystore alias
+  and password (shared with the KEYSTORE section), the signature type (enveloped XML-DSig)
+  and algorithm (RSA-SHA256 · C14N exclusive), and a <strong>Sign Document</strong> button. The signed
+  copy is written next to the original (<code>name.signed.xml</code>) and opened.</li>
 <li><strong>Validate Signature</strong> - <strong>Validate Signature</strong> checks the active document's signature;
   <strong>Validate (Details)</strong> opens a detailed report (validity + signing-certificate details).</li>
 <li><strong>Create Certificate</strong> - Creates a self-signed certificate / keystore from the DN fields,
@@ -3649,6 +3674,22 @@ passwords):</p>
   timestamp).</li>
 </ul>
 <p>See <a href="../digital-signatures/">XML Digital Signatures</a> for full details.</p>
+<h2 id="pdf-fop-panel">PDF / FOP Panel<a class="headerlink" href="#pdf-fop-panel" title="Permanent link">&para;</a></h2>
+<p>The <strong>PDF / FOP</strong> panel renders the XML to PDF with an XSL-FO stylesheet (Apache FOP):</p>
+<ul>
+<li><strong>INPUT</strong> - The XML (follows the active editor; <em>Change</em> can fix it to a file) and the
+  <strong>XSL-FO stylesheet</strong> (<em>Change</em>).</li>
+<li><strong>METADATA</strong> - PDF document <strong>Title</strong>, <strong>Author</strong> (pre-filled from your configured user
+  name) and <strong>Subject</strong>, embedded into the generated PDF.</li>
+<li><strong>OPTIONS</strong> - <strong>PDF/A-1b compliant</strong> renders an archival-grade PDF (requires the
+  stylesheet to use embeddable system fonts - the built-in base-14 fonts like Helvetica
+  cannot be embedded, and the error message will say so). <strong>Page size</strong> (A4/Letter,
+  Portrait/Landscape) is passed to the stylesheet as the XSLT parameters <code>page-size</code> and
+  <code>page-orientation</code> for stylesheets that support them.</li>
+<li><strong>Generate PDF</strong> asks for the output file, renders off the UI thread, and opens the
+  result in the in-app <strong>PDF preview</strong>; <strong>Preview</strong> and <strong>Open PDF</strong> re-open it any time.</li>
+</ul>
+<p>See <a href="../pdf-generator/">PDF Generator</a> for stylesheet guidance.</p>
 <h2 id="settings-page">Settings Page<a class="headerlink" href="#settings-page" title="Permanent link">&para;</a></h2>
 <blockquote>
 <p><strong>Updated in June 2026</strong> - Settings now open as a <strong>full page</strong> (a tab in the main editor
