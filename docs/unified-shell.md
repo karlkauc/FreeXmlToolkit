@@ -369,13 +369,20 @@ your saved files.
 
 Click **Manage…** to open the full management view as a tab in the main editor area:
 
-- A **FOLDERS** list on the left filters the table (*All*, *Uncategorized*, your folders)
-  and offers **New…**, **Rename…**, and **Delete** (deleting a folder moves its favorites
-  to *Uncategorized* - nothing is lost).
+- A **FOLDERS** list on the left filters the table (*All*, the smart collections,
+  *Uncategorized*, your folders) and offers **New…**, **Rename…**, and **Delete** (deleting
+  a folder moves its favorites to *Uncategorized* - nothing is lost).
+- **Smart collections**: **Recently Used** (favorites you actually opened, latest first)
+  and **Most Popular** (most-opened first) - opening a favorite anywhere in the app feeds
+  them automatically.
 - The **table** lists Name / Type / Folder / Path: double-click the **Name** cell to rename
   inline, pick a different **Folder** directly in the cell, double-click a row to open the
   file, right-click to **Open** or **Remove from favorites**.
-- The **search field** (top right) filters across all favorites by name or path.
+- The **DETAILS** pane (right) shows the selected favorite's path, type, added date and
+  usage, plus an editable **NOTES** field (saved when you leave it).
+- The **search field** (top right) filters across all favorites by name or path;
+  **Clean up** removes favorites whose files no longer exist.
+- **Drag & drop**: drop files onto the Favorites side panel to add them as favorites.
 
 See [Favorites System](favorites-system.md) for more.
 

@@ -101,14 +101,32 @@ public class FavoritesActivityPanel extends VBox {
                 // ListView's selection-change processing (re-entering the
                 // ListViewBehavior listener triggered an IndexOutOfBoundsException).
                 String path = newV.favorite().getFilePath();
-                Platform.runLater(() -> editorHost.openFile(Path.of(path)));
+                Platform.runLater(() -> {
+                    FavoritesService.getInstance().recordAccess(path);
+                    editorHost.openFile(Path.of(path));
+                });
             }
+        });
+
+        // Dropping files onto the panel adds them as favorites.
+        setOnDragOver(e -> {
+            if (e.getDragboard().hasFiles()) {
+                e.acceptTransferModes(javafx.scene.input.TransferMode.COPY);
+            }
+            e.consume();
+        });
+        setOnDragDropped(e -> {
+            boolean ok = e.getDragboard().hasFiles() && addFiles(e.getDragboard().getFiles()) > 0;
+            e.setDropCompleted(ok);
+            e.consume();
         });
 
         ContextMenu menu = new ContextMenu();
         MenuItem open = new MenuItem("Open", icon("bi-folder2-open"));
-        open.setOnAction(e -> selectedFavorite().ifPresent(f ->
-                editorHost.openFile(Path.of(f.getFilePath()))));
+        open.setOnAction(e -> selectedFavorite().ifPresent(f -> {
+            FavoritesService.getInstance().recordAccess(f.getFilePath());
+            editorHost.openFile(Path.of(f.getFilePath()));
+        }));
         MenuItem rename = new MenuItem("Rename…", icon("bi-pencil"));
         rename.setOnAction(e -> selectedFavorite().ifPresent(f -> {
             TextInputDialog dialog = new TextInputDialog(displayName(f));
@@ -141,6 +159,25 @@ public class FavoritesActivityPanel extends VBox {
                     FavoritesService.getInstance().addFavorite(doc.getPath().toFile());
                     refresh();
                 });
+    }
+
+    /**
+     * Adds the given files as favorites (used by drag &amp; drop).
+     *
+     * @return how many files were added
+     */
+    int addFiles(java.util.List<java.io.File> files) {
+        int added = 0;
+        for (java.io.File file : files) {
+            if (file != null && file.isFile()) {
+                FavoritesService.getInstance().addFavorite(file);
+                added++;
+            }
+        }
+        if (added > 0) {
+            refresh();
+        }
+        return added;
     }
 
     /** Opens (or focuses) the full management view in the editor area. */

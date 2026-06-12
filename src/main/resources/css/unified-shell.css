@@ -1561,6 +1561,11 @@
     -fx-text-fill: -fxt-text-secondary;
 }
 
+.fxt-favmgr-detail {
+    -fx-font-size: 11.5px;
+    -fx-text-fill: -fxt-text-primary;
+}
+
 /* ----- Explorer side panel (Figma node 28:48) -------------------------- */
 /* Generic .fxt-sp-* side-panel building blocks (same look as the Validation
    panel's .fxt-vp-* — shared mockup language). */

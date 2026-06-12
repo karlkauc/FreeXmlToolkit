@@ -42,6 +42,10 @@ public class FavoritesManagerView extends BorderPane {
 
     static final String ALL = "All";
     static final String UNCATEGORIZED = "Uncategorized";
+    /** Smart collection: favorites sorted by their last-accessed timestamp. */
+    static final String RECENTLY_USED = "Recently Used";
+    /** Smart collection: favorites sorted by how often they were opened. */
+    static final String MOST_POPULAR = "Most Popular";
 
     private final EditorHost editorHost;
     private final TextField search = new TextField();
@@ -49,6 +53,13 @@ public class FavoritesManagerView extends BorderPane {
     private final ObservableList<FileFavorite> tableItems = FXCollections.observableArrayList();
     private final TableView<FileFavorite> table = new TableView<>(tableItems);
     private final ObservableList<String> folderOptions = FXCollections.observableArrayList();
+    private final Label detailPath = detailValue();
+    private final Label detailType = detailValue();
+    private final Label detailAdded = detailValue();
+    private final Label detailUsage = detailValue();
+    private final javafx.scene.control.TextArea notesArea = new javafx.scene.control.TextArea();
+    private FileFavorite detailFavorite;
+    private boolean populatingDetails;
 
     public FavoritesManagerView(EditorHost editorHost) {
         this.editorHost = editorHost;
@@ -64,7 +75,10 @@ public class FavoritesManagerView extends BorderPane {
         search.setId("favmgr-search");
         search.setPromptText("Search favorites…");
         search.textProperty().addListener((obs, oldV, newV) -> refreshTable());
-        HBox header = new HBox(12, new VBox(2, title, subtitle), headerSpacer, search);
+        Button cleanupButton = toolButton("Clean up", "bi-eraser", "favmgr-cleanup", this::cleanup);
+        cleanupButton.setTooltip(new javafx.scene.control.Tooltip(
+                "Remove favorites whose files no longer exist"));
+        HBox header = new HBox(12, new VBox(2, title, subtitle), headerSpacer, search, cleanupButton);
         header.setAlignment(Pos.CENTER_LEFT);
         header.getStyleClass().add("fxt-favmgr-header");
 
@@ -142,8 +156,37 @@ public class FavoritesManagerView extends BorderPane {
             }
         });
 
+        // --- right: DETAILS + NOTES for the selected favorite ----------------------
+        Label detailsLabel = new Label("DETAILS");
+        detailsLabel.getStyleClass().add("fxt-sp-section-label");
+        Label notesLabel = new Label("NOTES");
+        notesLabel.getStyleClass().add("fxt-sp-section-label");
+        notesArea.setId("favmgr-notes");
+        notesArea.setPromptText("Your notes for this favorite…");
+        notesArea.setWrapText(true);
+        notesArea.setPrefRowCount(7);
+        notesArea.setDisable(true);
+        // Persist on focus loss (typing must not trigger a store write per key).
+        notesArea.focusedProperty().addListener((obs, oldV, focused) -> {
+            if (!focused) {
+                commitNotes();
+            }
+        });
+        VBox details = new VBox(6, detailsLabel,
+                detailRow("Path", detailPath), detailRow("Type", detailType),
+                detailRow("Added", detailAdded), detailRow("Usage", detailUsage),
+                notesLabel, notesArea);
+        details.setPrefWidth(280);
+        details.setPadding(new Insets(0, 0, 0, 16));
+        table.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
+            commitNotes();
+            populateDetails(newV);
+        });
+        populateDetails(null);
+
         BorderPane content = new BorderPane(table);
         content.setLeft(left);
+        content.setRight(details);
         content.setPadding(new Insets(16, 0, 0, 0));
 
         BorderPane card = new BorderPane(content);
@@ -230,7 +273,8 @@ public class FavoritesManagerView extends BorderPane {
     // ----- internals -----------------------------------------------------------
 
     private static boolean isRealFolder(String name) {
-        return name != null && !ALL.equals(name) && !UNCATEGORIZED.equals(name);
+        return name != null && !ALL.equals(name) && !UNCATEGORIZED.equals(name)
+                && !RECENTLY_USED.equals(name) && !MOST_POPULAR.equals(name);
     }
 
     private void openSelected() {
@@ -238,9 +282,88 @@ public class FavoritesManagerView extends BorderPane {
         if (selected != null && selected.getFilePath() != null) {
             File file = new File(selected.getFilePath());
             if (file.isFile()) {
+                FavoritesService.getInstance().recordAccess(selected.getFilePath());
                 editorHost.openFile(file.toPath());
             }
         }
+    }
+
+    /** Persists {@code notes} on the favorite (also driven directly by tests). */
+    void saveNotes(FileFavorite favorite, String notes) {
+        if (favorite == null) {
+            return;
+        }
+        favorite.setNotes(notes != null && !notes.isBlank() ? notes : null);
+        FavoritesService.getInstance().updateFavorite(favorite);
+    }
+
+    /** Removes favorites whose files no longer exist (the store's cleanup). */
+    void cleanup() {
+        try {
+            FavoritesService.getInstance().cleanupNonExistentFiles();
+        } catch (Throwable ignored) {
+            // no store (tests)
+        }
+        refresh();
+    }
+
+    /** Writes the notes editor back to the store when they changed. */
+    private void commitNotes() {
+        if (detailFavorite != null && !populatingDetails
+                && !java.util.Objects.equals(emptyToNull(notesArea.getText()),
+                        emptyToNull(detailFavorite.getNotes()))) {
+            saveNotes(detailFavorite, notesArea.getText());
+        }
+    }
+
+    private static String emptyToNull(String text) {
+        return text == null || text.isBlank() ? null : text;
+    }
+
+    /** Fills the DETAILS pane + notes editor for the selected favorite. */
+    private void populateDetails(FileFavorite favorite) {
+        populatingDetails = true;
+        try {
+            detailFavorite = favorite;
+            if (favorite == null) {
+                detailPath.setText("–");
+                detailType.setText("–");
+                detailAdded.setText("–");
+                detailUsage.setText("–");
+                notesArea.setText("");
+                notesArea.setDisable(true);
+                return;
+            }
+            detailPath.setText(favorite.getFilePath() != null ? favorite.getFilePath() : "–");
+            detailType.setText(favorite.getFileType() != null
+                    ? favorite.getFileType().getDisplayName() : "–");
+            detailAdded.setText(formatDate(favorite.getAddedDate()));
+            detailUsage.setText(favorite.getAccessCount() > 0
+                    ? favorite.getAccessCount() + "× · last " + formatDate(favorite.getLastAccessed())
+                    : "never opened");
+            notesArea.setText(favorite.getNotes() != null ? favorite.getNotes() : "");
+            notesArea.setDisable(false);
+        } finally {
+            populatingDetails = false;
+        }
+    }
+
+    private static String formatDate(java.time.LocalDateTime date) {
+        return date != null
+                ? date.format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")) : "–";
+    }
+
+    private static Label detailValue() {
+        Label label = new Label("–");
+        label.getStyleClass().add("fxt-favmgr-detail");
+        label.setWrapText(true);
+        return label;
+    }
+
+    private static VBox detailRow(String key, Label value) {
+        Label keyLabel = new Label(key);
+        keyLabel.getStyleClass().add("fxt-sig-field-label");
+        return new VBox(1, keyLabel, value);
     }
 
     private void removeSelected() {
@@ -268,12 +391,18 @@ public class FavoritesManagerView extends BorderPane {
 
         List<String> entries = new ArrayList<>();
         entries.add(ALL);
+        entries.add(RECENTLY_USED);
+        entries.add(MOST_POPULAR);
         entries.add(UNCATEGORIZED);
         entries.addAll(folders);
         folderList.getItems().setAll(entries);
         folderList.getSelectionModel().select(entries.contains(keep) ? keep : ALL);
 
-        folderOptions.setAll(entries.subList(1, entries.size())); // without "All"
+        // Move targets: real folders + Uncategorized (no smart collections).
+        List<String> targets = new ArrayList<>();
+        targets.add(UNCATEGORIZED);
+        targets.addAll(folders);
+        folderOptions.setAll(targets);
         refreshTable();
     }
 
@@ -288,10 +417,18 @@ public class FavoritesManagerView extends BorderPane {
         }
         List<FileFavorite> shown = new ArrayList<>();
         for (FileFavorite favorite : all) {
-            String inFolder = favorite.getFolderName() != null && !favorite.getFolderName().isBlank()
-                    ? favorite.getFolderName() : UNCATEGORIZED;
-            if (!ALL.equals(folder) && !inFolder.equals(folder)) {
-                continue;
+            if (RECENTLY_USED.equals(folder) || MOST_POPULAR.equals(folder)) {
+                // Only favorites that were actually opened (getLastAccessed falls
+                // back to the added date, so the access count is the real signal).
+                if (favorite.getAccessCount() <= 0) {
+                    continue;
+                }
+            } else if (!ALL.equals(folder)) {
+                String inFolder = favorite.getFolderName() != null && !favorite.getFolderName().isBlank()
+                        ? favorite.getFolderName() : UNCATEGORIZED;
+                if (!inFolder.equals(folder)) {
+                    continue;
+                }
             }
             if (!query.isEmpty()
                     && !displayName(favorite).toLowerCase().contains(query)
@@ -300,6 +437,12 @@ public class FavoritesManagerView extends BorderPane {
                 continue;
             }
             shown.add(favorite);
+        }
+        if (RECENTLY_USED.equals(folder)) {
+            shown.sort(java.util.Comparator.comparing(FileFavorite::getLastAccessed,
+                    java.util.Comparator.nullsLast(java.util.Comparator.reverseOrder())));
+        } else if (MOST_POPULAR.equals(folder)) {
+            shown.sort(java.util.Comparator.comparingInt(FileFavorite::getAccessCount).reversed());
         }
         tableItems.setAll(shown);
     }

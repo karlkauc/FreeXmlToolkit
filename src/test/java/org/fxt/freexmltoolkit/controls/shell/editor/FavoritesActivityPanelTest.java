@@ -146,6 +146,21 @@ class FavoritesActivityPanelTest {
     }
 
     @Test
+    void droppedFilesBecomeFavorites(@TempDir Path tmp) throws Exception {
+        Path xml = tmp.resolve("dropped.xml");
+        Files.writeString(xml, "<root/>");
+        try {
+            int added = WaitForAsyncUtils.waitForAsyncFx(2000,
+                    () -> panel.addFiles(java.util.List.of(xml.toFile())));
+            assertEquals(1, added, "the dropped file must be added");
+            assertTrue(FavoritesService.getInstance().getAllFavorites().stream()
+                    .anyMatch(f -> xml.toString().equals(f.getFilePath())));
+        } finally {
+            FavoritesService.getInstance().removeFavoriteByPath(xml.toString());
+        }
+    }
+
+    @Test
     void manageButtonOpensTheManagerInTheEditorAreaOnce() {
         assertNotNull(panel.lookup("#favorites-manage"), "the panel must offer Manage…");
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {

@@ -120,9 +120,14 @@ public class ExplorerPanel extends VBox {
                 () -> Math.min(170.0, Math.max(1, favorites.size()) * 28.0 + 2), favorites));
         favoritesList.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
             if (newV != null) {
-                java.io.File file = new java.io.File(newV.getFilePath());
+                String favoritePath = newV.getFilePath();
+                java.io.File file = new java.io.File(favoritePath);
                 if (file.isFile()) {
-                    javafx.application.Platform.runLater(() -> editorHost.openFile(file.toPath()));
+                    javafx.application.Platform.runLater(() -> {
+                        org.fxt.freexmltoolkit.service.FavoritesService.getInstance()
+                                .recordAccess(favoritePath);
+                        editorHost.openFile(file.toPath());
+                    });
                 }
             }
         });

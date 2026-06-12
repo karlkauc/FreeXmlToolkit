@@ -331,6 +331,27 @@ public class FavoritesService {
         return favorites.stream()
             .anyMatch(f -> f.getFilePath().equals(filePath));
     }
+
+    /**
+     * Records that the favorite with the given path was opened: bumps its access
+     * count and last-accessed timestamp (feeds the "Recently Used" / "Most
+     * Popular" smart collections). No-op when the path is not a favorite.
+     *
+     * @param filePath the opened file's path
+     */
+    public void recordAccess(String filePath) {
+        if (filePath == null) {
+            return;
+        }
+        favorites.stream()
+            .filter(f -> filePath.equals(f.getFilePath()))
+            .findFirst()
+            .ifPresent(f -> {
+                f.setLastAccessed(java.time.LocalDateTime.now());
+                f.setAccessCount(f.getAccessCount() + 1);
+                saveFavorites();
+            });
+    }
     
     /**
      * Get favorites by file type.

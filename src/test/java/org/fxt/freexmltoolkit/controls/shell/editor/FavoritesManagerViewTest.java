@@ -106,6 +106,75 @@ class FavoritesManagerViewTest {
     }
 
     @Test
+    void notesPersistToTheStore() {
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            view.saveNotes(seeded(alphaXml), "FundsXML reference file for the monthly report");
+            return null;
+        });
+        assertEquals("FundsXML reference file for the monthly report", seeded(alphaXml).getNotes());
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            view.saveNotes(seeded(alphaXml), "  ");
+            return null;
+        });
+        assertNull(seeded(alphaXml).getNotes(), "blank notes clear the field");
+    }
+
+    @Test
+    void smartCollectionsFollowAccessTracking() {
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            FavoritesService.getInstance().recordAccess(betaXml.toString());
+            view.refresh();
+            return null;
+        });
+        assertTrue(seeded(betaXml).getAccessCount() >= 1, "opening must bump the access count");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            view.selectFolder(FavoritesManagerView.RECENTLY_USED);
+            return null;
+        });
+        assertTrue(view.visibleFavorites().stream()
+                        .anyMatch(f -> betaXml.toString().equals(f.getFilePath())),
+                "an opened favorite must appear under Recently Used");
+        assertTrue(view.visibleFavorites().stream()
+                        .noneMatch(f -> alphaXml.toString().equals(f.getFilePath())),
+                "a never-opened favorite must not appear under Recently Used");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            view.selectFolder(FavoritesManagerView.MOST_POPULAR);
+            return null;
+        });
+        assertTrue(view.visibleFavorites().stream()
+                .anyMatch(f -> betaXml.toString().equals(f.getFilePath())));
+    }
+
+    @Test
+    void cleanupRemovesFavoritesWhoseFilesAreGone() throws Exception {
+        // Cleanup acts on the whole shared store: remember any foreign dead
+        // entries so the developer's real favorites survive this test.
+        var foreignDead = FavoritesService.getInstance().getAllFavorites().stream()
+                .filter(f -> !f.fileExists())
+                .filter(f -> !betaXml.toString().equals(f.getFilePath()))
+                .toList();
+        try {
+            Files.delete(betaXml); // the file vanishes, the favorite entry remains
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+                view.cleanup();
+                return null;
+            });
+
+            assertTrue(FavoritesService.getInstance().getAllFavorites().stream()
+                            .noneMatch(f -> betaXml.toString().equals(f.getFilePath())),
+                    "the dead entry must be cleaned up");
+            assertTrue(FavoritesService.getInstance().getAllFavorites().stream()
+                            .anyMatch(f -> alphaXml.toString().equals(f.getFilePath())),
+                    "favorites with existing files must survive the cleanup");
+        } finally {
+            foreignDead.forEach(f -> FavoritesService.getInstance().addFavorite(f));
+        }
+    }
+
+    @Test
     void searchFiltersTheTable() {
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
             view.setSearch("fxt-mgr-alpha");
