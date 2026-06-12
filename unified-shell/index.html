@@ -757,6 +757,34 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="XSD Views &amp; Tools">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-schema-panel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Schema Panel
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#documentation-generator-editor-area" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation Generator (editor area)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2521,6 +2549,34 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="XSD Views &amp; Tools">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-schema-panel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Schema Panel
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#documentation-generator-editor-area" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation Generator (editor area)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -3291,12 +3347,33 @@ Statistics, Schema Quality, Generate Sample XML / Documentation) on the left.</e
 <ul>
 <li><strong>Text</strong> - Source code editing with syntax highlighting; moving the caret into a schema construct also lets you edit its properties in the Properties pane (see <a href="#properties-inspector">Properties Inspector</a>)</li>
 <li><strong>Graphic</strong> - Visual XMLSpy-style schema diagram</li>
-<li><strong>Type Library</strong> - Browse all types with filtering, search, and usage counts</li>
 <li><strong>Type Editor</strong> - Edit ComplexTypes graphically, SimpleTypes with form editor</li>
 <li><strong>Analysis</strong> - Schema statistics, identity constraints, quality checks</li>
-<li><strong>Documentation</strong> - Generate HTML/Word/PDF documentation</li>
+<li><strong>Documentation</strong> - Generate HTML/Word/PDF documentation (see below)</li>
 <li><strong>Sample Data</strong> - Generate sample XML from the schema</li>
 <li><strong>Flatten</strong> - Merge included/imported schemas into a single file</li>
+</ul>
+<h3 id="the-schema-panel">The Schema Panel<a class="headerlink" href="#the-schema-panel" title="Permanent link">&para;</a></h3>
+<p>The <strong>Schema</strong> activity's side panel lists the active schema's top-level declarations,
+grouped into <strong>GLOBAL ELEMENTS</strong>, <strong>COMPLEX TYPES</strong>, and <strong>SIMPLE TYPES</strong> (collapsible
+sections), with a <strong>filter field</strong> on top. Click a declaration to reveal it in the Tree
+view; double-click a type to open it in its dedicated <strong>Type Editor</strong> tab; right-click for
+<strong>Reveal in Tree / Open Type Editor / Find Usage</strong>. The schema tools (Generate XSD from
+XML / batch, Sample XML, Flatten, Statistics, Schema Quality, Documentation) live in the
+header's ⋮ menu.</p>
+<h3 id="documentation-generator-editor-area">Documentation Generator (editor area)<a class="headerlink" href="#documentation-generator-editor-area" title="Permanent link">&para;</a></h3>
+<p><strong>Generate Documentation…</strong> (Schema panel ⋮ or the editor toolbar) opens the generator as
+a tab in the main editor area with the full option set:</p>
+<ul>
+<li><strong>SOURCE &amp; OUTPUT</strong> - the XSD (the active schema is pre-filled) and the output folder
+  (HTML) or file (PDF/Word).</li>
+<li><strong>FORMAT</strong> - HTML, PDF, or Word.</li>
+<li><strong>OPTIONS</strong> - Markdown renderer, type definitions in source code, documentation in
+  diagrams, SVG overview page, metadata, and the diagram image format (SVG/PNG/JPG).</li>
+<li><strong>LANGUAGES</strong> - <strong>Scan languages</strong> discovers the <code>xml:lang</code> documentation languages in
+  the schema; pick which to include and the fallback language.</li>
+<li><strong>PROGRESS</strong> - the right-hand log streams the pipeline's task messages live while
+  generating; the run can be <strong>cancelled</strong>, and the result can open automatically.</li>
 </ul>
 <h2 id="xslt-features">XSLT Features<a class="headerlink" href="#xslt-features" title="Permanent link">&para;</a></h2>
 <p>XSLT work happens in the <a href="#transform-panel">Transform Panel</a> (Activity Bar → <strong>Transform</strong>):</p>
