@@ -523,50 +523,10 @@ public class XmlServiceImpl implements XmlService {
     }
 
     /**
-     * Checks if the given string content is a valid W3C XML Schema.
-     * Handles both XSD 1.0 and XSD 1.1 schemas appropriately.
-     * @param schemaContent The XSD content as a string.
-     * @return true if the schema is valid, false otherwise.
-     */
-    private boolean isSchemaValid(String schemaContent) {
-        if (schemaContent == null || schemaContent.isBlank()) {
-            return false;
-        }
-
-        try {
-            if (isXsd11Schema(schemaContent)) {
-                // For XSD 1.1, we can't use the standard SchemaFactory (it only supports 1.0)
-                // Instead, just verify it's well-formed XML
-                logger.debug("Detected XSD 1.1 schema content");
-
-                try {
-                    // Use SecureXmlFactory to prevent XXE attacks
-                    DocumentBuilder db = SecureXmlFactory.createSecureDocumentBuilder(true);
-                    db.parse(new org.xml.sax.InputSource(new StringReader(schemaContent)));
-                    logger.debug("XSD 1.1 schema content is well-formed XML");
-                    return true;
-                } catch (Exception e) {
-                    logger.warn("XSD 1.1 schema content is not well-formed XML: {}", e.getMessage());
-                    return false;
-                }
-            }
-
-            // For XSD 1.0, use the standard validation
-            factory.newSchema(new StreamSource(new StringReader(schemaContent)));
-            return true;
-        } catch (SAXException e) {
-            // This exception indicates that the schema itself is invalid.
-            logger.warn("The provided schema content is not a valid W3C XML Schema. Reason: {}", e.getMessage());
-            return false;
-        }
-    }
-
-    /**
      * Pre-save gate for downloaded schemas: accepts any well-formed XML document whose root
-     * element is {@code schema} in the XSD namespace. A full compilation (like
-     * {@link #isSchemaValid(String)}) would reject schemas with relative
-     * {@code xs:import}/{@code xs:include} references, because those siblings are only
-     * downloaded after the main schema has been cached.
+     * element is {@code schema} in the XSD namespace. A full schema compilation would reject
+     * schemas with relative {@code xs:import}/{@code xs:include} references, because those
+     * siblings are only downloaded after the main schema has been cached.
      */
     static boolean isPlausibleSchemaDocument(String schemaContent) {
         if (schemaContent == null || schemaContent.isBlank()) {
@@ -2010,8 +1970,10 @@ public class XmlServiceImpl implements XmlService {
             long downloadStart = System.currentTimeMillis();
             String importedContent = connectionService.getTextContentFromURL(new URI(resolvedUrl));
 
-            // Validate imported schema
-            if (isSchemaValid(importedContent)) {
+            // Validate imported schema (same pre-save gate as the main schema: an
+            // imported schema may itself carry relative imports that resolve only
+            // after the recursive download below has cached them)
+            if (isPlausibleSchemaDocument(importedContent)) {
                 byte[] contentBytes = importedContent.getBytes(StandardCharsets.UTF_8);
                 Files.write(importedSchemaPath, contentBytes);
                 logger.info("Downloaded imported schema: {} -> {}", resolvedUrl, importedSchemaPath);
