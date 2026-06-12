@@ -37,6 +37,10 @@ public class ExplorerPanel extends VBox {
     private final PropertiesService propertiesService = resolvePropertiesService();
     private final ObservableList<File> recentFiles = FXCollections.observableArrayList();
     private final ListView<File> recentList = new ListView<>(recentFiles);
+    private final ObservableList<org.fxt.freexmltoolkit.domain.FileFavorite> favorites =
+            FXCollections.observableArrayList();
+    private final ListView<org.fxt.freexmltoolkit.domain.FileFavorite> favoritesList =
+            new ListView<>(favorites);
     private final ObservableList<OpenDocument> openItems = FXCollections.observableArrayList();
     private final ListView<OpenDocument> openList = new ListView<>(openItems);
     private final WorkspaceTree workspace = new WorkspaceTree(this::openWorkspaceFile);
@@ -107,16 +111,36 @@ public class ExplorerPanel extends VBox {
             }
         });
 
+        // --- FAVORITES ----------------------------------------------------------
+        favoritesList.setId("explorer-favorites-list");
+        favoritesList.getStyleClass().addAll("fxt-open-editors", "fxt-explorer-list");
+        favoritesList.setCellFactory(lv -> new FavoriteCell());
+        favoritesList.setFixedCellSize(28);
+        favoritesList.prefHeightProperty().bind(javafx.beans.binding.Bindings.createDoubleBinding(
+                () -> Math.min(170.0, Math.max(1, favorites.size()) * 28.0 + 2), favorites));
+        favoritesList.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
+            if (newV != null) {
+                java.io.File file = new java.io.File(newV.getFilePath());
+                if (file.isFile()) {
+                    javafx.application.Platform.runLater(() -> editorHost.openFile(file.toPath()));
+                }
+            }
+        });
+
         HBox openHeader = sectionHeader(new Label("OPEN EDITORS"), openList);
         openHeader.setId("explorer-open-editors-header");
         HBox workspaceHeader = sectionHeader(workspaceTitle, workspace);
         workspaceHeader.setId("explorer-workspace-header");
         HBox recentHeader = sectionHeader(new Label("RECENT"), recentList);
         recentHeader.setId("explorer-recent-header");
+        HBox favoritesHeader = sectionHeader(new Label("FAVORITES"), favoritesList);
+        favoritesHeader.setId("explorer-favorites-header");
         getChildren().addAll(header,
                 openHeader, openList,
                 workspaceHeader, workspace,
-                recentHeader, recentList);
+                recentHeader, recentList,
+                favoritesHeader, favoritesList);
+        refreshFavorites();
 
         // Track recent files as documents open, keep the Open Editors list in
         // sync (selection cleared before each replace — see above) and mirror
@@ -338,6 +362,50 @@ public class ExplorerPanel extends VBox {
             setText(item.getName());
             IconifyIcon icon = new IconifyIcon(EditorFileType.fromFileName(item.getName()).icon());
             icon.setIconSize(15);
+            setGraphic(icon);
+        }
+    }
+
+    /** Reloads the FAVORITES list from the favorites store (best-effort). */
+    private void refreshFavorites() {
+        try {
+            favoritesList.getSelectionModel().clearSelection();
+            favorites.setAll(org.fxt.freexmltoolkit.service.FavoritesService.getInstance().getAllFavorites());
+        } catch (Throwable t) {
+            favorites.clear(); // no favorites store (tests) - section just stays empty
+        }
+    }
+
+    /** A favorite: type-colored file icon + display name (same look as RECENT). */
+    private static final class FavoriteCell extends ListCell<org.fxt.freexmltoolkit.domain.FileFavorite> {
+        private FavoriteCell() {
+            setPrefWidth(0);
+        }
+
+        @Override
+        protected void updateItem(org.fxt.freexmltoolkit.domain.FileFavorite item, boolean empty) {
+            super.updateItem(item, empty);
+            if (empty || item == null) {
+                setText(null);
+                setGraphic(null);
+                return;
+            }
+            String name = item.getName() != null && !item.getName().isBlank()
+                    ? item.getName() : new File(item.getFilePath()).getName();
+            setText(name);
+            var type = item.getFileType();
+            IconifyIcon icon = new IconifyIcon(type != null ? type.getIconLiteral() : "bi-file-earmark");
+            icon.setIconSize(14);
+            if (type != null) {
+                try {
+                    // Bind (not set): the list's CSS -fx-icon-color rule must not
+                    // override the per-type color on the next CSS pass.
+                    icon.iconColorProperty().bind(new javafx.beans.property.SimpleObjectProperty<>(
+                            javafx.scene.paint.Color.web(type.getDefaultColor())));
+                } catch (Exception ignored) {
+                    // unparsable color: keep the default icon color
+                }
+            }
             setGraphic(icon);
         }
     }

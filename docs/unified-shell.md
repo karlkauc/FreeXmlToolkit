@@ -344,10 +344,13 @@ Open the **Explorer** panel from the activity bar to manage files.
   folder's name. Folders expand with their chevron; double-click (or Enter) opens a file.
   Only XML-family and JSON files are shown.
 - **RECENT** - recently opened files; click to reopen.
-- **Collapsible sections** *(new in June 2026)* - the **OPEN EDITORS**, workspace, and
-  **RECENT** section headers are clickable: click a header to collapse or expand its section
-  (the chevron next to the title flips accordingly). Use this to give the file tree more room
-  when you have many open editors or recent files.
+- **FAVORITES** - your favorited files with their type-colored icons; click one to open it
+  directly, without switching to the Favorites activity. (Manage favorites - add, rename,
+  remove - in the [Favorites panel](#favorites-panel).)
+- **Collapsible sections** *(new in June 2026)* - the **OPEN EDITORS**, workspace,
+  **RECENT**, and **FAVORITES** section headers are clickable: click a header to collapse or
+  expand its section (the chevron next to the title flips accordingly). Use this to give the
+  file tree more room when you have many open editors or recent files.
 
 ## Favorites Panel
 

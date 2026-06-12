@@ -27,14 +27,52 @@ class ExplorerPanelTest {
 
     private EditorHost host;
     private ExplorerPanel panel;
+    private Path favXml;
 
     @Start
-    void start(Stage stage) {
+    void start(Stage stage) throws Exception {
         org.fxt.freexmltoolkit.di.ServiceRegistry.initialize();
+        // Seed one favorite BEFORE the panel builds, so its FAVORITES section lists it.
+        favXml = Files.createTempFile("fxt-explorer-fav", ".xml");
+        Files.writeString(favXml, "<fav/>");
+        org.fxt.freexmltoolkit.service.FavoritesService.getInstance().addFavorite(favXml.toFile());
         host = new EditorHost();
         panel = new ExplorerPanel(host);
         stage.setScene(new Scene(new HBox(host, panel), 1100, 600));
         stage.show();
+    }
+
+    @org.junit.jupiter.api.AfterEach
+    void cleanupSeededFavorite() throws Exception {
+        org.fxt.freexmltoolkit.service.FavoritesService.getInstance()
+                .removeFavoriteByPath(favXml.toString());
+        Files.deleteIfExists(favXml);
+    }
+
+    @Test
+    void favoritesSectionListsAndOpensFavorites() throws Exception {
+        WaitForAsyncUtils.waitForFxEvents();
+        @SuppressWarnings("unchecked")
+        ListView<org.fxt.freexmltoolkit.domain.FileFavorite> favorites =
+                (ListView<org.fxt.freexmltoolkit.domain.FileFavorite>) panel.lookup("#explorer-favorites-list");
+        assertNotNull(favorites, "Explorer must offer a FAVORITES section");
+
+        int index = -1;
+        for (int i = 0; i < favorites.getItems().size(); i++) {
+            if (favXml.toString().equals(favorites.getItems().get(i).getFilePath())) {
+                index = i;
+                break;
+            }
+        }
+        assertTrue(index >= 0, "the seeded favorite must be listed");
+
+        int select = index;
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            favorites.getSelectionModel().select(select);
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS, () -> host.getOpenDocuments().stream()
+                .anyMatch(d -> d.getPath() != null && d.getPath().equals(favXml)));
     }
 
     @Test
