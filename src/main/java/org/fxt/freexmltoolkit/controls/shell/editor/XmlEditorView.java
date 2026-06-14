@@ -84,4 +84,9 @@ final class XmlEditorView implements EditorView {
     org.fxt.freexmltoolkit.controls.v2.editor.core.EditorContext getEditorContext() {
         return editor.getEditorContext();
     }
+
+    /** @return the wrapped editor's context-menu manager (for go-to-definition tests). */
+    org.fxt.freexmltoolkit.controls.v2.editor.managers.ContextMenuManagerV2 getContextMenuManager() {
+        return editor.getContextMenuManager();
+    }
 }
