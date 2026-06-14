@@ -1631,6 +1631,22 @@
     -fx-padding: 2 10 2 10;
 }
 
+/* ----- Editor file-loading spinner overlay ----------------------------- */
+/* Translucent scrim over the editor while a file is read/schema-detected.
+   Backdrop tracks the theme's canvas color so it dims consistently in both. */
+.fxt-editor-loading-overlay {
+    -fx-background-color: rgba(245, 247, 250, 0.6);
+}
+
+.root.fxt-theme-dark .fxt-editor-loading-overlay {
+    -fx-background-color: rgba(15, 20, 25, 0.6);
+}
+
+.fxt-editor-loading-label {
+    -fx-text-fill: -fxt-text-secondary;
+    -fx-font-size: 12px;
+}
+
 /* ----- Explorer side panel (Figma node 28:48) -------------------------- */
 /* Generic .fxt-sp-* side-panel building blocks (same look as the Validation
    panel's .fxt-vp-* — shared mockup language). */

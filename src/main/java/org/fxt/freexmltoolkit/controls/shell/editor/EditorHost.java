@@ -1573,6 +1573,7 @@ public class EditorHost extends BorderPane {
     }
 
     private void loadAsync(EditorTab tab, Path path) {
+        tab.beginLoading();
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
             try {
                 String content = Files.readString(path, StandardCharsets.UTF_8);
@@ -1589,6 +1590,7 @@ public class EditorHost extends BorderPane {
                 File autoXsd = detected;
                 Platform.runLater(() -> {
                     tab.view.setText(content);
+                    tab.endLoading();
                     tab.document.setDirty(false);
                     tab.attachDirtyTracking();
                     if (autoXsd != null) {
@@ -1601,7 +1603,10 @@ public class EditorHost extends BorderPane {
                     }
                 });
             } catch (IOException e) {
-                Platform.runLater(() -> tab.view.setText("Could not read " + path + ": " + e.getMessage()));
+                Platform.runLater(() -> {
+                    tab.view.setText("Could not read " + path + ": " + e.getMessage());
+                    tab.endLoading();
+                });
             }
         });
     }
@@ -1965,6 +1970,14 @@ public class EditorHost extends BorderPane {
                 new java.util.concurrent.atomic.AtomicBoolean(false);
         /** XSD-derived, read-only schema info for XML-instance nodes (lazily built off-thread). */
         private org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider xmlSchemaProvider;
+        /** Spinner overlay shown over the editor while the file is being read/schema-detected. */
+        private final javafx.scene.layout.StackPane loadingOverlay = buildLoadingOverlay();
+        /**
+         * Delays showing {@link #loadingOverlay} until loading takes longer than this, so small
+         * files that load near-instantly never flash the spinner.
+         */
+        private final javafx.animation.PauseTransition loadDelay =
+                new javafx.animation.PauseTransition(javafx.util.Duration.millis(150));
 
         EditorTab(OpenDocument document, Runnable selectionCallback,
                 org.fxt.freexmltoolkit.controls.v2.editor.clipboard.XsdClipboard clipboard) {
@@ -1973,7 +1986,13 @@ public class EditorHost extends BorderPane {
             this.clipboard = clipboard;
             this.view = EditorViews.create(document.getFileType());
             contentStack.getChildren().add(view.getNode());
-            setContent(contentStack);
+            // Overlay sits ABOVE contentStack (not inside it) so showOnly() — which toggles
+            // visibility of every contentStack child — never touches the spinner.
+            setContent(new javafx.scene.layout.StackPane(contentStack, loadingOverlay));
+            loadDelay.setOnFinished(e -> {
+                loadingOverlay.setVisible(true);
+                loadingOverlay.setManaged(true);
+            });
             textProperty().bind(Bindings.createStringBinding(
                     () -> (document.isDirty() ? "● " : "") + document.getDisplayName(),
                     document.dirtyProperty(), document.displayNameProperty()));
@@ -2974,6 +2993,33 @@ public class EditorHost extends BorderPane {
             } catch (Exception e) {
                 jsonTreeView.setDocument(new org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonDocument());
             }
+        }
+
+        /** Centered ProgressIndicator + "Loading …" label on a dimmed backdrop; hidden by default. */
+        private static javafx.scene.layout.StackPane buildLoadingOverlay() {
+            javafx.scene.control.ProgressIndicator spinner = new javafx.scene.control.ProgressIndicator();
+            spinner.setMaxSize(48, 48);
+            javafx.scene.control.Label label = new javafx.scene.control.Label("Loading …");
+            label.getStyleClass().add("fxt-editor-loading-label");
+            javafx.scene.layout.VBox box = new javafx.scene.layout.VBox(10, spinner, label);
+            box.setAlignment(javafx.geometry.Pos.CENTER);
+            javafx.scene.layout.StackPane overlay = new javafx.scene.layout.StackPane(box);
+            overlay.getStyleClass().add("fxt-editor-loading-overlay");
+            overlay.setVisible(false);
+            overlay.setManaged(false);
+            return overlay;
+        }
+
+        /** Arm the delayed spinner; it appears only if loading outlasts {@link #loadDelay}. */
+        void beginLoading() {
+            loadDelay.playFromStart();
+        }
+
+        /** Cancel a pending spinner and hide the overlay (loading finished or failed). */
+        void endLoading() {
+            loadDelay.stop();
+            loadingOverlay.setVisible(false);
+            loadingOverlay.setManaged(false);
         }
 
         private void showOnly(javafx.scene.Node node) {
