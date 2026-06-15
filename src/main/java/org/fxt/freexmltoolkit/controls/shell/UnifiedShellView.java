@@ -81,6 +81,28 @@ public class UnifiedShellView extends BorderPane {
     private javafx.scene.control.Button actionGenerateDocs;
     private javafx.scene.control.Button actionTypeEditor;
 
+    /** Editor-toolbar buttons (incl. panel toggles) registered for live display updates. */
+    private final java.util.List<javafx.scene.control.ButtonBase> toolbarButtons = new java.util.ArrayList<>();
+
+    /** Node-properties key under which each toolbar button stores its short text label. */
+    private static final String TOOL_LABEL_KEY = "fxt.toolLabel";
+
+    /** Semantic color categories for editor-toolbar buttons (maps to CSS variant classes). */
+    private enum ToolColor {
+        PRIMARY("fxt-tool-primary"),
+        SUCCESS("fxt-tool-success"),
+        INFO("fxt-tool-info"),
+        WARNING("fxt-tool-warning"),
+        DANGER("fxt-tool-danger"),
+        NEUTRAL("fxt-tool-neutral");
+
+        final String styleClass;
+
+        ToolColor(String styleClass) {
+            this.styleClass = styleClass;
+        }
+    }
+
     private final Label statusPosition = statusLabel("Ln 1, Col 1");
     private final Label statusChars = statusLabel("");
     private final Label statusType = statusLabel("");
@@ -531,6 +553,7 @@ public class UnifiedShellView extends BorderPane {
         settings.setOnSaved(() -> {
             activityBar.refresh();
             reloadPanelPrefs();
+            applyToolbarDisplaySettings();
         });
         settingsTab = editorHost.openToolTab("Settings", "bi-gear", settings);
     }
@@ -587,27 +610,24 @@ public class UnifiedShellView extends BorderPane {
     }
 
     private Region buildEditorToolbar() {
-        IconifyIcon validateIcon = new IconifyIcon("bi-check2-circle");
-        validateIcon.setIconSize(15);
-        javafx.scene.control.Button validate = new javafx.scene.control.Button("Validate", validateIcon);
-        validate.setId("doc-action-validate");
-        validate.getStyleClass().addAll("fxt-tool-button", "fxt-validate-button");
-        validate.setTooltip(new javafx.scene.control.Tooltip(
-                "Validate the document (well-formedness, or against the bound XSD) — F8"));
-        validate.setOnAction(e -> validateActive());
+        toolbarButtons.clear();
+        javafx.scene.control.Button validate = toolButton("doc-action-validate", "bi-check2-circle",
+                "Validate",
+                "Validate the document (well-formedness, or against the bound XSD) — F8",
+                ToolColor.PRIMARY, this::validateActive);
         actionValidate = validate;
 
         // Editor-level document actions (type-gated): run per-document operations without
         // switching the Activity Bar; results open as the shell's standard tool tabs.
-        actionTransform = documentActionButton("doc-action-transform", "bi-arrow-left-right",
+        actionTransform = documentActionButton("doc-action-transform", "bi-arrow-left-right", "Transform",
                 "Transform with XSLT… (choose a stylesheet)",
-                () -> editorActions.transformActiveWithXslt(window()));
-        actionGenerateDocs = documentActionButton("doc-action-generate-docs", "bi-file-earmark-text",
+                ToolColor.INFO, () -> editorActions.transformActiveWithXslt(window()));
+        actionGenerateDocs = documentActionButton("doc-action-generate-docs", "bi-file-earmark-text", "Docs",
                 "Generate Documentation… (HTML / PDF / Word) for the active XSD",
-                () -> editorActions.generateDocsActive(window()));
-        actionTypeEditor = documentActionButton("doc-action-type-editor", "bi-braces-asterisk",
+                ToolColor.INFO, () -> editorActions.generateDocsActive(window()));
+        actionTypeEditor = documentActionButton("doc-action-type-editor", "bi-braces-asterisk", "Type Editor",
                 "Open Type Editor… (pick a named type from the active XSD)",
-                editorActions::openTypeEditorActive);
+                ToolColor.PRIMARY, editorActions::openTypeEditorActive);
 
         // The icon actions live in a wrapping FlowPane that spans the full toolbar width
         // (between the left panel toggle and the view switch): when the editor area is narrow
@@ -618,27 +638,38 @@ public class UnifiedShellView extends BorderPane {
         javafx.scene.layout.FlowPane actions = new javafx.scene.layout.FlowPane(
                 validate,
                 new javafx.scene.control.Separator(javafx.geometry.Orientation.VERTICAL),
-                toolButton("action-new", "bi-file-earmark-plus", "New (Ctrl+N)", this::newDocument),
-                toolButton("action-open", "bi-folder2-open", "Open (Ctrl+O)", this::openFile),
-                toolButton("action-save", "bi-save", "Save (Ctrl+S)", this::saveActive),
-                toolButton("action-save-as", "bi-save2", "Save As (Ctrl+Shift+S)", this::saveActiveAs),
-                toolButton("action-save-all", "bi-files", "Save All", editorHost::saveAll),
+                toolButton("action-new", "bi-file-earmark-plus", "New", "New (Ctrl+N)",
+                        ToolColor.SUCCESS, this::newDocument),
+                toolButton("action-open", "bi-folder2-open", "Open", "Open (Ctrl+O)",
+                        ToolColor.PRIMARY, this::openFile),
+                toolButton("action-save", "bi-save", "Save", "Save (Ctrl+S)",
+                        ToolColor.PRIMARY, this::saveActive),
+                toolButton("action-save-as", "bi-save2", "Save As", "Save As (Ctrl+Shift+S)",
+                        ToolColor.PRIMARY, this::saveActiveAs),
+                toolButton("action-save-all", "bi-files", "Save All", "Save All",
+                        ToolColor.PRIMARY, editorHost::saveAll),
                 new javafx.scene.control.Separator(javafx.geometry.Orientation.VERTICAL),
-                toolButton("action-undo", "bi-arrow-counterclockwise", "Undo (Ctrl+Z)", editorHost::undoActive),
-                toolButton("action-redo", "bi-arrow-clockwise", "Redo (Ctrl+Y)", editorHost::redoActive),
+                toolButton("action-undo", "bi-arrow-counterclockwise", "Undo", "Undo (Ctrl+Z)",
+                        ToolColor.NEUTRAL, editorHost::undoActive),
+                toolButton("action-redo", "bi-arrow-clockwise", "Redo", "Redo (Ctrl+Y)",
+                        ToolColor.NEUTRAL, editorHost::redoActive),
                 new javafx.scene.control.Separator(javafx.geometry.Orientation.VERTICAL),
-                toolButton("action-format", "bi-text-indent-left", "Format", editorHost::formatActive),
-                toolButton("action-minify", "bi-arrows-collapse", "Minify", editorHost::minifyActive),
-                toolButton("action-insert-template", "bi-puzzle", "Insert Template…", this::insertTemplate),
-                toolButton("action-compare", "bi-layout-split", "Compare with File…", this::compareWithFile),
-                toolButton("action-spreadsheet", "bi-table",
-                        "Spreadsheet Converter… (Excel / CSV ↔ XML)", this::convertSpreadsheet),
-                toolButton("action-query-console", "bi-terminal",
-                        "Query Console (XPath/XQuery)  Ctrl+Shift+X", this::toggleQueryConsole),
+                toolButton("action-format", "bi-text-indent-left", "Format", "Format",
+                        ToolColor.INFO, editorHost::formatActive),
+                toolButton("action-minify", "bi-arrows-collapse", "Minify", "Minify",
+                        ToolColor.INFO, editorHost::minifyActive),
+                toolButton("action-insert-template", "bi-puzzle", "Template", "Insert Template…",
+                        ToolColor.INFO, this::insertTemplate),
+                toolButton("action-compare", "bi-layout-split", "Compare", "Compare with File…",
+                        ToolColor.INFO, this::compareWithFile),
+                toolButton("action-spreadsheet", "bi-table", "Spreadsheet",
+                        "Spreadsheet Converter… (Excel / CSV ↔ XML)", ToolColor.INFO, this::convertSpreadsheet),
+                toolButton("action-query-console", "bi-terminal", "Query",
+                        "Query Console (XPath/XQuery)  Ctrl+Shift+X", ToolColor.INFO, this::toggleQueryConsole),
                 actionTransform, actionGenerateDocs, actionTypeEditor,
                 new javafx.scene.control.Separator(javafx.geometry.Orientation.VERTICAL),
-                toolButton("action-set-schema", "bi-diagram-3",
-                        "Set XSD Schema… (IntelliSense & validation)", this::setSchema));
+                toolButton("action-set-schema", "bi-diagram-3", "Set Schema",
+                        "Set XSD Schema… (IntelliSense & validation)", ToolColor.WARNING, this::setSchema));
         actions.getStyleClass().add("fxt-editor-actionbar");
         actions.setHgap(2);
         actions.setVgap(2);
@@ -855,22 +886,59 @@ public class UnifiedShellView extends BorderPane {
         }
     }
 
-    private javafx.scene.control.Button toolButton(String icon, String tooltip, Runnable action) {
+    /**
+     * Builds an editor-toolbar button: stores its short {@code label}, applies its
+     * semantic {@code color} variant, registers it for live display updates, and
+     * applies the current label/size settings.
+     */
+    private javafx.scene.control.Button toolButton(String id, String icon, String label,
+            String tooltip, ToolColor color, Runnable action) {
         javafx.scene.control.Button button = new javafx.scene.control.Button();
-        button.getStyleClass().add("fxt-tool-button");
-        IconifyIcon graphic = new IconifyIcon(icon);
-        graphic.setIconSize(16);
-        button.setGraphic(graphic);
+        if (id != null) {
+            button.setId(id);
+        }
+        button.getStyleClass().addAll("fxt-tool-button", color.styleClass);
+        button.setGraphic(new IconifyIcon(icon));
         button.setTooltip(new javafx.scene.control.Tooltip(tooltip));
         button.setOnAction(e -> action.run());
+        registerToolButton(button, label);
         return button;
     }
 
-    /** {@link #toolButton(String, String, Runnable)} with a stable {@code id} for tests/automation. */
-    private javafx.scene.control.Button toolButton(String id, String icon, String tooltip, Runnable action) {
-        javafx.scene.control.Button button = toolButton(icon, tooltip, action);
-        button.setId(id);
-        return button;
+    /** Registers a toolbar button (any {@link javafx.scene.control.ButtonBase}) for display updates. */
+    private void registerToolButton(javafx.scene.control.ButtonBase button, String label) {
+        button.getProperties().put(TOOL_LABEL_KEY, label == null ? "" : label);
+        toolbarButtons.add(button);
+        applyDisplayTo(button);
+    }
+
+    /** Applies the current label-visibility + icon-size settings to one toolbar button. */
+    private void applyDisplayTo(javafx.scene.control.ButtonBase button) {
+        boolean showLabels = false;
+        boolean large = false;
+        try {
+            var props = org.fxt.freexmltoolkit.di.ServiceRegistry.get(
+                    org.fxt.freexmltoolkit.service.PropertiesService.class);
+            showLabels = props.isToolbarShowLabels();
+            large = "large".equalsIgnoreCase(props.getToolbarIconSize());
+        } catch (Throwable ignored) {
+            // properties service unavailable (e.g. tests) — fall back to defaults
+        }
+        Object stored = button.getProperties().get(TOOL_LABEL_KEY);
+        String label = stored == null ? "" : stored.toString();
+        button.setText(showLabels && !label.isEmpty() ? label : null);
+        if (button.getGraphic() instanceof IconifyIcon icon) {
+            icon.setIconSize(ToolbarDisplay.iconSizePx(large));
+        }
+        button.getStyleClass().removeAll(ToolbarDisplay.SMALL_CLASS, ToolbarDisplay.LARGE_CLASS);
+        button.getStyleClass().add(ToolbarDisplay.sizeStyleClass(large));
+    }
+
+    /** Re-applies the current toolbar display settings to every registered button (live refresh). */
+    private void applyToolbarDisplaySettings() {
+        for (javafx.scene.control.ButtonBase button : toolbarButtons) {
+            applyDisplayTo(button);
+        }
     }
 
     /**
@@ -887,10 +955,8 @@ public class UnifiedShellView extends BorderPane {
             String id, String icon, String tooltip, boolean leftSide) {
         javafx.scene.control.ToggleButton button = new javafx.scene.control.ToggleButton();
         button.setId(id);
-        button.getStyleClass().addAll("fxt-tool-button", "fxt-panel-toggle");
-        IconifyIcon graphic = new IconifyIcon(icon);
-        graphic.setIconSize(16);
-        button.setGraphic(graphic);
+        button.getStyleClass().addAll("fxt-tool-button", "fxt-tool-neutral", "fxt-panel-toggle");
+        button.setGraphic(new IconifyIcon(icon));
         button.setTooltip(new javafx.scene.control.Tooltip(tooltip));
         button.setFocusTraversable(false);
         button.setMinWidth(Region.USE_PREF_SIZE);
@@ -901,15 +967,14 @@ public class UnifiedShellView extends BorderPane {
                 setInspectorVisible(button.isSelected());
             }
         });
+        registerToolButton(button, "");
         return button;
     }
 
-    /** Builds a type-gated document-action toolbar button with a stable {@code id} for tests. */
-    private javafx.scene.control.Button documentActionButton(
-            String id, String icon, String tooltip, Runnable action) {
-        javafx.scene.control.Button button = toolButton(icon, tooltip, action);
-        button.setId(id);
-        return button;
+    /** Builds a type-gated document-action toolbar button (delegates to {@link #toolButton}). */
+    private javafx.scene.control.Button documentActionButton(String id, String icon, String label,
+            String tooltip, ToolColor color, Runnable action) {
+        return toolButton(id, icon, label, tooltip, color, action);
     }
 
     /**
