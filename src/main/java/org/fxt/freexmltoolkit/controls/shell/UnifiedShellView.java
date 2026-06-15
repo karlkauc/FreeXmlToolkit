@@ -86,6 +86,11 @@ public class UnifiedShellView extends BorderPane {
     /** Editor-toolbar buttons (incl. panel toggles) registered for live display updates. */
     private final java.util.List<javafx.scene.control.ButtonBase> toolbarButtons = new java.util.ArrayList<>();
 
+    /** Header bar (Figma "future" layout): breadcrumb of the active file path. */
+    private Label breadcrumb;
+    /** Header bar theme toggle; its icon flips sun/moon with the current theme. */
+    private javafx.scene.control.Button themeToggleButton;
+
     /** Node-properties key under which each toolbar button stores its short text label. */
     private static final String TOOL_LABEL_KEY = "fxt.toolLabel";
 
@@ -116,12 +121,12 @@ public class UnifiedShellView extends BorderPane {
         getStyleClass().add("fxt-shell");
 
         setLeft(activityBar);
-        // Build the work area first (creates chromeUpdater), then promote the editor toolbar
-        // to the shell's top edge so it spans the FULL window width (above the activity bar,
-        // side panel and inspector). buildEditorToolbar() creates the panel toggles and syncs
-        // them via the now-existing chromeUpdater.
+        // Build the work area first (creates chromeUpdater), then the top region: a header bar
+        // (breadcrumb · search · theme) above the editor toolbar, both spanning the FULL window
+        // width (above the activity bar, side panel and inspector). buildEditorToolbar() creates
+        // the panel toggles and syncs them via the now-existing chromeUpdater.
         setCenter(buildCenter());
-        setTop(buildEditorToolbar());
+        setTop(buildTopRegion());
         setBottom(buildStatusBar());
 
         // React to activity changes: swap the side panel. Choosing an activity also reveals
@@ -618,12 +623,122 @@ public class UnifiedShellView extends BorderPane {
         }
     }
 
+    /**
+     * The full-width top region (Figma "future" layout): a header bar
+     * (breadcrumb · centered search · theme/help/notifications) stacked above the
+     * editor toolbar. Both rows span the entire window width.
+     */
+    private Region buildTopRegion() {
+        VBox top = new VBox(buildHeaderBar(), buildEditorToolbar());
+        top.getStyleClass().add("fxt-top-region");
+        return top;
+    }
+
+    /**
+     * The header bar: the active file's path breadcrumb (left), a centered search
+     * pill that opens the Query Console (XPath/XQuery), and right-aligned
+     * notifications / help / theme-toggle icons.
+     */
+    private Region buildHeaderBar() {
+        breadcrumb = new Label("FreeXmlToolkit");
+        breadcrumb.getStyleClass().add("fxt-header-breadcrumb");
+
+        // Centered search pill — clicking it opens the Query Console for XPath/XQuery.
+        IconifyIcon searchIcon = new IconifyIcon("bi-search");
+        searchIcon.setIconSize(13);
+        Label searchHint = new Label("Search · run XPath / XQuery…");
+        searchHint.getStyleClass().add("fxt-header-search-hint");
+        Region searchSpacer = new Region();
+        HBox.setHgrow(searchSpacer, Priority.ALWAYS);
+        Label kbd = new Label("Ctrl K");
+        kbd.getStyleClass().add("fxt-header-kbd");
+        HBox searchPill = new HBox(8, searchIcon, searchHint, searchSpacer, kbd);
+        searchPill.setAlignment(Pos.CENTER_LEFT);
+        searchPill.getStyleClass().add("fxt-header-search");
+        searchPill.setMaxWidth(460);
+        searchPill.setPrefWidth(460);
+        searchPill.setCursor(javafx.scene.Cursor.HAND);
+        searchPill.setOnMouseClicked(e -> { if (!isQueryConsoleShown()) { toggleQueryConsole(); } });
+
+        Region leftSpacer = new Region();
+        HBox.setHgrow(leftSpacer, Priority.ALWAYS);
+        Region rightSpacer = new Region();
+        HBox.setHgrow(rightSpacer, Priority.ALWAYS);
+
+        javafx.scene.control.Button bell = headerIconButton("bi-bell", "Notifications", () -> { });
+        javafx.scene.control.Button help = headerIconButton("bi-question-circle", "Help",
+                () -> selectionModel.select(Activity.HELP));
+        themeToggleButton = headerIconButton(
+                ThemeManager.currentIsDark() ? "bi-sun" : "bi-moon",
+                "Toggle light / dark theme", this::toggleTheme);
+
+        HBox header = new HBox(breadcrumb, leftSpacer, searchPill, rightSpacer, bell, help, themeToggleButton);
+        header.setAlignment(Pos.CENTER_LEFT);
+        header.getStyleClass().add("fxt-header-bar");
+
+        // Keep the breadcrumb in sync with the active document.
+        editorHost.activeTabProperty().addListener((obs, oldV, newV) -> updateBreadcrumb());
+        updateBreadcrumb();
+        return header;
+    }
+
+    /** A flat header icon button (notifications / help / theme). */
+    private javafx.scene.control.Button headerIconButton(String icon, String tooltip, Runnable action) {
+        javafx.scene.control.Button button = new javafx.scene.control.Button();
+        IconifyIcon graphic = new IconifyIcon(icon);
+        graphic.setIconSize(16);
+        button.setGraphic(graphic);
+        button.getStyleClass().add("fxt-header-icon");
+        button.setTooltip(new javafx.scene.control.Tooltip(tooltip));
+        button.setFocusTraversable(false);
+        button.setOnAction(e -> action.run());
+        return button;
+    }
+
+    /** Toggles light/dark theme and flips the header toggle's sun/moon icon. */
+    private void toggleTheme() {
+        boolean dark = !ThemeManager.currentIsDark();
+        if (getScene() != null) {
+            ThemeManager.apply(getScene(), dark);
+        }
+        IconifyIcon graphic = new IconifyIcon(dark ? "bi-sun" : "bi-moon");
+        graphic.setIconSize(16);
+        themeToggleButton.setGraphic(graphic);
+    }
+
+    /** Sets the breadcrumb to the last path segments of the active document (or the app name). */
+    private void updateBreadcrumb() {
+        if (breadcrumb == null) {
+            return;
+        }
+        var docOpt = editorHost.getActiveDocument();
+        if (docOpt.isEmpty()) {
+            breadcrumb.setText("FreeXmlToolkit");
+            return;
+        }
+        var doc = docOpt.get();
+        java.nio.file.Path path = doc.getPath();
+        if (path == null) {
+            breadcrumb.setText(doc.getDisplayName());
+            return;
+        }
+        int count = path.getNameCount();
+        int from = Math.max(0, count - 3);
+        java.util.List<String> segments = new java.util.ArrayList<>();
+        for (int i = from; i < count; i++) {
+            segments.add(path.getName(i).toString());
+        }
+        breadcrumb.setText(String.join("  ›  ", segments));
+    }
+
     private Region buildEditorToolbar() {
         toolbarButtons.clear();
         javafx.scene.control.Button validate = toolButton("doc-action-validate", "bi-check2-circle",
                 "Validate",
                 "Validate the document (well-formedness, or against the bound XSD) — F8",
                 ToolColor.PRIMARY, this::validateActive);
+        // The single prominent, filled-primary accent button (Figma "future" toolbar).
+        validate.getStyleClass().add("fxt-tool-accent");
         actionValidate = validate;
 
         // Editor-level document actions (type-gated): run per-document operations without
@@ -706,7 +821,10 @@ public class UnifiedShellView extends BorderPane {
         // view-mode switch now lives on the tab header (see EditorHost), and identity/status
         // (file type, bound XSD) lives in the bottom status bar, so the toolbar is a pure action
         // band that uses the entire available width — single-row at the 1512 px MacBook width.
-        HBox bar = new HBox(4, leftPanelToggle, actions, inspectorToggle);
+        // The Text/Tree/Graphic view switch sits at the toolbar's right end (Figma "future"
+        // layout), just before the inspector toggle. It is built and kept in sync by EditorHost.
+        Region viewSwitch = editorHost.getViewSwitch();
+        HBox bar = new HBox(4, leftPanelToggle, actions, viewSwitch, inspectorToggle);
         bar.setAlignment(Pos.CENTER_LEFT);
         bar.getStyleClass().add("fxt-editor-toolbar");
         return bar;
@@ -908,6 +1026,8 @@ public class UnifiedShellView extends BorderPane {
         }
         button.getStyleClass().addAll("fxt-tool-button", color.styleClass);
         button.setGraphic(new IconifyIcon(icon));
+        // Icon over label (Figma "future" toolbar); the label is shown when toolbar labels are on.
+        button.setContentDisplay(javafx.scene.control.ContentDisplay.TOP);
         button.setTooltip(new javafx.scene.control.Tooltip(tooltip));
         button.setOnAction(e -> action.run());
         registerToolButton(button, label);

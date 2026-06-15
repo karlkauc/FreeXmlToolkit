@@ -116,7 +116,7 @@ public class PropertiesServiceImpl implements PropertiesService {
         properties.setProperty("useSystemTempFolder", "true");
         // Note: xml.editor.use.v2 property removed - V2 is now the only editor
         properties.setProperty("ui.use.small.icons", "false"); // Feature flag for small toolbar icons
-        properties.setProperty("toolbar.show.labels", "false"); // editor toolbar: icon-only by default
+        properties.setProperty("toolbar.show.labels", "true"); // editor toolbar: icon + text label (Figma "future" layout)
         properties.setProperty("toolbar.icon.size", "small");   // editor toolbar: small icons by default
         properties.setProperty("version", "20241209");
         properties.setProperty("manualProxy", "false");
@@ -417,7 +417,7 @@ public class PropertiesServiceImpl implements PropertiesService {
 
     @Override
     public boolean isToolbarShowLabels() {
-        return Boolean.parseBoolean(properties.getProperty("toolbar.show.labels", "false"));
+        return Boolean.parseBoolean(properties.getProperty("toolbar.show.labels", "true"));
     }
 
     @Override

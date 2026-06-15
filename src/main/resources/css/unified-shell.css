@@ -290,12 +290,73 @@
 }
 
 .fxt-editor-toolbar {
-    -fx-background-color: -fxt-bg-surface-2;
+    -fx-background-color: -fxt-bg-surface;
     -fx-border-color: -fxt-border;
     -fx-border-width: 0 0 1 0;
     -fx-padding: 4 8 4 8;
-    /* Stable height for a single action row so the bar doesn't jump on 1<->2 row changes. */
-    -fx-min-height: 38;
+    /* Tall enough for the icon-over-label buttons (Figma "future" layout). */
+    -fx-min-height: 56;
+}
+
+/* ===== Header bar (Figma "future": breadcrumb · centered search · theme icons) ===== */
+.fxt-header-bar {
+    -fx-background-color: -fxt-bg-surface;
+    -fx-border-color: -fxt-border;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 8 14 8 14;
+    -fx-spacing: 10;
+}
+
+.fxt-header-breadcrumb {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 12.5px;
+    -fx-text-fill: -fxt-text-secondary;
+}
+
+.fxt-header-search {
+    -fx-background-color: -fxt-bg-surface-2;
+    -fx-border-color: -fxt-border;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 6 12 6 12;
+}
+.fxt-header-search:hover {
+    -fx-border-color: -fxt-primary;
+}
+.fxt-header-search .iconify-icon {
+    -fx-icon-color: -fxt-text-muted;
+}
+.fxt-header-search-hint {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 12.5px;
+    -fx-text-fill: -fxt-text-muted;
+}
+.fxt-header-kbd {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 10.5px;
+    -fx-text-fill: -fxt-text-muted;
+    -fx-background-color: -fxt-bg-surface;
+    -fx-border-color: -fxt-border;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-padding: 1 6 1 6;
+}
+
+.fxt-header-icon {
+    -fx-background-color: transparent;
+    -fx-background-radius: 8;
+    -fx-padding: 6;
+    -fx-cursor: hand;
+}
+.fxt-header-icon .iconify-icon {
+    -fx-icon-color: -fxt-text-secondary;
+}
+.fxt-header-icon:hover {
+    -fx-background-color: -fxt-bg-subtle;
+}
+.fxt-header-icon:hover .iconify-icon {
+    -fx-icon-color: -fxt-primary;
 }
 
 /* The action ToolBar is flush with the editor toolbar: no chrome, just its buttons.
@@ -338,87 +399,61 @@
 }
 
 /*
- * ===== Editor toolbar (Action Bar): native, raised, semantically-colored buttons =====
- * Scoped to .fxt-editor-toolbar so only the editor action bar (action buttons, Validate,
- * and the side-panel toggles) gets this treatment.
+ * ===== Editor toolbar (Action Bar): flat, monochrome, icon-over-label =====
+ * Figma "future" layout: every action is a flat gray icon with its label below; only the
+ * prominent Validate button gets a filled-primary accent (.fxt-tool-accent). The semantic
+ * ToolColor classes (.fxt-tool-primary/.success/…) are intentionally NOT colored here.
+ * Scoped to .fxt-editor-toolbar so the shared global .fxt-tool-button default is untouched.
  */
 .fxt-editor-toolbar .fxt-tool-button {
-    -fx-background-color: -fxt-tool-neutral-bg;
-    -fx-border-color: -fxt-tool-neutral-border;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
     -fx-border-width: 1;
-    -fx-border-radius: 6;
-    -fx-background-radius: 6;
-    -fx-padding: 4 8 4 8;
-    -fx-graphic-text-gap: 6;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 4 10 4 10;
+    -fx-graphic-text-gap: 3;
+    -fx-content-display: top;
     -fx-font-family: "Inter", sans-serif;
-    -fx-text-fill: -fxt-tool-neutral-fg;
+    -fx-font-size: 10.5px;
+    -fx-text-fill: -fxt-text-secondary;
     -fx-cursor: hand;
 }
 
 .fxt-editor-toolbar .fxt-tool-button .iconify-icon {
-    -fx-icon-color: -fxt-tool-neutral-fg;
+    -fx-icon-color: -fxt-text-secondary;
 }
 
 .fxt-editor-toolbar .fxt-tool-button:hover {
-    -fx-background-color: derive(-fxt-tool-neutral-bg, -6%);
+    -fx-background-color: -fxt-bg-subtle;
+}
+.fxt-editor-toolbar .fxt-tool-button:hover .iconify-icon {
+    -fx-icon-color: -fxt-primary;
 }
 
 .fxt-editor-toolbar .fxt-tool-button:disabled {
-    -fx-opacity: 0.45;
+    -fx-opacity: 0.4;
 }
 
-/* ----- Color variants (semantic, soft-tinted) ----- */
-.fxt-editor-toolbar .fxt-tool-button.fxt-tool-primary {
-    -fx-background-color: -fxt-tool-primary-bg;
-    -fx-border-color: -fxt-tool-primary-border;
-    -fx-text-fill: -fxt-tool-primary-fg;
+/* ----- Filled accent button (Validate) ----- */
+.fxt-editor-toolbar .fxt-tool-button.fxt-tool-accent {
+    -fx-background-color: -fxt-primary;
+    -fx-border-color: -fxt-primary;
+    -fx-text-fill: -fxt-on-primary;
 }
-.fxt-editor-toolbar .fxt-tool-button.fxt-tool-primary .iconify-icon { -fx-icon-color: -fxt-tool-primary-fg; }
-.fxt-editor-toolbar .fxt-tool-button.fxt-tool-primary:hover { -fx-background-color: derive(-fxt-tool-primary-bg, -8%); }
-
-.fxt-editor-toolbar .fxt-tool-button.fxt-tool-success {
-    -fx-background-color: -fxt-tool-success-bg;
-    -fx-border-color: -fxt-tool-success-border;
-    -fx-text-fill: -fxt-tool-success-fg;
+.fxt-editor-toolbar .fxt-tool-button.fxt-tool-accent .iconify-icon {
+    -fx-icon-color: -fxt-on-primary;
 }
-.fxt-editor-toolbar .fxt-tool-button.fxt-tool-success .iconify-icon { -fx-icon-color: -fxt-tool-success-fg; }
-.fxt-editor-toolbar .fxt-tool-button.fxt-tool-success:hover { -fx-background-color: derive(-fxt-tool-success-bg, -8%); }
-
-.fxt-editor-toolbar .fxt-tool-button.fxt-tool-info {
-    -fx-background-color: -fxt-tool-info-bg;
-    -fx-border-color: -fxt-tool-info-border;
-    -fx-text-fill: -fxt-tool-info-fg;
+.fxt-editor-toolbar .fxt-tool-button.fxt-tool-accent:hover {
+    -fx-background-color: derive(-fxt-primary, -8%);
 }
-.fxt-editor-toolbar .fxt-tool-button.fxt-tool-info .iconify-icon { -fx-icon-color: -fxt-tool-info-fg; }
-.fxt-editor-toolbar .fxt-tool-button.fxt-tool-info:hover { -fx-background-color: derive(-fxt-tool-info-bg, -8%); }
-
-.fxt-editor-toolbar .fxt-tool-button.fxt-tool-warning {
-    -fx-background-color: -fxt-tool-warning-bg;
-    -fx-border-color: -fxt-tool-warning-border;
-    -fx-text-fill: -fxt-tool-warning-fg;
+.fxt-editor-toolbar .fxt-tool-button.fxt-tool-accent:hover .iconify-icon {
+    -fx-icon-color: -fxt-on-primary;
 }
-.fxt-editor-toolbar .fxt-tool-button.fxt-tool-warning .iconify-icon { -fx-icon-color: -fxt-tool-warning-fg; }
-.fxt-editor-toolbar .fxt-tool-button.fxt-tool-warning:hover { -fx-background-color: derive(-fxt-tool-warning-bg, -8%); }
-
-.fxt-editor-toolbar .fxt-tool-button.fxt-tool-danger {
-    -fx-background-color: -fxt-tool-danger-bg;
-    -fx-border-color: -fxt-tool-danger-border;
-    -fx-text-fill: -fxt-tool-danger-fg;
-}
-.fxt-editor-toolbar .fxt-tool-button.fxt-tool-danger .iconify-icon { -fx-icon-color: -fxt-tool-danger-fg; }
-.fxt-editor-toolbar .fxt-tool-button.fxt-tool-danger:hover { -fx-background-color: derive(-fxt-tool-danger-bg, -8%); }
-
-.fxt-editor-toolbar .fxt-tool-button.fxt-tool-neutral {
-    -fx-background-color: -fxt-tool-neutral-bg;
-    -fx-border-color: -fxt-tool-neutral-border;
-    -fx-text-fill: -fxt-tool-neutral-fg;
-}
-.fxt-editor-toolbar .fxt-tool-button.fxt-tool-neutral .iconify-icon { -fx-icon-color: -fxt-tool-neutral-fg; }
-.fxt-editor-toolbar .fxt-tool-button.fxt-tool-neutral:hover { -fx-background-color: derive(-fxt-tool-neutral-bg, -6%); }
 
 /* ----- Size variants ----- */
-.fxt-editor-toolbar .fxt-tool-button.fxt-tool-small { -fx-padding: 4 8 4 8; -fx-font-size: 11px; }
-.fxt-editor-toolbar .fxt-tool-button.fxt-tool-large { -fx-padding: 6 12 6 12; -fx-font-size: 13px; }
+.fxt-editor-toolbar .fxt-tool-button.fxt-tool-small { -fx-font-size: 10.5px; }
+.fxt-editor-toolbar .fxt-tool-button.fxt-tool-large { -fx-font-size: 12px; }
 
 /* Discreet in-edge collapse chevron overlaid on each side panel ("<<" / ">>"). */
 .fxt-panel-collapse {
@@ -452,15 +487,9 @@
 .fxt-view-switch {
     -fx-background-color: -fxt-bg-surface;
     -fx-border-color: -fxt-border;
+    -fx-border-width: 1;
     -fx-border-radius: 6;
     -fx-background-radius: 6;
-}
-
-/* The view switch is overlaid on the top-right of the tab header (see EditorHost). Reserve
-   matching right padding so the tabs and their overflow button never slide underneath it.
-   Targets the TabPane (.fxt-editor-tabpane), not the outer BorderPane (.fxt-editor-tabs). */
-.fxt-editor-tabpane > .tab-header-area {
-    -fx-padding: 0 226 0 0;
 }
 
 /* Compact tabs: tighten the padding. The per-tab width cap is set dynamically in EditorHost

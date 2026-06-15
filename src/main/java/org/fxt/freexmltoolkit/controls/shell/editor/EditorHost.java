@@ -35,6 +35,8 @@ public class EditorHost extends BorderPane {
     private final TabPane tabPane = new TabPane();
     /** Tab pane plus an overlaid view-mode switch pinned to the top-right of the tab header. */
     private final javafx.scene.layout.StackPane tabArea = new javafx.scene.layout.StackPane();
+    /** The Text/Tree/Graphic view-mode switch; placed in the editor toolbar by the shell. */
+    private javafx.scene.layout.Region viewSwitch;
     private final ObservableList<OpenDocument> openDocuments = FXCollections.observableArrayList();
     private final ReadOnlyIntegerWrapper activeCaret = new ReadOnlyIntegerWrapper(this, "activeCaret", 0);
     private final ReadOnlyObjectWrapper<File> activeSchema = new ReadOnlyObjectWrapper<>(this, "activeSchema", null);
@@ -86,15 +88,11 @@ public class EditorHost extends BorderPane {
                 () -> Math.max(170.0, Math.min(340.0, tabPane.getWidth() * 0.22)),
                 tabPane.widthProperty()));
 
-        // The view-mode switch (Text/Tree/Graphic/Grid) lives here, overlaid on the top-right of
-        // the tab header — not in the editor toolbar — so the toolbar stays a single-row action
-        // band and the per-document view mode reads as part of the document's tab strip. CSS
-        // (.fxt-editor-tabpane > .tab-header-area) reserves matching right padding so the tabs and
-        // their overflow button never slide underneath it.
-        javafx.scene.layout.Region viewSwitch = buildViewSwitch();
-        javafx.scene.layout.StackPane.setAlignment(viewSwitch, javafx.geometry.Pos.TOP_RIGHT);
-        javafx.scene.layout.StackPane.setMargin(viewSwitch, new javafx.geometry.Insets(5, 8, 0, 0));
-        tabArea.getChildren().setAll(tabPane, viewSwitch);
+        // The view-mode switch (Text/Tree/Graphic) is built here but placed by the shell at the
+        // right end of the full-width editor toolbar (Figma "future" layout) via getViewSwitch();
+        // the tab header therefore only carries the tabs.
+        viewSwitch = buildViewSwitch();
+        tabArea.getChildren().setAll(tabPane);
 
         setupDragAndDrop();
         // Show the welcome empty-state while no document is open; swap to the tab
@@ -177,6 +175,11 @@ public class EditorHost extends BorderPane {
     /** @return the active document's current view mode (Text/Tree/Graphic). */
     public ReadOnlyObjectProperty<ViewMode> activeViewModeProperty() {
         return activeViewMode.getReadOnlyProperty();
+    }
+
+    /** @return the Text/Tree/Graphic view-mode switch, for placement in the editor toolbar. */
+    public javafx.scene.layout.Region getViewSwitch() {
+        return viewSwitch;
     }
 
     /** Switches the active document to the given view mode (structured modes apply to XSD). */
