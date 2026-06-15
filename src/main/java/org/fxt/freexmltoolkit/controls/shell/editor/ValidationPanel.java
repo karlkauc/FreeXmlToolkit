@@ -63,6 +63,7 @@ public class ValidationPanel extends VBox {
     private final CheckMenuItem liveValidation = new CheckMenuItem("Validate while typing");
     private final ToggleButton singleMode = new ToggleButton("Single file");
     private final ToggleButton batchMode = new ToggleButton("Batch");
+    private final Button exportProblems = new Button();
     private final ContextMenu batchSourceMenu = new ContextMenu();
     private final PauseTransition debounce = new PauseTransition(Duration.millis(600));
     private File jsonSchemaFile;
@@ -150,7 +151,6 @@ public class ValidationPanel extends VBox {
 
         // --- RESULTS (batch) -----------------------------------------------
         resultsHeaderLabel.setId("validation-results-header");
-        HBox resultsHeader = sectionHeader(resultsHeaderLabel);
         batchList.setId("validation-results-list");
         batchList.getStyleClass().add("fxt-vp-results");
         batchList.setCellFactory(lv -> new BatchResultCell());
@@ -173,11 +173,20 @@ public class ValidationPanel extends VBox {
             }
         });
 
+        // --- RESULTS section (collapsible; natural height) -----------------
+        // batchList keeps its own data-driven visibility inside this wrapper, so the
+        // section's collapse state and the "has results" state compose cleanly.
+        VBox resultsBody = new VBox(batchList);
+        CollapsibleSection resultsSection = new CollapsibleSection(resultsHeaderLabel, resultsBody, false);
+        resultsSection.setId("validation-results-section");
+
         // --- PROBLEMS -------------------------------------------------------
-        Label problemsLabel = new Label("PROBLEMS");
-        HBox problemsHeader = sectionHeader(problemsLabel);
         problemsList.setId("validation-problems-list");
         problemsList.getStyleClass().add("fxt-vp-problems");
+        // A small min height lets the surrounding VBox shrink the list to the available
+        // space (instead of the list forcing the panel taller than the viewport), so the
+        // list's own vertical scrollbar appears when there are more problems than fit.
+        problemsList.setMinHeight(0);
         VBox.setVgrow(problemsList, Priority.ALWAYS);
         problemsList.setPlaceholder(new Label("No problems"));
         problemsList.setCellFactory(lv -> new ProblemCell());
@@ -186,6 +195,18 @@ public class ValidationPanel extends VBox {
                 editorHost.goToLine(newV.line());
             }
         });
+
+        // Export the problems to an Excel workbook (enabled only when there are problems).
+        exportProblems.setId("validation-export-problems");
+        exportProblems.getStyleClass().add("fxt-sp-action");
+        exportProblems.setGraphic(icon("bi-file-earmark-excel", 14));
+        exportProblems.setTooltip(new javafx.scene.control.Tooltip("Export problems to Excel"));
+        exportProblems.setOnAction(e -> exportProblemsToExcel());
+        exportProblems.disableProperty().bind(javafx.beans.binding.Bindings.isEmpty(problems));
+        Label problemsLabel = new Label("PROBLEMS");
+        CollapsibleSection problemsSection = new CollapsibleSection(
+                problemsLabel, problemsList, true, exportProblems);
+        problemsSection.setId("validation-problems-section");
 
         // Continuous (debounced) validation: re-validate shortly after the active
         // document changes (typing / tab switch / schema binding), when enabled.
@@ -210,8 +231,8 @@ public class ValidationPanel extends VBox {
         getChildren().addAll(header,
                 sectionHeader(new Label("SOURCES")), xsdRow, schematronRow,
                 runBox, status,
-                resultsHeader, batchList,
-                problemsHeader, problemsList);
+                resultsSection,
+                problemsSection);
     }
 
     /** Builds the ⋮ overflow menu (tools that are not part of the mockup's main flow). */
@@ -645,6 +666,104 @@ public class ValidationPanel extends VBox {
         IconifyIcon icon = new IconifyIcon(literal);
         icon.setIconSize(size);
         return icon;
+    }
+
+    /**
+     * Exports the currently shown problems to a user-chosen .xlsx file (off-thread),
+     * then reports success/failure. No-op when there are no problems.
+     */
+    public void exportProblemsToExcel() {
+        if (problems.isEmpty()) {
+            return;
+        }
+        List<ValidationProblem> snapshot = List.copyOf(problems);
+        String sourceName = editorHost.getActiveDocument()
+                .map(OpenDocument::getPath)
+                .map(p -> p.getFileName().toString())
+                .orElse(null);
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Export problems to Excel");
+        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Excel Workbook", "*.xlsx"));
+        chooser.setInitialFileName((sourceName != null ? stripExtension(sourceName) : "validation") + "-problems.xlsx");
+        File target = chooser.showSaveDialog(getScene() != null ? getScene().getWindow() : null);
+        if (target == null) {
+            return;
+        }
+        File output = target.getName().toLowerCase().endsWith(".xlsx")
+                ? target : new File(target.getParentFile(), target.getName() + ".xlsx");
+        status.setText("Exporting " + snapshot.size() + " problem(s)…");
+        FxtGui.executorService.submit(() -> {
+            try {
+                ValidationExcelExporter.export(snapshot, sourceName, output.toPath());
+                Platform.runLater(() -> {
+                    status.setText("Exported " + snapshot.size() + " problem(s)");
+                    org.fxt.freexmltoolkit.util.DialogHelper.showInformation("Export problems",
+                            null, "Wrote " + snapshot.size() + " problem(s) to:\n" + output.getAbsolutePath());
+                });
+            } catch (Exception ex) {
+                Platform.runLater(() -> org.fxt.freexmltoolkit.util.DialogHelper.showError(
+                        "Export problems", null, "Could not write the Excel file: " + ex.getMessage()));
+            }
+        });
+    }
+
+    private static String stripExtension(String name) {
+        int dot = name.lastIndexOf('.');
+        return dot > 0 ? name.substring(0, dot) : name;
+    }
+
+    /**
+     * A side-panel section with a clickable header (chevron + title + optional trailing
+     * controls) that collapses/expands its body. Collapsing also drops the section's
+     * {@code Vgrow} so a collapsed section no longer reserves vertical space.
+     */
+    private static final class CollapsibleSection extends VBox {
+        private final Region body;
+        private final IconifyIcon chevron;
+        private final boolean growWhenExpanded;
+        private boolean expanded = true;
+
+        CollapsibleSection(Label titleLabel, Region body, boolean growWhenExpanded,
+                           javafx.scene.Node... trailing) {
+            this.body = body;
+            this.growWhenExpanded = growWhenExpanded;
+            getStyleClass().add("fxt-vp-section");
+
+            chevron = new IconifyIcon("bi-chevron-down");
+            chevron.setIconSize(11);
+            Region spacer = new Region();
+            HBox.setHgrow(spacer, Priority.ALWAYS);
+            HBox clickable = new HBox(6, chevron, titleLabel, spacer);
+            clickable.getStyleClass().add("fxt-vp-section-header");
+            clickable.setAlignment(Pos.CENTER_LEFT);
+            clickable.setMaxWidth(Double.MAX_VALUE);
+            HBox.setHgrow(clickable, Priority.ALWAYS);
+            clickable.setOnMouseClicked(e -> toggle());
+
+            HBox header = new HBox(4, clickable);
+            header.setAlignment(Pos.CENTER_LEFT);
+            header.getChildren().addAll(trailing);
+
+            if (growWhenExpanded) {
+                VBox.setVgrow(body, Priority.ALWAYS);
+                VBox.setVgrow(this, Priority.ALWAYS);
+            }
+            getChildren().addAll(header, body);
+        }
+
+        private void toggle() {
+            setExpanded(!expanded);
+        }
+
+        private void setExpanded(boolean expand) {
+            expanded = expand;
+            body.setVisible(expand);
+            body.setManaged(expand);
+            chevron.setIconLiteral(expand ? "bi-chevron-down" : "bi-chevron-right");
+            // A collapsed grow-section must release its vertical space; a non-grow
+            // section never grabs space either way.
+            VBox.setVgrow(this, (expand && growWhenExpanded) ? Priority.ALWAYS : Priority.NEVER);
+        }
     }
 
     /** Renders a problem as "[source] Ln N: message" with a colored severity icon. */

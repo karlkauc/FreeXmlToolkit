@@ -1183,6 +1183,11 @@
     -fx-padding: 12 12 6 12;
 }
 
+/* Collapsible RESULTS/PROBLEMS headers: signal the click affordance. */
+.fxt-vp-section > .hbox > .fxt-vp-section-header {
+    -fx-cursor: hand;
+}
+
 .fxt-vp-section-header .label {
     -fx-font-size: 11px;
     -fx-font-weight: bold;
