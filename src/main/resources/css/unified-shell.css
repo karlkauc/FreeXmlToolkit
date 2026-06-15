@@ -312,23 +312,82 @@
 }
 
 .fxt-tool-button {
-    -fx-background-color: transparent;
+    -fx-background-color: -fxt-tool-neutral-bg;
+    -fx-border-color: -fxt-tool-neutral-border;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
     -fx-background-radius: 6;
     -fx-padding: 4 8 4 8;
+    -fx-graphic-text-gap: 6;
+    -fx-font-family: "Inter", sans-serif;
+    -fx-text-fill: -fxt-tool-neutral-fg;
     -fx-cursor: hand;
 }
 
 .fxt-tool-button .iconify-icon {
-    -fx-icon-color: -fxt-text-secondary;
+    -fx-icon-color: -fxt-tool-neutral-fg;
 }
 
 .fxt-tool-button:hover {
-    -fx-background-color: -fxt-bg-subtle;
+    -fx-background-color: derive(-fxt-tool-neutral-bg, -6%);
 }
 
-.fxt-tool-button:hover .iconify-icon {
-    -fx-icon-color: -fxt-primary;
+.fxt-tool-button:disabled {
+    -fx-opacity: 0.45;
 }
+
+/* ----- Color variants (semantic, soft-tinted) ----- */
+.fxt-tool-button.fxt-tool-primary {
+    -fx-background-color: -fxt-tool-primary-bg;
+    -fx-border-color: -fxt-tool-primary-border;
+    -fx-text-fill: -fxt-tool-primary-fg;
+}
+.fxt-tool-button.fxt-tool-primary .iconify-icon { -fx-icon-color: -fxt-tool-primary-fg; }
+.fxt-tool-button.fxt-tool-primary:hover { -fx-background-color: derive(-fxt-tool-primary-bg, -8%); }
+
+.fxt-tool-button.fxt-tool-success {
+    -fx-background-color: -fxt-tool-success-bg;
+    -fx-border-color: -fxt-tool-success-border;
+    -fx-text-fill: -fxt-tool-success-fg;
+}
+.fxt-tool-button.fxt-tool-success .iconify-icon { -fx-icon-color: -fxt-tool-success-fg; }
+.fxt-tool-button.fxt-tool-success:hover { -fx-background-color: derive(-fxt-tool-success-bg, -8%); }
+
+.fxt-tool-button.fxt-tool-info {
+    -fx-background-color: -fxt-tool-info-bg;
+    -fx-border-color: -fxt-tool-info-border;
+    -fx-text-fill: -fxt-tool-info-fg;
+}
+.fxt-tool-button.fxt-tool-info .iconify-icon { -fx-icon-color: -fxt-tool-info-fg; }
+.fxt-tool-button.fxt-tool-info:hover { -fx-background-color: derive(-fxt-tool-info-bg, -8%); }
+
+.fxt-tool-button.fxt-tool-warning {
+    -fx-background-color: -fxt-tool-warning-bg;
+    -fx-border-color: -fxt-tool-warning-border;
+    -fx-text-fill: -fxt-tool-warning-fg;
+}
+.fxt-tool-button.fxt-tool-warning .iconify-icon { -fx-icon-color: -fxt-tool-warning-fg; }
+.fxt-tool-button.fxt-tool-warning:hover { -fx-background-color: derive(-fxt-tool-warning-bg, -8%); }
+
+.fxt-tool-button.fxt-tool-danger {
+    -fx-background-color: -fxt-tool-danger-bg;
+    -fx-border-color: -fxt-tool-danger-border;
+    -fx-text-fill: -fxt-tool-danger-fg;
+}
+.fxt-tool-button.fxt-tool-danger .iconify-icon { -fx-icon-color: -fxt-tool-danger-fg; }
+.fxt-tool-button.fxt-tool-danger:hover { -fx-background-color: derive(-fxt-tool-danger-bg, -8%); }
+
+.fxt-tool-button.fxt-tool-neutral {
+    -fx-background-color: -fxt-tool-neutral-bg;
+    -fx-border-color: -fxt-tool-neutral-border;
+    -fx-text-fill: -fxt-tool-neutral-fg;
+}
+.fxt-tool-button.fxt-tool-neutral .iconify-icon { -fx-icon-color: -fxt-tool-neutral-fg; }
+.fxt-tool-button.fxt-tool-neutral:hover { -fx-background-color: derive(-fxt-tool-neutral-bg, -6%); }
+
+/* ----- Size variants ----- */
+.fxt-tool-button.fxt-tool-small { -fx-padding: 4 8 4 8; -fx-font-size: 11px; }
+.fxt-tool-button.fxt-tool-large { -fx-padding: 6 12 6 12; -fx-font-size: 13px; }
 
 /* Discreet in-edge collapse chevron overlaid on each side panel ("<<" / ">>"). */
 .fxt-panel-collapse {
@@ -986,24 +1045,7 @@
     -fx-text-fill: -fxt-text-muted;
 }
 
-/* ----- Editor toolbar: primary Validate button (Figma) ----- */
-.fxt-validate-button {
-    -fx-background-color: -fxt-primary;
-    -fx-background-radius: 6;
-    -fx-text-fill: white;
-    -fx-font-family: "Inter", sans-serif;
-    -fx-font-size: 12px;
-    -fx-font-weight: bold;
-    -fx-padding: 4 12 4 12;
-    -fx-graphic-text-gap: 6;
-    -fx-cursor: hand;
-}
-.fxt-validate-button .iconify-icon {
-    -fx-icon-color: white;
-}
-.fxt-validate-button:hover {
-    -fx-background-color: derive(-fxt-primary, -8%);
-}
+/* ----- Editor toolbar: Validate now uses the shared .fxt-tool-primary variant ----- */
 
 /* ----- Inspector validation badge (Figma node header "✓ Valid") ----- */
 .fxt-inspector-valid-badge, .fxt-inspector-invalid-badge {
