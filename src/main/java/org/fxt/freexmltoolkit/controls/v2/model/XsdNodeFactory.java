@@ -25,7 +25,9 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.ErrorHandler;
 import org.xml.sax.InputSource;
+import org.xml.sax.SAXParseException;
 
 /**
  * Factory for creating XSD model instances from XSD files or strings using the XsdNode hierarchy.
@@ -136,6 +138,36 @@ public class XsdNodeFactory {
         return fromString(xsdContent, null);
     }
 
+    /** Removes a leading UTF-8 BOM (U+FEFF) so character-stream parsing does not fail on it. */
+    private static String stripLeadingBom(String content) {
+        return (content != null && !content.isEmpty() && content.charAt(0) == '﻿')
+                ? content.substring(1) : content;
+    }
+
+    /**
+     * An {@link ErrorHandler} that routes parse problems to the logger and re-throws fatal
+     * errors, instead of the default JAXP handler that prints to {@code System.err}. Callers
+     * already convert the thrown exception into a user-facing message, so this keeps the
+     * console clean while preserving the failure.
+     */
+    private static final ErrorHandler QUIET_ERROR_HANDLER = new ErrorHandler() {
+        @Override
+        public void warning(SAXParseException e) {
+            logger.debug("XSD parse warning: {}", e.getMessage());
+        }
+
+        @Override
+        public void error(SAXParseException e) {
+            logger.debug("XSD parse error: {}", e.getMessage());
+        }
+
+        @Override
+        public void fatalError(SAXParseException e) throws SAXParseException {
+            logger.debug("XSD parse fatal error: {}", e.getMessage());
+            throw e;
+        }
+    };
+
     /**
      * Creates an XSD model from a string with optional base directory for resolving schema references.
      *
@@ -164,7 +196,12 @@ public class XsdNodeFactory {
         DocumentBuilderFactory factory = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureDocumentBuilderFactory();
         factory.setNamespaceAware(true);
         DocumentBuilder builder = factory.newDocumentBuilder();
-        Document document = builder.parse(new InputSource(new StringReader(xsdContent)));
+        builder.setErrorHandler(QUIET_ERROR_HANDLER);
+        // A UTF-8 BOM (U+FEFF) is auto-detected only on byte streams; on a character
+        // stream it is treated as content and yields "Content is not allowed in prolog".
+        // Files read via Files.readString(..., UTF_8) keep the BOM, so strip it here.
+        String content = stripLeadingBom(xsdContent);
+        Document document = builder.parse(new InputSource(new StringReader(content)));
 
         return fromDocument(document, mainSchemaFile, baseDirectory);
     }
@@ -458,6 +495,7 @@ public class XsdNodeFactory {
 
         try {
             DocumentBuilder includeBuilder = factory.newDocumentBuilder();
+            includeBuilder.setErrorHandler(QUIET_ERROR_HANDLER);
             Document includedDocument = includeBuilder.parse(realPath.toFile());
             Element includedRoot = includedDocument.getDocumentElement();
 

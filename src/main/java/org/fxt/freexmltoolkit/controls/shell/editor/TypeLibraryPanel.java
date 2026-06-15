@@ -419,7 +419,9 @@ public class TypeLibraryPanel extends VBox {
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
             String result = action.apply(content);
             javafx.application.Platform.runLater(() -> {
-                if (!result.startsWith("ERROR:")) {
+                if (result.startsWith("ERROR:")) {
+                    alert(javafx.scene.control.Alert.AlertType.ERROR, "Schema Tool", result);
+                } else {
                     editorHost.openGeneratedDocument(result, outputType, outputName);
                 }
             });

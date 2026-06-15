@@ -39,6 +39,43 @@ class XsdNodeFactoryTest {
     }
 
     @Test
+    void testParseSchemaWithLeadingUtf8Bom() throws Exception {
+        // Files saved with a UTF-8 BOM keep the leading U+FEFF when read via
+        // Files.readString(..., UTF_8). Parsing that text through a character
+        // stream must not fail with "Content is not allowed in prolog".
+        String xsd = "﻿" + """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                           targetNamespace="http://example.com/test">
+                    <xs:element name="root" type="xs:string"/>
+                </xs:schema>
+                """;
+
+        XsdNodeFactory factory = new XsdNodeFactory();
+        XsdSchema schema = factory.fromString(xsd);
+
+        assertNotNull(schema);
+        assertEquals("http://example.com/test", schema.getTargetNamespace());
+        assertEquals(1, schema.getChildren().size());
+    }
+
+    @Test
+    void testInvalidContentThrowsWithoutPrintingToStderr() {
+        java.io.PrintStream originalErr = System.err;
+        java.io.ByteArrayOutputStream captured = new java.io.ByteArrayOutputStream();
+        System.setErr(new java.io.PrintStream(captured));
+        try {
+            assertThrows(Exception.class, () -> new XsdNodeFactory().fromString("not xml at all"));
+        } finally {
+            System.setErr(originalErr);
+        }
+        // The default JAXP handler would print "[Fatal Error] ... Content is not allowed
+        // in prolog." here; the quiet handler must keep the console clean.
+        assertTrue(captured.toString().isEmpty(),
+                "Parse failure must not write to System.err, but got: " + captured);
+    }
+
+    @Test
     void testParseElementWithComplexType() throws Exception {
         String xsd = """
                 <?xml version="1.0" encoding="UTF-8"?>
