@@ -136,8 +136,16 @@ public class WorkspaceTree extends VBox {
                 return;
             }
             getStyleClass().remove("fxt-tree-folder");
-            IconifyIcon icon = new IconifyIcon(EditorFileType.fromFileName(item.toString()).icon());
+            EditorFileType type = EditorFileType.fromFileName(item.toString());
+            IconifyIcon icon = new IconifyIcon(type.icon());
             icon.setIconSize(15);
+            // Bind (not set) the per-type color so the tree-cell CSS -fx-icon-color can't override it.
+            try {
+                icon.iconColorProperty().bind(new javafx.beans.property.SimpleObjectProperty<>(
+                        javafx.scene.paint.Color.web(type.color())));
+            } catch (Exception ignored) {
+                // unparsable color: keep the default icon color
+            }
             setGraphic(icon);
         }
     }

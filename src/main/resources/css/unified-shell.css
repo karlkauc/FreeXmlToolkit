@@ -13,10 +13,10 @@
     -fx-font-family: "Inter", "Segoe UI", sans-serif;
 }
 
-/* ----- Activity Bar --------------------------------------------------- */
+/* ----- Activity Bar (dark rail, Figma "future" — dark even in light theme) --- */
 .fxt-activity-bar {
-    -fx-background-color: -fxt-bg-surface-2;
-    -fx-border-color: -fxt-border;
+    -fx-background-color: #1a1d21;
+    -fx-border-color: #2a2f37;
     -fx-border-width: 0 1 0 0;
     -fx-min-width: 56;
     -fx-pref-width: 56;
@@ -37,23 +37,23 @@
 }
 
 .fxt-activity-button .iconify-icon {
-    -fx-icon-color: -fxt-text-muted;
+    -fx-icon-color: #8a93a0;
 }
 
 .fxt-activity-button:hover {
-    -fx-background-color: -fxt-bg-subtle;
+    -fx-background-color: #2a2f37;
 }
 
 .fxt-activity-button:hover .iconify-icon {
-    -fx-icon-color: -fxt-text-primary;
+    -fx-icon-color: #e9ecf1;
 }
 
 .fxt-activity-button:selected {
-    -fx-background-color: -fxt-bg-subtle;
+    -fx-background-color: -fxt-primary;
 }
 
 .fxt-activity-button:selected .iconify-icon {
-    -fx-icon-color: -fxt-primary;
+    -fx-icon-color: #ffffff;
 }
 
 /* ----- Work area ------------------------------------------------------ */
@@ -290,7 +290,7 @@
 }
 
 .fxt-editor-toolbar {
-    -fx-background-color: -fxt-bg-surface;
+    -fx-background-color: -fxt-bg-surface-2;
     -fx-border-color: -fxt-border;
     -fx-border-width: 0 0 1 0;
     -fx-padding: 4 8 4 8;
@@ -300,7 +300,7 @@
 
 /* ===== Header bar (Figma "future": breadcrumb · centered search · theme icons) ===== */
 .fxt-header-bar {
-    -fx-background-color: -fxt-bg-surface;
+    -fx-background-color: -fxt-bg-surface-2;
     -fx-border-color: -fxt-border;
     -fx-border-width: 0 0 1 0;
     -fx-padding: 8 14 8 14;
@@ -558,6 +558,36 @@
 .fxt-open-editors .list-cell:filled:selected {
     -fx-background-color: -fxt-bg-subtle;
     -fx-text-fill: -fxt-text-primary;
+}
+
+/* FAVORITES | RECENT side-by-side tabs at the bottom of the Explorer (Figma "future").
+   Active tab is underlined in primary blue. */
+.fxt-fav-tabs {
+    -fx-border-color: -fxt-border;
+    -fx-border-width: 1 0 0 0;
+}
+
+.fxt-fav-tab {
+    -fx-background-color: transparent;
+    -fx-background-radius: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0 0 2 0;
+    -fx-text-fill: -fxt-text-muted;
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-padding: 8 6 6 6;
+    -fx-cursor: hand;
+}
+
+.fxt-fav-tab:hover {
+    -fx-text-fill: -fxt-text-secondary;
+}
+
+.fxt-fav-tab:selected {
+    -fx-background-color: transparent;
+    -fx-text-fill: -fxt-primary;
+    -fx-border-color: transparent transparent -fxt-primary transparent;
 }
 
 /* Favorites type-group header rows (XML, XSD, …): small bold caption, not selectable-looking */
@@ -1773,12 +1803,20 @@
 
 .fxt-sp-action {
     -fx-background-color: transparent;
-    -fx-padding: 2;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-background-radius: 6;
+    -fx-padding: 4;
     -fx-cursor: hand;
 }
 
 .fxt-sp-action .iconify-icon {
     -fx-icon-color: -fxt-text-muted;
+}
+
+.fxt-sp-action:hover {
+    -fx-background-color: -fxt-bg-subtle;
 }
 
 .fxt-sp-action:hover .iconify-icon {
@@ -1787,7 +1825,10 @@
 
 .fxt-sp-overflow {
     -fx-background-color: transparent;
-    -fx-padding: 2;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-padding: 4;
     -fx-cursor: hand;
 }
 
@@ -1818,14 +1859,19 @@
     -fx-icon-color: -fxt-text-muted;
 }
 
-/* Open-editors rows (Figma: active row = subtle bg, primary semibold name,
-   primary file icon, dirty dot right). */
-.fxt-open-editors .list-cell.active {
-    -fx-background-color: -fxt-bg-subtle;
+/* OPEN EDITORS rows (a plain VBox of .fxt-open-row, not a ListView): icon · name · dirty dot;
+   active row = subtle bg + primary bold name; the file icon keeps its bound per-type color. */
+.fxt-open-row {
+    -fx-padding: 6 12 6 28;
+    -fx-cursor: hand;
 }
 
-.fxt-open-editors .list-cell.active .iconify-icon {
-    -fx-icon-color: -fxt-primary;
+.fxt-open-row:hover {
+    -fx-background-color: -fxt-bg-surface-2;
+}
+
+.fxt-open-row.active {
+    -fx-background-color: -fxt-bg-subtle;
 }
 
 .fxt-open-name {

@@ -41,13 +41,15 @@ public class ExplorerPanel extends VBox {
             FXCollections.observableArrayList();
     private final ListView<org.fxt.freexmltoolkit.domain.FileFavorite> favoritesList =
             new ListView<>(favorites);
-    private final ObservableList<OpenDocument> openItems = FXCollections.observableArrayList();
-    private final ListView<OpenDocument> openList = new ListView<>(openItems);
+    /**
+     * OPEN EDITORS is a plain VBox of rows, not a virtualized ListView: the list is small, and a
+     * ListView populated after construction (via the open-documents listener) while the panel was
+     * built hidden failed to render its cell content in the full shell. Rows always render.
+     */
+    private final VBox openEditorsBox = new VBox();
     private final WorkspaceTree workspace = new WorkspaceTree(this::openWorkspaceFile);
     private final Label workspaceTitle = new Label("WORKSPACE");
     private final MenuButton overflowMenu = new MenuButton();
-    /** Guards the OPEN-EDITORS selection listener against host-driven sync loops. */
-    private boolean syncingSelection;
 
     public ExplorerPanel(EditorHost editorHost) {
         this.editorHost = editorHost;
@@ -73,26 +75,8 @@ public class ExplorerPanel extends VBox {
         header.getStyleClass().add("fxt-sp-header");
         header.setAlignment(Pos.CENTER_LEFT);
 
-        // --- OPEN EDITORS ----------------------------------------------------
-        // Backed by a private copy (not the live list) and synced via
-        // clearSelection + setAll, to avoid a JavaFX ListViewBehavior crash that
-        // can occur when the bound items list is mutated while a row is selected.
-        openList.getStyleClass().addAll("fxt-open-editors", "fxt-explorer-list");
-        openList.setCellFactory(lv -> new OpenDocumentCell());
-        // Fixed cell height so the list can size itself to its rows exactly
-        // (no clipped row / stray scrollbar from estimated heights).
-        openList.setFixedCellSize(28);
-        // Depend on the list itself (not Bindings.size(...)): a lazy size binding
-        // that is never read stops firing after its first invalidation.
-        openList.prefHeightProperty().bind(javafx.beans.binding.Bindings.createDoubleBinding(
-                () -> Math.min(170.0, Math.max(1, openItems.size()) * 28.0 + 2), openItems));
-        openList.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
-            if (newV != null && !syncingSelection) {
-                // Defer out of the selection-change processing to avoid re-entering
-                // the ListViewBehavior listener (IndexOutOfBoundsException).
-                javafx.application.Platform.runLater(() -> editorHost.selectDocument(newV));
-            }
-        });
+        // --- OPEN EDITORS (VBox of rows) -------------------------------------
+        openEditorsBox.getStyleClass().add("fxt-open-editors-box");
 
         // --- workspace tree ---------------------------------------------------
         workspaceTitle.getStyleClass().add("fxt-sp-section-label");
@@ -137,24 +121,22 @@ public class ExplorerPanel extends VBox {
         favoritesMenu.getItems().add(removeFavorite);
         favoritesList.setContextMenu(favoritesMenu);
 
-        HBox openHeader = sectionHeader(new Label("OPEN EDITORS"), openList);
+        HBox openHeader = sectionHeader(new Label("OPEN EDITORS"), openEditorsBox);
         openHeader.setId("explorer-open-editors-header");
         HBox workspaceHeader = sectionHeader(workspaceTitle, workspace);
         workspaceHeader.setId("explorer-workspace-header");
-        HBox recentHeader = sectionHeader(new Label("RECENT"), recentList);
-        recentHeader.setId("explorer-recent-header");
-        HBox favoritesHeader = sectionHeader(new Label("FAVORITES"), favoritesList);
-        favoritesHeader.setId("explorer-favorites-header");
+
+        // FAVORITES | RECENT as a side-by-side tab control pinned to the bottom (Figma "future").
+        javafx.scene.layout.VBox favRecentPane = buildFavoritesRecentTabs();
+
         getChildren().addAll(header,
-                openHeader, openList,
+                openHeader, openEditorsBox,
                 workspaceHeader, workspace,
-                recentHeader, recentList,
-                favoritesHeader, favoritesList);
+                favRecentPane);
         refreshFavorites();
 
-        // Track recent files as documents open, keep the Open Editors list in
-        // sync (selection cleared before each replace — see above) and mirror
-        // the host's active document as the highlighted/selected row.
+        // Track recent files as documents open and keep OPEN EDITORS in sync (rebuilds the rows;
+        // also re-styles the active row when the active tab changes).
         refreshRecent();
         editorHost.getOpenDocuments().addListener((javafx.collections.ListChangeListener<OpenDocument>) c -> {
             java.util.List<OpenDocument> added = new java.util.ArrayList<>();
@@ -166,39 +148,102 @@ public class ExplorerPanel extends VBox {
             syncOpenEditors();
             added.forEach(this::rememberRecent);
         });
-        editorHost.activeTabProperty().addListener((obs, oldV, newV) -> syncActiveRow());
+        editorHost.activeTabProperty().addListener((obs, oldV, newV) -> syncOpenEditors());
         syncOpenEditors();
-    }
 
-    /** Replaces the OPEN EDITORS items (selection cleared first) and re-selects the active doc. */
-    private void syncOpenEditors() {
-        syncingSelection = true;
-        try {
-            openList.getSelectionModel().clearSelection();
-            openItems.setAll(editorHost.getOpenDocuments());
-        } finally {
-            syncingSelection = false;
-        }
-        syncActiveRow();
-    }
-
-    /** Selects (and restyles) the row of the host's active document. */
-    private void syncActiveRow() {
-        OpenDocument active = editorHost.getActiveDocument().orElse(null);
-        syncingSelection = true;
-        try {
-            if (active == null) {
-                openList.getSelectionModel().clearSelection();
-            } else {
-                int index = openItems.indexOf(active);
-                if (index >= 0) {
-                    openList.getSelectionModel().select(index);
+        // The recent/favorites ListViews are built while the side panel is hidden (welcome mode,
+        // width 0); refresh them once the panel gets a real width so their cells render correctly.
+        widthProperty().addListener(new javafx.beans.value.ChangeListener<Number>() {
+            @Override
+            public void changed(javafx.beans.value.ObservableValue<? extends Number> obs,
+                    Number oldW, Number newW) {
+                if (newW != null && newW.doubleValue() > 1.0) {
+                    widthProperty().removeListener(this);
+                    recentList.refresh();
+                    favoritesList.refresh();
                 }
             }
-        } finally {
-            syncingSelection = false;
+        });
+    }
+
+    /**
+     * Builds the bottom FAVORITES | RECENT control: two side-by-side tabs (active tab
+     * underlined in primary blue) over a stack that swaps the favorites / recent lists
+     * (Figma "future" layout).
+     */
+    private javafx.scene.layout.VBox buildFavoritesRecentTabs() {
+        javafx.scene.control.ToggleGroup group = new javafx.scene.control.ToggleGroup();
+        javafx.scene.control.ToggleButton favTab = new javafx.scene.control.ToggleButton("FAVORITES");
+        javafx.scene.control.ToggleButton recentTab = new javafx.scene.control.ToggleButton("RECENT");
+        for (javafx.scene.control.ToggleButton tab : new javafx.scene.control.ToggleButton[]{favTab, recentTab}) {
+            tab.setToggleGroup(group);
+            tab.getStyleClass().add("fxt-fav-tab");
+            tab.setFocusTraversable(false);
+            tab.setMaxWidth(Double.MAX_VALUE);
+            HBox.setHgrow(tab, Priority.ALWAYS);
         }
-        openList.refresh();
+        favTab.setId("explorer-tab-favorites");
+        recentTab.setId("explorer-tab-recent");
+        HBox tabs = new HBox(favTab, recentTab);
+        tabs.getStyleClass().add("fxt-fav-tabs");
+
+        javafx.scene.layout.StackPane content = new javafx.scene.layout.StackPane(favoritesList, recentList);
+        Runnable sync = () -> {
+            boolean fav = favTab.isSelected();
+            favoritesList.setVisible(fav);
+            favoritesList.setManaged(fav);
+            recentList.setVisible(!fav);
+            recentList.setManaged(!fav);
+        };
+        // Route every press through an explicit selection so a tab can never be toggled off
+        // (a ToggleGroup would otherwise allow deselecting the active tab, leaving none).
+        favTab.setOnAction(e -> {
+            favTab.setSelected(true);
+            sync.run();
+        });
+        recentTab.setOnAction(e -> {
+            recentTab.setSelected(true);
+            sync.run();
+        });
+        favTab.setSelected(true);
+        sync.run();
+
+        return new javafx.scene.layout.VBox(tabs, content);
+    }
+
+    /** Rebuilds the OPEN EDITORS rows from the host's open documents (active row highlighted). */
+    private void syncOpenEditors() {
+        OpenDocument active = editorHost.getActiveDocument().orElse(null);
+        openEditorsBox.getChildren().clear();
+        for (OpenDocument doc : editorHost.getOpenDocuments()) {
+            openEditorsBox.getChildren().add(openEditorRow(doc, doc == active));
+        }
+    }
+
+    /** A single OPEN EDITORS row: type-colored icon · name · trailing dirty dot; click to select. */
+    private javafx.scene.Node openEditorRow(OpenDocument doc, boolean active) {
+        IconifyIcon icon = icon(doc.getFileType().icon(), 15);
+        bindIconColor(icon, doc.getFileType().color());
+
+        Label name = new Label(doc.getDisplayName());
+        name.getStyleClass().add(active ? "fxt-open-name-active" : "fxt-open-name");
+        name.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(name, Priority.ALWAYS);
+
+        Region dot = new Region();
+        dot.getStyleClass().add("fxt-dirty-dot");
+        boolean dirty = doc.dirtyProperty().get();
+        dot.setVisible(dirty);
+        dot.setManaged(dirty);
+
+        HBox row = new HBox(8, icon, name, dot);
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.getStyleClass().add("fxt-open-row");
+        if (active) {
+            row.getStyleClass().add("active");
+        }
+        row.setOnMouseClicked(e -> editorHost.selectDocument(doc));
+        return row;
     }
 
     /** Opens a file from the workspace tree and reveals the Open Editors entry. */
@@ -313,47 +358,21 @@ public class ExplorerPanel extends VBox {
     }
 
     /**
-     * Renders an open document: file-type icon · name (primary + semibold when
-     * active) · dirty dot on the right (per the mockup).
+     * Binds (not sets) the icon color to a per-type hex value. Binding is required so the
+     * list's CSS {@code -fx-icon-color} rule cannot override the color on the next CSS pass.
      */
-    private final class OpenDocumentCell extends ListCell<OpenDocument> {
-        private OpenDocumentCell() {
-            // Follow the ListView width (ellipsize) instead of forcing a horizontal scrollbar.
-            setPrefWidth(0);
+    private static void bindIconColor(IconifyIcon icon, String hex) {
+        if (hex == null) {
+            return;
         }
-
-        @Override
-        protected void updateItem(OpenDocument item, boolean empty) {
-            super.updateItem(item, empty);
-            getStyleClass().remove("active");
-            if (empty || item == null) {
-                setText(null);
-                setGraphic(null);
-                return;
-            }
-            boolean active = editorHost.getActiveDocument().map(d -> d == item).orElse(false);
-            if (active) {
-                getStyleClass().add("active");
-            }
-            IconifyIcon icon = icon(item.getFileType().icon(), 15);
-
-            Label name = new Label();
-            name.getStyleClass().add(active ? "fxt-open-name-active" : "fxt-open-name");
-            name.textProperty().bind(item.displayNameProperty());
-            name.setMaxWidth(Double.MAX_VALUE);
-            HBox.setHgrow(name, Priority.ALWAYS);
-
-            Region dot = new Region();
-            dot.getStyleClass().add("fxt-dirty-dot");
-            dot.visibleProperty().bind(item.dirtyProperty());
-            dot.managedProperty().bind(item.dirtyProperty());
-
-            HBox row = new HBox(8, icon, name, dot);
-            row.setAlignment(Pos.CENTER_LEFT);
-            setText(null);
-            setGraphic(row);
+        try {
+            icon.iconColorProperty().bind(new javafx.beans.property.SimpleObjectProperty<>(
+                    javafx.scene.paint.Color.web(hex)));
+        } catch (Exception ignored) {
+            // unparsable color: keep the default icon color
         }
     }
+
 
     /** Renders a recent file with its file-type icon and name. */
     private static final class RecentFileCell extends ListCell<File> {
@@ -370,8 +389,10 @@ public class ExplorerPanel extends VBox {
                 return;
             }
             setText(item.getName());
-            IconifyIcon icon = new IconifyIcon(EditorFileType.fromFileName(item.getName()).icon());
+            EditorFileType type = EditorFileType.fromFileName(item.getName());
+            IconifyIcon icon = new IconifyIcon(type.icon());
             icon.setIconSize(15);
+            bindIconColor(icon, type.color());
             setGraphic(icon);
         }
     }

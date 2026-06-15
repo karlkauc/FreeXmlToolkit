@@ -8,20 +8,22 @@ import java.util.Locale;
  * editor (syntax, IntelliSense) and the inspector can adapt to the content.
  */
 public enum EditorFileType {
-    XML("XML", "bi-code-slash", "xml"),
-    XSD("XSD", "bi-diagram-3", "xsd"),
-    XSLT("XSLT", "bi-arrow-repeat", "xsl", "xslt"),
-    SCHEMATRON("Schematron", "bi-check2-square", "sch", "schematron"),
-    JSON("JSON", "bi-braces", "json"),
-    OTHER("Text", "bi-file-earmark-text");
+    XML("XML", "bi-code-slash", "#3b5bdb", "xml"),
+    XSD("XSD", "bi-diagram-3", "#2f9e44", "xsd"),
+    XSLT("XSLT", "bi-arrow-repeat", "#f08c00", "xsl", "xslt"),
+    SCHEMATRON("Schematron", "bi-check2-square", "#e8590c", "sch", "schematron"),
+    JSON("JSON", "bi-braces", "#1098ad", "json"),
+    OTHER("Text", "bi-file-earmark-text", "#8a93a0");
 
     private final String label;
     private final String icon;
+    private final String color;
     private final List<String> extensions;
 
-    EditorFileType(String label, String icon, String... extensions) {
+    EditorFileType(String label, String icon, String color, String... extensions) {
         this.label = label;
         this.icon = icon;
+        this.color = color;
         this.extensions = List.of(extensions);
     }
 
@@ -33,6 +35,11 @@ public enum EditorFileType {
     /** @return the Bootstrap icon literal for this type. */
     public String icon() {
         return icon;
+    }
+
+    /** @return the per-type icon color (hex), used to tint file icons in the Explorer. */
+    public String color() {
+        return color;
     }
 
     /** @return the lowercase file extensions mapped to this type. */

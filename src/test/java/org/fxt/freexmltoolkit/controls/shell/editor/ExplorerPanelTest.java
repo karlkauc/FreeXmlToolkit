@@ -116,17 +116,14 @@ class ExplorerPanelTest {
 
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(a));
         WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> host.getOpenDocuments().size() == 1);
+        WaitForAsyncUtils.waitForFxEvents();
+        assertEquals(1, openEditorRowCount(), "Open Editors shows the first document");
 
-        // Select the first entry in the Open Editors list, then open another doc.
-        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
-            openEditorsList().getSelectionModel().select(0);
-            return null;
-        });
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(b));
         WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> host.getOpenDocuments().size() == 2);
         WaitForAsyncUtils.waitForFxEvents();
 
-        assertEquals(2, openEditorsList().getItems().size(), "Open Editors list mirrors both documents");
+        assertEquals(2, openEditorRowCount(), "Open Editors mirrors both documents");
     }
 
     @Test
@@ -141,22 +138,17 @@ class ExplorerPanelTest {
         WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> host.getOpenDocuments().size() == 2);
         WaitForAsyncUtils.waitForFxEvents();
 
-        // b.xml opened last → it is the active document and the selected row.
-        OpenDocument selected = openEditorsList().getSelectionModel().getSelectedItem();
-        assertNotNull(selected, "the active document's row must be selected");
-        assertEquals("b.xml", selected.getDisplayName());
+        // b.xml opened last → it is the active document and the highlighted row.
+        assertEquals("b.xml", activeOpenEditorName(), "the active document's row must be highlighted");
 
-        // Switching the active document re-selects its row.
+        // Switching the active document re-highlights its row.
         OpenDocument first = host.getOpenDocuments().get(0);
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
             host.selectDocument(first);
             return null;
         });
-        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> {
-            OpenDocument now = openEditorsList().getSelectionModel().getSelectedItem();
-            return now != null && "a.xml".equals(now.getDisplayName());
-        });
-        assertEquals("a.xml", openEditorsList().getSelectionModel().getSelectedItem().getDisplayName());
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> "a.xml".equals(activeOpenEditorName()));
+        assertEquals("a.xml", activeOpenEditorName());
     }
 
     @Test
@@ -187,7 +179,7 @@ class ExplorerPanelTest {
     @Test
     void clickingASectionHeaderCollapsesAndExpandsItsContent() {
         WaitForAsyncUtils.waitForFxEvents();
-        ListView<?> open = openEditorsList();
+        javafx.scene.Node open = openEditorsBox();
         assertTrue(open.isVisible(), "OPEN EDITORS starts expanded");
 
         var header = panel.lookup("#explorer-open-editors-header");
@@ -215,10 +207,31 @@ class ExplorerPanelTest {
                 false, false, false, false, true, false, false, true, false, false, null));
     }
 
-    @SuppressWarnings("unchecked")
-    private ListView<OpenDocument> openEditorsList() {
-        // The Open Editors list is the first .fxt-open-editors ListView in the panel.
-        return (ListView<OpenDocument>) panel.lookupAll(".fxt-open-editors").stream()
-                .filter(n -> n instanceof ListView).findFirst().orElseThrow();
+    /** The OPEN EDITORS container (a VBox of rows, not a ListView). */
+    private javafx.scene.layout.VBox openEditorsBox() {
+        return (javafx.scene.layout.VBox) panel.lookup(".fxt-open-editors-box");
+    }
+
+    /** @return the number of OPEN EDITORS rows currently shown. */
+    private int openEditorRowCount() {
+        return openEditorsBox().getChildren().size();
+    }
+
+    /** @return the file name shown in the highlighted (.active) OPEN EDITORS row, or null. */
+    private String activeOpenEditorName() {
+        for (javafx.scene.Node row : openEditorsBox().getChildren()) {
+            if (row.getStyleClass().contains("active")) {
+                return rowName(row);
+            }
+        }
+        return null;
+    }
+
+    /** Extracts the name Label's text from an OPEN EDITORS row. */
+    private static String rowName(javafx.scene.Node row) {
+        return ((HBox) row).getChildren().stream()
+                .filter(n -> n instanceof javafx.scene.control.Label)
+                .map(n -> ((javafx.scene.control.Label) n).getText())
+                .findFirst().orElse(null);
     }
 }
