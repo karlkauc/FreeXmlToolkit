@@ -68,7 +68,7 @@ public final class ValidationExcelExporter {
             title.setCellStyle(headerStyle);
             summary.addMergedRegion(new CellRangeAddress(0, 0, 0, 1));
             if (sourceFileName != null && !sourceFileName.isBlank()) {
-                writeRow(summary, row++, "Source file", sourceFileName);
+                writeRow(summary, row++, "Source file", safe(sourceFileName));
             }
             writeRow(summary, row++, "Generated", DATE_FORMATTER.format(LocalDateTime.now()));
             row++;
@@ -92,17 +92,17 @@ public final class ValidationExcelExporter {
             for (ValidationProblem problem : problems) {
                 Row dataRow = sheet.createRow(r);
                 dataRow.createCell(0).setCellValue(r);
-                dataRow.createCell(1).setCellValue(problem.source() != null ? problem.source() : "");
+                dataRow.createCell(1).setCellValue(safe(problem.source()));
                 boolean warning = "warning".equalsIgnoreCase(problem.severity());
                 Cell severityCell = dataRow.createCell(2);
-                severityCell.setCellValue(problem.severity() != null ? problem.severity() : "");
+                severityCell.setCellValue(safe(problem.severity()));
                 severityCell.setCellStyle(warning ? warningStyle : errorStyle);
                 if (problem.line() > 0) {
                     dataRow.createCell(3).setCellValue(problem.line());
                 } else {
                     dataRow.createCell(3).setCellValue("");
                 }
-                dataRow.createCell(4).setCellValue(problem.message() != null ? problem.message() : "");
+                dataRow.createCell(4).setCellValue(safe(problem.message()));
                 r++;
             }
             sheet.setColumnWidth(0, 2000);
@@ -119,6 +119,21 @@ public final class ValidationExcelExporter {
         }
 
         logger.info("Excel export completed: {}", outputPath);
+    }
+
+    /**
+     * Guards against spreadsheet formula injection (CWE-1236): a cell value whose first
+     * character is one a spreadsheet treats as a formula trigger is prefixed with an
+     * apostrophe so the app renders it as literal text. Applied to all validator-derived
+     * strings (message, source, severity) and the source file name.
+     */
+    private static String safe(String value) {
+        if (value == null || value.isEmpty()) {
+            return value == null ? "" : value;
+        }
+        char first = value.charAt(0);
+        return (first == '=' || first == '+' || first == '-' || first == '@'
+                || first == '\t' || first == '\r') ? "'" + value : value;
     }
 
     private static CellStyle headerStyle(Workbook workbook) {
