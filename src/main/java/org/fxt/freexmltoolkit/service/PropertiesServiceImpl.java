@@ -116,6 +116,8 @@ public class PropertiesServiceImpl implements PropertiesService {
         properties.setProperty("useSystemTempFolder", "true");
         // Note: xml.editor.use.v2 property removed - V2 is now the only editor
         properties.setProperty("ui.use.small.icons", "false"); // Feature flag for small toolbar icons
+        properties.setProperty("toolbar.show.labels", "false"); // editor toolbar: icon-only by default
+        properties.setProperty("toolbar.icon.size", "small");   // editor toolbar: small icons by default
         properties.setProperty("version", "20241209");
         properties.setProperty("manualProxy", "false");
         properties.setProperty("useSystemProxy", "true");
@@ -411,6 +413,31 @@ public class PropertiesServiceImpl implements PropertiesService {
         properties.setProperty("ui.use.small.icons", String.valueOf(useSmallIcons));
         saveProperties(properties);
         logger.debug("Set use small icons to: {}", useSmallIcons);
+    }
+
+    @Override
+    public boolean isToolbarShowLabels() {
+        return Boolean.parseBoolean(properties.getProperty("toolbar.show.labels", "false"));
+    }
+
+    @Override
+    public void setToolbarShowLabels(boolean showLabels) {
+        properties.setProperty("toolbar.show.labels", String.valueOf(showLabels));
+        saveProperties(properties);
+        logger.debug("Set toolbar show labels to: {}", showLabels);
+    }
+
+    @Override
+    public String getToolbarIconSize() {
+        String raw = properties.getProperty("toolbar.icon.size", "small");
+        return "large".equalsIgnoreCase(raw) ? "large" : "small";
+    }
+
+    @Override
+    public void setToolbarIconSize(String size) {
+        properties.setProperty("toolbar.icon.size", size == null ? "small" : size);
+        saveProperties(properties);
+        logger.debug("Set toolbar icon size to: {}", size);
     }
 
     // XSD Serialization settings implementation

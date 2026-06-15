@@ -299,6 +299,35 @@ public interface PropertiesService {
      */
     void setUseSmallIcons(boolean useSmallIcons);
 
+    /**
+     * Whether the editor-toolbar buttons show a text label next to their icon.
+     *
+     * @return true to show labels, false for icon-only (default: false)
+     */
+    boolean isToolbarShowLabels();
+
+    /**
+     * Sets whether the editor-toolbar buttons show a text label next to their icon.
+     *
+     * @param showLabels true to show labels, false for icon-only
+     */
+    void setToolbarShowLabels(boolean showLabels);
+
+    /**
+     * The editor-toolbar icon size.
+     *
+     * @return {@code "small"} or {@code "large"} (default and fallback: {@code "small"})
+     */
+    String getToolbarIconSize();
+
+    /**
+     * Sets the editor-toolbar icon size. Values other than {@code "large"}
+     * (case-insensitive) are stored as given but read back as {@code "small"}.
+     *
+     * @param size {@code "small"} or {@code "large"}
+     */
+    void setToolbarIconSize(String size);
+
     // XSD Serialization settings
 
     /**

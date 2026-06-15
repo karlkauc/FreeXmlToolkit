@@ -751,6 +751,27 @@ class UpdateCheckServiceTest {
         }
 
         @Override
+        public boolean isToolbarShowLabels() {
+            return Boolean.parseBoolean(properties.getProperty("toolbar.show.labels", "false"));
+        }
+
+        @Override
+        public void setToolbarShowLabels(boolean showLabels) {
+            properties.setProperty("toolbar.show.labels", String.valueOf(showLabels));
+        }
+
+        @Override
+        public String getToolbarIconSize() {
+            String raw = properties.getProperty("toolbar.icon.size", "small");
+            return "large".equalsIgnoreCase(raw) ? "large" : "small";
+        }
+
+        @Override
+        public void setToolbarIconSize(String size) {
+            properties.setProperty("toolbar.icon.size", size == null ? "small" : size);
+        }
+
+        @Override
         public String getXsdSortOrder() {
             return properties.getProperty("xsd.sort.order", "TYPE_BEFORE_NAME");
         }
