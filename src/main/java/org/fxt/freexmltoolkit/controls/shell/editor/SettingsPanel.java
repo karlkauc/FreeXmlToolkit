@@ -63,6 +63,9 @@ public class SettingsPanel extends VBox {
     // General
     private final CheckBox updateCheck = new CheckBox("Check for updates on startup");
     private final CheckBox smallIcons = new CheckBox("Use small icons");
+    private final CheckBox toolbarLabels = new CheckBox("Show toolbar button labels");
+    private final ToggleButton toolbarIconSmall = new ToggleButton("Small");
+    private final ToggleButton toolbarIconLarge = new ToggleButton("Large");
     private final CheckBox showLeftPanel = new CheckBox("Show left side panel");
     private final CheckBox showInspector = new CheckBox("Show Properties (inspector) panel");
 
@@ -102,6 +105,10 @@ public class SettingsPanel extends VBox {
         (isDark ? dark : light).setSelected(true);
         light.setOnAction(e -> applyTheme(false));
         dark.setOnAction(e -> applyTheme(true));
+
+        ToggleGroup toolbarIconSizeGroup = new ToggleGroup();
+        toolbarIconSmall.setToggleGroup(toolbarIconSizeGroup);
+        toolbarIconLarge.setToggleGroup(toolbarIconSizeGroup);
 
         indentSpaces.setEditable(true);
         jsonIndent.setEditable(true);
@@ -178,7 +185,9 @@ public class SettingsPanel extends VBox {
                         useSystemTemp, browseRow(customTempDir, this::chooseTempDir),
                         fill(clearTemp), fill(clearCache), tempStatus),
                 card("GENERAL", "bi-sliders", "#007bff",
-                        updateCheck, smallIcons, showLeftPanel, showInspector),
+                        updateCheck, smallIcons, toolbarLabels,
+                        labeled("Toolbar icons:", new HBox(6, toolbarIconSmall, toolbarIconLarge)),
+                        showLeftPanel, showInspector),
                 card("USER INFO", "bi-person", "#28a745",
                         labeled("Name:", userName), labeled("Email:", userEmail),
                         labeled("Company:", userCompany)),
@@ -337,6 +346,9 @@ public class SettingsPanel extends VBox {
             customTempDir.setText(orEmpty(props.getCustomTempFolder()));
             updateCheck.setSelected(props.isUpdateCheckEnabled());
             smallIcons.setSelected(props.isUseSmallIcons());
+            toolbarLabels.setSelected(props.isToolbarShowLabels());
+            boolean toolbarLarge = "large".equalsIgnoreCase(props.getToolbarIconSize());
+            (toolbarLarge ? toolbarIconLarge : toolbarIconSmall).setSelected(true);
             // Side-panel visibility (shared with UnifiedShellView; default open).
             showLeftPanel.setSelected(!"false".equalsIgnoreCase(orEmpty(props.get("shell.leftPanel.visible"))));
             showInspector.setSelected(!"false".equalsIgnoreCase(orEmpty(props.get("shell.inspector.visible"))));
@@ -382,6 +394,8 @@ public class SettingsPanel extends VBox {
             props.setCustomTempFolder(customTempDir.getText());
             props.setUpdateCheckEnabled(updateCheck.isSelected());
             props.setUseSmallIcons(smallIcons.isSelected());
+            props.setToolbarShowLabels(toolbarLabels.isSelected());
+            props.setToolbarIconSize(toolbarIconLarge.isSelected() ? "large" : "small");
             props.set("shell.leftPanel.visible", String.valueOf(showLeftPanel.isSelected()));
             props.set("shell.inspector.visible", String.valueOf(showInspector.isSelected()));
             props.set("useSystemProxy", String.valueOf(useSystemProxy.isSelected()));
