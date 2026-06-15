@@ -311,7 +311,38 @@
     -fx-spacing: 2;
 }
 
+/*
+ * Global default for .fxt-tool-button (flat, transparent icon buttons). This is the
+ * shared baseline used by ~20 panels/views across the app (FopPanel, HelpPanel,
+ * QueryConsole, SignaturePanel, …). The colored, raised "native" treatment below is
+ * deliberately scoped to the editor toolbar (.fxt-editor-toolbar) so it does NOT leak
+ * into those other surfaces.
+ */
 .fxt-tool-button {
+    -fx-background-color: transparent;
+    -fx-background-radius: 6;
+    -fx-padding: 4 8 4 8;
+    -fx-cursor: hand;
+}
+
+.fxt-tool-button .iconify-icon {
+    -fx-icon-color: -fxt-text-secondary;
+}
+
+.fxt-tool-button:hover {
+    -fx-background-color: -fxt-bg-subtle;
+}
+
+.fxt-tool-button:hover .iconify-icon {
+    -fx-icon-color: -fxt-primary;
+}
+
+/*
+ * ===== Editor toolbar (Action Bar): native, raised, semantically-colored buttons =====
+ * Scoped to .fxt-editor-toolbar so only the editor action bar (action buttons, Validate,
+ * and the side-panel toggles) gets this treatment.
+ */
+.fxt-editor-toolbar .fxt-tool-button {
     -fx-background-color: -fxt-tool-neutral-bg;
     -fx-border-color: -fxt-tool-neutral-border;
     -fx-border-width: 1;
@@ -324,70 +355,70 @@
     -fx-cursor: hand;
 }
 
-.fxt-tool-button .iconify-icon {
+.fxt-editor-toolbar .fxt-tool-button .iconify-icon {
     -fx-icon-color: -fxt-tool-neutral-fg;
 }
 
-.fxt-tool-button:hover {
+.fxt-editor-toolbar .fxt-tool-button:hover {
     -fx-background-color: derive(-fxt-tool-neutral-bg, -6%);
 }
 
-.fxt-tool-button:disabled {
+.fxt-editor-toolbar .fxt-tool-button:disabled {
     -fx-opacity: 0.45;
 }
 
 /* ----- Color variants (semantic, soft-tinted) ----- */
-.fxt-tool-button.fxt-tool-primary {
+.fxt-editor-toolbar .fxt-tool-button.fxt-tool-primary {
     -fx-background-color: -fxt-tool-primary-bg;
     -fx-border-color: -fxt-tool-primary-border;
     -fx-text-fill: -fxt-tool-primary-fg;
 }
-.fxt-tool-button.fxt-tool-primary .iconify-icon { -fx-icon-color: -fxt-tool-primary-fg; }
-.fxt-tool-button.fxt-tool-primary:hover { -fx-background-color: derive(-fxt-tool-primary-bg, -8%); }
+.fxt-editor-toolbar .fxt-tool-button.fxt-tool-primary .iconify-icon { -fx-icon-color: -fxt-tool-primary-fg; }
+.fxt-editor-toolbar .fxt-tool-button.fxt-tool-primary:hover { -fx-background-color: derive(-fxt-tool-primary-bg, -8%); }
 
-.fxt-tool-button.fxt-tool-success {
+.fxt-editor-toolbar .fxt-tool-button.fxt-tool-success {
     -fx-background-color: -fxt-tool-success-bg;
     -fx-border-color: -fxt-tool-success-border;
     -fx-text-fill: -fxt-tool-success-fg;
 }
-.fxt-tool-button.fxt-tool-success .iconify-icon { -fx-icon-color: -fxt-tool-success-fg; }
-.fxt-tool-button.fxt-tool-success:hover { -fx-background-color: derive(-fxt-tool-success-bg, -8%); }
+.fxt-editor-toolbar .fxt-tool-button.fxt-tool-success .iconify-icon { -fx-icon-color: -fxt-tool-success-fg; }
+.fxt-editor-toolbar .fxt-tool-button.fxt-tool-success:hover { -fx-background-color: derive(-fxt-tool-success-bg, -8%); }
 
-.fxt-tool-button.fxt-tool-info {
+.fxt-editor-toolbar .fxt-tool-button.fxt-tool-info {
     -fx-background-color: -fxt-tool-info-bg;
     -fx-border-color: -fxt-tool-info-border;
     -fx-text-fill: -fxt-tool-info-fg;
 }
-.fxt-tool-button.fxt-tool-info .iconify-icon { -fx-icon-color: -fxt-tool-info-fg; }
-.fxt-tool-button.fxt-tool-info:hover { -fx-background-color: derive(-fxt-tool-info-bg, -8%); }
+.fxt-editor-toolbar .fxt-tool-button.fxt-tool-info .iconify-icon { -fx-icon-color: -fxt-tool-info-fg; }
+.fxt-editor-toolbar .fxt-tool-button.fxt-tool-info:hover { -fx-background-color: derive(-fxt-tool-info-bg, -8%); }
 
-.fxt-tool-button.fxt-tool-warning {
+.fxt-editor-toolbar .fxt-tool-button.fxt-tool-warning {
     -fx-background-color: -fxt-tool-warning-bg;
     -fx-border-color: -fxt-tool-warning-border;
     -fx-text-fill: -fxt-tool-warning-fg;
 }
-.fxt-tool-button.fxt-tool-warning .iconify-icon { -fx-icon-color: -fxt-tool-warning-fg; }
-.fxt-tool-button.fxt-tool-warning:hover { -fx-background-color: derive(-fxt-tool-warning-bg, -8%); }
+.fxt-editor-toolbar .fxt-tool-button.fxt-tool-warning .iconify-icon { -fx-icon-color: -fxt-tool-warning-fg; }
+.fxt-editor-toolbar .fxt-tool-button.fxt-tool-warning:hover { -fx-background-color: derive(-fxt-tool-warning-bg, -8%); }
 
-.fxt-tool-button.fxt-tool-danger {
+.fxt-editor-toolbar .fxt-tool-button.fxt-tool-danger {
     -fx-background-color: -fxt-tool-danger-bg;
     -fx-border-color: -fxt-tool-danger-border;
     -fx-text-fill: -fxt-tool-danger-fg;
 }
-.fxt-tool-button.fxt-tool-danger .iconify-icon { -fx-icon-color: -fxt-tool-danger-fg; }
-.fxt-tool-button.fxt-tool-danger:hover { -fx-background-color: derive(-fxt-tool-danger-bg, -8%); }
+.fxt-editor-toolbar .fxt-tool-button.fxt-tool-danger .iconify-icon { -fx-icon-color: -fxt-tool-danger-fg; }
+.fxt-editor-toolbar .fxt-tool-button.fxt-tool-danger:hover { -fx-background-color: derive(-fxt-tool-danger-bg, -8%); }
 
-.fxt-tool-button.fxt-tool-neutral {
+.fxt-editor-toolbar .fxt-tool-button.fxt-tool-neutral {
     -fx-background-color: -fxt-tool-neutral-bg;
     -fx-border-color: -fxt-tool-neutral-border;
     -fx-text-fill: -fxt-tool-neutral-fg;
 }
-.fxt-tool-button.fxt-tool-neutral .iconify-icon { -fx-icon-color: -fxt-tool-neutral-fg; }
-.fxt-tool-button.fxt-tool-neutral:hover { -fx-background-color: derive(-fxt-tool-neutral-bg, -6%); }
+.fxt-editor-toolbar .fxt-tool-button.fxt-tool-neutral .iconify-icon { -fx-icon-color: -fxt-tool-neutral-fg; }
+.fxt-editor-toolbar .fxt-tool-button.fxt-tool-neutral:hover { -fx-background-color: derive(-fxt-tool-neutral-bg, -6%); }
 
 /* ----- Size variants ----- */
-.fxt-tool-button.fxt-tool-small { -fx-padding: 4 8 4 8; -fx-font-size: 11px; }
-.fxt-tool-button.fxt-tool-large { -fx-padding: 6 12 6 12; -fx-font-size: 13px; }
+.fxt-editor-toolbar .fxt-tool-button.fxt-tool-small { -fx-padding: 4 8 4 8; -fx-font-size: 11px; }
+.fxt-editor-toolbar .fxt-tool-button.fxt-tool-large { -fx-padding: 6 12 6 12; -fx-font-size: 13px; }
 
 /* Discreet in-edge collapse chevron overlaid on each side panel ("<<" / ">>"). */
 .fxt-panel-collapse {
