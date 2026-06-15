@@ -64,7 +64,7 @@ public class ExplorerPanel extends VBox {
         overflowMenu.getItems().addAll(
                 menuItem("Open file…", this::openFile),
                 menuItem("Clear recent", this::clearRecent));
-        HBox header = new HBox(4, title, headerSpacer,
+        HBox header = new HBox(10, title, headerSpacer,
                 flatAction("explorer-new-file", "bi-file-earmark-plus", "New file", this::newFile),
                 flatAction("explorer-open-folder", "bi-folder-plus", "Open folder…", this::chooseFolder),
                 flatAction("explorer-refresh", "bi-arrow-clockwise", "Refresh workspace",

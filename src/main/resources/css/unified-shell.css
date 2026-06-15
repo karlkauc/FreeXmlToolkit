@@ -1733,7 +1733,7 @@
 }
 
 .fxt-sp-header {
-    -fx-padding: 8 8 2 16;
+    -fx-padding: 14 12 13 16;
 }
 
 .fxt-sp-title {
@@ -1744,12 +1744,12 @@
 
 .fxt-sp-action {
     -fx-background-color: transparent;
-    -fx-padding: 3 5 3 5;
+    -fx-padding: 2;
     -fx-cursor: hand;
 }
 
 .fxt-sp-action .iconify-icon {
-    -fx-icon-color: -fxt-text-secondary;
+    -fx-icon-color: -fxt-text-muted;
 }
 
 .fxt-sp-action:hover .iconify-icon {
@@ -1758,7 +1758,7 @@
 
 .fxt-sp-overflow {
     -fx-background-color: transparent;
-    -fx-padding: 3 5 3 5;
+    -fx-padding: 2;
     -fx-cursor: hand;
 }
 
@@ -1772,7 +1772,7 @@
 }
 
 .fxt-sp-overflow .iconify-icon {
-    -fx-icon-color: -fxt-text-secondary;
+    -fx-icon-color: -fxt-text-muted;
 }
 
 .fxt-sp-section-header {
@@ -1790,9 +1790,13 @@
 }
 
 /* Open-editors rows (Figma: active row = subtle bg, primary semibold name,
-   dirty dot right). */
+   primary file icon, dirty dot right). */
 .fxt-open-editors .list-cell.active {
     -fx-background-color: -fxt-bg-subtle;
+}
+
+.fxt-open-editors .list-cell.active .iconify-icon {
+    -fx-icon-color: -fxt-primary;
 }
 
 .fxt-open-name {
@@ -1824,7 +1828,7 @@
 /* Explorer lists: rows indented under their section header (Figma pl-28),
    tree disclosure arrows in muted token color. */
 .fxt-explorer-list .list-cell {
-    -fx-padding: 4 12 4 26;
+    -fx-padding: 6 12 6 28;
 }
 
 .fxt-workspace-tree .tree-cell > .tree-disclosure-node > .arrow {

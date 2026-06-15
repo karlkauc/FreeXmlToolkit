@@ -17,7 +17,9 @@ import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
  * Skeleton of the new Unified shell (UI rebuild Phase 2): the persistent frame
  * that every activity will plug into.
  * <pre>
- *   ┌────┬──────────────┬───────────────────┬──────────────┐
+ *   ┌──────────────────────────────────────────────────────┐
+ *   │  editor toolbar (full window width: New/Open/Save/…)  │
+ *   ├────┬──────────────┬───────────────────┬──────────────┤
  *   │ A  │  side panel  │   editor / main   │  inspector   │
  *   │ c  │  (per        │   (file-type      │  (Node&XPath,│
  *   │ t  │   activity)  │    aware host)    │   Type&Facets│
@@ -114,7 +116,12 @@ public class UnifiedShellView extends BorderPane {
         getStyleClass().add("fxt-shell");
 
         setLeft(activityBar);
+        // Build the work area first (creates chromeUpdater), then promote the editor toolbar
+        // to the shell's top edge so it spans the FULL window width (above the activity bar,
+        // side panel and inspector). buildEditorToolbar() creates the panel toggles and syncs
+        // them via the now-existing chromeUpdater.
         setCenter(buildCenter());
+        setTop(buildEditorToolbar());
         setBottom(buildStatusBar());
 
         // React to activity changes: swap the side panel. Choosing an activity also reveals
@@ -585,11 +592,13 @@ public class UnifiedShellView extends BorderPane {
      * document is open, so the toolbar stays available at all times.
      */
     private Region buildEditorCenter() {
-        Region toolbar = buildEditorToolbar();
         searchBar.hide(); // shown on Ctrl+F / Ctrl+H
         // PROBLEMS panel below the editor (Figma node 42:3); hides itself while empty.
         var problemsPanel = new org.fxt.freexmltoolkit.controls.shell.editor.ProblemsPanel(editorHost);
-        VBox editorArea = new VBox(searchBar, toolbar, editorHost, problemsPanel);
+        // The editor toolbar is no longer part of the center column: it is promoted to the
+        // shell's top edge (BorderPane.top) so it spans the full window width — see the
+        // constructor. Only the find bar, editor and PROBLEMS panel stay in this column.
+        VBox editorArea = new VBox(searchBar, editorHost, problemsPanel);
         VBox.setVgrow(editorHost, Priority.ALWAYS);
         editorArea.getStyleClass().addAll("fxt-editor-area", "fxt-editor-center");
         return editorArea;
