@@ -53,6 +53,14 @@
     -fxt-code-decl: #9a6bd6;
     -fxt-code-punct: #7a8392;
     -fxt-code-curline: #f2f6ff;
+
+    /* Semantic — editor toolbar buttons (soft-tinted native look) */
+    -fxt-tool-primary-bg: #eef2ff;  -fxt-tool-primary-border: #c3cef6;  -fxt-tool-primary-fg: #3b5bdb;
+    -fxt-tool-success-bg: #eaf6ee;  -fxt-tool-success-border: #bfe3cb;  -fxt-tool-success-fg: #2f9e44;
+    -fxt-tool-info-bg:    #e7f6f8;  -fxt-tool-info-border:    #b9e3e9;  -fxt-tool-info-fg:    #1098ad;
+    -fxt-tool-warning-bg: #fff6e6;  -fxt-tool-warning-border: #ffe0a3;  -fxt-tool-warning-fg: #b8860b;
+    -fxt-tool-danger-bg:  #fdeaea;  -fxt-tool-danger-border:  #f5c2c2;  -fxt-tool-danger-fg:  #e03131;
+    -fxt-tool-neutral-bg: #f2f4f8;  -fxt-tool-neutral-border: #dde1e7;  -fxt-tool-neutral-fg: #5a6472;
 }
 
 /* ----- Dark (root style class "fxt-theme-dark") ----------------------- */
@@ -92,6 +100,14 @@
     -fxt-code-decl: #c09bf0;
     -fxt-code-punct: #6b7480;
     -fxt-code-curline: #1b2438;
+
+    /* Semantic — editor toolbar buttons (soft-tinted native look) */
+    -fxt-tool-primary-bg: #1d2748;  -fxt-tool-primary-border: #34406e;  -fxt-tool-primary-fg: #93a6fb;
+    -fxt-tool-success-bg: #14301e;  -fxt-tool-success-border: #2b5a3a;  -fxt-tool-success-fg: #69db7c;
+    -fxt-tool-info-bg:    #0e2a30;  -fxt-tool-info-border:    #1f4a53;  -fxt-tool-info-fg:    #4dd4e8;
+    -fxt-tool-warning-bg: #2e2410;  -fxt-tool-warning-border: #5a4a1f;  -fxt-tool-warning-fg: #fab005;
+    -fxt-tool-danger-bg:  #2e1414;  -fxt-tool-danger-border:  #5a2b2b;  -fxt-tool-danger-fg:  #ff8787;
+    -fxt-tool-neutral-bg: #1c232c;  -fxt-tool-neutral-border: #2a323d;  -fxt-tool-neutral-fg: #9ba6b3;
 }
 
 /* ----- Opt-in typography utilities ------------------------------------ */
