@@ -345,6 +345,9 @@
 
 .fxt-header-icon {
     -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
     -fx-background-radius: 8;
     -fx-padding: 6;
     -fx-cursor: hand;
