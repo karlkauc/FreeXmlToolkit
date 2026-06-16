@@ -743,10 +743,10 @@ public class UnifiedShellView extends BorderPane {
 
         // Editor-level document actions (type-gated): run per-document operations without
         // switching the Activity Bar; results open as the shell's standard tool tabs.
-        actionTransform = documentActionButton("doc-action-transform", "bi-arrow-left-right", "Transform",
+        actionTransform = documentActionButton("doc-action-transform", "bi-arrow-left-right", "Transform XSLT",
                 "Transform with XSLT… (choose a stylesheet)",
                 ToolColor.INFO, () -> editorActions.transformActiveWithXslt(window()));
-        actionGenerateDocs = documentActionButton("doc-action-generate-docs", "bi-file-earmark-text", "Docs",
+        actionGenerateDocs = documentActionButton("doc-action-generate-docs", "bi-file-earmark-text", "Generate Docs",
                 "Generate Documentation… (HTML / PDF / Word) for the active XSD",
                 ToolColor.INFO, () -> editorActions.generateDocsActive(window()));
         actionTypeEditor = documentActionButton("doc-action-type-editor", "bi-braces-asterisk", "Type Editor",
@@ -757,11 +757,9 @@ public class UnifiedShellView extends BorderPane {
         // (between the left panel toggle and the view switch): when the editor area is narrow
         // they wrap onto a second row so EVERY action stays visible and directly clickable (no
         // overflow chevron that can hide trailing buttons — Spreadsheet, Query Console, …).
-        // The prominent Validate button is the band's first item, so it wraps with the rest
-        // instead of leaving an empty vertical margin beside a taller wrapped flow.
+        // Order matches the Figma "future" toolbar: file ops, edit, document tools, then the
+        // prominent filled Validate button at the right end (just before the view switch).
         javafx.scene.layout.FlowPane actions = new javafx.scene.layout.FlowPane(
-                validate,
-                new javafx.scene.control.Separator(javafx.geometry.Orientation.VERTICAL),
                 toolButton("action-new", "bi-file-earmark-plus", "New", "New (Ctrl+N)",
                         ToolColor.SUCCESS, this::newDocument),
                 toolButton("action-open", "bi-folder2-open", "Open", "Open (Ctrl+O)",
@@ -782,18 +780,20 @@ public class UnifiedShellView extends BorderPane {
                         ToolColor.INFO, editorHost::formatActive),
                 toolButton("action-minify", "bi-arrows-collapse", "Minify", "Minify",
                         ToolColor.INFO, editorHost::minifyActive),
-                toolButton("action-insert-template", "bi-puzzle", "Template", "Insert Template…",
+                toolButton("action-insert-template", "bi-puzzle", "Insert Template", "Insert Template…",
                         ToolColor.INFO, this::insertTemplate),
                 toolButton("action-compare", "bi-layout-split", "Compare", "Compare with File…",
                         ToolColor.INFO, this::compareWithFile),
                 toolButton("action-spreadsheet", "bi-table", "Spreadsheet",
                         "Spreadsheet Converter… (Excel / CSV ↔ XML)", ToolColor.INFO, this::convertSpreadsheet),
-                toolButton("action-query-console", "bi-terminal", "Query",
+                toolButton("action-query-console", "bi-terminal", "Query Console",
                         "Query Console (XPath/XQuery)  Ctrl+Shift+X", ToolColor.INFO, this::toggleQueryConsole),
-                actionTransform, actionGenerateDocs, actionTypeEditor,
+                actionTransform,
+                toolButton("action-set-schema", "bi-diagram-3", "Set XSD Schema",
+                        "Set XSD Schema… (IntelliSense & validation)", ToolColor.WARNING, this::setSchema),
+                actionGenerateDocs, actionTypeEditor,
                 new javafx.scene.control.Separator(javafx.geometry.Orientation.VERTICAL),
-                toolButton("action-set-schema", "bi-diagram-3", "Set Schema",
-                        "Set XSD Schema… (IntelliSense & validation)", ToolColor.WARNING, this::setSchema));
+                validate);
         actions.getStyleClass().add("fxt-editor-actionbar");
         actions.setHgap(2);
         actions.setVgap(2);
