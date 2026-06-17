@@ -1,12 +1,11 @@
 package org.fxt.freexmltoolkit.controls.shell;
 
-import javafx.geometry.Orientation;
-import javafx.geometry.Pos;
+import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -35,29 +34,48 @@ import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
  */
 public class UnifiedShellView extends BorderPane {
 
-    private static final double SIDE_PANEL_WIDTH = 260;
-
     private final ActivitySelectionModel selectionModel = new ActivitySelectionModel();
-    private final ActivityBar activityBar = new ActivityBar(selectionModel);
-    private final StackPane sidePanelHost = new StackPane();
+    /** Code-built activity rail (needs the selection model); injected into {@link #activityBarHost}. */
+    private ActivityBar activityBar;
     /** Cached so the editor toolbar "Validate" action can drive the same panel. */
     private org.fxt.freexmltoolkit.controls.shell.editor.ValidationPanel validationPanel;
     /** The Settings page tab in the main editor area (reused across activity selections). */
     private javafx.scene.control.Tab settingsTab;
-    private final org.fxt.freexmltoolkit.controls.shell.editor.EditorHost editorHost =
-            new org.fxt.freexmltoolkit.controls.shell.editor.EditorHost();
-    private final org.fxt.freexmltoolkit.controls.unified.UnifiedSearchBar searchBar =
-            new org.fxt.freexmltoolkit.controls.unified.UnifiedSearchBar();
 
-    /** Editor-level document actions (Validate / Transform / Generate Docs / Open Type Editor). */
-    private final org.fxt.freexmltoolkit.controls.shell.editor.EditorActions editorActions =
-            new org.fxt.freexmltoolkit.controls.shell.editor.EditorActions(editorHost);
+    /** Editor-level document actions; created in {@link #initialize()} once {@link #editorHost} is injected. */
+    private org.fxt.freexmltoolkit.controls.shell.editor.EditorActions editorActions;
+    /** Long-lived Query Console (XPath/XQuery); docked as a collapsible bottom strip (created in initialize). */
+    private org.fxt.freexmltoolkit.controls.shell.editor.QueryConsole queryConsole;
 
-    /** Long-lived Query Console (XPath/XQuery against the active document); docked as a collapsible bottom strip. */
-    private final org.fxt.freexmltoolkit.controls.shell.editor.QueryConsole queryConsole =
-            new org.fxt.freexmltoolkit.controls.shell.editor.QueryConsole(editorHost);
+    // ----- FXML-injected nodes (defined in /pages/shell.fxml; populated by FXMLLoader) -----
+    @FXML private StackPane activityBarHost;
+    @FXML private StackPane sidePanelHost;
+    @FXML private org.fxt.freexmltoolkit.controls.shell.editor.EditorHost editorHost;
+    @FXML private org.fxt.freexmltoolkit.controls.unified.UnifiedSearchBar searchBar;
     /** Vertical split: item 0 = work area (grows), item 1 = {@link #queryConsole} when shown. */
-    private SplitPane workSplit;
+    @FXML private SplitPane workSplit;
+    @FXML private StackPane leftPanelWrapper;
+    @FXML private StackPane inspectorWrapper;
+    @FXML private VBox editorCenter;
+    @FXML private StackPane viewSwitchHost;
+    @FXML private FlowPane toolbarActions;
+    @FXML private javafx.scene.control.ToggleButton leftPanelToggle;
+    @FXML private javafx.scene.control.ToggleButton inspectorToggle;
+    @FXML private javafx.scene.control.Button actionValidate;
+    @FXML private javafx.scene.control.Button actionTransform;
+    @FXML private javafx.scene.control.Button actionGenerateDocs;
+    @FXML private javafx.scene.control.Button actionTypeEditor;
+    /** Header breadcrumb of the active file path. */
+    @FXML private Label breadcrumb;
+    /** Header theme toggle; its icon literal flips sun/moon with the current theme. */
+    @FXML private javafx.scene.control.Button themeToggleButton;
+    @FXML private IconifyIcon themeToggleIcon;
+    @FXML private Label statusPosition;
+    @FXML private Label statusChars;
+    @FXML private Label statusType;
+    @FXML private Label statusSchema;
+    @FXML private Label statusFile;
+    @FXML private Label statusMemory;
 
     /** Property keys for the persisted side-panel visibility (editable in Settings). */
     private static final String LEFT_PANEL_KEY = "shell.leftPanel.visible";
@@ -68,85 +86,105 @@ public class UnifiedShellView extends BorderPane {
     private boolean inspectorOpen = loadPanelPref(INSPECTOR_KEY);
     /** Set once the user explicitly picks an activity - shows its panel on the dashboard too. */
     private boolean activityChosen;
-    /** Wrappers added to the work HBox (each carries an in-edge collapse chevron). */
-    private StackPane leftPanelWrapper;
-    private StackPane inspectorWrapper;
-    /** Toolbar toggles that re-open a collapsed panel (same mechanism for both sides). */
-    private javafx.scene.control.ToggleButton leftPanelToggle;
-    private javafx.scene.control.ToggleButton inspectorToggle;
     /** Recomputes panel/toggle visibility; combines document-open state with collapse state. */
     private Runnable chromeUpdater;
-
-    /** Type-gated document-action toolbar buttons (created in {@link #buildEditorToolbar()}). */
-    private javafx.scene.control.Button actionValidate;
-    private javafx.scene.control.Button actionTransform;
-    private javafx.scene.control.Button actionGenerateDocs;
-    private javafx.scene.control.Button actionTypeEditor;
 
     /** Editor-toolbar buttons (incl. panel toggles) registered for live display updates. */
     private final java.util.List<javafx.scene.control.ButtonBase> toolbarButtons = new java.util.ArrayList<>();
 
-    /** Header bar (Figma "future" layout): breadcrumb of the active file path. */
-    private Label breadcrumb;
-    /** Header bar theme toggle; its icon flips sun/moon with the current theme. */
-    private javafx.scene.control.Button themeToggleButton;
-
     /** Node-properties key under which each toolbar button stores its short text label. */
     private static final String TOOL_LABEL_KEY = "fxt.toolLabel";
 
-    /** Semantic color categories for editor-toolbar buttons (maps to CSS variant classes). */
-    private enum ToolColor {
-        PRIMARY("fxt-tool-primary"),
-        SUCCESS("fxt-tool-success"),
-        INFO("fxt-tool-info"),
-        WARNING("fxt-tool-warning"),
-        DANGER("fxt-tool-danger"),
-        NEUTRAL("fxt-tool-neutral");
-
-        final String styleClass;
-
-        ToolColor(String styleClass) {
-            this.styleClass = styleClass;
+    /**
+     * Loads the shell chrome from {@code /pages/shell.fxml} via the {@code fx:root} pattern (this
+     * BorderPane becomes the FXML root and controller). The chrome (header, toolbar, status bar,
+     * work-area skeleton) is therefore editable in Scene Builder; the dynamic, editorHost-dependent
+     * custom controls are built and wired in {@link #initialize()} after FXML field injection.
+     */
+    public UnifiedShellView() {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/pages/shell.fxml"));
+        loader.setRoot(this);
+        loader.setController(this);
+        try {
+            loader.load();
+        } catch (java.io.IOException e) {
+            throw new IllegalStateException("Failed to load /pages/shell.fxml", e);
         }
     }
 
-    private final Label statusPosition = statusLabel("Ln 1, Col 1");
-    private final Label statusChars = statusLabel("");
-    private final Label statusType = statusLabel("");
-    private final Label statusSchema = statusLabel("No XSD");
-    private final Label statusFile = statusLabel("No file open");
-    private final Label statusMemory = statusLabel("");
+    /**
+     * Wires the shell once the FXML chrome is loaded and {@code @FXML} fields are injected:
+     * instantiates the editorHost-dependent custom controls into their placeholders, sets up the
+     * panel-visibility chrome logic, listeners, status bar and shortcuts. Invoked automatically by
+     * {@link FXMLLoader}.
+     */
+    @FXML
+    public void initialize() {
+        // --- Custom controls that need constructor args (not FXML-instantiable) into placeholders ---
+        activityBar = new ActivityBar(selectionModel);
+        activityBarHost.getChildren().setAll(activityBar);
+        editorActions = new org.fxt.freexmltoolkit.controls.shell.editor.EditorActions(editorHost);
+        queryConsole = new org.fxt.freexmltoolkit.controls.shell.editor.QueryConsole(editorHost);
+        queryConsole.setMinHeight(180);
+        queryConsole.setPrefHeight(220);
+        viewSwitchHost.getChildren().setAll(editorHost.getViewSwitch());
+        // Inspector below the chevron (chevron stays on top of the StackPane).
+        inspectorWrapper.getChildren().add(0,
+                new org.fxt.freexmltoolkit.controls.shell.inspector.InspectorPanel(editorHost));
+        // PROBLEMS panel below the editor (hides itself while empty).
+        editorCenter.getChildren().add(
+                new org.fxt.freexmltoolkit.controls.shell.editor.ProblemsPanel(editorHost));
+        searchBar.hide(); // shown on Ctrl+F / Ctrl+H
 
-    public UnifiedShellView() {
-        getStyleClass().add("fxt-shell");
+        // --- Panel visibility: dashboard is full-width (both panels hidden until a document opens
+        //     or an activity is picked); the user collapse state hides a panel even with a doc open. ---
+        chromeUpdater = () -> {
+            boolean hasDocument = !editorHost.isEmpty();
+            boolean leftArea = hasDocument || activityChosen;
+            boolean showLeft = leftArea && leftPanelOpen;
+            boolean showRight = hasDocument && inspectorOpen;
+            leftPanelWrapper.setVisible(showLeft);
+            leftPanelWrapper.setManaged(showLeft);
+            inspectorWrapper.setVisible(showRight);
+            inspectorWrapper.setManaged(showRight);
+            leftPanelToggle.setDisable(!leftArea);
+            leftPanelToggle.setSelected(leftPanelOpen);
+            inspectorToggle.setDisable(!hasDocument);
+            inspectorToggle.setSelected(inspectorOpen);
+        };
+        chromeUpdater.run();
+        editorHost.getOpenDocuments().addListener((javafx.beans.InvalidationListener) obs -> chromeUpdater.run());
 
-        // The activity bar is the outer-left rail and spans the FULL window height (from just
-        // below the native title bar down to the status bar) — VS-Code "future" layout. The header
-        // bar and editor toolbar therefore live in an inner BorderPane to the RIGHT of the rail, so
-        // the rail is no longer pushed down by a full-width top region.
-        setLeft(activityBar);
-        // Build the work area first (creates chromeUpdater), then the top region: a header bar
-        // (breadcrumb · search · theme) above the editor toolbar. buildEditorToolbar() creates the
-        // panel toggles and syncs them via the now-existing chromeUpdater, so center precedes top.
-        BorderPane mainArea = new BorderPane();
-        mainArea.setCenter(buildCenter());
-        mainArea.setTop(buildTopRegion());
-        setCenter(mainArea);
-        // The status bar stays full-width at the very bottom (under the activity bar), VS-Code style.
-        setBottom(buildStatusBar());
+        // --- Toolbar: keep the action FlowPane single-row (its preferred height must match the
+        //     rendered width, not the default 400px wrap), register buttons for display settings,
+        //     and type-gate the document-action buttons. ---
+        toolbarActions.prefWrapLengthProperty().bind(toolbarActions.widthProperty());
+        for (javafx.scene.Node node : toolbarActions.getChildren()) {
+            if (node instanceof javafx.scene.control.Button button) {
+                registerToolButton(button, button.getText());
+            }
+        }
+        registerToolButton(leftPanelToggle, "");
+        registerToolButton(inspectorToggle, "");
+        refreshDocumentActionGating();
+        editorHost.activeTabProperty().addListener((obs, oldV, newV) -> refreshDocumentActionGating());
 
-        // React to activity changes: swap the side panel. Choosing an activity also reveals
-        // the (possibly collapsed) left panel — selecting one whose panel stays hidden would
-        // be pointless. The initial call above does NOT reveal, so a persisted collapsed
-        // state survives startup.
+        // --- Header: initial theme icon + breadcrumb sync ---
+        themeToggleIcon.setIconLiteral(ThemeManager.currentIsDark() ? "bi-sun" : "bi-moon");
+        editorHost.activeTabProperty().addListener((obs, oldV, newV) -> updateBreadcrumb());
+        updateBreadcrumb();
+
+        // --- Status bar: memory meter, and the XSD indicator bound to the active document ---
+        wireStatusBar();
+
+        // React to activity changes: swap the side panel and reveal the (possibly collapsed) left
+        // panel. The initial call does NOT reveal, so a persisted collapsed state survives startup.
         showSidePanelFor(selectionModel.getActive());
         selectionModel.activeProperty().addListener((obs, oldV, newV) -> {
             revealSidePanel();
             showSidePanelFor(newV);
         });
-        // A press on the already-active activity fires no model change event, but the
-        // user still expects to land in that panel - especially from the full-width
-        // dashboard, where the side panel starts hidden.
+        // A press on the already-active activity fires no model change but should still land there.
         activityBar.setOnUserSelect(this::revealSidePanel);
 
         // Keep the status bar in sync with the active editor.
@@ -156,7 +194,6 @@ public class UnifiedShellView extends BorderPane {
 
         // File-operation keyboard shortcuts (scoped to the shell).
         addEventHandler(javafx.scene.input.KeyEvent.KEY_PRESSED, this::handleShortcut);
-
         // Welcome/Dashboard tool cards switch activities (and "open-folder" → Explorer).
         editorHost.setWelcomeActionHandler(this::handleWelcomeAction);
 
@@ -277,28 +314,6 @@ public class UnifiedShellView extends BorderPane {
     }
 
     /**
-     * Builds the shell center: a vertical {@link SplitPane} whose top item is the
-     * work area (activity side panel | editor | inspector) and whose bottom item is
-     * the collapsible {@link #queryConsole}. The console is removed from the split's
-     * items while hidden, so the default layout is unchanged on startup.
-     *
-     * @return the center region for the shell {@link BorderPane}
-     */
-    private Region buildCenter() {
-        Region work = buildWorkArea();
-
-        queryConsole.setMinHeight(180);
-        queryConsole.setPrefHeight(220);
-
-        workSplit = new SplitPane(work);
-        workSplit.setOrientation(Orientation.VERTICAL);
-        workSplit.getStyleClass().add("fxt-work-split");
-        // The work area should keep the extra space when the window resizes.
-        SplitPane.setResizableWithParent(work, true);
-        return workSplit;
-    }
-
-    /**
      * Toggles the bottom Query Console: shows it (as the split's second item, with the
      * work area taking ~70%) if hidden, hides it (removes it from the split) if shown.
      * On show, focuses the query input for immediate typing.
@@ -321,89 +336,6 @@ public class UnifiedShellView extends BorderPane {
     /** @return the Query Console instance (long-lived; for tests and toolbar wiring). */
     org.fxt.freexmltoolkit.controls.shell.editor.QueryConsole getQueryConsole() {
         return queryConsole;
-    }
-
-    private Region buildWorkArea() {
-        sidePanelHost.getStyleClass().add("fxt-side-panel");
-        sidePanelHost.setPrefWidth(SIDE_PANEL_WIDTH);
-        sidePanelHost.setMinWidth(SIDE_PANEL_WIDTH);
-
-        Region editorCenter = buildEditorCenter();
-        HBox.setHgrow(editorCenter, Priority.ALWAYS);
-
-        Region inspector = new org.fxt.freexmltoolkit.controls.shell.inspector.InspectorPanel(editorHost);
-
-        // Wrap both side panels so each carries a discreet in-edge collapse chevron
-        // (left: "<<", right: ">>") — same visual mechanism on both sides.
-        leftPanelWrapper = wrapCollapsible(sidePanelHost, true);
-        inspectorWrapper = wrapCollapsible(inspector, false);
-
-        HBox work = new HBox(leftPanelWrapper, editorCenter, inspectorWrapper);
-        work.getStyleClass().add("fxt-work-area");
-
-        // Visibility combines two concerns:
-        //  - the Welcome / Dashboard is full-width (Figma): while no document is open, both
-        //    side panels are hidden so the dashboard uses the whole work area;
-        //  - the user collapse state (persisted) hides a panel even when a document is open.
-        chromeUpdater = () -> {
-            boolean hasDocument = !editorHost.isEmpty();
-            // The dashboard starts full-width, but once the user explicitly picks an
-            // activity, its side panel shows even while no document is open.
-            boolean leftArea = hasDocument || activityChosen;
-            boolean showLeft = leftArea && leftPanelOpen;
-            boolean showRight = hasDocument && inspectorOpen;
-            leftPanelWrapper.setVisible(showLeft);
-            leftPanelWrapper.setManaged(showLeft);
-            inspectorWrapper.setVisible(showRight);
-            inspectorWrapper.setManaged(showRight);
-            if (leftPanelToggle != null) {
-                leftPanelToggle.setDisable(!leftArea);
-                leftPanelToggle.setSelected(leftPanelOpen);
-            }
-            // The inspector re-open toggle is only meaningful while a document is open.
-            if (inspectorToggle != null) {
-                inspectorToggle.setDisable(!hasDocument);
-                inspectorToggle.setSelected(inspectorOpen);
-            }
-        };
-        chromeUpdater.run();
-        editorHost.getOpenDocuments().addListener(
-                (javafx.collections.ListChangeListener<org.fxt.freexmltoolkit.controls.shell.editor.OpenDocument>)
-                        c -> chromeUpdater.run());
-        return work;
-    }
-
-    /**
-     * Wraps a side-panel region in a {@link StackPane} that overlays a discreet collapse
-     * chevron in the panel's inner corner. The wrapped content keeps its own preferred
-     * width and layout; only the chevron is added.
-     *
-     * @param content  the panel content (keeps its own width)
-     * @param leftSide {@code true} for the left side panel (chevron "<<", top-right),
-     *                 {@code false} for the inspector (chevron ">>", top-left)
-     * @return the wrapper to place in the work {@link HBox}
-     */
-    private StackPane wrapCollapsible(Region content, boolean leftSide) {
-        javafx.scene.control.Button chevron = new javafx.scene.control.Button();
-        chevron.getStyleClass().addAll("fxt-tool-button", "fxt-panel-collapse");
-        IconifyIcon icon = new IconifyIcon(leftSide ? "bi-chevron-double-left" : "bi-chevron-double-right");
-        icon.setIconSize(14);
-        chevron.setGraphic(icon);
-        chevron.setFocusTraversable(false);
-        chevron.setTooltip(new javafx.scene.control.Tooltip(
-                leftSide ? "Collapse the side panel" : "Collapse the Properties panel"));
-        chevron.setOnAction(e -> {
-            if (leftSide) {
-                setLeftPanelVisible(false);
-            } else {
-                setInspectorVisible(false);
-            }
-        });
-
-        StackPane wrapper = new StackPane(content, chevron);
-        StackPane.setAlignment(chevron, leftSide ? Pos.TOP_RIGHT : Pos.TOP_LEFT);
-        StackPane.setMargin(chevron, new javafx.geometry.Insets(4));
-        return wrapper;
     }
 
     /** Shows/hides the left side panel and persists the choice (default open). */
@@ -584,6 +516,34 @@ public class UnifiedShellView extends BorderPane {
         return validationPanel;
     }
 
+    // ===== @FXML action handlers (onAction targets from shell.fxml). Public for jpackage. =====
+    @FXML public void onNew() { newDocument(); }
+    @FXML public void onOpen() { openFile(); }
+    @FXML public void onSave() { saveActive(); }
+    @FXML public void onSaveAs() { saveActiveAs(); }
+    @FXML public void onSaveAll() { editorHost.saveAll(); }
+    @FXML public void onUndo() { editorHost.undoActive(); }
+    @FXML public void onRedo() { editorHost.redoActive(); }
+    @FXML public void onFormat() { editorHost.formatActive(); }
+    @FXML public void onMinify() { editorHost.minifyActive(); }
+    @FXML public void onInsertTemplate() { insertTemplate(); }
+    @FXML public void onCompare() { compareWithFile(); }
+    @FXML public void onSpreadsheet() { convertSpreadsheet(); }
+    @FXML public void onQueryConsole() { toggleQueryConsole(); }
+    @FXML public void onTransform() { editorActions.transformActiveWithXslt(window()); }
+    @FXML public void onSetSchema() { setSchema(); }
+    @FXML public void onGenerateDocs() { editorActions.generateDocsActive(window()); }
+    @FXML public void onTypeEditor() { editorActions.openTypeEditorActive(); }
+    @FXML public void onValidate() { validateActive(); }
+    @FXML public void onNotifications() { /* no-op placeholder (Figma "future" header) */ }
+    @FXML public void onHelp() { selectionModel.select(Activity.HELP); }
+    @FXML public void onToggleTheme() { toggleTheme(); }
+    @FXML public void onSearchPillClicked() { if (!isQueryConsoleShown()) { toggleQueryConsole(); } }
+    @FXML public void onToggleLeftPanel() { setLeftPanelVisible(leftPanelToggle.isSelected()); }
+    @FXML public void onToggleInspector() { setInspectorVisible(inspectorToggle.isSelected()); }
+    @FXML public void onCollapseLeftPanel() { setLeftPanelVisible(false); }
+    @FXML public void onCollapseInspector() { setInspectorVisible(false); }
+
     /**
      * Validates the active document from the editor toolbar: well-formedness only when
      * no XSD is bound, and against the bound XSD when one is. Switches to the Validation
@@ -595,24 +555,6 @@ public class UnifiedShellView extends BorderPane {
         }
         selectionModel.select(Activity.VALIDATION);
         validationPanel().revalidate();
-    }
-
-    /**
-     * The editor center: the editor toolbar plus the {@link EditorHost}. The host
-     * shows its own welcome empty-state (quick actions + recent files) while no
-     * document is open, so the toolbar stays available at all times.
-     */
-    private Region buildEditorCenter() {
-        searchBar.hide(); // shown on Ctrl+F / Ctrl+H
-        // PROBLEMS panel below the editor (Figma node 42:3); hides itself while empty.
-        var problemsPanel = new org.fxt.freexmltoolkit.controls.shell.editor.ProblemsPanel(editorHost);
-        // The editor toolbar is no longer part of the center column: it is promoted to the
-        // shell's top edge (BorderPane.top) so it spans the full window width — see the
-        // constructor. Only the find bar, editor and PROBLEMS panel stay in this column.
-        VBox editorArea = new VBox(searchBar, editorHost, problemsPanel);
-        VBox.setVgrow(editorHost, Priority.ALWAYS);
-        editorArea.getStyleClass().addAll("fxt-editor-area", "fxt-editor-center");
-        return editorArea;
     }
 
     /** Shows the find (or find+replace) bar bound to the active editor. */
@@ -629,88 +571,13 @@ public class UnifiedShellView extends BorderPane {
         }
     }
 
-    /**
-     * The top region (Figma "future" layout): a header bar
-     * (breadcrumb · centered search · theme/help/notifications) stacked above the
-     * editor toolbar. Both rows span the work area to the RIGHT of the full-height
-     * activity bar (they are the top of the inner BorderPane, not the outer shell).
-     */
-    private Region buildTopRegion() {
-        VBox top = new VBox(buildHeaderBar(), buildEditorToolbar());
-        top.getStyleClass().add("fxt-top-region");
-        return top;
-    }
-
-    /**
-     * The header bar: the active file's path breadcrumb (left), a centered search
-     * pill that opens the Query Console (XPath/XQuery), and right-aligned
-     * notifications / help / theme-toggle icons.
-     */
-    private Region buildHeaderBar() {
-        breadcrumb = new Label("FreeXmlToolkit");
-        breadcrumb.getStyleClass().add("fxt-header-breadcrumb");
-
-        // Centered search pill — clicking it opens the Query Console for XPath/XQuery.
-        IconifyIcon searchIcon = new IconifyIcon("bi-search");
-        searchIcon.setIconSize(13);
-        Label searchHint = new Label("Search · run XPath / XQuery…");
-        searchHint.getStyleClass().add("fxt-header-search-hint");
-        Region searchSpacer = new Region();
-        HBox.setHgrow(searchSpacer, Priority.ALWAYS);
-        Label kbd = new Label("Ctrl K");
-        kbd.getStyleClass().add("fxt-header-kbd");
-        HBox searchPill = new HBox(8, searchIcon, searchHint, searchSpacer, kbd);
-        searchPill.setAlignment(Pos.CENTER_LEFT);
-        searchPill.getStyleClass().add("fxt-header-search");
-        searchPill.setMaxWidth(460);
-        searchPill.setPrefWidth(460);
-        searchPill.setCursor(javafx.scene.Cursor.HAND);
-        searchPill.setOnMouseClicked(e -> { if (!isQueryConsoleShown()) { toggleQueryConsole(); } });
-
-        Region leftSpacer = new Region();
-        HBox.setHgrow(leftSpacer, Priority.ALWAYS);
-        Region rightSpacer = new Region();
-        HBox.setHgrow(rightSpacer, Priority.ALWAYS);
-
-        javafx.scene.control.Button bell = headerIconButton("bi-bell", "Notifications", () -> { });
-        javafx.scene.control.Button help = headerIconButton("bi-question-circle", "Help",
-                () -> selectionModel.select(Activity.HELP));
-        themeToggleButton = headerIconButton(
-                ThemeManager.currentIsDark() ? "bi-sun" : "bi-moon",
-                "Toggle light / dark theme", this::toggleTheme);
-
-        HBox header = new HBox(breadcrumb, leftSpacer, searchPill, rightSpacer, bell, help, themeToggleButton);
-        header.setAlignment(Pos.CENTER_LEFT);
-        header.getStyleClass().add("fxt-header-bar");
-
-        // Keep the breadcrumb in sync with the active document.
-        editorHost.activeTabProperty().addListener((obs, oldV, newV) -> updateBreadcrumb());
-        updateBreadcrumb();
-        return header;
-    }
-
-    /** A flat header icon button (notifications / help / theme). */
-    private javafx.scene.control.Button headerIconButton(String icon, String tooltip, Runnable action) {
-        javafx.scene.control.Button button = new javafx.scene.control.Button();
-        IconifyIcon graphic = new IconifyIcon(icon);
-        graphic.setIconSize(16);
-        button.setGraphic(graphic);
-        button.getStyleClass().add("fxt-header-icon");
-        button.setTooltip(new javafx.scene.control.Tooltip(tooltip));
-        button.setFocusTraversable(false);
-        button.setOnAction(e -> action.run());
-        return button;
-    }
-
-    /** Toggles light/dark theme and flips the header toggle's sun/moon icon. */
+    /** Toggles light/dark theme and flips the header toggle's sun/moon icon literal. */
     private void toggleTheme() {
         boolean dark = !ThemeManager.currentIsDark();
         if (getScene() != null) {
             ThemeManager.apply(getScene(), dark);
         }
-        IconifyIcon graphic = new IconifyIcon(dark ? "bi-sun" : "bi-moon");
-        graphic.setIconSize(16);
-        themeToggleButton.setGraphic(graphic);
+        themeToggleIcon.setIconLiteral(dark ? "bi-sun" : "bi-moon");
     }
 
     /** Sets the breadcrumb to the last path segments of the active document (or the app name). */
@@ -738,110 +605,84 @@ public class UnifiedShellView extends BorderPane {
         breadcrumb.setText(String.join("  ›  ", segments));
     }
 
-    private Region buildEditorToolbar() {
-        toolbarButtons.clear();
-        javafx.scene.control.Button validate = toolButton("doc-action-validate", "bi-check2-circle",
-                "Validate",
-                "Validate the document (well-formedness, or against the bound XSD) — F8",
-                ToolColor.PRIMARY, this::validateActive);
-        // The single prominent, filled-primary accent button (Figma "future" toolbar).
-        validate.getStyleClass().add("fxt-tool-accent");
-        actionValidate = validate;
+    /** Registers a toolbar button (any {@link javafx.scene.control.ButtonBase}) for display updates. */
+    private void registerToolButton(javafx.scene.control.ButtonBase button, String label) {
+        button.getProperties().put(TOOL_LABEL_KEY, label == null ? "" : label);
+        toolbarButtons.add(button);
+        applyDisplayTo(button);
+    }
 
-        // Editor-level document actions (type-gated): run per-document operations without
-        // switching the Activity Bar; results open as the shell's standard tool tabs.
-        actionTransform = documentActionButton("doc-action-transform", "bi-arrow-left-right", "Transform XSLT",
-                "Transform with XSLT… (choose a stylesheet)",
-                ToolColor.INFO, () -> editorActions.transformActiveWithXslt(window()));
-        actionGenerateDocs = documentActionButton("doc-action-generate-docs", "bi-file-earmark-text", "Generate Docs",
-                "Generate Documentation… (HTML / PDF / Word) for the active XSD",
-                ToolColor.INFO, () -> editorActions.generateDocsActive(window()));
-        actionTypeEditor = documentActionButton("doc-action-type-editor", "bi-braces-asterisk", "Type Editor",
-                "Open Type Editor… (pick a named type from the active XSD)",
-                ToolColor.PRIMARY, editorActions::openTypeEditorActive);
-
-        // The icon actions live in a wrapping FlowPane that spans the full toolbar width
-        // (between the left panel toggle and the view switch): when the editor area is narrow
-        // they wrap onto a second row so EVERY action stays visible and directly clickable (no
-        // overflow chevron that can hide trailing buttons — Spreadsheet, Query Console, …).
-        // Order matches the Figma "future" toolbar: file ops, edit, document tools, then the
-        // prominent filled Validate button at the right end (just before the view switch).
-        javafx.scene.layout.FlowPane actions = new javafx.scene.layout.FlowPane(
-                toolButton("action-new", "bi-file-earmark-plus", "New", "New (Ctrl+N)",
-                        ToolColor.SUCCESS, this::newDocument),
-                toolButton("action-open", "bi-folder2-open", "Open", "Open (Ctrl+O)",
-                        ToolColor.PRIMARY, this::openFile),
-                toolButton("action-save", "bi-save", "Save", "Save (Ctrl+S)",
-                        ToolColor.PRIMARY, this::saveActive),
-                toolButton("action-save-as", "bi-save2", "Save As", "Save As (Ctrl+Shift+S)",
-                        ToolColor.PRIMARY, this::saveActiveAs),
-                toolButton("action-save-all", "bi-files", "Save All", "Save All",
-                        ToolColor.PRIMARY, editorHost::saveAll),
-                new javafx.scene.control.Separator(javafx.geometry.Orientation.VERTICAL),
-                toolButton("action-undo", "bi-arrow-counterclockwise", "Undo", "Undo (Ctrl+Z)",
-                        ToolColor.NEUTRAL, editorHost::undoActive),
-                toolButton("action-redo", "bi-arrow-clockwise", "Redo", "Redo (Ctrl+Y)",
-                        ToolColor.NEUTRAL, editorHost::redoActive),
-                new javafx.scene.control.Separator(javafx.geometry.Orientation.VERTICAL),
-                toolButton("action-format", "bi-text-indent-left", "Format", "Format",
-                        ToolColor.INFO, editorHost::formatActive),
-                toolButton("action-minify", "bi-arrows-collapse", "Minify", "Minify",
-                        ToolColor.INFO, editorHost::minifyActive),
-                toolButton("action-insert-template", "bi-puzzle", "Insert Template", "Insert Template…",
-                        ToolColor.INFO, this::insertTemplate),
-                toolButton("action-compare", "bi-layout-split", "Compare", "Compare with File…",
-                        ToolColor.INFO, this::compareWithFile),
-                toolButton("action-spreadsheet", "bi-table", "Spreadsheet",
-                        "Spreadsheet Converter… (Excel / CSV ↔ XML)", ToolColor.INFO, this::convertSpreadsheet),
-                toolButton("action-query-console", "bi-terminal", "Query Console",
-                        "Query Console (XPath/XQuery)  Ctrl+Shift+X", ToolColor.INFO, this::toggleQueryConsole),
-                actionTransform,
-                toolButton("action-set-schema", "bi-diagram-3", "Set XSD Schema",
-                        "Set XSD Schema… (IntelliSense & validation)", ToolColor.WARNING, this::setSchema),
-                actionGenerateDocs, actionTypeEditor,
-                new javafx.scene.control.Separator(javafx.geometry.Orientation.VERTICAL),
-                validate);
-        actions.getStyleClass().add("fxt-editor-actionbar");
-        actions.setHgap(2);
-        actions.setVgap(2);
-        actions.setRowValignment(javafx.geometry.VPos.CENTER);
-        actions.setMinWidth(0);
-        // Take the slack between the left controls and the right cluster, wrapping within it.
-        HBox.setHgrow(actions, Priority.ALWAYS);
-        // A FlowPane computes its PREFERRED height at its prefWrapLength (default 400px), i.e. as if
-        // all buttons wrapped onto many rows — so the toolbar reserved several rows of height but
-        // rendered only one (at the real, full width), leaving a tall empty band below the buttons
-        // in which the centered view switch and panel toggles appeared to float. Binding the wrap
-        // length to the actual width makes the preferred height equal the rendered height: one row
-        // on wide windows, more only when the window is genuinely too narrow. No more empty band.
-        actions.prefWrapLengthProperty().bind(actions.widthProperty());
-
-        // Type-gate the document-actions group against the active document's file type.
-        refreshDocumentActionGating();
-        editorHost.activeTabProperty().addListener((obs, oldV, newV) -> refreshDocumentActionGating());
-
-        // Re-open toggles for the collapsed side panels — same mechanism on both sides
-        // (recognition value). They mirror the panels' open state and sit at the toolbar edges.
-        leftPanelToggle = panelToggle("toggle-left-panel", "bi-chevron-double-right",
-                "Show / hide the side panel", true);
-        inspectorToggle = panelToggle("toggle-inspector", "bi-chevron-double-left",
-                "Show / hide the Properties panel", false);
-        // Sync the toggles' selected/disabled state with the current panel/document state.
-        if (chromeUpdater != null) {
-            chromeUpdater.run();
+    /** Applies the current label-visibility + icon-size settings to one toolbar button. */
+    private void applyDisplayTo(javafx.scene.control.ButtonBase button) {
+        boolean showLabels = false;
+        boolean large = false;
+        try {
+            var props = org.fxt.freexmltoolkit.di.ServiceRegistry.get(
+                    org.fxt.freexmltoolkit.service.PropertiesService.class);
+            showLabels = props.isToolbarShowLabels();
+            large = "large".equalsIgnoreCase(props.getToolbarIconSize());
+        } catch (Throwable ignored) {
+            // properties service unavailable (e.g. tests) — fall back to defaults
         }
+        Object stored = button.getProperties().get(TOOL_LABEL_KEY);
+        String label = stored == null ? "" : stored.toString();
+        button.setText(showLabels && !label.isEmpty() ? label : null);
+        if (button.getGraphic() instanceof IconifyIcon icon) {
+            icon.setIconSize(ToolbarDisplay.iconSizePx(large));
+        }
+        button.getStyleClass().removeAll(ToolbarDisplay.SMALL_CLASS, ToolbarDisplay.LARGE_CLASS);
+        button.getStyleClass().add(ToolbarDisplay.sizeStyleClass(large));
+    }
 
-        // Layout: left panel toggle | full-width action flow (grows) | inspector toggle. The
-        // view-mode switch now lives on the tab header (see EditorHost), and identity/status
-        // (file type, bound XSD) lives in the bottom status bar, so the toolbar is a pure action
-        // band that uses the entire available width — single-row at the 1512 px MacBook width.
-        // The Text/Tree/Graphic view switch sits at the toolbar's right end (Figma "future"
-        // layout), just before the inspector toggle. It is built and kept in sync by EditorHost.
-        Region viewSwitch = editorHost.getViewSwitch();
-        HBox bar = new HBox(4, leftPanelToggle, actions, viewSwitch, inspectorToggle);
-        bar.setAlignment(Pos.CENTER_LEFT);
-        bar.getStyleClass().add("fxt-editor-toolbar");
-        return bar;
+    /** Re-applies the current toolbar display settings to every registered button (live refresh). */
+    private void applyToolbarDisplaySettings() {
+        for (javafx.scene.control.ButtonBase button : toolbarButtons) {
+            applyDisplayTo(button);
+        }
+    }
+
+    /**
+     * Enables/disables the document-action buttons based on the active document's
+     * {@link org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType}. With no
+     * active document all four are disabled.
+     */
+    private void refreshDocumentActionGating() {
+        var type = editorActions.activeFileType();
+        actionValidate.setDisable(!org.fxt.freexmltoolkit.controls.shell.editor.EditorActions
+                .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.VALIDATE));
+        actionTransform.setDisable(!org.fxt.freexmltoolkit.controls.shell.editor.EditorActions
+                .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.TRANSFORM));
+        actionGenerateDocs.setDisable(!org.fxt.freexmltoolkit.controls.shell.editor.EditorActions
+                .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.GENERATE_DOCS));
+        actionTypeEditor.setDisable(!org.fxt.freexmltoolkit.controls.shell.editor.EditorActions
+                .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.TYPE_EDITOR));
+    }
+
+    /** @return the shell's owning window, or {@code null} when not yet shown. */
+    private javafx.stage.Window window() {
+        return getScene() != null ? getScene().getWindow() : null;
+    }
+
+    private void saveActive() {
+        editorHost.getActiveDocument().ifPresent(doc -> {
+            if (doc.isUntitled()) {
+                saveActiveAs();
+            } else {
+                editorHost.saveActive();
+            }
+        });
+    }
+
+    private void saveActiveAs() {
+        if (editorHost.getActiveDocument().isEmpty()) {
+            return;
+        }
+        javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
+        chooser.setTitle("Save As");
+        java.io.File file = chooser.showSaveDialog(getScene() != null ? getScene().getWindow() : null);
+        if (file != null) {
+            editorHost.saveActiveAs(file.toPath());
+        }
     }
 
     private void newDocument() {
@@ -1027,156 +868,17 @@ public class UnifiedShellView extends BorderPane {
         }
     }
 
-    /**
-     * Builds an editor-toolbar button: stores its short {@code label}, applies its
-     * semantic {@code color} variant, registers it for live display updates, and
-     * applies the current label/size settings.
-     */
-    private javafx.scene.control.Button toolButton(String id, String icon, String label,
-            String tooltip, ToolColor color, Runnable action) {
-        javafx.scene.control.Button button = new javafx.scene.control.Button();
-        if (id != null) {
-            button.setId(id);
-        }
-        button.getStyleClass().addAll("fxt-tool-button", color.styleClass);
-        button.setGraphic(new IconifyIcon(icon));
-        // Icon over label (Figma "future" toolbar); the label is shown when toolbar labels are on.
-        button.setContentDisplay(javafx.scene.control.ContentDisplay.TOP);
-        button.setTooltip(new javafx.scene.control.Tooltip(tooltip));
-        button.setOnAction(e -> action.run());
-        registerToolButton(button, label);
-        return button;
-    }
-
-    /** Registers a toolbar button (any {@link javafx.scene.control.ButtonBase}) for display updates. */
-    private void registerToolButton(javafx.scene.control.ButtonBase button, String label) {
-        button.getProperties().put(TOOL_LABEL_KEY, label == null ? "" : label);
-        toolbarButtons.add(button);
-        applyDisplayTo(button);
-    }
-
-    /** Applies the current label-visibility + icon-size settings to one toolbar button. */
-    private void applyDisplayTo(javafx.scene.control.ButtonBase button) {
-        boolean showLabels = false;
-        boolean large = false;
-        try {
-            var props = org.fxt.freexmltoolkit.di.ServiceRegistry.get(
-                    org.fxt.freexmltoolkit.service.PropertiesService.class);
-            showLabels = props.isToolbarShowLabels();
-            large = "large".equalsIgnoreCase(props.getToolbarIconSize());
-        } catch (Throwable ignored) {
-            // properties service unavailable (e.g. tests) — fall back to defaults
-        }
-        Object stored = button.getProperties().get(TOOL_LABEL_KEY);
-        String label = stored == null ? "" : stored.toString();
-        button.setText(showLabels && !label.isEmpty() ? label : null);
-        if (button.getGraphic() instanceof IconifyIcon icon) {
-            icon.setIconSize(ToolbarDisplay.iconSizePx(large));
-        }
-        button.getStyleClass().removeAll(ToolbarDisplay.SMALL_CLASS, ToolbarDisplay.LARGE_CLASS);
-        button.getStyleClass().add(ToolbarDisplay.sizeStyleClass(large));
-    }
-
-    /** Re-applies the current toolbar display settings to every registered button (live refresh). */
-    private void applyToolbarDisplaySettings() {
-        for (javafx.scene.control.ButtonBase button : toolbarButtons) {
-            applyDisplayTo(button);
-        }
-    }
-
-    /**
-     * Builds a side-panel re-open toggle button (identical style for both sides). The toggle
-     * reflects the panel's open state; its action shows/hides the matching panel.
-     *
-     * @param id       stable id for tests
-     * @param icon     the chevron literal (reveal direction: left panel ">>", inspector "<<")
-     * @param tooltip  the button tooltip
-     * @param leftSide {@code true} drives the left side panel, {@code false} the inspector
-     * @return the configured toggle button
-     */
-    private javafx.scene.control.ToggleButton panelToggle(
-            String id, String icon, String tooltip, boolean leftSide) {
-        javafx.scene.control.ToggleButton button = new javafx.scene.control.ToggleButton();
-        button.setId(id);
-        button.getStyleClass().addAll("fxt-tool-button", "fxt-tool-neutral", "fxt-panel-toggle");
-        button.setGraphic(new IconifyIcon(icon));
-        button.setTooltip(new javafx.scene.control.Tooltip(tooltip));
-        button.setFocusTraversable(false);
-        button.setMinWidth(Region.USE_PREF_SIZE);
-        button.setOnAction(e -> {
-            if (leftSide) {
-                setLeftPanelVisible(button.isSelected());
-            } else {
-                setInspectorVisible(button.isSelected());
-            }
-        });
-        registerToolButton(button, "");
-        return button;
-    }
-
-    /** Builds a type-gated document-action toolbar button (delegates to {@link #toolButton}). */
-    private javafx.scene.control.Button documentActionButton(String id, String icon, String label,
-            String tooltip, ToolColor color, Runnable action) {
-        return toolButton(id, icon, label, tooltip, color, action);
-    }
-
-    /**
-     * Enables/disables the document-action buttons based on the active document's
-     * {@link org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType}. With no
-     * active document all four are disabled.
-     */
-    private void refreshDocumentActionGating() {
-        var type = editorActions.activeFileType();
-        actionValidate.setDisable(!org.fxt.freexmltoolkit.controls.shell.editor.EditorActions
-                .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.VALIDATE));
-        actionTransform.setDisable(!org.fxt.freexmltoolkit.controls.shell.editor.EditorActions
-                .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.TRANSFORM));
-        actionGenerateDocs.setDisable(!org.fxt.freexmltoolkit.controls.shell.editor.EditorActions
-                .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.GENERATE_DOCS));
-        actionTypeEditor.setDisable(!org.fxt.freexmltoolkit.controls.shell.editor.EditorActions
-                .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.TYPE_EDITOR));
-    }
-
-    /** @return the shell's owning window, or {@code null} when not yet shown. */
-    private javafx.stage.Window window() {
-        return getScene() != null ? getScene().getWindow() : null;
-    }
-
-    private void saveActive() {
-        editorHost.getActiveDocument().ifPresent(doc -> {
-            if (doc.isUntitled()) {
-                saveActiveAs();
-            } else {
-                editorHost.saveActive();
-            }
-        });
-    }
-
-    private void saveActiveAs() {
-        if (editorHost.getActiveDocument().isEmpty()) {
-            return;
-        }
-        javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
-        chooser.setTitle("Save As");
-        java.io.File file = chooser.showSaveDialog(getScene() != null ? getScene().getWindow() : null);
-        if (file != null) {
-            editorHost.saveActiveAs(file.toPath());
-        }
-    }
-
     /** @return the editor host (for future toolbar / inspector wiring). */
     public org.fxt.freexmltoolkit.controls.shell.editor.EditorHost getEditorHost() {
         return editorHost;
     }
 
-    private Region buildStatusBar() {
-        HBox bar = new HBox();
-        bar.getStyleClass().add("fxt-status-bar");
-        bar.setAlignment(Pos.CENTER_LEFT);
-
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-
+    /**
+     * Wires the FXML status bar: the memory meter (tooltip / GC-on-click / 2s refresh) and the
+     * XSD indicator bound to the active document's schema (blanked + collapsed for non-XML types;
+     * clickable to bind an XSD). The labels themselves live in {@code shell.fxml}.
+     */
+    private void wireStatusBar() {
         statusMemory.setTooltip(new javafx.scene.control.Tooltip("JVM heap (used / max) — click to run GC"));
         statusMemory.setOnMouseClicked(e -> {
             System.gc();
@@ -1189,9 +891,9 @@ public class UnifiedShellView extends BorderPane {
         memoryTimer.setCycleCount(javafx.animation.Animation.INDEFINITE);
         memoryTimer.play();
 
-        // The bound XSD (relocated from the editor toolbar) tracks the active document's schema —
-        // but only for schema-aware (XML-family) documents. For JSON / plain text an "XSD" label
-        // is meaningless, so it is blanked and the label collapses out of the bar entirely.
+        // The bound XSD tracks the active document's schema — but only for schema-aware (XML-family)
+        // documents. For JSON / plain text an "XSD" label is meaningless, so it is blanked and the
+        // label collapses out of the bar entirely.
         statusSchema.textProperty().bind(javafx.beans.binding.Bindings.createStringBinding(
                 () -> {
                     var doc = editorHost.getActiveDocument().orElse(null);
@@ -1204,24 +906,12 @@ public class UnifiedShellView extends BorderPane {
                 editorHost.activeSchemaProperty(), editorHost.activeTabProperty()));
         statusSchema.managedProperty().bind(statusSchema.textProperty().isNotEmpty());
         statusSchema.visibleProperty().bind(statusSchema.textProperty().isNotEmpty());
-        // The XSD indicator doubles as the binding entry point (VS-Code style): clicking
-        // it picks an XSD and binds it to the active document via setSchemaForActiveDocument.
-        statusSchema.setId("status-schema");
+        // The XSD indicator doubles as the binding entry point (VS-Code style): clicking it picks an
+        // XSD and binds it to the active document via setSchemaForActiveDocument.
         statusSchema.setTooltip(new javafx.scene.control.Tooltip(
                 "Click to bind an XSD schema to this document (IntelliSense & validation)"));
         statusSchema.setCursor(javafx.scene.Cursor.HAND);
         statusSchema.setOnMouseClicked(e -> setSchema());
-
-        bar.getChildren().addAll(
-                statusPosition,
-                statusChars,
-                statusType,
-                statusSchema,
-                statusLabel("UTF-8"),
-                spacer,
-                statusMemory,
-                statusFile);
-        return bar;
     }
 
     /**
@@ -1241,12 +931,6 @@ public class UnifiedShellView extends BorderPane {
         long usedMb = (runtime.totalMemory() - runtime.freeMemory()) / (1024 * 1024);
         long maxMb = runtime.maxMemory() / (1024 * 1024);
         return usedMb + " / " + maxMb + " MB";
-    }
-
-    private Label statusLabel(String text) {
-        Label label = new Label(text);
-        label.getStyleClass().add("fxt-status-item");
-        return label;
     }
 
     /** @return the shell's activity selection model (for future host wiring). */

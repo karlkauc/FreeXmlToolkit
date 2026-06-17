@@ -54,7 +54,9 @@ including in IDE / `./gradlew run` mode.
 
 **The UI is the Unified Shell** (`controls/shell/`, VS-Code-style): an Activity Bar switches the left side panel (Explorer, Favorites, Validation, Transform, Schema, PDF/FOP, Signature, FundsXML, Help, Settings); the center is one `EditorHost` with file tabs and per-document view modes (Text / Tree / Graphic); right is the Properties Inspector. There is **no** per-tool tab/controller architecture anymore — `controller/` only contains `UnifiedShellController`.
 
-**Pattern:** Shell views are plain JavaFX (code-built, almost no FXML). The XSD Editor V2 model layer (`controls/v2/`) uses MVVM with Command Pattern and backs the shell's structured views.
+**Pattern:** The shell **chrome** (root layout, header bar, editor toolbar, status bar, work-area skeleton) lives in `pages/shell.fxml` and is loaded by `UnifiedShellView` via the `fx:root` pattern (`loader.setRoot(this)/setController(this)`), so it is editable in Scene Builder. `UnifiedShellView.initialize()` wires the dynamic, `EditorHost`-dependent custom controls (ActivityBar, Inspector, side panels, Query Console, view switch) into the FXML `fx:id` placeholders — those can't live in FXML because they need constructor args. The XSD Editor V2 model layer (`controls/v2/`) uses MVVM with Command Pattern and backs the shell's structured views.
+
+> **Scene Builder note:** this project runs on Java 25 with `--enable-preview`; Scene Builder (JDK ~21) cannot load/render the bundled custom controls (`IconifyIcon`, `EditorHost`, …), so they appear as non-rendering placeholder tags. Standard JavaFX nodes (layout, buttons, labels) edit normally. `@FXML` handlers must be `public` (non-modular jpackage build).
 
 See `.claude/rules/architecture.md` for the shell layout, panel/class table, threading model, and observable pattern. See `.claude/rules/xsd-editor-v2-details.md` for V2 internals.
 

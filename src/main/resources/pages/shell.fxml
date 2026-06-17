@@ -1,0 +1,266 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost?>
+<?import org.fxt.freexmltoolkit.controls.unified.UnifiedSearchBar?>
+
+<!--
+  Unified Shell chrome (Scene-Builder-editable). Loaded by UnifiedShellView via the fx:root
+  pattern (loader.setRoot(this)/setController(this)). Custom controls that need constructor
+  arguments (ActivityBar, InspectorPanel, ProblemsPanel, QueryConsole, the activity panels)
+  are NOT created here — UnifiedShellView.initialize() builds them and injects them into the
+  fx:id placeholders (activityBarHost, sidePanelHost, inspectorWrapper, editorCenter,
+  viewSwitchHost). EditorHost and UnifiedSearchBar have no-arg constructors, so they are real
+  FXML tags below. Note: Scene Builder (JDK ~21) cannot render the custom controls of this
+  Java-25/preview project — they appear as non-rendering placeholders, which is expected.
+-->
+<fx:root type="javafx.scene.layout.BorderPane" xmlns="http://javafx.com/javafx/17"
+         xmlns:fx="http://javafx.com/fxml/1" styleClass="fxt-shell"
+         stylesheets="@../css/design-tokens.css, @../css/app-theme.css, @../css/fxt-theme.css, @../css/unified-shell.css">
+
+    <!-- Full-height activity rail (controller injects the code-built ActivityBar). -->
+    <left>
+        <StackPane fx:id="activityBarHost"/>
+    </left>
+
+    <center>
+        <BorderPane fx:id="mainArea">
+            <top>
+                <VBox styleClass="fxt-top-region">
+                    <children>
+
+                        <!-- Header: breadcrumb · centered search pill · notifications/help/theme -->
+                        <HBox styleClass="fxt-header-bar">
+                            <children>
+                                <Label fx:id="breadcrumb" text="FreeXmlToolkit" styleClass="fxt-header-breadcrumb"/>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <HBox fx:id="searchPill" alignment="CENTER_LEFT" spacing="8" maxWidth="460"
+                                      prefWidth="460" styleClass="fxt-header-search" onMouseClicked="#onSearchPillClicked">
+                                    <children>
+                                        <IconifyIcon iconLiteral="bi-search" iconSize="13"/>
+                                        <Label text="Search · run XPath / XQuery…" styleClass="fxt-header-search-hint"/>
+                                        <Region HBox.hgrow="ALWAYS"/>
+                                        <Label text="Ctrl K" styleClass="fxt-header-kbd"/>
+                                    </children>
+                                </HBox>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <Button styleClass="fxt-header-icon" focusTraversable="false" onAction="#onNotifications">
+                                    <graphic><IconifyIcon iconLiteral="bi-bell" iconSize="16"/></graphic>
+                                    <tooltip><Tooltip text="Notifications"/></tooltip>
+                                </Button>
+                                <Button styleClass="fxt-header-icon" focusTraversable="false" onAction="#onHelp">
+                                    <graphic><IconifyIcon iconLiteral="bi-question-circle" iconSize="16"/></graphic>
+                                    <tooltip><Tooltip text="Help"/></tooltip>
+                                </Button>
+                                <Button fx:id="themeToggleButton" styleClass="fxt-header-icon"
+                                        focusTraversable="false" onAction="#onToggleTheme">
+                                    <graphic><IconifyIcon fx:id="themeToggleIcon" iconLiteral="bi-moon" iconSize="16"/></graphic>
+                                    <tooltip><Tooltip text="Toggle light / dark theme"/></tooltip>
+                                </Button>
+                            </children>
+                        </HBox>
+
+                        <!-- Editor toolbar: left panel toggle | action flow | view switch | inspector toggle -->
+                        <HBox spacing="4" alignment="CENTER_LEFT" styleClass="fxt-editor-toolbar">
+                            <children>
+                                <ToggleButton fx:id="leftPanelToggle" id="toggle-left-panel" focusTraversable="false"
+                                              styleClass="fxt-tool-button, fxt-tool-neutral, fxt-panel-toggle"
+                                              onAction="#onToggleLeftPanel">
+                                    <graphic><IconifyIcon iconLiteral="bi-chevron-double-right"/></graphic>
+                                    <tooltip><Tooltip text="Show / hide the side panel"/></tooltip>
+                                </ToggleButton>
+
+                                <FlowPane fx:id="toolbarActions" hgap="2" vgap="2" rowValignment="CENTER"
+                                          minWidth="0" styleClass="fxt-editor-actionbar" HBox.hgrow="ALWAYS">
+                                    <children>
+                                        <Button id="action-new" text="New" contentDisplay="TOP"
+                                                styleClass="fxt-tool-button, fxt-tool-success" onAction="#onNew">
+                                            <graphic><IconifyIcon iconLiteral="bi-file-earmark-plus" iconSize="20"/></graphic>
+                                            <tooltip><Tooltip text="New (Ctrl+N)"/></tooltip>
+                                        </Button>
+                                        <Button id="action-open" text="Open" contentDisplay="TOP"
+                                                styleClass="fxt-tool-button, fxt-tool-primary" onAction="#onOpen">
+                                            <graphic><IconifyIcon iconLiteral="bi-folder2-open" iconSize="20"/></graphic>
+                                            <tooltip><Tooltip text="Open (Ctrl+O)"/></tooltip>
+                                        </Button>
+                                        <Button id="action-save" text="Save" contentDisplay="TOP"
+                                                styleClass="fxt-tool-button, fxt-tool-primary" onAction="#onSave">
+                                            <graphic><IconifyIcon iconLiteral="bi-save" iconSize="20"/></graphic>
+                                            <tooltip><Tooltip text="Save (Ctrl+S)"/></tooltip>
+                                        </Button>
+                                        <Button id="action-save-as" text="Save As" contentDisplay="TOP"
+                                                styleClass="fxt-tool-button, fxt-tool-primary" onAction="#onSaveAs">
+                                            <graphic><IconifyIcon iconLiteral="bi-save2" iconSize="20"/></graphic>
+                                            <tooltip><Tooltip text="Save As (Ctrl+Shift+S)"/></tooltip>
+                                        </Button>
+                                        <Button id="action-save-all" text="Save All" contentDisplay="TOP"
+                                                styleClass="fxt-tool-button, fxt-tool-primary" onAction="#onSaveAll">
+                                            <graphic><IconifyIcon iconLiteral="bi-files" iconSize="20"/></graphic>
+                                            <tooltip><Tooltip text="Save All"/></tooltip>
+                                        </Button>
+                                        <Separator orientation="VERTICAL"/>
+                                        <Button id="action-undo" text="Undo" contentDisplay="TOP"
+                                                styleClass="fxt-tool-button, fxt-tool-neutral" onAction="#onUndo">
+                                            <graphic><IconifyIcon iconLiteral="bi-arrow-counterclockwise" iconSize="20"/></graphic>
+                                            <tooltip><Tooltip text="Undo (Ctrl+Z)"/></tooltip>
+                                        </Button>
+                                        <Button id="action-redo" text="Redo" contentDisplay="TOP"
+                                                styleClass="fxt-tool-button, fxt-tool-neutral" onAction="#onRedo">
+                                            <graphic><IconifyIcon iconLiteral="bi-arrow-clockwise" iconSize="20"/></graphic>
+                                            <tooltip><Tooltip text="Redo (Ctrl+Y)"/></tooltip>
+                                        </Button>
+                                        <Separator orientation="VERTICAL"/>
+                                        <Button id="action-format" text="Format" contentDisplay="TOP"
+                                                styleClass="fxt-tool-button, fxt-tool-info" onAction="#onFormat">
+                                            <graphic><IconifyIcon iconLiteral="bi-text-indent-left" iconSize="20"/></graphic>
+                                            <tooltip><Tooltip text="Format"/></tooltip>
+                                        </Button>
+                                        <Button id="action-minify" text="Minify" contentDisplay="TOP"
+                                                styleClass="fxt-tool-button, fxt-tool-info" onAction="#onMinify">
+                                            <graphic><IconifyIcon iconLiteral="bi-arrows-collapse" iconSize="20"/></graphic>
+                                            <tooltip><Tooltip text="Minify"/></tooltip>
+                                        </Button>
+                                        <Button id="action-insert-template" text="Insert Template" contentDisplay="TOP"
+                                                styleClass="fxt-tool-button, fxt-tool-info" onAction="#onInsertTemplate">
+                                            <graphic><IconifyIcon iconLiteral="bi-puzzle" iconSize="20"/></graphic>
+                                            <tooltip><Tooltip text="Insert Template…"/></tooltip>
+                                        </Button>
+                                        <Button id="action-compare" text="Compare" contentDisplay="TOP"
+                                                styleClass="fxt-tool-button, fxt-tool-info" onAction="#onCompare">
+                                            <graphic><IconifyIcon iconLiteral="bi-layout-split" iconSize="20"/></graphic>
+                                            <tooltip><Tooltip text="Compare with File…"/></tooltip>
+                                        </Button>
+                                        <Button id="action-spreadsheet" text="Spreadsheet" contentDisplay="TOP"
+                                                styleClass="fxt-tool-button, fxt-tool-info" onAction="#onSpreadsheet">
+                                            <graphic><IconifyIcon iconLiteral="bi-table" iconSize="20"/></graphic>
+                                            <tooltip><Tooltip text="Spreadsheet Converter… (Excel / CSV ↔ XML)"/></tooltip>
+                                        </Button>
+                                        <Button id="action-query-console" text="Query Console" contentDisplay="TOP"
+                                                styleClass="fxt-tool-button, fxt-tool-info" onAction="#onQueryConsole">
+                                            <graphic><IconifyIcon iconLiteral="bi-terminal" iconSize="20"/></graphic>
+                                            <tooltip><Tooltip text="Query Console (XPath/XQuery)  Ctrl+Shift+X"/></tooltip>
+                                        </Button>
+                                        <Button fx:id="actionTransform" id="doc-action-transform" text="Transform XSLT"
+                                                contentDisplay="TOP" styleClass="fxt-tool-button, fxt-tool-info"
+                                                onAction="#onTransform">
+                                            <graphic><IconifyIcon iconLiteral="bi-arrow-left-right" iconSize="20"/></graphic>
+                                            <tooltip><Tooltip text="Transform with XSLT… (choose a stylesheet)"/></tooltip>
+                                        </Button>
+                                        <Button id="action-set-schema" text="Set XSD Schema" contentDisplay="TOP"
+                                                styleClass="fxt-tool-button, fxt-tool-warning" onAction="#onSetSchema">
+                                            <graphic><IconifyIcon iconLiteral="bi-diagram-3" iconSize="20"/></graphic>
+                                            <tooltip><Tooltip text="Set XSD Schema… (IntelliSense &amp; validation)"/></tooltip>
+                                        </Button>
+                                        <Button fx:id="actionGenerateDocs" id="doc-action-generate-docs" text="Generate Docs"
+                                                contentDisplay="TOP" styleClass="fxt-tool-button, fxt-tool-info"
+                                                onAction="#onGenerateDocs">
+                                            <graphic><IconifyIcon iconLiteral="bi-file-earmark-text" iconSize="20"/></graphic>
+                                            <tooltip><Tooltip text="Generate Documentation… (HTML / PDF / Word) for the active XSD"/></tooltip>
+                                        </Button>
+                                        <Button fx:id="actionTypeEditor" id="doc-action-type-editor" text="Type Editor"
+                                                contentDisplay="TOP" styleClass="fxt-tool-button, fxt-tool-primary"
+                                                onAction="#onTypeEditor">
+                                            <graphic><IconifyIcon iconLiteral="bi-braces-asterisk" iconSize="20"/></graphic>
+                                            <tooltip><Tooltip text="Open Type Editor… (pick a named type from the active XSD)"/></tooltip>
+                                        </Button>
+                                        <Separator orientation="VERTICAL"/>
+                                        <Button fx:id="actionValidate" id="doc-action-validate" text="Validate"
+                                                contentDisplay="TOP" styleClass="fxt-tool-button, fxt-tool-primary, fxt-tool-accent"
+                                                onAction="#onValidate">
+                                            <graphic><IconifyIcon iconLiteral="bi-check2-circle" iconSize="20"/></graphic>
+                                            <tooltip><Tooltip text="Validate the document (well-formedness, or against the bound XSD) — F8"/></tooltip>
+                                        </Button>
+                                    </children>
+                                </FlowPane>
+
+                                <!-- View-mode switch (Text/Tree/Graphic) — injected from EditorHost.getViewSwitch(). -->
+                                <StackPane fx:id="viewSwitchHost"/>
+
+                                <ToggleButton fx:id="inspectorToggle" id="toggle-inspector" focusTraversable="false"
+                                              styleClass="fxt-tool-button, fxt-tool-neutral, fxt-panel-toggle"
+                                              onAction="#onToggleInspector">
+                                    <graphic><IconifyIcon iconLiteral="bi-chevron-double-left"/></graphic>
+                                    <tooltip><Tooltip text="Show / hide the Properties panel"/></tooltip>
+                                </ToggleButton>
+                            </children>
+                        </HBox>
+                    </children>
+                </VBox>
+            </top>
+
+            <center>
+                <SplitPane fx:id="workSplit" orientation="VERTICAL" styleClass="fxt-work-split">
+                    <items>
+                        <HBox fx:id="workArea" styleClass="fxt-work-area" SplitPane.resizableWithParent="true">
+                            <children>
+                                <!-- Left side panel + in-edge collapse chevron (content set by showSidePanelFor). -->
+                                <StackPane fx:id="leftPanelWrapper">
+                                    <children>
+                                        <StackPane fx:id="sidePanelHost" minWidth="260" prefWidth="260"
+                                                   styleClass="fxt-side-panel"/>
+                                        <Button fx:id="leftCollapseChevron" focusTraversable="false"
+                                                styleClass="fxt-tool-button, fxt-panel-collapse"
+                                                onAction="#onCollapseLeftPanel" StackPane.alignment="TOP_RIGHT">
+                                            <graphic><IconifyIcon iconLiteral="bi-chevron-double-left" iconSize="14"/></graphic>
+                                            <tooltip><Tooltip text="Collapse the side panel"/></tooltip>
+                                            <StackPane.margin><Insets top="4" right="4" bottom="4" left="4"/></StackPane.margin>
+                                        </Button>
+                                    </children>
+                                </StackPane>
+
+                                <!-- Editor column: find bar, editor host, (Problems panel appended in code). -->
+                                <VBox fx:id="editorCenter" styleClass="fxt-editor-area, fxt-editor-center" HBox.hgrow="ALWAYS">
+                                    <children>
+                                        <UnifiedSearchBar fx:id="searchBar"/>
+                                        <EditorHost fx:id="editorHost" VBox.vgrow="ALWAYS"/>
+                                    </children>
+                                </VBox>
+
+                                <!-- Inspector wrapper: chevron in FXML; InspectorPanel inserted at index 0 in code. -->
+                                <StackPane fx:id="inspectorWrapper">
+                                    <children>
+                                        <Button fx:id="inspectorCollapseChevron" focusTraversable="false"
+                                                styleClass="fxt-tool-button, fxt-panel-collapse"
+                                                onAction="#onCollapseInspector" StackPane.alignment="TOP_LEFT">
+                                            <graphic><IconifyIcon iconLiteral="bi-chevron-double-right" iconSize="14"/></graphic>
+                                            <tooltip><Tooltip text="Collapse the Properties panel"/></tooltip>
+                                            <StackPane.margin><Insets top="4" right="4" bottom="4" left="4"/></StackPane.margin>
+                                        </Button>
+                                    </children>
+                                </StackPane>
+                            </children>
+                        </HBox>
+                    </items>
+                </SplitPane>
+            </center>
+        </BorderPane>
+    </center>
+
+    <bottom>
+        <HBox alignment="CENTER_LEFT" styleClass="fxt-status-bar">
+            <children>
+                <Label fx:id="statusPosition" text="Ln 1, Col 1" styleClass="fxt-status-item"/>
+                <Label fx:id="statusChars" styleClass="fxt-status-item"/>
+                <Label fx:id="statusType" styleClass="fxt-status-item"/>
+                <Label fx:id="statusSchema" id="status-schema" text="No XSD" styleClass="fxt-status-item"/>
+                <Label text="UTF-8" styleClass="fxt-status-item"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label fx:id="statusMemory" styleClass="fxt-status-item"/>
+                <Label fx:id="statusFile" text="No file open" styleClass="fxt-status-item"/>
+            </children>
+        </HBox>
+    </bottom>
+</fx:root>

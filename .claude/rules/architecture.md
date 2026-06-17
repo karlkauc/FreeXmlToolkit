@@ -16,9 +16,12 @@ FxtGui → /pages/tab_unified_shell.fxml → UnifiedShellController → UnifiedS
 └──┴───────────────────────────────────────────────────────────────────┘
 ```
 
-Everything lives in `controls/shell/` and is **built in code** (no FXML except the
-bootstrap page). Legacy per-tool tabs/controllers are gone; `controller/` only keeps
-`UnifiedShellController`.
+The shell logic lives in `controls/shell/`. The **chrome** (root BorderPane, header bar,
+editor toolbar, status bar, work-area skeleton) is defined in `pages/shell.fxml` and loaded
+by `UnifiedShellView` via the `fx:root` pattern (so it is Scene-Builder-editable); the dynamic,
+`EditorHost`-dependent custom controls are built in `UnifiedShellView.initialize()` and injected
+into the FXML `fx:id` placeholders (activityBarHost, sidePanelHost, viewSwitchHost, the wrappers).
+Legacy per-tool tabs/controllers are gone; `controller/` only keeps `UnifiedShellController`.
 
 ## Key Shell Classes
 
@@ -120,11 +123,12 @@ public void setName(String name) {
 
 ---
 
-## FXML (only the bootstrap page remains)
+## FXML
 
 | File | Purpose |
 |------|---------|
-| `tab_unified_shell.fxml` | Bootstrap page hosting `UnifiedShellView` |
+| `tab_unified_shell.fxml` | Bootstrap page; its `UnifiedShellController` instantiates `UnifiedShellView` |
+| `shell.fxml` | The shell chrome (`fx:root` BorderPane: header · toolbar · status bar · work-area skeleton + `fx:id` placeholders), loaded by `UnifiedShellView`; **the Scene-Builder-editable layout** |
 
 ## CSS
 
