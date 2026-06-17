@@ -120,13 +120,19 @@ public class UnifiedShellView extends BorderPane {
     public UnifiedShellView() {
         getStyleClass().add("fxt-shell");
 
+        // The activity bar is the outer-left rail and spans the FULL window height (from just
+        // below the native title bar down to the status bar) — VS-Code "future" layout. The header
+        // bar and editor toolbar therefore live in an inner BorderPane to the RIGHT of the rail, so
+        // the rail is no longer pushed down by a full-width top region.
         setLeft(activityBar);
         // Build the work area first (creates chromeUpdater), then the top region: a header bar
-        // (breadcrumb · search · theme) above the editor toolbar, both spanning the FULL window
-        // width (above the activity bar, side panel and inspector). buildEditorToolbar() creates
-        // the panel toggles and syncs them via the now-existing chromeUpdater.
-        setCenter(buildCenter());
-        setTop(buildTopRegion());
+        // (breadcrumb · search · theme) above the editor toolbar. buildEditorToolbar() creates the
+        // panel toggles and syncs them via the now-existing chromeUpdater, so center precedes top.
+        BorderPane mainArea = new BorderPane();
+        mainArea.setCenter(buildCenter());
+        mainArea.setTop(buildTopRegion());
+        setCenter(mainArea);
+        // The status bar stays full-width at the very bottom (under the activity bar), VS-Code style.
         setBottom(buildStatusBar());
 
         // React to activity changes: swap the side panel. Choosing an activity also reveals
@@ -624,9 +630,10 @@ public class UnifiedShellView extends BorderPane {
     }
 
     /**
-     * The full-width top region (Figma "future" layout): a header bar
+     * The top region (Figma "future" layout): a header bar
      * (breadcrumb · centered search · theme/help/notifications) stacked above the
-     * editor toolbar. Both rows span the entire window width.
+     * editor toolbar. Both rows span the work area to the RIGHT of the full-height
+     * activity bar (they are the top of the inner BorderPane, not the outer shell).
      */
     private Region buildTopRegion() {
         VBox top = new VBox(buildHeaderBar(), buildEditorToolbar());
@@ -801,6 +808,13 @@ public class UnifiedShellView extends BorderPane {
         actions.setMinWidth(0);
         // Take the slack between the left controls and the right cluster, wrapping within it.
         HBox.setHgrow(actions, Priority.ALWAYS);
+        // A FlowPane computes its PREFERRED height at its prefWrapLength (default 400px), i.e. as if
+        // all buttons wrapped onto many rows — so the toolbar reserved several rows of height but
+        // rendered only one (at the real, full width), leaving a tall empty band below the buttons
+        // in which the centered view switch and panel toggles appeared to float. Binding the wrap
+        // length to the actual width makes the preferred height equal the rendered height: one row
+        // on wide windows, more only when the window is genuinely too narrow. No more empty band.
+        actions.prefWrapLengthProperty().bind(actions.widthProperty());
 
         // Type-gate the document-actions group against the active document's file type.
         refreshDocumentActionGating();

@@ -293,51 +293,55 @@
     -fx-background-color: -fxt-bg-surface-2;
     -fx-border-color: -fxt-border;
     -fx-border-width: 0 0 1 0;
-    -fx-padding: 4 8 4 8;
-    /* Tall enough for the icon-over-label buttons (Figma "future" layout). */
-    -fx-min-height: 56;
+    -fx-padding: 2 8 2 8;
+    /* Just tall enough for the icon-over-label buttons (~20px icon + 3 gap + label + padding),
+       trimmed from 56 so the content starts directly below without a wasted empty band. */
+    -fx-min-height: 46;
 }
 
-/* ===== Header bar (Figma "future": breadcrumb · centered search · theme icons) ===== */
+/* ===== Header bar (Figma "future": breadcrumb · centered search · theme icons) =====
+   Dark to merge seamlessly with the full-height activity bar (#1a1d21) into one continuous
+   dark top-left chrome. Colors mirror the activity-bar palette (idle #8a93a0, hover #e9ecf1)
+   and are theme-independent, just like the activity bar. Compact height (slim padding). */
 .fxt-header-bar {
-    -fx-background-color: -fxt-bg-surface-2;
-    -fx-border-color: -fxt-border;
+    -fx-background-color: #1a1d21;
+    -fx-border-color: #2a2f37;
     -fx-border-width: 0 0 1 0;
-    -fx-padding: 8 14 8 14;
+    -fx-padding: 4 12 4 12;
     -fx-spacing: 10;
 }
 
 .fxt-header-breadcrumb {
     -fx-font-family: "Inter", sans-serif;
     -fx-font-size: 12.5px;
-    -fx-text-fill: -fxt-text-secondary;
+    -fx-text-fill: #e9ecf1;
 }
 
 .fxt-header-search {
-    -fx-background-color: -fxt-bg-surface-2;
-    -fx-border-color: -fxt-border;
+    -fx-background-color: #2a2f37;
+    -fx-border-color: #3a4250;
     -fx-border-width: 1;
     -fx-border-radius: 8;
     -fx-background-radius: 8;
-    -fx-padding: 6 12 6 12;
+    -fx-padding: 5 12 5 12;
 }
 .fxt-header-search:hover {
     -fx-border-color: -fxt-primary;
 }
 .fxt-header-search .iconify-icon {
-    -fx-icon-color: -fxt-text-muted;
+    -fx-icon-color: #8a93a0;
 }
 .fxt-header-search-hint {
     -fx-font-family: "Inter", sans-serif;
     -fx-font-size: 12.5px;
-    -fx-text-fill: -fxt-text-muted;
+    -fx-text-fill: #8a93a0;
 }
 .fxt-header-kbd {
     -fx-font-family: "Inter", sans-serif;
     -fx-font-size: 10.5px;
-    -fx-text-fill: -fxt-text-muted;
-    -fx-background-color: -fxt-bg-surface;
-    -fx-border-color: -fxt-border;
+    -fx-text-fill: #8a93a0;
+    -fx-background-color: #1a1d21;
+    -fx-border-color: #3a4250;
     -fx-border-radius: 4;
     -fx-background-radius: 4;
     -fx-padding: 1 6 1 6;
@@ -353,13 +357,13 @@
     -fx-cursor: hand;
 }
 .fxt-header-icon .iconify-icon {
-    -fx-icon-color: -fxt-text-secondary;
+    -fx-icon-color: #8a93a0;
 }
 .fxt-header-icon:hover {
-    -fx-background-color: -fxt-bg-subtle;
+    -fx-background-color: #2a2f37;
 }
 .fxt-header-icon:hover .iconify-icon {
-    -fx-icon-color: -fxt-primary;
+    -fx-icon-color: #e9ecf1;
 }
 
 /* The action ToolBar is flush with the editor toolbar: no chrome, just its buttons.
