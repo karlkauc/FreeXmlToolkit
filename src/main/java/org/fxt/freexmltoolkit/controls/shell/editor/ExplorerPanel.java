@@ -251,8 +251,27 @@ public class ExplorerPanel extends VBox {
         editorHost.openFile(path);
     }
 
+    /** Overridable "New file" action; {@code null} falls back to a blank XML document. */
+    private Runnable newFileAction;
+
+    /**
+     * Routes the Explorer's "New file" button through a custom action (e.g. the shell's
+     * guided {@link NewFileDialog}) so there is a single new-file entry point.
+     *
+     * @param action the action to run (ignored if {@code null})
+     */
+    public void setNewFileAction(Runnable action) {
+        if (action != null) {
+            this.newFileAction = action;
+        }
+    }
+
     private void newFile() {
-        editorHost.newDocument(EditorFileType.XML);
+        if (newFileAction != null) {
+            newFileAction.run();
+        } else {
+            editorHost.newDocument(EditorFileType.XML);
+        }
     }
 
     /** Sets the workspace root and shows its folder name as the section title. */

@@ -418,8 +418,9 @@ public class UnifiedShellView extends BorderPane {
 
     private void showSidePanelFor(Activity activity) {
         if (activity == Activity.EXPLORER) {
-            sidePanelHost.getChildren().setAll(
-                    new org.fxt.freexmltoolkit.controls.shell.editor.ExplorerPanel(editorHost));
+            var explorer = new org.fxt.freexmltoolkit.controls.shell.editor.ExplorerPanel(editorHost);
+            explorer.setNewFileAction(this::newDocument);
+            sidePanelHost.getChildren().setAll(explorer);
             return;
         }
         if (activity == Activity.SCHEMA) {
@@ -686,7 +687,86 @@ public class UnifiedShellView extends BorderPane {
     }
 
     private void newDocument() {
-        editorHost.newDocument(org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.XML);
+        var dialog = new org.fxt.freexmltoolkit.controls.shell.editor.NewFileDialog();
+        if (getScene() != null) {
+            dialog.initOwner(getScene().getWindow());
+        }
+        dialog.showAndWait().ifPresent(this::createNewDocument);
+    }
+
+    /**
+     * Creates a new document according to the choices gathered in {@link
+     * org.fxt.freexmltoolkit.controls.shell.editor.NewFileDialog}: a template,
+     * a schema-derived skeleton (mandatory nodes), or plain per-type boilerplate.
+     * Schema-based generation runs off the UI thread.
+     */
+    private void createNewDocument(org.fxt.freexmltoolkit.controls.shell.editor.NewFileDialog.Result result) {
+        // 1) Template chosen → render it (prompting for parameters when needed).
+        if (result.template() != null) {
+            var template = result.template();
+            java.util.Map<String, String> params = java.util.Map.of();
+            if (template.getParameters() != null && !template.getParameters().isEmpty()) {
+                var paramDialog = new org.fxt.freexmltoolkit.controls.shell.editor.TemplateParameterDialog(template);
+                if (getScene() != null) {
+                    paramDialog.initOwner(getScene().getWindow());
+                }
+                var entered = paramDialog.showAndWait();
+                if (entered.isEmpty()) {
+                    return; // parameter entry cancelled
+                }
+                params = entered.get();
+            }
+            String content = org.fxt.freexmltoolkit.controls.shell.editor.TemplateRunner.render(template, params);
+            if (content.startsWith("ERROR:")) {
+                org.fxt.freexmltoolkit.util.DialogHelper.showError("New File", "Template could not be rendered", content);
+                return;
+            }
+            org.fxt.freexmltoolkit.service.TemplateRepository.getInstance().recordUsage(template.getId());
+            finishNewDocument(content, result);
+            return;
+        }
+
+        // 2) XML + schema + mandatory nodes → generate skeleton off the UI thread.
+        if (result.schema() != null && result.generateMandatory()) {
+            java.io.File schema = result.schema();
+            org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+                String xml = org.fxt.freexmltoolkit.controls.shell.editor.SampleXmlRunner
+                        .generate(schema, true, 2, false);
+                javafx.application.Platform.runLater(() -> {
+                    if (xml.startsWith("ERROR:")) {
+                        org.fxt.freexmltoolkit.util.DialogHelper.showError("New File",
+                                "Could not generate document from schema", xml);
+                    } else {
+                        finishNewDocument(xml, result);
+                    }
+                });
+            });
+            return;
+        }
+
+        // 3) Plain per-type boilerplate (a schema may still be bound below).
+        finishNewDocument(result.type().defaultContent(), result);
+    }
+
+    /**
+     * Opens the generated content as a new document, binds the chosen schema (XML
+     * without a template) and saves it immediately when a location was chosen.
+     * Must run on the FX thread.
+     */
+    private void finishNewDocument(String content, org.fxt.freexmltoolkit.controls.shell.editor.NewFileDialog.Result result) {
+        org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType type = result.type();
+        String name = "Untitled." + type.primaryExtension();
+        if (content == null || content.isBlank()) {
+            editorHost.newDocument(type);
+        } else {
+            editorHost.openGeneratedDocument(content, type, name);
+        }
+        if (result.schema() != null && result.template() == null) {
+            editorHost.setSchemaForActiveDocument(result.schema());
+        }
+        if (result.saveLocation() != null) {
+            editorHost.saveActiveAs(result.saveLocation().toPath());
+        }
     }
 
     private void openFile() {

@@ -816,6 +816,20 @@ class UpdateCheckServiceTest {
         }
 
         @Override
+        public String getTemplatesDirectory() {
+            return properties.getProperty("templates.directory", null);
+        }
+
+        @Override
+        public void setTemplatesDirectory(String path) {
+            if (path == null) {
+                properties.remove("templates.directory");
+            } else {
+                properties.setProperty("templates.directory", path);
+            }
+        }
+
+        @Override
         public boolean isUseSystemTempFolder() {
             return Boolean.parseBoolean(properties.getProperty("use.system.temp.folder", "true"));
         }

@@ -532,6 +532,21 @@ public class PropertiesServiceImpl implements PropertiesService {
         }
     }
 
+    @Override
+    public String getTemplatesDirectory() {
+        String dir = properties.getProperty("templates.directory");
+        return (dir == null || dir.isBlank()) ? null : dir;
+    }
+
+    @Override
+    public void setTemplatesDirectory(String path) {
+        if (path != null) {
+            properties.setProperty("templates.directory", path.trim());
+            saveProperties(properties);
+            logger.debug("Set templates directory to: {}", path);
+        }
+    }
+
     // Security settings implementation
 
     @Override

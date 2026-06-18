@@ -51,6 +51,27 @@ class EditorFileTypeTest {
     }
 
     @Test
+    void primaryExtensionMatchesFirstDeclaredExtension() {
+        assertEquals("xml", EditorFileType.XML.primaryExtension());
+        assertEquals("xsd", EditorFileType.XSD.primaryExtension());
+        assertEquals("xsl", EditorFileType.XSLT.primaryExtension());
+        assertEquals("sch", EditorFileType.SCHEMATRON.primaryExtension());
+        assertEquals("json", EditorFileType.JSON.primaryExtension());
+        assertEquals("txt", EditorFileType.OTHER.primaryExtension());
+    }
+
+    @Test
+    void defaultContentProvidesSensibleBoilerplate() {
+        assertTrue(EditorFileType.XML.defaultContent().startsWith("<?xml version=\"1.0\""));
+        assertTrue(EditorFileType.XSD.defaultContent().contains("<xs:schema"));
+        assertTrue(EditorFileType.XSLT.defaultContent().contains("<xsl:stylesheet"));
+        assertTrue(EditorFileType.SCHEMATRON.defaultContent()
+                .contains("http://purl.oclc.org/dsdl/schematron"));
+        assertEquals("{\n}\n", EditorFileType.JSON.defaultContent());
+        assertEquals("", EditorFileType.OTHER.defaultContent());
+    }
+
+    @Test
     void extensionsDoNotOverlapAcrossTypes() {
         Set<String> seen = new HashSet<>();
         for (EditorFileType t : EditorFileType.values()) {

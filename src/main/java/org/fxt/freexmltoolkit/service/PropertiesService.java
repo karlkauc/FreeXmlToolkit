@@ -417,6 +417,22 @@ public interface PropertiesService {
      */
     void setCustomTempFolder(String path);
 
+    /**
+     * Gets the configured XML templates directory, or {@code null}/blank when the
+     * user has not set one (in which case {@link TemplateFileService} falls back to
+     * its default location).
+     *
+     * @return the configured templates directory path, or {@code null} if unset
+     */
+    String getTemplatesDirectory();
+
+    /**
+     * Sets the XML templates directory used by the template repository.
+     *
+     * @param path the templates directory path (ignored if {@code null})
+     */
+    void setTemplatesDirectory(String path);
+
     // Security settings
 
     /**

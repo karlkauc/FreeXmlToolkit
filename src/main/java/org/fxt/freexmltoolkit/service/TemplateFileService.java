@@ -25,7 +25,7 @@ public class TemplateFileService {
     private static final Logger logger = LogManager.getLogger(TemplateFileService.class);
 
     private static TemplateFileService instance;
-    private final Path templatesDirectory;
+    private Path templatesDirectory;
 
     /**
      * Private constructor for singleton pattern.
@@ -41,6 +41,26 @@ public class TemplateFileService {
         } catch (IOException e) {
             logger.error("Failed to create templates directory: {}", templatesDirectory, e);
         }
+    }
+
+    /**
+     * Overrides the templates directory at runtime (e.g. after the user changes the
+     * configured location in the settings). The directory is created if necessary.
+     *
+     * @param directory the new templates directory (ignored if {@code null})
+     * @return {@code true} if the directory changed and is now in use
+     */
+    public synchronized boolean setTemplatesDirectory(Path directory) {
+        if (directory == null || directory.equals(templatesDirectory)) {
+            return false;
+        }
+        if (tryCreateDirectory(directory)) {
+            this.templatesDirectory = directory;
+            logger.info("Templates directory changed to: {}", directory);
+            return true;
+        }
+        logger.warn("Could not use templates directory: {}", directory);
+        return false;
     }
 
     /**
@@ -64,6 +84,21 @@ public class TemplateFileService {
      * @return the path to the templates directory
      */
     private Path getTemplatesDirectory() {
+        // Prefer an explicitly configured templates directory, if the user set one.
+        try {
+            String configured = PropertiesServiceImpl.getInstance().getTemplatesDirectory();
+            if (configured != null && !configured.isBlank()) {
+                Path configuredPath = Paths.get(configured.trim());
+                if (Files.exists(configuredPath) || tryCreateDirectory(configuredPath)) {
+                    logger.debug("Using configured templates directory: {}", configuredPath);
+                    return configuredPath;
+                }
+                logger.warn("Configured templates directory not usable, falling back: {}", configuredPath);
+            }
+        } catch (Exception e) {
+            logger.warn("Failed to read configured templates directory: {}", e.getMessage());
+        }
+
         // Try to find the project root and use release/examples/templates
         Path currentDir = Paths.get(System.getProperty("user.dir"));
 

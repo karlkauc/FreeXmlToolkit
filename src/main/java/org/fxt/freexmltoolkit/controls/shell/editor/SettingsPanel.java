@@ -7,6 +7,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.TextField;
@@ -21,7 +23,10 @@ import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.theme.DesignTokens;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.XmlParserType;
+import org.fxt.freexmltoolkit.domain.XmlTemplate;
 import org.fxt.freexmltoolkit.service.PropertiesService;
+import org.fxt.freexmltoolkit.service.TemplateFileService;
+import org.fxt.freexmltoolkit.service.TemplateRepository;
 import org.fxt.freexmltoolkit.service.UsageTrackingServiceImpl;
 
 /**
@@ -88,6 +93,10 @@ public class SettingsPanel extends VBox {
 
     // FundsXML extension
     private final CheckBox fundsXmlEnabled = new CheckBox("Enable FundsXML extensions");
+
+    // Templates
+    private final TextField templatesDir = new TextField();
+    private final ListView<XmlTemplate> templatesList = new ListView<>();
 
     /** Optional hook invoked after {@link #saveSettings()} (e.g. to refresh the activity bar). */
     private Runnable onSaved;
@@ -158,6 +167,25 @@ public class SettingsPanel extends VBox {
             }
         });
 
+        templatesDir.setPromptText("templates directory (leave empty for default)");
+        templatesList.setPrefHeight(140);
+        templatesList.setCellFactory(lv -> templateCell());
+        Button newTemplate = new Button("New", iconGraphic("bi-plus-lg"));
+        Button editTemplate = new Button("Edit", iconGraphic("bi-pencil"));
+        Button deleteTemplate = new Button("Delete", iconGraphic("bi-trash"));
+        for (Button b : new Button[]{newTemplate, editTemplate, deleteTemplate}) {
+            b.getStyleClass().add("fxt-tool-button");
+        }
+        editTemplate.disableProperty().bind(
+                templatesList.getSelectionModel().selectedItemProperty().isNull());
+        deleteTemplate.disableProperty().bind(
+                templatesList.getSelectionModel().selectedItemProperty().isNull());
+        newTemplate.setOnAction(e -> editTemplate(null));
+        editTemplate.setOnAction(e -> editTemplate(templatesList.getSelectionModel().getSelectedItem()));
+        deleteTemplate.setOnAction(e -> deleteSelectedTemplate());
+        HBox templateButtons = new HBox(6, newTemplate, editTemplate, deleteTemplate);
+        templateButtons.setAlignment(Pos.CENTER_LEFT);
+
         Button save = new Button("Save Settings", iconGraphic("bi-save"));
         save.getStyleClass().add("fxt-tool-button");
         save.setOnAction(e -> {
@@ -197,6 +225,11 @@ public class SettingsPanel extends VBox {
                         trackingEnabled, fill(clearStats), usageStatus),
                 card("FUNDSXML", "bi-file-earmark-code", "#20c997",
                         fundsXmlEnabled),
+                card("TEMPLATES", "bi-file-earmark-plus", "#0d6efd",
+                        new Label("Templates directory:"),
+                        browseRow(templatesDir, this::chooseTemplatesDir),
+                        new Label("Your templates:"),
+                        fill(templatesList), templateButtons),
                 card("HTTP PROXY", "bi-globe", "#6610f2",
                         useSystemProxy, proxyHost, proxyPort));
         cards.setPrefWrapLength(820);
@@ -265,12 +298,94 @@ public class SettingsPanel extends VBox {
         chooseDirInto(customTempDir);
     }
 
+    private void chooseTemplatesDir() {
+        chooseDirInto(templatesDir);
+    }
+
     private void chooseDirInto(TextField field) {
         javafx.stage.DirectoryChooser chooser = new javafx.stage.DirectoryChooser();
         File dir = chooser.showDialog(getScene() != null ? getScene().getWindow() : null);
         if (dir != null) {
             field.setText(dir.getAbsolutePath());
         }
+    }
+
+    /** Opens the create/edit dialog and persists the result to the templates directory. */
+    private void editTemplate(XmlTemplate existing) {
+        TemplateEditDialog dialog = new TemplateEditDialog(existing);
+        if (getScene() != null) {
+            dialog.initOwner(getScene().getWindow());
+        }
+        dialog.showAndWait().ifPresent(template -> {
+            try {
+                TemplateRepository.getInstance().saveTemplateToFile(template);
+            } catch (Exception ex) {
+                org.fxt.freexmltoolkit.util.DialogHelper.showError("Templates",
+                        "Could not save template", ex.getMessage());
+            }
+            reloadTemplatesList();
+        });
+    }
+
+    private void deleteSelectedTemplate() {
+        XmlTemplate selected = templatesList.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            return;
+        }
+        if (org.fxt.freexmltoolkit.util.DialogHelper.showConfirmation("Delete Template",
+                "Delete template '" + selected.getName() + "'?",
+                "This permanently removes the template file. This action cannot be undone.")) {
+            TemplateRepository.getInstance().removeTemplate(selected.getId(), true);
+            reloadTemplatesList();
+        }
+    }
+
+    /**
+     * Persists the templates directory and, when set, points the live
+     * {@link TemplateFileService} at it and reloads the repository so the change
+     * takes effect without a restart.
+     */
+    private void applyTemplatesDirectory(PropertiesService props) {
+        String dir = templatesDir.getText() == null ? "" : templatesDir.getText().trim();
+        props.setTemplatesDirectory(dir);
+        if (!dir.isBlank()) {
+            boolean changed = TemplateFileService.getInstance()
+                    .setTemplatesDirectory(java.nio.file.Paths.get(dir));
+            if (changed) {
+                TemplateRepository.getInstance().refreshTemplatesFromDirectory();
+                reloadTemplatesList();
+            }
+        }
+    }
+
+    /** Reloads the list with the user's (non-built-in) templates. */
+    private void reloadTemplatesList() {
+        try {
+            var userTemplates = TemplateRepository.getInstance().getAllTemplates().stream()
+                    .filter(t -> !t.isBuiltIn())
+                    .sorted(java.util.Comparator.comparing(
+                            t -> t.getName() == null ? "" : t.getName(),
+                            String.CASE_INSENSITIVE_ORDER))
+                    .toList();
+            templatesList.getItems().setAll(userTemplates);
+        } catch (Throwable ignored) {
+            // repository unavailable (e.g. tests)
+        }
+    }
+
+    private static ListCell<XmlTemplate> templateCell() {
+        return new ListCell<>() {
+            @Override
+            protected void updateItem(XmlTemplate item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    String cat = item.getCategory();
+                    setText(item.getName() + (cat == null || cat.isBlank() ? "" : "  (" + cat + ")"));
+                }
+            }
+        };
     }
 
     /** @return the application cache folder ({@code ~/.freeXmlToolkit/cache}), e.g. for downloaded schemas. */
@@ -366,9 +481,11 @@ public class SettingsPanel extends VBox {
                     props.get(org.fxt.freexmltoolkit.service.fundsxml.FundsXmlPropertyKeys.ENABLED) == null
                             ? "false"
                             : props.get(org.fxt.freexmltoolkit.service.fundsxml.FundsXmlPropertyKeys.ENABLED)));
+            templatesDir.setText(orEmpty(props.getTemplatesDirectory()));
         } catch (Throwable ignored) {
             // properties service unavailable (e.g. tests) — controls keep their defaults
         }
+        reloadTemplatesList();
     }
 
     /** Persists all settings. */
@@ -410,6 +527,7 @@ public class SettingsPanel extends VBox {
                     .setTrackingEnabled(trackingEnabled.isSelected());
             props.set(org.fxt.freexmltoolkit.service.fundsxml.FundsXmlPropertyKeys.ENABLED,
                     String.valueOf(fundsXmlEnabled.isSelected()));
+            applyTemplatesDirectory(props);
             // Only notify once every write above succeeded.
             if (onSaved != null) {
                 onSaved.run();

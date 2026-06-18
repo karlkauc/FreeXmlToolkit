@@ -47,6 +47,59 @@ public enum EditorFileType {
         return extensions;
     }
 
+    /** @return the primary (first) file extension for this type, or {@code "txt"} if none. */
+    public String primaryExtension() {
+        return extensions.isEmpty() ? "txt" : extensions.get(0);
+    }
+
+    /**
+     * Minimal starter content for a brand-new document of this type, used by the
+     * "New File" flow when neither a schema nor a template was chosen.
+     *
+     * @return a sensible boilerplate skeleton (empty string for {@link #OTHER})
+     */
+    public String defaultContent() {
+        return switch (this) {
+            case XML -> "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+            case XSD -> """
+                    <?xml version="1.0" encoding="UTF-8"?>
+                    <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                               elementFormDefault="qualified">
+
+                    </xs:schema>
+                    """;
+            case XSLT -> """
+                    <?xml version="1.0" encoding="UTF-8"?>
+                    <xsl:stylesheet version="3.0"
+                                    xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+                                    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                                    exclude-result-prefixes="xs">
+
+                        <xsl:output method="xml" encoding="UTF-8" indent="yes"/>
+
+                        <xsl:template match="/">
+
+                        </xsl:template>
+
+                    </xsl:stylesheet>
+                    """;
+            case SCHEMATRON -> """
+                    <?xml version="1.0" encoding="UTF-8"?>
+                    <schema xmlns="http://purl.oclc.org/dsdl/schematron">
+
+                        <pattern>
+                            <rule context="/">
+                                <!-- <assert test="...">message</assert> -->
+                            </rule>
+                        </pattern>
+
+                    </schema>
+                    """;
+            case JSON -> "{\n}\n";
+            case OTHER -> "";
+        };
+    }
+
     /**
      * Classifies a file by its name's extension (case-insensitive).
      *
