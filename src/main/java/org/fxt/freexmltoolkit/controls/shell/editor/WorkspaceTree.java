@@ -36,6 +36,8 @@ public class WorkspaceTree extends VBox {
         tree.getStyleClass().add("fxt-workspace-tree");
         tree.setShowRoot(false);
         tree.setCellFactory(tv -> new PathCell());
+        // Allow selecting several files at once (Ctrl/Shift) for batch actions (e.g. batch transform).
+        tree.getSelectionModel().setSelectionMode(javafx.scene.control.SelectionMode.MULTIPLE);
         VBox.setVgrow(tree, Priority.ALWAYS);
 
         tree.setOnMouseClicked(e -> {
@@ -97,6 +99,16 @@ public class WorkspaceTree extends VBox {
                 .map(Path::getFileName)
                 .filter(java.util.Objects::nonNull)
                 .map(Path::toString)
+                .toList();
+    }
+
+    /** @return the currently selected entries that are regular files (empty if none). */
+    public List<Path> getSelectedFiles() {
+        return tree.getSelectionModel().getSelectedItems().stream()
+                .filter(java.util.Objects::nonNull)
+                .map(TreeItem::getValue)
+                .filter(java.util.Objects::nonNull)
+                .filter(Files::isRegularFile)
                 .toList();
     }
 

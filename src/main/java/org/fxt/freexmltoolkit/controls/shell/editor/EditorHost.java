@@ -926,6 +926,94 @@ public class EditorHost extends BorderPane {
     }
 
     /**
+     * Runs {@code xsltFile} over a single {@code xmlFile} off the UI thread and shows the
+     * result in the docked {@link TransformOutputPanel} (HTML preview when applicable). The
+     * output format is auto-detected from the stylesheet's {@code xsl:output}. Used by the
+     * Explorer's one-click transform; mirrors {@link TransformPanel#transform()}.
+     *
+     * @param xmlFile  the XML input file
+     * @param xsltFile the stylesheet to apply (also remembered as a recent stylesheet)
+     */
+    public void runXsltPreview(File xmlFile, File xsltFile) {
+        TransformOutputPanel out = transformOutputPanel();
+        if (xsltFile == null || !xsltFile.isFile()) {
+            out.showError("Select an XSLT stylesheet first.");
+            return;
+        }
+        if (xmlFile == null || !xmlFile.isFile()) {
+            out.showError("Select an XML file to transform.");
+            return;
+        }
+        rememberRecentXslt(xsltFile);
+        out.showPending("Transforming…");
+        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            long start = System.nanoTime();
+            String result;
+            org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat format =
+                    org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat.XML;
+            try {
+                String xml = Files.readString(xmlFile.toPath(), StandardCharsets.UTF_8);
+                String xsltContent = Files.readString(xsltFile.toPath(), StandardCharsets.UTF_8);
+                format = TransformRunner.detectXsltOutputFormat(xsltContent);
+                result = TransformRunner.xsltTransform(xml, xsltContent, java.util.Map.of(), format);
+            } catch (Exception e) {
+                result = "ERROR: " + e.getMessage();
+            }
+            long elapsedMs = (System.nanoTime() - start) / 1_000_000;
+            String finalResult = result;
+            org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat finalFormat = format;
+            Platform.runLater(() -> out.showTransformResult(finalResult, finalFormat, elapsedMs));
+        });
+    }
+
+    /**
+     * Opens a {@link BatchTransformView} tool tab pre-loaded with {@code xmlFiles} and the given
+     * stylesheet, then starts the batch run. Used by the Explorer when several XML files are
+     * selected; reuses the existing batch tooling and its "Save All…" action.
+     *
+     * @param xmlFiles the XML input files
+     * @param xsltFile the stylesheet to apply over each file
+     */
+    public void openBatchTransform(java.util.List<File> xmlFiles, File xsltFile) {
+        TransformOutputPanel out = transformOutputPanel();
+        if (xsltFile == null || !xsltFile.isFile()) {
+            out.showError("Select an XSLT stylesheet first.");
+            return;
+        }
+        if (xmlFiles == null || xmlFiles.isEmpty()) {
+            out.showError("Select XML files to transform.");
+            return;
+        }
+        rememberRecentXslt(xsltFile);
+        String xsltContent;
+        org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat format;
+        try {
+            xsltContent = Files.readString(xsltFile.toPath(), StandardCharsets.UTF_8);
+            format = TransformRunner.detectXsltOutputFormat(xsltContent);
+        } catch (IOException e) {
+            out.showError("Could not read stylesheet: " + e.getMessage());
+            return;
+        }
+        var view = new org.fxt.freexmltoolkit.controls.shell.editor.debug.BatchTransformView(
+                org.fxt.freexmltoolkit.controls.shell.editor.debug.BatchTransformView.Kind.XSLT,
+                xsltContent, java.util.Map.of(), format);
+        view.addInputFiles(xmlFiles);
+        openToolTab("Batch", "bi-collection", view);
+        view.run();
+    }
+
+    /** Records {@code xsltFile} in the shared recent-stylesheet store (best-effort). */
+    private static void rememberRecentXslt(File xsltFile) {
+        try {
+            org.fxt.freexmltoolkit.di.ServiceRegistry
+                    .get(org.fxt.freexmltoolkit.service.PropertiesService.class)
+                    .addRecentXsltFile(xsltFile);
+        } catch (Throwable ignored) {
+            // properties service unavailable — no recent-files persistence
+        }
+    }
+
+    /**
      * Replaces the text of a still-open generated document (e.g. a re-run transform
      * result) without changing the tab selection.
      *

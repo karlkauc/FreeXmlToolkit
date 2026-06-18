@@ -65,4 +65,25 @@ class WorkspaceTreeTest {
 
         assertEquals(xml, opened.get());
     }
+
+    @Test
+    void getSelectedFilesReturnsAllSelectedRegularFiles(@TempDir Path dir) throws Exception {
+        Path a = dir.resolve("a.xml");
+        Path b = dir.resolve("b.xml");
+        Files.writeString(a, "<a/>");
+        Files.writeString(b, "<b/>");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> tree.setRootFolder(dir));
+        WaitForAsyncUtils.waitForFxEvents();
+
+        var selected = WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            tree.selectPath(a);
+            tree.selectPath(b);
+            return tree.getSelectedFiles();
+        });
+
+        assertTrue(selected.contains(a), "first selected file must be returned");
+        assertTrue(selected.contains(b), "second selected file must be returned");
+        assertEquals(2, selected.size(), "only the two selected files must be returned");
+    }
 }

@@ -50,6 +50,9 @@ public class ExplorerPanel extends VBox {
     private final WorkspaceTree workspace = new WorkspaceTree(this::openWorkspaceFile);
     private final Label workspaceTitle = new Label("WORKSPACE");
     private final MenuButton overflowMenu = new MenuButton();
+    /** Sticky stylesheet for the Explorer's one-click transform; shared via the recent-XSLT store. */
+    private File currentXslt;
+    private final MenuButton stylesheetMenu = new MenuButton();
 
     public ExplorerPanel(EditorHost editorHost) {
         this.editorHost = editorHost;
@@ -130,6 +133,7 @@ public class ExplorerPanel extends VBox {
         javafx.scene.layout.VBox favRecentPane = buildFavoritesRecentTabs();
 
         getChildren().addAll(header,
+                buildTransformBar(),
                 openHeader, openEditorsBox,
                 workspaceHeader, workspace,
                 favRecentPane);
@@ -249,6 +253,152 @@ public class ExplorerPanel extends VBox {
     /** Opens a file from the workspace tree and reveals the Open Editors entry. */
     private void openWorkspaceFile(Path path) {
         editorHost.openFile(path);
+    }
+
+    // ----- one-click XSLT transform --------------------------------------------
+
+    /**
+     * Builds the Explorer transform bar: a stylesheet picker ({@link #stylesheetMenu}) and a
+     * Transform button. The chosen stylesheet stays fixed across files, so switching the XML
+     * selection and clicking Transform is a single click. With multiple files selected the run
+     * is delegated to the batch transform tooling.
+     */
+    private HBox buildTransformBar() {
+        stylesheetMenu.setId("explorer-stylesheet");
+        stylesheetMenu.setGraphic(icon("bi-file-earmark-code", 14));
+        stylesheetMenu.getStyleClass().add("fxt-tool-button");
+        stylesheetMenu.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(stylesheetMenu, Priority.ALWAYS);
+        stylesheetMenu.setOnShowing(e -> refreshStylesheetMenu());
+        refreshStylesheetLabel();
+
+        Button transformButton = new Button("Transform", icon("bi-play-fill", 14));
+        transformButton.setId("explorer-transform");
+        transformButton.getStyleClass().add("fxt-tool-button");
+        transformButton.setTooltip(new javafx.scene.control.Tooltip(
+                "Transform selected XML file(s) with the current stylesheet"));
+        transformButton.setOnAction(e -> runExplorerTransform());
+
+        HBox bar = new HBox(6, stylesheetMenu, transformButton);
+        bar.setId("explorer-transform-bar");
+        bar.getStyleClass().add("fxt-sp-header");
+        bar.setAlignment(Pos.CENTER_LEFT);
+        return bar;
+    }
+
+    /** Rebuilds the stylesheet dropdown from the shared recent-XSLT store. */
+    private void refreshStylesheetMenu() {
+        stylesheetMenu.getItems().clear();
+        for (File file : recentXsltFiles()) {
+            MenuItem item = new MenuItem(file.getName());
+            item.setOnAction(e -> setCurrentXslt(file));
+            stylesheetMenu.getItems().add(item);
+        }
+        if (!stylesheetMenu.getItems().isEmpty()) {
+            stylesheetMenu.getItems().add(new javafx.scene.control.SeparatorMenuItem());
+        }
+        stylesheetMenu.getItems().add(menuItem("Choose stylesheet…", this::chooseStylesheet));
+        MenuItem clear = menuItem("Clear recent", () -> {
+            if (propertiesService != null) {
+                propertiesService.clearRecentXsltFiles();
+            }
+            currentXslt = null;
+            refreshStylesheetLabel();
+        });
+        stylesheetMenu.getItems().add(clear);
+    }
+
+    /** Updates the dropdown text to the current (or most recent) stylesheet's name. */
+    private void refreshStylesheetLabel() {
+        File xslt = currentStylesheet();
+        stylesheetMenu.setText(xslt != null ? xslt.getName() : "Stylesheet…");
+    }
+
+    /** Sets the active stylesheet and records it as the most recent one. */
+    private void setCurrentXslt(File file) {
+        currentXslt = file;
+        if (file != null && propertiesService != null) {
+            propertiesService.addRecentXsltFile(file);
+        }
+        refreshStylesheetLabel();
+    }
+
+    /** Opens a file chooser to pick a stylesheet, then makes it the current one. */
+    private void chooseStylesheet() {
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Choose XSLT stylesheet");
+        chooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("XSLT", "*.xsl", "*.xslt"));
+        File file = chooser.showOpenDialog(getScene() != null ? getScene().getWindow() : null);
+        if (file != null) {
+            setCurrentXslt(file);
+        }
+    }
+
+    /**
+     * Resolves the stylesheet to use: the explicitly chosen one, otherwise the head of the
+     * shared recent-XSLT list (so it stays in sync with the Transform panel).
+     */
+    private File currentStylesheet() {
+        if (currentXslt != null && currentXslt.isFile()) {
+            return currentXslt;
+        }
+        java.util.List<File> recent = recentXsltFiles();
+        return recent.isEmpty() ? null : recent.get(0);
+    }
+
+    private java.util.List<File> recentXsltFiles() {
+        if (propertiesService == null) {
+            return java.util.List.of();
+        }
+        try {
+            return propertiesService.getRecentXsltFiles();
+        } catch (Throwable t) {
+            return java.util.List.of();
+        }
+    }
+
+    /**
+     * Transforms the selected XML file(s) with the current stylesheet: a single file goes to
+     * the docked preview, several files to the batch transform tool. Falls back to the active
+     * editor document when nothing is selected in the tree.
+     */
+    private void runExplorerTransform() {
+        File xslt = currentStylesheet();
+        if (xslt == null) {
+            chooseStylesheet();
+            xslt = currentStylesheet();
+            if (xslt == null) {
+                return;
+            }
+        }
+        java.util.List<File> xmls = new java.util.ArrayList<>();
+        for (Path p : workspace.getSelectedFiles()) {
+            if (isXmlFile(p)) {
+                xmls.add(p.toFile());
+            }
+        }
+        if (xmls.isEmpty()) {
+            // Fall back to the active editor document if it is an XML file.
+            editorHost.getActiveDocument()
+                    .map(OpenDocument::getPath)
+                    .filter(p -> p != null && isXmlFile(p))
+                    .ifPresent(p -> xmls.add(p.toFile()));
+        }
+        if (xmls.isEmpty()) {
+            editorHost.transformOutputPanel().showError("Select an XML file to transform.");
+            return;
+        }
+        if (xmls.size() == 1) {
+            editorHost.runXsltPreview(xmls.get(0), xslt);
+        } else {
+            editorHost.openBatchTransform(xmls, xslt);
+        }
+    }
+
+    private static boolean isXmlFile(Path path) {
+        String name = path.getFileName() != null ? path.getFileName().toString() : "";
+        return name.toLowerCase(java.util.Locale.ROOT).endsWith(".xml");
     }
 
     /** Overridable "New file" action; {@code null} falls back to a blank XML document. */

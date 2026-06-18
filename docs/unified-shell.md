@@ -273,6 +273,11 @@ header reads **TRANSFORM** and carries a **⋮ (overflow) menu** with the second
 (see [The ⋮ Menu](#the-transform-menu) below). Each section header is clickable to collapse
 or expand that section.
 
+!!! tip
+    For a quick, one-click transform without opening this panel, use the
+    **[Transform bar](#transform-bar-one-click-xslt-from-the-explorer)** in the Explorer. It shares
+    the same recent-stylesheet list and shows its result in the same OUTPUT panel.
+
 ### STYLESHEET
 
 - Shows the **name of the chosen XSLT stylesheet** (or *none* if no stylesheet is set yet).
@@ -411,6 +416,48 @@ Open the **Explorer** panel from the activity bar to manage files.
   **RECENT**, and **FAVORITES** section headers are clickable: click a header to collapse or
   expand its section (the chevron next to the title flips accordingly). Use this to give the
   file tree more room when you have many open editors or recent files.
+
+### Transform Bar (one-click XSLT from the Explorer)
+
+> **New in June 2026** - Run an XSLT stylesheet against XML files straight from the Explorer,
+> without switching to the Transform activity.
+
+A small **Transform bar** sits directly below the **EXPLORER** header. It lets you keep a
+stylesheet fixed and apply it to whichever XML file you pick in the tree - ideal for repeatedly
+running the same evaluation, dashboard, or data-quality stylesheet across many files.
+
+The bar has two controls:
+
+- **Stylesheet picker** - a dropdown (file-code icon) labelled **"Stylesheet…"** until you choose
+  one, then showing the chosen stylesheet's file name. Click it to:
+    - reapply one of your **recently used stylesheets** (listed at the top),
+    - **Choose stylesheet…** - pick an `.xsl` / `.xslt` file from disk, or
+    - **Clear recent** - empty the recent list.
+- **Transform** button (play icon) - runs the chosen stylesheet against your selected XML file(s).
+  Tooltip: *"Transform selected XML file(s) with the current stylesheet"*.
+
+The chosen stylesheet is **sticky** and is **shared with the [Transform panel](#transform-panel)**:
+both places draw from the same recent-stylesheet list, so a stylesheet you pick here also appears
+there (and vice versa).
+
+The workspace file tree supports **multi-selection** - hold **Ctrl** or **Shift** while clicking to
+select several files at once.
+
+**What Transform does** depends on how many XML files are selected:
+
+- **One XML file selected** (or, if nothing is selected in the tree, the **active editor document**
+  when it is XML): the stylesheet runs and the result appears in the docked
+  **[Transform OUTPUT panel](#the-output-panel-results)** below the editor. HTML dashboards render
+  in the **Preview** (WebView). The output format is auto-detected from the stylesheet's
+  `xsl:output` declaration.
+- **Several XML files selected**: the **Batch Transform** tool tab opens, pre-loaded with those
+  files, and the run starts automatically. Save the results with **Save All…**.
+
+!!! tip
+    Primary workflow: choose your stylesheet once, then just switch the selected XML file in the
+    tree and click **Transform** again - the stylesheet stays put. For output-format overrides,
+    parameters, watch-and-rerun, and the result table, use the full
+    [Transform panel](#transform-panel).
 
 ## Favorites Panel
 
