@@ -72,8 +72,11 @@ public class EditorHost extends BorderPane {
     /** Handler for Welcome/Dashboard action keys (activity ids, open-folder); set by the shell. */
     private java.util.function.Consumer<String> welcomeActionHandler = key -> { };
 
+    /** Optional override for "new document" requests (e.g. the shell's guided New File dialog). */
+    private Runnable newDocumentOverride;
+
     private final EditorWelcomePane welcomePane = new EditorWelcomePane(
-            this::newDocument, this::openFileChooser, this::openFile,
+            this::requestNewDocument, this::openFileChooser, this::openFile,
             this::clearRecentFiles, this::fireWelcomeAction);
 
     public EditorHost() {
@@ -856,6 +859,30 @@ public class EditorHost extends BorderPane {
         int slash = path.lastIndexOf('/');
         String name = slash >= 0 ? path.substring(slash + 1) : path;
         return name.isBlank() ? "Untitled" : name;
+    }
+
+    /**
+     * Routes a Welcome/Dashboard "New" request through the shell's guided New File
+     * dialog when one was registered via {@link #setNewDocumentHandler(Runnable)},
+     * otherwise creates a blank document of the requested type.
+     */
+    private void requestNewDocument(EditorFileType type) {
+        if (newDocumentOverride != null) {
+            newDocumentOverride.run();
+        } else {
+            newDocument(type);
+        }
+    }
+
+    /**
+     * Registers a custom handler for "new document" requests originating from the
+     * Welcome/Dashboard page (e.g. the shell's guided New File dialog), so all new-file
+     * entry points share one flow. {@code null} restores the default blank-document behavior.
+     *
+     * @param handler the handler to run, or {@code null} for the default
+     */
+    public void setNewDocumentHandler(Runnable handler) {
+        this.newDocumentOverride = handler;
     }
 
     /** Creates an empty untitled document of the given type. */

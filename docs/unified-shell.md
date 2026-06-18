@@ -55,8 +55,36 @@ editor more room - the activity bar always stays visible.
 ## Getting Started
 
 1. The Unified Shell opens automatically on startup.
-2. Use the **Explorer** activity (or **File → Open**) to open files; **File → New** creates a new file.
+2. Use the **Explorer** activity (or **File → Open**) to open files; **File → New** (Ctrl+N) opens the guided [New File dialog](#new-file-dialog) to create a new file from a template or schema.
 3. Files open as tabs in the editor host - switch tabs by clicking their headers, and switch view modes (Text / Tree / Graphic) with the segmented view switch.
+
+## New File Dialog
+
+> **New in June 2026** - Creating a new file now opens a guided dialog instead of silently
+> opening an empty, untitled document. You can pick a starting template or an XSD schema, so
+> a new file already has a sensible structure.
+
+The **New File** dialog opens whenever you create a new document - from the toolbar **New**
+button (Ctrl+N), the **Explorer** panel's **New file** action, or the **New File** card on the
+Welcome screen. It walks you through a few simple choices and then opens (and optionally saves)
+the new document.
+
+| Field | What it does |
+|-------|--------------|
+| **File type** | Choose **XML**, **XSD**, **XSLT**, **Schematron**, or **JSON**. The rest of the dialog adapts to your choice. |
+| **Template** | A list of available templates - the built-in library plus your own templates from Settings - **automatically filtered to the selected file type**. The default is **"— None —"** (start blank). Picking a parameterized template prompts you for its values when the file is created. |
+| **Schema** | *(plain XML only, and only when no template is chosen.)* Pick an XSD to base the document on - from your **Favorites**, your **Recent files**, or **Browse…** to select a file. The chosen schema is also bound to the new document, so it appears in the Validation panel and drives IntelliSense. |
+| **Pre-fill mandatory nodes (empty)** | *(shown with the Schema option, on by default.)* When a schema is selected, the new document is pre-populated with all required elements and attributes (left empty) generated from that schema, giving you a ready-to-fill skeleton. |
+| **Save to** | *(optional.)* Choose a location with **Browse…** to write the file to disk immediately and open it. Leave it empty to open the document as an **untitled** tab - you will be asked for a location the first time you Save. |
+
+### What you get
+
+- **A template** is rendered into the new document (prompting for any parameters first).
+- **XML with a schema and "Pre-fill mandatory nodes"** produces a skeleton containing every
+  mandatory element and attribute from that schema.
+- **Otherwise** you get a minimal, valid starting point for the chosen type: an XML declaration
+  for XML, an `xs:schema` skeleton for XSD, an `xsl:stylesheet` (version 3.0) skeleton for
+  XSLT, an ISO-Schematron skeleton for Schematron, and `{}` for JSON.
 
 ## View Modes
 
@@ -111,7 +139,7 @@ onto a second row when the editor area is narrow, so **every action stays visibl
 (there is no hidden "overflow" menu).
 
 ### Always Visible
-- **New** - Create XML, XSD, XSLT, Schematron, or JSON files
+- **New** (Ctrl+N) - Open the guided [New File dialog](#new-file-dialog) to create an XML, XSD, XSLT, Schematron, or JSON file from a template or schema
 - **Open** (Ctrl+O) - Open one or more files
 - **Save** (Ctrl+S) - Save the current tab
 - **Save As** - Save the current tab under a new name (a file chooser opens, pre-set to the tab's file type)
@@ -367,7 +395,8 @@ Open the **Explorer** panel from the activity bar to manage files.
 > flat header actions and full-width sections.
 
 - **Header actions** (top right): New file, Open folder, Refresh workspace, and a ⋮ menu
-  with **Open file…** and **Clear recent**.
+  with **Open file…** and **Clear recent**. **New file** opens the same guided
+  [New File dialog](#new-file-dialog) as the toolbar's **New** button.
 - **OPEN EDITORS** - one row per open document. The **active document is highlighted**
   (blue, bold) and unsaved documents show a **dot** on the right. Click a row to switch to
   that document.
@@ -616,6 +645,7 @@ short note that settings are edited in the main window). Change any option and c
 | **XSD** | **Auto-save** (with an interval in minutes); **Create backups on save** (with the number of versions to keep, and an optional **separate backup directory**). |
 | **Parser** | **XML parser** engine (Xerces or Saxon); **Allow XSLT extension functions**. |
 | **Temp & Cache** | **Use system temp folder** or a custom temp folder; **Clear Temp Folder** to free disk space; **Clear Cache Folder** to delete cached files (downloaded schemas etc.). |
+| **Templates** | A configurable **templates directory**, plus a **New / Edit / Delete** list of your own templates. See [Managing your templates](#managing-your-templates) below. |
 | **General** | **Check for updates on startup**; **Use small icons**. |
 | **HTTP Proxy** | **Use system proxy**, or enter a proxy host and port. |
 
@@ -625,6 +655,24 @@ The **Clear Cache Folder** button in the **TEMP & CACHE** section deletes the co
 application's local cache folder (`~/.freeXmlToolkit/cache`) - for example downloaded schemas.
 A confirmation dialog is shown first, because the action cannot be undone. The cache folder
 itself is kept; only its contents are removed.
+
+### Managing your templates
+
+> **New in June 2026** - The **TEMPLATES** card lets you keep your own starting templates,
+> which then show up (filtered by file type) in the [New File dialog](#new-file-dialog).
+
+- **Templates directory** - Use **Browse…** to point the application at the folder where your
+  templates live. Leave it empty to use the default location. Changing the directory takes
+  effect immediately, **without restarting** the application.
+- **Your templates** - The card lists your own (non-built-in) templates. Use:
+    - **New** - Create a template. A dialog asks for its **Name**, **Category**,
+      **Description**, **File type**, and **Content**.
+    - **Edit** - Change the selected template.
+    - **Delete** - Remove the selected template.
+
+Each template is stored as a `.template` file in the templates directory. Once saved, your
+templates appear in the **New File** dialog whenever their file type is selected. For the wider
+template and XPath-snippet system, see [Template Management](template-management.md).
 
 ## Welcome / Dashboard
 
@@ -661,6 +709,7 @@ The status bar at the bottom of the window includes:
 
 | Shortcut | Action |
 |----------|--------|
+| Ctrl+N | New file (opens the guided New File dialog) |
 | Ctrl+O | Open file |
 | Ctrl+S | Save current tab |
 | Ctrl+Shift+S | Save all tabs |

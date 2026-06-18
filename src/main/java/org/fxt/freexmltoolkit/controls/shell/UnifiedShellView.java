@@ -124,6 +124,9 @@ public class UnifiedShellView extends BorderPane {
         activityBar = new ActivityBar(selectionModel);
         activityBarHost.getChildren().setAll(activityBar);
         editorActions = new org.fxt.freexmltoolkit.controls.shell.editor.EditorActions(editorHost);
+        // Route the Welcome/Dashboard "New" card through the guided New File dialog, so all
+        // new-file entry points (toolbar, Explorer, Welcome) share one flow.
+        editorHost.setNewDocumentHandler(this::newDocument);
         queryConsole = new org.fxt.freexmltoolkit.controls.shell.editor.QueryConsole(editorHost);
         queryConsole.setMinHeight(180);
         queryConsole.setPrefHeight(220);

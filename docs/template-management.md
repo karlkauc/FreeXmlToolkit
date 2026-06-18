@@ -1,8 +1,14 @@
 # Template Management
 
-> **Last Updated:** May 2026 | **Version:** 1.10.0
+> **Last Updated:** June 2026 | **Version:** 1.10.0
 
 Create and manage reusable XML templates, XPath snippets, and code patterns to speed up your work.
+
+!!! tip "Templates power the New File dialog"
+    Templates you create also appear in the guided **New File** dialog (filtered to the matching
+    file type), so a brand-new document can start from a template instead of a blank page. You
+    manage your own templates in the **Settings → Templates** card. See
+    [Creating templates for the New File dialog](#creating-templates-for-the-new-file-dialog).
 
 ---
 
@@ -100,6 +106,45 @@ Ready-to-use validation patterns:
 | **Delete** | Remove templates you no longer need |
 | **Export** | Share templates with others |
 | **Import** | Add templates from others |
+
+---
+
+## Creating templates for the New File dialog
+
+> **New in June 2026**
+
+Your own templates are managed in **Settings**, in the **TEMPLATES** card, and are then offered
+in the [New File dialog](unified-shell.md#new-file-dialog) whenever you create a document of the
+matching type.
+
+### Set the templates folder
+
+1. Open **Settings** (gear icon at the bottom of the activity bar).
+2. In the **TEMPLATES** card, use **Browse…** to choose the folder where your templates are kept
+   (leave it empty for the default location).
+3. The change takes effect right away - no restart needed.
+
+### Add or change a template
+
+In the **TEMPLATES** card you will find a list of your own templates with three buttons:
+
+| Button | Action |
+|--------|--------|
+| **New** | Create a template. Fill in **Name**, **Category**, **Description**, **File type**, and **Content**. |
+| **Edit** | Open the selected template to change any of its fields. |
+| **Delete** | Remove the selected template. |
+
+Each template is saved as a `.template` file in the templates folder. The **File type** you pick
+decides where the template shows up: it appears in the New File dialog only when that same file
+type is selected.
+
+### Use it when creating a file
+
+1. Click **New** on the toolbar (Ctrl+N), or **New file** in the Explorer panel.
+2. Choose the **File type** that matches your template.
+3. Open the **Template** list - your template appears alongside the built-in ones.
+4. Select it; if it has parameters, you are prompted to fill them in.
+5. Optionally choose a **Save to** location, then confirm to create the document.
 
 ---
 
