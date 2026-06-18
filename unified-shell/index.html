@@ -940,6 +940,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Explorer Panel">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#transform-bar-one-click-xslt-from-the-explorer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Transform Bar (one-click XSLT from the Explorer)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2771,6 +2788,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Explorer Panel">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#transform-bar-one-click-xslt-from-the-explorer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Transform Bar (one-click XSLT from the Explorer)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -3534,6 +3568,12 @@ left) runs XSLT transformations, XPath/JSONPath queries, and XQuery expressions.
 header reads <strong>TRANSFORM</strong> and carries a <strong>⋮ (overflow) menu</strong> with the secondary options
 (see <a href="#the-transform-menu">The ⋮ Menu</a> below). Each section header is clickable to collapse
 or expand that section.</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>For a quick, one-click transform without opening this panel, use the
+<strong><a href="#transform-bar-one-click-xslt-from-the-explorer">Transform bar</a></strong> in the Explorer. It shares
+the same recent-stylesheet list and shows its result in the same OUTPUT panel.</p>
+</div>
 <h3 id="stylesheet">STYLESHEET<a class="headerlink" href="#stylesheet" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Shows the <strong>name of the chosen XSLT stylesheet</strong> (or <em>none</em> if no stylesheet is set yet).</li>
@@ -3699,6 +3739,48 @@ flat header actions and full-width sections.</p>
   expand its section (the chevron next to the title flips accordingly). Use this to give the
   file tree more room when you have many open editors or recent files.</li>
 </ul>
+<h3 id="transform-bar-one-click-xslt-from-the-explorer">Transform Bar (one-click XSLT from the Explorer)<a class="headerlink" href="#transform-bar-one-click-xslt-from-the-explorer" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p><strong>New in June 2026</strong> - Run an XSLT stylesheet against XML files straight from the Explorer,
+without switching to the Transform activity.</p>
+</blockquote>
+<p>A small <strong>Transform bar</strong> sits directly below the <strong>EXPLORER</strong> header. It lets you keep a
+stylesheet fixed and apply it to whichever XML file you pick in the tree - ideal for repeatedly
+running the same evaluation, dashboard, or data-quality stylesheet across many files.</p>
+<p>The bar has two controls:</p>
+<ul>
+<li><strong>Stylesheet picker</strong> - a dropdown (file-code icon) labelled <strong>"Stylesheet…"</strong> until you choose
+  one, then showing the chosen stylesheet's file name. Click it to:<ul>
+<li>reapply one of your <strong>recently used stylesheets</strong> (listed at the top),</li>
+<li><strong>Choose stylesheet…</strong> - pick an <code>.xsl</code> / <code>.xslt</code> file from disk, or</li>
+<li><strong>Clear recent</strong> - empty the recent list.</li>
+</ul>
+</li>
+<li><strong>Transform</strong> button (play icon) - runs the chosen stylesheet against your selected XML file(s).
+  Tooltip: <em>"Transform selected XML file(s) with the current stylesheet"</em>.</li>
+</ul>
+<p>The chosen stylesheet is <strong>sticky</strong> and is <strong>shared with the <a href="#transform-panel">Transform panel</a></strong>:
+both places draw from the same recent-stylesheet list, so a stylesheet you pick here also appears
+there (and vice versa).</p>
+<p>The workspace file tree supports <strong>multi-selection</strong> - hold <strong>Ctrl</strong> or <strong>Shift</strong> while clicking to
+select several files at once.</p>
+<p><strong>What Transform does</strong> depends on how many XML files are selected:</p>
+<ul>
+<li><strong>One XML file selected</strong> (or, if nothing is selected in the tree, the <strong>active editor document</strong>
+  when it is XML): the stylesheet runs and the result appears in the docked
+  <strong><a href="#the-output-panel-results">Transform OUTPUT panel</a></strong> below the editor. HTML dashboards render
+  in the <strong>Preview</strong> (WebView). The output format is auto-detected from the stylesheet's
+  <code>xsl:output</code> declaration.</li>
+<li><strong>Several XML files selected</strong>: the <strong>Batch Transform</strong> tool tab opens, pre-loaded with those
+  files, and the run starts automatically. Save the results with <strong>Save All…</strong>.</li>
+</ul>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Primary workflow: choose your stylesheet once, then just switch the selected XML file in the
+tree and click <strong>Transform</strong> again - the stylesheet stays put. For output-format overrides,
+parameters, watch-and-rerun, and the result table, use the full
+<a href="#transform-panel">Transform panel</a>.</p>
+</div>
 <h2 id="favorites-panel">Favorites Panel<a class="headerlink" href="#favorites-panel" title="Permanent link">&para;</a></h2>
 <p>Open the <strong>Favorites</strong> panel from the star icon in the activity bar for one-click access to
 your saved files.</p>
