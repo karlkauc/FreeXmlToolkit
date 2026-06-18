@@ -867,6 +867,56 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#creating-templates-for-the-new-file-dialog" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Creating templates for the New File dialog
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Creating templates for the New File dialog">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#set-the-templates-folder" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Set the templates folder
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#add-or-change-a-template" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Add or change a template
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#use-it-when-creating-a-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Use it when creating a file
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#parameter-types" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1967,6 +2017,56 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#creating-templates-for-the-new-file-dialog" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Creating templates for the New File dialog
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Creating templates for the New File dialog">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#set-the-templates-folder" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Set the templates folder
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#add-or-change-a-template" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Add or change a template
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#use-it-when-creating-a-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Use it when creating a file
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#parameter-types" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2060,9 +2160,16 @@
 
 <h1 id="template-management">Template Management<a class="headerlink" href="#template-management" title="Permanent link">&para;</a></h1>
 <blockquote>
-<p><strong>Last Updated:</strong> May 2026 | <strong>Version:</strong> 1.10.0</p>
+<p><strong>Last Updated:</strong> June 2026 | <strong>Version:</strong> 1.10.0</p>
 </blockquote>
 <p>Create and manage reusable XML templates, XPath snippets, and code patterns to speed up your work.</p>
+<div class="admonition tip">
+<p class="admonition-title">Templates power the New File dialog</p>
+<p>Templates you create also appear in the guided <strong>New File</strong> dialog (filtered to the matching
+file type), so a brand-new document can start from a template instead of a blank page. You
+manage your own templates in the <strong>Settings → Templates</strong> card. See
+<a href="#creating-templates-for-the-new-file-dialog">Creating templates for the New File dialog</a>.</p>
+</div>
 <hr />
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
 <p><img alt="Template Manager Overview" src="../img/templates-overview.png" />
@@ -2178,6 +2285,56 @@
 </tr>
 </tbody>
 </table>
+<hr />
+<h2 id="creating-templates-for-the-new-file-dialog">Creating templates for the New File dialog<a class="headerlink" href="#creating-templates-for-the-new-file-dialog" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p><strong>New in June 2026</strong></p>
+</blockquote>
+<p>Your own templates are managed in <strong>Settings</strong>, in the <strong>TEMPLATES</strong> card, and are then offered
+in the <a href="../unified-shell/#new-file-dialog">New File dialog</a> whenever you create a document of the
+matching type.</p>
+<h3 id="set-the-templates-folder">Set the templates folder<a class="headerlink" href="#set-the-templates-folder" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Open <strong>Settings</strong> (gear icon at the bottom of the activity bar).</li>
+<li>In the <strong>TEMPLATES</strong> card, use <strong>Browse…</strong> to choose the folder where your templates are kept
+   (leave it empty for the default location).</li>
+<li>The change takes effect right away - no restart needed.</li>
+</ol>
+<h3 id="add-or-change-a-template">Add or change a template<a class="headerlink" href="#add-or-change-a-template" title="Permanent link">&para;</a></h3>
+<p>In the <strong>TEMPLATES</strong> card you will find a list of your own templates with three buttons:</p>
+<table>
+<thead>
+<tr>
+<th>Button</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>New</strong></td>
+<td>Create a template. Fill in <strong>Name</strong>, <strong>Category</strong>, <strong>Description</strong>, <strong>File type</strong>, and <strong>Content</strong>.</td>
+</tr>
+<tr>
+<td><strong>Edit</strong></td>
+<td>Open the selected template to change any of its fields.</td>
+</tr>
+<tr>
+<td><strong>Delete</strong></td>
+<td>Remove the selected template.</td>
+</tr>
+</tbody>
+</table>
+<p>Each template is saved as a <code>.template</code> file in the templates folder. The <strong>File type</strong> you pick
+decides where the template shows up: it appears in the New File dialog only when that same file
+type is selected.</p>
+<h3 id="use-it-when-creating-a-file">Use it when creating a file<a class="headerlink" href="#use-it-when-creating-a-file" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Click <strong>New</strong> on the toolbar (Ctrl+N), or <strong>New file</strong> in the Explorer panel.</li>
+<li>Choose the <strong>File type</strong> that matches your template.</li>
+<li>Open the <strong>Template</strong> list - your template appears alongside the built-in ones.</li>
+<li>Select it; if it has parameters, you are prompted to fill them in.</li>
+<li>Optionally choose a <strong>Save to</strong> location, then confirm to create the document.</li>
+</ol>
 <hr />
 <h2 id="parameter-types">Parameter Types<a class="headerlink" href="#parameter-types" title="Permanent link">&para;</a></h2>
 <table>

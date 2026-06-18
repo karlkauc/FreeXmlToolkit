@@ -627,6 +627,34 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#new-file-dialog" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        New File Dialog
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="New File Dialog">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-you-get" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What you get
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#view-modes" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1081,6 +1109,17 @@
     <span class="md-ellipsis">
       
         Clearing the Cache Folder
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#managing-your-templates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Managing your templates
       
     </span>
   </a>
@@ -2419,6 +2458,34 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#new-file-dialog" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        New File Dialog
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="New File Dialog">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-you-get" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What you get
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#view-modes" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2879,6 +2946,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#managing-your-templates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Managing your templates
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -3183,9 +3261,58 @@ editor more room - the activity bar always stays visible.</p>
 <h2 id="getting-started">Getting Started<a class="headerlink" href="#getting-started" title="Permanent link">&para;</a></h2>
 <ol>
 <li>The Unified Shell opens automatically on startup.</li>
-<li>Use the <strong>Explorer</strong> activity (or <strong>File → Open</strong>) to open files; <strong>File → New</strong> creates a new file.</li>
+<li>Use the <strong>Explorer</strong> activity (or <strong>File → Open</strong>) to open files; <strong>File → New</strong> (Ctrl+N) opens the guided <a href="#new-file-dialog">New File dialog</a> to create a new file from a template or schema.</li>
 <li>Files open as tabs in the editor host - switch tabs by clicking their headers, and switch view modes (Text / Tree / Graphic) with the segmented view switch.</li>
 </ol>
+<h2 id="new-file-dialog">New File Dialog<a class="headerlink" href="#new-file-dialog" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p><strong>New in June 2026</strong> - Creating a new file now opens a guided dialog instead of silently
+opening an empty, untitled document. You can pick a starting template or an XSD schema, so
+a new file already has a sensible structure.</p>
+</blockquote>
+<p>The <strong>New File</strong> dialog opens whenever you create a new document - from the toolbar <strong>New</strong>
+button (Ctrl+N), the <strong>Explorer</strong> panel's <strong>New file</strong> action, or the <strong>New File</strong> card on the
+Welcome screen. It walks you through a few simple choices and then opens (and optionally saves)
+the new document.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>File type</strong></td>
+<td>Choose <strong>XML</strong>, <strong>XSD</strong>, <strong>XSLT</strong>, <strong>Schematron</strong>, or <strong>JSON</strong>. The rest of the dialog adapts to your choice.</td>
+</tr>
+<tr>
+<td><strong>Template</strong></td>
+<td>A list of available templates - the built-in library plus your own templates from Settings - <strong>automatically filtered to the selected file type</strong>. The default is <strong>"— None —"</strong> (start blank). Picking a parameterized template prompts you for its values when the file is created.</td>
+</tr>
+<tr>
+<td><strong>Schema</strong></td>
+<td><em>(plain XML only, and only when no template is chosen.)</em> Pick an XSD to base the document on - from your <strong>Favorites</strong>, your <strong>Recent files</strong>, or <strong>Browse…</strong> to select a file. The chosen schema is also bound to the new document, so it appears in the Validation panel and drives IntelliSense.</td>
+</tr>
+<tr>
+<td><strong>Pre-fill mandatory nodes (empty)</strong></td>
+<td><em>(shown with the Schema option, on by default.)</em> When a schema is selected, the new document is pre-populated with all required elements and attributes (left empty) generated from that schema, giving you a ready-to-fill skeleton.</td>
+</tr>
+<tr>
+<td><strong>Save to</strong></td>
+<td><em>(optional.)</em> Choose a location with <strong>Browse…</strong> to write the file to disk immediately and open it. Leave it empty to open the document as an <strong>untitled</strong> tab - you will be asked for a location the first time you Save.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="what-you-get">What you get<a class="headerlink" href="#what-you-get" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>A template</strong> is rendered into the new document (prompting for any parameters first).</li>
+<li><strong>XML with a schema and "Pre-fill mandatory nodes"</strong> produces a skeleton containing every
+  mandatory element and attribute from that schema.</li>
+<li><strong>Otherwise</strong> you get a minimal, valid starting point for the chosen type: an XML declaration
+  for XML, an <code>xs:schema</code> skeleton for XSD, an <code>xsl:stylesheet</code> (version 3.0) skeleton for
+  XSLT, an ISO-Schematron skeleton for Schematron, and <code>{}</code> for JSON.</li>
+</ul>
 <h2 id="view-modes">View Modes<a class="headerlink" href="#view-modes" title="Permanent link">&para;</a></h2>
 <blockquote>
 <p><strong>Updated in June 2026</strong> - There are now exactly <strong>three</strong> view modes - <strong>Text</strong>, <strong>Tree</strong>, and
@@ -3278,7 +3405,7 @@ onto a second row when the editor area is narrow, so <strong>every action stays 
 (there is no hidden "overflow" menu).</p>
 <h3 id="always-visible">Always Visible<a class="headerlink" href="#always-visible" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>New</strong> - Create XML, XSD, XSLT, Schematron, or JSON files</li>
+<li><strong>New</strong> (Ctrl+N) - Open the guided <a href="#new-file-dialog">New File dialog</a> to create an XML, XSD, XSLT, Schematron, or JSON file from a template or schema</li>
 <li><strong>Open</strong> (Ctrl+O) - Open one or more files</li>
 <li><strong>Save</strong> (Ctrl+S) - Save the current tab</li>
 <li><strong>Save As</strong> - Save the current tab under a new name (a file chooser opens, pre-set to the tab's file type)</li>
@@ -3555,7 +3682,8 @@ flat header actions and full-width sections.</p>
 </blockquote>
 <ul>
 <li><strong>Header actions</strong> (top right): New file, Open folder, Refresh workspace, and a ⋮ menu
-  with <strong>Open file…</strong> and <strong>Clear recent</strong>.</li>
+  with <strong>Open file…</strong> and <strong>Clear recent</strong>. <strong>New file</strong> opens the same guided
+  <a href="#new-file-dialog">New File dialog</a> as the toolbar's <strong>New</strong> button.</li>
 <li><strong>OPEN EDITORS</strong> - one row per open document. The <strong>active document is highlighted</strong>
   (blue, bold) and unsaved documents show a <strong>dot</strong> on the right. Click a row to switch to
   that document.</li>
@@ -3882,6 +4010,10 @@ short note that settings are edited in the main window). Change any option and c
 <td><strong>Use system temp folder</strong> or a custom temp folder; <strong>Clear Temp Folder</strong> to free disk space; <strong>Clear Cache Folder</strong> to delete cached files (downloaded schemas etc.).</td>
 </tr>
 <tr>
+<td><strong>Templates</strong></td>
+<td>A configurable <strong>templates directory</strong>, plus a <strong>New / Edit / Delete</strong> list of your own templates. See <a href="#managing-your-templates">Managing your templates</a> below.</td>
+</tr>
+<tr>
 <td><strong>General</strong></td>
 <td><strong>Check for updates on startup</strong>; <strong>Use small icons</strong>.</td>
 </tr>
@@ -3896,6 +4028,26 @@ short note that settings are edited in the main window). Change any option and c
 application's local cache folder (<code>~/.freeXmlToolkit/cache</code>) - for example downloaded schemas.
 A confirmation dialog is shown first, because the action cannot be undone. The cache folder
 itself is kept; only its contents are removed.</p>
+<h3 id="managing-your-templates">Managing your templates<a class="headerlink" href="#managing-your-templates" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p><strong>New in June 2026</strong> - The <strong>TEMPLATES</strong> card lets you keep your own starting templates,
+which then show up (filtered by file type) in the <a href="#new-file-dialog">New File dialog</a>.</p>
+</blockquote>
+<ul>
+<li><strong>Templates directory</strong> - Use <strong>Browse…</strong> to point the application at the folder where your
+  templates live. Leave it empty to use the default location. Changing the directory takes
+  effect immediately, <strong>without restarting</strong> the application.</li>
+<li><strong>Your templates</strong> - The card lists your own (non-built-in) templates. Use:<ul>
+<li><strong>New</strong> - Create a template. A dialog asks for its <strong>Name</strong>, <strong>Category</strong>,
+  <strong>Description</strong>, <strong>File type</strong>, and <strong>Content</strong>.</li>
+<li><strong>Edit</strong> - Change the selected template.</li>
+<li><strong>Delete</strong> - Remove the selected template.</li>
+</ul>
+</li>
+</ul>
+<p>Each template is stored as a <code>.template</code> file in the templates directory. Once saved, your
+templates appear in the <strong>New File</strong> dialog whenever their file type is selected. For the wider
+template and XPath-snippet system, see <a href="../template-management/">Template Management</a>.</p>
 <h2 id="welcome-dashboard">Welcome / Dashboard<a class="headerlink" href="#welcome-dashboard" title="Permanent link">&para;</a></h2>
 <blockquote>
 <p><strong>New in June 2026</strong> - The welcome screen now shows live statistics and quick tips, and the
@@ -3936,6 +4088,10 @@ status bar.</p>
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>Ctrl+N</td>
+<td>New file (opens the guided New File dialog)</td>
+</tr>
 <tr>
 <td>Ctrl+O</td>
 <td>Open file</td>
