@@ -59,7 +59,7 @@ class DocumentationViewTest {
 
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
             view.generate(new DocumentationView.DocOptions(xsd.toFile(), out.toFile(), "HTML",
-                    true, false, false, false, false, "SVG", Set.of(), null, false, null, null));
+                    true, false, false, false, false, false, "SVG", Set.of(), null, false, null, null));
             return null;
         });
         WaitForAsyncUtils.waitFor(60, TimeUnit.SECONDS,
@@ -123,7 +123,7 @@ class DocumentationViewTest {
 
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
             view.generate(new DocumentationView.DocOptions(xsd.toFile(), out.toFile(), "PDF",
-                    true, false, false, false, false, "SVG", Set.of(), null, false, null,
+                    true, false, false, false, false, false, "SVG", Set.of(), null, false, null,
                     new DocumentationView.FormatOptions("Letter", true, false, true, true,
                             false, false, "Professional", "Draft", true, true)));
             return null;
@@ -186,7 +186,7 @@ class DocumentationViewTest {
         Files.writeString(xsd, XSD);
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
             view.generate(new DocumentationView.DocOptions(xsd.toFile(), null, "HTML",
-                    true, false, false, false, false, "SVG", Set.of(), null, false, null, null));
+                    true, false, false, false, false, false, "SVG", Set.of(), null, false, null, null));
             return null;
         });
         WaitForAsyncUtils.waitForFxEvents();

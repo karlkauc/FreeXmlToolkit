@@ -60,7 +60,8 @@ public class DocumentationView extends BorderPane {
     /** All generation options (captured from the form; also built directly by tests). */
     record DocOptions(File xsd, File output, String format,
                       boolean useMarkdown, boolean includeTypeDefs, boolean showDocInSvg,
-                      boolean svgOverview, boolean addMetadata, String imageFormat,
+                      boolean svgOverview, boolean addMetadata, boolean deduplicateDataDictionaryByType,
+                      String imageFormat,
                       Set<String> languages, String fallbackLanguage, boolean openAfter,
                       File favicon, FormatOptions formatOptions) {
     }
@@ -90,6 +91,7 @@ public class DocumentationView extends BorderPane {
     private final CheckBox showDocInSvg = new CheckBox("Show documentation in diagrams");
     private final CheckBox svgOverview = new CheckBox("Generate SVG overview page");
     private final CheckBox addMetadata = new CheckBox("Add metadata in output");
+    private final CheckBox dedupDataDictionary = new CheckBox("Deduplicate data dictionary by type");
     private final ComboBox<String> imageFormat = new ComboBox<>();
     private final FlowPane languagesPane = new FlowPane(10, 6);
     private final ComboBox<String> fallbackLanguage = new ComboBox<>();
@@ -241,8 +243,11 @@ public class DocumentationView extends BorderPane {
         HBox faviconRow = new HBox(8, icon("bi-image", 15), faviconName, faviconSpacer,
                 chooseFavicon, clearFavicon);
         faviconRow.setAlignment(Pos.CENTER_LEFT);
+        dedupDataDictionary.setTooltip(new javafx.scene.control.Tooltip(
+                "List each named complex/simple type only once instead of every recursive occurrence "
+                        + "(elements with a built-in or no type are still listed individually)."));
         VBox optionsBox = new VBox(8, useMarkdown, includeTypeDefs, showDocInSvg, svgOverview,
-                addMetadata, imageLabel, imageFormat, faviconLabel, faviconRow);
+                addMetadata, dedupDataDictionary, imageLabel, imageFormat, faviconLabel, faviconRow);
 
         // --- LANGUAGES -----------------------------------------------------------------------
         Hyperlink scan = new Hyperlink("Scan languages");
@@ -341,7 +346,8 @@ public class DocumentationView extends BorderPane {
                 pageNumbers.isSelected(), pdfBookmarks.isSelected());
         return new DocOptions(xsdFile, outputTarget, selectedFormat(),
                 useMarkdown.isSelected(), includeTypeDefs.isSelected(), showDocInSvg.isSelected(),
-                svgOverview.isSelected(), addMetadata.isSelected(), imageFormat.getValue(),
+                svgOverview.isSelected(), addMetadata.isSelected(), dedupDataDictionary.isSelected(),
+                imageFormat.getValue(),
                 languages, fallbackLanguage.getValue(), openAfter.isSelected(), faviconFile, format);
     }
 
@@ -537,6 +543,7 @@ public class DocumentationView extends BorderPane {
         service.setShowDocumentationInSvg(options.showDocInSvg());
         service.setGenerateSvgOverviewPage(options.svgOverview());
         service.setAddMetadataInOutput(options.addMetadata());
+        service.setDeduplicateDataDictionaryByType(options.deduplicateDataDictionaryByType());
         if (options.languages() != null && !options.languages().isEmpty()) {
             service.setIncludedLanguages(options.languages());
         }

@@ -167,31 +167,40 @@
     </div>
 </main>
 
-<!-- Scroll-to-Top Button and its script -->
+<!-- Scroll-to-Top Button (self-contained styling so it works regardless of the purged utility CSS) -->
 <button id="scrollToTopBtn" aria-label="Scroll to top" title="Scroll to top"
-        class="hidden fixed bottom-8 right-8 bg-sky-600 hover:bg-sky-700 text-white p-3 rounded-full shadow-lg transition-opacity duration-300">
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-arrow-up-short"
-         viewBox="0 0 16 16">
+        style="position: fixed; bottom: 2rem; right: 2rem; z-index: 50; display: none;
+               align-items: center; justify-content: center; width: 3rem; height: 3rem;
+               border: none; border-radius: 9999px; background-color: #0284c7; color: #ffffff;
+               box-shadow: 0 10px 15px -3px rgba(0,0,0,0.2); cursor: pointer;
+               transition: background-color 0.2s ease;"
+        onmouseover="this.style.backgroundColor='#0369a1'"
+        onmouseout="this.style.backgroundColor='#0284c7'">
+    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor"
+         class="bi bi-arrow-up-short" viewBox="0 0 16 16">
         <path fill-rule="evenodd"
               d="M8 12a.5.5 0 0 0 .5-.5V5.707l2.146 2.147a.5.5 0 0 0 .708-.708l-3-3a.5.5 0 0 0-.708 0l-3 3a.5.5 0 1 0 .708.708L7.5 5.707V11.5a.5.5 0 0 0 .5.5z"/>
     </svg>
 </button>
 
 <script>
-    // Logic for the Scroll-to-Top Button
-    const scrollToTopBtn = document.getElementById('scrollToTopBtn');
-
-    window.onscroll = function () {
-        if (document.body.scrollTop > 100 || document.documentElement.scrollTop > 100) {
-            scrollToTopBtn.classList.remove('hidden');
-        } else {
-            scrollToTopBtn.classList.add('hidden');
+    // Show the Scroll-to-Top button once the page is scrolled down; toggle via inline display
+    // (independent of any CSS framework utility classes).
+    (function () {
+        const scrollToTopBtn = document.getElementById('scrollToTopBtn');
+        if (!scrollToTopBtn) {
+            return;
         }
-    };
-
-    scrollToTopBtn.onclick = function () {
-        window.scrollTo({top: 0, behavior: 'smooth'});
-    };
+        const toggle = function () {
+            const scrolled = document.body.scrollTop > 100 || document.documentElement.scrollTop > 100;
+            scrollToTopBtn.style.display = scrolled ? 'flex' : 'none';
+        };
+        window.addEventListener('scroll', toggle, {passive: true});
+        toggle();
+        scrollToTopBtn.addEventListener('click', function () {
+            window.scrollTo({top: 0, behavior: 'smooth'});
+        });
+    })();
 </script>
 
 <script src="assets/search.js" defer></script>
