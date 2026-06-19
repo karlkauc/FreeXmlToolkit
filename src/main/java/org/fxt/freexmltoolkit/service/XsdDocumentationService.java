@@ -145,6 +145,13 @@ public class XsdDocumentationService {
     // Repeated expansions of a shared type reuse the cached result instead of re-parsing constraints.
     private final Map<Node, XsdExtendedElement> identityConstraintMemo = new IdentityHashMap<>();
 
+    // Per-run memo of fully resolved named types, keyed by local type name. A named type always
+    // resolves to the same base type + merged facets regardless of the XPath it is reached from,
+    // so the (potentially deep) type-hierarchy walk only has to run once per type name instead of
+    // once per element that uses it. Only fully resolved (non-null) results are cached; null
+    // results (type-not-found or circular) are path-dependent and therefore never cached.
+    private final Map<String, XsdSampleDataGenerator.ResolvedType> resolvedTypeMemo = new HashMap<>();
+
     // Thread-local storage for element reference nodes (to preserve cardinality attributes)
     private static final ThreadLocal<Node> referenceNodeThreadLocal = new ThreadLocal<>();
     private static final ThreadLocal<String> forcedNamespacePrefixThreadLocal = new ThreadLocal<>();
@@ -361,6 +368,9 @@ public class XsdDocumentationService {
 
         // Generate languages.json for JavaScript-based language switching
         executeAndTrack("Generating languages.json", () -> generateLanguagesJson(outputDirectory));
+
+        // Make sure the background Data Dictionary Excel export has finished before returning.
+        executeAndTrack("Finalizing data dictionary Excel", xsdDocumentationHtmlService::awaitDataDictionaryExcel);
     }
 
     /**
@@ -451,6 +461,7 @@ public class XsdDocumentationService {
 
         // Reset per-run node-metadata memo before traversal
         identityConstraintMemo.clear();
+        resolvedTypeMemo.clear();
 
         // Start traversal from global elements
         counter = 0;
@@ -494,6 +505,14 @@ public class XsdDocumentationService {
             return new XsdSampleDataGenerator.ResolvedType(typeName, null);
         }
 
+        // Reuse a previously computed resolution for this named type. A non-null cached result is
+        // path-independent (the type fully resolved), so it is safe to return directly and also
+        // short-circuits the recursion below.
+        XsdSampleDataGenerator.ResolvedType cached = resolvedTypeMemo.get(localTypeName);
+        if (cached != null) {
+            return cached;
+        }
+
         // Prevent infinite loops in circular type references
         if (visited.contains(localTypeName)) {
             logger.debug("Circular type reference detected for type: {}", typeName);
@@ -504,13 +523,21 @@ public class XsdDocumentationService {
         // Look up the type in simpleTypeMap
         Node typeNode = simpleTypeMap.get(localTypeName);
         if (typeNode != null) {
-            return resolveSimpleType(typeNode, visited);
+            XsdSampleDataGenerator.ResolvedType resolved = resolveSimpleType(typeNode, visited);
+            if (resolved != null) {
+                resolvedTypeMemo.put(localTypeName, resolved);
+            }
+            return resolved;
         }
 
         // Look up the type in complexTypeMap
         typeNode = complexTypeMap.get(localTypeName);
         if (typeNode != null) {
-            return resolveComplexType(typeNode, visited);
+            XsdSampleDataGenerator.ResolvedType resolved = resolveComplexType(typeNode, visited);
+            if (resolved != null) {
+                resolvedTypeMemo.put(localTypeName, resolved);
+            }
+            return resolved;
         }
 
         // Type not found in schema

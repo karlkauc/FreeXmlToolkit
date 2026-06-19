@@ -39,6 +39,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -74,6 +75,19 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
     XsdDocumentationImageService xsdDocumentationImageService;
 
     private XsdDocumentationService xsdDocService;
+
+    // Per-run cache of a type's documentation, keyed by the (namespace-stripped) type name.
+    // Many elements share the same named type (heavily so in schemas like FundsXML), so the
+    // documentation only has to be extracted from the DOM once per type instead of once per
+    // element. Thread-safe because the data-dictionary precompute and the Excel export read it
+    // concurrently.
+    private final Map<String, Map<String, String>> typeDocumentationCache = new java.util.concurrent.ConcurrentHashMap<>();
+
+    // The Data Dictionary Excel export runs off the HTML critical path (POI workbook building is
+    // slow). The future is awaited at the end of the documentation run so the file is guaranteed to
+    // be written, while the much faster HTML steps proceed in the meantime.
+    private ExecutorService excelExecutor;
+    private Future<?> excelExportFuture;
 
     public XsdDocumentationHtmlService() {
         resolver = new ClassLoaderTemplateResolver();
@@ -589,11 +603,32 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
                 .sorted(Comparator.comparing(XsdExtendedElement::getCounter))
                 .toList();
 
-        // Generate Excel export file
+        // Kick off the Excel export on a background thread so it runs in parallel with the (much
+        // faster) HTML rendering instead of blocking it. It is awaited later via
+        // awaitDataDictionaryExcel(). The shared lookup caches it touches are thread-safe.
         String excelFileName = "dataDictionary.xlsx";
-        generateDataDictionaryExcel(allElements, excelFileName);
+        excelExecutor = Executors.newSingleThreadExecutor(r -> {
+            Thread t = new Thread(r, "data-dictionary-excel");
+            t.setDaemon(true);
+            return t;
+        });
+        excelExportFuture = excelExecutor.submit(() -> generateDataDictionaryExcel(allElements, excelFileName));
 
-        context.setVariable("allElements", allElements);
+        // Pre-compute everything the template needs (clean XPath, per-language documentation and
+        // type documentation) once per element - in parallel - so the Thymeleaf template only reads
+        // plain properties instead of invoking expensive service methods via SpEL reflection on
+        // every table row. This turns the previous O(rows x method-calls) render into a flat pass.
+        List<DataDictionaryRow> rows = allElements.parallelStream()
+                .map(element -> new DataDictionaryRow(
+                        element.getPageName(),
+                        getCleanXPath(element),
+                        element.isMandatory(),
+                        element.getElementType(),
+                        getChildDocumentations(element.getCurrentXpath()),
+                        getTypeDocumentations(element.getCurrentXpath())))
+                .toList();
+
+        context.setVariable("rows", rows);
         context.setVariable("hasExcelExport", true);
         context.setVariable("excelFileName", excelFileName);
         context.setVariable("this", this);
@@ -604,6 +639,55 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
             Files.writeString(outputFilePath, injectMetadataComment(result), StandardCharsets.UTF_8);
         } catch (IOException e) {
             throw new RuntimeException("Could not write data dictionary page", e);
+        }
+    }
+
+    /**
+     * Pre-computed, render-ready data for a single Data Dictionary table row. All expensive lookups
+     * (clean XPath, per-language documentation, type documentation) are resolved up front so the
+     * Thymeleaf template only performs plain property reads. Getters are public because Thymeleaf
+     * accesses them via the JavaBeans convention.
+     */
+    public static final class DataDictionaryRow {
+        private final String pageName;
+        private final String cleanXpath;
+        private final boolean mandatory;
+        private final String elementType;
+        private final Map<String, String> childDocs;
+        private final Map<String, String> typeDocs;
+
+        DataDictionaryRow(String pageName, String cleanXpath, boolean mandatory, String elementType,
+                          Map<String, String> childDocs, Map<String, String> typeDocs) {
+            this.pageName = pageName;
+            this.cleanXpath = cleanXpath;
+            this.mandatory = mandatory;
+            this.elementType = elementType;
+            this.childDocs = childDocs;
+            this.typeDocs = typeDocs;
+        }
+
+        public String getPageName() {
+            return pageName;
+        }
+
+        public String getCleanXpath() {
+            return cleanXpath;
+        }
+
+        public boolean isMandatory() {
+            return mandatory;
+        }
+
+        public String getElementType() {
+            return elementType;
+        }
+
+        public Map<String, String> getChildDocs() {
+            return childDocs;
+        }
+
+        public Map<String, String> getTypeDocs() {
+            return typeDocs;
         }
     }
 
@@ -621,6 +705,31 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
         } catch (Exception e) {
             logger.error("Failed to generate Data Dictionary Excel", e);
             // Don't fail the entire documentation generation if Excel export fails
+        }
+    }
+
+    /**
+     * Waits for the background Data Dictionary Excel export (started in
+     * {@link #generateDataDictionaryPage()}) to finish and releases its executor. Safe to call even
+     * if no export was started. Never fails the documentation run - Excel errors are only logged.
+     */
+    void awaitDataDictionaryExcel() {
+        if (excelExportFuture == null) {
+            return;
+        }
+        try {
+            excelExportFuture.get();
+        } catch (java.util.concurrent.ExecutionException e) {
+            logger.error("Data Dictionary Excel export failed", e.getCause());
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            logger.warn("Interrupted while waiting for Data Dictionary Excel export");
+        } finally {
+            if (excelExecutor != null) {
+                excelExecutor.shutdown();
+                excelExecutor = null;
+            }
+            excelExportFuture = null;
         }
     }
 
@@ -1322,6 +1431,12 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
             return "";
         }
 
+        // Reuse the cached value if it was already computed (by any exporter) in this run.
+        String cached = element.getCleanXPathCache();
+        if (cached != null) {
+            return cached;
+        }
+
         List<String> pathParts = new ArrayList<>();
         XsdExtendedElement current = element;
 
@@ -1335,7 +1450,9 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
         }
 
         // Join with "/" to create XPath
-        return "/" + String.join("/", pathParts);
+        String cleanXPath = "/" + String.join("/", pathParts);
+        element.setCleanXPathCache(cleanXPath);
+        return cleanXPath;
     }
 
     /**
@@ -1453,12 +1570,14 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
             return java.util.Collections.emptyMap();
         }
 
-        Node typeNode = xsdDocService.findTypeNodeByName(typeName);
-        if (typeNode == null) {
-            return java.util.Collections.emptyMap();
-        }
-
-        return getDocumentationsFromNode(typeNode);
+        // Reuse the documentation for this named type across all elements that use it.
+        return typeDocumentationCache.computeIfAbsent(xsdDocService.stripNamespace(typeName), key -> {
+            Node typeNode = xsdDocService.findTypeNodeByName(key);
+            if (typeNode == null) {
+                return java.util.Collections.emptyMap();
+            }
+            return getDocumentationsFromNode(typeNode);
+        });
     }
 
     /**

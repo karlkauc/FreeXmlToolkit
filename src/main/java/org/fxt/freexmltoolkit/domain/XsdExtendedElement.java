@@ -84,6 +84,12 @@ public class XsdExtendedElement implements Serializable {
     // atrificial sample values:
     private String sampleData;
 
+    // Lazily computed "clean" XPath (without CHOICE/SEQUENCE/ALL container segments).
+    // Computing it walks the whole parent chain, so the result is cached here and shared across
+    // the HTML, Excel, PDF and Word exporters within a single documentation run. Transient because
+    // it is a derived value and must not be serialized.
+    private transient String cleanXPathCache;
+
     // Markdown rendering
     private final transient Parser parser;
     private final transient HtmlRenderer renderer;
@@ -466,6 +472,25 @@ public class XsdExtendedElement implements Serializable {
 
     public void setParentXpath(String parentXpath) {
         this.parentXpath = parentXpath;
+    }
+
+    /**
+     * Returns the cached "clean" XPath (without container segments), or {@code null} if it has
+     * not been computed yet. Populated by the documentation exporters via {@link #setCleanXPathCache(String)}.
+     *
+     * @return the cached clean XPath, or {@code null} if not yet computed
+     */
+    public String getCleanXPathCache() {
+        return cleanXPathCache;
+    }
+
+    /**
+     * Stores the computed clean XPath so repeated lookups within a documentation run can reuse it.
+     *
+     * @param cleanXPathCache the clean XPath to cache
+     */
+    public void setCleanXPathCache(String cleanXPathCache) {
+        this.cleanXPathCache = cleanXPathCache;
     }
 
     public int getLevel() {

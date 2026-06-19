@@ -26,7 +26,7 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.VerticalAlignment;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
@@ -124,11 +124,16 @@ public class DataDictionaryExcelExporter {
     public void exportToExcel(File outputFile, List<XsdExtendedElement> elements, Set<String> includedLanguages) {
         logger.info("Exporting Data Dictionary to Excel: {}", outputFile.getAbsolutePath());
 
-        try (XSSFWorkbook workbook = new XSSFWorkbook()) {
-            // Set document metadata
+        // Use the streaming SXSSF API: with potentially many language sheets x tens of thousands of
+        // rows, the in-memory XSSF model exhausts the heap (OutOfMemoryError). SXSSF keeps only a
+        // small window of rows in memory and flushes the rest to temporary files, giving constant
+        // memory and far higher throughput. close() (try-with-resources) removes those temp files.
+        try (SXSSFWorkbook workbook = new SXSSFWorkbook(SXSSF_ROW_WINDOW)) {
+            workbook.setCompressTempFiles(true);
+            // Set document metadata (on the backing XSSF workbook)
             ExportMetadataService metadataService = ServiceRegistry.get(ExportMetadataService.class);
             if (metadataService != null) {
-                metadataService.setExcelMetadata(workbook, "Data Dictionary - XSD Documentation");
+                metadataService.setExcelMetadata(workbook.getXSSFWorkbook(), "Data Dictionary - XSD Documentation");
             }
 
             // Discover all languages
@@ -174,6 +179,13 @@ public class DataDictionaryExcelExporter {
             // Create metadata sheet FIRST (will be moved to position 0)
             createMetadataSheet(workbook, elements, languagesToExport);
 
+            // Pre-compute the language-INDEPENDENT columns (XPath, type, occurs, restrictions,
+            // sample data, ...) once per element instead of recomputing them for every one of the
+            // potentially many language sheets. Only the two documentation columns vary per language.
+            List<PrecomputedRow> precomputedRows = elements.parallelStream()
+                    .map(this::precomputeRow)
+                    .toList();
+
             // Create one sheet per language
             for (String language : languagesToExport) {
                 String sheetName = language.toUpperCase();
@@ -181,7 +193,7 @@ public class DataDictionaryExcelExporter {
                 if (sheetName.length() > 31) {
                     sheetName = sheetName.substring(0, 31);
                 }
-                createLanguageSheet(workbook, sheetName, language, elements,
+                createLanguageSheet(workbook, sheetName, language, precomputedRows,
                         headerStyle, mandatoryYesStyle, mandatoryNoStyle, normalStyle, wrapStyle);
             }
 
@@ -199,6 +211,47 @@ public class DataDictionaryExcelExporter {
             logger.error("Failed to export Data Dictionary to Excel", e);
             throw new RuntimeException("Failed to export Data Dictionary to Excel: " + e.getMessage(), e);
         }
+    }
+
+    /**
+     * Maximum number of rows SXSSF keeps in memory per sheet before flushing older rows to disk.
+     */
+    private static final int SXSSF_ROW_WINDOW = 200;
+
+    /**
+     * Pre-computed, language-independent cell values for a single data-dictionary row. The owning
+     * {@link XsdExtendedElement} is retained so the two language-specific documentation columns can
+     * still be resolved per sheet.
+     */
+    private record PrecomputedRow(XsdExtendedElement element, String cleanXPath, String elementName,
+                                  String elementType, boolean mandatory, String minOccurs,
+                                  String maxOccurs, String cardinality, String restrictionBase,
+                                  String enumerations, String pattern, String minMaxLength,
+                                  String minMaxValue, String totalFractionDigits, String sampleData,
+                                  String level) {
+    }
+
+    /**
+     * Resolves all language-independent column values for the given element once.
+     */
+    private PrecomputedRow precomputeRow(XsdExtendedElement element) {
+        return new PrecomputedRow(
+                element,
+                htmlService.getCleanXPath(element),
+                element.getElementName(),
+                element.getElementType(),
+                element.isMandatory(),
+                getMinOccurs(element),
+                getMaxOccurs(element),
+                htmlService.getCardinality(element),
+                getRestrictionBase(element),
+                getEnumerations(element),
+                getPattern(element),
+                getMinMaxLength(element),
+                getMinMaxValue(element),
+                getTotalFractionDigits(element),
+                element.getDisplaySampleData(),
+                String.valueOf(element.getLevel()));
     }
 
     /**
@@ -224,8 +277,8 @@ public class DataDictionaryExcelExporter {
     /**
      * Creates a sheet for a specific language with all element data.
      */
-    private void createLanguageSheet(XSSFWorkbook workbook, String sheetName, String language,
-                                     List<XsdExtendedElement> elements,
+    private void createLanguageSheet(Workbook workbook, String sheetName, String language,
+                                     List<PrecomputedRow> rows,
                                      CellStyle headerStyle, CellStyle mandatoryYesStyle,
                                      CellStyle mandatoryNoStyle, CellStyle normalStyle,
                                      CellStyle wrapStyle) {
@@ -243,9 +296,10 @@ public class DataDictionaryExcelExporter {
         // Freeze header row
         sheet.createFreezePane(0, 1);
 
-        // Create data rows
+        // Create data rows (language-independent values are pre-computed; only the two
+        // documentation columns are resolved per language here)
         int counter = 1;
-        for (XsdExtendedElement element : elements) {
+        for (PrecomputedRow data : rows) {
             Row row = sheet.createRow(rowNum++);
             int colNum = 0;
 
@@ -253,58 +307,58 @@ public class DataDictionaryExcelExporter {
             createCell(row, colNum++, String.valueOf(counter++), normalStyle);
 
             // XPath
-            createCell(row, colNum++, htmlService.getCleanXPath(element), normalStyle);
+            createCell(row, colNum++, data.cleanXPath(), normalStyle);
 
             // Element Name
-            createCell(row, colNum++, element.getElementName(), normalStyle);
+            createCell(row, colNum++, data.elementName(), normalStyle);
 
             // Type
-            createCell(row, colNum++, element.getElementType(), normalStyle);
+            createCell(row, colNum++, data.elementType(), normalStyle);
 
             // Mandatory
-            boolean isMandatory = element.isMandatory();
+            boolean isMandatory = data.mandatory();
             Cell mandatoryCell = row.createCell(colNum++);
             mandatoryCell.setCellValue(isMandatory ? "Yes" : "No");
             mandatoryCell.setCellStyle(isMandatory ? mandatoryYesStyle : mandatoryNoStyle);
 
             // Min Occurs
-            createCell(row, colNum++, getMinOccurs(element), normalStyle);
+            createCell(row, colNum++, data.minOccurs(), normalStyle);
 
             // Max Occurs
-            createCell(row, colNum++, getMaxOccurs(element), normalStyle);
+            createCell(row, colNum++, data.maxOccurs(), normalStyle);
 
             // Cardinality
-            createCell(row, colNum++, htmlService.getCardinality(element), normalStyle);
+            createCell(row, colNum++, data.cardinality(), normalStyle);
 
             // Documentation (language-specific)
-            createCell(row, colNum++, getDocumentationForLanguage(element, language), wrapStyle);
+            createCell(row, colNum++, getDocumentationForLanguage(data.element(), language), wrapStyle);
 
             // Type Documentation (language-specific)
-            createCell(row, colNum++, getTypeDocumentationForLanguage(element, language), wrapStyle);
+            createCell(row, colNum++, getTypeDocumentationForLanguage(data.element(), language), wrapStyle);
 
             // Restriction Base
-            createCell(row, colNum++, getRestrictionBase(element), normalStyle);
+            createCell(row, colNum++, data.restrictionBase(), normalStyle);
 
             // Enumerations
-            createCell(row, colNum++, getEnumerations(element), wrapStyle);
+            createCell(row, colNum++, data.enumerations(), wrapStyle);
 
             // Pattern
-            createCell(row, colNum++, getPattern(element), normalStyle);
+            createCell(row, colNum++, data.pattern(), normalStyle);
 
             // Min/Max Length
-            createCell(row, colNum++, getMinMaxLength(element), normalStyle);
+            createCell(row, colNum++, data.minMaxLength(), normalStyle);
 
             // Min/Max Value
-            createCell(row, colNum++, getMinMaxValue(element), normalStyle);
+            createCell(row, colNum++, data.minMaxValue(), normalStyle);
 
             // Total/Fraction Digits
-            createCell(row, colNum++, getTotalFractionDigits(element), normalStyle);
+            createCell(row, colNum++, data.totalFractionDigits(), normalStyle);
 
             // Sample Data
-            createCell(row, colNum++, element.getDisplaySampleData(), normalStyle);
+            createCell(row, colNum++, data.sampleData(), normalStyle);
 
             // Level
-            createCell(row, colNum, String.valueOf(element.getLevel()), normalStyle);
+            createCell(row, colNum, data.level(), normalStyle);
         }
 
         // Set column widths

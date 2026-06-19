@@ -5,6 +5,9 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.concurrent.Future;
 
+import javafx.animation.Animation;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -15,7 +18,9 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
@@ -26,8 +31,10 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
+import javafx.util.Duration;
 
 import org.fxt.freexmltoolkit.FxtGui;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
@@ -107,13 +114,25 @@ public class DocumentationView extends BorderPane {
     private final CheckBox openAfter = new CheckBox("Open the generated documentation after creation");
     private final Button generate = new Button("Generate Documentation");
     private final Button cancel = new Button("Cancel");
-    private final ObservableList<String> progressItems = FXCollections.observableArrayList();
-    private final ListView<String> progressList = new ListView<>(progressItems);
+    private final ObservableList<StepRow> progressItems = FXCollections.observableArrayList();
+    private final ListView<StepRow> progressList = new ListView<>(progressItems);
+    /** Maps a task name to its row index in {@link #progressItems} so a step's row is updated in place. */
+    private final java.util.Map<String, Integer> stepIndex = new java.util.HashMap<>();
     private final Label status = new Label("Ready.");
+    /** Spinner shown in the PROGRESS header while a generation is running. */
+    private final ProgressIndicator spinner = new ProgressIndicator();
+    /** Live elapsed-time label shown next to the spinner while running. */
+    private final Label elapsedLabel = new Label();
+    /** Drives {@link #elapsedLabel} (~5 Hz) while a generation is running. */
+    private Timeline elapsedTimer;
     private File xsdFile;
     private File outputTarget;
     private File faviconFile;
     private Future<?> running;
+
+    /** One row in the PROGRESS list: a pipeline step with its current status and (when done) its duration. */
+    private record StepRow(String name, TaskProgressListener.ProgressUpdate.Status status, long durationMillis) {
+    }
 
     public DocumentationView(EditorHost editorHost) {
         this.editorHost = editorHost;
@@ -258,7 +277,19 @@ public class DocumentationView extends BorderPane {
         progressList.getStyleClass().add("fxt-docgen-progress");
         progressList.setPlaceholder(new Label("Progress messages appear here during generation."));
         progressList.setFocusTraversable(false);
+        progressList.setCellFactory(lv -> new StepCell());
         VBox.setVgrow(progressList, Priority.ALWAYS);
+
+        // Spinner + live elapsed timer for the PROGRESS header (hidden while idle).
+        spinner.getStyleClass().add("fxt-docgen-spinner");
+        spinner.setPrefSize(16, 16);
+        spinner.setMaxSize(16, 16);
+        spinner.setMinSize(16, 16);
+        spinner.setVisible(false);
+        spinner.setManaged(false);
+        elapsedLabel.getStyleClass().add("fxt-docgen-elapsed");
+        elapsedLabel.setVisible(false);
+        elapsedLabel.setManaged(false);
 
         VBox form = new VBox(10,
                 sectionLabel("SOURCE & OUTPUT"), xsdRow, outputRow,
@@ -274,7 +305,11 @@ public class DocumentationView extends BorderPane {
         formScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         formScroll.getStyleClass().add("edge-to-edge");
 
-        VBox progressBox = new VBox(8, sectionLabel("PROGRESS"), progressList);
+        Region progressHeaderSpacer = new Region();
+        HBox.setHgrow(progressHeaderSpacer, Priority.ALWAYS);
+        HBox progressHeader = new HBox(8, sectionLabel("PROGRESS"), progressHeaderSpacer, spinner, elapsedLabel);
+        progressHeader.setAlignment(Pos.CENTER_LEFT);
+        VBox progressBox = new VBox(8, progressHeader, progressList);
         progressBox.setPadding(new Insets(0, 0, 0, 20));
 
         BorderPane card = new BorderPane(progressBox);
@@ -329,7 +364,117 @@ public class DocumentationView extends BorderPane {
 
     /** @return the PROGRESS log lines (for tests/observers). */
     java.util.List<String> progressMessages() {
-        return java.util.List.copyOf(progressItems);
+        return progressItems.stream().map(r -> {
+            String line = "[" + r.status() + "] " + r.name();
+            if (r.status() == TaskProgressListener.ProgressUpdate.Status.FINISHED
+                    || r.status() == TaskProgressListener.ProgressUpdate.Status.FAILED) {
+                line += " (" + r.durationMillis() + " ms)";
+            }
+            return line;
+        }).toList();
+    }
+
+    // ----- progress rendering ---------------------------------------------------------
+
+    /**
+     * Records or updates one pipeline step. A step's {@code RUNNING}/{@code STARTED} update creates
+     * its row; the matching {@code FINISHED}/{@code FAILED} update replaces that same row in place so
+     * each step appears exactly once, transitioning from "running" to "done" with its duration.
+     */
+    private void recordProgress(TaskProgressListener.ProgressUpdate update) {
+        StepRow row = new StepRow(update.taskName(), update.status(), update.durationMillis());
+        Integer idx = stepIndex.get(update.taskName());
+        if (idx == null) {
+            stepIndex.put(update.taskName(), progressItems.size());
+            progressItems.add(row);
+        } else {
+            progressItems.set(idx, row);
+        }
+        progressList.scrollTo(progressItems.size() - 1);
+    }
+
+    /** Shows the spinner and starts a ~5 Hz timer updating the elapsed-time label. */
+    private void startElapsedTimer(long startMillis) {
+        spinner.setVisible(true);
+        spinner.setManaged(true);
+        elapsedLabel.setVisible(true);
+        elapsedLabel.setManaged(true);
+        elapsedLabel.setText("0.0 s");
+        if (elapsedTimer != null) {
+            elapsedTimer.stop();
+        }
+        elapsedTimer = new Timeline(new KeyFrame(Duration.millis(200),
+                e -> elapsedLabel.setText(humanDuration(System.currentTimeMillis() - startMillis))));
+        elapsedTimer.setCycleCount(Animation.INDEFINITE);
+        elapsedTimer.play();
+    }
+
+    /** Stops the elapsed timer and hides the spinner. */
+    private void stopElapsedTimer() {
+        if (elapsedTimer != null) {
+            elapsedTimer.stop();
+            elapsedTimer = null;
+        }
+        spinner.setVisible(false);
+        spinner.setManaged(false);
+        elapsedLabel.setVisible(false);
+        elapsedLabel.setManaged(false);
+    }
+
+    /** Formats a millisecond duration in a compact, human-readable form (e.g. {@code "2 min 14 s"}). */
+    private static String humanDuration(long ms) {
+        if (ms < 1000) {
+            return ms + " ms";
+        }
+        long totalSeconds = ms / 1000;
+        if (totalSeconds < 60) {
+            return String.format(java.util.Locale.ROOT, "%.1f s", ms / 1000.0);
+        }
+        long minutes = totalSeconds / 60;
+        long seconds = totalSeconds % 60;
+        return minutes + " min " + seconds + " s";
+    }
+
+    /** A PROGRESS list cell: status icon + step name on the left, duration right-aligned. */
+    private static final class StepCell extends ListCell<StepRow> {
+        @Override
+        protected void updateItem(StepRow item, boolean empty) {
+            super.updateItem(item, empty);
+            if (empty || item == null) {
+                setText(null);
+                setGraphic(null);
+                return;
+            }
+            IconifyIcon glyph;
+            String time;
+            switch (item.status()) {
+                case FINISHED -> {
+                    glyph = icon("bi-check-circle-fill", 13);
+                    glyph.setIconColor(Color.web("#28a745"));
+                    time = String.format(java.util.Locale.ROOT, "%,d ms", item.durationMillis());
+                }
+                case FAILED -> {
+                    glyph = icon("bi-x-circle-fill", 13);
+                    glyph.setIconColor(Color.web("#dc3545"));
+                    time = "failed";
+                }
+                default -> {
+                    glyph = icon("bi-hourglass-split", 13);
+                    glyph.setIconColor(Color.web("#17a2b8"));
+                    time = "…";
+                }
+            }
+            Label name = new Label(item.name());
+            name.getStyleClass().add("fxt-docgen-step-name");
+            Region spacer = new Region();
+            HBox.setHgrow(spacer, Priority.ALWAYS);
+            Label duration = new Label(time);
+            duration.getStyleClass().add("fxt-docgen-step-time");
+            HBox box = new HBox(8, glyph, name, spacer, duration);
+            box.setAlignment(Pos.CENTER_LEFT);
+            setText(null);
+            setGraphic(box);
+        }
     }
 
     /** @return the status line (for tests/observers). */
@@ -350,16 +495,18 @@ public class DocumentationView extends BorderPane {
             return;
         }
         progressItems.clear();
+        stepIndex.clear();
         status.setText("Generating " + options.format() + "…");
         generate.setDisable(true);
         cancel.setDisable(false);
         long start = System.currentTimeMillis();
+        startElapsedTimer(start);
         running = FxtGui.executorService.submit(() -> {
             String result;
             try {
                 runGeneration(options);
-                result = "Generated in " + (System.currentTimeMillis() - start) + " ms: "
-                        + options.output().getAbsolutePath();
+                result = "Generated " + options.format() + " in " + humanDuration(System.currentTimeMillis() - start)
+                        + " — " + options.output().getAbsolutePath();
             } catch (InterruptedException | java.util.concurrent.CancellationException e) {
                 result = "Cancelled.";
             } catch (Throwable t) {
@@ -367,6 +514,7 @@ public class DocumentationView extends BorderPane {
             }
             String finalResult = result;
             Platform.runLater(() -> {
+                stopElapsedTimer();
                 status.setText(finalResult);
                 generate.setDisable(false);
                 cancel.setDisable(true);
@@ -403,14 +551,7 @@ public class DocumentationView extends BorderPane {
             case "JPG" -> XsdDocumentationService.ImageOutputMethod.JPG;
             default -> XsdDocumentationService.ImageOutputMethod.SVG;
         });
-        TaskProgressListener listener = update -> Platform.runLater(() -> {
-            String message = "[" + update.status() + "] " + update.taskName();
-            if (update.status() == TaskProgressListener.ProgressUpdate.Status.FINISHED) {
-                message += " (" + update.durationMillis() + " ms)";
-            }
-            progressItems.add(message);
-            progressList.scrollTo(progressItems.size() - 1);
-        });
+        TaskProgressListener listener = update -> Platform.runLater(() -> recordProgress(update));
         service.setProgressListener(listener);
 
         switch (options.format()) {
