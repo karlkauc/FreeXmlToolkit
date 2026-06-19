@@ -140,6 +140,7 @@ public class XsdDocumentationService {
     private boolean generateSvgOverviewPage = true; // Whether to generate the schema-svg.html overview page
     private boolean addMetadataInOutput = false; // Whether to add metadata comments to generated HTML files
     private String faviconPath = null; // Optional path to custom favicon for HTML documentation
+    private boolean deduplicateDataDictionaryByType = false; // List each named type only once in the data dictionary
 
     // Per-run memo of XPath-independent identity-constraint results, keyed by the source DOM node.
     // Repeated expansions of a shared type reuse the cached result instead of re-parsing constraints.
@@ -247,6 +248,17 @@ public class XsdDocumentationService {
     }
 
     /**
+     * Sets whether the data dictionary lists each named complex/simple type only once (the first
+     * occurrence) instead of every recursive occurrence. Elements with a built-in or no type are
+     * always listed individually.
+     *
+     * @param deduplicateDataDictionaryByType {@code true} to collapse repeated named types
+     */
+    public void setDeduplicateDataDictionaryByType(boolean deduplicateDataDictionaryByType) {
+        this.deduplicateDataDictionaryByType = deduplicateDataDictionaryByType;
+    }
+
+    /**
      * Returns the configured favicon path.
      *
      * @return Path to the favicon file, or null if not set
@@ -337,6 +349,7 @@ public class XsdDocumentationService {
         xsdDocumentationHtmlService.setIncludedLanguages(this.includedLanguages);
         xsdDocumentationHtmlService.setAddMetadataInOutput(this.addMetadataInOutput);
         xsdDocumentationHtmlService.setFaviconPath(this.faviconPath);
+        xsdDocumentationHtmlService.setDeduplicateDataDictionaryByType(this.deduplicateDataDictionaryByType);
 
         xsdDocumentationSvgService.setOutputDirectory(outputDirectory);
         xsdDocumentationSvgService.setDocumentationData(xsdDocumentationData);

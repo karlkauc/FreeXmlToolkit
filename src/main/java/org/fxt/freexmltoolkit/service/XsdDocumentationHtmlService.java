@@ -131,6 +131,9 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
     // Favicon configuration for output files
     private String faviconPath = null;
 
+    // When true, the data dictionary lists each named complex/simple type only once.
+    private boolean deduplicateDataDictionaryByType = false;
+
     /**
      * Sets the path to a custom favicon file for HTML documentation.
      * Supported formats: .ico, .png, .svg
@@ -139,6 +142,17 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
      */
     public void setFaviconPath(String faviconPath) {
         this.faviconPath = faviconPath;
+    }
+
+    /**
+     * Sets whether the data dictionary collapses each named complex/simple type to a single
+     * representative row (the first occurrence). Elements with a built-in or no type are always
+     * listed individually.
+     *
+     * @param deduplicateDataDictionaryByType {@code true} to deduplicate by named type
+     */
+    public void setDeduplicateDataDictionaryByType(boolean deduplicateDataDictionaryByType) {
+        this.deduplicateDataDictionaryByType = deduplicateDataDictionaryByType;
     }
 
     /**
@@ -598,10 +612,30 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
     void generateDataDictionaryPage() {
         final var context = new Context();
         // Filter out container elements (SEQUENCE, CHOICE, ALL) - they are internal structures
-        List<XsdExtendedElement> allElements = xsdDocumentationData.getExtendedXsdElementMap().values().stream()
+        List<XsdExtendedElement> filtered = xsdDocumentationData.getExtendedXsdElementMap().values().stream()
                 .filter(this::isNotContainerElement)
                 .sorted(Comparator.comparing(XsdExtendedElement::getCounter))
                 .toList();
+
+        // Optionally collapse the recursive explosion: list each named complex/simple type only
+        // once (its first occurrence by counter). Elements with a built-in (xs:*) or no type are
+        // always kept individually, so leaf fields are not merged.
+        if (deduplicateDataDictionaryByType) {
+            java.util.Set<String> seenTypes = new java.util.HashSet<>();
+            List<XsdExtendedElement> deduped = filtered.stream()
+                    .filter(element -> {
+                        String type = element.getElementType();
+                        if (type == null || type.isBlank()
+                                || type.startsWith("xs:") || type.startsWith("xsd:")) {
+                            return true;
+                        }
+                        return seenTypes.add(xsdDocService.stripNamespace(type));
+                    })
+                    .toList();
+            logger.info("Data dictionary deduplicated by type: {} -> {} rows", filtered.size(), deduped.size());
+            filtered = deduped;
+        }
+        final List<XsdExtendedElement> allElements = filtered;
 
         // Kick off the Excel export on a background thread so it runs in parallel with the (much
         // faster) HTML rendering instead of blocking it. It is awaited later via
