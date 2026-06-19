@@ -151,34 +151,80 @@ public class EditorWelcomePane extends VBox {
         spark.setPrefSize(w, h);
         spark.setMaxSize(w, h);
 
-        // Feature-progress grid: one labelled progress bar per category.
-        javafx.scene.layout.GridPane grid = new javafx.scene.layout.GridPane();
-        grid.setHgap(10);
-        grid.setVgap(6);
+        // Feature-progress strip: one colour-coded mini-card per category, laid side by side.
+        HBox catRow = new HBox(12);
+        catRow.getStyleClass().add("fxt-welcome-trend-row");
         var stats = org.fxt.freexmltoolkit.service.UsageTrackingServiceImpl.getInstance();
-        int row = 0;
+        int count = 0;
         try {
             var statsModel = stats.getStatistics();
             for (var cat : org.fxt.freexmltoolkit.service.SkillTracker.getFeaturesByCategory()) {
                 double progress = org.fxt.freexmltoolkit.service.SkillTracker
                         .getCategoryProgress(cat.name(), statsModel);
-                Label name = new Label(cat.name());
-                // getCategoryProgress returns a 0–100 percentage; ProgressBar wants 0.0–1.0.
-                javafx.scene.control.ProgressBar bar = new javafx.scene.control.ProgressBar(progress / 100.0);
-                bar.setPrefWidth(140);
-                grid.add(name, 0, row);
-                grid.add(bar, 1, row);
-                row++;
+                Region card = trendCategoryCard(cat.name(), progress, categoryColor(cat.name()));
+                HBox.setHgrow(card, Priority.ALWAYS);
+                catRow.getChildren().add(card);
+                count++;
             }
         } catch (Throwable ignored) {
-            // no stats model available → omit the grid gracefully
+            // no stats model available → omit the strip gracefully
         }
 
         box.getChildren().addAll(title, spark);
-        if (row > 0) {
-            box.getChildren().add(grid);
+        if (count > 0) {
+            box.getChildren().add(catRow);
         }
         return box;
+    }
+
+    /** Distinct, theme-stable accent colour per feature category (falls back to the primary hue). */
+    private static String categoryColor(String category) {
+        return switch (category) {
+            case "Validation" -> "#2f9e44";     // green
+            case "Editing" -> "#3B5BDB";        // indigo
+            case "Query" -> "#17a2b8";          // cyan
+            case "Transformation" -> "#f08c00"; // orange
+            case "Tools" -> "#7048e8";          // violet
+            case "Security" -> "#e03131";       // red
+            case "Export" -> "#0ca678";         // teal
+            case "Organization" -> "#e64980";   // pink
+            default -> "#3B5BDB";
+        };
+    }
+
+    /**
+     * A compact, colour-coded category card: a coloured dot + name, a tinted progress bar and a
+     * percentage caption. Used in the ACTIVITY (LAST 7 DAYS) strip.
+     *
+     * @param category the category display name
+     * @param progress discovery progress as a 0–100 percentage
+     * @param color    the category accent colour (CSS hex)
+     */
+    private Region trendCategoryCard(String category, double progress, String color) {
+        Region dot = new Region();
+        dot.setMinSize(8, 8);
+        dot.setPrefSize(8, 8);
+        dot.setMaxSize(8, 8);
+        dot.setStyle("-fx-background-color: " + color + "; -fx-background-radius: 4;");
+
+        Label name = new Label(category);
+        name.getStyleClass().add("fxt-trend-cat-name");
+        HBox nameRow = new HBox(6, dot, name);
+        nameRow.setAlignment(Pos.CENTER_LEFT);
+
+        // getCategoryProgress returns a 0–100 percentage; ProgressBar wants 0.0–1.0.
+        javafx.scene.control.ProgressBar bar = new javafx.scene.control.ProgressBar(progress / 100.0);
+        bar.getStyleClass().add("fxt-trend-cat-bar");
+        bar.setMaxWidth(Double.MAX_VALUE);
+        bar.setStyle("-fx-accent: " + color + ";");
+
+        Label pct = new Label(Math.round(progress) + "%");
+        pct.getStyleClass().add("fxt-trend-cat-pct");
+
+        VBox card = new VBox(6, nameRow, bar, pct);
+        card.getStyleClass().add("fxt-trend-cat-card");
+        card.setMaxWidth(Double.MAX_VALUE);
+        return card;
     }
 
     /** @return the number of points in the rendered sparkline (for tests/observers). */
