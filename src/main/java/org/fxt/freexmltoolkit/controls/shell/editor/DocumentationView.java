@@ -303,23 +303,31 @@ public class DocumentationView extends BorderPane {
                 formatOptionsBox,
                 sectionLabel("LANGUAGES"), languagesBox,
                 openAfter, runRow, status);
-        form.setPrefWidth(430);
-        form.setMinWidth(380);
+        form.getStyleClass().add("fxt-docgen-form");
+        // The form is the primary, comfortably-sized area: it grows but is capped
+        // so it never stretches absurdly wide on large displays.
+        form.setMaxWidth(640);
         ScrollPane formScroll = new ScrollPane(form);
         formScroll.setFitToWidth(true);
         formScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         formScroll.getStyleClass().add("edge-to-edge");
 
+        // PROGRESS is a bounded-width secondary panel on the right.
         Region progressHeaderSpacer = new Region();
         HBox.setHgrow(progressHeaderSpacer, Priority.ALWAYS);
         HBox progressHeader = new HBox(8, sectionLabel("PROGRESS"), progressHeaderSpacer, spinner, elapsedLabel);
         progressHeader.setAlignment(Pos.CENTER_LEFT);
         VBox progressBox = new VBox(8, progressHeader, progressList);
-        progressBox.setPadding(new Insets(0, 0, 0, 20));
+        progressBox.getStyleClass().add("fxt-docgen-progress-pane");
+        progressBox.setPrefWidth(300);
+        progressBox.setMinWidth(240);
+        progressBox.setMaxWidth(340);
 
-        BorderPane card = new BorderPane(progressBox);
+        HBox body = new HBox(20, formScroll, progressBox);
+        HBox.setHgrow(formScroll, Priority.ALWAYS);
+
+        BorderPane card = new BorderPane(body);
         card.setTop(new VBox(16, header, new Region()));
-        card.setLeft(formScroll);
         card.getStyleClass().add("fxt-favmgr-card");
 
         setCenter(card);
