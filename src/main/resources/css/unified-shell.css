@@ -1760,6 +1760,22 @@
     -fx-background-color: -fxt-bg-canvas;
 }
 
+/* The settings form: comfortable horizontal breathing room so sections
+   (SOURCE & OUTPUT, etc.) never sit flush against the card edge. The trailing
+   right padding keeps content clear of the (NEVER-shown but space-reserving)
+   scrollbar gutter and the PROGRESS divider. */
+.fxt-docgen-form {
+    -fx-padding: 2 20 8 8;
+}
+
+/* PROGRESS: a bounded secondary panel, visually set off from the form by a
+   subtle divider rather than competing for primary space. */
+.fxt-docgen-progress-pane {
+    -fx-padding: 0 0 0 20;
+    -fx-border-color: transparent transparent transparent -fxt-border;
+    -fx-border-width: 0 0 0 1;
+}
+
 .fxt-docgen-progress {
     -fx-background-color: -fxt-bg-surface-2;
     -fx-background-radius: 8;
