@@ -1090,6 +1090,30 @@
     -fx-fill: transparent;
 }
 
+/* ACTIVITY (LAST 7 DAYS) — colour-coded category strip */
+.fxt-welcome-trend-row {
+    -fx-padding: 4 0 0 0;
+}
+.fxt-trend-cat-card {
+    -fx-background-color: -fxt-bg-surface-2;
+    -fx-background-radius: 8;
+    -fx-border-color: -fxt-border;
+    -fx-border-radius: 8;
+    -fx-padding: 10 12;
+}
+.fxt-trend-cat-name {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-primary;
+}
+.fxt-trend-cat-bar {
+    -fx-pref-height: 8;
+}
+.fxt-trend-cat-pct {
+    -fx-font-size: 10px;
+    -fx-text-fill: -fxt-text-secondary;
+}
+
 /* Tips banner */
 .fxt-welcome-tips {
     -fx-background-color: rgba(59, 91, 219, 0.08);
