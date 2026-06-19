@@ -1775,6 +1775,30 @@
     -fx-padding: 2 10 2 10;
 }
 
+/* PROGRESS step rows (status icon + name + right-aligned duration) */
+.fxt-docgen-step-name {
+    -fx-font-family: "JetBrains Mono", monospace;
+    -fx-font-size: 11px;
+    -fx-text-fill: -fxt-text-primary;
+}
+
+.fxt-docgen-step-time {
+    -fx-font-family: "JetBrains Mono", monospace;
+    -fx-font-size: 11px;
+    -fx-text-fill: -fxt-text-secondary;
+}
+
+/* PROGRESS header: live elapsed-time label + running spinner */
+.fxt-docgen-elapsed {
+    -fx-font-family: "JetBrains Mono", monospace;
+    -fx-font-size: 11px;
+    -fx-text-fill: -fxt-text-secondary;
+}
+
+.fxt-docgen-spinner {
+    -fx-progress-color: -fxt-accent;
+}
+
 /* ----- Editor file-loading spinner overlay ----------------------------- */
 /* Translucent scrim over the editor while a file is read/schema-detected.
    Backdrop tracks the theme's canvas color so it dims consistently in both. */

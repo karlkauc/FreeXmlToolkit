@@ -1356,6 +1356,12 @@ public class XsdDocumentationWordService {
             return "";
         }
 
+        // Reuse the cached value if it was already computed (by any exporter) in this run.
+        String cached = element.getCleanXPathCache();
+        if (cached != null) {
+            return cached;
+        }
+
         List<String> pathParts = new ArrayList<>();
         XsdExtendedElement current = element;
 
@@ -1369,7 +1375,9 @@ public class XsdDocumentationWordService {
                     documentationData.getExtendedXsdElementMap().get(parentXpath) : null;
         }
 
-        return "/" + String.join("/", pathParts);
+        String cleanXPath = "/" + String.join("/", pathParts);
+        element.setCleanXPathCache(cleanXPath);
+        return cleanXPath;
     }
 
     /**
