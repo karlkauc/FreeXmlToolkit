@@ -78,6 +78,23 @@ public class XsdDocumentationSvgService {
         this.faviconPath = faviconPath;
     }
 
+    /**
+     * Resolves the appropriate {@code <link rel="icon">} MIME type for a favicon
+     * based on its file extension. Returns {@code image/x-icon} for unknown
+     * extensions so that classic {@code .ico} files keep working.
+     *
+     * @param fileName The favicon file name
+     * @return The MIME type to declare in the HTML {@code type} attribute
+     */
+    private static String faviconMimeType(String fileName) {
+        String lower = fileName.toLowerCase(java.util.Locale.ROOT);
+        if (lower.endsWith(".png")) return "image/png";
+        if (lower.endsWith(".gif")) return "image/gif";
+        if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) return "image/jpeg";
+        if (lower.endsWith(".svg")) return "image/svg+xml";
+        return "image/x-icon";
+    }
+
     // SVG Layout Constants
     private static final int NODE_WIDTH = 200;
     private static final int NODE_HEIGHT = 80;
@@ -148,6 +165,7 @@ public class XsdDocumentationSvgService {
             if (faviconFile.exists() && faviconFile.isFile()) {
                 context.setVariable("hasFavicon", true);
                 context.setVariable("faviconFileName", faviconFile.getName());
+                context.setVariable("faviconMimeType", faviconMimeType(faviconFile.getName()));
             } else {
                 context.setVariable("hasFavicon", false);
             }
