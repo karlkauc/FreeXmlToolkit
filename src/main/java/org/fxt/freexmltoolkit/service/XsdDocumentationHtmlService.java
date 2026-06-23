@@ -1335,12 +1335,13 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
             return java.util.Collections.emptyMap();
         }
 
-        Map<String, String> allDocs = element.getAllLanguageDocumentation();
-        if (allDocs.isEmpty()) {
+        // Honour the user's language selection (mirrors the Excel exporter / detail pages).
+        Map<String, String> docs = element.getFilteredLanguageDocumentation(includedLanguages);
+        if (docs.isEmpty()) {
             return java.util.Collections.emptyMap();
         }
 
-        return allDocs;
+        return docs;
     }
 
     /**
@@ -1628,8 +1629,36 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
             if (typeNode == null) {
                 return java.util.Collections.emptyMap();
             }
-            return getDocumentationsFromNode(typeNode);
+            return filterByIncludedLanguages(getDocumentationsFromNode(typeNode));
         });
+    }
+
+    /**
+     * Restricts a language-keyed documentation map to the user-selected languages.
+     * Comparison is case-insensitive and the "default" (no xml:lang) entry is always kept
+     * as a fallback. If no filter is configured, the map is returned unchanged.
+     * Mirrors {@link XsdExtendedElement#getFilteredLanguageDocumentation(java.util.Set)} and the
+     * filtering done by the Excel exporter, so all Data Dictionary outputs stay consistent.
+     *
+     * @param docs Map of language codes to documentation content
+     * @return The filtered map (preserving insertion order)
+     */
+    private Map<String, String> filterByIncludedLanguages(Map<String, String> docs) {
+        if (docs == null || docs.isEmpty() || includedLanguages == null || includedLanguages.isEmpty()) {
+            return docs;
+        }
+        Set<String> filter = includedLanguages.stream()
+                .filter(Objects::nonNull)
+                .map(String::toLowerCase)
+                .collect(Collectors.toSet());
+        Map<String, String> result = new LinkedHashMap<>();
+        docs.forEach((lang, value) -> {
+            String normalized = lang == null ? "default" : lang.toLowerCase();
+            if (filter.contains(normalized) || "default".equals(normalized)) {
+                result.put(lang, value);
+            }
+        });
+        return result;
     }
 
     /**
