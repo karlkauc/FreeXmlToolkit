@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
@@ -273,7 +274,7 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
 
         var context = new Context();
         context.setVariable("date", LocalDate.now());
-        context.setVariable("filename", Paths.get(xsdDocumentationData.getXsdFilePath()).getFileName().toString());
+        context.setVariable("filename", relativeSchemaLink(xsdDocumentationData.getXsdFilePath()));
         context.setVariable("rootElementName", rootExtendedElement.getElementName());
         context.setVariable("version", xsdDocumentationData.getVersion());
         context.setVariable("rootElement", rootExtendedElement); // Pass the XsdExtendedElement
@@ -303,20 +304,140 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
         }
     }
 
+    /**
+     * Copies the main XSD file and all of its transitively referenced schema files
+     * (xs:include / local xs:import, plus any downloaded remote imports) into the output
+     * directory. The relative layout of all involved files is preserved by copying each file
+     * relative to their common base directory, so internal {@code schemaLocation} references keep
+     * resolving and the documentation can link directly to a complete schema.
+     *
+     * @param xsdFilePath the path of the main XSD file
+     */
     private void copyXsdFileToOutput(String xsdFilePath) {
         if (xsdFilePath == null || xsdFilePath.isEmpty()) {
             logger.warn("XSD file path is not available, cannot copy file.");
             return;
         }
+
+        java.util.Set<Path> involvedFiles = (xsdDocService != null) ? xsdDocService.getProcessedSchemaFiles() : null;
+        if (involvedFiles == null || involvedFiles.isEmpty()) {
+            // Fallback: no transitive information available, copy only the main file as before.
+            copySingleSchemaFile(new File(xsdFilePath).toPath(), new File(outputDirectory, new File(xsdFilePath).getName()).toPath());
+            return;
+        }
+
+        Path base = resolveSchemaCopyBaseDir();
+        for (Path file : involvedFiles) {
+            Path dest;
+            try {
+                dest = outputDirectory.toPath().resolve(base.relativize(file.normalize()));
+            } catch (IllegalArgumentException e) {
+                // Different filesystem roots (e.g. C:\ vs D:\ on Windows): cannot preserve layout.
+                logger.warn("Schema file '{}' is outside the common base '{}'; copying flat into output root.", file, base);
+                dest = new File(outputDirectory, file.getFileName().toString()).toPath();
+            }
+            copySingleSchemaFile(file, dest);
+        }
+    }
+
+    /**
+     * Copies a single schema file to the given destination, creating parent directories as needed.
+     * Failures are logged but do not abort the overall documentation generation.
+     *
+     * @param source      the source schema file
+     * @param destination the destination path inside the output directory
+     */
+    private void copySingleSchemaFile(Path source, Path destination) {
         try {
-            File sourceFile = new File(xsdFilePath);
-            File destinationFile = new File(outputDirectory, sourceFile.getName());
-            Files.copy(sourceFile.toPath(), destinationFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-            logger.info("Copied XSD file to: {}", destinationFile.getAbsolutePath());
+            if (destination.getParent() != null) {
+                Files.createDirectories(destination.getParent());
+            }
+            Files.copy(source, destination, StandardCopyOption.REPLACE_EXISTING);
+            logger.info("Copied schema file to: {}", destination.toAbsolutePath());
         } catch (IOException e) {
-            logger.error("Could not copy XSD file '{}' to output directory.", xsdFilePath, e);
-            // Optionally rethrow as a runtime exception if this is a critical failure
-            // throw new RuntimeException("Could not copy XSD file", e);
+            logger.error("Could not copy schema file '{}' to output directory.", source, e);
+        }
+    }
+
+    /**
+     * Computes the common base directory of all involved schema files. Every file is copied
+     * relative to this directory so their relative positions (and thus schemaLocation references)
+     * are preserved in the output. In the common case (all files in the main schema's directory
+     * or a sub-directory) this is the main schema's parent directory.
+     *
+     * @return the common base directory for copying schema files
+     */
+    private Path resolveSchemaCopyBaseDir() {
+        java.util.Set<Path> involvedFiles = (xsdDocService != null) ? xsdDocService.getProcessedSchemaFiles() : null;
+        Path mainParent = mainSchemaParentDir();
+        if (involvedFiles == null || involvedFiles.isEmpty()) {
+            return mainParent;
+        }
+
+        Path common = null;
+        for (Path file : involvedFiles) {
+            Path parent = file.normalize().getParent();
+            if (parent == null) {
+                continue;
+            }
+            common = (common == null) ? parent : commonAncestor(common, parent);
+            if (common == null) {
+                // No shared root at all -> fall back to the main schema's parent directory.
+                return mainParent;
+            }
+        }
+        return (common != null) ? common : mainParent;
+    }
+
+    /**
+     * Returns the parent directory of the main XSD file, with a "." fallback when it has none.
+     *
+     * @return the main schema's parent directory
+     */
+    private Path mainSchemaParentDir() {
+        Path main = new File(xsdDocumentationData.getXsdFilePath()).toPath().toAbsolutePath().normalize();
+        Path parent = main.getParent();
+        return (parent != null) ? parent : Path.of(".").toAbsolutePath().normalize();
+    }
+
+    /**
+     * Returns the longest common ancestor directory of two paths, or {@code null} if they share
+     * no common root (e.g. different drive letters on Windows).
+     *
+     * @param a first directory
+     * @param b second directory
+     * @return the deepest directory that is an ancestor of both, or null if none exists
+     */
+    private Path commonAncestor(Path a, Path b) {
+        if (!java.util.Objects.equals(a.getRoot(), b.getRoot())) {
+            return null;
+        }
+        Path result = a.getRoot();
+        int n = Math.min(a.getNameCount(), b.getNameCount());
+        for (int i = 0; i < n; i++) {
+            if (a.getName(i).equals(b.getName(i))) {
+                result = (result == null) ? a.getName(i) : result.resolve(a.getName(i));
+            } else {
+                break;
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Builds the output-relative link to the main XSD file, matching where
+     * {@link #copyXsdFileToOutput(String)} places it. Uses forward slashes for HTML hrefs.
+     * In the common case this is just the bare file name.
+     *
+     * @param xsdFilePath the path of the main XSD file
+     * @return the output-relative link to the copied main XSD
+     */
+    private String relativeSchemaLink(String xsdFilePath) {
+        Path main = new File(xsdFilePath).toPath().toAbsolutePath().normalize();
+        try {
+            return resolveSchemaCopyBaseDir().relativize(main).toString().replace('\\', '/');
+        } catch (IllegalArgumentException e) {
+            return main.getFileName().toString();
         }
     }
 

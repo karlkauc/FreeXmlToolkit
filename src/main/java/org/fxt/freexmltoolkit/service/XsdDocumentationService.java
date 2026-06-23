@@ -104,6 +104,14 @@ public class XsdDocumentationService {
     String xsdFilePath;
     public XsdDocumentationData xsdDocumentationData = new XsdDocumentationData();
 
+    /**
+     * All local schema files involved in the current schema, collected transitively
+     * (main schema plus every resolved {@code xs:include} / local {@code xs:import} and any
+     * downloaded remote import). Populated by {@link #processAllSchemas()} and consumed when
+     * copying the schema sources next to the generated HTML documentation.
+     */
+    private final java.util.Set<java.nio.file.Path> processedSchemaFiles = new java.util.LinkedHashSet<>();
+
     int counter;
     boolean parallelProcessing = true;
 
@@ -184,6 +192,18 @@ public class XsdDocumentationService {
     public void setXsdFilePath(String xsdFilePath) {
         this.xsdFilePath = xsdFilePath;
         this.xsdDocumentationData.setXsdFilePath(xsdFilePath);
+    }
+
+    /**
+     * Returns all local schema files involved in the current schema, collected transitively
+     * during {@link #processAllSchemas()} (main schema plus every resolved {@code xs:include},
+     * local {@code xs:import} and any downloaded remote import). The set is empty until the
+     * schema has been processed.
+     *
+     * @return the involved schema files as normalized absolute paths (insertion order preserved)
+     */
+    public java.util.Set<java.nio.file.Path> getProcessedSchemaFiles() {
+        return processedSchemaFiles;
     }
 
     public ImageOutputMethod getImageOutputMethod() {
@@ -1333,6 +1353,7 @@ public class XsdDocumentationService {
 
         Set<String> processedFiles = new HashSet<>();
         Set<String> processedUrls = new HashSet<>();
+        processedSchemaFiles.clear();
 
         while (!filesToProcess.isEmpty()) {
             Path currentFile = filesToProcess.poll();
@@ -1345,6 +1366,7 @@ public class XsdDocumentationService {
                 continue;
             }
             processedFiles.add(currentFilePath);
+            processedSchemaFiles.add(currentFile.toAbsolutePath().normalize());
 
             logger.debug("Processing schema file: {}", currentFile);
             Document document = parseXsdContent(Files.readString(currentFile, StandardCharsets.UTF_8));
