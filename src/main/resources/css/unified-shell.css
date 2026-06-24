@@ -175,6 +175,13 @@
     -fx-spacing: 8;
 }
 
+/* The sections scroll vertically inside the inspector so the pane never exceeds the window
+   height; keep the scroll container and its viewport transparent so the surface shows through. */
+.fxt-inspector-scroll, .fxt-inspector-scroll > .viewport {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
 .fxt-inspector-header {
     -fx-font-family: "Inter", sans-serif;
     -fx-font-size: 11px;

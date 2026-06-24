@@ -225,6 +225,12 @@ public class XsdAppInfo {
     private static final String FXT_NS = "http://freexmltoolkit.org/schema/flattening";
 
     /**
+     * Altova namespace URI for {@code <altova:exampleValues>} — the convention used by FundsXML
+     * schemas and recognised by {@code XsdDocumentationService}.
+     */
+    public static final String ALTOVA_NS = "http://www.altova.com/xml-schema-extensions";
+
+    /**
      * Converts to XML format for serialization.
      *
      * @return list of XML strings representing xs:appinfo elements
@@ -489,6 +495,84 @@ public class XsdAppInfo {
      */
     public void removeEntriesWithTag(String tag) {
         entries.removeIf(e -> Objects.equals(tag, e.getTag()));
+    }
+
+    // ==================== Example Values (altova:exampleValues) ====================
+
+    /**
+     * Checks whether an entry holds an {@code altova:exampleValues} block.
+     *
+     * @param entry the entry to test
+     * @return true if the entry's raw XML contains an {@code exampleValues} element
+     */
+    public static boolean isExampleValuesEntry(AppInfoEntry entry) {
+        return entry != null && entry.hasRawXml() && entry.getRawXml().contains("exampleValues");
+    }
+
+    /**
+     * Gets the example values declared via {@code altova:exampleValues}.
+     *
+     * @return the list of example values (empty if none)
+     */
+    public List<String> getExampleValues() {
+        List<String> values = new ArrayList<>();
+        for (AppInfoEntry entry : entries) {
+            if (isExampleValuesEntry(entry)) {
+                java.util.regex.Matcher m =
+                        java.util.regex.Pattern.compile("value\\s*=\\s*\"([^\"]*)\"").matcher(entry.getRawXml());
+                while (m.find()) {
+                    values.add(unescapeXml(m.group(1)));
+                }
+                break; // only the first exampleValues block is managed
+            }
+        }
+        return values;
+    }
+
+    /**
+     * Checks whether any example values are present.
+     *
+     * @return true if an {@code altova:exampleValues} block exists
+     */
+    public boolean hasExampleValues() {
+        return entries.stream().anyMatch(XsdAppInfo::isExampleValuesEntry);
+    }
+
+    /**
+     * Replaces the {@code altova:exampleValues} block with the given values. Any existing
+     * exampleValues entry is removed first; a blank/empty list clears example values entirely.
+     * The block carries its own {@code xmlns:altova} declaration so it serializes as valid XML
+     * regardless of the schema-root namespace declarations.
+     *
+     * @param values the example values (null/empty clears)
+     */
+    public void setExampleValues(List<String> values) {
+        entries.removeIf(XsdAppInfo::isExampleValuesEntry);
+        if (values == null) {
+            return;
+        }
+        List<String> clean = values.stream().filter(v -> v != null && !v.isBlank()).map(String::trim).toList();
+        if (clean.isEmpty()) {
+            return;
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append("<altova:exampleValues xmlns:altova=\"").append(ALTOVA_NS).append("\">");
+        for (String v : clean) {
+            sb.append("<altova:example value=\"").append(escapeXml(v)).append("\"/>");
+        }
+        sb.append("</altova:exampleValues>");
+        entries.add(new AppInfoEntry(null, null, "", sb.toString()));
+    }
+
+    private static String unescapeXml(String text) {
+        if (text == null) {
+            return "";
+        }
+        return text.replace("&lt;", "<")
+                .replace("&gt;", ">")
+                .replace("&quot;", "\"")
+                .replace("&apos;", "'")
+                .replace("&amp;", "&");
     }
 
     /**

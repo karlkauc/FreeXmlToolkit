@@ -10,6 +10,7 @@ import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.TableColumn;
@@ -29,6 +30,7 @@ import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost;
 import org.fxt.freexmltoolkit.controls.shell.schema.SchemaConstraints;
 import org.fxt.freexmltoolkit.controls.shell.schema.SchemaFacets;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.AddIdentityConstraintCommand;
+import org.fxt.freexmltoolkit.controls.v2.editor.commands.AddSchemaReferenceCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeSchemaPropertyCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.context.XPathCalculator;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdAny;
@@ -37,6 +39,8 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdFacet;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdImport;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdInclude;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement;
@@ -99,6 +103,11 @@ public class InspectorPanel extends VBox {
     private final TextField schemaVersionField = editField("inspector-schema-version");
     private final ComboBox<String> schemaElementFormCombo = editCombo("inspector-schema-elementform");
     private final ComboBox<String> schemaAttributeFormCombo = editCombo("inspector-schema-attrform");
+    // Schema imports/includes management.
+    private final javafx.scene.control.ListView<XsdNode> schemaRefList = new javafx.scene.control.ListView<>();
+    private final ComboBox<String> schemaRefKindCombo = new ComboBox<>();
+    private final TextField schemaRefNsField = new TextField();
+    private final TextField schemaRefLocationField = new TextField();
     private final DocLanguagesEditor docEditor = new DocLanguagesEditor();
     private AppInfoFieldsEditor appInfoFieldsEditor;
     private final TextArea appinfoArea = new TextArea();
@@ -202,8 +211,8 @@ public class InspectorPanel extends VBox {
         editorHost.validationStatusProperty().addListener((obs, oldV, newV) -> updateValidationBadge(newV));
         updateValidationBadge(editorHost.validationStatusProperty().get());
 
-        getChildren().add(section("NODE & XPATH", new VBox(4,
-                row("Kind", kindValue), row("Name", nameField), row("XPath", xpathValue), row("Depth", depthValue))));
+        TitledPane nodeXPathSection = section("NODE & XPATH", new VBox(4,
+                row("Kind", kindValue), row("Name", nameField), row("XPath", xpathValue), row("Depth", depthValue)));
         typeFacetsSection = section("TYPE & FACETS", buildTypeFacetsBody());
         namespaceSection = section("NAMESPACE", buildNamespaceBody());
         valueAttrSection = section("VALUE & ATTRIBUTES", buildValueAttrBody());
@@ -215,9 +224,20 @@ public class InspectorPanel extends VBox {
         schemaSection = section("SCHEMA", buildSchemaBody());
         constraintsSection = section("CONSTRAINTS", buildConstraintsBody());
         docSection = section("DOCUMENTATION & REFS", buildDocBody());
-        getChildren().addAll(typeFacetsSection, namespaceSection, valueAttrSection, contentSection,
-                piSection, declarationSection, cardUseSection, advancedSection, schemaSection,
-                constraintsSection, docSection);
+
+        // The sections can exceed the window height; host them in a vertical ScrollPane so the
+        // pane never overflows the screen, while the PROPERTIES header stays pinned at the top.
+        VBox sectionsBox = new VBox(8, nodeXPathSection, typeFacetsSection, namespaceSection,
+                valueAttrSection, contentSection, piSection, declarationSection, cardUseSection,
+                advancedSection, schemaSection, constraintsSection, docSection);
+        ScrollPane scroller = new ScrollPane(sectionsBox);
+        scroller.setFitToWidth(true);
+        scroller.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scroller.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        scroller.setMinHeight(0);
+        scroller.getStyleClass().add("fxt-inspector-scroll");
+        VBox.setVgrow(scroller, Priority.ALWAYS);
+        getChildren().add(scroller);
 
         wireEditing();
 
@@ -377,7 +397,85 @@ public class InspectorPanel extends VBox {
                 row("Target NS", schemaTargetNsField),
                 row("Version", schemaVersionField),
                 row("Element form", schemaElementFormCombo),
-                row("Attr form", schemaAttributeFormCombo));
+                row("Attr form", schemaAttributeFormCombo),
+                buildSchemaRefsBox());
+    }
+
+    /** List of xs:import/xs:include directives with add/delete (schema root only). */
+    private Node buildSchemaRefsBox() {
+        schemaRefList.setId("inspector-schema-refs");
+        schemaRefList.setPrefHeight(90);
+        schemaRefList.setPlaceholder(new Label("No imports/includes"));
+        schemaRefList.getStyleClass().add("fxt-facet-table");
+        schemaRefList.setCellFactory(lv -> new javafx.scene.control.ListCell<>() {
+            @Override
+            protected void updateItem(XsdNode item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? null : describeSchemaRef(item));
+            }
+        });
+
+        schemaRefKindCombo.setId("inspector-schema-ref-kind");
+        schemaRefKindCombo.getItems().setAll("import", "include");
+        schemaRefKindCombo.setValue("import");
+        schemaRefKindCombo.getStyleClass().add("fxt-inspector-edit");
+        schemaRefNsField.setId("inspector-schema-ref-ns");
+        schemaRefNsField.setPromptText("namespace (import)");
+        schemaRefNsField.getStyleClass().add("fxt-inspector-edit");
+        schemaRefLocationField.setId("inspector-schema-ref-location");
+        schemaRefLocationField.setPromptText("schemaLocation");
+        schemaRefLocationField.getStyleClass().add("fxt-inspector-edit");
+        // namespace applies to import only.
+        schemaRefKindCombo.valueProperty().addListener((o, ov, nv) ->
+                schemaRefNsField.setDisable(!"import".equals(nv)));
+
+        javafx.scene.control.Button addBtn = new javafx.scene.control.Button("Add");
+        addBtn.setId("inspector-schema-ref-add");
+        addBtn.setMinWidth(Region.USE_PREF_SIZE);
+        addBtn.setOnAction(e -> commitAddSchemaRef());
+        javafx.scene.control.Button delBtn = new javafx.scene.control.Button("Delete");
+        delBtn.setId("inspector-schema-ref-delete");
+        delBtn.setMinWidth(Region.USE_PREF_SIZE);
+        delBtn.setOnAction(e -> {
+            XsdNode sel = schemaRefList.getSelectionModel().getSelectedItem();
+            if (sel != null) {
+                commit(() -> editorHost.removeActiveSchemaReference(sel));
+            }
+        });
+        HBox buttons = new HBox(6, addBtn, delBtn);
+        buttons.setAlignment(Pos.CENTER_LEFT);
+
+        Label header = new Label("Imports / Includes");
+        header.getStyleClass().add("fxt-inspector-sub-label");
+        return new VBox(4, header, schemaRefList, schemaRefKindCombo,
+                schemaRefNsField, schemaRefLocationField, buttons);
+    }
+
+    private static String describeSchemaRef(XsdNode node) {
+        if (node instanceof XsdImport imp) {
+            String ns = imp.getNamespace();
+            return "import  " + nz(imp.getSchemaLocation()) + (ns == null || ns.isBlank() ? "" : "  (" + ns + ")");
+        }
+        if (node instanceof XsdInclude inc) {
+            return "include  " + nz(inc.getSchemaLocation());
+        }
+        return String.valueOf(node);
+    }
+
+    private static String nz(String s) {
+        return s == null ? "" : s;
+    }
+
+    private void commitAddSchemaRef() {
+        AddSchemaReferenceCommand.Kind kind = "include".equals(schemaRefKindCombo.getValue())
+                ? AddSchemaReferenceCommand.Kind.INCLUDE
+                : AddSchemaReferenceCommand.Kind.IMPORT;
+        boolean added = editorHost.addActiveSchemaReference(kind,
+                schemaRefNsField.getText(), schemaRefLocationField.getText());
+        if (added) {
+            schemaRefNsField.clear();
+            schemaRefLocationField.clear();
+        }
     }
 
     private Node buildDocBody() {
@@ -864,6 +962,13 @@ public class InspectorPanel extends VBox {
             schemaVersionField.setText(sc.getVersion() == null ? "" : sc.getVersion());
             schemaElementFormCombo.setValue(sc.getElementFormDefault() == null ? "" : sc.getElementFormDefault());
             schemaAttributeFormCombo.setValue(sc.getAttributeFormDefault() == null ? "" : sc.getAttributeFormDefault());
+            java.util.List<XsdNode> refs = new ArrayList<>();
+            for (XsdNode child : sc.getChildren()) {
+                if (child instanceof XsdImport || child instanceof XsdInclude) {
+                    refs.add(child);
+                }
+            }
+            schemaRefList.getItems().setAll(refs);
         }
         show(schemaSection, isSchema);
 

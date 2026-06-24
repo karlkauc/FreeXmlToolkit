@@ -1293,6 +1293,19 @@ public class EditorHost extends BorderPane {
                 et -> et.addIdentityConstraint(et.currentSelection, kind, name, selectorXpath, fieldXpaths, refer));
     }
 
+    /** Adds an {@code xs:import}/{@code xs:include} to the selected schema root via the command stack. */
+    public boolean addActiveSchemaReference(
+            org.fxt.freexmltoolkit.controls.v2.editor.commands.AddSchemaReferenceCommand.Kind kind,
+            String namespace, String schemaLocation) {
+        return editActivePreservingSelection(
+                et -> et.addSchemaReference(et.currentSelection, kind, namespace, schemaLocation));
+    }
+
+    /** Removes an {@code xs:import}/{@code xs:include} directive node via the command stack. */
+    public boolean removeActiveSchemaReference(XsdNode node) {
+        return editActivePreservingSelection(et -> et.deleteNode(node));
+    }
+
     /** Edits a facet's value on the selected node's restriction (Type &amp; Facets table). */
     public boolean editActiveFacet(org.fxt.freexmltoolkit.controls.v2.model.XsdFacet facet, String newValue) {
         return editActivePreservingSelection(et -> et.editFacet(facet, newValue));
@@ -2833,6 +2846,21 @@ public class EditorHost extends BorderPane {
                                 editorContext, node, kind, name, selectorXpath, fieldXpaths, refer));
             } catch (IllegalArgumentException e) {
                 return false; // invalid input (missing name/selector/field) — ignored
+            }
+        }
+
+        boolean addSchemaReference(XsdNode node,
+                org.fxt.freexmltoolkit.controls.v2.editor.commands.AddSchemaReferenceCommand.Kind kind,
+                String namespace, String schemaLocation) {
+            if (editorContext == null || node == null) {
+                return false;
+            }
+            try {
+                return executeAndApply(
+                        new org.fxt.freexmltoolkit.controls.v2.editor.commands.AddSchemaReferenceCommand(
+                                editorContext, node, kind, namespace, schemaLocation));
+            } catch (IllegalArgumentException e) {
+                return false; // invalid input (missing schema location) — ignored
             }
         }
 

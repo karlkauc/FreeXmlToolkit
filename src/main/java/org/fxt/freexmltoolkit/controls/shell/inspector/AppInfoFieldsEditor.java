@@ -28,28 +28,31 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 
 /**
  * Compact, structured editor for the JavaDoc-style {@code xs:appinfo} tags (@since, @version,
- * @author, @see, @deprecated) used throughout the toolkit, with {@code {@link /XPath}}
+ * @see, @deprecated) used throughout the toolkit, with {@code {@link /XPath}}
  * autocomplete. Designed for the narrow shell Inspector; it commits an {@link XsdAppInfo} object
  * (not a display string) through a supplied callback so the host can route it through the
  * command stack, and it preserves any non-managed / complex (raw-XML) entries (e.g.
- * {@code altova:exampleValues}, {@code @sourceFile}) that the structured fields do not cover.
+ * {@code altova:exampleValues}, {@code @sourceFile}, {@code @author}) that the structured fields
+ * do not cover.
  */
 public final class AppInfoFieldsEditor extends VBox {
 
     /** Tags this editor manages directly; all other entries are preserved untouched. */
-    private static final Set<String> MANAGED_TAGS = Set.of("@since", "@version", "@author", "@see", "@deprecated");
+    private static final Set<String> MANAGED_TAGS = Set.of("@since", "@version", "@see", "@deprecated");
 
     private final Supplier<XsdSchema> schemaSupplier;
     private final Consumer<XsdAppInfo> onCommit;
 
     private final TextField sinceField = new TextField();
     private final TextField versionField = new TextField();
-    private final TextField authorField = new TextField();
     private final ObservableList<String> seeItems = FXCollections.observableArrayList();
     private final ListView<String> seeList = new ListView<>(seeItems);
     private final Button removeSeeButton = new Button("Remove");
     private final CheckBox deprecatedCheck = new CheckBox("Deprecated");
     private final TextArea deprecatedArea = new TextArea();
+    private final ObservableList<String> exampleItems = FXCollections.observableArrayList();
+    private final ListView<String> exampleList = new ListView<>(exampleItems);
+    private final Button removeExampleButton = new Button("Remove");
 
     /** The appinfo last loaded — its non-managed entries are carried over on each commit. */
     private XsdAppInfo base;
@@ -79,9 +82,7 @@ public final class AppInfoFieldsEditor extends VBox {
         sinceField.setPromptText("e.g. 4.0.0");
         versionField.setId("inspector-appinfo-version");
         versionField.setPromptText("e.g. 1.0");
-        authorField.setId("inspector-appinfo-author");
-        authorField.setPromptText("e.g. Jane Doe");
-        for (TextField f : List.of(sinceField, versionField, authorField)) {
+        for (TextField f : List.of(sinceField, versionField)) {
             f.getStyleClass().add("fxt-inspector-edit");
         }
 
@@ -108,12 +109,27 @@ public final class AppInfoFieldsEditor extends VBox {
         deprecatedArea.setPromptText("e.g. Use {@link /NewElement} instead");
         deprecatedArea.setDisable(true);
 
+        exampleList.setId("inspector-appinfo-examples");
+        exampleList.setPrefHeight(70);
+        exampleList.setPlaceholder(new Label("No example values"));
+        exampleList.getStyleClass().add("fxt-facet-table");
+        Button addExample = new Button("Add");
+        addExample.setId("inspector-appinfo-example-add");
+        addExample.setMinWidth(Region.USE_PREF_SIZE);
+        addExample.setOnAction(e -> handleAddExample());
+        removeExampleButton.setId("inspector-appinfo-example-remove");
+        removeExampleButton.setMinWidth(Region.USE_PREF_SIZE);
+        removeExampleButton.setDisable(true);
+        removeExampleButton.setOnAction(e -> handleRemoveExample());
+        HBox exampleButtons = new HBox(6, addExample, removeExampleButton);
+        exampleButtons.setAlignment(Pos.CENTER_LEFT);
+
         getChildren().addAll(
                 subLabel("@since"), sinceField,
                 subLabel("@version"), versionField,
-                subLabel("@author"), authorField,
                 subLabel("@see"), seeList, seeButtons,
-                deprecatedCheck, deprecatedArea);
+                deprecatedCheck, deprecatedArea,
+                subLabel("Example values"), exampleList, exampleButtons);
     }
 
     private Label subLabel(String text) {
@@ -125,7 +141,6 @@ public final class AppInfoFieldsEditor extends VBox {
     private void wire() {
         commitOnBlur(sinceField);
         commitOnBlur(versionField);
-        commitOnBlur(authorField);
         deprecatedArea.focusedProperty().addListener((o, was, isNow) -> {
             if (!isNow) {
                 commit();
@@ -139,6 +154,8 @@ public final class AppInfoFieldsEditor extends VBox {
         });
         seeList.getSelectionModel().selectedItemProperty().addListener(
                 (o, ov, nv) -> removeSeeButton.setDisable(nv == null));
+        exampleList.getSelectionModel().selectedItemProperty().addListener(
+                (o, ov, nv) -> removeExampleButton.setDisable(nv == null));
         // {@link} autocomplete in the deprecation note.
         deprecatedArea.textProperty().addListener((o, ov, nv) -> {
             if (!updating && nv != null && LinkAutocompletePopup.isLinkTrigger(nv)) {
@@ -167,12 +184,12 @@ public final class AppInfoFieldsEditor extends VBox {
             base = appinfo == null ? new XsdAppInfo() : appinfo.copy();
             sinceField.setText(nullToEmpty(base.getSince()));
             versionField.setText(nullToEmpty(base.getVersion()));
-            authorField.setText(nullToEmpty(base.getAuthor()));
             seeItems.setAll(base.getSeeReferences());
             boolean deprecated = base.isDeprecated();
             deprecatedCheck.setSelected(deprecated);
             deprecatedArea.setDisable(!deprecated);
             deprecatedArea.setText(nullToEmpty(base.getDeprecated()));
+            exampleItems.setAll(base.getExampleValues());
         } finally {
             updating = false;
         }
@@ -184,9 +201,13 @@ public final class AppInfoFieldsEditor extends VBox {
             return;
         }
         XsdAppInfo result = new XsdAppInfo();
-        // Carry over entries this editor does not manage (raw XML, @sourceFile, unknown tags).
+        // Carry over entries this editor does not manage (raw XML, @sourceFile, @author, unknown
+        // tags). Example values are managed via their own list, so exclude them here and rebuild below.
         if (base != null) {
             for (XsdAppInfo.AppInfoEntry entry : base.getEntries()) {
+                if (XsdAppInfo.isExampleValuesEntry(entry)) {
+                    continue;
+                }
                 if (entry.hasRawXml() || entry.getTag() == null || !MANAGED_TAGS.contains(entry.getTag())) {
                     result.addEntry(entry);
                 }
@@ -194,7 +215,6 @@ public final class AppInfoFieldsEditor extends VBox {
         }
         setIfPresent(result::setSince, sinceField.getText());
         setIfPresent(result::setVersion, versionField.getText());
-        setIfPresent(result::setAuthor, authorField.getText());
         for (String see : seeItems) {
             if (see != null && !see.isBlank()) {
                 result.addSeeReference(see.trim());
@@ -203,6 +223,7 @@ public final class AppInfoFieldsEditor extends VBox {
         if (deprecatedCheck.isSelected()) {
             result.setDeprecated(deprecatedArea.getText() == null ? "" : deprecatedArea.getText().trim());
         }
+        result.setExampleValues(new java.util.ArrayList<>(exampleItems));
         onCommit.accept(result);
     }
 
@@ -235,6 +256,27 @@ public final class AppInfoFieldsEditor extends VBox {
         String selected = seeList.getSelectionModel().getSelectedItem();
         if (selected != null) {
             seeItems.remove(selected);
+            commit();
+        }
+    }
+
+    private void handleAddExample() {
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Add Example Value");
+        dialog.setHeaderText("Enter a sample value for this element/attribute");
+        dialog.setContentText("Value:");
+        dialog.showAndWait().ifPresent(value -> {
+            if (!value.isBlank()) {
+                exampleItems.add(value.trim());
+                commit();
+            }
+        });
+    }
+
+    private void handleRemoveExample() {
+        String selected = exampleList.getSelectionModel().getSelectedItem();
+        if (selected != null) {
+            exampleItems.remove(selected);
             commit();
         }
     }
