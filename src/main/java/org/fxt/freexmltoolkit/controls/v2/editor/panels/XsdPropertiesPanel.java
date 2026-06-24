@@ -4,7 +4,6 @@ import java.util.Optional;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.CacheHint;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
@@ -296,8 +295,8 @@ public class XsdPropertiesPanel extends BorderPane {
         scrollPane.setFitToWidth(true);
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        scrollPane.setCache(true);
-        scrollPane.setCacheHint(CacheHint.SPEED);
+        // No node caching: caching a tall, dynamic panel forces a large backing texture and
+        // adds to GPU VRAM pressure (see XsdGraphView canvas notes).
         return scrollPane;
     }
 

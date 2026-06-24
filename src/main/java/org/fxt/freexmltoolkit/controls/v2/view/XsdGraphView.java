@@ -652,9 +652,14 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         double canvasWidth = Math.max(requiredWidth, 800);
         double canvasHeight = Math.max(requiredHeight, 600);
 
-        // Limit maximum canvas size to prevent JavaFX texture allocation errors
-        // 8192 is a safe limit for most GPU configurations
-        final double MAX_CANVAS_SIZE = 8192;
+        // Limit maximum canvas size to prevent JavaFX/Prism texture allocation failures.
+        // A Canvas this big needs an N*N*4-byte backing RTTexture PLUS, whenever a clip is used
+        // (regional repaint), an equally large clip buffer — at 8192 that is ~256 MB each, which
+        // exhausts limited GPU VRAM and makes the render thread crash with a null RTTexture
+        // ("Cannot invoke RTTexture.createGraphics()"). 4096 (~67 MB per buffer) is safe on
+        // essentially all GPUs. Very large schemas are clipped to this box in Graphic mode; use
+        // Tree/Text mode (or zoom) to inspect the rest.
+        final double MAX_CANVAS_SIZE = 4096;
         if (canvasWidth > MAX_CANVAS_SIZE || canvasHeight > MAX_CANVAS_SIZE) {
             logger.warn("Canvas size {}x{} exceeds maximum. Limiting to {}x{}",
                     canvasWidth, canvasHeight, MAX_CANVAS_SIZE, MAX_CANVAS_SIZE);
