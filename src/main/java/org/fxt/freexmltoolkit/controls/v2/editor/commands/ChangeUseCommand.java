@@ -132,6 +132,11 @@ public class ChangeUseCommand implements XsdCommand {
                 && this.attribute.getId().equals(otherCmd.attribute.getId());
     }
 
+    @Override
+    public XsdCommand mergeWith(XsdCommand other) {
+        return new XsdMergedCommand(this, other);
+    }
+
     /**
      * Gets the attribute being modified.
      *

@@ -135,6 +135,11 @@ public class ChangeFormCommand implements XsdCommand {
                 && this.node.getId().equals(otherCmd.node.getId());
     }
 
+    @Override
+    public XsdCommand mergeWith(XsdCommand other) {
+        return new XsdMergedCommand(this, other);
+    }
+
     /**
      * Gets the node being modified.
      *

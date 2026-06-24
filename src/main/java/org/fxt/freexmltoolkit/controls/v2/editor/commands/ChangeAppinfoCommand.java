@@ -65,6 +65,15 @@ public class ChangeAppinfoCommand implements XsdCommand {
         this.newAppinfo = (newAppinfo == null || !newAppinfo.hasEntries()) ? null : newAppinfo;
     }
 
+    /** Internal constructor for merging, carrying an explicit old/new appinfo pair. */
+    private ChangeAppinfoCommand(XsdEditorContext editorContext, XsdNode node,
+                                 XsdAppInfo oldAppinfo, XsdAppInfo newAppinfo) {
+        this.editorContext = editorContext;
+        this.node = node;
+        this.oldAppinfo = oldAppinfo;
+        this.newAppinfo = newAppinfo;
+    }
+
     @Override
     public boolean execute() {
         try {
@@ -123,6 +132,14 @@ public class ChangeAppinfoCommand implements XsdCommand {
         // Allow merging consecutive appinfo changes on the same node (same node only)
         return other instanceof ChangeAppinfoCommand otherCmd
                 && this.node.getId().equals(otherCmd.node.getId());
+    }
+
+    @Override
+    public XsdCommand mergeWith(XsdCommand other) {
+        // Collapse "old -> mine" + "mine -> other.new" into "old -> other.new" so consecutive
+        // appinfo edits on the same node form a single undo step.
+        ChangeAppinfoCommand o = (ChangeAppinfoCommand) other;
+        return new ChangeAppinfoCommand(editorContext, node, this.oldAppinfo, o.newAppinfo);
     }
 
     /**

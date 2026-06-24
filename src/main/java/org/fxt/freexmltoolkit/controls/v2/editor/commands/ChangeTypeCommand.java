@@ -111,6 +111,11 @@ public class ChangeTypeCommand implements XsdCommand {
                 java.util.Objects.equals(this.newType, otherChange.oldType);
     }
 
+    @Override
+    public XsdCommand mergeWith(XsdCommand other) {
+        return new XsdMergedCommand(this, other);
+    }
+
     /**
      * Gets the node being modified.
      *

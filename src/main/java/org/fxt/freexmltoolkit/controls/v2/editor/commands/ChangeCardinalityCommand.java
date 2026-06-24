@@ -108,6 +108,11 @@ public class ChangeCardinalityCommand implements XsdCommand {
                 this.newMaxOccurs == otherChange.oldMaxOccurs;
     }
 
+    @Override
+    public XsdCommand mergeWith(XsdCommand other) {
+        return new XsdMergedCommand(this, other);
+    }
+
     /**
      * Gets the node being modified.
      *

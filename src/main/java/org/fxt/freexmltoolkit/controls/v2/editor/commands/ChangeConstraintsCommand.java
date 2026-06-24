@@ -134,6 +134,11 @@ public class ChangeConstraintsCommand implements XsdCommand {
                 && this.element.getId().equals(otherCmd.element.getId());
     }
 
+    @Override
+    public XsdCommand mergeWith(XsdCommand other) {
+        return new XsdMergedCommand(this, other);
+    }
+
     /**
      * Gets the element being modified.
      *
