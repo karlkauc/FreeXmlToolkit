@@ -445,7 +445,7 @@ public class EditorHost extends BorderPane {
                 return;
             }
         }
-        EditorTab tab = new EditorTab(OpenDocument.forPath(path), this::refreshSelectedNode, nodeClipboard);
+        EditorTab tab = new EditorTab(OpenDocument.forPath(path), this::refreshSelectedNode, nodeClipboard, this::openNamedTypeEditor);
         addTab(tab);
         // Wire "Go to Definition": open the bound XSD and reveal the element (no-op for non-XML views).
         tab.view.setGoToDefinitionHandler(req ->
@@ -538,6 +538,19 @@ public class EditorHost extends BorderPane {
      *
      * @return the opened (or re-selected) tab, or {@code null} if no such named type exists
      */
+    /**
+     * Opens the type-editor tab for a named type, triggered from a Graphic-view context-menu
+     * action ("Open in Type Editor"). Anonymous inline types have no name and therefore no tab
+     * target, so the request is ignored. Deferred to the FX pulse so the originating context menu
+     * has fully closed first.
+     */
+    private void openNamedTypeEditor(String typeName) {
+        if (typeName == null || typeName.isBlank()) {
+            return;
+        }
+        javafx.application.Platform.runLater(() -> openTypeEditorTab(typeName));
+    }
+
     public Tab openTypeEditorTab(String typeName) {
         if (typeName == null) {
             return null;
@@ -887,7 +900,8 @@ public class EditorHost extends BorderPane {
 
     /** Creates an empty untitled document of the given type. */
     public OpenDocument newDocument(EditorFileType type) {
-        EditorTab tab = new EditorTab(OpenDocument.untitled(untitledName(), type), this::refreshSelectedNode, nodeClipboard);
+        EditorTab tab = new EditorTab(OpenDocument.untitled(untitledName(), type), this::refreshSelectedNode,
+                nodeClipboard, this::openNamedTypeEditor);
         addTab(tab);
         tab.attachDirtyTracking();
         return tab.document;
@@ -900,7 +914,8 @@ public class EditorHost extends BorderPane {
      * @return the new document
      */
     public OpenDocument openGeneratedDocument(String content, EditorFileType type, String displayName) {
-        EditorTab tab = new EditorTab(OpenDocument.untitled(displayName, type), this::refreshSelectedNode, nodeClipboard);
+        EditorTab tab = new EditorTab(OpenDocument.untitled(displayName, type), this::refreshSelectedNode,
+                nodeClipboard, this::openNamedTypeEditor);
         addTab(tab);
         tab.view.setText(content);
         tab.attachDirtyTracking();
@@ -2126,6 +2141,8 @@ public class EditorHost extends BorderPane {
         private final OpenDocument document;
         private final EditorView view;
         private final Runnable selectionCallback;
+        /** Opens the shell's type-editor tab for a named type (Graphic-view "Open in Type Editor"). */
+        private final java.util.function.Consumer<String> openTypeEditorCallback;
         /** Shared shell clipboard (passed in because EditorTab is a static nested class). */
         private final org.fxt.freexmltoolkit.controls.v2.editor.clipboard.XsdClipboard clipboard;
         private final javafx.scene.layout.StackPane contentStack = new javafx.scene.layout.StackPane();
@@ -2173,10 +2190,12 @@ public class EditorHost extends BorderPane {
                 new javafx.animation.PauseTransition(javafx.util.Duration.millis(150));
 
         EditorTab(OpenDocument document, Runnable selectionCallback,
-                org.fxt.freexmltoolkit.controls.v2.editor.clipboard.XsdClipboard clipboard) {
+                org.fxt.freexmltoolkit.controls.v2.editor.clipboard.XsdClipboard clipboard,
+                java.util.function.Consumer<String> openTypeEditorCallback) {
             this.document = document;
             this.selectionCallback = selectionCallback;
             this.clipboard = clipboard;
+            this.openTypeEditorCallback = openTypeEditorCallback;
             this.view = EditorViews.create(document.getFileType());
             contentStack.getChildren().add(view.getNode());
             // Overlay sits ABOVE contentStack (not inside it) so showOnly() — which toggles
@@ -3082,6 +3101,10 @@ public class EditorHost extends BorderPane {
             // breadcrumb top-left and a small zoom pill at the bottom (the shell provides
             // the editor toolbar above).
             built.useMinimalChrome();
+            // Wire the graphic view's "Open in Type Editor" context-menu actions to the shell's
+            // type-editor tabs (named types only; anonymous inline types have no tab target).
+            built.setOpenComplexTypeEditorCallback(ct -> openTypeEditorCallback.accept(ct.getName()));
+            built.setOpenSimpleTypeEditorCallback(st -> openTypeEditorCallback.accept(st.getName()));
             built.getSelectionModel().addSelectionListener((oldSel, newSel) -> {
                 var primary = built.getSelectionModel().getPrimarySelection();
                 currentSelection = primary != null
