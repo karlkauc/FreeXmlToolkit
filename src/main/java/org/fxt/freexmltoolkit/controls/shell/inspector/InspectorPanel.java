@@ -28,11 +28,17 @@ import org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType;
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost;
 import org.fxt.freexmltoolkit.controls.shell.schema.SchemaConstraints;
 import org.fxt.freexmltoolkit.controls.shell.schema.SchemaFacets;
+import org.fxt.freexmltoolkit.controls.v2.editor.commands.AddIdentityConstraintCommand;
+import org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeSchemaPropertyCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.context.XPathCalculator;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdAny;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdAnyAttribute;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdFacet;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode;
 
@@ -80,7 +86,21 @@ public class InspectorPanel extends VBox {
     private final CheckBox abstractCheck = new CheckBox();
     private final TextField fixedField = editField("inspector-fixed");
     private final TextField substField = editField("inspector-subst");
+    // Advanced XSD properties (default/ref/block/final/mixed + wildcard) — section toggled by node type.
+    private final TextField defaultField = editField("inspector-default");
+    private final TextField refField = editField("inspector-ref");
+    private final TextField blockField = editField("inspector-block");
+    private final TextField finalField = editField("inspector-final");
+    private final CheckBox mixedCheck = new CheckBox();
+    private final TextField wildcardNsField = editField("inspector-wildcard-ns");
+    private final ComboBox<String> wildcardProcessCombo = editCombo("inspector-wildcard-process");
+    // Schema-level (xs:schema root) attributes.
+    private final TextField schemaTargetNsField = editField("inspector-schema-targetns");
+    private final TextField schemaVersionField = editField("inspector-schema-version");
+    private final ComboBox<String> schemaElementFormCombo = editCombo("inspector-schema-elementform");
+    private final ComboBox<String> schemaAttributeFormCombo = editCombo("inspector-schema-attrform");
     private final DocLanguagesEditor docEditor = new DocLanguagesEditor();
+    private AppInfoFieldsEditor appInfoFieldsEditor;
     private final TextArea appinfoArea = new TextArea();
     private final TableView<XsdFacet> facetTable = new TableView<>();
     private VBox facetBox;
@@ -125,6 +145,13 @@ public class InspectorPanel extends VBox {
     private TitledPane constraintsSection;
     // Read-only identity constraints / assertions of the selected node.
     private final TableView<SchemaConstraints.ConstraintInfo> constraintsTable = new TableView<>();
+    // Add identity constraint (key/keyref/unique) — element-only.
+    private final ComboBox<String> constraintKindCombo = new ComboBox<>();
+    private final TextField constraintNameField = new TextField();
+    private final TextField constraintSelectorField = new TextField();
+    private final TextField constraintFieldField = new TextField();
+    private final TextField constraintReferField = new TextField();
+    private VBox constraintAddBox;
 
     // Rows toggled by node type
     private HBox typeRow;
@@ -136,6 +163,15 @@ public class InspectorPanel extends VBox {
     private HBox abstractRow;
     private HBox fixedRow;
     private HBox substRow;
+    private HBox defaultRow;
+    private HBox refRow;
+    private HBox blockRow;
+    private HBox finalRow;
+    private HBox mixedRow;
+    private HBox wildcardNsRow;
+    private HBox wildcardProcessRow;
+    private TitledPane advancedSection;
+    private TitledPane schemaSection;
     private VBox docBox;
 
     public InspectorPanel(EditorHost editorHost) {
@@ -175,16 +211,23 @@ public class InspectorPanel extends VBox {
         piSection = section("PROCESSING INSTRUCTION", buildPiBody());
         declarationSection = section("XML DECLARATION", buildDeclarationBody());
         cardUseSection = section("CARDINALITY & USE", buildCardinalityBody());
+        advancedSection = section("ADVANCED", buildAdvancedBody());
+        schemaSection = section("SCHEMA", buildSchemaBody());
         constraintsSection = section("CONSTRAINTS", buildConstraintsBody());
         docSection = section("DOCUMENTATION & REFS", buildDocBody());
         getChildren().addAll(typeFacetsSection, namespaceSection, valueAttrSection, contentSection,
-                piSection, declarationSection, cardUseSection, constraintsSection, docSection);
+                piSection, declarationSection, cardUseSection, advancedSection, schemaSection,
+                constraintsSection, docSection);
 
         wireEditing();
 
         debounce.setOnFinished(e -> refresh());
         editorHost.activeCaretProperty().addListener((obs, oldV, newV) -> debounce.playFromStart());
-        editorHost.activeTabProperty().addListener((obs, oldV, newV) -> debounce.playFromStart());
+        editorHost.activeTabProperty().addListener((obs, oldV, newV) -> {
+            // The schema (and its cached XPath index for {@link} autocomplete) changes with the tab.
+            appInfoFieldsEditor.invalidateSchema();
+            debounce.playFromStart();
+        });
         editorHost.activeSelectedNodeProperty().addListener((obs, oldV, newV) -> debounce.playFromStart());
         editorHost.activeXmlNodeProperty().addListener((obs, oldV, newV) -> debounce.playFromStart());
         editorHost.activeJsonNodeProperty().addListener((obs, oldV, newV) -> debounce.playFromStart());
@@ -308,17 +351,58 @@ public class InspectorPanel extends VBox {
         return new VBox(4, minRow, maxRow, useRow, formRow, nillableRow, abstractRow, fixedRow, substRow);
     }
 
+    /**
+     * Advanced XSD attributes that the model parses but that have no place in the other sections:
+     * {@code default}/{@code ref} (element &amp; attribute), {@code block} (element &amp; complex type),
+     * {@code final}/{@code mixed} (complex type) and the {@code xs:any}/{@code xs:anyAttribute}
+     * wildcard {@code namespace}/{@code processContents}. Each row is toggled per node type.
+     */
+    private Node buildAdvancedBody() {
+        wildcardProcessCombo.getItems().setAll("strict", "lax", "skip");
+        defaultRow = row("Default", defaultField);
+        refRow = row("Ref", refField);
+        blockRow = row("Block", blockField);
+        finalRow = row("Final", finalField);
+        mixedRow = row("Mixed", mixedCheck);
+        wildcardNsRow = row("Namespace", wildcardNsField);
+        wildcardProcessRow = row("Process", wildcardProcessCombo);
+        return new VBox(4, defaultRow, refRow, blockRow, finalRow, mixedRow, wildcardNsRow, wildcardProcessRow);
+    }
+
+    /** Schema-level attributes, shown only when the {@code xs:schema} root is selected. */
+    private Node buildSchemaBody() {
+        schemaElementFormCombo.getItems().setAll("", "qualified", "unqualified");
+        schemaAttributeFormCombo.getItems().setAll("", "qualified", "unqualified");
+        return new VBox(4,
+                row("Target NS", schemaTargetNsField),
+                row("Version", schemaVersionField),
+                row("Element form", schemaElementFormCombo),
+                row("Attr form", schemaAttributeFormCombo));
+    }
+
     private Node buildDocBody() {
         docEditor.setId("inspector-doc");
         docEditor.setOnChange(docs -> commit(() -> editorHost.changeActiveDocumentations(docs)));
+
+        // Structured @since/@version/@author/@see/@deprecated editor with {@link} autocomplete.
+        // It commits an XsdAppInfo object (preserving complex/raw appinfo entries) through the
+        // command stack; the raw display string stays available below for power users.
+        appInfoFieldsEditor = new AppInfoFieldsEditor(
+                () -> editorHost.getActiveSchema().orElse(null),
+                appinfo -> commit(() -> editorHost.changeActiveAppinfo(appinfo)));
+
         appinfoArea.setId("inspector-appinfo");
         appinfoArea.getStyleClass().add("fxt-inspector-edit");
         appinfoArea.setWrapText(true);
         appinfoArea.setPrefRowCount(2);
-        appinfoArea.setPromptText("xs:appinfo (machine-readable metadata)");
-        Label appinfoLabel = new Label("App info");
+        appinfoArea.setPromptText("xs:appinfo (raw display string)");
+        TitledPane rawPane = new TitledPane("Raw appinfo", appinfoArea);
+        rawPane.setExpanded(false);
+        rawPane.getStyleClass().add("fxt-inspector-section");
+
+        Label appinfoLabel = new Label("App info (@tags)");
         appinfoLabel.getStyleClass().add("fxt-inspector-sub-label");
-        docBox = new VBox(4, docEditor, appinfoLabel, appinfoArea);
+        docBox = new VBox(4, docEditor, appinfoLabel, appInfoFieldsEditor, rawPane);
         return docBox;
     }
 
@@ -531,6 +615,23 @@ public class InspectorPanel extends VBox {
         abstractCheck.selectedProperty().addListener((o, ov, nv) -> commit(this::commitConstraints));
         commitOnEnterAndBlur(fixedField, this::commitConstraints);
         commitOnEnterAndBlur(substField, () -> editorHost.changeActiveSubstitutionGroup(substField.getText().trim()));
+        commitOnEnterAndBlur(defaultField, () -> editorHost.changeActiveDefaultValue(defaultField.getText()));
+        commitOnEnterAndBlur(refField, () -> editorHost.changeActiveRef(refField.getText()));
+        commitOnEnterAndBlur(blockField, () -> editorHost.changeActiveBlock(blockField.getText()));
+        commitOnEnterAndBlur(finalField, () -> editorHost.changeActiveFinal(finalField.getText()));
+        mixedCheck.selectedProperty().addListener((o, ov, nv) -> commit(() -> editorHost.changeActiveMixed(nv)));
+        commitOnEnterAndBlur(wildcardNsField, this::commitWildcard);
+        wildcardProcessCombo.valueProperty().addListener((o, ov, nv) -> commit(this::commitWildcard));
+        commitOnEnterAndBlur(schemaTargetNsField, () -> editorHost.changeActiveSchemaProperty(
+                ChangeSchemaPropertyCommand.Property.TARGET_NAMESPACE, schemaTargetNsField.getText()));
+        commitOnEnterAndBlur(schemaVersionField, () -> editorHost.changeActiveSchemaProperty(
+                ChangeSchemaPropertyCommand.Property.VERSION, schemaVersionField.getText()));
+        schemaElementFormCombo.valueProperty().addListener((o, ov, nv) -> commit(() ->
+                editorHost.changeActiveSchemaProperty(
+                        ChangeSchemaPropertyCommand.Property.ELEMENT_FORM_DEFAULT, nv == null ? "" : nv)));
+        schemaAttributeFormCombo.valueProperty().addListener((o, ov, nv) -> commit(() ->
+                editorHost.changeActiveSchemaProperty(
+                        ChangeSchemaPropertyCommand.Property.ATTRIBUTE_FORM_DEFAULT, nv == null ? "" : nv)));
         appinfoArea.focusedProperty().addListener((o, was, isNow) -> {
             if (!isNow) {
                 commit(() -> editorHost.changeActiveAppinfo(appinfoArea.getText()));
@@ -547,6 +648,11 @@ public class InspectorPanel extends VBox {
     private void commitConstraints() {
         String fixed = fixedField.getText() == null || fixedField.getText().isBlank() ? null : fixedField.getText();
         editorHost.changeActiveConstraints(nillableCheck.isSelected(), abstractCheck.isSelected(), fixed);
+    }
+
+    private void commitWildcard() {
+        editorHost.changeActiveWildcard(wildcardNsField.getText(),
+                XsdAny.ProcessContents.fromString(wildcardProcessCombo.getValue()));
     }
 
     /** Runs an edit only if it is a genuine user change (not a programmatic repopulate) on a node. */
@@ -672,6 +778,8 @@ public class InspectorPanel extends VBox {
         populateContent("Comment", "Comment", comment.getContent());
         show(typeFacetsSection, false);
         show(cardUseSection, false);
+        show(advancedSection, false);
+        show(schemaSection, false);
         show(docSection, false);
         show(constraintsSection, false);
         show(namespaceSection, false);
@@ -745,10 +853,25 @@ public class InspectorPanel extends VBox {
         showRow(fixedRow, isElement || isAttribute);
         showRow(substRow, isElement);
 
+        // Advanced attributes (default/ref/block/final/mixed + wildcard), toggled per node type.
+        populateAdvanced(node, isElement, isAttribute);
+
+        // Schema-level attributes (only for the xs:schema root).
+        boolean isSchema = node instanceof XsdSchema;
+        if (isSchema) {
+            XsdSchema sc = (XsdSchema) node;
+            schemaTargetNsField.setText(sc.getTargetNamespace() == null ? "" : sc.getTargetNamespace());
+            schemaVersionField.setText(sc.getVersion() == null ? "" : sc.getVersion());
+            schemaElementFormCombo.setValue(sc.getElementFormDefault() == null ? "" : sc.getElementFormDefault());
+            schemaAttributeFormCombo.setValue(sc.getAttributeFormDefault() == null ? "" : sc.getAttributeFormDefault());
+        }
+        show(schemaSection, isSchema);
+
         // Documentation (all nodes). The parser stores annotation text in the multi-language
         // `documentations` list (the legacy single `documentation` String is only set after an
         // inline edit), so read the list first and fall back to the legacy field.
         docEditor.setEntries(resolveXsdDocEntries(node));
+        appInfoFieldsEditor.setAppinfo(node.getAppinfo());
         appinfoArea.setEditable(true);
         appinfoArea.setText(node.getAppinfoAsString() == null ? "" : node.getAppinfoAsString());
         show(docBox, true);
@@ -762,10 +885,71 @@ public class InspectorPanel extends VBox {
         // Identity constraints / assertions (read-only) — shown only when the node has any.
         java.util.List<SchemaConstraints.ConstraintInfo> constraints = SchemaConstraints.collect(node);
         constraintsTable.getItems().setAll(constraints);
-        show(constraintsSection, !constraints.isEmpty());
+        // Identity constraints can only be added to elements; the read-only table shows any node's.
+        show(constraintAddBox, isElement);
+        show(constraintsSection, isElement || !constraints.isEmpty());
         show(docSection, true);
         show(namespaceSection, false);
         show(valueAttrSection, false);
+    }
+
+    /**
+     * Populates the ADVANCED section (default/ref/block/final/mixed/wildcard) for the selected
+     * node and toggles each row + the section visibility by node type.
+     */
+    private void populateAdvanced(XsdNode node, boolean isElement, boolean isAttribute) {
+        boolean isComplexType = node instanceof XsdComplexType;
+        boolean isWildcard = node instanceof XsdAny || node instanceof XsdAnyAttribute;
+
+        // default + ref (element / attribute)
+        if (isElement) {
+            XsdElement el = (XsdElement) node;
+            defaultField.setText(el.getDefaultValue() == null ? "" : el.getDefaultValue());
+            refField.setText(el.getRef() == null ? "" : el.getRef());
+        } else if (isAttribute) {
+            XsdAttribute at = (XsdAttribute) node;
+            defaultField.setText(at.getDefaultValue() == null ? "" : at.getDefaultValue());
+            refField.setText(at.getRef() == null ? "" : at.getRef());
+        }
+        showRow(defaultRow, isElement || isAttribute);
+        showRow(refRow, isElement || isAttribute);
+
+        // block (element / complex type)
+        if (isElement) {
+            blockField.setText(((XsdElement) node).getBlock() == null ? "" : ((XsdElement) node).getBlock());
+        } else if (isComplexType) {
+            blockField.setText(((XsdComplexType) node).getBlock() == null ? "" : ((XsdComplexType) node).getBlock());
+        }
+        showRow(blockRow, isElement || isComplexType);
+
+        // final + mixed (complex type)
+        if (isComplexType) {
+            XsdComplexType ct = (XsdComplexType) node;
+            finalField.setText(ct.getFinal() == null ? "" : ct.getFinal());
+            mixedCheck.setSelected(ct.isMixed());
+        }
+        showRow(finalRow, isComplexType);
+        showRow(mixedRow, isComplexType);
+
+        // wildcard namespace + processContents (xs:any / xs:anyAttribute)
+        if (isWildcard) {
+            String ns;
+            XsdAny.ProcessContents pc;
+            if (node instanceof XsdAny any) {
+                ns = any.getNamespace();
+                pc = any.getProcessContents();
+            } else {
+                XsdAnyAttribute anyAttr = (XsdAnyAttribute) node;
+                ns = anyAttr.getNamespace();
+                pc = anyAttr.getProcessContents();
+            }
+            wildcardNsField.setText(ns == null ? "" : ns);
+            wildcardProcessCombo.setValue(pc == null ? "strict" : pc.getValue());
+        }
+        showRow(wildcardNsRow, isWildcard);
+        showRow(wildcardProcessRow, isWildcard);
+
+        show(advancedSection, isElement || isAttribute || isComplexType || isWildcard);
     }
 
     /** XML-instance node: editable name + text + attributes; hide the XSD-only sections. */
@@ -960,12 +1144,67 @@ public class InspectorPanel extends VBox {
                 commit(() -> editorHost.deleteConstraintNode(sel.node()));
             }
         });
-        return new VBox(4, constraintsTable, deleteConstraint);
+        constraintAddBox = buildConstraintAddBox();
+        return new VBox(4, constraintsTable, deleteConstraint, constraintAddBox);
+    }
+
+    /** Compact form to add an identity constraint (key/unique/keyref) to the selected element. */
+    private VBox buildConstraintAddBox() {
+        constraintKindCombo.setId("inspector-constraint-kind");
+        constraintKindCombo.getItems().setAll("key", "unique", "keyref");
+        constraintKindCombo.setValue("key");
+        constraintKindCombo.getStyleClass().add("fxt-inspector-edit");
+        constraintNameField.setId("inspector-constraint-name");
+        constraintNameField.setPromptText("name");
+        constraintSelectorField.setId("inspector-constraint-selector");
+        constraintSelectorField.setPromptText("selector XPath, e.g. .//item");
+        constraintFieldField.setId("inspector-constraint-field");
+        constraintFieldField.setPromptText("field XPath, e.g. @id");
+        constraintReferField.setId("inspector-constraint-refer");
+        constraintReferField.setPromptText("refer (keyref only)");
+        constraintReferField.setDisable(true);
+        for (TextField f : List.of(constraintNameField, constraintSelectorField,
+                constraintFieldField, constraintReferField)) {
+            f.getStyleClass().add("fxt-inspector-edit");
+        }
+        // refer applies to keyref only.
+        constraintKindCombo.valueProperty().addListener((o, ov, nv) ->
+                constraintReferField.setDisable(!"keyref".equals(nv)));
+
+        javafx.scene.control.Button addBtn = new javafx.scene.control.Button("Add constraint");
+        addBtn.setId("inspector-constraint-add");
+        addBtn.setMinWidth(Region.USE_PREF_SIZE);
+        addBtn.setOnAction(e -> commitAddConstraint());
+
+        Label header = new Label("Add identity constraint");
+        header.getStyleClass().add("fxt-inspector-sub-label");
+        return new VBox(4, header, constraintKindCombo, constraintNameField,
+                constraintSelectorField, constraintFieldField, constraintReferField, addBtn);
+    }
+
+    private void commitAddConstraint() {
+        AddIdentityConstraintCommand.Kind kind = switch (constraintKindCombo.getValue()) {
+            case "keyref" -> AddIdentityConstraintCommand.Kind.KEYREF;
+            case "unique" -> AddIdentityConstraintCommand.Kind.UNIQUE;
+            default -> AddIdentityConstraintCommand.Kind.KEY;
+        };
+        boolean added = editorHost.addActiveIdentityConstraint(kind,
+                constraintNameField.getText(), constraintSelectorField.getText(),
+                List.of(constraintFieldField.getText() == null ? "" : constraintFieldField.getText()),
+                constraintReferField.getText());
+        if (added) {
+            constraintNameField.clear();
+            constraintSelectorField.clear();
+            constraintFieldField.clear();
+            constraintReferField.clear();
+        }
     }
 
     private void showXsdSections(boolean visible) {
         show(typeFacetsSection, visible);
         show(cardUseSection, visible);
+        show(advancedSection, visible);
+        show(schemaSection, visible);
         show(constraintsSection, visible);
         show(docSection, visible);
     }

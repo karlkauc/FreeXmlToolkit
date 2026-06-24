@@ -1205,6 +1205,37 @@ public class EditorHost extends BorderPane {
                 et -> et.changeSubstitutionGroup(et.currentSelection, substitutionGroup));
     }
 
+    /** Changes the selected element/attribute's {@code default} value via the command stack. */
+    public boolean changeActiveDefaultValue(String defaultValue) {
+        return editActivePreservingSelection(et -> et.changeDefaultValue(et.currentSelection, defaultValue));
+    }
+
+    /** Changes the selected element/complex-type's {@code block} attribute via the command stack. */
+    public boolean changeActiveBlock(String block) {
+        return editActivePreservingSelection(et -> et.changeBlock(et.currentSelection, block));
+    }
+
+    /** Changes the selected complex type's {@code final} attribute via the command stack. */
+    public boolean changeActiveFinal(String finalValue) {
+        return editActivePreservingSelection(et -> et.changeFinal(et.currentSelection, finalValue));
+    }
+
+    /** Toggles the selected complex type's {@code mixed} content flag via the command stack. */
+    public boolean changeActiveMixed(boolean mixed) {
+        return editActivePreservingSelection(et -> et.changeMixed(et.currentSelection, mixed));
+    }
+
+    /** Changes the selected element/attribute's {@code ref} attribute via the command stack. */
+    public boolean changeActiveRef(String ref) {
+        return editActivePreservingSelection(et -> et.changeRef(et.currentSelection, ref));
+    }
+
+    /** Changes the selected {@code xs:any}/{@code xs:anyAttribute} wildcard properties via the command stack. */
+    public boolean changeActiveWildcard(String namespace,
+            org.fxt.freexmltoolkit.controls.v2.model.XsdAny.ProcessContents processContents) {
+        return editActivePreservingSelection(et -> et.changeWildcard(et.currentSelection, namespace, processContents));
+    }
+
     /** Changes the selected node's documentation text. */
     public boolean changeActiveDocumentation(String documentation) {
         return editActivePreservingSelection(et -> et.changeDocumentation(et.currentSelection, documentation));
@@ -1213,6 +1244,29 @@ public class EditorHost extends BorderPane {
     /** Changes the selected XSD node's {@code xs:appinfo} content via the command stack. */
     public boolean changeActiveAppinfo(String appinfo) {
         return editActivePreservingSelection(et -> et.changeAppinfo(et.currentSelection, appinfo));
+    }
+
+    /**
+     * Changes the selected XSD node's {@code xs:appinfo} from a structured
+     * {@link org.fxt.freexmltoolkit.controls.v2.model.XsdAppInfo} via the command stack.
+     * Preserves complex (raw-XML) appinfo entries that the string form cannot round-trip.
+     */
+    public boolean changeActiveAppinfo(org.fxt.freexmltoolkit.controls.v2.model.XsdAppInfo appinfo) {
+        return editActivePreservingSelection(et -> et.changeAppinfo(et.currentSelection, appinfo));
+    }
+
+    /** Changes a schema-level attribute (target namespace / version / form defaults) via the command stack. */
+    public boolean changeActiveSchemaProperty(
+            org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeSchemaPropertyCommand.Property property,
+            String value) {
+        return editActivePreservingSelection(et -> et.changeSchemaProperty(et.currentSelection, property, value));
+    }
+
+    /** @return the schema root of the active XSD document, as an {@code XsdSchema}, if any. */
+    public java.util.Optional<org.fxt.freexmltoolkit.controls.v2.model.XsdSchema> getActiveSchema() {
+        return getActiveSchemaRoot()
+                .filter(n -> n instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdSchema)
+                .map(n -> (org.fxt.freexmltoolkit.controls.v2.model.XsdSchema) n);
     }
 
     /** Replaces the selected XSD node's per-language {@code xs:documentation} entries. */
@@ -1229,6 +1283,14 @@ public class EditorHost extends BorderPane {
     /** Deletes an identity-constraint / assertion node (key/keyref/unique/assert) via the command stack. */
     public boolean deleteConstraintNode(XsdNode node) {
         return editActivePreservingSelection(et -> et.deleteNode(node));
+    }
+
+    /** Adds an identity constraint (key/keyref/unique) to the selected element via the command stack. */
+    public boolean addActiveIdentityConstraint(
+            org.fxt.freexmltoolkit.controls.v2.editor.commands.AddIdentityConstraintCommand.Kind kind,
+            String name, String selectorXpath, java.util.List<String> fieldXpaths, String refer) {
+        return editActivePreservingSelection(
+                et -> et.addIdentityConstraint(et.currentSelection, kind, name, selectorXpath, fieldXpaths, refer));
     }
 
     /** Edits a facet's value on the selected node's restriction (Type &amp; Facets table). */
@@ -2700,6 +2762,80 @@ public class EditorHost extends BorderPane {
                             editorContext, node, substitutionGroup));
         }
 
+        boolean changeDefaultValue(XsdNode node, String defaultValue) {
+            if (editorContext == null || node == null) {
+                return false;
+            }
+            return executeAndApply(new org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeDefaultValueCommand(
+                    editorContext, node, defaultValue));
+        }
+
+        boolean changeBlock(XsdNode node, String block) {
+            if (editorContext == null || node == null) {
+                return false;
+            }
+            return executeAndApply(new org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeBlockCommand(
+                    editorContext, node, block));
+        }
+
+        boolean changeFinal(XsdNode node, String finalValue) {
+            if (editorContext == null || node == null) {
+                return false;
+            }
+            return executeAndApply(new org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeFinalCommand(
+                    editorContext, node, finalValue));
+        }
+
+        boolean changeMixed(XsdNode node, boolean mixed) {
+            if (editorContext == null || node == null) {
+                return false;
+            }
+            return executeAndApply(new org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeMixedCommand(
+                    editorContext, node, mixed));
+        }
+
+        boolean changeRef(XsdNode node, String ref) {
+            if (editorContext == null || node == null) {
+                return false;
+            }
+            return executeAndApply(new org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeRefCommand(
+                    editorContext, node, ref));
+        }
+
+        boolean changeWildcard(XsdNode node, String namespace,
+                org.fxt.freexmltoolkit.controls.v2.model.XsdAny.ProcessContents processContents) {
+            if (editorContext == null || node == null) {
+                return false;
+            }
+            return executeAndApply(new org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeWildcardCommand(
+                    editorContext, node, namespace, processContents));
+        }
+
+        boolean changeSchemaProperty(XsdNode node,
+                org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeSchemaPropertyCommand.Property property,
+                String value) {
+            if (editorContext == null || node == null) {
+                return false;
+            }
+            return executeAndApply(new org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeSchemaPropertyCommand(
+                    editorContext, node, property, value));
+        }
+
+        boolean addIdentityConstraint(XsdNode node,
+                org.fxt.freexmltoolkit.controls.v2.editor.commands.AddIdentityConstraintCommand.Kind kind,
+                String name, String selectorXpath, java.util.List<String> fieldXpaths, String refer) {
+            if (editorContext == null || node == null) {
+                return false;
+            }
+            try {
+                return executeAndApply(
+                        new org.fxt.freexmltoolkit.controls.v2.editor.commands.AddIdentityConstraintCommand(
+                                editorContext, node, kind, name, selectorXpath, fieldXpaths, refer));
+            } catch (IllegalArgumentException e) {
+                return false; // invalid input (missing name/selector/field) — ignored
+            }
+        }
+
         boolean changeDocumentation(XsdNode node, String documentation) {
             if (editorContext == null || node == null) {
                 return false;
@@ -2710,6 +2846,15 @@ public class EditorHost extends BorderPane {
         }
 
         boolean changeAppinfo(XsdNode node, String appinfo) {
+            if (editorContext == null || node == null) {
+                return false;
+            }
+            return executeAndApply(
+                    new org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeAppinfoCommand(
+                            editorContext, node, appinfo));
+        }
+
+        boolean changeAppinfo(XsdNode node, org.fxt.freexmltoolkit.controls.v2.model.XsdAppInfo appinfo) {
             if (editorContext == null || node == null) {
                 return false;
             }

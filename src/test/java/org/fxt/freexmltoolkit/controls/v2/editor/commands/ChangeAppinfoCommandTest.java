@@ -58,7 +58,7 @@ class ChangeAppinfoCommandTest {
     @DisplayName("constructor should accept null appinfo")
     void testConstructorAcceptsNullAppinfo() {
         // Act & Assert (should not throw)
-        ChangeAppinfoCommand command = new ChangeAppinfoCommand(editorContext, element, null);
+        ChangeAppinfoCommand command = new ChangeAppinfoCommand(editorContext, element, (String) null);
         assertNotNull(command, "Command should be created with null appinfo");
     }
 
@@ -101,7 +101,7 @@ class ChangeAppinfoCommandTest {
     void testExecuteRemovesAppinfoWithNull() {
         // Arrange
         element.setAppinfoFromString("<old>data</old>");
-        ChangeAppinfoCommand command = new ChangeAppinfoCommand(editorContext, element, null);
+        ChangeAppinfoCommand command = new ChangeAppinfoCommand(editorContext, element, (String) null);
 
         // Act
         boolean result = command.execute();
@@ -209,7 +209,7 @@ class ChangeAppinfoCommandTest {
     void testGetDescriptionForRemovingAppinfo() {
         // Arrange
         element.setAppinfoFromString("<old>data</old>");
-        ChangeAppinfoCommand command = new ChangeAppinfoCommand(editorContext, element, null);
+        ChangeAppinfoCommand command = new ChangeAppinfoCommand(editorContext, element, (String) null);
 
         // Act
         String description = command.getDescription();

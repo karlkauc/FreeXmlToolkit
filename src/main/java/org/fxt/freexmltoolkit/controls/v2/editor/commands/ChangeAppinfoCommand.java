@@ -35,6 +35,23 @@ public class ChangeAppinfoCommand implements XsdCommand {
      * @throws IllegalArgumentException if editorContext or node is null
      */
     public ChangeAppinfoCommand(XsdEditorContext editorContext, XsdNode node, String newAppinfo) {
+        this(editorContext, node, (newAppinfo == null || newAppinfo.isEmpty())
+                ? null
+                : XsdAppInfo.fromDisplayString(newAppinfo));
+    }
+
+    /**
+     * Creates a new change appinfo command from a structured {@link XsdAppInfo}.
+     * <p>
+     * This overload preserves complex (raw-XML) appinfo entries — e.g. {@code altova:exampleValues}
+     * or {@code @sourceFile} — that the display-string form cannot round-trip.
+     *
+     * @param editorContext the editor context
+     * @param node          the XSD node whose appinfo should be changed
+     * @param newAppinfo    the new structured appinfo (null or empty removes the appinfo)
+     * @throws IllegalArgumentException if editorContext or node is null
+     */
+    public ChangeAppinfoCommand(XsdEditorContext editorContext, XsdNode node, XsdAppInfo newAppinfo) {
         if (editorContext == null) {
             throw new IllegalArgumentException("Editor context cannot be null");
         }
@@ -45,10 +62,7 @@ public class ChangeAppinfoCommand implements XsdCommand {
         this.editorContext = editorContext;
         this.node = node;
         this.oldAppinfo = node.getAppinfo();
-        // Convert string to XsdAppInfo
-        this.newAppinfo = (newAppinfo == null || newAppinfo.isEmpty())
-            ? null
-            : XsdAppInfo.fromDisplayString(newAppinfo);
+        this.newAppinfo = (newAppinfo == null || !newAppinfo.hasEntries()) ? null : newAppinfo;
     }
 
     @Override
