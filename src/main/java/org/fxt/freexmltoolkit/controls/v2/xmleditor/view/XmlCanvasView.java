@@ -11,7 +11,6 @@ import javafx.animation.PauseTransition;
 import javafx.animation.Timeline;
 import javafx.geometry.Orientation;
 import javafx.geometry.VPos;
-import javafx.scene.CacheHint;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.canvas.Canvas;
@@ -227,16 +226,14 @@ public class XmlCanvasView extends Pane implements XmlSearchTarget {
     public XmlCanvasView(XmlEditorContext context) {
         this.context = context;
 
-        // Create canvas with caching enabled for better rendering performance
+        // NOTE: Do NOT enable node caching on the canvas or its container. The canvas is
+        // re-rendered on every change and can grow large for big documents; with setCache(true)
+        // JavaFX's CacheFilter renders the whole canvas into one backing RTTexture, which fails
+        // (null texture / "Unrecognized PGCanvas token") once it exceeds the GPU texture limit.
         this.canvas = new Canvas(800, 600);
-        this.canvas.setCache(true);
-        this.canvas.setCacheHint(CacheHint.SPEED);
         this.gc = canvas.getGraphicsContext2D();
 
-        // Create container with caching
         this.canvasContainer = new Pane();
-        this.canvasContainer.setCache(true);
-        this.canvasContainer.setCacheHint(CacheHint.SPEED);
         canvasContainer.getChildren().add(canvas);
 
         // Create scroll bars

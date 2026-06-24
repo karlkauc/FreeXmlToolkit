@@ -359,14 +359,14 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         toolbar.setCacheHint(CacheHint.SPEED);
         setTop(toolbar);
 
-        // Enable caching on the canvas for better rendering performance
-        // Canvas caching helps when the canvas content is static (between redraws)
-        canvas.setCache(true);
-        canvas.setCacheHint(CacheHint.SPEED);
-
-        // Enable caching on ScrollPane for smoother scrolling
-        scrollPane.setCache(true);
-        scrollPane.setCacheHint(CacheHint.SPEED);
+        // NOTE: Do NOT enable node caching on the canvas or the scroll pane.
+        // The diagram canvas can grow very large (up to MAX_CANVAS_SIZE) for big schemas such
+        // as FundsXML's FundStaticData. With setCache(true) JavaFX's CacheFilter tries to render
+        // the entire canvas subtree into a single backing RTTexture; when that exceeds the GPU's
+        // texture limit the allocation returns null and the render thread crashes with
+        // "RTTexture.createGraphics() because newtex is null" / "Unrecognized PGCanvas token".
+        // Caching is also pointless here: the canvas is re-rendered on every model change, so the
+        // cache is invalidated each frame. Let JavaFX render the canvas directly.
 
         // Properties panel (initially hidden)
         propertiesPanel = new XsdPropertiesPanel(editorContext);
