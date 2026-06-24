@@ -26,6 +26,7 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -69,6 +70,12 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
     private Map<String, org.fxt.freexmltoolkit.controls.v2.model.XsdSchema> importedSchemas = new HashMap<>();
     private final Canvas canvas;
     private final ScrollPane scrollPane;
+    // Viewport rendering: the canvas is only as large as the visible viewport. It floats inside
+    // this transparent spacer, which is sized to the full ("virtual") diagram so the ScrollPane
+    // shows correct scrollbars. On scroll the canvas is repositioned over the visible region and
+    // the diagram is re-rendered with a translate(-scroll)+scale(zoom) transform. This keeps the
+    // backing texture small (a few MB) regardless of schema size, avoiding GPU VRAM exhaustion.
+    private final Pane viewportSpacer;
     private final XsdNodeRenderer renderer;
     private final SelectionModel selectionModel;
     private XsdEditorContext editorContext;
@@ -121,6 +128,9 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
     private double viewportY = 0;
     private double viewportWidth = 800;
     private double viewportHeight = 600;
+    // Unscaled diagram bounds from the last layout pass; the "virtual" scroll size is this * zoom.
+    private double diagramWidth = 800;
+    private double diagramHeight = 600;
     private boolean viewportCullingEnabled = true;
     private static final double VIEWPORT_MARGIN = 100;  // Render nodes slightly outside viewport for smooth scrolling
 
@@ -155,9 +165,10 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         this.renderer = new XsdNodeRenderer();
         this.selectionModel = context.getSelectionModel();
 
-        // Create canvas for drawing
-        this.canvas = new Canvas(2000, 2000);
-        this.scrollPane = new ScrollPane(canvas);
+        // Create a viewport-sized canvas floating inside a virtual-sized spacer (see field doc).
+        this.canvas = new Canvas(800, 600);
+        this.viewportSpacer = new Pane(canvas);
+        this.scrollPane = new ScrollPane(viewportSpacer);
         scrollPane.setPannable(true);
         scrollPane.getStyleClass().add("theme-bg-primary");
 
@@ -253,25 +264,45 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
     }
 
     /**
-     * Updates the viewport coordinates based on scroll position.
-     * Called when scroll position or viewport size changes.
+     * Recomputes the scroll offset from the current scroll position over the virtual (scaled)
+     * diagram size, then re-renders the visible region. Called when the scroll position or
+     * viewport size changes — no relayout, so scrolling stays cheap even for huge schemas.
      */
     private void updateViewport() {
-        double contentWidth = canvas.getWidth();
-        double contentHeight = canvas.getHeight();
+        refreshScrollOffset();
+        renderViewport();
+    }
 
-        // Calculate viewport position from scroll values (0.0 to 1.0)
-        double hValue = scrollPane.getHvalue();
-        double vValue = scrollPane.getVvalue();
+    /** Recomputes {@link #viewportX}/{@link #viewportY} (scroll offset, in virtual px). */
+    private void refreshScrollOffset() {
+        double virtualWidth = diagramWidth * zoomLevel;
+        double virtualHeight = diagramHeight * zoomLevel;
+        double maxHScroll = Math.max(0, virtualWidth - viewportWidth);
+        double maxVScroll = Math.max(0, virtualHeight - viewportHeight);
+        viewportX = scrollPane.getHvalue() * maxHScroll;
+        viewportY = scrollPane.getVvalue() * maxVScroll;
+    }
 
-        // Calculate max scroll range
-        double maxHScroll = Math.max(0, contentWidth - viewportWidth);
-        double maxVScroll = Math.max(0, contentHeight - viewportHeight);
-
-        viewportX = hValue * maxHScroll;
-        viewportY = vValue * maxVScroll;
-
-        logger.trace("Viewport updated: ({}, {}) size: {}x{}", viewportX, viewportY, viewportWidth, viewportHeight);
+    /**
+     * Sizes the spacer to the virtual diagram (driving the scrollbars) and floats the
+     * viewport-sized canvas over the currently visible region.
+     */
+    private void positionViewportCanvas() {
+        double virtualWidth = diagramWidth * zoomLevel;
+        double virtualHeight = diagramHeight * zoomLevel;
+        if (viewportSpacer.getPrefWidth() != virtualWidth || viewportSpacer.getPrefHeight() != virtualHeight) {
+            viewportSpacer.setMinSize(virtualWidth, virtualHeight);
+            viewportSpacer.setPrefSize(virtualWidth, virtualHeight);
+            viewportSpacer.setMaxSize(virtualWidth, virtualHeight);
+        }
+        if (viewportWidth > 0 && canvas.getWidth() != viewportWidth) {
+            canvas.setWidth(viewportWidth);
+        }
+        if (viewportHeight > 0 && canvas.getHeight() != viewportHeight) {
+            canvas.setHeight(viewportHeight);
+        }
+        canvas.setLayoutX(viewportX);
+        canvas.setLayoutY(viewportY);
     }
 
     /**
@@ -629,81 +660,51 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
     }
 
     /**
-     * Redraws the entire canvas.
+     * Relays out the diagram and repaints the visible viewport. Use after structural changes
+     * (expand/collapse, model edits) that move nodes. Pure scroll/selection repaints should call
+     * {@link #renderViewport()} instead so the layout is not recomputed.
      */
     private void redraw() {
-        // logger.debug("redraw() called, rootNode has {} children", rootNode != null ? rootNode.getChildren().size() : "null");
-        GraphicsContext gc = canvas.getGraphicsContext2D();
-
         if (rootNode == null) {
             logger.warn("redraw() aborted: rootNode is null");
             return;
         }
-
-        // Layout nodes
+        // Layout nodes in (unscaled) diagram space and record the diagram bounds.
         layoutNode(rootNode, 50, 50);
-
-        // Calculate required canvas size based on node positions
         double[] bounds = calculateCanvasBounds(rootNode);
-        double requiredWidth = bounds[0] + 100;  // Add padding
-        double requiredHeight = bounds[1] + 100; // Add padding
+        diagramWidth = Math.max(bounds[0] + 100, 800);
+        diagramHeight = Math.max(bounds[1] + 100, 600);
+        renderViewport();
+    }
 
-        // Ensure minimum size
-        double canvasWidth = Math.max(requiredWidth, 800);
-        double canvasHeight = Math.max(requiredHeight, 600);
-
-        // Limit maximum canvas size to prevent JavaFX/Prism texture allocation failures.
-        // A Canvas this big needs an N*N*4-byte backing RTTexture PLUS, whenever a clip is used
-        // (regional repaint), an equally large clip buffer — at 8192 that is ~256 MB each, which
-        // exhausts limited GPU VRAM and makes the render thread crash with a null RTTexture
-        // ("Cannot invoke RTTexture.createGraphics()"). 4096 (~67 MB per buffer) is safe on
-        // essentially all GPUs. Very large schemas are clipped to this box in Graphic mode; use
-        // Tree/Text mode (or zoom) to inspect the rest.
-        final double MAX_CANVAS_SIZE = 4096;
-        if (canvasWidth > MAX_CANVAS_SIZE || canvasHeight > MAX_CANVAS_SIZE) {
-            logger.warn("Canvas size {}x{} exceeds maximum. Limiting to {}x{}",
-                    canvasWidth, canvasHeight, MAX_CANVAS_SIZE, MAX_CANVAS_SIZE);
-            canvasWidth = Math.min(canvasWidth, MAX_CANVAS_SIZE);
-            canvasHeight = Math.min(canvasHeight, MAX_CANVAS_SIZE);
+    /**
+     * Repaints the currently visible region. The canvas is only as large as the viewport; the
+     * diagram is drawn under a {@code translate(-scroll) + scale(zoom)} transform so node/render
+     * code keeps working in diagram coordinates. Viewport culling skips off-screen cards, so this
+     * is cheap regardless of schema size — and the small backing texture never exhausts GPU VRAM.
+     */
+    private void renderViewport() {
+        if (rootNode == null) {
+            return;
         }
+        positionViewportCanvas();
+        GraphicsContext gc = canvas.getGraphicsContext2D();
+        // Clear the whole (small) canvas in device space.
+        gc.setFill(Color.WHITE);
+        gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
 
-        // Resize canvas if needed - wrap in try-catch to handle GPU texture allocation failures
+        gc.save();
         try {
-            if (canvas.getWidth() != canvasWidth || canvas.getHeight() != canvasHeight) {
-                canvas.setWidth(canvasWidth);
-                canvas.setHeight(canvasHeight);
-                // logger.debug("Canvas resized to {}x{}", canvasWidth, canvasHeight);
-            }
-
-            // Clear canvas
-            gc.setFill(Color.WHITE);
-            gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
-        } catch (Exception e) {
-            logger.error("Failed to resize/clear canvas to {}x{}: {}", canvasWidth, canvasHeight, e.getMessage());
-            // Try with smaller size as fallback
-            try {
-                canvas.setWidth(2000);
-                canvas.setHeight(2000);
-                gc.setFill(Color.WHITE);
-                gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
-                logger.info("Fallback to smaller canvas size 2000x2000");
-            } catch (Exception e2) {
-                logger.error("Fallback canvas resize also failed: {}", e2.getMessage());
-                return; // Cannot render
-            }
-        }
-
-        // Render tree - wrap in try-catch to handle rendering failures gracefully
-        try {
+            gc.translate(-viewportX, -viewportY);
+            gc.scale(zoomLevel, zoomLevel);
             renderedNodeCount = 0;
             lastPaintWasRegional = false;
             renderTree(gc, rootNode);
         } catch (Exception e) {
-            logger.error("Failed to render tree: {}. Schema may be too large for graphical display.", e.getMessage());
-            // Show error message on canvas
-            gc.setFill(Color.RED);
-            gc.fillText("Error: Schema too large for graphical display. Try collapsing some nodes.", 50, 50);
-            gc.fillText("Details: " + e.getMessage(), 50, 70);
+            logger.error("Failed to render tree: {}. Schema may be too large for graphical display.",
+                    e.getMessage());
+        } finally {
+            gc.restore();
         }
     }
 
@@ -751,6 +752,11 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         GraphicsContext gc = canvas.getGraphicsContext2D();
         gc.save();
         try {
+            // Same viewport transform as the full render, so the region's diagram coordinates
+            // map onto the correct canvas pixels. The clip buffer is bounded by the (small)
+            // viewport-sized canvas, so it can never exhaust GPU VRAM.
+            gc.translate(-viewportX, -viewportY);
+            gc.scale(zoomLevel, zoomLevel);
             gc.beginPath();
             gc.rect(rx, ry, rw, rh);
             gc.clip();
@@ -1118,8 +1124,8 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
      */
     private void handleMouseMove(MouseEvent event) {
         // Adjust coordinates for zoom level
-        double x = event.getX() / zoomLevel;
-        double y = event.getY() / zoomLevel;
+        double x = (event.getX() + viewportX) / zoomLevel;
+        double y = (event.getY() + viewportY) / zoomLevel;
 
         VisualNode nodeAtPosition = findNodeAt(rootNode, x, y);
 
@@ -1158,8 +1164,8 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         }
 
         // Adjust coordinates for zoom level
-        double x = event.getX() / zoomLevel;
-        double y = event.getY() / zoomLevel;
+        double x = (event.getX() + viewportX) / zoomLevel;
+        double y = (event.getY() + viewportY) / zoomLevel;
 
         VisualNode clickedNode = findNodeAt(rootNode, x, y);
 
@@ -1197,8 +1203,8 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         }
 
         // Adjust coordinates for zoom level
-        double x = event.getX() / zoomLevel;
-        double y = event.getY() / zoomLevel;
+        double x = (event.getX() + viewportX) / zoomLevel;
+        double y = (event.getY() + viewportY) / zoomLevel;
 
         VisualNode clickedNode = findNodeAt(rootNode, x, y);
 
@@ -1577,8 +1583,8 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         }
 
         // Adjust coordinates for zoom level
-        double x = event.getX() / zoomLevel;
-        double y = event.getY() / zoomLevel;
+        double x = (event.getX() + viewportX) / zoomLevel;
+        double y = (event.getY() + viewportY) / zoomLevel;
 
         // Store drag start position
         dragStartX = x;
@@ -1611,8 +1617,8 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         }
 
         // Adjust coordinates for zoom level
-        double x = event.getX() / zoomLevel;
-        double y = event.getY() / zoomLevel;
+        double x = (event.getX() + viewportX) / zoomLevel;
+        double y = (event.getY() + viewportY) / zoomLevel;
 
         // Check if drag threshold has been exceeded
         double deltaX = Math.abs(x - dragStartX);
@@ -1887,9 +1893,10 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
             zoomLabel.setText(String.format("%.0f%%", zoomLevel * 100));
         }
 
-        // Apply zoom to canvas
-        canvas.setScaleX(zoomLevel);
-        canvas.setScaleY(zoomLevel);
+        // Zoom is applied in the render transform (scale on the GraphicsContext), not by scaling
+        // the canvas node — re-render at the new virtual size and clamp the scroll offset.
+        refreshScrollOffset();
+        renderViewport();
 
         logger.debug("Zoom level set to: {}%", zoomLevel * 100);
     }
@@ -2119,17 +2126,18 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
      * Scrolls the viewport to make the given node visible.
      */
     private void scrollToNode(VisualNode node) {
-        double contentWidth = canvas.getWidth();
-        double contentHeight = canvas.getHeight();
-        double vpWidth = scrollPane.getViewportBounds().getWidth();
-        double vpHeight = scrollPane.getViewportBounds().getHeight();
+        // Work in virtual (scaled) coordinates: the scrollbars span diagram * zoom.
+        double virtualWidth = diagramWidth * zoomLevel;
+        double virtualHeight = diagramHeight * zoomLevel;
+        double vpWidth = viewportWidth;
+        double vpHeight = viewportHeight;
 
-        double maxHScroll = Math.max(1, contentWidth - vpWidth);
-        double maxVScroll = Math.max(1, contentHeight - vpHeight);
+        double maxHScroll = Math.max(1, virtualWidth - vpWidth);
+        double maxVScroll = Math.max(1, virtualHeight - vpHeight);
 
-        // Center the node in the viewport
-        double targetX = node.getX() + node.getWidth() / 2 - vpWidth / 2;
-        double targetY = node.getY() + node.getHeight() / 2 - vpHeight / 2;
+        // Center the node in the viewport.
+        double targetX = (node.getX() + node.getWidth() / 2) * zoomLevel - vpWidth / 2;
+        double targetY = (node.getY() + node.getHeight() / 2) * zoomLevel - vpHeight / 2;
 
         scrollPane.setHvalue(Math.max(0, Math.min(1, targetX / maxHScroll)));
         scrollPane.setVvalue(Math.max(0, Math.min(1, targetY / maxVScroll)));
