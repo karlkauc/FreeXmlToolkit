@@ -85,6 +85,35 @@ class QueryConsoleTest {
     }
 
     @Test
+    void savingResultsWritesTheResultTextToFile(@TempDir Path tmp) throws Exception {
+        Path file = tmp.resolve("doc.xml");
+        Files.writeString(file, "<root><item id=\"1\">a</item><item id=\"2\">b</item></root>");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(file));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("item")).orElse(false));
+
+        QueryConsole console = WaitForAsyncUtils.waitForAsyncFx(2000, () -> new QueryConsole(host));
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            console.setXPath("//item");
+            console.runForTest();
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> {
+            String r = console.getResultsText();
+            return r != null && !r.isBlank() && !"Running…".equals(r);
+        });
+
+        String results = console.getResultsText();
+        Path out = tmp.resolve("results.txt");
+        boolean ok = WaitForAsyncUtils.waitForAsyncFx(2000, () -> console.saveResultsToFile(out.toFile()));
+
+        assertTrue(ok, "saving results should succeed");
+        assertEquals(results, Files.readString(out), "the saved file must contain the result text");
+    }
+
+    @Test
     void runIsDisabledWhenNoDocumentIsOpen() {
         QueryConsole console = WaitForAsyncUtils.waitForAsyncFx(2000, () -> new QueryConsole(host));
         WaitForAsyncUtils.waitForFxEvents();

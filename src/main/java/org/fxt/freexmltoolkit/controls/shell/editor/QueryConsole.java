@@ -19,6 +19,7 @@ import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tooltip;
+import javafx.stage.FileChooser;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
@@ -30,8 +31,10 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
 import org.fxmisc.richtext.CodeArea;
+import org.fxmisc.richtext.LineNumberFactory;
 import org.fxt.freexmltoolkit.FxtGui;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.controls.shared.XPathSyntaxHighlighter;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.XPathIntelliSenseEngine;
 import org.fxt.freexmltoolkit.service.FavoritesService;
 import org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat;
@@ -127,14 +130,18 @@ public class QueryConsole extends Region {
 
         xpathField.getStyleClass().addAll("fxt-xpath-field", "fxt-query-input");
         xpathField.setWrapText(true);
-        // XPath is a short single expression: keep the field compact (it wraps/scrolls for long
-        // ones) instead of letting it grow into a tall empty box. XQuery keeps its 96px area.
-        xpathField.setPrefHeight(48);
-        xpathField.setMaxHeight(96);
+        xpathField.setPrefHeight(96);
 
         xqueryArea.getStyleClass().addAll("fxt-xpath-field", "fxt-query-input");
         xqueryArea.setWrapText(false);
         xqueryArea.setPrefHeight(96);
+
+        // Real-editor affordances: line numbers (RichTextFX gutter) and lightweight
+        // XPath/XQuery syntax highlighting. IntelliSense/autocomplete is wired below.
+        xpathField.setParagraphGraphicFactory(LineNumberFactory.get(xpathField));
+        xqueryArea.setParagraphGraphicFactory(LineNumberFactory.get(xqueryArea));
+        attachHighlighting(xpathField);
+        attachHighlighting(xqueryArea);
 
         // Restore XPath/XQuery IntelliSense (autocomplete): context-aware element/attribute,
         // function, axis and (XQuery) keyword completion. Triggers on '/', '@', '[', '(', '$',
@@ -145,16 +152,17 @@ public class QueryConsole extends Region {
         xpathIntelliSense.setXmlContentSupplier(activeXml);
         xqueryIntelliSense.setXmlContentSupplier(activeXml);
 
-        // XPath is a single expression: Enter runs it. While the completion popup is open the
-        // engine consumes Enter first (to accept the highlighted suggestion), so this filter —
-        // added after the engine's — only fires when no popup is showing.
+        // Both fields are full multi-line editors: Enter inserts a newline (or accepts a
+        // suggestion while the completion popup is open), Ctrl+Enter runs the query. While the
+        // popup is open the engine consumes the keys first, so these filters — added after the
+        // engine's — only fire when no popup is showing.
         xpathField.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
-            if (e.getCode() == KeyCode.ENTER && !xpathIntelliSense.isPopupShowing()) {
+            if (e.getCode() == KeyCode.ENTER && e.isShortcutDown()
+                    && !xpathIntelliSense.isPopupShowing()) {
                 run();
                 e.consume();
             }
         });
-        // XQuery is multi-line: Enter inserts a newline (or accepts a suggestion); Ctrl+Enter runs.
         xqueryArea.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
             if (e.getCode() == KeyCode.ENTER && e.isShortcutDown()
                     && !xqueryIntelliSense.isPopupShowing()) {
@@ -166,7 +174,7 @@ public class QueryConsole extends Region {
         updateMode();
 
         Button run = button("Run", "bi-play-fill", this::run);
-        run.setTooltip(new Tooltip("Run the query against the active document (XPath: Enter, XQuery: Ctrl+Enter)"));
+        run.setTooltip(new Tooltip("Run the query against the active document (Ctrl+Enter)"));
         runButton = run;
 
         Button saveSnippet = button("Save", "bi-save", this::saveSnippet);
@@ -190,10 +198,9 @@ public class QueryConsole extends Region {
         VBox box = new VBox(8, header, modeRow, inputStack);
         box.setPadding(new Insets(8));
         box.getStyleClass().add("fxt-side-panel-content");
-        // Cap the query column so it does not get needlessly wide on large screens (a single-line
-        // XPath needs little room); the SplitPane clamps to this max and gives the slack to the
-        // results pane. On narrow screens the 0.38 divider proportion still applies (< the cap).
-        box.setMaxWidth(560);
+        // No max-width cap: the user can drag the divider freely to give the QUERY column as much
+        // room as the (now full multi-line) editor needs. A small min-width keeps it usable.
+        box.setMinWidth(160);
         return box;
     }
 
@@ -203,9 +210,11 @@ public class QueryConsole extends Region {
 
         Button copy = button("Copy", "bi-clipboard", this::copyResults);
         copy.setTooltip(new Tooltip("Copy the full result to the clipboard"));
+        Button save = button("Save", "bi-save", this::saveResults);
+        save.setTooltip(new Tooltip("Save the result to a file"));
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-        HBox header = new HBox(8, title, spacer, copy);
+        HBox header = new HBox(8, title, spacer, copy, save);
         header.setAlignment(Pos.CENTER_LEFT);
 
         resultsArea.setEditable(false);
@@ -227,10 +236,10 @@ public class QueryConsole extends Region {
         xqueryArea.setManaged(xquery);
         xpathField.setVisible(!xquery);
         xpathField.setManaged(!xquery);
-        // XQuery (multi-line) grows to fill the console; XPath (single expression) stays compact
-        // so it does not balloon into a tall empty box.
-        VBox.setVgrow(inputStack, xquery ? Priority.ALWAYS : Priority.NEVER);
-        inputStack.setMaxHeight(xquery ? Double.MAX_VALUE : Region.USE_PREF_SIZE);
+        // Both modes get the same full-height editor: the input always grows to fill the QUERY
+        // pane (Ctrl+Enter runs, Enter inserts a newline), so XPath is as large as XQuery.
+        VBox.setVgrow(inputStack, Priority.ALWAYS);
+        inputStack.setMaxHeight(Double.MAX_VALUE);
     }
 
     /** Enables/disables Run based on whether a document is currently open. */
@@ -333,6 +342,58 @@ public class QueryConsole extends Region {
         ClipboardContent content = new ClipboardContent();
         content.putString(resultsArea.getText() == null ? "" : resultsArea.getText());
         Clipboard.getSystemClipboard().setContent(content);
+    }
+
+    /**
+     * Prompts for a target file and writes the current results text to it. Offers
+     * Text (*.txt), XML (*.xml) and All-files filters. Blank results are rejected
+     * with a hint and no dialog; I/O failures degrade to a message in the results
+     * pane.
+     */
+    public void saveResults() {
+        String text = resultsArea.getText();
+        if (text == null || text.isBlank()) {
+            resultsArea.setText("Run a query first — there is nothing to save.");
+            return;
+        }
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Save Results");
+        chooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("Text (*.txt)", "*.txt"),
+                new FileChooser.ExtensionFilter("XML (*.xml)", "*.xml"),
+                new FileChooser.ExtensionFilter("All Files (*.*)", "*.*"));
+        File file = chooser.showSaveDialog(getScene() == null ? null : getScene().getWindow());
+        if (file != null) {
+            saveResultsToFile(file);
+        }
+    }
+
+    /**
+     * Writes the current results text to {@code file} (UTF-8). Used by
+     * {@link #saveResults()} and tests.
+     *
+     * @param file the destination file
+     * @return {@code true} on success, {@code false} when the write failed
+     */
+    boolean saveResultsToFile(File file) {
+        String text = resultsArea.getText() == null ? "" : resultsArea.getText();
+        try {
+            Files.writeString(file.toPath(), text, StandardCharsets.UTF_8);
+            return true;
+        } catch (Exception e) {
+            resultsArea.setText("Could not save results: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Attaches lightweight XPath/XQuery syntax highlighting to a query
+     * {@link CodeArea}: re-styles on every text change. Expressions are short, so
+     * synchronous highlighting on the FX thread is fine.
+     */
+    private void attachHighlighting(CodeArea area) {
+        area.textProperty().addListener((obs, oldText, newText) ->
+                area.setStyleSpans(0, XPathSyntaxHighlighter.computeHighlighting(newText)));
     }
 
     // ---------------------------------------------------------------------

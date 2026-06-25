@@ -783,6 +783,32 @@
     -fx-fill: -fxt-text-primary;
 }
 
+/* XPath/XQuery syntax highlighting (classes emitted by XPathSyntaxHighlighter).
+   Scoped to the query inputs so they never affect other CodeAreas. */
+.fxt-query-input .xq-keyword {
+    -fx-fill: -fxt-primary;
+    -fx-font-weight: bold;
+}
+.fxt-query-input .xq-function {
+    -fx-fill: #6f42c1; /* purple */
+}
+.fxt-query-input .xq-axis {
+    -fx-fill: #d63384; /* magenta */
+}
+.fxt-query-input .xq-var {
+    -fx-fill: #17a2b8; /* info cyan */
+}
+.fxt-query-input .xq-string {
+    -fx-fill: #28a745; /* success green */
+}
+.fxt-query-input .xq-number {
+    -fx-fill: #fd7e14; /* orange */
+}
+.fxt-query-input .xq-comment {
+    -fx-fill: -fxt-text-muted;
+    -fx-font-style: italic;
+}
+
 /* ----- Query Console (collapsible bottom dock) ------------------------- */
 /* A distinct docked panel below the editor: a clear top border separates it
    from the editor area, and a surface background marks it as its own pane. The
