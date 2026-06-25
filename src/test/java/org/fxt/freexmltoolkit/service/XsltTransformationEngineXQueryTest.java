@@ -304,4 +304,70 @@ class XsltTransformationEngineXQueryTest {
         assertTrue(result.getOutputContent().contains("John") || result.getOutputContent().contains("name"),
                 "Output should contain name data");
     }
+
+    // ========== Robustness of the context document (XQuery console) ==========
+
+    @Test
+    void testXQueryWithLeadingBlankLineBeforeXmlDeclaration() {
+        // A blank first line pushes the <?xml ?> declaration to line 2 — the exact
+        // SXXP0003 situation reported from the XQuery console. It must still parse.
+        String xml = "\n<?xml version=\"1.0\"?>\n<root><v>42</v></root>";
+
+        XsltTransformationResult result = engine.transformXQuery(xml, "//v/text()",
+                new HashMap<>(), XsltTransformationEngine.OutputFormat.XML);
+
+        assertTrue(result.isSuccess(),
+                () -> "Context document with leading blank line should be sanitized, but failed: "
+                        + result.getErrorMessage());
+        assertTrue(result.getOutputContent().contains("42"), "Output should contain the context value");
+    }
+
+    @Test
+    void testXQueryWithLeadingBomBeforeXmlDeclaration() {
+        // A leading UTF-8 BOM before the declaration must be stripped before parsing.
+        String xml = "﻿<?xml version=\"1.0\"?>\n<root><v>7</v></root>";
+
+        XsltTransformationResult result = engine.transformXQuery(xml, "//v/text()",
+                new HashMap<>(), XsltTransformationEngine.OutputFormat.XML);
+
+        assertTrue(result.isSuccess(),
+                () -> "Context document with leading BOM should be sanitized, but failed: "
+                        + result.getErrorMessage());
+        assertTrue(result.getOutputContent().contains("7"), "Output should contain the context value");
+    }
+
+    @Test
+    void testContextIndependentXQueryRunsDespiteMalformedContextDocument() {
+        // A genuinely malformed context document (mismatched tags) cannot be salvaged.
+        // A query that does not depend on the context item (e.g. collection()-based or a
+        // pure constructor) must still run instead of aborting the whole transformation.
+        String malformedXml = "<a><unclosed></a>";
+
+        XsltTransformationResult result = engine.transformXQuery(malformedXml, "<result>{1 + 1}</result>",
+                new HashMap<>(), XsltTransformationEngine.OutputFormat.XML);
+
+        assertTrue(result.isSuccess(),
+                () -> "Context-independent query should run despite a malformed context document, but failed: "
+                        + result.getErrorMessage());
+        assertTrue(result.getOutputContent().contains("2"), "Output should contain the computed value");
+    }
+
+    @Test
+    void testSanitizeXmlPrologueHelper() {
+        // Leading whitespace before a declaration is removed.
+        assertEquals("<?xml version=\"1.0\"?><r/>",
+                XsltTransformationEngine.sanitizeXmlPrologue("  \n<?xml version=\"1.0\"?><r/>"));
+        // A leading BOM is removed.
+        assertEquals("<?xml version=\"1.0\"?><r/>",
+                XsltTransformationEngine.sanitizeXmlPrologue("﻿<?xml version=\"1.0\"?><r/>"));
+        // Whitespace before a root element WITHOUT a declaration is legal prolog content
+        // and must be left untouched.
+        assertEquals("  <r/>", XsltTransformationEngine.sanitizeXmlPrologue("  <r/>"));
+        // Already-clean content is returned unchanged.
+        assertEquals("<?xml version=\"1.0\"?><r/>",
+                XsltTransformationEngine.sanitizeXmlPrologue("<?xml version=\"1.0\"?><r/>"));
+        // Null / empty are passed through.
+        assertNull(XsltTransformationEngine.sanitizeXmlPrologue(null));
+        assertEquals("", XsltTransformationEngine.sanitizeXmlPrologue(""));
+    }
 }

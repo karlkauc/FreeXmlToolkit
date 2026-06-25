@@ -603,10 +603,19 @@ public class XsltTransformationEngine {
                 }
             }
 
-            // Set context item (input XML) if provided
+            // Set context item (input XML) if provided. A non-well-formed context
+            // document must not abort a query that doesn't depend on it (e.g. a
+            // collection()/doc()-based query): degrade gracefully and run without a
+            // context item, logging a warning instead.
             if (xmlContent != null && !xmlContent.trim().isEmpty()) {
-                XdmNode sourceDoc = parseXmlDocument(xmlContent);
-                evaluator.setContextItem(sourceDoc);
+                try {
+                    XdmNode sourceDoc = parseXmlDocument(xmlContent);
+                    evaluator.setContextItem(sourceDoc);
+                } catch (SaxonApiException contextEx) {
+                    logger.warn("XQuery context document is not well-formed; running the query without a "
+                            + "context item. Queries that rely on collection()/doc() are unaffected. Cause: {}",
+                            contextEx.getMessage());
+                }
             }
 
             // Execute XQuery and serialize result
@@ -955,8 +964,41 @@ public class XsltTransformationEngine {
 
     private XdmNode parseXmlDocument(String xmlContent) throws SaxonApiException {
         DocumentBuilder builder = saxonProcessor.newDocumentBuilder();
-        StreamSource source = new StreamSource(new StringReader(xmlContent));
+        StreamSource source = new StreamSource(new StringReader(sanitizeXmlPrologue(xmlContent)));
         return builder.build(source);
+    }
+
+    /**
+     * Removes a leading UTF-8 BOM and any whitespace that precedes an XML
+     * declaration, so that a document whose {@code <?xml ?>} declaration is not at
+     * the very first byte still parses. A blank line or BOM in front of the
+     * declaration is a common copy/paste or editor artifact and would otherwise
+     * trigger {@code SXXP0003 — processing instruction target "xml" is not allowed}.
+     * <p>
+     * Whitespace before a root element that has <em>no</em> declaration is legal
+     * prolog content and is deliberately left untouched.
+     *
+     * @param xmlContent the raw XML text (may be {@code null})
+     * @return the sanitized text, or the original value for {@code null}/empty input
+     */
+    static String sanitizeXmlPrologue(String xmlContent) {
+        if (xmlContent == null || xmlContent.isEmpty()) {
+            return xmlContent;
+        }
+        String result = xmlContent;
+        // Strip a leading UTF-8 BOM (U+FEFF).
+        if (result.charAt(0) == '﻿') {
+            result = result.substring(1);
+        }
+        // If an XML declaration follows leading whitespace, move it to the front.
+        int i = 0;
+        while (i < result.length() && Character.isWhitespace(result.charAt(i))) {
+            i++;
+        }
+        if (i > 0 && result.regionMatches(true, i, "<?xml", 0, 5)) {
+            result = result.substring(i);
+        }
+        return result;
     }
 
     private void configureTransformer(XsltTransformer transformer, Map<String, Object> parameters,
