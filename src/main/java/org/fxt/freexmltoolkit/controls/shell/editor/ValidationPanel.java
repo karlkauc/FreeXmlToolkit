@@ -295,10 +295,10 @@ public class ValidationPanel extends VBox {
 
     private void validateFundsXml() {
         String xml = editorHost.getActiveText().orElse(null);
-        status.setText("Validating against FundsXML…");
+        PanelStatus.info(status, "Validating against FundsXML…");
         FxtGui.executorService.submit(() -> {
             String summary = FundsXmlRunner.validateSummary(xml);
-            Platform.runLater(() -> status.setText(summary));
+            Platform.runLater(() -> PanelStatus.info(status, summary));
         });
     }
 
@@ -362,7 +362,7 @@ public class ValidationPanel extends VBox {
     /** Runs validation of the active document (XSD + optional Schematron), async. */
     public void revalidate() {
         if (editorHost.getActiveDocument().isEmpty()) {
-            status.setText("No document open");
+            PanelStatus.precondition(status, "No document open");
             setProblems(List.of());
             editorHost.setValidationStatus(EditorHost.ValidationState.NOT_VALIDATED, 0, "Not validated");
             return;
@@ -370,7 +370,7 @@ public class ValidationPanel extends VBox {
         String content = editorHost.getActiveText().orElse("");
         if (content.isBlank()) {
             // Nothing to validate (e.g. a document still loading) — avoid parsing empty text.
-            status.setText("Empty document");
+            PanelStatus.precondition(status, "Empty document");
             setProblems(List.of());
             editorHost.setValidationStatus(EditorHost.ValidationState.NOT_VALIDATED, 0, "Not validated");
             return;
@@ -380,7 +380,7 @@ public class ValidationPanel extends VBox {
         File xsd = editorHost.activeSchemaProperty().get();
         File schematron = editorHost.getActiveSchematron();
         File jsonSchema = this.jsonSchemaFile;
-        status.setText("Validating…");
+        PanelStatus.info(status, "Validating…");
         FxtGui.executorService.submit(() -> {
             List<ValidationProblem> result = json
                     ? ValidationRunner.validateJson(content, jsonSchema)
@@ -391,7 +391,11 @@ public class ValidationPanel extends VBox {
                 String summary = result.isEmpty()
                         ? (hasSchema ? "Valid" : "Well-formed")
                         : result.size() + " problem(s)";
-                status.setText(summary);
+                if (result.isEmpty()) {
+                    PanelStatus.success(status, summary);
+                } else {
+                    PanelStatus.info(status, summary);
+                }
                 editorHost.setValidationStatus(
                         result.isEmpty() ? EditorHost.ValidationState.VALID : EditorHost.ValidationState.INVALID,
                         result.size(), summary);
@@ -475,7 +479,7 @@ public class ValidationPanel extends VBox {
         }
         File xsd = editorHost.activeSchemaProperty().get();
         File schematron = editorHost.getActiveSchematron();
-        status.setText("Validating " + files.size() + " file(s)…");
+        PanelStatus.info(status, "Validating " + files.size() + " file(s)…");
         FxtGui.executorService.submit(() -> {
             List<ValidationRunner.FileValidationResult> results = ValidationRunner.batch(files, xsd, schematron);
             String report = ValidationRunner.report(results, xsd, schematron);
@@ -495,9 +499,11 @@ public class ValidationPanel extends VBox {
                 : "RESULTS · " + results.size() + " OK");
         batchList.setVisible(!results.isEmpty());
         batchList.setManaged(!results.isEmpty());
-        status.setText(failed > 0
-                ? failed + " of " + results.size() + " file(s) failed"
-                : results.size() + " file(s) valid");
+        if (failed > 0) {
+            PanelStatus.info(status, failed + " of " + results.size() + " file(s) failed");
+        } else {
+            PanelStatus.success(status, results.size() + " file(s) valid");
+        }
     }
 
     private void chooseBatch() {
@@ -526,7 +532,7 @@ public class ValidationPanel extends VBox {
         if (dir == null || !dir.isDirectory()) {
             return;
         }
-        status.setText("Scanning " + dir.getName() + "…");
+        PanelStatus.info(status, "Scanning " + dir.getName() + "…");
         FxtGui.executorService.submit(() -> {
             List<File> files;
             try (var paths = java.nio.file.Files.walk(dir.toPath())) {
@@ -536,12 +542,13 @@ public class ValidationPanel extends VBox {
                         .sorted()
                         .toList();
             } catch (java.io.IOException ex) {
-                Platform.runLater(() -> status.setText("Could not scan " + dir.getName() + ": " + ex.getMessage()));
+                Platform.runLater(() -> PanelStatus.failure(status, "Validation failed",
+                        "Could not scan " + dir.getName() + ": " + ex.getMessage()));
                 return;
             }
             Platform.runLater(() -> {
                 if (files.isEmpty()) {
-                    status.setText("No XML files found in " + dir.getName());
+                    PanelStatus.info(status, "No XML files found in " + dir.getName());
                 } else {
                     runBatch(files);
                 }
@@ -652,7 +659,7 @@ public class ValidationPanel extends VBox {
         File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
             jsonSchemaFile = file;
-            status.setText("JSON Schema: " + file.getName());
+            PanelStatus.info(status, "JSON Schema: " + file.getName());
             revalidate();
         }
     }
@@ -691,18 +698,18 @@ public class ValidationPanel extends VBox {
         }
         File output = target.getName().toLowerCase().endsWith(".xlsx")
                 ? target : new File(target.getParentFile(), target.getName() + ".xlsx");
-        status.setText("Exporting " + snapshot.size() + " problem(s)…");
+        PanelStatus.info(status, "Exporting " + snapshot.size() + " problem(s)…");
         FxtGui.executorService.submit(() -> {
             try {
                 ValidationExcelExporter.export(snapshot, sourceName, output.toPath());
                 Platform.runLater(() -> {
-                    status.setText("Exported " + snapshot.size() + " problem(s)");
+                    PanelStatus.success(status, "Exported " + snapshot.size() + " problem(s)");
                     org.fxt.freexmltoolkit.util.DialogHelper.showInformation("Export problems",
                             null, "Wrote " + snapshot.size() + " problem(s) to:\n" + output.getAbsolutePath());
                 });
             } catch (Exception ex) {
-                Platform.runLater(() -> org.fxt.freexmltoolkit.util.DialogHelper.showError(
-                        "Export problems", null, "Could not write the Excel file: " + ex.getMessage()));
+                Platform.runLater(() -> PanelStatus.failure(status, "Export problems",
+                        "Could not write the Excel file: " + ex.getMessage()));
             }
         });
     }

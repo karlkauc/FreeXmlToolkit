@@ -198,6 +198,26 @@ public class DialogHelper {
     }
 
     /**
+     * Raises an unmistakable modal error dialog for a failed action (an operation
+     * that could not be performed).
+     *
+     * <p>This is the single entry point the activity panels use to surface real
+     * failures. It is suppressed when the system property
+     * {@code fxt.suppressErrorDialogs} is set (the test task sets it) so that
+     * headless TestFX runs, which deliberately exercise error paths, are never
+     * blocked by a modal {@code showAndWait()} on the FX thread.
+     *
+     * @param title   the error dialog's window title (e.g. "PDF generation failed")
+     * @param message the failure message
+     */
+    public static void notifyActionFailure(String title, String message) {
+        if (Boolean.getBoolean("fxt.suppressErrorDialogs")) {
+            return;
+        }
+        showError(title, null, message);
+    }
+
+    /**
      * Shows a confirmation dialog with icon.
      *
      * @param title the dialog title

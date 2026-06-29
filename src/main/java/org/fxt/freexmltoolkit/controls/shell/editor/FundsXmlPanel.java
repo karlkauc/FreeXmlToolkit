@@ -36,7 +36,7 @@ public class FundsXmlPanel extends VBox {
         versionCombo.setOnAction(e -> {
             String v = versionCombo.getValue();
             if (v != null && FundsXmlRunner.setActiveVersion(v)) {
-                status.setText("Active schema version: " + v);
+                PanelStatus.info(status, "Active schema version: " + v);
             }
         });
         Button download = button("Download / Update Content", "bi-cloud-arrow-down", this::download);
@@ -70,9 +70,10 @@ public class FundsXmlPanel extends VBox {
     }
 
     private void download() {
-        status.setText("Downloading…");
+        PanelStatus.info(status, "Downloading…");
         FxtGui.executorService.submit(() -> {
             String msg;
+            boolean ok = true;
             try {
                 var result = org.fxt.freexmltoolkit.service.fundsxml.FundsXmlExtensionService.getInstance()
                         .downloadOrUpdate(
@@ -80,6 +81,7 @@ public class FundsXmlPanel extends VBox {
                 if (result == null) {
                     msg = "Download complete.";
                 } else if (!result.isSuccess()) {
+                    ok = false;
                     msg = "Download failed: "
                             + (result.error() == null ? "unknown error" : result.error());
                 } else if (result.schemaVersion() != null) {
@@ -88,11 +90,17 @@ public class FundsXmlPanel extends VBox {
                     msg = "Download complete.";
                 }
             } catch (Throwable t) {
+                ok = false;
                 msg = "Download failed: " + t.getMessage();
             }
             String finalMsg = msg;
+            boolean finalOk = ok;
             Platform.runLater(() -> {
-                status.setText(finalMsg);
+                if (finalOk) {
+                    PanelStatus.success(status, finalMsg);
+                } else {
+                    PanelStatus.failure(status, "Download failed", finalMsg);
+                }
                 versionCombo.getItems().setAll(FundsXmlRunner.installedVersions());
                 String active = FundsXmlRunner.activeVersion();
                 if (active != null) {
@@ -104,25 +112,34 @@ public class FundsXmlPanel extends VBox {
 
     private void validate() {
         String xml = editorHost.getActiveText().orElse(null);
-        status.setText("Validating…");
+        PanelStatus.info(status, "Validating…");
         FxtGui.executorService.submit(() -> {
             String summary = FundsXmlRunner.validateSummary(xml);
-            Platform.runLater(() -> status.setText(summary));
+            Platform.runLater(() -> PanelStatus.info(status, summary));
         });
     }
 
     private void generateDocs() {
-        status.setText("Generating documentation…");
+        PanelStatus.info(status, "Generating documentation…");
         FxtGui.executorService.submit(() -> {
             String msg;
+            boolean ok = true;
             try {
                 var dir = FundsXmlRunner.generateDocumentation();
                 msg = "Documentation written to: " + dir;
             } catch (Throwable t) {
+                ok = false;
                 msg = "Documentation failed: " + t.getMessage();
             }
             String finalMsg = msg;
-            Platform.runLater(() -> status.setText(finalMsg));
+            boolean finalOk = ok;
+            Platform.runLater(() -> {
+                if (finalOk) {
+                    PanelStatus.success(status, finalMsg);
+                } else {
+                    PanelStatus.failure(status, "Documentation failed", finalMsg);
+                }
+            });
         });
     }
 
@@ -132,7 +149,7 @@ public class FundsXmlPanel extends VBox {
                 java.awt.Desktop.getDesktop().open(dir.toFile());
             }
         } catch (Exception e) {
-            status.setText("Could not open folder: " + e.getMessage());
+            PanelStatus.failure(status, "Could not open folder", "Could not open folder: " + e.getMessage());
         }
     }
 
@@ -142,7 +159,7 @@ public class FundsXmlPanel extends VBox {
                 java.awt.Desktop.getDesktop().browse(new java.net.URI(url));
             }
         } catch (Exception e) {
-            status.setText("Could not open browser: " + e.getMessage());
+            PanelStatus.failure(status, "Could not open browser", "Could not open browser: " + e.getMessage());
         }
     }
 

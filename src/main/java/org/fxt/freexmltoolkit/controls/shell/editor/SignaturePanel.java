@@ -223,7 +223,7 @@ public class SignaturePanel extends VBox {
         String aliasName = alias.getText();
         if (aliasName == null || aliasName.isBlank()
                 || keystorePassword.getText().isBlank() || aliasPassword.getText().isBlank()) {
-            status.setText("Alias and both passwords are required to create a certificate.");
+            PanelStatus.precondition(status, "Alias and both passwords are required to create a certificate.");
             return;
         }
         SignatureActionRunner.CertificateInfo info = new SignatureActionRunner.CertificateInfo(
@@ -231,7 +231,7 @@ public class SignaturePanel extends VBox {
                 stateField.getText(), countryField.getText(), emailField.getText());
         String ksPw = keystorePassword.getText();
         String aliasPw = aliasPassword.getText();
-        status.setText("Creating certificate…");
+        PanelStatus.info(status, "Creating certificate…");
         FxtGui.executorService.submit(() -> {
             String result;
             File created = null;
@@ -244,9 +244,11 @@ public class SignaturePanel extends VBox {
             File ks = created;
             String finalResult = result;
             Platform.runLater(() -> {
-                status.setText(finalResult);
                 if (ks != null) {
+                    PanelStatus.success(status, finalResult);
                     setKeystore(ks); // ready to sign with the new keystore
+                } else {
+                    PanelStatus.failure(status, "Certificate creation failed", finalResult);
                 }
             });
         });
@@ -282,11 +284,11 @@ public class SignaturePanel extends VBox {
      */
     public void signFile(File xml, SignatureService.SignatureType type) {
         if (xml == null) {
-            status.setText("No document open.");
+            PanelStatus.precondition(status, "No document open.");
             return;
         }
         if (keystoreFile == null) {
-            status.setText("Select a keystore first.");
+            PanelStatus.precondition(status, "Select a keystore first.");
             return;
         }
         File keystore = keystoreFile;
@@ -295,7 +297,7 @@ public class SignaturePanel extends VBox {
         String aliasPw = aliasPassword.getText();
         File output = type == SignatureService.SignatureType.DETACHED
                 ? siblingFile(xml, ".sig.xml") : siblingFile(xml, ".signed.xml");
-        status.setText("Signing…");
+        PanelStatus.info(status, "Signing…");
         FxtGui.executorService.submit(() -> {
             String result;
             try {
@@ -307,9 +309,13 @@ public class SignaturePanel extends VBox {
             }
             String finalResult = result;
             Platform.runLater(() -> {
-                status.setText(finalResult);
-                if (finalResult.startsWith("Signed:") && output.exists()) {
-                    editorHost.openFile(output.toPath());
+                if (finalResult.startsWith("Signed:")) {
+                    PanelStatus.success(status, finalResult);
+                    if (output.exists()) {
+                        editorHost.openFile(output.toPath());
+                    }
+                } else {
+                    PanelStatus.failure(status, "Signing failed", finalResult);
                 }
             });
         });
@@ -319,10 +325,10 @@ public class SignaturePanel extends VBox {
     public void validateActive() {
         File xml = activeXmlFile();
         if (xml == null) {
-            status.setText("No document open.");
+            PanelStatus.precondition(status, "No document open.");
             return;
         }
-        status.setText("Validating…");
+        PanelStatus.info(status, "Validating…");
         FxtGui.executorService.submit(() -> {
             boolean valid;
             try {
@@ -331,7 +337,13 @@ public class SignaturePanel extends VBox {
                 valid = false;
             }
             boolean result = valid;
-            Platform.runLater(() -> status.setText(result ? "Signature valid ✓" : "Signature invalid / none"));
+            Platform.runLater(() -> {
+                if (result) {
+                    PanelStatus.success(status, "Signature valid ✓");
+                } else {
+                    PanelStatus.info(status, "Signature invalid / none");
+                }
+            });
         });
     }
 
@@ -342,14 +354,14 @@ public class SignaturePanel extends VBox {
     public void validateDetailsActive() {
         File xml = activeXmlFile();
         if (xml == null) {
-            status.setText("No document open.");
+            PanelStatus.precondition(status, "No document open.");
             return;
         }
-        status.setText("Validating…");
+        PanelStatus.info(status, "Validating…");
         FxtGui.executorService.submit(() -> {
             String report = SignatureActionRunner.describeSignature(xml);
             Platform.runLater(() -> {
-                status.setText("Validation report opened");
+                PanelStatus.success(status, "Validation report opened");
                 editorHost.openGeneratedDocument(report, EditorFileType.OTHER, "Signature-Report.txt");
             });
         });
@@ -375,13 +387,13 @@ public class SignaturePanel extends VBox {
     public void validateTrustActive() {
         File xml = activeXmlFile();
         if (xml == null) {
-            status.setText("No document open.");
+            PanelStatus.precondition(status, "No document open.");
             return;
         }
         File store = trustStoreFile;
         boolean revocation = checkRevocation.isSelected();
         char[] storePassword = keystorePassword.getText().isBlank() ? null : keystorePassword.getText().toCharArray();
-        status.setText("Validating trust…");
+        PanelStatus.info(status, "Validating trust…");
         FxtGui.executorService.submit(() -> {
             String report;
             try {
@@ -394,7 +406,7 @@ public class SignaturePanel extends VBox {
             }
             String finalReport = report;
             Platform.runLater(() -> {
-                status.setText("Trust report opened");
+                PanelStatus.success(status, "Trust report opened");
                 editorHost.openGeneratedDocument(finalReport, EditorFileType.OTHER, "Signature-Trust-Report.txt");
             });
         });

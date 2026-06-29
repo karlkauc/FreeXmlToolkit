@@ -158,28 +158,30 @@ public class FopPanel extends VBox {
     /** Generates a PDF from the XML input + the selected XSL into {@code pdfOutput} (async). */
     public void generateTo(File pdfOutput) {
         if (xslFile == null) {
-            status.setText("Select an XSL-FO stylesheet first.");
+            PanelStatus.precondition(status, "Select an XSL-FO stylesheet first.");
             return;
         }
         File xmlFile = inputXmlFile();
         if (xmlFile == null) {
-            status.setText("No document open.");
+            PanelStatus.precondition(status, "No document open.");
             return;
         }
         File xsl = xslFile;
         FopRunner.PdfOptions options = currentOptions();
-        status.setText("Generating…");
+        PanelStatus.info(status, "Generating…");
         openButton.setDisable(true);
         FxtGui.executorService.submit(() -> {
             String result = FopRunner.generate(xmlFile, xsl, pdfOutput, options);
             Platform.runLater(() -> {
                 boolean ok = result.startsWith("OK:");
-                status.setText(ok ? "Generated: " + pdfOutput.getName() : result);
                 if (ok) {
+                    PanelStatus.success(status, "Generated: " + pdfOutput.getName());
                     lastPdf = pdfOutput;
                     openButton.setDisable(false);
                     previewButton.setDisable(false);
                     previewPdf(); // show the result in-app immediately
+                } else {
+                    PanelStatus.failure(status, "PDF generation failed", result);
                 }
             });
         });
@@ -292,8 +294,8 @@ public class FopPanel extends VBox {
         }
         try {
             java.awt.Desktop.getDesktop().open(lastPdf);
-        } catch (Exception ignored) {
-            status.setText("Could not open PDF (no desktop handler).");
+        } catch (Exception e) {
+            PanelStatus.failure(status, "Could not open PDF", "Could not open PDF (no desktop handler).");
         }
     }
 

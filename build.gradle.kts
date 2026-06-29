@@ -320,6 +320,11 @@ tasks.test {
     // Forward the opt-in flag for FundsXmlDownloadIntegrationTest (real GitHub).
     System.getProperty("fundsxml.integration")?.let { systemProperty("fundsxml.integration", it) }
 
+    // Suppress the modal action-failure dialogs (DialogHelper.notifyActionFailure) during tests:
+    // several TestFX tests deliberately exercise error paths, and a blocking showAndWait() on the
+    // FX thread would freeze the headless suite.
+    systemProperty("fxt.suppressErrorDialogs", "true")
+
     // The documentation screenshot generator must NOT run as part of the normal test suite:
     // it requires a real (non-Monocle) display and writes binary assets into docs/img.
     // PerfBenchmark is a non-gating ~30s benchmark (no assertions) — run it via the

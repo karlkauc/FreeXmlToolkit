@@ -147,6 +147,19 @@ public class TransformOutputPanel extends VBox {
         showRun("XQuery", text, format, elapsedMs, table);
     }
 
+    /**
+     * Shows a real failure: the message appears red in the output panel (as
+     * {@link #showError}) <b>and</b> an unmistakable modal error dialog is raised.
+     * Use this for actions that could not be performed (transform/query errors,
+     * unreadable files); use {@link #showError} for mild guards that should not pop
+     * a dialog.
+     */
+    public void showFailure(String message) {
+        showError(message);
+        org.fxt.freexmltoolkit.util.DialogHelper.notifyActionFailure(
+                "Transform failed", PanelStatus.strip(message));
+    }
+
     /** Shows an error or guard message (e.g. "No document open."). */
     public void showError(String message) {
         reveal();
@@ -167,7 +180,7 @@ public class TransformOutputPanel extends VBox {
     private void showRun(String verb, String text, OutputFormat format, long elapsedMs,
                          XQueryTableRunner.XQueryTable table) {
         if (text != null && text.startsWith("ERROR")) {
-            showError(text);
+            showFailure(text);
             return;
         }
         reveal();

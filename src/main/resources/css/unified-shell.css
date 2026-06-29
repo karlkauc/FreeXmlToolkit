@@ -1544,6 +1544,34 @@
     -fx-text-fill: -fxt-text-muted;
 }
 
+/* Severity-aware status styling (see PanelStatus). These override the muted
+   base styling of .fxt-vp-status / .fxt-placeholder-text so a failure is clearly
+   readable in both Light and Dark themes. */
+.fxt-status-info {
+    -fx-text-fill: -fxt-text-muted;
+    -fx-graphic-text-gap: 6;
+}
+
+.fxt-status-success {
+    -fx-text-fill: -fxt-success-text;
+    -fx-font-weight: 600;
+    -fx-graphic-text-gap: 6;
+}
+
+.fxt-status-error {
+    -fx-text-fill: -fxt-danger;
+    -fx-font-weight: 700;
+    -fx-graphic-text-gap: 6;
+}
+
+.fxt-status-error .iconify-icon {
+    -fx-icon-color: -fxt-danger;
+}
+
+.fxt-status-success .iconify-icon {
+    -fx-icon-color: -fxt-success-text;
+}
+
 .fxt-vp-results {
     -fx-background-color: transparent;
     -fx-border-color: transparent;

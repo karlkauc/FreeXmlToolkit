@@ -476,7 +476,7 @@ public class TransformPanel extends VBox {
             try {
                 xsltContent = Files.readString(xsltFile.toPath(), StandardCharsets.UTF_8);
             } catch (Exception e) {
-                out.showError("Could not read stylesheet: " + e.getMessage());
+                out.showFailure("Could not read stylesheet: " + e.getMessage());
                 return;
             }
             view = new BatchTransformView(BatchTransformView.Kind.XSLT,
@@ -830,7 +830,7 @@ public class TransformPanel extends VBox {
             try {
                 xml = Files.readString(inputOverride.toPath(), StandardCharsets.UTF_8);
             } catch (Exception e) {
-                out.showError("Could not read input file: " + e.getMessage());
+                out.showFailure("Could not read input file: " + e.getMessage());
                 return;
             }
         } else {
@@ -960,7 +960,7 @@ public class TransformPanel extends VBox {
         try {
             xpathField.setText(Files.readString(file.toPath(), StandardCharsets.UTF_8).strip());
         } catch (Exception e) {
-            out.showError("Could not load query: " + e.getMessage());
+            out.showFailure("Could not load query: " + e.getMessage());
         }
     }
 
@@ -983,7 +983,7 @@ public class TransformPanel extends VBox {
             if (saved != null) {
                 out.showQueryResult("Saved query: " + saved.getName(), 0);
             } else {
-                out.showError("Could not save query.");
+                out.showFailure("Could not save query.");
             }
         });
     }
