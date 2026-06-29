@@ -663,7 +663,7 @@ public class EditorHost extends BorderPane {
                 new javafx.stage.FileChooser.ExtensionFilter("XML / XSD / XSLT / Schematron / JSON",
                         "*.xml", "*.xsd", "*.xsl", "*.xslt", "*.sch", "*.schematron", "*.json"),
                 new javafx.stage.FileChooser.ExtensionFilter("All files", "*.*"));
-        File file = chooser.showOpenDialog(getScene() != null ? getScene().getWindow() : null);
+        File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
             openFile(file.toPath());
         }
@@ -2127,7 +2127,7 @@ public class EditorHost extends BorderPane {
     private boolean saveTabAs(EditorTab tab) {
         javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
         chooser.setTitle("Save As");
-        File file = chooser.showSaveDialog(getScene() != null ? getScene().getWindow() : null);
+        File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showSaveDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null && write(tab, file.toPath())) {
             tab.document.setPath(file.toPath());
             tab.refreshIcon();

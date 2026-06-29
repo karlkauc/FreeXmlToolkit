@@ -833,7 +833,7 @@ public class QualityChecksView extends BorderPane {
                 new FileChooser.ExtensionFilter("CSV Files", "*.csv"));
         fileChooser.setInitialFileName("quality-report.csv");
 
-        File file = fileChooser.showSaveDialog(getScene().getWindow());
+        File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showSaveDialog(fileChooser, getScene().getWindow());
         if (file != null) {
             try {
                 exporter.exportToCsv(currentResult, file.toPath());
@@ -860,7 +860,7 @@ public class QualityChecksView extends BorderPane {
                 new FileChooser.ExtensionFilter("JSON Files", "*.json"));
         fileChooser.setInitialFileName("quality-report.json");
 
-        File file = fileChooser.showSaveDialog(getScene().getWindow());
+        File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showSaveDialog(fileChooser, getScene().getWindow());
         if (file != null) {
             try {
                 exporter.exportToJson(currentResult, file.toPath());
@@ -887,7 +887,7 @@ public class QualityChecksView extends BorderPane {
                 new FileChooser.ExtensionFilter("PDF Files", "*.pdf"));
         fileChooser.setInitialFileName("quality-report.pdf");
 
-        File file = fileChooser.showSaveDialog(getScene().getWindow());
+        File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showSaveDialog(fileChooser, getScene().getWindow());
         if (file != null) {
             // Run PDF generation in background
             executor.submit(() -> {
@@ -919,7 +919,7 @@ public class QualityChecksView extends BorderPane {
                 new FileChooser.ExtensionFilter("HTML Files", "*.html"));
         fileChooser.setInitialFileName("quality-report.html");
 
-        File file = fileChooser.showSaveDialog(getScene().getWindow());
+        File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showSaveDialog(fileChooser, getScene().getWindow());
         if (file != null) {
             try {
                 exporter.exportToHtml(currentResult, file.toPath());
@@ -946,7 +946,7 @@ public class QualityChecksView extends BorderPane {
                 new FileChooser.ExtensionFilter("Excel Files", "*.xlsx"));
         fileChooser.setInitialFileName("quality-report.xlsx");
 
-        File file = fileChooser.showSaveDialog(getScene().getWindow());
+        File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showSaveDialog(fileChooser, getScene().getWindow());
         if (file != null) {
             // Run Excel generation in background
             executor.submit(() -> {

@@ -89,7 +89,7 @@ public class BatchTransformView extends VBox {
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Add XML files");
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML", "*.xml"));
-        List<File> chosen = chooser.showOpenMultipleDialog(getScene() != null ? getScene().getWindow() : null);
+        List<File> chosen = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenMultipleDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (chosen != null) {
             inputFiles.addAll(chosen);
             refreshFileTable();
@@ -99,7 +99,7 @@ public class BatchTransformView extends VBox {
     private void addDirectory() {
         DirectoryChooser chooser = new DirectoryChooser();
         chooser.setTitle("Add a directory of XML files");
-        File dir = chooser.showDialog(getScene() != null ? getScene().getWindow() : null);
+        File dir = org.fxt.freexmltoolkit.util.FileChooserHelper.showDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (dir != null && dir.isDirectory()) {
             File[] xmls = dir.listFiles((d, name) -> name.toLowerCase().endsWith(".xml"));
             if (xmls != null) {
@@ -164,7 +164,7 @@ public class BatchTransformView extends VBox {
         }
         DirectoryChooser chooser = new DirectoryChooser();
         chooser.setTitle("Save all results to…");
-        File dir = chooser.showDialog(getScene() != null ? getScene().getWindow() : null);
+        File dir = org.fxt.freexmltoolkit.util.FileChooserHelper.showDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (dir == null) {
             return;
         }

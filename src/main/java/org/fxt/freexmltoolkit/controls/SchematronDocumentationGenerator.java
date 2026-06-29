@@ -292,7 +292,7 @@ public class SchematronDocumentationGenerator extends VBox {
                 new FileChooser.ExtensionFilter("All Files", "*.*")
         );
 
-        File file = fileChooser.showOpenDialog(this.getScene().getWindow());
+        File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(fileChooser, this.getScene().getWindow());
         if (file != null) {
             currentSchematronFile = file;
             schematronFileField.setText(file.getAbsolutePath());
@@ -837,7 +837,7 @@ public class SchematronDocumentationGenerator extends VBox {
                 new FileChooser.ExtensionFilter("All Files", "*.*")
         );
 
-        File file = fileChooser.showSaveDialog(this.getScene().getWindow());
+        File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showSaveDialog(fileChooser, this.getScene().getWindow());
         if (file != null) {
             try {
                 Files.writeString(file.toPath(), generatedDocumentation);

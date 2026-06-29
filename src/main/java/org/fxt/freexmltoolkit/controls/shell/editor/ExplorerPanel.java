@@ -329,7 +329,7 @@ public class ExplorerPanel extends VBox {
         chooser.setTitle("Choose XSLT stylesheet");
         chooser.getExtensionFilters().add(
                 new FileChooser.ExtensionFilter("XSLT", "*.xsl", "*.xslt"));
-        File file = chooser.showOpenDialog(getScene() != null ? getScene().getWindow() : null);
+        File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
             setCurrentXslt(file);
         }
@@ -445,7 +445,7 @@ public class ExplorerPanel extends VBox {
     private void chooseFolder() {
         DirectoryChooser chooser = new DirectoryChooser();
         chooser.setTitle("Open Folder");
-        File dir = chooser.showDialog(getScene() != null ? getScene().getWindow() : null);
+        File dir = org.fxt.freexmltoolkit.util.FileChooserHelper.showDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (dir != null) {
             setWorkspaceFolder(dir.toPath());
         }
@@ -458,7 +458,7 @@ public class ExplorerPanel extends VBox {
                 new FileChooser.ExtensionFilter("XML / XSD / XSLT / Schematron / JSON",
                         "*.xml", "*.xsd", "*.xsl", "*.xslt", "*.sch", "*.schematron", "*.json"),
                 new FileChooser.ExtensionFilter("All files", "*.*"));
-        File file = chooser.showOpenDialog(getScene() != null ? getScene().getWindow() : null);
+        File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
             editorHost.openFile(file.toPath());
         }

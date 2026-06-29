@@ -304,7 +304,7 @@ public class SettingsPanel extends VBox {
 
     private void chooseDirInto(TextField field) {
         javafx.stage.DirectoryChooser chooser = new javafx.stage.DirectoryChooser();
-        File dir = chooser.showDialog(getScene() != null ? getScene().getWindow() : null);
+        File dir = org.fxt.freexmltoolkit.util.FileChooserHelper.showDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (dir != null) {
             field.setText(dir.getAbsolutePath());
         }

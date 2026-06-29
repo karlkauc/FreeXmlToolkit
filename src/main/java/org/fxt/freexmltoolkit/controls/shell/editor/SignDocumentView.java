@@ -289,7 +289,7 @@ public class SignDocumentView extends ScrollPane {
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Select XML document");
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML", "*.xml"));
-        File file = chooser.showOpenDialog(getScene() != null ? getScene().getWindow() : null);
+        File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
             setDocument(file);
         }

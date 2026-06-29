@@ -284,7 +284,7 @@ public class TransformPanel extends VBox {
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Select Input XML");
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML", "*.xml"));
-        File file = chooser.showOpenDialog(getScene() != null ? getScene().getWindow() : null);
+        File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
             setInputOverride(file);
         }
@@ -794,7 +794,7 @@ public class TransformPanel extends VBox {
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Select XSLT");
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XSLT", "*.xsl", "*.xslt"));
-        File file = chooser.showOpenDialog(getScene() != null ? getScene().getWindow() : null);
+        File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
             setXsltFile(file);
         }

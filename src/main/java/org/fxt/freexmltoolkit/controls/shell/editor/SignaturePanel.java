@@ -361,7 +361,7 @@ public class SignaturePanel extends VBox {
         chooser.setTitle("Select trust store");
         chooser.getExtensionFilters().add(
                 new FileChooser.ExtensionFilter("Key/Trust store", "*.jks", "*.p12", "*.pfx", "*.keystore"));
-        File file = chooser.showOpenDialog(getScene() != null ? getScene().getWindow() : null);
+        File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
             trustStoreFile = file;
             trustStoreName.setText(file.getName());
@@ -439,7 +439,7 @@ public class SignaturePanel extends VBox {
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Select Keystore");
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Java KeyStore", "*.jks", "*.keystore"));
-        File file = chooser.showOpenDialog(getScene() != null ? getScene().getWindow() : null);
+        File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
             setKeystore(file);
         }

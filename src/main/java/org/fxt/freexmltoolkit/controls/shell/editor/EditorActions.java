@@ -144,7 +144,7 @@ public final class EditorActions {
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Transform with XSLT…");
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XSLT", "*.xsl", "*.xslt"));
-        File xslt = chooser.showOpenDialog(window);
+        File xslt = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, window);
         if (xslt == null) {
             return;
         }

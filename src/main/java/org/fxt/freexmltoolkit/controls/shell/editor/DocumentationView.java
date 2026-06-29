@@ -748,7 +748,7 @@ public class DocumentationView extends BorderPane {
         chooser.setTitle("Select favicon");
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(
                 "Favicon", "*.ico", "*.png", "*.svg", "*.gif"));
-        File file = chooser.showOpenDialog(getScene() != null ? getScene().getWindow() : null);
+        File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
             setFavicon(file);
         }
@@ -758,7 +758,7 @@ public class DocumentationView extends BorderPane {
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Select XSD schema");
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XSD", "*.xsd"));
-        File file = chooser.showOpenDialog(getScene() != null ? getScene().getWindow() : null);
+        File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
             xsdFile = file;
             refreshNames();
@@ -774,7 +774,7 @@ public class DocumentationView extends BorderPane {
             default -> {
                 DirectoryChooser chooser = new DirectoryChooser();
                 chooser.setTitle("Choose output directory for HTML documentation");
-                File dir = chooser.showDialog(window);
+                File dir = org.fxt.freexmltoolkit.util.FileChooserHelper.showDialog(chooser, window);
                 if (dir != null) {
                     outputTarget = dir;
                 }
@@ -788,7 +788,7 @@ public class DocumentationView extends BorderPane {
         chooser.setTitle("Save documentation as " + label);
         chooser.setInitialFileName(initialName);
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(label, glob));
-        return chooser.showSaveDialog(window);
+        return org.fxt.freexmltoolkit.util.FileChooserHelper.showSaveDialog(chooser, window);
     }
 
     private void refreshNames() {

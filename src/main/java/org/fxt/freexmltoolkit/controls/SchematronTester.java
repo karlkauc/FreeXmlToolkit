@@ -389,7 +389,7 @@ public class SchematronTester extends VBox {
                 new FileChooser.ExtensionFilter("All Files", "*.*")
         );
 
-        File file = fileChooser.showOpenDialog(this.getScene().getWindow());
+        File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(fileChooser, this.getScene().getWindow());
         if (file != null) {
             currentSchematronFile = file;
             schematronFileField.setText(file.getAbsolutePath());
@@ -409,7 +409,7 @@ public class SchematronTester extends VBox {
                 new FileChooser.ExtensionFilter("All Files", "*.*")
         );
 
-        List<File> files = fileChooser.showOpenMultipleDialog(this.getScene().getWindow());
+        List<File> files = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenMultipleDialog(fileChooser, this.getScene().getWindow());
         if (files != null) {
             for (File file : files) {
                 TestFile testFile = new TestFile(file);

@@ -642,7 +642,7 @@ public class SchemaStatisticsView extends BorderPane {
         fileChooser.setInitialFileName("xsd-statistics.csv");
 
         Window window = getScene() != null ? getScene().getWindow() : null;
-        File file = fileChooser.showSaveDialog(window);
+        File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showSaveDialog(fileChooser, window);
 
         if (file != null) {
             try {
@@ -670,7 +670,7 @@ public class SchemaStatisticsView extends BorderPane {
         fileChooser.setInitialFileName("xsd-statistics.json");
 
         Window window = getScene() != null ? getScene().getWindow() : null;
-        File file = fileChooser.showSaveDialog(window);
+        File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showSaveDialog(fileChooser, window);
 
         if (file != null) {
             try {
@@ -698,7 +698,7 @@ public class SchemaStatisticsView extends BorderPane {
         fileChooser.setInitialFileName("xsd-statistics.pdf");
 
         Window window = getScene() != null ? getScene().getWindow() : null;
-        File file = fileChooser.showSaveDialog(window);
+        File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showSaveDialog(fileChooser, window);
 
         if (file != null) {
             loadingIndicator.setVisible(true);
@@ -735,7 +735,7 @@ public class SchemaStatisticsView extends BorderPane {
         fileChooser.setInitialFileName("xsd-statistics.html");
 
         Window window = getScene() != null ? getScene().getWindow() : null;
-        File file = fileChooser.showSaveDialog(window);
+        File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showSaveDialog(fileChooser, window);
 
         if (file != null) {
             try {
@@ -763,7 +763,7 @@ public class SchemaStatisticsView extends BorderPane {
         fileChooser.setInitialFileName("xsd-statistics.xlsx");
 
         Window window = getScene() != null ? getScene().getWindow() : null;
-        File file = fileChooser.showSaveDialog(window);
+        File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showSaveDialog(fileChooser, window);
 
         if (file != null) {
             loadingIndicator.setVisible(true);

@@ -504,7 +504,7 @@ public class ValidationPanel extends VBox {
         javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
         chooser.setTitle("Select XML files to validate");
         chooser.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter("XML", "*.xml"));
-        java.util.List<File> files = chooser.showOpenMultipleDialog(
+        java.util.List<File> files = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenMultipleDialog(chooser, 
                 getScene() != null ? getScene().getWindow() : null);
         runBatch(files);
     }
@@ -512,7 +512,7 @@ public class ValidationPanel extends VBox {
     private void chooseBatchFolder() {
         DirectoryChooser chooser = new DirectoryChooser();
         chooser.setTitle("Select folder with XML files");
-        File dir = chooser.showDialog(getScene() != null ? getScene().getWindow() : null);
+        File dir = org.fxt.freexmltoolkit.util.FileChooserHelper.showDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (dir != null) {
             runBatchForDirectory(dir);
         }
@@ -554,7 +554,7 @@ public class ValidationPanel extends VBox {
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Select XSD schema");
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML Schema", "*.xsd"));
-        File file = chooser.showOpenDialog(getScene() != null ? getScene().getWindow() : null);
+        File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
             useXsd(file);
         }
@@ -638,7 +638,7 @@ public class ValidationPanel extends VBox {
         chooser.setTitle("Select Schematron");
         chooser.getExtensionFilters().add(
                 new FileChooser.ExtensionFilter("Schematron", "*.sch", "*.schematron"));
-        File file = chooser.showOpenDialog(getScene() != null ? getScene().getWindow() : null);
+        File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
             editorHost.setActiveSchematron(file);
             refreshSchematronStatus();
@@ -649,7 +649,7 @@ public class ValidationPanel extends VBox {
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Select JSON Schema");
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("JSON Schema", "*.json"));
-        File file = chooser.showOpenDialog(getScene() != null ? getScene().getWindow() : null);
+        File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
             jsonSchemaFile = file;
             status.setText("JSON Schema: " + file.getName());
@@ -685,7 +685,7 @@ public class ValidationPanel extends VBox {
         chooser.setTitle("Export problems to Excel");
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Excel Workbook", "*.xlsx"));
         chooser.setInitialFileName((sourceName != null ? stripExtension(sourceName) : "validation") + "-problems.xlsx");
-        File target = chooser.showSaveDialog(getScene() != null ? getScene().getWindow() : null);
+        File target = org.fxt.freexmltoolkit.util.FileChooserHelper.showSaveDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (target == null) {
             return;
         }

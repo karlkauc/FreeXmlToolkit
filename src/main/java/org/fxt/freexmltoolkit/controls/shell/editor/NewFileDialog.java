@@ -208,7 +208,7 @@ public class NewFileDialog extends Dialog<NewFileDialog.Result> {
         chooser.getExtensionFilters().addAll(
                 new FileChooser.ExtensionFilter("XSD Schema", "*.xsd"),
                 new FileChooser.ExtensionFilter("All files", "*.*"));
-        File file = chooser.showOpenDialog(getOwnerWindow());
+        File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getOwnerWindow());
         if (file != null) {
             if (!schemaSourceBox.getItems().contains(file)) {
                 schemaSourceBox.getItems().add(file);
@@ -226,7 +226,7 @@ public class NewFileDialog extends Dialog<NewFileDialog.Result> {
         chooser.getExtensionFilters().add(
                 new FileChooser.ExtensionFilter(type.label() + " files", "*." + ext));
         chooser.setInitialFileName("untitled." + ext);
-        File file = chooser.showSaveDialog(getOwnerWindow());
+        File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showSaveDialog(chooser, getOwnerWindow());
         if (file != null) {
             saveLocation.setText(file.getAbsolutePath());
         }

@@ -241,7 +241,7 @@ public class TypeLibraryPanel extends VBox {
         javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
         chooser.setTitle("Select XML files to infer a schema from");
         chooser.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter("XML", "*.xml"));
-        java.util.List<File> files = chooser.showOpenMultipleDialog(
+        java.util.List<File> files = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenMultipleDialog(chooser, 
                 getScene() != null ? getScene().getWindow() : null);
         if (files == null || files.isEmpty()) {
             return;
@@ -362,7 +362,7 @@ public class TypeLibraryPanel extends VBox {
         }
         javafx.stage.DirectoryChooser chooser = new javafx.stage.DirectoryChooser();
         chooser.setTitle("Choose output folder for " + profile.getBatchCount() + " files");
-        File dir = chooser.showDialog(getScene() != null ? getScene().getWindow() : null);
+        File dir = org.fxt.freexmltoolkit.util.FileChooserHelper.showDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (dir == null) {
             return;
         }

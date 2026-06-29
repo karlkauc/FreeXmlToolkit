@@ -253,7 +253,7 @@ public class FopPanel extends VBox {
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Select XSL-FO Stylesheet");
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XSL", "*.xsl", "*.xslt"));
-        File file = chooser.showOpenDialog(getScene() != null ? getScene().getWindow() : null);
+        File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
             setXslFile(file);
         }
@@ -263,7 +263,7 @@ public class FopPanel extends VBox {
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Select XML file");
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML", "*.xml"));
-        File file = chooser.showOpenDialog(getScene() != null ? getScene().getWindow() : null);
+        File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
             setXmlOverride(file);
         }
@@ -273,7 +273,7 @@ public class FopPanel extends VBox {
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Save PDF");
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF", "*.pdf"));
-        File file = chooser.showSaveDialog(getScene() != null ? getScene().getWindow() : null);
+        File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showSaveDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
             generateTo(file);
         }

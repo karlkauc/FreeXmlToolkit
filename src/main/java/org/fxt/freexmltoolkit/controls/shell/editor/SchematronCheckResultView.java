@@ -77,7 +77,7 @@ public class SchematronCheckResultView extends VBox {
         chooser.setInitialFileName("schematron-results." + extension);
         chooser.getExtensionFilters().add(
                 new FileChooser.ExtensionFilter(filterName + " File (*." + extension + ")", "*." + extension));
-        File file = chooser.showSaveDialog(getScene() != null ? getScene().getWindow() : null);
+        File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showSaveDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file == null) {
             return;
         }

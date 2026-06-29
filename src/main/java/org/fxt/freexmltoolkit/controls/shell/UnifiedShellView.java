@@ -683,7 +683,7 @@ public class UnifiedShellView extends BorderPane {
         }
         javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
         chooser.setTitle("Save As");
-        java.io.File file = chooser.showSaveDialog(getScene() != null ? getScene().getWindow() : null);
+        java.io.File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showSaveDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
             editorHost.saveActiveAs(file.toPath());
         }
@@ -779,7 +779,7 @@ public class UnifiedShellView extends BorderPane {
                 new javafx.stage.FileChooser.ExtensionFilter("XML / XSD / XSLT / Schematron / JSON",
                         "*.xml", "*.xsd", "*.xsl", "*.xslt", "*.sch", "*.schematron", "*.json"),
                 new javafx.stage.FileChooser.ExtensionFilter("All files", "*.*"));
-        java.io.File file = chooser.showOpenDialog(getScene() != null ? getScene().getWindow() : null);
+        java.io.File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
             editorHost.openFile(file.toPath());
         }
@@ -839,7 +839,7 @@ public class UnifiedShellView extends BorderPane {
             chooser.getExtensionFilters().add(excel
                     ? new javafx.stage.FileChooser.ExtensionFilter("Excel", "*.xlsx")
                     : new javafx.stage.FileChooser.ExtensionFilter("CSV", "*.csv"));
-            java.io.File out = chooser.showSaveDialog(window);
+            java.io.File out = org.fxt.freexmltoolkit.util.FileChooserHelper.showSaveDialog(chooser, window);
             if (out == null) {
                 return;
             }
@@ -856,7 +856,7 @@ public class UnifiedShellView extends BorderPane {
             chooser.setTitle("Import spreadsheet");
             chooser.getExtensionFilters().add(
                     new javafx.stage.FileChooser.ExtensionFilter("Excel / CSV", "*.xlsx", "*.csv"));
-            java.io.File in = chooser.showOpenDialog(window);
+            java.io.File in = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, window);
             if (in == null) {
                 return;
             }
@@ -932,7 +932,7 @@ public class UnifiedShellView extends BorderPane {
                 new javafx.stage.FileChooser.ExtensionFilter("XML / XSD / XSLT / Schematron / JSON",
                         "*.xml", "*.xsd", "*.xsl", "*.xslt", "*.sch", "*.schematron", "*.json"),
                 new javafx.stage.FileChooser.ExtensionFilter("All files", "*.*"));
-        java.io.File file = chooser.showOpenDialog(getScene() != null ? getScene().getWindow() : null);
+        java.io.File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
             editorHost.openDiffWithFile(file);
         }
@@ -945,7 +945,7 @@ public class UnifiedShellView extends BorderPane {
         javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
         chooser.setTitle("Select XSD Schema");
         chooser.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter("XSD Schema", "*.xsd"));
-        java.io.File file = chooser.showOpenDialog(getScene() != null ? getScene().getWindow() : null);
+        java.io.File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
             editorHost.setSchemaForActiveDocument(file);
         }

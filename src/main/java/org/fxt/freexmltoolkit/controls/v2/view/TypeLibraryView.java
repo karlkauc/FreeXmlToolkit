@@ -942,7 +942,7 @@ public class TypeLibraryView extends BorderPane {
         fileChooser.getExtensionFilters().add(extFilter);
 
         // Show save dialog
-        File file = fileChooser.showSaveDialog(this.getScene().getWindow());
+        File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showSaveDialog(fileChooser, this.getScene().getWindow());
         if (file == null) {
             return; // User cancelled
         }
