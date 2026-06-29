@@ -15,6 +15,7 @@ import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
@@ -33,6 +34,7 @@ import javafx.util.Duration;
 import org.fxt.freexmltoolkit.FxtGui;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.shell.editor.debug.BatchTransformView;
+import org.fxt.freexmltoolkit.domain.FileFavorite;
 import org.fxt.freexmltoolkit.service.FavoritesService;
 import org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat;
 
@@ -76,6 +78,24 @@ public class TransformPanel extends VBox {
     /** The source document of the latest transform (so a re-run from the result tab works). */
     private OpenDocument sourceDocument;
 
+    // --- favorites browsing (◀/▶ through XSLT / XML favorites, optionally folder-scoped) ---
+    /** Star menu listing XSLT favorites (grouped by folder) for the STYLESHEET row. */
+    private final MenuButton xsltFavMenu = new MenuButton();
+    /** Star menu listing XML favorites (grouped by folder) for the INPUT row. */
+    private final MenuButton inputFavMenu = new MenuButton();
+    /** The current browse list for the stylesheet axis, and the cursor into it (-1 = none). */
+    private List<File> xsltBrowse = List.of();
+    private int xsltBrowseIdx = -1;
+    /** The current browse list for the input axis, and the cursor into it (-1 = none). */
+    private List<File> inputBrowse = List.of();
+    private int inputBrowseIdx = -1;
+    private final Button prevXsltBtn = navButton("bi-chevron-left", this::prevXslt);
+    private final Button nextXsltBtn = navButton("bi-chevron-right", this::nextXslt);
+    private final Button prevInputBtn = navButton("bi-chevron-left", this::prevInput);
+    private final Button nextInputBtn = navButton("bi-chevron-right", this::nextInput);
+    private final Label xsltPos = new Label();
+    private final Label inputPos = new Label();
+
     public TransformPanel(EditorHost editorHost) {
         this.editorHost = editorHost;
         this.out = editorHost.transformOutputPanel();
@@ -101,7 +121,13 @@ public class TransformPanel extends VBox {
         recentXsltMenu.setGraphic(icon("bi-clock-history", 13));
         recentXsltMenu.getStyleClass().add("fxt-vp-source-fav");
         recentXsltMenu.setOnShowing(e -> refreshRecentXsltMenu());
-        HBox xsltRow = sourceRow("bi-arrow-repeat", xsltName, this::chooseXslt, recentXsltMenu);
+        xsltFavMenu.setGraphic(icon("bi-star", 13));
+        xsltFavMenu.getStyleClass().add("fxt-vp-source-fav");
+        xsltFavMenu.setOnShowing(e -> refreshXsltFavMenu());
+        xsltPos.getStyleClass().add("fxt-vp-browse-pos");
+        HBox xsltRow = sourceRow("bi-arrow-repeat", xsltName, this::chooseXslt,
+                recentXsltMenu, xsltFavMenu, prevXsltBtn, xsltPos, nextXsltBtn);
+        updateXsltPos();
         HBox stylesheetHeader = SidePanelLayout.sectionHeader(new Label("STYLESHEET"), xsltRow);
 
         // --- INPUT ------------------------------------------------------------
@@ -109,8 +135,14 @@ public class TransformPanel extends VBox {
         ContextMenu inputMenu = new ContextMenu(
                 menuItem("Select XML file…", this::chooseInputFile),
                 menuItem("Use active editor", () -> setInputOverride(null)));
+        inputFavMenu.setGraphic(icon("bi-star", 13));
+        inputFavMenu.getStyleClass().add("fxt-vp-source-fav");
+        inputFavMenu.setOnShowing(e -> refreshInputFavMenu());
+        inputPos.getStyleClass().add("fxt-vp-browse-pos");
         HBox inputRow = sourceRow("bi-code-slash", inputName, () ->
-                inputMenu.show(inputName, javafx.geometry.Side.BOTTOM, 0, 0));
+                inputMenu.show(inputName, javafx.geometry.Side.BOTTOM, 0, 0),
+                inputFavMenu, prevInputBtn, inputPos, nextInputBtn);
+        updateInputPos();
         HBox inputHeader = SidePanelLayout.sectionHeader(new Label("INPUT"), inputRow);
         refreshInputName();
         editorHost.activeTabProperty().addListener((obs, oldV, newV) -> refreshInputName());
@@ -536,6 +568,232 @@ public class TransformPanel extends VBox {
                 .map(MenuItem::getText)
                 .filter(t -> !"Clear recent".equals(t))
                 .toList();
+    }
+
+    // ----- favorites browsing (◀/▶ through XSLT / XML favorites) ----------------
+
+    /** A compact icon-only navigation button (◀/▶) for the source rows. */
+    private Button navButton(String iconLiteral, Runnable action) {
+        Button button = new Button(null, icon(iconLiteral, 13));
+        button.getStyleClass().add("fxt-vp-browse-nav");
+        button.setOnAction(e -> action.run());
+        return button;
+    }
+
+    /** Rebuilds the STYLESHEET star menu: "All XSLT favorites" + one submenu per folder. */
+    public void refreshXsltFavMenu() {
+        populateFavMenu(xsltFavMenu, FileFavorite.FileType.XSLT, "All XSLT favorites", this::selectXslt);
+    }
+
+    /** Rebuilds the INPUT star menu: "All XML favorites" + one submenu per folder. */
+    public void refreshInputFavMenu() {
+        populateFavMenu(inputFavMenu, FileFavorite.FileType.XML, "All XML favorites", this::selectInput);
+    }
+
+    /**
+     * Populates a star menu with favorites of {@code type}: a top-level "all" entry
+     * that browses every favorite, followed by one submenu per folder. Each leaf item
+     * establishes its sibling group as the browse list. Non-existent files are skipped.
+     */
+    private void populateFavMenu(MenuButton menu, FileFavorite.FileType type,
+                                 String allLabel, java.util.function.BiConsumer<List<File>, File> onPick) {
+        menu.getItems().clear();
+        List<FileFavorite> favorites;
+        try {
+            favorites = FavoritesService.getInstance().getFavoritesByType(type).stream()
+                    .filter(FileFavorite::fileExists)
+                    .toList();
+        } catch (Throwable t) {
+            favorites = List.of();
+        }
+        if (favorites.isEmpty()) {
+            menu.setDisable(true);
+            return;
+        }
+        menu.setDisable(false);
+
+        List<File> all = favorites.stream().map(f -> new File(f.getFilePath())).toList();
+        MenuItem allItem = new MenuItem(allLabel + " (" + all.size() + ")");
+        allItem.setOnAction(e -> onPick.accept(all, all.getFirst()));
+        menu.getItems().add(allItem);
+
+        // Group the remaining favorites by folder, building one submenu each.
+        java.util.Map<String, List<FileFavorite>> byFolder = new java.util.LinkedHashMap<>();
+        for (FileFavorite fav : favorites) {
+            String folder = (fav.getFolderName() == null || fav.getFolderName().isBlank())
+                    ? "Uncategorized" : fav.getFolderName();
+            byFolder.computeIfAbsent(folder, k -> new java.util.ArrayList<>()).add(fav);
+        }
+        if (!byFolder.isEmpty()) {
+            menu.getItems().add(new SeparatorMenuItem());
+        }
+        for (var entry : byFolder.entrySet()) {
+            Menu submenu = new Menu(entry.getKey());
+            List<File> group = entry.getValue().stream().map(f -> new File(f.getFilePath())).toList();
+            for (FileFavorite fav : entry.getValue()) {
+                File file = new File(fav.getFilePath());
+                MenuItem item = new MenuItem(fav.getName());
+                item.setOnAction(e -> onPick.accept(group, file));
+                submenu.getItems().add(item);
+            }
+            menu.getItems().add(submenu);
+        }
+    }
+
+    /** Sets the stylesheet browse list to {@code group}, positions on {@code file}, and applies it. */
+    void selectXslt(List<File> group, File file) {
+        xsltBrowse = group;
+        xsltBrowseIdx = Math.max(0, group.indexOf(file));
+        applyXslt(file);
+    }
+
+    /** Sets the input browse list to {@code group}, positions on {@code file}, and applies it. */
+    void selectInput(List<File> group, File file) {
+        inputBrowse = group;
+        inputBrowseIdx = Math.max(0, group.indexOf(file));
+        applyInput(file);
+    }
+
+    /** Steps the stylesheet cursor (cyclically) and applies the new file. */
+    public void nextXslt() { stepXslt(+1); }
+
+    public void prevXslt() { stepXslt(-1); }
+
+    private void stepXslt(int delta) {
+        if (xsltBrowse.isEmpty()) {
+            return;
+        }
+        xsltBrowseIdx = Math.floorMod(xsltBrowseIdx + delta, xsltBrowse.size());
+        applyXslt(xsltBrowse.get(xsltBrowseIdx));
+    }
+
+    /** Steps the input cursor (cyclically) and applies the new file. */
+    public void nextInput() { stepInput(+1); }
+
+    public void prevInput() { stepInput(-1); }
+
+    private void stepInput(int delta) {
+        if (inputBrowse.isEmpty()) {
+            return;
+        }
+        inputBrowseIdx = Math.floorMod(inputBrowseIdx + delta, inputBrowse.size());
+        applyInput(inputBrowse.get(inputBrowseIdx));
+    }
+
+    private void applyXslt(File file) {
+        recordAccess(file);
+        setXsltFile(file);
+        updateXsltPos();
+        if (readyToAutoRun()) {
+            transform();
+        }
+    }
+
+    private void applyInput(File file) {
+        recordAccess(file);
+        setInputOverride(file);
+        updateInputPos();
+        if (readyToAutoRun()) {
+            transform();
+        }
+    }
+
+    private void recordAccess(File file) {
+        try {
+            FavoritesService.getInstance().recordAccess(file.getAbsolutePath());
+        } catch (Throwable ignored) {
+            // access tracking is best-effort
+        }
+    }
+
+    /**
+     * @return true when both transform axes are present — a stylesheet is selected and an
+     * input is available (override file or active editor document) — so auto-run won't error.
+     */
+    boolean readyToAutoRun() {
+        boolean hasInput = inputOverride != null || editorHost.getActiveDocument().isPresent();
+        return xsltFile != null && hasInput;
+    }
+
+    /** Refreshes the STYLESHEET position label and shows/hides its ◀/▶ controls. */
+    private void updateXsltPos() {
+        updateBrowseControls(xsltBrowse, xsltBrowseIdx, xsltPos, prevXsltBtn, nextXsltBtn);
+    }
+
+    /** Refreshes the INPUT position label and shows/hides its ◀/▶ controls. */
+    private void updateInputPos() {
+        updateBrowseControls(inputBrowse, inputBrowseIdx, inputPos, prevInputBtn, nextInputBtn);
+    }
+
+    private void updateBrowseControls(List<File> browse, int idx, Label pos, Button prev, Button next) {
+        boolean active = !browse.isEmpty();
+        pos.setText(active ? (idx + 1) + " / " + browse.size() : "");
+        for (var node : new javafx.scene.Node[]{pos, prev, next}) {
+            node.setVisible(active);
+            node.setManaged(active);
+        }
+    }
+
+    /** @return the current stylesheet browse position as "i / n", or "" if not browsing (for tests). */
+    public String xsltBrowsePosition() {
+        return xsltPos.getText();
+    }
+
+    /** @return the current input browse position as "i / n", or "" if not browsing (for tests). */
+    public String inputBrowsePosition() {
+        return inputPos.getText();
+    }
+
+    /** @return the leaf labels (top-level + submenu items) of the XSLT star menu (for tests). */
+    public List<String> xsltFavoriteNames() {
+        return favMenuLeafNames(xsltFavMenu);
+    }
+
+    /** @return the leaf labels (top-level + submenu items) of the XML star menu (for tests). */
+    public List<String> inputFavoriteNames() {
+        return favMenuLeafNames(inputFavMenu);
+    }
+
+    private static List<String> favMenuLeafNames(MenuButton menu) {
+        List<String> names = new java.util.ArrayList<>();
+        for (MenuItem item : menu.getItems()) {
+            if (item instanceof SeparatorMenuItem) {
+                continue;
+            }
+            if (item instanceof Menu sub) {
+                for (MenuItem leaf : sub.getItems()) {
+                    names.add(leaf.getText());
+                }
+            } else {
+                names.add(item.getText());
+            }
+        }
+        return names;
+    }
+
+    /** Fires the "All …" entry of a star menu (for tests), establishing the full browse list. */
+    void browseAllXsltFavorites() {
+        refreshXsltFavMenu();
+        if (!xsltFavMenu.getItems().isEmpty()) {
+            xsltFavMenu.getItems().getFirst().fire();
+        }
+    }
+
+    void browseAllInputFavorites() {
+        refreshInputFavMenu();
+        if (!inputFavMenu.getItems().isEmpty()) {
+            inputFavMenu.getItems().getFirst().fire();
+        }
+    }
+
+    /** @return the currently selected stylesheet file (for tests). */
+    File currentXsltFile() {
+        return xsltFile;
+    }
+
+    /** @return the current fixed input override file, or {@code null} (for tests). */
+    File currentInputOverride() {
+        return inputOverride;
     }
 
     // ----- transform ------------------------------------------------------------

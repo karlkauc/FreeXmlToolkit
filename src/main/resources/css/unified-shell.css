@@ -1454,6 +1454,27 @@
     -fx-icon-color: -fxt-accent;
 }
 
+/* ◀/▶ favorite-browse navigation buttons and the "i / n" position label. */
+.fxt-vp-browse-nav {
+    -fx-background-color: transparent;
+    -fx-padding: 0 2 0 2;
+    -fx-cursor: hand;
+}
+
+.fxt-vp-browse-nav .iconify-icon {
+    -fx-icon-color: -fxt-text-muted;
+}
+
+.fxt-vp-browse-nav:hover .iconify-icon {
+    -fx-icon-color: -fxt-accent;
+}
+
+.fxt-vp-browse-pos {
+    -fx-font-size: 11px;
+    -fx-text-fill: -fxt-text-muted;
+    -fx-padding: 0 2 0 2;
+}
+
 .fxt-vp-change {
     -fx-font-size: 11.5px;
     -fx-text-fill: -fxt-primary;
