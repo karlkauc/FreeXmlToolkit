@@ -284,6 +284,8 @@ or expand that section.
 - **Change** - pick an `.xsl` / `.xslt` file from disk.
 - The **clock icon** opens the **recent stylesheets** menu: reapply a recently used
   stylesheet in a single click, or choose **Clear recent** to empty the list.
+- The **star icon** opens your **XSLT favorites** - see
+  [Browsing favorites with ◀ / ▶](#browsing-favorites) below.
 
 ### INPUT
 
@@ -295,6 +297,41 @@ The INPUT section shows which document the transform will use as its input:
     - **Select XML file…** - transform a fixed XML file from disk instead, regardless of
       which editor tab is active.
     - **Use active editor** - go back to following the active tab.
+- The **star icon** opens your **XML favorites** - see
+  [Browsing favorites with ◀ / ▶](#browsing-favorites) below.
+
+### Browsing favorites with ◀ / ▶ {#browsing-favorites}
+
+> **New in June 2026** - Pick stylesheets and input files straight from your
+> [Favorites](favorites-system.md) and page through them, so you can run the same
+> stylesheet over many files, or many stylesheets over one file, without ever opening a
+> file chooser.
+
+Both the **STYLESHEET** and the **INPUT** rows carry a **star icon**, a pair of
+**◀ / ▶ navigation buttons**, and a small **"i / n" position label**.
+
+- The **star menu** lists the favorites of the matching type - **XSLT** favorites for
+  STYLESHEET, **XML** favorites for INPUT - grouped by their folder (category). An
+  **"All … favorites"** entry at the top selects the whole list at once.
+- **Picking a favorite** (or an "All"/folder entry) does two things: it sets the current
+  file, and it builds a **browse list** from that selection.
+- The **◀ / ▶ buttons** then step backward and forward through that browse list. Browsing
+  is **cyclic**: pressing ▶ on the last entry wraps to the first, and ◀ on the first wraps
+  to the last. The **"i / n" label** shows your position (for example, *3 / 12*).
+- Each ◀ / ▶ step **runs the transformation automatically** - but only once **both** sides
+  are ready: a stylesheet is selected **and** an input is available (either a chosen input
+  file or the active editor document). Until both are present, stepping just loads the file
+  without transforming.
+
+This supports two common workflows:
+
+1. **Fix the input, step through stylesheets.** Keep one XML file as input, then page
+   through several data-quality or reporting stylesheets with ▶ to see each result in turn.
+2. **Fix the stylesheet, step through inputs.** Choose one XSLT stylesheet, then page
+   through many XML input files with ▶ to apply the same transformation to each.
+
+The existing **Change** file chooser, the **clock** (recent stylesheets) menu, and **Use
+active editor** all keep working exactly as before.
 
 ### OUTPUT METHOD
 
