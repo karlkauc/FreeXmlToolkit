@@ -44,7 +44,9 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdInclude;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement;
+import org.fxt.freexmltoolkit.controls.shared.utilities.XmlElementAtCaret;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNodeXPath;
 
 /**
  * The Unified shell inspector — the editable properties pane. It keeps the Figma flat
@@ -212,7 +214,7 @@ public class InspectorPanel extends VBox {
         updateValidationBadge(editorHost.validationStatusProperty().get());
 
         TitledPane nodeXPathSection = section("NODE & XPATH", new VBox(4,
-                row("Kind", kindValue), row("Name", nameField), row("XPath", xpathValue), row("Depth", depthValue)));
+                row("Kind", kindValue), row("Name", nameField), xpathRow(), row("Depth", depthValue)));
         typeFacetsSection = section("TYPE & FACETS", buildTypeFacetsBody());
         namespaceSection = section("NAMESPACE", buildNamespaceBody());
         valueAttrSection = section("VALUE & ATTRIBUTES", buildValueAttrBody());
@@ -1206,11 +1208,7 @@ public class InspectorPanel extends VBox {
     }
 
     private String xmlXPath(XmlNode node) {
-        java.util.Deque<String> parts = new java.util.ArrayDeque<>();
-        for (XmlNode n = node; n instanceof XmlElement e; n = n.getParent()) {
-            parts.push(e.getName());
-        }
-        return parts.isEmpty() ? "/" : "/" + String.join("/", parts);
+        return XmlNodeXPath.positional(node);
     }
 
     private int xmlDepth(XmlNode node) {
@@ -1430,6 +1428,77 @@ public class InspectorPanel extends VBox {
         pane.setExpanded(true);
         pane.getStyleClass().add("fxt-inspector-section");
         return pane;
+    }
+
+    /**
+     * The "XPath" row with two copy affordances: "Copy XPath" (positional) and
+     * "Copy Node (XML)". Both act on the selected model node when one is present
+     * (grid/graphic mode), otherwise on the element enclosing the editor caret
+     * (text mode). The buttons are disabled while no node/XPath is shown.
+     */
+    private HBox xpathRow() {
+        Label k = new Label("XPath");
+        k.getStyleClass().add("fxt-inspector-key");
+        k.setMinWidth(92);
+        xpathValue.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(xpathValue, Priority.ALWAYS);
+
+        javafx.scene.control.Button copyXPathButton = iconButton("bi-clipboard", "Copy XPath", this::copyXPathToClipboard);
+        javafx.scene.control.Button copyNodeButton = iconButton("bi-clipboard-data", "Copy Node (XML)", this::copyNodeToClipboard);
+        var disabled = javafx.beans.binding.Bindings.createBooleanBinding(
+                () -> {
+                    String t = xpathValue.getText();
+                    return t == null || t.isBlank() || PLACEHOLDER.equals(t);
+                },
+                xpathValue.textProperty());
+        copyXPathButton.disableProperty().bind(disabled);
+        copyNodeButton.disableProperty().bind(disabled);
+
+        HBox row = new HBox(8, k, xpathValue, copyXPathButton, copyNodeButton);
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.getStyleClass().add("fxt-inspector-row");
+        return row;
+    }
+
+    private javafx.scene.control.Button iconButton(String icon, String tooltip, Runnable action) {
+        IconifyIcon graphic = new IconifyIcon(icon);
+        graphic.setIconSize(13);
+        javafx.scene.control.Button button = new javafx.scene.control.Button(null, graphic);
+        button.getStyleClass().add("fxt-inspector-icon-button");
+        button.setTooltip(new javafx.scene.control.Tooltip(tooltip));
+        button.setOnAction(e -> action.run());
+        return button;
+    }
+
+    /** Copies the positional XPath of the selected node, or of the element at the caret. */
+    public void copyXPathToClipboard() {
+        String xpath = currentXmlNode != null
+                ? XmlNodeXPath.positional(currentXmlNode)
+                : caretElement().map(XmlElementAtCaret.Result::xpath).orElse(xpathValue.getText());
+        if (xpath != null && !xpath.isBlank() && !xpath.equals("/") && !PLACEHOLDER.equals(xpath)) {
+            copyToClipboard(xpath);
+        }
+    }
+
+    /** Copies the XML of the selected node, or of the element at the caret. */
+    public void copyNodeToClipboard() {
+        String xml = currentXmlNode != null
+                ? currentXmlNode.serialize(0)
+                : caretElement().map(XmlElementAtCaret.Result::xml).orElse(null);
+        if (xml != null && !xml.isEmpty()) {
+            copyToClipboard(xml);
+        }
+    }
+
+    /** @return the element enclosing the editor caret (text mode), if any. */
+    private java.util.Optional<XmlElementAtCaret.Result> caretElement() {
+        return XmlElementAtCaret.at(editorHost.getActiveText().orElse(""), editorHost.activeCaretProperty().get());
+    }
+
+    private static void copyToClipboard(String text) {
+        javafx.scene.input.ClipboardContent content = new javafx.scene.input.ClipboardContent();
+        content.putString(text);
+        javafx.scene.input.Clipboard.getSystemClipboard().setContent(content);
     }
 
     private HBox row(String key, Node control) {

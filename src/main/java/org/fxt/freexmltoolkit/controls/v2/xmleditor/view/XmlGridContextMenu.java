@@ -42,6 +42,7 @@ import org.fxt.freexmltoolkit.controls.v2.xmleditor.editor.XmlEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlDocument;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNodeXPath;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlText;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider;
 
@@ -79,6 +80,7 @@ public class XmlGridContextMenu {
     private MenuItem pasteAsChildItem;
     private MenuItem copyCellContentItem;
     private MenuItem copyXPathItem;
+    private MenuItem copyNodeItem;
     private MenuItem moveUpItem;
     private MenuItem moveDownItem;
     private MenuItem deleteItem;
@@ -171,6 +173,11 @@ public class XmlGridContextMenu {
         copyXPathItem.setOnAction(e -> copyXPath());
         copyXPathItem.setAccelerator(new KeyCodeCombination(KeyCode.X, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN));
 
+        copyNodeItem = new MenuItem("Copy Node (XML)");
+        copyNodeItem.setGraphic(createColoredIcon("bi-clipboard-data", "#6f42c1")); // Purple
+        copyNodeItem.setOnAction(e -> copyNode());
+        copyNodeItem.setAccelerator(new KeyCodeCombination(KeyCode.C, KeyCombination.CONTROL_DOWN, KeyCombination.ALT_DOWN));
+
         // === Move ===
         moveUpItem = new MenuItem("Move Up");
         moveUpItem.setGraphic(createColoredIcon("bi-arrow-up-circle", "#6c757d")); // Gray
@@ -219,7 +226,7 @@ public class XmlGridContextMenu {
                 new SeparatorMenuItem(),
                 copyItem, cutItem, pasteItem, pasteAsChildItem,
                 new SeparatorMenuItem(),
-                copyCellContentItem, copyXPathItem,
+                copyCellContentItem, copyXPathItem, copyNodeItem,
                 new SeparatorMenuItem(),
                 moveUpItem, moveDownItem,
                 new SeparatorMenuItem(),
@@ -311,6 +318,10 @@ public class XmlGridContextMenu {
         copyCellContentItem.setDisable(!isInTableCell && !hasTextContent);
 
         copyXPathItem.setDisable(!isElement);
+        // Copy Node (XML): any element, text, comment or CDATA node can be serialized.
+        copyNodeItem.setDisable(!(node instanceof XmlElement || node instanceof XmlText
+                || node instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlComment
+                || node instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlCData));
         moveUpItem.setDisable(!canMove || isFirstChild(node));
         moveDownItem.setDisable(!canMove || isLastChild(node));
         deleteItem.setDisable(!hasSelection || isRoot);
@@ -1091,63 +1102,21 @@ public class XmlGridContextMenu {
         copyToClipboard(xpath);
     }
 
+    /** Copies the selected node's XML (the element and its subtree) to the system clipboard. */
+    private void copyNode() {
+        XmlNode selected = context.getSelectionModel().getSelectedNode();
+        if (selected == null || selected instanceof XmlDocument) {
+            return;
+        }
+        String xml = selected.serialize(0);
+        if (xml != null && !xml.isEmpty()) {
+            copyToClipboard(xml);
+        }
+    }
+
+    /** @return the positional XPath of {@code node} (see {@link XmlNodeXPath}). */
     private String buildXPath(XmlNode node) {
-        if (node == null) {
-            return "";
-        }
-        if (node instanceof XmlDocument) {
-            return "";
-        }
-
-        StringBuilder xpath = new StringBuilder();
-        XmlNode current = node;
-
-        while (current != null && !(current instanceof XmlDocument)) {
-            if (current instanceof XmlElement element) {
-                String name = element.getName();
-
-                // Calculate position among siblings with same name
-                int position = 1;
-                if (current.getParent() != null) {
-                    List<XmlNode> siblings;
-                    if (current.getParent() instanceof XmlElement) {
-                        siblings = ((XmlElement) current.getParent()).getChildren();
-                    } else if (current.getParent() instanceof XmlDocument) {
-                        siblings = ((XmlDocument) current.getParent()).getChildren();
-                    } else {
-                        siblings = List.of();
-                    }
-
-                    // Count siblings with same name before this element
-                    int sameNameCount = 0;
-                    for (XmlNode sibling : siblings) {
-                        if (sibling instanceof XmlElement && ((XmlElement) sibling).getName().equals(name)) {
-                            sameNameCount++;
-                            if (sibling == current) {
-                                position = sameNameCount;
-                                break;
-                            }
-                        }
-                    }
-
-                    // Only add [position] if there are multiple elements with same name
-                    long totalSameNameCount = siblings.stream()
-                            .filter(s -> s instanceof XmlElement && ((XmlElement) s).getName().equals(name))
-                            .count();
-
-                    if (totalSameNameCount > 1) {
-                        xpath.insert(0, "/" + name + "[" + position + "]");
-                    } else {
-                        xpath.insert(0, "/" + name);
-                    }
-                } else {
-                    xpath.insert(0, "/" + name);
-                }
-            }
-            current = current.getParent();
-        }
-
-        return xpath.length() > 0 ? xpath.toString() : "/";
+        return XmlNodeXPath.positional(node);
     }
 
     /**

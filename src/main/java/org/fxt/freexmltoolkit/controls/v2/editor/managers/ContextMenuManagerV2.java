@@ -197,8 +197,10 @@ public class ContextMenuManagerV2 implements XmlContextMenuManager.XmlContextAct
                     continue;
                 }
 
-                // Cut/Copy require selection
-                if (text.startsWith("Cut") || (text.startsWith("Copy") && !text.contains("XPath"))) {
+                // Cut / plain Copy require a selection ("Copy XPath" and "Copy Node" do not —
+                // they act on the element at the caret and are handled below).
+                if (text.startsWith("Cut")
+                        || (text.startsWith("Copy") && !text.contains("XPath") && !text.equals("Copy Node"))) {
                     menuItem.setDisable(!hasSelection);
                 }
 
@@ -207,8 +209,8 @@ public class ContextMenuManagerV2 implements XmlContextMenuManager.XmlContextAct
                     menuItem.setDisable(!clipboardHasText);
                 }
 
-                // Copy XPath requires XML content
-                if (text.contains("XPath")) {
+                // Copy XPath / Copy Node require XML content (they use the element at the caret)
+                if (text.contains("XPath") || text.equals("Copy Node")) {
                     menuItem.setDisable(!isXmlContent || !hasText);
                 }
 
@@ -330,17 +332,16 @@ public class ContextMenuManagerV2 implements XmlContextMenuManager.XmlContextAct
     @Override
     public void copyXPathToClipboard() {
         try {
-            int caretPos = codeArea.getCaretPosition();
-            String text = codeArea.getText();
-
-            XmlContext context = ContextAnalyzer.analyze(text, caretPos);
-            String xpath = context.getXPath();
+            // Prefer the positional XPath of the element enclosing the caret (unambiguous,
+            // consistent with the grid/inspector). Fall back to the IntelliSense name-based
+            // path only when the caret is not inside an element.
+            var element = org.fxt.freexmltoolkit.controls.shared.utilities.XmlElementAtCaret
+                    .at(codeArea.getText(), codeArea.getCaretPosition());
+            String xpath = element.map(org.fxt.freexmltoolkit.controls.shared.utilities.XmlElementAtCaret.Result::xpath)
+                    .orElseGet(() -> ContextAnalyzer.analyze(codeArea.getText(), codeArea.getCaretPosition()).getXPath());
 
             if (xpath != null && !xpath.isEmpty() && !xpath.equals("/")) {
-                Clipboard clipboard = Clipboard.getSystemClipboard();
-                ClipboardContent content = new ClipboardContent();
-                content.putString(xpath);
-                clipboard.setContent(content);
+                copyTextToClipboard(xpath);
                 logger.debug("XPath copied: {}", xpath);
             } else {
                 logger.debug("No XPath context at current position");
@@ -348,6 +349,30 @@ public class ContextMenuManagerV2 implements XmlContextMenuManager.XmlContextAct
         } catch (Exception e) {
             logger.error("Error copying XPath: {}", e.getMessage(), e);
         }
+    }
+
+    @Override
+    public void copyNodeToClipboard() {
+        try {
+            org.fxt.freexmltoolkit.controls.shared.utilities.XmlElementAtCaret
+                    .at(codeArea.getText(), codeArea.getCaretPosition())
+                    .ifPresentOrElse(
+                            result -> {
+                                copyTextToClipboard(result.xml());
+                                logger.debug("Node copied: {} chars", result.xml().length());
+                            },
+                            () -> logger.debug("No element at current position"));
+        } catch (Exception e) {
+            logger.error("Error copying node: {}", e.getMessage(), e);
+        }
+    }
+
+    /** Writes {@code text} to the system clipboard. */
+    private static void copyTextToClipboard(String text) {
+        Clipboard clipboard = Clipboard.getSystemClipboard();
+        ClipboardContent content = new ClipboardContent();
+        content.putString(text);
+        clipboard.setContent(content);
     }
 
     @Override

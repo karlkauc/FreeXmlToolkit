@@ -42,6 +42,9 @@ public class XmlContextMenuManager {
         /** Copies the XPath of the current element to the clipboard. */
         void copyXPathToClipboard();
 
+        /** Copies the XML of the element at the cursor (the node and its subtree) to the clipboard. */
+        void copyNodeToClipboard();
+
         /** Navigates to the definition of the element under cursor. */
         void goToDefinition();
 
@@ -138,6 +141,15 @@ public class XmlContextMenuManager {
             }
         });
 
+        MenuItem copyNodeMenuItem = new MenuItem("Copy Node");
+        copyNodeMenuItem.getStyleClass().add("xml-action");
+        copyNodeMenuItem.setGraphic(createColoredIcon("bi-clipboard-data", "#ffc107"));
+        copyNodeMenuItem.setOnAction(event -> {
+            if (contextActions != null) {
+                contextActions.copyNodeToClipboard();
+            }
+        });
+
         MenuItem goToDefinitionMenuItem = new MenuItem("Go to Definition (Ctrl+Click)");
         goToDefinitionMenuItem.getStyleClass().add("xml-action");
         goToDefinitionMenuItem.setGraphic(createColoredIcon("bi-box-arrow-up-right", "#17a2b8"));
@@ -213,7 +225,7 @@ public class XmlContextMenuManager {
                 separator1,
                 cutMenuItem, copyMenuItem, pasteMenuItem,
                 separator2,
-                copyXPathMenuItem, goToDefinitionMenuItem,
+                copyXPathMenuItem, copyNodeMenuItem, goToDefinitionMenuItem,
                 separator3,
                 selectAllMenuItem, findReplaceMenuItem,
                 separator4,

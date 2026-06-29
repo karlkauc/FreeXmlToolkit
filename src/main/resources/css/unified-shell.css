@@ -1229,6 +1229,22 @@
 .fxt-inspector-row {
     -fx-padding: 2 0 2 0;
 }
+/* Compact icon buttons in the inspector (e.g. Copy XPath / Copy Node in the XPath row). */
+.fxt-inspector-icon-button {
+    -fx-background-color: transparent;
+    -fx-padding: 2 4 2 4;
+    -fx-cursor: hand;
+    -fx-background-radius: 4;
+}
+.fxt-inspector-icon-button:hover {
+    -fx-background-color: -fxt-bg-surface-2;
+}
+.fxt-inspector-icon-button .iconify-icon {
+    -fx-icon-color: -fxt-text-muted;
+}
+.fxt-inspector-icon-button:hover .iconify-icon {
+    -fx-icon-color: -fxt-text-primary;
+}
 .fxt-inspector-edit {
     -fx-background-color: -fxt-bg-surface;
     -fx-background-radius: 4;
