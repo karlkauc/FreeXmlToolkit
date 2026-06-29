@@ -237,19 +237,25 @@ public class XsdSchemaAdapter implements XmlSchemaProvider {
 
         Map<String, XsdExtendedElement> elementMap = xsdDocumentationData.getExtendedXsdElementMap();
 
+        // The map is keyed by full, predicate-free XPaths. An instance XPath may carry positional
+        // predicates ([n]) for repeated siblings — strip them so the FULL path matches the correct
+        // declaration instead of falling through to a name-only match (which conflates distinct
+        // same-named elements such as "Account" under AssetDetails vs. under Position).
+        String strippedPath = xpath.replaceAll("\\[\\d+\\]", "");
+
         // Try exact match first
-        if (elementMap.containsKey(xpath)) {
-            return elementMap.get(xpath);
+        if (elementMap.containsKey(strippedPath)) {
+            return elementMap.get(strippedPath);
         }
 
         // Try with leading slash
-        String normalizedPath = xpath.startsWith("/") ? xpath : "/" + xpath;
+        String normalizedPath = strippedPath.startsWith("/") ? strippedPath : "/" + strippedPath;
         if (elementMap.containsKey(normalizedPath)) {
             return elementMap.get(normalizedPath);
         }
 
         // Try to find by element name (last part of path)
-        String elementName = extractElementName(xpath);
+        String elementName = extractElementName(strippedPath);
         if (elementName != null) {
             // Find first match with this element name
             for (Map.Entry<String, XsdExtendedElement> entry : elementMap.entrySet()) {

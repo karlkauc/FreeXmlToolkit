@@ -2020,22 +2020,41 @@ public class EditorHost extends BorderPane {
         if (map == null || xpath == null) {
             return null;
         }
-        if (map.containsKey(xpath)) {
-            return map.get(xpath);
+        // The schema map is keyed by the full, predicate-free XPath
+        // (e.g. /FundsXML4/AssetMasterData/Asset/AssetDetails/Account). An instance XPath may
+        // carry positional predicates ([n]) for repeated siblings — strip them so the FULL path
+        // matches the right declaration (two distinct same-named elements, e.g. "Account" under
+        // AssetDetails vs. under Position, must NOT be conflated).
+        String norm = stripXPathPredicates(xpath);
+        if (!norm.startsWith("/")) {
+            norm = "/" + norm;
         }
-        String norm = xpath.startsWith("/") ? xpath : "/" + xpath;
         if (map.containsKey(norm)) {
             return map.get(norm);
         }
-        String local = localXmlName(xpath);
+        // Last resort: a local-name match, but ONLY when it is unambiguous. If several
+        // declarations share the local name, guessing one (the old behaviour) returned the wrong
+        // element's children — return null instead of guessing.
+        String local = localXmlName(norm);
         if (local != null) {
+            org.fxt.freexmltoolkit.domain.XsdExtendedElement match = null;
+            int count = 0;
             for (var entry : map.entrySet()) {
                 if (entry.getKey().endsWith("/" + local)) {
-                    return entry.getValue();
+                    match = entry.getValue();
+                    if (++count > 1) {
+                        return null; // ambiguous → do not guess
+                    }
                 }
             }
+            return count == 1 ? match : null;
         }
         return null;
+    }
+
+    /** Removes positional predicates ({@code [n]}) from every step of an XPath. */
+    private static String stripXPathPredicates(String xpath) {
+        return xpath.replaceAll("\\[\\d+\\]", "");
     }
 
     /** @return the local element name from an XPath/child reference (last segment, no prefix/predicate). */
