@@ -861,6 +861,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#browsing-favorites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Browsing favorites with ◀ / ▶
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#output-method" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2709,6 +2720,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#browsing-favorites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Browsing favorites with ◀ / ▶
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#output-method" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3580,6 +3602,8 @@ the same recent-stylesheet list and shows its result in the same OUTPUT panel.</
 <li><strong>Change</strong> - pick an <code>.xsl</code> / <code>.xslt</code> file from disk.</li>
 <li>The <strong>clock icon</strong> opens the <strong>recent stylesheets</strong> menu: reapply a recently used
   stylesheet in a single click, or choose <strong>Clear recent</strong> to empty the list.</li>
+<li>The <strong>star icon</strong> opens your <strong>XSLT favorites</strong> - see
+  <a href="#browsing-favorites">Browsing favorites with ◀ / ▶</a> below.</li>
 </ul>
 <h3 id="input">INPUT<a class="headerlink" href="#input" title="Permanent link">&para;</a></h3>
 <p>The INPUT section shows which document the transform will use as its input:</p>
@@ -3592,7 +3616,41 @@ the same recent-stylesheet list and shows its result in the same OUTPUT panel.</
 <li><strong>Use active editor</strong> - go back to following the active tab.</li>
 </ul>
 </li>
+<li>The <strong>star icon</strong> opens your <strong>XML favorites</strong> - see
+  <a href="#browsing-favorites">Browsing favorites with ◀ / ▶</a> below.</li>
 </ul>
+<h3 id="browsing-favorites">Browsing favorites with ◀ / ▶<a class="headerlink" href="#browsing-favorites" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p><strong>New in June 2026</strong> - Pick stylesheets and input files straight from your
+<a href="../favorites-system/">Favorites</a> and page through them, so you can run the same
+stylesheet over many files, or many stylesheets over one file, without ever opening a
+file chooser.</p>
+</blockquote>
+<p>Both the <strong>STYLESHEET</strong> and the <strong>INPUT</strong> rows carry a <strong>star icon</strong>, a pair of
+<strong>◀ / ▶ navigation buttons</strong>, and a small <strong>"i / n" position label</strong>.</p>
+<ul>
+<li>The <strong>star menu</strong> lists the favorites of the matching type - <strong>XSLT</strong> favorites for
+  STYLESHEET, <strong>XML</strong> favorites for INPUT - grouped by their folder (category). An
+  <strong>"All … favorites"</strong> entry at the top selects the whole list at once.</li>
+<li><strong>Picking a favorite</strong> (or an "All"/folder entry) does two things: it sets the current
+  file, and it builds a <strong>browse list</strong> from that selection.</li>
+<li>The <strong>◀ / ▶ buttons</strong> then step backward and forward through that browse list. Browsing
+  is <strong>cyclic</strong>: pressing ▶ on the last entry wraps to the first, and ◀ on the first wraps
+  to the last. The <strong>"i / n" label</strong> shows your position (for example, <em>3 / 12</em>).</li>
+<li>Each ◀ / ▶ step <strong>runs the transformation automatically</strong> - but only once <strong>both</strong> sides
+  are ready: a stylesheet is selected <strong>and</strong> an input is available (either a chosen input
+  file or the active editor document). Until both are present, stepping just loads the file
+  without transforming.</li>
+</ul>
+<p>This supports two common workflows:</p>
+<ol>
+<li><strong>Fix the input, step through stylesheets.</strong> Keep one XML file as input, then page
+   through several data-quality or reporting stylesheets with ▶ to see each result in turn.</li>
+<li><strong>Fix the stylesheet, step through inputs.</strong> Choose one XSLT stylesheet, then page
+   through many XML input files with ▶ to apply the same transformation to each.</li>
+</ol>
+<p>The existing <strong>Change</strong> file chooser, the <strong>clock</strong> (recent stylesheets) menu, and <strong>Use
+active editor</strong> all keep working exactly as before.</p>
 <h3 id="output-method">OUTPUT METHOD<a class="headerlink" href="#output-method" title="Permanent link">&para;</a></h3>
 <p>A segmented control with <strong>Auto · XML · HTML · XHTML · Text · JSON</strong>. <strong>Auto</strong> (the
 default) detects the output format from the stylesheet's <code>xsl:output</code> declaration; pick a
