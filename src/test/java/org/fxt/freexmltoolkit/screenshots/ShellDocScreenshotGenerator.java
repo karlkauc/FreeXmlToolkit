@@ -121,6 +121,30 @@ class ShellDocScreenshotGenerator {
         settle();
         shot("unified-shell-transform");
 
+        // --- Transform: browsing XSLT/XML favorites with ◀/▶ (auto-running each step) ---
+        // Establish a stylesheet browse list (a folder of data-quality checks) and an input
+        // browse list (FundsXML samples), select the first of each so the ◀/▶ controls and the
+        // "i / n" position labels appear, then auto-run produces a result in the output dock.
+        File checkXslt = new File(EXAMPLES, "xslt/Check_FundsXML_File.xslt");
+        File fundsXml = new File(EXAMPLES, "xml/FundsXML_422_Bond_Fund.xml");
+        if (checkXslt.exists() && fundsXml.exists()
+                && shell.lookup(".fxt-transform-panel")
+                        instanceof org.fxt.freexmltoolkit.controls.shell.editor.TransformPanel transformPanel) {
+            var dqChecks = java.util.List.of(
+                    checkXslt,
+                    new File(EXAMPLES, "xslt/FundsXML_Structure_Check.xslt"),
+                    new File(EXAMPLES, "xslt/Basic_Checks.xslt"));
+            var inputs = java.util.List.of(
+                    fundsXml,
+                    new File(EXAMPLES, "xml/context-sensitive-demo.xml"));
+            onFx(() -> {
+                transformPanel.selectInput(inputs, inputs.getFirst());
+                transformPanel.selectXslt(dqChecks, dqChecks.getFirst());
+            });
+            settle(2500); // let the auto-run transform complete and render its result
+            shot("unified-shell-transform-favorites");
+        }
+
         onFx(() -> shell.getSelectionModel().select(Activity.SIGNATURE));
         settle();
         shot("unified-shell-signature");

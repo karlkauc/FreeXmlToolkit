@@ -307,6 +307,8 @@ The INPUT section shows which document the transform will use as its input:
 > stylesheet over many files, or many stylesheets over one file, without ever opening a
 > file chooser.
 
+![Transform panel browsing XSLT and XML favorites: the STYLESHEET and INPUT rows show the star menu and ◀ / ▶ navigation, and the auto-run result appears in the output dock below.](img/unified-shell-transform-favorites.png)
+
 Both the **STYLESHEET** and the **INPUT** rows carry a **star icon**, a pair of
 **◀ / ▶ navigation buttons**, and a small **"i / n" position label**.
 

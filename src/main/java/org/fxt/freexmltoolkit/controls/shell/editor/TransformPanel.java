@@ -640,15 +640,15 @@ public class TransformPanel extends VBox {
         }
     }
 
-    /** Sets the stylesheet browse list to {@code group}, positions on {@code file}, and applies it. */
-    void selectXslt(List<File> group, File file) {
+    /** Sets the stylesheet browse list to {@code group}, positions on {@code file}, and applies it (for tests/automation). */
+    public void selectXslt(List<File> group, File file) {
         xsltBrowse = group;
         xsltBrowseIdx = Math.max(0, group.indexOf(file));
         applyXslt(file);
     }
 
-    /** Sets the input browse list to {@code group}, positions on {@code file}, and applies it. */
-    void selectInput(List<File> group, File file) {
+    /** Sets the input browse list to {@code group}, positions on {@code file}, and applies it (for tests/automation). */
+    public void selectInput(List<File> group, File file) {
         inputBrowse = group;
         inputBrowseIdx = Math.max(0, group.indexOf(file));
         applyInput(file);
