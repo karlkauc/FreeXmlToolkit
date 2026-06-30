@@ -1144,6 +1144,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#rendering-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rendering mode (hardware vs. software)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#managing-your-templates" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3003,6 +3014,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#rendering-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rendering mode (hardware vs. software)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#managing-your-templates" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4147,6 +4169,10 @@ short note that settings are edited in the main window). Change any option and c
 <td><strong>XML parser</strong> engine (Xerces or Saxon); <strong>Allow XSLT extension functions</strong>.</td>
 </tr>
 <tr>
+<td><strong>Rendering</strong></td>
+<td>JavaFX graphics pipeline: <strong>Auto</strong> / <strong>Hardware</strong> / <strong>Software</strong> (takes effect after restart). See <a href="#rendering-mode">Rendering mode (hardware vs. software)</a> below.</td>
+</tr>
+<tr>
 <td><strong>Temp &amp; Cache</strong></td>
 <td><strong>Use system temp folder</strong> or a custom temp folder; <strong>Clear Temp Folder</strong> to free disk space; <strong>Clear Cache Folder</strong> to delete cached files (downloaded schemas etc.).</td>
 </tr>
@@ -4169,6 +4195,47 @@ short note that settings are edited in the main window). Change any option and c
 application's local cache folder (<code>~/.freeXmlToolkit/cache</code>) - for example downloaded schemas.
 A confirmation dialog is shown first, because the action cannot be undone. The cache folder
 itself is kept; only its contents are removed.</p>
+<h3 id="rendering-mode">Rendering mode (hardware vs. software)<a class="headerlink" href="#rendering-mode" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p><strong>New in June 2026</strong> - The <strong>RENDERING</strong> card lets you choose how JavaFX draws the UI,
+per machine, instead of relying on a fixed JVM flag.</p>
+</blockquote>
+<p>JavaFX can render either on the <strong>GPU</strong> (hardware-accelerated, faster) or purely in
+<strong>software</strong>. On machines with only an integrated GPU, hardware rendering can become
+unstable on very large diagrams/grids, while machines with a dedicated GPU benefit from it.
+The <strong>Mode</strong> dropdown controls this:</p>
+<table>
+<thead>
+<tr>
+<th>Mode</th>
+<th>Behaviour</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Auto</strong> <em>(default)</em></td>
+<td>The application detects the graphics adapter at startup and picks <strong>hardware</strong> rendering on a dedicated GPU (and on macOS), or <strong>software</strong> rendering on integrated/unknown adapters. The detection result is cached.</td>
+</tr>
+<tr>
+<td><strong>Hardware</strong></td>
+<td>Always prefer GPU rendering (with an automatic software fallback if the GPU pipeline cannot start). Use this if <strong>Auto</strong> does not recognize your dedicated GPU.</td>
+</tr>
+<tr>
+<td><strong>Software</strong></td>
+<td>Always use software rendering. Use this if hardware rendering causes display glitches or crashes on your machine.</td>
+</tr>
+</tbody>
+</table>
+<p>Notes:</p>
+<ul>
+<li><strong>A restart is required</strong> for a change to take effect - the graphics pipeline is chosen
+  once when the application starts.</li>
+<li>An explicit <code>-Dprism.order=...</code> JVM flag (command line) still <strong>overrides</strong> this setting,
+  so power users can force a specific pipeline for troubleshooting.</li>
+<li><strong>Auto</strong> is intentionally conservative: any adapter it cannot confidently identify as a
+  dedicated GPU falls back to software rendering. If your dedicated GPU is not detected,
+  switch the mode to <strong>Hardware</strong>.</li>
+</ul>
 <h3 id="managing-your-templates">Managing your templates<a class="headerlink" href="#managing-your-templates" title="Permanent link">&para;</a></h3>
 <blockquote>
 <p><strong>New in June 2026</strong> - The <strong>TEMPLATES</strong> card lets you keep your own starting templates,
