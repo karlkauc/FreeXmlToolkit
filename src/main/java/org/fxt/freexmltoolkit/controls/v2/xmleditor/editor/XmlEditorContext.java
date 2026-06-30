@@ -6,11 +6,13 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.CommandManager;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.editor.selection.SelectionModel;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlDocument;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XsdSchemaAdapter;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.serialization.XmlParser;
@@ -128,6 +130,13 @@ public class XmlEditorContext {
      * Widget factory for type-aware editing controls.
      */
     private TypeAwareWidgetFactory widgetFactory;
+
+    /**
+     * Handler invoked to navigate from a selected node to its XSD schema definition
+     * (can be null). Set by the shell so the Graphic view's context menu can trigger
+     * "Go to Definition"; the actual schema resolution + XSD navigation lives in the shell.
+     */
+    private Consumer<XmlNode> goToDefinitionHandler;
 
     // ==================== Constructor ====================
 
@@ -594,6 +603,26 @@ public class XmlEditorContext {
             return new ArrayList<>();
         }
         return schemaProvider.getValidAttributes(elementXPath);
+    }
+
+    // ==================== Go to Definition ====================
+
+    /**
+     * Sets the handler invoked to navigate a node to its XSD schema definition.
+     *
+     * @param handler the navigation handler (may be null to disable)
+     */
+    public void setGoToDefinitionHandler(Consumer<XmlNode> handler) {
+        this.goToDefinitionHandler = handler;
+    }
+
+    /**
+     * Returns the "Go to Definition" navigation handler.
+     *
+     * @return the handler, or null if none is set
+     */
+    public Consumer<XmlNode> getGoToDefinitionHandler() {
+        return goToDefinitionHandler;
     }
 
     // ==================== PropertyChangeSupport Methods ====================

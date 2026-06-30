@@ -445,7 +445,8 @@ public class EditorHost extends BorderPane {
                 return;
             }
         }
-        EditorTab tab = new EditorTab(OpenDocument.forPath(path), this::refreshSelectedNode, nodeClipboard, this::openNamedTypeEditor);
+        EditorTab tab = new EditorTab(OpenDocument.forPath(path), this::refreshSelectedNode, nodeClipboard,
+                this::openNamedTypeEditor, this::goToXmlDefinition);
         addTab(tab);
         // Wire "Go to Definition": open the bound XSD and reveal the element (no-op for non-XML views).
         tab.view.setGoToDefinitionHandler(req ->
@@ -901,7 +902,7 @@ public class EditorHost extends BorderPane {
     /** Creates an empty untitled document of the given type. */
     public OpenDocument newDocument(EditorFileType type) {
         EditorTab tab = new EditorTab(OpenDocument.untitled(untitledName(), type), this::refreshSelectedNode,
-                nodeClipboard, this::openNamedTypeEditor);
+                nodeClipboard, this::openNamedTypeEditor, this::goToXmlDefinition);
         addTab(tab);
         tab.attachDirtyTracking();
         return tab.document;
@@ -915,7 +916,7 @@ public class EditorHost extends BorderPane {
      */
     public OpenDocument openGeneratedDocument(String content, EditorFileType type, String displayName) {
         EditorTab tab = new EditorTab(OpenDocument.untitled(displayName, type), this::refreshSelectedNode,
-                nodeClipboard, this::openNamedTypeEditor);
+                nodeClipboard, this::openNamedTypeEditor, this::goToXmlDefinition);
         addTab(tab);
         tab.view.setText(content);
         tab.attachDirtyTracking();
@@ -2052,6 +2053,25 @@ public class EditorHost extends BorderPane {
         return null;
     }
 
+    /**
+     * Navigates a selected XML-instance element to its definition in the active document's bound
+     * XSD: resolves the element's XPath against the schema, then opens/reveals it in the XSD editor.
+     * Shared by the Graphic and Tree context menus (parallels the Text view's "Go to Definition").
+     * No-op when no schema is bound or the node is not an element.
+     */
+    void goToXmlDefinition(org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode node) {
+        if (!(node instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement element)) {
+            return;
+        }
+        if (!(tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et) || et.schemaFile == null) {
+            return;
+        }
+        String xpath = org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNodeXPath.positional(node);
+        org.fxt.freexmltoolkit.domain.XsdExtendedElement el = activeXsdElement(xpath);
+        String elementName = (el != null) ? el.getElementName() : element.getName();
+        openXsdAndReveal(et.schemaFile.toPath(), elementName);
+    }
+
     /** Removes positional predicates ({@code [n]}) from every step of an XPath. */
     private static String stripXPathPredicates(String xpath) {
         return xpath.replaceAll("\\[\\d+\\]", "");
@@ -2162,6 +2182,8 @@ public class EditorHost extends BorderPane {
         private final Runnable selectionCallback;
         /** Opens the shell's type-editor tab for a named type (Graphic-view "Open in Type Editor"). */
         private final java.util.function.Consumer<String> openTypeEditorCallback;
+        /** Navigates an XML-instance element to its XSD definition (Graphic/Tree "Go to Definition"). */
+        private final java.util.function.Consumer<org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode> goToDefinitionCallback;
         /** Shared shell clipboard (passed in because EditorTab is a static nested class). */
         private final org.fxt.freexmltoolkit.controls.v2.editor.clipboard.XsdClipboard clipboard;
         private final javafx.scene.layout.StackPane contentStack = new javafx.scene.layout.StackPane();
@@ -2210,11 +2232,13 @@ public class EditorHost extends BorderPane {
 
         EditorTab(OpenDocument document, Runnable selectionCallback,
                 org.fxt.freexmltoolkit.controls.v2.editor.clipboard.XsdClipboard clipboard,
-                java.util.function.Consumer<String> openTypeEditorCallback) {
+                java.util.function.Consumer<String> openTypeEditorCallback,
+                java.util.function.Consumer<org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode> goToDefinitionCallback) {
             this.document = document;
             this.selectionCallback = selectionCallback;
             this.clipboard = clipboard;
             this.openTypeEditorCallback = openTypeEditorCallback;
+            this.goToDefinitionCallback = goToDefinitionCallback;
             this.view = EditorViews.create(document.getFileType());
             contentStack.getChildren().add(view.getNode());
             // Overlay sits ABOVE contentStack (not inside it) so showOnly() — which toggles
@@ -2375,6 +2399,8 @@ public class EditorHost extends BorderPane {
                 if (xmlSchemaProvider != null) {
                     ctx.setSchemaProvider(xmlSchemaProvider);
                 }
+                // Wire "Go to Definition" for the Graphic view's context menu (fresh ctx per parse).
+                ctx.setGoToDefinitionHandler(goToDefinitionCallback);
                 xmlEditorContext = ctx;
                 lastParsedXmlText = text;
             } catch (Exception e) {
@@ -3314,6 +3340,7 @@ public class EditorHost extends BorderPane {
                     currentXmlSelection = node;
                     selectionCallback.run();
                 });
+                xmlInstanceTreeView.setOnGoToDefinition(goToDefinitionCallback);
                 contentStack.getChildren().add(xmlInstanceTreeView);
             }
         }

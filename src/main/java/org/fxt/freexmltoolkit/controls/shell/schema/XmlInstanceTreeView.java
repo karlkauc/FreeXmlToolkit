@@ -4,9 +4,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
+import javafx.scene.paint.Color;
 
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.editor.XmlEditorContext;
@@ -28,6 +31,7 @@ import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlText;
 public class XmlInstanceTreeView extends TreeView<XmlNode> {
 
     private Consumer<XmlNode> onSelectionChanged;
+    private Consumer<XmlNode> onGoToDefinition;
     private final Map<java.util.UUID, TreeItem<XmlNode>> nodeToItem = new HashMap<>();
 
     public XmlInstanceTreeView() {
@@ -43,6 +47,14 @@ public class XmlInstanceTreeView extends TreeView<XmlNode> {
     /** Sets the callback invoked when the tree's selected node changes (for the inspector). */
     public void setOnSelectionChanged(Consumer<XmlNode> onSelectionChanged) {
         this.onSelectionChanged = onSelectionChanged;
+    }
+
+    /**
+     * Sets the callback invoked by the "Go to Definition" context-menu item (element rows only).
+     * When {@code null}, the item is not shown.
+     */
+    public void setOnGoToDefinition(Consumer<XmlNode> onGoToDefinition) {
+        this.onGoToDefinition = onGoToDefinition;
     }
 
     /**
@@ -103,15 +115,20 @@ public class XmlInstanceTreeView extends TreeView<XmlNode> {
     }
 
     /** Renders an XML model node (element + inline attributes, or the value/label of other types). */
-    private static final class XmlNodeCell extends TreeCell<XmlNode> {
+    private final class XmlNodeCell extends TreeCell<XmlNode> {
+        private ContextMenu cellMenu;
+
         @Override
         protected void updateItem(XmlNode item, boolean empty) {
             super.updateItem(item, empty);
             if (empty || item == null) {
                 setText(null);
                 setGraphic(null);
+                setContextMenu(null);
                 return;
             }
+            // "Go to Definition" applies to element rows only (and only when wired).
+            setContextMenu(item instanceof XmlElement && onGoToDefinition != null ? cellMenu() : null);
             String iconLiteral = "bi-code-slash";
             if (item instanceof XmlElement element) {
                 StringBuilder label = new StringBuilder(element.getQualifiedName());
@@ -140,6 +157,25 @@ public class XmlInstanceTreeView extends TreeView<XmlNode> {
             IconifyIcon icon = new IconifyIcon(iconLiteral);
             icon.setIconSize(14);
             setGraphic(icon);
+        }
+
+        /** Lazily builds this cell's context menu (a single "Go to Definition" item). */
+        private ContextMenu cellMenu() {
+            if (cellMenu == null) {
+                MenuItem goToDefinitionItem = new MenuItem("Go to Definition");
+                IconifyIcon menuIcon = new IconifyIcon("bi-box-arrow-up-right");
+                menuIcon.setIconColor(Color.web("#17a2b8"));
+                menuIcon.setIconSize(14);
+                goToDefinitionItem.setGraphic(menuIcon);
+                goToDefinitionItem.setOnAction(e -> {
+                    XmlNode node = getItem();
+                    if (node instanceof XmlElement && onGoToDefinition != null) {
+                        onGoToDefinition.accept(node);
+                    }
+                });
+                cellMenu = new ContextMenu(goToDefinitionItem);
+            }
+            return cellMenu;
         }
     }
 }

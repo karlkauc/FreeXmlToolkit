@@ -81,6 +81,7 @@ public class XmlGridContextMenu {
     private MenuItem copyCellContentItem;
     private MenuItem copyXPathItem;
     private MenuItem copyNodeItem;
+    private MenuItem goToDefinitionItem;
     private MenuItem moveUpItem;
     private MenuItem moveDownItem;
     private MenuItem deleteItem;
@@ -178,6 +179,11 @@ public class XmlGridContextMenu {
         copyNodeItem.setOnAction(e -> copyNode());
         copyNodeItem.setAccelerator(new KeyCodeCombination(KeyCode.C, KeyCombination.CONTROL_DOWN, KeyCombination.ALT_DOWN));
 
+        // === Go to Definition (navigate to XSD schema definition) ===
+        goToDefinitionItem = new MenuItem("Go to Definition");
+        goToDefinitionItem.setGraphic(createColoredIcon("bi-box-arrow-up-right", "#17a2b8")); // Info/teal
+        goToDefinitionItem.setOnAction(e -> goToDefinition());
+
         // === Move ===
         moveUpItem = new MenuItem("Move Up");
         moveUpItem.setGraphic(createColoredIcon("bi-arrow-up-circle", "#6c757d")); // Gray
@@ -227,6 +233,8 @@ public class XmlGridContextMenu {
                 copyItem, cutItem, pasteItem, pasteAsChildItem,
                 new SeparatorMenuItem(),
                 copyCellContentItem, copyXPathItem, copyNodeItem,
+                new SeparatorMenuItem(),
+                goToDefinitionItem,
                 new SeparatorMenuItem(),
                 moveUpItem, moveDownItem,
                 new SeparatorMenuItem(),
@@ -322,6 +330,9 @@ public class XmlGridContextMenu {
         copyNodeItem.setDisable(!(node instanceof XmlElement || node instanceof XmlText
                 || node instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlComment
                 || node instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlCData));
+        // Go to Definition: only for elements, and only when a schema is bound and a handler is wired.
+        goToDefinitionItem.setDisable(!isElement || !context.hasSchema()
+                || context.getGoToDefinitionHandler() == null);
         moveUpItem.setDisable(!canMove || isFirstChild(node));
         moveDownItem.setDisable(!canMove || isLastChild(node));
         deleteItem.setDisable(!hasSelection || isRoot);
@@ -1117,6 +1128,18 @@ public class XmlGridContextMenu {
     /** @return the positional XPath of {@code node} (see {@link XmlNodeXPath}). */
     private String buildXPath(XmlNode node) {
         return XmlNodeXPath.positional(node);
+    }
+
+    /**
+     * Navigates the selected element to its XSD schema definition via the wired handler
+     * (the shell resolves the schema element and opens/reveals it in the XSD editor).
+     */
+    private void goToDefinition() {
+        XmlNode selected = context.getSelectionModel().getSelectedNode();
+        var handler = context.getGoToDefinitionHandler();
+        if (selected instanceof XmlElement && handler != null) {
+            handler.accept(selected);
+        }
     }
 
     /**
