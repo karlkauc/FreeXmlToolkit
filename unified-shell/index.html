@@ -4226,10 +4226,19 @@ The <strong>Mode</strong> dropdown controls this:</p>
 </tr>
 </tbody>
 </table>
+<p>Below the dropdown the card shows the <strong>current run's</strong> rendering status:</p>
+<ul>
+<li><strong>Active pipeline</strong> - what JavaFX is <em>actually</em> using right now: <em>Hardware — Direct3D</em>,
+  <em>Hardware — OpenGL ES2</em>, <em>Hardware — Metal</em>, or <em>Software</em>. This is read from the live
+  graphics pipeline, so with <strong>Auto</strong> you can see at a glance whether you ended up on
+  hardware or software rendering.</li>
+<li><strong>Detected GPU</strong> - the graphics adapter(s) the application found on this machine.</li>
+</ul>
 <p>Notes:</p>
 <ul>
 <li><strong>A restart is required</strong> for a change to take effect - the graphics pipeline is chosen
-  once when the application starts.</li>
+  once when the application starts. The <strong>Active pipeline</strong> line always reflects the
+  pipeline of the <em>running</em> session, not an unsaved dropdown change.</li>
 <li>An explicit <code>-Dprism.order=...</code> JVM flag (command line) still <strong>overrides</strong> this setting,
   so power users can force a specific pipeline for troubleshooting.</li>
 <li><strong>Auto</strong> is intentionally conservative: any adapter it cannot confidently identify as a
