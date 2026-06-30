@@ -190,6 +190,11 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
         return lineIndex -> {
             javafx.scene.layout.HBox hbox = new javafx.scene.layout.HBox(3);
             hbox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+            // Opaque gutter background so horizontally scrolled text never shows through
+            // behind the line numbers. Set inline (highest precedence) to guarantee it paints
+            // regardless of stylesheet cascade; keep the .lineno class for semantic styling.
+            hbox.getStyleClass().add("lineno");
+            hbox.setStyle("-fx-background-color: #e3e3e3;");
 
             // Optional extra gutter (e.g. breakpoint markers) — first slot
             if (extraGutterFactory != null) {
