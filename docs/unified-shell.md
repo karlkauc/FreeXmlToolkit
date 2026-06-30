@@ -759,10 +759,19 @@ The **Mode** dropdown controls this:
 | **Hardware** | Always prefer GPU rendering (with an automatic software fallback if the GPU pipeline cannot start). Use this if **Auto** does not recognize your dedicated GPU. |
 | **Software** | Always use software rendering. Use this if hardware rendering causes display glitches or crashes on your machine. |
 
+Below the dropdown the card shows the **current run's** rendering status:
+
+- **Active pipeline** - what JavaFX is *actually* using right now: *Hardware — Direct3D*,
+  *Hardware — OpenGL ES2*, *Hardware — Metal*, or *Software*. This is read from the live
+  graphics pipeline, so with **Auto** you can see at a glance whether you ended up on
+  hardware or software rendering.
+- **Detected GPU** - the graphics adapter(s) the application found on this machine.
+
 Notes:
 
 - **A restart is required** for a change to take effect - the graphics pipeline is chosen
-  once when the application starts.
+  once when the application starts. The **Active pipeline** line always reflects the
+  pipeline of the *running* session, not an unsaved dropdown change.
 - An explicit `-Dprism.order=...` JVM flag (command line) still **overrides** this setting,
   so power users can force a specific pipeline for troubleshooting.
 - **Auto** is intentionally conservative: any adapter it cannot confidently identify as a

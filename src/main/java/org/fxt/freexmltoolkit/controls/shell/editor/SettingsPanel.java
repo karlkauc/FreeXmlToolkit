@@ -62,6 +62,8 @@ public class SettingsPanel extends VBox {
 
     // Rendering (JavaFX Prism pipeline; applied at next startup)
     private final ComboBox<String> renderingMode = new ComboBox<>();
+    private final Label renderingActiveStatus = new Label();
+    private final Label renderingGpuStatus = new Label();
 
     // Temp & cache
     private final CheckBox useSystemTemp = new CheckBox("Use system temp folder");
@@ -195,6 +197,9 @@ public class SettingsPanel extends VBox {
                         + "Takes effect after restart.");
         renderingHint.setWrapText(true);
         renderingHint.getStyleClass().add("fxt-placeholder-text");
+        renderingActiveStatus.setWrapText(true);
+        renderingGpuStatus.setWrapText(true);
+        renderingGpuStatus.getStyleClass().add("fxt-placeholder-text");
 
         Button save = new Button("Save Settings", iconGraphic("bi-save"));
         save.getStyleClass().add("fxt-tool-button");
@@ -204,6 +209,7 @@ public class SettingsPanel extends VBox {
         });
 
         loadSettings();
+        refreshRenderingStatus();
 
         // Section cards, color-coded by topic (the panel now lives in the main editor
         // area as a Settings page, so there is room for a two-column card layout).
@@ -220,7 +226,8 @@ public class SettingsPanel extends VBox {
                 card("PARSER", "bi-cpu", "#fd7e14",
                         labeled("XML parser:", parserType), xsltExtensions),
                 card("RENDERING", "bi-gpu-card", "#e83e8c",
-                        labeled("Mode:", renderingMode), renderingHint),
+                        labeled("Mode:", renderingMode),
+                        renderingActiveStatus, renderingGpuStatus, renderingHint),
                 card("TEMP & CACHE", "bi-trash", "#ffc107",
                         useSystemTemp, browseRow(customTempDir, this::chooseTempDir),
                         fill(clearTemp), fill(clearCache), tempStatus),
@@ -499,6 +506,27 @@ public class SettingsPanel extends VBox {
             // properties service unavailable (e.g. tests) — controls keep their defaults
         }
         reloadTemplatesList();
+    }
+
+    /**
+     * Refreshes the read-only rendering status: the actually active Prism pipeline
+     * (read now, since the toolkit is up) and the detected GPU (queried off the UI thread).
+     */
+    private void refreshRenderingStatus() {
+        String active = org.fxt.freexmltoolkit.util.RenderingStatus.activePipelineDescription();
+        renderingActiveStatus.setText("Active pipeline: " + (active != null ? active : "unknown"));
+        renderingGpuStatus.setText("Detected GPU: …");
+
+        Thread t = new Thread(() -> {
+            java.util.List<String> gpus =
+                    org.fxt.freexmltoolkit.util.RenderingPipelineDetector.detectAdapterNames();
+            String text = gpus.isEmpty()
+                    ? "Detected GPU: unknown"
+                    : "Detected GPU: " + String.join(", ", gpus);
+            javafx.application.Platform.runLater(() -> renderingGpuStatus.setText(text));
+        }, "rendering-gpu-detect");
+        t.setDaemon(true);
+        t.start();
     }
 
     /** Persists all settings. */

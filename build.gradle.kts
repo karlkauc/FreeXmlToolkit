@@ -180,6 +180,8 @@ tasks {
             "--enable-native-access=ALL-UNNAMED",
             "--enable-native-access=javafx.graphics",
             "--enable-native-access=javafx.web",
+            // Lets RenderingStatus read the active Prism pipeline (Settings > Rendering status).
+            "--add-exports", "javafx.graphics/com.sun.prism=ALL-UNNAMED",
             // No -Dprism.order here: FxtGui auto-detects HW vs. SW rendering at startup
             // (Settings > Rendering: Auto/Hardware/Software). To force a pipeline while
             // developing, pass e.g. -Dprism.order=sw explicitly on the command line.
@@ -694,6 +696,8 @@ $runtimeArg
 --enable-preview
 --java-options
 --enable-native-access=ALL-UNNAMED,javafx.graphics,javafx.web
+--java-options
+--add-exports=javafx.graphics/com.sun.prism=ALL-UNNAMED
 --java-options
 -Xms512m
 --java-options

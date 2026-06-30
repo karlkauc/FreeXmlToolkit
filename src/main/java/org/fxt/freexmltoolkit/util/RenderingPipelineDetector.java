@@ -107,19 +107,15 @@ public final class RenderingPipelineDetector {
     public static String detectPrismOrder() {
         try {
             String os = System.getProperty("os.name", "").toLowerCase(Locale.ROOT);
-            List<String> adapters;
-            if (os.contains("win")) {
-                adapters = queryWindowsAdapters();
-            } else if (os.contains("mac") || os.contains("darwin")) {
+            if (os.contains("mac") || os.contains("darwin")) {
                 // Apple Silicon (Metal) and Intel Macs with Metal run hardware rendering
                 // reliably; always prefer hardware. The query is informational only.
-                List<String> macAdapters = queryMacAdapters();
-                logger.info("Rendering auto-detect (macOS): adapters={}, choosing hardware", macAdapters);
+                logger.info("Rendering auto-detect (macOS): adapters={}, choosing hardware",
+                        detectAdapterNames());
                 return ORDER_HARDWARE;
-            } else {
-                adapters = queryLinuxAdapters();
             }
 
+            List<String> adapters = detectAdapterNames();
             String order = classifyAdapters(adapters);
             logger.info("Rendering auto-detect: os='{}', adapters={}, prism.order={}",
                     System.getProperty("os.name"), adapters, order);
@@ -127,6 +123,28 @@ public final class RenderingPipelineDetector {
         } catch (Throwable t) {
             logger.warn("Rendering auto-detect failed, falling back to software rendering: {}", t.toString());
             return ORDER_SOFTWARE;
+        }
+    }
+
+    /**
+     * Queries the OS for the installed graphics adapter name(s). Used both for the
+     * auto-detection decision and for displaying the detected GPU in the settings UI.
+     *
+     * @return the detected adapter names (may be empty); never {@code null}, never throws
+     */
+    public static List<String> detectAdapterNames() {
+        try {
+            String os = System.getProperty("os.name", "").toLowerCase(Locale.ROOT);
+            if (os.contains("win")) {
+                return queryWindowsAdapters();
+            } else if (os.contains("mac") || os.contains("darwin")) {
+                return queryMacAdapters();
+            } else {
+                return queryLinuxAdapters();
+            }
+        } catch (Throwable t) {
+            logger.debug("GPU adapter query failed: {}", t.toString());
+            return List.of();
         }
     }
 
