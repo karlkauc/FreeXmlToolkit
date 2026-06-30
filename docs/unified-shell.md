@@ -730,6 +730,7 @@ short note that settings are edited in the main window). Change any option and c
 | **Editor** | XML indent and JSON indent (spaces); **Auto-format after loading**; **Pretty-print XSD on save**; **Pretty-print Schematron on load**. |
 | **XSD** | **Auto-save** (with an interval in minutes); **Create backups on save** (with the number of versions to keep, and an optional **separate backup directory**). |
 | **Parser** | **XML parser** engine (Xerces or Saxon); **Allow XSLT extension functions**. |
+| **Rendering** | JavaFX graphics pipeline: **Auto** / **Hardware** / **Software** (takes effect after restart). See [Rendering mode (hardware vs. software)](#rendering-mode) below. |
 | **Temp & Cache** | **Use system temp folder** or a custom temp folder; **Clear Temp Folder** to free disk space; **Clear Cache Folder** to delete cached files (downloaded schemas etc.). |
 | **Templates** | A configurable **templates directory**, plus a **New / Edit / Delete** list of your own templates. See [Managing your templates](#managing-your-templates) below. |
 | **General** | **Check for updates on startup**; **Use small icons**. |
@@ -741,6 +742,32 @@ The **Clear Cache Folder** button in the **TEMP & CACHE** section deletes the co
 application's local cache folder (`~/.freeXmlToolkit/cache`) - for example downloaded schemas.
 A confirmation dialog is shown first, because the action cannot be undone. The cache folder
 itself is kept; only its contents are removed.
+
+### Rendering mode (hardware vs. software) {#rendering-mode}
+
+> **New in June 2026** - The **RENDERING** card lets you choose how JavaFX draws the UI,
+> per machine, instead of relying on a fixed JVM flag.
+
+JavaFX can render either on the **GPU** (hardware-accelerated, faster) or purely in
+**software**. On machines with only an integrated GPU, hardware rendering can become
+unstable on very large diagrams/grids, while machines with a dedicated GPU benefit from it.
+The **Mode** dropdown controls this:
+
+| Mode | Behaviour |
+|------|-----------|
+| **Auto** *(default)* | The application detects the graphics adapter at startup and picks **hardware** rendering on a dedicated GPU (and on macOS), or **software** rendering on integrated/unknown adapters. The detection result is cached. |
+| **Hardware** | Always prefer GPU rendering (with an automatic software fallback if the GPU pipeline cannot start). Use this if **Auto** does not recognize your dedicated GPU. |
+| **Software** | Always use software rendering. Use this if hardware rendering causes display glitches or crashes on your machine. |
+
+Notes:
+
+- **A restart is required** for a change to take effect - the graphics pipeline is chosen
+  once when the application starts.
+- An explicit `-Dprism.order=...` JVM flag (command line) still **overrides** this setting,
+  so power users can force a specific pipeline for troubleshooting.
+- **Auto** is intentionally conservative: any adapter it cannot confidently identify as a
+  dedicated GPU falls back to software rendering. If your dedicated GPU is not detected,
+  switch the mode to **Hardware**.
 
 ### Managing your templates
 
