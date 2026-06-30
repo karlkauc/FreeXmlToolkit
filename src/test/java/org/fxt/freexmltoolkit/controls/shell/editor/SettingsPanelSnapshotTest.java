@@ -26,7 +26,7 @@ class SettingsPanelSnapshotTest {
     void start(Stage stage) {
         org.fxt.freexmltoolkit.di.ServiceRegistry.initialize();
         panel = new SettingsPanel();
-        Scene scene = new Scene(panel, 340, 820);
+        Scene scene = new Scene(panel, 900, 1000);
         var css = getClass().getResource("/css/unified-shell.css");
         if (css != null) {
             scene.getStylesheets().add(css.toExternalForm());
@@ -42,7 +42,8 @@ class SettingsPanelSnapshotTest {
         }
         Path out = Path.of(System.getProperty("java.io.tmpdir"), "fxt_smoke");
         java.nio.file.Files.createDirectories(out);
-        WaitForAsyncUtils.sleep(500, TimeUnit.MILLISECONDS);
+        // Allow the off-thread GPU detection (RENDERING card) to populate before snapshotting.
+        WaitForAsyncUtils.sleep(1500, TimeUnit.MILLISECONDS);
         WaitForAsyncUtils.waitForFxEvents();
         var img = WaitForAsyncUtils.waitForAsyncFx(5000, () -> panel.snapshot(new SnapshotParameters(), null));
         ImageIO.write(SwingFXUtils.fromFXImage(img, null), "png", out.resolve("settings_panel.png").toFile());
