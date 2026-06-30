@@ -50,6 +50,7 @@ import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 import org.fxt.freexmltoolkit.service.SystemProxyDetector;
 import org.fxt.freexmltoolkit.service.ThreadPoolManager;
 import org.fxt.freexmltoolkit.service.UsageTrackingService;
+import org.fxt.freexmltoolkit.util.RenderingPipelineDetector;
 
 import fr.brouillard.oss.cssfx.CSSFX;
 
@@ -486,8 +487,15 @@ public class FxtGui extends Application {
      * <p>Properties are only set if not already defined via command line (-D flags).
      */
     private static void configureHardwareAcceleration() {
-        // Prefer hardware rendering: Direct3D on Windows, OpenGL ES2 on Mac/Linux, software fallback
-        setPropertyIfAbsent("prism.order", "d3d,es2,sw");
+        // Decide the Prism pipeline order. An explicit -Dprism.order=... (command line /
+        // jpackage --java-options) always wins; otherwise the user's rendering-mode
+        // preference (AUTO/HARDWARE/SOFTWARE) selects it, with AUTO using GPU auto-detection.
+        if (System.getProperty("prism.order") == null) {
+            System.setProperty("prism.order", resolvePrismOrder());
+        } else {
+            logger.info("Rendering: explicit -Dprism.order={} provided, skipping auto-detection",
+                    System.getProperty("prism.order"));
+        }
 
         // Do NOT force GPU - allow graceful fallback to software rendering if GPU/D3D fails
         // prism.forceGPU=true can cause JVM crashes (EXCEPTION_ACCESS_VIOLATION in glass.dll)
@@ -510,6 +518,67 @@ public class FxtGui extends Application {
 
         // Log which rendering pipeline is being used
         logger.info("JavaFX hardware acceleration configured: prism.order={}", System.getProperty("prism.order"));
+    }
+
+    /**
+     * Resolves the {@code prism.order} value from the persisted rendering-mode preference.
+     *
+     * <ul>
+     *   <li>{@code SOFTWARE} → {@code "sw"} (pure software rendering),</li>
+     *   <li>{@code HARDWARE} → {@code "d3d,es2,sw"} (GPU preferred, software safety net),</li>
+     *   <li>{@code AUTO} (default) → GPU auto-detection via {@link RenderingPipelineDetector},
+     *       with the result cached so subsequent startups skip the OS query.</li>
+     * </ul>
+     *
+     * @return the resolved {@code prism.order} string (never {@code null})
+     */
+    private static String resolvePrismOrder() {
+        String mode;
+        try {
+            mode = PropertiesServiceImpl.getInstance().getRenderingMode();
+        } catch (Throwable t) {
+            // Properties unavailable this early should not block startup — default to AUTO.
+            logger.warn("Could not read rendering mode, defaulting to AUTO: {}", t.toString());
+            mode = "AUTO";
+        }
+
+        String order = switch (mode) {
+            case "SOFTWARE" -> RenderingPipelineDetector.ORDER_SOFTWARE;
+            case "HARDWARE" -> RenderingPipelineDetector.ORDER_HARDWARE;
+            default -> resolveAutoOrder();
+        };
+        logger.info("Rendering mode '{}' resolved to prism.order={}", mode, order);
+        return order;
+    }
+
+    /**
+     * Resolves the AUTO rendering mode to a concrete {@code prism.order}. Uses a cached
+     * detection result when the machine signature ({@code os.name|os.arch}) is unchanged,
+     * otherwise runs {@link RenderingPipelineDetector#detectPrismOrder()} and caches it.
+     *
+     * @return {@code "d3d,es2,sw"} or {@code "sw"}
+     */
+    private static String resolveAutoOrder() {
+        String signature = System.getProperty("os.name", "") + "|" + System.getProperty("os.arch", "");
+        try {
+            PropertiesService props = PropertiesServiceImpl.getInstance();
+            String cachedSignature = props.get("rendering.autoDetected.signature");
+            String cachedOrder = props.get("rendering.autoDetected.order");
+            if (signature.equals(cachedSignature) && cachedOrder != null && !cachedOrder.isBlank()) {
+                logger.info("Rendering auto-detect: using cached prism.order={} for signature '{}'",
+                        cachedOrder, signature);
+                return cachedOrder;
+            }
+
+            String detected = RenderingPipelineDetector.detectPrismOrder();
+            props.set("rendering.autoDetected.signature", signature);
+            props.set("rendering.autoDetected.order", detected);
+            return detected;
+        } catch (Throwable t) {
+            // Never let caching/detection break startup.
+            logger.warn("Rendering auto-detect/caching failed, detecting without cache: {}", t.toString());
+            return RenderingPipelineDetector.detectPrismOrder();
+        }
     }
 
     /**

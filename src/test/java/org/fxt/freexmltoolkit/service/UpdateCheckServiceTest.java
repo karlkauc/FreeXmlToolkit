@@ -867,6 +867,15 @@ class UpdateCheckServiceTest {
         }
 
         @Override
+        public String getRenderingMode() {
+            return "AUTO";
+        }
+
+        @Override
+        public void setRenderingMode(String mode) {
+        }
+
+        @Override
         public java.util.List<java.io.File> getRecentJsonFiles() {
             return java.util.List.of();
         }

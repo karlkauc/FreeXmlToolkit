@@ -506,4 +506,27 @@ public interface PropertiesService {
      * @param spaces the number of indent spaces
      */
     void setJsonIndentSpaces(int spaces);
+
+    // Rendering settings
+
+    /**
+     * Gets the JavaFX rendering mode that decides the Prism pipeline at startup.
+     *
+     * <ul>
+     *   <li>{@code "AUTO"} — auto-detect hardware vs. software based on the GPU (default),</li>
+     *   <li>{@code "HARDWARE"} — always prefer GPU rendering (with software fallback),</li>
+     *   <li>{@code "SOFTWARE"} — always use software rendering.</li>
+     * </ul>
+     *
+     * @return one of {@code "AUTO"}, {@code "HARDWARE"}, {@code "SOFTWARE"} (default and fallback: {@code "AUTO"})
+     */
+    String getRenderingMode();
+
+    /**
+     * Sets the JavaFX rendering mode. Invalid values are stored as {@code "AUTO"}.
+     * Takes effect on the next application start (Prism reads its pipeline order once at launch).
+     *
+     * @param mode one of {@code "AUTO"}, {@code "HARDWARE"}, {@code "SOFTWARE"} (case-insensitive)
+     */
+    void setRenderingMode(String mode);
 }

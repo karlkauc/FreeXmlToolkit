@@ -180,7 +180,9 @@ tasks {
             "--enable-native-access=ALL-UNNAMED",
             "--enable-native-access=javafx.graphics",
             "--enable-native-access=javafx.web",
-            "-Dprism.order=sw",           // Force software rendering (may reduce WebView rendering errors)
+            // No -Dprism.order here: FxtGui auto-detects HW vs. SW rendering at startup
+            // (Settings > Rendering: Auto/Hardware/Software). To force a pipeline while
+            // developing, pass e.g. -Dprism.order=sw explicitly on the command line.
             "-Dprism.verbose=false"        // Reduce graphics logging
         )
     }
@@ -698,8 +700,6 @@ $runtimeArg
 -Xmx4g
 --java-options
 -XX:+UseG1GC
---java-options
--Dprism.order=d3d,es2,sw
 --java-options
 -Dprism.forceGPU=false
 --java-options

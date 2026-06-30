@@ -60,6 +60,9 @@ public class SettingsPanel extends VBox {
     private final ComboBox<XmlParserType> parserType = new ComboBox<>();
     private final CheckBox xsltExtensions = new CheckBox("Allow XSLT extension functions");
 
+    // Rendering (JavaFX Prism pipeline; applied at next startup)
+    private final ComboBox<String> renderingMode = new ComboBox<>();
+
     // Temp & cache
     private final CheckBox useSystemTemp = new CheckBox("Use system temp folder");
     private final TextField customTempDir = new TextField();
@@ -124,6 +127,7 @@ public class SettingsPanel extends VBox {
         xsdAutoSaveInterval.setEditable(true);
         xsdBackupVersions.setEditable(true);
         parserType.getItems().setAll(XmlParserType.values());
+        renderingMode.getItems().setAll("Auto", "Hardware", "Software");
         backupDir.setPromptText("backup directory");
         backupDir.disableProperty().bind(backupSeparateDir.selectedProperty().not());
         customTempDir.setPromptText("custom temp folder");
@@ -186,6 +190,12 @@ public class SettingsPanel extends VBox {
         HBox templateButtons = new HBox(6, newTemplate, editTemplate, deleteTemplate);
         templateButtons.setAlignment(Pos.CENTER_LEFT);
 
+        Label renderingHint = new Label(
+                "Auto picks GPU rendering on dedicated graphics, software otherwise. "
+                        + "Takes effect after restart.");
+        renderingHint.setWrapText(true);
+        renderingHint.getStyleClass().add("fxt-placeholder-text");
+
         Button save = new Button("Save Settings", iconGraphic("bi-save"));
         save.getStyleClass().add("fxt-tool-button");
         save.setOnAction(e -> {
@@ -209,6 +219,8 @@ public class SettingsPanel extends VBox {
                         backupSeparateDir, browseRow(backupDir, this::chooseBackupDir)),
                 card("PARSER", "bi-cpu", "#fd7e14",
                         labeled("XML parser:", parserType), xsltExtensions),
+                card("RENDERING", "bi-gpu-card", "#e83e8c",
+                        labeled("Mode:", renderingMode), renderingHint),
                 card("TEMP & CACHE", "bi-trash", "#ffc107",
                         useSystemTemp, browseRow(customTempDir, this::chooseTempDir),
                         fill(clearTemp), fill(clearCache), tempStatus),
@@ -457,6 +469,7 @@ public class SettingsPanel extends VBox {
             backupDir.setText(orEmpty(props.getBackupDirectory()));
             parserType.setValue(props.getXmlParserType());
             xsltExtensions.setSelected(props.isXsltExtensionsAllowed());
+            renderingMode.setValue(renderingModeLabel(props.getRenderingMode()));
             useSystemTemp.setSelected(props.isUseSystemTempFolder());
             customTempDir.setText(orEmpty(props.getCustomTempFolder()));
             updateCheck.setSelected(props.isUpdateCheckEnabled());
@@ -507,6 +520,7 @@ public class SettingsPanel extends VBox {
                 props.setXmlParserType(parserType.getValue());
             }
             props.setXsltExtensionsAllowed(xsltExtensions.isSelected());
+            props.setRenderingMode(renderingModeValue(renderingMode.getValue()));
             props.setUseSystemTempFolder(useSystemTemp.isSelected());
             props.setCustomTempFolder(customTempDir.getText());
             props.setUpdateCheckEnabled(updateCheck.isSelected());
@@ -595,6 +609,30 @@ public class SettingsPanel extends VBox {
 
     private static String orEmpty(String s) {
         return s == null ? "" : s;
+    }
+
+    /** Maps a stored rendering mode (AUTO/HARDWARE/SOFTWARE) to its display label. */
+    private static String renderingModeLabel(String stored) {
+        if (stored == null) {
+            return "Auto";
+        }
+        return switch (stored.trim().toUpperCase(java.util.Locale.ROOT)) {
+            case "HARDWARE" -> "Hardware";
+            case "SOFTWARE" -> "Software";
+            default -> "Auto";
+        };
+    }
+
+    /** Maps a display label (Auto/Hardware/Software) back to the stored rendering mode. */
+    private static String renderingModeValue(String label) {
+        if (label == null) {
+            return "AUTO";
+        }
+        return switch (label.trim().toLowerCase(java.util.Locale.ROOT)) {
+            case "hardware" -> "HARDWARE";
+            case "software" -> "SOFTWARE";
+            default -> "AUTO";
+        };
     }
 
     private IconifyIcon iconGraphic(String literal) {

@@ -118,6 +118,7 @@ public class PropertiesServiceImpl implements PropertiesService {
         properties.setProperty("ui.use.small.icons", "false"); // Feature flag for small toolbar icons
         properties.setProperty("toolbar.show.labels", "true"); // editor toolbar: icon + text label (Figma "future" layout)
         properties.setProperty("toolbar.icon.size", "small");   // editor toolbar: small icons by default
+        properties.setProperty("rendering.mode", "AUTO");       // JavaFX Prism: auto-detect HW vs. SW rendering
         properties.setProperty("version", "20241209");
         properties.setProperty("manualProxy", "false");
         properties.setProperty("useSystemProxy", "true");
@@ -689,6 +690,36 @@ public class PropertiesServiceImpl implements PropertiesService {
             saveProperties(properties);
             logger.debug("Set JSON indent spaces to: {}", spaces);
         }
+    }
+
+    // Rendering settings implementation
+
+    @Override
+    public String getRenderingMode() {
+        String raw = properties.getProperty("rendering.mode", "AUTO");
+        return normalizeRenderingMode(raw);
+    }
+
+    @Override
+    public void setRenderingMode(String mode) {
+        properties.setProperty("rendering.mode", normalizeRenderingMode(mode));
+        saveProperties(properties);
+        logger.debug("Set rendering mode to: {}", normalizeRenderingMode(mode));
+    }
+
+    /**
+     * Normalizes a rendering-mode string to one of {@code AUTO}/{@code HARDWARE}/{@code SOFTWARE},
+     * defaulting to {@code AUTO} for {@code null} or unrecognized values.
+     */
+    private static String normalizeRenderingMode(String mode) {
+        if (mode == null) {
+            return "AUTO";
+        }
+        String upper = mode.trim().toUpperCase(java.util.Locale.ROOT);
+        return switch (upper) {
+            case "HARDWARE", "SOFTWARE", "AUTO" -> upper;
+            default -> "AUTO";
+        };
     }
 
     /**
