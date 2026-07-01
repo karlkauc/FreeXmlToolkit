@@ -144,6 +144,60 @@ public class ToastNotification extends HBox {
     }
 
     /**
+     * Shows a toast anchored to the bottom-right of a window, without touching that
+     * window's layout. This is the app-wide entry point for transient success/info
+     * feedback: it uses a lightweight {@link javafx.stage.Popup}, so it works over any
+     * scene graph (BorderPane shell, dialogs, …) and never blocks the user like a
+     * modal alert. No-op when {@code owner} is null or not showing (e.g. headless).
+     *
+     * @param owner   the window to anchor the toast to
+     * @param message the message to display
+     * @param type    the type of toast (affects styling)
+     */
+    public static void show(javafx.stage.Window owner, String message, Type type) {
+        if (owner == null || !owner.isShowing()) {
+            return;
+        }
+        ToastNotification toast = new ToastNotification(message, type);
+
+        javafx.stage.Popup popup = new javafx.stage.Popup();
+        popup.setAutoFix(false);
+        popup.setAutoHide(false);
+        popup.getContent().add(toast);
+        popup.show(owner);
+
+        // Anchor bottom-right of the owner window (screen coordinates), leaving room
+        // for a status bar. Size must be resolved first via a CSS/layout pass.
+        toast.applyCss();
+        toast.autosize();
+        double x = owner.getX() + owner.getWidth() - toast.prefWidth(-1) - MARGIN;
+        double y = owner.getY() + owner.getHeight() - toast.prefHeight(-1) - MARGIN - 32;
+        popup.setX(x);
+        popup.setY(y);
+
+        FadeTransition fadeIn = new FadeTransition(Duration.millis(FADE_DURATION_MS), toast);
+        fadeIn.setFromValue(0);
+        fadeIn.setToValue(1);
+        PauseTransition pause = new PauseTransition(Duration.millis(DISPLAY_DURATION_MS));
+        FadeTransition fadeOut = new FadeTransition(Duration.millis(FADE_DURATION_MS), toast);
+        fadeOut.setFromValue(1);
+        fadeOut.setToValue(0);
+        SequentialTransition sequence = new SequentialTransition(fadeIn, pause, fadeOut);
+        sequence.setOnFinished(e -> popup.hide());
+        sequence.play();
+    }
+
+    /** Convenience: show a success toast anchored to {@code owner}. */
+    public static void success(javafx.stage.Window owner, String message) {
+        show(owner, message, Type.SUCCESS);
+    }
+
+    /** Convenience: show an info toast anchored to {@code owner}. */
+    public static void info(javafx.stage.Window owner, String message) {
+        show(owner, message, Type.INFO);
+    }
+
+    /**
      * Convenience method to show an info toast.
      *
      * @param parent The parent pane

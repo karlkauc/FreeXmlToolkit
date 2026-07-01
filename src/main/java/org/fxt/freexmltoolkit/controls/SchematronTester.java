@@ -11,7 +11,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
@@ -471,7 +470,10 @@ public class SchematronTester extends VBox {
                 logger.error("Error during test execution", e);
                 javafx.application.Platform.runLater(() -> {
                     statusLabel.setText("Error: " + e.getMessage());
-                    showAlert("Test Error", "An error occurred during testing: " + e.getMessage());
+                    org.fxt.freexmltoolkit.util.DialogHelper.showActionError("Schematron Test",
+                            "The Schematron test could not be run.",
+                            "Check that the XML file and the Schematron rules are valid and readable, then run the test again.",
+                            e);
                 });
             } finally {
                 javafx.application.Platform.runLater(() -> {
@@ -632,17 +634,6 @@ public class SchematronTester extends VBox {
             schematronFileField.clear();
         }
         updateTestButtonState();
-    }
-
-    /**
-     * Show an alert dialog
-     */
-    private void showAlert(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
     }
 
     // ========== Inner Classes ==========

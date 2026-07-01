@@ -761,6 +761,16 @@ class UpdateCheckServiceTest {
         }
 
         @Override
+        public boolean isActivityBarShowLabels() {
+            return Boolean.parseBoolean(properties.getProperty("activitybar.show.labels", "true"));
+        }
+
+        @Override
+        public void setActivityBarShowLabels(boolean showLabels) {
+            properties.setProperty("activitybar.show.labels", String.valueOf(showLabels));
+        }
+
+        @Override
         public String getToolbarIconSize() {
             String raw = properties.getProperty("toolbar.icon.size", "small");
             return "large".equalsIgnoreCase(raw) ? "large" : "small";

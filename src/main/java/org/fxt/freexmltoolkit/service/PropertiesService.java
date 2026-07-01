@@ -314,6 +314,22 @@ public interface PropertiesService {
     void setToolbarShowLabels(boolean showLabels);
 
     /**
+     * Whether the left Activity Bar shows a text label under each icon. Labels make
+     * the activities self-explanatory for users who don't recognise the glyphs
+     * (recommended for a business audience).
+     *
+     * @return true to show labels, false for icon-only (default: true)
+     */
+    boolean isActivityBarShowLabels();
+
+    /**
+     * Sets whether the left Activity Bar shows a text label under each icon.
+     *
+     * @param showLabels true to show labels, false for icon-only
+     */
+    void setActivityBarShowLabels(boolean showLabels);
+
+    /**
      * The editor-toolbar icon size.
      *
      * @return {@code "small"} or {@code "large"} (default and fallback: {@code "small"})

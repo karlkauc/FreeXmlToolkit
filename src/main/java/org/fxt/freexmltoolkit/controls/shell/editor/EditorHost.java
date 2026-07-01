@@ -858,8 +858,9 @@ public class EditorHost extends BorderPane {
                 EditorFileType type = EditorFileType.fromFileName(name);
                 Platform.runLater(() -> openGeneratedDocument(body, type, name));
             } catch (Exception e) {
-                Platform.runLater(() -> org.fxt.freexmltoolkit.util.DialogHelper.showError(
-                        "Open from URL", "Could not fetch the URL", e.getMessage()));
+                Platform.runLater(() -> org.fxt.freexmltoolkit.util.DialogHelper.showActionError(
+                        "Open from URL", "Could not fetch \"" + url + "\".",
+                        org.fxt.freexmltoolkit.util.DialogHelper.Remedies.URL_FETCH, e));
             }
         });
     }
@@ -3351,6 +3352,10 @@ public class EditorHost extends BorderPane {
                 jsonTreeView.setDocument(
                         org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonNodeFactory.parse(view.getText()));
             } catch (Exception e) {
+                // Invalid JSON while typing is expected; show an empty tree but leave a
+                // trace so a genuine parser problem is not silently swallowed.
+                org.apache.logging.log4j.LogManager.getLogger(EditorHost.class)
+                        .debug("JSON tree view: could not parse current text, showing empty tree", e);
                 jsonTreeView.setDocument(new org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonDocument());
             }
         }

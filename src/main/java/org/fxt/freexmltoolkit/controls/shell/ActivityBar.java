@@ -37,10 +37,41 @@ public class ActivityBar extends VBox {
         getStyleClass().add("fxt-activity-bar");
         setFillWidth(true);
 
+        applyLabelMode();
         rebuild(group);
 
         syncSelection();
         selectionModel.activeProperty().addListener((obs, oldV, newV) -> syncSelection());
+    }
+
+    /**
+     * Re-reads the "show activity-bar labels" preference and rebuilds the bar so the
+     * change (labels on/off) takes effect live. Called from the shell after Settings
+     * are saved.
+     */
+    public void refreshLabels() {
+        applyLabelMode();
+        refresh();
+    }
+
+    /** Whether each activity button should render its text label under the icon. */
+    private boolean showLabels() {
+        try {
+            return org.fxt.freexmltoolkit.di.ServiceRegistry.get(
+                    org.fxt.freexmltoolkit.service.PropertiesService.class).isActivityBarShowLabels();
+        } catch (Throwable ignored) {
+            // properties service unavailable (e.g. tests) — default to showing labels
+            return true;
+        }
+    }
+
+    /** Toggles the {@code fxt-activity-bar-labeled} style hook that widens the rail via CSS. */
+    private void applyLabelMode() {
+        boolean labeled = showLabels();
+        getStyleClass().remove("fxt-activity-bar-labeled");
+        if (labeled) {
+            getStyleClass().add("fxt-activity-bar-labeled");
+        }
     }
 
     /**
@@ -107,6 +138,14 @@ public class ActivityBar extends VBox {
         IconifyIcon icon = new IconifyIcon(activity.icon());
         icon.setIconSize(22);
         button.setGraphic(icon);
+
+        // When labels are enabled the activity name is shown under the icon (so the
+        // rail is self-explanatory); otherwise the bar stays a slim icon-only rail.
+        if (showLabels()) {
+            button.setText(activity.label());
+            button.setContentDisplay(javafx.scene.control.ContentDisplay.TOP);
+            button.getStyleClass().add("fxt-activity-button-labeled");
+        }
 
         Tooltip tooltip = new Tooltip(activity.label());
         tooltip.setShowDelay(Duration.millis(300));

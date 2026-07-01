@@ -126,7 +126,7 @@
                                         <Button id="action-format" text="Format" contentDisplay="TOP"
                                                 styleClass="fxt-tool-button, fxt-tool-info" onAction="#onFormat">
                                             <graphic><IconifyIcon iconLiteral="bi-text-indent-left" iconSize="20"/></graphic>
-                                            <tooltip><Tooltip text="Format"/></tooltip>
+                                            <tooltip><Tooltip text="Format (Ctrl+Shift+F)"/></tooltip>
                                         </Button>
                                         <Button id="action-minify" text="Minify" contentDisplay="TOP"
                                                 styleClass="fxt-tool-button, fxt-tool-info" onAction="#onMinify">

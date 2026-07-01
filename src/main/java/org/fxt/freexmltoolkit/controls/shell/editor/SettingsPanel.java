@@ -74,6 +74,7 @@ public class SettingsPanel extends VBox {
     private final CheckBox updateCheck = new CheckBox("Check for updates on startup");
     private final CheckBox smallIcons = new CheckBox("Use small icons");
     private final CheckBox toolbarLabels = new CheckBox("Show toolbar button labels");
+    private final CheckBox activityBarLabels = new CheckBox("Show activity bar labels");
     private final ToggleButton toolbarIconSmall = new ToggleButton("Small");
     private final ToggleButton toolbarIconLarge = new ToggleButton("Large");
     private final CheckBox showLeftPanel = new CheckBox("Show left side panel");
@@ -232,7 +233,7 @@ public class SettingsPanel extends VBox {
                         useSystemTemp, browseRow(customTempDir, this::chooseTempDir),
                         fill(clearTemp), fill(clearCache), tempStatus),
                 card("GENERAL", "bi-sliders", "#007bff",
-                        updateCheck, smallIcons, toolbarLabels,
+                        updateCheck, smallIcons, toolbarLabels, activityBarLabels,
                         labeled("Toolbar icons:", new HBox(6, toolbarIconSmall, toolbarIconLarge)),
                         showLeftPanel, showInspector),
                 card("USER INFO", "bi-person", "#28a745",
@@ -339,8 +340,9 @@ public class SettingsPanel extends VBox {
             try {
                 TemplateRepository.getInstance().saveTemplateToFile(template);
             } catch (Exception ex) {
-                org.fxt.freexmltoolkit.util.DialogHelper.showError("Templates",
-                        "Could not save template", ex.getMessage());
+                org.fxt.freexmltoolkit.util.DialogHelper.showActionError("Templates",
+                        "The template could not be saved.",
+                        org.fxt.freexmltoolkit.util.DialogHelper.Remedies.FILE_UNWRITABLE, ex);
             }
             reloadTemplatesList();
         });
@@ -482,6 +484,7 @@ public class SettingsPanel extends VBox {
             updateCheck.setSelected(props.isUpdateCheckEnabled());
             smallIcons.setSelected(props.isUseSmallIcons());
             toolbarLabels.setSelected(props.isToolbarShowLabels());
+            activityBarLabels.setSelected(props.isActivityBarShowLabels());
             boolean toolbarLarge = "large".equalsIgnoreCase(props.getToolbarIconSize());
             (toolbarLarge ? toolbarIconLarge : toolbarIconSmall).setSelected(true);
             // Side-panel visibility (shared with UnifiedShellView; default open).
@@ -554,6 +557,7 @@ public class SettingsPanel extends VBox {
             props.setUpdateCheckEnabled(updateCheck.isSelected());
             props.setUseSmallIcons(smallIcons.isSelected());
             props.setToolbarShowLabels(toolbarLabels.isSelected());
+            props.setActivityBarShowLabels(activityBarLabels.isSelected());
             props.setToolbarIconSize(toolbarIconLarge.isSelected() ? "large" : "small");
             props.set("shell.leftPanel.visible", String.valueOf(showLeftPanel.isSelected()));
             props.set("shell.inspector.visible", String.valueOf(showInspector.isSelected()));

@@ -575,6 +575,8 @@ public class ValidationPanel extends VBox {
             favorites = org.fxt.freexmltoolkit.service.FavoritesService.getInstance()
                     .getFavoritesByType(org.fxt.freexmltoolkit.domain.FileFavorite.FileType.XSD);
         } catch (Throwable t) {
+            org.apache.logging.log4j.LogManager.getLogger(ValidationPanel.class)
+                    .warn("Could not load XSD favorites; showing an empty quick-select menu", t);
             favorites = java.util.List.of();
         }
         for (var favorite : favorites) {
@@ -709,7 +711,8 @@ public class ValidationPanel extends VBox {
                 });
             } catch (Exception ex) {
                 Platform.runLater(() -> PanelStatus.failure(status, "Export problems",
-                        "Could not write the Excel file: " + ex.getMessage()));
+                        "Could not write the Excel file.",
+                        org.fxt.freexmltoolkit.util.DialogHelper.Remedies.EXPORT, ex));
             }
         });
     }

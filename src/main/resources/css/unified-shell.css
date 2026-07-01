@@ -36,6 +36,33 @@
     -fx-cursor: hand;
 }
 
+/* Labeled activity bar: a slightly wider rail whose buttons show the activity name
+   under the icon, so users don't have to recognise the glyph or hover for a tooltip. */
+.fxt-activity-bar-labeled {
+    -fx-min-width: 74;
+    -fx-pref-width: 74;
+}
+
+.fxt-activity-button-labeled {
+    -fx-min-width: 66;
+    -fx-max-width: 66;
+    -fx-min-height: 52;
+    -fx-max-height: 52;
+    -fx-content-display: top;
+    -fx-graphic-text-gap: 3;
+    -fx-font-size: 9.5px;
+    -fx-text-fill: #8a93a0;
+    -fx-alignment: CENTER;
+}
+
+.fxt-activity-button-labeled:hover {
+    -fx-text-fill: #e9ecf1;
+}
+
+.fxt-activity-button-labeled:selected {
+    -fx-text-fill: #ffffff;
+}
+
 .fxt-activity-button .iconify-icon {
     -fx-icon-color: #8a93a0;
 }

@@ -119,6 +119,48 @@ public class DialogHelperTest {
     }
 
     @Test
+    @DisplayName("Remedy-Texte sollten vorhanden und nicht leer sein")
+    void testRemediesCatalog() {
+        assertNotNull(DialogHelper.Remedies.FILE_UNREADABLE);
+        assertNotNull(DialogHelper.Remedies.FILE_UNWRITABLE);
+        assertNotNull(DialogHelper.Remedies.NETWORK);
+        assertNotNull(DialogHelper.Remedies.URL_FETCH);
+        assertNotNull(DialogHelper.Remedies.INVALID_SCHEMA);
+        assertNotNull(DialogHelper.Remedies.TRANSFORM);
+        assertNotNull(DialogHelper.Remedies.EXPORT);
+        for (String remedy : List.of(
+                DialogHelper.Remedies.FILE_UNREADABLE, DialogHelper.Remedies.FILE_UNWRITABLE,
+                DialogHelper.Remedies.NETWORK, DialogHelper.Remedies.URL_FETCH,
+                DialogHelper.Remedies.INVALID_SCHEMA, DialogHelper.Remedies.TRANSFORM,
+                DialogHelper.Remedies.EXPORT)) {
+            assertFalse(remedy.isBlank(), "Remedy text must not be blank");
+        }
+    }
+
+    @Test
+    @DisplayName("showActionError sollte im Suppress-Modus nie blockieren oder werfen")
+    void testActionErrorSuppressedIsNonBlocking() {
+        String previous = System.getProperty("fxt.suppressErrorDialogs");
+        System.setProperty("fxt.suppressErrorDialogs", "true");
+        try {
+            // None of these must open a modal (showAndWait) or throw — they return early.
+            assertDoesNotThrow(() -> {
+                DialogHelper.showActionError("Title", "What happened", "Remedy");
+                DialogHelper.showActionError("Title", "What happened", "Remedy",
+                        new IllegalStateException("boom"));
+                DialogHelper.showActionError("Title", "What happened", "Remedy", "ERROR: raw detail");
+                DialogHelper.notifyActionFailure("Title", "message");
+            });
+        } finally {
+            if (previous == null) {
+                System.clearProperty("fxt.suppressErrorDialogs");
+            } else {
+                System.setProperty("fxt.suppressErrorDialogs", previous);
+            }
+        }
+    }
+
+    @Test
     @DisplayName("Sollte Hilfe-Dialoge korrekt erstellen")
     void testCreateHelpDialog() {
         runAndWait(() -> {

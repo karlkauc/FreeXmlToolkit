@@ -218,6 +218,114 @@ public class DialogHelper {
     }
 
     /**
+     * Raises a modal error dialog for a failed action following the app-wide
+     * <em>"what happened · (technical detail) · what to do"</em> template.
+     *
+     * <p>The dialog's <b>header</b> states, in plain language, what went wrong; the
+     * <b>content</b> tells the user how to fix it or what options they have (a
+     * remedy). This is the recommended way to surface failures — a bare
+     * {@code exception.getMessage()} rarely tells the user what to do next.
+     *
+     * <p>Like {@link #notifyActionFailure(String, String)}, this is suppressed when
+     * the system property {@code fxt.suppressErrorDialogs} is set, so headless
+     * TestFX runs that deliberately exercise error paths are never blocked by a
+     * modal {@code showAndWait()}.
+     *
+     * @param title        the error dialog's window title (e.g. "Open from URL")
+     * @param whatHappened a plain-language summary of the failure (shown as header)
+     * @param remedy       what the user can do about it / which options they have
+     */
+    public static void showActionError(String title, String whatHappened, String remedy) {
+        showActionErrorWithDetail(title, whatHappened, remedy, null);
+    }
+
+    /**
+     * Same as {@link #showActionError(String, String, String)} but attaches the raw
+     * technical detail of a {@link Throwable} as expandable content, so the plain
+     * headline/remedy stays readable while power users can still inspect the cause.
+     *
+     * @param title        the error dialog's window title
+     * @param whatHappened a plain-language summary of the failure (shown as header)
+     * @param remedy       what the user can do about it / which options they have
+     * @param detail       the underlying cause; its message + stack trace are shown
+     *                     in a collapsible "Technical details" section (may be null)
+     */
+    public static void showActionError(String title, String whatHappened, String remedy, Throwable detail) {
+        showActionErrorWithDetail(title, whatHappened, remedy,
+                detail == null ? null : getStackTraceAsString(detail));
+    }
+
+    /**
+     * Same as {@link #showActionError(String, String, String)} but attaches a raw
+     * technical detail string (e.g. a runner's {@code "ERROR: …"} output) as
+     * collapsible content. Use this when the failure is reported as a message rather
+     * than an exception.
+     *
+     * @param title           the error dialog's window title
+     * @param whatHappened    a plain-language summary of the failure (shown as header)
+     * @param remedy          what the user can do about it / which options they have
+     * @param technicalDetail the raw technical message shown in a collapsible
+     *                        "Technical details" section (may be null/blank)
+     */
+    public static void showActionError(String title, String whatHappened, String remedy, String technicalDetail) {
+        showActionErrorWithDetail(title, whatHappened, remedy, technicalDetail);
+    }
+
+    private static void showActionErrorWithDetail(String title, String whatHappened, String remedy,
+                                                  String detailText) {
+        if (Boolean.getBoolean("fxt.suppressErrorDialogs")) {
+            return;
+        }
+        Alert alert = createAlert(Alert.AlertType.ERROR, title, whatHappened, remedy, "bi-x-circle");
+        if (detailText != null && !detailText.isBlank()) {
+            VBox expandableContent = new VBox(5);
+            expandableContent.setPadding(new Insets(10));
+            Label label = new Label("Technical details:");
+            TextArea textArea = new TextArea(detailText);
+            textArea.setEditable(false);
+            textArea.setWrapText(false);
+            textArea.setMaxWidth(Double.MAX_VALUE);
+            textArea.setMaxHeight(Double.MAX_VALUE);
+            expandableContent.getChildren().addAll(label, textArea);
+            alert.getDialogPane().setExpandableContent(expandableContent);
+        }
+        alert.showAndWait();
+    }
+
+    /**
+     * Curated, reusable remedy texts for the most common failure classes, so error
+     * dialogs consistently tell the user <em>what to do next</em> instead of dumping
+     * a raw exception message. Compose with {@link #showActionError} /
+     * {@link PanelStatus}-style failure reporting.
+     */
+    public static final class Remedies {
+        private Remedies() {
+        }
+
+        /** A file could not be read. */
+        public static final String FILE_UNREADABLE =
+                "Check that the file still exists and that you have permission to read it, then try again.";
+        /** A file could not be written / saved. */
+        public static final String FILE_UNWRITABLE =
+                "Check that the target folder exists and is writable (not read-only, and not open in another program), then try again.";
+        /** A network / remote resource could not be reached. */
+        public static final String NETWORK =
+                "Check your internet connection and proxy settings (Settings ▸ HTTP Proxy), then try again.";
+        /** A URL could not be fetched. */
+        public static final String URL_FETCH =
+                "Verify the URL is correct and reachable, check your proxy settings (Settings ▸ HTTP Proxy), then try again.";
+        /** A schema was invalid or could not be applied. */
+        public static final String INVALID_SCHEMA =
+                "Open the schema and fix the reported problem, or bind a different schema, then retry.";
+        /** An XSLT / XQuery transformation failed. */
+        public static final String TRANSFORM =
+                "Verify the stylesheet and the input document are valid, then run the transformation again.";
+        /** An export could not be completed. */
+        public static final String EXPORT =
+                "Choose a different target file or folder (writable and not currently open elsewhere) and export again.";
+    }
+
+    /**
      * Shows a confirmation dialog with icon.
      *
      * @param title the dialog title
@@ -758,7 +866,7 @@ public class DialogHelper {
      * @param exception the exception to convert
      * @return the formatted stack trace string
      */
-    private static String getStackTraceAsString(Exception exception) {
+    private static String getStackTraceAsString(Throwable exception) {
         StringBuilder sb = new StringBuilder();
         sb.append(exception.getClass().getName()).append(": ")
           .append(exception.getMessage()).append("\n\n");

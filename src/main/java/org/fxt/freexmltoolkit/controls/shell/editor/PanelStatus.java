@@ -64,6 +64,27 @@ public final class PanelStatus {
         DialogHelper.notifyActionFailure(dialogTitle, clean);
     }
 
+    /**
+     * A real failure, reported with a remedy: the message is shown red inline
+     * (error icon) <b>and</b> raised as a modal error dialog that additionally tells
+     * the user how to fix it / what options they have (see
+     * {@link DialogHelper#showActionError(String, String, String, Throwable)}).
+     * This is the preferred variant — a bare failure message rarely tells the user
+     * what to do next.
+     *
+     * @param status       the inline status label
+     * @param dialogTitle  the error dialog's window title (e.g. "PDF generation failed")
+     * @param whatHappened the failure message (may carry an "ERROR: " prefix)
+     * @param remedy       what the user can do about it / which options they have
+     * @param detail       the underlying cause for the expandable details (may be null)
+     */
+    public static void failure(Label status, String dialogTitle, String whatHappened,
+                               String remedy, Throwable detail) {
+        String clean = strip(whatHappened);
+        apply(status, clean, ERROR, "bi-x-circle");
+        DialogHelper.showActionError(dialogTitle, clean, remedy, detail);
+    }
+
     private static void apply(Label status, String text, String severityClass, String iconLiteral) {
         status.setText(text);
         status.getStyleClass().removeAll(INFO, SUCCESS, ERROR);
@@ -78,7 +99,7 @@ public final class PanelStatus {
     }
 
     /** Removes a leading {@code "ERROR:"} / {@code "ERROR "} prefix from a runner message. */
-    static String strip(String message) {
+    public static String strip(String message) {
         if (message == null) {
             return "";
         }

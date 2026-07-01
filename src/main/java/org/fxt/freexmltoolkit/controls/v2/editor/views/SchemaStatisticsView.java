@@ -795,12 +795,12 @@ public class SchemaStatisticsView extends BorderPane {
     }
 
     /**
-     * Shows an info message.
+     * Shows a transient success/info message as a non-blocking toast (routine
+     * feedback should not interrupt the user with a modal dialog).
      */
     private void showInfo(String message) {
-        Alert alert = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
-                Alert.AlertType.INFORMATION, "Information", null, message);
-        alert.showAndWait();
+        org.fxt.freexmltoolkit.controls.v2.xmleditor.view.ToastNotification.success(
+                getScene() != null ? getScene().getWindow() : null, message);
     }
 
     /**

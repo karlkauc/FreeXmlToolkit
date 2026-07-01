@@ -280,8 +280,16 @@ public class UnifiedShellView extends BorderPane {
                 event.consume();
             }
             case F -> {
-                showSearch(false);
-                event.consume();
+                if (event.isShiftDown()) {
+                    // Ctrl+Shift+F — format the active document (no-op / no consume without one).
+                    if (editorHost.getActiveDocument().isPresent()) {
+                        onFormat();
+                        event.consume();
+                    }
+                } else {
+                    showSearch(false);
+                    event.consume();
+                }
             }
             case H -> {
                 showSearch(true);
@@ -293,7 +301,26 @@ public class UnifiedShellView extends BorderPane {
                     event.consume();
                 }
             }
-            default -> { /* let other shortcuts (e.g. editor undo/redo) through */ }
+            case Z -> {
+                // Shell-level Undo/Redo so they work regardless of which view (Text/Tree/
+                // Graphic) has focus. This only fires when the focused editor did not already
+                // consume the event, so there is no double-undo when typing in the text area.
+                if (editorHost.getActiveDocument().isPresent()) {
+                    if (event.isShiftDown()) {
+                        onRedo();
+                    } else {
+                        onUndo();
+                    }
+                    event.consume();
+                }
+            }
+            case Y -> {
+                if (editorHost.getActiveDocument().isPresent()) {
+                    onRedo();
+                    event.consume();
+                }
+            }
+            default -> { /* let other editor shortcuts through */ }
         }
     }
 
@@ -505,7 +532,7 @@ public class UnifiedShellView extends BorderPane {
         }
         var settings = new org.fxt.freexmltoolkit.controls.shell.editor.SettingsPanel();
         settings.setOnSaved(() -> {
-            activityBar.refresh();
+            activityBar.refreshLabels();
             reloadPanelPrefs();
             applyToolbarDisplaySettings();
         });
@@ -660,6 +687,36 @@ public class UnifiedShellView extends BorderPane {
                 .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.GENERATE_DOCS));
         actionTypeEditor.setDisable(!org.fxt.freexmltoolkit.controls.shell.editor.EditorActions
                 .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.TYPE_EDITOR));
+
+        // Everything that operates on the active document is disabled when none is open,
+        // so the toolbar never offers a no-op click on the empty welcome screen. New/Open
+        // and the direction-agnostic Spreadsheet converter stay enabled.
+        boolean hasDoc = type != null;
+        for (String id : DOC_DEPENDENT_TOOLBAR_IDS) {
+            setToolbarButtonDisabled(id, !hasDoc);
+        }
+    }
+
+    /**
+     * Toolbar button ids (from {@code shell.fxml}) whose actions require an open
+     * document. Gated on/off together in {@link #refreshDocumentActionGating()}.
+     */
+    private static final String[] DOC_DEPENDENT_TOOLBAR_IDS = {
+            "action-save", "action-save-as", "action-save-all",
+            "action-undo", "action-redo",
+            "action-format", "action-minify",
+            "action-insert-template", "action-compare",
+            "action-query-console", "action-set-schema"
+    };
+
+    /** Enables/disables a toolbar action button by its {@code shell.fxml} id (no-op if absent). */
+    private void setToolbarButtonDisabled(String id, boolean disabled) {
+        for (javafx.scene.Node node : toolbarActions.getChildren()) {
+            if (node instanceof javafx.scene.control.Button button && id.equals(button.getId())) {
+                button.setDisable(disabled);
+                return;
+            }
+        }
     }
 
     /** @return the shell's owning window, or {@code null} when not yet shown. */
@@ -721,7 +778,10 @@ public class UnifiedShellView extends BorderPane {
             }
             String content = org.fxt.freexmltoolkit.controls.shell.editor.TemplateRunner.render(template, params);
             if (content.startsWith("ERROR:")) {
-                org.fxt.freexmltoolkit.util.DialogHelper.showError("New File", "Template could not be rendered", content);
+                org.fxt.freexmltoolkit.util.DialogHelper.showActionError("New File",
+                        "The template could not be rendered.",
+                        "Check the template and any parameter values you entered, then try inserting it again.",
+                        org.fxt.freexmltoolkit.controls.shell.editor.PanelStatus.strip(content));
                 return;
             }
             org.fxt.freexmltoolkit.service.TemplateRepository.getInstance().recordUsage(template.getId());
@@ -737,8 +797,10 @@ public class UnifiedShellView extends BorderPane {
                         .generate(schema, true, 2, false);
                 javafx.application.Platform.runLater(() -> {
                     if (xml.startsWith("ERROR:")) {
-                        org.fxt.freexmltoolkit.util.DialogHelper.showError("New File",
-                                "Could not generate document from schema", xml);
+                        org.fxt.freexmltoolkit.util.DialogHelper.showActionError("New File",
+                                "Could not generate a document from the schema.",
+                                org.fxt.freexmltoolkit.util.DialogHelper.Remedies.INVALID_SCHEMA,
+                                org.fxt.freexmltoolkit.controls.shell.editor.PanelStatus.strip(xml));
                     } else {
                         finishNewDocument(xml, result);
                     }
@@ -886,8 +948,12 @@ public class UnifiedShellView extends BorderPane {
             org.fxt.freexmltoolkit.util.DialogHelper.showInformation("Spreadsheet Converter",
                     "Conversion finished", "Done: " + file.getAbsolutePath());
         } else {
-            org.fxt.freexmltoolkit.util.DialogHelper.showError("Spreadsheet Converter",
-                    "Conversion failed", result);
+            org.fxt.freexmltoolkit.util.DialogHelper.showActionError("Spreadsheet Converter",
+                    "The conversion could not be completed.",
+                    imported
+                            ? "Check that the spreadsheet is a valid .xlsx/.csv file and not open in another program, then try again."
+                            : "Check that the document is well-formed and the target file is writable (not open elsewhere), then try again.",
+                    org.fxt.freexmltoolkit.controls.shell.editor.PanelStatus.strip(result));
         }
     }
 

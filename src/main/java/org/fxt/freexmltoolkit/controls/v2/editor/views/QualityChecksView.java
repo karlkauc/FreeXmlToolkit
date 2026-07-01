@@ -966,12 +966,12 @@ public class QualityChecksView extends BorderPane {
     // ========== Alert Helpers ==========
 
     /**
-     * Shows an info alert.
+     * Shows a transient success/info message as a non-blocking toast (routine
+     * feedback should not interrupt the user with a modal dialog).
      */
     private void showInfo(String message) {
-        Alert alert = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
-                Alert.AlertType.INFORMATION, "Export Successful", null, message);
-        alert.showAndWait();
+        org.fxt.freexmltoolkit.controls.v2.xmleditor.view.ToastNotification.success(
+                getScene() != null ? getScene().getWindow() : null, message);
     }
 
     /**
@@ -988,7 +988,7 @@ public class QualityChecksView extends BorderPane {
      */
     private void showError(String message) {
         Alert alert = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
-                Alert.AlertType.ERROR, "Export Failed", null, message);
+                Alert.AlertType.ERROR, "Quality Checks", null, message);
         alert.showAndWait();
     }
 
