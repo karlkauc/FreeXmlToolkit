@@ -117,15 +117,17 @@ Severity-Legende: 🔴 hoch (bremst Workflow / verwirrt spürbar) · 🟡 mittel
 
 ## 6 · Häufige Aktionen leicht zugänglich — Toolbar & Shortcuts
 
-- 🔴 **Flache 18-Button-Toolbar ohne Priorisierung/Gruppierung.** Eine `FlowPane` mit ~18
-  gleichgewichteten Icon+Label-Buttons (Info-Gruppe allein 11 Buttons); bricht bei schmalem Fenster
-  mehrzeilig um. Häufig (New/Open/Save/Undo/Format/Validate) und selten (Spreadsheet Converter,
-  Insert Template, Type Editor) stehen visuell gleichwertig. → **Empfehlung:** primäre Aktionen
-  prominent, sekundäre in ein „More"-/Overflow-Cluster; klarere Hierarchie (nur Haupt-CTA farbig).
-- 🔴 **14 von 18 Toolbar-Buttons nicht kontext-gated.** Nur Validate/Transform/GenerateDocs/
-  TypeEditor werden je Dateityp aktiviert/deaktiviert. Format, Minify, Set-Schema, Save etc. sind
-  auch auf dem leeren Welcome-Screen klickbar. → **Empfehlung:** alle dokumentabhängigen Aktionen
-  deaktivieren, wenn kein/unpassendes Dokument offen ist (`EditorActions.applicableFor`).
+- 🟢 **Visuelle Hierarchie — bereits umgesetzt (Nachtrag).** Die ursprüngliche Empfehlung „nur
+  Haupt-CTA farbig, Rest neutral" ist im Code schon realisiert: innerhalb `.fxt-editor-toolbar`
+  sind die semantischen Farbklassen bewusst deaktiviert (alle Buttons flach/grau), nur **Validate**
+  trägt den gefüllten Primär-Akzent (`unified-shell.css` Z. 463–518). Ein **Overflow-Cluster** ist
+  hier **bewusst abgelehnt** und per `ActionToolbarOverflowTest` abgesichert: die Toolbar wurde
+  absichtlich von einer ToolBar-mit-Overflow-Chevron auf eine umbrechende `FlowPane` umgestellt,
+  weil im Overflow versteckte Buttons „effektiv unerreichbar" waren. → **Kein Handlungsbedarf**;
+  eine Overflow-Gliederung würde die getestete Discoverability-Entscheidung verschlechtern.
+- 🟢 **Kontext-Gating — umgesetzt.** Alle dokumentabhängigen Buttons (Format, Minify, Save-Familie,
+  Undo/Redo, Compare, Insert Template, Query Console, Set Schema) werden ohne offenes Dokument
+  deaktiviert (nicht mehr nur die vier Editor-Aktionen) — siehe `UnifiedShellView.refreshDocumentActionGating`.
 - 🟡 **Dünne, inkonsistente Shortcut-Abdeckung.** Echte `setAccelerator` nur im XML-Grid-Kontextmenü;
   globale Shortcuts handgerollt. **Undo/Redo nicht shell-gebunden** (Ctrl+Y ≠ RichTextFX-Default-
   Redo → Mismatch-Risiko), **Format/Minify ohne Shortcut**. → **Empfehlung:** globale Accelerator
@@ -150,7 +152,9 @@ Severity-Legende: 🔴 hoch (bremst Workflow / verwirrt spürbar) · 🟡 mittel
 
 6. Seitenpanels cachen → kein State-Verlust beim Activity-Wechsel.
 7. Einheitliche Progress-/Cancel-Affordanz für Transform/PDF/Batch.
-8. Toolbar in Primär- vs. Overflow-Cluster gliedern; Farbsemantik der Buttons vereinheitlichen+dokumentieren.
+8. ~~Toolbar in Primär- vs. Overflow-Cluster gliedern~~ — **hinfällig**: die „nur-CTA-farbig"-Hierarchie
+   ist bereits umgesetzt und ein Overflow-Cluster ist bewusst (getestet) abgelehnt (siehe §6). Offen
+   bleibt allenfalls: Farbsemantik der (ungenutzten) Button-Klassen im Code aufräumen.
 9. Redundante Einstiegspunkte je Aktion auf eine primäre Heimat reduzieren.
 
 **Größer (Standardisierung)**
@@ -164,5 +168,17 @@ Severity-Legende: 🔴 hoch (bremst Workflow / verwirrt spürbar) · 🟡 mittel
 
 ## Umsetzungsstatus
 
-Die Quick Wins werden mit **Fehlermeldungen als Leitpriorität** umgesetzt (Schritte 1–5 oben).
-Die Positionen 6–12 sind als Backlog dokumentiert.
+**Erledigt:**
+- Quick Wins 1–5 (Fehlermeldungen mit Was·Detail·Lösung, App-weite Toasts, Toolbar-Gating,
+  Activity-Bar-Labels, fehlende Shortcuts).
+- #6 Seitenpanels cachen (kein State-Verlust; behebt zusätzlich ein Listener-Leak).
+- #7 Progress/Cancel für Batch-Validierung (determinater Fortschritt + echtes Cancel) sowie
+  Transform/PDF (Spinner + Cancel/Abbruch).
+- #8 war bereits im Code umgesetzt (Hierarchie) bzw. bewusst abgelehnt (Overflow) — siehe §6.
+
+**Offen (Backlog):** #9 (redundante Einstiegspunkte), #10 (Farbsysteme konsolidieren),
+#11 (STYLE_GUIDE aktualisieren), #12 (Command-Palette).
+
+**Infra:** Die Full-Suite ist auf zwei vorbestehenden, änderungsunabhängigen UI-Tests
+(`UnifiedShellViewTest.inspectorRendersTheRequiredSections`, `EditorHostDiffTest`) intermittierend
+rot (TestFX/RichTextFX headless) — separat zu stabilisieren.
