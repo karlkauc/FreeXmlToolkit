@@ -39,6 +39,14 @@ public class UnifiedShellView extends BorderPane {
     private ActivityBar activityBar;
     /** Cached so the editor toolbar "Validate" action can drive the same panel. */
     private org.fxt.freexmltoolkit.controls.shell.editor.ValidationPanel validationPanel;
+    /**
+     * One cached side panel per activity, so entered state (PDF metadata, signature
+     * form, transform parameters, search text, …) survives switching activities and
+     * back. Panels observe {@code editorHost} reactively, so a cached instance stays
+     * in sync with the active document.
+     */
+    private final java.util.Map<Activity, javafx.scene.Node> sidePanels =
+            new java.util.EnumMap<>(Activity.class);
     /** The Settings page tab in the main editor area (reused across activity selections). */
     private javafx.scene.control.Tab settingsTab;
 
@@ -447,78 +455,52 @@ public class UnifiedShellView extends BorderPane {
     }
 
     private void showSidePanelFor(Activity activity) {
-        if (activity == Activity.EXPLORER) {
-            var explorer = new org.fxt.freexmltoolkit.controls.shell.editor.ExplorerPanel(editorHost);
-            explorer.setNewFileAction(this::newDocument);
-            sidePanelHost.getChildren().setAll(explorer);
-            return;
-        }
-        if (activity == Activity.SCHEMA) {
-            sidePanelHost.getChildren().setAll(
-                    new org.fxt.freexmltoolkit.controls.shell.editor.TypeLibraryPanel(editorHost));
-            return;
-        }
-        if (activity == Activity.VALIDATION) {
-            sidePanelHost.getChildren().setAll(validationPanel());
-            return;
-        }
-        if (activity == Activity.TRANSFORM) {
-            sidePanelHost.getChildren().setAll(
-                    new org.fxt.freexmltoolkit.controls.shell.editor.TransformPanel(editorHost));
-            return;
-        }
-        if (activity == Activity.FAVORITES) {
-            sidePanelHost.getChildren().setAll(
-                    new org.fxt.freexmltoolkit.controls.shell.editor.FavoritesActivityPanel(editorHost));
-            return;
-        }
-        if (activity == Activity.PDF_FOP) {
-            sidePanelHost.getChildren().setAll(
-                    new org.fxt.freexmltoolkit.controls.shell.editor.FopPanel(editorHost));
-            return;
-        }
-        if (activity == Activity.SIGNATURE) {
-            sidePanelHost.getChildren().setAll(
-                    new org.fxt.freexmltoolkit.controls.shell.editor.SignaturePanel(editorHost));
-            return;
-        }
-        if (activity == Activity.FUNDSXML) {
-            sidePanelHost.getChildren().setAll(
-                    new org.fxt.freexmltoolkit.controls.shell.editor.FundsXmlPanel(editorHost));
-            return;
-        }
-        if (activity == Activity.HELP) {
-            sidePanelHost.getChildren().setAll(
-                    new org.fxt.freexmltoolkit.controls.shell.editor.HelpPanel());
-            return;
-        }
         if (activity == Activity.SETTINGS) {
-            // Settings live in the main editor area (a full Settings page), not in the
-            // narrow side panel; the panel only carries a pointer to it.
+            // Settings content lives in a main-area tab; (re)open/focus it on every
+            // selection. The side panel only carries a pointer to it.
             openSettingsTab();
-            VBox panel = new VBox();
-            panel.getStyleClass().add("fxt-side-panel-content");
-            Label settingsTitle = new Label("SETTINGS");
-            settingsTitle.getStyleClass().add("fxt-side-panel-title");
-            Label settingsHint = new Label("Settings are edited in the main window.");
-            settingsHint.getStyleClass().add("fxt-placeholder-text");
-            settingsHint.setWrapText(true);
-            panel.getChildren().addAll(settingsTitle, settingsHint);
-            sidePanelHost.getChildren().setAll(panel);
-            return;
         }
+        sidePanelHost.getChildren().setAll(sidePanel(activity));
+    }
+
+    /** Returns the (cached) side panel for {@code activity}, creating it on first use. */
+    private javafx.scene.Node sidePanel(Activity activity) {
+        return sidePanels.computeIfAbsent(activity, this::createSidePanel);
+    }
+
+    /** Builds the side panel for {@code activity} (called once per activity; then cached). */
+    private javafx.scene.Node createSidePanel(Activity activity) {
+        return switch (activity) {
+            case EXPLORER -> {
+                var explorer = new org.fxt.freexmltoolkit.controls.shell.editor.ExplorerPanel(editorHost);
+                explorer.setNewFileAction(this::newDocument);
+                yield explorer;
+            }
+            case SCHEMA -> new org.fxt.freexmltoolkit.controls.shell.editor.TypeLibraryPanel(editorHost);
+            case VALIDATION -> validationPanel();
+            case TRANSFORM -> new org.fxt.freexmltoolkit.controls.shell.editor.TransformPanel(editorHost);
+            case FAVORITES -> new org.fxt.freexmltoolkit.controls.shell.editor.FavoritesActivityPanel(editorHost);
+            case PDF_FOP -> new org.fxt.freexmltoolkit.controls.shell.editor.FopPanel(editorHost);
+            case SIGNATURE -> new org.fxt.freexmltoolkit.controls.shell.editor.SignaturePanel(editorHost);
+            case FUNDSXML -> new org.fxt.freexmltoolkit.controls.shell.editor.FundsXmlPanel(editorHost);
+            case HELP -> new org.fxt.freexmltoolkit.controls.shell.editor.HelpPanel();
+            case SETTINGS -> hintPanel("SETTINGS", "Settings are edited in the main window.");
+            default -> hintPanel(activity.label().toUpperCase(),
+                    "'" + activity.label() + "' panel — coming in a later phase.");
+        };
+    }
+
+    /** A simple titled placeholder side panel (used for Settings' pointer and not-yet-built activities). */
+    private static javafx.scene.Node hintPanel(String title, String hint) {
         VBox panel = new VBox();
         panel.getStyleClass().add("fxt-side-panel-content");
-
-        Label title = new Label(activity.label().toUpperCase());
-        title.getStyleClass().add("fxt-side-panel-title");
-
-        Label hint = new Label("'" + activity.label() + "' panel — coming in a later phase.");
-        hint.getStyleClass().add("fxt-placeholder-text");
-        hint.setWrapText(true);
-
-        panel.getChildren().addAll(title, hint);
-        sidePanelHost.getChildren().setAll(panel);
+        Label titleLabel = new Label(title);
+        titleLabel.getStyleClass().add("fxt-side-panel-title");
+        Label hintLabel = new Label(hint);
+        hintLabel.getStyleClass().add("fxt-placeholder-text");
+        hintLabel.setWrapText(true);
+        panel.getChildren().addAll(titleLabel, hintLabel);
+        return panel;
     }
 
     /**
