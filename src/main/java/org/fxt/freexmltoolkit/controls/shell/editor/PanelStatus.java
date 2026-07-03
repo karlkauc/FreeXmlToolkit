@@ -85,6 +85,18 @@ public final class PanelStatus {
         DialogHelper.showActionError(dialogTitle, clean, remedy, detail);
     }
 
+    /**
+     * As {@link #failure(Label, String, String, String, Throwable)} but with a raw
+     * technical <em>string</em> detail (e.g. a runner's {@code "ERROR: …"} output)
+     * shown in the dialog's collapsible "Technical details" section.
+     */
+    public static void failure(Label status, String dialogTitle, String whatHappened,
+                               String remedy, String detail) {
+        String clean = strip(whatHappened);
+        apply(status, clean, ERROR, "bi-x-circle");
+        DialogHelper.showActionError(dialogTitle, clean, remedy, detail);
+    }
+
     private static void apply(Label status, String text, String severityClass, String iconLiteral) {
         status.setText(text);
         status.getStyleClass().removeAll(INFO, SUCCESS, ERROR);

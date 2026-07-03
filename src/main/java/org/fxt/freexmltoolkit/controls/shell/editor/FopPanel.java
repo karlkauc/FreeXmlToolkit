@@ -45,6 +45,8 @@ public class FopPanel extends VBox {
     private final CheckBox pdfACompliant = new CheckBox("PDF/A-1b compliant");
     private final ComboBox<String> pageSize = new ComboBox<>();
     private final Label status = new Label("No PDF generated");
+    private final PanelProgress progress = new PanelProgress();
+    private Button generateButton;
     private final Button openButton;
     private final Button previewButton;
     private File xmlOverride;
@@ -116,7 +118,8 @@ public class FopPanel extends VBox {
         generate.getStyleClass().add("fxt-primary-button");
         generate.setMaxWidth(Double.MAX_VALUE);
         generate.setOnAction(e -> chooseTargetAndGenerate());
-        VBox runBox = new VBox(generate);
+        generateButton = generate;
+        VBox runBox = new VBox(8, generate, progress);
         runBox.getStyleClass().add("fxt-vp-run-box");
 
         status.getStyleClass().add("fxt-vp-status");
@@ -170,9 +173,28 @@ public class FopPanel extends VBox {
         FopRunner.PdfOptions options = currentOptions();
         PanelStatus.info(status, "Generating…");
         openButton.setDisable(true);
-        FxtGui.executorService.submit(() -> {
+        generateButton.setDisable(true);
+        // PDF rendering is a single opaque call, so cancellation frees the UI and
+        // abandons the result (best-effort interrupt); it may not stop FOP mid-render.
+        java.util.concurrent.atomic.AtomicBoolean abandoned = new java.util.concurrent.atomic.AtomicBoolean(false);
+        java.util.concurrent.Future<?>[] task = new java.util.concurrent.Future<?>[1];
+        progress.beginIndeterminate(() -> {
+            abandoned.set(true);
+            if (task[0] != null) {
+                task[0].cancel(true);
+            }
+            progress.finish();
+            generateButton.setDisable(false);
+            PanelStatus.info(status, "Cancelled");
+        });
+        task[0] = FxtGui.executorService.submit(() -> {
             String result = FopRunner.generate(xmlFile, xsl, pdfOutput, options);
             Platform.runLater(() -> {
+                if (abandoned.get()) {
+                    return; // user cancelled — ignore the (possibly still-produced) result
+                }
+                progress.finish();
+                generateButton.setDisable(false);
                 boolean ok = result.startsWith("OK:");
                 if (ok) {
                     PanelStatus.success(status, "Generated: " + pdfOutput.getName());
@@ -181,7 +203,10 @@ public class FopPanel extends VBox {
                     previewButton.setDisable(false);
                     previewPdf(); // show the result in-app immediately
                 } else {
-                    PanelStatus.failure(status, "PDF generation failed", result);
+                    PanelStatus.failure(status, "PDF generation failed",
+                            "PDF generation failed.",
+                            "Check that the XML and the XSL-FO stylesheet are valid and the target file is writable, then try again.",
+                            PanelStatus.strip(result));
                 }
             });
         });

@@ -77,6 +77,8 @@ public class TransformPanel extends VBox {
     private File inputOverride;
     /** The source document of the latest transform (so a re-run from the result tab works). */
     private OpenDocument sourceDocument;
+    private final PanelProgress progress = new PanelProgress();
+    private Button transformButton;
 
     // --- favorites browsing (◀/▶ through XSLT / XML favorites, optionally folder-scoped) ---
     /** Star menu listing XSLT favorites (grouped by folder) for the STYLESHEET row. */
@@ -165,7 +167,8 @@ public class TransformPanel extends VBox {
         run.getStyleClass().add("fxt-primary-button");
         run.setMaxWidth(Double.MAX_VALUE);
         run.setOnAction(e -> transform());
-        VBox runBox = new VBox(run);
+        transformButton = run;
+        VBox runBox = new VBox(8, run, progress);
         runBox.getStyleClass().add("fxt-vp-run-box");
         run.prefWidthProperty().bind(runBox.widthProperty());
 
@@ -859,7 +862,21 @@ public class TransformPanel extends VBox {
         boolean wantTrace = traceCheck.isSelected();
         OutputFormat chosen = chosenFormat(null); // null = Auto, resolved from the stylesheet below
         out.showPending("Transforming…");
-        FxtGui.executorService.submit(() -> {
+        // A transform is a single opaque call; cancellation frees the UI and abandons
+        // the result (best-effort interrupt) — it may not stop Saxon mid-transform.
+        java.util.concurrent.atomic.AtomicBoolean abandoned = new java.util.concurrent.atomic.AtomicBoolean(false);
+        java.util.concurrent.Future<?>[] task = new java.util.concurrent.Future<?>[1];
+        transformButton.setDisable(true);
+        progress.beginIndeterminate(() -> {
+            abandoned.set(true);
+            if (task[0] != null) {
+                task[0].cancel(true);
+            }
+            progress.finish();
+            transformButton.setDisable(false);
+            out.showPending("Cancelled");
+        });
+        task[0] = FxtGui.executorService.submit(() -> {
             long start = System.nanoTime();
             String result;
             String xsltContent = "";
@@ -880,6 +897,11 @@ public class TransformPanel extends VBox {
                             ? TransformRunner.transformForReport(xml, xsltContent, params, format)
                             : null;
             Platform.runLater(() -> {
+                if (abandoned.get()) {
+                    return; // user cancelled — ignore the result
+                }
+                progress.finish();
+                transformButton.setDisable(false);
                 out.showTransformResult(finalResult, finalFormat, elapsedMs);
                 if (!finalResult.startsWith("ERROR") && autoOpenResultTab.isSelected()) {
                     out.openResultInEditor();

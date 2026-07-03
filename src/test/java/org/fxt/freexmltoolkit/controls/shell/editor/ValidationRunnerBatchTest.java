@@ -80,6 +80,53 @@ class ValidationRunnerBatchTest {
     }
 
     @Test
+    void progressCallbackReportsRunningCount(@TempDir Path tmp) throws Exception {
+        Path a = tmp.resolve("a.xml");
+        Files.writeString(a, "<root/>");
+        Path b = tmp.resolve("b.xml");
+        Files.writeString(b, "<root/>");
+        Path c = tmp.resolve("c.xml");
+        Files.writeString(c, "<root/>");
+        java.util.List<Integer> counts = new java.util.ArrayList<>();
+
+        List<ValidationRunner.FileValidationResult> results = ValidationRunner.batch(
+                List.of(a.toFile(), b.toFile(), c.toFile()), null, null,
+                counts::add, () -> false);
+
+        assertEquals(3, results.size());
+        assertEquals(List.of(1, 2, 3), counts, "progress must report 1..N as files complete");
+    }
+
+    @Test
+    void cancelledBeforeFirstFileReturnsEmpty(@TempDir Path tmp) throws Exception {
+        Path a = tmp.resolve("a.xml");
+        Files.writeString(a, "<root/>");
+
+        List<ValidationRunner.FileValidationResult> results = ValidationRunner.batch(
+                List.of(a.toFile()), null, null, null, () -> true);
+
+        assertTrue(results.isEmpty(), "cancel before the first file yields no results");
+    }
+
+    @Test
+    void cancelStopsAfterCurrentFile(@TempDir Path tmp) throws Exception {
+        Path a = tmp.resolve("a.xml");
+        Files.writeString(a, "<root/>");
+        Path b = tmp.resolve("b.xml");
+        Files.writeString(b, "<root/>");
+        Path c = tmp.resolve("c.xml");
+        Files.writeString(c, "<root/>");
+        // Cancel as soon as one file has been processed.
+        int[] done = {0};
+
+        List<ValidationRunner.FileValidationResult> results = ValidationRunner.batch(
+                List.of(a.toFile(), b.toFile(), c.toFile()), null, null,
+                d -> done[0] = d, () -> done[0] >= 1);
+
+        assertEquals(1, results.size(), "run stops before the next file once cancelled");
+    }
+
+    @Test
     void batchReportKeepsItsTextFormat(@TempDir Path tmp) throws Exception {
         Path sch = tmp.resolve("rules.sch");
         Files.writeString(sch, SCHEMATRON);

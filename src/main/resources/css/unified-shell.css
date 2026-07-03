@@ -83,6 +83,27 @@
     -fx-icon-color: #ffffff;
 }
 
+/* ----- Panel progress / cancel row ------------------------------------ */
+.fxt-panel-progress {
+    -fx-padding: 2 0 0 0;
+}
+
+.fxt-panel-progress .progress-bar {
+    -fx-pref-height: 8;
+}
+
+.fxt-panel-progress-count {
+    -fx-font-size: 11px;
+    -fx-text-fill: -fxt-text-muted;
+}
+
+.fxt-panel-progress-cancel {
+    -fx-padding: 2 8 2 6;
+    -fx-font-size: 11px;
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+}
+
 /* ----- Work area ------------------------------------------------------ */
 .fxt-work-area {
     -fx-background-color: -fxt-bg-canvas;

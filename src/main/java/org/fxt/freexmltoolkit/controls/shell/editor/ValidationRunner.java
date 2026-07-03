@@ -125,13 +125,41 @@ public final class ValidationRunner {
      * returning one structured {@link FileValidationResult} per file (in input order).
      */
     public static List<FileValidationResult> batch(List<File> xmlFiles, File xsd, File schematron) {
+        return batch(xmlFiles, xsd, schematron, null, null);
+    }
+
+    /**
+     * Cancellable, progress-reporting variant of {@link #batch(List, File, File)}.
+     * After each file is validated, {@code onFileDone} is called with the number of
+     * files completed so far (for a determinate progress bar). Before each file,
+     * {@code cancelled} is polled; when it returns {@code true} the run stops early
+     * and the already-computed (partial) results are returned.
+     *
+     * @param xmlFiles   the files to validate, in order
+     * @param xsd        the XSD to validate against (may be null)
+     * @param schematron the Schematron to validate against (may be null)
+     * @param onFileDone called with the running completed-file count (may be null)
+     * @param cancelled  polled before each file to allow early cancellation (may be null)
+     * @return one result per <em>processed</em> file (fewer than the input on cancel)
+     */
+    public static List<FileValidationResult> batch(List<File> xmlFiles, File xsd, File schematron,
+                                                   java.util.function.IntConsumer onFileDone,
+                                                   java.util.function.BooleanSupplier cancelled) {
         List<FileValidationResult> results = new ArrayList<>();
+        int done = 0;
         for (File file : xmlFiles) {
+            if (cancelled != null && cancelled.getAsBoolean()) {
+                break;
+            }
             try {
                 String content = Files.readString(file.toPath(), StandardCharsets.UTF_8);
                 results.add(new FileValidationResult(file, run(content, xsd, schematron), null));
             } catch (Exception e) {
                 results.add(new FileValidationResult(file, List.of(), String.valueOf(e.getMessage())));
+            }
+            done++;
+            if (onFileDone != null) {
+                onFileDone.accept(done);
             }
         }
         return results;

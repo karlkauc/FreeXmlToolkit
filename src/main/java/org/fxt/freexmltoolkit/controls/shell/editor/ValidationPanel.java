@@ -54,6 +54,7 @@ public class ValidationPanel extends VBox {
             FXCollections.observableArrayList();
     private final ListView<ValidationRunner.FileValidationResult> batchList = new ListView<>(batchResults);
     private final Label status = new Label("Not validated");
+    private final PanelProgress progress = new PanelProgress();
     private final Label xsdName = new Label("none");
     private final Label schematronName = new Label("none");
     private final Label resultsHeaderLabel = new Label("RESULTS");
@@ -144,7 +145,7 @@ public class ValidationPanel extends VBox {
             }
         });
 
-        VBox runBox = new VBox(10, segGroup, run);
+        VBox runBox = new VBox(10, segGroup, run, progress);
         runBox.getStyleClass().add("fxt-vp-run-box");
 
         status.getStyleClass().add("fxt-vp-status");
@@ -479,11 +480,27 @@ public class ValidationPanel extends VBox {
         }
         File xsd = editorHost.activeSchemaProperty().get();
         File schematron = editorHost.getActiveSchematron();
-        PanelStatus.info(status, "Validating " + files.size() + " file(s)…");
+        int total = files.size();
+        java.util.concurrent.atomic.AtomicBoolean cancelled = new java.util.concurrent.atomic.AtomicBoolean(false);
+        PanelStatus.info(status, "Validating " + total + " file(s)…");
+        progress.beginDeterminate(total, () -> {
+            cancelled.set(true);
+            PanelStatus.info(status, "Cancelling…");
+        });
         FxtGui.executorService.submit(() -> {
-            List<ValidationRunner.FileValidationResult> results = ValidationRunner.batch(files, xsd, schematron);
+            List<ValidationRunner.FileValidationResult> results = ValidationRunner.batch(files, xsd, schematron,
+                    done -> javafx.application.Platform.runLater(() -> progress.setProgress(done)),
+                    cancelled::get);
             String report = ValidationRunner.report(results, xsd, schematron);
-            javafx.application.Platform.runLater(() -> showBatchResults(results, report));
+            javafx.application.Platform.runLater(() -> {
+                progress.finish();
+                showBatchResults(results, report);
+                if (cancelled.get()) {
+                    // showBatchResults set a "N valid/failed" status; correct it for a partial run.
+                    PanelStatus.info(status,
+                            "Cancelled — validated " + results.size() + " of " + total + " file(s)");
+                }
+            });
         });
     }
 
