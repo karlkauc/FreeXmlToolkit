@@ -111,7 +111,16 @@ public final class DiffGutter extends Pane {
         if (paragraphIndex < 0 || paragraphIndex >= area.getParagraphs().size()) {
             return Double.NaN;
         }
-        Optional<Bounds> bounds = area.getParagraphBoundsOnScreen(paragraphIndex);
+        Optional<Bounds> bounds;
+        try {
+            bounds = area.getParagraphBoundsOnScreen(paragraphIndex);
+        } catch (RuntimeException e) {
+            // RichTextFX computes on-screen bounds here and throws (NPE: "nodeScreen is null")
+            // when the area is not laid out on a real screen yet — e.g. during early layout,
+            // when the diff tab is not the visible one, or under headless (Monocle) tests.
+            // There is nothing to anchor an arrow to in that case, so treat it as "not visible".
+            return Double.NaN;
+        }
         if (bounds.isEmpty()) return Double.NaN;
         Bounds local = screenToLocal(bounds.get());
         if (local == null) return Double.NaN;

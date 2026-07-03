@@ -239,13 +239,15 @@
 
 /* Flat, Figma-style sections: a small uppercase title with a chevron and a thin
    bottom divider — no boxy TitledPane bar/border. */
-.fxt-inspector-section {
+.fxt-inspector-section,
+.fxt-inspector-subsection {
     -fx-text-fill: -fxt-text-primary;
     -fx-border-color: -fxt-border;
     -fx-border-width: 0 0 1 0;
 }
 
-.fxt-inspector-section > .title {
+.fxt-inspector-section > .title,
+.fxt-inspector-subsection > .title {
     -fx-background-color: transparent;
     -fx-background-radius: 0;
     -fx-padding: 9 0 5 0;
@@ -255,15 +257,18 @@
     -fx-font-weight: bold;
 }
 
-.fxt-inspector-section > .title > .text {
+.fxt-inspector-section > .title > .text,
+.fxt-inspector-subsection > .title > .text {
     -fx-fill: -fxt-text-secondary;
 }
 
-.fxt-inspector-section > .title > .arrow-button .arrow {
+.fxt-inspector-section > .title > .arrow-button .arrow,
+.fxt-inspector-subsection > .title > .arrow-button .arrow {
     -fx-background-color: -fxt-text-muted;
 }
 
-.fxt-inspector-section > *.content {
+.fxt-inspector-section > *.content,
+.fxt-inspector-subsection > *.content {
     -fx-background-color: transparent;
     -fx-border-color: transparent;
     -fx-padding: 0 0 10 0;

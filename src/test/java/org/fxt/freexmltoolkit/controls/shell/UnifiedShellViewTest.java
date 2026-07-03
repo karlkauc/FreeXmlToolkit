@@ -63,12 +63,15 @@ class UnifiedShellViewTest {
         Set<String> titles = shell.lookupAll(".fxt-inspector-section").stream()
                 .map(n -> ((TitledPane) n).getText())
                 .collect(java.util.stream.Collectors.toSet());
-        // The editable inspector's flat sections (NAMESPACE + VALUE & ATTRIBUTES for XML nodes,
-        // CONSTRAINTS for read-only identity constraints / assertions).
+        // The editable inspector's flat top-level sections. XML nodes use NAMESPACE / VALUE &
+        // ATTRIBUTES / XML DECLARATION / PROCESSING INSTRUCTION; XSD nodes additionally use
+        // ADVANCED and SCHEMA; CONSTRAINTS is for read-only identity constraints / assertions.
+        // (The nested "Raw appinfo" pane under DOCUMENTATION & REFS is a sub-section, not one of
+        // these, so it carries fxt-inspector-subsection and is intentionally excluded.)
         assertEquals(Set.of("NODE & XPATH", "TYPE & FACETS", "NAMESPACE", "VALUE & ATTRIBUTES",
                 "CONTENT", "PROCESSING INSTRUCTION", "XML DECLARATION", "CARDINALITY & USE",
-                "CONSTRAINTS", "DOCUMENTATION & REFS"), titles,
-                "Inspector must show the flat sections");
+                "ADVANCED", "SCHEMA", "CONSTRAINTS", "DOCUMENTATION & REFS"), titles,
+                "Inspector must show the flat top-level sections");
     }
 
     @Test

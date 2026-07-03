@@ -498,7 +498,9 @@ public class InspectorPanel extends VBox {
         appinfoArea.setPromptText("xs:appinfo (raw display string)");
         TitledPane rawPane = new TitledPane("Raw appinfo", appinfoArea);
         rawPane.setExpanded(false);
-        rawPane.getStyleClass().add("fxt-inspector-section");
+        // A nested sub-pane inside DOCUMENTATION & REFS — it shares the section look but is
+        // deliberately NOT a top-level "fxt-inspector-section" (which marks the flat sections).
+        rawPane.getStyleClass().add("fxt-inspector-subsection");
 
         Label appinfoLabel = new Label("App info (@tags)");
         appinfoLabel.getStyleClass().add("fxt-inspector-sub-label");
