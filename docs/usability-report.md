@@ -175,9 +175,13 @@ Severity-Legende: 🔴 hoch (bremst Workflow / verwirrt spürbar) · 🟡 mittel
 - #7 Progress/Cancel für Batch-Validierung (determinater Fortschritt + echtes Cancel) sowie
   Transform/PDF (Spinner + Cancel/Abbruch).
 - #8 war bereits im Code umgesetzt (Hierarchie) bzw. bewusst abgelehnt (Overflow) — siehe §6.
+- #11 STYLE_GUIDE.jsonc auf Ist-Stand gebracht (IconifyIcon statt Ikonli/FontIcon, Inter/JetBrains
+  Mono, `design-tokens.css` als Quelle der Wahrheit ausgewiesen).
 
 **Offen (Backlog):** #9 (redundante Einstiegspunkte), #10 (Farbsysteme konsolidieren),
-#11 (STYLE_GUIDE aktualisieren), #12 (Command-Palette).
+#12 (Command-Palette). Hinweis: zwei vorbestehende, deterministisch fehlschlagende UI-Tests
+(`EditorHostDiffTest`, `UnifiedShellViewTest`) wurden an der Wurzel behoben — Full-Suite jetzt
+zuverlässig grün.
 
 **Infra:** Die Full-Suite ist auf zwei vorbestehenden, änderungsunabhängigen UI-Tests
 (`UnifiedShellViewTest.inspectorRendersTheRequiredSections`, `EditorHostDiffTest`) intermittierend

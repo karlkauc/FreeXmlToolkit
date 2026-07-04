@@ -6,15 +6,24 @@
   // components used throughout the application. When adding new UI elements
   // or pages, ALWAYS reference this guide to maintain consistency.
   //
-  // Last updated: 2024-12-26
+  // Last updated: 2026-07-04
   // ============================================================================
 
   "metadata": {
-    "version": "2.0",
-    "framework": "JavaFX 24.0.1",
-    "theme": "AtlantaFX Base 2.1.0",
-    "icons": "Ikonli Bootstrap Icons",
-    "fonts": ["Roboto", "Segoe UI", "Consolas", "Monaco"]
+    "version": "2.1",
+    "framework": "JavaFX 24.0.1 (Java 25, preview features)",
+    "theme": "AtlantaFX Base 2.1.0 + -fxt-* design tokens (css/design-tokens.css)",
+    // Icons are rendered by the project's own IconifyIcon control (bundled Iconify
+    // Bootstrap Icons SVG data) — NOT Ikonli. Same bi-* names / iconLiteral / iconSize /
+    // iconColor API. Unknown names render a placeholder + log a warning (they no longer
+    // crash), and IconifyIconCoverageTest fails the build for any unresolved bi-* literal.
+    "icons": "IconifyIcon control (bundled Iconify Bootstrap Icons SVG)",
+    "fonts": ["Inter (UI)", "JetBrains Mono (code)"],
+    // The Unified Shell's source of truth for colours/typography is css/design-tokens.css
+    // (the -fxt-* variables) + css/unified-shell.css. The Bootstrap-style palette below
+    // documents the legacy controls' colours and is pending consolidation (usability
+    // report #10) — prefer the -fxt-* tokens for new shell UI.
+    "sourceOfTruth": "src/main/resources/css/design-tokens.css"
   },
 
   // ============================================================================
@@ -151,11 +160,13 @@
   // TYPOGRAPHY
   // ============================================================================
   "typography": {
+    // The app bundles and standardizes on Inter (UI) and JetBrains Mono (code),
+    // exposed via the .fxt-font-ui / .fxt-font-mono classes in design-tokens.css.
     "fontFamilies": {
-      "base": "'Segoe UI', Arial, sans-serif",
-      "heading": "Roboto, sans-serif",
-      "monospace": "'Courier New', Courier, monospace",
-      "code": "'Consolas', 'Monaco', 'Courier New', monospace"
+      "base": "'Inter', 'Segoe UI', Arial, sans-serif",
+      "heading": "'Inter', sans-serif",
+      "monospace": "'JetBrains Mono', 'Courier New', monospace",
+      "code": "'JetBrains Mono', 'Consolas', monospace"
     },
 
     "fontSizes": {
@@ -186,17 +197,17 @@
 
     "headings": {
       "h1": {
-        "fontFamily": "Roboto",
+        "fontFamily": "Inter",
         "fontSize": "4em"
       },
       "h2": {
-        "fontFamily": "Roboto",
+        "fontFamily": "Inter",
         "fontSize": "1.5em",
         "fontWeight": "bold",
         "padding": "0 0 5px 0"
       },
       "h3": {
-        "fontFamily": "Roboto",
+        "fontFamily": "Inter",
         "fontSize": "1.1em",
         "fontWeight": "bold"
       }
@@ -267,10 +278,12 @@
   },
 
   // ============================================================================
-  // ICONS - IKONLI BOOTSTRAP ICONS
+  // ICONS - IconifyIcon (bundled Iconify Bootstrap Icons)
   // ============================================================================
-  // Reference: https://kordamp.org/ikonli/cheat-sheet-bootstrapicons.html
-  // IMPORTANT: Always verify icon existence before use!
+  // Rendered by org.fxt.freexmltoolkit.controls.icons.IconifyIcon (NOT Ikonli).
+  // Bundled set: src/main/resources/icons/iconify/bi.json. Browse names at
+  // https://icons.getbootstrap.com/. Unknown literals render a placeholder + log a
+  // warning (no crash); IconifyIconCoverageTest fails the build for unresolved bi-*.
   // ============================================================================
   "icons": {
     // File Operations
@@ -428,17 +441,18 @@
       "keyWin10": "win10-key"                    // Signature tab
     },
 
-    // FORBIDDEN ICONS - DO NOT USE (do not exist)
+    // FORBIDDEN ICONS - DO NOT USE (not in the bundled Iconify bi.json)
     "_forbidden": [
-      "bi-database",  // Does not exist in Ikonli Bootstrap Icons!
-      "bi-123"        // Does not exist - use bi-hash instead
+      "bi-database",  // Not in the bundled bi.json!
+      "bi-123"        // Not present - use bi-hash instead
     ],
 
     // ========================================================================
-    // COMPLETE LIST OF ALL AVAILABLE IKONLI BOOTSTRAP ICONS (v12.4.0)
+    // REFERENCE LIST OF BOOTSTRAP ICON NAMES (bi-*)
     // ========================================================================
-    // Total: 1,325 icons
-    // Reference: https://kordamp.org/ikonli/cheat-sheet-bootstrapicons.html
+    // The authoritative bundled set is src/main/resources/icons/iconify/bi.json
+    // (validated by IconifyIconCoverageTest). Browse names at
+    // https://icons.getbootstrap.com/. The list below is a convenience reference.
     // ========================================================================
     "_allAvailableIcons": [
       // A
@@ -1156,7 +1170,11 @@
   // CSS FILES
   // ============================================================================
   "cssFiles": {
-    "main": "src/main/resources/css/fxt-theme.css",
+    // Modern Unified Shell (source of truth) — use these for new shell UI:
+    "designTokens": "src/main/resources/css/design-tokens.css",
+    "unifiedShell": "src/main/resources/css/unified-shell.css",
+    // Legacy theme files (still used by dialogs, context menus, older controls):
+    "legacyMain": "src/main/resources/css/fxt-theme.css",
     "appTheme": "src/main/resources/css/app-theme.css",
     "lightTheme": "src/main/resources/css/light-theme.css",
     "darkTheme": "src/main/resources/css/dark-theme.css",
@@ -1171,13 +1189,14 @@
   // ============================================================================
   "guidelines": {
     "icons": [
-      "Always use icons from Ikonli Bootstrap Icons (bi-*)",
-      "Verify icon existence at https://kordamp.org/ikonli/cheat-sheet-bootstrapicons.html before use",
-      "NEVER use bi-database - it does not exist!",
+      "Use the IconifyIcon control with Bootstrap Icon names (bi-*) — NOT Ikonli FontIcon",
+      "Browse names at https://icons.getbootstrap.com/; the bundled set is src/main/resources/icons/iconify/bi.json",
+      "Unknown literals no longer crash (placeholder + warning), but IconifyIconCoverageTest fails the build for them",
+      "NEVER use bi-database - it is not in the bundle!",
       "Standard icon size in FXML: iconSize='16'",
       "Toolbar icon size: iconSize='20'",
       "Always provide iconColor for semantic meaning",
-      "Use styleClass for themed icon colors (e.g., toolbar-icon-success)"
+      "CSS -fx-icon-color overrides a programmatically set colour on every pass — bind() the property to keep a per-item colour"
     ],
     "colors": [
       "Use semantic colors for actions (success=green, danger=red, etc.)",
@@ -1203,21 +1222,22 @@
   // ============================================================================
   // COMMON ICON USAGE PATTERNS
   // ============================================================================
+  // FXML requires: <?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
   "patterns": {
     "toolbarButton": {
-      "example": "<FontIcon iconLiteral=\"bi-play-fill\" iconSize=\"20\" iconColor=\"#28a745\" styleClass=\"toolbar-icon-success\"/>",
+      "example": "<IconifyIcon iconLiteral=\"bi-play-fill\" iconSize=\"20\" iconColor=\"#28a745\" styleClass=\"toolbar-icon-success\"/>",
       "notes": "Use styleClass for hover effects"
     },
     "menuItem": {
-      "example": "<MenuItem text=\"Save\"><graphic><FontIcon iconLiteral=\"bi-save\" iconSize=\"16\"/></graphic></MenuItem>",
+      "example": "<MenuItem text=\"Save\"><graphic><IconifyIcon iconLiteral=\"bi-save\" iconSize=\"16\"/></graphic></MenuItem>",
       "notes": "Always include both text and icon"
     },
     "actionCard": {
-      "example": "<FontIcon iconLiteral=\"bi-plus\" iconSize=\"24\" iconColor=\"#2563eb\"/>",
+      "example": "<IconifyIcon iconLiteral=\"bi-plus\" iconSize=\"24\" iconColor=\"#2563eb\"/>",
       "notes": "Wrap in StackPane with colored background"
     },
     "statusIndicator": {
-      "example": "<FontIcon iconLiteral=\"bi-check-circle-fill\" iconColor=\"#28a745\"/>",
+      "example": "<IconifyIcon iconLiteral=\"bi-check-circle-fill\" iconColor=\"#28a745\"/>",
       "notes": "Use fill variants for status indicators"
     }
   }
