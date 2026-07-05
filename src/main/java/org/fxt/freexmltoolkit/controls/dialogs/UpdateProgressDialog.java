@@ -42,6 +42,7 @@ import javafx.stage.StageStyle;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.controls.theme.SemanticColors;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.UpdateInfo;
 import org.fxt.freexmltoolkit.service.AutoUpdateService;
@@ -158,7 +159,7 @@ public class UpdateProgressDialog extends Dialog<UpdateResult> {
 
         stageIcon = new IconifyIcon("bi-cloud-download");
         stageIcon.setIconSize(24);
-        stageIcon.setIconColor(Color.web("#007bff"));
+        stageIcon.setIconColor(Color.web(SemanticColors.PRIMARY));
 
         stageLabel = new Label("Preparing update...");
         stageLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
@@ -274,35 +275,35 @@ public class UpdateProgressDialog extends Dialog<UpdateResult> {
             case PREPARING -> {
                 stageLabel.setText("Preparing update...");
                 stageIcon.setIconLiteral("bi-gear");
-                stageIcon.setIconColor(Color.web("#6c757d"));
+                stageIcon.setIconColor(Color.web(SemanticColors.NEUTRAL));
             }
             case DOWNLOADING -> {
                 stageLabel.setText("Downloading update...");
                 stageIcon.setIconLiteral("bi-cloud-download");
-                stageIcon.setIconColor(Color.web("#007bff"));
+                stageIcon.setIconColor(Color.web(SemanticColors.PRIMARY));
             }
             case EXTRACTING -> {
                 stageLabel.setText("Extracting files...");
                 stageIcon.setIconLiteral("bi-file-earmark-zip");
-                stageIcon.setIconColor(Color.web("#17a2b8"));
+                stageIcon.setIconColor(Color.web(SemanticColors.INFO));
             }
             case LAUNCHING_UPDATER -> {
                 stageLabel.setText("Installing update...");
                 stageIcon.setIconLiteral("bi-arrow-repeat");
-                stageIcon.setIconColor(Color.web("#28a745"));
+                stageIcon.setIconColor(Color.web(SemanticColors.SUCCESS));
                 cancelButton.setDisable(true);
             }
             case COMPLETED -> {
                 stageLabel.setText("Update ready!");
                 stageIcon.setIconLiteral("bi-check-circle");
-                stageIcon.setIconColor(Color.web("#28a745"));
+                stageIcon.setIconColor(Color.web(SemanticColors.SUCCESS));
                 progressBar.setProgress(1.0);
                 cancelButton.setDisable(true);
             }
             case FAILED -> {
                 stageLabel.setText("Update failed");
                 stageIcon.setIconLiteral("bi-x-circle");
-                stageIcon.setIconColor(Color.web("#dc3545"));
+                stageIcon.setIconColor(Color.web(SemanticColors.DANGER));
                 progressBar.setProgress(0);
             }
             default -> throw new IllegalStateException("Unexpected value: " + stage);

@@ -16,6 +16,7 @@ import javafx.scene.paint.Color;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.controls.theme.SemanticColors;
 import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.editor.clipboard.XsdClipboard;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.AddAllCommand;
@@ -146,21 +147,21 @@ public class XsdContextMenuFactory {
 
         // Add submenu with icon
         Menu addMenu = new Menu("Add");
-        addMenu.setGraphic(createColoredIcon("bi-plus-circle", "#28a745"));
+        addMenu.setGraphic(createColoredIcon("bi-plus-circle", SemanticColors.SUCCESS));
         addMenu.getItems().addAll(
-                createMenuItemConditional("Element", "bi-plus", "#28a745",
+                createMenuItemConditional("Element", "bi-plus", SemanticColors.SUCCESS,
                         () -> handleAddElement(node), () -> canAddElement(node)),
-                createMenuItemConditional("Attribute", "bi-at", "#ffc107",
+                createMenuItemConditional("Attribute", "bi-at", SemanticColors.WARNING,
                         () -> handleAddAttribute(node), () -> canAddAttribute(node)),
                 new SeparatorMenuItem(),
-                createMenuItemConditional("Sequence", "bi-list-ol", "#6c757d",
+                createMenuItemConditional("Sequence", "bi-list-ol", SemanticColors.NEUTRAL,
                         () -> handleAddSequence(node), () -> canAddCompositor(node)),
-                createMenuItemConditional("Choice", "bi-card-list", "#6c757d",
+                createMenuItemConditional("Choice", "bi-card-list", SemanticColors.NEUTRAL,
                         () -> handleAddChoice(node), () -> canAddCompositor(node)),
-                createMenuItemConditional("All", "bi-grid-3x3", "#6c757d",
+                createMenuItemConditional("All", "bi-grid-3x3", SemanticColors.NEUTRAL,
                         () -> handleAddAll(node), () -> canAddCompositor(node)),
                 new SeparatorMenuItem(),
-                createMenuItem("Comment", "bi-chat-left-quote", "#6c757d", () -> handleAddComment(node))
+                createMenuItem("Comment", "bi-chat-left-quote", SemanticColors.NEUTRAL, () -> handleAddComment(node))
         );
 
         // Check if element has a ComplexType or SimpleType reference - if so, add "Edit Type in Editor" option
@@ -171,65 +172,65 @@ public class XsdContextMenuFactory {
         Menu moveMenu = createMoveMenu(node);
 
         // Create clipboard menu items
-        MenuItem copyItem = createMenuItem("Copy Node", "bi-clipboard", "#6c757d", () -> handleCopy(node));
-        MenuItem cutItem = createMenuItem("Cut Node", "bi-scissors", "#fd7e14", () -> handleCut(node));
+        MenuItem copyItem = createMenuItem("Copy Node", "bi-clipboard", SemanticColors.NEUTRAL, () -> handleCopy(node));
+        MenuItem cutItem = createMenuItem("Cut Node", "bi-scissors", SemanticColors.ORANGE, () -> handleCut(node));
         MenuItem pasteItem = createPasteMenuItem(node);
 
         if (hasComplexTypeReference) {
             menu.getItems().addAll(
-                    createMenuItemAlwaysEnabled("Edit Referenced Type in Editor", "bi-box-arrow-up-right", "#17a2b8",
+                    createMenuItemAlwaysEnabled("Edit Referenced Type in Editor", "bi-box-arrow-up-right", SemanticColors.INFO,
                             () -> handleEditReferencedComplexType(node)),
                     new SeparatorMenuItem(),
                     addMenu,
                     new SeparatorMenuItem(),
-                    createMenuItem("Change Type", "bi-arrow-left-right", "#007bff", () -> handleChangeType(node)),
-                    createMenuItem("Rename", "bi-pencil", "#fd7e14", () -> handleRename(node)),
-                    createMenuItem("Edit Cardinality", "bi-hash", "#6f42c1", () -> handleChangeCardinality(node)),
+                    createMenuItem("Change Type", "bi-arrow-left-right", SemanticColors.PRIMARY, () -> handleChangeType(node)),
+                    createMenuItem("Rename", "bi-pencil", SemanticColors.ORANGE, () -> handleRename(node)),
+                    createMenuItem("Edit Cardinality", "bi-hash", SemanticColors.PURPLE, () -> handleChangeCardinality(node)),
                     new SeparatorMenuItem(),
                     moveMenu,
                     copyItem,
                     cutItem,
                     pasteItem,
-                    createMenuItem("Duplicate", "bi-files", "#20c997", () -> handleDuplicate(node)),
-                    createMenuItem("Delete", "bi-trash", "#dc3545", () -> handleDelete(node)),
+                    createMenuItem("Duplicate", "bi-files", SemanticColors.TEAL, () -> handleDuplicate(node)),
+                    createMenuItem("Delete", "bi-trash", SemanticColors.DANGER, () -> handleDelete(node)),
                     new SeparatorMenuItem(),
-                    createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", "#ffc107", () -> handleCopyXPath(node))
+                    createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", SemanticColors.WARNING, () -> handleCopyXPath(node))
             );
         } else if (hasSimpleTypeReference) {
             // Element references a SimpleType - show Edit Type option without Add submenu
             menu.getItems().addAll(
-                    createMenuItemAlwaysEnabled("Edit Referenced Type in Editor", "bi-box-arrow-up-right", "#17a2b8",
+                    createMenuItemAlwaysEnabled("Edit Referenced Type in Editor", "bi-box-arrow-up-right", SemanticColors.INFO,
                             () -> handleEditReferencedSimpleType(node)),
                     new SeparatorMenuItem(),
-                    createMenuItem("Change Type", "bi-arrow-left-right", "#007bff", () -> handleChangeType(node)),
-                    createMenuItem("Rename", "bi-pencil", "#fd7e14", () -> handleRename(node)),
-                    createMenuItem("Edit Cardinality", "bi-hash", "#6f42c1", () -> handleChangeCardinality(node)),
+                    createMenuItem("Change Type", "bi-arrow-left-right", SemanticColors.PRIMARY, () -> handleChangeType(node)),
+                    createMenuItem("Rename", "bi-pencil", SemanticColors.ORANGE, () -> handleRename(node)),
+                    createMenuItem("Edit Cardinality", "bi-hash", SemanticColors.PURPLE, () -> handleChangeCardinality(node)),
                     new SeparatorMenuItem(),
                     moveMenu,
                     copyItem,
                     cutItem,
                     pasteItem,
-                    createMenuItem("Duplicate", "bi-files", "#20c997", () -> handleDuplicate(node)),
-                    createMenuItem("Delete", "bi-trash", "#dc3545", () -> handleDelete(node)),
+                    createMenuItem("Duplicate", "bi-files", SemanticColors.TEAL, () -> handleDuplicate(node)),
+                    createMenuItem("Delete", "bi-trash", SemanticColors.DANGER, () -> handleDelete(node)),
                     new SeparatorMenuItem(),
-                    createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", "#ffc107", () -> handleCopyXPath(node))
+                    createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", SemanticColors.WARNING, () -> handleCopyXPath(node))
             );
         } else {
             menu.getItems().addAll(
                     addMenu,
                     new SeparatorMenuItem(),
-                    createMenuItem("Change Type", "bi-arrow-left-right", "#007bff", () -> handleChangeType(node)),
-                    createMenuItem("Rename", "bi-pencil", "#fd7e14", () -> handleRename(node)),
-                    createMenuItem("Edit Cardinality", "bi-hash", "#6f42c1", () -> handleChangeCardinality(node)),
+                    createMenuItem("Change Type", "bi-arrow-left-right", SemanticColors.PRIMARY, () -> handleChangeType(node)),
+                    createMenuItem("Rename", "bi-pencil", SemanticColors.ORANGE, () -> handleRename(node)),
+                    createMenuItem("Edit Cardinality", "bi-hash", SemanticColors.PURPLE, () -> handleChangeCardinality(node)),
                     new SeparatorMenuItem(),
                     moveMenu,
                     copyItem,
                     cutItem,
                     pasteItem,
-                    createMenuItem("Duplicate", "bi-files", "#20c997", () -> handleDuplicate(node)),
-                    createMenuItem("Delete", "bi-trash", "#dc3545", () -> handleDelete(node)),
+                    createMenuItem("Duplicate", "bi-files", SemanticColors.TEAL, () -> handleDuplicate(node)),
+                    createMenuItem("Delete", "bi-trash", SemanticColors.DANGER, () -> handleDelete(node)),
                     new SeparatorMenuItem(),
-                    createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", "#ffc107", () -> handleCopyXPath(node))
+                    createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", SemanticColors.WARNING, () -> handleCopyXPath(node))
             );
         }
 
@@ -247,22 +248,22 @@ public class XsdContextMenuFactory {
 
         if (hasSimpleTypeReference) {
             menu.getItems().add(
-                    createMenuItemAlwaysEnabled("Edit Referenced Type in Editor", "bi-box-arrow-up-right", "#17a2b8",
+                    createMenuItemAlwaysEnabled("Edit Referenced Type in Editor", "bi-box-arrow-up-right", SemanticColors.INFO,
                             () -> handleEditReferencedAttributeSimpleType(node))
             );
             menu.getItems().add(new SeparatorMenuItem());
         }
 
         menu.getItems().addAll(
-                createMenuItem("Change Type", "bi-arrow-left-right", "#007bff",
+                createMenuItem("Change Type", "bi-arrow-left-right", SemanticColors.PRIMARY,
                         () -> handleChangeType(node)),
-                createMenuItem("Rename", "bi-pencil", "#fd7e14", () -> handleRename(node)),
-                createMenuItem("Toggle Required/Optional", "bi-toggle-on", "#6c757d",
+                createMenuItem("Rename", "bi-pencil", SemanticColors.ORANGE, () -> handleRename(node)),
+                createMenuItem("Toggle Required/Optional", "bi-toggle-on", SemanticColors.NEUTRAL,
                         () -> handleToggleUse(node)),
                 new SeparatorMenuItem(),
-                createMenuItem("Delete", "bi-trash", "#dc3545", () -> handleDelete(node)),
+                createMenuItem("Delete", "bi-trash", SemanticColors.DANGER, () -> handleDelete(node)),
                 new SeparatorMenuItem(),
-                createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", "#ffc107", () -> handleCopyXPath(node))
+                createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", SemanticColors.WARNING, () -> handleCopyXPath(node))
         );
 
         return menu;
@@ -276,16 +277,16 @@ public class XsdContextMenuFactory {
 
         // Add submenu
         Menu addMenu = new Menu("Add");
-        addMenu.setGraphic(createColoredIcon("bi-plus-circle", "#28a745"));
+        addMenu.setGraphic(createColoredIcon("bi-plus-circle", SemanticColors.SUCCESS));
         addMenu.getItems().addAll(
-                createMenuItem("Element", "bi-plus", "#28a745", () -> handleAddElement(node)),
-                createMenuItem("Attribute", "bi-at", "#ffc107", () -> handleAddAttribute(node)),
+                createMenuItem("Element", "bi-plus", SemanticColors.SUCCESS, () -> handleAddElement(node)),
+                createMenuItem("Attribute", "bi-at", SemanticColors.WARNING, () -> handleAddAttribute(node)),
                 new SeparatorMenuItem(),
-                createMenuItem("Sequence", "bi-list-ol", "#6c757d", () -> handleAddCompositorToComplexType(node, "sequence")),
-                createMenuItem("Choice", "bi-card-list", "#6c757d", () -> handleAddCompositorToComplexType(node, "choice")),
-                createMenuItem("All", "bi-grid-3x3", "#6c757d", () -> handleAddCompositorToComplexType(node, "all")),
+                createMenuItem("Sequence", "bi-list-ol", SemanticColors.NEUTRAL, () -> handleAddCompositorToComplexType(node, "sequence")),
+                createMenuItem("Choice", "bi-card-list", SemanticColors.NEUTRAL, () -> handleAddCompositorToComplexType(node, "choice")),
+                createMenuItem("All", "bi-grid-3x3", SemanticColors.NEUTRAL, () -> handleAddCompositorToComplexType(node, "all")),
                 new SeparatorMenuItem(),
-                createMenuItem("Comment", "bi-chat-left-quote", "#6c757d", () -> handleAddComment(node))
+                createMenuItem("Comment", "bi-chat-left-quote", SemanticColors.NEUTRAL, () -> handleAddComment(node))
         );
 
         menu.getItems().addAll(
@@ -297,7 +298,7 @@ public class XsdContextMenuFactory {
                 new SeparatorMenuItem(),
                 createMenuItem("Delete", () -> handleDelete(node)),
                 new SeparatorMenuItem(),
-                createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", "#ffc107", () -> handleCopyXPath(node))
+                createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", SemanticColors.WARNING, () -> handleCopyXPath(node))
         );
 
         return menu;
@@ -316,7 +317,7 @@ public class XsdContextMenuFactory {
                 new SeparatorMenuItem(),
                 createMenuItem("Delete", () -> handleDelete(node)),
                 new SeparatorMenuItem(),
-                createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", "#ffc107", () -> handleCopyXPath(node))
+                createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", SemanticColors.WARNING, () -> handleCopyXPath(node))
         );
 
         return menu;
@@ -330,45 +331,45 @@ public class XsdContextMenuFactory {
 
         // Add Element submenu with icon
         Menu addMenu = new Menu("Add");
-        addMenu.setGraphic(createColoredIcon("bi-plus-circle", "#28a745"));
+        addMenu.setGraphic(createColoredIcon("bi-plus-circle", SemanticColors.SUCCESS));
         addMenu.getItems().addAll(
-                createMenuItemConditional("Element", "bi-plus", "#28a745",
+                createMenuItemConditional("Element", "bi-plus", SemanticColors.SUCCESS,
                         () -> handleAddElement(node), () -> canAddElement(node)),
                 new SeparatorMenuItem(),
-                createMenuItem("Comment", "bi-chat-left-quote", "#6c757d", () -> handleAddComment(node))
+                createMenuItem("Comment", "bi-chat-left-quote", SemanticColors.NEUTRAL, () -> handleAddComment(node))
         );
 
         // Change Type submenu with icon
         Menu changeTypeMenu = new Menu("Change Type");
-        changeTypeMenu.setGraphic(createColoredIcon("bi-arrow-repeat", "#17a2b8"));
+        changeTypeMenu.setGraphic(createColoredIcon("bi-arrow-repeat", SemanticColors.INFO));
 
         if (node.getType() != NodeWrapperType.SEQUENCE) {
             changeTypeMenu.getItems().add(
-                    createMenuItem("Sequence", "bi-list-ol", "#6c757d",
+                    createMenuItem("Sequence", "bi-list-ol", SemanticColors.NEUTRAL,
                             () -> handleChangeCompositorType(node, "sequence"))
             );
         }
 
         if (node.getType() != NodeWrapperType.CHOICE) {
             changeTypeMenu.getItems().add(
-                    createMenuItem("Choice", "bi-card-list", "#6c757d",
+                    createMenuItem("Choice", "bi-card-list", SemanticColors.NEUTRAL,
                             () -> handleChangeCompositorType(node, "choice"))
             );
         }
 
         if (node.getType() != NodeWrapperType.ALL) {
             changeTypeMenu.getItems().add(
-                    createMenuItem("All", "bi-grid-3x3", "#6c757d",
+                    createMenuItem("All", "bi-grid-3x3", SemanticColors.NEUTRAL,
                             () -> handleChangeCompositorType(node, "all"))
             );
         }
 
         // Edit Cardinality
-        MenuItem editCardinalityItem = createMenuItem("Edit Cardinality", "bi-hash", "#6f42c1",
+        MenuItem editCardinalityItem = createMenuItem("Edit Cardinality", "bi-hash", SemanticColors.PURPLE,
                 () -> handleChangeCardinality(node));
 
         // Delete
-        MenuItem deleteItem = createMenuItem("Delete", "bi-trash", "#dc3545",
+        MenuItem deleteItem = createMenuItem("Delete", "bi-trash", SemanticColors.DANGER,
                 () -> handleDelete(node));
 
         menu.getItems().addAll(
@@ -378,7 +379,7 @@ public class XsdContextMenuFactory {
                 new SeparatorMenuItem(),
                 deleteItem,
                 new SeparatorMenuItem(),
-                createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", "#ffc107", () -> handleCopyXPath(node))
+                createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", SemanticColors.WARNING, () -> handleCopyXPath(node))
         );
 
         return menu;
@@ -397,9 +398,9 @@ public class XsdContextMenuFactory {
                         handleAddRootElement(parentNode);
                     }
                 }),
-                createMenuItem("Add Comment", "bi-chat-left-quote", "#6c757d", () -> handleAddComment(node)),
+                createMenuItem("Add Comment", "bi-chat-left-quote", SemanticColors.NEUTRAL, () -> handleAddComment(node)),
                 new SeparatorMenuItem(),
-                createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", "#ffc107", () -> handleCopyXPath(node))
+                createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", SemanticColors.WARNING, () -> handleCopyXPath(node))
         );
 
         return menu;
@@ -417,7 +418,7 @@ public class XsdContextMenuFactory {
                 createMenuItem("Rename", () -> handleRename(node)),
                 createMenuItem("Delete", () -> handleDelete(node)),
                 new SeparatorMenuItem(),
-                createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", "#ffc107", () -> handleCopyXPath(node))
+                createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", SemanticColors.WARNING, () -> handleCopyXPath(node))
         );
 
         return menu;
@@ -433,7 +434,7 @@ public class XsdContextMenuFactory {
                 createMenuItem("Edit Value", () -> handleEditEnumerationValue(node)),
                 createMenuItem("Delete", () -> handleDelete(node)),
                 new SeparatorMenuItem(),
-                createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", "#ffc107", () -> handleCopyXPath(node))
+                createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", SemanticColors.WARNING, () -> handleCopyXPath(node))
         );
 
         return menu;
@@ -446,8 +447,8 @@ public class XsdContextMenuFactory {
         ContextMenu menu = new ContextMenu();
 
         menu.getItems().addAll(
-                createMenuItem("Edit Comment", "bi-pencil", "#fd7e14", () -> handleEditComment(node)),
-                createMenuItem("Delete", "bi-trash", "#dc3545", () -> handleDelete(node))
+                createMenuItem("Edit Comment", "bi-pencil", SemanticColors.ORANGE, () -> handleEditComment(node)),
+                createMenuItem("Delete", "bi-trash", SemanticColors.DANGER, () -> handleDelete(node))
         );
 
         return menu;
@@ -460,7 +461,7 @@ public class XsdContextMenuFactory {
         ContextMenu menu = new ContextMenu();
 
         menu.getItems().addAll(
-                createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", "#ffc107", () -> handleCopyXPath(node))
+                createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", SemanticColors.WARNING, () -> handleCopyXPath(node))
         );
 
         return menu;
@@ -494,7 +495,7 @@ public class XsdContextMenuFactory {
      *
      * @param text        the menu item text
      * @param iconLiteral the icon literal (e.g., "bi-plus-circle")
-     * @param iconColor   the icon color (e.g., "#28a745")
+     * @param iconColor   the icon color (e.g., SemanticColors.SUCCESS)
      * @param action      the action to execute
      * @return the menu item
      */
@@ -524,7 +525,7 @@ public class XsdContextMenuFactory {
      *
      * @param text        the menu item text
      * @param iconLiteral the icon literal (e.g., "bi-box-arrow-up-right")
-     * @param iconColor   the icon color (e.g., "#17a2b8")
+     * @param iconColor   the icon color (e.g., SemanticColors.INFO)
      * @param action      the action to execute
      * @return the menu item
      */
@@ -540,7 +541,7 @@ public class XsdContextMenuFactory {
      *
      * @param text              the menu item text
      * @param iconLiteral       the icon literal (e.g., "bi-list-ol")
-     * @param iconColor         the icon color (e.g., "#6c757d")
+     * @param iconColor         the icon color (e.g., SemanticColors.NEUTRAL)
      * @param action            the action to execute
      * @param enabledCondition  supplier that returns true if item should be enabled
      * @return the menu item
@@ -978,7 +979,7 @@ public class XsdContextMenuFactory {
      */
     private Menu createMoveMenu(VisualNode node) {
         Menu moveMenu = new Menu("Move");
-        moveMenu.setGraphic(createColoredIcon("bi-arrows-move", "#6c757d"));
+        moveMenu.setGraphic(createColoredIcon("bi-arrows-move", SemanticColors.NEUTRAL));
 
         // Determine if Move Up/Down should be enabled
         Object modelObject = node.getModelObject();
@@ -994,8 +995,8 @@ public class XsdContextMenuFactory {
             }
         }
 
-        MenuItem moveUpItem = createMenuItem("Move Up", "bi-arrow-up", "#28a745", () -> handleMoveUp(node));
-        MenuItem moveDownItem = createMenuItem("Move Down", "bi-arrow-down", "#dc3545", () -> handleMoveDown(node));
+        MenuItem moveUpItem = createMenuItem("Move Up", "bi-arrow-up", SemanticColors.SUCCESS, () -> handleMoveUp(node));
+        MenuItem moveDownItem = createMenuItem("Move Down", "bi-arrow-down", SemanticColors.DANGER, () -> handleMoveDown(node));
 
         // Override enabled state based on position
         if (!canMoveUp) {
@@ -1134,7 +1135,7 @@ public class XsdContextMenuFactory {
      */
     private MenuItem createPasteMenuItem(VisualNode node) {
         XsdClipboard clipboard = editorContext.getClipboard();
-        MenuItem pasteItem = createMenuItem("Paste Node", "bi-clipboard-check", "#28a745", () -> handlePaste(node));
+        MenuItem pasteItem = createMenuItem("Paste Node", "bi-clipboard-check", SemanticColors.SUCCESS, () -> handlePaste(node));
 
         // Disable paste if clipboard is empty
         if (!clipboard.hasContent()) {
@@ -1649,7 +1650,7 @@ public class XsdContextMenuFactory {
      * Matches the style from XmlGraphicEditor for consistent look & feel.
      *
      * @param iconLiteral the icon literal (e.g., "bi-plus-circle")
-     * @param color the hex color code (e.g., "#28a745")
+     * @param color the hex color code (e.g., SemanticColors.SUCCESS)
      * @return the configured IconifyIcon
      */
     private IconifyIcon createColoredIcon(String iconLiteral, String color) {

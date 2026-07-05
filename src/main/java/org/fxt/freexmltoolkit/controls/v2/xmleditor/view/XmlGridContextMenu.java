@@ -30,6 +30,7 @@ import javafx.scene.paint.Color;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.controls.theme.SemanticColors;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.AddElementCommand;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.DeleteNodeCommand;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.MoveNodeCommand;
@@ -104,26 +105,26 @@ public class XmlGridContextMenu {
 
         // === Add Submenu ===
         Menu addMenu = new Menu("Add");
-        addMenu.setGraphic(createColoredIcon("bi-plus-circle", "#28a745")); // Green
+        addMenu.setGraphic(createColoredIcon("bi-plus-circle", SemanticColors.SUCCESS)); // Green
 
         addElementItem = new MenuItem("Child Element");
-        addElementItem.setGraphic(createColoredIcon("bi-code-slash", "#28a745")); // Green
+        addElementItem.setGraphic(createColoredIcon("bi-code-slash", SemanticColors.SUCCESS)); // Green
         addElementItem.setOnAction(e -> addChildElement());
 
         addAttributeItem = new MenuItem("Attribute");
-        addAttributeItem.setGraphic(createColoredIcon("bi-at", "#ffc107")); // Yellow
+        addAttributeItem.setGraphic(createColoredIcon("bi-at", SemanticColors.WARNING)); // Yellow
         addAttributeItem.setOnAction(e -> addAttribute());
 
         addTextItem = new MenuItem("Text Content");
-        addTextItem.setGraphic(createColoredIcon("bi-fonts", "#17a2b8")); // Teal
+        addTextItem.setGraphic(createColoredIcon("bi-fonts", SemanticColors.INFO)); // Teal
         addTextItem.setOnAction(e -> addTextContent());
 
         addSiblingBeforeItem = new MenuItem("Sibling Before");
-        addSiblingBeforeItem.setGraphic(createColoredIcon("bi-arrow-up", "#28a745")); // Green
+        addSiblingBeforeItem.setGraphic(createColoredIcon("bi-arrow-up", SemanticColors.SUCCESS)); // Green
         addSiblingBeforeItem.setOnAction(e -> addSiblingElement(true));
 
         addSiblingAfterItem = new MenuItem("Sibling After");
-        addSiblingAfterItem.setGraphic(createColoredIcon("bi-arrow-down", "#28a745")); // Green
+        addSiblingAfterItem.setGraphic(createColoredIcon("bi-arrow-down", SemanticColors.SUCCESS)); // Green
         addSiblingAfterItem.setOnAction(e -> addSiblingElement(false));
 
         addMenu.getItems().addAll(
@@ -134,93 +135,93 @@ public class XmlGridContextMenu {
 
         // === Edit Items ===
         renameItem = new MenuItem("Rename");
-        renameItem.setGraphic(createColoredIcon("bi-pencil", "#fd7e14")); // Orange
+        renameItem.setGraphic(createColoredIcon("bi-pencil", SemanticColors.ORANGE)); // Orange
         renameItem.setOnAction(e -> renameElement());
         renameItem.setAccelerator(new KeyCodeCombination(KeyCode.F2));
 
         duplicateItem = new MenuItem("Duplicate");
-        duplicateItem.setGraphic(createColoredIcon("bi-files", "#20c997")); // Teal green
+        duplicateItem.setGraphic(createColoredIcon("bi-files", SemanticColors.TEAL)); // Teal green
         duplicateItem.setOnAction(e -> duplicateElement());
         duplicateItem.setAccelerator(new KeyCodeCombination(KeyCode.D, KeyCombination.CONTROL_DOWN));
 
         // === Clipboard ===
         copyItem = new MenuItem("Copy");
-        copyItem.setGraphic(createColoredIcon("bi-clipboard", "#6c757d")); // Gray
+        copyItem.setGraphic(createColoredIcon("bi-clipboard", SemanticColors.NEUTRAL)); // Gray
         copyItem.setOnAction(e -> copyElement());
         copyItem.setAccelerator(new KeyCodeCombination(KeyCode.C, KeyCombination.CONTROL_DOWN));
 
         cutItem = new MenuItem("Cut");
-        cutItem.setGraphic(createColoredIcon("bi-scissors", "#fd7e14")); // Orange
+        cutItem.setGraphic(createColoredIcon("bi-scissors", SemanticColors.ORANGE)); // Orange
         cutItem.setOnAction(e -> cutElement());
         cutItem.setAccelerator(new KeyCodeCombination(KeyCode.X, KeyCombination.CONTROL_DOWN));
 
         pasteItem = new MenuItem("Paste as Sibling");
-        pasteItem.setGraphic(createColoredIcon("bi-clipboard-check", "#6c757d")); // Gray
+        pasteItem.setGraphic(createColoredIcon("bi-clipboard-check", SemanticColors.NEUTRAL)); // Gray
         pasteItem.setOnAction(e -> pasteAsSibling());
         pasteItem.setAccelerator(new KeyCodeCombination(KeyCode.V, KeyCombination.CONTROL_DOWN));
 
         pasteAsChildItem = new MenuItem("Paste as Child");
-        pasteAsChildItem.setGraphic(createColoredIcon("bi-clipboard-plus", "#6c757d")); // Gray
+        pasteAsChildItem.setGraphic(createColoredIcon("bi-clipboard-plus", SemanticColors.NEUTRAL)); // Gray
         pasteAsChildItem.setOnAction(e -> pasteAsChild());
         pasteAsChildItem.setAccelerator(new KeyCodeCombination(KeyCode.V, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN));
 
         copyCellContentItem = new MenuItem("Copy Cell Content");
-        copyCellContentItem.setGraphic(createColoredIcon("bi-clipboard-data", "#17a2b8")); // Teal
+        copyCellContentItem.setGraphic(createColoredIcon("bi-clipboard-data", SemanticColors.INFO)); // Teal
         copyCellContentItem.setOnAction(e -> copyCellContent());
         copyCellContentItem.setAccelerator(new KeyCodeCombination(KeyCode.C, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN));
 
         copyXPathItem = new MenuItem("Copy XPath");
-        copyXPathItem.setGraphic(createColoredIcon("bi-diagram-3", "#6f42c1")); // Purple
+        copyXPathItem.setGraphic(createColoredIcon("bi-diagram-3", SemanticColors.PURPLE)); // Purple
         copyXPathItem.setOnAction(e -> copyXPath());
         copyXPathItem.setAccelerator(new KeyCodeCombination(KeyCode.X, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN));
 
         copyNodeItem = new MenuItem("Copy Node (XML)");
-        copyNodeItem.setGraphic(createColoredIcon("bi-clipboard-data", "#6f42c1")); // Purple
+        copyNodeItem.setGraphic(createColoredIcon("bi-clipboard-data", SemanticColors.PURPLE)); // Purple
         copyNodeItem.setOnAction(e -> copyNode());
         copyNodeItem.setAccelerator(new KeyCodeCombination(KeyCode.C, KeyCombination.CONTROL_DOWN, KeyCombination.ALT_DOWN));
 
         // === Go to Definition (navigate to XSD schema definition) ===
         goToDefinitionItem = new MenuItem("Go to Definition");
-        goToDefinitionItem.setGraphic(createColoredIcon("bi-box-arrow-up-right", "#17a2b8")); // Info/teal
+        goToDefinitionItem.setGraphic(createColoredIcon("bi-box-arrow-up-right", SemanticColors.INFO)); // Info/teal
         goToDefinitionItem.setOnAction(e -> goToDefinition());
 
         // === Move ===
         moveUpItem = new MenuItem("Move Up");
-        moveUpItem.setGraphic(createColoredIcon("bi-arrow-up-circle", "#6c757d")); // Gray
+        moveUpItem.setGraphic(createColoredIcon("bi-arrow-up-circle", SemanticColors.NEUTRAL)); // Gray
         moveUpItem.setOnAction(e -> moveElement(-1));
         moveUpItem.setAccelerator(new KeyCodeCombination(KeyCode.UP, KeyCombination.ALT_DOWN));
 
         moveDownItem = new MenuItem("Move Down");
-        moveDownItem.setGraphic(createColoredIcon("bi-arrow-down-circle", "#6c757d")); // Gray
+        moveDownItem.setGraphic(createColoredIcon("bi-arrow-down-circle", SemanticColors.NEUTRAL)); // Gray
         moveDownItem.setOnAction(e -> moveElement(1));
         moveDownItem.setAccelerator(new KeyCodeCombination(KeyCode.DOWN, KeyCombination.ALT_DOWN));
 
         // === Expand/Collapse ===
         expandAllItem = new MenuItem("Expand All");
-        expandAllItem.setGraphic(createColoredIcon("bi-arrows-expand", "#007bff")); // Blue
+        expandAllItem.setGraphic(createColoredIcon("bi-arrows-expand", SemanticColors.PRIMARY)); // Blue
         expandAllItem.setOnAction(e -> expandAll());
 
         collapseAllItem = new MenuItem("Collapse All");
-        collapseAllItem.setGraphic(createColoredIcon("bi-arrows-collapse", "#007bff")); // Blue
+        collapseAllItem.setGraphic(createColoredIcon("bi-arrows-collapse", SemanticColors.PRIMARY)); // Blue
         collapseAllItem.setOnAction(e -> collapseAll());
 
         // === Sort (for table columns) ===
         sortMenu = new Menu("Sort Column");
-        sortMenu.setGraphic(createColoredIcon("bi-sort-down", "#007bff")); // Blue
+        sortMenu.setGraphic(createColoredIcon("bi-sort-down", SemanticColors.PRIMARY)); // Blue
 
         sortAscendingItem = new MenuItem("Sort Ascending");
-        sortAscendingItem.setGraphic(createColoredIcon("bi-sort-up", "#28a745")); // Green
+        sortAscendingItem.setGraphic(createColoredIcon("bi-sort-up", SemanticColors.SUCCESS)); // Green
         sortAscendingItem.setOnAction(e -> sortColumn(true));
 
         sortDescendingItem = new MenuItem("Sort Descending");
-        sortDescendingItem.setGraphic(createColoredIcon("bi-sort-down-alt", "#dc3545")); // Red
+        sortDescendingItem.setGraphic(createColoredIcon("bi-sort-down-alt", SemanticColors.DANGER)); // Red
         sortDescendingItem.setOnAction(e -> sortColumn(false));
 
         sortMenu.getItems().addAll(sortAscendingItem, sortDescendingItem);
 
         // === Delete ===
         deleteItem = new MenuItem("Delete");
-        deleteItem.setGraphic(createColoredIcon("bi-trash", "#dc3545")); // Red
+        deleteItem.setGraphic(createColoredIcon("bi-trash", SemanticColors.DANGER)); // Red
         deleteItem.setOnAction(e -> deleteElement());
         deleteItem.setAccelerator(new KeyCodeCombination(KeyCode.DELETE));
 
@@ -256,7 +257,7 @@ public class XmlGridContextMenu {
      * Matches the style from XsdContextMenuFactory for consistent look & feel.
      *
      * @param icon the Bootstrap icon
-     * @param color the hex color code (e.g., "#28a745")
+     * @param color the hex color code (e.g., SemanticColors.SUCCESS)
      * @return the configured IconifyIcon
      */
     private IconifyIcon createColoredIcon(String icon, String color) {

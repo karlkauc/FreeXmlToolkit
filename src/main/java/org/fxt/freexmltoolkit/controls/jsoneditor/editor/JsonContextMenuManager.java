@@ -28,6 +28,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.richtext.CodeArea;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.controls.theme.SemanticColors;
 
 /**
  * Manages the context menu for JSON code editing.
@@ -95,47 +96,47 @@ public class JsonContextMenuManager {
 
         // === Undo/Redo Section ===
         undoMenuItem = new MenuItem("Undo (Ctrl+Z)");
-        undoMenuItem.setGraphic(createColoredIcon("bi-arrow-counterclockwise", "#6c757d"));
+        undoMenuItem.setGraphic(createColoredIcon("bi-arrow-counterclockwise", SemanticColors.NEUTRAL));
         undoMenuItem.setOnAction(e -> performUndo());
 
         redoMenuItem = new MenuItem("Redo (Ctrl+Y)");
-        redoMenuItem.setGraphic(createColoredIcon("bi-arrow-clockwise", "#6c757d"));
+        redoMenuItem.setGraphic(createColoredIcon("bi-arrow-clockwise", SemanticColors.NEUTRAL));
         redoMenuItem.setOnAction(e -> performRedo());
 
         // === Edit Section ===
         SeparatorMenuItem separator1 = new SeparatorMenuItem();
 
         cutMenuItem = new MenuItem("Cut (Ctrl+X)");
-        cutMenuItem.setGraphic(createColoredIcon("bi-scissors", "#dc3545"));
+        cutMenuItem.setGraphic(createColoredIcon("bi-scissors", SemanticColors.DANGER));
         cutMenuItem.setOnAction(e -> cutToClipboard());
 
         copyMenuItem = new MenuItem("Copy (Ctrl+C)");
-        copyMenuItem.setGraphic(createColoredIcon("bi-files", "#007bff"));
+        copyMenuItem.setGraphic(createColoredIcon("bi-files", SemanticColors.PRIMARY));
         copyMenuItem.setOnAction(e -> copyToClipboard());
 
         pasteMenuItem = new MenuItem("Paste (Ctrl+V)");
-        pasteMenuItem.setGraphic(createColoredIcon("bi-clipboard", "#28a745"));
+        pasteMenuItem.setGraphic(createColoredIcon("bi-clipboard", SemanticColors.SUCCESS));
         pasteMenuItem.setOnAction(e -> pasteFromClipboard());
 
         // === JSON-Specific Section ===
         SeparatorMenuItem separator2 = new SeparatorMenuItem();
 
         copyJsonPathMenuItem = new MenuItem("Copy JSONPath");
-        copyJsonPathMenuItem.setGraphic(createColoredIcon("bi-signpost-2", "#ffc107"));
+        copyJsonPathMenuItem.setGraphic(createColoredIcon("bi-signpost-2", SemanticColors.WARNING));
         copyJsonPathMenuItem.setOnAction(e -> copyJsonPathToClipboard());
 
         // === Selection Section ===
         SeparatorMenuItem separator3 = new SeparatorMenuItem();
 
         MenuItem selectAllMenuItem = new MenuItem("Select All (Ctrl+A)");
-        selectAllMenuItem.setGraphic(createColoredIcon("bi-border-all", "#6f42c1"));
+        selectAllMenuItem.setGraphic(createColoredIcon("bi-border-all", SemanticColors.PURPLE));
         selectAllMenuItem.setOnAction(e -> codeArea.selectAll());
 
         // === Format Section ===
         SeparatorMenuItem separator4 = new SeparatorMenuItem();
 
         MenuItem formatMenuItem = new MenuItem("Format JSON (Ctrl+Alt+F)");
-        formatMenuItem.setGraphic(createColoredIcon("bi-text-indent-left", "#17a2b8"));
+        formatMenuItem.setGraphic(createColoredIcon("bi-text-indent-left", SemanticColors.INFO));
         formatMenuItem.setOnAction(e -> {
             if (contextActions != null) {
                 contextActions.formatJson();
@@ -143,7 +144,7 @@ public class JsonContextMenuManager {
         });
 
         MenuItem minifyMenuItem = new MenuItem("Minify JSON");
-        minifyMenuItem.setGraphic(createColoredIcon("bi-text-left", "#6c757d"));
+        minifyMenuItem.setGraphic(createColoredIcon("bi-text-left", SemanticColors.NEUTRAL));
         minifyMenuItem.setOnAction(e -> {
             if (contextActions != null) {
                 contextActions.minifyJson();
@@ -154,7 +155,7 @@ public class JsonContextMenuManager {
         SeparatorMenuItem separator5 = new SeparatorMenuItem();
 
         MenuItem validateMenuItem = new MenuItem("Validate JSON (F5)");
-        validateMenuItem.setGraphic(createColoredIcon("bi-check-circle", "#28a745"));
+        validateMenuItem.setGraphic(createColoredIcon("bi-check-circle", SemanticColors.SUCCESS));
         validateMenuItem.setOnAction(e -> {
             if (contextActions != null) {
                 contextActions.validateJson();

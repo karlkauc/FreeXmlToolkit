@@ -10,6 +10,7 @@ import javafx.scene.control.ToggleGroup;
 import javafx.scene.paint.Color;
 
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.controls.theme.SemanticColors;
 
 /**
  * Utility class for creating consistent, modern context menus across the application.
@@ -29,26 +30,28 @@ import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
  */
 public class ContextMenuFactory {
 
+    // Semantic colours — delegated to the central catalogue (controls.theme.SemanticColors)
+    // so there is a single source for these values instead of a duplicated palette.
     /** Semantic color: Green. */
-    public static final String COLOR_SUCCESS = "#28a745";
+    public static final String COLOR_SUCCESS = SemanticColors.SUCCESS;
     /** Semantic color: Red. */
-    public static final String COLOR_DANGER = "#dc3545";
+    public static final String COLOR_DANGER = SemanticColors.DANGER;
     /** Semantic color: Yellow/Orange. */
-    public static final String COLOR_WARNING = "#ffc107";
+    public static final String COLOR_WARNING = SemanticColors.WARNING;
     /** Semantic color: Cyan. */
-    public static final String COLOR_INFO = "#17a2b8";
+    public static final String COLOR_INFO = SemanticColors.INFO;
     /** Semantic color: Blue. */
-    public static final String COLOR_PRIMARY = "#007bff";
+    public static final String COLOR_PRIMARY = SemanticColors.PRIMARY;
     /** Semantic color: Gray. */
-    public static final String COLOR_SECONDARY = "#6c757d";
+    public static final String COLOR_SECONDARY = SemanticColors.NEUTRAL;
     /** Semantic color: Orange. */
-    public static final String COLOR_ORANGE = "#fd7e14";
+    public static final String COLOR_ORANGE = SemanticColors.ORANGE;
     /** Semantic color: Purple. */
-    public static final String COLOR_PURPLE = "#6f42c1";
+    public static final String COLOR_PURPLE = SemanticColors.PURPLE;
     /** Semantic color: Teal. */
-    public static final String COLOR_TEAL = "#20c997";
+    public static final String COLOR_TEAL = SemanticColors.TEAL;
     /** Semantic color: Indigo. */
-    public static final String COLOR_INDIGO = "#6610f2";
+    public static final String COLOR_INDIGO = SemanticColors.INDIGO;
 
     /**
      * Standard icon size for menu items (12px as per design system)
@@ -423,7 +426,7 @@ public class ContextMenuFactory {
      * Creates a IconifyIcon with the specified icon literal and color.
      *
      * @param iconLiteral the Bootstrap icon literal (e.g., "bi-plus-circle")
-     * @param iconColor the icon color (hex string, e.g., "#28a745")
+     * @param iconColor the icon color as a hex string (e.g., SemanticColors.SUCCESS)
      * @return the configured IconifyIcon
      */
     public static IconifyIcon createIcon(String iconLiteral, String iconColor) {
