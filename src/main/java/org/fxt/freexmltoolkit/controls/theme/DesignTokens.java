@@ -65,6 +65,15 @@ public final class DesignTokens {
         DANGER("-fxt-danger", "#e03131", "#ff6b6b"),
         WARNING("-fxt-warning", "#f08c00", "#fab005"),
 
+        // Semantic icon/accent foregrounds (match the -fxt-tool-*-fg palette + secondary accents).
+        // Used by SemanticIcon to colour IconifyIcons theme-aware; kept in lock-step with
+        // design-tokens.css (the *-icon-* tokens below).
+        INFO("-fxt-info", "#1098ad", "#4dd4e8"),
+        NEUTRAL("-fxt-neutral", "#5a6472", "#9ba6b3"),
+        PURPLE("-fxt-purple", "#6f42c1", "#b197fc"),
+        TEAL("-fxt-teal", "#12a594", "#38d9a9"),
+        INDIGO("-fxt-indigo", "#4c5fd5", "#9775fa"),
+
         CODE_TEXT("-fxt-code-text", "#1a1d21", "#e6eaf0"),
         CODE_ELEM("-fxt-code-elem", "#1f6fb2", "#6cb6ff"),
         CODE_ATTR("-fxt-code-attr", "#c56a12", "#e0a458"),

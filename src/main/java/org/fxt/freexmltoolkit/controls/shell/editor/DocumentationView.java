@@ -31,7 +31,6 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.util.Duration;
@@ -45,7 +44,7 @@ import org.fxt.freexmltoolkit.service.XsdDocumentationImageService;
 import org.fxt.freexmltoolkit.service.XsdDocumentationPdfService;
 import org.fxt.freexmltoolkit.service.XsdDocumentationService;
 import org.fxt.freexmltoolkit.service.XsdDocumentationWordService;
-import org.fxt.freexmltoolkit.controls.theme.SemanticColors;
+import org.fxt.freexmltoolkit.controls.theme.DesignTokens;
 
 /**
  * The XSD documentation generator as a main-area tool tab ("the big editing
@@ -464,18 +463,18 @@ public class DocumentationView extends BorderPane {
             String time;
             switch (item.status()) {
                 case FINISHED -> {
-                    glyph = icon("bi-check-circle-fill", 13);
-                    glyph.setIconColor(Color.web(SemanticColors.SUCCESS));
+                    glyph = org.fxt.freexmltoolkit.controls.theme.SemanticIcon.paint(
+                            icon("bi-check-circle-fill", 13), DesignTokens.ColorToken.SUCCESS);
                     time = String.format(java.util.Locale.ROOT, "%,d ms", item.durationMillis());
                 }
                 case FAILED -> {
-                    glyph = icon("bi-x-circle-fill", 13);
-                    glyph.setIconColor(Color.web(SemanticColors.DANGER));
+                    glyph = org.fxt.freexmltoolkit.controls.theme.SemanticIcon.paint(
+                            icon("bi-x-circle-fill", 13), DesignTokens.ColorToken.DANGER);
                     time = "failed";
                 }
                 default -> {
-                    glyph = icon("bi-hourglass-split", 13);
-                    glyph.setIconColor(Color.web(SemanticColors.INFO));
+                    glyph = org.fxt.freexmltoolkit.controls.theme.SemanticIcon.paint(
+                            icon("bi-hourglass-split", 13), DesignTokens.ColorToken.INFO);
                     time = "…";
                 }
             }

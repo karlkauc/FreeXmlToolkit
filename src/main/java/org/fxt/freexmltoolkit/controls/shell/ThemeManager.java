@@ -1,7 +1,11 @@
 package org.fxt.freexmltoolkit.controls.shell;
 
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Consumer;
+
 import javafx.scene.Scene;
 
+import org.fxt.freexmltoolkit.controls.theme.DesignTokens;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 
@@ -13,6 +17,25 @@ import org.fxt.freexmltoolkit.service.PropertiesService;
 public final class ThemeManager {
 
     private ThemeManager() {
+    }
+
+    /** Listeners notified (with the new theme) whenever {@link #apply} switches theme. */
+    private static final CopyOnWriteArrayList<Consumer<DesignTokens.Theme>> LISTENERS = new CopyOnWriteArrayList<>();
+
+    /**
+     * Registers a listener invoked with the new {@link DesignTokens.Theme} whenever the
+     * theme changes. Used by {@code SemanticIcon} to recolour programmatically-tinted
+     * icons (which CSS cannot reach) on a light/dark switch.
+     */
+    public static void addThemeChangeListener(Consumer<DesignTokens.Theme> listener) {
+        if (listener != null) {
+            LISTENERS.add(listener);
+        }
+    }
+
+    /** @return the current {@link DesignTokens.Theme} (from the persisted preference). */
+    public static DesignTokens.Theme currentTheme() {
+        return currentIsDark() ? DesignTokens.Theme.DARK : DesignTokens.Theme.LIGHT;
     }
 
     /**
@@ -38,6 +61,14 @@ public final class ThemeManager {
             ServiceRegistry.get(PropertiesService.class).set("ui.theme", dark ? "dark" : "light");
         } catch (Throwable ignored) {
             // properties service unavailable (e.g. tests) — the visual switch is still applied
+        }
+        DesignTokens.Theme theme = dark ? DesignTokens.Theme.DARK : DesignTokens.Theme.LIGHT;
+        for (Consumer<DesignTokens.Theme> listener : LISTENERS) {
+            try {
+                listener.accept(theme);
+            } catch (Throwable t) {
+                // a misbehaving listener must not break the theme switch
+            }
         }
     }
 

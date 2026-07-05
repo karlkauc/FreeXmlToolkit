@@ -45,6 +45,13 @@
     -fxt-danger: #e03131;
     -fxt-warning: #f08c00;
 
+    /* Semantic icon/accent foregrounds (see DesignTokens.ColorToken / SemanticIcon) */
+    -fxt-info: #1098ad;
+    -fxt-neutral: #5a6472;
+    -fxt-purple: #6f42c1;
+    -fxt-teal: #12a594;
+    -fxt-indigo: #4c5fd5;
+
     /* Code syntax */
     -fxt-code-text: #1a1d21;
     -fxt-code-elem: #1f6fb2;
@@ -91,6 +98,13 @@
     /* Semantic — danger / warning */
     -fxt-danger: #ff6b6b;
     -fxt-warning: #fab005;
+
+    /* Semantic icon/accent foregrounds (see DesignTokens.ColorToken / SemanticIcon) */
+    -fxt-info: #4dd4e8;
+    -fxt-neutral: #9ba6b3;
+    -fxt-purple: #b197fc;
+    -fxt-teal: #38d9a9;
+    -fxt-indigo: #9775fa;
 
     /* Code syntax */
     -fxt-code-text: #e6eaf0;
