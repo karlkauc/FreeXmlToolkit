@@ -14,6 +14,7 @@ import org.fxmisc.richtext.CodeArea;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.shared.utilities.XmlSearchTarget;
 import org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2;
+import org.fxt.freexmltoolkit.controls.theme.SemanticColors;
 
 /**
  * A search bar component for the Unified Editor.
@@ -260,7 +261,7 @@ public class UnifiedSearchBar extends HBox {
 
         if (!found) {
             statusLabel.setText("Not found");
-            statusLabel.setStyle("-fx-text-fill: #dc3545;");
+            statusLabel.setStyle("-fx-text-fill: " + SemanticColors.DANGER + ";");
         } else {
             updateSearchCount(text);
         }
@@ -281,7 +282,7 @@ public class UnifiedSearchBar extends HBox {
 
         if (!found) {
             statusLabel.setText("Not found");
-            statusLabel.setStyle("-fx-text-fill: #dc3545;");
+            statusLabel.setStyle("-fx-text-fill: " + SemanticColors.DANGER + ";");
         } else {
             updateSearchCount(text);
         }
@@ -323,7 +324,7 @@ public class UnifiedSearchBar extends HBox {
         }
 
         statusLabel.setText(count + " replaced");
-        statusLabel.setStyle("-fx-text-fill: #28a745;");
+        statusLabel.setStyle("-fx-text-fill: " + SemanticColors.SUCCESS + ";");
     }
 
     private void updateSearchCount(String text) {
@@ -353,7 +354,7 @@ public class UnifiedSearchBar extends HBox {
             statusLabel.setStyle("");
         } else {
             statusLabel.setText("Not found");
-            statusLabel.setStyle("-fx-text-fill: #dc3545;");
+            statusLabel.setStyle("-fx-text-fill: " + SemanticColors.DANGER + ";");
         }
     }
 

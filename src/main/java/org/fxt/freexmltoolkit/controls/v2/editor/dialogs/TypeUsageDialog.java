@@ -28,6 +28,7 @@ import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.v2.editor.usage.TypeUsageLocation;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
+import org.fxt.freexmltoolkit.controls.theme.SemanticColors;
 
 /**
  * Dialog displaying all locations where a type is used in the schema.
@@ -129,7 +130,7 @@ public class TypeUsageDialog extends Dialog<TypeUsageLocation> {
         Label headerLabel = new Label();
         if (usages.isEmpty()) {
             headerLabel.setText("No usages found for type '" + typeName + "'");
-            headerLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #28a745;");
+            headerLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: " + SemanticColors.SUCCESS + ";");
         } else {
             headerLabel.setText(usages.size() + " usage" + (usages.size() == 1 ? "" : "s") + " of type '" + typeName + "'");
             headerLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
@@ -146,7 +147,7 @@ public class TypeUsageDialog extends Dialog<TypeUsageLocation> {
 
         IconifyIcon checkIcon = new IconifyIcon("bi-check-circle");
         checkIcon.setIconSize(48);
-        checkIcon.setIconColor(Color.web("#28a745"));
+        checkIcon.setIconColor(Color.web(SemanticColors.SUCCESS));
 
         Label messageLabel = new Label("This type is not used anywhere in the schema.\nIt can be safely deleted.");
         messageLabel.setStyle("-fx-font-size: 13px; -fx-text-alignment: center;");

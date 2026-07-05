@@ -27,6 +27,7 @@ import javafx.scene.control.ListCell;
 
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider.ValidationResult;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider.ValidationSeverity;
+import org.fxt.freexmltoolkit.controls.theme.SemanticColors;
 
 /**
  * ComboBox widget for XSD enumeration types.
@@ -126,9 +127,9 @@ public class EnumerationComboBox implements TypeAwareWidgetFactory.EditWidget {
     private void applyValidationStyle() {
         if (!validationResult.isValid() ||
                 validationResult.severity() == ValidationSeverity.WARNING) {
-            comboBox.setStyle("-fx-min-width: 100px; -fx-border-color: #ffc107; -fx-border-width: 2px;");
+            comboBox.setStyle("-fx-min-width: 100px; -fx-border-color: " + SemanticColors.WARNING + "; -fx-border-width: 2px;");
         } else {
-            comboBox.setStyle("-fx-min-width: 100px; -fx-border-color: #28a745; -fx-border-width: 1px;");
+            comboBox.setStyle("-fx-min-width: 100px; -fx-border-color: " + SemanticColors.SUCCESS + "; -fx-border-width: 1px;");
         }
     }
 

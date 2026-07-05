@@ -32,6 +32,7 @@ import javafx.scene.control.TextFormatter;
 
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider.ValidationResult;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider.ValidationSeverity;
+import org.fxt.freexmltoolkit.controls.theme.SemanticColors;
 
 /**
  * Spinner widget for XSD numeric types (integer, decimal, float, double).
@@ -228,9 +229,9 @@ public class NumericSpinner implements TypeAwareWidgetFactory.EditWidget {
     private void applyValidationStyle() {
         if (!validationResult.isValid() ||
                 validationResult.severity() == ValidationSeverity.WARNING) {
-            spinner.setStyle("-fx-border-color: #ffc107; -fx-border-width: 2px;");
+            spinner.setStyle("-fx-border-color: " + SemanticColors.WARNING + "; -fx-border-width: 2px;");
         } else {
-            spinner.setStyle("-fx-border-color: #28a745; -fx-border-width: 1px;");
+            spinner.setStyle("-fx-border-color: " + SemanticColors.SUCCESS + "; -fx-border-width: 1px;");
         }
     }
 

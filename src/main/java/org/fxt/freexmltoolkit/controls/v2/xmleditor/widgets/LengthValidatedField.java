@@ -31,6 +31,7 @@ import javafx.scene.layout.VBox;
 
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider.ValidationResult;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider.ValidationSeverity;
+import org.fxt.freexmltoolkit.controls.theme.SemanticColors;
 
 /**
  * TextField widget with length validation (minLength, maxLength, length facets).
@@ -73,7 +74,7 @@ public class LengthValidatedField implements TypeAwareWidgetFactory.EditWidget {
 
         // Counter label
         counterLabel = new Label();
-        counterLabel.setStyle("-fx-font-size: 10; -fx-text-fill: #6c757d;");
+        counterLabel.setStyle("-fx-font-size: 10; -fx-text-fill: " + SemanticColors.NEUTRAL + ";");
 
         // Layout with counter on the right
         HBox fieldRow = new HBox(5);
@@ -142,16 +143,16 @@ public class LengthValidatedField implements TypeAwareWidgetFactory.EditWidget {
         // Color the counter based on state
         if (exactLength != null) {
             if (currentLength == exactLength) {
-                counterLabel.setStyle("-fx-font-size: 10; -fx-text-fill: #28a745; -fx-font-weight: bold;");
+                counterLabel.setStyle("-fx-font-size: 10; -fx-text-fill: " + SemanticColors.SUCCESS + "; -fx-font-weight: bold;");
             } else {
-                counterLabel.setStyle("-fx-font-size: 10; -fx-text-fill: #dc3545;");
+                counterLabel.setStyle("-fx-font-size: 10; -fx-text-fill: " + SemanticColors.DANGER + ";");
             }
         } else if (maxLength != null && currentLength > maxLength) {
-            counterLabel.setStyle("-fx-font-size: 10; -fx-text-fill: #dc3545; -fx-font-weight: bold;");
+            counterLabel.setStyle("-fx-font-size: 10; -fx-text-fill: " + SemanticColors.DANGER + "; -fx-font-weight: bold;");
         } else if (minLength != null && currentLength < minLength) {
-            counterLabel.setStyle("-fx-font-size: 10; -fx-text-fill: #ffc107;");
+            counterLabel.setStyle("-fx-font-size: 10; -fx-text-fill: " + SemanticColors.WARNING + ";");
         } else {
-            counterLabel.setStyle("-fx-font-size: 10; -fx-text-fill: #28a745;");
+            counterLabel.setStyle("-fx-font-size: 10; -fx-text-fill: " + SemanticColors.SUCCESS + ";");
         }
     }
 
@@ -179,10 +180,10 @@ public class LengthValidatedField implements TypeAwareWidgetFactory.EditWidget {
         if (!validationResult.isValid() ||
                 validationResult.severity() == ValidationSeverity.WARNING) {
             textField.setStyle(baseStyle +
-                    "-fx-border-color: #ffc107; -fx-border-width: 2px;");
+                    "-fx-border-color: " + SemanticColors.WARNING + "; -fx-border-width: 2px;");
         } else {
             textField.setStyle(baseStyle +
-                    "-fx-border-color: #28a745; -fx-border-width: 1px;");
+                    "-fx-border-color: " + SemanticColors.SUCCESS + "; -fx-border-width: 1px;");
         }
     }
 

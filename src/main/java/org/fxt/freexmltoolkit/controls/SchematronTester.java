@@ -38,6 +38,7 @@ import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.service.SchematronService;
 import org.fxt.freexmltoolkit.service.SchematronServiceImpl;
+import org.fxt.freexmltoolkit.controls.theme.SemanticColors;
 
 /**
  * Comprehensive testing framework for Schematron rules against XML files.
@@ -100,7 +101,7 @@ public class SchematronTester extends VBox {
         browseSchematronButton = new Button("Browse...");
         IconifyIcon browseIcon = new IconifyIcon("bi-folder2-open");
         browseIcon.setIconSize(16);
-        browseIcon.setIconColor(Color.web("#007bff"));
+        browseIcon.setIconColor(Color.web(SemanticColors.PRIMARY));
         browseSchematronButton.setGraphic(browseIcon);
         browseSchematronButton.setContentDisplay(ContentDisplay.LEFT);
         browseSchematronButton.setGraphicTextGap(6);
@@ -114,7 +115,7 @@ public class SchematronTester extends VBox {
         addTestFileButton = new Button("Add XML Files");
         IconifyIcon addIcon = new IconifyIcon("bi-plus-circle");
         addIcon.setIconSize(16);
-        addIcon.setIconColor(Color.web("#28a745"));
+        addIcon.setIconColor(Color.web(SemanticColors.SUCCESS));
         addTestFileButton.setGraphic(addIcon);
         addTestFileButton.setContentDisplay(ContentDisplay.LEFT);
         addTestFileButton.setGraphicTextGap(6);
@@ -123,7 +124,7 @@ public class SchematronTester extends VBox {
         removeTestFileButton = new Button("Remove Selected");
         IconifyIcon removeIcon = new IconifyIcon("bi-trash");
         removeIcon.setIconSize(16);
-        removeIcon.setIconColor(Color.web("#dc3545"));
+        removeIcon.setIconColor(Color.web(SemanticColors.DANGER));
         removeTestFileButton.setGraphic(removeIcon);
         removeTestFileButton.setContentDisplay(ContentDisplay.LEFT);
         removeTestFileButton.setGraphicTextGap(6);
@@ -134,7 +135,7 @@ public class SchematronTester extends VBox {
         runTestsButton = new Button("Run Tests");
         IconifyIcon runIcon = new IconifyIcon("bi-play-fill");
         runIcon.setIconSize(16);
-        runIcon.setIconColor(Color.web("#28a745"));
+        runIcon.setIconColor(Color.web(SemanticColors.SUCCESS));
         runTestsButton.setGraphic(runIcon);
         runTestsButton.setContentDisplay(ContentDisplay.LEFT);
         runTestsButton.setGraphicTextGap(6);
@@ -145,7 +146,7 @@ public class SchematronTester extends VBox {
         clearResultsButton = new Button("Clear Results");
         IconifyIcon clearIcon = new IconifyIcon("bi-x-circle");
         clearIcon.setIconSize(16);
-        clearIcon.setIconColor(Color.web("#6c757d"));
+        clearIcon.setIconColor(Color.web(SemanticColors.NEUTRAL));
         clearResultsButton.setGraphic(clearIcon);
         clearResultsButton.setContentDisplay(ContentDisplay.LEFT);
         clearResultsButton.setGraphicTextGap(6);
@@ -195,9 +196,9 @@ public class SchematronTester extends VBox {
                 } else {
                     setText(status);
                     switch (status.toLowerCase()) {
-                        case "passed" -> setStyle("-fx-text-fill: #28a745; -fx-font-weight: bold;");
-                        case "failed" -> setStyle("-fx-text-fill: #dc3545; -fx-font-weight: bold;");
-                        case "error" -> setStyle("-fx-text-fill: #fd7e14; -fx-font-weight: bold;");
+                        case "passed" -> setStyle("-fx-text-fill: " + SemanticColors.SUCCESS + "; -fx-font-weight: bold;");
+                        case "failed" -> setStyle("-fx-text-fill: " + SemanticColors.DANGER + "; -fx-font-weight: bold;");
+                        case "error" -> setStyle("-fx-text-fill: " + SemanticColors.ORANGE + "; -fx-font-weight: bold;");
                         default -> setStyle("");
                     }
                 }

@@ -18,20 +18,22 @@
 
 package org.fxt.freexmltoolkit.domain;
 
+import org.fxt.freexmltoolkit.controls.theme.SemanticColors;
+
 /**
  * Represents the validation status of a file during batch validation.
  */
 public enum ValidationStatus {
     /** Validation has not started yet. */
-    PENDING("Pending", "#6c757d", "bi-hourglass"),
+    PENDING("Pending", SemanticColors.NEUTRAL, "bi-hourglass"),
     /** Validation is currently running. */
-    RUNNING("Running", "#007bff", "bi-arrow-repeat"),
+    RUNNING("Running", SemanticColors.PRIMARY, "bi-arrow-repeat"),
     /** Validation completed successfully with no errors. */
-    PASSED("Passed", "#28a745", "bi-check-circle-fill"),
+    PASSED("Passed", SemanticColors.SUCCESS, "bi-check-circle-fill"),
     /** Validation completed with one or more validation errors. */
-    FAILED("Failed", "#dc3545", "bi-x-circle-fill"),
+    FAILED("Failed", SemanticColors.DANGER, "bi-x-circle-fill"),
     /** Validation could not complete due to a processing error. */
-    ERROR("Error", "#ffc107", "bi-exclamation-triangle-fill");
+    ERROR("Error", SemanticColors.WARNING, "bi-exclamation-triangle-fill");
 
     private final String displayText;
     private final String color;
@@ -55,7 +57,7 @@ public enum ValidationStatus {
     /**
      * Gets the CSS color code associated with this status.
      *
-     * @return the color code (e.g., "#28a745")
+     * @return the color code (e.g., SemanticColors.SUCCESS)
      */
     public String getColor() {
         return color;

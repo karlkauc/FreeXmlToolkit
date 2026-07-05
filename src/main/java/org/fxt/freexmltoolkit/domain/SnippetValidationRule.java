@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 import java.util.regex.Pattern;
+import org.fxt.freexmltoolkit.controls.theme.SemanticColors;
 
 /**
  * Validation rules for XPath/XQuery snippets to ensure quality and correctness.
@@ -108,30 +109,30 @@ public class SnippetValidationRule {
         /**
          * Error severity level.
          * Indicates a critical issue that must be fixed before the snippet can be used.
-         * Displayed with red color (#dc3545).
+         * Displayed in the danger colour (SemanticColors.DANGER).
          */
-        ERROR("Error", "Must be fixed", "#dc3545"),
+        ERROR("Error", "Must be fixed", SemanticColors.DANGER),
 
         /**
          * Warning severity level.
          * Indicates an issue that should be reviewed but may not prevent usage.
-         * Displayed with yellow color (#ffc107).
+         * Displayed in the warning colour (SemanticColors.WARNING).
          */
-        WARNING("Warning", "Should be reviewed", "#ffc107"),
+        WARNING("Warning", "Should be reviewed", SemanticColors.WARNING),
 
         /**
          * Informational severity level.
          * Provides informational feedback that does not require action.
-         * Displayed with cyan color (#17a2b8).
+         * Displayed in the info colour (SemanticColors.INFO).
          */
-        INFO("Info", "Informational", "#17a2b8"),
+        INFO("Info", "Informational", SemanticColors.INFO),
 
         /**
          * Suggestion severity level.
          * Offers optional improvements to consider for better code quality.
-         * Displayed with green color (#28a745).
+         * Displayed in the success colour (SemanticColors.SUCCESS).
          */
-        SUGGESTION("Suggestion", "Consider improvement", "#28a745");
+        SUGGESTION("Suggestion", "Consider improvement", SemanticColors.SUCCESS);
 
         private final String displayName;
         private final String description;
@@ -142,7 +143,7 @@ public class SnippetValidationRule {
          *
          * @param displayName the human-readable name for display in UI
          * @param description a brief description of what this severity level means
-         * @param color       the hex color code for visual representation (e.g., "#dc3545")
+         * @param color       the hex color code for visual representation (e.g., SemanticColors.DANGER)
          */
         Severity(String displayName, String description, String color) {
             this.displayName = displayName;
@@ -172,7 +173,7 @@ public class SnippetValidationRule {
          * Returns the hex color code associated with this severity level.
          * The color can be used for visual distinction in the UI.
          *
-         * @return the hex color code (e.g., "#dc3545" for red)
+         * @return the hex color code (e.g., SemanticColors.DANGER for red)
          */
         public String getColor() {
             return color;

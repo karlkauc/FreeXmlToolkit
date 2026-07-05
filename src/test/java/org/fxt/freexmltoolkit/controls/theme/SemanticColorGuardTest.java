@@ -35,7 +35,16 @@ class SemanticColorGuardTest {
             "src/main/java/org/fxt/freexmltoolkit/controls/v2/editor/managers/ContextMenuManagerV2.java",
             "src/main/java/org/fxt/freexmltoolkit/controls/shared/CustomizableSectionContainer.java",
             "src/main/java/org/fxt/freexmltoolkit/controls/shell/editor/DocumentationView.java",
-            "src/main/java/org/fxt/freexmltoolkit/controls/shell/schema/XmlInstanceTreeView.java"
+            "src/main/java/org/fxt/freexmltoolkit/controls/shell/schema/XmlInstanceTreeView.java",
+            "src/main/java/org/fxt/freexmltoolkit/controls/v2/xmleditor/widgets/EnumerationComboBox.java",
+            "src/main/java/org/fxt/freexmltoolkit/controls/v2/xmleditor/widgets/NumericSpinner.java",
+            "src/main/java/org/fxt/freexmltoolkit/controls/unified/UnifiedSearchBar.java",
+            "src/main/java/org/fxt/freexmltoolkit/controls/v2/xmleditor/widgets/LengthValidatedField.java",
+            "src/main/java/org/fxt/freexmltoolkit/controls/v2/editor/dialogs/TypeUsageDialog.java",
+            "src/main/java/org/fxt/freexmltoolkit/controls/SchematronTester.java",
+            "src/main/java/org/fxt/freexmltoolkit/controls/diff/DiffView.java",
+            "src/main/java/org/fxt/freexmltoolkit/domain/ValidationStatus.java",
+            "src/main/java/org/fxt/freexmltoolkit/domain/SnippetValidationRule.java"
     );
 
     /** A 6-digit hex colour literal (e.g. {@code #dc3545}). */

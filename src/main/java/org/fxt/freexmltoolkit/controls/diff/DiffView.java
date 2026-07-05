@@ -33,6 +33,7 @@ import javafx.util.Duration;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.controls.theme.SemanticColors;
 
 /**
  * A {@link Tab} that hosts the side-by-side compare & merge view.
@@ -114,28 +115,28 @@ public final class DiffView extends Tab {
     }
 
     private ToolBar buildToolbar() {
-        Button saveLeft = makeButton("Save Left", "bi-floppy", "#17a2b8", "Save left side to original file");
+        Button saveLeft = makeButton("Save Left", "bi-floppy", SemanticColors.INFO, "Save left side to original file");
         saveLeft.setOnAction(e -> doSaveLeft());
 
-        Button saveRight = makeButton("Save Right", "bi-floppy", "#17a2b8", "Save right side to picked file");
+        Button saveRight = makeButton("Save Right", "bi-floppy", SemanticColors.INFO, "Save right side to picked file");
         saveRight.setOnAction(e -> doSaveRight());
 
-        Button prev = makeButton("Prev", "bi-arrow-up", "#6c757d", "Jump to previous change (Alt+Up)");
+        Button prev = makeButton("Prev", "bi-arrow-up", SemanticColors.NEUTRAL, "Jump to previous change (Alt+Up)");
         prev.setOnAction(e -> navigate(-1));
 
-        Button next = makeButton("Next", "bi-arrow-down", "#6c757d", "Jump to next change (Alt+Down)");
+        Button next = makeButton("Next", "bi-arrow-down", SemanticColors.NEUTRAL, "Jump to next change (Alt+Down)");
         next.setOnAction(e -> navigate(1));
 
-        Button allRight = makeButton("All →", "bi-arrow-right", "#28a745", "Apply ALL changes left → right");
+        Button allRight = makeButton("All →", "bi-arrow-right", SemanticColors.SUCCESS, "Apply ALL changes left → right");
         allRight.setOnAction(e -> applyAll(DiffGutter.Direction.LEFT_TO_RIGHT));
 
-        Button allLeft = makeButton("All ←", "bi-arrow-left", "#28a745", "Apply ALL changes right → left");
+        Button allLeft = makeButton("All ←", "bi-arrow-left", SemanticColors.SUCCESS, "Apply ALL changes right → left");
         allLeft.setOnAction(e -> applyAll(DiffGutter.Direction.RIGHT_TO_LEFT));
 
-        Button recompute = makeButton("Re-compute", "bi-arrow-clockwise", "#6c757d", "Recompute diff now");
+        Button recompute = makeButton("Re-compute", "bi-arrow-clockwise", SemanticColors.NEUTRAL, "Recompute diff now");
         recompute.setOnAction(e -> recomputeNow());
 
-        Button close = makeButton("Close", "bi-x-circle", "#dc3545", "Close diff tab");
+        Button close = makeButton("Close", "bi-x-circle", SemanticColors.DANGER, "Close diff tab");
         close.setOnAction(e -> requestClose());
 
         ToolBar tb = new ToolBar(
