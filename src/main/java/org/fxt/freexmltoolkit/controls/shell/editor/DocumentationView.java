@@ -45,6 +45,7 @@ import org.fxt.freexmltoolkit.service.XsdDocumentationImageService;
 import org.fxt.freexmltoolkit.service.XsdDocumentationPdfService;
 import org.fxt.freexmltoolkit.service.XsdDocumentationService;
 import org.fxt.freexmltoolkit.service.XsdDocumentationWordService;
+import org.fxt.freexmltoolkit.controls.theme.SemanticColors;
 
 /**
  * The XSD documentation generator as a main-area tool tab ("the big editing
@@ -464,17 +465,17 @@ public class DocumentationView extends BorderPane {
             switch (item.status()) {
                 case FINISHED -> {
                     glyph = icon("bi-check-circle-fill", 13);
-                    glyph.setIconColor(Color.web("#28a745"));
+                    glyph.setIconColor(Color.web(SemanticColors.SUCCESS));
                     time = String.format(java.util.Locale.ROOT, "%,d ms", item.durationMillis());
                 }
                 case FAILED -> {
                     glyph = icon("bi-x-circle-fill", 13);
-                    glyph.setIconColor(Color.web("#dc3545"));
+                    glyph.setIconColor(Color.web(SemanticColors.DANGER));
                     time = "failed";
                 }
                 default -> {
                     glyph = icon("bi-hourglass-split", 13);
-                    glyph.setIconColor(Color.web("#17a2b8"));
+                    glyph.setIconColor(Color.web(SemanticColors.INFO));
                     time = "…";
                 }
             }

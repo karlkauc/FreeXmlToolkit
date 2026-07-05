@@ -12,6 +12,7 @@ import javafx.scene.layout.Region;
 
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.debugger.DebugSession;
+import org.fxt.freexmltoolkit.controls.theme.SemanticColors;
 
 /**
  * Paragraph graphic factory contributing breakpoint markers and the
@@ -65,17 +66,17 @@ public class BreakpointGutterFactory implements IntFunction<Node> {
             // Both — show a yellow arrow on top of the breakpoint
             IconifyIcon fi = new IconifyIcon("bi-arrow-right-circle-fill");
             fi.setIconSize(12);
-            fi.setIconColor(javafx.scene.paint.Color.web("#ffc107"));
+            fi.setIconColor(javafx.scene.paint.Color.web(SemanticColors.WARNING));
             icon = fi;
         } else if (isCurrent) {
             IconifyIcon fi = new IconifyIcon("bi-arrow-right-circle-fill");
             fi.setIconSize(12);
-            fi.setIconColor(javafx.scene.paint.Color.web("#28a745"));
+            fi.setIconColor(javafx.scene.paint.Color.web(SemanticColors.SUCCESS));
             icon = fi;
         } else if (hasBp) {
             IconifyIcon fi = new IconifyIcon("bi-circle-fill");
             fi.setIconSize(10);
-            fi.setIconColor(javafx.scene.paint.Color.web("#dc3545"));
+            fi.setIconColor(javafx.scene.paint.Color.web(SemanticColors.DANGER));
             Tooltip.install(fi, new Tooltip("Click to remove breakpoint"));
             icon = fi;
         } else {

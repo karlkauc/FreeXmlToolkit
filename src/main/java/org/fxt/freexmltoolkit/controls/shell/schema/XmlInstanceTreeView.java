@@ -20,6 +20,7 @@ import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlProcessingInstruction;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlText;
+import org.fxt.freexmltoolkit.controls.theme.SemanticColors;
 
 /**
  * A selectable tree view of an <em>XML instance</em> document (as opposed to {@link XsdTreeView}
@@ -164,7 +165,7 @@ public class XmlInstanceTreeView extends TreeView<XmlNode> {
             if (cellMenu == null) {
                 MenuItem goToDefinitionItem = new MenuItem("Go to Definition");
                 IconifyIcon menuIcon = new IconifyIcon("bi-box-arrow-up-right");
-                menuIcon.setIconColor(Color.web("#17a2b8"));
+                menuIcon.setIconColor(Color.web(SemanticColors.INFO));
                 menuIcon.setIconSize(14);
                 goToDefinitionItem.setGraphic(menuIcon);
                 goToDefinitionItem.setOnAction(e -> {
