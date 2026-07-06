@@ -1572,6 +1572,28 @@ public class EditorHost extends BorderPane {
         return tab instanceof EditorTab et ? et.view.getCodeArea() : null;
     }
 
+    /**
+     * The active structured view as a target for the shell's search bar: the XSD
+     * tree/diagram in Tree/Graphic mode, the instance grid for XML-family files in
+     * Graphic mode. {@code null} in Text mode (the search bar binds the code area
+     * instead) and for views without search support (XML/JSON trees).
+     *
+     * @return the active view's search target, or {@code null}
+     */
+    public org.fxt.freexmltoolkit.controls.shared.utilities.XmlSearchTarget getActiveSearchTarget() {
+        Tab tab = tabPane.getSelectionModel().getSelectedItem();
+        if (!(tab instanceof EditorTab et)) {
+            return null;
+        }
+        boolean xsd = et.document.getFileType() == EditorFileType.XSD;
+        return switch (et.viewMode) {
+            case TEXT -> null;
+            case TREE -> xsd ? et.treeView : null;
+            case GRAPHIC -> xsd ? et.xsdGraphView
+                    : (et.xmlGridView != null ? et.xmlGridView.getSearchTarget() : null);
+        };
+    }
+
     /** @return the active editor tab's view, or {@code null} if no editor tab is in front. */
     EditorView activeEditorView() {
         Tab tab = tabPane.getSelectionModel().getSelectedItem();

@@ -166,9 +166,11 @@ public class UnifiedSearchBar extends HBox {
      * @param editor The editor instance to search within
      */
     public void setCurrentEditor(XmlCodeEditorV2 editor) {
+        clearPreviousTarget(editor);
         this.currentEditor = editor;
         this.currentCodeArea = editor != null ? editor.getCodeArea() : null;
         this.currentSearchTarget = editor;
+        setReplaceAvailable(true);
     }
 
     /**
@@ -177,9 +179,11 @@ public class UnifiedSearchBar extends HBox {
      * @param codeArea The CodeArea instance to search within
      */
     public void setCurrentCodeArea(CodeArea codeArea) {
+        clearPreviousTarget(null);
         this.currentCodeArea = codeArea;
         this.currentEditor = null;
         this.currentSearchTarget = null;
+        setReplaceAvailable(true);
     }
 
     /**
@@ -189,9 +193,26 @@ public class UnifiedSearchBar extends HBox {
      * @param target the search target to navigate within
      */
     public void setCurrentSearchTarget(XmlSearchTarget target) {
+        clearPreviousTarget(target);
         this.currentSearchTarget = target;
         this.currentEditor = null;
         this.currentCodeArea = null;
+        setReplaceAvailable(false);
+    }
+
+    /** Clears stale match state (highlight, cursor) on the target being replaced. */
+    private void clearPreviousTarget(XmlSearchTarget next) {
+        if (currentSearchTarget != null && currentSearchTarget != next) {
+            currentSearchTarget.clearSearch();
+        }
+    }
+
+    /** Toggles replace support: unavailable in structured views, so hide and disable it there. */
+    private void setReplaceAvailable(boolean available) {
+        toggleReplaceButton.setDisable(!available);
+        if (!available && replaceMode) {
+            toggleReplaceMode();
+        }
     }
 
     /**

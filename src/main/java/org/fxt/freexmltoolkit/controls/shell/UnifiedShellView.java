@@ -146,6 +146,18 @@ public class UnifiedShellView extends BorderPane {
         editorCenter.getChildren().add(
                 new org.fxt.freexmltoolkit.controls.shell.editor.ProblemsPanel(editorHost));
         searchBar.hide(); // shown on Ctrl+F / Ctrl+H
+        // Keep the open search bar bound to the right view when the user switches
+        // view mode or tab (otherwise it would keep searching the previous view).
+        editorHost.activeViewModeProperty().addListener((obs, oldMode, newMode) -> {
+            if (searchBar.isVisible()) {
+                bindSearchBar();
+            }
+        });
+        editorHost.activeTabProperty().addListener((obs, oldTab, newTab) -> {
+            if (searchBar.isVisible()) {
+                bindSearchBar();
+            }
+        });
 
         // --- Panel visibility: dashboard is full-width (both panels hidden until a document opens
         //     or an activity is picked); the user collapse state hides a panel even with a doc open. ---
@@ -570,14 +582,36 @@ public class UnifiedShellView extends BorderPane {
         validationPanel().revalidate();
     }
 
-    /** Shows the find (or find+replace) bar bound to the active editor. */
-    private void showSearch(boolean replace) {
+    /**
+     * Binds the search bar to whatever the active view offers: the structured view
+     * (XSD Tree/Graphic, XML grid) when one is showing, else the text code area.
+     *
+     * @return true if the bar was bound to a searchable view
+     */
+    private boolean bindSearchBar() {
+        var target = editorHost.getActiveSearchTarget();
+        if (target != null) {
+            searchBar.setCurrentSearchTarget(target);
+            return true;
+        }
         var codeArea = editorHost.getActiveCodeArea();
         if (codeArea == null) {
-            return;
+            searchBar.hide();
+            return false;
         }
         searchBar.setCurrentCodeArea(codeArea);
-        if (replace) {
+        return true;
+    }
+
+    /**
+     * Shows the find (or find+replace) bar bound to the active view. In structured
+     * views (Tree/Graphic) replace is unavailable, so Ctrl+H degrades to find-only.
+     */
+    private void showSearch(boolean replace) {
+        if (!bindSearchBar()) {
+            return;
+        }
+        if (replace && editorHost.getActiveSearchTarget() == null) {
             searchBar.showReplace();
         } else {
             searchBar.show();

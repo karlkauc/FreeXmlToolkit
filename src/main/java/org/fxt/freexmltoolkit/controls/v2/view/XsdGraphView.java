@@ -62,11 +62,17 @@ import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.VisualNode;
  *
  * @since 2.0
  */
-public class XsdGraphView extends BorderPane implements PropertyChangeListener {
+public class XsdGraphView extends BorderPane implements PropertyChangeListener,
+        org.fxt.freexmltoolkit.controls.shared.utilities.XmlSearchTarget {
 
     private static final Logger logger = LogManager.getLogger(XsdGraphView.class);
 
     private final XsdSchema xsdSchema;
+
+    // Search state (XmlSearchTarget): match list over the model tree, cycled by find().
+    private String lastSearchText = "";
+    private java.util.List<org.fxt.freexmltoolkit.controls.v2.model.XsdNode> searchMatches = java.util.List.of();
+    private int currentMatchIndex = -1;
     private Map<String, org.fxt.freexmltoolkit.controls.v2.model.XsdSchema> importedSchemas = new HashMap<>();
     private final Canvas canvas;
     private final ScrollPane scrollPane;
@@ -2065,6 +2071,76 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
 
         // Redraw to show changes
         redraw();
+    }
+
+    // ==================== Search (XmlSearchTarget) ====================
+
+    /**
+     * Navigates to the next or previous model node whose searchable text (name,
+     * documentation, attributes, facet values, comments …) matches. Reveal,
+     * selection and scrolling are delegated to {@link #selectModelNode}, which
+     * also materializes lazy subtrees.
+     *
+     * @param searchText the text to find (case-insensitive)
+     * @param forward    true to move to the next match, false for the previous
+     * @return true if a match was found and navigated to
+     */
+    @Override
+    public boolean find(String searchText, boolean forward) {
+        if (searchText == null || searchText.isEmpty()) {
+            return false;
+        }
+        if (!searchText.equals(lastSearchText)) {
+            rebuildSearchMatches(searchText);
+        }
+        if (searchMatches.isEmpty()) {
+            return false;
+        }
+
+        if (currentMatchIndex < 0) {
+            currentMatchIndex = forward ? 0 : searchMatches.size() - 1;
+        } else if (forward) {
+            currentMatchIndex = (currentMatchIndex + 1) % searchMatches.size();
+        } else {
+            currentMatchIndex = (currentMatchIndex - 1 + searchMatches.size()) % searchMatches.size();
+        }
+
+        selectModelNode(searchMatches.get(currentMatchIndex));
+        return true;
+    }
+
+    /**
+     * Counts matches for the given text and navigates to the first one.
+     *
+     * @param searchText the text to find (case-insensitive)
+     * @return the number of matching nodes
+     */
+    @Override
+    public int findAll(String searchText) {
+        rebuildSearchMatches(searchText);
+        if (!searchMatches.isEmpty()) {
+            currentMatchIndex = 0;
+            selectModelNode(searchMatches.get(0));
+        }
+        return searchMatches.size();
+    }
+
+    /**
+     * Clears the cached search state. The current selection is left untouched —
+     * it is shared with the inspector via the {@link SelectionModel}.
+     */
+    @Override
+    public void clearSearch() {
+        lastSearchText = "";
+        searchMatches = java.util.List.of();
+        currentMatchIndex = -1;
+    }
+
+    /** Rebuilds the match list for the given search text and resets the cursor. */
+    private void rebuildSearchMatches(String searchText) {
+        lastSearchText = searchText;
+        searchMatches = org.fxt.freexmltoolkit.controls.v2.model.XsdNodeSearch.findMatches(xsdSchema, searchText);
+        currentMatchIndex = -1;
     }
 
     /**

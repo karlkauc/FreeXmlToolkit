@@ -49,7 +49,9 @@ editor more room - the activity bar always stays visible.
   XML/JSON file right from the editor (Ctrl+Shift+X)
 - **Editor toolbar actions** - run [Validate, Transform, Generate Documentation and Open Type
   Editor](#editor-toolbar-document-actions) for the active document without switching activities
-- **Search & Replace** - Ctrl+F / Ctrl+H across the editor
+- **Search & Replace** - Ctrl+F / Ctrl+H across the editor, in **every view mode**: the Text
+  view searches the raw text, the Tree and Graphic views search the nodes themselves (names,
+  documentation, attributes, enumeration and facet values, comments)
 - **Favorites** - Quick access to frequently used files
 
 ## Getting Started
@@ -849,7 +851,7 @@ The status bar at the bottom of the window includes:
 | Ctrl+T | Templates |
 | Ctrl+G | Generate XSD |
 
-> **Search in XML files (updated in v1.10):** Pressing **Ctrl+F** opens an inline search bar with up/down chevron arrows for Find Previous / Find Next. The search works in both the **Text** and **Graphic** views of an XML file. In the Graphic view it searches element names, attribute names, and values across the whole document, auto-expands collapsed nodes to reach a match, selects the matching row, and scrolls it into view; matches wrap around when you reach the end. Switching between the Text and Graphic sub-tabs while the bar is open re-targets the search to the active view. **Replace** is available in the Text view only. See [XML Editor Features](xml-editor-features.md#search-find) for details.
+> **Search in all view modes (updated in July 2026):** Pressing **Ctrl+F** opens an inline search bar with up/down chevron arrows for Find Previous / Find Next (Enter / Shift+Enter work too). The search works in the **Text**, **Tree** and **Graphic** views. In the structured views it searches the nodes themselves — for XSD schemas that is element/attribute/type names, documentation and appinfo, type references, fixed/default values, enumeration and facet values, and comments; for XML instances in the Graphic grid it is element names, attribute names, and values. A match hidden inside a collapsed branch is revealed automatically (ancestors expand), selected, and scrolled into view; matches wrap around when you reach the end. Switching the view mode or tab while the bar is open re-targets the search to the active view. **Replace** is available in the Text view only — in Tree/Graphic views the replace toggle is disabled. See [XML Editor Features](xml-editor-features.md#search-find) for details.
 
 ## Compare & Merge
 

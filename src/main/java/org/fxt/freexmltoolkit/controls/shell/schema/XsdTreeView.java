@@ -1,6 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.schema;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javafx.scene.control.TreeCell;
@@ -8,8 +9,10 @@ import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.controls.shared.utilities.XmlSearchTarget;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNodeFactory;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdNodeSearch;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 
 /**
@@ -18,8 +21,16 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
  * JavaFX {@link TreeView}, which virtualizes the cells (only visible rows are
  * materialized — see the Phase-2 feasibility spike). Read-only for now; editing
  * via the command stack lands in a later increment.
+ *
+ * <p>Implements {@link XmlSearchTarget} so the shell's search bar (Ctrl+F) can
+ * find and cycle through nodes by name, documentation, attributes etc.</p>
  */
-public class XsdTreeView extends TreeView<XsdNode> {
+public class XsdTreeView extends TreeView<XsdNode> implements XmlSearchTarget {
+
+    private String lastSearchText = "";
+    private List<XsdNode> searchMatches = List.of();
+    private int currentMatchIndex = -1;
+    private XsdNode searchRoot;
 
     public XsdTreeView() {
         getStyleClass().add("fxt-xsd-tree");
@@ -99,6 +110,101 @@ public class XsdTreeView extends TreeView<XsdNode> {
             }
         }
         return null;
+    }
+
+    // ==================== Search (XmlSearchTarget) ====================
+
+    /**
+     * Navigates to the next or previous node whose searchable text (name,
+     * documentation, attributes, facet values, comments …) matches. A match
+     * hidden inside a collapsed branch is revealed by expanding its ancestors.
+     *
+     * @param searchText the text to find (case-insensitive)
+     * @param forward    true to move to the next match, false for the previous
+     * @return true if a match was found and navigated to
+     */
+    @Override
+    public boolean find(String searchText, boolean forward) {
+        if (searchText == null || searchText.isEmpty()) {
+            return false;
+        }
+        XsdNode root = getRoot() != null ? getRoot().getValue() : null;
+        if (!searchText.equals(lastSearchText) || root != searchRoot) {
+            rebuildMatches(searchText);
+        }
+        if (searchMatches.isEmpty()) {
+            return false;
+        }
+
+        if (currentMatchIndex < 0) {
+            currentMatchIndex = forward ? 0 : searchMatches.size() - 1;
+        } else if (forward) {
+            currentMatchIndex = (currentMatchIndex + 1) % searchMatches.size();
+        } else {
+            currentMatchIndex = (currentMatchIndex - 1 + searchMatches.size()) % searchMatches.size();
+        }
+
+        if (!revealMatch(searchMatches.get(currentMatchIndex))) {
+            // Node edited away since the match list was built: rebuild once and retry.
+            rebuildMatches(searchText);
+            if (searchMatches.isEmpty()) {
+                return false;
+            }
+            currentMatchIndex = 0;
+            return revealMatch(searchMatches.get(0));
+        }
+        return true;
+    }
+
+    /**
+     * Counts matches for the given text and navigates to the first one.
+     *
+     * @param searchText the text to find (case-insensitive)
+     * @return the number of matching nodes
+     */
+    @Override
+    public int findAll(String searchText) {
+        rebuildMatches(searchText);
+        if (!searchMatches.isEmpty()) {
+            currentMatchIndex = 0;
+            revealMatch(searchMatches.get(0));
+        }
+        return searchMatches.size();
+    }
+
+    /** Clears the cached search state. */
+    @Override
+    public void clearSearch() {
+        lastSearchText = "";
+        searchMatches = List.of();
+        currentMatchIndex = -1;
+        searchRoot = null;
+    }
+
+    /** Rebuilds the match list for the given search text and resets the cursor. */
+    private void rebuildMatches(String searchText) {
+        lastSearchText = searchText;
+        searchRoot = getRoot() != null ? getRoot().getValue() : null;
+        searchMatches = XsdNodeSearch.findMatches(searchRoot, searchText);
+        currentMatchIndex = -1;
+    }
+
+    /**
+     * Expands the node's ancestors, selects it and scrolls it into view.
+     *
+     * @return true if the node is (still) present in the tree
+     */
+    private boolean revealMatch(XsdNode node) {
+        TreeItem<XsdNode> item = findItem(getRoot(), node);
+        if (item == null) {
+            return false;
+        }
+        for (TreeItem<XsdNode> parent = item.getParent(); parent != null; parent = parent.getParent()) {
+            parent.setExpanded(true);
+        }
+        getSelectionModel().select(item);
+        scrollTo(getRow(item));
+        return true;
     }
 
     /**

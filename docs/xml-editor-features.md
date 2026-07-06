@@ -8,24 +8,25 @@ This page describes the advanced features available in the XML Editor.
 
 ## Search (Find)
 
-> **Updated in v1.10** - Search now works in the **Graphic** view too, not just the text view.
+> **Updated in July 2026** - Search now works in **every view mode** — Text, Tree and Graphic — for both XML documents and XSD schemas.
 
 ### Finding Text in Your Document
 
-Press **Ctrl+F** to open the Find feature and type the text you are looking for. Use the up and down arrows (**Find Previous** / **Find Next**) to move between matches. When you reach the last match, the search wraps around and continues from the beginning.
+Press **Ctrl+F** to open the Find feature and type the text you are looking for. Use the up and down arrows (**Find Previous** / **Find Next**, or Enter / Shift+Enter) to move between matches. When you reach the last match, the search wraps around and continues from the beginning.
 
-### Search Works in Both Views
+### Search Works in All Views
 
-You can search in either the **Text** view or the **Graphic** view of an XML document:
+You can search in the **Text**, **Tree** or **Graphic** view of a document:
 
 - **Text view** - Matches are highlighted in the source code. **Replace** is available here.
-- **Graphic view** - The search looks through element names, attribute names, and values across the whole document. When you press the up/down arrows, the editor jumps directly to the matching node: if the match is inside a collapsed node, its parent nodes are expanded automatically, the matching row is selected, and it is scrolled into view.
+- **Graphic view (XML instances)** - The search looks through element names, attribute names, and values across the whole document. When you press the up/down arrows, the editor jumps directly to the matching node: if the match is inside a collapsed node, its parent nodes are expanded automatically, the matching row is selected, and it is scrolled into view.
+- **Tree and Graphic views (XSD schemas)** - The search looks through the schema nodes themselves: element/attribute/type names, documentation and appinfo, type references, fixed/default values, enumeration and facet values, and comments. Matching nodes are revealed (collapsed branches expand), selected, and scrolled into view — in the Graphic diagram this includes loading lazily rendered subtrees.
 
-Searching is **case-insensitive** in both views.
+Searching is **case-insensitive** in all views.
 
 ### Switching Views While Searching
 
-If you switch between the **Text** and **Graphic** sub-tabs while the search bar is open, the search automatically re-targets the view you switched to, so you can keep navigating without retyping your search term.
+If you switch the view mode (Text / Tree / Graphic) or the file tab while the search bar is open, the search automatically re-targets the view you switched to, so you can keep navigating without retyping your search term.
 
 ### Where Search Is Available
 
@@ -34,7 +35,7 @@ If you switch between the **Text** and **Graphic** sub-tabs while the search bar
 | **XML** tab | A Find / Replace dialog (opens with Ctrl+F) |
 | **Unified Shell** | An inline search bar with up/down chevron arrows |
 
-> **Note:** In the **Graphic** view, search is for finding and navigating only - **Replace** is not available there. To replace text, use the **Text** view.
+> **Note:** In the **Tree** and **Graphic** views, search is for finding and navigating only - **Replace** is not available there (the replace toggle is disabled). To replace text, use the **Text** view.
 
 ---
 

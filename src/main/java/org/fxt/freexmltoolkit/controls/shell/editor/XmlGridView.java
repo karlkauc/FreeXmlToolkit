@@ -12,6 +12,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.controls.shared.utilities.XmlSearchTarget;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.editor.XmlEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.XmlCanvasView;
@@ -29,6 +30,7 @@ public class XmlGridView extends StackPane {
     private Consumer<String> onModified;
     private Consumer<XmlNode> onSelectionChanged;
     private XmlEditorContext context;
+    private XmlCanvasView canvasView;
 
     public XmlGridView() {
         getStyleClass().add("fxt-xml-grid");
@@ -38,6 +40,11 @@ public class XmlGridView extends StackPane {
     /** @return the current grid's editor context (model + command stack), or {@code null}. */
     public XmlEditorContext getContext() {
         return context;
+    }
+
+    /** @return the grid's canvas as a search target for the shell's search bar, or {@code null}. */
+    public XmlSearchTarget getSearchTarget() {
+        return canvasView;
     }
 
     /** Sets the callback invoked when the grid's selected node changes (for the inspector). */
@@ -65,6 +72,7 @@ public class XmlGridView extends StackPane {
         if (xml == null || xml.isBlank()) {
             getChildren().clear();
             context = null;
+            canvasView = null;
             getChildren().add(placeholder("No XML content to display."));
             return;
         }
@@ -74,6 +82,7 @@ public class XmlGridView extends StackPane {
         } catch (Exception e) {
             getChildren().clear();
             context = null;
+            canvasView = null;
             getChildren().add(placeholder("Cannot display grid:\n\n"
                     + e.getMessage() + "\n\nFix the XML errors first."));
             return;
@@ -97,6 +106,7 @@ public class XmlGridView extends StackPane {
         }
         getChildren().clear();
         this.context = ctx;
+        this.canvasView = null;
         if (ctx == null || ctx.getDocument() == null) {
             getChildren().add(placeholder("No XML content to display."));
             return;
@@ -107,6 +117,7 @@ public class XmlGridView extends StackPane {
             }
         });
         XmlCanvasView view = new XmlCanvasView(ctx);
+        this.canvasView = view;
         view.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
         view.setToastContainer(this);
         view.setOnDocumentModified(modified -> {
