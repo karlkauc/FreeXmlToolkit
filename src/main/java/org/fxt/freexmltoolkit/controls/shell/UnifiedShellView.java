@@ -661,7 +661,10 @@ public class UnifiedShellView extends BorderPane {
 
     /** Applies the current label-visibility + icon-size settings to one toolbar button. */
     private void applyDisplayTo(javafx.scene.control.ButtonBase button) {
-        boolean showLabels = false;
+        // Labels below the icons are the default (Figma "future" layout) — the fallback
+        // must match the persisted default, or a settings-service hiccup silently
+        // degrades the toolbar to hard-to-read icon-only buttons.
+        boolean showLabels = true;
         boolean large = false;
         try {
             var props = org.fxt.freexmltoolkit.di.ServiceRegistry.get(
