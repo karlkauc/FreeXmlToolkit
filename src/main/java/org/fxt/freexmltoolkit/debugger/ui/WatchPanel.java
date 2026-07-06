@@ -16,7 +16,8 @@ import javafx.scene.layout.VBox;
 
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.debugger.WatchExpression;
-import org.fxt.freexmltoolkit.controls.theme.SemanticColors;
+import org.fxt.freexmltoolkit.controls.theme.DesignTokens;
+import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
 
 /**
  * Compact panel for user-defined XPath watch expressions evaluated at every
@@ -54,7 +55,7 @@ public class WatchPanel extends VBox {
             {
                 IconifyIcon fi = new IconifyIcon("bi-x-circle");
                 fi.setIconSize(14);
-                fi.setIconColor(javafx.scene.paint.Color.web(SemanticColors.DANGER));
+                SemanticIcon.paint(fi, DesignTokens.ColorToken.DANGER);
                 btn.setGraphic(fi);
                 btn.setContentDisplay(javafx.scene.control.ContentDisplay.GRAPHIC_ONLY);
                 btn.setTooltip(new javafx.scene.control.Tooltip("Remove watch expression"));
@@ -82,7 +83,7 @@ public class WatchPanel extends VBox {
         Button addBtn = new Button();
         IconifyIcon addIcon = new IconifyIcon("bi-plus-circle");
         addIcon.setIconSize(14);
-        addIcon.setIconColor(javafx.scene.paint.Color.web(SemanticColors.SUCCESS));
+        SemanticIcon.paint(addIcon, DesignTokens.ColorToken.SUCCESS);
         addBtn.setGraphic(addIcon);
         addBtn.setContentDisplay(javafx.scene.control.ContentDisplay.GRAPHIC_ONLY);
         addBtn.setTooltip(new javafx.scene.control.Tooltip("Add watch expression"));

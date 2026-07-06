@@ -42,7 +42,8 @@ import javafx.scene.layout.VBox;
 
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
-import org.fxt.freexmltoolkit.controls.theme.SemanticColors;
+import org.fxt.freexmltoolkit.controls.theme.DesignTokens;
+import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
 
 /**
  * A reusable container that wraps sections (typically TitledPanes) and provides:
@@ -163,7 +164,7 @@ public class CustomizableSectionContainer extends VBox {
         Button button = new Button();
         IconifyIcon gearIcon = new IconifyIcon("bi-gear");
         gearIcon.setIconSize(14);
-        gearIcon.setIconColor(javafx.scene.paint.Color.web(SemanticColors.NEUTRAL));
+        SemanticIcon.paint(gearIcon, DesignTokens.ColorToken.NEUTRAL);
         button.setGraphic(gearIcon);
         button.setTooltip(new Tooltip("Customize sections"));
         button.getStyleClass().addAll("settings-gear-button", "flat-button");

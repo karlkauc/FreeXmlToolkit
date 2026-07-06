@@ -14,7 +14,8 @@ import javafx.scene.control.TableView;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.debugger.Breakpoint;
 import org.fxt.freexmltoolkit.debugger.DebugSession;
-import org.fxt.freexmltoolkit.controls.theme.SemanticColors;
+import org.fxt.freexmltoolkit.controls.theme.DesignTokens;
+import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
 
 /**
  * Table listing every active breakpoint. Each row offers an enable toggle
@@ -72,7 +73,7 @@ public class BreakpointsPanel extends TableView<Breakpoint> {
             {
                 IconifyIcon fi = new IconifyIcon("bi-trash");
                 fi.setIconSize(14);
-                fi.setIconColor(javafx.scene.paint.Color.web(SemanticColors.DANGER));
+                SemanticIcon.paint(fi, DesignTokens.ColorToken.DANGER);
                 btn.setGraphic(fi);
                 btn.setContentDisplay(javafx.scene.control.ContentDisplay.GRAPHIC_ONLY);
                 btn.setTooltip(new javafx.scene.control.Tooltip("Delete breakpoint"));

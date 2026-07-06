@@ -19,7 +19,8 @@ import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.context.ContextAna
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.context.XmlContext;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
 import org.fxt.freexmltoolkit.service.XmlService;
-import org.fxt.freexmltoolkit.controls.theme.SemanticColors;
+import org.fxt.freexmltoolkit.controls.theme.DesignTokens;
+import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
 
 /**
  * Context menu manager for XmlCodeEditorV2.
@@ -95,12 +96,12 @@ public class ContextMenuManagerV2 implements XmlContextMenuManager.XmlContextAct
 
         // Create Undo item
         undoMenuItem = new MenuItem("Undo (Ctrl+Z)");
-        undoMenuItem.setGraphic(createColoredIcon("bi-arrow-counterclockwise", SemanticColors.NEUTRAL));
+        undoMenuItem.setGraphic(createColoredIcon("bi-arrow-counterclockwise", DesignTokens.ColorToken.NEUTRAL));
         undoMenuItem.setOnAction(e -> performUndo());
 
         // Create Redo item
         redoMenuItem = new MenuItem("Redo (Ctrl+Y)");
-        redoMenuItem.setGraphic(createColoredIcon("bi-arrow-clockwise", SemanticColors.NEUTRAL));
+        redoMenuItem.setGraphic(createColoredIcon("bi-arrow-clockwise", DesignTokens.ColorToken.NEUTRAL));
         redoMenuItem.setOnAction(e -> performRedo());
 
         // Insert after Comment Lines (position 1, before first separator)
@@ -134,11 +135,10 @@ public class ContextMenuManagerV2 implements XmlContextMenuManager.XmlContextAct
     /**
      * Creates a colored IconifyIcon for menu items.
      */
-    private IconifyIcon createColoredIcon(String iconLiteral, String color) {
+    private IconifyIcon createColoredIcon(String iconLiteral, DesignTokens.ColorToken token) {
         IconifyIcon icon = new IconifyIcon(iconLiteral);
-        icon.setIconColor(javafx.scene.paint.Color.web(color));
         icon.setIconSize(12);
-        return icon;
+        return SemanticIcon.paint(icon, token);
     }
 
     /**
