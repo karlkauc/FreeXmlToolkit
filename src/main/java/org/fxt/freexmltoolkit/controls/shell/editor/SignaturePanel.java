@@ -567,7 +567,8 @@ public class SignaturePanel extends VBox {
 
     private Button toolButton(String text, String iconLiteral, Runnable action) {
         Button button = new Button(text, icon(iconLiteral, 16));
-        button.getStyleClass().add("fxt-tool-button");
+        button.getStyleClass().add("fxt-secondary-button");
+        button.setMaxWidth(Double.MAX_VALUE);
         button.setOnAction(e -> action.run());
         return button;
     }

@@ -1607,6 +1607,35 @@
     -fx-background-color: derive(-fxt-primary, -10%);
 }
 
+/* Secondary panel action: outlined sibling of .fxt-primary-button, so lesser
+   actions ("Validate (Details)" …) still read as clickable buttons. */
+.fxt-secondary-button {
+    -fx-background-color: -fxt-bg-surface;
+    -fx-background-radius: 7;
+    -fx-border-color: -fxt-border;
+    -fx-border-width: 1;
+    -fx-border-radius: 7;
+    -fx-text-fill: -fxt-text-primary;
+    -fx-font-size: 12.5px;
+    -fx-padding: 8 12 8 12;
+    -fx-graphic-text-gap: 7;
+    -fx-cursor: hand;
+}
+
+.fxt-secondary-button .iconify-icon {
+    -fx-icon-color: -fxt-text-secondary;
+}
+
+.fxt-secondary-button:hover {
+    -fx-background-color: -fxt-bg-subtle;
+    -fx-border-color: -fxt-primary;
+    -fx-text-fill: -fxt-primary;
+}
+
+.fxt-secondary-button:hover .iconify-icon {
+    -fx-icon-color: -fxt-primary;
+}
+
 .fxt-vp-status {
     -fx-padding: 6 14 0 14;
     -fx-font-size: 11.5px;
@@ -1739,18 +1768,23 @@
    Expert Mode): flat rows, selected = subtle indigo bg + primary text. */
 .fxt-sig-nav-box {
     -fx-padding: 4 8 4 8;
-    -fx-spacing: 2;
+    -fx-spacing: 4;
 }
 
+/* Each nav action reads as a real button: raised surface, visible border,
+   hover lift — not a plain text list. */
 .fxt-sig-nav {
-    -fx-background-color: transparent;
+    -fx-background-color: -fxt-bg-surface;
     -fx-background-radius: 6;
-    -fx-border-color: transparent;
+    -fx-border-color: -fxt-border;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
     -fx-padding: 6 10 6 10;
     -fx-font-size: 12.5px;
     -fx-text-fill: -fxt-text-primary;
     -fx-graphic-text-gap: 8;
     -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.06), 2, 0, 0, 1);
 }
 
 .fxt-sig-nav .iconify-icon {
@@ -1759,10 +1793,12 @@
 
 .fxt-sig-nav:hover {
     -fx-background-color: -fxt-bg-subtle;
+    -fx-border-color: -fxt-primary;
 }
 
 .fxt-sig-nav:selected {
     -fx-background-color: -fxt-bg-subtle;
+    -fx-border-color: -fxt-primary;
     -fx-text-fill: -fxt-primary;
     -fx-font-weight: bold;
 }
