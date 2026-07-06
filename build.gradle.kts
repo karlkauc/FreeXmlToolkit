@@ -181,10 +181,19 @@ tasks {
         // fresh file under build/ instead.
         val isolatedProps = layout.buildDirectory.file("test-work/FreeXmlToolkit.properties")
         systemProperty("fxt.properties.file", isolatedProps.get().asFile.absolutePath)
+        // Likewise, redirect user.home: everything the app persists under
+        // ~/.freeXmlToolkit (favorites.json, usage statistics, saved queries,
+        // templates, snippets, FundsXML metadata, caches) must land in build/,
+        // never in the developer's real home directory.
+        val isolatedHome = layout.buildDirectory.dir("test-home")
+        systemProperty("user.home", isolatedHome.get().asFile.absolutePath)
         doFirst {
             val propsFile = isolatedProps.get().asFile
             propsFile.parentFile.mkdirs()
             propsFile.delete() // defaults, not stale state from a previous run
+            val homeDir = isolatedHome.get().asFile
+            homeDir.deleteRecursively()
+            homeDir.mkdirs()
         }
     }
 
