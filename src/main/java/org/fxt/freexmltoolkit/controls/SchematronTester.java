@@ -38,7 +38,8 @@ import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.service.SchematronService;
 import org.fxt.freexmltoolkit.service.SchematronServiceImpl;
-import org.fxt.freexmltoolkit.controls.theme.SemanticColors;
+import org.fxt.freexmltoolkit.controls.theme.DesignTokens;
+import org.fxt.freexmltoolkit.controls.theme.SemanticStyle;
 
 /**
  * Comprehensive testing framework for Schematron rules against XML files.
@@ -196,9 +197,9 @@ public class SchematronTester extends VBox {
                 } else {
                     setText(status);
                     switch (status.toLowerCase()) {
-                        case "passed" -> setStyle("-fx-text-fill: " + SemanticColors.SUCCESS + "; -fx-font-weight: bold;");
-                        case "failed" -> setStyle("-fx-text-fill: " + SemanticColors.DANGER + "; -fx-font-weight: bold;");
-                        case "error" -> setStyle("-fx-text-fill: " + SemanticColors.ORANGE + "; -fx-font-weight: bold;");
+                        case "passed" -> setStyle("-fx-text-fill: " + SemanticStyle.hex(DesignTokens.ColorToken.SUCCESS) + "; -fx-font-weight: bold;");
+                        case "failed" -> setStyle("-fx-text-fill: " + SemanticStyle.hex(DesignTokens.ColorToken.DANGER) + "; -fx-font-weight: bold;");
+                        case "error" -> setStyle("-fx-text-fill: " + SemanticStyle.hex(DesignTokens.ColorToken.ACCENT) + "; -fx-font-weight: bold;");
                         default -> setStyle("");
                     }
                 }

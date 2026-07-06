@@ -14,7 +14,8 @@ import org.fxmisc.richtext.CodeArea;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.shared.utilities.XmlSearchTarget;
 import org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2;
-import org.fxt.freexmltoolkit.controls.theme.SemanticColors;
+import org.fxt.freexmltoolkit.controls.theme.DesignTokens;
+import org.fxt.freexmltoolkit.controls.theme.SemanticStyle;
 
 /**
  * A search bar component for the Unified Editor.
@@ -261,7 +262,7 @@ public class UnifiedSearchBar extends HBox {
 
         if (!found) {
             statusLabel.setText("Not found");
-            statusLabel.setStyle("-fx-text-fill: " + SemanticColors.DANGER + ";");
+            SemanticStyle.style(statusLabel, DesignTokens.ColorToken.DANGER, c -> "-fx-text-fill: " + c + ";");
         } else {
             updateSearchCount(text);
         }
@@ -282,7 +283,7 @@ public class UnifiedSearchBar extends HBox {
 
         if (!found) {
             statusLabel.setText("Not found");
-            statusLabel.setStyle("-fx-text-fill: " + SemanticColors.DANGER + ";");
+            SemanticStyle.style(statusLabel, DesignTokens.ColorToken.DANGER, c -> "-fx-text-fill: " + c + ";");
         } else {
             updateSearchCount(text);
         }
@@ -324,7 +325,7 @@ public class UnifiedSearchBar extends HBox {
         }
 
         statusLabel.setText(count + " replaced");
-        statusLabel.setStyle("-fx-text-fill: " + SemanticColors.SUCCESS + ";");
+        SemanticStyle.style(statusLabel, DesignTokens.ColorToken.SUCCESS, c -> "-fx-text-fill: " + c + ";");
     }
 
     private void updateSearchCount(String text) {
@@ -354,7 +355,7 @@ public class UnifiedSearchBar extends HBox {
             statusLabel.setStyle("");
         } else {
             statusLabel.setText("Not found");
-            statusLabel.setStyle("-fx-text-fill: " + SemanticColors.DANGER + ";");
+            SemanticStyle.style(statusLabel, DesignTokens.ColorToken.DANGER, c -> "-fx-text-fill: " + c + ";");
         }
     }
 

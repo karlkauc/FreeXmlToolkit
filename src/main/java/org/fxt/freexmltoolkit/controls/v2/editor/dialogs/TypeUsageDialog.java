@@ -28,7 +28,8 @@ import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.v2.editor.usage.TypeUsageLocation;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
-import org.fxt.freexmltoolkit.controls.theme.SemanticColors;
+import org.fxt.freexmltoolkit.controls.theme.DesignTokens;
+import org.fxt.freexmltoolkit.controls.theme.SemanticStyle;
 
 /**
  * Dialog displaying all locations where a type is used in the schema.
@@ -130,7 +131,7 @@ public class TypeUsageDialog extends Dialog<TypeUsageLocation> {
         Label headerLabel = new Label();
         if (usages.isEmpty()) {
             headerLabel.setText("No usages found for type '" + typeName + "'");
-            headerLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: " + SemanticColors.SUCCESS + ";");
+            SemanticStyle.style(headerLabel, DesignTokens.ColorToken.SUCCESS, c -> "-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: " + c + ";");
         } else {
             headerLabel.setText(usages.size() + " usage" + (usages.size() == 1 ? "" : "s") + " of type '" + typeName + "'");
             headerLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
