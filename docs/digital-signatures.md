@@ -1,6 +1,6 @@
 # XML Digital Signatures
 
-> **Last Updated:** May 2026 | **Version:** 1.10.0
+> **Last Updated:** July 2026 | **Version:** 1.10.0
 
 > **Note (Phase 10c):** The standalone *Signature* tab has been retired. Signing,
 > signature validation (including detailed and PKIX trust/chain/revocation/timestamp
@@ -20,8 +20,9 @@ This tool lets you digitally sign XML documents and verify signatures. A digital
 ### What Can You Do?
 
 In the [Unified Shell](unified-shell.md), open the **Signature** activity from the activity bar.
-The top of the panel is an **action nav** - selecting an entry shows the matching form below
-the shared **KEYSTORE** section (keystore file, alias, passwords):
+The top of the panel is an **action nav** of four buttons *(updated July 2026: the actions
+render as raised, bordered buttons so they are recognizable as clickable)* - selecting one
+shows the matching form below the shared **KEYSTORE** section (keystore file, alias, passwords):
 
 | Action | Description |
 |-----|-------------|
@@ -79,6 +80,9 @@ Before signing documents, you need a digital certificate (like a digital ID card
 
 **Important:** Remember your passwords! They cannot be recovered.
 
+> **Tip (July 2026):** If you leave the alias or a password blank, the field is highlighted
+> in red when you click **Create Certificate**. The highlight clears as soon as you start typing.
+
 ---
 
 ## 2. Sign an XML Document
@@ -120,6 +124,10 @@ Before signing documents, you need a digital certificate (like a digital ID card
 
 The signed file includes the original content plus a digital signature block.
 
+> **Tip (July 2026):** Missing inputs are highlighted in red when you click **Sign**: signing
+> without a keystore marks the keystore entry, and a blank alias or password marks that field.
+> The highlight disappears as soon as you start typing.
+
 ---
 
 ## 3. Verify a Signature
@@ -129,18 +137,27 @@ The signed file includes the original content plus a digital signature block.
 
 ### How to Verify a Signature
 
-1. In the **Signature** panel, choose **Validate Signed File**
-2. Click **"Browse"** to select the signed XML file
-3. Click **"Validate"**
-4. See the result in the status area
+1. Open the signed XML file in the editor (it becomes the active document)
+2. In the **Signature** panel, choose the **Validate Signature** action
+3. Click the **Validate Signature** button
+4. See the result in the status area (failures additionally open an explanatory dialog)
+
+For a detailed report (validity plus signing-certificate details), use the outlined
+**Validate (Details)** button instead.
 
 ### Validation Results
 
-| Status | Meaning |
+> **Updated July 2026:** Validation no longer answers with a vague "Signature invalid / none".
+> Each outcome now explains in plain language what happened and what to do about it.
+
+| Result | Meaning |
 |--------|---------|
-| **Valid** | The signature is authentic and document unchanged |
-| **Invalid** | The signature failed verification |
-| **No Signature** | The document doesn't contain a signature |
+| **Valid** (green status) | The signature is authentic and the document is unchanged |
+| **No signature found** (red hint) | The document doesn't contain a signature - sign it first |
+| **Invalid signature** (error dialog) | The document was modified after signing. The dialog names what failed: the signature value itself or a specific reference |
+| **Certificate cannot be used** (dialog) | The signature does not embed an X.509 certificate, only references it, or uses an unsupported algorithm. Ask the sender for a signature that embeds an RSA X.509 certificate, or use **Validate (Details)** |
+| **Weak algorithm** (rejected) | The signature uses SHA-1, which is rejected for security reasons. Re-sign the document with SHA-256 or SHA-512 |
+| **Error** (dialog) | Something else went wrong - the dialog includes collapsible technical details |
 
 ### What the Verification Checks
 
@@ -264,8 +281,11 @@ The favorites panel appears on the right side and provides quick access to your 
 | Problem | Solution |
 |---------|----------|
 | Wrong password | Double-check keystore and key passwords |
+| A field is highlighted in red | The input is missing - select a keystore or fill in the alias/password; the highlight clears while you type |
 | Key not found | Verify the key alias exists in the keystore |
-| Validation fails | Document may have been modified after signing |
+| Validation fails | The error dialog names what changed - the document was modified after signing |
+| "Certificate cannot be used" | The signature doesn't embed an RSA X.509 certificate - ask the sender to re-sign with the certificate embedded, or use **Validate (Details)** |
+| "Weak algorithm" (SHA-1) | SHA-1 signatures are rejected for security - re-sign the document with SHA-256 or SHA-512 |
 | Certificate expired | Create a new certificate with Expert Mode |
 
 ---

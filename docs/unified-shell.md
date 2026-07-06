@@ -672,9 +672,10 @@ node. In addition to name, type, cardinality, facets, and constraints, you can n
 ## Signature Panel
 
 The **Signature** panel (open it from the activity bar) signs and validates XML signatures.
-Its top is an **action nav** - selecting an entry shows the matching form below it, next to
-the shared **KEYSTORE** section (keystore file with a *Change* link, alias, and the two
-passwords):
+Its top is an **action nav** of four buttons *(updated July 2026: the actions now render as
+raised, bordered buttons, and **Validate (Details)** as an outlined secondary button)* -
+selecting one shows the matching form below it, next to the shared **KEYSTORE** section
+(keystore file with a *Change* link, alias, and the two passwords):
 
 - **Sign XML File** *(default)* - Opens the **Sign XML Document card in the editor area**:
   the document to sign (the active document, changeable via *Browse*), the keystore alias
@@ -687,6 +688,15 @@ passwords):
   algorithm, key usage, and the **SHA-256 fingerprint** with a copy button.
 - **Validate Signature** - **Validate Signature** checks the active document's signature;
   **Validate (Details)** opens a detailed report (validity + signing-certificate details).
+  *(updated July 2026)* The result is now explained in plain language: a valid signature
+  shows a green status; a document without a signature shows a red hint suggesting you sign
+  it first; an invalid signature opens an error dialog that explains the document was
+  modified after signing and names what failed (the signature value or a specific
+  reference); a signature whose certificate cannot be used (not embedded, only referenced,
+  or an unsupported algorithm) opens a dialog telling you to ask the sender for a signature
+  that embeds an RSA X.509 certificate - or use **Validate (Details)**; signatures using
+  the weak SHA-1 algorithm are rejected for security (re-sign with SHA-256 or SHA-512).
+  Any other error shows a dialog with collapsible technical details.
 - **Create Certificate** - Creates a self-signed certificate / keystore from the DN fields,
   using the alias and passwords from the KEYSTORE section. The new keystore is selected
   automatically so you can sign immediately.
@@ -694,6 +704,10 @@ passwords):
   JVM's built-in `cacerts`), optionally **Check revocation (OCSP/CRL)**, then
   **Validate (Trust)** produces a trust report (trusted / trust anchor / revocation /
   timestamp).
+
+*(updated July 2026)* Missing inputs are highlighted: signing without a keystore marks the
+keystore entry in red, and a blank alias or password is marked in red when you sign or
+create a certificate. The highlight disappears as soon as you start typing in the field.
 
 See [XML Digital Signatures](digital-signatures.md) for full details.
 
