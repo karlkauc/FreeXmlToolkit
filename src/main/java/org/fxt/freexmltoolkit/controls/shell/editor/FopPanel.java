@@ -39,6 +39,8 @@ public class FopPanel extends VBox {
     private final EditorHost editorHost;
     private final Label xmlName = new Label("none");
     private final Label xslName = new Label("none");
+    private javafx.scene.control.MenuButton xmlFavoritesMenu;
+    private javafx.scene.control.MenuButton xslFavoritesMenu;
     private final TextField titleField = new TextField();
     private final TextField authorField = new TextField();
     private final TextField subjectField = new TextField();
@@ -75,14 +77,20 @@ public class FopPanel extends VBox {
         MenuItem useActive = new MenuItem("Use active editor");
         useActive.setOnAction(e -> setXmlOverride(null));
         xmlMenu.getItems().addAll(pickXml, useActive);
+        xmlFavoritesMenu = FavoritesMenu.create(
+                org.fxt.freexmltoolkit.domain.FileFavorite.FileType.XML,
+                "XML favorites", this::setXmlOverride);
         HBox xmlRow = sourceRow("bi-code-slash", xmlName, () ->
-                xmlMenu.show(xmlName, Side.BOTTOM, 0, 0));
+                xmlMenu.show(xmlName, Side.BOTTOM, 0, 0), xmlFavoritesMenu);
         refreshXmlName();
         editorHost.activeTabProperty().addListener((obs, oldV, newV) -> refreshXmlName());
 
         xslName.setId("fop-xsl-name");
         xslName.getStyleClass().addAll("fxt-vp-source-name", "fxt-vp-source-none");
-        HBox xslRow = sourceRow("bi-file-earmark-code", xslName, this::chooseXsl);
+        xslFavoritesMenu = FavoritesMenu.create(
+                org.fxt.freexmltoolkit.domain.FileFavorite.FileType.XSLT,
+                "XSLT favorites", this::setXslFile);
+        HBox xslRow = sourceRow("bi-file-earmark-code", xslName, this::chooseXsl, xslFavoritesMenu);
         HBox inputHeader = SidePanelLayout.sectionHeader(new Label("INPUT"), xmlRow, xslRow);
 
         // --- METADATA ------------------------------------------------------------
@@ -296,6 +304,20 @@ public class FopPanel extends VBox {
         }
     }
 
+    /** @return the favorite-XSLT names currently in the stylesheet star menu (for tests). */
+    public java.util.List<String> xslFavoriteNames() {
+        FavoritesMenu.populate(xslFavoritesMenu,
+                org.fxt.freexmltoolkit.domain.FileFavorite.FileType.XSLT, this::setXslFile);
+        return FavoritesMenu.leafNames(xslFavoritesMenu);
+    }
+
+    /** @return the favorite-XML names currently in the input star menu (for tests). */
+    public java.util.List<String> xmlFavoriteNames() {
+        FavoritesMenu.populate(xmlFavoritesMenu,
+                org.fxt.freexmltoolkit.domain.FileFavorite.FileType.XML, this::setXmlOverride);
+        return FavoritesMenu.leafNames(xmlFavoritesMenu);
+    }
+
     private void chooseTargetAndGenerate() {
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Save PDF");
@@ -326,14 +348,17 @@ public class FopPanel extends VBox {
 
     // ----- shared mockup-language helpers ------------------------------------
 
-    /** A source row: file-type icon · name · "Change" link (shared mockup style). */
-    private HBox sourceRow(String iconLiteral, Label nameLabel, Runnable changeAction) {
+    /** A source row: file-type icon · name · [extras ·] "Change" link (shared mockup style). */
+    private HBox sourceRow(String iconLiteral, Label nameLabel, Runnable changeAction,
+                           javafx.scene.Node... extras) {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
         Hyperlink change = new Hyperlink("Change");
         change.getStyleClass().add("fxt-vp-change");
         change.setOnAction(e -> changeAction.run());
-        HBox row = new HBox(8, icon(iconLiteral, 15), nameLabel, spacer, change);
+        HBox row = new HBox(8, icon(iconLiteral, 15), nameLabel, spacer);
+        row.getChildren().addAll(extras);
+        row.getChildren().add(change);
         row.getStyleClass().add("fxt-vp-source-row");
         row.setAlignment(Pos.CENTER_LEFT);
         return row;

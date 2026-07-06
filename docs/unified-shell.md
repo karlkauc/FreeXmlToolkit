@@ -545,9 +545,13 @@ Open the **Validation** panel from the activity bar to validate the active docum
 ### Sources
 
 The **SOURCES** section shows the XSD and Schematron files bound to the active document.
-Click **Change** next to a source to pick a different file. The star button on the XSD row
-opens a quick-select menu of your favorited XSD schemas - pick one to bind it in a single
-click, without browsing the file system. (See [Favorites](favorites-system.md).)
+Click **Change** next to a source to pick a different file. *(updated July 2026)* **Both**
+rows carry a **star button** next to their *Change* link: on the XSD row it opens a
+quick-select menu of your favorited XSD schemas, on the Schematron row a menu of your
+favorited Schematron files - pick one to bind it in a single click, without browsing the
+file system. The menus group entries by favorites folder when you use more than one, and
+are grayed out while you have no matching favorites. (See
+[Favorites](favorites-system.md).)
 
 - **The referenced XSD binds automatically.** When the XML declares its schema
   (`xsi:schemaLocation` / `xsi:noNamespaceSchemaLocation` - local or remote), that XSD is
@@ -675,7 +679,10 @@ The **Signature** panel (open it from the activity bar) signs and validates XML 
 Its top is an **action nav** of four buttons *(updated July 2026: the actions now render as
 raised, bordered buttons, and **Validate (Details)** as an outlined secondary button)* -
 selecting one shows the matching form below it, next to the shared **KEYSTORE** section
-(keystore file with a *Change* link, alias, and the two passwords):
+(keystore file with a *Change* link, alias, and the two passwords). *(updated July 2026)*
+The keystore row also carries a **star menu** that lists your favorited keystores -
+keystore files (`.jks`, `.p12`, `.pfx`, `.keystore`) are now their own **Keystore**
+favorite type with a lock icon (see [Favorites](favorites-system.md)):
 
 - **Sign XML File** *(default)* - Opens the **Sign XML Document card in the editor area**:
   the document to sign (the active document, changeable via *Browse*), the keystore alias
@@ -701,7 +708,8 @@ selecting one shows the matching form below it, next to the shared **KEYSTORE** 
   using the alias and passwords from the KEYSTORE section. The new keystore is selected
   automatically so you can sign immediately.
 - **Expert Mode** - Full PKIX trust validation: choose a **trust store** (defaults to the
-  JVM's built-in `cacerts`), optionally **Check revocation (OCSP/CRL)**, then
+  JVM's built-in `cacerts`; *(updated July 2026)* the trust store row also has a **star
+  menu** with your favorited keystores), optionally **Check revocation (OCSP/CRL)**, then
   **Validate (Trust)** produces a trust report (trusted / trust anchor / revocation /
   timestamp).
 
@@ -716,7 +724,10 @@ See [XML Digital Signatures](digital-signatures.md) for full details.
 The **PDF / FOP** panel renders the XML to PDF with an XSL-FO stylesheet (Apache FOP):
 
 - **INPUT** - The XML (follows the active editor; *Change* can fix it to a file) and the
-  **XSL-FO stylesheet** (*Change*).
+  **XSL-FO stylesheet** (*Change*). *(updated July 2026)* Both rows also carry a **star
+  menu** next to their *Change* link - **XML** favorites for the input, **XSLT** favorites
+  for the stylesheet - so you can pick a favorited file in one click (see
+  [Favorites](favorites-system.md)).
 - **METADATA** - PDF document **Title**, **Author** (pre-filled from your configured user
   name) and **Subject**, embedded into the generated PDF.
 - **OPTIONS** - **PDF/A-1b compliant** renders an archival-grade PDF (requires the

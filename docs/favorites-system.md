@@ -1,6 +1,6 @@
 # Favorites System
 
-> **Last Updated:** June 2026 | **Version:** 1.10.0
+> **Last Updated:** July 2026 | **Version:** 1.10.0
 
 Save your frequently used files for quick access. The favorites system works across all editors in FreeXmlToolkit.
 
@@ -49,6 +49,34 @@ The **Favorites panel** in the Unified Shell (star icon in the activity bar) gro
 favorites **by file type** - for example **XML Document**, **XSD Schema**, **Schematron
 Rules**, and **XSLT Stylesheet**. Each entry shows a **colored type icon**, so you can tell
 the file kinds apart at a glance. Click an entry to open it as an editor tab.
+
+*(updated July 2026)* Keystore and trust store files (`.jks`, `.p12`, `.pfx`, `.keystore`)
+are now recognized as their own **Keystore** type with a lock icon, instead of falling
+under *Other* - they form their own group in the Favorites panel and feed the keystore
+star menus in the Signature panel (see below).
+
+### Star Menus in the Side Panels
+
+> **Updated July 2026** - the star quick-select menus are now available on **every**
+> file-pick row in the side panels (previously only the Validation panel's XSD row and
+> the Transform panel had them).
+
+Wherever a side panel asks you to pick a file, a **star button** next to the row's
+**Change** link opens a quick-select menu of your matching favorites - pick one to use
+it in a single click, without browsing the file system:
+
+| Panel | Row | Favorites Listed |
+|-------|-----|------------------|
+| **Validation** | XSD schema | XSD favorites |
+| **Validation** | Schematron rules | Schematron favorites |
+| **Transform** | STYLESHEET / INPUT | XSLT / XML favorites |
+| **PDF / FOP** | XML input / XSL-FO stylesheet | XML / XSLT favorites |
+| **Signature** | Keystore (KEYSTORE section) | Keystore favorites |
+| **Signature** | Trust store (Expert Mode) | Keystore favorites |
+
+The menu is rebuilt each time you open it, so newly added favorites appear immediately.
+When you use more than one favorites folder, the entries are grouped by folder as
+submenus. While you have no matching favorites, the star button is grayed out.
 
 ---
 
@@ -103,6 +131,7 @@ The favorites menu includes:
 | XSD schemas | .xsd |
 | Schematron rules | .sch |
 | XSLT stylesheets | .xsl, .xslt |
+| Keystores / trust stores *(new in July 2026)* | .jks, .p12, .pfx, .keystore |
 
 ---
 

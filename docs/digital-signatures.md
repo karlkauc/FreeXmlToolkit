@@ -116,7 +116,9 @@ Before signing documents, you need a digital certificate (like a digital ID card
 
 1. In the **Signature** panel, choose **Sign XML File**
 2. Click **"Browse"** to select your XML file
-3. Click **"Browse"** to select your keystore file
+3. Click **"Browse"** to select your keystore file - or *(new in July 2026)* pick a
+   favorited keystore from the **star menu** next to the keystore row (see
+   [Favorites Integration](#favorites-integration) below)
 4. Enter your keystore password and key password
 5. Select the key alias (if multiple keys exist)
 6. Choose where to save the signed output
@@ -184,9 +186,10 @@ In the Unified Shell's **Signature** panel, the action is **Validate (Trust)**.
 ### How to Run Trust Validation
 
 1. Open the signed XML document.
-2. (Optional) Click **Trust store…** to choose the trust store to validate against. By default
-   the application uses the JVM's built-in `cacerts` store, which contains well-known public
-   certificate authorities.
+2. (Optional) Click **Trust store…** to choose the trust store to validate against - or
+   *(new in July 2026)* pick a favorited keystore from the **star menu** next to the trust
+   store row. By default the application uses the JVM's built-in `cacerts` store, which
+   contains well-known public certificate authorities.
 3. (Optional) Tick **Check revocation (OCSP/CRL)** to also verify that the certificate has not
    been revoked.
 4. Click **Validate (Trust)**.
@@ -252,6 +255,13 @@ Save frequently used files for quick access:
 - **Favorites** (Ctrl+Shift+D) - Show/hide the favorites panel
 
 The favorites panel appears on the right side and provides quick access to your saved keystores, XML files, and signed documents.
+
+> **Updated July 2026:** Keystore and trust store files (`.jks`, `.p12`, `.pfx`,
+> `.keystore`) are now their own **Keystore** favorite type with a lock icon, instead of
+> being grouped under *Other*. In the Signature panel, the **keystore row** (KEYSTORE
+> section) and the **trust store row** (Expert Mode) each carry a **star menu** listing
+> your keystore favorites - pick one to select it without browsing the file system. See
+> [Favorites System](favorites-system.md) for details.
 
 ---
 

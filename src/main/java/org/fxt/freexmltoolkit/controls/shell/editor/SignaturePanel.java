@@ -59,6 +59,8 @@ public class SignaturePanel extends VBox {
     private final Map<Action, VBox> sections = new EnumMap<>(Action.class);
     private File keystoreFile;
     private File trustStoreFile;
+    private javafx.scene.control.MenuButton keystoreFavoritesMenu;
+    private javafx.scene.control.MenuButton trustStoreFavoritesMenu;
     private javafx.scene.control.Tab signTab;
     private SignDocumentView signView;
 
@@ -95,7 +97,11 @@ public class SignaturePanel extends VBox {
         // --- KEYSTORE (shared by sign + create) --------------------------------
         keystoreName.setId("sig-keystore-name");
         keystoreName.getStyleClass().addAll("fxt-vp-source-name", "fxt-vp-source-none");
-        HBox keystoreRow = sourceRow("bi-file-earmark-lock", keystoreName, this::chooseKeystore);
+        keystoreFavoritesMenu = FavoritesMenu.create(
+                org.fxt.freexmltoolkit.domain.FileFavorite.FileType.KEYSTORE,
+                "Keystore favorites", this::setKeystore);
+        HBox keystoreRow = sourceRow("bi-file-earmark-lock", keystoreName,
+                this::chooseKeystore, keystoreFavoritesMenu);
         alias.setPromptText("alias");
         keystorePassword.setPromptText("keystore password");
         aliasPassword.setPromptText("alias password");
@@ -140,7 +146,10 @@ public class SignaturePanel extends VBox {
         // --- EXPERT section (PKIX trust validation) -------------------------------
         trustStoreName.setId("sig-truststore-name");
         trustStoreName.getStyleClass().add("fxt-vp-source-name");
-        HBox trustRow = sourceRow("bi-key", trustStoreName, this::chooseTrustStore);
+        trustStoreFavoritesMenu = FavoritesMenu.create(
+                org.fxt.freexmltoolkit.domain.FileFavorite.FileType.KEYSTORE,
+                "Trust store favorites", this::setTrustStore);
+        HBox trustRow = sourceRow("bi-key", trustStoreName, this::chooseTrustStore, trustStoreFavoritesMenu);
         VBox trustOptions = new VBox(6, checkRevocation);
         trustOptions.getStyleClass().add("fxt-tp-section-body");
         Button validateTrust = primaryButton("Validate (Trust)", "bi-patch-check",
@@ -423,9 +432,21 @@ public class SignaturePanel extends VBox {
                 new FileChooser.ExtensionFilter("Key/Trust store", "*.jks", "*.p12", "*.pfx", "*.keystore"));
         File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
-            trustStoreFile = file;
-            trustStoreName.setText(file.getName());
+            setTrustStore(file);
         }
+    }
+
+    /** Sets the trust store file (from the chooser or a favorite). */
+    public void setTrustStore(File file) {
+        this.trustStoreFile = file;
+        trustStoreName.setText(file != null ? file.getName() : "default (cacerts)");
+    }
+
+    /** @return the favorite-keystore names currently in the quick-select menu (for tests). */
+    public java.util.List<String> keystoreFavoriteNames() {
+        FavoritesMenu.populate(keystoreFavoritesMenu,
+                org.fxt.freexmltoolkit.domain.FileFavorite.FileType.KEYSTORE, this::setKeystore);
+        return FavoritesMenu.leafNames(keystoreFavoritesMenu);
     }
 
     /**
@@ -535,13 +556,15 @@ public class SignaturePanel extends VBox {
     }
 
     /** A source row: file-type icon · name · "Change" link (shared mockup style). */
-    private HBox sourceRow(String iconLiteral, Label nameLabel, Runnable changeAction) {
+    private HBox sourceRow(String iconLiteral, Label nameLabel, Runnable changeAction, Node... extras) {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
         Hyperlink change = new Hyperlink("Change");
         change.getStyleClass().add("fxt-vp-change");
         change.setOnAction(e -> changeAction.run());
-        HBox row = new HBox(8, icon(iconLiteral, 15), nameLabel, spacer, change);
+        HBox row = new HBox(8, icon(iconLiteral, 15), nameLabel, spacer);
+        row.getChildren().addAll(extras);
+        row.getChildren().add(change);
         row.getStyleClass().add("fxt-vp-source-row");
         row.setAlignment(Pos.CENTER_LEFT);
         return row;

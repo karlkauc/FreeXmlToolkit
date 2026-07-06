@@ -59,6 +59,7 @@ public class ValidationPanel extends VBox {
     private final Label schematronName = new Label("none");
     private final Label resultsHeaderLabel = new Label("RESULTS");
     private final MenuButton xsdFavoritesMenu = new MenuButton();
+    private MenuButton schematronFavoritesMenu;
     private final MenuButton overflowMenu = new MenuButton();
     private final MenuItem openBatchReport = new MenuItem("Open last batch report");
     private final CheckMenuItem liveValidation = new CheckMenuItem("Validate while typing");
@@ -97,7 +98,11 @@ public class ValidationPanel extends VBox {
         xsdFavoritesMenu.getStyleClass().add("fxt-vp-source-fav");
         xsdFavoritesMenu.setOnShowing(e -> refreshXsdFavoritesMenu());
         HBox xsdRow = sourceRow("bi-diagram-3", xsdName, this::chooseXsd, xsdFavoritesMenu);
-        HBox schematronRow = sourceRow("bi-ui-checks-grid", schematronName, this::chooseSchematron);
+        schematronFavoritesMenu = FavoritesMenu.create(
+                org.fxt.freexmltoolkit.domain.FileFavorite.FileType.SCHEMATRON,
+                "Schematron favorites", this::useSchematron);
+        HBox schematronRow = sourceRow("bi-ui-checks-grid", schematronName,
+                this::chooseSchematron, schematronFavoritesMenu);
         // One click on a bound source opens it in the editor for direct editing.
         makeSourceNameOpenable(xsdName, () -> editorHost.activeSchemaProperty().get());
         makeSourceNameOpenable(schematronName, editorHost::getActiveSchematron);
@@ -666,9 +671,21 @@ public class ValidationPanel extends VBox {
                 new FileChooser.ExtensionFilter("Schematron", "*.sch", "*.schematron"));
         File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
-            editorHost.setActiveSchematron(file);
-            refreshSchematronStatus();
+            useSchematron(file);
         }
+    }
+
+    /** Binds {@code schematron} to the active document (from the chooser or a favorite). */
+    private void useSchematron(File schematron) {
+        editorHost.setActiveSchematron(schematron);
+        refreshSchematronStatus();
+    }
+
+    /** @return the favorite-Schematron names currently in the quick-select menu (for tests). */
+    public java.util.List<String> schematronFavoriteNames() {
+        FavoritesMenu.populate(schematronFavoritesMenu,
+                org.fxt.freexmltoolkit.domain.FileFavorite.FileType.SCHEMATRON, this::useSchematron);
+        return FavoritesMenu.leafNames(schematronFavoritesMenu);
     }
 
     private void chooseJsonSchema() {

@@ -53,6 +53,8 @@ public class FileFavorite {
         XPATH("XPath Query", "bi-code-slash", "#6f42c1"),
         /** XQuery script files */
         XQUERY("XQuery Query", "bi-braces", "#20c997"),
+        /** Key/trust store files (JKS, PKCS#12) used by the Signature tools */
+        KEYSTORE("Keystore", "bi-file-earmark-lock", "#795548"),
         /** Other/unrecognized file types */
         OTHER("Other", "bi-file-earmark", "#6c757d");
 
@@ -121,6 +123,10 @@ public class FileFavorite {
             }
             if (lower.endsWith(".xquery") || lower.endsWith(".xq")) {
                 return XQUERY;
+            }
+            if (lower.endsWith(".jks") || lower.endsWith(".keystore")
+                    || lower.endsWith(".p12") || lower.endsWith(".pfx")) {
+                return KEYSTORE;
             }
             return OTHER;
         }
