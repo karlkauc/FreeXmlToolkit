@@ -1641,6 +1641,21 @@
     -fx-icon-color: -fxt-success-text;
 }
 
+/* Highlights an input whose value is missing or invalid for the attempted action
+   (see FieldMarker) — cleared again as soon as the user edits the field. */
+.fxt-field-error {
+    -fx-border-color: -fxt-danger;
+    -fx-border-width: 1.5px;
+    -fx-border-radius: 4px;
+}
+
+/* Source-row labels ("none") additionally turn red — they have no visible box. */
+.label.fxt-field-error {
+    -fx-border-width: 0;
+    -fx-text-fill: -fxt-danger;
+    -fx-font-weight: 700;
+}
+
 .fxt-vp-results {
     -fx-background-color: transparent;
     -fx-border-color: transparent;

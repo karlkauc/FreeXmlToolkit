@@ -53,7 +53,8 @@ class SignaturePanelTest {
             return null;
         });
         WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS, () -> !panel.getStatusText().equals("Validating…"));
-        assertTrue(panel.getStatusText().contains("invalid"), panel.getStatusText());
+        assertTrue(panel.getStatusText().contains("no signature"),
+                "an unsigned document must be reported as having no signature: " + panel.getStatusText());
     }
 
     @Test
@@ -197,5 +198,49 @@ class SignaturePanelTest {
         WaitForAsyncUtils.waitForFxEvents();
         assertTrue(panel.getStatusText().toLowerCase().contains("required"),
                 "creation without alias/passwords must be rejected: " + panel.getStatusText());
+    }
+
+    @Test
+    void missingCredentialFieldsAreHighlightedAndClearOnEdit() {
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.setCredentials("", "secret", "");
+            panel.createCertificate();
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+
+        assertTrue(panel.aliasField().getStyleClass().contains("fxt-field-error"),
+                "the blank alias field must be highlighted");
+        assertFalse(panel.keystorePasswordField().getStyleClass().contains("fxt-field-error"),
+                "the filled password field must not be highlighted");
+
+        // Typing into the field clears its highlight without another action.
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.aliasField().setText("my-alias");
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        assertFalse(panel.aliasField().getStyleClass().contains("fxt-field-error"),
+                "editing the field must clear its highlight");
+    }
+
+    @Test
+    void signingWithoutKeystoreHighlightsTheKeystoreEntry(@TempDir Path tmp) throws Exception {
+        Path xml = tmp.resolve("to-sign.xml");
+        Files.writeString(xml, "<root/>");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.setKeystore(null);
+            panel.signFile(xml.toFile());
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+
+        assertTrue(panel.getStatusText().contains("keystore"),
+                "the status must name the missing keystore: " + panel.getStatusText());
+        Label keystoreName = (Label) panel.lookup("#sig-keystore-name");
+        assertNotNull(keystoreName);
+        assertTrue(keystoreName.getStyleClass().contains("fxt-field-error"),
+                "the keystore source entry must be highlighted");
     }
 }

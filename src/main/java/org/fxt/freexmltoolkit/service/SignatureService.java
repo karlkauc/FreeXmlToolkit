@@ -299,6 +299,34 @@ public class SignatureService {
                 Collections.singletonList(ref));
     }
 
+    /** How a signature validation ended — the UI maps each status to a speaking message. */
+    public enum ValidationStatus {
+        /** The signature cryptographically matches the document. */
+        VALID,
+        /** The signature or a reference digest does not match (content was altered). */
+        INVALID,
+        /** The document contains no {@code ds:Signature} element at all. */
+        NO_SIGNATURE,
+        /** The signature's KeyInfo carries no usable validation key (see message for why). */
+        UNSUPPORTED_KEY_INFO,
+        /** The signature uses a forbidden weak algorithm (SHA-1). */
+        WEAK_ALGORITHM,
+        /** Validation could not be performed (parse error, I/O, security policy …). */
+        ERROR
+    }
+
+    /**
+     * The result of {@link #validateSignatureDetailed(File)}: a status plus a
+     * plain-language message describing what happened (suitable for the UI) and
+     * the underlying cause for technical details, if any.
+     */
+    public record ValidationOutcome(ValidationStatus status, String message, Throwable cause) {
+        /** True only for {@link ValidationStatus#VALID}. */
+        public boolean isValid() {
+            return status == ValidationStatus.VALID;
+        }
+    }
+
     /**
      * Validates the signature of a signed XML document.
      *
@@ -307,6 +335,26 @@ public class SignatureService {
      * @throws SignatureServiceException if validation fails due to configuration or crypto errors.
      */
     public boolean isSignatureValid(File signedFile) {
+        ValidationOutcome outcome = validateSignatureDetailed(signedFile);
+        return switch (outcome.status()) {
+            case VALID -> true;
+            case INVALID, NO_SIGNATURE -> false;
+            case WEAK_ALGORITHM, UNSUPPORTED_KEY_INFO, ERROR ->
+                    throw new SignatureServiceException(outcome.message(), outcome.cause());
+        };
+    }
+
+    /**
+     * Validates the signature of a signed XML document and reports the outcome as
+     * a {@link ValidationOutcome} instead of a bare boolean/exception, so callers
+     * (the Signature panel) can tell the user precisely what happened — no
+     * signature at all, tampered content, an unusable KeyInfo, a forbidden weak
+     * algorithm — and what to do about it.
+     *
+     * @param signedFile the signed XML document
+     * @return the detailed outcome (never null)
+     */
+    public ValidationOutcome validateSignatureDetailed(File signedFile) {
         try {
             DocumentBuilder db = dbf.newDocumentBuilder();
             Document doc = db.parse(signedFile);
@@ -314,14 +362,17 @@ public class SignatureService {
             NodeList signatureNodeList = doc.getElementsByTagNameNS(XMLSignature.XMLNS, "Signature");
             if (signatureNodeList.getLength() == 0) {
                 logger.warn("Cannot find Signature element in the document '{}'", signedFile.getName());
-                return false;
+                return new ValidationOutcome(ValidationStatus.NO_SIGNATURE,
+                        "The document contains no <Signature> element.", null);
             }
             Node signatureNode = signatureNodeList.item(0);
 
             // Strict check for weak algorithms.
             // If a weak algorithm is detected, validation is immediately aborted.
             if (isWeakAlgorithmUsed(signatureNode)) {
-                throw new SignatureServiceException("Weak algorithm detected. Validation aborted for security reasons.", new SecurityException("Usage of SHA1 is forbidden."));
+                return new ValidationOutcome(ValidationStatus.WEAK_ALGORITHM,
+                        "Weak algorithm detected. Validation aborted for security reasons.",
+                        new SecurityException("Usage of SHA1 is forbidden."));
             }
 
             DOMValidateContext valContext = new DOMValidateContext(new X509KeySelector(), signatureNode);
@@ -370,33 +421,63 @@ public class SignatureService {
             boolean coreValidity = signature.validate(valContext);
             if (coreValidity) {
                 logger.info("Signature in '{}' is valid.", signedFile.getName());
-            } else {
-                logger.warn("Signature in '{}' is INVALID.", signedFile.getName());
-                // Diagnose WHAT failed: the signature value, or which reference digest.
-                try {
-                    logger.warn("  signature value valid: {}",
-                            signature.getSignatureValue().validate(valContext));
-                    for (Object referenceObject : signature.getSignedInfo().getReferences()) {
-                        Reference reference = (Reference) referenceObject;
-                        logger.warn("  reference '{}' digest valid: {}",
-                                reference.getURI(), reference.validate(valContext));
-                    }
-                } catch (XMLSignatureException diagnosticFailure) {
-                    logger.warn("  (could not diagnose: {})", diagnosticFailure.getMessage());
-                }
+                return new ValidationOutcome(ValidationStatus.VALID, "The signature is valid.", null);
             }
-            return coreValidity;
+            logger.warn("Signature in '{}' is INVALID.", signedFile.getName());
+            // Diagnose WHAT failed: the signature value, or which reference digest.
+            StringBuilder diagnosis = new StringBuilder();
+            try {
+                boolean signatureValueValid = signature.getSignatureValue().validate(valContext);
+                logger.warn("  signature value valid: {}", signatureValueValid);
+                if (!signatureValueValid) {
+                    diagnosis.append(" The signature value itself does not verify "
+                            + "(the signed metadata was altered or a different key was used).");
+                }
+                for (Object referenceObject : signature.getSignedInfo().getReferences()) {
+                    Reference reference = (Reference) referenceObject;
+                    boolean digestValid = reference.validate(valContext);
+                    logger.warn("  reference '{}' digest valid: {}", reference.getURI(), digestValid);
+                    if (!digestValid) {
+                        diagnosis.append(" The signed content ('")
+                                .append(reference.getURI() == null || reference.getURI().isEmpty()
+                                        ? "whole document" : reference.getURI())
+                                .append("') was modified after signing.");
+                    }
+                }
+            } catch (XMLSignatureException diagnosticFailure) {
+                logger.warn("  (could not diagnose: {})", diagnosticFailure.getMessage());
+            }
+            return new ValidationOutcome(ValidationStatus.INVALID,
+                    "The signature does not match the document." + diagnosis, null);
 
         } catch (MarshalException | XMLSignatureException | ParserConfigurationException | SAXException |
                  IOException e) {
+            // An unusable KeyInfo surfaces as an XMLSignatureException wrapping the
+            // KeySelectorException with the precise reason (see X509KeySelector).
+            if (rootCauseOf(e) instanceof KeySelectorException keyProblem) {
+                logger.error("Failed to validate the signature: {}", keyProblem.getMessage(), e);
+                return new ValidationOutcome(ValidationStatus.UNSUPPORTED_KEY_INFO,
+                        keyProblem.getMessage(), e);
+            }
             // Catch exceptions triggered by security policy violations and provide a clear message.
             if (e.getCause() instanceof SecurityException) {
                 logger.error("Validation failed due to security policy: {}", e.getCause().getMessage(), e);
-                throw new SignatureServiceException("Validation forbidden by security policy: " + e.getCause().getMessage(), e);
+                return new ValidationOutcome(ValidationStatus.ERROR,
+                        "Validation forbidden by security policy: " + e.getCause().getMessage(), e);
             }
             logger.error("Failed to validate the signature.", e);
-            throw new SignatureServiceException("Failed to validate the signature: " + e.getMessage(), e);
+            return new ValidationOutcome(ValidationStatus.ERROR,
+                    "Failed to validate the signature: " + e.getMessage(), e);
         }
+    }
+
+    /** @return the deepest non-null cause of {@code t} (or {@code t} itself). */
+    private static Throwable rootCauseOf(Throwable t) {
+        Throwable cause = t;
+        while (cause.getCause() != null && cause.getCause() != cause) {
+            cause = cause.getCause();
+        }
+        return cause;
     }
 
     /**
@@ -608,23 +689,53 @@ public class SignatureService {
         @Override
         public KeySelectorResult select(KeyInfo keyInfo, Purpose purpose, AlgorithmMethod method, XMLCryptoContext context) throws KeySelectorException {
             if (keyInfo == null) {
-                throw new KeySelectorException("Null KeyInfo object!");
+                throw new KeySelectorException(
+                        "The signature has no KeyInfo element, so there is no key to validate against.");
             }
 
+            boolean sawX509Data = false;
+            boolean sawCertificate = false;
+            String rejectedKeyAlgorithm = null;
+            java.util.Set<String> otherEntries = new java.util.LinkedHashSet<>();
             for (Object keyInfoEntry : keyInfo.getContent()) {
                 if (keyInfoEntry instanceof X509Data) {
+                    sawX509Data = true;
                     for (Object x509DataEntry : ((X509Data) keyInfoEntry).getContent()) {
                         if (x509DataEntry instanceof X509Certificate) {
+                            sawCertificate = true;
                             final PublicKey publicKey = ((X509Certificate) x509DataEntry).getPublicKey();
                             // Make sure the algorithm is compatible
                             if (algEquals(method.getAlgorithm(), publicKey.getAlgorithm())) {
                                 return new SimpleKeySelectorResult(publicKey);
                             }
+                            rejectedKeyAlgorithm = publicKey.getAlgorithm();
                         }
                     }
+                } else {
+                    otherEntries.add(switch (keyInfoEntry) {
+                        case javax.xml.crypto.dsig.keyinfo.KeyValue ignored -> "KeyValue (raw public key)";
+                        case javax.xml.crypto.dsig.keyinfo.KeyName ignored -> "KeyName";
+                        case javax.xml.crypto.dsig.keyinfo.RetrievalMethod ignored -> "RetrievalMethod";
+                        case javax.xml.crypto.dsig.keyinfo.PGPData ignored -> "PGPData";
+                        default -> keyInfoEntry.getClass().getSimpleName();
+                    });
                 }
             }
-            throw new KeySelectorException("No key found!");
+            // Explain precisely why no key was usable, so the UI can tell the user.
+            String reason;
+            if (!sawX509Data) {
+                reason = "The signature's KeyInfo does not embed an X.509 certificate"
+                        + (otherEntries.isEmpty() ? "." : " (it only contains: "
+                        + String.join(", ", otherEntries) + ").");
+            } else if (!sawCertificate) {
+                reason = "The signature's X509Data only references the certificate "
+                        + "(issuer/serial, subject name or key identifier) instead of embedding it.";
+            } else {
+                reason = "The embedded certificate uses a " + rejectedKeyAlgorithm + " key, which is "
+                        + "not supported for signature method '" + method.getAlgorithm()
+                        + "' — only RSA with SHA-256 or SHA-512 is accepted.";
+            }
+            throw new KeySelectorException(reason);
         }
 
         /**

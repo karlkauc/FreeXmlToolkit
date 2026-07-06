@@ -221,9 +221,13 @@ public class SignaturePanel extends VBox {
      */
     public void createCertificate() {
         String aliasName = alias.getText();
-        if (aliasName == null || aliasName.isBlank()
-                || keystorePassword.getText().isBlank() || aliasPassword.getText().isBlank()) {
-            PanelStatus.precondition(status, "Alias and both passwords are required to create a certificate.");
+        boolean missing = FieldMarker.markIf(alias, aliasName == null || aliasName.isBlank());
+        missing |= FieldMarker.markIf(keystorePassword, keystorePassword.getText().isBlank());
+        missing |= FieldMarker.markIf(aliasPassword, aliasPassword.getText().isBlank());
+        if (missing) {
+            PanelStatus.precondition(status,
+                    "Fill in the highlighted keystore fields — alias and both passwords "
+                            + "are required to create a certificate.");
             return;
         }
         SignatureActionRunner.CertificateInfo info = new SignatureActionRunner.CertificateInfo(
@@ -257,6 +261,9 @@ public class SignaturePanel extends VBox {
     /** Sets the keystore file (also from the file chooser). */
     public void setKeystore(File file) {
         this.keystoreFile = file;
+        if (file != null) {
+            FieldMarker.clear(keystoreName);
+        }
         setSourceName(keystoreName, file != null ? file.getName() : null);
     }
 
@@ -288,7 +295,20 @@ public class SignaturePanel extends VBox {
             return;
         }
         if (keystoreFile == null) {
-            PanelStatus.precondition(status, "Select a keystore first.");
+            FieldMarker.mark(keystoreName);
+            PanelStatus.precondition(status,
+                    "Select a keystore first (the highlighted entry in the KEYSTORE section). "
+                            + "\"Create Certificate\" can generate one for you.");
+            return;
+        }
+        FieldMarker.clear(keystoreName);
+        boolean missing = FieldMarker.markIf(alias, alias.getText().isBlank());
+        missing |= FieldMarker.markIf(keystorePassword, keystorePassword.getText().isBlank());
+        missing |= FieldMarker.markIf(aliasPassword, aliasPassword.getText().isBlank());
+        if (missing) {
+            PanelStatus.precondition(status,
+                    "Fill in the highlighted keystore fields — alias and both passwords "
+                            + "are required for signing.");
             return;
         }
         File keystore = keystoreFile;
@@ -321,7 +341,7 @@ public class SignaturePanel extends VBox {
         });
     }
 
-    /** Validates the active document's signature (async). */
+    /** Validates the active document's signature (async), reporting a speaking outcome. */
     public void validateActive() {
         File xml = activeXmlFile();
         if (xml == null) {
@@ -330,21 +350,49 @@ public class SignaturePanel extends VBox {
         }
         PanelStatus.info(status, "Validating…");
         FxtGui.executorService.submit(() -> {
-            boolean valid;
+            SignatureService.ValidationOutcome outcome;
             try {
-                valid = new SignatureService().isSignatureValid(xml);
+                outcome = new SignatureService().validateSignatureDetailed(xml);
             } catch (Exception e) {
-                valid = false;
+                outcome = new SignatureService.ValidationOutcome(
+                        SignatureService.ValidationStatus.ERROR,
+                        "Failed to validate the signature: " + e.getMessage(), e);
             }
-            boolean result = valid;
-            Platform.runLater(() -> {
-                if (result) {
-                    PanelStatus.success(status, "Signature valid ✓");
-                } else {
-                    PanelStatus.info(status, "Signature invalid / none");
-                }
-            });
+            SignatureService.ValidationOutcome result = outcome;
+            Platform.runLater(() -> reportValidationOutcome(result));
         });
+    }
+
+    /** Maps a validation outcome to the status line and, for failures, an explanatory dialog. */
+    private void reportValidationOutcome(SignatureService.ValidationOutcome outcome) {
+        switch (outcome.status()) {
+            case VALID -> PanelStatus.success(status, "Signature valid ✓");
+            case NO_SIGNATURE -> PanelStatus.precondition(status,
+                    "This document contains no signature. Sign it first via \"Sign XML File\".");
+            case INVALID -> PanelStatus.failure(status, "Signature validation failed",
+                    outcome.message(),
+                    "The document no longer matches its signature — it was probably modified "
+                            + "after signing. Re-sign the current content, or validate the original, "
+                            + "unmodified file. \"Validate (Details)\" shows the signing certificate.",
+                    outcome.cause());
+            case UNSUPPORTED_KEY_INFO -> PanelStatus.failure(status, "Signature validation failed",
+                    outcome.message(),
+                    "Validation uses the certificate embedded in the signature itself. Ask the "
+                            + "sender for a signature that embeds its X.509 certificate (RSA key, "
+                            + "SHA-256/512), or inspect the signature via \"Validate (Details)\". "
+                            + "Files signed by this application always embed their certificate.",
+                    outcome.cause());
+            case WEAK_ALGORITHM -> PanelStatus.failure(status, "Signature validation failed",
+                    outcome.message(),
+                    "SHA-1 signatures are rejected for security reasons. "
+                            + "Re-sign the document with SHA-256 or SHA-512.",
+                    outcome.cause());
+            case ERROR -> PanelStatus.failure(status, "Signature validation failed",
+                    outcome.message(),
+                    "Check that the file is well-formed XML and readable, then try again. "
+                            + "The technical details below show the underlying cause.",
+                    outcome.cause());
+        }
     }
 
     /**
