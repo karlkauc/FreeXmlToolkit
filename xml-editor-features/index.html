@@ -695,10 +695,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#search-works-in-both-views" class="md-nav__link">
+  <a href="#search-works-in-all-views" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Search Works in Both Views
+        Search Works in All Views
       
     </span>
   </a>
@@ -1940,10 +1940,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#search-works-in-both-views" class="md-nav__link">
+  <a href="#search-works-in-all-views" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Search Works in Both Views
+        Search Works in All Views
       
     </span>
   </a>
@@ -2244,19 +2244,20 @@
 <hr />
 <h2 id="search-find">Search (Find)<a class="headerlink" href="#search-find" title="Permanent link">&para;</a></h2>
 <blockquote>
-<p><strong>Updated in v1.10</strong> - Search now works in the <strong>Graphic</strong> view too, not just the text view.</p>
+<p><strong>Updated in July 2026</strong> - Search now works in <strong>every view mode</strong> — Text, Tree and Graphic — for both XML documents and XSD schemas.</p>
 </blockquote>
 <h3 id="finding-text-in-your-document">Finding Text in Your Document<a class="headerlink" href="#finding-text-in-your-document" title="Permanent link">&para;</a></h3>
-<p>Press <strong>Ctrl+F</strong> to open the Find feature and type the text you are looking for. Use the up and down arrows (<strong>Find Previous</strong> / <strong>Find Next</strong>) to move between matches. When you reach the last match, the search wraps around and continues from the beginning.</p>
-<h3 id="search-works-in-both-views">Search Works in Both Views<a class="headerlink" href="#search-works-in-both-views" title="Permanent link">&para;</a></h3>
-<p>You can search in either the <strong>Text</strong> view or the <strong>Graphic</strong> view of an XML document:</p>
+<p>Press <strong>Ctrl+F</strong> to open the Find feature and type the text you are looking for. Use the up and down arrows (<strong>Find Previous</strong> / <strong>Find Next</strong>, or Enter / Shift+Enter) to move between matches. When you reach the last match, the search wraps around and continues from the beginning.</p>
+<h3 id="search-works-in-all-views">Search Works in All Views<a class="headerlink" href="#search-works-in-all-views" title="Permanent link">&para;</a></h3>
+<p>You can search in the <strong>Text</strong>, <strong>Tree</strong> or <strong>Graphic</strong> view of a document:</p>
 <ul>
 <li><strong>Text view</strong> - Matches are highlighted in the source code. <strong>Replace</strong> is available here.</li>
-<li><strong>Graphic view</strong> - The search looks through element names, attribute names, and values across the whole document. When you press the up/down arrows, the editor jumps directly to the matching node: if the match is inside a collapsed node, its parent nodes are expanded automatically, the matching row is selected, and it is scrolled into view.</li>
+<li><strong>Graphic view (XML instances)</strong> - The search looks through element names, attribute names, and values across the whole document. When you press the up/down arrows, the editor jumps directly to the matching node: if the match is inside a collapsed node, its parent nodes are expanded automatically, the matching row is selected, and it is scrolled into view.</li>
+<li><strong>Tree and Graphic views (XSD schemas)</strong> - The search looks through the schema nodes themselves: element/attribute/type names, documentation and appinfo, type references, fixed/default values, enumeration and facet values, and comments. Matching nodes are revealed (collapsed branches expand), selected, and scrolled into view — in the Graphic diagram this includes loading lazily rendered subtrees.</li>
 </ul>
-<p>Searching is <strong>case-insensitive</strong> in both views.</p>
+<p>Searching is <strong>case-insensitive</strong> in all views.</p>
 <h3 id="switching-views-while-searching">Switching Views While Searching<a class="headerlink" href="#switching-views-while-searching" title="Permanent link">&para;</a></h3>
-<p>If you switch between the <strong>Text</strong> and <strong>Graphic</strong> sub-tabs while the search bar is open, the search automatically re-targets the view you switched to, so you can keep navigating without retyping your search term.</p>
+<p>If you switch the view mode (Text / Tree / Graphic) or the file tab while the search bar is open, the search automatically re-targets the view you switched to, so you can keep navigating without retyping your search term.</p>
 <h3 id="where-search-is-available">Where Search Is Available<a class="headerlink" href="#where-search-is-available" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -2277,7 +2278,7 @@
 </tbody>
 </table>
 <blockquote>
-<p><strong>Note:</strong> In the <strong>Graphic</strong> view, search is for finding and navigating only - <strong>Replace</strong> is not available there. To replace text, use the <strong>Text</strong> view.</p>
+<p><strong>Note:</strong> In the <strong>Tree</strong> and <strong>Graphic</strong> views, search is for finding and navigating only - <strong>Replace</strong> is not available there (the replace toggle is disabled). To replace text, use the <strong>Text</strong> view.</p>
 </blockquote>
 <hr />
 <h2 id="schematron-integration">Schematron Integration<a class="headerlink" href="#schematron-integration" title="Permanent link">&para;</a></h2>
