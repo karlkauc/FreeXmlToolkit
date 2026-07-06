@@ -4096,9 +4096,10 @@ node. In addition to name, type, cardinality, facets, and constraints, you can n
 </ul>
 <h2 id="signature-panel">Signature Panel<a class="headerlink" href="#signature-panel" title="Permanent link">&para;</a></h2>
 <p>The <strong>Signature</strong> panel (open it from the activity bar) signs and validates XML signatures.
-Its top is an <strong>action nav</strong> - selecting an entry shows the matching form below it, next to
-the shared <strong>KEYSTORE</strong> section (keystore file with a <em>Change</em> link, alias, and the two
-passwords):</p>
+Its top is an <strong>action nav</strong> of four buttons <em>(updated July 2026: the actions now render as
+raised, bordered buttons, and </em><em>Validate (Details)</em><em> as an outlined secondary button)</em> -
+selecting one shows the matching form below it, next to the shared <strong>KEYSTORE</strong> section
+(keystore file with a <em>Change</em> link, alias, and the two passwords):</p>
 <ul>
 <li><strong>Sign XML File</strong> <em>(default)</em> - Opens the <strong>Sign XML Document card in the editor area</strong>:
   the document to sign (the active document, changeable via <em>Browse</em>), the keystore alias
@@ -4110,7 +4111,16 @@ passwords):</p>
   with a <em>"Valid · N days remaining"</em> banner (red when expired), serial, signature
   algorithm, key usage, and the <strong>SHA-256 fingerprint</strong> with a copy button.</li>
 <li><strong>Validate Signature</strong> - <strong>Validate Signature</strong> checks the active document's signature;
-  <strong>Validate (Details)</strong> opens a detailed report (validity + signing-certificate details).</li>
+  <strong>Validate (Details)</strong> opens a detailed report (validity + signing-certificate details).
+  <em>(updated July 2026)</em> The result is now explained in plain language: a valid signature
+  shows a green status; a document without a signature shows a red hint suggesting you sign
+  it first; an invalid signature opens an error dialog that explains the document was
+  modified after signing and names what failed (the signature value or a specific
+  reference); a signature whose certificate cannot be used (not embedded, only referenced,
+  or an unsupported algorithm) opens a dialog telling you to ask the sender for a signature
+  that embeds an RSA X.509 certificate - or use <strong>Validate (Details)</strong>; signatures using
+  the weak SHA-1 algorithm are rejected for security (re-sign with SHA-256 or SHA-512).
+  Any other error shows a dialog with collapsible technical details.</li>
 <li><strong>Create Certificate</strong> - Creates a self-signed certificate / keystore from the DN fields,
   using the alias and passwords from the KEYSTORE section. The new keystore is selected
   automatically so you can sign immediately.</li>
@@ -4119,6 +4129,9 @@ passwords):</p>
   <strong>Validate (Trust)</strong> produces a trust report (trusted / trust anchor / revocation /
   timestamp).</li>
 </ul>
+<p><em>(updated July 2026)</em> Missing inputs are highlighted: signing without a keystore marks the
+keystore entry in red, and a blank alias or password is marked in red when you sign or
+create a certificate. The highlight disappears as soon as you start typing in the field.</p>
 <p>See <a href="../digital-signatures/">XML Digital Signatures</a> for full details.</p>
 <h2 id="pdf-fop-panel">PDF / FOP Panel<a class="headerlink" href="#pdf-fop-panel" title="Permanent link">&para;</a></h2>
 <p>The <strong>PDF / FOP</strong> panel renders the XML to PDF with an XSL-FO stylesheet (Apache FOP):</p>

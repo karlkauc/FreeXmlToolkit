@@ -2492,7 +2492,7 @@
 
 <h1 id="xml-digital-signatures">XML Digital Signatures<a class="headerlink" href="#xml-digital-signatures" title="Permanent link">&para;</a></h1>
 <blockquote>
-<p><strong>Last Updated:</strong> May 2026 | <strong>Version:</strong> 1.10.0</p>
+<p><strong>Last Updated:</strong> July 2026 | <strong>Version:</strong> 1.10.0</p>
 <p><strong>Note (Phase 10c):</strong> The standalone <em>Signature</em> tab has been retired. Signing,
 signature validation (including detailed and PKIX trust/chain/revocation/timestamp
 validation) and self-signed certificate creation now live in the <strong>Unified Shell's
@@ -2506,8 +2506,9 @@ through the shell rather than a dedicated sidebar tab.</p>
 <em>Signing, validation and certificate creation now live in the Unified Shell's Signature activity panel</em></p>
 <h3 id="what-can-you-do">What Can You Do?<a class="headerlink" href="#what-can-you-do" title="Permanent link">&para;</a></h3>
 <p>In the <a href="../unified-shell/">Unified Shell</a>, open the <strong>Signature</strong> activity from the activity bar.
-The top of the panel is an <strong>action nav</strong> - selecting an entry shows the matching form below
-the shared <strong>KEYSTORE</strong> section (keystore file, alias, passwords):</p>
+The top of the panel is an <strong>action nav</strong> of four buttons <em>(updated July 2026: the actions
+render as raised, bordered buttons so they are recognizable as clickable)</em> - selecting one
+shows the matching form below the shared <strong>KEYSTORE</strong> section (keystore file, alias, passwords):</p>
 <table>
 <thead>
 <tr>
@@ -2638,6 +2639,10 @@ the shared <strong>KEYSTORE</strong> section (keystore file, alias, passwords):<
 <li>Keep the keystore file and passwords safe!</li>
 </ol>
 <p><strong>Important:</strong> Remember your passwords! They cannot be recovered.</p>
+<blockquote>
+<p><strong>Tip (July 2026):</strong> If you leave the alias or a password blank, the field is highlighted
+in red when you click <strong>Create Certificate</strong>. The highlight clears as soon as you start typing.</p>
+</blockquote>
 <hr />
 <h2 id="2-sign-an-xml-document">2. Sign an XML Document<a class="headerlink" href="#2-sign-an-xml-document" title="Permanent link">&para;</a></h2>
 <p><img alt="Sign Document" src="../img/signature-sign-process.png" />
@@ -2710,37 +2715,60 @@ the shared <strong>KEYSTORE</strong> section (keystore file, alias, passwords):<
 <li>Click <strong>"Sign"</strong></li>
 </ol>
 <p>The signed file includes the original content plus a digital signature block.</p>
+<blockquote>
+<p><strong>Tip (July 2026):</strong> Missing inputs are highlighted in red when you click <strong>Sign</strong>: signing
+without a keystore marks the keystore entry, and a blank alias or password marks that field.
+The highlight disappears as soon as you start typing.</p>
+</blockquote>
 <hr />
 <h2 id="3-verify-a-signature">3. Verify a Signature<a class="headerlink" href="#3-verify-a-signature" title="Permanent link">&para;</a></h2>
 <p><img alt="Verify Signature" src="../img/signature-validation.png" />
 <em>Verifying a signed document</em></p>
 <h3 id="how-to-verify-a-signature">How to Verify a Signature<a class="headerlink" href="#how-to-verify-a-signature" title="Permanent link">&para;</a></h3>
 <ol>
-<li>In the <strong>Signature</strong> panel, choose <strong>Validate Signed File</strong></li>
-<li>Click <strong>"Browse"</strong> to select the signed XML file</li>
-<li>Click <strong>"Validate"</strong></li>
-<li>See the result in the status area</li>
+<li>Open the signed XML file in the editor (it becomes the active document)</li>
+<li>In the <strong>Signature</strong> panel, choose the <strong>Validate Signature</strong> action</li>
+<li>Click the <strong>Validate Signature</strong> button</li>
+<li>See the result in the status area (failures additionally open an explanatory dialog)</li>
 </ol>
+<p>For a detailed report (validity plus signing-certificate details), use the outlined
+<strong>Validate (Details)</strong> button instead.</p>
 <h3 id="validation-results">Validation Results<a class="headerlink" href="#validation-results" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p><strong>Updated July 2026:</strong> Validation no longer answers with a vague "Signature invalid / none".
+Each outcome now explains in plain language what happened and what to do about it.</p>
+</blockquote>
 <table>
 <thead>
 <tr>
-<th>Status</th>
+<th>Result</th>
 <th>Meaning</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><strong>Valid</strong></td>
-<td>The signature is authentic and document unchanged</td>
+<td><strong>Valid</strong> (green status)</td>
+<td>The signature is authentic and the document is unchanged</td>
 </tr>
 <tr>
-<td><strong>Invalid</strong></td>
-<td>The signature failed verification</td>
+<td><strong>No signature found</strong> (red hint)</td>
+<td>The document doesn't contain a signature - sign it first</td>
 </tr>
 <tr>
-<td><strong>No Signature</strong></td>
-<td>The document doesn't contain a signature</td>
+<td><strong>Invalid signature</strong> (error dialog)</td>
+<td>The document was modified after signing. The dialog names what failed: the signature value itself or a specific reference</td>
+</tr>
+<tr>
+<td><strong>Certificate cannot be used</strong> (dialog)</td>
+<td>The signature does not embed an X.509 certificate, only references it, or uses an unsupported algorithm. Ask the sender for a signature that embeds an RSA X.509 certificate, or use <strong>Validate (Details)</strong></td>
+</tr>
+<tr>
+<td><strong>Weak algorithm</strong> (rejected)</td>
+<td>The signature uses SHA-1, which is rejected for security reasons. Re-sign the document with SHA-256 or SHA-512</td>
+</tr>
+<tr>
+<td><strong>Error</strong> (dialog)</td>
+<td>Something else went wrong - the dialog includes collapsible technical details</td>
 </tr>
 </tbody>
 </table>
@@ -2948,12 +2976,24 @@ the step that tells the two situations apart.</p>
 <td>Double-check keystore and key passwords</td>
 </tr>
 <tr>
+<td>A field is highlighted in red</td>
+<td>The input is missing - select a keystore or fill in the alias/password; the highlight clears while you type</td>
+</tr>
+<tr>
 <td>Key not found</td>
 <td>Verify the key alias exists in the keystore</td>
 </tr>
 <tr>
 <td>Validation fails</td>
-<td>Document may have been modified after signing</td>
+<td>The error dialog names what changed - the document was modified after signing</td>
+</tr>
+<tr>
+<td>"Certificate cannot be used"</td>
+<td>The signature doesn't embed an RSA X.509 certificate - ask the sender to re-sign with the certificate embedded, or use <strong>Validate (Details)</strong></td>
+</tr>
+<tr>
+<td>"Weak algorithm" (SHA-1)</td>
+<td>SHA-1 signatures are rejected for security - re-sign the document with SHA-256 or SHA-512</td>
 </tr>
 <tr>
 <td>Certificate expired</td>
