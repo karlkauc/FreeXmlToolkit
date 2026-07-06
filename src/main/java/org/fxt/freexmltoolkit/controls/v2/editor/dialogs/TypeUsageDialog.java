@@ -147,7 +147,7 @@ public class TypeUsageDialog extends Dialog<TypeUsageLocation> {
 
         IconifyIcon checkIcon = new IconifyIcon("bi-check-circle");
         checkIcon.setIconSize(48);
-        checkIcon.setIconColor(Color.web(SemanticColors.SUCCESS));
+        org.fxt.freexmltoolkit.controls.theme.SemanticIcon.paint(checkIcon, org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.SUCCESS);
 
         Label messageLabel = new Label("This type is not used anywhere in the schema.\nIt can be safely deleted.");
         messageLabel.setStyle("-fx-font-size: 13px; -fx-text-alignment: center;");
