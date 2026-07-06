@@ -42,11 +42,15 @@ Severity-Legende: 🔴 hoch (bremst Workflow / verwirrt spürbar) · 🟡 mittel
   (`SchemaStatisticsView`, `QualityChecksView`) sind blockierende `Alert.showAndWait()`.
   → **Empfehlung:** Toast als App-weiten Erfolgs-/Info-Kanal etablieren; Modals nur noch für Fehler,
   Rückfragen und destruktive Aktionen.
-- 🟡 **Dieselbe Aktion an drei Stellen.** Transform ist erreichbar über Toolbar, Explorer-Transform-
-  Leiste **und** Transform-Activity; Validate über Toolbar (F8) und Validation-Panel; „Recent files"
-  in Explorer-Tab, Welcome-Liste und Welcome-Stats; Favorites hat zwei Häuser (Explorer-Tab +
-  Favorites-Activity). → **Empfehlung:** je Aktion **eine primäre Heimat** definieren, Rest klar als
-  Shortcut/Kontext kennzeichnen (nicht als gleichwertigen Zweit-Button).
+- 🟢 **Dieselbe Aktion an mehreren Stellen — geprüft, bewusst behalten (Nachtrag).** Transform
+  (Toolbar/Explorer-Leiste/Transform-Activity), Recent (Explorer-Tab/Welcome), Favorites
+  (Explorer-Tab/Favorites-Activity). Nähere Analyse zeigt: das sind überwiegend **komplementäre
+  Multi-Ebenen-Zugriffe**, keine echten Duplikate — die 3 Transform-Flächen haben unterschiedliche
+  Tiefe (One-Shot / sticky+Batch / volles Workbench), der Explorer-RECENT-Tab ist die einzige
+  Recent-Liste **während** des Editierens (Welcome zeigt nur den Leerzustand), und der
+  Explorer-FAVORITES-Tab bietet Schnellzugriff ohne Activity-Wechsel. Settings (Hinweis→Tab) ist
+  ohnehin gewollt. → **Entscheidung:** belassen — der Komfortgewinn überwiegt die Doppelung; ein
+  Entfernen würde Bequemlichkeit gegen weniger Redundanz tauschen. Kein Handlungsbedarf.
 
 ## 2 · „Wo kann ich Aktionen setzen?" — Discoverability
 
@@ -155,7 +159,8 @@ Severity-Legende: 🔴 hoch (bremst Workflow / verwirrt spürbar) · 🟡 mittel
 8. ~~Toolbar in Primär- vs. Overflow-Cluster gliedern~~ — **hinfällig**: die „nur-CTA-farbig"-Hierarchie
    ist bereits umgesetzt und ein Overflow-Cluster ist bewusst (getestet) abgelehnt (siehe §6). Offen
    bleibt allenfalls: Farbsemantik der (ungenutzten) Button-Klassen im Code aufräumen.
-9. Redundante Einstiegspunkte je Aktion auf eine primäre Heimat reduzieren.
+9. ~~Redundante Einstiegspunkte reduzieren~~ — **geprüft, kein Handlungsbedarf**: die Mehrfach-Zugriffe
+   sind überwiegend komplementäre Multi-Ebenen-Shortcuts, keine echten Duplikate (siehe §1). Bewusst belassen.
 
 **Größer (Standardisierung)**
 
@@ -177,11 +182,15 @@ Severity-Legende: 🔴 hoch (bremst Workflow / verwirrt spürbar) · 🟡 mittel
 - #8 war bereits im Code umgesetzt (Hierarchie) bzw. bewusst abgelehnt (Overflow) — siehe §6.
 - #11 STYLE_GUIDE.jsonc auf Ist-Stand gebracht (IconifyIcon statt Ikonli/FontIcon, Inter/JetBrains
   Mono, `design-tokens.css` als Quelle der Wahrheit ausgewiesen).
+- #10 Farbkonsolidierung: (a) ~22 Dateien von Inline-Hex auf zentrale `SemanticColors`-Konstanten
+  (+ Guard-Test); (b) **theme-aware** System (`SemanticIcon`/`SemanticStyle` + `DesignTokens`-Tokens
+  + `ThemeManager`-Listener) — alle Icon- und `setStyle`-Farb-Call-Sites färben jetzt beim Light/Dark-
+  Wechsel um, auf `-fxt-*`-Palette. Status-Enum-Farben bleiben bewusst feste Statusfarben.
+- #9 Redundante Einstiegspunkte: geprüft, bewusst belassen (komplementäre Multi-Ebenen-Zugriffe).
 
-**Offen (Backlog):** #9 (redundante Einstiegspunkte), #10 (Farbsysteme konsolidieren),
-#12 (Command-Palette). Hinweis: zwei vorbestehende, deterministisch fehlschlagende UI-Tests
-(`EditorHostDiffTest`, `UnifiedShellViewTest`) wurden an der Wurzel behoben — Full-Suite jetzt
-zuverlässig grün.
+**Offen (Backlog):** #12 (Command-Palette). Hinweis: zwei vorbestehende, deterministisch
+fehlschlagende UI-Tests (`EditorHostDiffTest`, `UnifiedShellViewTest`) wurden an der Wurzel
+behoben — Full-Suite jetzt zuverlässig grün.
 
 **Infra:** Die Full-Suite ist auf zwei vorbestehenden, änderungsunabhängigen UI-Tests
 (`UnifiedShellViewTest.inspectorRendersTheRequiredSections`, `EditorHostDiffTest`) intermittierend
