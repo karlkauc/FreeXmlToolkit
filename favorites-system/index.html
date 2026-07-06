@@ -822,6 +822,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#star-menus-in-the-side-panels" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Star Menus in the Side Panels
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1877,6 +1888,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#star-menus-in-the-side-panels" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Star Menus in the Side Panels
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2026,7 +2048,7 @@
 
 <h1 id="favorites-system">Favorites System<a class="headerlink" href="#favorites-system" title="Permanent link">&para;</a></h1>
 <blockquote>
-<p><strong>Last Updated:</strong> June 2026 | <strong>Version:</strong> 1.10.0</p>
+<p><strong>Last Updated:</strong> July 2026 | <strong>Version:</strong> 1.10.0</p>
 </blockquote>
 <p>Save your frequently used files for quick access. The favorites system works across all editors in FreeXmlToolkit.</p>
 <hr />
@@ -2113,6 +2135,63 @@
 favorites <strong>by file type</strong> - for example <strong>XML Document</strong>, <strong>XSD Schema</strong>, <strong>Schematron
 Rules</strong>, and <strong>XSLT Stylesheet</strong>. Each entry shows a <strong>colored type icon</strong>, so you can tell
 the file kinds apart at a glance. Click an entry to open it as an editor tab.</p>
+<p><em>(updated July 2026)</em> Keystore and trust store files (<code>.jks</code>, <code>.p12</code>, <code>.pfx</code>, <code>.keystore</code>)
+are now recognized as their own <strong>Keystore</strong> type with a lock icon, instead of falling
+under <em>Other</em> - they form their own group in the Favorites panel and feed the keystore
+star menus in the Signature panel (see below).</p>
+<h3 id="star-menus-in-the-side-panels">Star Menus in the Side Panels<a class="headerlink" href="#star-menus-in-the-side-panels" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p><strong>Updated July 2026</strong> - the star quick-select menus are now available on <strong>every</strong>
+file-pick row in the side panels (previously only the Validation panel's XSD row and
+the Transform panel had them).</p>
+</blockquote>
+<p>Wherever a side panel asks you to pick a file, a <strong>star button</strong> next to the row's
+<strong>Change</strong> link opens a quick-select menu of your matching favorites - pick one to use
+it in a single click, without browsing the file system:</p>
+<table>
+<thead>
+<tr>
+<th>Panel</th>
+<th>Row</th>
+<th>Favorites Listed</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Validation</strong></td>
+<td>XSD schema</td>
+<td>XSD favorites</td>
+</tr>
+<tr>
+<td><strong>Validation</strong></td>
+<td>Schematron rules</td>
+<td>Schematron favorites</td>
+</tr>
+<tr>
+<td><strong>Transform</strong></td>
+<td>STYLESHEET / INPUT</td>
+<td>XSLT / XML favorites</td>
+</tr>
+<tr>
+<td><strong>PDF / FOP</strong></td>
+<td>XML input / XSL-FO stylesheet</td>
+<td>XML / XSLT favorites</td>
+</tr>
+<tr>
+<td><strong>Signature</strong></td>
+<td>Keystore (KEYSTORE section)</td>
+<td>Keystore favorites</td>
+</tr>
+<tr>
+<td><strong>Signature</strong></td>
+<td>Trust store (Expert Mode)</td>
+<td>Keystore favorites</td>
+</tr>
+</tbody>
+</table>
+<p>The menu is rebuilt each time you open it, so newly added favorites appear immediately.
+When you use more than one favorites folder, the entries are grouped by folder as
+submenus. While you have no matching favorites, the star button is grayed out.</p>
 <hr />
 <h2 id="how-to-use">How to Use<a class="headerlink" href="#how-to-use" title="Permanent link">&para;</a></h2>
 <h3 id="adding-files-to-favorites">Adding Files to Favorites<a class="headerlink" href="#adding-files-to-favorites" title="Permanent link">&para;</a></h3>
@@ -2190,6 +2269,10 @@ the file kinds apart at a glance. Click an entry to open it as an editor tab.</p
 <tr>
 <td>XSLT stylesheets</td>
 <td>.xsl, .xslt</td>
+</tr>
+<tr>
+<td>Keystores / trust stores <em>(new in July 2026)</em></td>
+<td>.jks, .p12, .pfx, .keystore</td>
 </tr>
 </tbody>
 </table>

@@ -2708,7 +2708,9 @@ in red when you click <strong>Create Certificate</strong>. The highlight clears 
 <ol>
 <li>In the <strong>Signature</strong> panel, choose <strong>Sign XML File</strong></li>
 <li>Click <strong>"Browse"</strong> to select your XML file</li>
-<li>Click <strong>"Browse"</strong> to select your keystore file</li>
+<li>Click <strong>"Browse"</strong> to select your keystore file - or <em>(new in July 2026)</em> pick a
+   favorited keystore from the <strong>star menu</strong> next to the keystore row (see
+   <a href="#favorites-integration">Favorites Integration</a> below)</li>
 <li>Enter your keystore password and key password</li>
 <li>Select the key alias (if multiple keys exist)</li>
 <li>Choose where to save the signed output</li>
@@ -2809,9 +2811,10 @@ comes from a trusted source.</p>
 <h3 id="how-to-run-trust-validation">How to Run Trust Validation<a class="headerlink" href="#how-to-run-trust-validation" title="Permanent link">&para;</a></h3>
 <ol>
 <li>Open the signed XML document.</li>
-<li>(Optional) Click <strong>Trust store…</strong> to choose the trust store to validate against. By default
-   the application uses the JVM's built-in <code>cacerts</code> store, which contains well-known public
-   certificate authorities.</li>
+<li>(Optional) Click <strong>Trust store…</strong> to choose the trust store to validate against - or
+   <em>(new in July 2026)</em> pick a favorited keystore from the <strong>star menu</strong> next to the trust
+   store row. By default the application uses the JVM's built-in <code>cacerts</code> store, which
+   contains well-known public certificate authorities.</li>
 <li>(Optional) Tick <strong>Check revocation (OCSP/CRL)</strong> to also verify that the certificate has not
    been revoked.</li>
 <li>Click <strong>Validate (Trust)</strong>.</li>
@@ -2927,6 +2930,14 @@ the step that tells the two situations apart.</p>
 <li><strong>Favorites</strong> (Ctrl+Shift+D) - Show/hide the favorites panel</li>
 </ul>
 <p>The favorites panel appears on the right side and provides quick access to your saved keystores, XML files, and signed documents.</p>
+<blockquote>
+<p><strong>Updated July 2026:</strong> Keystore and trust store files (<code>.jks</code>, <code>.p12</code>, <code>.pfx</code>,
+<code>.keystore</code>) are now their own <strong>Keystore</strong> favorite type with a lock icon, instead of
+being grouped under <em>Other</em>. In the Signature panel, the <strong>keystore row</strong> (KEYSTORE
+section) and the <strong>trust store row</strong> (Expert Mode) each carry a <strong>star menu</strong> listing
+your keystore favorites - pick one to select it without browsing the file system. See
+<a href="../favorites-system/">Favorites System</a> for details.</p>
+</blockquote>
 <hr />
 <h2 id="keyboard-shortcuts">Keyboard Shortcuts<a class="headerlink" href="#keyboard-shortcuts" title="Permanent link">&para;</a></h2>
 <table>

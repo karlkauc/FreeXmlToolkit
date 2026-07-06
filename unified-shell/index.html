@@ -3904,9 +3904,13 @@ button, and a color-coded RESULTS list.</p>
 </blockquote>
 <h3 id="sources">Sources<a class="headerlink" href="#sources" title="Permanent link">&para;</a></h3>
 <p>The <strong>SOURCES</strong> section shows the XSD and Schematron files bound to the active document.
-Click <strong>Change</strong> next to a source to pick a different file. The star button on the XSD row
-opens a quick-select menu of your favorited XSD schemas - pick one to bind it in a single
-click, without browsing the file system. (See <a href="../favorites-system/">Favorites</a>.)</p>
+Click <strong>Change</strong> next to a source to pick a different file. <em>(updated July 2026)</em> <strong>Both</strong>
+rows carry a <strong>star button</strong> next to their <em>Change</em> link: on the XSD row it opens a
+quick-select menu of your favorited XSD schemas, on the Schematron row a menu of your
+favorited Schematron files - pick one to bind it in a single click, without browsing the
+file system. The menus group entries by favorites folder when you use more than one, and
+are grayed out while you have no matching favorites. (See
+<a href="../favorites-system/">Favorites</a>.)</p>
 <ul>
 <li><strong>The referenced XSD binds automatically.</strong> When the XML declares its schema
   (<code>xsi:schemaLocation</code> / <code>xsi:noNamespaceSchemaLocation</code> - local or remote), that XSD is
@@ -4099,7 +4103,10 @@ node. In addition to name, type, cardinality, facets, and constraints, you can n
 Its top is an <strong>action nav</strong> of four buttons <em>(updated July 2026: the actions now render as
 raised, bordered buttons, and </em><em>Validate (Details)</em><em> as an outlined secondary button)</em> -
 selecting one shows the matching form below it, next to the shared <strong>KEYSTORE</strong> section
-(keystore file with a <em>Change</em> link, alias, and the two passwords):</p>
+(keystore file with a <em>Change</em> link, alias, and the two passwords). <em>(updated July 2026)</em>
+The keystore row also carries a <strong>star menu</strong> that lists your favorited keystores -
+keystore files (<code>.jks</code>, <code>.p12</code>, <code>.pfx</code>, <code>.keystore</code>) are now their own <strong>Keystore</strong>
+favorite type with a lock icon (see <a href="../favorites-system/">Favorites</a>):</p>
 <ul>
 <li><strong>Sign XML File</strong> <em>(default)</em> - Opens the <strong>Sign XML Document card in the editor area</strong>:
   the document to sign (the active document, changeable via <em>Browse</em>), the keystore alias
@@ -4125,7 +4132,8 @@ selecting one shows the matching form below it, next to the shared <strong>KEYST
   using the alias and passwords from the KEYSTORE section. The new keystore is selected
   automatically so you can sign immediately.</li>
 <li><strong>Expert Mode</strong> - Full PKIX trust validation: choose a <strong>trust store</strong> (defaults to the
-  JVM's built-in <code>cacerts</code>), optionally <strong>Check revocation (OCSP/CRL)</strong>, then
+  JVM's built-in <code>cacerts</code>; <em>(updated July 2026)</em> the trust store row also has a <strong>star
+  menu</strong> with your favorited keystores), optionally <strong>Check revocation (OCSP/CRL)</strong>, then
   <strong>Validate (Trust)</strong> produces a trust report (trusted / trust anchor / revocation /
   timestamp).</li>
 </ul>
@@ -4137,7 +4145,10 @@ create a certificate. The highlight disappears as soon as you start typing in th
 <p>The <strong>PDF / FOP</strong> panel renders the XML to PDF with an XSL-FO stylesheet (Apache FOP):</p>
 <ul>
 <li><strong>INPUT</strong> - The XML (follows the active editor; <em>Change</em> can fix it to a file) and the
-  <strong>XSL-FO stylesheet</strong> (<em>Change</em>).</li>
+  <strong>XSL-FO stylesheet</strong> (<em>Change</em>). <em>(updated July 2026)</em> Both rows also carry a <strong>star
+  menu</strong> next to their <em>Change</em> link - <strong>XML</strong> favorites for the input, <strong>XSLT</strong> favorites
+  for the stylesheet - so you can pick a favorited file in one click (see
+  <a href="../favorites-system/">Favorites</a>).</li>
 <li><strong>METADATA</strong> - PDF document <strong>Title</strong>, <strong>Author</strong> (pre-filled from your configured user
   name) and <strong>Subject</strong>, embedded into the generated PDF.</li>
 <li><strong>OPTIONS</strong> - <strong>PDF/A-1b compliant</strong> renders an archival-grade PDF (requires the
