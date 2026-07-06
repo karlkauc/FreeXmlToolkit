@@ -20,7 +20,14 @@ public class PropertiesServiceImpl implements PropertiesService {
     private static final Logger logger = LogManager.getLogger(PropertiesServiceImpl.class);
     private static final String FREE_XML_TOOLKIT_PROPERTIES = "FreeXmlToolkit.properties";
     private static final String LAST_OPEN_DIRECTORY_KEY = "last.open.directory";
-    private static final File propertiesFile = new File(FREE_XML_TOOLKIT_PROPERTIES);
+    /**
+     * The backing file, working-directory-relative by default. The system property
+     * {@code fxt.properties.file} overrides the location — the Gradle test tasks set
+     * it to a path under {@code build/} so test runs can never rewrite the user's
+     * real configuration (they used to flip settings like {@code toolbar.show.labels}).
+     */
+    private static final File propertiesFile = new File(
+            System.getProperty("fxt.properties.file", FREE_XML_TOOLKIT_PROPERTIES));
     private static final PropertiesService instance = new PropertiesServiceImpl();
     private Properties properties = new Properties();
     private final PasswordEncryptionService passwordEncryptionService =
@@ -129,7 +136,10 @@ public class PropertiesServiceImpl implements PropertiesService {
         properties.setProperty("user.email", "");
         properties.setProperty("user.company", "");
 
-        try (FileOutputStream fos = new FileOutputStream(FREE_XML_TOOLKIT_PROPERTIES)) {
+        // Must write through propertiesFile (NOT the bare file name): the field honors
+        // the fxt.properties.file override — a literal path here would write into the
+        // working directory and bypass the test isolation.
+        try (FileOutputStream fos = new FileOutputStream(propertiesFile)) {
             properties.store(fos, null);
         } catch (IOException e) {
             logger.error(e.getMessage());

@@ -23,11 +23,13 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.nio.file.Path;
 import java.util.Properties;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 /**
  * Integration tests for PropertiesService with password encryption.
@@ -37,14 +39,16 @@ import org.junit.jupiter.api.Test;
 class PropertiesServicePasswordEncryptionTest {
 
     private final PasswordEncryptionService encryptionService = PasswordEncryptionServiceImpl.getInstance();
-    private final File testPropertiesFile = new File("test-encryption-props.properties");
+
+    @TempDir
+    Path tempDir;
+
+    private File testPropertiesFile;
 
     @BeforeEach
     void setup() {
-        // Clean up any previous test files
-        if (testPropertiesFile.exists()) {
-            testPropertiesFile.delete();
-        }
+        // A temp-dir file, so test runs leave nothing behind in the working directory.
+        testPropertiesFile = tempDir.resolve("test-encryption-props.properties").toFile();
     }
 
     @Test

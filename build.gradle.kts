@@ -172,6 +172,20 @@ tasks {
 
     withType<Test> {
         jvmArgs("--enable-preview", "--enable-native-access=ALL-UNNAMED", "--enable-native-access=javafx.graphics", "--enable-native-access=javafx.web")
+
+        // Isolate the app's properties file: PropertiesServiceImpl resolves
+        // FreeXmlToolkit.properties relative to the working directory (= the repo root
+        // under Gradle), so without this override test runs rewrite the developer's
+        // REAL configuration (observed: flipped toolbar.show.labels, test identities,
+        // JUnit temp paths in the recent-files list). Each test task starts from a
+        // fresh file under build/ instead.
+        val isolatedProps = layout.buildDirectory.file("test-work/FreeXmlToolkit.properties")
+        systemProperty("fxt.properties.file", isolatedProps.get().asFile.absolutePath)
+        doFirst {
+            val propsFile = isolatedProps.get().asFile
+            propsFile.parentFile.mkdirs()
+            propsFile.delete() // defaults, not stale state from a previous run
+        }
     }
 
     withType<JavaExec> {
