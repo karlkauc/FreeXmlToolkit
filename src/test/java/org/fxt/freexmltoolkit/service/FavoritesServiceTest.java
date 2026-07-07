@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
@@ -29,10 +28,8 @@ public class FavoritesServiceTest {
         System.setProperty("user.home", tempDir.toString());
         
         // Reset Singleton
-        Field instanceField = FavoritesService.class.getDeclaredField("instance");
-        instanceField.setAccessible(true);
-        instanceField.set(null, null);
-        
+        FavoritesService.resetInstanceForTests();
+
         service = FavoritesService.getInstance();
     }
 
@@ -129,10 +126,8 @@ public class FavoritesServiceTest {
         service.addFavorite("/persist.xml", "Persist", "PFolder");
         
         // Simulate application restart
-        Field instanceField = FavoritesService.class.getDeclaredField("instance");
-        instanceField.setAccessible(true);
-        instanceField.set(null, null);
-        
+        FavoritesService.resetInstanceForTests();
+
         FavoritesService newService = FavoritesService.getInstance();
         assertTrue(newService.isFavorite("/persist.xml"));
         assertEquals(1, newService.getFavoritesByFolder("PFolder").size());

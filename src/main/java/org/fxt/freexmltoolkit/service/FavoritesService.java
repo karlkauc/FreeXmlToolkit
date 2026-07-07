@@ -90,6 +90,16 @@ public class FavoritesService {
         }
         return instance;
     }
+
+    /**
+     * Test hook: discards the singleton so the next {@link #getInstance()} re-reads
+     * the (possibly redirected) {@code user.home}. Replaces the former reflection
+     * hack on the private {@code instance} field in tests — production code must
+     * never call this.
+     */
+    public static synchronized void resetInstanceForTests() {
+        instance = null;
+    }
     
     /**
      * Load favorites from the JSON file

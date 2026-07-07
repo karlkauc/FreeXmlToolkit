@@ -12,6 +12,7 @@ import javafx.stage.Stage;
 
 import org.fxt.freexmltoolkit.domain.FileFavorite;
 import org.fxt.freexmltoolkit.service.FavoritesService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
@@ -42,6 +43,11 @@ class PanelFavoritesMenuTest {
         signaturePanel = new SignaturePanel(host);
         stage.setScene(new Scene(new HBox(host, validationPanel, fopPanel, signaturePanel), 1400, 700));
         stage.show();
+    }
+
+    @BeforeEach
+    void startFromAnEmptyFavoritesStore() {
+        FavoritesTestSupport.purgeAll();
     }
 
     @Test

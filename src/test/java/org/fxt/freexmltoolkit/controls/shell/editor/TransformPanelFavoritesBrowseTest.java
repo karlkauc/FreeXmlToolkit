@@ -12,6 +12,7 @@ import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 
 import org.fxt.freexmltoolkit.service.FavoritesService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
@@ -27,6 +28,11 @@ import org.testfx.util.WaitForAsyncUtils;
  */
 @ExtendWith(ApplicationExtension.class)
 class TransformPanelFavoritesBrowseTest {
+
+    @BeforeEach
+    void startFromAnEmptyFavoritesStore() {
+        FavoritesTestSupport.purgeAll();
+    }
 
     private static final String XSLT = """
             <xsl:stylesheet version="2.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
