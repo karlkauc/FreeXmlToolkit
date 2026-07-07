@@ -925,6 +925,20 @@ any error to jump straight to its location:
 >
 > **Updated June 2026** - For XSD files, property editing now works in the **Text** view too,
 > matching the Tree and Graphic views. See [XSD Files](#xsd-files) below.
+>
+> **Updated July 2026** - The **NODE & XPATH** section shows the XPath on its own full-width
+> line below the "XPath" header (long paths no longer get squeezed by the icon column).
+
+### Copying the XPath or the node
+
+The **NODE & XPATH** section at the top of the inspector shows the selected node's XPath.
+Next to the "XPath" header sit two copy buttons:
+
+- **Copy XPath** - copies the positional XPath (e.g. `/root/item[2]`) to the clipboard.
+- **Copy Node (XML)** - copies the selected node's XML serialization.
+
+You can also simply **click the XPath value itself** to copy it. In the Text view both actions
+act on the element enclosing the caret; in the Tree/Graphic views they act on the selected node.
 
 ### XML Files
 

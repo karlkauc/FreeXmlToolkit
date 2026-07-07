@@ -328,6 +328,10 @@ tasks.test {
         "--add-exports", "javafx.graphics/com.sun.javafx.application=ALL-UNNAMED",
         "--add-exports", "javafx.graphics/com.sun.javafx.util=ALL-UNNAMED",
         "--add-exports", "javafx.graphics/com.sun.glass.ui.monocle=ALL-UNNAMED",
+        // MonocleClipboardDelegate implements com.sun.glass.ui.delegate.ClipboardDelegate;
+        // without this export, Clipboard.getSystemClipboard() throws IllegalAccessError in
+        // headless tests (superinterface check).
+        "--add-exports", "javafx.graphics/com.sun.glass.ui.delegate=ALL-UNNAMED",
         "--add-exports", "javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED",
         "--add-exports", "javafx.graphics/com.sun.prism=ALL-UNNAMED",
         "--add-exports", "javafx.graphics/com.sun.javafx.sg.prism=ALL-UNNAMED",

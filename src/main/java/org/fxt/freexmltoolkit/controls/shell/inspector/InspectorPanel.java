@@ -1433,17 +1433,17 @@ public class InspectorPanel extends VBox {
     }
 
     /**
-     * The "XPath" row with two copy affordances: "Copy XPath" (positional) and
-     * "Copy Node (XML)". Both act on the selected model node when one is present
-     * (grid/graphic mode), otherwise on the element enclosing the editor caret
-     * (text mode). The buttons are disabled while no node/XPath is shown.
+     * The "XPath" block: a header line with the "XPath" key and the two copy affordances
+     * ("Copy XPath" positional, "Copy Node (XML)"), and the XPath value on its own full-width
+     * line below (long paths need the room a trailing icon column would steal). Clicking the
+     * value itself also copies the XPath. All copy actions act on the selected model node when
+     * one is present (grid/graphic mode), otherwise on the element enclosing the editor caret
+     * (text mode), and are inert while no node/XPath is shown.
      */
-    private HBox xpathRow() {
+    private VBox xpathRow() {
         Label k = new Label("XPath");
         k.getStyleClass().add("fxt-inspector-key");
         k.setMinWidth(92);
-        xpathValue.setMaxWidth(Double.MAX_VALUE);
-        HBox.setHgrow(xpathValue, Priority.ALWAYS);
 
         javafx.scene.control.Button copyXPathButton = iconButton("bi-clipboard", "Copy XPath", this::copyXPathToClipboard);
         javafx.scene.control.Button copyNodeButton = iconButton("bi-clipboard-data", "Copy Node (XML)", this::copyNodeToClipboard);
@@ -1456,8 +1456,18 @@ public class InspectorPanel extends VBox {
         copyXPathButton.disableProperty().bind(disabled);
         copyNodeButton.disableProperty().bind(disabled);
 
-        HBox row = new HBox(8, k, xpathValue, copyXPathButton, copyNodeButton);
-        row.setAlignment(Pos.CENTER_LEFT);
+        HBox header = new HBox(4, k, copyXPathButton, copyNodeButton);
+        header.setAlignment(Pos.CENTER_LEFT);
+
+        // The value doubles as a copy target: one click puts the XPath on the clipboard.
+        xpathValue.setId("inspector-xpath-value");
+        xpathValue.setMaxWidth(Double.MAX_VALUE);
+        xpathValue.setTooltip(new javafx.scene.control.Tooltip("Click to copy XPath"));
+        xpathValue.setOnMouseClicked(e -> copyXPathToClipboard());
+        xpathValue.cursorProperty().bind(javafx.beans.binding.Bindings.when(disabled)
+                .then(javafx.scene.Cursor.DEFAULT).otherwise(javafx.scene.Cursor.HAND));
+
+        VBox row = new VBox(2, header, xpathValue);
         row.getStyleClass().add("fxt-inspector-row");
         return row;
     }
