@@ -179,6 +179,34 @@ class UnifiedShellViewTest {
     }
 
     @Test
+    void statusBarXsdIndicatorSignalsIntelliSenseAvailability(@org.junit.jupiter.api.io.TempDir java.nio.file.Path tmp)
+            throws Exception {
+        java.nio.file.Files.writeString(tmp.resolve("schema.xsd"),
+                "<xs:schema xmlns:xs=\"http://www.w3.org/2001/XMLSchema\">\n"
+                        + "  <xs:element name=\"root\" type=\"xs:string\"/>\n"
+                        + "</xs:schema>\n");
+        java.nio.file.Path xml = tmp.resolve("doc.xml");
+        java.nio.file.Files.writeString(xml,
+                "<root xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n"
+                        + "      xsi:noNamespaceSchemaLocation=\"schema.xsd\"/>\n");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            shell.openFile(xml);
+            return null;
+        });
+        javafx.scene.control.Label schema = (javafx.scene.control.Label) shell.lookup("#status-schema");
+        assertNotNull(schema, "the status bar must show the XSD indicator for XML documents");
+        // Detection + XSD parse run in the background; the indicator must settle on READY.
+        WaitForAsyncUtils.waitFor(12, java.util.concurrent.TimeUnit.SECONDS,
+                () -> "XSD: schema.xsd".equals(schema.getText()));
+        assertTrue(schema.getStyleClass().contains("fxt-status-schema-ready"),
+                "the READY state must carry its status style class, was: " + schema.getStyleClass());
+        assertNotNull(schema.getGraphic(), "the READY state must show its status icon");
+        assertNotNull(schema.getTooltip(), "the indicator must explain IntelliSense availability");
+        assertTrue(schema.getTooltip().getText().contains("IntelliSense is available"),
+                "the tooltip must state that IntelliSense is available");
+    }
+
+    @Test
     void writesLightAndDarkSnapshotsWhenRequested() throws Exception {
         if (!Boolean.getBoolean("fxt.shell.snapshot")
                 && !"true".equals(System.getenv("FXT_SHELL_SNAPSHOT"))) {

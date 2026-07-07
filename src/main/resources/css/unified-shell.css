@@ -338,6 +338,30 @@
     -fx-text-fill: -fxt-on-primary;
     -fx-font-family: "Inter", sans-serif;
     -fx-font-size: 11px;
+    -fx-graphic-text-gap: 6;
+}
+
+/* XSD/IntelliSense indicator states. The bar is -fxt-primary blue with white text, so the
+   regular semantic tokens (-fxt-success-text / -fxt-danger) are unreadable here — the state
+   icons use light tints instead. */
+.fxt-status-item .iconify-icon {
+    -fx-icon-color: -fxt-on-primary;
+}
+
+.fxt-status-schema-loading .iconify-icon {
+    -fx-icon-color: rgba(255, 255, 255, 0.75);
+}
+
+.fxt-status-schema-ready .iconify-icon {
+    -fx-icon-color: #b7f0c6; /* light green, readable on -fxt-primary */
+}
+
+.fxt-status-schema-error .iconify-icon {
+    -fx-icon-color: #ffc9a3; /* light amber */
+}
+
+.fxt-status-schema-error {
+    -fx-font-weight: 600;
 }
 
 /* ----- Editor center / toolbar / tabs --------------------------------- */

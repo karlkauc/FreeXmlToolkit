@@ -24,7 +24,7 @@ XML file next to its XSD schema, XSLT stylesheets and Schematron rules at the sa
 | **Side panel** | The panel for the selected activity (e.g. the Transform panel, the Validation panel). **Collapsible** (see [Collapsing the side panels](#collapsing-the-side-panels)). |
 | **Editor host** (center) | Tabs of open documents, each with three view modes - Text, Tree, Graphic (see [View Modes](#view-modes)). |
 | **Inspector** (right) | View **and edit** the selected node's properties from any view. **Collapsible** (see [Collapsing the side panels](#collapsing-the-side-panels)). |
-| **Status bar** (bottom) | Caret position, validation status and a memory indicator. |
+| **Status bar** (bottom) | Caret position, the XSD / IntelliSense indicator (see [Status Bar](#status-bar)) and a memory indicator. |
 
 #### Collapsing the side panels
 
@@ -563,9 +563,10 @@ are grayed out while you have no matching favorites. (See
 
 !!! tip
     You can also bind an XSD **without opening the Validation panel**: click the
-    **"No XSD" / "XSD: name"** indicator in the status bar (or use the editor toolbar's
-    **Set XSD Schema…** action) and pick an `.xsd` file. The binding drives both
-    **IntelliSense** and **schema validation**.
+    **XSD indicator** in the status bar (it reads **"No XSD"**, **"XSD: name"**,
+    **"Detecting XSD…"** or **"XSD error"** depending on the schema-binding state; see
+    [Status Bar](#status-bar)) or use the editor toolbar's **Set XSD Schema…** action and
+    pick an `.xsd` file. The binding drives both **IntelliSense** and **schema validation**.
 
 ### Running a Validation
 
@@ -842,15 +843,24 @@ When no document is open, the editor shows a welcome dashboard with:
 
 ## Status Bar
 
-> **New in June 2026** - A memory monitor and a clickable XSD indicator were added to the
-> status bar.
+> **New in July 2026** - The XSD indicator now shows the schema *loading lifecycle*, so you can
+> tell exactly when IntelliSense becomes available.
 
 The status bar at the bottom of the window includes:
 
-- An **XSD indicator** showing the schema bound to the active document - **"No XSD"** when none
-  is bound, or **"XSD: name"** otherwise. **Click it** to choose an `.xsd` file and bind it to
-  the active document; the binding drives both **IntelliSense** and **schema validation**. (The
-  editor toolbar's **Set XSD Schema…** action does the same.)
+- An **XSD / IntelliSense indicator** showing the schema-binding state of the active document:
+
+    | State | Meaning |
+    |-------|---------|
+    | **Detecting XSD…** (hourglass) | The linked schema is being detected and parsed in the background - IntelliSense is not available *yet*. |
+    | **XSD: name** (green check) | The schema is loaded - **IntelliSense and schema validation are available**. |
+    | **No XSD** | The document references no schema - IntelliSense is limited. |
+    | **XSD error** (amber warning) | The document references a schema that could not be found or parsed - IntelliSense is unavailable. Bind one manually to fix it. |
+
+    **Click the indicator** in any state to choose an `.xsd` file and bind it to the active
+    document; the binding drives both **IntelliSense** and **schema validation**. (The editor
+    toolbar's **Set XSD Schema…** action does the same.) Hovering shows a tooltip explaining
+    the current IntelliSense availability.
 - A **memory monitor** showing the JVM heap usage as **used / max MB**. **Click it** to run
   garbage collection, which can free memory after working with large files.
 

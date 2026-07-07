@@ -1059,27 +1059,90 @@ public class UnifiedShellView extends BorderPane {
         memoryTimer.setCycleCount(javafx.animation.Animation.INDEFINITE);
         memoryTimer.play();
 
-        // The bound XSD tracks the active document's schema — but only for schema-aware (XML-family)
-        // documents. For JSON / plain text an "XSD" label is meaningless, so it is blanked and the
-        // label collapses out of the bar entirely.
-        statusSchema.textProperty().bind(javafx.beans.binding.Bindings.createStringBinding(
-                () -> {
-                    var doc = editorHost.getActiveDocument().orElse(null);
-                    if (doc == null || !isSchemaAware(doc.getFileType())) {
-                        return "";
-                    }
-                    java.io.File xsd = editorHost.activeSchemaProperty().get();
-                    return xsd != null ? "XSD: " + xsd.getName() : "No XSD";
-                },
-                editorHost.activeSchemaProperty(), editorHost.activeTabProperty()));
+        // The XSD indicator tracks the active document's schema-binding lifecycle (detecting /
+        // ready / none / error) so the user can tell when IntelliSense is available — but only
+        // for schema-aware (XML-family) documents. For JSON / plain text an "XSD" label is
+        // meaningless, so it is blanked and the label collapses out of the bar entirely.
+        // A listener (not a binding) because text, icon, tooltip and style class change together.
+        editorHost.activeSchemaStatusProperty().addListener((obs, o, n) -> updateSchemaStatusIndicator());
+        editorHost.activeSchemaProperty().addListener((obs, o, n) -> updateSchemaStatusIndicator());
+        editorHost.activeTabProperty().addListener((obs, o, n) -> updateSchemaStatusIndicator());
+        updateSchemaStatusIndicator();
         statusSchema.managedProperty().bind(statusSchema.textProperty().isNotEmpty());
         statusSchema.visibleProperty().bind(statusSchema.textProperty().isNotEmpty());
         // The XSD indicator doubles as the binding entry point (VS-Code style): clicking it picks an
         // XSD and binds it to the active document via setSchemaForActiveDocument.
-        statusSchema.setTooltip(new javafx.scene.control.Tooltip(
-                "Click to bind an XSD schema to this document (IntelliSense & validation)"));
         statusSchema.setCursor(javafx.scene.Cursor.HAND);
         statusSchema.setOnMouseClicked(e -> setSchema());
+    }
+
+    /** All schema-status style classes; removed before the current one is (re-)applied. */
+    private static final java.util.List<String> SCHEMA_STATUS_CLASSES = java.util.List.of(
+            "fxt-status-schema-loading", "fxt-status-schema-ready",
+            "fxt-status-schema-none", "fxt-status-schema-error");
+
+    /** Refreshes the status bar's XSD/IntelliSense indicator from the active document's state. */
+    private void updateSchemaStatusIndicator() {
+        statusSchema.getStyleClass().removeAll(SCHEMA_STATUS_CLASSES);
+        var doc = editorHost.getActiveDocument().orElse(null);
+        if (doc == null || !isSchemaAware(doc.getFileType())) {
+            statusSchema.setText("");
+            statusSchema.setGraphic(null);
+            statusSchema.setTooltip(null);
+            return;
+        }
+        var status = editorHost.activeSchemaStatusProperty().get();
+        java.io.File xsd = editorHost.activeSchemaProperty().get();
+        statusSchema.setText(schemaStatusText(status, xsd));
+        IconifyIcon icon = new IconifyIcon(schemaStatusIcon(status));
+        icon.setIconSize(12);
+        statusSchema.setGraphic(icon);
+        statusSchema.getStyleClass().add(schemaStatusStyleClass(status));
+        statusSchema.setTooltip(new javafx.scene.control.Tooltip(schemaStatusTooltip(status, xsd)));
+    }
+
+    /** @return the indicator label text for a schema status (package-private for unit tests). */
+    static String schemaStatusText(org.fxt.freexmltoolkit.controls.shell.editor.EditorHost.SchemaStatus status,
+            java.io.File xsd) {
+        return switch (status) {
+            case LOADING -> "Detecting XSD…";
+            case READY -> xsd != null ? "XSD: " + xsd.getName() : "XSD ready";
+            case ERROR -> "XSD error";
+            case NONE -> "No XSD";
+        };
+    }
+
+    /** @return the {@code bi-*} icon literal for a schema status (package-private for unit tests). */
+    static String schemaStatusIcon(org.fxt.freexmltoolkit.controls.shell.editor.EditorHost.SchemaStatus status) {
+        return switch (status) {
+            case LOADING -> "bi-hourglass-split";
+            case READY -> "bi-check-circle";
+            case ERROR -> "bi-exclamation-triangle";
+            case NONE -> "bi-slash-circle";
+        };
+    }
+
+    /** @return the style class carrying the status icon's color on the blue status bar. */
+    static String schemaStatusStyleClass(org.fxt.freexmltoolkit.controls.shell.editor.EditorHost.SchemaStatus status) {
+        return switch (status) {
+            case LOADING -> "fxt-status-schema-loading";
+            case READY -> "fxt-status-schema-ready";
+            case ERROR -> "fxt-status-schema-error";
+            case NONE -> "fxt-status-schema-none";
+        };
+    }
+
+    /** @return the tooltip explaining IntelliSense availability for a schema status. */
+    static String schemaStatusTooltip(org.fxt.freexmltoolkit.controls.shell.editor.EditorHost.SchemaStatus status,
+            java.io.File xsd) {
+        return switch (status) {
+            case LOADING -> "Detecting and parsing the linked XSD schema — IntelliSense will be available shortly";
+            case READY -> "IntelliSense is available (schema: " + (xsd != null ? xsd.getName() : "bound")
+                    + "). Click to bind a different XSD";
+            case ERROR -> "The linked XSD could not be loaded — IntelliSense is unavailable. "
+                    + "Click to bind an XSD manually";
+            case NONE -> "No XSD schema is linked — IntelliSense is limited. Click to bind an XSD";
+        };
     }
 
     /**

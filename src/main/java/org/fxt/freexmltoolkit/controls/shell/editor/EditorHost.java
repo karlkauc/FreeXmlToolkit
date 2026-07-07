@@ -40,6 +40,8 @@ public class EditorHost extends BorderPane {
     private final ObservableList<OpenDocument> openDocuments = FXCollections.observableArrayList();
     private final ReadOnlyIntegerWrapper activeCaret = new ReadOnlyIntegerWrapper(this, "activeCaret", 0);
     private final ReadOnlyObjectWrapper<File> activeSchema = new ReadOnlyObjectWrapper<>(this, "activeSchema", null);
+    private final ReadOnlyObjectWrapper<SchemaStatus> activeSchemaStatus =
+            new ReadOnlyObjectWrapper<>(this, "activeSchemaStatus", SchemaStatus.NONE);
     private final ReadOnlyObjectWrapper<ViewMode> activeViewMode =
             new ReadOnlyObjectWrapper<>(this, "activeViewMode", ViewMode.TEXT);
     private final ReadOnlyObjectWrapper<XsdNode> activeSelectedNode =
@@ -65,6 +67,24 @@ public class EditorHost extends BorderPane {
     public record ValidationStatus(ValidationState state, int problemCount, String summary) {
         public static final ValidationStatus NONE =
                 new ValidationStatus(ValidationState.NOT_VALIDATED, 0, "Not validated");
+    }
+
+    /**
+     * Lifecycle of the active document's XSD binding, surfaced in the status bar so the user
+     * can tell whether schema-aware IntelliSense is available yet.
+     * <ul>
+     *   <li>{@link #NONE} — no schema linked (or detection found no reference)</li>
+     *   <li>{@link #LOADING} — the linked XSD is being detected/parsed in the background</li>
+     *   <li>{@link #READY} — schema parsed; IntelliSense is available</li>
+     *   <li>{@link #ERROR} — a schema reference exists but the XSD could not be loaded</li>
+     * </ul>
+     */
+    public enum SchemaStatus { NONE, LOADING, READY, ERROR }
+
+    /** Outcome of a schema auto-detection run: the bound XSD (or null) plus the terminal status. */
+    private record SchemaDetection(File xsd, SchemaStatus status) {
+        static final SchemaDetection NOT_FOUND = new SchemaDetection(null, SchemaStatus.NONE);
+        static final SchemaDetection FAILED = new SchemaDetection(null, SchemaStatus.ERROR);
     }
     /** The most recently active editor tab — insertion target when a tool tab is in front. */
     private EditorTab lastEditorTab;
@@ -107,9 +127,11 @@ public class EditorHost extends BorderPane {
                 lastEditorTab = et;
                 activeCaret.set(et.view.getCodeArea().getCaretPosition());
                 activeSchema.set(et.schemaFile);
+                activeSchemaStatus.set(et.schemaStatus);
                 activeViewMode.set(et.viewMode);
             } else {
                 activeSchema.set(null);
+                activeSchemaStatus.set(SchemaStatus.NONE);
             }
             // A different document's last result must not linger; validation re-runs
             // (continuous, or via Validate/F8) for the newly active document.
@@ -173,6 +195,11 @@ public class EditorHost extends BorderPane {
     /** @return the XSD currently bound to the active document for IntelliSense, or {@code null}. */
     public ReadOnlyObjectProperty<File> activeSchemaProperty() {
         return activeSchema.getReadOnlyProperty();
+    }
+
+    /** @return the active document's schema-binding lifecycle (IntelliSense availability). */
+    public ReadOnlyObjectProperty<SchemaStatus> activeSchemaStatusProperty() {
+        return activeSchemaStatus.getReadOnlyProperty();
     }
 
     /** @return the active document's current view mode (Text/Tree/Graphic). */
@@ -1603,12 +1630,20 @@ public class EditorHost extends BorderPane {
     /** Binds an XSD to the active document for schema-aware IntelliSense. @return success */
     public boolean setSchemaForActiveDocument(File xsd) {
         Tab tab = tabPane.getSelectionModel().getSelectedItem();
-        if (tab instanceof EditorTab et && et.view.supportsSchema() && et.view.loadSchema(xsd)) {
+        if (!(tab instanceof EditorTab et) || !et.view.supportsSchema()) {
+            return false;
+        }
+        if (et.view.loadSchema(xsd)) {
             et.schemaFile = xsd;
             et.view.invalidateIntelliSenseCache();
             activeSchema.set(xsd);
+            publishSchemaStatus(et, SchemaStatus.READY);
             loadXmlSchemaProviderAsync(et, xsd);
             return true;
+        }
+        if (xsd != null) {
+            // the user picked a schema that failed to load — surface it in the status bar
+            publishSchemaStatus(et, SchemaStatus.ERROR);
         }
         return false;
     }
@@ -1804,12 +1839,27 @@ public class EditorHost extends BorderPane {
         });
     }
 
+    /**
+     * Records a tab's schema-binding status and mirrors it into {@link #activeSchemaStatus}
+     * when the tab is front-most. Must be called on the FX thread (same publish pattern as
+     * {@link #activeSchema}).
+     */
+    private void publishSchemaStatus(EditorTab tab, SchemaStatus status) {
+        tab.schemaStatus = status;
+        if (tab.isSelected()) {
+            activeSchemaStatus.set(status);
+        }
+    }
+
     private void loadAsync(EditorTab tab, Path path) {
         tab.beginLoading();
+        if (tab.view.supportsSchema()) {
+            publishSchemaStatus(tab, SchemaStatus.LOADING);
+        }
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
             try {
                 String content = Files.readString(path, StandardCharsets.UTF_8);
-                File detected = null;
+                SchemaDetection detected = null;
                 // Same per-tab guard as redetectSchemaForActiveDocument: never run two
                 // schema detections for one tab concurrently (Xerces DOM is not thread-safe).
                 if (tab.schemaDetecting.compareAndSet(false, true)) {
@@ -1819,12 +1869,13 @@ public class EditorHost extends BorderPane {
                         tab.schemaDetecting.set(false);
                     }
                 }
-                File autoXsd = detected;
+                SchemaDetection detection = detected;
                 Platform.runLater(() -> {
                     tab.view.setText(content);
                     tab.endLoading();
                     tab.document.setDirty(false);
                     tab.attachDirtyTracking();
+                    File autoXsd = detection != null ? detection.xsd() : null;
                     if (autoXsd != null) {
                         tab.schemaFile = autoXsd;
                         tab.view.invalidateIntelliSenseCache();
@@ -1833,11 +1884,18 @@ public class EditorHost extends BorderPane {
                         }
                         loadXmlSchemaProviderAsync(tab, autoXsd);
                     }
+                    // Always publish a terminal status so LOADING can never stick. When the
+                    // CAS was lost (a concurrent detection ran), fall back to the tab's
+                    // current binding.
+                    publishSchemaStatus(tab, detection != null
+                            ? detection.status()
+                            : (tab.schemaFile != null ? SchemaStatus.READY : SchemaStatus.NONE));
                 });
             } catch (IOException e) {
                 Platform.runLater(() -> {
                     tab.view.setText("Could not read " + path + ": " + e.getMessage());
                     tab.endLoading();
+                    publishSchemaStatus(tab, SchemaStatus.NONE);
                 });
             }
         });
@@ -1876,46 +1934,62 @@ public class EditorHost extends BorderPane {
             if (!tab.schemaDetecting.compareAndSet(false, true)) {
                 return;
             }
-            File autoXsd;
+            // LOADING only after the CAS succeeded — a lost CAS returns without any
+            // completion path, and a stray LOADING would stick in the status bar.
+            Platform.runLater(() -> publishSchemaStatus(tab, SchemaStatus.LOADING));
+            SchemaDetection detection;
             try {
                 if (tab.schemaFile != null) {
-                    return; // the other detection won while we waited
+                    // the other detection won while we waited
+                    detection = new SchemaDetection(null, SchemaStatus.READY);
+                } else {
+                    detection = detectSchemaFor(tab, path);
                 }
-                autoXsd = detectSchemaFor(tab, path);
             } finally {
                 tab.schemaDetecting.set(false);
             }
-            if (autoXsd != null) {
-                Platform.runLater(() -> {
+            SchemaDetection result = detection;
+            Platform.runLater(() -> {
+                File autoXsd = result.xsd();
+                if (autoXsd != null) {
                     tab.schemaFile = autoXsd;
                     tab.view.invalidateIntelliSenseCache();
                     if (tab.isSelected()) {
                         activeSchema.set(autoXsd);
                     }
                     loadXmlSchemaProviderAsync(tab, autoXsd);
-                });
-            }
+                }
+                // Terminal status in every branch, so LOADING never sticks.
+                publishSchemaStatus(tab, result.status());
+            });
         });
     }
 
-    private File detectSchemaFor(EditorTab tab, Path path) {
+    private SchemaDetection detectSchemaFor(EditorTab tab, Path path) {
         if (!tab.view.supportsSchema()) {
-            return null;
+            return SchemaDetection.NOT_FOUND;
         }
         try {
             org.fxt.freexmltoolkit.service.XmlService service =
                     new org.fxt.freexmltoolkit.service.XmlServiceImpl();
             service.setCurrentXmlFile(path.toFile());
-            if (service.loadSchemaFromXMLFile()) {
-                File xsd = service.getCurrentXsdFile();
-                if (xsd != null && xsd.exists() && tab.view.loadSchema(xsd)) {
-                    return xsd;
-                }
+            if (service.getSchemaNameFromCurrentXMLFile().isEmpty()) {
+                return SchemaDetection.NOT_FOUND; // the document references no schema
             }
+            // A reference exists — from here on, every failure is an ERROR (the user
+            // expects IntelliSense but won't get it), not a silent "No XSD".
+            if (!service.loadSchemaFromXMLFile()) {
+                return SchemaDetection.FAILED; // referenced, but not resolvable
+            }
+            File xsd = service.getCurrentXsdFile();
+            if (xsd == null || !xsd.exists() || !tab.view.loadSchema(xsd)) {
+                return SchemaDetection.FAILED; // resolved, but missing or unparsable
+            }
+            return new SchemaDetection(xsd, SchemaStatus.READY);
         } catch (Exception e) {
             // detection is best-effort; a malformed document simply binds no schema
+            return SchemaDetection.NOT_FOUND;
         }
-        return null;
     }
 
     /**
@@ -2234,6 +2308,8 @@ public class EditorHost extends BorderPane {
         private final javafx.animation.PauseTransition xmlCaretDebounce =
                 new javafx.animation.PauseTransition(javafx.util.Duration.millis(120));
         private File schemaFile;
+        /** Written on the loader thread, read on the FX thread (tab switch) — hence volatile. */
+        private volatile SchemaStatus schemaStatus = SchemaStatus.NONE;
         private File schematronFile;
         /**
          * Guards against CONCURRENT schema detections for this tab (open-time
