@@ -45,9 +45,10 @@ class FileFavoriteTest {
     class FileTypeEnumTests {
 
         @Test
-        @DisplayName("All seven file types are defined")
+        @DisplayName("All eight file types are defined")
         void allFileTypesAreDefined() {
-            assertEquals(7, FileFavorite.FileType.values().length);
+            // XML, XSD, SCHEMATRON, XSLT, XPATH, XQUERY, KEYSTORE (July 2026), OTHER
+            assertEquals(8, FileFavorite.FileType.values().length);
         }
 
         @ParameterizedTest
