@@ -14,7 +14,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SplitPane;
-import javafx.scene.control.TextArea;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
@@ -30,11 +29,15 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
+import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 import org.fxt.freexmltoolkit.FxtGui;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.controls.shared.CodeAreaFontZoom;
+import org.fxt.freexmltoolkit.controls.shared.JsonSyntaxHighlighter;
 import org.fxt.freexmltoolkit.controls.shared.XPathSyntaxHighlighter;
+import org.fxt.freexmltoolkit.controls.shared.XmlSyntaxHighlighter;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.XPathIntelliSenseEngine;
 import org.fxt.freexmltoolkit.service.FavoritesService;
 import org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat;
@@ -64,7 +67,12 @@ public class QueryConsole extends Region {
     private final CodeArea xpathField = new CodeArea();
     private final CodeArea xqueryArea = new CodeArea();
     private final StackPane inputStack = new StackPane(xpathField, xqueryArea);
-    private final TextArea resultsArea = new TextArea();
+    // Results are a read-only CodeArea (not a TextArea) so XML/JSON output can be
+    // syntax-highlighted like the main text editor.
+    private final CodeArea resultsArea = new CodeArea();
+
+    /** Results above this size are shown without highlighting to keep the FX thread responsive. */
+    private static final int HIGHLIGHT_LIMIT_CHARS = 512 * 1024;
 
     // XPath/XQuery autocompletion engines, one per input (created in buildInput()).
     private XPathIntelliSenseEngine xpathIntelliSense;
@@ -142,6 +150,9 @@ public class QueryConsole extends Region {
         xqueryArea.setParagraphGraphicFactory(LineNumberFactory.get(xqueryArea));
         attachHighlighting(xpathField);
         attachHighlighting(xqueryArea);
+        // Editor-style zoom: Ctrl+MouseWheel changes the font size, Ctrl+0 resets.
+        CodeAreaFontZoom.install(xpathField);
+        CodeAreaFontZoom.install(xqueryArea);
 
         // Restore XPath/XQuery IntelliSense (autocomplete): context-aware element/attribute,
         // function, axis and (XQuery) keyword completion. Triggers on '/', '@', '[', '(', '$',
@@ -219,11 +230,13 @@ public class QueryConsole extends Region {
 
         resultsArea.setEditable(false);
         resultsArea.setWrapText(false);
-        resultsArea.setPromptText("Run a query to see results here.");
-        resultsArea.getStyleClass().add("fxt-transform-output");
-        VBox.setVgrow(resultsArea, Priority.ALWAYS);
+        resultsArea.setPlaceholder(new Label("Run a query to see results here."));
+        resultsArea.getStyleClass().addAll("fxt-transform-output", "fxt-query-results");
+        CodeAreaFontZoom.install(resultsArea);
+        VirtualizedScrollPane<CodeArea> resultsScroll = new VirtualizedScrollPane<>(resultsArea);
+        VBox.setVgrow(resultsScroll, Priority.ALWAYS);
 
-        VBox box = new VBox(8, header, resultsArea);
+        VBox box = new VBox(8, header, resultsScroll);
         box.setPadding(new Insets(8));
         box.getStyleClass().add("fxt-side-panel-content");
         return box;
@@ -251,11 +264,11 @@ public class QueryConsole extends Region {
         if (noDoc) {
             // Only hint when nothing has been shown yet — never clobber a real result.
             if (resultsArea.getText() == null || resultsArea.getText().isBlank()) {
-                resultsArea.setText("No document open.");
+                setResultsText("No document open.");
             }
         } else if ("No document open.".equals(resultsArea.getText())) {
             // A document is now open — clear the stale startup hint.
-            resultsArea.clear();
+            setResultsText("");
         }
     }
 
@@ -283,7 +296,7 @@ public class QueryConsole extends Region {
      */
     private void runXPath() {
         if (editorHost.getActiveDocument().isEmpty()) {
-            resultsArea.setText("No document open.");
+            setResultsText("No document open.");
             return;
         }
         String content = editorHost.getActiveText().orElse("");
@@ -292,14 +305,14 @@ public class QueryConsole extends Region {
             return;
         }
         boolean json = isJsonActive();
-        resultsArea.setText("Running…");
+        setResultsText("Running…");
         final int gen = ++runGeneration;
         FxtGui.executorService.submit(() -> {
             String result = json ? TransformRunner.runJsonPath(content, path)
                     : TransformRunner.runXPath(content, path);
             Platform.runLater(() -> {
                 if (gen == runGeneration) {
-                    resultsArea.setText(result);
+                    setResultsText(result);
                 }
             });
         });
@@ -312,7 +325,7 @@ public class QueryConsole extends Region {
      */
     private void runXQuery() {
         if (editorHost.getActiveDocument().isEmpty()) {
-            resultsArea.setText("No document open.");
+            setResultsText("No document open.");
             return;
         }
         String xquery = xqueryArea.getText();
@@ -320,13 +333,13 @@ public class QueryConsole extends Region {
             return;
         }
         String xml = editorHost.getActiveText().orElse("");
-        resultsArea.setText("Running…");
+        setResultsText("Running…");
         final int gen = ++runGeneration;
         FxtGui.executorService.submit(() -> {
             String result = TransformRunner.runXQuery(xml, xquery, Map.of(), OutputFormat.XML);
             Platform.runLater(() -> {
                 if (gen == runGeneration) {
-                    resultsArea.setText(result);
+                    setResultsText(result);
                 }
             });
         });
@@ -353,7 +366,7 @@ public class QueryConsole extends Region {
     public void saveResults() {
         String text = resultsArea.getText();
         if (text == null || text.isBlank()) {
-            resultsArea.setText("Run a query first — there is nothing to save.");
+            setResultsText("Run a query first — there is nothing to save.");
             return;
         }
         FileChooser chooser = new FileChooser();
@@ -381,8 +394,28 @@ public class QueryConsole extends Region {
             Files.writeString(file.toPath(), text, StandardCharsets.UTF_8);
             return true;
         } catch (Exception e) {
-            resultsArea.setText("Could not save results: " + e.getMessage());
+            setResultsText("Could not save results: " + e.getMessage());
             return false;
+        }
+    }
+
+    /**
+     * Replaces the results text and syntax-highlights it when it looks like XML
+     * (first non-blank char {@code <}) or JSON ({@code '{'} / {@code '['} — e.g.
+     * JSONPath results). Status/error messages stay unstyled. Very large results
+     * are shown plain to keep the FX thread responsive.
+     */
+    private void setResultsText(String text) {
+        String value = text == null ? "" : text;
+        resultsArea.replaceText(value);
+        if (value.isEmpty() || value.length() > HIGHLIGHT_LIMIT_CHARS) {
+            return;
+        }
+        String trimmed = value.stripLeading();
+        if (trimmed.startsWith("<")) {
+            resultsArea.setStyleSpans(0, XmlSyntaxHighlighter.computeHighlighting(value));
+        } else if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+            resultsArea.setStyleSpans(0, JsonSyntaxHighlighter.computeHighlighting(value));
         }
     }
 
@@ -419,7 +452,7 @@ public class QueryConsole extends Region {
     public void saveSnippet() {
         String expression = currentExpression();
         if (expression == null || expression.isBlank()) {
-            resultsArea.setText("Enter a query to save.");
+            setResultsText("Enter a query to save.");
             return;
         }
         TextInputDialog dialog = new TextInputDialog();
@@ -447,7 +480,7 @@ public class QueryConsole extends Region {
         File saved = isXQueryMode()
                 ? favorites.saveXQueryQuery(name, xqueryArea.getText())
                 : favorites.saveXPathQuery(name, xpathField.getText());
-        resultsArea.setText(saved != null ? "Saved snippet: " + saved.getName() : "Could not save snippet.");
+        setResultsText(saved != null ? "Saved snippet: " + saved.getName() : "Could not save snippet.");
         return saved;
     }
 
@@ -508,7 +541,7 @@ public class QueryConsole extends Region {
                 setText(xpathField, content);
             }
         } catch (Exception e) {
-            resultsArea.setText("Could not load snippet: " + e.getMessage());
+            setResultsText("Could not load snippet: " + e.getMessage());
         }
     }
 
@@ -553,6 +586,16 @@ public class QueryConsole extends Region {
     /** Test seam: the current results text. */
     String getResultsText() {
         return resultsArea.getText();
+    }
+
+    /** Test seam: the distinct highlight style classes currently applied to the results. */
+    java.util.Set<String> resultsStyleClassesForTest() {
+        java.util.Set<String> classes = new java.util.HashSet<>();
+        for (org.fxmisc.richtext.model.StyleSpan<java.util.Collection<String>> span
+                : resultsArea.getStyleSpans(0, resultsArea.getLength())) {
+            classes.addAll(span.getStyle());
+        }
+        return classes;
     }
 
     /** Test seam: whether the Run button is currently disabled. */

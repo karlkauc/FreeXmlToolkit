@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import javafx.stage.Stage;
@@ -82,6 +83,47 @@ class QueryConsoleTest {
         assertTrue(results.contains("item"), "results should contain the matched elements: " + results);
         assertTrue(results.contains("a") && results.contains("b"),
                 "results should contain both item values: " + results);
+    }
+
+    @Test
+    void xmlResultsAreSyntaxHighlightedAndPlainTextResultsAreNot(@TempDir Path tmp) throws Exception {
+        Path file = tmp.resolve("doc.xml");
+        Files.writeString(file, "<root><item id=\"1\">a</item><item id=\"2\">b</item></root>");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(file));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("item")).orElse(false));
+
+        QueryConsole console = WaitForAsyncUtils.waitForAsyncFx(2000, () -> new QueryConsole(host));
+
+        // An XML-producing XPath gets XML highlighting in the results pane.
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            console.setXPath("//item");
+            console.runForTest();
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> {
+            String r = console.getResultsText();
+            return r != null && r.contains("item") && !"Running…".equals(r);
+        });
+        Set<String> xmlClasses = WaitForAsyncUtils.waitForAsyncFx(2000, console::resultsStyleClassesForTest);
+        assertTrue(xmlClasses.contains("tagmark") && xmlClasses.contains("anytag"),
+                "XML results should carry XML highlight classes, got: " + xmlClasses);
+
+        // A scalar result (plain text) stays unstyled.
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            console.setXPath("count(//item)");
+            console.runForTest();
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> {
+            String r = console.getResultsText();
+            return r != null && !r.isBlank() && !"Running…".equals(r) && !r.contains("item");
+        });
+        Set<String> plainClasses = WaitForAsyncUtils.waitForAsyncFx(2000, console::resultsStyleClassesForTest);
+        assertTrue(plainClasses.isEmpty(),
+                "plain-text results should have no highlight classes, got: " + plainClasses
+                        + " for text: " + console.getResultsText());
     }
 
     @Test

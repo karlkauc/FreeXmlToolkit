@@ -886,6 +886,63 @@
     -fx-font-style: italic;
 }
 
+/* Query results CodeArea: reads like the transform output (surface background),
+   with XML/JSON syntax highlighting for query results. The classes are emitted
+   by XmlSyntaxHighlighter (tagmark/anytag/attribute/avalue/comment — palette
+   mirrors scss/xml-highlighting.css) and JsonSyntaxHighlighter (json-*). Scoped
+   to .fxt-query-results so they never affect other CodeAreas. */
+.fxt-query-results {
+    -fx-background-color: -fxt-bg-surface-2;
+}
+
+.fxt-query-results .content {
+    -fx-background-color: transparent;
+}
+
+.fxt-query-results .text {
+    -fx-fill: -fxt-text-primary;
+}
+
+.fxt-query-results .tagmark {
+    -fx-fill: #7a8392;
+}
+.fxt-query-results .anytag {
+    -fx-fill: #1f6fb2;
+}
+.fxt-query-results .attribute {
+    -fx-fill: #c56a12;
+}
+.fxt-query-results .avalue {
+    -fx-fill: #2e8b40;
+}
+.fxt-query-results .comment {
+    -fx-fill: -fxt-text-muted;
+    -fx-font-style: italic;
+}
+
+.fxt-query-results .json-key {
+    -fx-fill: #1f6fb2;
+}
+.fxt-query-results .json-string {
+    -fx-fill: #2e8b40;
+}
+.fxt-query-results .json-number {
+    -fx-fill: #fd7e14;
+}
+.fxt-query-results .json-boolean,
+.fxt-query-results .json-null {
+    -fx-fill: #6f42c1;
+    -fx-font-weight: bold;
+}
+.fxt-query-results .json-bracket,
+.fxt-query-results .json-punctuation {
+    -fx-fill: #7a8392;
+}
+.fxt-query-results .json-comment {
+    -fx-fill: -fxt-text-muted;
+    -fx-font-style: italic;
+}
+
 /* ----- Query Console (collapsible bottom dock) ------------------------- */
 /* A distinct docked panel below the editor: a clear top border separates it
    from the editor area, and a surface background marks it as its own pane. The

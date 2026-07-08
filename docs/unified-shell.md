@@ -1028,6 +1028,8 @@ Copy on the right.*
     `/`, `//`, `@`, `[`, `(`, `$` and `::`, or on demand with **Ctrl+Space**. It suggests element
     and attribute names from the active document, XPath/XQuery functions, axes, operators and
     (in XQuery mode) FLWOR keywords. Use ↑/↓ to navigate and **Enter**/**Tab** to accept.
+  - The query is **syntax-highlighted** as you type: keywords, functions, axes, variables,
+    strings, numbers and comments each get their own color.
   - To run: in **XPath** mode press **Enter**; in **XQuery** mode press **Ctrl+Enter** (Enter
     inserts a newline). The **Run** button works in both modes.
   - **Run** - Execute the query against the active document.
@@ -1035,8 +1037,14 @@ Copy on the right.*
   - **Snippets** - A menu of your saved XPath and XQuery snippets; pick one to load it (the console
     switches to the matching mode automatically).
 - **Right - the results:**
-  - A read-only, selectable text area showing the query result.
+  - A read-only, selectable results editor showing the query result. **XML results are
+    syntax-highlighted** (tags, attributes, values, comments), and **JSON results** (e.g. from
+    JSONPath queries) get JSON highlighting; scalar results and messages stay plain.
   - **Copy** - Copy the full result to the clipboard.
+
+Like the text editor, every console area zooms with the mouse: hold **Ctrl** and scroll the
+**mouse wheel** over the query input or the results to change that area's font size
+(**Ctrl+0** resets it).
 
 ### Running a Query
 
