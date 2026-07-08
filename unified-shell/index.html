@@ -4633,6 +4633,8 @@ Copy on the right.</em></p>
     <code>/</code>, <code>//</code>, <code>@</code>, <code>[</code>, <code>(</code>, <code>$</code> and <code>::</code>, or on demand with <strong>Ctrl+Space</strong>. It suggests element
     and attribute names from the active document, XPath/XQuery functions, axes, operators and
     (in XQuery mode) FLWOR keywords. Use ↑/↓ to navigate and <strong>Enter</strong>/<strong>Tab</strong> to accept.</li>
+<li>The query is <strong>syntax-highlighted</strong> as you type: keywords, functions, axes, variables,
+    strings, numbers and comments each get their own color.</li>
 <li>To run: in <strong>XPath</strong> mode press <strong>Enter</strong>; in <strong>XQuery</strong> mode press <strong>Ctrl+Enter</strong> (Enter
     inserts a newline). The <strong>Run</strong> button works in both modes.</li>
 <li><strong>Run</strong> - Execute the query against the active document.</li>
@@ -4640,9 +4642,14 @@ Copy on the right.</em></p>
 <li><strong>Snippets</strong> - A menu of your saved XPath and XQuery snippets; pick one to load it (the console
     switches to the matching mode automatically).</li>
 <li><strong>Right - the results:</strong></li>
-<li>A read-only, selectable text area showing the query result.</li>
+<li>A read-only, selectable results editor showing the query result. <strong>XML results are
+    syntax-highlighted</strong> (tags, attributes, values, comments), and <strong>JSON results</strong> (e.g. from
+    JSONPath queries) get JSON highlighting; scalar results and messages stay plain.</li>
 <li><strong>Copy</strong> - Copy the full result to the clipboard.</li>
 </ul>
+<p>Like the text editor, every console area zooms with the mouse: hold <strong>Ctrl</strong> and scroll the
+<strong>mouse wheel</strong> over the query input or the results to change that area's font size
+(<strong>Ctrl+0</strong> resets it).</p>
 <h3 id="running-a-query">Running a Query<a class="headerlink" href="#running-a-query" title="Permanent link">&para;</a></h3>
 <ol>
 <li>Open the console (terminal icon or <strong>Ctrl+Shift+X</strong>) - it opens focused on the query input.</li>
