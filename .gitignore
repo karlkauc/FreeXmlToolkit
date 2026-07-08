@@ -173,3 +173,11 @@ src/test/resources/3elements/validation_errors.csv
 
 # Git worktrees
 .worktrees/
+
+# WebDAV working-directory artifacts (Excel lock files, .DAV metadata, scratch folders)
+.DAV/
+~$*
+bank_23/
+
+# Loose manual screenshots in the repo root (official docs screenshots live in docs/img/)
+/screenshot_*.png
