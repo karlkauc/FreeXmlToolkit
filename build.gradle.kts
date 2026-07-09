@@ -48,7 +48,7 @@ application {
 }
 
 dependencies {
-    implementation("net.sf.saxon:Saxon-HE:12.9")
+    implementation("net.sf.saxon:Saxon-HE:13.0")
 
     // XSD 1.1 support with assertions - use special Xerces build from exist-db
     // This version includes XSD 1.1 support with assertions

@@ -52,8 +52,11 @@ class FundsXmlCaretSequenceTest {
             return null;
         });
         WaitForAsyncUtils.waitForFxEvents();
-        XmlGridView grid = (XmlGridView) host.lookupAll("*").stream()
-                .filter(n -> n instanceof XmlGridView).findFirst().orElseThrow();
+        // lookupAll traverses the scene graph, which the FX thread may still be mutating right
+        // after a view switch — run the lookup ON the FX thread (observed under full-suite load:
+        // IndexOutOfBoundsException from Parent.lookupAll on the test thread).
+        XmlGridView grid = WaitForAsyncUtils.waitForAsyncFx(2000, () -> (XmlGridView) host.lookupAll("*").stream()
+                .filter(n -> n instanceof XmlGridView).findFirst().orElseThrow());
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
             grid.getContext().getSelectionModel().setSelectedNode(grid.getContext().getDocument().getRootElement());
             return null;
@@ -66,8 +69,9 @@ class FundsXmlCaretSequenceTest {
             return null;
         });
         WaitForAsyncUtils.waitForFxEvents();
-        XmlInstanceTreeView tree = (XmlInstanceTreeView) host.lookupAll("*").stream()
-                .filter(n -> n instanceof XmlInstanceTreeView).findFirst().orElseThrow();
+        XmlInstanceTreeView tree = WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> (XmlInstanceTreeView) host.lookupAll("*").stream()
+                        .filter(n -> n instanceof XmlInstanceTreeView).findFirst().orElseThrow());
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
             TreeItem<XmlNode> rootItem = tree.getRoot();
             tree.getSelectionModel().select(rootItem.getChildren().get(0));

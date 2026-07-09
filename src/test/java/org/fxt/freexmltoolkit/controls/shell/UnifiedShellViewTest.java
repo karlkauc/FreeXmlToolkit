@@ -196,8 +196,15 @@ class UnifiedShellViewTest {
         javafx.scene.control.Label schema = (javafx.scene.control.Label) shell.lookup("#status-schema");
         assertNotNull(schema, "the status bar must show the XSD indicator for XML documents");
         // Detection + XSD parse run in the background; the indicator must settle on READY.
+        // Poll the COMBINED condition: updateSchemaStatusIndicator() sets text, style class,
+        // icon and tooltip sequentially on the FX thread while this condition polls from the
+        // test thread — waiting on the text alone can observe the label mid-update (text set,
+        // ready class not yet added) under full-suite load.
         WaitForAsyncUtils.waitFor(12, java.util.concurrent.TimeUnit.SECONDS,
-                () -> "XSD: schema.xsd".equals(schema.getText()));
+                () -> "XSD: schema.xsd".equals(schema.getText())
+                        && schema.getStyleClass().contains("fxt-status-schema-ready")
+                        && schema.getGraphic() != null
+                        && schema.getTooltip() != null);
         assertTrue(schema.getStyleClass().contains("fxt-status-schema-ready"),
                 "the READY state must carry its status style class, was: " + schema.getStyleClass());
         assertNotNull(schema.getGraphic(), "the READY state must show its status icon");
