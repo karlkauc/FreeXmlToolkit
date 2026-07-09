@@ -27,9 +27,9 @@ plugins {
     jacoco
     pmd
     checkstyle
-    id("com.github.spotbugs") version "6.4.8"
-    id("com.diffplug.spotless") version "8.3.0"
-    id("com.github.ben-manes.versions") version "0.53.0"
+    id("com.github.spotbugs") version "6.5.8"
+    id("com.diffplug.spotless") version "8.8.0"
+    id("com.github.ben-manes.versions") version "0.54.0"
 }
 
 version = "1.10.0"
@@ -71,11 +71,11 @@ dependencies {
     */
 
     implementation("jakarta.xml.bind:jakarta.xml.bind-api:4.0.5")
-    implementation("com.google.code.gson:gson:2.13.2")
+    implementation("com.google.code.gson:gson:2.14.0")
 
     // JSON Editor support
     implementation("de.marhali:json5-java:3.0.0")                  // JSON5 support (comments, trailing commas)
-    implementation("com.networknt:json-schema-validator:3.0.0")    // JSON Schema validation
+    implementation("com.networknt:json-schema-validator:3.0.6")    // JSON Schema validation
     implementation("com.jayway.jsonpath:json-path:3.0.0")          // JSONPath queries
     // Icons are rendered by the in-house IconifyIcon control (controls/icons) using bundled
     // Iconify SVG data under resources/icons/iconify/. Ikonli was removed in favour of it.
@@ -84,19 +84,19 @@ dependencies {
     implementation("org.fxmisc.richtext:richtextfx:0.11.7")
 
     // Side-by-side diff/merge for XML & XSD text editors
-    implementation("io.github.java-diff-utils:java-diff-utils:4.12")
+    implementation("io.github.java-diff-utils:java-diff-utils:4.17")
 
     implementation("org.apache.logging.log4j:log4j-api:2.25.3")
     implementation("org.apache.logging.log4j:log4j-core:2.25.3")
     implementation("org.apache.logging.log4j:log4j-slf4j2-impl:2.25.3")
 
     implementation("org.apache.santuario:xmlsec:4.0.4")
-    implementation("org.bouncycastle:bcpkix-jdk18on:1.83")
+    implementation("org.bouncycastle:bcpkix-jdk18on:1.84")
 
     implementation("org.controlsfx:controlsfx:11.2.3")
 
     implementation("org.apache.xmlgraphics:fop:2.11")
-    implementation("org.apache.pdfbox:pdfbox:3.0.6")
+    implementation("org.apache.pdfbox:pdfbox:3.0.7")
     implementation("org.apache.xmlgraphics:batik-svggen:1.19")
     implementation("org.apache.xmlgraphics:batik-all:1.19")
     implementation("org.apache.xmlgraphics:batik-transcoder:1.19")
@@ -105,17 +105,17 @@ dependencies {
     implementation("org.apache.poi:poi-ooxml:5.5.1")
 
     implementation("org.apache.commons:commons-lang3:3.20.0")
-    implementation("commons-io:commons-io:2.21.0")
+    implementation("commons-io:commons-io:2.22.0")
     implementation("org.apache.commons:commons-text:1.15.0")
     implementation("commons-validator:commons-validator:1.10.1")
 
     implementation("fr.brouillard.oss:cssfx:11.5.1")
-    implementation("org.thymeleaf:thymeleaf:3.1.3.RELEASE")
+    implementation("org.thymeleaf:thymeleaf:3.1.5.RELEASE")
     implementation("com.vladsch.flexmark:flexmark-all:0.64.8")
     implementation("jakarta.activation:jakarta.activation-api:2.1.4")
 
     implementation("org.apache.httpcomponents.core5:httpcore5-h2:5.4.2")
-    implementation("org.apache.httpcomponents.client5:httpclient5:5.6")
+    implementation("org.apache.httpcomponents.client5:httpclient5:5.6.2")
 
     implementation("com.github.mifmif:generex:1.0.2")
     implementation("com.github.curious-odd-man:rgxgen:3.1")
@@ -123,24 +123,24 @@ dependencies {
     // Note: Guice 7.0.0 doesn't support Java 25 (class file version 69)
     // Using manual DI pattern instead - see org.fxt.freexmltoolkit.di package
 
-    testImplementation(platform("org.junit:junit-bom:6.0.3"))
+    testImplementation(platform("org.junit:junit-bom:6.1.1"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-    testImplementation("org.mockito:mockito-core:5.22.0")
-    testImplementation("org.mockito:mockito-junit-jupiter:5.22.0")
+    testImplementation("org.mockito:mockito-core:5.23.0")
+    testImplementation("org.mockito:mockito-junit-jupiter:5.23.0")
     testImplementation("org.testfx:testfx-core:4.0.18")
     testImplementation("org.testfx:testfx-junit5:4.0.18")
     testImplementation("org.testfx:openjfx-monocle:21.0.2")
     testImplementation("org.hamcrest:hamcrest:3.0")
 
-    implementation("com.helger.schematron:ph-schematron-parent-pom:9.1.1")
-    implementation("com.helger.commons:ph-io:12.1.3")
+    implementation("com.helger.schematron:ph-schematron-parent-pom:9.2.0")
+    implementation("com.helger.commons:ph-io:12.3.2")
     // implementation("com.helger.commons:ph-commons:12.0.3")
     // implementation("com.helger.commons:ph-xml:12.0.3")
-    implementation("com.helger.schematron:ph-schematron-api:9.1.1")
-    implementation("com.helger.schematron:ph-schematron-xslt:9.1.1")
-    implementation("com.helger.schematron:ph-schematron-pure:9.1.1")
-    implementation("com.helger.schematron:ph-schematron-schxslt:9.1.1")
+    implementation("com.helger.schematron:ph-schematron-api:9.2.0")
+    implementation("com.helger.schematron:ph-schematron-xslt:9.2.0")
+    implementation("com.helger.schematron:ph-schematron-pure:9.2.0")
+    implementation("com.helger.schematron:ph-schematron-schxslt:9.2.0")
 }
 
 // Java Toolchain Configuration - Use JDK with JavaFX included
