@@ -169,7 +169,9 @@ class FavoritesActivityPanelTest {
             return null;
         });
         WaitForAsyncUtils.waitForFxEvents();
-        assertEquals(1, host.lookupAll(".fxt-favmgr").size(),
+        // lookupAll must run on the FX thread (scene graph may still be mutating)
+        int managerCount = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.lookupAll(".fxt-favmgr").size());
+        assertEquals(1, managerCount,
                 "the manager view must open exactly once in the editor area");
     }
 }

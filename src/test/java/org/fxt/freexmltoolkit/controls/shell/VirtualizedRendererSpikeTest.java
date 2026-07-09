@@ -105,10 +105,12 @@ class VirtualizedRendererSpikeTest {
     void aRowCanHostAnEmbeddedGridWithoutBreakingVirtualization() {
         WaitForAsyncUtils.waitForFxEvents();
         // Find a visible repeating-group cell and confirm it rendered an embedded table.
-        boolean foundEmbeddedGrid = tree.lookupAll(".tree-cell").stream()
-                .filter(n -> n instanceof SpikeCell)
-                .map(n -> (SpikeCell) n)
-                .anyMatch(c -> c.getGraphic() instanceof TableView);
+        // lookupAll must run on the FX thread (scene graph may still be mutating)
+        boolean foundEmbeddedGrid = WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> tree.lookupAll(".tree-cell").stream()
+                        .filter(n -> n instanceof SpikeCell)
+                        .map(n -> (SpikeCell) n)
+                        .anyMatch(c -> c.getGraphic() instanceof TableView));
         assertTrue(foundEmbeddedGrid,
                 "expected at least one repeating-group row to host an embedded grid");
         // Virtualization still holds with composite cells present.

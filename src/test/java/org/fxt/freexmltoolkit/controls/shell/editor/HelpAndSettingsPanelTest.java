@@ -42,11 +42,12 @@ class HelpAndSettingsPanelTest {
     @Test
     void helpExposesCheckForUpdatesAndHidesFundsXmlByDefault() {
         WaitForAsyncUtils.waitForFxEvents();
-        boolean hasUpdate = help.lookupAll(".button").stream()
-                .anyMatch(n -> n instanceof javafx.scene.control.Button b && "Check for Updates".equals(b.getText()));
+        // lookupAll must run on the FX thread (scene graph may still be mutating)
+        boolean hasUpdate = WaitForAsyncUtils.waitForAsyncFx(2000, () -> help.lookupAll(".button").stream()
+                .anyMatch(n -> n instanceof javafx.scene.control.Button b && "Check for Updates".equals(b.getText())));
         assertTrue(hasUpdate, "Help must offer 'Check for Updates'");
-        boolean fundsShown = help.lookupAll(".label").stream()
-                .anyMatch(n -> n instanceof javafx.scene.control.Label l && "FUNDSXML".equals(l.getText()));
+        boolean fundsShown = WaitForAsyncUtils.waitForAsyncFx(2000, () -> help.lookupAll(".label").stream()
+                .anyMatch(n -> n instanceof javafx.scene.control.Label l && "FUNDSXML".equals(l.getText())));
         assertFalse(fundsShown, "FundsXML section must be hidden unless enabled in settings");
     }
 
@@ -57,10 +58,10 @@ class HelpAndSettingsPanelTest {
                 .get(org.fxt.freexmltoolkit.service.PropertiesService.class).getXmlIndentSpaces();
         assertEquals(expectedIndent, settings.getIndentValue(),
                 "indent spinner must load the persisted XML indent setting");
-        boolean hasProxyHost = settings.lookupAll(".text-field").stream()
-                .anyMatch(n -> n instanceof javafx.scene.control.TextField t && "host".equals(t.getPromptText()));
-        boolean hasSave = settings.lookupAll(".button").stream()
-                .anyMatch(n -> n instanceof javafx.scene.control.Button b && "Save Settings".equals(b.getText()));
+        boolean hasProxyHost = WaitForAsyncUtils.waitForAsyncFx(2000, () -> settings.lookupAll(".text-field").stream()
+                .anyMatch(n -> n instanceof javafx.scene.control.TextField t && "host".equals(t.getPromptText())));
+        boolean hasSave = WaitForAsyncUtils.waitForAsyncFx(2000, () -> settings.lookupAll(".button").stream()
+                .anyMatch(n -> n instanceof javafx.scene.control.Button b && "Save Settings".equals(b.getText())));
         assertTrue(hasProxyHost, "proxy host field must be present");
         assertTrue(hasSave, "'Save Settings' button must be present");
     }

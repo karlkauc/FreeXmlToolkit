@@ -41,7 +41,10 @@ class UnifiedShellIntegrationTest {
 
         assertNotNull(root.lookup(".fxt-shell"), "Unified shell root must render in the full app");
         assertNotNull(root.lookup(".fxt-activity-bar"), "Activity bar must render");
-        assertFalse(root.lookupAll(".fxt-activity-button").isEmpty(), "activity buttons must render");
+        // lookupAll must run on the FX thread (scene graph may still be mutating)
+        assertFalse(WaitForAsyncUtils.waitForAsyncFx(2000,
+                        () -> root.lookupAll(".fxt-activity-button").isEmpty()),
+                "activity buttons must render");
     }
 
     @Test

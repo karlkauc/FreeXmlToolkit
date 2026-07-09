@@ -67,16 +67,17 @@ class TransformPanelRedesignTest {
     @Test
     void outputMethodSegmentsCoverAllSixChoices() {
         WaitForAsyncUtils.waitForFxEvents();
-        var segments = panel.lookupAll(".fxt-seg").stream()
+        // lookupAll must run on the FX thread (scene graph may still be mutating)
+        var segments = WaitForAsyncUtils.waitForAsyncFx(2000, () -> panel.lookupAll(".fxt-seg").stream()
                 .filter(n -> n instanceof javafx.scene.control.ToggleButton)
                 .map(n -> ((javafx.scene.control.ToggleButton) n).getText())
-                .toList();
+                .toList());
         assertTrue(segments.containsAll(java.util.List.of("Auto", "XML", "HTML", "XHTML", "Text", "JSON")),
                 "the OUTPUT METHOD control must keep all six format choices, was: " + segments);
         // Default: Auto selected.
-        boolean autoSelected = panel.lookupAll(".fxt-seg").stream()
+        boolean autoSelected = WaitForAsyncUtils.waitForAsyncFx(2000, () -> panel.lookupAll(".fxt-seg").stream()
                 .anyMatch(n -> n instanceof javafx.scene.control.ToggleButton t
-                        && "Auto".equals(t.getText()) && t.isSelected());
+                        && "Auto".equals(t.getText()) && t.isSelected()));
         assertTrue(autoSelected, "Auto must be the default output method");
     }
 
@@ -112,11 +113,11 @@ class TransformPanelRedesignTest {
     @Test
     void mockupSectionsArePresent() {
         WaitForAsyncUtils.waitForFxEvents();
-        var sectionLabels = panel.lookupAll(".fxt-sp-section-header").stream()
+        var sectionLabels = WaitForAsyncUtils.waitForAsyncFx(2000, () -> panel.lookupAll(".fxt-sp-section-header").stream()
                 .flatMap(h -> h.lookupAll(".label").stream())
                 .filter(n -> n instanceof javafx.scene.control.Label)
                 .map(n -> ((javafx.scene.control.Label) n).getText())
-                .toList();
+                .toList());
         assertTrue(sectionLabels.containsAll(java.util.List.of(
                         "STYLESHEET", "INPUT", "OUTPUT METHOD", "PARAMETERS", "XPATH", "XQUERY")),
                 "the mockup sections must exist, was: " + sectionLabels);

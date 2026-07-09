@@ -51,8 +51,9 @@ class InspectorXmlOtherNodeTest {
             return null;
         });
         WaitForAsyncUtils.waitForFxEvents();
-        XmlGridView grid = (XmlGridView) host.lookupAll("*").stream()
-                .filter(n -> n instanceof XmlGridView).findFirst().orElseThrow();
+        // lookupAll must run on the FX thread (scene graph may still be mutating)
+        XmlGridView grid = WaitForAsyncUtils.waitForAsyncFx(2000, () -> (XmlGridView) host.lookupAll("*").stream()
+                .filter(n -> n instanceof XmlGridView).findFirst().orElseThrow());
 
         // Comment -> CONTENT section, populated; namespace/value sections hidden.
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {

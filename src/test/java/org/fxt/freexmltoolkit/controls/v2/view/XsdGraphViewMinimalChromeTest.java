@@ -56,11 +56,14 @@ class XsdGraphViewMinimalChromeTest {
     }
 
     private boolean hasButton(String text) {
-        for (Node n : graph.lookupAll(".button")) {
-            if (n instanceof Button b && text.equals(b.getText())) {
-                return true;
+        // lookupAll must run on the FX thread (scene graph may still be mutating)
+        return WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            for (Node n : graph.lookupAll(".button")) {
+                if (n instanceof Button b && text.equals(b.getText())) {
+                    return true;
+                }
             }
-        }
-        return false;
+            return false;
+        });
     }
 }

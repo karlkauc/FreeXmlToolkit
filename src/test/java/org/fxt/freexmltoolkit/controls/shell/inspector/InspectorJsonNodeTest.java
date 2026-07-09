@@ -55,8 +55,9 @@ class InspectorJsonNodeTest {
         WaitForAsyncUtils.waitForFxEvents();
         Thread.sleep(300);
 
-        JsonTreeView tree = (JsonTreeView) host.lookupAll("*").stream()
-                .filter(n -> n instanceof JsonTreeView).findFirst().orElseThrow();
+        // lookupAll must run on the FX thread (scene graph may still be mutating)
+        JsonTreeView tree = WaitForAsyncUtils.waitForAsyncFx(2000, () -> (JsonTreeView) host.lookupAll("*").stream()
+                .filter(n -> n instanceof JsonTreeView).findFirst().orElseThrow());
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
             JsonObject root = (JsonObject) tree.getDocument().getRootValue();
             JsonNode name = root.getProperty("name");

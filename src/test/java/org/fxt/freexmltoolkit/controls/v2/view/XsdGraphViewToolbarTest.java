@@ -45,11 +45,12 @@ class XsdGraphViewToolbarTest {
     void toolbarHasNoDevLabelButKeepsZoomAndFit() throws Exception {
         WaitForAsyncUtils.waitForFxEvents();
 
-        boolean hasDevLabel = graph.lookupAll(".label").stream()
+        // lookupAll must run on the FX thread (scene graph may still be mutating)
+        boolean hasDevLabel = WaitForAsyncUtils.waitForAsyncFx(2000, () -> graph.lookupAll(".label").stream()
                 .filter(n -> n instanceof Label)
                 .map(n -> ((Label) n).getText())
                 .filter(Objects::nonNull)
-                .anyMatch(t -> t.contains("XSD Editor V2") || t.contains("Graphical View"));
+                .anyMatch(t -> t.contains("XSD Editor V2") || t.contains("Graphical View")));
         assertFalse(hasDevLabel, "toolbar must not show a dev-ish 'XSD Editor V2 - Graphical View' label");
 
         boolean hasFit = hasButton("Fit to View");
@@ -60,11 +61,13 @@ class XsdGraphViewToolbarTest {
     }
 
     private boolean hasButton(String text) {
-        for (Node n : graph.lookupAll(".button")) {
-            if (n instanceof Button b && text.equals(b.getText())) {
-                return true;
+        return WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            for (Node n : graph.lookupAll(".button")) {
+                if (n instanceof Button b && text.equals(b.getText())) {
+                    return true;
+                }
             }
-        }
-        return false;
+            return false;
+        });
     }
 }

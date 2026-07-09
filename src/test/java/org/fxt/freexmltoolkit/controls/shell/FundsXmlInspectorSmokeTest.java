@@ -60,8 +60,10 @@ class FundsXmlInspectorSmokeTest {
         WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> root.lookup(".fxt-shell") != null);
         shell = (UnifiedShellView) root.lookup(".fxt-shell");
         EditorHost host = shell.getEditorHost();
-        InspectorPanel inspector = (InspectorPanel) root.lookupAll("*").stream()
-                .filter(n -> n instanceof InspectorPanel).findFirst().orElseThrow();
+        // lookupAll must run on the FX thread (scene graph may still be mutating)
+        InspectorPanel inspector = WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> (InspectorPanel) root.lookupAll("*").stream()
+                        .filter(n -> n instanceof InspectorPanel).findFirst().orElseThrow());
 
         // 1) Open the real FundsXML 3.0.6 instance and bind its XSD.
         File xml = new File("src/test/resources/FundsXML_306.xml");
@@ -77,8 +79,9 @@ class FundsXmlInspectorSmokeTest {
         onFx(() -> host.setActiveViewMode(ViewMode.GRAPHIC));
         settle();
         Thread.sleep(500);
-        XmlGridView grid = (XmlGridView) root.lookupAll("*").stream()
-                .filter(n -> n instanceof XmlGridView).findFirst().orElseThrow();
+        XmlGridView grid = WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> (XmlGridView) root.lookupAll("*").stream()
+                        .filter(n -> n instanceof XmlGridView).findFirst().orElseThrow());
         onFx(() -> {
             XmlElement ds = grid.getContext().getDocument().getRootElement()
                     .getChildElements("DataSupplier").get(0);
@@ -130,10 +133,11 @@ class FundsXmlInspectorSmokeTest {
         onFx(() -> host.setActiveViewMode(ViewMode.TREE));
         settle();
         Thread.sleep(300);
-        var tree = (org.fxt.freexmltoolkit.controls.shell.schema.XmlInstanceTreeView)
-                root.lookupAll("*").stream()
-                        .filter(n -> n instanceof org.fxt.freexmltoolkit.controls.shell.schema.XmlInstanceTreeView)
-                        .findFirst().orElseThrow();
+        var tree = WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> (org.fxt.freexmltoolkit.controls.shell.schema.XmlInstanceTreeView)
+                        root.lookupAll("*").stream()
+                                .filter(n -> n instanceof org.fxt.freexmltoolkit.controls.shell.schema.XmlInstanceTreeView)
+                                .findFirst().orElseThrow());
         onFx(() -> tree.getSelectionModel().select(tree.getRoot().getChildren().get(0)));
         WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS,
                 () -> inspector.getNodeNameText() != null && !inspector.getNodeNameText().isBlank());

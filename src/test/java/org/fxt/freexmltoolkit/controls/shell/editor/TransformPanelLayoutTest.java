@@ -76,12 +76,14 @@ class TransformPanelLayoutTest {
     @Test
     void controlsAreReachableViaScrollingInAShortWindow() {
         WaitForAsyncUtils.waitForFxEvents();
-        boolean transformInScrollPane = panel.lookupAll(".scroll-pane").stream()
-                .anyMatch(sp -> sp instanceof javafx.scene.control.ScrollPane scroll
-                        && scroll.getContent() != null
-                        && scroll.getContent().lookupAll(".button").stream()
-                        .anyMatch(n -> n instanceof javafx.scene.control.Button b
-                                && "Run Transform".equals(b.getText())));
+        // lookupAll must run on the FX thread (scene graph may still be mutating)
+        boolean transformInScrollPane = WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> panel.lookupAll(".scroll-pane").stream()
+                        .anyMatch(sp -> sp instanceof javafx.scene.control.ScrollPane scroll
+                                && scroll.getContent() != null
+                                && scroll.getContent().lookupAll(".button").stream()
+                                .anyMatch(n -> n instanceof javafx.scene.control.Button b
+                                        && "Run Transform".equals(b.getText()))));
         assertTrue(transformInScrollPane,
                 "the panel controls (incl. Run Transform) must sit in a ScrollPane so they stay reachable");
     }

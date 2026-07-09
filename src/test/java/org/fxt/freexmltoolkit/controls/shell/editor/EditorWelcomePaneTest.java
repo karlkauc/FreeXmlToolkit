@@ -141,11 +141,14 @@ class EditorWelcomePaneTest {
     }
 
     private boolean hasLabel(String text) {
-        for (Node n : pane.lookupAll(".label")) {
-            if (n instanceof Label l && text.equals(l.getText())) {
-                return true;
+        // lookupAll must run on the FX thread (scene graph may still be mutating)
+        return WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            for (Node n : pane.lookupAll(".label")) {
+                if (n instanceof Label l && text.equals(l.getText())) {
+                    return true;
+                }
             }
-        }
-        return false;
+            return false;
+        });
     }
 }

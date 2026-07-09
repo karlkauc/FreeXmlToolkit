@@ -48,7 +48,9 @@ class UnifiedShellViewTest {
     @Test
     void activityBarRendersOneButtonPerActivity() {
         WaitForAsyncUtils.waitForFxEvents();
-        Set<javafx.scene.Node> buttons = shell.lookupAll(".fxt-activity-button");
+        // lookupAll must run on the FX thread (scene graph may still be mutating)
+        Set<javafx.scene.Node> buttons = WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> shell.lookupAll(".fxt-activity-button"));
         // FUNDSXML is conditional — only rendered when the extension is enabled.
         boolean fundsXmlEnabled =
                 org.fxt.freexmltoolkit.controls.shell.editor.FundsXmlRunner.isEnabled();
@@ -60,9 +62,10 @@ class UnifiedShellViewTest {
     @Test
     void inspectorRendersTheRequiredSections() {
         WaitForAsyncUtils.waitForFxEvents();
-        Set<String> titles = shell.lookupAll(".fxt-inspector-section").stream()
-                .map(n -> ((TitledPane) n).getText())
-                .collect(java.util.stream.Collectors.toSet());
+        Set<String> titles = WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> shell.lookupAll(".fxt-inspector-section").stream()
+                        .map(n -> ((TitledPane) n).getText())
+                        .collect(java.util.stream.Collectors.toSet()));
         // The editable inspector's flat top-level sections. XML nodes use NAMESPACE / VALUE &
         // ATTRIBUTES / XML DECLARATION / PROCESSING INSTRUCTION; XSD nodes additionally use
         // ADVANCED and SCHEMA; CONSTRAINTS is for read-only identity constraints / assertions.
@@ -155,7 +158,9 @@ class UnifiedShellViewTest {
             return null;
         });
         WaitForAsyncUtils.waitForFxEvents();
-        assertEquals(1, shell.lookupAll(".fxt-settings-page").size(),
+        int settingsPages = WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> shell.lookupAll(".fxt-settings-page").size());
+        assertEquals(1, settingsPages,
                 "re-selecting Settings must reuse the open Settings tab");
     }
 

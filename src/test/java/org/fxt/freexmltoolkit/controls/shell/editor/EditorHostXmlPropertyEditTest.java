@@ -47,8 +47,9 @@ class EditorHostXmlPropertyEditTest {
         });
         WaitForAsyncUtils.waitForFxEvents();
 
-        XmlGridView grid = (XmlGridView) host.lookupAll("*").stream()
-                .filter(n -> n instanceof XmlGridView).findFirst().orElseThrow();
+        // lookupAll must run on the FX thread (scene graph may still be mutating)
+        XmlGridView grid = WaitForAsyncUtils.waitForAsyncFx(2000, () -> (XmlGridView) host.lookupAll("*").stream()
+                .filter(n -> n instanceof XmlGridView).findFirst().orElseThrow());
         XmlElement item = WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
             XmlElement it = grid.getContext().getDocument().getRootElement().getChildElements("item").get(0);
             grid.getContext().getSelectionModel().setSelectedNode(it);

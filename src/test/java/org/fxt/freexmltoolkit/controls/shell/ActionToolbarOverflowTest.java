@@ -70,12 +70,15 @@ class ActionToolbarOverflowTest {
     @Test
     void validateOpensAToolTab() throws Exception {
         openSample();
-        int before = (int) shell.lookupAll(".tab").stream().count();
+        // lookupAll must run on the FX thread (scene graph may still be mutating)
+        int before = WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> (int) shell.lookupAll(".tab").stream().count());
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> ((Button) shell.lookup("#doc-action-validate")).fire());
         WaitForAsyncUtils.waitForFxEvents();
         WaitForAsyncUtils.sleep(1500, java.util.concurrent.TimeUnit.MILLISECONDS);
         WaitForAsyncUtils.waitForFxEvents();
-        int after = (int) shell.lookupAll(".tab").stream().count();
+        int after = WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> (int) shell.lookupAll(".tab").stream().count());
         assertTrue(after >= before, "Validate should open a Validation tool tab");
     }
 

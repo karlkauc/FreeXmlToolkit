@@ -55,8 +55,9 @@ class XmlInstanceTreeSelectionTest {
         });
         WaitForAsyncUtils.waitForFxEvents();
 
-        XmlInstanceTreeView tree = (XmlInstanceTreeView) host.lookupAll("*").stream()
-                .filter(n -> n instanceof XmlInstanceTreeView).findFirst().orElseThrow();
+        // lookupAll must run on the FX thread (scene graph may still be mutating)
+        XmlInstanceTreeView tree = WaitForAsyncUtils.waitForAsyncFx(2000, () -> (XmlInstanceTreeView) host.lookupAll("*").stream()
+                .filter(n -> n instanceof XmlInstanceTreeView).findFirst().orElseThrow());
 
         // Select the <child> element in the tree (root element -> first child).
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {

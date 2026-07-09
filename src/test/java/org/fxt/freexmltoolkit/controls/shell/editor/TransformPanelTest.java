@@ -130,10 +130,11 @@ class TransformPanelTest {
     @Test
     void exposesSaveAndSavedQueryControls() {
         WaitForAsyncUtils.waitForFxEvents();
-        boolean hasSave = panel.lookupAll(".button").stream()
-                .anyMatch(n -> n instanceof javafx.scene.control.Button b && "Save Query".equals(b.getText()));
-        boolean hasSaved = panel.lookupAll(".menu-button").stream()
-                .anyMatch(n -> n instanceof javafx.scene.control.MenuButton b && "Saved".equals(b.getText()));
+        // lookupAll must run on the FX thread (scene graph may still be mutating)
+        boolean hasSave = WaitForAsyncUtils.waitForAsyncFx(2000, () -> panel.lookupAll(".button").stream()
+                .anyMatch(n -> n instanceof javafx.scene.control.Button b && "Save Query".equals(b.getText())));
+        boolean hasSaved = WaitForAsyncUtils.waitForAsyncFx(2000, () -> panel.lookupAll(".menu-button").stream()
+                .anyMatch(n -> n instanceof javafx.scene.control.MenuButton b && "Saved".equals(b.getText())));
         assertTrue(hasSave, "panel must offer a 'Save Query' action");
         assertTrue(hasSaved, "panel must offer a 'Saved' queries menu");
     }

@@ -88,8 +88,10 @@ class CollapsibleSidePanelsTest {
     @Test
     void collapseChevronsExistOnBothSides() throws Exception {
         openSampleAndNormalize();
-        long chevrons = shell.lookupAll(".fxt-panel-collapse").stream()
-                .filter(Node::isVisible).count();
+        // lookupAll must run on the FX thread (scene graph may still be mutating)
+        long chevrons = WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> shell.lookupAll(".fxt-panel-collapse").stream()
+                        .filter(Node::isVisible).count());
         assertTrue(chevrons >= 2, "each open panel carries a collapse chevron");
     }
 

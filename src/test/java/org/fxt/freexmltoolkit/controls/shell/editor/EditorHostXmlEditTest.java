@@ -49,8 +49,9 @@ class EditorHostXmlEditTest {
         WaitForAsyncUtils.waitForFxEvents();
 
         // Select the <item> element via the grid's context (as a row click would).
-        XmlGridView grid = (XmlGridView) host.lookupAll("*").stream()
-                .filter(n -> n instanceof XmlGridView).findFirst().orElseThrow();
+        // lookupAll must run on the FX thread (scene graph may still be mutating)
+        XmlGridView grid = WaitForAsyncUtils.waitForAsyncFx(2000, () -> (XmlGridView) host.lookupAll("*").stream()
+                .filter(n -> n instanceof XmlGridView).findFirst().orElseThrow());
         XmlElement item = WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
             XmlElement root = grid.getContext().getDocument().getRootElement();
             XmlElement it = root.getChildElements("item").get(0);
@@ -86,8 +87,8 @@ class EditorHostXmlEditTest {
         });
         WaitForAsyncUtils.waitForFxEvents();
 
-        XmlGridView grid = (XmlGridView) host.lookupAll("*").stream()
-                .filter(n -> n instanceof XmlGridView).findFirst().orElseThrow();
+        XmlGridView grid = WaitForAsyncUtils.waitForAsyncFx(2000, () -> (XmlGridView) host.lookupAll("*").stream()
+                .filter(n -> n instanceof XmlGridView).findFirst().orElseThrow());
         XmlElement template = WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
             XmlElement t = grid.getContext().getDocument().getRootElement().getChildElements().get(0);
             grid.getContext().getSelectionModel().setSelectedNode(t);

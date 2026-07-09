@@ -133,9 +133,10 @@ class UnifiedShellValidateTest {
     }
 
     private ValidationPanel validationPanel() {
-        return shell.lookupAll("*").stream()
+        // lookupAll must run on the FX thread (scene graph may still be mutating)
+        return WaitForAsyncUtils.waitForAsyncFx(2000, () -> shell.lookupAll("*").stream()
                 .filter(n -> n instanceof ValidationPanel)
                 .map(n -> (ValidationPanel) n)
-                .findFirst().orElse(null);
+                .findFirst().orElse(null));
     }
 }

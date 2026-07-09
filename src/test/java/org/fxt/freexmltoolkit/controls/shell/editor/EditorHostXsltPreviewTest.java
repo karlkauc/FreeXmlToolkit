@@ -81,9 +81,10 @@ class EditorHostXsltPreviewTest {
                 () -> host.openBatchTransform(List.of(a.toFile(), b.toFile()), xslt.toFile()));
         WaitForAsyncUtils.waitForFxEvents();
 
-        BatchTransformView view = (BatchTransformView) host.lookupAll("*").stream()
+        // lookupAll must run on the FX thread (scene graph may still be mutating)
+        BatchTransformView view = WaitForAsyncUtils.waitForAsyncFx(2000, () -> (BatchTransformView) host.lookupAll("*").stream()
                 .filter(n -> n instanceof BatchTransformView)
-                .findFirst().orElse(null);
+                .findFirst().orElse(null));
         assertNotNull(view, "a batch transform tool tab must be opened");
         assertEquals(2, view.getFileCount(), "both selected files must be pre-loaded into the batch");
     }

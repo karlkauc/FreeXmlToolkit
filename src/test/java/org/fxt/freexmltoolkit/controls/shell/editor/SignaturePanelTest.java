@@ -133,8 +133,9 @@ class SignaturePanelTest {
     @Test
     void exposesTheDetailedValidationAction() {
         WaitForAsyncUtils.waitForFxEvents();
-        boolean present = panel.lookupAll(".button").stream()
-                .anyMatch(n -> n instanceof Button b && "Validate (Details)".equals(b.getText()));
+        // lookupAll must run on the FX thread (scene graph may still be mutating)
+        boolean present = WaitForAsyncUtils.waitForAsyncFx(2000, () -> panel.lookupAll(".button").stream()
+                .anyMatch(n -> n instanceof Button b && "Validate (Details)".equals(b.getText())));
         assertTrue(present, "panel must offer the detailed-validation action");
     }
 
