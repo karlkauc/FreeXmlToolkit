@@ -172,8 +172,22 @@ class ShellDocScreenshotGenerator {
             onFx(shell::toggleQueryConsole);
             settle(600);
             try {
-                // Focus the visible XPath input and type '/' to open the completion popup.
+                // Run a query first so the RESULTS pane shows syntax-highlighted XML
+                // (the sample document uses a default namespace, hence the XPath 3.0
+                // wildcard-namespace form). Escape closes the completion popup that
+                // opens while typing, so Ctrl+Enter reaches the run filter.
                 Node xpathInput = robot.lookup(".fxt-query-input").match(Node::isVisible).query();
+                robot.clickOn(xpathInput);
+                settle(200);
+                robot.write("//*:menuItem");
+                robot.push(javafx.scene.input.KeyCode.ESCAPE);
+                robot.push(javafx.scene.input.KeyCode.CONTROL, javafx.scene.input.KeyCode.ENTER);
+                org.fxmisc.richtext.CodeArea results =
+                        robot.lookup(".fxt-query-results").queryAs(org.fxmisc.richtext.CodeArea.class);
+                WaitForAsyncUtils.waitFor(8, TimeUnit.SECONDS,
+                        () -> results.getText().contains("<menuItem"));
+                settle(300);
+                // Then type '/' (appending to the expression) to open the completion popup.
                 robot.clickOn(xpathInput);
                 settle(200);
                 robot.write("/");
