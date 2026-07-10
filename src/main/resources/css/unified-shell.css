@@ -1485,6 +1485,16 @@
     -fx-text-fill: -fxt-text-primary;
 }
 
+/* Source badge (XSD / Schematron / …) on each problem row */
+.fxt-problems-source {
+    -fx-font-size: 10.5px;
+    -fx-font-weight: 600;
+    -fx-text-fill: -fxt-text-muted;
+    -fx-background-color: -fxt-bg-surface-2;
+    -fx-background-radius: 8px;
+    -fx-padding: 1px 7px;
+}
+
 .fxt-problems-loc {
     -fx-font-family: "JetBrains Mono", "Consolas", monospace;
     -fx-font-size: 11.5px;

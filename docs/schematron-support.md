@@ -1,6 +1,6 @@
 # Schematron Validation
 
-> **Last Updated:** May 2026 | **Version:** 1.10.0
+> **Last Updated:** July 2026 | **Version:** 1.10.0
 
 > **Note (Phase 10c):** The standalone *Schematron* editor tab has been retired.
 > Schematron editing and validation — rule check, templates, tester, visual
@@ -104,6 +104,7 @@ Test XPath expressions against sample XML:
 ## Schematron Tools in the Unified Shell
 
 > **Updated June 2026** - Added **Check Rules** and **Documentation** to the Schematron tools.
+> **Updated July 2026** - Added the detailed **Validation Report**.
 
 When you work with a Schematron file in the [Unified Shell](unified-shell.md), the
 **Validation** panel offers a set of Schematron tools:
@@ -115,6 +116,7 @@ When you work with a Schematron file in the [Unified Shell](unified-shell.md), t
 | **Rule Builder** | Build rules visually |
 | **Check Rules** | Inspect the Schematron file itself for problems |
 | **Documentation** | Generate documentation for the Schematron file |
+| **Validation Report** | Open a detailed report of the last Schematron validation run |
 
 ### Check Rules
 
@@ -134,6 +136,22 @@ grouped into categories:
 
 **Documentation** opens the Schematron documentation generator, which produces readable
 documentation describing the patterns, rules, and assertions in your Schematron file.
+
+### Validation Report
+
+> **New in July 2026**
+
+After validating an XML document that has a Schematron file bound, **Validation Report**
+(in the ⋮ menu under *Schematron Tools*, or via the report button in the Validation panel's
+PROBLEMS header) opens a **Schematron Report** tool tab. It shows the document name, the
+Schematron file, an error/warning summary, and a table with one row per finding - severity,
+line, message, the failed rule/test expression, and the failing node's XPath context.
+Clicking a row jumps to that line in the editor.
+
+The report can be exported with **Save Report (HTML)** (a self-contained HTML file) or
+**Save SVRL (XML)** (the raw SVRL result of the run). See
+[Detailed Schematron Report](unified-shell.md#detailed-schematron-report) in the Unified
+Shell guide.
 
 ---
 
@@ -239,6 +257,12 @@ Use Schematron validation directly in the XML Editor:
 2. In the validation panel, select your Schematron file
 3. Errors are highlighted in the editor
 4. Click errors to jump to the problem location
+
+In the PROBLEMS panel below the editor, Schematron findings carry a **Schematron**
+source badge (so they are easy to tell apart from XSD errors), and hovering a row shows
+the full message together with the failed test expression and the failing node's XPath
+*(new in July 2026)*. For a complete overview of a run, open the
+[Validation Report](#validation-report).
 
 ---
 

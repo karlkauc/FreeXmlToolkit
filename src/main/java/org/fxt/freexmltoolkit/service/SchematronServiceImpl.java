@@ -191,7 +191,12 @@ public class SchematronServiceImpl implements SchematronService {
     }
 
     private List<SchematronValidationError> performValidation(Source xmlSource, File schematronFile) throws SchematronLoadException {
+        return performValidationWithSvrl(xmlSource, schematronFile).errors();
+    }
+
+    private SchematronReport performValidationWithSvrl(Source xmlSource, File schematronFile) throws SchematronLoadException {
         List<SchematronValidationError> validationEvents = new ArrayList<>();
+        String svrl = null;
         try {
             XsltExecutable validationXslt = compileSchematron(schematronFile);
 
@@ -204,6 +209,7 @@ public class SchematronServiceImpl implements SchematronService {
 
             String svrlResult = sw.toString();
             if (!svrlResult.isEmpty()) {
+                svrl = svrlResult;
                 DocumentBuilderFactory factory = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureDocumentBuilderFactory();
                 factory.setNamespaceAware(true);
                 Document svrlDocument = factory.newDocumentBuilder().parse(new InputSource(new StringReader(svrlResult)));
@@ -218,7 +224,29 @@ public class SchematronServiceImpl implements SchematronService {
             validationEvents.add(new SchematronValidationError(
                     "Validation failed: " + e.getMessage(), "validation-error", null, 0, 0, "fatal"));
         }
-        return validationEvents;
+        return new SchematronReport(validationEvents, svrl);
+    }
+
+    @Override
+    public SchematronReport validateXmlWithSvrl(String xmlContent, File schematronFile)
+            throws SchematronLoadException {
+        if (xmlContent == null || xmlContent.trim().isEmpty()) {
+            return new SchematronReport(List.of(new SchematronValidationError(
+                    "XML content is null or empty", null, null, 0, 0, "error")), null);
+        }
+        if (schematronFile == null || !schematronFile.exists()) {
+            throw new SchematronLoadException("Schematron file is null or does not exist: "
+                    + (schematronFile != null ? schematronFile.getAbsolutePath() : "null"));
+        }
+        try {
+            return performValidationWithSvrl(new StreamSource(new StringReader(xmlContent)), schematronFile);
+        } catch (SchematronLoadException e) {
+            throw e;
+        } catch (Exception e) {
+            logger.error("Error during Schematron validation", e);
+            return new SchematronReport(List.of(new SchematronValidationError(
+                    "Validation error: " + e.getMessage(), null, null, 0, 0, "error")), null);
+        }
     }
 
     private void parseSvrlReport(Document svrlDocument, List<SchematronValidationError> validationEvents) {

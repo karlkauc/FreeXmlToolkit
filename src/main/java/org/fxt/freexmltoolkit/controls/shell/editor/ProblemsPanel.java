@@ -126,6 +126,24 @@ public class ProblemsPanel extends VBox {
         return icon;
     }
 
+    /**
+     * A tooltip with the finding's full message plus — for Schematron problems —
+     * the failed rule/test expression and the failing node's XPath context.
+     */
+    static javafx.scene.control.Tooltip detailTooltip(ValidationProblem item) {
+        StringBuilder text = new StringBuilder(item.message() == null ? "" : item.message());
+        if (item.ruleId() != null && !item.ruleId().isBlank()) {
+            text.append("\n\nRule / Test: ").append(item.ruleId());
+        }
+        if (item.context() != null && !item.context().isBlank()) {
+            text.append("\nContext: ").append(item.context());
+        }
+        javafx.scene.control.Tooltip tooltip = new javafx.scene.control.Tooltip(text.toString());
+        tooltip.setWrapText(true);
+        tooltip.setMaxWidth(640);
+        return tooltip;
+    }
+
     /** A problem row: severity icon · message (grows, ellipsis) · "file : line" in mono. */
     private final class ProblemRowCell extends ListCell<ValidationProblem> {
         private ProblemRowCell() {
@@ -146,6 +164,11 @@ public class ProblemsPanel extends VBox {
                     ? "bi-exclamation-triangle-fill" : "bi-x-circle", 15);
             severityIcon.getStyleClass().add(warning ? "sev-warning" : "sev-error");
 
+            // Source badge (XSD / Schematron / Well-formed / …) so mixed result
+            // lists stay attributable at a glance.
+            Label source = new Label(item.source());
+            source.getStyleClass().add("fxt-problems-source");
+
             Label message = new Label(item.message());
             message.getStyleClass().add("fxt-problems-msg");
             message.setMaxWidth(Double.MAX_VALUE);
@@ -156,10 +179,11 @@ public class ProblemsPanel extends VBox {
             Label location = new Label(item.line() > 0 ? name + " : " + item.line() : name);
             location.getStyleClass().add("fxt-problems-loc");
 
-            HBox row = new HBox(10, severityIcon, message, location);
+            HBox row = new HBox(10, severityIcon, source, message, location);
             row.setAlignment(Pos.CENTER_LEFT);
             setText(null);
             setGraphic(row);
+            setTooltip(detailTooltip(item));
         }
     }
 }

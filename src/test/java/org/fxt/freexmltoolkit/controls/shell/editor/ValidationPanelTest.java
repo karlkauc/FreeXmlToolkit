@@ -101,6 +101,47 @@ class ValidationPanelTest {
     }
 
     @Test
+    void schematronReportButtonOpensTheDetailedReportTab(@TempDir Path tmp) throws Exception {
+        Path sch = tmp.resolve("rules.sch");
+        Files.writeString(sch, SCHEMATRON);
+        Path xml = tmp.resolve("doc.xml");
+        Files.writeString(xml, "<root/>");
+
+        var reportButton = (javafx.scene.control.Button) panel.lookup("#validation-schematron-report");
+        assertNotNull(reportButton, "the PROBLEMS header must offer the Schematron report button");
+        assertTrue(reportButton.isDisabled(), "the report button must be disabled before any run");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("root")).orElse(false));
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.setActiveSchematron(sch.toFile());
+            panel.revalidate();
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS, () -> !reportButton.isDisabled());
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.openSchematronReport();
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+
+        var view = WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            javafx.scene.Node node = host.lookup("#schematron-report-table");
+            javafx.scene.Node current = node;
+            while (current != null && !(current instanceof SchematronReportView)) {
+                current = current.getParent();
+            }
+            return (SchematronReportView) current;
+        });
+        assertNotNull(view, "the detailed report must open as a tool tab");
+        assertTrue(view.getFindingCount() > 0, "the report must list the failed assertion");
+        assertEquals("doc.xml", view.getData().documentName());
+        assertNotNull(view.getData().svrl(), "the raw SVRL must be available for saving");
+    }
+
+    @Test
     void batchValidationPopulatesResults(@TempDir Path tmp) throws Exception {
         Path sch = tmp.resolve("rules.sch");
         Files.writeString(sch, SCHEMATRON);

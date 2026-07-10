@@ -594,9 +594,46 @@ Problems appear in two places:
   validation finds problems, shows error/warning counts in its header, and can be collapsed
   to just the header. Each row shows the message and the file/line in a monospaced label.
 
+*(updated July 2026)* Every row in the PROBLEMS panel below the editor now carries a
+**source badge** - **XSD**, **Schematron**, **Well-formed**, or **JSON Schema** - so when a
+run combines several checks you can tell at a glance where each problem comes from.
+Hovering a **Schematron** row shows a **tooltip** with the full message, the failed
+rule/test expression, and the XPath of the failing node.
+
 Selecting a problem in either list jumps to its line in the editor. This works for
 **Schematron problems too**: the failing rule's context node is resolved back to its
 line in the XML, so a click navigates straight to the offending element.
+
+### Detailed Schematron Report
+
+> **New in July 2026** - a full report of the last Schematron run, opened as a tool tab
+> and saveable as HTML or SVRL.
+
+After validating a document that has a Schematron file bound, open the report in
+either of two ways:
+
+- Click the **report button** (journal icon, tooltip *"Open detailed Schematron report"*)
+  in the header of the Validation panel's **PROBLEMS** section.
+- Pick **Schematron Tools → Validation Report** from the ⋮ menu.
+
+The report opens as a **Schematron Report** tool tab showing the document name, the
+Schematron file, a severity summary (errors / warnings), and a table with one row per
+finding:
+
+| Column | Content |
+|--------|---------|
+| **Severity** | Error or Warning |
+| **Line** | Line in the XML document |
+| **Message** | The rule's message text |
+| **Rule / Test** | The Schematron test expression that failed |
+| **Context (XPath)** | The XPath of the failing node |
+
+**Click a row** to jump straight to that line in the editor. Two buttons export the
+report:
+
+- **Save Report (HTML)** - a self-contained HTML file you can archive or share.
+- **Save SVRL (XML)** - the raw SVRL output (Schematron Validation Report Language)
+  of the run, for further processing by other tools.
 
 ### The ⋮ Menu
 
@@ -609,6 +646,7 @@ Secondary tools live in the panel header's ⋮ (overflow) menu:
 | **Schematron Tools → Rule Builder** | Build rules visually |
 | **Schematron Tools → Check Rules** | Run an error detector over the Schematron itself and show a categorised issue table |
 | **Schematron Tools → Documentation** | Open the Schematron documentation generator |
+| **Schematron Tools → Validation Report** | Open the [detailed Schematron report](#detailed-schematron-report) of the last validation run *(new in July 2026)* |
 | **JSON Schema…** | Pick a JSON Schema for validating JSON documents |
 | **Validate against FundsXML** | (When the FundsXML extension is enabled) validate against the FundsXML schema |
 | **Validate while typing** | Toggle continuous (debounced) validation |

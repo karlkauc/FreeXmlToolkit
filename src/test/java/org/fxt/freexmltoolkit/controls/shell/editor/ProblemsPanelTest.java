@@ -74,6 +74,46 @@ class ProblemsPanelTest {
     }
 
     @Test
+    void rowsCarryASourceBadgeAndSchematronDetailsInTheTooltip() throws Exception {
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            // The surrounding column gives the EditorHost all vertical space, which
+            // squeezes the panel to its (tiny) min height — no ListView cells would
+            // materialize. Reserve real height so the VirtualFlow renders rows.
+            panel.setMinHeight(240);
+            host.setActiveProblems(List.of(
+                    new ValidationProblem("XSD", "error", 3, "broken element"),
+                    new ValidationProblem("Schematron", "error", 7, "NAV must be positive",
+                            "number(Nav) > 0", "/Funds/Fund[1]/Nav")));
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+
+        // Virtualized list cells materialize during layout — poll until the badges
+        // of both rows exist instead of asserting immediately.
+        WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS, () ->
+                WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+                    var texts = panel.lookupAll(".fxt-problems-source").stream()
+                            .map(n -> ((Label) n).getText())
+                            .toList();
+                    return texts.contains("XSD") && texts.contains("Schematron");
+                }));
+    }
+
+    @Test
+    void detailTooltipIncludesRuleAndContext() {
+        var tooltip = ProblemsPanel.detailTooltip(new ValidationProblem(
+                "Schematron", "error", 7, "NAV must be positive",
+                "number(Nav) > 0", "/Funds/Fund[1]/Nav"));
+        assertTrue(tooltip.getText().contains("NAV must be positive"));
+        assertTrue(tooltip.getText().contains("Rule / Test: number(Nav) > 0"));
+        assertTrue(tooltip.getText().contains("Context: /Funds/Fund[1]/Nav"));
+
+        var plain = ProblemsPanel.detailTooltip(new ValidationProblem("XSD", "error", 3, "broken"));
+        assertFalse(plain.getText().contains("Rule / Test"),
+                "problems without details must not render empty detail lines");
+    }
+
+    @Test
     void selectingAProblemJumpsToItsLine(@TempDir Path tmp) throws Exception {
         Path xml = tmp.resolve("doc.xml");
         Files.writeString(xml, "<root>\n<a/>\n<b/>\n<c/>\n</root>");

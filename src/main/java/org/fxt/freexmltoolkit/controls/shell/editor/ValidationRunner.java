@@ -55,7 +55,29 @@ public final class ValidationRunner {
     }
 
     public static List<ValidationProblem> run(String xml, File xsd, File schematron) {
+        return runWithReport(xml, xsd, schematron, null).problems();
+    }
+
+    /**
+     * The outcome of one validation run: the merged problems plus (when a Schematron
+     * was involved) the data needed for the detailed Schematron report.
+     *
+     * @param problems         merged XSD + Schematron problems
+     * @param schematronReport detailed Schematron run data, or {@code null} when no
+     *                         Schematron was bound or its stage failed to run
+     */
+    public record RunResult(List<ValidationProblem> problems, SchematronReportData schematronReport) {
+    }
+
+    /**
+     * Validates like {@link #run(String, File, File)} but also captures the detailed
+     * Schematron report data (findings incl. rule/XPath, raw SVRL) for the report view.
+     *
+     * @param documentName display name of the validated document (for the report header)
+     */
+    public static RunResult runWithReport(String xml, File xsd, File schematron, String documentName) {
         List<ValidationProblem> problems = new ArrayList<>();
+        SchematronReportData reportData = null;
         // Without an XSD this is a well-formedness (structural) check; with one it also
         // validates against the schema. Label problems by their actual source.
         String source = xsd != null ? "XSD" : "Well-formed";
@@ -69,22 +91,28 @@ public final class ValidationRunner {
         if (schematron != null) {
             try {
                 SchematronService service = new SchematronServiceImpl();
-                List<SchematronService.SchematronValidationError> errors = service.validateXml(xml, schematron);
+                SchematronService.SchematronReport report = service.validateXmlWithSvrl(xml, schematron);
+                List<SchematronService.SchematronValidationError> errors = report.errors();
                 // SVRL carries the failing node's XPath (context) but no line number;
                 // resolve it against the document so problems navigate to their line.
                 SchematronLineResolver resolver = errors.stream().anyMatch(e -> e.lineNumber() <= 0)
                         ? new SchematronLineResolver(xml) : null;
+                List<ValidationProblem> schematronProblems = new ArrayList<>();
                 for (SchematronService.SchematronValidationError e : errors) {
                     int line = e.lineNumber() > 0 ? e.lineNumber()
                             : (resolver != null ? resolver.lineOf(e.context()) : 0);
-                    problems.add(new ValidationProblem("Schematron",
-                            e.severity() != null ? e.severity() : "error", line, e.message()));
+                    schematronProblems.add(new ValidationProblem("Schematron",
+                            e.severity() != null ? e.severity() : "error", line, e.message(),
+                            e.ruleId(), e.context()));
                 }
+                problems.addAll(schematronProblems);
+                reportData = new SchematronReportData(documentName, schematron,
+                        List.copyOf(schematronProblems), report.svrl());
             } catch (Exception ignored) {
                 // invalid/unloadable schematron — skip its stage
             }
         }
-        return problems;
+        return new RunResult(problems, reportData);
     }
 
     /**

@@ -138,4 +138,28 @@ public interface SchematronService {
             String severity
     ) {
     }
+
+    /**
+     * The full outcome of one Schematron validation: the parsed findings plus the raw
+     * SVRL report they were extracted from (useful for detailed reports/exports).
+     *
+     * @param errors the parsed failed assertions / successful reports
+     * @param svrl   the raw SVRL XML produced by the validation, or {@code null} when
+     *               the validation could not produce one
+     */
+    record SchematronReport(List<SchematronValidationError> errors, String svrl) {
+    }
+
+    /**
+     * Validates like {@link #validateXml(String, File)} but also returns the raw SVRL
+     * report. The default implementation returns the parsed errors without SVRL.
+     *
+     * @param xmlContent     the XML content to validate
+     * @param schematronFile the Schematron rules file
+     * @return the findings plus (when available) the raw SVRL report
+     */
+    default SchematronReport validateXmlWithSvrl(String xmlContent, File schematronFile)
+            throws SchematronLoadException {
+        return new SchematronReport(validateXml(xmlContent, schematronFile), null);
+    }
 }

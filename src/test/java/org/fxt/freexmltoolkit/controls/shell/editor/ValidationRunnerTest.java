@@ -85,6 +85,38 @@ class ValidationRunnerTest {
     }
 
     @Test
+    void runWithReportCarriesRuleContextAndSvrl(@TempDir Path tmp) throws Exception {
+        Path sch = tmp.resolve("rules.sch");
+        Files.writeString(sch, SCHEMATRON);
+
+        ValidationRunner.RunResult result =
+                ValidationRunner.runWithReport("<root/>", null, sch.toFile(), "doc.xml");
+
+        SchematronReportData report = result.schematronReport();
+        assertNotNull(report, "a bound Schematron must produce report data");
+        assertEquals("doc.xml", report.documentName());
+        assertEquals(sch.toFile(), report.schematronFile());
+        assertNotNull(report.svrl(), "the raw SVRL must be captured");
+        assertTrue(report.svrl().contains("failed-assert"), report.svrl());
+
+        ValidationProblem problem = report.problems().stream()
+                .filter(p -> p.message().contains("name child"))
+                .findFirst().orElseThrow();
+        assertEquals("name", problem.ruleId(), "the failed test expression must be carried");
+        assertNotNull(problem.context(), "the failing node's XPath context must be carried");
+        assertTrue(problem.hasDetails());
+        // The merged problems list contains the same detailed entries.
+        assertTrue(result.problems().contains(problem));
+    }
+
+    @Test
+    void runWithReportHasNoReportWithoutSchematron() {
+        ValidationRunner.RunResult result =
+                ValidationRunner.runWithReport("<root/>", null, null, "doc.xml");
+        assertNull(result.schematronReport());
+    }
+
+    @Test
     void batchReportListsEachFileWithSchematronResult(@TempDir Path tmp) throws Exception {
         Path sch = tmp.resolve("rules.sch");
         Files.writeString(sch, SCHEMATRON);

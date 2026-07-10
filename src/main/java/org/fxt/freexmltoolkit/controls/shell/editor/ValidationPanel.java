@@ -66,6 +66,8 @@ public class ValidationPanel extends VBox {
     private final ToggleButton singleMode = new ToggleButton("Single file");
     private final ToggleButton batchMode = new ToggleButton("Batch");
     private final Button exportProblems = new Button();
+    private final Button schematronReportButton = new Button();
+    private SchematronReportData lastSchematronReport;
     private final ContextMenu batchSourceMenu = new ContextMenu();
     private final PauseTransition debounce = new PauseTransition(Duration.millis(600));
     private File jsonSchemaFile;
@@ -209,9 +211,17 @@ public class ValidationPanel extends VBox {
         exportProblems.setTooltip(new javafx.scene.control.Tooltip("Export problems to Excel"));
         exportProblems.setOnAction(e -> exportProblemsToExcel());
         exportProblems.disableProperty().bind(javafx.beans.binding.Bindings.isEmpty(problems));
+        // Detailed Schematron report (enabled after a validation run with a bound Schematron).
+        schematronReportButton.setId("validation-schematron-report");
+        schematronReportButton.getStyleClass().add("fxt-sp-action");
+        schematronReportButton.setGraphic(icon("bi-journal-check", 14));
+        schematronReportButton.setTooltip(
+                new javafx.scene.control.Tooltip("Open detailed Schematron report"));
+        schematronReportButton.setOnAction(e -> openSchematronReport());
+        schematronReportButton.setDisable(true);
         Label problemsLabel = new Label("PROBLEMS");
         CollapsibleSection problemsSection = new CollapsibleSection(
-                problemsLabel, problemsList, true, exportProblems);
+                problemsLabel, problemsList, true, schematronReportButton, exportProblems);
         problemsSection.setId("validation-problems-section");
 
         // Continuous (debounced) validation: re-validate shortly after the active
@@ -249,6 +259,7 @@ public class ValidationPanel extends VBox {
                 menuItem("Tester", this::openSchematronTester),
                 menuItem("Rule Builder", this::openSchematronBuilder),
                 menuItem("Check Rules", this::openSchematronCheck),
+                menuItem("Validation Report", this::openSchematronReport),
                 menuItem("Documentation", this::openSchematronDocumentation));
         overflowMenu.getItems().addAll(schematronTools,
                 new SeparatorMenuItem(), menuItem("JSON Schema…", this::chooseJsonSchema));
@@ -306,6 +317,20 @@ public class ValidationPanel extends VBox {
             String summary = FundsXmlRunner.validateSummary(xml);
             Platform.runLater(() -> PanelStatus.info(status, summary));
         });
+    }
+
+    /**
+     * Opens the detailed Schematron report of the last validation run as a tool tab
+     * (findings with rule/test and XPath context; savable as HTML or raw SVRL).
+     */
+    public void openSchematronReport() {
+        if (lastSchematronReport == null) {
+            PanelStatus.precondition(status,
+                    "No Schematron report yet — bind a Schematron and validate first");
+            return;
+        }
+        editorHost.openToolTab("Schematron Report", "bi-journal-check",
+                new SchematronReportView(lastSchematronReport, editorHost));
     }
 
     /** Opens the Schematron rule-template library as a tool tab; inserts into the active editor. */
@@ -386,13 +411,19 @@ public class ValidationPanel extends VBox {
         File xsd = editorHost.activeSchemaProperty().get();
         File schematron = editorHost.getActiveSchematron();
         File jsonSchema = this.jsonSchemaFile;
+        String documentName = editorHost.getActiveDocument()
+                .map(OpenDocument::getDisplayName).orElse(null);
         PanelStatus.info(status, "Validating…");
         FxtGui.executorService.submit(() -> {
-            List<ValidationProblem> result = json
-                    ? ValidationRunner.validateJson(content, jsonSchema)
-                    : ValidationRunner.run(content, xsd, schematron);
+            ValidationRunner.RunResult runResult = json
+                    ? new ValidationRunner.RunResult(
+                            ValidationRunner.validateJson(content, jsonSchema), null)
+                    : ValidationRunner.runWithReport(content, xsd, schematron, documentName);
+            List<ValidationProblem> result = runResult.problems();
             Platform.runLater(() -> {
                 setProblems(result);
+                lastSchematronReport = runResult.schematronReport();
+                schematronReportButton.setDisable(lastSchematronReport == null);
                 boolean hasSchema = json ? jsonSchema != null : (xsd != null || schematron != null);
                 String summary = result.isEmpty()
                         ? (hasSchema ? "Valid" : "Well-formed")
