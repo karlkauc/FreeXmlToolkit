@@ -73,12 +73,12 @@
 | Task | Library | Version |
 |------|---------|---------|
 | Parsing/Validation | Xerces | 2.12.2 (XSD 1.1) |
-| XSLT 3.0 | Saxon HE | 12.9 |
-| XPath 3.1 | Saxon HE | 12.9 |
-| XQuery 3.1 | Saxon HE | 12.9 |
+| XSLT 3.0 | Saxon HE | 13.0 |
+| XPath 3.1 | Saxon HE | 13.0 |
+| XQuery 3.1 | Saxon HE | 13.0 |
 | PDF (XSL-FO) | Apache FOP | 2.11 |
 | Digital Signatures | Apache Santuario | - |
-| Excel Export | Apache POI | 5.4.1 |
+| Excel Export | Apache POI | 5.5.1 |
 
 ---
 

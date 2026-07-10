@@ -19,7 +19,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ./gradlew dependencyUpdates      # Check for dependency updates
 ```
 
-**Build Details:** Java 25 with preview features, JavaFX 24.0.1 (Liberica Full JDK), Gradle 8.x with Kotlin DSL, test heap 16GB max.
+**Build Details:** Java 25 with preview features, JavaFX 25 (bundled in Liberica Full JDK), Gradle 9.x with Kotlin DSL.
 
 ## Release Checklist
 
@@ -37,14 +37,14 @@ including in IDE / `./gradlew run` mode.
 
 **Core Technologies:**
 - **Java 25** with preview features
-- **JavaFX 24.0.1** for UI (Liberica Full JDK includes JavaFX)
-- **Saxon HE 12.9** for XSLT 3.0/XPath 3.1/XQuery
+- **JavaFX 25** for UI (Liberica Full JDK includes JavaFX)
+- **Saxon HE 13.0** for XSLT 3.0/XPath 3.1/XQuery
 - **Xerces 2.12.2** with XSD 1.1 support (exist-db fork)
 - **Apache FOP 2.11** for PDF generation
-- **RichTextFX 0.11.6** for code editor with syntax highlighting
-- **Log4j2 2.24.1** for logging
+- **RichTextFX 0.11.7** for code editor with syntax highlighting
+- **Log4j2 2.25.3** for logging
 
-**Key Dependencies:** Apache Santuario (XML signatures), ControlsFX 11.2.2, AtlantaFX Base 2.1.0 (theme), TestFX (UI tests)
+**Key Dependencies:** Apache Santuario (XML signatures), ControlsFX 11.2.3, AtlantaFX Base 2.1.0 (theme), TestFX (UI tests)
 
 ## Application Entry Point
 
@@ -150,9 +150,9 @@ Requires `<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>`.
 
 ## Project-Specific Patterns
 
-- **XSLT/XQuery:** Saxon HE 12.9 for XSLT 3.0, XPath 3.1, XQuery 3.1
+- **XSLT/XQuery:** Saxon HE 13.0 for XSLT 3.0, XPath 3.1, XQuery 3.1
 - **XML Validation:** Xerces 2.12.2 (exist-db fork) for XSD 1.1
-- **UI Framework:** JavaFX 24.0.1 with AtlantaFX theme
+- **UI Framework:** JavaFX 25 with AtlantaFX theme
 - **Icons:** `IconifyIcon` control (bundled Iconify Bootstrap Icons SVG); graceful fallback on unknown names
 - **Async Operations:** `Platform.runLater()` for UI updates from background threads
 - **Background Tasks:** `FxtGui.executorService` or `ThreadPoolManager`
