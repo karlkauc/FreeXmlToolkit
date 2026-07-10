@@ -157,11 +157,11 @@ Opt-in integration with the [FundsXML](https://fundsxml.org/) industry standard 
 
 | Feature | What It Does |
 |---------|--------------|
-| **Schema Download** | Fetch the official FundsXML schemas from GitHub |
-| **Sample Library** | One-click access to FundsXML example documents via Favorites |
+| **Automatic Downloads** | Schemas, samples, rules and snippets are fetched from GitHub and kept up to date automatically |
+| **Sample Library** | One-click access to FundsXML example documents via Favorites and the Welcome page |
 | **Quick-Validate** | Check any open XML against the active FundsXML schema (Ctrl+Shift+F) |
 | **Schematron Rules** | Ready-made business-rule checks for FundsXML documents |
-| **Query Snippets** | Pre-built XPath/XQuery expressions for common tasks |
+| **Query Snippets** | Pre-built XPath/XQuery expressions, ready to load in the Query Console |
 
 This feature is **off by default**. Enable it from Settings only if you work with FundsXML files.
 

@@ -48,7 +48,7 @@ public final class ShellBootstrap {
         }
         scheduled = true;
         scheduler.schedule(this::checkForAppUpdate, 2, TimeUnit.SECONDS);
-        scheduler.schedule(this::checkForFundsXmlUpdate, 5, TimeUnit.SECONDS);
+        scheduler.schedule(this::fundsXmlStartupSync, 5, TimeUnit.SECONDS);
     }
 
     private void checkForAppUpdate() {
@@ -72,25 +72,36 @@ public final class ShellBootstrap {
         }
     }
 
-    private void checkForFundsXmlUpdate() {
+    /**
+     * Startup sync for the FundsXML extension: downloads missing content, installs
+     * updates in the background, or just re-registers cached content — all silently
+     * (log + toast, never a dialog). Runs on the daemon scheduler thread, where the
+     * blocking GitHub call inside {@code determineAction()} is acceptable.
+     */
+    private void fundsXmlStartupSync() {
         try {
             PropertiesService props = ServiceRegistry.get(PropertiesService.class);
+            var service = ServiceRegistry.get(org.fxt.freexmltoolkit.service.fundsxml.FundsXmlExtensionService.class);
             var checker = new org.fxt.freexmltoolkit.service.fundsxml.FundsXmlUpdateChecker(
-                    props,
-                    ServiceRegistry.get(org.fxt.freexmltoolkit.service.fundsxml.FundsXmlExtensionService.class),
-                    org.fxt.freexmltoolkit.service.fundsxml.FundsXmlCache.getInstance());
-            // runIfDue() performs a synchronous (blocking) GitHub call; it runs here on the
-            // daemon scheduler thread (never the FX thread), so blocking is acceptable.
-            checker.runIfDue().ifPresent(release -> Platform.runLater(() -> {
-                String body = "A newer FundsXML schema release is available on GitHub:\n\n"
-                        + "  • Tag: " + release.tagName() + "\n"
-                        + (release.publishedAt() == null ? "" : "  • Published: " + release.publishedAt() + "\n")
-                        + "\nOpen the FundsXML activity and click 'Download / Update Content' to install it.";
-                org.fxt.freexmltoolkit.util.DialogHelper.showInformation("FundsXML Update Available",
-                        "New FundsXML release: " + release.tagName(), body);
-            }));
+                    props, service, org.fxt.freexmltoolkit.service.fundsxml.FundsXmlCache.getInstance());
+            var sync = new org.fxt.freexmltoolkit.service.fundsxml.FundsXmlStartupSync(
+                    props::loadProperties, service, checker);
+            dispatchFundsXmlAction(sync.determineAction(),
+                    org.fxt.freexmltoolkit.controls.shell.editor.FundsXmlDownloadCoordinator.getInstance());
         } catch (Throwable t) {
-            logger.warn("FundsXML startup check failed: {}", t.getMessage());
+            logger.warn("FundsXML startup sync failed: {}", t.getMessage());
+        }
+    }
+
+    /** Maps a startup-sync decision onto coordinator work. Package-private for tests. */
+    static void dispatchFundsXmlAction(
+            org.fxt.freexmltoolkit.service.fundsxml.FundsXmlStartupSync.Action action,
+            org.fxt.freexmltoolkit.controls.shell.editor.FundsXmlDownloadCoordinator coordinator) {
+        switch (action) {
+            case DOWNLOAD_INITIAL, DOWNLOAD_UPDATE -> coordinator.startBackgroundDownload("startup");
+            case REGISTER_ONLY -> coordinator.runRegisterOnly();
+            case NONE -> {
+            }
         }
     }
 

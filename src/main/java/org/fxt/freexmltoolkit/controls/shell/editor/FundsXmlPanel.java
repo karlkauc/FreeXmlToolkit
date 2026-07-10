@@ -4,11 +4,13 @@ import javafx.application.Platform;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
 import org.fxt.freexmltoolkit.FxtGui;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.service.fundsxml.FundsXmlExtensionService;
 
 /** The FundsXML activity side panel: manage versions, validate the active document, docs/resources. */
 public class FundsXmlPanel extends VBox {
@@ -16,6 +18,34 @@ public class FundsXmlPanel extends VBox {
     private final EditorHost editorHost;
     private final ComboBox<String> versionCombo = new ComboBox<>();
     private final Label status = new Label();
+    private final ProgressBar progress = new ProgressBar();
+    private final FundsXmlDownloadCoordinator.Listener downloadListener = new FundsXmlDownloadCoordinator.Listener() {
+        @Override
+        public void onStarted() {
+            showProgress(-1);
+            PanelStatus.info(status, "Downloading…");
+        }
+
+        @Override
+        public void onProgress(String stage, String message, double fraction) {
+            showProgress(fraction);
+            PanelStatus.info(status, stage + " — " + message);
+        }
+
+        @Override
+        public void onFinished(FundsXmlExtensionService.DownloadResult result) {
+            hideProgress();
+            if (result.isSuccess()) {
+                PanelStatus.success(status, result.schemaVersion() != null
+                        ? "Download complete — schema version " + result.schemaVersion() + "."
+                        : "Download complete.");
+            } else {
+                PanelStatus.failure(status, "Download failed",
+                        "Download failed: " + (result.error() == null ? "unknown error" : result.error()));
+            }
+            refreshVersions();
+        }
+    };
 
     public FundsXmlPanel(EditorHost editorHost) {
         this.editorHost = editorHost;
@@ -25,6 +55,8 @@ public class FundsXmlPanel extends VBox {
         title.getStyleClass().add("fxt-side-panel-title");
         status.getStyleClass().add("fxt-placeholder-text");
         status.setWrapText(true);
+        progress.setMaxWidth(Double.MAX_VALUE);
+        hideProgress();
 
         // --- Management ---
         Label mgmt = sectionTitle("MANAGEMENT");
@@ -47,6 +79,7 @@ public class FundsXmlPanel extends VBox {
 
         // --- Docs & resources ---
         Label docs = sectionTitle("DOCS & RESOURCES");
+        Button openSchema = button("Open Schema in Editor", "bi-file-earmark-code", this::openSchemaInEditor);
         Button genDocs = button("Generate Schema Documentation", "bi-file-earmark-text", this::generateDocs);
         Button examples = button("Open Examples Folder", "bi-folder2-open",
                 () -> openFolder(FundsXmlRunner.examplesDir()));
@@ -63,51 +96,53 @@ public class FundsXmlPanel extends VBox {
         getChildren().addAll(title,
                 mgmt, new Label("Active version"), versionCombo, SidePanelLayout.fill(download),
                 action, SidePanelLayout.fill(validate),
-                docs, SidePanelLayout.fill(genDocs), SidePanelLayout.fill(examples),
+                docs, SidePanelLayout.fill(openSchema), SidePanelLayout.fill(genDocs),
+                SidePanelLayout.fill(examples),
                 SidePanelLayout.fill(schema), SidePanelLayout.fill(schematron),
                 SidePanelLayout.fill(online),
-                spacer, status);
+                spacer, progress, status);
+
+        // Observe background downloads (startup sync, settings toggle, this panel's button).
+        FundsXmlDownloadCoordinator coordinator = FundsXmlDownloadCoordinator.getInstance();
+        coordinator.addListener(downloadListener);
+        if (coordinator.isRunning()) {
+            showProgress(-1);
+            PanelStatus.info(status, "Downloading…");
+        }
     }
 
     private void download() {
-        PanelStatus.info(status, "Downloading…");
-        FxtGui.executorService.submit(() -> {
-            String msg;
-            boolean ok = true;
-            try {
-                var result = org.fxt.freexmltoolkit.service.fundsxml.FundsXmlExtensionService.getInstance()
-                        .downloadOrUpdate(
-                                org.fxt.freexmltoolkit.service.fundsxml.DownloadProgressCallback.NO_OP);
-                if (result == null) {
-                    msg = "Download complete.";
-                } else if (!result.isSuccess()) {
-                    ok = false;
-                    msg = "Download failed: "
-                            + (result.error() == null ? "unknown error" : result.error());
-                } else if (result.schemaVersion() != null) {
-                    msg = "Download complete — schema version " + result.schemaVersion() + ".";
-                } else {
-                    msg = "Download complete.";
-                }
-            } catch (Throwable t) {
-                ok = false;
-                msg = "Download failed: " + t.getMessage();
-            }
-            String finalMsg = msg;
-            boolean finalOk = ok;
-            Platform.runLater(() -> {
-                if (finalOk) {
-                    PanelStatus.success(status, finalMsg);
-                } else {
-                    PanelStatus.failure(status, "Download failed", finalMsg);
-                }
-                versionCombo.getItems().setAll(FundsXmlRunner.installedVersions());
-                String active = FundsXmlRunner.activeVersion();
-                if (active != null) {
-                    versionCombo.getSelectionModel().select(active);
-                }
-            });
-        });
+        if (!FundsXmlDownloadCoordinator.getInstance().startBackgroundDownload("panel")) {
+            PanelStatus.info(status, "Download already in progress…");
+        }
+    }
+
+    private void openSchemaInEditor() {
+        java.nio.file.Path schemaFile = FundsXmlRunner.activeSchemaFile();
+        if (schemaFile == null) {
+            PanelStatus.info(status, "No active schema — download content first.");
+            return;
+        }
+        editorHost.openFile(schemaFile);
+    }
+
+    private void refreshVersions() {
+        versionCombo.getItems().setAll(FundsXmlRunner.installedVersions());
+        String active = FundsXmlRunner.activeVersion();
+        if (active != null) {
+            versionCombo.getSelectionModel().select(active);
+        }
+    }
+
+    private void showProgress(double fraction) {
+        progress.setProgress(fraction < 0 ? ProgressBar.INDETERMINATE_PROGRESS : fraction);
+        progress.setVisible(true);
+        progress.setManaged(true);
+    }
+
+    private void hideProgress() {
+        progress.setVisible(false);
+        progress.setManaged(false);
     }
 
     private void validate() {

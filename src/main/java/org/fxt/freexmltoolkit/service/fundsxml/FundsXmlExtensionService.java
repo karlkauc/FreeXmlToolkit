@@ -29,6 +29,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -68,6 +69,9 @@ public class FundsXmlExtensionService {
     private final FundsXmlCache cache;
     private final GitHubReleaseClient client;
     private final FundsXmlPostDownloadRegistrar registrar;
+
+    /** Guards against concurrent downloads (startup sync, settings toggle, panel button). */
+    private final AtomicBoolean downloadInProgress = new AtomicBoolean(false);
 
     public FundsXmlExtensionService(FundsXmlCache cache,
                                     GitHubReleaseClient client,
@@ -164,15 +168,77 @@ public class FundsXmlExtensionService {
         return FundsXmlCache.compareVersionsDesc(latestVersion, newest) < 0 ? latest : null;
     }
 
+    /** Whether a {@link #downloadOrUpdate} run is currently in flight. */
+    public boolean isDownloadInProgress() {
+        return downloadInProgress.get();
+    }
+
+    /**
+     * Whether nothing usable is installed yet. The schema presence is the
+     * authoritative signal — an examples-only cache still warrants a download.
+     */
+    public boolean isCacheEmpty() {
+        return cache.listInstalledVersions().isEmpty();
+    }
+
+    /**
+     * Re-runs all post-download registration steps (favorites, snippets, templates)
+     * against the on-disk cache — no network access. Needed on every startup because
+     * the snippet repository is in-memory only, and it also restores favorites the
+     * user may have cleared. Every registrar step is idempotent; a failure in one
+     * step must not prevent the others.
+     */
+    public void reRegisterFromCache() {
+        if (isCacheEmpty()) {
+            return;
+        }
+        runRegistrarStep("favorites",
+                () -> registrar.registerFavorites(cache.getExamplesDir(), cache.getSchematronDir()));
+        runRegistrarStep("featured samples",
+                () -> registrar.registerFeaturedXmlFavorites(cache.getExamplesDir()));
+        runRegistrarStep("XSLT favorites",
+                () -> registrar.registerXsltFavorites(cache.getExamplesDir()));
+        runRegistrarStep("schema favorite",
+                () -> registrar.registerSchemaFavorite(cache.getActiveSchemaFile()));
+        runRegistrarStep("snippets",
+                () -> registrar.seedSnippets(cache.getQueriesDir()));
+        runRegistrarStep("templates",
+                () -> registrar.registerXmlTemplates(cache.getExamplesDir()));
+    }
+
+    private void runRegistrarStep(String what, Runnable step) {
+        try {
+            step.run();
+        } catch (Exception e) {
+            logger.warn("FundsXML re-registration step '{}' failed: {}", what, e.getMessage());
+        }
+    }
+
     /**
      * One-shot "Download / Update" flow. Pulls the latest schema release and the
      * examples repo's main branch into the cache, registers timestamps in metadata,
      * and (if no active version is set yet) marks the freshly downloaded one as active.
      *
+     * <p>Only one download runs at a time; a concurrent call returns an error result
+     * immediately instead of downloading twice.
+     *
      * @param callback progress callback ({@code null} → {@link DownloadProgressCallback#NO_OP})
      * @return summary describing what happened
      */
     public DownloadResult downloadOrUpdate(DownloadProgressCallback callback) {
+        if (!downloadInProgress.compareAndSet(false, true)) {
+            return DownloadResult.builder()
+                    .error("A FundsXML download is already in progress.")
+                    .build();
+        }
+        try {
+            return doDownloadOrUpdate(callback);
+        } finally {
+            downloadInProgress.set(false);
+        }
+    }
+
+    private DownloadResult doDownloadOrUpdate(DownloadProgressCallback callback) {
         DownloadProgressCallback cb = callback == null ? DownloadProgressCallback.NO_OP : callback;
         DownloadResult.Builder result = DownloadResult.builder();
 

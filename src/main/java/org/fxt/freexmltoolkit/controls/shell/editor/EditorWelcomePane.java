@@ -39,6 +39,7 @@ public class EditorWelcomePane extends VBox {
     private final Label favoritesStat = new Label("0");
     private final Label templatesStat = new Label("0");
     private final Label queriesStat = new Label("0");
+    private Region fundsXmlSection;
     private int sparklinePointCount;
 
     /** Data-backed dashboard counters (recent files, favorites, templates, saved queries). */
@@ -59,9 +60,11 @@ public class EditorWelcomePane extends VBox {
             Runnable onClearRecent, Consumer<String> onAction) {
         getStyleClass().add("fxt-editor-empty-state");
 
+        fundsXmlSection = buildFundsXmlSection(onAction);
         VBox content = new VBox(24,
                 buildHero(),
                 buildQuickActions(onNew, onOpen, onAction),
+                fundsXmlSection,
                 buildStats(),
                 buildTrend(),
                 buildTips(),
@@ -85,6 +88,15 @@ public class EditorWelcomePane extends VBox {
             recentList.getSelectionModel().clearSelection();
         }
         recentFiles.setAll(files);
+    }
+
+    /**
+     * Shows or hides the FundsXML quick-access section. Shown only when the
+     * FundsXML extension is enabled and content is cached.
+     */
+    public void setFundsXmlVisible(boolean visible) {
+        fundsXmlSection.setVisible(visible);
+        fundsXmlSection.setManaged(visible);
     }
 
     /** Updates the dashboard stat cards with the latest counts. */
@@ -290,6 +302,39 @@ public class EditorWelcomePane extends VBox {
             b.setMaxWidth(Double.MAX_VALUE);
         }
         return row;
+    }
+
+    /**
+     * FundsXML quick-access row — hidden by default, toggled by
+     * {@link #setFundsXmlVisible(boolean)} when the extension is active and content
+     * is cached. Emits the {@code fundsxml-*} action keys.
+     */
+    private Region buildFundsXmlSection(Consumer<String> onAction) {
+        Label header = new Label("FUNDSXML");
+        header.getStyleClass().add("fxt-welcome-section-title");
+
+        Button example = quickCard("welcome-fundsxml-example", "bi-file-earmark-play",
+                "Open Example", "Starter FundsXML sample", false);
+        example.setOnAction(e -> onAction.accept("fundsxml-open-example"));
+
+        Button schema = quickCard("welcome-fundsxml-schema", "bi-file-earmark-code",
+                "Open Schema", "FundsXML4.xsd in the editor", false);
+        schema.setOnAction(e -> onAction.accept("fundsxml-open-schema"));
+
+        Button browse = quickCard("welcome-fundsxml-browse", "bi-folder2-open",
+                "Browse Examples", "Cached example files", false);
+        browse.setOnAction(e -> onAction.accept("fundsxml-browse-examples"));
+
+        HBox row = new HBox(16, example, schema, browse);
+        for (Button b : List.of(example, schema, browse)) {
+            HBox.setHgrow(b, Priority.ALWAYS);
+            b.setMaxWidth(Double.MAX_VALUE);
+        }
+
+        VBox section = new VBox(12, header, row);
+        section.setVisible(false);
+        section.setManaged(false);
+        return section;
     }
 
     private Button quickCard(String id, String iconLiteral, String title, String subtitle, boolean primary) {

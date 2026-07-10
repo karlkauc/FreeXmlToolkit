@@ -229,4 +229,41 @@ class QueryConsoleTest {
                 "loading an XQuery snippet should fill the XQuery area");
         assertTrue(console.isXQueryModeForTest(), "loading an XQuery snippet should switch to XQuery mode");
     }
+
+    @Test
+    void snippetsMenuShowsAFundsXmlSectionFromTheRepository() {
+        org.fxt.freexmltoolkit.service.XPathSnippetRepository repo =
+                org.fxt.freexmltoolkit.service.XPathSnippetRepository.getInstance();
+        String name = "fxt-test-fund-summary-" + System.nanoTime();
+        repo.saveSnippet(org.fxt.freexmltoolkit.domain.XPathSnippet.builder()
+                .name(name)
+                .description("test snippet")
+                .type(org.fxt.freexmltoolkit.domain.XPathSnippet.SnippetType.XQUERY)
+                .category(org.fxt.freexmltoolkit.domain.XPathSnippet.SnippetCategory.ANALYSIS)
+                .query("for $f in //Fund return $f/Name")
+                .tags(org.fxt.freexmltoolkit.service.fundsxml.FundsXmlPostDownloadRegistrar.SNIPPET_TAG)
+                .build());
+
+        QueryConsole console = WaitForAsyncUtils.waitForAsyncFx(2000, () -> new QueryConsole(host));
+        List<javafx.scene.control.MenuItem> items =
+                WaitForAsyncUtils.waitForAsyncFx(2000, console::snippetsMenuItemsForTest);
+
+        assertTrue(items.stream().anyMatch(i -> "FUNDSXML".equals(i.getText())),
+                "the snippets menu must contain the FUNDSXML section header");
+        javafx.scene.control.MenuItem snippetItem = items.stream()
+                .filter(i -> i.getText() != null && i.getText().contains(name))
+                .findFirst().orElse(null);
+        assertNotNull(snippetItem, "the seeded FundsXML snippet must appear in the menu");
+        assertTrue(snippetItem.getText().startsWith("XQuery:"),
+                "the item label must carry its kind: " + snippetItem.getText());
+
+        // Firing the item loads the query and switches to XQuery mode.
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            snippetItem.fire();
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        assertEquals("for $f in //Fund return $f/Name", console.getXQueryTextForTest());
+        assertTrue(console.isXQueryModeForTest(), "an XQuery snippet must switch the console to XQuery mode");
+    }
 }

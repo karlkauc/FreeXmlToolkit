@@ -752,9 +752,29 @@ public class EditorHost extends BorderPane {
         if (tabPane.getTabs().isEmpty()) {
             welcomePane.setRecentFiles(recentFiles());
             welcomePane.setStats(welcomeStats());
+            welcomePane.setFundsXmlVisible(fundsXmlContentAvailable());
             setCenter(welcomePane);
         } else {
             setCenter(tabArea);
+        }
+    }
+
+    /**
+     * Refreshes the welcome dashboard if it is currently showing — e.g. after a
+     * FundsXML background download finished so its quick-access section appears.
+     */
+    public void refreshWelcome() {
+        if (tabPane.getTabs().isEmpty()) {
+            updateCenter();
+        }
+    }
+
+    /** Whether the FundsXML extension is enabled and content is cached (best-effort). */
+    private static boolean fundsXmlContentAvailable() {
+        try {
+            return FundsXmlRunner.isEnabled() && !FundsXmlRunner.installedVersions().isEmpty();
+        } catch (Throwable t) {
+            return false;
         }
     }
 

@@ -232,6 +232,146 @@ class FundsXmlExtensionServiceTest {
         assertEquals(extract, FundsXmlExtensionService.singleRootDir(extract));
     }
 
+    @Test
+    @DisplayName("isCacheEmpty reflects installed schema versions")
+    void isCacheEmptyReflectsInstalledVersions() throws IOException {
+        assertTrue(service.isCacheEmpty());
+        Files.createDirectories(cache.getSchemaVersionDir("4.2.10"));
+        assertFalse(service.isCacheEmpty());
+    }
+
+    @Test
+    @DisplayName("concurrent downloadOrUpdate is rejected with an error result")
+    void concurrentDownloadRejected() throws Exception {
+        java.util.concurrent.CountDownLatch entered = new java.util.concurrent.CountDownLatch(1);
+        java.util.concurrent.CountDownLatch release = new java.util.concurrent.CountDownLatch(1);
+        FundsXmlExtensionService blockingService = new FundsXmlExtensionService(cache, new FakeGitHubClient() {
+            @Override
+            public GitHubRelease getLatestRelease(String repo) {
+                entered.countDown();
+                try {
+                    release.await(10, java.util.concurrent.TimeUnit.SECONDS);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+                return null; // first run ends as "could not fetch" once released
+            }
+        });
+
+        Thread first = new Thread(() -> blockingService.downloadOrUpdate(DownloadProgressCallback.NO_OP));
+        first.start();
+        assertTrue(entered.await(10, java.util.concurrent.TimeUnit.SECONDS));
+        assertTrue(blockingService.isDownloadInProgress());
+
+        FundsXmlExtensionService.DownloadResult second =
+                blockingService.downloadOrUpdate(DownloadProgressCallback.NO_OP);
+        assertFalse(second.isSuccess());
+        assertTrue(second.error().contains("already in progress"), second.error());
+
+        release.countDown();
+        first.join(10_000);
+        assertFalse(blockingService.isDownloadInProgress(), "guard must be released after the run");
+    }
+
+    @Test
+    @DisplayName("download guard is released after a failed run")
+    void guardReleasedAfterFailure() {
+        fakeClient.latestForRepo.put(FundsXmlExtensionService.SCHEMA_REPO, null);
+
+        assertFalse(service.downloadOrUpdate(DownloadProgressCallback.NO_OP).isSuccess());
+
+        assertFalse(service.isDownloadInProgress());
+        // A follow-up attempt must run (and fail for the same fixture reason), not be rejected.
+        FundsXmlExtensionService.DownloadResult retry = service.downloadOrUpdate(DownloadProgressCallback.NO_OP);
+        assertTrue(retry.error().contains("Could not fetch"), retry.error());
+    }
+
+    @Test
+    @DisplayName("reRegisterFromCache runs all registrar steps offline")
+    void reRegisterFromCacheInvokesAllSteps() throws IOException {
+        RecordingRegistrar registrar = new RecordingRegistrar();
+        FundsXmlExtensionService offline = new FundsXmlExtensionService(cache, fakeClient, registrar);
+        Files.createDirectories(cache.getSchemaVersionDir("4.2.10"));
+
+        offline.reRegisterFromCache();
+
+        assertEquals(List.of("favorites", "featured", "xslt", "schema", "snippets", "templates"),
+                registrar.calls);
+    }
+
+    @Test
+    @DisplayName("reRegisterFromCache is a no-op when nothing is installed")
+    void reRegisterFromCacheNoopWhenEmpty() {
+        RecordingRegistrar registrar = new RecordingRegistrar();
+        FundsXmlExtensionService offline = new FundsXmlExtensionService(cache, fakeClient, registrar);
+
+        offline.reRegisterFromCache();
+
+        assertTrue(registrar.calls.isEmpty());
+    }
+
+    @Test
+    @DisplayName("reRegisterFromCache survives a failing registrar step")
+    void reRegisterFromCacheToleratesStepFailure() throws IOException {
+        RecordingRegistrar registrar = new RecordingRegistrar() {
+            @Override
+            public RegistrarResult registerFavorites(Path examplesDir, Path schematronDir) {
+                throw new IllegalStateException("boom");
+            }
+        };
+        FundsXmlExtensionService offline = new FundsXmlExtensionService(cache, fakeClient, registrar);
+        Files.createDirectories(cache.getSchemaVersionDir("4.2.10"));
+
+        offline.reRegisterFromCache();
+
+        assertEquals(List.of("featured", "xslt", "schema", "snippets", "templates"), registrar.calls);
+    }
+
+    /** Registrar double that records which steps ran, in order. */
+    private static class RecordingRegistrar extends FundsXmlPostDownloadRegistrar {
+        final List<String> calls = new java.util.ArrayList<>();
+
+        RecordingRegistrar() {
+            super(null, null, null);
+        }
+
+        @Override
+        public RegistrarResult registerFavorites(Path examplesDir, Path schematronDir) {
+            calls.add("favorites");
+            return new RegistrarResult.Builder().build();
+        }
+
+        @Override
+        public RegistrarResult registerFeaturedXmlFavorites(Path examplesDir) {
+            calls.add("featured");
+            return new RegistrarResult.Builder().build();
+        }
+
+        @Override
+        public RegistrarResult registerXsltFavorites(Path examplesDir) {
+            calls.add("xslt");
+            return new RegistrarResult.Builder().build();
+        }
+
+        @Override
+        public RegistrarResult registerSchemaFavorite(Path schemaFile) {
+            calls.add("schema");
+            return new RegistrarResult.Builder().build();
+        }
+
+        @Override
+        public RegistrarResult seedSnippets(Path queriesDir) {
+            calls.add("snippets");
+            return new RegistrarResult.Builder().build();
+        }
+
+        @Override
+        public RegistrarResult registerXmlTemplates(Path examplesDir) {
+            calls.add("templates");
+            return new RegistrarResult.Builder().build();
+        }
+    }
+
     // -----------------------------------------------------------------
     // Fixtures
     // -----------------------------------------------------------------

@@ -220,6 +220,18 @@ public class UnifiedShellView extends BorderPane {
         // Welcome/Dashboard tool cards switch activities (and "open-folder" → Explorer).
         editorHost.setWelcomeActionHandler(this::handleWelcomeAction);
 
+        // After a FundsXML background download completes, surface the new content:
+        // the welcome page's quick-access section and the version list appear live.
+        org.fxt.freexmltoolkit.controls.shell.editor.FundsXmlDownloadCoordinator.getInstance()
+                .addListener(new org.fxt.freexmltoolkit.controls.shell.editor
+                        .FundsXmlDownloadCoordinator.Listener() {
+                    @Override
+                    public void onFinished(
+                            org.fxt.freexmltoolkit.service.fundsxml.FundsXmlExtensionService.DownloadResult result) {
+                        editorHost.refreshWelcome();
+                    }
+                });
+
         setOnDragOver(e -> {
             if (e.getDragboard().hasFiles() && acceptsDrop(e.getDragboard().getFiles())) {
                 e.acceptTransferModes(javafx.scene.input.TransferMode.COPY);
@@ -264,10 +276,42 @@ public class UnifiedShellView extends BorderPane {
             revealSidePanel();
             return;
         }
+        if (key != null && key.startsWith("fundsxml-")) {
+            handleFundsXmlWelcomeAction(key);
+            return;
+        }
         Activity.fromId(key).ifPresent(activity -> {
             selectionModel.select(activity);
             revealSidePanel();
         });
+    }
+
+    /** Handles the Welcome page's FundsXML quick-access cards. */
+    private void handleFundsXmlWelcomeAction(String key) {
+        switch (key) {
+            case "fundsxml-open-example" -> org.fxt.freexmltoolkit.service.fundsxml.FundsXmlQuickStart
+                    .findStarterSample().ifPresent(editorHost::openFile);
+            case "fundsxml-open-schema" -> {
+                java.nio.file.Path schema =
+                        org.fxt.freexmltoolkit.controls.shell.editor.FundsXmlRunner.activeSchemaFile();
+                if (schema != null) {
+                    editorHost.openFile(schema);
+                }
+            }
+            case "fundsxml-browse-examples" -> {
+                java.nio.file.Path dir =
+                        org.fxt.freexmltoolkit.controls.shell.editor.FundsXmlRunner.examplesDir();
+                try {
+                    if (dir != null && java.awt.Desktop.isDesktopSupported()) {
+                        java.awt.Desktop.getDesktop().open(dir.toFile());
+                    }
+                } catch (Exception e) {
+                    org.apache.logging.log4j.LogManager.getLogger(UnifiedShellView.class)
+                            .warn("Could not open FundsXML examples folder: {}", e.getMessage());
+                }
+            }
+            default -> { }
+        }
     }
 
     private void handleShortcut(javafx.scene.input.KeyEvent event) {
@@ -529,6 +573,16 @@ public class UnifiedShellView extends BorderPane {
             activityBar.refreshLabels();
             reloadPanelPrefs();
             applyToolbarDisplaySettings();
+        });
+        settings.setOnFundsXmlEnabled(() -> {
+            var coordinator = org.fxt.freexmltoolkit.controls.shell.editor
+                    .FundsXmlDownloadCoordinator.getInstance();
+            var service = org.fxt.freexmltoolkit.service.fundsxml.FundsXmlExtensionService.getInstance();
+            if (service.isCacheEmpty()) {
+                coordinator.startBackgroundDownload("settings-enable");
+            } else {
+                coordinator.runRegisterOnly();
+            }
         });
         settingsTab = editorHost.openToolTab("Settings", "bi-gear", settings);
     }

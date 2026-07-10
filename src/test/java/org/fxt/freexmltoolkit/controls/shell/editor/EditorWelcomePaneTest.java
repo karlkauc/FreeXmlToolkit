@@ -126,6 +126,54 @@ class EditorWelcomePaneTest {
                 "stat card labels must be present");
     }
 
+    @Test
+    void fundsXmlSectionIsHiddenByDefaultAndTogglable() {
+        Node card = WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> pane.lookup("#welcome-fundsxml-example"));
+        assertNotNull(card, "the FundsXML quick card must exist in the scene graph");
+        assertFalse(isEffectivelyVisible(card), "the FundsXML section must be hidden by default");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            pane.setFundsXmlVisible(true);
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        assertTrue(isEffectivelyVisible(card), "the FundsXML section must show when enabled");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            pane.setFundsXmlVisible(false);
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        assertFalse(isEffectivelyVisible(card), "the FundsXML section must hide again when disabled");
+    }
+
+    @Test
+    void fundsXmlCardsEmitTheirActionKeys() {
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            pane.setFundsXmlVisible(true);
+            return null;
+        });
+        fire("#welcome-fundsxml-example");
+        assertEquals("fundsxml-open-example", action.get());
+        fire("#welcome-fundsxml-schema");
+        assertEquals("fundsxml-open-schema", action.get());
+        fire("#welcome-fundsxml-browse");
+        assertEquals("fundsxml-browse-examples", action.get());
+    }
+
+    /** Visible only when the node and all its ancestors are visible. */
+    private boolean isEffectivelyVisible(Node node) {
+        return WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            for (Node n = node; n != null; n = n.getParent()) {
+                if (!n.isVisible()) {
+                    return false;
+                }
+            }
+            return true;
+        });
+    }
+
     private String statText(String id) {
         return WaitForAsyncUtils.waitForAsyncFx(2000, () -> ((Label) pane.lookup(id)).getText());
     }

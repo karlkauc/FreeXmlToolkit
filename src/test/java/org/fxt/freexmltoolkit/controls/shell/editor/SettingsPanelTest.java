@@ -57,4 +57,35 @@ class SettingsPanelTest {
         assertEquals(XmlParserType.XERCES, props.getXmlParserType());
         assertFalse(props.isXsdBackupEnabled());
     }
+
+    @Test
+    void fundsXmlEnabledHookFiresOnlyOnTheOffToOnTransition() {
+        PropertiesService props = ServiceRegistry.get(PropertiesService.class);
+        props.set(org.fxt.freexmltoolkit.service.fundsxml.FundsXmlPropertyKeys.ENABLED, "false");
+        java.util.concurrent.atomic.AtomicInteger fired = new java.util.concurrent.atomic.AtomicInteger();
+        panel.setOnFundsXmlEnabled(fired::incrementAndGet);
+
+        // Save while the checkbox stays off → no hook.
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.setFundsXmlEnabledSelected(false);
+            panel.saveSettings();
+            return null;
+        });
+        assertEquals(0, fired.get());
+
+        // Turning it on fires the hook exactly once.
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.setFundsXmlEnabledSelected(true);
+            panel.saveSettings();
+            return null;
+        });
+        assertEquals(1, fired.get());
+
+        // Saving again while it stays on must NOT fire again.
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.saveSettings();
+            return null;
+        });
+        assertEquals(1, fired.get());
+    }
 }

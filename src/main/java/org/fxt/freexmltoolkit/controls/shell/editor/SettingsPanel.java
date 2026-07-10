@@ -107,6 +107,9 @@ public class SettingsPanel extends VBox {
     /** Optional hook invoked after {@link #saveSettings()} (e.g. to refresh the activity bar). */
     private Runnable onSaved;
 
+    /** Optional hook invoked when saving flips the FundsXML extension from off to on. */
+    private Runnable onFundsXmlEnabled;
+
     public SettingsPanel() {
         getStyleClass().add("fxt-side-panel-content");
 
@@ -571,12 +574,17 @@ public class SettingsPanel extends VBox {
             props.set("ssl.trustAllCerts", String.valueOf(trustAllCerts.isSelected()));
             UsageTrackingServiceImpl.getInstance()
                     .setTrackingEnabled(trackingEnabled.isSelected());
+            boolean fundsXmlWasEnabled = Boolean.parseBoolean(props.get(
+                    org.fxt.freexmltoolkit.service.fundsxml.FundsXmlPropertyKeys.ENABLED));
             props.set(org.fxt.freexmltoolkit.service.fundsxml.FundsXmlPropertyKeys.ENABLED,
                     String.valueOf(fundsXmlEnabled.isSelected()));
             applyTemplatesDirectory(props);
             // Only notify once every write above succeeded.
             if (onSaved != null) {
                 onSaved.run();
+            }
+            if (!fundsXmlWasEnabled && fundsXmlEnabled.isSelected() && onFundsXmlEnabled != null) {
+                onFundsXmlEnabled.run();
             }
         } catch (Throwable ignored) {
             // properties service unavailable — nothing to persist
@@ -586,6 +594,20 @@ public class SettingsPanel extends VBox {
     /** Sets a callback invoked after settings are persisted (e.g. to refresh the activity bar). */
     public void setOnSaved(Runnable onSaved) {
         this.onSaved = onSaved;
+    }
+
+    /**
+     * Sets a callback invoked (after {@link #setOnSaved}) when a save turns the
+     * FundsXML extension on — i.e. only on a false → true transition, not on every
+     * save while the feature stays enabled.
+     */
+    public void setOnFundsXmlEnabled(Runnable onFundsXmlEnabled) {
+        this.onFundsXmlEnabled = onFundsXmlEnabled;
+    }
+
+    /** Test seam: drives the FundsXML enable checkbox. */
+    void setFundsXmlEnabledSelected(boolean selected) {
+        fundsXmlEnabled.setSelected(selected);
     }
 
     // ----- test/observer accessors ----------------------------------------

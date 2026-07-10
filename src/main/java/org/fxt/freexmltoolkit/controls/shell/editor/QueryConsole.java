@@ -13,6 +13,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.ToggleButton;
@@ -39,8 +40,11 @@ import org.fxt.freexmltoolkit.controls.shared.JsonSyntaxHighlighter;
 import org.fxt.freexmltoolkit.controls.shared.XPathSyntaxHighlighter;
 import org.fxt.freexmltoolkit.controls.shared.XmlSyntaxHighlighter;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.XPathIntelliSenseEngine;
+import org.fxt.freexmltoolkit.domain.XPathSnippet;
 import org.fxt.freexmltoolkit.service.FavoritesService;
+import org.fxt.freexmltoolkit.service.XPathSnippetRepository;
 import org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat;
+import org.fxt.freexmltoolkit.service.fundsxml.FundsXmlPostDownloadRegistrar;
 
 /**
  * A bottom "Query Console" pane that runs XPath/XQuery against the active
@@ -485,17 +489,21 @@ public class QueryConsole extends Region {
     }
 
     /**
-     * Rebuilds the snippets menu from both XPath and XQuery saved queries. Each
-     * item is labelled with the file name minus its extension and prefixed with
-     * its kind ("XPath" / "XQuery"). A disabled placeholder is shown when nothing
-     * is saved.
+     * Rebuilds the snippets menu from both XPath and XQuery saved queries, plus a
+     * grouped FundsXML section sourced from the {@link XPathSnippetRepository}
+     * (snippets tagged {@code fundsxml}, seeded from the FundsXML content cache).
+     * Each item is labelled with its name and prefixed with its kind
+     * ("XPath" / "XQuery"). A disabled placeholder is shown when nothing is
+     * available from either source.
      */
     private void refreshSnippetsMenu() {
         snippetsMenu.getItems().clear();
         List<File> xpathFiles = FavoritesService.getInstance().getSavedXPathQueries();
         List<File> xqueryFiles = FavoritesService.getInstance().getSavedXQueryQueries();
+        List<XPathSnippet> fundsXmlSnippets = XPathSnippetRepository.getInstance()
+                .getSnippetsByTag(FundsXmlPostDownloadRegistrar.SNIPPET_TAG);
 
-        if (xpathFiles.isEmpty() && xqueryFiles.isEmpty()) {
+        if (xpathFiles.isEmpty() && xqueryFiles.isEmpty() && fundsXmlSnippets.isEmpty()) {
             MenuItem empty = new MenuItem("(no saved snippets)");
             empty.setDisable(true);
             snippetsMenu.getItems().add(empty);
@@ -508,6 +516,54 @@ public class QueryConsole extends Region {
         for (File file : xqueryFiles) {
             snippetsMenu.getItems().add(snippetItem(file, true));
         }
+
+        if (!fundsXmlSnippets.isEmpty()) {
+            if (!xpathFiles.isEmpty() || !xqueryFiles.isEmpty()) {
+                snippetsMenu.getItems().add(new SeparatorMenuItem());
+            }
+            MenuItem header = new MenuItem("FUNDSXML");
+            header.setDisable(true);
+            snippetsMenu.getItems().add(header);
+            fundsXmlSnippets.stream()
+                    .sorted(java.util.Comparator.comparing(XPathSnippet::getName,
+                            String.CASE_INSENSITIVE_ORDER))
+                    .forEach(snippet -> snippetsMenu.getItems().add(snippetItem(snippet)));
+        }
+    }
+
+    /** Builds a menu item that loads a repository snippet (FundsXML section). */
+    private MenuItem snippetItem(XPathSnippet snippet) {
+        boolean xquery = isXQueryType(snippet.getType());
+        String label = (xquery ? "XQuery: " : "XPath: ") + snippet.getName();
+        IconifyIcon graphic = new IconifyIcon(xquery ? "bi-code-square" : "bi-slash-square");
+        graphic.setIconSize(16);
+        MenuItem item = new MenuItem(label, graphic);
+        item.setOnAction(e -> loadSnippet(snippet));
+        return item;
+    }
+
+    /**
+     * Loads a repository snippet into the matching input, switching the mode to
+     * match the snippet kind — same behaviour as the file-based
+     * {@link #loadSnippet(File, boolean)}.
+     */
+    void loadSnippet(XPathSnippet snippet) {
+        String query = snippet.getQuery() == null ? "" : snippet.getQuery().strip();
+        if (isXQueryType(snippet.getType())) {
+            xqueryToggle.setSelected(true);
+            updateMode();
+            setText(xqueryArea, query);
+        } else {
+            xpathToggle.setSelected(true);
+            updateMode();
+            setText(xpathField, query);
+        }
+    }
+
+    private static boolean isXQueryType(XPathSnippet.SnippetType type) {
+        return type == XPathSnippet.SnippetType.XQUERY
+                || type == XPathSnippet.SnippetType.XQUERY_MODULE
+                || type == XPathSnippet.SnippetType.FLWOR;
     }
 
     /** Builds a menu item that loads {@code file} as an XPath or XQuery snippet. */
@@ -616,6 +672,12 @@ public class QueryConsole extends Region {
     /** Test seam: the current XQuery area text. */
     String getXQueryTextForTest() {
         return xqueryArea.getText();
+    }
+
+    /** Test seam: rebuilds the snippets menu (as opening it would) and returns its items. */
+    java.util.List<MenuItem> snippetsMenuItemsForTest() {
+        refreshSnippetsMenu();
+        return snippetsMenu.getItems();
     }
 
     /** Test seam: the XPath-mode IntelliSense engine (autocomplete). */

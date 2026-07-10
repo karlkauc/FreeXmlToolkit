@@ -20,7 +20,7 @@ XML file next to its XSD schema, XSLT stylesheets and Schematron rules at the sa
 
 | Area | Purpose |
 |------|---------|
-| **Activity bar** (far left) | Switch tools / side panels: Explorer, Transform, Validation, Signature, Type Library, FOP/PDF, Favorites, Settings, Help. **Always visible** - it cannot be collapsed. (Settings opens as a full page in the editor area - see [Settings Page](#settings-page).) |
+| **Activity bar** (far left) | Switch tools / side panels: Explorer, Transform, Validation, Signature, Type Library, FOP/PDF, Favorites, Settings, Help - plus a **FundsXML** activity when the optional [FundsXML extension](fundsxml-extensions.md) is enabled (see [FundsXML Panel](#fundsxml-panel)). **Always visible** - it cannot be collapsed. (Settings opens as a full page in the editor area - see [Settings Page](#settings-page).) |
 | **Side panel** | The panel for the selected activity (e.g. the Transform panel, the Validation panel). **Collapsible** (see [Collapsing the side panels](#collapsing-the-side-panels)). |
 | **Editor host** (center) | Tabs of open documents, each with three view modes - Text, Tree, Graphic (see [View Modes](#view-modes)). |
 | **Inspector** (right) | View **and edit** the selected node's properties from any view. **Collapsible** (see [Collapsing the side panels](#collapsing-the-side-panels)). |
@@ -741,6 +741,33 @@ The **PDF / FOP** panel renders the XML to PDF with an XSL-FO stylesheet (Apache
 
 See [PDF Generator](pdf-generator.md) for stylesheet guidance.
 
+## FundsXML Panel
+
+> **Updated July 2026** - Content now downloads and updates **automatically** in the
+> background; the panel gained a **progress bar** with stage text and an
+> **Open Schema in Editor** button.
+
+The **FundsXML** activity appears in the activity bar only when the optional
+[FundsXML extension](fundsxml-extensions.md) is enabled (Settings → FUNDSXML card).
+Enabling it is enough - the official FundsXML schema, examples, Schematron rules and query
+snippets download automatically in the background, and a toast notification appears when
+they are ready. The panel offers:
+
+- **MANAGEMENT** - Pick the **Active version** among the downloaded schema releases, or
+  click **Download / Update Content** to force a manual refresh. A **progress bar with
+  stage text** at the bottom tracks any running download - including the automatic
+  background ones triggered at startup or by the daily update check.
+- **VALIDATE** - **Validate active document** checks the open XML against the active
+  FundsXML schema (same as **Ctrl+Shift+F**).
+- **DOCS & RESOURCES** - **Open Schema in Editor** opens the active version's
+  `FundsXML4.xsd` as a normal editor tab (Text or Graphic/diagram view);
+  **Generate Schema Documentation** produces browsable HTML docs; the **Open … Folder**
+  buttons show the cached examples, schema and Schematron files; **Open Online Docs**
+  opens fundsxml.org.
+
+See the [FundsXML Extensions guide](fundsxml-extensions.md) for the full feature
+description, cache locations and troubleshooting.
+
 ## Settings Page
 
 > **Updated in June 2026** - Settings now open as a **full page** (a tab in the main editor
@@ -840,6 +867,12 @@ When no document is open, the editor shows a welcome dashboard with:
   **Validate**, **Transform**, **Schema**, **PDF / FOP**, **Signature**, and **Favorites**,
   two cards are new in June 2026: **Explorer** (files & workspace) and **Settings**
   (application preferences) - so every page can be opened directly from the start screen.
+- **FUNDSXML quick access** *(new in July 2026)* - When the optional
+  [FundsXML extension](fundsxml-extensions.md) is enabled and its content is cached, an
+  extra row with three cards appears: **Open Example** (opens a compact starter sample),
+  **Open Schema** (opens `FundsXML4.xsd` in the editor) and **Browse Examples** (opens the
+  cached examples folder). The row shows up live as soon as the automatic background
+  download finishes.
 
 ## Status Bar
 
@@ -1074,6 +1107,13 @@ Reusable XPath **and** XQuery expressions are saved as **snippets**:
 
 Snippets are kept in the shared query folder, so anything saved here is also available from the XML
 Editor's XPath/XQuery panel and vice versa.
+
+*(New in July 2026)* When the optional [FundsXML extension](fundsxml-extensions.md) is
+enabled, the **Snippets** menu also shows a **FUNDSXML** section with the XPath/XQuery
+example queries shipped with the FundsXML examples (for example *fund-summary*,
+*top-holdings*, *look-through*, *aggregate-by-assettype*). Selecting one loads it into the
+console and switches the XPath/XQuery mode to match. These entries come from the FundsXML
+content cache and are re-registered automatically on every start.
 
 ## XPath / XQuery Autocomplete
 

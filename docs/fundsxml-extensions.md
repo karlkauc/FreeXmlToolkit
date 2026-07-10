@@ -1,8 +1,8 @@
 # FundsXML Extensions
 
-> **Last Updated:** May 2026 | **Version:** 1.10.0
+> **Last Updated:** July 2026 | **Version:** 1.10.0
 
-Optional integration with the [FundsXML](https://fundsxml.org/) standard for the fund management industry. When enabled, FreeXmlToolkit can download and manage the official FundsXML schemas, sample documents, Schematron rules, and XPath/XQuery snippets - and use them for quick validation of your own files.
+Optional integration with the [FundsXML](https://fundsxml.org/) standard for the fund management industry. When enabled, FreeXmlToolkit automatically downloads and keeps up to date the official FundsXML schemas, sample documents, Schematron rules, and XPath/XQuery snippets - and uses them for quick validation of your own files.
 
 This feature is **off by default**. Enable it only if you work with FundsXML documents.
 
@@ -17,7 +17,7 @@ FundsXML is an open XML standard used to exchange fund data between asset manage
 - **Schematron rules** - additional business-rule checks beyond what XSD covers
 - **Query snippets** - useful XPath and XQuery expressions for common tasks
 
-The FundsXML Extensions feature downloads all of this from the official GitHub repositories and integrates the content into FreeXmlToolkit so you can use it directly from the menus, sidebar, and Favorites.
+The FundsXML Extensions feature downloads all of this from the official GitHub repositories and integrates the content into FreeXmlToolkit so you can use it directly from the FundsXML side panel, the Welcome page, the Query Console, and Favorites.
 
 > **Note:** No FundsXML content is bundled with FreeXmlToolkit. Everything is fetched at runtime from the official GitHub repositories ([fundsxml/schema](https://github.com/fundsxml/schema), MIT License, and [fundsxml/examples](https://github.com/fundsxml/examples), Apache-2.0 License).
 
@@ -27,32 +27,41 @@ The FundsXML Extensions feature downloads all of this from the official GitHub r
 
 The feature is opt-in. Until you enable it, nothing in the application changes.
 
-1. Open **Settings** from the sidebar.
-2. Switch to the **FundsXML** tab.
-3. Check **Enable FundsXML Extensions**.
+1. Open **Settings** (the gear icon at the bottom of the activity bar).
+2. Scroll to the **FUNDSXML** card.
+3. Check **Enable FundsXML extensions**.
 4. Save your settings.
 
-Once enabled, three things appear in the application:
+> **New in July 2026** - Enabling the feature is all you need to do: the FundsXML content
+> starts downloading automatically in the background, and a small toast notification tells
+> you when it is ready. There is no separate download step anymore.
+
+Once enabled, the FundsXML integration appears in several places:
 
 | Where | What appears |
 |-------|--------------|
-| **Menu bar** | A new top-level **FundsXML** menu |
-| **XML Editor sidebar** | A new **FundsXML** tab |
-| **Welcome screen** | A new **FundsXML Extensions** tile |
+| **Activity bar** | A new **FundsXML** activity with its own side panel |
+| **Welcome page** | A **FUNDSXML** quick-access row with **Open Example**, **Open Schema**, and **Browse Examples** cards (shown as soon as content is cached) |
+| **Query Console** | A **FUNDSXML** section in the **Snippets** menu with the community's example queries |
+| **Validation panel** | A **Validate against FundsXML** entry in the ⋮ menu |
 
-You can turn the feature off again at any time from the same Settings tab. Disabling it hides the menu, sidebar tab, and welcome tile, but leaves the downloaded content on disk intact.
+You can turn the feature off again at any time from the same Settings card. Disabling it hides these entries, but leaves the downloaded content on disk intact.
 
 ---
 
 ## Downloading FundsXML Content
 
-After enabling the feature, you need to fetch the content from GitHub once.
+> **Updated July 2026** - Downloads are now **fully automatic**. Content is fetched in the
+> background right after you enable the feature, and on every application start any missing
+> content is downloaded again. When a background download finishes, a non-blocking toast
+> notification appears - no dialogs interrupt your work.
 
-1. Open **Settings -> FundsXML**.
-2. Click **Download / Update FundsXML Content**.
-3. Wait for the download to finish. A progress indicator shows what is being fetched.
+You normally never need to trigger a download yourself. To force a manual refresh, open the
+**FundsXML** side panel and click **Download / Update Content**. The panel shows a progress
+bar with a stage description while a download is running - for manual and automatic
+background downloads alike.
 
-The application will:
+Whenever content is downloaded (automatically or manually), the application will:
 
 - Download the latest **schema release** from `fundsxml/schema` (the official `FundsXML4.xsd` and its included files).
 - Download **example documents**, **XSLT stylesheets**, **Schematron rule files**, and **XPath/XQuery snippets** from `fundsxml/examples`.
@@ -61,11 +70,11 @@ The application will:
 - Register each **XSLT stylesheet** found in the examples as an XSLT Favorite under **FundsXML XSLT**.
 - Register the Schematron files as Favorites under the category **FundsXML Schematron**.
 - Register the most compact sample XMLs as **new-document templates** under the **FundsXML** category, so you can start a fresh document from a real sample via *File → New from Template*.
-- Seed the XPath/XQuery snippets into your **Saved Queries** (visible in the XPath/XQuery tab of the XSLT Developer **and** via right-click in the XML editor), tagged `fundsxml`.
+- Seed the XPath/XQuery snippets into your **Saved Queries**, tagged `fundsxml` - they show up in the [Query Console](unified-shell.md#query-console)'s **Snippets** menu under a **FUNDSXML** section (for example *fund-summary*, *top-holdings*, *look-through*, *aggregate-by-assettype*), in the XPath/XQuery tab of the XSLT Developer, and via right-click in the XML editor.
 - Select the newly downloaded schema version as the **active** version.
-- Show a summary dialog with an **Open Quick Start** button that loads the smallest sample XML so you can immediately try **Ctrl+Shift+F** to validate.
+- Make a compact starter sample available from the Welcome page's **Open Example** card, so you can immediately try **Ctrl+Shift+F** to validate.
 
-You can repeat this step whenever you want to update to the latest published content. Existing versions are kept on disk - downloads are additive, not replacements. Re-running is **idempotent** — favorites, snippets, and templates that already exist are not duplicated.
+Existing versions are kept on disk - downloads are additive, not replacements. Downloads are **idempotent** — favorites, snippets, and templates that already exist are not duplicated. On every application start, favorites and query snippets are also **re-registered from the on-disk cache**, so they stay available even without a network connection.
 
 ---
 
@@ -73,12 +82,12 @@ You can repeat this step whenever you want to update to the latest published con
 
 If you have downloaded more than one version of the FundsXML schema, you can switch between them.
 
-There are two equivalent ways to pick the active version:
+Open the **FundsXML** side panel and pick the version from the **Active version** drop-down
+in the MANAGEMENT section.
 
-- **Settings -> FundsXML -> Active Schema Version** (drop-down)
-- **FundsXML menu -> Active Schema Version** (submenu listing all installed versions)
-
-The active version is the schema used by the **Quick-validate** action (see below). Switching does not delete any files - you can change versions back and forth freely.
+The active version is the schema used by the **Quick-validate** action (see below) and by the
+**Open Schema in Editor** button. Switching does not delete any files - you can change versions
+back and forth freely.
 
 ---
 
@@ -86,8 +95,8 @@ The active version is the schema used by the **Quick-validate** action (see belo
 
 The fastest way to check an XML file against the FundsXML schema:
 
-1. Open your XML document in the XML editor.
-2. Press **Ctrl+Shift+F**, or choose **FundsXML -> Validate Current XML Against FundsXML**, or click the **Validate** button on the FundsXML sidebar tab.
+1. Open your XML document in the editor.
+2. Press **Ctrl+Shift+F**, or click **Validate active document** in the **FundsXML** side panel, or choose **Validate against FundsXML** from the Validation panel's ⋮ menu.
 3. If the document is valid, you get a confirmation message.
 4. If there are errors, they are listed line-by-line in an alert dialog so you can locate and fix each one.
 
@@ -97,21 +106,42 @@ The validation uses whichever FundsXML schema version is currently marked as act
 
 ---
 
-## Browsing Downloaded Content
+## The FundsXML Side Panel
 
-The **FundsXML** top-level menu provides shortcuts to open the cache folders in your system's file manager:
+Select the **FundsXML** activity in the activity bar to open its side panel. It has three
+sections:
 
-| Menu item | What it opens |
-|-----------|---------------|
-| **Open Schema Folder** | The folder containing the active schema and its include files |
+| Section | What you can do |
+|---------|-----------------|
+| **MANAGEMENT** | Pick the **Active version** and force a manual **Download / Update Content**. A **progress bar with stage text** at the bottom of the panel tracks running downloads - including automatic background downloads. |
+| **VALIDATE** | **Validate active document** - check the open XML against the active FundsXML schema. |
+| **DOCS & RESOURCES** | Open the schema and browse the downloaded content (see below). |
+
+The DOCS & RESOURCES buttons:
+
+| Button | What it does |
+|--------|--------------|
+| **Open Schema in Editor** *(new in July 2026)* | Opens the active version's `FundsXML4.xsd` directly as an editor tab - explore it in the Text view or as a diagram in the Graphic view |
+| **Generate Schema Documentation** | Generates browsable HTML documentation for the active schema into `~/.freeXmlToolkit/fundsxml/docs/<version>/` |
 | **Open Examples Folder** | The folder with downloaded sample XML documents |
+| **Open Schema Folder** | The folder containing the active schema and its include files |
 | **Open Schematron Folder** | The folder with downloaded `.sch` rule files |
-| **Generate Schema Documentation…** | Generates browsable HTML documentation for the active schema into `~/.freeXmlToolkit/fundsxml/docs/<version>/` and opens the folder |
-| **Online Documentation** | Opens [https://fundsxml.org/](https://fundsxml.org/) in your default browser |
+| **Open Online Docs** | Opens [https://fundsxml.org/](https://fundsxml.org/) in your default browser |
 
-The **XSLT Developer** tab also gains a **FundsXML XSLT** toolbar button (only visible when the FundsXML feature is enabled) that lists every XSLT in the cache for one-click loading.
+You can also reach the downloaded files directly through [Favorites](favorites-system.md): example documents under **FundsXML Examples**, the active schema under **FundsXML Schema**, Schematron rules under **FundsXML Schematron**, and stylesheets under **FundsXML XSLT** (handy in the Transform panel's star menus).
 
-You can also reach the example files directly from the Favorites menu (category **FundsXML Examples**) in any editor.
+### Welcome Page Quick Access
+
+> **New in July 2026**
+
+When the feature is enabled and content is cached, the Welcome/Dashboard page shows a
+**FUNDSXML** quick-access row with three cards:
+
+- **Open Example** - opens a compact starter sample document.
+- **Open Schema** - opens `FundsXML4.xsd` in the editor.
+- **Browse Examples** - opens the cached examples folder in your file manager.
+
+The row appears automatically; if a background download is still running, it shows up live the moment the download finishes.
 
 ---
 
@@ -139,9 +169,11 @@ On Windows the path is typically `C:\Users\<you>\.freeXmlToolkit\fundsxml\`. On 
 
 ## Automatic Update Checks
 
-By default, FreeXmlToolkit checks once per day whether a newer FundsXML schema release is available on GitHub. If a new release is found, you get a notification - but nothing is downloaded automatically. You decide whether to fetch the update from **Settings -> FundsXML -> Download / Update FundsXML Content**.
+> **Updated July 2026** - Updates are now installed automatically instead of showing a dialog.
 
-The check is throttled to at most once every 24 hours and runs quietly in the background. You can disable it in **Settings -> FundsXML -> Check for updates daily**.
+By default, FreeXmlToolkit checks once per day whether a newer FundsXML schema release is available on GitHub. If a new release is found, it is **downloaded and installed automatically in the background** - a toast notification confirms when the new content is in place, and the new version becomes the active one. There is no update dialog to answer anymore.
+
+The check is throttled to at most once every 24 hours and runs quietly in the background. Missing content (for example after clearing the cache folder) is also re-downloaded automatically on the next application start. To turn the daily check off, set `fundsxml.update.check.enabled=false` in your `FreeXmlToolkit.properties` file.
 
 ---
 
@@ -190,14 +222,14 @@ To propose a snippet for everyone, submit a pull request to the [fundsxml/exampl
 
 ## Settings Reference
 
-The FundsXML tab in Settings exposes these options:
+The feature's options and where to find them:
 
-| Setting | Description | Default |
-|---------|-------------|---------|
-| **Enable FundsXML Extensions** | Master switch for the entire feature | Off |
-| **Active Schema Version** | Which downloaded schema version is used for Quick-validate | Latest installed |
-| **Check for updates daily** | Run a once-per-day background check for new releases | On |
-| **Download / Update FundsXML Content** | Fetch the latest content from GitHub | - |
+| Setting | Where | Description | Default |
+|---------|-------|-------------|---------|
+| **Enable FundsXML extensions** | Settings page, FUNDSXML card | Master switch; enabling it starts the initial background download | Off |
+| **Active version** | FundsXML side panel | Which downloaded schema version is used for Quick-validate and Open Schema in Editor | Latest installed |
+| **Download / Update Content** | FundsXML side panel | Force a manual refresh from GitHub | - |
+| Daily update check | `fundsxml.update.check.enabled` property | Once-per-day background check that installs newer schema releases automatically | On |
 
 These preferences are stored in your `FreeXmlToolkit.properties` file in the user home directory.
 
@@ -205,25 +237,26 @@ These preferences are stored in your `FreeXmlToolkit.properties` file in the use
 
 ## Troubleshooting
 
-### "Download / Update" fails
+### A download fails
 
 - Check your internet connection.
 - If you are behind a corporate proxy, configure proxy settings under **Settings -> Connection**.
 - Verify that github.com is reachable from your network.
+- Retry with **Download / Update Content** in the FundsXML side panel; the panel's status line shows the reason for the failure.
 
 ### Quick-validate reports "No active schema"
 
-You have enabled the feature but have not downloaded a schema yet. Click **Download / Update FundsXML Content** in Settings -> FundsXML.
+The automatic background download has not finished yet (or it failed - for example without a network connection). Watch the progress bar in the **FundsXML** side panel and wait for the completion toast, or click **Download / Update Content** there to retry.
 
-### The FundsXML menu disappeared
+### The FundsXML activity disappeared
 
-The feature was disabled. Re-enable it under **Settings -> FundsXML -> Enable FundsXML Extensions**. Your downloaded content is still on disk and will reappear immediately.
+The feature was disabled. Re-enable it under **Settings -> FUNDSXML -> Enable FundsXML extensions**. Your downloaded content is still on disk and will reappear immediately.
 
 ### I want to remove everything
 
-1. Disable the feature in Settings.
+1. Disable the feature in Settings (otherwise the content is re-downloaded automatically on the next start).
 2. Delete the folder `~/.freeXmlToolkit/fundsxml/`.
-3. Optionally remove the Favorites entries under **FundsXML Examples** and **FundsXML Schematron**.
+3. Optionally remove the Favorites entries under **FundsXML Examples**, **FundsXML Schema**, **FundsXML Schematron**, and **FundsXML XSLT**.
 
 ---
 
@@ -234,7 +267,7 @@ The FundsXML content downloaded by this feature is published by the FundsXML com
 - **Schemas** (`fundsxml/schema`): MIT License
 - **Examples, Schematron, Queries** (`fundsxml/examples`): Apache License 2.0
 
-FreeXmlToolkit itself does not bundle any of this content - it is fetched from the public GitHub repositories only when you choose to download it.
+FreeXmlToolkit itself does not bundle any of this content - it is fetched from the public GitHub repositories only after you enable the feature.
 
 ---
 
