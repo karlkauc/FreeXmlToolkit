@@ -1396,13 +1396,30 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#browsing-downloaded-content" class="md-nav__link">
+  <a href="#the-fundsxml-side-panel" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Browsing Downloaded Content
+        The FundsXML Side Panel
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="The FundsXML Side Panel">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#welcome-page-quick-access" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Welcome Page Quick Access
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1463,10 +1480,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#download-update-fails" class="md-nav__link">
+  <a href="#a-download-fails" class="md-nav__link">
     <span class="md-ellipsis">
       
-        "Download / Update" fails
+        A download fails
       
     </span>
   </a>
@@ -1485,10 +1502,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#the-fundsxml-menu-disappeared" class="md-nav__link">
+  <a href="#the-fundsxml-activity-disappeared" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The FundsXML menu disappeared
+        The FundsXML activity disappeared
       
     </span>
   </a>
@@ -1865,13 +1882,30 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#browsing-downloaded-content" class="md-nav__link">
+  <a href="#the-fundsxml-side-panel" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Browsing Downloaded Content
+        The FundsXML Side Panel
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="The FundsXML Side Panel">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#welcome-page-quick-access" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Welcome Page Quick Access
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1932,10 +1966,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#download-update-fails" class="md-nav__link">
+  <a href="#a-download-fails" class="md-nav__link">
     <span class="md-ellipsis">
       
-        "Download / Update" fails
+        A download fails
       
     </span>
   </a>
@@ -1954,10 +1988,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#the-fundsxml-menu-disappeared" class="md-nav__link">
+  <a href="#the-fundsxml-activity-disappeared" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The FundsXML menu disappeared
+        The FundsXML activity disappeared
       
     </span>
   </a>
@@ -2024,9 +2058,9 @@
 
 <h1 id="fundsxml-extensions">FundsXML Extensions<a class="headerlink" href="#fundsxml-extensions" title="Permanent link">&para;</a></h1>
 <blockquote>
-<p><strong>Last Updated:</strong> May 2026 | <strong>Version:</strong> 1.10.0</p>
+<p><strong>Last Updated:</strong> July 2026 | <strong>Version:</strong> 1.10.0</p>
 </blockquote>
-<p>Optional integration with the <a href="https://fundsxml.org/">FundsXML</a> standard for the fund management industry. When enabled, FreeXmlToolkit can download and manage the official FundsXML schemas, sample documents, Schematron rules, and XPath/XQuery snippets - and use them for quick validation of your own files.</p>
+<p>Optional integration with the <a href="https://fundsxml.org/">FundsXML</a> standard for the fund management industry. When enabled, FreeXmlToolkit automatically downloads and keeps up to date the official FundsXML schemas, sample documents, Schematron rules, and XPath/XQuery snippets - and uses them for quick validation of your own files.</p>
 <p>This feature is <strong>off by default</strong>. Enable it only if you work with FundsXML documents.</p>
 <hr />
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
@@ -2037,7 +2071,7 @@
 <li><strong>Schematron rules</strong> - additional business-rule checks beyond what XSD covers</li>
 <li><strong>Query snippets</strong> - useful XPath and XQuery expressions for common tasks</li>
 </ul>
-<p>The FundsXML Extensions feature downloads all of this from the official GitHub repositories and integrates the content into FreeXmlToolkit so you can use it directly from the menus, sidebar, and Favorites.</p>
+<p>The FundsXML Extensions feature downloads all of this from the official GitHub repositories and integrates the content into FreeXmlToolkit so you can use it directly from the FundsXML side panel, the Welcome page, the Query Console, and Favorites.</p>
 <blockquote>
 <p><strong>Note:</strong> No FundsXML content is bundled with FreeXmlToolkit. Everything is fetched at runtime from the official GitHub repositories (<a href="https://github.com/fundsxml/schema">fundsxml/schema</a>, MIT License, and <a href="https://github.com/fundsxml/examples">fundsxml/examples</a>, Apache-2.0 License).</p>
 </blockquote>
@@ -2045,12 +2079,17 @@
 <h2 id="enabling-the-feature">Enabling the Feature<a class="headerlink" href="#enabling-the-feature" title="Permanent link">&para;</a></h2>
 <p>The feature is opt-in. Until you enable it, nothing in the application changes.</p>
 <ol>
-<li>Open <strong>Settings</strong> from the sidebar.</li>
-<li>Switch to the <strong>FundsXML</strong> tab.</li>
-<li>Check <strong>Enable FundsXML Extensions</strong>.</li>
+<li>Open <strong>Settings</strong> (the gear icon at the bottom of the activity bar).</li>
+<li>Scroll to the <strong>FUNDSXML</strong> card.</li>
+<li>Check <strong>Enable FundsXML extensions</strong>.</li>
 <li>Save your settings.</li>
 </ol>
-<p>Once enabled, three things appear in the application:</p>
+<blockquote>
+<p><strong>New in July 2026</strong> - Enabling the feature is all you need to do: the FundsXML content
+starts downloading automatically in the background, and a small toast notification tells
+you when it is ready. There is no separate download step anymore.</p>
+</blockquote>
+<p>Once enabled, the FundsXML integration appears in several places:</p>
 <table>
 <thead>
 <tr>
@@ -2060,29 +2099,37 @@
 </thead>
 <tbody>
 <tr>
-<td><strong>Menu bar</strong></td>
-<td>A new top-level <strong>FundsXML</strong> menu</td>
+<td><strong>Activity bar</strong></td>
+<td>A new <strong>FundsXML</strong> activity with its own side panel</td>
 </tr>
 <tr>
-<td><strong>XML Editor sidebar</strong></td>
-<td>A new <strong>FundsXML</strong> tab</td>
+<td><strong>Welcome page</strong></td>
+<td>A <strong>FUNDSXML</strong> quick-access row with <strong>Open Example</strong>, <strong>Open Schema</strong>, and <strong>Browse Examples</strong> cards (shown as soon as content is cached)</td>
 </tr>
 <tr>
-<td><strong>Welcome screen</strong></td>
-<td>A new <strong>FundsXML Extensions</strong> tile</td>
+<td><strong>Query Console</strong></td>
+<td>A <strong>FUNDSXML</strong> section in the <strong>Snippets</strong> menu with the community's example queries</td>
+</tr>
+<tr>
+<td><strong>Validation panel</strong></td>
+<td>A <strong>Validate against FundsXML</strong> entry in the ⋮ menu</td>
 </tr>
 </tbody>
 </table>
-<p>You can turn the feature off again at any time from the same Settings tab. Disabling it hides the menu, sidebar tab, and welcome tile, but leaves the downloaded content on disk intact.</p>
+<p>You can turn the feature off again at any time from the same Settings card. Disabling it hides these entries, but leaves the downloaded content on disk intact.</p>
 <hr />
 <h2 id="downloading-fundsxml-content">Downloading FundsXML Content<a class="headerlink" href="#downloading-fundsxml-content" title="Permanent link">&para;</a></h2>
-<p>After enabling the feature, you need to fetch the content from GitHub once.</p>
-<ol>
-<li>Open <strong>Settings -&gt; FundsXML</strong>.</li>
-<li>Click <strong>Download / Update FundsXML Content</strong>.</li>
-<li>Wait for the download to finish. A progress indicator shows what is being fetched.</li>
-</ol>
-<p>The application will:</p>
+<blockquote>
+<p><strong>Updated July 2026</strong> - Downloads are now <strong>fully automatic</strong>. Content is fetched in the
+background right after you enable the feature, and on every application start any missing
+content is downloaded again. When a background download finishes, a non-blocking toast
+notification appears - no dialogs interrupt your work.</p>
+</blockquote>
+<p>You normally never need to trigger a download yourself. To force a manual refresh, open the
+<strong>FundsXML</strong> side panel and click <strong>Download / Update Content</strong>. The panel shows a progress
+bar with a stage description while a download is running - for manual and automatic
+background downloads alike.</p>
+<p>Whenever content is downloaded (automatically or manually), the application will:</p>
 <ul>
 <li>Download the latest <strong>schema release</strong> from <code>fundsxml/schema</code> (the official <code>FundsXML4.xsd</code> and its included files).</li>
 <li>Download <strong>example documents</strong>, <strong>XSLT stylesheets</strong>, <strong>Schematron rule files</strong>, and <strong>XPath/XQuery snippets</strong> from <code>fundsxml/examples</code>.</li>
@@ -2091,26 +2138,25 @@
 <li>Register each <strong>XSLT stylesheet</strong> found in the examples as an XSLT Favorite under <strong>FundsXML XSLT</strong>.</li>
 <li>Register the Schematron files as Favorites under the category <strong>FundsXML Schematron</strong>.</li>
 <li>Register the most compact sample XMLs as <strong>new-document templates</strong> under the <strong>FundsXML</strong> category, so you can start a fresh document from a real sample via <em>File → New from Template</em>.</li>
-<li>Seed the XPath/XQuery snippets into your <strong>Saved Queries</strong> (visible in the XPath/XQuery tab of the XSLT Developer <strong>and</strong> via right-click in the XML editor), tagged <code>fundsxml</code>.</li>
+<li>Seed the XPath/XQuery snippets into your <strong>Saved Queries</strong>, tagged <code>fundsxml</code> - they show up in the <a href="../unified-shell/#query-console">Query Console</a>'s <strong>Snippets</strong> menu under a <strong>FUNDSXML</strong> section (for example <em>fund-summary</em>, <em>top-holdings</em>, <em>look-through</em>, <em>aggregate-by-assettype</em>), in the XPath/XQuery tab of the XSLT Developer, and via right-click in the XML editor.</li>
 <li>Select the newly downloaded schema version as the <strong>active</strong> version.</li>
-<li>Show a summary dialog with an <strong>Open Quick Start</strong> button that loads the smallest sample XML so you can immediately try <strong>Ctrl+Shift+F</strong> to validate.</li>
+<li>Make a compact starter sample available from the Welcome page's <strong>Open Example</strong> card, so you can immediately try <strong>Ctrl+Shift+F</strong> to validate.</li>
 </ul>
-<p>You can repeat this step whenever you want to update to the latest published content. Existing versions are kept on disk - downloads are additive, not replacements. Re-running is <strong>idempotent</strong> — favorites, snippets, and templates that already exist are not duplicated.</p>
+<p>Existing versions are kept on disk - downloads are additive, not replacements. Downloads are <strong>idempotent</strong> — favorites, snippets, and templates that already exist are not duplicated. On every application start, favorites and query snippets are also <strong>re-registered from the on-disk cache</strong>, so they stay available even without a network connection.</p>
 <hr />
 <h2 id="choosing-an-active-schema-version">Choosing an Active Schema Version<a class="headerlink" href="#choosing-an-active-schema-version" title="Permanent link">&para;</a></h2>
 <p>If you have downloaded more than one version of the FundsXML schema, you can switch between them.</p>
-<p>There are two equivalent ways to pick the active version:</p>
-<ul>
-<li><strong>Settings -&gt; FundsXML -&gt; Active Schema Version</strong> (drop-down)</li>
-<li><strong>FundsXML menu -&gt; Active Schema Version</strong> (submenu listing all installed versions)</li>
-</ul>
-<p>The active version is the schema used by the <strong>Quick-validate</strong> action (see below). Switching does not delete any files - you can change versions back and forth freely.</p>
+<p>Open the <strong>FundsXML</strong> side panel and pick the version from the <strong>Active version</strong> drop-down
+in the MANAGEMENT section.</p>
+<p>The active version is the schema used by the <strong>Quick-validate</strong> action (see below) and by the
+<strong>Open Schema in Editor</strong> button. Switching does not delete any files - you can change versions
+back and forth freely.</p>
 <hr />
 <h2 id="quick-validate-your-xml">Quick-Validate Your XML<a class="headerlink" href="#quick-validate-your-xml" title="Permanent link">&para;</a></h2>
 <p>The fastest way to check an XML file against the FundsXML schema:</p>
 <ol>
-<li>Open your XML document in the XML editor.</li>
-<li>Press <strong>Ctrl+Shift+F</strong>, or choose <strong>FundsXML -&gt; Validate Current XML Against FundsXML</strong>, or click the <strong>Validate</strong> button on the FundsXML sidebar tab.</li>
+<li>Open your XML document in the editor.</li>
+<li>Press <strong>Ctrl+Shift+F</strong>, or click <strong>Validate active document</strong> in the <strong>FundsXML</strong> side panel, or choose <strong>Validate against FundsXML</strong> from the Validation panel's ⋮ menu.</li>
 <li>If the document is valid, you get a confirmation message.</li>
 <li>If there are errors, they are listed line-by-line in an alert dialog so you can locate and fix each one.</li>
 </ol>
@@ -2119,40 +2165,79 @@
 <p><strong>Tip:</strong> Use the Schematron Favorites under <strong>FundsXML Schematron</strong> to run additional business-rule checks. Open a Schematron file from Favorites, then validate your XML against it as you would with any other Schematron file.</p>
 </blockquote>
 <hr />
-<h2 id="browsing-downloaded-content">Browsing Downloaded Content<a class="headerlink" href="#browsing-downloaded-content" title="Permanent link">&para;</a></h2>
-<p>The <strong>FundsXML</strong> top-level menu provides shortcuts to open the cache folders in your system's file manager:</p>
+<h2 id="the-fundsxml-side-panel">The FundsXML Side Panel<a class="headerlink" href="#the-fundsxml-side-panel" title="Permanent link">&para;</a></h2>
+<p>Select the <strong>FundsXML</strong> activity in the activity bar to open its side panel. It has three
+sections:</p>
 <table>
 <thead>
 <tr>
-<th>Menu item</th>
-<th>What it opens</th>
+<th>Section</th>
+<th>What you can do</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><strong>Open Schema Folder</strong></td>
-<td>The folder containing the active schema and its include files</td>
+<td><strong>MANAGEMENT</strong></td>
+<td>Pick the <strong>Active version</strong> and force a manual <strong>Download / Update Content</strong>. A <strong>progress bar with stage text</strong> at the bottom of the panel tracks running downloads - including automatic background downloads.</td>
+</tr>
+<tr>
+<td><strong>VALIDATE</strong></td>
+<td><strong>Validate active document</strong> - check the open XML against the active FundsXML schema.</td>
+</tr>
+<tr>
+<td><strong>DOCS &amp; RESOURCES</strong></td>
+<td>Open the schema and browse the downloaded content (see below).</td>
+</tr>
+</tbody>
+</table>
+<p>The DOCS &amp; RESOURCES buttons:</p>
+<table>
+<thead>
+<tr>
+<th>Button</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Open Schema in Editor</strong> <em>(new in July 2026)</em></td>
+<td>Opens the active version's <code>FundsXML4.xsd</code> directly as an editor tab - explore it in the Text view or as a diagram in the Graphic view</td>
+</tr>
+<tr>
+<td><strong>Generate Schema Documentation</strong></td>
+<td>Generates browsable HTML documentation for the active schema into <code>~/.freeXmlToolkit/fundsxml/docs/&lt;version&gt;/</code></td>
 </tr>
 <tr>
 <td><strong>Open Examples Folder</strong></td>
 <td>The folder with downloaded sample XML documents</td>
 </tr>
 <tr>
+<td><strong>Open Schema Folder</strong></td>
+<td>The folder containing the active schema and its include files</td>
+</tr>
+<tr>
 <td><strong>Open Schematron Folder</strong></td>
 <td>The folder with downloaded <code>.sch</code> rule files</td>
 </tr>
 <tr>
-<td><strong>Generate Schema Documentation…</strong></td>
-<td>Generates browsable HTML documentation for the active schema into <code>~/.freeXmlToolkit/fundsxml/docs/&lt;version&gt;/</code> and opens the folder</td>
-</tr>
-<tr>
-<td><strong>Online Documentation</strong></td>
+<td><strong>Open Online Docs</strong></td>
 <td>Opens <a href="https://fundsxml.org/">https://fundsxml.org/</a> in your default browser</td>
 </tr>
 </tbody>
 </table>
-<p>The <strong>XSLT Developer</strong> tab also gains a <strong>FundsXML XSLT</strong> toolbar button (only visible when the FundsXML feature is enabled) that lists every XSLT in the cache for one-click loading.</p>
-<p>You can also reach the example files directly from the Favorites menu (category <strong>FundsXML Examples</strong>) in any editor.</p>
+<p>You can also reach the downloaded files directly through <a href="../favorites-system/">Favorites</a>: example documents under <strong>FundsXML Examples</strong>, the active schema under <strong>FundsXML Schema</strong>, Schematron rules under <strong>FundsXML Schematron</strong>, and stylesheets under <strong>FundsXML XSLT</strong> (handy in the Transform panel's star menus).</p>
+<h3 id="welcome-page-quick-access">Welcome Page Quick Access<a class="headerlink" href="#welcome-page-quick-access" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p><strong>New in July 2026</strong></p>
+</blockquote>
+<p>When the feature is enabled and content is cached, the Welcome/Dashboard page shows a
+<strong>FUNDSXML</strong> quick-access row with three cards:</p>
+<ul>
+<li><strong>Open Example</strong> - opens a compact starter sample document.</li>
+<li><strong>Open Schema</strong> - opens <code>FundsXML4.xsd</code> in the editor.</li>
+<li><strong>Browse Examples</strong> - opens the cached examples folder in your file manager.</li>
+</ul>
+<p>The row appears automatically; if a background download is still running, it shows up live the moment the download finishes.</p>
 <hr />
 <h2 id="where-the-files-are-stored">Where the Files Are Stored<a class="headerlink" href="#where-the-files-are-stored" title="Permanent link">&para;</a></h2>
 <p>All FundsXML content is stored under your user home directory:</p>
@@ -2170,8 +2255,11 @@
 <p>On Windows the path is typically <code>C:\Users\&lt;you&gt;\.freeXmlToolkit\fundsxml\</code>. On macOS and Linux it is <code>/Users/&lt;you&gt;/.freeXmlToolkit/fundsxml/</code> or <code>/home/&lt;you&gt;/.freeXmlToolkit/fundsxml/</code>.</p>
 <hr />
 <h2 id="automatic-update-checks">Automatic Update Checks<a class="headerlink" href="#automatic-update-checks" title="Permanent link">&para;</a></h2>
-<p>By default, FreeXmlToolkit checks once per day whether a newer FundsXML schema release is available on GitHub. If a new release is found, you get a notification - but nothing is downloaded automatically. You decide whether to fetch the update from <strong>Settings -&gt; FundsXML -&gt; Download / Update FundsXML Content</strong>.</p>
-<p>The check is throttled to at most once every 24 hours and runs quietly in the background. You can disable it in <strong>Settings -&gt; FundsXML -&gt; Check for updates daily</strong>.</p>
+<blockquote>
+<p><strong>Updated July 2026</strong> - Updates are now installed automatically instead of showing a dialog.</p>
+</blockquote>
+<p>By default, FreeXmlToolkit checks once per day whether a newer FundsXML schema release is available on GitHub. If a new release is found, it is <strong>downloaded and installed automatically in the background</strong> - a toast notification confirms when the new content is in place, and the new version becomes the active one. There is no update dialog to answer anymore.</p>
+<p>The check is throttled to at most once every 24 hours and runs quietly in the background. Missing content (for example after clearing the cache folder) is also re-downloaded automatically on the next application start. To turn the daily check off, set <code>fundsxml.update.check.enabled=false</code> in your <code>FreeXmlToolkit.properties</code> file.</p>
 <hr />
 <h2 id="contributing-snippets-upstream">Contributing Snippets Upstream<a class="headerlink" href="#contributing-snippets-upstream" title="Permanent link">&para;</a></h2>
 <p>The XPath/XQuery snippets in the <code>queries/</code> folder follow a simple convention so the community can grow them.</p>
@@ -2230,56 +2318,62 @@
 <p>To propose a snippet for everyone, submit a pull request to the <a href="https://github.com/fundsxml/examples">fundsxml/examples</a> repository.</p>
 <hr />
 <h2 id="settings-reference">Settings Reference<a class="headerlink" href="#settings-reference" title="Permanent link">&para;</a></h2>
-<p>The FundsXML tab in Settings exposes these options:</p>
+<p>The feature's options and where to find them:</p>
 <table>
 <thead>
 <tr>
 <th>Setting</th>
+<th>Where</th>
 <th>Description</th>
 <th>Default</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><strong>Enable FundsXML Extensions</strong></td>
-<td>Master switch for the entire feature</td>
+<td><strong>Enable FundsXML extensions</strong></td>
+<td>Settings page, FUNDSXML card</td>
+<td>Master switch; enabling it starts the initial background download</td>
 <td>Off</td>
 </tr>
 <tr>
-<td><strong>Active Schema Version</strong></td>
-<td>Which downloaded schema version is used for Quick-validate</td>
+<td><strong>Active version</strong></td>
+<td>FundsXML side panel</td>
+<td>Which downloaded schema version is used for Quick-validate and Open Schema in Editor</td>
 <td>Latest installed</td>
 </tr>
 <tr>
-<td><strong>Check for updates daily</strong></td>
-<td>Run a once-per-day background check for new releases</td>
-<td>On</td>
+<td><strong>Download / Update Content</strong></td>
+<td>FundsXML side panel</td>
+<td>Force a manual refresh from GitHub</td>
+<td>-</td>
 </tr>
 <tr>
-<td><strong>Download / Update FundsXML Content</strong></td>
-<td>Fetch the latest content from GitHub</td>
-<td>-</td>
+<td>Daily update check</td>
+<td><code>fundsxml.update.check.enabled</code> property</td>
+<td>Once-per-day background check that installs newer schema releases automatically</td>
+<td>On</td>
 </tr>
 </tbody>
 </table>
 <p>These preferences are stored in your <code>FreeXmlToolkit.properties</code> file in the user home directory.</p>
 <hr />
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
-<h3 id="download-update-fails">"Download / Update" fails<a class="headerlink" href="#download-update-fails" title="Permanent link">&para;</a></h3>
+<h3 id="a-download-fails">A download fails<a class="headerlink" href="#a-download-fails" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Check your internet connection.</li>
 <li>If you are behind a corporate proxy, configure proxy settings under <strong>Settings -&gt; Connection</strong>.</li>
 <li>Verify that github.com is reachable from your network.</li>
+<li>Retry with <strong>Download / Update Content</strong> in the FundsXML side panel; the panel's status line shows the reason for the failure.</li>
 </ul>
 <h3 id="quick-validate-reports-no-active-schema">Quick-validate reports "No active schema"<a class="headerlink" href="#quick-validate-reports-no-active-schema" title="Permanent link">&para;</a></h3>
-<p>You have enabled the feature but have not downloaded a schema yet. Click <strong>Download / Update FundsXML Content</strong> in Settings -&gt; FundsXML.</p>
-<h3 id="the-fundsxml-menu-disappeared">The FundsXML menu disappeared<a class="headerlink" href="#the-fundsxml-menu-disappeared" title="Permanent link">&para;</a></h3>
-<p>The feature was disabled. Re-enable it under <strong>Settings -&gt; FundsXML -&gt; Enable FundsXML Extensions</strong>. Your downloaded content is still on disk and will reappear immediately.</p>
+<p>The automatic background download has not finished yet (or it failed - for example without a network connection). Watch the progress bar in the <strong>FundsXML</strong> side panel and wait for the completion toast, or click <strong>Download / Update Content</strong> there to retry.</p>
+<h3 id="the-fundsxml-activity-disappeared">The FundsXML activity disappeared<a class="headerlink" href="#the-fundsxml-activity-disappeared" title="Permanent link">&para;</a></h3>
+<p>The feature was disabled. Re-enable it under <strong>Settings -&gt; FUNDSXML -&gt; Enable FundsXML extensions</strong>. Your downloaded content is still on disk and will reappear immediately.</p>
 <h3 id="i-want-to-remove-everything">I want to remove everything<a class="headerlink" href="#i-want-to-remove-everything" title="Permanent link">&para;</a></h3>
 <ol>
-<li>Disable the feature in Settings.</li>
+<li>Disable the feature in Settings (otherwise the content is re-downloaded automatically on the next start).</li>
 <li>Delete the folder <code>~/.freeXmlToolkit/fundsxml/</code>.</li>
-<li>Optionally remove the Favorites entries under <strong>FundsXML Examples</strong> and <strong>FundsXML Schematron</strong>.</li>
+<li>Optionally remove the Favorites entries under <strong>FundsXML Examples</strong>, <strong>FundsXML Schema</strong>, <strong>FundsXML Schematron</strong>, and <strong>FundsXML XSLT</strong>.</li>
 </ol>
 <hr />
 <h2 id="licensing">Licensing<a class="headerlink" href="#licensing" title="Permanent link">&para;</a></h2>
@@ -2288,7 +2382,7 @@
 <li><strong>Schemas</strong> (<code>fundsxml/schema</code>): MIT License</li>
 <li><strong>Examples, Schematron, Queries</strong> (<code>fundsxml/examples</code>): Apache License 2.0</li>
 </ul>
-<p>FreeXmlToolkit itself does not bundle any of this content - it is fetched from the public GitHub repositories only when you choose to download it.</p>
+<p>FreeXmlToolkit itself does not bundle any of this content - it is fetched from the public GitHub repositories only after you enable the feature.</p>
 <hr />
 <h2 id="navigation">Navigation<a class="headerlink" href="#navigation" title="Permanent link">&para;</a></h2>
 <table>

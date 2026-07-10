@@ -1121,6 +1121,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#fundsxml-panel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FundsXML Panel
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#settings-page" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3002,6 +3013,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#fundsxml-panel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FundsXML Panel
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#settings-page" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3313,7 +3335,7 @@ XML file next to its XSD schema, XSLT stylesheets and Schematron rules at the sa
 <tbody>
 <tr>
 <td><strong>Activity bar</strong> (far left)</td>
-<td>Switch tools / side panels: Explorer, Transform, Validation, Signature, Type Library, FOP/PDF, Favorites, Settings, Help. <strong>Always visible</strong> - it cannot be collapsed. (Settings opens as a full page in the editor area - see <a href="#settings-page">Settings Page</a>.)</td>
+<td>Switch tools / side panels: Explorer, Transform, Validation, Signature, Type Library, FOP/PDF, Favorites, Settings, Help - plus a <strong>FundsXML</strong> activity when the optional <a href="../fundsxml-extensions/">FundsXML extension</a> is enabled (see <a href="#fundsxml-panel">FundsXML Panel</a>). <strong>Always visible</strong> - it cannot be collapsed. (Settings opens as a full page in the editor area - see <a href="#settings-page">Settings Page</a>.)</td>
 </tr>
 <tr>
 <td><strong>Side panel</strong></td>
@@ -4183,6 +4205,32 @@ create a certificate. The highlight disappears as soon as you start typing in th
   result in the in-app <strong>PDF preview</strong>; <strong>Preview</strong> and <strong>Open PDF</strong> re-open it any time.</li>
 </ul>
 <p>See <a href="../pdf-generator/">PDF Generator</a> for stylesheet guidance.</p>
+<h2 id="fundsxml-panel">FundsXML Panel<a class="headerlink" href="#fundsxml-panel" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p><strong>Updated July 2026</strong> - Content now downloads and updates <strong>automatically</strong> in the
+background; the panel gained a <strong>progress bar</strong> with stage text and an
+<strong>Open Schema in Editor</strong> button.</p>
+</blockquote>
+<p>The <strong>FundsXML</strong> activity appears in the activity bar only when the optional
+<a href="../fundsxml-extensions/">FundsXML extension</a> is enabled (Settings → FUNDSXML card).
+Enabling it is enough - the official FundsXML schema, examples, Schematron rules and query
+snippets download automatically in the background, and a toast notification appears when
+they are ready. The panel offers:</p>
+<ul>
+<li><strong>MANAGEMENT</strong> - Pick the <strong>Active version</strong> among the downloaded schema releases, or
+  click <strong>Download / Update Content</strong> to force a manual refresh. A <strong>progress bar with
+  stage text</strong> at the bottom tracks any running download - including the automatic
+  background ones triggered at startup or by the daily update check.</li>
+<li><strong>VALIDATE</strong> - <strong>Validate active document</strong> checks the open XML against the active
+  FundsXML schema (same as <strong>Ctrl+Shift+F</strong>).</li>
+<li><strong>DOCS &amp; RESOURCES</strong> - <strong>Open Schema in Editor</strong> opens the active version's
+  <code>FundsXML4.xsd</code> as a normal editor tab (Text or Graphic/diagram view);
+  <strong>Generate Schema Documentation</strong> produces browsable HTML docs; the <strong>Open … Folder</strong>
+  buttons show the cached examples, schema and Schematron files; <strong>Open Online Docs</strong>
+  opens fundsxml.org.</li>
+</ul>
+<p>See the <a href="../fundsxml-extensions/">FundsXML Extensions guide</a> for the full feature
+description, cache locations and troubleshooting.</p>
 <h2 id="settings-page">Settings Page<a class="headerlink" href="#settings-page" title="Permanent link">&para;</a></h2>
 <blockquote>
 <p><strong>Updated in June 2026</strong> - Settings now open as a <strong>full page</strong> (a tab in the main editor
@@ -4330,6 +4378,12 @@ Tools grid covers <strong>every</strong> page - including the new <strong>Explor
   <strong>Validate</strong>, <strong>Transform</strong>, <strong>Schema</strong>, <strong>PDF / FOP</strong>, <strong>Signature</strong>, and <strong>Favorites</strong>,
   two cards are new in June 2026: <strong>Explorer</strong> (files &amp; workspace) and <strong>Settings</strong>
   (application preferences) - so every page can be opened directly from the start screen.</li>
+<li><strong>FUNDSXML quick access</strong> <em>(new in July 2026)</em> - When the optional
+  <a href="../fundsxml-extensions/">FundsXML extension</a> is enabled and its content is cached, an
+  extra row with three cards appears: <strong>Open Example</strong> (opens a compact starter sample),
+  <strong>Open Schema</strong> (opens <code>FundsXML4.xsd</code> in the editor) and <strong>Browse Examples</strong> (opens the
+  cached examples folder). The row shows up live as soon as the automatic background
+  download finishes.</li>
 </ul>
 <h2 id="status-bar">Status Bar<a class="headerlink" href="#status-bar" title="Permanent link">&para;</a></h2>
 <blockquote>
@@ -4677,6 +4731,12 @@ the OUTPUT panel's result table and HTML preview, use the <a href="#transform-pa
 </ul>
 <p>Snippets are kept in the shared query folder, so anything saved here is also available from the XML
 Editor's XPath/XQuery panel and vice versa.</p>
+<p><em>(New in July 2026)</em> When the optional <a href="../fundsxml-extensions/">FundsXML extension</a> is
+enabled, the <strong>Snippets</strong> menu also shows a <strong>FUNDSXML</strong> section with the XPath/XQuery
+example queries shipped with the FundsXML examples (for example <em>fund-summary</em>,
+<em>top-holdings</em>, <em>look-through</em>, <em>aggregate-by-assettype</em>). Selecting one loads it into the
+console and switches the XPath/XQuery mode to match. These entries come from the FundsXML
+content cache and are re-registered automatically on every start.</p>
 <h2 id="xpath-xquery-autocomplete">XPath / XQuery Autocomplete<a class="headerlink" href="#xpath-xquery-autocomplete" title="Permanent link">&para;</a></h2>
 <p>The XPath/XQuery inputs (in the Query Console and in the Transform panel) offer context-aware
 autocomplete in both the XPath and
