@@ -15,7 +15,7 @@ import org.fxt.freexmltoolkit.service.UpdateCheckService;
 
 /**
  * Owns the application's startup background tasks (app-update + FundsXML-update
- * checks) and their scheduler, decoupled from the (retiring) MainController.
+ * checks) and their scheduler.
  * Invoked once at boot by FxtGui; shut down by FxtGui.stop().
  */
 public final class ShellBootstrap {

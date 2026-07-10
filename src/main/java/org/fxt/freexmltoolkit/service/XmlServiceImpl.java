@@ -442,13 +442,6 @@ public class XmlServiceImpl implements XmlService {
     }
 
     /**
-     * Eine private Hilfsmethode, die ausschließlich die Wohlgeformtheit eines XML-Strings prüft.
-     * Sie verwendet einen Standard-Parser mit deaktivierter Validierung, um zuverlässige Ergebnisse zu gewährleisten.
-     *
-     * @param xmlString Der zu prüfende XML-String.
-     * @return Eine Liste von SAXParseExceptions. Die Liste ist leer, wenn der String wohlgeformt ist.
-     */
-    /**
      * Detects if a schema uses XSD 1.1 features.
      * @param schemaContent The XSD content to check.
      * @return true if XSD 1.1 features are detected, false otherwise.
@@ -655,10 +648,9 @@ public class XmlServiceImpl implements XmlService {
             header.setRowStyle(headerStyle);
             sheet.createFreezePane(0, 1);
 
-            // Spaltenbreite für bessere Lesbarkeit anpassen
-            // Die Einheit ist 1/256 eines Zeichens
-            sheet.setColumnWidth(1, 20_000); // Spalte "Error Message" (ca. 78 Zeichen)
-            sheet.setColumnWidth(4, 25_000); // Spalte "XML Content" (ca. 97 Zeichen)
+            // Adjust column widths for readability; the unit is 1/256 of a character
+            sheet.setColumnWidth(1, 20_000); // "Error Message" column (about 78 characters)
+            sheet.setColumnWidth(4, 25_000); // "XML Content" column (about 97 characters)
 
             for (int i = 0; i < errorList.size(); i++) {
                 Row row = sheet.createRow(i + 1);
@@ -986,12 +978,8 @@ public class XmlServiceImpl implements XmlService {
                     switch (node.getNodeKind()) {
                         case ELEMENT:
                             // Element nodes - serialize to XML
-                            Serializer serializer = processor.newSerializer(new StringWriter());
-                            serializer.setOutputProperty(Serializer.Property.OMIT_XML_DECLARATION, "yes");
-                            serializer.setOutputProperty(Serializer.Property.INDENT, "yes");
-
                             StringWriter elementWriter = new StringWriter();
-                            serializer = processor.newSerializer(elementWriter);
+                            Serializer serializer = processor.newSerializer(elementWriter);
                             serializer.setOutputProperty(Serializer.Property.OMIT_XML_DECLARATION, "yes");
                             serializer.setOutputProperty(Serializer.Property.INDENT, "yes");
                             serializer.serializeNode(node);
@@ -1486,18 +1474,18 @@ public class XmlServiceImpl implements XmlService {
         Element root = doc.getDocumentElement();
         final String xsdNs = "http://www.w3.org/2001/XMLSchema";
 
-        // Finde oder erstelle xsd:annotation
+        // Find or create xsd:annotation
         NodeList annotationList = root.getElementsByTagNameNS(xsdNs, "annotation");
         Element annotation;
         if (annotationList.getLength() > 0) {
             annotation = (Element) annotationList.item(0);
         } else {
             annotation = doc.createElementNS(xsdNs, "xsd:annotation");
-            // Füge es als erstes Kind des Wurzelelements ein
+            // Insert it as the first child of the root element
             root.insertBefore(annotation, root.getFirstChild());
         }
 
-        // Finde oder erstelle xsd:documentation in xsd:annotation
+        // Find or create xsd:documentation inside xsd:annotation
         NodeList docList = annotation.getElementsByTagNameNS(xsdNs, "documentation");
         Element documentationElement;
         if (docList.getLength() > 0) {
@@ -1507,10 +1495,10 @@ public class XmlServiceImpl implements XmlService {
             annotation.appendChild(documentationElement);
         }
 
-        // Setze den neuen Inhalt
+        // Set the new content
         documentationElement.setTextContent(documentationContent);
 
-        // Schreibe den Inhalt zurück in die Datei mit anständiger Formatierung
+        // Write the content back to the file with proper formatting
         writeDocumentToFile(doc, xsdFile);
     }
 

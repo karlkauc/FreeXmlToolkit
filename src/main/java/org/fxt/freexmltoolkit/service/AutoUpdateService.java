@@ -31,17 +31,18 @@ import org.fxt.freexmltoolkit.domain.UpdateInfo;
  * <ol>
  *   <li>Downloading the appropriate app-image ZIP from GitHub Releases</li>
  *   <li>Extracting the ZIP to a temporary folder</li>
- *   <li>Launching an external updater script that replaces files and restarts the app</li>
+ *   <li>Applying the update in a platform-specific way</li>
  * </ol>
  *
- * <p>The update is performed using a platform-specific updater script that:
+ * <p>The apply step differs per platform:
  * <ul>
- *   <li>Waits for the current application to exit</li>
- *   <li>Copies new files to the application directory</li>
- *   <li>Restarts the application</li>
+ *   <li>Windows: launches the bundled native update helper, which waits for the
+ *       application to exit, copies the new files, and restarts the application</li>
+ *   <li>Mac/Linux: copies the new files over the install directory in-process
+ *       and starts the new launcher</li>
  * </ul>
  *
- * @since 2.0
+ * @since 1.0
  */
 public interface AutoUpdateService {
 

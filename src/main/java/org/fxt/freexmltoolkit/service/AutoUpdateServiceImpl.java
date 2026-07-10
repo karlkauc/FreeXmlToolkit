@@ -48,10 +48,12 @@ import org.fxt.freexmltoolkit.domain.UpdateInfo;
  * Implementation of AutoUpdateService that downloads and applies updates from GitHub Releases.
  *
  * <p>This service downloads app-image ZIP files from GitHub Releases, extracts them,
- * and launches a platform-specific updater script to replace the application files
- * while the application is not running.
+ * and applies the update in a platform-specific way: on Windows it launches the
+ * bundled native update helper (run from %TEMP%) which replaces the files after the
+ * application exits; on Mac/Linux it copies the new files over the install directory
+ * in-process and starts the new launcher.
  *
- * @since 2.0
+ * @since 1.0
  */
 public class AutoUpdateServiceImpl implements AutoUpdateService {
 

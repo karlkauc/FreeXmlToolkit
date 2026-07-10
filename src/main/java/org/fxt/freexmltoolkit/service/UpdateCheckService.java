@@ -29,7 +29,7 @@ import org.fxt.freexmltoolkit.domain.UpdateInfo;
  * of FreeXmlToolkit is available. The check runs asynchronously to avoid blocking
  * the UI thread during application startup.
  *
- * @since 2.0
+ * @since 1.0
  */
 public interface UpdateCheckService {
 

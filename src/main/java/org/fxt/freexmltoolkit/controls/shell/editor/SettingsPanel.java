@@ -30,7 +30,8 @@ import org.fxt.freexmltoolkit.service.TemplateRepository;
 import org.fxt.freexmltoolkit.service.UsageTrackingServiceImpl;
 
 /**
- * The Settings activity side panel. Surfaces the full {@link PropertiesService} configuration in
+ * The Settings page, opened as a tab in the main editor area (the Settings
+ * activity's side panel only shows a pointer to it). Surfaces the full {@link PropertiesService} configuration in
  * sections — Theme, Editor (XML/JSON indent, auto-format, pretty-print), XSD (auto-save, backups),
  * Parser (XML parser engine, XSLT extensions), Temp &amp; Cache (system/custom temp folder + clear),
  * General (update check, small icons) and HTTP Proxy — loading the saved values into the controls

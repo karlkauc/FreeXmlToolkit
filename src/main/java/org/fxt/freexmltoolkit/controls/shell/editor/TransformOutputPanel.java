@@ -33,9 +33,8 @@ import org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat;
  * and the result as rendered HTML preview (WebView), plain text, or an XQuery table,
  * switched by a Preview/Text/Table segmented toggle.
  * <p>
- * The panel is long-lived and owned by the {@link EditorHost} (the Transform side
- * panel is recreated on every activity switch), so results survive switching
- * activities. It hides itself via the ✕ button and re-appears on the next run.
+ * The panel is long-lived and owned by the {@link EditorHost}, so results survive
+ * switching activities. It hides itself via the ✕ button and re-appears on the next run.
  */
 public class TransformOutputPanel extends VBox {
 

@@ -43,7 +43,7 @@ import net.sf.saxon.s9api.XsltTransformer;
 /**
  * Advanced XSLT 3.0 and XQuery 3.1 Transformation Engine with Saxon integration.
  * Provides professional transformation development capabilities including:
- * - XSLT 3.0 support with streaming
+ * - XSLT 3.0 support
  * - XQuery 3.1 support for data querying and transformation
  * - Interactive debugging and profiling
  * - Multiple output formats (HTML, XML, JSON, Text)

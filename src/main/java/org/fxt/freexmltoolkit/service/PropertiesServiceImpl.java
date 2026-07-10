@@ -155,7 +155,7 @@ public class PropertiesServiceImpl implements PropertiesService {
     public List<File> getLastOpenFiles() {
         Properties p = loadProperties();
         List<File> files = new LinkedList<>();
-        // KORREKTUR: Nur die letzten 5 Einträge laden
+        // Load only the 5 most recent entries
         for (int i = 0; i < 5; i++) {
             String filePath = p.getProperty("LastOpenFile." + i);
             if (filePath != null) {
@@ -171,39 +171,39 @@ public class PropertiesServiceImpl implements PropertiesService {
     }
 
     /**
-     * NEU: Fügt eine Datei zur Liste der zuletzt geöffneten Dateien hinzu.
-     * Die Liste wird auf 5 Einträge begrenzt und das neueste Element steht an erster Stelle.
+     * Adds a file to the list of recently opened files.
+     * The list is capped at 5 entries with the most recent file first.
      *
-     * @param file die hinzuzufügende Datei
+     * @param file the file to add
      */
     @Override
     public void addLastOpenFile(File file) {
         List<File> recentFiles = getLastOpenFiles();
 
-        // Entferne die Datei, falls sie bereits in der Liste ist, um Duplikate zu vermeiden
-        // und sie an die Spitze zu verschieben.
+        // Remove the file if it is already in the list, to avoid duplicates
+        // and move it to the top.
         recentFiles.removeIf(f -> f.getAbsolutePath().equals(file.getAbsolutePath()));
 
-        // Füge die neue Datei am Anfang der Liste hinzu
+        // Add the new file at the head of the list
         recentFiles.addFirst(file);
 
-        // Kürze die Liste auf die maximale Größe von 5
+        // Trim the list to the maximum size of 5
         if (recentFiles.size() > 5) {
             recentFiles = new LinkedList<>(recentFiles.subList(0, 5));
         }
 
-        // Entferne alle alten "LastOpenFile"-Einträge aus den Properties
+        // Remove all old "LastOpenFile" entries from the properties
         List<Object> keysToRemove = properties.keySet().stream()
                 .filter(key -> ((String) key).startsWith("LastOpenFile."))
                 .toList();
         keysToRemove.forEach(properties::remove);
 
-        // Schreibe die neue, sortierte Liste in die Properties
+        // Write the new, ordered list into the properties
         for (int i = 0; i < recentFiles.size(); i++) {
             properties.setProperty("LastOpenFile." + i, recentFiles.get(i).getAbsolutePath());
         }
 
-        // Speichere die aktualisierten Properties
+        // Persist the updated properties
         saveProperties(properties);
         logger.debug("Updated last open files list: {}", recentFiles);
     }

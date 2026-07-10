@@ -56,8 +56,8 @@ public class FileExplorerTreeItem extends TreeItem<Path> {
     private boolean isFirstTimeChildren = true;
     private boolean isFirstTimeLeaf = true;
 
-    // Feld für das Caching der Anzahl der Unterverzeichnisse.
-    // -1 bedeutet "noch nicht berechnet".
+    // Cached number of subdirectories.
+    // -1 means "not calculated yet".
     private long subdirectoryCount = -1;
 
     private final List<String> allowedExtensions;
@@ -131,18 +131,18 @@ public class FileExplorerTreeItem extends TreeItem<Path> {
      * @return the number of subdirectories
      */
     public long getSubdirectoryCount() {
-        if (this.subdirectoryCount == -1) { // Nur beim ersten Mal berechnen
+        if (this.subdirectoryCount == -1) { // Calculate only on first access
             Path path = getValue();
             if (Files.isDirectory(path)) {
                 try (var stream = Files.list(path)) {
-                    // Zähle nur die Elemente im Stream, die Verzeichnisse sind.
+                    // Count only the stream entries that are directories.
                     this.subdirectoryCount = stream.filter(Files::isDirectory).count();
                 } catch (IOException e) {
                     logger.info("Could not count subdirectories in: {}", path, e);
-                    this.subdirectoryCount = 0; // Im Fehlerfall ist die Anzahl 0.
+                    this.subdirectoryCount = 0; // On error, report zero subdirectories.
                 }
             } else {
-                this.subdirectoryCount = 0; // Dateien haben 0 Unterverzeichnisse.
+                this.subdirectoryCount = 0; // Files have no subdirectories.
             }
         }
         return this.subdirectoryCount;
@@ -236,26 +236,26 @@ public class FileExplorerTreeItem extends TreeItem<Path> {
             if (Files.isRegularFile(path)) {
                 isLeaf = true;
             } else if (Files.isDirectory(path)) {
-                // Ein Verzeichnis ist ein "Blatt", wenn es KEINE Kinder enthält, die angezeigt würden.
-                // Ein Kind wird angezeigt, wenn es ein Verzeichnis ist ODER eine Datei, die dem Filter entspricht.
+                // A directory is a "leaf" if it contains NO children that would be displayed.
+                // A child is displayed if it is a directory OR a file matching the filter.
                 try (var stream = Files.list(path)) {
                     isLeaf = stream.noneMatch(p -> {
                         if (Files.isDirectory(p)) {
-                            return true; // Hat ein Unterverzeichnis, ist also kein Blatt.
+                            return true; // Has a subdirectory, so it is not a leaf.
                         }
-                        // Es ist eine Datei, also gegen den Filter prüfen.
+                        // It is a file, so check it against the filter.
                         if (allowedExtensions == null || allowedExtensions.isEmpty()) {
-                            return true; // Kein Filter, also wird die Datei angezeigt -> kein Blatt.
+                            return true; // No filter, so the file is displayed -> not a leaf.
                         }
                         String extension = FilenameUtils.getExtension(p.getFileName().toString()).toLowerCase();
-                        return allowedExtensions.contains(extension); // Datei entspricht Filter -> kein Blatt.
+                        return allowedExtensions.contains(extension); // File matches the filter -> not a leaf.
                     });
                 } catch (IOException e) {
                     logger.info("Could not check directory content for: {}", path, e);
-                    isLeaf = true; // Im Fehlerfall als Blatt behandeln.
+                    isLeaf = true; // Treat as a leaf on error.
                 }
             } else {
-                // Sollte nicht vorkommen, aber eine sichere Voreinstellung.
+                // Should not happen, but a safe default.
                 isLeaf = true;
             }
         }
@@ -269,17 +269,17 @@ public class FileExplorerTreeItem extends TreeItem<Path> {
                 var children = javafx.collections.FXCollections.<TreeItem<Path>>observableArrayList();
                 try (var stream = Files.list(path)) {
                     stream
-                            // Wir filtern den Stream, bevor wir die Elemente verarbeiten.
+                            // Filter the stream before processing the entries.
                             .filter(p -> {
-                                // Verzeichnisse werden immer angezeigt.
+                                // Directories are always displayed.
                                 if (Files.isDirectory(p)) {
                                     return true;
                                 }
-                                // Wenn kein Filter gesetzt ist, werden alle Dateien angezeigt.
+                                // If no filter is set, all files are displayed.
                                 if (allowedExtensions == null || allowedExtensions.isEmpty()) {
                                     return true;
                                 }
-                                // Andernfalls prüfe, ob die Dateiendung in der Liste der erlaubten Endungen ist.
+                                // Otherwise check whether the file extension is in the list of allowed extensions.
                                 String extension = FilenameUtils.getExtension(p.getFileName().toString()).toLowerCase();
                                 return allowedExtensions.contains(extension);
                             })
@@ -292,7 +292,7 @@ public class FileExplorerTreeItem extends TreeItem<Path> {
                                 }
                                 return p1.getFileName().toString().compareToIgnoreCase(p2.getFileName().toString());
                             })
-                            // KORREKTUR: Wir übergeben die Filterliste an die Kind-Elemente weiter.
+                            // Pass the filter list on to the child items.
                             .forEach(p -> children.add(new FileExplorerTreeItem(p, this.allowedExtensions)));
                 }
                 return children;

@@ -232,8 +232,8 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
             return;
         }
 
-        // Die Liste der globalen Elemente aus der Map aller Elemente filtern.
-        // Globale Elemente sind solche auf Level 0 und keine Container-Elemente.
+        // Filter the list of global elements from the map of all elements.
+        // Global elements are those at level 0 that are not container elements.
         List<XsdExtendedElement> globalElements = xsdDocumentationData.getExtendedXsdElementMap().values().stream()
                 .filter(e -> e.getLevel() == 0)
                 .filter(this::isNotContainerElement)
@@ -241,17 +241,17 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
                     boolean e1IsNative = e1.getSourceNamespace() == null;
                     boolean e2IsNative = e2.getSourceNamespace() == null;
 
-                    // Native Elemente (die zum targetNamespace gehören) kommen zuerst.
+                    // Native elements (those belonging to the targetNamespace) come first.
                     if (e1IsNative != e2IsNative) {
                         return e1IsNative ? -1 : 1;
                     }
 
-                    // Wenn beide nativ sind, nach der ursprünglichen Reihenfolge sortieren.
+                    // If both are native, sort by their original order.
                     if (e1IsNative) {
                         return Integer.compare(e1.getCounter(), e2.getCounter());
                     }
 
-                    // Wenn beide importiert sind, zuerst nach Namespace, dann nach Name sortieren.
+                    // If both are imported, sort by namespace first, then by name.
                     int nsCompare = e1.getSourceNamespace().compareTo(e2.getSourceNamespace());
                     if (nsCompare != 0) {
                         return nsCompare;
@@ -260,12 +260,12 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
                 })
                 .collect(Collectors.toList());
 
-        // Das Wurzelelement ist das erste globale Element, das zum targetNamespace des Schemas gehört.
-        // Dies vermeidet, dass ein importiertes Element als Wurzelelement ausgewählt wird.
+        // The root element is the first global element that belongs to the schema's targetNamespace.
+        // This avoids selecting an imported element as the root element.
         XsdExtendedElement rootExtendedElement = globalElements.stream()
                 .filter(e -> e.getSourceNamespace() == null || e.getSourceNamespace().equals(xsdDocumentationData.getTargetNamespace()))
                 .findFirst()
-                .orElse(globalElements.isEmpty() ? null : globalElements.getFirst()); // Fallback auf das erste Element
+                .orElse(globalElements.isEmpty() ? null : globalElements.getFirst()); // Fall back to the first element
 
         if (rootExtendedElement == null) {
             logger.error("Could not determine a root element. Aborting root page generation.");
@@ -285,7 +285,7 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
         context.setVariable("rootElementLink", "details/" + rootExtendedElement.getPageName());
         context.setVariable("this", this);
 
-        // NEU: Die Variablen für das Template setzen.
+        // Set the variables for the template.
         context.setVariable("xsdGlobalElements", globalElements);
         context.setVariable("attributeFormDefault", xsdDocumentationData.getAttributeFormDefault());
         context.setVariable("elementFormDefault", xsdDocumentationData.getElementFormDefault());
@@ -582,7 +582,7 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
     private void generateDetailPage(XsdExtendedElement element) {
         try {
             final Context context = new Context();
-            context.setVariable("this", this); // Wichtig, damit this.* im Template funktioniert
+            context.setVariable("this", this); // Important so that this.* works in the template
             context.setVariable("element", element);
 
             // Pass ALL documentation for multi-language support with on-the-fly switching
@@ -597,7 +597,7 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
             // Flattened children list (without CHOICE/SEQUENCE/ALL containers)
             context.setVariable("flattenedChildren", getFlattenedChildren(element));
 
-            // Bestehende Variablen (aus anderen Templates abgeleitet)
+            // Existing variables (derived from other templates)
             context.setVariable("diagramType", xsdDocService.getImageOutputMethod().name());
             context.setVariable("diagramContent", generateDiagram(element));
             context.setVariable("breadCrumbs", generateBreadcrumbs(element));
@@ -614,11 +614,11 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
     }
 
     /**
-     * Generiert das Diagramm für ein gegebenes Element.
-     * Je nach Konfiguration wird entweder ein SVG-String oder der Pfad zu einer PNG-Datei zurückgegeben.
+     * Generates the diagram for a given element.
+     * Depending on the configuration, either an SVG string or the path to a PNG file is returned.
      *
-     * @param element Das Element, für das das Diagramm erstellt werden soll.
-     * @return Der SVG-Inhalt oder der relative Pfad zur PNG-Datei.
+     * @param element The element for which the diagram should be created.
+     * @return The SVG content or the relative path to the PNG file.
      */
     private String generateDiagram(XsdExtendedElement element) {
         if (xsdDocumentationImageService == null) {
@@ -627,20 +627,20 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
         }
         try {
             if (xsdDocService.getImageOutputMethod() == XsdDocumentationService.ImageOutputMethod.SVG) {
-                // Gibt den rohen SVG-String direkt zurück
+                // Returns the raw SVG string directly
                 return xsdDocumentationImageService.generateSvgString(element);
             } else if (xsdDocService.getImageOutputMethod() == XsdDocumentationService.ImageOutputMethod.JPG) {
-                // Generiert eine JPG-Datei und gibt den relativen Pfad zurück
+                // Generates a JPG file and returns the relative path
                 String relativePath = ASSETS_PATH + "/" + element.getPageName().replace(".html", ".jpg");
                 File outputFile = new File(outputDirectory, relativePath);
                 xsdDocumentationImageService.generateJpegImage(element, outputFile);
-                return relativePath; // z.B. "assets/MyElement_hash.jpg"
+                return relativePath; // e.g. "assets/MyElement_hash.jpg"
             } else {
-                // Generiert eine PNG-Datei und gibt den relativen Pfad zurück
+                // Generates a PNG file and returns the relative path
                 String relativePath = ASSETS_PATH + "/" + element.getPageName().replace(".html", ".png");
                 File outputFile = new File(outputDirectory, relativePath);
                 xsdDocumentationImageService.generateImage(element, outputFile);
-                return relativePath; // z.B. "assets/MyElement_hash.png"
+                return relativePath; // e.g. "assets/MyElement_hash.png"
             }
         } catch (Exception e) {
             logger.error("Could not generate diagram for element '{}'", element.getCurrentXpath(), e);
@@ -650,11 +650,11 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
 
 
     /**
-     * Generiert die Breadcrumb-Navigation für ein Element.
-     * Container-Elemente (CHOICE/SEQUENCE/ALL) werden übersprungen.
+     * Generates the breadcrumb navigation for an element.
+     * Container elements (CHOICE/SEQUENCE/ALL) are skipped.
      *
-     * @param element Das aktuelle Element.
-     * @return Ein HTML-String, der die Breadcrumb-Navigation darstellt.
+     * @param element The current element.
+     * @return An HTML string representing the breadcrumb navigation.
      */
     private String generateBreadcrumbs(XsdExtendedElement element) {
         if (element == null) {
@@ -688,10 +688,10 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
 
 
     /**
-     * Formatiert die Liste der Namespaces in einen lesbaren HTML-String.
+     * Formats the list of namespaces into a readable HTML string.
      *
-     * @param namespaces Eine Map von Namespace-Präfixen zu URIs.
-     * @return Ein formatierter HTML-String.
+     * @param namespaces A map of namespace prefixes to URIs.
+     * @return A formatted HTML string.
      */
     private String formatNamespaces(Map<String, String> namespaces) {
         if (namespaces == null || namespaces.isEmpty()) {
@@ -1125,11 +1125,11 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
     }
 
     /**
-     * Sammelt alle Attribute für einen gegebenen complexType, inklusive der Attribute
-     * aus Basis-Typen (Vererbung) und referenzierten Attributgruppen.
+     * Collects all attributes for a given complexType, including the attributes
+     * from base types (inheritance) and referenced attribute groups.
      *
-     * @param complexTypeNode Der DOM-Knoten des complexType.
-     * @return Eine Liste von DOM-Knoten, die die Attribute repräsentieren.
+     * @param complexTypeNode The DOM node of the complexType.
+     * @return A list of DOM nodes representing the attributes.
      */
     public List<Node> getAttributes(Node complexTypeNode) {
         if (complexTypeNode == null) {
@@ -1139,7 +1139,7 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
         List<Node> attributes = new ArrayList<>();
         Set<String> processedAttributeNames = new HashSet<>();
 
-        // Iterative Verarbeitung der Vererbungshierarchie mit einem Stack
+        // Iteratively process the inheritance hierarchy using a stack
         Deque<Node> nodesToProcess = new ArrayDeque<>();
         nodesToProcess.push(complexTypeNode);
 
@@ -1148,7 +1148,7 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
             Node attributeContainer = currentNode;
             String baseTypeName = null;
 
-            // Prüfen, ob es sich um eine Erweiterung handelt (<complexContent> oder <simpleContent>)
+            // Check whether this is an extension (<complexContent> or <simpleContent>)
             Node complexContent = getDirectChildElement(currentNode, "complexContent");
             if (complexContent != null) {
                 Node extension = getDirectChildElement(complexContent, "extension");
@@ -1167,10 +1167,10 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
                 }
             }
 
-            // Attribute aus dem aktuellen Container (Typ oder Extension) sammeln
+            // Collect attributes from the current container (type or extension)
             processAttributesInContainer(attributeContainer, attributes, processedAttributeNames);
 
-            // Basistyp zur weiteren Verarbeitung auf den Stack legen
+            // Push the base type onto the stack for further processing
             if (baseTypeName != null) {
                 Node baseTypeNode = xsdDocService.findTypeNodeByName(baseTypeName);
                 if (baseTypeNode != null) {
@@ -1179,23 +1179,23 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
             }
         }
 
-        // Attribute in der Vererbungsreihenfolge (Basis zuerst) anzeigen
+        // Display attributes in inheritance order (base first)
         Collections.reverse(attributes);
         return attributes;
     }
 
     /**
-     * Eine Hilfsmethode, die Attribute und Attributgruppen innerhalb eines Knotens verarbeitet.
+     * A helper method that processes attributes and attribute groups within a node.
      */
     private void processAttributesInContainer(Node containerNode, List<Node> attributes, Set<String> processedAttributeNames) {
-        // Direkte Attribute
+        // Direct attributes
         for (Node attrNode : getDirectChildElements(containerNode, "attribute")) {
             String attrName = getAttributeValue(attrNode, "name");
             if (attrName != null && processedAttributeNames.add(attrName)) {
                 attributes.add(attrNode);
             }
         }
-        // Referenzierte Attributgruppen
+        // Referenced attribute groups
         for (Node attrGroupRefNode : getDirectChildElements(containerNode, "attributeGroup")) {
             String ref = getAttributeValue(attrGroupRefNode, "ref");
             if (ref != null) {
@@ -1221,10 +1221,10 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
     }
 
     /**
-     * Ermittelt die Kardinalität eines Elements (z.B. "0..1", "1..*", "1").
+     * Determines the cardinality of an element (e.g. "0..1", "1..*", "1").
      *
-     * @param element Das XsdExtendedElement.
-     * @return Ein String, der die Kardinalität repräsentiert.
+     * @param element The XsdExtendedElement.
+     * @return A string representing the cardinality.
      */
     public String getCardinality(XsdExtendedElement element) {
         if (element == null || element.getCurrentNode() == null) {
@@ -1232,13 +1232,13 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
         }
 
         Node node = element.getCurrentNode();
-        // Für Attribute wird die Kardinalität durch "use" bestimmt
+        // For attributes, the cardinality is determined by "use"
         if ("attribute".equals(node.getLocalName())) {
             String use = getAttributeValue(node, "use", "optional");
             return "required".equals(use) ? "1" : "0..1";
         }
 
-        // Für Elemente wird minOccurs/maxOccurs verwendet
+        // For elements, minOccurs/maxOccurs is used
         String minOccurs = getAttributeValue(node, "minOccurs", "1");
         String maxOccurs = getAttributeValue(node, "maxOccurs", "1");
 
@@ -1252,10 +1252,10 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
     }
 
     /**
-     * Ruft den Datentyp eines Kind-Elements anhand seines XPath ab.
+     * Retrieves the data type of a child element by its XPath.
      *
-     * @param childXpath Der XPath des Kind-Elements.
-     * @return Der Typname oder ein leerer String.
+     * @param childXpath The XPath of the child element.
+     * @return The type name or an empty string.
      */
     public String getChildType(String childXpath) {
         XsdExtendedElement child = xsdDocService.xsdDocumentationData.getExtendedXsdElementMap().get(childXpath);
@@ -1263,10 +1263,10 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
     }
 
     /**
-     * Ruft die Beispieldaten für ein Kind-Element anhand seines XPath ab.
+     * Retrieves the sample data for a child element by its XPath.
      *
-     * @param childXpath Der XPath des Kind-Elements.
-     * @return Die Beispieldaten oder ein leerer String.
+     * @param childXpath The XPath of the child element.
+     * @return The sample data or an empty string.
      */
     public String getChildSampleData(String childXpath) {
         XsdExtendedElement child = xsdDocService.xsdDocumentationData.getExtendedXsdElementMap().get(childXpath);
@@ -1339,7 +1339,6 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
         return null;
     }
 
-    // Fügen Sie auch diese private Hilfsmethode hinzu, falls sie nicht schon existiert
     public String getAttributeValue(Node node, String attrName, String defaultValue) {
         if (node == null || node.getAttributes() == null) {
             return defaultValue;
@@ -1377,11 +1376,11 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
     }
 
     /**
-     * Prüft, ob der Typ eines Attributs ein benutzerdefinierter SimpleType ist,
-     * für den eine Detailseite existiert.
+     * Checks whether the type of an attribute is a user-defined SimpleType
+     * for which a detail page exists.
      *
-     * @param attrNode Der Attribut-Knoten.
-     * @return true, wenn der Typ verlinkbar ist.
+     * @param attrNode The attribute node.
+     * @return true if the type is linkable.
      */
     public boolean isAttributeTypeLinkable(Node attrNode) {
         if (attrNode == null) {
@@ -1391,15 +1390,15 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
         if (typeName == null || typeName.isEmpty() || typeName.startsWith("xs:") || typeName.startsWith("xsd:")) {
             return false;
         }
-        // Prüft, ob der Typ in der Liste der globalen (Simple-)Typen bekannt ist.
+        // Checks whether the type is known in the list of global (simple) types.
         return xsdDocService.findTypeNodeByName(typeName) != null;
     }
 
     /**
-     * Generiert den relativen Pfad zur Detailseite des Attribut-Typs.
+     * Generates the relative path to the detail page of the attribute's type.
      *
-     * @param attrNode Der Attribut-Knoten.
-     * @return Der Pfad zur HTML-Seite, z.B. "../simpleTypes/MySimpleType.html".
+     * @param attrNode The attribute node.
+     * @return The path to the HTML page, e.g. "../simpleTypes/MySimpleType.html".
      */
     public String getAttributeTypePageName(Node attrNode) {
         if (attrNode == null) {
@@ -1674,45 +1673,44 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
     }
 
     /**
-     * Ruft die Dokumentation für den Typ eines Elements ab, das durch seinen XPath identifiziert wird.
-     * Diese Methode ist jetzt robust und behandelt eingebaute XSD-Typen (z.B. "xs:string") korrekt,
-     * indem sie für diese einen leeren String zurückgibt.
+     * Retrieves the documentation for the type of an element identified by its XPath.
+     * This method is now robust and handles built-in XSD types (e.g. "xs:string") correctly
+     * by returning an empty string for them.
      *
-     * @param xpath Der XPath des Elements.
-     * @return Die Dokumentation des Element-Typs oder ein leerer String, falls keine
-     * benutzerdefinierte Dokumentation gefunden wurde oder der Typ ein eingebauter ist.
+     * @param xpath The XPath of the element.
+     * @return The documentation of the element's type, or an empty string if no
+     * user-defined documentation was found or the type is a built-in one.
      */
     public String getTypeDocumentation(String xpath) {
         if (xpath == null || xpath.isEmpty()) {
             return "";
         }
 
-        // 1. Das Element anhand seines XPath finden.
+        // 1. Find the element by its XPath.
         XsdExtendedElement element = xsdDocumentationData.getExtendedXsdElementMap().get(xpath);
         if (element == null) {
-            return ""; // Element nicht im Service gefunden.
+            return ""; // Element not found in the service.
         }
 
-        // 2. Den Typnamen des Elements abrufen.
+        // 2. Retrieve the element's type name.
         String typeName = element.getElementType();
         if (typeName == null || typeName.isEmpty()) {
-            return ""; // Element hat keinen definierten Typ.
+            return ""; // Element has no defined type.
         }
 
-        // 3. WICHTIG: Eingebaute XSD-Typen ignorieren, da sie keine lokale Dokumentation haben.
+        // 3. IMPORTANT: Ignore built-in XSD types, as they have no local documentation.
         if (typeName.startsWith("xs:") || typeName.startsWith("xsd:")) {
-            return ""; // Dies verhindert die NullPointerException.
+            return ""; // This prevents the NullPointerException.
         }
 
-        // 4. Den Definitions-Knoten für den benutzerdefinierten Typ finden.
-        // KORREKTUR: xsdDocService statt xsdDocumentationService verwenden
+        // 4. Find the definition node for the user-defined type.
         Node typeNode = xsdDocService.findTypeNodeByName(typeName);
         if (typeNode == null) {
-            // Typ wurde nicht in der Schema-Map gefunden.
+            // Type was not found in the schema map.
             return "";
         }
 
-        // 5. Die Dokumentation vom gefundenen Typ-Knoten sicher abrufen.
+        // 5. Safely retrieve the documentation from the found type node.
         return getDocumentationFromNode(typeNode);
     }
 

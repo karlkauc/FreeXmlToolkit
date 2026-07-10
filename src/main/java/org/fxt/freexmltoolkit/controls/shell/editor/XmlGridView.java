@@ -23,7 +23,7 @@ import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.XmlCanvasView;
  *
  * <p>Acts as the toast container for the canvas and round-trips edits back to the
  * owning editor via {@link #setOnModified(Consumer)} (the same mechanism the
- * legacy {@code XmlEditor} uses for its graphic view).</p>
+ * retired legacy {@code XmlEditor} used for its graphic view).</p>
  */
 public class XmlGridView extends StackPane {
 

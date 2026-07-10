@@ -13,8 +13,7 @@ import javafx.scene.layout.VBox;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 
 /**
- * Skeleton of the new Unified shell (UI rebuild Phase 2): the persistent frame
- * that every activity will plug into.
+ * The Unified shell: the persistent frame that every activity plugs into.
  * <pre>
  *   ┌──────────────────────────────────────────────────────┐
  *   │  editor toolbar (full window width: New/Open/Save/…)  │
@@ -27,10 +26,10 @@ import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
  *   │  status bar                                           │
  *   └──────────────────────────────────────────────────────┘
  * </pre>
- * This phase wires the structure, the Activity Bar selection, and the
- * design-token styling. Side panels, the editor host and the inspector are
- * placeholders; later phases fill them with real, migrated functionality
- * (side-by-side with the existing tabs until each reaches parity — decision D3).
+ * The chrome (header, editor toolbar, status bar, work-area skeleton) is loaded
+ * from {@code /pages/shell.fxml} via the {@code fx:root} pattern; the dynamic,
+ * {@code editorHost}-dependent custom controls (Activity Bar, side panels,
+ * Inspector, Query Console, view switch) are built and wired in {@link #initialize()}.
  */
 public class UnifiedShellView extends BorderPane {
 
@@ -922,8 +921,7 @@ public class UnifiedShellView extends BorderPane {
 
     /**
      * Opens the given file as a document in the shell's editor host. Public bridge
-     * used by {@code MainController} to hand a file (e.g. a {@code .sch} opened via
-     * legacy file routing) to the shell after a legacy editor tab has been retired.
+     * for callers outside the shell (e.g. tests) to hand a file to the shell.
      *
      * @param path the file to open (ignored if {@code null})
      */

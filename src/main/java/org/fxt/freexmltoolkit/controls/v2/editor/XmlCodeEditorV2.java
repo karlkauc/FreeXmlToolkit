@@ -34,8 +34,6 @@ import org.fxt.freexmltoolkit.controls.v2.editor.services.XmlSchemaProvider;
  *   <li>Context-sensitive IntelliSense with provider registry</li>
  *   <li>Testable design with no tight coupling</li>
  * </ul>
- *
- * <p>Target: &lt;400 lines - only coordination logic here.</p>
  */
 public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.controls.shared.utilities.XmlSearchTarget {
 
@@ -717,7 +715,7 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
     }
 
     /**
-     * Finds and highlights all occurrences of the search text.
+     * Counts all occurrences of the search text and selects the first one.
      *
      * @param searchText the text to find
      * @return the number of occurrences found

@@ -16,11 +16,11 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdNodeSearch;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 
 /**
- * Virtualized Tree view of an XSD (UI rebuild Phase 4, increment 1). Reuses the
+ * Virtualized Tree view of an XSD. Reuses the
  * V2 model ({@link XsdNodeFactory} + {@link XsdNode}) and renders it through a
  * JavaFX {@link TreeView}, which virtualizes the cells (only visible rows are
- * materialized — see the Phase-2 feasibility spike). Read-only for now; editing
- * via the command stack lands in a later increment.
+ * materialized). Editing goes through the command stack via the shared
+ * node-editing context menu ({@link #setEditActions(NodeEditActions)}).
  *
  * <p>Implements {@link XmlSearchTarget} so the shell's search bar (Ctrl+F) can
  * find and cycle through nodes by name, documentation, attributes etc.</p>

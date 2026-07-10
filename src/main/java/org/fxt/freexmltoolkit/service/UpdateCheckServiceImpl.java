@@ -43,7 +43,7 @@ import com.google.gson.JsonParser;
  * <p>The service uses a singleton pattern and caches the update check result for the
  * duration of the application session to avoid repeated API calls.
  *
- * @since 2.0
+ * @since 1.0
  */
 public class UpdateCheckServiceImpl implements UpdateCheckService {
 

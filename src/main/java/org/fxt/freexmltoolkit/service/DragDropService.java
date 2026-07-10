@@ -33,7 +33,7 @@ import org.apache.logging.log4j.Logger;
 
 /**
  * Utility service for drag and drop functionality.
- * Provides consistent handling of file drag and drop across all controllers.
+ * Provides consistent handling of file drag and drop across UI components.
  */
 public class DragDropService {
 

@@ -2738,7 +2738,6 @@ public class XsdPropertiesPanel extends BorderPane {
 
     /**
      * Updates the schema information section with file path, namespace, and version.
-     * This method is called by XsdController when a schema is loaded.
      *
      * @param filePath the absolute path to the XSD file
      * @param targetNamespace the target namespace of the schema

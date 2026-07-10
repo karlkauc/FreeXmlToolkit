@@ -15,8 +15,8 @@ import org.fxt.freexmltoolkit.controls.FileExplorerTreeItem;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 
 /**
- * Slim workspace file tree for the Explorer activity (UI rebuild Phase 3,
- * increment 4). Reuses the existing lazy-loading {@link FileExplorerTreeItem}
+ * Slim workspace file tree for the Explorer activity.
+ * Reuses the existing lazy-loading {@link FileExplorerTreeItem}
  * (with extension filtering) and opens a file via the supplied consumer on
  * double-click / Enter.
  */
