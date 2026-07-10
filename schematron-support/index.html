@@ -1413,6 +1413,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#validation-report" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation Report
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2172,6 +2183,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#validation-report" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation Report
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2426,7 +2448,7 @@
 
 <h1 id="schematron-validation">Schematron Validation<a class="headerlink" href="#schematron-validation" title="Permanent link">&para;</a></h1>
 <blockquote>
-<p><strong>Last Updated:</strong> May 2026 | <strong>Version:</strong> 1.10.0</p>
+<p><strong>Last Updated:</strong> July 2026 | <strong>Version:</strong> 1.10.0</p>
 <p><strong>Note (Phase 10c):</strong> The standalone <em>Schematron</em> editor tab has been retired.
 Schematron editing and validation — rule check, templates, tester, visual
 builder, documentation, and CSV/JSON export of results — now live in the
@@ -2600,7 +2622,8 @@ are reached through the shell rather than a dedicated sidebar tab.</p>
 <hr />
 <h2 id="schematron-tools-in-the-unified-shell">Schematron Tools in the Unified Shell<a class="headerlink" href="#schematron-tools-in-the-unified-shell" title="Permanent link">&para;</a></h2>
 <blockquote>
-<p><strong>Updated June 2026</strong> - Added <strong>Check Rules</strong> and <strong>Documentation</strong> to the Schematron tools.</p>
+<p><strong>Updated June 2026</strong> - Added <strong>Check Rules</strong> and <strong>Documentation</strong> to the Schematron tools.
+<strong>Updated July 2026</strong> - Added the detailed <strong>Validation Report</strong>.</p>
 </blockquote>
 <p>When you work with a Schematron file in the <a href="../unified-shell/">Unified Shell</a>, the
 <strong>Validation</strong> panel offers a set of Schematron tools:</p>
@@ -2631,6 +2654,10 @@ are reached through the shell rather than a dedicated sidebar tab.</p>
 <tr>
 <td><strong>Documentation</strong></td>
 <td>Generate documentation for the Schematron file</td>
+</tr>
+<tr>
+<td><strong>Validation Report</strong></td>
+<td>Open a detailed report of the last Schematron validation run</td>
 </tr>
 </tbody>
 </table>
@@ -2671,6 +2698,20 @@ grouped into categories:</p>
 <h3 id="documentation">Documentation<a class="headerlink" href="#documentation" title="Permanent link">&para;</a></h3>
 <p><strong>Documentation</strong> opens the Schematron documentation generator, which produces readable
 documentation describing the patterns, rules, and assertions in your Schematron file.</p>
+<h3 id="validation-report">Validation Report<a class="headerlink" href="#validation-report" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p><strong>New in July 2026</strong></p>
+</blockquote>
+<p>After validating an XML document that has a Schematron file bound, <strong>Validation Report</strong>
+(in the ⋮ menu under <em>Schematron Tools</em>, or via the report button in the Validation panel's
+PROBLEMS header) opens a <strong>Schematron Report</strong> tool tab. It shows the document name, the
+Schematron file, an error/warning summary, and a table with one row per finding - severity,
+line, message, the failed rule/test expression, and the failing node's XPath context.
+Clicking a row jumps to that line in the editor.</p>
+<p>The report can be exported with <strong>Save Report (HTML)</strong> (a self-contained HTML file) or
+<strong>Save SVRL (XML)</strong> (the raw SVRL result of the run). See
+<a href="../unified-shell/#detailed-schematron-report">Detailed Schematron Report</a> in the Unified
+Shell guide.</p>
 <hr />
 <h2 id="creating-schematron-rules">Creating Schematron Rules<a class="headerlink" href="#creating-schematron-rules" title="Permanent link">&para;</a></h2>
 <h3 id="basic-structure">Basic Structure<a class="headerlink" href="#basic-structure" title="Permanent link">&para;</a></h3>
@@ -2749,6 +2790,11 @@ documentation describing the patterns, rules, and assertions in your Schematron 
 <li>Errors are highlighted in the editor</li>
 <li>Click errors to jump to the problem location</li>
 </ol>
+<p>In the PROBLEMS panel below the editor, Schematron findings carry a <strong>Schematron</strong>
+source badge (so they are easy to tell apart from XSD errors), and hovering a row shows
+the full message together with the failed test expression and the failing node's XPath
+<em>(new in July 2026)</em>. For a complete overview of a run, open the
+<a href="#validation-report">Validation Report</a>.</p>
 <hr />
 <h2 id="favorites-integration">Favorites Integration<a class="headerlink" href="#favorites-integration" title="Permanent link">&para;</a></h2>
 <p>Save frequently used Schematron files for quick access:</p>

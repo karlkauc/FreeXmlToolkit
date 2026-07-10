@@ -1044,6 +1044,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#detailed-schematron-report" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Detailed Schematron Report
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#the-menu" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2936,6 +2947,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#detailed-schematron-report" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Detailed Schematron Report
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#the-menu" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4001,9 +4023,66 @@ pick an <code>.xsd</code> file. The binding drives both <strong>IntelliSense</st
   validation finds problems, shows error/warning counts in its header, and can be collapsed
   to just the header. Each row shows the message and the file/line in a monospaced label.</li>
 </ul>
+<p><em>(updated July 2026)</em> Every row in the PROBLEMS panel below the editor now carries a
+<strong>source badge</strong> - <strong>XSD</strong>, <strong>Schematron</strong>, <strong>Well-formed</strong>, or <strong>JSON Schema</strong> - so when a
+run combines several checks you can tell at a glance where each problem comes from.
+Hovering a <strong>Schematron</strong> row shows a <strong>tooltip</strong> with the full message, the failed
+rule/test expression, and the XPath of the failing node.</p>
 <p>Selecting a problem in either list jumps to its line in the editor. This works for
 <strong>Schematron problems too</strong>: the failing rule's context node is resolved back to its
 line in the XML, so a click navigates straight to the offending element.</p>
+<h3 id="detailed-schematron-report">Detailed Schematron Report<a class="headerlink" href="#detailed-schematron-report" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p><strong>New in July 2026</strong> - a full report of the last Schematron run, opened as a tool tab
+and saveable as HTML or SVRL.</p>
+</blockquote>
+<p>After validating a document that has a Schematron file bound, open the report in
+either of two ways:</p>
+<ul>
+<li>Click the <strong>report button</strong> (journal icon, tooltip <em>"Open detailed Schematron report"</em>)
+  in the header of the Validation panel's <strong>PROBLEMS</strong> section.</li>
+<li>Pick <strong>Schematron Tools → Validation Report</strong> from the ⋮ menu.</li>
+</ul>
+<p>The report opens as a <strong>Schematron Report</strong> tool tab showing the document name, the
+Schematron file, a severity summary (errors / warnings), and a table with one row per
+finding:</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Content</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Severity</strong></td>
+<td>Error or Warning</td>
+</tr>
+<tr>
+<td><strong>Line</strong></td>
+<td>Line in the XML document</td>
+</tr>
+<tr>
+<td><strong>Message</strong></td>
+<td>The rule's message text</td>
+</tr>
+<tr>
+<td><strong>Rule / Test</strong></td>
+<td>The Schematron test expression that failed</td>
+</tr>
+<tr>
+<td><strong>Context (XPath)</strong></td>
+<td>The XPath of the failing node</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Click a row</strong> to jump straight to that line in the editor. Two buttons export the
+report:</p>
+<ul>
+<li><strong>Save Report (HTML)</strong> - a self-contained HTML file you can archive or share.</li>
+<li><strong>Save SVRL (XML)</strong> - the raw SVRL output (Schematron Validation Report Language)
+  of the run, for further processing by other tools.</li>
+</ul>
 <h3 id="the-menu">The ⋮ Menu<a class="headerlink" href="#the-menu" title="Permanent link">&para;</a></h3>
 <p>Secondary tools live in the panel header's ⋮ (overflow) menu:</p>
 <table>
@@ -4033,6 +4112,10 @@ line in the XML, so a click navigates straight to the offending element.</p>
 <tr>
 <td><strong>Schematron Tools → Documentation</strong></td>
 <td>Open the Schematron documentation generator</td>
+</tr>
+<tr>
+<td><strong>Schematron Tools → Validation Report</strong></td>
+<td>Open the <a href="#detailed-schematron-report">detailed Schematron report</a> of the last validation run <em>(new in July 2026)</em></td>
 </tr>
 <tr>
 <td><strong>JSON Schema…</strong></td>
