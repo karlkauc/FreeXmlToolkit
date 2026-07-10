@@ -48,20 +48,27 @@ public final class XsdTypeIconPaths {
         // Element with ComplexType reference - box with nested content
         BootstrapIconPaths.registerPath("xsd-element-complex", ELEMENT_COMPLEX);
 
-        // SimpleType icons with "S" badge
-        BootstrapIconPaths.registerPath("xsd-simple-generic", SIMPLE_GENERIC);
-        BootstrapIconPaths.registerPath("xsd-simple-string", SIMPLE_STRING);
-        BootstrapIconPaths.registerPath("xsd-simple-number", SIMPLE_NUMBER);
-        BootstrapIconPaths.registerPath("xsd-simple-decimal", SIMPLE_DECIMAL);
-        BootstrapIconPaths.registerPath("xsd-simple-boolean", SIMPLE_BOOLEAN);
-        BootstrapIconPaths.registerPath("xsd-simple-date", SIMPLE_DATE);
-        BootstrapIconPaths.registerPath("xsd-simple-time", SIMPLE_TIME);
-        BootstrapIconPaths.registerPath("xsd-simple-id", SIMPLE_ID);
-        BootstrapIconPaths.registerPath("xsd-simple-uri", SIMPLE_URI);
-        BootstrapIconPaths.registerPath("xsd-simple-binary", SIMPLE_BINARY);
-        BootstrapIconPaths.registerPath("xsd-simple-token", SIMPLE_TOKEN);
-        BootstrapIconPaths.registerPath("xsd-simple-name", SIMPLE_NAME);
-        BootstrapIconPaths.registerPath("xsd-simple-language", SIMPLE_LANGUAGE);
+        // SimpleType icons with "S" badge. The registered (badged) paths are only the
+        // fallback for generic BootstrapIconPaths lookups — SvgIconRenderer renders
+        // these icons from the *_BASE path plus a separately drawn badge.
+        BootstrapIconPaths.registerPath("xsd-simple-generic", badged(SIMPLE_GENERIC_BASE));
+        BootstrapIconPaths.registerPath("xsd-simple-string", badged(SIMPLE_STRING_BASE));
+        BootstrapIconPaths.registerPath("xsd-simple-number", badged(SIMPLE_NUMBER_BASE));
+        BootstrapIconPaths.registerPath("xsd-simple-decimal", badged(SIMPLE_DECIMAL_BASE));
+        BootstrapIconPaths.registerPath("xsd-simple-boolean", badged(SIMPLE_BOOLEAN_BASE));
+        BootstrapIconPaths.registerPath("xsd-simple-date", badged(SIMPLE_DATE_BASE));
+        BootstrapIconPaths.registerPath("xsd-simple-time", badged(SIMPLE_TIME_BASE));
+        BootstrapIconPaths.registerPath("xsd-simple-id", badged(SIMPLE_ID_BASE));
+        BootstrapIconPaths.registerPath("xsd-simple-uri", badged(SIMPLE_URI_BASE));
+        BootstrapIconPaths.registerPath("xsd-simple-binary", badged(SIMPLE_BINARY_BASE));
+        BootstrapIconPaths.registerPath("xsd-simple-token", badged(SIMPLE_TOKEN_BASE));
+        BootstrapIconPaths.registerPath("xsd-simple-name", badged(SIMPLE_NAME_BASE));
+        BootstrapIconPaths.registerPath("xsd-simple-language", badged(SIMPLE_LANGUAGE_BASE));
+    }
+
+    /** Composes a base icon path with the "S" badge (circle + letter) for registry fallback. */
+    private static String badged(String basePath) {
+        return basePath + S_BADGE_CIRCLE + S_BADGE_LETTER;
     }
 
     // ==================== ComplexType Icon ====================
@@ -119,14 +126,6 @@ public final class XsdTypeIconPaths {
     public static final String S_BADGE_LETTER =
         // Simple S letter at position (11.5, 8) to (14.5, 12)
         "M14 8.5c-.3-.2-.7-.4-1.1-.4-.8 0-1.4.5-1.4 1.1 0 .3.1.5.4.7.2.2.5.3.9.4l.4.1c.2.1.4.2.4.4 0 .3-.3.5-.7.5-.4 0-.8-.2-1.1-.4l-.3.6c.4.3.9.5 1.4.5.9 0 1.5-.5 1.5-1.2 0-.3-.1-.6-.4-.8-.2-.2-.5-.3-.9-.4l-.4-.1c-.2-.1-.4-.2-.4-.4 0-.2.2-.4.6-.4.3 0 .6.1.8.3l.3-.5z";
-
-    /**
-     * Legacy S_BADGE for backwards compatibility (not used for rendering).
-     * @deprecated Use S_BADGE_CIRCLE and S_BADGE_LETTER instead
-     */
-    @Deprecated
-    private static final String S_BADGE =
-        S_BADGE_CIRCLE + S_BADGE_LETTER;
 
     // ==================== SimpleType Base Icons (without badge) ====================
 
@@ -231,48 +230,6 @@ public final class XsdTypeIconPaths {
         "M2 6h8" +
         "M6 2v8" +
         "M4 2.5c-.5 1-1 2-1 3.5s.5 2.5 1 3.5M8 2.5c.5 1 1 2 1 3.5s-.5 2.5-1 3.5";
-
-    // ==================== SimpleType Icons (with badge - for backward compat) ====================
-
-    /** @deprecated Use SIMPLE_GENERIC_BASE with separate badge rendering */
-    @Deprecated
-    public static final String SIMPLE_GENERIC = SIMPLE_GENERIC_BASE + S_BADGE;
-    /** @deprecated Use SIMPLE_STRING_BASE with separate badge rendering */
-    @Deprecated
-    public static final String SIMPLE_STRING = SIMPLE_STRING_BASE + S_BADGE;
-    /** @deprecated Use SIMPLE_NUMBER_BASE with separate badge rendering */
-    @Deprecated
-    public static final String SIMPLE_NUMBER = SIMPLE_NUMBER_BASE + S_BADGE;
-    /** @deprecated Use SIMPLE_DECIMAL_BASE with separate badge rendering */
-    @Deprecated
-    public static final String SIMPLE_DECIMAL = SIMPLE_DECIMAL_BASE + S_BADGE;
-    /** @deprecated Use SIMPLE_BOOLEAN_BASE with separate badge rendering */
-    @Deprecated
-    public static final String SIMPLE_BOOLEAN = SIMPLE_BOOLEAN_BASE + S_BADGE;
-    /** @deprecated Use SIMPLE_DATE_BASE with separate badge rendering */
-    @Deprecated
-    public static final String SIMPLE_DATE = SIMPLE_DATE_BASE + S_BADGE;
-    /** @deprecated Use SIMPLE_TIME_BASE with separate badge rendering */
-    @Deprecated
-    public static final String SIMPLE_TIME = SIMPLE_TIME_BASE + S_BADGE;
-    /** @deprecated Use SIMPLE_ID_BASE with separate badge rendering */
-    @Deprecated
-    public static final String SIMPLE_ID = SIMPLE_ID_BASE + S_BADGE;
-    /** @deprecated Use SIMPLE_URI_BASE with separate badge rendering */
-    @Deprecated
-    public static final String SIMPLE_URI = SIMPLE_URI_BASE + S_BADGE;
-    /** @deprecated Use SIMPLE_BINARY_BASE with separate badge rendering */
-    @Deprecated
-    public static final String SIMPLE_BINARY = SIMPLE_BINARY_BASE + S_BADGE;
-    /** @deprecated Use SIMPLE_TOKEN_BASE with separate badge rendering */
-    @Deprecated
-    public static final String SIMPLE_TOKEN = SIMPLE_TOKEN_BASE + S_BADGE;
-    /** @deprecated Use SIMPLE_NAME_BASE with separate badge rendering */
-    @Deprecated
-    public static final String SIMPLE_NAME = SIMPLE_NAME_BASE + S_BADGE;
-    /** @deprecated Use SIMPLE_LANGUAGE_BASE with separate badge rendering */
-    @Deprecated
-    public static final String SIMPLE_LANGUAGE = SIMPLE_LANGUAGE_BASE + S_BADGE;
 
     /**
      * Checks if the given icon name is a SimpleType icon that needs badge rendering.

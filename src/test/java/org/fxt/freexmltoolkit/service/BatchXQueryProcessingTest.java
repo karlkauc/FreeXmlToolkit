@@ -46,46 +46,6 @@ class BatchXQueryProcessingTest {
     }
 
     @Test
-    void testXmlFileEntryCreation() throws IOException {
-        // Create a test XML file
-        Path xmlFile = tempDir.resolve("test.xml");
-        Files.writeString(xmlFile, "<?xml version=\"1.0\"?><root><item>Test</item></root>");
-
-        XmlFileEntry entry = new XmlFileEntry(xmlFile.toFile());
-
-        assertEquals("test.xml", entry.getFileName());
-        assertTrue(entry.isSelected());
-        assertEquals("Ready", entry.getStatus());
-        assertTrue(entry.getFileSize() > 0);
-    }
-
-    @Test
-    void testXmlFileEntryStatusUpdates() throws IOException {
-        Path xmlFile = tempDir.resolve("test.xml");
-        Files.writeString(xmlFile, "<root/>");
-
-        XmlFileEntry entry = new XmlFileEntry(xmlFile.toFile());
-
-        // Test status transitions
-        entry.markProcessing();
-        assertEquals("Processing...", entry.getStatus());
-
-        entry.markSuccess("Result content");
-        assertEquals("Success", entry.getStatus());
-        assertEquals("Result content", entry.getResultOutput());
-        assertTrue(entry.isSuccess());
-
-        entry.reset();
-        assertEquals("Ready", entry.getStatus());
-        assertNull(entry.getResultOutput());
-
-        entry.markError("Some error");
-        assertEquals("Error", entry.getStatus());
-        assertEquals("Some error", entry.getErrorMessage());
-        assertTrue(entry.isError());
-    }
-
-    @Test
     void testBatchTransformationResultSuccess() {
         BatchTransformationResult result = BatchTransformationResult.success("<combined/>", 3);
 

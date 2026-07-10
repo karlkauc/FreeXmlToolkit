@@ -293,7 +293,7 @@ public class XsdEditorContext {
     public void markNodeDirty(XsdNode node) {
         Path sourceFile = getNodeSourceFile(node);
         String nodeDesc = (node != null)
-                ? (node.getName() != null ? node.getName() : node.getId().toString())
+                ? (node.getName() != null ? node.getName() : node.getId())
                 : "(null node)";
 
         if (sourceFile != null) {
