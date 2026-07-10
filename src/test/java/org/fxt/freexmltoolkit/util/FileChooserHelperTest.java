@@ -11,14 +11,14 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import javafx.stage.FileChooser;
+
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-
-import javafx.stage.FileChooser;
 
 /**
  * Unit tests for {@link FileChooserHelper}'s core logic (initial-directory

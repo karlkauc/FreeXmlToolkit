@@ -9,9 +9,10 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
-import javafx.scene.paint.Color;
 
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.controls.theme.DesignTokens;
+import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.editor.XmlEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlCData;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlComment;
@@ -20,8 +21,6 @@ import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlProcessingInstruction;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlText;
-import org.fxt.freexmltoolkit.controls.theme.DesignTokens;
-import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
 
 /**
  * A selectable tree view of an <em>XML instance</em> document (as opposed to {@link XsdTreeView}

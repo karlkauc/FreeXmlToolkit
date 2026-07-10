@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 import java.util.regex.Pattern;
+
 import org.fxt.freexmltoolkit.controls.theme.SemanticColors;
 
 /**

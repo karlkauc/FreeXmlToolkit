@@ -2,8 +2,6 @@ package org.fxt.freexmltoolkit.controls.shell.editor;
 
 import java.util.Set;
 
-import org.fxt.freexmltoolkit.domain.XmlTemplate;
-
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.ButtonType;
@@ -15,6 +13,8 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
+
+import org.fxt.freexmltoolkit.domain.XmlTemplate;
 
 /**
  * Create/edit dialog for a user (non-built-in) {@link XmlTemplate}: name, category,

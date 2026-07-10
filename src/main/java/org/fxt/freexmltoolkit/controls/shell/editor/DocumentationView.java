@@ -37,6 +37,7 @@ import javafx.util.Duration;
 
 import org.fxt.freexmltoolkit.FxtGui;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.controls.theme.DesignTokens;
 import org.fxt.freexmltoolkit.domain.PdfDocumentationConfig;
 import org.fxt.freexmltoolkit.domain.WordDocumentationConfig;
 import org.fxt.freexmltoolkit.service.TaskProgressListener;
@@ -44,7 +45,6 @@ import org.fxt.freexmltoolkit.service.XsdDocumentationImageService;
 import org.fxt.freexmltoolkit.service.XsdDocumentationPdfService;
 import org.fxt.freexmltoolkit.service.XsdDocumentationService;
 import org.fxt.freexmltoolkit.service.XsdDocumentationWordService;
-import org.fxt.freexmltoolkit.controls.theme.DesignTokens;
 
 /**
  * The XSD documentation generator as a main-area tool tab ("the big editing

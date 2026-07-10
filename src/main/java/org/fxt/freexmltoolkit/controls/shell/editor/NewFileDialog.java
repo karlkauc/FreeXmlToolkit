@@ -7,12 +7,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-import org.fxt.freexmltoolkit.domain.FileFavorite;
-import org.fxt.freexmltoolkit.domain.XmlTemplate;
-import org.fxt.freexmltoolkit.service.FavoritesService;
-import org.fxt.freexmltoolkit.service.PropertiesService;
-import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
-
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -29,6 +23,12 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.stage.FileChooser;
+
+import org.fxt.freexmltoolkit.domain.FileFavorite;
+import org.fxt.freexmltoolkit.domain.XmlTemplate;
+import org.fxt.freexmltoolkit.service.FavoritesService;
+import org.fxt.freexmltoolkit.service.PropertiesService;
+import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 
 /**
  * Guided "New File" dialog: pick a file type, optionally a (type-filtered) template,

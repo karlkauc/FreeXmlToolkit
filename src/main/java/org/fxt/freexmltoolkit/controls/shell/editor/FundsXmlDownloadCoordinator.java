@@ -23,13 +23,13 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import javafx.application.Platform;
+import javafx.stage.Window;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.ToastNotification;
 import org.fxt.freexmltoolkit.service.fundsxml.FundsXmlExtensionService;
-
-import javafx.application.Platform;
-import javafx.stage.Window;
 
 /**
  * The single place that runs FundsXML background downloads. All three triggers

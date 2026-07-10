@@ -26,10 +26,10 @@ import javafx.stage.Modality;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
-import org.fxt.freexmltoolkit.controls.v2.editor.usage.TypeUsageLocation;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.controls.theme.DesignTokens;
 import org.fxt.freexmltoolkit.controls.theme.SemanticStyle;
+import org.fxt.freexmltoolkit.controls.v2.editor.usage.TypeUsageLocation;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 
 /**
  * Dialog displaying all locations where a type is used in the schema.

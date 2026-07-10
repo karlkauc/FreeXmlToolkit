@@ -1,8 +1,8 @@
 package org.fxt.freexmltoolkit.service;
 
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import org.junit.jupiter.api.Test;
 
 /**
  * Verifies that {@link XsdDocumentationHtmlService#faviconMimeType(String)} maps favicon

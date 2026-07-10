@@ -10,14 +10,13 @@ import java.util.concurrent.TimeUnit;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
+import org.fxt.freexmltoolkit.controls.shell.editor.debug.BatchTransformView;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
 import org.testfx.util.WaitForAsyncUtils;
-
-import org.fxt.freexmltoolkit.controls.shell.editor.debug.BatchTransformView;
 
 /**
  * TestFX verification of the Explorer's one-click transform entry points on

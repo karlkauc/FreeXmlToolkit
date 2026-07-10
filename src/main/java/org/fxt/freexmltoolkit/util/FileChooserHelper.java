@@ -3,14 +3,14 @@ package org.fxt.freexmltoolkit.util;
 import java.io.File;
 import java.util.List;
 
+import javafx.stage.DirectoryChooser;
+import javafx.stage.FileChooser;
+import javafx.stage.Window;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.service.PropertiesService;
-
-import javafx.stage.DirectoryChooser;
-import javafx.stage.FileChooser;
-import javafx.stage.Window;
 
 /**
  * Drop-in wrappers around {@link FileChooser} / {@link DirectoryChooser} that

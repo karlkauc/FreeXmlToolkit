@@ -157,6 +157,15 @@
     <Match>
         <Bug pattern="SING_SINGLETON_GETTER_NOT_SYNCHRONIZED"/>
     </Match>
+    <!-- `synchronized getInstance()` singletons: the lock is the class/instance itself.
+         External lock interference is not a realistic concern in this application;
+         rewriting ~15 service singletons to private lock objects is churn, not safety. -->
+    <Match>
+        <Bug pattern="USO_UNSAFE_METHOD_SYNCHRONIZATION"/>
+    </Match>
+    <Match>
+        <Bug pattern="USO_UNSAFE_STATIC_METHOD_SYNCHRONIZATION"/>
+    </Match>
     <Match>
         <Bug pattern="SING_SINGLETON_HAS_NONPRIVATE_CONSTRUCTOR"/>
     </Match>
@@ -270,6 +279,21 @@
     <Match>
         <Bug pattern="DM_GC"/>
         <Class name="org.fxt.freexmltoolkit.controls.shell.UnifiedShellView"/>
+    </Match>
+
+    <!-- Test seam: replacing the singleton instance from tests is the method's entire purpose. -->
+    <Match>
+        <Bug pattern="EI_EXPOSE_STATIC_REP2"/>
+        <Class name="org.fxt.freexmltoolkit.controls.shell.editor.FundsXmlDownloadCoordinator"/>
+        <Method name="setInstanceForTesting"/>
+    </Match>
+
+    <!-- Exact double comparison is intentional: a redundant-resize guard comparing a JavaFX
+         node's current size against the exact value that would be assigned (same source). -->
+    <Match>
+        <Bug pattern="FE_FLOATING_POINT_EQUALITY"/>
+        <Class name="org.fxt.freexmltoolkit.controls.v2.view.XsdGraphView"/>
+        <Method name="positionViewportCanvas"/>
     </Match>
 
 </FindBugsFilter>
