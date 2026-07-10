@@ -108,7 +108,11 @@ The validation uses whichever FundsXML schema version is currently marked as act
 
 ## The FundsXML Side Panel
 
-Select the **FundsXML** activity in the activity bar to open its side panel. It has three
+Select the **FundsXML** activity in the activity bar to open its side panel.
+
+![FundsXML side panel with the version picker, validate action and docs & resources buttons](img/unified-shell-fundsxml.png)
+
+It has three
 sections:
 
 | Section | What you can do |
@@ -136,6 +140,8 @@ You can also reach the downloaded files directly through [Favorites](favorites-s
 
 When the feature is enabled and content is cached, the Welcome/Dashboard page shows a
 **FUNDSXML** quick-access row with three cards:
+
+![Welcome page with the FUNDSXML quick-access row](img/unified-shell-welcome-fundsxml.png)
 
 - **Open Example** - opens a compact starter sample document.
 - **Open Schema** - opens `FundsXML4.xsd` in the editor.

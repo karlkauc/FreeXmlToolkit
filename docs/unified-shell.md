@@ -751,7 +751,11 @@ The **FundsXML** activity appears in the activity bar only when the optional
 [FundsXML extension](fundsxml-extensions.md) is enabled (Settings → FUNDSXML card).
 Enabling it is enough - the official FundsXML schema, examples, Schematron rules and query
 snippets download automatically in the background, and a toast notification appears when
-they are ready. The panel offers:
+they are ready.
+
+![FundsXML panel in the Unified Shell](img/unified-shell-fundsxml.png)
+
+The panel offers:
 
 - **MANAGEMENT** - Pick the **Active version** among the downloaded schema releases, or
   click **Download / Update Content** to force a manual refresh. A **progress bar with
@@ -873,6 +877,8 @@ When no document is open, the editor shows a welcome dashboard with:
   **Open Schema** (opens `FundsXML4.xsd` in the editor) and **Browse Examples** (opens the
   cached examples folder). The row shows up live as soon as the automatic background
   download finishes.
+
+![Welcome page with the FUNDSXML quick-access row](img/unified-shell-welcome-fundsxml.png)
 
 ## Status Bar
 

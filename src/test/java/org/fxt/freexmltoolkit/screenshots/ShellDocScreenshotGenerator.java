@@ -216,6 +216,90 @@ class ShellDocScreenshotGenerator {
             settle();
             shot("unified-shell-xml-grid");
         }
+
+        // --- FundsXML activity panel + Welcome quick-access row (last: closes all tabs) ---
+        captureFundsXmlScenes(host);
+    }
+
+    /**
+     * Captures the FundsXML side panel and the Welcome page's FUNDSXML quick-access row.
+     * Temporarily enables the feature flag and, when no real content cache exists, seeds a
+     * minimal one from {@code release/examples}; both are restored/removed afterwards so the
+     * generator leaves no trace in the developer's configuration.
+     */
+    private void captureFundsXmlScenes(EditorHost host) throws Exception {
+        var props = org.fxt.freexmltoolkit.di.ServiceRegistry
+                .get(org.fxt.freexmltoolkit.service.PropertiesService.class);
+        String enabledKey = org.fxt.freexmltoolkit.service.fundsxml.FundsXmlPropertyKeys.ENABLED;
+        String oldEnabled = props.get(enabledKey);
+        var cache = org.fxt.freexmltoolkit.service.fundsxml.FundsXmlCache.getInstance();
+        Path cacheBase = Path.of(System.getProperty("user.home"), ".freeXmlToolkit", "fundsxml");
+        // Paths this method creates; removed afterwards so the developer's real cache
+        // is left as found (the empty base dirs are (re)created by the app anyway).
+        java.util.List<Path> seededPaths = new java.util.ArrayList<>();
+        try {
+            props.set(enabledKey, "true");
+            // Seed a minimal content cache when nothing is installed (the base dirs may
+            // exist but be empty — FundsXmlCache creates them eagerly).
+            if (cache.listInstalledVersions().isEmpty()) {
+                Path schemaDir = cacheBase.resolve("schema").resolve("4.2.11");
+                Files.createDirectories(schemaDir);
+                seededPaths.add(seedCopy(new File(EXAMPLES, "xsd/FundsXML4.xsd"),
+                        schemaDir.resolve("FundsXML4.xsd")));
+                seededPaths.add(schemaDir);
+                seededPaths.add(seedCopy(new File(EXAMPLES, "xml/FundsXML_422_Bond_Fund.xml"),
+                        cacheBase.resolve("examples").resolve("FundsXML_422_Bond_Fund.xml")));
+                seededPaths.add(seedCopy(new File(EXAMPLES, "xquery/01-portfolio-nav-reconciliation.xq"),
+                        cacheBase.resolve("queries").resolve("01-portfolio-nav-reconciliation.xq")));
+                Path metadata = cacheBase.resolve("metadata.json");
+                if (!Files.exists(metadata)) {
+                    seededPaths.add(metadata);
+                }
+                var meta = cache.loadMetadata();
+                meta.setActiveSchemaVersion("4.2.11");
+                cache.saveMetadata(meta);
+            }
+
+            // Hide the transform OUTPUT dock left over from the transform scene, make the
+            // conditional activity-bar button appear, then show the panel.
+            onFx(() -> {
+                host.transformOutputPanel().hide();
+                if (shell.lookup(".fxt-activity-bar")
+                        instanceof org.fxt.freexmltoolkit.controls.shell.ActivityBar bar) {
+                    bar.refresh();
+                }
+                shell.getSelectionModel().select(Activity.FUNDSXML);
+            });
+            settle(600);
+            shot("unified-shell-fundsxml");
+
+            // Welcome page: close every tab so the dashboard (with the FUNDSXML row) shows.
+            onFx(() -> {
+                if (shell.lookup(".fxt-editor-tabpane")
+                        instanceof javafx.scene.control.TabPane tabs) {
+                    tabs.getTabs().clear();
+                }
+            });
+            settle(600);
+            shot("unified-shell-welcome-fundsxml");
+        } finally {
+            props.set(enabledKey, oldEnabled == null ? "false" : oldEnabled);
+            for (Path p : seededPaths.reversed()) {
+                try {
+                    if (p != null) {
+                        Files.deleteIfExists(p);
+                    }
+                } catch (Exception ignored) {
+                }
+            }
+        }
+    }
+
+    /** Copies {@code source} to {@code target} (creating parents) and returns the target. */
+    private static Path seedCopy(File source, Path target) throws Exception {
+        Files.createDirectories(target.getParent());
+        Files.copy(source.toPath(), target, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+        return target;
     }
 
     private void onFx(Runnable action) {
