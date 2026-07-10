@@ -1,3 +1,9 @@
+---
+paths:
+  - "src/main/java/org/fxt/freexmltoolkit/controls/v2/**"
+  - "src/test/java/org/fxt/freexmltoolkit/controls/v2/**"
+---
+
 # XSD Editor V2 - Detailed Technical Reference
 
 ## XSD Type Editor: Multi-Tab Type Management
