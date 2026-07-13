@@ -527,7 +527,9 @@ Picking a Schematron also **binds it to the active document**, so the
 a single active document runs through the normal single-file flow (problems list,
 detailed Schematron report), a multi-file tree selection through the **batch** flow
 with one RESULTS row per file. With no tree selection, the active editor document
-is validated.
+is validated. Batch runs additionally check each file against the **active
+document's bound XSD** (if any) - bind or clear the XSD in the Validation panel's
+SOURCES section to control that.
 
 ## Favorites Panel
 
