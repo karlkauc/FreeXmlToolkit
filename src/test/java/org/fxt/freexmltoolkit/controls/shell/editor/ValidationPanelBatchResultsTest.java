@@ -125,4 +125,25 @@ class ValidationPanelBatchResultsTest {
         });
         assertFalse(panel.isBatchMode());
     }
+
+    @Test
+    void runBatchWithExplicitSchematronNeedsNoOpenDocument(@TempDir Path tmp) throws Exception {
+        Path sch = tmp.resolve("rules.sch");
+        Files.writeString(sch, SCHEMATRON);
+        Path bad = tmp.resolve("bad.xml");
+        Files.writeString(bad, "<root/>");
+        Path good = tmp.resolve("good.xml");
+        Files.writeString(good, "<root><name>x</name></root>");
+
+        // No document is opened: the Schematron comes in as an argument
+        // (the Explorer's one-click validation path).
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.runBatch(java.util.List.of(bad.toFile(), good.toFile()), sch.toFile());
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(6, TimeUnit.SECONDS,
+                () -> panel.batchResultCount() == 2);
+        assertEquals(1, panel.batchFailedCount(),
+                "bad.xml must fail against the explicitly passed Schematron");
+    }
 }

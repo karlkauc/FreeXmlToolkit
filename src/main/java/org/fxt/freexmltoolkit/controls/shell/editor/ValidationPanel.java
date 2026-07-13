@@ -511,11 +511,23 @@ public class ValidationPanel extends VBox {
 
     /** Validates the given files against the bound XSD/Schematron and fills the RESULTS list (async). */
     public void runBatch(java.util.List<File> files) {
+        runBatch(files, editorHost.getActiveSchematron());
+    }
+
+    /**
+     * Validates the given files against the bound XSD and the given Schematron and
+     * fills the RESULTS list (async). Used by the Explorer's one-click Schematron
+     * validation, where files may be validated without any open document to bind
+     * the Schematron to.
+     *
+     * @param files      the XML files to validate
+     * @param schematron the Schematron to validate against (may be {@code null})
+     */
+    public void runBatch(java.util.List<File> files, File schematron) {
         if (files == null || files.isEmpty()) {
             return;
         }
         File xsd = editorHost.activeSchemaProperty().get();
-        File schematron = editorHost.getActiveSchematron();
         int total = files.size();
         java.util.concurrent.atomic.AtomicBoolean cancelled = new java.util.concurrent.atomic.AtomicBoolean(false);
         PanelStatus.info(status, "Validating " + total + " file(s)…");
