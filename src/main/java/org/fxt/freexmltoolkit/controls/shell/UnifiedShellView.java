@@ -529,6 +529,7 @@ public class UnifiedShellView extends BorderPane {
             case EXPLORER -> {
                 var explorer = new org.fxt.freexmltoolkit.controls.shell.editor.ExplorerPanel(editorHost);
                 explorer.setNewFileAction(this::newDocument);
+                explorer.setSchematronValidateAction(this::validateWithSchematron);
                 yield explorer;
             }
             case SCHEMA -> new org.fxt.freexmltoolkit.controls.shell.editor.TypeLibraryPanel(editorHost);
@@ -633,6 +634,26 @@ public class UnifiedShellView extends BorderPane {
         }
         selectionModel.select(Activity.VALIDATION);
         validationPanel().revalidate();
+    }
+
+    /**
+     * Runs the Explorer's one-click Schematron validation in the Validation activity:
+     * the active document goes through the panel's single-file flow (problems list,
+     * report button), everything else through the batch flow with the given Schematron.
+     * The Explorer already bound the Schematron to the active document before calling.
+     */
+    private void validateWithSchematron(java.util.List<java.io.File> files, java.io.File schematron) {
+        selectionModel.select(Activity.VALIDATION);
+        var panel = validationPanel();
+        boolean activeDocumentOnly = files.size() == 1 && editorHost.getActiveDocument()
+                .map(org.fxt.freexmltoolkit.controls.shell.editor.OpenDocument::getPath)
+                .map(p -> p.toFile().getAbsoluteFile().equals(files.get(0).getAbsoluteFile()))
+                .orElse(false);
+        if (activeDocumentOnly) {
+            panel.revalidate();
+        } else {
+            panel.runBatch(files, schematron);
+        }
     }
 
     /**
