@@ -54,7 +54,37 @@ public final class FavoritesMenu {
      * The menu is disabled while there is nothing to pick.
      */
     public static void populate(MenuButton menu, FileFavorite.FileType type, Consumer<File> onPick) {
-        menu.getItems().clear();
+        List<MenuItem> items = buildItems(type, onPick);
+        menu.getItems().setAll(items);
+        menu.setDisable(items.isEmpty());
+    }
+
+    /**
+     * Builds a {@link Menu} listing the favorites of {@code type} — for embedding
+     * inside another menu (e.g. the Explorer's Schematron picker). Same structure
+     * as {@link #populate}: a flat item list while everything is uncategorized,
+     * one nested submenu per folder otherwise. Disabled while there is nothing
+     * to pick.
+     *
+     * @param text   the submenu title (e.g. "Favorites")
+     * @param type   the favorite type to list
+     * @param onPick receives the picked favorite's file
+     * @return the ready-to-embed submenu
+     */
+    public static Menu submenu(String text, FileFavorite.FileType type, Consumer<File> onPick) {
+        Menu menu = new Menu(text);
+        List<MenuItem> items = buildItems(type, onPick);
+        menu.getItems().setAll(items);
+        menu.setDisable(items.isEmpty());
+        return menu;
+    }
+
+    /**
+     * Builds the pickable favorite items of {@code type}: a flat list while
+     * everything is uncategorized, one {@link Menu} per folder otherwise.
+     * Empty when there are no (existing) favorites of the type.
+     */
+    private static List<MenuItem> buildItems(FileFavorite.FileType type, Consumer<File> onPick) {
         List<FileFavorite> favorites;
         try {
             favorites = FavoritesService.getInstance().getFavoritesByType(type).stream()
@@ -64,10 +94,8 @@ public final class FavoritesMenu {
             favorites = List.of();
         }
         if (favorites.isEmpty()) {
-            menu.setDisable(true);
-            return;
+            return List.of();
         }
-        menu.setDisable(false);
 
         Map<String, List<FileFavorite>> byFolder = new LinkedHashMap<>();
         for (FileFavorite favorite : favorites) {
@@ -75,26 +103,37 @@ public final class FavoritesMenu {
                     ? "" : favorite.getFolderName();
             byFolder.computeIfAbsent(folder, k -> new ArrayList<>()).add(favorite);
         }
+        List<MenuItem> items = new ArrayList<>();
         if (byFolder.size() == 1) {
             // Single (or no) folder: flat list, no submenu indirection.
             for (FileFavorite favorite : favorites) {
-                menu.getItems().add(item(favorite, onPick));
+                items.add(item(favorite, onPick));
             }
-            return;
+            return items;
         }
         for (var entry : byFolder.entrySet()) {
             Menu submenu = new Menu(entry.getKey().isEmpty() ? "Uncategorized" : entry.getKey());
             for (FileFavorite favorite : entry.getValue()) {
                 submenu.getItems().add(item(favorite, onPick));
             }
-            menu.getItems().add(submenu);
+            items.add(submenu);
         }
+        return items;
     }
 
     /** @return the pickable leaf labels (flat items + submenu items) — for tests/observers. */
     public static List<String> leafNames(MenuButton menu) {
+        return leafNames(menu.getItems());
+    }
+
+    /** @return the pickable leaf labels of a favorites submenu — for tests/observers. */
+    public static List<String> leafNames(Menu menu) {
+        return leafNames(menu.getItems());
+    }
+
+    private static List<String> leafNames(List<MenuItem> items) {
         List<String> names = new ArrayList<>();
-        for (MenuItem item : menu.getItems()) {
+        for (MenuItem item : items) {
             if (item instanceof Menu sub) {
                 for (MenuItem leaf : sub.getItems()) {
                     names.add(leaf.getText());
