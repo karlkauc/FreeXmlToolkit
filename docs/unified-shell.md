@@ -500,6 +500,35 @@ select several files at once.
     parameters, watch-and-rerun, and the result table, use the full
     [Transform panel](#transform-panel).
 
+### Schematron Bar (one-click validation from the Explorer)
+
+> **New in July 2026** - Validate XML files against a Schematron straight from the
+> Explorer, without switching to the Validation activity first.
+
+A **Schematron bar** sits directly below the Transform bar. It keeps one Schematron
+fixed and validates whichever XML file(s) you pick in the tree - ideal for repeatedly
+checking many files against the same rule set.
+
+The bar has two controls:
+
+- **Schematron picker** - a dropdown (checks-grid icon) labelled **"Schematron…"** until you
+  choose one, then showing the chosen file's name. Click it to:
+    - reapply one of your **recently used Schematrons** (listed at the top),
+    - pick one of your **Favorites** (the same Schematron favorites the
+      [Validation panel](#validation-panel) offers),
+    - **Choose Schematron…** - pick a `.sch` / `.schematron` file from disk, or
+    - **Clear recent** - empty the recent list.
+- **Validate** button (play icon) - validates your selected XML file(s) against the chosen
+  Schematron. Tooltip: *"Validate selected XML file(s) with the current Schematron"*.
+
+Picking a Schematron also **binds it to the active document**, so the
+[Validation panel](#validation-panel) and live validation use it too. Clicking
+**Validate** switches to the **Validation** activity and shows the result there:
+a single active document runs through the normal single-file flow (problems list,
+detailed Schematron report), a multi-file tree selection through the **batch** flow
+with one RESULTS row per file. With no tree selection, the active editor document
+is validated.
+
 ## Favorites Panel
 
 Open the **Favorites** panel from the star icon in the activity bar for one-click access to
