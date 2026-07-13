@@ -906,6 +906,19 @@ class UpdateCheckServiceTest {
         @Override
         public void clearRecentXsltFiles() {
         }
+
+        @Override
+        public java.util.List<java.io.File> getRecentSchematronFiles() {
+            return java.util.List.of();
+        }
+
+        @Override
+        public void addRecentSchematronFile(java.io.File file) {
+        }
+
+        @Override
+        public void clearRecentSchematronFiles() {
+        }
     }
 
     /**

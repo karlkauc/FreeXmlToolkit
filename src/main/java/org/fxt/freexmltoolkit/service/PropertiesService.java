@@ -493,6 +493,29 @@ public interface PropertiesService {
      */
     void clearRecentXsltFiles();
 
+    // Schematron recent files
+
+    /**
+     * Gets the list of recently used Schematron files (most recent first;
+     * files that no longer exist are omitted).
+     *
+     * @return list of recently used Schematron files
+     */
+    List<File> getRecentSchematronFiles();
+
+    /**
+     * Adds a Schematron file to the recent files list (moves it to the front
+     * if already present). Null or non-existing files are ignored.
+     *
+     * @param file the file to add
+     */
+    void addRecentSchematronFile(File file);
+
+    /**
+     * Clears all recent Schematron files.
+     */
+    void clearRecentSchematronFiles();
+
     // JSON Editor settings
 
     /**

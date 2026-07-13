@@ -647,6 +647,65 @@ public class PropertiesServiceImpl implements PropertiesService {
         logger.debug("Cleared all recent XSLT files");
     }
 
+    // Schematron recent files implementation
+
+    private static final int MAX_RECENT_SCHEMATRON_FILES = 10;
+
+    @Override
+    public List<File> getRecentSchematronFiles() {
+        List<File> recentFiles = new java.util.ArrayList<>();
+        for (int i = 0; i < MAX_RECENT_SCHEMATRON_FILES; i++) {
+            String path = properties.getProperty("schematron.recent.file." + i);
+            if (path != null && !path.isEmpty()) {
+                File file = new File(path);
+                if (file.exists()) {
+                    recentFiles.add(file);
+                }
+            }
+        }
+        return recentFiles;
+    }
+
+    @Override
+    public void addRecentSchematronFile(File file) {
+        if (file == null || !file.exists()) {
+            return;
+        }
+
+        // Get current list and remove if already present
+        List<File> recentFiles = new java.util.ArrayList<>(getRecentSchematronFiles());
+        recentFiles.removeIf(f -> f.getAbsolutePath().equals(file.getAbsolutePath()));
+
+        // Add to front
+        recentFiles.addFirst(file);
+
+        // Limit to max
+        while (recentFiles.size() > MAX_RECENT_SCHEMATRON_FILES) {
+            recentFiles.removeLast();
+        }
+
+        // Save to properties
+        for (int i = 0; i < MAX_RECENT_SCHEMATRON_FILES; i++) {
+            if (i < recentFiles.size()) {
+                properties.setProperty("schematron.recent.file." + i,
+                        recentFiles.get(i).getAbsolutePath());
+            } else {
+                properties.remove("schematron.recent.file." + i);
+            }
+        }
+        saveProperties(properties);
+        logger.debug("Added recent Schematron file: {}", file.getAbsolutePath());
+    }
+
+    @Override
+    public void clearRecentSchematronFiles() {
+        for (int i = 0; i < MAX_RECENT_SCHEMATRON_FILES; i++) {
+            properties.remove("schematron.recent.file." + i);
+        }
+        saveProperties(properties);
+        logger.debug("Cleared all recent Schematron files");
+    }
+
     // JSON Editor settings implementation
 
     private static final int MAX_RECENT_JSON_FILES = 10;
