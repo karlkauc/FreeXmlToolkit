@@ -53,6 +53,11 @@ public class ExplorerPanel extends VBox {
     /** Sticky stylesheet for the Explorer's one-click transform; shared via the recent-XSLT store. */
     private File currentXslt;
     private final MenuButton stylesheetMenu = new MenuButton();
+    /** Sticky Schematron for the Explorer's one-click validation; shared via the recent-Schematron store. */
+    private File currentSchematron;
+    private final MenuButton schematronMenu = new MenuButton();
+    /** Shell-wired: (files, schematron) → run validation in the Validation activity. */
+    private java.util.function.BiConsumer<java.util.List<File>, File> schematronValidateAction;
 
     public ExplorerPanel(EditorHost editorHost) {
         this.editorHost = editorHost;
@@ -134,6 +139,7 @@ public class ExplorerPanel extends VBox {
 
         getChildren().addAll(header,
                 buildTransformBar(),
+                buildSchematronBar(),
                 openHeader, openEditorsBox,
                 workspaceHeader, workspace,
                 favRecentPane);
@@ -372,19 +378,7 @@ public class ExplorerPanel extends VBox {
                 return;
             }
         }
-        java.util.List<File> xmls = new java.util.ArrayList<>();
-        for (Path p : workspace.getSelectedFiles()) {
-            if (isXmlFile(p)) {
-                xmls.add(p.toFile());
-            }
-        }
-        if (xmls.isEmpty()) {
-            // Fall back to the active editor document if it is an XML file.
-            editorHost.getActiveDocument()
-                    .map(OpenDocument::getPath)
-                    .filter(p -> p != null && isXmlFile(p))
-                    .ifPresent(p -> xmls.add(p.toFile()));
-        }
+        java.util.List<File> xmls = selectedXmlFiles();
         if (xmls.isEmpty()) {
             editorHost.transformOutputPanel().showError("Select an XML file to transform.");
             return;
@@ -399,6 +393,186 @@ public class ExplorerPanel extends VBox {
     private static boolean isXmlFile(Path path) {
         String name = path.getFileName() != null ? path.getFileName().toString() : "";
         return name.toLowerCase(java.util.Locale.ROOT).endsWith(".xml");
+    }
+
+    /** @return the tree-selected XML files, falling back to the active XML document. */
+    private java.util.List<File> selectedXmlFiles() {
+        java.util.List<File> xmls = new java.util.ArrayList<>();
+        for (Path p : workspace.getSelectedFiles()) {
+            if (isXmlFile(p)) {
+                xmls.add(p.toFile());
+            }
+        }
+        if (xmls.isEmpty()) {
+            // Fall back to the active editor document if it is an XML file.
+            editorHost.getActiveDocument()
+                    .map(OpenDocument::getPath)
+                    .filter(p -> p != null && isXmlFile(p))
+                    .ifPresent(p -> xmls.add(p.toFile()));
+        }
+        return xmls;
+    }
+
+    // ----- one-click Schematron validation --------------------------------------
+
+    /**
+     * Builds the Explorer validation bar: a Schematron picker ({@link #schematronMenu})
+     * and a Validate button — the Schematron sibling of {@link #buildTransformBar()}.
+     * The chosen Schematron stays fixed across files, so switching the XML selection
+     * and clicking Validate is a single click.
+     */
+    private HBox buildSchematronBar() {
+        schematronMenu.setId("explorer-schematron");
+        schematronMenu.setGraphic(icon("bi-ui-checks-grid", 14));
+        schematronMenu.getStyleClass().add("fxt-tool-button");
+        schematronMenu.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(schematronMenu, Priority.ALWAYS);
+        schematronMenu.setOnShowing(e -> refreshSchematronMenu());
+        refreshSchematronLabel();
+
+        Button validateButton = new Button("Validate", icon("bi-play-fill", 14));
+        validateButton.setId("explorer-validate");
+        validateButton.getStyleClass().add("fxt-tool-button");
+        validateButton.setTooltip(new javafx.scene.control.Tooltip(
+                "Validate selected XML file(s) with the current Schematron"));
+        validateButton.setOnAction(e -> runExplorerValidation());
+
+        HBox bar = new HBox(6, schematronMenu, validateButton);
+        bar.setId("explorer-schematron-bar");
+        bar.getStyleClass().add("fxt-sp-header");
+        bar.setAlignment(Pos.CENTER_LEFT);
+        return bar;
+    }
+
+    /** Rebuilds the Schematron dropdown: recents · Favorites · Choose… · Clear recent. */
+    private void refreshSchematronMenu() {
+        schematronMenu.getItems().clear();
+        for (File file : recentSchematronFiles()) {
+            MenuItem item = new MenuItem(file.getName());
+            item.setOnAction(e -> useSchematron(file));
+            schematronMenu.getItems().add(item);
+        }
+        if (!schematronMenu.getItems().isEmpty()) {
+            schematronMenu.getItems().add(new javafx.scene.control.SeparatorMenuItem());
+        }
+        schematronMenu.getItems().add(FavoritesMenu.submenu("Favorites",
+                org.fxt.freexmltoolkit.domain.FileFavorite.FileType.SCHEMATRON,
+                this::useSchematron));
+        schematronMenu.getItems().add(menuItem("Choose Schematron…", this::chooseSchematronFile));
+        schematronMenu.getItems().add(menuItem("Clear recent", this::clearRecentSchematron));
+    }
+
+    /** Updates the dropdown text to the current (or most recent) Schematron's name. */
+    private void refreshSchematronLabel() {
+        File schematron = currentSchematronFile();
+        schematronMenu.setText(schematron != null ? schematron.getName() : "Schematron…");
+    }
+
+    /**
+     * Makes {@code file} the sticky Schematron: records it as most recent and binds it
+     * to the active document (so the Validation activity, the PROBLEMS view and live
+     * validation pick it up). Also the programmatic entry point for the shell and tests.
+     */
+    public void useSchematron(File file) {
+        currentSchematron = file;
+        if (file != null) {
+            if (propertiesService != null) {
+                propertiesService.addRecentSchematronFile(file);
+            }
+            editorHost.setActiveSchematron(file);
+        }
+        refreshSchematronLabel();
+    }
+
+    /** Clears the recent-Schematron store and resets the sticky choice. */
+    public void clearRecentSchematron() {
+        if (propertiesService != null) {
+            propertiesService.clearRecentSchematronFiles();
+        }
+        currentSchematron = null;
+        refreshSchematronLabel();
+    }
+
+    /** Opens a file chooser to pick a Schematron, then makes it the current one. */
+    private void chooseSchematronFile() {
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Choose Schematron");
+        chooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("Schematron", "*.sch", "*.schematron"));
+        File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser,
+                getScene() != null ? getScene().getWindow() : null);
+        if (file != null) {
+            useSchematron(file);
+        }
+    }
+
+    /**
+     * Resolves the Schematron to use: the explicitly chosen one, otherwise the head
+     * of the shared recent-Schematron list (mirrors {@link #currentStylesheet()}).
+     */
+    private File currentSchematronFile() {
+        if (currentSchematron != null && currentSchematron.isFile()) {
+            return currentSchematron;
+        }
+        java.util.List<File> recent = recentSchematronFiles();
+        return recent.isEmpty() ? null : recent.get(0);
+    }
+
+    private java.util.List<File> recentSchematronFiles() {
+        if (propertiesService == null) {
+            return java.util.List.of();
+        }
+        try {
+            return propertiesService.getRecentSchematronFiles();
+        } catch (Throwable t) {
+            return java.util.List.of();
+        }
+    }
+
+    /**
+     * Validates the selected XML file(s) with the current Schematron via the
+     * shell-wired {@link #schematronValidateAction}. Falls back to the active editor
+     * document when nothing is selected in the tree; opens the chooser first when no
+     * Schematron is set yet.
+     */
+    private void runExplorerValidation() {
+        File schematron = currentSchematronFile();
+        if (schematron == null) {
+            chooseSchematronFile();
+            schematron = currentSchematronFile();
+            if (schematron == null) {
+                return;
+            }
+        }
+        java.util.List<File> xmls = selectedXmlFiles();
+        if (xmls.isEmpty()) {
+            editorHost.transformOutputPanel().showError("Select an XML file to validate.");
+            return;
+        }
+        editorHost.setActiveSchematron(schematron);
+        if (schematronValidateAction != null) {
+            schematronValidateAction.accept(xmls, schematron);
+        }
+    }
+
+    /**
+     * Wires the Explorer's one-click Schematron validation to the shell: the callback
+     * receives the XML files to validate and the Schematron to use, and is expected
+     * to show the result in the Validation activity.
+     *
+     * @param action the action to run (ignored if {@code null})
+     */
+    public void setSchematronValidateAction(
+            java.util.function.BiConsumer<java.util.List<File>, File> action) {
+        if (action != null) {
+            this.schematronValidateAction = action;
+        }
+    }
+
+    /** @return the Schematron dropdown item texts (rebuilds the menu) — for tests/observers. */
+    public java.util.List<String> schematronMenuItemTexts() {
+        refreshSchematronMenu();
+        return schematronMenu.getItems().stream().map(MenuItem::getText).toList();
     }
 
     /** Overridable "New file" action; {@code null} falls back to a blank XML document. */
