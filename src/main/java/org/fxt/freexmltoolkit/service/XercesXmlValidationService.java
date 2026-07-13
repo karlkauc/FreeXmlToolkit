@@ -260,24 +260,25 @@ public class XercesXmlValidationService implements XmlValidationService {
                         isXsd11 ? "1.1" : "1.0",
                         schemaFile.getAbsolutePath());
 
-            // For XSD 1.0 schemas, pre-validate the schema
-            if (!isXsd11) {
-                String schemaError = getSchemaValidationError(schemaFile, false);
-                if (schemaError != null) {
-                    logger.warn("Schema validation skipped because the schema file is invalid: {}",
-                               schemaFile.getAbsolutePath());
-                    exceptions.add(new SAXParseException(schemaError, null));
-                    exceptions.addAll(checkWellFormednessOnly(xmlString));
-                    return exceptions;
-                }
-            }
-
-            // Perform validation with the appropriate schema version
-            // The factory already supports the correct XSD version
+            // Compile the schema once; the same call doubles as the schema-validity check.
             // Set systemId to enable relative import resolution
             StreamSource schemaSource = new StreamSource(schemaFile);
             schemaSource.setSystemId(schemaFile.toURI().toString());
-            Schema schema = factory.newSchema(schemaSource);
+            Schema schema;
+            try {
+                schema = factory.newSchema(schemaSource);
+            } catch (SAXException e) {
+                if (isXsd11) {
+                    throw e;
+                }
+                // For XSD 1.0, fall back to a well-formedness check of the XML instance
+                logger.warn("Schema validation skipped because the schema file '{}' is not a valid " +
+                            "W3C XML Schema. Reason: {}",
+                           schemaFile.getAbsolutePath(), e.getMessage());
+                exceptions.add(new SAXParseException("Schema validation error: " + e.getMessage(), null));
+                exceptions.addAll(checkWellFormednessOnly(xmlString));
+                return exceptions;
+            }
             Validator validator = schema.newValidator();
 
             validator.setErrorHandler(new ErrorHandler() {
@@ -439,39 +440,4 @@ public class XercesXmlValidationService implements XmlValidationService {
         return false;
     }
 
-    /**
-     * Checks if the given schema file is valid.
-     *
-     * @param schemaFile the schema file to check
-     * @param isXsd11    whether the schema is XSD 1.1
-     * @return true if valid, false otherwise
-     */
-    /**
-     * Checks if the schema file is valid and returns an error message if not.
-     *
-     * @param schemaFile the schema file to validate
-     * @param isXsd11    whether this is an XSD 1.1 schema
-     * @return null if valid, or detailed error message if invalid
-     */
-    private String getSchemaValidationError(File schemaFile, boolean isXsd11) {
-        if (schemaFile == null || !schemaFile.exists()) {
-            return "Schema file does not exist or is null";
-        }
-
-        try {
-            SchemaFactory factory = isXsd11 ? schemaFactory11 : schemaFactory10;
-
-            // The factory already supports the correct XSD version
-            // Set systemId to enable relative import resolution
-            StreamSource schemaSource = new StreamSource(schemaFile);
-            schemaSource.setSystemId(schemaFile.toURI().toString());
-            factory.newSchema(schemaSource);
-            return null; // Schema is valid
-        } catch (SAXException e) {
-            String errorMsg = "Schema validation error: " + e.getMessage();
-            logger.warn("The provided schema file '{}' is not a valid W3C XML Schema. Reason: {}",
-                       schemaFile.getAbsolutePath(), e.getMessage());
-            return errorMsg;
-        }
-    }
 }

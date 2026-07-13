@@ -936,7 +936,13 @@ public class SchemaResolver {
     public class ValidationResourceResolver implements org.w3c.dom.ls.LSResourceResolver {
 
         private final Path baseDir;
-        private final ThreadLocal<Set<String>> visitedUris = ThreadLocal.withInitial(java.util.HashSet::new);
+        // Records which document (normalized base URI) first requested each resolved URI.
+        // Walking these parent links reconstructs the resolution path, so a real cycle
+        // (a schema transitively importing itself) is detectable even though
+        // LSResourceResolver has no "resolution finished" callback. Resolutions flagged
+        // as circular are never recorded, so the map stays acyclic.
+        private final ThreadLocal<java.util.Map<String, String>> parentUris =
+                ThreadLocal.withInitial(java.util.HashMap::new);
         private final org.fxt.freexmltoolkit.service.SchemaResourceCache cache;
 
         /**
@@ -968,14 +974,17 @@ public class SchemaResolver {
                 return null;
             }
 
-            // Check for circular imports
-            Set<String> visited = visitedUris.get();
+            // Check for circular imports: a cycle exists only if the requested schema is
+            // already an ancestor on the resolution path. Repeated requests for the same
+            // schema from different documents (diamond imports) or repeated compilations
+            // are legitimate and resolved normally.
             String normalizedSystemId = normalizeSystemId(systemId, baseURI);
-            if (visited.contains(normalizedSystemId)) {
+            String normalizedBase = normalizeBaseUri(baseURI);
+            if (isOnResolutionPath(normalizedSystemId, normalizedBase)) {
                 logger.warn("Circular import detected for: {}", normalizedSystemId);
                 return null;
             }
-            visited.add(normalizedSystemId);
+            parentUris.get().putIfAbsent(normalizedSystemId, normalizedBase);
 
             try {
                 // Handle remote URLs (HTTP/HTTPS)
@@ -993,11 +1002,28 @@ public class SchemaResolver {
         }
 
         /**
-         * Clears the visited URIs tracking for circular import detection.
+         * Clears the resolution-path tracking for circular import detection.
          * Should be called before starting a new validation.
          */
         public void resetCircularDetection() {
-            visitedUris.get().clear();
+            parentUris.get().clear();
+        }
+
+        /**
+         * Checks whether {@code normalizedSystemId} is already an ancestor of the document
+         * currently being resolved, i.e. whether serving it would re-enter a schema that is
+         * still being processed further up the import chain (a true circular import).
+         */
+        private boolean isOnResolutionPath(String normalizedSystemId, String normalizedBase) {
+            java.util.Map<String, String> parents = parentUris.get();
+            Set<String> walked = new java.util.HashSet<>();
+            for (String ancestor = normalizedBase; ancestor != null && walked.add(ancestor);
+                 ancestor = parents.get(ancestor)) {
+                if (ancestor.equals(normalizedSystemId)) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         /**
@@ -1144,12 +1170,34 @@ public class SchemaResolver {
             }
         }
 
+        /**
+         * Normalizes a base URI to the same canonical form as {@link #normalizeSystemId},
+         * so parent-chain entries and requested system IDs are comparable.
+         */
+        private String normalizeBaseUri(String baseURI) {
+            if (baseURI == null || baseURI.isBlank()) {
+                return null;
+            }
+            if (baseURI.startsWith("http://") || baseURI.startsWith("https://")) {
+                return baseURI;
+            }
+            Path basePath = uriToPath(baseURI);
+            return basePath != null ? basePath.normalize().toString() : baseURI;
+        }
+
         private String normalizeSystemId(String systemId, String baseURI) {
             if (systemId.startsWith("http://") || systemId.startsWith("https://")) {
                 return systemId;
             }
 
             if (baseURI != null && !baseURI.isBlank()) {
+                if (baseURI.startsWith("http://") || baseURI.startsWith("https://")) {
+                    try {
+                        return java.net.URI.create(baseURI).resolve(systemId).toString();
+                    } catch (Exception e) {
+                        return systemId;
+                    }
+                }
                 try {
                     Path basePath = uriToPath(baseURI);
                     if (basePath != null) {
