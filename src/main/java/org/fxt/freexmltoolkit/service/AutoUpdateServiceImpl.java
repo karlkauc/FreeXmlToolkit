@@ -701,44 +701,14 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
      * Gets the application installation directory.
      */
     private Path getApplicationDirectory() {
-        // Get the directory where the application JAR is located
-        try {
-            Path jarPath = Path.of(getClass().getProtectionDomain()
-                    .getCodeSource().getLocation().toURI());
-
-            // If running from JAR, go up to the app directory
-            if (jarPath.toString().endsWith(".jar")) {
-                // Typical structure: app/lib/FreeXmlToolkit.jar -> app
-                return jarPath.getParent().getParent();
-            }
-
-            // If running from IDE, use current working directory
-            return Path.of(System.getProperty("user.dir"));
-
-        } catch (Exception e) {
-            logger.warn("Could not determine application directory from JAR location", e);
-            return Path.of(System.getProperty("user.dir"));
-        }
+        return ApplicationLauncherLocator.getApplicationDirectory();
     }
 
     /**
      * Gets the path to the application launcher.
      */
     private Path getApplicationLauncher() {
-        Path appDir = getApplicationDirectory();
-
-        if (isWindows()) {
-            return appDir.resolve("FreeXmlToolkit.exe");
-        } else if (isMacOS()) {
-            // On macOS, the app is in a .app bundle or directly in the folder
-            Path macOsLauncher = appDir.resolve("Contents/MacOS/FreeXmlToolkit");
-            if (Files.exists(macOsLauncher)) {
-                return macOsLauncher;
-            }
-            return appDir.resolve("bin/FreeXmlToolkit");
-        } else {
-            return appDir.resolve("bin/FreeXmlToolkit");
-        }
+        return ApplicationLauncherLocator.getApplicationLauncher();
     }
 
     @Override
@@ -984,14 +954,7 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
      * Checks if the current platform is Windows.
      */
     private boolean isWindows() {
-        return System.getProperty("os.name").toLowerCase().contains("win");
-    }
-
-    /**
-     * Checks if the current platform is macOS.
-     */
-    private boolean isMacOS() {
-        return System.getProperty("os.name").toLowerCase().contains("mac");
+        return ApplicationLauncherLocator.isWindows();
     }
 
     @Override

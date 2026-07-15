@@ -16,8 +16,19 @@ public class UnifiedShellController {
     @FXML
     private StackPane shellRoot;
 
+    private UnifiedShellView shellView;
+
     @FXML
     public void initialize() {
-        shellRoot.getChildren().setAll(new UnifiedShellView());
+        shellView = new UnifiedShellView();
+        shellRoot.getChildren().setAll(shellView);
+    }
+
+    /**
+     * The shell view instance mounted by {@link #initialize()} — used by {@code FxtGui}
+     * to route startup files (command-line arguments, macOS open-file events) into the editor.
+     */
+    public UnifiedShellView getShellView() {
+        return shellView;
     }
 }

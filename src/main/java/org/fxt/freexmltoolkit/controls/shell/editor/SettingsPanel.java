@@ -22,8 +22,11 @@ import javafx.scene.layout.VBox;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.theme.DesignTokens;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
+import org.fxt.freexmltoolkit.domain.FileAssociationResult;
+import org.fxt.freexmltoolkit.domain.UnifiedEditorFileType;
 import org.fxt.freexmltoolkit.domain.XmlParserType;
 import org.fxt.freexmltoolkit.domain.XmlTemplate;
+import org.fxt.freexmltoolkit.service.FileAssociationService;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.TemplateFileService;
 import org.fxt.freexmltoolkit.service.TemplateRepository;
@@ -100,6 +103,16 @@ public class SettingsPanel extends VBox {
 
     // FundsXML extension
     private final CheckBox fundsXmlEnabled = new CheckBox("Enable FundsXML extensions");
+
+    // File associations
+    private final CheckBox assocXml = new CheckBox("XML (.xml)");
+    private final CheckBox assocXsd = new CheckBox("XSD Schema (.xsd)");
+    private final CheckBox assocXslt = new CheckBox("XSLT Stylesheet (.xsl, .xslt)");
+    private final CheckBox assocSch = new CheckBox("Schematron (.sch, .schematron)");
+    private final CheckBox assocJson = new CheckBox("JSON (.json)");
+    private final Button assocRegister = new Button("Register", iconGraphic("bi-box-arrow-in-down"));
+    private final Button assocUnregister = new Button("Unregister", iconGraphic("bi-x-circle"));
+    private final Label assocStatus = new Label();
 
     // Templates
     private final TextField templatesDir = new TextField();
@@ -206,6 +219,20 @@ public class SettingsPanel extends VBox {
         renderingGpuStatus.setWrapText(true);
         renderingGpuStatus.getStyleClass().add("fxt-placeholder-text");
 
+        Label assocHint = new Label("Make FreeXmlToolkit the default application for the "
+                + "selected file types (current user only).");
+        assocHint.setWrapText(true);
+        assocHint.getStyleClass().add("fxt-placeholder-text");
+        assocStatus.setWrapText(true);
+        assocStatus.getStyleClass().add("fxt-placeholder-text");
+        assocRegister.getStyleClass().add("fxt-tool-button");
+        assocUnregister.getStyleClass().add("fxt-tool-button");
+        assocRegister.setOnAction(e -> runAssociationAction(true));
+        assocUnregister.setOnAction(e -> runAssociationAction(false));
+        HBox assocButtons = new HBox(6, assocRegister, assocUnregister);
+        assocButtons.setAlignment(Pos.CENTER_LEFT);
+        initFileAssociationControls();
+
         Button save = new Button("Save Settings", iconGraphic("bi-save"));
         save.getStyleClass().add("fxt-tool-button");
         save.setOnAction(e -> {
@@ -240,6 +267,9 @@ public class SettingsPanel extends VBox {
                         updateCheck, smallIcons, toolbarLabels, activityBarLabels,
                         labeled("Toolbar icons:", new HBox(6, toolbarIconSmall, toolbarIconLarge)),
                         showLeftPanel, showInspector),
+                card("FILE ASSOCIATIONS", "bi-file-earmark-check", "#0dcaf0",
+                        assocHint, assocXml, assocXsd, assocXslt, assocSch, assocJson,
+                        assocButtons, assocStatus),
                 card("USER INFO", "bi-person", "#28a745",
                         labeled("Name:", userName), labeled("Email:", userEmail),
                         labeled("Company:", userCompany)),
@@ -595,6 +625,132 @@ public class SettingsPanel extends VBox {
     /** Sets a callback invoked after settings are persisted (e.g. to refresh the activity bar). */
     public void setOnSaved(Runnable onSaved) {
         this.onSaved = onSaved;
+    }
+
+    /** Checkbox → file type mapping of the FILE ASSOCIATIONS card. */
+    private java.util.Map<CheckBox, UnifiedEditorFileType> associationCheckBoxes() {
+        java.util.Map<CheckBox, UnifiedEditorFileType> map = new java.util.LinkedHashMap<>();
+        map.put(assocXml, UnifiedEditorFileType.XML);
+        map.put(assocXsd, UnifiedEditorFileType.XSD);
+        map.put(assocXslt, UnifiedEditorFileType.XSLT);
+        map.put(assocSch, UnifiedEditorFileType.SCHEMATRON);
+        map.put(assocJson, UnifiedEditorFileType.JSON);
+        return map;
+    }
+
+    /**
+     * Initializes the FILE ASSOCIATIONS card: disables it with a hint when no installed
+     * launcher exists (IDE / gradle run), otherwise loads the persisted type selection
+     * and refreshes the registration status off the UI thread.
+     */
+    private void initFileAssociationControls() {
+        FileAssociationService svc;
+        try {
+            svc = ServiceRegistry.get(FileAssociationService.class);
+        } catch (Throwable t) {
+            setAssociationControlsDisabled(true);
+            assocStatus.setText("File association service unavailable.");
+            return;
+        }
+        if (!svc.isSupported()) {
+            setAssociationControlsDisabled(true);
+            assocStatus.setText(svc.getUnsupportedReason());
+            return;
+        }
+        try {
+            PropertiesService props = ServiceRegistry.get(PropertiesService.class);
+            String selected = orEmpty(props.get("fileAssociations.selected"));
+            if (!selected.isBlank()) {
+                java.util.Set<String> names = java.util.Set.of(selected.split(","));
+                associationCheckBoxes().forEach((cb, type) -> cb.setSelected(names.contains(type.name())));
+            } else {
+                associationCheckBoxes().keySet().forEach(cb -> cb.setSelected(true));
+            }
+        } catch (Throwable ignored) {
+            associationCheckBoxes().keySet().forEach(cb -> cb.setSelected(true));
+        }
+        refreshAssociationStatus(svc);
+    }
+
+    private void setAssociationControlsDisabled(boolean disabled) {
+        associationCheckBoxes().keySet().forEach(cb -> cb.setDisable(disabled));
+        assocRegister.setDisable(disabled);
+        assocUnregister.setDisable(disabled);
+    }
+
+    /** Runs register/unregister off the UI thread and reports the result in the card. */
+    private void runAssociationAction(boolean register) {
+        java.util.Set<UnifiedEditorFileType> types = java.util.EnumSet.noneOf(UnifiedEditorFileType.class);
+        associationCheckBoxes().forEach((cb, type) -> {
+            if (cb.isSelected()) {
+                types.add(type);
+            }
+        });
+        if (types.isEmpty()) {
+            assocStatus.setText("Select at least one file type.");
+            return;
+        }
+        FileAssociationService svc = ServiceRegistry.get(FileAssociationService.class);
+        try {
+            PropertiesService props = ServiceRegistry.get(PropertiesService.class);
+            props.set("fileAssociations.selected", types.stream()
+                    .map(Enum::name).reduce((a, b) -> a + "," + b).orElse(""));
+        } catch (Throwable ignored) {
+            // persistence unavailable — the action itself still works
+        }
+        setAssociationControlsDisabled(true);
+        assocStatus.setText(register ? "Registering…" : "Unregistering…");
+        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            FileAssociationResult result = register ? svc.register(types) : svc.unregister(types);
+            javafx.application.Platform.runLater(() -> {
+                setAssociationControlsDisabled(false);
+                // Keep the result message visible — it may carry follow-up instructions
+                // (e.g. the Windows Settings confirmation step).
+                assocStatus.setText(result.message());
+                if (!result.success()) {
+                    org.fxt.freexmltoolkit.util.DialogHelper.showActionError("File Associations",
+                            result.message(),
+                            "Check the details below and try again.",
+                            String.join("\n", result.errors()));
+                }
+            });
+        });
+    }
+
+    /** Summarizes the per-type registration state into the status label (off-thread query). */
+    private void refreshAssociationStatus(FileAssociationService svc) {
+        var checkBoxes = associationCheckBoxes();
+        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            java.util.List<String> asDefault = new java.util.ArrayList<>();
+            java.util.List<String> registered = new java.util.ArrayList<>();
+            for (UnifiedEditorFileType type : checkBoxes.values()) {
+                String ext = svc.extensionsFor(type).stream().sorted().findFirst().orElse(null);
+                if (ext == null) {
+                    continue;
+                }
+                switch (svc.getRegistrationState(ext)) {
+                    case DEFAULT -> asDefault.add("." + ext);
+                    case REGISTERED -> registered.add("." + ext);
+                    default -> {
+                    }
+                }
+            }
+            StringBuilder summary = new StringBuilder();
+            if (!asDefault.isEmpty()) {
+                summary.append("Default for: ").append(String.join(", ", asDefault));
+            }
+            if (!registered.isEmpty()) {
+                if (!summary.isEmpty()) {
+                    summary.append(" — ");
+                }
+                summary.append("Registered: ").append(String.join(", ", registered));
+            }
+            if (summary.isEmpty()) {
+                summary.append("Not registered.");
+            }
+            String text = summary.toString();
+            javafx.application.Platform.runLater(() -> assocStatus.setText(text));
+        });
     }
 
     /**

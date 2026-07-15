@@ -695,7 +695,20 @@ Development
             // Use absolute paths for better compatibility
             val inputDir = project.layout.buildDirectory.dir("libs").get().asFile.absolutePath
             val destDir = project.layout.buildDirectory.dir("dist/$platform-$arch-$packageType").get().asFile.absolutePath
-            
+
+            // File associations: registers the app as "Open with" candidate at install
+            // time (Windows MSI registry, macOS CFBundleDocumentTypes, Linux mime/.desktop).
+            // Windows/Linux app-images get no association artifacts from jpackage, so the
+            // flags are only useful for installers — and for the macOS app-image, whose
+            // Info.plist does receive CFBundleDocumentTypes.
+            val faDir = project.projectDir.resolve("release/file-associations")
+            val faExtensions = listOf("xml", "xsd", "xsl", "xslt", "sch", "schematron", "json")
+            val faArgs = if (packageType != "app-image" || platform == "macos") {
+                faExtensions.joinToString("\n") { "--file-associations\n${faDir.resolve("fa-$it.properties").absolutePath}" }
+            } else {
+                ""
+            }
+
             argsFile.writeText("""--type
 $packageType
 --input
@@ -719,6 +732,7 @@ ${project.version}
 $iconArg
 $rustHelperArg
 $runtimeArg
+$faArgs
 --java-options
 --enable-preview
 --java-options

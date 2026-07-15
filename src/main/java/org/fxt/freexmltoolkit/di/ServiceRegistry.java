@@ -10,6 +10,8 @@ import org.fxt.freexmltoolkit.service.ConnectionService;
 import org.fxt.freexmltoolkit.service.ConnectionServiceImpl;
 import org.fxt.freexmltoolkit.service.ExportMetadataService;
 import org.fxt.freexmltoolkit.service.FavoritesService;
+import org.fxt.freexmltoolkit.service.FileAssociationService;
+import org.fxt.freexmltoolkit.service.FileAssociationServiceImpl;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 import org.fxt.freexmltoolkit.service.SchematronService;
@@ -102,6 +104,9 @@ public final class ServiceRegistry {
 
         // 10. FundsXmlExtensionService - for FundsXML schema/example downloads
         registerFactory(FundsXmlExtensionService.class, FundsXmlExtensionService::getInstance);
+
+        // 11. FileAssociationService - registers OS file-type associations
+        registerFactory(FileAssociationService.class, FileAssociationServiceImpl::getInstance);
 
         initialized = true;
     }

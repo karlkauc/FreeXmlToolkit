@@ -862,6 +862,7 @@ short note that settings are edited in the main window). Change any option and c
 | **Temp & Cache** | **Use system temp folder** or a custom temp folder; **Clear Temp Folder** to free disk space; **Clear Cache Folder** to delete cached files (downloaded schemas etc.). |
 | **Templates** | A configurable **templates directory**, plus a **New / Edit / Delete** list of your own templates. See [Managing your templates](#managing-your-templates) below. |
 | **General** | **Check for updates on startup**; **Use small icons**. |
+| **File Associations** | Make FreeXmlToolkit the **default application** for XML, XSD, XSLT, Schematron and JSON files (per user, no admin rights). See [File Associations](file-associations.md). |
 | **HTTP Proxy** | **Use system proxy**, or enter a proxy host and port. |
 
 ### Clearing the Cache Folder

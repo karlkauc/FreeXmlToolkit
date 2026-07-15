@@ -51,6 +51,7 @@ import org.fxt.freexmltoolkit.service.SystemProxyDetector;
 import org.fxt.freexmltoolkit.service.ThreadPoolManager;
 import org.fxt.freexmltoolkit.service.UsageTrackingService;
 import org.fxt.freexmltoolkit.util.RenderingPipelineDetector;
+import org.fxt.freexmltoolkit.util.StartupFileOpener;
 
 import fr.brouillard.oss.cssfx.CSSFX;
 
@@ -155,6 +156,36 @@ public class FxtGui extends Application {
         // Register custom XSD type icons
         logger.info("Registering XSD type icons...");
         org.fxt.freexmltoolkit.controls.v2.view.XsdTypeIconPaths.registerAll();
+
+        registerOpenFileHandler();
+    }
+
+    /**
+     * Registers the AWT open-file handler (macOS Apple events, delivered when the user
+     * double-clicks an associated document). Installed in {@code init()} so events that
+     * arrive before the UI is ready are queued by {@link StartupFileOpener}; the AWT
+     * runtime itself buffers events delivered before the handler is set (JDK 9+).
+     *
+     * <p>macOS only: on Windows/Linux the double-clicked file arrives as a plain program
+     * argument, and initializing the AWT toolkit before the JavaFX GTK toolkit is up
+     * can hang the application on Linux.
+     */
+    private void registerOpenFileHandler() {
+        if (!System.getProperty("os.name", "").toLowerCase().contains("mac")) {
+            return;
+        }
+        try {
+            if (java.awt.Desktop.isDesktopSupported()) {
+                java.awt.Desktop desktop = java.awt.Desktop.getDesktop();
+                if (desktop.isSupported(java.awt.Desktop.Action.APP_OPEN_FILE)) {
+                    desktop.setOpenFileHandler(e -> StartupFileOpener.enqueue(
+                            e.getFiles().stream().map(File::toPath).toList()));
+                    logger.info("Open-file handler registered");
+                }
+            }
+        } catch (Throwable t) {
+            logger.warn("Could not register open-file handler", t);
+        }
     }
 
     /**
@@ -226,6 +257,8 @@ public class FxtGui extends Application {
 
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/pages/tab_unified_shell.fxml"));
                 Parent root = loader.load();
+                org.fxt.freexmltoolkit.controller.UnifiedShellController shellController =
+                        loader.getController();
 
                 splash.updateProgress(LoadingStep.CONFIGURING);
 
@@ -256,6 +289,12 @@ public class FxtGui extends Application {
                     fadeIn.setFromValue(0);
                     fadeIn.setToValue(1.0);
                     fadeIn.play();
+
+                    // Shell is up — route queued open-file events (macOS Apple events)
+                    // and command-line arguments (double-clicked files on Windows/Linux
+                    // arrive as plain program args) into the editor.
+                    StartupFileOpener.setConsumer(shellController.getShellView()::openFile);
+                    StartupFileOpener.enqueueRawArgs(getParameters().getRaw());
                 }));
                 readyPause.play();
 
