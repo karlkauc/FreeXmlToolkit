@@ -1,0 +1,2 @@
+(: Sum of all fee positions (negative values reduce the fund's assets). :)
+sum(//Position[Fee]/TotalValue/Amount)

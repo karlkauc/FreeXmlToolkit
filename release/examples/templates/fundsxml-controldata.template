@@ -1,0 +1,26 @@
+# XML Template Definition
+# FundsXML4 ControlData skeleton (see xml/FundsXML4_Equity_Fund.xml)
+
+id=fundsxml-controldata
+name=FundsXML ControlData
+description=ControlData header block for a FundsXML4 document
+category=FundsXML
+tags=fundsxml, controldata, header
+
+CONTENT_START
+<ControlData>
+    <UniqueDocumentID>${documentId}</UniqueDocumentID>
+    <DocumentGenerated>${generatedTimestamp}</DocumentGenerated>
+    <ContentDate>${contentDate}</ContentDate>
+    <DataSupplier>
+        <SystemCountry>${supplierCountry}</SystemCountry>
+        <Short>${supplierShort}</Short>
+        <Name>${supplierName}</Name>
+        <Type>IC</Type>
+        <Contact>
+            <Email>${supplierEmail}</Email>
+        </Contact>
+    </DataSupplier>
+    <DataOperation>INITIAL</DataOperation>
+</ControlData>
+CONTENT_END

@@ -1,0 +1,3 @@
+(: Days between the NAV date and the document's content date (date arithmetic). :)
+(xs:date(/FundsXML4/ControlData/ContentDate) - xs:date((//TotalAssetValue/NavDate)[1]))
+    div xs:dayTimeDuration('P1D')

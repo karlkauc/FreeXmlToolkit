@@ -191,10 +191,16 @@ Learn more: [Unified Shell Guide](unified-shell.md)
 
 The application includes example files in the `examples/` folder to help you get started:
 
-- **xml/** - Sample XML documents
-- **xsd/** - Sample XSD schemas
-- **xslt/** - Sample transformation stylesheets
-- **schematron/** - Sample business rules
+- **xml/** - Sample XML documents (FundsXML4 instances, valid and deliberately invalid)
+- **xsd/** - Sample XSD schemas (including FundsXML 4.2.11)
+- **xslt/** - XSLT stylesheets (HTML reports, JSON and CSV export)
+- **xsl/** - XSL-FO stylesheets for PDF reports
+- **xquery/** - XQuery 3.1 data-quality checks
+- **xpath/** - XPath 3.1 snippets for the Query Console
+- **schematron/** - Schematron business rules
+- **signature/** - Signed XML document with demo keystore
+- **templates/** - XML snippet templates
+- **profiles/** - XML generation profiles
 
 ---
 

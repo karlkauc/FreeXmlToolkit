@@ -1,0 +1,3 @@
+(: Total net asset value (NAV) of each fund, prefixed with its currency. :)
+/FundsXML4/Funds/Fund/FundDynamicData/TotalAssetValues/TotalAssetValue
+    /TotalNetAssetValue/Amount/concat(@ccy, ' ', .)

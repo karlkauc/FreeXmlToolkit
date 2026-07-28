@@ -1,0 +1,35 @@
+# XML Template Definition
+# FundsXML4 portfolio Position skeleton (see xml/FundsXML4_Equity_Fund.xml)
+
+id=fundsxml-position
+name=FundsXML Position
+description=Portfolio position with identifiers, value, percentage and FX rate
+category=FundsXML
+tags=fundsxml, position, portfolio
+
+CONTENT_START
+<Position>
+    <UniqueID>${uniqueId}</UniqueID>
+    <Identifiers>
+        <ISIN>${isin}</ISIN>
+        <OtherID FreeType="Name">${assetName}</OtherID>
+    </Identifiers>
+    <Currency>${currency}</Currency>
+    <TotalValue>
+        <Amount ccy="${currency}">${totalValue}</Amount>
+    </TotalValue>
+    <TotalPercentage>${percentage}</TotalPercentage>
+    <FXRates>
+        <FXRate fromCcy="${currency}" mulDiv="M" toCcy="${fundCurrency}">${fxRate}</FXRate>
+    </FXRates>
+    <Equity>
+        <Units>${units}</Units>
+        <Price>
+            <Amount ccy="${currency}">${price}</Amount>
+        </Price>
+        <MarketValue>
+            <Amount ccy="${currency}">${totalValue}</Amount>
+        </MarketValue>
+    </Equity>
+</Position>
+CONTENT_END

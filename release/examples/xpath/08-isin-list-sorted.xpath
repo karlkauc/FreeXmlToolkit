@@ -1,0 +1,2 @@
+(: Every ISIN in the document, deduplicated and sorted. :)
+sort(distinct-values(//Identifiers/ISIN))

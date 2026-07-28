@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <FundsXML4 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-           xsi:noNamespaceSchemaLocation="https://github.com/fundsxml/schema/releases/download/4.2.8/FundsXML.xsd">
+           xsi:noNamespaceSchemaLocation="../xsd/FundsXML4.xsd">
    <ControlData>
       <UniqueDocumentID>EAM_FUND_003</UniqueDocumentID>
       <DocumentGenerated>2024-09-26T18:37:12.1559196+02:00</DocumentGenerated>

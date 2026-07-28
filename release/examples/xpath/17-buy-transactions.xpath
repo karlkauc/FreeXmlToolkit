@@ -1,0 +1,4 @@
+(: All BUY transactions with units and clean price. :)
+//Transaction[TransactionKind = 'BUY']
+    ! concat(Identifiers/OtherID, ': ', NominalOrUnitsOrContracts,
+             ' @ ', CleanPrice/Amount, ' ', Currency)

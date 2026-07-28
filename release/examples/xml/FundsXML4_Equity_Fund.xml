@@ -1,9 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Mit XMLSpy v2013 rel. 2 sp2 (x64) (http://www.altova.com) von XMLSpy2013 (s IT Solutions AT Spardat GmbH z.B. Buchhaltung) bearbeitet -->
+<!--
+    FundsXML4 Equity Fund Example (FreeXmlToolkit)
+
+    A compact, real-world equity fund report (Erste Stock Hungary index tracker,
+    HUF, single fund with two share classes) that is VALID against the bundled
+    schema xsd/FundsXML4.xsd (FundsXML 4.2.11).
+
+    Use it to try out:
+      - XSD validation           (Validation panel; schema resolves offline via the relative reference below)
+      - Schematron rules         (schematron/funds-*.sch, schematron/eam-rules.sch)
+      - XQuery data-quality set  (xquery/01...10)
+      - XPath 3.1 snippets       (xpath/)
+      - XSLT reports             (xslt/ for HTML, xsl/ for PDF via XSL-FO)
+
+    See also the official FundsXML example repository: https://github.com/fundsxml/examples
+-->
 <FundsXML4 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../xsd/FundsXML4.xsd">
 	<ControlData>
-		<UniqueDocumentID>c43f6ac9-a3c2-4aa3-9eb8-17c2b3ae1880</UniqueDocumentID>
-		<DocumentGenerated>2025-08-27T10:14:27</DocumentGenerated>
+		<UniqueDocumentID>EQUITY_FUND_DEMO_001</UniqueDocumentID>
+		<DocumentGenerated>2026-07-28T09:00:00</DocumentGenerated>
 		<ContentDate>2025-08-26</ContentDate>
 		<DataSupplier>
 			<SystemCountry>HU</SystemCountry>

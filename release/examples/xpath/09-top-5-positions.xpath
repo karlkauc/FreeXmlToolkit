@@ -1,0 +1,5 @@
+(: Top 5 positions by portfolio weight
+   (XPath 3.1: fn:sort with a key function + inline function syntax). :)
+for $p in subsequence(
+    reverse(sort(//Position, (), function($x) { number($x/TotalPercentage) })), 1, 5)
+return concat(($p/Identifiers/(ISIN, OtherID))[1], ' = ', $p/TotalPercentage, ' %')

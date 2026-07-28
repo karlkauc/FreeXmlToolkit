@@ -1,0 +1,6 @@
+(: One-line summary per fund (XPath 3.1: string concatenation operator ||). :)
+/FundsXML4/Funds/Fund
+    ! (Names/OfficialName || ' [' || Identifiers/ISIN || '] ' || Currency
+       || ', NAV ' || format-number(number(
+              FundDynamicData/TotalAssetValues/TotalAssetValue/TotalNetAssetValue/Amount),
+              '#,##0'))

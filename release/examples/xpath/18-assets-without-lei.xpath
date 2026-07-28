@@ -1,0 +1,2 @@
+(: Master-data assets whose issuer has no LEI (data-quality check). :)
+/FundsXML4/AssetMasterData/Asset[not(.//Issuer/Identifiers/LEI)]/Name/string()

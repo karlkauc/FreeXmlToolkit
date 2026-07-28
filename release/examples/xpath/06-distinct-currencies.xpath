@@ -1,0 +1,2 @@
+(: All position currencies (XPath 2.0+: distinct-values). :)
+distinct-values(//Position/Currency)

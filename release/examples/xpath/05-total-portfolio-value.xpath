@@ -1,0 +1,2 @@
+(: Sum of all position values reported in HUF. :)
+sum(//Position/TotalValue/Amount[@ccy = 'HUF'])

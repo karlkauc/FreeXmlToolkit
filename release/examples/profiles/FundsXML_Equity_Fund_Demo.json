@@ -1,0 +1,312 @@
+{
+  "name": "FundsXML Equity Fund Demo",
+  "description": "Generates a schema-valid FundsXML4 instance modelled on release/examples/xml/FundsXML4_Equity_Fund.xml. Produces ControlData with the Erste Asset Management Hungary identifiers, a HUF equity Funds/Fund entry, a Portfolio with equity Positions, and AssetMasterData entries whose UniqueID matches the Positions' IDREF. Uses mandatoryOnly=true and maxOccurrences=1 to keep the output minimal and deterministic. Manual-import sample: copy into ~/.freeXmlToolkit/generation-profiles/ (GenerationProfileService does not scan this folder).",
+  "schemaFile": "FundsXML4.xsd",
+  "batchCount": 1,
+  "fileNamePattern": "FundsXML_Equity_Fund_{seq:3}.xml",
+  "mandatoryOnly": true,
+  "maxOccurrences": 1,
+  "rules": [
+    {
+      "xpath": "/FundsXML4/ControlData/UniqueDocumentID",
+      "strategy": "FIXED",
+      "config": {"value": "EQUITY_FUND_DEMO_GEN"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/ControlData/ContentDate",
+      "strategy": "FIXED",
+      "config": {"value": "2025-08-26"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/ControlData/DataOperation",
+      "strategy": "FIXED",
+      "config": {"value": "INITIAL"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/ControlData/Language",
+      "strategy": "FIXED",
+      "config": {"value": "EN"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "//DataSupplier/SystemCountry",
+      "strategy": "FIXED",
+      "config": {"value": "HU"},
+      "priority": 5,
+      "enabled": true
+    },
+    {
+      "xpath": "//DataSupplier/Short",
+      "strategy": "FIXED",
+      "config": {"value": "EAMHU"},
+      "priority": 5,
+      "enabled": true
+    },
+    {
+      "xpath": "//DataSupplier/Name",
+      "strategy": "FIXED",
+      "config": {"value": "Erste Asset Management Hungary"},
+      "priority": 5,
+      "enabled": true
+    },
+    {
+      "xpath": "//DataSupplier/Type",
+      "strategy": "FIXED",
+      "config": {"value": "Asset Manager"},
+      "priority": 5,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/Funds/Fund/Identifiers/LEI",
+      "strategy": "FIXED",
+      "config": {"value": "529900TQDPMSEVGAGY74"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/Funds/Fund/Names/OfficialName",
+      "strategy": "FIXED",
+      "config": {"value": "DEMO EQUITY FUND"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/Funds/Fund/Currency",
+      "strategy": "FIXED",
+      "config": {"value": "HUF"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/Funds/Fund/SingleFundFlag",
+      "strategy": "FIXED",
+      "config": {"value": "true"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/Funds/Fund/FundDynamicData/Portfolios/Portfolio/NavDate",
+      "strategy": "FIXED",
+      "config": {"value": "2025-08-25"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/Funds/Fund/FundDynamicData/Portfolios/Portfolio/Positions/Position/UniqueID",
+      "strategy": "SEQUENCE",
+      "config": {"pattern": "ASSET_EQ_{seq:3}", "start": "1", "step": "1"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/AssetMasterData/Asset/UniqueID",
+      "strategy": "SEQUENCE",
+      "config": {"pattern": "ASSET_EQ_{seq:3}", "start": "1", "step": "1"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/AssetMasterData/Asset",
+      "strategy": "AUTO",
+      "config": {"maxOccurrences": "3"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/AssetMasterData/Asset/Currency",
+      "strategy": "FIXED",
+      "config": {"value": "HUF"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/AssetMasterData/Asset/Name",
+      "strategy": "FIXED",
+      "config": {"value": "DEMO EQUITY SHARE"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/AssetMasterData/Asset/AssetType",
+      "strategy": "FIXED",
+      "config": {"value": "EQ"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "//Amount/@ccy",
+      "strategy": "FIXED",
+      "config": {"value": "HUF"},
+      "priority": 5,
+      "enabled": true
+    },
+    {
+      "xpath": "//Equity/Units",
+      "strategy": "FIXED",
+      "config": {"value": "1000"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/Funds/Fund/FundDynamicData/Portfolios/Portfolio/Positions/Position",
+      "strategy": "AUTO",
+      "config": {"maxOccurrences": "3"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/Funds/Fund/FundDynamicData/TotalAssetValues/TotalAssetValue/NavDate",
+      "strategy": "FIXED",
+      "config": {"value": "2025-08-25"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/Funds/Fund/FundDynamicData/TotalAssetValues/TotalAssetValue/TotalAssetNature",
+      "strategy": "FIXED",
+      "config": {"value": "OFFICIAL"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/Funds/Fund/FundDynamicData/TotalAssetValues/TotalAssetValue/TotalNetAssetValue/Amount",
+      "strategy": "FIXED",
+      "config": {"value": "29411334597"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/Funds/Fund/SingleFund/ShareClasses/ShareClass",
+      "strategy": "AUTO",
+      "config": {"maxOccurrences": "2"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/Funds/Fund/SingleFund/ShareClasses/ShareClass/Identifiers/ISIN",
+      "strategy": "SEQUENCE",
+      "config": {"pattern": "HU00007{seq:5}", "start": "10001", "step": "1"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/Funds/Fund/SingleFund/ShareClasses/ShareClass/Names/OfficialName",
+      "strategy": "SEQUENCE",
+      "config": {"pattern": "DEMO EQUITY FUND SHARECLASS {seq:1}", "start": "1", "step": "1"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/Funds/Fund/SingleFund/ShareClasses/ShareClass/Currency",
+      "strategy": "FIXED",
+      "config": {"value": "HUF"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/Funds/Fund/SingleFund/ShareClasses/ShareClass/Prices/Price/ActionCode",
+      "strategy": "FIXED",
+      "config": {"value": "C"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/Funds/Fund/SingleFund/ShareClasses/ShareClass/Prices/Price/NavDate",
+      "strategy": "FIXED",
+      "config": {"value": "2025-08-25"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/Funds/Fund/SingleFund/ShareClasses/ShareClass/Prices/Price/PriceCurrency",
+      "strategy": "FIXED",
+      "config": {"value": "HUF"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/Funds/Fund/SingleFund/ShareClasses/ShareClass/Prices/Price/PriceNature",
+      "strategy": "FIXED",
+      "config": {"value": "OFFICIAL"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/Funds/Fund/SingleFund/ShareClasses/ShareClass/Prices/Price/NavPrice",
+      "strategy": "SEQUENCE",
+      "config": {"pattern": "{seq:1}.0428", "start": "6", "step": "1"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/Funds/Fund/SingleFund/ShareClasses/ShareClass/TotalAssetValues/TotalAssetValue/NavDate",
+      "strategy": "FIXED",
+      "config": {"value": "2025-08-25"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/Funds/Fund/SingleFund/ShareClasses/ShareClass/TotalAssetValues/TotalAssetValue/TotalAssetNature",
+      "strategy": "FIXED",
+      "config": {"value": "OFFICIAL"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/Funds/Fund/SingleFund/ShareClasses/ShareClass/TotalAssetValues/TotalAssetValue/TotalNetAssetValue/Amount",
+      "strategy": "SEQUENCE",
+      "config": {"pattern": "2{seq:7}.97", "start": "9362683", "step": "313215"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/Funds/Fund/SingleFund/ShareClasses/ShareClass/TotalAssetValues/TotalAssetValue/SharesOutstanding",
+      "strategy": "SEQUENCE",
+      "config": {"pattern": "{seq:7}", "start": "4859137", "step": "16228"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/AssetMasterData/Asset/AssetDetails/Equity/Issuer/Name",
+      "strategy": "FIXED",
+      "config": {"value": "OTP Bank Nyrt."},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/AssetMasterData/Asset/AssetDetails/Equity/Issuer/Identifiers/LEI",
+      "strategy": "FIXED",
+      "config": {"value": "529900W3MOO00A18X956"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/AssetMasterData/Asset/AssetDetails/Equity/Issuer/Address/StreetName",
+      "strategy": "FIXED",
+      "config": {"value": "Nádor utca 16"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/AssetMasterData/Asset/AssetDetails/Equity/Issuer/Address/CityName",
+      "strategy": "FIXED",
+      "config": {"value": "Budapest"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/AssetMasterData/Asset/AssetDetails/Equity/Issuer/Address/Country",
+      "strategy": "FIXED",
+      "config": {"value": "HU"},
+      "priority": 10,
+      "enabled": true
+    }
+  ]
+}

@@ -1,9 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Mit XMLSpy v2013 rel. 2 sp2 (x64) (http://www.altova.com) von XMLSpy2013 (s IT Solutions AT Spardat GmbH z.B. Buchhaltung) bearbeitet -->
+<!--
+    FundsXML4 Invalid Demo (FreeXmlToolkit)
+
+    Copy of FundsXML4_Equity_Fund.xml with EIGHT deliberate, documented errors.
+    Each error is marked in place with an "ERROR n:" comment.
+
+    XSD validation errors (found by the Validation panel / Xerces):
+      ERROR 1  mandatory ControlData/UniqueDocumentID element removed
+      ERROR 2  invalid date value in FundStaticData/InceptionDate (2006-13-45)
+      ERROR 3  invalid enumeration value in ControlData/DataOperation (SOMETHING)
+      ERROR 4  non-numeric value in an Equity position's Units
+
+    Note: depending on the validator, ERROR 3 may be masked by ERROR 1
+    (the missing element breaks the ControlData sequence, so some parsers
+    skip further checks inside ControlData).
+
+    Business-rule errors (schema-valid; found by schematron/*.sch and xquery/01,03,04,06):
+      ERROR 5  position TotalPercentage values sum to ~97 instead of ~100
+      ERROR 6  fund TotalNetAssetValue lowered so positions no longer reconcile with NAV
+      ERROR 7  TotalAssetValue/NavDate lies after ControlData/ContentDate
+      ERROR 8  duplicate ISIN across two positions
+
+    The valid counterpart is xml/FundsXML4_Equity_Fund.xml.
+-->
 <FundsXML4 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../xsd/FundsXML4.xsd">
 	<ControlData>
-		<UniqueDocumentID>c43f6ac9-a3c2-4aa3-9eb8-17c2b3ae1880</UniqueDocumentID>
-		<DocumentGenerated>2025-08-27T10:14:27</DocumentGenerated>
+		<!-- ERROR 1: mandatory <UniqueDocumentID> removed -->
+		<DocumentGenerated>2026-07-28T09:00:00</DocumentGenerated>
 		<ContentDate>2025-08-26</ContentDate>
 		<DataSupplier>
 			<SystemCountry>HU</SystemCountry>
@@ -14,7 +37,8 @@
 				<Email>risk@erstealapkezelo.hu</Email>
 			</Contact>
 		</DataSupplier>
-		<DataOperation>INITIAL</DataOperation>
+		<!-- ERROR 3: SOMETHING is not a valid DataOperation enumeration value (INITIAL/AMEND/DELETE) -->
+		<DataOperation>SOMETHING</DataOperation>
 	</ControlData>
 	<Funds>
 		<Fund>
@@ -30,7 +54,8 @@
 			<SingleFundFlag>true</SingleFundFlag>
 			<FundStaticData>
 				<ListedLegalStructure>AIF</ListedLegalStructure>
-				<InceptionDate>2006-04-26</InceptionDate>
+				<!-- ERROR 2: 2006-13-45 is not a valid xs:date (month 13, day 45) -->
+				<InceptionDate>2006-13-45</InceptionDate>
 				<Benchmarks>
 					<Benchmark>
 						<BenchmarkID>ID_15494</BenchmarkID>
@@ -53,10 +78,12 @@
 			<FundDynamicData>
 				<TotalAssetValues>
 					<TotalAssetValue>
-						<NavDate>2025-08-25</NavDate>
+						<!-- ERROR 7: NavDate 2025-08-27 lies after ControlData/ContentDate 2025-08-26 -->
+						<NavDate>2025-08-27</NavDate>
 						<TotalAssetNature>OFFICIAL</TotalAssetNature>
 						<TotalNetAssetValue>
-							<Amount ccy="HUF">29411334597</Amount>
+							<!-- ERROR 6: lowered from 29411334597 so position values no longer reconcile with the NAV -->
+							<Amount ccy="HUF">29000000000</Amount>
 						</TotalNetAssetValue>
 					</TotalAssetValue>
 				</TotalAssetValues>
@@ -124,7 +151,8 @@
 									<FXRate fromCcy="HUF" mulDiv="M" toCcy="HUF">1</FXRate>
 								</FXRates>
 								<Equity>
-									<Units>262076</Units>
+									<!-- ERROR 4: Units must be numeric -->
+									<Units>NOT_A_NUMBER</Units>
 									<Price>
 										<Amount ccy="HUF">369</Amount>
 									</Price>
@@ -305,7 +333,8 @@
 								<TotalValue>
 									<Amount ccy="HUF">13113796370</Amount>
 								</TotalValue>
-								<TotalPercentage>44.5876</TotalPercentage>
+								<!-- ERROR 5: lowered from 44.5876 so all TotalPercentage values sum to ~97 instead of ~100 -->
+								<TotalPercentage>41.5876</TotalPercentage>
 								<FXRates>
 									<FXRate fromCcy="HUF" mulDiv="M" toCcy="HUF">1</FXRate>
 								</FXRates>
@@ -424,7 +453,8 @@
 							<Position>
 								<UniqueID>HU0000102132</UniqueID>
 								<Identifiers>
-									<ISIN>HU0000102132</ISIN>
+									<!-- ERROR 8: duplicate ISIN - HU0000061726 is already used by the OTP position -->
+									<ISIN>HU0000061726</ISIN>
 									<OtherID FreeType="Name">Appeninn részvény</OtherID>
 								</Identifiers>
 								<Currency>HUF</Currency>

@@ -1,0 +1,6 @@
+(: One XPath 3.1 map per share class with ISIN, name and published NAV price
+   (XPath 3.1: map constructor, simple map operator !). :)
+/FundsXML4/Funds/Fund/SingleFund/ShareClasses/ShareClass
+    ! map { 'isin'     : string(Identifiers/ISIN),
+            'name'     : string(Names/OfficialName),
+            'navPrice' : number(Prices/Price/NavPrice) }

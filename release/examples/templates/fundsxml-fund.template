@@ -1,0 +1,38 @@
+# XML Template Definition
+# FundsXML4 Fund skeleton (see xml/FundsXML4_Equity_Fund.xml)
+
+id=fundsxml-fund
+name=FundsXML Fund
+description=Fund element with identifiers, names, currency and static data
+category=FundsXML
+tags=fundsxml, fund
+
+CONTENT_START
+<Fund>
+    <Identifiers>
+        <ISIN>${isin}</ISIN>
+        <LEI>${lei}</LEI>
+    </Identifiers>
+    <Names>
+        <OfficialName>${officialName}</OfficialName>
+        <ShortName>${shortName}</ShortName>
+    </Names>
+    <Currency>${currency}</Currency>
+    <SingleFundFlag>true</SingleFundFlag>
+    <FundStaticData>
+        <ListedLegalStructure>${legalStructure}</ListedLegalStructure>
+        <InceptionDate>${inceptionDate}</InceptionDate>
+    </FundStaticData>
+    <FundDynamicData>
+        <TotalAssetValues>
+            <TotalAssetValue>
+                <NavDate>${navDate}</NavDate>
+                <TotalAssetNature>OFFICIAL</TotalAssetNature>
+                <TotalNetAssetValue>
+                    <Amount ccy="${currency}">${totalNetAssetValue}</Amount>
+                </TotalNetAssetValue>
+            </TotalAssetValue>
+        </TotalAssetValues>
+    </FundDynamicData>
+</Fund>
+CONTENT_END

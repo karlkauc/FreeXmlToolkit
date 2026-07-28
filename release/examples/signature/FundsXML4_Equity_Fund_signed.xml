@@ -1,9 +1,22 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!-- Mit XMLSpy v2013 rel. 2 sp2 (x64) (http://www.altova.com) von XMLSpy2013 (s IT Solutions AT Spardat GmbH z.B. Buchhaltung) bearbeitet -->
-<FundsXML4 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../xsd/FundsXML4.xsd">
+<?xml version="1.0" encoding="UTF-8"?><!--
+    FundsXML4 Equity Fund Example (FreeXmlToolkit)
+
+    A compact, real-world equity fund report (Erste Stock Hungary index tracker,
+    HUF, single fund with two share classes) that is VALID against the bundled
+    schema xsd/FundsXML4.xsd (FundsXML 4.2.11).
+
+    Use it to try out:
+      - XSD validation           (Validation panel; schema resolves offline via the relative reference below)
+      - Schematron rules         (schematron/funds-*.sch, schematron/eam-rules.sch)
+      - XQuery data-quality set  (xquery/01...10)
+      - XPath 3.1 snippets       (xpath/)
+      - XSLT reports             (xslt/ for HTML, xsl/ for PDF via XSL-FO)
+
+    See also the official FundsXML example repository: https://github.com/fundsxml/examples
+--><FundsXML4 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../xsd/FundsXML4.xsd">
 	<ControlData>
-		<UniqueDocumentID>c43f6ac9-a3c2-4aa3-9eb8-17c2b3ae1880</UniqueDocumentID>
-		<DocumentGenerated>2025-08-27T10:14:27</DocumentGenerated>
+		<UniqueDocumentID>EQUITY_FUND_DEMO_001</UniqueDocumentID>
+		<DocumentGenerated>2026-07-28T09:00:00</DocumentGenerated>
 		<ContentDate>2025-08-26</ContentDate>
 		<DataSupplier>
 			<SystemCountry>HU</SystemCountry>
@@ -1498,4 +1511,25 @@
 			</AssetDetails>
 		</Asset>
 	</AssetMasterData>
-</FundsXML4>
+<Signature xmlns="http://www.w3.org/2000/09/xmldsig#"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/><SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"/><Reference URI=""><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/></Transforms><DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/><DigestValue>kPaY4Oig+HTW6RhDJWe9mFueLQM3k1xSfSFsgtj9gjM=</DigestValue></Reference></SignedInfo><SignatureValue>ByD8jai5N4REjxdjU/s4pzgfGox37ZhO8Iy8S9AFo04gC3NkwD2Q8yr84wgg3KdWjNdtce1STDVg&#xD;
+Bhyy3fGl1JpntNKzOAWAQX3Gzz6K26grqUIpFyjwHsw7V366m68vAsUbtz4e/agBBlnZ5VmFaJO0&#xD;
+sG2pQPg0TaMXBitULkneMJgI86Q7YAJMla8ikrHdm5x49pZiaoPLNGmUzGGdsryEROohIxJDDnWo&#xD;
+ocIcTQqBPZA9YtR+8Du06dH5BiETmrwziHiObMCHaHNzCVi5nBoX8CERYcj7KVOgVVN00infLzeH&#xD;
+6LPUHParrGfoHZMDt5utAhwE+hiERqybku1d/g==</SignatureValue><KeyInfo><KeyValue><RSAKeyValue><Modulus>s5yof5TTfYj3nqdErhYQ4uVZHn1wG01L7Wflw6e1tEpDD431fg5RZAOOuxsfmkMfmQzzpCxB+ncL&#xD;
+XljtnOOS9Wr7VQPKniTT/6G4aG6YG4Wwx+lehZZ4XrBACR5G32vSu68opmgsKT39Jl3UcoHVYKZb&#xD;
+JEx2fKjv7MHz5AJhIUQEOr57oWEQbxBpp7Tl1tsqOCB39QuAiD39o2Igf0V1jpBcV3VvU4CQtDXW&#xD;
+NSn7B5RXwXVtNqAKORV2sjuV6QGaJXzknYnxp7rUxYMP+6sYEEwJxpGimtvZp/0TYxOrrMaTklJt&#xD;
+D53rNu7lD9LteTLJuOZfeLS8yAUf2OYcy2Z7yQ==</Modulus><Exponent>AQAB</Exponent></RSAKeyValue></KeyValue><X509Data><X509Certificate>MIIC8jCCAdqgAwIBAgIGAZ+n2NAfMA0GCSqGSIb3DQEBCwUAMDoxHDAaBgNVBAMME0ZyZWVYbWxU&#xD;
+b29sa2l0IERlbW8xGjAYBgNVBAoMEUZ1bmRzWE1MIEV4YW1wbGVzMB4XDTI2MDcyODA4MzAzMVoX&#xD;
+DTI3MDcyODA4MzAzMVowOjEcMBoGA1UEAwwTRnJlZVhtbFRvb2xraXQgRGVtbzEaMBgGA1UECgwR&#xD;
+RnVuZHNYTUwgRXhhbXBsZXMwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCznKh/lNN9&#xD;
+iPeep0SuFhDi5VkefXAbTUvtZ+XDp7W0SkMPjfV+DlFkA467Gx+aQx+ZDPOkLEH6dwteWO2c45L1&#xD;
+avtVA8qeJNP/obhobpgbhbDH6V6FlnhesEAJHkbfa9K7ryimaCwpPf0mXdRygdVgplskTHZ8qO/s&#xD;
+wfPkAmEhRAQ6vnuhYRBvEGmntOXW2yo4IHf1C4CIPf2jYiB/RXWOkFxXdW9TgJC0NdY1KfsHlFfB&#xD;
+dW02oAo5FXayO5XpAZolfOSdifGnutTFgw/7qxgQTAnGkaKa29mn/RNjE6usxpOSUm0Pnes27uUP&#xD;
+0u15Msm45l94tLzIBR/Y5hzLZnvJAgMBAAEwDQYJKoZIhvcNAQELBQADggEBAGYPEZ1GNQrgyzpU&#xD;
+vOJXydURCQ+8EwHt2lTTvpGG0TIme7Cp1soDxTE3G3NcQPP0WZMy6HXAF3A40mw0SpM7hO8OFflA&#xD;
+nbdtTdE1W6+FaWij0PckHxA3aUBZO9gMmsiRvWQZzTiOK5gD0MPz2IMVa3VSalCmlfMX1voxqa5w&#xD;
+peGQZ1erCiKg7IdbYF2K6iYRTWKzLMIev/56HA4w7aq+1My/xgEP2gbpERGagvpJRZGkbEQfHBi6&#xD;
+Obgrrr5Hz5MPH17ezyYj4I6CqHLngI8QhpOnaa3KZ7opdQFXsUExgg7ognu6Ruzp376Cp5oyMMh+&#xD;
+KOzVsezdGWIM5XLgdNY9mAQ=</X509Certificate></X509Data></KeyInfo></Signature></FundsXML4>

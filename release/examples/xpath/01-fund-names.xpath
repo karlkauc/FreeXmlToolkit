@@ -1,0 +1,3 @@
+(: Official names of all funds in the document.
+   Target: xml/FundsXML4_Equity_Fund.xml :)
+/FundsXML4/Funds/Fund/Names/OfficialName/string()

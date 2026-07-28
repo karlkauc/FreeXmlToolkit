@@ -1,0 +1,3 @@
+(: All position IDs collected into an XPath 3.1 array, plus its size. :)
+let $ids := array { //Position/string(UniqueID) }
+return ('positions: ' || array:size($ids), $ids)

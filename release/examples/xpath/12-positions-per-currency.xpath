@@ -1,0 +1,5 @@
+(: Position count per currency as a single map (XPath 3.1: map:merge). :)
+map:merge(
+    for $c in distinct-values(//Position/Currency)
+    return map { $c : count(//Position[Currency = $c]) }
+)

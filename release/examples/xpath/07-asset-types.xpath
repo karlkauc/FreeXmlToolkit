@@ -1,0 +1,2 @@
+(: Sorted list of asset types used in the asset master data (XPath 3.1: fn:sort). :)
+sort(distinct-values(/FundsXML4/AssetMasterData/Asset/AssetType))

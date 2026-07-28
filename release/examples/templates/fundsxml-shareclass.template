@@ -1,0 +1,43 @@
+# XML Template Definition
+# FundsXML4 ShareClass skeleton (see xml/FundsXML4_Equity_Fund.xml)
+
+id=fundsxml-shareclass
+name=FundsXML ShareClass
+description=Share class with ISIN, NAV price and total asset value
+category=FundsXML
+tags=fundsxml, shareclass, nav
+
+CONTENT_START
+<ShareClass>
+    <Identifiers>
+        <ISIN>${isin}</ISIN>
+    </Identifiers>
+    <Names>
+        <OfficialName>${officialName}</OfficialName>
+    </Names>
+    <Currency>${currency}</Currency>
+    <ShareClassType>
+        <Code>R</Code>
+        <EarningUse>R</EarningUse>
+    </ShareClassType>
+    <Prices>
+        <Price>
+            <ActionCode>C</ActionCode>
+            <NavDate>${navDate}</NavDate>
+            <PriceCurrency>${currency}</PriceCurrency>
+            <PriceNature>OFFICIAL</PriceNature>
+            <NavPrice>${navPrice}</NavPrice>
+        </Price>
+    </Prices>
+    <TotalAssetValues>
+        <TotalAssetValue>
+            <NavDate>${navDate}</NavDate>
+            <TotalAssetNature>OFFICIAL</TotalAssetNature>
+            <TotalNetAssetValue>
+                <Amount ccy="${currency}">${totalNetAssetValue}</Amount>
+            </TotalNetAssetValue>
+            <SharesOutstanding>${sharesOutstanding}</SharesOutstanding>
+        </TotalAssetValue>
+    </TotalAssetValues>
+</ShareClass>
+CONTENT_END
