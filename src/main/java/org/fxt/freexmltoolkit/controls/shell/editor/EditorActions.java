@@ -35,7 +35,7 @@ import org.fxt.freexmltoolkit.service.XsltTransformationResult;
 public final class EditorActions {
 
     /** The editor-level actions; used by the toolbar to drive enable/disable gating. */
-    public enum EditorAction { VALIDATE, TRANSFORM, GENERATE_DOCS, TYPE_EDITOR, RUN_QUERY, RUN_TRANSFORM }
+    public enum EditorAction { VALIDATE, TRANSFORM, GENERATE_DOCS, TYPE_EDITOR, RUN_QUERY, RUN_TRANSFORM, RUN_PIPELINE }
 
     private final EditorHost editorHost;
 
@@ -54,13 +54,14 @@ public final class EditorActions {
         }
         return switch (action) {
             case VALIDATE -> switch (type) {
-                case XML, XSD, XSLT, SCHEMATRON, JSON -> true;
+                case XML, XSD, XSLT, SCHEMATRON, JSON, XPROC -> true;
                 default -> false;
             };
             case TRANSFORM -> type == EditorFileType.XML;
             case GENERATE_DOCS, TYPE_EDITOR -> type == EditorFileType.XSD;
             case RUN_QUERY -> type == EditorFileType.XQUERY || type == EditorFileType.XPATH;
             case RUN_TRANSFORM -> type == EditorFileType.XSLT;
+            case RUN_PIPELINE -> type == EditorFileType.XPROC;
         };
     }
 
@@ -297,10 +298,51 @@ public final class EditorActions {
         });
     }
 
-    /** Ctrl+Enter dispatcher: transform for XSLT documents, query for XPath/XQuery. */
+    /**
+     * Runs the active XProc pipeline via {@link XProcRunner}. The primary input is
+     * the resolved target (same resolution as {@link #runActiveQuery()}), but unlike
+     * XSLT a missing target is not an immediate error: self-contained pipelines
+     * (no input ports, or ports with default bindings) are legal — the runner
+     * decides. The pipeline's backing file (if saved) provides the base URI for
+     * relative {@code href}s. No-op for non-XProc documents.
+     */
+    public void runActivePipeline() {
+        if (activeFileType() != EditorFileType.XPROC) {
+            return;
+        }
+        TransformOutputPanel out = editorHost.transformOutputPanel();
+        String pipeline = editorHost.getActiveText().orElse("");
+        if (pipeline.isBlank()) {
+            out.showError("The pipeline is empty.");
+            return;
+        }
+        var doc = editorHost.getActiveDocument().orElseThrow();
+        var resolved = editorHost.resolveQueryTarget(doc);
+        File pipelineFile = doc.getPath() != null ? doc.getPath().toFile() : null;
+        out.showPending(resolved.map(t -> "Running pipeline against " + t.displayName() + "…")
+                .orElse("Running pipeline…"));
+        final int gen = ++queryRunGeneration;
+        FxtGui.executorService.submit(() -> {
+            long start = System.nanoTime();
+            String inputXmlText = resolved.map(EditorHost.ResolvedQueryTarget::xmlText).orElse(null);
+            File inputXmlFile = resolved.map(EditorHost.ResolvedQueryTarget::file).orElse(null);
+            XProcRunner.Result result =
+                    XProcRunner.runPipeline(pipeline, pipelineFile, inputXmlText, inputXmlFile);
+            long elapsedMs = (System.nanoTime() - start) / 1_000_000;
+            Platform.runLater(() -> {
+                if (gen == queryRunGeneration) {
+                    out.showTransformResult(result.text(), result.format(), elapsedMs);
+                }
+            });
+        });
+    }
+
+    /** Ctrl+Enter dispatcher: transform for XSLT, pipeline for XProc, query otherwise. */
     public void runActive() {
         if (activeFileType() == EditorFileType.XSLT) {
             runActiveTransform();
+        } else if (activeFileType() == EditorFileType.XPROC) {
+            runActivePipeline();
         } else {
             runActiveQuery();
         }

@@ -28,6 +28,8 @@ class EditorFileTypeTest {
         assertEquals(EditorFileType.XQUERY, EditorFileType.fromFileName("module.xqm"));
         assertEquals(EditorFileType.XQUERY, EditorFileType.fromFileName("query.XQY"));
         assertEquals(EditorFileType.XPATH, EditorFileType.fromFileName("expr.xpath"));
+        assertEquals(EditorFileType.XPROC, EditorFileType.fromFileName("pipeline.xpl"));
+        assertEquals(EditorFileType.XPROC, EditorFileType.fromFileName("pipeline.XPROC"));
     }
 
     @Test
@@ -64,6 +66,7 @@ class EditorFileTypeTest {
         assertEquals("json", EditorFileType.JSON.primaryExtension());
         assertEquals("xq", EditorFileType.XQUERY.primaryExtension());
         assertEquals("xpath", EditorFileType.XPATH.primaryExtension());
+        assertEquals("xpl", EditorFileType.XPROC.primaryExtension());
         assertEquals("txt", EditorFileType.OTHER.primaryExtension());
     }
 
@@ -76,6 +79,7 @@ class EditorFileTypeTest {
                 .contains("http://purl.oclc.org/dsdl/schematron"));
         assertEquals("{\n}\n", EditorFileType.JSON.defaultContent());
         assertTrue(EditorFileType.XQUERY.defaultContent().startsWith("xquery version"));
+        assertTrue(EditorFileType.XPROC.defaultContent().contains("<p:declare-step"));
         assertEquals("", EditorFileType.XPATH.defaultContent());
         assertEquals("", EditorFileType.OTHER.defaultContent());
     }

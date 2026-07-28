@@ -74,6 +74,7 @@ public class UnifiedShellView extends BorderPane {
     @FXML private javafx.scene.control.Button actionTypeEditor;
     @FXML private javafx.scene.control.Button actionRunQuery;
     @FXML private javafx.scene.control.Button actionRunTransform;
+    @FXML private javafx.scene.control.Button actionRunPipeline;
     /** Target dropdown for query/XSLT documents; visible only when one is active. */
     @FXML private javafx.scene.control.MenuButton queryTargetButton;
     /** Header breadcrumb of the active file path. */
@@ -626,6 +627,7 @@ public class UnifiedShellView extends BorderPane {
     @FXML public void onTransform() { editorActions.transformActiveWithXslt(window()); }
     @FXML public void onRunQuery() { editorActions.runActiveQuery(); }
     @FXML public void onRunTransform() { editorActions.runActiveTransform(); }
+    @FXML public void onRunPipeline() { editorActions.runActivePipeline(); }
     @FXML public void onSetSchema() { setSchema(); }
     @FXML public void onGenerateDocs() { editorActions.generateDocsActive(window()); }
     @FXML public void onTypeEditor() { editorActions.openTypeEditorActive(); }
@@ -800,13 +802,17 @@ public class UnifiedShellView extends BorderPane {
                 .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.RUN_QUERY));
         actionRunTransform.setDisable(!org.fxt.freexmltoolkit.controls.shell.editor.EditorActions
                 .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.RUN_TRANSFORM));
+        actionRunPipeline.setDisable(!org.fxt.freexmltoolkit.controls.shell.editor.EditorActions
+                .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.RUN_PIPELINE));
 
         // The Target dropdown is hidden (not just disabled) for other document types:
         // unlike the action buttons, a "Target: …" selector label is meaningless there.
         boolean targetable = org.fxt.freexmltoolkit.controls.shell.editor.EditorActions
                 .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.RUN_QUERY)
                 || org.fxt.freexmltoolkit.controls.shell.editor.EditorActions
-                .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.RUN_TRANSFORM);
+                .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.RUN_TRANSFORM)
+                || org.fxt.freexmltoolkit.controls.shell.editor.EditorActions
+                .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.RUN_PIPELINE);
         queryTargetButton.setVisible(targetable);
         queryTargetButton.setManaged(targetable);
         refreshQueryTargetButton();
@@ -1076,8 +1082,8 @@ public class UnifiedShellView extends BorderPane {
         chooser.getExtensionFilters().addAll(
                 new javafx.stage.FileChooser.ExtensionFilter("XML / XSD / XSLT / Schematron / JSON",
                         "*.xml", "*.xsd", "*.xsl", "*.xslt", "*.sch", "*.schematron", "*.json"),
-                new javafx.stage.FileChooser.ExtensionFilter("XQuery / XPath",
-                        "*.xq", "*.xquery", "*.xqm", "*.xqy", "*.xpath"),
+                new javafx.stage.FileChooser.ExtensionFilter("XQuery / XPath / XProc",
+                        "*.xq", "*.xquery", "*.xqm", "*.xqy", "*.xpath", "*.xpl", "*.xproc"),
                 new javafx.stage.FileChooser.ExtensionFilter("All files", "*.*"));
         java.io.File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
@@ -1234,8 +1240,8 @@ public class UnifiedShellView extends BorderPane {
         chooser.getExtensionFilters().addAll(
                 new javafx.stage.FileChooser.ExtensionFilter("XML / XSD / XSLT / Schematron / JSON",
                         "*.xml", "*.xsd", "*.xsl", "*.xslt", "*.sch", "*.schematron", "*.json"),
-                new javafx.stage.FileChooser.ExtensionFilter("XQuery / XPath",
-                        "*.xq", "*.xquery", "*.xqm", "*.xqy", "*.xpath"),
+                new javafx.stage.FileChooser.ExtensionFilter("XQuery / XPath / XProc",
+                        "*.xq", "*.xquery", "*.xqm", "*.xqy", "*.xpath", "*.xpl", "*.xproc"),
                 new javafx.stage.FileChooser.ExtensionFilter("All files", "*.*"));
         java.io.File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {

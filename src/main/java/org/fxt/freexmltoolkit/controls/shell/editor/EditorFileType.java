@@ -15,6 +15,7 @@ public enum EditorFileType {
     JSON("JSON", "bi-braces", "#1098ad", "json"),
     XQUERY("XQuery", "bi-code-square", "#6f42c1", "xq", "xquery", "xqm", "xqy"),
     XPATH("XPath", "bi-slash-square", "#d63384", "xpath"),
+    XPROC("XProc", "bi-diagram-2", "#0ca678", "xpl", "xproc"),
     OTHER("Text", "bi-file-earmark-text", "#8a93a0");
 
     private final String label;
@@ -100,6 +101,17 @@ public enum EditorFileType {
             case JSON -> "{\n}\n";
             case XQUERY -> "xquery version \"3.1\";\n\n";
             case XPATH -> "";
+            case XPROC -> """
+                    <?xml version="1.0" encoding="UTF-8"?>
+                    <p:declare-step xmlns:p="http://www.w3.org/ns/xproc" version="3.0">
+
+                        <p:input port="source"/>
+                        <p:output port="result"/>
+
+                        <p:identity/>
+
+                    </p:declare-step>
+                    """;
             case OTHER -> "";
         };
     }

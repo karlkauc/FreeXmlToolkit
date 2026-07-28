@@ -135,6 +135,30 @@ class QueryTargetResolutionTest {
                 "the stale entry must be dropped during resolution");
     }
 
+    @Test
+    void xprocDocumentResolvesAutomaticTargetToTheLastXmlDocument(@TempDir Path tmp) throws Exception {
+        openAndAwait(tmp, "input.xml", "<input/>", "input");
+        var xprocDoc = openAndAwaitDoc(tmp, "pipe.xpl",
+                "<p:declare-step xmlns:p=\"http://www.w3.org/ns/xproc\" version=\"3.0\"/>",
+                "declare-step");
+
+        var resolved = host.resolveQueryTarget(xprocDoc).orElseThrow();
+        assertEquals("input.xml", resolved.displayName(),
+                "an XProc pipeline must resolve its Automatic target to the open XML document");
+    }
+
+    @Test
+    void openXprocPipelineIsAnXmlFamilyTargetCandidate(@TempDir Path tmp) throws Exception {
+        openAndAwait(tmp, "pipe.xpl",
+                "<p:declare-step xmlns:p=\"http://www.w3.org/ns/xproc\" version=\"3.0\"/>",
+                "declare-step");
+        var queryDoc = openAndAwaitDoc(tmp, "q.xq", "/x", "x");
+
+        var resolved = host.resolveQueryTarget(queryDoc).orElseThrow();
+        assertEquals("pipe.xpl", resolved.displayName(),
+                "a .xpl document is XML-family and therefore a legitimate query target");
+    }
+
     // ----- helpers ---------------------------------------------------------
 
     private OpenDocument docNamed(String displayName) {

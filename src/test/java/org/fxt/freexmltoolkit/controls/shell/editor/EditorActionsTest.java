@@ -59,6 +59,14 @@ class EditorActionsTest {
         assertFalse(EditorActions.applicableFor(EditorFileType.XML, EditorActions.EditorAction.RUN_TRANSFORM));
         assertFalse(EditorActions.applicableFor(EditorFileType.XQUERY, EditorActions.EditorAction.RUN_TRANSFORM));
         assertFalse(EditorActions.applicableFor(EditorFileType.XSLT, EditorActions.EditorAction.RUN_QUERY));
+        assertTrue(EditorActions.applicableFor(EditorFileType.XPROC, EditorActions.EditorAction.RUN_PIPELINE));
+        assertTrue(EditorActions.applicableFor(EditorFileType.XPROC, EditorActions.EditorAction.VALIDATE));
+        assertFalse(EditorActions.applicableFor(EditorFileType.XML, EditorActions.EditorAction.RUN_PIPELINE));
+        assertFalse(EditorActions.applicableFor(EditorFileType.XSLT, EditorActions.EditorAction.RUN_PIPELINE));
+        assertFalse(EditorActions.applicableFor(EditorFileType.XQUERY, EditorActions.EditorAction.RUN_PIPELINE));
+        assertFalse(EditorActions.applicableFor(EditorFileType.XPROC, EditorActions.EditorAction.RUN_QUERY));
+        assertFalse(EditorActions.applicableFor(EditorFileType.XPROC, EditorActions.EditorAction.RUN_TRANSFORM));
+        assertFalse(EditorActions.applicableFor(EditorFileType.XPROC, EditorActions.EditorAction.TRANSFORM));
     }
 
     @Test
@@ -66,7 +74,7 @@ class EditorActionsTest {
         WaitForAsyncUtils.waitForFxEvents();
         for (String id : new String[]{"doc-action-validate", "doc-action-transform",
                 "doc-action-generate-docs", "doc-action-type-editor", "doc-action-run-query",
-                "doc-action-run-transform"}) {
+                "doc-action-run-transform", "doc-action-run-pipeline"}) {
             Button button = (Button) shell.lookup("#" + id);
             assertNotNull(button, "document-action button must exist: " + id);
             assertTrue(button.isDisable(),
@@ -172,6 +180,65 @@ class EditorActionsTest {
         assertTrue(out.isShowing(), "the OUTPUT panel must appear after a query run");
         assertTrue(out.getOutputText().contains("A") && out.getOutputText().contains("B"),
                 "the XQuery result must contain both items: " + out.getOutputText());
+    }
+
+    @Test
+    void xprocEnablesRunPipelineAndTargetDropdown(@TempDir Path tmp) throws Exception {
+        Path xpl = tmp.resolve("pipe.xpl");
+        Files.writeString(xpl, """
+                <p:declare-step xmlns:p="http://www.w3.org/ns/xproc" version="3.0">
+                  <p:input port="source"/>
+                  <p:output port="result"/>
+                  <p:identity/>
+                </p:declare-step>
+                """);
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> shell.getEditorHost().openFile(xpl));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> shell.getEditorHost().getActiveText().map(t -> t.contains("declare-step")).orElse(false));
+        WaitForAsyncUtils.waitForFxEvents();
+
+        assertFalse(button("doc-action-run-pipeline").isDisable(),
+                "Run Pipeline must be enabled for an XProc document");
+        assertFalse(button("doc-action-validate").isDisable(),
+                "Validate must be enabled for an XProc document (it is XML)");
+        assertTrue(button("doc-action-run-query").isDisable(),
+                "Run Query must be disabled for an XProc document");
+        assertTrue(button("doc-action-run-transform").isDisable(),
+                "Run Transform must be disabled for an XProc document");
+        var targetButton = shell.lookup("#doc-query-target");
+        assertTrue(targetButton.isVisible(),
+                "the Target dropdown must be visible for an XProc document");
+    }
+
+    @Test
+    void runActivePipelineRunsAgainstTheLastXmlDocument(@TempDir Path tmp) throws Exception {
+        EditorHost host = shell.getEditorHost();
+        Path xml = tmp.resolve("order.xml");
+        Files.writeString(xml, "<order><item>PIPELINE-ITEM</item></order>");
+        Path xpl = tmp.resolve("identity.xpl");
+        Files.writeString(xpl, """
+                <p:declare-step xmlns:p="http://www.w3.org/ns/xproc" version="3.0">
+                  <p:input port="source"/>
+                  <p:output port="result"/>
+                  <p:identity/>
+                </p:declare-step>
+                """);
+
+        openAndAwait(host, xml, "PIPELINE-ITEM");
+        openAndAwait(host, xpl, "declare-step");
+
+        EditorActions actions = new EditorActions(host);
+        var out = WaitForAsyncUtils.waitForAsyncFx(2000, host::transformOutputPanel);
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            actions.runActivePipeline();
+            return null;
+        });
+
+        WaitForAsyncUtils.waitFor(15, TimeUnit.SECONDS,
+                () -> out.getOutputText() != null && out.getOutputText().contains("PIPELINE-ITEM"));
+        assertTrue(out.isShowing(), "the OUTPUT panel must appear after a pipeline run");
+        assertTrue(out.getOutputText().contains("PIPELINE-ITEM"),
+                "the pipeline result must contain the input document: " + out.getOutputText());
     }
 
     @Test

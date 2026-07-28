@@ -57,7 +57,7 @@ public class NewFileDialog extends Dialog<NewFileDialog.Result> {
     /** File types offered for creation (everything except the catch-all {@link EditorFileType#OTHER}). */
     private static final EditorFileType[] CREATABLE = {
             EditorFileType.XML, EditorFileType.XSD, EditorFileType.XSLT,
-            EditorFileType.SCHEMATRON, EditorFileType.JSON
+            EditorFileType.SCHEMATRON, EditorFileType.JSON, EditorFileType.XPROC
     };
 
     private final ComboBox<EditorFileType> typeBox = new ComboBox<>();

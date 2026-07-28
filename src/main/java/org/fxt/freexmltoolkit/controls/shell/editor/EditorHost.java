@@ -200,7 +200,7 @@ public class EditorHost extends BorderPane {
     /** Whether the type is an XML-family instance/schema a query can sensibly run against. */
     private static boolean isXmlFamily(EditorFileType type) {
         return switch (type) {
-            case XML, XSD, XSLT, SCHEMATRON -> true;
+            case XML, XSD, XSLT, SCHEMATRON, XPROC -> true;
             default -> false;
         };
     }
@@ -807,8 +807,8 @@ public class EditorHost extends BorderPane {
         chooser.getExtensionFilters().addAll(
                 new javafx.stage.FileChooser.ExtensionFilter("XML / XSD / XSLT / Schematron / JSON",
                         "*.xml", "*.xsd", "*.xsl", "*.xslt", "*.sch", "*.schematron", "*.json"),
-                new javafx.stage.FileChooser.ExtensionFilter("XQuery / XPath",
-                        "*.xq", "*.xquery", "*.xqm", "*.xqy", "*.xpath"),
+                new javafx.stage.FileChooser.ExtensionFilter("XQuery / XPath / XProc",
+                        "*.xq", "*.xquery", "*.xqm", "*.xqy", "*.xpath", "*.xpl", "*.xproc"),
                 new javafx.stage.FileChooser.ExtensionFilter("All files", "*.*"));
         File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
@@ -1977,11 +1977,13 @@ public class EditorHost extends BorderPane {
                         .filter(java.util.Objects::nonNull)
                         .orElseGet(() -> getLastXmlFamilyDocument()
                                 .flatMap(this::getDocumentText).orElse("")));
-        // Ctrl+Enter runs XSLT documents too (XmlEditorView is shared by XML/XSD/Schematron,
-        // so the file type is checked at press time — Save As can change it).
+        // Ctrl+Enter runs XSLT and XProc documents too (XmlEditorView is shared by
+        // XML/XSD/Schematron, so the file type is checked at press time — Save As can change it).
         tab.view.getCodeArea().addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED, e -> {
+            EditorFileType pressType = tab.document.getFileType();
             if (e.getCode() == javafx.scene.input.KeyCode.ENTER && e.isShortcutDown()
-                    && tab.document.getFileType() == EditorFileType.XSLT && queryRunHandler != null) {
+                    && (pressType == EditorFileType.XSLT || pressType == EditorFileType.XPROC)
+                    && queryRunHandler != null) {
                 queryRunHandler.run();
                 e.consume();
             }

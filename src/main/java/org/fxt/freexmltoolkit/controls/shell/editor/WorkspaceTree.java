@@ -24,7 +24,7 @@ public class WorkspaceTree extends VBox {
 
     private static final List<String> ALLOWED =
             List.of("xml", "xsd", "xsl", "xslt", "sch", "schematron", "json",
-                    "xq", "xquery", "xqm", "xqy", "xpath");
+                    "xq", "xquery", "xqm", "xqy", "xpath", "xpl", "xproc");
 
     private final TreeView<Path> tree = new TreeView<>();
     private final Consumer<Path> fileOpener;

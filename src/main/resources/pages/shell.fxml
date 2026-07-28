@@ -177,6 +177,12 @@
                                             <graphic><IconifyIcon iconLiteral="bi-play-circle" iconSize="20"/></graphic>
                                             <tooltip><Tooltip text="Run the XSLT against the selected target (Ctrl+Enter) — default: the most recently active XML document"/></tooltip>
                                         </Button>
+                                        <Button fx:id="actionRunPipeline" id="doc-action-run-pipeline" text="Run Pipeline"
+                                                contentDisplay="TOP" styleClass="fxt-tool-button, fxt-tool-success"
+                                                onAction="#onRunPipeline">
+                                            <graphic><IconifyIcon iconLiteral="bi-play-btn" iconSize="20"/></graphic>
+                                            <tooltip><Tooltip text="Run the XProc pipeline against the selected target (Ctrl+Enter) — default: the most recently active XML document"/></tooltip>
+                                        </Button>
                                         <Button id="action-set-schema" text="Set XSD Schema" contentDisplay="TOP"
                                                 styleClass="fxt-tool-button, fxt-tool-warning" onAction="#onSetSchema">
                                             <graphic><IconifyIcon iconLiteral="bi-diagram-3" iconSize="20"/></graphic>
