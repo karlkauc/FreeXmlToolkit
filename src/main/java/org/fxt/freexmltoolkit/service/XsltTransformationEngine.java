@@ -202,12 +202,12 @@ public class XsltTransformationEngine {
             // standard resolver so encoding handling is preserved.
             final net.sf.saxon.lib.UnparsedTextURIResolver standardUnparsedText =
                     new net.sf.saxon.lib.StandardUnparsedTextResolver();
-            config.setUnparsedTextURIResolver((absoluteURI, encoding, cfg, allowRawBytes) -> {
+            config.setUnparsedTextURIResolver((absoluteURI, encoding, cfg) -> {
                 if (absoluteURI != null && isRemoteScheme(absoluteURI.getScheme())) {
                     throw new net.sf.saxon.trans.XPathException(
                             "Blocked remote resource reference in unparsed-text(): " + absoluteURI);
                 }
-                return standardUnparsedText.resolve(absoluteURI, encoding, cfg, allowRawBytes);
+                return standardUnparsedText.resolve(absoluteURI, encoding, cfg);
             });
 
             logger.info("SECURITY: XSLT/XQuery network resource access (doc(), unparsed-text()) is blocked");

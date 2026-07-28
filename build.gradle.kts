@@ -48,7 +48,17 @@ application {
 }
 
 dependencies {
-    implementation("net.sf.saxon:Saxon-HE:13.0")
+    // Pinned to 12.10: XML Calabash 3 is compiled against Saxon 12.10 internals.
+    // Move back to 13.x once Calabash supports it.
+    implementation("net.sf.saxon:Saxon-HE:12.10")
+
+    // XProc 3.0/3.1 pipeline engine (MIT)
+    implementation("com.xmlcalabash:xmlcalabash:3.0.51") {
+        // project routes SLF4J -> Log4j2 (log4j-slf4j2-impl); Calabash's log4j-to-slf4j would recurse
+        exclude(group = "org.apache.logging.log4j", module = "log4j-to-slf4j")
+        // CLI-only dead weight (interactive debugger terminal)
+        exclude(group = "org.jline")
+    }
 
     // XSD 1.1 support with assertions - use special Xerces build from exist-db
     // This version includes XSD 1.1 support with assertions
