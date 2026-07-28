@@ -73,6 +73,9 @@ public class UnifiedShellView extends BorderPane {
     @FXML private javafx.scene.control.Button actionGenerateDocs;
     @FXML private javafx.scene.control.Button actionTypeEditor;
     @FXML private javafx.scene.control.Button actionRunQuery;
+    @FXML private javafx.scene.control.Button actionRunTransform;
+    /** Target dropdown for query/XSLT documents; visible only when one is active. */
+    @FXML private javafx.scene.control.MenuButton queryTargetButton;
     /** Header breadcrumb of the active file path. */
     @FXML private Label breadcrumb;
     /** Header theme toggle; its icon literal flips sun/moon with the current theme. */
@@ -132,8 +135,9 @@ public class UnifiedShellView extends BorderPane {
         activityBar = new ActivityBar(selectionModel);
         activityBarHost.getChildren().setAll(activityBar);
         editorActions = new org.fxt.freexmltoolkit.controls.shell.editor.EditorActions(editorHost);
-        // Ctrl+Enter in a query editor runs the document like the toolbar's Run Query button.
-        editorHost.setQueryRunHandler(editorActions::runActiveQuery);
+        // Ctrl+Enter in a query/XSLT editor runs the document like the toolbar's
+        // Run Query / Run Transform buttons (dispatched by file type).
+        editorHost.setQueryRunHandler(editorActions::runActive);
         // Route the Welcome/Dashboard "New" card through the guided New File dialog, so all
         // new-file entry points (toolbar, Explorer, Welcome) share one flow.
         editorHost.setNewDocumentHandler(this::newDocument);
@@ -193,6 +197,13 @@ public class UnifiedShellView extends BorderPane {
         registerToolButton(inspectorToggle, "");
         refreshDocumentActionGating();
         editorHost.activeTabProperty().addListener((obs, oldV, newV) -> refreshDocumentActionGating());
+
+        // Target dropdown for query/XSLT documents: items are rebuilt from the open
+        // documents each time the menu opens; the label follows the active document's
+        // stored target (and open-documents changes, e.g. the chosen target closing).
+        queryTargetButton.setOnShowing(e -> rebuildQueryTargetMenu());
+        editorHost.getOpenDocuments().addListener(
+                (javafx.beans.InvalidationListener) obs -> refreshQueryTargetButton());
 
         // --- Header: initial theme icon + breadcrumb sync ---
         themeToggleIcon.setIconLiteral(ThemeManager.currentIsDark() ? "bi-sun" : "bi-moon");
@@ -614,6 +625,7 @@ public class UnifiedShellView extends BorderPane {
     @FXML public void onQueryConsole() { toggleQueryConsole(); }
     @FXML public void onTransform() { editorActions.transformActiveWithXslt(window()); }
     @FXML public void onRunQuery() { editorActions.runActiveQuery(); }
+    @FXML public void onRunTransform() { editorActions.runActiveTransform(); }
     @FXML public void onSetSchema() { setSchema(); }
     @FXML public void onGenerateDocs() { editorActions.generateDocsActive(window()); }
     @FXML public void onTypeEditor() { editorActions.openTypeEditorActive(); }
@@ -786,6 +798,18 @@ public class UnifiedShellView extends BorderPane {
                 .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.TYPE_EDITOR));
         actionRunQuery.setDisable(!org.fxt.freexmltoolkit.controls.shell.editor.EditorActions
                 .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.RUN_QUERY));
+        actionRunTransform.setDisable(!org.fxt.freexmltoolkit.controls.shell.editor.EditorActions
+                .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.RUN_TRANSFORM));
+
+        // The Target dropdown is hidden (not just disabled) for other document types:
+        // unlike the action buttons, a "Target: …" selector label is meaningless there.
+        boolean targetable = org.fxt.freexmltoolkit.controls.shell.editor.EditorActions
+                .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.RUN_QUERY)
+                || org.fxt.freexmltoolkit.controls.shell.editor.EditorActions
+                .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.RUN_TRANSFORM);
+        queryTargetButton.setVisible(targetable);
+        queryTargetButton.setManaged(targetable);
+        refreshQueryTargetButton();
 
         // Everything that operates on the active document is disabled when none is open,
         // so the toolbar never offers a no-op click on the empty welcome screen. New/Open
@@ -807,6 +831,119 @@ public class UnifiedShellView extends BorderPane {
             "action-insert-template", "action-compare",
             "action-query-console", "action-set-schema"
     };
+
+    /**
+     * Rebuilds the Target dropdown's items from the currently open XML-family documents:
+     * one radio entry per document (the active query/XSLT document itself excluded), the
+     * current file-system target if one is chosen, "Choose XML from file system…" and
+     * "Automatic (last active XML document)". Called on every menu opening.
+     */
+    private void rebuildQueryTargetMenu() {
+        queryTargetButton.getItems().clear();
+        var queryDoc = editorHost.getActiveDocument().orElse(null);
+        if (queryDoc == null) {
+            return;
+        }
+        var current = editorHost.getQueryTarget(queryDoc);
+        var group = new javafx.scene.control.ToggleGroup();
+
+        for (var doc : editorHost.getOpenXmlFamilyDocuments()) {
+            if (doc == queryDoc) {
+                continue;
+            }
+            var item = new javafx.scene.control.RadioMenuItem(doc.getDisplayName());
+            item.setToggleGroup(group);
+            var icon = new IconifyIcon(doc.getFileType().icon());
+            icon.setIconSize(16);
+            // bind, not set: themed CSS -fx-icon-color rules override set() on every pass
+            icon.iconColorProperty().bind(new javafx.beans.property.SimpleObjectProperty<>(
+                    javafx.scene.paint.Color.web(doc.getFileType().color())));
+            item.setGraphic(icon);
+            item.setSelected(current instanceof org.fxt.freexmltoolkit.controls.shell.editor
+                    .QueryTarget.OpenDoc od && od.document() == doc);
+            item.setOnAction(e -> {
+                editorHost.setQueryTarget(queryDoc,
+                        new org.fxt.freexmltoolkit.controls.shell.editor.QueryTarget.OpenDoc(doc));
+                refreshQueryTargetButton();
+            });
+            queryTargetButton.getItems().add(item);
+        }
+
+        if (current instanceof org.fxt.freexmltoolkit.controls.shell.editor.QueryTarget.FsFile fs) {
+            var item = new javafx.scene.control.RadioMenuItem(fs.file().getName());
+            item.setToggleGroup(group);
+            var icon = new IconifyIcon("bi-file-earmark-code");
+            icon.setIconSize(16);
+            item.setGraphic(icon);
+            item.setSelected(true);
+            // Re-selecting keeps the current file target — nothing to change.
+            queryTargetButton.getItems().add(item);
+        }
+
+        queryTargetButton.getItems().add(new javafx.scene.control.SeparatorMenuItem());
+
+        var browse = new javafx.scene.control.MenuItem("Choose XML from file system…");
+        browse.setGraphic(sizedIcon("bi-folder2-open"));
+        browse.setOnAction(e -> {
+            var chooser = new javafx.stage.FileChooser();
+            chooser.setTitle("Choose XML Target");
+            chooser.getExtensionFilters().addAll(
+                    new javafx.stage.FileChooser.ExtensionFilter("XML files", "*.xml"),
+                    new javafx.stage.FileChooser.ExtensionFilter(
+                            "XML family", "*.xml", "*.xsd", "*.xsl", "*.xslt", "*.sch"),
+                    new javafx.stage.FileChooser.ExtensionFilter("All files", "*.*"));
+            var file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, window());
+            if (file != null) {
+                editorHost.setQueryTarget(queryDoc,
+                        new org.fxt.freexmltoolkit.controls.shell.editor.QueryTarget.FsFile(file));
+                refreshQueryTargetButton();
+            }
+        });
+        queryTargetButton.getItems().add(browse);
+
+        var automatic = new javafx.scene.control.RadioMenuItem("Automatic (last active XML document)");
+        automatic.setToggleGroup(group);
+        automatic.setGraphic(sizedIcon("bi-arrow-repeat"));
+        automatic.setSelected(current instanceof org.fxt.freexmltoolkit.controls.shell.editor
+                .QueryTarget.Automatic);
+        automatic.setOnAction(e -> {
+            editorHost.setQueryTarget(queryDoc,
+                    org.fxt.freexmltoolkit.controls.shell.editor.QueryTarget.AUTOMATIC);
+            refreshQueryTargetButton();
+        });
+        queryTargetButton.getItems().add(automatic);
+    }
+
+    /** @return a menu-sized (16px) {@link IconifyIcon} for the given literal. */
+    private static IconifyIcon sizedIcon(String literal) {
+        var icon = new IconifyIcon(literal);
+        icon.setIconSize(16);
+        return icon;
+    }
+
+    /**
+     * Updates the Target dropdown's label from the active document's stored target.
+     * A chosen open document that was closed in the meantime shows as Automatic again
+     * (matching the resolution fallback); a file-system target shows its file name,
+     * with the absolute path in the tooltip.
+     */
+    private void refreshQueryTargetButton() {
+        var queryDoc = editorHost.getActiveDocument().orElse(null);
+        var target = queryDoc == null
+                ? org.fxt.freexmltoolkit.controls.shell.editor.QueryTarget.AUTOMATIC
+                : editorHost.getQueryTarget(queryDoc);
+        String label = "Automatic";
+        String tooltip = "Choose the XML document the query / transform runs against";
+        if (target instanceof org.fxt.freexmltoolkit.controls.shell.editor.QueryTarget.OpenDoc od
+                && editorHost.getOpenDocuments().contains(od.document())) {
+            label = od.document().getDisplayName();
+        } else if (target instanceof org.fxt.freexmltoolkit.controls.shell.editor.QueryTarget.FsFile fs) {
+            label = fs.file().getName();
+            tooltip = fs.file().getAbsolutePath();
+        }
+        queryTargetButton.setText("Target: " + label);
+        queryTargetButton.setTooltip(new javafx.scene.control.Tooltip(tooltip));
+    }
 
     /** Enables/disables a toolbar action button by its {@code shell.fxml} id (no-op if absent). */
     private void setToolbarButtonDisabled(String id, boolean disabled) {

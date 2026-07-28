@@ -92,6 +92,12 @@ public class EditorHost extends BorderPane {
     /** The most recently active XML-family tab — the run target for XPath/XQuery documents. */
     private EditorTab lastXmlFamilyTab;
 
+    /**
+     * Per-document explicit run target for query/XSLT documents (session-only; a missing
+     * entry means {@link QueryTarget#AUTOMATIC}). OpenDocument identity equality applies.
+     */
+    private final java.util.Map<OpenDocument, QueryTarget> queryTargets = new java.util.HashMap<>();
+
     /** Handler running the active XPath/XQuery document (wired by the shell, fired on Ctrl+Enter). */
     private Runnable queryRunHandler;
 
@@ -219,9 +225,75 @@ public class EditorHost extends BorderPane {
         return Optional.empty();
     }
 
+    /** @return the open XML-family documents (valid query/transform targets), in tab order. */
+    public java.util.List<OpenDocument> getOpenXmlFamilyDocuments() {
+        return openDocuments.stream().filter(d -> isXmlFamily(d.getFileType())).toList();
+    }
+
+    /** @return the explicit run target of {@code queryDoc}, or {@link QueryTarget#AUTOMATIC}. */
+    public QueryTarget getQueryTarget(OpenDocument queryDoc) {
+        return queryTargets.getOrDefault(queryDoc, QueryTarget.AUTOMATIC);
+    }
+
+    /** Sets the explicit run target of {@code queryDoc}; {@code Automatic} clears the entry. */
+    public void setQueryTarget(OpenDocument queryDoc, QueryTarget target) {
+        if (target == null || target instanceof QueryTarget.Automatic) {
+            queryTargets.remove(queryDoc);
+        } else {
+            queryTargets.put(queryDoc, target);
+        }
+    }
+
     /**
-     * Registers the handler that runs the active XPath/XQuery document (the shell wires
-     * this to the toolbar's Run Query action); fired by the query editor on Ctrl+Enter.
+     * A resolved run target: either the in-memory text of an open document
+     * ({@code xmlText != null}) or a file still to be read from disk
+     * ({@code file != null}). Exactly one of the two is set.
+     */
+    public record ResolvedQueryTarget(String displayName, String xmlText, File file) {
+        /** Returns the in-memory text, or reads the file — call off the FX thread. */
+        public String loadXml() throws IOException {
+            return xmlText != null ? xmlText : Files.readString(file.toPath(), StandardCharsets.UTF_8);
+        }
+    }
+
+    /**
+     * Resolves the XML target the given query/XSLT document runs against: its explicit
+     * {@link QueryTarget} if one is set (an open document falls back to Automatic when it
+     * was closed in the meantime — the stale entry is dropped), otherwise the most
+     * recently active XML-family document. The document is never its own Automatic
+     * target — an active XSLT stylesheet is XML-family and would otherwise always
+     * transform itself.
+     *
+     * @return the resolved target, or empty when nothing is available
+     */
+    public Optional<ResolvedQueryTarget> resolveQueryTarget(OpenDocument queryDoc) {
+        QueryTarget target = getQueryTarget(queryDoc);
+        if (target instanceof QueryTarget.FsFile fs) {
+            return Optional.of(new ResolvedQueryTarget(fs.file().getName(), null, fs.file()));
+        }
+        if (target instanceof QueryTarget.OpenDoc od) {
+            Optional<String> text = getDocumentText(od.document());
+            if (text.isPresent()) {
+                return Optional.of(new ResolvedQueryTarget(od.document().getDisplayName(), text.get(), null));
+            }
+            // The chosen document was closed (possibly without onClosed firing) — drop
+            // the stale entry and fall back to Automatic.
+            queryTargets.remove(queryDoc);
+        }
+        Optional<OpenDocument> auto = getLastXmlFamilyDocument().filter(doc -> doc != queryDoc);
+        if (auto.isEmpty()) {
+            auto = openDocuments.stream()
+                    .filter(doc -> doc != queryDoc && isXmlFamily(doc.getFileType()))
+                    .findFirst();
+        }
+        return auto.flatMap(doc -> getDocumentText(doc)
+                .map(text -> new ResolvedQueryTarget(doc.getDisplayName(), text, null)));
+    }
+
+    /**
+     * Registers the handler that runs the active XPath/XQuery/XSLT document (the shell
+     * wires this to the toolbar's Run Query / Run Transform actions); fired by the
+     * query editor — and XSLT editors — on Ctrl+Enter.
      */
     public void setQueryRunHandler(Runnable handler) {
         this.queryRunHandler = handler;
@@ -1898,9 +1970,29 @@ public class EditorHost extends BorderPane {
                         queryRunHandler.run();
                     }
                 },
-                () -> getLastXmlFamilyDocument().flatMap(this::getDocumentText).orElse(""));
+                // IntelliSense context: honor an explicit open-document target; a file-system
+                // target falls back to the Automatic text (no disk IO on the FX thread).
+                () -> resolveQueryTarget(tab.document)
+                        .map(ResolvedQueryTarget::xmlText)
+                        .filter(java.util.Objects::nonNull)
+                        .orElseGet(() -> getLastXmlFamilyDocument()
+                                .flatMap(this::getDocumentText).orElse("")));
+        // Ctrl+Enter runs XSLT documents too (XmlEditorView is shared by XML/XSD/Schematron,
+        // so the file type is checked at press time — Save As can change it).
+        tab.view.getCodeArea().addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED, e -> {
+            if (e.getCode() == javafx.scene.input.KeyCode.ENTER && e.isShortcutDown()
+                    && tab.document.getFileType() == EditorFileType.XSLT && queryRunHandler != null) {
+                queryRunHandler.run();
+                e.consume();
+            }
+        });
         openDocuments.add(tab.document);
-        tab.setOnClosed(e -> openDocuments.remove(tab.document));
+        tab.setOnClosed(e -> {
+            openDocuments.remove(tab.document);
+            queryTargets.remove(tab.document);
+            queryTargets.values().removeIf(t ->
+                    t instanceof QueryTarget.OpenDoc od && od.document() == tab.document);
+        });
         tab.setOnCloseRequest(e -> confirmCloseIfDirty(tab, e));
         tab.view.getCodeArea().caretPositionProperty().addListener((obs, oldV, newV) -> {
             if (tab.isSelected()) {

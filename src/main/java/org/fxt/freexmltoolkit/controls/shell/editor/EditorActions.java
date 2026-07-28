@@ -35,7 +35,7 @@ import org.fxt.freexmltoolkit.service.XsltTransformationResult;
 public final class EditorActions {
 
     /** The editor-level actions; used by the toolbar to drive enable/disable gating. */
-    public enum EditorAction { VALIDATE, TRANSFORM, GENERATE_DOCS, TYPE_EDITOR, RUN_QUERY }
+    public enum EditorAction { VALIDATE, TRANSFORM, GENERATE_DOCS, TYPE_EDITOR, RUN_QUERY, RUN_TRANSFORM }
 
     private final EditorHost editorHost;
 
@@ -60,6 +60,7 @@ public final class EditorActions {
             case TRANSFORM -> type == EditorFileType.XML;
             case GENERATE_DOCS, TYPE_EDITOR -> type == EditorFileType.XSD;
             case RUN_QUERY -> type == EditorFileType.XQUERY || type == EditorFileType.XPATH;
+            case RUN_TRANSFORM -> type == EditorFileType.XSLT;
         };
     }
 
@@ -178,9 +179,10 @@ public final class EditorActions {
     private int queryRunGeneration;
 
     /**
-     * Runs the active XPath/XQuery document against the most recently active
-     * XML-family document ({@link EditorHost#getLastXmlFamilyDocument()}) off the
-     * FX thread and shows the result in the docked OUTPUT panel — mirroring
+     * Runs the active XPath/XQuery document against its resolved target — the
+     * explicitly chosen open document or file-system file, defaulting to the most
+     * recently active XML-family document ({@link EditorHost#resolveQueryTarget}) —
+     * off the FX thread and shows the result in the docked OUTPUT panel — mirroring
      * {@code QueryConsole}/{@code TransformPanel}. No-op for non-query documents.
      */
     public void runActiveQuery() {
@@ -194,17 +196,30 @@ public final class EditorActions {
             out.showError("The query is empty.");
             return;
         }
-        var target = editorHost.getLastXmlFamilyDocument();
-        if (target.isEmpty()) {
-            out.showError("Open an XML document first — the query runs against the most recently active XML document.");
+        var doc = editorHost.getActiveDocument().orElseThrow();
+        var resolved = editorHost.resolveQueryTarget(doc);
+        if (resolved.isEmpty()) {
+            out.showError("Open an XML document first, or pick one via the Target dropdown — "
+                    + "by default the query runs against the most recently active XML document.");
             return;
         }
-        String xml = editorHost.getDocumentText(target.get()).orElse("");
+        var target = resolved.get();
         boolean xquery = type == EditorFileType.XQUERY;
-        out.showPending("Running query against " + target.get().getDisplayName() + "…");
+        out.showPending("Running query against " + target.displayName() + "…");
         final int gen = ++queryRunGeneration;
         FxtGui.executorService.submit(() -> {
             long start = System.nanoTime();
+            String xml;
+            try {
+                xml = target.loadXml();
+            } catch (Exception e) {
+                Platform.runLater(() -> {
+                    if (gen == queryRunGeneration) {
+                        out.showFailure("Cannot read target file: " + e.getMessage());
+                    }
+                });
+                return;
+            }
             if (xquery) {
                 String result = TransformRunner.runXQuery(xml, query, Map.of(),
                         XsltTransformationEngine.OutputFormat.XML);
@@ -226,6 +241,69 @@ public final class EditorActions {
                 });
             }
         });
+    }
+
+    /**
+     * Runs the active XSLT document against its resolved target (same resolution as
+     * {@link #runActiveQuery()}: explicit target or the most recently active XML
+     * document) with no parameters, the output format auto-detected from the
+     * stylesheet, and shows the result in the docked OUTPUT panel. No-op for
+     * non-XSLT documents.
+     * <p>
+     * Note: the transformation engine is string-based, so relative {@code doc()}
+     * URIs are not resolved against a file-system target's directory.
+     */
+    public void runActiveTransform() {
+        if (activeFileType() != EditorFileType.XSLT) {
+            return;
+        }
+        TransformOutputPanel out = editorHost.transformOutputPanel();
+        String xslt = editorHost.getActiveText().orElse("");
+        if (xslt.isBlank()) {
+            out.showError("The stylesheet is empty.");
+            return;
+        }
+        var doc = editorHost.getActiveDocument().orElseThrow();
+        var resolved = editorHost.resolveQueryTarget(doc);
+        if (resolved.isEmpty()) {
+            out.showError("Open an XML document first, or pick one via the Target dropdown — "
+                    + "by default the transform runs against the most recently active XML document.");
+            return;
+        }
+        var target = resolved.get();
+        var format = TransformRunner.detectXsltOutputFormat(xslt);
+        out.showPending("Transforming " + target.displayName() + "…");
+        final int gen = ++queryRunGeneration;
+        FxtGui.executorService.submit(() -> {
+            long start = System.nanoTime();
+            String xml;
+            try {
+                xml = target.loadXml();
+            } catch (Exception e) {
+                Platform.runLater(() -> {
+                    if (gen == queryRunGeneration) {
+                        out.showFailure("Cannot read target file: " + e.getMessage());
+                    }
+                });
+                return;
+            }
+            String result = TransformRunner.xsltTransform(xml, xslt, Map.of(), format);
+            long elapsedMs = (System.nanoTime() - start) / 1_000_000;
+            Platform.runLater(() -> {
+                if (gen == queryRunGeneration) {
+                    out.showTransformResult(result, format, elapsedMs);
+                }
+            });
+        });
+    }
+
+    /** Ctrl+Enter dispatcher: transform for XSLT documents, query for XPath/XQuery. */
+    public void runActive() {
+        if (activeFileType() == EditorFileType.XSLT) {
+            runActiveTransform();
+        } else {
+            runActiveQuery();
+        }
     }
 
     // ---------------------------------------------------------------------------------------------

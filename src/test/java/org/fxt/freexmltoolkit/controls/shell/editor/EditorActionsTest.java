@@ -55,18 +55,27 @@ class EditorActionsTest {
         assertFalse(EditorActions.applicableFor(EditorFileType.XML, EditorActions.EditorAction.RUN_QUERY));
         assertFalse(EditorActions.applicableFor(EditorFileType.XQUERY, EditorActions.EditorAction.VALIDATE));
         assertFalse(EditorActions.applicableFor(EditorFileType.XQUERY, EditorActions.EditorAction.TRANSFORM));
+        assertTrue(EditorActions.applicableFor(EditorFileType.XSLT, EditorActions.EditorAction.RUN_TRANSFORM));
+        assertFalse(EditorActions.applicableFor(EditorFileType.XML, EditorActions.EditorAction.RUN_TRANSFORM));
+        assertFalse(EditorActions.applicableFor(EditorFileType.XQUERY, EditorActions.EditorAction.RUN_TRANSFORM));
+        assertFalse(EditorActions.applicableFor(EditorFileType.XSLT, EditorActions.EditorAction.RUN_QUERY));
     }
 
     @Test
     void buttonsExistAndAllDisabledWhenNoDocumentOpen() {
         WaitForAsyncUtils.waitForFxEvents();
         for (String id : new String[]{"doc-action-validate", "doc-action-transform",
-                "doc-action-generate-docs", "doc-action-type-editor", "doc-action-run-query"}) {
+                "doc-action-generate-docs", "doc-action-type-editor", "doc-action-run-query",
+                "doc-action-run-transform"}) {
             Button button = (Button) shell.lookup("#" + id);
             assertNotNull(button, "document-action button must exist: " + id);
             assertTrue(button.isDisable(),
                     "with no document open, " + id + " must be disabled");
         }
+        var targetButton = shell.lookup("#doc-query-target");
+        assertNotNull(targetButton, "the Target dropdown must exist");
+        assertFalse(targetButton.isVisible(),
+                "with no document open, the Target dropdown must be hidden");
     }
 
     @Test
@@ -186,6 +195,197 @@ class EditorActionsTest {
                 () -> out.getOutputText() != null && out.getOutputText().contains("Open an XML document"));
         assertTrue(out.getOutputText().contains("Open an XML document first"),
                 "with no XML-family document open, a guard message must be shown: " + out.getOutputText());
+    }
+
+    @Test
+    void queryTargetButtonVisibilityAndLabel(@TempDir Path tmp) throws Exception {
+        EditorHost host = shell.getEditorHost();
+        Path xml = tmp.resolve("doc.xml");
+        Files.writeString(xml, "<root/>");
+        Path xq = tmp.resolve("query.xq");
+        Files.writeString(xq, "/root");
+
+        openAndAwait(host, xml, "root");
+        var targetButton = (javafx.scene.control.MenuButton) shell.lookup("#doc-query-target");
+        assertFalse(targetButton.isVisible(),
+                "the Target dropdown must be hidden for an XML document");
+
+        openAndAwait(host, xq, "root");
+        assertTrue(targetButton.isVisible(),
+                "the Target dropdown must be visible for a query document");
+        assertTrue(targetButton.getText().contains("Automatic"),
+                "with no explicit target the label must show Automatic: " + targetButton.getText());
+    }
+
+    @Test
+    void runActiveQueryAgainstExplicitlyChosenOpenDocument(@TempDir Path tmp) throws Exception {
+        EditorHost host = shell.getEditorHost();
+        Path a = tmp.resolve("a.xml");
+        Files.writeString(a, "<a><item>FROM-A</item></a>");
+        Path b = tmp.resolve("b.xml");
+        Files.writeString(b, "<b><item>FROM-B</item></b>");
+        Path xq = tmp.resolve("q.xq");
+        Files.writeString(xq, "//item/text()");
+
+        openAndAwait(host, a, "FROM-A");
+        openAndAwait(host, b, "FROM-B");
+        openAndAwait(host, xq, "item");
+
+        // b.xml was active most recently; explicitly target a.xml instead.
+        var docA = host.getOpenDocuments().stream()
+                .filter(d -> "a.xml".equals(d.getDisplayName())).findFirst().orElseThrow();
+        var queryDoc = host.getActiveDocument().orElseThrow();
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.setQueryTarget(queryDoc, new QueryTarget.OpenDoc(docA));
+            return null;
+        });
+
+        EditorActions actions = new EditorActions(host);
+        var out = WaitForAsyncUtils.waitForAsyncFx(2000, host::transformOutputPanel);
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            actions.runActiveQuery();
+            return null;
+        });
+
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS,
+                () -> out.getOutputText() != null && out.getOutputText().contains("FROM-A"));
+        assertFalse(out.getOutputText().contains("FROM-B"),
+                "the query must run against the chosen document, not the last active one: "
+                        + out.getOutputText());
+    }
+
+    @Test
+    void runActiveQueryAgainstFileSystemTarget(@TempDir Path tmp) throws Exception {
+        EditorHost host = shell.getEditorHost();
+        Path ext = tmp.resolve("ext.xml");
+        Files.writeString(ext, "<r><item>FROM-EXT</item></r>");
+        Path xq = tmp.resolve("q.xq");
+        Files.writeString(xq, "//item/text()");
+
+        // Only the query document is open; the target is a file that is NOT open.
+        openAndAwait(host, xq, "item");
+        var queryDoc = host.getActiveDocument().orElseThrow();
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.setQueryTarget(queryDoc, new QueryTarget.FsFile(ext.toFile()));
+            return null;
+        });
+
+        EditorActions actions = new EditorActions(host);
+        var out = WaitForAsyncUtils.waitForAsyncFx(2000, host::transformOutputPanel);
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            actions.runActiveQuery();
+            return null;
+        });
+
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS,
+                () -> out.getOutputText() != null && out.getOutputText().contains("FROM-EXT"));
+        assertTrue(out.getOutputText().contains("FROM-EXT"),
+                "the query must run against the file-system target: " + out.getOutputText());
+    }
+
+    @Test
+    void targetFallsBackToAutomaticWhenTargetDocumentIsClosed(@TempDir Path tmp) throws Exception {
+        EditorHost host = shell.getEditorHost();
+        Path a = tmp.resolve("a.xml");
+        Files.writeString(a, "<a><item>FROM-A</item></a>");
+        Path b = tmp.resolve("b.xml");
+        Files.writeString(b, "<b><item>FROM-B</item></b>");
+        Path xq = tmp.resolve("q.xq");
+        Files.writeString(xq, "//item/text()");
+
+        openAndAwait(host, a, "FROM-A");
+        openAndAwait(host, b, "FROM-B");
+        openAndAwait(host, xq, "item");
+
+        var docB = host.getOpenDocuments().stream()
+                .filter(d -> "b.xml".equals(d.getDisplayName())).findFirst().orElseThrow();
+        var queryDoc = host.getActiveDocument().orElseThrow();
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.setQueryTarget(queryDoc, new QueryTarget.OpenDoc(docB));
+            return null;
+        });
+
+        // Close the chosen target programmatically (onClosed does not fire here —
+        // this exercises the defensive fallback in resolveQueryTarget).
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            var tabPane = (javafx.scene.control.TabPane) host.lookup(".fxt-editor-tabpane");
+            tabPane.getTabs().removeIf(t -> t.getText() != null && t.getText().contains("b.xml"));
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+
+        EditorActions actions = new EditorActions(host);
+        var out = WaitForAsyncUtils.waitForAsyncFx(2000, host::transformOutputPanel);
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            actions.runActiveQuery();
+            return null;
+        });
+
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS,
+                () -> out.getOutputText() != null && out.getOutputText().contains("FROM-A"));
+        assertTrue(out.getOutputText().contains("FROM-A"),
+                "after the chosen target was closed, the query must fall back to the remaining "
+                        + "XML document: " + out.getOutputText());
+    }
+
+    @Test
+    void runActiveTransformShowsResultInOutputPanel(@TempDir Path tmp) throws Exception {
+        EditorHost host = shell.getEditorHost();
+        Path xml = tmp.resolve("order.xml");
+        Files.writeString(xml, "<order><item>A</item></order>");
+        Path xsl = tmp.resolve("sheet.xsl");
+        Files.writeString(xsl,
+                "<xsl:stylesheet version=\"1.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">\n"
+                        + "  <xsl:output method=\"text\"/>\n"
+                        + "  <xsl:template match=\"/\">MARKER-<xsl:value-of select=\"/order/item\"/></xsl:template>\n"
+                        + "</xsl:stylesheet>\n");
+
+        openAndAwait(host, xml, "order");
+        openAndAwait(host, xsl, "MARKER");
+
+        // Automatic target: the stylesheet itself is XML-family but must never be its
+        // own target — the transform has to pick the open XML document instead.
+        EditorActions actions = new EditorActions(host);
+        var out = WaitForAsyncUtils.waitForAsyncFx(2000, host::transformOutputPanel);
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            actions.runActiveTransform();
+            return null;
+        });
+
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS,
+                () -> out.getOutputText() != null && out.getOutputText().contains("MARKER-A"));
+        assertTrue(out.isShowing(), "the OUTPUT panel must appear after a transform run");
+    }
+
+    @Test
+    void runActiveTransformWithoutAnXmlDocumentShowsAGuardError(@TempDir Path tmp) throws Exception {
+        EditorHost host = shell.getEditorHost();
+        Path xsl = tmp.resolve("sheet.xsl");
+        Files.writeString(xsl,
+                "<xsl:stylesheet version=\"1.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">\n"
+                        + "  <xsl:template match=\"/\">MARKER</xsl:template>\n"
+                        + "</xsl:stylesheet>\n");
+
+        openAndAwait(host, xsl, "MARKER");
+
+        EditorActions actions = new EditorActions(host);
+        var out = WaitForAsyncUtils.waitForAsyncFx(2000, host::transformOutputPanel);
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            actions.runActiveTransform();
+            return null;
+        });
+
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS,
+                () -> out.getOutputText() != null && out.getOutputText().contains("Open an XML document"));
+        assertTrue(out.getOutputText().contains("Open an XML document first"),
+                "with only the stylesheet open, a guard message must be shown: " + out.getOutputText());
+    }
+
+    private void openAndAwait(EditorHost host, Path file, String marker) throws Exception {
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(file));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains(marker)).orElse(false));
+        WaitForAsyncUtils.waitForFxEvents();
     }
 
     private Button button(String id) {
