@@ -97,6 +97,19 @@ class ExamplesIntegrityTest {
     }
 
     @Test
+    void lookThroughXQuery_findsTheFundInvestment() throws IOException {
+        var result = XsltTransformationEngine.getInstance().transformXQuery(
+                Files.readString(EXAMPLES.resolve("xml/FundsXML4_Equity_Fund.xml")),
+                Files.readString(EXAMPLES.resolve("xquery/11-fund-lookthrough-analysis.xq")),
+                Map.of(), XsltTransformationEngine.OutputFormat.HTML);
+
+        assertTrue(result.isSuccess(), () -> "Look-through XQuery failed: " + result.getErrorMessage());
+        // the equity example holds exactly one target-fund position (Erste Euro Bázis)
+        assertTrue(result.getOutputContent().contains("HU0000706007"),
+                "Look-through report should list the fund-investment candidate");
+    }
+
+    @Test
     void csvExportStylesheet_producesCsvWithHeader() throws IOException {
         var result = XsltTransformationEngine.getInstance().transform(
                 Files.readString(EXAMPLES.resolve("xml/FundsXML4_Equity_Fund.xml")),
