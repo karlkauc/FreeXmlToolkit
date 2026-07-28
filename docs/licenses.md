@@ -2,13 +2,14 @@
 
 FreeXmlToolkit (Version 1.3.0) uses several third-party libraries. The following is a comprehensive list of these libraries and the licenses under which they are provided.
 
-> **Last Updated:** May 2026
+> **Last Updated:** July 2026
 
 ## Core Dependencies
 
 | Library | Version | License |
 |---------|---------|---------|
-| **Saxon-HE** (net.sf.saxon:Saxon-HE) | 12.9 | [Mozilla Public License 2.0](https://www.mozilla.org/en-US/MPL/2.0/) |
+| **Saxon-HE** (net.sf.saxon:Saxon-HE) | 12.10 | [Mozilla Public License 2.0](https://www.mozilla.org/en-US/MPL/2.0/) |
+| **XML Calabash** (com.xmlcalabash:xmlcalabash) | 3.0.51 | [MIT License](https://opensource.org/licenses/MIT) |
 | **Jakarta XML Bind API** (jakarta.xml.bind:jakarta.xml.bind-api) | 4.0.4 | [Eclipse Distribution License 1.0](https://www.eclipse.org/org/documents/edl-v10.php) |
 | **Gson** (com.google.code.gson:gson) | 2.13.2 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 
@@ -128,7 +129,7 @@ The majority of libraries used in FreeXmlToolkit are licensed under permissive o
 | License Type | Count |
 |--------------|-------|
 | Apache License 2.0 | ~30 |
-| MIT License | 3 |
+| MIT License | 4 |
 | BSD (2/3-Clause) | 3 |
 | Eclipse Public License 2.0 | 4 |
 | Mozilla Public License 2.0 | 1 |

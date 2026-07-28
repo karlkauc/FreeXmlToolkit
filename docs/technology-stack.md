@@ -2,7 +2,7 @@
 
 FreeXmlToolkit is built using modern Java technologies and libraries to provide a robust, cross-platform XML and JSON processing environment.
 
-> **Last Updated:** May 2026 | **Version:** 1.10.0
+> **Last Updated:** July 2026 | **Version:** 1.10.0
 
 ## Core Technologies
 
@@ -21,7 +21,8 @@ FreeXmlToolkit is built using modern Java technologies and libraries to provide 
 ## Key Libraries
 
 ### XML Processing
-- **Saxon HE:** 12.9 - XSLT 3.0, XPath 3.1 and XQuery processing engine
+- **Saxon HE:** 12.10 - XSLT 3.0, XPath 3.1 and XQuery processing engine
+- **XML Calabash:** 3.0.51 - XProc 3.0 pipeline engine (Run Pipeline for `.xpl`/`.xproc` files)
 - **Jakarta XML Bind API:** 4.0.4 - XML binding and marshalling
 - **Apache Xerces:** 2.12.2 (exist-db fork) - XSD 1.1 validation with assertions support
 
@@ -160,7 +161,8 @@ repositories {
 ```kotlin
 dependencies {
     // XML Processing
-    implementation("net.sf.saxon:Saxon-HE:12.9")
+    implementation("net.sf.saxon:Saxon-HE:12.10")
+    implementation("com.xmlcalabash:xmlcalabash:3.0.51")
     implementation("jakarta.xml.bind:jakarta.xml.bind-api:4.0.4")
     implementation("org.exist-db.thirdparty.xerces:xercesImpl:2.12.2")
 

@@ -1,6 +1,6 @@
 # FreeXmlToolkit Documentation
 
-> **Last Updated:** May 2026 | **Version:** 1.10.0
+> **Last Updated:** July 2026 | **Version:** 1.10.0
 
 ## Welcome
 
@@ -106,8 +106,9 @@ Convert XML into other formats:
 | **Live Preview** | See results as you work |
 | **Modern XSLT Support** | Uses the latest XSLT 3.0 standard |
 | **Multi-File Batch Processing** | Process multiple XML files with one XQuery using `collection()` |
+| **XProc 3.0 Pipelines** | Run multi-step processing pipelines (`.xpl`) with the built-in XML Calabash engine |
 
-Learn more: [XSLT Viewer](xslt-viewer.md) | [XSLT Developer](xslt-developer.md)
+Learn more: [XSLT Viewer](xslt-viewer.md) | [XSLT Developer](xslt-developer.md) | [XProc Pipelines](unified-shell.md#xproc-pipelines)
 
 ### PDF Generation
 
@@ -197,6 +198,7 @@ The application includes example files in the `examples/` folder to help you get
 - **xsl/** - XSL-FO stylesheets for PDF reports
 - **xquery/** - XQuery 3.1 data-quality checks
 - **xpath/** - XPath 3.1 snippets for the Query Console
+- **xproc/** - XProc 3.0 pipelines (identity, slimming, CSV/JSON export, reports)
 - **schematron/** - Schematron business rules
 - **signature/** - Signed XML document with demo keystore
 - **templates/** - XML snippet templates

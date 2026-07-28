@@ -1,7 +1,7 @@
 # Unified Shell
 
 > The application opens directly into the **Unified Shell** - one workspace that
-> combines XML, XSD, XSLT, Schematron and JSON editing with all the validation,
+> combines XML, XSD, XSLT, XProc, Schematron and JSON editing with all the validation,
 > transformation, signing and documentation tools. The separate legacy tabs have
 > been consolidated here.
 
@@ -42,7 +42,7 @@ editor more room - the activity bar always stays visible.
 ### Key Features
 
 - **Multi-tab editing** - Open multiple files of different types in one view
-- **Automatic file type detection** - Files are recognized by extension (.xml, .xsd, .xsl, .sch, .json)
+- **Automatic file type detection** - Files are recognized by extension (.xml, .xsd, .xsl, .xpl, .sch, .json)
 - **View modes per document** - Text, Tree and Graphic, all over one shared model (see [View Modes](#view-modes))
 - **Inspector editing everywhere** - edit node properties from the Text, Tree and Graphic views, not just one
 - **Integrated XPath/XQuery** - a bottom [Query Console](#query-console) queries the active
@@ -73,7 +73,7 @@ the new document.
 
 | Field | What it does |
 |-------|--------------|
-| **File type** | Choose **XML**, **XSD**, **XSLT**, **Schematron**, or **JSON**. The rest of the dialog adapts to your choice. |
+| **File type** | Choose **XML**, **XSD**, **XSLT**, **Schematron**, **JSON**, or **XProc**. The rest of the dialog adapts to your choice. |
 | **Template** | A list of available templates - the built-in library plus your own templates from Settings - **automatically filtered to the selected file type**. The default is **"— None —"** (start blank). Picking a parameterized template prompts you for its values when the file is created. |
 | **Schema** | *(plain XML only, and only when no template is chosen.)* Pick an XSD to base the document on - from your **Favorites**, your **Recent files**, or **Browse…** to select a file. The chosen schema is also bound to the new document, so it appears in the Validation panel and drives IntelliSense. |
 | **Pre-fill mandatory nodes (empty)** | *(shown with the Schema option, on by default.)* When a schema is selected, the new document is pre-populated with all required elements and attributes (left empty) generated from that schema, giving you a ready-to-fill skeleton. |
@@ -86,7 +86,8 @@ the new document.
   mandatory element and attribute from that schema.
 - **Otherwise** you get a minimal, valid starting point for the chosen type: an XML declaration
   for XML, an `xs:schema` skeleton for XSD, an `xsl:stylesheet` (version 3.0) skeleton for
-  XSLT, an ISO-Schematron skeleton for Schematron, and `{}` for JSON.
+  XSLT, an ISO-Schematron skeleton for Schematron, `{}` for JSON, and a `p:declare-step`
+  skeleton (with `source`/`result` ports and `p:identity`) for XProc.
 
 ## View Modes
 
@@ -131,6 +132,7 @@ shows the editable grid:
 | **XML** | .xml | Text + graphic view, XSD/Schematron linking, IntelliSense, continuous validation |
 | **XSD** | .xsd | Text + graphic view, Type Library, Type Editor, Schema Analysis, Documentation, Sample Data, Flatten |
 | **XSLT** | .xsl, .xslt | XSLT editor + XML input + output preview, live transform, parameters, performance metrics |
+| **XProc** | .xpl, .xproc | Pipeline editor (Text + Tree view), Run Pipeline via the embedded XML Calabash engine - see [XProc Pipelines](#xproc-pipelines) |
 | **Schematron** | .sch | Code editor + Visual Builder + Tester + Documentation Generator |
 | **JSON** | .json, .jsonc, .json5 | Text + tree view, JSONPath queries, JSON Schema validation |
 
@@ -141,7 +143,7 @@ onto a second row when the editor area is narrow, so **every action stays visibl
 (there is no hidden "overflow" menu).
 
 ### Always Visible
-- **New** (Ctrl+N) - Open the guided [New File dialog](#new-file-dialog) to create an XML, XSD, XSLT, Schematron, or JSON file from a template or schema
+- **New** (Ctrl+N) - Open the guided [New File dialog](#new-file-dialog) to create an XML, XSD, XSLT, Schematron, JSON, or XProc file from a template or schema
 - **Open** (Ctrl+O) - Open one or more files
 - **Save** (Ctrl+S) - Save the current tab
 - **Save As** - Save the current tab under a new name (a file chooser opens, pre-set to the tab's file type)
@@ -1015,6 +1017,7 @@ The status bar at the bottom of the window includes:
 | Ctrl+D | Add to favorites |
 | Ctrl+L | Toggle linked files |
 | Ctrl+Shift+X | Toggle Query Console (XPath/XQuery) |
+| Ctrl+Enter | Run the active XPath/XQuery, XSLT or XProc document (Run Query / Run Transform / Run Pipeline) |
 | Ctrl+Shift+P | Toggle properties |
 | Ctrl+E | XML to Spreadsheet |
 | Ctrl+T | Templates |

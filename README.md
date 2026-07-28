@@ -58,6 +58,7 @@ as your personal XML assistant that helps you work smarter, not harder.
 - **Multiple Output Formats**: Transform XML into HTML, text, or other XML formats
 - **Parameter Support**: Customize transformations with different parameters
 - **Instant Results**: No waiting - see your transformed data immediately
+- **XProc 3.0 Pipelines**: Chain multiple processing steps (transform, filter, report) in one runnable pipeline file
 
 ### <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: inline; vertical-align: middle; margin-right: 8px;"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" fill="#dc3545" opacity="0.2" stroke="#dc3545" stroke-width="1.5"/><path d="M14 2v6h6" stroke="#dc3545" stroke-width="1.5"/></svg> **Create Professional PDFs**
 
@@ -238,6 +239,7 @@ FreeXmlToolkit is built on the shoulders of many excellent open-source projects:
 - **JavaFX** for the modern user interface
 - **Apache FOP** for PDF generation
 - **Saxon** for XSLT processing
+- **XML Calabash** for XProc pipelines
 - **Apache Log4j** for logging
 - **And many more** - see the build files for a complete list
 
