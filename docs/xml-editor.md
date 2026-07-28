@@ -309,6 +309,25 @@ Use XPath and XQuery to find and extract data from your XML documents.
 
 Use the **Examples** menu for quick insertion of common expressions.
 
+### Bundled Example Collections
+
+*(Updated July 2026)* Your FreeXmlToolkit installation ships ready-to-run query
+collections in the `examples` folder next to the application:
+
+- **`examples/xpath/`** - 32 XPath 3.1 expressions (one per file, each with a comment
+  header). Files 01-20 cover the basics; files 21-32 are a **reporting series** that
+  joins positions, asset master data and transactions and outputs CSV, ASCII
+  tables/charts, Markdown tables or JSON.
+- **`examples/xquery/`** - 17 XQuery 3.1 scripts. Files 01-11 are data-quality checks
+  with HTML reports; files 12-17 are **reporting/export examples** (CSV export, ASCII
+  dashboard, Markdown fund report, JSON export, pivot table, two-fund comparison).
+
+All examples target the FundsXML4 sample documents in `examples/xml/`. Paste any of them
+into the query panel or the [Query Console](unified-shell.md#query-console) - the
+`map:`, `array:` and `math:` function namespaces are pre-declared, so expressions using
+`map:merge()`, `array:size()` etc. run without any prolog. Each folder contains a
+`README.md` describing every example.
+
 ---
 
 ## XML/Excel/CSV Converter

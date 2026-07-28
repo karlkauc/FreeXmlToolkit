@@ -1167,6 +1167,10 @@ expression directly; for a **JSON** document the XPath input is evaluated as a *
 expression. When no document is open, **Run** is disabled and the results pane shows
 *"No document open."*
 
+*(Updated July 2026)* The `map:`, `array:` and `math:` function namespaces are
+**pre-declared** in the console, so XPath 3.1 expressions using `map:merge()`,
+`array:size()`, `math:pow()` etc. run directly - no namespace prolog needed.
+
 !!! note
     The Query Console is an additional, faster access point - it does not replace the **Transform**
     activity. For XSLT transformations, parameters, recent-stylesheet history, watch-and-rerun, and
@@ -1183,6 +1187,13 @@ Reusable XPath **and** XQuery expressions are saved as **snippets**:
 
 Snippets are kept in the shared query folder, so anything saved here is also available from the XML
 Editor's XPath/XQuery panel and vice versa.
+
+Looking for ready-made queries? The installation's `examples/xpath/` folder contains
+**32 XPath 3.1 examples** and `examples/xquery/` contains **17 XQuery 3.1 scripts**
+(data-quality checks plus a reporting series producing CSV, ASCII tables/charts,
+Markdown and JSON), all written for the FundsXML4 sample files in `examples/xml/`.
+Paste them into the console, or copy the `.xpath` files into your query folder to have
+them appear in the **Snippets** menu. See the `README.md` in each folder for details.
 
 *(New in July 2026)* When the optional [FundsXML extension](fundsxml-extensions.md) is
 enabled, the **Snippets** menu also shows a **FUNDSXML** section with the XPath/XQuery

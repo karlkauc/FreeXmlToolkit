@@ -74,6 +74,13 @@ Whenever content is downloaded (automatically or manually), the application will
 - Select the newly downloaded schema version as the **active** version.
 - Make a compact starter sample available from the Welcome page's **Open Example** card, so you can immediately try **Ctrl+Shift+F** to validate.
 
+!!! tip
+    Independently of this downloaded content, your FreeXmlToolkit installation itself ships
+    FundsXML4-based query collections in its `examples` folder: **32 XPath 3.1 examples**
+    (`examples/xpath/`) and **17 XQuery 3.1 scripts** (`examples/xquery/`), including a
+    reporting series that produces CSV, ASCII tables/charts, Markdown and JSON output.
+    Each folder has a `README.md` describing every example.
+
 Existing versions are kept on disk - downloads are additive, not replacements. Downloads are **idempotent** — favorites, snippets, and templates that already exist are not duplicated. On every application start, favorites and query snippets are also **re-registered from the on-disk cache**, so they stay available even without a network connection.
 
 ---
