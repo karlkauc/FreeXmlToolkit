@@ -150,6 +150,9 @@ output
 *.jks
 certs/
 certs/*/summary.txt
+# ...except the bundled demo keystore for the Signature panel example
+!release/examples/signature/*.pem
+!release/examples/signature/*.jks
 
 # Debug output
 debug_output.svg
