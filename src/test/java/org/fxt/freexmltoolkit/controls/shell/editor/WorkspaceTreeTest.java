@@ -55,6 +55,33 @@ class WorkspaceTreeTest {
     }
 
     @Test
+    void subfoldersListTheirQueryFiles(@TempDir Path dir) throws Exception {
+        // Mirrors the bundled examples layout: examples/xpath/*.xpath, examples/xquery/*.xq.
+        Path xpathDir = Files.createDirectory(dir.resolve("xpath"));
+        Path xqueryDir = Files.createDirectory(dir.resolve("xquery"));
+        Files.writeString(xpathDir.resolve("01-fund-names.xpath"), "/root");
+        Files.writeString(xqueryDir.resolve("01-recon.xq"), "/root");
+        Files.writeString(xqueryDir.resolve("README.md"), "ignored");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> tree.setRootFolder(dir));
+        WaitForAsyncUtils.waitForFxEvents();
+
+        var xpathNames = WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            tree.selectPath(xpathDir.resolve("01-fund-names.xpath"));
+            return tree.getSelectedFiles();
+        });
+        assertTrue(xpathNames.contains(xpathDir.resolve("01-fund-names.xpath")),
+                ".xpath file inside a subfolder must be present and selectable");
+
+        var xqNames = WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            tree.selectPath(xqueryDir.resolve("01-recon.xq"));
+            return tree.getSelectedFiles();
+        });
+        assertTrue(xqNames.contains(xqueryDir.resolve("01-recon.xq")),
+                ".xq file inside a subfolder must be present and selectable");
+    }
+
+    @Test
     void activatingAFileCallsTheOpener(@TempDir Path dir) throws Exception {
         Path xml = dir.resolve("doc.xml");
         Files.writeString(xml, "<a/>");
