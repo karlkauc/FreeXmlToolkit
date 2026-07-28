@@ -63,7 +63,7 @@ declare function local:analyze-document($doc as document-node()) as map(*) {
 };
 
 (: Main processing :)
-let $currentDoc := /
+let $currentDoc := /FundsXML4
 let $currentAnalysis := local:analyze-document(root($currentDoc))
 
 (: In sample mode, we only analyze the current document

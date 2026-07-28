@@ -44,7 +44,7 @@ declare function local:format-amount($amount as xs:decimal?) as xs:string {
 };
 
 (: Main processing :)
-let $doc := /
+let $doc := /FundsXML4
 let $funds := $doc//Fund
 
 return

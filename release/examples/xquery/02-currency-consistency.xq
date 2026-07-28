@@ -28,7 +28,7 @@ declare function local:is-valid-fx-rate($rate as xs:string?) as xs:boolean {
 };
 
 (: Main processing :)
-let $doc := /
+let $doc := /FundsXML4
 let $funds := $doc//Fund
 
 return

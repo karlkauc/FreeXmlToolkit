@@ -19,8 +19,9 @@ declare option output:method "html";
 declare option output:html-version "5";
 
 (: Helper function to check if a field is present and non-empty :)
-declare function local:is-present($node as node()?) as xs:boolean {
-    exists($node) and normalize-space(string($node)) != ""
+declare function local:is-present($nodes as node()*) as xs:boolean {
+    (: accepts sequences: multi-currency positions carry one Amount per currency :)
+    some $n in $nodes satisfies normalize-space(string($n)) != ""
 };
 
 (: Helper function to get field status icon :)
@@ -32,7 +33,7 @@ declare function local:get-field-status($present as xs:boolean) as element() {
 };
 
 (: Main processing :)
-let $doc := /
+let $doc := /FundsXML4
 let $controlData := $doc//ControlData
 let $funds := $doc//Fund
 

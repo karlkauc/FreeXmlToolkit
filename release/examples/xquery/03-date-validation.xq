@@ -40,7 +40,7 @@ declare function local:parse-datetime($dateStr as xs:string?) as xs:dateTime? {
 };
 
 (: Main processing :)
-let $doc := /
+let $doc := /FundsXML4
 let $controlData := $doc//ControlData
 let $funds := $doc//Fund
 

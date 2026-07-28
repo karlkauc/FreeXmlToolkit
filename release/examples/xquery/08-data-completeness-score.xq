@@ -25,8 +25,9 @@ declare variable $local:IMPORTANT_WEIGHT := 1.5;
 declare variable $local:OPTIONAL_WEIGHT := 1;
 
 (: Helper function to check if a field is present and non-empty :)
-declare function local:is-present($node as node()?) as xs:boolean {
-    exists($node) and normalize-space(string($node)) != ""
+declare function local:is-present($nodes as node()*) as xs:boolean {
+    (: accepts sequences: multi-currency positions carry one Amount per currency :)
+    some $n in $nodes satisfies normalize-space(string($n)) != ""
 };
 
 (: Helper function to calculate position completeness :)
@@ -66,7 +67,7 @@ declare function local:get-score-color($score as xs:decimal) as xs:string {
 };
 
 (: Main processing :)
-let $doc := /
+let $doc := /FundsXML4
 let $funds := $doc//Fund
 
 return

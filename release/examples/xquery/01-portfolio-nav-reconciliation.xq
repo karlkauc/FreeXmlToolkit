@@ -45,8 +45,15 @@ declare function local:get-status-color($status as xs:string) as xs:string {
         default return "#dc3545"
 };
 
+(: Position value in the fund's currency. Multi-currency positions carry one
+   Amount per currency - summing all of them would mix currencies, so pick the
+   fund-currency amount and fall back to the first one. :)
+declare function local:position-value($pos as element(Position), $ccy as xs:string?) as xs:decimal {
+    xs:decimal(($pos/TotalValue/Amount[@ccy = $ccy], $pos/TotalValue/Amount)[1])
+};
+
 (: Main processing :)
-let $doc := /
+let $doc := /FundsXML4
 let $funds := $doc//Fund
 
 return
@@ -99,23 +106,23 @@ return
                         <div class="stat-label">Total Funds</div>
                     </div>
                     <div class="stat">
-                        <div class="stat-value">{count($funds[let $v := local:calc-variance(
-                            xs:decimal(FundDynamicData/TotalAssetValues/TotalAssetValue/TotalNetAssetValue/Amount),
-                            sum(FundDynamicData/Portfolios/Portfolio/Positions/Position/TotalValue/Amount/xs:decimal(.))
+                        <div class="stat-value">{count($funds[let $c := Currency/text(), $v := local:calc-variance(
+                            xs:decimal((FundDynamicData/TotalAssetValues/TotalAssetValue/TotalNetAssetValue/Amount)[1]),
+                            sum(FundDynamicData/Portfolios/Portfolio/Positions/Position ! local:position-value(., $c))
                         ) return abs($v) <= 0.1])}</div>
                         <div class="stat-label">Passed</div>
                     </div>
                     <div class="stat">
-                        <div class="stat-value">{count($funds[let $v := local:calc-variance(
-                            xs:decimal(FundDynamicData/TotalAssetValues/TotalAssetValue/TotalNetAssetValue/Amount),
-                            sum(FundDynamicData/Portfolios/Portfolio/Positions/Position/TotalValue/Amount/xs:decimal(.))
+                        <div class="stat-value">{count($funds[let $c := Currency/text(), $v := local:calc-variance(
+                            xs:decimal((FundDynamicData/TotalAssetValues/TotalAssetValue/TotalNetAssetValue/Amount)[1]),
+                            sum(FundDynamicData/Portfolios/Portfolio/Positions/Position ! local:position-value(., $c))
                         ) return abs($v) > 0.1 and abs($v) <= 1.0])}</div>
                         <div class="stat-label">Warnings</div>
                     </div>
                     <div class="stat">
-                        <div class="stat-value">{count($funds[let $v := local:calc-variance(
-                            xs:decimal(FundDynamicData/TotalAssetValues/TotalAssetValue/TotalNetAssetValue/Amount),
-                            sum(FundDynamicData/Portfolios/Portfolio/Positions/Position/TotalValue/Amount/xs:decimal(.))
+                        <div class="stat-value">{count($funds[let $c := Currency/text(), $v := local:calc-variance(
+                            xs:decimal((FundDynamicData/TotalAssetValues/TotalAssetValue/TotalNetAssetValue/Amount)[1]),
+                            sum(FundDynamicData/Portfolios/Portfolio/Positions/Position ! local:position-value(., $c))
                         ) return abs($v) > 1.0])}</div>
                         <div class="stat-label">Failed</div>
                     </div>
@@ -139,13 +146,13 @@ return
                     for $fund in $funds
                     let $fundName := $fund/Names/OfficialName/text()
                     let $navDate := $fund/FundDynamicData/TotalAssetValues/TotalAssetValue/NavDate/text()
-                    let $reportedNav := xs:decimal($fund/FundDynamicData/TotalAssetValues/TotalAssetValue/TotalNetAssetValue/Amount)
+                    let $reportedNav := xs:decimal(($fund/FundDynamicData/TotalAssetValues/TotalAssetValue/TotalNetAssetValue/Amount)[1])
                     let $positions := $fund/FundDynamicData/Portfolios/Portfolio/Positions/Position
-                    let $calculatedSum := sum($positions/TotalValue/Amount/xs:decimal(.))
+                    let $currency := $fund/Currency/text()
+                    let $calculatedSum := sum($positions ! local:position-value(., $currency))
                     let $variance := local:calc-variance($reportedNav, $calculatedSum)
                     let $status := local:get-status($variance)
                     let $statusColor := local:get-status-color($status)
-                    let $currency := $fund/Currency/text()
                     return
                     <tr>
                         <td>{$fundName}</td>
@@ -163,6 +170,7 @@ return
             {
                 for $fund in $funds
                 let $fundName := $fund/Names/OfficialName/text()
+                let $fundCcy := $fund/Currency/text()
                 let $positions := $fund/FundDynamicData/Portfolios/Portfolio/Positions/Position
                 return
                 <div class="summary-card">
@@ -184,7 +192,7 @@ return
                             <tr>
                                 <td>{$pos/UniqueID/text()}</td>
                                 <td>{($pos/Identifiers/ISIN/text(), $pos/Identifiers/OtherID/text())[1]}</td>
-                                <td class="amount">{local:format-amount(xs:decimal($pos/TotalValue/Amount))}</td>
+                                <td class="amount">{local:format-amount(local:position-value($pos, $fundCcy))}</td>
                                 <td class="amount">{$pos/TotalPercentage/text()}%</td>
                             </tr>
                         }

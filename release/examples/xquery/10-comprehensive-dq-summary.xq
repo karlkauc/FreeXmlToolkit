@@ -27,8 +27,9 @@ declare option output:html-version "5";
 (: ========== Helper Functions ========== :)
 
 (: Check if field is present :)
-declare function local:is-present($node as node()?) as xs:boolean {
-    exists($node) and normalize-space(string($node)) != ""
+declare function local:is-present($nodes as node()*) as xs:boolean {
+    (: accepts sequences: multi-currency positions carry one Amount per currency :)
+    some $n in $nodes satisfies normalize-space(string($n)) != ""
 };
 
 (: Calculate NAV variance :)
@@ -73,7 +74,7 @@ declare function local:get-score-color($score as xs:decimal) as xs:string {
 };
 
 (: ========== Main Processing ========== :)
-let $doc := /
+let $doc := /FundsXML4
 let $controlData := $doc//ControlData
 let $funds := $doc//Fund
 let $positions := $doc//Position

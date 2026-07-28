@@ -97,6 +97,23 @@ class ExamplesIntegrityTest {
     }
 
     @Test
+    void allBundledXQueries_executeAgainstTheEquityExample() throws IOException {
+        String xml = Files.readString(EXAMPLES.resolve("xml/FundsXML4_Equity_Fund.xml"));
+        try (var files = Files.list(EXAMPLES.resolve("xquery"))) {
+            var queries = files.filter(p -> p.toString().endsWith(".xq")).sorted().toList();
+            assertTrue(queries.size() >= 11, "Expected the full bundled XQuery series");
+
+            for (Path query : queries) {
+                var result = XsltTransformationEngine.getInstance().transformXQuery(
+                        xml, Files.readString(query),
+                        Map.of(), XsltTransformationEngine.OutputFormat.HTML);
+                assertTrue(result.isSuccess(),
+                        () -> query.getFileName() + " failed: " + result.getErrorMessage());
+            }
+        }
+    }
+
+    @Test
     void lookThroughXQuery_findsTheFundInvestment() throws IOException {
         var result = XsltTransformationEngine.getInstance().transformXQuery(
                 Files.readString(EXAMPLES.resolve("xml/FundsXML4_Equity_Fund.xml")),
