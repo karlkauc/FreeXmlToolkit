@@ -161,6 +161,37 @@ class ExamplesIntegrityTest {
     }
 
     @Test
+    void allBundledXProcPipelines_executeAgainstTheEquityExample() throws IOException {
+        var equityFund = EXAMPLES.resolve("xml/FundsXML4_Equity_Fund.xml").toFile();
+        try (var files = Files.list(EXAMPLES.resolve("xproc"))) {
+            var pipelines = files.filter(p -> p.toString().endsWith(".xpl")).sorted().toList();
+            assertTrue(pipelines.size() >= 8, "Expected the full bundled XProc series");
+
+            for (Path pipeline : pipelines) {
+                var result = org.fxt.freexmltoolkit.controls.shell.editor.XProcRunner.runPipeline(
+                        Files.readString(pipeline), pipeline.toFile(), null, equityFund);
+                assertFalse(result.isError(),
+                        () -> pipeline.getFileName() + " failed: " + result.text());
+                assertFalse(result.text().isBlank(),
+                        () -> pipeline.getFileName() + " produced blank output");
+            }
+        }
+    }
+
+    @Test
+    void positionsCsvPipeline_producesCsvWithHeader() throws IOException {
+        Path pipeline = EXAMPLES.resolve("xproc/03-positions-csv.xpl");
+        var result = org.fxt.freexmltoolkit.controls.shell.editor.XProcRunner.runPipeline(
+                Files.readString(pipeline), pipeline.toFile(), null,
+                EXAMPLES.resolve("xml/FundsXML4_Equity_Fund.xml").toFile());
+
+        assertFalse(result.isError(), () -> "CSV pipeline failed: " + result.text());
+        assertTrue(result.text().startsWith(
+                        "FundISIN,FundName,PositionID,ISIN,AssetName,AssetClass,Currency,TotalValue,Percentage"),
+                "CSV output should start with the header row");
+    }
+
+    @Test
     void csvExportStylesheet_producesCsvWithHeader() throws IOException {
         var result = XsltTransformationEngine.getInstance().transform(
                 Files.readString(EXAMPLES.resolve("xml/FundsXML4_Equity_Fund.xml")),

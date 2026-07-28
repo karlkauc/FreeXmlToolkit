@@ -22,7 +22,7 @@
         </sch:rule>
 
         <sch:rule context="//InterestRateDebit | //InterestRateCredit">
-            <sch:assert test=". >= 0 and . <= 100">
+            <sch:assert test=". >= 0 and . &lt;= 100">
                 Interest rates must be between 0% and 100%.
             </sch:assert>
         </sch:rule>
@@ -32,7 +32,7 @@
                 IBAN must follow the correct format with country code and check digits.
             </sch:assert>
 
-            <sch:assert test="string-length(.) >= 15 and string-length(.) <= 34">
+            <sch:assert test="string-length(.) >= 15 and string-length(.) &lt;= 34">
                 IBAN length must be between 15 and 34 characters.
             </sch:assert>
         </sch:rule>

@@ -45,7 +45,7 @@
         </sch:rule>
 
         <sch:rule context="//Ticker">
-            <sch:assert test="string-length(normalize-space(.)) >= 1 and string-length(normalize-space(.)) <= 10">
+            <sch:assert test="string-length(normalize-space(.)) >= 1 and string-length(normalize-space(.)) &lt;= 10">
                 Ticker symbol must be between 1 and 10 characters long.
             </sch:assert>
 

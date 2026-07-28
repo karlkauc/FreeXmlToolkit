@@ -321,6 +321,10 @@ collections in the `examples` folder next to the application:
 - **`examples/xquery/`** - 17 XQuery 3.1 scripts. Files 01-11 are data-quality checks
   with HTML reports; files 12-17 are **reporting/export examples** (CSV export, ASCII
   dashboard, Markdown fund report, JSON export, pivot table, two-fund comparison).
+- **`examples/xproc/`** - 8 XProc 3.0 pipelines, from a minimal identity pipeline to
+  multi-step chains: slimming with `p:delete`, CSV/JSON export by orchestrating the
+  bundled stylesheets, metadata stamping, `p:for-each` iteration, `p:choose`
+  branching and a Schematron SVRL report. See the folder's `README.md`.
 
 All examples target the FundsXML4 sample documents in `examples/xml/`. Paste any of them
 into the query panel or the [Query Console](unified-shell.md#query-console) - the

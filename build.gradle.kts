@@ -1100,6 +1100,11 @@ fun createJlinkRuntimeTask(taskName: String, platform: String, arch: String) {
             "jdk.crypto.ec",
             "jdk.httpserver",
             "jdk.jsobject",
+            // XML Calabash 3 transitive needs: kotlinx-coroutines (Unsafe),
+            // commons-compress (zip filesystem), xmlresolver/httpclient (HTTP)
+            "jdk.unsupported",
+            "jdk.zipfs",
+            "java.net.http",
             "javafx.base",
             "javafx.controls",
             "javafx.fxml",

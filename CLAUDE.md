@@ -38,7 +38,8 @@ including in IDE / `./gradlew run` mode.
 **Core Technologies:**
 - **Java 25** with preview features
 - **JavaFX 25** for UI (Liberica Full JDK includes JavaFX)
-- **Saxon HE 13.0** for XSLT 3.0/XPath 3.1/XQuery
+- **Saxon HE 12.10** for XSLT 3.0/XPath 3.1/XQuery (pinned by XML Calabash 3)
+- **XML Calabash 3.0.51** for XProc 3.0 pipelines
 - **Xerces 2.12.2** with XSD 1.1 support (exist-db fork)
 - **Apache FOP 2.11** for PDF generation
 - **RichTextFX 0.11.7** for code editor with syntax highlighting
@@ -150,7 +151,8 @@ Requires `<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>`.
 
 ## Project-Specific Patterns
 
-- **XSLT/XQuery:** Saxon HE 13.0 for XSLT 3.0, XPath 3.1, XQuery 3.1
+- **XSLT/XQuery:** Saxon HE 12.10 for XSLT 3.0, XPath 3.1, XQuery 3.1 (pinned by XML Calabash 3)
+- **XProc:** XML Calabash 3.0.51 for XProc 3.0 pipelines (Run Pipeline on .xpl documents)
 - **XML Validation:** Xerces 2.12.2 (exist-db fork) for XSD 1.1
 - **UI Framework:** JavaFX 25 with AtlantaFX theme
 - **Icons:** `IconifyIcon` control (bundled Iconify Bootstrap Icons SVG); graceful fallback on unknown names

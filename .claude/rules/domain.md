@@ -73,9 +73,10 @@
 | Task | Library | Version |
 |------|---------|---------|
 | Parsing/Validation | Xerces | 2.12.2 (XSD 1.1) |
-| XSLT 3.0 | Saxon HE | 13.0 |
-| XPath 3.1 | Saxon HE | 13.0 |
-| XQuery 3.1 | Saxon HE | 13.0 |
+| XSLT 3.0 | Saxon HE | 12.10 (pinned by XML Calabash 3) |
+| XPath 3.1 | Saxon HE | 12.10 (pinned by XML Calabash 3) |
+| XQuery 3.1 | Saxon HE | 12.10 (pinned by XML Calabash 3) |
+| XProc 3.0 | XML Calabash | 3.0.51 |
 | PDF (XSL-FO) | Apache FOP | 2.11 |
 | Digital Signatures | Apache Santuario | - |
 | Excel Export | Apache POI | 5.5.1 |
