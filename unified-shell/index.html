@@ -4904,6 +4904,9 @@ pane shows the previous run's XML result with syntax highlighting.</em></p>
 expression directly; for a <strong>JSON</strong> document the XPath input is evaluated as a <strong>JSONPath</strong>
 expression. When no document is open, <strong>Run</strong> is disabled and the results pane shows
 <em>"No document open."</em></p>
+<p><em>(Updated July 2026)</em> The <code>map:</code>, <code>array:</code> and <code>math:</code> function namespaces are
+<strong>pre-declared</strong> in the console, so XPath 3.1 expressions using <code>map:merge()</code>,
+<code>array:size()</code>, <code>math:pow()</code> etc. run directly - no namespace prolog needed.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>The Query Console is an additional, faster access point - it does not replace the <strong>Transform</strong>
@@ -4920,6 +4923,12 @@ the OUTPUT panel's result table and HTML preview, use the <a href="#transform-pa
 </ul>
 <p>Snippets are kept in the shared query folder, so anything saved here is also available from the XML
 Editor's XPath/XQuery panel and vice versa.</p>
+<p>Looking for ready-made queries? The installation's <code>examples/xpath/</code> folder contains
+<strong>32 XPath 3.1 examples</strong> and <code>examples/xquery/</code> contains <strong>17 XQuery 3.1 scripts</strong>
+(data-quality checks plus a reporting series producing CSV, ASCII tables/charts,
+Markdown and JSON), all written for the FundsXML4 sample files in <code>examples/xml/</code>.
+Paste them into the console, or copy the <code>.xpath</code> files into your query folder to have
+them appear in the <strong>Snippets</strong> menu. See the <code>README.md</code> in each folder for details.</p>
 <p><em>(New in July 2026)</em> When the optional <a href="../fundsxml-extensions/">FundsXML extension</a> is
 enabled, the <strong>Snippets</strong> menu also shows a <strong>FUNDSXML</strong> section with the XPath/XQuery
 example queries shipped with the FundsXML examples (for example <em>fund-summary</em>,
