@@ -1,0 +1,30 @@
+(: Position export as CSV, joining portfolio positions with the asset master data
+   (Position/UniqueID = Asset/UniqueID). Shows an inline escaping function that
+   quotes fields containing commas/quotes — the classic CSV-writer pattern. :)
+let $root := /FundsXML4,
+    $assets := $root/AssetMasterData/Asset,
+    $fundCcy := string($root/Funds/Fund[1]/Currency),
+    $esc := function($v as xs:anyAtomicType?) as xs:string {
+        let $s := string($v)
+        return if (matches($s, '[",\r\n]'))
+               then '"' || replace($s, '"', '""') || '"'
+               else $s
+    },
+    $positions := $root/Funds/Fund/FundDynamicData/Portfolios/Portfolio/Positions/Position
+return (
+    'PositionID,ISIN,AssetName,AssetType,Country,PositionCcy,TotalValue' || $fundCcy || ',Percent',
+    for $pos in sort($positions, (),
+                     function($p) { -number($p/TotalValue/Amount[@ccy = $fundCcy][1]) })
+    return
+    let $asset := $assets[UniqueID = $pos/UniqueID][1]
+    return string-join((
+        $esc($pos/UniqueID),
+        $esc($asset/Identifiers/ISIN),
+        $esc($asset/Name),
+        $esc($asset/AssetType),
+        $esc($asset/Country),
+        $esc($pos/Currency),
+        string($pos/TotalValue/Amount[@ccy = $fundCcy][1]),
+        string($pos/TotalPercentage)
+    ), ',')
+)

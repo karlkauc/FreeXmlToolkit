@@ -1,0 +1,29 @@
+(: Multi-line report grouped by country: a heading line per country followed by
+   indented detail lines per position — grouping, sorting and string building
+   in one XPath 3.1 expression. :)
+let $root := /FundsXML4,
+    $assets := $root/AssetMasterData/Asset,
+    $fundCcy := string($root/Funds/Fund[1]/Currency),
+    $positions := $root/Funds/Fund/FundDynamicData/Portfolios/Portfolio/Positions/Position,
+    $countryOf := function($p as element()) as xs:string {
+        string(($assets[UniqueID = $p/UniqueID]/Country, '??')[1])
+    },
+    $valueOf := function($p as element()*) as xs:double {
+        sum($p/TotalValue/Amount[@ccy = $fundCcy]/number())
+    }
+return
+    for $country in sort(distinct-values($positions ! $countryOf(.)), (),
+                         function($c) { -$valueOf($positions[$countryOf(.) = $c]) })
+    return
+    let $group := $positions[$countryOf(.) = $country]
+    return (
+        $country || ' — ' || count($group) || ' position(s), '
+            || format-number($valueOf($group), '#,##0') || ' ' || $fundCcy,
+        for $pos in sort($group, (),
+                         function($p) { -number($p/TotalValue/Amount[@ccy = $fundCcy][1]) })
+        return
+        let $asset := $assets[UniqueID = $pos/UniqueID][1]
+        return '    - ' || substring(($asset/Name, $pos/UniqueID)[1], 1, 40)
+            || ' [' || ($asset/AssetType, '?')[1] || ']: '
+            || format-number(number($pos/TotalValue/Amount[@ccy = $fundCcy][1]), '#,##0')
+    )

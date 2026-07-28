@@ -905,11 +905,24 @@ public class XmlServiceImpl implements XmlService {
         return null;
     }
 
+    /**
+     * Creates an XPath 3.1 compiler with the standard function namespaces
+     * (map/array/math) pre-declared, so console expressions can call e.g.
+     * {@code map:merge(...)} without a prolog.
+     */
+    private XPathCompiler newXPathCompiler() {
+        XPathCompiler xpathCompiler = processor.newXPathCompiler();
+        xpathCompiler.declareNamespace("map", "http://www.w3.org/2005/xpath-functions/map");
+        xpathCompiler.declareNamespace("array", "http://www.w3.org/2005/xpath-functions/array");
+        xpathCompiler.declareNamespace("math", "http://www.w3.org/2005/xpath-functions/math");
+        return xpathCompiler;
+    }
+
     @Override
     public String getXmlFromXpath(String xPath, Node node) {
         try {
             // Use Saxon with DOM wrapper
-            XPathCompiler xpathCompiler = processor.newXPathCompiler();
+            XPathCompiler xpathCompiler = newXPathCompiler();
             XPathExecutable xpathExecutable = xpathCompiler.compile(xPath);
             XPathSelector xpathSelector = xpathExecutable.load();
 
@@ -949,7 +962,7 @@ public class XmlServiceImpl implements XmlService {
             XdmNode doc = docBuilder.build(source);
 
             // Compile and evaluate XPath expression
-            XPathCompiler xpathCompiler = processor.newXPathCompiler();
+            XPathCompiler xpathCompiler = newXPathCompiler();
             XPathExecutable xpathExecutable = xpathCompiler.compile(xPath);
             XPathSelector xpathSelector = xpathExecutable.load();
             xpathSelector.setContextItem(doc);

@@ -1,6 +1,7 @@
 (: Reconciliation: published NAV price vs. NAV computed from
    TotalNetAssetValue / SharesOutstanding (XPath 3.0: let expression). :)
 for $sc in /FundsXML4/Funds/Fund/SingleFund/ShareClasses/ShareClass
+return
 let $calc := number($sc/TotalAssetValues/TotalAssetValue/TotalNetAssetValue/Amount)
              div number($sc/TotalAssetValues/TotalAssetValue/SharesOutstanding)
 return concat($sc/Identifiers/ISIN, ': published=', $sc/Prices/Price/NavPrice,

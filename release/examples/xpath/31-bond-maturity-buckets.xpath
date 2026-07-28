@@ -1,0 +1,39 @@
+(: Bond maturity ladder: positions whose asset is a bond are bucketed by years
+   to maturity (date arithmetic against ControlData/ContentDate) and rendered
+   as an ASCII bar per bucket. :)
+let $root := /FundsXML4,
+    $assets := $root/AssetMasterData/Asset,
+    $fundCcy := string($root/Funds/Fund[1]/Currency),
+    $asOf := xs:date($root/ControlData/ContentDate),
+    $positions := $root/Funds/Fund/FundDynamicData/Portfolios/Portfolio/Positions/Position,
+    $bondPositions := $positions[UniqueID = $assets[AssetDetails/Bond/MaturityDate]/UniqueID],
+    $yearsToMaturity := function($p as element()) as xs:double {
+        let $maturity := xs:date($assets[UniqueID = $p/UniqueID][1]/AssetDetails/Bond/MaturityDate)
+        return ($maturity - $asOf) div xs:dayTimeDuration('P1D') div 365.25
+    },
+    $rpad := function($v as xs:anyAtomicType?, $w as xs:integer) as xs:string {
+        substring(string($v) || string-join((1 to $w) ! ' ', ''), 1, $w)
+    },
+    $buckets := (
+        map { 'label': '< 1 year',     'from': -100, 'to': 1 },
+        map { 'label': '1 - 5 years',  'from': 1,    'to': 5 },
+        map { 'label': '5 - 10 years', 'from': 5,    'to': 10 },
+        map { 'label': '> 10 years',   'from': 10,   'to': 1000 }
+    ),
+    $maxCount := max(((for $b in $buckets
+                       return count($bondPositions[$yearsToMaturity(.) >= $b?from
+                                                   and $yearsToMaturity(.) < $b?to])), 1))
+return (
+    'Bond maturity profile (' || count($bondPositions) || ' bond position(s), as of '
+        || $asOf || ')',
+    for $bucket in $buckets
+    return
+    let $group := $bondPositions[$yearsToMaturity(.) >= $bucket?from
+                                 and $yearsToMaturity(.) < $bucket?to]
+    return $rpad($bucket?label, 14)
+        || $rpad(count($group) || ' pos', 8)
+        || string-join((1 to xs:integer(ceiling(count($group) div $maxCount * 40))) ! '█', '')
+        || (if (exists($group)) then '  '
+            || format-number(sum($group/TotalValue/Amount[@ccy = $fundCcy]/number()), '#,##0')
+            || ' ' || $fundCcy else '')
+)

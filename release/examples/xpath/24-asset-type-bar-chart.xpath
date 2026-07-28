@@ -1,0 +1,22 @@
+(: Portfolio allocation by asset type as an ASCII bar chart (one block per 2%),
+   joining every position to its asset-master entry to obtain the type. :)
+let $root := /FundsXML4,
+    $assets := $root/AssetMasterData/Asset,
+    $fundCcy := string($root/Funds/Fund[1]/Currency),
+    $positions := $root/Funds/Fund/FundDynamicData/Portfolios/Portfolio/Positions/Position,
+    $rpad := function($v as xs:anyAtomicType?, $w as xs:integer) as xs:string {
+        substring(string($v) || string-join((1 to $w) ! ' ', ''), 1, $w)
+    },
+    $typeOf := function($p as element()) as xs:string {
+        string(($assets[UniqueID = $p/UniqueID]/AssetType, 'N/A')[1])
+    },
+    $total := sum($positions/TotalValue/Amount[@ccy = $fundCcy]/number()),
+    $types := sort(distinct-values($positions ! $typeOf(.)), (),
+        function($t) { -sum($positions[$typeOf(.) = $t]/TotalValue/Amount[@ccy = $fundCcy]/number()) })
+return
+    for $type in $types
+    return
+    let $pct := sum($positions[$typeOf(.) = $type]/TotalValue/Amount[@ccy = $fundCcy]/number())
+                div $total * 100
+    return $rpad($type, 5) || string-join((1 to xs:integer(round(abs($pct) div 2))) ! '█', '')
+        || ' ' || format-number($pct, '0.0') || '%'

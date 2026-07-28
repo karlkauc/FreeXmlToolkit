@@ -1,0 +1,22 @@
+(: Transaction blotter as a text report — a three-way combination of Fund,
+   Transaction and AssetMasterData (Transaction/AssetUniqueID = Asset/UniqueID),
+   concatenated with the || operator. :)
+let $root := /FundsXML4,
+    $fund := $root/Funds/Fund[1],
+    $assets := $root/AssetMasterData/Asset,
+    $txs := $fund/FundDynamicData/Portfolios/Portfolio/Transactions/Transaction
+return (
+    'Transactions of ' || $fund/Names/OfficialName
+        || ' [' || $fund/Identifiers/ISIN || '] as of ' || $root/ControlData/ContentDate,
+    for $tx in sort($txs, (), function($t) { string($t/EntryDate) })
+    return
+    let $asset := $assets[UniqueID = $tx/AssetUniqueID][1]
+    return $tx/EntryDate || '  ' || $tx/TransactionKind || '  '
+        || ($asset/Name, $tx/AssetUniqueID)[1]
+        || ' (' || ($asset/Identifiers/ISIN, 'no ISIN')[1] || '): '
+        || format-number(number($tx/NominalOrUnitsOrContracts), '#,##0.##')
+        || ' units @ ' || format-number(number($tx/CleanPrice/Amount[1]), '#,##0.0000')
+        || ' -> ' || format-number(number($tx/SettlementAmount/Amount[1]), '#,##0.00')
+        || ' ' || $tx/SettlementCurrency
+        || (if ($tx/Exchange) then ' on ' || $tx/Exchange else '')
+)

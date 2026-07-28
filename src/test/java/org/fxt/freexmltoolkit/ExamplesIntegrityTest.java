@@ -101,7 +101,7 @@ class ExamplesIntegrityTest {
         String xml = Files.readString(EXAMPLES.resolve("xml/FundsXML4_Equity_Fund.xml"));
         try (var files = Files.list(EXAMPLES.resolve("xquery"))) {
             var queries = files.filter(p -> p.toString().endsWith(".xq")).sorted().toList();
-            assertTrue(queries.size() >= 11, "Expected the full bundled XQuery series");
+            assertTrue(queries.size() >= 17, "Expected the full bundled XQuery series");
 
             for (Path query : queries) {
                 var result = XsltTransformationEngine.getInstance().transformXQuery(
@@ -124,6 +124,40 @@ class ExamplesIntegrityTest {
         // the equity example holds exactly one target-fund position (Erste Euro Bázis)
         assertTrue(result.getOutputContent().contains("HU0000706007"),
                 "Look-through report should list the fund-investment candidate");
+    }
+
+    @Test
+    void allBundledXPathExamples_executeAgainstTheEquityExample() throws IOException {
+        String xml = Files.readString(EXAMPLES.resolve("xml/FundsXML4_Equity_Fund.xml"));
+        try (var files = Files.list(EXAMPLES.resolve("xpath"))) {
+            var expressions = files.filter(p -> p.toString().endsWith(".xpath")).sorted().toList();
+            assertTrue(expressions.size() >= 32, "Expected the full bundled XPath series");
+
+            for (Path expression : expressions) {
+                String result = xmlService.getXmlFromXpath(xml, Files.readString(expression));
+                assertTrue(result != null,
+                        () -> expression.getFileName() + " failed to evaluate (returned null)");
+                // Files 01-20 may legitimately serialize to "" (map/array results);
+                // the reporting series 21+ always yields printable text.
+                if (expression.getFileName().toString().compareTo("21") >= 0) {
+                    assertFalse(result.isBlank(),
+                            () -> expression.getFileName() + " produced blank output");
+                }
+            }
+        }
+    }
+
+    @Test
+    void positionsCsvXQuery_producesCsvWithHeader() throws IOException {
+        var result = XsltTransformationEngine.getInstance().transformXQuery(
+                Files.readString(EXAMPLES.resolve("xml/FundsXML4_Equity_Fund.xml")),
+                Files.readString(EXAMPLES.resolve("xquery/12-positions-csv-export.xq")),
+                Map.of(), XsltTransformationEngine.OutputFormat.TEXT);
+
+        assertTrue(result.isSuccess(), () -> "Position CSV XQuery failed: " + result.getErrorMessage());
+        assertTrue(result.getOutputContent().startsWith(
+                        "FundISIN,FundName,PositionID,ISIN,AssetName,AssetType,Country,PositionCcy"),
+                "CSV output should start with the header row");
     }
 
     @Test

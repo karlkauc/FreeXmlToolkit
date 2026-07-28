@@ -48,11 +48,14 @@ Both bundled FundsXML4 instances support real joins:
 | 14 | Complete fund report (sections, tables) for pasting into docs | Markdown |
 | 15 | Full fund export (maps/arrays, JSON serialization) | JSON |
 | 16 | Cross-tab asset type × currency (pivot) | ASCII |
-| 17 | Two-fund comparison via `doc()` (equity vs. bond) | Markdown/ASCII |
+| 17 | Fund comparison via `doc()` ($comparisonFile) with share-class fallback | Markdown |
 
-Example 17 probes candidate URIs with `doc-available()` (relative to the examples
-folder and to the project root) and falls back to a single-fund summary with an
-explanatory note when the sibling file cannot be resolved.
+Example 17: queries are compiled without a base URI (both the Query Console and
+`XsltTransformationEngine` compile from strings), so relative `doc()` references
+can never resolve. The query therefore exposes a `$comparisonFile` variable for
+an absolute `file:///` URI (two-fund mode) and otherwise falls back to a
+share-class comparison of the active document — it always produces a real
+side-by-side table.
 
 ## Constraints observed
 
@@ -61,6 +64,15 @@ explanatory note when the sibling file cannot be resolved.
 - Text output method requires `string-join` over element construction.
 - Query Console renders atomic sequences line-by-line (`XmlServiceImpl.getXmlFromXpath`),
   so XPath examples return sequences of strings or a single joined string.
+
+## Fixes uncovered by the new tests
+
+- `XmlServiceImpl.getXmlFromXpath` never declared the `map`/`array`/`math`
+  function namespaces, so bundled example 12 (`map:merge`) failed in the Query
+  Console → prefixes are now pre-declared.
+- Bundled example `19-nav-per-share-recon.xpath` used the XQuery-only
+  `for ... let ... return` form, which is a syntax error in XPath → rewritten
+  as `for ... return let ... return`.
 
 ## Test coverage
 

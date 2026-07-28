@@ -1,0 +1,28 @@
+(: Fund KPIs exported as a JSON object: XPath 3.1 maps + fn:serialize with the
+   JSON output method. The result is a ready-to-use JSON document string. :)
+let $root := /FundsXML4,
+    $fund := $root/Funds/Fund[1],
+    $fundCcy := string($fund/Currency),
+    $positions := $fund/FundDynamicData/Portfolios/Portfolio/Positions/Position
+return serialize(
+    map {
+        'documentId': string($root/ControlData/UniqueDocumentID),
+        'contentDate': string($root/ControlData/ContentDate),
+        'fund': map {
+            'name': string($fund/Names/OfficialName),
+            'isin': string($fund/Identifiers/ISIN),
+            'currency': $fundCcy,
+            'netAssetValue': number(
+                $fund/FundDynamicData/TotalAssetValues/TotalAssetValue[1]
+                     /TotalNetAssetValue/Amount[1])
+        },
+        'portfolio': map {
+            'positions': count($positions),
+            'currencies': array { sort(distinct-values($positions/Currency)) },
+            'totalValue': sum($positions/TotalValue/Amount[@ccy = $fundCcy]/number()),
+            'largestPositionPct': max($positions/TotalPercentage/number())
+        },
+        'shareClasses': count($fund/SingleFund/ShareClasses/ShareClass)
+    },
+    map { 'method': 'json', 'indent': true() }
+)

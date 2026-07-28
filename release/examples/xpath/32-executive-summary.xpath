@@ -1,0 +1,44 @@
+(: Executive summary "one-pager": combines fund master data, NAV, top positions
+   (asset join), currency split and share classes into one formatted text block —
+   let bindings, inline functions, fn:sort, format-number and || throughout. :)
+let $root := /FundsXML4,
+    $fund := $root/Funds/Fund[1],
+    $assets := $root/AssetMasterData/Asset,
+    $fundCcy := string($fund/Currency),
+    $positions := $fund/FundDynamicData/Portfolios/Portfolio/Positions/Position,
+    $nav := number($fund/FundDynamicData/TotalAssetValues/TotalAssetValue[1]
+                        /TotalNetAssetValue/Amount[1]),
+    $valueOf := function($p as element()*) as xs:double {
+        sum($p/TotalValue/Amount[@ccy = $fundCcy]/number())
+    },
+    $line := string-join((1 to 60) ! '=', '')
+return (
+    $line,
+    upper-case(string($fund/Names/OfficialName)),
+    'ISIN ' || $fund/Identifiers/ISIN || '  |  ' || $fundCcy
+        || '  |  as of ' || $root/ControlData/ContentDate,
+    $line,
+    '',
+    'Net asset value:   ' || format-number($nav, '#,##0.00') || ' ' || $fundCcy,
+    'Positions:         ' || count($positions) || ' across '
+        || count(distinct-values($positions/Currency)) || ' currencies ('
+        || string-join(sort(distinct-values($positions/Currency)), ', ') || ')',
+    'Share classes:     ' || count($fund/SingleFund/ShareClasses/ShareClass),
+    'Transactions:      ' || count($fund/FundDynamicData/Portfolios/Portfolio/Transactions/Transaction),
+    '',
+    'Top 3 positions:',
+    for $pos in subsequence(sort($positions, (),
+            function($p) { -number($p/TotalValue/Amount[@ccy = $fundCcy][1]) }), 1, 3)
+    return
+    let $asset := $assets[UniqueID = $pos/UniqueID][1]
+    return '  ' || substring(($asset/Name, $pos/UniqueID)[1], 1, 38)
+        || '  ' || format-number(number($pos/TotalValue/Amount[@ccy = $fundCcy][1]), '#,##0')
+        || ' (' || format-number(number($pos/TotalPercentage), '0.00') || '%)',
+    '',
+    'Coverage check:    top-10 = '
+        || format-number($valueOf(subsequence(sort($positions, (),
+               function($p) { -number($p/TotalValue/Amount[@ccy = $fundCcy][1]) }), 1, 10))
+               div $valueOf($positions) * 100, '0.0')
+        || '% of portfolio value',
+    $line
+)

@@ -1,0 +1,18 @@
+(: Aggregation report as CSV: positions grouped per currency with count, total
+   value (in fund currency) and portfolio share — grouping via distinct-values. :)
+let $root := /FundsXML4,
+    $fundCcy := string($root/Funds/Fund[1]/Currency),
+    $positions := $root/Funds/Fund/FundDynamicData/Portfolios/Portfolio/Positions/Position,
+    $value := function($p as element()*) as xs:double {
+        sum($p/TotalValue/Amount[@ccy = $fundCcy]/number())
+    },
+    $total := $value($positions)
+return (
+    'Currency,Positions,TotalValue' || $fundCcy || ',SharePercent',
+    for $ccy in sort(distinct-values($positions/Currency))
+    return
+    let $group := $positions[Currency = $ccy]
+    return $ccy || ',' || count($group) || ','
+        || format-number($value($group), '0.00') || ','
+        || format-number($value($group) div $total * 100, '0.00')
+)

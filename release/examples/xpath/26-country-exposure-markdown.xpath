@@ -1,0 +1,24 @@
+(: Country exposure as a Markdown table: positions joined with the asset master
+   data for the country, grouped and sorted by exposure (descending). :)
+let $root := /FundsXML4,
+    $assets := $root/AssetMasterData/Asset,
+    $fundCcy := string($root/Funds/Fund[1]/Currency),
+    $positions := $root/Funds/Fund/FundDynamicData/Portfolios/Portfolio/Positions/Position,
+    $countryOf := function($p as element()) as xs:string {
+        string(($assets[UniqueID = $p/UniqueID]/Country, '??')[1])
+    },
+    $valueOf := function($p as element()*) as xs:double {
+        sum($p/TotalValue/Amount[@ccy = $fundCcy]/number())
+    },
+    $total := $valueOf($positions)
+return (
+    '| Country | Positions | Exposure ' || $fundCcy || ' | Share |',
+    '|---|---:|---:|---:|',
+    for $country in sort(distinct-values($positions ! $countryOf(.)), (),
+                         function($c) { -$valueOf($positions[$countryOf(.) = $c]) })
+    return
+    let $group := $positions[$countryOf(.) = $country]
+    return '| ' || $country || ' | ' || count($group) || ' | '
+        || format-number($valueOf($group), '#,##0') || ' | '
+        || format-number($valueOf($group) div $total * 100, '0.00') || '% |'
+)

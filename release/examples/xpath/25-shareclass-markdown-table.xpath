@@ -1,0 +1,19 @@
+(: Share-class overview as a Markdown table (pipe syntax) — paste the result
+   straight into any Markdown document or wiki. :)
+let $classes := /FundsXML4/Funds/Fund/SingleFund/ShareClasses/ShareClass
+return (
+    '| Share Class | ISIN | Ccy | Type | NAV Price | Shares Outstanding | Total Net Assets |',
+    '|---|---|---|---|---:|---:|---:|',
+    for $sc in $classes
+    return
+    let $tav := $sc/TotalAssetValues/TotalAssetValue[1]
+    return '| ' || string-join((
+        string($sc/Names/OfficialName),
+        string($sc/Identifiers/ISIN),
+        string($sc/Currency),
+        string($sc/ShareClassType/Code),
+        format-number(number($sc/Prices/Price[1]/NavPrice), '#,##0.0000'),
+        format-number(number($tav/SharesOutstanding), '#,##0'),
+        format-number(number($tav/TotalNetAssetValue/Amount[1]), '#,##0.00')
+    ), ' | ') || ' |'
+)

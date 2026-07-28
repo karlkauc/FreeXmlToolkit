@@ -1,0 +1,24 @@
+(: All positions as a JSON array of objects (asset name/type joined from the
+   master data) — XPath 3.1 array/map constructors + fn:serialize. :)
+let $root := /FundsXML4,
+    $assets := $root/AssetMasterData/Asset,
+    $fundCcy := string($root/Funds/Fund[1]/Currency),
+    $positions := $root/Funds/Fund/FundDynamicData/Portfolios/Portfolio/Positions/Position
+return serialize(
+    array {
+        for $pos in sort($positions, (),
+                         function($p) { -number($p/TotalValue/Amount[@ccy = $fundCcy][1]) })
+        return
+        let $asset := $assets[UniqueID = $pos/UniqueID][1]
+        return map {
+            'id': string($pos/UniqueID),
+            'name': string(($asset/Name, $pos/UniqueID)[1]),
+            'isin': string($asset/Identifiers/ISIN),
+            'assetType': string($asset/AssetType),
+            'currency': string($pos/Currency),
+            'value': number($pos/TotalValue/Amount[@ccy = $fundCcy][1]),
+            'percent': number($pos/TotalPercentage)
+        }
+    },
+    map { 'method': 'json', 'indent': true() }
+)
