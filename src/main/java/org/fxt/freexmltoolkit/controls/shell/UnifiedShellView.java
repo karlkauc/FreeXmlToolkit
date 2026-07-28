@@ -72,6 +72,7 @@ public class UnifiedShellView extends BorderPane {
     @FXML private javafx.scene.control.Button actionTransform;
     @FXML private javafx.scene.control.Button actionGenerateDocs;
     @FXML private javafx.scene.control.Button actionTypeEditor;
+    @FXML private javafx.scene.control.Button actionRunQuery;
     /** Header breadcrumb of the active file path. */
     @FXML private Label breadcrumb;
     /** Header theme toggle; its icon literal flips sun/moon with the current theme. */
@@ -131,6 +132,8 @@ public class UnifiedShellView extends BorderPane {
         activityBar = new ActivityBar(selectionModel);
         activityBarHost.getChildren().setAll(activityBar);
         editorActions = new org.fxt.freexmltoolkit.controls.shell.editor.EditorActions(editorHost);
+        // Ctrl+Enter in a query editor runs the document like the toolbar's Run Query button.
+        editorHost.setQueryRunHandler(editorActions::runActiveQuery);
         // Route the Welcome/Dashboard "New" card through the guided New File dialog, so all
         // new-file entry points (toolbar, Explorer, Welcome) share one flow.
         editorHost.setNewDocumentHandler(this::newDocument);
@@ -610,6 +613,7 @@ public class UnifiedShellView extends BorderPane {
     @FXML public void onSpreadsheet() { convertSpreadsheet(); }
     @FXML public void onQueryConsole() { toggleQueryConsole(); }
     @FXML public void onTransform() { editorActions.transformActiveWithXslt(window()); }
+    @FXML public void onRunQuery() { editorActions.runActiveQuery(); }
     @FXML public void onSetSchema() { setSchema(); }
     @FXML public void onGenerateDocs() { editorActions.generateDocsActive(window()); }
     @FXML public void onTypeEditor() { editorActions.openTypeEditorActive(); }
@@ -780,6 +784,8 @@ public class UnifiedShellView extends BorderPane {
                 .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.GENERATE_DOCS));
         actionTypeEditor.setDisable(!org.fxt.freexmltoolkit.controls.shell.editor.EditorActions
                 .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.TYPE_EDITOR));
+        actionRunQuery.setDisable(!org.fxt.freexmltoolkit.controls.shell.editor.EditorActions
+                .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.RUN_QUERY));
 
         // Everything that operates on the active document is disabled when none is open,
         // so the toolbar never offers a no-op click on the empty welcome screen. New/Open
@@ -933,6 +939,8 @@ public class UnifiedShellView extends BorderPane {
         chooser.getExtensionFilters().addAll(
                 new javafx.stage.FileChooser.ExtensionFilter("XML / XSD / XSLT / Schematron / JSON",
                         "*.xml", "*.xsd", "*.xsl", "*.xslt", "*.sch", "*.schematron", "*.json"),
+                new javafx.stage.FileChooser.ExtensionFilter("XQuery / XPath",
+                        "*.xq", "*.xquery", "*.xqm", "*.xqy", "*.xpath"),
                 new javafx.stage.FileChooser.ExtensionFilter("All files", "*.*"));
         java.io.File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
@@ -1089,6 +1097,8 @@ public class UnifiedShellView extends BorderPane {
         chooser.getExtensionFilters().addAll(
                 new javafx.stage.FileChooser.ExtensionFilter("XML / XSD / XSLT / Schematron / JSON",
                         "*.xml", "*.xsd", "*.xsl", "*.xslt", "*.sch", "*.schematron", "*.json"),
+                new javafx.stage.FileChooser.ExtensionFilter("XQuery / XPath",
+                        "*.xq", "*.xquery", "*.xqm", "*.xqy", "*.xpath"),
                 new javafx.stage.FileChooser.ExtensionFilter("All files", "*.*"));
         java.io.File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {

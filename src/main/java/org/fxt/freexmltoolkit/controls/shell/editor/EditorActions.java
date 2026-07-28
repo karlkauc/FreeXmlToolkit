@@ -34,8 +34,8 @@ import org.fxt.freexmltoolkit.service.XsltTransformationResult;
  */
 public final class EditorActions {
 
-    /** The four editor-level actions; used by the toolbar to drive enable/disable gating. */
-    public enum EditorAction { VALIDATE, TRANSFORM, GENERATE_DOCS, TYPE_EDITOR }
+    /** The editor-level actions; used by the toolbar to drive enable/disable gating. */
+    public enum EditorAction { VALIDATE, TRANSFORM, GENERATE_DOCS, TYPE_EDITOR, RUN_QUERY }
 
     private final EditorHost editorHost;
 
@@ -59,6 +59,7 @@ public final class EditorActions {
             };
             case TRANSFORM -> type == EditorFileType.XML;
             case GENERATE_DOCS, TYPE_EDITOR -> type == EditorFileType.XSD;
+            case RUN_QUERY -> type == EditorFileType.XQUERY || type == EditorFileType.XPATH;
         };
     }
 
@@ -166,6 +167,64 @@ public final class EditorActions {
             String finalOutput = output;
             Platform.runLater(() -> editorHost.openToolTab(
                     "Transform: " + xslt.getName(), "bi-arrow-left-right", textRegion(finalOutput)));
+        });
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // Run XPath/XQuery document
+    // ---------------------------------------------------------------------------------------------
+
+    /** Monotonic run id; a late async result is dropped if a newer run has started (FX-thread only). */
+    private int queryRunGeneration;
+
+    /**
+     * Runs the active XPath/XQuery document against the most recently active
+     * XML-family document ({@link EditorHost#getLastXmlFamilyDocument()}) off the
+     * FX thread and shows the result in the docked OUTPUT panel — mirroring
+     * {@code QueryConsole}/{@code TransformPanel}. No-op for non-query documents.
+     */
+    public void runActiveQuery() {
+        EditorFileType type = activeFileType();
+        if (type != EditorFileType.XQUERY && type != EditorFileType.XPATH) {
+            return;
+        }
+        TransformOutputPanel out = editorHost.transformOutputPanel();
+        String query = editorHost.getActiveText().orElse("");
+        if (query.isBlank()) {
+            out.showError("The query is empty.");
+            return;
+        }
+        var target = editorHost.getLastXmlFamilyDocument();
+        if (target.isEmpty()) {
+            out.showError("Open an XML document first — the query runs against the most recently active XML document.");
+            return;
+        }
+        String xml = editorHost.getDocumentText(target.get()).orElse("");
+        boolean xquery = type == EditorFileType.XQUERY;
+        out.showPending("Running query against " + target.get().getDisplayName() + "…");
+        final int gen = ++queryRunGeneration;
+        FxtGui.executorService.submit(() -> {
+            long start = System.nanoTime();
+            if (xquery) {
+                String result = TransformRunner.runXQuery(xml, query, Map.of(),
+                        XsltTransformationEngine.OutputFormat.XML);
+                XQueryTableRunner.XQueryTable table = XQueryTableRunner.run(xml, query);
+                long elapsedMs = (System.nanoTime() - start) / 1_000_000;
+                Platform.runLater(() -> {
+                    if (gen == queryRunGeneration) {
+                        out.showXQueryResult(result, table,
+                                XsltTransformationEngine.OutputFormat.XML, elapsedMs);
+                    }
+                });
+            } else {
+                String result = TransformRunner.runXPath(xml, query);
+                long elapsedMs = (System.nanoTime() - start) / 1_000_000;
+                Platform.runLater(() -> {
+                    if (gen == queryRunGeneration) {
+                        out.showQueryResult(result, elapsedMs);
+                    }
+                });
+            }
         });
     }
 

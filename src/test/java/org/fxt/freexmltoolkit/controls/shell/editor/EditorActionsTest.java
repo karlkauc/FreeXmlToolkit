@@ -50,13 +50,18 @@ class EditorActionsTest {
         assertTrue(EditorActions.applicableFor(EditorFileType.XSD, EditorActions.EditorAction.TYPE_EDITOR));
         assertFalse(EditorActions.applicableFor(EditorFileType.XSD, EditorActions.EditorAction.TRANSFORM));
         assertTrue(EditorActions.applicableFor(EditorFileType.JSON, EditorActions.EditorAction.VALIDATE));
+        assertTrue(EditorActions.applicableFor(EditorFileType.XQUERY, EditorActions.EditorAction.RUN_QUERY));
+        assertTrue(EditorActions.applicableFor(EditorFileType.XPATH, EditorActions.EditorAction.RUN_QUERY));
+        assertFalse(EditorActions.applicableFor(EditorFileType.XML, EditorActions.EditorAction.RUN_QUERY));
+        assertFalse(EditorActions.applicableFor(EditorFileType.XQUERY, EditorActions.EditorAction.VALIDATE));
+        assertFalse(EditorActions.applicableFor(EditorFileType.XQUERY, EditorActions.EditorAction.TRANSFORM));
     }
 
     @Test
     void buttonsExistAndAllDisabledWhenNoDocumentOpen() {
         WaitForAsyncUtils.waitForFxEvents();
         for (String id : new String[]{"doc-action-validate", "doc-action-transform",
-                "doc-action-generate-docs", "doc-action-type-editor"}) {
+                "doc-action-generate-docs", "doc-action-type-editor", "doc-action-run-query"}) {
             Button button = (Button) shell.lookup("#" + id);
             assertNotNull(button, "document-action button must exist: " + id);
             assertTrue(button.isDisable(),
@@ -105,6 +110,82 @@ class EditorActionsTest {
                 "Generate Documentation must be disabled for an XML document");
         assertTrue(button("doc-action-type-editor").isDisable(),
                 "Open Type Editor must be disabled for an XML document");
+    }
+
+    @Test
+    void xqueryEnablesRunQueryAndXmlDoesNot(@TempDir Path tmp) throws Exception {
+        Path xml = tmp.resolve("doc.xml");
+        Files.writeString(xml, "<root><a>x</a></root>");
+        Path xq = tmp.resolve("query.xq");
+        Files.writeString(xq, "for $a in /root/a return $a");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> shell.getEditorHost().openFile(xml));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> shell.getEditorHost().getActiveText().map(t -> t.contains("root")).orElse(false));
+        WaitForAsyncUtils.waitForFxEvents();
+        assertTrue(button("doc-action-run-query").isDisable(),
+                "Run Query must be disabled for an XML document");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> shell.getEditorHost().openFile(xq));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> shell.getEditorHost().getActiveText().map(t -> t.contains("return")).orElse(false));
+        WaitForAsyncUtils.waitForFxEvents();
+        assertFalse(button("doc-action-run-query").isDisable(),
+                "Run Query must be enabled for an XQuery document");
+        assertTrue(button("doc-action-validate").isDisable(),
+                "Validate must be disabled for an XQuery document");
+    }
+
+    @Test
+    void runActiveQueryRunsAgainstTheLastXmlDocument(@TempDir Path tmp) throws Exception {
+        EditorHost host = shell.getEditorHost();
+        Path xml = tmp.resolve("order.xml");
+        Files.writeString(xml, "<order><item>A</item><item>B</item></order>");
+        Path xq = tmp.resolve("items.xq");
+        Files.writeString(xq, "for $i in /order/item return $i");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("order")).orElse(false));
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xq));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("return")).orElse(false));
+
+        EditorActions actions = new EditorActions(host);
+        var out = WaitForAsyncUtils.waitForAsyncFx(2000, host::transformOutputPanel);
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            actions.runActiveQuery();
+            return null;
+        });
+
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS,
+                () -> out.getOutputText() != null && out.getOutputText().contains("item"));
+        assertTrue(out.isShowing(), "the OUTPUT panel must appear after a query run");
+        assertTrue(out.getOutputText().contains("A") && out.getOutputText().contains("B"),
+                "the XQuery result must contain both items: " + out.getOutputText());
+    }
+
+    @Test
+    void runActiveQueryWithoutAnXmlDocumentShowsAGuardError(@TempDir Path tmp) throws Exception {
+        EditorHost host = shell.getEditorHost();
+        Path xpath = tmp.resolve("expr.xpath");
+        Files.writeString(xpath, "//item");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xpath));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("item")).orElse(false));
+
+        EditorActions actions = new EditorActions(host);
+        var out = WaitForAsyncUtils.waitForAsyncFx(2000, host::transformOutputPanel);
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            actions.runActiveQuery();
+            return null;
+        });
+
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS,
+                () -> out.getOutputText() != null && out.getOutputText().contains("Open an XML document"));
+        assertTrue(out.getOutputText().contains("Open an XML document first"),
+                "with no XML-family document open, a guard message must be shown: " + out.getOutputText());
     }
 
     private Button button(String id) {

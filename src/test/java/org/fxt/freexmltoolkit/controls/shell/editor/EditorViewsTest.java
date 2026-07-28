@@ -32,6 +32,16 @@ class EditorViewsTest {
     }
 
     @Test
+    void queryTypesUseTheQueryEditorWithoutSchema() {
+        EditorView xquery = WaitForAsyncUtils.waitForAsyncFx(10000, () -> EditorViews.create(EditorFileType.XQUERY));
+        EditorView xpath = WaitForAsyncUtils.waitForAsyncFx(10000, () -> EditorViews.create(EditorFileType.XPATH));
+        assertInstanceOf(QueryEditorView.class, xquery);
+        assertInstanceOf(QueryEditorView.class, xpath);
+        assertFalse(xquery.supportsSchema(), "query documents must not trigger the schema pipeline");
+        assertFalse(xpath.supportsSchema(), "query documents must not trigger the schema pipeline");
+    }
+
+    @Test
     void xmlFamilyUsesXmlEditorWithSchema() {
         EditorView xml = WaitForAsyncUtils.waitForAsyncFx(10000, () -> EditorViews.create(EditorFileType.XML));
         EditorView xsd = WaitForAsyncUtils.waitForAsyncFx(10000, () -> EditorViews.create(EditorFileType.XSD));

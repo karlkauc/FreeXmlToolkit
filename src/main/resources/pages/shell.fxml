@@ -159,6 +159,12 @@
                                             <graphic><IconifyIcon iconLiteral="bi-arrow-left-right" iconSize="20"/></graphic>
                                             <tooltip><Tooltip text="Transform with XSLT… (choose a stylesheet)"/></tooltip>
                                         </Button>
+                                        <Button fx:id="actionRunQuery" id="doc-action-run-query" text="Run Query"
+                                                contentDisplay="TOP" styleClass="fxt-tool-button, fxt-tool-success"
+                                                onAction="#onRunQuery">
+                                            <graphic><IconifyIcon iconLiteral="bi-play-fill" iconSize="20"/></graphic>
+                                            <tooltip><Tooltip text="Run the XPath/XQuery against the most recently active XML document (Ctrl+Enter)"/></tooltip>
+                                        </Button>
                                         <Button id="action-set-schema" text="Set XSD Schema" contentDisplay="TOP"
                                                 styleClass="fxt-tool-button, fxt-tool-warning" onAction="#onSetSchema">
                                             <graphic><IconifyIcon iconLiteral="bi-diagram-3" iconSize="20"/></graphic>

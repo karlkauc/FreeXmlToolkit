@@ -23,7 +23,8 @@ import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 public class WorkspaceTree extends VBox {
 
     private static final List<String> ALLOWED =
-            List.of("xml", "xsd", "xsl", "xslt", "sch", "schematron", "json");
+            List.of("xml", "xsd", "xsl", "xslt", "sch", "schematron", "json",
+                    "xq", "xquery", "xqm", "xqy", "xpath");
 
     private final TreeView<Path> tree = new TreeView<>();
     private final Consumer<Path> fileOpener;

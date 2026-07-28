@@ -11,6 +11,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
@@ -531,15 +532,27 @@ public class QueryConsole extends Region {
         }
     }
 
-    /** Builds a menu item that loads a repository snippet (FundsXML section). */
+    /** Builds a submenu that loads a repository snippet (FundsXML section) or opens it in the editor. */
     private MenuItem snippetItem(XPathSnippet snippet) {
         boolean xquery = isXQueryType(snippet.getType());
         String label = (xquery ? "XQuery: " : "XPath: ") + snippet.getName();
-        IconifyIcon graphic = new IconifyIcon(xquery ? "bi-code-square" : "bi-slash-square");
-        graphic.setIconSize(16);
-        MenuItem item = new MenuItem(label, graphic);
-        item.setOnAction(e -> loadSnippet(snippet));
-        return item;
+        Menu menu = new Menu(label, snippetIcon(xquery));
+
+        MenuItem load = new MenuItem("Load into console", snippetIcon(xquery));
+        load.setOnAction(e -> loadSnippet(snippet));
+
+        // Repository snippets have no backing file — open the query text as an
+        // untitled document of the matching type (query editor + Run button).
+        MenuItem open = new MenuItem("Open in editor", menuIcon("bi-pencil-square"));
+        open.setOnAction(e -> {
+            EditorFileType type = xquery ? EditorFileType.XQUERY : EditorFileType.XPATH;
+            editorHost.openGeneratedDocument(
+                    snippet.getQuery() == null ? "" : snippet.getQuery().strip(),
+                    type, snippet.getName() + "." + type.primaryExtension());
+        });
+
+        menu.getItems().addAll(load, open);
+        return menu;
     }
 
     /**
@@ -566,15 +579,31 @@ public class QueryConsole extends Region {
                 || type == XPathSnippet.SnippetType.FLWOR;
     }
 
-    /** Builds a menu item that loads {@code file} as an XPath or XQuery snippet. */
+    /** Builds a submenu that loads {@code file} into the console or opens it as an editor tab. */
     private MenuItem snippetItem(File file, boolean xquery) {
         String extension = xquery ? "\\.xquery$" : "\\.xpath$";
         String label = (xquery ? "XQuery: " : "XPath: ") + file.getName().replaceFirst(extension, "");
-        IconifyIcon graphic = new IconifyIcon(xquery ? "bi-code-square" : "bi-slash-square");
-        graphic.setIconSize(16);
-        MenuItem item = new MenuItem(label, graphic);
-        item.setOnAction(e -> loadSnippet(file, xquery));
-        return item;
+        Menu menu = new Menu(label, snippetIcon(xquery));
+
+        MenuItem load = new MenuItem("Load into console", snippetIcon(xquery));
+        load.setOnAction(e -> loadSnippet(file, xquery));
+
+        MenuItem open = new MenuItem("Open in editor", menuIcon("bi-pencil-square"));
+        open.setOnAction(e -> editorHost.openFile(file));
+
+        menu.getItems().addAll(load, open);
+        return menu;
+    }
+
+    /** The per-kind snippet icon (XQuery / XPath), sized for menu items. */
+    private static IconifyIcon snippetIcon(boolean xquery) {
+        return menuIcon(xquery ? "bi-code-square" : "bi-slash-square");
+    }
+
+    private static IconifyIcon menuIcon(String literal) {
+        IconifyIcon icon = new IconifyIcon(literal);
+        icon.setIconSize(16);
+        return icon;
     }
 
     /**

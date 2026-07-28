@@ -54,7 +54,9 @@ public class DragDropService {
     /** XSLT file extensions. */
     public static final List<String> XSLT_EXTENSIONS = List.of(".xsl", ".xslt");
     /** XQuery file extensions. */
-    public static final List<String> XQUERY_EXTENSIONS = List.of(".xq", ".xquery", ".xqm");
+    public static final List<String> XQUERY_EXTENSIONS = List.of(".xq", ".xquery", ".xqm", ".xqy");
+    /** XPath file extensions. */
+    public static final List<String> XPATH_EXTENSIONS = List.of(".xpath");
     /** Schematron file extensions. */
     public static final List<String> SCHEMATRON_EXTENSIONS = List.of(".sch", ".schematron");
     /** Keystore file extensions. */
@@ -65,7 +67,8 @@ public class DragDropService {
     // Combined extension lists for convenience
     /** All XML-related file extensions. */
     public static final List<String> ALL_XML_RELATED = Stream.of(
-            XML_EXTENSIONS, XSD_EXTENSIONS, XSLT_EXTENSIONS, XQUERY_EXTENSIONS, SCHEMATRON_EXTENSIONS, WSDL_EXTENSIONS
+            XML_EXTENSIONS, XSD_EXTENSIONS, XSLT_EXTENSIONS, XQUERY_EXTENSIONS, XPATH_EXTENSIONS,
+            SCHEMATRON_EXTENSIONS, WSDL_EXTENSIONS
     ).flatMap(List::stream).toList();
 
     /** XML and XSLT file extensions. */

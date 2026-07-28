@@ -231,7 +231,7 @@ class QueryConsoleTest {
     }
 
     @Test
-    void snippetsMenuShowsAFundsXmlSectionFromTheRepository() {
+    void snippetsMenuShowsAFundsXmlSectionFromTheRepository() throws Exception {
         org.fxt.freexmltoolkit.service.XPathSnippetRepository repo =
                 org.fxt.freexmltoolkit.service.XPathSnippetRepository.getInstance();
         String name = "fxt-test-fund-summary-" + System.nanoTime();
@@ -257,13 +257,67 @@ class QueryConsoleTest {
         assertTrue(snippetItem.getText().startsWith("XQuery:"),
                 "the item label must carry its kind: " + snippetItem.getText());
 
-        // Firing the item loads the query and switches to XQuery mode.
+        // Each snippet is a submenu offering "Load into console" and "Open in editor".
+        javafx.scene.control.Menu submenu =
+                org.junit.jupiter.api.Assertions.assertInstanceOf(javafx.scene.control.Menu.class,
+                        snippetItem, "each snippet entry must be a submenu");
+        javafx.scene.control.MenuItem load = childItem(submenu, "Load into console");
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
-            snippetItem.fire();
+            load.fire();
             return null;
         });
         WaitForAsyncUtils.waitForFxEvents();
         assertEquals("for $f in //Fund return $f/Name", console.getXQueryTextForTest());
         assertTrue(console.isXQueryModeForTest(), "an XQuery snippet must switch the console to XQuery mode");
+
+        // "Open in editor" opens the repository snippet as an untitled XQuery document.
+        javafx.scene.control.MenuItem open = childItem(submenu, "Open in editor");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            open.fire();
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> host.getOpenDocuments().stream()
+                .anyMatch(d -> d.getFileType() == EditorFileType.XQUERY));
+        assertTrue(host.getActiveText().orElse("").contains("for $f in //Fund"),
+                "the opened editor tab must contain the snippet's query");
+    }
+
+    @Test
+    void savedSnippetOpensAsAnEditorTab() throws Exception {
+        QueryConsole console = WaitForAsyncUtils.waitForAsyncFx(2000, () -> new QueryConsole(host));
+        String name = "fxt-test-open-in-editor-" + System.nanoTime();
+
+        File saved = WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            console.setXQuery("for $x in /root return $x");
+            return console.saveSnippetForTest(name);
+        });
+        createdSnippets.add(saved);
+        assertNotNull(saved, "saving the snippet must return a file");
+
+        List<javafx.scene.control.MenuItem> items =
+                WaitForAsyncUtils.waitForAsyncFx(2000, console::snippetsMenuItemsForTest);
+        javafx.scene.control.Menu submenu = (javafx.scene.control.Menu) items.stream()
+                .filter(i -> i.getText() != null && i.getText().contains(name))
+                .findFirst().orElseThrow();
+        javafx.scene.control.MenuItem open = childItem(submenu, "Open in editor");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            open.fire();
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> host.getActiveText()
+                .map(t -> t.contains("for $x in /root return $x")).orElse(false));
+        assertEquals(EditorFileType.XQUERY,
+                host.getActiveDocument().orElseThrow().getFileType(),
+                "the saved .xquery snippet must open as an XQuery document");
+    }
+
+    /** Finds a direct child of {@code menu} by its exact label. */
+    private static javafx.scene.control.MenuItem childItem(javafx.scene.control.Menu menu, String text) {
+        return menu.getItems().stream()
+                .filter(i -> text.equals(i.getText()))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError(
+                        "submenu must contain '" + text + "': " + menu.getItems()));
     }
 }

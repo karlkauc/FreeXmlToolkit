@@ -89,6 +89,12 @@ public class EditorHost extends BorderPane {
     /** The most recently active editor tab — insertion target when a tool tab is in front. */
     private EditorTab lastEditorTab;
 
+    /** The most recently active XML-family tab — the run target for XPath/XQuery documents. */
+    private EditorTab lastXmlFamilyTab;
+
+    /** Handler running the active XPath/XQuery document (wired by the shell, fired on Ctrl+Enter). */
+    private Runnable queryRunHandler;
+
     /** Handler for Welcome/Dashboard action keys (activity ids, open-folder); set by the shell. */
     private java.util.function.Consumer<String> welcomeActionHandler = key -> { };
 
@@ -125,6 +131,9 @@ public class EditorHost extends BorderPane {
         tabPane.getSelectionModel().selectedItemProperty().addListener((obs, oldT, newT) -> {
             if (newT instanceof EditorTab et) {
                 lastEditorTab = et;
+                if (isXmlFamily(et.document.getFileType())) {
+                    lastXmlFamilyTab = et;
+                }
                 activeCaret.set(et.view.getCodeArea().getCaretPosition());
                 activeSchema.set(et.schemaFile);
                 activeSchemaStatus.set(et.schemaStatus);
@@ -180,6 +189,42 @@ public class EditorHost extends BorderPane {
             }
         }
         return Optional.empty();
+    }
+
+    /** Whether the type is an XML-family instance/schema a query can sensibly run against. */
+    private static boolean isXmlFamily(EditorFileType type) {
+        return switch (type) {
+            case XML, XSD, XSLT, SCHEMATRON -> true;
+            default -> false;
+        };
+    }
+
+    /**
+     * The most recently active XML-family document — the target an XPath/XQuery
+     * document runs against. Falls back to the first open XML-family tab when the
+     * remembered one was closed.
+     *
+     * @return the target document, or empty when no XML-family document is open
+     */
+    public Optional<OpenDocument> getLastXmlFamilyDocument() {
+        if (lastXmlFamilyTab != null && tabPane.getTabs().contains(lastXmlFamilyTab)) {
+            return Optional.of(lastXmlFamilyTab.document);
+        }
+        lastXmlFamilyTab = null;
+        for (Tab tab : tabPane.getTabs()) {
+            if (tab instanceof EditorTab et && isXmlFamily(et.document.getFileType())) {
+                return Optional.of(et.document);
+            }
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Registers the handler that runs the active XPath/XQuery document (the shell wires
+     * this to the toolbar's Run Query action); fired by the query editor on Ctrl+Enter.
+     */
+    public void setQueryRunHandler(Runnable handler) {
+        this.queryRunHandler = handler;
     }
 
     /** @return the selected-tab property (for observers). */
@@ -690,6 +735,8 @@ public class EditorHost extends BorderPane {
         chooser.getExtensionFilters().addAll(
                 new javafx.stage.FileChooser.ExtensionFilter("XML / XSD / XSLT / Schematron / JSON",
                         "*.xml", "*.xsd", "*.xsl", "*.xslt", "*.sch", "*.schematron", "*.json"),
+                new javafx.stage.FileChooser.ExtensionFilter("XQuery / XPath",
+                        "*.xq", "*.xquery", "*.xqm", "*.xqy", "*.xpath"),
                 new javafx.stage.FileChooser.ExtensionFilter("All files", "*.*"));
         File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
@@ -1843,6 +1890,15 @@ public class EditorHost extends BorderPane {
     private void addTab(EditorTab tab) {
         tabPane.getTabs().add(tab);
         tabPane.getSelectionModel().select(tab);
+        // No-op for non-query views; the lazy indirection tolerates the handler
+        // being registered after the first tabs open.
+        tab.view.configureQuerySupport(
+                () -> {
+                    if (queryRunHandler != null) {
+                        queryRunHandler.run();
+                    }
+                },
+                () -> getLastXmlFamilyDocument().flatMap(this::getDocumentText).orElse(""));
         openDocuments.add(tab.document);
         tab.setOnClosed(e -> openDocuments.remove(tab.document));
         tab.setOnCloseRequest(e -> confirmCloseIfDirty(tab, e));
@@ -2394,7 +2450,11 @@ public class EditorHost extends BorderPane {
         boolean supportsView(ViewMode mode) {
             return switch (mode) {
                 case TEXT -> true;
-                case TREE -> document.getFileType() != EditorFileType.OTHER;
+                case TREE -> switch (document.getFileType()) {
+                    // Query documents are not XML — the DOM tree view cannot parse them.
+                    case OTHER, XQUERY, XPATH -> false;
+                    default -> true;
+                };
                 case GRAPHIC -> switch (document.getFileType()) {
                     case XSD, XML, XSLT, SCHEMATRON -> true;
                     default -> false;

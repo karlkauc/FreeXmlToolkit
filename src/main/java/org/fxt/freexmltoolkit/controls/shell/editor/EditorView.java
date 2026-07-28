@@ -85,4 +85,13 @@ public interface EditorView {
     default void setGoToDefinitionHandler(
             java.util.function.Consumer<org.fxt.freexmltoolkit.controls.v2.editor.core.NavigationRequest> handler) {
     }
+
+    /**
+     * Wires query-editor support: the run handler fired on Ctrl+Enter and the XML
+     * context supplier feeding element/attribute IntelliSense. No-op for
+     * non-query editors.
+     */
+    default void configureQuerySupport(Runnable runHandler,
+            java.util.function.Supplier<String> xmlContextSupplier) {
+    }
 }

@@ -13,6 +13,8 @@ public enum EditorFileType {
     XSLT("XSLT", "bi-arrow-repeat", "#f08c00", "xsl", "xslt"),
     SCHEMATRON("Schematron", "bi-check2-square", "#e8590c", "sch", "schematron"),
     JSON("JSON", "bi-braces", "#1098ad", "json"),
+    XQUERY("XQuery", "bi-code-square", "#6f42c1", "xq", "xquery", "xqm", "xqy"),
+    XPATH("XPath", "bi-slash-square", "#d63384", "xpath"),
     OTHER("Text", "bi-file-earmark-text", "#8a93a0");
 
     private final String label;
@@ -96,6 +98,8 @@ public enum EditorFileType {
                     </schema>
                     """;
             case JSON -> "{\n}\n";
+            case XQUERY -> "xquery version \"3.1\";\n\n";
+            case XPATH -> "";
             case OTHER -> "";
         };
     }

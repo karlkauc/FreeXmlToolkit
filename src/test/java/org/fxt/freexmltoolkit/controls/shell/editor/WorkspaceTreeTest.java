@@ -36,6 +36,8 @@ class WorkspaceTreeTest {
     @Test
     void rootShowsAllowedFilesAndFoldersOnly(@TempDir Path dir) throws Exception {
         Files.writeString(dir.resolve("a.xml"), "<a/>");
+        Files.writeString(dir.resolve("query.xq"), "/root");
+        Files.writeString(dir.resolve("expr.xpath"), "/root");
         Files.writeString(dir.resolve("note.txt"), "ignored");
         Files.createDirectory(dir.resolve("sub"));
 
@@ -46,6 +48,8 @@ class WorkspaceTreeTest {
                 tree.listTopLevelNames());
 
         assertTrue(names.contains("a.xml"), "allowed file must be shown");
+        assertTrue(names.contains("query.xq"), "XQuery files must be shown");
+        assertTrue(names.contains("expr.xpath"), "XPath files must be shown");
         assertTrue(names.contains("sub"), "folders must be shown");
         assertFalse(names.contains("note.txt"), "disallowed extension must be filtered out");
     }
