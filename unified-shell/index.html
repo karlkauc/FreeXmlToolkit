@@ -3424,7 +3424,7 @@
 <h1 id="unified-shell">Unified Shell<a class="headerlink" href="#unified-shell" title="Permanent link">&para;</a></h1>
 <blockquote>
 <p>The application opens directly into the <strong>Unified Shell</strong> - one workspace that
-combines XML, XSD, XSLT, Schematron and JSON editing with all the validation,
+combines XML, XSD, XSLT, XProc, Schematron and JSON editing with all the validation,
 transformation, signing and documentation tools. The separate legacy tabs have
 been consolidated here.</p>
 </blockquote>
@@ -3482,7 +3482,7 @@ editor more room - the activity bar always stays visible.</p>
 <h3 id="key-features">Key Features<a class="headerlink" href="#key-features" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Multi-tab editing</strong> - Open multiple files of different types in one view</li>
-<li><strong>Automatic file type detection</strong> - Files are recognized by extension (.xml, .xsd, .xsl, .sch, .json)</li>
+<li><strong>Automatic file type detection</strong> - Files are recognized by extension (.xml, .xsd, .xsl, .xpl, .sch, .json)</li>
 <li><strong>View modes per document</strong> - Text, Tree and Graphic, all over one shared model (see <a href="#view-modes">View Modes</a>)</li>
 <li><strong>Inspector editing everywhere</strong> - edit node properties from the Text, Tree and Graphic views, not just one</li>
 <li><strong>Integrated XPath/XQuery</strong> - a bottom <a href="#query-console">Query Console</a> queries the active
@@ -3520,7 +3520,7 @@ the new document.</p>
 <tbody>
 <tr>
 <td><strong>File type</strong></td>
-<td>Choose <strong>XML</strong>, <strong>XSD</strong>, <strong>XSLT</strong>, <strong>Schematron</strong>, or <strong>JSON</strong>. The rest of the dialog adapts to your choice.</td>
+<td>Choose <strong>XML</strong>, <strong>XSD</strong>, <strong>XSLT</strong>, <strong>Schematron</strong>, <strong>JSON</strong>, or <strong>XProc</strong>. The rest of the dialog adapts to your choice.</td>
 </tr>
 <tr>
 <td><strong>Template</strong></td>
@@ -3547,7 +3547,8 @@ the new document.</p>
   mandatory element and attribute from that schema.</li>
 <li><strong>Otherwise</strong> you get a minimal, valid starting point for the chosen type: an XML declaration
   for XML, an <code>xs:schema</code> skeleton for XSD, an <code>xsl:stylesheet</code> (version 3.0) skeleton for
-  XSLT, an ISO-Schematron skeleton for Schematron, and <code>{}</code> for JSON.</li>
+  XSLT, an ISO-Schematron skeleton for Schematron, <code>{}</code> for JSON, and a <code>p:declare-step</code>
+  skeleton (with <code>source</code>/<code>result</code> ports and <code>p:identity</code>) for XProc.</li>
 </ul>
 <h2 id="view-modes">View Modes<a class="headerlink" href="#view-modes" title="Permanent link">&para;</a></h2>
 <blockquote>
@@ -3624,6 +3625,11 @@ shows the editable grid:</p>
 <td>XSLT editor + XML input + output preview, live transform, parameters, performance metrics</td>
 </tr>
 <tr>
+<td><strong>XProc</strong></td>
+<td>.xpl, .xproc</td>
+<td>Pipeline editor (Text + Tree view), Run Pipeline via the embedded XML Calabash engine - see <a href="#xproc-pipelines">XProc Pipelines</a></td>
+</tr>
+<tr>
 <td><strong>Schematron</strong></td>
 <td>.sch</td>
 <td>Code editor + Visual Builder + Tester + Documentation Generator</td>
@@ -3641,7 +3647,7 @@ onto a second row when the editor area is narrow, so <strong>every action stays 
 (there is no hidden "overflow" menu).</p>
 <h3 id="always-visible">Always Visible<a class="headerlink" href="#always-visible" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>New</strong> (Ctrl+N) - Open the guided <a href="#new-file-dialog">New File dialog</a> to create an XML, XSD, XSLT, Schematron, or JSON file from a template or schema</li>
+<li><strong>New</strong> (Ctrl+N) - Open the guided <a href="#new-file-dialog">New File dialog</a> to create an XML, XSD, XSLT, Schematron, JSON, or XProc file from a template or schema</li>
 <li><strong>Open</strong> (Ctrl+O) - Open one or more files</li>
 <li><strong>Save</strong> (Ctrl+S) - Save the current tab</li>
 <li><strong>Save As</strong> - Save the current tab under a new name (a file chooser opens, pre-set to the tab's file type)</li>
@@ -4724,6 +4730,10 @@ the current IntelliSense availability.
 <tr>
 <td>Ctrl+Shift+X</td>
 <td>Toggle Query Console (XPath/XQuery)</td>
+</tr>
+<tr>
+<td>Ctrl+Enter</td>
+<td>Run the active XPath/XQuery, XSLT or XProc document (Run Query / Run Transform / Run Pipeline)</td>
 </tr>
 <tr>
 <td>Ctrl+Shift+P</td>
