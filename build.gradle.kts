@@ -796,12 +796,14 @@ $platformArgs""".trimIndent())
                 packageType == "app-image" -> {
                     // Ensure source directory exists before processing
                     if (file(sourceDir).exists()) {
-                        // Copy additional files from release directory to app root
-                        val appName = when (platform) {
-                            "linux" -> "freexmltoolkit"
-                            else -> "FreeXmlToolkit"
-                        }
-                        val appRootDir = File(sourceDir, appName)
+                        // Copy additional files from release directory to app root.
+                        // jpackage names the app-image directory after --name
+                        // ("FreeXmlToolkit") on every platform; fall back to the
+                        // lowercase variant defensively instead of assuming it.
+                        val appRootDir = listOf("FreeXmlToolkit", "freexmltoolkit")
+                            .map { File(sourceDir, it) }
+                            .firstOrNull { it.isDirectory }
+                            ?: throw GradleException("jpackage app root not found under $sourceDir")
                         
                         // Copy examples directory
                         val examplesSource = File("release/examples")
@@ -1105,6 +1107,8 @@ fun createJlinkRuntimeTask(taskName: String, platform: String, arch: String) {
             "jdk.unsupported",
             "jdk.zipfs",
             "java.net.http",
+            // Log4j's Interpolator JMX lookup (avoids a startup stack trace)
+            "java.management",
             "javafx.base",
             "javafx.controls",
             "javafx.fxml",
