@@ -64,7 +64,7 @@ toggles:
 
 | View        | Description                                                              |
 |-------------|--------------------------------------------------------------------------|
-| **Text**    | The raw result as text (the default)                                     |
+| **Text**    | The result in a read-only code editor with line numbers and syntax highlighting (the default) |
 | **Preview** | For HTML/XHTML output: the result rendered as a web page                 |
 | **Table**   | For XQuery results that return a sequence: the items shown as a table    |
 

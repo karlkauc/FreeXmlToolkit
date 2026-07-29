@@ -505,7 +505,9 @@ The OUTPUT panel header shows:
   run took and how large the output is), or a red error icon with the error message on
   failure.
 - **View toggles** - **Preview | Text | Table**:
-    - **Text** - the raw result as text (the default).
+    - **Text** - the result in a **read-only code editor** (the default) *(updated July
+      2026)*: line numbers, syntax highlighting matching the result format (XML or JSON;
+      plain text otherwise), and font zoom with **Ctrl+mouse wheel** (**Ctrl+0** resets).
     - **Preview** - the result rendered as a web page; available for **HTML/XHTML**
       results only.
     - **Table** - available for **XQuery** results that return a **sequence** of items
@@ -1244,7 +1246,8 @@ pane shows the previous run's XML result with syntax highlighting.*
   - **Snippets** - A menu of your saved XPath and XQuery snippets; pick one to load it (the console
     switches to the matching mode automatically).
 - **Right - the results:**
-  - A read-only, selectable results editor showing the query result. **XML results are
+  - A read-only, selectable results editor with **line numbers** showing the query
+    result. **XML results are
     syntax-highlighted** (tags, attributes, values, comments), and **JSON results** (e.g. from
     JSONPath queries) get JSON highlighting; scalar results and messages stay plain.
   - **Copy** - Copy the full result to the clipboard.
