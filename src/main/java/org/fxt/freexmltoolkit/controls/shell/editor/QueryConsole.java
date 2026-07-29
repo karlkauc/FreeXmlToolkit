@@ -237,6 +237,7 @@ public class QueryConsole extends Region {
         resultsArea.setWrapText(false);
         resultsArea.setPlaceholder(new Label("Run a query to see results here."));
         resultsArea.getStyleClass().addAll("fxt-transform-output", "fxt-query-results");
+        resultsArea.setParagraphGraphicFactory(LineNumberFactory.get(resultsArea));
         CodeAreaFontZoom.install(resultsArea);
         VirtualizedScrollPane<CodeArea> resultsScroll = new VirtualizedScrollPane<>(resultsArea);
         VBox.setVgrow(resultsScroll, Priority.ALWAYS);

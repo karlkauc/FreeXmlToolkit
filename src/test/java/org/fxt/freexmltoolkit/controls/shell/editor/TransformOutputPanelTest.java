@@ -116,6 +116,47 @@ class TransformOutputPanelTest {
     }
 
     @Test
+    void xmlResultIsSyntaxHighlightedWithLineNumbers(@TempDir Path tmp) throws Exception {
+        transformGreeting(tmp);
+        java.util.Set<String> classes =
+                WaitForAsyncUtils.waitForAsyncFx(2000, out::outputStyleClassesForTest);
+        assertTrue(classes.contains("tagmark") && classes.contains("anytag"),
+                "an XML result must carry XML highlight classes, got: " + classes);
+        WaitForAsyncUtils.waitForFxEvents();
+        assertNotNull(out.lookup(".lineno"), "the output CodeArea must show a line-number gutter");
+    }
+
+    @Test
+    void jsonQueryResultIsSniffedAndHighlighted(@TempDir Path tmp) throws Exception {
+        // JSONPath results arrive without an OutputFormat — the panel sniffs the text.
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            out.showQueryResult("{\"greeting\": \"Hello\", \"count\": 2}", 7);
+            return null;
+        });
+        java.util.Set<String> classes =
+                WaitForAsyncUtils.waitForAsyncFx(2000, out::outputStyleClassesForTest);
+        assertTrue(classes.contains("json-key"),
+                "a JSON query result must carry JSON highlight classes, got: " + classes);
+    }
+
+    @Test
+    void errorMessageStaysUnhighlighted(@TempDir Path tmp) throws Exception {
+        openGreeting(tmp);
+        Path sheet = tmp.resolve("bad.xslt");
+        Files.writeString(sheet, "<xsl:not-a-stylesheet/>");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.setXsltFile(sheet.toFile());
+            panel.transform();
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS, () -> out.getOutputText().startsWith("ERROR"));
+        java.util.Set<String> classes =
+                WaitForAsyncUtils.waitForAsyncFx(2000, out::outputStyleClassesForTest);
+        assertTrue(classes.isEmpty(),
+                "error messages must stay unstyled, got: " + classes);
+    }
+
+    @Test
     void saveResultWritesTheOutputToAFile(@TempDir Path tmp) throws Exception {
         transformGreeting(tmp);
         // saveResult() opens a FileChooser (not scriptable headless) — exercise the

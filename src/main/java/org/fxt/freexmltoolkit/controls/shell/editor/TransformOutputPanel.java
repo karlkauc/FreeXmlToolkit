@@ -22,7 +22,13 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 
+import org.fxmisc.flowless.VirtualizedScrollPane;
+import org.fxmisc.richtext.CodeArea;
+import org.fxmisc.richtext.LineNumberFactory;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.controls.shared.CodeAreaFontZoom;
+import org.fxt.freexmltoolkit.controls.shared.JsonSyntaxHighlighter;
+import org.fxt.freexmltoolkit.controls.shared.XmlSyntaxHighlighter;
 import org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat;
 
 /**
@@ -30,8 +36,10 @@ import org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat;
  * Transform (XSLT)", node 47:3): source on top, transformation result underneath.
  * Shows the result of XSLT transforms, XPath/JSONPath and XQuery runs triggered from
  * the {@link TransformPanel} — a format badge, a status line ("Transformed · 42 ms"),
- * and the result as rendered HTML preview (WebView), plain text, or an XQuery table,
- * switched by a Preview/Text/Table segmented toggle.
+ * and the result as rendered HTML preview (WebView), source text, or an XQuery table,
+ * switched by a Preview/Text/Table segmented toggle. The Text view is a read-only
+ * {@link CodeArea} like the main text editor: line numbers, XML/JSON syntax
+ * highlighting matching the result format, and Ctrl+wheel / Ctrl+0 font zoom.
  * <p>
  * The panel is long-lived and owned by the {@link EditorHost}, so results survive
  * switching activities. It hides itself via the ✕ button and re-appears on the next run.
@@ -39,7 +47,10 @@ import org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat;
 public class TransformOutputPanel extends VBox {
 
     private final EditorHost editorHost;
-    private final TextArea output = new TextArea();
+    // The Text view is a read-only CodeArea (not a TextArea) so results get line
+    // numbers, syntax highlighting and font zoom like the main text editor.
+    private final CodeArea output = new CodeArea();
+    private final VirtualizedScrollPane<CodeArea> outputScroll = new VirtualizedScrollPane<>(output);
     private final TableView<List<String>> resultTable = new TableView<>();
     private final StackPane previewHolder = new StackPane();
     private final Label badge = new Label();
@@ -56,6 +67,9 @@ public class TransformOutputPanel extends VBox {
     private OutputFormat lastResultFormat = OutputFormat.XML;
     /** The (re-used) editor tab holding the latest opened result, if still open. */
     private OpenDocument resultDocument;
+
+    /** Results above this size are shown without highlighting to keep the FX thread responsive. */
+    private static final int HIGHLIGHT_LIMIT_CHARS = 512 * 1024;
 
     public TransformOutputPanel(EditorHost editorHost) {
         this.editorHost = editorHost;
@@ -108,11 +122,15 @@ public class TransformOutputPanel extends VBox {
         header.setAlignment(Pos.CENTER_LEFT);
 
         output.setEditable(false);
-        output.getStyleClass().add("fxt-transform-output");
+        output.setWrapText(false);
+        output.setPlaceholder(new Label("Run a transform or query to see the result here."));
+        output.getStyleClass().addAll("fxt-transform-output", "fxt-query-results");
+        output.setParagraphGraphicFactory(LineNumberFactory.get(output));
+        CodeAreaFontZoom.install(output);
         resultTable.setPlaceholder(new Label("Run an XQuery returning a sequence to see a table."));
         previewHolder.setVisible(false);
         previewHolder.setManaged(false);
-        StackPane content = new StackPane(output, resultTable, previewHolder);
+        StackPane content = new StackPane(outputScroll, resultTable, previewHolder);
         VBox.setVgrow(content, Priority.ALWAYS);
         updateContentView();
 
@@ -124,10 +142,12 @@ public class TransformOutputPanel extends VBox {
     /** Shows a progress message ("Transforming…" / "Running…") while a run is in flight. */
     public void showPending(String message) {
         reveal();
-        output.setText(message);
         statusIcon.setVisible(false);
         statusLabel.setText(message);
         textToggle.setSelected(true);
+        // Last on purpose: observers (tests) wait on the output text, so every other
+        // state change of this update must already be applied when the text appears.
+        setOutputText(message, OutputFormat.TEXT);
     }
 
     /** Shows a finished XSLT transform result (success or "ERROR: …"). */
@@ -162,7 +182,6 @@ public class TransformOutputPanel extends VBox {
     /** Shows an error or guard message (e.g. "No document open."). */
     public void showError(String message) {
         reveal();
-        output.setText(message);
         statsText = "error";
         statusIcon.setIconLiteral("bi-x-circle");
         statusIcon.getStyleClass().removeAll("sev-ok", "sev-error");
@@ -174,6 +193,9 @@ public class TransformOutputPanel extends VBox {
         setToggleAvailable(tableToggle, false);
         textToggle.setSelected(true);
         updateContentView();
+        // Last on purpose: observers (tests) wait on the output text, so every other
+        // state change of this update must already be applied when the text appears.
+        setOutputText(message, OutputFormat.TEXT);
     }
 
     private void showRun(String verb, String text, OutputFormat format, long elapsedMs,
@@ -183,7 +205,6 @@ public class TransformOutputPanel extends VBox {
             return;
         }
         reveal();
-        output.setText(text);
         if (format != null) {
             lastResultFormat = format;
             badge.setText(format.name());
@@ -205,11 +226,47 @@ public class TransformOutputPanel extends VBox {
         }
         boolean tabular = table != null && !table.isError() && !table.isEmpty();
         setToggleAvailable(tableToggle, tabular);
-        populateResultTable(table);
         // Auto-select the best view: rendered preview for HTML, the table for a
         // tabular XQuery sequence, plain text otherwise.
         (html ? previewToggle : tabular ? tableToggle : textToggle).setSelected(true);
         updateContentView();
+        // Last on purpose: observers (tests) wait on the output text / table rows, so
+        // every other state change of this run must already be applied when they appear.
+        populateResultTable(table);
+        setOutputText(text, format);
+    }
+
+    /**
+     * Replaces the output text and syntax-highlights it to match the result format
+     * (XML/HTML/XHTML → XML highlighting, JSON → JSON highlighting, TEXT → none).
+     * XPath/JSONPath results arrive without a format ({@code null}) and are sniffed
+     * by their first non-blank character instead. Status/error messages are shown
+     * as TEXT, and very large results stay plain to keep the FX thread responsive.
+     */
+    private void setOutputText(String text, OutputFormat format) {
+        String value = text == null ? "" : text;
+        output.replaceText(value);
+        output.moveTo(0);
+        output.requestFollowCaret();
+        if (value.isEmpty() || value.length() > HIGHLIGHT_LIMIT_CHARS) {
+            return;
+        }
+        boolean xml;
+        boolean json;
+        if (format != null) {
+            xml = format == OutputFormat.XML || format == OutputFormat.HTML
+                    || format == OutputFormat.XHTML;
+            json = format == OutputFormat.JSON;
+        } else {
+            String trimmed = value.stripLeading();
+            xml = trimmed.startsWith("<");
+            json = trimmed.startsWith("{") || trimmed.startsWith("[");
+        }
+        if (xml) {
+            output.setStyleSpans(0, XmlSyntaxHighlighter.computeHighlighting(value));
+        } else if (json) {
+            output.setStyleSpans(0, JsonSyntaxHighlighter.computeHighlighting(value));
+        }
     }
 
     /** @return a compact "N ms · M chars" stat, or "error" for a failed run. */
@@ -227,8 +284,8 @@ public class TransformOutputPanel extends VBox {
         String result = output.getText();
         if (result == null || result.isBlank() || result.startsWith("ERROR")
                 || "Transforming…".equals(result) || "Running…".equals(result)) {
-            output.setText(result != null && result.startsWith("ERROR") ? result
-                    : "Run a transform or query first.");
+            setOutputText(result != null && result.startsWith("ERROR") ? result
+                    : "Run a transform or query first.", OutputFormat.TEXT);
             return;
         }
         EditorFileType type = switch (lastResultFormat) {
@@ -311,8 +368,8 @@ public class TransformOutputPanel extends VBox {
         previewHolder.setManaged(preview);
         resultTable.setVisible(table);
         resultTable.setManaged(table);
-        output.setVisible(!preview && !table);
-        output.setManaged(!preview && !table);
+        outputScroll.setVisible(!preview && !table);
+        outputScroll.setManaged(!preview && !table);
     }
 
     /**
@@ -389,6 +446,16 @@ public class TransformOutputPanel extends VBox {
     /** @return the current output text (for tests/observers). */
     public String getOutputText() {
         return output.getText();
+    }
+
+    /** Test seam: the distinct highlight style classes currently applied to the output. */
+    java.util.Set<String> outputStyleClassesForTest() {
+        java.util.Set<String> classes = new java.util.HashSet<>();
+        for (org.fxmisc.richtext.model.StyleSpan<java.util.Collection<String>> span
+                : output.getStyleSpans(0, output.getLength())) {
+            classes.addAll(span.getStyle());
+        }
+        return classes;
     }
 
     /** @return the raw "N ms · M chars" stats of the latest run (for tests/observers). */
