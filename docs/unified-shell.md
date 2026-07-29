@@ -42,7 +42,7 @@ editor more room - the activity bar always stays visible.
 ### Key Features
 
 - **Multi-tab editing** - Open multiple files of different types in one view
-- **Automatic file type detection** - Files are recognized by extension (.xml, .xsd, .xsl, .xpl, .sch, .json)
+- **Automatic file type detection** - Files are recognized by extension (.xml, .xsd, .xsl, .xpl, .xq, .xpath, .sch, .json)
 - **View modes per document** - Text, Tree and Graphic, all over one shared model (see [View Modes](#view-modes))
 - **Inspector editing everywhere** - edit node properties from the Text, Tree and Graphic views, not just one
 - **Integrated XPath/XQuery** - a bottom [Query Console](#query-console) queries the active
@@ -133,6 +133,8 @@ shows the editable grid:
 | **XSD** | .xsd | Text + graphic view, Type Library, Type Editor, Schema Analysis, Documentation, Sample Data, Flatten |
 | **XSLT** | .xsl, .xslt | XSLT editor + XML input + output preview, live transform, parameters, performance metrics |
 | **XProc** | .xpl, .xproc | Pipeline editor (Text + Tree view), Run Pipeline via the embedded XML Calabash engine - see [XProc Pipelines](#xproc-pipelines) |
+| **XQuery** | .xq, .xquery, .xqm, .xqy | Query editor with highlighting + IntelliSense, Run Query against a selectable target - see [Query Documents](#query-documents-the-target-selector) |
+| **XPath** | .xpath | Single-expression query editor, Run Query against a selectable target - see [Query Documents](#query-documents-the-target-selector) |
 | **Schematron** | .sch | Code editor + Visual Builder + Tester + Documentation Generator |
 | **JSON** | .json, .jsonc, .json5 | Text + tree view, JSONPath queries, JSON Schema validation |
 
@@ -169,10 +171,13 @@ These toolbar buttons act on the **active document** and only light up when they
 type. Each one opens its result as a tool tab. See
 [Editor Toolbar Document Actions](#editor-toolbar-document-actions) below.
 
-- **Validate** - Validate the active document (XML, XSD, XSLT, Schematron, JSON).
+- **Validate** - Validate the active document (XML, XSD, XSLT, Schematron, JSON, XProc).
 - **Transform with XSLT…** - Pick a stylesheet and transform the active **XML** document.
 - **Generate Documentation…** - Generate HTML/PDF/Word documentation for the active **XSD**.
 - **Open Type Editor…** - Pick a named type from the active **XSD** and edit it in a focused tab.
+- **Run Query / Run Transform / Run Pipeline** (`Ctrl+Enter`) - Run the active
+  **XPath/XQuery**, **XSLT** or **XProc** document against the target chosen in the
+  **Target** dropdown. See [Query Documents & the Target Selector](#query-documents-the-target-selector).
 
 ### Shown for XML Files
 - **Console** - Toggle log output panel
@@ -250,6 +255,57 @@ a tab in the main editor area with the full option set:
 - **PROGRESS** - the right-hand log streams the pipeline's task messages live while
   generating; the run can be **cancelled**, and the result can open automatically.
 
+## Query Documents & the Target Selector
+
+> **New in July 2026** - XPath and XQuery files are first-class editor documents: open a
+> `.xq` or `.xpath` file (or any file from `examples/xpath/` and `examples/xquery/`),
+> press **Run Query**, and read the result in the OUTPUT panel - no console or panel
+> switching required.
+
+### Query documents
+
+`.xq`, `.xquery`, `.xqm`, `.xqy` (XQuery) and `.xpath` (XPath) files open in a dedicated
+query editor with XPath/XQuery syntax highlighting and the same context-aware
+[autocomplete](#xpath-xquery-autocomplete) as the Query Console. They appear in the
+Explorer workspace tree, the file choosers and drag & drop like every other supported
+type.
+
+### Running
+
+- **Run Query** (editor toolbar, or `Ctrl+Enter`) runs the active XPath/XQuery document.
+- **Run Transform** does the same for an active **XSLT** stylesheet - output format
+  auto-detected from its `xsl:output` declaration.
+- **Run Pipeline** covers **XProc** documents (see [XProc Pipelines](#xproc-pipelines)).
+
+Results appear in the **[OUTPUT panel](#the-output-panel-results)** docked below the
+editor, with execution time and result size in the status line. A tabular XQuery result
+(a sequence of similar elements) additionally offers a **Table** view; HTML results get
+a preview, and everything can be opened as an editor tab, opened in the browser, or
+saved from the panel's header buttons.
+
+### The Target dropdown
+
+The query, stylesheet or pipeline runs against an **XML target document**. The
+**Target** dropdown in the editor toolbar (shown only for query/XSLT/XProc documents)
+controls which one:
+
+- **Automatic (last active XML document)** - the default: the most recently active
+  XML-family document (XML, XSD, XSLT, Schematron, XProc). The active document itself is
+  never chosen - an XSLT stylesheet does not transform itself.
+- **An open document** - pick any other open XML-family tab. The run uses the tab's
+  **live editor text**, including unsaved changes.
+- **Choose XML from file system…** - pick a file without opening it; it is read fresh
+  on every run.
+
+The choice is remembered **per document** for the session. If a chosen target tab is
+closed, the run falls back to Automatic. With no XML-family document available at all,
+Run Query/Run Transform show a short guard message instead of failing.
+
+!!! tip
+    Ready-made queries ship in `examples/xpath/` (32 expressions) and `examples/xquery/`
+    (17 scripts) - open any of them and press `Ctrl+Enter` against a FundsXML sample from
+    `examples/xml/`. See [Bundled Example Collections](xml-editor.md#bundled-example-collections).
+
 ## XSLT Features
 
 XSLT work happens in the [Transform Panel](#transform-panel) (Activity Bar → **Transform**):
@@ -270,8 +326,8 @@ documents, executed with the embedded **XML Calabash 3** engine:
 
 - **Run Pipeline** (editor toolbar, or `Ctrl+Enter`) runs the active pipeline. The
   primary input (`source` port) is the document chosen in the **Target** dropdown —
-  by default the most recently active XML document, exactly like Run Query and
-  Run Transform.
+  by default the most recently active XML document, exactly like
+  [Run Query and Run Transform](#query-documents-the-target-selector).
 - Relative `href`s in the pipeline (`p:document`, `p:xslt` stylesheets, Schematron
   schemas) resolve against the pipeline file's directory.
 - Results appear in the **OUTPUT panel**; XML, HTML, text/CSV and JSON outputs are
@@ -1132,6 +1188,10 @@ active document's type, and disabled (greyed out) otherwise. Each action's outpu
 | **Transform with XSLT…** | XML | Prompts you to pick an XSLT stylesheet, then transforms the active XML with it and shows the output. |
 | **Generate Documentation…** | XSD | Lets you choose a format - **HTML**, **PDF**, or **Word** - and an output location, then generates the schema documentation there. |
 | **Open Type Editor…** | XSD | Lets you pick one of the schema's named types and opens it in a focused Type Editor tab. |
+| **Target** (dropdown) | XQuery, XPath, XSLT, XProc | Selects the XML document the next run works on: Automatic (last active XML document), any open XML-family tab, or a file chosen from disk. Remembered per document. |
+| **Run Query** | XQuery, XPath | Runs the active query against the selected target and shows the result in the [OUTPUT panel](#the-output-panel-results) (`Ctrl+Enter`). |
+| **Run Transform** | XSLT | Runs the active stylesheet against the selected target, output format auto-detected from `xsl:output` (`Ctrl+Enter`). |
+| **Run Pipeline** | XProc | Runs the active pipeline with XML Calabash, the selected target feeding the `source` port (`Ctrl+Enter`). |
 
 These actions reuse the same engines as the corresponding activity-bar panels - they are simply a
 faster way to reach them. In this version, **Transform with XSLT…** produces **XML** output with no

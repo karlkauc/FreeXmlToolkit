@@ -326,7 +326,11 @@ collections in the `examples` folder next to the application:
   bundled stylesheets, metadata stamping, `p:for-each` iteration, `p:choose`
   branching and a Schematron SVRL report. See the folder's `README.md`.
 
-All examples target the FundsXML4 sample documents in `examples/xml/`. Paste any of them
+All examples target the FundsXML4 sample documents in `examples/xml/`. The simplest way
+to run one: **open the file directly** and press **Run Query** / **Run Pipeline**
+(`Ctrl+Enter`) - query, XSLT and XProc files are first-class editor documents that run
+against the [Target dropdown](unified-shell.md#query-documents-the-target-selector)'s
+selection (by default the most recently active XML document). Alternatively paste a query
 into the query panel or the [Query Console](unified-shell.md#query-console) - the
 `map:`, `array:` and `math:` function namespaces are pre-declared, so expressions using
 `map:merge()`, `array:size()` etc. run without any prolog. Each folder contains a
