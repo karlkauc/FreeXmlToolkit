@@ -835,6 +835,56 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#query-documents-the-target-selector" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Query Documents &amp; the Target Selector
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Query Documents &amp; the Target Selector">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#query-documents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Query documents
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#running" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-target-dropdown" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Target dropdown
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#xslt-features" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2787,6 +2837,56 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#query-documents-the-target-selector" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Query Documents &amp; the Target Selector
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Query Documents &amp; the Target Selector">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#query-documents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Query documents
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#running" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-target-dropdown" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Target dropdown
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#xslt-features" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3482,7 +3582,7 @@ editor more room - the activity bar always stays visible.</p>
 <h3 id="key-features">Key Features<a class="headerlink" href="#key-features" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Multi-tab editing</strong> - Open multiple files of different types in one view</li>
-<li><strong>Automatic file type detection</strong> - Files are recognized by extension (.xml, .xsd, .xsl, .xpl, .sch, .json)</li>
+<li><strong>Automatic file type detection</strong> - Files are recognized by extension (.xml, .xsd, .xsl, .xpl, .xq, .xpath, .sch, .json)</li>
 <li><strong>View modes per document</strong> - Text, Tree and Graphic, all over one shared model (see <a href="#view-modes">View Modes</a>)</li>
 <li><strong>Inspector editing everywhere</strong> - edit node properties from the Text, Tree and Graphic views, not just one</li>
 <li><strong>Integrated XPath/XQuery</strong> - a bottom <a href="#query-console">Query Console</a> queries the active
@@ -3630,6 +3730,16 @@ shows the editable grid:</p>
 <td>Pipeline editor (Text + Tree view), Run Pipeline via the embedded XML Calabash engine - see <a href="#xproc-pipelines">XProc Pipelines</a></td>
 </tr>
 <tr>
+<td><strong>XQuery</strong></td>
+<td>.xq, .xquery, .xqm, .xqy</td>
+<td>Query editor with highlighting + IntelliSense, Run Query against a selectable target - see <a href="#query-documents-the-target-selector">Query Documents</a></td>
+</tr>
+<tr>
+<td><strong>XPath</strong></td>
+<td>.xpath</td>
+<td>Single-expression query editor, Run Query against a selectable target - see <a href="#query-documents-the-target-selector">Query Documents</a></td>
+</tr>
+<tr>
 <td><strong>Schematron</strong></td>
 <td>.sch</td>
 <td>Code editor + Visual Builder + Tester + Documentation Generator</td>
@@ -3673,10 +3783,13 @@ toolbar, without switching the left activity bar.</p>
 type. Each one opens its result as a tool tab. See
 <a href="#editor-toolbar-document-actions">Editor Toolbar Document Actions</a> below.</p>
 <ul>
-<li><strong>Validate</strong> - Validate the active document (XML, XSD, XSLT, Schematron, JSON).</li>
+<li><strong>Validate</strong> - Validate the active document (XML, XSD, XSLT, Schematron, JSON, XProc).</li>
 <li><strong>Transform with XSLT…</strong> - Pick a stylesheet and transform the active <strong>XML</strong> document.</li>
 <li><strong>Generate Documentation…</strong> - Generate HTML/PDF/Word documentation for the active <strong>XSD</strong>.</li>
 <li><strong>Open Type Editor…</strong> - Pick a named type from the active <strong>XSD</strong> and edit it in a focused tab.</li>
+<li><strong>Run Query / Run Transform / Run Pipeline</strong> (<code>Ctrl+Enter</code>) - Run the active
+  <strong>XPath/XQuery</strong>, <strong>XSLT</strong> or <strong>XProc</strong> document against the target chosen in the
+  <strong>Target</strong> dropdown. See <a href="#query-documents-the-target-selector">Query Documents &amp; the Target Selector</a>.</li>
 </ul>
 <h3 id="shown-for-xml-files">Shown for XML Files<a class="headerlink" href="#shown-for-xml-files" title="Permanent link">&para;</a></h3>
 <ul>
@@ -3751,6 +3864,53 @@ a tab in the main editor area with the full option set:</p>
 <li><strong>PROGRESS</strong> - the right-hand log streams the pipeline's task messages live while
   generating; the run can be <strong>cancelled</strong>, and the result can open automatically.</li>
 </ul>
+<h2 id="query-documents-the-target-selector">Query Documents &amp; the Target Selector<a class="headerlink" href="#query-documents-the-target-selector" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p><strong>New in July 2026</strong> - XPath and XQuery files are first-class editor documents: open a
+<code>.xq</code> or <code>.xpath</code> file (or any file from <code>examples/xpath/</code> and <code>examples/xquery/</code>),
+press <strong>Run Query</strong>, and read the result in the OUTPUT panel - no console or panel
+switching required.</p>
+</blockquote>
+<h3 id="query-documents">Query documents<a class="headerlink" href="#query-documents" title="Permanent link">&para;</a></h3>
+<p><code>.xq</code>, <code>.xquery</code>, <code>.xqm</code>, <code>.xqy</code> (XQuery) and <code>.xpath</code> (XPath) files open in a dedicated
+query editor with XPath/XQuery syntax highlighting and the same context-aware
+<a href="#xpath-xquery-autocomplete">autocomplete</a> as the Query Console. They appear in the
+Explorer workspace tree, the file choosers and drag &amp; drop like every other supported
+type.</p>
+<h3 id="running">Running<a class="headerlink" href="#running" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Run Query</strong> (editor toolbar, or <code>Ctrl+Enter</code>) runs the active XPath/XQuery document.</li>
+<li><strong>Run Transform</strong> does the same for an active <strong>XSLT</strong> stylesheet - output format
+  auto-detected from its <code>xsl:output</code> declaration.</li>
+<li><strong>Run Pipeline</strong> covers <strong>XProc</strong> documents (see <a href="#xproc-pipelines">XProc Pipelines</a>).</li>
+</ul>
+<p>Results appear in the <strong><a href="#the-output-panel-results">OUTPUT panel</a></strong> docked below the
+editor, with execution time and result size in the status line. A tabular XQuery result
+(a sequence of similar elements) additionally offers a <strong>Table</strong> view; HTML results get
+a preview, and everything can be opened as an editor tab, opened in the browser, or
+saved from the panel's header buttons.</p>
+<h3 id="the-target-dropdown">The Target dropdown<a class="headerlink" href="#the-target-dropdown" title="Permanent link">&para;</a></h3>
+<p>The query, stylesheet or pipeline runs against an <strong>XML target document</strong>. The
+<strong>Target</strong> dropdown in the editor toolbar (shown only for query/XSLT/XProc documents)
+controls which one:</p>
+<ul>
+<li><strong>Automatic (last active XML document)</strong> - the default: the most recently active
+  XML-family document (XML, XSD, XSLT, Schematron, XProc). The active document itself is
+  never chosen - an XSLT stylesheet does not transform itself.</li>
+<li><strong>An open document</strong> - pick any other open XML-family tab. The run uses the tab's
+  <strong>live editor text</strong>, including unsaved changes.</li>
+<li><strong>Choose XML from file system…</strong> - pick a file without opening it; it is read fresh
+  on every run.</li>
+</ul>
+<p>The choice is remembered <strong>per document</strong> for the session. If a chosen target tab is
+closed, the run falls back to Automatic. With no XML-family document available at all,
+Run Query/Run Transform show a short guard message instead of failing.</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Ready-made queries ship in <code>examples/xpath/</code> (32 expressions) and <code>examples/xquery/</code>
+(17 scripts) - open any of them and press <code>Ctrl+Enter</code> against a FundsXML sample from
+<code>examples/xml/</code>. See <a href="../xml-editor/#bundled-example-collections">Bundled Example Collections</a>.</p>
+</div>
 <h2 id="xslt-features">XSLT Features<a class="headerlink" href="#xslt-features" title="Permanent link">&para;</a></h2>
 <p>XSLT work happens in the <a href="#transform-panel">Transform Panel</a> (Activity Bar → <strong>Transform</strong>):</p>
 <ul>
@@ -3769,8 +3929,8 @@ documents, executed with the embedded <strong>XML Calabash 3</strong> engine:</p
 <ul>
 <li><strong>Run Pipeline</strong> (editor toolbar, or <code>Ctrl+Enter</code>) runs the active pipeline. The
   primary input (<code>source</code> port) is the document chosen in the <strong>Target</strong> dropdown —
-  by default the most recently active XML document, exactly like Run Query and
-  Run Transform.</li>
+  by default the most recently active XML document, exactly like
+  <a href="#query-documents-the-target-selector">Run Query and Run Transform</a>.</li>
 <li>Relative <code>href</code>s in the pipeline (<code>p:document</code>, <code>p:xslt</code> stylesheets, Schematron
   schemas) resolve against the pipeline file's directory.</li>
 <li>Results appear in the <strong>OUTPUT panel</strong>; XML, HTML, text/CSV and JSON outputs are
@@ -4900,6 +5060,26 @@ active document's type, and disabled (greyed out) otherwise. Each action's outpu
 <td><strong>Open Type Editor…</strong></td>
 <td>XSD</td>
 <td>Lets you pick one of the schema's named types and opens it in a focused Type Editor tab.</td>
+</tr>
+<tr>
+<td><strong>Target</strong> (dropdown)</td>
+<td>XQuery, XPath, XSLT, XProc</td>
+<td>Selects the XML document the next run works on: Automatic (last active XML document), any open XML-family tab, or a file chosen from disk. Remembered per document.</td>
+</tr>
+<tr>
+<td><strong>Run Query</strong></td>
+<td>XQuery, XPath</td>
+<td>Runs the active query against the selected target and shows the result in the <a href="#the-output-panel-results">OUTPUT panel</a> (<code>Ctrl+Enter</code>).</td>
+</tr>
+<tr>
+<td><strong>Run Transform</strong></td>
+<td>XSLT</td>
+<td>Runs the active stylesheet against the selected target, output format auto-detected from <code>xsl:output</code> (<code>Ctrl+Enter</code>).</td>
+</tr>
+<tr>
+<td><strong>Run Pipeline</strong></td>
+<td>XProc</td>
+<td>Runs the active pipeline with XML Calabash, the selected target feeding the <code>source</code> port (<code>Ctrl+Enter</code>).</td>
 </tr>
 </tbody>
 </table>
