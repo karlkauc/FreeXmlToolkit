@@ -3871,6 +3871,10 @@ a tab in the main editor area with the full option set:</p>
 press <strong>Run Query</strong>, and read the result in the OUTPUT panel - no console or panel
 switching required.</p>
 </blockquote>
+<p><img alt="A query document with the Target dropdown open and its CSV result in the OUTPUT panel" src="../img/unified-shell-query-target.png" />
+<em>An XQuery document from <code>examples/xquery/</code> with the </em><em>Target</em><em> dropdown open: pick an
+open XML-family document, a file from disk, or Automatic (the most recently active XML
+document, here checked). Below, the OUTPUT panel shows the query's CSV result.</em></p>
 <h3 id="query-documents">Query documents<a class="headerlink" href="#query-documents" title="Permanent link">&para;</a></h3>
 <p><code>.xq</code>, <code>.xquery</code>, <code>.xqm</code>, <code>.xqy</code> (XQuery) and <code>.xpath</code> (XPath) files open in a dedicated
 query editor with XPath/XQuery syntax highlighting and the same context-aware
@@ -3926,6 +3930,10 @@ Run Query/Run Transform show a short guard message instead of failing.</p>
 <h2 id="xproc-pipelines">XProc Pipelines<a class="headerlink" href="#xproc-pipelines" title="Permanent link">&para;</a></h2>
 <p><em>(New in July 2026)</em> XProc 3.0 pipelines (<code>.xpl</code>, <code>.xproc</code>) are first-class editor
 documents, executed with the embedded <strong>XML Calabash 3</strong> engine:</p>
+<p><img alt="An XProc pipeline after Run Pipeline, with its CSV result in the OUTPUT panel" src="../img/unified-shell-xproc-pipeline.png" />
+<em>The bundled <code>03-positions-csv.xpl</code> example after </em><em>Run Pipeline</em><em>: the pipeline runs
+the CSV export stylesheet (referenced with a relative href) against the Automatic
+target and streams the result into the OUTPUT panel.</em></p>
 <ul>
 <li><strong>Run Pipeline</strong> (editor toolbar, or <code>Ctrl+Enter</code>) runs the active pipeline. The
   primary input (<code>source</code> port) is the document chosen in the <strong>Target</strong> dropdown —
