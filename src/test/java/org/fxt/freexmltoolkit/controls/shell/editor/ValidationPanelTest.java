@@ -73,6 +73,26 @@ class ValidationPanelTest {
         assertEquals(0, panel.getProblemCount(), "valid XML must report no problems");
     }
 
+    @Test
+    void nonXmlDocumentsAreNeverValidatedAsXml(@TempDir Path tmp) throws Exception {
+        // The continuous-validation debounce can fire after the user switched to a
+        // query document — that must not produce bogus "not well-formed" problems.
+        Path xq = tmp.resolve("query.xq");
+        Files.writeString(xq, "for $i in /order/item return $i");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xq));
+        WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("return")).orElse(false));
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.revalidate();
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        Thread.sleep(500); // give a (wrongly scheduled) async validation time to land
+        WaitForAsyncUtils.waitForFxEvents();
+        assertEquals(0, panel.getProblemCount(),
+                "an XQuery document must not be XML-validated");
+    }
+
     private static final String SCHEMATRON = """
             <sch:schema xmlns:sch="http://purl.oclc.org/dsdl/schematron">
               <sch:pattern><sch:rule context="root">

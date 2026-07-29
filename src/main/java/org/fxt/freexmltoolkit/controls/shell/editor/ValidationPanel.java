@@ -385,7 +385,7 @@ public class ValidationPanel extends VBox {
     /** @return {@code true} if the active document is XML-family (not JSON / other). */
     private boolean isXmlFamilyActive() {
         return editorHost.getActiveDocument().map(d -> switch (d.getFileType()) {
-            case XML, XSD, XSLT, SCHEMATRON -> true;
+            case XML, XSD, XSLT, SCHEMATRON, XPROC -> true;
             default -> false;
         }).orElse(false);
     }
@@ -394,6 +394,17 @@ public class ValidationPanel extends VBox {
     public void revalidate() {
         if (editorHost.getActiveDocument().isEmpty()) {
             PanelStatus.precondition(status, "No document open");
+            setProblems(List.of());
+            editorHost.setValidationStatus(EditorHost.ValidationState.NOT_VALIDATED, 0, "Not validated");
+            return;
+        }
+        // Re-check the type at run time: the debounce timer may fire after the user
+        // switched to a non-XML tab (e.g. an XQuery document) — validating that as
+        // XML would report bogus "not well-formed" problems.
+        boolean validatable = isXmlFamilyActive() || editorHost.getActiveDocument()
+                .map(d -> d.getFileType() == EditorFileType.JSON).orElse(false);
+        if (!validatable) {
+            PanelStatus.precondition(status, "Not a validatable document type");
             setProblems(List.of());
             editorHost.setValidationStatus(EditorHost.ValidationState.NOT_VALIDATED, 0, "Not validated");
             return;

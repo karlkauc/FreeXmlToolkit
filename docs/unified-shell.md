@@ -262,6 +262,11 @@ a tab in the main editor area with the full option set:
 > press **Run Query**, and read the result in the OUTPUT panel - no console or panel
 > switching required.
 
+![A query document with the Target dropdown open and its CSV result in the OUTPUT panel](img/unified-shell-query-target.png)
+*An XQuery document from `examples/xquery/` with the **Target** dropdown open: pick an
+open XML-family document, a file from disk, or Automatic (the most recently active XML
+document, here checked). Below, the OUTPUT panel shows the query's CSV result.*
+
 ### Query documents
 
 `.xq`, `.xquery`, `.xqm`, `.xqy` (XQuery) and `.xpath` (XPath) files open in a dedicated
@@ -323,6 +328,11 @@ XSLT work happens in the [Transform Panel](#transform-panel) (Activity Bar → *
 
 *(New in July 2026)* XProc 3.0 pipelines (`.xpl`, `.xproc`) are first-class editor
 documents, executed with the embedded **XML Calabash 3** engine:
+
+![An XProc pipeline after Run Pipeline, with its CSV result in the OUTPUT panel](img/unified-shell-xproc-pipeline.png)
+*The bundled `03-positions-csv.xpl` example after **Run Pipeline**: the pipeline runs
+the CSV export stylesheet (referenced with a relative href) against the Automatic
+target and streams the result into the OUTPUT panel.*
 
 - **Run Pipeline** (editor toolbar, or `Ctrl+Enter`) runs the active pipeline. The
   primary input (`source` port) is the document chosen in the **Target** dropdown —

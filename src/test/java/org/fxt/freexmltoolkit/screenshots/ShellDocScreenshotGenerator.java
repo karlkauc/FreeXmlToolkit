@@ -217,6 +217,55 @@ class ShellDocScreenshotGenerator {
             shot("unified-shell-xml-grid");
         }
 
+        // --- Query document with the Target dropdown open + a run result in OUTPUT ---
+        // Captured as a real screen grab: the dropdown's popup is a separate window
+        // that an FX node snapshot cannot include.
+        File fundsSample = new File(EXAMPLES, "xml/FundsXML4_Equity_Fund.xml");
+        File xquery = new File(EXAMPLES, "xquery/12-positions-csv-export.xq");
+        if (fundsSample.exists() && xquery.exists()) {
+            onFx(() -> shell.getSelectionModel().select(Activity.EXPLORER));
+            onFx(() -> host.openFile(fundsSample.toPath()));
+            WaitForAsyncUtils.waitFor(8, TimeUnit.SECONDS,
+                    () -> host.getActiveText().map(t -> t.contains("FundsXML4")).orElse(false));
+            onFx(() -> host.openFile(xquery.toPath()));
+            WaitForAsyncUtils.waitFor(8, TimeUnit.SECONDS,
+                    () -> host.getActiveText().map(t -> t.contains("xquery version")).orElse(false));
+            settle();
+            onFx(shell::onRunQuery); // Automatic target = the FundsXML document
+            WaitForAsyncUtils.waitFor(30, TimeUnit.SECONDS,
+                    () -> host.transformOutputPanel().getOutputText() != null
+                            && host.transformOutputPanel().getOutputText().contains("FundISIN"));
+            settle(500);
+            try {
+                Node targetButton = robot.lookup("#doc-query-target").match(Node::isVisible).query();
+                robot.clickOn(targetButton);
+                settle(600);
+                shotScreen("unified-shell-query-target");
+                robot.push(javafx.scene.input.KeyCode.ESCAPE);
+            } catch (Exception e) {
+                System.out.println("[shell-screenshot] Target dropdown capture failed, "
+                        + "falling back to a node snapshot: " + e);
+                shot("unified-shell-query-target");
+            }
+            settle();
+        }
+
+        // --- XProc pipeline with its CSV result in the OUTPUT panel ---
+        File pipeline = new File(EXAMPLES, "xproc/03-positions-csv.xpl");
+        if (fundsSample.exists() && pipeline.exists()) {
+            onFx(() -> host.openFile(pipeline.toPath()));
+            WaitForAsyncUtils.waitFor(8, TimeUnit.SECONDS,
+                    () -> host.getActiveText().map(t -> t.contains("declare-step")).orElse(false));
+            settle();
+            onFx(() -> host.transformOutputPanel().hide()); // drop the previous query result
+            onFx(shell::onRunPipeline); // Automatic target = the FundsXML document
+            WaitForAsyncUtils.waitFor(60, TimeUnit.SECONDS,
+                    () -> host.transformOutputPanel().getOutputText() != null
+                            && host.transformOutputPanel().getOutputText().contains("FundISIN"));
+            settle(500);
+            shot("unified-shell-xproc-pipeline");
+        }
+
         // --- FundsXML activity panel + Welcome quick-access row (last: closes all tabs) ---
         captureFundsXmlScenes(host);
     }

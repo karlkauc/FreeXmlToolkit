@@ -110,7 +110,7 @@ public class SplashScreen {
         titleLabel.getStyleClass().add("splash-title");
 
         // Version
-        versionLabel = new Label("v" + getVersion());
+        versionLabel = new Label("v" + org.fxt.freexmltoolkit.util.VersionUtil.getVersion());
         versionLabel.getStyleClass().add("splash-version");
 
         // Progress bar
@@ -356,12 +356,4 @@ public class SplashScreen {
         blink.play();
     }
 
-    private String getVersion() {
-        // Try to read version from build properties or package info
-        Package pkg = getClass().getPackage();
-        if (pkg != null && pkg.getImplementationVersion() != null) {
-            return pkg.getImplementationVersion();
-        }
-        return "1.6.3";
-    }
 }

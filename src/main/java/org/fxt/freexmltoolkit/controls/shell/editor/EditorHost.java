@@ -90,7 +90,8 @@ public class EditorHost extends BorderPane {
     private EditorTab lastEditorTab;
 
     /** The most recently active XML-family tab — the run target for XPath/XQuery documents. */
-    private EditorTab lastXmlFamilyTab;
+    /** Most-recently-active-first history of XML-family tabs (query/transform target resolution). */
+    private final java.util.ArrayDeque<EditorTab> xmlFamilyMru = new java.util.ArrayDeque<>();
 
     /**
      * Per-document explicit run target for query/XSLT documents (session-only; a missing
@@ -138,7 +139,8 @@ public class EditorHost extends BorderPane {
             if (newT instanceof EditorTab et) {
                 lastEditorTab = et;
                 if (isXmlFamily(et.document.getFileType())) {
-                    lastXmlFamilyTab = et;
+                    xmlFamilyMru.remove(et);
+                    xmlFamilyMru.addFirst(et);
                 }
                 activeCaret.set(et.view.getCodeArea().getCaretPosition());
                 activeSchema.set(et.schemaFile);
@@ -213,12 +215,27 @@ public class EditorHost extends BorderPane {
      * @return the target document, or empty when no XML-family document is open
      */
     public Optional<OpenDocument> getLastXmlFamilyDocument() {
-        if (lastXmlFamilyTab != null && tabPane.getTabs().contains(lastXmlFamilyTab)) {
-            return Optional.of(lastXmlFamilyTab.document);
+        return mostRecentXmlFamilyDocument(null);
+    }
+
+    /**
+     * The most recently active XML-family document excluding {@code except}, walking the
+     * activation history (closed tabs are pruned) and falling back to tab order. Central to
+     * Automatic target resolution: when the active document is itself XML-family (an XSLT
+     * or XProc tab), the previously active document is the natural target.
+     *
+     * @param except a document to skip (usually the query document itself), or {@code null}
+     */
+    private Optional<OpenDocument> mostRecentXmlFamilyDocument(OpenDocument except) {
+        xmlFamilyMru.removeIf(tab -> !tabPane.getTabs().contains(tab));
+        for (EditorTab tab : xmlFamilyMru) {
+            if (tab.document != except) {
+                return Optional.of(tab.document);
+            }
         }
-        lastXmlFamilyTab = null;
         for (Tab tab : tabPane.getTabs()) {
-            if (tab instanceof EditorTab et && isXmlFamily(et.document.getFileType())) {
+            if (tab instanceof EditorTab et && isXmlFamily(et.document.getFileType())
+                    && et.document != except) {
                 return Optional.of(et.document);
             }
         }
@@ -280,13 +297,7 @@ public class EditorHost extends BorderPane {
             // the stale entry and fall back to Automatic.
             queryTargets.remove(queryDoc);
         }
-        Optional<OpenDocument> auto = getLastXmlFamilyDocument().filter(doc -> doc != queryDoc);
-        if (auto.isEmpty()) {
-            auto = openDocuments.stream()
-                    .filter(doc -> doc != queryDoc && isXmlFamily(doc.getFileType()))
-                    .findFirst();
-        }
-        return auto.flatMap(doc -> getDocumentText(doc)
+        return mostRecentXmlFamilyDocument(queryDoc).flatMap(doc -> getDocumentText(doc)
                 .map(text -> new ResolvedQueryTarget(doc.getDisplayName(), text, null)));
     }
 

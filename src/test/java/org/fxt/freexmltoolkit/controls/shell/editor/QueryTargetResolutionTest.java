@@ -136,6 +136,27 @@ class QueryTargetResolutionTest {
     }
 
     @Test
+    void automaticPrefersTheMostRecentlyActiveXmlDocumentOverTabOrder(@TempDir Path tmp) throws Exception {
+        // a.xml is opened first (tab order), b.xml is activated most recently. When the
+        // active document is itself XML-family (XSLT/XProc), Automatic must resolve to
+        // the PREVIOUSLY active document (b.xml) — not fall back to the first tab.
+        openAndAwait(tmp, "a.xml", "<a/>", "a");
+        openAndAwait(tmp, "b.xml", "<b/>", "b");
+        var xprocDoc = openAndAwaitDoc(tmp, "pipe.xpl",
+                "<p:declare-step xmlns:p=\"http://www.w3.org/ns/xproc\" version=\"3.0\"/>",
+                "declare-step");
+
+        var resolved = host.resolveQueryTarget(xprocDoc).orElseThrow();
+        assertEquals("b.xml", resolved.displayName(),
+                "Automatic must pick the most recently active XML document, not the first tab");
+
+        // Closing b.xml moves on to the next most recent (a.xml).
+        closeTabNamed("b.xml");
+        assertEquals("a.xml", host.resolveQueryTarget(xprocDoc).orElseThrow().displayName(),
+                "after closing the most recent target, the next most recent must be used");
+    }
+
+    @Test
     void xprocDocumentResolvesAutomaticTargetToTheLastXmlDocument(@TempDir Path tmp) throws Exception {
         openAndAwait(tmp, "input.xml", "<input/>", "input");
         var xprocDoc = openAndAwaitDoc(tmp, "pipe.xpl",
