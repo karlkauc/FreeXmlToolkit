@@ -2,17 +2,17 @@
 
 FreeXmlToolkit is built using modern Java technologies and libraries to provide a robust, cross-platform XML and JSON processing environment.
 
-> **Last Updated:** July 2026 | **Version:** 1.10.0
+> **Last Updated:** July 2026 | **Version:** 2.0.0
 
 ## Core Technologies
 
 ### Java Platform
 - **Java Version:** Java 25 with preview features enabled
-- **Build System:** Gradle 8.x with Kotlin DSL
-- **Application Framework:** JavaFX 24.0.1 (included in Liberica Full JDK)
+- **Build System:** Gradle 9.x with Kotlin DSL
+- **Application Framework:** JavaFX 25 (included in Liberica Full JDK)
 
 ### UI Framework
-- **JavaFX:** 24.0.1 for cross-platform desktop GUI (bundled with Liberica Full JDK)
+- **JavaFX:** 25 for cross-platform desktop GUI (bundled with Liberica Full JDK)
 - **FXML:** Declarative UI layout with MVC architecture
 - **AtlantaFX:** 2.1.0 - Modern theme library for enhanced styling
 - **RichTextFX:** 0.11.7 - Advanced text editing component with syntax highlighting
@@ -23,46 +23,46 @@ FreeXmlToolkit is built using modern Java technologies and libraries to provide 
 ### XML Processing
 - **Saxon HE:** 12.10 - XSLT 3.0, XPath 3.1 and XQuery processing engine
 - **XML Calabash:** 3.0.51 - XProc 3.0 pipeline engine (Run Pipeline for `.xpl`/`.xproc` files)
-- **Jakarta XML Bind API:** 4.0.4 - XML binding and marshalling
+- **ph-schematron:** 9.2.0 - Schematron validation (pure, XSLT and SchXslt engines)
+- **Jakarta XML Bind API:** 4.0.5 - XML binding and marshalling
 - **Apache Xerces:** 2.12.2 (exist-db fork) - XSD 1.1 validation with assertions support
 
 ### JSON Processing
-- **Gson:** 2.13.2 - JSON parsing and serialization
-- **JSONPath:** 2.10.0 (Jayway) - JSONPath query language support
-- **JSON Schema Validator:** 3.0.0 (NetworkNT) - JSON Schema validation (Draft 4-2020-12)
+- **Gson:** 2.14.0 - JSON parsing and serialization
+- **JSONPath:** 3.0.0 (Jayway) - JSONPath query language support
+- **JSON Schema Validator:** 3.0.6 (NetworkNT) - JSON Schema validation (Draft 4-2020-12)
 
 ### PDF Generation
 - **Apache FOP:** 2.11 - XSL-FO to PDF transformation
-- **Apache PDFBox:** 3.0.6 - PDF manipulation
+- **Apache PDFBox:** 3.0.7 - PDF manipulation
 - **Apache Batik:** 1.19 - SVG processing and rendering
 
 ### Digital Signatures
 - **Apache Santuario:** 4.0.4 - XML Security (XML-DSig)
-- **BouncyCastle:** 1.83 - Cryptographic operations for XML digital signatures
+- **BouncyCastle:** 1.84 - Cryptographic operations for XML digital signatures
 - **Java Cryptography Architecture (JCA):** Native Java crypto support
 
 ### Office Integration
-- **Apache POI:** 5.4.1 - Excel export for validation results
+- **Apache POI:** 5.5.1 - Excel export for validation results
 
 ### Utilities
 - **Apache Commons Lang3:** 3.20.0 - String manipulation and utilities
-- **Apache Commons IO:** 2.21.0 - File and IO utilities
+- **Apache Commons IO:** 2.22.0 - File and IO utilities
 - **Apache Commons Text:** 1.15.0 - Text algorithms
-- **Gson:** 2.13.2 - JSON processing
 
 ### Testing Framework
-- **JUnit 5:** Unit and integration testing
+- **JUnit Jupiter:** 6.1.1 - Unit and integration testing
 - **TestFX:** 4.0.18 - JavaFX application testing framework
-- **Mockito:** Mocking framework for unit tests
+- **Mockito:** 5.23.0 - Mocking framework for unit tests
 
 ### Logging
-- **Log4j2:** 2.24.1 - Comprehensive logging framework
-- **SLF4J:** Logging facade for library compatibility
+- **Log4j2:** 2.25.3 - Comprehensive logging framework
+- **SLF4J:** Logging facade for library compatibility (routed into Log4j2)
 
 ### UI Enhancements
-- **Ikonli:** 12.4.0 - Icon packs (Bootstrap, FontAwesome, Feather, Win10)
+- **IconifyIcon:** In-house icon control rendering bundled [Iconify](https://iconify.design/) Bootstrap Icons SVG data (no external icon library)
 - **CSSFX:** 11.5.1 - CSS hot-reloading for development
-- **Thymeleaf:** 3.1.3 - Template engine for documentation generation
+- **Thymeleaf:** 3.1.5 - Template engine for documentation generation
 
 ## Architecture Components
 
@@ -163,7 +163,7 @@ dependencies {
     // XML Processing
     implementation("net.sf.saxon:Saxon-HE:12.10")
     implementation("com.xmlcalabash:xmlcalabash:3.0.51")
-    implementation("jakarta.xml.bind:jakarta.xml.bind-api:4.0.4")
+    implementation("jakarta.xml.bind:jakarta.xml.bind-api:4.0.5")
     implementation("org.exist-db.thirdparty.xerces:xercesImpl:2.12.2")
 
     // PDF Generation
@@ -176,10 +176,11 @@ dependencies {
 
     // Security
     implementation("org.apache.santuario:xmlsec:4.0.4")
-    implementation("org.bouncycastle:bcpkix-jdk18on:1.83")
+    implementation("org.bouncycastle:bcpkix-jdk18on:1.84")
 
     // Testing
-    testImplementation("org.junit.jupiter:junit-jupiter:5.x")
+    testImplementation(platform("org.junit:junit-bom:6.1.1"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation("org.testfx:testfx-junit5:4.0.18")
 }
 ```
@@ -206,7 +207,7 @@ dependencies {
 - **Platform-Specific Builds:** Windows (.exe), macOS (.dmg), and Linux (AppImage)
 
 ### JavaFX Runtime
-JavaFX 24.0.1 is bundled with Liberica Full JDK, providing:
+JavaFX 25 is bundled with Liberica Full JDK, providing:
 - Cross-platform GUI consistency
 - Hardware-accelerated graphics with automatic fallback to software rendering for maximum compatibility
 - Web content rendering (WebView)
