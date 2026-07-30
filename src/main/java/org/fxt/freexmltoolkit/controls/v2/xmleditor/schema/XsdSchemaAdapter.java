@@ -196,77 +196,113 @@ public class XsdSchemaAdapter implements XmlSchemaProvider {
     // ==================== Helper Methods ====================
 
     /**
-     * Extracts the element name from an XPath.
-     */
-    private String extractElementName(String xpath) {
-        if (xpath == null || xpath.isEmpty()) {
-            return null;
-        }
-
-        // Remove leading slash
-        String path = xpath.startsWith("/") ? xpath.substring(1) : xpath;
-
-        // Get last element in path
-        String[] parts = path.split("/");
-        if (parts.length == 0) {
-            return null;
-        }
-
-        String lastPart = parts[parts.length - 1];
-
-        // Remove namespace prefix if present
-        if (lastPart.contains(":")) {
-            lastPart = lastPart.substring(lastPart.indexOf(':') + 1);
-        }
-
-        // Remove predicates like [1]
-        if (lastPart.contains("[")) {
-            lastPart = lastPart.substring(0, lastPart.indexOf('['));
-        }
-
-        return lastPart;
-    }
-
-    /**
      * Finds an element in the XSD documentation data.
      */
     private XsdExtendedElement findElement(String xpath) {
-        if (xsdDocumentationData == null || xsdDocumentationData.getExtendedXsdElementMap() == null) {
+        return resolveElement(xpath);
+    }
+
+    /**
+     * Resolves an XML-instance XPath to its schema declaration using the FULL path — never a
+     * name-only guess, which conflated distinct same-named elements (e.g. the many "Amount"
+     * declarations of FundsXML) and showed the documentation of the wrong one.
+     *
+     * <p>The map is keyed by full, predicate-free XPaths. An instance XPath may carry positional
+     * predicates ({@code [n]}) for repeated siblings — those are stripped. Map keys may
+     * additionally contain synthetic compositor segments the documentation model inserts for
+     * nested compositors ({@code …/TotalValue/CHOICE_123/Amount}) which the instance path does
+     * not have; the step-wise walk descends through them transparently.</p>
+     *
+     * @param xpath a positional instance XPath (e.g. {@code /FundsXML4/Funds/Fund[2]/…/Amount})
+     * @return the matching schema element, or {@code null} when the path cannot be resolved
+     */
+    public XsdExtendedElement resolveElement(String xpath) {
+        if (xpath == null || xsdDocumentationData == null
+                || xsdDocumentationData.getExtendedXsdElementMap() == null) {
             return null;
         }
 
         Map<String, XsdExtendedElement> elementMap = xsdDocumentationData.getExtendedXsdElementMap();
 
-        // The map is keyed by full, predicate-free XPaths. An instance XPath may carry positional
-        // predicates ([n]) for repeated siblings — strip them so the FULL path matches the correct
-        // declaration instead of falling through to a name-only match (which conflates distinct
-        // same-named elements such as "Account" under AssetDetails vs. under Position).
         String strippedPath = xpath.replaceAll("\\[\\d+\\]", "");
-
-        // Try exact match first
-        if (elementMap.containsKey(strippedPath)) {
-            return elementMap.get(strippedPath);
-        }
-
-        // Try with leading slash
         String normalizedPath = strippedPath.startsWith("/") ? strippedPath : "/" + strippedPath;
-        if (elementMap.containsKey(normalizedPath)) {
-            return elementMap.get(normalizedPath);
+
+        // Exact match first (the common case: no compositor segments in the key).
+        XsdExtendedElement exact = elementMap.get(normalizedPath);
+        if (exact != null) {
+            return exact;
         }
 
-        // Try to find by element name (last part of path)
-        String elementName = extractElementName(strippedPath);
-        if (elementName != null) {
-            // Find first match with this element name
-            for (Map.Entry<String, XsdExtendedElement> entry : elementMap.entrySet()) {
-                String key = entry.getKey();
-                if (key.endsWith("/" + elementName) || key.equals("/" + elementName)) {
-                    return entry.getValue();
+        // Step-wise walk from the root, descending through synthetic compositor
+        // segments (SEQUENCE_n/CHOICE_n/ALL_n/GROUP_n) that only exist in map keys.
+        String[] steps = normalizedPath.substring(1).split("/");
+        if (steps.length == 0 || steps[0].isBlank()) {
+            return null;
+        }
+        String rootKey = "/" + localName(steps[0]);
+        XsdExtendedElement current = elementMap.get(rootKey);
+        String currentKey = rootKey;
+        for (int i = 1; current != null && i < steps.length; i++) {
+            currentKey = findChildKey(current, elementMap, localName(steps[i]), new java.util.HashSet<>());
+            current = currentKey == null ? null : elementMap.get(currentKey);
+        }
+        if (current != null) {
+            return current;
+        }
+
+        // Last resort: a local-name match, but ONLY when it is unambiguous across the whole
+        // schema. With several same-named declarations, guessing one showed the wrong
+        // element's documentation — return null instead of guessing.
+        String local = localName(steps[steps.length - 1]);
+        XsdExtendedElement match = null;
+        int count = 0;
+        for (Map.Entry<String, XsdExtendedElement> entry : elementMap.entrySet()) {
+            if (entry.getKey().endsWith("/" + local)) {
+                match = entry.getValue();
+                if (++count > 1) {
+                    return null; // ambiguous → do not guess
                 }
             }
         }
+        return count == 1 ? match : null;
+    }
 
+    /**
+     * Finds the map key of the child with the given local name, descending transparently
+     * through synthetic compositor children (whose element names are SEQUENCE/CHOICE/ALL/GROUP).
+     */
+    private String findChildKey(XsdExtendedElement parent, Map<String, XsdExtendedElement> elementMap,
+                                String childName, java.util.Set<String> visited) {
+        if (parent == null || parent.getChildren() == null || childName == null) {
+            return null;
+        }
+        for (String childKey : parent.getChildren()) {
+            if (childKey == null || childKey.contains("@") || !visited.add(childKey)) {
+                continue; // attributes / cycles
+            }
+            String childLocal = localName(childKey.substring(childKey.lastIndexOf('/') + 1));
+            if (childName.equals(childLocal)) {
+                return childKey;
+            }
+            if (isCompositorName(childLocal)) {
+                String viaCompositor = findChildKey(elementMap.get(childKey), elementMap, childName, visited);
+                if (viaCompositor != null) {
+                    return viaCompositor;
+                }
+            }
+        }
         return null;
+    }
+
+    /** @return true for the synthetic compositor node names the documentation model inserts. */
+    private static boolean isCompositorName(String name) {
+        return name != null && name.matches("(?i)(SEQUENCE|CHOICE|ALL|GROUP)(_\\d+)?");
+    }
+
+    /** @return {@code step} without a namespace prefix. */
+    private static String localName(String step) {
+        int colon = step.indexOf(':');
+        return colon >= 0 ? step.substring(colon + 1) : step;
     }
 
     /**

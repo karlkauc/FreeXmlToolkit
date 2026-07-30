@@ -575,7 +575,11 @@ public class InspectorPanel extends VBox {
         childrenLabel.getStyleClass().add("fxt-inspector-key");
         Label examplesLabel = new Label("Example values (double-click to set)");
         examplesLabel.getStyleClass().add("fxt-inspector-key");
-        xmlSchemaBox = new VBox(4, row("Schema type", xmlSchemaTypeValue), row("Documentation", xmlSchemaDocValue),
+        // "Documentation" sits ABOVE its (often long, wrapping) text — a side-by-side
+        // key/value row would waste the narrow panel's width on the label column.
+        Label docLabel = new Label("Documentation");
+        docLabel.getStyleClass().add("fxt-inspector-key");
+        xmlSchemaBox = new VBox(4, row("Schema type", xmlSchemaTypeValue), docLabel, xmlSchemaDocValue,
                 childrenLabel, validChildrenList, examplesLabel, exampleValuesList);
         return new VBox(4, xmlTextBox, xmlAttrBox, xmlSchemaBox);
     }

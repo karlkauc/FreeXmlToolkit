@@ -2299,34 +2299,17 @@ public class EditorHost extends BorderPane {
         if (map == null || xpath == null) {
             return null;
         }
-        // The schema map is keyed by the full, predicate-free XPath
-        // (e.g. /FundsXML4/AssetMasterData/Asset/AssetDetails/Account). An instance XPath may
-        // carry positional predicates ([n]) for repeated siblings — strip them so the FULL path
-        // matches the right declaration (two distinct same-named elements, e.g. "Account" under
-        // AssetDetails vs. under Position, must NOT be conflated).
-        String norm = stripXPathPredicates(xpath);
-        if (!norm.startsWith("/")) {
-            norm = "/" + norm;
-        }
-        if (map.containsKey(norm)) {
-            return map.get(norm);
-        }
-        // Last resort: a local-name match, but ONLY when it is unambiguous. If several
-        // declarations share the local name, guessing one (the old behaviour) returned the wrong
-        // element's children — return null instead of guessing.
-        String local = localXmlName(norm);
-        if (local != null) {
-            org.fxt.freexmltoolkit.domain.XsdExtendedElement match = null;
-            int count = 0;
-            for (var entry : map.entrySet()) {
-                if (entry.getKey().endsWith("/" + local)) {
-                    match = entry.getValue();
-                    if (++count > 1) {
-                        return null; // ambiguous → do not guess
-                    }
-                }
-            }
-            return count == 1 ? match : null;
+        // Full-path resolution lives in the adapter: predicate-free exact match, then a
+        // step-wise walk that tolerates the synthetic compositor segments (SEQUENCE_n/
+        // CHOICE_n/…) the documentation model inserts into map keys, and an
+        // unambiguous-only name fallback. Never guess among same-named declarations —
+        // two distinct elements (e.g. "Account" under AssetDetails vs. under Position)
+        // must NOT be conflated.
+        Tab tab = tabPane.getSelectionModel().getSelectedItem();
+        if (tab instanceof EditorTab et
+                && et.xmlSchemaProvider
+                        instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XsdSchemaAdapter adapter) {
+            return adapter.resolveElement(xpath);
         }
         return null;
     }
@@ -2348,11 +2331,6 @@ public class EditorHost extends BorderPane {
         org.fxt.freexmltoolkit.domain.XsdExtendedElement el = activeXsdElement(xpath);
         String elementName = (el != null) ? el.getElementName() : element.getName();
         openXsdAndReveal(et.schemaFile.toPath(), elementName);
-    }
-
-    /** Removes positional predicates ({@code [n]}) from every step of an XPath. */
-    private static String stripXPathPredicates(String xpath) {
-        return xpath.replaceAll("\\[\\d+\\]", "");
     }
 
     /** @return the local element name from an XPath/child reference (last segment, no prefix/predicate). */
