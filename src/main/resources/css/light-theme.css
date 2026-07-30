@@ -375,6 +375,17 @@
   -fx-background-color: transparent;
 }
 
+/* The arrow buttons are blanked below (shape " ", padding 0) — Modena derives a
+   scroll bar's thickness from those arrows, so without an explicit size every
+   bar would collapse to 0 px and disappear (e.g. the OUTPUT panel). */
+.scroll-bar:vertical {
+    -fx-pref-width: 12;
+}
+
+.scroll-bar:horizontal {
+    -fx-pref-height: 12;
+}
+
 .scroll-bar .thumb {
     -fx-background-color: rgba(0, 0, 0, 0.2);
     -fx-background-insets: 3;
