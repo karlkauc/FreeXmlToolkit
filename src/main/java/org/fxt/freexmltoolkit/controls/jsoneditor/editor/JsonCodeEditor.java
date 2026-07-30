@@ -147,10 +147,10 @@ public class JsonCodeEditor extends VBox {
         // Setup line numbers
         codeArea.setParagraphGraphicFactory(createLineNumberFactory());
 
-        // Status bar styling
+        // Status bar styling (theme-aware: fxt-theme.css light, dark-theme.css override)
         HBox statusBar = new HBox(10);
         statusBar.setAlignment(Pos.CENTER_LEFT);
-        statusBar.setStyle("-fx-padding: 3 10; -fx-background-color: #f5f5f5; -fx-border-color: #ddd; -fx-border-width: 1 0 0 0;");
+        statusBar.getStyleClass().add("json-editor-statusbar");
         statusBar.getChildren().add(statusLabel);
 
         // Layout

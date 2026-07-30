@@ -659,6 +659,14 @@
   -fx-background-color: #ffffff;
 }
 
+/* JSON editor's internal status bar (was an inline style; class so themes can override) */
+.json-editor-statusbar {
+  -fx-padding: 3 10;
+  -fx-background-color: #f5f5f5;
+  -fx-border-color: #ddd;
+  -fx-border-width: 1 0 0 0;
+}
+
 .code-area .paragraph-box:has-caret {
   -fx-background-color: #f6f8fa;
 }

@@ -256,7 +256,33 @@
   -fx-background-color: #1e1e1e;
 }
 
+/* JSON editor's internal status bar (colors only; padding comes from fxt-theme.css) */
+.json-editor-statusbar {
+  -fx-background-color: #252526;
+  -fx-border-color: #3c3c3c;
+}
+
 .code-area .paragraph-box:has-caret {
+  -fx-background-color: #2a2a2a;
+}
+
+/* XmlCodeEditorV2/JsonCodeEditor attach fxt-theme.css at NODE level, whose light
+   .code-area rules out-rank same-specificity parent/scene rules. The .root.fxt-theme-dark
+   scope wins on specificity regardless of attachment level. The unscoped rules above stay
+   for dialogs, whose scene root never carries the theme style class. */
+.root.fxt-theme-dark .code-area {
+  -fx-background-color: #1e1e1e;
+}
+
+.root.fxt-theme-dark .code-area .paragraph-box:has-caret {
+  -fx-background-color: #2a2a2a;
+}
+
+/* The caret line is a custom `current-line` paragraph style (XmlCodeEditorV2 /
+   JsonCodeEditor) tinted light by the node-level sheets xml-highlighting.css and
+   json-editor.css; these selectors out-specify both. */
+.root.fxt-theme-dark .code-area .current-line,
+.root.fxt-theme-dark .code-area .paragraph-text.current-line {
   -fx-background-color: #2a2a2a;
 }
 
@@ -288,6 +314,20 @@
 .tab-pane .tab-header-area {
   -fx-background-color: #252526;
   -fx-padding: 0 0 0 5px;
+}
+
+/* Modena paints the child .tab-header-background region with a light gradient on top of
+   the .tab-header-area background — without this author rule the strip stays light. */
+.tab-pane > .tab-header-area > .tab-header-background {
+  -fx-background-color: #252526;
+}
+
+.tab-pane > .tab-header-area > .control-buttons-tab > .container > .tab-down-button {
+  -fx-background-color: transparent;
+}
+
+.tab-pane > .tab-header-area > .control-buttons-tab > .container > .tab-down-button > .arrow {
+  -fx-background-color: #d4d4d4;
 }
 
 .tab-pane .tab {
