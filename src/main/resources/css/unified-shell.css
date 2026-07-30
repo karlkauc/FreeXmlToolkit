@@ -475,6 +475,18 @@
     -fx-background-radius: 6;
     -fx-padding: 4 8 4 8;
     -fx-cursor: hand;
+    -fx-text-fill: -fxt-text-secondary;
+}
+
+/* A MenuButton renders its text via an inner LabeledImpl with style class "label",
+   which fxt-theme.css's hardcoded light `.label` rule would otherwise recolor. */
+.fxt-tool-button > .label {
+    -fx-text-fill: -fxt-text-secondary;
+}
+
+/* Without this the MenuButton arrow keeps modena's near-black -fx-mark-color. */
+.fxt-tool-button > .arrow-button > .arrow {
+    -fx-background-color: -fxt-text-secondary;
 }
 
 .fxt-tool-button .iconify-icon {
