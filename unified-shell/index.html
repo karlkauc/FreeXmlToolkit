@@ -5171,6 +5171,18 @@ the OUTPUT panel's result table and HTML preview, use the <a href="#transform-pa
 </ul>
 <p>Snippets are kept in the shared query folder, so anything saved here is also available from the XML
 Editor's XPath/XQuery panel and vice versa.</p>
+<p><em>(New in July 2026)</em> Saved snippets can be <strong>managed</strong> directly from the menu. Each snippet's
+submenu offers, next to <em>Load into console</em> and <em>Open in editor</em>:</p>
+<ul>
+<li><strong>Overwrite with current query</strong> - Replaces the saved expression with the console's current
+  input of the snippet's kind (an <code>.xpath</code> snippet always takes the XPath input, an <code>.xquery</code>
+  snippet the XQuery input), after a confirmation.</li>
+<li><strong>Rename…</strong> - Prompts for a new name (pre-filled with the current one). Names already in use
+  are refused.</li>
+<li><strong>Delete…</strong> - Deletes the snippet file, after a confirmation.</li>
+</ul>
+<p>The entries in the <strong>FUNDSXML</strong> section (see below) are read-only - they are re-registered from
+the FundsXML content cache on every start and therefore offer no management actions.</p>
 <p>Looking for ready-made queries? The installation's <code>examples/xpath/</code> folder contains
 <strong>32 XPath 3.1 examples</strong> and <code>examples/xquery/</code> contains <strong>17 XQuery 3.1 scripts</strong>
 (data-quality checks plus a reporting series producing CSV, ASCII tables/charts,
