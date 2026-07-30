@@ -187,11 +187,9 @@ public class JsonCodeEditor extends VBox {
      */
     private void loadStylesheets() {
         try {
-            // Load main theme
-            var cssResource = getClass().getResource("/css/fxt-theme.css");
-            if (cssResource != null) {
-                codeArea.getStylesheets().add(cssResource.toExternalForm());
-            }
+            // NOTE: fxt-theme.css is deliberately NOT attached here. It reaches the editor
+            // via the shell's parent stylesheets; a node-level copy would out-rank the
+            // dark-theme.css overrides and lock the editor into the light palette.
 
             // Load JSON highlighting CSS
             var jsonCssResource = getClass().getResource("/css/json-editor.css");

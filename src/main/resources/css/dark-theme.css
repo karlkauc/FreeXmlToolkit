@@ -286,6 +286,49 @@
   -fx-background-color: #2a2a2a;
 }
 
+/* XML syntax palette for dark mode — brighter counterparts of the Figma light palette
+   in scss/xml-highlighting.css (node-level sheet; these selectors out-specify it).
+   Also used by the Query Console results and the OUTPUT pane. */
+.root.fxt-theme-dark .code-area .tagmark,
+.root.fxt-theme-dark .code-area .paren {
+  -fx-fill: #8b95a5;
+}
+
+.root.fxt-theme-dark .code-area .anytag {
+  -fx-fill: #58a6e8;
+}
+
+.root.fxt-theme-dark .code-area .attribute {
+  -fx-fill: #e8944a;
+}
+
+.root.fxt-theme-dark .code-area .avalue {
+  -fx-fill: #5cbf72;
+}
+
+.root.fxt-theme-dark .code-area .comment {
+  -fx-fill: #7d8794;
+}
+
+.root.fxt-theme-dark .code-area .enumeration {
+  -fx-fill: #5cbf72;
+}
+
+.root.fxt-theme-dark .code-area .enumeration-content {
+  -fx-fill: #ff9f9f;
+  -fx-background-color: #55521a;
+}
+
+/* Caret and selection: RichTextFX defaults are a black caret stroke and a
+   dodgerblue selection — restyle both for dark surfaces. */
+.root.fxt-theme-dark .styled-text-area .caret {
+  -fx-stroke: #e6eaf0;
+}
+
+.root.fxt-theme-dark .styled-text-area .selection {
+  -fx-fill: #264f78;
+}
+
 /* =================================================================
    Welcome Page (Dark Mode)
    ================================================================= */

@@ -214,11 +214,13 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
                 hbox.getChildren().add(spacer);
             }
 
-            // Add line number label — the caret's line is indigo + bold (Figma).
+            // Add line number label — the caret's line is indigo + bold (Figma). The color is
+            // resolved per evaluation so a theme switch is picked up on the next re-render.
             javafx.scene.control.Label lineNumber = new javafx.scene.control.Label(String.format("%4d", lineIndex + 1));
             lineNumber.styleProperty().bind(javafx.beans.binding.Bindings.createStringBinding(
                     () -> codeArea.getCurrentParagraph() == lineIndex
-                            ? "-fx-font-family: 'JetBrains Mono', monospace; -fx-text-fill: #3b5bdb; -fx-font-weight: bold;"
+                            ? "-fx-font-family: 'JetBrains Mono', monospace; -fx-text-fill: "
+                            + (isDarkTheme() ? "#5c7cfa" : "#3b5bdb") + "; -fx-font-weight: bold;"
                             : "-fx-font-family: 'JetBrains Mono', monospace; -fx-text-fill: #8a93a0;",
                     codeArea.currentParagraphProperty()));
             hbox.getChildren().add(lineNumber);
@@ -249,16 +251,21 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
     /**
      * Loads CSS stylesheets.
      */
+    /** @return {@code true} if the persisted UI theme is dark (same key ThemeManager writes). */
+    private static boolean isDarkTheme() {
+        try {
+            return "dark".equals(org.fxt.freexmltoolkit.di.ServiceRegistry
+                    .get(org.fxt.freexmltoolkit.service.PropertiesService.class).get("ui.theme"));
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
     private void loadStylesheets() {
         try {
-            // Load main theme
-            String cssPath = "/css/fxt-theme.css";
-            var cssResource = getClass().getResource(cssPath);
-            if (cssResource != null) {
-                codeArea.getStylesheets().add(cssResource.toExternalForm());
-                // Also load on scrollPane so scrollbar styles are applied
-                scrollPane.getStylesheets().add(cssResource.toExternalForm());
-            }
+            // NOTE: fxt-theme.css is deliberately NOT attached here. It reaches the editor
+            // via the shell's parent stylesheets; a node-level copy would out-rank the
+            // dark-theme.css overrides and lock the editor into the light palette.
 
             // Load XML highlighting CSS
             String xmlCssPath = "/scss/xml-highlighting.css";
