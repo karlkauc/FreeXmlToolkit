@@ -2259,6 +2259,20 @@ public class EditorHost extends BorderPane {
         return name != null && name.matches("(?i)(SEQUENCE|CHOICE|ALL|GROUP)(_\\d+)?");
     }
 
+    /**
+     * @return the per-language schema documentation entries for the element at the given XPath
+     * (lang is lowercase, {@code "default"} for entries without {@code xml:lang}); empty when
+     * no schema is bound or the path cannot be resolved.
+     */
+    public java.util.List<org.fxt.freexmltoolkit.domain.XsdExtendedElement.DocumentationInfo>
+            resolveActiveXmlElementDocs(String elementXPath) {
+        var element = activeXsdElement(elementXPath);
+        if (element == null || element.getDocumentations() == null) {
+            return java.util.List.of();
+        }
+        return java.util.List.copyOf(element.getDocumentations());
+    }
+
     /** @return example/allowed values for the element at the given XPath (xs:example, else enumeration). */
     public java.util.List<String> resolveExampleValues(String elementXPath) {
         var element = activeXsdElement(elementXPath);

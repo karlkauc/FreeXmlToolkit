@@ -83,4 +83,58 @@ class InspectorXmlSchemaAssistTest {
         WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS, () -> inspector.getValidChildCount() >= 2);
         assertTrue(inspector.getValidChildCount() >= 2, "valid children (alpha, beta) must be listed");
     }
+
+    private static final String MULTI_LANG_XSD = """
+            <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+              <xs:element name="root">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="alpha" type="xs:string">
+                      <xs:annotation>
+                        <xs:documentation xml:lang="en">The alpha value.</xs:documentation>
+                        <xs:documentation xml:lang="de">Der Alpha-Wert.</xs:documentation>
+                      </xs:annotation>
+                    </xs:element>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:schema>
+            """;
+
+    @Test
+    void multiLanguageDocumentationShowsLanguageTags(@TempDir Path tmp) throws Exception {
+        Path xsd = tmp.resolve("schema.xsd");
+        Files.writeString(xsd, MULTI_LANG_XSD);
+        Path xml = tmp.resolve("doc.xml");
+        Files.writeString(xml, "<root><alpha>x</alpha></root>\n");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("alpha")).orElse(false));
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.setSchemaForActiveDocument(xsd.toFile()));
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.setActiveViewMode(ViewMode.GRAPHIC);
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        XmlGridView grid = WaitForAsyncUtils.waitForAsyncFx(2000, () -> (XmlGridView) host.lookupAll("*").stream()
+                .filter(n -> n instanceof XmlGridView).findFirst().orElseThrow());
+
+        // Wait for the off-thread schema provider, then select alpha to drive the inspector.
+        WaitForAsyncUtils.waitFor(12, TimeUnit.SECONDS,
+                () -> host.resolveActiveXmlElementDocs("/root/alpha").size() >= 2);
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            var root = grid.getContext().getDocument().getRootElement();
+            var alpha = root.getChildren().stream()
+                    .filter(n -> n instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement e
+                            && "alpha".equals(e.getName()))
+                    .findFirst().orElseThrow();
+            grid.getContext().getSelectionModel().setSelectedNode(alpha);
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS,
+                () -> inspector.getSchemaDocText().contains("[EN]"));
+        String doc = inspector.getSchemaDocText();
+        assertTrue(doc.contains("[EN] The alpha value."), "English entry must be tagged: " + doc);
+        assertTrue(doc.contains("[DE] Der Alpha-Wert."), "German entry must be tagged: " + doc);
+    }
 }

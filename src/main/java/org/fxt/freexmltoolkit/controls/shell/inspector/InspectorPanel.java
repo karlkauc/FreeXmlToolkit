@@ -1096,7 +1096,8 @@ public class InspectorPanel extends VBox {
         var info = editorHost.resolveActiveXmlElementInfo(xpath);
         if (info.isPresent()) {
             xmlSchemaTypeValue.setText(blankToPlaceholder(info.get().typeName()));
-            String doc = htmlToPlainText(info.get().documentation());
+            String doc = formatSchemaDoc(editorHost.resolveActiveXmlElementDocs(xpath),
+                    info.get().documentation());
             xmlSchemaDocValue.setText(doc.isBlank() ? PLACEHOLDER : doc);
             validChildrenList.getItems().setAll(editorHost.resolveValidChildren(xpath));
             exampleValuesList.getItems().setAll(editorHost.resolveExampleValues(xpath));
@@ -1125,6 +1126,38 @@ public class InspectorPanel extends VBox {
             return java.util.List.of(new org.fxt.freexmltoolkit.controls.v2.model.XsdDocumentation(legacy));
         }
         return java.util.List.of();
+    }
+
+    /**
+     * Formats the schema documentation for the Properties pane. With more than one entry
+     * (multi-language annotations), every entry is prefixed with its language tag
+     * ({@code [EN] …}, {@code [DE] …}; entries without {@code xml:lang} stay untagged) so the
+     * user can tell the languages apart. A single entry renders as plain text without a tag;
+     * when no per-language entries are available, {@code joinedFallback} (the pre-joined
+     * documentation string) is used.
+     */
+    private String formatSchemaDoc(
+            java.util.List<org.fxt.freexmltoolkit.domain.XsdExtendedElement.DocumentationInfo> docs,
+            String joinedFallback) {
+        if (docs == null || docs.size() < 2) {
+            return htmlToPlainText(joinedFallback);
+        }
+        StringBuilder out = new StringBuilder();
+        for (var entry : docs) {
+            String text = htmlToPlainText(entry.content()).trim();
+            if (text.isEmpty()) {
+                continue;
+            }
+            if (out.length() > 0) {
+                out.append("\n\n");
+            }
+            String lang = entry.lang();
+            if (lang != null && !lang.isBlank() && !"default".equals(lang)) {
+                out.append('[').append(lang.toUpperCase(java.util.Locale.ROOT)).append("] ");
+            }
+            out.append(text);
+        }
+        return out.toString();
     }
 
     /**
