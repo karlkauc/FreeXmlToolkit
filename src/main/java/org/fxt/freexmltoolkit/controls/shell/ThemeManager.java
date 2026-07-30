@@ -74,6 +74,7 @@ public final class ThemeManager {
             // properties service unavailable (e.g. tests) — the visual switch is still applied
         }
         DesignTokens.Theme theme = dark ? DesignTokens.Theme.DARK : DesignTokens.Theme.LIGHT;
+        DesignTokens.publishTheme(theme);
         for (Consumer<DesignTokens.Theme> listener : LISTENERS) {
             try {
                 listener.accept(theme);

@@ -41,11 +41,40 @@ public class XsdNodeRenderer {
     // Avoids expensive Text.getBoundsInLocal() calls on repeated rendering (zoom, scroll, redraw)
     private final Map<String, Double> textWidthCache = new ConcurrentHashMap<>();
 
+    /**
+     * Dark-mode flag: the per-type accent colors (headers, borders) are theme-independent,
+     * but every surface/text derivation drawn from them flips with this flag. Initialized
+     * from the current theme; owners with a lifecycle (XsdGraphView) update it on switches.
+     */
+    private boolean darkMode =
+            org.fxt.freexmltoolkit.controls.theme.DesignTokens.currentTheme()
+                    == org.fxt.freexmltoolkit.controls.theme.DesignTokens.Theme.DARK;
+
     public XsdNodeRenderer() {
         // XMLSpy uses Segoe UI font family
         this.nodeFont = Font.font("Segoe UI", 12); // Slightly larger for readability
         this.detailFont = Font.font("Segoe UI", 10);
         this.textMeasurer = new javafx.scene.text.Text();
+    }
+
+    /** Switches the renderer between the light and dark drawing palette. */
+    public void setDarkMode(boolean darkMode) {
+        this.darkMode = darkMode;
+    }
+
+    /** Card surface color node bodies, badges and header gradients are built on. */
+    private Color surface() {
+        return darkMode ? Color.rgb(28, 35, 44) : Color.WHITE;
+    }
+
+    /** Muted label color inside node bodies ("Type:", "Occurs:"). */
+    private Color bodyLabelColor() {
+        return darkMode ? Color.rgb(155, 166, 179) : Color.rgb(108, 117, 125);
+    }
+
+    /** Strong value color inside node bodies. */
+    private Color bodyValueColor() {
+        return darkMode ? Color.rgb(230, 234, 240) : Color.rgb(33, 37, 41);
     }
 
     /**
@@ -254,8 +283,8 @@ public class XsdNodeRenderer {
         double nameX = iconX + ICON_SIZE + PADDING;
         double nameY = y + HEADER_HEIGHT / 2;  // Vertically center in header
 
-        // Darker version of header color for text to ensure contrast on light background
-        Color textColor = headerColor.darker();
+        // Contrast-derived header text: darker on light cards, brightened on dark cards
+        Color textColor = darkMode ? headerColor.interpolate(Color.WHITE, 0.45) : headerColor.darker();
         gc.setFill(textColor);
         gc.setFont(Font.font("Roboto", FontWeight.BOLD, 12)); // Slightly smaller font
         gc.setTextAlign(TextAlignment.LEFT);
@@ -272,8 +301,8 @@ public class XsdNodeRenderer {
             double badgeX = x + width - badgeWidth - PADDING;
             double badgeY = y + (HEADER_HEIGHT - badgeHeight) / 2;
 
-            // Draw badge background (white with partial transparency)
-            gc.setFill(Color.rgb(255, 255, 255, 0.8));
+            // Draw badge background (surface-toned with partial transparency)
+            gc.setFill(darkMode ? Color.rgb(22, 27, 34, 0.8) : Color.rgb(255, 255, 255, 0.8));
             gc.setStroke(borderColor);
             gc.setLineWidth(1.0);
             gc.fillRoundRect(badgeX, badgeY, badgeWidth, badgeHeight, 4, 4);
@@ -333,7 +362,7 @@ public class XsdNodeRenderer {
             double leftCircleY = centerY - CIRCLE_RADIUS;
 
             try {
-                gc.setFill(Color.WHITE);
+                gc.setFill(surface());
                 gc.setStroke(borderColor);
                 gc.setLineWidth(2.0);
                 gc.fillOval(leftCircleX, leftCircleY, CIRCLE_DIAMETER, CIRCLE_DIAMETER);
@@ -349,7 +378,7 @@ public class XsdNodeRenderer {
             double rightCircleY = centerY - CIRCLE_RADIUS;
 
             try {
-                gc.setFill(Color.WHITE);
+                gc.setFill(surface());
                 gc.setStroke(borderColor);
                 gc.setLineWidth(2.0);
                 gc.fillOval(rightCircleX, rightCircleY, CIRCLE_DIAMETER, CIRCLE_DIAMETER);
@@ -386,8 +415,8 @@ public class XsdNodeRenderer {
             borderColor = Color.GRAY;  // Fallback color
         }
 
-        // Draw body background (white)
-        gc.setFill(Color.WHITE);
+        // Draw body background (card surface)
+        gc.setFill(surface());
         gc.setStroke(borderColor);
 
         // Determine line width: thicker (3.0) for unbounded/multiple, normal (1.5) for single
@@ -415,14 +444,14 @@ public class XsdNodeRenderer {
             double propertyY = y + PADDING;
 
             // Label: "Type"
-            gc.setFill(Color.rgb(108, 117, 125));  // Gray for labels
+            gc.setFill(bodyLabelColor());
             gc.setFont(Font.font("Segoe UI", 11));
             gc.setTextAlign(TextAlignment.LEFT);
             gc.setTextBaseline(VPos.TOP);
             gc.fillText("Type:", x + PADDING, propertyY);
 
             // Value: actual type (display fully without truncation)
-            gc.setFill(Color.rgb(33, 37, 41));  // Dark text for values
+            gc.setFill(bodyValueColor());
             gc.setFont(Font.font("Consolas", 11));
             // Display detail text without truncation - let node width accommodate it
             gc.fillText(node.getDetail(), x + PADDING + 50, propertyY);
@@ -435,12 +464,12 @@ public class XsdNodeRenderer {
                 String occursValue = node.getMinOccurs() > 0 ? "required" : "optional";
 
                 // Label
-                gc.setFill(Color.rgb(108, 117, 125));
+                gc.setFill(bodyLabelColor());
                 gc.setFont(Font.font("Segoe UI", 11));
                 gc.fillText(occursLabel, x + PADDING, secondLineY);
 
                 // Value
-                gc.setFill(Color.rgb(33, 37, 41));
+                gc.setFill(bodyValueColor());
                 gc.setFont(Font.font("Consolas", 11));
                 gc.fillText(occursValue, x + PADDING + 50, secondLineY);
             }
@@ -595,7 +624,7 @@ public class XsdNodeRenderer {
         switch (node.getType()) {
             case SEQUENCE -> {
                 // Draw rounded square for sequence
-                gc.setFill(Color.rgb(207, 250, 254, 0.8));
+                gc.setFill(darkMode ? Color.rgb(21, 45, 52, 0.8) : Color.rgb(207, 250, 254, 0.8));
                 gc.fillRoundRect(x, y, size, size, 4, 4);
                 gc.strokeRoundRect(x, y, size, size, 4, 4);
 
@@ -614,7 +643,7 @@ public class XsdNodeRenderer {
             }
             case CHOICE -> {
                 // Draw diamond for choice
-                gc.setFill(Color.rgb(254, 243, 199, 0.8));
+                gc.setFill(darkMode ? Color.rgb(56, 48, 20, 0.8) : Color.rgb(254, 243, 199, 0.8));
                 double centerX = x + size / 2;
                 double centerY = y + size / 2;
                 double halfSize = size / 2;
@@ -644,7 +673,7 @@ public class XsdNodeRenderer {
             }
             case ALL -> {
                 // Draw circle for all
-                gc.setFill(Color.rgb(237, 233, 254, 0.8));
+                gc.setFill(darkMode ? Color.rgb(42, 36, 66, 0.8) : Color.rgb(237, 233, 254, 0.8));
                 gc.fillOval(x, y, size, size);
                 gc.strokeOval(x, y, size, size);
 
@@ -700,11 +729,11 @@ public class XsdNodeRenderer {
 
         // Draw button background - different colors for lazy loading states
         if (isLoadingChildren) {
-            gc.setFill(Color.rgb(255, 243, 205));  // Yellow background for loading
+            gc.setFill(darkMode ? Color.rgb(64, 54, 22) : Color.rgb(255, 243, 205));  // Yellow-toned for loading
         } else if (hasUnloadedChildren && !node.isExpanded()) {
-            gc.setFill(Color.rgb(231, 243, 255));  // Light blue for unloaded children
+            gc.setFill(darkMode ? Color.rgb(28, 42, 58) : Color.rgb(231, 243, 255));  // Blue-toned for unloaded children
         } else {
-            gc.setFill(Color.WHITE);
+            gc.setFill(surface());
         }
 
         gc.setStroke(isLoadingChildren ? Color.rgb(255, 193, 7) : Color.DARKGRAY);
@@ -737,7 +766,7 @@ public class XsdNodeRenderer {
             gc.fillOval(btnX + EXPAND_BUTTON_SIZE - 5, btnY + 1, 4, 4);
         } else {
             // Draw standard +/- symbol
-            gc.setStroke(Color.BLACK);
+            gc.setStroke(darkMode ? Color.rgb(230, 234, 240) : Color.BLACK);
             gc.setLineWidth(2);
 
             // Horizontal line (always present)
@@ -796,9 +825,10 @@ public class XsdNodeRenderer {
      * Returns a gradient from lighter tint to darker tint.
      */
     private LinearGradient createHeaderGradient(Color baseColor, double y, double height) {
-        // Create a subtle gradient that's much lighter/paler for a modern, less dominant look
-        Color lighter = baseColor.interpolate(Color.WHITE, 0.92);  // 92% towards white
-        Color darker = baseColor.interpolate(Color.WHITE, 0.82);   // 82% towards white
+        // Subtle gradient toward the card surface: pale tint in light mode, dark tint in dark mode
+        Color towards = surface();
+        Color lighter = baseColor.interpolate(towards, 0.92);  // 92% towards surface
+        Color darker = baseColor.interpolate(towards, 0.82);   // 82% towards surface
 
         return new LinearGradient(0, y, 0, y + height, false, CycleMethod.NO_CYCLE,
                 new Stop(0, lighter),

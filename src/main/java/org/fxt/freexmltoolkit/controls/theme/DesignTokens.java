@@ -1,5 +1,9 @@
 package org.fxt.freexmltoolkit.controls.theme;
 
+import java.lang.ref.WeakReference;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Consumer;
+
 import javafx.scene.paint.Color;
 
 /**
@@ -100,6 +104,59 @@ public final class DesignTokens {
         /** @return the token's color for the given theme. */
         public Color color(Theme theme) {
             return theme == Theme.DARK ? dark : light;
+        }
+    }
+
+    // ---------------------------------------------------------------------
+    // Current theme + change notifications.
+    //
+    // ThemeManager (controls/shell) publishes here on every theme switch.
+    // Canvas-rendered views (controls/v2) subscribe HERE instead of on
+    // ThemeManager so the v2 layer stays free of shell dependencies.
+    // ---------------------------------------------------------------------
+
+    private static volatile Theme currentTheme = Theme.LIGHT;
+
+    private static final CopyOnWriteArrayList<WeakReference<Consumer<Theme>>> THEME_LISTENERS =
+            new CopyOnWriteArrayList<>();
+
+    /** @return the last published theme ({@link Theme#LIGHT} until a switch is published). */
+    public static Theme currentTheme() {
+        return currentTheme;
+    }
+
+    /**
+     * Publishes a theme switch. Called by {@code ThemeManager.apply}; listeners
+     * registered via {@link #addThemeListener} are notified on the caller's thread.
+     */
+    public static void publishTheme(Theme theme) {
+        if (theme == null) {
+            return;
+        }
+        currentTheme = theme;
+        for (WeakReference<Consumer<Theme>> ref : THEME_LISTENERS) {
+            Consumer<Theme> listener = ref.get();
+            if (listener == null) {
+                THEME_LISTENERS.remove(ref);
+                continue;
+            }
+            try {
+                listener.accept(theme);
+            } catch (Throwable t) {
+                // a misbehaving listener must not break the theme switch
+            }
+        }
+    }
+
+    /**
+     * Registers a weakly-referenced theme listener. The CALLER must keep a strong
+     * reference to {@code listener} (e.g. an instance field) — otherwise it is
+     * garbage-collected and silently dropped. Weak registration keeps per-document
+     * views (grid/diagram canvases) collectable when their tab closes.
+     */
+    public static void addThemeListener(Consumer<Theme> listener) {
+        if (listener != null) {
+            THEME_LISTENERS.add(new WeakReference<>(listener));
         }
     }
 

@@ -159,7 +159,7 @@ public class XmlCanvasView extends Pane implements XmlSearchTarget {
     // ==================== Highlight State ====================
 
     private FlatRow highlightedRow = null;
-    private static final Color HIGHLIGHT_COLOR = Color.rgb(254, 240, 138);  // Yellow highlight
+    private Color HIGHLIGHT_COLOR;  // Yellow highlight (theme-dependent, see applyPalette)
 
     // ==================== Status Bar & Toast ====================
 
@@ -169,50 +169,106 @@ public class XmlCanvasView extends Pane implements XmlSearchTarget {
 
     private java.util.function.Consumer<String> onDocumentModified;
 
-    // ==================== Colors (XMLSpy-style) ====================
+    // ==================== Colors (XMLSpy-style, theme-dependent) ====================
+    //
+    // Instance fields (kept in UPPER_SNAKE for diff-friendliness with the former
+    // constants); (re)assigned by applyPalette() for the current light/dark theme.
 
     // Row backgrounds
-    private static final Color ROW_BG_EVEN = Color.WHITE;
-    private static final Color ROW_BG_ODD = Color.rgb(249, 250, 251);
+    private Color ROW_BG_EVEN;
+    private Color ROW_BG_ODD;
 
     // Selection/Hover
-    private static final Color SELECTED_BG = Color.rgb(239, 246, 255);
-    private static final Color SELECTED_BORDER = Color.rgb(59, 130, 246);
-    private static final Color HOVERED_BG = Color.rgb(243, 244, 246);
+    private Color SELECTED_BG;
+    private Color SELECTED_BORDER;
+    private Color HOVERED_BG;
 
     // Text colors
-    private static final Color TEXT_ELEMENT = Color.rgb(37, 99, 235);        // Blue
-    private static final Color TEXT_ATTRIBUTE_NAME = Color.rgb(146, 64, 14); // Brown/red
-    private static final Color TEXT_ATTRIBUTE_VALUE = Color.rgb(21, 128, 61); // Green
-    private static final Color TEXT_CONTENT = Color.rgb(31, 41, 55);         // Dark gray
-    private static final Color TEXT_SECONDARY = Color.rgb(107, 114, 128);    // Gray
-    private static final Color TEXT_COMMENT = Color.rgb(13, 148, 136);       // Teal
-    private static final Color TEXT_CDATA = Color.rgb(107, 114, 128);        // Gray
-    private static final Color TEXT_PI = Color.rgb(124, 58, 237);            // Violet
+    private Color TEXT_ELEMENT;
+    private Color TEXT_ATTRIBUTE_NAME;
+    private Color TEXT_ATTRIBUTE_VALUE;
+    private Color TEXT_CONTENT;
+    private Color TEXT_SECONDARY;
+    private Color TEXT_COMMENT;
+    private Color TEXT_CDATA;
+    private Color TEXT_PI;
 
     // Tree lines & expand bars
-    private static final Color TREE_LINE_COLOR = Color.rgb(209, 213, 219);
-    private static final Color EXPAND_BAR_COLOR = Color.rgb(209, 213, 219);
-    private static final Color EXPAND_BAR_HOVER = Color.rgb(156, 163, 175);
-    private static final Color EXPAND_BAR_ARROW = Color.rgb(107, 114, 128);
+    private Color TREE_LINE_COLOR;
+    private Color EXPAND_BAR_COLOR;
+    private Color EXPAND_BAR_HOVER;
+    private Color EXPAND_BAR_ARROW;
 
     // Row separator
-    private static final Color ROW_SEPARATOR = Color.rgb(229, 231, 235);
+    private Color ROW_SEPARATOR;
 
     // Child count
-    private static final Color CHILD_COUNT_COLOR = Color.rgb(156, 163, 175);
+    private Color CHILD_COUNT_COLOR;
 
     // Accent (the design system's indigo primary — used for the {} value-row icon)
-    private static final Color ACCENT = Color.rgb(59, 91, 219);
+    private Color ACCENT;
 
     // Table colors (neutral slate per the Figma "Graphic + Grid" mockup)
-    private static final Color TABLE_HEADER_BG = Color.rgb(248, 250, 252);
-    private static final Color TABLE_HEADER_TEXT = Color.rgb(71, 85, 105);
-    private static final Color TABLE_BORDER = Color.rgb(226, 232, 240);
-    private static final Color TABLE_ROW_EVEN = Color.WHITE;
-    private static final Color TABLE_ROW_ODD = Color.rgb(249, 250, 251);
-    private static final Color TABLE_ROW_HOVER = Color.rgb(241, 245, 249);
-    private static final Color TABLE_ROW_SELECTED = Color.rgb(239, 246, 255);
+    private Color TABLE_HEADER_BG;
+    private Color TABLE_HEADER_TEXT;
+    private Color TABLE_BORDER;
+    private Color TABLE_ROW_EVEN;
+    private Color TABLE_ROW_ODD;
+    private Color TABLE_ROW_HOVER;
+    private Color TABLE_ROW_SELECTED;
+
+    /**
+     * Assigns the light or dark grid palette. Light values are the original XMLSpy-style
+     * palette; dark values are aligned with the DesignTokens dark set (bg-surface #161b22,
+     * border #2a323d, primary #5c7cfa, CODE_* text colors).
+     */
+    private void applyPalette(org.fxt.freexmltoolkit.controls.theme.DesignTokens.Theme theme) {
+        boolean dark = theme == org.fxt.freexmltoolkit.controls.theme.DesignTokens.Theme.DARK;
+
+        ROW_BG_EVEN = dark ? Color.rgb(22, 27, 34) : Color.WHITE;
+        ROW_BG_ODD = dark ? Color.rgb(26, 32, 41) : Color.rgb(249, 250, 251);
+
+        SELECTED_BG = dark ? Color.rgb(27, 36, 56) : Color.rgb(239, 246, 255);
+        SELECTED_BORDER = dark ? Color.rgb(92, 124, 250) : Color.rgb(59, 130, 246);
+        HOVERED_BG = dark ? Color.rgb(31, 39, 51) : Color.rgb(243, 244, 246);
+        HIGHLIGHT_COLOR = dark ? Color.rgb(74, 66, 21) : Color.rgb(254, 240, 138);
+
+        TEXT_ELEMENT = dark ? Color.rgb(108, 182, 255) : Color.rgb(37, 99, 235);
+        TEXT_ATTRIBUTE_NAME = dark ? Color.rgb(224, 164, 88) : Color.rgb(146, 64, 14);
+        TEXT_ATTRIBUTE_VALUE = dark ? Color.rgb(126, 231, 135) : Color.rgb(21, 128, 61);
+        TEXT_CONTENT = dark ? Color.rgb(230, 234, 240) : Color.rgb(31, 41, 55);
+        TEXT_SECONDARY = dark ? Color.rgb(155, 166, 179) : Color.rgb(107, 114, 128);
+        TEXT_COMMENT = dark ? Color.rgb(56, 217, 169) : Color.rgb(13, 148, 136);
+        TEXT_CDATA = dark ? Color.rgb(155, 166, 179) : Color.rgb(107, 114, 128);
+        TEXT_PI = dark ? Color.rgb(192, 155, 240) : Color.rgb(124, 58, 237);
+
+        TREE_LINE_COLOR = dark ? Color.rgb(42, 50, 61) : Color.rgb(209, 213, 219);
+        EXPAND_BAR_COLOR = dark ? Color.rgb(42, 50, 61) : Color.rgb(209, 213, 219);
+        EXPAND_BAR_HOVER = dark ? Color.rgb(61, 71, 84) : Color.rgb(156, 163, 175);
+        EXPAND_BAR_ARROW = dark ? Color.rgb(155, 166, 179) : Color.rgb(107, 114, 128);
+
+        ROW_SEPARATOR = dark ? Color.rgb(35, 43, 54) : Color.rgb(229, 231, 235);
+        CHILD_COUNT_COLOR = dark ? Color.rgb(107, 116, 128) : Color.rgb(156, 163, 175);
+        ACCENT = dark ? Color.rgb(92, 124, 250) : Color.rgb(59, 91, 219);
+
+        TABLE_HEADER_BG = dark ? Color.rgb(28, 35, 44) : Color.rgb(248, 250, 252);
+        TABLE_HEADER_TEXT = dark ? Color.rgb(155, 166, 179) : Color.rgb(71, 85, 105);
+        TABLE_BORDER = dark ? Color.rgb(42, 50, 61) : Color.rgb(226, 232, 240);
+        TABLE_ROW_EVEN = dark ? Color.rgb(22, 27, 34) : Color.WHITE;
+        TABLE_ROW_ODD = dark ? Color.rgb(26, 32, 41) : Color.rgb(249, 250, 251);
+        TABLE_ROW_HOVER = dark ? Color.rgb(31, 39, 51) : Color.rgb(241, 245, 249);
+        TABLE_ROW_SELECTED = dark ? Color.rgb(27, 36, 56) : Color.rgb(239, 246, 255);
+    }
+
+    /**
+     * Weakly registered with DesignTokens — the instance field keeps it alive
+     * exactly as long as this view; see DesignTokens.addThemeListener.
+     */
+    private final java.util.function.Consumer<org.fxt.freexmltoolkit.controls.theme.DesignTokens.Theme>
+            themeListener = theme -> {
+                applyPalette(theme);
+                render();
+            };
 
     // ==================== Fonts ====================
 
@@ -225,6 +281,9 @@ public class XmlCanvasView extends Pane implements XmlSearchTarget {
 
     public XmlCanvasView(XmlEditorContext context) {
         this.context = context;
+
+        applyPalette(org.fxt.freexmltoolkit.controls.theme.DesignTokens.currentTheme());
+        org.fxt.freexmltoolkit.controls.theme.DesignTokens.addThemeListener(themeListener);
 
         // NOTE: Do NOT enable node caching on the canvas or its container. The canvas is
         // re-rendered on every change and can grow large for big documents; with setCache(true)
@@ -530,7 +589,7 @@ public class XmlCanvasView extends Pane implements XmlSearchTarget {
         }
 
         // Clear canvas
-        gc.setFill(Color.WHITE);
+        gc.setFill(ROW_BG_EVEN);
         gc.fillRect(0, 0, w, h);
 
         if (visibleRows.isEmpty()) {
@@ -1014,7 +1073,7 @@ public class XmlCanvasView extends Pane implements XmlSearchTarget {
 
         // -- Column headers --
         double colHeaderY = tableY + RepeatingElementsTable.HEADER_HEIGHT;
-        gc.setFill(Color.rgb(243, 244, 246)); // Light gray background
+        gc.setFill(TABLE_HEADER_BG);
         gc.fillRect(tableX, colHeaderY, tableWidth, RepeatingElementsTable.ROW_HEIGHT);
         gc.setStroke(TABLE_BORDER);
         gc.strokeRect(tableX, colHeaderY, tableWidth, RepeatingElementsTable.ROW_HEIGHT);

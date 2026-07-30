@@ -181,7 +181,29 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
         this.editorContext = context;
         this.contextMenuFactory = new XsdContextMenuFactory(editorContext);
 
+        applyTheme(org.fxt.freexmltoolkit.controls.theme.DesignTokens.currentTheme());
+        org.fxt.freexmltoolkit.controls.theme.DesignTokens.addThemeListener(themeListener);
+
         initializeUI();
+    }
+
+    /** Diagram page background — white in light mode, the dark canvas token in dark mode. */
+    private Color pageBackground = Color.WHITE;
+
+    /**
+     * Weakly registered with DesignTokens — the instance field keeps it alive
+     * exactly as long as this view; see DesignTokens.addThemeListener.
+     */
+    private final java.util.function.Consumer<org.fxt.freexmltoolkit.controls.theme.DesignTokens.Theme>
+            themeListener = theme -> {
+                applyTheme(theme);
+                repaint();
+            };
+
+    private void applyTheme(org.fxt.freexmltoolkit.controls.theme.DesignTokens.Theme theme) {
+        boolean dark = theme == org.fxt.freexmltoolkit.controls.theme.DesignTokens.Theme.DARK;
+        pageBackground = dark ? Color.rgb(15, 20, 25) : Color.WHITE;
+        renderer.setDarkMode(dark);
     }
 
     /** Builds a fresh, self-owned context for the schema-only constructor. */
@@ -696,7 +718,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
         positionViewportCanvas();
         GraphicsContext gc = canvas.getGraphicsContext2D();
         // Clear the whole (small) canvas in device space.
-        gc.setFill(Color.WHITE);
+        gc.setFill(pageBackground);
         gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
 
         gc.save();
@@ -766,7 +788,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
             gc.beginPath();
             gc.rect(rx, ry, rw, rh);
             gc.clip();
-            gc.setFill(Color.WHITE);
+            gc.setFill(pageBackground);
             gc.fillRect(rx, ry, rw, rh);
             renderedNodeCount = 0;
             lastPaintWasRegional = true;
