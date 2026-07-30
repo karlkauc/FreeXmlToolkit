@@ -1289,6 +1289,19 @@ Reusable XPath **and** XQuery expressions are saved as **snippets**:
 Snippets are kept in the shared query folder, so anything saved here is also available from the XML
 Editor's XPath/XQuery panel and vice versa.
 
+*(New in July 2026)* Saved snippets can be **managed** directly from the menu. Each snippet's
+submenu offers, next to *Load into console* and *Open in editor*:
+
+- **Overwrite with current query** - Replaces the saved expression with the console's current
+  input of the snippet's kind (an `.xpath` snippet always takes the XPath input, an `.xquery`
+  snippet the XQuery input), after a confirmation.
+- **Rename…** - Prompts for a new name (pre-filled with the current one). Names already in use
+  are refused.
+- **Delete…** - Deletes the snippet file, after a confirmation.
+
+The entries in the **FUNDSXML** section (see below) are read-only - they are re-registered from
+the FundsXML content cache on every start and therefore offer no management actions.
+
 Looking for ready-made queries? The installation's `examples/xpath/` folder contains
 **32 XPath 3.1 examples** and `examples/xquery/` contains **17 XQuery 3.1 scripts**
 (data-quality checks plus a reporting series producing CSV, ASCII tables/charts,

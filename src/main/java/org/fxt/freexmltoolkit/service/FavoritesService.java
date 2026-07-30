@@ -602,13 +602,7 @@ public class FavoritesService {
             return null;
         }
 
-        // Sanitize filename
-        String sanitizedName = name.replaceAll("[^a-zA-Z0-9_\\-]", "_");
-        if (!sanitizedName.endsWith(extension)) {
-            sanitizedName += extension;
-        }
-
-        Path queryFile = dir.resolve(sanitizedName);
+        Path queryFile = dir.resolve(sanitizeQueryFileName(name, extension));
 
         try {
             Files.writeString(queryFile, content);
@@ -635,6 +629,53 @@ public class FavoritesService {
             return Files.readString(file.toPath());
         } catch (IOException e) {
             logger.error("Failed to load query from {}", file, e);
+            return null;
+        }
+    }
+
+    /**
+     * Sanitize a user-entered query name into a safe file name with the given
+     * extension (the same rules {@code saveQuery} has always applied).
+     *
+     * @param name      the raw query name (without extension)
+     * @param extension the file extension including the dot (".xpath" / ".xquery")
+     * @return the sanitized file name, e.g. "my_query.xpath"
+     */
+    public static String sanitizeQueryFileName(String name, String extension) {
+        String sanitized = name.replaceAll("[^a-zA-Z0-9_\\-]", "_");
+        return sanitized.endsWith(extension) ? sanitized : sanitized + extension;
+    }
+
+    /**
+     * Rename a saved query file in place (same directory, extension preserved).
+     * The new name is sanitized like a save. Refuses to overwrite an existing
+     * different file.
+     *
+     * @param file    the existing query file (.xpath or .xquery)
+     * @param newName the new name (without extension)
+     * @return the renamed file, the unchanged file for a no-op rename,
+     *         or {@code null} when the rename failed or the target already exists
+     */
+    public File renameQuery(File file, String newName) {
+        if (file == null || !file.exists() || newName == null || newName.isBlank()) {
+            logger.warn("Cannot rename query: invalid file or name");
+            return null;
+        }
+        String extension = file.getName().toLowerCase().endsWith(".xquery") ? ".xquery" : ".xpath";
+        Path target = file.toPath().resolveSibling(sanitizeQueryFileName(newName.trim(), extension));
+        if (target.equals(file.toPath())) {
+            return file;
+        }
+        if (Files.exists(target)) {
+            logger.warn("Cannot rename query {}: target {} already exists", file, target);
+            return null;
+        }
+        try {
+            Files.move(file.toPath(), target);
+            logger.info("Renamed query {} to {}", file, target);
+            return target.toFile();
+        } catch (IOException e) {
+            logger.error("Failed to rename query {} to {}", file, target, e);
             return null;
         }
     }

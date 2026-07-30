@@ -121,6 +121,62 @@ public class FavoritesServiceTest {
     }
 
     @Test
+    @DisplayName("Sollte Query-Dateinamen sanitisieren")
+    void testSanitizeQueryFileName() {
+        assertEquals("a_b.xpath", FavoritesService.sanitizeQueryFileName("a b", ".xpath"));
+        assertEquals("my-query.xquery", FavoritesService.sanitizeQueryFileName("my-query", ".xquery"));
+        // Dots are sanitized away too, so a name carrying the extension gains a fresh one
+        // (unchanged saveQuery behavior).
+        assertEquals("done_xpath.xpath", FavoritesService.sanitizeQueryFileName("done.xpath", ".xpath"));
+    }
+
+    @Test
+    @DisplayName("Sollte Abfragen umbenennen und den Inhalt erhalten")
+    void testRenameQuery() {
+        File saved = service.saveXPathQuery("Old Name", "//item");
+        assertNotNull(saved);
+        assertEquals("Old_Name.xpath", saved.getName());
+
+        File renamed = service.renameQuery(saved, "New Query!");
+        assertNotNull(renamed);
+        assertEquals("New_Query_.xpath", renamed.getName());
+        assertTrue(renamed.exists());
+        assertFalse(saved.exists(), "the old file must be gone after the rename");
+        assertEquals("//item", service.loadQuery(renamed));
+    }
+
+    @Test
+    @DisplayName("Sollte Umbenennen bei Namenskollision ablehnen")
+    void testRenameQueryRejectsCollision() {
+        File queryA = service.saveXPathQuery("QueryA", "//a");
+        File queryB = service.saveXPathQuery("QueryB", "//b");
+
+        assertNull(service.renameQuery(queryA, "QueryB"));
+        assertTrue(queryA.exists(), "the source file must survive a rejected rename");
+        assertTrue(queryB.exists(), "the target file must survive a rejected rename");
+        assertEquals("//b", service.loadQuery(queryB));
+    }
+
+    @Test
+    @DisplayName("Sollte Umbenennen auf denselben Namen als No-op behandeln")
+    void testRenameQueryNoOp() {
+        File saved = service.saveXPathQuery("SameName", "//x");
+        File renamed = service.renameQuery(saved, "SameName");
+        assertEquals(saved, renamed);
+        assertTrue(saved.exists());
+    }
+
+    @Test
+    @DisplayName("Sollte beim Umbenennen die XQuery-Erweiterung erhalten")
+    void testRenameQueryPreservesXQueryExtension() {
+        File saved = service.saveXQueryQuery("FlworQuery", "for $x in /r return $x");
+        File renamed = service.renameQuery(saved, "RenamedFlwor");
+        assertNotNull(renamed);
+        assertEquals("RenamedFlwor.xquery", renamed.getName());
+        assertEquals("for $x in /r return $x", service.loadQuery(renamed));
+    }
+
+    @Test
     @DisplayName("Sollte Daten zwischen Instanzen persistieren")
     void testPersistence() throws Exception {
         service.addFavorite("/persist.xml", "Persist", "PFolder");

@@ -3,6 +3,7 @@ package org.fxt.freexmltoolkit.controls.shell.editor;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
@@ -310,6 +311,160 @@ class QueryConsoleTest {
         assertEquals(EditorFileType.XQUERY,
                 host.getActiveDocument().orElseThrow().getFileType(),
                 "the saved .xquery snippet must open as an XQuery document");
+    }
+
+    @Test
+    void userSnippetSubmenuOffersManagementActionsButFundsXmlDoesNot() {
+        QueryConsole console = WaitForAsyncUtils.waitForAsyncFx(2000, () -> new QueryConsole(host));
+        String name = "fxt-test-manage-actions-" + System.nanoTime();
+
+        File saved = WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            console.setXPath("//item");
+            return console.saveSnippetForTest(name);
+        });
+        createdSnippets.add(saved);
+        assertNotNull(saved);
+
+        // A read-only FundsXML repository snippet for comparison.
+        String repoName = "fxt-test-readonly-" + System.nanoTime();
+        org.fxt.freexmltoolkit.service.XPathSnippetRepository.getInstance()
+                .saveSnippet(org.fxt.freexmltoolkit.domain.XPathSnippet.builder()
+                        .name(repoName)
+                        .description("read-only test snippet")
+                        .type(org.fxt.freexmltoolkit.domain.XPathSnippet.SnippetType.XPATH)
+                        .query("//Fund")
+                        .tags(org.fxt.freexmltoolkit.service.fundsxml.FundsXmlPostDownloadRegistrar.SNIPPET_TAG)
+                        .build());
+
+        List<javafx.scene.control.MenuItem> items =
+                WaitForAsyncUtils.waitForAsyncFx(2000, console::snippetsMenuItemsForTest);
+
+        javafx.scene.control.Menu userMenu = (javafx.scene.control.Menu) items.stream()
+                .filter(i -> i.getText() != null && i.getText().contains(name))
+                .findFirst().orElseThrow();
+        for (String action : List.of("Overwrite with current query", "Rename…", "Delete…")) {
+            assertNotNull(childItem(userMenu, action),
+                    "user snippet submenu must offer '" + action + "'");
+        }
+
+        javafx.scene.control.Menu repoMenu = (javafx.scene.control.Menu) items.stream()
+                .filter(i -> i.getText() != null && i.getText().contains(repoName))
+                .findFirst().orElseThrow();
+        assertTrue(repoMenu.getItems().stream().noneMatch(i -> "Delete…".equals(i.getText())),
+                "FundsXML repository snippets must stay read-only (no Delete)");
+        assertTrue(repoMenu.getItems().stream()
+                        .noneMatch(i -> "Overwrite with current query".equals(i.getText())),
+                "FundsXML repository snippets must stay read-only (no Overwrite)");
+    }
+
+    @Test
+    void overwriteReplacesTheSnippetFileContent() throws Exception {
+        QueryConsole console = WaitForAsyncUtils.waitForAsyncFx(2000, () -> new QueryConsole(host));
+        String name = "fxt-test-overwrite-" + System.nanoTime();
+
+        File saved = WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            console.setXPath("//a");
+            return console.saveSnippetForTest(name);
+        });
+        createdSnippets.add(saved);
+        assertNotNull(saved);
+
+        // Overwrite is bound to the snippet's kind (XPath field), even while the
+        // console is showing the XQuery mode.
+        File overwritten = WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            console.setXPath("//b");
+            console.setXQuery("for $x in /r return $x"); // switches mode to XQuery
+            return console.overwriteSnippetForTest(saved, false);
+        });
+        assertEquals(saved, overwritten, "overwrite must land on the same file");
+        assertEquals("//b", Files.readString(saved.toPath()),
+                "the file must contain the XPath field's text, not the XQuery text");
+        assertTrue(console.getResultsText().startsWith("Overwrote snippet"),
+                "the results pane must confirm the overwrite: " + console.getResultsText());
+    }
+
+    @Test
+    void overwriteWithBlankInputIsRejected() throws Exception {
+        QueryConsole console = WaitForAsyncUtils.waitForAsyncFx(2000, () -> new QueryConsole(host));
+        String name = "fxt-test-overwrite-blank-" + System.nanoTime();
+
+        File saved = WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            console.setXPath("//keep");
+            return console.saveSnippetForTest(name);
+        });
+        createdSnippets.add(saved);
+        assertNotNull(saved);
+
+        File result = WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            console.setXPath("");
+            return console.overwriteSnippetForTest(saved, false);
+        });
+        assertNull(result, "a blank input must not overwrite the snippet");
+        assertEquals("//keep", Files.readString(saved.toPath()), "the file must stay unchanged");
+    }
+
+    @Test
+    void renameSnippetRenamesTheFileAndCollisionIsRejected() {
+        QueryConsole console = WaitForAsyncUtils.waitForAsyncFx(2000, () -> new QueryConsole(host));
+        String suffix = "-" + System.nanoTime();
+        String nameA = "fxt-test-rename-a" + suffix;
+        String nameB = "fxt-test-rename-b" + suffix;
+        String newName = "fxt-test-rename-new" + suffix;
+
+        File fileA = WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            console.setXPath("//a");
+            return console.saveSnippetForTest(nameA);
+        });
+        File fileB = WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            console.setXPath("//b");
+            return console.saveSnippetForTest(nameB);
+        });
+        createdSnippets.add(fileA);
+        createdSnippets.add(fileB);
+
+        // Rename A → the new file exists, the old one is gone, the menu shows it.
+        File renamed = WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> console.renameSnippetForTest(fileA, newName));
+        createdSnippets.add(renamed);
+        assertNotNull(renamed, "the rename must succeed");
+        assertTrue(renamed.getName().contains(newName));
+        assertTrue(renamed.exists());
+        assertFalse(fileA.exists(), "the old file must be gone after the rename");
+        List<javafx.scene.control.MenuItem> items =
+                WaitForAsyncUtils.waitForAsyncFx(2000, console::snippetsMenuItemsForTest);
+        assertTrue(items.stream().anyMatch(i -> i.getText() != null && i.getText().contains(newName)),
+                "the menu must list the renamed snippet");
+
+        // Renaming B to the taken name is rejected and both files survive.
+        File collision = WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> console.renameSnippetForTest(fileB, newName));
+        assertNull(collision, "a rename onto an existing snippet must be rejected");
+        assertTrue(console.getResultsText().contains("already exists"),
+                "the results pane must explain the collision: " + console.getResultsText());
+        assertTrue(fileB.exists());
+        assertTrue(renamed.exists());
+    }
+
+    @Test
+    void deleteSnippetRemovesFileAndMenuEntry() {
+        QueryConsole console = WaitForAsyncUtils.waitForAsyncFx(2000, () -> new QueryConsole(host));
+        String name = "fxt-test-delete-" + System.nanoTime();
+
+        File saved = WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            console.setXPath("//gone");
+            return console.saveSnippetForTest(name);
+        });
+        createdSnippets.add(saved);
+        assertNotNull(saved);
+
+        boolean deleted = WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> console.deleteSnippetForTest(saved));
+        assertTrue(deleted, "the delete must succeed");
+        assertFalse(saved.exists(), "the snippet file must be gone");
+        List<javafx.scene.control.MenuItem> items =
+                WaitForAsyncUtils.waitForAsyncFx(2000, console::snippetsMenuItemsForTest);
+        assertFalse(items.stream().anyMatch(i -> i.getText() != null && i.getText().contains(name)),
+                "the menu must no longer list the deleted snippet");
     }
 
     /** Finds a direct child of {@code menu} by its exact label. */

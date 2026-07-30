@@ -46,6 +46,7 @@ import org.fxt.freexmltoolkit.service.FavoritesService;
 import org.fxt.freexmltoolkit.service.XPathSnippetRepository;
 import org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat;
 import org.fxt.freexmltoolkit.service.fundsxml.FundsXmlPostDownloadRegistrar;
+import org.fxt.freexmltoolkit.util.DialogHelper;
 
 /**
  * A bottom "Query Console" pane that runs XPath/XQuery against the active
@@ -490,6 +491,105 @@ public class QueryConsole extends Region {
         return saved;
     }
 
+    /** Asks for confirmation, then deletes the snippet file. */
+    private void deleteSnippet(File file, boolean xquery) {
+        if (DialogHelper.showConfirmation("Delete Snippet",
+                "Delete snippet '" + snippetDisplayName(file, xquery) + "'?",
+                "The file " + file.getName() + " will be deleted permanently.")) {
+            deleteSnippetForTest(file);
+        }
+    }
+
+    /**
+     * Deletes {@code file} via {@link FavoritesService} (no prompt), used by the
+     * menu and tests.
+     *
+     * @param file the snippet file to delete
+     * @return whether the file was deleted
+     */
+    boolean deleteSnippetForTest(File file) {
+        boolean deleted = FavoritesService.getInstance().deleteQuery(file);
+        setResultsText(deleted ? "Deleted snippet: " + file.getName()
+                : "Could not delete snippet: " + file.getName());
+        return deleted;
+    }
+
+    /** Prompts for a new name (prefilled with the current one) and renames the snippet file. */
+    private void renameSnippet(File file, boolean xquery) {
+        TextInputDialog dialog = new TextInputDialog(snippetDisplayName(file, xquery));
+        dialog.setTitle("Rename Snippet");
+        dialog.setHeaderText(null);
+        dialog.setContentText("New name:");
+        dialog.showAndWait().ifPresent(name -> {
+            if (!name.isBlank()) {
+                renameSnippetForTest(file, name.trim());
+            }
+        });
+    }
+
+    /**
+     * Renames the snippet (no prompt), rejecting a collision with an existing
+     * snippet. Used by the menu and tests.
+     *
+     * @param file    the snippet file to rename
+     * @param newName the new name (without extension; sanitized like a save)
+     * @return the renamed file, or {@code null} when rejected or failed
+     */
+    File renameSnippetForTest(File file, String newName) {
+        String extension = file.getName().toLowerCase().endsWith(".xquery") ? ".xquery" : ".xpath";
+        File target = new File(file.getParentFile(),
+                FavoritesService.sanitizeQueryFileName(newName, extension));
+        if (target.exists() && !target.equals(file)) {
+            setResultsText("A snippet named '" + target.getName() + "' already exists.");
+            return null;
+        }
+        File renamed = FavoritesService.getInstance().renameQuery(file, newName);
+        setResultsText(renamed != null ? "Renamed snippet to: " + renamed.getName()
+                : "Could not rename snippet: " + file.getName());
+        return renamed;
+    }
+
+    /** Asks for confirmation, then overwrites the snippet with the matching input's text. */
+    private void overwriteSnippet(File file, boolean xquery) {
+        String expression = xquery ? xqueryArea.getText() : xpathField.getText();
+        if (expression == null || expression.isBlank()) {
+            setResultsText("The " + (xquery ? "XQuery" : "XPath")
+                    + " input is empty — nothing to overwrite with.");
+            return;
+        }
+        if (DialogHelper.showConfirmation("Overwrite Snippet",
+                "Overwrite snippet '" + snippetDisplayName(file, xquery) + "'?",
+                "The saved " + (xquery ? "XQuery" : "XPath")
+                        + " will be replaced with the current console content.")) {
+            overwriteSnippetForTest(file, xquery);
+        }
+    }
+
+    /**
+     * Overwrites {@code file} with the current text of the input matching the
+     * snippet's kind — not the currently visible mode, so an .xpath snippet can
+     * never be overwritten with XQuery text (no prompt). Used by the menu and tests.
+     *
+     * @param file   the snippet file to overwrite
+     * @param xquery whether the snippet is an XQuery (otherwise XPath)
+     * @return the saved file, or {@code null} when the input is blank or the save failed
+     */
+    File overwriteSnippetForTest(File file, boolean xquery) {
+        String expression = xquery ? xqueryArea.getText() : xpathField.getText();
+        if (expression == null || expression.isBlank()) {
+            setResultsText("The " + (xquery ? "XQuery" : "XPath")
+                    + " input is empty — nothing to overwrite with.");
+            return null;
+        }
+        String name = snippetDisplayName(file, xquery);
+        FavoritesService favorites = FavoritesService.getInstance();
+        File saved = xquery ? favorites.saveXQueryQuery(name, expression)
+                : favorites.saveXPathQuery(name, expression);
+        setResultsText(saved != null ? "Overwrote snippet: " + saved.getName()
+                : "Could not overwrite snippet.");
+        return saved;
+    }
+
     /**
      * Rebuilds the snippets menu from both XPath and XQuery saved queries, plus a
      * grouped FundsXML section sourced from the {@link XPathSnippetRepository}
@@ -580,10 +680,12 @@ public class QueryConsole extends Region {
                 || type == XPathSnippet.SnippetType.FLWOR;
     }
 
-    /** Builds a submenu that loads {@code file} into the console or opens it as an editor tab. */
+    /**
+     * Builds a submenu that loads {@code file} into the console, opens it as an
+     * editor tab, or manages it (overwrite / rename / delete).
+     */
     private MenuItem snippetItem(File file, boolean xquery) {
-        String extension = xquery ? "\\.xquery$" : "\\.xpath$";
-        String label = (xquery ? "XQuery: " : "XPath: ") + file.getName().replaceFirst(extension, "");
+        String label = (xquery ? "XQuery: " : "XPath: ") + snippetDisplayName(file, xquery);
         Menu menu = new Menu(label, snippetIcon(xquery));
 
         MenuItem load = new MenuItem("Load into console", snippetIcon(xquery));
@@ -592,8 +694,22 @@ public class QueryConsole extends Region {
         MenuItem open = new MenuItem("Open in editor", menuIcon("bi-pencil-square"));
         open.setOnAction(e -> editorHost.openFile(file));
 
-        menu.getItems().addAll(load, open);
+        MenuItem overwrite = new MenuItem("Overwrite with current query", menuIcon("bi-save"));
+        overwrite.setOnAction(e -> overwriteSnippet(file, xquery));
+
+        MenuItem rename = new MenuItem("Rename…", menuIcon("bi-pencil"));
+        rename.setOnAction(e -> renameSnippet(file, xquery));
+
+        MenuItem delete = new MenuItem("Delete…", menuIcon("bi-trash"));
+        delete.setOnAction(e -> deleteSnippet(file, xquery));
+
+        menu.getItems().addAll(load, open, new SeparatorMenuItem(), overwrite, rename, delete);
         return menu;
+    }
+
+    /** The snippet's display name: the file name without its .xpath/.xquery extension. */
+    private static String snippetDisplayName(File file, boolean xquery) {
+        return file.getName().replaceFirst(xquery ? "\\.xquery$" : "\\.xpath$", "");
     }
 
     /** The per-kind snippet icon (XQuery / XPath), sized for menu items. */
