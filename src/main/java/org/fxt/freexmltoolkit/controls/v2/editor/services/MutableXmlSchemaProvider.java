@@ -40,24 +40,28 @@ public class MutableXmlSchemaProvider implements XmlSchemaProvider {
     private static final Logger logger = LogManager.getLogger(MutableXmlSchemaProvider.class);
 
     private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
-    private final XsdDocumentationService xsdDocumentationService;
 
-    private File xsdFile;
-    private XsdDocumentationData xsdDocumentationData;
+    private volatile File xsdFile;
+    private volatile XsdDocumentationData xsdDocumentationData;
 
     /**
      * Creates a new mutable schema provider without any schema loaded.
      */
     public MutableXmlSchemaProvider() {
-        this.xsdDocumentationService = new XsdDocumentationService();
         logger.debug("MutableXmlSchemaProvider created");
     }
 
     /**
-     * Loads an XSD schema from a file. Synchronized: the underlying
-     * {@link XsdDocumentationService} (one instance per provider) parses into a
-     * Xerces deferred DOM that is not thread-safe - concurrent loads corrupted
+     * Loads an XSD schema from a file. Synchronized: the Xerces deferred DOM inside
+     * {@link XsdDocumentationService} is not thread-safe — concurrent loads corrupted
      * it (IndexOutOfBoundsException from DeferredDocumentImpl).
+     *
+     * <p>A fresh service instance per load is essential: {@code processXsd} mutates the
+     * service's single {@link XsdDocumentationData} in place, and reusing it would
+     * modify the very element map an FX-thread reader (tooltips, IntelliSense) may be
+     * iterating — a re-load of a changed schema reference then threw
+     * {@link java.util.ConcurrentModificationException}. Building into a fresh object
+     * and publishing it atomically leaves readers on a consistent old snapshot.
      *
      * @param xsdFile the XSD file to load
      * @return true if the schema was loaded successfully, false otherwise
@@ -72,6 +76,7 @@ public class MutableXmlSchemaProvider implements XmlSchemaProvider {
             File oldFile = this.xsdFile;
             XsdDocumentationData oldData = this.xsdDocumentationData;
 
+            XsdDocumentationService xsdDocumentationService = new XsdDocumentationService();
             xsdDocumentationService.setXsdFilePath(xsdFile.getAbsolutePath());
             xsdDocumentationService.processXsd(true);
 
@@ -95,7 +100,7 @@ public class MutableXmlSchemaProvider implements XmlSchemaProvider {
     /**
      * Clears the current schema.
      */
-    public void clearSchema() {
+    public synchronized void clearSchema() {
         File oldFile = this.xsdFile;
         XsdDocumentationData oldData = this.xsdDocumentationData;
 
@@ -135,11 +140,14 @@ public class MutableXmlSchemaProvider implements XmlSchemaProvider {
 
     @Override
     public XsdExtendedElement findBestMatchingElement(String xpath) {
-        if (xsdDocumentationData == null || xpath == null) {
+        // Snapshot the volatile once: a concurrent re-load may swap the data object,
+        // and all lookups below must stay on one consistent snapshot.
+        XsdDocumentationData data = this.xsdDocumentationData;
+        if (data == null || xpath == null) {
             return null;
         }
 
-        var elementMap = xsdDocumentationData.getExtendedXsdElementMap();
+        var elementMap = data.getExtendedXsdElementMap();
         if (elementMap == null || elementMap.isEmpty()) {
             return null;
         }
