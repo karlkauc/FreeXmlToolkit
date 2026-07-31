@@ -37,6 +37,7 @@ import org.fxt.freexmltoolkit.controls.shell.editor.debug.BatchTransformView;
 import org.fxt.freexmltoolkit.domain.FileFavorite;
 import org.fxt.freexmltoolkit.service.FavoritesService;
 import org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat;
+import org.fxt.freexmltoolkit.util.DialogHelper;
 
 /**
  * The Transform activity side panel, laid out after the Figma mockup
@@ -1020,10 +1021,146 @@ public class TransformPanel extends VBox {
             return;
         }
         for (File file : files) {
-            MenuItem item = new MenuItem(file.getName().replaceFirst("\\.xpath$", ""));
-            item.setOnAction(e -> loadQueryFromFile(file));
-            savedQueriesMenu.getItems().add(item);
+            savedQueriesMenu.getItems().add(savedQueryItem(file));
         }
+    }
+
+    /**
+     * Builds a submenu that loads a saved query into the field, opens it as an
+     * editor tab, or manages it (overwrite / rename / delete) — mirroring the
+     * Query Console's snippets menu.
+     */
+    private MenuItem savedQueryItem(File file) {
+        Menu menu = new Menu(savedQueryDisplayName(file));
+
+        MenuItem load = new MenuItem("Load into query field", icon("bi-slash-square", 16));
+        load.setOnAction(e -> loadQueryFromFile(file));
+
+        MenuItem open = new MenuItem("Open in editor", icon("bi-pencil-square", 16));
+        open.setOnAction(e -> editorHost.openFile(file));
+
+        MenuItem overwrite = new MenuItem("Overwrite with current query", icon("bi-save", 16));
+        overwrite.setOnAction(e -> overwriteSavedQuery(file));
+
+        MenuItem rename = new MenuItem("Rename…", icon("bi-pencil", 16));
+        rename.setOnAction(e -> renameSavedQuery(file));
+
+        MenuItem delete = new MenuItem("Delete…", icon("bi-trash", 16));
+        delete.setOnAction(e -> deleteSavedQuery(file));
+
+        menu.getItems().addAll(load, open, new SeparatorMenuItem(), overwrite, rename, delete);
+        return menu;
+    }
+
+    /** The saved query's display name: the file name without its .xpath extension. */
+    private static String savedQueryDisplayName(File file) {
+        return file.getName().replaceFirst("\\.xpath$", "");
+    }
+
+    /** Asks for confirmation, then deletes the saved query file. */
+    private void deleteSavedQuery(File file) {
+        if (DialogHelper.showConfirmation("Delete Query",
+                "Delete query '" + savedQueryDisplayName(file) + "'?",
+                "The file " + file.getName() + " will be deleted permanently.")) {
+            deleteSavedQueryForTest(file);
+        }
+    }
+
+    /**
+     * Deletes {@code file} via {@link FavoritesService} (no prompt), used by the
+     * menu and tests.
+     *
+     * @param file the saved query file to delete
+     * @return whether the file was deleted
+     */
+    boolean deleteSavedQueryForTest(File file) {
+        boolean deleted = FavoritesService.getInstance().deleteQuery(file);
+        if (deleted) {
+            out.showQueryResult("Deleted query: " + file.getName(), 0);
+        } else {
+            out.showFailure("Could not delete query: " + file.getName());
+        }
+        return deleted;
+    }
+
+    /** Prompts for a new name (prefilled with the current one) and renames the saved query file. */
+    private void renameSavedQuery(File file) {
+        TextInputDialog dialog = new TextInputDialog(savedQueryDisplayName(file));
+        dialog.setTitle("Rename Query");
+        dialog.setHeaderText(null);
+        dialog.setContentText("New name:");
+        dialog.showAndWait().ifPresent(name -> {
+            if (!name.isBlank()) {
+                renameSavedQueryForTest(file, name.trim());
+            }
+        });
+    }
+
+    /**
+     * Renames the saved query (no prompt), rejecting a collision with an
+     * existing query. Used by the menu and tests.
+     *
+     * @param file    the saved query file to rename
+     * @param newName the new name (without extension; sanitized like a save)
+     * @return the renamed file, or {@code null} when rejected or failed
+     */
+    File renameSavedQueryForTest(File file, String newName) {
+        File target = new File(file.getParentFile(),
+                FavoritesService.sanitizeQueryFileName(newName, ".xpath"));
+        if (target.exists() && !target.equals(file)) {
+            out.showFailure("A query named '" + target.getName() + "' already exists.");
+            return null;
+        }
+        File renamed = FavoritesService.getInstance().renameQuery(file, newName);
+        if (renamed != null) {
+            out.showQueryResult("Renamed query to: " + renamed.getName(), 0);
+        } else {
+            out.showFailure("Could not rename query: " + file.getName());
+        }
+        return renamed;
+    }
+
+    /** Asks for confirmation, then overwrites the saved query with the field's text. */
+    private void overwriteSavedQuery(File file) {
+        String expression = xpathField.getText();
+        if (expression == null || expression.isBlank()) {
+            out.showError("The query field is empty — nothing to overwrite with.");
+            return;
+        }
+        if (DialogHelper.showConfirmation("Overwrite Query",
+                "Overwrite query '" + savedQueryDisplayName(file) + "'?",
+                "The saved query will be replaced with the current field content.")) {
+            overwriteSavedQueryForTest(file);
+        }
+    }
+
+    /**
+     * Overwrites {@code file} with the query field's current text (no prompt),
+     * used by the menu and tests.
+     *
+     * @param file the saved query file to overwrite
+     * @return the saved file, or {@code null} when the field is blank or the save failed
+     */
+    File overwriteSavedQueryForTest(File file) {
+        String expression = xpathField.getText();
+        if (expression == null || expression.isBlank()) {
+            out.showError("The query field is empty — nothing to overwrite with.");
+            return null;
+        }
+        File saved = FavoritesService.getInstance()
+                .saveXPathQuery(savedQueryDisplayName(file), expression);
+        if (saved != null) {
+            out.showQueryResult("Overwrote query: " + saved.getName(), 0);
+        } else {
+            out.showFailure("Could not overwrite query.");
+        }
+        return saved;
+    }
+
+    /** Test seam: the freshly rebuilt items of the "Saved" queries menu. */
+    List<MenuItem> savedQueriesMenuItemsForTest() {
+        refreshSavedQueriesMenu();
+        return savedQueriesMenu.getItems();
     }
 
     // ----- output-panel delegates (kept on the panel for tests/observers) ------

@@ -2,14 +2,19 @@ package org.fxt.freexmltoolkit.controls.shell.editor;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import javafx.scene.Scene;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 
+import org.fxt.freexmltoolkit.service.FavoritesService;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
@@ -35,6 +40,11 @@ class TransformPanelTest {
     private EditorHost host;
     private TransformPanel panel;
 
+    // Saved-query files created by tests, deleted in @AfterEach. FavoritesService
+    // writes to a fixed user-home config directory and cannot be redirected, so the
+    // tests use unique names and clean up after themselves to avoid polluting it.
+    private final List<File> createdQueries = new ArrayList<>();
+
     @Start
     void start(Stage stage) {
         org.fxt.freexmltoolkit.di.ServiceRegistry.initialize();
@@ -42,6 +52,16 @@ class TransformPanelTest {
         panel = new TransformPanel(host);
         stage.setScene(new Scene(new HBox(host, panel), 1100, 600));
         stage.show();
+    }
+
+    @AfterEach
+    void deleteCreatedQueries() {
+        for (File file : createdQueries) {
+            if (file != null) {
+                file.delete();
+            }
+        }
+        createdQueries.clear();
     }
 
     @Test
@@ -125,6 +145,74 @@ class TransformPanelTest {
             return null;
         });
         assertEquals("/root/item[@id]", panel.getQueryText());
+    }
+
+    @Test
+    void savedQueriesMenuOffersManagementActionsAndOverwriteWorks() throws Exception {
+        String name = "fxt-test-tp-manage-" + System.nanoTime();
+        File saved = FavoritesService.getInstance().saveXPathQuery(name, "//a");
+        createdQueries.add(saved);
+        assertNotNull(saved);
+
+        List<javafx.scene.control.MenuItem> items =
+                WaitForAsyncUtils.waitForAsyncFx(2000, panel::savedQueriesMenuItemsForTest);
+        javafx.scene.control.Menu submenu = (javafx.scene.control.Menu) items.stream()
+                .filter(i -> i.getText() != null && i.getText().contains(name))
+                .findFirst().orElseThrow();
+        for (String action : List.of("Load into query field", "Open in editor",
+                "Overwrite with current query", "Rename…", "Delete…")) {
+            assertTrue(submenu.getItems().stream().anyMatch(i -> action.equals(i.getText())),
+                    "saved query submenu must offer '" + action + "': " + submenu.getItems());
+        }
+
+        // Overwrite replaces the file with the field's text; a blank field is rejected.
+        File overwritten = WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.setXPathExpression("//b");
+            return panel.overwriteSavedQueryForTest(saved);
+        });
+        assertEquals(saved, overwritten, "overwrite must land on the same file");
+        assertEquals("//b", Files.readString(saved.toPath()));
+
+        File blank = WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.setXPathExpression("");
+            return panel.overwriteSavedQueryForTest(saved);
+        });
+        assertNull(blank, "a blank field must not overwrite the query");
+        assertEquals("//b", Files.readString(saved.toPath()), "the file must stay unchanged");
+    }
+
+    @Test
+    void savedQueryRenameAndDeleteManageTheFile() {
+        String suffix = "-" + System.nanoTime();
+        File fileA = FavoritesService.getInstance().saveXPathQuery("fxt-test-tp-a" + suffix, "//a");
+        File fileB = FavoritesService.getInstance().saveXPathQuery("fxt-test-tp-b" + suffix, "//b");
+        createdQueries.add(fileA);
+        createdQueries.add(fileB);
+
+        // Rename A; renaming B onto the taken name is rejected.
+        String newName = "fxt-test-tp-new" + suffix;
+        File renamed = WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> panel.renameSavedQueryForTest(fileA, newName));
+        createdQueries.add(renamed);
+        assertNotNull(renamed, "the rename must succeed");
+        assertTrue(renamed.exists());
+        assertFalse(fileA.exists(), "the old file must be gone after the rename");
+
+        File collision = WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> panel.renameSavedQueryForTest(fileB, newName));
+        assertNull(collision, "a rename onto an existing query must be rejected");
+        assertTrue(fileB.exists());
+        assertTrue(renamed.exists());
+
+        // Delete removes the file and its menu entry.
+        boolean deleted = WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> panel.deleteSavedQueryForTest(renamed));
+        assertTrue(deleted, "the delete must succeed");
+        assertFalse(renamed.exists());
+        List<javafx.scene.control.MenuItem> items =
+                WaitForAsyncUtils.waitForAsyncFx(2000, panel::savedQueriesMenuItemsForTest);
+        assertFalse(items.stream().anyMatch(i -> i.getText() != null && i.getText().contains(newName)),
+                "the menu must no longer list the deleted query");
     }
 
     @Test

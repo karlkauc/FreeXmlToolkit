@@ -1332,7 +1332,10 @@ The Transform panel's query sections provide query management (the bottom
 [Query Console](#query-console) offers a lighter Save / Snippets pair instead):
 
 - **XPATH section** - **Save Query** stores the current expression under a name, and the
-  **Saved** menu lists every saved query; pick one to load it back into the field.
+  **Saved** menu lists every saved query. *(New in July 2026)* Each entry is a submenu
+  offering the same management actions as the Query Console's Snippets menu: **Load into
+  query field**, **Open in editor**, **Overwrite with current query**, **Rename…** and
+  **Delete…** (the latter three with the same confirmation/collision rules).
 - **XQUERY section** - the **Examples** menu inserts ready-made sample expressions
   (Simple, FLWOR, HTML report, Data-quality check).
 
