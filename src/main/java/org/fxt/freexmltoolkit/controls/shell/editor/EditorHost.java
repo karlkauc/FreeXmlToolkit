@@ -1785,9 +1785,12 @@ public class EditorHost extends BorderPane {
         }
         if (et.view.loadSchema(xsd)) {
             et.schemaFile = xsd;
+            et.schemaOrigin = xsd == null
+                    ? SchemaRebindPolicy.SchemaBindingOrigin.NONE
+                    : SchemaRebindPolicy.SchemaBindingOrigin.MANUAL;
             et.view.invalidateIntelliSenseCache();
             activeSchema.set(xsd);
-            publishSchemaStatus(et, SchemaStatus.READY);
+            publishSchemaStatus(et, xsd == null ? SchemaStatus.NONE : SchemaStatus.READY);
             loadXmlSchemaProviderAsync(et, xsd);
             return true;
         }
@@ -2045,7 +2048,7 @@ public class EditorHost extends BorderPane {
                 // schema detections for one tab concurrently (Xerces DOM is not thread-safe).
                 if (tab.schemaDetecting.compareAndSet(false, true)) {
                     try {
-                        detected = detectSchemaFor(tab, path);
+                        detected = detectSchemaFor(tab, content, path);
                     } finally {
                         tab.schemaDetecting.set(false);
                     }
@@ -2059,6 +2062,7 @@ public class EditorHost extends BorderPane {
                     File autoXsd = detection != null ? detection.xsd() : null;
                     if (autoXsd != null) {
                         tab.schemaFile = autoXsd;
+                        tab.schemaOrigin = SchemaRebindPolicy.SchemaBindingOrigin.AUTO;
                         tab.view.invalidateIntelliSenseCache();
                         if (tab.isSelected()) {
                             activeSchema.set(autoXsd);
@@ -2083,30 +2087,23 @@ public class EditorHost extends BorderPane {
     }
 
     /**
-     * Auto-detects and binds the XSD for an opened XML document, matching the legacy
-     * editor: reuses {@link org.fxt.freexmltoolkit.service.XmlService#loadSchemaFromXMLFile()},
-     * which resolves both {@code xsi:schemaLocation} (namespaced) and
-     * {@code xsi:noNamespaceSchemaLocation}, local and remote (http/https, downloaded and
-     * cached) references. A fresh service instance keeps detection per-tab and stateless.
-     * Runs on the loader thread (remote download must not block the UI).
-     *
-     * @return the resolved, schema-bound XSD file, or {@code null} if none was found
-     */
-    /**
      * Re-runs the schema auto-detection ({@code xsi:schemaLocation} /
      * {@code xsi:noNamespaceSchemaLocation}, local and remote) for the active document
      * when it has no schema bound yet — e.g. when the Validation panel opens and the
      * reference was added after the file was opened, or an earlier remote download
-     * failed. No-op for untitled documents and when a schema is already bound, so an
-     * explicit user choice is never overridden.
+     * failed. Detection reads the live editor buffer, so unsaved (even untitled)
+     * documents work. No-op when a schema is already bound, so an explicit user choice
+     * is never overridden; the changed/removed-reference cases are handled by the
+     * validation-time reconcile in {@link #schemaForValidation(String)}.
      */
     public void redetectSchemaForActiveDocument() {
         if (!(tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab tab)) {
             return;
         }
-        if (tab.schemaFile != null || tab.document.getPath() == null || !tab.view.supportsSchema()) {
+        if (tab.schemaFile != null || !tab.view.supportsSchema()) {
             return;
         }
+        String content = tab.view.getText();
         Path path = tab.document.getPath();
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
             // One detection at a time per tab: the open-time detection (loadAsync) or a
@@ -2124,7 +2121,7 @@ public class EditorHost extends BorderPane {
                     // the other detection won while we waited
                     detection = new SchemaDetection(null, SchemaStatus.READY);
                 } else {
-                    detection = detectSchemaFor(tab, path);
+                    detection = detectSchemaFor(tab, content, path);
                 }
             } finally {
                 tab.schemaDetecting.set(false);
@@ -2134,6 +2131,7 @@ public class EditorHost extends BorderPane {
                 File autoXsd = result.xsd();
                 if (autoXsd != null) {
                     tab.schemaFile = autoXsd;
+                    tab.schemaOrigin = SchemaRebindPolicy.SchemaBindingOrigin.AUTO;
                     tab.view.invalidateIntelliSenseCache();
                     if (tab.isSelected()) {
                         activeSchema.set(autoXsd);
@@ -2146,20 +2144,136 @@ public class EditorHost extends BorderPane {
         });
     }
 
-    private SchemaDetection detectSchemaFor(EditorTab tab, Path path) {
+    /**
+     * Reconciles the active document's XSD binding with the schema location declared in
+     * {@code content} (the live editor buffer) and returns a supplier the validation
+     * worker calls to obtain the XSD to validate against. Call this on the FX thread —
+     * it snapshots the active tab; resolve the supplier on a worker thread only, as a
+     * changed remote reference may be downloaded there. An added, changed, or removed
+     * {@code xsi:schemaLocation} / {@code xsi:noNamespaceSchemaLocation} therefore takes
+     * effect on the very validation run that observes it. Policy (see
+     * {@link SchemaRebindPolicy}): manual bindings are never overridden, and an
+     * unchanged declaration costs no I/O.
+     */
+    public java.util.function.Supplier<File> schemaForValidation(String content) {
+        if (!(tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab tab)
+                || !tab.view.supportsSchema()) {
+            return () -> null;
+        }
+        Path path = tab.document.getPath();
+        return () -> reconcileSchemaBinding(tab, content, path);
+    }
+
+    /** Worker-thread body of {@link #schemaForValidation(String)}. @return the XSD to validate with */
+    private File reconcileSchemaBinding(EditorTab tab, String content, Path path) {
+        File baseDir = path != null && path.getParent() != null ? path.getParent().toFile() : null;
+        String declared = org.fxt.freexmltoolkit.di.ServiceRegistry
+                .get(org.fxt.freexmltoolkit.service.XmlService.class)
+                .getSchemaNameFromXmlContent(content, baseDir)
+                .orElse(null);
+        switch (SchemaRebindPolicy.decideRebind(tab.schemaOrigin, declared, tab.lastDetectedSchemaLocation)) {
+            case KEEP -> {
+                return tab.schemaFile;
+            }
+            case CLEAR -> {
+                // Same per-tab CAS as the other detection paths; on a lost race the
+                // current binding is used once more and the next run corrects it.
+                if (!tab.schemaDetecting.compareAndSet(false, true)) {
+                    return tab.schemaFile;
+                }
+                try {
+                    tab.lastDetectedSchemaLocation = null;
+                    tab.schemaFile = null;
+                    tab.schemaOrigin = SchemaRebindPolicy.SchemaBindingOrigin.NONE;
+                } finally {
+                    tab.schemaDetecting.set(false);
+                }
+                Platform.runLater(() -> {
+                    clearSchemaBindingUi(tab);
+                    publishSchemaStatus(tab, SchemaStatus.NONE);
+                });
+                return null;
+            }
+            case DETECT -> {
+                if (!tab.schemaDetecting.compareAndSet(false, true)) {
+                    return tab.schemaFile;
+                }
+                // LOADING only after the CAS succeeded — a lost CAS has no completion
+                // path, and a stray LOADING would stick in the status bar.
+                Platform.runLater(() -> publishSchemaStatus(tab, SchemaStatus.LOADING));
+                SchemaDetection detection;
+                try {
+                    detection = detectSchemaFor(tab, content, path);
+                } finally {
+                    tab.schemaDetecting.set(false);
+                }
+                File xsd = detection.xsd();
+                tab.schemaFile = xsd;
+                tab.schemaOrigin = xsd != null
+                        ? SchemaRebindPolicy.SchemaBindingOrigin.AUTO
+                        : SchemaRebindPolicy.SchemaBindingOrigin.NONE;
+                Platform.runLater(() -> {
+                    if (xsd != null) {
+                        tab.view.invalidateIntelliSenseCache();
+                        if (tab.isSelected()) {
+                            activeSchema.set(xsd);
+                        }
+                        loadXmlSchemaProviderAsync(tab, xsd);
+                    } else {
+                        // Declared but unresolvable: drop the stale binding too —
+                        // keeping it would silently validate against the wrong schema.
+                        clearSchemaBindingUi(tab);
+                    }
+                    // Terminal status in every branch, so LOADING never sticks.
+                    publishSchemaStatus(tab, detection.status());
+                });
+                return xsd;
+            }
+        }
+        return tab.schemaFile; // unreachable
+    }
+
+    /** FX thread: clears the editor/IntelliSense side of a dropped schema binding. */
+    private void clearSchemaBindingUi(EditorTab tab) {
+        tab.view.clearSchema();
+        tab.view.invalidateIntelliSenseCache();
+        tab.xmlSchemaProvider = null;
+        if (tab.xmlEditorContext != null) {
+            tab.xmlEditorContext.setSchemaProvider(null);
+        }
+        if (tab.isSelected()) {
+            activeSchema.set(null);
+        }
+    }
+
+    /**
+     * Auto-detects and binds the XSD declared in {@code content} (the document text,
+     * usually the live editor buffer): resolves both {@code xsi:schemaLocation}
+     * (namespaced) and {@code xsi:noNamespaceSchemaLocation}, local (relative to
+     * {@code pathOrNull}'s directory when given) and remote (http/https, downloaded and
+     * cached) references via {@link org.fxt.freexmltoolkit.service.XmlService}. A fresh
+     * service instance keeps detection per-tab and stateless. Runs on a worker thread
+     * (remote download must not block the UI).
+     */
+    private SchemaDetection detectSchemaFor(EditorTab tab, String content, Path pathOrNull) {
         if (!tab.view.supportsSchema()) {
             return SchemaDetection.NOT_FOUND;
         }
         try {
             org.fxt.freexmltoolkit.service.XmlService service =
                     new org.fxt.freexmltoolkit.service.XmlServiceImpl();
-            service.setCurrentXmlFile(path.toFile());
-            if (service.getSchemaNameFromCurrentXMLFile().isEmpty()) {
+            File baseDir = pathOrNull != null && pathOrNull.getParent() != null
+                    ? pathOrNull.getParent().toFile() : null;
+            java.util.Optional<String> declared = service.getSchemaNameFromXmlContent(content, baseDir);
+            // Remember what the buffer declared (also on failure below) so the
+            // validation-time reconcile can short-circuit unchanged documents.
+            tab.lastDetectedSchemaLocation = declared.orElse(null);
+            if (declared.isEmpty()) {
                 return SchemaDetection.NOT_FOUND; // the document references no schema
             }
             // A reference exists — from here on, every failure is an ERROR (the user
             // expects IntelliSense but won't get it), not a silent "No XSD".
-            if (!service.loadSchemaFromXMLFile()) {
+            if (!service.loadSchemaFromLocation(declared.get())) {
                 return SchemaDetection.FAILED; // referenced, but not resolvable
             }
             File xsd = service.getCurrentXsdFile();
@@ -2480,7 +2594,17 @@ public class EditorHost extends BorderPane {
         /** Coalesces caret movement into a single Text-view caret&rarr;node resolution. */
         private final javafx.animation.PauseTransition xmlCaretDebounce =
                 new javafx.animation.PauseTransition(javafx.util.Duration.millis(120));
-        private File schemaFile;
+        /** Read on validation worker threads (schema reconcile) — hence volatile. */
+        private volatile File schemaFile;
+        /** How {@link #schemaFile} was bound; MANUAL bindings survive auto-redetection. */
+        private volatile SchemaRebindPolicy.SchemaBindingOrigin schemaOrigin =
+                SchemaRebindPolicy.SchemaBindingOrigin.NONE;
+        /**
+         * Raw declared location the last auto-detection saw ({@code null} = none declared).
+         * Recorded on failures too, so an unresolvable URL is not re-attempted on every
+         * validation/debounce cycle — only when the declared value actually changes.
+         */
+        private volatile String lastDetectedSchemaLocation;
         /** Written on the loader thread, read on the FX thread (tab switch) — hence volatile. */
         private volatile SchemaStatus schemaStatus = SchemaStatus.NONE;
         private File schematronFile;

@@ -38,14 +38,22 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
@@ -1092,9 +1100,23 @@ public class XmlServiceImpl implements XmlService {
 
     @Override
     public boolean loadSchemaFromXMLFile() {
+        var possibleSchemaLocation = getSchemaNameFromCurrentXMLFile();
+        if (possibleSchemaLocation.isEmpty()) {
+            this.currentXsdFile = null;
+            return false;
+        }
+        return loadSchemaFromLocation(possibleSchemaLocation.get());
+    }
+
+    @Override
+    public boolean loadSchemaFromLocation(String schemaLocation) {
         var prop = propertiesService.loadProperties();
         logger.debug("Properties: {}", prop);
         this.currentXsdFile = null;
+
+        if (schemaLocation == null || schemaLocation.isBlank()) {
+            return false;
+        }
 
         try {
             if (!new File(CACHE_DIR).exists()) {
@@ -1105,115 +1127,111 @@ public class XmlServiceImpl implements XmlService {
             logger.error(e.getMessage());
         }
 
-        var possibleSchemaLocation = getSchemaNameFromCurrentXMLFile();
+        var temp = schemaLocation.trim();
 
-        if (possibleSchemaLocation.isPresent()) {
-            var temp = possibleSchemaLocation.get().trim();
+        // Check if it's a file:// URL first (before URL validation)
+        if (temp.startsWith("file://") || temp.startsWith("file:")) {
+            logger.debug("Detected file URL: {}", temp);
+            try {
+                URI uri = new URI(temp);
+                File localFile = new File(uri);
+                logger.debug("Attempting to load local XSD file: {}", localFile.getAbsolutePath());
 
-            // Check if it's a file:// URL first (before URL validation)
-            if (temp.startsWith("file://") || temp.startsWith("file:")) {
-                logger.debug("Detected file URL: {}", temp);
-                try {
-                    URI uri = new URI(temp);
-                    File localFile = new File(uri);
-                    logger.debug("Attempting to load local XSD file: {}", localFile.getAbsolutePath());
-
-                    if (localFile.exists()) {
-                        if (isSchemaValid(localFile)) {
-                            logger.info("Loading local XSD schema: {}", localFile.getAbsolutePath());
-                            this.setCurrentXsdFile(localFile);
-                            this.remoteXsdLocation = temp;
-                            return true;
-                        } else {
-                            logger.error("Local schema file is not a valid XSD: {}", localFile.getAbsolutePath());
-                            return false;
-                        }
+                if (localFile.exists()) {
+                    if (isSchemaValid(localFile)) {
+                        logger.info("Loading local XSD schema: {}", localFile.getAbsolutePath());
+                        this.setCurrentXsdFile(localFile);
+                        this.remoteXsdLocation = temp;
+                        return true;
                     } else {
-                        logger.warn("Local schema file does not exist: {}", localFile.getAbsolutePath());
+                        logger.error("Local schema file is not a valid XSD: {}", localFile.getAbsolutePath());
                         return false;
                     }
-                } catch (URISyntaxException | IllegalArgumentException e) {
-                    logger.error("Error parsing file URL '{}': {}", temp, e.getMessage());
+                } else {
+                    logger.warn("Local schema file does not exist: {}", localFile.getAbsolutePath());
                     return false;
                 }
+            } catch (URISyntaxException | IllegalArgumentException e) {
+                logger.error("Error parsing file URL '{}': {}", temp, e.getMessage());
+                return false;
             }
+        }
 
-            var validUrl = urlValidator.isValid(temp);
-            logger.debug("Valid URL: {}", validUrl);
+        var validUrl = urlValidator.isValid(temp);
+        logger.debug("Valid URL: {}", validUrl);
 
-            if (validUrl) {
-                try {
-                    URL url = new URI(temp).toURL();
-                    var protocol = url.getProtocol();
-                    logger.debug("Protocol: {}", protocol);
+        if (validUrl) {
+            try {
+                URL url = new URI(temp).toURL();
+                var protocol = url.getProtocol();
+                logger.debug("Protocol: {}", protocol);
 
-                    if (protocol.equals("http") || protocol.equals("https")) {
-                        String md5Hex = DigestUtils.md5Hex(temp.toLowerCase()).toUpperCase();
-                        logger.debug("Cache path: {}", md5Hex);
+                if (protocol.equals("http") || protocol.equals("https")) {
+                    String md5Hex = DigestUtils.md5Hex(temp.toLowerCase()).toUpperCase();
+                    logger.debug("Cache path: {}", md5Hex);
 
-                        final Path CURRENT_XSD_CACHE_PATH = Path.of(CACHE_DIR + File.separator + md5Hex);
-                        logger.debug("Absolute cache Path: {}", CURRENT_XSD_CACHE_PATH);
+                    final Path CURRENT_XSD_CACHE_PATH = Path.of(CACHE_DIR + File.separator + md5Hex);
+                    logger.debug("Absolute cache Path: {}", CURRENT_XSD_CACHE_PATH);
 
-                        if (!Files.exists(CURRENT_XSD_CACHE_PATH)) {
-                            try {
-                                Files.createDirectories(CURRENT_XSD_CACHE_PATH);
-                            } catch (IOException e) {
-                                logger.error(e.getMessage());
-                            }
+                    if (!Files.exists(CURRENT_XSD_CACHE_PATH)) {
+                        try {
+                            Files.createDirectories(CURRENT_XSD_CACHE_PATH);
+                        } catch (IOException e) {
+                            logger.error(e.getMessage());
                         }
+                    }
 
-                        String fileNameNew = FilenameUtils.getName(temp);
-                        String possibleFileName = CURRENT_XSD_CACHE_PATH + File.separator + fileNameNew;
-                        logger.debug("Cache File: {}", possibleFileName);
+                    String fileNameNew = FilenameUtils.getName(temp);
+                    String possibleFileName = CURRENT_XSD_CACHE_PATH + File.separator + fileNameNew;
+                    logger.debug("Cache File: {}", possibleFileName);
 
-                        File newFile = new File(possibleFileName);
-                        if (newFile.exists() && newFile.length() > 1) {
-                            logger.debug("Load file from cache: {}", newFile.getAbsolutePath());
-                            this.setCurrentXsdFile(newFile);
-                            this.remoteXsdLocation = temp;
+                    File newFile = new File(possibleFileName);
+                    if (newFile.exists() && newFile.length() > 1) {
+                        logger.debug("Load file from cache: {}", newFile.getAbsolutePath());
+                        this.setCurrentXsdFile(newFile);
+                        this.remoteXsdLocation = temp;
 
-                            return true;
-                        } else {
-                            logger.debug("Did not find cached Schema file.");
-                            var pathNew = Path.of(newFile.getAbsolutePath());
+                        return true;
+                    } else {
+                        logger.debug("Did not find cached Schema file.");
+                        var pathNew = Path.of(newFile.getAbsolutePath());
 
-                            try {
-                                long downloadStart = System.currentTimeMillis();
-                                String textContent = connectionService.getTextContentFromURL(new URI(temp));
-                                // Pre-save gate: keep HTML error pages / garbage out of the cache.
-                                // Deliberately NOT a full schema compilation - that would reject
-                                // schemas with relative imports (e.g. FundsXML -> xmldsig-core-schema.xsd)
-                                // whose siblings are only cached by downloadImportedSchemas() below.
-                                if (isPlausibleSchemaDocument(textContent)) {
-                                    byte[] contentBytes = textContent.getBytes(StandardCharsets.UTF_8);
-                                    Files.write(pathNew, contentBytes);
-                                    logger.debug("Write new file '{}' with {} Bytes.", pathNew.toFile().getAbsoluteFile(), pathNew.toFile().length());
+                        try {
+                            long downloadStart = System.currentTimeMillis();
+                            String textContent = connectionService.getTextContentFromURL(new URI(temp));
+                            // Pre-save gate: keep HTML error pages / garbage out of the cache.
+                            // Deliberately NOT a full schema compilation - that would reject
+                            // schemas with relative imports (e.g. FundsXML -> xmldsig-core-schema.xsd)
+                            // whose siblings are only cached by downloadImportedSchemas() below.
+                            if (isPlausibleSchemaDocument(textContent)) {
+                                byte[] contentBytes = textContent.getBytes(StandardCharsets.UTF_8);
+                                Files.write(pathNew, contentBytes);
+                                logger.debug("Write new file '{}' with {} Bytes.", pathNew.toFile().getAbsoluteFile(), pathNew.toFile().length());
 
-                                    // Add to central cache index
-                                    addToCacheIndex(pathNew, temp, contentBytes, downloadStart);
+                                // Add to central cache index
+                                addToCacheIndex(pathNew, temp, contentBytes, downloadStart);
 
-                                    this.setCurrentXsdFile(new File(pathNew.toUri()));
-                                    this.remoteXsdLocation = temp;
+                                this.setCurrentXsdFile(new File(pathNew.toUri()));
+                                this.remoteXsdLocation = temp;
 
-                                    // Download imported XSD files recursively
-                                    downloadImportedSchemas(textContent, temp, CURRENT_XSD_CACHE_PATH);
+                                // Download imported XSD files recursively
+                                downloadImportedSchemas(textContent, temp, CURRENT_XSD_CACHE_PATH);
 
-                                    return true;
-                                } else {
-                                    logger.error("Downloaded schema from {} is not valid and will not be saved.", temp);
-                                    return false;
-                                }
-                            } catch (Exception e) {
-                                logger.error("Failed to download or process schema from {}: {}", temp, e.getMessage());
+                                return true;
+                            } else {
+                                logger.error("Downloaded schema from {} is not valid and will not be saved.", temp);
                                 return false;
                             }
+                        } catch (Exception e) {
+                            logger.error("Failed to download or process schema from {}: {}", temp, e.getMessage());
+                            return false;
                         }
-                    } else {
-                        logger.debug("Schema protocol not supported: {}", protocol);
                     }
-                } catch (URISyntaxException | MalformedURLException e) {
-                    logger.error(e.getMessage());
+                } else {
+                    logger.debug("Schema protocol not supported: {}", protocol);
                 }
+            } catch (URISyntaxException | MalformedURLException e) {
+                logger.error(e.getMessage());
             }
         }
         return false;
@@ -1229,73 +1247,11 @@ public class XmlServiceImpl implements XmlService {
                 Element root = xmlDocument.getDocumentElement();
                 logger.debug("ROOT: {}", root);
 
-                String possibleSchemaLocation;
-                possibleSchemaLocation = root.getAttribute("xsi:schemaLocation");
-                if (possibleSchemaLocation.contains(" ")) {
-                    // e.g. xsi:schemaLocation="http://www.fundsxml.org/XMLSchema/3.0.6 FundsXML3.0.6.xsd"
-                    String[] splitStr = possibleSchemaLocation.split(" +");
-                    String possibleFileName = splitStr[1];
-
-                    // First check if it's already a complete URL
-                    if (possibleFileName.startsWith("http://") || possibleFileName.startsWith("https://")) {
-                        logger.debug("Found remote Schema URL: {}", possibleFileName);
-                        return Optional.of(possibleFileName.trim());
-                    }
-
-                    // Check for local file
-                    File localSchemaFile = new File(this.currentXmlFile.getParentFile(), possibleFileName.trim());
-                    if (localSchemaFile.exists()) {
-                        logger.debug("Found local Schema at: {}", localSchemaFile.getAbsolutePath());
-                        return Optional.of(localSchemaFile.toURI().toString());
-                    } else {
-                        logger.debug("Local schema not found at: {}, checking if second part is URL", localSchemaFile.getAbsolutePath());
-                        // Only return if it looks like a URL, not just a filename
-                        if (possibleFileName.startsWith("http://") || possibleFileName.startsWith("https://") || possibleFileName.contains(".")) {
-                            logger.debug("Second part looks like a URL or path: {}", possibleFileName);
-                            return Optional.of(possibleFileName.trim());
-                        } else {
-                            logger.debug("Second part is just a filename without URL indicators: {}", possibleFileName);
-                        }
-                    }
-                }
-
-                logger.debug("Typing xsi:noNamespaceSchemaLocation...");
-                possibleSchemaLocation = root.getAttribute("xsi:noNamespaceSchemaLocation");
-                if (!possibleSchemaLocation.isEmpty()) {
-                    logger.debug("Possible Schema Location: {}", possibleSchemaLocation);
-
-                    // Check if it's already a complete URL
-                    String trimmedSchemaLocation = possibleSchemaLocation.trim();
-                    if (trimmedSchemaLocation.startsWith("http://") || trimmedSchemaLocation.startsWith("https://")) {
-                        return Optional.of(trimmedSchemaLocation);
-                    }
-
-                    // Check for local file relative to XML file
-                    File localSchemaFile = new File(this.currentXmlFile.getParentFile(), trimmedSchemaLocation);
-                    if (localSchemaFile.exists()) {
-                        logger.debug("Found local Schema at: {}", localSchemaFile.getAbsolutePath());
-                        return Optional.of(localSchemaFile.toURI().toString());
-                    } else {
-                        logger.debug("Local schema not found at: {}", localSchemaFile.getAbsolutePath());
-                        // Return the raw value anyway, it might be a URL
-                        return Optional.of(trimmedSchemaLocation);
-                    }
-                } else {
-                    logger.debug("No possible Schema Location found!");
-                }
-
-                logger.debug("Trying xmlns...");
-                possibleSchemaLocation = root.getAttribute("xmlns");
-                logger.debug("Schema Location: {}", possibleSchemaLocation);
-                String trimmedXmlns = possibleSchemaLocation.trim();
-                if (!trimmedXmlns.isEmpty() && trimmedXmlns.toLowerCase().endsWith(".xsd")) {
-                    logger.debug("Possible Schema Location: {}", trimmedXmlns);
-                    return Optional.of(trimmedXmlns);
-                } else {
-                    logger.debug("Possible Schema Location empty or doesn't end with .xsd");
-                }
-                return Optional.empty();
-
+                return interpretSchemaLocationAttributes(
+                        root.getAttribute("xsi:schemaLocation"),
+                        root.getAttribute("xsi:noNamespaceSchemaLocation"),
+                        root.getAttribute("xmlns"),
+                        this.currentXmlFile.getParentFile());
             } catch (IOException | ParserConfigurationException | SAXException exception) {
                 logger.error("Error: {}", exception.getMessage());
                 return Optional.empty();
@@ -1304,6 +1260,164 @@ public class XmlServiceImpl implements XmlService {
             logger.debug("Kein XML File ausgewählt!");
         }
 
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<String> getSchemaNameFromXmlContent(String xmlContent, File baseDir) {
+        if (xmlContent == null || xmlContent.isBlank()) {
+            return Optional.empty();
+        }
+        XMLStreamReader reader = null;
+        try {
+            reader = createSchemaPrescanFactory().createXMLStreamReader(new StringReader(xmlContent));
+            while (reader.hasNext()) {
+                if (reader.next() != XMLStreamConstants.START_ELEMENT) {
+                    continue;
+                }
+                // Root start tag reached — collect its attributes as literal qName -> value.
+                Map<String, String> attributes = new LinkedHashMap<>();
+                for (int i = 0; i < reader.getAttributeCount(); i++) {
+                    attributes.put(qName(reader.getAttributePrefix(i), reader.getAttributeLocalName(i)),
+                            reader.getAttributeValue(i));
+                }
+                // Namespace declarations are reported as namespaces by namespace-aware
+                // readers and as plain attributes otherwise — merge both representations.
+                for (int i = 0; i < reader.getNamespaceCount(); i++) {
+                    String prefix = reader.getNamespacePrefix(i);
+                    attributes.put(prefix == null || prefix.isEmpty() ? "xmlns" : "xmlns:" + prefix,
+                            reader.getNamespaceURI(i));
+                }
+                return interpretSchemaLocationAttributes(
+                        xsiAttribute(attributes, "schemaLocation"),
+                        xsiAttribute(attributes, "noNamespaceSchemaLocation"),
+                        attributes.get("xmlns"),
+                        baseDir);
+            }
+            return Optional.empty();
+        } catch (XMLStreamException e) {
+            logger.debug("Schema prescan failed, document not parsable: {}", e.getMessage());
+            return Optional.empty();
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (XMLStreamException ignored) {
+                    // nothing to release beyond the StringReader
+                }
+            }
+        }
+    }
+
+    /**
+     * StAX factory for the schema-location prescan. Unlike
+     * {@link SecureXmlFactory#createSecureXMLInputFactory()} it keeps DTD support on —
+     * the DOM-based detection path accepts documents with a DOCTYPE, and the prescan
+     * only reads up to the root start tag — while external resolution stays blocked.
+     * A fresh factory per call: XMLInputFactory is not guaranteed thread-safe and the
+     * prescan runs on multiple worker threads.
+     */
+    private static XMLInputFactory createSchemaPrescanFactory() {
+        XMLInputFactory factory = XMLInputFactory.newInstance();
+        factory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);
+        factory.setProperty(XMLInputFactory.IS_REPLACING_ENTITY_REFERENCES, false);
+        factory.setXMLResolver((publicID, systemID, base, ns) -> new ByteArrayInputStream(new byte[0]));
+        try {
+            // Non-namespace-aware keeps parity with the DOM path: a literal "xsi:" prefix
+            // is honored even when the prefix is undeclared. Optional per StAX spec.
+            factory.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, false);
+        } catch (IllegalArgumentException e) {
+            logger.debug("StAX implementation does not support disabling namespace awareness");
+        }
+        return factory;
+    }
+
+    private static String qName(String prefix, String localName) {
+        return prefix == null || prefix.isEmpty() ? localName : prefix + ":" + localName;
+    }
+
+    /**
+     * Looks up an XSI attribute by local name: the literal {@code xsi:} prefix (matching
+     * the DOM path's behavior) plus any prefix the root element binds to the XSI namespace.
+     */
+    private static String xsiAttribute(Map<String, String> attributes, String localName) {
+        Set<String> xsiPrefixes = new LinkedHashSet<>();
+        xsiPrefixes.add("xsi");
+        for (Map.Entry<String, String> entry : attributes.entrySet()) {
+            if (entry.getKey().startsWith("xmlns:")
+                    && XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI.equals(entry.getValue())) {
+                xsiPrefixes.add(entry.getKey().substring("xmlns:".length()));
+            }
+        }
+        for (String prefix : xsiPrefixes) {
+            String value = attributes.get(prefix + ":" + localName);
+            if (value != null && !value.isEmpty()) {
+                return value;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Interprets the schema-referencing attributes of a document's root element, shared by
+     * the file-based ({@link #getSchemaNameFromCurrentXMLFile()}) and buffer-based
+     * ({@link #getSchemaNameFromXmlContent(String, File)}) detection paths. Precedence:
+     * {@code xsi:schemaLocation} pair, then {@code xsi:noNamespaceSchemaLocation}, then an
+     * {@code xmlns} value ending in {@code .xsd}.
+     *
+     * @param baseDir directory relative locations resolve against; {@code null} for an
+     *                unsaved document — local existence checks are skipped and the raw
+     *                (trimmed) value is returned instead
+     */
+    static Optional<String> interpretSchemaLocationAttributes(
+            String schemaLocationAttr, String noNamespaceAttr, String xmlnsAttr, File baseDir) {
+        String schemaLocationPair = schemaLocationAttr == null ? "" : schemaLocationAttr;
+        if (schemaLocationPair.contains(" ")) {
+            // e.g. xsi:schemaLocation="http://www.fundsxml.org/XMLSchema/3.0.6 FundsXML3.0.6.xsd"
+            String[] splitStr = schemaLocationPair.split(" +");
+            String possibleFileName = splitStr[1];
+
+            if (possibleFileName.startsWith("http://") || possibleFileName.startsWith("https://")) {
+                logger.debug("Found remote Schema URL: {}", possibleFileName);
+                return Optional.of(possibleFileName.trim());
+            }
+
+            if (baseDir != null) {
+                File localSchemaFile = new File(baseDir, possibleFileName.trim());
+                if (localSchemaFile.exists()) {
+                    logger.debug("Found local Schema at: {}", localSchemaFile.getAbsolutePath());
+                    return Optional.of(localSchemaFile.toURI().toString());
+                }
+            }
+            // Only return if it looks like a URL or path, not just a bare name
+            if (possibleFileName.contains(".")) {
+                logger.debug("Second part looks like a URL or path: {}", possibleFileName);
+                return Optional.of(possibleFileName.trim());
+            }
+        }
+
+        String noNamespace = noNamespaceAttr == null ? "" : noNamespaceAttr.trim();
+        if (!noNamespace.isEmpty()) {
+            logger.debug("Possible Schema Location: {}", noNamespace);
+            if (noNamespace.startsWith("http://") || noNamespace.startsWith("https://")) {
+                return Optional.of(noNamespace);
+            }
+            if (baseDir != null) {
+                File localSchemaFile = new File(baseDir, noNamespace);
+                if (localSchemaFile.exists()) {
+                    logger.debug("Found local Schema at: {}", localSchemaFile.getAbsolutePath());
+                    return Optional.of(localSchemaFile.toURI().toString());
+                }
+            }
+            // Return the raw value anyway, it might be a URL or absolute path
+            return Optional.of(noNamespace);
+        }
+
+        String xmlns = xmlnsAttr == null ? "" : xmlnsAttr.trim();
+        if (!xmlns.isEmpty() && xmlns.toLowerCase().endsWith(".xsd")) {
+            logger.debug("Using xmlns as Schema Location: {}", xmlns);
+            return Optional.of(xmlns);
+        }
         return Optional.empty();
     }
 

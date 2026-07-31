@@ -359,11 +359,15 @@ class ValidationPanelTest {
                 () -> host.getActiveText().map(t -> t.contains("root")).orElse(false));
         assertNull(host.activeSchemaProperty().get());
 
-        // The reference appears later; re-creating the panel (= switching to the
-        // Validation activity) must auto-bind the referenced schema.
-        Files.writeString(xml, "<root xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "
-                + "xsi:noNamespaceSchemaLocation=\"auto.xsd\">x</root>");
-        WaitForAsyncUtils.waitForAsyncFx(2000, () -> new ValidationPanel(host));
+        // The reference appears later in the editor buffer (detection reads the live
+        // buffer, not the file); re-creating the panel (= switching to the Validation
+        // activity) must auto-bind the referenced schema.
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.activeEditorView().setText(
+                    "<root xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "
+                            + "xsi:noNamespaceSchemaLocation=\"auto.xsd\">x</root>");
+            return new ValidationPanel(host);
+        });
 
         WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS, () -> host.activeSchemaProperty().get() != null);
         assertEquals("auto.xsd", host.activeSchemaProperty().get().getName());

@@ -59,6 +59,11 @@ final class XmlEditorView implements EditorView {
     }
 
     @Override
+    public void clearSchema() {
+        schemaProvider.clearSchema();
+    }
+
+    @Override
     public void invalidateIntelliSenseCache() {
         editor.invalidateIntelliSenseCache();
     }

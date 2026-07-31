@@ -60,6 +60,10 @@ public interface EditorView {
         return false;
     }
 
+    /** Unbinds the XSD again (the document no longer references one). No-op if unsupported. */
+    default void clearSchema() {
+    }
+
     /** Invalidates IntelliSense caches after a schema change (no-op if unsupported). */
     default void invalidateIntelliSenseCache() {
     }

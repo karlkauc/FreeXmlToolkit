@@ -124,6 +124,87 @@ class EditorHostSchemaStatusTest {
     }
 
     @Test
+    void addedReferenceIsPickedUpOnValidate(@TempDir Path tmp) throws Exception {
+        Files.writeString(tmp.resolve("schema.xsd"), XSD);
+        Path xml = tmp.resolve("plain.xml");
+        Files.writeString(xml, "<root/>\n");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
+        awaitStatus(SchemaStatus.NONE);
+
+        // The user adds the schema reference in the buffer (unsaved) and validates.
+        String edited = """
+                <root xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                      xsi:noNamespaceSchemaLocation="schema.xsd"/>
+                """;
+        var supplier = WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.activeEditorView().setText(edited);
+            return host.schemaForValidation(edited);
+        });
+        java.io.File xsd = supplier.get(); // worker-thread resolution, as in the validation runs
+
+        assertNotNull(xsd, "the newly declared schema must be used for this validation run");
+        assertEquals("schema.xsd", xsd.getName());
+        awaitStatus(SchemaStatus.READY);
+        assertNotNull(host.activeSchemaProperty().get());
+    }
+
+    @Test
+    void removedReferenceDowngradesToNone(@TempDir Path tmp) throws Exception {
+        Files.writeString(tmp.resolve("schema.xsd"), XSD);
+        Path xml = tmp.resolve("doc.xml");
+        Files.writeString(xml, """
+                <root xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                      xsi:noNamespaceSchemaLocation="schema.xsd"/>
+                """);
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
+        awaitStatus(SchemaStatus.READY);
+
+        String edited = "<root/>\n";
+        var supplier = WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.activeEditorView().setText(edited);
+            return host.schemaForValidation(edited);
+        });
+        java.io.File xsd = supplier.get();
+
+        assertNull(xsd, "with the reference removed, validation must degrade to well-formed");
+        awaitStatus(SchemaStatus.NONE);
+        assertNull(host.activeSchemaProperty().get());
+    }
+
+    @Test
+    void manualBindingSurvivesBufferChange(@TempDir Path tmp) throws Exception {
+        Path xml = tmp.resolve("plain.xml");
+        Files.writeString(xml, "<root/>\n");
+        Path goodXsd = tmp.resolve("good.xsd");
+        Files.writeString(goodXsd, XSD);
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
+        awaitStatus(SchemaStatus.NONE);
+        assertTrue(WaitForAsyncUtils.waitForAsyncFx(12000,
+                () -> host.setSchemaForActiveDocument(goodXsd.toFile())));
+        awaitStatus(SchemaStatus.READY);
+
+        // The buffer now declares a different (unresolvable) schema — the manual
+        // binding must win and stay untouched.
+        String edited = """
+                <root xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                      xsi:noNamespaceSchemaLocation="other.xsd"/>
+                """;
+        var supplier = WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.activeEditorView().setText(edited);
+            return host.schemaForValidation(edited);
+        });
+        java.io.File xsd = supplier.get();
+
+        assertNotNull(xsd, "a manual binding must never be dropped by auto-detection");
+        assertEquals("good.xsd", xsd.getName());
+        awaitStatus(SchemaStatus.READY);
+        assertEquals("good.xsd", host.activeSchemaProperty().get().getName());
+    }
+
+    @Test
     void manualBindPublishesReadyOrError(@TempDir Path tmp) throws Exception {
         Path xml = tmp.resolve("plain.xml");
         Files.writeString(xml, "<root/>\n");

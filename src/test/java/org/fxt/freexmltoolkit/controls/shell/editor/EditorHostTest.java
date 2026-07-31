@@ -100,11 +100,12 @@ class EditorHostTest {
                 () -> host.getActiveText().map(t -> t.contains("root")).orElse(false));
         assertNull(host.activeSchemaProperty().get(), "no reference, no schema");
 
-        // The reference appears later (external edit / save) — e.g. before the
-        // Validation panel triggers a redetect.
-        Files.writeString(xml, "<root xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "
-                + "xsi:noNamespaceSchemaLocation=\"late.xsd\">x</root>");
+        // The reference appears later in the editor buffer (detection reads the live
+        // buffer, not the file) — e.g. before the Validation panel triggers a redetect.
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.activeEditorView().setText(
+                    "<root xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "
+                            + "xsi:noNamespaceSchemaLocation=\"late.xsd\">x</root>");
             host.redetectSchemaForActiveDocument();
             return null;
         });

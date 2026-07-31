@@ -419,13 +419,16 @@ public class ValidationPanel extends VBox {
         }
         boolean json = editorHost.getActiveDocument()
                 .map(d -> d.getFileType() == EditorFileType.JSON).orElse(false);
-        File xsd = editorHost.activeSchemaProperty().get();
+        // Resolved on the worker thread: reconciles the binding with the schema location
+        // declared in the buffer (added/changed/removed references take effect this run).
+        var xsdSupplier = editorHost.schemaForValidation(content);
         File schematron = editorHost.getActiveSchematron();
         File jsonSchema = this.jsonSchemaFile;
         String documentName = editorHost.getActiveDocument()
                 .map(OpenDocument::getDisplayName).orElse(null);
         PanelStatus.info(status, "Validating…");
         FxtGui.executorService.submit(() -> {
+            File xsd = json ? null : xsdSupplier.get();
             ValidationRunner.RunResult runResult = json
                     ? new ValidationRunner.RunResult(
                             ValidationRunner.validateJson(content, jsonSchema), null)

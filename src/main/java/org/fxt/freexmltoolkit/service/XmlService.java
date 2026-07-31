@@ -107,6 +107,20 @@ public interface XmlService {
     Optional<String> getSchemaNameFromCurrentXMLFile();
 
     /**
+     * Extracts the schema location declared on the root element of the given XML text
+     * ({@code xsi:schemaLocation}, {@code xsi:noNamespaceSchemaLocation}, or an
+     * {@code xmlns} value ending in {@code .xsd}) without touching the file system.
+     * Cheap streaming prescan — only the prolog and the root start tag are read.
+     *
+     * @param xmlContent the XML text (e.g. the live editor buffer)
+     * @param baseDir    directory relative locations resolve against, or {@code null}
+     *                   for an unsaved document (raw values are returned as-is then)
+     * @return the resolved location (URL, file URI, or raw value), or empty if none
+     * is declared or the text is not parsable up to the root element
+     */
+    Optional<String> getSchemaNameFromXmlContent(String xmlContent, File baseDir);
+
+    /**
      * Extracts linked XSLT stylesheet href from xml-stylesheet processing instruction in the current XML file.
      * Supports local (relative/absolute) paths and remote URLs.
      *
@@ -115,6 +129,17 @@ public interface XmlService {
     Optional<String> getLinkedStylesheetFromCurrentXMLFile();
 
     boolean loadSchemaFromXMLFile();
+
+    /**
+     * Resolves a schema location (as returned by {@link #getSchemaNameFromCurrentXMLFile()}
+     * or {@link #getSchemaNameFromXmlContent(String, File)}) to a local XSD file and binds
+     * it as the current XSD: {@code file:} URLs are used directly, {@code http(s)} URLs are
+     * downloaded into the schema cache (cache hits skip the download, imported schemas are
+     * fetched recursively).
+     *
+     * @return {@code true} if the schema was resolved and set as current XSD file
+     */
+    boolean loadSchemaFromLocation(String schemaLocation);
 
     Node getNodeFromXpath(String xPath);
 

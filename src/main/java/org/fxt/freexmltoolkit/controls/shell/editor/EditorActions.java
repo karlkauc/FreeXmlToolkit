@@ -95,9 +95,12 @@ public final class EditorActions {
         }
         boolean json = editorHost.getActiveDocument()
                 .map(d -> d.getFileType() == EditorFileType.JSON).orElse(false);
-        File xsd = editorHost.activeSchemaProperty().get();
+        // Resolved on the worker thread: reconciles the binding with the schema location
+        // declared in the buffer (added/changed/removed references take effect this run).
+        var xsdSupplier = editorHost.schemaForValidation(content);
         File schematron = editorHost.getActiveSchematron();
         FxtGui.executorService.submit(() -> {
+            File xsd = json ? null : xsdSupplier.get();
             // v1: a JSON Schema bound via the Validation panel is not surfaced here — toolbar
             // JSON validation is well-formedness only (the schema lives in ValidationPanel state).
             List<ValidationProblem> result = json
