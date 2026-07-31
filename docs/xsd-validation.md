@@ -44,7 +44,13 @@ Use this mode to validate one XML file against a schema.
 
 1. **Open the XML file** in the editor (Ctrl+O, the Explorer, or drag & drop).
 2. **Schema selection**:
-   - **Automatic**: Schema references inside the XML (`xsi:schemaLocation`) are found automatically.
+   - **Automatic**: Schema references inside the XML (`xsi:schemaLocation` /
+     `xsi:noNamespaceSchemaLocation`) are found automatically. *(updated July 2026)* The
+     reference is re-read from the editor content before every validation run, so adding,
+     changing, or removing it takes effect immediately - no save needed, and untitled
+     documents work too. If you remove the reference, validation falls back to a
+     well-formedness check and the status bar shows **"No XSD"**. A schema you bound
+     manually is never overridden by this automatic detection.
    - **Manual**: Bind an XSD yourself - click the **"No XSD"** indicator in the status bar (or
      use the toolbar's **Set XSD Schema…** action), or pick a schema in the Validation panel's
      **SOURCES** section. The binding drives both validation and IntelliSense.

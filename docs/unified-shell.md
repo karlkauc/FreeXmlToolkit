@@ -681,9 +681,14 @@ are grayed out while you have no matching favorites. (See
 
 - **The referenced XSD binds automatically.** When the XML declares its schema
   (`xsi:schemaLocation` / `xsi:noNamespaceSchemaLocation` - local or remote), that XSD is
-  bound when the file is opened, and the Validation panel re-checks when it opens, so the
-  declared schema is the default. A schema you picked yourself (via **Change**, a favorite,
-  or the status bar) is never overridden.
+  bound when the file is opened, so the declared schema is the default. *(updated July
+  2026)* The declaration is also re-checked against the **current editor content before
+  every validation run** (Run Validation, the toolbar's Validate, and live validation):
+  a schema reference you add or change in the editor is picked up immediately - even in
+  unsaved or untitled documents - and a removed reference downgrades validation to a
+  well-formedness check (the status bar shows **"No XSD"**). Remote `https` schema URLs
+  are downloaded to the schema cache as before. A schema you picked yourself (via
+  **Change**, a favorite, or the status bar) is never overridden.
 - **Click a bound source name to open the file in the editor** - one click on the XSD or
   Schematron name opens it as a tab for direct editing.
 

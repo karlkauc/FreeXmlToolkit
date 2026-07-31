@@ -43,7 +43,9 @@ When you type an opening tag like `<element>`, the editor automatically adds the
 ### Step 1: Load an XSD Schema
 
 If your XML already references its schema (via `xsi:schemaLocation`), it is picked up
-automatically. Otherwise, bind one yourself *(updated June 2026)*:
+automatically - and if you add or change that reference while editing, the new schema is
+picked up on the next validation run and IntelliSense follows automatically. Otherwise,
+bind one yourself *(updated June 2026)*:
 
 1. Open your XML file in the editor
 2. Click the **"No XSD"** indicator in the **status bar** (or use the toolbar's
