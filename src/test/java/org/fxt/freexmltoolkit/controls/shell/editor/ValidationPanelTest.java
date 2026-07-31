@@ -369,7 +369,9 @@ class ValidationPanelTest {
             return new ValidationPanel(host);
         });
 
-        WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS, () -> host.activeSchemaProperty().get() != null);
+        // 12s: on a cold JVM the first detection pays one-time service initialization
+        // (Saxon processor, Xerces factories) — same budget as EditorHostSchemaStatusTest.
+        WaitForAsyncUtils.waitFor(12, TimeUnit.SECONDS, () -> host.activeSchemaProperty().get() != null);
         assertEquals("auto.xsd", host.activeSchemaProperty().get().getName());
     }
 

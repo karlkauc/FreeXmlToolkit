@@ -67,6 +67,55 @@ class XercesXmlValidationServiceTest {
     }
 
     @Test
+    void concurrentValidationsDoNotCorruptTheSharedFactory() throws Exception {
+        // Regression: the shared SchemaFactory / resource resolver are not thread-safe;
+        // overlapping runs (live validation + explicit Run Validation) crashed with
+        // "FWK005 parse may not be called while parsing" and mis-reported XSD 1.1
+        // as unsupported. validateText is synchronized now.
+        Path schemaFile = tempDir.resolve("concurrent.xsd");
+        Files.writeString(schemaFile, """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <xs:element name="root">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="child" type="xs:string"/>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+            </xs:schema>
+            """);
+        String xml = "<root><child>ok</child></root>";
+
+        int threads = 8;
+        int iterations = 5;
+        var pool = java.util.concurrent.Executors.newFixedThreadPool(threads);
+        var barrier = new java.util.concurrent.CyclicBarrier(threads);
+        try {
+            List<java.util.concurrent.Future<List<SAXParseException>>> futures =
+                    new java.util.ArrayList<>();
+            for (int t = 0; t < threads; t++) {
+                futures.add(pool.submit(() -> {
+                    barrier.await();
+                    List<SAXParseException> all = new java.util.ArrayList<>();
+                    for (int i = 0; i < iterations; i++) {
+                        all.addAll(validationService.validateText(xml, schemaFile.toFile()));
+                    }
+                    return all;
+                }));
+            }
+            for (var future : futures) {
+                List<SAXParseException> problems =
+                        future.get(60, java.util.concurrent.TimeUnit.SECONDS);
+                assertTrue(problems.isEmpty(), () -> "Concurrent validation must stay clean, got: "
+                        + problems.stream().map(Throwable::getMessage).toList());
+            }
+        } finally {
+            pool.shutdownNow();
+        }
+    }
+
+    @Test
     void testValidXmlAgainstXsd10Schema() throws Exception {
         // Create a simple XSD 1.0 schema
         String schemaContent = """

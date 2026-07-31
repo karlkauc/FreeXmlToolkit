@@ -70,6 +70,8 @@ public class XercesXmlValidationService implements XmlValidationService {
     private final SchemaResolver schemaResolver;
     private final SchemaResolver.ValidationResourceResolver resourceResolver;
     private final XsdParsingService xsdParsingService;
+    /** Result of the one-time XSD 1.1 assertion-support probe (JVM-constant). */
+    private volatile Boolean xsd11AssertionSupport;
 
     /**
      * Creates a new Xerces validation service instance.
@@ -198,8 +200,17 @@ public class XercesXmlValidationService implements XmlValidationService {
         return schemaResolver;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Synchronized: the Xerces {@link SchemaFactory} instances and the
+     * {@link SchemaResolver.ValidationResourceResolver} (circular-import state) are shared
+     * per service instance and are not thread-safe — concurrent runs (e.g. live validation
+     * overlapping an explicit Run Validation) corrupted the factory's internal loader
+     * ("FWK005 parse may not be called while parsing").
+     */
     @Override
-    public List<SAXParseException> validateText(String xmlString, File schemaFile) {
+    public synchronized List<SAXParseException> validateText(String xmlString, File schemaFile) {
         final List<SAXParseException> exceptions = new LinkedList<>();
 
         // Reset circular detection for new validation
@@ -324,9 +335,17 @@ public class XercesXmlValidationService implements XmlValidationService {
     }
 
     @Override
-    public boolean supportsXsd11() {
-        // Test if the current Xerces version actually supports XSD 1.1 assertions
-        return testXsd11AssertionSupport();
+    public synchronized boolean supportsXsd11() {
+        // Probe once whether this Xerces version supports XSD 1.1 assertions; the result
+        // cannot change at runtime. Synchronized (and cached) because the probe compiles
+        // a schema on the shared, non-thread-safe factory — running it concurrently with
+        // a validation both crashed (FWK005) and mis-reported "1.1 not supported".
+        Boolean cached = xsd11AssertionSupport;
+        if (cached == null) {
+            cached = testXsd11AssertionSupport();
+            xsd11AssertionSupport = cached;
+        }
+        return cached;
     }
     
     /**

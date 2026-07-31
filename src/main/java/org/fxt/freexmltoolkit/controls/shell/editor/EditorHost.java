@@ -1783,6 +1783,7 @@ public class EditorHost extends BorderPane {
         if (!(tab instanceof EditorTab et) || !et.view.supportsSchema()) {
             return false;
         }
+        et.schemaBindingGen.incrementAndGet(); // supersede queued schema reconciles
         if (et.view.loadSchema(xsd)) {
             et.schemaFile = xsd;
             et.schemaOrigin = xsd == null
@@ -2037,6 +2038,7 @@ public class EditorHost extends BorderPane {
 
     private void loadAsync(EditorTab tab, Path path) {
         tab.beginLoading();
+        tab.schemaBindingGen.incrementAndGet(); // supersede queued schema reconciles
         if (tab.view.supportsSchema()) {
             publishSchemaStatus(tab, SchemaStatus.LOADING);
         }
@@ -2105,11 +2107,17 @@ public class EditorHost extends BorderPane {
         }
         String content = tab.view.getText();
         Path path = tab.document.getPath();
+        long generation = tab.schemaBindingGen.incrementAndGet(); // supersede queued reconciles
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
             // One detection at a time per tab: the open-time detection (loadAsync) or a
             // second redetect may still be running, and the schema pipeline's Xerces
             // deferred DOM is not thread-safe (concurrent runs corrupted it).
             if (!tab.schemaDetecting.compareAndSet(false, true)) {
+                return;
+            }
+            if (tab.schemaBindingGen.get() != generation) {
+                // superseded: a fresher snapshot owns the binding now
+                tab.schemaDetecting.set(false);
                 return;
             }
             // LOADING only after the CAS succeeded — a lost CAS returns without any
@@ -2161,76 +2169,87 @@ public class EditorHost extends BorderPane {
             return () -> null;
         }
         Path path = tab.document.getPath();
-        return () -> reconcileSchemaBinding(tab, content, path);
+        long generation = tab.schemaBindingGen.incrementAndGet();
+        return () -> reconcileSchemaBinding(tab, content, path, generation);
     }
 
     /** Worker-thread body of {@link #schemaForValidation(String)}. @return the XSD to validate with */
-    private File reconcileSchemaBinding(EditorTab tab, String content, Path path) {
+    private File reconcileSchemaBinding(EditorTab tab, String content, Path path, long generation) {
         File baseDir = path != null && path.getParent() != null ? path.getParent().toFile() : null;
         String declared = org.fxt.freexmltoolkit.di.ServiceRegistry
                 .get(org.fxt.freexmltoolkit.service.XmlService.class)
                 .getSchemaNameFromXmlContent(content, baseDir)
                 .orElse(null);
-        switch (SchemaRebindPolicy.decideRebind(tab.schemaOrigin, declared, tab.lastDetectedSchemaLocation)) {
-            case KEEP -> {
+        if (SchemaRebindPolicy.decideRebind(tab.schemaOrigin, declared, tab.lastDetectedSchemaLocation)
+                == SchemaRebindPolicy.RebindAction.KEEP) {
+            return tab.schemaFile; // fast path: unchanged declaration, no lock, no I/O
+        }
+        // Rebinding needed — take the per-tab detection CAS. Do NOT give up on a lost
+        // race: the holder (e.g. a redetect) may itself be superseded and bind nothing,
+        // and no later task would retry — wait for it, then re-decide with fresh state.
+        while (!tab.schemaDetecting.compareAndSet(false, true)) {
+            if (tab.schemaBindingGen.get() != generation) {
+                return tab.schemaFile; // superseded while waiting: a fresher task owns this
+            }
+            try {
+                Thread.sleep(25);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
                 return tab.schemaFile;
             }
-            case CLEAR -> {
-                // Same per-tab CAS as the other detection paths; on a lost race the
-                // current binding is used once more and the next run corrects it.
-                if (!tab.schemaDetecting.compareAndSet(false, true)) {
+        }
+        try {
+            if (tab.schemaBindingGen.get() != generation) {
+                return tab.schemaFile; // superseded: a fresher snapshot owns the binding now
+            }
+            // Re-decide under the lock: the previous holder may have already bound
+            // (or cleared) exactly what this snapshot declares.
+            switch (SchemaRebindPolicy.decideRebind(tab.schemaOrigin, declared, tab.lastDetectedSchemaLocation)) {
+                case KEEP -> {
                     return tab.schemaFile;
                 }
-                try {
+                case CLEAR -> {
                     tab.lastDetectedSchemaLocation = null;
                     tab.schemaFile = null;
                     tab.schemaOrigin = SchemaRebindPolicy.SchemaBindingOrigin.NONE;
-                } finally {
-                    tab.schemaDetecting.set(false);
-                }
-                Platform.runLater(() -> {
-                    clearSchemaBindingUi(tab);
-                    publishSchemaStatus(tab, SchemaStatus.NONE);
-                });
-                return null;
-            }
-            case DETECT -> {
-                if (!tab.schemaDetecting.compareAndSet(false, true)) {
-                    return tab.schemaFile;
-                }
-                // LOADING only after the CAS succeeded — a lost CAS has no completion
-                // path, and a stray LOADING would stick in the status bar.
-                Platform.runLater(() -> publishSchemaStatus(tab, SchemaStatus.LOADING));
-                SchemaDetection detection;
-                try {
-                    detection = detectSchemaFor(tab, content, path);
-                } finally {
-                    tab.schemaDetecting.set(false);
-                }
-                File xsd = detection.xsd();
-                tab.schemaFile = xsd;
-                tab.schemaOrigin = xsd != null
-                        ? SchemaRebindPolicy.SchemaBindingOrigin.AUTO
-                        : SchemaRebindPolicy.SchemaBindingOrigin.NONE;
-                Platform.runLater(() -> {
-                    if (xsd != null) {
-                        tab.view.invalidateIntelliSenseCache();
-                        if (tab.isSelected()) {
-                            activeSchema.set(xsd);
-                        }
-                        loadXmlSchemaProviderAsync(tab, xsd);
-                    } else {
-                        // Declared but unresolvable: drop the stale binding too —
-                        // keeping it would silently validate against the wrong schema.
+                    Platform.runLater(() -> {
                         clearSchemaBindingUi(tab);
-                    }
-                    // Terminal status in every branch, so LOADING never sticks.
-                    publishSchemaStatus(tab, detection.status());
-                });
-                return xsd;
+                        publishSchemaStatus(tab, SchemaStatus.NONE);
+                    });
+                    return null;
+                }
+                case DETECT -> {
+                    // LOADING only after the CAS succeeded — a lost CAS has no
+                    // completion path, and a stray LOADING would stick in the status bar.
+                    Platform.runLater(() -> publishSchemaStatus(tab, SchemaStatus.LOADING));
+                    SchemaDetection detection = detectSchemaFor(tab, content, path);
+                    File xsd = detection.xsd();
+                    tab.schemaFile = xsd;
+                    tab.schemaOrigin = xsd != null
+                            ? SchemaRebindPolicy.SchemaBindingOrigin.AUTO
+                            : SchemaRebindPolicy.SchemaBindingOrigin.NONE;
+                    Platform.runLater(() -> {
+                        if (xsd != null) {
+                            tab.view.invalidateIntelliSenseCache();
+                            if (tab.isSelected()) {
+                                activeSchema.set(xsd);
+                            }
+                            loadXmlSchemaProviderAsync(tab, xsd);
+                        } else {
+                            // Declared but unresolvable: drop the stale binding too —
+                            // keeping it would silently validate against the wrong schema.
+                            clearSchemaBindingUi(tab);
+                        }
+                        // Terminal status in every branch, so LOADING never sticks.
+                        publishSchemaStatus(tab, detection.status());
+                    });
+                    return xsd;
+                }
             }
+            return tab.schemaFile; // unreachable
+        } finally {
+            tab.schemaDetecting.set(false);
         }
-        return tab.schemaFile; // unreachable
     }
 
     /** FX thread: clears the editor/IntelliSense side of a dropped schema binding. */
@@ -2615,6 +2634,15 @@ public class EditorHost extends BorderPane {
          */
         private final java.util.concurrent.atomic.AtomicBoolean schemaDetecting =
                 new java.util.concurrent.atomic.AtomicBoolean(false);
+        /**
+         * Generation of the schema binding, bumped on the FX thread by every entry point
+         * that establishes newer truth (file open, redetect, manual bind, validation
+         * reconcile). A queued validation task whose buffer snapshot has been superseded
+         * observes a newer generation and must not rebind/clear — without this, a stale
+         * task could revert a binding that a fresher detection just established.
+         */
+        private final java.util.concurrent.atomic.AtomicLong schemaBindingGen =
+                new java.util.concurrent.atomic.AtomicLong();
         /** XSD-derived, read-only schema info for XML-instance nodes (lazily built off-thread). */
         private org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider xmlSchemaProvider;
         /** Spinner overlay shown over the editor while the file is being read/schema-detected. */
