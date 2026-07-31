@@ -2241,7 +2241,13 @@ dedicated sidebar tab.</p>
 <ol>
 <li><strong>Open the XML file</strong> in the editor (Ctrl+O, the Explorer, or drag &amp; drop).</li>
 <li><strong>Schema selection</strong>:</li>
-<li><strong>Automatic</strong>: Schema references inside the XML (<code>xsi:schemaLocation</code>) are found automatically.</li>
+<li><strong>Automatic</strong>: Schema references inside the XML (<code>xsi:schemaLocation</code> /
+     <code>xsi:noNamespaceSchemaLocation</code>) are found automatically. <em>(updated July 2026)</em> The
+     reference is re-read from the editor content before every validation run, so adding,
+     changing, or removing it takes effect immediately - no save needed, and untitled
+     documents work too. If you remove the reference, validation falls back to a
+     well-formedness check and the status bar shows <strong>"No XSD"</strong>. A schema you bound
+     manually is never overridden by this automatic detection.</li>
 <li><strong>Manual</strong>: Bind an XSD yourself - click the <strong>"No XSD"</strong> indicator in the status bar (or
      use the toolbar's <strong>Set XSD Schema…</strong> action), or pick a schema in the Validation panel's
      <strong>SOURCES</strong> section. The binding drives both validation and IntelliSense.</li>

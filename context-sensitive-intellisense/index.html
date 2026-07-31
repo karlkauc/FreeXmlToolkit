@@ -2092,7 +2092,9 @@
 <h2 id="how-to-use">How to Use<a class="headerlink" href="#how-to-use" title="Permanent link">&para;</a></h2>
 <h3 id="step-1-load-an-xsd-schema">Step 1: Load an XSD Schema<a class="headerlink" href="#step-1-load-an-xsd-schema" title="Permanent link">&para;</a></h3>
 <p>If your XML already references its schema (via <code>xsi:schemaLocation</code>), it is picked up
-automatically. Otherwise, bind one yourself <em>(updated June 2026)</em>:</p>
+automatically - and if you add or change that reference while editing, the new schema is
+picked up on the next validation run and IntelliSense follows automatically. Otherwise,
+bind one yourself <em>(updated June 2026)</em>:</p>
 <ol>
 <li>Open your XML file in the editor</li>
 <li>Click the <strong>"No XSD"</strong> indicator in the <strong>status bar</strong> (or use the toolbar's
