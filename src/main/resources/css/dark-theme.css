@@ -556,11 +556,18 @@
     -fx-background-color: #9a9a9a;
 }
 
+/* Cross-axis padding only: ScrollBarSkin clamps the thumb to 1.5 × the arrow buttons'
+   cross-axis size, so fully zero-padded buttons let the thumb collapse to ~1 px on huge
+   documents. Padding along the track axis stays 0 so the buttons take no track space. */
 .xml-editor-scroll-pane > .scroll-bar:vertical .increment-button,
-.xml-editor-scroll-pane > .scroll-bar:vertical .decrement-button,
+.xml-editor-scroll-pane > .scroll-bar:vertical .decrement-button {
+    -fx-padding: 0 6 0 6;
+    -fx-background-color: transparent;
+}
+
 .xml-editor-scroll-pane > .scroll-bar:horizontal .increment-button,
 .xml-editor-scroll-pane > .scroll-bar:horizontal .decrement-button {
-    -fx-padding: 0;
+    -fx-padding: 6 0 6 0;
     -fx-background-color: transparent;
 }
 
@@ -2486,11 +2493,18 @@
     -fx-background-color: transparent;
 }
 
+/* Cross-axis padding only: ScrollBarSkin clamps the thumb to 1.5 × the arrow buttons'
+   cross-axis size, so fully zero-padded buttons let the thumb collapse to ~1 px on huge
+   documents. Padding along the track axis stays 0 so the buttons take no track space. */
 .scroll-bar:vertical .increment-button,
-.scroll-bar:vertical .decrement-button,
+.scroll-bar:vertical .decrement-button {
+    -fx-padding: 0 6 0 6;
+    -fx-background-color: transparent;
+}
+
 .scroll-bar:horizontal .increment-button,
 .scroll-bar:horizontal .decrement-button {
-    -fx-padding: 0;
+    -fx-padding: 6 0 6 0;
     -fx-background-color: transparent;
 }
 

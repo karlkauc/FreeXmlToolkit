@@ -699,12 +699,15 @@
     -fx-background-color: rgba(0, 0, 0, 0.35);
 }
 
+/* Height 0 removes the buttons from the track; the left/right padding keeps their
+   cross-axis size, which ScrollBarSkin uses as the thumb's minimum length (1.5 ×) —
+   without it the thumb collapses to ~1 px on very long content. */
 .sidebar-scroll-pane > .scroll-bar:vertical .increment-button,
 .sidebar-scroll-pane > .scroll-bar:vertical .decrement-button {
     -fx-pref-height: 0;
     -fx-min-height: 0;
     -fx-max-height: 0;
-    -fx-padding: 0;
+    -fx-padding: 0 3 0 3;
 }
 
 .sidebar-scroll-pane > .scroll-bar:vertical .increment-arrow,
