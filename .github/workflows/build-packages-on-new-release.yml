@@ -110,6 +110,24 @@ jobs:
       - name: Build with Gradle (${{ matrix.arch }})
         run: ./gradlew ${{ matrix.gradle-tasks }}
 
+      # Der build.rs des Helpers soft-failt, wenn rc.exe fehlt — ohne Manifest
+      # stuft UAC-Installer-Detection den Helper wieder als elevierungspflichtig
+      # ein (CreateProcess error=740). Dieser Check macht das release-blockierend.
+      - name: Verify update helper manifest (Windows only)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          $mt = Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\bin\*\x64\mt.exe" | Select-Object -Last 1
+          if (-not $mt) { Write-Error "mt.exe not found in Windows SDK"; exit 1 }
+          & $mt.FullName -nologo -inputresource:"update-helper\target\release\fxt-update-helper.exe;#1" -out:extracted.manifest
+          if ($LASTEXITCODE -ne 0) { Write-Error "No manifest embedded in fxt-update-helper.exe"; exit 1 }
+          if (-not (Select-String -Path extracted.manifest -Pattern 'level="asInvoker"' -Quiet)) {
+            Get-Content extracted.manifest
+            Write-Error "Manifest does not request asInvoker"
+            exit 1
+          }
+          Write-Host "✅ fxt-update-helper.exe manifest requests asInvoker"
+
       # Schritt 5: Lade alle erstellten Artefakte mit dem GitHub CLI hoch
       - name: Upload Release Assets (${{ matrix.arch }})
         env:

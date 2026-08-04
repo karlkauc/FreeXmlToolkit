@@ -20,7 +20,9 @@ package org.fxt.freexmltoolkit.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.io.IOException;
 import java.nio.file.Path;
+import java.util.List;
 
 import org.fxt.freexmltoolkit.domain.UpdateInfo;
 import org.junit.jupiter.api.*;
@@ -321,6 +323,102 @@ class AutoUpdateServiceTest {
         @DisplayName("Handles null defensively")
         void handlesNull() {
             assertEquals("", AutoUpdateServiceImpl.escapePowerShellSingleQuoted(null));
+        }
+    }
+
+    @Nested
+    @DisplayName("Elevation Required (error 740) Detection Tests")
+    class ElevationRequiredDetectionTests {
+
+        @Test
+        @DisplayName("Detects error=740 with localized German message")
+        void detectsGermanMessage() {
+            IOException e = new IOException(
+                    "Cannot run program \"C:\\Users\\x\\AppData\\Local\\Temp\\fxt-helper-123.exe\": "
+                            + "CreateProcess error=740, Der angeforderte Vorgang erfordert erhöhte Rechte");
+            assertTrue(AutoUpdateServiceImpl.isElevationRequired(e));
+        }
+
+        @Test
+        @DisplayName("Detects error=740 with localized English message")
+        void detectsEnglishMessage() {
+            IOException e = new IOException(
+                    "Cannot run program \"C:\\tmp\\fxt-helper.exe\": "
+                            + "CreateProcess error=740, The requested operation requires elevation");
+            assertTrue(AutoUpdateServiceImpl.isElevationRequired(e));
+        }
+
+        @Test
+        @DisplayName("Detects error=740 nested in the cause chain")
+        void detectsInCauseChain() {
+            IOException cause = new IOException("CreateProcess error=740, elevation required");
+            IOException e = new IOException("Cannot run program", cause);
+            assertTrue(AutoUpdateServiceImpl.isElevationRequired(e));
+        }
+
+        @Test
+        @DisplayName("Ignores other CreateProcess error codes")
+        void ignoresOtherErrorCodes() {
+            IOException e = new IOException(
+                    "Cannot run program: CreateProcess error=2, Das System kann die angegebene Datei nicht finden");
+            assertFalse(AutoUpdateServiceImpl.isElevationRequired(e));
+        }
+
+        @Test
+        @DisplayName("Does not match error=7400 (word boundary)")
+        void doesNotMatchPrefixCodes() {
+            IOException e = new IOException("CreateProcess error=7400, something else");
+            assertFalse(AutoUpdateServiceImpl.isElevationRequired(e));
+        }
+
+        @Test
+        @DisplayName("Handles null message and deep cause chains defensively")
+        void handlesNullMessageAndDeepChains() {
+            assertFalse(AutoUpdateServiceImpl.isElevationRequired(new IOException((String) null)));
+
+            // Chain deeper than the traversal bound, without the token: must terminate and return false.
+            Throwable deepest = new IOException("innermost");
+            Throwable chain = deepest;
+            for (int i = 0; i < 20; i++) {
+                chain = new IOException("wrapper " + i, chain);
+            }
+            assertFalse(AutoUpdateServiceImpl.isElevationRequired(new IOException("outer", chain)));
+        }
+    }
+
+    @Nested
+    @DisplayName("Elevated Launch Command Tests")
+    class ElevatedLaunchCommandTests {
+
+        @Test
+        @DisplayName("Builds a powershell Start-Process -Verb RunAs command with both paths")
+        void buildsExpectedCommand() {
+            Path helper = Path.of("C:\\Users\\karl\\AppData\\Local\\Temp\\fxt-helper-1.exe");
+            Path config = Path.of("C:\\Users\\karl\\AppData\\Local\\Temp\\fxt-update-1\\extracted\\helper-config.toml");
+
+            List<String> command = AutoUpdateServiceImpl.buildElevatedLaunchCommand(helper, config);
+
+            assertEquals(4, command.size());
+            assertEquals("powershell.exe", command.get(0));
+            assertEquals("-NoProfile", command.get(1));
+            assertEquals("-Command", command.get(2));
+            String ps = command.get(3);
+            assertTrue(ps.contains("-Verb RunAs"), ps);
+            assertTrue(ps.contains("-FilePath '" + helper + "'"), ps);
+            assertTrue(ps.contains("-ArgumentList '" + config + "'"), ps);
+        }
+
+        @Test
+        @DisplayName("Escapes apostrophes in paths (O'Brien)")
+        void escapesApostrophes() {
+            Path helper = Path.of("C:\\Users\\O'Brien\\AppData\\Local\\Temp\\fxt-helper-1.exe");
+            Path config = Path.of("C:\\Users\\O'Brien\\AppData\\Local\\Temp\\helper-config.toml");
+
+            String ps = AutoUpdateServiceImpl.buildElevatedLaunchCommand(helper, config).get(3);
+
+            assertTrue(ps.contains("O''Brien"), ps);
+            assertFalse(ps.replace("O''Brien", "").contains("O'Brien"),
+                    "No unescaped apostrophe may survive: " + ps);
         }
     }
 }

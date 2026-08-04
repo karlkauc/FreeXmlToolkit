@@ -32,7 +32,7 @@ plugins {
     id("com.github.ben-manes.versions") version "0.54.0"
 }
 
-version = "2.0.0"
+version = "2.0.1"
 group = "org.fxt"
 
 repositories {
@@ -908,6 +908,8 @@ val buildWindowsUpdateHelper = tasks.register<Exec>("buildWindowsUpdateHelper") 
     }
 
     inputs.dir("update-helper/src")
+    inputs.file("update-helper/build.rs")
+    inputs.file("update-helper/manifest.xml")
     inputs.file("update-helper/Cargo.toml")
     inputs.file("update-helper/Cargo.lock")
     outputs.file("update-helper/target/release/fxt-update-helper.exe")

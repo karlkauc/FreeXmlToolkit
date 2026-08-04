@@ -29,7 +29,9 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
+import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -504,16 +506,19 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
             Path appDir = getApplicationDirectory();
             Path launcher = getApplicationLauncher();
 
-            // 1. Find the helper. Prefer installed copy, fall back to extracted.
+            // 1. Find the helper. Prefer the freshly downloaded payload copy so
+            // helper fixes take effect one release earlier; the payload is
+            // SHA-256-verified at download time and is fully installed and
+            // relaunched anyway, so this does not extend the trust surface.
             Path installedHelper = appDir.resolve("fxt-update-helper.exe");
             Path extractedHelper = extractedDir.resolve("FreeXmlToolkit").resolve("fxt-update-helper.exe");
             Path sourceHelper;
-            if (Files.exists(installedHelper)) {
-                sourceHelper = installedHelper;
-                writeDebugLog(debugLog, "Helper source (installed): " + sourceHelper);
-            } else if (Files.exists(extractedHelper)) {
+            if (Files.exists(extractedHelper)) {
                 sourceHelper = extractedHelper;
-                writeDebugLog(debugLog, "Helper source (extracted fallback): " + sourceHelper);
+                writeDebugLog(debugLog, "Helper source (extracted, preferred): " + sourceHelper);
+            } else if (Files.exists(installedHelper)) {
+                sourceHelper = installedHelper;
+                writeDebugLog(debugLog, "Helper source (installed fallback): " + sourceHelper);
             } else {
                 writeDebugLog(debugLog, "ERROR: No helper found in install or extracted location");
                 return false;
@@ -534,25 +539,29 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
             boolean writable = isAppDirectoryWritable(appDir);
             writeDebugLog(debugLog, "App directory writable without elevation: " + writable);
 
-            ProcessBuilder pb;
+            Process process;
             if (writable) {
-                pb = new ProcessBuilder(tempHelper.toString(), configFile.toString());
+                ProcessBuilder pb = new ProcessBuilder(tempHelper.toString(), configFile.toString());
+                pb.redirectErrorStream(true);
                 writeDebugLog(debugLog, "Launching Rust helper directly (no elevation)");
+                try {
+                    process = pb.start();
+                } catch (IOException directLaunchFailure) {
+                    if (!isElevationRequired(directLaunchFailure)) {
+                        throw directLaunchFailure;
+                    }
+                    // Windows refused the unelevated launch (UAC installer detection /
+                    // corporate policy) even though the app dir is writable.
+                    writeDebugLog(debugLog, "Direct launch failed with ERROR_ELEVATION_REQUIRED (error=740): "
+                        + directLaunchFailure.getMessage());
+                    writeDebugLog(debugLog, "FALLBACK: retrying via PowerShell Start-Process -Verb RunAs");
+                    logger.warn("Direct helper launch requires elevation (error 740); retrying elevated",
+                        directLaunchFailure);
+                    process = launchHelperElevated(tempHelper, configFile, debugLog);
+                }
             } else {
-                // SECURITY/ROBUSTNESS: build the PowerShell command with properly escaped
-                // single-quoted literals. PowerShell single-quoted strings are literal (backticks
-                // and $ are NOT interpreted), so the only required escaping is doubling embedded
-                // single quotes. Without this, a path containing an apostrophe (e.g. a Windows
-                // user "O'Brien") would break out of the quoting.
-                String psFilePath = escapePowerShellSingleQuoted(tempHelper.toString());
-                String psArgument = escapePowerShellSingleQuoted(configFile.toString());
-                String command = "Start-Process -FilePath '" + psFilePath +
-                    "' -ArgumentList '" + psArgument + "' -Verb RunAs";
-                pb = new ProcessBuilder("powershell.exe", "-NoProfile", "-Command", command);
-                writeDebugLog(debugLog, "Launching Rust helper via PowerShell elevation: " + command);
+                process = launchHelperElevated(tempHelper, configFile, debugLog);
             }
-            pb.redirectErrorStream(true);
-            Process process = pb.start();
             writeDebugLog(debugLog, "Helper process started with PID: " + process.pid());
             return true;
 
@@ -561,6 +570,58 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
             logger.error("Failed to launch Rust update helper", e);
             return false;
         }
+    }
+
+    /**
+     * Launches the temp-copied helper elevated via PowerShell {@code Start-Process -Verb RunAs}.
+     * Used when the app directory is not writable, and as fallback when a direct launch
+     * fails with ERROR_ELEVATION_REQUIRED (740).
+     */
+    private Process launchHelperElevated(Path tempHelper, Path configFile, Path debugLog) throws IOException {
+        List<String> command = buildElevatedLaunchCommand(tempHelper, configFile);
+        ProcessBuilder pb = new ProcessBuilder(command);
+        pb.redirectErrorStream(true);
+        writeDebugLog(debugLog, "Launching Rust helper via PowerShell elevation: " + command.getLast());
+        return pb.start();
+    }
+
+    /**
+     * Builds the PowerShell command line that launches the helper elevated.
+     *
+     * <p>SECURITY/ROBUSTNESS: the PowerShell command is built with properly escaped
+     * single-quoted literals. PowerShell single-quoted strings are literal (backticks
+     * and $ are NOT interpreted), so the only required escaping is doubling embedded
+     * single quotes. Without this, a path containing an apostrophe (e.g. a Windows
+     * user "O'Brien") would break out of the quoting.
+     */
+    static List<String> buildElevatedLaunchCommand(Path tempHelper, Path configFile) {
+        String psFilePath = escapePowerShellSingleQuoted(tempHelper.toString());
+        String psArgument = escapePowerShellSingleQuoted(configFile.toString());
+        String command = "Start-Process -FilePath '" + psFilePath +
+            "' -ArgumentList '" + psArgument + "' -Verb RunAs";
+        return List.of("powershell.exe", "-NoProfile", "-Command", command);
+    }
+
+    private static final Pattern ELEVATION_REQUIRED_PATTERN = Pattern.compile("\\berror=740\\b");
+
+    /**
+     * Detects Windows ERROR_ELEVATION_REQUIRED (740) from a ProcessBuilder launch failure.
+     *
+     * <p>Matches only the locale-independent {@code error=740} token emitted by
+     * {@code java.lang.ProcessImpl} ("CreateProcess error=740, &lt;localized text&gt;");
+     * the trailing message is localized and must not be relied upon. Walks the cause
+     * chain (bounded) because ProcessBuilder wraps the original IOException.
+     */
+    static boolean isElevationRequired(IOException e) {
+        Throwable t = e;
+        for (int depth = 0; t != null && depth < 10; depth++) {
+            String message = t.getMessage();
+            if (message != null && ELEVATION_REQUIRED_PATTERN.matcher(message).find()) {
+                return true;
+            }
+            t = t.getCause();
+        }
+        return false;
     }
 
     /**
