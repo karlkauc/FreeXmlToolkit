@@ -797,13 +797,20 @@ $platformArgs""".trimIndent())
                     // Ensure source directory exists before processing
                     if (file(sourceDir).exists()) {
                         // Copy additional files from release directory to app root.
-                        // jpackage names the app-image directory after --name
-                        // ("FreeXmlToolkit") on every platform; fall back to the
+                        // On Windows/Linux jpackage names the app-image directory
+                        // after --name ("FreeXmlToolkit"); fall back to the
                         // lowercase variant defensively instead of assuming it.
-                        val appRootDir = listOf("FreeXmlToolkit", "freexmltoolkit")
-                            .map { File(sourceDir, it) }
-                            .firstOrNull { it.isDirectory }
-                            ?: throw GradleException("jpackage app root not found under $sourceDir")
+                        // On macOS jpackage produces a signed FreeXmlToolkit.app
+                        // bundle that must not be modified after codesign — ship
+                        // the extras in a plain folder next to it instead.
+                        val appRootDir = if (platform == "macos") {
+                            File(sourceDir, "FreeXmlToolkit").apply { mkdirs() }
+                        } else {
+                            listOf("FreeXmlToolkit", "freexmltoolkit")
+                                .map { File(sourceDir, it) }
+                                .firstOrNull { it.isDirectory }
+                                ?: throw GradleException("jpackage app root not found under $sourceDir")
+                        }
                         
                         // Copy examples directory
                         val examplesSource = File("release/examples")
