@@ -169,6 +169,7 @@ class MyUITest {
 | ListView IndexOutOfBounds | `items.setAll` while a row is selected | `clearSelection()` first; open files via `Platform.runLater` |
 | Flaky TestFX assertion | Asserting a sibling effect of the same `runLater` pulse | `waitFor`/poll the combined condition |
 | Wrong code in search results | Stale `.claude/worktrees/*` copies | Ignore worktree paths |
+| macOS app-image build breaks | jpackage app root is `FreeXmlToolkit.app` (not `FreeXmlToolkit/`); the bundle must not be modified after codesign | Ship extras next to the bundle (see build.gradle.kts doLast) |
 
 ---
 
