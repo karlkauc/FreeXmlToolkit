@@ -49,6 +49,29 @@ class NewFileDialogStaticTest {
     }
 
     @Test
+    void fragmentTemplatesAreNotDocumentTemplates() {
+        // The FundsXML Fund/ShareClass/Position skeletons are insertion fragments,
+        // not complete documents — they must not be offered in the New File dialog.
+        XmlTemplate fragment = new XmlTemplate("FundsXML Fund",
+                "<Fund>\n    <Identifiers/>\n</Fund>", "FundsXML");
+        assertFalse(NewFileDialog.isDocumentTemplate(fragment));
+
+        XmlTemplate document = new XmlTemplate("Sample",
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<FundsXML4/>", "FundsXML");
+        assertTrue(NewFileDialog.isDocumentTemplate(document));
+
+        XmlTemplate json = new XmlTemplate("J", "{ \"a\": 1 }", "Basic");
+        assertTrue(NewFileDialog.isDocumentTemplate(json));
+
+        // Declared file extensions mean the author intended file creation.
+        XmlTemplate declared = new XmlTemplate("X", "<anything/>", "Custom");
+        declared.setFileExtensions(Set.of("xml"));
+        assertTrue(NewFileDialog.isDocumentTemplate(declared));
+
+        assertFalse(NewFileDialog.isDocumentTemplate(null));
+    }
+
+    @Test
     void matchesTypeIsNullSafe() {
         assertFalse(NewFileDialog.matchesType(null, EditorFileType.XML));
         assertFalse(NewFileDialog.matchesType(new XmlTemplate("A", "<a/>", "c"), null));

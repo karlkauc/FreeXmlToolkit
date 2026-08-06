@@ -20,6 +20,7 @@ package org.fxt.freexmltoolkit.service.fundsxml;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.lang.reflect.Field;
@@ -29,7 +30,9 @@ import java.util.List;
 
 import org.fxt.freexmltoolkit.domain.FileFavorite;
 import org.fxt.freexmltoolkit.domain.XPathSnippet;
+import org.fxt.freexmltoolkit.domain.XmlTemplate;
 import org.fxt.freexmltoolkit.service.FavoritesService;
+import org.fxt.freexmltoolkit.service.TemplateRepository;
 import org.fxt.freexmltoolkit.service.XPathSnippetRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -54,9 +57,10 @@ class FundsXmlPostDownloadRegistrarTest {
         originalUserHome = System.getProperty("user.home");
         System.setProperty("user.home", tempDir.toString());
 
-        // Reset both singletons so they reinitialize against the redirected home
+        // Reset the singletons so they reinitialize against the redirected home
         resetSingleton(FavoritesService.class);
         resetSingleton(XPathSnippetRepository.class);
+        resetSingleton(TemplateRepository.class);
 
         examplesDir = Files.createDirectories(tempDir.resolve("fundsxml/examples"));
         schematronDir = Files.createDirectories(tempDir.resolve("fundsxml/schematron"));
@@ -71,6 +75,7 @@ class FundsXmlPostDownloadRegistrarTest {
     void tearDown() throws Exception {
         resetSingleton(FavoritesService.class);
         resetSingleton(XPathSnippetRepository.class);
+        resetSingleton(TemplateRepository.class);
         if (originalUserHome != null) {
             System.setProperty("user.home", originalUserHome);
         }
@@ -342,6 +347,30 @@ class FundsXmlPostDownloadRegistrarTest {
     }
 
     @Test
+    @DisplayName("registerFeaturedXmlFavorites skips pom.xml and test-fixture files")
+    void registerFeaturedXmlSkipsBuildAndTestInfrastructure() throws Exception {
+        // The examples repo ships Maven build files and invalid test fixtures — tiny
+        // XML files that would otherwise win the smallest-first heuristic.
+        Files.createDirectories(examplesDir.resolve("java"));
+        Files.writeString(examplesDir.resolve("pom.xml"), "<project/>");
+        Files.writeString(examplesDir.resolve("java/pom.xml"), "<project/>");
+        Files.createDirectories(examplesDir.resolve("tests/fixtures/invalid"));
+        Files.writeString(examplesDir.resolve("tests/fixtures/invalid/bad.xml"), "<FundsXML4/>");
+        Files.writeString(examplesDir.resolve("sample.xml"),
+                "<FundsXML4>" + "x".repeat(500) + "</FundsXML4>");
+
+        FundsXmlPostDownloadRegistrar.RegistrarResult result =
+                registrar.registerFeaturedXmlFavorites(examplesDir);
+
+        assertEquals(1, result.featuredXmlAdded());
+        List<FileFavorite> favs = FavoritesService.getInstance()
+                .getFavoritesByFolder(FundsXmlPostDownloadRegistrar.FAVORITE_FOLDER_EXAMPLES);
+        assertEquals(1, favs.size());
+        assertTrue(favs.get(0).getFilePath().endsWith("sample.xml"),
+                "Expected only sample.xml, got: " + favs.get(0).getFilePath());
+    }
+
+    @Test
     @DisplayName("registerFeaturedXmlFavorites honors featured.json when present")
     void registerFeaturedXmlFromManifest() throws Exception {
         Files.writeString(examplesDir.resolve("big.xml"), "<root>" + "x".repeat(10_000) + "</root>");
@@ -358,6 +387,45 @@ class FundsXmlPostDownloadRegistrarTest {
         java.util.List<FileFavorite> favs = FavoritesService.getInstance()
                 .getFavoritesByFolder(FundsXmlPostDownloadRegistrar.FAVORITE_FOLDER_EXAMPLES);
         assertTrue(favs.stream().anyMatch(f -> "Big Featured Sample".equals(f.getName())));
+    }
+
+    @Test
+    @DisplayName("cleanupExcludedSamples removes previously seeded pom.xml favorites and templates")
+    void cleanupRemovesStalePomEntries() throws Exception {
+        // Simulate the state older versions left behind: a pom.xml featured favorite
+        // and a pom.xml sample template, both idempotently skipped on re-registration.
+        Path javaDir = Files.createDirectories(examplesDir.resolve("java"));
+        Path pom = javaDir.resolve("pom.xml");
+        Files.writeString(pom, "<project/>");
+        Path realSample = examplesDir.resolve("sample.xml");
+        Files.writeString(realSample, "<FundsXML4/>");
+        FavoritesService.getInstance().addFavorite(pom.toAbsolutePath().toString(),
+                "pom", FundsXmlPostDownloadRegistrar.FAVORITE_FOLDER_EXAMPLES);
+        FavoritesService.getInstance().addFavorite(realSample.toAbsolutePath().toString(),
+                "sample", FundsXmlPostDownloadRegistrar.FAVORITE_FOLDER_EXAMPLES);
+
+        TemplateRepository repo = TemplateRepository.getInstance();
+        XmlTemplate stale = new XmlTemplate();
+        stale.setId(FundsXmlPostDownloadRegistrar.TEMPLATE_ID_PREFIX + "java-pom-xml");
+        stale.setName("pom");
+        stale.setContent("<project/>");
+        stale.setCategory(FundsXmlPostDownloadRegistrar.TEMPLATE_CATEGORY);
+        stale.setDescription(FundsXmlPostDownloadRegistrar.TEMPLATE_DESCRIPTION_PREFIX + "java/pom.xml");
+        stale.setBuiltIn(false);
+        repo.addTemplate(stale, false);
+
+        FundsXmlPostDownloadRegistrar withTemplates = new FundsXmlPostDownloadRegistrar(
+                FavoritesService.getInstance(), XPathSnippetRepository.getInstance(), repo);
+        FundsXmlPostDownloadRegistrar.RegistrarResult result =
+                withTemplates.cleanupExcludedSamples(examplesDir);
+
+        assertEquals(1, result.excludedFavoritesRemoved());
+        assertEquals(1, result.excludedTemplatesRemoved());
+        assertNull(repo.getTemplate(stale.getId()));
+        List<FileFavorite> favs = FavoritesService.getInstance()
+                .getFavoritesByFolder(FundsXmlPostDownloadRegistrar.FAVORITE_FOLDER_EXAMPLES);
+        assertEquals(1, favs.size());
+        assertTrue(favs.get(0).getFilePath().endsWith("sample.xml"));
     }
 
     @Test

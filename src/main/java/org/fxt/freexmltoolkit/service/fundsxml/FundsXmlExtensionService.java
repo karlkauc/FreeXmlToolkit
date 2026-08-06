@@ -192,6 +192,8 @@ public class FundsXmlExtensionService {
         if (isCacheEmpty()) {
             return;
         }
+        runRegistrarStep("cleanup of excluded samples",
+                () -> registrar.cleanupExcludedSamples(cache.getExamplesDir()));
         runRegistrarStep("favorites",
                 () -> registrar.registerFavorites(cache.getExamplesDir(), cache.getSchematronDir()));
         runRegistrarStep("featured samples",
@@ -277,6 +279,7 @@ public class FundsXmlExtensionService {
         }
 
         // Register downloaded files with favorites / snippets subsystems
+        registrar.cleanupExcludedSamples(cache.getExamplesDir());
         cb.onProgress("Registering favorites", -1, -1, "Adding examples to favorites");
         FundsXmlPostDownloadRegistrar.RegistrarResult favResult =
                 registrar.registerFavorites(cache.getExamplesDir(), cache.getSchematronDir());

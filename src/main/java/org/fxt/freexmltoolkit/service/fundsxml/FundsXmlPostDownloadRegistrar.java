@@ -81,6 +81,9 @@ public class FundsXmlPostDownloadRegistrar {
     /** Prefix used to build deterministic, idempotent template IDs for FundsXML samples. */
     public static final String TEMPLATE_ID_PREFIX = "fundsxml-sample-";
 
+    /** Description prefix for seeded sample templates; the suffix is the relative path. */
+    public static final String TEMPLATE_DESCRIPTION_PREFIX = "Sample from FundsXML examples: ";
+
     /** Cap on the number of "featured" sample-XMLs surfaced as individual favourites/templates. */
     public static final int FEATURED_SAMPLE_LIMIT = 10;
 
@@ -144,6 +147,10 @@ public class FundsXmlPostDownloadRegistrar {
             }
             @Override
             public RegistrarResult registerXmlTemplates(Path examplesDir) {
+                return new RegistrarResult.Builder().build();
+            }
+            @Override
+            public RegistrarResult cleanupExcludedSamples(Path examplesDir) {
                 return new RegistrarResult.Builder().build();
             }
         };
@@ -345,7 +352,7 @@ public class FundsXmlPostDownloadRegistrar {
                 template.setName(displayName);
                 template.setContent(content);
                 template.setCategory(TEMPLATE_CATEGORY);
-                template.setDescription("Sample from FundsXML examples: " + relative);
+                template.setDescription(TEMPLATE_DESCRIPTION_PREFIX + relative);
                 template.setBuiltIn(false);
                 templateRepository.addTemplate(template, true);
                 result.templateAdded();
@@ -353,6 +360,51 @@ public class FundsXmlPostDownloadRegistrar {
                 logger.warn("Failed to seed FundsXML template from {}: {}", p, e.getMessage());
             }
         }
+        return result.build();
+    }
+
+    /**
+     * Removes previously-registered favorites and templates that stem from build/test
+     * infrastructure files (see {@link #isExcludedSample}). Earlier releases seeded
+     * {@code pom.xml} files as featured samples; registration is idempotent, so those
+     * stale entries survive until explicitly cleaned up. Safe to run on every startup.
+     */
+    public RegistrarResult cleanupExcludedSamples(Path examplesDir) {
+        RegistrarResult.Builder result = new RegistrarResult.Builder();
+
+        if (favoritesService != null) {
+            List<FileFavorite> favs = favoritesService.getFavoritesByFolder(FAVORITE_FOLDER_EXAMPLES);
+            for (FileFavorite f : favs) {
+                if (f.isDirectory() || f.getFilePath() == null) {
+                    continue;
+                }
+                Path p = Path.of(f.getFilePath());
+                String relative = examplesDir != null && p.startsWith(examplesDir.toAbsolutePath())
+                        ? examplesDir.toAbsolutePath().relativize(p).toString()
+                        : p.getFileName().toString();
+                if (isExcludedSample(relative)) {
+                    favoritesService.removeFavoriteByPath(f.getFilePath());
+                    result.excludedFavoriteRemoved();
+                }
+            }
+        }
+
+        if (templateRepository != null) {
+            for (XmlTemplate t : List.copyOf(templateRepository.getTemplatesByCategory(TEMPLATE_CATEGORY))) {
+                String id = t.getId();
+                String description = t.getDescription();
+                if (id == null || !id.startsWith(TEMPLATE_ID_PREFIX)
+                        || description == null || !description.startsWith(TEMPLATE_DESCRIPTION_PREFIX)) {
+                    continue;
+                }
+                String relative = description.substring(TEMPLATE_DESCRIPTION_PREFIX.length());
+                if (isExcludedSample(relative)) {
+                    templateRepository.removeTemplate(id, true);
+                    result.excludedTemplateRemoved();
+                }
+            }
+        }
+
         return result.build();
     }
 
@@ -402,6 +454,7 @@ public class FundsXmlPostDownloadRegistrar {
         try (Stream<Path> walk = Files.walk(examplesDir)) {
             walk.filter(Files::isRegularFile)
                     .filter(FundsXmlPostDownloadRegistrar::isXmlFile)
+                    .filter(p -> !isExcludedSample(examplesDir.relativize(p).toString()))
                     .forEach(xmlFiles::add);
         } catch (IOException e) {
             logger.warn("Failed to walk examples dir {}: {}", examplesDir, e.getMessage());
@@ -424,6 +477,21 @@ public class FundsXmlPostDownloadRegistrar {
 
     private static boolean isXmlFile(Path p) {
         return p.getFileName().toString().toLowerCase(Locale.ROOT).endsWith(".xml");
+    }
+
+    /**
+     * The examples repo contains build and test infrastructure (Maven {@code pom.xml}
+     * files, invalid fixtures under {@code tests/}) whose small size would otherwise win
+     * the smallest-first featured heuristic. {@code relativePath} is relative to the
+     * examples dir; separators may be {@code /} or {@code \}.
+     */
+    static boolean isExcludedSample(String relativePath) {
+        String normalized = relativePath.replace('\\', '/').toLowerCase(Locale.ROOT);
+        String fileName = normalized.substring(normalized.lastIndexOf('/') + 1);
+        if (fileName.equals("pom.xml")) {
+            return true;
+        }
+        return normalized.startsWith("tests/") || normalized.contains("/tests/");
     }
 
     private static boolean isXsltFile(Path p) {
@@ -600,6 +668,8 @@ public class FundsXmlPostDownloadRegistrar {
         private final int featuredXmlSkipped;
         private final int templatesAdded;
         private final int templatesSkipped;
+        private final int excludedFavoritesRemoved;
+        private final int excludedTemplatesRemoved;
 
         private RegistrarResult(Builder b) {
             this.examplesFolderAdded = b.examplesFolderAdded;
@@ -616,6 +686,8 @@ public class FundsXmlPostDownloadRegistrar {
             this.featuredXmlSkipped = b.featuredXmlSkipped;
             this.templatesAdded = b.templatesAdded;
             this.templatesSkipped = b.templatesSkipped;
+            this.excludedFavoritesRemoved = b.excludedFavoritesRemoved;
+            this.excludedTemplatesRemoved = b.excludedTemplatesRemoved;
         }
 
         public boolean examplesFolderAdded() { return examplesFolderAdded; }
@@ -632,6 +704,8 @@ public class FundsXmlPostDownloadRegistrar {
         public int featuredXmlSkipped() { return featuredXmlSkipped; }
         public int templatesAdded() { return templatesAdded; }
         public int templatesSkipped() { return templatesSkipped; }
+        public int excludedFavoritesRemoved() { return excludedFavoritesRemoved; }
+        public int excludedTemplatesRemoved() { return excludedTemplatesRemoved; }
 
         static final class Builder {
             boolean examplesFolderAdded;
@@ -648,6 +722,8 @@ public class FundsXmlPostDownloadRegistrar {
             int featuredXmlSkipped;
             int templatesAdded;
             int templatesSkipped;
+            int excludedFavoritesRemoved;
+            int excludedTemplatesRemoved;
 
             Builder examplesFolderAdded() { this.examplesFolderAdded = true; return this; }
             Builder examplesFolderSkipped() { this.examplesFolderSkipped = true; return this; }
@@ -663,6 +739,8 @@ public class FundsXmlPostDownloadRegistrar {
             Builder featuredXmlSkipped() { this.featuredXmlSkipped++; return this; }
             Builder templateAdded() { this.templatesAdded++; return this; }
             Builder templateSkipped() { this.templatesSkipped++; return this; }
+            Builder excludedFavoriteRemoved() { this.excludedFavoritesRemoved++; return this; }
+            Builder excludedTemplateRemoved() { this.excludedTemplatesRemoved++; return this; }
 
             RegistrarResult build() { return new RegistrarResult(this); }
         }

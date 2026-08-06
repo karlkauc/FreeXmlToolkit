@@ -181,7 +181,7 @@ public class NewFileDialog extends Dialog<NewFileDialog.Result> {
         List<XmlTemplate> filtered = new ArrayList<>();
         filtered.add(null); // "— None —"
         for (XmlTemplate t : allTemplates) {
-            if (matchesType(t, type)) {
+            if (isDocumentTemplate(t) && matchesType(t, type)) {
                 filtered.add(t);
             }
         }
@@ -264,6 +264,25 @@ public class NewFileDialog extends Dialog<NewFileDialog.Result> {
             // recents are best-effort
         }
         return new ArrayList<>(files);
+    }
+
+    /**
+     * Heuristic: is the template a complete document rather than a fragment meant for
+     * insertion into an existing file (e.g. the FundsXML {@code <Fund>} skeleton)?
+     * Templates that declare {@code fileExtensions} are taken at their word; otherwise
+     * XML-family content must start with an XML declaration, JSON with {@code {}/[]}.
+     * Fragments stay available through the Insert-Template dialog.
+     */
+    static boolean isDocumentTemplate(XmlTemplate template) {
+        if (template == null) {
+            return false;
+        }
+        Set<String> exts = template.getFileExtensions();
+        if (exts != null && !exts.isEmpty()) {
+            return true;
+        }
+        String c = template.getContent() == null ? "" : template.getContent().trim();
+        return c.startsWith("<?xml") || c.startsWith("{") || c.startsWith("[");
     }
 
     /**
