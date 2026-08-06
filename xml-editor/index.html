@@ -2526,7 +2526,7 @@
 
 <h1 id="xml-editor">XML Editor<a class="headerlink" href="#xml-editor" title="Permanent link">&para;</a></h1>
 <blockquote>
-<p><strong>Last Updated:</strong> June 2026 | <strong>Version:</strong> 1.10.0</p>
+<p><strong>Last Updated:</strong> August 2026 | <strong>Version:</strong> 2.0.1</p>
 </blockquote>
 <p>The XML Editor is the main feature of FreeXmlToolkit. It provides a powerful and easy-to-use interface for working with XML files.</p>
 <hr />
@@ -2537,6 +2537,13 @@
 <em>The XML Editor in the Graphic view (grid) for structured editing</em></p>
 <hr />
 <h2 id="toolbar">Toolbar<a class="headerlink" href="#toolbar" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p><strong>Updated in August 2026</strong> - The editor toolbar is a single slim row. Related actions sit in
+<strong>split buttons</strong> with a visible <strong>▾</strong> arrow menu (e.g. <strong>Save As / Save All</strong> under
+<strong>Save ▾</strong>, <strong>Minify</strong> under <strong>Format ▾</strong>); secondary tools are icon-only buttons with
+tooltips. See <a href="../unified-shell/#toolbar">Unified Shell - Toolbar</a> for the full reference.</p>
+</blockquote>
+<p>With an XML file active, the toolbar offers:</p>
 <table>
 <thead>
 <tr>
@@ -2549,105 +2556,67 @@
 <tr>
 <td><strong>New</strong></td>
 <td>Ctrl+N</td>
-<td>Create new XML document</td>
+<td>Open the guided New File dialog</td>
 </tr>
 <tr>
 <td><strong>Open</strong></td>
 <td>Ctrl+O</td>
-<td>Open XML file</td>
+<td>Open one or more files</td>
 </tr>
 <tr>
-<td><strong>Save</strong></td>
+<td><strong>Save ▾</strong></td>
 <td>Ctrl+S</td>
-<td>Save current file</td>
+<td>Save the current file; the arrow menu holds <strong>Save As…</strong> (Ctrl+Shift+S) and <strong>Save All</strong></td>
 </tr>
 <tr>
-<td><strong>Save As</strong></td>
-<td>Ctrl+Shift+S</td>
-<td>Save with new name</td>
+<td><strong>Undo</strong> / <strong>Redo</strong></td>
+<td>Ctrl+Z / Ctrl+Y</td>
+<td>Undo / redo the last change (icon buttons)</td>
 </tr>
 <tr>
-<td><strong>Save All</strong></td>
+<td><strong>Format ▾</strong></td>
+<td>Ctrl+Shift+F</td>
+<td>Pretty-print the document; the arrow menu holds <strong>Minify</strong></td>
+</tr>
+<tr>
+<td><strong>Insert Template</strong></td>
 <td>-</td>
-<td>Save all open document tabs at once</td>
+<td>Insert a snippet from the template system (icon button)</td>
 </tr>
 <tr>
-<td><strong>Recent</strong></td>
-<td>Ctrl+Shift+R</td>
-<td>Open recent files menu</td>
+<td><strong>Compare</strong></td>
+<td>-</td>
+<td>Compare the document with another file, side by side (icon button)</td>
 </tr>
 <tr>
-<td><strong>Undo</strong></td>
-<td>Ctrl+Z</td>
-<td>Undo last change</td>
+<td><strong>Spreadsheet</strong></td>
+<td>-</td>
+<td>Excel / CSV ↔ XML converter (icon button)</td>
 </tr>
 <tr>
-<td><strong>Redo</strong></td>
-<td>Ctrl+Y</td>
-<td>Redo undone change</td>
+<td><strong>Query Console</strong></td>
+<td>Ctrl+Shift+X</td>
+<td>Toggle the bottom XPath/XQuery console (icon button)</td>
 </tr>
 <tr>
-<td><strong>Add Favorite</strong></td>
-<td>Ctrl+D</td>
-<td>Add file to favorites</td>
+<td><strong>Transform XSLT</strong></td>
+<td>-</td>
+<td>Pick a stylesheet and transform the active XML (icon button)</td>
 </tr>
 <tr>
-<td><strong>Favorites</strong></td>
-<td>Ctrl+Shift+D</td>
-<td>Toggle favorites panel</td>
-</tr>
-<tr>
-<td><strong>Format</strong></td>
-<td>Ctrl+Alt+F</td>
-<td>Pretty print XML</td>
+<td><strong>Schema ▾</strong></td>
+<td>-</td>
+<td><strong>Set XSD Schema…</strong> for IntelliSense and validation; the arrow menu also holds <strong>Generate Documentation…</strong> and <strong>Type Editor…</strong> (enabled for XSD files)</td>
 </tr>
 <tr>
 <td><strong>Validate</strong></td>
-<td>F5</td>
-<td>Validate XML</td>
-</tr>
-<tr>
-<td><strong>Convert</strong></td>
-<td>Ctrl+E</td>
-<td>XML/Excel/CSV converter</td>
-</tr>
-<tr>
-<td><strong>Query</strong></td>
-<td>Ctrl+Q</td>
-<td>Run XPath/XQuery</td>
-</tr>
-<tr>
-<td><strong>Templates</strong></td>
-<td>Ctrl+T</td>
-<td>Open template manager</td>
-</tr>
-<tr>
-<td><strong>Generator</strong></td>
-<td>Ctrl+G</td>
-<td>Schema generator</td>
-</tr>
-<tr>
-<td><strong>XSLT Dev</strong></td>
-<td>Ctrl+Shift+T</td>
-<td>XSLT development panel</td>
-</tr>
-<tr>
-<td><strong>Properties</strong></td>
-<td>Ctrl+P</td>
-<td>Toggle properties panel</td>
-</tr>
-<tr>
-<td><strong>XPath</strong></td>
-<td>Ctrl+Q</td>
-<td>Toggle XPath panel</td>
-</tr>
-<tr>
-<td><strong>Help</strong></td>
-<td>F1</td>
-<td>Show help</td>
+<td>F8</td>
+<td>Validate the document (accent-colored primary action)</td>
 </tr>
 </tbody>
 </table>
+<p>The <strong>Run ▾</strong> button and the <strong>Target</strong> dropdown appear when a query, XSLT, or XProc document
+is active - see <a href="../unified-shell/#query-documents-the-target-selector">Query Documents</a>.</p>
 <hr />
 <h2 id="working-with-files">Working with Files<a class="headerlink" href="#working-with-files" title="Permanent link">&para;</a></h2>
 <h3 id="opening-and-saving-files">Opening and Saving Files<a class="headerlink" href="#opening-and-saving-files" title="Permanent link">&para;</a></h3>
@@ -2656,8 +2625,8 @@
 <ul>
 <li><strong>Open Files</strong>: Click "Open" or use <code>Ctrl+O</code> to browse for XML files</li>
 <li><strong>Save Files</strong>: Click "Save" or use <code>Ctrl+S</code> to save changes to the current file</li>
-<li><strong>Save As</strong>: Use <code>Ctrl+Shift+S</code> to save the current file with a new name</li>
-<li><strong>Save All</strong>: Click "Save All" to save every open document tab at once (untitled tabs prompt you for a file name)</li>
+<li><strong>Save As</strong>: Use <code>Ctrl+Shift+S</code> (or the <strong>Save ▾</strong> arrow menu) to save the current file with a new name</li>
+<li><strong>Save All</strong>: Pick <strong>Save All</strong> from the <strong>Save ▾</strong> arrow menu to save every open document tab at once (untitled tabs prompt you for a file name)</li>
 <li><strong>Create New</strong>: Click "New" to start with an empty XML document</li>
 <li><strong>Drag &amp; Drop</strong>: Drag files from your file explorer into the editor</li>
 <li><strong>Recent Files</strong>: Quick access to recently opened files</li>
@@ -2718,7 +2687,7 @@ properties in <strong>all three</strong> XML views - Text, Tree, and Graphic. Pr
 was only available in the grid.</p>
 </blockquote>
 <p>The Properties inspector shows the details of the currently selected node and lets you change
-them. Toggle the panel with <strong>Ctrl+P</strong> (or the <strong>Properties</strong> toolbar button); it appears on
+them. Toggle the panel with the toggle at the right end of the editor toolbar; it appears on
 the right side of the editor.</p>
 <blockquote>
 <p><strong>Screenshot note:</strong> The existing XML editor screenshots predate this change. The Properties
@@ -2798,13 +2767,13 @@ property editing through the inspector.</p>
 XSD by hand:</p>
 <ol>
 <li>Click the <strong>"No XSD"</strong> indicator in the <strong>status bar</strong> (it shows <strong>"XSD: name"</strong> once a
-   schema is bound), or use the toolbar's <strong>Set XSD Schema…</strong> action.</li>
+   schema is bound), or click the toolbar's <strong>Schema</strong> button (<strong>Set XSD Schema…</strong>).</li>
 <li>Choose an <code>.xsd</code> file.</li>
 </ol>
 <p>The binding applies to the active document and drives <strong>both</strong> features at once:</p>
 <ul>
 <li><strong>IntelliSense</strong> - auto-completion suggests the elements and attributes the schema allows.</li>
-<li><strong>Schema validation</strong> - Validate (F5) and continuous validation check against the bound XSD.</li>
+<li><strong>Schema validation</strong> - Validate (F8) and continuous validation check against the bound XSD.</li>
 </ul>
 <hr />
 <h2 id="formatting-tools">Formatting Tools<a class="headerlink" href="#formatting-tools" title="Permanent link">&para;</a></h2>
@@ -2957,7 +2926,7 @@ collections in the <code>examples</code> folder next to the application:</p>
   branching and a Schematron SVRL report. See the folder's <code>README.md</code>.</li>
 </ul>
 <p>All examples target the FundsXML4 sample documents in <code>examples/xml/</code>. The simplest way
-to run one: <strong>open the file directly</strong> and press <strong>Run Query</strong> / <strong>Run Pipeline</strong>
+to run one: <strong>open the file directly</strong> and press the toolbar's <strong>Run</strong> button
 (<code>Ctrl+Enter</code>) - query, XSLT and XProc files are first-class editor documents that run
 against the <a href="../unified-shell/#query-documents-the-target-selector">Target dropdown</a>'s
 selection (by default the most recently active XML document). Alternatively paste a query

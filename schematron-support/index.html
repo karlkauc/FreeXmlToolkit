@@ -2494,7 +2494,7 @@
 
 <h1 id="schematron-validation">Schematron Validation<a class="headerlink" href="#schematron-validation" title="Permanent link">&para;</a></h1>
 <blockquote>
-<p><strong>Last Updated:</strong> July 2026 | <strong>Version:</strong> 1.10.0</p>
+<p><strong>Last Updated:</strong> August 2026 | <strong>Version:</strong> 2.0.1</p>
 <p><strong>Note (Phase 10c):</strong> The standalone <em>Schematron</em> editor tab has been retired.
 Schematron editing and validation — rule check, templates, tester, visual
 builder, documentation, and CSV/JSON export of results — now live in the
@@ -2540,6 +2540,12 @@ are reached through the shell rather than a dedicated sidebar tab.</p>
 </ul>
 <hr />
 <h2 id="toolbar">Toolbar<a class="headerlink" href="#toolbar" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p><strong>Updated in August 2026</strong> - Schematron files use the shell's single-row editor toolbar.
+Related actions sit in <strong>split buttons</strong> with a visible <strong>▾</strong> arrow menu; see
+<a href="../unified-shell/#toolbar">Unified Shell - Toolbar</a> for the full reference.</p>
+</blockquote>
+<p>With a <code>.sch</code> file active, the relevant actions are:</p>
 <table>
 <thead>
 <tr>
@@ -2551,51 +2557,38 @@ are reached through the shell rather than a dedicated sidebar tab.</p>
 <tbody>
 <tr>
 <td><strong>New</strong></td>
-<td>-</td>
-<td>Create new Schematron file</td>
+<td>Ctrl+N</td>
+<td>Open the guided New File dialog (includes Schematron)</td>
 </tr>
 <tr>
 <td><strong>Open</strong></td>
-<td>-</td>
-<td>Open existing Schematron file</td>
+<td>Ctrl+O</td>
+<td>Open an existing file</td>
 </tr>
 <tr>
-<td><strong>Save</strong></td>
+<td><strong>Save ▾</strong></td>
 <td>Ctrl+S</td>
-<td>Save current file</td>
+<td>Save the current file; the arrow menu holds <strong>Save As…</strong> (Ctrl+Shift+S) and <strong>Save All</strong></td>
 </tr>
 <tr>
-<td><strong>Save As</strong></td>
-<td>Ctrl+Shift+S</td>
-<td>Save with new name</td>
+<td><strong>Undo</strong> / <strong>Redo</strong></td>
+<td>Ctrl+Z / Ctrl+Y</td>
+<td>Undo / redo the last change (icon buttons)</td>
 </tr>
 <tr>
-<td><strong>Save All</strong></td>
-<td>-</td>
-<td>Save the current file (shown for toolbar consistency across editors)</td>
+<td><strong>Format ▾</strong></td>
+<td>Ctrl+Shift+F</td>
+<td>Pretty-print the file</td>
 </tr>
 <tr>
-<td><strong>Add Rule</strong></td>
-<td>Ctrl+R</td>
-<td>Add a new rule template</td>
-</tr>
-<tr>
-<td><strong>Add Favorite</strong></td>
-<td>Ctrl+D</td>
-<td>Add to favorites</td>
-</tr>
-<tr>
-<td><strong>Favorites</strong></td>
-<td>Ctrl+Shift+D</td>
-<td>Toggle favorites panel</td>
-</tr>
-<tr>
-<td><strong>Help</strong></td>
-<td>F1</td>
-<td>Show help</td>
+<td><strong>Validate</strong></td>
+<td>F8</td>
+<td>Check the Schematron syntax</td>
 </tr>
 </tbody>
 </table>
+<p>Rule templates, the tester, and the visual builder are reached through the <strong>Validation
+activity panel</strong> (see the note at the top of this page).</p>
 <hr />
 <h2 id="code-editor">Code Editor<a class="headerlink" href="#code-editor" title="Permanent link">&para;</a></h2>
 <p>The Code tab provides a full-featured Schematron editor:</p>
@@ -2617,8 +2610,8 @@ are reached through the shell rather than a dedicated sidebar tab.</p>
 <td>Create empty Schematron</td>
 </tr>
 <tr>
-<td><strong>Save</strong> / <strong>Save As</strong> / <strong>Save All</strong></td>
-<td>Save current file (Save All mirrors Save for this single-document editor)</td>
+<td><strong>Save ▾</strong></td>
+<td>Save the current file; <strong>Save As…</strong> and <strong>Save All</strong> sit in the arrow menu</td>
 </tr>
 <tr>
 <td><strong>New Rule</strong></td>

@@ -2139,7 +2139,7 @@
 <h1 id="json-editor">JSON Editor<a class="headerlink" href="#json-editor" title="Permanent link">&para;</a></h1>
 <p>The JSON Editor provides a powerful environment for editing, validating, and querying JSON files with support for multiple JSON formats.</p>
 <blockquote>
-<p><strong>Last Updated:</strong> May 2026 | <strong>Version:</strong> 1.10.0</p>
+<p><strong>Last Updated:</strong> August 2026 | <strong>Version:</strong> 2.0.1</p>
 <p><strong>Note (Phase 10c):</strong> The standalone <em>JSON Editor</em> tab has been retired. JSON
 editing — text editing plus the tree view and validation — now lives in the
 <strong>Unified Shell</strong>: open a <code>.json</code> file and the JSON editor view (text/tree) is
@@ -2260,9 +2260,9 @@ shell rather than a dedicated sidebar tab.</p>
 </tbody>
 </table>
 <p><strong>To run a query:</strong>
-1. Click the <strong>JSONPath</strong> button in the toolbar
+1. Open the <strong>Query Console</strong> (terminal icon in the toolbar, or Ctrl+Shift+X) - with a JSON document active it evaluates JSONPath
 2. Enter your JSONPath expression
-3. Click <strong>Execute</strong> to see results</p>
+3. Run it to see the results in the console's result pane</p>
 <h3 id="validation">Validation<a class="headerlink" href="#validation" title="Permanent link">&para;</a></h3>
 <h4 id="syntax-validation">Syntax Validation<a class="headerlink" href="#syntax-validation" title="Permanent link">&para;</a></h4>
 <p>Click <strong>Validate</strong> to check if your JSON is syntactically correct. The editor will report:
@@ -2271,9 +2271,9 @@ shell rather than a dedicated sidebar tab.</p>
 <h4 id="json-schema-validation">JSON Schema Validation<a class="headerlink" href="#json-schema-validation" title="Permanent link">&para;</a></h4>
 <p>Validate your JSON against a JSON Schema:</p>
 <ol>
-<li>Click <strong>Schema</strong> → <strong>Load Schema...</strong></li>
+<li>Open the <strong>Validation</strong> activity and pick <strong>JSON Schema…</strong> from the panel's ⋮ (overflow) menu</li>
 <li>Select your JSON Schema file</li>
-<li>Click <strong>Schema</strong> → <strong>Validate Against Schema</strong></li>
+<li>Run the validation (<strong>Run Validation</strong> in the panel, or the toolbar's <strong>Validate</strong> button / F8)</li>
 </ol>
 <p>The validator supports:
 - JSON Schema Draft 4, 6, 7
@@ -2308,7 +2308,7 @@ shell rather than a dedicated sidebar tab.</p>
 <td>Format JSON</td>
 </tr>
 <tr>
-<td><code>F5</code></td>
+<td><code>F8</code></td>
 <td>Validate JSON</td>
 </tr>
 <tr>
@@ -2361,6 +2361,12 @@ shell rather than a dedicated sidebar tab.</p>
 <a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="p">}</span>
 </code></pre></div>
 <h2 id="toolbar">Toolbar<a class="headerlink" href="#toolbar" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p><strong>Updated in August 2026</strong> - JSON files use the shell's single-row editor toolbar. Related
+actions sit in <strong>split buttons</strong> with a visible <strong>▾</strong> arrow menu; see
+<a href="../unified-shell/#toolbar">Unified Shell - Toolbar</a> for the full reference.</p>
+</blockquote>
+<p>With a JSON file active, the relevant actions are:</p>
 <table>
 <thead>
 <tr>
@@ -2371,66 +2377,36 @@ shell rather than a dedicated sidebar tab.</p>
 <tbody>
 <tr>
 <td><strong>New</strong></td>
-<td>Create a new JSON document</td>
+<td>Open the guided New File dialog (includes JSON)</td>
 </tr>
 <tr>
 <td><strong>Open</strong></td>
-<td>Open an existing JSON file</td>
+<td>Open an existing file</td>
 </tr>
 <tr>
-<td><strong>Save</strong></td>
-<td>Save the current document</td>
+<td><strong>Save ▾</strong></td>
+<td>Save the current document; the arrow menu holds <strong>Save As…</strong> and <strong>Save All</strong></td>
 </tr>
 <tr>
-<td><strong>Save As</strong></td>
-<td>Save with a new name</td>
+<td><strong>Undo</strong> / <strong>Redo</strong></td>
+<td>Undo or redo changes (icon buttons)</td>
 </tr>
 <tr>
-<td><strong>Save All</strong></td>
-<td>Save the current document (shown for toolbar consistency across editors)</td>
+<td><strong>Format ▾</strong></td>
+<td>Pretty-print the JSON; the arrow menu holds <strong>Minify</strong> (compress by removing whitespace)</td>
 </tr>
 <tr>
-<td><strong>Recent</strong></td>
-<td>Access recently opened files</td>
-</tr>
-<tr>
-<td><strong>Undo/Redo</strong></td>
-<td>Undo or redo changes</td>
-</tr>
-<tr>
-<td><strong>Format</strong></td>
-<td>Pretty-print the JSON</td>
-</tr>
-<tr>
-<td><strong>Minify</strong></td>
-<td>Compress the JSON</td>
+<td><strong>Query Console</strong></td>
+<td>Toggle the bottom query console - for JSON documents it runs <strong>JSONPath</strong> queries (icon button, Ctrl+Shift+X)</td>
 </tr>
 <tr>
 <td><strong>Validate</strong></td>
-<td>Check JSON syntax</td>
-</tr>
-<tr>
-<td><strong>Schema</strong></td>
-<td>Load schema, validate against schema</td>
-</tr>
-<tr>
-<td><strong>JSONPath</strong></td>
-<td>Open the JSONPath query panel</td>
-</tr>
-<tr>
-<td><strong>Tree</strong></td>
-<td>Toggle the tree view</td>
-</tr>
-<tr>
-<td><strong>View</strong></td>
-<td>Expand all, collapse all, sync with editor</td>
-</tr>
-<tr>
-<td><strong>Help</strong></td>
-<td>Show help information</td>
+<td>Check the JSON syntax (F8)</td>
 </tr>
 </tbody>
 </table>
+<p>Actions that do not apply to JSON (e.g. <strong>Run</strong> or the XSLT transform) are greyed out. The
+<strong>Tree</strong> view is switched with the Text/Tree view switch at the right end of the toolbar.</p>
 <h2 id="tree-view-icons">Tree View Icons<a class="headerlink" href="#tree-view-icons" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
