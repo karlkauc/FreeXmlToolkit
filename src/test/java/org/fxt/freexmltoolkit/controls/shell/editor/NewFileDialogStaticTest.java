@@ -53,4 +53,19 @@ class NewFileDialogStaticTest {
         assertFalse(NewFileDialog.matchesType(null, EditorFileType.XML));
         assertFalse(NewFileDialog.matchesType(new XmlTemplate("A", "<a/>", "c"), null));
     }
+
+    @Test
+    void everyFileTypeExceptOtherIsCreatable() {
+        // Regression guard: .xquery/.xpath were once missing from the New File dialog.
+        // Every EditorFileType except the catch-all OTHER must be offered for creation.
+        Set<EditorFileType> creatable = Set.of(NewFileDialog.CREATABLE);
+        for (EditorFileType type : EditorFileType.values()) {
+            if (type == EditorFileType.OTHER) {
+                assertFalse(creatable.contains(type), "OTHER must not be creatable");
+            } else {
+                assertTrue(creatable.contains(type),
+                        "file type must be offered in the New File dialog: " + type);
+            }
+        }
+    }
 }

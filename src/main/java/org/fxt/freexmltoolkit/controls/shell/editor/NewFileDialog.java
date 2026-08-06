@@ -54,10 +54,12 @@ public class NewFileDialog extends Dialog<NewFileDialog.Result> {
                          boolean generateMandatory, File saveLocation) {
     }
 
-    /** File types offered for creation (everything except the catch-all {@link EditorFileType#OTHER}). */
-    private static final EditorFileType[] CREATABLE = {
+    /** File types offered for creation (everything except the catch-all {@link EditorFileType#OTHER}).
+     *  Package-private so {@code NewFileDialogStaticTest} can assert completeness. */
+    static final EditorFileType[] CREATABLE = {
             EditorFileType.XML, EditorFileType.XSD, EditorFileType.XSLT,
-            EditorFileType.SCHEMATRON, EditorFileType.JSON, EditorFileType.XPROC
+            EditorFileType.SCHEMATRON, EditorFileType.JSON, EditorFileType.XPROC,
+            EditorFileType.XQUERY, EditorFileType.XPATH
     };
 
     private final ComboBox<EditorFileType> typeBox = new ComboBox<>();
