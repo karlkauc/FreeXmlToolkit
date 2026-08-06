@@ -97,7 +97,7 @@
        ============================================ */
 
     /* Font Families */
-    -font-family-base: 'Roboto', 'Segoe UI', Arial, sans-serif;
+    -font-family-base: 'Inter', 'Segoe UI', Arial, sans-serif;
     -font-family-monospace: 'Courier New', Courier, monospace;
     -font-family-code: 'Consolas', 'Monaco', 'Courier New', monospace;
 
@@ -201,7 +201,7 @@
 
 /* Labels */
 .label {
-    -fx-font-family: 'Roboto', 'Segoe UI', Arial, sans-serif;
+    -fx-font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
     -fx-font-size: 12px;
     -fx-text-fill: -text-primary;
 }
@@ -224,7 +224,7 @@
 
 /* Buttons */
 .button {
-    -fx-font-family: 'Roboto', 'Segoe UI', Arial, sans-serif;
+    -fx-font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
     -fx-font-size: 12px;
     -fx-cursor: hand;
     -fx-background-radius: 4px;
@@ -242,7 +242,7 @@
 /* Text Fields */
 .text-field,
 .text-area {
-    -fx-font-family: 'Roboto', 'Segoe UI', Arial, sans-serif;
+    -fx-font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
     -fx-font-size: 12px;
     -fx-background-radius: 4px;
     -fx-border-radius: 4px;
@@ -250,7 +250,7 @@
 
 /* Tooltips */
 .tooltip {
-    -fx-font-family: 'Roboto', 'Segoe UI', Arial, sans-serif;
+    -fx-font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
     -fx-font-size: 11px;
     -fx-background-color: -color-gray-800;
     -fx-text-fill: -text-white;

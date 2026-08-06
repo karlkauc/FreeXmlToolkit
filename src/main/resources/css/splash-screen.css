@@ -21,7 +21,7 @@
    ============================================ */
 
 .splash-title {
-    -fx-font-family: "Roboto";
+    -fx-font-family: "Inter";
     -fx-font-size: 32px;
     -fx-font-weight: bold;
     -fx-text-fill: white;
@@ -29,14 +29,14 @@
 }
 
 .splash-version {
-    -fx-font-family: "Roboto";
+    -fx-font-family: "Inter";
     -fx-font-size: 14px;
     -fx-text-fill: rgba(255, 255, 255, 0.5);
     -fx-padding: 0 0 15 0;
 }
 
 .splash-status {
-    -fx-font-family: "Roboto";
+    -fx-font-family: "Inter";
     -fx-font-size: 12px;
     -fx-font-style: italic;
     -fx-text-fill: rgba(255, 255, 255, 0.8);
@@ -44,7 +44,7 @@
 }
 
 .splash-footer {
-    -fx-font-family: "Roboto";
+    -fx-font-family: "Inter";
     -fx-font-size: 10px;
     -fx-text-fill: rgba(255, 255, 255, 0.3);
 }

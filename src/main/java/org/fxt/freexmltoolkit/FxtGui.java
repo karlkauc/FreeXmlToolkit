@@ -358,10 +358,9 @@ public class FxtGui extends Application {
     private void loadFontsAsync() {
         executorService.submit(() -> {
             String[] fonts = {
-                    "Roboto-Regular", "Roboto-Bold", "Roboto-Italic", "Roboto-Light",
-                    "Roboto-Thin", "Roboto-Medium", "Roboto-Black", "Roboto-BoldItalic",
-                    "Roboto-LightItalic", "Roboto-MediumItalic", "Roboto-ThinItalic", "Roboto-BlackItalic",
-                    // Design-token UI font (Inter) — see DesignTokens.FONT_FAMILY_UI / design-tokens.css
+                    // Design-token UI font (Inter) — see DesignTokens.FONT_FAMILY_UI / design-tokens.css.
+                    // (Roboto was removed: its TTFs were never bundled, so the old entries only
+                    // produced startup warnings while CSS silently fell back to system fonts.)
                     "Inter-Regular", "Inter-Medium", "Inter-SemiBold", "Inter-Bold",
                     // Design-token code font (JetBrains Mono) — see DesignTokens.FONT_FAMILY_MONO
                     "JetBrainsMono-Regular", "JetBrainsMono-Medium", "JetBrainsMono-Bold",

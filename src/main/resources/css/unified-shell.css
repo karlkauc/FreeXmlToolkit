@@ -326,8 +326,12 @@
 }
 
 /* ----- Status bar ----------------------------------------------------- */
+/* Light status bar (Figma mockup / Thunderbird chrome): quiet surface strip with
+   dark secondary text instead of the old filled-primary blue band. */
 .fxt-status-bar {
-    -fx-background-color: -fxt-primary;
+    -fx-background-color: -fxt-bg-surface-2;
+    -fx-border-color: -fxt-border;
+    -fx-border-width: 1 0 0 0;
     -fx-min-height: 24;
     -fx-pref-height: 24;
     -fx-padding: 0 12 0 12;
@@ -335,29 +339,28 @@
 }
 
 .fxt-status-item {
-    -fx-text-fill: -fxt-on-primary;
+    -fx-text-fill: -fxt-text-secondary;
     -fx-font-family: "Inter", sans-serif;
     -fx-font-size: 11px;
     -fx-graphic-text-gap: 6;
 }
 
-/* XSD/IntelliSense indicator states. The bar is -fxt-primary blue with white text, so the
-   regular semantic tokens (-fxt-success-text / -fxt-danger) are unreadable here — the state
-   icons use light tints instead. */
+/* XSD/IntelliSense indicator states — regular semantic tokens are readable on the
+   light bar. */
 .fxt-status-item .iconify-icon {
-    -fx-icon-color: -fxt-on-primary;
+    -fx-icon-color: -fxt-text-secondary;
 }
 
 .fxt-status-schema-loading .iconify-icon {
-    -fx-icon-color: rgba(255, 255, 255, 0.75);
+    -fx-icon-color: -fxt-text-muted;
 }
 
 .fxt-status-schema-ready .iconify-icon {
-    -fx-icon-color: #b7f0c6; /* light green, readable on -fxt-primary */
+    -fx-icon-color: -fxt-success;
 }
 
 .fxt-status-schema-error .iconify-icon {
-    -fx-icon-color: #ffc9a3; /* light amber */
+    -fx-icon-color: -fxt-warning;
 }
 
 .fxt-status-schema-error {
@@ -374,7 +377,8 @@
 }
 
 .fxt-editor-toolbar {
-    -fx-background-color: -fxt-bg-surface-2;
+    /* White like the Figma mockup / Thunderbird chrome (tabs keep surface-2). */
+    -fx-background-color: -fxt-bg-surface;
     -fx-border-color: -fxt-border;
     -fx-border-width: 0 0 1 0;
     -fx-padding: 3 8 3 8;

@@ -136,13 +136,13 @@
    Typography (Dark Mode)
    ================================================================= */
 .h1 {
-  -fx-font-family: Roboto;
+  -fx-font-family: Inter;
   -fx-font-size: 4em;
   -fx-text-fill: #e1e1e1;
 }
 
 .h2 {
-  -fx-font-family: Roboto;
+  -fx-font-family: Inter;
   -fx-font-weight: bold;
   -fx-font-size: 1.5em;
   -fx-padding: 0 0 5px 0;
@@ -150,7 +150,7 @@
 }
 
 .h3 {
-  -fx-font-family: Roboto;
+  -fx-font-family: Inter;
   -fx-font-weight: bold;
   -fx-font-size: 1.1em;
   -fx-text-fill: #d4d4d4;
