@@ -46,10 +46,11 @@ class ActionToolbarOverflowTest {
         assertNull(shell.lookup(".tool-bar-overflow-button"),
                 "the action bar must wrap, not overflow into a chevron");
 
-        // Every trailing action button must be present and enabled for an XML document.
+        // Every trailing action must be present and enabled for an XML document
+        // (Set Schema is a SplitMenuButton since the variant-E toolbar → ButtonBase).
         for (String id : new String[]{"#action-spreadsheet", "#action-query-console",
                 "#doc-action-validate", "#action-set-schema"}) {
-            Button b = (Button) shell.lookup(id);
+            javafx.scene.control.ButtonBase b = (javafx.scene.control.ButtonBase) shell.lookup(id);
             assertNotNull(b, id + " must exist");
             assertFalse(b.isDisabled(), id + " must be enabled for XML");
         }

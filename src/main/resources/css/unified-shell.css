@@ -377,10 +377,10 @@
     -fx-background-color: -fxt-bg-surface-2;
     -fx-border-color: -fxt-border;
     -fx-border-width: 0 0 1 0;
-    -fx-padding: 2 8 2 8;
-    /* Just tall enough for the icon-over-label buttons (~20px icon + 3 gap + label + padding),
-       trimmed from 56 so the content starts directly below without a wasted empty band. */
-    -fx-min-height: 46;
+    -fx-padding: 3 8 3 8;
+    /* Variant E: one slim row of inline icon+label buttons (16px icons). The FlowPane
+       still wraps as a narrow-window fallback, so this is a min, not a fixed height. */
+    -fx-min-height: 34;
 }
 
 /* ===== Header bar (Figma "future": breadcrumb · centered search · theme icons) =====
@@ -502,25 +502,52 @@
 }
 
 /*
- * ===== Editor toolbar (Action Bar): flat, monochrome, icon-over-label =====
- * Figma "future" layout: every action is a flat gray icon with its label below; only the
- * prominent Validate button gets a filled-primary accent (.fxt-tool-accent). The semantic
- * ToolColor classes (.fxt-tool-primary/.success/…) are intentionally NOT colored here.
+ * ===== Editor toolbar (Action Bar): variant E — one slim row, inline icon+label =====
+ * Figma page 04 "E — Split-Buttons": frequent actions are labeled inline buttons, related
+ * actions fold into SplitMenuButtons with a visible ▾ arrow, secondary tools are icon-only;
+ * only the prominent Validate button gets a filled-primary accent (.fxt-tool-accent). The
+ * semantic ToolColor classes (.fxt-tool-primary/.success/…) are intentionally NOT colored.
  * Scoped to .fxt-editor-toolbar so the shared global .fxt-tool-button default is untouched.
  */
 .fxt-editor-toolbar .fxt-tool-button {
     -fx-background-color: transparent;
     -fx-border-color: transparent;
     -fx-border-width: 1;
-    -fx-border-radius: 8;
-    -fx-background-radius: 8;
-    -fx-padding: 4 10 4 10;
-    -fx-graphic-text-gap: 3;
-    -fx-content-display: top;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-padding: 4 8 4 8;
+    -fx-graphic-text-gap: 6;
+    -fx-content-display: left;
     -fx-font-family: "Inter", sans-serif;
-    -fx-font-size: 10.5px;
+    -fx-font-size: 12px;
     -fx-text-fill: -fxt-text-secondary;
     -fx-cursor: hand;
+}
+
+/* SplitMenuButton internals: flatten the modena pill halves into one flat button.
+   The label region carries the icon+text, the arrow-button gets a hairline divider. */
+.fxt-editor-toolbar .fxt-tool-split {
+    -fx-padding: 0;
+}
+.fxt-editor-toolbar .fxt-tool-split > .label {
+    -fx-background-color: transparent;
+    -fx-padding: 4 5 4 8;
+    -fx-graphic-text-gap: 6;
+    -fx-font-size: 12px;
+    -fx-text-fill: -fxt-text-secondary;
+}
+.fxt-editor-toolbar .fxt-tool-split > .arrow-button {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 4 7 4 6;
+    -fx-border-color: transparent transparent transparent -fxt-border;
+    -fx-border-width: 1;
+}
+.fxt-editor-toolbar .fxt-tool-split > .arrow-button > .arrow {
+    -fx-background-color: -fxt-text-secondary;
+}
+.fxt-editor-toolbar .fxt-tool-split:hover > .arrow-button > .arrow {
+    -fx-background-color: -fxt-primary;
 }
 
 .fxt-editor-toolbar .fxt-tool-button .iconify-icon {
@@ -554,9 +581,9 @@
     -fx-icon-color: -fxt-on-primary;
 }
 
-/* ----- Size variants ----- */
-.fxt-editor-toolbar .fxt-tool-button.fxt-tool-small { -fx-font-size: 10.5px; }
-.fxt-editor-toolbar .fxt-tool-button.fxt-tool-large { -fx-font-size: 12px; }
+/* ----- Size variants (toolbar icon-size setting: small 16px / large 22px icons) ----- */
+.fxt-editor-toolbar .fxt-tool-button.fxt-tool-small { -fx-font-size: 12px; }
+.fxt-editor-toolbar .fxt-tool-button.fxt-tool-large { -fx-font-size: 13px; }
 
 /* Discreet in-edge collapse chevron overlaid on each side panel ("<<" / ">>"). */
 .fxt-panel-collapse {

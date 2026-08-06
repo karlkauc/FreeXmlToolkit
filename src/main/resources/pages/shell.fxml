@@ -4,7 +4,9 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.SplitMenuButton?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.control.Tooltip?>
@@ -87,124 +89,132 @@
                                 <FlowPane fx:id="toolbarActions" hgap="2" vgap="2" rowValignment="CENTER"
                                           minWidth="0" styleClass="fxt-editor-actionbar" HBox.hgrow="ALWAYS">
                                     <children>
-                                        <Button id="action-new" text="New" contentDisplay="TOP"
-                                                styleClass="fxt-tool-button, fxt-tool-success" onAction="#onNew">
-                                            <graphic><IconifyIcon iconLiteral="bi-file-earmark-plus" iconSize="20"/></graphic>
+                                        <!-- Variant E (Figma page 04): one slim row. Frequent actions are labeled
+                                             buttons; related actions fold into SplitMenuButtons (primary click +
+                                             visible ▾ menu); secondary tools are icon-only with tooltips. Buttons
+                                             with text="" stay icon-only regardless of the show-labels setting. -->
+                                        <Button id="action-new" text="New"
+                                                styleClass="fxt-tool-button, fxt-tool-neutral" onAction="#onNew">
+                                            <graphic><IconifyIcon iconLiteral="bi-file-earmark-plus" iconSize="16"/></graphic>
                                             <tooltip><Tooltip text="New (Ctrl+N)"/></tooltip>
                                         </Button>
-                                        <Button id="action-open" text="Open" contentDisplay="TOP"
-                                                styleClass="fxt-tool-button, fxt-tool-primary" onAction="#onOpen">
-                                            <graphic><IconifyIcon iconLiteral="bi-folder2-open" iconSize="20"/></graphic>
+                                        <Button id="action-open" text="Open"
+                                                styleClass="fxt-tool-button, fxt-tool-neutral" onAction="#onOpen">
+                                            <graphic><IconifyIcon iconLiteral="bi-folder2-open" iconSize="16"/></graphic>
                                             <tooltip><Tooltip text="Open (Ctrl+O)"/></tooltip>
                                         </Button>
-                                        <Button id="action-save" text="Save" contentDisplay="TOP"
-                                                styleClass="fxt-tool-button, fxt-tool-primary" onAction="#onSave">
-                                            <graphic><IconifyIcon iconLiteral="bi-save" iconSize="20"/></graphic>
-                                            <tooltip><Tooltip text="Save (Ctrl+S)"/></tooltip>
-                                        </Button>
-                                        <Button id="action-save-as" text="Save As" contentDisplay="TOP"
-                                                styleClass="fxt-tool-button, fxt-tool-primary" onAction="#onSaveAs">
-                                            <graphic><IconifyIcon iconLiteral="bi-save2" iconSize="20"/></graphic>
-                                            <tooltip><Tooltip text="Save As (Ctrl+Shift+S)"/></tooltip>
-                                        </Button>
-                                        <Button id="action-save-all" text="Save All" contentDisplay="TOP"
-                                                styleClass="fxt-tool-button, fxt-tool-primary" onAction="#onSaveAll">
-                                            <graphic><IconifyIcon iconLiteral="bi-files" iconSize="20"/></graphic>
-                                            <tooltip><Tooltip text="Save All"/></tooltip>
-                                        </Button>
+                                        <SplitMenuButton id="action-save" text="Save"
+                                                         styleClass="fxt-tool-button, fxt-tool-neutral, fxt-tool-split"
+                                                         onAction="#onSave">
+                                            <graphic><IconifyIcon iconLiteral="bi-save" iconSize="16"/></graphic>
+                                            <tooltip><Tooltip text="Save (Ctrl+S) — arrow: Save As / Save All"/></tooltip>
+                                            <items>
+                                                <MenuItem id="action-save-as" text="Save As…  (Ctrl+Shift+S)" onAction="#onSaveAs">
+                                                    <graphic><IconifyIcon iconLiteral="bi-save2" iconSize="16"/></graphic>
+                                                </MenuItem>
+                                                <MenuItem id="action-save-all" text="Save All" onAction="#onSaveAll">
+                                                    <graphic><IconifyIcon iconLiteral="bi-files" iconSize="16"/></graphic>
+                                                </MenuItem>
+                                            </items>
+                                        </SplitMenuButton>
                                         <Separator orientation="VERTICAL"/>
-                                        <Button id="action-undo" text="Undo" contentDisplay="TOP"
+                                        <Button id="action-undo" text=""
                                                 styleClass="fxt-tool-button, fxt-tool-neutral" onAction="#onUndo">
-                                            <graphic><IconifyIcon iconLiteral="bi-arrow-counterclockwise" iconSize="20"/></graphic>
+                                            <graphic><IconifyIcon iconLiteral="bi-arrow-counterclockwise" iconSize="16"/></graphic>
                                             <tooltip><Tooltip text="Undo (Ctrl+Z)"/></tooltip>
                                         </Button>
-                                        <Button id="action-redo" text="Redo" contentDisplay="TOP"
+                                        <Button id="action-redo" text=""
                                                 styleClass="fxt-tool-button, fxt-tool-neutral" onAction="#onRedo">
-                                            <graphic><IconifyIcon iconLiteral="bi-arrow-clockwise" iconSize="20"/></graphic>
+                                            <graphic><IconifyIcon iconLiteral="bi-arrow-clockwise" iconSize="16"/></graphic>
                                             <tooltip><Tooltip text="Redo (Ctrl+Y)"/></tooltip>
                                         </Button>
                                         <Separator orientation="VERTICAL"/>
-                                        <Button id="action-format" text="Format" contentDisplay="TOP"
-                                                styleClass="fxt-tool-button, fxt-tool-info" onAction="#onFormat">
-                                            <graphic><IconifyIcon iconLiteral="bi-text-indent-left" iconSize="20"/></graphic>
-                                            <tooltip><Tooltip text="Format (Ctrl+Shift+F)"/></tooltip>
-                                        </Button>
-                                        <Button id="action-minify" text="Minify" contentDisplay="TOP"
-                                                styleClass="fxt-tool-button, fxt-tool-info" onAction="#onMinify">
-                                            <graphic><IconifyIcon iconLiteral="bi-arrows-collapse" iconSize="20"/></graphic>
-                                            <tooltip><Tooltip text="Minify"/></tooltip>
-                                        </Button>
-                                        <Button id="action-insert-template" text="Insert Template" contentDisplay="TOP"
-                                                styleClass="fxt-tool-button, fxt-tool-info" onAction="#onInsertTemplate">
-                                            <graphic><IconifyIcon iconLiteral="bi-puzzle" iconSize="20"/></graphic>
+                                        <SplitMenuButton id="action-format" text="Format"
+                                                         styleClass="fxt-tool-button, fxt-tool-neutral, fxt-tool-split"
+                                                         onAction="#onFormat">
+                                            <graphic><IconifyIcon iconLiteral="bi-text-indent-left" iconSize="16"/></graphic>
+                                            <tooltip><Tooltip text="Format (Ctrl+Shift+F) — arrow: Minify"/></tooltip>
+                                            <items>
+                                                <MenuItem id="action-minify" text="Minify" onAction="#onMinify">
+                                                    <graphic><IconifyIcon iconLiteral="bi-arrows-collapse" iconSize="16"/></graphic>
+                                                </MenuItem>
+                                            </items>
+                                        </SplitMenuButton>
+                                        <Button id="action-insert-template" text=""
+                                                styleClass="fxt-tool-button, fxt-tool-neutral" onAction="#onInsertTemplate">
+                                            <graphic><IconifyIcon iconLiteral="bi-puzzle" iconSize="16"/></graphic>
                                             <tooltip><Tooltip text="Insert Template…"/></tooltip>
                                         </Button>
-                                        <Button id="action-compare" text="Compare" contentDisplay="TOP"
-                                                styleClass="fxt-tool-button, fxt-tool-info" onAction="#onCompare">
-                                            <graphic><IconifyIcon iconLiteral="bi-layout-split" iconSize="20"/></graphic>
+                                        <Button id="action-compare" text=""
+                                                styleClass="fxt-tool-button, fxt-tool-neutral" onAction="#onCompare">
+                                            <graphic><IconifyIcon iconLiteral="bi-layout-split" iconSize="16"/></graphic>
                                             <tooltip><Tooltip text="Compare with File…"/></tooltip>
                                         </Button>
-                                        <Button id="action-spreadsheet" text="Spreadsheet" contentDisplay="TOP"
-                                                styleClass="fxt-tool-button, fxt-tool-info" onAction="#onSpreadsheet">
-                                            <graphic><IconifyIcon iconLiteral="bi-table" iconSize="20"/></graphic>
+                                        <Button id="action-spreadsheet" text=""
+                                                styleClass="fxt-tool-button, fxt-tool-neutral" onAction="#onSpreadsheet">
+                                            <graphic><IconifyIcon iconLiteral="bi-table" iconSize="16"/></graphic>
                                             <tooltip><Tooltip text="Spreadsheet Converter… (Excel / CSV ↔ XML)"/></tooltip>
                                         </Button>
-                                        <Button id="action-query-console" text="Query Console" contentDisplay="TOP"
-                                                styleClass="fxt-tool-button, fxt-tool-info" onAction="#onQueryConsole">
-                                            <graphic><IconifyIcon iconLiteral="bi-terminal" iconSize="20"/></graphic>
+                                        <Button id="action-query-console" text=""
+                                                styleClass="fxt-tool-button, fxt-tool-neutral" onAction="#onQueryConsole">
+                                            <graphic><IconifyIcon iconLiteral="bi-terminal" iconSize="16"/></graphic>
                                             <tooltip><Tooltip text="Query Console (XPath/XQuery)  Ctrl+Shift+X"/></tooltip>
                                         </Button>
-                                        <Button fx:id="actionTransform" id="doc-action-transform" text="Transform XSLT"
-                                                contentDisplay="TOP" styleClass="fxt-tool-button, fxt-tool-info"
-                                                onAction="#onTransform">
-                                            <graphic><IconifyIcon iconLiteral="bi-arrow-left-right" iconSize="20"/></graphic>
+                                        <Separator orientation="VERTICAL"/>
+                                        <Button fx:id="actionTransform" id="doc-action-transform" text=""
+                                                styleClass="fxt-tool-button, fxt-tool-neutral" onAction="#onTransform">
+                                            <graphic><IconifyIcon iconLiteral="bi-arrow-left-right" iconSize="16"/></graphic>
                                             <tooltip><Tooltip text="Transform with XSLT… (choose a stylesheet)"/></tooltip>
                                         </Button>
                                         <MenuButton fx:id="queryTargetButton" id="doc-query-target" text="Target: Automatic"
-                                                    contentDisplay="TOP" styleClass="fxt-tool-button, fxt-tool-info">
-                                            <graphic><IconifyIcon iconLiteral="bi-bullseye" iconSize="20"/></graphic>
+                                                    styleClass="fxt-tool-button, fxt-tool-neutral">
+                                            <graphic><IconifyIcon iconLiteral="bi-bullseye" iconSize="16"/></graphic>
                                             <tooltip><Tooltip text="Choose the XML document the query / transform runs against"/></tooltip>
                                         </MenuButton>
-                                        <Button fx:id="actionRunQuery" id="doc-action-run-query" text="Run Query"
-                                                contentDisplay="TOP" styleClass="fxt-tool-button, fxt-tool-success"
-                                                onAction="#onRunQuery">
-                                            <graphic><IconifyIcon iconLiteral="bi-play-fill" iconSize="20"/></graphic>
-                                            <tooltip><Tooltip text="Run the XPath/XQuery against the selected target (Ctrl+Enter) — default: the most recently active XML document"/></tooltip>
-                                        </Button>
-                                        <Button fx:id="actionRunTransform" id="doc-action-run-transform" text="Run Transform"
-                                                contentDisplay="TOP" styleClass="fxt-tool-button, fxt-tool-success"
-                                                onAction="#onRunTransform">
-                                            <graphic><IconifyIcon iconLiteral="bi-play-circle" iconSize="20"/></graphic>
-                                            <tooltip><Tooltip text="Run the XSLT against the selected target (Ctrl+Enter) — default: the most recently active XML document"/></tooltip>
-                                        </Button>
-                                        <Button fx:id="actionRunPipeline" id="doc-action-run-pipeline" text="Run Pipeline"
-                                                contentDisplay="TOP" styleClass="fxt-tool-button, fxt-tool-success"
-                                                onAction="#onRunPipeline">
-                                            <graphic><IconifyIcon iconLiteral="bi-play-btn" iconSize="20"/></graphic>
-                                            <tooltip><Tooltip text="Run the XProc pipeline against the selected target (Ctrl+Enter) — default: the most recently active XML document"/></tooltip>
-                                        </Button>
-                                        <Button id="action-set-schema" text="Set XSD Schema" contentDisplay="TOP"
-                                                styleClass="fxt-tool-button, fxt-tool-warning" onAction="#onSetSchema">
-                                            <graphic><IconifyIcon iconLiteral="bi-diagram-3" iconSize="20"/></graphic>
-                                            <tooltip><Tooltip text="Set XSD Schema… (IntelliSense &amp; validation)"/></tooltip>
-                                        </Button>
-                                        <Button fx:id="actionGenerateDocs" id="doc-action-generate-docs" text="Generate Docs"
-                                                contentDisplay="TOP" styleClass="fxt-tool-button, fxt-tool-info"
-                                                onAction="#onGenerateDocs">
-                                            <graphic><IconifyIcon iconLiteral="bi-file-earmark-text" iconSize="20"/></graphic>
-                                            <tooltip><Tooltip text="Generate Documentation… (HTML / PDF / Word) for the active XSD"/></tooltip>
-                                        </Button>
-                                        <Button fx:id="actionTypeEditor" id="doc-action-type-editor" text="Type Editor"
-                                                contentDisplay="TOP" styleClass="fxt-tool-button, fxt-tool-primary"
-                                                onAction="#onTypeEditor">
-                                            <graphic><IconifyIcon iconLiteral="bi-braces-asterisk" iconSize="20"/></graphic>
-                                            <tooltip><Tooltip text="Open Type Editor… (pick a named type from the active XSD)"/></tooltip>
-                                        </Button>
+                                        <SplitMenuButton fx:id="actionRun" id="doc-action-run" text="Run"
+                                                         styleClass="fxt-tool-button, fxt-tool-neutral, fxt-tool-split"
+                                                         onAction="#onRunPrimary">
+                                            <graphic><IconifyIcon iconLiteral="bi-play-fill" iconSize="16"/></graphic>
+                                            <tooltip><Tooltip text="Run the active document against the selected target (Ctrl+Enter) — arrow: Run Query / Transform / Pipeline"/></tooltip>
+                                            <items>
+                                                <MenuItem fx:id="actionRunQuery" id="doc-action-run-query"
+                                                          text="Run Query  (Ctrl+Enter)" onAction="#onRunQuery">
+                                                    <graphic><IconifyIcon iconLiteral="bi-play-fill" iconSize="16"/></graphic>
+                                                </MenuItem>
+                                                <MenuItem fx:id="actionRunTransform" id="doc-action-run-transform"
+                                                          text="Run Transform  (Ctrl+Enter)" onAction="#onRunTransform">
+                                                    <graphic><IconifyIcon iconLiteral="bi-play-circle" iconSize="16"/></graphic>
+                                                </MenuItem>
+                                                <MenuItem fx:id="actionRunPipeline" id="doc-action-run-pipeline"
+                                                          text="Run Pipeline  (Ctrl+Enter)" onAction="#onRunPipeline">
+                                                    <graphic><IconifyIcon iconLiteral="bi-play-btn" iconSize="16"/></graphic>
+                                                </MenuItem>
+                                            </items>
+                                        </SplitMenuButton>
+                                        <SplitMenuButton id="action-set-schema" text="Schema"
+                                                         styleClass="fxt-tool-button, fxt-tool-neutral, fxt-tool-split"
+                                                         onAction="#onSetSchema">
+                                            <graphic><IconifyIcon iconLiteral="bi-diagram-3" iconSize="16"/></graphic>
+                                            <tooltip><Tooltip text="Set XSD Schema… (IntelliSense &amp; validation) — arrow: Generate Docs / Type Editor"/></tooltip>
+                                            <items>
+                                                <MenuItem id="action-set-schema-item" text="Set XSD Schema…" onAction="#onSetSchema">
+                                                    <graphic><IconifyIcon iconLiteral="bi-diagram-3" iconSize="16"/></graphic>
+                                                </MenuItem>
+                                                <MenuItem fx:id="actionGenerateDocs" id="doc-action-generate-docs"
+                                                          text="Generate Documentation…" onAction="#onGenerateDocs">
+                                                    <graphic><IconifyIcon iconLiteral="bi-file-earmark-text" iconSize="16"/></graphic>
+                                                </MenuItem>
+                                                <MenuItem fx:id="actionTypeEditor" id="doc-action-type-editor"
+                                                          text="Type Editor…" onAction="#onTypeEditor">
+                                                    <graphic><IconifyIcon iconLiteral="bi-braces-asterisk" iconSize="16"/></graphic>
+                                                </MenuItem>
+                                            </items>
+                                        </SplitMenuButton>
                                         <Separator orientation="VERTICAL"/>
                                         <Button fx:id="actionValidate" id="doc-action-validate" text="Validate"
-                                                contentDisplay="TOP" styleClass="fxt-tool-button, fxt-tool-primary, fxt-tool-accent"
+                                                styleClass="fxt-tool-button, fxt-tool-primary, fxt-tool-accent"
                                                 onAction="#onValidate">
-                                            <graphic><IconifyIcon iconLiteral="bi-check2-circle" iconSize="20"/></graphic>
+                                            <graphic><IconifyIcon iconLiteral="bi-check2-circle" iconSize="16"/></graphic>
                                             <tooltip><Tooltip text="Validate the document (well-formedness, or against the bound XSD) — F8"/></tooltip>
                                         </Button>
                                     </children>

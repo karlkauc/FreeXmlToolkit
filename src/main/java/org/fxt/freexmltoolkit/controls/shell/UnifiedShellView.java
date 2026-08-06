@@ -70,11 +70,12 @@ public class UnifiedShellView extends BorderPane {
     @FXML private javafx.scene.control.ToggleButton inspectorToggle;
     @FXML private javafx.scene.control.Button actionValidate;
     @FXML private javafx.scene.control.Button actionTransform;
-    @FXML private javafx.scene.control.Button actionGenerateDocs;
-    @FXML private javafx.scene.control.Button actionTypeEditor;
-    @FXML private javafx.scene.control.Button actionRunQuery;
-    @FXML private javafx.scene.control.Button actionRunTransform;
-    @FXML private javafx.scene.control.Button actionRunPipeline;
+    @FXML private javafx.scene.control.SplitMenuButton actionRun;
+    @FXML private javafx.scene.control.MenuItem actionGenerateDocs;
+    @FXML private javafx.scene.control.MenuItem actionTypeEditor;
+    @FXML private javafx.scene.control.MenuItem actionRunQuery;
+    @FXML private javafx.scene.control.MenuItem actionRunTransform;
+    @FXML private javafx.scene.control.MenuItem actionRunPipeline;
     /** Target dropdown for query/XSLT documents; visible only when one is active. */
     @FXML private javafx.scene.control.MenuButton queryTargetButton;
     /** Header breadcrumb of the active file path. */
@@ -186,11 +187,15 @@ public class UnifiedShellView extends BorderPane {
         editorHost.getOpenDocuments().addListener((javafx.beans.InvalidationListener) obs -> chromeUpdater.run());
 
         // --- Toolbar: keep the action FlowPane single-row (its preferred height must match the
-        //     rendered width, not the default 400px wrap), register buttons for display settings,
-        //     and type-gate the document-action buttons. ---
+        //     rendered width, not the default 400px wrap; it only wraps as narrow-window
+        //     fallback), register buttons for display settings, and type-gate the
+        //     document-action buttons. Buttons with an empty FXML text stay icon-only
+        //     permanently (variant E: secondary tools carry their name in the tooltip). ---
         toolbarActions.prefWrapLengthProperty().bind(toolbarActions.widthProperty());
         for (javafx.scene.Node node : toolbarActions.getChildren()) {
-            if (node instanceof javafx.scene.control.Button button) {
+            // The Target dropdown's label is dynamic ("Target: <doc>") — registering it
+            // would clobber that label on every settings refresh.
+            if (node instanceof javafx.scene.control.ButtonBase button && node != queryTargetButton) {
                 registerToolButton(button, button.getText());
             }
         }
@@ -628,6 +633,25 @@ public class UnifiedShellView extends BorderPane {
     @FXML public void onRunQuery() { editorActions.runActiveQuery(); }
     @FXML public void onRunTransform() { editorActions.runActiveTransform(); }
     @FXML public void onRunPipeline() { editorActions.runActivePipeline(); }
+
+    /**
+     * Primary click on the Run split button: dispatches to whichever run action the
+     * active document type supports (XQuery → query, XSLT → transform, XProc → pipeline).
+     * The button is disabled for non-runnable types, so falling through is a no-op.
+     */
+    @FXML public void onRunPrimary() {
+        var type = editorActions.activeFileType();
+        if (org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.applicableFor(
+                type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.RUN_QUERY)) {
+            onRunQuery();
+        } else if (org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.applicableFor(
+                type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.RUN_TRANSFORM)) {
+            onRunTransform();
+        } else if (org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.applicableFor(
+                type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.RUN_PIPELINE)) {
+            onRunPipeline();
+        }
+    }
     @FXML public void onSetSchema() { setSchema(); }
     @FXML public void onGenerateDocs() { editorActions.generateDocsActive(window()); }
     @FXML public void onTypeEditor() { editorActions.openTypeEditorActive(); }
@@ -817,6 +841,10 @@ public class UnifiedShellView extends BorderPane {
         queryTargetButton.setManaged(targetable);
         refreshQueryTargetButton();
 
+        // The Run split button is only useful for runnable documents (XQuery/XSLT/XProc);
+        // its primary click dispatches to whichever run action the active type supports.
+        actionRun.setDisable(!targetable);
+
         // Everything that operates on the active document is disabled when none is open,
         // so the toolbar never offers a no-op click on the empty welcome screen. New/Open
         // and the direction-agnostic Spreadsheet converter stay enabled.
@@ -831,9 +859,11 @@ public class UnifiedShellView extends BorderPane {
      * document. Gated on/off together in {@link #refreshDocumentActionGating()}.
      */
     private static final String[] DOC_DEPENDENT_TOOLBAR_IDS = {
-            "action-save", "action-save-as", "action-save-all",
+            // Save As/All and Minify live inside the Save/Format SplitMenuButtons and are
+            // gated together with their parent (a disabled SplitMenuButton disables its menu).
+            "action-save",
             "action-undo", "action-redo",
-            "action-format", "action-minify",
+            "action-format",
             "action-insert-template", "action-compare",
             "action-query-console", "action-set-schema"
     };
@@ -954,7 +984,7 @@ public class UnifiedShellView extends BorderPane {
     /** Enables/disables a toolbar action button by its {@code shell.fxml} id (no-op if absent). */
     private void setToolbarButtonDisabled(String id, boolean disabled) {
         for (javafx.scene.Node node : toolbarActions.getChildren()) {
-            if (node instanceof javafx.scene.control.Button button && id.equals(button.getId())) {
+            if (node instanceof javafx.scene.control.ButtonBase button && id.equals(button.getId())) {
                 button.setDisable(disabled);
                 return;
             }

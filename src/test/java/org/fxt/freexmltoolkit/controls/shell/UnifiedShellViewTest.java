@@ -133,13 +133,32 @@ class UnifiedShellViewTest {
     @Test
     void documentActionToolbarButtonsArePresentAndGatedWhenNoDocument() {
         WaitForAsyncUtils.waitForFxEvents();
-        for (String id : new String[]{"doc-action-validate", "doc-action-transform",
-                "doc-action-generate-docs", "doc-action-type-editor"}) {
+        // Validate/Transform are direct toolbar buttons …
+        for (String id : new String[]{"doc-action-validate", "doc-action-transform"}) {
             javafx.scene.Node node = shell.lookup("#" + id);
             assertNotNull(node, "document-action toolbar button must exist: " + id);
-            assertTrue(((javafx.scene.control.Button) node).isDisable(),
+            assertTrue(((javafx.scene.control.ButtonBase) node).isDisable(),
                     "with no document open, " + id + " must be disabled");
         }
+        // … Generate Docs / Type Editor live as MenuItems inside the Schema split button.
+        for (String id : new String[]{"doc-action-generate-docs", "doc-action-type-editor"}) {
+            javafx.scene.control.MenuItem item = findSplitMenuItem(id);
+            assertNotNull(item, "document-action menu item must exist: " + id);
+            assertTrue(item.isDisable(), "with no document open, " + id + " must be disabled");
+        }
+    }
+
+    private javafx.scene.control.MenuItem findSplitMenuItem(String id) {
+        for (javafx.scene.Node n : shell.lookupAll(".fxt-tool-split")) {
+            if (n instanceof javafx.scene.control.SplitMenuButton smb) {
+                for (javafx.scene.control.MenuItem item : smb.getItems()) {
+                    if (id.equals(item.getId())) {
+                        return item;
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     @Test

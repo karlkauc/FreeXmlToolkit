@@ -9,7 +9,6 @@ import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
 
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
 import javafx.stage.Stage;
 
 import org.fxt.freexmltoolkit.controls.shell.UnifiedShellView;
@@ -72,12 +71,12 @@ class EditorActionsTest {
     @Test
     void buttonsExistAndAllDisabledWhenNoDocumentOpen() {
         WaitForAsyncUtils.waitForFxEvents();
+        // Validate/Transform are direct buttons; run/docs/type-editor live as MenuItems
+        // inside the Run and Schema SplitMenuButtons — actionDisabled() resolves both.
         for (String id : new String[]{"doc-action-validate", "doc-action-transform",
                 "doc-action-generate-docs", "doc-action-type-editor", "doc-action-run-query",
-                "doc-action-run-transform", "doc-action-run-pipeline"}) {
-            Button button = (Button) shell.lookup("#" + id);
-            assertNotNull(button, "document-action button must exist: " + id);
-            assertTrue(button.isDisable(),
+                "doc-action-run-transform", "doc-action-run-pipeline", "doc-action-run"}) {
+            assertTrue(actionDisabled(id),
                     "with no document open, " + id + " must be disabled");
         }
         var targetButton = shell.lookup("#doc-query-target");
@@ -100,13 +99,13 @@ class EditorActionsTest {
                 () -> shell.getEditorHost().getActiveText().map(t -> t.contains("PersonType")).orElse(false));
         WaitForAsyncUtils.waitForFxEvents();
 
-        assertFalse(button("doc-action-generate-docs").isDisable(),
+        assertFalse(actionDisabled("doc-action-generate-docs"),
                 "Generate Documentation must be enabled for an XSD");
-        assertFalse(button("doc-action-type-editor").isDisable(),
+        assertFalse(actionDisabled("doc-action-type-editor"),
                 "Open Type Editor must be enabled for an XSD");
-        assertTrue(button("doc-action-transform").isDisable(),
+        assertTrue(actionDisabled("doc-action-transform"),
                 "Transform must be disabled for an XSD");
-        assertTrue(button("doc-action-validate").isDisable() == false,
+        assertTrue(actionDisabled("doc-action-validate") == false,
                 "Validate must be enabled for an XSD");
     }
 
@@ -119,13 +118,13 @@ class EditorActionsTest {
                 () -> shell.getEditorHost().getActiveText().map(t -> t.contains("root")).orElse(false));
         WaitForAsyncUtils.waitForFxEvents();
 
-        assertFalse(button("doc-action-validate").isDisable(),
+        assertFalse(actionDisabled("doc-action-validate"),
                 "Validate must be enabled for an XML document");
-        assertFalse(button("doc-action-transform").isDisable(),
+        assertFalse(actionDisabled("doc-action-transform"),
                 "Transform must be enabled for an XML document");
-        assertTrue(button("doc-action-generate-docs").isDisable(),
+        assertTrue(actionDisabled("doc-action-generate-docs"),
                 "Generate Documentation must be disabled for an XML document");
-        assertTrue(button("doc-action-type-editor").isDisable(),
+        assertTrue(actionDisabled("doc-action-type-editor"),
                 "Open Type Editor must be disabled for an XML document");
     }
 
@@ -140,16 +139,16 @@ class EditorActionsTest {
         WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
                 () -> shell.getEditorHost().getActiveText().map(t -> t.contains("root")).orElse(false));
         WaitForAsyncUtils.waitForFxEvents();
-        assertTrue(button("doc-action-run-query").isDisable(),
+        assertTrue(actionDisabled("doc-action-run-query"),
                 "Run Query must be disabled for an XML document");
 
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> shell.getEditorHost().openFile(xq));
         WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
                 () -> shell.getEditorHost().getActiveText().map(t -> t.contains("return")).orElse(false));
         WaitForAsyncUtils.waitForFxEvents();
-        assertFalse(button("doc-action-run-query").isDisable(),
+        assertFalse(actionDisabled("doc-action-run-query"),
                 "Run Query must be enabled for an XQuery document");
-        assertTrue(button("doc-action-validate").isDisable(),
+        assertTrue(actionDisabled("doc-action-validate"),
                 "Validate must be disabled for an XQuery document");
     }
 
@@ -197,13 +196,13 @@ class EditorActionsTest {
                 () -> shell.getEditorHost().getActiveText().map(t -> t.contains("declare-step")).orElse(false));
         WaitForAsyncUtils.waitForFxEvents();
 
-        assertFalse(button("doc-action-run-pipeline").isDisable(),
+        assertFalse(actionDisabled("doc-action-run-pipeline"),
                 "Run Pipeline must be enabled for an XProc document");
-        assertFalse(button("doc-action-validate").isDisable(),
+        assertFalse(actionDisabled("doc-action-validate"),
                 "Validate must be enabled for an XProc document (it is XML)");
-        assertTrue(button("doc-action-run-query").isDisable(),
+        assertTrue(actionDisabled("doc-action-run-query"),
                 "Run Query must be disabled for an XProc document");
-        assertTrue(button("doc-action-run-transform").isDisable(),
+        assertTrue(actionDisabled("doc-action-run-transform"),
                 "Run Transform must be disabled for an XProc document");
         var targetButton = shell.lookup("#doc-query-target");
         assertTrue(targetButton.isVisible(),
@@ -455,7 +454,31 @@ class EditorActionsTest {
         WaitForAsyncUtils.waitForFxEvents();
     }
 
-    private Button button(String id) {
-        return (Button) shell.lookup("#" + id);
+    /**
+     * Disable state of a toolbar action — either a ButtonBase node in the toolbar or a
+     * MenuItem inside one of the SplitMenuButtons (variant E folds the run/docs/type-editor
+     * actions into the Run and Schema split buttons).
+     */
+    private boolean actionDisabled(String id) {
+        javafx.scene.Node node = shell.lookup("#" + id);
+        if (node instanceof javafx.scene.control.ButtonBase b) {
+            return b.isDisable();
+        }
+        javafx.scene.control.MenuItem item = menuItem(id);
+        assertNotNull(item, "toolbar action must exist: " + id);
+        return item.isDisable();
+    }
+
+    private javafx.scene.control.MenuItem menuItem(String id) {
+        for (javafx.scene.Node n : shell.lookupAll(".fxt-tool-split")) {
+            if (n instanceof javafx.scene.control.SplitMenuButton smb) {
+                for (javafx.scene.control.MenuItem item : smb.getItems()) {
+                    if (id.equals(item.getId())) {
+                        return item;
+                    }
+                }
+            }
+        }
+        return null;
     }
 }
