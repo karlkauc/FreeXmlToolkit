@@ -47,7 +47,7 @@ editor more room - the activity bar always stays visible.
 - **Inspector editing everywhere** - edit node properties from the Text, Tree and Graphic views, not just one
 - **Integrated XPath/XQuery** - a bottom [Query Console](#query-console) queries the active
   XML/JSON file right from the editor (Ctrl+Shift+X)
-- **Editor toolbar actions** - run [Validate, Transform, Generate Documentation and Open Type
+- **Editor toolbar actions** - run [Validate, Transform, Run, Generate Documentation and the Type
   Editor](#editor-toolbar-document-actions) for the active document without switching activities
 - **Search & Replace** - Ctrl+F / Ctrl+H across the editor, in **every view mode**: the Text
   view searches the raw text, the Tree and Graphic views search the nodes themselves (names,
@@ -140,56 +140,52 @@ shows the editable grid:
 
 ## Toolbar
 
-The toolbar provides common operations and context-sensitive buttons. The action icons wrap
-onto a second row when the editor area is narrow, so **every action stays visible and clickable**
-(there is no hidden "overflow" menu).
+> **Updated in August 2026** - The editor toolbar is now a **single slim row** instead of the
+> former two-row ribbon of icon-over-label buttons. Related actions moved into **split buttons**
+> with a visible **▾** arrow menu: **Save As / Save All** live under **Save ▾**, **Minify**
+> under **Format ▾**, **Run Query / Run Transform / Run Pipeline** under **Run ▾**, and
+> **Set XSD Schema… / Generate Documentation… / Type Editor…** under **Schema ▾**.
 
-### Always Visible
+Every function is still reachable through a visible button - there is no hidden "overflow"
+menu. Only when the window gets very narrow does the row wrap onto a second line as a
+fallback. The toolbar groups its actions three ways:
+
+### Labeled buttons (frequent actions)
+
 - **New** (Ctrl+N) - Open the guided [New File dialog](#new-file-dialog) to create an XML, XSD, XSLT, Schematron, JSON, or XProc file from a template or schema
 - **Open** (Ctrl+O) - Open one or more files
-- **Save** (Ctrl+S) - Save the current tab
-- **Save As** - Save the current tab under a new name (a file chooser opens, pre-set to the tab's file type)
-- **Save All** (Ctrl+Shift+S) - Save every open tab at once
-- **Recent** (Ctrl+Shift+R) - Recently opened files
-- **Close** (Ctrl+W) - Close current tab
-- **Validate** (F5) - Validate current document
-- **Format** (Ctrl+Shift+F) - Pretty-print current document
+- **Validate** (F8) - Validate the active document; this is the toolbar's primary action and keeps the filled accent color. XML validates against the bound XSD/Schematron if one is set, otherwise for well-formedness.
+
+### Split buttons (click the ▾ arrow for related actions)
+
+Clicking the button itself runs the main action; clicking the small **▾ arrow** opens a menu
+with the closely related actions:
+
+| Split button | Primary click | Arrow (▾) menu |
+|--------------|---------------|----------------|
+| **Save** | Save the current tab (Ctrl+S) | **Save As…** (Ctrl+Shift+S) - save under a new name (the file chooser is pre-set to the tab's file type) · **Save All** - save every open tab at once |
+| **Format** | Pretty-print the active document (Ctrl+Shift+F) | **Minify** - remove all insignificant whitespace |
+| **Run** | Run the active document against the selected **Target** (Ctrl+Enter) - the primary click automatically runs whichever action the active file type supports | **Run Query** (XPath/XQuery) · **Run Transform** (XSLT) · **Run Pipeline** (XProc) |
+| **Schema** | **Set XSD Schema…** - bind an XSD to the active document for IntelliSense and validation | **Set XSD Schema…** · **Generate Documentation…** (HTML/PDF/Word for the active XSD) · **Type Editor…** (edit a named type of the active XSD) |
+
+### Icon-only buttons (hover for the tooltip)
+
 - **Undo** (Ctrl+Z) / **Redo** (Ctrl+Y)
-- **View** - Switch between Tabs, Side-by-Side, or Top-Bottom split views
-- **Convert** - XML to/from Excel/CSV (Ctrl+E)
-- **Templates** (Ctrl+T) - XML template system
-- **Generator** (Ctrl+G) - Generate XSD from XML
-- **Tools** - Open FOP (PDF Generation) or Digital Signatures as tool tabs
+- **Insert Template…** - Insert a snippet from the template system
+- **Compare with File…** - Side-by-side diff and merge (see [Compare & Merge](#compare-merge))
+- **Spreadsheet Converter…** - Excel / CSV ↔ XML conversion
 - **Query Console** (Ctrl+Shift+X) - Toggle the bottom XPath/XQuery console (terminal icon)
+- **Transform with XSLT…** - Pick a stylesheet and transform the active XML document
 
-### Document Actions (type-gated)
+### Type-gating and the Target dropdown
 
-> **New in June 2026** - Run the most common per-document operations straight from the editor
-> toolbar, without switching the left activity bar.
-
-These toolbar buttons act on the **active document** and only light up when they apply to its
-type. Each one opens its result as a tool tab. See
-[Editor Toolbar Document Actions](#editor-toolbar-document-actions) below.
-
-- **Validate** - Validate the active document (XML, XSD, XSLT, Schematron, JSON, XProc).
-- **Transform with XSLT…** - Pick a stylesheet and transform the active **XML** document.
-- **Generate Documentation…** - Generate HTML/PDF/Word documentation for the active **XSD**.
-- **Open Type Editor…** - Pick a named type from the active **XSD** and edit it in a focused tab.
-- **Run Query / Run Transform / Run Pipeline** (`Ctrl+Enter`) - Run the active
-  **XPath/XQuery**, **XSLT** or **XProc** document against the target chosen in the
-  **Target** dropdown. See [Query Documents & the Target Selector](#query-documents-the-target-selector).
-
-### Shown for XML Files
-- **Console** - Toggle log output panel
-- **XSLT** - Toggle embedded XSLT development panel
-- **Template** - Toggle template development panel
-
-### Shown for JSON Files
-- **Minify** - Remove all whitespace from JSON
-- **Schema** - Load/clear JSON Schema, validate against schema
-
-### Shown for Schematron Files
-- **Insert** - Quick-insert Pattern, Rule, Assert, or Report elements
+The document actions act on the **active document** and are **enabled only when they apply to
+its type** (greyed out otherwise) - this covers **Validate**, **Transform with XSLT…**, the
+**Run** button and its menu entries, and the Schema menu's **Generate Documentation…** /
+**Type Editor…**. The **Target** dropdown appears next to **Run** only while a query, XSLT, or
+XProc document is active and selects the XML document the run works on. See
+[Editor Toolbar Document Actions](#editor-toolbar-document-actions) and
+[Query Documents & the Target Selector](#query-documents-the-target-selector) below.
 
 ## Panel Toggles
 
@@ -236,7 +232,7 @@ the tool's name.
 
 ### Documentation Generator (editor area)
 
-**Generate Documentation…** (Schema panel ⋮ or the editor toolbar) opens the generator as
+**Generate Documentation…** (Schema panel ⋮ or the editor toolbar's **Schema ▾** menu) opens the generator as
 a tab in the main editor area with the full option set:
 
 - **SOURCE & OUTPUT** - the XSD (the active schema is pre-filled) and the output folder
@@ -277,7 +273,8 @@ type.
 
 ### Running
 
-- **Run Query** (editor toolbar, or `Ctrl+Enter`) runs the active XPath/XQuery document.
+- **Run Query** (the toolbar's **Run** button, or `Ctrl+Enter`) runs the active
+  XPath/XQuery document. The **Run ▾** arrow menu lists all three run actions explicitly.
 - **Run Transform** does the same for an active **XSLT** stylesheet - output format
   auto-detected from its `xsl:output` declaration.
 - **Run Pipeline** covers **XProc** documents (see [XProc Pipelines](#xproc-pipelines)).
@@ -334,7 +331,7 @@ documents, executed with the embedded **XML Calabash 3** engine:
 the CSV export stylesheet (referenced with a relative href) against the Automatic
 target and streams the result into the OUTPUT panel.*
 
-- **Run Pipeline** (editor toolbar, or `Ctrl+Enter`) runs the active pipeline. The
+- **Run Pipeline** (the toolbar's **Run** button or its ▾ menu, or `Ctrl+Enter`) runs the active pipeline. The
   primary input (`source` port) is the document chosen in the **Target** dropdown —
   by default the most recently active XML document, exactly like
   [Run Query and Run Transform](#query-documents-the-target-selector).
@@ -696,8 +693,9 @@ are grayed out while you have no matching favorites. (See
     You can also bind an XSD **without opening the Validation panel**: click the
     **XSD indicator** in the status bar (it reads **"No XSD"**, **"XSD: name"**,
     **"Detecting XSD…"** or **"XSD error"** depending on the schema-binding state; see
-    [Status Bar](#status-bar)) or use the editor toolbar's **Set XSD Schema…** action and
-    pick an `.xsd` file. The binding drives both **IntelliSense** and **schema validation**.
+    [Status Bar](#status-bar)) or click the editor toolbar's **Schema** button
+    (**Set XSD Schema…**) and pick an `.xsd` file. The binding drives both **IntelliSense**
+    and **schema validation**.
 
 ### Running a Validation
 
@@ -1068,7 +1066,7 @@ The status bar at the bottom of the window includes:
 
     **Click the indicator** in any state to choose an `.xsd` file and bind it to the active
     document; the binding drives both **IntelliSense** and **schema validation**. (The editor
-    toolbar's **Set XSD Schema…** action does the same.) Hovering shows a tooltip explaining
+    toolbar's **Schema** button - **Set XSD Schema…** - does the same.) Hovering shows a tooltip explaining
     the current IntelliSense availability.
 - A **memory monitor** showing the JVM heap usage as **used / max MB**. **Click it** to run
   garbage collection, which can free memory after working with large files.
@@ -1080,12 +1078,12 @@ The status bar at the bottom of the window includes:
 | Ctrl+N | New file (opens the guided New File dialog) |
 | Ctrl+O | Open file |
 | Ctrl+S | Save current tab |
-| Ctrl+Shift+S | Save all tabs |
+| Ctrl+Shift+S | Save As (the Save ▾ menu also offers Save All) |
 | Ctrl+W | Close tab |
 | Ctrl+Z / Ctrl+Y | Undo / Redo |
 | Ctrl+F | Find |
 | Ctrl+H | Find and Replace |
-| F5 | Validate |
+| F8 | Validate |
 | Ctrl+Shift+F | Format |
 | Ctrl+D | Add to favorites |
 | Ctrl+L | Toggle linked files |
@@ -1194,21 +1192,25 @@ and moving nodes) remains a Tree/Graphic capability through the right-click cont
 > **New in June 2026** - Trigger per-document operations from the editor toolbar without leaving
 > the editor or switching the left activity bar.
 
-The editor toolbar includes a group of **document-action** buttons that act on the **active
-document**. Each button is **type-gated**: it is enabled only when the action applies to the
-active document's type, and disabled (greyed out) otherwise. Each action's output opens as a
-**tool tab**.
+The editor toolbar includes a group of **document actions** that act on the **active
+document**. Since the toolbar redesign (August 2026) they are arranged as follows: **Validate**
+and **Transform with XSLT…** are their own buttons; **Run Query / Run Transform / Run Pipeline**
+are the **Run ▾** split button (the primary click runs whichever of the three the active file
+type supports); **Generate Documentation…** and **Type Editor…** sit in the **Schema ▾** split
+button's menu next to **Set XSD Schema…**. Each action is **type-gated**: it is enabled only
+when it applies to the active document's type, and disabled (greyed out) otherwise. Each
+action's output opens as a **tool tab**.
 
 | Action | Applies to | What it does |
 |--------|-----------|--------------|
 | **Validate** | XML, XSD, XSLT, Schematron, JSON | Validates the active document and lists any problems (or reports it is valid / well-formed). For an XML document this uses the bound XSD/Schematron if one is set; JSON is checked for well-formedness. |
 | **Transform with XSLT…** | XML | Prompts you to pick an XSLT stylesheet, then transforms the active XML with it and shows the output. |
-| **Generate Documentation…** | XSD | Lets you choose a format - **HTML**, **PDF**, or **Word** - and an output location, then generates the schema documentation there. |
-| **Open Type Editor…** | XSD | Lets you pick one of the schema's named types and opens it in a focused Type Editor tab. |
+| **Generate Documentation…** (Schema ▾ menu) | XSD | Lets you choose a format - **HTML**, **PDF**, or **Word** - and an output location, then generates the schema documentation there. |
+| **Type Editor…** (Schema ▾ menu) | XSD | Lets you pick one of the schema's named types and opens it in a focused Type Editor tab. |
 | **Target** (dropdown) | XQuery, XPath, XSLT, XProc | Selects the XML document the next run works on: Automatic (last active XML document), any open XML-family tab, or a file chosen from disk. Remembered per document. |
-| **Run Query** | XQuery, XPath | Runs the active query against the selected target and shows the result in the [OUTPUT panel](#the-output-panel-results) (`Ctrl+Enter`). |
-| **Run Transform** | XSLT | Runs the active stylesheet against the selected target, output format auto-detected from `xsl:output` (`Ctrl+Enter`). |
-| **Run Pipeline** | XProc | Runs the active pipeline with XML Calabash, the selected target feeding the `source` port (`Ctrl+Enter`). |
+| **Run Query** (Run ▾) | XQuery, XPath | Runs the active query against the selected target and shows the result in the [OUTPUT panel](#the-output-panel-results) (`Ctrl+Enter`). |
+| **Run Transform** (Run ▾) | XSLT | Runs the active stylesheet against the selected target, output format auto-detected from `xsl:output` (`Ctrl+Enter`). |
+| **Run Pipeline** (Run ▾) | XProc | Runs the active pipeline with XML Calabash, the selected target feeding the `source` port (`Ctrl+Enter`). |
 
 These actions reuse the same engines as the corresponding activity-bar panels - they are simply a
 faster way to reach them. In this version, **Transform with XSLT…** produces **XML** output with no

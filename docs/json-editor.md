@@ -2,7 +2,7 @@
 
 The JSON Editor provides a powerful environment for editing, validating, and querying JSON files with support for multiple JSON formats.
 
-> **Last Updated:** May 2026 | **Version:** 1.10.0
+> **Last Updated:** August 2026 | **Version:** 2.0.1
 
 > **Note (Phase 10c):** The standalone *JSON Editor* tab has been retired. JSON
 > editing — text editing plus the tree view and validation — now lives in the
@@ -66,9 +66,9 @@ Execute JSONPath queries to extract data from your JSON documents:
 | `$.store.book[-1:]` | Last book |
 
 **To run a query:**
-1. Click the **JSONPath** button in the toolbar
+1. Open the **Query Console** (terminal icon in the toolbar, or Ctrl+Shift+X) - with a JSON document active it evaluates JSONPath
 2. Enter your JSONPath expression
-3. Click **Execute** to see results
+3. Run it to see the results in the console's result pane
 
 ### Validation
 
@@ -80,9 +80,9 @@ Click **Validate** to check if your JSON is syntactically correct. The editor wi
 #### JSON Schema Validation
 Validate your JSON against a JSON Schema:
 
-1. Click **Schema** → **Load Schema...**
+1. Open the **Validation** activity and pick **JSON Schema…** from the panel's ⋮ (overflow) menu
 2. Select your JSON Schema file
-3. Click **Schema** → **Validate Against Schema**
+3. Run the validation (**Run Validation** in the panel, or the toolbar's **Validate** button / F8)
 
 The validator supports:
 - JSON Schema Draft 4, 6, 7
@@ -97,7 +97,7 @@ The validator supports:
 | `Ctrl+S` | Save file |
 | `Ctrl+Shift+S` | Save as |
 | `Ctrl+Alt+F` | Format JSON |
-| `F5` | Validate JSON |
+| `F8` | Validate JSON |
 | `Ctrl+Z` | Undo |
 | `Ctrl+Y` | Redo |
 | `Ctrl++` | Zoom in |
@@ -140,23 +140,24 @@ The validator supports:
 
 ## Toolbar
 
+> **Updated in August 2026** - JSON files use the shell's single-row editor toolbar. Related
+> actions sit in **split buttons** with a visible **▾** arrow menu; see
+> [Unified Shell - Toolbar](unified-shell.md#toolbar) for the full reference.
+
+With a JSON file active, the relevant actions are:
+
 | Button | Description |
 |--------|-------------|
-| **New** | Create a new JSON document |
-| **Open** | Open an existing JSON file |
-| **Save** | Save the current document |
-| **Save As** | Save with a new name |
-| **Save All** | Save the current document (shown for toolbar consistency across editors) |
-| **Recent** | Access recently opened files |
-| **Undo/Redo** | Undo or redo changes |
-| **Format** | Pretty-print the JSON |
-| **Minify** | Compress the JSON |
-| **Validate** | Check JSON syntax |
-| **Schema** | Load schema, validate against schema |
-| **JSONPath** | Open the JSONPath query panel |
-| **Tree** | Toggle the tree view |
-| **View** | Expand all, collapse all, sync with editor |
-| **Help** | Show help information |
+| **New** | Open the guided New File dialog (includes JSON) |
+| **Open** | Open an existing file |
+| **Save ▾** | Save the current document; the arrow menu holds **Save As…** and **Save All** |
+| **Undo** / **Redo** | Undo or redo changes (icon buttons) |
+| **Format ▾** | Pretty-print the JSON; the arrow menu holds **Minify** (compress by removing whitespace) |
+| **Query Console** | Toggle the bottom query console - for JSON documents it runs **JSONPath** queries (icon button, Ctrl+Shift+X) |
+| **Validate** | Check the JSON syntax (F8) |
+
+Actions that do not apply to JSON (e.g. **Run** or the XSLT transform) are greyed out. The
+**Tree** view is switched with the Text/Tree view switch at the right end of the toolbar.
 
 ## Tree View Icons
 

@@ -1,6 +1,6 @@
 # XML Editor
 
-> **Last Updated:** June 2026 | **Version:** 1.10.0
+> **Last Updated:** August 2026 | **Version:** 2.0.1
 
 The XML Editor is the main feature of FreeXmlToolkit. It provides a powerful and easy-to-use interface for working with XML files.
 
@@ -18,28 +18,30 @@ The XML Editor is the main feature of FreeXmlToolkit. It provides a powerful and
 
 ## Toolbar
 
+> **Updated in August 2026** - The editor toolbar is a single slim row. Related actions sit in
+> **split buttons** with a visible **▾** arrow menu (e.g. **Save As / Save All** under
+> **Save ▾**, **Minify** under **Format ▾**); secondary tools are icon-only buttons with
+> tooltips. See [Unified Shell - Toolbar](unified-shell.md#toolbar) for the full reference.
+
+With an XML file active, the toolbar offers:
+
 | Button | Shortcut | Description |
 |--------|----------|-------------|
-| **New** | Ctrl+N | Create new XML document |
-| **Open** | Ctrl+O | Open XML file |
-| **Save** | Ctrl+S | Save current file |
-| **Save As** | Ctrl+Shift+S | Save with new name |
-| **Save All** | - | Save all open document tabs at once |
-| **Recent** | Ctrl+Shift+R | Open recent files menu |
-| **Undo** | Ctrl+Z | Undo last change |
-| **Redo** | Ctrl+Y | Redo undone change |
-| **Add Favorite** | Ctrl+D | Add file to favorites |
-| **Favorites** | Ctrl+Shift+D | Toggle favorites panel |
-| **Format** | Ctrl+Alt+F | Pretty print XML |
-| **Validate** | F5 | Validate XML |
-| **Convert** | Ctrl+E | XML/Excel/CSV converter |
-| **Query** | Ctrl+Q | Run XPath/XQuery |
-| **Templates** | Ctrl+T | Open template manager |
-| **Generator** | Ctrl+G | Schema generator |
-| **XSLT Dev** | Ctrl+Shift+T | XSLT development panel |
-| **Properties** | Ctrl+P | Toggle properties panel |
-| **XPath** | Ctrl+Q | Toggle XPath panel |
-| **Help** | F1 | Show help |
+| **New** | Ctrl+N | Open the guided New File dialog |
+| **Open** | Ctrl+O | Open one or more files |
+| **Save ▾** | Ctrl+S | Save the current file; the arrow menu holds **Save As…** (Ctrl+Shift+S) and **Save All** |
+| **Undo** / **Redo** | Ctrl+Z / Ctrl+Y | Undo / redo the last change (icon buttons) |
+| **Format ▾** | Ctrl+Shift+F | Pretty-print the document; the arrow menu holds **Minify** |
+| **Insert Template** | - | Insert a snippet from the template system (icon button) |
+| **Compare** | - | Compare the document with another file, side by side (icon button) |
+| **Spreadsheet** | - | Excel / CSV ↔ XML converter (icon button) |
+| **Query Console** | Ctrl+Shift+X | Toggle the bottom XPath/XQuery console (icon button) |
+| **Transform XSLT** | - | Pick a stylesheet and transform the active XML (icon button) |
+| **Schema ▾** | - | **Set XSD Schema…** for IntelliSense and validation; the arrow menu also holds **Generate Documentation…** and **Type Editor…** (enabled for XSD files) |
+| **Validate** | F8 | Validate the document (accent-colored primary action) |
+
+The **Run ▾** button and the **Target** dropdown appear when a query, XSLT, or XProc document
+is active - see [Query Documents](unified-shell.md#query-documents-the-target-selector).
 
 ---
 
@@ -52,8 +54,8 @@ The XML Editor is the main feature of FreeXmlToolkit. It provides a powerful and
 
 - **Open Files**: Click "Open" or use `Ctrl+O` to browse for XML files
 - **Save Files**: Click "Save" or use `Ctrl+S` to save changes to the current file
-- **Save As**: Use `Ctrl+Shift+S` to save the current file with a new name
-- **Save All**: Click "Save All" to save every open document tab at once (untitled tabs prompt you for a file name)
+- **Save As**: Use `Ctrl+Shift+S` (or the **Save ▾** arrow menu) to save the current file with a new name
+- **Save All**: Pick **Save All** from the **Save ▾** arrow menu to save every open document tab at once (untitled tabs prompt you for a file name)
 - **Create New**: Click "New" to start with an empty XML document
 - **Drag & Drop**: Drag files from your file explorer into the editor
 - **Recent Files**: Quick access to recently opened files
@@ -123,7 +125,7 @@ The grid provides:
 > was only available in the grid.
 
 The Properties inspector shows the details of the currently selected node and lets you change
-them. Toggle the panel with **Ctrl+P** (or the **Properties** toolbar button); it appears on
+them. Toggle the panel with the toggle at the right end of the editor toolbar; it appears on
 the right side of the editor.
 
 > **Screenshot note:** The existing XML editor screenshots predate this change. The Properties
@@ -219,13 +221,13 @@ If your XML does not reference its schema (or you want to use a different one), 
 XSD by hand:
 
 1. Click the **"No XSD"** indicator in the **status bar** (it shows **"XSD: name"** once a
-   schema is bound), or use the toolbar's **Set XSD Schema…** action.
+   schema is bound), or click the toolbar's **Schema** button (**Set XSD Schema…**).
 2. Choose an `.xsd` file.
 
 The binding applies to the active document and drives **both** features at once:
 
 - **IntelliSense** - auto-completion suggests the elements and attributes the schema allows.
-- **Schema validation** - Validate (F5) and continuous validation check against the bound XSD.
+- **Schema validation** - Validate (F8) and continuous validation check against the bound XSD.
 
 ---
 
@@ -327,7 +329,7 @@ collections in the `examples` folder next to the application:
   branching and a Schematron SVRL report. See the folder's `README.md`.
 
 All examples target the FundsXML4 sample documents in `examples/xml/`. The simplest way
-to run one: **open the file directly** and press **Run Query** / **Run Pipeline**
+to run one: **open the file directly** and press the toolbar's **Run** button
 (`Ctrl+Enter`) - query, XSLT and XProc files are first-class editor documents that run
 against the [Target dropdown](unified-shell.md#query-documents-the-target-selector)'s
 selection (by default the most recently active XML document). Alternatively paste a query

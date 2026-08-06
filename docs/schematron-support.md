@@ -1,6 +1,6 @@
 # Schematron Validation
 
-> **Last Updated:** July 2026 | **Version:** 1.10.0
+> **Last Updated:** August 2026 | **Version:** 2.0.1
 
 > **Note (Phase 10c):** The standalone *Schematron* editor tab has been retired.
 > Schematron editing and validation — rule check, templates, tester, visual
@@ -34,17 +34,23 @@ While XSD schemas check the structure of your XML (which elements can appear whe
 
 ## Toolbar
 
+> **Updated in August 2026** - Schematron files use the shell's single-row editor toolbar.
+> Related actions sit in **split buttons** with a visible **▾** arrow menu; see
+> [Unified Shell - Toolbar](unified-shell.md#toolbar) for the full reference.
+
+With a `.sch` file active, the relevant actions are:
+
 | Button | Shortcut | Description |
 |--------|----------|-------------|
-| **New** | - | Create new Schematron file |
-| **Open** | - | Open existing Schematron file |
-| **Save** | Ctrl+S | Save current file |
-| **Save As** | Ctrl+Shift+S | Save with new name |
-| **Save All** | - | Save the current file (shown for toolbar consistency across editors) |
-| **Add Rule** | Ctrl+R | Add a new rule template |
-| **Add Favorite** | Ctrl+D | Add to favorites |
-| **Favorites** | Ctrl+Shift+D | Toggle favorites panel |
-| **Help** | F1 | Show help |
+| **New** | Ctrl+N | Open the guided New File dialog (includes Schematron) |
+| **Open** | Ctrl+O | Open an existing file |
+| **Save ▾** | Ctrl+S | Save the current file; the arrow menu holds **Save As…** (Ctrl+Shift+S) and **Save All** |
+| **Undo** / **Redo** | Ctrl+Z / Ctrl+Y | Undo / redo the last change (icon buttons) |
+| **Format ▾** | Ctrl+Shift+F | Pretty-print the file |
+| **Validate** | F8 | Check the Schematron syntax |
+
+Rule templates, the tester, and the visual builder are reached through the **Validation
+activity panel** (see the note at the top of this page).
 
 ---
 
@@ -58,7 +64,7 @@ The Code tab provides a full-featured Schematron editor:
 |--------|-------------|
 | **Load Schematron** | Open an existing file |
 | **New File** | Create empty Schematron |
-| **Save** / **Save As** / **Save All** | Save current file (Save All mirrors Save for this single-document editor) |
+| **Save ▾** | Save the current file; **Save As…** and **Save All** sit in the arrow menu |
 | **New Rule** | Insert rule template |
 | **New Pattern** | Insert pattern template |
 | **Format** | Format/prettify the XML |

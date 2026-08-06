@@ -93,7 +93,7 @@ submenus. While you have no matching favorites, the star button is grayed out.
 
 ### Opening Favorites
 
-1. **Click "Favorites"** in any editor toolbar
+1. **Open the "Favorites" activity** from the activity bar on the left
 2. **Browse categories** if you have multiple
 3. **Click any file** to open it immediately
 

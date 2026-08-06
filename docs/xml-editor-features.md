@@ -131,7 +131,7 @@ Changes made in any view are synchronized automatically.
 > XML views (Text, Tree, and Graphic), not just the grid.
 
 The Properties inspector shows the details of the selected node and lets you edit them. Toggle
-it with **Ctrl+P** or the **Properties** toolbar button.
+it with the panel toggle at the right end of the editor toolbar.
 
 - **Select a node** by moving the text caret into an element (Text view), clicking a node
   (Tree view), or selecting a row in the grid (Graphic view).

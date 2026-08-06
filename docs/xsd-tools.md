@@ -69,7 +69,7 @@ The Graphic View lets you explore and edit your schemas visually.
 - **Right-click** for a context menu with common actions
 - **Ctrl+Z** to undo, **Ctrl+Y** to redo
 - **Ctrl+S** to save (a backup is created automatically)
-- The toolbar offers **Save**, **Save As** (save under a new name), and **Save All** buttons; since the XSD editor works on one schema at a time, **Save All** behaves the same as **Save**
+- The toolbar's **Save ▾** split button saves the schema; its arrow menu offers **Save As…** (save under a new name) and **Save All** (saves every open tab)
 
 ---
 
@@ -473,7 +473,7 @@ When saving schemas from the graphical editor, `xs:include` and `xs:import` decl
 | `Ctrl+D` | Add to favorites        |
 | `Delete` | Delete selected element |
 | `F2`     | Rename element          |
-| `F5`     | Validate schema         |
+| `F8`     | Validate schema         |
 
 ---
 

@@ -1,6 +1,6 @@
 # XSD Validation
 
-> **Last Updated:** June 2026 | **Version:** 1.10.0
+> **Last Updated:** August 2026 | **Version:** 2.0.1
 
 > **Note (Phase 10c):** The standalone *XSD Validation* tab has been retired.
 > Validation — XSD and Schematron, single-file and batch — now lives in the
@@ -52,12 +52,12 @@ Use this mode to validate one XML file against a schema.
      well-formedness check and the status bar shows **"No XSD"**. A schema you bound
      manually is never overridden by this automatic detection.
    - **Manual**: Bind an XSD yourself - click the **"No XSD"** indicator in the status bar (or
-     use the toolbar's **Set XSD Schema…** action), or pick a schema in the Validation panel's
+     click the toolbar's **Schema** button - **Set XSD Schema…**), or pick a schema in the Validation panel's
      **SOURCES** section. The binding drives both validation and IntelliSense.
 
 ### Step 2: Validate
 
-Click **Validate** or press **F5** to start validation.
+Click the toolbar's **Validate** button or press **F8** to start validation.
 
 ### Step 3: View Results
 
@@ -168,7 +168,7 @@ Save frequently used XML and XSD files to favorites for quick access:
 |--------|----------|-------------|
 | **Open XML** | - | Load XML file to validate |
 | **Open XSD** | - | Load XSD schema manually |
-| **Validate** | F5 | Start validation |
+| **Validate** | F8 | Start validation |
 | **Clear** | - | Clear results |
 | **Export** | - | Export to Excel |
 | **Add Favorite** | Ctrl+D | Add to favorites |
@@ -202,7 +202,7 @@ The validation engine uses Xerces 2.12.2 with full XSD 1.1 support.
 
 | Shortcut | Action |
 |----------|--------|
-| F5 | Start validation |
+| F8 | Start validation |
 | Ctrl+D | Add to favorites |
 | Ctrl+Shift+D | Toggle favorites |
 | F1 | Help |

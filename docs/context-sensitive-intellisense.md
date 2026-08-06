@@ -48,8 +48,8 @@ picked up on the next validation run and IntelliSense follows automatically. Oth
 bind one yourself *(updated June 2026)*:
 
 1. Open your XML file in the editor
-2. Click the **"No XSD"** indicator in the **status bar** (or use the toolbar's
-   **Set XSD Schema…** action)
+2. Click the **"No XSD"** indicator in the **status bar** (or the toolbar's **Schema**
+   button - **Set XSD Schema…**)
 3. Select your XSD file
 
 The indicator changes to **"XSD: name"**, and the binding drives both auto-completion **and**
