@@ -220,7 +220,7 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
             lineNumber.styleProperty().bind(javafx.beans.binding.Bindings.createStringBinding(
                     () -> codeArea.getCurrentParagraph() == lineIndex
                             ? "-fx-font-family: 'JetBrains Mono', monospace; -fx-text-fill: "
-                            + (isDarkTheme() ? "#5c7cfa" : "#3b5bdb") + "; -fx-font-weight: bold;"
+                            + (isDarkTheme() ? "#4c9bf5" : "#1373d9") + "; -fx-font-weight: bold;"
                             : "-fx-font-family: 'JetBrains Mono', monospace; -fx-text-fill: #8a93a0;",
                     codeArea.currentParagraphProperty()));
             hbox.getChildren().add(lineNumber);

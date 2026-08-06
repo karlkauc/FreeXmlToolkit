@@ -8,7 +8,7 @@ import java.util.Locale;
  * editor (syntax, IntelliSense) and the inspector can adapt to the content.
  */
 public enum EditorFileType {
-    XML("XML", "bi-code-slash", "#3b5bdb", "xml"),
+    XML("XML", "bi-code-slash", "#1373d9", "xml"),
     XSD("XSD", "bi-diagram-3", "#2f9e44", "xsd"),
     XSLT("XSLT", "bi-arrow-repeat", "#f08c00", "xsl", "xslt"),
     SCHEMATRON("Schematron", "bi-check2-square", "#e8590c", "sch", "schematron"),

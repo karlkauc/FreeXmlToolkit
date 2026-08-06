@@ -25,7 +25,7 @@ public final class SchematronReportHtml {
         sb.append("<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\">\n")
                 .append("<title>Schematron Validation Report</title>\n<style>\n")
                 .append("body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;margin:2em;color:#212529;}\n")
-                .append("h1{font-size:1.5em;border-bottom:2px solid #3B5BDB;padding-bottom:.3em;}\n")
+                .append("h1{font-size:1.5em;border-bottom:2px solid #1373D9;padding-bottom:.3em;}\n")
                 .append("table.meta td{padding:.15em .8em .15em 0;color:#495057;}\n")
                 .append("table.meta td:first-child{font-weight:600;}\n")
                 .append(".chips{margin:1em 0;}\n")

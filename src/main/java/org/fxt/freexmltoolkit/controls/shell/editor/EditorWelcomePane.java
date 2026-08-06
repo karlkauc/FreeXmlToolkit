@@ -193,14 +193,14 @@ public class EditorWelcomePane extends VBox {
     private static String categoryColor(String category) {
         return switch (category) {
             case "Validation" -> "#2f9e44";     // green
-            case "Editing" -> "#3B5BDB";        // indigo
+            case "Editing" -> "#1373D9";        // indigo
             case "Query" -> "#17a2b8";          // cyan
             case "Transformation" -> "#f08c00"; // orange
             case "Tools" -> "#7048e8";          // violet
             case "Security" -> "#e03131";       // red
             case "Export" -> "#0ca678";         // teal
             case "Organization" -> "#e64980";   // pink
-            default -> "#3B5BDB";
+            default -> "#1373D9";
         };
     }
 

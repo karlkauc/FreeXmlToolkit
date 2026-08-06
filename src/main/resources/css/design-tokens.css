@@ -18,16 +18,17 @@
 
 /* ----- Light (default) ------------------------------------------------ */
 .root {
-    /* Brand */
+    /* Brand — primary follows the Thunderbird-Supernova-style saturated blue
+       (user decision 2026-08-06); the previous indigo #3b5bdb is retired. */
     -fxt-on-primary: #ffffff;
-    -fxt-primary: #3b5bdb;
+    -fxt-primary: #1373d9;
     -fxt-accent: #f08c2e;
 
     /* Backgrounds & borders */
     -fxt-bg-canvas: #f5f7fa;
     -fxt-bg-surface: #ffffff;
     -fxt-bg-surface-2: #eef1f5;
-    -fxt-bg-subtle: #e7ecfd;
+    -fxt-bg-subtle: #e8f1fc;
     -fxt-border: #dde1e7;
 
     /* Text */
@@ -62,7 +63,7 @@
     -fxt-code-curline: #f2f6ff;
 
     /* Semantic — editor toolbar buttons (soft-tinted native look) */
-    -fxt-tool-primary-bg: #eef2ff;  -fxt-tool-primary-border: #c3cef6;  -fxt-tool-primary-fg: #3b5bdb;
+    -fxt-tool-primary-bg: #eaf2fd;  -fxt-tool-primary-border: #c4dcf8;  -fxt-tool-primary-fg: #1373d9;
     -fxt-tool-success-bg: #eaf6ee;  -fxt-tool-success-border: #bfe3cb;  -fxt-tool-success-fg: #2f9e44;
     -fxt-tool-info-bg:    #e7f6f8;  -fxt-tool-info-border:    #b9e3e9;  -fxt-tool-info-fg:    #1098ad;
     -fxt-tool-warning-bg: #fff6e6;  -fxt-tool-warning-border: #ffe0a3;  -fxt-tool-warning-fg: #b8860b;
@@ -74,14 +75,14 @@
 .root.fxt-theme-dark {
     /* Brand */
     -fxt-on-primary: #ffffff;
-    -fxt-primary: #5c7cfa;
+    -fxt-primary: #4c9bf5;
     -fxt-accent: #f59f46;
 
     /* Backgrounds & borders */
     -fxt-bg-canvas: #0f1419;
     -fxt-bg-surface: #161b22;
     -fxt-bg-surface-2: #1c232c;
-    -fxt-bg-subtle: #20305c;
+    -fxt-bg-subtle: #14304f;
     -fxt-border: #2a323d;
 
     /* Text */
@@ -116,7 +117,7 @@
     -fxt-code-curline: #1b2438;
 
     /* Semantic — editor toolbar buttons (soft-tinted native look) */
-    -fxt-tool-primary-bg: #1d2748;  -fxt-tool-primary-border: #34406e;  -fxt-tool-primary-fg: #93a6fb;
+    -fxt-tool-primary-bg: #14283f;  -fxt-tool-primary-border: #275077;  -fxt-tool-primary-fg: #7db8f9;
     -fxt-tool-success-bg: #14301e;  -fxt-tool-success-border: #2b5a3a;  -fxt-tool-success-fg: #69db7c;
     -fxt-tool-info-bg:    #0e2a30;  -fxt-tool-info-border:    #1f4a53;  -fxt-tool-info-fg:    #4dd4e8;
     -fxt-tool-warning-bg: #2e2410;  -fxt-tool-warning-border: #5a4a1f;  -fxt-tool-warning-fg: #fab005;

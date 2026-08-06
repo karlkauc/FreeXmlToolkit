@@ -48,7 +48,7 @@ public final class DesignTokens {
      */
     public enum ColorToken {
         ON_PRIMARY("-fxt-on-primary", "#ffffff", "#ffffff"),
-        PRIMARY("-fxt-primary", "#3b5bdb", "#5c7cfa"),
+        PRIMARY("-fxt-primary", "#1373d9", "#4c9bf5"),
         ACCENT("-fxt-accent", "#f08c2e", "#f59f46"),
 
         BG_CANVAS("-fxt-bg-canvas", "#f5f7fa", "#0f1419"),

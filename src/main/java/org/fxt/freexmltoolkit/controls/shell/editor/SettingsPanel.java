@@ -246,7 +246,7 @@ public class SettingsPanel extends VBox {
         // Section cards, color-coded by topic (the panel now lives in the main editor
         // area as a Settings page, so there is room for a two-column card layout).
         javafx.scene.layout.FlowPane cards = new javafx.scene.layout.FlowPane(16, 16,
-                card("THEME", "bi-palette", "#3B5BDB",
+                card("THEME", "bi-palette", "#1373D9",
                         new HBox(6, light, dark)),
                 card("EDITOR", "bi-pencil-square", "#17a2b8",
                         labeled("XML indent:", indentSpaces), labeled("JSON indent:", jsonIndent),

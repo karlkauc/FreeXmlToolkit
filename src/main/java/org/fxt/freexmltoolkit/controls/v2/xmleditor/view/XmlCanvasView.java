@@ -220,7 +220,7 @@ public class XmlCanvasView extends Pane implements XmlSearchTarget {
     /**
      * Assigns the light or dark grid palette. Light values are the original XMLSpy-style
      * palette; dark values are aligned with the DesignTokens dark set (bg-surface #161b22,
-     * border #2a323d, primary #5c7cfa, CODE_* text colors).
+     * border #2a323d, primary #4c9bf5, CODE_* text colors).
      */
     private void applyPalette(org.fxt.freexmltoolkit.controls.theme.DesignTokens.Theme theme) {
         boolean dark = theme == org.fxt.freexmltoolkit.controls.theme.DesignTokens.Theme.DARK;

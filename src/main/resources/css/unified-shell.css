@@ -15,8 +15,8 @@
 
 /* ----- Activity Bar (dark rail, Figma "future" — dark even in light theme) --- */
 .fxt-activity-bar {
-    -fx-background-color: #1a1d21;
-    -fx-border-color: #2a2f37;
+    -fx-background-color: #2a284c;
+    -fx-border-color: #3b3866;
     -fx-border-width: 0 1 0 0;
     -fx-min-width: 56;
     -fx-pref-width: 56;
@@ -51,7 +51,7 @@
     -fx-content-display: top;
     -fx-graphic-text-gap: 3;
     -fx-font-size: 9.5px;
-    -fx-text-fill: #8a93a0;
+    -fx-text-fill: #a5a3c4;
     -fx-alignment: CENTER;
 }
 
@@ -64,11 +64,11 @@
 }
 
 .fxt-activity-button .iconify-icon {
-    -fx-icon-color: #8a93a0;
+    -fx-icon-color: #a5a3c4;
 }
 
 .fxt-activity-button:hover {
-    -fx-background-color: #2a2f37;
+    -fx-background-color: #3b3866;
 }
 
 .fxt-activity-button:hover .iconify-icon {
@@ -384,12 +384,12 @@
 }
 
 /* ===== Header bar (Figma "future": breadcrumb · centered search · theme icons) =====
-   Dark to merge seamlessly with the full-height activity bar (#1a1d21) into one continuous
-   dark top-left chrome. Colors mirror the activity-bar palette (idle #8a93a0, hover #e9ecf1)
+   Dark to merge seamlessly with the full-height activity bar (#2a284c) into one continuous
+   dark top-left chrome. Colors mirror the activity-bar palette (idle #a5a3c4, hover #e9ecf1)
    and are theme-independent, just like the activity bar. Compact height (slim padding). */
 .fxt-header-bar {
-    -fx-background-color: #1a1d21;
-    -fx-border-color: #2a2f37;
+    -fx-background-color: #2a284c;
+    -fx-border-color: #3b3866;
     -fx-border-width: 0 0 1 0;
     -fx-padding: 4 12 4 12;
     -fx-spacing: 10;
@@ -402,8 +402,8 @@
 }
 
 .fxt-header-search {
-    -fx-background-color: #2a2f37;
-    -fx-border-color: #3a4250;
+    -fx-background-color: #3b3866;
+    -fx-border-color: #4a4778;
     -fx-border-width: 1;
     -fx-border-radius: 8;
     -fx-background-radius: 8;
@@ -413,19 +413,19 @@
     -fx-border-color: -fxt-primary;
 }
 .fxt-header-search .iconify-icon {
-    -fx-icon-color: #8a93a0;
+    -fx-icon-color: #a5a3c4;
 }
 .fxt-header-search-hint {
     -fx-font-family: "Inter", sans-serif;
     -fx-font-size: 12.5px;
-    -fx-text-fill: #8a93a0;
+    -fx-text-fill: #a5a3c4;
 }
 .fxt-header-kbd {
     -fx-font-family: "Inter", sans-serif;
     -fx-font-size: 10.5px;
-    -fx-text-fill: #8a93a0;
-    -fx-background-color: #1a1d21;
-    -fx-border-color: #3a4250;
+    -fx-text-fill: #a5a3c4;
+    -fx-background-color: #2a284c;
+    -fx-border-color: #4a4778;
     -fx-border-radius: 4;
     -fx-background-radius: 4;
     -fx-padding: 1 6 1 6;
@@ -441,10 +441,10 @@
     -fx-cursor: hand;
 }
 .fxt-header-icon .iconify-icon {
-    -fx-icon-color: #8a93a0;
+    -fx-icon-color: #a5a3c4;
 }
 .fxt-header-icon:hover {
-    -fx-background-color: #2a2f37;
+    -fx-background-color: #3b3866;
 }
 .fxt-header-icon:hover .iconify-icon {
     -fx-icon-color: #e9ecf1;
@@ -520,9 +520,20 @@
     -fx-content-display: left;
     -fx-font-family: "Inter", sans-serif;
     -fx-font-size: 12px;
-    -fx-text-fill: -fxt-text-secondary;
+    /* Thunderbird-style: near-black labels for crisp contrast on white chrome */
+    -fx-text-fill: -fxt-text-primary;
     -fx-cursor: hand;
 }
+
+/* Thunderbird-style subtle icon colorization: each action group tints its icon with
+   its semantic token (theme-aware); labels stay near-black, only Validate is filled.
+   The extra .fxt-tool-button class outranks the generic icon rule below. */
+.fxt-editor-toolbar .fxt-tool-button.fxt-tool-primary .iconify-icon { -fx-icon-color: -fxt-primary; }
+.fxt-editor-toolbar .fxt-tool-button.fxt-tool-success .iconify-icon { -fx-icon-color: -fxt-success; }
+.fxt-editor-toolbar .fxt-tool-button.fxt-tool-info .iconify-icon    { -fx-icon-color: -fxt-info; }
+.fxt-editor-toolbar .fxt-tool-button.fxt-tool-warning .iconify-icon { -fx-icon-color: -fxt-warning; }
+.fxt-editor-toolbar .fxt-tool-button.fxt-tool-purple .iconify-icon  { -fx-icon-color: -fxt-purple; }
+.fxt-editor-toolbar .fxt-tool-button.fxt-tool-indigo .iconify-icon  { -fx-icon-color: -fxt-indigo; }
 
 /* SplitMenuButton internals: flatten the modena pill halves into one flat button.
    The label region carries the icon+text, the arrow-button gets a hairline divider. */
@@ -534,7 +545,7 @@
     -fx-padding: 4 5 4 8;
     -fx-graphic-text-gap: 6;
     -fx-font-size: 12px;
-    -fx-text-fill: -fxt-text-secondary;
+    -fx-text-fill: -fxt-text-primary;
 }
 .fxt-editor-toolbar .fxt-tool-split > .arrow-button {
     -fx-background-color: transparent;
@@ -554,11 +565,10 @@
     -fx-icon-color: -fxt-text-secondary;
 }
 
+/* Neutral hover (Thunderbird-style); icons keep their semantic color on hover. */
 .fxt-editor-toolbar .fxt-tool-button:hover {
-    -fx-background-color: -fxt-bg-subtle;
-}
-.fxt-editor-toolbar .fxt-tool-button:hover .iconify-icon {
-    -fx-icon-color: -fxt-primary;
+    -fx-background-color: -fxt-bg-surface-2;
+    -fx-border-color: -fxt-border;
 }
 
 .fxt-editor-toolbar .fxt-tool-button:disabled {
