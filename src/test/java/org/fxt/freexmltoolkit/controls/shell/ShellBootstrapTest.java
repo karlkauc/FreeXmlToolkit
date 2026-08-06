@@ -40,7 +40,11 @@ class ShellBootstrapTest {
                 new FundsXmlDownloadCoordinator(service, tasks::add);
 
         ShellBootstrap.dispatchFundsXmlAction(FundsXmlStartupSync.Action.NONE, coordinator);
-        assertEquals(0, tasks.size(), "NONE must not schedule any work");
+        assertEquals(1, tasks.size(), "NONE must still schedule the stale-entry cleanup");
+        tasks.remove(0).run();
+        assertEquals(1, service.cleanupCalls);
+        assertEquals(0, service.reRegisterCalls);
+        assertEquals(0, service.downloadCalls);
 
         ShellBootstrap.dispatchFundsXmlAction(FundsXmlStartupSync.Action.REGISTER_ONLY, coordinator);
         assertEquals(1, tasks.size());
@@ -62,6 +66,7 @@ class ShellBootstrapTest {
     private static class RecordingService extends FundsXmlExtensionService {
         int downloadCalls;
         int reRegisterCalls;
+        int cleanupCalls;
 
         RecordingService(FundsXmlCache cache) {
             super(cache, new GitHubReleaseClient(uri -> {
@@ -79,6 +84,11 @@ class ShellBootstrapTest {
         @Override
         public void reRegisterFromCache() {
             reRegisterCalls++;
+        }
+
+        @Override
+        public void cleanupStaleEntries() {
+            cleanupCalls++;
         }
     }
 }

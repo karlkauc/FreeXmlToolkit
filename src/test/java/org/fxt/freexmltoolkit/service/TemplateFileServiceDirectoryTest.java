@@ -48,6 +48,27 @@ class TemplateFileServiceDirectoryTest {
     }
 
     @Test
+    void loadPreservesPersistedTemplateId(@TempDir Path dir) throws Exception {
+        TemplateFileService service = TemplateFileService.getInstance();
+        assertTrue(service.setTemplatesDirectory(dir));
+
+        XmlTemplate template = new XmlTemplate();
+        template.setId("fundsxml-sample-regulatory-eft-xml");
+        template.setName("EFT_Regulatory");
+        template.setContent("<?xml version=\"1.0\"?>\n<FundsXML4/>");
+        template.setCategory("FundsXML");
+        template.setBuiltIn(false);
+        service.saveTemplateToDirectory(template);
+
+        List<XmlTemplate> loaded = service.loadTemplatesFromDirectory();
+        assertEquals(1, loaded.size());
+        // The persisted ID must survive the round-trip — a fresh UUID per load breaks
+        // idempotent re-seeding (duplicates pile up) and delete-by-id (files become
+        // undeletable because the filename no longer matches any template's ID).
+        assertEquals("fundsxml-sample-regulatory-eft-xml", loaded.get(0).getId());
+    }
+
+    @Test
     void nullDirectoryIsIgnored() {
         TemplateFileService service = TemplateFileService.getInstance();
         Path before = service.getTemplatesDirectoryPath();

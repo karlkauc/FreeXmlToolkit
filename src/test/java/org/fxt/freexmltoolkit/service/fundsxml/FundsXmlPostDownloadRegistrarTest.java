@@ -32,6 +32,7 @@ import org.fxt.freexmltoolkit.domain.FileFavorite;
 import org.fxt.freexmltoolkit.domain.XPathSnippet;
 import org.fxt.freexmltoolkit.domain.XmlTemplate;
 import org.fxt.freexmltoolkit.service.FavoritesService;
+import org.fxt.freexmltoolkit.service.TemplateFileService;
 import org.fxt.freexmltoolkit.service.TemplateRepository;
 import org.fxt.freexmltoolkit.service.XPathSnippetRepository;
 import org.junit.jupiter.api.AfterEach;
@@ -61,6 +62,10 @@ class FundsXmlPostDownloadRegistrarTest {
         resetSingleton(FavoritesService.class);
         resetSingleton(XPathSnippetRepository.class);
         resetSingleton(TemplateRepository.class);
+        // Keep template persistence away from the repo's real template store
+        // (release/examples/templates resolves relative to the test working dir).
+        TemplateFileService.getInstance()
+                .setTemplatesDirectory(Files.createDirectories(tempDir.resolve("templates")));
 
         examplesDir = Files.createDirectories(tempDir.resolve("fundsxml/examples"));
         schematronDir = Files.createDirectories(tempDir.resolve("fundsxml/schematron"));
@@ -426,6 +431,41 @@ class FundsXmlPostDownloadRegistrarTest {
                 .getFavoritesByFolder(FundsXmlPostDownloadRegistrar.FAVORITE_FOLDER_EXAMPLES);
         assertEquals(1, favs.size());
         assertTrue(favs.get(0).getFilePath().endsWith("sample.xml"));
+    }
+
+    @Test
+    @DisplayName("cleanupExcludedSamples also removes legacy pom templates with random UUID ids")
+    void cleanupRemovesLegacyUuidPomTemplates() throws Exception {
+        TemplateRepository repo = TemplateRepository.getInstance();
+        // The original seeding used createNewTemplate(...), whose 3-arg XmlTemplate
+        // constructor treats the first argument as the *name* and assigns a random
+        // UUID as the ID — so stale entries cannot be matched by ID prefix.
+        XmlTemplate legacyPom = new XmlTemplate("pom", "<project/>",
+                FundsXmlPostDownloadRegistrar.TEMPLATE_CATEGORY);
+        legacyPom.setDescription(FundsXmlPostDownloadRegistrar.TEMPLATE_DESCRIPTION_PREFIX
+                + "XSD_Validation/java/pom.xml");
+        legacyPom.setBuiltIn(false);
+        repo.addTemplate(legacyPom, false);
+        // A legacy-seeded real sample must survive the cleanup.
+        XmlTemplate legacySample = new XmlTemplate("EFT_Regulatory", "<FundsXML4/>",
+                FundsXmlPostDownloadRegistrar.TEMPLATE_CATEGORY);
+        legacySample.setDescription(FundsXmlPostDownloadRegistrar.TEMPLATE_DESCRIPTION_PREFIX
+                + "FundsXML_Files/4.2.9/regulatory/EFT_Regulatory.xml");
+        legacySample.setBuiltIn(false);
+        repo.addTemplate(legacySample, false);
+
+        FundsXmlPostDownloadRegistrar withTemplates = new FundsXmlPostDownloadRegistrar(
+                FavoritesService.getInstance(), XPathSnippetRepository.getInstance(), repo);
+        FundsXmlPostDownloadRegistrar.RegistrarResult result =
+                withTemplates.cleanupExcludedSamples(examplesDir);
+
+        assertEquals(1, result.excludedTemplatesRemoved());
+        List<String> remaining = repo.getTemplatesByCategory(
+                        FundsXmlPostDownloadRegistrar.TEMPLATE_CATEGORY).stream()
+                .map(XmlTemplate::getName)
+                .toList();
+        assertFalse(remaining.contains("pom"), "legacy pom template must be removed");
+        assertTrue(remaining.contains("EFT_Regulatory"), "real sample must survive");
     }
 
     @Test

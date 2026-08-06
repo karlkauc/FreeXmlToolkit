@@ -189,11 +189,10 @@ public class FundsXmlExtensionService {
      * step must not prevent the others.
      */
     public void reRegisterFromCache() {
+        cleanupStaleEntries();
         if (isCacheEmpty()) {
             return;
         }
-        runRegistrarStep("cleanup of excluded samples",
-                () -> registrar.cleanupExcludedSamples(cache.getExamplesDir()));
         runRegistrarStep("favorites",
                 () -> registrar.registerFavorites(cache.getExamplesDir(), cache.getSchematronDir()));
         runRegistrarStep("featured samples",
@@ -206,6 +205,17 @@ public class FundsXmlExtensionService {
                 () -> registrar.seedSnippets(cache.getQueriesDir()));
         runRegistrarStep("templates",
                 () -> registrar.registerXmlTemplates(cache.getExamplesDir()));
+    }
+
+    /**
+     * Removes stale favorites/templates seeded from build/test infrastructure files
+     * by earlier versions (e.g. {@code pom.xml} featured samples). Needs only the
+     * favorites/template stores — no cache content, no network — so it runs even when
+     * the feature is disabled or the cache is empty.
+     */
+    public void cleanupStaleEntries() {
+        runRegistrarStep("cleanup of excluded samples",
+                () -> registrar.cleanupExcludedSamples(cache.getExamplesDir()));
     }
 
     private void runRegistrarStep(String what, Runnable step) {

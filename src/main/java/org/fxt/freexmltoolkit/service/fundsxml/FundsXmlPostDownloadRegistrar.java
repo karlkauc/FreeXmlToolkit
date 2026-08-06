@@ -393,8 +393,10 @@ public class FundsXmlPostDownloadRegistrar {
             for (XmlTemplate t : List.copyOf(templateRepository.getTemplatesByCategory(TEMPLATE_CATEGORY))) {
                 String id = t.getId();
                 String description = t.getDescription();
-                if (id == null || !id.startsWith(TEMPLATE_ID_PREFIX)
-                        || description == null || !description.startsWith(TEMPLATE_DESCRIPTION_PREFIX)) {
+                // Match by the deterministic description, not the ID: templates seeded
+                // before the ID-persistence fix carry random UUID ids.
+                if (id == null || description == null
+                        || !description.startsWith(TEMPLATE_DESCRIPTION_PREFIX)) {
                     continue;
                 }
                 String relative = description.substring(TEMPLATE_DESCRIPTION_PREFIX.length());

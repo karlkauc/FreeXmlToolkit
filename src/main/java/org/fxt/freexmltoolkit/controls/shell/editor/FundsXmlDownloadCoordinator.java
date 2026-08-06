@@ -154,6 +154,21 @@ public final class FundsXmlDownloadCoordinator {
         });
     }
 
+    /**
+     * Removes stale seeded entries (e.g. pom.xml sample templates from earlier
+     * versions) in the background. Used at startup when the feature is disabled,
+     * where full re-registration must not run.
+     */
+    public void runCleanupOnly() {
+        executor.execute(() -> {
+            try {
+                service.cleanupStaleEntries();
+            } catch (Throwable t) {
+                logger.warn("FundsXML stale-entry cleanup failed: {}", t.getMessage());
+            }
+        });
+    }
+
     /** Builds the I/O-thread progress callback with FX-hop throttling. */
     private org.fxt.freexmltoolkit.service.fundsxml.DownloadProgressCallback progressCallback() {
         return new org.fxt.freexmltoolkit.service.fundsxml.DownloadProgressCallback() {

@@ -228,8 +228,14 @@ public class TemplateFileService {
             throw new IllegalArgumentException("Template must have id, name, and content");
         }
 
-        XmlTemplate template = new XmlTemplate(id, content, category);
+        // Construct explicitly to preserve the persisted ID — the 3-arg constructor
+        // treats its first argument as the *name* and generates a random UUID as ID,
+        // which breaks idempotent re-seeding and delete-by-id across restarts.
+        XmlTemplate template = new XmlTemplate();
+        template.setId(id);
         template.setName(name);
+        template.setContent(content);
+        template.setCategory(category);
         template.setDescription(props.getProperty("description", ""));
         template.setBuiltIn(false);
 

@@ -100,8 +100,8 @@ public final class ShellBootstrap {
         switch (action) {
             case DOWNLOAD_INITIAL, DOWNLOAD_UPDATE -> coordinator.startBackgroundDownload("startup");
             case REGISTER_ONLY -> coordinator.runRegisterOnly();
-            case NONE -> {
-            }
+            // Even with the feature off, stale seeded entries must be cleaned up.
+            case NONE -> coordinator.runCleanupOnly();
         }
     }
 
