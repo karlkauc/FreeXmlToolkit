@@ -1686,6 +1686,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#automatic-import-resolution-is-covered-too" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Automatic Import Resolution Is Covered Too
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2521,6 +2532,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#automatic-import-resolution-is-covered-too" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Automatic Import Resolution Is Covered Too
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -3227,6 +3249,15 @@
 1. Download the schema files to your local machine
 2. Reference them using file paths or <code>file://</code> URLs
 3. Place them in the same directory as your XML files for relative references</p>
+<h3 id="automatic-import-resolution-is-covered-too">Automatic Import Resolution Is Covered Too<a class="headerlink" href="#automatic-import-resolution-is-covered-too" title="Permanent link">&para;</a></h3>
+<p><em>(new in August 2026)</em> When the XSD editor cannot find an imported schema file locally, it can
+download the schema from the import's namespace URL (see
+<a href="../xsd-tools/#automatic-download-of-imported-schemas">Automatic Download of Imported Schemas</a>).
+These downloads go through the same SSRF protection: only public <code>http</code>/<code>https</code> addresses are
+contacted, and the downloaded content is verified to be a real XML Schema before it is used.
+Downloaded schemas are cached in <code>~/.freeXmlToolkit/cache/schemas/</code>. To disable the automatic
+lookup entirely, start the application with the system property
+<code>-Dfxt.schema.namespaceFallback=false</code>.</p>
 <hr />
 <h2 id="path-traversal-protection">Path Traversal Protection<a class="headerlink" href="#path-traversal-protection" title="Permanent link">&para;</a></h2>
 <h3 id="what-is-path-traversal">What Is Path Traversal?<a class="headerlink" href="#what-is-path-traversal" title="Permanent link">&para;</a></h3>

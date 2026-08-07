@@ -3826,6 +3826,14 @@ Statistics, Schema Quality, Generate Sample XML / Documentation) on the left.</e
 <li><strong>Sample Data</strong> - Generate sample XML from the schema</li>
 <li><strong>Flatten</strong> - Merge included/imported schemas into a single file</li>
 </ul>
+<div class="admonition note">
+<p class="admonition-title">Missing imported schemas download automatically <em>(new in August 2026)</em></p>
+<p>If a schema's <code>xs:import</code> points to a file that is not found next to the schema, the
+toolkit fetches it from the import's namespace URL and caches it locally, so the
+imported types still appear in the Tree and Graphic views - even offline on later
+loads. See
+<a href="../xsd-tools/#automatic-download-of-imported-schemas">Automatic Download of Imported Schemas</a>.</p>
+</div>
 <h3 id="the-schema-panel">The Schema Panel<a class="headerlink" href="#the-schema-panel" title="Permanent link">&para;</a></h3>
 <p>The <strong>Schema</strong> activity's side panel lists the active schema's top-level declarations,
 grouped into <strong>GLOBAL ELEMENTS</strong>, <strong>COMPLEX TYPES</strong>, and <strong>SIMPLE TYPES</strong> (collapsible
@@ -4698,9 +4706,11 @@ short note that settings are edited in the main window). Change any option and c
 </table>
 <h3 id="clearing-the-cache-folder">Clearing the Cache Folder<a class="headerlink" href="#clearing-the-cache-folder" title="Permanent link">&para;</a></h3>
 <p>The <strong>Clear Cache Folder</strong> button in the <strong>TEMP &amp; CACHE</strong> section deletes the contents of the
-application's local cache folder (<code>~/.freeXmlToolkit/cache</code>) - for example downloaded schemas.
-A confirmation dialog is shown first, because the action cannot be undone. The cache folder
-itself is kept; only its contents are removed.</p>
+application's local cache folder (<code>~/.freeXmlToolkit/cache</code>) - for example downloaded schemas,
+including schemas fetched automatically for missing <code>xs:import</code> references. Clearing is safe:
+such schemas are simply re-downloaded the next time they are needed. A confirmation dialog is
+shown first, because the action cannot be undone. The cache folder itself is kept; only its
+contents are removed.</p>
 <h3 id="rendering-mode">Rendering mode (hardware vs. software)<a class="headerlink" href="#rendering-mode" title="Permanent link">&para;</a></h3>
 <blockquote>
 <p><strong>New in June 2026</strong> - The <strong>RENDERING</strong> card lets you choose how JavaFX draws the UI,
