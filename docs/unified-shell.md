@@ -219,6 +219,13 @@ Statistics, Schema Quality, Generate Sample XML / Documentation) on the left.*
 - **Sample Data** - Generate sample XML from the schema
 - **Flatten** - Merge included/imported schemas into a single file
 
+!!! note "Missing imported schemas download automatically *(new in August 2026)*"
+    If a schema's `xs:import` points to a file that is not found next to the schema, the
+    toolkit fetches it from the import's namespace URL and caches it locally, so the
+    imported types still appear in the Tree and Graphic views - even offline on later
+    loads. See
+    [Automatic Download of Imported Schemas](xsd-tools.md#automatic-download-of-imported-schemas).
+
 ### The Schema Panel
 
 The **Schema** activity's side panel lists the active schema's top-level declarations,
@@ -966,9 +973,11 @@ short note that settings are edited in the main window). Change any option and c
 ### Clearing the Cache Folder
 
 The **Clear Cache Folder** button in the **TEMP & CACHE** section deletes the contents of the
-application's local cache folder (`~/.freeXmlToolkit/cache`) - for example downloaded schemas.
-A confirmation dialog is shown first, because the action cannot be undone. The cache folder
-itself is kept; only its contents are removed.
+application's local cache folder (`~/.freeXmlToolkit/cache`) - for example downloaded schemas,
+including schemas fetched automatically for missing `xs:import` references. Clearing is safe:
+such schemas are simply re-downloaded the next time they are needed. A confirmation dialog is
+shown first, because the action cannot be undone. The cache folder itself is kept; only its
+contents are removed.
 
 ### Rendering mode (hardware vs. software) {#rendering-mode}
 

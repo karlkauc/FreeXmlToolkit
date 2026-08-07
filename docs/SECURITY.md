@@ -169,6 +169,17 @@ You should:
 2. Reference them using file paths or `file://` URLs
 3. Place them in the same directory as your XML files for relative references
 
+### Automatic Import Resolution Is Covered Too
+
+*(new in August 2026)* When the XSD editor cannot find an imported schema file locally, it can
+download the schema from the import's namespace URL (see
+[Automatic Download of Imported Schemas](xsd-tools.md#automatic-download-of-imported-schemas)).
+These downloads go through the same SSRF protection: only public `http`/`https` addresses are
+contacted, and the downloaded content is verified to be a real XML Schema before it is used.
+Downloaded schemas are cached in `~/.freeXmlToolkit/cache/schemas/`. To disable the automatic
+lookup entirely, start the application with the system property
+`-Dfxt.schema.namespaceFallback=false`.
+
 ---
 
 ## Path Traversal Protection

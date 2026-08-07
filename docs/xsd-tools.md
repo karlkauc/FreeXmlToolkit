@@ -1,6 +1,6 @@
 # XSD Tools
 
-> **Last Updated:** May 2026 | **Version:** 1.10.0
+> **Last Updated:** August 2026 | **Version:** 2.0.1
 
 > **Note (Phase 10c):** The standalone *XSD Editor* tab has been retired. XSD
 > editing — the Text/Tree/Graphic views, the inspector, the Type Library, type
@@ -70,6 +70,39 @@ The Graphic View lets you explore and edit your schemas visually.
 - **Ctrl+Z** to undo, **Ctrl+Y** to redo
 - **Ctrl+S** to save (a backup is created automatically)
 - The toolbar's **Save ▾** split button saves the schema; its arrow menu offers **Save As…** (save under a new name) and **Save All** (saves every open tab)
+
+### Automatic Download of Imported Schemas
+
+*(new in August 2026)* Some schemas import other schemas that are not shipped alongside them.
+For example, many financial schemas contain:
+
+```xml
+<xs:import namespace="http://www.w3.org/2000/09/xmldsig#"
+           schemaLocation="xmldsig-core-schema.xsd"/>
+```
+
+If `xmldsig-core-schema.xsd` is not in the same folder as your schema, FreeXmlToolkit now
+resolves the import automatically:
+
+1. It looks for a previously downloaded copy in the local schema cache - if found, the
+   schema loads **without any network access**.
+2. Otherwise it fetches the schema from the import's **namespace URL** (following
+   redirects, using your proxy settings) - this is how the W3C hosts the XML signature
+   schema, for instance.
+3. The downloaded content is verified to be a real XML Schema, then stored in the cache
+   (`~/.freeXmlToolkit/cache/schemas/`) so future loads work offline.
+
+A few things to know:
+
+- Only imports whose namespace is an `http://` or `https://` URL are looked up.
+- `xs:include` references are **not** affected - included files must still be available at
+  their given location.
+- Internal and private network addresses are never contacted - see
+  [Security Features](SECURITY.md#ssrf-server-side-request-forgery-protection).
+- Clearing the cache folder (Settings → Temp & Cache) is safe: missing schemas are simply
+  re-downloaded the next time they are needed.
+- *Advanced:* to turn the lookup off entirely (for example in fully offline environments),
+  start the application with the system property `-Dfxt.schema.namespaceFallback=false`.
 
 ---
 

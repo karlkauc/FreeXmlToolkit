@@ -169,7 +169,7 @@ Requires `<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>`.
 
 **Schema Support:** XSD 1.0/1.1 (full), Schematron (full). DTD and RelaxNG not supported.
 
-**XSD Editor V2:** One level of SimpleType resolution for inherited facets. No Union/List facet support yet. Imported/included schemas not resolved.
+**XSD Editor V2:** One level of SimpleType resolution for inherited facets. No Union/List facet support yet. Imported schemas are resolved (local file, or via namespace-URL download with disk cache — `NamespaceSchemaDownloader`); nested imports inside imported schemas are not.
 
 ## Performance Requirements
 
