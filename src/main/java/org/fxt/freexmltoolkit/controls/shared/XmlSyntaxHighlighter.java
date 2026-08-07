@@ -27,7 +27,14 @@ public final class XmlSyntaxHighlighter {
     private static final Pattern XML_TAG = Pattern.compile("(?<ELEMENT>(</?\\h*)([\\w:.-]+)([^<>]*?)(\\h*/?>))"
             + "|(?<COMMENT><!--[\\s\\S]*?-->)"
             + "|(?<CDATA>(?<CDOPEN><!\\[CDATA\\[)(?<CDBODY>[\\s\\S]*?)(?<CDCLOSE>]]>))"
-            + "|(?<PI>(?<PIOPEN><\\?)(?<PITARGET>[\\w:.-]+)(?<PIBODY>[\\s\\S]*?)(?<PICLOSE>\\?>))");
+            + "|(?<PI>(?<PIOPEN><\\?)(?<PITARGET>[\\w:.-]+)(?<PIBODY>[\\s\\S]*?)(?<PICLOSE>\\?>))"
+            // The DOCTYPE body may carry an internal DTD subset [...] whose first ']' closes it;
+            // ']' cannot appear earlier because the part before '[' excludes '[', '<' and '>'.
+            + "|(?<DOCTYPE>(?<DTOPEN><!)(?<DTKEY>(?i:DOCTYPE))(?<DTBODY>[^\\[<>]*(?:\\[[\\s\\S]*?])?\\s*)(?<DTCLOSE>>))");
+
+    // Tokens styled inside the DOCTYPE body before the internal subset: quoted system/public
+    // ids ("..." or '...') and bare names (root element, SYSTEM, PUBLIC).
+    private static final Pattern DOCTYPE_TOKEN = Pattern.compile("(?<QUOTED>\"[^\"]*\"|'[^']*')|(?<NAME>[\\w:.-]+)");
     private static final Pattern ATTRIBUTES = Pattern.compile("(\\w+\\h*)(=)(\\h*\"[^\"]+\")");
 
     private static final int GROUP_OPEN_BRACKET = 2;
@@ -84,6 +91,11 @@ public final class XmlSyntaxHighlighter {
                 spansBuilder.add(Collections.singleton("anytag"), matcher.end("PITARGET") - matcher.start("PITARGET"));
                 addAttributeSpans(matcher.group("PIBODY"), spansBuilder);
                 spansBuilder.add(Collections.singleton("tagmark"), matcher.end("PICLOSE") - matcher.start("PICLOSE"));
+            } else if (matcher.group("DOCTYPE") != null) {
+                spansBuilder.add(Collections.singleton("tagmark"), matcher.end("DTOPEN") - matcher.start("DTOPEN"));
+                spansBuilder.add(Collections.singleton("anytag"), matcher.end("DTKEY") - matcher.start("DTKEY"));
+                addDoctypeBodySpans(matcher.group("DTBODY"), spansBuilder);
+                spansBuilder.add(Collections.singleton("tagmark"), matcher.end("DTCLOSE") - matcher.start("DTCLOSE"));
             } else if (matcher.group("ELEMENT") != null) {
                 spansBuilder.add(Collections.singleton("tagmark"), matcher.end(GROUP_OPEN_BRACKET) - matcher.start(GROUP_OPEN_BRACKET));
                 spansBuilder.add(Collections.singleton("anytag"), matcher.end(GROUP_ELEMENT_NAME) - matcher.end(GROUP_OPEN_BRACKET));
@@ -117,5 +129,29 @@ public final class XmlSyntaxHighlighter {
         if (attributesText.length() > attrLastEnd) {
             spansBuilder.add(Collections.emptyList(), attributesText.length() - attrLastEnd);
         }
+    }
+
+    /**
+     * Emits spans covering exactly {@code body} (the DOCTYPE content between the keyword and
+     * the closing '&gt;'): bare names (root element, SYSTEM, PUBLIC) as attribute, quoted
+     * system/public ids as avalue. An internal DTD subset [...] is left entirely unstyled so
+     * the declarations inside are never mistaken for markup.
+     */
+    private static void addDoctypeBodySpans(String body, StyleSpansBuilder<Collection<String>> spansBuilder) {
+        if (body == null || body.isEmpty()) {
+            return;
+        }
+        int subsetStart = body.indexOf('[');
+        String prefix = subsetStart >= 0 ? body.substring(0, subsetStart) : body;
+
+        int lastEnd = 0;
+        Matcher tmatcher = DOCTYPE_TOKEN.matcher(prefix);
+        while (tmatcher.find()) {
+            spansBuilder.add(Collections.emptyList(), tmatcher.start() - lastEnd);
+            String style = tmatcher.group("QUOTED") != null ? "avalue" : "attribute";
+            spansBuilder.add(Collections.singleton(style), tmatcher.end() - tmatcher.start());
+            lastEnd = tmatcher.end();
+        }
+        spansBuilder.add(Collections.emptyList(), body.length() - lastEnd);
     }
 }

@@ -368,6 +368,80 @@ class XmlSyntaxHighlighterTest {
     }
 
     @Nested
+    @DisplayName("DOCTYPE Declarations")
+    class DoctypeTests {
+
+        @Test
+        @DisplayName("Simple DOCTYPE: <! and > are tagmark, keyword anytag, root name attribute")
+        void simpleDoctype() {
+            //  <!DOCTYPE html>
+            //  012345678901234
+            String text = "<!DOCTYPE html>";
+            StyleSpans<Collection<String>> spans = XmlSyntaxHighlighter.computeHighlighting(text);
+
+            assertEquals(text.length(), spans.length());
+            assertEquals("tagmark", styleAt(spans, 0), "< is tagmark");
+            assertEquals("tagmark", styleAt(spans, 1), "! is tagmark");
+            assertEquals("anytag", styleAt(spans, 2), "D is anytag");
+            assertEquals("anytag", styleAt(spans, 8), "E is anytag");
+            assertEquals("", styleAt(spans, 9), "space is unstyled");
+            assertEquals("attribute", styleAt(spans, 10), "h of html is attribute");
+            assertEquals("attribute", styleAt(spans, 13), "l of html is attribute");
+            assertEquals("tagmark", styleAt(spans, 14), "> is tagmark");
+        }
+
+        @Test
+        @DisplayName("DOCTYPE with SYSTEM id: keyword and name styled, quoted id is avalue")
+        void doctypeWithSystemId() {
+            String text = "<!DOCTYPE root SYSTEM \"http://example.com/root.dtd\">\n<root/>";
+            StyleSpans<Collection<String>> spans = XmlSyntaxHighlighter.computeHighlighting(text);
+
+            assertEquals(text.length(), spans.length());
+            assertEquals("anytag", styleAt(spans, 2), "DOCTYPE keyword is anytag");
+            assertEquals("attribute", styleAt(spans, text.indexOf("root")), "root name is attribute");
+            assertEquals("attribute", styleAt(spans, text.indexOf("SYSTEM")), "SYSTEM is attribute");
+            assertEquals("avalue", styleAt(spans, text.indexOf("\"http")), "system id is avalue");
+            assertEquals("tagmark", styleAt(spans, text.indexOf(">\n")), "> is tagmark");
+            int rootStart = text.indexOf("<root/>");
+            assertEquals("tagmark", styleAt(spans, rootStart), "< of <root/> is tagmark");
+            assertEquals("anytag", styleAt(spans, rootStart + 1), "r of <root/> is anytag");
+        }
+
+        @Test
+        @DisplayName("DOCTYPE with PUBLIC ids: both quoted ids are avalue")
+        void doctypeWithPublicIds() {
+            String text = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0//EN\" \"http://www.w3.org/xhtml1.dtd\">";
+            StyleSpans<Collection<String>> spans = XmlSyntaxHighlighter.computeHighlighting(text);
+
+            assertEquals(text.length(), spans.length());
+            assertEquals("attribute", styleAt(spans, text.indexOf("PUBLIC")), "PUBLIC is attribute");
+            assertEquals("avalue", styleAt(spans, text.indexOf("\"-//W3C")), "public id is avalue");
+            assertEquals("avalue", styleAt(spans, text.indexOf("\"http")), "system id is avalue");
+            assertEquals("tagmark", styleAt(spans, text.length() - 1), "> is tagmark");
+        }
+
+        @Test
+        @DisplayName("Internal DTD subset stays unstyled, following element is normal")
+        void doctypeWithInternalSubset() {
+            String text = "<!DOCTYPE root [\n<!ELEMENT root (#PCDATA)>\n<!ENTITY x \"y\">\n]>\n<root/>";
+            StyleSpans<Collection<String>> spans = XmlSyntaxHighlighter.computeHighlighting(text);
+
+            assertEquals(text.length(), spans.length());
+            assertEquals("anytag", styleAt(spans, 2), "DOCTYPE keyword is anytag");
+            assertEquals("attribute", styleAt(spans, text.indexOf("root")), "root name is attribute");
+            // Subset declarations must NOT be styled as markup
+            assertEquals("", styleAt(spans, text.indexOf("<!ELEMENT")), "<!ELEMENT is unstyled");
+            assertEquals("", styleAt(spans, text.indexOf("ELEMENT")), "ELEMENT keyword is unstyled");
+            assertEquals("", styleAt(spans, text.indexOf("<!ENTITY")), "<!ENTITY is unstyled");
+            assertEquals("", styleAt(spans, text.indexOf("\"y\"")), "entity value is unstyled");
+            assertEquals("tagmark", styleAt(spans, text.indexOf("]>") + 1), "closing > is tagmark");
+            int rootStart = text.indexOf("<root/>");
+            assertEquals("tagmark", styleAt(spans, rootStart), "< of <root/> is tagmark");
+            assertEquals("anytag", styleAt(spans, rootStart + 1), "r of <root/> is anytag");
+        }
+    }
+
+    @Nested
     @DisplayName("CDATA Sections")
     class CdataTests {
 
@@ -692,6 +766,9 @@ class XmlSyntaxHighlighterTest {
                     "<!---->",
                     "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Root/>",
                     "<A><![CDATA[ raw < markup > here ]]></A>",
+                    "<!DOCTYPE html>",
+                    "<!DOCTYPE root SYSTEM \"root.dtd\">\n<root/>",
+                    "<!DOCTYPE root [\n<!ELEMENT root (#PCDATA)>\n]>\n<root/>",
                     "text<A/>more<B>inner</B>end",
                     "<xs:schema xmlns:xs=\"http://www.w3.org/2001/XMLSchema\">\n" +
                             "  <xs:element name=\"root\" type=\"xs:string\"/>\n" +
