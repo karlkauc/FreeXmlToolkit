@@ -260,6 +260,158 @@ class XmlSyntaxHighlighterTest {
             assertEquals("anytag", styleAt(spans, 15));
             assertEquals("tagmark", styleAt(spans, 16));
         }
+
+        @Test
+        @DisplayName("Multi-line comment containing a tag in its prose is fully comment")
+        void multiLineCommentWithTagInBody() {
+            String text = "<!-- NOTE: ControlData has NO <Version>\n element -->\n<FundsXML4 a=\"b\"/>";
+            StyleSpans<Collection<String>> spans = XmlSyntaxHighlighter.computeHighlighting(text);
+
+            assertEquals(text.length(), spans.length());
+            int commentEnd = text.indexOf("-->") + 3;
+            for (int i = 0; i < commentEnd; i++) {
+                assertEquals("comment", styleAt(spans, i), "Position " + i + " should be comment");
+            }
+            assertEquals("", styleAt(spans, commentEnd), "Newline after comment is unstyled");
+            // The following element must still be highlighted normally.
+            int tagStart = text.indexOf("<FundsXML4");
+            assertEquals("tagmark", styleAt(spans, tagStart), "< is tagmark");
+            assertEquals("anytag", styleAt(spans, tagStart + 1), "F is anytag");
+            assertEquals("attribute", styleAt(spans, text.indexOf("a=\"b\"")), "a is attribute");
+            assertEquals("avalue", styleAt(spans, text.indexOf("\"b\"")), "\"b\" is avalue");
+            assertEquals("tagmark", styleAt(spans, text.length() - 1), "> is tagmark");
+        }
+
+        @Test
+        @DisplayName("Comment containing an arrow is fully comment")
+        void commentWithArrow() {
+            String text = "<!-- 4.0.0 -> 4.1.0 -->";
+            StyleSpans<Collection<String>> spans = XmlSyntaxHighlighter.computeHighlighting(text);
+
+            assertEquals(text.length(), spans.length());
+            for (int i = 0; i < text.length(); i++) {
+                assertEquals("comment", styleAt(spans, i), "Position " + i + " should be comment");
+            }
+        }
+
+        @Test
+        @DisplayName("Empty comment is styled as comment")
+        void emptyComment() {
+            String text = "<!---->";
+            StyleSpans<Collection<String>> spans = XmlSyntaxHighlighter.computeHighlighting(text);
+
+            assertEquals(text.length(), spans.length());
+            for (int i = 0; i < text.length(); i++) {
+                assertEquals("comment", styleAt(spans, i), "Position " + i + " should be comment");
+            }
+        }
+
+        @Test
+        @DisplayName("Reluctant comment body stops at the first --> (no over-matching)")
+        void twoCommentsDoNotMergeAcrossElement() {
+            //  <!-- a --><B/><!-- c -->
+            //  0123456789012345678901234
+            String text = "<!-- a --><B/><!-- c -->";
+            StyleSpans<Collection<String>> spans = XmlSyntaxHighlighter.computeHighlighting(text);
+
+            assertEquals(text.length(), spans.length());
+            assertEquals("comment", styleAt(spans, 0));
+            assertEquals("comment", styleAt(spans, 9));
+            assertEquals("tagmark", styleAt(spans, 10), "< of <B/> is tagmark, not comment");
+            assertEquals("anytag", styleAt(spans, 11), "B is anytag");
+            assertEquals("tagmark", styleAt(spans, 13), "> of <B/> is tagmark");
+            assertEquals("comment", styleAt(spans, 14));
+            assertEquals("comment", styleAt(spans, 23));
+        }
+    }
+
+    @Nested
+    @DisplayName("Processing Instructions")
+    class ProcessingInstructionTests {
+
+        @Test
+        @DisplayName("XML declaration is highlighted like markup")
+        void xmlDeclaration() {
+            String text = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
+            StyleSpans<Collection<String>> spans = XmlSyntaxHighlighter.computeHighlighting(text);
+
+            assertEquals(text.length(), spans.length());
+            assertEquals("tagmark", styleAt(spans, 0), "< is tagmark");
+            assertEquals("tagmark", styleAt(spans, 1), "? is tagmark");
+            assertEquals("anytag", styleAt(spans, 2), "x is anytag");
+            assertEquals("anytag", styleAt(spans, 4), "l is anytag");
+            assertEquals("attribute", styleAt(spans, text.indexOf("version")), "version is attribute");
+            assertEquals("avalue", styleAt(spans, text.indexOf("\"1.0\"")), "\"1.0\" is avalue");
+            assertEquals("attribute", styleAt(spans, text.indexOf("encoding")), "encoding is attribute");
+            assertEquals("avalue", styleAt(spans, text.indexOf("\"UTF-8\"")), "\"UTF-8\" is avalue");
+            assertEquals("tagmark", styleAt(spans, text.length() - 2), "? is tagmark");
+            assertEquals("tagmark", styleAt(spans, text.length() - 1), "> is tagmark");
+        }
+
+        @Test
+        @DisplayName("PI with hyphenated target and following element")
+        void stylesheetPi() {
+            String text = "<?xml-stylesheet type=\"text/xsl\" href=\"x.xsl\"?>\n<Root/>";
+            StyleSpans<Collection<String>> spans = XmlSyntaxHighlighter.computeHighlighting(text);
+
+            assertEquals(text.length(), spans.length());
+            assertEquals("tagmark", styleAt(spans, 0));
+            assertEquals("anytag", styleAt(spans, 2), "x of xml-stylesheet is anytag");
+            assertEquals("anytag", styleAt(spans, 5), "- of xml-stylesheet is anytag");
+            assertEquals("anytag", styleAt(spans, 15), "t (last target char) is anytag");
+            assertEquals("attribute", styleAt(spans, text.indexOf("type")), "type is attribute");
+            assertEquals("avalue", styleAt(spans, text.indexOf("\"text/xsl\"")), "\"text/xsl\" is avalue");
+            int rootStart = text.indexOf("<Root");
+            assertEquals("tagmark", styleAt(spans, rootStart), "< of <Root/> is tagmark");
+            assertEquals("anytag", styleAt(spans, rootStart + 1), "R is anytag");
+        }
+    }
+
+    @Nested
+    @DisplayName("CDATA Sections")
+    class CdataTests {
+
+        @Test
+        @DisplayName("CDATA delimiters are tagmark, body is unstyled even if it contains markup")
+        void cdataWithMarkupInBody() {
+            String text = "<A><![CDATA[ 5 < 6 & <tag> ]]></A>";
+            StyleSpans<Collection<String>> spans = XmlSyntaxHighlighter.computeHighlighting(text);
+
+            assertEquals(text.length(), spans.length());
+            // <A>
+            assertEquals("tagmark", styleAt(spans, 0));
+            assertEquals("anytag", styleAt(spans, 1));
+            // <![CDATA[ starts at 3, 9 chars long
+            for (int i = 3; i < 12; i++) {
+                assertEquals("tagmark", styleAt(spans, i), "Position " + i + " of <![CDATA[ is tagmark");
+            }
+            // Body — literal markup must NOT be styled
+            assertEquals("", styleAt(spans, text.indexOf("5 <")), "body text is unstyled");
+            assertEquals("", styleAt(spans, text.indexOf("<tag>")), "< inside CDATA is unstyled");
+            assertEquals("", styleAt(spans, text.indexOf("<tag>") + 1), "tag name inside CDATA is unstyled");
+            // ]]>
+            int closeStart = text.indexOf("]]>");
+            for (int i = closeStart; i < closeStart + 3; i++) {
+                assertEquals("tagmark", styleAt(spans, i), "Position " + i + " of ]]> is tagmark");
+            }
+            // </A>
+            assertEquals("tagmark", styleAt(spans, closeStart + 3));
+            assertEquals("anytag", styleAt(spans, closeStart + 5), "A of </A> is anytag");
+        }
+
+        @Test
+        @DisplayName("Multi-line CDATA body stays unstyled, following tag is normal")
+        void multiLineCdata() {
+            String text = "<X><![CDATA[line1\nif (a < b) {}\n]]></X>";
+            StyleSpans<Collection<String>> spans = XmlSyntaxHighlighter.computeHighlighting(text);
+
+            assertEquals(text.length(), spans.length());
+            assertEquals("", styleAt(spans, text.indexOf("line1")), "first body line unstyled");
+            assertEquals("", styleAt(spans, text.indexOf("if (a")), "second body line unstyled");
+            int closeStart = text.indexOf("]]>");
+            assertEquals("tagmark", styleAt(spans, closeStart), "] is tagmark");
+            assertEquals("anytag", styleAt(spans, closeStart + 5), "X of </X> is anytag");
+        }
     }
 
     @Nested
@@ -536,6 +688,10 @@ class XmlSyntaxHighlighterTest {
                     "<A><B/></A>",
                     "<A attr=\"val\">text</A>",
                     "<!-- comment --><Tag/>",
+                    "<!-- multi\nline with <Tag> inside --><A/>",
+                    "<!---->",
+                    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Root/>",
+                    "<A><![CDATA[ raw < markup > here ]]></A>",
                     "text<A/>more<B>inner</B>end",
                     "<xs:schema xmlns:xs=\"http://www.w3.org/2001/XMLSchema\">\n" +
                             "  <xs:element name=\"root\" type=\"xs:string\"/>\n" +

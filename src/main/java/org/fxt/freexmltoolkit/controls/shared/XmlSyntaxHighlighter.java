@@ -18,8 +18,16 @@ public final class XmlSyntaxHighlighter {
     // The element-name group includes the namespace separator ':' (and the other XML name characters
     // '.' and '-'), so namespace-prefixed tags such as <xs:element> are fully highlighted — not just
     // the "xs" prefix, which previously left XSD documents looking unhighlighted.
+    // COMMENT uses a reluctant [\s\S]*? body: comments may span lines and may contain
+    // '<' and '>' in prose (e.g. "<Version>" or "4.0.0 -> 4.1.0"); a negated class like
+    // [^<>] would reject those and leave the whole comment unstyled. CDATA bodies are
+    // matched (and left unstyled) so literal markup inside them is never colored as tags.
+    // ELEMENT can never match at "<!" or "<?" ('!'/'?' are not name characters), so the
+    // alternative order is not load-bearing.
     private static final Pattern XML_TAG = Pattern.compile("(?<ELEMENT>(</?\\h*)([\\w:.-]+)([^<>]*?)(\\h*/?>))"
-            + "|(?<COMMENT><!--[^<>]+-->)");
+            + "|(?<COMMENT><!--[\\s\\S]*?-->)"
+            + "|(?<CDATA>(?<CDOPEN><!\\[CDATA\\[)(?<CDBODY>[\\s\\S]*?)(?<CDCLOSE>]]>))"
+            + "|(?<PI>(?<PIOPEN><\\?)(?<PITARGET>[\\w:.-]+)(?<PIBODY>[\\s\\S]*?)(?<PICLOSE>\\?>))");
     private static final Pattern ATTRIBUTES = Pattern.compile("(\\w+\\h*)(=)(\\h*\"[^\"]+\")");
 
     private static final int GROUP_OPEN_BRACKET = 2;
@@ -67,37 +75,47 @@ public final class XmlSyntaxHighlighter {
             spansBuilder.add(Collections.emptyList(), matcher.start() - lastKwEnd);
             if (matcher.group("COMMENT") != null) {
                 spansBuilder.add(Collections.singleton("comment"), matcher.end() - matcher.start());
-            } else {
-                if (matcher.group("ELEMENT") != null) {
-                    String attributesText = matcher.group(GROUP_ATTRIBUTES_SECTION);
-
-                    spansBuilder.add(Collections.singleton("tagmark"), matcher.end(GROUP_OPEN_BRACKET) - matcher.start(GROUP_OPEN_BRACKET));
-                    spansBuilder.add(Collections.singleton("anytag"), matcher.end(GROUP_ELEMENT_NAME) - matcher.end(GROUP_OPEN_BRACKET));
-
-                    if (attributesText != null && !attributesText.isEmpty()) {
-                        int attrLastEnd = 0;
-
-                        Matcher amatcher = ATTRIBUTES.matcher(attributesText);
-                        while (amatcher.find()) {
-                            spansBuilder.add(Collections.emptyList(), amatcher.start() - attrLastEnd);
-                            spansBuilder.add(Collections.singleton("attribute"), amatcher.end(GROUP_ATTRIBUTE_NAME) - amatcher.start(GROUP_ATTRIBUTE_NAME));
-                            spansBuilder.add(Collections.singleton("tagmark"), amatcher.end(GROUP_EQUAL_SYMBOL) - amatcher.end(GROUP_ATTRIBUTE_NAME));
-                            spansBuilder.add(Collections.singleton("avalue"), amatcher.end(GROUP_ATTRIBUTE_VALUE) - amatcher.end(GROUP_EQUAL_SYMBOL));
-                            attrLastEnd = amatcher.end();
-                        }
-                        if (attributesText.length() > attrLastEnd) {
-                            spansBuilder.add(Collections.emptyList(), attributesText.length() - attrLastEnd);
-                        }
-                    }
-
-                    lastKwEnd = matcher.end(GROUP_ATTRIBUTES_SECTION);
-
-                    spansBuilder.add(Collections.singleton("tagmark"), matcher.end(GROUP_CLOSE_BRACKET) - lastKwEnd);
-                }
+            } else if (matcher.group("CDATA") != null) {
+                spansBuilder.add(Collections.singleton("tagmark"), matcher.end("CDOPEN") - matcher.start("CDOPEN"));
+                spansBuilder.add(Collections.emptyList(), matcher.end("CDBODY") - matcher.start("CDBODY"));
+                spansBuilder.add(Collections.singleton("tagmark"), matcher.end("CDCLOSE") - matcher.start("CDCLOSE"));
+            } else if (matcher.group("PI") != null) {
+                spansBuilder.add(Collections.singleton("tagmark"), matcher.end("PIOPEN") - matcher.start("PIOPEN"));
+                spansBuilder.add(Collections.singleton("anytag"), matcher.end("PITARGET") - matcher.start("PITARGET"));
+                addAttributeSpans(matcher.group("PIBODY"), spansBuilder);
+                spansBuilder.add(Collections.singleton("tagmark"), matcher.end("PICLOSE") - matcher.start("PICLOSE"));
+            } else if (matcher.group("ELEMENT") != null) {
+                spansBuilder.add(Collections.singleton("tagmark"), matcher.end(GROUP_OPEN_BRACKET) - matcher.start(GROUP_OPEN_BRACKET));
+                spansBuilder.add(Collections.singleton("anytag"), matcher.end(GROUP_ELEMENT_NAME) - matcher.end(GROUP_OPEN_BRACKET));
+                addAttributeSpans(matcher.group(GROUP_ATTRIBUTES_SECTION), spansBuilder);
+                spansBuilder.add(Collections.singleton("tagmark"), matcher.end(GROUP_CLOSE_BRACKET) - matcher.end(GROUP_ATTRIBUTES_SECTION));
             }
             lastKwEnd = matcher.end();
         }
         spansBuilder.add(Collections.emptyList(), text.length() - lastKwEnd);
         return spansBuilder.create();
+    }
+
+    /**
+     * Emits spans covering exactly {@code attributesText}: attribute names, '=' and quoted
+     * values styled, everything else unstyled. Shared by the ELEMENT branch and the
+     * processing-instruction branch (whose pseudo-attributes use the same syntax).
+     */
+    private static void addAttributeSpans(String attributesText, StyleSpansBuilder<Collection<String>> spansBuilder) {
+        if (attributesText == null || attributesText.isEmpty()) {
+            return;
+        }
+        int attrLastEnd = 0;
+        Matcher amatcher = ATTRIBUTES.matcher(attributesText);
+        while (amatcher.find()) {
+            spansBuilder.add(Collections.emptyList(), amatcher.start() - attrLastEnd);
+            spansBuilder.add(Collections.singleton("attribute"), amatcher.end(GROUP_ATTRIBUTE_NAME) - amatcher.start(GROUP_ATTRIBUTE_NAME));
+            spansBuilder.add(Collections.singleton("tagmark"), amatcher.end(GROUP_EQUAL_SYMBOL) - amatcher.end(GROUP_ATTRIBUTE_NAME));
+            spansBuilder.add(Collections.singleton("avalue"), amatcher.end(GROUP_ATTRIBUTE_VALUE) - amatcher.end(GROUP_EQUAL_SYMBOL));
+            attrLastEnd = amatcher.end();
+        }
+        if (attributesText.length() > attrLastEnd) {
+            spansBuilder.add(Collections.emptyList(), attributesText.length() - attrLastEnd);
+        }
     }
 }
