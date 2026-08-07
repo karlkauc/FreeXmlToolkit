@@ -139,6 +139,6 @@ public void setName(String name) {
 
 ## CSS
 
-- `css/design-tokens.css` — `-fxt-*` variables (Light + Dark), Indigo `#3B5BDB` primary
+- `css/design-tokens.css` — `-fxt-*` variables (Light + Dark), saturated blue `#1373D9` primary (Thunderbird-Supernova look)
 - `css/unified-shell.css` — all shell styling (`fxt-*` classes)
 - Figma source of truth: file `oqJVcInD6RgKaQ4dYmMWYh` ("FreeXmlToolkit — UI Modernization")

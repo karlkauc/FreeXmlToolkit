@@ -27,9 +27,10 @@ class DesignTokensTest {
 
     @Test
     void primaryAndAccentMatchFigmaTokens() {
-        assertEquals(Color.web("#3b5bdb"),
+        // Thunderbird-Supernova-style saturated blue (was indigo #3b5bdb/#5c7cfa).
+        assertEquals(Color.web("#1373d9"),
                 DesignTokens.ColorToken.PRIMARY.color(DesignTokens.Theme.LIGHT));
-        assertEquals(Color.web("#5c7cfa"),
+        assertEquals(Color.web("#4c9bf5"),
                 DesignTokens.ColorToken.PRIMARY.color(DesignTokens.Theme.DARK));
         assertEquals(Color.web("#f08c2e"),
                 DesignTokens.ColorToken.ACCENT.color(DesignTokens.Theme.LIGHT));
