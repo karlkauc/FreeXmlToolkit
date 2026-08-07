@@ -111,6 +111,12 @@ public class XmlCanvasView extends Pane implements XmlSearchTarget {
     private static final double MIN_NAME_COL_WIDTH = 120;
     private static final double MIN_VALUE_COL_WIDTH = 100;
 
+    /**
+     * Approximate glyph width in pixels for ROW_FONT (Monospaced 12).
+     * Must stay in sync with RepeatingElementsTable.SUB_ROW_CHAR_WIDTH.
+     */
+    private static final double CHAR_WIDTH = 7.2;
+
     /** Calculated name column width (adapts to content). */
     private double nameColumnWidth = MIN_NAME_COL_WIDTH;
 
@@ -1207,7 +1213,7 @@ public class XmlCanvasView extends Pane implements XmlSearchTarget {
                 // attribute color, right after the value.
                 String attributeSuffix = row.getAttributeSuffix(colName);
                 if (attributeSuffix != null && !attributeSuffix.isEmpty()) {
-                    double valueWidth = shownValue.length() * 7; // same approximation as truncateText
+                    double valueWidth = shownValue.length() * CHAR_WIDTH; // same approximation as truncateText
                     double suffixSpace = cellTextWidth - valueWidth - 8;
                     if (suffixSpace > 20) {
                         gc.setFill(TEXT_ATTRIBUTE_NAME);
@@ -1264,28 +1270,17 @@ public class XmlCanvasView extends Pane implements XmlSearchTarget {
 
         double cellPadding = RepeatingElementsTable.CELL_PADDING;
 
-        // Calculate the required name column width for this cell's content.
-        // This mirrors the formula in RepeatingElementsTable.calculateColumnWidths().
+        // Size the name column to the widest visible name portion. Names always
+        // win over values: calculateColumnWidths() guarantees the column is at
+        // least CELL_PADDING * 2 + max(subRowNameColumnWidth), so names are never
+        // truncated; values get the remaining width and may be ellipsized.
         double cellNameColWidth = 0;
-        double maxValueWidth = 0;
         for (FlatRow row : visibleCellRows) {
-            double indent = row.getDepth() * INDENT + ICON_AREA_WIDTH;
-            double labelW = (row.getLabel() != null ? row.getLabel().length() * 7.2 : 0);
-            double expandW = row.isExpandable() ? EXPAND_BAR_WIDTH : 0;
-            cellNameColWidth = Math.max(cellNameColWidth, indent + expandW + labelW + 20);
-            if (row.getValue() != null) {
-                maxValueWidth = Math.max(maxValueWidth, row.getValue().length() * 7.2);
-            }
+            cellNameColWidth = Math.max(cellNameColWidth,
+                    RepeatingElementsTable.subRowNameColumnWidth(row));
         }
-        // Soft cap: reserve space for the widest actual value instead of a hard
-        // 50% cap, so labels can use as much room as the column was sized for.
-        // calculateColumnWidths() grows the column to fit both label and value,
-        // so this branch only clamps when MAX_COLUMN_WIDTH_EXPANDED has kicked in.
-        double maxAllowedNameColWidth = cellWidth - cellPadding * 2 - maxValueWidth;
-        if (maxAllowedNameColWidth < 40) {
-            maxAllowedNameColWidth = Math.max(40, cellWidth - cellPadding * 2 - 40);
-        }
-        cellNameColWidth = Math.min(cellNameColWidth, maxAllowedNameColWidth);
+        // Safety net only — inert while the sizing guarantee above holds.
+        cellNameColWidth = Math.min(cellNameColWidth, cellWidth - cellPadding * 2);
 
         // Draw tree connection lines within cell
         drawCellTreeLines(visibleCellRows, cellX + cellPadding, cellY);
@@ -1323,7 +1318,7 @@ public class XmlCanvasView extends Pane implements XmlSearchTarget {
             if (row.isExpandable()) {
                 gc.setFont(SMALL_FONT);
                 gc.setFill(TEXT_SECONDARY);
-                double afterLabel = labelX + (row.getLabel() != null ? row.getLabel().length() * 7.2 : 0) + 4;
+                double afterLabel = labelX + (row.getLabel() != null ? row.getLabel().length() * CHAR_WIDTH : 0) + 4;
                 gc.fillText("(" + row.getChildCount() + ")", afterLabel, rowCenterY);
             }
 
@@ -1683,7 +1678,7 @@ public class XmlCanvasView extends Pane implements XmlSearchTarget {
         if (text == null) {
             return "";
         }
-        int maxChars = (int) (maxWidth / 7);
+        int maxChars = (int) (maxWidth / CHAR_WIDTH);
         if (text.length() <= maxChars) {
             return text;
         }

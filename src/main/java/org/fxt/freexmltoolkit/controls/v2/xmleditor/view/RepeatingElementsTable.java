@@ -68,6 +68,9 @@ public class RepeatingElementsTable {
 
     /**
      * The maximum width of a table column in pixels when it has expanded cells.
+     * This cap only limits value-driven growth; the column always stays at least
+     * wide enough for the widest sub-row name portion (see
+     * {@link #subRowNameColumnWidth(FlatRow)}), even beyond this cap.
      */
     public static final double MAX_COLUMN_WIDTH_EXPANDED = 500;
 
@@ -107,6 +110,12 @@ public class RepeatingElementsTable {
 
     /** Gap between the label and the value column inside a sub-row. */
     private static final double SUB_ROW_LABEL_VALUE_GAP = 20;
+
+    /** Approximate glyph width in pixels for XmlCanvasView.SMALL_FONT (Monospaced 10). */
+    private static final double SUB_ROW_SMALL_CHAR_WIDTH = 6.0;
+
+    /** Gap between the label and the "(n)" child-count suffix inside a sub-row. */
+    private static final double SUB_ROW_CHILD_COUNT_GAP = 4;
 
     // ==================== Column Order Cache ====================
     // Caches the original column order per element name to maintain stability after sorting
@@ -893,22 +902,50 @@ public class RepeatingElementsTable {
     }
 
     /**
+     * Calculates the width of the "name portion" of a sub-row inside an expanded
+     * complex cell: indentation, expand bar, icon area, label, the "(n)" child-count
+     * suffix for expandable rows, and the label/value gap — everything left of the
+     * value column, excluding {@link #CELL_PADDING}.
+     *
+     * <p>This is the single source of truth shared by {@link #calculateColumnWidths()}
+     * and {@link XmlCanvasView#renderCellTree(List, double, double, double)}. The
+     * invariant both sides rely on: <em>column width &ge; CELL_PADDING * 2 + the
+     * maximum of this value over all visible sub-rows</em>, so node names are never
+     * truncated.</p>
+     */
+    static double subRowNameColumnWidth(FlatRow row) {
+        double width = row.getDepth() * SUB_ROW_INDENT + SUB_ROW_ICON_AREA_WIDTH;
+        if (row.isExpandable()) {
+            width += SUB_ROW_EXPAND_BAR_WIDTH;
+        }
+        if (row.getLabel() != null) {
+            width += row.getLabel().length() * SUB_ROW_CHAR_WIDTH;
+        }
+        if (row.isExpandable()) {
+            String suffix = "(" + row.getChildCount() + ")";
+            width += SUB_ROW_CHILD_COUNT_GAP + suffix.length() * SUB_ROW_SMALL_CHAR_WIDTH;
+        }
+        return width + SUB_ROW_LABEL_VALUE_GAP;
+    }
+
+    /**
      * Calculates optimal column widths based on content.
      *
      * <p>Takes into account both the regular row values and the content of any
      * expanded complex cells. When a column contains an expanded cell, its width
      * is allowed to grow up to {@link #MAX_COLUMN_WIDTH_EXPANDED}; otherwise the
-     * cap is {@link #MAX_COLUMN_WIDTH}. This way the column auto-resizes on
-     * expand and shrinks back on collapse, and the formula used here mirrors
-     * the layout inside
-     * {@link XmlCanvasView#renderCellTree(List, double, double, double)} so the
-     * computed width is exactly what the renderer needs to show everything
-     * without ellipsis.</p>
+     * cap is {@link #MAX_COLUMN_WIDTH}. The cap only limits value-driven growth:
+     * the column never drops below the widest sub-row name portion (see
+     * {@link #subRowNameColumnWidth(FlatRow)}), so names are always fully visible
+     * while values may be truncated by the renderer. The formula mirrors the
+     * layout inside
+     * {@link XmlCanvasView#renderCellTree(List, double, double, double)}.</p>
      */
     private void calculateColumnWidths() {
         for (TableColumn col : columns) {
             double maxWidth = col.getDisplayName().length() * 8 + CELL_PADDING * 2;
             boolean anyCellExpanded = false;
+            double maxNameCol = 0;
 
             for (TableRow row : rows) {
                 String value = row.getValue(col.getName());
@@ -920,37 +957,31 @@ public class RepeatingElementsTable {
                 maxWidth = Math.max(maxWidth, valueWidth);
 
                 // Account for expanded cell content (only visible sub-rows contribute).
+                // The renderer aligns all values at one shared name column, so the
+                // width must cover max(name portion) + max(value) across sub-rows,
+                // not just the widest single-row sum.
                 if (row.isColumnExpanded(col.getName())) {
                     anyCellExpanded = true;
+                    double maxSubValue = 0;
                     List<FlatRow> cellRows = row.getExpandedCellRows(col.getName());
                     for (FlatRow subRow : cellRows) {
                         if (!subRow.isVisible()) {
                             continue;
                         }
-                        double subIndent = subRow.getDepth() * SUB_ROW_INDENT;
-                        double expandW = subRow.isExpandable() ? SUB_ROW_EXPAND_BAR_WIDTH : 0;
-                        double labelW = (subRow.getLabel() != null
-                                ? subRow.getLabel().length() * SUB_ROW_CHAR_WIDTH
-                                : 0);
-                        double valueW = (subRow.getValue() != null
-                                ? subRow.getValue().length() * SUB_ROW_CHAR_WIDTH
-                                : 0);
-                        double subRowWidth = CELL_PADDING
-                                + subIndent
-                                + expandW
-                                + SUB_ROW_ICON_AREA_WIDTH
-                                + labelW
-                                + SUB_ROW_LABEL_VALUE_GAP
-                                + valueW
-                                + CELL_PADDING;
-                        maxWidth = Math.max(maxWidth, subRowWidth);
+                        maxNameCol = Math.max(maxNameCol, subRowNameColumnWidth(subRow));
+                        if (subRow.getValue() != null) {
+                            maxSubValue = Math.max(maxSubValue,
+                                    subRow.getValue().length() * SUB_ROW_CHAR_WIDTH);
+                        }
                     }
+                    maxWidth = Math.max(maxWidth, CELL_PADDING * 2 + maxNameCol + maxSubValue);
                 }
             }
 
             double effectiveMax = anyCellExpanded ? MAX_COLUMN_WIDTH_EXPANDED : MAX_COLUMN_WIDTH;
             double clamped = Math.max(MIN_COLUMN_WIDTH, Math.min(maxWidth, effectiveMax));
-            col.setWidth(clamped);
+            // Names always fit: the name portion may exceed the expanded cap.
+            col.setWidth(Math.max(clamped, CELL_PADDING * 2 + maxNameCol));
         }
     }
 

@@ -436,9 +436,115 @@ class RepeatingElementsTableTest {
     }
 
     /**
-     * Verifies that even very large expanded content does not push the column
-     * beyond {@code MAX_COLUMN_WIDTH_EXPANDED}. This prevents a single massive
-     * element from blowing up the whole table layout.
+     * When the longest sub-row NAME and the longest sub-row VALUE live in
+     * different rows and their combined width exceeds the expanded cap, the
+     * column must still reserve the full name portion — names always win,
+     * only values may be truncated by the renderer. This is the regression
+     * test for names being ellipsized ("Maturi...") in expanded cells.
+     */
+    @Test
+    void testColumnWidthGuaranteesNamePortionWithLongValueSibling() {
+        XmlElement asset = new XmlElement("Asset");
+        XmlElement details = new XmlElement("AssetDetails");
+        details.addChild(createElementWithText(
+                "AVeryLongElementNameThatMustNeverBeTruncatedInTheGridView", "x"));
+        details.addChild(createElementWithText("Sibling",
+                "a very long text value in a sibling row that pushes the combined width far past the expanded cap"));
+        asset.addChild(details);
+
+        RepeatingElementsTable table = new RepeatingElementsTable(
+                "Asset", List.of(asset), 0, () -> {});
+        RepeatingElementsTable.TableColumn col = table.getColumns().stream()
+                .filter(c -> "AssetDetails".equals(c.getName()))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("AssetDetails column not found"));
+
+        RepeatingElementsTable.TableRow row = table.getRows().get(0);
+        row.toggleColumnExpanded("AssetDetails");
+        table.recalculateColumnWidths();
+
+        double maxNamePortion = row.getExpandedCellRows("AssetDetails").stream()
+                .filter(FlatRow::isVisible)
+                .mapToDouble(RepeatingElementsTable::subRowNameColumnWidth)
+                .max()
+                .orElseThrow();
+
+        assertTrue(col.getWidth() >= RepeatingElementsTable.CELL_PADDING * 2 + maxNamePortion,
+                "Column must reserve the full name portion (width=" + col.getWidth()
+                        + ", required=" + (RepeatingElementsTable.CELL_PADDING * 2 + maxNamePortion) + ")");
+    }
+
+    /**
+     * When the name portion ALONE exceeds {@code MAX_COLUMN_WIDTH_EXPANDED},
+     * the column must grow past the cap: the cap only limits value-driven
+     * growth, never the space names need (the table scrolls horizontally).
+     */
+    @Test
+    void testColumnWidthExceedsExpandedCapWhenNamesRequireIt() {
+        XmlElement asset = new XmlElement("Asset");
+        XmlElement nested = new XmlElement("Nested");
+        XmlElement wrapper = new XmlElement("Wrapper");
+        wrapper.addChild(createElementWithText(
+                "AnExtremelyLongDeeplyNestedElementNameThatAloneExceedsTheExpandedCapWidth", "x"));
+        nested.addChild(wrapper);
+        asset.addChild(nested);
+
+        RepeatingElementsTable table = new RepeatingElementsTable(
+                "Asset", List.of(asset), 0, () -> {});
+        RepeatingElementsTable.TableColumn col = table.getColumns().stream()
+                .filter(c -> "Nested".equals(c.getName()))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Nested column not found"));
+
+        RepeatingElementsTable.TableRow row = table.getRows().get(0);
+        row.toggleColumnExpanded("Nested");
+        table.recalculateColumnWidths();
+
+        double maxNamePortion = row.getExpandedCellRows("Nested").stream()
+                .filter(FlatRow::isVisible)
+                .mapToDouble(RepeatingElementsTable::subRowNameColumnWidth)
+                .max()
+                .orElseThrow();
+
+        assertTrue(RepeatingElementsTable.CELL_PADDING * 2 + maxNamePortion
+                        > RepeatingElementsTable.MAX_COLUMN_WIDTH_EXPANDED,
+                "Test setup: the name portion alone must exceed the expanded cap");
+        assertTrue(col.getWidth() > RepeatingElementsTable.MAX_COLUMN_WIDTH_EXPANDED,
+                "Column must exceed the expanded cap when names require it, was " + col.getWidth());
+        assertEquals(RepeatingElementsTable.CELL_PADDING * 2 + maxNamePortion, col.getWidth(), 0.001,
+                "Column width must equal exactly the name-portion floor");
+    }
+
+    /**
+     * The "(n)" child-count suffix drawn after expandable labels must be part
+     * of the name-portion budget so it never collides with the value column.
+     */
+    @Test
+    void testChildCountSuffixBudgetedInNameColumnWidth() {
+        FlatRow leaf = new FlatRow(FlatRow.RowType.ELEMENT, 0, null, null, "Item", "v", 0);
+        FlatRow expandable5 = new FlatRow(FlatRow.RowType.ELEMENT, 0, null, null, "Item", null, 5);
+        FlatRow expandable12 = new FlatRow(FlatRow.RowType.ELEMENT, 0, null, null, "Item", null, 12);
+
+        // "(12)" has one glyph more than "(5)" → exactly SUB_ROW_SMALL_CHAR_WIDTH (6.0) wider.
+        assertEquals(6.0,
+                RepeatingElementsTable.subRowNameColumnWidth(expandable12)
+                        - RepeatingElementsTable.subRowNameColumnWidth(expandable5),
+                0.001,
+                "A longer child-count suffix must widen the name portion per glyph");
+
+        // Expandable vs leaf: expand bar (12) + suffix gap (4) + "(5)" (3 * 6.0 = 18) = 34.
+        assertEquals(34.0,
+                RepeatingElementsTable.subRowNameColumnWidth(expandable5)
+                        - RepeatingElementsTable.subRowNameColumnWidth(leaf),
+                0.001,
+                "Expandable rows must budget expand bar and child-count suffix");
+    }
+
+    /**
+     * Verifies that value-driven growth does not push the column beyond
+     * {@code MAX_COLUMN_WIDTH_EXPANDED}. This prevents a single massive text
+     * value from blowing up the whole table layout. (Name-driven growth may
+     * exceed the cap — see testColumnWidthExceedsExpandedCapWhenNamesRequireIt.)
      */
     @Test
     void testColumnWidthCappedAtMaxExpanded() {
