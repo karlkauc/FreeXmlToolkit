@@ -1,10 +1,15 @@
 package org.fxt.freexmltoolkit.controls.v2.model;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Optional;
 
+import org.fxt.freexmltoolkit.service.NamespaceSchemaDownloader;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -555,5 +560,94 @@ class XsdNodeFactoryIncludeImportResolutionTest {
                 "importedSchemas should contain ns1");
         assertTrue(importedSchemas.containsKey("http://example.com/ns2"),
                 "importedSchemas should contain ns2");
+    }
+
+    // ========================================================================
+    // Namespace-URL fallback tests
+    // ========================================================================
+
+    @Test
+    void testImportResolvesViaNamespaceUrlFallback(@TempDir Path tempDir) throws Exception {
+        String importedXsd = """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                           targetNamespace="http://example.com/remote#">
+                    <xs:element name="RemoteElement" type="xs:string"/>
+                </xs:schema>
+                """;
+
+        String mainXsd = """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                           xmlns:r="http://example.com/remote#"
+                           targetNamespace="http://example.com/main">
+                    <xs:import namespace="http://example.com/remote#" schemaLocation="remote-schema.xsd"/>
+                    <xs:element name="root" type="xs:string"/>
+                </xs:schema>
+                """;
+
+        // The imported file does NOT exist locally; the (mocked) downloader resolves
+        // it via the namespace URL and hands back cached content.
+        Path mainFile = Files.writeString(tempDir.resolve("main.xsd"), mainXsd);
+        Path cachedFile = Files.writeString(tempDir.resolve("cached-remote.xsd"), importedXsd);
+
+        NamespaceSchemaDownloader downloader = mock(NamespaceSchemaDownloader.class);
+        when(downloader.resolve("http://example.com/remote#", "remote-schema.xsd"))
+                .thenReturn(Optional.of(new NamespaceSchemaDownloader.ResolvedNamespaceSchema(
+                        importedXsd, cachedFile, "https://example.com/final/remote-schema.xsd")));
+
+        XsdNodeFactory factory = new XsdNodeFactory();
+        factory.setRemoteNamespaceFallbackEnabled(true);
+        factory.setNamespaceSchemaDownloader(downloader);
+        XsdSchema schema = factory.fromFile(mainFile);
+
+        assertNotNull(schema);
+
+        XsdImport xsdImport = schema.getChildren().stream()
+                .filter(n -> n instanceof XsdImport)
+                .map(n -> (XsdImport) n)
+                .findFirst()
+                .orElse(null);
+        assertNotNull(xsdImport, "Import node should be present");
+        assertNotNull(xsdImport.getImportedSchema(),
+                "Import should be resolved via the namespace-URL fallback");
+        assertEquals(cachedFile, xsdImport.getResolvedPath(),
+                "Resolved path should point to the cached schema file");
+
+        var importedSchemas = schema.getImportedSchemas();
+        assertTrue(importedSchemas.containsKey("http://example.com/remote#"),
+                "importedSchemas should contain the fallback-resolved namespace");
+    }
+
+    @Test
+    void testImportMissingFileWithDisabledFallbackDoesNotUseDownloader(@TempDir Path tempDir) throws Exception {
+        String mainXsd = """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                           targetNamespace="http://example.com/main">
+                    <xs:import namespace="http://example.com/missing" schemaLocation="missing.xsd"/>
+                    <xs:element name="test" type="xs:string"/>
+                </xs:schema>
+                """;
+
+        Path mainFile = Files.writeString(tempDir.resolve("main.xsd"), mainXsd);
+
+        NamespaceSchemaDownloader downloader = mock(NamespaceSchemaDownloader.class);
+
+        XsdNodeFactory factory = new XsdNodeFactory();
+        factory.setRemoteNamespaceFallbackEnabled(false);
+        factory.setNamespaceSchemaDownloader(downloader);
+        XsdSchema schema = factory.fromFile(mainFile);
+
+        assertNotNull(schema);
+        XsdImport xsdImport = schema.getChildren().stream()
+                .filter(n -> n instanceof XsdImport)
+                .map(n -> (XsdImport) n)
+                .findFirst()
+                .orElse(null);
+        assertNotNull(xsdImport);
+        assertNull(xsdImport.getImportedSchema(), "Import should stay unresolved");
+        assertNotNull(xsdImport.getResolutionError(), "Resolution error should be set");
+        verifyNoInteractions(downloader);
     }
 }

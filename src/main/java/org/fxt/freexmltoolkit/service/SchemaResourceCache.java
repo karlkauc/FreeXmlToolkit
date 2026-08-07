@@ -36,6 +36,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HexFormat;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -376,6 +377,34 @@ public class SchemaResourceCache {
                 includes.isEmpty() ? List.of() : List.copyOf(includes),
                 redefines.isEmpty() ? List.of() : List.copyOf(redefines)
         );
+    }
+
+    /**
+     * Finds a cached schema file by its target namespace.
+     *
+     * <p>The cache index records the {@code targetNamespace} of every downloaded schema,
+     * so a schema that was once resolved for a namespace can be served again without
+     * any network access (offline support).</p>
+     *
+     * @param targetNamespace the target namespace to look up
+     * @return the local path of a cached schema with that target namespace, or empty if none
+     */
+    public Optional<Path> findCachedByTargetNamespace(String targetNamespace) {
+        if (targetNamespace == null || targetNamespace.isBlank()) {
+            return Optional.empty();
+        }
+        for (SchemaCacheEntry entry : cacheIndex.getEntries().values()) {
+            if (entry.schema() != null && targetNamespace.equals(entry.schema().targetNamespace())) {
+                Path localPath = CACHE_DIR.resolve(entry.localFilename());
+                if (Files.exists(localPath)) {
+                    cacheHits.incrementAndGet();
+                    cacheIndex.recordAccess(entry.localFilename());
+                    logger.debug("Cache hit by targetNamespace: {} -> {}", targetNamespace, localPath);
+                    return Optional.of(localPath);
+                }
+            }
+        }
+        return Optional.empty();
     }
 
     /**

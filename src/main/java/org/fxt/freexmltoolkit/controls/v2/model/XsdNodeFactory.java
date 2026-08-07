@@ -20,6 +20,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.service.ConnectionService;
+import org.fxt.freexmltoolkit.service.NamespaceSchemaDownloader;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -67,6 +68,22 @@ public class XsdNodeFactory {
      * When true (default), nodes are tagged with their source file information.
      */
     private boolean preserveIncludeStructure = true;
+
+    /**
+     * Flag to control whether imports whose schemaLocation cannot be resolved locally
+     * may be resolved by looking up the schema under the import's namespace URL.
+     * Enabled by default; the test suite disables it globally via the system property
+     * {@code fxt.schema.namespaceFallback=false} to avoid network access (individual
+     * tests re-enable it with an injected downloader).
+     */
+    private boolean remoteNamespaceFallbackEnabled =
+            Boolean.parseBoolean(System.getProperty("fxt.schema.namespaceFallback", "true"));
+
+    /**
+     * Lazily created downloader for the namespace-URL fallback (avoids loading the
+     * schema cache index for schemas without imports). Tests may inject a stub.
+     */
+    private NamespaceSchemaDownloader namespaceSchemaDownloader;
 
     /**
      * Creates an XSD model from a file.
@@ -125,6 +142,32 @@ public class XsdNodeFactory {
      */
     public boolean isPreserveIncludeStructure() {
         return preserveIncludeStructure;
+    }
+
+    /**
+     * Sets whether imports with locally unresolvable schemaLocations may be resolved
+     * by looking up the schema under the import's namespace URL.
+     *
+     * @param enabled true to allow the namespace-URL fallback (default), false to disable
+     */
+    public void setRemoteNamespaceFallbackEnabled(boolean enabled) {
+        this.remoteNamespaceFallbackEnabled = enabled;
+    }
+
+    /**
+     * Injects the downloader used for the namespace-URL fallback (used by tests).
+     *
+     * @param downloader the downloader to use, or null to create one lazily on first use
+     */
+    void setNamespaceSchemaDownloader(NamespaceSchemaDownloader downloader) {
+        this.namespaceSchemaDownloader = downloader;
+    }
+
+    private NamespaceSchemaDownloader namespaceSchemaDownloader() {
+        if (namespaceSchemaDownloader == null) {
+            namespaceSchemaDownloader = new NamespaceSchemaDownloader();
+        }
+        return namespaceSchemaDownloader;
     }
 
     /**
@@ -1844,6 +1887,19 @@ public class XsdNodeFactory {
 
             // Load the schema content
             String schemaContent = loadSchemaFromLocation(schemaLocation);
+
+            // Fallback: if the schemaLocation cannot be resolved locally, try to find the
+            // schema under the import's namespace URL (e.g. W3C-hosted schemas like xmldsig)
+            if ((schemaContent == null || schemaContent.isEmpty()) && remoteNamespaceFallbackEnabled) {
+                var namespaceResolved = namespaceSchemaDownloader().resolve(namespace, schemaLocation);
+                if (namespaceResolved.isPresent()) {
+                    schemaContent = namespaceResolved.get().content();
+                    resolvedPath = namespaceResolved.get().cachedPath();
+                    logger.info("Resolved import for namespace {} via namespace URL: {}",
+                            namespace, namespaceResolved.get().sourceUrl());
+                }
+            }
+
             if (schemaContent == null || schemaContent.isEmpty()) {
                 logger.warn("Failed to load schema content from: {}", schemaLocation);
                 xsdImport.markResolutionFailed("Failed to load schema content");
@@ -1852,6 +1908,8 @@ public class XsdNodeFactory {
 
             // Parse the imported schema
             XsdNodeFactory importFactory = new XsdNodeFactory();
+            importFactory.setRemoteNamespaceFallbackEnabled(remoteNamespaceFallbackEnabled);
+            importFactory.setNamespaceSchemaDownloader(namespaceSchemaDownloader);
             XsdSchema importedSchema = importFactory.fromString(schemaContent);
             String importKey = namespace != null ? namespace : schemaLocation;
             importedSchemas.put(importKey, importedSchema);

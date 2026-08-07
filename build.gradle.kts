@@ -197,6 +197,11 @@ tasks {
         // never in the developer's real home directory.
         val isolatedHome = layout.buildDirectory.dir("test-home")
         systemProperty("user.home", isolatedHome.get().asFile.absolutePath)
+        // No network access from schema parsing in tests: the namespace-URL import
+        // fallback (XsdNodeFactory) would otherwise try to download schemas for every
+        // unresolvable http-namespace import (e.g. xmldsig in FundsXML fixtures).
+        // Tests that cover the fallback re-enable it with an injected downloader.
+        systemProperty("fxt.schema.namespaceFallback", "false")
         doFirst {
             val propsFile = isolatedProps.get().asFile
             propsFile.parentFile.mkdirs()
@@ -360,6 +365,9 @@ tasks.test {
 
     // Forward the opt-in flag for FundsXmlDownloadIntegrationTest (real GitHub).
     System.getProperty("fundsxml.integration")?.let { systemProperty("fundsxml.integration", it) }
+
+    // Forward the opt-in flag for NamespaceUrlImportIntegrationTest (real W3C download).
+    System.getProperty("namespace.integration")?.let { systemProperty("namespace.integration", it) }
 
     // Suppress the modal action-failure dialogs (DialogHelper.notifyActionFailure) during tests:
     // several TestFX tests deliberately exercise error paths, and a blocking showAndWait() on the
