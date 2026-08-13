@@ -699,11 +699,12 @@ file system. The menus group entries by favorites folder when you use more than 
 are grayed out while you have no matching favorites. (See
 [Favorites](favorites-system.md).)
 
-*(new in August 2026)* The **Schematron row is also a drop target**: drop a `.sch` /
-`.schematron` file from your file manager onto it to bind it to the active document in
-one move - the row glows **green** while a loadable file hovers over it and **red** for
-a wrong file type (which is rejected). The dropped file behaves exactly like one picked
-via **Change**, including appearing in the recent Schematron list.
+*(new in August 2026)* **Both source rows are drop targets**: drop an `.xsd` file from
+your file manager onto the XSD row, or a `.sch` / `.schematron` file onto the Schematron
+row, to bind it to the active document in one move - the row glows **green** while a
+loadable file hovers over it and **red** for a wrong file type (which is rejected). The
+dropped file behaves exactly like one picked via **Change** or a favorite, including
+appearing in the recent list.
 
 - **The referenced XSD binds automatically.** When the XML declares its schema
   (`xsi:schemaLocation` / `xsi:noNamespaceSchemaLocation` - local or remote), that XSD is
@@ -1384,7 +1385,7 @@ Editor's XPath/XQuery panel and vice versa.
 
 Drag files from your file manager directly into the editor to open them. Multiple files can be dropped at once.
 
-*(new in August 2026)* Stylesheet and Schematron **pickers are drop targets too**:
+*(new in August 2026)* Stylesheet, Schematron and XSD **pickers are drop targets too**:
 
 - Drop an `.xsl` / `.xslt` file onto the Explorer's
   **[Stylesheet picker](#transform-bar-one-click-xslt-from-the-explorer)** or the Transform
@@ -1393,6 +1394,8 @@ Drag files from your file manager directly into the editor to open them. Multipl
   **[Schematron picker](#schematron-bar-one-click-validation-from-the-explorer)** or the
   Validation panel's **[SCHEMATRON source row](#sources)** to make it the current
   Schematron (and bind it to the active document).
+- Drop an `.xsd` file onto the Validation panel's **[XSD source row](#sources)** to bind
+  that schema to the active document.
 
 While you drag, the target shows **green** feedback when the file can be loaded there and
 **red** feedback when the extension does not match - a red drop is rejected and does
