@@ -385,6 +385,11 @@ or expand that section.
   stylesheet in a single click, or choose **Clear recent** to empty the list.
 - The **star icon** opens your **XSLT favorites** - see
   [Browsing favorites with ◀ / ▶](#browsing-favorites) below.
+- *(new in August 2026)* **Drag & drop**: drop an `.xsl` / `.xslt` file from your file
+  manager straight onto the STYLESHEET row - it becomes the current stylesheet, exactly
+  as if you had picked it via **Change**. While dragging, the row glows **green** when
+  the file can be loaded and **red** when it has the wrong extension (a red drop is
+  rejected).
 
 ### INPUT
 
@@ -573,6 +578,11 @@ The bar has two controls:
     - reapply one of your **recently used stylesheets** (listed at the top),
     - **Choose stylesheet…** - pick an `.xsl` / `.xslt` file from disk, or
     - **Clear recent** - empty the recent list.
+
+    *(new in August 2026)* You can also **drop** an `.xsl` / `.xslt` file from your file
+    manager directly onto the picker - it becomes the current stylesheet and joins the
+    recent list, just like choosing it from the menu. The picker glows **green** while a
+    loadable file hovers over it and **red** for a wrong file type (which is rejected).
 - **Transform** button (play icon) - runs the chosen stylesheet against your selected XML file(s).
   Tooltip: *"Transform selected XML file(s) with the current stylesheet"*.
 
@@ -617,6 +627,12 @@ The bar has two controls:
       [Validation panel](#validation-panel) offers),
     - **Choose Schematron…** - pick a `.sch` / `.schematron` file from disk, or
     - **Clear recent** - empty the recent list.
+
+    *(new in August 2026)* You can also **drop** a `.sch` / `.schematron` file from your
+    file manager directly onto the picker - it becomes the current Schematron and joins
+    the recent list, just like choosing it from the menu. The picker glows **green**
+    while a loadable file hovers over it and **red** for a wrong file type (which is
+    rejected).
 - **Validate** button (play icon) - validates your selected XML file(s) against the chosen
   Schematron. Tooltip: *"Validate selected XML file(s) with the current Schematron"*.
 
@@ -682,6 +698,12 @@ favorited Schematron files - pick one to bind it in a single click, without brow
 file system. The menus group entries by favorites folder when you use more than one, and
 are grayed out while you have no matching favorites. (See
 [Favorites](favorites-system.md).)
+
+*(new in August 2026)* The **Schematron row is also a drop target**: drop a `.sch` /
+`.schematron` file from your file manager onto it to bind it to the active document in
+one move - the row glows **green** while a loadable file hovers over it and **red** for
+a wrong file type (which is rejected). The dropped file behaves exactly like one picked
+via **Change**, including appearing in the recent Schematron list.
 
 - **The referenced XSD binds automatically.** When the XML declares its schema
   (`xsi:schemaLocation` / `xsi:noNamespaceSchemaLocation` - local or remote), that XSD is
@@ -1361,6 +1383,22 @@ Editor's XPath/XQuery panel and vice versa.
 ## Drag and Drop
 
 Drag files from your file manager directly into the editor to open them. Multiple files can be dropped at once.
+
+*(new in August 2026)* Stylesheet and Schematron **pickers are drop targets too**:
+
+- Drop an `.xsl` / `.xslt` file onto the Explorer's
+  **[Stylesheet picker](#transform-bar-one-click-xslt-from-the-explorer)** or the Transform
+  panel's **[STYLESHEET](#stylesheet)** row to make it the current stylesheet.
+- Drop a `.sch` / `.schematron` file onto the Explorer's
+  **[Schematron picker](#schematron-bar-one-click-validation-from-the-explorer)** or the
+  Validation panel's **[SCHEMATRON source row](#sources)** to make it the current
+  Schematron (and bind it to the active document).
+
+While you drag, the target shows **green** feedback when the file can be loaded there and
+**red** feedback when the extension does not match - a red drop is rejected and does
+**not** open the file in the editor. A valid drop behaves exactly like choosing the file
+via the picker: it is recorded in the recent list and shared between the Explorer bars
+and the panels. The feedback colors follow the light and dark theme.
 
 ## Where the former tabs went
 

@@ -260,7 +260,9 @@ Shell guide.
 Use Schematron validation directly in the XML Editor:
 
 1. Open an XML file in the XML Editor
-2. In the validation panel, select your Schematron file
+2. In the validation panel, select your Schematron file - or simply **drop** a `.sch` /
+   `.schematron` file from your file manager onto the panel's SCHEMATRON source row or
+   onto the Explorer's Schematron picker *(new in August 2026)*
 3. Errors are highlighted in the editor
 4. Click errors to jump to the problem location
 
