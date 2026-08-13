@@ -100,6 +100,9 @@ public class ValidationPanel extends VBox {
         xsdFavoritesMenu.getStyleClass().add("fxt-vp-source-fav");
         xsdFavoritesMenu.setOnShowing(e -> refreshXsdFavoritesMenu());
         HBox xsdRow = sourceRow("bi-diagram-3", xsdName, this::chooseXsd, xsdFavoritesMenu);
+        xsdRow.setId("validation-xsd-row");
+        org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(xsdRow,
+                org.fxt.freexmltoolkit.service.DragDropService.XSD_EXTENSIONS, this::useXsd);
         schematronFavoritesMenu = FavoritesMenu.create(
                 org.fxt.freexmltoolkit.domain.FileFavorite.FileType.SCHEMATRON,
                 "Schematron favorites", this::useSchematron);

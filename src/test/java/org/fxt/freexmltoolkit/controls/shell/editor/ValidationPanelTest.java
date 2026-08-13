@@ -405,6 +405,36 @@ class ValidationPanelTest {
         org.mockito.Mockito.verify(event).setDropCompleted(true);
     }
 
+    @Test
+    void droppingAnXsdOnTheSourceRowBindsItAndValidates(@TempDir Path tmp) throws Exception {
+        javafx.scene.layout.HBox row = (javafx.scene.layout.HBox) panel.lookup("#validation-xsd-row");
+        assertNotNull(row, "the XSD row must exist");
+        assertNotNull(row.getOnDragOver(), "the XSD row must accept file drags");
+
+        Path xml = tmp.resolve("doc.xml");
+        Files.writeString(xml, "<root><name>x</name></root>");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("root")).orElse(false));
+
+        Path xsd = tmp.resolve("dropped.xsd");
+        Files.writeString(xsd, XSD);
+        javafx.scene.input.Dragboard dragboard = org.mockito.Mockito.mock(javafx.scene.input.Dragboard.class);
+        org.mockito.Mockito.when(dragboard.hasFiles()).thenReturn(true);
+        org.mockito.Mockito.when(dragboard.getFiles()).thenReturn(java.util.List.of(xsd.toFile()));
+        javafx.scene.input.DragEvent event = org.mockito.Mockito.mock(javafx.scene.input.DragEvent.class);
+        org.mockito.Mockito.when(event.getDragboard()).thenReturn(dragboard);
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            row.getOnDragDropped().handle(event);
+            return null;
+        });
+
+        assertEquals(xsd.toFile(), host.activeSchemaProperty().get(),
+                "dropping must bind the XSD like choosing it");
+        org.mockito.Mockito.verify(event).setDropCompleted(true);
+    }
+
     private void open(Path xml, Path xsd) throws Exception {
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
         WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
