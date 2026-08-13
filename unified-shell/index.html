@@ -3983,6 +3983,11 @@ the same recent-stylesheet list and shows its result in the same OUTPUT panel.</
   stylesheet in a single click, or choose <strong>Clear recent</strong> to empty the list.</li>
 <li>The <strong>star icon</strong> opens your <strong>XSLT favorites</strong> - see
   <a href="#browsing-favorites">Browsing favorites with ◀ / ▶</a> below.</li>
+<li><em>(new in August 2026)</em> <strong>Drag &amp; drop</strong>: drop an <code>.xsl</code> / <code>.xslt</code> file from your file
+  manager straight onto the STYLESHEET row - it becomes the current stylesheet, exactly
+  as if you had picked it via <strong>Change</strong>. While dragging, the row glows <strong>green</strong> when
+  the file can be loaded and <strong>red</strong> when it has the wrong extension (a red drop is
+  rejected).</li>
 </ul>
 <h3 id="input">INPUT<a class="headerlink" href="#input" title="Permanent link">&para;</a></h3>
 <p>The INPUT section shows which document the transform will use as its input:</p>
@@ -4189,15 +4194,21 @@ stylesheet fixed and apply it to whichever XML file you pick in the tree - ideal
 running the same evaluation, dashboard, or data-quality stylesheet across many files.</p>
 <p>The bar has two controls:</p>
 <ul>
-<li><strong>Stylesheet picker</strong> - a dropdown (file-code icon) labelled <strong>"Stylesheet…"</strong> until you choose
-  one, then showing the chosen stylesheet's file name. Click it to:<ul>
+<li>
+<p><strong>Stylesheet picker</strong> - a dropdown (file-code icon) labelled <strong>"Stylesheet…"</strong> until you choose
+  one, then showing the chosen stylesheet's file name. Click it to:</p>
+<ul>
 <li>reapply one of your <strong>recently used stylesheets</strong> (listed at the top),</li>
 <li><strong>Choose stylesheet…</strong> - pick an <code>.xsl</code> / <code>.xslt</code> file from disk, or</li>
 <li><strong>Clear recent</strong> - empty the recent list.</li>
 </ul>
+<p><em>(new in August 2026)</em> You can also <strong>drop</strong> an <code>.xsl</code> / <code>.xslt</code> file from your file
+manager directly onto the picker - it becomes the current stylesheet and joins the
+recent list, just like choosing it from the menu. The picker glows <strong>green</strong> while a
+loadable file hovers over it and <strong>red</strong> for a wrong file type (which is rejected).
+- <strong>Transform</strong> button (play icon) - runs the chosen stylesheet against your selected XML file(s).
+  Tooltip: <em>"Transform selected XML file(s) with the current stylesheet"</em>.</p>
 </li>
-<li><strong>Transform</strong> button (play icon) - runs the chosen stylesheet against your selected XML file(s).
-  Tooltip: <em>"Transform selected XML file(s) with the current stylesheet"</em>.</li>
 </ul>
 <p>The chosen stylesheet is <strong>sticky</strong> and is <strong>shared with the <a href="#transform-panel">Transform panel</a></strong>:
 both places draw from the same recent-stylesheet list, so a stylesheet you pick here also appears
@@ -4231,17 +4242,24 @@ fixed and validates whichever XML file(s) you pick in the tree - ideal for repea
 checking many files against the same rule set.</p>
 <p>The bar has two controls:</p>
 <ul>
-<li><strong>Schematron picker</strong> - a dropdown (checks-grid icon) labelled <strong>"Schematron…"</strong> until you
-  choose one, then showing the chosen file's name. Click it to:<ul>
+<li>
+<p><strong>Schematron picker</strong> - a dropdown (checks-grid icon) labelled <strong>"Schematron…"</strong> until you
+  choose one, then showing the chosen file's name. Click it to:</p>
+<ul>
 <li>reapply one of your <strong>recently used Schematrons</strong> (listed at the top),</li>
 <li>pick one of your <strong>Favorites</strong> (the same Schematron favorites the
   <a href="#validation-panel">Validation panel</a> offers),</li>
 <li><strong>Choose Schematron…</strong> - pick a <code>.sch</code> / <code>.schematron</code> file from disk, or</li>
 <li><strong>Clear recent</strong> - empty the recent list.</li>
 </ul>
+<p><em>(new in August 2026)</em> You can also <strong>drop</strong> a <code>.sch</code> / <code>.schematron</code> file from your
+file manager directly onto the picker - it becomes the current Schematron and joins
+the recent list, just like choosing it from the menu. The picker glows <strong>green</strong>
+while a loadable file hovers over it and <strong>red</strong> for a wrong file type (which is
+rejected).
+- <strong>Validate</strong> button (play icon) - validates your selected XML file(s) against the chosen
+  Schematron. Tooltip: <em>"Validate selected XML file(s) with the current Schematron"</em>.</p>
 </li>
-<li><strong>Validate</strong> button (play icon) - validates your selected XML file(s) against the chosen
-  Schematron. Tooltip: <em>"Validate selected XML file(s) with the current Schematron"</em>.</li>
 </ul>
 <p>Picking a Schematron also <strong>binds it to the active document</strong>, so the
 <a href="#validation-panel">Validation panel</a> and live validation use it too. Clicking
@@ -4299,6 +4317,11 @@ favorited Schematron files - pick one to bind it in a single click, without brow
 file system. The menus group entries by favorites folder when you use more than one, and
 are grayed out while you have no matching favorites. (See
 <a href="../favorites-system/">Favorites</a>.)</p>
+<p><em>(new in August 2026)</em> The <strong>Schematron row is also a drop target</strong>: drop a <code>.sch</code> /
+<code>.schematron</code> file from your file manager onto it to bind it to the active document in
+one move - the row glows <strong>green</strong> while a loadable file hovers over it and <strong>red</strong> for
+a wrong file type (which is rejected). The dropped file behaves exactly like one picked
+via <strong>Change</strong>, including appearing in the recent Schematron list.</p>
 <ul>
 <li><strong>The referenced XSD binds automatically.</strong> When the XML declares its schema
   (<code>xsi:schemaLocation</code> / <code>xsi:noNamespaceSchemaLocation</code> - local or remote), that XSD is
@@ -5231,6 +5254,21 @@ their parentheses / <code>::</code> automatically.</p>
 Editor's XPath/XQuery panel and vice versa.</p>
 <h2 id="drag-and-drop">Drag and Drop<a class="headerlink" href="#drag-and-drop" title="Permanent link">&para;</a></h2>
 <p>Drag files from your file manager directly into the editor to open them. Multiple files can be dropped at once.</p>
+<p><em>(new in August 2026)</em> Stylesheet and Schematron <strong>pickers are drop targets too</strong>:</p>
+<ul>
+<li>Drop an <code>.xsl</code> / <code>.xslt</code> file onto the Explorer's
+  <strong><a href="#transform-bar-one-click-xslt-from-the-explorer">Stylesheet picker</a></strong> or the Transform
+  panel's <strong><a href="#stylesheet">STYLESHEET</a></strong> row to make it the current stylesheet.</li>
+<li>Drop a <code>.sch</code> / <code>.schematron</code> file onto the Explorer's
+  <strong><a href="#schematron-bar-one-click-validation-from-the-explorer">Schematron picker</a></strong> or the
+  Validation panel's <strong><a href="#sources">SCHEMATRON source row</a></strong> to make it the current
+  Schematron (and bind it to the active document).</li>
+</ul>
+<p>While you drag, the target shows <strong>green</strong> feedback when the file can be loaded there and
+<strong>red</strong> feedback when the extension does not match - a red drop is rejected and does
+<strong>not</strong> open the file in the editor. A valid drop behaves exactly like choosing the file
+via the picker: it is recorded in the recent list and shared between the Explorer bars
+and the panels. The feedback colors follow the light and dark theme.</p>
 <h2 id="where-the-former-tabs-went">Where the former tabs went<a class="headerlink" href="#where-the-former-tabs-went" title="Permanent link">&para;</a></h2>
 <p>The Unified Shell consolidates what used to be separate sidebar tabs. The earlier
 standalone editors - XSD Editor, XSD Validation, JSON Editor, XSLT Viewer, Schematron,
