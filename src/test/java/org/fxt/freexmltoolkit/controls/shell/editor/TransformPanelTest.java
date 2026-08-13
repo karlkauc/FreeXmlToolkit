@@ -315,6 +315,30 @@ class TransformPanelTest {
                 "the chosen stylesheet must appear in the Recent XSLT menu, was: " + panel.recentXsltNames());
     }
 
+    @Test
+    void droppingAStylesheetOnTheSourceRowLoadsIt(@TempDir Path tmp) throws Exception {
+        javafx.scene.layout.HBox row = (javafx.scene.layout.HBox) panel.lookup("#transform-xslt-row");
+        assertNotNull(row, "the STYLESHEET row must exist");
+        assertNotNull(row.getOnDragOver(), "the STYLESHEET row must accept file drags");
+
+        Path xslt = tmp.resolve("dropped.xsl");
+        Files.writeString(xslt, XSLT);
+        javafx.scene.input.Dragboard dragboard = org.mockito.Mockito.mock(javafx.scene.input.Dragboard.class);
+        org.mockito.Mockito.when(dragboard.hasFiles()).thenReturn(true);
+        org.mockito.Mockito.when(dragboard.getFiles()).thenReturn(List.of(xslt.toFile()));
+        javafx.scene.input.DragEvent event = org.mockito.Mockito.mock(javafx.scene.input.DragEvent.class);
+        org.mockito.Mockito.when(event.getDragboard()).thenReturn(dragboard);
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            row.getOnDragDropped().handle(event);
+            return null;
+        });
+
+        javafx.scene.control.Label name = (javafx.scene.control.Label) row.lookup(".fxt-vp-source-name");
+        assertEquals("dropped.xsl", name.getText(), "the dropped stylesheet must be loaded");
+        org.mockito.Mockito.verify(event).setDropCompleted(true);
+    }
+
     private void openGreeting(Path tmp) throws Exception {
         Path xml = tmp.resolve("doc.xml");
         Files.writeString(xml, XML);

@@ -375,6 +375,36 @@ class ValidationPanelTest {
         assertEquals("auto.xsd", host.activeSchemaProperty().get().getName());
     }
 
+    @Test
+    void droppingASchematronOnTheSourceRowBindsIt(@TempDir Path tmp) throws Exception {
+        javafx.scene.layout.HBox row = (javafx.scene.layout.HBox) panel.lookup("#validation-schematron-row");
+        assertNotNull(row, "the SCHEMATRON row must exist");
+        assertNotNull(row.getOnDragOver(), "the SCHEMATRON row must accept file drags");
+
+        Path xml = tmp.resolve("doc.xml");
+        Files.writeString(xml, "<root><name>x</name></root>");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("root")).orElse(false));
+
+        Path sch = tmp.resolve("dropped.sch");
+        Files.writeString(sch, "<x/>");
+        javafx.scene.input.Dragboard dragboard = org.mockito.Mockito.mock(javafx.scene.input.Dragboard.class);
+        org.mockito.Mockito.when(dragboard.hasFiles()).thenReturn(true);
+        org.mockito.Mockito.when(dragboard.getFiles()).thenReturn(java.util.List.of(sch.toFile()));
+        javafx.scene.input.DragEvent event = org.mockito.Mockito.mock(javafx.scene.input.DragEvent.class);
+        org.mockito.Mockito.when(event.getDragboard()).thenReturn(dragboard);
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            row.getOnDragDropped().handle(event);
+            return null;
+        });
+
+        assertEquals(sch.toFile(), host.getActiveSchematron(),
+                "dropping must bind the Schematron like choosing it");
+        org.mockito.Mockito.verify(event).setDropCompleted(true);
+    }
+
     private void open(Path xml, Path xsd) throws Exception {
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
         WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,

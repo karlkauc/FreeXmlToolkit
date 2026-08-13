@@ -105,6 +105,9 @@ public class ValidationPanel extends VBox {
                 "Schematron favorites", this::useSchematron);
         HBox schematronRow = sourceRow("bi-ui-checks-grid", schematronName,
                 this::chooseSchematron, schematronFavoritesMenu);
+        schematronRow.setId("validation-schematron-row");
+        org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(schematronRow,
+                org.fxt.freexmltoolkit.service.DragDropService.SCHEMATRON_EXTENSIONS, this::useSchematron);
         // One click on a bound source opens it in the editor for direct editing.
         makeSourceNameOpenable(xsdName, () -> editorHost.activeSchemaProperty().get());
         makeSourceNameOpenable(schematronName, editorHost::getActiveSchematron);

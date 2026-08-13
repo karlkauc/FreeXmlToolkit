@@ -2348,3 +2348,46 @@
 .fxt-workspace-tree .tree-cell > .tree-disclosure-node > .arrow {
     -fx-background-color: -fxt-text-muted;
 }
+
+/*
+ * ===== Drag-and-drop feedback on file pickers (FileDropSupport) =====
+ * While a file hovers the Explorer stylesheet/Schematron MenuButtons or a
+ * side-panel source row, FileDropSupport toggles fxt-drop-valid (loadable
+ * extension, success tint) / fxt-drop-invalid (wrong extension, danger tint).
+ * Colors come from the -fxt-tool-* token triplets, so dark mode is automatic.
+ */
+.fxt-tool-button.fxt-drop-valid,
+.fxt-vp-source-row.fxt-drop-valid {
+    -fx-background-color: -fxt-tool-success-bg;
+    -fx-border-color: -fxt-tool-success-border;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+}
+
+.fxt-tool-button.fxt-drop-invalid,
+.fxt-vp-source-row.fxt-drop-invalid {
+    -fx-background-color: -fxt-tool-danger-bg;
+    -fx-border-color: -fxt-tool-danger-border;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+}
+
+.fxt-drop-valid .iconify-icon,
+.fxt-drop-valid > .label {
+    -fx-icon-color: -fxt-tool-success-fg;
+    -fx-text-fill: -fxt-tool-success-fg;
+}
+
+.fxt-drop-invalid .iconify-icon,
+.fxt-drop-invalid > .label {
+    -fx-icon-color: -fxt-tool-danger-fg;
+    -fx-text-fill: -fxt-tool-danger-fg;
+}
+
+/* The 1px border would otherwise nudge the row content by a pixel. */
+.fxt-vp-source-row.fxt-drop-valid,
+.fxt-vp-source-row.fxt-drop-invalid {
+    -fx-padding: 5 11 5 13;
+}

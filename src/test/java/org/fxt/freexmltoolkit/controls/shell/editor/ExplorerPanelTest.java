@@ -227,6 +227,30 @@ class ExplorerPanelTest {
         return null;
     }
 
+    @Test
+    void droppingAStylesheetOnThePickerMakesItCurrent(@TempDir Path tmp) throws Exception {
+        javafx.scene.control.MenuButton picker =
+                (javafx.scene.control.MenuButton) panel.lookup("#explorer-stylesheet");
+        assertNotNull(picker, "the Explorer must offer a stylesheet picker");
+        assertNotNull(picker.getOnDragOver(), "the picker must accept file drags");
+
+        Path xslt = tmp.resolve("dropped.xslt");
+        Files.writeString(xslt, "<xsl:stylesheet xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\" version=\"2.0\"/>");
+        javafx.scene.input.Dragboard dragboard = org.mockito.Mockito.mock(javafx.scene.input.Dragboard.class);
+        org.mockito.Mockito.when(dragboard.hasFiles()).thenReturn(true);
+        org.mockito.Mockito.when(dragboard.getFiles()).thenReturn(java.util.List.of(xslt.toFile()));
+        javafx.scene.input.DragEvent event = org.mockito.Mockito.mock(javafx.scene.input.DragEvent.class);
+        org.mockito.Mockito.when(event.getDragboard()).thenReturn(dragboard);
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            picker.getOnDragDropped().handle(event);
+            return null;
+        });
+
+        assertEquals("dropped.xslt", picker.getText(), "picker label follows the dropped stylesheet");
+        org.mockito.Mockito.verify(event).setDropCompleted(true);
+    }
+
     /** Extracts the name Label's text from an OPEN EDITORS row. */
     private static String rowName(javafx.scene.Node row) {
         return ((HBox) row).getChildren().stream()

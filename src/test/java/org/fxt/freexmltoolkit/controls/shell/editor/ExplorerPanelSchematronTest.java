@@ -106,6 +106,57 @@ class ExplorerPanelSchematronTest {
     }
 
     @Test
+    void droppingASchematronFileOnThePickerBindsIt(@TempDir Path tmp) throws Exception {
+        MenuButton picker = (MenuButton) panel.lookup("#explorer-schematron");
+        assertNotNull(picker.getOnDragOver(), "the picker must accept file drags");
+
+        Path xml = tmp.resolve("doc.xml");
+        Files.writeString(xml, "<root/>");
+        Path sch = tmp.resolve("dropped.sch");
+        Files.writeString(sch, "<x/>");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("root")).orElse(false));
+
+        javafx.scene.input.DragEvent event = dropEventWithFiles(sch.toFile());
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            picker.getOnDragDropped().handle(event);
+            return null;
+        });
+
+        assertEquals("dropped.sch", picker.getText(), "picker label follows the dropped file");
+        assertEquals(sch.toFile(), host.getActiveSchematron(),
+                "dropping must bind the Schematron like picking it");
+        org.mockito.Mockito.verify(event).setDropCompleted(true);
+    }
+
+    @Test
+    void droppingAFileWithWrongExtensionOnThePickerIsRejected(@TempDir Path tmp) throws Exception {
+        MenuButton picker = (MenuButton) panel.lookup("#explorer-schematron");
+        Path txt = tmp.resolve("notes.txt");
+        Files.writeString(txt, "not a schematron");
+
+        javafx.scene.input.DragEvent event = dropEventWithFiles(txt.toFile());
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            picker.getOnDragDropped().handle(event);
+            return null;
+        });
+
+        assertEquals("Schematron…", picker.getText(), "a rejected drop must not change the picker");
+        org.mockito.Mockito.verify(event).setDropCompleted(false);
+    }
+
+    /** Mocks a DRAG_DROPPED event carrying OS files (TestFX cannot simulate real file drags). */
+    private static javafx.scene.input.DragEvent dropEventWithFiles(File... files) {
+        javafx.scene.input.Dragboard dragboard = org.mockito.Mockito.mock(javafx.scene.input.Dragboard.class);
+        org.mockito.Mockito.when(dragboard.hasFiles()).thenReturn(true);
+        org.mockito.Mockito.when(dragboard.getFiles()).thenReturn(List.of(files));
+        javafx.scene.input.DragEvent event = org.mockito.Mockito.mock(javafx.scene.input.DragEvent.class);
+        org.mockito.Mockito.when(event.getDragboard()).thenReturn(dragboard);
+        return event;
+    }
+
+    @Test
     void validateButtonDelegatesActiveDocumentAndSchematron(@TempDir Path tmp) throws Exception {
         Path xml = tmp.resolve("active.xml");
         Files.writeString(xml, "<root/>");

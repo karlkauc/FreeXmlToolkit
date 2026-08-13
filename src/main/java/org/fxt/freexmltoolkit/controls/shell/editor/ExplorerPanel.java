@@ -277,6 +277,8 @@ public class ExplorerPanel extends VBox {
         HBox.setHgrow(stylesheetMenu, Priority.ALWAYS);
         stylesheetMenu.setOnShowing(e -> refreshStylesheetMenu());
         refreshStylesheetLabel();
+        org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(stylesheetMenu,
+                org.fxt.freexmltoolkit.service.DragDropService.XSLT_EXTENSIONS, this::setCurrentXslt);
 
         Button transformButton = new Button("Transform", icon("bi-play-fill", 14));
         transformButton.setId("explorer-transform");
@@ -429,6 +431,8 @@ public class ExplorerPanel extends VBox {
         HBox.setHgrow(schematronMenu, Priority.ALWAYS);
         schematronMenu.setOnShowing(e -> refreshSchematronMenu());
         refreshSchematronLabel();
+        org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(schematronMenu,
+                org.fxt.freexmltoolkit.service.DragDropService.SCHEMATRON_EXTENSIONS, this::useSchematron);
 
         Button validateButton = new Button("Validate", icon("bi-play-fill", 14));
         validateButton.setId("explorer-validate");

@@ -130,6 +130,9 @@ public class TransformPanel extends VBox {
         xsltPos.getStyleClass().add("fxt-vp-browse-pos");
         HBox xsltRow = sourceRow("bi-arrow-repeat", xsltName, this::chooseXslt,
                 recentXsltMenu, xsltFavMenu, prevXsltBtn, xsltPos, nextXsltBtn);
+        xsltRow.setId("transform-xslt-row");
+        org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(xsltRow,
+                org.fxt.freexmltoolkit.service.DragDropService.XSLT_EXTENSIONS, this::setXsltFile);
         updateXsltPos();
         HBox stylesheetHeader = SidePanelLayout.sectionHeader(new Label("STYLESHEET"), xsltRow);
 
