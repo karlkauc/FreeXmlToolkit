@@ -4317,11 +4317,12 @@ favorited Schematron files - pick one to bind it in a single click, without brow
 file system. The menus group entries by favorites folder when you use more than one, and
 are grayed out while you have no matching favorites. (See
 <a href="../favorites-system/">Favorites</a>.)</p>
-<p><em>(new in August 2026)</em> The <strong>Schematron row is also a drop target</strong>: drop a <code>.sch</code> /
-<code>.schematron</code> file from your file manager onto it to bind it to the active document in
-one move - the row glows <strong>green</strong> while a loadable file hovers over it and <strong>red</strong> for
-a wrong file type (which is rejected). The dropped file behaves exactly like one picked
-via <strong>Change</strong>, including appearing in the recent Schematron list.</p>
+<p><em>(new in August 2026)</em> <strong>Both source rows are drop targets</strong>: drop an <code>.xsd</code> file from
+your file manager onto the XSD row, or a <code>.sch</code> / <code>.schematron</code> file onto the Schematron
+row, to bind it to the active document in one move - the row glows <strong>green</strong> while a
+loadable file hovers over it and <strong>red</strong> for a wrong file type (which is rejected). The
+dropped file behaves exactly like one picked via <strong>Change</strong> or a favorite, including
+appearing in the recent list.</p>
 <ul>
 <li><strong>The referenced XSD binds automatically.</strong> When the XML declares its schema
   (<code>xsi:schemaLocation</code> / <code>xsi:noNamespaceSchemaLocation</code> - local or remote), that XSD is
@@ -5254,7 +5255,7 @@ their parentheses / <code>::</code> automatically.</p>
 Editor's XPath/XQuery panel and vice versa.</p>
 <h2 id="drag-and-drop">Drag and Drop<a class="headerlink" href="#drag-and-drop" title="Permanent link">&para;</a></h2>
 <p>Drag files from your file manager directly into the editor to open them. Multiple files can be dropped at once.</p>
-<p><em>(new in August 2026)</em> Stylesheet and Schematron <strong>pickers are drop targets too</strong>:</p>
+<p><em>(new in August 2026)</em> Stylesheet, Schematron and XSD <strong>pickers are drop targets too</strong>:</p>
 <ul>
 <li>Drop an <code>.xsl</code> / <code>.xslt</code> file onto the Explorer's
   <strong><a href="#transform-bar-one-click-xslt-from-the-explorer">Stylesheet picker</a></strong> or the Transform
@@ -5263,6 +5264,8 @@ Editor's XPath/XQuery panel and vice versa.</p>
   <strong><a href="#schematron-bar-one-click-validation-from-the-explorer">Schematron picker</a></strong> or the
   Validation panel's <strong><a href="#sources">SCHEMATRON source row</a></strong> to make it the current
   Schematron (and bind it to the active document).</li>
+<li>Drop an <code>.xsd</code> file onto the Validation panel's <strong><a href="#sources">XSD source row</a></strong> to bind
+  that schema to the active document.</li>
 </ul>
 <p>While you drag, the target shows <strong>green</strong> feedback when the file can be loaded there and
 <strong>red</strong> feedback when the extension does not match - a red drop is rejected and does
