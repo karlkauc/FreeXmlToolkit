@@ -4867,7 +4867,11 @@ tell exactly when IntelliSense becomes available.</p>
 <p><strong>Click the indicator</strong> in any state to choose an <code>.xsd</code> file and bind it to the active
 document; the binding drives both <strong>IntelliSense</strong> and <strong>schema validation</strong>. (The editor
 toolbar's <strong>Schema</strong> button - <strong>Set XSD Schema…</strong> - does the same.) Hovering shows a tooltip explaining
-the current IntelliSense availability.
+the current IntelliSense availability.</p>
+<p><em>(new in August 2026)</em> The indicator is also a <strong>drop target</strong>: drop an <code>.xsd</code> file from
+your file manager onto it to bind the schema to the active document in one move - it
+glows <strong>green</strong> while a loadable file hovers over it and <strong>red</strong> for a wrong file type
+(which is rejected).
 - A <strong>memory monitor</strong> showing the JVM heap usage as <strong>used / max MB</strong>. <strong>Click it</strong> to run
   garbage collection, which can free memory after working with large files.</p>
 </li>
@@ -5264,8 +5268,9 @@ Editor's XPath/XQuery panel and vice versa.</p>
   <strong><a href="#schematron-bar-one-click-validation-from-the-explorer">Schematron picker</a></strong> or the
   Validation panel's <strong><a href="#sources">SCHEMATRON source row</a></strong> to make it the current
   Schematron (and bind it to the active document).</li>
-<li>Drop an <code>.xsd</code> file onto the Validation panel's <strong><a href="#sources">XSD source row</a></strong> to bind
-  that schema to the active document.</li>
+<li>Drop an <code>.xsd</code> file onto the Validation panel's <strong><a href="#sources">XSD source row</a></strong> or onto
+  the <strong><a href="#status-bar">XSD indicator in the status bar</a></strong> (shown for XML-family documents)
+  to bind that schema to the active document.</li>
 </ul>
 <p>While you drag, the target shows <strong>green</strong> feedback when the file can be loaded there and
 <strong>red</strong> feedback when the extension does not match - a red drop is rejected and does
