@@ -43,8 +43,10 @@ bar. The panel is organized into three sections plus the primary action:
 
 ### Step 1: Select Your Files
 
-1. Open your XML data file in the editor (or pick one via the INPUT section's *Change*)
-2. Click **Change** on the stylesheet row to select your XSL-FO stylesheet
+1. Open your XML data file in the editor (or pick one via the INPUT section's *Change*, or
+   **drop** an `.xml` file from your file manager onto the XML row *(new in August 2026)*)
+2. Click **Change** on the stylesheet row to select your XSL-FO stylesheet - or **drop**
+   an `.xsl` / `.xslt` file onto the row *(new in August 2026)*
 
 You can also drag and drop files directly into the application.
 

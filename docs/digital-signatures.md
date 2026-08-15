@@ -118,7 +118,9 @@ Before signing documents, you need a digital certificate (like a digital ID card
 2. Click **"Browse"** to select your XML file
 3. Click **"Browse"** to select your keystore file - or *(new in July 2026)* pick a
    favorited keystore from the **star menu** next to the keystore row (see
-   [Favorites Integration](#favorites-integration) below)
+   [Favorites Integration](#favorites-integration) below), or *(new in August 2026)*
+   **drop** a keystore file (`.jks`, `.keystore`, `.p12`, `.pfx`) from your file manager
+   onto the KEYSTORE row (Expert Mode's trust store row accepts drops the same way)
 4. Enter your keystore password and key password
 5. Select the key alias (if multiple keys exist)
 6. Choose where to save the signed output

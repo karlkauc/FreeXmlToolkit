@@ -917,6 +917,12 @@ favorite type with a lock icon (see [Favorites](favorites-system.md)):
   **Validate (Trust)** produces a trust report (trusted / trust anchor / revocation /
   timestamp).
 
+*(new in August 2026)* The **KEYSTORE row** and Expert Mode's **trust store row** are also
+**drop targets**: drop a keystore file (`.jks`, `.keystore`, `.p12`, `.pfx`) from your
+file manager onto either row to select it - the row glows **green** while a loadable file
+hovers over it and **red** for a wrong file type (which is rejected), and the drop
+behaves exactly like choosing the file via **Change** or a favorite.
+
 *(updated July 2026)* Missing inputs are highlighted: signing without a keystore marks the
 keystore entry in red, and a blank alias or password is marked in red when you sign or
 create a certificate. The highlight disappears as soon as you start typing in the field.
@@ -931,7 +937,11 @@ The **PDF / FOP** panel renders the XML to PDF with an XSL-FO stylesheet (Apache
   **XSL-FO stylesheet** (*Change*). *(updated July 2026)* Both rows also carry a **star
   menu** next to their *Change* link - **XML** favorites for the input, **XSLT** favorites
   for the stylesheet - so you can pick a favorited file in one click (see
-  [Favorites](favorites-system.md)).
+  [Favorites](favorites-system.md)). *(new in August 2026)* Both rows are also **drop
+  targets**: drop an `.xml` file onto the XML row or an `.xsl` / `.xslt` file onto the
+  stylesheet row - the row glows **green** while a loadable file hovers over it and
+  **red** for a wrong file type (which is rejected), and the drop behaves exactly like
+  **Change** or a favorite.
 - **METADATA** - PDF document **Title**, **Author** (pre-filled from your configured user
   name) and **Subject**, embedded into the generated PDF.
 - **OPTIONS** - **PDF/A-1b compliant** renders an archival-grade PDF (requires the
@@ -1396,7 +1406,8 @@ Editor's XPath/XQuery panel and vice versa.
 
 Drag files from your file manager directly into the editor to open them. Multiple files can be dropped at once.
 
-*(new in August 2026)* Stylesheet, Schematron and XSD **pickers are drop targets too**:
+*(new in August 2026)* The file **pickers and source rows** across the shell are **drop
+targets too**:
 
 - Drop an `.xsl` / `.xslt` file onto the Explorer's
   **[Stylesheet picker](#transform-bar-one-click-xslt-from-the-explorer)** or the Transform
@@ -1412,6 +1423,11 @@ Drag files from your file manager directly into the editor to open them. Multipl
 - Drop an `.xsd` file onto the Validation panel's **[XSD source row](#sources)** or onto
   the **[XSD indicator in the status bar](#status-bar)** (shown for XML-family documents)
   to bind that schema to the active document.
+- Drop an `.xml` file onto the **[PDF / FOP panel](#pdf-fop-panel)**'s XML input row, or
+  an `.xsl` / `.xslt` file onto its XSL-FO stylesheet row, to set the PDF rendering
+  sources.
+- Drop a keystore file (`.jks`, `.keystore`, `.p12`, `.pfx`) onto the
+  **[Signature panel](#signature-panel)**'s KEYSTORE row or Expert Mode's trust store row.
 
 While you drag, the target shows **green** feedback when the file can be loaded there and
 **red** feedback when the extension does not match - a red drop is rejected and does
