@@ -12,13 +12,13 @@
         <meta name="author" content="Karl Kauc">
       
       
-        <link rel="canonical" href="https://karlkauc.github.io/FreeXmlToolkit/json-editor/">
+        <link rel="canonical" href="https://karlkauc.github.io/FreeXmlToolkit/schematron-quick-fixes/">
       
       
-        <link rel="prev" href="../favorites-system/">
+        <link rel="prev" href="../schematron-support/">
       
       
-        <link rel="next" href="../xsd-tools/">
+        <link rel="next" href="../fundsxml-extensions/">
       
       
         
@@ -29,7 +29,7 @@
     
     
       
-        <title>JSON Editor - FreeXmlToolkit Documentation</title>
+        <title>Schematron Quick Fixes - FreeXmlToolkit Documentation</title>
       
     
     
@@ -82,7 +82,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#json-editor" class="md-skip">
+        <a href="#schematron-quick-fixes-sqf" class="md-skip">
           Skip to content
         </a>
       
@@ -115,7 +115,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              JSON Editor
+              Schematron Quick Fixes
             
           </span>
         </div>
@@ -303,13 +303,11 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="./" class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../json-editor/" class="md-tabs__link">
           
   
   
@@ -365,10 +363,12 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
+      <li class="md-tabs__item md-tabs__item--active">
         <a href="../schematron-support/" class="md-tabs__link">
           
   
@@ -771,31 +771,28 @@
       
   
   
-    
   
   
-  
     
     
     
     
-      
-        
-        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
         
           
-          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
             
   
   
@@ -813,7 +810,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
             
@@ -828,37 +825,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    JSON Editor
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../json-editor/" class="md-nav__link">
         
   
   
@@ -874,253 +844,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#overview" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Overview
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#features" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Features
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Features">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#text-editor" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Text Editor
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#tree-view" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Tree View
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#hover-information" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Hover Information
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#jsonpath-queries" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        JSONPath Queries
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#validation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Validation
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Validation">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#syntax-validation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Syntax Validation
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#json-schema-validation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        JSON Schema Validation
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#keyboard-shortcuts" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Keyboard Shortcuts
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#supported-formats" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Supported Formats
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Supported Formats">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#json-standard" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        JSON (Standard)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#jsonc-json-with-comments" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        JSONC (JSON with Comments)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#json5" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        JSON5
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#toolbar" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Toolbar
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#tree-view-icons" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Tree View Icons
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#tips-and-best-practices" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Tips and Best Practices
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#related" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Related
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#navigation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Navigation
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1455,28 +1178,31 @@
       
   
   
+    
   
   
+  
     
     
     
     
+      
+        
+        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" checked>
         
           
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
-        
-          
-          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
             
   
   
@@ -1494,7 +1220,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_8">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1537,10 +1263,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../schematron-quick-fixes/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Schematron Quick Fixes
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -1556,6 +1309,81 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#using-quick-fixes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using quick fixes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#authoring-fixes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Authoring fixes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#supported-sqf-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Supported SQF features
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#known-limitations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Known limitations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#navigation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Navigation
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1918,10 +1746,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#overview" class="md-nav__link">
+  <a href="#using-quick-fixes" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Overview
+        Using quick fixes
       
     </span>
   </a>
@@ -1929,110 +1757,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#features" class="md-nav__link">
+  <a href="#authoring-fixes" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Features
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Features">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#text-editor" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Text Editor
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#tree-view" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Tree View
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#hover-information" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Hover Information
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#jsonpath-queries" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        JSONPath Queries
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#validation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Validation
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Validation">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#syntax-validation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Syntax Validation
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#json-schema-validation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        JSON Schema Validation
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#keyboard-shortcuts" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Keyboard Shortcuts
+        Authoring fixes
       
     </span>
   </a>
@@ -2040,60 +1768,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#supported-formats" class="md-nav__link">
+  <a href="#supported-sqf-features" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Supported Formats
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Supported Formats">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#json-standard" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        JSON (Standard)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#jsonc-json-with-comments" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        JSONC (JSON with Comments)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#json5" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        JSON5
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#toolbar" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Toolbar
+        Supported SQF features
       
     </span>
   </a>
@@ -2101,32 +1779,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#tree-view-icons" class="md-nav__link">
+  <a href="#known-limitations" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Tree View Icons
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#tips-and-best-practices" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Tips and Best Practices
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#related" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Related
+        Known limitations
       
     </span>
   </a>
@@ -2164,328 +1820,102 @@
   
 
 
-<h1 id="json-editor">JSON Editor<a class="headerlink" href="#json-editor" title="Permanent link">&para;</a></h1>
-<p>The JSON Editor provides a powerful environment for editing, validating, and querying JSON files with support for multiple JSON formats.</p>
+<h1 id="schematron-quick-fixes-sqf">Schematron Quick Fixes (SQF)<a class="headerlink" href="#schematron-quick-fixes-sqf" title="Permanent link">&para;</a></h1>
 <blockquote>
-<p><strong>Last Updated:</strong> August 2026 | <strong>Version:</strong> 2.0.1</p>
-<p><strong>Note (Phase 10c):</strong> The standalone <em>JSON Editor</em> tab has been retired. JSON
-editing — text editing plus the tree view and validation — now lives in the
-<strong>Unified Shell</strong>: open a <code>.json</code> file and the JSON editor view (text/tree) is
-available there. The capabilities below are unchanged; they are now part of the
-shell rather than a dedicated sidebar tab.</p>
+<p><strong>New in August 2026</strong> | <strong>Version:</strong> 2.0.1</p>
 </blockquote>
-<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
-<p>FreeXmlToolkit includes a full-featured JSON Editor that supports:
-- <strong>Standard JSON</strong> - RFC 8259 compliant
-- <strong>JSONC</strong> - JSON with Comments (single-line <code>//</code> and block <code>/* */</code>)
-- <strong>JSON5</strong> - Extended JSON with trailing commas, unquoted keys, and comments</p>
-<p><img alt="JSON in the Unified Shell" src="../img/unified-shell-json-tree.png" />
-<strong><em>JSON editing (text + tree view) in the Unified Shell</em></strong></p>
-<h2 id="features">Features<a class="headerlink" href="#features" title="Permanent link">&para;</a></h2>
-<h3 id="text-editor">Text Editor<a class="headerlink" href="#text-editor" title="Permanent link">&para;</a></h3>
-<table>
-<thead>
-<tr>
-<th>Feature</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Syntax Highlighting</strong></td>
-<td>Color-coded JSON for easy reading</td>
-</tr>
-<tr>
-<td><strong>Auto Format</strong></td>
-<td>Beautify JSON with proper indentation</td>
-</tr>
-<tr>
-<td><strong>Minify</strong></td>
-<td>Compress JSON by removing whitespace</td>
-</tr>
-<tr>
-<td><strong>Undo/Redo</strong></td>
-<td>Full undo/redo support</td>
-</tr>
-<tr>
-<td><strong>Line Numbers</strong></td>
-<td>Numbered lines for easy navigation</td>
-</tr>
-<tr>
-<td><strong>Drag &amp; Drop</strong></td>
-<td>Drop JSON files directly into the editor</td>
-</tr>
-</tbody>
-</table>
-<h3 id="tree-view">Tree View<a class="headerlink" href="#tree-view" title="Permanent link">&para;</a></h3>
-<p>The tree view provides a hierarchical view of your JSON structure:</p>
-<table>
-<thead>
-<tr>
-<th>Feature</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Interactive Navigation</strong></td>
-<td>Click on nodes to jump to that location in the text</td>
-</tr>
-<tr>
-<td><strong>Expand/Collapse</strong></td>
-<td>Expand or collapse nodes to focus on specific areas</td>
-</tr>
-<tr>
-<td><strong>Search</strong></td>
-<td>Search for keys or values within the tree</td>
-</tr>
-<tr>
-<td><strong>Sync with Editor</strong></td>
-<td>Synchronize selection between tree and text</td>
-</tr>
-<tr>
-<td><strong>Type Icons</strong></td>
-<td>Visual icons for objects, arrays, strings, numbers, booleans, and null</td>
-</tr>
-</tbody>
-</table>
-<h3 id="hover-information">Hover Information<a class="headerlink" href="#hover-information" title="Permanent link">&para;</a></h3>
-<p>When you hover over any element in the JSON editor, you'll see:
-- <strong>JSONPath</strong> - The full path to the current element (e.g., <code>$.store.book[0].title</code>)
-- <strong>Type</strong> - The JSON type (object, array, string, number, boolean, null)
-- <strong>Key</strong> - The property key name
-- <strong>Value</strong> - A preview of the value (truncated for long values)</p>
-<h3 id="jsonpath-queries">JSONPath Queries<a class="headerlink" href="#jsonpath-queries" title="Permanent link">&para;</a></h3>
-<p>Execute JSONPath queries to extract data from your JSON documents:</p>
-<table>
-<thead>
-<tr>
-<th>Query Example</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>$.store.book[*].author</code></td>
-<td>All authors in the store</td>
-</tr>
-<tr>
-<td><code>$..author</code></td>
-<td>All authors anywhere in the document</td>
-</tr>
-<tr>
-<td><code>$.store.book[?(@.price &lt; 10)]</code></td>
-<td>Books cheaper than 10</td>
-</tr>
-<tr>
-<td><code>$.store.book[0,1]</code></td>
-<td>First two books</td>
-</tr>
-<tr>
-<td><code>$.store.book[-1:]</code></td>
-<td>Last book</td>
-</tr>
-</tbody>
-</table>
-<p><strong>To run a query:</strong>
-1. Open the <strong>Query Console</strong> (terminal icon in the toolbar, or Ctrl+Shift+X) - with a JSON document active it evaluates JSONPath
-2. Enter your JSONPath expression
-3. Run it to see the results in the console's result pane</p>
-<h3 id="validation">Validation<a class="headerlink" href="#validation" title="Permanent link">&para;</a></h3>
-<h4 id="syntax-validation">Syntax Validation<a class="headerlink" href="#syntax-validation" title="Permanent link">&para;</a></h4>
-<p>Click <strong>Validate</strong> to check if your JSON is syntactically correct. The editor will report:
-- Parse errors with line and column numbers
-- Detected format (JSON, JSONC, or JSON5)</p>
-<h4 id="json-schema-validation">JSON Schema Validation<a class="headerlink" href="#json-schema-validation" title="Permanent link">&para;</a></h4>
-<p>Validate your JSON against a JSON Schema:</p>
-<ol>
-<li>Open the <strong>Validation</strong> activity and pick <strong>JSON Schema…</strong> from the panel's ⋮ (overflow) menu</li>
-<li>Select your JSON Schema file</li>
-<li>Run the validation (<strong>Run Validation</strong> in the panel, or the toolbar's <strong>Validate</strong> button / F8)</li>
-</ol>
-<p>The validator supports:
-- JSON Schema Draft 4, 6, 7
-- JSON Schema 2019-09, 2020-12</p>
-<h2 id="keyboard-shortcuts">Keyboard Shortcuts<a class="headerlink" href="#keyboard-shortcuts" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>Shortcut</th>
-<th>Action</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>Ctrl+N</code></td>
-<td>New JSON file</td>
-</tr>
-<tr>
-<td><code>Ctrl+O</code></td>
-<td>Open file</td>
-</tr>
-<tr>
-<td><code>Ctrl+S</code></td>
-<td>Save file</td>
-</tr>
-<tr>
-<td><code>Ctrl+Shift+S</code></td>
-<td>Save as</td>
-</tr>
-<tr>
-<td><code>Ctrl+Alt+F</code></td>
-<td>Format JSON</td>
-</tr>
-<tr>
-<td><code>F8</code></td>
-<td>Validate JSON</td>
-</tr>
-<tr>
-<td><code>Ctrl+Z</code></td>
-<td>Undo</td>
-</tr>
-<tr>
-<td><code>Ctrl+Y</code></td>
-<td>Redo</td>
-</tr>
-<tr>
-<td><code>Ctrl++</code></td>
-<td>Zoom in</td>
-</tr>
-<tr>
-<td><code>Ctrl+-</code></td>
-<td>Zoom out</td>
-</tr>
-<tr>
-<td><code>Ctrl+0</code></td>
-<td>Reset zoom</td>
-</tr>
-</tbody>
-</table>
-<h2 id="supported-formats">Supported Formats<a class="headerlink" href="#supported-formats" title="Permanent link">&para;</a></h2>
-<h3 id="json-standard">JSON (Standard)<a class="headerlink" href="#json-standard" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p">{</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;John&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="nt">&quot;age&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">30</span><span class="p">,</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="nt">&quot;active&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="p">}</span>
-</code></pre></div>
-<h3 id="jsonc-json-with-comments">JSONC (JSON with Comments)<a class="headerlink" href="#jsonc-json-with-comments" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>{
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>  // This is a single-line comment
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>  &quot;name&quot;: &quot;John&quot;,
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>  /* This is a
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>     multi-line comment */
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>  &quot;age&quot;: 30
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>}
-</code></pre></div>
-<h3 id="json5">JSON5<a class="headerlink" href="#json5" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="p">{</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="c1">// Unquoted keys</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="nv">name</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;John&#39;</span><span class="p">,</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="c1">// Single quotes</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span><span class="nv">city</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;New York&#39;</span><span class="p">,</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">  </span><span class="c1">// Trailing commas allowed</span>
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">  </span><span class="nv">items</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">2</span><span class="p">,</span><span class="w"> </span><span class="mf">3</span><span class="p">,],</span>
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="p">}</span>
-</code></pre></div>
-<h2 id="toolbar">Toolbar<a class="headerlink" href="#toolbar" title="Permanent link">&para;</a></h2>
+<p>FreeXmlToolkit understands <strong>Schematron Quick Fix (SQF)</strong> definitions — the
+<code>sqf:*</code> vocabulary (namespace <code>http://www.schematron-quickfix.com/validator/process</code>)
+that lets Schematron authors attach automatic corrections to their rules. When a
+document is validated against a Schematron whose asserts/reports reference fixes
+via <code>sqf:fix="…"</code>, the editor offers those fixes right where the problems are
+reported — and applies them with a single click while <strong>preserving the
+document's formatting</strong>.</p>
 <blockquote>
-<p><strong>Updated in August 2026</strong> - JSON files use the shell's single-row editor toolbar. Related
-actions sit in <strong>split buttons</strong> with a visible <strong>▾</strong> arrow menu; see
-<a href="../unified-shell/#toolbar">Unified Shell - Toolbar</a> for the full reference.</p>
+<p><strong>Try it:</strong> the bundled examples include a ready-made demo pair —
+<code>examples/schematron/quickfix-demo.xml</code> and <code>quickfix-demo.sch</code> (a fully
+commented Schematron covering every fix type). Open the XML file, bind the
+<code>.sch</code> file in the Validation panel, and validate: every book in the document
+violates at least one rule, and each finding offers a quick fix.</p>
 </blockquote>
-<p>With a JSON file active, the relevant actions are:</p>
-<table>
-<thead>
-<tr>
-<th>Button</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>New</strong></td>
-<td>Open the guided New File dialog (includes JSON)</td>
-</tr>
-<tr>
-<td><strong>Open</strong></td>
-<td>Open an existing file</td>
-</tr>
-<tr>
-<td><strong>Save ▾</strong></td>
-<td>Save the current document; the arrow menu holds <strong>Save As…</strong> and <strong>Save All</strong></td>
-</tr>
-<tr>
-<td><strong>Undo</strong> / <strong>Redo</strong></td>
-<td>Undo or redo changes (icon buttons)</td>
-</tr>
-<tr>
-<td><strong>Format ▾</strong></td>
-<td>Pretty-print the JSON; the arrow menu holds <strong>Minify</strong> (compress by removing whitespace)</td>
-</tr>
-<tr>
-<td><strong>Query Console</strong></td>
-<td>Toggle the bottom query console - for JSON documents it runs <strong>JSONPath</strong> queries (icon button, Ctrl+Shift+X)</td>
-</tr>
-<tr>
-<td><strong>Validate</strong></td>
-<td>Check the JSON syntax (F8)</td>
-</tr>
-</tbody>
-</table>
-<p>Actions that do not apply to JSON (e.g. <strong>Run</strong> or the XSLT transform) are greyed out. The
-<strong>Tree</strong> view is switched with the Text/Tree view switch at the right end of the toolbar.</p>
-<h2 id="tree-view-icons">Tree View Icons<a class="headerlink" href="#tree-view-icons" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>Icon</th>
-<th>Type</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>{ }</code></td>
-<td>Object (blue)</td>
-</tr>
-<tr>
-<td><code>[ ]</code></td>
-<td>Array (green)</td>
-</tr>
-<tr>
-<td><code>" "</code></td>
-<td>String (gray)</td>
-</tr>
-<tr>
-<td><code>#</code></td>
-<td>Number (orange)</td>
-</tr>
-<tr>
-<td>Toggle</td>
-<td>Boolean (cyan)</td>
-</tr>
-<tr>
-<td><code>-</code></td>
-<td>Null (gray, italic)</td>
-</tr>
-<tr>
-<td><code>//</code></td>
-<td>Comment (green, italic)</td>
-</tr>
-</tbody>
-</table>
-<h2 id="tips-and-best-practices">Tips and Best Practices<a class="headerlink" href="#tips-and-best-practices" title="Permanent link">&para;</a></h2>
-<ol>
-<li><strong>Use the Tree View</strong> for navigating large JSON documents</li>
-<li><strong>Enable Auto-Format</strong> after pasting JSON from external sources</li>
-<li><strong>Use JSONPath</strong> to quickly extract specific data</li>
-<li><strong>Validate against Schema</strong> to ensure data quality</li>
-<li><strong>Drag and Drop</strong> files for quick access</li>
-</ol>
-<h2 id="related">Related<a class="headerlink" href="#related" title="Permanent link">&para;</a></h2>
+<h2 id="using-quick-fixes">Using quick fixes<a class="headerlink" href="#using-quick-fixes" title="Permanent link">&para;</a></h2>
+<p>Bind a Schematron to your XML document as usual (Validation panel → SCHEMATRON
+source row, or the Explorer's one-click validation bar). After validation,
+problems that carry fixes can be corrected from three places:</p>
 <ul>
-<li><a href="../xml-editor/">XML Editor</a> - Edit XML files with similar features</li>
-<li><a href="../xslt-developer/">XSLT Developer</a> - Transform JSON to other formats</li>
+<li><strong>Problems lists</strong> — right-click a problem row in the Validation panel or the
+  PROBLEMS strip below the editor and pick an entry from the <strong>Quick Fix</strong>
+  submenu.</li>
+<li><strong>Editor lightbulb</strong> — lines with fixable problems show a yellow lightbulb in
+  the editor gutter. Click it (or press <strong>Alt+Enter</strong> / <strong>Ctrl+.</strong> on the line)
+  to open the fix chooser at the caret.</li>
+<li><strong>Schematron report</strong> — the report table has a <strong>Fix</strong> column with a lightbulb
+  button on fixable findings.</li>
+</ul>
+<p>Applying a fix</p>
+<ul>
+<li>changes only the affected text region — indentation and formatting of the
+  rest of the document stay byte-for-byte untouched,</li>
+<li>is a single native undo step (<strong>Ctrl+Z</strong> restores the document),</li>
+<li>triggers an immediate re-validation, so resolved problems disappear from all
+  lists.</li>
+</ul>
+<p>If the document was edited after the last validation, the fix refuses to run
+and asks for a re-validation instead of guessing.</p>
+<h2 id="authoring-fixes">Authoring fixes<a class="headerlink" href="#authoring-fixes" title="Permanent link">&para;</a></h2>
+<p>The Schematron editor's IntelliSense completes the SQF vocabulary
+(<code>sqf:fixes</code>, <code>sqf:fix</code>, the four activities, <code>sqf:user-entry</code>, <code>sqf:call-fix</code>,
+…) including the <code>sqf:fix</code> / <code>sqf:default-fix</code> attributes on <code>sch:assert</code> and
+<code>sch:report</code>. A minimal example:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">&lt;sch:schema</span><span class="w"> </span><span class="na">xmlns:sch=</span><span class="s">&quot;http://purl.oclc.org/dsdl/schematron&quot;</span><span class="w"> </span><span class="na">queryBinding=</span><span class="s">&quot;xslt2&quot;</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">            </span><span class="na">xmlns:sqf=</span><span class="s">&quot;http://www.schematron-quickfix.com/validator/process&quot;</span><span class="nt">&gt;</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="nt">&lt;sch:pattern&gt;</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="nt">&lt;sch:rule</span><span class="w"> </span><span class="na">context=</span><span class="s">&quot;person&quot;</span><span class="nt">&gt;</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">      </span><span class="nt">&lt;sch:assert</span><span class="w"> </span><span class="na">test=</span><span class="s">&quot;@id&quot;</span><span class="w"> </span><span class="na">sqf:fix=</span><span class="s">&quot;addId&quot;</span><span class="nt">&gt;</span>Person<span class="w"> </span>must<span class="w"> </span>have<span class="w"> </span>an<span class="w"> </span>id.<span class="nt">&lt;/sch:assert&gt;</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">      </span><span class="nt">&lt;sqf:fix</span><span class="w"> </span><span class="na">id=</span><span class="s">&quot;addId&quot;</span><span class="nt">&gt;</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">        </span><span class="nt">&lt;sqf:description&gt;</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">          </span><span class="nt">&lt;sqf:title&gt;</span>Add<span class="w"> </span>generated<span class="w"> </span>id<span class="w"> </span>attribute<span class="nt">&lt;/sqf:title&gt;</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">        </span><span class="nt">&lt;/sqf:description&gt;</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">        </span><span class="nt">&lt;sqf:add</span><span class="w"> </span><span class="na">node-type=</span><span class="s">&quot;attribute&quot;</span><span class="w"> </span><span class="na">target=</span><span class="s">&quot;id&quot;</span><span class="nt">&gt;</span>p-1<span class="nt">&lt;/sqf:add&gt;</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">      </span><span class="nt">&lt;/sqf:fix&gt;</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">    </span><span class="nt">&lt;/sch:rule&gt;</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">  </span><span class="nt">&lt;/sch:pattern&gt;</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="nt">&lt;/sch:schema&gt;</span>
+</code></pre></div>
+<h2 id="supported-sqf-features">Supported SQF features<a class="headerlink" href="#supported-sqf-features" title="Permanent link">&para;</a></h2>
+<ul>
+<li>The four activities <strong><code>sqf:add</code></strong>, <strong><code>sqf:delete</code></strong>, <strong><code>sqf:replace</code></strong>,
+  <strong><code>sqf:stringReplace</code></strong> — including <code>@match</code>, <code>@node-type</code>
+  (<code>element</code>/<code>attribute</code>/<code>processing-instruction</code>/<code>comment</code>/<code>keep</code>), <code>@target</code>
+  (as attribute value template), <code>@position</code>
+  (<code>first-child</code>/<code>last-child</code>/<code>before</code>/<code>after</code>), <code>@select</code>, <code>@regex</code>/<code>@flags</code>
+  and <code>@use-when</code> conditions.</li>
+<li><strong>Dynamic content</strong>: XSLT instructions inside fix content (<code>xsl:value-of</code>,
+  <code>xsl:choose</code>, attribute value templates, …) are executed natively (Saxon),
+  with the rule's <code>sch:let</code> variables and <code>sch:ns</code> namespaces in scope.
+  <code>sqf:copy-of</code> and <code>sqf:keep</code> are supported in content.</li>
+<li><strong><code>sqf:user-entry</code></strong> — the fix prompts for the value(s) in a dialog; the
+  <code>@default</code> XPath is evaluated against the failing node and pre-filled.</li>
+<li><strong><code>sqf:call-fix</code> / generic fixes</strong> — fixes can call other fixes with
+  <code>sqf:with-param</code>-bound <code>sqf:param</code> parameters (cycles are detected).
+  A fix declaring a parameter without a default is only reachable via
+  <code>sqf:call-fix</code>, never offered directly.</li>
+<li>Fixes may be defined <strong>rule-locally</strong> or globally under a schema-level
+  <code>sqf:fixes</code> container (rule-local ids shadow global ones); <code>sqf:group</code>
+  wrappers and <code>sqf:default-fix</code> ordering are honored, as are fixes pulled in
+  via <code>sch:include</code> and same-document abstract rules (<code>sch:extends rule="…"</code>).</li>
+</ul>
+<h2 id="known-limitations">Known limitations<a class="headerlink" href="#known-limitations" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>sch:extends</code> with an external <code>href</code> and abstract patterns (<code>is-a</code>) are not
+  resolved for fix discovery — findings from such rules simply show no fixes.</li>
+<li><code>$sqf:match</code> inside <code>sqf:stringReplace</code> content is not supported; use
+  <code>regex-group()</code> instead (the replacement content runs inside a native
+  <code>xsl:analyze-string</code> matching-substring context).</li>
+<li><code>@use-for-each</code> (generic iteration with <code>$sqf:current</code>) is not supported yet.</li>
+<li>Text nodes in heavily mixed content (text interleaved with comments/CDATA)
+  may not be addressable for <code>sqf:stringReplace</code>; the fix then reports a clear
+  error instead of guessing.</li>
 </ul>
 <hr />
 <h2 id="navigation">Navigation<a class="headerlink" href="#navigation" title="Permanent link">&para;</a></h2>
@@ -2501,11 +1931,10 @@ actions sit in <strong>split buttons</strong> with a visible <strong>▾</strong
 <tr>
 <td><a href="../schematron-support/">Schematron</a></td>
 <td><a href="../">Home</a></td>
-<td><a href="../xml-editor/">XML Editor</a></td>
+<td><a href="../schema-support/">Schema Support</a></td>
 </tr>
 </tbody>
 </table>
-<p><strong>All Pages:</strong> <a href="../unified-shell/">Unified Shell</a> | <a href="../xml-editor/">XML Editor</a> | <a href="../xml-editor-features/">XML Features</a> | <a href="./">JSON Editor</a> | <a href="../xsd-tools/">XSD Tools</a> | <a href="../profiled-xml-generation/">Profiled XML Generation</a> | <a href="../xsd-validation/">XSD Validation</a> | <a href="../xslt-viewer/">XSLT Viewer</a> | <a href="../xslt-developer/">XSLT Developer</a> | <a href="../pdf-generator/">FOP/PDF</a> | <a href="../digital-signatures/">Signatures</a> | <a href="../context-sensitive-intellisense/">IntelliSense</a> | <a href="../schematron-support/">Schematron</a> | <a href="../fundsxml-extensions/">FundsXML Extensions</a> | <a href="../favorites-system/">Favorites</a> | <a href="../template-management/">Templates</a> | <a href="../technology-stack/">Tech Stack</a> | <a href="../SECURITY/">Security</a> | <a href="../licenses/">Licenses</a></p>
 
 
 
@@ -2543,7 +1972,7 @@ actions sit in <strong>split buttons</strong> with a visible <strong>▾</strong
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../favorites-system/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Favorites">
+          <a href="../schematron-support/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Schematron">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -2553,20 +1982,20 @@ actions sit in <strong>split buttons</strong> with a visible <strong>▾</strong
                 Previous
               </span>
               <div class="md-ellipsis">
-                Favorites
+                Schematron
               </div>
             </div>
           </a>
         
         
           
-          <a href="../xsd-tools/" class="md-footer__link md-footer__link--next" aria-label="Next: XSD Editor &amp; Tools">
+          <a href="../fundsxml-extensions/" class="md-footer__link md-footer__link--next" aria-label="Next: FundsXML Extensions">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                XSD Editor & Tools
+                FundsXML Extensions
               </div>
             </div>
             <div class="md-footer__button md-icon">

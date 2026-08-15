@@ -18,7 +18,7 @@
         <link rel="prev" href="../pdf-generator/">
       
       
-        <link rel="next" href="../fundsxml-extensions/">
+        <link rel="next" href="../schematron-quick-fixes/">
       
       
         
@@ -1711,6 +1711,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../schematron-quick-fixes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Schematron Quick Fixes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -2836,6 +2864,12 @@ source badge (so they are easy to tell apart from XSD errors), and hovering a ro
 the full message together with the failed test expression and the failing node's XPath
 <em>(new in July 2026)</em>. For a complete overview of a run, open the
 <a href="#validation-report">Validation Report</a>.</p>
+<p><em>(new in August 2026)</em> If a rule defines <strong>Schematron Quick Fixes</strong> (SQF), the
+matching problems can be corrected automatically — from a right-click <strong>Quick Fix</strong>
+menu on the problem rows, from a lightbulb in the editor gutter, or from the
+Validation Report's <strong>Fix</strong> column. See
+<a href="../schematron-quick-fixes/">Schematron Quick Fixes</a> for the full guide, including
+how to author fixes.</p>
 <hr />
 <h2 id="favorites-integration">Favorites Integration<a class="headerlink" href="#favorites-integration" title="Permanent link">&para;</a></h2>
 <p>Save frequently used Schematron files for quick access:</p>
@@ -2924,6 +2958,14 @@ the full message together with the failed test expression and the failing node's
 </tr>
 </tbody>
 </table>
+<blockquote>
+<p><strong>Updated in August 2026</strong> — Schematron validation now runs on the <strong>SchXslt</strong>
+compiler (executed by Saxon), which fully resolves <code>sch:include</code>,
+<code>sch:extends</code>, and abstract patterns. Schematrons that declare
+<code>queryBinding="xslt2"</code> or <code>"xslt3"</code> use XPath 2.0/3.0; files without a
+<code>queryBinding</code> attribute are compiled as <code>xslt2</code>, so existing rule files keep
+working unchanged.</p>
+</blockquote>
 <hr />
 <h2 id="keyboard-shortcuts">Keyboard Shortcuts<a class="headerlink" href="#keyboard-shortcuts" title="Permanent link">&para;</a></h2>
 <table>
@@ -3011,7 +3053,7 @@ the full message together with the failed test expression and the failing node's
 <tr>
 <td><a href="../context-sensitive-intellisense/">IntelliSense</a></td>
 <td><a href="../">Home</a></td>
-<td><a href="../schema-support/">Schema Support</a></td>
+<td><a href="../schematron-quick-fixes/">Schematron Quick Fixes</a></td>
 </tr>
 </tbody>
 </table>
@@ -3070,13 +3112,13 @@ the full message together with the failed test expression and the failing node's
         
         
           
-          <a href="../fundsxml-extensions/" class="md-footer__link md-footer__link--next" aria-label="Next: FundsXML Extensions">
+          <a href="../schematron-quick-fixes/" class="md-footer__link md-footer__link--next" aria-label="Next: Schematron Quick Fixes">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                FundsXML Extensions
+                Schematron Quick Fixes
               </div>
             </div>
             <div class="md-footer__button md-icon">

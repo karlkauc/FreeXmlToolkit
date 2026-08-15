@@ -2213,6 +2213,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../schematron-quick-fixes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Schematron Quick Fixes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -4395,6 +4423,11 @@ rule/test expression, and the XPath of the failing node.</p>
 <p>Selecting a problem in either list jumps to its line in the editor. This works for
 <strong>Schematron problems too</strong>: the failing rule's context node is resolved back to its
 line in the XML, so a click navigates straight to the offending element.</p>
+<p><em>(new in August 2026)</em> Schematron problems whose rules define <strong>quick fixes</strong> (SQF)
+can be corrected in place: right-click the problem row in either list and pick a fix
+from the <strong>Quick Fix</strong> submenu, or use the <strong>yellow lightbulb</strong> that appears in the
+editor gutter on lines with fixable problems (click it, or press <strong>Alt+Enter</strong> /
+<strong>Ctrl+.</strong> on the line). See <a href="../schematron-quick-fixes/">Schematron Quick Fixes</a>.</p>
 <h3 id="detailed-schematron-report">Detailed Schematron Report<a class="headerlink" href="#detailed-schematron-report" title="Permanent link">&para;</a></h3>
 <blockquote>
 <p><strong>New in July 2026</strong> - a full report of the last Schematron run, opened as a tool tab
@@ -4437,6 +4470,10 @@ finding:</p>
 <tr>
 <td><strong>Context (XPath)</strong></td>
 <td>The XPath of the failing node</td>
+</tr>
+<tr>
+<td><strong>Fix</strong></td>
+<td><em>(new in August 2026)</em> A lightbulb button on findings that offer <a href="../schematron-quick-fixes/">Schematron Quick Fixes</a> — click it to apply a fix directly from the report</td>
 </tr>
 </tbody>
 </table>
