@@ -3843,6 +3843,12 @@ view; double-click a type to open it in its dedicated <strong>Type Editor</stron
 XML / batch, Sample XML plain/advanced, Flatten, Statistics, Schema Quality,
 Documentation) sit as a <strong>strip of icon buttons directly above the filter</strong> - hover for
 the tool's name.</p>
+<p><em>(new in August 2026)</em> The <strong>whole panel is a drop zone</strong>: drop an <code>.xsd</code> file from your
+file manager anywhere on it to <strong>open that schema as a document</strong> - the panel then shows
+its declarations. Unlike the picker drop targets elsewhere in the shell, this drop
+<em>opens</em> the file rather than binding or selecting anything. While dragging, the panel
+shows a <strong>dashed green border</strong> with a soft tint for an <code>.xsd</code> file and a <strong>dashed red
+border</strong> for any other extension - a red drop is rejected and does not open the file.</p>
 <h3 id="documentation-generator-editor-area">Documentation Generator (editor area)<a class="headerlink" href="#documentation-generator-editor-area" title="Permanent link">&para;</a></h3>
 <p><strong>Generate Documentation…</strong> (Schema panel ⋮ or the editor toolbar's <strong>Schema ▾</strong> menu) opens the generator as
 a tab in the main editor area with the full option set:</p>
@@ -5296,12 +5302,17 @@ targets too</strong>:</p>
   sources.</li>
 <li>Drop a keystore file (<code>.jks</code>, <code>.keystore</code>, <code>.p12</code>, <code>.pfx</code>) onto the
   <strong><a href="#signature-panel">Signature panel</a></strong>'s KEYSTORE row or Expert Mode's trust store row.</li>
+<li>Drop an <code>.xsd</code> file anywhere on the <strong><a href="#the-schema-panel">Schema panel</a></strong> (Type
+  Library) to <strong>open it as a document</strong> - unlike the targets above, this drop <em>opens</em> the
+  file instead of binding or selecting it; the panel shows a <strong>dashed</strong> green/red border
+  while you drag.</li>
 </ul>
 <p>While you drag, the target shows <strong>green</strong> feedback when the file can be loaded there and
 <strong>red</strong> feedback when the extension does not match - a red drop is rejected and does
-<strong>not</strong> open the file in the editor. A valid drop behaves exactly like choosing the file
-via the picker: it is recorded in the recent list and shared between the Explorer bars
-and the panels. The feedback colors follow the light and dark theme.</p>
+<strong>not</strong> open the file in the editor. On the picker and source-row targets, a valid drop
+behaves exactly like choosing the file via <strong>Change</strong> or a favorite: it is recorded in
+the recent list (where the target has one) and shared between the Explorer bars and the
+panels. The feedback colors follow the light and dark theme.</p>
 <h2 id="where-the-former-tabs-went">Where the former tabs went<a class="headerlink" href="#where-the-former-tabs-went" title="Permanent link">&para;</a></h2>
 <p>The Unified Shell consolidates what used to be separate sidebar tabs. The earlier
 standalone editors - XSD Editor, XSD Validation, JSON Editor, XSLT Viewer, Schematron,
