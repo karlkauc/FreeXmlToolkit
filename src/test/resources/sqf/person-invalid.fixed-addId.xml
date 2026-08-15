@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<people>
+    <person id="p-1">
+        <name>John  Doe</name>
+	<phone>0043123456</phone>
+	<deprecated>old stuff</deprecated>
+    </person>
+    <person id="p-2"><fullName>Jane Smith</fullName><note>ok</note></person>
+    <company>
+        <fullName>ACME Inc</fullName>
+    </company>
+</people>

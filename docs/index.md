@@ -149,8 +149,9 @@ Define custom business rules:
 | **Business Rules** | Validate beyond basic XML structure |
 | **Visual Rule Builder** | Create rules without writing code |
 | **Detailed Reports** | Get clear validation results |
+| **Quick Fixes (SQF)** | Correct rule violations automatically with one click |
 
-Learn more: [Schematron Guide](schematron-support.md)
+Learn more: [Schematron Guide](schematron-support.md) | [Quick Fixes](schematron-quick-fixes.md)
 
 ### FundsXML Extensions (Optional)
 
@@ -259,6 +260,7 @@ If the interface appears blurry or animations are slow, your system may be using
 | [PDF Generator](pdf-generator.md)             | Creating PDF documents                   |
 | [Digital Signatures](digital-signatures.md)   | Signing XML documents                    |
 | [Schematron Support](schematron-support.md)   | Business rule validation                 |
+| [Schematron Quick Fixes](schematron-quick-fixes.md) | One-click fixes for Schematron findings |
 | [FundsXML Extensions](fundsxml-extensions.md) | Optional FundsXML standard integration   |
 
 ### Productivity Tools

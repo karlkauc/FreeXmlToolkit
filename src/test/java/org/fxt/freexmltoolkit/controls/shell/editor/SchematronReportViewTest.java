@@ -53,7 +53,7 @@ class SchematronReportViewTest {
         TableView<ValidationProblem> table = (TableView<ValidationProblem>)
                 WaitForAsyncUtils.waitForAsyncFx(2000, () -> view.lookup("#schematron-report-table"));
         assertNotNull(table);
-        assertEquals(5, table.getColumns().size(), "Severity, Line, Message, Rule/Test, Context");
+        assertEquals(6, table.getColumns().size(), "Severity, Line, Fix, Message, Rule/Test, Context");
         ValidationProblem first = table.getItems().get(0);
         assertEquals("number(Nav) > 0", first.ruleId());
         assertEquals("/Funds/Fund[1]/Nav", first.context());

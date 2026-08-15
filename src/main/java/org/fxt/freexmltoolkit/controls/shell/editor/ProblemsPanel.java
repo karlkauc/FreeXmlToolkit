@@ -157,12 +157,19 @@ public class ProblemsPanel extends VBox {
             if (empty || item == null) {
                 setText(null);
                 setGraphic(null);
+                setContextMenu(null);
                 return;
             }
             boolean warning = isWarning(item);
             IconifyIcon severityIcon = icon(warning
                     ? "bi-exclamation-triangle-fill" : "bi-x-circle", 15);
             severityIcon.getStyleClass().add(warning ? "sev-warning" : "sev-error");
+            setContextMenu(item.hasFixes()
+                    ? new javafx.scene.control.ContextMenu(
+                            org.fxt.freexmltoolkit.controls.shell.editor.quickfix.QuickFixMenuFactory
+                                    .buildQuickFixMenu(item, fix -> editorHost
+                                            .getQuickFixController().applyFix(item, fix)))
+                    : null);
 
             // Source badge (XSD / Schematron / Well-formed / …) so mixed result
             // lists stay attributable at a glance.

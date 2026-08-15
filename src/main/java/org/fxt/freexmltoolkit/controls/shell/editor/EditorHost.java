@@ -154,12 +154,19 @@ public class EditorHost extends BorderPane {
             // (continuous, or via Validate/F8) for the newly active document.
             validationStatus.set(ValidationStatus.NONE);
             activeProblems.clear();
+            rebuildQuickFixGutter(java.util.List.of());
             refreshSelectedNode();
         });
         // Delete key removes the selected node in structured views (not in Text mode).
         addEventHandler(javafx.scene.input.KeyEvent.KEY_PRESSED, event -> {
             if (event.getCode() == javafx.scene.input.KeyCode.DELETE
                     && activeViewMode.get() != ViewMode.TEXT && deleteActiveNode()) {
+                event.consume();
+            }
+            // Alt+Enter / Ctrl+. opens the quick-fix chooser for the caret line.
+            if (((event.getCode() == javafx.scene.input.KeyCode.ENTER && event.isAltDown())
+                    || (event.getCode() == javafx.scene.input.KeyCode.PERIOD && event.isControlDown()))
+                    && showQuickFixPopupAtCaret()) {
                 event.consume();
             }
         });
@@ -387,6 +394,115 @@ public class EditorHost extends BorderPane {
     /** Publishes the active document's validation problems (called by the Validation panel). */
     public void setActiveProblems(java.util.List<ValidationProblem> problems) {
         activeProblems.setAll(problems);
+        rebuildQuickFixGutter(problems);
+    }
+
+    // ----- quick fixes (SQF) ----------------------------------------------
+
+    /** Orchestrates applying SQF quick fixes to the active document. */
+    private final org.fxt.freexmltoolkit.controls.shell.editor.quickfix.QuickFixController quickFixController =
+            new org.fxt.freexmltoolkit.controls.shell.editor.quickfix.QuickFixController(this);
+    private final org.fxt.freexmltoolkit.controls.shell.editor.quickfix.QuickFixPopup quickFixPopup =
+            new org.fxt.freexmltoolkit.controls.shell.editor.quickfix.QuickFixPopup();
+    /** Problems with fixes on the active document, indexed by 1-based line (gutter lightbulbs). */
+    private final java.util.Map<Integer, java.util.List<ValidationProblem>> fixableProblemsByLine =
+            new java.util.HashMap<>();
+
+    /** @return the quick-fix orchestrator (panels wire their context menus to it) */
+    public org.fxt.freexmltoolkit.controls.shell.editor.quickfix.QuickFixController getQuickFixController() {
+        return quickFixController;
+    }
+
+    /**
+     * Replaces a text region of the active editor (one native undo entry).
+     *
+     * @return {@code true} when an editor tab accepted the edit
+     */
+    public boolean replaceActiveTextRegion(int start, int end, String replacement) {
+        Tab tab = tabPane.getSelectionModel().getSelectedItem();
+        if (tab instanceof EditorTab et) {
+            et.view.replaceTextRegion(start, end, replacement);
+            return true;
+        }
+        return false;
+    }
+
+    /** Rebuilds the line → fixable-problems index and the lightbulb gutter contribution. */
+    private void rebuildQuickFixGutter(java.util.List<ValidationProblem> problems) {
+        fixableProblemsByLine.clear();
+        for (ValidationProblem problem : problems) {
+            if (problem.hasFixes() && problem.line() > 0) {
+                fixableProblemsByLine.computeIfAbsent(problem.line(), l -> new java.util.ArrayList<>())
+                        .add(problem);
+            }
+        }
+        Tab tab = tabPane.getSelectionModel().getSelectedItem();
+        if (!(tab instanceof EditorTab et)) {
+            return;
+        }
+        if (fixableProblemsByLine.isEmpty()) {
+            setGutterContributor(et, "quickfix", null);
+        } else {
+            setGutterContributor(et, "quickfix",
+                    new org.fxt.freexmltoolkit.controls.shell.editor.quickfix.QuickFixGutterFactory(
+                            this::quickFixSuggestionsAt,
+                            (line, fixes, x, y) -> showQuickFixPopupForLine(line, x, y)));
+        }
+        et.view.refreshGutter();
+    }
+
+    private java.util.List<org.fxt.freexmltoolkit.service.sqf.SqfFixSuggestion> quickFixSuggestionsAt(int line) {
+        java.util.List<ValidationProblem> problems = fixableProblemsByLine.get(line);
+        if (problems == null) {
+            return java.util.List.of();
+        }
+        java.util.List<org.fxt.freexmltoolkit.service.sqf.SqfFixSuggestion> fixes = new java.util.ArrayList<>();
+        for (ValidationProblem problem : problems) {
+            fixes.addAll(problem.fixes());
+        }
+        return fixes;
+    }
+
+    /** Opens the quick-fix chooser for a line's fixable problems at a screen position. */
+    private void showQuickFixPopupForLine(int line, double screenX, double screenY) {
+        java.util.List<ValidationProblem> problems = fixableProblemsByLine.get(line);
+        if (problems == null || problems.isEmpty() || getScene() == null) {
+            return;
+        }
+        java.util.Map<org.fxt.freexmltoolkit.service.sqf.SqfFixSuggestion, ValidationProblem> owner =
+                new java.util.IdentityHashMap<>();
+        java.util.List<org.fxt.freexmltoolkit.service.sqf.SqfFixSuggestion> fixes = new java.util.ArrayList<>();
+        for (ValidationProblem problem : problems) {
+            for (var fix : problem.fixes()) {
+                owner.put(fix, problem);
+                fixes.add(fix);
+            }
+        }
+        quickFixPopup.setOnFixSelected(fix -> quickFixController.applyFix(owner.get(fix), fix));
+        quickFixPopup.show(fixes, getScene().getWindow(), screenX, screenY);
+    }
+
+    /**
+     * Opens the quick-fix chooser for the caret line (Alt+Enter / Ctrl+Period).
+     *
+     * @return {@code true} when fixes exist on the caret line and the popup opened
+     */
+    private boolean showQuickFixPopupAtCaret() {
+        Tab tab = tabPane.getSelectionModel().getSelectedItem();
+        if (!(tab instanceof EditorTab et)) {
+            return false;
+        }
+        var codeArea = et.view.getCodeArea();
+        int line = codeArea.getCurrentParagraph() + 1;
+        if (!fixableProblemsByLine.containsKey(line)) {
+            return false;
+        }
+        var bounds = codeArea.getCaretBounds().orElse(null);
+        if (bounds == null) {
+            return false;
+        }
+        showQuickFixPopupForLine(line, bounds.getMinX(), bounds.getMaxY() + 2);
+        return true;
     }
 
     /** @return the schema root of the active structured view, or empty (Text mode / not parsed). */
@@ -1843,7 +1959,18 @@ public class EditorHost extends BorderPane {
      */
     public boolean setActiveEditorGutterFactory(java.util.function.IntFunction<javafx.scene.Node> factory) {
         Tab tab = tabPane.getSelectionModel().getSelectedItem();
-        return tab instanceof EditorTab et && et.view.setExtraGutterFactory(factory);
+        return tab instanceof EditorTab et && setGutterContributor(et, "xslt-debugger", factory);
+    }
+
+    /**
+     * Registers/replaces/removes one feature's gutter contribution on a tab; the
+     * editor's single extra-gutter slot receives the composite (or {@code null} when
+     * no feature contributes, so the gutter column collapses as before).
+     */
+    private static boolean setGutterContributor(EditorTab et, String key,
+            java.util.function.IntFunction<javafx.scene.Node> factory) {
+        et.gutter.set(key, factory);
+        return et.view.setExtraGutterFactory(et.gutter.isEmpty() ? null : et.gutter);
     }
 
     /** Re-renders the gutter on a specific open document's editor tab (if open). */
@@ -1861,7 +1988,7 @@ public class EditorHost extends BorderPane {
             java.util.function.IntFunction<javafx.scene.Node> factory) {
         for (Tab tab : tabPane.getTabs()) {
             if (tab instanceof EditorTab et && et.document == document) {
-                return et.view.setExtraGutterFactory(factory);
+                return setGutterContributor(et, "xslt-debugger", factory);
             }
         }
         return false;
@@ -2627,6 +2754,8 @@ public class EditorHost extends BorderPane {
         /** Written on the loader thread, read on the FX thread (tab switch) — hence volatile. */
         private volatile SchemaStatus schemaStatus = SchemaStatus.NONE;
         private File schematronFile;
+        /** Composes the debugger's and the quick-fix feature's gutter contributions. */
+        private final CompositeGutterFactory gutter = new CompositeGutterFactory();
         /**
          * Guards against CONCURRENT schema detections for this tab (open-time
          * detection vs. the Validation panel's redetect): the schema pipeline

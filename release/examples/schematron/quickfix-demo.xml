@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Demo document for quickfix-demo.sch: every book violates at least one rule,
+     and every reported problem offers a quick fix. -->
+<library>
+    <book>
+        <title>The Missing Id</title>
+        <writer>Ada Lovelace</writer>
+        <isbn>978 3 16 148410 0</isbn>
+        <legacy-note>imported from the old catalog</legacy-note>
+        <draft>unfinished blurb</draft>
+        <draft>another fragment</draft>
+    </book>
+    <book id="bk-2">
+        <title>Almost Fine</title>
+        <author>Grace Hopper</author>
+        <isbn>978-1-23-456789-7</isbn>
+        <summary>A well-formed classic.</summary>
+        <publisher>Typed Trees Press</publisher>
+    </book>
+</library>

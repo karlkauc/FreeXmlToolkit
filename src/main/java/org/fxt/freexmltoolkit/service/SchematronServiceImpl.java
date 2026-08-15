@@ -1,95 +1,74 @@
 package org.fxt.freexmltoolkit.service;
 
 import java.io.File;
-import java.io.InputStream;
 import java.io.StringReader;
-import java.io.StringWriter;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.w3c.dom.Document;
-import org.xml.sax.InputSource;
 
-import net.sf.saxon.lib.ResourceRequest;
-import net.sf.saxon.lib.ResourceResolver;
-import net.sf.saxon.s9api.Axis;
-import net.sf.saxon.s9api.Processor;
-import net.sf.saxon.s9api.SaxonApiException;
-import net.sf.saxon.s9api.XdmDestination;
-import net.sf.saxon.s9api.XdmNode;
-import net.sf.saxon.s9api.XdmNodeKind;
-import net.sf.saxon.s9api.XdmSequenceIterator;
-import net.sf.saxon.s9api.XsltCompiler;
-import net.sf.saxon.s9api.XsltExecutable;
-import net.sf.saxon.s9api.XsltTransformer;
+import com.helger.schematron.ISchematronResource;
+import com.helger.schematron.schxslt.xslt2.SchematronResourceSchXslt_XSLT2;
+import com.helger.schematron.svrl.AbstractSVRLMessage;
+import com.helger.schematron.svrl.SVRLHelper;
+import com.helger.schematron.svrl.SVRLMarshaller;
+import com.helger.schematron.svrl.jaxb.SchematronOutputType;
 
 /**
- * Implementation of SchematronService using Saxon XSLT transformation.
+ * Implementation of SchematronService backed by ph-schematron's SchXslt compiler
+ * (XSLT 2.0 based, executed by Saxon). SchXslt resolves {@code sch:include},
+ * {@code sch:extends} and abstract patterns itself and supports
+ * {@code queryBinding="xslt2"/"xslt3"} rules.
  */
 public class SchematronServiceImpl implements SchematronService {
 
     private static final Logger logger = LogManager.getLogger(SchematronServiceImpl.class);
-    private static final Processor SAXON_PROCESSOR = new Processor(false);
-    private static final XsltCompiler XSLT_COMPILER;
 
-    // Cache for compiled Schematron stylesheets
-    private final Map<File, XsltExecutable> compiledSchematronCache = new ConcurrentHashMap<>();
+    /**
+     * Compiled Schematron resources shared across all service instances, keyed by
+     * absolute path and invalidated when the file's last-modified timestamp changes.
+     */
+    private static final Map<String, CachedResource> COMPILED_CACHE = new ConcurrentHashMap<>();
 
-    // Paths to the ISO Schematron skeleton stylesheets on the classpath
-    private static final String[] SCHEMATRON_SKELETONS = {
-            "/schematron/iso_dsdl_include.xsl",
-            "/schematron/iso_abstract_expand.xsl",
-            "/schematron/iso_svrl_for_xslt2.xsl"
-    };
-
-    static {
-        XSLT_COMPILER = SAXON_PROCESSOR.newXsltCompiler();
-        // Set a ResourceResolver that can resolve classpath resources
-        XSLT_COMPILER.setResourceResolver(new ClasspathResourceResolver());
+    private record CachedResource(long lastModified, ISchematronResource resource) {
     }
 
     /**
-     * Constructs a new SchematronServiceImpl with default settings.
-     * Initializes the internal compiled Schematron cache.
+     * Constructs a new SchematronServiceImpl. Compiled Schematron stylesheets are
+     * cached statically, so instances are cheap to create.
      */
     public SchematronServiceImpl() {
         // Constructor
     }
 
-    /**
-     * ResourceResolver that resolves resources from the classpath.
-     * This is needed because the Schematron skeleton XSL files use relative imports.
-     */
-    private static class ClasspathResourceResolver implements ResourceResolver {
-        @Override
-        public Source resolve(ResourceRequest request) {
-            try {
-                String href = request.uri;
-                // Try to resolve relative to the schematron folder on classpath
-                String resourcePath = "/schematron/" + href;
-                URL resourceUrl = SchematronServiceImpl.class.getResource(resourcePath);
-                if (resourceUrl != null) {
-                    StreamSource source = new StreamSource(resourceUrl.openStream());
-                    source.setSystemId(resourceUrl.toExternalForm());
-                    return source;
-                }
-
-                // Fall back to default resolution
-                return null;
-            } catch (Exception e) {
-                logger.debug("Could not resolve URI {} from classpath: {}", request.uri, e.getMessage());
-                return null;
+    private static ISchematronResource resource(File schematronFile) {
+        String key = schematronFile.getAbsolutePath();
+        long lastModified = schematronFile.lastModified();
+        CachedResource cached = COMPILED_CACHE.compute(key, (k, old) -> {
+            if (old != null && old.lastModified() == lastModified) {
+                return old;
             }
-        }
+            if (old != null) {
+                // ph-schematron's internal provider cache is keyed by path only and
+                // would keep serving the stale compiled XSLT for the changed file
+                com.helger.schematron.schxslt.xslt2.SchematronResourceSchXslt_XSLT2Cache.clearCache();
+            }
+            SchematronResourceSchXslt_XSLT2 r = SchematronResourceSchXslt_XSLT2.fromFile(schematronFile);
+            r.setUseCache(true);
+            // Schematrons without @queryBinding must compile like the previous
+            // Saxon/XSLT2 skeleton pipeline did, not fail with SchXslt's E0002.
+            r.parameters().put("schxslt.compile.default-query-binding", "xslt2");
+            // Custom parameters would otherwise disable caching of the compiled XSLT
+            r.setForceCacheResult(true);
+            return new CachedResource(lastModified, r);
+        });
+        return cached.resource();
     }
 
     @Override
@@ -98,14 +77,11 @@ public class SchematronServiceImpl implements SchematronService {
             return List.of(new SchematronValidationError(
                     "XML content is null or empty", null, null, 0, 0, "error"));
         }
-        if (schematronFile == null || !schematronFile.exists()) {
-            throw new SchematronLoadException("Schematron file is null or does not exist: " + 
-                    (schematronFile != null ? schematronFile.getAbsolutePath() : "null"));
-        }
+        requireExistingSchematron(schematronFile);
         try {
-            return performValidation(new StreamSource(new StringReader(xmlContent)), schematronFile);
+            return performValidationWithSvrl(new StreamSource(new StringReader(xmlContent)), schematronFile).errors();
         } catch (SchematronLoadException e) {
-            throw e; // Re-throw SchematronLoadException
+            throw e;
         } catch (Exception e) {
             logger.error("Error during Schematron validation", e);
             return List.of(new SchematronValidationError(
@@ -119,112 +95,16 @@ public class SchematronServiceImpl implements SchematronService {
             return List.of(new SchematronValidationError(
                     "XML file is null or does not exist", null, null, 0, 0, "error"));
         }
-        if (schematronFile == null || !schematronFile.exists()) {
-            throw new SchematronLoadException("Schematron file is null or does not exist: " + 
-                    (schematronFile != null ? schematronFile.getAbsolutePath() : "null"));
-        }
+        requireExistingSchematron(schematronFile);
         try {
-            return performValidation(new StreamSource(xmlFile), schematronFile);
+            return performValidationWithSvrl(new StreamSource(xmlFile), schematronFile).errors();
         } catch (SchematronLoadException e) {
-            throw e; // Re-throw SchematronLoadException
+            throw e;
         } catch (Exception e) {
             logger.error("Error during Schematron validation", e);
             return List.of(new SchematronValidationError(
                     "Validation error: " + e.getMessage(), "validation-error", null, 0, 0, "error"));
         }
-    }
-
-    /**
-     * Compiles a Schematron file into a validation stylesheet (XSLT).
-     * This is a multi-step process using the ISO Schematron skeletons.
-     */
-    private XsltExecutable compileSchematron(File schematronFile) throws SchematronLoadException {
-        if (compiledSchematronCache.containsKey(schematronFile)) {
-            return compiledSchematronCache.get(schematronFile);
-        }
-
-        XdmNode schematronNode;
-        try {
-            schematronNode = SAXON_PROCESSOR.newDocumentBuilder().build(new StreamSource(schematronFile));
-        } catch (SaxonApiException e) {
-            throw new SchematronLoadException("Failed to parse Schematron file: " + schematronFile.getAbsolutePath() + 
-                    ". Reason: " + e.getMessage(), e);
-        }
-
-        XdmNode currentResult = schematronNode;
-
-        for (String skeletonPath : SCHEMATRON_SKELETONS) {
-            try (InputStream skeletonStream = SchematronServiceImpl.class.getResourceAsStream(skeletonPath)) {
-                if (skeletonStream == null) {
-                    throw new SchematronLoadException("Cannot find Schematron skeleton on classpath: " + skeletonPath);
-                }
-                // Create StreamSource with system ID for proper relative URI resolution
-                URL skeletonUrl = SchematronServiceImpl.class.getResource(skeletonPath);
-                StreamSource skeletonSource = new StreamSource(skeletonStream);
-                if (skeletonUrl != null) {
-                    skeletonSource.setSystemId(skeletonUrl.toExternalForm());
-                }
-                XsltExecutable skeleton = XSLT_COMPILER.compile(skeletonSource);
-                XsltTransformer transformer = skeleton.load();
-                transformer.setInitialContextNode(currentResult);
-                XdmDestination resultDestination = new XdmDestination();
-                transformer.setDestination(resultDestination);
-                transformer.transform();
-                currentResult = resultDestination.getXdmNode();
-            } catch (SchematronLoadException e) {
-                throw e;
-            } catch (Exception e) {
-                throw new SchematronLoadException("Failed to apply Schematron skeleton " + skeletonPath +
-                        ". Reason: " + e.getMessage(), e);
-            }
-        }
-
-        XsltExecutable validationStylesheet;
-        try {
-            validationStylesheet = XSLT_COMPILER.compile(currentResult.asSource());
-        } catch (SaxonApiException e) {
-            throw new SchematronLoadException("Failed to compile Schematron to XSLT. The Schematron file may contain invalid rules or syntax. " +
-                    "File: " + schematronFile.getAbsolutePath() + ". Reason: " + e.getMessage(), e);
-        }
-        compiledSchematronCache.put(schematronFile, validationStylesheet);
-        return validationStylesheet;
-    }
-
-    private List<SchematronValidationError> performValidation(Source xmlSource, File schematronFile) throws SchematronLoadException {
-        return performValidationWithSvrl(xmlSource, schematronFile).errors();
-    }
-
-    private SchematronReport performValidationWithSvrl(Source xmlSource, File schematronFile) throws SchematronLoadException {
-        List<SchematronValidationError> validationEvents = new ArrayList<>();
-        String svrl = null;
-        try {
-            XsltExecutable validationXslt = compileSchematron(schematronFile);
-
-            XsltTransformer validator = validationXslt.load();
-            validator.setSource(xmlSource);
-
-            StringWriter sw = new StringWriter();
-            validator.setDestination(SAXON_PROCESSOR.newSerializer(sw));
-            validator.transform();
-
-            String svrlResult = sw.toString();
-            if (!svrlResult.isEmpty()) {
-                svrl = svrlResult;
-                DocumentBuilderFactory factory = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureDocumentBuilderFactory();
-                factory.setNamespaceAware(true);
-                Document svrlDocument = factory.newDocumentBuilder().parse(new InputSource(new StringReader(svrlResult)));
-
-                parseSvrlReport(svrlDocument, validationEvents);
-            }
-
-        } catch (SchematronLoadException e) {
-            throw e; // Re-throw SchematronLoadException
-        } catch (Exception e) {
-            logger.error("Error in Saxon-based Schematron validation", e);
-            validationEvents.add(new SchematronValidationError(
-                    "Validation failed: " + e.getMessage(), "validation-error", null, 0, 0, "fatal"));
-        }
-        return new SchematronReport(validationEvents, svrl);
     }
 
     @Override
@@ -234,10 +114,7 @@ public class SchematronServiceImpl implements SchematronService {
             return new SchematronReport(List.of(new SchematronValidationError(
                     "XML content is null or empty", null, null, 0, 0, "error")), null);
         }
-        if (schematronFile == null || !schematronFile.exists()) {
-            throw new SchematronLoadException("Schematron file is null or does not exist: "
-                    + (schematronFile != null ? schematronFile.getAbsolutePath() : "null"));
-        }
+        requireExistingSchematron(schematronFile);
         try {
             return performValidationWithSvrl(new StreamSource(new StringReader(xmlContent)), schematronFile);
         } catch (SchematronLoadException e) {
@@ -249,57 +126,54 @@ public class SchematronServiceImpl implements SchematronService {
         }
     }
 
-    private void parseSvrlReport(Document svrlDocument, List<SchematronValidationError> validationEvents) {
-        // Use Saxon XPath 3.1 via SaxonXPathHelper
-        List<XdmNode> failedAsserts = SaxonXPathHelper.evaluateNodes(
-                svrlDocument, "//svrl:failed-assert", SaxonXPathHelper.SVRL_NAMESPACES);
-
-        for (XdmNode assertNode : failedAsserts) {
-            String text = getTextNodeContent(assertNode);
-            String role = SaxonXPathHelper.getAttributeValue(assertNode, "role");
-            String test = SaxonXPathHelper.getAttributeValue(assertNode, "test");
-            String location = SaxonXPathHelper.getAttributeValue(assertNode, "location");
-
-            validationEvents.add(new SchematronValidationError(
-                    text, test, location, 0, 0,
-                    role != null && !role.isEmpty() ? role : "error"));
-        }
-
-        List<XdmNode> successfulReports = SaxonXPathHelper.evaluateNodes(
-                svrlDocument, "//svrl:successful-report", SaxonXPathHelper.SVRL_NAMESPACES);
-
-        for (XdmNode reportNode : successfulReports) {
-            String text = getTextNodeContent(reportNode);
-            String role = SaxonXPathHelper.getAttributeValue(reportNode, "role");
-            String test = SaxonXPathHelper.getAttributeValue(reportNode, "test");
-            String location = SaxonXPathHelper.getAttributeValue(reportNode, "location");
-
-            validationEvents.add(new SchematronValidationError(
-                    text, test, location, 0, 0,
-                    role != null && !role.isEmpty() ? role : "warning"));
+    private static void requireExistingSchematron(File schematronFile) throws SchematronLoadException {
+        if (schematronFile == null || !schematronFile.exists()) {
+            throw new SchematronLoadException("Schematron file is null or does not exist: "
+                    + (schematronFile != null ? schematronFile.getAbsolutePath() : "null"));
         }
     }
 
-    /**
-     * Extracts the text content from a svrl:text child node.
-     */
-    private String getTextNodeContent(XdmNode parentNode) {
+    private SchematronReport performValidationWithSvrl(Source xmlSource, File schematronFile) throws SchematronLoadException {
+        SchematronOutputType svrl;
         try {
-            // Navigate to svrl:text child
-            for (XdmSequenceIterator<XdmNode> it = parentNode.axisIterator(Axis.CHILD); it.hasNext(); ) {
-                XdmNode child = it.next();
-                if (child.getNodeKind() == XdmNodeKind.ELEMENT) {
-                    String localName = child.getNodeName().getLocalName();
-                    if ("text".equals(localName)) {
-                        String content = child.getStringValue();
-                        return content != null ? content.trim() : "";
-                    }
-                }
-            }
+            svrl = resource(schematronFile).applySchematronValidationToSVRL(xmlSource);
         } catch (Exception e) {
-            logger.debug("Error extracting text node content: {}", e.getMessage());
+            throw new SchematronLoadException("Failed to run Schematron validation with "
+                    + schematronFile.getAbsolutePath() + ". Reason: " + e.getMessage(), e);
         }
-        return "";
+        if (svrl == null) {
+            // ph-schematron returns null when the Schematron itself could not be compiled
+            throw new SchematronLoadException("Failed to compile Schematron file: "
+                    + schematronFile.getAbsolutePath()
+                    + ". The file may not be valid XML or contains invalid rules.");
+        }
+
+        List<SchematronValidationError> validationEvents = new ArrayList<>();
+        for (AbstractSVRLMessage message : SVRLHelper.getAllFailedAssertions(svrl)) {
+            validationEvents.add(toError(message, "error"));
+        }
+        for (AbstractSVRLMessage message : SVRLHelper.getAllSuccessfulReports(svrl)) {
+            validationEvents.add(toError(message, "warning"));
+        }
+
+        String svrlString = null;
+        try {
+            svrlString = new SVRLMarshaller().getAsString(svrl);
+        } catch (Exception e) {
+            logger.warn("Could not marshal SVRL report for {}: {}", schematronFile, e.getMessage());
+        }
+        return new SchematronReport(validationEvents, svrlString);
+    }
+
+    private static SchematronValidationError toError(AbstractSVRLMessage message, String defaultSeverity) {
+        String text = message.getText();
+        String role = message.getRole();
+        return new SchematronValidationError(
+                text != null ? text.trim() : "",
+                message.getTest(),
+                message.getLocation(),
+                0, 0,
+                role != null && !role.isEmpty() ? role : defaultSeverity);
     }
 
     @Override
@@ -322,8 +196,7 @@ public class SchematronServiceImpl implements SchematronService {
             return false;
         }
         try {
-            compileSchematron(file);
-            return true;
+            return resource(file).isValidSchematron();
         } catch (Exception e) {
             logger.warn("isValidSchematronFile check failed for {}", file.getAbsolutePath(), e);
             return false;

@@ -111,6 +111,7 @@ nav:
     - PDF Generator (FOP): pdf-generator.md
   - Validation:
     - Schematron: schematron-support.md
+    - Schematron Quick Fixes: schematron-quick-fixes.md
   - Industry Standards:
     - FundsXML Extensions: fundsxml-extensions.md
   - Security:

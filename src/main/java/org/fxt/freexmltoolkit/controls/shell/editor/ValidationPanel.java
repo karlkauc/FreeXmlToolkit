@@ -249,6 +249,9 @@ public class ValidationPanel extends VBox {
             refreshXsdStatus();
             scheduleRevalidation();
         });
+        // After a quick fix is applied, re-validate immediately (even with live
+        // validation off) so the fixed problem disappears from every list.
+        editorHost.getQuickFixController().setOnFixApplied(this::revalidate);
 
         getChildren().addAll(header,
                 sectionHeader(new Label("SOURCES")), xsdRow, schematronRow,
@@ -874,7 +877,7 @@ public class ValidationPanel extends VBox {
     }
 
     /** Renders a problem as "[source] Ln N: message" with a colored severity icon. */
-    private static final class ProblemCell extends ListCell<ValidationProblem> {
+    private final class ProblemCell extends ListCell<ValidationProblem> {
         private ProblemCell() {
             // Follow the ListView width (ellipsize) instead of forcing a horizontal scrollbar.
             setPrefWidth(0);
@@ -886,6 +889,7 @@ public class ValidationPanel extends VBox {
             if (empty || item == null) {
                 setText(null);
                 setGraphic(null);
+                setContextMenu(null);
                 return;
             }
             String line = item.line() > 0 ? "Ln " + item.line() + ": " : "";
@@ -894,6 +898,12 @@ public class ValidationPanel extends VBox {
             IconifyIcon icon = icon(warning ? "bi-exclamation-triangle-fill" : "bi-x-circle", 13);
             icon.getStyleClass().add(warning ? "sev-warning" : "sev-error");
             setGraphic(icon);
+            setContextMenu(item.hasFixes()
+                    ? new javafx.scene.control.ContextMenu(
+                            org.fxt.freexmltoolkit.controls.shell.editor.quickfix.QuickFixMenuFactory
+                                    .buildQuickFixMenu(item, fix -> editorHost
+                                            .getQuickFixController().applyFix(item, fix)))
+                    : null);
         }
     }
 

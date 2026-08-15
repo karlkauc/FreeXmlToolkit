@@ -24,7 +24,7 @@
             <!-- Complex allocation validation -->
             <sch:assert test="not(.//AllocationData) or 
                              (sum(.//AllocationData/Allocation/Percentage) >= 99.5 and 
-                              sum(.//AllocationData/Allocation/Percentage) <= 100.5)">
+                              sum(.//AllocationData/Allocation/Percentage) &lt;= 100.5)">
                 Total allocations for fund '<sch:value-of select="$fundId"/>' must sum to approximately 100% (±0.5%).
             </sch:assert>
         </sch:rule>
@@ -45,7 +45,7 @@
                              ($assetType = 'Equity' and MarketData/StockPrice) or
                              ($assetType = 'Bond' and MarketData/BondPrice) or
                              ($assetType = 'Fund' and MarketData/NAV) or
-                             ($assetType not in ('Equity', 'Bond', 'Fund'))">
+                             (not($assetType = ('Equity', 'Bond', 'Fund')))">
                 Asset '<sch:value-of select="$assetId"/>' of type '<sch:value-of select="$assetType"/>' must have
                 appropriate market data type.
             </sch:assert>

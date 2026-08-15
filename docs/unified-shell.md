@@ -776,6 +776,12 @@ Selecting a problem in either list jumps to its line in the editor. This works f
 **Schematron problems too**: the failing rule's context node is resolved back to its
 line in the XML, so a click navigates straight to the offending element.
 
+*(new in August 2026)* Schematron problems whose rules define **quick fixes** (SQF)
+can be corrected in place: right-click the problem row in either list and pick a fix
+from the **Quick Fix** submenu, or use the **yellow lightbulb** that appears in the
+editor gutter on lines with fixable problems (click it, or press **Alt+Enter** /
+**Ctrl+.** on the line). See [Schematron Quick Fixes](schematron-quick-fixes.md).
+
 ### Detailed Schematron Report
 
 > **New in July 2026** - a full report of the last Schematron run, opened as a tool tab
@@ -799,6 +805,7 @@ finding:
 | **Message** | The rule's message text |
 | **Rule / Test** | The Schematron test expression that failed |
 | **Context (XPath)** | The XPath of the failing node |
+| **Fix** | *(new in August 2026)* A lightbulb button on findings that offer [Schematron Quick Fixes](schematron-quick-fixes.md) — click it to apply a fix directly from the report |
 
 **Click a row** to jump straight to that line in the editor. Two buttons export the
 report:

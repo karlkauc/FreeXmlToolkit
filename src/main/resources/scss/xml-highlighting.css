@@ -204,3 +204,12 @@
     -fx-text-fill: #858585;
     -fx-background-color: #252526;
 }
+/* Quick-fix lightbulb in the editor gutter */
+.quickfix-gutter-icon {
+    -fx-padding: 0 2 0 2;
+}
+
+.quickfix-gutter-icon:hover {
+    -fx-background-color: rgba(255, 193, 7, 0.25);
+    -fx-background-radius: 3;
+}

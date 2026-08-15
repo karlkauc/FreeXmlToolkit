@@ -33,23 +33,40 @@ public class SchematronCompletionProvider implements CompletionProvider {
         // Default constructor
     }
 
-    // Schematron elements
+    // Schematron elements (incl. the SQF quick-fix vocabulary)
     private static final String[] SCHEMATRON_ELEMENTS = {
         "schema", "pattern", "rule", "assert", "report",
         "title", "ns", "let", "value-of", "name",
         "extends", "param", "phase", "active",
         "diagnostics", "diagnostic", "properties", "property",
-        "p", "dir", "emph", "span"
+        "p", "dir", "emph", "span",
+        // SQF (Schematron Quick Fix)
+        "sqf:fixes", "sqf:fix", "sqf:group", "sqf:description", "sqf:title", "sqf:p",
+        "sqf:add", "sqf:delete", "sqf:replace", "sqf:stringReplace",
+        "sqf:user-entry", "sqf:param", "sqf:call-fix", "sqf:with-param",
+        "sqf:keep", "sqf:copy-of"
     };
 
     // Common Schematron attributes
     private static final String[] SCHEMA_ATTRIBUTES = {"id", "schemaVersion", "defaultPhase", "queryBinding", "icon", "see", "fpi"};
     private static final String[] PATTERN_ATTRIBUTES = {"id", "abstract", "is-a"};
     private static final String[] RULE_ATTRIBUTES = {"context", "id", "abstract", "role", "flag"};
-    private static final String[] ASSERT_REPORT_ATTRIBUTES = {"test", "id", "role", "flag", "diagnostics", "properties", "subject"};
+    private static final String[] ASSERT_REPORT_ATTRIBUTES = {"test", "id", "role", "flag", "diagnostics", "properties", "subject", "sqf:fix", "sqf:default-fix"};
     private static final String[] NS_ATTRIBUTES = {"prefix", "uri"};
     private static final String[] LET_ATTRIBUTES = {"name", "value"};
     private static final String[] VALUE_OF_ATTRIBUTES = {"select"};
+    // SQF attributes
+    private static final String[] SQF_FIX_ATTRIBUTES = {"id", "role", "use-when", "use-for-each"};
+    private static final String[] SQF_GROUP_ATTRIBUTES = {"id", "use-when"};
+    private static final String[] SQF_ADD_ATTRIBUTES = {"match", "node-type", "target", "position", "select", "use-when"};
+    private static final String[] SQF_DELETE_ATTRIBUTES = {"match", "use-when"};
+    private static final String[] SQF_REPLACE_ATTRIBUTES = {"match", "node-type", "target", "select", "use-when"};
+    private static final String[] SQF_STRING_REPLACE_ATTRIBUTES = {"match", "regex", "flags", "select", "use-when"};
+    private static final String[] SQF_USER_ENTRY_ATTRIBUTES = {"name", "default", "type"};
+    private static final String[] SQF_PARAM_ATTRIBUTES = {"name", "default", "type", "required", "abstract"};
+    private static final String[] SQF_CALL_FIX_ATTRIBUTES = {"ref"};
+    private static final String[] SQF_WITH_PARAM_ATTRIBUTES = {"name", "select"};
+    private static final String[] SQF_COPY_OF_ATTRIBUTES = {"select"};
 
     @Override
     public boolean canProvideCompletions(XmlContext context, EditorMode mode) {
@@ -169,7 +186,8 @@ public class SchematronCompletionProvider implements CompletionProvider {
         if ("schema".equals(parent)) {
             return "pattern".equals(element) || "title".equals(element) ||
                    "ns".equals(element) || "phase".equals(element) ||
-                   "diagnostics".equals(element) || "let".equals(element);
+                   "diagnostics".equals(element) || "let".equals(element) ||
+                   "sqf:fixes".equals(element);
         }
 
         // Pattern children
@@ -181,7 +199,8 @@ public class SchematronCompletionProvider implements CompletionProvider {
         // Rule children
         if ("rule".equals(parent)) {
             return "assert".equals(element) || "report".equals(element) ||
-                   "let".equals(element) || "extends".equals(element);
+                   "let".equals(element) || "extends".equals(element) ||
+                   "sqf:fix".equals(element) || "sqf:group".equals(element);
         }
 
         // Assert/Report children
@@ -189,6 +208,32 @@ public class SchematronCompletionProvider implements CompletionProvider {
             return "value-of".equals(element) || "name".equals(element) ||
                    "diagnostics".equals(element) || "emph".equals(element) ||
                    "span".equals(element) || "dir".equals(element);
+        }
+
+        // SQF containers
+        if ("sqf:fixes".equals(parent) || "sqf:group".equals(parent)) {
+            return "sqf:fix".equals(element) || "sqf:group".equals(element);
+        }
+        if ("sqf:fix".equals(parent)) {
+            return "sqf:description".equals(element) || "sqf:user-entry".equals(element) ||
+                   "sqf:param".equals(element) || "sqf:call-fix".equals(element) ||
+                   "sqf:add".equals(element) || "sqf:delete".equals(element) ||
+                   "sqf:replace".equals(element) || "sqf:stringReplace".equals(element) ||
+                   "let".equals(element);
+        }
+        if ("sqf:description".equals(parent)) {
+            return "sqf:title".equals(element) || "sqf:p".equals(element);
+        }
+        if ("sqf:user-entry".equals(parent)) {
+            return "sqf:description".equals(element);
+        }
+        if ("sqf:call-fix".equals(parent)) {
+            return "sqf:with-param".equals(element);
+        }
+        if ("sqf:add".equals(parent) || "sqf:replace".equals(parent)
+                || "sqf:stringReplace".equals(parent)) {
+            return "sqf:keep".equals(element) || "sqf:copy-of".equals(element)
+                    || "value-of".equals(element);
         }
 
         return true; // Default: allow all
@@ -206,6 +251,17 @@ public class SchematronCompletionProvider implements CompletionProvider {
             case "ns" -> NS_ATTRIBUTES;
             case "let" -> LET_ATTRIBUTES;
             case "value-of" -> VALUE_OF_ATTRIBUTES;
+            case "sqf:fix" -> SQF_FIX_ATTRIBUTES;
+            case "sqf:group" -> SQF_GROUP_ATTRIBUTES;
+            case "sqf:add" -> SQF_ADD_ATTRIBUTES;
+            case "sqf:delete" -> SQF_DELETE_ATTRIBUTES;
+            case "sqf:replace" -> SQF_REPLACE_ATTRIBUTES;
+            case "sqf:stringReplace" -> SQF_STRING_REPLACE_ATTRIBUTES;
+            case "sqf:user-entry" -> SQF_USER_ENTRY_ATTRIBUTES;
+            case "sqf:param" -> SQF_PARAM_ATTRIBUTES;
+            case "sqf:call-fix" -> SQF_CALL_FIX_ATTRIBUTES;
+            case "sqf:with-param" -> SQF_WITH_PARAM_ATTRIBUTES;
+            case "sqf:copy-of", "sqf:keep" -> SQF_COPY_OF_ATTRIBUTES;
             default -> new String[0];
         };
     }
@@ -225,6 +281,22 @@ public class SchematronCompletionProvider implements CompletionProvider {
             case "let" -> "Variable declaration";
             case "value-of" -> "Insert XPath expression value";
             case "name" -> "Insert element/attribute name";
+            case "sqf:fixes" -> "Container for global quick-fix definitions";
+            case "sqf:fix" -> "Quick-fix definition (reference via sqf:fix on assert/report)";
+            case "sqf:group" -> "Group of quick fixes sharing a use-when condition";
+            case "sqf:description" -> "Title and description of a fix or user entry";
+            case "sqf:title" -> "Short fix title shown to the user";
+            case "sqf:p" -> "Descriptive paragraph";
+            case "sqf:add" -> "Quick-fix activity: insert nodes";
+            case "sqf:delete" -> "Quick-fix activity: remove the matched nodes";
+            case "sqf:replace" -> "Quick-fix activity: replace the matched nodes";
+            case "sqf:stringReplace" -> "Quick-fix activity: regex-replace inside text nodes";
+            case "sqf:user-entry" -> "Value prompted from the user when the fix runs";
+            case "sqf:param" -> "Parameter of a generic fix (bind via sqf:with-param)";
+            case "sqf:call-fix" -> "Execute another fix's activities";
+            case "sqf:with-param" -> "Parameter value for a called fix";
+            case "sqf:keep" -> "Copy the current content (like xsl:copy-of select=\"node()\")";
+            case "sqf:copy-of" -> "Copy the selected nodes into the fix content";
             default -> "Schematron element: " + element;
         };
     }

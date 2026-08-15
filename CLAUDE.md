@@ -167,7 +167,9 @@ Requires `<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>`.
 
 ## Known Limitations
 
-**Schema Support:** XSD 1.0/1.1 (full), Schematron (full). DTD and RelaxNG not supported.
+**Schema Support:** XSD 1.0/1.1 (full), Schematron (full, via ph-schematron/SchXslt on Saxon; schematrons without `@queryBinding` compile as xslt2). DTD and RelaxNG not supported.
+
+**Schematron Quick Fixes (SQF):** `service/sqf/` (parser/correlator/execution engine) + `controls/shell/editor/quickfix/` (UI). Fixes are applied as formatting-preserving text-range edits (one native undo step). Not supported: external `sch:extends href`, abstract patterns for fix discovery, `$sqf:match`, `@use-for-each`. See `docs/schematron-quick-fixes.md`.
 
 **XSD Editor V2:** One level of SimpleType resolution for inherited facets. No Union/List facet support yet. Imported schemas are resolved (local file, or via namespace-URL download with disk cache — `NamespaceSchemaDownloader`); nested imports inside imported schemas are not.
 

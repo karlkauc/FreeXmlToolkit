@@ -69,9 +69,9 @@
             </sch:assert>
 
             <!-- Validate derivative vs underlying correlation -->
-            <sch:assert test="($underlyingType = 'Equity' and DerivativeType in ('Option', 'Future', 'Swap')) or
-                             ($underlyingType = 'Bond' and DerivativeType in ('Option', 'Future', 'Swap', 'CDS')) or
-                             ($underlyingType = 'Currency' and DerivativeType in ('Forward', 'Future', 'Option')) or
+            <sch:assert test="($underlyingType = 'Equity' and DerivativeType = ('Option', 'Future', 'Swap')) or
+                             ($underlyingType = 'Bond' and DerivativeType = ('Option', 'Future', 'Swap', 'CDS')) or
+                             ($underlyingType = 'Currency' and DerivativeType = ('Forward', 'Future', 'Option')) or
                              not($underlyingType)">
                 Derivative type '<sch:value-of select="DerivativeType"/>' is not appropriate for underlying asset type '
                 <sch:value-of select="$underlyingType"/>'.

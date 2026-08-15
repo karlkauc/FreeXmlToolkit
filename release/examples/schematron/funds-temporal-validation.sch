@@ -85,9 +85,9 @@
             </sch:assert>
 
             <!-- Validate performance period length for different return types -->
-            <sch:assert test="(ReturnType = '1M' and days-from-duration($periodEnd - $periodStart) >= 28 and days-from-duration($periodEnd - $periodStart) <= 31) or
-                             (ReturnType = '3M' and days-from-duration($periodEnd - $periodStart) >= 89 and days-from-duration($periodEnd - $periodStart) <= 92) or
-                             (ReturnType = '1Y' and days-from-duration($periodEnd - $periodStart) >= 365 and days-from-duration($periodEnd - $periodStart) <= 366) or
+            <sch:assert test="(ReturnType = '1M' and days-from-duration($periodEnd - $periodStart) >= 28 and days-from-duration($periodEnd - $periodStart) &lt;= 31) or
+                             (ReturnType = '3M' and days-from-duration($periodEnd - $periodStart) >= 89 and days-from-duration($periodEnd - $periodStart) &lt;= 92) or
+                             (ReturnType = '1Y' and days-from-duration($periodEnd - $periodStart) >= 365 and days-from-duration($periodEnd - $periodStart) &lt;= 366) or
                              (ReturnType = 'YTD' and month-from-date($periodStart) = 1 and day-from-date($periodStart) = 1) or
                              not(ReturnType = ('1M', '3M', '1Y', 'YTD'))">
                 Performance period length must match the specified return type.

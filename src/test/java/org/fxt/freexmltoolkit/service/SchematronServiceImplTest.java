@@ -222,6 +222,145 @@ class SchematronServiceImplTest {
     }
 
     @Test
+    void testXPath2RulesAreSupported() throws IOException, SchematronLoadException {
+        // queryBinding="xslt2" rules using XPath 2.0 functions must compile and fire
+        String schematronContent = """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <schema xmlns="http://purl.oclc.org/dsdl/schematron" queryBinding="xslt2">
+                    <pattern id="xpath2-rules">
+                        <rule context="person">
+                            <assert test="matches(phone, '^\\+[0-9]+$')">Phone must start with + followed by digits</assert>
+                            <assert test="every $h in hobby satisfies string-length($h) &gt; 2">Each hobby needs at least 3 characters</assert>
+                        </rule>
+                    </pattern>
+                </schema>
+                """;
+        String xmlContent = """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <people>
+                    <person>
+                        <phone>0043123</phone>
+                        <hobby>ok-hobby</hobby>
+                        <hobby>x</hobby>
+                    </person>
+                </people>
+                """;
+
+        Path schematronFile = tempDir.resolve("xpath2.sch");
+        Files.writeString(schematronFile, schematronContent);
+
+        List<SchematronService.SchematronValidationError> errors =
+                schematronService.validateXml(xmlContent, schematronFile.toFile());
+
+        assertNotNull(errors);
+        assertEquals(2, errors.size(), "Both XPath 2.0 rules should fire: " + errors);
+    }
+
+    @Test
+    void testSchIncludeResolvedRelativeToSchematronFile() throws IOException, SchematronLoadException {
+        // sch:include with a file-relative href must be resolved against the .sch location
+        Path includedFile = tempDir.resolve("included-rules.sch");
+        Files.writeString(includedFile, """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <pattern xmlns="http://purl.oclc.org/dsdl/schematron" id="included-pattern">
+                    <rule context="person">
+                        <assert test="@id">Person must have an id attribute</assert>
+                    </rule>
+                </pattern>
+                """);
+        Path mainFile = tempDir.resolve("main.sch");
+        Files.writeString(mainFile, """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <schema xmlns="http://purl.oclc.org/dsdl/schematron" queryBinding="xslt2">
+                    <include href="included-rules.sch"/>
+                </schema>
+                """);
+
+        String xmlContent = "<?xml version=\"1.0\"?><people><person><name>John</name></person></people>";
+
+        List<SchematronService.SchematronValidationError> errors =
+                schematronService.validateXml(xmlContent, mainFile.toFile());
+
+        assertNotNull(errors);
+        assertEquals(1, errors.size(), "The included rule should fire: " + errors);
+        assertTrue(errors.get(0).message().contains("id attribute"));
+    }
+
+    @Test
+    void testModifiedSchematronFileIsRecompiled() throws Exception {
+        // The compiled-schematron cache must be invalidated when the file changes on disk
+        Path schematronFile = tempDir.resolve("evolving.sch");
+        Files.writeString(schematronFile, """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <schema xmlns="http://purl.oclc.org/dsdl/schematron">
+                    <pattern id="v1">
+                        <rule context="person">
+                            <assert test="@id">V1: id required</assert>
+                        </rule>
+                    </pattern>
+                </schema>
+                """);
+        String xmlContent = "<?xml version=\"1.0\"?><people><person/></people>";
+
+        List<SchematronService.SchematronValidationError> firstRun =
+                schematronService.validateXml(xmlContent, schematronFile.toFile());
+        assertEquals(1, firstRun.size());
+        assertTrue(firstRun.get(0).message().contains("V1"));
+
+        Files.writeString(schematronFile, """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <schema xmlns="http://purl.oclc.org/dsdl/schematron">
+                    <pattern id="v2">
+                        <rule context="person">
+                            <assert test="@id">V2: id required</assert>
+                            <assert test="name">V2: name required</assert>
+                        </rule>
+                    </pattern>
+                </schema>
+                """);
+        // Ensure a different mtime even on coarse-grained filesystems
+        Files.setLastModifiedTime(schematronFile,
+                java.nio.file.attribute.FileTime.fromMillis(System.currentTimeMillis() + 5000));
+
+        List<SchematronService.SchematronValidationError> secondRun =
+                schematronService.validateXml(xmlContent, schematronFile.toFile());
+        assertEquals(2, secondRun.size(), "Updated rules must be applied after the file changed: " + secondRun);
+        assertTrue(secondRun.get(0).message().contains("V2"));
+    }
+
+    @Test
+    void testSvrlReportIsReturnedAndParseable() throws Exception {
+        String schematronContent = """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <schema xmlns="http://purl.oclc.org/dsdl/schematron">
+                    <pattern id="p">
+                        <rule context="person">
+                            <assert test="@id">Person must have an id attribute</assert>
+                        </rule>
+                    </pattern>
+                </schema>
+                """;
+        Path schematronFile = tempDir.resolve("svrl.sch");
+        Files.writeString(schematronFile, schematronContent);
+
+        SchematronService.SchematronReport report = schematronService.validateXmlWithSvrl(
+                "<?xml version=\"1.0\"?><people><person/></people>", schematronFile.toFile());
+
+        assertNotNull(report.svrl(), "Raw SVRL must be returned");
+        var factory = javax.xml.parsers.DocumentBuilderFactory.newInstance();
+        factory.setNamespaceAware(true);
+        var doc = factory.newDocumentBuilder().parse(
+                new org.xml.sax.InputSource(new java.io.StringReader(report.svrl())));
+        var failed = doc.getElementsByTagNameNS("http://purl.oclc.org/dsdl/svrl", "failed-assert");
+        assertEquals(1, failed.getLength(), "SVRL must contain the failed assert");
+
+        assertEquals(1, report.errors().size());
+        SchematronService.SchematronValidationError error = report.errors().get(0);
+        assertNotNull(error.context(), "Finding must carry the SVRL location");
+        assertNotNull(error.ruleId(), "Finding must carry the test expression");
+    }
+
+    @Test
     void testIsValidSchematronFile() throws IOException {
         // Create valid Schematron file
         String validSchematronContent = """

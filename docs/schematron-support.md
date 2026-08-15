@@ -272,6 +272,13 @@ the full message together with the failed test expression and the failing node's
 *(new in July 2026)*. For a complete overview of a run, open the
 [Validation Report](#validation-report).
 
+*(new in August 2026)* If a rule defines **Schematron Quick Fixes** (SQF), the
+matching problems can be corrected automatically — from a right-click **Quick Fix**
+menu on the problem rows, from a lightbulb in the editor gutter, or from the
+Validation Report's **Fix** column. See
+[Schematron Quick Fixes](schematron-quick-fixes.md) for the full guide, including
+how to author fixes.
+
 ---
 
 ## Favorites Integration
@@ -310,6 +317,13 @@ Common XPath expressions for Schematron rules:
 |--------|---------|
 | ISO Schematron (.sch) | Full support |
 | XSLT-based Schematron | Full support |
+
+> **Updated in August 2026** — Schematron validation now runs on the **SchXslt**
+> compiler (executed by Saxon), which fully resolves `sch:include`,
+> `sch:extends`, and abstract patterns. Schematrons that declare
+> `queryBinding="xslt2"` or `"xslt3"` use XPath 2.0/3.0; files without a
+> `queryBinding` attribute are compiled as `xslt2`, so existing rule files keep
+> working unchanged.
 
 ---
 
@@ -351,6 +365,6 @@ Common XPath expressions for Schematron rules:
 
 | Previous | Home | Next |
 |----------|------|------|
-| [IntelliSense](context-sensitive-intellisense.md) | [Home](index.md) | [Schema Support](schema-support.md) |
+| [IntelliSense](context-sensitive-intellisense.md) | [Home](index.md) | [Schematron Quick Fixes](schematron-quick-fixes.md) |
 
 **All Pages:** [Unified Shell](unified-shell.md) | [XML Editor](xml-editor.md) | [XML Features](xml-editor-features.md) | [JSON Editor](json-editor.md) | [XSD Tools](xsd-tools.md) | [Profiled XML Generation](profiled-xml-generation.md) | [XSD Validation](xsd-validation.md) | [XSLT Viewer](xslt-viewer.md) | [XSLT Developer](xslt-developer.md) | [FOP/PDF](pdf-generator.md) | [Signatures](digital-signatures.md) | [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [FundsXML Extensions](fundsxml-extensions.md) | [Favorites](favorites-system.md) | [Templates](template-management.md) | [Tech Stack](technology-stack.md) | [Security](SECURITY.md) | [Licenses](licenses.md)

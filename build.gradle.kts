@@ -143,11 +143,9 @@ dependencies {
     testImplementation("org.testfx:openjfx-monocle:21.0.2")
     testImplementation("org.hamcrest:hamcrest:3.0")
 
-    implementation("com.helger.schematron:ph-schematron-parent-pom:9.2.0")
-    implementation("com.helger.commons:ph-io:12.3.2")
-    // implementation("com.helger.commons:ph-commons:12.0.3")
-    // implementation("com.helger.commons:ph-xml:12.0.3")
+    implementation(platform("com.helger.schematron:ph-schematron-parent-pom:9.2.0"))
     implementation("com.helger.schematron:ph-schematron-api:9.2.0")
+    runtimeOnly("org.glassfish.jaxb:jaxb-runtime:4.0.6") // JAXB impl for ph-schematron's SVRL marshalling
     implementation("com.helger.schematron:ph-schematron-xslt:9.2.0")
     implementation("com.helger.schematron:ph-schematron-pure:9.2.0")
     implementation("com.helger.schematron:ph-schematron-schxslt:9.2.0")

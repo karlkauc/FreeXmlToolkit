@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<people>
+    <person id="p-1">
+        <fullName>John Doe</fullName>
+        <phone>+43123456</phone>
+        <note>fine</note>
+    </person>
+</people>

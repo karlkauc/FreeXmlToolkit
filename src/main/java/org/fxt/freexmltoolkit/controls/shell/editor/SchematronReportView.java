@@ -62,6 +62,7 @@ public class SchematronReportView extends VBox {
         table.setId("schematron-report-table");
         table.getColumns().add(column("Severity", p -> capitalize(p.severity()), 90));
         table.getColumns().add(column("Line", p -> p.line() > 0 ? Integer.toString(p.line()) : "", 60));
+        table.getColumns().add(fixColumn(editorHost));
         table.getColumns().add(column("Message", ValidationProblem::message, 380));
         table.getColumns().add(column("Rule / Test", p -> nullSafe(p.ruleId()), 220));
         TableColumn<ValidationProblem, String> context = column("Context (XPath)",
@@ -117,6 +118,39 @@ public class SchematronReportView extends VBox {
         Label label = new Label(text);
         label.getStyleClass().add("fxt-placeholder-text");
         return label;
+    }
+
+    /** A narrow column with a lightbulb button on rows that offer SQF quick fixes. */
+    private static TableColumn<ValidationProblem, ValidationProblem> fixColumn(EditorHost editorHost) {
+        TableColumn<ValidationProblem, ValidationProblem> column = new TableColumn<>("Fix");
+        column.setPrefWidth(50);
+        column.setSortable(false);
+        column.setCellValueFactory(c -> new javafx.beans.property.ReadOnlyObjectWrapper<>(c.getValue()));
+        column.setCellFactory(col -> new javafx.scene.control.TableCell<>() {
+            @Override
+            protected void updateItem(ValidationProblem item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null || !item.hasFixes() || editorHost == null) {
+                    setGraphic(null);
+                    return;
+                }
+                IconifyIcon bulb = new IconifyIcon("bi-lightbulb");
+                bulb.setIconSize(14);
+                Button button = new Button(null, bulb);
+                button.getStyleClass().add("fxt-tool-button");
+                javafx.scene.control.Tooltip.install(button,
+                        new javafx.scene.control.Tooltip("Apply a quick fix"));
+                button.setOnAction(e -> {
+                    javafx.scene.control.ContextMenu menu = new javafx.scene.control.ContextMenu(
+                            org.fxt.freexmltoolkit.controls.shell.editor.quickfix.QuickFixMenuFactory
+                                    .buildQuickFixMenu(item, fix -> editorHost
+                                            .getQuickFixController().applyFix(item, fix)));
+                    menu.show(button, javafx.geometry.Side.BOTTOM, 0, 0);
+                });
+                setGraphic(button);
+            }
+        });
+        return column;
     }
 
     private static TableColumn<ValidationProblem, String> column(String title,
