@@ -387,9 +387,10 @@ or expand that section.
   [Browsing favorites with ◀ / ▶](#browsing-favorites) below.
 - *(new in August 2026)* **Drag & drop**: drop an `.xsl` / `.xslt` file from your file
   manager straight onto the STYLESHEET row - it becomes the current stylesheet, exactly
-  as if you had picked it via **Change**. While dragging, the row glows **green** when
-  the file can be loaded and **red** when it has the wrong extension (a red drop is
-  rejected).
+  as if you had picked it via **Change** or a favorite. While dragging, the row glows
+  **green** when the file can be loaded and **red** when it has the wrong extension (a
+  red drop is rejected). As with favorites, the transform **runs automatically** as soon
+  as both a stylesheet and an input are ready.
 
 ### INPUT
 
@@ -403,6 +404,11 @@ The INPUT section shows which document the transform will use as its input:
     - **Use active editor** - go back to following the active tab.
 - The **star icon** opens your **XML favorites** - see
   [Browsing favorites with ◀ / ▶](#browsing-favorites) below.
+- *(new in August 2026)* **Drag & drop**: drop an `.xml` file from your file manager
+  straight onto the INPUT row to transform that file - exactly like **Select XML file…**
+  or picking a favorite. The same **green** (loadable) / **red** (rejected) drag-over
+  feedback applies, and the transform **runs automatically** as soon as both a stylesheet
+  and an input are ready.
 
 ### Browsing favorites with ◀ / ▶ {#browsing-favorites}
 
@@ -1395,6 +1401,10 @@ Drag files from your file manager directly into the editor to open them. Multipl
 - Drop an `.xsl` / `.xslt` file onto the Explorer's
   **[Stylesheet picker](#transform-bar-one-click-xslt-from-the-explorer)** or the Transform
   panel's **[STYLESHEET](#stylesheet)** row to make it the current stylesheet.
+- Drop an `.xml` file onto the Transform panel's **[INPUT](#input)** row to make it the
+  transform's input file. On both Transform panel rows a drop behaves like picking a
+  favorite: the transform **runs automatically** once both a stylesheet and an input are
+  ready.
 - Drop a `.sch` / `.schematron` file onto the Explorer's
   **[Schematron picker](#schematron-bar-one-click-validation-from-the-explorer)** or the
   Validation panel's **[SCHEMATRON source row](#sources)** to make it the current

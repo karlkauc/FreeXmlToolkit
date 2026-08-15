@@ -51,7 +51,8 @@ structure.
 
 1. Open your XML source file in the editor host so it is the active document - the panel's
    **INPUT** section follows the active tab by default (use **Change → Select XML file…** to
-   transform a fixed file from disk instead)
+   transform a fixed file from disk instead, or **drop** an `.xml` file from your file
+   manager onto the INPUT row *(new in August 2026)*)
 2. In the **STYLESHEET** section, click **Change** to choose an XSLT stylesheet (the clock
    icon offers your recently used stylesheets) - or simply **drop** an `.xsl` / `.xslt`
    file from your file manager onto the STYLESHEET row *(new in August 2026)*
