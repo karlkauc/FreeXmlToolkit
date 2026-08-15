@@ -237,6 +237,13 @@ XML / batch, Sample XML plain/advanced, Flatten, Statistics, Schema Quality,
 Documentation) sit as a **strip of icon buttons directly above the filter** - hover for
 the tool's name.
 
+*(new in August 2026)* The **whole panel is a drop zone**: drop an `.xsd` file from your
+file manager anywhere on it to **open that schema as a document** - the panel then shows
+its declarations. Unlike the picker drop targets elsewhere in the shell, this drop
+*opens* the file rather than binding or selecting anything. While dragging, the panel
+shows a **dashed green border** with a soft tint for an `.xsd` file and a **dashed red
+border** for any other extension - a red drop is rejected and does not open the file.
+
 ### Documentation Generator (editor area)
 
 **Generate Documentation…** (Schema panel ⋮ or the editor toolbar's **Schema ▾** menu) opens the generator as
@@ -1428,12 +1435,17 @@ targets too**:
   sources.
 - Drop a keystore file (`.jks`, `.keystore`, `.p12`, `.pfx`) onto the
   **[Signature panel](#signature-panel)**'s KEYSTORE row or Expert Mode's trust store row.
+- Drop an `.xsd` file anywhere on the **[Schema panel](#the-schema-panel)** (Type
+  Library) to **open it as a document** - unlike the targets above, this drop *opens* the
+  file instead of binding or selecting it; the panel shows a **dashed** green/red border
+  while you drag.
 
 While you drag, the target shows **green** feedback when the file can be loaded there and
 **red** feedback when the extension does not match - a red drop is rejected and does
-**not** open the file in the editor. A valid drop behaves exactly like choosing the file
-via the picker: it is recorded in the recent list and shared between the Explorer bars
-and the panels. The feedback colors follow the light and dark theme.
+**not** open the file in the editor. On the picker and source-row targets, a valid drop
+behaves exactly like choosing the file via **Change** or a favorite: it is recorded in
+the recent list (where the target has one) and shared between the Explorer bars and the
+panels. The feedback colors follow the light and dark theme.
 
 ## Where the former tabs went
 
