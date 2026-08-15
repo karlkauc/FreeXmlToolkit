@@ -135,4 +135,47 @@ class TypeLibraryPanelTest {
         assertTrue(items.contains("Open Type Editor"), items.toString());
         assertTrue(items.contains("Find Usage"), items.toString());
     }
+
+    @Test
+    void droppingAnXsdOnThePanelOpensIt(@TempDir Path tmp) throws Exception {
+        assertNotNull(panel.getOnDragOver(), "the Schema panel must accept file drags");
+
+        Path xsd = tmp.resolve("dropped.xsd");
+        Files.writeString(xsd, XSD);
+        javafx.scene.input.Dragboard dragboard = org.mockito.Mockito.mock(javafx.scene.input.Dragboard.class);
+        org.mockito.Mockito.when(dragboard.hasFiles()).thenReturn(true);
+        org.mockito.Mockito.when(dragboard.getFiles()).thenReturn(java.util.List.of(xsd.toFile()));
+        javafx.scene.input.DragEvent event = org.mockito.Mockito.mock(javafx.scene.input.DragEvent.class);
+        org.mockito.Mockito.when(event.getDragboard()).thenReturn(dragboard);
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.getOnDragDropped().handle(event);
+            return null;
+        });
+
+        WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS, () -> host.getOpenDocuments().stream()
+                .anyMatch(d -> d.getPath() != null && d.getPath().equals(xsd)));
+        org.mockito.Mockito.verify(event).setDropCompleted(true);
+    }
+
+    @Test
+    void droppingANonXsdOnThePanelIsRejected(@TempDir Path tmp) throws Exception {
+        Path xml = tmp.resolve("data.xml");
+        Files.writeString(xml, "<root/>");
+        javafx.scene.input.Dragboard dragboard = org.mockito.Mockito.mock(javafx.scene.input.Dragboard.class);
+        org.mockito.Mockito.when(dragboard.hasFiles()).thenReturn(true);
+        org.mockito.Mockito.when(dragboard.getFiles()).thenReturn(java.util.List.of(xml.toFile()));
+        javafx.scene.input.DragEvent event = org.mockito.Mockito.mock(javafx.scene.input.DragEvent.class);
+        org.mockito.Mockito.when(event.getDragboard()).thenReturn(dragboard);
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.getOnDragDropped().handle(event);
+            return null;
+        });
+
+        assertTrue(host.getOpenDocuments().stream()
+                        .noneMatch(d -> d.getPath() != null && d.getPath().equals(xml)),
+                "a non-XSD drop on the Schema panel must not open the file");
+        org.mockito.Mockito.verify(event).setDropCompleted(false);
+    }
 }

@@ -104,6 +104,11 @@ public class TypeLibraryPanel extends VBox {
 
         getChildren().addAll(header, scroll);
 
+        // Dropping an XSD anywhere on the panel opens it as a document; the library then
+        // follows the newly active tab. Other extensions are rejected (red feedback).
+        org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(this,
+                org.fxt.freexmltoolkit.service.DragDropService.XSD_EXTENSIONS, editorHost::openFile);
+
         refresh();
         editorHost.activeTabProperty().addListener((obs, oldV, newV) -> refresh());
         editorHost.activeViewModeProperty().addListener((obs, oldV, newV) -> refresh());

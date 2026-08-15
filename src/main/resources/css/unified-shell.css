@@ -2376,15 +2376,21 @@
     -fx-background-radius: 6;
 }
 
-.fxt-drop-valid .iconify-icon,
-.fxt-drop-valid > .label,
+/* Icon/text recoloring only on the compact targets — a panel-sized drop zone
+   (.fxt-schema-panel below) must not recolor every icon it contains. */
+.fxt-tool-button.fxt-drop-valid .iconify-icon,
+.fxt-vp-source-row.fxt-drop-valid .iconify-icon,
+.fxt-tool-button.fxt-drop-valid > .label,
+.fxt-vp-source-row.fxt-drop-valid > .label,
 .fxt-status-item.fxt-drop-valid {
     -fx-icon-color: -fxt-tool-success-fg;
     -fx-text-fill: -fxt-tool-success-fg;
 }
 
-.fxt-drop-invalid .iconify-icon,
-.fxt-drop-invalid > .label,
+.fxt-tool-button.fxt-drop-invalid .iconify-icon,
+.fxt-vp-source-row.fxt-drop-invalid .iconify-icon,
+.fxt-tool-button.fxt-drop-invalid > .label,
+.fxt-vp-source-row.fxt-drop-invalid > .label,
 .fxt-status-item.fxt-drop-invalid {
     -fx-icon-color: -fxt-tool-danger-fg;
     -fx-text-fill: -fxt-tool-danger-fg;
@@ -2394,4 +2400,22 @@
 .fxt-vp-source-row.fxt-drop-valid,
 .fxt-vp-source-row.fxt-drop-invalid {
     -fx-padding: 5 11 5 13;
+}
+
+/* The Schema panel is a whole-panel drop zone (drop an .xsd to open it):
+   dashed inner border as the classic drop-area affordance, soft tint only. */
+.fxt-schema-panel.fxt-drop-valid {
+    -fx-background-color: -fxt-tool-success-bg;
+    -fx-border-color: -fxt-tool-success-border;
+    -fx-border-width: 2;
+    -fx-border-style: dashed;
+    -fx-border-insets: 2;
+}
+
+.fxt-schema-panel.fxt-drop-invalid {
+    -fx-background-color: -fxt-tool-danger-bg;
+    -fx-border-color: -fxt-tool-danger-border;
+    -fx-border-width: 2;
+    -fx-border-style: dashed;
+    -fx-border-insets: 2;
 }
