@@ -3985,9 +3985,10 @@ the same recent-stylesheet list and shows its result in the same OUTPUT panel.</
   <a href="#browsing-favorites">Browsing favorites with ◀ / ▶</a> below.</li>
 <li><em>(new in August 2026)</em> <strong>Drag &amp; drop</strong>: drop an <code>.xsl</code> / <code>.xslt</code> file from your file
   manager straight onto the STYLESHEET row - it becomes the current stylesheet, exactly
-  as if you had picked it via <strong>Change</strong>. While dragging, the row glows <strong>green</strong> when
-  the file can be loaded and <strong>red</strong> when it has the wrong extension (a red drop is
-  rejected).</li>
+  as if you had picked it via <strong>Change</strong> or a favorite. While dragging, the row glows
+  <strong>green</strong> when the file can be loaded and <strong>red</strong> when it has the wrong extension (a
+  red drop is rejected). As with favorites, the transform <strong>runs automatically</strong> as soon
+  as both a stylesheet and an input are ready.</li>
 </ul>
 <h3 id="input">INPUT<a class="headerlink" href="#input" title="Permanent link">&para;</a></h3>
 <p>The INPUT section shows which document the transform will use as its input:</p>
@@ -4002,6 +4003,11 @@ the same recent-stylesheet list and shows its result in the same OUTPUT panel.</
 </li>
 <li>The <strong>star icon</strong> opens your <strong>XML favorites</strong> - see
   <a href="#browsing-favorites">Browsing favorites with ◀ / ▶</a> below.</li>
+<li><em>(new in August 2026)</em> <strong>Drag &amp; drop</strong>: drop an <code>.xml</code> file from your file manager
+  straight onto the INPUT row to transform that file - exactly like <strong>Select XML file…</strong>
+  or picking a favorite. The same <strong>green</strong> (loadable) / <strong>red</strong> (rejected) drag-over
+  feedback applies, and the transform <strong>runs automatically</strong> as soon as both a stylesheet
+  and an input are ready.</li>
 </ul>
 <h3 id="browsing-favorites">Browsing favorites with ◀ / ▶<a class="headerlink" href="#browsing-favorites" title="Permanent link">&para;</a></h3>
 <blockquote>
@@ -5264,6 +5270,10 @@ Editor's XPath/XQuery panel and vice versa.</p>
 <li>Drop an <code>.xsl</code> / <code>.xslt</code> file onto the Explorer's
   <strong><a href="#transform-bar-one-click-xslt-from-the-explorer">Stylesheet picker</a></strong> or the Transform
   panel's <strong><a href="#stylesheet">STYLESHEET</a></strong> row to make it the current stylesheet.</li>
+<li>Drop an <code>.xml</code> file onto the Transform panel's <strong><a href="#input">INPUT</a></strong> row to make it the
+  transform's input file. On both Transform panel rows a drop behaves like picking a
+  favorite: the transform <strong>runs automatically</strong> once both a stylesheet and an input are
+  ready.</li>
 <li>Drop a <code>.sch</code> / <code>.schematron</code> file onto the Explorer's
   <strong><a href="#schematron-bar-one-click-validation-from-the-explorer">Schematron picker</a></strong> or the
   Validation panel's <strong><a href="#sources">SCHEMATRON source row</a></strong> to make it the current
