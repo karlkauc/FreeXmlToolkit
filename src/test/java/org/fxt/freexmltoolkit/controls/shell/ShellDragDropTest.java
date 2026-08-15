@@ -2,6 +2,7 @@ package org.fxt.freexmltoolkit.controls.shell;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
@@ -35,6 +36,38 @@ class ShellDragDropTest {
         assertTrue(UnifiedShellView.acceptsDrop(List.of(new File("a.xsd"))));
         assertFalse(UnifiedShellView.acceptsDrop(List.of(new File("a.png"))));
         assertFalse(UnifiedShellView.acceptsDrop(List.of()));
+    }
+
+    @Test
+    void droppingAnXsdOnTheStatusBarSchemaIndicatorBindsIt(@TempDir Path tmp) throws Exception {
+        java.util.concurrent.TimeUnit SECONDS = java.util.concurrent.TimeUnit.SECONDS;
+        Path xml = tmp.resolve("doc.xml");
+        Files.writeString(xml, "<root/>");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> shell.openDroppedFiles(List.of(xml.toFile())));
+        WaitForAsyncUtils.waitFor(3, SECONDS, () -> shell.getEditorHost()
+                .getActiveText().map(t -> t.contains("root")).orElse(false));
+
+        javafx.scene.control.Label indicator =
+                (javafx.scene.control.Label) shell.lookup("#status-schema");
+        assertNotNull(indicator, "the status bar must show the XSD indicator");
+        assertNotNull(indicator.getOnDragOver(), "the XSD indicator must accept file drags");
+
+        Path xsd = tmp.resolve("dropped.xsd");
+        Files.writeString(xsd, "<xs:schema xmlns:xs=\"http://www.w3.org/2001/XMLSchema\"/>");
+        javafx.scene.input.Dragboard dragboard = org.mockito.Mockito.mock(javafx.scene.input.Dragboard.class);
+        org.mockito.Mockito.when(dragboard.hasFiles()).thenReturn(true);
+        org.mockito.Mockito.when(dragboard.getFiles()).thenReturn(List.of(xsd.toFile()));
+        javafx.scene.input.DragEvent event = org.mockito.Mockito.mock(javafx.scene.input.DragEvent.class);
+        org.mockito.Mockito.when(event.getDragboard()).thenReturn(dragboard);
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            indicator.getOnDragDropped().handle(event);
+            return null;
+        });
+
+        assertEquals(xsd.toFile(), shell.getEditorHost().activeSchemaProperty().get(),
+                "dropping must bind the XSD like clicking the indicator and choosing it");
+        org.mockito.Mockito.verify(event).setDropCompleted(true);
     }
 
     @Test

@@ -1330,6 +1330,9 @@ public class UnifiedShellView extends BorderPane {
         // XSD and binds it to the active document via setSchemaForActiveDocument.
         statusSchema.setCursor(javafx.scene.Cursor.HAND);
         statusSchema.setOnMouseClicked(e -> setSchema());
+        FileDropSupport.install(statusSchema,
+                org.fxt.freexmltoolkit.service.DragDropService.XSD_EXTENSIONS,
+                editorHost::setSchemaForActiveDocument);
     }
 
     /** All schema-status style classes; removed before the current one is (re-)applied. */

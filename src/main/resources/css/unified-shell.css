@@ -2357,7 +2357,8 @@
  * Colors come from the -fxt-tool-* token triplets, so dark mode is automatic.
  */
 .fxt-tool-button.fxt-drop-valid,
-.fxt-vp-source-row.fxt-drop-valid {
+.fxt-vp-source-row.fxt-drop-valid,
+.fxt-status-item.fxt-drop-valid {
     -fx-background-color: -fxt-tool-success-bg;
     -fx-border-color: -fxt-tool-success-border;
     -fx-border-width: 1;
@@ -2366,7 +2367,8 @@
 }
 
 .fxt-tool-button.fxt-drop-invalid,
-.fxt-vp-source-row.fxt-drop-invalid {
+.fxt-vp-source-row.fxt-drop-invalid,
+.fxt-status-item.fxt-drop-invalid {
     -fx-background-color: -fxt-tool-danger-bg;
     -fx-border-color: -fxt-tool-danger-border;
     -fx-border-width: 1;
@@ -2375,13 +2377,15 @@
 }
 
 .fxt-drop-valid .iconify-icon,
-.fxt-drop-valid > .label {
+.fxt-drop-valid > .label,
+.fxt-status-item.fxt-drop-valid {
     -fx-icon-color: -fxt-tool-success-fg;
     -fx-text-fill: -fxt-tool-success-fg;
 }
 
 .fxt-drop-invalid .iconify-icon,
-.fxt-drop-invalid > .label {
+.fxt-drop-invalid > .label,
+.fxt-status-item.fxt-drop-invalid {
     -fx-icon-color: -fxt-tool-danger-fg;
     -fx-text-fill: -fxt-tool-danger-fg;
 }
