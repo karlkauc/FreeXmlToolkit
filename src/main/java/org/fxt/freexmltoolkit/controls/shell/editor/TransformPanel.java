@@ -131,8 +131,9 @@ public class TransformPanel extends VBox {
         HBox xsltRow = sourceRow("bi-arrow-repeat", xsltName, this::chooseXslt,
                 recentXsltMenu, xsltFavMenu, prevXsltBtn, xsltPos, nextXsltBtn);
         xsltRow.setId("transform-xslt-row");
+        // Drops behave like picking a favorite: record access, sync the browse position, auto-run.
         org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(xsltRow,
-                org.fxt.freexmltoolkit.service.DragDropService.XSLT_EXTENSIONS, this::setXsltFile);
+                org.fxt.freexmltoolkit.service.DragDropService.XSLT_EXTENSIONS, this::applyXslt);
         updateXsltPos();
         HBox stylesheetHeader = SidePanelLayout.sectionHeader(new Label("STYLESHEET"), xsltRow);
 
@@ -148,6 +149,9 @@ public class TransformPanel extends VBox {
         HBox inputRow = sourceRow("bi-code-slash", inputName, () ->
                 inputMenu.show(inputName, javafx.geometry.Side.BOTTOM, 0, 0),
                 inputFavMenu, prevInputBtn, inputPos, nextInputBtn);
+        inputRow.setId("transform-input-row");
+        org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(inputRow,
+                org.fxt.freexmltoolkit.service.DragDropService.XML_EXTENSIONS, this::applyInput);
         updateInputPos();
         HBox inputHeader = SidePanelLayout.sectionHeader(new Label("INPUT"), inputRow);
         refreshInputName();

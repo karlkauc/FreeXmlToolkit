@@ -339,6 +339,30 @@ class TransformPanelTest {
         org.mockito.Mockito.verify(event).setDropCompleted(true);
     }
 
+    @Test
+    void droppingAnXmlOnTheInputRowOverridesTheInput(@TempDir Path tmp) throws Exception {
+        javafx.scene.layout.HBox row = (javafx.scene.layout.HBox) panel.lookup("#transform-input-row");
+        assertNotNull(row, "the INPUT row must exist");
+        assertNotNull(row.getOnDragOver(), "the INPUT row must accept file drags");
+
+        Path xml = tmp.resolve("override.xml");
+        Files.writeString(xml, XML);
+        javafx.scene.input.Dragboard dragboard = org.mockito.Mockito.mock(javafx.scene.input.Dragboard.class);
+        org.mockito.Mockito.when(dragboard.hasFiles()).thenReturn(true);
+        org.mockito.Mockito.when(dragboard.getFiles()).thenReturn(List.of(xml.toFile()));
+        javafx.scene.input.DragEvent event = org.mockito.Mockito.mock(javafx.scene.input.DragEvent.class);
+        org.mockito.Mockito.when(event.getDragboard()).thenReturn(dragboard);
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            row.getOnDragDropped().handle(event);
+            return null;
+        });
+
+        javafx.scene.control.Label name = (javafx.scene.control.Label) row.lookup(".fxt-vp-source-name");
+        assertEquals("override.xml", name.getText(), "the dropped XML must become the input override");
+        org.mockito.Mockito.verify(event).setDropCompleted(true);
+    }
+
     private void openGreeting(Path tmp) throws Exception {
         Path xml = tmp.resolve("doc.xml");
         Files.writeString(xml, XML);
