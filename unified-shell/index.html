@@ -4623,6 +4623,11 @@ favorite type with a lock icon (see <a href="../favorites-system/">Favorites</a>
   <strong>Validate (Trust)</strong> produces a trust report (trusted / trust anchor / revocation /
   timestamp).</li>
 </ul>
+<p><em>(new in August 2026)</em> The <strong>KEYSTORE row</strong> and Expert Mode's <strong>trust store row</strong> are also
+<strong>drop targets</strong>: drop a keystore file (<code>.jks</code>, <code>.keystore</code>, <code>.p12</code>, <code>.pfx</code>) from your
+file manager onto either row to select it - the row glows <strong>green</strong> while a loadable file
+hovers over it and <strong>red</strong> for a wrong file type (which is rejected), and the drop
+behaves exactly like choosing the file via <strong>Change</strong> or a favorite.</p>
 <p><em>(updated July 2026)</em> Missing inputs are highlighted: signing without a keystore marks the
 keystore entry in red, and a blank alias or password is marked in red when you sign or
 create a certificate. The highlight disappears as soon as you start typing in the field.</p>
@@ -4634,7 +4639,11 @@ create a certificate. The highlight disappears as soon as you start typing in th
   <strong>XSL-FO stylesheet</strong> (<em>Change</em>). <em>(updated July 2026)</em> Both rows also carry a <strong>star
   menu</strong> next to their <em>Change</em> link - <strong>XML</strong> favorites for the input, <strong>XSLT</strong> favorites
   for the stylesheet - so you can pick a favorited file in one click (see
-  <a href="../favorites-system/">Favorites</a>).</li>
+  <a href="../favorites-system/">Favorites</a>). <em>(new in August 2026)</em> Both rows are also <strong>drop
+  targets</strong>: drop an <code>.xml</code> file onto the XML row or an <code>.xsl</code> / <code>.xslt</code> file onto the
+  stylesheet row - the row glows <strong>green</strong> while a loadable file hovers over it and
+  <strong>red</strong> for a wrong file type (which is rejected), and the drop behaves exactly like
+  <strong>Change</strong> or a favorite.</li>
 <li><strong>METADATA</strong> - PDF document <strong>Title</strong>, <strong>Author</strong> (pre-filled from your configured user
   name) and <strong>Subject</strong>, embedded into the generated PDF.</li>
 <li><strong>OPTIONS</strong> - <strong>PDF/A-1b compliant</strong> renders an archival-grade PDF (requires the
@@ -5265,7 +5274,8 @@ their parentheses / <code>::</code> automatically.</p>
 Editor's XPath/XQuery panel and vice versa.</p>
 <h2 id="drag-and-drop">Drag and Drop<a class="headerlink" href="#drag-and-drop" title="Permanent link">&para;</a></h2>
 <p>Drag files from your file manager directly into the editor to open them. Multiple files can be dropped at once.</p>
-<p><em>(new in August 2026)</em> Stylesheet, Schematron and XSD <strong>pickers are drop targets too</strong>:</p>
+<p><em>(new in August 2026)</em> The file <strong>pickers and source rows</strong> across the shell are <strong>drop
+targets too</strong>:</p>
 <ul>
 <li>Drop an <code>.xsl</code> / <code>.xslt</code> file onto the Explorer's
   <strong><a href="#transform-bar-one-click-xslt-from-the-explorer">Stylesheet picker</a></strong> or the Transform
@@ -5281,6 +5291,11 @@ Editor's XPath/XQuery panel and vice versa.</p>
 <li>Drop an <code>.xsd</code> file onto the Validation panel's <strong><a href="#sources">XSD source row</a></strong> or onto
   the <strong><a href="#status-bar">XSD indicator in the status bar</a></strong> (shown for XML-family documents)
   to bind that schema to the active document.</li>
+<li>Drop an <code>.xml</code> file onto the <strong><a href="#pdf-fop-panel">PDF / FOP panel</a></strong>'s XML input row, or
+  an <code>.xsl</code> / <code>.xslt</code> file onto its XSL-FO stylesheet row, to set the PDF rendering
+  sources.</li>
+<li>Drop a keystore file (<code>.jks</code>, <code>.keystore</code>, <code>.p12</code>, <code>.pfx</code>) onto the
+  <strong><a href="#signature-panel">Signature panel</a></strong>'s KEYSTORE row or Expert Mode's trust store row.</li>
 </ul>
 <p>While you drag, the target shows <strong>green</strong> feedback when the file can be loaded there and
 <strong>red</strong> feedback when the extension does not match - a red drop is rejected and does
