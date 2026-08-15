@@ -1100,6 +1100,11 @@ The status bar at the bottom of the window includes:
     document; the binding drives both **IntelliSense** and **schema validation**. (The editor
     toolbar's **Schema** button - **Set XSD Schema…** - does the same.) Hovering shows a tooltip explaining
     the current IntelliSense availability.
+
+    *(new in August 2026)* The indicator is also a **drop target**: drop an `.xsd` file from
+    your file manager onto it to bind the schema to the active document in one move - it
+    glows **green** while a loadable file hovers over it and **red** for a wrong file type
+    (which is rejected).
 - A **memory monitor** showing the JVM heap usage as **used / max MB**. **Click it** to run
   garbage collection, which can free memory after working with large files.
 
@@ -1394,8 +1399,9 @@ Drag files from your file manager directly into the editor to open them. Multipl
   **[Schematron picker](#schematron-bar-one-click-validation-from-the-explorer)** or the
   Validation panel's **[SCHEMATRON source row](#sources)** to make it the current
   Schematron (and bind it to the active document).
-- Drop an `.xsd` file onto the Validation panel's **[XSD source row](#sources)** to bind
-  that schema to the active document.
+- Drop an `.xsd` file onto the Validation panel's **[XSD source row](#sources)** or onto
+  the **[XSD indicator in the status bar](#status-bar)** (shown for XML-family documents)
+  to bind that schema to the active document.
 
 While you drag, the target shows **green** feedback when the file can be loaded there and
 **red** feedback when the extension does not match - a red drop is rejected and does

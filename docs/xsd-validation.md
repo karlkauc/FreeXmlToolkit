@@ -54,8 +54,8 @@ Use this mode to validate one XML file against a schema.
    - **Manual**: Bind an XSD yourself - click the **"No XSD"** indicator in the status bar (or
      click the toolbar's **Schema** button - **Set XSD Schema…**), pick a schema in the Validation panel's
      **SOURCES** section, or simply **drop** an `.xsd` file from your file manager onto the
-     panel's XSD source row *(new in August 2026)*. The binding drives both validation and
-     IntelliSense.
+     panel's XSD source row or onto the status bar's XSD indicator *(new in August 2026)*.
+     The binding drives both validation and IntelliSense.
 
 ### Step 2: Validate
 
