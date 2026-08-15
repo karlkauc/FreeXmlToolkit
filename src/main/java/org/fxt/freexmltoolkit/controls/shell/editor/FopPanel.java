@@ -82,6 +82,9 @@ public class FopPanel extends VBox {
                 "XML favorites", this::setXmlOverride);
         HBox xmlRow = sourceRow("bi-code-slash", xmlName, () ->
                 xmlMenu.show(xmlName, Side.BOTTOM, 0, 0), xmlFavoritesMenu);
+        xmlRow.setId("fop-xml-row");
+        org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(xmlRow,
+                org.fxt.freexmltoolkit.service.DragDropService.XML_EXTENSIONS, this::setXmlOverride);
         refreshXmlName();
         editorHost.activeTabProperty().addListener((obs, oldV, newV) -> refreshXmlName());
 
@@ -91,6 +94,9 @@ public class FopPanel extends VBox {
                 org.fxt.freexmltoolkit.domain.FileFavorite.FileType.XSLT,
                 "XSLT favorites", this::setXslFile);
         HBox xslRow = sourceRow("bi-file-earmark-code", xslName, this::chooseXsl, xslFavoritesMenu);
+        xslRow.setId("fop-xsl-row");
+        org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(xslRow,
+                org.fxt.freexmltoolkit.service.DragDropService.XSLT_EXTENSIONS, this::setXslFile);
         HBox inputHeader = SidePanelLayout.sectionHeader(new Label("INPUT"), xmlRow, xslRow);
 
         // --- METADATA ------------------------------------------------------------

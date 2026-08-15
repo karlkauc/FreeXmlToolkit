@@ -244,4 +244,40 @@ class SignaturePanelTest {
         assertTrue(keystoreName.getStyleClass().contains("fxt-field-error"),
                 "the keystore source entry must be highlighted");
     }
+
+    @Test
+    void droppingStoresOnTheSourceRowsLoadsThem(@TempDir Path tmp) throws Exception {
+        javafx.scene.layout.HBox keystoreRow = (javafx.scene.layout.HBox) panel.lookup("#sig-keystore-row");
+        javafx.scene.layout.HBox trustRow = (javafx.scene.layout.HBox) panel.lookup("#sig-truststore-row");
+        assertNotNull(keystoreRow, "the KEYSTORE row must exist");
+        assertNotNull(trustRow, "the TRUST STORE row must exist");
+        assertNotNull(keystoreRow.getOnDragOver(), "the KEYSTORE row must accept file drags");
+        assertNotNull(trustRow.getOnDragOver(), "the TRUST STORE row must accept file drags");
+
+        Path keystore = tmp.resolve("signing.jks");
+        Files.writeString(keystore, "x");
+        Path trustStore = tmp.resolve("anchors.p12");
+        Files.writeString(trustStore, "x");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            keystoreRow.getOnDragDropped().handle(dropEventWithFiles(keystore.toFile()));
+            trustRow.getOnDragDropped().handle(dropEventWithFiles(trustStore.toFile()));
+            return null;
+        });
+
+        assertEquals("signing.jks", ((Label) panel.lookup("#sig-keystore-name")).getText(),
+                "the dropped keystore must be selected");
+        assertEquals("anchors.p12", ((Label) panel.lookup("#sig-truststore-name")).getText(),
+                "the dropped trust store must be selected");
+    }
+
+    /** Mocks a DRAG_DROPPED event carrying OS files (TestFX cannot simulate real file drags). */
+    private static javafx.scene.input.DragEvent dropEventWithFiles(java.io.File... files) {
+        javafx.scene.input.Dragboard dragboard = org.mockito.Mockito.mock(javafx.scene.input.Dragboard.class);
+        org.mockito.Mockito.when(dragboard.hasFiles()).thenReturn(true);
+        org.mockito.Mockito.when(dragboard.getFiles()).thenReturn(java.util.List.of(files));
+        javafx.scene.input.DragEvent event = org.mockito.Mockito.mock(javafx.scene.input.DragEvent.class);
+        org.mockito.Mockito.when(event.getDragboard()).thenReturn(dragboard);
+        return event;
+    }
 }

@@ -102,6 +102,9 @@ public class SignaturePanel extends VBox {
                 "Keystore favorites", this::setKeystore);
         HBox keystoreRow = sourceRow("bi-file-earmark-lock", keystoreName,
                 this::chooseKeystore, keystoreFavoritesMenu);
+        keystoreRow.setId("sig-keystore-row");
+        org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(keystoreRow,
+                org.fxt.freexmltoolkit.service.DragDropService.KEYSTORE_EXTENSIONS, this::setKeystore);
         alias.setPromptText("alias");
         keystorePassword.setPromptText("keystore password");
         aliasPassword.setPromptText("alias password");
@@ -150,6 +153,9 @@ public class SignaturePanel extends VBox {
                 org.fxt.freexmltoolkit.domain.FileFavorite.FileType.KEYSTORE,
                 "Trust store favorites", this::setTrustStore);
         HBox trustRow = sourceRow("bi-key", trustStoreName, this::chooseTrustStore, trustStoreFavoritesMenu);
+        trustRow.setId("sig-truststore-row");
+        org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(trustRow,
+                org.fxt.freexmltoolkit.service.DragDropService.KEYSTORE_EXTENSIONS, this::setTrustStore);
         VBox trustOptions = new VBox(6, checkRevocation);
         trustOptions.getStyleClass().add("fxt-tp-section-body");
         Button validateTrust = primaryButton("Validate (Trust)", "bi-patch-check",

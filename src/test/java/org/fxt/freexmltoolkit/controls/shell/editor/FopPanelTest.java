@@ -142,4 +142,40 @@ class FopPanelTest {
         assertTrue(panel.getStatusText().startsWith("Generated"), panel.getStatusText());
         assertTrue(Files.exists(pdf) && Files.size(pdf) > 0, "PDF must be created");
     }
+
+    @Test
+    void droppingFilesOnTheInputRowsLoadsThem(@TempDir Path tmp) throws Exception {
+        javafx.scene.layout.HBox xmlRow = (javafx.scene.layout.HBox) panel.lookup("#fop-xml-row");
+        javafx.scene.layout.HBox xslRow = (javafx.scene.layout.HBox) panel.lookup("#fop-xsl-row");
+        assertNotNull(xmlRow, "the XML input row must exist");
+        assertNotNull(xslRow, "the XSL stylesheet row must exist");
+        assertNotNull(xmlRow.getOnDragOver(), "the XML row must accept file drags");
+        assertNotNull(xslRow.getOnDragOver(), "the XSL row must accept file drags");
+
+        Path xml = tmp.resolve("input.xml");
+        Files.writeString(xml, XML);
+        Path xsl = tmp.resolve("layout.xsl");
+        Files.writeString(xsl, XSLT_FO);
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            xmlRow.getOnDragDropped().handle(dropEventWithFiles(xml.toFile()));
+            xslRow.getOnDragDropped().handle(dropEventWithFiles(xsl.toFile()));
+            return null;
+        });
+
+        javafx.scene.control.Label xmlName = (javafx.scene.control.Label) panel.lookup("#fop-xml-name");
+        javafx.scene.control.Label xslName = (javafx.scene.control.Label) panel.lookup("#fop-xsl-name");
+        assertEquals("input.xml", xmlName.getText(), "the dropped XML must become the input override");
+        assertEquals("layout.xsl", xslName.getText(), "the dropped XSL must become the stylesheet");
+    }
+
+    /** Mocks a DRAG_DROPPED event carrying OS files (TestFX cannot simulate real file drags). */
+    private static javafx.scene.input.DragEvent dropEventWithFiles(java.io.File... files) {
+        javafx.scene.input.Dragboard dragboard = org.mockito.Mockito.mock(javafx.scene.input.Dragboard.class);
+        org.mockito.Mockito.when(dragboard.hasFiles()).thenReturn(true);
+        org.mockito.Mockito.when(dragboard.getFiles()).thenReturn(java.util.List.of(files));
+        javafx.scene.input.DragEvent event = org.mockito.Mockito.mock(javafx.scene.input.DragEvent.class);
+        org.mockito.Mockito.when(event.getDragboard()).thenReturn(dragboard);
+        return event;
+    }
 }
