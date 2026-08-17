@@ -1482,10 +1482,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#preserving-includes-and-imports" class="md-nav__link">
+  <a href="#flatten-options-new-in-august-2026" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Preserving Includes and Imports
+        Flatten Options (new in August 2026)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-happens-to-includes-and-imports" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Happens to Includes and Imports
       
     </span>
   </a>
@@ -2709,10 +2720,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#preserving-includes-and-imports" class="md-nav__link">
+  <a href="#flatten-options-new-in-august-2026" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Preserving Includes and Imports
+        Flatten Options (new in August 2026)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-happens-to-includes-and-imports" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Happens to Includes and Imports
       
     </span>
   </a>
@@ -2847,7 +2869,7 @@ document, and use XSD files effectively.</p>
 </tr>
 <tr>
 <td><strong>Flatten Schema</strong></td>
-<td>Merge includes into one file</td>
+<td>Merge includes into one standalone file, with optional reduction for server-side validation</td>
 </tr>
 </tbody>
 </table>
@@ -3429,20 +3451,56 @@ its value. Open it from <strong>Generate Sample XML (Advanced)…</strong> in th
 </ol>
 <hr />
 <h2 id="8-xsd-flattener">8. XSD Flattener<a class="headerlink" href="#8-xsd-flattener" title="Permanent link">&para;</a></h2>
-<p>Combine multiple XSD files into a single file. Useful when your schema imports other schemas.</p>
-<p><img alt="XSD Flattener" src="../img/xsd-flattener.png" />
-<em>Flattener tool with before/after view</em></p>
+<p>Combine multiple XSD files into a single, standalone file. Useful when your schema is split across several files via <code>&lt;xs:include&gt;</code>, or when you want a minimal schema for a validation server.</p>
+<p><img alt="Flatten Schema options dialog" src="../img/unified-shell-flatten-options.png" />
+<em>The Flatten Schema options dialog over an open schema — all reductions enabled by default</em></p>
 <h3 id="how-to-use_3">How to Use<a class="headerlink" href="#how-to-use_3" title="Permanent link">&para;</a></h3>
 <ol>
-<li>Select your main XSD file</li>
-<li>Choose where to save the new file</li>
-<li>Click <strong>Flatten</strong></li>
-<li>The tool merges all <code>&lt;xs:include&gt;</code> schemas into one file</li>
+<li>Open your main XSD file in the editor</li>
+<li>In the <strong>Schema</strong> activity's side panel, click the <strong>Flatten Schema…</strong> tool button</li>
+<li>The <strong>Flatten Schema</strong> options dialog opens — pick which reductions you want (see below)</li>
+<li>Click <strong>OK</strong></li>
+<li>The flattened schema opens as a new editor tab (<code>Flattened.xsd</code>), ready for you to review and save</li>
 </ol>
-<h3 id="preserving-includes-and-imports">Preserving Includes and Imports<a class="headerlink" href="#preserving-includes-and-imports" title="Permanent link">&para;</a></h3>
+<h3 id="flatten-options-new-in-august-2026">Flatten Options <em>(new in August 2026)</em><a class="headerlink" href="#flatten-options-new-in-august-2026" title="Permanent link">&para;</a></h3>
+<p>Before flattening, a dialog lets you reduce the output. All four options are <strong>checked by default</strong>, which produces the smallest possible schema — ideal for deploying to a validation server:</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Remove annotations (documentation, appinfo)</strong></td>
+<td>Strips all <code>xs:documentation</code> and <code>xs:appinfo</code> content — the human-readable descriptions a validator does not need</td>
+</tr>
+<tr>
+<td><strong>Remove XML comments</strong></td>
+<td>Strips all XML comments, including comments at the top of the file</td>
+</tr>
+<tr>
+<td><strong>Remove unused global types and groups</strong></td>
+<td>Removes global types, groups and attribute groups that are not reachable from any global element or attribute — dead weight in large schema libraries. (Skipped automatically if the schema uses <code>xs:redefine</code> or <code>xs:override</code>.)</td>
+</tr>
+<tr>
+<td><strong>Minified output (no indentation)</strong></td>
+<td>Collapses the whitespace between tags for the smallest file size</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Uncheck all four options</strong> for a plain flatten that keeps documentation, comments and formatting — the previous behavior.</p>
+<p>The reduced schema is verified to still compile as a valid schema before it is shown, so you can deploy it with confidence.</p>
+<h3 id="what-happens-to-includes-and-imports">What Happens to Includes and Imports<a class="headerlink" href="#what-happens-to-includes-and-imports" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong><code>xs:include</code></strong> — Included schemas (same namespace) are merged into the output, and the resolved include directives are removed: the flattened schema is standalone. If an include cannot be resolved, its directive is kept in the output so you can see what is missing.</li>
+<li><strong><code>xs:import</code></strong> — Imported schemas (different namespaces) are <strong>not</strong> merged; the import declarations stay untouched.</li>
+</ul>
 <p>When saving schemas from the graphical editor, <code>xs:include</code> and <code>xs:import</code> declarations are preserved. The flattener only merges included content when you explicitly flatten — it does not alter your original schema structure.</p>
 <h3 id="when-to-use">When to Use<a class="headerlink" href="#when-to-use" title="Permanent link">&para;</a></h3>
 <ul>
+<li>Deploying a minimal, resource-efficient schema to a validation server</li>
 <li>Distributing schemas to partners</li>
 <li>Tools that don't support includes</li>
 <li>Simplifying complex schema sets</li>
