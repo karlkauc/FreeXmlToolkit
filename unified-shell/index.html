@@ -625,7 +625,7 @@
   <a href="#collapsing-the-side-panels" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Collapsing the side panels
+        Resizing and collapsing the side panels
       
     </span>
   </a>
@@ -2744,7 +2744,7 @@
   <a href="#collapsing-the-side-panels" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Collapsing the side panels
+        Resizing and collapsing the side panels
       
     </span>
   </a>
@@ -3749,7 +3749,7 @@ XML file next to its XSD schema, XSLT stylesheets and Schematron rules at the sa
 </tr>
 <tr>
 <td><strong>Side panel</strong></td>
-<td>The panel for the selected activity (e.g. the Transform panel, the Validation panel). <strong>Collapsible</strong> (see <a href="#collapsing-the-side-panels">Collapsing the side panels</a>).</td>
+<td>The panel for the selected activity (e.g. the Transform panel, the Validation panel). <strong>Resizable and collapsible</strong> (see <a href="#collapsing-the-side-panels">Resizing and collapsing the side panels</a>).</td>
 </tr>
 <tr>
 <td><strong>Editor host</strong> (center)</td>
@@ -3757,7 +3757,7 @@ XML file next to its XSD schema, XSLT stylesheets and Schematron rules at the sa
 </tr>
 <tr>
 <td><strong>Inspector</strong> (right)</td>
-<td>View <strong>and edit</strong> the selected node's properties from any view. <strong>Collapsible</strong> (see <a href="#collapsing-the-side-panels">Collapsing the side panels</a>).</td>
+<td>View <strong>and edit</strong> the selected node's properties from any view. <strong>Resizable and collapsible</strong> (see <a href="#collapsing-the-side-panels">Resizing and collapsing the side panels</a>).</td>
 </tr>
 <tr>
 <td><strong>Status bar</strong> (bottom)</td>
@@ -3765,15 +3765,28 @@ XML file next to its XSD schema, XSLT stylesheets and Schematron rules at the sa
 </tr>
 </tbody>
 </table>
-<h4 id="collapsing-the-side-panels">Collapsing the side panels<a class="headerlink" href="#collapsing-the-side-panels" title="Permanent link">&para;</a></h4>
-<p>Both the <strong>left side panel</strong> and the <strong>right Properties inspector</strong> can be collapsed to give the
-editor more room - the activity bar always stays visible.</p>
+<h4 id="collapsing-the-side-panels">Resizing and collapsing the side panels<a class="headerlink" href="#collapsing-the-side-panels" title="Permanent link">&para;</a></h4>
+<p>Both the <strong>left side panel</strong> and the <strong>right Properties inspector</strong> can be resized and
+collapsed to give the editor more room - the activity bar always stays visible.</p>
+<p><strong>Resizing</strong> <em>(new in August 2026)</em> - the panels are no longer fixed-width:</p>
+<ul>
+<li><strong>Drag the thin divider line</strong> between a panel and the editor to make the panel wider or
+  narrower (the mouse pointer turns into a horizontal resize arrow over the divider). Widen
+  the panel when file names, validation messages, or property values get truncated.</li>
+<li>Each panel keeps a <strong>minimum width of 200 px</strong>, and the editor in the middle always keeps
+  at least <strong>320 px</strong> - you cannot drag a panel so far that the editor disappears.</li>
+<li>The chosen widths are <strong>remembered across restarts</strong> (per user).</li>
+<li>When you <strong>resize the window</strong>, the panels keep their pixel width - only the editor column
+  grows or shrinks (the same behavior as VS Code).</li>
+</ul>
+<p><strong>Collapsing</strong> - each panel can also be hidden completely:</p>
 <ul>
 <li><strong>Collapse</strong>: click the discreet double-chevron at the panel's inner edge (<code>&lt;&lt;</code> on the left
   panel, <code>&gt;&gt;</code> on the inspector). The panel is hidden completely.</li>
 <li><strong>Re-open</strong>: click the matching toggle button in the editor toolbar (left-most toggle for the
   side panel, right-most for the inspector) - the same mechanism on both sides. Selecting any
-  activity from the activity bar also re-opens the left side panel.</li>
+  activity from the activity bar also re-opens the left side panel. A re-opened panel comes
+  back at its <strong>last dragged width</strong>.</li>
 <li>The collapsed/expanded state is <strong>remembered across restarts</strong> and can also be changed under
   <strong>Settings → General</strong> ("Show left side panel" / "Show Properties (inspector) panel").</li>
 </ul>
@@ -3793,6 +3806,9 @@ editor more room - the activity bar always stays visible.</p>
 <li><strong>Find in Files &amp; XPath search</strong> <em>(new in August 2026)</em> - the <strong>Search</strong> activity
   (Ctrl+Shift+F) searches and replaces across <strong>all files of a folder</strong>, by plain text or
   by XPath expression (see <a href="#search-panel">Search Panel</a>)</li>
+<li><strong>Resizable side panels</strong> <em>(new in August 2026)</em> - drag the divider lines to give the side
+  panel or the Properties inspector more room; the widths are remembered across restarts
+  (see <a href="#collapsing-the-side-panels">Resizing and collapsing the side panels</a>)</li>
 <li><strong>Favorites</strong> - Quick access to frequently used files</li>
 </ul>
 <h2 id="getting-started">Getting Started<a class="headerlink" href="#getting-started" title="Permanent link">&para;</a></h2>
@@ -5393,6 +5409,10 @@ and Graphic). Previously it was available only in the grid.</p>
 matching the Tree and Graphic views. See <a href="#xsd-files">XSD Files</a> below.</p>
 <p><strong>Updated July 2026</strong> - The <strong>NODE &amp; XPATH</strong> section shows the XPath on its own full-width
 line below the "XPath" header (long paths no longer get squeezed by the icon column).</p>
+<p><strong>Updated August 2026</strong> - The inspector is no longer fixed-width: drag the divider line
+between the editor and the inspector to make it wider (handy for long XPaths, attribute
+values, or documentation). The width is remembered across restarts - see
+<a href="#collapsing-the-side-panels">Resizing and collapsing the side panels</a>.</p>
 </blockquote>
 <h3 id="copying-the-xpath-or-the-node">Copying the XPath or the node<a class="headerlink" href="#copying-the-xpath-or-the-node" title="Permanent link">&para;</a></h3>
 <p>The <strong>NODE &amp; XPATH</strong> section at the top of the inspector shows the selected node's XPath.
