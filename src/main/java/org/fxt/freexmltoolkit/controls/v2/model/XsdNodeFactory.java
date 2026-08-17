@@ -53,9 +53,26 @@ public class XsdNodeFactory {
      */
     private final Set<Path> includeStack = new HashSet<>();
     private final Set<Path> processedIncludes = new HashSet<>();
-    private final Set<String> processedImports = new HashSet<>(); // Track processed import URLs to prevent duplicates
     private final java.util.Map<String, XsdSchema> importedSchemas = new java.util.HashMap<>(); // Cache for imported schemas
     private Path currentSchemaFile;
+
+    /**
+     * An xs:import encountered during parsing, remembered together with the base directory
+     * of the file that declared it (main schema or an xs:include'd file), so relative
+     * schemaLocations resolve against the declaring file rather than the root schema.
+     */
+    record PendingImport(XsdImport node, Path declaringBaseDir) {
+    }
+
+    private final java.util.List<PendingImport> pendingImports = new java.util.ArrayList<>();
+
+    /**
+     * Shared state for transitive import resolution. Null until the root factory creates it
+     * in {@link #fromDocument}; child factories spawned for imported schemas receive the
+     * root's context (and a depth &gt; 0) before parsing.
+     */
+    private ImportResolutionContext importContext;
+    private int importDepth;
 
     /**
      * Tracks the include hierarchy and assigns source info to parsed nodes.
@@ -163,13 +180,6 @@ public class XsdNodeFactory {
         this.namespaceSchemaDownloader = downloader;
     }
 
-    private NamespaceSchemaDownloader namespaceSchemaDownloader() {
-        if (namespaceSchemaDownloader == null) {
-            namespaceSchemaDownloader = new NamespaceSchemaDownloader();
-        }
-        return namespaceSchemaDownloader;
-    }
-
     /**
      * Creates an XSD model from a string.
      *
@@ -275,7 +285,7 @@ public class XsdNodeFactory {
 
         includeStack.clear();
         processedIncludes.clear();
-        processedImports.clear();
+        pendingImports.clear();
         importedSchemas.clear();
         if (currentSchemaFile != null) {
             processedIncludes.add(currentSchemaFile);
@@ -295,7 +305,18 @@ public class XsdNodeFactory {
             }
         }
 
-        // Process imports after the schema is fully parsed
+        // Process imports after the schema is fully parsed. The root factory (depth 0)
+        // starts a fresh resolution context per parse; child factories spawned for
+        // imported schemas keep the shared context they were injected with.
+        if (importDepth == 0) {
+            importContext = new ImportResolutionContext(schema, remoteNamespaceFallbackEnabled,
+                    namespaceSchemaDownloader);
+            if (currentSchemaFile != null) {
+                // Seed the resolution stack with the root schema itself so an import chain
+                // leading back to the root file is detected as a circular import.
+                importContext.push(canonicalKeyForFile(currentSchemaFile));
+            }
+        }
         processImports(schema);
 
         // Set main schema path if we have include tracking
@@ -408,6 +429,13 @@ public class XsdNodeFactory {
                 if (addSchemaDirectivesAsNodes) {
                     schema.addChild(xsdImport);
                 }
+                // Always queue the import for resolution — including imports declared inside
+                // xs:include'd files. The declaring file's base directory is remembered so
+                // relative schemaLocations resolve against it, not against the root schema.
+                Path declaringBaseDir = baseDirectory != null
+                        ? baseDirectory
+                        : (currentSchemaFile != null ? currentSchemaFile.getParent() : null);
+                pendingImports.add(new PendingImport(xsdImport, declaringBaseDir));
             } else if (isXsdElement(childElement, "include")) {
                 XsdInclude xsdInclude = parseInclude(childElement);
                 tagNodeWithSourceInfo(xsdInclude);
@@ -1823,40 +1851,36 @@ public class XsdNodeFactory {
      * @param schema the schema containing import elements
      */
     private void processImports(XsdSchema schema) {
-        if (schema == null) {
+        if (schema == null || pendingImports.isEmpty()) {
             return;
         }
 
-        logger.info("Processing imports for schema with {} children", schema.getChildren().size());
+        logger.info("Processing {} import statements (depth {})", pendingImports.size(), importDepth);
 
-        // Find all XsdImport nodes
-        java.util.List<XsdImport> imports = schema.getChildren().stream()
-                .filter(node -> node instanceof XsdImport)
-                .map(node -> (XsdImport) node)
-                .toList();
-
-        logger.info("Found {} import statements", imports.size());
-
-        for (XsdImport xsdImport : imports) {
+        for (PendingImport pending : java.util.List.copyOf(pendingImports)) {
             try {
-                loadAndMergeImportedSchema(xsdImport, schema);
+                loadAndMergeImportedSchema(pending, schema);
             } catch (Exception e) {
                 logger.error("Failed to process import: namespace='{}', schemaLocation='{}', error: {}",
-                        xsdImport.getNamespace(), xsdImport.getSchemaLocation(), e.getMessage(), e);
+                        pending.node().getNamespace(), pending.node().getSchemaLocation(), e.getMessage(), e);
             }
         }
     }
 
     /**
-     * Loads an imported schema and merges its global elements and types into the main schema.
+     * Loads an imported schema (transitively resolving its own imports and includes through
+     * the shared {@link ImportResolutionContext}) and registers it on the owning schema and,
+     * flattened, on the root schema.
      *
-     * @param xsdImport the import element
-     * @param mainSchema the main schema to merge into
+     * @param pending      the import together with the base directory of its declaring file
+     * @param owningSchema the schema whose import list is being processed
      * @throws Exception if loading or parsing fails
      */
-    private void loadAndMergeImportedSchema(XsdImport xsdImport, XsdSchema mainSchema) throws Exception {
+    private void loadAndMergeImportedSchema(PendingImport pending, XsdSchema owningSchema) throws Exception {
+        XsdImport xsdImport = pending.node();
         String schemaLocation = xsdImport.getSchemaLocation();
         String namespace = xsdImport.getNamespace();
+        ImportResolutionContext context = importContext;
 
         if (schemaLocation == null || schemaLocation.isEmpty()) {
             logger.warn("Import has no schemaLocation, skipping: namespace='{}'", namespace);
@@ -1864,39 +1888,70 @@ public class XsdNodeFactory {
             return;
         }
 
-        // Check if we've already processed this import
-        if (processedImports.contains(schemaLocation)) {
-            logger.debug("Import already processed, skipping: {}", schemaLocation);
-            xsdImport.setResolutionError("Already processed (duplicate)");
-            return;
-        }
-
-        processedImports.add(schemaLocation);
         logger.info("Loading imported schema: namespace='{}', location='{}'", namespace, schemaLocation);
 
         try {
-            // Resolve the schema location to an absolute path
+            boolean remote = schemaLocation.startsWith("http://") || schemaLocation.startsWith("https://");
             Path resolvedPath = null;
-            if (!schemaLocation.startsWith("http://") && !schemaLocation.startsWith("https://")) {
-                if (currentSchemaFile != null) {
-                    resolvedPath = currentSchemaFile.getParent().resolve(schemaLocation).normalize();
-                } else {
-                    resolvedPath = Path.of(schemaLocation).toAbsolutePath().normalize();
+            String canonicalKey = null;
+
+            if (remote) {
+                canonicalKey = schemaLocation;
+            } else {
+                Path base = pending.declaringBaseDir();
+                Path candidate = base != null
+                        ? base.resolve(schemaLocation).normalize()
+                        : Path.of(schemaLocation).toAbsolutePath().normalize();
+                if (Files.exists(candidate)) {
+                    resolvedPath = candidate;
+                    canonicalKey = canonicalKeyForFile(candidate);
                 }
             }
 
+            // Fast path: schema currently being parsed further up the chain (circular import)
+            // or already parsed elsewhere in this resolution run (diamond import).
+            if (canonicalKey != null && handleCycleOrDuplicate(xsdImport, owningSchema, canonicalKey,
+                    resolvedPath, namespace, schemaLocation, context)) {
+                return;
+            }
+
+            if (importDepth >= ImportResolutionContext.MAX_IMPORT_DEPTH) {
+                logger.warn("Maximum import depth ({}) exceeded at '{}'",
+                        ImportResolutionContext.MAX_IMPORT_DEPTH, schemaLocation);
+                xsdImport.markResolutionFailed(
+                        "Maximum import depth (" + ImportResolutionContext.MAX_IMPORT_DEPTH + ") exceeded");
+                return;
+            }
+
             // Load the schema content
-            String schemaContent = loadSchemaFromLocation(schemaLocation);
+            String schemaContent = null;
+            if (remote) {
+                RemoteSchema remoteSchema = loadSchemaFromHTTP(schemaLocation);
+                if (remoteSchema != null) {
+                    schemaContent = remoteSchema.content();
+                    resolvedPath = remoteSchema.cachedPath();
+                }
+            } else if (resolvedPath != null) {
+                schemaContent = loadSchemaFromFile(resolvedPath);
+            }
 
             // Fallback: if the schemaLocation cannot be resolved locally, try to find the
             // schema under the import's namespace URL (e.g. W3C-hosted schemas like xmldsig)
-            if ((schemaContent == null || schemaContent.isEmpty()) && remoteNamespaceFallbackEnabled) {
-                var namespaceResolved = namespaceSchemaDownloader().resolve(namespace, schemaLocation);
+            if ((schemaContent == null || schemaContent.isEmpty()) && context.isRemoteNamespaceFallbackEnabled()) {
+                var namespaceResolved = context.downloader().resolve(namespace, schemaLocation);
                 if (namespaceResolved.isPresent()) {
                     schemaContent = namespaceResolved.get().content();
                     resolvedPath = namespaceResolved.get().cachedPath();
                     logger.info("Resolved import for namespace {} via namespace URL: {}",
                             namespace, namespaceResolved.get().sourceUrl());
+                    // The canonical identity may only now be known — re-run the checks.
+                    if (resolvedPath != null) {
+                        canonicalKey = canonicalKeyForFile(resolvedPath);
+                        if (handleCycleOrDuplicate(xsdImport, owningSchema, canonicalKey,
+                                resolvedPath, namespace, schemaLocation, context)) {
+                            return;
+                        }
+                    }
                 }
             }
 
@@ -1906,16 +1961,28 @@ public class XsdNodeFactory {
                 return;
             }
 
-            // Parse the imported schema
-            XsdNodeFactory importFactory = new XsdNodeFactory();
-            importFactory.setRemoteNamespaceFallbackEnabled(remoteNamespaceFallbackEnabled);
-            importFactory.setNamespaceSchemaDownloader(namespaceSchemaDownloader);
-            XsdSchema importedSchema = importFactory.fromString(schemaContent);
-            String importKey = namespace != null ? namespace : schemaLocation;
-            importedSchemas.put(importKey, importedSchema);
+            if (canonicalKey == null) {
+                canonicalKey = schemaLocation;
+            }
 
-            // Also register the imported schema on the main schema for analysis features
-            mainSchema.addImportedSchema(importKey, importedSchema);
+            // Parse the imported schema with a child factory that shares this resolution
+            // context and gets a real file context, so the imported schema's own includes
+            // and imports resolve relative to its file — transitively, cycle-safe.
+            XsdSchema importedSchema;
+            context.push(canonicalKey);
+            try {
+                XsdNodeFactory importFactory = new XsdNodeFactory();
+                importFactory.importContext = context;
+                importFactory.importDepth = importDepth + 1;
+                importedSchema = resolvedPath != null
+                        ? importFactory.fromStringWithSchemaFile(schemaContent, resolvedPath, resolvedPath.getParent())
+                        : importFactory.fromString(schemaContent);
+            } finally {
+                context.pop(canonicalKey);
+            }
+
+            context.registerResolved(canonicalKey, importedSchema);
+            registerImportedSchema(owningSchema, namespace, schemaLocation, importedSchema, context);
 
             // Update XsdImport with resolution info
             xsdImport.setImportedSchema(importedSchema);
@@ -1924,7 +1991,7 @@ public class XsdNodeFactory {
             logger.info("Successfully loaded imported schema with {} children", importedSchema.getChildren().size());
 
             // Tag imported nodes with source info (for schema analysis features)
-            mergeSchemaComponents(importedSchema, mainSchema, xsdImport, resolvedPath);
+            mergeSchemaComponents(importedSchema, owningSchema, xsdImport, resolvedPath);
         } catch (Exception e) {
             xsdImport.markResolutionFailed(e.getMessage());
             throw e;
@@ -1932,31 +1999,98 @@ public class XsdNodeFactory {
     }
 
     /**
-     * Loads schema content from a location (HTTP URL or local file).
+     * Applies the shared-context cycle and duplicate checks for a canonical schema key.
      *
-     * @param location the schema location (URL or file path)
-     * @return the schema content as string
-     * @throws Exception if loading fails
+     * @return true when the import was fully handled (cycle error set, or an already-parsed
+     *         schema instance was reused) and no further loading is needed
      */
-    private String loadSchemaFromLocation(String location) throws Exception {
-        if (location.startsWith("http://") || location.startsWith("https://")) {
-            // Load from HTTP/HTTPS using ConnectionService
-            return loadSchemaFromHTTP(location);
-        } else {
-            // Load from local file
-            return loadSchemaFromFile(location);
+    private boolean handleCycleOrDuplicate(XsdImport xsdImport, XsdSchema owningSchema, String canonicalKey,
+                                           Path resolvedPath, String namespace, String schemaLocation,
+                                           ImportResolutionContext context) {
+        if (context.isOnStack(canonicalKey)) {
+            String chain = context.chainWith(canonicalKey);
+            logger.warn("Circular import detected: {}", chain);
+            xsdImport.markResolutionFailed("Circular import detected: " + chain);
+            return true;
+        }
+        XsdSchema existing = context.getResolved(canonicalKey);
+        if (existing != null) {
+            logger.debug("Reusing already parsed imported schema for '{}'", canonicalKey);
+            registerImportedSchema(owningSchema, namespace, schemaLocation, existing, context);
+            xsdImport.setImportedSchema(existing);
+            xsdImport.setResolvedPath(resolvedPath);
+            // Intentionally no mergeSchemaComponents here: the first import keeps the
+            // source-info attribution of the shared schema instance.
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Registers a resolved imported schema on the owning schema, this factory's local map,
+     * and — flattened — on the root schema so one-level consumers of
+     * {@link XsdSchema#getImportedSchemas()} see transitive imports as well.
+     */
+    private void registerImportedSchema(XsdSchema owningSchema, String namespace, String schemaLocation,
+                                        XsdSchema importedSchema, ImportResolutionContext context) {
+        String importKey = namespace != null ? namespace : schemaLocation;
+        importedSchemas.put(importKey, importedSchema);
+        owningSchema.addImportedSchema(importKey, importedSchema);
+
+        XsdSchema root = context.rootSchema();
+        if (root != owningSchema) {
+            XsdSchema alreadyRegistered = root.getImportedSchemas().get(importKey);
+            if (alreadyRegistered == null) {
+                root.addImportedSchema(importKey, importedSchema);
+            } else if (alreadyRegistered != importedSchema) {
+                logger.warn("Import key '{}' already registered on the root schema from a different file; "
+                        + "keeping the first one", importKey);
+            }
         }
     }
 
     /**
-     * Loads schema content from an HTTP/HTTPS URL using ConnectionService.
+     * Canonical identity of a schema file for cycle/duplicate detection across import levels.
+     * Uses the real path so the same file reached via different relative locations matches.
+     */
+    private static String canonicalKeyForFile(Path path) {
+        try {
+            return path.toRealPath().toString();
+        } catch (Exception e) {
+            return path.toAbsolutePath().normalize().toString();
+        }
+    }
+
+    /** Result of loading a remote schema: its content plus the local cache file, if any. */
+    private record RemoteSchema(String content, Path cachedPath) {
+    }
+
+    /**
+     * Loads schema content from an HTTP/HTTPS URL, preferring the shared schema disk cache
+     * (offline support, deduplication, and the cached file doubles as file context for
+     * resolving the schema's own imports), with the proxy-aware {@link ConnectionService}
+     * as fallback.
      *
      * @param url the schema URL
-     * @return the schema content as string
-     * @throws Exception if loading fails
+     * @return the loaded schema, or null if nothing could be loaded
+     * @throws Exception if the fallback download fails
      */
-    private String loadSchemaFromHTTP(String url) throws Exception {
+    private RemoteSchema loadSchemaFromHTTP(String url) throws Exception {
         logger.info("Loading schema from HTTP: {}", url);
+
+        try {
+            Path cached = importContext.schemaCache().getOrDownload(url, null);
+            if (cached != null && Files.exists(cached)) {
+                String content = Files.readString(cached);
+                if (!content.isEmpty()) {
+                    logger.info("Loaded schema via disk cache: {} -> {}", url, cached);
+                    return new RemoteSchema(content, cached);
+                }
+            }
+        } catch (Exception e) {
+            logger.debug("Schema cache lookup failed for {} ({}), falling back to direct download",
+                    url, e.getMessage());
+        }
 
         try {
             // Use ConnectionService for HTTP downloads (respects proxy settings)
@@ -1967,7 +2101,7 @@ public class XsdNodeFactory {
 
             if (content != null && !content.isEmpty()) {
                 logger.info("Successfully loaded schema from HTTP: {} ({} bytes)", url, content.length());
-                return content;
+                return new RemoteSchema(content, null);
             } else {
                 logger.warn("Empty content received from HTTP: {}", url);
                 return null;
@@ -1979,22 +2113,14 @@ public class XsdNodeFactory {
     }
 
     /**
-     * Loads schema content from a local file.
+     * Loads schema content from an already-resolved local file path.
      *
-     * @param filePath the file path (relative or absolute)
-     * @return the schema content as string
-     * @throws Exception if loading fails
+     * @param path the resolved schema file path
+     * @return the schema content as string, or null if the file does not exist
+     * @throws Exception if reading fails
      */
-    private String loadSchemaFromFile(String filePath) throws Exception {
-        logger.info("Loading schema from file: {}", filePath);
-
-        Path path;
-        if (currentSchemaFile != null) {
-            // Resolve relative to current schema file
-            path = currentSchemaFile.getParent().resolve(filePath);
-        } else {
-            path = Path.of(filePath);
-        }
+    private String loadSchemaFromFile(Path path) throws Exception {
+        logger.info("Loading schema from file: {}", path);
 
         if (!Files.exists(path)) {
             logger.warn("Schema file not found: {}", path);

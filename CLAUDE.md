@@ -144,7 +144,7 @@ Requires `<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>`.
 
 **Schematron Quick Fixes (SQF):** `service/sqf/` (parser/correlator/execution engine) + `controls/shell/editor/quickfix/` (UI). Fixes are applied as formatting-preserving text-range edits (one native undo step). Not supported: external `sch:extends href`, abstract patterns for fix discovery, `$sqf:match`, `@use-for-each`. See `docs/schematron-quick-fixes.md`.
 
-**XSD Editor V2:** One level of SimpleType resolution for inherited facets. No Union/List facet support yet. Imported schemas are resolved (local file, or via namespace-URL download with disk cache — `NamespaceSchemaDownloader`); nested imports inside imported schemas are not.
+**XSD Editor V2:** One level of SimpleType resolution for inherited facets. No Union/List facet support yet. Imported schemas are resolved **transitively** (local file, HTTP via `SchemaResourceCache`, or namespace-URL download — `NamespaceSchemaDownloader`): nested imports/includes inside imported schemas and imports declared in included files resolve too, cycle-safe with an import depth cap of 10, flattened into the root schema's imported-schema map. `xs:redefine`/`xs:override` are parsed but not resolved.
 
 ## Performance Requirements
 

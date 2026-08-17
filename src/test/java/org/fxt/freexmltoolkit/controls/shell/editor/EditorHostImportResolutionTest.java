@@ -84,6 +84,54 @@ class EditorHostImportResolutionTest {
                 "the xs:import directive must survive the edit");
     }
 
+    @Test
+    void transitivelyImportedTypesResolve(@TempDir Path tmp) throws Exception {
+        // main.xsd imports mid.xsd, which imports deep.xsd defining a named type.
+        // The Type Library reads one level of the root's imported schemas, so this
+        // proves that transitive imports are flattened onto the root schema.
+        String deep = """
+                <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                           targetNamespace="http://example.com/deep">
+                  <xs:simpleType name="DeepCode">
+                    <xs:restriction base="xs:string"><xs:maxLength value="5"/></xs:restriction>
+                  </xs:simpleType>
+                </xs:schema>
+                """;
+        String mid = """
+                <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                           xmlns:d="http://example.com/deep"
+                           targetNamespace="http://example.com/mid">
+                  <xs:import namespace="http://example.com/deep" schemaLocation="deep.xsd"/>
+                  <xs:element name="midElement" type="d:DeepCode"/>
+                </xs:schema>
+                """;
+        String main = """
+                <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                           xmlns:m="http://example.com/mid"
+                           targetNamespace="http://example.com/main">
+                  <xs:import namespace="http://example.com/mid" schemaLocation="mid.xsd"/>
+                  <xs:element name="root" type="xs:string"/>
+                </xs:schema>
+                """;
+        Files.writeString(tmp.resolve("deep.xsd"), deep);
+        Files.writeString(tmp.resolve("mid.xsd"), mid);
+        Path mainFile = tmp.resolve("main.xsd");
+        Files.writeString(mainFile, main);
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(mainFile));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("xs:import")).orElse(false));
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.setActiveViewMode(ViewMode.TREE);
+            return null;
+        });
+
+        List<String> typeNames = WaitForAsyncUtils.waitForAsyncFx(3000,
+                () -> host.getActiveNamedTypes().stream().map(XsdNode::getName).toList());
+        assertTrue(typeNames.contains("DeepCode"),
+                "the transitively imported named type must resolve, was: " + typeNames);
+    }
+
     private XsdNode find(XsdNode node, String name) {
         if (name.equals(node.getName())) {
             return node;
