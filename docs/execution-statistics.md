@@ -26,6 +26,8 @@ Open **Settings → DEVELOPER** and tick **Record execution statistics**. The fl
 persisted; regular users who leave it off see no change anywhere in the UI and no
 measurements are taken (zero overhead).
 
+![The DEVELOPER card in Settings](img/execution-statistics-settings.png)
+
 ## Where the numbers appear
 
 - **Inline** — panels append the run duration to their status lines: the OUTPUT
@@ -38,6 +40,13 @@ measurements are taken (zero overhead).
   a table with time, operation, target, duration, CPU, memory delta, GC, sizes and
   status; selecting a row shows the **detail report** with the phase breakdown and
   throughput. Also reachable via the Transform panel's ⋮ menu.
+
+![Execution Statistics tool tab with the run history and detail report](img/execution-statistics-history.png)
+
+The screenshot shows two recorded runs: the validation of a FundsXML document
+(917 ms — also visible inline as *Valid · 917 ms* in the Validation panel and as
+*VALIDATION · 917 ms* in the status bar) and an XSLT check stylesheet (2.0 s, with
+its compile/transform phases in the detail report below the table).
 
 **Batch runs** (multi-file transforms and batch validation) record **one entry per
 file**, so a mass run over a folder yields a per-file cost profile.
