@@ -105,15 +105,25 @@
 }
 
 /* ----- Work area ------------------------------------------------------ */
+/* Horizontal SplitPane: side panel | editor | inspector. No skin chrome of its own. */
 .fxt-work-area {
     -fx-background-color: -fxt-bg-canvas;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+
+/* The drag handles left/right of the editor: thin, theme-aware dividers (the
+   panels' own 1px edge borders were dropped in favor of these). */
+.fxt-work-area > .split-pane-divider {
+    -fx-background-color: -fxt-border;
+    -fx-padding: 0;
+    -fx-pref-width: 2;
 }
 
 /* ----- Side panel ----------------------------------------------------- */
+/* No right border: the work-area SplitPane divider draws the edge line. */
 .fxt-side-panel {
     -fx-background-color: -fxt-bg-surface;
-    -fx-border-color: -fxt-border;
-    -fx-border-width: 0 1 0 0;
 }
 
 .fxt-side-panel-content {
@@ -215,10 +225,9 @@
 }
 
 /* ----- Inspector ------------------------------------------------------ */
+/* No left border: the work-area SplitPane divider draws the edge line. */
 .fxt-inspector {
     -fx-background-color: -fxt-bg-surface;
-    -fx-border-color: -fxt-border;
-    -fx-border-width: 0 0 0 1;
     -fx-padding: 12;
     -fx-spacing: 8;
 }

@@ -60,7 +60,16 @@ class UnifiedShellViewTest {
     }
 
     @Test
-    void inspectorRendersTheRequiredSections() {
+    void inspectorRendersTheRequiredSections() throws Exception {
+        // The inspector is detached from the work split while no document is open (full-width
+        // dashboard), so open a sample document first to attach and render it.
+        java.nio.file.Path xml = java.nio.file.Files.createTempFile("inspector", ".xml");
+        java.nio.file.Files.writeString(xml, "<root><a/></root>");
+        xml.toFile().deleteOnExit();
+        WaitForAsyncUtils.waitForAsyncFx(3000, () -> {
+            shell.openFile(xml);
+            shell.setInspectorVisible(true);
+        });
         WaitForAsyncUtils.waitForFxEvents();
         Set<String> titles = WaitForAsyncUtils.waitForAsyncFx(2000,
                 () -> shell.lookupAll(".fxt-inspector-section").stream()
@@ -79,11 +88,11 @@ class UnifiedShellViewTest {
 
     @Test
     void choosingAnActivityOnTheDashboardRevealsTheSidePanel() {
-        // No document open = full-width dashboard: the side panel starts hidden …
+        // No document open = full-width dashboard: the side panel starts hidden — its
+        // wrapper is detached from the work split, so it is not in the scene graph at all.
         WaitForAsyncUtils.waitForFxEvents();
-        javafx.scene.Node sidePanel = shell.lookup(".fxt-side-panel");
-        assertFalse(sidePanel.getParent().isVisible(),
-                "the dashboard must start full-width (side panel hidden)");
+        assertNull(shell.lookup(".fxt-side-panel"),
+                "the dashboard must start full-width (side panel detached)");
 
         // … but pressing an Activity Bar button must reveal it, even without a document
         // and even when the pressed activity (Explorer) is already the active default,
@@ -93,6 +102,8 @@ class UnifiedShellViewTest {
             return null;
         });
         WaitForAsyncUtils.waitForFxEvents();
+        javafx.scene.Node sidePanel = shell.lookup(".fxt-side-panel");
+        assertNotNull(sidePanel, "choosing an activity must attach the side panel");
         assertTrue(sidePanel.getParent().isVisible(),
                 "choosing an activity on the dashboard must show its side panel");
     }

@@ -238,13 +238,17 @@
             <center>
                 <SplitPane fx:id="workSplit" orientation="VERTICAL" styleClass="fxt-work-split">
                     <items>
-                        <HBox fx:id="workArea" styleClass="fxt-work-area" SplitPane.resizableWithParent="true">
-                            <children>
-                                <!-- Left side panel + in-edge collapse chevron (content set by showSidePanelFor). -->
-                                <StackPane fx:id="leftPanelWrapper">
+                        <SplitPane fx:id="workArea" orientation="HORIZONTAL" styleClass="fxt-work-area"
+                                   SplitPane.resizableWithParent="true">
+                            <items>
+                                <!-- Left side panel + in-edge collapse chevron (content set by showSidePanelFor).
+                                     Width is user-draggable via the SplitPane divider (persisted by
+                                     UnifiedShellView); resizableWithParent=false keeps it pixel-stable
+                                     on window resize — the editor column absorbs the delta. -->
+                                <StackPane fx:id="leftPanelWrapper" minWidth="200"
+                                           SplitPane.resizableWithParent="false">
                                     <children>
-                                        <StackPane fx:id="sidePanelHost" minWidth="260" prefWidth="260"
-                                                   styleClass="fxt-side-panel"/>
+                                        <StackPane fx:id="sidePanelHost" styleClass="fxt-side-panel"/>
                                         <Button fx:id="leftCollapseChevron" focusTraversable="false"
                                                 styleClass="fxt-tool-button, fxt-panel-collapse"
                                                 onAction="#onCollapseLeftPanel" StackPane.alignment="TOP_RIGHT">
@@ -256,7 +260,7 @@
                                 </StackPane>
 
                                 <!-- Editor column: find bar, editor host, (Problems panel appended in code). -->
-                                <VBox fx:id="editorCenter" styleClass="fxt-editor-area, fxt-editor-center" HBox.hgrow="ALWAYS">
+                                <VBox fx:id="editorCenter" styleClass="fxt-editor-area, fxt-editor-center" minWidth="320">
                                     <children>
                                         <UnifiedSearchBar fx:id="searchBar"/>
                                         <EditorHost fx:id="editorHost" VBox.vgrow="ALWAYS"/>
@@ -264,7 +268,8 @@
                                 </VBox>
 
                                 <!-- Inspector wrapper: chevron in FXML; InspectorPanel inserted at index 0 in code. -->
-                                <StackPane fx:id="inspectorWrapper">
+                                <StackPane fx:id="inspectorWrapper" minWidth="200"
+                                           SplitPane.resizableWithParent="false">
                                     <children>
                                         <Button fx:id="inspectorCollapseChevron" focusTraversable="false"
                                                 styleClass="fxt-tool-button, fxt-panel-collapse"
@@ -275,8 +280,8 @@
                                         </Button>
                                     </children>
                                 </StackPane>
-                            </children>
-                        </HBox>
+                            </items>
+                        </SplitPane>
                     </items>
                 </SplitPane>
             </center>

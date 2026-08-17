@@ -65,6 +65,8 @@ public class UnifiedShellView extends BorderPane {
     @FXML private org.fxt.freexmltoolkit.controls.unified.UnifiedSearchBar searchBar;
     /** Vertical split: item 0 = work area (grows), item 1 = {@link #queryConsole} when shown. */
     @FXML private SplitPane workSplit;
+    /** Horizontal split: side panel | editor column | inspector. Collapsed side columns are removed as items. */
+    @FXML private SplitPane workArea;
     @FXML private StackPane leftPanelWrapper;
     @FXML private StackPane inspectorWrapper;
     @FXML private VBox editorCenter;
@@ -98,10 +100,22 @@ public class UnifiedShellView extends BorderPane {
     /** Property keys for the persisted side-panel visibility (editable in Settings). */
     private static final String LEFT_PANEL_KEY = "shell.leftPanel.visible";
     private static final String INSPECTOR_KEY = "shell.inspector.visible";
+    /** Property keys for the persisted side-panel widths (in pixels; set by dragging the dividers). */
+    private static final String LEFT_WIDTH_KEY = "shell.leftPanel.width";
+    private static final String INSPECTOR_WIDTH_KEY = "shell.inspector.width";
+    private static final double LEFT_WIDTH_DEFAULT = 260;
+    private static final double INSPECTOR_WIDTH_DEFAULT = 288;
+    /** Narrowest draggable/persistable panel width; matches the wrappers' {@code minWidth} in shell.fxml. */
+    private static final double MIN_PANEL_WIDTH = 200;
 
     /** User collapse state for the two side panels (persisted across restarts; default open). */
     private boolean leftPanelOpen = loadPanelPref(LEFT_PANEL_KEY);
     private boolean inspectorOpen = loadPanelPref(INSPECTOR_KEY);
+    /** Suppresses width saves while a divider is being positioned programmatically. */
+    private boolean restoringDividers;
+    /** Debounces the width persistence so a divider drag writes the properties file once, not per pixel. */
+    private final javafx.animation.PauseTransition widthSaveDebounce =
+            new javafx.animation.PauseTransition(javafx.util.Duration.millis(400));
     /** Set once the user explicitly picks an activity - shows its panel on the dashboard too. */
     private boolean activityChosen;
     /** Recomputes panel/toggle visibility; combines document-open state with collapse state. */
@@ -179,15 +193,23 @@ public class UnifiedShellView extends BorderPane {
             boolean leftArea = hasDocument || activityChosen;
             boolean showLeft = leftArea && leftPanelOpen;
             boolean showRight = hasDocument && inspectorOpen;
-            leftPanelWrapper.setVisible(showLeft);
-            leftPanelWrapper.setManaged(showLeft);
-            inspectorWrapper.setVisible(showRight);
-            inspectorWrapper.setManaged(showRight);
+            syncWorkItem(leftPanelWrapper, showLeft, true, LEFT_WIDTH_KEY, LEFT_WIDTH_DEFAULT);
+            syncWorkItem(inspectorWrapper, showRight, false, INSPECTOR_WIDTH_KEY, INSPECTOR_WIDTH_DEFAULT);
             leftPanelToggle.setDisable(!leftArea);
             leftPanelToggle.setSelected(leftPanelOpen);
             inspectorToggle.setDisable(!hasDocument);
             inspectorToggle.setSelected(inspectorOpen);
         };
+        // Apply the persisted panel widths to the FXML-declared items before the first layout,
+        // so the startup divider positions come out right even without a show transition.
+        leftPanelWrapper.setPrefWidth(loadWidthPref(LEFT_WIDTH_KEY, LEFT_WIDTH_DEFAULT));
+        inspectorWrapper.setPrefWidth(loadWidthPref(INSPECTOR_WIDTH_KEY, INSPECTOR_WIDTH_DEFAULT));
+        widthSaveDebounce.setOnFinished(e -> {
+            saveWidthPref(LEFT_WIDTH_KEY, leftPanelWrapper);
+            saveWidthPref(INSPECTOR_WIDTH_KEY, inspectorWrapper);
+        });
+        leftPanelWrapper.widthProperty().addListener(obs -> queueWidthSave());
+        inspectorWrapper.widthProperty().addListener(obs -> queueWidthSave());
         chromeUpdater.run();
         editorHost.getOpenDocuments().addListener((javafx.beans.InvalidationListener) obs -> chromeUpdater.run());
 
@@ -515,6 +537,11 @@ public class UnifiedShellView extends BorderPane {
         return inspectorWrapper;
     }
 
+    /** @return the horizontal work split (side panel | editor | inspector) — for tests. */
+    SplitPane getWorkArea() {
+        return workArea;
+    }
+
     /** Re-reads the persisted panel visibility (e.g. after the Settings panel saves) and applies it live. */
     private void reloadPanelPrefs() {
         leftPanelOpen = loadPanelPref(LEFT_PANEL_KEY);
@@ -544,6 +571,103 @@ public class UnifiedShellView extends BorderPane {
         } catch (Throwable ignored) {
             // properties service unavailable — nothing to persist
         }
+    }
+
+    /**
+     * Shows or hides a side column of the horizontal work split. SplitPane does not reclaim
+     * the space of merely unmanaged items, so hiding removes the item from the split; the
+     * visible/managed flags are kept in sync for layout-state observers. On show, the persisted
+     * pixel width is applied as {@code prefWidth} before insertion (the skin derives the new
+     * divider position from it) and re-asserted after the next layout pass.
+     */
+    private void syncWorkItem(Region node, boolean show, boolean atStart, String key, double defaultWidth) {
+        node.setVisible(show);
+        node.setManaged(show);
+        boolean present = workArea.getItems().contains(node);
+        if (!show) {
+            if (present) {
+                workArea.getItems().remove(node);
+            }
+        } else if (!present) {
+            node.setPrefWidth(loadWidthPref(key, defaultWidth));
+            workArea.getItems().add(atStart ? 0 : workArea.getItems().size(), node);
+            restoreDivider(node, atStart, key, defaultWidth);
+        }
+    }
+
+    /**
+     * Re-asserts the persisted pixel width of a just-shown side column by positioning its
+     * divider. Divider positions set before the skin has laid out are clamped/overwritten,
+     * hence the {@code runLater} plus a one-shot retry while the split has no width yet
+     * (startup). The divider index is derived from the live item list — with the left panel
+     * collapsed, the inspector's divider is index 0, not 1.
+     */
+    private void restoreDivider(Region node, boolean atStart, String key, double defaultWidth) {
+        javafx.application.Platform.runLater(() -> {
+            double total = workArea.getWidth();
+            if (total <= 0) {
+                workArea.widthProperty().addListener(new javafx.beans.value.ChangeListener<Number>() {
+                    @Override
+                    public void changed(javafx.beans.value.ObservableValue<? extends Number> obs,
+                                        Number oldValue, Number newValue) {
+                        workArea.widthProperty().removeListener(this);
+                        restoreDivider(node, atStart, key, defaultWidth);
+                    }
+                });
+                return;
+            }
+            int index = workArea.getItems().indexOf(node);
+            if (index < 0) {
+                return; // hidden again before the restore ran
+            }
+            double width = loadWidthPref(key, defaultWidth);
+            restoringDividers = true;
+            try {
+                workArea.setDividerPosition(atStart ? index : index - 1,
+                        atStart ? width / total : 1 - width / total);
+            } finally {
+                restoringDividers = false;
+            }
+        });
+    }
+
+    /** Restarts the debounced width save (no-op while a divider is being restored programmatically). */
+    private void queueWidthSave() {
+        if (!restoringDividers) {
+            widthSaveDebounce.playFromStart();
+        }
+    }
+
+    /**
+     * Persists the current width of {@code node} under {@code key} — only while it is a live
+     * item of the work split with a sane width, so transient/collapsed states are never saved.
+     */
+    private void saveWidthPref(String key, Region node) {
+        double width = node.getWidth();
+        if (!workArea.getItems().contains(node) || width < MIN_PANEL_WIDTH) {
+            return;
+        }
+        try {
+            org.fxt.freexmltoolkit.di.ServiceRegistry
+                    .get(org.fxt.freexmltoolkit.service.PropertiesService.class)
+                    .set(key, String.valueOf(Math.round(width)));
+        } catch (Throwable ignored) {
+            // properties service unavailable — nothing to persist
+        }
+    }
+
+    /** @return the persisted panel width for {@code key} (clamped to the minimum), or {@code defaultWidth}. */
+    private static double loadWidthPref(String key, double defaultWidth) {
+        try {
+            String value = org.fxt.freexmltoolkit.di.ServiceRegistry
+                    .get(org.fxt.freexmltoolkit.service.PropertiesService.class).get(key);
+            if (value != null) {
+                return Math.max(MIN_PANEL_WIDTH, Double.parseDouble(value));
+            }
+        } catch (Throwable ignored) {
+            // properties service unavailable or malformed value — fall back to the default
+        }
+        return defaultWidth;
     }
 
     private void showSidePanelFor(Activity activity) {

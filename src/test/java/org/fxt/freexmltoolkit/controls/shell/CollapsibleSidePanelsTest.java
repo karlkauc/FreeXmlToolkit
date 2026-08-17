@@ -53,6 +53,8 @@ class CollapsibleSidePanelsTest {
         WaitForAsyncUtils.waitForFxEvents();
         assertFalse(shell.isLeftPanelOpen());
         assertFalse(shell.getLeftPanelWrapper().isManaged(), "collapsed left panel is unmanaged (hidden)");
+        assertFalse(shell.getWorkArea().getItems().contains(shell.getLeftPanelWrapper()),
+                "collapsed left panel is removed from the work split");
         // Activity Bar must remain visible while the panel is collapsed.
         assertTrue(shell.getLeft().isVisible());
 
@@ -65,6 +67,8 @@ class CollapsibleSidePanelsTest {
         WaitForAsyncUtils.waitForFxEvents();
         assertTrue(shell.isLeftPanelOpen());
         assertTrue(shell.getLeftPanelWrapper().isManaged());
+        assertTrue(shell.getWorkArea().getItems().contains(shell.getLeftPanelWrapper()),
+                "re-opened left panel is back in the work split");
     }
 
     @Test
@@ -75,6 +79,8 @@ class CollapsibleSidePanelsTest {
         WaitForAsyncUtils.waitForFxEvents();
         assertFalse(shell.isInspectorOpen());
         assertFalse(shell.getInspectorWrapper().isManaged(), "collapsed inspector is unmanaged (hidden)");
+        assertFalse(shell.getWorkArea().getItems().contains(shell.getInspectorWrapper()),
+                "collapsed inspector is removed from the work split");
 
         ToggleButton toggle = (ToggleButton) shell.lookup("#toggle-inspector");
         assertNotNull(toggle);
@@ -83,6 +89,8 @@ class CollapsibleSidePanelsTest {
         WaitForAsyncUtils.waitForFxEvents();
         assertTrue(shell.isInspectorOpen());
         assertTrue(shell.getInspectorWrapper().isManaged());
+        assertTrue(shell.getWorkArea().getItems().contains(shell.getInspectorWrapper()),
+                "re-opened inspector is back in the work split");
     }
 
     @Test
