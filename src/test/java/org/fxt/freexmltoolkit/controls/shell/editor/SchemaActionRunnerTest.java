@@ -2,6 +2,7 @@ package org.fxt.freexmltoolkit.controls.shell.editor;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import org.fxt.freexmltoolkit.controls.v2.editor.flatten.FlattenOptions;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -50,5 +51,46 @@ class SchemaActionRunnerTest {
         assertFalse(flattened.startsWith("ERROR:"), flattened);
         assertTrue(flattened.contains("schema"), flattened);
         assertTrue(flattened.contains("PersonType"), flattened);
+    }
+
+    private static final String XSD_WITH_EXTRAS = """
+            <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+              <!-- a comment -->
+              <xs:complexType name="PersonType">
+                <xs:annotation><xs:documentation>People</xs:documentation></xs:annotation>
+                <xs:sequence>
+                  <xs:element name="name" type="xs:string"/>
+                </xs:sequence>
+              </xs:complexType>
+              <xs:complexType name="UnusedType">
+                <xs:sequence><xs:element name="x" type="xs:string"/></xs:sequence>
+              </xs:complexType>
+              <xs:element name="person" type="PersonType"/>
+            </xs:schema>
+            """;
+
+    @Test
+    void flattenWithNoneOptionsMatchesTwoArgOverload() {
+        assertEquals(SchemaActionRunner.flatten(XSD_WITH_EXTRAS, null),
+                SchemaActionRunner.flatten(XSD_WITH_EXTRAS, null, FlattenOptions.NONE));
+    }
+
+    @Test
+    void flattenWithAllOptionsProducesMinimalOutput() {
+        String result = SchemaActionRunner.flatten(XSD_WITH_EXTRAS, null,
+                new FlattenOptions(true, true, true, true, true));
+        assertFalse(result.startsWith("ERROR:"), result);
+        assertFalse(result.contains("annotation"), result);
+        assertFalse(result.contains("documentation"), result);
+        assertFalse(result.contains("<!--"), result);
+        assertFalse(result.contains("UnusedType"), result);
+        assertFalse(result.matches("(?s).*>\\s+<.*"), "expected minified output: " + result);
+        assertTrue(result.contains("PersonType"), result);
+    }
+
+    @Test
+    void flattenInvalidContentReturnsError() {
+        assertTrue(SchemaActionRunner.flatten("<not-xsd", null,
+                new FlattenOptions(true, true, true, true, true)).startsWith("ERROR:"));
     }
 }

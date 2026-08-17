@@ -89,8 +89,10 @@ class SchemaGenerateTest {
         WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
                 () -> host.getActiveText().map(t -> t.contains("complexType")).orElse(false));
 
+        // The no-arg flattenActive() shows a modal options dialog; drive the
+        // option-parameterized flow directly (the dialog has its own test).
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
-            panel.flattenActive();
+            panel.flattenActive(org.fxt.freexmltoolkit.controls.v2.editor.flatten.FlattenOptions.NONE);
             return null;
         });
         WaitForAsyncUtils.waitFor(6, TimeUnit.SECONDS, () ->

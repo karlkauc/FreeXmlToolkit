@@ -69,7 +69,7 @@ public class TypeLibraryPanel extends VBox {
                 toolButton("schema-tool-generate-batch", "Generate XSD (Batch)…", "bi-files", this::generateXsdBatch),
                 toolButton("schema-tool-sample", "Generate Sample XML…", "bi-filetype-xml", this::generateSampleXmlForActive),
                 toolButton("schema-tool-sample-advanced", "Generate Sample XML (Advanced)…", "bi-sliders", this::generateProfiledSampleForActive),
-                toolButton("schema-tool-flatten", "Flatten Schema", "bi-layers", this::flattenActive),
+                toolButton("schema-tool-flatten", "Flatten Schema…", "bi-layers", this::flattenActive),
                 toolButton("schema-tool-statistics", "Statistics", "bi-bar-chart", this::statisticsActive),
                 toolButton("schema-tool-quality", "Schema Quality", "bi-patch-check", this::qualityActive),
                 toolButton("schema-tool-documentation", "Generate Documentation…", "bi-file-earmark-text", this::generateDocumentationForActive));
@@ -268,12 +268,27 @@ public class TypeLibraryPanel extends VBox {
         runAsync(SchemaActionRunner::generateXsdFromXml, EditorFileType.XSD, "Generated.xsd");
     }
 
-    /** Flattens the active XSD (resolves includes) and opens the result (async). */
+    /**
+     * Flattens the active XSD (resolves includes) and opens the result (async).
+     * Asks for reduction options first (strip annotations/comments, remove unused
+     * types, minify) so the result can serve as a lean server-side validation schema.
+     */
     public void flattenActive() {
-        var doc = editorHost.getActiveDocument();
-        java.nio.file.Path baseDir = doc.map(OpenDocument::getPath)
+        if (editorHost.getActiveDocument().isEmpty()) {
+            return;
+        }
+        var options = new FlattenOptionsDialog().showAndWait();
+        if (options.isEmpty()) {
+            return;
+        }
+        flattenActive(options.get());
+    }
+
+    /** Flattens the active XSD with the given options, without asking (async). */
+    public void flattenActive(org.fxt.freexmltoolkit.controls.v2.editor.flatten.FlattenOptions options) {
+        java.nio.file.Path baseDir = editorHost.getActiveDocument().map(OpenDocument::getPath)
                 .map(java.nio.file.Path::getParent).orElse(null);
-        runAsync(content -> SchemaActionRunner.flatten(content, baseDir),
+        runAsync(content -> SchemaActionRunner.flatten(content, baseDir, options),
                 EditorFileType.XSD, "Flattened.xsd");
     }
 

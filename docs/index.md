@@ -93,7 +93,7 @@ Work with XML Schema files:
 | **Documentation Generator** | Create HTML documentation from schemas |
 | **Sample XML Generator** | Generate valid sample XML files with customizable rules |
 | **Profiled Generation** | Control values per element, save profiles, batch generate |
-| **Schema Flattening** | Combine multiple schema files into one |
+| **Schema Flattening** | Combine multiple schema files into one standalone schema, optionally reduced for validation servers |
 
 Learn more: [XSD Tools Guide](xsd-tools.md) | [Profiled XML Generation](profiled-xml-generation.md) | [XSD Validation](xsd-validation.md)
 

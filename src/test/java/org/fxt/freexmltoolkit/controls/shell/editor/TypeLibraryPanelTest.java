@@ -119,7 +119,7 @@ class TypeLibraryPanelTest {
         assertTrue(names.contains("Generate XSD (Batch)…"), names.toString());
         assertTrue(names.contains("Generate Sample XML…"), names.toString());
         assertTrue(names.contains("Generate Sample XML (Advanced)…"), names.toString());
-        assertTrue(names.contains("Flatten Schema"), names.toString());
+        assertTrue(names.contains("Flatten Schema…"), names.toString());
         assertTrue(names.contains("Statistics"), names.toString());
         assertTrue(names.contains("Schema Quality"), names.toString());
         assertTrue(names.contains("Generate Documentation…"), names.toString());

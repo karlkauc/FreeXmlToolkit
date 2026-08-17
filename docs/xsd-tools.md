@@ -30,7 +30,7 @@ When you open an `.xsd` file in the [Unified Shell](unified-shell.md), the edito
 | **Documentation**         | Generate HTML, Word, or PDF documentation               |
 | **Preview**               | Preview generated documentation                         |
 | **Generate Example Data** | Create sample XML from schema with customizable rules and profiles |
-| **Flatten Schema**        | Merge includes into one file                            |
+| **Flatten Schema**        | Merge includes into one standalone file, with optional reduction for server-side validation |
 
 ---
 
@@ -455,24 +455,44 @@ After generating sample XML, you can validate it:
 
 ## 8. XSD Flattener
 
-Combine multiple XSD files into a single file. Useful when your schema imports other schemas.
+Combine multiple XSD files into a single, standalone file. Useful when your schema is split across several files via `<xs:include>`, or when you want a minimal schema for a validation server.
 
-![XSD Flattener](img/xsd-flattener.png)
-*Flattener tool with before/after view*
+![Flatten Schema options dialog](img/unified-shell-flatten-options.png)
+*The Flatten Schema options dialog over an open schema — all reductions enabled by default*
 
 ### How to Use
 
-1. Select your main XSD file
-2. Choose where to save the new file
-3. Click **Flatten**
-4. The tool merges all `<xs:include>` schemas into one file
+1. Open your main XSD file in the editor
+2. In the **Schema** activity's side panel, click the **Flatten Schema…** tool button
+3. The **Flatten Schema** options dialog opens — pick which reductions you want (see below)
+4. Click **OK**
+5. The flattened schema opens as a new editor tab (`Flattened.xsd`), ready for you to review and save
 
-### Preserving Includes and Imports
+### Flatten Options *(new in August 2026)*
+
+Before flattening, a dialog lets you reduce the output. All four options are **checked by default**, which produces the smallest possible schema — ideal for deploying to a validation server:
+
+| Option | What it does |
+|--------|--------------|
+| **Remove annotations (documentation, appinfo)** | Strips all `xs:documentation` and `xs:appinfo` content — the human-readable descriptions a validator does not need |
+| **Remove XML comments** | Strips all XML comments, including comments at the top of the file |
+| **Remove unused global types and groups** | Removes global types, groups and attribute groups that are not reachable from any global element or attribute — dead weight in large schema libraries. (Skipped automatically if the schema uses `xs:redefine` or `xs:override`.) |
+| **Minified output (no indentation)** | Collapses the whitespace between tags for the smallest file size |
+
+**Uncheck all four options** for a plain flatten that keeps documentation, comments and formatting — the previous behavior.
+
+The reduced schema is verified to still compile as a valid schema before it is shown, so you can deploy it with confidence.
+
+### What Happens to Includes and Imports
+
+- **`xs:include`** — Included schemas (same namespace) are merged into the output, and the resolved include directives are removed: the flattened schema is standalone. If an include cannot be resolved, its directive is kept in the output so you can see what is missing.
+- **`xs:import`** — Imported schemas (different namespaces) are **not** merged; the import declarations stay untouched.
 
 When saving schemas from the graphical editor, `xs:include` and `xs:import` declarations are preserved. The flattener only merges included content when you explicitly flatten — it does not alter your original schema structure.
 
 ### When to Use
 
+- Deploying a minimal, resource-efficient schema to a validation server
 - Distributing schemas to partners
 - Tools that don't support includes
 - Simplifying complex schema sets

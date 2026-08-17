@@ -100,6 +100,26 @@ class ShellDocScreenshotGenerator {
             settle();
             shot("unified-shell-schema-text");
 
+            // --- Flatten Schema options dialog over the open schema. The dialog is a
+            // separate top-level window, so capture the real screen (like the
+            // IntelliSense popup shot) instead of an FX node snapshot.
+            var flattenDialog = new java.util.concurrent.atomic.AtomicReference<
+                    org.fxt.freexmltoolkit.controls.shell.editor.FlattenOptionsDialog>();
+            onFx(() -> {
+                var dialog = new org.fxt.freexmltoolkit.controls.shell.editor.FlattenOptionsDialog();
+                dialog.initOwner(shell.getScene().getWindow());
+                dialog.show();
+                flattenDialog.set(dialog);
+            });
+            settle(700);
+            try {
+                shotScreen("unified-shell-flatten-options");
+            } catch (Exception e) {
+                System.out.println("[shell-screenshot] flatten dialog capture failed: " + e);
+            }
+            onFx(() -> flattenDialog.get().close());
+            settle();
+
             // Schema statistics open as an in-shell text tab. The action moved into
             // the panel's ⋮ overflow menu, so drive the panel directly.
             onFx(() -> {

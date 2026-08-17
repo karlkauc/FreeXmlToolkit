@@ -220,7 +220,7 @@ Statistics, Schema Quality, Generate Sample XML / Documentation) on the left.*
 - **Analysis** - Schema statistics, identity constraints, quality checks
 - **Documentation** - Generate HTML/Word/PDF documentation (see below)
 - **Sample Data** - Generate sample XML from the schema
-- **Flatten** - Merge included/imported schemas into a single file
+- **Flatten** - Merge included schemas into a single standalone file. *(new in August 2026)* The **Flatten Schema…** button now opens an options dialog first: strip annotations, strip XML comments, remove unused global types and groups, and minify the output — all checked by default for a minimal schema suited to server-side validation; uncheck everything for a plain flatten that keeps documentation. Imports (`xs:import`, different namespaces) are never merged. See [XSD Flattener](xsd-tools.md#8-xsd-flattener) for details.
 
 !!! note "Missing imported schemas download automatically *(new in August 2026)*"
     If a schema's `xs:import` points to a file that is not found next to the schema, the

@@ -2,6 +2,9 @@ package org.fxt.freexmltoolkit.controls.shell.editor;
 
 import java.nio.file.Path;
 
+import org.fxt.freexmltoolkit.controls.v2.editor.flatten.FlattenOptions;
+import org.fxt.freexmltoolkit.controls.v2.editor.flatten.SchemaFlattenTransformer;
+import org.fxt.freexmltoolkit.controls.v2.editor.flatten.XsdOutputMinifier;
 import org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSerializer;
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdQualityChecker;
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdStatistics;
@@ -171,12 +174,25 @@ public final class SchemaActionRunner {
      * and re-serializes. @return the flattened XSD, or {@code "ERROR: …"}.
      */
     public static String flatten(String xsdContent, Path baseDirectory) {
+        return flatten(xsdContent, baseDirectory, FlattenOptions.NONE);
+    }
+
+    /**
+     * Flattens an XSD with reduction options (strip annotations/comments, drop
+     * resolved include directives, remove unused global components, minify) —
+     * see {@link FlattenOptions}. @return the flattened XSD, or {@code "ERROR: …"}.
+     */
+    public static String flatten(String xsdContent, Path baseDirectory, FlattenOptions options) {
         try {
             XsdNodeFactory factory = new XsdNodeFactory();
             XsdSchema schema = baseDirectory != null
                     ? factory.fromString(xsdContent, baseDirectory)
                     : factory.fromString(xsdContent);
-            return new XsdSerializer().serialize(schema);
+            if (options.requiresTransform()) {
+                new SchemaFlattenTransformer().apply(schema, options);
+            }
+            String result = new XsdSerializer().serialize(schema);
+            return options.minify() ? XsdOutputMinifier.minify(result) : result;
         } catch (Exception e) {
             return "ERROR: " + e.getMessage();
         }
