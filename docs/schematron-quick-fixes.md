@@ -10,11 +10,13 @@ via `sqf:fix="…"`, the editor offers those fixes right where the problems are
 reported — and applies them with a single click while **preserving the
 document's formatting**.
 
-> **Try it:** the bundled examples include a ready-made demo pair —
-> `examples/schematron/quickfix-demo.xml` and `quickfix-demo.sch` (a fully
-> commented Schematron covering every fix type). Open the XML file, bind the
-> `.sch` file in the Validation panel, and validate: every book in the document
-> violates at least one rule, and each finding offers a quick fix.
+> **Try it:** the bundled examples include two ready-made demo pairs in
+> `examples/schematron/` — `quickfix-demo.xml` + `quickfix-demo.sch` (a fully
+> commented Schematron covering every fix type) and `funds-quickfix-demo.xml` +
+> `funds-quickfix-rules.sch` (realistic FundsXML business rules, including a fix
+> whose value is computed from elsewhere in the document). Open an XML file,
+> bind the matching `.sch` file in the Validation panel, and validate: every
+> finding offers a quick fix.
 
 ## Using quick fixes
 

@@ -52,6 +52,25 @@ class SchematronExamplesSmokeTest {
     }
 
     @Test
+    void fundsQuickFixDemoOffersAFixForEveryFinding() throws Exception {
+        File sch = new File("release/examples/schematron/funds-quickfix-rules.sch");
+        File xml = new File("release/examples/schematron/funds-quickfix-demo.xml");
+        assertTrue(sch.exists() && xml.exists(), "FundsXML SQF demo files must ship with the repo");
+
+        String content = Files.readString(xml.toPath());
+        SchematronService.SchematronReport report =
+                new SchematronServiceImpl().validateXmlWithSvrl(content, sch);
+        var catalog = org.fxt.freexmltoolkit.service.sqf.SqfParser.parse(sch);
+        var findings = org.fxt.freexmltoolkit.service.sqf.SqfCorrelator.correlate(report.svrl(), catalog);
+
+        assertTrue(findings.size() >= 7, "the demo document must trigger all rules: " + findings.size());
+        for (var finding : findings) {
+            assertTrue(!finding.fixes().isEmpty(),
+                    "every demo finding must offer a quick fix: " + finding.test());
+        }
+    }
+
+    @Test
     void allShippedSchematronExamplesCompile() {
         File dir = new File("release/examples/schematron");
         File[] schematrons = dir.listFiles((d, name) -> name.endsWith(".sch"));

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Demo document for funds-quickfix-rules.sch: a stripped-down FundsXML4 delivery
+     in which every finding offers a quick fix. Validate it with the Schematron
+     bound in the Validation panel and use the lightbulb / Quick Fix menu. -->
+<FundsXML4>
+    <ControlData>
+        <UniqueDocumentID>demo-sqf-0001</UniqueDocumentID>
+        <DocumentGenerated>2026-08-17T09:30:00</DocumentGenerated>
+        <ContentDate>2026-08-14</ContentDate>
+        <DataSupplier>
+            <SystemCountry>AT</SystemCountry>
+            <Short>DEMO</Short>
+            <Name>Demo Asset Management</Name>
+            <Type>IC</Type>
+            <Contact>
+                <Email>risk @ demo-am.example</Email>
+            </Contact>
+        </DataSupplier>
+        <DataOperation>INITIAL</DataOperation>
+        <!-- Language is missing: quick fix prompts for the code -->
+    </ControlData>
+    <Funds>
+        <Fund>
+            <Identifiers>
+                <!-- contains spaces: quick fix strips them -->
+                <ISIN>AT00 0067 4502</ISIN>
+            </Identifiers>
+            <Names>
+                <OfficialName>Demo Equity Fund</OfficialName>
+            </Names>
+            <!-- lowercase: quick fix uppercases the code; SingleFundFlag is missing
+                 and gets inserted right after this element -->
+            <Currency>eur</Currency>
+            <InternalComment>TODO clarify NAV break with backoffice before sending!</InternalComment>
+            <FundDynamicData>
+                <TotalAssetValues>
+                    <TotalAssetValue>
+                        <NavDate>2026-08-14</NavDate>
+                        <TotalAssetNature>OFFICIAL</TotalAssetNature>
+                        <TotalNetAssetValue>
+                            <!-- @ccy is missing: the default fix copies it from Fund/Currency -->
+                            <Amount>125734210.55</Amount>
+                        </TotalNetAssetValue>
+                    </TotalAssetValue>
+                    <TotalAssetValue>
+                        <NavDate>2026-08-13</NavDate>
+                        <TotalAssetNature>OFFICIAL</TotalAssetNature>
+                        <TotalNetAssetValue>
+                            <!-- negative: choose between removing the sign or clearing to 0 -->
+                            <Amount ccy="EUR">-98123.44</Amount>
+                        </TotalNetAssetValue>
+                    </TotalAssetValue>
+                </TotalAssetValues>
+            </FundDynamicData>
+        </Fund>
+    </Funds>
+</FundsXML4>
