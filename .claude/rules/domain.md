@@ -1,20 +1,5 @@
 # Domain Quick-Reference (XSD/XML)
 
-## XSD 1.0 vs 1.1
-
-| Feature | XSD 1.0 | XSD 1.1 |
-|---------|---------|---------|
-| Assertions (`xs:assert`) | No | Yes |
-| Conditional Type Assignment | No | Yes |
-| Open Content | No | Yes |
-| `xs:override` | No | Yes |
-| Default Attribute Groups | No | Yes |
-| `targetNamespace` on local elements | No | Yes |
-
-**Library:** Xerces 2.12.2 (exist-db fork) - Full XSD 1.1 support
-
----
-
 ## 38 XsdNode Types (by Category)
 
 ### Schema Level
@@ -65,68 +50,6 @@
 - `XsdAnnotation` - Documentation container
 - `XsdDocumentation` - Human-readable docs
 - `XsdAppInfo` - Machine-readable metadata
-
----
-
-## XML Processing Libraries
-
-| Task | Library | Version |
-|------|---------|---------|
-| Parsing/Validation | Xerces | 2.12.2 (XSD 1.1) |
-| XSLT 3.0 | Saxon HE | 12.10 (pinned by XML Calabash 3) |
-| XPath 3.1 | Saxon HE | 12.10 (pinned by XML Calabash 3) |
-| XQuery 3.1 | Saxon HE | 12.10 (pinned by XML Calabash 3) |
-| XProc 3.0 | XML Calabash | 3.0.51 |
-| PDF (XSL-FO) | Apache FOP | 2.11 |
-| Digital Signatures | Apache Santuario | - |
-| Excel Export | Apache POI | 5.5.1 |
-
----
-
-## Facets by Datatype
-
-### Applicable to All
-- `pattern`, `enumeration`, `whiteSpace`
-
-### Numeric Types (integer, decimal, float, double)
-- `minInclusive`, `maxInclusive`, `minExclusive`, `maxExclusive`
-- `totalDigits`, `fractionDigits` (decimal/integer only)
-
-### String Types
-- `length`, `minLength`, `maxLength`
-
-### Date/Time Types
-- `minInclusive`, `maxInclusive`, `minExclusive`, `maxExclusive`
-- `explicitTimezone` (XSD 1.1)
-
----
-
-## Common XSD Patterns
-
-### Restricting a SimpleType
-```xml
-<xs:simpleType name="Age">
-  <xs:restriction base="xs:integer">
-    <xs:minInclusive value="0"/>
-    <xs:maxInclusive value="150"/>
-  </xs:restriction>
-</xs:simpleType>
-```
-
-### ComplexType with Sequence
-```xml
-<xs:complexType name="Person">
-  <xs:sequence>
-    <xs:element name="name" type="xs:string"/>
-    <xs:element name="age" type="Age"/>
-  </xs:sequence>
-</xs:complexType>
-```
-
-### XSD 1.1 Assertion
-```xml
-<xs:assert test="@min le @max" xpathDefaultNamespace="##targetNamespace"/>
-```
 
 ---
 

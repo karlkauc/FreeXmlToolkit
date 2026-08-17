@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 > **Detailed technical references are in `.claude/rules/`:**
 > - `architecture.md` - Application layers, V2 data flow, controllers, threading, observable pattern
-> - `domain.md` - XSD 1.0/1.1 differences, 38 node types, facets by datatype, XML libraries
+> - `domain.md` - the 38 XsdNode types, circular-reference warning
 > - `quick-reference.md` - Build commands, command template, icons, FXML rules, testing, gotchas
 > - `xsd-editor-v2-details.md` - Type Editor, CommandManager, XsdEditorContext, facets, serialization, package structure
 
@@ -23,35 +23,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Release Checklist
 
-The version is defined in a **single location**:
-
-1. **build.gradle.kts** (line ~35): `version = "X.Y.Z"`
-
-The Gradle build generates `build-info.properties` from this value during
-`processResources`. At runtime, `org.fxt.freexmltoolkit.util.VersionUtil`
-resolves the version (JAR manifest → `build-info.properties` → fallback),
-so the About dialog, update check, etc. always show the current version —
-including in IDE / `./gradlew run` mode.
-
-**Release builds** are triggered by creating a GitHub release (`release: created`)
-and are pinned to the tag's commit — a `gh run rerun` rebuilds the OLD commit.
-If the release needs a fix commit: delete the release and tag
-(`gh release delete <tag> --yes` + `git push origin :refs/tags/<tag>`), push the
-fix, and recreate the release (lossless while no assets are attached).
-
-## Technology Stack
-
-**Core Technologies:**
-- **Java 25** with preview features
-- **JavaFX 25** for UI (Liberica Full JDK includes JavaFX)
-- **Saxon HE 12.10** for XSLT 3.0/XPath 3.1/XQuery (pinned by XML Calabash 3)
-- **XML Calabash 3.0.51** for XProc 3.0 pipelines
-- **Xerces 2.12.2** with XSD 1.1 support (exist-db fork)
-- **Apache FOP 2.11** for PDF generation
-- **RichTextFX 0.11.7** for code editor with syntax highlighting
-- **Log4j2 2.25.3** for logging
-
-**Key Dependencies:** Apache Santuario (XML signatures), ControlsFX 11.2.3, AtlantaFX Base 2.1.0 (theme), TestFX (UI tests)
+For version bumping, `VersionUtil` resolution, and the release/tag workflow (including
+the tag-pinning gotcha), invoke the **`release` skill** (`.claude/skills/release/SKILL.md`).
 
 ## Application Entry Point
 

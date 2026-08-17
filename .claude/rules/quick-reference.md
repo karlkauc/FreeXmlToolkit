@@ -1,15 +1,6 @@
 # Quick Reference
 
-## Build Commands
-```bash
-./gradlew run                    # Run app
-./gradlew test                   # Run all tests
-./gradlew test --tests "Class.method"  # Single test
-./gradlew clean build            # Clean build
-./gradlew createAllExecutables   # Native packages
-```
-
----
+Build commands: see `CLAUDE.md` (root).
 
 ## Creating a New Command
 
@@ -52,38 +43,9 @@ public class MyCommand implements XsdCommand {
 
 ---
 
-## Icons (IconifyIcon — bundled Iconify SVG)
+## Icons
 
-Icons use `org.fxt.freexmltoolkit.controls.icons.IconifyIcon` (not Ikonli). Bundled set:
-`src/main/resources/icons/iconify/bi.json` (Bootstrap Icons). Same `iconLiteral`/`iconSize`/
-`iconColor` API as the old `FontIcon`.
-
-### Valid Patterns
-```java
-new IconifyIcon("bi-save")          // Save icon
-new IconifyIcon("bi-trash")         // Delete icon
-new IconifyIcon("bi-plus-circle")   // Add icon
-new IconifyIcon("bi-pencil")        // Edit icon
-```
-
-### Unknown icons
-- Do **not** crash — they render a placeholder and log a warning.
-- `IconifyIconCoverageTest` fails the build for any unresolved `bi-*` literal in FXML/Java.
-- Browse names: https://icons.getbootstrap.com/
-
-### Standard Sizes
-- Menu items: `iconSize="16"`
-- Toolbar: `iconSize="20"`
-- Empty states: `iconSize="48"` or `iconSize="64"`
-
-### Semantic Colors
-```java
-"#28a745"  // Success (green)
-"#dc3545"  // Danger (red)
-"#17a2b8"  // Info (cyan)
-"#ffc107"  // Warning (yellow)
-"#007bff"  // Primary (blue)
-```
+See "Icon Usage (Critical)" in `CLAUDE.md` (root) — `IconifyIcon`, `bi-*` names, sizes, semantic colors.
 
 ---
 
