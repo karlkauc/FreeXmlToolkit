@@ -1832,11 +1832,13 @@ via <code>sqf:fix="…"</code>, the editor offers those fixes right where the pr
 reported — and applies them with a single click while <strong>preserving the
 document's formatting</strong>.</p>
 <blockquote>
-<p><strong>Try it:</strong> the bundled examples include a ready-made demo pair —
-<code>examples/schematron/quickfix-demo.xml</code> and <code>quickfix-demo.sch</code> (a fully
-commented Schematron covering every fix type). Open the XML file, bind the
-<code>.sch</code> file in the Validation panel, and validate: every book in the document
-violates at least one rule, and each finding offers a quick fix.</p>
+<p><strong>Try it:</strong> the bundled examples include two ready-made demo pairs in
+<code>examples/schematron/</code> — <code>quickfix-demo.xml</code> + <code>quickfix-demo.sch</code> (a fully
+commented Schematron covering every fix type) and <code>funds-quickfix-demo.xml</code> +
+<code>funds-quickfix-rules.sch</code> (realistic FundsXML business rules, including a fix
+whose value is computed from elsewhere in the document). Open an XML file,
+bind the matching <code>.sch</code> file in the Validation panel, and validate: every
+finding offers a quick fix.</p>
 </blockquote>
 <h2 id="using-quick-fixes">Using quick fixes<a class="headerlink" href="#using-quick-fixes" title="Permanent link">&para;</a></h2>
 <p>Bind a Schematron to your XML document as usual (Validation panel → SCHEMATRON
