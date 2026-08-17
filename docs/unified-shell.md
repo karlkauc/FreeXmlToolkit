@@ -21,21 +21,35 @@ XML file next to its XSD schema, XSLT stylesheets and Schematron rules at the sa
 | Area | Purpose |
 |------|---------|
 | **Activity bar** (far left) | Switch tools / side panels: Explorer, Search, Transform, Validation, Signature, Type Library, FOP/PDF, Favorites, Settings, Help - plus a **FundsXML** activity when the optional [FundsXML extension](fundsxml-extensions.md) is enabled (see [FundsXML Panel](#fundsxml-panel)). **Always visible** - it cannot be collapsed. (Settings opens as a full page in the editor area - see [Settings Page](#settings-page).) |
-| **Side panel** | The panel for the selected activity (e.g. the Transform panel, the Validation panel). **Collapsible** (see [Collapsing the side panels](#collapsing-the-side-panels)). |
+| **Side panel** | The panel for the selected activity (e.g. the Transform panel, the Validation panel). **Resizable and collapsible** (see [Resizing and collapsing the side panels](#collapsing-the-side-panels)). |
 | **Editor host** (center) | Tabs of open documents, each with three view modes - Text, Tree, Graphic (see [View Modes](#view-modes)). |
-| **Inspector** (right) | View **and edit** the selected node's properties from any view. **Collapsible** (see [Collapsing the side panels](#collapsing-the-side-panels)). |
+| **Inspector** (right) | View **and edit** the selected node's properties from any view. **Resizable and collapsible** (see [Resizing and collapsing the side panels](#collapsing-the-side-panels)). |
 | **Status bar** (bottom) | Caret position, the XSD / IntelliSense indicator (see [Status Bar](#status-bar)) and a memory indicator. |
 
-#### Collapsing the side panels
+#### Resizing and collapsing the side panels {#collapsing-the-side-panels}
 
-Both the **left side panel** and the **right Properties inspector** can be collapsed to give the
-editor more room - the activity bar always stays visible.
+Both the **left side panel** and the **right Properties inspector** can be resized and
+collapsed to give the editor more room - the activity bar always stays visible.
+
+**Resizing** *(new in August 2026)* - the panels are no longer fixed-width:
+
+- **Drag the thin divider line** between a panel and the editor to make the panel wider or
+  narrower (the mouse pointer turns into a horizontal resize arrow over the divider). Widen
+  the panel when file names, validation messages, or property values get truncated.
+- Each panel keeps a **minimum width of 200 px**, and the editor in the middle always keeps
+  at least **320 px** - you cannot drag a panel so far that the editor disappears.
+- The chosen widths are **remembered across restarts** (per user).
+- When you **resize the window**, the panels keep their pixel width - only the editor column
+  grows or shrinks (the same behavior as VS Code).
+
+**Collapsing** - each panel can also be hidden completely:
 
 - **Collapse**: click the discreet double-chevron at the panel's inner edge (`<<` on the left
   panel, `>>` on the inspector). The panel is hidden completely.
 - **Re-open**: click the matching toggle button in the editor toolbar (left-most toggle for the
   side panel, right-most for the inspector) - the same mechanism on both sides. Selecting any
-  activity from the activity bar also re-opens the left side panel.
+  activity from the activity bar also re-opens the left side panel. A re-opened panel comes
+  back at its **last dragged width**.
 - The collapsed/expanded state is **remembered across restarts** and can also be changed under
   **Settings → General** ("Show left side panel" / "Show Properties (inspector) panel").
 
@@ -55,6 +69,9 @@ editor more room - the activity bar always stays visible.
 - **Find in Files & XPath search** *(new in August 2026)* - the **Search** activity
   (Ctrl+Shift+F) searches and replaces across **all files of a folder**, by plain text or
   by XPath expression (see [Search Panel](#search-panel))
+- **Resizable side panels** *(new in August 2026)* - drag the divider lines to give the side
+  panel or the Properties inspector more room; the widths are remembered across restarts
+  (see [Resizing and collapsing the side panels](#collapsing-the-side-panels))
 - **Favorites** - Quick access to frequently used files
 
 ## Getting Started
@@ -1303,6 +1320,11 @@ any error to jump straight to its location:
 >
 > **Updated July 2026** - The **NODE & XPATH** section shows the XPath on its own full-width
 > line below the "XPath" header (long paths no longer get squeezed by the icon column).
+>
+> **Updated August 2026** - The inspector is no longer fixed-width: drag the divider line
+> between the editor and the inspector to make it wider (handy for long XPaths, attribute
+> values, or documentation). The width is remembered across restarts - see
+> [Resizing and collapsing the side panels](#collapsing-the-side-panels).
 
 ### Copying the XPath or the node
 
