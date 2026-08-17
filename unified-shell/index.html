@@ -1051,6 +1051,79 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#search-panel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Search Panel
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Search Panel">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#text-mode-find-in-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Text mode (Find in Files)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Text mode (Find in Files)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#replace-in-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Replace in Files
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#xpath-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        XPath mode
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="XPath mode">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#replacing-via-xpath" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Replacing via XPath
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#favorites-panel" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3070,6 +3143,79 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#search-panel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Search Panel
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Search Panel">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#text-mode-find-in-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Text mode (Find in Files)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Text mode (Find in Files)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#replace-in-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Replace in Files
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#xpath-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        XPath mode
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="XPath mode">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#replacing-via-xpath" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Replacing via XPath
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#favorites-panel" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3553,7 +3699,7 @@ XML file next to its XSD schema, XSLT stylesheets and Schematron rules at the sa
 <tbody>
 <tr>
 <td><strong>Activity bar</strong> (far left)</td>
-<td>Switch tools / side panels: Explorer, Transform, Validation, Signature, Type Library, FOP/PDF, Favorites, Settings, Help - plus a <strong>FundsXML</strong> activity when the optional <a href="../fundsxml-extensions/">FundsXML extension</a> is enabled (see <a href="#fundsxml-panel">FundsXML Panel</a>). <strong>Always visible</strong> - it cannot be collapsed. (Settings opens as a full page in the editor area - see <a href="#settings-page">Settings Page</a>.)</td>
+<td>Switch tools / side panels: Explorer, Search, Transform, Validation, Signature, Type Library, FOP/PDF, Favorites, Settings, Help - plus a <strong>FundsXML</strong> activity when the optional <a href="../fundsxml-extensions/">FundsXML extension</a> is enabled (see <a href="#fundsxml-panel">FundsXML Panel</a>). <strong>Always visible</strong> - it cannot be collapsed. (Settings opens as a full page in the editor area - see <a href="#settings-page">Settings Page</a>.)</td>
 </tr>
 <tr>
 <td><strong>Side panel</strong></td>
@@ -3598,6 +3744,9 @@ editor more room - the activity bar always stays visible.</p>
 <li><strong>Search &amp; Replace</strong> - Ctrl+F / Ctrl+H across the editor, in <strong>every view mode</strong>: the Text
   view searches the raw text, the Tree and Graphic views search the nodes themselves (names,
   documentation, attributes, enumeration and facet values, comments)</li>
+<li><strong>Find in Files &amp; XPath search</strong> <em>(new in August 2026)</em> - the <strong>Search</strong> activity
+  (Ctrl+Shift+F) searches and replaces across <strong>all files of a folder</strong>, by plain text or
+  by XPath expression (see <a href="#search-panel">Search Panel</a>)</li>
 <li><strong>Favorites</strong> - Quick access to frequently used files</li>
 </ul>
 <h2 id="getting-started">Getting Started<a class="headerlink" href="#getting-started" title="Permanent link">&para;</a></h2>
@@ -3793,7 +3942,7 @@ with the closely related actions:</p>
 </tr>
 <tr>
 <td><strong>Format</strong></td>
-<td>Pretty-print the active document (Ctrl+Shift+F)</td>
+<td>Pretty-print the active document (Shift+Alt+F; <em>changed in August 2026</em> - <strong>Ctrl+Shift+F</strong> now opens the <a href="#search-panel">Search panel</a>)</td>
 <td><strong>Minify</strong> - remove all insignificant whitespace</td>
 </tr>
 <tr>
@@ -4310,6 +4459,105 @@ with one RESULTS row per file. With no tree selection, the active editor documen
 is validated. Batch runs additionally check each file against the <strong>active
 document's bound XSD</strong> (if any) - bind or clear the XSD in the Validation panel's
 SOURCES section to control that.</p>
+<h2 id="search-panel">Search Panel<a class="headerlink" href="#search-panel" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p><strong>New in August 2026</strong> - A dedicated <strong>Search</strong> activity brings VS-Code-style
+<strong>Find in Files</strong> with Replace, plus an <strong>XPath search &amp; replace</strong> that works across
+whole folders. <strong>Heads-up:</strong> its shortcut <strong>Ctrl+Shift+F</strong> previously meant <em>Format
+document</em> - formatting now lives on <strong>Shift+Alt+F</strong> (see
+<a href="#keyboard-shortcuts">Keyboard Shortcuts</a>).</p>
+</blockquote>
+<p>Open the <strong>Search</strong> panel from the magnifying-glass icon in the activity bar (directly
+below Explorer), or press <strong>Ctrl+Shift+F</strong> - any text selected in the editor is
+prefilled as the search term - or <strong>Ctrl+Shift+H</strong>, which opens the same panel with the
+replace row already expanded. A <strong>Text | XPath</strong> toggle at the top switches between the
+panel's two modes.</p>
+<h3 id="text-mode-find-in-files">Text mode (Find in Files)<a class="headerlink" href="#text-mode-find-in-files" title="Permanent link">&para;</a></h3>
+<p>Searches all files of a folder for plain text. Results appear <strong>as you type</strong> - the
+search re-runs automatically after a short pause.</p>
+<ul>
+<li><strong>Where it searches</strong> - by default the folder opened in the <strong>Explorer</strong> workspace
+  (falling back to the last-used directory); the <strong>Browse</strong> button picks any other
+  folder. The <strong>file globs</strong> field filters which files are searched - it defaults to the
+  XML-family extensions
+  (<code>*.xml,*.xsd,*.xsl,*.xslt,*.sch,*.schematron,*.json,*.xq,*.xquery,*.xqm,*.xqy,*.xpath,*.xpl,*.xproc</code>).</li>
+<li><strong>Options</strong> - three toggles next to the search field: <strong>Aa</strong> (match case), <strong>W</strong>
+  (whole word), and <strong>.*</strong> (regular expression).</li>
+<li><strong>Results</strong> - matches are grouped <strong>file → matches</strong> in a tree with checkboxes. Click
+  a match to open the file and select the exact match in the Text view. All matches in
+  the active document are also <strong>highlighted in the editor</strong> (translucent amber).</li>
+<li><strong>Limits</strong> - files larger than 20 MB and binary files are skipped, and at most 1000
+  matches are listed per file (the file then shows a <em>"More matches not shown"</em> note).
+  Open documents with <strong>unsaved changes</strong> are searched via their live editor content, so
+  what you see in the editor is what is found.</li>
+</ul>
+<h4 id="replace-in-files">Replace in Files<a class="headerlink" href="#replace-in-files" title="Permanent link">&para;</a></h4>
+<p>Click the <strong>⇄</strong> toggle (or open the panel with <strong>Ctrl+Shift+H</strong>) to reveal the replace
+row:</p>
+<ol>
+<li>Type the replacement text. In regular-expression mode, <strong>$1</strong>-style group references
+   in the replacement insert the matched groups.</li>
+<li><strong>Untick</strong> any matches you want to keep - only the <strong>checked</strong> matches are replaced.</li>
+<li>Click <strong>Replace…</strong> and confirm the summary dialog.</li>
+</ol>
+<p>Replacements are applied safely:</p>
+<ul>
+<li><strong>Open documents</strong> are edited <strong>in the editor</strong>, as exactly <strong>one undo step per
+  document</strong> - press Ctrl+Z to revert everything at once, then save normally.</li>
+<li><strong>Files not open in the editor</strong> are written to disk atomically, preserving their
+  encoding (BOM, ISO-8859-1, …) and line endings.</li>
+<li>A file that <strong>changed on disk after the search ran</strong> is skipped and reported - it is
+  never overwritten with stale results. Re-run the search and replace again.</li>
+</ul>
+<h3 id="xpath-mode">XPath mode<a class="headerlink" href="#xpath-mode" title="Permanent link">&para;</a></h3>
+<p>Evaluates an <strong>XPath 3.1</strong> expression (Saxon; the <code>map</code>, <code>array</code>, <code>math</code>, <code>fn</code> and <code>xs</code>
+prefixes are pre-declared) and lists the matching nodes:</p>
+<ul>
+<li><strong>Scope</strong> - a <strong>Document | Folder</strong> toggle: evaluate against the <strong>active document</strong>,
+  or against every file of a <strong>folder</strong> (with its own file-glob filter, default
+  <code>*.xml</code>).</li>
+<li><strong>Namespaces</strong> - enter bindings as <code>prefix=uri</code> lines (an empty prefix sets the
+  default element namespace). The <strong>Detect</strong> button reads the bindings from the active
+  document's root element, so you rarely have to type them.</li>
+<li><strong>Find matches</strong> lists the matched <strong>elements, attributes and text nodes</strong> with line
+  numbers and a short preview. Click a result to navigate to the exact node; matches are
+  highlighted in the editor. Nodes that cannot be mapped to a text position (comments,
+  processing instructions) are excluded and reported as a count.</li>
+</ul>
+<h4 id="replacing-via-xpath">Replacing via XPath<a class="headerlink" href="#replacing-via-xpath" title="Permanent link">&para;</a></h4>
+<p>Pick a <strong>Replace</strong> mode, then click <strong>Replace checked…</strong> and confirm - as in Text mode,
+only the <strong>checked</strong> matches are changed:</p>
+<table>
+<thead>
+<tr>
+<th>Mode</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Set value</strong></td>
+<td>Sets the matched element's text (or the matched attribute's value) to a literal you type.</td>
+</tr>
+<tr>
+<td><strong>Compute value (XPath)</strong></td>
+<td>Computes the new value <strong>per match</strong>, with the matched node as the context - for example <code>concat(., '-suffix')</code> or <code>string(number(.) * 2)</code>.</td>
+</tr>
+<tr>
+<td><strong>Delete nodes</strong></td>
+<td>Removes the matched nodes: elements (including the whole line when the element sits alone on it), attributes (with the surrounding whitespace), or text.</td>
+</tr>
+<tr>
+<td><strong>Replace with XML</strong></td>
+<td>Replaces matched <strong>elements</strong> with an XML fragment you enter. The fragment is checked for well-formedness, and multi-line fragments are re-indented to fit their new location.</td>
+</tr>
+</tbody>
+</table>
+<p>All XPath replacements are <strong>formatting-preserving text edits</strong> - outside the replaced
+ranges the document stays byte-for-byte identical. In the active document the whole
+replacement is <strong>one undo step</strong> (Ctrl+Z reverts it). In folder mode, open files are
+edited via the editor and all other files are written to disk atomically, with the same
+changed-on-disk staleness check as Text mode.</p>
 <h2 id="favorites-panel">Favorites Panel<a class="headerlink" href="#favorites-panel" title="Permanent link">&para;</a></h2>
 <p>Open the <strong>Favorites</strong> panel from the star icon in the activity bar for one-click access to
 your saved files.</p>
@@ -4717,7 +4965,7 @@ they are ready.</p>
   stage text</strong> at the bottom tracks any running download - including the automatic
   background ones triggered at startup or by the daily update check.</li>
 <li><strong>VALIDATE</strong> - <strong>Validate active document</strong> checks the open XML against the active
-  FundsXML schema (same as <strong>Ctrl+Shift+F</strong>).</li>
+  FundsXML schema.</li>
 <li><strong>DOCS &amp; RESOURCES</strong> - <strong>Open Schema in Editor</strong> opens the active version's
   <code>FundsXML4.xsd</code> as a normal editor tab (Text or Graphic/diagram view);
   <strong>Generate Schema Documentation</strong> produces browsable HTML docs; the <strong>Open … Folder</strong>
@@ -4878,7 +5126,9 @@ Tools grid covers <strong>every</strong> page - including the new <strong>Explor
 <li><strong>Tools grid</strong> - One card per tool; clicking a card opens the matching activity. Alongside
   <strong>Validate</strong>, <strong>Transform</strong>, <strong>Schema</strong>, <strong>PDF / FOP</strong>, <strong>Signature</strong>, and <strong>Favorites</strong>,
   two cards are new in June 2026: <strong>Explorer</strong> (files &amp; workspace) and <strong>Settings</strong>
-  (application preferences) - so every page can be opened directly from the start screen.</li>
+  (application preferences) - so every page can be opened directly from the start screen.
+  <em>(new in August 2026)</em> A <strong>Search</strong> card (<em>Find in files &amp; XPath</em>) opens the
+  <a href="#search-panel">Search panel</a>.</li>
 <li><strong>FUNDSXML quick access</strong> <em>(new in July 2026)</em> - When the optional
   <a href="../fundsxml-extensions/">FundsXML extension</a> is enabled and its content is cached, an
   extra row with three cards appears: <strong>Open Example</strong> (opens a compact starter sample),
@@ -4969,19 +5219,27 @@ glows <strong>green</strong> while a loadable file hovers over it and <strong>re
 </tr>
 <tr>
 <td>Ctrl+F</td>
-<td>Find</td>
+<td>Find (in the active document)</td>
 </tr>
 <tr>
 <td>Ctrl+H</td>
-<td>Find and Replace</td>
+<td>Find and Replace (in the active document)</td>
+</tr>
+<tr>
+<td>Ctrl+Shift+F</td>
+<td><strong>Find in Files</strong> - opens the <a href="#search-panel">Search panel</a>, prefilled with the editor selection <em>(new in August 2026)</em></td>
+</tr>
+<tr>
+<td>Ctrl+Shift+H</td>
+<td><strong>Replace in Files</strong> - opens the Search panel with the replace row expanded <em>(new in August 2026)</em></td>
 </tr>
 <tr>
 <td>F8</td>
 <td>Validate</td>
 </tr>
 <tr>
-<td>Ctrl+Shift+F</td>
-<td>Format</td>
+<td>Shift+Alt+F</td>
+<td>Format (pretty-print) the active document</td>
 </tr>
 <tr>
 <td>Ctrl+D</td>
@@ -5017,6 +5275,13 @@ glows <strong>green</strong> while a loadable file hovers over it and <strong>re
 </tr>
 </tbody>
 </table>
+<div class="admonition warning">
+<p class="admonition-title">Changed shortcut (August 2026)</p>
+<p><strong>Ctrl+Shift+F no longer formats the document.</strong> Following the VS Code convention, it
+now opens <strong>Search (Find in Files)</strong>, and <strong>Ctrl+Shift+H</strong> opens <strong>Replace in Files</strong>.
+<strong>Format Document moved to Shift+Alt+F</strong> - the toolbar's <strong>Format</strong> button works
+unchanged. The in-editor find/replace stays on <strong>Ctrl+F / Ctrl+H</strong>.</p>
+</div>
 <blockquote>
 <p><strong>Search in all view modes (updated in July 2026):</strong> Pressing <strong>Ctrl+F</strong> opens an inline search bar with up/down chevron arrows for Find Previous / Find Next (Enter / Shift+Enter work too). The search works in the <strong>Text</strong>, <strong>Tree</strong> and <strong>Graphic</strong> views. In the structured views it searches the nodes themselves — for XSD schemas that is element/attribute/type names, documentation and appinfo, type references, fixed/default values, enumeration and facet values, and comments; for XML instances in the Graphic grid it is element names, attribute names, and values. A match hidden inside a collapsed branch is revealed automatically (ancestors expand), selected, and scrolled into view; matches wrap around when you reach the end. Switching the view mode or tab while the bar is open re-targets the search to the active view. <strong>Replace</strong> is available in the Text view only — in Tree/Graphic views the replace toggle is disabled. See <a href="../xml-editor-features/#search-find">XML Editor Features</a> for details.</p>
 </blockquote>

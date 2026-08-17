@@ -2214,7 +2214,7 @@ background downloads alike.</p>
 <li>Register the most compact sample XMLs as <strong>new-document templates</strong> under the <strong>FundsXML</strong> category, so you can start a fresh document from a real sample via <em>File → New from Template</em>.</li>
 <li>Seed the XPath/XQuery snippets into your <strong>Saved Queries</strong>, tagged <code>fundsxml</code> - they show up in the <a href="../unified-shell/#query-console">Query Console</a>'s <strong>Snippets</strong> menu under a <strong>FUNDSXML</strong> section (for example <em>fund-summary</em>, <em>top-holdings</em>, <em>look-through</em>, <em>aggregate-by-assettype</em>), in the XPath/XQuery tab of the XSLT Developer, and via right-click in the XML editor.</li>
 <li>Select the newly downloaded schema version as the <strong>active</strong> version.</li>
-<li>Make a compact starter sample available from the Welcome page's <strong>Open Example</strong> card, so you can immediately try <strong>Ctrl+Shift+F</strong> to validate.</li>
+<li>Make a compact starter sample available from the Welcome page's <strong>Open Example</strong> card, so you can immediately try <strong>Validate active document</strong> in the FundsXML panel.</li>
 </ul>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
@@ -2238,7 +2238,7 @@ back and forth freely.</p>
 <p>The fastest way to check an XML file against the FundsXML schema:</p>
 <ol>
 <li>Open your XML document in the editor.</li>
-<li>Press <strong>Ctrl+Shift+F</strong>, or click <strong>Validate active document</strong> in the <strong>FundsXML</strong> side panel, or choose <strong>Validate against FundsXML</strong> from the Validation panel's ⋮ menu.</li>
+<li>Click <strong>Validate active document</strong> in the <strong>FundsXML</strong> side panel, or choose <strong>Validate against FundsXML</strong> from the Validation panel's ⋮ menu.</li>
 <li>If the document is valid, you get a confirmation message.</li>
 <li>If there are errors, they are listed line-by-line in an alert dialog so you can locate and fix each one.</li>
 </ol>
@@ -2350,20 +2350,20 @@ sections:</p>
 <p>The XPath/XQuery snippets in the <code>queries/</code> folder follow a simple convention so the community can grow them.</p>
 <p>If a <code>queries/index.json</code> manifest is present, it tells FreeXmlToolkit how to label and tag each snippet:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="p">{</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">&quot;snippets&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">"snippets"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="p">{</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">      </span><span class="nt">&quot;file&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;list-portfolios.xq&quot;</span><span class="p">,</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">      </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;List all Portfolio IDs&quot;</span><span class="p">,</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;xquery&quot;</span><span class="p">,</span>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Returns the unique identifier of every Portfolio in the document.&quot;</span><span class="p">,</span>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">      </span><span class="nt">&quot;tags&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;fundsxml&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;portfolio&quot;</span><span class="p">]</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">      </span><span class="nt">"file"</span><span class="p">:</span><span class="w"> </span><span class="s2">"list-portfolios.xq"</span><span class="p">,</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">      </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"List all Portfolio IDs"</span><span class="p">,</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">      </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"xquery"</span><span class="p">,</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">      </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Returns the unique identifier of every Portfolio in the document."</span><span class="p">,</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">      </span><span class="nt">"tags"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"fundsxml"</span><span class="p">,</span><span class="w"> </span><span class="s2">"portfolio"</span><span class="p">]</span>
 <a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">    </span><span class="p">},</span>
 <a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">    </span><span class="p">{</span>
-<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">      </span><span class="nt">&quot;file&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;total-nav.xpath&quot;</span><span class="p">,</span>
-<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">      </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Total Net Asset Value&quot;</span><span class="p">,</span>
-<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;xpath&quot;</span><span class="p">,</span>
-<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Sum of all NAV values across funds.&quot;</span><span class="p">,</span>
-<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">      </span><span class="nt">&quot;tags&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;fundsxml&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;nav&quot;</span><span class="p">]</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">      </span><span class="nt">"file"</span><span class="p">:</span><span class="w"> </span><span class="s2">"total-nav.xpath"</span><span class="p">,</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">      </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Total Net Asset Value"</span><span class="p">,</span>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">      </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"xpath"</span><span class="p">,</span>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">      </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Sum of all NAV values across funds."</span><span class="p">,</span>
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">      </span><span class="nt">"tags"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"fundsxml"</span><span class="p">,</span><span class="w"> </span><span class="s2">"nav"</span><span class="p">]</span>
 <a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="w">    </span><span class="p">}</span>
 <a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="w">  </span><span class="p">]</span>
 <a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="p">}</span>

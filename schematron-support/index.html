@@ -2605,8 +2605,8 @@ Related actions sit in <strong>split buttons</strong> with a visible <strong>▾
 </tr>
 <tr>
 <td><strong>Format ▾</strong></td>
-<td>Ctrl+Shift+F</td>
-<td>Pretty-print the file</td>
+<td>Shift+Alt+F</td>
+<td>Pretty-print the file. (<em>Changed in August 2026:</em> Ctrl+Shift+F now opens <a href="../unified-shell/#search-panel">Find in Files</a>.)</td>
 </tr>
 <tr>
 <td><strong>Validate</strong></td>
@@ -2782,16 +2782,16 @@ Shell guide.</p>
 <hr />
 <h2 id="creating-schematron-rules">Creating Schematron Rules<a class="headerlink" href="#creating-schematron-rules" title="Permanent link">&para;</a></h2>
 <h3 id="basic-structure">Basic Structure<a class="headerlink" href="#basic-structure" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="cp">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nt">&lt;schema</span><span class="w"> </span><span class="na">xmlns=</span><span class="s">&quot;http://purl.oclc.org/dsdl/schematron&quot;</span><span class="nt">&gt;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="cp">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nt">&lt;schema</span><span class="w"> </span><span class="na">xmlns=</span><span class="s">"http://purl.oclc.org/dsdl/schematron"</span><span class="nt">&gt;</span>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="nt">&lt;title&gt;</span>My<span class="w"> </span>Validation<span class="w"> </span>Rules<span class="nt">&lt;/title&gt;</span>
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="nt">&lt;pattern</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;Invoice Validation&quot;</span><span class="nt">&gt;</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">        </span><span class="nt">&lt;rule</span><span class="w"> </span><span class="na">context=</span><span class="s">&quot;invoice&quot;</span><span class="nt">&gt;</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">            </span><span class="nt">&lt;assert</span><span class="w"> </span><span class="na">test=</span><span class="s">&quot;@date&quot;</span><span class="nt">&gt;</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="nt">&lt;pattern</span><span class="w"> </span><span class="na">name=</span><span class="s">"Invoice Validation"</span><span class="nt">&gt;</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">        </span><span class="nt">&lt;rule</span><span class="w"> </span><span class="na">context=</span><span class="s">"invoice"</span><span class="nt">&gt;</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">            </span><span class="nt">&lt;assert</span><span class="w"> </span><span class="na">test=</span><span class="s">"@date"</span><span class="nt">&gt;</span>
 <a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">                </span>Every<span class="w"> </span>invoice<span class="w"> </span>must<span class="w"> </span>have<span class="w"> </span>a<span class="w"> </span>date<span class="w"> </span>attribute.
 <a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">            </span><span class="nt">&lt;/assert&gt;</span>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">            </span><span class="nt">&lt;assert</span><span class="w"> </span><span class="na">test=</span><span class="s">&quot;customer&quot;</span><span class="nt">&gt;</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">            </span><span class="nt">&lt;assert</span><span class="w"> </span><span class="na">test=</span><span class="s">"customer"</span><span class="nt">&gt;</span>
 <a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">                </span>Every<span class="w"> </span>invoice<span class="w"> </span>must<span class="w"> </span>have<span class="w"> </span>a<span class="w"> </span>customer<span class="w"> </span>element.
 <a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">            </span><span class="nt">&lt;/assert&gt;</span>
 <a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">        </span><span class="nt">&lt;/rule&gt;</span>
@@ -2800,43 +2800,43 @@ Shell guide.</p>
 </code></pre></div>
 <h3 id="common-rule-patterns">Common Rule Patterns<a class="headerlink" href="#common-rule-patterns" title="Permanent link">&para;</a></h3>
 <h4 id="required-field">Required Field<a class="headerlink" href="#required-field" title="Permanent link">&para;</a></h4>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">&lt;rule</span><span class="w"> </span><span class="na">context=</span><span class="s">&quot;order&quot;</span><span class="nt">&gt;</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">    </span><span class="nt">&lt;assert</span><span class="w"> </span><span class="na">test=</span><span class="s">&quot;orderNumber&quot;</span><span class="nt">&gt;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">&lt;rule</span><span class="w"> </span><span class="na">context=</span><span class="s">"order"</span><span class="nt">&gt;</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">    </span><span class="nt">&lt;assert</span><span class="w"> </span><span class="na">test=</span><span class="s">"orderNumber"</span><span class="nt">&gt;</span>
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">        </span>Order<span class="w"> </span>number<span class="w"> </span>is<span class="w"> </span>required.
 <a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="nt">&lt;/assert&gt;</span>
 <a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="nt">&lt;/rule&gt;</span>
 </code></pre></div>
 <h4 id="conditional-requirement">Conditional Requirement<a class="headerlink" href="#conditional-requirement" title="Permanent link">&para;</a></h4>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">&lt;rule</span><span class="w"> </span><span class="na">context=</span><span class="s">&quot;order&quot;</span><span class="nt">&gt;</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">    </span><span class="nt">&lt;assert</span><span class="w"> </span><span class="na">test=</span><span class="s">&quot;not(@status=&#39;shipped&#39;) or shipDate&quot;</span><span class="nt">&gt;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">&lt;rule</span><span class="w"> </span><span class="na">context=</span><span class="s">"order"</span><span class="nt">&gt;</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">    </span><span class="nt">&lt;assert</span><span class="w"> </span><span class="na">test=</span><span class="s">"not(@status='shipped') or shipDate"</span><span class="nt">&gt;</span>
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">        </span>Shipped<span class="w"> </span>orders<span class="w"> </span>must<span class="w"> </span>have<span class="w"> </span>a<span class="w"> </span>ship<span class="w"> </span>date.
 <a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="nt">&lt;/assert&gt;</span>
 <a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="nt">&lt;/rule&gt;</span>
 </code></pre></div>
 <h4 id="value-comparison">Value Comparison<a class="headerlink" href="#value-comparison" title="Permanent link">&para;</a></h4>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nt">&lt;rule</span><span class="w"> </span><span class="na">context=</span><span class="s">&quot;order&quot;</span><span class="nt">&gt;</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">    </span><span class="nt">&lt;assert</span><span class="w"> </span><span class="na">test=</span><span class="s">&quot;endDate &gt;= startDate&quot;</span><span class="nt">&gt;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nt">&lt;rule</span><span class="w"> </span><span class="na">context=</span><span class="s">"order"</span><span class="nt">&gt;</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">    </span><span class="nt">&lt;assert</span><span class="w"> </span><span class="na">test=</span><span class="s">"endDate &gt;= startDate"</span><span class="nt">&gt;</span>
 <a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">        </span>End<span class="w"> </span>date<span class="w"> </span>must<span class="w"> </span>be<span class="w"> </span>after<span class="w"> </span>start<span class="w"> </span>date.
 <a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span><span class="nt">&lt;/assert&gt;</span>
 <a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="nt">&lt;/rule&gt;</span>
 </code></pre></div>
 <h4 id="sum-validation">Sum Validation<a class="headerlink" href="#sum-validation" title="Permanent link">&para;</a></h4>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nt">&lt;rule</span><span class="w"> </span><span class="na">context=</span><span class="s">&quot;invoice&quot;</span><span class="nt">&gt;</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">    </span><span class="nt">&lt;assert</span><span class="w"> </span><span class="na">test=</span><span class="s">&quot;sum(item/price) = total&quot;</span><span class="nt">&gt;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nt">&lt;rule</span><span class="w"> </span><span class="na">context=</span><span class="s">"invoice"</span><span class="nt">&gt;</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">    </span><span class="nt">&lt;assert</span><span class="w"> </span><span class="na">test=</span><span class="s">"sum(item/price) = total"</span><span class="nt">&gt;</span>
 <a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">        </span>Total<span class="w"> </span>must<span class="w"> </span>equal<span class="w"> </span>sum<span class="w"> </span>of<span class="w"> </span>item<span class="w"> </span>prices.
 <a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">    </span><span class="nt">&lt;/assert&gt;</span>
 <a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="nt">&lt;/rule&gt;</span>
 </code></pre></div>
 <h4 id="unique-values">Unique Values<a class="headerlink" href="#unique-values" title="Permanent link">&para;</a></h4>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nt">&lt;rule</span><span class="w"> </span><span class="na">context=</span><span class="s">&quot;items&quot;</span><span class="nt">&gt;</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">    </span><span class="nt">&lt;assert</span><span class="w"> </span><span class="na">test=</span><span class="s">&quot;count(item) = count(distinct-values(item/@id))&quot;</span><span class="nt">&gt;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nt">&lt;rule</span><span class="w"> </span><span class="na">context=</span><span class="s">"items"</span><span class="nt">&gt;</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">    </span><span class="nt">&lt;assert</span><span class="w"> </span><span class="na">test=</span><span class="s">"count(item) = count(distinct-values(item/@id))"</span><span class="nt">&gt;</span>
 <a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">        </span>All<span class="w"> </span>item<span class="w"> </span>IDs<span class="w"> </span>must<span class="w"> </span>be<span class="w"> </span>unique.
 <a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">    </span><span class="nt">&lt;/assert&gt;</span>
 <a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="nt">&lt;/rule&gt;</span>
 </code></pre></div>
 <h4 id="cross-reference">Cross-Reference<a class="headerlink" href="#cross-reference" title="Permanent link">&para;</a></h4>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nt">&lt;rule</span><span class="w"> </span><span class="na">context=</span><span class="s">&quot;orderLine&quot;</span><span class="nt">&gt;</span>
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">    </span><span class="nt">&lt;assert</span><span class="w"> </span><span class="na">test=</span><span class="s">&quot;@productId = //product/@id&quot;</span><span class="nt">&gt;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nt">&lt;rule</span><span class="w"> </span><span class="na">context=</span><span class="s">"orderLine"</span><span class="nt">&gt;</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">    </span><span class="nt">&lt;assert</span><span class="w"> </span><span class="na">test=</span><span class="s">"@productId = //product/@id"</span><span class="nt">&gt;</span>
 <a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">        </span>Product<span class="w"> </span>ID<span class="w"> </span>must<span class="w"> </span>reference<span class="w"> </span>an<span class="w"> </span>existing<span class="w"> </span>product.
 <a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">    </span><span class="nt">&lt;/assert&gt;</span>
 <a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="nt">&lt;/rule&gt;</span>

@@ -2287,7 +2287,7 @@ manage your own templates in the <strong>Settings → Templates</strong> card. S
 <h2 id="template-types">Template Types<a class="headerlink" href="#template-types" title="Permanent link">&para;</a></h2>
 <h3 id="xml-document-templates">XML Document Templates<a class="headerlink" href="#xml-document-templates" title="Permanent link">&para;</a></h3>
 <p>Create complete document structures with placeholders:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="cp">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="cp">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="err">&lt;</span>${rootElement}&gt;
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="nt">&lt;header&gt;</span>
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">        </span><span class="nt">&lt;title&gt;</span>${documentTitle}<span class="nt">&lt;/title&gt;</span>
@@ -2302,8 +2302,8 @@ manage your own templates in the <strong>Settings → Templates</strong> card. S
 <p>The parts in <code>${}</code> are parameters you fill in when using the template.</p>
 <h3 id="schematron-rule-templates">Schematron Rule Templates<a class="headerlink" href="#schematron-rule-templates" title="Permanent link">&para;</a></h3>
 <p>Ready-to-use validation patterns:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">&lt;rule</span><span class="w"> </span><span class="na">context=</span><span class="s">&quot;${contextPath}&quot;</span><span class="nt">&gt;</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">    </span><span class="nt">&lt;assert</span><span class="w"> </span><span class="na">test=</span><span class="s">&quot;${testExpression}&quot;</span><span class="nt">&gt;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">&lt;rule</span><span class="w"> </span><span class="na">context=</span><span class="s">"${contextPath}"</span><span class="nt">&gt;</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">    </span><span class="nt">&lt;assert</span><span class="w"> </span><span class="na">test=</span><span class="s">"${testExpression}"</span><span class="nt">&gt;</span>
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">        </span>${errorMessage}
 <a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="nt">&lt;/assert&gt;</span>
 <a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="nt">&lt;/rule&gt;</span>
