@@ -1866,6 +1866,7 @@ work step costs and where optimizing the script pays off.</p>
 <p>Open <strong>Settings → DEVELOPER</strong> and tick <strong>Record execution statistics</strong>. The flag is
 persisted; regular users who leave it off see no change anywhere in the UI and no
 measurements are taken (zero overhead).</p>
+<p><img alt="The DEVELOPER card in Settings" src="../img/execution-statistics-settings.png" /></p>
 <h2 id="where-the-numbers-appear">Where the numbers appear<a class="headerlink" href="#where-the-numbers-appear" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>Inline</strong> — panels append the run duration to their status lines: the OUTPUT
@@ -1879,6 +1880,11 @@ measurements are taken (zero overhead).</p>
   status; selecting a row shows the <strong>detail report</strong> with the phase breakdown and
   throughput. Also reachable via the Transform panel's ⋮ menu.</li>
 </ul>
+<p><img alt="Execution Statistics tool tab with the run history and detail report" src="../img/execution-statistics-history.png" /></p>
+<p>The screenshot shows two recorded runs: the validation of a FundsXML document
+(917 ms — also visible inline as <em>Valid · 917 ms</em> in the Validation panel and as
+<em>VALIDATION · 917 ms</em> in the status bar) and an XSLT check stylesheet (2.0 s, with
+its compile/transform phases in the detail report below the table).</p>
 <p><strong>Batch runs</strong> (multi-file transforms and batch validation) record <strong>one entry per
 file</strong>, so a mass run over a folder yields a per-file cost profile.</p>
 <h2 id="export">Export<a class="headerlink" href="#export" title="Permanent link">&para;</a></h2>
