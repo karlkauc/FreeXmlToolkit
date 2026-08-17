@@ -38,6 +38,10 @@ public class UnifiedShellView extends BorderPane {
     private ActivityBar activityBar;
     /** Cached so the editor toolbar "Validate" action can drive the same panel. */
     private org.fxt.freexmltoolkit.controls.shell.editor.ValidationPanel validationPanel;
+    /** Cached so Ctrl+Shift+F / Ctrl+Shift+H can focus the same panel's query field. */
+    private org.fxt.freexmltoolkit.controls.shell.editor.search.SearchPanel searchPanel;
+    /** Cached so the Search panel can default its scope to the Explorer's workspace folder. */
+    private org.fxt.freexmltoolkit.controls.shell.editor.ExplorerPanel explorerPanel;
     /**
      * One cached side panel per activity, so entered state (PDF metadata, signature
      * form, transform parameters, search text, …) survives switching activities and
@@ -340,6 +344,16 @@ public class UnifiedShellView extends BorderPane {
             event.consume();
             return;
         }
+        // Shift+Alt+F formats the active document (VS Code convention;
+        // Ctrl+Shift+F is Find in Files since the Search activity exists).
+        if (event.getCode() == javafx.scene.input.KeyCode.F
+                && event.isShiftDown() && event.isAltDown() && !event.isShortcutDown()) {
+            if (editorHost.getActiveDocument().isPresent()) {
+                onFormat();
+                event.consume();
+            }
+            return;
+        }
         if (!event.isShortcutDown()) {
             return;
         }
@@ -364,18 +378,20 @@ public class UnifiedShellView extends BorderPane {
             }
             case F -> {
                 if (event.isShiftDown()) {
-                    // Ctrl+Shift+F — format the active document (no-op / no consume without one).
-                    if (editorHost.getActiveDocument().isPresent()) {
-                        onFormat();
-                        event.consume();
-                    }
+                    // Ctrl+Shift+F — Find in Files (VS Code convention).
+                    openSearchPanel(false);
                 } else {
                     showSearch(false);
-                    event.consume();
                 }
+                event.consume();
             }
             case H -> {
-                showSearch(true);
+                if (event.isShiftDown()) {
+                    // Ctrl+Shift+H — Replace in Files.
+                    openSearchPanel(true);
+                } else {
+                    showSearch(true);
+                }
                 event.consume();
             }
             case X -> {
@@ -550,8 +566,10 @@ public class UnifiedShellView extends BorderPane {
                 var explorer = new org.fxt.freexmltoolkit.controls.shell.editor.ExplorerPanel(editorHost);
                 explorer.setNewFileAction(this::newDocument);
                 explorer.setSchematronValidateAction(this::validateWithSchematron);
+                explorerPanel = explorer;
                 yield explorer;
             }
+            case SEARCH -> searchPanel();
             case SCHEMA -> new org.fxt.freexmltoolkit.controls.shell.editor.TypeLibraryPanel(editorHost);
             case VALIDATION -> validationPanel();
             case TRANSFORM -> new org.fxt.freexmltoolkit.controls.shell.editor.TransformPanel(editorHost);
@@ -605,6 +623,39 @@ public class UnifiedShellView extends BorderPane {
             }
         });
         settingsTab = editorHost.openToolTab("Settings", "bi-gear", settings);
+    }
+
+    /** @return the cached Search panel (created on first use). */
+    private org.fxt.freexmltoolkit.controls.shell.editor.search.SearchPanel searchPanel() {
+        if (searchPanel == null) {
+            searchPanel = new org.fxt.freexmltoolkit.controls.shell.editor.search.SearchPanel(
+                    editorHost, this::currentWorkspaceFolder);
+        }
+        return searchPanel;
+    }
+
+    /**
+     * The folder the Search panel should default to: the Explorer's workspace folder
+     * when one is open, else the last directory used in a file chooser, else {@code null}.
+     */
+    private java.nio.file.Path currentWorkspaceFolder() {
+        if (explorerPanel != null && explorerPanel.getWorkspaceFolder() != null) {
+            return explorerPanel.getWorkspaceFolder();
+        }
+        try {
+            String dir = org.fxt.freexmltoolkit.di.ServiceRegistry
+                    .get(org.fxt.freexmltoolkit.service.PropertiesService.class)
+                    .getLastOpenDirectory();
+            if (dir != null && !dir.isBlank()) {
+                java.nio.file.Path path = java.nio.file.Path.of(dir);
+                if (java.nio.file.Files.isDirectory(path)) {
+                    return path;
+                }
+            }
+        } catch (Throwable ignored) {
+            // properties service unavailable (e.g. tests)
+        }
+        return null;
     }
 
     /** @return the cached Validation panel (created on first use). */
@@ -732,6 +783,26 @@ public class UnifiedShellView extends BorderPane {
         } else {
             searchBar.show();
         }
+    }
+
+    /**
+     * Opens the Search activity's side panel in Text mode and focuses its query
+     * field, prefilling it with the editor's single-line selection if there is one.
+     *
+     * @param replace whether to expand the replace row (Ctrl+Shift+H)
+     */
+    private void openSearchPanel(boolean replace) {
+        String prefill = null;
+        var codeArea = editorHost.getActiveCodeArea();
+        if (codeArea != null) {
+            String selected = codeArea.getSelectedText();
+            if (selected != null && !selected.isBlank() && !selected.contains("\n")) {
+                prefill = selected;
+            }
+        }
+        selectionModel.select(Activity.SEARCH);
+        revealSidePanel();
+        searchPanel().focusTextSearch(prefill, replace);
     }
 
     /** Toggles light/dark theme and flips the header toggle's sun/moon icon literal. */

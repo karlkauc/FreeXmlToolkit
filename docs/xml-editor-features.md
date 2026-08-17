@@ -37,6 +37,17 @@ If you switch the view mode (Text / Tree / Graphic) or the file tab while the se
 
 > **Note:** In the **Tree** and **Graphic** views, search is for finding and navigating only - **Replace** is not available there (the replace toggle is disabled). To replace text, use the **Text** view.
 
+### Searching Across Many Files
+
+*(New in August 2026)* Ctrl+F searches the **active document**. To search - and replace -
+across **all files of a folder**, by plain text or by an XPath expression, use the
+**Search** activity in the Unified Shell: press **Ctrl+Shift+F** (Find in Files) or
+**Ctrl+Shift+H** (Replace in Files), or click the magnifying-glass icon in the activity
+bar. See the [Search Panel](unified-shell.md#search-panel) guide.
+
+> **Changed shortcut:** Ctrl+Shift+F used to format the document - **Format Document is
+> now Shift+Alt+F**.
+
 ---
 
 ## Schematron Integration

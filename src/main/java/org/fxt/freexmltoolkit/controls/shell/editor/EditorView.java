@@ -42,6 +42,19 @@ public interface EditorView {
     /** @return the underlying code area (caret, undo, text property). */
     CodeArea getCodeArea();
 
+    /**
+     * Highlights search-match ranges (start offset → length) on top of the syntax
+     * highlighting. No-op for editors without a match-overlay layer.
+     */
+    default void setSearchMatchRanges(java.util.Map<Integer, Integer> ranges) {
+        // no overlay support by default
+    }
+
+    /** Removes the search-match highlight overlay (no-op by default). */
+    default void clearSearchMatches() {
+        // no overlay support by default
+    }
+
     default void undo() {
         getCodeArea().undo();
     }

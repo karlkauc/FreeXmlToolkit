@@ -7,7 +7,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableMap;
 import java.util.Set;
+import java.util.TreeMap;
 
 import javafx.application.Platform;
 
@@ -18,67 +20,85 @@ import org.fxmisc.richtext.model.StyleSpans;
 import org.fxmisc.richtext.model.StyleSpansBuilder;
 
 /**
- * Combined style manager that merges syntax highlighting and validation error highlighting.
- * This prevents one from overwriting the other.
- *
- * <p>Features:</p>
- * <ul>
- *   <li>Combines XML syntax highlighting with validation errors</li>
- *   <li>Validation errors overlay on syntax highlighting</li>
- *   <li>Thread-safe updates</li>
- * </ul>
+ * Merges the syntax-highlighting layer with overlay layers — validation errors
+ * and search-match highlights — so no layer clobbers another. Overlay ranges are
+ * applied with exact character boundaries (syntax spans are split where an
+ * overlay starts or ends). Style precedence is CSS-side: {@code search-match}
+ * paints a background, {@code validation-error} an underline, so both can show
+ * on the same character.
  */
 public class CombinedStyleManager {
 
     private static final Logger logger = LogManager.getLogger(CombinedStyleManager.class);
 
+    /** Style class of the validation-error overlay. */
+    public static final String ERROR_STYLE = "validation-error";
+    /** Style class of the search-match overlay. */
+    public static final String MATCH_STYLE = "search-match";
+
     private final CodeArea codeArea;
 
-    // Current styles
     private StyleSpans<Collection<String>> syntaxStyles;
-    private Map<Integer, Integer> errorRanges = new HashMap<>(); // start -> length
+    /** start → end (exclusive), normalized and non-overlapping per layer. */
+    private NavigableMap<Integer, Integer> errorRanges = new TreeMap<>();
+    private NavigableMap<Integer, Integer> matchRanges = new TreeMap<>();
 
-    /**
-     * Creates a new CombinedStyleManager.
-     *
-     * @param codeArea the code area
-     */
     public CombinedStyleManager(CodeArea codeArea) {
         this.codeArea = codeArea;
-        logger.info("CombinedStyleManager created");
     }
 
-    /**
-     * Sets the syntax highlighting styles.
-     *
-     * @param styles the syntax highlighting styles
-     */
+    /** Sets the syntax layer (called by the highlight manager after each pass). */
     public void setSyntaxStyles(StyleSpans<Collection<String>> styles) {
         this.syntaxStyles = styles;
         applyStyles();
     }
 
-    /**
-     * Sets the validation error ranges.
-     *
-     * @param errorRanges map of error start position to error length
-     */
-    public void setErrorRanges(Map<Integer, Integer> errorRanges) {
-        this.errorRanges = new HashMap<>(errorRanges);
+    /** Sets the validation-error overlay: map of start offset → length. */
+    public void setErrorRanges(Map<Integer, Integer> ranges) {
+        this.errorRanges = toRangeMap(ranges);
         applyStyles();
     }
 
-    /**
-     * Clears all error ranges.
-     */
+    /** Clears the validation-error overlay. */
     public void clearErrors() {
-        this.errorRanges.clear();
+        this.errorRanges = new TreeMap<>();
         applyStyles();
     }
 
-    /**
-     * Applies combined styles (syntax + errors) to the CodeArea.
-     */
+    /** Sets the search-match overlay: map of start offset → length. */
+    public void setMatchRanges(Map<Integer, Integer> ranges) {
+        this.matchRanges = toRangeMap(ranges);
+        applyStyles();
+    }
+
+    /** Clears the search-match overlay. */
+    public void clearMatches() {
+        this.matchRanges = new TreeMap<>();
+        applyStyles();
+    }
+
+    /** @return the current error ranges as start → length (defensive copy). */
+    public Map<Integer, Integer> getErrorRanges() {
+        Map<Integer, Integer> out = new HashMap<>();
+        errorRanges.forEach((start, end) -> out.put(start, end - start));
+        return out;
+    }
+
+    private static NavigableMap<Integer, Integer> toRangeMap(Map<Integer, Integer> startToLength) {
+        NavigableMap<Integer, Integer> map = new TreeMap<>();
+        if (startToLength != null) {
+            startToLength.forEach((start, length) -> {
+                if (start != null && length != null && start >= 0 && length > 0) {
+                    map.merge(start, start + length, Math::max);
+                }
+            });
+        }
+        return map;
+    }
+
+    // ---------------------------------------------------------------------
+
+    /** Recomputes and applies the merged styles on the FX thread. */
     private void applyStyles() {
         Platform.runLater(() -> {
             try {
@@ -86,19 +106,7 @@ public class CombinedStyleManager {
                 if (text == null || text.isEmpty()) {
                     return;
                 }
-
-                // If no syntax styles, just apply error styles
-                if (syntaxStyles == null) {
-                    applyErrorStylesOnly(text);
-                    return;
-                }
-
-                // Merge syntax styles with error styles
-                StyleSpans<Collection<String>> combined = mergeStyles(text);
-                codeArea.setStyleSpans(0, combined);
-
-                logger.debug("Applied combined styles (syntax + {} errors)", errorRanges.size());
-
+                codeArea.setStyleSpans(0, mergeStyles(text.length()));
             } catch (Exception e) {
                 logger.error("Error applying combined styles", e);
             }
@@ -106,84 +114,75 @@ public class CombinedStyleManager {
     }
 
     /**
-     * Applies only error styles when no syntax highlighting is available.
-     *
-     * @param text the text
+     * Builds the merged spans over {@code [0, textLength)}: the syntax layer
+     * split at every overlay boundary, with overlay classes added exactly on
+     * their ranges. Without a syntax layer the overlays render on plain text.
      */
-    private void applyErrorStylesOnly(String text) {
-        StyleSpansBuilder<Collection<String>> builder = new StyleSpansBuilder<>();
-
-        int currentPos = 0;
-
-        // Sort error positions
-        List<Integer> sortedPositions = new ArrayList<>(errorRanges.keySet());
-        Collections.sort(sortedPositions);
-
-        for (int errorPos : sortedPositions) {
-            int errorLength = errorRanges.get(errorPos);
-
-            // Add normal text before error
-            if (errorPos > currentPos) {
-                builder.add(Collections.emptyList(), errorPos - currentPos);
-            }
-
-            // Add error style
-            builder.add(Collections.singleton("validation-error"), errorLength);
-            currentPos = errorPos + errorLength;
-        }
-
-        // Add remaining text
-        if (currentPos < text.length()) {
-            builder.add(Collections.emptyList(), text.length() - currentPos);
-        }
-
-        codeArea.setStyleSpans(0, builder.create());
-    }
-
-    /**
-     * Merges syntax highlighting styles with error styles.
-     * Error styles are added as additional classes to existing syntax styles.
-     *
-     * @param text the text
-     * @return merged StyleSpans
-     */
-    private StyleSpans<Collection<String>> mergeStyles(String _text) {
-        StyleSpansBuilder<Collection<String>> builder = new StyleSpansBuilder<>();
-
+    private StyleSpans<Collection<String>> mergeStyles(int textLength) {
+        // Collect all boundaries: syntax span edges + overlay edges.
+        List<int[]> syntax = new ArrayList<>(); // {start, end, index-into-styles}
+        List<Collection<String>> syntaxClasses = new ArrayList<>();
         int pos = 0;
-
-        // Iterate through syntax styles
-        for (var span : syntaxStyles) {
-            int spanLength = span.getLength();
-            Collection<String> syntaxClasses = span.getStyle();
-
-            // Check if this span overlaps with any error ranges
-            Set<String> mergedClasses = new HashSet<>(syntaxClasses);
-
-            for (Map.Entry<Integer, Integer> error : errorRanges.entrySet()) {
-                int errorStart = error.getKey();
-                int errorEnd = errorStart + error.getValue();
-
-                // Check for overlap
-                if (!(pos >= errorEnd || (pos + spanLength) <= errorStart)) {
-                    mergedClasses.add("validation-error");
-                    break;
-                }
+        if (syntaxStyles != null) {
+            for (var span : syntaxStyles) {
+                syntax.add(new int[]{pos, pos + span.getLength()});
+                syntaxClasses.add(span.getStyle());
+                pos += span.getLength();
             }
-
-            builder.add(mergedClasses, spanLength);
-            pos += spanLength;
+        }
+        int syntaxEnd = pos;
+        var boundaries = new java.util.TreeSet<Integer>();
+        boundaries.add(0);
+        boundaries.add(textLength);
+        for (int[] s : syntax) {
+            boundaries.add(Math.min(s[0], textLength));
+            boundaries.add(Math.min(s[1], textLength));
+        }
+        for (var layer : List.of(errorRanges, matchRanges)) {
+            layer.forEach((start, end) -> {
+                if (start < textLength) {
+                    boundaries.add(start);
+                    boundaries.add(Math.min(end, textLength));
+                }
+            });
         }
 
+        StyleSpansBuilder<Collection<String>> builder = new StyleSpansBuilder<>();
+        Integer prev = null;
+        int syntaxIndex = 0;
+        boolean added = false;
+        for (int boundary : boundaries) {
+            if (prev != null && boundary > prev) {
+                int segStart = prev;
+                Set<String> classes = new HashSet<>();
+                // advance to the syntax span containing segStart
+                while (syntaxIndex < syntax.size() && syntax.get(syntaxIndex)[1] <= segStart) {
+                    syntaxIndex++;
+                }
+                if (syntaxIndex < syntax.size() && segStart >= syntax.get(syntaxIndex)[0]
+                        && segStart < Math.min(syntax.get(syntaxIndex)[1], syntaxEnd)) {
+                    classes.addAll(syntaxClasses.get(syntaxIndex));
+                }
+                if (covered(errorRanges, segStart)) {
+                    classes.add(ERROR_STYLE);
+                }
+                if (covered(matchRanges, segStart)) {
+                    classes.add(MATCH_STYLE);
+                }
+                builder.add(classes.isEmpty() ? Collections.emptyList() : classes,
+                        boundary - segStart);
+                added = true;
+            }
+            prev = boundary;
+        }
+        if (!added) {
+            builder.add(Collections.emptyList(), textLength);
+        }
         return builder.create();
     }
 
-    /**
-     * Gets the current error ranges.
-     *
-     * @return map of error start position to error length
-     */
-    public Map<Integer, Integer> getErrorRanges() {
-        return new HashMap<>(errorRanges);
+    private static boolean covered(NavigableMap<Integer, Integer> ranges, int offset) {
+        var entry = ranges.floorEntry(offset);
+        return entry != null && entry.getValue() > offset;
     }
 }

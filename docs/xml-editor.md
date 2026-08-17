@@ -31,7 +31,7 @@ With an XML file active, the toolbar offers:
 | **Open** | Ctrl+O | Open one or more files |
 | **Save ▾** | Ctrl+S | Save the current file; the arrow menu holds **Save As…** (Ctrl+Shift+S) and **Save All** |
 | **Undo** / **Redo** | Ctrl+Z / Ctrl+Y | Undo / redo the last change (icon buttons) |
-| **Format ▾** | Ctrl+Shift+F | Pretty-print the document; the arrow menu holds **Minify** |
+| **Format ▾** | Shift+Alt+F | Pretty-print the document; the arrow menu holds **Minify**. (*Changed in August 2026:* Ctrl+Shift+F now opens [Find in Files](unified-shell.md#search-panel).) |
 | **Insert Template** | - | Insert a snippet from the template system (icon button) |
 | **Compare** | - | Compare the document with another file, side by side (icon button) |
 | **Spreadsheet** | - | Excel / CSV ↔ XML converter (icon button) |

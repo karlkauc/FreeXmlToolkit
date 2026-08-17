@@ -1704,3 +1704,10 @@
         -fx-opacity: 0;
     }
 }
+/* ===== Search-match overlay (CombinedStyleManager) =====
+   Painted behind the syntax-colored text of every match found by the Search
+   activity (Find in Files / XPath). The translucent amber reads on both the
+   light and the dark editor background. */
+.search-match {
+    -rtfx-background-color: rgba(255, 193, 7, 0.35);
+}

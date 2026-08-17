@@ -20,7 +20,7 @@ XML file next to its XSD schema, XSLT stylesheets and Schematron rules at the sa
 
 | Area | Purpose |
 |------|---------|
-| **Activity bar** (far left) | Switch tools / side panels: Explorer, Transform, Validation, Signature, Type Library, FOP/PDF, Favorites, Settings, Help - plus a **FundsXML** activity when the optional [FundsXML extension](fundsxml-extensions.md) is enabled (see [FundsXML Panel](#fundsxml-panel)). **Always visible** - it cannot be collapsed. (Settings opens as a full page in the editor area - see [Settings Page](#settings-page).) |
+| **Activity bar** (far left) | Switch tools / side panels: Explorer, Search, Transform, Validation, Signature, Type Library, FOP/PDF, Favorites, Settings, Help - plus a **FundsXML** activity when the optional [FundsXML extension](fundsxml-extensions.md) is enabled (see [FundsXML Panel](#fundsxml-panel)). **Always visible** - it cannot be collapsed. (Settings opens as a full page in the editor area - see [Settings Page](#settings-page).) |
 | **Side panel** | The panel for the selected activity (e.g. the Transform panel, the Validation panel). **Collapsible** (see [Collapsing the side panels](#collapsing-the-side-panels)). |
 | **Editor host** (center) | Tabs of open documents, each with three view modes - Text, Tree, Graphic (see [View Modes](#view-modes)). |
 | **Inspector** (right) | View **and edit** the selected node's properties from any view. **Collapsible** (see [Collapsing the side panels](#collapsing-the-side-panels)). |
@@ -52,6 +52,9 @@ editor more room - the activity bar always stays visible.
 - **Search & Replace** - Ctrl+F / Ctrl+H across the editor, in **every view mode**: the Text
   view searches the raw text, the Tree and Graphic views search the nodes themselves (names,
   documentation, attributes, enumeration and facet values, comments)
+- **Find in Files & XPath search** *(new in August 2026)* - the **Search** activity
+  (Ctrl+Shift+F) searches and replaces across **all files of a folder**, by plain text or
+  by XPath expression (see [Search Panel](#search-panel))
 - **Favorites** - Quick access to frequently used files
 
 ## Getting Started
@@ -164,7 +167,7 @@ with the closely related actions:
 | Split button | Primary click | Arrow (▾) menu |
 |--------------|---------------|----------------|
 | **Save** | Save the current tab (Ctrl+S) | **Save As…** (Ctrl+Shift+S) - save under a new name (the file chooser is pre-set to the tab's file type) · **Save All** - save every open tab at once |
-| **Format** | Pretty-print the active document (Ctrl+Shift+F) | **Minify** - remove all insignificant whitespace |
+| **Format** | Pretty-print the active document (Shift+Alt+F; *changed in August 2026* - **Ctrl+Shift+F** now opens the [Search panel](#search-panel)) | **Minify** - remove all insignificant whitespace |
 | **Run** | Run the active document against the selected **Target** (Ctrl+Enter) - the primary click automatically runs whichever action the active file type supports | **Run Query** (XPath/XQuery) · **Run Transform** (XSLT) · **Run Pipeline** (XProc) |
 | **Schema** | **Set XSD Schema…** - bind an XSD to the active document for IntelliSense and validation | **Set XSD Schema…** · **Generate Documentation…** (HTML/PDF/Word for the active XSD) · **Type Editor…** (edit a named type of the active XSD) |
 
@@ -659,6 +662,93 @@ is validated. Batch runs additionally check each file against the **active
 document's bound XSD** (if any) - bind or clear the XSD in the Validation panel's
 SOURCES section to control that.
 
+## Search Panel
+
+> **New in August 2026** - A dedicated **Search** activity brings VS-Code-style
+> **Find in Files** with Replace, plus an **XPath search & replace** that works across
+> whole folders. **Heads-up:** its shortcut **Ctrl+Shift+F** previously meant *Format
+> document* - formatting now lives on **Shift+Alt+F** (see
+> [Keyboard Shortcuts](#keyboard-shortcuts)).
+
+Open the **Search** panel from the magnifying-glass icon in the activity bar (directly
+below Explorer), or press **Ctrl+Shift+F** - any text selected in the editor is
+prefilled as the search term - or **Ctrl+Shift+H**, which opens the same panel with the
+replace row already expanded. A **Text | XPath** toggle at the top switches between the
+panel's two modes.
+
+### Text mode (Find in Files)
+
+Searches all files of a folder for plain text. Results appear **as you type** - the
+search re-runs automatically after a short pause.
+
+- **Where it searches** - by default the folder opened in the **Explorer** workspace
+  (falling back to the last-used directory); the **Browse** button picks any other
+  folder. The **file globs** field filters which files are searched - it defaults to the
+  XML-family extensions
+  (`*.xml,*.xsd,*.xsl,*.xslt,*.sch,*.schematron,*.json,*.xq,*.xquery,*.xqm,*.xqy,*.xpath,*.xpl,*.xproc`).
+- **Options** - three toggles next to the search field: **Aa** (match case), **W**
+  (whole word), and **.\*** (regular expression).
+- **Results** - matches are grouped **file → matches** in a tree with checkboxes. Click
+  a match to open the file and select the exact match in the Text view. All matches in
+  the active document are also **highlighted in the editor** (translucent amber).
+- **Limits** - files larger than 20 MB and binary files are skipped, and at most 1000
+  matches are listed per file (the file then shows a *"More matches not shown"* note).
+  Open documents with **unsaved changes** are searched via their live editor content, so
+  what you see in the editor is what is found.
+
+#### Replace in Files
+
+Click the **⇄** toggle (or open the panel with **Ctrl+Shift+H**) to reveal the replace
+row:
+
+1. Type the replacement text. In regular-expression mode, **$1**-style group references
+   in the replacement insert the matched groups.
+2. **Untick** any matches you want to keep - only the **checked** matches are replaced.
+3. Click **Replace…** and confirm the summary dialog.
+
+Replacements are applied safely:
+
+- **Open documents** are edited **in the editor**, as exactly **one undo step per
+  document** - press Ctrl+Z to revert everything at once, then save normally.
+- **Files not open in the editor** are written to disk atomically, preserving their
+  encoding (BOM, ISO-8859-1, …) and line endings.
+- A file that **changed on disk after the search ran** is skipped and reported - it is
+  never overwritten with stale results. Re-run the search and replace again.
+
+### XPath mode
+
+Evaluates an **XPath 3.1** expression (Saxon; the `map`, `array`, `math`, `fn` and `xs`
+prefixes are pre-declared) and lists the matching nodes:
+
+- **Scope** - a **Document | Folder** toggle: evaluate against the **active document**,
+  or against every file of a **folder** (with its own file-glob filter, default
+  `*.xml`).
+- **Namespaces** - enter bindings as `prefix=uri` lines (an empty prefix sets the
+  default element namespace). The **Detect** button reads the bindings from the active
+  document's root element, so you rarely have to type them.
+- **Find matches** lists the matched **elements, attributes and text nodes** with line
+  numbers and a short preview. Click a result to navigate to the exact node; matches are
+  highlighted in the editor. Nodes that cannot be mapped to a text position (comments,
+  processing instructions) are excluded and reported as a count.
+
+#### Replacing via XPath
+
+Pick a **Replace** mode, then click **Replace checked…** and confirm - as in Text mode,
+only the **checked** matches are changed:
+
+| Mode | What it does |
+|------|--------------|
+| **Set value** | Sets the matched element's text (or the matched attribute's value) to a literal you type. |
+| **Compute value (XPath)** | Computes the new value **per match**, with the matched node as the context - for example `concat(., '-suffix')` or `string(number(.) * 2)`. |
+| **Delete nodes** | Removes the matched nodes: elements (including the whole line when the element sits alone on it), attributes (with the surrounding whitespace), or text. |
+| **Replace with XML** | Replaces matched **elements** with an XML fragment you enter. The fragment is checked for well-formedness, and multi-line fragments are re-indented to fit their new location. |
+
+All XPath replacements are **formatting-preserving text edits** - outside the replaced
+ranges the document stays byte-for-byte identical. In the active document the whole
+replacement is **one undo step** (Ctrl+Z reverts it). In folder mode, open files are
+edited via the editor and all other files are written to disk atomically, with the same
+changed-on-disk staleness check as Text mode.
+
 ## Favorites Panel
 
 Open the **Favorites** panel from the star icon in the activity bar for one-click access to
@@ -989,7 +1079,7 @@ The panel offers:
   stage text** at the bottom tracks any running download - including the automatic
   background ones triggered at startup or by the daily update check.
 - **VALIDATE** - **Validate active document** checks the open XML against the active
-  FundsXML schema (same as **Ctrl+Shift+F**).
+  FundsXML schema.
 - **DOCS & RESOURCES** - **Open Schema in Editor** opens the active version's
   `FundsXML4.xsd` as a normal editor tab (Text or Graphic/diagram view);
   **Generate Schema Documentation** produces browsable HTML docs; the **Open … Folder**
@@ -1101,6 +1191,8 @@ When no document is open, the editor shows a welcome dashboard with:
   **Validate**, **Transform**, **Schema**, **PDF / FOP**, **Signature**, and **Favorites**,
   two cards are new in June 2026: **Explorer** (files & workspace) and **Settings**
   (application preferences) - so every page can be opened directly from the start screen.
+  *(new in August 2026)* A **Search** card (*Find in files & XPath*) opens the
+  [Search panel](#search-panel).
 - **FUNDSXML quick access** *(new in July 2026)* - When the optional
   [FundsXML extension](fundsxml-extensions.md) is enabled and its content is cached, an
   extra row with three cards appears: **Open Example** (opens a compact starter sample),
@@ -1148,10 +1240,12 @@ The status bar at the bottom of the window includes:
 | Ctrl+Shift+S | Save As (the Save ▾ menu also offers Save All) |
 | Ctrl+W | Close tab |
 | Ctrl+Z / Ctrl+Y | Undo / Redo |
-| Ctrl+F | Find |
-| Ctrl+H | Find and Replace |
+| Ctrl+F | Find (in the active document) |
+| Ctrl+H | Find and Replace (in the active document) |
+| Ctrl+Shift+F | **Find in Files** - opens the [Search panel](#search-panel), prefilled with the editor selection *(new in August 2026)* |
+| Ctrl+Shift+H | **Replace in Files** - opens the Search panel with the replace row expanded *(new in August 2026)* |
 | F8 | Validate |
-| Ctrl+Shift+F | Format |
+| Shift+Alt+F | Format (pretty-print) the active document |
 | Ctrl+D | Add to favorites |
 | Ctrl+L | Toggle linked files |
 | Ctrl+Shift+X | Toggle Query Console (XPath/XQuery) |
@@ -1160,6 +1254,12 @@ The status bar at the bottom of the window includes:
 | Ctrl+E | XML to Spreadsheet |
 | Ctrl+T | Templates |
 | Ctrl+G | Generate XSD |
+
+!!! warning "Changed shortcut (August 2026)"
+    **Ctrl+Shift+F no longer formats the document.** Following the VS Code convention, it
+    now opens **Search (Find in Files)**, and **Ctrl+Shift+H** opens **Replace in Files**.
+    **Format Document moved to Shift+Alt+F** - the toolbar's **Format** button works
+    unchanged. The in-editor find/replace stays on **Ctrl+F / Ctrl+H**.
 
 > **Search in all view modes (updated in July 2026):** Pressing **Ctrl+F** opens an inline search bar with up/down chevron arrows for Find Previous / Find Next (Enter / Shift+Enter work too). The search works in the **Text**, **Tree** and **Graphic** views. In the structured views it searches the nodes themselves — for XSD schemas that is element/attribute/type names, documentation and appinfo, type references, fixed/default values, enumeration and facet values, and comments; for XML instances in the Graphic grid it is element names, attribute names, and values. A match hidden inside a collapsed branch is revealed automatically (ancestors expand), selected, and scrolled into view; matches wrap around when you reach the end. Switching the view mode or tab while the bar is open re-targets the search to the active view. **Replace** is available in the Text view only — in Tree/Graphic views the replace toggle is disabled. See [XML Editor Features](xml-editor-features.md#search-find) for details.
 

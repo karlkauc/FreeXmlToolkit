@@ -64,6 +64,7 @@ Edit your XML files with professional tools:
 | **Syntax Highlighting** | Colors your XML for easier reading |
 | **Instant Validation** | Shows errors immediately as you edit |
 | **Find & Replace** | Search and replace text in your documents |
+| **Find in Files** | Search and replace across all files of a folder - by plain text or by XPath (the Search activity, Ctrl+Shift+F) |
 | **Code Folding** | Collapse sections to focus on what matters |
 
 Learn more: [XML Editor Guide](xml-editor.md) | [Editor Features](xml-editor-features.md)
@@ -161,7 +162,7 @@ Opt-in integration with the [FundsXML](https://fundsxml.org/) industry standard 
 |---------|--------------|
 | **Automatic Downloads** | Schemas, samples, rules and snippets are fetched from GitHub and kept up to date automatically |
 | **Sample Library** | One-click access to FundsXML example documents via Favorites and the Welcome page |
-| **Quick-Validate** | Check any open XML against the active FundsXML schema (Ctrl+Shift+F) |
+| **Quick-Validate** | Check any open XML against the active FundsXML schema with one click in the FundsXML panel |
 | **Schematron Rules** | Ready-made business-rule checks for FundsXML documents |
 | **Query Snippets** | Pre-built XPath/XQuery expressions, ready to load in the Query Console |
 
@@ -185,7 +186,7 @@ Learn more: [FundsXML Extensions Guide](fundsxml-extensions.md)
 2. **Edit multiple files**: The shell handles XML, XSD, XSLT, Schematron and JSON files in tabs, each with Text / Tree / Graphic views
 3. **Start editing**: Type `<` to see auto-completion suggestions
 4. **Validate**: Use the Validation activity (or the toolbar's **Validate** button, F8) to check your document for errors
-5. **Reach every tool**: Pick a tool from the activity bar on the left (Transform, Validation, Signature, Type Library, FOP, …)
+5. **Reach every tool**: Pick a tool from the activity bar on the left (Search, Transform, Validation, Signature, Type Library, FOP, …)
 
 Learn more: [Unified Shell Guide](unified-shell.md)
 
@@ -236,6 +237,9 @@ If the interface appears blurry or animations are slow, your system may be using
 | `Ctrl+Y` | Redo |
 | `Ctrl+F` | Find text |
 | `Ctrl+H` | Find and replace |
+| `Ctrl+Shift+F` | Find in Files (search across a folder) |
+| `Ctrl+Shift+H` | Replace in Files |
+| `Shift+Alt+F` | Format (pretty-print) the document |
 | `<` | Open auto-completion |
 | `Enter` | Accept suggestion |
 | `Escape` | Close popup |

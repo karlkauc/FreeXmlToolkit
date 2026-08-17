@@ -72,7 +72,7 @@ Whenever content is downloaded (automatically or manually), the application will
 - Register the most compact sample XMLs as **new-document templates** under the **FundsXML** category, so you can start a fresh document from a real sample via *File → New from Template*.
 - Seed the XPath/XQuery snippets into your **Saved Queries**, tagged `fundsxml` - they show up in the [Query Console](unified-shell.md#query-console)'s **Snippets** menu under a **FUNDSXML** section (for example *fund-summary*, *top-holdings*, *look-through*, *aggregate-by-assettype*), in the XPath/XQuery tab of the XSLT Developer, and via right-click in the XML editor.
 - Select the newly downloaded schema version as the **active** version.
-- Make a compact starter sample available from the Welcome page's **Open Example** card, so you can immediately try **Ctrl+Shift+F** to validate.
+- Make a compact starter sample available from the Welcome page's **Open Example** card, so you can immediately try **Validate active document** in the FundsXML panel.
 
 !!! tip
     Independently of this downloaded content, your FreeXmlToolkit installation itself ships
@@ -103,7 +103,7 @@ back and forth freely.
 The fastest way to check an XML file against the FundsXML schema:
 
 1. Open your XML document in the editor.
-2. Press **Ctrl+Shift+F**, or click **Validate active document** in the **FundsXML** side panel, or choose **Validate against FundsXML** from the Validation panel's ⋮ menu.
+2. Click **Validate active document** in the **FundsXML** side panel, or choose **Validate against FundsXML** from the Validation panel's ⋮ menu.
 3. If the document is valid, you get a confirmation message.
 4. If there are errors, they are listed line-by-line in an alert dialog so you can locate and fix each one.
 

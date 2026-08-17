@@ -427,6 +427,65 @@ public class EditorHost extends BorderPane {
         return false;
     }
 
+    /**
+     * Replaces a text region of the (possibly non-active) open document at
+     * {@code path} — one native undo entry in that document's editor. Used by
+     * Replace-in-Files so open documents are edited through their buffer instead
+     * of being overwritten on disk behind the editor's back.
+     *
+     * @return {@code true} when an open editor tab for {@code path} accepted the edit
+     */
+    public boolean replaceDocumentTextRegion(java.nio.file.Path path, int start, int end,
+                                             String replacement) {
+        for (Tab tab : tabPane.getTabs()) {
+            if (tab instanceof EditorTab et && path.equals(et.document.getPath())) {
+                et.view.replaceTextRegion(start, end, replacement);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** @return the buffer text of the open document at {@code path}, or empty if not open. */
+    public Optional<String> getOpenDocumentText(java.nio.file.Path path) {
+        for (Tab tab : tabPane.getTabs()) {
+            if (tab instanceof EditorTab et && path.equals(et.document.getPath())) {
+                return Optional.of(et.view.getText());
+            }
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Highlights search-match ranges (start offset → length) in the active editor,
+     * on top of its syntax highlighting. The search panes call this when results
+     * arrive and clear it when the query changes.
+     */
+    public void setActiveSearchHighlights(java.util.Map<Integer, Integer> ranges) {
+        Tab tab = tabPane.getSelectionModel().getSelectedItem();
+        if (tab instanceof EditorTab et) {
+            et.view.setSearchMatchRanges(ranges);
+        }
+    }
+
+    /** Removes the search-match highlight overlay from the active editor. */
+    public void clearActiveSearchHighlights() {
+        Tab tab = tabPane.getSelectionModel().getSelectedItem();
+        if (tab instanceof EditorTab et) {
+            et.view.clearSearchMatches();
+        }
+    }
+
+    /** @return whether the document at {@code path} is open with unsaved changes. */
+    public boolean isDocumentDirty(java.nio.file.Path path) {
+        for (OpenDocument doc : openDocuments) {
+            if (path.equals(doc.getPath()) && doc.isDirty()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /** Rebuilds the line → fixable-problems index and the lightbulb gutter contribution. */
     private void rebuildQuickFixGutter(java.util.List<ValidationProblem> problems) {
         fixableProblemsByLine.clear();
@@ -1941,6 +2000,55 @@ public class EditorHost extends BorderPane {
             codeArea.requestFollowCaret();
             et.view.getNode().requestFocus();
         });
+    }
+
+    /**
+     * Opens {@code path} (focusing an existing tab) and, once the text has loaded,
+     * switches to Text mode and selects the char range {@code [start, end)} — the
+     * jump-to-search-match navigation. When {@code expected} is non-null and the
+     * text at that range no longer equals it (the file changed since the search),
+     * the selection degrades to {@link #goToLine(int)} with {@code fallbackLine}.
+     */
+    public void openFileAndSelect(java.nio.file.Path path, int start, int end,
+                                  String expected, int fallbackLine) {
+        if (path == null) {
+            return;
+        }
+        openFile(path);
+        selectRangeAfterLoad(path, start, end, expected, fallbackLine, 80);
+    }
+
+    private void selectRangeAfterLoad(java.nio.file.Path path, int start, int end,
+                                      String expected, int fallbackLine, int attemptsLeft) {
+        var doc = getActiveDocument();
+        String text = getActiveText().orElse(null);
+        boolean loaded = doc.isPresent() && path.equals(doc.get().getPath())
+                && text != null && !text.isEmpty();
+        if (loaded) {
+            setActiveViewMode(ViewMode.TEXT);
+            boolean valid = start >= 0 && end >= start && end <= text.length()
+                    && (expected == null || text.substring(start, end).equals(expected));
+            withActive(et -> {
+                var codeArea = et.view.getCodeArea();
+                if (valid) {
+                    codeArea.selectRange(start, end);
+                    codeArea.requestFollowCaret();
+                    et.view.getNode().requestFocus();
+                }
+            });
+            if (!valid && fallbackLine > 0) {
+                goToLine(fallbackLine);
+            }
+            return;
+        }
+        if (attemptsLeft > 0) {
+            // Same spaced-retry pattern as revealInGraphAfterLoad: the file load is async.
+            javafx.animation.PauseTransition pause =
+                    new javafx.animation.PauseTransition(javafx.util.Duration.millis(50));
+            pause.setOnFinished(e -> selectRangeAfterLoad(path, start, end,
+                    expected, fallbackLine, attemptsLeft - 1));
+            pause.play();
+        }
     }
 
     /** Moves the active editor's caret to the given offset (e.g. jump-to-node). */

@@ -13,6 +13,7 @@ import java.util.Optional;
  */
 public enum Activity {
     EXPLORER("explorer", "Explorer", "bi-folder2-open"),
+    SEARCH("search", "Search", "bi-search"),
     FAVORITES("favorites", "Favorites", "bi-star"),
     VALIDATION("validation", "Validation", "bi-check2-circle"),
     TRANSFORM("transform", "Transform", "bi-arrow-repeat"),

@@ -49,6 +49,16 @@ final class XmlEditorView implements EditorView {
     }
 
     @Override
+    public void setSearchMatchRanges(java.util.Map<Integer, Integer> ranges) {
+        editor.setSearchMatchRanges(ranges);
+    }
+
+    @Override
+    public void clearSearchMatches() {
+        editor.clearSearchMatches();
+    }
+
+    @Override
     public boolean supportsSchema() {
         return true;
     }

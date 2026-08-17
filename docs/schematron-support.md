@@ -46,7 +46,7 @@ With a `.sch` file active, the relevant actions are:
 | **Open** | Ctrl+O | Open an existing file |
 | **Save ▾** | Ctrl+S | Save the current file; the arrow menu holds **Save As…** (Ctrl+Shift+S) and **Save All** |
 | **Undo** / **Redo** | Ctrl+Z / Ctrl+Y | Undo / redo the last change (icon buttons) |
-| **Format ▾** | Ctrl+Shift+F | Pretty-print the file |
+| **Format ▾** | Shift+Alt+F | Pretty-print the file. (*Changed in August 2026:* Ctrl+Shift+F now opens [Find in Files](unified-shell.md#search-panel).) |
 | **Validate** | F8 | Check the Schematron syntax |
 
 Rule templates, the tester, and the visual builder are reached through the **Validation

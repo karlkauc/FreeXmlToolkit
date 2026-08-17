@@ -2419,3 +2419,19 @@
     -fx-border-style: dashed;
     -fx-border-insets: 2;
 }
+
+/* ===== Search activity panel (Find in Files / XPath search-replace) ===== */
+
+.fxt-search-panel {
+    -fx-spacing: 8;
+}
+
+.fxt-search-mode-row {
+    -fx-padding: 0 0 2 0;
+}
+
+/* Selected mode reads as the active segment (same pair as .fxt-view-seg). */
+.fxt-search-mode-toggle:selected {
+    -fx-background-color: -fxt-primary;
+    -fx-text-fill: -fxt-on-primary;
+}

@@ -47,6 +47,8 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
 
     // Managers
     private final SyntaxHighlightManagerV2 syntaxManager;
+    /** Merge point for syntax + validation-error + search-match styling. */
+    private final org.fxt.freexmltoolkit.controls.v2.editor.managers.CombinedStyleManager combinedStyles;
     private final FoldingManagerV2 foldingManager;
     private final StatusLineManagerV2 statusLineManager;
     private final EventHandlerManager eventHandlerManager;
@@ -87,7 +89,13 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
 
         // Create managers
         this.syntaxManager = new SyntaxHighlightManagerV2(codeArea);
-        new ValidationManagerV2(editorContext);
+        // One merge point for syntax + validation-error + search-match styling,
+        // so the layers stop overwriting each other.
+        this.combinedStyles = new org.fxt.freexmltoolkit.controls.v2.editor.managers
+                .CombinedStyleManager(codeArea);
+        this.syntaxManager.setStyleManager(combinedStyles);
+        ValidationManagerV2 validationManager = new ValidationManagerV2(editorContext);
+        validationManager.setStyleManager(combinedStyles);
         this.foldingManager = new FoldingManagerV2(codeArea);
         this.statusLineManager = new StatusLineManagerV2(editorContext);
         this.eventHandlerManager = new EventHandlerManager(editorContext);
@@ -406,6 +414,20 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
      */
     public CodeArea getCodeArea() {
         return codeArea;
+    }
+
+    /**
+     * Highlights the given search-match ranges (start offset → length) on top of
+     * the syntax highlighting. Pass an empty map or use
+     * {@link #clearSearchMatches()} to remove the overlay.
+     */
+    public void setSearchMatchRanges(java.util.Map<Integer, Integer> ranges) {
+        combinedStyles.setMatchRanges(ranges);
+    }
+
+    /** Removes the search-match highlight overlay. */
+    public void clearSearchMatches() {
+        combinedStyles.clearMatches();
     }
 
     /**

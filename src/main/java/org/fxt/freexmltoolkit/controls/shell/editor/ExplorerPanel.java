@@ -602,6 +602,11 @@ public class ExplorerPanel extends VBox {
         }
     }
 
+    /** @return the current workspace root folder, or {@code null} if none is open. */
+    public Path getWorkspaceFolder() {
+        return workspace.getRootFolder();
+    }
+
     /** Sets the workspace root and shows its folder name as the section title. */
     public void setWorkspaceFolder(Path folder) {
         workspace.setRootFolder(folder);

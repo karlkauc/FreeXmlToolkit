@@ -133,7 +133,7 @@
                                                          styleClass="fxt-tool-button, fxt-tool-info, fxt-tool-split"
                                                          onAction="#onFormat">
                                             <graphic><IconifyIcon iconLiteral="bi-text-indent-left" iconSize="16"/></graphic>
-                                            <tooltip><Tooltip text="Format (Ctrl+Shift+F) — arrow: Minify"/></tooltip>
+                                            <tooltip><Tooltip text="Format (Shift+Alt+F) — arrow: Minify"/></tooltip>
                                             <items>
                                                 <MenuItem id="action-minify" text="Minify" onAction="#onMinify">
                                                     <graphic><IconifyIcon iconLiteral="bi-arrows-collapse" iconSize="16"/></graphic>

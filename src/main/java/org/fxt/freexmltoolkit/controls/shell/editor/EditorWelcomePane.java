@@ -420,6 +420,7 @@ public class EditorWelcomePane extends VBox {
 
         Button[] cards = {
                 toolCard("tool-explorer", "explorer", "bi-folder2-open", "Explorer", "Files & workspace", onAction),
+                toolCard("tool-search", "search", "bi-search", "Search", "Find in files & XPath", onAction),
                 toolCard("tool-validation", "validation", "bi-check2-circle", "Validate", "XSD & Schematron", onAction),
                 toolCard("tool-transform", "transform", "bi-arrow-repeat", "Transform", "XSLT 3.0 / XQuery", onAction),
                 toolCard("tool-schema", "schema", "bi-diagram-3", "Schema", "Graphical XSD editor", onAction),
