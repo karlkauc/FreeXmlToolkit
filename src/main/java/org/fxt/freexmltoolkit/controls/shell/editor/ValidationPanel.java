@@ -437,20 +437,29 @@ public class ValidationPanel extends VBox {
                 .map(OpenDocument::getDisplayName).orElse(null);
         PanelStatus.info(status, "Validating…");
         FxtGui.executorService.submit(() -> {
+            var probe = org.fxt.freexmltoolkit.service.ExecutionStatsService.getInstance().begin(
+                    org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.VALIDATION,
+                    documentName != null ? documentName : "document");
             File xsd = json ? null : xsdSupplier.get();
             ValidationRunner.RunResult runResult = json
                     ? new ValidationRunner.RunResult(
                             ValidationRunner.validateJson(content, jsonSchema), null)
                     : ValidationRunner.runWithReport(content, xsd, schematron, documentName);
             List<ValidationProblem> result = runResult.problems();
+            probe.phase("XSD", runResult.xsdMillis());
+            probe.phase("Schematron", runResult.schematronMillis());
+            long elapsedMs = probe.finish(content.length(), -1, result.isEmpty(),
+                    result.isEmpty() ? "" : result.get(0).message());
+            boolean showStats = org.fxt.freexmltoolkit.service.ExecutionStatsService.getInstance().isEnabled();
             Platform.runLater(() -> {
                 setProblems(result);
                 lastSchematronReport = runResult.schematronReport();
                 schematronReportButton.setDisable(lastSchematronReport == null);
                 boolean hasSchema = json ? jsonSchema != null : (xsd != null || schematron != null);
-                String summary = result.isEmpty()
+                String summary = (result.isEmpty()
                         ? (hasSchema ? "Valid" : "Well-formed")
-                        : result.size() + " problem(s)";
+                        : result.size() + " problem(s)")
+                        + (showStats ? " · " + elapsedMs + " ms" : "");
                 if (result.isEmpty()) {
                     PanelStatus.success(status, summary);
                 } else {

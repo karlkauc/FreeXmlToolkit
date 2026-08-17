@@ -101,6 +101,12 @@ public class SettingsPanel extends VBox {
     private final CheckBox trackingEnabled = new CheckBox("Enable usage tracking");
     private final Label usageStatus = new Label();
 
+    // Developer
+    private final CheckBox execStatsEnabled = new CheckBox("Record execution statistics");
+    private final Label execStatsHint = new Label(
+            "Collects duration, CPU and memory per XSLT/XQuery/validation run. "
+                    + "View them in the \"Execution Statistics\" tool tab.");
+
     // FundsXML extension
     private final CheckBox fundsXmlEnabled = new CheckBox("Enable FundsXML extensions");
 
@@ -223,6 +229,8 @@ public class SettingsPanel extends VBox {
                 + "selected file types (current user only).");
         assocHint.setWrapText(true);
         assocHint.getStyleClass().add("fxt-placeholder-text");
+        execStatsHint.setWrapText(true);
+        execStatsHint.getStyleClass().add("fxt-placeholder-text");
         assocStatus.setWrapText(true);
         assocStatus.getStyleClass().add("fxt-placeholder-text");
         assocRegister.getStyleClass().add("fxt-tool-button");
@@ -277,6 +285,8 @@ public class SettingsPanel extends VBox {
                         trustAllCerts),
                 card("USAGE STATISTICS", "bi-graph-up", "#6c757d",
                         trackingEnabled, fill(clearStats), usageStatus),
+                card("DEVELOPER", "bi-speedometer2", "#495057",
+                        execStatsEnabled, execStatsHint),
                 card("FUNDSXML", "bi-file-earmark-code", "#20c997",
                         fundsXmlEnabled),
                 card("TEMPLATES", "bi-file-earmark-plus", "#0d6efd",
@@ -534,6 +544,8 @@ public class SettingsPanel extends VBox {
                     props.get("ssl.trustAllCerts") == null ? "false" : props.get("ssl.trustAllCerts")));
             trackingEnabled.setSelected(
                     UsageTrackingServiceImpl.getInstance().isTrackingEnabled());
+            execStatsEnabled.setSelected(Boolean.parseBoolean(orEmpty(
+                    props.get(org.fxt.freexmltoolkit.service.DeveloperPropertyKeys.EXECUTION_STATS_ENABLED))));
             fundsXmlEnabled.setSelected(Boolean.parseBoolean(
                     props.get(org.fxt.freexmltoolkit.service.fundsxml.FundsXmlPropertyKeys.ENABLED) == null
                             ? "false"
@@ -605,6 +617,8 @@ public class SettingsPanel extends VBox {
             props.set("ssl.trustAllCerts", String.valueOf(trustAllCerts.isSelected()));
             UsageTrackingServiceImpl.getInstance()
                     .setTrackingEnabled(trackingEnabled.isSelected());
+            props.set(org.fxt.freexmltoolkit.service.DeveloperPropertyKeys.EXECUTION_STATS_ENABLED,
+                    String.valueOf(execStatsEnabled.isSelected()));
             boolean fundsXmlWasEnabled = Boolean.parseBoolean(props.get(
                     org.fxt.freexmltoolkit.service.fundsxml.FundsXmlPropertyKeys.ENABLED));
             props.set(org.fxt.freexmltoolkit.service.fundsxml.FundsXmlPropertyKeys.ENABLED,
@@ -816,6 +830,11 @@ public class SettingsPanel extends VBox {
 
     public boolean isTrustAllCertsSelected() {
         return trustAllCerts.isSelected();
+    }
+
+    /** @return the "Record execution statistics" checkbox (for tests/observers). */
+    public CheckBox getExecStatsCheckBox() {
+        return execStatsEnabled;
     }
 
     private static String orEmpty(String s) {

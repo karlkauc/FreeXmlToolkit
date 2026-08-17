@@ -87,6 +87,42 @@ class QueryConsoleTest {
     }
 
     @Test
+    void statsLabelShowsRunStatisticsOnlyWhenTheDeveloperFlagIsOn(@TempDir Path tmp) throws Exception {
+        Path file = tmp.resolve("doc.xml");
+        Files.writeString(file, "<root><item>a</item></root>");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(file));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("item")).orElse(false));
+        QueryConsole console = WaitForAsyncUtils.waitForAsyncFx(2000, () -> new QueryConsole(host));
+
+        var props = org.fxt.freexmltoolkit.service.PropertiesServiceImpl.getInstance();
+        String previous = props.get(org.fxt.freexmltoolkit.service.DeveloperPropertyKeys.EXECUTION_STATS_ENABLED);
+        try {
+            props.set(org.fxt.freexmltoolkit.service.DeveloperPropertyKeys.EXECUTION_STATS_ENABLED, "true");
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+                console.setXPath("//item");
+                console.runForTest();
+                return null;
+            });
+            WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                    () -> console.getStatsText() != null && !console.getStatsText().isBlank());
+            assertTrue(console.getStatsText().matches("\\d+ ms · \\d+ chars"),
+                    "stats label must show duration and size, was: " + console.getStatsText());
+
+            props.set(org.fxt.freexmltoolkit.service.DeveloperPropertyKeys.EXECUTION_STATS_ENABLED, "false");
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+                console.runForTest();
+                return null;
+            });
+            WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> console.getStatsText().isEmpty());
+        } finally {
+            props.set(org.fxt.freexmltoolkit.service.DeveloperPropertyKeys.EXECUTION_STATS_ENABLED,
+                    previous == null ? "false" : previous);
+        }
+    }
+
+    @Test
     void xmlResultsAreSyntaxHighlightedAndPlainTextResultsAreNot(@TempDir Path tmp) throws Exception {
         Path file = tmp.resolve("doc.xml");
         Files.writeString(file, "<root><item id=\"1\">a</item><item id=\"2\">b</item></root>");

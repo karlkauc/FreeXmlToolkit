@@ -92,6 +92,7 @@ nav:
   - Home: index.md
   - Unified Shell: unified-shell.md
   - File Associations: file-associations.md
+  - Execution Statistics: execution-statistics.md
   - XML Editing:
     - XML Editor: xml-editor.md
     - Editor Features: xml-editor-features.md

@@ -841,6 +841,18 @@ public class EditorHost extends BorderPane {
         return openToolTab(title, iconLiteral, content.get());
     }
 
+    /**
+     * Opens (or focuses) the singleton "Execution Statistics" developer tool tab —
+     * the history of recorded operations with their resource consumption.
+     */
+    public void openExecutionStats() {
+        Tab tab = openOrFocusToolTab("Execution Statistics", "bi-speedometer2",
+                ExecutionStatsView::new);
+        if (tab.getContent() instanceof ExecutionStatsView view) {
+            tab.setOnClosed(e -> view.dispose());
+        }
+    }
+
     /** @return whether the given tab is still open in this host. */
     public boolean containsTab(Tab tab) {
         return tab != null && tabPane.getTabs().contains(tab);
@@ -1316,19 +1328,32 @@ public class EditorHost extends BorderPane {
         rememberRecentXslt(xsltFile);
         out.showPending("Transforming…");
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
-            long start = System.nanoTime();
+            var probe = org.fxt.freexmltoolkit.service.ExecutionStatsService.getInstance().begin(
+                    org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.XSLT,
+                    xsltFile.getName() + " (preview)");
             String result;
+            long inputChars = -1;
             org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat format =
                     org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat.XML;
             try {
                 String xml = Files.readString(xmlFile.toPath(), StandardCharsets.UTF_8);
+                inputChars = xml.length();
                 String xsltContent = Files.readString(xsltFile.toPath(), StandardCharsets.UTF_8);
                 format = TransformRunner.detectXsltOutputFormat(xsltContent);
-                result = TransformRunner.xsltTransform(xml, xsltContent, java.util.Map.of(), format);
+                var fullResult = TransformRunner.xsltTransformResult(xml, xsltContent, java.util.Map.of(), format);
+                result = fullResult.isSuccess()
+                        ? fullResult.getOutputContent()
+                        : "ERROR: " + fullResult.getErrorMessage();
+                if (fullResult.isSuccess()) {
+                    probe.phase("Compile", fullResult.getCompilationTime());
+                    probe.phase("Transform", fullResult.getTransformationTime());
+                }
             } catch (Exception e) {
                 result = "ERROR: " + e.getMessage();
             }
-            long elapsedMs = (System.nanoTime() - start) / 1_000_000;
+            boolean ok = !result.startsWith("ERROR");
+            long elapsedMs = probe.finish(inputChars, ok ? result.length() : -1, ok,
+                    org.fxt.freexmltoolkit.service.ExecutionStats.firstLine(result));
             String finalResult = result;
             org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat finalFormat = format;
             Platform.runLater(() -> out.showTransformResult(finalResult, finalFormat, elapsedMs));

@@ -92,6 +92,7 @@ public class UnifiedShellView extends BorderPane {
     @FXML private Label statusType;
     @FXML private Label statusSchema;
     @FXML private Label statusFile;
+    @FXML private Label statusLastRun;
     @FXML private Label statusMemory;
 
     /** Property keys for the persisted side-panel visibility (editable in Settings). */
@@ -611,6 +612,10 @@ public class UnifiedShellView extends BorderPane {
             activityBar.refreshLabels();
             reloadPanelPrefs();
             applyToolbarDisplaySettings();
+            // Turning the developer feature off hides the "last run" status-bar item.
+            if (!org.fxt.freexmltoolkit.service.ExecutionStatsService.getInstance().isEnabled()) {
+                statusLastRun.setText("");
+            }
         });
         settings.setOnFundsXmlEnabled(() -> {
             var coordinator = org.fxt.freexmltoolkit.controls.shell.editor
@@ -1385,6 +1390,19 @@ public class UnifiedShellView extends BorderPane {
                         e -> statusMemory.setText(memoryText())));
         memoryTimer.setCycleCount(javafx.animation.Animation.INDEFINITE);
         memoryTimer.play();
+
+        // "Last run" execution-statistics item: collapses out of the bar while empty; fed by
+        // the ExecutionStatsService listener (worker thread → runLater), so it only ever shows
+        // text when the developer feature is enabled (disabled runs record nothing).
+        statusLastRun.managedProperty().bind(statusLastRun.textProperty().isNotEmpty());
+        statusLastRun.visibleProperty().bind(statusLastRun.textProperty().isNotEmpty());
+        statusLastRun.setCursor(javafx.scene.Cursor.HAND);
+        statusLastRun.setTooltip(new javafx.scene.control.Tooltip(
+                "Last recorded operation — click for execution statistics"));
+        statusLastRun.setOnMouseClicked(e -> editorHost.openExecutionStats());
+        org.fxt.freexmltoolkit.service.ExecutionStatsService.getInstance().addListener(
+                stats -> javafx.application.Platform.runLater(
+                        () -> statusLastRun.setText(stats.shortLabel())));
 
         // The XSD indicator tracks the active document's schema-binding lifecycle (detecting /
         // ready / none / error) so the user can tell when IntelliSense is available — but only

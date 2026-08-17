@@ -59,6 +59,31 @@ class SettingsPanelTest {
     }
 
     @Test
+    void executionStatisticsCheckboxDefaultsOffAndRoundTrips() {
+        PropertiesService props = ServiceRegistry.get(PropertiesService.class);
+        String key = org.fxt.freexmltoolkit.service.DeveloperPropertyKeys.EXECUTION_STATS_ENABLED;
+        String previous = props.get(key);
+        try {
+            // Default: without a stored value the developer feature is off.
+            assertFalse(WaitForAsyncUtils.waitForAsyncFx(2000,
+                    () -> panel.getExecStatsCheckBox().isSelected()));
+
+            // Toggle + save persists the key; a fresh panel reloads it.
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+                panel.getExecStatsCheckBox().setSelected(true);
+                panel.saveSettings();
+                return null;
+            });
+            assertEquals("true", props.get(key));
+            SettingsPanel reloaded = WaitForAsyncUtils.waitForAsyncFx(2000, SettingsPanel::new);
+            assertTrue(WaitForAsyncUtils.waitForAsyncFx(2000,
+                    () -> reloaded.getExecStatsCheckBox().isSelected()));
+        } finally {
+            props.set(key, previous == null ? "false" : previous);
+        }
+    }
+
+    @Test
     void fundsXmlEnabledHookFiresOnlyOnTheOffToOnTransition() {
         PropertiesService props = ServiceRegistry.get(PropertiesService.class);
         props.set(org.fxt.freexmltoolkit.service.fundsxml.FundsXmlPropertyKeys.ENABLED, "false");

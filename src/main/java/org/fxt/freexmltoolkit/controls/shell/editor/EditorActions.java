@@ -210,9 +210,13 @@ public final class EditorActions {
         var target = resolved.get();
         boolean xquery = type == EditorFileType.XQUERY;
         out.showPending("Running query against " + target.displayName() + "…");
+        String queryTarget = doc.getDisplayName();
         final int gen = ++queryRunGeneration;
         FxtGui.executorService.submit(() -> {
-            long start = System.nanoTime();
+            var probe = org.fxt.freexmltoolkit.service.ExecutionStatsService.getInstance().begin(
+                    xquery ? org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.XQUERY
+                            : org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.XPATH,
+                    queryTarget);
             String xml;
             try {
                 xml = target.loadXml();
@@ -228,7 +232,9 @@ public final class EditorActions {
                 String result = TransformRunner.runXQuery(xml, query, Map.of(),
                         XsltTransformationEngine.OutputFormat.XML);
                 XQueryTableRunner.XQueryTable table = XQueryTableRunner.run(xml, query);
-                long elapsedMs = (System.nanoTime() - start) / 1_000_000;
+                boolean ok = !result.startsWith("ERROR");
+                long elapsedMs = probe.finish(xml.length(), ok ? result.length() : -1, ok,
+                        org.fxt.freexmltoolkit.service.ExecutionStats.firstLine(result));
                 Platform.runLater(() -> {
                     if (gen == queryRunGeneration) {
                         out.showXQueryResult(result, table,
@@ -237,7 +243,9 @@ public final class EditorActions {
                 });
             } else {
                 String result = TransformRunner.runXPath(xml, query);
-                long elapsedMs = (System.nanoTime() - start) / 1_000_000;
+                boolean ok = !result.startsWith("ERROR");
+                long elapsedMs = probe.finish(xml.length(), ok ? result.length() : -1, ok,
+                        org.fxt.freexmltoolkit.service.ExecutionStats.firstLine(result));
                 Platform.runLater(() -> {
                     if (gen == queryRunGeneration) {
                         out.showQueryResult(result, elapsedMs);
@@ -277,9 +285,11 @@ public final class EditorActions {
         var target = resolved.get();
         var format = TransformRunner.detectXsltOutputFormat(xslt);
         out.showPending("Transforming " + target.displayName() + "…");
+        String stylesheetName = doc.getDisplayName();
         final int gen = ++queryRunGeneration;
         FxtGui.executorService.submit(() -> {
-            long start = System.nanoTime();
+            var probe = org.fxt.freexmltoolkit.service.ExecutionStatsService.getInstance().begin(
+                    org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.XSLT, stylesheetName);
             String xml;
             try {
                 xml = target.loadXml();
@@ -291,8 +301,17 @@ public final class EditorActions {
                 });
                 return;
             }
-            String result = TransformRunner.xsltTransform(xml, xslt, Map.of(), format);
-            long elapsedMs = (System.nanoTime() - start) / 1_000_000;
+            var fullResult = TransformRunner.xsltTransformResult(xml, xslt, Map.of(), format);
+            String result = fullResult.isSuccess()
+                    ? fullResult.getOutputContent()
+                    : "ERROR: " + fullResult.getErrorMessage();
+            if (fullResult.isSuccess()) {
+                probe.phase("Compile", fullResult.getCompilationTime());
+                probe.phase("Transform", fullResult.getTransformationTime());
+            }
+            long elapsedMs = probe.finish(xml.length(),
+                    fullResult.isSuccess() ? result.length() : -1, fullResult.isSuccess(),
+                    org.fxt.freexmltoolkit.service.ExecutionStats.firstLine(result));
             Platform.runLater(() -> {
                 if (gen == queryRunGeneration) {
                     out.showTransformResult(result, format, elapsedMs);
@@ -324,14 +343,19 @@ public final class EditorActions {
         File pipelineFile = doc.getPath() != null ? doc.getPath().toFile() : null;
         out.showPending(resolved.map(t -> "Running pipeline against " + t.displayName() + "…")
                 .orElse("Running pipeline…"));
+        String pipelineName = doc.getDisplayName();
         final int gen = ++queryRunGeneration;
         FxtGui.executorService.submit(() -> {
-            long start = System.nanoTime();
+            var probe = org.fxt.freexmltoolkit.service.ExecutionStatsService.getInstance().begin(
+                    org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.XPROC, pipelineName);
             String inputXmlText = resolved.map(EditorHost.ResolvedQueryTarget::xmlText).orElse(null);
             File inputXmlFile = resolved.map(EditorHost.ResolvedQueryTarget::file).orElse(null);
             XProcRunner.Result result =
                     XProcRunner.runPipeline(pipeline, pipelineFile, inputXmlText, inputXmlFile);
-            long elapsedMs = (System.nanoTime() - start) / 1_000_000;
+            boolean ok = !result.isError();
+            long elapsedMs = probe.finish(inputXmlText != null ? inputXmlText.length() : -1,
+                    ok ? result.text().length() : -1, ok,
+                    org.fxt.freexmltoolkit.service.ExecutionStats.firstLine(result.text()));
             Platform.runLater(() -> {
                 if (gen == queryRunGeneration) {
                     out.showTransformResult(result.text(), result.format(), elapsedMs);

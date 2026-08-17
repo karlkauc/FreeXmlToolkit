@@ -47,6 +47,24 @@ public final class TransformRunner {
     }
 
     /**
+     * Transforms {@code xml} with {@code xsltContent} and returns the full
+     * {@link XsltTransformationResult} (output, phase timings, profile) instead of just
+     * the output string — used when the caller records execution statistics.
+     *
+     * @return the result; check {@link XsltTransformationResult#isSuccess()}
+     */
+    public static XsltTransformationResult xsltTransformResult(String xml, String xsltContent,
+            java.util.Map<String, Object> parameters,
+            XsltTransformationEngine.OutputFormat outputFormat) {
+        try {
+            return XsltTransformationEngine.getInstance()
+                    .transform(xml, xsltContent, parameters, outputFormat);
+        } catch (Exception e) {
+            return XsltTransformationResult.error(e.getMessage());
+        }
+    }
+
+    /**
      * Executes an XQuery against {@code xml} with the given external variables and
      * output format (reuses {@link XsltTransformationEngine#transformXQuery}).
      *

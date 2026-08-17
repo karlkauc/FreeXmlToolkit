@@ -77,6 +77,9 @@ public class QueryConsole extends Region {
     // syntax-highlighted like the main text editor.
     private final CodeArea resultsArea = new CodeArea();
 
+    /** Per-run statistics ("42 ms · 1234 chars"), shown only when execution statistics are enabled. */
+    private final Label statsLabel = new Label();
+
     /** Results above this size are shown without highlighting to keep the FX thread responsive. */
     private static final int HIGHLIGHT_LIMIT_CHARS = 512 * 1024;
 
@@ -229,9 +232,10 @@ public class QueryConsole extends Region {
         copy.setTooltip(new Tooltip("Copy the full result to the clipboard"));
         Button save = button("Save", "bi-save", this::saveResults);
         save.setTooltip(new Tooltip("Save the result to a file"));
+        statsLabel.getStyleClass().add("fxt-output-status");
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-        HBox header = new HBox(8, title, spacer, copy, save);
+        HBox header = new HBox(8, title, statsLabel, spacer, copy, save);
         header.setAlignment(Pos.CENTER_LEFT);
 
         resultsArea.setEditable(false);
@@ -315,11 +319,19 @@ public class QueryConsole extends Region {
         setResultsText("Running…");
         final int gen = ++runGeneration;
         FxtGui.executorService.submit(() -> {
+            var probe = org.fxt.freexmltoolkit.service.ExecutionStatsService.getInstance().begin(
+                    json ? org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.JSONPATH
+                            : org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.XPATH,
+                    path.length() > 60 ? path.substring(0, 57) + "…" : path);
             String result = json ? TransformRunner.runJsonPath(content, path)
                     : TransformRunner.runXPath(content, path);
+            boolean ok = !result.startsWith("ERROR");
+            long elapsedMs = probe.finish(content.length(), ok ? result.length() : -1, ok,
+                    org.fxt.freexmltoolkit.service.ExecutionStats.firstLine(result));
             Platform.runLater(() -> {
                 if (gen == runGeneration) {
                     setResultsText(result);
+                    updateStatsLabel(result, elapsedMs);
                 }
             });
         });
@@ -343,10 +355,16 @@ public class QueryConsole extends Region {
         setResultsText("Running…");
         final int gen = ++runGeneration;
         FxtGui.executorService.submit(() -> {
+            var probe = org.fxt.freexmltoolkit.service.ExecutionStatsService.getInstance().begin(
+                    org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.XQUERY, "Query console");
             String result = TransformRunner.runXQuery(xml, xquery, Map.of(), OutputFormat.XML);
+            boolean ok = !result.startsWith("ERROR");
+            long elapsedMs = probe.finish(xml.length(), ok ? result.length() : -1, ok,
+                    org.fxt.freexmltoolkit.service.ExecutionStats.firstLine(result));
             Platform.runLater(() -> {
                 if (gen == runGeneration) {
                     setResultsText(result);
+                    updateStatsLabel(result, elapsedMs);
                 }
             });
         });
@@ -355,6 +373,25 @@ public class QueryConsole extends Region {
     private boolean isJsonActive() {
         return editorHost.getActiveDocument()
                 .map(d -> d.getFileType() == EditorFileType.JSON).orElse(false);
+    }
+
+    /**
+     * Updates the per-run statistics label in the RESULTS header — only when the
+     * execution-statistics developer feature is enabled; cleared otherwise.
+     */
+    private void updateStatsLabel(String result, long elapsedMs) {
+        if (!org.fxt.freexmltoolkit.service.ExecutionStatsService.getInstance().isEnabled()) {
+            statsLabel.setText("");
+            return;
+        }
+        statsLabel.setText(result != null && result.startsWith("ERROR")
+                ? elapsedMs + " ms · error"
+                : elapsedMs + " ms · " + (result == null ? 0 : result.length()) + " chars");
+    }
+
+    /** @return the RESULTS header statistics text (for tests/observers). */
+    public String getStatsText() {
+        return statsLabel.getText();
     }
 
     /** Copies the full results text to the system clipboard. */

@@ -39,6 +39,22 @@ class ValidationRunnerTest {
     }
 
     @Test
+    void runWithReportMeasuresStageDurations(@TempDir Path tmp) throws Exception {
+        Path sch = tmp.resolve("rules.sch");
+        Files.writeString(sch, SCHEMATRON);
+
+        ValidationRunner.RunResult withSchematron =
+                ValidationRunner.runWithReport("<root><name>x</name></root>", null, sch.toFile(), "doc.xml");
+        assertTrue(withSchematron.xsdMillis() >= 0, "XSD stage duration must be non-negative");
+        assertTrue(withSchematron.schematronMillis() >= 0, "Schematron stage duration must be non-negative");
+
+        ValidationRunner.RunResult withoutSchematron =
+                ValidationRunner.runWithReport("<root/>", null, null, "doc.xml");
+        assertEquals(0, withoutSchematron.schematronMillis(),
+                "Schematron stage duration must be 0 when no Schematron is bound");
+    }
+
+    @Test
     void noSchematronProblemsWhenAssertionHolds(@TempDir Path tmp) throws Exception {
         Path sch = tmp.resolve("rules.sch");
         Files.writeString(sch, SCHEMATRON);

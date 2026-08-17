@@ -271,7 +271,8 @@ public class TransformPanel extends VBox {
                 new SeparatorMenuItem(), autoOpenResultTab,
                 new SeparatorMenuItem(),
                 menuItem("Debug XSLT…", this::startDebug),
-                menuItem("Batch Transform…", this::openBatch));
+                menuItem("Batch Transform…", this::openBatch),
+                menuItem("Execution Statistics", editorHost::openExecutionStats));
     }
 
     /** The segmented OUTPUT METHOD control: all six choices in a 2×3 grid, one selected. */
@@ -373,10 +374,13 @@ public class TransformPanel extends VBox {
         OutputFormat format = chosenFormat(OutputFormat.XML);
         out.showPending("Running…");
         FxtGui.executorService.submit(() -> {
-            long start = System.nanoTime();
+            var probe = org.fxt.freexmltoolkit.service.ExecutionStatsService.getInstance()
+                    .begin(org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.XQUERY, "XQuery editor");
             String result = TransformRunner.runXQuery(xml, xquery, params, format);
             XQueryTableRunner.XQueryTable table = XQueryTableRunner.run(xml, xquery);
-            long elapsedMs = (System.nanoTime() - start) / 1_000_000;
+            boolean ok = !result.startsWith("ERROR");
+            long elapsedMs = probe.finish(xml.length(), ok ? result.length() : -1, ok,
+                    org.fxt.freexmltoolkit.service.ExecutionStats.firstLine(result));
             Platform.runLater(() -> out.showXQueryResult(result, table, format, elapsedMs));
         });
     }
@@ -885,25 +889,37 @@ public class TransformPanel extends VBox {
             out.showPending("Cancelled");
         });
         task[0] = FxtGui.executorService.submit(() -> {
-            long start = System.nanoTime();
+            var probe = org.fxt.freexmltoolkit.service.ExecutionStatsService.getInstance()
+                    .begin(org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.XSLT, xslt.getName());
             String result;
-            String xsltContent = "";
             OutputFormat format = chosen != null ? chosen : OutputFormat.XML;
+            org.fxt.freexmltoolkit.service.XsltTransformationResult fullResult = null;
             try {
-                xsltContent = Files.readString(xslt.toPath(), StandardCharsets.UTF_8);
+                String xsltContent = Files.readString(xslt.toPath(), StandardCharsets.UTF_8);
                 // Auto: detect the format from the stylesheet's xsl:output declaration.
                 format = chosen != null ? chosen : TransformRunner.detectXsltOutputFormat(xsltContent);
-                result = TransformRunner.xsltTransform(xml, xsltContent, params, format);
+                // One single run: the full result feeds the output view, the statistics
+                // probe, and (when requested) the Profile/Trace report tabs.
+                fullResult = (wantProfile || wantTrace)
+                        ? TransformRunner.transformForReport(xml, xsltContent, params, format)
+                        : TransformRunner.xsltTransformResult(xml, xsltContent, params, format);
+                result = fullResult.isSuccess()
+                        ? fullResult.getOutputContent()
+                        : "ERROR: " + fullResult.getErrorMessage();
             } catch (Exception e) {
                 result = "ERROR: " + e.getMessage();
             }
-            long elapsedMs = (System.nanoTime() - start) / 1_000_000;
+            if (fullResult != null && fullResult.isSuccess()) {
+                probe.phase("Compile", fullResult.getCompilationTime());
+                probe.phase("Transform", fullResult.getTransformationTime());
+            }
+            boolean ok = !result.startsWith("ERROR");
+            long elapsedMs = probe.finish(xml.length(), ok ? result.length() : -1, ok,
+                    org.fxt.freexmltoolkit.service.ExecutionStats.firstLine(result));
             String finalResult = result;
             OutputFormat finalFormat = format;
             org.fxt.freexmltoolkit.service.XsltTransformationResult report =
-                    (wantProfile || wantTrace) && !xsltContent.isBlank()
-                            ? TransformRunner.transformForReport(xml, xsltContent, params, format)
-                            : null;
+                    (wantProfile || wantTrace) ? fullResult : null;
             Platform.runLater(() -> {
                 if (abandoned.get()) {
                     return; // user cancelled — ignore the result
@@ -956,10 +972,15 @@ public class TransformPanel extends VBox {
         boolean json = isJsonActive();
         out.showPending("Running…");
         FxtGui.executorService.submit(() -> {
-            long start = System.nanoTime();
+            var probe = org.fxt.freexmltoolkit.service.ExecutionStatsService.getInstance().begin(
+                    json ? org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.JSONPATH
+                            : org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.XPATH,
+                    path.length() > 60 ? path.substring(0, 57) + "…" : path);
             String result = json ? TransformRunner.runJsonPath(content, path)
                     : TransformRunner.runXPath(content, path);
-            long elapsedMs = (System.nanoTime() - start) / 1_000_000;
+            boolean ok = !result.startsWith("ERROR");
+            long elapsedMs = probe.finish(content.length(), ok ? result.length() : -1, ok,
+                    org.fxt.freexmltoolkit.service.ExecutionStats.firstLine(result));
             Platform.runLater(() -> out.showQueryResult(result, elapsedMs));
         });
     }

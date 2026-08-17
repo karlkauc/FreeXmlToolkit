@@ -312,8 +312,16 @@ public class XsltTransformationEngine {
             TransformationContext context = new TransformationContext(xmlContent, xsltContent,
                     parameters, outputFormat);
 
+            // Start profiling before compilation so the compile phase and the memory
+            // baseline are captured (a stylesheet-cache hit reports 0 ms compilation).
+            TransformationProfile profile = new TransformationProfile();
+            profile.startTransformation();
+            profile.setInputSize(xmlContent.length());
+
             // Compile XSLT if needed
+            profile.startCompilation();
             XsltExecutable executable = compileStylesheet(xsltContent, context);
+            profile.endCompilation();
             if (executable == null) {
                 return XsltTransformationResult.error("Failed to compile XSLT stylesheet");
             }
@@ -342,11 +350,12 @@ public class XsltTransformationEngine {
             // Configure output serialization
             configureSerializer(transformer.getDestination(), outputFormat);
 
-            // Transform with profiling
-            TransformationProfile profile = new TransformationProfile();
-            profile.startTransformation();
-
+            // Transform with profiling. Saxon serializes while transforming (the
+            // destination is a serializer), so the transformation phase includes
+            // serialization and the separate serialization phase stays 0.
+            profile.startTransformationPhase();
             transformer.transform();
+            profile.endTransformationPhase();
 
             profile.endTransformation();
             profile.setOutputSize(outputWriter.toString().length());
@@ -357,6 +366,12 @@ public class XsltTransformationEngine {
 
             result.setExecutionTime(System.currentTimeMillis() - startTime);
             result.setTransformationContext(context);
+            result.setCompilationTime(profile.getCompilationTime());
+            result.setTransformationTime(profile.getTransformationTime());
+            result.setSerializationTime(profile.getSerializationTime());
+            result.setInputSize(xmlContent.length());
+            result.setMemoryUsage((int) Math.max(Integer.MIN_VALUE,
+                    Math.min(Integer.MAX_VALUE, profile.getMemoryDelta())));
 
             // Collect debug data from listeners
             if (enableDebugging && traceListener != null) {

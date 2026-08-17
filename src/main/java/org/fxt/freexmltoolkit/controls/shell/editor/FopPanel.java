@@ -202,7 +202,13 @@ public class FopPanel extends VBox {
             PanelStatus.info(status, "Cancelled");
         });
         task[0] = FxtGui.executorService.submit(() -> {
+            var probe = org.fxt.freexmltoolkit.service.ExecutionStatsService.getInstance().begin(
+                    org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.FOP_PDF, pdfOutput.getName());
             String result = FopRunner.generate(xmlFile, xsl, pdfOutput, options);
+            boolean generated = result.startsWith("OK:");
+            long elapsedMs = probe.finish(xmlFile.length(), generated ? pdfOutput.length() : -1, generated,
+                    org.fxt.freexmltoolkit.service.ExecutionStats.firstLine(result));
+            boolean showStats = org.fxt.freexmltoolkit.service.ExecutionStatsService.getInstance().isEnabled();
             Platform.runLater(() -> {
                 if (abandoned.get()) {
                     return; // user cancelled — ignore the (possibly still-produced) result
@@ -211,7 +217,8 @@ public class FopPanel extends VBox {
                 generateButton.setDisable(false);
                 boolean ok = result.startsWith("OK:");
                 if (ok) {
-                    PanelStatus.success(status, "Generated: " + pdfOutput.getName());
+                    PanelStatus.success(status, "Generated: " + pdfOutput.getName()
+                            + (showStats ? " · " + elapsedMs + " ms" : ""));
                     lastPdf = pdfOutput;
                     openButton.setDisable(false);
                     previewButton.setDisable(false);

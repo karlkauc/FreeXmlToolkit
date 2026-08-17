@@ -292,6 +292,7 @@
                 <Label fx:id="statusSchema" id="status-schema" text="No XSD" styleClass="fxt-status-item"/>
                 <Label text="UTF-8" styleClass="fxt-status-item"/>
                 <Region HBox.hgrow="ALWAYS"/>
+                <Label fx:id="statusLastRun" styleClass="fxt-status-item"/>
                 <Label fx:id="statusMemory" styleClass="fxt-status-item"/>
                 <Label fx:id="statusFile" text="No file open" styleClass="fxt-status-item"/>
             </children>
