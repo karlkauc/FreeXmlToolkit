@@ -154,6 +154,8 @@ HTML documents (`.html`, `.htm`, `.xhtml`) get their own **Preview** view mode -
 icon in the segmented view switch - that renders the page read-only, the way a browser
 would show it:
 
+![An HTML report rendered in the Preview view](img/unified-shell-html-preview.png)
+
 - **HTML files open in Preview by default.** Whether you open them from the Explorer, by
   drag & drop, or via the Open dialog, you see the rendered page first.
 - **Editing happens in the Text view.** Switch to **Text** to change the markup, then
