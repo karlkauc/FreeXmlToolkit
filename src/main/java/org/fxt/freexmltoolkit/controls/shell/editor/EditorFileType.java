@@ -16,6 +16,7 @@ public enum EditorFileType {
     XQUERY("XQuery", "bi-code-square", "#6f42c1", "xq", "xquery", "xqm", "xqy"),
     XPATH("XPath", "bi-slash-square", "#d63384", "xpath"),
     XPROC("XProc", "bi-diagram-2", "#0ca678", "xpl", "xproc"),
+    HTML("HTML", "bi-filetype-html", "#e34c26", "html", "htm", "xhtml"),
     OTHER("Text", "bi-file-earmark-text", "#8a93a0");
 
     private final String label;
@@ -111,6 +112,18 @@ public enum EditorFileType {
                         <p:identity/>
 
                     </p:declare-step>
+                    """;
+            case HTML -> """
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <meta charset="UTF-8">
+                        <title></title>
+                    </head>
+                    <body>
+
+                    </body>
+                    </html>
                     """;
             case OTHER -> "";
         };

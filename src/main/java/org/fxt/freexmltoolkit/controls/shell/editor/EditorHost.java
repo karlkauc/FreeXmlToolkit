@@ -160,7 +160,7 @@ public class EditorHost extends BorderPane {
         // Delete key removes the selected node in structured views (not in Text mode).
         addEventHandler(javafx.scene.input.KeyEvent.KEY_PRESSED, event -> {
             if (event.getCode() == javafx.scene.input.KeyCode.DELETE
-                    && activeViewMode.get() != ViewMode.TEXT && deleteActiveNode()) {
+                    && activeViewMode.get().isStructured() && deleteActiveNode()) {
                 event.consume();
             }
             // Alt+Enter / Ctrl+. opens the quick-fix chooser for the caret line.
@@ -354,6 +354,23 @@ public class EditorHost extends BorderPane {
             activeViewMode.set(et.viewMode);
             refreshSelectedNode();
         });
+    }
+
+    /**
+     * Switches the tab showing {@code document} to the given view mode without
+     * changing the tab selection (e.g. a transform result tab to Preview).
+     */
+    public void setViewModeFor(OpenDocument document, ViewMode mode) {
+        for (Tab tab : tabPane.getTabs()) {
+            if (tab instanceof EditorTab et && et.document == document) {
+                et.setViewMode(mode);
+                if (tab.isSelected()) {
+                    activeViewMode.set(et.viewMode);
+                    refreshSelectedNode();
+                }
+                return;
+            }
+        }
     }
 
     /** @return the node selected in the active structured (Tree/Graphic) view, or {@code null}. */
@@ -730,7 +747,7 @@ public class EditorHost extends BorderPane {
         org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode xmlSelected = null;
         org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonNode jsonSelected = null;
         if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et) {
-            if (et.viewMode != ViewMode.TEXT) {
+            if (et.viewMode.isStructured()) {
                 jsonSelected = et.currentJsonSelection;
             }
             // XSD and XML nodes may be selected from any view, including the Text view (caret-driven),
@@ -778,6 +795,11 @@ public class EditorHost extends BorderPane {
         EditorTab tab = new EditorTab(OpenDocument.forPath(path), this::refreshSelectedNode, nodeClipboard,
                 this::openNamedTypeEditor, this::goToXmlDefinition);
         addTab(tab);
+        // HTML files open rendered; the preview fills once the async load lands.
+        if (tab.document.getFileType() == EditorFileType.HTML) {
+            tab.setViewMode(ViewMode.PREVIEW);
+            activeViewMode.set(tab.viewMode); // addTab just selected this tab
+        }
         // Wire "Go to Definition": open the bound XSD and reveal the element (no-op for non-XML views).
         tab.view.setGoToDefinitionHandler(req ->
                 openXsdAndReveal(req.xsdFile().toPath(), req.elementName()));
@@ -1417,6 +1439,7 @@ public class EditorHost extends BorderPane {
         for (Tab tab : tabPane.getTabs()) {
             if (tab instanceof EditorTab editorTab && editorTab.document == document) {
                 editorTab.view.setText(content);
+                editorTab.refreshPreviewIfActive();
                 return true;
             }
         }
@@ -1457,7 +1480,7 @@ public class EditorHost extends BorderPane {
     /** Undo: command stack in structured (Tree/Graphic) mode, editor undo in Text mode. */
     public void undoActive() {
         if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et
-                && et.viewMode != ViewMode.TEXT && et.editorContext != null) {
+                && et.viewMode.isStructured() && et.editorContext != null) {
             if (et.undoStructured()) {
                 refreshSelectedNode();
             }
@@ -1468,7 +1491,7 @@ public class EditorHost extends BorderPane {
 
     public void redoActive() {
         if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et
-                && et.viewMode != ViewMode.TEXT && et.editorContext != null) {
+                && et.viewMode.isStructured() && et.editorContext != null) {
             if (et.redoStructured()) {
                 refreshSelectedNode();
             }
@@ -1964,11 +1987,18 @@ public class EditorHost extends BorderPane {
         }
         boolean xsd = et.document.getFileType() == EditorFileType.XSD;
         return switch (et.viewMode) {
-            case TEXT -> null;
+            // Preview has no structured search target; Ctrl+F binds the (hidden) code area.
+            case TEXT, PREVIEW -> null;
             case TREE -> xsd ? et.treeView : null;
             case GRAPHIC -> xsd ? et.xsdGraphView
                     : (et.xmlGridView != null ? et.xmlGridView.getSearchTarget() : null);
         };
+    }
+
+    /** Test seam: the text the active tab's HTML preview last rendered, or {@code null}. */
+    String activePreviewedTextForTest() {
+        Tab tab = tabPane.getSelectionModel().getSelectedItem();
+        return tab instanceof EditorTab et ? et.lastPreviewedText : null;
     }
 
     /** @return the active editor tab's view, or {@code null} if no editor tab is in front. */
@@ -2318,6 +2348,7 @@ public class EditorHost extends BorderPane {
                 SchemaDetection detection = detected;
                 Platform.runLater(() -> {
                     tab.view.setText(content);
+                    tab.refreshPreviewIfActive();
                     tab.endLoading();
                     tab.document.setDirty(false);
                     tab.attachDirtyTracking();
@@ -2855,6 +2886,11 @@ public class EditorHost extends BorderPane {
         private org.fxt.freexmltoolkit.controls.jsoneditor.view.JsonTreeView jsonTreeView;
         private org.fxt.freexmltoolkit.controls.shell.schema.XmlInstanceTreeView xmlInstanceTreeView;
         private XmlGridView xmlGridView;
+        /** The read-only HTML Preview (a WebView, or a text fallback without javafx.scene.web). */
+        private javafx.scene.Node htmlPreviewNode;
+        private java.util.function.Consumer<String> htmlPreviewUpdater;
+        /** Text the preview last rendered — skips redundant {@code loadContent} calls. */
+        private String lastPreviewedText;
         private org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext editorContext;
         private XsdNode currentSelection;
         private org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode currentXmlSelection;
@@ -2961,9 +2997,11 @@ public class EditorHost extends BorderPane {
         boolean supportsView(ViewMode mode) {
             return switch (mode) {
                 case TEXT -> true;
+                case PREVIEW -> document.getFileType() == EditorFileType.HTML;
                 case TREE -> switch (document.getFileType()) {
                     // Query documents are not XML — the DOM tree view cannot parse them.
-                    case OTHER, XQUERY, XPATH -> false;
+                    // HTML output is often not well-formed XML (unclosed <br>, &nbsp;) either.
+                    case OTHER, XQUERY, XPATH, HTML -> false;
                     default -> true;
                 };
                 case GRAPHIC -> switch (document.getFileType()) {
@@ -2984,6 +3022,13 @@ public class EditorHost extends BorderPane {
             this.currentJsonSelection = null;
             if (target == ViewMode.TEXT) {
                 showOnly(view.getNode());
+                return;
+            }
+            // HTML renders read-only in a WebView; editing happens in Text mode.
+            if (target == ViewMode.PREVIEW) {
+                ensureHtmlPreview();
+                refreshHtmlPreview();
+                showOnly(htmlPreviewNode);
                 return;
             }
             // For XML-family instances, Graphic is the editable XMLSpy-style grid
@@ -4021,6 +4066,42 @@ public class EditorHost extends BorderPane {
             }
             roundTripXmlModelToText();
             return true;
+        }
+
+        private void ensureHtmlPreview() {
+            if (htmlPreviewNode != null) {
+                return;
+            }
+            try {
+                javafx.scene.web.WebView webView = new javafx.scene.web.WebView();
+                htmlPreviewUpdater = content ->
+                        webView.getEngine().loadContent(content == null ? "" : content);
+                htmlPreviewNode = webView;
+            } catch (Throwable t) {
+                // javafx.scene.web missing from the runtime: degrade to read-only text
+                // (same guard as TransformOutputPanel.updateHtmlPreview).
+                javafx.scene.control.TextArea fallback = new javafx.scene.control.TextArea();
+                fallback.setEditable(false);
+                htmlPreviewUpdater = fallback::setText;
+                htmlPreviewNode = fallback;
+            }
+            contentStack.getChildren().add(htmlPreviewNode);
+        }
+
+        /** Re-renders the preview if the text changed since it was last rendered. */
+        private void refreshHtmlPreview() {
+            String text = view.getText();
+            if (!java.util.Objects.equals(text, lastPreviewedText)) {
+                htmlPreviewUpdater.accept(text);
+                lastPreviewedText = text;
+            }
+        }
+
+        /** Re-renders the preview after an external text update (async load, re-run transform). */
+        void refreshPreviewIfActive() {
+            if (viewMode == ViewMode.PREVIEW && htmlPreviewNode != null) {
+                refreshHtmlPreview();
+            }
         }
 
         private void ensureXmlInstanceTree() {

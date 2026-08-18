@@ -291,12 +291,17 @@ public class TransformOutputPanel extends VBox {
         EditorFileType type = switch (lastResultFormat) {
             case JSON -> EditorFileType.JSON;
             case TEXT -> EditorFileType.OTHER;
-            default -> EditorFileType.XML; // XML / HTML / XHTML
+            case HTML, XHTML -> EditorFileType.HTML;
+            default -> EditorFileType.XML;
         };
         String name = "Transform-Result." + extension(lastResultFormat);
         boolean sameTab = resultDocument != null && name.equals(resultDocument.getDisplayName());
         if (!sameTab || !editorHost.updateGeneratedDocument(resultDocument, result)) {
             resultDocument = editorHost.openGeneratedDocument(result, type, name);
+        }
+        // HTML results open rendered, matching the OUTPUT dock's Preview toggle.
+        if (type == EditorFileType.HTML) {
+            editorHost.setViewModeFor(resultDocument, ViewMode.PREVIEW);
         }
     }
 

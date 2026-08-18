@@ -30,6 +30,9 @@ class EditorFileTypeTest {
         assertEquals(EditorFileType.XPATH, EditorFileType.fromFileName("expr.xpath"));
         assertEquals(EditorFileType.XPROC, EditorFileType.fromFileName("pipeline.xpl"));
         assertEquals(EditorFileType.XPROC, EditorFileType.fromFileName("pipeline.XPROC"));
+        assertEquals(EditorFileType.HTML, EditorFileType.fromFileName("report.html"));
+        assertEquals(EditorFileType.HTML, EditorFileType.fromFileName("REPORT.HTM"));
+        assertEquals(EditorFileType.HTML, EditorFileType.fromFileName("page.xhtml"));
     }
 
     @Test
@@ -67,6 +70,7 @@ class EditorFileTypeTest {
         assertEquals("xq", EditorFileType.XQUERY.primaryExtension());
         assertEquals("xpath", EditorFileType.XPATH.primaryExtension());
         assertEquals("xpl", EditorFileType.XPROC.primaryExtension());
+        assertEquals("html", EditorFileType.HTML.primaryExtension());
         assertEquals("txt", EditorFileType.OTHER.primaryExtension());
     }
 
@@ -80,6 +84,7 @@ class EditorFileTypeTest {
         assertEquals("{\n}\n", EditorFileType.JSON.defaultContent());
         assertTrue(EditorFileType.XQUERY.defaultContent().startsWith("xquery version"));
         assertTrue(EditorFileType.XPROC.defaultContent().contains("<p:declare-step"));
+        assertTrue(EditorFileType.HTML.defaultContent().contains("<!DOCTYPE html>"));
         assertEquals("", EditorFileType.XPATH.defaultContent());
         assertEquals("", EditorFileType.OTHER.defaultContent());
     }

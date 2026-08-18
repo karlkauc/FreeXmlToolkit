@@ -188,6 +188,32 @@ class TransformOutputPanelTest {
     }
 
     @Test
+    void editorActionOpensHtmlResultRenderedInPreviewMode() throws Exception {
+        String html = "<html><body><h1>Report</h1></body></html>";
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            out.showTransformResult(html,
+                    org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat.HTML, 5);
+            out.openResultInEditor();
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+
+        assertEquals(EditorFileType.HTML, out.getResultDocument().getFileType(),
+                "an HTML result must open as an HTML document, not XML");
+        assertEquals(ViewMode.PREVIEW, host.activeViewModeProperty().get(),
+                "an HTML result tab must open rendered, in Preview mode");
+
+        // Re-triggering must reuse the tab and keep the rendered view.
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            out.openResultInEditor();
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        assertEquals(1, countResultTabs(), "re-triggering the Editor action must reuse the tab");
+        assertEquals(ViewMode.PREVIEW, host.activeViewModeProperty().get());
+    }
+
+    @Test
     void resultSurvivesATransformPanelRecreation(@TempDir Path tmp) throws Exception {
         transformGreeting(tmp);
         String before = out.getOutputText();

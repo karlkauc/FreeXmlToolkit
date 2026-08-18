@@ -59,7 +59,7 @@ public class NewFileDialog extends Dialog<NewFileDialog.Result> {
     static final EditorFileType[] CREATABLE = {
             EditorFileType.XML, EditorFileType.XSD, EditorFileType.XSLT,
             EditorFileType.SCHEMATRON, EditorFileType.JSON, EditorFileType.XPROC,
-            EditorFileType.XQUERY, EditorFileType.XPATH
+            EditorFileType.XQUERY, EditorFileType.XPATH, EditorFileType.HTML
     };
 
     private final ComboBox<EditorFileType> typeBox = new ComboBox<>();
