@@ -1,110 +1,97 @@
 # XSLT Developer
 
-> **Last Updated:** May 2026 | **Version:** 1.10.0
+> **Last Updated:** August 2026 | **Version:** 2.0.1
 
 > **Note (Phase 10c):** The standalone *XSLT Developer* tab has been retired. Its
 > capabilities now live in the **[Unified Shell](unified-shell.md)'s Transform panel**
 > (stylesheet, input, output method, parameters, XPath/XQuery) together with the
 > advanced tools in the panel's **⋮ (overflow) menu** — **Debug XSLT…** (the interactive
 > debugger with breakpoints, step, variables, call stack, watch), **Batch Transform…**,
-> **Profile run**, and **Trace run**. Open the Transform panel from the **Transform**
-> icon in the activity bar; results appear in the **OUTPUT panel** docked below the
-> editor. The feature description below is retained for reference; the controls now
-> live in the Unified Shell rather than a dedicated tab.
+> **Profile run**, and **Trace run**. This page describes how to do XSLT and XQuery
+> development in the shell, plus a collection of ready-to-use XSLT and XQuery patterns.
 
-The XSLT Developer is a full-featured development environment for creating and testing XSLT stylesheets and XQuery
-scripts. It includes live transformation, parameter support, batch processing, and debugging tools.
+FreeXmlToolkit is a full-featured environment for creating and testing XSLT stylesheets and
+XQuery scripts. It includes live transformation, parameter support, batch processing, and
+debugging tools.
 
 ---
 
 ## Overview
 
-![XSLT Developer Overview](img/xslt-developer-overview.png)
-*The XSLT Developer with editors, parameters, and result panels*
+![XSLT development in the Unified Shell](img/xslt-developer-overview.png)
+*An XSLT stylesheet open in the editor, the Transform panel on the left with the stylesheet
+and input selected, and the transformation result in the OUTPUT panel below the editor*
 
 
-The XSLT Developer provides:
+XSLT/XQuery development in the Unified Shell provides:
 
-- **Full code editors** for XML, XSLT, and XQuery
-- **Live Transform mode** for instant feedback
+- **Full code editors** for XML, XSLT, and XQuery — every file opens as a normal editor tab
+- **Live preview and watch modes** for instant feedback while you edit
 - **XSLT Parameters** for reusable stylesheets
-- **Multi-file batch processing** using XQuery
-- **Performance metrics** and debugging
-- **Favorites integration** for quick access
+- **Multi-file batch processing** for XSLT and XQuery
+- **Performance metrics, profiling, and tracing**
+- **An interactive debugger** with breakpoints, stepping, and variable inspection
+- **Favorites integration** for quick access to stylesheets and input files
 
 ---
 
-## Interface Layout
+## Where Everything Lives
 
-### Left Panel: Input Editors
-
-The left panel contains tabbed editors for your source files:
-
-| Tab                 | Description                                 |
-|---------------------|---------------------------------------------|
-| **XML Source**      | The XML document to transform               |
-| **XSLT Stylesheet** | Your XSLT transformation code               |
-| **XQuery Script**   | XQuery code for queries and transformations |
-| **Parameters**      | Define parameters to pass to XSLT           |
-
-### Right Panel: Results
-
-| Tab              | Description                             |
-|------------------|-----------------------------------------|
-| **Result**       | The transformation output               |
-| **Live Preview** | Real-time HTML rendering                |
-| **Performance**  | Execution metrics and statistics        |
-| **Debug**        | Messages, warnings, and execution trace |
-
----
-
-## Toolbar
-
-| Button           | Shortcut     | Description                    |
-|------------------|--------------|--------------------------------|
-| **Open XML**     | -            | Load an XML source file        |
-| **Transform**    | F5 or Ctrl+R | Execute the transformation     |
-| **Live**         | Ctrl+L       | Toggle live transform mode     |
-| **Add Favorite** | Ctrl+D       | Save current file to favorites |
-| **Favorites**    | Ctrl+Shift+D | Show/hide favorites panel      |
-| **Help**         | F1           | Open help                      |
+| Capability | Where to find it |
+|------------|------------------|
+| **Edit the stylesheet / query** | Open the `.xsl` / `.xq` file — it is a normal editor tab with syntax highlighting |
+| **Choose stylesheet & input** | The **Transform** panel (activity bar → **Transform**): **STYLESHEET** and **INPUT** rows, each with a **Change** link, a **star** (favorites) menu, and **◀ / ▶** browse buttons |
+| **Run a transformation** | The panel's **Run Transform** button — or, with the XSLT file active, the toolbar's **Run** button (`Ctrl+Enter`) |
+| **See the result** | The **OUTPUT panel** docked below the editor (Text / Preview / Table views, open-in-browser, save) |
+| **Parameters, output method** | The Transform panel's **PARAMETERS** and **OUTPUT METHOD** sections |
+| **XPath / XQuery queries** | The panel's **XPATH** and **XQUERY** sections, or the bottom [Query Console](unified-shell.md#query-console) (`Ctrl+Shift+X`) |
+| **Debugger, batch, profile, trace** | The Transform panel header's **⋮ (overflow) menu** |
 
 ---
 
 ## Getting Started
 
-### Step 1: Load Your Files
+### Step 1: Choose Your Files
 
-1. Click **Open XML** in the toolbar to load your source XML
-2. Switch to the **XSLT Stylesheet** tab
-3. Click **Open** to load an XSLT file, or type directly in the editor
+1. Open the **Transform** panel from the **Transform** icon in the activity bar.
+2. In the **STYLESHEET** section, click **Change** to pick an `.xsl` / `.xslt` file — or pick
+   one from the **clock** (recent) or **star** (favorites) menu, or drop a stylesheet file
+   onto the row.
+3. Check the **INPUT** section: by default it follows the **active editor document**, so
+   simply open the XML you want to transform. **Change → Select XML file…** fixes the input
+   to a file from disk instead.
 
 ### Step 2: Transform
 
-Click **Transform** (or press F5) to run the transformation.
+Click **Run Transform**. (With the stylesheet itself as the active document, the toolbar's
+**Run** button or `Ctrl+Enter` runs it against the selected
+[Target](unified-shell.md#query-documents-the-target-selector).)
 
 ### Step 3: View Results
 
-The output appears in the **Result** tab. For HTML output, switch to **Live Preview** to see the rendered page.
+The output appears in the **OUTPUT panel** docked below the editor. The header shows a
+format badge and the run status (`Transformed · N ms · M chars`). For HTML output, switch
+the panel to the **Preview** view to see the rendered page, or click **Open in browser**.
 
 ---
 
-## Live Transform Mode
+## Live Preview and Watch Mode
 
-Enable **Live Transform** to automatically re-run the transformation whenever you make changes to the XML, XSLT, or
-XQuery.
+Two toggles in the Transform panel's **⋮ menu** re-run the transformation automatically:
 
-1. Click the **Live** button in the toolbar (or press Ctrl+L)
-2. The button highlights when live mode is active
-3. Make changes to any input - results update automatically
+- **Live preview** — re-runs (debounced) whenever you edit the **input document**.
+- **Watch stylesheet file** — re-runs whenever the chosen **stylesheet** changes on disk,
+  which is handy while editing the stylesheet in another tab or tool.
 
-This is ideal for developing and debugging stylesheets.
+This is ideal for developing and debugging stylesheets: make a change, and the OUTPUT panel
+updates by itself.
 
 ---
 
 ## Using XSLT Parameters
 
-XSLT stylesheets can accept parameters to make them more flexible. The **Parameters** tab lets you define these values.
+XSLT stylesheets can accept parameters to make them more flexible. The **PARAMETERS**
+section of the Transform panel lets you define these values.
 
 ### Defining Parameters in XSLT
 
@@ -135,19 +122,26 @@ XSLT stylesheets can accept parameters to make them more flexible. The **Paramet
 
 ### Setting Parameter Values
 
-1. Switch to the **Parameters** tab
-2. Click **Add** to create a new parameter
+1. Expand the **PARAMETERS** section in the Transform panel
+2. Click **Add parameter** to create a new row
 3. Enter the parameter name (e.g., `title`)
 4. Enter the value (e.g., `My Custom Report`)
-5. Select the type: String, Number, or Boolean
 
-Parameters are passed to the XSLT processor during transformation.
+Each row has its own remove button, and the values are passed to the stylesheet on every run.
 
 ---
 
 ## XQuery Development
 
-The **XQuery Script** tab provides a full XQuery editor. XQuery is powerful for querying and transforming XML data.
+XQuery is powerful for querying and transforming XML data. There are two ways to work with
+it:
+
+- **XQuery documents** — open (or create) a `.xq` / `.xquery` file; it gets its own editor
+  with highlighting and autocomplete. Press the toolbar's **Run** button (`Ctrl+Enter`) to
+  run it against the selected [Target](unified-shell.md#query-documents-the-target-selector);
+  the result appears in the OUTPUT panel.
+- **The XQUERY section** of the Transform panel — a multi-line query area with
+  **Run XQuery**, evaluated against the transform input.
 
 ### Basic XQuery Example
 
@@ -160,7 +154,7 @@ return <result>{$book/title}</result>
 
 ### Built-in XQuery Examples
 
-Click the **Examples** button to insert sample queries:
+The XQUERY section's **Examples** menu inserts sample queries:
 
 | Example                | Description                |
 |------------------------|----------------------------|
@@ -169,90 +163,29 @@ Click the **Examples** button to insert sample queries:
 | **HTML Report**        | Generate HTML output       |
 | **Data Quality Check** | Validate data completeness |
 
+!!! tip
+    The installation ships **17 ready-to-run XQuery scripts** in `examples/xquery/` and
+    **32 XPath expressions** in `examples/xpath/` — open any of them and press
+    `Ctrl+Enter`. See [Bundled Example Collections](xml-editor.md#bundled-example-collections).
+
 ---
 
 ## Multi-File Batch Processing
 
-Process multiple XML files at once using XQuery and the `collection()` function.
+**Batch Transform…** (Transform panel **⋮ menu**) runs the active stylesheet **or** XQuery
+script over many XML files at once.
 
-### Switching to Batch Mode
+1. Open the stylesheet (or XQuery file) you want to apply, then pick
+   **⋮ → Batch Transform…** — a **Batch** tool tab opens.
+2. Add the XML files to process (each file is transformed/queried **independently**).
+3. Run the batch: the table shows one row per file with its status, and selecting a row
+   shows that file's **RESULT**.
+4. **Save All…** writes every result to a folder you choose.
 
-1. In the **XML Source** tab, select **Multiple Files (Batch)**
-2. The interface changes to show a file list
-
-### Adding Files
-
-| Action              | Description                        |
-|---------------------|------------------------------------|
-| **Add Files**       | Select individual XML files        |
-| **Add Directory**   | Add all XML files from a folder    |
-| **Remove Selected** | Remove checked files from the list |
-| **Clear All**       | Remove all files                   |
-| **Select All**      | Check/uncheck all files            |
-
-### Writing XQuery for Batch Processing
-
-Use `collection()` to access all selected files:
-
-**Example 1: List All Root Elements**
-
-```xquery
-for $doc in collection()
-return $doc/*/local-name()
-```
-
-**Example 2: Extract Data from All Files**
-
-```xquery
-for $doc in collection()
-for $order in $doc//order
-return <result>
-  <file>{document-uri($doc)}</file>
-  <orderId>{$order/@id/string()}</orderId>
-  <total>{$order/total/string()}</total>
-</result>
-```
-
-**Example 3: Count Elements Across Files**
-
-```xquery
-<summary>
-  <totalFiles>{count(collection())}</totalFiles>
-  <totalOrders>{count(collection()//order)}</totalOrders>
-</summary>
-```
-
-**Example 4: Find Files with Specific Content**
-
-```xquery
-for $doc in collection()
-where $doc//status = "pending"
-return document-uri($doc)
-```
-
-**Example 5: Aggregate Data**
-
-```xquery
-<report>
-  <totalAmount>{sum(collection()//amount)}</totalAmount>
-  <averageValue>{avg(collection()//value)}</averageValue>
-  <fileCount>{count(collection())}</fileCount>
-</report>
-```
-
-### Viewing Batch Results
-
-After processing, choose how to view results:
-
-| Mode         | Description                                  |
-|--------------|----------------------------------------------|
-| **Combined** | All results merged together                  |
-| **Per File** | Select individual file results from dropdown |
-
-### Saving Batch Results
-
-- **Save** - Save the combined output as a single file
-- **Save All** - Save each file's result separately with `_result` suffix
+The Explorer offers an even faster route: select **several XML files** in the workspace tree
+(Ctrl/Shift+click) and press the [Transform bar](unified-shell.md#transform-bar-one-click-xslt-from-the-explorer)'s
+**Transform** button — the Batch tool tab opens pre-loaded with those files and starts
+automatically.
 
 ---
 
@@ -368,71 +301,59 @@ Group items without the Muenchian method:
 
 ---
 
-## Performance Tab
+## Performance and Profiling
 
-Monitor transformation performance:
+Every run shows compact statistics in the OUTPUT panel's status line:
+`Transformed · N ms · M chars` — the **execution time** and the **output size**.
 
-| Metric               | Description                               |
-|----------------------|-------------------------------------------|
-| **Execution Time**   | Total transformation time in milliseconds |
-| **Compilation Time** | Time to compile the XSLT stylesheet       |
-| **Memory Usage**     | Memory consumed during transformation     |
-| **Output Size**      | Size of the generated output              |
-
-The **XSLT Features Used** list shows which XSLT features were detected in your stylesheet.
+For a deeper look, enable **Profile run** in the Transform panel's **⋮ menu**: the next
+transformation additionally opens a read-only **Profile** tool tab with overall timings and
+**per-template execution times**, so you can see exactly where the time goes.
 
 ---
 
-## Debug Tab
+## Tracing and Messages
 
-Use debugging features to troubleshoot transformations:
-
-### Messages & Warnings
-
-Shows all `<xsl:message>` output and Saxon warnings.
+Enable **Trace run** in the **⋮ menu** to open a **Trace** tool tab with the next run. It
+shows the sequence of **template matches** and all `xsl:message` output:
 
 ```xslt
 <xsl:message>Processing book: <xsl:value-of select="title"/></xsl:message>
 ```
 
-### Template Execution Trace
-
-Enable **Debug Mode** to see the sequence of template calls.
-
 ### Tips for Debugging
 
-1. Use `<xsl:message>` to output debug information
-2. Check the Debug tab for warnings about unused variables or templates
-3. Enable Debug Mode for detailed execution trace
-4. Click **Clear** to reset the debug output
+1. Use `<xsl:message>` to output debug information and read it in the Trace tab
+2. Enable **Trace run** to see which templates actually fire, and in what order
+3. For stepping through the stylesheet interactively, use the debugger (below)
 
 ---
 
 ## Interactive Live Debugger
 
-The XSLT Developer includes a full interactive debugger that lets you pause a transformation,
-step through your stylesheet, and inspect state - similar to debugging in an IDE.
+**Debug XSLT…** (Transform panel **⋮ menu**) starts a full interactive debugger that lets
+you pause a transformation, step through your stylesheet, and inspect state - similar to
+debugging in an IDE. It opens the stylesheet as a document with a **breakpoint gutter** and
+a **Debug** tool tab.
 
 ### Setting Breakpoints
 
 - Click the slot in the editor's left margin (gutter) next to a line to toggle a red breakpoint.
-- Or place the caret on a line and press **F9** (the **Breakpoint** toolbar button).
 - The **Breakpoints** panel lists every breakpoint with an enable/disable checkbox and a delete
   button. Double-click an entry to jump to that line.
 
 ### Step Controls
 
-The debug toolbar provides standard execution controls:
+The Debug tab provides standard execution controls:
 
-| Control | Shortcut | Description |
-|---------|----------|-------------|
-| **Run-Debug** | F5 | Start a debug run from the beginning |
-| **Continue** | F8 | Resume until the next breakpoint |
-| **Pause** | - | Pause at the next instruction (best-effort on Saxon HE) |
-| **Step Into** | F7 | Step into the current instruction |
-| **Step Over** | F10 | Execute the current instruction without descending |
-| **Step Out** | Shift+F11 | Run until the current template/function returns |
-| **Stop** | - | Terminate the debug session |
+| Control | Description |
+|---------|-------------|
+| **Continue** | Resume until the next breakpoint |
+| **Step Into** | Step into the current instruction |
+| **Step Over** | Execute the current instruction without descending |
+| **Step Out** | Run until the current template/function returns |
+| **Stop** | Terminate the debug session |
+| **Show in editor** | Jump the editor to the currently paused line |
 
 A green arrow in the gutter marks the line currently executing; a hit breakpoint shows a yellow
 arrow over the red circle.
@@ -450,15 +371,14 @@ When execution is paused, four panels show the live state of the transformation:
 
 ---
 
-## Output Options
+## Output Format
 
-Configure the transformation output:
+The Transform panel's **OUTPUT METHOD** section is a segmented control with
+**Auto · XML · HTML · XHTML · Text · JSON**. **Auto** (the default) detects the format from
+the stylesheet's `xsl:output` declaration; pick a concrete format to override the detection.
 
-| Option            | Values                  | Description                   |
-|-------------------|-------------------------|-------------------------------|
-| **Output Format** | XML, HTML, Text, JSON   | The expected output format    |
-| **Encoding**      | UTF-8, ISO-8859-1, etc. | Character encoding for output |
-| **Indent Output** | On/Off                  | Pretty-print the output       |
+> XSLT version selection (1.0/2.0/3.0) is intentionally not offered: Saxon HE auto-detects
+> the version from the stylesheet's `version` attribute.
 
 ---
 
@@ -466,14 +386,11 @@ Configure the transformation output:
 
 | Shortcut     | Action                 |
 |--------------|------------------------|
-| F5           | Execute transformation |
-| Ctrl+R       | Execute transformation |
-| Ctrl+L       | Toggle live transform  |
-| Ctrl+D       | Add to favorites       |
-| Ctrl+Shift+D | Show/hide favorites    |
-| Ctrl+Shift+C | Copy result            |
-| Ctrl+Alt+S   | Save result            |
-| F1           | Help                   |
+| Ctrl+Enter   | Run the active XSLT / XQuery / XPath document against the selected Target |
+| Ctrl+Shift+X | Toggle the bottom Query Console |
+| F8           | Validate the active document |
+| Shift+Alt+F  | Format (pretty-print) the active document |
+| Ctrl+D       | Add the active file to favorites |
 
 ---
 
@@ -536,12 +453,13 @@ return <categorized>
 
 ## Tips
 
-- **Start with Live Mode off** for large files to avoid slow updates
+- **Start with Live preview off** for large files to avoid slow updates
 - **Use the Examples menu** to insert working XQuery templates
-- **Check Performance tab** if transformations are slow
-- **Save your work** to favorites for quick access later
-- **Use batch mode** for processing multiple files efficiently
-- **Enable Debug Mode** when troubleshooting complex stylesheets
+- **Enable Profile run** if transformations are slow — the per-template timings show where
+- **Star your stylesheets** as favorites, then page through them with the STYLESHEET row's
+  **◀ / ▶** buttons
+- **Use Batch Transform** for processing multiple files efficiently
+- **Enable Trace run** when troubleshooting complex stylesheets
 - **Only process trusted stylesheets** - see [Security Features](SECURITY.md) for details on XSLT extension security
 
 ---
@@ -550,10 +468,10 @@ return <categorized>
 
 | Problem                           | Solution                                                                                                               |
 |-----------------------------------|------------------------------------------------------------------------------------------------------------------------|
-| No output                         | Check that XML and XSLT/XQuery are both loaded                                                                         |
-| Syntax error                      | Check the Debug tab for error details                                                                                  |
-| Slow transformation               | Check Performance tab; consider simplifying                                                                            |
-| Batch results empty               | Ensure files are selected (checkboxes checked)                                                                         |
+| No output                         | Check the STYLESHEET row shows a stylesheet and the INPUT row shows the XML you expect                                 |
+| Syntax error                      | Read the red error status in the OUTPUT panel header                                                                   |
+| Slow transformation               | Enable **⋮ → Profile run** and check the per-template timings                                                          |
+| Batch results empty               | Ensure files were added to the Batch tab and the run has finished                                                      |
 | Parameters not working            | Verify parameter names match exactly                                                                                   |
 | Java extension function not found | Java extensions are disabled by default for security. See [Security Features](SECURITY.md#xsltxquery-extension-security) |
 

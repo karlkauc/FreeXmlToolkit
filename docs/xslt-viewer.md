@@ -1,25 +1,23 @@
 # XSLT Viewer
 
-> **Last Updated:** May 2026 | **Version:** 1.10.0
+> **Last Updated:** August 2026 | **Version:** 2.0.1
 
 > **Note (Phase 10c):** The standalone *XSLT Viewer* tab has been retired. Quick
 > XSLT transformations now live in the **Unified Shell's Transform panel**
-> (set a stylesheet, transform, preview the result, open in browser), and full
-> editing/parameters/batch processing remain in the
-> [XSLT Developer](xslt-developer.md). The workflow below is unchanged in spirit;
-> the controls are now part of the Transform side panel rather than a dedicated tab.
+> (set a stylesheet, transform, preview the result, open in browser). Parameters,
+> live preview, debugging, profiling, and batch processing sit in the same panel -
+> the [XSLT Developer](xslt-developer.md) page covers those advanced tools.
 
-The XSLT Viewer allows you to quickly transform XML documents using XSLT stylesheets. Simply select your files and view
+This page shows how to quickly transform XML documents using XSLT stylesheets. Simply select your files and view
 the results immediately.
 
 ---
 
 ## Overview
 
-The XSLT Viewer is designed for quick transformations where you want to see results immediately. In the
-[Unified Shell](unified-shell.md) these quick transformations live in the **Transform** panel (open it
-from the **Transform** icon in the activity bar). For advanced features like live editing, parameters, and
-batch processing, use the [XSLT Developer](xslt-developer.md).
+The Transform panel is designed for quick transformations where you want to see results immediately. Open it in the
+[Unified Shell](unified-shell.md) from the **Transform** icon in the activity bar. For advanced features like the
+debugger, profiling, and batch processing, see the [XSLT Developer](xslt-developer.md) guide.
 
 ![Transform panel in the Unified Shell](img/unified-shell-transform.png)
 *Quick XSLT/XQuery transformations now live in the Unified Shell's Transform panel*
@@ -34,7 +32,8 @@ recipe that tells the computer how to convert your XML data into a different for
 structure.
 
 ![XSLT Concept](img/xslt-factsheet.png)
-*XSLT transformation: XML input + XSLT rules = Output*
+*XML input + XSLT rules = Output: a FundsXML factsheet stylesheet rendered as HTML in the
+OUTPUT panel below the editor*
 
 **Common uses:**
 
@@ -373,13 +372,15 @@ the next run also opens a read-only Profile tool tab.
 - **Check the OUTPUT panel status** - If a transformation fails, the red error status in the OUTPUT panel header shows the error message
 - **Use the Preview view** - For HTML output, the OUTPUT panel's **Preview** toggle shows you exactly how it will look
 - **Try the example files** - Learn from the included examples in the `examples/` folder
-- **Need more features?** - Use the [XSLT Developer](xslt-developer.md) for advanced editing
+- **Need more features?** - See the [XSLT Developer](xslt-developer.md) guide for parameters,
+  the interactive debugger, profiling/tracing, and batch processing (all in the Transform
+  panel and its ⋮ menu)
 
 ---
 
 ## Next Steps
 
-- [XSLT Developer](xslt-developer.md) - Full XSLT/XQuery development environment
+- [XSLT Developer](xslt-developer.md) - Advanced XSLT/XQuery development: parameters, debugger, batch processing
 - [PDF Generator (FOP)](pdf-generator.md) - Generate PDFs from XSL-FO stylesheets
 
 ---

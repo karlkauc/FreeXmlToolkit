@@ -1,6 +1,6 @@
 # XML Editor Features
 
-> **Last Updated:** June 2026 | **Version:** 1.10.0
+> **Last Updated:** August 2026 | **Version:** 2.0.1
 
 This page describes the advanced features available in the XML Editor.
 
@@ -30,10 +30,9 @@ If you switch the view mode (Text / Tree / Graphic) or the file tab while the se
 
 ### Where Search Is Available
 
-| Editor | How Search Appears |
-|--------|--------------------|
-| **XML** tab | A Find / Replace dialog (opens with Ctrl+F) |
-| **Unified Shell** | An inline search bar with up/down chevron arrows |
+Pressing **Ctrl+F** opens an **inline search bar** at the top of the editor, with up/down
+chevron arrows for Find Previous / Find Next and a replace toggle (Text view only). The same
+bar works in every view mode and every XML-family document type.
 
 > **Note:** In the **Tree** and **Graphic** views, search is for finding and navigating only - **Replace** is not available there (the replace toggle is disabled). To replace text, use the **Text** view.
 
@@ -53,7 +52,8 @@ bar. See the [Search Panel](unified-shell.md#search-panel) guide.
 ## Schematron Integration
 
 ![Schematron Validation](img/xml-editor-schematron.png)
-*Schematron validation panel*
+*Schematron validation in the Validation panel - the bound rules file in SOURCES, the
+findings in the PROBLEMS list*
 
 ### What is Schematron?
 
@@ -61,18 +61,28 @@ Schematron lets you create custom validation rules for your XML documents. While
 
 ### How to Use Schematron
 
-1. Open an XML file in the XML Editor
-2. In the sidebar, find the "Schematron Rules" section
-3. Click the "..." button to select a Schematron file (.sch)
-4. The validation results appear in the sidebar
-5. Enable "Continuous Schematron validation" to check as you type
+1. Open an XML file in the editor
+2. Open the **Validation** panel from the activity bar
+3. In the **SOURCES** section, click **Change** on the Schematron row and pick a `.sch`
+   file - or pick a favorited Schematron from the row's **star** menu, or simply drop a
+   `.sch` file onto the row
+4. Click **Run Validation** - the findings appear in the **PROBLEMS** list (each row tagged
+   with a **Schematron** badge); click a problem to jump to the offending element
+5. Enable **Validate while typing** (the panel's ⋮ menu) to check as you type
+
+Problems whose rules define **quick fixes** can be corrected in place: click the yellow
+lightbulb in the editor gutter (or press **Alt+Enter** / **Ctrl+.**), or right-click the
+problem row and pick a fix from the **Quick Fix** submenu. See
+[Schematron Quick Fixes](schematron-quick-fixes.md).
 
 ### Saving Schematron Files as Favorites
 
 Save frequently used Schematron files for quick access:
-- Click the star icon to add to favorites
-- Organize files in custom categories like "Business Rules"
-- Access saved rules from any editor via the Favorites dropdown
+- Add them to your [Favorites](favorites-system.md) (for example with **Add current** in the
+  Favorites panel while the `.sch` file is open)
+- Organize them in favorites folders like "Business Rules"
+- Bind a saved rules file in one click via the **star** menu on the Validation panel's
+  Schematron row - or from the Explorer's Schematron bar
 
 Learn more: [Schematron Support](schematron-support.md) | [Favorites System](favorites-system.md)
 
@@ -176,7 +186,7 @@ For large XML files, you can collapse sections to focus on what you're working o
 ## Tree View
 
 ![Tree View Panel](img/xml-editor-tree.png)
-*Tree view sidebar*
+*An XML document in the Tree view*
 
 ### Visual Document Structure
 

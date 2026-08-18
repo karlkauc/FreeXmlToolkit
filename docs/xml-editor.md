@@ -50,15 +50,15 @@ is active - see [Query Documents](unified-shell.md#query-documents-the-target-se
 ### Opening and Saving Files
 
 ![File Operations](img/xml-editor-file-operations.png)
-*File toolbar with Open, Save, and New buttons*
+*The shell header and the editor toolbar with the New, Open, Save ▾, and Format ▾ buttons*
 
 - **Open Files**: Click "Open" or use `Ctrl+O` to browse for XML files
 - **Save Files**: Click "Save" or use `Ctrl+S` to save changes to the current file
 - **Save As**: Use `Ctrl+Shift+S` (or the **Save ▾** arrow menu) to save the current file with a new name
 - **Save All**: Pick **Save All** from the **Save ▾** arrow menu to save every open document tab at once (untitled tabs prompt you for a file name)
-- **Create New**: Click "New" to start with an empty XML document
+- **Create New**: Click "New" (Ctrl+N) to open the guided [New File dialog](unified-shell.md#new-file-dialog) - pick a file type, an optional template or schema, and start editing
 - **Drag & Drop**: Drag files from your file explorer into the editor
-- **Recent Files**: Quick access to recently opened files
+- **Recent Files**: Reopen recently used files from the Explorer panel's **RECENT** section or the Welcome page
 
 ### Multiple Files
 
@@ -128,9 +128,6 @@ The Properties inspector shows the details of the currently selected node and le
 them. Toggle the panel with the toggle at the right end of the editor toolbar; it appears on
 the right side of the editor.
 
-> **Screenshot note:** The existing XML editor screenshots predate this change. The Properties
-> inspector now appears alongside the Text, Tree, and Graphic views (not only the grid).
-
 ### Selecting a Node
 
 How you select a node depends on the active view:
@@ -180,16 +177,16 @@ and Graphic views.
 
 ## Search (Find)
 
-> **Updated in v1.10** - Search now works in the **Graphic** view too, not just the text view.
+> **Updated in July 2026** - Search works in **every view mode** - Text, Tree, and Graphic.
 
-Press **Ctrl+F** to find text in your document. A Find / Replace dialog opens where you type your search term and use the up and down arrows (**Find Previous** / **Find Next**) to move between matches; the search wraps around at the end.
+Press **Ctrl+F** to find text in your document. An inline search bar opens where you type your search term and use the up and down arrows (**Find Previous** / **Find Next**, or Enter / Shift+Enter) to move between matches; the search wraps around at the end.
 
-Search works in both views (case-insensitive):
+Search works in all views (case-insensitive):
 
 - **Text view** - Matches are highlighted in the source. **Replace** is available here.
-- **Graphic view** - The search looks through element names, attribute names, and values across the whole document. The editor jumps to each matching node, auto-expanding collapsed parent nodes, selecting the matching row, and scrolling it into view. (**Replace** is not available in the Graphic view.)
+- **Tree and Graphic views** - The search looks through element names, attribute names, and values across the whole document. The editor jumps to each matching node, auto-expanding collapsed parent nodes, selecting the matching row, and scrolling it into view. (**Replace** is not available here.)
 
-If you switch between the **Text** and **Graphic** sub-tabs while the dialog is open, the search re-targets the active view automatically.
+If you switch the view mode (Text / Tree / Graphic) or the file tab while the search bar is open, the search re-targets the active view automatically.
 
 Learn more: [Search (Find)](xml-editor-features.md#search-find)
 
@@ -238,7 +235,8 @@ The binding applies to the active document and drives **both** features at once:
 ![Pretty Print Before](img/xml-editor-pretty-print-before.png)
 *Before pretty print*
 
-Click **Format** or use `Ctrl+Alt+F` to format your XML with proper indentation.
+Click **Format** or use `Shift+Alt+F` to format your XML with proper indentation. (The
+**Format ▾** arrow menu also offers **Minify** to strip all insignificant whitespace.)
 
 ![Pretty Print After](img/xml-editor-pretty-print-after.png)
 *After pretty print*
@@ -252,10 +250,11 @@ Click **Format** or use `Ctrl+Alt+F` to format your XML with proper indentation.
 
 ### How to Validate
 
-1. Click **Validate** or press **F5**
+1. Click **Validate** or press **F8**
 2. If your XML references a schema, it's loaded automatically - or bind one yourself, see
    [Binding an XSD Schema](#binding-an-xsd-schema)
-3. Errors and warnings appear in the validation panel
+3. Errors and warnings appear in the **PROBLEMS** panel below the editor (and in the
+   Validation activity's PROBLEMS list)
 4. Click an error to jump to the problem location
 
 ### Supported Validation Methods
@@ -280,17 +279,25 @@ Click **Format** or use `Ctrl+Alt+F` to format your XML with proper indentation.
 ## XPath and XQuery
 
 ![XPath Query](img/xml-editor-xpath.png)
-*XPath panel with query input and results*
+*The Query Console docked below the editor - XPath query on the left, the result on the right*
 
-Use XPath and XQuery to find and extract data from your XML documents.
+Use XPath and XQuery to find and extract data from your XML documents. The fastest way is
+the **Query Console**, a panel that docks along the bottom of the editor and always runs
+against the **active** document.
 
-### Using the XPath/XQuery Panel
+### Using the Query Console
 
-1. Toggle the panel with **Ctrl+Q** or click the **XPath** button
-2. Choose **XPath** or **XQuery** tab
-3. Enter your expression
-4. Click **Execute Query**
-5. View results in the editor (matching nodes are highlighted)
+1. Toggle the console with **Ctrl+Shift+X** or the toolbar's terminal icon
+2. Choose **XPath** or **XQuery** with the mode toggle
+3. Enter your expression - it is syntax-highlighted, and IntelliSense suggests element
+   names, functions, and axes as you type (or on **Ctrl+Space**)
+4. Click **Run** (in XPath mode, **Enter** also runs; in XQuery mode use **Ctrl+Enter**)
+5. The result appears in the read-only results pane on the right, with syntax highlighting;
+   **Copy** puts it on the clipboard
+
+**Save** stores the current expression as a named snippet, and the **Snippets** menu loads
+any saved XPath or XQuery snippet back into the console. See
+[Query Console](unified-shell.md#query-console) for the full reference.
 
 ### XPath Examples
 
@@ -342,7 +349,7 @@ into the query panel or the [Query Console](unified-shell.md#query-console) - th
 
 ## XML/Excel/CSV Converter
 
-Click **Convert** (Ctrl+E) to open the converter dialog:
+Click the **Spreadsheet Converter** toolbar button (Ctrl+E) to open the converter dialog:
 
 - **XML to Excel**: Export XML data to Excel spreadsheet
 - **XML to CSV**: Export XML data to CSV file
@@ -353,10 +360,10 @@ Click **Convert** (Ctrl+E) to open the converter dialog:
 
 ## Templates
 
-Click **Templates** (Ctrl+T) to access the template manager:
+Click the **Insert Template** toolbar button (Ctrl+T) to insert a snippet:
 
 - Insert pre-defined XML snippets
-- Create your own templates
+- Create your own templates (Settings → Templates)
 - Organize templates by category
 
 Learn more: [Template Management](template-management.md)
@@ -365,7 +372,8 @@ Learn more: [Template Management](template-management.md)
 
 ## Schema Generator
 
-Click **Generator** (Ctrl+G) to generate an XSD schema from your XML:
+Press **Ctrl+G** (or use the Schema panel's **Generate XSD from XML** tool) to generate an
+XSD schema from your XML:
 
 - Analyze XML structure
 - Generate matching XSD schema
@@ -377,10 +385,11 @@ Click **Generator** (Ctrl+G) to generate an XSD schema from your XML:
 
 Save frequently used files for quick access:
 
-- **Add Favorite** (Ctrl+D) - Save current file to favorites
-- **Favorites** (Ctrl+Shift+D) - Show/hide favorites panel
-
-The favorites panel appears on the right side.
+- **Add Favorite** (Ctrl+D) - Save the current file to favorites
+- **Favorites activity** - Click the star icon in the activity bar to open the Favorites
+  panel; click any entry to open it as a tab
+- Your favorites also appear in the Explorer panel's **FAVORITES** section and as **star
+  menus** next to the file rows of the Transform, Validation, PDF/FOP, and Signature panels
 
 Learn more: [Favorites System](favorites-system.md)
 
@@ -399,17 +408,14 @@ Learn more: [Favorites System](favorites-system.md)
 | Ctrl+Y | Redo |
 | Ctrl+F | Find |
 | Ctrl+H | Replace |
-| Ctrl+G | Go to line |
+| Ctrl+G | Generate XSD from the XML |
 | Ctrl+D | Add to favorites |
-| Ctrl+Shift+D | Toggle favorites |
-| Ctrl+Alt+F | Format/Pretty Print |
-| Ctrl+Q | Toggle XPath panel |
+| Shift+Alt+F | Format/Pretty Print |
+| Ctrl+Shift+X | Toggle the Query Console |
 | Ctrl+E | XML/Excel converter |
 | Ctrl+T | Templates |
-| Ctrl++ | Zoom in |
-| Ctrl+- | Zoom out |
-| F5 | Validate |
-| F1 | Help |
+| Ctrl+mouse wheel | Zoom the editor font (Ctrl+0 resets) |
+| F8 | Validate |
 | `<` | Open auto-completion |
 
 ---
@@ -418,7 +424,7 @@ Learn more: [Favorites System](favorites-system.md)
 
 - **Multiple Files**: Open multiple XML files in different tabs
 - **Remember Location**: The editor remembers the last folder you used
-- **Font Size**: Use `Ctrl++` and `Ctrl+-` to adjust font size
+- **Font Size**: Hold `Ctrl` and scroll the mouse wheel to adjust the font size (`Ctrl+0` resets)
 - **Quick Validation**: Errors are highlighted as you type
 - **Drag & Drop**: Drag files directly into the editor window
 - **Recent Files**: Use the Recent menu for quick access

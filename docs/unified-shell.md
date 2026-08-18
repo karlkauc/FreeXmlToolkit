@@ -1593,7 +1593,5 @@ functionality now lives in the shell:
 | Schema Generator | **Type Library** / Generate XSD from XML |
 | Digital Signatures | **Signature** activity (sign, validate, trust validation, certificate creation) |
 | FOP / PDF | **FOP** activity (XSL-FO → PDF + preview) |
-
-The **XSLT Developer** (advanced IDE with debugger, profiler and batch processing) and the
-**XML Editor** (XML Ultimate, with IntelliSense) remain as dedicated sidebar tools for their
-full feature sets.
+| XSLT Developer | **Transform** panel + editor: run/live transform, parameters, and the ⋮ tools (batch, profile, trace, debugger) — see [XSLT Developer](xslt-developer.md) |
+| XML Editor | The shell's editor itself: every XML document opens with IntelliSense, Text/Tree/Graphic views and the Properties inspector |

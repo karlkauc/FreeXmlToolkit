@@ -1,6 +1,6 @@
 # PDF Generator (FOP)
 
-> **Last Updated:** May 2026 | **Version:** 1.10.0
+> **Last Updated:** August 2026 | **Version:** 2.0.1
 
 Create professional PDF documents from your XML files using Apache FOP (Formatting Objects Processor).
 
@@ -11,7 +11,7 @@ Create professional PDF documents from your XML files using Apache FOP (Formatti
 The PDF Generator combines your XML data with an XSL-FO stylesheet to create formatted PDF documents.
 
 ![PDF Generator Overview](img/fop-pdf.png)
-*The PDF Generator interface with file selection and preview*
+*The PDF / FOP panel with the input files, metadata, and options set*
 
 ### How It Works
 
@@ -69,22 +69,19 @@ Add metadata to your PDF document in the **METADATA** section:
   (`A4`/`Letter`) and `page-orientation` (`Portrait`/`Landscape`). Stylesheets that
   declare these parameters can switch their `fo:simple-page-master` accordingly.
 
-### Step 3: Configure Options (Optional)
-
-| Option | Description |
-|--------|-------------|
-| **FOP Config File** | Custom FOP configuration for fonts, renderers, etc. |
-
 ### Step 4: Generate the PDF
 
-Click **Generate** or press **F5** to create the PDF.
+Click **Generate PDF**. You are asked where to save the output file, and the PDF is
+rendered in the background - the application stays responsive throughout.
 
 ### Step 5: Preview
 
-The generated PDF appears in the built-in viewer on the right side. You can:
+The generated PDF opens in the built-in **PDF preview**. You can:
 - Scroll through pages
 - Review the layout
 - Check formatting
+
+The **Preview** and **Open PDF** buttons re-open the last result at any time.
 
 ---
 
@@ -92,10 +89,13 @@ The generated PDF appears in the built-in viewer on the right side. You can:
 
 Save frequently used XML and XSL-FO files for quick access:
 
-- **Add Favorite** (Ctrl+D) - Save current file to favorites
-- **Favorites** (Ctrl+Shift+D) - Show/hide the favorites panel
+- Both **INPUT** rows carry a **star menu** next to their *Change* link - **XML** favorites
+  for the input, **XSLT** favorites for the stylesheet - so you can pick a favorited file
+  in one click.
+- **Ctrl+D** (or the Favorites panel's **Add current**) stars the active document.
+- The **Favorites** activity (star icon in the activity bar) lists all your saved files.
 
-The favorites panel appears on the right side and provides quick access to your saved files.
+Learn more: [Favorites System](favorites-system.md)
 
 ---
 
@@ -103,11 +103,11 @@ The favorites panel appears on the right side and provides quick access to your 
 
 | Feature | Description |
 |---------|-------------|
-| **Drag & Drop** | Drop files directly into the application |
+| **Drag & Drop** | Drop an `.xml` file onto the XML row or an `.xsl` / `.xslt` file onto the stylesheet row |
 | **Built-in Viewer** | Preview PDFs without leaving the app |
-| **PDF Metadata** | Add author, title, and keywords |
-| **Progress Indicator** | Shows generation progress |
-| **FOP Configuration** | Custom fonts and rendering options |
+| **PDF Metadata** | Add title, author, and subject |
+| **PDF/A-1b** | Optional archival-grade output |
+| **Background Rendering** | Generation runs off the UI thread |
 | **Favorites** | Quick access to frequently used files |
 
 ---
@@ -169,21 +169,8 @@ XSL-FO (Extensible Stylesheet Language Formatting Objects) defines how your XML 
 - **Check error messages** - If generation fails, read the error details
 - **Use the preview** - Review the PDF in the built-in viewer
 - **Save to favorites** - Quick access to frequently used files
-- **FOP configuration** - Use a custom config file for special fonts
-
----
-
-## Keyboard Shortcuts
-
-| Shortcut | Action |
-|----------|--------|
-| Ctrl+1 | Open XML file |
-| Ctrl+2 | Open XSL-FO file |
-| Ctrl+3 | Select output PDF |
-| F5 | Generate PDF |
-| Ctrl+D | Add to favorites |
-| Ctrl+Shift+D | Toggle favorites |
-| F1 | Help |
+- **PDF/A and fonts** - For PDF/A-1b output, use embeddable system fonts in your stylesheet
+  (the PDF base-14 fonts like Helvetica cannot be embedded)
 
 ---
 
@@ -191,8 +178,8 @@ XSL-FO (Extensible Stylesheet Language Formatting Objects) defines how your XML 
 
 | Problem | Solution |
 |---------|----------|
-| No output | Check that all three files are selected |
-| Font issues | Use a custom FOP config with embedded fonts |
+| No output | Check the INPUT section shows both the XML and the XSL-FO stylesheet |
+| Font issues (PDF/A) | Use embeddable system fonts in the stylesheet - see the PDF/A-1b note above |
 | Image not showing | Check image path is correct and accessible |
 | Generation fails | Check the error message for details |
 

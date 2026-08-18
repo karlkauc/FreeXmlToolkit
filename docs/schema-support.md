@@ -1,6 +1,6 @@
 # Schema Support
 
-> **Last Updated:** May 2026 | **Version:** 1.10.0
+> **Last Updated:** August 2026 | **Version:** 2.0.1
 
 FreeXmlToolkit supports different schema formats for validating your XML files. This page explains what's supported and what isn't.
 
@@ -17,7 +17,7 @@ Schemas define rules for your XML documents - what elements are allowed, what or
 ### XSD (XML Schema Definition)
 
 ![XSD Support](img/schema-xsd-support.png)
-*The XSD Validation tool - load an XML file and its schema to validate*
+*The Validation panel - an XML document checked against its bound XSD schema*
 
 **Full Support** - The main schema format used for XML validation.
 
@@ -40,7 +40,7 @@ Schemas define rules for your XML documents - what elements are allowed, what or
 ### Schematron
 
 ![Schematron Support](img/schema-schematron-support.png)
-*The Schematron editor with business-rule patterns, structure outline, and XPath tester*
+*A Schematron rules file (.sch) open as a normal document in the editor*
 
 **Business Rules** - For validation rules that go beyond structure.
 
@@ -85,16 +85,24 @@ Schemas define rules for your XML documents - what elements are allowed, what or
 
 ### Loading a Schema
 
-1. **Automatic:** Open an XML file that references a schema - it loads automatically
-2. **Manual:** Click "Load Schema" and select your XSD file
-3. **Drag & Drop:** Drag a schema file into the application
+1. **Automatic:** Open an XML file that references a schema
+   (`xsi:schemaLocation` / `xsi:noNamespaceSchemaLocation`) - it is bound automatically
+2. **Manual:** Open the **Validation** panel and click **Change** on the XSD row - or click
+   the **XSD indicator** in the status bar and pick an `.xsd` file
+3. **Drag & Drop:** Drop an `.xsd` file onto the Validation panel's XSD row or onto the
+   status bar's XSD indicator
+
+A **Schematron** rules file binds the same way via the Validation panel's Schematron row.
+Schematron files themselves (`.sch`) open as normal documents in the editor.
 
 ### Validation Workflow
 
 1. Open your XML file
-2. Load (or auto-detect) the schema
-3. See validation results immediately
-4. Click on errors to jump to the problem location
+2. Bind (or auto-detect) the schema
+3. Click **Run Validation** in the Validation panel (or press **F8**) - or enable
+   **Validate while typing** to check continuously
+4. Problems appear in the **PROBLEMS** list, each tagged with its source (XSD, Schematron,
+   Well-formed); click one to jump to the problem location
 5. Fix issues and re-validate
 
 ### Using Both XSD and Schematron

@@ -18,7 +18,7 @@ document, and use XSD files effectively.
 ## Overview
 
 When you open an `.xsd` file in the [Unified Shell](unified-shell.md), the editor host and the
-**Type Library** activity provide several capabilities, each with a specific purpose:
+**Schema** activity provide several capabilities, each with a specific purpose:
 
 | Capability                | Description                                             |
 |---------------------------|---------------------------------------------------------|
@@ -108,7 +108,8 @@ A few things to know:
 
 ## 2. Type Library
 
-The Type Library provides a comprehensive view of all types defined in your schema.
+The Schema activity's side panel is your type library: it lists the active schema's
+top-level declarations so you can browse, find, and open every type in the schema.
 
 ![Type Library in the Unified Shell](img/unified-shell-type-library.png)
 *The Schema activity's Type Library, with the schema diagram in the editor host*
@@ -116,32 +117,27 @@ The Type Library provides a comprehensive view of all types defined in your sche
 
 ### Features
 
-| Feature               | Description                                     |
-|-----------------------|-------------------------------------------------|
-| **All Types List**    | View all SimpleTypes and ComplexTypes           |
-| **Usage Information** | See XPath locations where each type is used     |
-| **Unused Types**      | Highlight types that are not referenced         |
-| **Filter Options**    | Filter by All, Simple, Complex, or Unused types |
-| **Search**            | Find types by name                              |
-| **Documentation**     | View documentation for each type                |
-| **Export**            | Export type list to file                        |
+| Feature               | Description                                                          |
+|-----------------------|----------------------------------------------------------------------|
+| **Grouped lists**     | Declarations grouped into **GLOBAL ELEMENTS**, **COMPLEX TYPES**, and **SIMPLE TYPES** (collapsible sections) |
+| **Filter**            | A filter field on top narrows all three lists by name as you type    |
+| **Reveal in Tree**    | Click a declaration to reveal it in the schema's Tree view           |
+| **Open Type Editor**  | Double-click a type to open it in its own [Type Editor](#3-type-editor) tab |
+| **Find Usage**        | Right-click a type to find the places where it is used              |
+| **Schema tools**      | A strip of icon buttons above the filter: Generate XSD from XML (single/batch), Generate Sample XML (plain/advanced), Flatten Schema, Statistics, Schema Quality, and Generate Documentation - hover a button for its name |
 
 ### How to Use
 
 1. Open your XSD file
-2. Open the **Type Library** activity from the activity bar
-3. Browse or search for types
-4. Click on a type to see its details
-5. Use the filter dropdown to narrow results
+2. Open the **Schema** activity from the activity bar
+3. Browse the grouped lists, or type in the filter field to narrow them
+4. **Click** a declaration to reveal it in the Tree view
+5. **Double-click** a type - or right-click and choose **Open Type Editor** - to edit it;
+   right-click also offers **Reveal in Tree** and **Find Usage**
 
-### Filter Options
-
-| Filter            | Shows                           |
-|-------------------|---------------------------------|
-| **All Types**     | Every type in the schema        |
-| **Simple Types**  | Only xs:simpleType definitions  |
-| **Complex Types** | Only xs:complexType definitions |
-| **Unused Types**  | Types not referenced anywhere   |
+!!! tip
+    The whole panel is a drop zone: drop an `.xsd` file from your file manager anywhere on
+    it to open that schema as a document.
 
 ---
 
@@ -150,17 +146,16 @@ The Type Library provides a comprehensive view of all types defined in your sche
 The Type Editor provides dedicated editing for ComplexTypes and SimpleTypes.
 
 ![Type Editor](img/xsd-type-editor.png)
-*Type Editor with graphical editing for ComplexTypes*
+*A named type opened in its own Type Editor tab in the editor area*
 
 
 ### Features
 
-| Feature                | Description                          |
-|------------------------|--------------------------------------|
-| **Tab-Based Editing**  | Each type opens in its own tab       |
-| **ComplexType Editor** | Graphical editing with element tree  |
-| **SimpleType Editor**  | Form-based editing with facet panels |
-| **SimpleTypes List**   | Overview of all SimpleTypes          |
+| Feature                | Description                                         |
+|------------------------|-----------------------------------------------------|
+| **Tab-Based Editing**  | Each type opens in its own tab in the editor area   |
+| **ComplexType Editor** | Graphical editing with element tree                 |
+| **SimpleType Editor**  | Form-based editing with facet panels                |
 
 ### ComplexType Editor
 
@@ -185,9 +180,10 @@ For SimpleTypes, you get a 5-panel form editor:
 
 ### How to Use
 
-1. In the Type Library or Graphic View, find a type
-2. Double-click or right-click and select "Edit Type"
-3. The type opens in the Type Editor tab
+1. In the Schema panel's Type Library, find the type (use the filter field for large schemas)
+2. **Double-click** it - or right-click and choose **Open Type Editor**. Alternatively, pick
+   **Type Editor…** from the editor toolbar's **Schema ▾** menu and choose a type by name.
+3. The type opens in its own Type Editor tab in the editor area
 4. Make your changes
 5. Click Save or use Ctrl+S
 
@@ -200,16 +196,12 @@ The Text View provides raw XSD source code editing.
 ![XSD Text view in the Unified Shell](img/unified-shell-schema-text.png)
 *The XSD in the Unified Shell's Text view (Schema activity panel on the left, inspector on the right)*
 
-> **Screenshot note:** Existing XSD Text view screenshots predate the editable Properties pane.
-> The Properties pane now also appears alongside the Text view when the caret is inside a schema
-> construct.
-
 ### Features
 
 - **Full Code Editor**: View and edit the raw XSD source code
 - **Syntax Highlighting**: Color-coded code for easy reading
 - **Search and Replace**: Find and change text quickly
-- **XPath/XQuery Panel**: Query the schema with XPath
+- **Query Console**: Query the schema with XPath/XQuery (Ctrl+Shift+X)
 - **Save as Favorite**: Quick access to frequently used schemas
 - **Editable Properties pane**: Move the text caret into a schema construct to select it and edit its properties without leaving the text editor (see below)
 
@@ -262,57 +254,35 @@ For the selected schema node you can edit:
 
 ## 5. Schema Analysis
 
-The Schema Analysis view (in the **Type Library** activity) provides comprehensive analysis tools for your XSD.
+Two tool buttons in the **Schema** activity's side panel analyze the active XSD. Each opens
+its result as a report tab in the editor area, so you can read, compare, or save it like any
+other document.
 
 ![Schema statistics in the Unified Shell](img/unified-shell-schema-statistics.png)
 *Schema statistics open as a report tab from the Schema activity's **Statistics** action*
 
 
-### Sub-Tabs
+### Statistics
 
-The Schema Analysis view contains four sub-tabs:
+The **Statistics** button produces a report with schema metrics at a glance:
 
-#### Statistics
+| Metric                     | Description                                          |
+|----------------------------|------------------------------------------------------|
+| **XSD Version**            | 1.0 or 1.1 features detected                         |
+| **Element Count**          | Total number of elements                             |
+| **Attribute Count**        | Total attributes defined                             |
+| **Type Count**             | Number of SimpleTypes and ComplexTypes               |
+| **Group Count**            | Model groups and attribute groups                    |
+| **Includes / Imports**     | How many schema files are pulled in                  |
+| **Constraints**            | Counts of `xs:key`, `xs:keyref`, `xs:unique`, and assertions |
+| **Cardinality**            | Optional, required, and unbounded elements           |
+| **Documentation Coverage** | Percentage of documented nodes                       |
+| **Unused Types**           | Named types that are never referenced (listed by name) |
 
-View schema metrics at a glance:
+### Quality Checks
 
-| Metric              | Description                            |
-|---------------------|----------------------------------------|
-| **Element Count**   | Total number of elements               |
-| **Type Count**      | Number of SimpleTypes and ComplexTypes |
-| **Attribute Count** | Total attributes defined               |
-| **Group Count**     | Model groups and attribute groups      |
-| **Namespace Info**  | Target namespace and prefixes          |
-| **XSD Version**     | 1.0 or 1.1 features detected           |
-
-#### Identity Constraints
-
-View and analyze identity constraints:
-
-| Constraint Type | Description              |
-|-----------------|--------------------------|
-| **xs:key**      | Unique key definitions   |
-| **xs:keyref**   | Foreign key references   |
-| **xs:unique**   | Unique value constraints |
-
-For each constraint, you can see:
-
-- Selector XPath expression
-- Field XPath expressions
-- Referenced elements
-
-#### XPath Validation
-
-Test XPath expressions against sample XML:
-
-1. Load or generate sample XML
-2. Enter an XPath expression
-3. See matching nodes highlighted
-4. Validate constraints against real data
-
-#### Quality Checks
-
-Automated quality checks for your schema:
+The **Schema Quality** button runs automated quality checks and reports a score plus a list
+of issues:
 
 | Check                      | Description                       |
 |----------------------------|-----------------------------------|
@@ -322,6 +292,11 @@ Automated quality checks for your schema:
 | **Circular References**    | Detect circular type references   |
 | **Best Practices**         | Common XSD best practices         |
 
+!!! note
+    Identity constraints (`xs:key`, `xs:keyref`, `xs:unique`, `xs:assert`) can also be
+    inspected and deleted per node in the Properties inspector's **CONSTRAINTS** section -
+    see [What You Can Edit in the Properties Pane](#what-you-can-edit-in-the-properties-pane).
+
 ---
 
 ## 6. Documentation Generator
@@ -329,7 +304,7 @@ Automated quality checks for your schema:
 Create professional documentation from your XSD file automatically.
 
 ![Documentation Generator](img/xsd-documentation.png)
-*Generated HTML documentation from an XSD schema*
+*The Documentation generator open as a tab in the editor area, with source, format, and options*
 
 ### Output Formats
 
@@ -342,12 +317,20 @@ Create professional documentation from your XSD file automatically.
 ### How to Generate Documentation
 
 1. Open your XSD file in the editor host
-2. Open the **Documentation** view from the **Type Library** activity
-3. Select your output format (HTML, Word, or PDF)
-4. Choose diagram format (PNG or SVG)
-5. Configure options
-6. Click **Generate**
-7. Preview the documentation or open the folder
+2. Click **Generate Documentation…** in the **Schema** panel's tool strip (or pick it from
+   the editor toolbar's **Schema ▾** menu) - the generator opens as a tab in the editor area
+3. Check **SOURCE & OUTPUT**: the active schema is pre-filled; choose the output folder
+   (HTML) or file (PDF/Word)
+4. Select your output format (HTML, PDF, or Word) and the diagram format (SVG, PNG, or JPG)
+5. Configure options (PDF and Word add page-layout and content options)
+6. Click **Generate** - the PROGRESS log streams the pipeline's messages live, and the run
+   can be cancelled
+7. Open the result automatically or from the output location
+
+!!! tip
+    Generation works from the schema's **last-saved** version on disk so that relative
+    `xs:include` / `xs:import` references resolve correctly - save the XSD first to document
+    your latest edits.
 
 ### Generation Options
 
@@ -406,12 +389,12 @@ You can add structured technical information directly in your XSD files:
 Create sample XML files based on your XSD schema. This is useful for testing, data migration, or as a starting template.
 
 ![Sample XML Generator](img/xsd-sample-generator.png)
-*Sample XML generator with rules table and XML preview*
+*The advanced sample generator dialog with its per-XPath rules table*
 
 > **Unified Shell (June 2026):** In the [Unified Shell](unified-shell.md), sample-data
 > generation lives in the **Schema** panel. It offers two actions: **Generate Sample XML** for
 > the basic generation described below, and **Generate Sample XML (Advanced)…** for the
-> rule-based, batch-capable generation. The screenshots above predate the advanced dialog.
+> rule-based, batch-capable generation shown above.
 
 ### Quick Start (Basic Generation)
 
@@ -444,12 +427,13 @@ For a complete guide with step-by-step instructions and examples, see **[Profile
 
 ### Validation
 
-After generating sample XML, you can validate it:
+The generated sample opens as a normal editor tab (`Sample.xml`), so you can validate it
+like any other document:
 
-1. Click **Validate XML**
-2. See validation results in the panel
-3. Click on errors to see details
-4. Export errors to file if needed
+1. Bind the schema if it is not picked up automatically (Validation panel → SOURCES, or the
+   status bar's XSD indicator)
+2. Click **Validate** (F8)
+3. Problems appear in the PROBLEMS list - click one to jump to its line
 
 ---
 
@@ -522,7 +506,7 @@ When saving schemas from the graphical editor, `xs:include` and `xs:import` decl
 | `Ctrl+Z` | Undo                    |
 | `Ctrl+Y` | Redo                    |
 | `Ctrl+F` | Find/Replace            |
-| `Ctrl+Q` | Toggle XPath panel      |
+| `Ctrl+Shift+X` | Toggle the Query Console |
 | `Ctrl+D` | Add to favorites        |
 | `Delete` | Delete selected element |
 | `F2`     | Rename element          |
