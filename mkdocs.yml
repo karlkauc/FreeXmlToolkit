@@ -53,9 +53,7 @@ plugins:
 exclude_docs: |
   superpowers/plans/
   superpowers/specs/
-  REFACTORING_PLAN.md
   ThreadPoolArchitecture.md
-  usability-report.md
   testing/auto-update-windows.md
 
 markdown_extensions:
