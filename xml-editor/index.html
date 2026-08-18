@@ -1031,10 +1031,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#using-the-xpathxquery-panel" class="md-nav__link">
+  <a href="#using-the-query-console" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Using the XPath/XQuery Panel
+        Using the Query Console
       
     </span>
   </a>
@@ -2453,10 +2453,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#using-the-xpathxquery-panel" class="md-nav__link">
+  <a href="#using-the-query-console" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Using the XPath/XQuery Panel
+        Using the Query Console
       
     </span>
   </a>
@@ -2695,15 +2695,15 @@ is active - see <a href="../unified-shell/#query-documents-the-target-selector">
 <h2 id="working-with-files">Working with Files<a class="headerlink" href="#working-with-files" title="Permanent link">&para;</a></h2>
 <h3 id="opening-and-saving-files">Opening and Saving Files<a class="headerlink" href="#opening-and-saving-files" title="Permanent link">&para;</a></h3>
 <p><img alt="File Operations" src="../img/xml-editor-file-operations.png" />
-<em>File toolbar with Open, Save, and New buttons</em></p>
+<em>The shell header and the editor toolbar with the New, Open, Save ▾, and Format ▾ buttons</em></p>
 <ul>
 <li><strong>Open Files</strong>: Click "Open" or use <code>Ctrl+O</code> to browse for XML files</li>
 <li><strong>Save Files</strong>: Click "Save" or use <code>Ctrl+S</code> to save changes to the current file</li>
 <li><strong>Save As</strong>: Use <code>Ctrl+Shift+S</code> (or the <strong>Save ▾</strong> arrow menu) to save the current file with a new name</li>
 <li><strong>Save All</strong>: Pick <strong>Save All</strong> from the <strong>Save ▾</strong> arrow menu to save every open document tab at once (untitled tabs prompt you for a file name)</li>
-<li><strong>Create New</strong>: Click "New" to start with an empty XML document</li>
+<li><strong>Create New</strong>: Click "New" (Ctrl+N) to open the guided <a href="../unified-shell/#new-file-dialog">New File dialog</a> - pick a file type, an optional template or schema, and start editing</li>
 <li><strong>Drag &amp; Drop</strong>: Drag files from your file explorer into the editor</li>
-<li><strong>Recent Files</strong>: Quick access to recently opened files</li>
+<li><strong>Recent Files</strong>: Reopen recently used files from the Explorer panel's <strong>RECENT</strong> section or the Welcome page</li>
 </ul>
 <h3 id="multiple-files">Multiple Files<a class="headerlink" href="#multiple-files" title="Permanent link">&para;</a></h3>
 <p>Open multiple XML files in separate tabs. Each tab shows the file name and indicates unsaved changes with an asterisk (*).</p>
@@ -2763,10 +2763,6 @@ was only available in the grid.</p>
 <p>The Properties inspector shows the details of the currently selected node and lets you change
 them. Toggle the panel with the toggle at the right end of the editor toolbar; it appears on
 the right side of the editor.</p>
-<blockquote>
-<p><strong>Screenshot note:</strong> The existing XML editor screenshots predate this change. The Properties
-inspector now appears alongside the Text, Tree, and Graphic views (not only the grid).</p>
-</blockquote>
 <h3 id="selecting-a-node">Selecting a Node<a class="headerlink" href="#selecting-a-node" title="Permanent link">&para;</a></h3>
 <p>How you select a node depends on the active view:</p>
 <ul>
@@ -2809,15 +2805,15 @@ property editing through the inspector.</p>
 <hr />
 <h2 id="search-find">Search (Find)<a class="headerlink" href="#search-find" title="Permanent link">&para;</a></h2>
 <blockquote>
-<p><strong>Updated in v1.10</strong> - Search now works in the <strong>Graphic</strong> view too, not just the text view.</p>
+<p><strong>Updated in July 2026</strong> - Search works in <strong>every view mode</strong> - Text, Tree, and Graphic.</p>
 </blockquote>
-<p>Press <strong>Ctrl+F</strong> to find text in your document. A Find / Replace dialog opens where you type your search term and use the up and down arrows (<strong>Find Previous</strong> / <strong>Find Next</strong>) to move between matches; the search wraps around at the end.</p>
-<p>Search works in both views (case-insensitive):</p>
+<p>Press <strong>Ctrl+F</strong> to find text in your document. An inline search bar opens where you type your search term and use the up and down arrows (<strong>Find Previous</strong> / <strong>Find Next</strong>, or Enter / Shift+Enter) to move between matches; the search wraps around at the end.</p>
+<p>Search works in all views (case-insensitive):</p>
 <ul>
 <li><strong>Text view</strong> - Matches are highlighted in the source. <strong>Replace</strong> is available here.</li>
-<li><strong>Graphic view</strong> - The search looks through element names, attribute names, and values across the whole document. The editor jumps to each matching node, auto-expanding collapsed parent nodes, selecting the matching row, and scrolling it into view. (<strong>Replace</strong> is not available in the Graphic view.)</li>
+<li><strong>Tree and Graphic views</strong> - The search looks through element names, attribute names, and values across the whole document. The editor jumps to each matching node, auto-expanding collapsed parent nodes, selecting the matching row, and scrolling it into view. (<strong>Replace</strong> is not available here.)</li>
 </ul>
-<p>If you switch between the <strong>Text</strong> and <strong>Graphic</strong> sub-tabs while the dialog is open, the search re-targets the active view automatically.</p>
+<p>If you switch the view mode (Text / Tree / Graphic) or the file tab while the search bar is open, the search re-targets the active view automatically.</p>
 <p>Learn more: <a href="../xml-editor-features/#search-find">Search (Find)</a></p>
 <hr />
 <h2 id="auto-completion-intellisense">Auto-Completion (IntelliSense)<a class="headerlink" href="#auto-completion-intellisense" title="Permanent link">&para;</a></h2>
@@ -2854,7 +2850,8 @@ XSD by hand:</p>
 <h3 id="pretty-print">Pretty Print<a class="headerlink" href="#pretty-print" title="Permanent link">&para;</a></h3>
 <p><img alt="Pretty Print Before" src="../img/xml-editor-pretty-print-before.png" />
 <em>Before pretty print</em></p>
-<p>Click <strong>Format</strong> or use <code>Ctrl+Alt+F</code> to format your XML with proper indentation.</p>
+<p>Click <strong>Format</strong> or use <code>Shift+Alt+F</code> to format your XML with proper indentation. (The
+<strong>Format ▾</strong> arrow menu also offers <strong>Minify</strong> to strip all insignificant whitespace.)</p>
 <p><img alt="Pretty Print After" src="../img/xml-editor-pretty-print-after.png" />
 <em>After pretty print</em></p>
 <hr />
@@ -2863,10 +2860,11 @@ XSD by hand:</p>
 <em>Validation panel showing errors and warnings</em></p>
 <h3 id="how-to-validate">How to Validate<a class="headerlink" href="#how-to-validate" title="Permanent link">&para;</a></h3>
 <ol>
-<li>Click <strong>Validate</strong> or press <strong>F5</strong></li>
+<li>Click <strong>Validate</strong> or press <strong>F8</strong></li>
 <li>If your XML references a schema, it's loaded automatically - or bind one yourself, see
    <a href="#binding-an-xsd-schema">Binding an XSD Schema</a></li>
-<li>Errors and warnings appear in the validation panel</li>
+<li>Errors and warnings appear in the <strong>PROBLEMS</strong> panel below the editor (and in the
+   Validation activity's PROBLEMS list)</li>
 <li>Click an error to jump to the problem location</li>
 </ol>
 <h3 id="supported-validation-methods">Supported Validation Methods<a class="headerlink" href="#supported-validation-methods" title="Permanent link">&para;</a></h3>
@@ -2922,16 +2920,23 @@ XSD by hand:</p>
 <hr />
 <h2 id="xpath-and-xquery">XPath and XQuery<a class="headerlink" href="#xpath-and-xquery" title="Permanent link">&para;</a></h2>
 <p><img alt="XPath Query" src="../img/xml-editor-xpath.png" />
-<em>XPath panel with query input and results</em></p>
-<p>Use XPath and XQuery to find and extract data from your XML documents.</p>
-<h3 id="using-the-xpathxquery-panel">Using the XPath/XQuery Panel<a class="headerlink" href="#using-the-xpathxquery-panel" title="Permanent link">&para;</a></h3>
+<em>The Query Console docked below the editor - XPath query on the left, the result on the right</em></p>
+<p>Use XPath and XQuery to find and extract data from your XML documents. The fastest way is
+the <strong>Query Console</strong>, a panel that docks along the bottom of the editor and always runs
+against the <strong>active</strong> document.</p>
+<h3 id="using-the-query-console">Using the Query Console<a class="headerlink" href="#using-the-query-console" title="Permanent link">&para;</a></h3>
 <ol>
-<li>Toggle the panel with <strong>Ctrl+Q</strong> or click the <strong>XPath</strong> button</li>
-<li>Choose <strong>XPath</strong> or <strong>XQuery</strong> tab</li>
-<li>Enter your expression</li>
-<li>Click <strong>Execute Query</strong></li>
-<li>View results in the editor (matching nodes are highlighted)</li>
+<li>Toggle the console with <strong>Ctrl+Shift+X</strong> or the toolbar's terminal icon</li>
+<li>Choose <strong>XPath</strong> or <strong>XQuery</strong> with the mode toggle</li>
+<li>Enter your expression - it is syntax-highlighted, and IntelliSense suggests element
+   names, functions, and axes as you type (or on <strong>Ctrl+Space</strong>)</li>
+<li>Click <strong>Run</strong> (in XPath mode, <strong>Enter</strong> also runs; in XQuery mode use <strong>Ctrl+Enter</strong>)</li>
+<li>The result appears in the read-only results pane on the right, with syntax highlighting;
+   <strong>Copy</strong> puts it on the clipboard</li>
 </ol>
+<p><strong>Save</strong> stores the current expression as a named snippet, and the <strong>Snippets</strong> menu loads
+any saved XPath or XQuery snippet back into the console. See
+<a href="../unified-shell/#query-console">Query Console</a> for the full reference.</p>
 <h3 id="xpath-examples">XPath Examples<a class="headerlink" href="#xpath-examples" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -3010,7 +3015,7 @@ into the query panel or the <a href="../unified-shell/#query-console">Query Cons
 <code>README.md</code> describing every example.</p>
 <hr />
 <h2 id="xmlexcelcsv-converter">XML/Excel/CSV Converter<a class="headerlink" href="#xmlexcelcsv-converter" title="Permanent link">&para;</a></h2>
-<p>Click <strong>Convert</strong> (Ctrl+E) to open the converter dialog:</p>
+<p>Click the <strong>Spreadsheet Converter</strong> toolbar button (Ctrl+E) to open the converter dialog:</p>
 <ul>
 <li><strong>XML to Excel</strong>: Export XML data to Excel spreadsheet</li>
 <li><strong>XML to CSV</strong>: Export XML data to CSV file</li>
@@ -3019,16 +3024,17 @@ into the query panel or the <a href="../unified-shell/#query-console">Query Cons
 </ul>
 <hr />
 <h2 id="templates">Templates<a class="headerlink" href="#templates" title="Permanent link">&para;</a></h2>
-<p>Click <strong>Templates</strong> (Ctrl+T) to access the template manager:</p>
+<p>Click the <strong>Insert Template</strong> toolbar button (Ctrl+T) to insert a snippet:</p>
 <ul>
 <li>Insert pre-defined XML snippets</li>
-<li>Create your own templates</li>
+<li>Create your own templates (Settings → Templates)</li>
 <li>Organize templates by category</li>
 </ul>
 <p>Learn more: <a href="../template-management/">Template Management</a></p>
 <hr />
 <h2 id="schema-generator">Schema Generator<a class="headerlink" href="#schema-generator" title="Permanent link">&para;</a></h2>
-<p>Click <strong>Generator</strong> (Ctrl+G) to generate an XSD schema from your XML:</p>
+<p>Press <strong>Ctrl+G</strong> (or use the Schema panel's <strong>Generate XSD from XML</strong> tool) to generate an
+XSD schema from your XML:</p>
 <ul>
 <li>Analyze XML structure</li>
 <li>Generate matching XSD schema</li>
@@ -3038,10 +3044,12 @@ into the query panel or the <a href="../unified-shell/#query-console">Query Cons
 <h2 id="favorites">Favorites<a class="headerlink" href="#favorites" title="Permanent link">&para;</a></h2>
 <p>Save frequently used files for quick access:</p>
 <ul>
-<li><strong>Add Favorite</strong> (Ctrl+D) - Save current file to favorites</li>
-<li><strong>Favorites</strong> (Ctrl+Shift+D) - Show/hide favorites panel</li>
+<li><strong>Add Favorite</strong> (Ctrl+D) - Save the current file to favorites</li>
+<li><strong>Favorites activity</strong> - Click the star icon in the activity bar to open the Favorites
+  panel; click any entry to open it as a tab</li>
+<li>Your favorites also appear in the Explorer panel's <strong>FAVORITES</strong> section and as <strong>star
+  menus</strong> next to the file rows of the Transform, Validation, PDF/FOP, and Signature panels</li>
 </ul>
-<p>The favorites panel appears on the right side.</p>
 <p>Learn more: <a href="../favorites-system/">Favorites System</a></p>
 <hr />
 <h2 id="keyboard-shortcuts">Keyboard Shortcuts<a class="headerlink" href="#keyboard-shortcuts" title="Permanent link">&para;</a></h2>
@@ -3091,23 +3099,19 @@ into the query panel or the <a href="../unified-shell/#query-console">Query Cons
 </tr>
 <tr>
 <td>Ctrl+G</td>
-<td>Go to line</td>
+<td>Generate XSD from the XML</td>
 </tr>
 <tr>
 <td>Ctrl+D</td>
 <td>Add to favorites</td>
 </tr>
 <tr>
-<td>Ctrl+Shift+D</td>
-<td>Toggle favorites</td>
-</tr>
-<tr>
-<td>Ctrl+Alt+F</td>
+<td>Shift+Alt+F</td>
 <td>Format/Pretty Print</td>
 </tr>
 <tr>
-<td>Ctrl+Q</td>
-<td>Toggle XPath panel</td>
+<td>Ctrl+Shift+X</td>
+<td>Toggle the Query Console</td>
 </tr>
 <tr>
 <td>Ctrl+E</td>
@@ -3118,20 +3122,12 @@ into the query panel or the <a href="../unified-shell/#query-console">Query Cons
 <td>Templates</td>
 </tr>
 <tr>
-<td>Ctrl++</td>
-<td>Zoom in</td>
+<td>Ctrl+mouse wheel</td>
+<td>Zoom the editor font (Ctrl+0 resets)</td>
 </tr>
 <tr>
-<td>Ctrl+-</td>
-<td>Zoom out</td>
-</tr>
-<tr>
-<td>F5</td>
+<td>F8</td>
 <td>Validate</td>
-</tr>
-<tr>
-<td>F1</td>
-<td>Help</td>
 </tr>
 <tr>
 <td><code>&lt;</code></td>
@@ -3144,7 +3140,7 @@ into the query panel or the <a href="../unified-shell/#query-console">Query Cons
 <ul>
 <li><strong>Multiple Files</strong>: Open multiple XML files in different tabs</li>
 <li><strong>Remember Location</strong>: The editor remembers the last folder you used</li>
-<li><strong>Font Size</strong>: Use <code>Ctrl++</code> and <code>Ctrl+-</code> to adjust font size</li>
+<li><strong>Font Size</strong>: Hold <code>Ctrl</code> and scroll the mouse wheel to adjust the font size (<code>Ctrl+0</code> resets)</li>
 <li><strong>Quick Validation</strong>: Errors are highlighted as you type</li>
 <li><strong>Drag &amp; Drop</strong>: Drag files directly into the editor window</li>
 <li><strong>Recent Files</strong>: Use the Recent menu for quick access</li>

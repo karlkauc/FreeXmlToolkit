@@ -2178,22 +2178,20 @@
 
 <h1 id="xslt-viewer">XSLT Viewer<a class="headerlink" href="#xslt-viewer" title="Permanent link">&para;</a></h1>
 <blockquote>
-<p><strong>Last Updated:</strong> May 2026 | <strong>Version:</strong> 1.10.0</p>
+<p><strong>Last Updated:</strong> August 2026 | <strong>Version:</strong> 2.0.1</p>
 <p><strong>Note (Phase 10c):</strong> The standalone <em>XSLT Viewer</em> tab has been retired. Quick
 XSLT transformations now live in the <strong>Unified Shell's Transform panel</strong>
-(set a stylesheet, transform, preview the result, open in browser), and full
-editing/parameters/batch processing remain in the
-<a href="../xslt-developer/">XSLT Developer</a>. The workflow below is unchanged in spirit;
-the controls are now part of the Transform side panel rather than a dedicated tab.</p>
+(set a stylesheet, transform, preview the result, open in browser). Parameters,
+live preview, debugging, profiling, and batch processing sit in the same panel -
+the <a href="../xslt-developer/">XSLT Developer</a> page covers those advanced tools.</p>
 </blockquote>
-<p>The XSLT Viewer allows you to quickly transform XML documents using XSLT stylesheets. Simply select your files and view
+<p>This page shows how to quickly transform XML documents using XSLT stylesheets. Simply select your files and view
 the results immediately.</p>
 <hr />
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
-<p>The XSLT Viewer is designed for quick transformations where you want to see results immediately. In the
-<a href="../unified-shell/">Unified Shell</a> these quick transformations live in the <strong>Transform</strong> panel (open it
-from the <strong>Transform</strong> icon in the activity bar). For advanced features like live editing, parameters, and
-batch processing, use the <a href="../xslt-developer/">XSLT Developer</a>.</p>
+<p>The Transform panel is designed for quick transformations where you want to see results immediately. Open it in the
+<a href="../unified-shell/">Unified Shell</a> from the <strong>Transform</strong> icon in the activity bar. For advanced features like the
+debugger, profiling, and batch processing, see the <a href="../xslt-developer/">XSLT Developer</a> guide.</p>
 <p><img alt="Transform panel in the Unified Shell" src="../img/unified-shell-transform.png" />
 <em>Quick XSLT/XQuery transformations now live in the Unified Shell's Transform panel</em></p>
 <hr />
@@ -2202,7 +2200,8 @@ batch processing, use the <a href="../xslt-developer/">XSLT Developer</a>.</p>
 recipe that tells the computer how to convert your XML data into a different format such as HTML, text, or another XML
 structure.</p>
 <p><img alt="XSLT Concept" src="../img/xslt-factsheet.png" />
-<em>XSLT transformation: XML input + XSLT rules = Output</em></p>
+<em>XML input + XSLT rules = Output: a FundsXML factsheet stylesheet rendered as HTML in the
+OUTPUT panel below the editor</em></p>
 <p><strong>Common uses:</strong></p>
 <ul>
 <li>Convert XML data to HTML for web display</li>
@@ -2556,12 +2555,14 @@ the next run also opens a read-only Profile tool tab.</p>
 <li><strong>Check the OUTPUT panel status</strong> - If a transformation fails, the red error status in the OUTPUT panel header shows the error message</li>
 <li><strong>Use the Preview view</strong> - For HTML output, the OUTPUT panel's <strong>Preview</strong> toggle shows you exactly how it will look</li>
 <li><strong>Try the example files</strong> - Learn from the included examples in the <code>examples/</code> folder</li>
-<li><strong>Need more features?</strong> - Use the <a href="../xslt-developer/">XSLT Developer</a> for advanced editing</li>
+<li><strong>Need more features?</strong> - See the <a href="../xslt-developer/">XSLT Developer</a> guide for parameters,
+  the interactive debugger, profiling/tracing, and batch processing (all in the Transform
+  panel and its ⋮ menu)</li>
 </ul>
 <hr />
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
 <ul>
-<li><a href="../xslt-developer/">XSLT Developer</a> - Full XSLT/XQuery development environment</li>
+<li><a href="../xslt-developer/">XSLT Developer</a> - Advanced XSLT/XQuery development: parameters, debugger, batch processing</li>
 <li><a href="../pdf-generator/">PDF Generator (FOP)</a> - Generate PDFs from XSL-FO stylesheets</li>
 </ul>
 <hr />

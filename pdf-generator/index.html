@@ -1339,17 +1339,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#step-3-configure-options-optional" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Step 3: Configure Options (Optional)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#step-4-generate-the-pdf" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1442,17 +1431,6 @@
     <span class="md-ellipsis">
       
         Tips
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#keyboard-shortcuts" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Keyboard Shortcuts
       
     </span>
   </a>
@@ -2048,17 +2026,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#step-3-configure-options-optional" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Step 3: Configure Options (Optional)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#step-4-generate-the-pdf" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2158,17 +2125,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#keyboard-shortcuts" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Keyboard Shortcuts
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#troubleshooting" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2212,14 +2168,14 @@
 
 <h1 id="pdf-generator-fop">PDF Generator (FOP)<a class="headerlink" href="#pdf-generator-fop" title="Permanent link">&para;</a></h1>
 <blockquote>
-<p><strong>Last Updated:</strong> May 2026 | <strong>Version:</strong> 1.10.0</p>
+<p><strong>Last Updated:</strong> August 2026 | <strong>Version:</strong> 2.0.1</p>
 </blockquote>
 <p>Create professional PDF documents from your XML files using Apache FOP (Formatting Objects Processor).</p>
 <hr />
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
 <p>The PDF Generator combines your XML data with an XSL-FO stylesheet to create formatted PDF documents.</p>
 <p><img alt="PDF Generator Overview" src="../img/fop-pdf.png" />
-<em>The PDF Generator interface with file selection and preview</em></p>
+<em>The PDF / FOP panel with the input files, metadata, and options set</em></p>
 <h3 id="how-it-works">How It Works<a class="headerlink" href="#how-it-works" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>XML Data + XSL-FO Stylesheet = PDF Document
 </code></pre></div>
@@ -2301,36 +2257,26 @@ bar. The panel is organized into three sections plus the primary action:</p>
   (<code>A4</code>/<code>Letter</code>) and <code>page-orientation</code> (<code>Portrait</code>/<code>Landscape</code>). Stylesheets that
   declare these parameters can switch their <code>fo:simple-page-master</code> accordingly.</li>
 </ul>
-<h3 id="step-3-configure-options-optional">Step 3: Configure Options (Optional)<a class="headerlink" href="#step-3-configure-options-optional" title="Permanent link">&para;</a></h3>
-<table>
-<thead>
-<tr>
-<th>Option</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>FOP Config File</strong></td>
-<td>Custom FOP configuration for fonts, renderers, etc.</td>
-</tr>
-</tbody>
-</table>
 <h3 id="step-4-generate-the-pdf">Step 4: Generate the PDF<a class="headerlink" href="#step-4-generate-the-pdf" title="Permanent link">&para;</a></h3>
-<p>Click <strong>Generate</strong> or press <strong>F5</strong> to create the PDF.</p>
+<p>Click <strong>Generate PDF</strong>. You are asked where to save the output file, and the PDF is
+rendered in the background - the application stays responsive throughout.</p>
 <h3 id="step-5-preview">Step 5: Preview<a class="headerlink" href="#step-5-preview" title="Permanent link">&para;</a></h3>
-<p>The generated PDF appears in the built-in viewer on the right side. You can:
+<p>The generated PDF opens in the built-in <strong>PDF preview</strong>. You can:
 - Scroll through pages
 - Review the layout
 - Check formatting</p>
+<p>The <strong>Preview</strong> and <strong>Open PDF</strong> buttons re-open the last result at any time.</p>
 <hr />
 <h2 id="favorites-integration">Favorites Integration<a class="headerlink" href="#favorites-integration" title="Permanent link">&para;</a></h2>
 <p>Save frequently used XML and XSL-FO files for quick access:</p>
 <ul>
-<li><strong>Add Favorite</strong> (Ctrl+D) - Save current file to favorites</li>
-<li><strong>Favorites</strong> (Ctrl+Shift+D) - Show/hide the favorites panel</li>
+<li>Both <strong>INPUT</strong> rows carry a <strong>star menu</strong> next to their <em>Change</em> link - <strong>XML</strong> favorites
+  for the input, <strong>XSLT</strong> favorites for the stylesheet - so you can pick a favorited file
+  in one click.</li>
+<li><strong>Ctrl+D</strong> (or the Favorites panel's <strong>Add current</strong>) stars the active document.</li>
+<li>The <strong>Favorites</strong> activity (star icon in the activity bar) lists all your saved files.</li>
 </ul>
-<p>The favorites panel appears on the right side and provides quick access to your saved files.</p>
+<p>Learn more: <a href="../favorites-system/">Favorites System</a></p>
 <hr />
 <h2 id="features">Features<a class="headerlink" href="#features" title="Permanent link">&para;</a></h2>
 <table>
@@ -2343,7 +2289,7 @@ bar. The panel is organized into three sections plus the primary action:</p>
 <tbody>
 <tr>
 <td><strong>Drag &amp; Drop</strong></td>
-<td>Drop files directly into the application</td>
+<td>Drop an <code>.xml</code> file onto the XML row or an <code>.xsl</code> / <code>.xslt</code> file onto the stylesheet row</td>
 </tr>
 <tr>
 <td><strong>Built-in Viewer</strong></td>
@@ -2351,15 +2297,15 @@ bar. The panel is organized into three sections plus the primary action:</p>
 </tr>
 <tr>
 <td><strong>PDF Metadata</strong></td>
-<td>Add author, title, and keywords</td>
+<td>Add title, author, and subject</td>
 </tr>
 <tr>
-<td><strong>Progress Indicator</strong></td>
-<td>Shows generation progress</td>
+<td><strong>PDF/A-1b</strong></td>
+<td>Optional archival-grade output</td>
 </tr>
 <tr>
-<td><strong>FOP Configuration</strong></td>
-<td>Custom fonts and rendering options</td>
+<td><strong>Background Rendering</strong></td>
+<td>Generation runs off the UI thread</td>
 </tr>
 <tr>
 <td><strong>Favorites</strong></td>
@@ -2443,48 +2389,9 @@ bar. The panel is organized into three sections plus the primary action:</p>
 <li><strong>Check error messages</strong> - If generation fails, read the error details</li>
 <li><strong>Use the preview</strong> - Review the PDF in the built-in viewer</li>
 <li><strong>Save to favorites</strong> - Quick access to frequently used files</li>
-<li><strong>FOP configuration</strong> - Use a custom config file for special fonts</li>
+<li><strong>PDF/A and fonts</strong> - For PDF/A-1b output, use embeddable system fonts in your stylesheet
+  (the PDF base-14 fonts like Helvetica cannot be embedded)</li>
 </ul>
-<hr />
-<h2 id="keyboard-shortcuts">Keyboard Shortcuts<a class="headerlink" href="#keyboard-shortcuts" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>Shortcut</th>
-<th>Action</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Ctrl+1</td>
-<td>Open XML file</td>
-</tr>
-<tr>
-<td>Ctrl+2</td>
-<td>Open XSL-FO file</td>
-</tr>
-<tr>
-<td>Ctrl+3</td>
-<td>Select output PDF</td>
-</tr>
-<tr>
-<td>F5</td>
-<td>Generate PDF</td>
-</tr>
-<tr>
-<td>Ctrl+D</td>
-<td>Add to favorites</td>
-</tr>
-<tr>
-<td>Ctrl+Shift+D</td>
-<td>Toggle favorites</td>
-</tr>
-<tr>
-<td>F1</td>
-<td>Help</td>
-</tr>
-</tbody>
-</table>
 <hr />
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
 <table>
@@ -2497,11 +2404,11 @@ bar. The panel is organized into three sections plus the primary action:</p>
 <tbody>
 <tr>
 <td>No output</td>
-<td>Check that all three files are selected</td>
+<td>Check the INPUT section shows both the XML and the XSL-FO stylesheet</td>
 </tr>
 <tr>
-<td>Font issues</td>
-<td>Use a custom FOP config with embedded fonts</td>
+<td>Font issues (PDF/A)</td>
+<td>Use embeddable system fonts in the stylesheet - see the PDF/A-1b note above</td>
 </tr>
 <tr>
 <td>Image not showing</td>

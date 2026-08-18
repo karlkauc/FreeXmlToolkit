@@ -2380,7 +2380,7 @@
 
 <h1 id="xml-editor-features">XML Editor Features<a class="headerlink" href="#xml-editor-features" title="Permanent link">&para;</a></h1>
 <blockquote>
-<p><strong>Last Updated:</strong> June 2026 | <strong>Version:</strong> 1.10.0</p>
+<p><strong>Last Updated:</strong> August 2026 | <strong>Version:</strong> 2.0.1</p>
 </blockquote>
 <p>This page describes the advanced features available in the XML Editor.</p>
 <hr />
@@ -2401,24 +2401,9 @@
 <h3 id="switching-views-while-searching">Switching Views While Searching<a class="headerlink" href="#switching-views-while-searching" title="Permanent link">&para;</a></h3>
 <p>If you switch the view mode (Text / Tree / Graphic) or the file tab while the search bar is open, the search automatically re-targets the view you switched to, so you can keep navigating without retyping your search term.</p>
 <h3 id="where-search-is-available">Where Search Is Available<a class="headerlink" href="#where-search-is-available" title="Permanent link">&para;</a></h3>
-<table>
-<thead>
-<tr>
-<th>Editor</th>
-<th>How Search Appears</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>XML</strong> tab</td>
-<td>A Find / Replace dialog (opens with Ctrl+F)</td>
-</tr>
-<tr>
-<td><strong>Unified Shell</strong></td>
-<td>An inline search bar with up/down chevron arrows</td>
-</tr>
-</tbody>
-</table>
+<p>Pressing <strong>Ctrl+F</strong> opens an <strong>inline search bar</strong> at the top of the editor, with up/down
+chevron arrows for Find Previous / Find Next and a replace toggle (Text view only). The same
+bar works in every view mode and every XML-family document type.</p>
 <blockquote>
 <p><strong>Note:</strong> In the <strong>Tree</strong> and <strong>Graphic</strong> views, search is for finding and navigating only - <strong>Replace</strong> is not available there (the replace toggle is disabled). To replace text, use the <strong>Text</strong> view.</p>
 </blockquote>
@@ -2435,22 +2420,32 @@ now Shift+Alt+F</strong>.</p>
 <hr />
 <h2 id="schematron-integration">Schematron Integration<a class="headerlink" href="#schematron-integration" title="Permanent link">&para;</a></h2>
 <p><img alt="Schematron Validation" src="../img/xml-editor-schematron.png" />
-<em>Schematron validation panel</em></p>
+<em>Schematron validation in the Validation panel - the bound rules file in SOURCES, the
+findings in the PROBLEMS list</em></p>
 <h3 id="what-is-schematron">What is Schematron?<a class="headerlink" href="#what-is-schematron" title="Permanent link">&para;</a></h3>
 <p>Schematron lets you create custom validation rules for your XML documents. While XSD schemas validate the structure, Schematron validates business rules - for example, "if field A contains X, then field B must not be empty."</p>
 <h3 id="how-to-use-schematron">How to Use Schematron<a class="headerlink" href="#how-to-use-schematron" title="Permanent link">&para;</a></h3>
 <ol>
-<li>Open an XML file in the XML Editor</li>
-<li>In the sidebar, find the "Schematron Rules" section</li>
-<li>Click the "..." button to select a Schematron file (.sch)</li>
-<li>The validation results appear in the sidebar</li>
-<li>Enable "Continuous Schematron validation" to check as you type</li>
+<li>Open an XML file in the editor</li>
+<li>Open the <strong>Validation</strong> panel from the activity bar</li>
+<li>In the <strong>SOURCES</strong> section, click <strong>Change</strong> on the Schematron row and pick a <code>.sch</code>
+   file - or pick a favorited Schematron from the row's <strong>star</strong> menu, or simply drop a
+   <code>.sch</code> file onto the row</li>
+<li>Click <strong>Run Validation</strong> - the findings appear in the <strong>PROBLEMS</strong> list (each row tagged
+   with a <strong>Schematron</strong> badge); click a problem to jump to the offending element</li>
+<li>Enable <strong>Validate while typing</strong> (the panel's ⋮ menu) to check as you type</li>
 </ol>
+<p>Problems whose rules define <strong>quick fixes</strong> can be corrected in place: click the yellow
+lightbulb in the editor gutter (or press <strong>Alt+Enter</strong> / <strong>Ctrl+.</strong>), or right-click the
+problem row and pick a fix from the <strong>Quick Fix</strong> submenu. See
+<a href="../schematron-quick-fixes/">Schematron Quick Fixes</a>.</p>
 <h3 id="saving-schematron-files-as-favorites">Saving Schematron Files as Favorites<a class="headerlink" href="#saving-schematron-files-as-favorites" title="Permanent link">&para;</a></h3>
 <p>Save frequently used Schematron files for quick access:
-- Click the star icon to add to favorites
-- Organize files in custom categories like "Business Rules"
-- Access saved rules from any editor via the Favorites dropdown</p>
+- Add them to your <a href="../favorites-system/">Favorites</a> (for example with <strong>Add current</strong> in the
+  Favorites panel while the <code>.sch</code> file is open)
+- Organize them in favorites folders like "Business Rules"
+- Bind a saved rules file in one click via the <strong>star</strong> menu on the Validation panel's
+  Schematron row - or from the Explorer's Schematron bar</p>
 <p>Learn more: <a href="../schematron-support/">Schematron Support</a> | <a href="../favorites-system/">Favorites System</a></p>
 <hr />
 <h2 id="auto-completion-intellisense">Auto-Completion (IntelliSense)<a class="headerlink" href="#auto-completion-intellisense" title="Permanent link">&para;</a></h2>
@@ -2531,7 +2526,7 @@ it with the panel toggle at the right end of the editor toolbar.</p>
 <hr />
 <h2 id="tree-view">Tree View<a class="headerlink" href="#tree-view" title="Permanent link">&para;</a></h2>
 <p><img alt="Tree View Panel" src="../img/xml-editor-tree.png" />
-<em>Tree view sidebar</em></p>
+<em>An XML document in the Tree view</em></p>
 <h3 id="visual-document-structure">Visual Document Structure<a class="headerlink" href="#visual-document-structure" title="Permanent link">&para;</a></h3>
 <p>The tree view shows your XML document as a hierarchical structure:</p>
 <ul>

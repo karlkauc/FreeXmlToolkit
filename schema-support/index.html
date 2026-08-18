@@ -2080,7 +2080,7 @@
 
 <h1 id="schema-support">Schema Support<a class="headerlink" href="#schema-support" title="Permanent link">&para;</a></h1>
 <blockquote>
-<p><strong>Last Updated:</strong> May 2026 | <strong>Version:</strong> 1.10.0</p>
+<p><strong>Last Updated:</strong> August 2026 | <strong>Version:</strong> 2.0.1</p>
 </blockquote>
 <p>FreeXmlToolkit supports different schema formats for validating your XML files. This page explains what's supported and what isn't.</p>
 <hr />
@@ -2090,7 +2090,7 @@
 <h2 id="supported-schema-formats">Supported Schema Formats<a class="headerlink" href="#supported-schema-formats" title="Permanent link">&para;</a></h2>
 <h3 id="xsd-xml-schema-definition">XSD (XML Schema Definition)<a class="headerlink" href="#xsd-xml-schema-definition" title="Permanent link">&para;</a></h3>
 <p><img alt="XSD Support" src="../img/schema-xsd-support.png" />
-<em>The XSD Validation tool - load an XML file and its schema to validate</em></p>
+<em>The Validation panel - an XML document checked against its bound XSD schema</em></p>
 <p><strong>Full Support</strong> - The main schema format used for XML validation.</p>
 <table>
 <thead>
@@ -2134,7 +2134,7 @@
 - Documentation</p>
 <h3 id="schematron">Schematron<a class="headerlink" href="#schematron" title="Permanent link">&para;</a></h3>
 <p><img alt="Schematron Support" src="../img/schema-schematron-support.png" />
-<em>The Schematron editor with business-rule patterns, structure outline, and XPath tester</em></p>
+<em>A Schematron rules file (.sch) open as a normal document in the editor</em></p>
 <p><strong>Business Rules</strong> - For validation rules that go beyond structure.</p>
 <table>
 <thead>
@@ -2216,16 +2216,23 @@
 <h2 id="how-to-use-schemas">How to Use Schemas<a class="headerlink" href="#how-to-use-schemas" title="Permanent link">&para;</a></h2>
 <h3 id="loading-a-schema">Loading a Schema<a class="headerlink" href="#loading-a-schema" title="Permanent link">&para;</a></h3>
 <ol>
-<li><strong>Automatic:</strong> Open an XML file that references a schema - it loads automatically</li>
-<li><strong>Manual:</strong> Click "Load Schema" and select your XSD file</li>
-<li><strong>Drag &amp; Drop:</strong> Drag a schema file into the application</li>
+<li><strong>Automatic:</strong> Open an XML file that references a schema
+   (<code>xsi:schemaLocation</code> / <code>xsi:noNamespaceSchemaLocation</code>) - it is bound automatically</li>
+<li><strong>Manual:</strong> Open the <strong>Validation</strong> panel and click <strong>Change</strong> on the XSD row - or click
+   the <strong>XSD indicator</strong> in the status bar and pick an <code>.xsd</code> file</li>
+<li><strong>Drag &amp; Drop:</strong> Drop an <code>.xsd</code> file onto the Validation panel's XSD row or onto the
+   status bar's XSD indicator</li>
 </ol>
+<p>A <strong>Schematron</strong> rules file binds the same way via the Validation panel's Schematron row.
+Schematron files themselves (<code>.sch</code>) open as normal documents in the editor.</p>
 <h3 id="validation-workflow">Validation Workflow<a class="headerlink" href="#validation-workflow" title="Permanent link">&para;</a></h3>
 <ol>
 <li>Open your XML file</li>
-<li>Load (or auto-detect) the schema</li>
-<li>See validation results immediately</li>
-<li>Click on errors to jump to the problem location</li>
+<li>Bind (or auto-detect) the schema</li>
+<li>Click <strong>Run Validation</strong> in the Validation panel (or press <strong>F8</strong>) - or enable
+   <strong>Validate while typing</strong> to check continuously</li>
+<li>Problems appear in the <strong>PROBLEMS</strong> list, each tagged with its source (XSD, Schematron,
+   Well-formed); click one to jump to the problem location</li>
 <li>Fix issues and re-validate</li>
 </ol>
 <h3 id="using-both-xsd-and-schematron">Using Both XSD and Schematron<a class="headerlink" href="#using-both-xsd-and-schematron" title="Permanent link">&para;</a></h3>
