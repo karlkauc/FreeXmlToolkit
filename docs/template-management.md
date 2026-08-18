@@ -1,6 +1,6 @@
 # Template Management
 
-> **Last Updated:** June 2026 | **Version:** 1.10.0
+> **Version:** 1.10.0
 
 Create and manage reusable XML templates, XPath snippets, and code patterns to speed up your work.
 
@@ -110,8 +110,6 @@ Ready-to-use validation patterns:
 ---
 
 ## Creating templates for the New File dialog
-
-> **New in June 2026**
 
 Your own templates are managed in **Settings**, in the **TEMPLATES** card, and are then offered
 in the [New File dialog](unified-shell.md#new-file-dialog) whenever you create a document of the

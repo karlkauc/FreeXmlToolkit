@@ -1,6 +1,6 @@
 # Security Features
 
-> **Last Updated:** June 2026 | **Version:** 1.10.0
+> **Version:** 1.10.0
 
 This page describes the security measures built into FreeXmlToolkit to protect you from XML-based attacks.
 
@@ -171,7 +171,7 @@ You should:
 
 ### Automatic Import Resolution Is Covered Too
 
-*(new in August 2026)* When the XSD editor cannot find an imported schema file locally, it can
+When the XSD editor cannot find an imported schema file locally, it can
 download the schema from the import's namespace URL (see
 [Automatic Download of Imported Schemas](xsd-tools.md#automatic-download-of-imported-schemas)).
 These downloads go through the same SSRF protection: only public `http`/`https` addresses are

@@ -1,6 +1,6 @@
 # XML Editor Features
 
-> **Last Updated:** August 2026 | **Version:** 2.0.1
+> **Version:** 2.0.1
 
 This page describes the advanced features available in the XML Editor.
 
@@ -8,7 +8,7 @@ This page describes the advanced features available in the XML Editor.
 
 ## Search (Find)
 
-> **Updated in July 2026** - Search now works in **every view mode** — Text, Tree and Graphic — for both XML documents and XSD schemas.
+> Search works in **every view mode** — Text, Tree and Graphic — for both XML documents and XSD schemas.
 
 ### Finding Text in Your Document
 
@@ -38,7 +38,7 @@ bar works in every view mode and every XML-family document type.
 
 ### Searching Across Many Files
 
-*(New in August 2026)* Ctrl+F searches the **active document**. To search - and replace -
+Ctrl+F searches the **active document**. To search - and replace -
 across **all files of a folder**, by plain text or by an XPath expression, use the
 **Search** activity in the Unified Shell: press **Ctrl+Shift+F** (Find in Files) or
 **Ctrl+Shift+H** (Replace in Files), or click the magnifying-glass icon in the activity
@@ -114,9 +114,8 @@ Learn more: [Auto-Completion Guide](context-sensitive-intellisense.md)
 
 ## Grid Editor (Graphic View)
 
-> **Updated in June 2026** - The separate "Grid" view mode has been merged into the **Graphic**
-> view: for XML (and XSLT/Schematron) documents, switching to **Graphic** opens the editable
-> XMLSpy-style grid.
+> For XML (and XSLT/Schematron) documents, switching to the **Graphic**
+> view opens the editable XMLSpy-style grid.
 
 ![XML Grid view in the Unified Shell](img/unified-shell-xml-grid.png)
 *The grid in the Unified Shell's Graphic view — table-like editing with the inspector*
@@ -148,8 +147,8 @@ Changes made in any view are synchronized automatically.
 
 ## Properties Inspector
 
-> **Updated in v1.10** - You can now view **and edit** a node's properties from **all three**
-> XML views (Text, Tree, and Graphic), not just the grid.
+> You can view **and edit** a node's properties from **all three**
+> XML views (Text, Tree, and Graphic).
 
 The Properties inspector shows the details of the selected node and lets you edit them. Toggle
 it with the panel toggle at the right end of the editor toolbar.

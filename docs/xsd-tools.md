@@ -1,8 +1,8 @@
 # XSD Tools
 
-> **Last Updated:** August 2026 | **Version:** 2.0.1
+> **Version:** 2.0.1
 
-> **Note (Phase 10c):** The standalone *XSD Editor* tab has been retired. XSD
+> **Note:** The standalone *XSD Editor* tab has been retired. XSD
 > editing — the Text/Tree/Graphic views, the inspector, the Type Library, type
 > editing, documentation generation, schema flattening and schema analysis —
 > now lives in the **Unified Shell** (open an `.xsd` file; "go to schema
@@ -59,8 +59,8 @@ The Graphic View lets you explore and edit your schemas visually.
 5. **Add children** using the context menu (right-click)
 6. **Drag** elements to move them
 
-> **Editing properties from any view (updated June 2026):** The same Properties pane is now
-> available in the **Text** view as well, not just the Graphic and Tree views. See
+> **Editing properties from any view:** The same Properties pane is
+> available in the **Text** view as well as the Graphic and Tree views. See
 > [Editing Schema Properties from Any View](#editing-schema-properties-from-any-view) below.
 
 ### Tips
@@ -73,7 +73,7 @@ The Graphic View lets you explore and edit your schemas visually.
 
 ### Automatic Download of Imported Schemas
 
-*(new in August 2026)* Some schemas import other schemas that are not shipped alongside them.
+Some schemas import other schemas that are not shipped alongside them.
 For example, many financial schemas contain:
 
 ```xml
@@ -207,14 +207,14 @@ The Text View provides raw XSD source code editing.
 
 ### Editing Schema Properties from Any View
 
-> **New in June 2026** - You can now edit a schema node's properties directly from the
-> **Text** view, the same way you already could in the **Tree** and **Graphic** views.
+> You can edit a schema node's properties directly from the
+> **Text** view, the same way as in the **Tree** and **Graphic** views.
 
 The XSD editor has three views - **Text**, **Tree**, and **Graphic** - and all three share one
 in-memory schema model. The Properties pane works in every view:
 
 - **Tree** and **Graphic** views: Select a node to edit its name, type, cardinality/occurrence,
-  use, form, constraints, documentation, and facets. (Unchanged.)
+  use, form, constraints, documentation, and facets.
 - **Text** view: Move the text caret into an XSD construct - such as an `xs:element`,
   `xs:complexType`, `xs:simpleType`, `xs:attribute`, a compositor (`xs:sequence`, `xs:choice`,
   `xs:all`), or a facet - and the Properties pane selects the matching schema node and shows it
@@ -229,9 +229,6 @@ Because all three views share one model, your edits and your **Undo/Redo** histo
 when you switch between Text, Tree, and Graphic.
 
 ### What You Can Edit in the Properties Pane
-
-> **New in June 2026** - The Properties pane gained app-info editing, multi-language
-> documentation, comment editing, and constraint deletion.
 
 For the selected schema node you can edit:
 
@@ -391,7 +388,7 @@ Create sample XML files based on your XSD schema. This is useful for testing, da
 ![Sample XML Generator](img/xsd-sample-generator.png)
 *The advanced sample generator dialog with its per-XPath rules table*
 
-> **Unified Shell (June 2026):** In the [Unified Shell](unified-shell.md), sample-data
+> **Unified Shell:** In the [Unified Shell](unified-shell.md), sample-data
 > generation lives in the **Schema** panel. It offers two actions: **Generate Sample XML** for
 > the basic generation described below, and **Generate Sample XML (Advanced)…** for the
 > rule-based, batch-capable generation shown above.
@@ -452,7 +449,7 @@ Combine multiple XSD files into a single, standalone file. Useful when your sche
 4. Click **OK**
 5. The flattened schema opens as a new editor tab (`Flattened.xsd`), ready for you to review and save
 
-### Flatten Options *(new in August 2026)*
+### Flatten Options
 
 Before flattening, a dialog lets you reduce the output. All four options are **checked by default**, which produces the smallest possible schema — ideal for deploying to a validation server:
 

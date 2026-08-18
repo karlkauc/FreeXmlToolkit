@@ -1,8 +1,8 @@
 # XSD Validation
 
-> **Last Updated:** August 2026 | **Version:** 2.0.1
+> **Version:** 2.0.1
 
-> **Note (Phase 10c):** The standalone *XSD Validation* tab has been retired.
+> **Note:** The standalone *XSD Validation* tab has been retired.
 > Validation — XSD and Schematron, single-file and batch — now lives in the
 > **Unified Shell's Validation activity panel**. The capabilities below are
 > unchanged; they are reached through the shell's Validation panel rather than a
@@ -45,7 +45,7 @@ Use this mode to validate one XML file against a schema.
 1. **Open the XML file** in the editor (Ctrl+O, the Explorer, or drag & drop).
 2. **Schema selection**:
    - **Automatic**: Schema references inside the XML (`xsi:schemaLocation` /
-     `xsi:noNamespaceSchemaLocation`) are found automatically. *(updated July 2026)* The
+     `xsi:noNamespaceSchemaLocation`) are found automatically. The
      reference is re-read from the editor content before every validation run, so adding,
      changing, or removing it takes effect immediately - no save needed, and untitled
      documents work too. If you remove the reference, validation falls back to a
@@ -54,7 +54,7 @@ Use this mode to validate one XML file against a schema.
    - **Manual**: Bind an XSD yourself - click the **"No XSD"** indicator in the status bar (or
      click the toolbar's **Schema** button - **Set XSD Schema…**), pick a schema in the Validation panel's
      **SOURCES** section, or simply **drop** an `.xsd` file from your file manager onto the
-     panel's XSD source row or onto the status bar's XSD indicator *(new in August 2026)*.
+     panel's XSD source row or onto the status bar's XSD indicator.
      The binding drives both validation and IntelliSense.
 
 ### Step 2: Validate
@@ -98,7 +98,7 @@ Choose how schemas are determined for each file:
 
 ### Running Batch Validation
 
-> **Updated in June 2026** - In the Validation panel's **Batch** mode, **Run Validation** now
+> In the Validation panel's **Batch** mode, **Run Validation**
 > opens a small menu so you can pick files or a whole folder in one step.
 
 1. Open the **Validation** panel and switch the mode toggle to **Batch**.

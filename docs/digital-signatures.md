@@ -1,12 +1,11 @@
 # XML Digital Signatures
 
-> **Last Updated:** July 2026 | **Version:** 1.10.0
+> **Version:** 1.10.0
 
-> **Note (Phase 10c):** The standalone *Signature* tab has been retired. Signing,
-> signature validation (including detailed and PKIX trust/chain/revocation/timestamp
-> validation) and self-signed certificate creation now live in the **Unified Shell's
-> Signature activity panel**. The capabilities below are unchanged; they are reached
-> through the shell rather than a dedicated sidebar tab.
+> **Note:** Signing, signature validation (including detailed and PKIX
+> trust/chain/revocation/timestamp validation) and self-signed certificate creation
+> live in the **Unified Shell's Signature activity panel** - they are reached through
+> the shell rather than a dedicated sidebar tab.
 
 This tool lets you digitally sign XML documents and verify signatures. A digital signature proves that a document is authentic and hasn't been changed.
 
@@ -20,8 +19,8 @@ This tool lets you digitally sign XML documents and verify signatures. A digital
 ### What Can You Do?
 
 In the [Unified Shell](unified-shell.md), open the **Signature** activity from the activity bar.
-The top of the panel is an **action nav** of four buttons *(updated July 2026: the actions
-render as raised, bordered buttons so they are recognizable as clickable)* - selecting one
+The top of the panel is an **action nav** of four buttons - rendered as raised, bordered
+buttons so they are recognizable as clickable. Selecting one
 shows the matching form below the shared **KEYSTORE** section (keystore file, alias, passwords):
 
 | Action | Description |
@@ -80,7 +79,7 @@ Before signing documents, you need a digital certificate (like a digital ID card
 
 **Important:** Remember your passwords! They cannot be recovered.
 
-> **Tip (July 2026):** If you leave the alias or a password blank, the field is highlighted
+> **Tip:** If you leave the alias or a password blank, the field is highlighted
 > in red when you click **Create Certificate**. The highlight clears as soon as you start typing.
 
 ---
@@ -116,9 +115,9 @@ Before signing documents, you need a digital certificate (like a digital ID card
 
 1. In the **Signature** panel, choose **Sign XML File**
 2. Click **"Browse"** to select your XML file
-3. Click **"Browse"** to select your keystore file - or *(new in July 2026)* pick a
+3. Click **"Browse"** to select your keystore file - or pick a
    favorited keystore from the **star menu** next to the keystore row (see
-   [Favorites Integration](#favorites-integration) below), or *(new in August 2026)*
+   [Favorites Integration](#favorites-integration) below), or
    **drop** a keystore file (`.jks`, `.keystore`, `.p12`, `.pfx`) from your file manager
    onto the KEYSTORE row (Expert Mode's trust store row accepts drops the same way)
 4. Enter your keystore password and key password
@@ -128,7 +127,7 @@ Before signing documents, you need a digital certificate (like a digital ID card
 
 The signed file includes the original content plus a digital signature block.
 
-> **Tip (July 2026):** Missing inputs are highlighted in red when you click **Sign**: signing
+> **Tip:** Missing inputs are highlighted in red when you click **Sign**: signing
 > without a keystore marks the keystore entry, and a blank alias or password marks that field.
 > The highlight disappears as soon as you start typing.
 
@@ -151,8 +150,7 @@ For a detailed report (validity plus signing-certificate details), use the outli
 
 ### Validation Results
 
-> **Updated July 2026:** Validation no longer answers with a vague "Signature invalid / none".
-> Each outcome now explains in plain language what happened and what to do about it.
+> Each validation outcome explains in plain language what happened and what to do about it.
 
 | Result | Meaning |
 |--------|---------|
@@ -175,8 +173,8 @@ For a detailed report (validity plus signing-certificate details), use the outli
 
 ## 3b. Trust Validation
 
-> **New in June 2026** - In addition to checking that a signature is mathematically valid, you
-> can now check whether the signing certificate is actually **trusted**.
+> In addition to checking that a signature is mathematically valid, you can
+> check whether the signing certificate is actually **trusted**.
 
 Basic validation confirms that a signature is intact and matches its certificate. **Trust
 validation** goes further: it checks the signing certificate's chain against a **trust store** -
@@ -189,7 +187,7 @@ In the Unified Shell's **Signature** panel, the action is **Validate (Trust)**.
 
 1. Open the signed XML document.
 2. (Optional) Click **Trust store…** to choose the trust store to validate against - or
-   *(new in July 2026)* pick a favorited keystore from the **star menu** next to the trust
+   pick a favorited keystore from the **star menu** next to the trust
    store row. By default the application uses the JVM's built-in `cacerts` store, which
    contains well-known public certificate authorities.
 3. (Optional) Tick **Check revocation (OCSP/CRL)** to also verify that the certificate has not
@@ -258,9 +256,9 @@ Save frequently used files for quick access:
 
 The favorites panel appears on the right side and provides quick access to your saved keystores, XML files, and signed documents.
 
-> **Updated July 2026:** Keystore and trust store files (`.jks`, `.p12`, `.pfx`,
-> `.keystore`) are now their own **Keystore** favorite type with a lock icon, instead of
-> being grouped under *Other*. In the Signature panel, the **keystore row** (KEYSTORE
+> Keystore and trust store files (`.jks`, `.p12`, `.pfx`,
+> `.keystore`) are their own **Keystore** favorite type with a lock icon.
+> In the Signature panel, the **keystore row** (KEYSTORE
 > section) and the **trust store row** (Expert Mode) each carry a **star menu** listing
 > your keystore favorites - pick one to select it without browsing the file system. See
 > [Favorites System](favorites-system.md) for details.

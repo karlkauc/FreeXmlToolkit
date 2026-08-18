@@ -1,6 +1,6 @@
 # Favorites System
 
-> **Last Updated:** July 2026 | **Version:** 1.10.0
+> **Version:** 1.10.0
 
 Save your frequently used files for quick access. The favorites system works across all editors in FreeXmlToolkit.
 
@@ -43,23 +43,16 @@ The favorites system helps you quickly access the files you use most often. Save
 
 ### Grouped by File Type (Unified Shell)
 
-> **New in June 2026**
-
 The **Favorites panel** in the Unified Shell (star icon in the activity bar) groups your
 favorites **by file type** - for example **XML Document**, **XSD Schema**, **Schematron
 Rules**, and **XSLT Stylesheet**. Each entry shows a **colored type icon**, so you can tell
 the file kinds apart at a glance. Click an entry to open it as an editor tab.
 
-*(updated July 2026)* Keystore and trust store files (`.jks`, `.p12`, `.pfx`, `.keystore`)
-are now recognized as their own **Keystore** type with a lock icon, instead of falling
-under *Other* - they form their own group in the Favorites panel and feed the keystore
+Keystore and trust store files (`.jks`, `.p12`, `.pfx`, `.keystore`)
+are recognized as their own **Keystore** type with a lock icon - they form their own group in the Favorites panel and feed the keystore
 star menus in the Signature panel (see below).
 
 ### Star Menus in the Side Panels
-
-> **Updated July 2026** - the star quick-select menus are now available on **every**
-> file-pick row in the side panels (previously only the Validation panel's XSD row and
-> the Transform panel had them).
 
 Wherever a side panel asks you to pick a file, a **star button** next to the row's
 **Change** link opens a quick-select menu of your matching favorites - pick one to use
@@ -131,7 +124,7 @@ The favorites menu includes:
 | XSD schemas | .xsd |
 | Schematron rules | .sch |
 | XSLT stylesheets | .xsl, .xslt |
-| Keystores / trust stores *(new in July 2026)* | .jks, .p12, .pfx, .keystore |
+| Keystores / trust stores | .jks, .p12, .pfx, .keystore |
 
 ---
 
@@ -146,9 +139,9 @@ Some optional features add their own files to your Favorites automatically:
 | **FundsXML Schematron** | Schematron rule files downloaded by the FundsXML Extensions feature |
 | **FundsXML XSLT** | XSLT stylesheets shipped with the FundsXML examples |
 
-*(Updated July 2026)* These categories are created **automatically**: right after you enable
+These categories are created **automatically**: right after you enable
 the FundsXML feature (the content downloads in the background - no manual download step
-anymore) and again on every application start, when they are re-registered from the on-disk
+needed) and again on every application start, when they are re-registered from the on-disk
 cache.
 
 ---

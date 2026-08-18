@@ -1,8 +1,8 @@
 # Schematron Validation
 
-> **Last Updated:** August 2026 | **Version:** 2.0.1
+> **Version:** 2.0.1
 
-> **Note (Phase 10c):** The standalone *Schematron* editor tab has been retired.
+> **Note:** The standalone *Schematron* editor tab has been retired.
 > Schematron editing and validation — rule check, templates, tester, visual
 > builder, documentation, and CSV/JSON export of results — now live in the
 > **Unified Shell's Validation activity panel**. Open a `.sch` file and use the
@@ -34,7 +34,7 @@ While XSD schemas check the structure of your XML (which elements can appear whe
 
 ## Toolbar
 
-> **Updated in August 2026** - Schematron files use the shell's single-row editor toolbar.
+> Schematron files use the shell's single-row editor toolbar.
 > Related actions sit in **split buttons** with a visible **▾** arrow menu; see
 > [Unified Shell - Toolbar](unified-shell.md#toolbar) for the full reference.
 
@@ -46,7 +46,7 @@ With a `.sch` file active, the relevant actions are:
 | **Open** | Ctrl+O | Open an existing file |
 | **Save ▾** | Ctrl+S | Save the current file; the arrow menu holds **Save As…** (Ctrl+Shift+S) and **Save All** |
 | **Undo** / **Redo** | Ctrl+Z / Ctrl+Y | Undo / redo the last change (icon buttons) |
-| **Format ▾** | Shift+Alt+F | Pretty-print the file. (*Changed in August 2026:* Ctrl+Shift+F now opens [Find in Files](unified-shell.md#search-panel).) |
+| **Format ▾** | Shift+Alt+F | Pretty-print the file. (Note: Ctrl+Shift+F opens [Find in Files](unified-shell.md#search-panel), not document search.) |
 | **Validate** | F8 | Check the Schematron syntax |
 
 Rule templates, the tester, and the visual builder are reached through the **Validation
@@ -109,9 +109,6 @@ Test XPath expressions against sample XML:
 
 ## Schematron Tools in the Unified Shell
 
-> **Updated June 2026** - Added **Check Rules** and **Documentation** to the Schematron tools.
-> **Updated July 2026** - Added the detailed **Validation Report**.
-
 When you work with a Schematron file in the [Unified Shell](unified-shell.md), the
 **Validation** panel offers a set of Schematron tools:
 
@@ -144,8 +141,6 @@ grouped into categories:
 documentation describing the patterns, rules, and assertions in your Schematron file.
 
 ### Validation Report
-
-> **New in July 2026**
 
 After validating an XML document that has a Schematron file bound, **Validation Report**
 (in the ⋮ menu under *Schematron Tools*, or via the report button in the Validation panel's
@@ -262,17 +257,17 @@ Use Schematron validation directly in the XML Editor:
 1. Open an XML file in the XML Editor
 2. In the validation panel, select your Schematron file - or simply **drop** a `.sch` /
    `.schematron` file from your file manager onto the panel's SCHEMATRON source row or
-   onto the Explorer's Schematron picker *(new in August 2026)*
+   onto the Explorer's Schematron picker
 3. Errors are highlighted in the editor
 4. Click errors to jump to the problem location
 
 In the PROBLEMS panel below the editor, Schematron findings carry a **Schematron**
 source badge (so they are easy to tell apart from XSD errors), and hovering a row shows
-the full message together with the failed test expression and the failing node's XPath
-*(new in July 2026)*. For a complete overview of a run, open the
+the full message together with the failed test expression and the failing node's
+XPath. For a complete overview of a run, open the
 [Validation Report](#validation-report).
 
-*(new in August 2026)* If a rule defines **Schematron Quick Fixes** (SQF), the
+If a rule defines **Schematron Quick Fixes** (SQF), the
 matching problems can be corrected automatically — from a right-click **Quick Fix**
 menu on the problem rows, from a lightbulb in the editor gutter, or from the
 Validation Report's **Fix** column. See
@@ -318,7 +313,7 @@ Common XPath expressions for Schematron rules:
 | ISO Schematron (.sch) | Full support |
 | XSLT-based Schematron | Full support |
 
-> **Updated in August 2026** — Schematron validation now runs on the **SchXslt**
+> Schematron validation runs on the **SchXslt**
 > compiler (executed by Saxon), which fully resolves `sch:include`,
 > `sch:extends`, and abstract patterns. Schematrons that declare
 > `queryBinding="xslt2"` or `"xslt3"` use XPath 2.0/3.0; files without a

@@ -1,6 +1,6 @@
 # Thread Pool Management Architecture
 
-> **Last Updated:** November 2025 | **Version:** 1.0.0
+> **Version:** 1.0.0
 
 ## Overview
 

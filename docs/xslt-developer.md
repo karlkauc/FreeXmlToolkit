@@ -1,8 +1,8 @@
 # XSLT Developer
 
-> **Last Updated:** August 2026 | **Version:** 2.0.1
+> **Version:** 2.0.1
 
-> **Note (Phase 10c):** The standalone *XSLT Developer* tab has been retired. Its
+> **Note:** The standalone *XSLT Developer* tab has been retired. Its
 > capabilities now live in the **[Unified Shell](unified-shell.md)'s Transform panel**
 > (stylesheet, input, output method, parameters, XPath/XQuery) together with the
 > advanced tools in the panel's **⋮ (overflow) menu** — **Debug XSLT…** (the interactive

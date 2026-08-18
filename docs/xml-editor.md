@@ -1,6 +1,6 @@
 # XML Editor
 
-> **Last Updated:** August 2026 | **Version:** 2.0.1
+> **Version:** 2.0.1
 
 The XML Editor is the main feature of FreeXmlToolkit. It provides a powerful and easy-to-use interface for working with XML files.
 
@@ -18,7 +18,7 @@ The XML Editor is the main feature of FreeXmlToolkit. It provides a powerful and
 
 ## Toolbar
 
-> **Updated in August 2026** - The editor toolbar is a single slim row. Related actions sit in
+> The editor toolbar is a single slim row. Related actions sit in
 > **split buttons** with a visible **▾** arrow menu (e.g. **Save As / Save All** under
 > **Save ▾**, **Minify** under **Format ▾**); secondary tools are icon-only buttons with
 > tooltips. See [Unified Shell - Toolbar](unified-shell.md#toolbar) for the full reference.
@@ -31,7 +31,7 @@ With an XML file active, the toolbar offers:
 | **Open** | Ctrl+O | Open one or more files |
 | **Save ▾** | Ctrl+S | Save the current file; the arrow menu holds **Save As…** (Ctrl+Shift+S) and **Save All** |
 | **Undo** / **Redo** | Ctrl+Z / Ctrl+Y | Undo / redo the last change (icon buttons) |
-| **Format ▾** | Shift+Alt+F | Pretty-print the document; the arrow menu holds **Minify**. (*Changed in August 2026:* Ctrl+Shift+F now opens [Find in Files](unified-shell.md#search-panel).) |
+| **Format ▾** | Shift+Alt+F | Pretty-print the document; the arrow menu holds **Minify**. (Note: Ctrl+Shift+F opens [Find in Files](unified-shell.md#search-panel), not document search.) |
 | **Insert Template** | - | Insert a snippet from the template system (icon button) |
 | **Compare** | - | Compare the document with another file, side by side (icon button) |
 | **Spreadsheet** | - | Excel / CSV ↔ XML converter (icon button) |
@@ -96,8 +96,7 @@ The text editor provides:
 
 ### Graphic Mode (Grid)
 
-> **Updated in June 2026** - The separate "Grid" view mode has been merged into the **Graphic**
-> view. For XML documents, the Graphic view shows the editable XMLSpy-style grid.
+> For XML documents, the **Graphic** view shows the editable XMLSpy-style grid.
 
 ![XML Grid view in the Unified Shell](img/unified-shell-xml-grid.png)
 *An XML document in the Graphic view (XMLSpy-style grid editing)*
@@ -120,9 +119,8 @@ The grid provides:
 
 ## Properties Inspector
 
-> **Updated in v1.10** - The Properties inspector now lets you view **and edit** a node's
-> properties in **all three** XML views - Text, Tree, and Graphic. Previously, property editing
-> was only available in the grid.
+> The Properties inspector lets you view **and edit** a node's
+> properties in **all three** XML views - Text, Tree, and Graphic.
 
 The Properties inspector shows the details of the currently selected node and lets you change
 them. Toggle the panel with the toggle at the right end of the editor toolbar; it appears on
@@ -177,7 +175,7 @@ and Graphic views.
 
 ## Search (Find)
 
-> **Updated in July 2026** - Search works in **every view mode** - Text, Tree, and Graphic.
+> Search works in **every view mode** - Text, Tree, and Graphic.
 
 Press **Ctrl+F** to find text in your document. An inline search bar opens where you type your search term and use the up and down arrows (**Find Previous** / **Find Next**, or Enter / Shift+Enter) to move between matches; the search wraps around at the end.
 
@@ -212,7 +210,7 @@ Learn more: [Auto-Completion Guide](context-sensitive-intellisense.md)
 
 ## Binding an XSD Schema
 
-> **New in June 2026** - Bind an XSD to the active document directly from the editor.
+> Bind an XSD to the active document directly from the editor.
 
 If your XML does not reference its schema (or you want to use a different one), you can bind an
 XSD by hand:
@@ -320,7 +318,7 @@ Use the **Examples** menu for quick insertion of common expressions.
 
 ### Bundled Example Collections
 
-*(Updated July 2026)* Your FreeXmlToolkit installation ships ready-to-run query
+Your FreeXmlToolkit installation ships ready-to-run query
 collections in the `examples` folder next to the application:
 
 - **`examples/xpath/`** - 32 XPath 3.1 expressions (one per file, each with a comment

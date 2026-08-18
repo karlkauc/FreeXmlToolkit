@@ -1,6 +1,6 @@
 # FundsXML Extensions
 
-> **Last Updated:** July 2026 | **Version:** 1.10.0
+> **Version:** 1.10.0
 
 Optional integration with the [FundsXML](https://fundsxml.org/) standard for the fund management industry. When enabled, FreeXmlToolkit automatically downloads and keeps up to date the official FundsXML schemas, sample documents, Schematron rules, and XPath/XQuery snippets - and uses them for quick validation of your own files.
 
@@ -32,9 +32,9 @@ The feature is opt-in. Until you enable it, nothing in the application changes.
 3. Check **Enable FundsXML extensions**.
 4. Save your settings.
 
-> **New in July 2026** - Enabling the feature is all you need to do: the FundsXML content
+> Enabling the feature is all you need to do: the FundsXML content
 > starts downloading automatically in the background, and a small toast notification tells
-> you when it is ready. There is no separate download step anymore.
+> you when it is ready. There is no separate download step.
 
 Once enabled, the FundsXML integration appears in several places:
 
@@ -51,7 +51,7 @@ You can turn the feature off again at any time from the same Settings card. Disa
 
 ## Downloading FundsXML Content
 
-> **Updated July 2026** - Downloads are now **fully automatic**. Content is fetched in the
+> Downloads are **fully automatic**. Content is fetched in the
 > background right after you enable the feature, and on every application start any missing
 > content is downloaded again. When a background download finishes, a non-blocking toast
 > notification appears - no dialogs interrupt your work.
@@ -132,7 +132,7 @@ The DOCS & RESOURCES buttons:
 
 | Button | What it does |
 |--------|--------------|
-| **Open Schema in Editor** *(new in July 2026)* | Opens the active version's `FundsXML4.xsd` directly as an editor tab - explore it in the Text view or as a diagram in the Graphic view |
+| **Open Schema in Editor** | Opens the active version's `FundsXML4.xsd` directly as an editor tab - explore it in the Text view or as a diagram in the Graphic view |
 | **Generate Schema Documentation** | Generates browsable HTML documentation for the active schema into `~/.freeXmlToolkit/fundsxml/docs/<version>/` |
 | **Open Examples Folder** | The folder with downloaded sample XML documents |
 | **Open Schema Folder** | The folder containing the active schema and its include files |
@@ -142,8 +142,6 @@ The DOCS & RESOURCES buttons:
 You can also reach the downloaded files directly through [Favorites](favorites-system.md): example documents under **FundsXML Examples**, the active schema under **FundsXML Schema**, Schematron rules under **FundsXML Schematron**, and stylesheets under **FundsXML XSLT** (handy in the Transform panel's star menus).
 
 ### Welcome Page Quick Access
-
-> **New in July 2026**
 
 When the feature is enabled and content is cached, the Welcome/Dashboard page shows a
 **FUNDSXML** quick-access row with three cards:
@@ -182,9 +180,9 @@ On Windows the path is typically `C:\Users\<you>\.freeXmlToolkit\fundsxml\`. On 
 
 ## Automatic Update Checks
 
-> **Updated July 2026** - Updates are now installed automatically instead of showing a dialog.
+> Updates are installed automatically instead of showing a dialog.
 
-By default, FreeXmlToolkit checks once per day whether a newer FundsXML schema release is available on GitHub. If a new release is found, it is **downloaded and installed automatically in the background** - a toast notification confirms when the new content is in place, and the new version becomes the active one. There is no update dialog to answer anymore.
+By default, FreeXmlToolkit checks once per day whether a newer FundsXML schema release is available on GitHub. If a new release is found, it is **downloaded and installed automatically in the background** - a toast notification confirms when the new content is in place, and the new version becomes the active one. There is no update dialog to answer.
 
 The check is throttled to at most once every 24 hours and runs quietly in the background. Missing content (for example after clearing the cache folder) is also re-downloaded automatically on the next application start. To turn the daily check off, set `fundsxml.update.check.enabled=false` in your `FreeXmlToolkit.properties` file.
 

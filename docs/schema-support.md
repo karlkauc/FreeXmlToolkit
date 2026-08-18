@@ -1,6 +1,6 @@
 # Schema Support
 
-> **Last Updated:** August 2026 | **Version:** 2.0.1
+> **Version:** 2.0.1
 
 FreeXmlToolkit supports different schema formats for validating your XML files. This page explains what's supported and what isn't.
 

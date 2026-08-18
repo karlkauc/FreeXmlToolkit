@@ -2,8 +2,6 @@
 
 FreeXmlToolkit (Version 2.0.0) uses several third-party libraries. The following is a comprehensive list of these libraries and the licenses under which they are provided.
 
-> **Last Updated:** July 2026
-
 ## Core Dependencies
 
 | Library | Version | License |

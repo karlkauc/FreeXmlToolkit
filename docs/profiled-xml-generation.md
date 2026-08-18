@@ -1,7 +1,5 @@
 # Profiled XML Generation
 
-> **Added in:** April 2026
-
 Generate realistic, customized XML sample data from your XSD schemas. This feature lets you control exactly how each element and attribute gets its value, save your configurations as reusable profiles, and generate multiple files in one go.
 
 ---
