@@ -3768,7 +3768,7 @@ XML file next to its XSD schema, XSLT stylesheets and Schematron rules at the sa
 <h4 id="collapsing-the-side-panels">Resizing and collapsing the side panels<a class="headerlink" href="#collapsing-the-side-panels" title="Permanent link">&para;</a></h4>
 <p>Both the <strong>left side panel</strong> and the <strong>right Properties inspector</strong> can be resized and
 collapsed to give the editor more room - the activity bar always stays visible.</p>
-<p><strong>Resizing</strong> <em>(new in August 2026)</em> - the panels are no longer fixed-width:</p>
+<p><strong>Resizing</strong> - the panels are not fixed-width:</p>
 <ul>
 <li><strong>Drag the thin divider line</strong> between a panel and the editor to make the panel wider or
   narrower (the mouse pointer turns into a horizontal resize arrow over the divider). Widen
@@ -3803,10 +3803,10 @@ collapsed to give the editor more room - the activity bar always stays visible.<
 <li><strong>Search &amp; Replace</strong> - Ctrl+F / Ctrl+H across the editor, in <strong>every view mode</strong>: the Text
   view searches the raw text, the Tree and Graphic views search the nodes themselves (names,
   documentation, attributes, enumeration and facet values, comments)</li>
-<li><strong>Find in Files &amp; XPath search</strong> <em>(new in August 2026)</em> - the <strong>Search</strong> activity
+<li><strong>Find in Files &amp; XPath search</strong> - the <strong>Search</strong> activity
   (Ctrl+Shift+F) searches and replaces across <strong>all files of a folder</strong>, by plain text or
   by XPath expression (see <a href="#search-panel">Search Panel</a>)</li>
-<li><strong>Resizable side panels</strong> <em>(new in August 2026)</em> - drag the divider lines to give the side
+<li><strong>Resizable side panels</strong> - drag the divider lines to give the side
   panel or the Properties inspector more room; the widths are remembered across restarts
   (see <a href="#collapsing-the-side-panels">Resizing and collapsing the side panels</a>)</li>
 <li><strong>Favorites</strong> - Quick access to frequently used files</li>
@@ -3819,7 +3819,7 @@ collapsed to give the editor more room - the activity bar always stays visible.<
 </ol>
 <h2 id="new-file-dialog">New File Dialog<a class="headerlink" href="#new-file-dialog" title="Permanent link">&para;</a></h2>
 <blockquote>
-<p><strong>New in June 2026</strong> - Creating a new file now opens a guided dialog instead of silently
+<p>Creating a new file opens a guided dialog instead of silently
 opening an empty, untitled document. You can pick a starting template or an XSD schema, so
 a new file already has a sensible structure.</p>
 </blockquote>
@@ -3869,9 +3869,9 @@ the new document.</p>
 </ul>
 <h2 id="view-modes">View Modes<a class="headerlink" href="#view-modes" title="Permanent link">&para;</a></h2>
 <blockquote>
-<p><strong>Updated in June 2026</strong> - There are now exactly <strong>three</strong> view modes - <strong>Text</strong>, <strong>Tree</strong>, and
-<strong>Graphic</strong> - each with its own icon in the segmented view switch. The former separate <strong>Grid</strong>
-mode has been merged into <strong>Graphic</strong>.</p>
+<p>There are exactly <strong>three</strong> view modes - <strong>Text</strong>, <strong>Tree</strong>, and
+<strong>Graphic</strong> - each with its own icon in the segmented view switch. There is no separate
+<strong>Grid</strong> mode - the grid is part of <strong>Graphic</strong>.</p>
 </blockquote>
 <p>Every document tab offers the same three view modes:</p>
 <table>
@@ -3970,8 +3970,7 @@ shows the editable grid:</p>
 </table>
 <h2 id="toolbar">Toolbar<a class="headerlink" href="#toolbar" title="Permanent link">&para;</a></h2>
 <blockquote>
-<p><strong>Updated in August 2026</strong> - The editor toolbar is now a <strong>single slim row</strong> instead of the
-former two-row ribbon of icon-over-label buttons. Related actions moved into <strong>split buttons</strong>
+<p>The editor toolbar is a <strong>single slim row</strong>. Related actions sit in <strong>split buttons</strong>
 with a visible <strong>▾</strong> arrow menu: <strong>Save As / Save All</strong> live under <strong>Save ▾</strong>, <strong>Minify</strong>
 under <strong>Format ▾</strong>, <strong>Run Query / Run Transform / Run Pipeline</strong> under <strong>Run ▾</strong>, and
 <strong>Set XSD Schema… / Generate Documentation… / Type Editor…</strong> under <strong>Schema ▾</strong>.</p>
@@ -4004,7 +4003,7 @@ with the closely related actions:</p>
 </tr>
 <tr>
 <td><strong>Format</strong></td>
-<td>Pretty-print the active document (Shift+Alt+F; <em>changed in August 2026</em> - <strong>Ctrl+Shift+F</strong> now opens the <a href="#search-panel">Search panel</a>)</td>
+<td>Pretty-print the active document (Shift+Alt+F; note: <strong>Ctrl+Shift+F</strong> opens the <a href="#search-panel">Search panel</a>, not document search)</td>
 <td><strong>Minify</strong> - remove all insignificant whitespace</td>
 </tr>
 <tr>
@@ -4063,10 +4062,10 @@ Statistics, Schema Quality, Generate Sample XML / Documentation) on the left.</e
 <li><strong>Analysis</strong> - Schema statistics, identity constraints, quality checks</li>
 <li><strong>Documentation</strong> - Generate HTML/Word/PDF documentation (see below)</li>
 <li><strong>Sample Data</strong> - Generate sample XML from the schema</li>
-<li><strong>Flatten</strong> - Merge included schemas into a single standalone file. <em>(new in August 2026)</em> The <strong>Flatten Schema…</strong> button now opens an options dialog first: strip annotations, strip XML comments, remove unused global types and groups, and minify the output — all checked by default for a minimal schema suited to server-side validation; uncheck everything for a plain flatten that keeps documentation. Imports (<code>xs:import</code>, different namespaces) are never merged. See <a href="../xsd-tools/#8-xsd-flattener">XSD Flattener</a> for details.</li>
+<li><strong>Flatten</strong> - Merge included schemas into a single standalone file. The <strong>Flatten Schema…</strong> button opens an options dialog first: strip annotations, strip XML comments, remove unused global types and groups, and minify the output — all checked by default for a minimal schema suited to server-side validation; uncheck everything for a plain flatten that keeps documentation. Imports (<code>xs:import</code>, different namespaces) are never merged. See <a href="../xsd-tools/#8-xsd-flattener">XSD Flattener</a> for details.</li>
 </ul>
 <div class="admonition note">
-<p class="admonition-title">Missing imported schemas download automatically <em>(new in August 2026)</em></p>
+<p class="admonition-title">Missing imported schemas download automatically</p>
 <p>If a schema's <code>xs:import</code> points to a file that is not found next to the schema, the
 toolkit fetches it from the import's namespace URL and caches it locally, so the
 imported types still appear in the Tree and Graphic views - even offline on later
@@ -4082,7 +4081,7 @@ view; double-click a type to open it in its dedicated <strong>Type Editor</stron
 XML / batch, Sample XML plain/advanced, Flatten, Statistics, Schema Quality,
 Documentation) sit as a <strong>strip of icon buttons directly above the filter</strong> - hover for
 the tool's name.</p>
-<p><em>(new in August 2026)</em> The <strong>whole panel is a drop zone</strong>: drop an <code>.xsd</code> file from your
+<p>The <strong>whole panel is a drop zone</strong>: drop an <code>.xsd</code> file from your
 file manager anywhere on it to <strong>open that schema as a document</strong> - the panel then shows
 its declarations. Unlike the picker drop targets elsewhere in the shell, this drop
 <em>opens</em> the file rather than binding or selecting anything. While dragging, the panel
@@ -4110,7 +4109,7 @@ a tab in the main editor area with the full option set:</p>
 </ul>
 <h2 id="query-documents-the-target-selector">Query Documents &amp; the Target Selector<a class="headerlink" href="#query-documents-the-target-selector" title="Permanent link">&para;</a></h2>
 <blockquote>
-<p><strong>New in July 2026</strong> - XPath and XQuery files are first-class editor documents: open a
+<p>XPath and XQuery files are first-class editor documents: open a
 <code>.xq</code> or <code>.xpath</code> file (or any file from <code>examples/xpath/</code> and <code>examples/xquery/</code>),
 press <strong>Run Query</strong>, and read the result in the OUTPUT panel - no console or panel
 switching required.</p>
@@ -4173,7 +4172,7 @@ Run Query/Run Transform show a short guard message instead of failing.</p>
 <li><strong>Open in browser</strong> - View HTML output in your default browser from the OUTPUT panel</li>
 </ul>
 <h2 id="xproc-pipelines">XProc Pipelines<a class="headerlink" href="#xproc-pipelines" title="Permanent link">&para;</a></h2>
-<p><em>(New in July 2026)</em> XProc 3.0 pipelines (<code>.xpl</code>, <code>.xproc</code>) are first-class editor
+<p>XProc 3.0 pipelines (<code>.xpl</code>, <code>.xproc</code>) are first-class editor
 documents, executed with the embedded <strong>XML Calabash 3</strong> engine:</p>
 <p><img alt="An XProc pipeline after Run Pipeline, with its CSV result in the OUTPUT panel" src="../img/unified-shell-xproc-pipeline.png" />
 <em>The bundled <code>03-positions-csv.xpl</code> example after </em><em>Run Pipeline</em><em>: the pipeline runs
@@ -4203,11 +4202,11 @@ activity instead. <code>p:validate-with-json-schema</code> is not supported in t
 </div>
 <h2 id="transform-panel">Transform Panel<a class="headerlink" href="#transform-panel" title="Permanent link">&para;</a></h2>
 <blockquote>
-<p><strong>Redesigned in June 2026</strong> - The panel is now organized into <strong>collapsible sections</strong>
+<p>The panel is organized into <strong>collapsible sections</strong>
 (STYLESHEET, INPUT, OUTPUT METHOD, PARAMETERS, XPATH, XQUERY) with a single primary
-<strong>Run Transform</strong> button. Results no longer open as an editor tab automatically -
-they appear in a new <strong><a href="#the-output-panel-results">OUTPUT panel</a></strong> docked below the
-editor. All secondary toggles and tools moved into the panel header's ⋮ (overflow) menu.</p>
+<strong>Run Transform</strong> button. Results do not open as an editor tab -
+they appear in the <strong><a href="#the-output-panel-results">OUTPUT panel</a></strong> docked below the
+editor. All secondary toggles and tools sit in the panel header's ⋮ (overflow) menu.</p>
 </blockquote>
 <p>The <strong>Transform</strong> panel (open it from the <strong>Transform</strong> icon in the activity bar on the
 left) runs XSLT transformations, XPath/JSONPath queries, and XQuery expressions. The panel
@@ -4228,7 +4227,7 @@ the same recent-stylesheet list and shows its result in the same OUTPUT panel.</
   stylesheet in a single click, or choose <strong>Clear recent</strong> to empty the list.</li>
 <li>The <strong>star icon</strong> opens your <strong>XSLT favorites</strong> - see
   <a href="#browsing-favorites">Browsing favorites with ◀ / ▶</a> below.</li>
-<li><em>(new in August 2026)</em> <strong>Drag &amp; drop</strong>: drop an <code>.xsl</code> / <code>.xslt</code> file from your file
+<li><strong>Drag &amp; drop</strong>: drop an <code>.xsl</code> / <code>.xslt</code> file from your file
   manager straight onto the STYLESHEET row - it becomes the current stylesheet, exactly
   as if you had picked it via <strong>Change</strong> or a favorite. While dragging, the row glows
   <strong>green</strong> when the file can be loaded and <strong>red</strong> when it has the wrong extension (a
@@ -4248,7 +4247,7 @@ the same recent-stylesheet list and shows its result in the same OUTPUT panel.</
 </li>
 <li>The <strong>star icon</strong> opens your <strong>XML favorites</strong> - see
   <a href="#browsing-favorites">Browsing favorites with ◀ / ▶</a> below.</li>
-<li><em>(new in August 2026)</em> <strong>Drag &amp; drop</strong>: drop an <code>.xml</code> file from your file manager
+<li><strong>Drag &amp; drop</strong>: drop an <code>.xml</code> file from your file manager
   straight onto the INPUT row to transform that file - exactly like <strong>Select XML file…</strong>
   or picking a favorite. The same <strong>green</strong> (loadable) / <strong>red</strong> (rejected) drag-over
   feedback applies, and the transform <strong>runs automatically</strong> as soon as both a stylesheet
@@ -4256,7 +4255,7 @@ the same recent-stylesheet list and shows its result in the same OUTPUT panel.</
 </ul>
 <h3 id="browsing-favorites">Browsing favorites with ◀ / ▶<a class="headerlink" href="#browsing-favorites" title="Permanent link">&para;</a></h3>
 <blockquote>
-<p><strong>New in June 2026</strong> - Pick stylesheets and input files straight from your
+<p>Pick stylesheets and input files straight from your
 <a href="../favorites-system/">Favorites</a> and page through them, so you can run the same
 stylesheet over many files, or many stylesheets over one file, without ever opening a
 file chooser.</p>
@@ -4366,8 +4365,8 @@ explicit selector would be cosmetic.</p>
 </blockquote>
 <h3 id="the-output-panel-results">The OUTPUT Panel (Results)<a class="headerlink" href="#the-output-panel-results" title="Permanent link">&para;</a></h3>
 <blockquote>
-<p><strong>New in June 2026</strong> - Transform and query results now appear in an <strong>OUTPUT panel
-docked below the editor</strong> instead of automatically opening editor tabs and a separate
+<p>Transform and query results appear in an <strong>OUTPUT panel
+docked below the editor</strong> instead of opening editor tabs and a separate
 HTML-preview tool tab.</p>
 </blockquote>
 <p>All Transform-panel results - XSLT transforms, XPath/JSONPath queries, and XQuery runs -
@@ -4382,8 +4381,8 @@ while you work elsewhere.</p>
   run took and how large the output is), or a red error icon with the error message on
   failure.</li>
 <li><strong>View toggles</strong> - <strong>Preview | Text | Table</strong>:<ul>
-<li><strong>Text</strong> - the result in a <strong>read-only code editor</strong> (the default) <em>(updated July
-  2026)</em>: line numbers, syntax highlighting matching the result format (XML or JSON;
+<li><strong>Text</strong> - the result in a <strong>read-only code editor</strong> (the default):
+  line numbers, syntax highlighting matching the result format (XML or JSON;
   plain text otherwise), and font zoom with <strong>Ctrl+mouse wheel</strong> (<strong>Ctrl+0</strong> resets).</li>
 <li><strong>Preview</strong> - the result rendered as a web page; available for <strong>HTML/XHTML</strong>
   results only.</li>
@@ -4412,10 +4411,6 @@ the panel's <strong>Preview</strong> view.</p>
 </div>
 <h2 id="explorer-panel">Explorer Panel<a class="headerlink" href="#explorer-panel" title="Permanent link">&para;</a></h2>
 <p>Open the <strong>Explorer</strong> panel from the activity bar to manage files.</p>
-<blockquote>
-<p><strong>Redesigned in June 2026</strong> - the panel now follows the application's modern design with
-flat header actions and full-width sections.</p>
-</blockquote>
 <ul>
 <li><strong>Header actions</strong> (top right): New file, Open folder, Refresh workspace, and a ⋮ menu
   with <strong>Open file…</strong> and <strong>Clear recent</strong>. <strong>New file</strong> opens the same guided
@@ -4430,14 +4425,14 @@ flat header actions and full-width sections.</p>
 <li><strong>FAVORITES</strong> - your favorited files with their type-colored icons; click one to open it
   directly, without switching to the Favorites activity. Right-click an entry and choose
   <strong>Remove from favorites</strong> to drop it from the list - the file itself is not touched.</li>
-<li><strong>Collapsible sections</strong> <em>(new in June 2026)</em> - the <strong>OPEN EDITORS</strong>, workspace,
+<li><strong>Collapsible sections</strong> - the <strong>OPEN EDITORS</strong>, workspace,
   <strong>RECENT</strong>, and <strong>FAVORITES</strong> section headers are clickable: click a header to collapse or
   expand its section (the chevron next to the title flips accordingly). Use this to give the
   file tree more room when you have many open editors or recent files.</li>
 </ul>
 <h3 id="transform-bar-one-click-xslt-from-the-explorer">Transform Bar (one-click XSLT from the Explorer)<a class="headerlink" href="#transform-bar-one-click-xslt-from-the-explorer" title="Permanent link">&para;</a></h3>
 <blockquote>
-<p><strong>New in June 2026</strong> - Run an XSLT stylesheet against XML files straight from the Explorer,
+<p>Run an XSLT stylesheet against XML files straight from the Explorer,
 without switching to the Transform activity.</p>
 </blockquote>
 <p>A small <strong>Transform bar</strong> sits directly below the <strong>EXPLORER</strong> header. It lets you keep a
@@ -4453,7 +4448,7 @@ running the same evaluation, dashboard, or data-quality stylesheet across many f
 <li><strong>Choose stylesheet…</strong> - pick an <code>.xsl</code> / <code>.xslt</code> file from disk, or</li>
 <li><strong>Clear recent</strong> - empty the recent list.</li>
 </ul>
-<p><em>(new in August 2026)</em> You can also <strong>drop</strong> an <code>.xsl</code> / <code>.xslt</code> file from your file
+<p>You can also <strong>drop</strong> an <code>.xsl</code> / <code>.xslt</code> file from your file
 manager directly onto the picker - it becomes the current stylesheet and joins the
 recent list, just like choosing it from the menu. The picker glows <strong>green</strong> while a
 loadable file hovers over it and <strong>red</strong> for a wrong file type (which is rejected).
@@ -4485,7 +4480,7 @@ parameters, watch-and-rerun, and the result table, use the full
 </div>
 <h3 id="schematron-bar-one-click-validation-from-the-explorer">Schematron Bar (one-click validation from the Explorer)<a class="headerlink" href="#schematron-bar-one-click-validation-from-the-explorer" title="Permanent link">&para;</a></h3>
 <blockquote>
-<p><strong>New in July 2026</strong> - Validate XML files against a Schematron straight from the
+<p>Validate XML files against a Schematron straight from the
 Explorer, without switching to the Validation activity first.</p>
 </blockquote>
 <p>A <strong>Schematron bar</strong> sits directly below the Transform bar. It keeps one Schematron
@@ -4503,7 +4498,7 @@ checking many files against the same rule set.</p>
 <li><strong>Choose Schematron…</strong> - pick a <code>.sch</code> / <code>.schematron</code> file from disk, or</li>
 <li><strong>Clear recent</strong> - empty the recent list.</li>
 </ul>
-<p><em>(new in August 2026)</em> You can also <strong>drop</strong> a <code>.sch</code> / <code>.schematron</code> file from your
+<p>You can also <strong>drop</strong> a <code>.sch</code> / <code>.schematron</code> file from your
 file manager directly onto the picker - it becomes the current Schematron and joins
 the recent list, just like choosing it from the menu. The picker glows <strong>green</strong>
 while a loadable file hovers over it and <strong>red</strong> for a wrong file type (which is
@@ -4523,10 +4518,10 @@ document's bound XSD</strong> (if any) - bind or clear the XSD in the Validation
 SOURCES section to control that.</p>
 <h2 id="search-panel">Search Panel<a class="headerlink" href="#search-panel" title="Permanent link">&para;</a></h2>
 <blockquote>
-<p><strong>New in August 2026</strong> - A dedicated <strong>Search</strong> activity brings VS-Code-style
+<p>A dedicated <strong>Search</strong> activity brings VS-Code-style
 <strong>Find in Files</strong> with Replace, plus an <strong>XPath search &amp; replace</strong> that works across
-whole folders. <strong>Heads-up:</strong> its shortcut <strong>Ctrl+Shift+F</strong> previously meant <em>Format
-document</em> - formatting now lives on <strong>Shift+Alt+F</strong> (see
+whole folders. <strong>Heads-up:</strong> its shortcut is <strong>Ctrl+Shift+F</strong> - formatting
+lives on <strong>Shift+Alt+F</strong> (see
 <a href="#keyboard-shortcuts">Keyboard Shortcuts</a>).</p>
 </blockquote>
 <p>Open the <strong>Search</strong> panel from the magnifying-glass icon in the activity bar (directly
@@ -4654,20 +4649,19 @@ your saved files.</p>
 <h2 id="validation-panel">Validation Panel<a class="headerlink" href="#validation-panel" title="Permanent link">&para;</a></h2>
 <p>Open the <strong>Validation</strong> panel from the activity bar to validate the active document.</p>
 <blockquote>
-<p><strong>Redesigned in June 2026</strong> - the panel now follows the application's modern design:
-a SOURCES section, a Single file / Batch mode toggle, a primary <strong>Run Validation</strong>
-button, and a color-coded RESULTS list.</p>
+<p>The panel offers a SOURCES section, a Single file / Batch mode toggle, a primary
+<strong>Run Validation</strong> button, and a color-coded RESULTS list.</p>
 </blockquote>
 <h3 id="sources">Sources<a class="headerlink" href="#sources" title="Permanent link">&para;</a></h3>
 <p>The <strong>SOURCES</strong> section shows the XSD and Schematron files bound to the active document.
-Click <strong>Change</strong> next to a source to pick a different file. <em>(updated July 2026)</em> <strong>Both</strong>
+Click <strong>Change</strong> next to a source to pick a different file. <strong>Both</strong>
 rows carry a <strong>star button</strong> next to their <em>Change</em> link: on the XSD row it opens a
 quick-select menu of your favorited XSD schemas, on the Schematron row a menu of your
 favorited Schematron files - pick one to bind it in a single click, without browsing the
 file system. The menus group entries by favorites folder when you use more than one, and
 are grayed out while you have no matching favorites. (See
 <a href="../favorites-system/">Favorites</a>.)</p>
-<p><em>(new in August 2026)</em> <strong>Both source rows are drop targets</strong>: drop an <code>.xsd</code> file from
+<p><strong>Both source rows are drop targets</strong>: drop an <code>.xsd</code> file from
 your file manager onto the XSD row, or a <code>.sch</code> / <code>.schematron</code> file onto the Schematron
 row, to bind it to the active document in one move - the row glows <strong>green</strong> while a
 loadable file hovers over it and <strong>red</strong> for a wrong file type (which is rejected). The
@@ -4676,8 +4670,8 @@ appearing in the recent list.</p>
 <ul>
 <li><strong>The referenced XSD binds automatically.</strong> When the XML declares its schema
   (<code>xsi:schemaLocation</code> / <code>xsi:noNamespaceSchemaLocation</code> - local or remote), that XSD is
-  bound when the file is opened, so the declared schema is the default. <em>(updated July
-  2026)</em> The declaration is also re-checked against the <strong>current editor content before
+  bound when the file is opened, so the declared schema is the default. The
+  declaration is also re-checked against the <strong>current editor content before
   every validation run</strong> (Run Validation, the toolbar's Validate, and live validation):
   a schema reference you add or change in the editor is picked up immediately - even in
   unsaved or untitled documents - and a removed reference downgrades validation to a
@@ -4706,7 +4700,7 @@ and <strong>schema validation</strong>.</p>
 <p><strong>Single file</strong> validates the active document against the bound XSD and/or Schematron.</p>
 </li>
 <li><strong>Batch</strong> validates a whole set of XML files. In Batch mode, <strong>Run Validation</strong> opens a
-  small menu with two ways to pick the files <em>(new in June 2026)</em>:<ul>
+  small menu with two ways to pick the files:<ul>
 <li><strong>Select XML files…</strong> - a file chooser where you pick one or more XML files.</li>
 <li><strong>Select folder…</strong> - a folder chooser; every <code>*.xml</code> file in the folder <strong>and all of
   its subfolders</strong> is validated.</li>
@@ -4721,11 +4715,11 @@ and <strong>schema validation</strong>.</p>
 <p>Problems appear in two places:</p>
 <ul>
 <li>The <strong>PROBLEMS</strong> list at the bottom of the side panel.</li>
-<li>The <strong>PROBLEMS panel below the editor</strong> (new in June 2026): it appears automatically when
+<li>The <strong>PROBLEMS panel below the editor</strong>: it appears automatically when
   validation finds problems, shows error/warning counts in its header, and can be collapsed
   to just the header. Each row shows the message and the file/line in a monospaced label.</li>
 </ul>
-<p><em>(updated July 2026)</em> Every row in the PROBLEMS panel below the editor now carries a
+<p>Every row in the PROBLEMS panel below the editor carries a
 <strong>source badge</strong> - <strong>XSD</strong>, <strong>Schematron</strong>, <strong>Well-formed</strong>, or <strong>JSON Schema</strong> - so when a
 run combines several checks you can tell at a glance where each problem comes from.
 Hovering a <strong>Schematron</strong> row shows a <strong>tooltip</strong> with the full message, the failed
@@ -4733,14 +4727,14 @@ rule/test expression, and the XPath of the failing node.</p>
 <p>Selecting a problem in either list jumps to its line in the editor. This works for
 <strong>Schematron problems too</strong>: the failing rule's context node is resolved back to its
 line in the XML, so a click navigates straight to the offending element.</p>
-<p><em>(new in August 2026)</em> Schematron problems whose rules define <strong>quick fixes</strong> (SQF)
+<p>Schematron problems whose rules define <strong>quick fixes</strong> (SQF)
 can be corrected in place: right-click the problem row in either list and pick a fix
 from the <strong>Quick Fix</strong> submenu, or use the <strong>yellow lightbulb</strong> that appears in the
 editor gutter on lines with fixable problems (click it, or press <strong>Alt+Enter</strong> /
 <strong>Ctrl+.</strong> on the line). See <a href="../schematron-quick-fixes/">Schematron Quick Fixes</a>.</p>
 <h3 id="detailed-schematron-report">Detailed Schematron Report<a class="headerlink" href="#detailed-schematron-report" title="Permanent link">&para;</a></h3>
 <blockquote>
-<p><strong>New in July 2026</strong> - a full report of the last Schematron run, opened as a tool tab
+<p>A full report of the last Schematron run, opened as a tool tab
 and saveable as HTML or SVRL.</p>
 </blockquote>
 <p>After validating a document that has a Schematron file bound, open the report in
@@ -4783,7 +4777,7 @@ finding:</p>
 </tr>
 <tr>
 <td><strong>Fix</strong></td>
-<td><em>(new in August 2026)</em> A lightbulb button on findings that offer <a href="../schematron-quick-fixes/">Schematron Quick Fixes</a> — click it to apply a fix directly from the report</td>
+<td>A lightbulb button on findings that offer <a href="../schematron-quick-fixes/">Schematron Quick Fixes</a> — click it to apply a fix directly from the report</td>
 </tr>
 </tbody>
 </table>
@@ -4826,7 +4820,7 @@ report:</p>
 </tr>
 <tr>
 <td><strong>Schematron Tools → Validation Report</strong></td>
-<td>Open the <a href="#detailed-schematron-report">detailed Schematron report</a> of the last validation run <em>(new in July 2026)</em></td>
+<td>Open the <a href="#detailed-schematron-report">detailed Schematron report</a> of the last validation run</td>
 </tr>
 <tr>
 <td><strong>JSON Schema…</strong></td>
@@ -4863,7 +4857,7 @@ browsing, the panel offers actions to generate sample XML from the schema:</p>
 </ul>
 <h3 id="advanced-sample-data-generation">Advanced Sample-Data Generation<a class="headerlink" href="#advanced-sample-data-generation" title="Permanent link">&para;</a></h3>
 <blockquote>
-<p><strong>New in June 2026</strong> - A rule-based generator with per-XPath strategies, batch output, and
+<p>A rule-based generator with per-XPath strategies, batch output, and
 reusable profiles.</p>
 </blockquote>
 <p>The advanced dialog turns the schema's XPaths into an editable table. For each XPath you
@@ -4922,10 +4916,6 @@ of files written to a folder you choose. For a full walkthrough, see
 <a href="../profiled-xml-generation/">Profiled XML Generation</a> and the
 <a href="../xsd-tools/#7-sample-xml-generator">Sample XML Generator</a> section of the XSD Tools guide.</p>
 <h2 id="inspector-xsd-properties">Inspector (XSD Properties)<a class="headerlink" href="#inspector-xsd-properties" title="Permanent link">&para;</a></h2>
-<blockquote>
-<p><strong>New in June 2026</strong> - The XSD Properties inspector gained app-info editing, multi-language
-documentation, comment editing, and constraint deletion.</p>
-</blockquote>
 <p>When an XSD file is open, the <strong>Properties</strong> inspector (Ctrl+Shift+P) shows the selected schema
 node. In addition to name, type, cardinality, facets, and constraints, you can now:</p>
 <ul>
@@ -4939,10 +4929,10 @@ node. In addition to name, type, cardinality, facets, and constraints, you can n
 </ul>
 <h2 id="signature-panel">Signature Panel<a class="headerlink" href="#signature-panel" title="Permanent link">&para;</a></h2>
 <p>The <strong>Signature</strong> panel (open it from the activity bar) signs and validates XML signatures.
-Its top is an <strong>action nav</strong> of four buttons <em>(updated July 2026: the actions now render as
-raised, bordered buttons, and </em><em>Validate (Details)</em><em> as an outlined secondary button)</em> -
+Its top is an <strong>action nav</strong> of four buttons - the actions render as
+raised, bordered buttons, and <strong>Validate (Details)</strong> as an outlined secondary button -
 selecting one shows the matching form below it, next to the shared <strong>KEYSTORE</strong> section
-(keystore file with a <em>Change</em> link, alias, and the two passwords). <em>(updated July 2026)</em>
+(keystore file with a <em>Change</em> link, alias, and the two passwords).
 The keystore row also carries a <strong>star menu</strong> that lists your favorited keystores -
 keystore files (<code>.jks</code>, <code>.p12</code>, <code>.pfx</code>, <code>.keystore</code>) are now their own <strong>Keystore</strong>
 favorite type with a lock icon (see <a href="../favorites-system/">Favorites</a>):</p>
@@ -4958,7 +4948,7 @@ favorite type with a lock icon (see <a href="../favorites-system/">Favorites</a>
   algorithm, key usage, and the <strong>SHA-256 fingerprint</strong> with a copy button.</li>
 <li><strong>Validate Signature</strong> - <strong>Validate Signature</strong> checks the active document's signature;
   <strong>Validate (Details)</strong> opens a detailed report (validity + signing-certificate details).
-  <em>(updated July 2026)</em> The result is now explained in plain language: a valid signature
+  The result is explained in plain language: a valid signature
   shows a green status; a document without a signature shows a red hint suggesting you sign
   it first; an invalid signature opens an error dialog that explains the document was
   modified after signing and names what failed (the signature value or a specific
@@ -4971,17 +4961,17 @@ favorite type with a lock icon (see <a href="../favorites-system/">Favorites</a>
   using the alias and passwords from the KEYSTORE section. The new keystore is selected
   automatically so you can sign immediately.</li>
 <li><strong>Expert Mode</strong> - Full PKIX trust validation: choose a <strong>trust store</strong> (defaults to the
-  JVM's built-in <code>cacerts</code>; <em>(updated July 2026)</em> the trust store row also has a <strong>star
+  JVM's built-in <code>cacerts</code>; the trust store row also has a <strong>star
   menu</strong> with your favorited keystores), optionally <strong>Check revocation (OCSP/CRL)</strong>, then
   <strong>Validate (Trust)</strong> produces a trust report (trusted / trust anchor / revocation /
   timestamp).</li>
 </ul>
-<p><em>(new in August 2026)</em> The <strong>KEYSTORE row</strong> and Expert Mode's <strong>trust store row</strong> are also
+<p>The <strong>KEYSTORE row</strong> and Expert Mode's <strong>trust store row</strong> are also
 <strong>drop targets</strong>: drop a keystore file (<code>.jks</code>, <code>.keystore</code>, <code>.p12</code>, <code>.pfx</code>) from your
 file manager onto either row to select it - the row glows <strong>green</strong> while a loadable file
 hovers over it and <strong>red</strong> for a wrong file type (which is rejected), and the drop
 behaves exactly like choosing the file via <strong>Change</strong> or a favorite.</p>
-<p><em>(updated July 2026)</em> Missing inputs are highlighted: signing without a keystore marks the
+<p>Missing inputs are highlighted: signing without a keystore marks the
 keystore entry in red, and a blank alias or password is marked in red when you sign or
 create a certificate. The highlight disappears as soon as you start typing in the field.</p>
 <p>See <a href="../digital-signatures/">XML Digital Signatures</a> for full details.</p>
@@ -4989,10 +4979,10 @@ create a certificate. The highlight disappears as soon as you start typing in th
 <p>The <strong>PDF / FOP</strong> panel renders the XML to PDF with an XSL-FO stylesheet (Apache FOP):</p>
 <ul>
 <li><strong>INPUT</strong> - The XML (follows the active editor; <em>Change</em> can fix it to a file) and the
-  <strong>XSL-FO stylesheet</strong> (<em>Change</em>). <em>(updated July 2026)</em> Both rows also carry a <strong>star
+  <strong>XSL-FO stylesheet</strong> (<em>Change</em>). Both rows also carry a <strong>star
   menu</strong> next to their <em>Change</em> link - <strong>XML</strong> favorites for the input, <strong>XSLT</strong> favorites
   for the stylesheet - so you can pick a favorited file in one click (see
-  <a href="../favorites-system/">Favorites</a>). <em>(new in August 2026)</em> Both rows are also <strong>drop
+  <a href="../favorites-system/">Favorites</a>). Both rows are also <strong>drop
   targets</strong>: drop an <code>.xml</code> file onto the XML row or an <code>.xsl</code> / <code>.xslt</code> file onto the
   stylesheet row - the row glows <strong>green</strong> while a loadable file hovers over it and
   <strong>red</strong> for a wrong file type (which is rejected), and the drop behaves exactly like
@@ -5010,7 +5000,7 @@ create a certificate. The highlight disappears as soon as you start typing in th
 <p>See <a href="../pdf-generator/">PDF Generator</a> for stylesheet guidance.</p>
 <h2 id="fundsxml-panel">FundsXML Panel<a class="headerlink" href="#fundsxml-panel" title="Permanent link">&para;</a></h2>
 <blockquote>
-<p><strong>Updated July 2026</strong> - Content now downloads and updates <strong>automatically</strong> in the
+<p>Content downloads and updates <strong>automatically</strong> in the
 background; the panel gained a <strong>progress bar</strong> with stage text and an
 <strong>Open Schema in Editor</strong> button.</p>
 </blockquote>
@@ -5038,9 +5028,9 @@ they are ready.</p>
 description, cache locations and troubleshooting.</p>
 <h2 id="settings-page">Settings Page<a class="headerlink" href="#settings-page" title="Permanent link">&para;</a></h2>
 <blockquote>
-<p><strong>Updated in June 2026</strong> - Settings now open as a <strong>full page</strong> (a tab in the main editor
-area) instead of being squeezed into the narrow left side panel. The sections are presented
-as <strong>color-coded cards</strong>, and a <strong>Clear Cache Folder</strong> button was added.</p>
+<p>Settings open as a <strong>full page</strong> (a tab in the main editor
+area) rather than in the narrow left side panel. The sections are presented
+as <strong>color-coded cards</strong>.</p>
 </blockquote>
 <p>Click the gear icon at the bottom of the activity bar: the <strong>Settings page opens as a tab in
 the main editor area</strong>, where there is room for all options (the left side panel just shows a
@@ -5105,8 +5095,8 @@ shown first, because the action cannot be undone. The cache folder itself is kep
 contents are removed.</p>
 <h3 id="rendering-mode">Rendering mode (hardware vs. software)<a class="headerlink" href="#rendering-mode" title="Permanent link">&para;</a></h3>
 <blockquote>
-<p><strong>New in June 2026</strong> - The <strong>RENDERING</strong> card lets you choose how JavaFX draws the UI,
-per machine, instead of relying on a fixed JVM flag.</p>
+<p>The <strong>RENDERING</strong> card lets you choose how JavaFX draws the UI,
+per machine, without relying on a fixed JVM flag.</p>
 </blockquote>
 <p>JavaFX can render either on the <strong>GPU</strong> (hardware-accelerated, faster) or purely in
 <strong>software</strong>. On machines with only an integrated GPU, hardware rendering can become
@@ -5155,7 +5145,7 @@ The <strong>Mode</strong> dropdown controls this:</p>
 </ul>
 <h3 id="managing-your-templates">Managing your templates<a class="headerlink" href="#managing-your-templates" title="Permanent link">&para;</a></h3>
 <blockquote>
-<p><strong>New in June 2026</strong> - The <strong>TEMPLATES</strong> card lets you keep your own starting templates,
+<p>The <strong>TEMPLATES</strong> card lets you keep your own starting templates,
 which then show up (filtered by file type) in the <a href="#new-file-dialog">New File dialog</a>.</p>
 </blockquote>
 <ul>
@@ -5175,8 +5165,8 @@ templates appear in the <strong>New File</strong> dialog whenever their file typ
 template and XPath-snippet system, see <a href="../template-management/">Template Management</a>.</p>
 <h2 id="welcome-dashboard">Welcome / Dashboard<a class="headerlink" href="#welcome-dashboard" title="Permanent link">&para;</a></h2>
 <blockquote>
-<p><strong>New in June 2026</strong> - The welcome screen now shows live statistics and quick tips, and the
-Tools grid covers <strong>every</strong> page - including the new <strong>Explorer</strong> and <strong>Settings</strong> cards.</p>
+<p>The welcome screen shows live statistics and quick tips, and the
+Tools grid covers <strong>every</strong> page - including <strong>Explorer</strong> and <strong>Settings</strong> cards.</p>
 </blockquote>
 <p>When no document is open, the editor shows a welcome dashboard with:</p>
 <ul>
@@ -5185,13 +5175,13 @@ Tools grid covers <strong>every</strong> page - including the new <strong>Explor
 <li><strong>Tips banner</strong> - A short hint banner with handy shortcuts (for example, drag a file onto the
   window to open it, or use Ctrl+F / Ctrl+H to find and replace).</li>
 <li><strong>Recent files</strong> list - Click an entry to reopen it.</li>
-<li><strong>Tools grid</strong> - One card per tool; clicking a card opens the matching activity. Alongside
-  <strong>Validate</strong>, <strong>Transform</strong>, <strong>Schema</strong>, <strong>PDF / FOP</strong>, <strong>Signature</strong>, and <strong>Favorites</strong>,
-  two cards are new in June 2026: <strong>Explorer</strong> (files &amp; workspace) and <strong>Settings</strong>
-  (application preferences) - so every page can be opened directly from the start screen.
-  <em>(new in August 2026)</em> A <strong>Search</strong> card (<em>Find in files &amp; XPath</em>) opens the
+<li><strong>Tools grid</strong> - One card per tool; clicking a card opens the matching activity:
+  <strong>Validate</strong>, <strong>Transform</strong>, <strong>Schema</strong>, <strong>PDF / FOP</strong>, <strong>Signature</strong>, <strong>Favorites</strong>,
+  <strong>Explorer</strong> (files &amp; workspace), and <strong>Settings</strong> (application preferences) - so every
+  page can be opened directly from the start screen.
+  A <strong>Search</strong> card (<em>Find in files &amp; XPath</em>) opens the
   <a href="#search-panel">Search panel</a>.</li>
-<li><strong>FUNDSXML quick access</strong> <em>(new in July 2026)</em> - When the optional
+<li><strong>FUNDSXML quick access</strong> - When the optional
   <a href="../fundsxml-extensions/">FundsXML extension</a> is enabled and its content is cached, an
   extra row with three cards appears: <strong>Open Example</strong> (opens a compact starter sample),
   <strong>Open Schema</strong> (opens <code>FundsXML4.xsd</code> in the editor) and <strong>Browse Examples</strong> (opens the
@@ -5201,7 +5191,7 @@ Tools grid covers <strong>every</strong> page - including the new <strong>Explor
 <p><img alt="Welcome page with the FUNDSXML quick-access row" src="../img/unified-shell-welcome-fundsxml.png" /></p>
 <h2 id="status-bar">Status Bar<a class="headerlink" href="#status-bar" title="Permanent link">&para;</a></h2>
 <blockquote>
-<p><strong>New in July 2026</strong> - The XSD indicator now shows the schema <em>loading lifecycle</em>, so you can
+<p>The XSD indicator shows the schema <em>loading lifecycle</em>, so you can
 tell exactly when IntelliSense becomes available.</p>
 </blockquote>
 <p>The status bar at the bottom of the window includes:</p>
@@ -5238,7 +5228,7 @@ tell exactly when IntelliSense becomes available.</p>
 document; the binding drives both <strong>IntelliSense</strong> and <strong>schema validation</strong>. (The editor
 toolbar's <strong>Schema</strong> button - <strong>Set XSD Schema…</strong> - does the same.) Hovering shows a tooltip explaining
 the current IntelliSense availability.</p>
-<p><em>(new in August 2026)</em> The indicator is also a <strong>drop target</strong>: drop an <code>.xsd</code> file from
+<p>The indicator is also a <strong>drop target</strong>: drop an <code>.xsd</code> file from
 your file manager onto it to bind the schema to the active document in one move - it
 glows <strong>green</strong> while a loadable file hovers over it and <strong>red</strong> for a wrong file type
 (which is rejected).
@@ -5289,11 +5279,11 @@ glows <strong>green</strong> while a loadable file hovers over it and <strong>re
 </tr>
 <tr>
 <td>Ctrl+Shift+F</td>
-<td><strong>Find in Files</strong> - opens the <a href="#search-panel">Search panel</a>, prefilled with the editor selection <em>(new in August 2026)</em></td>
+<td><strong>Find in Files</strong> - opens the <a href="#search-panel">Search panel</a>, prefilled with the editor selection</td>
 </tr>
 <tr>
 <td>Ctrl+Shift+H</td>
-<td><strong>Replace in Files</strong> - opens the Search panel with the replace row expanded <em>(new in August 2026)</em></td>
+<td><strong>Replace in Files</strong> - opens the Search panel with the replace row expanded</td>
 </tr>
 <tr>
 <td>F8</td>
@@ -5338,14 +5328,14 @@ glows <strong>green</strong> while a loadable file hovers over it and <strong>re
 </tbody>
 </table>
 <div class="admonition warning">
-<p class="admonition-title">Changed shortcut (August 2026)</p>
+<p class="admonition-title">Changed shortcut</p>
 <p><strong>Ctrl+Shift+F no longer formats the document.</strong> Following the VS Code convention, it
 now opens <strong>Search (Find in Files)</strong>, and <strong>Ctrl+Shift+H</strong> opens <strong>Replace in Files</strong>.
 <strong>Format Document moved to Shift+Alt+F</strong> - the toolbar's <strong>Format</strong> button works
 unchanged. The in-editor find/replace stays on <strong>Ctrl+F / Ctrl+H</strong>.</p>
 </div>
 <blockquote>
-<p><strong>Search in all view modes (updated in July 2026):</strong> Pressing <strong>Ctrl+F</strong> opens an inline search bar with up/down chevron arrows for Find Previous / Find Next (Enter / Shift+Enter work too). The search works in the <strong>Text</strong>, <strong>Tree</strong> and <strong>Graphic</strong> views. In the structured views it searches the nodes themselves — for XSD schemas that is element/attribute/type names, documentation and appinfo, type references, fixed/default values, enumeration and facet values, and comments; for XML instances in the Graphic grid it is element names, attribute names, and values. A match hidden inside a collapsed branch is revealed automatically (ancestors expand), selected, and scrolled into view; matches wrap around when you reach the end. Switching the view mode or tab while the bar is open re-targets the search to the active view. <strong>Replace</strong> is available in the Text view only — in Tree/Graphic views the replace toggle is disabled. See <a href="../xml-editor-features/#search-find">XML Editor Features</a> for details.</p>
+<p><strong>Search in all view modes:</strong> Pressing <strong>Ctrl+F</strong> opens an inline search bar with up/down chevron arrows for Find Previous / Find Next (Enter / Shift+Enter work too). The search works in the <strong>Text</strong>, <strong>Tree</strong> and <strong>Graphic</strong> views. In the structured views it searches the nodes themselves — for XSD schemas that is element/attribute/type names, documentation and appinfo, type references, fixed/default values, enumeration and facet values, and comments; for XML instances in the Graphic grid it is element names, attribute names, and values. A match hidden inside a collapsed branch is revealed automatically (ancestors expand), selected, and scrolled into view; matches wrap around when you reach the end. Switching the view mode or tab while the bar is open re-targets the search to the active view. <strong>Replace</strong> is available in the Text view only — in Tree/Graphic views the replace toggle is disabled. See <a href="../xml-editor-features/#search-find">XML Editor Features</a> for details.</p>
 </blockquote>
 <h2 id="compare-merge">Compare &amp; Merge<a class="headerlink" href="#compare-merge" title="Permanent link">&para;</a></h2>
 <p>Both the XML and XSD editors include a <strong>Compare</strong> toolbar button (tooltip <em>"Compare with file..."</em>)
@@ -5403,13 +5393,12 @@ any error to jump straight to its location:</p>
 </ul>
 <h2 id="properties-inspector">Properties Inspector<a class="headerlink" href="#properties-inspector" title="Permanent link">&para;</a></h2>
 <blockquote>
-<p><strong>Updated in v1.10</strong> - For XML files, property editing works in <strong>all</strong> XML views (Text, Tree,
-and Graphic). Previously it was available only in the grid.</p>
-<p><strong>Updated June 2026</strong> - For XSD files, property editing now works in the <strong>Text</strong> view too,
-matching the Tree and Graphic views. See <a href="#xsd-files">XSD Files</a> below.</p>
-<p><strong>Updated July 2026</strong> - The <strong>NODE &amp; XPATH</strong> section shows the XPath on its own full-width
-line below the "XPath" header (long paths no longer get squeezed by the icon column).</p>
-<p><strong>Updated August 2026</strong> - The inspector is no longer fixed-width: drag the divider line
+<p>Property editing works in <strong>all</strong> views - for XML files in Text, Tree, and
+Graphic, and for XSD files in the <strong>Text</strong> view as well as the Tree and Graphic views
+(see <a href="#xsd-files">XSD Files</a> below).</p>
+<p>The <strong>NODE &amp; XPATH</strong> section shows the XPath on its own full-width
+line below the "XPath" header, so long paths do not get squeezed by the icon column.</p>
+<p>The inspector is not fixed-width: drag the divider line
 between the editor and the inspector to make it wider (handy for long XPaths, attribute
 values, or documentation). The width is remembered across restarts - see
 <a href="#collapsing-the-side-panels">Resizing and collapsing the side panels</a>.</p>
@@ -5460,11 +5449,11 @@ preserved when you switch between Text, Tree, and Graphic. Structural editing (a
 and moving nodes) remains a Tree/Graphic capability through the right-click context menu.</p>
 <h2 id="editor-toolbar-document-actions">Editor Toolbar Document Actions<a class="headerlink" href="#editor-toolbar-document-actions" title="Permanent link">&para;</a></h2>
 <blockquote>
-<p><strong>New in June 2026</strong> - Trigger per-document operations from the editor toolbar without leaving
+<p>Trigger per-document operations from the editor toolbar without leaving
 the editor or switching the left activity bar.</p>
 </blockquote>
 <p>The editor toolbar includes a group of <strong>document actions</strong> that act on the <strong>active
-document</strong>. Since the toolbar redesign (August 2026) they are arranged as follows: <strong>Validate</strong>
+document</strong>. They are arranged as follows: <strong>Validate</strong>
 and <strong>Transform with XSLT…</strong> are their own buttons; <strong>Run Query / Run Transform / Run Pipeline</strong>
 are the <strong>Run ▾</strong> split button (the primary click runs whichever of the three the active file
 type supports); <strong>Generate Documentation…</strong> and <strong>Type Editor…</strong> sit in the <strong>Schema ▾</strong> split
@@ -5534,7 +5523,7 @@ latest edits.</p>
 </div>
 <h2 id="query-console">Query Console<a class="headerlink" href="#query-console" title="Permanent link">&para;</a></h2>
 <blockquote>
-<p><strong>New in June 2026</strong> - Run XPath and XQuery against the open document right from the editor,
+<p>Run XPath and XQuery against the open document right from the editor,
 without switching to the Transform activity.</p>
 </blockquote>
 <p>The <strong>Query Console</strong> is a panel that opens along the <strong>bottom of the editor</strong>. Toggle it with the
@@ -5581,7 +5570,7 @@ pane shows the previous run's XML result with syntax highlighting.</em></p>
 expression directly; for a <strong>JSON</strong> document the XPath input is evaluated as a <strong>JSONPath</strong>
 expression. When no document is open, <strong>Run</strong> is disabled and the results pane shows
 <em>"No document open."</em></p>
-<p><em>(Updated July 2026)</em> The <code>map:</code>, <code>array:</code> and <code>math:</code> function namespaces are
+<p>The <code>map:</code>, <code>array:</code> and <code>math:</code> function namespaces are
 <strong>pre-declared</strong> in the console, so XPath 3.1 expressions using <code>map:merge()</code>,
 <code>array:size()</code>, <code>math:pow()</code> etc. run directly - no namespace prolog needed.</p>
 <div class="admonition note">
@@ -5600,7 +5589,7 @@ the OUTPUT panel's result table and HTML preview, use the <a href="#transform-pa
 </ul>
 <p>Snippets are kept in the shared query folder, so anything saved here is also available from the XML
 Editor's XPath/XQuery panel and vice versa.</p>
-<p><em>(New in July 2026)</em> Saved snippets can be <strong>managed</strong> directly from the menu. Each snippet's
+<p>Saved snippets can be <strong>managed</strong> directly from the menu. Each snippet's
 submenu offers, next to <em>Load into console</em> and <em>Open in editor</em>:</p>
 <ul>
 <li><strong>Overwrite with current query</strong> - Replaces the saved expression with the console's current
@@ -5618,7 +5607,7 @@ the FundsXML content cache on every start and therefore offer no management acti
 Markdown and JSON), all written for the FundsXML4 sample files in <code>examples/xml/</code>.
 Paste them into the console, or copy the <code>.xpath</code> files into your query folder to have
 them appear in the <strong>Snippets</strong> menu. See the <code>README.md</code> in each folder for details.</p>
-<p><em>(New in July 2026)</em> When the optional <a href="../fundsxml-extensions/">FundsXML extension</a> is
+<p>When the optional <a href="../fundsxml-extensions/">FundsXML extension</a> is
 enabled, the <strong>Snippets</strong> menu also shows a <strong>FUNDSXML</strong> section with the XPath/XQuery
 example queries shipped with the FundsXML examples (for example <em>fund-summary</em>,
 <em>top-holdings</em>, <em>look-through</em>, <em>aggregate-by-assettype</em>). Selecting one loads it into the
@@ -5637,7 +5626,7 @@ their parentheses / <code>::</code> automatically.</p>
 <a href="#query-console">Query Console</a> offers a lighter Save / Snippets pair instead):</p>
 <ul>
 <li><strong>XPATH section</strong> - <strong>Save Query</strong> stores the current expression under a name, and the
-  <strong>Saved</strong> menu lists every saved query. <em>(New in July 2026)</em> Each entry is a submenu
+  <strong>Saved</strong> menu lists every saved query. Each entry is a submenu
   offering the same management actions as the Query Console's Snippets menu: <strong>Load into
   query field</strong>, <strong>Open in editor</strong>, <strong>Overwrite with current query</strong>, <strong>Rename…</strong> and
   <strong>Delete…</strong> (the latter three with the same confirmation/collision rules).</li>
@@ -5648,7 +5637,7 @@ their parentheses / <code>::</code> automatically.</p>
 Editor's XPath/XQuery panel and vice versa.</p>
 <h2 id="drag-and-drop">Drag and Drop<a class="headerlink" href="#drag-and-drop" title="Permanent link">&para;</a></h2>
 <p>Drag files from your file manager directly into the editor to open them. Multiple files can be dropped at once.</p>
-<p><em>(new in August 2026)</em> The file <strong>pickers and source rows</strong> across the shell are <strong>drop
+<p>The file <strong>pickers and source rows</strong> across the shell are <strong>drop
 targets too</strong>:</p>
 <ul>
 <li>Drop an <code>.xsl</code> / <code>.xslt</code> file onto the Explorer's

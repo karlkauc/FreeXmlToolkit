@@ -1432,10 +1432,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#flatten-options-new-in-august-2026" class="md-nav__link">
+  <a href="#flatten-options" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Flatten Options (new in August 2026)
+        Flatten Options
       
     </span>
   </a>
@@ -2620,10 +2620,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#flatten-options-new-in-august-2026" class="md-nav__link">
+  <a href="#flatten-options" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Flatten Options (new in August 2026)
+        Flatten Options
       
     </span>
   </a>
@@ -2712,8 +2712,8 @@
 
 <h1 id="xsd-tools">XSD Tools<a class="headerlink" href="#xsd-tools" title="Permanent link">&para;</a></h1>
 <blockquote>
-<p><strong>Last Updated:</strong> August 2026 | <strong>Version:</strong> 2.0.1</p>
-<p><strong>Note (Phase 10c):</strong> The standalone <em>XSD Editor</em> tab has been retired. XSD
+<p><strong>Version:</strong> 2.0.1</p>
+<p><strong>Note:</strong> The standalone <em>XSD Editor</em> tab has been retired. XSD
 editing — the Text/Tree/Graphic views, the inspector, the Type Library, type
 editing, documentation generation, schema flattening and schema analysis —
 now lives in the <strong>Unified Shell</strong> (open an <code>.xsd</code> file; "go to schema
@@ -2797,8 +2797,8 @@ document, and use XSD files effectively.</p>
 <li><strong>Drag</strong> elements to move them</li>
 </ol>
 <blockquote>
-<p><strong>Editing properties from any view (updated June 2026):</strong> The same Properties pane is now
-available in the <strong>Text</strong> view as well, not just the Graphic and Tree views. See
+<p><strong>Editing properties from any view:</strong> The same Properties pane is
+available in the <strong>Text</strong> view as well as the Graphic and Tree views. See
 <a href="#editing-schema-properties-from-any-view">Editing Schema Properties from Any View</a> below.</p>
 </blockquote>
 <h3 id="tips">Tips<a class="headerlink" href="#tips" title="Permanent link">&para;</a></h3>
@@ -2810,7 +2810,7 @@ available in the <strong>Text</strong> view as well, not just the Graphic and Tr
 <li>The toolbar's <strong>Save ▾</strong> split button saves the schema; its arrow menu offers <strong>Save As…</strong> (save under a new name) and <strong>Save All</strong> (saves every open tab)</li>
 </ul>
 <h3 id="automatic-download-of-imported-schemas">Automatic Download of Imported Schemas<a class="headerlink" href="#automatic-download-of-imported-schemas" title="Permanent link">&para;</a></h3>
-<p><em>(new in August 2026)</em> Some schemas import other schemas that are not shipped alongside them.
+<p>Some schemas import other schemas that are not shipped alongside them.
 For example, many financial schemas contain:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">&lt;xs:import</span><span class="w"> </span><span class="na">namespace=</span><span class="s">"http://www.w3.org/2000/09/xmldsig#"</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">           </span><span class="na">schemaLocation=</span><span class="s">"xmldsig-core-schema.xsd"</span><span class="nt">/&gt;</span>
@@ -2986,14 +2986,14 @@ it to open that schema as a document.</p>
 </ul>
 <h3 id="editing-schema-properties-from-any-view">Editing Schema Properties from Any View<a class="headerlink" href="#editing-schema-properties-from-any-view" title="Permanent link">&para;</a></h3>
 <blockquote>
-<p><strong>New in June 2026</strong> - You can now edit a schema node's properties directly from the
-<strong>Text</strong> view, the same way you already could in the <strong>Tree</strong> and <strong>Graphic</strong> views.</p>
+<p>You can edit a schema node's properties directly from the
+<strong>Text</strong> view, the same way as in the <strong>Tree</strong> and <strong>Graphic</strong> views.</p>
 </blockquote>
 <p>The XSD editor has three views - <strong>Text</strong>, <strong>Tree</strong>, and <strong>Graphic</strong> - and all three share one
 in-memory schema model. The Properties pane works in every view:</p>
 <ul>
 <li><strong>Tree</strong> and <strong>Graphic</strong> views: Select a node to edit its name, type, cardinality/occurrence,
-  use, form, constraints, documentation, and facets. (Unchanged.)</li>
+  use, form, constraints, documentation, and facets.</li>
 <li><strong>Text</strong> view: Move the text caret into an XSD construct - such as an <code>xs:element</code>,
   <code>xs:complexType</code>, <code>xs:simpleType</code>, <code>xs:attribute</code>, a compositor (<code>xs:sequence</code>, <code>xs:choice</code>,
   <code>xs:all</code>), or a facet - and the Properties pane selects the matching schema node and shows it
@@ -3006,10 +3006,6 @@ comment, or blank space - the pane falls back to a read-only caret/XPath view.</
 <p>Because all three views share one model, your edits and your <strong>Undo/Redo</strong> history are preserved
 when you switch between Text, Tree, and Graphic.</p>
 <h3 id="what-you-can-edit-in-the-properties-pane">What You Can Edit in the Properties Pane<a class="headerlink" href="#what-you-can-edit-in-the-properties-pane" title="Permanent link">&para;</a></h3>
-<blockquote>
-<p><strong>New in June 2026</strong> - The Properties pane gained app-info editing, multi-language
-documentation, comment editing, and constraint deletion.</p>
-</blockquote>
 <p>For the selected schema node you can edit:</p>
 <ul>
 <li><strong>Name, type, cardinality/occurrence, use, form</strong> - The core properties of the node.</li>
@@ -3246,7 +3242,7 @@ your latest edits.</p>
 <p><img alt="Sample XML Generator" src="../img/xsd-sample-generator.png" />
 <em>The advanced sample generator dialog with its per-XPath rules table</em></p>
 <blockquote>
-<p><strong>Unified Shell (June 2026):</strong> In the <a href="../unified-shell/">Unified Shell</a>, sample-data
+<p><strong>Unified Shell:</strong> In the <a href="../unified-shell/">Unified Shell</a>, sample-data
 generation lives in the <strong>Schema</strong> panel. It offers two actions: <strong>Generate Sample XML</strong> for
 the basic generation described below, and <strong>Generate Sample XML (Advanced)…</strong> for the
 rule-based, batch-capable generation shown above.</p>
@@ -3325,7 +3321,7 @@ like any other document:</p>
 <li>Click <strong>OK</strong></li>
 <li>The flattened schema opens as a new editor tab (<code>Flattened.xsd</code>), ready for you to review and save</li>
 </ol>
-<h3 id="flatten-options-new-in-august-2026">Flatten Options <em>(new in August 2026)</em><a class="headerlink" href="#flatten-options-new-in-august-2026" title="Permanent link">&para;</a></h3>
+<h3 id="flatten-options">Flatten Options<a class="headerlink" href="#flatten-options" title="Permanent link">&para;</a></h3>
 <p>Before flattening, a dialog lets you reduce the output. All four options are <strong>checked by default</strong>, which produces the smallest possible schema — ideal for deploying to a validation server:</p>
 <table>
 <thead>

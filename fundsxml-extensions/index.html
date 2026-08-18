@@ -2178,7 +2178,7 @@
 
 <h1 id="fundsxml-extensions">FundsXML Extensions<a class="headerlink" href="#fundsxml-extensions" title="Permanent link">&para;</a></h1>
 <blockquote>
-<p><strong>Last Updated:</strong> July 2026 | <strong>Version:</strong> 1.10.0</p>
+<p><strong>Version:</strong> 1.10.0</p>
 </blockquote>
 <p>Optional integration with the <a href="https://fundsxml.org/">FundsXML</a> standard for the fund management industry. When enabled, FreeXmlToolkit automatically downloads and keeps up to date the official FundsXML schemas, sample documents, Schematron rules, and XPath/XQuery snippets - and uses them for quick validation of your own files.</p>
 <p>This feature is <strong>off by default</strong>. Enable it only if you work with FundsXML documents.</p>
@@ -2205,9 +2205,9 @@
 <li>Save your settings.</li>
 </ol>
 <blockquote>
-<p><strong>New in July 2026</strong> - Enabling the feature is all you need to do: the FundsXML content
+<p>Enabling the feature is all you need to do: the FundsXML content
 starts downloading automatically in the background, and a small toast notification tells
-you when it is ready. There is no separate download step anymore.</p>
+you when it is ready. There is no separate download step.</p>
 </blockquote>
 <p>Once enabled, the FundsXML integration appears in several places:</p>
 <table>
@@ -2240,7 +2240,7 @@ you when it is ready. There is no separate download step anymore.</p>
 <hr />
 <h2 id="downloading-fundsxml-content">Downloading FundsXML Content<a class="headerlink" href="#downloading-fundsxml-content" title="Permanent link">&para;</a></h2>
 <blockquote>
-<p><strong>Updated July 2026</strong> - Downloads are now <strong>fully automatic</strong>. Content is fetched in the
+<p>Downloads are <strong>fully automatic</strong>. Content is fetched in the
 background right after you enable the feature, and on every application start any missing
 content is downloaded again. When a background download finishes, a non-blocking toast
 notification appears - no dialogs interrupt your work.</p>
@@ -2330,7 +2330,7 @@ sections:</p>
 </thead>
 <tbody>
 <tr>
-<td><strong>Open Schema in Editor</strong> <em>(new in July 2026)</em></td>
+<td><strong>Open Schema in Editor</strong></td>
 <td>Opens the active version's <code>FundsXML4.xsd</code> directly as an editor tab - explore it in the Text view or as a diagram in the Graphic view</td>
 </tr>
 <tr>
@@ -2357,9 +2357,6 @@ sections:</p>
 </table>
 <p>You can also reach the downloaded files directly through <a href="../favorites-system/">Favorites</a>: example documents under <strong>FundsXML Examples</strong>, the active schema under <strong>FundsXML Schema</strong>, Schematron rules under <strong>FundsXML Schematron</strong>, and stylesheets under <strong>FundsXML XSLT</strong> (handy in the Transform panel's star menus).</p>
 <h3 id="welcome-page-quick-access">Welcome Page Quick Access<a class="headerlink" href="#welcome-page-quick-access" title="Permanent link">&para;</a></h3>
-<blockquote>
-<p><strong>New in July 2026</strong></p>
-</blockquote>
 <p>When the feature is enabled and content is cached, the Welcome/Dashboard page shows a
 <strong>FUNDSXML</strong> quick-access row with three cards:</p>
 <p><img alt="Welcome page with the FUNDSXML quick-access row" src="../img/unified-shell-welcome-fundsxml.png" /></p>
@@ -2387,9 +2384,9 @@ sections:</p>
 <hr />
 <h2 id="automatic-update-checks">Automatic Update Checks<a class="headerlink" href="#automatic-update-checks" title="Permanent link">&para;</a></h2>
 <blockquote>
-<p><strong>Updated July 2026</strong> - Updates are now installed automatically instead of showing a dialog.</p>
+<p>Updates are installed automatically instead of showing a dialog.</p>
 </blockquote>
-<p>By default, FreeXmlToolkit checks once per day whether a newer FundsXML schema release is available on GitHub. If a new release is found, it is <strong>downloaded and installed automatically in the background</strong> - a toast notification confirms when the new content is in place, and the new version becomes the active one. There is no update dialog to answer anymore.</p>
+<p>By default, FreeXmlToolkit checks once per day whether a newer FundsXML schema release is available on GitHub. If a new release is found, it is <strong>downloaded and installed automatically in the background</strong> - a toast notification confirms when the new content is in place, and the new version becomes the active one. There is no update dialog to answer.</p>
 <p>The check is throttled to at most once every 24 hours and runs quietly in the background. Missing content (for example after clearing the cache folder) is also re-downloaded automatically on the next application start. To turn the daily check off, set <code>fundsxml.update.check.enabled=false</code> in your <code>FreeXmlToolkit.properties</code> file.</p>
 <hr />
 <h2 id="contributing-snippets-upstream">Contributing Snippets Upstream<a class="headerlink" href="#contributing-snippets-upstream" title="Permanent link">&para;</a></h2>

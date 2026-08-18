@@ -2612,12 +2612,11 @@
 
 <h1 id="xml-digital-signatures">XML Digital Signatures<a class="headerlink" href="#xml-digital-signatures" title="Permanent link">&para;</a></h1>
 <blockquote>
-<p><strong>Last Updated:</strong> July 2026 | <strong>Version:</strong> 1.10.0</p>
-<p><strong>Note (Phase 10c):</strong> The standalone <em>Signature</em> tab has been retired. Signing,
-signature validation (including detailed and PKIX trust/chain/revocation/timestamp
-validation) and self-signed certificate creation now live in the <strong>Unified Shell's
-Signature activity panel</strong>. The capabilities below are unchanged; they are reached
-through the shell rather than a dedicated sidebar tab.</p>
+<p><strong>Version:</strong> 1.10.0</p>
+<p><strong>Note:</strong> Signing, signature validation (including detailed and PKIX
+trust/chain/revocation/timestamp validation) and self-signed certificate creation
+live in the <strong>Unified Shell's Signature activity panel</strong> - they are reached through
+the shell rather than a dedicated sidebar tab.</p>
 </blockquote>
 <p>This tool lets you digitally sign XML documents and verify signatures. A digital signature proves that a document is authentic and hasn't been changed.</p>
 <hr />
@@ -2626,8 +2625,8 @@ through the shell rather than a dedicated sidebar tab.</p>
 <em>Signing, validation and certificate creation now live in the Unified Shell's Signature activity panel</em></p>
 <h3 id="what-can-you-do">What Can You Do?<a class="headerlink" href="#what-can-you-do" title="Permanent link">&para;</a></h3>
 <p>In the <a href="../unified-shell/">Unified Shell</a>, open the <strong>Signature</strong> activity from the activity bar.
-The top of the panel is an <strong>action nav</strong> of four buttons <em>(updated July 2026: the actions
-render as raised, bordered buttons so they are recognizable as clickable)</em> - selecting one
+The top of the panel is an <strong>action nav</strong> of four buttons - rendered as raised, bordered
+buttons so they are recognizable as clickable. Selecting one
 shows the matching form below the shared <strong>KEYSTORE</strong> section (keystore file, alias, passwords):</p>
 <table>
 <thead>
@@ -2760,7 +2759,7 @@ shows the matching form below the shared <strong>KEYSTORE</strong> section (keys
 </ol>
 <p><strong>Important:</strong> Remember your passwords! They cannot be recovered.</p>
 <blockquote>
-<p><strong>Tip (July 2026):</strong> If you leave the alias or a password blank, the field is highlighted
+<p><strong>Tip:</strong> If you leave the alias or a password blank, the field is highlighted
 in red when you click <strong>Create Certificate</strong>. The highlight clears as soon as you start typing.</p>
 </blockquote>
 <hr />
@@ -2828,9 +2827,9 @@ in red when you click <strong>Create Certificate</strong>. The highlight clears 
 <ol>
 <li>In the <strong>Signature</strong> panel, choose <strong>Sign XML File</strong></li>
 <li>Click <strong>"Browse"</strong> to select your XML file</li>
-<li>Click <strong>"Browse"</strong> to select your keystore file - or <em>(new in July 2026)</em> pick a
+<li>Click <strong>"Browse"</strong> to select your keystore file - or pick a
    favorited keystore from the <strong>star menu</strong> next to the keystore row (see
-   <a href="#favorites-integration">Favorites Integration</a> below), or <em>(new in August 2026)</em>
+   <a href="#favorites-integration">Favorites Integration</a> below), or
    <strong>drop</strong> a keystore file (<code>.jks</code>, <code>.keystore</code>, <code>.p12</code>, <code>.pfx</code>) from your file manager
    onto the KEYSTORE row (Expert Mode's trust store row accepts drops the same way)</li>
 <li>Enter your keystore password and key password</li>
@@ -2840,7 +2839,7 @@ in red when you click <strong>Create Certificate</strong>. The highlight clears 
 </ol>
 <p>The signed file includes the original content plus a digital signature block.</p>
 <blockquote>
-<p><strong>Tip (July 2026):</strong> Missing inputs are highlighted in red when you click <strong>Sign</strong>: signing
+<p><strong>Tip:</strong> Missing inputs are highlighted in red when you click <strong>Sign</strong>: signing
 without a keystore marks the keystore entry, and a blank alias or password marks that field.
 The highlight disappears as soon as you start typing.</p>
 </blockquote>
@@ -2859,8 +2858,7 @@ The highlight disappears as soon as you start typing.</p>
 <strong>Validate (Details)</strong> button instead.</p>
 <h3 id="validation-results">Validation Results<a class="headerlink" href="#validation-results" title="Permanent link">&para;</a></h3>
 <blockquote>
-<p><strong>Updated July 2026:</strong> Validation no longer answers with a vague "Signature invalid / none".
-Each outcome now explains in plain language what happened and what to do about it.</p>
+<p>Each validation outcome explains in plain language what happened and what to do about it.</p>
 </blockquote>
 <table>
 <thead>
@@ -2922,8 +2920,8 @@ Each outcome now explains in plain language what happened and what to do about i
 <hr />
 <h2 id="3b-trust-validation">3b. Trust Validation<a class="headerlink" href="#3b-trust-validation" title="Permanent link">&para;</a></h2>
 <blockquote>
-<p><strong>New in June 2026</strong> - In addition to checking that a signature is mathematically valid, you
-can now check whether the signing certificate is actually <strong>trusted</strong>.</p>
+<p>In addition to checking that a signature is mathematically valid, you can
+check whether the signing certificate is actually <strong>trusted</strong>.</p>
 </blockquote>
 <p>Basic validation confirms that a signature is intact and matches its certificate. <strong>Trust
 validation</strong> goes further: it checks the signing certificate's chain against a <strong>trust store</strong> -
@@ -2934,7 +2932,7 @@ comes from a trusted source.</p>
 <ol>
 <li>Open the signed XML document.</li>
 <li>(Optional) Click <strong>Trust store…</strong> to choose the trust store to validate against - or
-   <em>(new in July 2026)</em> pick a favorited keystore from the <strong>star menu</strong> next to the trust
+   pick a favorited keystore from the <strong>star menu</strong> next to the trust
    store row. By default the application uses the JVM's built-in <code>cacerts</code> store, which
    contains well-known public certificate authorities.</li>
 <li>(Optional) Tick <strong>Check revocation (OCSP/CRL)</strong> to also verify that the certificate has not
@@ -3053,9 +3051,9 @@ the step that tells the two situations apart.</p>
 </ul>
 <p>The favorites panel appears on the right side and provides quick access to your saved keystores, XML files, and signed documents.</p>
 <blockquote>
-<p><strong>Updated July 2026:</strong> Keystore and trust store files (<code>.jks</code>, <code>.p12</code>, <code>.pfx</code>,
-<code>.keystore</code>) are now their own <strong>Keystore</strong> favorite type with a lock icon, instead of
-being grouped under <em>Other</em>. In the Signature panel, the <strong>keystore row</strong> (KEYSTORE
+<p>Keystore and trust store files (<code>.jks</code>, <code>.p12</code>, <code>.pfx</code>,
+<code>.keystore</code>) are their own <strong>Keystore</strong> favorite type with a lock icon.
+In the Signature panel, the <strong>keystore row</strong> (KEYSTORE
 section) and the <strong>trust store row</strong> (Expert Mode) each carry a <strong>star menu</strong> listing
 your keystore favorites - pick one to select it without browsing the file system. See
 <a href="../favorites-system/">Favorites System</a> for details.</p>

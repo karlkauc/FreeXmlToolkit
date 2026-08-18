@@ -2568,8 +2568,8 @@
 
 <h1 id="schematron-validation">Schematron Validation<a class="headerlink" href="#schematron-validation" title="Permanent link">&para;</a></h1>
 <blockquote>
-<p><strong>Last Updated:</strong> August 2026 | <strong>Version:</strong> 2.0.1</p>
-<p><strong>Note (Phase 10c):</strong> The standalone <em>Schematron</em> editor tab has been retired.
+<p><strong>Version:</strong> 2.0.1</p>
+<p><strong>Note:</strong> The standalone <em>Schematron</em> editor tab has been retired.
 Schematron editing and validation — rule check, templates, tester, visual
 builder, documentation, and CSV/JSON export of results — now live in the
 <strong>Unified Shell's Validation activity panel</strong>. Open a <code>.sch</code> file and use the
@@ -2615,7 +2615,7 @@ are reached through the shell rather than a dedicated sidebar tab.</p>
 <hr />
 <h2 id="toolbar">Toolbar<a class="headerlink" href="#toolbar" title="Permanent link">&para;</a></h2>
 <blockquote>
-<p><strong>Updated in August 2026</strong> - Schematron files use the shell's single-row editor toolbar.
+<p>Schematron files use the shell's single-row editor toolbar.
 Related actions sit in <strong>split buttons</strong> with a visible <strong>▾</strong> arrow menu; see
 <a href="../unified-shell/#toolbar">Unified Shell - Toolbar</a> for the full reference.</p>
 </blockquote>
@@ -2652,7 +2652,7 @@ Related actions sit in <strong>split buttons</strong> with a visible <strong>▾
 <tr>
 <td><strong>Format ▾</strong></td>
 <td>Shift+Alt+F</td>
-<td>Pretty-print the file. (<em>Changed in August 2026:</em> Ctrl+Shift+F now opens <a href="../unified-shell/#search-panel">Find in Files</a>.)</td>
+<td>Pretty-print the file. (Note: Ctrl+Shift+F opens <a href="../unified-shell/#search-panel">Find in Files</a>, not document search.)</td>
 </tr>
 <tr>
 <td><strong>Validate</strong></td>
@@ -2734,10 +2734,6 @@ activity panel</strong> (see the note at the top of this page).</p>
 3. See the result</p>
 <hr />
 <h2 id="schematron-tools-in-the-unified-shell">Schematron Tools in the Unified Shell<a class="headerlink" href="#schematron-tools-in-the-unified-shell" title="Permanent link">&para;</a></h2>
-<blockquote>
-<p><strong>Updated June 2026</strong> - Added <strong>Check Rules</strong> and <strong>Documentation</strong> to the Schematron tools.
-<strong>Updated July 2026</strong> - Added the detailed <strong>Validation Report</strong>.</p>
-</blockquote>
 <p>When you work with a Schematron file in the <a href="../unified-shell/">Unified Shell</a>, the
 <strong>Validation</strong> panel offers a set of Schematron tools:</p>
 <table>
@@ -2812,9 +2808,6 @@ grouped into categories:</p>
 <p><strong>Documentation</strong> opens the Schematron documentation generator, which produces readable
 documentation describing the patterns, rules, and assertions in your Schematron file.</p>
 <h3 id="validation-report">Validation Report<a class="headerlink" href="#validation-report" title="Permanent link">&para;</a></h3>
-<blockquote>
-<p><strong>New in July 2026</strong></p>
-</blockquote>
 <p>After validating an XML document that has a Schematron file bound, <strong>Validation Report</strong>
 (in the ⋮ menu under <em>Schematron Tools</em>, or via the report button in the Validation panel's
 PROBLEMS header) opens a <strong>Schematron Report</strong> tool tab. It shows the document name, the
@@ -2901,16 +2894,16 @@ Shell guide.</p>
 <li>Open an XML file in the XML Editor</li>
 <li>In the validation panel, select your Schematron file - or simply <strong>drop</strong> a <code>.sch</code> /
    <code>.schematron</code> file from your file manager onto the panel's SCHEMATRON source row or
-   onto the Explorer's Schematron picker <em>(new in August 2026)</em></li>
+   onto the Explorer's Schematron picker</li>
 <li>Errors are highlighted in the editor</li>
 <li>Click errors to jump to the problem location</li>
 </ol>
 <p>In the PROBLEMS panel below the editor, Schematron findings carry a <strong>Schematron</strong>
 source badge (so they are easy to tell apart from XSD errors), and hovering a row shows
-the full message together with the failed test expression and the failing node's XPath
-<em>(new in July 2026)</em>. For a complete overview of a run, open the
+the full message together with the failed test expression and the failing node's
+XPath. For a complete overview of a run, open the
 <a href="#validation-report">Validation Report</a>.</p>
-<p><em>(new in August 2026)</em> If a rule defines <strong>Schematron Quick Fixes</strong> (SQF), the
+<p>If a rule defines <strong>Schematron Quick Fixes</strong> (SQF), the
 matching problems can be corrected automatically — from a right-click <strong>Quick Fix</strong>
 menu on the problem rows, from a lightbulb in the editor gutter, or from the
 Validation Report's <strong>Fix</strong> column. See
@@ -3005,7 +2998,7 @@ how to author fixes.</p>
 </tbody>
 </table>
 <blockquote>
-<p><strong>Updated in August 2026</strong> — Schematron validation now runs on the <strong>SchXslt</strong>
+<p>Schematron validation runs on the <strong>SchXslt</strong>
 compiler (executed by Saxon), which fully resolves <code>sch:include</code>,
 <code>sch:extends</code>, and abstract patterns. Schematrons that declare
 <code>queryBinding="xslt2"</code> or <code>"xslt3"</code> use XPath 2.0/3.0; files without a
