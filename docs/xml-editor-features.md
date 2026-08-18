@@ -36,6 +36,8 @@ bar works in every view mode and every XML-family document type.
 
 > **Note:** In the **Tree** and **Graphic** views, search is for finding and navigating only - **Replace** is not available there (the replace toggle is disabled). To replace text, use the **Text** view.
 
+> **Note:** HTML documents have a rendered, read-only **Preview** view instead of Tree/Graphic (see [HTML Preview](unified-shell.md#html-preview)). Pressing **Ctrl+F** there searches the document's underlying markup text, not the rendered page.
+
 ### Searching Across Many Files
 
 Ctrl+F searches the **active document**. To search - and replace -

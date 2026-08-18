@@ -105,6 +105,7 @@ Convert XML into other formats:
 |---------|--------------|
 | **Multi-Format Output** | Generate XML, HTML, Text, or JSON |
 | **Live Preview** | See results as you work |
+| **Rendered HTML Results** | Open an HTML result as an editor tab showing the rendered page (Preview view) |
 | **Modern XSLT Support** | Uses the latest XSLT 3.0 standard |
 | **Multi-File Batch Processing** | Process multiple XML files with one XQuery using `collection()` |
 | **XProc 3.0 Pipelines** | Run multi-step processing pipelines (`.xpl`) with the built-in XML Calabash engine |
@@ -183,7 +184,7 @@ Learn more: [FundsXML Extensions Guide](fundsxml-extensions.md)
 ### Your First Steps
 
 1. **Open a file**: The app opens into the Unified Shell - use the Explorer activity or Open (Ctrl+O), or drag files into the window
-2. **Edit multiple files**: The shell handles XML, XSD, XSLT, Schematron and JSON files in tabs, each with Text / Tree / Graphic views
+2. **Edit multiple files**: The shell handles XML, XSD, XSLT, Schematron and JSON files in tabs, each with Text / Tree / Graphic views - HTML files get a rendered read-only Preview view instead
 3. **Start editing**: Type `<` to see auto-completion suggestions
 4. **Validate**: Use the Validation activity (or the toolbar's **Validate** button, F8) to check your document for errors
 5. **Reach every tool**: Pick a tool from the activity bar on the left (Search, Transform, Validation, Signature, Type Library, FOP, …)

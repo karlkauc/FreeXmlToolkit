@@ -80,7 +80,7 @@ override the detection.
 | Control                       | Description                                                                  |
 |-------------------------------|------------------------------------------------------------------------------|
 | **Run Transform**             | Runs the transformation with the current stylesheet and input                |
-| **Open result as editor tab** | (OUTPUT panel) Opens the result as an editable, savable document             |
+| **Open result as editor tab** | (OUTPUT panel) Opens the result as an editable, savable document. HTML/XHTML results open as an HTML document rendered in the editor's read-only [Preview view](unified-shell.md#html-preview); re-running the transform updates the open tab |
 | **Open in browser**           | (OUTPUT panel) Opens the result in your default web browser                  |
 | **Save result…**              | (OUTPUT panel) Writes the result straight to a file                          |
 | **⋮ → Watch stylesheet file** | Re-runs automatically when the stylesheet changes on disk                    |

@@ -22,7 +22,7 @@ XML file next to its XSD schema, XSLT stylesheets and Schematron rules at the sa
 |------|---------|
 | **Activity bar** (far left) | Switch tools / side panels: Explorer, Search, Transform, Validation, Signature, Type Library, FOP/PDF, Favorites, Settings, Help - plus a **FundsXML** activity when the optional [FundsXML extension](fundsxml-extensions.md) is enabled (see [FundsXML Panel](#fundsxml-panel)). **Always visible** - it cannot be collapsed. (Settings opens as a full page in the editor area - see [Settings Page](#settings-page).) |
 | **Side panel** | The panel for the selected activity (e.g. the Transform panel, the Validation panel). **Resizable and collapsible** (see [Resizing and collapsing the side panels](#collapsing-the-side-panels)). |
-| **Editor host** (center) | Tabs of open documents, each with three view modes - Text, Tree, Graphic (see [View Modes](#view-modes)). |
+| **Editor host** (center) | Tabs of open documents, each with the Text, Tree and Graphic view modes - plus a rendered **Preview** for HTML documents (see [View Modes](#view-modes)). |
 | **Inspector** (right) | View **and edit** the selected node's properties from any view. **Resizable and collapsible** (see [Resizing and collapsing the side panels](#collapsing-the-side-panels)). |
 | **Status bar** (bottom) | Caret position, the XSD / IntelliSense indicator (see [Status Bar](#status-bar)) and a memory indicator. |
 
@@ -56,8 +56,8 @@ collapsed to give the editor more room - the activity bar always stays visible.
 ### Key Features
 
 - **Multi-tab editing** - Open multiple files of different types in one view
-- **Automatic file type detection** - Files are recognized by extension (.xml, .xsd, .xsl, .xpl, .xq, .xpath, .sch, .json)
-- **View modes per document** - Text, Tree and Graphic, all over one shared model (see [View Modes](#view-modes))
+- **Automatic file type detection** - Files are recognized by extension (.xml, .xsd, .xsl, .xpl, .xq, .xpath, .sch, .json, .html)
+- **View modes per document** - Text, Tree and Graphic, all over one shared model, plus a rendered **Preview** for HTML documents (see [View Modes](#view-modes))
 - **Inspector editing everywhere** - edit node properties from the Text, Tree and Graphic views, not just one
 - **Integrated XPath/XQuery** - a bottom [Query Console](#query-console) queries the active
   XML/JSON file right from the editor (Ctrl+Shift+X)
@@ -78,7 +78,7 @@ collapsed to give the editor more room - the activity bar always stays visible.
 
 1. The Unified Shell opens automatically on startup.
 2. Use the **Explorer** activity (or **File → Open**) to open files; **File → New** (Ctrl+N) opens the guided [New File dialog](#new-file-dialog) to create a new file from a template or schema.
-3. Files open as tabs in the editor host - switch tabs by clicking their headers, and switch view modes (Text / Tree / Graphic) with the segmented view switch.
+3. Files open as tabs in the editor host - switch tabs by clicking their headers, and switch view modes (Text / Tree / Graphic - plus **Preview** for HTML files) with the segmented view switch.
 
 ## New File Dialog
 
@@ -93,7 +93,7 @@ the new document.
 
 | Field | What it does |
 |-------|--------------|
-| **File type** | Choose **XML**, **XSD**, **XSLT**, **Schematron**, **JSON**, or **XProc**. The rest of the dialog adapts to your choice. |
+| **File type** | Choose **XML**, **XSD**, **XSLT**, **Schematron**, **JSON**, **XProc**, **XQuery**, **XPath**, or **HTML**. The rest of the dialog adapts to your choice. |
 | **Template** | A list of available templates - the built-in library plus your own templates from Settings - **automatically filtered to the selected file type**. The default is **"— None —"** (start blank). Picking a parameterized template prompts you for its values when the file is created. |
 | **Schema** | *(plain XML only, and only when no template is chosen.)* Pick an XSD to base the document on - from your **Favorites**, your **Recent files**, or **Browse…** to select a file. The chosen schema is also bound to the new document, so it appears in the Validation panel and drives IntelliSense. |
 | **Pre-fill mandatory nodes (empty)** | *(shown with the Schema option, on by default.)* When a schema is selected, the new document is pre-populated with all required elements and attributes (left empty) generated from that schema, giving you a ready-to-fill skeleton. |
@@ -106,22 +106,25 @@ the new document.
   mandatory element and attribute from that schema.
 - **Otherwise** you get a minimal, valid starting point for the chosen type: an XML declaration
   for XML, an `xs:schema` skeleton for XSD, an `xsl:stylesheet` (version 3.0) skeleton for
-  XSLT, an ISO-Schematron skeleton for Schematron, `{}` for JSON, and a `p:declare-step`
-  skeleton (with `source`/`result` ports and `p:identity`) for XProc.
+  XSLT, an ISO-Schematron skeleton for Schematron, `{}` for JSON, a `p:declare-step`
+  skeleton (with `source`/`result` ports and `p:identity`) for XProc, an
+  `xquery version "3.1";` prolog for XQuery, and a minimal HTML5 page skeleton for HTML.
 
 ## View Modes
 
-> There are exactly **three** view modes - **Text**, **Tree**, and
-> **Graphic** - each with its own icon in the segmented view switch. There is no separate
-> **Grid** mode - the grid is part of **Graphic**.
+> The segmented view switch offers the **Text**, **Tree**, and **Graphic** view
+> modes - each with its own icon - plus, for **HTML documents only**, a rendered read-only
+> **Preview** (eye icon). There is no separate **Grid** mode - the grid is part of
+> **Graphic**.
 
-Every document tab offers the same three view modes:
+Every document tab offers the same view modes:
 
 | Mode | What it shows |
 |------|---------------|
 | **Text** | Source code editing with syntax highlighting |
 | **Tree** | The document as a hierarchical tree |
 | **Graphic** | A visual editor that depends on the document type: for **XML**, **XSLT**, and **Schematron** files it shows the editable XMLSpy-style **grid**; for **XSD** files it shows the **schema diagram** |
+| **Preview** | *(HTML documents only.)* The page rendered read-only in an embedded web view - see [HTML Preview](#html-preview) |
 
 All views share one in-memory model per document, so edits and Undo/Redo history are preserved
 when you switch views.
@@ -145,6 +148,33 @@ shows the editable grid:
   the first/last row, **F2** renames, and the usual **Ctrl+C/X/V**, **Ctrl+D** (duplicate)
   and **Delete** act on the selected node.
 
+### HTML Preview (Preview view for HTML) {#html-preview}
+
+HTML documents (`.html`, `.htm`, `.xhtml`) get their own **Preview** view mode - the eye
+icon in the segmented view switch - that renders the page read-only, the way a browser
+would show it:
+
+- **HTML files open in Preview by default.** Whether you open them from the Explorer, by
+  drag & drop, or via the Open dialog, you see the rendered page first.
+- **Editing happens in the Text view.** Switch to **Text** to change the markup, then
+  switch back to **Preview** - it re-renders your current editor text, including unsaved
+  changes.
+- **Tree and Graphic are disabled for HTML documents**, because HTML output is often not
+  well-formed XML.
+- **Transform results render here too.** The OUTPUT panel's **Open result as editor tab**
+  opens an HTML/XHTML transform result as an HTML document showing its Preview, and
+  re-running the transform updates the open result tab live - see
+  [The OUTPUT Panel](#the-output-panel-results).
+
+!!! note "Preview limitations"
+    - The page is rendered **without a base URL**, so **relative references** - external
+      CSS files, images - do not resolve. **Inline styles render fine.** To view a
+      transform result together with its external assets, use the OUTPUT panel's
+      **Open in browser** action instead.
+    - **Ctrl+F** in the Preview searches the document's underlying **markup text**, not
+      the rendered page.
+    - The Preview is **read-only** - all editing happens in the Text view.
+
 ## Supported File Types
 
 | Type | Extensions | Features |
@@ -157,6 +187,7 @@ shows the editable grid:
 | **XPath** | .xpath | Single-expression query editor, Run Query against a selectable target - see [Query Documents](#query-documents-the-target-selector) |
 | **Schematron** | .sch | Code editor + Visual Builder + Tester + Documentation Generator |
 | **JSON** | .json, .jsonc, .json5 | Text + tree view, JSONPath queries, JSON Schema validation |
+| **HTML** | .html, .htm, .xhtml | Rendered read-only **Preview** (the default view) + Text editing; also the format of HTML/XHTML transform results opened as editor tabs - see [HTML Preview](#html-preview) |
 
 ## Toolbar
 
@@ -171,7 +202,7 @@ fallback. The toolbar groups its actions three ways:
 
 ### Labeled buttons (frequent actions)
 
-- **New** (Ctrl+N) - Open the guided [New File dialog](#new-file-dialog) to create an XML, XSD, XSLT, Schematron, JSON, or XProc file from a template or schema
+- **New** (Ctrl+N) - Open the guided [New File dialog](#new-file-dialog) to create an XML, XSD, XSLT, Schematron, JSON, XProc, XQuery, XPath, or HTML file from a template or schema
 - **Open** (Ctrl+O) - Open one or more files
 - **Validate** (F8) - Validate the active document; this is the toolbar's primary action and keeps the filled accent color. XML validates against the bound XSD/Schematron if one is set, otherwise for well-formedness.
 
@@ -519,7 +550,7 @@ header's ⋮ (overflow) menu:
 | **Watch stylesheet file** | Re-runs the transform whenever the chosen stylesheet changes on disk - handy while editing the stylesheet in another tool. |
 | **Profile run** | A transform also opens a read-only **Profile** tool tab (timings + per-template execution times). |
 | **Trace run** | A transform also opens a **Trace** tool tab (template matches + `xsl:message` output). |
-| **Auto-open result tab** | Additionally opens every successful result as a regular editor tab. **Off by default.** |
+| **Auto-open result tab** | Additionally opens every successful result as a regular editor tab (HTML/XHTML results open rendered in the [Preview](#html-preview) view). **Off by default.** |
 | **Debug XSLT…** | Opens the stylesheet as a document with a breakpoint gutter and a Debug tool tab (step into/over/out, continue, stop; variables, call stack, breakpoints, and XPath watches). |
 | **Batch Transform…** | Runs the active stylesheet/XQuery over many XML files, with per-file results and "Save All". |
 
@@ -558,6 +589,9 @@ The OUTPUT panel header shows:
 - **Actions**:
     - **Open result as editor tab** - opens the result as a regular document
       (`Transform-Result.xml` / `.html` / `.json` / `.txt`) that you can edit and save.
+      An **HTML/XHTML result** opens as an HTML document rendered in the
+      [Preview](#html-preview) view (switch to Text to see the markup); re-running the
+      transform updates the open result tab, re-rendering the preview if it is showing.
     - **Open in browser** - opens the result (typically HTML) in your system web browser.
     - **Save result…** - writes the result straight to a file.
     - **✕** - hides the OUTPUT panel; it reappears automatically on the next run.
@@ -1270,7 +1304,7 @@ The status bar at the bottom of the window includes:
     **Format Document moved to Shift+Alt+F** - the toolbar's **Format** button works
     unchanged. The in-editor find/replace stays on **Ctrl+F / Ctrl+H**.
 
-> **Search in all view modes:** Pressing **Ctrl+F** opens an inline search bar with up/down chevron arrows for Find Previous / Find Next (Enter / Shift+Enter work too). The search works in the **Text**, **Tree** and **Graphic** views. In the structured views it searches the nodes themselves — for XSD schemas that is element/attribute/type names, documentation and appinfo, type references, fixed/default values, enumeration and facet values, and comments; for XML instances in the Graphic grid it is element names, attribute names, and values. A match hidden inside a collapsed branch is revealed automatically (ancestors expand), selected, and scrolled into view; matches wrap around when you reach the end. Switching the view mode or tab while the bar is open re-targets the search to the active view. **Replace** is available in the Text view only — in Tree/Graphic views the replace toggle is disabled. See [XML Editor Features](xml-editor-features.md#search-find) for details.
+> **Search in all view modes:** Pressing **Ctrl+F** opens an inline search bar with up/down chevron arrows for Find Previous / Find Next (Enter / Shift+Enter work too). The search works in the **Text**, **Tree** and **Graphic** views. In the structured views it searches the nodes themselves — for XSD schemas that is element/attribute/type names, documentation and appinfo, type references, fixed/default values, enumeration and facet values, and comments; for XML instances in the Graphic grid it is element names, attribute names, and values. A match hidden inside a collapsed branch is revealed automatically (ancestors expand), selected, and scrolled into view; matches wrap around when you reach the end. Switching the view mode or tab while the bar is open re-targets the search to the active view. **Replace** is available in the Text view only — in Tree/Graphic views the replace toggle is disabled. In an HTML document's **Preview**, Ctrl+F searches the underlying markup text, not the rendered page. See [XML Editor Features](xml-editor-features.md#search-find) for details.
 
 ## Compare & Merge
 
