@@ -715,6 +715,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#html-preview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        HTML Preview (Preview view for HTML)
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2834,6 +2845,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#html-preview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        HTML Preview (Preview view for HTML)
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -3753,7 +3775,7 @@ XML file next to its XSD schema, XSLT stylesheets and Schematron rules at the sa
 </tr>
 <tr>
 <td><strong>Editor host</strong> (center)</td>
-<td>Tabs of open documents, each with three view modes - Text, Tree, Graphic (see <a href="#view-modes">View Modes</a>).</td>
+<td>Tabs of open documents, each with the Text, Tree and Graphic view modes - plus a rendered <strong>Preview</strong> for HTML documents (see <a href="#view-modes">View Modes</a>).</td>
 </tr>
 <tr>
 <td><strong>Inspector</strong> (right)</td>
@@ -3793,8 +3815,8 @@ collapsed to give the editor more room - the activity bar always stays visible.<
 <h3 id="key-features">Key Features<a class="headerlink" href="#key-features" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Multi-tab editing</strong> - Open multiple files of different types in one view</li>
-<li><strong>Automatic file type detection</strong> - Files are recognized by extension (.xml, .xsd, .xsl, .xpl, .xq, .xpath, .sch, .json)</li>
-<li><strong>View modes per document</strong> - Text, Tree and Graphic, all over one shared model (see <a href="#view-modes">View Modes</a>)</li>
+<li><strong>Automatic file type detection</strong> - Files are recognized by extension (.xml, .xsd, .xsl, .xpl, .xq, .xpath, .sch, .json, .html)</li>
+<li><strong>View modes per document</strong> - Text, Tree and Graphic, all over one shared model, plus a rendered <strong>Preview</strong> for HTML documents (see <a href="#view-modes">View Modes</a>)</li>
 <li><strong>Inspector editing everywhere</strong> - edit node properties from the Text, Tree and Graphic views, not just one</li>
 <li><strong>Integrated XPath/XQuery</strong> - a bottom <a href="#query-console">Query Console</a> queries the active
   XML/JSON file right from the editor (Ctrl+Shift+X)</li>
@@ -3815,7 +3837,7 @@ collapsed to give the editor more room - the activity bar always stays visible.<
 <ol>
 <li>The Unified Shell opens automatically on startup.</li>
 <li>Use the <strong>Explorer</strong> activity (or <strong>File → Open</strong>) to open files; <strong>File → New</strong> (Ctrl+N) opens the guided <a href="#new-file-dialog">New File dialog</a> to create a new file from a template or schema.</li>
-<li>Files open as tabs in the editor host - switch tabs by clicking their headers, and switch view modes (Text / Tree / Graphic) with the segmented view switch.</li>
+<li>Files open as tabs in the editor host - switch tabs by clicking their headers, and switch view modes (Text / Tree / Graphic - plus <strong>Preview</strong> for HTML files) with the segmented view switch.</li>
 </ol>
 <h2 id="new-file-dialog">New File Dialog<a class="headerlink" href="#new-file-dialog" title="Permanent link">&para;</a></h2>
 <blockquote>
@@ -3837,7 +3859,7 @@ the new document.</p>
 <tbody>
 <tr>
 <td><strong>File type</strong></td>
-<td>Choose <strong>XML</strong>, <strong>XSD</strong>, <strong>XSLT</strong>, <strong>Schematron</strong>, <strong>JSON</strong>, or <strong>XProc</strong>. The rest of the dialog adapts to your choice.</td>
+<td>Choose <strong>XML</strong>, <strong>XSD</strong>, <strong>XSLT</strong>, <strong>Schematron</strong>, <strong>JSON</strong>, <strong>XProc</strong>, <strong>XQuery</strong>, <strong>XPath</strong>, or <strong>HTML</strong>. The rest of the dialog adapts to your choice.</td>
 </tr>
 <tr>
 <td><strong>Template</strong></td>
@@ -3864,16 +3886,18 @@ the new document.</p>
   mandatory element and attribute from that schema.</li>
 <li><strong>Otherwise</strong> you get a minimal, valid starting point for the chosen type: an XML declaration
   for XML, an <code>xs:schema</code> skeleton for XSD, an <code>xsl:stylesheet</code> (version 3.0) skeleton for
-  XSLT, an ISO-Schematron skeleton for Schematron, <code>{}</code> for JSON, and a <code>p:declare-step</code>
-  skeleton (with <code>source</code>/<code>result</code> ports and <code>p:identity</code>) for XProc.</li>
+  XSLT, an ISO-Schematron skeleton for Schematron, <code>{}</code> for JSON, a <code>p:declare-step</code>
+  skeleton (with <code>source</code>/<code>result</code> ports and <code>p:identity</code>) for XProc, an
+  <code>xquery version "3.1";</code> prolog for XQuery, and a minimal HTML5 page skeleton for HTML.</li>
 </ul>
 <h2 id="view-modes">View Modes<a class="headerlink" href="#view-modes" title="Permanent link">&para;</a></h2>
 <blockquote>
-<p>There are exactly <strong>three</strong> view modes - <strong>Text</strong>, <strong>Tree</strong>, and
-<strong>Graphic</strong> - each with its own icon in the segmented view switch. There is no separate
-<strong>Grid</strong> mode - the grid is part of <strong>Graphic</strong>.</p>
+<p>The segmented view switch offers the <strong>Text</strong>, <strong>Tree</strong>, and <strong>Graphic</strong> view
+modes - each with its own icon - plus, for <strong>HTML documents only</strong>, a rendered read-only
+<strong>Preview</strong> (eye icon). There is no separate <strong>Grid</strong> mode - the grid is part of
+<strong>Graphic</strong>.</p>
 </blockquote>
-<p>Every document tab offers the same three view modes:</p>
+<p>Every document tab offers the same view modes:</p>
 <table>
 <thead>
 <tr>
@@ -3893,6 +3917,10 @@ the new document.</p>
 <tr>
 <td><strong>Graphic</strong></td>
 <td>A visual editor that depends on the document type: for <strong>XML</strong>, <strong>XSLT</strong>, and <strong>Schematron</strong> files it shows the editable XMLSpy-style <strong>grid</strong>; for <strong>XSD</strong> files it shows the <strong>schema diagram</strong></td>
+</tr>
+<tr>
+<td><strong>Preview</strong></td>
+<td><em>(HTML documents only.)</em> The page rendered read-only in an embedded web view - see <a href="#html-preview">HTML Preview</a></td>
 </tr>
 </tbody>
 </table>
@@ -3916,6 +3944,35 @@ shows the editable grid:</p>
   the first/last row, <strong>F2</strong> renames, and the usual <strong>Ctrl+C/X/V</strong>, <strong>Ctrl+D</strong> (duplicate)
   and <strong>Delete</strong> act on the selected node.</li>
 </ul>
+<h3 id="html-preview">HTML Preview (Preview view for HTML)<a class="headerlink" href="#html-preview" title="Permanent link">&para;</a></h3>
+<p>HTML documents (<code>.html</code>, <code>.htm</code>, <code>.xhtml</code>) get their own <strong>Preview</strong> view mode - the eye
+icon in the segmented view switch - that renders the page read-only, the way a browser
+would show it:</p>
+<ul>
+<li><strong>HTML files open in Preview by default.</strong> Whether you open them from the Explorer, by
+  drag &amp; drop, or via the Open dialog, you see the rendered page first.</li>
+<li><strong>Editing happens in the Text view.</strong> Switch to <strong>Text</strong> to change the markup, then
+  switch back to <strong>Preview</strong> - it re-renders your current editor text, including unsaved
+  changes.</li>
+<li><strong>Tree and Graphic are disabled for HTML documents</strong>, because HTML output is often not
+  well-formed XML.</li>
+<li><strong>Transform results render here too.</strong> The OUTPUT panel's <strong>Open result as editor tab</strong>
+  opens an HTML/XHTML transform result as an HTML document showing its Preview, and
+  re-running the transform updates the open result tab live - see
+  <a href="#the-output-panel-results">The OUTPUT Panel</a>.</li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Preview limitations</p>
+<ul>
+<li>The page is rendered <strong>without a base URL</strong>, so <strong>relative references</strong> - external
+  CSS files, images - do not resolve. <strong>Inline styles render fine.</strong> To view a
+  transform result together with its external assets, use the OUTPUT panel's
+  <strong>Open in browser</strong> action instead.</li>
+<li><strong>Ctrl+F</strong> in the Preview searches the document's underlying <strong>markup text</strong>, not
+  the rendered page.</li>
+<li>The Preview is <strong>read-only</strong> - all editing happens in the Text view.</li>
+</ul>
+</div>
 <h2 id="supported-file-types">Supported File Types<a class="headerlink" href="#supported-file-types" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -3966,6 +4023,11 @@ shows the editable grid:</p>
 <td>.json, .jsonc, .json5</td>
 <td>Text + tree view, JSONPath queries, JSON Schema validation</td>
 </tr>
+<tr>
+<td><strong>HTML</strong></td>
+<td>.html, .htm, .xhtml</td>
+<td>Rendered read-only <strong>Preview</strong> (the default view) + Text editing; also the format of HTML/XHTML transform results opened as editor tabs - see <a href="#html-preview">HTML Preview</a></td>
+</tr>
 </tbody>
 </table>
 <h2 id="toolbar">Toolbar<a class="headerlink" href="#toolbar" title="Permanent link">&para;</a></h2>
@@ -3980,7 +4042,7 @@ menu. Only when the window gets very narrow does the row wrap onto a second line
 fallback. The toolbar groups its actions three ways:</p>
 <h3 id="labeled-buttons-frequent-actions">Labeled buttons (frequent actions)<a class="headerlink" href="#labeled-buttons-frequent-actions" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>New</strong> (Ctrl+N) - Open the guided <a href="#new-file-dialog">New File dialog</a> to create an XML, XSD, XSLT, Schematron, JSON, or XProc file from a template or schema</li>
+<li><strong>New</strong> (Ctrl+N) - Open the guided <a href="#new-file-dialog">New File dialog</a> to create an XML, XSD, XSLT, Schematron, JSON, XProc, XQuery, XPath, or HTML file from a template or schema</li>
 <li><strong>Open</strong> (Ctrl+O) - Open one or more files</li>
 <li><strong>Validate</strong> (F8) - Validate the active document; this is the toolbar's primary action and keeps the filled accent color. XML validates against the bound XSD/Schematron if one is set, otherwise for well-formedness.</li>
 </ul>
@@ -4346,7 +4408,7 @@ header's ⋮ (overflow) menu:</p>
 </tr>
 <tr>
 <td><strong>Auto-open result tab</strong></td>
-<td>Additionally opens every successful result as a regular editor tab. <strong>Off by default.</strong></td>
+<td>Additionally opens every successful result as a regular editor tab (HTML/XHTML results open rendered in the <a href="#html-preview">Preview</a> view). <strong>Off by default.</strong></td>
 </tr>
 <tr>
 <td><strong>Debug XSLT…</strong></td>
@@ -4394,7 +4456,10 @@ while you work elsewhere.</p>
 </li>
 <li><strong>Actions</strong>:<ul>
 <li><strong>Open result as editor tab</strong> - opens the result as a regular document
-  (<code>Transform-Result.xml</code> / <code>.html</code> / <code>.json</code> / <code>.txt</code>) that you can edit and save.</li>
+  (<code>Transform-Result.xml</code> / <code>.html</code> / <code>.json</code> / <code>.txt</code>) that you can edit and save.
+  An <strong>HTML/XHTML result</strong> opens as an HTML document rendered in the
+  <a href="#html-preview">Preview</a> view (switch to Text to see the markup); re-running the
+  transform updates the open result tab, re-rendering the preview if it is showing.</li>
 <li><strong>Open in browser</strong> - opens the result (typically HTML) in your system web browser.</li>
 <li><strong>Save result…</strong> - writes the result straight to a file.</li>
 <li><strong>✕</strong> - hides the OUTPUT panel; it reappears automatically on the next run.</li>
@@ -5335,7 +5400,7 @@ now opens <strong>Search (Find in Files)</strong>, and <strong>Ctrl+Shift+H</str
 unchanged. The in-editor find/replace stays on <strong>Ctrl+F / Ctrl+H</strong>.</p>
 </div>
 <blockquote>
-<p><strong>Search in all view modes:</strong> Pressing <strong>Ctrl+F</strong> opens an inline search bar with up/down chevron arrows for Find Previous / Find Next (Enter / Shift+Enter work too). The search works in the <strong>Text</strong>, <strong>Tree</strong> and <strong>Graphic</strong> views. In the structured views it searches the nodes themselves — for XSD schemas that is element/attribute/type names, documentation and appinfo, type references, fixed/default values, enumeration and facet values, and comments; for XML instances in the Graphic grid it is element names, attribute names, and values. A match hidden inside a collapsed branch is revealed automatically (ancestors expand), selected, and scrolled into view; matches wrap around when you reach the end. Switching the view mode or tab while the bar is open re-targets the search to the active view. <strong>Replace</strong> is available in the Text view only — in Tree/Graphic views the replace toggle is disabled. See <a href="../xml-editor-features/#search-find">XML Editor Features</a> for details.</p>
+<p><strong>Search in all view modes:</strong> Pressing <strong>Ctrl+F</strong> opens an inline search bar with up/down chevron arrows for Find Previous / Find Next (Enter / Shift+Enter work too). The search works in the <strong>Text</strong>, <strong>Tree</strong> and <strong>Graphic</strong> views. In the structured views it searches the nodes themselves — for XSD schemas that is element/attribute/type names, documentation and appinfo, type references, fixed/default values, enumeration and facet values, and comments; for XML instances in the Graphic grid it is element names, attribute names, and values. A match hidden inside a collapsed branch is revealed automatically (ancestors expand), selected, and scrolled into view; matches wrap around when you reach the end. Switching the view mode or tab while the bar is open re-targets the search to the active view. <strong>Replace</strong> is available in the Text view only — in Tree/Graphic views the replace toggle is disabled. In an HTML document's <strong>Preview</strong>, Ctrl+F searches the underlying markup text, not the rendered page. See <a href="../xml-editor-features/#search-find">XML Editor Features</a> for details.</p>
 </blockquote>
 <h2 id="compare-merge">Compare &amp; Merge<a class="headerlink" href="#compare-merge" title="Permanent link">&para;</a></h2>
 <p>Both the XML and XSD editors include a <strong>Compare</strong> toolbar button (tooltip <em>"Compare with file..."</em>)
