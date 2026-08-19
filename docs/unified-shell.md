@@ -841,18 +841,22 @@ Open the **Validation** panel from the activity bar to validate the active docum
 
 ### Sources
 
-The **SOURCES** section shows the XSD and Schematron files bound to the active document.
-Click **Change** next to a source to pick a different file. **Both**
-rows carry a **star button** next to their *Change* link: on the XSD row it opens a
+The **SOURCES** section shows the schemas bound to the active document, and its rows
+follow the document's type: for XML-family documents it shows the **XSD** and
+**Schematron** rows, for JSON documents a single **JSON Schema** row.
+Click **Change** next to a source to pick a different file. **Every**
+row carries a **star button** next to its *Change* link: on the XSD row it opens a
 quick-select menu of your favorited XSD schemas, on the Schematron row a menu of your
-favorited Schematron files - pick one to bind it in a single click, without browsing the
+favorited Schematron files, and on the JSON Schema row a menu of your favorited JSON
+files - pick one to bind it in a single click, without browsing the
 file system. The menus group entries by favorites folder when you use more than one, and
 are grayed out while you have no matching favorites. (See
 [Favorites](favorites-system.md).)
 
-**Both source rows are drop targets**: drop an `.xsd` file from
-your file manager onto the XSD row, or a `.sch` / `.schematron` file onto the Schematron
-row, to bind it to the active document in one move - the row glows **green** while a
+**All source rows are drop targets**: drop an `.xsd` file from
+your file manager onto the XSD row, a `.sch` / `.schematron` file onto the Schematron
+row, or a `.json` schema onto the JSON Schema row, to bind it to the active document in
+one move - the row glows **green** while a
 loadable file hovers over it and **red** for a wrong file type (which is rejected). The
 dropped file behaves exactly like one picked via **Change** or a favorite, including
 appearing in the recent list.
@@ -867,16 +871,22 @@ appearing in the recent list.
   well-formedness check (the status bar shows **"No XSD"**). Remote `https` schema URLs
   are downloaded to the schema cache as before. A schema you picked yourself (via
   **Change**, a favorite, or the status bar) is never overridden.
+- **JSON documents work the same way**: a top-level `"$schema"` member pointing at a
+  schema file or URL auto-binds that **JSON Schema** on open, is re-checked before every
+  validation run, and a manual choice always wins. (Values pointing at `json-schema.org`
+  meta-schemas are dialect declarations, not bindings, and are ignored.) See
+  [JSON Editor](json-editor.md) for details and the supported drafts.
 - **Click a bound source name to open the file in the editor** - one click on the XSD or
   Schematron name opens it as a tab for direct editing.
 
 !!! tip
-    You can also bind an XSD **without opening the Validation panel**: click the
-    **XSD indicator** in the status bar (it reads **"No XSD"**, **"XSD: name"**,
-    **"Detecting XSD…"** or **"XSD error"** depending on the schema-binding state; see
+    You can also bind a schema **without opening the Validation panel**: click the
+    **schema indicator** in the status bar (for XML it reads **"No XSD"**, **"XSD: name"**,
+    **"Detecting XSD…"** or **"XSD error"**; for JSON documents the same states read
+    **"No JSON Schema"**, **"JSON Schema: name"**, and so on; see
     [Status Bar](#status-bar)) or click the editor toolbar's **Schema** button
-    (**Set XSD Schema…**) and pick an `.xsd` file. The binding drives both **IntelliSense**
-    and **schema validation**.
+    (**Set XSD Schema…**) and pick a schema file. For XML the binding drives both
+    **IntelliSense** and **schema validation**; for JSON it drives **validation**.
 
 ### Running a Validation
 
@@ -964,7 +974,6 @@ Secondary tools live in the panel header's ⋮ (overflow) menu:
 | **Schematron Tools → Check Rules** | Run an error detector over the Schematron itself and show a categorised issue table |
 | **Schematron Tools → Documentation** | Open the Schematron documentation generator |
 | **Schematron Tools → Validation Report** | Open the [detailed Schematron report](#detailed-schematron-report) of the last validation run |
-| **JSON Schema…** | Pick a JSON Schema for validating JSON documents |
 | **Validate against FundsXML** | (When the FundsXML extension is enabled) validate against the FundsXML schema |
 | **Validate while typing** | Toggle continuous (debounced) validation |
 | **Open last batch report** | Open the plain-text report of the last batch run |
@@ -1249,12 +1258,13 @@ When no document is open, the editor shows a welcome dashboard with:
 
 ## Status Bar
 
-> The XSD indicator shows the schema *loading lifecycle*, so you can
-> tell exactly when IntelliSense becomes available.
+> The schema indicator shows the schema *loading lifecycle*, so you can
+> tell exactly when IntelliSense (XML) or schema validation (JSON) becomes available.
 
 The status bar at the bottom of the window includes:
 
-- An **XSD / IntelliSense indicator** showing the schema-binding state of the active document:
+- A **schema indicator** showing the schema-binding state of the active document — an
+  **XSD** for XML-family documents, a **JSON Schema** for JSON documents:
 
     | State | Meaning |
     |-------|---------|
@@ -1263,12 +1273,19 @@ The status bar at the bottom of the window includes:
     | **No XSD** | The document references no schema - IntelliSense is limited. |
     | **XSD error** (amber warning) | The document references a schema that could not be found or parsed - IntelliSense is unavailable. Bind one manually to fix it. |
 
-    **Click the indicator** in any state to choose an `.xsd` file and bind it to the active
-    document; the binding drives both **IntelliSense** and **schema validation**. (The editor
-    toolbar's **Schema** button - **Set XSD Schema…** - does the same.) Hovering shows a tooltip explaining
-    the current IntelliSense availability.
+    For JSON documents the same four states read **"Detecting JSON Schema…"**,
+    **"JSON Schema: name"**, **"No JSON Schema"** and **"JSON Schema error"**, and refer
+    to schema *validation* (JSON has no schema-driven IntelliSense).
 
-    The indicator is also a **drop target**: drop an `.xsd` file from
+    **Click the indicator** in any state to choose a schema file (`.xsd`, or `.json` for
+    JSON documents) and bind it to the active
+    document; for XML the binding drives both **IntelliSense** and **schema validation**,
+    for JSON it drives **validation**. (The editor
+    toolbar's **Schema** button - **Set XSD Schema…** - does the same.) Hovering shows a tooltip explaining
+    what the binding currently provides.
+
+    The indicator is also a **drop target**: drop an `.xsd` file (or a `.json` schema,
+    for JSON documents) from
     your file manager onto it to bind the schema to the active document in one move - it
     glows **green** while a loadable file hovers over it and **red** for a wrong file type
     (which is rejected).
@@ -1583,8 +1600,11 @@ targets too**:
   Validation panel's **[SCHEMATRON source row](#sources)** to make it the current
   Schematron (and bind it to the active document).
 - Drop an `.xsd` file onto the Validation panel's **[XSD source row](#sources)** or onto
-  the **[XSD indicator in the status bar](#status-bar)** (shown for XML-family documents)
+  the **[schema indicator in the status bar](#status-bar)** (shown for XML-family documents)
   to bind that schema to the active document.
+- Drop a `.json` schema onto the Validation panel's **[JSON Schema source row](#sources)**
+  or onto the **[schema indicator in the status bar](#status-bar)** (while a JSON document
+  is active) to bind it for JSON validation.
 - Drop an `.xml` file onto the **[PDF / FOP panel](#pdf-fop-panel)**'s XML input row, or
   an `.xsl` / `.xslt` file onto its XSL-FO stylesheet row, to set the PDF rendering
   sources.

@@ -61,6 +61,8 @@ public class DragDropService {
     public static final List<String> XPROC_EXTENSIONS = List.of(".xpl", ".xproc");
     /** Schematron file extensions. */
     public static final List<String> SCHEMATRON_EXTENSIONS = List.of(".sch", ".schematron");
+    /** JSON Schema file extensions (a JSON Schema is a .json file by convention). */
+    public static final List<String> JSON_SCHEMA_EXTENSIONS = List.of(".json");
     /** Keystore file extensions. */
     public static final List<String> KEYSTORE_EXTENSIONS = List.of(".jks", ".keystore", ".p12", ".pfx");
     /** WSDL file extensions. */

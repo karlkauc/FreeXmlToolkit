@@ -71,6 +71,48 @@ class ShellDragDropTest {
     }
 
     @Test
+    void droppingAJsonSchemaOnTheIndicatorBindsItForJsonDocuments(@TempDir Path tmp) throws Exception {
+        java.util.concurrent.TimeUnit SECONDS = java.util.concurrent.TimeUnit.SECONDS;
+        Path json = tmp.resolve("doc.json");
+        Files.writeString(json, "{\"a\": 1}");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            shell.openFile(json);
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(3, SECONDS, () -> shell.getEditorHost()
+                .getActiveText().map(t -> t.contains("\"a\"")).orElse(false));
+
+        javafx.scene.control.Label indicator =
+                (javafx.scene.control.Label) shell.lookup("#status-schema");
+        assertNotNull(indicator, "the status bar must show the schema indicator");
+
+        // A dropped .xsd does not match the JSON document's kind — it must be ignored.
+        Path xsd = tmp.resolve("wrong.xsd");
+        Files.writeString(xsd, "<xs:schema xmlns:xs=\"http://www.w3.org/2001/XMLSchema\"/>");
+        dropOn(indicator, xsd.toFile());
+        assertEquals(null, shell.getEditorHost().activeSchemaProperty().get(),
+                "an XSD dropped on a JSON document must not bind");
+
+        Path schema = tmp.resolve("dropped-schema.json");
+        Files.writeString(schema, "{\"type\": \"object\"}");
+        dropOn(indicator, schema.toFile());
+        assertEquals(schema.toFile(), shell.getEditorHost().activeSchemaProperty().get(),
+                "dropping a JSON Schema must bind it to the JSON document");
+    }
+
+    private static void dropOn(javafx.scene.control.Label indicator, File file) throws Exception {
+        javafx.scene.input.Dragboard dragboard = org.mockito.Mockito.mock(javafx.scene.input.Dragboard.class);
+        org.mockito.Mockito.when(dragboard.hasFiles()).thenReturn(true);
+        org.mockito.Mockito.when(dragboard.getFiles()).thenReturn(List.of(file));
+        javafx.scene.input.DragEvent event = org.mockito.Mockito.mock(javafx.scene.input.DragEvent.class);
+        org.mockito.Mockito.when(event.getDragboard()).thenReturn(dragboard);
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            indicator.getOnDragDropped().handle(event);
+            return null;
+        });
+    }
+
+    @Test
     void openDroppedFilesOpensSupportedFiles(@TempDir Path tmp) throws Exception {
         File xml = tmp.resolve("dropped.xml").toFile();
         Files.writeString(xml.toPath(), "<root/>");

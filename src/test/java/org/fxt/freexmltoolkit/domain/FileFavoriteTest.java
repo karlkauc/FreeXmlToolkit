@@ -45,10 +45,10 @@ class FileFavoriteTest {
     class FileTypeEnumTests {
 
         @Test
-        @DisplayName("All eight file types are defined")
+        @DisplayName("All nine file types are defined")
         void allFileTypesAreDefined() {
-            // XML, XSD, SCHEMATRON, XSLT, XPATH, XQUERY, KEYSTORE (July 2026), OTHER
-            assertEquals(8, FileFavorite.FileType.values().length);
+            // XML, XSD, SCHEMATRON, XSLT, XPATH, XQUERY, KEYSTORE, JSON, OTHER
+            assertEquals(9, FileFavorite.FileType.values().length);
         }
 
         @ParameterizedTest
@@ -121,6 +121,9 @@ class FileFavoriteTest {
                 "rules.sch, SCHEMATRON",
                 "transform.xsl, XSLT",
                 "transform.xslt, XSLT",
+                "data.json, JSON",
+                "config.jsonc, JSON",
+                "settings.json5, JSON",
                 "unknown.txt, OTHER",
                 "noext, OTHER"
         })

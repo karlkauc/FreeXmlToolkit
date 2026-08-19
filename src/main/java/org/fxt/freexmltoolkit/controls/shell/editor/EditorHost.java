@@ -82,7 +82,7 @@ public class EditorHost extends BorderPane {
     public enum SchemaStatus { NONE, LOADING, READY, ERROR }
 
     /** Outcome of a schema auto-detection run: the bound XSD (or null) plus the terminal status. */
-    private record SchemaDetection(File xsd, SchemaStatus status) {
+    private record SchemaDetection(File schema, SchemaStatus status) {
         static final SchemaDetection NOT_FOUND = new SchemaDetection(null, SchemaStatus.NONE);
         static final SchemaDetection FAILED = new SchemaDetection(null, SchemaStatus.ERROR);
     }
@@ -2007,7 +2007,12 @@ public class EditorHost extends BorderPane {
         return tab instanceof EditorTab et ? et.view : null;
     }
 
-    /** Binds an XSD to the active document for schema-aware IntelliSense. @return success */
+    /**
+     * Binds a schema to the active document — an XSD (schema-aware IntelliSense +
+     * validation) for the XML family, a JSON Schema (validation) for JSON documents.
+     *
+     * @return success
+     */
     public boolean setSchemaForActiveDocument(File xsd) {
         Tab tab = tabPane.getSelectionModel().getSelectedItem();
         if (!(tab instanceof EditorTab et) || !et.view.supportsSchema()) {
@@ -2352,7 +2357,7 @@ public class EditorHost extends BorderPane {
                     tab.endLoading();
                     tab.document.setDirty(false);
                     tab.attachDirtyTracking();
-                    File autoXsd = detection != null ? detection.xsd() : null;
+                    File autoXsd = detection != null ? detection.schema() : null;
                     if (autoXsd != null) {
                         tab.schemaFile = autoXsd;
                         tab.schemaOrigin = SchemaRebindPolicy.SchemaBindingOrigin.AUTO;
@@ -2427,7 +2432,7 @@ public class EditorHost extends BorderPane {
             }
             SchemaDetection result = detection;
             Platform.runLater(() -> {
-                File autoXsd = result.xsd();
+                File autoXsd = result.schema();
                 if (autoXsd != null) {
                     tab.schemaFile = autoXsd;
                     tab.schemaOrigin = SchemaRebindPolicy.SchemaBindingOrigin.AUTO;
@@ -2467,10 +2472,7 @@ public class EditorHost extends BorderPane {
     /** Worker-thread body of {@link #schemaForValidation(String)}. @return the XSD to validate with */
     private File reconcileSchemaBinding(EditorTab tab, String content, Path path, long generation) {
         File baseDir = path != null && path.getParent() != null ? path.getParent().toFile() : null;
-        String declared = org.fxt.freexmltoolkit.di.ServiceRegistry
-                .get(org.fxt.freexmltoolkit.service.XmlService.class)
-                .getSchemaNameFromXmlContent(content, baseDir)
-                .orElse(null);
+        String declared = declaredSchemaLocation(tab, content, baseDir);
         if (SchemaRebindPolicy.decideRebind(tab.schemaOrigin, declared, tab.lastDetectedSchemaLocation)
                 == SchemaRebindPolicy.RebindAction.KEEP) {
             return tab.schemaFile; // fast path: unchanged declaration, no lock, no I/O
@@ -2514,7 +2516,7 @@ public class EditorHost extends BorderPane {
                     // completion path, and a stray LOADING would stick in the status bar.
                     Platform.runLater(() -> publishSchemaStatus(tab, SchemaStatus.LOADING));
                     SchemaDetection detection = detectSchemaFor(tab, content, path);
-                    File xsd = detection.xsd();
+                    File xsd = detection.schema();
                     tab.schemaFile = xsd;
                     tab.schemaOrigin = xsd != null
                             ? SchemaRebindPolicy.SchemaBindingOrigin.AUTO
@@ -2543,6 +2545,22 @@ public class EditorHost extends BorderPane {
         }
     }
 
+    /**
+     * Sniffs the schema location the buffer declares — a top-level {@code "$schema"}
+     * member for JSON, {@code xsi:schemaLocation} / {@code xsi:noNamespaceSchemaLocation}
+     * for the XML family. Worker-thread safe (fresh, stateless service instances).
+     */
+    private String declaredSchemaLocation(EditorTab tab, String content, File baseDir) {
+        if (tab.document.getFileType() == EditorFileType.JSON) {
+            return new org.fxt.freexmltoolkit.service.JsonService()
+                    .getSchemaLocationFromJsonContent(content).orElse(null);
+        }
+        return org.fxt.freexmltoolkit.di.ServiceRegistry
+                .get(org.fxt.freexmltoolkit.service.XmlService.class)
+                .getSchemaNameFromXmlContent(content, baseDir)
+                .orElse(null);
+    }
+
     /** FX thread: clears the editor/IntelliSense side of a dropped schema binding. */
     private void clearSchemaBindingUi(EditorTab tab) {
         tab.view.clearSchema();
@@ -2569,6 +2587,9 @@ public class EditorHost extends BorderPane {
         if (!tab.view.supportsSchema()) {
             return SchemaDetection.NOT_FOUND;
         }
+        if (tab.document.getFileType() == EditorFileType.JSON) {
+            return detectJsonSchemaFor(tab, content, pathOrNull);
+        }
         try {
             org.fxt.freexmltoolkit.service.XmlService service =
                     new org.fxt.freexmltoolkit.service.XmlServiceImpl();
@@ -2591,6 +2612,37 @@ public class EditorHost extends BorderPane {
                 return SchemaDetection.FAILED; // resolved, but missing or unparsable
             }
             return new SchemaDetection(xsd, SchemaStatus.READY);
+        } catch (Exception e) {
+            // detection is best-effort; a malformed document simply binds no schema
+            return SchemaDetection.NOT_FOUND;
+        }
+    }
+
+    /**
+     * JSON counterpart of the XSD detection: binds the JSON Schema a top-level
+     * {@code "$schema"} member declares — local (relative to the document's directory)
+     * or remote (http/https, downloaded and cached). Meta-schema ids (json-schema.org)
+     * are not bindings and detect as "no schema". Runs on a worker thread.
+     */
+    private SchemaDetection detectJsonSchemaFor(EditorTab tab, String content, Path pathOrNull) {
+        try {
+            var service = new org.fxt.freexmltoolkit.service.JsonService();
+            File baseDir = pathOrNull != null && pathOrNull.getParent() != null
+                    ? pathOrNull.getParent().toFile() : null;
+            java.util.Optional<String> declared = service.getSchemaLocationFromJsonContent(content);
+            // Remember what the buffer declared (also on failure below) so the
+            // validation-time reconcile can short-circuit unchanged documents.
+            tab.lastDetectedSchemaLocation = declared.orElse(null);
+            if (declared.isEmpty()) {
+                return SchemaDetection.NOT_FOUND; // the document references no schema
+            }
+            // A reference exists — from here on, every failure is an ERROR (the user
+            // expects schema validation but won't get it), not a silent "No Schema".
+            File schema = service.resolveJsonSchemaLocation(declared.get(), baseDir);
+            if (schema == null || !schema.exists() || !tab.view.loadSchema(schema)) {
+                return SchemaDetection.FAILED; // referenced, but not resolvable/parsable
+            }
+            return new SchemaDetection(schema, SchemaStatus.READY);
         } catch (Exception e) {
             // detection is best-effort; a malformed document simply binds no schema
             return SchemaDetection.NOT_FOUND;

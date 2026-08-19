@@ -77,10 +77,10 @@ public final class EditorActions {
     /**
      * Validates the active document and shows the problems (or a "valid / well-formed"
      * message) in a tool tab — mirroring {@code ValidationPanel.revalidate()}. JSON
-     * documents are checked for well-formedness (no JSON schema is bound from the
-     * toolbar); every other text type validates against the bound XSD / Schematron.
-     * Also publishes the result to {@link EditorHost#setValidationStatus} so the status
-     * bar / inspector badge stay consistent.
+     * documents validate against the bound JSON Schema (or well-formedness only when
+     * none is bound); every other text type validates against the bound XSD /
+     * Schematron. Also publishes the result to {@link EditorHost#setValidationStatus}
+     * so the status bar / inspector badge stay consistent.
      */
     public void validateActive() {
         if (editorHost.getActiveDocument().isEmpty()) {
@@ -97,16 +97,14 @@ public final class EditorActions {
                 .map(d -> d.getFileType() == EditorFileType.JSON).orElse(false);
         // Resolved on the worker thread: reconciles the binding with the schema location
         // declared in the buffer (added/changed/removed references take effect this run).
-        var xsdSupplier = editorHost.schemaForValidation(content);
+        var schemaSupplier = editorHost.schemaForValidation(content);
         File schematron = editorHost.getActiveSchematron();
         FxtGui.executorService.submit(() -> {
-            File xsd = json ? null : xsdSupplier.get();
-            // v1: a JSON Schema bound via the Validation panel is not surfaced here — toolbar
-            // JSON validation is well-formedness only (the schema lives in ValidationPanel state).
+            File schema = schemaSupplier.get();
             List<ValidationProblem> result = json
-                    ? ValidationRunner.validateJson(content, null)
-                    : ValidationRunner.run(content, xsd, schematron);
-            boolean hasSchema = !json && (xsd != null || schematron != null);
+                    ? ValidationRunner.validateJson(content, schema)
+                    : ValidationRunner.run(content, schema, schematron);
+            boolean hasSchema = json ? schema != null : (schema != null || schematron != null);
             Platform.runLater(() -> {
                 String summary = result.isEmpty()
                         ? (hasSchema ? "Valid" : "Well-formed")

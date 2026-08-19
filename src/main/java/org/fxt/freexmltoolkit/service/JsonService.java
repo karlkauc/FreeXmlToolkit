@@ -28,10 +28,16 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.regex.Pattern;
 
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.shared.JsonSyntaxHighlighter;
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -50,6 +56,7 @@ import com.networknt.schema.Schema;
 import com.networknt.schema.SchemaLocation;
 import com.networknt.schema.SchemaRegistry;
 import com.networknt.schema.SpecificationVersion;
+import com.networknt.schema.path.NodePath;
 
 /**
  * Service for JSON operations including parsing, formatting, validation,
@@ -423,12 +430,11 @@ public class JsonService {
      * @return List of validation errors, empty if valid
      */
     public List<String> validateAgainstSchema(String json, File schemaFile) {
-        try {
-            String schemaJson = Files.readString(schemaFile.toPath(), StandardCharsets.UTF_8);
-            return validateAgainstSchema(json, schemaJson);
-        } catch (IOException e) {
-            return List.of("Failed to read schema file: " + e.getMessage());
+        List<String> errors = new ArrayList<>();
+        for (SchemaError error : validateAgainstSchemaDetailed(json, schemaFile)) {
+            errors.add(error.message());
         }
+        return errors;
     }
 
     /**
@@ -460,9 +466,182 @@ public class JsonService {
 
     private SchemaRegistry getSchemaRegistry() {
         if (schemaRegistry == null) {
-            schemaRegistry = SchemaRegistry.withDefaultDialect(SpecificationVersion.DRAFT_2020_12);
+            schemaRegistry = newSchemaRegistry();
         }
         return schemaRegistry;
+    }
+
+    /**
+     * 2020-12 is only the fallback dialect — a schema with an explicit {@code $schema}
+     * selects its own (draft-07 / 2019-09 / 2020-12 meta-schemas ship on the classpath).
+     * {@code fetchRemoteResources()} is required even for local {@code file:} schemas
+     * (the default loader only serves the classpath) and also lets relative and remote
+     * {@code $ref}s resolve — mirroring how XSD imports are fetched.
+     */
+    private static SchemaRegistry newSchemaRegistry() {
+        return SchemaRegistry.withDefaultDialect(SpecificationVersion.DRAFT_2020_12,
+                builder -> builder.schemaLoader(loader -> loader.fetchRemoteResources()));
+    }
+
+    // ==================== JSON Schema binding ====================
+
+    /**
+     * One JSON Schema violation: display message, instance location (both as walkable
+     * segments and as an RFC 6901 pointer string), and the failing keyword.
+     *
+     * @param message          human-readable error message
+     * @param instanceSegments instance location as segments (String = object key, Integer = array index)
+     * @param instancePointer  instance location as an RFC 6901 JSON pointer ("" = root)
+     * @param keyword          the failing schema keyword (e.g. "type", "required"), may be null
+     */
+    public record SchemaError(String message, List<Object> instanceSegments,
+                              String instancePointer, String keyword) {
+    }
+
+    /** json-schema.org meta-schema ids declare the document's own dialect, not a validation binding. */
+    private static final Pattern META_SCHEMA_ID = Pattern.compile("^https?://json-schema\\.org/");
+
+    private static final String SCHEMA_CACHE_DIR = FileUtils.getUserDirectory().getAbsolutePath()
+            + File.separator + ".freeXmlToolkit" + File.separator + "cache";
+
+    /**
+     * Sniffs a top-level {@code "$schema"} string member from a JSON instance document.
+     * Returns empty for json-schema.org meta-schema ids — those declare the document's
+     * own dialect (the document IS a schema), not a validation binding.
+     *
+     * @param json the JSON instance document text
+     * @return the declared schema location, or empty if none is declared
+     */
+    public Optional<String> getSchemaLocationFromJsonContent(String json) {
+        if (json == null || json.isBlank()) {
+            return Optional.empty();
+        }
+        try {
+            JsonElement root = JsonParser.parseString(json);
+            if (!root.isJsonObject()) {
+                return Optional.empty();
+            }
+            JsonElement schema = root.getAsJsonObject().get("$schema");
+            if (schema == null || !schema.isJsonPrimitive() || !schema.getAsJsonPrimitive().isString()) {
+                return Optional.empty();
+            }
+            String location = schema.getAsString().trim();
+            if (location.isEmpty() || META_SCHEMA_ID.matcher(location).find()) {
+                return Optional.empty();
+            }
+            return Optional.of(location);
+        } catch (JsonSyntaxException e) {
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * Resolves a {@code $schema} location to a local file: absolute path, path relative
+     * to {@code baseDir}, {@code file:} URI, or http(s) URL (downloaded once into the
+     * shared schema cache, keyed by the MD5 of the lowercased URL).
+     *
+     * @param location the declared schema location
+     * @param baseDir  directory to resolve relative paths against, may be null
+     * @return the resolved local file, or null when unresolvable
+     */
+    public File resolveJsonSchemaLocation(String location, File baseDir) {
+        if (location == null || location.isBlank()) {
+            return null;
+        }
+        String temp = location.trim();
+        try {
+            if (temp.startsWith("file:")) {
+                File file = new File(new URI(temp));
+                return file.exists() ? file : null;
+            }
+            if (temp.startsWith("http://") || temp.startsWith("https://")) {
+                return downloadSchemaToCache(temp);
+            }
+            File file = new File(temp);
+            if (!file.isAbsolute() && baseDir != null) {
+                file = new File(baseDir, temp);
+            }
+            return file.exists() ? file : null;
+        } catch (Exception e) {
+            logger.warn("Could not resolve JSON Schema location '{}': {}", temp, e.getMessage());
+            return null;
+        }
+    }
+
+    private File downloadSchemaToCache(String url) {
+        try {
+            String md5Hex = DigestUtils.md5Hex(url.toLowerCase()).toUpperCase();
+            Path cacheDir = Path.of(SCHEMA_CACHE_DIR, md5Hex);
+            String fileName = FilenameUtils.getName(URI.create(url).getPath());
+            if (fileName == null || fileName.isBlank()) {
+                fileName = "schema.json";
+            }
+            Path cached = cacheDir.resolve(fileName);
+            if (Files.exists(cached) && Files.size(cached) > 1) {
+                return cached.toFile();
+            }
+            String content = ServiceRegistry.get(ConnectionService.class).getTextContentFromURL(URI.create(url));
+            // Pre-save gate: keep HTML error pages and other garbage out of the cache.
+            if (!isValidJson(content)) {
+                logger.warn("Downloaded JSON Schema from '{}' is not valid JSON - not cached", url);
+                return null;
+            }
+            Files.createDirectories(cacheDir);
+            Files.writeString(cached, content, StandardCharsets.UTF_8);
+            return cached.toFile();
+        } catch (Exception e) {
+            logger.warn("Could not download JSON Schema '{}': {}", url, e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Structured variant of {@link #validateAgainstSchema(String, File)}: each violation
+     * carries its instance location so callers can map it to a line in the source text.
+     *
+     * @param json       the JSON string to validate
+     * @param schemaFile the JSON Schema file
+     * @return list of violations, empty if valid
+     */
+    public List<SchemaError> validateAgainstSchemaDetailed(String json, File schemaFile) {
+        List<SchemaError> errors = new ArrayList<>();
+        if (json == null || json.isBlank()) {
+            errors.add(new SchemaError("JSON content is empty", List.of(), "", null));
+            return errors;
+        }
+        if (schemaFile == null || !schemaFile.exists()) {
+            errors.add(new SchemaError("JSON Schema file not found: " + schemaFile, List.of(), "", null));
+            return errors;
+        }
+        try {
+            // Fresh registry per call: registries cache compiled schemas by location,
+            // so a shared one would keep serving stale results after schema edits.
+            SchemaRegistry registry = newSchemaRegistry();
+            // Loading via the file's URI keeps the base URI so relative $refs resolve.
+            Schema schema = registry.getSchema(SchemaLocation.of(schemaFile.toURI().toString()));
+            for (Error error : schema.validate(json, InputFormat.JSON)) {
+                errors.add(toSchemaError(error));
+            }
+        } catch (Exception e) {
+            errors.add(new SchemaError("Schema validation error: " + e.getMessage(), List.of(), "", null));
+            logger.error("Schema validation failed", e);
+        }
+        return errors;
+    }
+
+    private static SchemaError toSchemaError(Error error) {
+        List<Object> segments = new ArrayList<>();
+        NodePath location = error.getInstanceLocation();
+        if (location != null) {
+            for (int i = 0; i < location.getNameCount(); i++) {
+                segments.add(location.getElement(i));
+            }
+        }
+        StringBuilder pointer = new StringBuilder();
+        for (Object segment : segments) {
+            pointer.append('/').append(segment.toString().replace("~", "~0").replace("/", "~1"));
+        }
+        return new SchemaError(error.getMessage(), List.copyOf(segments), pointer.toString(), error.getKeyword());
     }
 
     // ==================== JSONPath ====================

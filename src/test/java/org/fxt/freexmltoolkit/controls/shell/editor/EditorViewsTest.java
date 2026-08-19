@@ -25,10 +25,11 @@ class EditorViewsTest {
     }
 
     @Test
-    void jsonFileTypeUsesJsonEditorWithoutSchema() {
+    void jsonFileTypeUsesJsonEditorWithSchemaSupport() {
         EditorView view = WaitForAsyncUtils.waitForAsyncFx(10000, () -> EditorViews.create(EditorFileType.JSON));
         assertInstanceOf(JsonCodeEditor.class, view.getNode());
-        assertFalse(view.supportsSchema());
+        // JSON documents participate in the schema pipeline (JSON Schema validation).
+        assertTrue(view.supportsSchema());
     }
 
     @Test

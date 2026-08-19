@@ -53,15 +53,36 @@ public final class ValidationRunner {
         var service = new org.fxt.freexmltoolkit.service.JsonService();
         String wellFormed = service.validateJson(json);
         if (wellFormed != null) {
-            problems.add(new ValidationProblem("JSON", "error", -1, wellFormed));
+            problems.add(new ValidationProblem("JSON", "error", parseErrorLine(wellFormed), wellFormed));
             return problems;
         }
         if (jsonSchema != null) {
-            for (String error : service.validateAgainstSchema(json, jsonSchema)) {
-                problems.add(new ValidationProblem("JSON Schema", "error", -1, error));
+            var locator = new org.fxt.freexmltoolkit.util.JsonPointerLocator(json);
+            for (var error : service.validateAgainstSchemaDetailed(json, jsonSchema)) {
+                // keyword into ruleId, instance pointer into context — mirroring how
+                // Schematron findings use those fields (test expression / location).
+                problems.add(new ValidationProblem("JSON Schema", "error",
+                        locator.lineOf(error.instanceSegments()), error.message(),
+                        error.keyword(), error.instancePointer()));
             }
         }
         return problems;
+    }
+
+    private static final java.util.regex.Pattern GSON_ERROR_LINE =
+            java.util.regex.Pattern.compile("at line (\\d+)");
+
+    /** @return the 1-based line embedded in a Gson parse-error message, or -1 */
+    private static int parseErrorLine(String message) {
+        var matcher = GSON_ERROR_LINE.matcher(message);
+        if (matcher.find()) {
+            try {
+                return Integer.parseInt(matcher.group(1));
+            } catch (NumberFormatException ignored) {
+                // fall through
+            }
+        }
+        return -1;
     }
 
     public static List<ValidationProblem> run(String xml, File xsd, File schematron) {

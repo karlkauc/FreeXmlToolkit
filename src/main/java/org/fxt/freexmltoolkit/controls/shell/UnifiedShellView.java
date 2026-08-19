@@ -1480,12 +1480,16 @@ public class UnifiedShellView extends BorderPane {
     }
 
     private void setSchema() {
-        if (editorHost.getActiveDocument().isEmpty()) {
+        var doc = editorHost.getActiveDocument().orElse(null);
+        if (doc == null) {
             return;
         }
+        boolean json = doc.getFileType() == org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.JSON;
         javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
-        chooser.setTitle("Select XSD Schema");
-        chooser.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter("XSD Schema", "*.xsd"));
+        chooser.setTitle(json ? "Select JSON Schema" : "Select XSD Schema");
+        chooser.getExtensionFilters().add(json
+                ? new javafx.stage.FileChooser.ExtensionFilter("JSON Schema", "*.json")
+                : new javafx.stage.FileChooser.ExtensionFilter("XSD Schema", "*.xsd"));
         java.io.File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
             editorHost.setSchemaForActiveDocument(file);
@@ -1528,10 +1532,10 @@ public class UnifiedShellView extends BorderPane {
                 stats -> javafx.application.Platform.runLater(
                         () -> statusLastRun.setText(stats.shortLabel())));
 
-        // The XSD indicator tracks the active document's schema-binding lifecycle (detecting /
-        // ready / none / error) so the user can tell when IntelliSense is available — but only
-        // for schema-aware (XML-family) documents. For JSON / plain text an "XSD" label is
-        // meaningless, so it is blanked and the label collapses out of the bar entirely.
+        // The schema indicator tracks the active document's schema-binding lifecycle (detecting /
+        // ready / none / error) — XSD for the XML family (IntelliSense + validation), JSON Schema
+        // for JSON documents (validation). For plain text a schema label is meaningless, so it is
+        // blanked and the label collapses out of the bar entirely.
         // A listener (not a binding) because text, icon, tooltip and style class change together.
         editorHost.activeSchemaStatusProperty().addListener((obs, o, n) -> updateSchemaStatusIndicator());
         editorHost.activeSchemaProperty().addListener((obs, o, n) -> updateSchemaStatusIndicator());
@@ -1539,13 +1543,27 @@ public class UnifiedShellView extends BorderPane {
         updateSchemaStatusIndicator();
         statusSchema.managedProperty().bind(statusSchema.textProperty().isNotEmpty());
         statusSchema.visibleProperty().bind(statusSchema.textProperty().isNotEmpty());
-        // The XSD indicator doubles as the binding entry point (VS-Code style): clicking it picks an
-        // XSD and binds it to the active document via setSchemaForActiveDocument.
+        // The schema indicator doubles as the binding entry point (VS-Code style): clicking it
+        // picks a schema (XSD or JSON Schema, by document type) and binds it via
+        // setSchemaForActiveDocument. The drop target is installed once with the union of both
+        // extensions (FileDropSupport has no uninstall); the consumer binds only when the dropped
+        // kind matches the active document's kind and silently ignores the mismatch.
         statusSchema.setCursor(javafx.scene.Cursor.HAND);
         statusSchema.setOnMouseClicked(e -> setSchema());
-        FileDropSupport.install(statusSchema,
-                org.fxt.freexmltoolkit.service.DragDropService.XSD_EXTENSIONS,
-                editorHost::setSchemaForActiveDocument);
+        java.util.List<String> schemaDropExtensions = java.util.stream.Stream.concat(
+                org.fxt.freexmltoolkit.service.DragDropService.XSD_EXTENSIONS.stream(),
+                org.fxt.freexmltoolkit.service.DragDropService.JSON_SCHEMA_EXTENSIONS.stream()).toList();
+        FileDropSupport.install(statusSchema, schemaDropExtensions, file -> {
+            var doc = editorHost.getActiveDocument().orElse(null);
+            if (doc == null) {
+                return;
+            }
+            boolean jsonDoc = doc.getFileType() == org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.JSON;
+            boolean jsonSchema = file.getName().toLowerCase().endsWith(".json");
+            if (jsonDoc == jsonSchema) {
+                editorHost.setSchemaForActiveDocument(file);
+            }
+        });
     }
 
     /** All schema-status style classes; removed before the current one is (re-)applied. */
@@ -1553,7 +1571,7 @@ public class UnifiedShellView extends BorderPane {
             "fxt-status-schema-loading", "fxt-status-schema-ready",
             "fxt-status-schema-none", "fxt-status-schema-error");
 
-    /** Refreshes the status bar's XSD/IntelliSense indicator from the active document's state. */
+    /** Refreshes the status bar's schema indicator from the active document's state. */
     private void updateSchemaStatusIndicator() {
         statusSchema.getStyleClass().removeAll(SCHEMA_STATUS_CLASSES);
         var doc = editorHost.getActiveDocument().orElse(null);
@@ -1563,24 +1581,36 @@ public class UnifiedShellView extends BorderPane {
             statusSchema.setTooltip(null);
             return;
         }
+        String kind = schemaKindLabel(doc.getFileType());
         var status = editorHost.activeSchemaStatusProperty().get();
-        java.io.File xsd = editorHost.activeSchemaProperty().get();
-        statusSchema.setText(schemaStatusText(status, xsd));
+        java.io.File schema = editorHost.activeSchemaProperty().get();
+        statusSchema.setText(schemaStatusText(status, schema, kind));
         IconifyIcon icon = new IconifyIcon(schemaStatusIcon(status));
         icon.setIconSize(12);
         statusSchema.setGraphic(icon);
         statusSchema.getStyleClass().add(schemaStatusStyleClass(status));
-        statusSchema.setTooltip(new javafx.scene.control.Tooltip(schemaStatusTooltip(status, xsd)));
+        statusSchema.setTooltip(new javafx.scene.control.Tooltip(schemaStatusTooltip(status, schema, kind)));
+    }
+
+    /** @return the indicator's schema-kind label for a file type (package-private for unit tests). */
+    static String schemaKindLabel(org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType type) {
+        return type == org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.JSON ? "JSON Schema" : "XSD";
     }
 
     /** @return the indicator label text for a schema status (package-private for unit tests). */
     static String schemaStatusText(org.fxt.freexmltoolkit.controls.shell.editor.EditorHost.SchemaStatus status,
             java.io.File xsd) {
+        return schemaStatusText(status, xsd, "XSD");
+    }
+
+    /** Kind-aware variant: {@code kind} is {@code "XSD"} or {@code "JSON Schema"}. */
+    static String schemaStatusText(org.fxt.freexmltoolkit.controls.shell.editor.EditorHost.SchemaStatus status,
+            java.io.File schema, String kind) {
         return switch (status) {
-            case LOADING -> "Detecting XSD…";
-            case READY -> xsd != null ? "XSD: " + xsd.getName() : "XSD ready";
-            case ERROR -> "XSD error";
-            case NONE -> "No XSD";
+            case LOADING -> "Detecting " + kind + "…";
+            case READY -> schema != null ? kind + ": " + schema.getName() : kind + " ready";
+            case ERROR -> kind + " error";
+            case NONE -> "No " + kind;
         };
     }
 
@@ -1607,9 +1637,29 @@ public class UnifiedShellView extends BorderPane {
     /** @return the tooltip explaining IntelliSense availability for a schema status. */
     static String schemaStatusTooltip(org.fxt.freexmltoolkit.controls.shell.editor.EditorHost.SchemaStatus status,
             java.io.File xsd) {
+        return schemaStatusTooltip(status, xsd, "XSD");
+    }
+
+    /**
+     * Kind-aware variant: XSD tooltips explain IntelliSense availability, JSON Schema
+     * tooltips explain validation (JSON has no schema-driven IntelliSense).
+     */
+    static String schemaStatusTooltip(org.fxt.freexmltoolkit.controls.shell.editor.EditorHost.SchemaStatus status,
+            java.io.File schema, String kind) {
+        if ("JSON Schema".equals(kind)) {
+            return switch (status) {
+                case LOADING -> "Detecting the declared JSON Schema — schema validation will be available shortly";
+                case READY -> "Schema validation is active (schema: " + (schema != null ? schema.getName() : "bound")
+                        + "). Click to bind a different JSON Schema";
+                case ERROR -> "The declared JSON Schema could not be loaded — validation is well-formedness only. "
+                        + "Click to bind a JSON Schema manually";
+                case NONE -> "No JSON Schema is bound — validation is well-formedness only. "
+                        + "Click to bind a JSON Schema";
+            };
+        }
         return switch (status) {
             case LOADING -> "Detecting and parsing the linked XSD schema — IntelliSense will be available shortly";
-            case READY -> "IntelliSense is available (schema: " + (xsd != null ? xsd.getName() : "bound")
+            case READY -> "IntelliSense is available (schema: " + (schema != null ? schema.getName() : "bound")
                     + "). Click to bind a different XSD";
             case ERROR -> "The linked XSD could not be loaded — IntelliSense is unavailable. "
                     + "Click to bind an XSD manually";
@@ -1618,12 +1668,13 @@ public class UnifiedShellView extends BorderPane {
     }
 
     /**
-     * @return {@code true} when the file type can carry an XSD schema (XML family); {@code false}
-     *         for JSON / plain text, where the status bar's "XSD" indicator is meaningless.
+     * @return {@code true} when the file type can carry a schema binding — an XSD for the
+     *         XML family, a JSON Schema for JSON; {@code false} for plain text, where the
+     *         status bar's schema indicator is meaningless.
      */
     private static boolean isSchemaAware(org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType type) {
         return switch (type) {
-            case XML, XSD, XSLT, SCHEMATRON -> true;
+            case XML, XSD, XSLT, SCHEMATRON, JSON -> true;
             default -> false;
         };
     }

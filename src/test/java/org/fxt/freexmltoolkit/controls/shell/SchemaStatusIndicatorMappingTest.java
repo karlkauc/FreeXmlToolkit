@@ -49,4 +49,54 @@ class SchemaStatusIndicatorMappingTest {
         assertEquals("fxt-status-schema-error", UnifiedShellView.schemaStatusStyleClass(SchemaStatus.ERROR));
         assertTrue(UnifiedShellView.schemaStatusTooltip(SchemaStatus.ERROR, null).contains("unavailable"));
     }
+
+    // ----- JSON Schema kind (JSON documents) --------------------------------
+
+    private static final File JSON_SCHEMA = new File("product-schema.json");
+    private static final String JSON_KIND = "JSON Schema";
+
+    @Test
+    void schemaKindLabelFollowsTheFileType() {
+        assertEquals("JSON Schema", UnifiedShellView.schemaKindLabel(
+                org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.JSON));
+        assertEquals("XSD", UnifiedShellView.schemaKindLabel(
+                org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.XML));
+        assertEquals("XSD", UnifiedShellView.schemaKindLabel(
+                org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.XSD));
+    }
+
+    @Test
+    void jsonKindComposesTheSameStatusTexts() {
+        assertEquals("Detecting JSON Schema…",
+                UnifiedShellView.schemaStatusText(SchemaStatus.LOADING, null, JSON_KIND));
+        assertEquals("JSON Schema: product-schema.json",
+                UnifiedShellView.schemaStatusText(SchemaStatus.READY, JSON_SCHEMA, JSON_KIND));
+        assertEquals("JSON Schema error",
+                UnifiedShellView.schemaStatusText(SchemaStatus.ERROR, null, JSON_KIND));
+        assertEquals("No JSON Schema",
+                UnifiedShellView.schemaStatusText(SchemaStatus.NONE, null, JSON_KIND));
+    }
+
+    @Test
+    void xsdKindStaysByteIdenticalToTheTwoArgMappers() {
+        for (SchemaStatus status : SchemaStatus.values()) {
+            assertEquals(UnifiedShellView.schemaStatusText(status, XSD),
+                    UnifiedShellView.schemaStatusText(status, XSD, "XSD"));
+            assertEquals(UnifiedShellView.schemaStatusTooltip(status, XSD),
+                    UnifiedShellView.schemaStatusTooltip(status, XSD, "XSD"));
+        }
+    }
+
+    @Test
+    void jsonKindTooltipsTalkAboutValidationNotIntelliSense() {
+        for (SchemaStatus status : SchemaStatus.values()) {
+            String tooltip = UnifiedShellView.schemaStatusTooltip(status, JSON_SCHEMA, JSON_KIND);
+            assertFalse(tooltip.contains("IntelliSense"),
+                    status + " tooltip must not mention IntelliSense: " + tooltip);
+        }
+        assertTrue(UnifiedShellView.schemaStatusTooltip(SchemaStatus.READY, JSON_SCHEMA, JSON_KIND)
+                .contains("product-schema.json"));
+        assertTrue(UnifiedShellView.schemaStatusTooltip(SchemaStatus.NONE, null, JSON_KIND)
+                .contains("well-formedness"));
+    }
 }

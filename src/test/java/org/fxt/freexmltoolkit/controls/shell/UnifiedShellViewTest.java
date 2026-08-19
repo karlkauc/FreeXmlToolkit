@@ -214,6 +214,23 @@ class UnifiedShellViewTest {
     }
 
     @Test
+    void statusBarSchemaIndicatorSwitchesToJsonSchemaForJsonDocuments(
+            @org.junit.jupiter.api.io.TempDir java.nio.file.Path tmp) throws Exception {
+        java.nio.file.Path json = tmp.resolve("doc.json");
+        java.nio.file.Files.writeString(json, "{\"a\": 1}");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            shell.openFile(json);
+            return null;
+        });
+        javafx.scene.control.Label schema = (javafx.scene.control.Label) shell.lookup("#status-schema");
+        assertNotNull(schema, "the status bar must show the schema indicator for JSON documents");
+        WaitForAsyncUtils.waitFor(3, java.util.concurrent.TimeUnit.SECONDS,
+                () -> "No JSON Schema".equals(schema.getText()) && schema.isVisible());
+        assertEquals(javafx.scene.Cursor.HAND, schema.getCursor(),
+                "the JSON Schema indicator must advertise its clickability");
+    }
+
+    @Test
     void statusBarXsdIndicatorSignalsIntelliSenseAvailability(@org.junit.jupiter.api.io.TempDir java.nio.file.Path tmp)
             throws Exception {
         java.nio.file.Files.writeString(tmp.resolve("schema.xsd"),

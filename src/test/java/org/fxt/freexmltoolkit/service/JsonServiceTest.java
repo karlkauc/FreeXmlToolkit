@@ -359,6 +359,188 @@ class JsonServiceTest {
     }
 
     @Nested
+    @DisplayName("validateAgainstSchemaDetailed")
+    class ValidateAgainstSchemaDetailedTests {
+
+        private java.io.File schemaFile(String name, String content) throws IOException {
+            Path file = tempDir.resolve(name);
+            Files.writeString(file, content);
+            return file.toFile();
+        }
+
+        @Test
+        @DisplayName("Errors carry instance pointer and keyword for nested violations")
+        void errorsCarryPointerAndKeyword() throws IOException {
+            var schema = schemaFile("schema.json", """
+                    {
+                      "type": "object",
+                      "properties": {
+                        "items": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": { "price": { "type": "number" } }
+                          }
+                        }
+                      }
+                    }
+                    """);
+            String json = """
+                    {
+                      "items": [
+                        { "price": 1.5 },
+                        { "price": "wrong" }
+                      ]
+                    }
+                    """;
+            List<JsonService.SchemaError> errors = jsonService.validateAgainstSchemaDetailed(json, schema);
+            assertEquals(1, errors.size(), errors.toString());
+            JsonService.SchemaError error = errors.get(0);
+            assertEquals("/items/1/price", error.instancePointer());
+            assertEquals(List.of("items", 1, "price"), error.instanceSegments());
+            assertEquals("type", error.keyword());
+        }
+
+        @Test
+        @DisplayName("Draft-07 schema selects its own dialect (dependencies keyword)")
+        void draft07DialectHonored() throws IOException {
+            var schema = schemaFile("draft07.json", """
+                    {
+                      "$schema": "http://json-schema.org/draft-07/schema#",
+                      "dependencies": { "credit_card": ["billing_address"] }
+                    }
+                    """);
+            // Under the 2020-12 fallback "dependencies" would be an unknown keyword and
+            // this instance would pass — a failure proves the dialect switch.
+            List<JsonService.SchemaError> errors =
+                    jsonService.validateAgainstSchemaDetailed("{\"credit_card\": 123}", schema);
+            assertFalse(errors.isEmpty(), "draft-07 'dependencies' must be enforced");
+        }
+
+        @Test
+        @DisplayName("2019-09 schema compiles and validates (dependentRequired keyword)")
+        void draft201909DialectHonored() throws IOException {
+            var schema = schemaFile("draft2019.json", """
+                    {
+                      "$schema": "https://json-schema.org/draft/2019-09/schema",
+                      "dependentRequired": { "credit_card": ["billing_address"] }
+                    }
+                    """);
+            List<JsonService.SchemaError> errors =
+                    jsonService.validateAgainstSchemaDetailed("{\"credit_card\": 123}", schema);
+            assertFalse(errors.isEmpty(), "2019-09 'dependentRequired' must be enforced");
+        }
+
+        @Test
+        @DisplayName("Schema without $schema falls back to 2020-12 (prefixItems keyword)")
+        void noDollarSchemaFallsBackTo202012() throws IOException {
+            var schema = schemaFile("plain.json", """
+                    { "prefixItems": [ { "type": "integer" } ] }
+                    """);
+            List<JsonService.SchemaError> errors =
+                    jsonService.validateAgainstSchemaDetailed("[\"not an int\"]", schema);
+            assertFalse(errors.isEmpty(), "2020-12 'prefixItems' must be enforced by default");
+        }
+
+        @Test
+        @DisplayName("Relative $ref to a sibling file resolves (base URI preserved)")
+        void relativeRefResolves() throws IOException {
+            schemaFile("other.json", """
+                    { "type": "object", "required": ["a"] }
+                    """);
+            var schema = schemaFile("main.json", """
+                    { "$ref": "other.json" }
+                    """);
+            List<JsonService.SchemaError> errors = jsonService.validateAgainstSchemaDetailed("{}", schema);
+            assertFalse(errors.isEmpty(), "required property from referenced sibling schema must be enforced");
+            assertTrue(jsonService.validateAgainstSchemaDetailed("{\"a\": 1}", schema).isEmpty());
+        }
+
+        @Test
+        @DisplayName("Missing schema file yields a single error, no exception")
+        void missingSchemaFileYieldsError() {
+            List<JsonService.SchemaError> errors = jsonService.validateAgainstSchemaDetailed(
+                    "{}", tempDir.resolve("nope.json").toFile());
+            assertEquals(1, errors.size());
+            assertTrue(errors.get(0).message().contains("not found"));
+        }
+    }
+
+    @Nested
+    @DisplayName("getSchemaLocationFromJsonContent")
+    class SchemaLocationSniffTests {
+
+        @Test
+        @DisplayName("Finds a declared top-level $schema")
+        void findsDeclaredSchema() {
+            assertEquals(java.util.Optional.of("./product-schema.json"),
+                    jsonService.getSchemaLocationFromJsonContent(
+                            "{\"$schema\": \"./product-schema.json\", \"a\": 1}"));
+        }
+
+        @Test
+        @DisplayName("Empty for documents without $schema")
+        void emptyWithoutSchema() {
+            assertTrue(jsonService.getSchemaLocationFromJsonContent("{\"a\": 1}").isEmpty());
+        }
+
+        @Test
+        @DisplayName("Empty for non-string $schema")
+        void emptyForNonString() {
+            assertTrue(jsonService.getSchemaLocationFromJsonContent("{\"$schema\": 42}").isEmpty());
+        }
+
+        @Test
+        @DisplayName("Ignores json-schema.org meta-schema ids (dialect declarations)")
+        void ignoresMetaSchemaIds() {
+            assertTrue(jsonService.getSchemaLocationFromJsonContent(
+                    "{\"$schema\": \"https://json-schema.org/draft/2020-12/schema\"}").isEmpty());
+            assertTrue(jsonService.getSchemaLocationFromJsonContent(
+                    "{\"$schema\": \"http://json-schema.org/draft-07/schema#\"}").isEmpty());
+        }
+
+        @Test
+        @DisplayName("Empty for malformed JSON and non-object roots")
+        void emptyForMalformedInput() {
+            assertTrue(jsonService.getSchemaLocationFromJsonContent("{broken").isEmpty());
+            assertTrue(jsonService.getSchemaLocationFromJsonContent("[1, 2]").isEmpty());
+            assertTrue(jsonService.getSchemaLocationFromJsonContent(null).isEmpty());
+        }
+    }
+
+    @Nested
+    @DisplayName("resolveJsonSchemaLocation")
+    class ResolveSchemaLocationTests {
+
+        @Test
+        @DisplayName("Resolves a path relative to the base directory")
+        void resolvesRelativePath() throws IOException {
+            Path schema = tempDir.resolve("s.json");
+            Files.writeString(schema, "{}");
+            java.io.File resolved = jsonService.resolveJsonSchemaLocation("./s.json", tempDir.toFile());
+            assertNotNull(resolved);
+            assertEquals(schema.toFile().getCanonicalFile(), resolved.getCanonicalFile());
+        }
+
+        @Test
+        @DisplayName("Resolves absolute paths and file: URIs")
+        void resolvesAbsoluteAndFileUri() throws IOException {
+            Path schema = tempDir.resolve("s.json");
+            Files.writeString(schema, "{}");
+            assertNotNull(jsonService.resolveJsonSchemaLocation(schema.toAbsolutePath().toString(), null));
+            assertNotNull(jsonService.resolveJsonSchemaLocation(schema.toUri().toString(), null));
+        }
+
+        @Test
+        @DisplayName("Returns null for unresolvable locations")
+        void nullForUnresolvable() {
+            assertNull(jsonService.resolveJsonSchemaLocation("./missing.json", tempDir.toFile()));
+            assertNull(jsonService.resolveJsonSchemaLocation(null, tempDir.toFile()));
+            assertNull(jsonService.resolveJsonSchemaLocation("  ", tempDir.toFile()));
+        }
+    }
+
+    @Nested
     @DisplayName("executeJsonPath")
     class ExecuteJsonPathTests {
 

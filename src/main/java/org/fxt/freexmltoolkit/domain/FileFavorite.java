@@ -55,6 +55,8 @@ public class FileFavorite {
         XQUERY("XQuery Query", "bi-braces", "#20c997"),
         /** Key/trust store files (JKS, PKCS#12) used by the Signature tools */
         KEYSTORE("Keystore", "bi-file-earmark-lock", "#795548"),
+        /** JSON documents — including JSON Schemas (indistinguishable by extension) */
+        JSON("JSON Document", "bi-braces", "#1098ad"),
         /** Other/unrecognized file types */
         OTHER("Other", "bi-file-earmark", "#6c757d");
 
@@ -127,6 +129,9 @@ public class FileFavorite {
             if (lower.endsWith(".jks") || lower.endsWith(".keystore")
                     || lower.endsWith(".p12") || lower.endsWith(".pfx")) {
                 return KEYSTORE;
+            }
+            if (lower.endsWith(".json") || lower.endsWith(".jsonc") || lower.endsWith(".json5")) {
+                return JSON;
             }
             return OTHER;
         }

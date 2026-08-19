@@ -78,15 +78,27 @@ Click **Validate** to check if your JSON is syntactically correct. The editor wi
 - Detected format (JSON, JSONC, or JSON5)
 
 #### JSON Schema Validation
-Validate your JSON against a JSON Schema:
+JSON documents bind a JSON Schema the same way XML documents bind an XSD:
 
-1. Open the **Validation** activity and pick **JSON Schema…** from the panel's ⋮ (overflow) menu
-2. Select your JSON Schema file
-3. Run the validation (**Run Validation** in the panel, or the toolbar's **Validate** button / F8)
+- **Automatic:** a top-level `"$schema"` member pointing at a schema file or URL
+  (e.g. `"$schema": "./product-schema.json"`) is detected when the file opens.
+  Relative paths resolve against the document's folder; `http(s)` URLs are
+  downloaded and cached. (Values pointing at `json-schema.org` meta-schemas are
+  dialect declarations, not bindings, and are ignored.)
+- **Manual:** click the **JSON Schema** indicator in the status bar, use the
+  **JSON Schema** source row in the **Validation** panel (Change link, favorites
+  star, or drag & drop a `.json` schema onto the row or the status bar).
 
-The validator supports:
-- JSON Schema Draft 4, 6, 7
-- JSON Schema 2019-09, 2020-12
+Validation runs via **Run Validation** in the panel, the toolbar's **Validate**
+button / F8, or continuously while typing (**Validate while typing**, on by
+default). Schema violations appear in the PROBLEMS list with the offending
+**line number** — clicking a problem jumps to it. Each problem also carries the
+failing schema keyword and the JSON pointer of the invalid value.
+
+The validator supports JSON Schema **Draft-07**, **2019-09**, and **2020-12**;
+the dialect is selected by the schema's own `$schema` declaration (2020-12 is
+the default for schemas without one). Relative `$ref`s between schema files
+resolve as expected.
 
 ## Keyboard Shortcuts
 

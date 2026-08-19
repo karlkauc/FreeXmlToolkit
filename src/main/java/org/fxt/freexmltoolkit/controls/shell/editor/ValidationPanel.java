@@ -37,13 +37,13 @@ import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 /**
  * The Validation activity side panel, laid out after the Figma mockup
  * "Redesign · Unified — Validation" (node 40:48): a SOURCES section showing the
- * bound XSD/Schematron with "Change" links, a Single-file/Batch segmented
- * toggle, a primary "Run Validation" button, a RESULTS list with per-file
- * severity icons and problem-count badges (batch runs), and the PROBLEMS list.
- * Secondary features (Schematron tools, JSON Schema, FundsXML, the
- * validate-while-typing toggle, the batch text report) live in the header's
- * overflow (⋮) menu. Validation runs off the UI thread via
- * {@link ValidationRunner}; selecting a problem jumps to its line.
+ * bound XSD/Schematron (XML family) or JSON Schema (JSON documents) with
+ * "Change" links, a Single-file/Batch segmented toggle, a primary "Run
+ * Validation" button, a RESULTS list with per-file severity icons and
+ * problem-count badges (batch runs), and the PROBLEMS list. Secondary features
+ * (Schematron tools, FundsXML, the validate-while-typing toggle, the batch text
+ * report) live in the header's overflow (⋮) menu. Validation runs off the UI
+ * thread via {@link ValidationRunner}; selecting a problem jumps to its line.
  */
 public class ValidationPanel extends VBox {
 
@@ -57,6 +57,7 @@ public class ValidationPanel extends VBox {
     private final PanelProgress progress = new PanelProgress();
     private final Label xsdName = new Label("none");
     private final Label schematronName = new Label("none");
+    private final Label jsonSchemaName = new Label("none");
     private final Label resultsHeaderLabel = new Label("RESULTS");
     private final MenuButton xsdFavoritesMenu = new MenuButton();
     private MenuButton schematronFavoritesMenu;
@@ -70,8 +71,13 @@ public class ValidationPanel extends VBox {
     private SchematronReportData lastSchematronReport;
     private final ContextMenu batchSourceMenu = new ContextMenu();
     private final PauseTransition debounce = new PauseTransition(Duration.millis(600));
-    private File jsonSchemaFile;
     private String lastBatchReport;
+    // SOURCES rows; the visible set follows the active document's type (XML family
+    // shows XSD + Schematron, JSON shows the JSON Schema row).
+    private HBox xsdRow;
+    private HBox schematronRow;
+    private HBox jsonSchemaRow;
+    private MenuButton jsonSchemaFavoritesMenu;
 
     public ValidationPanel(EditorHost editorHost) {
         this.editorHost = editorHost;
@@ -96,26 +102,40 @@ public class ValidationPanel extends VBox {
         // --- SOURCES ------------------------------------------------------
         xsdName.getStyleClass().add("fxt-vp-source-name");
         schematronName.getStyleClass().add("fxt-vp-source-name");
+        jsonSchemaName.getStyleClass().add("fxt-vp-source-name");
         xsdFavoritesMenu.setGraphic(icon("bi-star", 13));
         xsdFavoritesMenu.getStyleClass().add("fxt-vp-source-fav");
         xsdFavoritesMenu.setOnShowing(e -> refreshXsdFavoritesMenu());
-        HBox xsdRow = sourceRow("bi-diagram-3", xsdName, this::chooseXsd, xsdFavoritesMenu);
+        xsdRow = sourceRow("bi-diagram-3", xsdName, this::chooseXsd, xsdFavoritesMenu);
         xsdRow.setId("validation-xsd-row");
         org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(xsdRow,
                 org.fxt.freexmltoolkit.service.DragDropService.XSD_EXTENSIONS, this::useXsd);
         schematronFavoritesMenu = FavoritesMenu.create(
                 org.fxt.freexmltoolkit.domain.FileFavorite.FileType.SCHEMATRON,
                 "Schematron favorites", this::useSchematron);
-        HBox schematronRow = sourceRow("bi-ui-checks-grid", schematronName,
+        schematronRow = sourceRow("bi-ui-checks-grid", schematronName,
                 this::chooseSchematron, schematronFavoritesMenu);
         schematronRow.setId("validation-schematron-row");
         org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(schematronRow,
                 org.fxt.freexmltoolkit.service.DragDropService.SCHEMATRON_EXTENSIONS, this::useSchematron);
+        // Favorites are typed by extension, so this lists all favorited .json files —
+        // schemas and data documents are indistinguishable there.
+        jsonSchemaFavoritesMenu = FavoritesMenu.create(
+                org.fxt.freexmltoolkit.domain.FileFavorite.FileType.JSON,
+                "JSON Schema favorites", this::useJsonSchema);
+        jsonSchemaRow = sourceRow("bi-braces", jsonSchemaName,
+                this::chooseJsonSchema, jsonSchemaFavoritesMenu);
+        jsonSchemaRow.setId("validation-json-schema-row");
+        org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(jsonSchemaRow,
+                org.fxt.freexmltoolkit.service.DragDropService.JSON_SCHEMA_EXTENSIONS, this::useJsonSchema);
         // One click on a bound source opens it in the editor for direct editing.
         makeSourceNameOpenable(xsdName, () -> editorHost.activeSchemaProperty().get());
         makeSourceNameOpenable(schematronName, editorHost::getActiveSchematron);
+        makeSourceNameOpenable(jsonSchemaName, () -> editorHost.activeSchemaProperty().get());
         refreshSchematronStatus();
         refreshXsdStatus();
+        refreshJsonSchemaStatus();
+        updateSourceRowVisibility();
         // Opening the panel binds the schema referenced inside the XML (xsi:schemaLocation /
         // xsi:noNamespaceSchemaLocation) when none is bound yet; an explicit Change or
         // favorite choice still wins because a bound schema is never overridden.
@@ -242,11 +262,14 @@ public class ValidationPanel extends VBox {
         editorHost.activeCaretProperty().addListener((obs, oldV, newV) -> scheduleRevalidation());
         editorHost.activeTabProperty().addListener((obs, oldV, newV) -> {
             refreshXsdStatus();
+            refreshJsonSchemaStatus();
+            updateSourceRowVisibility();
             editorHost.redetectSchemaForActiveDocument();
             scheduleRevalidation();
         });
         editorHost.activeSchemaProperty().addListener((obs, oldV, newV) -> {
             refreshXsdStatus();
+            refreshJsonSchemaStatus();
             scheduleRevalidation();
         });
         // After a quick fix is applied, re-validate immediately (even with live
@@ -254,7 +277,7 @@ public class ValidationPanel extends VBox {
         editorHost.getQuickFixController().setOnFixApplied(this::revalidate);
 
         getChildren().addAll(header,
-                sectionHeader(new Label("SOURCES")), xsdRow, schematronRow,
+                sectionHeader(new Label("SOURCES")), xsdRow, schematronRow, jsonSchemaRow,
                 runBox, status,
                 resultsSection,
                 problemsSection);
@@ -270,8 +293,7 @@ public class ValidationPanel extends VBox {
                 menuItem("Check Rules", this::openSchematronCheck),
                 menuItem("Validation Report", this::openSchematronReport),
                 menuItem("Documentation", this::openSchematronDocumentation));
-        overflowMenu.getItems().addAll(schematronTools,
-                new SeparatorMenuItem(), menuItem("JSON Schema…", this::chooseJsonSchema));
+        overflowMenu.getItems().add(schematronTools);
         // FundsXML extension — only when enabled in the settings. The FundsXML activity
         // is its primary home; this link keeps it reachable from the validation context.
         if (FundsXmlRunner.isEnabled()) {
@@ -384,9 +406,9 @@ public class ValidationPanel extends VBox {
                 new org.fxt.freexmltoolkit.controls.SchematronDocumentationGenerator());
     }
 
-    /** Schedules a debounced re-validation if live validation is on and the active doc is XML-family. */
+    /** Schedules a debounced re-validation if live validation is on and the active doc is validatable. */
     private void scheduleRevalidation() {
-        if (liveValidation.isSelected() && isXmlFamilyActive()) {
+        if (liveValidation.isSelected() && (isXmlFamilyActive() || isJsonActive())) {
             debounce.playFromStart();
         }
     }
@@ -397,6 +419,27 @@ public class ValidationPanel extends VBox {
             case XML, XSD, XSLT, SCHEMATRON, XPROC -> true;
             default -> false;
         }).orElse(false);
+    }
+
+    /** @return {@code true} if the active document is JSON (validated against a JSON Schema). */
+    private boolean isJsonActive() {
+        return editorHost.getActiveDocument()
+                .map(d -> d.getFileType() == EditorFileType.JSON).orElse(false);
+    }
+
+    /**
+     * Shows the SOURCES rows matching the active document's type: the JSON Schema row
+     * for JSON documents, the XSD + Schematron rows for everything else (both
+     * {@code visible} and {@code managed}, so hidden rows collapse out of the layout).
+     */
+    private void updateSourceRowVisibility() {
+        boolean json = isJsonActive();
+        xsdRow.setVisible(!json);
+        xsdRow.setManaged(!json);
+        schematronRow.setVisible(!json);
+        schematronRow.setManaged(!json);
+        jsonSchemaRow.setVisible(json);
+        jsonSchemaRow.setManaged(json);
     }
 
     /** Runs validation of the active document (XSD + optional Schematron), async. */
@@ -426,13 +469,12 @@ public class ValidationPanel extends VBox {
             editorHost.setValidationStatus(EditorHost.ValidationState.NOT_VALIDATED, 0, "Not validated");
             return;
         }
-        boolean json = editorHost.getActiveDocument()
-                .map(d -> d.getFileType() == EditorFileType.JSON).orElse(false);
+        boolean json = isJsonActive();
         // Resolved on the worker thread: reconciles the binding with the schema location
-        // declared in the buffer (added/changed/removed references take effect this run).
-        var xsdSupplier = editorHost.schemaForValidation(content);
+        // declared in the buffer (added/changed/removed references take effect this run) —
+        // the xsi:* declarations for the XML family, a top-level "$schema" for JSON.
+        var schemaSupplier = editorHost.schemaForValidation(content);
         File schematron = editorHost.getActiveSchematron();
-        File jsonSchema = this.jsonSchemaFile;
         String documentName = editorHost.getActiveDocument()
                 .map(OpenDocument::getDisplayName).orElse(null);
         PanelStatus.info(status, "Validating…");
@@ -440,11 +482,11 @@ public class ValidationPanel extends VBox {
             var probe = org.fxt.freexmltoolkit.service.ExecutionStatsService.getInstance().begin(
                     org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.VALIDATION,
                     documentName != null ? documentName : "document");
-            File xsd = json ? null : xsdSupplier.get();
+            File schema = schemaSupplier.get();
             ValidationRunner.RunResult runResult = json
                     ? new ValidationRunner.RunResult(
-                            ValidationRunner.validateJson(content, jsonSchema), null)
-                    : ValidationRunner.runWithReport(content, xsd, schematron, documentName);
+                            ValidationRunner.validateJson(content, schema), null)
+                    : ValidationRunner.runWithReport(content, schema, schematron, documentName);
             List<ValidationProblem> result = runResult.problems();
             probe.phase("XSD", runResult.xsdMillis());
             probe.phase("Schematron", runResult.schematronMillis());
@@ -455,7 +497,7 @@ public class ValidationPanel extends VBox {
                 setProblems(result);
                 lastSchematronReport = runResult.schematronReport();
                 schematronReportButton.setDisable(lastSchematronReport == null);
-                boolean hasSchema = json ? jsonSchema != null : (xsd != null || schematron != null);
+                boolean hasSchema = json ? schema != null : (schema != null || schematron != null);
                 String summary = (result.isEmpty()
                         ? (hasSchema ? "Valid" : "Well-formed")
                         : result.size() + " problem(s)")
@@ -709,6 +751,13 @@ public class ValidationPanel extends VBox {
         setSourceName(xsdName, xsd != null ? xsd.getName() : null);
     }
 
+    private void refreshJsonSchemaStatus() {
+        // activeSchema carries whichever schema kind the active tab holds (XSD for the
+        // XML family, JSON Schema for JSON) — the visible row decides the interpretation.
+        File schema = editorHost.activeSchemaProperty().get();
+        setSourceName(jsonSchemaName, schema != null ? schema.getName() : null);
+    }
+
     private void refreshSchematronStatus() {
         File schematron = editorHost.getActiveSchematron();
         setSourceName(schematronName, schematron != null ? schematron.getName() : null);
@@ -763,21 +812,40 @@ public class ValidationPanel extends VBox {
         return FavoritesMenu.leafNames(schematronFavoritesMenu);
     }
 
+    /** @return the favorite-JSON names currently in the JSON Schema quick-select menu (for tests). */
+    public java.util.List<String> jsonSchemaFavoriteNames() {
+        FavoritesMenu.populate(jsonSchemaFavoritesMenu,
+                org.fxt.freexmltoolkit.domain.FileFavorite.FileType.JSON, this::useJsonSchema);
+        return FavoritesMenu.leafNames(jsonSchemaFavoritesMenu);
+    }
+
     private void chooseJsonSchema() {
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Select JSON Schema");
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("JSON Schema", "*.json"));
         File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
-            jsonSchemaFile = file;
-            PanelStatus.info(status, "JSON Schema: " + file.getName());
+            useJsonSchema(file);
+        }
+    }
+
+    /**
+     * Binds {@code schema} to the active JSON document (from the chooser, a favorite,
+     * or a drop) and re-validates against it. No-op if the active editor does not
+     * support schemas.
+     *
+     * @param schema the JSON Schema file to validate against
+     */
+    public void useJsonSchema(File schema) {
+        if (editorHost.setSchemaForActiveDocument(schema)) {
+            refreshJsonSchemaStatus();
             revalidate();
         }
     }
 
-    /** Sets the JSON Schema used when validating a JSON document (for tests/observers). */
+    /** Binds the JSON Schema used when validating a JSON document (for tests/observers). */
     public void setJsonSchema(File schema) {
-        this.jsonSchemaFile = schema;
+        useJsonSchema(schema);
     }
 
     private static IconifyIcon icon(String literal, int size) {
