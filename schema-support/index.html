@@ -1154,6 +1154,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#json-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        JSON Schema
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1942,6 +1953,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#json-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        JSON Schema
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2082,7 +2104,7 @@
 <blockquote>
 <p><strong>Version:</strong> 2.0.1</p>
 </blockquote>
-<p>FreeXmlToolkit supports different schema formats for validating your XML files. This page explains what's supported and what isn't.</p>
+<p>FreeXmlToolkit supports different schema formats for validating your XML and JSON files. This page explains what's supported and what isn't.</p>
 <hr />
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
 <p>Schemas define rules for your XML documents - what elements are allowed, what order they should be in, and what values they can contain.</p>
@@ -2166,6 +2188,40 @@
 - "If field A is filled, then field B must also be filled"
 - "The total must equal the sum of all items"
 - "Each ID must be unique in the document"</p>
+<h3 id="json-schema">JSON Schema<a class="headerlink" href="#json-schema" title="Permanent link">&para;</a></h3>
+<p><strong>Full Support (for JSON documents)</strong> - The standard schema format for validating JSON files.</p>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Validation</strong></td>
+<td>Check if JSON files follow schema rules</td>
+</tr>
+<tr>
+<td><strong>Auto-Detection</strong></td>
+<td>A schema referenced by the document's <code>$schema</code> member is bound automatically</td>
+</tr>
+<tr>
+<td><strong>Manual Binding</strong></td>
+<td>Bind a schema via the status bar indicator, the Validation panel, or drag &amp; drop</td>
+</tr>
+<tr>
+<td><strong>Line Numbers</strong></td>
+<td>Each problem points to the offending line in your document</td>
+</tr>
+<tr>
+<td><strong>Dialects</strong></td>
+<td>Draft-07, 2019-09, and 2020-12</td>
+</tr>
+</tbody>
+</table>
+<p>JSON Schemas bind and validate the same way XSD schemas do for XML - see the
+<a href="../json-editor/">JSON Editor</a> page for details.</p>
 <hr />
 <h2 id="not-supported">Not Supported<a class="headerlink" href="#not-supported" title="Permanent link">&para;</a></h2>
 <h3 id="dtd-document-type-definition">DTD (Document Type Definition)<a class="headerlink" href="#dtd-document-type-definition" title="Permanent link">&para;</a></h3>
@@ -2225,6 +2281,9 @@
 </ol>
 <p>A <strong>Schematron</strong> rules file binds the same way via the Validation panel's Schematron row.
 Schematron files themselves (<code>.sch</code>) open as normal documents in the editor.</p>
+<p>For <strong>JSON documents</strong>, a <strong>JSON Schema</strong> binds the same way: automatically via the
+document's <code>$schema</code> member, or manually via the status bar's JSON Schema indicator,
+the Validation panel's JSON Schema row, or drag &amp; drop.</p>
 <h3 id="validation-workflow">Validation Workflow<a class="headerlink" href="#validation-workflow" title="Permanent link">&para;</a></h3>
 <ol>
 <li>Open your XML file</li>
