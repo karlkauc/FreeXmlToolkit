@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Manufacturer",
+  "description": "Referenced from product-schema.json via a relative $ref — demonstrates that sibling schema files resolve.",
+  "type": "object",
+  "required": ["name", "country"],
+  "properties": {
+    "name": { "type": "string", "minLength": 1 },
+    "country": {
+      "type": "string",
+      "pattern": "^[A-Z]{2}$",
+      "description": "ISO 3166-1 alpha-2 country code, e.g. AT"
+    },
+    "city": { "type": "string" }
+  }
+}

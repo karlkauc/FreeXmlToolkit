@@ -100,6 +100,13 @@ the dialect is selected by the schema's own `$schema` declaration (2020-12 is
 the default for schemas without one). Relative `$ref`s between schema files
 resolve as expected.
 
+!!! tip "Ready-made examples"
+    The `examples/json/` folder shipped with the application contains a complete
+    demo set: a product-catalog schema with a relative `$ref`, a valid and a
+    deliberately invalid instance (six line-navigable violations), and one
+    dialect demo each for Draft-07 and 2019-09. Open
+    `examples/json/products-invalid.json` and press F8 to see it in action.
+
 ## Keyboard Shortcuts
 
 | Shortcut | Action |

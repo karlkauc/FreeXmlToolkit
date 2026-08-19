@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Product Catalog",
+  "description": "Example JSON Schema (2020-12) for the FreeXmlToolkit JSON validation demo. Referenced by products-valid.json and products-invalid.json via their top-level \"$schema\" member.",
+  "type": "object",
+  "required": ["catalog", "products"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Binding to this schema (picked up automatically by FreeXmlToolkit)"
+    },
+    "catalog": {
+      "type": "object",
+      "required": ["name", "version"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+$",
+          "description": "Major.minor, e.g. 1.0"
+        }
+      }
+    },
+    "products": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/product" }
+    }
+  },
+  "$defs": {
+    "product": {
+      "type": "object",
+      "required": ["id", "name", "price"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^P-[0-9]{4}$",
+          "description": "Product id in the form P-0000"
+        },
+        "name": { "type": "string", "minLength": 1 },
+        "price": { "type": "number", "exclusiveMinimum": 0 },
+        "currency": { "enum": ["EUR", "USD", "GBP"] },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string" },
+          "uniqueItems": true
+        },
+        "manufacturer": { "$ref": "manufacturer-schema.json" }
+      }
+    }
+  }
+}

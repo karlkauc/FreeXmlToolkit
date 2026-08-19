@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Person (draft-07)",
+  "description": "Demonstrates dialect selection: \"dependencies\" is a draft-07 keyword (split into dependentRequired/dependentSchemas in later drafts). FreeXmlToolkit honors the schema's own $schema declaration.",
+  "type": "object",
+  "required": ["name"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "name": { "type": "string" },
+    "credit_card": { "type": "string" },
+    "billing_address": { "type": "string" }
+  },
+  "dependencies": {
+    "credit_card": ["billing_address"]
+  }
+}

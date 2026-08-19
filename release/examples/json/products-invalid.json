@@ -1,0 +1,23 @@
+{
+  "$schema": "./product-schema.json",
+  "catalog": {
+    "name": "Demo Catalog",
+    "version": "1.0.0-beta"
+  },
+  "products": [
+    {
+      "id": "P-0001",
+      "name": "Espresso Machine",
+      "price": "expensive",
+      "currency": "YEN"
+    },
+    {
+      "id": "123",
+      "price": -5,
+      "manufacturer": {
+        "name": "Kaffeewerk GmbH",
+        "country": "Austria"
+      }
+    }
+  ]
+}

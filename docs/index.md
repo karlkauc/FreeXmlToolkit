@@ -204,6 +204,7 @@ The application includes example files in the `examples/` folder to help you get
 - **xpath/** - XPath 3.1 snippets for the Query Console
 - **xproc/** - XProc 3.0 pipelines (identity, slimming, CSV/JSON export, reports)
 - **schematron/** - Schematron business rules
+- **json/** - JSON Schema validation demos (`$schema` auto-binding, valid/invalid instances, Draft-07 / 2019-09 / 2020-12 dialects)
 - **signature/** - Signed XML document with demo keystore
 - **templates/** - XML snippet templates
 - **profiles/** - XML generation profiles

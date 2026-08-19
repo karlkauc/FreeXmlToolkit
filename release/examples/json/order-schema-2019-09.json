@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "title": "Order (2019-09)",
+  "description": "Demonstrates the 2019-09 dialect: \"dependentRequired\" replaced the property-list form of draft-07's \"dependencies\".",
+  "type": "object",
+  "required": ["item"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "item": { "type": "string" },
+    "gift": { "type": "boolean" },
+    "gift_message": { "type": "string" }
+  },
+  "dependentRequired": {
+    "gift_message": ["gift"]
+  }
+}
