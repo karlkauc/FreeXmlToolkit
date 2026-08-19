@@ -43,6 +43,7 @@ as your personal XML assistant that helps you work smarter, not harder.
 - **Check for Errors**: Verify that your XML files follow the correct structure and rules
 - **Detailed Error Reports**: Get clear explanations of what's wrong and where to fix it
 - **Multiple Schema Support**: Validate against one or more schema files at the same time
+- **JSON Schema Validation**: JSON documents validate against their JSON Schema too - auto-detected from the document's `$schema` member or bound manually, with line-numbered results
 - **Instant Feedback**: See validation results immediately as you work
 
 ### <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: inline; vertical-align: middle; margin-right: 8px;"><circle cx="10" cy="10" r="6" fill="none" stroke="#007bff" stroke-width="2"/><path d="M14 14l4 4" stroke="#007bff" stroke-width="2" stroke-linecap="round"/></svg> **Test and Debug XML Queries**
@@ -83,11 +84,11 @@ as your personal XML assistant that helps you work smarter, not harder.
 
 ### <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: inline; vertical-align: middle; margin-right: 8px;"><path d="M12 2L15.09 8.26h6.79l-5.5 4.02 2.1 6.28L12 14.53l-5.38 3.97 2.1-6.28-5.5-4.02h6.79L12 2Z" fill="#ffc107" stroke="#ffc107" stroke-width="0.5"/></svg> **Favorites & Quick Access**
 
-- **Universal Favorites**: Save any XML, XSD, or Schematron file as a favorite from any editor in the application
+- **Universal Favorites**: Save any XML, JSON, XSD, or Schematron file as a favorite from any editor in the application
 - **Smart Categorization**: Organize favorites into custom folders (e.g., "Project Files", "Templates", "Schemas")
 - **Cross-Editor Access**: Load favorites from any editor - XSD files saved from the Schema editor can be opened from
   the XML editor
-- **File Type Detection**: Automatic detection and proper handling of different file types (XML, XSD, XSLT, Schematron)
+- **File Type Detection**: Automatic detection and proper handling of different file types (XML, JSON, XSD, XSLT, Schematron)
 - **Rich Metadata**: Add custom names and descriptions to make favorites easy to identify
 - **Quick Loading**: One-click access to your most frequently used files
 - **Smart Cleanup**: Automatically detect and remove favorites for files that no longer exist
@@ -126,6 +127,7 @@ While FreeXmlToolkit is powerful and comprehensive, there are some schema format
 
 - <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: inline; vertical-align: middle; margin-right: 6px;"><circle cx="12" cy="12" r="10" fill="#28a745" opacity="0.2" stroke="#28a745" stroke-width="1.5"/><path d="M9 12l2 2 4-4" stroke="#28a745" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> **XSD (XML Schema Definition)**: Full support for W3C XML Schema
 - <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: inline; vertical-align: middle; margin-right: 6px;"><circle cx="12" cy="12" r="10" fill="#28a745" opacity="0.2" stroke="#28a745" stroke-width="1.5"/><path d="M9 12l2 2 4-4" stroke="#28a745" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> **Schematron**: Business rules and constraint validation
+- <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: inline; vertical-align: middle; margin-right: 6px;"><circle cx="12" cy="12" r="10" fill="#28a745" opacity="0.2" stroke="#28a745" stroke-width="1.5"/><path d="M9 12l2 2 4-4" stroke="#28a745" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> **JSON Schema**: Validation of JSON documents (Draft-07, 2019-09, 2020-12)
 
 ## <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: inline; vertical-align: middle; margin-right: 8px;"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" fill="#17a2b8" opacity="0.2" stroke="#17a2b8" stroke-width="1.5"/><path d="M14 2v6h6M9 15h6M9 11h6M9 19h4" stroke="#17a2b8" stroke-width="1.5" stroke-linecap="round"/></svg> System Requirements
 

@@ -2,7 +2,7 @@
 
 > **Version:** 2.0.1
 
-FreeXmlToolkit supports different schema formats for validating your XML files. This page explains what's supported and what isn't.
+FreeXmlToolkit supports different schema formats for validating your XML and JSON files. This page explains what's supported and what isn't.
 
 ---
 
@@ -56,6 +56,21 @@ Schemas define rules for your XML documents - what elements are allowed, what or
 - "The total must equal the sum of all items"
 - "Each ID must be unique in the document"
 
+### JSON Schema
+
+**Full Support (for JSON documents)** - The standard schema format for validating JSON files.
+
+| Feature | Description |
+|---------|-------------|
+| **Validation** | Check if JSON files follow schema rules |
+| **Auto-Detection** | A schema referenced by the document's `$schema` member is bound automatically |
+| **Manual Binding** | Bind a schema via the status bar indicator, the Validation panel, or drag & drop |
+| **Line Numbers** | Each problem points to the offending line in your document |
+| **Dialects** | Draft-07, 2019-09, and 2020-12 |
+
+JSON Schemas bind and validate the same way XSD schemas do for XML - see the
+[JSON Editor](json-editor.md) page for details.
+
 ---
 
 ## Not Supported
@@ -94,6 +109,10 @@ Schemas define rules for your XML documents - what elements are allowed, what or
 
 A **Schematron** rules file binds the same way via the Validation panel's Schematron row.
 Schematron files themselves (`.sch`) open as normal documents in the editor.
+
+For **JSON documents**, a **JSON Schema** binds the same way: automatically via the
+document's `$schema` member, or manually via the status bar's JSON Schema indicator,
+the Validation panel's JSON Schema row, or drag & drop.
 
 ### Validation Workflow
 

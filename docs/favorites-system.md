@@ -44,8 +44,8 @@ The favorites system helps you quickly access the files you use most often. Save
 ### Grouped by File Type (Unified Shell)
 
 The **Favorites panel** in the Unified Shell (star icon in the activity bar) groups your
-favorites **by file type** - for example **XML Document**, **XSD Schema**, **Schematron
-Rules**, and **XSLT Stylesheet**. Each entry shows a **colored type icon**, so you can tell
+favorites **by file type** - for example **XML Document**, **JSON Document**, **XSD Schema**,
+**Schematron Rules**, and **XSLT Stylesheet**. Each entry shows a **colored type icon**, so you can tell
 the file kinds apart at a glance. Click an entry to open it as an editor tab.
 
 Keystore and trust store files (`.jks`, `.p12`, `.pfx`, `.keystore`)
@@ -62,6 +62,7 @@ it in a single click, without browsing the file system:
 |-------|-----|------------------|
 | **Validation** | XSD schema | XSD favorites |
 | **Validation** | Schematron rules | Schematron favorites |
+| **Validation** | JSON Schema (shown for JSON documents) | JSON favorites |
 | **Transform** | STYLESHEET / INPUT | XSLT / XML favorites |
 | **PDF / FOP** | XML input / XSL-FO stylesheet | XML / XSLT favorites |
 | **Signature** | Keystore (KEYSTORE section) | Keystore favorites |
@@ -121,6 +122,7 @@ The favorites menu includes:
 | Type | Extension |
 |------|-----------|
 | XML documents | .xml |
+| JSON documents (incl. JSON Schemas) | .json, .jsonc, .json5 |
 | XSD schemas | .xsd |
 | Schematron rules | .sch |
 | XSLT stylesheets | .xsl, .xslt |

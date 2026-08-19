@@ -13,6 +13,7 @@ FreeXmlToolkit is a free desktop application for working with XML files. It help
 
 - **Edit XML files** with smart auto-completion and syntax highlighting
 - **Validate XML** against XSD schemas to check for errors
+- **Validate JSON** against JSON Schemas, auto-detected from the document's `$schema` member
 - **Transform XML** into other formats (HTML, PDF, Text)
 - **Sign XML documents** with digital certificates
 - **Create business rules** with Schematron validation
@@ -78,7 +79,7 @@ Edit and validate JSON files with multiple format support:
 | **Multi-Format Support** | Edit JSON, JSONC (with comments), and JSON5 |
 | **Tree View** | Navigate JSON structure visually |
 | **JSONPath Queries** | Extract data using JSONPath expressions |
-| **Schema Validation** | Validate against JSON Schema |
+| **Schema Validation** | Validate against JSON Schema (Draft-07, 2019-09, 2020-12) - the schema is auto-detected from the document's `$schema` member, or bound manually; problems appear with line numbers |
 | **Hover Information** | See JSONPath and type info on hover |
 
 Learn more: [JSON Editor Guide](json-editor.md)

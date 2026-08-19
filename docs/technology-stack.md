@@ -30,7 +30,7 @@ FreeXmlToolkit is built using modern Java technologies and libraries to provide 
 ### JSON Processing
 - **Gson:** 2.14.0 - JSON parsing and serialization
 - **JSONPath:** 3.0.0 (Jayway) - JSONPath query language support
-- **JSON Schema Validator:** 3.0.6 (NetworkNT) - JSON Schema validation (Draft 4-2020-12)
+- **JSON Schema Validator:** 3.0.6 (NetworkNT) - JSON Schema validation (Draft-07, 2019-09, 2020-12)
 
 ### PDF Generation
 - **Apache FOP:** 2.11 - XSL-FO to PDF transformation
