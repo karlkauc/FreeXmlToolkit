@@ -2343,15 +2343,26 @@ shell rather than a dedicated sidebar tab.</p>
 - Parse errors with line and column numbers
 - Detected format (JSON, JSONC, or JSON5)</p>
 <h4 id="json-schema-validation">JSON Schema Validation<a class="headerlink" href="#json-schema-validation" title="Permanent link">&para;</a></h4>
-<p>Validate your JSON against a JSON Schema:</p>
-<ol>
-<li>Open the <strong>Validation</strong> activity and pick <strong>JSON Schema…</strong> from the panel's ⋮ (overflow) menu</li>
-<li>Select your JSON Schema file</li>
-<li>Run the validation (<strong>Run Validation</strong> in the panel, or the toolbar's <strong>Validate</strong> button / F8)</li>
-</ol>
-<p>The validator supports:
-- JSON Schema Draft 4, 6, 7
-- JSON Schema 2019-09, 2020-12</p>
+<p>JSON documents bind a JSON Schema the same way XML documents bind an XSD:</p>
+<ul>
+<li><strong>Automatic:</strong> a top-level <code>"$schema"</code> member pointing at a schema file or URL
+  (e.g. <code>"$schema": "./product-schema.json"</code>) is detected when the file opens.
+  Relative paths resolve against the document's folder; <code>http(s)</code> URLs are
+  downloaded and cached. (Values pointing at <code>json-schema.org</code> meta-schemas are
+  dialect declarations, not bindings, and are ignored.)</li>
+<li><strong>Manual:</strong> click the <strong>JSON Schema</strong> indicator in the status bar, use the
+  <strong>JSON Schema</strong> source row in the <strong>Validation</strong> panel (Change link, favorites
+  star, or drag &amp; drop a <code>.json</code> schema onto the row or the status bar).</li>
+</ul>
+<p>Validation runs via <strong>Run Validation</strong> in the panel, the toolbar's <strong>Validate</strong>
+button / F8, or continuously while typing (<strong>Validate while typing</strong>, on by
+default). Schema violations appear in the PROBLEMS list with the offending
+<strong>line number</strong> — clicking a problem jumps to it. Each problem also carries the
+failing schema keyword and the JSON pointer of the invalid value.</p>
+<p>The validator supports JSON Schema <strong>Draft-07</strong>, <strong>2019-09</strong>, and <strong>2020-12</strong>;
+the dialect is selected by the schema's own <code>$schema</code> declaration (2020-12 is
+the default for schemas without one). Relative <code>$ref</code>s between schema files
+resolve as expected.</p>
 <h2 id="keyboard-shortcuts">Keyboard Shortcuts<a class="headerlink" href="#keyboard-shortcuts" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
