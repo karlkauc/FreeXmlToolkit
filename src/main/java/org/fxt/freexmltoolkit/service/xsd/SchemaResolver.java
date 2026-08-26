@@ -986,6 +986,12 @@ public class SchemaResolver {
             }
             parentUris.get().putIfAbsent(normalizedSystemId, normalizedBase);
 
+            // Schema Library first (user mappings → catalogs → bundled); a miss falls through.
+            org.w3c.dom.ls.LSInput fromLibrary = resolveFromLibrary(namespaceURI, publicId, systemId, baseURI);
+            if (fromLibrary != null) {
+                return fromLibrary;
+            }
+
             try {
                 // Handle remote URLs (HTTP/HTTPS)
                 if (systemId.startsWith("http://") || systemId.startsWith("https://")) {
@@ -997,6 +1003,42 @@ public class SchemaResolver {
 
             } catch (Exception e) {
                 logger.warn("Error resolving resource '{}': {}", systemId, e.getMessage());
+                return null;
+            }
+        }
+
+        /**
+         * Attempts to serve the requested resource from the Schema Library (user mappings,
+         * then registered catalogs, then bundled standards) before falling back to the
+         * resolver's own remote/local resolution logic.
+         *
+         * @return the library-served input, or {@code null} on a miss (any exception is
+         *         treated as a miss so the existing fallback logic always runs)
+         */
+        private org.w3c.dom.ls.LSInput resolveFromLibrary(String namespaceURI, String publicId,
+                                                          String systemId, String baseURI) {
+            try {
+                org.fxt.freexmltoolkit.service.SchemaLibraryService library =
+                        org.fxt.freexmltoolkit.service.SchemaLibraryServiceImpl.shared();
+                Path target = null;
+                var bySystemId = library.resolveSystemId(systemId, baseURI);
+                if (bySystemId.isPresent() && "file".equalsIgnoreCase(bySystemId.get().getScheme())) {
+                    target = Path.of(bySystemId.get());
+                } else if (bySystemId.isPresent()) {
+                    // catalog pointed to a remote URI: go through the cache (SSRF-checked there)
+                    target = cache.getOrDownload(bySystemId.get().toString());
+                } else if (namespaceURI != null && !namespaceURI.isBlank()) {
+                    target = library.resolveNamespaceToFile(namespaceURI,
+                            org.fxt.freexmltoolkit.domain.SchemaKind.XSD).orElse(null);
+                }
+                if (target == null || !java.nio.file.Files.isRegularFile(target)) {
+                    return null;
+                }
+                logger.debug("Schema Library resolved '{}' (ns {}) -> {}", systemId, namespaceURI, target);
+                return new LSInputImpl(publicId, target.toUri().toString(), target.toUri().toString(),
+                        java.nio.file.Files.newInputStream(target));
+            } catch (Exception e) {
+                logger.debug("Schema Library lookup failed for '{}': {}", systemId, e.getMessage());
                 return null;
             }
         }

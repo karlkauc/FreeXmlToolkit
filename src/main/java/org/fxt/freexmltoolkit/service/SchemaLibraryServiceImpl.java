@@ -43,6 +43,13 @@ public class SchemaLibraryServiceImpl implements SchemaLibraryService {
 
     public static SchemaLibraryServiceImpl getInstance() { return Holder.INSTANCE; }
 
+    /** Registry-provided instance when the registry knows the service, else the lazy singleton. */
+    public static SchemaLibraryService shared() {
+        return org.fxt.freexmltoolkit.di.ServiceRegistry.isRegistered(SchemaLibraryService.class)
+                ? org.fxt.freexmltoolkit.di.ServiceRegistry.get(SchemaLibraryService.class)
+                : getInstance();
+    }
+
     private final Path storageFile;
     protected final SchemaResourceCache cache;
     private final Object lock = new Object();
