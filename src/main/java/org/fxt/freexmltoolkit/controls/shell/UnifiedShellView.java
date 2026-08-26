@@ -42,6 +42,8 @@ public class UnifiedShellView extends BorderPane {
     private org.fxt.freexmltoolkit.controls.shell.editor.search.SearchPanel searchPanel;
     /** Cached so the Search panel can default its scope to the Explorer's workspace folder. */
     private org.fxt.freexmltoolkit.controls.shell.editor.ExplorerPanel explorerPanel;
+    /** Cached so {@link #showSchemaCache()} can select the panel's Cache tab. */
+    private org.fxt.freexmltoolkit.controls.shell.editor.SchemaLibraryPanel schemaLibraryPanel;
     /**
      * One cached side panel per activity, so entered state (PDF metadata, signature
      * form, transform parameters, search text, …) survives switching activities and
@@ -508,6 +510,13 @@ public class UnifiedShellView extends BorderPane {
         setLeftPanelVisible(true);
     }
 
+    /** Shows the Schema Library activity with its Cache tab selected. */
+    public void showSchemaCache() {
+        selectionModel.select(Activity.SCHEMA_LIBRARY);
+        revealSidePanel();
+        if (schemaLibraryPanel != null) schemaLibraryPanel.showCacheTab();
+    }
+
     /** Shows/hides the right inspector (Properties) panel and persists the choice (default open). */
     public void setInspectorVisible(boolean open) {
         inspectorOpen = open;
@@ -696,6 +705,11 @@ public class UnifiedShellView extends BorderPane {
             }
             case SEARCH -> searchPanel();
             case SCHEMA -> new org.fxt.freexmltoolkit.controls.shell.editor.TypeLibraryPanel(editorHost);
+            case SCHEMA_LIBRARY -> {
+                var lib = new org.fxt.freexmltoolkit.controls.shell.editor.SchemaLibraryPanel(editorHost);
+                schemaLibraryPanel = lib;
+                yield lib;
+            }
             case VALIDATION -> validationPanel();
             case TRANSFORM -> new org.fxt.freexmltoolkit.controls.shell.editor.TransformPanel(editorHost);
             case FAVORITES -> new org.fxt.freexmltoolkit.controls.shell.editor.FavoritesActivityPanel(editorHost);

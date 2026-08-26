@@ -18,6 +18,7 @@ public enum Activity {
     VALIDATION("validation", "Validation", "bi-check2-circle"),
     TRANSFORM("transform", "Transform", "bi-arrow-repeat"),
     SCHEMA("schema", "Schema", "bi-diagram-3"),
+    SCHEMA_LIBRARY("schema-library", "Schema Library", "bi-collection"),
     PDF_FOP("pdf", "PDF / FOP", "bi-file-earmark-pdf"),
     SIGNATURE("signature", "Signature", "bi-shield-lock"),
     FUNDSXML("fundsxml", "FundsXML", "bi-file-earmark-code"),

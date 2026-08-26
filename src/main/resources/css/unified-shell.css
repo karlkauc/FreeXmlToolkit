@@ -2444,3 +2444,8 @@
     -fx-background-color: -fxt-primary;
     -fx-text-fill: -fxt-on-primary;
 }
+
+/* --- Schema Library panel --------------------------------------------------- */
+.fxt-schema-library-panel .table-row-cell.fxt-lib-bundled .table-cell { -fx-text-fill: -fxt-text-muted; -fx-font-style: italic; }
+.fxt-lib-status { -fx-padding: 4 8 6 8; -fx-font-size: 11px; -fx-text-fill: -fxt-text-muted; }
+.fxt-lib-error { -fx-text-fill: -fxt-danger; }
