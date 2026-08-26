@@ -91,4 +91,20 @@ class SchemaLibraryPanelTest {
         WaitForAsyncUtils.waitForFxEvents();
         assertTrue(library.getEntries().stream().noneMatch(e -> e.id().equals(user.id())));
     }
+
+    @Test
+    void toggleFlipsEnabledWithoutException(FxRobot robot) {
+        SchemaLibraryEntry user = library.addEntry(SchemaLibraryEntry.user("urn:u3", dir.resolve("u3.xsd").toString(), SchemaKind.XSD, "", null));
+        WaitForAsyncUtils.waitForFxEvents();
+        assertTrue(user.enabled());
+        robot.interact(() -> table(robot).getSelectionModel().select(
+                table(robot).getItems().stream().filter(e -> e.id().equals(user.id())).findFirst().orElseThrow()));
+        robot.clickOn("#library-toggle");
+        // Surfaces any FX-thread exception thrown by the toggle action (e.g. the TableView
+        // setAll-while-selected crash trap when the observable list is re-set with a row selected).
+        WaitForAsyncUtils.waitForFxEvents();
+        boolean nowEnabled = library.getEntries().stream()
+                .filter(e -> e.id().equals(user.id())).findFirst().orElseThrow().enabled();
+        assertFalse(nowEnabled);
+    }
 }

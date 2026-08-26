@@ -85,7 +85,7 @@ public class SchemaLibraryPanel extends VBox {
 
     private Node buildMappingsTab() {
         filter.setId("library-filter");
-        filter.setPromptText("Filter namespace, location, description…");
+        filter.setPromptText("Filter namespace, location, description, root element…");
         filter.textProperty().addListener((o, a, text) -> {
             String q = text == null ? "" : text.trim().toLowerCase(Locale.ROOT);
             filtered.setPredicate(q.isEmpty() ? null : e ->
@@ -134,7 +134,13 @@ public class SchemaLibraryPanel extends VBox {
         enabledCol.setCellFactory(c -> new CheckBoxTableCell<>(idx -> {
             SchemaLibraryEntry e = mappings.getItems().get(idx);
             var prop = new javafx.beans.property.SimpleBooleanProperty(e.enabled());
-            prop.addListener((o, was, now) -> library.setEnabled(e.id(), now));
+            prop.addListener((o, was, now) -> {
+                // Clear the selection synchronously, then defer the observable-list mutation
+                // (library.setEnabled -> rebuildSnapshot -> observable.setAll) past this cell-edit
+                // commit, avoiding the TableView setAll-while-editing crash trap.
+                mappings.getSelectionModel().clearSelection();
+                Platform.runLater(() -> library.setEnabled(e.id(), now));
+            });
             return prop;
         }));
         enabledCol.setPrefWidth(40);
@@ -231,7 +237,17 @@ public class SchemaLibraryPanel extends VBox {
 
     private void toggleSelected() {
         SchemaLibraryEntry s = mappings.getSelectionModel().getSelectedItem();
-        if (s != null) library.setEnabled(s.id(), !s.enabled());
+        if (s == null) return;
+        String id = s.id();
+        boolean newValue = !s.enabled();
+        // Clear the selection before the observable list is re-set (library.setEnabled ->
+        // rebuildSnapshot -> observable.setAll) to avoid the TableView setAll-while-selected
+        // crash trap, then restore the selection by id once the new snapshot is in place.
+        mappings.getSelectionModel().clearSelection();
+        library.setEnabled(id, newValue);
+        Platform.runLater(() -> mappings.getItems().stream()
+                .filter(e -> e.id().equals(id)).findFirst()
+                .ifPresent(e -> mappings.getSelectionModel().select(e)));
     }
 
     private void addCurrentSchema() {
