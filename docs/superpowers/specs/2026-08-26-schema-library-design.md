@@ -28,8 +28,7 @@ unifying the four existing resolver implementations (tracked as a follow-up refa
   3. `SchemaResolver.resolveReferences` (legacy parse pipeline),
   4. `XsltTransformationEngine.configureResourceAccess` (Saxon `ResourceResolver`, only
      blocks remote access).
-- No OASIS catalog support anywhere. The JDK ships `javax.xml.catalog`; no new dependency
-  is needed.
+- No OASIS catalog support anywhere. No new dependency is needed (own parser).
 - Auto-binding: `EditorHost.detectSchemaFor` → `XmlService.getSchemaNameFromXmlContent`
   (only `xsi:schemaLocation` / `xsi:noNamespaceSchemaLocation`);
   `EditorHost.detectJsonSchemaFor` → `JsonService.getSchemaLocationFromJsonContent`
@@ -102,13 +101,17 @@ entries; order **USER → CATALOG → BUNDLED**):
   Never throws; a failure is logged and returned as empty plus `lastError` on the entry
   status (see 3.5).
 
-Catalog handling: `javax.xml.catalog.CatalogManager.catalogResolver(features, uris...)`
-with `CatalogFeatures` `PREFER=public`, `RESOLVE=continue`, `DEFER=true`. The resolver is
-rebuilt lazily when a catalog file's mtime changes or the catalog list is mutated.
-`importCatalog(Path)` parses the catalog (own lightweight StAX reader for `uri`, `system`,
-`public` elements, following `nextCatalog` with a depth cap of 10 and cycle set) into a
-list of preview `SchemaLibraryEntry` objects with `source = CATALOG`, which the UI can copy
-into the user list. No network access is performed while loading catalogs.
+Catalog handling: an own, dependency-free `SchemaCatalogParser` (StAX, secure factory,
+no network) reads OASIS catalogs into an immutable `ParsedCatalog` (entries `system`,
+`public`, `uri`, `rewriteSystem`, `rewriteURI`, `nextCatalog`, honouring `xml:base`,
+relative targets resolved against the catalog file). `nextCatalog` is followed with a
+depth cap of 10 and a visited set. Matching order per catalog: exact `system`/`uri`,
+then longest-prefix `rewriteSystem`/`rewriteURI`, then `public`; the first registered
+catalog that matches wins. `ParsedCatalog`s are rebuilt lazily when a catalog file's
+mtime changes or the catalog list is mutated. `importCatalog(Path)` maps the same
+parsed entries to preview `SchemaLibraryEntry` objects with `source = CATALOG`, which
+the UI can copy into the user list. (The JDK `javax.xml.catalog` API was rejected: its
+behaviour on a miss depends on `RESOLVE` semantics and it is not needed for import.)
 
 CRUD: `getEntries()` (unmodifiable observable list incl. bundled), `addEntry`,
 `updateEntry`, `removeEntry` (USER only), `setEnabled(id, boolean)`, `getCatalogs()`,
@@ -258,7 +261,7 @@ Unit (JUnit 5, Mockito, `@TempDir`, properties file redirected via `fxt.properti
 ## 9. Implementation order
 
 1. Domain records + `SchemaLibraryService` (persistence, bundled merge, resolution, tests).
-2. Catalog support (JDK resolver + import parser, tests).
+2. Catalog support (own parser + matching, tests).
 3. `SchemaResourceCache` singleton + new API; `XmlService` legacy-cache listing.
 4. Resolver hooks (Xerces/Saxon LS resolver, V2 factory, legacy resolver, XSLT).
 5. `EditorHost` auto-binding (XML + JSON) + properties toggle.
