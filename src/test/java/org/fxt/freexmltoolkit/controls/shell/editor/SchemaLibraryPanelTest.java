@@ -130,4 +130,18 @@ class SchemaLibraryPanelTest {
         WaitForAsyncUtils.waitForFxEvents();
         assertFalse(robot.lookup(".fxt-lib-catalog-error").queryAll().isEmpty());
     }
+
+    @Test
+    void importEntriesSkipsAlreadyExistingKeys(FxRobot robot) throws Exception {
+        library.addEntry(SchemaLibraryEntry.user("urn:dup", dir.resolve("dup.xsd").toString(), SchemaKind.XSD, "", null));
+        WaitForAsyncUtils.waitForFxEvents();
+        SchemaLibraryEntry duplicate = SchemaLibraryEntry.user("urn:dup", "other-location.xsd", SchemaKind.XSD, "from catalog", null);
+        SchemaLibraryEntry fresh = SchemaLibraryEntry.user("urn:fresh", dir.resolve("fresh.xsd").toString(), SchemaKind.XSD, "", null);
+        int[] added = new int[1];
+        robot.interact(() -> added[0] = panel.importEntries(java.util.List.of(duplicate, fresh)));
+        WaitForAsyncUtils.waitForFxEvents();
+        assertEquals(1, added[0]);
+        assertEquals(1, library.getEntries().stream().filter(e -> e.namespace().equals("urn:dup")).count());
+        assertTrue(library.getEntries().stream().anyMatch(e -> e.namespace().equals("urn:fresh")));
+    }
 }

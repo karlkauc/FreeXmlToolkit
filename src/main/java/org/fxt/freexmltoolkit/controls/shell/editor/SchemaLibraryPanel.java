@@ -273,17 +273,38 @@ public class SchemaLibraryPanel extends VBox {
             if (preview.isEmpty()) { setStatus("No importable namespace mappings in " + s.asPath().getFileName()); return; }
             var existing = library.getEntries().stream().map(SchemaLibraryEntry::key).collect(java.util.stream.Collectors.toSet());
             new CatalogImportDialog(preview, existing).showAndWait().ifPresent(chosen -> {
-                int added = 0;
-                for (SchemaLibraryEntry e : chosen) {
-                    try { library.addEntry(e.withSource(EntrySource.USER)); added++; }
-                    catch (IllegalArgumentException ex) { setStatus("Skipped " + e.namespace() + ": " + ex.getMessage()); }
-                }
-                setStatus("Imported " + added + " mapping(s) from " + s.asPath().getFileName());
+                long alreadyPresent = chosen.stream().filter(e -> existing.contains(e.key())).count();
+                int added = importEntries(chosen);
+                String msg = "Imported " + added + " mapping(s) from " + s.asPath().getFileName();
+                if (alreadyPresent > 0) msg += ", skipped " + alreadyPresent + " already present";
+                setStatus(msg);
                 tabs.getSelectionModel().select(mappingsTab);
             });
         } catch (java.io.IOException e) {
             setStatus("Cannot read catalog: " + e.getMessage());
         }
+    }
+
+    /**
+     * Adds {@code chosen} entries to the library as USER mappings, skipping any whose
+     * {@code kind|namespace} key already exists (addEntry only de-dups by id, not by key,
+     * so re-importing an already-present mapping would otherwise create a duplicate).
+     * Returns the number of entries actually added. Package-private test seam.
+     */
+    int importEntries(java.util.List<SchemaLibraryEntry> chosen) {
+        var existingKeys = library.getEntries().stream().map(SchemaLibraryEntry::key).collect(java.util.stream.Collectors.toSet());
+        int added = 0;
+        for (SchemaLibraryEntry e : chosen) {
+            if (existingKeys.contains(e.key())) continue;
+            try {
+                library.addEntry(e.withSource(EntrySource.USER));
+                existingKeys.add(e.key());
+                added++;
+            } catch (IllegalArgumentException ex) {
+                setStatus("Skipped " + e.namespace() + ": " + ex.getMessage());
+            }
+        }
+        return added;
     }
 
     private ContextMenu mappingsContextMenu() {

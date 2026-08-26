@@ -21,8 +21,11 @@ public class CatalogImportDialog extends Dialog<List<SchemaLibraryEntry>> {
         List<CheckBox> boxes = new ArrayList<>();
         VBox list = new VBox(4);
         for (SchemaLibraryEntry e : preview) {
-            CheckBox cb = new CheckBox(e.namespace() + "  →  " + e.location());
-            cb.setSelected(!existingKeys.contains(e.key()));
+            boolean alreadyPresent = existingKeys.contains(e.key());
+            CheckBox cb = new CheckBox(e.namespace() + "  →  " + e.location()
+                    + (alreadyPresent ? " (already in library)" : ""));
+            cb.setSelected(!alreadyPresent);
+            cb.setDisable(alreadyPresent);
             cb.setUserData(e);
             boxes.add(cb);
             list.getChildren().add(cb);
@@ -31,8 +34,9 @@ public class CatalogImportDialog extends Dialog<List<SchemaLibraryEntry>> {
         scroll.setFitToWidth(true);
         scroll.setPrefSize(600, 320);
         CheckBox all = new CheckBox("Select all");
-        all.setSelected(boxes.stream().allMatch(CheckBox::isSelected));
-        all.setOnAction(ev -> boxes.forEach(b -> b.setSelected(all.isSelected())));
+        all.setSelected(boxes.stream().filter(b -> !b.isDisabled()).allMatch(CheckBox::isSelected));
+        // Only toggle selectable boxes: entries already in the library stay unchecked and disabled.
+        all.setOnAction(ev -> boxes.stream().filter(b -> !b.isDisabled()).forEach(b -> b.setSelected(all.isSelected())));
         getDialogPane().setContent(new VBox(8, all, scroll));
 
         setResultConverter(bt -> {
