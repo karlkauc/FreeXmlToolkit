@@ -301,4 +301,16 @@ public interface XmlService {
     void updateExampleValues(File xsdFile, String elementXpath, List<String> exampleValues) throws Exception;
 
     XsdDocInfo getElementDocInfo(File xsdFile, String elementXpath) throws Exception;
+
+    /**
+     * Directories of the legacy auto-detected schema cache ({@code ~/.freeXmlToolkit/cache/<MD5>/}).
+     * @return list of MD5-named subdirectories within the schema cache directory
+     */
+    List<Path> listAutoDetectedSchemaCacheDirs();
+
+    /**
+     * Deletes the legacy auto-detected schema cache.
+     * @return number of files deleted
+     */
+    int clearAutoDetectedSchemaCache();
 }

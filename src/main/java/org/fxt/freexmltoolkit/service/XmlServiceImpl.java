@@ -120,6 +120,7 @@ public class XmlServiceImpl implements XmlService {
     private final XmlValidationService xercesValidationService = new XercesXmlValidationService();
 
     private static final String CACHE_DIR = FileUtils.getUserDirectory().getAbsolutePath() + File.separator + ".freeXmlToolkit" + File.separator + "cache";
+    private static final java.util.regex.Pattern MD5_DIR = java.util.regex.Pattern.compile("[0-9A-Fa-f]{32}");
     Processor processor = new Processor(false);
     XsltCompiler compiler = processor.newXsltCompiler();
     StringWriter sw;
@@ -2286,5 +2287,52 @@ public class XmlServiceImpl implements XmlService {
                 includes.isEmpty() ? java.util.List.of() : java.util.List.copyOf(includes),
                 redefines.isEmpty() ? java.util.List.of() : java.util.List.copyOf(redefines)
         );
+    }
+
+    @Override
+    public java.util.List<Path> listAutoDetectedSchemaCacheDirs() {
+        return listAutoDetectedSchemaCacheDirs(Path.of(CACHE_DIR));
+    }
+
+    @Override
+    public int clearAutoDetectedSchemaCache() {
+        return clearAutoDetectedSchemaCache(Path.of(CACHE_DIR));
+    }
+
+    /**
+     * Lists MD5-named directories in the schema cache root (excluding 'schemas' directory).
+     * @param cacheRoot the root directory to scan
+     * @return sorted list of MD5-named Path objects, or empty list if cacheRoot doesn't exist
+     */
+    static java.util.List<Path> listAutoDetectedSchemaCacheDirs(Path cacheRoot) {
+        if (!Files.isDirectory(cacheRoot)) return java.util.List.of();
+        try (var s = Files.list(cacheRoot)) {
+            return s.filter(Files::isDirectory)
+                    .filter(p -> MD5_DIR.matcher(p.getFileName().toString()).matches())
+                    .sorted().toList();
+        } catch (IOException e) {
+            LogManager.getLogger(XmlService.class).warn("Cannot list schema cache {}: {}", cacheRoot, e.getMessage());
+            return java.util.List.of();
+        }
+    }
+
+    /**
+     * Recursively deletes all MD5-named directories and their contents in the schema cache.
+     * @param cacheRoot the root directory to clean
+     * @return total number of files deleted
+     */
+    static int clearAutoDetectedSchemaCache(Path cacheRoot) {
+        int deleted = 0;
+        for (Path dir : listAutoDetectedSchemaCacheDirs(cacheRoot)) {
+            try (var walk = Files.walk(dir)) {
+                for (Path p : walk.sorted(java.util.Comparator.reverseOrder()).toList()) {
+                    if (Files.isRegularFile(p)) deleted++;
+                    Files.deleteIfExists(p);
+                }
+            } catch (IOException e) {
+                LogManager.getLogger(XmlService.class).warn("Cannot delete {}: {}", dir, e.getMessage());
+            }
+        }
+        return deleted;
     }
 }

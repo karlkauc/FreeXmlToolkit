@@ -23,11 +23,15 @@ public final class XmlRootElementSniffer {
         if (xml == null || xml.isBlank()) return Optional.empty();
         try (Reader r = new StringReader(xml)) {
             XMLStreamReader sr = SecureXmlFactory.createSecureXMLInputFactory().createXMLStreamReader(r);
-            while (sr.hasNext()) {
-                if (sr.next() == XMLStreamConstants.START_ELEMENT) {
-                    String ns = sr.getNamespaceURI();
-                    return Optional.of(new RootElement(ns == null ? "" : ns, sr.getLocalName()));
+            try {
+                while (sr.hasNext()) {
+                    if (sr.next() == XMLStreamConstants.START_ELEMENT) {
+                        String ns = sr.getNamespaceURI();
+                        return Optional.of(new RootElement(ns == null ? "" : ns, sr.getLocalName()));
+                    }
                 }
+            } finally {
+                sr.close();
             }
         } catch (Exception ignored) { }
         return Optional.empty();
@@ -37,11 +41,15 @@ public final class XmlRootElementSniffer {
     public static Optional<String> targetNamespaceOf(Path xsd) {
         try (InputStream in = Files.newInputStream(xsd)) {
             XMLStreamReader sr = SecureXmlFactory.createSecureXMLInputFactory().createXMLStreamReader(in);
-            while (sr.hasNext()) {
-                if (sr.next() == XMLStreamConstants.START_ELEMENT) {
-                    String tns = sr.getAttributeValue(null, "targetNamespace");
-                    return Optional.ofNullable(tns).filter(s -> !s.isBlank());
+            try {
+                while (sr.hasNext()) {
+                    if (sr.next() == XMLStreamConstants.START_ELEMENT) {
+                        String tns = sr.getAttributeValue(null, "targetNamespace");
+                        return Optional.ofNullable(tns).filter(s -> !s.isBlank());
+                    }
                 }
+            } finally {
+                sr.close();
             }
         } catch (Exception ignored) { }
         return Optional.empty();
