@@ -144,4 +144,26 @@ class SchemaLibraryPanelTest {
         assertEquals(1, library.getEntries().stream().filter(e -> e.namespace().equals("urn:dup")).count());
         assertTrue(library.getEntries().stream().anyMatch(e -> e.namespace().equals("urn:fresh")));
     }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void cacheTabListsEntriesAndDeletes(FxRobot robot) throws Exception {
+        Path f = cache.getCacheDirectory().resolve("abc.xsd");
+        Files.createDirectories(f.getParent());
+        Files.writeString(f, "<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'/>");
+        cache.getCacheIndex().addOrUpdateEntry(SchemaCacheEntry.builder().localFilename("abc.xsd")
+                .remoteUrl("https://example.org/abc.xsd").downloadTimestamp(java.time.Instant.now()).fileSizeBytes(50).build());
+        cache.saveIndex();
+        robot.interact(() -> { panel.showCacheTab(); panel.refreshCache(); });
+        WaitForAsyncUtils.waitForFxEvents();
+        TableView<SchemaCacheEntry> table = robot.lookup("#library-cache-table").queryAs(TableView.class);
+        assertEquals(1, table.getItems().size());
+        assertTrue(robot.lookup("#library-cache-footer").queryLabeled().getText().contains("1 file"));
+
+        robot.interact(() -> table.getSelectionModel().select(0));
+        robot.interact(() -> panel.deleteSelectedCacheEntryWithoutConfirm());
+        WaitForAsyncUtils.waitForFxEvents();
+        assertTrue(table.getItems().isEmpty());
+        assertFalse(Files.exists(f));
+    }
 }

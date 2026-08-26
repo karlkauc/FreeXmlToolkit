@@ -2,6 +2,8 @@ package org.fxt.freexmltoolkit.controls.shell.editor;
 
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -44,6 +46,13 @@ public class SchemaLibraryPanel extends VBox {
     // Catalogs
     private final ListView<SchemaCatalogRef> catalogList = new ListView<>();
 
+    // Cache
+    private final ObservableList<SchemaCacheEntry> cacheEntries = FXCollections.observableArrayList();
+    private final FilteredList<SchemaCacheEntry> cacheFiltered = new FilteredList<>(cacheEntries);
+    private final TableView<SchemaCacheEntry> cacheTable = new TableView<>(cacheFiltered);
+    private final Label cacheFooter = new Label();
+    private final Label legacyInfo = new Label();
+
     public SchemaLibraryPanel(EditorHost editorHost) {
         this(editorHost, SchemaLibraryServiceImpl.shared(), SchemaResourceCache.shared(),
                 ServiceRegistry.get(XmlService.class));
@@ -66,7 +75,10 @@ public class SchemaLibraryPanel extends VBox {
         filtered = new FilteredList<>(library.getEntries());
         mappingsTab.setContent(buildMappingsTab());
         catalogsTab.setContent(buildCatalogsTab());
-        cacheTab.setContent(new Label("Cache — Task 15"));         // replaced in Task 15
+        cacheTab.setContent(buildCacheTab());
+        tabs.getSelectionModel().selectedItemProperty().addListener((o, a, t) -> {
+            if (t == cacheTab) refreshCache();
+        });
         for (Tab t : new Tab[]{mappingsTab, catalogsTab, cacheTab}) {
             t.setClosable(false);
             t.getStyleClass().add("utility-tab");
@@ -246,6 +258,135 @@ public class SchemaLibraryPanel extends VBox {
     void refreshCatalogs() {
         catalogList.getSelectionModel().clearSelection();
         catalogList.getItems().setAll(library.getCatalogs());
+    }
+
+    // ------------------------------------------------------------------ Cache
+
+    private Node buildCacheTab() {
+        TextField cacheFilter = new TextField();
+        cacheFilter.setId("library-cache-filter");
+        cacheFilter.setPromptText("Filter URL or namespace…");
+        cacheFilter.textProperty().addListener((o, a, text) -> {
+            String q = text == null ? "" : text.trim().toLowerCase(Locale.ROOT);
+            cacheFiltered.setPredicate(q.isEmpty() ? null : e ->
+                    e.remoteUrl().toLowerCase(Locale.ROOT).contains(q)
+                            || (e.schema() != null && e.schema().targetNamespace() != null
+                                && e.schema().targetNamespace().toLowerCase(Locale.ROOT).contains(q)));
+        });
+
+        cacheTable.setId("library-cache-table");
+        cacheTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+        cacheTable.setPlaceholder(new Label("No cached remote schemas."));
+        TableColumn<SchemaCacheEntry, String> url = new TableColumn<>("URL");
+        url.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(cd.getValue().remoteUrl()));
+        TableColumn<SchemaCacheEntry, String> ns = new TableColumn<>("Target namespace");
+        ns.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(
+                cd.getValue().schema() == null || cd.getValue().schema().targetNamespace() == null ? "" : cd.getValue().schema().targetNamespace()));
+        TableColumn<SchemaCacheEntry, String> size = new TableColumn<>("Size");
+        size.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(
+                org.apache.commons.io.FileUtils.byteCountToDisplaySize(cd.getValue().fileSizeBytes())));
+        TableColumn<SchemaCacheEntry, String> when = new TableColumn<>("Downloaded");
+        when.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(
+                cd.getValue().downloadTimestamp() == null ? "" :
+                        java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+                                .withZone(java.time.ZoneId.systemDefault()).format(cd.getValue().downloadTimestamp())));
+        TableColumn<SchemaCacheEntry, String> hits = new TableColumn<>("Hits");
+        hits.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(
+                cd.getValue().usage() == null ? "0" : String.valueOf(cd.getValue().usage().accessCount())));
+        cacheTable.getColumns().setAll(java.util.List.of(url, ns, size, when, hits));
+        cacheTable.setRowFactory(tv -> {
+            TableRow<SchemaCacheEntry> row = new TableRow<>();
+            row.setOnMouseClicked(ev -> { if (ev.getClickCount() == 2 && !row.isEmpty()) editorHost.openFile(cache.pathOf(row.getItem()).toFile()); });
+            return row;
+        });
+
+        var selected = cacheTable.getSelectionModel().selectedItemProperty();
+        Button open = toolButton("library-cache-open", "Open cached file", "bi-box-arrow-up-right",
+                () -> { var s = selected.get(); if (s != null) editorHost.openFile(cache.pathOf(s).toFile()); });
+        Button reveal = toolButton("library-cache-reveal", "Show in system file manager", "bi-folder2-open", () -> {
+            var s = selected.get();
+            if (s != null) org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+                try { java.awt.Desktop.getDesktop().open(cache.getCacheDirectory().toFile()); }
+                catch (Exception e) { Platform.runLater(() -> setStatus("Cannot open folder: " + e.getMessage())); }
+            });
+        });
+        Button refresh = toolButton("library-cache-refresh", "Re-download", "bi-arrow-clockwise", () -> {
+            var s = selected.get();
+            if (s == null) return;
+            setStatus("Refreshing " + s.remoteUrl() + "…");
+            org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+                var result = cache.refresh(s.remoteUrl());
+                Platform.runLater(() -> { setStatus(result.isPresent() ? "Refreshed " + s.remoteUrl() : "Refresh failed for " + s.remoteUrl()); refreshCache(); });
+            });
+        });
+        Button delete = toolButton("library-cache-delete", "Delete cached file", "bi-trash", () -> {
+            var s = selected.get();
+            if (s != null && DialogHelper.showConfirmation("Delete Cached Schema", "Delete the cached copy of\n" + s.remoteUrl() + "?",
+                    "It will be downloaded again on next use.")) {
+                deleteSelectedCacheEntryWithoutConfirm();
+            }
+        });
+        Button clear = toolButton("library-cache-clear", "Clear entire cache", "bi-x-octagon", () -> {
+            if (DialogHelper.showConfirmation("Clear Schema Cache", "Delete all cached remote schemas?",
+                    cache.getCacheDirectory() + "\n\nThis action cannot be undone.")) {
+                org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+                    int n = cache.clearCache();
+                    Platform.runLater(() -> { setStatus("Deleted " + n + " cached file(s)."); refreshCache(); });
+                });
+            }
+        });
+        open.disableProperty().bind(selected.isNull());
+        refresh.disableProperty().bind(selected.isNull());
+        delete.disableProperty().bind(selected.isNull());
+        FlowPane tools = new FlowPane(2, 2, open, reveal, refresh, delete, clear);
+        tools.getStyleClass().add("fxt-schema-tools");
+
+        cacheFooter.setId("library-cache-footer");
+        cacheFooter.getStyleClass().add("fxt-lib-status");
+
+        // Legacy auto-detected cache (~/.freeXmlToolkit/cache/<MD5>/), read-only + clear
+        legacyInfo.getStyleClass().add("fxt-lib-status");
+        legacyInfo.setWrapText(true);
+        Button clearLegacy = toolButton("library-legacy-cache-clear", "Clear auto-detected schema cache", "bi-trash", () -> {
+            if (DialogHelper.showConfirmation("Clear Auto-detected Schemas", "Delete all schemas cached from xsi:schemaLocation downloads?",
+                    "They are downloaded again when a document referencing them is opened.")) {
+                org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+                    int n = xmlService.clearAutoDetectedSchemaCache();
+                    Platform.runLater(() -> { setStatus("Deleted " + n + " file(s)."); refreshCache(); });
+                });
+            }
+        });
+        TitledPane legacy = new TitledPane("Auto-detected schemas (legacy cache)", new VBox(4, legacyInfo, clearLegacy));
+        legacy.setExpanded(false);
+
+        VBox box = new VBox(4, tools, cacheFilter, cacheTable, cacheFooter, legacy);
+        VBox.setVgrow(cacheTable, Priority.ALWAYS);
+        return box;
+    }
+
+    /** Reloads the cache table and footer (FX thread). */
+    void refreshCache() {
+        cacheTable.getSelectionModel().clearSelection();
+        cacheEntries.setAll(cache.listEntries());
+        var stats = cache.getStats();
+        // Note: stats.totalFiles() counts every file physically in the cache directory,
+        // including cache-index.json itself, so it overcounts by one vs. the actual number
+        // of cached schemas. Use the entry count (== table row count) instead.
+        cacheFooter.setText(cacheEntries.size() + " file(s), " + stats.getTotalSizeFormatted()
+                + ", hit ratio " + String.format(Locale.ROOT, "%.0f%%", stats.getHitRatio())
+                + "  —  " + cache.getCacheDirectory());
+        var dirs = xmlService.listAutoDetectedSchemaCacheDirs();
+        legacyInfo.setText(dirs.isEmpty() ? "Empty." : dirs.size() + " cached schema folder(s) under " + dirs.getFirst().getParent());
+    }
+
+    /** Test seam: deletes the selected cache entry without confirmation. */
+    void deleteSelectedCacheEntryWithoutConfirm() {
+        var s = cacheTable.getSelectionModel().getSelectedItem();
+        if (s == null) return;
+        cacheTable.getSelectionModel().clearSelection();
+        cache.removeEntry(s.localFilename());
+        refreshCache();
+        setStatus("Deleted cached copy of " + s.remoteUrl());
     }
 
     private void chooseCatalog() {
