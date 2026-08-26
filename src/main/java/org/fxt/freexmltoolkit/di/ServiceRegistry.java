@@ -14,6 +14,8 @@ import org.fxt.freexmltoolkit.service.FileAssociationService;
 import org.fxt.freexmltoolkit.service.FileAssociationServiceImpl;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
+import org.fxt.freexmltoolkit.service.SchemaLibraryService;
+import org.fxt.freexmltoolkit.service.SchemaLibraryServiceImpl;
 import org.fxt.freexmltoolkit.service.SchemaResourceCache;
 import org.fxt.freexmltoolkit.service.SchematronService;
 import org.fxt.freexmltoolkit.service.SchematronServiceImpl;
@@ -111,6 +113,9 @@ public final class ServiceRegistry {
 
         // 12. SchemaResourceCache - shared on-disk cache for remote schemas
         registerFactory(SchemaResourceCache.class, SchemaResourceCache::getInstance);
+
+        // 13. SchemaLibraryService - namespace → schema mappings, catalogs, bundled standards
+        registerFactory(SchemaLibraryService.class, SchemaLibraryServiceImpl::getInstance);
 
         initialized = true;
     }
