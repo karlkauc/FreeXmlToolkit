@@ -98,4 +98,40 @@ class EditorHostJsonSchemaLibraryTest {
         WaitForAsyncUtils.waitForFxEvents();
         assertEquals(schema.toFile().getAbsoluteFile(), host.activeSchemaProperty().get().getAbsoluteFile());
     }
+
+    /**
+     * Fix round 1: {@code declaredSchemaLocation}'s JSON library check must be gated on
+     * {@code isSchemaLibraryAutoBindEnabled()} — same as {@code detectJsonSchemaFor} and the
+     * XML family's {@code schemaFromLibrary}. Uses a json-schema.org-shaped meta-schema id as
+     * the library key (as {@link org.fxt.freexmltoolkit.service.JsonServiceTest#rawSchemaIdKeepsMetaSchemaIds}
+     * does): without the library mapping, {@code getSchemaLocationFromJsonContent} filters it
+     * out, so this is the one case where the toggle actually changes what
+     * {@code declaredSchemaLocation} reports as "declared" — an ordinary https URI is returned
+     * unfiltered either way and wouldn't exercise the gate. Toggling auto-bind off after the
+     * binding was established, then reconciling, must CLEAR it (mirrors
+     * {@code EditorHostLibraryAutoBindTest#toggleOffDisablesLibraryAutoBind}'s XML behavior).
+     */
+    @Test
+    void toggleOffClearsJsonLibraryBindingOnReconcile(@TempDir Path tmp) throws Exception {
+        String metaSchemaId = "https://json-schema.org/draft/2020-12/schema";
+        Path schema = tmp.resolve("person.schema.json");
+        Files.writeString(schema, "{\"$id\":\"https://example.org/person.json\",\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"}}}");
+        registerLibraryWith(tmp, metaSchemaId, schema);
+
+        Path json = tmp.resolve("p.json");
+        Files.writeString(json, "{\"$schema\":\"" + metaSchemaId + "\",\"name\":\"x\"}");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(json.toFile()));
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> host.activeSchemaProperty().get() != null);
+        assertEquals(schema.toFile().getAbsoluteFile(), host.activeSchemaProperty().get().getAbsoluteFile());
+
+        ServiceRegistry.get(PropertiesService.class).setSchemaLibraryAutoBindEnabled(false);
+
+        String content = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.getActiveText().orElse(""));
+        Supplier<File> supplier = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.schemaForValidation(content));
+        File validated = supplier.get(); // resolved off the FX thread, like ValidationPanel does
+
+        assertNull(validated, "toggling auto-bind off must clear the library binding on reconcile");
+        WaitForAsyncUtils.waitForFxEvents();
+        assertNull(host.activeSchemaProperty().get());
+    }
 }

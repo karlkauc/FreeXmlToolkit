@@ -2560,8 +2560,12 @@ public class EditorHost extends BorderPane {
             // too — see detectJsonSchemaFor. Without this, the filtered
             // getSchemaLocationFromJsonContent alone would report it as undeclared and the
             // reconcile would CLEAR the library binding on the very first validation run.
+            // Gated on the auto-bind toggle (like the XML family's schemaFromLibrary), so
+            // turning auto-bind off and reconciling clears a library binding here too.
             java.util.Optional<String> raw = jsonService.getRawSchemaIdFromJsonContent(content);
-            if (raw.isPresent() && org.fxt.freexmltoolkit.service.SchemaLibraryServiceImpl.shared()
+            if (raw.isPresent() && org.fxt.freexmltoolkit.di.ServiceRegistry
+                    .get(org.fxt.freexmltoolkit.service.PropertiesService.class).isSchemaLibraryAutoBindEnabled()
+                    && org.fxt.freexmltoolkit.service.SchemaLibraryServiceImpl.shared()
                     .resolveJsonSchema(raw.get()).isPresent()) {
                 return raw.get();
             }
@@ -2678,7 +2682,8 @@ public class EditorHost extends BorderPane {
      * JSON counterpart of the XSD detection: binds the JSON Schema a top-level
      * {@code "$schema"} member declares — local (relative to the document's directory)
      * or remote (http/https, downloaded and cached). Meta-schema ids (json-schema.org)
-     * are not bindings and detect as "no schema". Runs on a worker thread.
+     * are not bindings and detect as "no schema", unless the Schema Library maps them.
+     * Runs on a worker thread.
      */
     private SchemaDetection detectJsonSchemaFor(EditorTab tab, String content, Path pathOrNull) {
         try {
