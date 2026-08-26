@@ -987,7 +987,7 @@ public class SchemaResolver {
             parentUris.get().putIfAbsent(normalizedSystemId, normalizedBase);
 
             // Schema Library first (user mappings → catalogs → bundled); a miss falls through.
-            org.w3c.dom.ls.LSInput fromLibrary = resolveFromLibrary(namespaceURI, publicId, systemId, baseURI);
+            org.w3c.dom.ls.LSInput fromLibrary = resolveFromLibrary(namespaceURI, publicId, systemId, baseURI, normalizedBase);
             if (fromLibrary != null) {
                 return fromLibrary;
             }
@@ -1012,11 +1012,20 @@ public class SchemaResolver {
          * then registered catalogs, then bundled standards) before falling back to the
          * resolver's own remote/local resolution logic.
          *
+         * @param normalizedBase the already-normalized base URI of the current request, i.e.
+         *                       the same value {@link #resolveResource} just recorded as the
+         *                       parent of {@code systemId} in {@code parentUris}. When the
+         *                       library serves a different file than the requested systemId,
+         *                       that file's own URI is registered as an alias for the same
+         *                       parent so circular-import detection can still walk the chain
+         *                       when nested requests arrive with the served file as their
+         *                       base URI.
          * @return the library-served input, or {@code null} on a miss (any exception is
          *         treated as a miss so the existing fallback logic always runs)
          */
         private org.w3c.dom.ls.LSInput resolveFromLibrary(String namespaceURI, String publicId,
-                                                          String systemId, String baseURI) {
+                                                          String systemId, String baseURI,
+                                                          String normalizedBase) {
             try {
                 org.fxt.freexmltoolkit.service.SchemaLibraryService library =
                         org.fxt.freexmltoolkit.service.SchemaLibraryServiceImpl.shared();
@@ -1035,6 +1044,10 @@ public class SchemaResolver {
                     return null;
                 }
                 logger.debug("Schema Library resolved '{}' (ns {}) -> {}", systemId, namespaceURI, target);
+                // Alias the served file's own URI to the same parent as the requested systemId,
+                // so a nested request whose baseURI is the served file (not the original,
+                // possibly-unresolvable systemId) still finds its place on the resolution path.
+                parentUris.get().putIfAbsent(normalizeBaseUri(target.toUri().toString()), normalizedBase);
                 return new LSInputImpl(publicId, target.toUri().toString(), target.toUri().toString(),
                         java.nio.file.Files.newInputStream(target));
             } catch (Exception e) {
