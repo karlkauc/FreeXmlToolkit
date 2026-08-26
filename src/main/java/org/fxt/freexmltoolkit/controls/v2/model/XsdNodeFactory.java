@@ -514,15 +514,24 @@ public class XsdNodeFactory {
             return;
         }
 
+        Path resolvedPath;
         if (schemaLocation.contains("://")) {
-            logger.debug("Skipping remote schema include '{}'", schemaLocation);
-            if (xsdInclude != null) {
-                xsdInclude.markResolutionFailed("Remote schemas not supported");
+            resolvedPath = resolveIncludeViaLibrary(schemaLocation, baseDirectory);
+            if (resolvedPath == null) {
+                logger.debug("Skipping remote schema include '{}'", schemaLocation);
+                if (xsdInclude != null) {
+                    xsdInclude.markResolutionFailed("Remote schemas not supported");
+                }
+                return;
             }
-            return;
+            logger.info("Resolved include '{}' via Schema Library: {}", schemaLocation, resolvedPath);
+        } else {
+            resolvedPath = baseDirectory.resolve(schemaLocation).normalize();
+            if (!Files.exists(resolvedPath)) {
+                Path fromLibrary = resolveIncludeViaLibrary(schemaLocation, baseDirectory);
+                if (fromLibrary != null) resolvedPath = fromLibrary;
+            }
         }
-
-        Path resolvedPath = baseDirectory.resolve(schemaLocation).normalize();
         if (!Files.exists(resolvedPath)) {
             logger.warn("Included schema '{}' not found relative to '{}'", schemaLocation, baseDirectory);
             if (xsdInclude != null) {
@@ -637,6 +646,30 @@ public class XsdNodeFactory {
         } finally {
             includeStack.remove(realPath);
         }
+    }
+
+    /**
+     * Library lookup for an xs:include: resolves the declared {@code schemaLocation} as a
+     * catalog/user systemId (typically the remote URL an OASIS catalog rewrites to a local
+     * file). Returns null on a miss (never throws).
+     *
+     * @param schemaLocation the declared schemaLocation
+     * @param baseDirectory  base directory of the declaring file, used as the base URI for
+     *                       resolving a relative systemId
+     * @return the resolved local file, or null if the library has no matching entry
+     */
+    private static Path resolveIncludeViaLibrary(String schemaLocation, Path baseDirectory) {
+        try {
+            var hit = org.fxt.freexmltoolkit.service.SchemaLibraryServiceImpl.shared()
+                    .resolveSystemId(schemaLocation, baseDirectory != null ? baseDirectory.toUri().toString() : null);
+            if (hit.isPresent() && "file".equalsIgnoreCase(hit.get().getScheme())) {
+                Path p = Path.of(hit.get());
+                return Files.isRegularFile(p) ? p : null;
+            }
+        } catch (Exception e) {
+            logger.debug("Schema Library lookup failed for include '{}': {}", schemaLocation, e.getMessage());
+        }
+        return null;
     }
 
     /**
@@ -1883,9 +1916,13 @@ public class XsdNodeFactory {
         ImportResolutionContext context = importContext;
 
         if (schemaLocation == null || schemaLocation.isEmpty()) {
-            logger.warn("Import has no schemaLocation, skipping: namespace='{}'", namespace);
-            xsdImport.markResolutionFailed("No schemaLocation specified");
-            return;
+            Path fromLibrary = resolveImportViaLibrary(namespace, null, pending.declaringBaseDir());
+            if (fromLibrary == null) {
+                logger.warn("Import has no schemaLocation, skipping: namespace='{}'", namespace);
+                xsdImport.markResolutionFailed("No schemaLocation specified");
+                return;
+            }
+            schemaLocation = fromLibrary.toString();
         }
 
         logger.info("Loading imported schema: namespace='{}', location='{}'", namespace, schemaLocation);
@@ -1905,6 +1942,18 @@ public class XsdNodeFactory {
                 if (Files.exists(candidate)) {
                     resolvedPath = candidate;
                     canonicalKey = canonicalKeyForFile(candidate);
+                }
+            }
+
+            // Schema Library: user mappings / catalogs / bundled entries win over the declared
+            // location when that location cannot be resolved locally.
+            if (resolvedPath == null) {
+                Path fromLibrary = resolveImportViaLibrary(namespace, schemaLocation, pending.declaringBaseDir());
+                if (fromLibrary != null) {
+                    resolvedPath = fromLibrary;
+                    remote = false;
+                    canonicalKey = canonicalKeyForFile(fromLibrary);
+                    logger.info("Resolved import namespace '{}' via Schema Library: {}", namespace, fromLibrary);
                 }
             }
 
@@ -1996,6 +2045,35 @@ public class XsdNodeFactory {
             xsdImport.markResolutionFailed(e.getMessage());
             throw e;
         }
+    }
+
+    /**
+     * Library lookup for an xs:import: the declared {@code schemaLocation} is tried as a
+     * catalog/user systemId first, then the import's namespace against the library's
+     * namespace mappings. Returns null on a miss (never throws).
+     *
+     * @param namespace        the import's target namespace, may be null
+     * @param schemaLocation   the declared schemaLocation, may be null (namespace-only lookup)
+     * @param declaringBaseDir base directory of the file that declared the import, used to
+     *                         resolve a relative schemaLocation against the catalog's systemId
+     * @return the resolved local file, or null if the library has no matching entry
+     */
+    private static Path resolveImportViaLibrary(String namespace, String schemaLocation, Path declaringBaseDir) {
+        try {
+            var library = org.fxt.freexmltoolkit.service.SchemaLibraryServiceImpl.shared();
+            String base = declaringBaseDir != null ? declaringBaseDir.toUri().toString() : null;
+            var bySystemId = library.resolveSystemId(schemaLocation, base);
+            if (bySystemId.isPresent() && "file".equalsIgnoreCase(bySystemId.get().getScheme())) {
+                Path p = Path.of(bySystemId.get());
+                if (Files.isRegularFile(p)) return p;
+            }
+            if (namespace != null && !namespace.isBlank()) {
+                return library.resolveNamespaceToFile(namespace, org.fxt.freexmltoolkit.domain.SchemaKind.XSD).orElse(null);
+            }
+        } catch (Exception e) {
+            logger.debug("Schema Library lookup failed for import '{}': {}", schemaLocation, e.getMessage());
+        }
+        return null;
     }
 
     /**
