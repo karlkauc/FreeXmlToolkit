@@ -84,7 +84,10 @@ JSON documents bind a JSON Schema the same way XML documents bind an XSD:
   (e.g. `"$schema": "./product-schema.json"`) is detected when the file opens.
   Relative paths resolve against the document's folder; `http(s)` URLs are
   downloaded and cached. (Values pointing at `json-schema.org` meta-schemas are
-  dialect declarations, not bindings, and are ignored.)
+  dialect declarations, not bindings, and are ignored - unless that meta-schema
+  URI is itself mapped in the Schema Library, in which case it binds too.) If the
+  `$schema` URI isn't directly resolvable, the Schema Library is consulted next -
+  see [Schema Library](schema-library.md).
 - **Manual:** click the **JSON Schema** indicator in the status bar, use the
   **JSON Schema** source row in the **Validation** panel (Change link, favorites
   star, or drag & drop a `.json` schema onto the row or the status bar).
@@ -211,4 +214,4 @@ Actions that do not apply to JSON (e.g. **Run** or the XSLT transform) are greye
 |----------|------|------|
 | [Schematron](schematron-support.md) | [Home](index.md) | [XML Editor](xml-editor.md) |
 
-**All Pages:** [Unified Shell](unified-shell.md) | [XML Editor](xml-editor.md) | [XML Features](xml-editor-features.md) | [JSON Editor](json-editor.md) | [XSD Tools](xsd-tools.md) | [Profiled XML Generation](profiled-xml-generation.md) | [XSD Validation](xsd-validation.md) | [XSLT Viewer](xslt-viewer.md) | [XSLT Developer](xslt-developer.md) | [FOP/PDF](pdf-generator.md) | [Signatures](digital-signatures.md) | [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [FundsXML Extensions](fundsxml-extensions.md) | [Favorites](favorites-system.md) | [Templates](template-management.md) | [Tech Stack](technology-stack.md) | [Security](SECURITY.md) | [Licenses](licenses.md)
+**All Pages:** [Unified Shell](unified-shell.md) | [XML Editor](xml-editor.md) | [XML Features](xml-editor-features.md) | [JSON Editor](json-editor.md) | [XSD Tools](xsd-tools.md) | [Profiled XML Generation](profiled-xml-generation.md) | [XSD Validation](xsd-validation.md) | [Schema Library](schema-library.md) | [XSLT Viewer](xslt-viewer.md) | [XSLT Developer](xslt-developer.md) | [FOP/PDF](pdf-generator.md) | [Signatures](digital-signatures.md) | [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [FundsXML Extensions](fundsxml-extensions.md) | [Favorites](favorites-system.md) | [Templates](template-management.md) | [Tech Stack](technology-stack.md) | [Security](SECURITY.md) | [Licenses](licenses.md)

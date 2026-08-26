@@ -20,7 +20,7 @@ XML file next to its XSD schema, XSLT stylesheets and Schematron rules at the sa
 
 | Area | Purpose |
 |------|---------|
-| **Activity bar** (far left) | Switch tools / side panels: Explorer, Search, Transform, Validation, Signature, Type Library, FOP/PDF, Favorites, Settings, Help - plus a **FundsXML** activity when the optional [FundsXML extension](fundsxml-extensions.md) is enabled (see [FundsXML Panel](#fundsxml-panel)). **Always visible** - it cannot be collapsed. (Settings opens as a full page in the editor area - see [Settings Page](#settings-page).) |
+| **Activity bar** (far left) | Switch tools / side panels: Explorer, Search, Transform, Validation, Signature, Type Library, Schema Library, FOP/PDF, Favorites, Settings, Help - plus a **FundsXML** activity when the optional [FundsXML extension](fundsxml-extensions.md) is enabled (see [FundsXML Panel](#fundsxml-panel)). **Always visible** - it cannot be collapsed. (Settings opens as a full page in the editor area - see [Settings Page](#settings-page).) |
 | **Side panel** | The panel for the selected activity (e.g. the Transform panel, the Validation panel). **Resizable and collapsible** (see [Resizing and collapsing the side panels](#collapsing-the-side-panels)). |
 | **Editor host** (center) | Tabs of open documents, each with the Text, Tree and Graphic view modes - plus a rendered **Preview** for HTML documents (see [View Modes](#view-modes)). |
 | **Inspector** (right) | View **and edit** the selected node's properties from any view. **Resizable and collapsible** (see [Resizing and collapsing the side panels](#collapsing-the-side-panels)). |
@@ -1142,6 +1142,14 @@ The panel offers:
 
 See the [FundsXML Extensions guide](fundsxml-extensions.md) for the full feature
 description, cache locations and troubleshooting.
+
+## Schema Library Panel
+
+The **Schema Library** activity (icon: collection) manages namespace → schema mappings used
+to auto-bind XML, XSD and JSON documents that don't carry an explicit schema reference. It
+has three tabs - **Mappings**, **Catalogs** and **Cache** - and a shared status line at the
+bottom. See the [Schema Library guide](schema-library.md) for the full reference, including
+the resolution order, the bundled standards list and troubleshooting.
 
 ## Settings Page
 

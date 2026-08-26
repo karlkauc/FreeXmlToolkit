@@ -33,7 +33,8 @@ Legacy per-tool tabs/controllers are gone; `controller/` only keeps `UnifiedShel
 | `EditorHost` | Center: file tabs (`EditorTab`), view-mode switching, schema/schematron binding, tool tabs, welcome page | `controls/shell/editor/` |
 | `ViewMode` | `TEXT` / `TREE` / `GRAPHIC` (no Grid mode — Graphic shows the XSD diagram for schemas, the XMLSpy-style instance grid for XML-family files) | `controls/shell/editor/` |
 | `EditorView` + `XmlEditorView`/`JsonEditorView` (`EditorViews` factory) | Per-file-type text editor adapter (wraps `XmlCodeEditorV2`) | `controls/shell/editor/` |
-| `ExplorerPanel`, `ValidationPanel`, `TransformPanel`, `FavoritesActivityPanel`, `FopPanel`, `SignaturePanel`, `FundsXmlPanel`, `HelpPanel`, `SettingsPanel` | Side-panel content per activity (Settings opens as a main-area tab instead) | `controls/shell/editor/` |
+| `ExplorerPanel`, `ValidationPanel`, `TransformPanel`, `FavoritesActivityPanel`, `FopPanel`, `SignaturePanel`, `FundsXmlPanel`, `SchemaLibraryPanel`, `HelpPanel`, `SettingsPanel` | Side-panel content per activity (Settings opens as a main-area tab instead) | `controls/shell/editor/` |
+| `SchemaLibraryService` / `SchemaCatalogParser` | Namespace→schema mappings, catalogs, bundled list; consulted first by all resolvers | `service/`, `service/catalog/` |
 | `EditorWelcomePane` | Welcome/Dashboard (quick actions, stats, tools grid) | `controls/shell/editor/` |
 | `XmlGridView` → `XmlCanvasView` | Instance grid shown in Graphic mode for XML | `controls/shell/editor/`, `controls/v2/xmleditor/view/` |
 | `InspectorPanel` | Right-hand Properties panel | `controls/shell/inspector/` |

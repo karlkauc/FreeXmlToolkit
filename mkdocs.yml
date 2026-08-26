@@ -104,6 +104,7 @@ nav:
     - Profiled XML Generation: profiled-xml-generation.md
     - XSD Validation: xsd-validation.md
     - Schema Support: schema-support.md
+    - Schema Library: schema-library.md
   - Transformations:
     - XSLT Viewer: xslt-viewer.md
     - XSLT Developer: xslt-developer.md

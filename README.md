@@ -44,6 +44,7 @@ as your personal XML assistant that helps you work smarter, not harder.
 - **Detailed Error Reports**: Get clear explanations of what's wrong and where to fix it
 - **Multiple Schema Support**: Validate against one or more schema files at the same time
 - **JSON Schema Validation**: JSON documents validate against their JSON Schema too - auto-detected from the document's `$schema` member or bound manually, with line-numbered results
+- **Schema Library**: Namespace-to-schema mappings with OASIS XML catalog support and a schema cache manager
 - **Instant Feedback**: See validation results immediately as you work
 
 ### <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: inline; vertical-align: middle; margin-right: 8px;"><circle cx="10" cy="10" r="6" fill="none" stroke="#007bff" stroke-width="2"/><path d="M14 14l4 4" stroke="#007bff" stroke-width="2" stroke-linecap="round"/></svg> **Test and Debug XML Queries**

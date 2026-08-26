@@ -71,6 +71,13 @@ Schemas define rules for your XML documents - what elements are allowed, what or
 JSON Schemas bind and validate the same way XSD schemas do for XML - see the
 [JSON Editor](json-editor.md) page for details.
 
+### XML Catalogs (OASIS)
+
+**Full Support** - Register one or more OASIS `catalog.xml` files in the
+[Schema Library](schema-library.md)'s Catalogs tab to resolve `system`, `public`, `uri`,
+`rewriteSystem`, `rewriteURI`, `nextCatalog` and `xml:base` entries when the toolkit looks
+up an `xs:import`/`xs:include` or a schema reference by system ID.
+
 ---
 
 ## Not Supported
@@ -149,4 +156,4 @@ For the best validation coverage:
 |----------|------|------|
 | [Schematron](schematron-support.md) | [Home](index.md) | [Favorites](favorites-system.md) |
 
-**All Pages:** [Unified Shell](unified-shell.md) | [XML Editor](xml-editor.md) | [XML Features](xml-editor-features.md) | [JSON Editor](json-editor.md) | [XSD Tools](xsd-tools.md) | [Profiled XML Generation](profiled-xml-generation.md) | [XSD Validation](xsd-validation.md) | [XSLT Viewer](xslt-viewer.md) | [XSLT Developer](xslt-developer.md) | [FOP/PDF](pdf-generator.md) | [Signatures](digital-signatures.md) | [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [FundsXML Extensions](fundsxml-extensions.md) | [Favorites](favorites-system.md) | [Templates](template-management.md) | [Tech Stack](technology-stack.md) | [Security](SECURITY.md) | [Licenses](licenses.md)
+**All Pages:** [Unified Shell](unified-shell.md) | [XML Editor](xml-editor.md) | [XML Features](xml-editor-features.md) | [JSON Editor](json-editor.md) | [XSD Tools](xsd-tools.md) | [Profiled XML Generation](profiled-xml-generation.md) | [XSD Validation](xsd-validation.md) | [Schema Library](schema-library.md) | [XSLT Viewer](xslt-viewer.md) | [XSLT Developer](xslt-developer.md) | [FOP/PDF](pdf-generator.md) | [Signatures](digital-signatures.md) | [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [FundsXML Extensions](fundsxml-extensions.md) | [Favorites](favorites-system.md) | [Templates](template-management.md) | [Tech Stack](technology-stack.md) | [Security](SECURITY.md) | [Licenses](licenses.md)

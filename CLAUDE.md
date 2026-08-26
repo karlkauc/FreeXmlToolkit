@@ -32,7 +32,7 @@ the tag-pinning gotcha), invoke the **`release` skill** (`.claude/skills/release
 
 ## Architecture Overview
 
-**The UI is the Unified Shell** (`controls/shell/`, VS-Code-style): an Activity Bar switches the left side panel (Explorer, Favorites, Validation, Transform, Schema, PDF/FOP, Signature, FundsXML, Help, Settings); the center is one `EditorHost` with file tabs and per-document view modes (Text / Tree / Graphic); right is the Properties Inspector. There is **no** per-tool tab/controller architecture anymore — `controller/` only contains `UnifiedShellController`.
+**The UI is the Unified Shell** (`controls/shell/`, VS-Code-style): an Activity Bar switches the left side panel (Explorer, Favorites, Validation, Transform, Schema, Schema Library, PDF/FOP, Signature, FundsXML, Help, Settings); the center is one `EditorHost` with file tabs and per-document view modes (Text / Tree / Graphic); right is the Properties Inspector. There is **no** per-tool tab/controller architecture anymore — `controller/` only contains `UnifiedShellController`.
 
 **Pattern:** The shell **chrome** (root layout, header bar, editor toolbar, status bar, work-area skeleton) lives in `pages/shell.fxml` and is loaded by `UnifiedShellView` via the `fx:root` pattern (`loader.setRoot(this)/setController(this)`), so it is editable in Scene Builder. `UnifiedShellView.initialize()` wires the dynamic, `EditorHost`-dependent custom controls (ActivityBar, Inspector, side panels, Query Console, view switch) into the FXML `fx:id` placeholders — those can't live in FXML because they need constructor args. The XSD Editor V2 model layer (`controls/v2/`) uses MVVM with Command Pattern and backs the shell's structured views.
 
@@ -140,7 +140,7 @@ Requires `<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>`.
 
 ## Known Limitations
 
-**Schema Support:** XSD 1.0/1.1 (full), Schematron (full, via ph-schematron/SchXslt on Saxon; schematrons without `@queryBinding` compile as xslt2). DTD and RelaxNG not supported.
+**Schema Support:** XSD 1.0/1.1 (full), Schematron (full, via ph-schematron/SchXslt on Saxon; schematrons without `@queryBinding` compile as xslt2). DTD and RelaxNG not supported. OASIS XML catalogs are supported (system/public/uri/rewrite*/nextCatalog) via `SchemaLibraryService`.
 
 **Schematron Quick Fixes (SQF):** `service/sqf/` (parser/correlator/execution engine) + `controls/shell/editor/quickfix/` (UI). Fixes are applied as formatting-preserving text-range edits (one native undo step). Not supported: external `sch:extends href`, abstract patterns for fix discovery, `$sqf:match`, `@use-for-each`. See `docs/schematron-quick-fixes.md`.
 

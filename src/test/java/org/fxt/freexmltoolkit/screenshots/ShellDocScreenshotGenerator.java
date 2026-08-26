@@ -169,6 +169,25 @@ class ShellDocScreenshotGenerator {
         settle();
         shot("unified-shell-signature");
 
+        // --- Schema Library activity: Mappings, Catalogs and Cache tabs ---
+        try {
+            onFx(() -> shell.getSelectionModel().select(Activity.SCHEMA_LIBRARY));
+            settle();
+            shot("unified-shell-schema-library-mappings");
+            javafx.scene.control.TabPane libraryTabs =
+                    (javafx.scene.control.TabPane) shell.lookup("#schema-library-tabs");
+            if (libraryTabs != null) {
+                onFx(() -> libraryTabs.getSelectionModel().select(1));
+                settle();
+                shot("unified-shell-schema-library-catalogs");
+                onFx(() -> libraryTabs.getSelectionModel().select(2));
+                settle(600); // let the cache tab load
+                shot("unified-shell-schema-library-cache");
+            }
+        } catch (Exception e) {
+            System.out.println("[shell-screenshot] Schema Library scenes failed: " + e);
+        }
+
         // --- JSON document in the Tree view ---
         Path json = Path.of(System.getProperty("java.io.tmpdir"), "fxt-shell-doc-sample.json");
         Files.writeString(json, "{\n  \"fund\": {\n    \"id\": \"EAM\",\n    \"items\": [1, 2, 3],\n    \"active\": true\n  }\n}\n");
