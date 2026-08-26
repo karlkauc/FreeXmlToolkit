@@ -177,9 +177,11 @@ public class XsltTransformationEngine {
     /**
      * Installs resolvers that block network access from doc()/document() and unparsed-text().
      *
-     * <p>References over http/https/ftp are rejected; local (file / relative) references fall
-     * through to Saxon's default resolution. This blocks SSRF and remote exfiltration without
-     * preventing legitimate local data access.
+     * <p>For doc()/document(), the Schema Library's user entries and registered catalogs are
+     * consulted first: a mapped URI is served from its local target regardless of scheme. Any
+     * remaining reference over http/https/ftp is rejected; local (file / relative) references
+     * fall through to Saxon's default resolution. This blocks SSRF and remote exfiltration
+     * without preventing legitimate local data access.
      *
      * @param config the Saxon configuration to harden
      */
@@ -190,6 +192,22 @@ public class XsltTransformationEngine {
             // remote references and delegates everything local to the default.
             final net.sf.saxon.lib.ResourceResolver defaultResolver = config.getResourceResolver();
             config.setResourceResolver(request -> {
+                if (request != null && request.uri != null) {
+                    // Schema Library / catalogs first: a mapped URI is served from its local target.
+                    java.util.Optional<java.net.URI> mapped = java.util.Optional.empty();
+                    try {
+                        mapped = org.fxt.freexmltoolkit.service.SchemaLibraryServiceImpl.shared()
+                                .resolveSystemId(request.uri, request.baseUri);
+                    } catch (Exception e) {
+                        logger.debug("Schema Library lookup failed for {}: {}", request.uri, e.getMessage());
+                    }
+                    if (mapped.isPresent() && "file".equalsIgnoreCase(mapped.get().getScheme())) {
+                        java.nio.file.Path p = java.nio.file.Path.of(mapped.get());
+                        if (java.nio.file.Files.isRegularFile(p)) {
+                            return new javax.xml.transform.stream.StreamSource(p.toFile());
+                        }
+                    }
+                }
                 if (request != null && isRemoteScheme(schemeOfRequest(request))) {
                     throw new net.sf.saxon.trans.XPathException(
                             "Blocked remote resource reference (doc()/document()): " + request.uri);
