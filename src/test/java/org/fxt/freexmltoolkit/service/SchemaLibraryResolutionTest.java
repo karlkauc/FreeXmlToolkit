@@ -40,7 +40,9 @@ class SchemaLibraryResolutionTest {
         svc.addCatalog(cat);
         // catalog wins over bundled
         assertEquals(localXsd.toUri(), svc.resolveSystemId("urn:shared", null).orElseThrow());
-        assertEquals(EntrySource.BUNDLED, svc.resolveNamespace("urn:shared", SchemaKind.XSD).orElseThrow().source());
+        SchemaLibraryEntry catalogHit = svc.resolveNamespace("urn:shared", SchemaKind.XSD).orElseThrow();
+        assertEquals(EntrySource.CATALOG, catalogHit.source());
+        assertEquals(localXsd.toString(), catalogHit.location());
         // user wins over both
         svc.addEntry(SchemaLibraryEntry.user("urn:shared", localXsd.toString(), SchemaKind.XSD, "", null));
         assertEquals(EntrySource.USER, svc.resolveNamespace("urn:shared", SchemaKind.XSD).orElseThrow().source());

@@ -309,13 +309,14 @@ public class SchemaLibraryServiceImpl implements SchemaLibraryService {
     @Override public Optional<SchemaLibraryEntry> resolveNamespace(String namespace, SchemaKind kind) {
         if (namespace == null || namespace.isBlank() || kind == null) return Optional.empty();
         String ns = namespace.trim();
-        // The merged snapshot already carries USER-over-BUNDLED precedence (a user entry with the
-        // same key excludes the bundled one at merge time), so a single pass gives USER > BUNDLED.
-        for (SchemaLibraryEntry e : snapshot) {
-            if (e.enabled() && e.kind() == kind && e.namespace().equals(ns)) return Optional.of(e);
+        SchemaLibraryEntry bundledHit = null;
+        for (SchemaLibraryEntry e : snapshot) {                       // USER entries come first in the snapshot
+            if (!e.enabled() || e.kind() != kind || !e.namespace().equals(ns)) continue;
+            if (e.source() == EntrySource.USER) return Optional.of(e);
+            if (bundledHit == null) bundledHit = e;
         }
-        // CATALOG is the last resort: a "uri" entry keyed by namespace, consulted only when neither
-        // a user nor a bundled entry covers this namespace.
+        // CATALOG sits between USER and BUNDLED: a registered catalog must be able to override a
+        // bundled entry (spec §3.2, the X3D use case), so it is consulted before the bundled fallback.
         for (LoadedCatalog lc : catalogsLoaded()) {
             if (!lc.ref().enabled() || lc.parsed() == null) continue;
             Optional<String> target = lc.parsed().matchUri(ns);
@@ -324,7 +325,7 @@ public class SchemaLibraryServiceImpl implements SchemaLibraryService {
                         kind, EntrySource.CATALOG, true, "from catalog " + lc.ref().asPath().getFileName(), null));
             }
         }
-        return Optional.empty();
+        return Optional.ofNullable(bundledHit);
     }
 
     @Override public Optional<SchemaLibraryEntry> resolveJsonSchema(String schemaUri) {
