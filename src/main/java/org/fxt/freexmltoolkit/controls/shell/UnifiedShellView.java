@@ -746,6 +746,7 @@ public class UnifiedShellView extends BorderPane {
             return;
         }
         var settings = new org.fxt.freexmltoolkit.controls.shell.editor.SettingsPanel();
+        settings.setManageSchemaCacheAction(this::showSchemaCache);
         settings.setOnSaved(() -> {
             activityBar.refreshLabels();
             reloadPanelPrefs();

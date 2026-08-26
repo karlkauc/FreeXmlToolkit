@@ -124,11 +124,23 @@ public class SettingsPanel extends VBox {
     private final TextField templatesDir = new TextField();
     private final ListView<XmlTemplate> templatesList = new ListView<>();
 
+    // Schema Library
+    private final CheckBox schemaLibraryAutoBind = new CheckBox("Use the Schema Library to bind schemas automatically");
+    private final javafx.scene.control.Hyperlink manageSchemaCache = new javafx.scene.control.Hyperlink("Manage schema cache…");
+
     /** Optional hook invoked after {@link #saveSettings()} (e.g. to refresh the activity bar). */
     private Runnable onSaved;
 
     /** Optional hook invoked when saving flips the FundsXML extension from off to on. */
     private Runnable onFundsXmlEnabled;
+
+    /** Optional hook invoked when the "Manage schema cache…" link is activated. */
+    private Runnable manageSchemaCacheAction = () -> { };
+
+    /** Sets the callback invoked when a "Manage schema cache…" link is activated. */
+    public void setManageSchemaCacheAction(Runnable action) {
+        this.manageSchemaCacheAction = action == null ? () -> { } : action;
+    }
 
     public SettingsPanel() {
         getStyleClass().add("fxt-side-panel-content");
@@ -241,6 +253,20 @@ public class SettingsPanel extends VBox {
         assocButtons.setAlignment(Pos.CENTER_LEFT);
         initFileAssociationControls();
 
+        schemaLibraryAutoBind.setId("settings-schema-library-autobind");
+        manageSchemaCache.setId("settings-manage-schema-cache");
+        manageSchemaCache.setGraphic(iconGraphic("bi-collection"));
+        manageSchemaCache.setOnAction(e -> manageSchemaCacheAction.run());
+        Label libraryFile = new Label("Library file: "
+                + org.fxt.freexmltoolkit.service.SchemaLibraryServiceImpl.shared().getStorageFile());
+        libraryFile.setWrapText(true);
+        libraryFile.getStyleClass().add("fxt-lib-status");
+
+        javafx.scene.control.Hyperlink manageSchemaCache2 = new javafx.scene.control.Hyperlink("Manage schema cache…");
+        manageSchemaCache2.setId("settings-manage-schema-cache-2");
+        manageSchemaCache2.setGraphic(iconGraphic("bi-collection"));
+        manageSchemaCache2.setOnAction(e -> manageSchemaCacheAction.run());
+
         Button save = new Button("Save Settings", iconGraphic("bi-save"));
         save.getStyleClass().add("fxt-tool-button");
         save.setOnAction(e -> {
@@ -263,6 +289,8 @@ public class SettingsPanel extends VBox {
                         xsdAutoSave, labeled("Interval (min):", xsdAutoSaveInterval),
                         xsdBackup, labeled("Keep versions:", xsdBackupVersions),
                         backupSeparateDir, browseRow(backupDir, this::chooseBackupDir)),
+                card("SCHEMA LIBRARY", "bi-collection", "#20c997",
+                        schemaLibraryAutoBind, libraryFile, manageSchemaCache),
                 card("PARSER", "bi-cpu", "#fd7e14",
                         labeled("XML parser:", parserType), xsltExtensions),
                 card("RENDERING", "bi-gpu-card", "#e83e8c",
@@ -270,7 +298,7 @@ public class SettingsPanel extends VBox {
                         renderingActiveStatus, renderingGpuStatus, renderingHint),
                 card("TEMP & CACHE", "bi-trash", "#ffc107",
                         useSystemTemp, browseRow(customTempDir, this::chooseTempDir),
-                        fill(clearTemp), fill(clearCache), tempStatus),
+                        fill(clearTemp), fill(clearCache), tempStatus, manageSchemaCache2),
                 card("GENERAL", "bi-sliders", "#007bff",
                         updateCheck, smallIcons, toolbarLabels, activityBarLabels,
                         labeled("Toolbar icons:", new HBox(6, toolbarIconSmall, toolbarIconLarge)),
@@ -551,6 +579,7 @@ public class SettingsPanel extends VBox {
                             ? "false"
                             : props.get(org.fxt.freexmltoolkit.service.fundsxml.FundsXmlPropertyKeys.ENABLED)));
             templatesDir.setText(orEmpty(props.getTemplatesDirectory()));
+            schemaLibraryAutoBind.setSelected(props.isSchemaLibraryAutoBindEnabled());
         } catch (Throwable ignored) {
             // properties service unavailable (e.g. tests) — controls keep their defaults
         }
@@ -624,6 +653,7 @@ public class SettingsPanel extends VBox {
             props.set(org.fxt.freexmltoolkit.service.fundsxml.FundsXmlPropertyKeys.ENABLED,
                     String.valueOf(fundsXmlEnabled.isSelected()));
             applyTemplatesDirectory(props);
+            props.setSchemaLibraryAutoBindEnabled(schemaLibraryAutoBind.isSelected());
             // Only notify once every write above succeeded.
             if (onSaved != null) {
                 onSaved.run();
