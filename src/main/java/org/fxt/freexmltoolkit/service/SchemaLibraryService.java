@@ -34,7 +34,7 @@ public interface SchemaLibraryService {
 
     Optional<SchemaLibraryEntry> resolveNamespace(String namespace, SchemaKind kind);
 
-    /** user entries, then catalogs (system → uri → public) */
+    /** user entries, then catalogs (system → uri) */
     Optional<URI> resolveSystemId(String systemId, String baseUri);
 
     Optional<SchemaLibraryEntry> resolveJsonSchema(String schemaUri);

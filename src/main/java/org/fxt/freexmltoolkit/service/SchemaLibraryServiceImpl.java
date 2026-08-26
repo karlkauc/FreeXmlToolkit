@@ -55,6 +55,8 @@ public class SchemaLibraryServiceImpl implements SchemaLibraryService {
 
     /** Immutable snapshot of the merged view for lock-free reads (resolution, UI). */
     protected volatile List<SchemaLibraryEntry> snapshot = List.of();
+    /** Immutable snapshot of the registered catalogs for lock-free reads ({@code catalogsLoaded()}). */
+    private volatile List<SchemaCatalogRef> catalogSnapshot = List.of();
     private final ObservableList<SchemaLibraryEntry> observable = FXCollections.observableArrayList();
     private final ObservableList<SchemaLibraryEntry> readOnly = FXCollections.unmodifiableObservableList(observable);
 
@@ -136,6 +138,7 @@ public class SchemaLibraryServiceImpl implements SchemaLibraryService {
             merged.add(disabledBundled.contains(b.key()) ? b.withEnabled(false) : b);
         }
         snapshot = List.copyOf(merged);
+        catalogSnapshot = List.copyOf(catalogs);
         List<SchemaLibraryEntry> copy = snapshot;
         if (javafx.application.Platform.isFxApplicationThread()) {
             observable.setAll(copy);
@@ -258,14 +261,19 @@ public class SchemaLibraryServiceImpl implements SchemaLibraryService {
     private volatile List<LoadedCatalog> loadedCatalogs = null;
     private final Map<String, String> sessionErrors = new java.util.concurrent.ConcurrentHashMap<>();   // entry id → error
     private final Map<String, Long> failedAt = new java.util.concurrent.ConcurrentHashMap<>();          // entry id → epoch millis
-    static final long RETRY_AFTER_MS = 10 * 60 * 1000L;
+    // Instance (not static) so tests can shrink the window on one SchemaLibraryServiceImpl
+    // without leaking mutable global state into other instances/tests.
+    private long retryAfterMs = 10 * 60 * 1000L;
+
+    /** Test hook: shrink/grow the remote-download retry window (default 10 minutes). */
+    void setRetryAfterMs(long ms) { this.retryAfterMs = ms; }
 
     /** Invalidates the lazily-parsed catalog cache whenever the merged snapshot changes. */
     private void onSnapshotRebuilt() { loadedCatalogs = null; }
 
     private List<LoadedCatalog> catalogsLoaded() {
         List<LoadedCatalog> current = loadedCatalogs;
-        List<SchemaCatalogRef> refs = getCatalogs();
+        List<SchemaCatalogRef> refs = catalogSnapshot;   // lock-free read; getCatalogs() takes `lock`
         boolean stale = current == null || current.size() != refs.size();
         if (!stale) {
             for (LoadedCatalog lc : current) {
@@ -406,7 +414,8 @@ public class SchemaLibraryServiceImpl implements SchemaLibraryService {
     @Override public Optional<Path> materialize(SchemaLibraryEntry entry) {
         if (entry == null) return Optional.empty();
         if (!entry.isRemote()) {
-            Path p = Path.of(entry.location());
+            Path p = localPathOrNull(entry.location());
+            if (p == null) { sessionErrors.put(entry.id(), "Invalid path: " + entry.location()); return Optional.empty(); }
             if (Files.isRegularFile(p)) { sessionErrors.remove(entry.id()); return Optional.of(p); }
             sessionErrors.put(entry.id(), "File not found: " + p);
             return Optional.empty();
@@ -416,7 +425,7 @@ public class SchemaLibraryServiceImpl implements SchemaLibraryService {
             return Optional.empty();
         }
         Long failed = failedAt.get(entry.id());
-        if (failed != null && System.currentTimeMillis() - failed < RETRY_AFTER_MS && !cache.isCached(entry.location())) {
+        if (failed != null && System.currentTimeMillis() - failed < retryAfterMs && !cache.isCached(entry.location())) {
             return Optional.empty();
         }
         try {
@@ -442,10 +451,16 @@ public class SchemaLibraryServiceImpl implements SchemaLibraryService {
         // Local status always reflects the file system, never a remembered failure: a local
         // materialize() failure just means the file is (still) missing, not a distinct ERROR state.
         if (!entry.isRemote()) {
-            return Files.isRegularFile(Path.of(entry.location())) ? SchemaEntryStatus.LOCAL_OK : SchemaEntryStatus.LOCAL_MISSING;
+            Path p = localPathOrNull(entry.location());
+            return p != null && Files.isRegularFile(p) ? SchemaEntryStatus.LOCAL_OK : SchemaEntryStatus.LOCAL_MISSING;
         }
         if (sessionErrors.containsKey(entry.id())) return SchemaEntryStatus.ERROR;
         return cache.isCached(entry.location()) ? SchemaEntryStatus.CACHED : SchemaEntryStatus.NOT_DOWNLOADED;
+    }
+
+    /** {@code Path.of(location)} without the {@link java.nio.file.InvalidPathException} risk (malformed location). */
+    private static Path localPathOrNull(String location) {
+        try { return Path.of(location); } catch (RuntimeException e) { return null; }
     }
 
     @Override public Optional<String> lastError(SchemaLibraryEntry entry) {

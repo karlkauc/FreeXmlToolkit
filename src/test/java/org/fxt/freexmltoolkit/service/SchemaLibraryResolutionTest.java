@@ -6,9 +6,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -124,5 +126,46 @@ class SchemaLibraryResolutionTest {
         SchemaLibraryEntry j = svc.entryFromFile(json).orElseThrow();
         assertEquals("https://example.org/s.json", j.namespace());
         assertEquals(SchemaKind.JSON_SCHEMA, j.kind());
+    }
+
+    /**
+     * A failed remote materialize() must not be retried on every call within the retry window
+     * (10 minutes by default): the next materialize() should return empty without a new download
+     * attempt. {@code https://schema.invalid/x.xsd} uses the reserved {@code .invalid} TLD (RFC 2606),
+     * so DNS resolution fails immediately and no real network access is needed.
+     */
+    @Test
+    void materializeRespectsRetryWindowUntilClearFailure() throws Exception {
+        AtomicInteger downloadAttempts = new AtomicInteger();
+        SchemaResourceCache countingCache = new SchemaResourceCache(dir.resolve("cache2")) {
+            @Override public Path getOrDownload(String url, String referencingUrl) throws IOException {
+                downloadAttempts.incrementAndGet();
+                return super.getOrDownload(url, referencingUrl);
+            }
+        };
+        SchemaLibraryServiceImpl svc2 = new SchemaLibraryServiceImpl(dir.resolve("lib2.json"), countingCache,
+                () -> new ByteArrayInputStream(BUNDLED.getBytes(StandardCharsets.UTF_8)));
+        SchemaLibraryEntry remote = svc2.addEntry(SchemaLibraryEntry.user("urn:unreachable",
+                "https://schema.invalid/x.xsd", SchemaKind.XSD, "", null));
+
+        assertTrue(svc2.materialize(remote).isEmpty());
+        assertEquals(1, downloadAttempts.get());
+        assertEquals(SchemaEntryStatus.ERROR, svc2.statusOf(remote));
+        assertTrue(svc2.lastError(remote).isPresent());
+
+        // still inside the (default 10 minute) retry window -> no new download attempt
+        assertTrue(svc2.materialize(remote).isEmpty());
+        assertEquals(1, downloadAttempts.get());
+
+        // shrink the window to prove a retry does happen once it elapses
+        svc2.setRetryAfterMs(0);
+        assertTrue(svc2.materialize(remote).isEmpty());
+        assertEquals(2, downloadAttempts.get());
+
+        // clearFailure() forgets the failure immediately, regardless of the window
+        svc2.setRetryAfterMs(10 * 60 * 1000L);
+        svc2.clearFailure(remote);
+        assertTrue(svc2.materialize(remote).isEmpty());
+        assertEquals(3, downloadAttempts.get());
     }
 }
