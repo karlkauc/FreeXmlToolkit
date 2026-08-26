@@ -295,6 +295,19 @@ public class PropertiesServiceImpl implements PropertiesService {
         saveProperties(properties);
     }
 
+    // Schema Library settings implementation
+
+    @Override
+    public boolean isSchemaLibraryAutoBindEnabled() {
+        return Boolean.parseBoolean(properties.getProperty("schemaLibrary.autoBind.enabled", "true"));
+    }
+
+    @Override
+    public void setSchemaLibraryAutoBindEnabled(boolean enabled) {
+        properties.setProperty("schemaLibrary.autoBind.enabled", String.valueOf(enabled));
+        saveProperties(properties);
+    }
+
     @Override
     public int getXsdAutoSaveInterval() {
         try {

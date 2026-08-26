@@ -2600,7 +2600,16 @@ public class EditorHost extends BorderPane {
             // validation-time reconcile can short-circuit unchanged documents.
             tab.lastDetectedSchemaLocation = declared.orElse(null);
             if (declared.isEmpty()) {
-                return SchemaDetection.NOT_FOUND; // the document references no schema
+                // No xsi:schemaLocation — ask the Schema Library by root namespace / root element.
+                File fromLibrary = schemaFromLibrary(content);
+                if (fromLibrary == null) {
+                    return SchemaDetection.NOT_FOUND; // the document references no schema
+                }
+                tab.lastDetectedSchemaLocation = fromLibrary.getAbsolutePath();
+                if (!tab.view.loadSchema(fromLibrary)) {
+                    return SchemaDetection.FAILED;
+                }
+                return new SchemaDetection(fromLibrary, SchemaStatus.READY);
             }
             // A reference exists — from here on, every failure is an ERROR (the user
             // expects IntelliSense but won't get it), not a silent "No XSD".
@@ -2615,6 +2624,29 @@ public class EditorHost extends BorderPane {
         } catch (Exception e) {
             // detection is best-effort; a malformed document simply binds no schema
             return SchemaDetection.NOT_FOUND;
+        }
+    }
+
+    /**
+     * Schema Library lookup for a document without a schema reference: the document
+     * element's namespace (or, without a namespace, its local name) is mapped to an XSD.
+     * Returns null when auto-binding is disabled or nothing matches. Worker-thread safe.
+     */
+    private static File schemaFromLibrary(String content) {
+        try {
+            if (!org.fxt.freexmltoolkit.di.ServiceRegistry.get(org.fxt.freexmltoolkit.service.PropertiesService.class)
+                    .isSchemaLibraryAutoBindEnabled()) {
+                return null;
+            }
+            var root = org.fxt.freexmltoolkit.service.XmlRootElementSniffer.sniff(content).orElse(null);
+            if (root == null) return null;
+            var library = org.fxt.freexmltoolkit.service.SchemaLibraryServiceImpl.shared();
+            var entry = root.namespace().isEmpty()
+                    ? library.resolveByRootElement(root.localName())
+                    : library.resolveNamespace(root.namespace(), org.fxt.freexmltoolkit.domain.SchemaKind.XSD);
+            return entry.flatMap(library::materialize).map(java.nio.file.Path::toFile).orElse(null);
+        } catch (Exception e) {
+            return null;   // best-effort
         }
     }
 

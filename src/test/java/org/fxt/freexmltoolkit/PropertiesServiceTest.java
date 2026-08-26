@@ -71,4 +71,13 @@ public class PropertiesServiceTest {
         Assertions.assertNotNull(fileList);
         Assertions.assertTrue(fileList.isEmpty() || fileList.stream().allMatch(File::exists));
     }
+
+    @Test
+    void schemaLibraryAutoBindDefaultsToTrueAndRoundTrips() {
+        PropertiesService service = PropertiesServiceImpl.getInstance();
+        Assertions.assertTrue(service.isSchemaLibraryAutoBindEnabled());
+        service.setSchemaLibraryAutoBindEnabled(false);
+        Assertions.assertFalse(service.isSchemaLibraryAutoBindEnabled());
+        service.setSchemaLibraryAutoBindEnabled(true);
+    }
 }

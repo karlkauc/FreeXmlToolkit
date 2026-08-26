@@ -568,4 +568,25 @@ public interface PropertiesService {
      * @param mode one of {@code "AUTO"}, {@code "HARDWARE"}, {@code "SOFTWARE"} (case-insensitive)
      */
     void setRenderingMode(String mode);
+
+    // Schema Library settings
+
+    /**
+     * Whether documents without a schema reference are bound via the Schema Library
+     * (matched by the document element's namespace, or its local name when unnamespaced).
+     *
+     * @return true if Schema Library auto-binding is enabled (default: true)
+     */
+    default boolean isSchemaLibraryAutoBindEnabled() {
+        return true;
+    }
+
+    /**
+     * Sets whether documents without a schema reference are bound via the Schema Library.
+     *
+     * @param enabled true to enable auto-binding, false to disable
+     */
+    default void setSchemaLibraryAutoBindEnabled(boolean enabled) {
+        // no-op default for implementations that don't persist this setting
+    }
 }
