@@ -500,6 +500,15 @@ class JsonServiceTest {
         }
 
         @Test
+        @DisplayName("getRawSchemaIdFromJsonContent keeps meta-schema ids (Schema Library lookup needs them)")
+        void rawSchemaIdKeepsMetaSchemaIds() {
+            var s = new JsonService();
+            String doc = "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\"}";
+            assertTrue(s.getSchemaLocationFromJsonContent(doc).isEmpty());
+            assertEquals("https://json-schema.org/draft/2020-12/schema", s.getRawSchemaIdFromJsonContent(doc).orElseThrow());
+        }
+
+        @Test
         @DisplayName("Empty for malformed JSON and non-object roots")
         void emptyForMalformedInput() {
             assertTrue(jsonService.getSchemaLocationFromJsonContent("{broken").isEmpty());

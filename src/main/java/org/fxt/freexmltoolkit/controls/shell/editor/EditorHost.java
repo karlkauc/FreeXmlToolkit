@@ -2555,8 +2555,17 @@ public class EditorHost extends BorderPane {
      */
     private String declaredSchemaLocation(EditorTab tab, String content, File baseDir) {
         if (tab.document.getFileType() == EditorFileType.JSON) {
-            return new org.fxt.freexmltoolkit.service.JsonService()
-                    .getSchemaLocationFromJsonContent(content).orElse(null);
+            var jsonService = new org.fxt.freexmltoolkit.service.JsonService();
+            // A library-mapped raw $schema id (meta-schema ids included) is a "declaration"
+            // too — see detectJsonSchemaFor. Without this, the filtered
+            // getSchemaLocationFromJsonContent alone would report it as undeclared and the
+            // reconcile would CLEAR the library binding on the very first validation run.
+            java.util.Optional<String> raw = jsonService.getRawSchemaIdFromJsonContent(content);
+            if (raw.isPresent() && org.fxt.freexmltoolkit.service.SchemaLibraryServiceImpl.shared()
+                    .resolveJsonSchema(raw.get()).isPresent()) {
+                return raw.get();
+            }
+            return jsonService.getSchemaLocationFromJsonContent(content).orElse(null);
         }
         String declared = org.fxt.freexmltoolkit.di.ServiceRegistry
                 .get(org.fxt.freexmltoolkit.service.XmlService.class)
@@ -2676,6 +2685,19 @@ public class EditorHost extends BorderPane {
             var service = new org.fxt.freexmltoolkit.service.JsonService();
             File baseDir = pathOrNull != null && pathOrNull.getParent() != null
                     ? pathOrNull.getParent().toFile() : null;
+            // Schema Library first: a mapped $schema URI (meta-schema ids included) binds its local file.
+            java.util.Optional<String> raw = service.getRawSchemaIdFromJsonContent(content);
+            if (raw.isPresent() && org.fxt.freexmltoolkit.di.ServiceRegistry
+                    .get(org.fxt.freexmltoolkit.service.PropertiesService.class).isSchemaLibraryAutoBindEnabled()) {
+                var library = org.fxt.freexmltoolkit.service.SchemaLibraryServiceImpl.shared();
+                File mapped = library.resolveJsonSchema(raw.get()).flatMap(library::materialize)
+                        .map(java.nio.file.Path::toFile).orElse(null);
+                if (mapped != null) {
+                    tab.lastDetectedSchemaLocation = raw.get();
+                    if (!tab.view.loadSchema(mapped)) return SchemaDetection.FAILED;
+                    return new SchemaDetection(mapped, SchemaStatus.READY);
+                }
+            }
             java.util.Optional<String> declared = service.getSchemaLocationFromJsonContent(content);
             // Remember what the buffer declared (also on failure below) so the
             // validation-time reconcile can short-circuit unchanged documents.

@@ -505,14 +505,15 @@ public class JsonService {
             + File.separator + ".freeXmlToolkit" + File.separator + "cache";
 
     /**
-     * Sniffs a top-level {@code "$schema"} string member from a JSON instance document.
-     * Returns empty for json-schema.org meta-schema ids — those declare the document's
-     * own dialect (the document IS a schema), not a validation binding.
+     * Sniffs a top-level {@code "$schema"} string member from a JSON instance document,
+     * without filtering out json-schema.org meta-schema ids. Used by the Schema Library
+     * lookup, which maps the raw id (a meta-schema id can legitimately be registered as a
+     * library entry's key) rather than a validation-binding location.
      *
      * @param json the JSON instance document text
-     * @return the declared schema location, or empty if none is declared
+     * @return the raw declared {@code $schema} value, or empty if none is declared
      */
-    public Optional<String> getSchemaLocationFromJsonContent(String json) {
+    public Optional<String> getRawSchemaIdFromJsonContent(String json) {
         if (json == null || json.isBlank()) {
             return Optional.empty();
         }
@@ -526,13 +527,22 @@ public class JsonService {
                 return Optional.empty();
             }
             String location = schema.getAsString().trim();
-            if (location.isEmpty() || META_SCHEMA_ID.matcher(location).find()) {
-                return Optional.empty();
-            }
-            return Optional.of(location);
+            return location.isEmpty() ? Optional.empty() : Optional.of(location);
         } catch (JsonSyntaxException e) {
             return Optional.empty();
         }
+    }
+
+    /**
+     * Sniffs a top-level {@code "$schema"} string member from a JSON instance document.
+     * Returns empty for json-schema.org meta-schema ids — those declare the document's
+     * own dialect (the document IS a schema), not a validation binding.
+     *
+     * @param json the JSON instance document text
+     * @return the declared schema location, or empty if none is declared
+     */
+    public Optional<String> getSchemaLocationFromJsonContent(String json) {
+        return getRawSchemaIdFromJsonContent(json).filter(l -> !META_SCHEMA_ID.matcher(l).find());
     }
 
     /**
