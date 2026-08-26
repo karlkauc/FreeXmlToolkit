@@ -116,4 +116,27 @@ class SchemaResolverLibraryHookTest {
                 "main.xsd", servedBaseUri);
         assertNull(hop2, "types.xsd -> main.xsd closes the cycle and must be rejected");
     }
+
+    @Test
+    void legacyResolveReferencesUsesLibraryForImports(@TempDir Path dir) throws Exception {
+        Path types = dir.resolve("far").resolve("types.xsd");
+        Files.createDirectories(types.getParent());
+        Files.writeString(types, "<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema' targetNamespace='urn:types'/>");
+        var svc = new SchemaLibraryServiceImpl(dir.resolve("lib.json"), new SchemaResourceCache(dir.resolve("cache")),
+                () -> new ByteArrayInputStream("{\"version\":1,\"entries\":[]}".getBytes()));
+        svc.addEntry(SchemaLibraryEntry.user("urn:types", types.toString(), SchemaKind.XSD, "", null));
+        ServiceRegistry.reset();
+        ServiceRegistry.register(SchemaLibraryService.class, svc);
+
+        Path main = dir.resolve("main.xsd");
+        Files.writeString(main, """
+                <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                  <xs:import namespace="urn:types" schemaLocation="nowhere/types.xsd"/>
+                </xs:schema>""");
+        ParsedSchema parsed = new XsdParsingServiceImpl().parse(main);
+        var imports = parsed.getResolvedImports();
+        assertEquals(1, imports.size());
+        assertNull(imports.getFirst().error());
+        assertEquals(types, imports.getFirst().resolvedPath());
+    }
 }

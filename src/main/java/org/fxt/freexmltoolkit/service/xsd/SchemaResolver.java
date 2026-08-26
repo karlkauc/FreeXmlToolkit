@@ -339,6 +339,12 @@ public class SchemaResolver {
                     schemaLocation, null, null, "No schemaLocation attribute");
         }
 
+        // Schema Library lookup by systemId/catalog before falling back to plain path resolution.
+        Path fromLibrary = libraryPathFor(null, schemaLocation, baseDir);
+        if (fromLibrary != null) {
+            schemaLocation = fromLibrary.toString();   // local from here on
+        }
+
         // Skip remote schemas in this resolver (they're handled separately)
         if (schemaLocation.contains("://")) {
             try {
@@ -499,9 +505,14 @@ public class SchemaResolver {
                     namespace, schemaLocation, null, null, "Both namespace and schemaLocation are empty");
         }
 
-        // If no schemaLocation, we can't load the schema but it's not an error
+        // If no schemaLocation, try the Schema Library by namespace before giving up.
         if (schemaLocation == null || schemaLocation.isBlank()) {
-            return new ParsedSchema.ResolvedImport(namespace, null, null, null, null);
+            Path libraryPath = libraryPathFor(namespace, null, baseDir);
+            if (libraryPath != null) {
+                schemaLocation = libraryPath.toString();
+            } else {
+                return new ParsedSchema.ResolvedImport(namespace, null, null, null, null);
+            }
         }
 
         // Check for duplicates
@@ -526,9 +537,14 @@ public class SchemaResolver {
                 Path resolvedPath = resolvePath(schemaLocation, baseDir);
 
                 if (!Files.exists(resolvedPath)) {
-                    failedImportCount++;
-                    return new ParsedSchema.ResolvedImport(
-                            namespace, schemaLocation, resolvedPath, null, "File not found");
+                    Path fromLibrary = libraryPathFor(namespace, schemaLocation, baseDir);
+                    if (fromLibrary != null) {
+                        resolvedPath = fromLibrary;
+                    } else {
+                        failedImportCount++;
+                        return new ParsedSchema.ResolvedImport(
+                                namespace, schemaLocation, resolvedPath, null, "File not found");
+                    }
                 }
 
                 DocumentBuilder builder = documentBuilderFactory.newDocumentBuilder();
@@ -646,6 +662,32 @@ public class SchemaResolver {
         }
 
         return schemaPath.toAbsolutePath().normalize();
+    }
+
+    /**
+     * Looks up a schema in the Schema Library, first by systemId/catalog (using
+     * {@code schemaLocation} as the system identifier), then by namespace.
+     *
+     * @return the resolved local file path, or {@code null} on a miss; never throws.
+     */
+    private static Path libraryPathFor(String namespace, String schemaLocation, Path baseDir) {
+        try {
+            var library = org.fxt.freexmltoolkit.service.SchemaLibraryServiceImpl.shared();
+            String base = baseDir != null ? baseDir.toUri().toString() : null;
+            if (schemaLocation != null && !schemaLocation.isBlank()) {
+                var hit = library.resolveSystemId(schemaLocation, base);
+                if (hit.isPresent() && "file".equalsIgnoreCase(hit.get().getScheme())) {
+                    Path p = Path.of(hit.get());
+                    if (Files.isRegularFile(p)) return p;
+                }
+            }
+            if (namespace != null && !namespace.isBlank()) {
+                return library.resolveNamespaceToFile(namespace, org.fxt.freexmltoolkit.domain.SchemaKind.XSD).orElse(null);
+            }
+        } catch (Exception e) {
+            logger.debug("Schema Library lookup failed for '{}': {}", schemaLocation, e.getMessage());
+        }
+        return null;
     }
 
     /**
