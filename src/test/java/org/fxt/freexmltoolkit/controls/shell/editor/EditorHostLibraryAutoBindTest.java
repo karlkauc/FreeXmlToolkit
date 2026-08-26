@@ -15,9 +15,11 @@ import org.testfx.framework.junit5.Start;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -77,6 +79,36 @@ class EditorHostLibraryAutoBindTest {
         assertEquals(EditorHost.SchemaStatus.READY, host.activeSchemaStatusProperty().get());
     }
 
+    /**
+     * Regression: {@code declaredSchemaLocation} must treat a Schema Library auto-binding as
+     * "declared", or {@code SchemaRebindPolicy.decideRebind(AUTO, null, libPath)} would CLEAR
+     * it on the very first validation run. This drives the same path
+     * {@code ValidationPanel} uses: {@link EditorHost#schemaForValidation(String)} on the FX
+     * thread, then resolving the returned supplier off it.
+     */
+    @Test
+    void libraryBindingSurvivesValidationReconcile(@TempDir Path tmp) throws Exception {
+        Path xsd = tmp.resolve("lib").resolve("test.xsd");
+        Files.createDirectories(xsd.getParent());
+        Files.writeString(xsd, XSD);
+        registerLibraryWith(tmp, "urn:lib:test", xsd);
+        Path xml = tmp.resolve("doc.xml");
+        Files.writeString(xml, "<root xmlns=\"urn:lib:test\"><alpha>x</alpha></root>\n");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml.toFile()));
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> host.activeSchemaProperty().get() != null);
+        assertEquals(xsd.toFile().getAbsoluteFile(), host.activeSchemaProperty().get().getAbsoluteFile());
+
+        String content = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.getActiveText().orElse(""));
+        Supplier<File> supplier = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.schemaForValidation(content));
+        File validated = supplier.get(); // resolved off the FX thread, like ValidationPanel does
+
+        assertNotNull(validated, "validation-time reconcile must keep the library binding");
+        assertEquals(xsd.toFile().getAbsoluteFile(), validated.getAbsoluteFile());
+        WaitForAsyncUtils.waitForFxEvents();
+        assertEquals(xsd.toFile().getAbsoluteFile(), host.activeSchemaProperty().get().getAbsoluteFile());
+    }
+
     @Test
     void manualBindingIsNotOverriddenByLibrary(@TempDir Path tmp) throws Exception {
         Path libXsd = tmp.resolve("lib.xsd");
@@ -90,9 +122,18 @@ class EditorHostLibraryAutoBindTest {
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml.toFile()));
         WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> host.activeSchemaProperty().get() != null);
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.setSchemaForActiveDocument(manualXsd.toFile()));
-        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.redetectSchemaForActiveDocument());
         WaitForAsyncUtils.waitForFxEvents();
-        WaitForAsyncUtils.sleep(500, TimeUnit.MILLISECONDS);
+
+        // redetectSchemaForActiveDocument() is a no-op once a schema is bound (it returns
+        // early on tab.schemaFile != null), so it never actually contends with the library.
+        // schemaForValidation(...) — the path ValidationPanel drives on every validation run
+        // — is what arbitrates MANUAL vs. the library's AUTO candidate; exercise that instead.
+        String content = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.getActiveText().orElse(""));
+        Supplier<File> supplier = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.schemaForValidation(content));
+        File validated = supplier.get(); // resolved off the FX thread, like ValidationPanel does
+
+        assertEquals(manualXsd.toFile().getAbsoluteFile(), validated.getAbsoluteFile());
+        WaitForAsyncUtils.waitForFxEvents();
         assertEquals(manualXsd.toFile().getAbsoluteFile(), host.activeSchemaProperty().get().getAbsoluteFile());
     }
 

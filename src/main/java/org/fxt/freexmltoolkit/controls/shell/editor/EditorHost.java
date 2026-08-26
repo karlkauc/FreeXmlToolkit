@@ -2548,17 +2548,32 @@ public class EditorHost extends BorderPane {
     /**
      * Sniffs the schema location the buffer declares — a top-level {@code "$schema"}
      * member for JSON, {@code xsi:schemaLocation} / {@code xsi:noNamespaceSchemaLocation}
-     * for the XML family. Worker-thread safe (fresh, stateless service instances).
+     * for the XML family. When the XML family declares nothing, falls back to the Schema
+     * Library resolution ({@link #schemaFromLibrary(String)}) so a library auto-binding is
+     * treated as "declared" too and survives reconcile. Worker-thread safe (fresh,
+     * stateless service instances).
      */
     private String declaredSchemaLocation(EditorTab tab, String content, File baseDir) {
         if (tab.document.getFileType() == EditorFileType.JSON) {
             return new org.fxt.freexmltoolkit.service.JsonService()
                     .getSchemaLocationFromJsonContent(content).orElse(null);
         }
-        return org.fxt.freexmltoolkit.di.ServiceRegistry
+        String declared = org.fxt.freexmltoolkit.di.ServiceRegistry
                 .get(org.fxt.freexmltoolkit.service.XmlService.class)
                 .getSchemaNameFromXmlContent(content, baseDir)
                 .orElse(null);
+        if (declared == null) {
+            // No xsi:schemaLocation declared — a Schema Library auto-binding (see
+            // detectSchemaFor) is not a "declaration" the reconcile can see otherwise,
+            // so without this the very first validation would CLEAR it. Re-resolving
+            // the library lookup here is deterministic for local entries (same path
+            // every call), so it correctly short-circuits to KEEP once bound.
+            File fromLibrary = schemaFromLibrary(content);
+            if (fromLibrary != null) {
+                declared = fromLibrary.getAbsolutePath();
+            }
+        }
+        return declared;
     }
 
     /** FX thread: clears the editor/IntelliSense side of a dropped schema binding. */
