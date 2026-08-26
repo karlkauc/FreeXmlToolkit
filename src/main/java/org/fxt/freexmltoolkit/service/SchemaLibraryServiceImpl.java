@@ -11,6 +11,7 @@ import org.fxt.freexmltoolkit.domain.*;
 import org.fxt.freexmltoolkit.util.PathValidator;
 
 import java.io.*;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -145,9 +146,6 @@ public class SchemaLibraryServiceImpl implements SchemaLibraryService {
         onSnapshotRebuilt();
     }
 
-    /** Hook for subclasses / Task 5 (catalog resolver invalidation). */
-    protected void onSnapshotRebuilt() { }
-
     // ---- CRUD -------------------------------------------------------------------
 
     @Override public ObservableList<SchemaLibraryEntry> getEntries() { return readOnly; }
@@ -253,4 +251,248 @@ public class SchemaLibraryServiceImpl implements SchemaLibraryService {
     }
 
     @Override public void reloadCatalogs() { synchronized (lock) { rebuildSnapshot(); } }
+
+    // ---- catalogs (parsed lazily, invalidated on mutation / mtime change) ------------
+    private record LoadedCatalog(SchemaCatalogRef ref, java.nio.file.attribute.FileTime mtime,
+                                 org.fxt.freexmltoolkit.service.catalog.ParsedCatalog parsed, String error) { }
+    private volatile List<LoadedCatalog> loadedCatalogs = null;
+    private final Map<String, String> sessionErrors = new java.util.concurrent.ConcurrentHashMap<>();   // entry id → error
+    private final Map<String, Long> failedAt = new java.util.concurrent.ConcurrentHashMap<>();          // entry id → epoch millis
+    static final long RETRY_AFTER_MS = 10 * 60 * 1000L;
+
+    /** Invalidates the lazily-parsed catalog cache whenever the merged snapshot changes. */
+    private void onSnapshotRebuilt() { loadedCatalogs = null; }
+
+    private List<LoadedCatalog> catalogsLoaded() {
+        List<LoadedCatalog> current = loadedCatalogs;
+        List<SchemaCatalogRef> refs = getCatalogs();
+        boolean stale = current == null || current.size() != refs.size();
+        if (!stale) {
+            for (LoadedCatalog lc : current) {
+                java.nio.file.attribute.FileTime now = mtimeOf(lc.ref().asPath());
+                if (!Objects.equals(now, lc.mtime())) { stale = true; break; }
+            }
+        }
+        if (!stale) return current;
+        List<LoadedCatalog> fresh = new ArrayList<>();
+        for (SchemaCatalogRef ref : refs) {
+            try {
+                fresh.add(new LoadedCatalog(ref, mtimeOf(ref.asPath()),
+                        org.fxt.freexmltoolkit.service.catalog.SchemaCatalogParser.parse(ref.asPath()), null));
+            } catch (IOException e) {
+                fresh.add(new LoadedCatalog(ref, mtimeOf(ref.asPath()), null, e.getMessage()));
+            }
+        }
+        loadedCatalogs = List.copyOf(fresh);
+        return loadedCatalogs;
+    }
+
+    private static java.nio.file.attribute.FileTime mtimeOf(Path p) {
+        try { return Files.getLastModifiedTime(p); } catch (IOException e) { return null; }
+    }
+
+    @Override public Map<String, String> catalogErrors() {
+        Map<String, String> errors = new LinkedHashMap<>();
+        for (LoadedCatalog lc : catalogsLoaded()) if (lc.error() != null) errors.put(lc.ref().id(), lc.error());
+        return errors;
+    }
+
+    @Override public int catalogEntryCount(String catalogId) {
+        for (LoadedCatalog lc : catalogsLoaded()) {
+            if (lc.ref().id().equals(catalogId)) return lc.parsed() == null ? -1 : lc.parsed().allEntries().size();
+        }
+        return -1;
+    }
+
+    // ---- resolution ---------------------------------------------------------------
+
+    @Override public Optional<SchemaLibraryEntry> resolveNamespace(String namespace, SchemaKind kind) {
+        if (namespace == null || namespace.isBlank() || kind == null) return Optional.empty();
+        String ns = namespace.trim();
+        // The merged snapshot already carries USER-over-BUNDLED precedence (a user entry with the
+        // same key excludes the bundled one at merge time), so a single pass gives USER > BUNDLED.
+        for (SchemaLibraryEntry e : snapshot) {
+            if (e.enabled() && e.kind() == kind && e.namespace().equals(ns)) return Optional.of(e);
+        }
+        // CATALOG is the last resort: a "uri" entry keyed by namespace, consulted only when neither
+        // a user nor a bundled entry covers this namespace.
+        for (LoadedCatalog lc : catalogsLoaded()) {
+            if (!lc.ref().enabled() || lc.parsed() == null) continue;
+            Optional<String> target = lc.parsed().matchUri(ns);
+            if (target.isPresent()) {
+                return Optional.of(new SchemaLibraryEntry("catalog:" + lc.ref().id() + ":" + ns, ns, toLocation(target.get()),
+                        kind, EntrySource.CATALOG, true, "from catalog " + lc.ref().asPath().getFileName(), null));
+            }
+        }
+        return Optional.empty();
+    }
+
+    @Override public Optional<SchemaLibraryEntry> resolveJsonSchema(String schemaUri) {
+        return resolveNamespace(schemaUri, SchemaKind.JSON_SCHEMA);
+    }
+
+    @Override public Optional<SchemaLibraryEntry> resolveByRootElement(String localName) {
+        if (localName == null || localName.isBlank()) return Optional.empty();
+        return snapshot.stream()
+                .filter(e -> e.enabled() && e.kind() == SchemaKind.XSD && e.namespace().isEmpty()
+                        && localName.equals(e.rootElement()))
+                .findFirst();
+    }
+
+    @Override public Optional<URI> resolveSystemId(String systemId, String baseUri) {
+        if (systemId == null || systemId.isBlank()) return Optional.empty();
+        URI absolute = absolutize(systemId, baseUri);
+        String absoluteString = absolute != null ? absolute.toString() : systemId;
+        for (SchemaLibraryEntry e : snapshot) {
+            if (!e.enabled() || e.source() != EntrySource.USER) continue;
+            URI loc = locationUri(e);
+            if (loc != null && (loc.toString().equals(absoluteString) || e.location().equals(systemId))) {
+                return Optional.of(loc);
+            }
+        }
+        for (LoadedCatalog lc : catalogsLoaded()) {
+            if (!lc.ref().enabled() || lc.parsed() == null) continue;
+            Optional<String> t = lc.parsed().matchSystem(systemId);
+            if (t.isEmpty() && absolute != null) t = lc.parsed().matchSystem(absoluteString);
+            if (t.isEmpty()) t = lc.parsed().matchUri(systemId);
+            if (t.isEmpty() && absolute != null) t = lc.parsed().matchUri(absoluteString);
+            if (t.isPresent()) {
+                try { return Optional.of(URI.create(t.get())); } catch (IllegalArgumentException ignore) { }
+            }
+        }
+        return Optional.empty();
+    }
+
+    private static URI absolutize(String id, String base) {
+        try {
+            URI u = URI.create(id);
+            if (u.isAbsolute()) return u;
+            return base != null && !base.isBlank() ? normalizeFileUri(URI.create(base).resolve(u)) : null;
+        } catch (IllegalArgumentException e) { return null; }
+    }
+
+    /**
+     * Restores the canonical {@code file:///path} (empty-authority) form. {@link URI#resolve(String)}
+     * drops the empty-authority marker when merging a relative reference into a {@code file:} base,
+     * turning {@code file:///a/b} into {@code file:/a/b}; that differs from what {@link Path#toUri()}
+     * produces, so normalize it back before comparing against entry locations.
+     * (Same fix as {@code SchemaCatalogParser.normalizeFileUri}.)
+     */
+    private static URI normalizeFileUri(URI u) {
+        if ("file".equalsIgnoreCase(u.getScheme()) && u.getAuthority() == null
+                && u.getPath() != null && u.getPath().startsWith("/")) {
+            try { return new URI(u.getScheme(), "", u.getPath(), u.getQuery(), u.getFragment()); }
+            catch (java.net.URISyntaxException e) { return u; }
+        }
+        return u;
+    }
+
+    private static URI locationUri(SchemaLibraryEntry e) {
+        try { return e.isRemote() ? URI.create(e.location()) : Path.of(e.location()).toUri(); }
+        catch (RuntimeException ex) { return null; }
+    }
+
+    /** file: URIs become plain paths (entries show paths); other URIs stay as-is. */
+    private static String toLocation(String uri) {
+        try {
+            URI u = URI.create(uri);
+            return "file".equalsIgnoreCase(u.getScheme()) ? Path.of(u).toString() : uri;
+        } catch (RuntimeException e) { return uri; }
+    }
+
+    // ---- materialize / status ------------------------------------------------------
+
+    @Override public Optional<Path> materialize(SchemaLibraryEntry entry) {
+        if (entry == null) return Optional.empty();
+        if (!entry.isRemote()) {
+            Path p = Path.of(entry.location());
+            if (Files.isRegularFile(p)) { sessionErrors.remove(entry.id()); return Optional.of(p); }
+            sessionErrors.put(entry.id(), "File not found: " + p);
+            return Optional.empty();
+        }
+        if (!PathValidator.isUrlSafeToAccess(entry.location())) {
+            sessionErrors.put(entry.id(), "URL not allowed: " + entry.location());
+            return Optional.empty();
+        }
+        Long failed = failedAt.get(entry.id());
+        if (failed != null && System.currentTimeMillis() - failed < RETRY_AFTER_MS && !cache.isCached(entry.location())) {
+            return Optional.empty();
+        }
+        try {
+            Path p = cache.getOrDownload(entry.location());
+            sessionErrors.remove(entry.id()); failedAt.remove(entry.id());
+            return Optional.of(p);
+        } catch (IOException e) {
+            sessionErrors.put(entry.id(), e.getMessage());
+            failedAt.put(entry.id(), System.currentTimeMillis());
+            logger.warn("Cannot download schema for {} from {}: {}", entry.namespace(), entry.location(), e.getMessage());
+            return Optional.empty();
+        }
+    }
+
+    /** Explicit user action: forget a remembered failure so the next materialize retries. */
+    public void clearFailure(SchemaLibraryEntry entry) { failedAt.remove(entry.id()); sessionErrors.remove(entry.id()); }
+
+    @Override public Optional<Path> resolveNamespaceToFile(String namespace, SchemaKind kind) {
+        return resolveNamespace(namespace, kind).flatMap(this::materialize);
+    }
+
+    @Override public SchemaEntryStatus statusOf(SchemaLibraryEntry entry) {
+        // Local status always reflects the file system, never a remembered failure: a local
+        // materialize() failure just means the file is (still) missing, not a distinct ERROR state.
+        if (!entry.isRemote()) {
+            return Files.isRegularFile(Path.of(entry.location())) ? SchemaEntryStatus.LOCAL_OK : SchemaEntryStatus.LOCAL_MISSING;
+        }
+        if (sessionErrors.containsKey(entry.id())) return SchemaEntryStatus.ERROR;
+        return cache.isCached(entry.location()) ? SchemaEntryStatus.CACHED : SchemaEntryStatus.NOT_DOWNLOADED;
+    }
+
+    @Override public Optional<String> lastError(SchemaLibraryEntry entry) {
+        return Optional.ofNullable(sessionErrors.get(entry.id()));
+    }
+
+    // ---- import / prefill -----------------------------------------------------------
+
+    @Override public List<SchemaLibraryEntry> importCatalog(Path catalogFile) throws IOException {
+        var parsed = org.fxt.freexmltoolkit.service.catalog.SchemaCatalogParser.parse(catalogFile);
+        List<SchemaLibraryEntry> out = new ArrayList<>();
+        for (var e : parsed.allEntries()) {
+            switch (e.type()) {
+                case URI, SYSTEM -> out.add(new SchemaLibraryEntry(UUID.randomUUID().toString(), e.key(), toLocation(e.target()),
+                        guessKind(e.target()), EntrySource.CATALOG, true,
+                        e.type() + " entry from " + catalogFile.getFileName(), null));
+                default -> { }   // public + rewrite entries are not namespace mappings
+            }
+        }
+        return out;
+    }
+
+    private static SchemaKind guessKind(String location) {
+        String l = location.toLowerCase(Locale.ROOT);
+        if (l.endsWith(".json")) return SchemaKind.JSON_SCHEMA;
+        if (l.endsWith(".dtd")) return SchemaKind.DTD;
+        return SchemaKind.XSD;
+    }
+
+    @Override public Optional<SchemaLibraryEntry> entryFromFile(Path schemaFile) {
+        if (schemaFile == null || !Files.isRegularFile(schemaFile)) return Optional.empty();
+        String name = schemaFile.getFileName().toString().toLowerCase(Locale.ROOT);
+        try {
+            if (name.endsWith(".json")) {
+                var root = com.google.gson.JsonParser.parseString(Files.readString(schemaFile));
+                String id = root.isJsonObject() && root.getAsJsonObject().has("$id")
+                        ? root.getAsJsonObject().get("$id").getAsString() : "";
+                return Optional.of(SchemaLibraryEntry.user(id, schemaFile.toAbsolutePath().toString(),
+                        SchemaKind.JSON_SCHEMA, "", null));
+            }
+            if (name.endsWith(".dtd")) {
+                return Optional.of(SchemaLibraryEntry.user("", schemaFile.toAbsolutePath().toString(), SchemaKind.DTD, "", null));
+            }
+            String tns = XmlRootElementSniffer.targetNamespaceOf(schemaFile).orElse("");
+            return Optional.of(SchemaLibraryEntry.user(tns, schemaFile.toAbsolutePath().toString(), SchemaKind.XSD, "", null));
+        } catch (Exception e) {
+            logger.debug("Cannot prefill entry from {}: {}", schemaFile, e.getMessage());
+            return Optional.of(SchemaLibraryEntry.user("", schemaFile.toAbsolutePath().toString(), guessKind(name), "", null));
+        }
+    }
 }
