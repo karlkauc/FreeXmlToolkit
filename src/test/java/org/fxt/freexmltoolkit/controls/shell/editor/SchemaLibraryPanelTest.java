@@ -1,6 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
 import javafx.scene.Scene;
+import javafx.scene.control.ListView;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
@@ -106,5 +107,27 @@ class SchemaLibraryPanelTest {
         boolean nowEnabled = library.getEntries().stream()
                 .filter(e -> e.id().equals(user.id())).findFirst().orElseThrow().enabled();
         assertFalse(nowEnabled);
+    }
+
+    @Test
+    void catalogsTabListsRegisteredCatalogsWithEntryCounts(FxRobot robot) throws Exception {
+        Path cat = dir.resolve("catalog.xml");
+        Files.writeString(cat, "<catalog xmlns='urn:oasis:names:tc:entity:xmlns:xml:catalog'>"
+                + "<uri name='urn:c1' uri='c1.xsd'/><uri name='urn:c2' uri='c2.xsd'/></catalog>");
+        robot.interact(() -> panel.addCatalogFile(cat));
+        WaitForAsyncUtils.waitForFxEvents();
+        ListView<SchemaCatalogRef> list = robot.lookup("#library-catalogs-list").queryAs(ListView.class);
+        assertEquals(1, list.getItems().size());
+        assertEquals(2, library.catalogEntryCount(list.getItems().getFirst().id()));
+        assertTrue(robot.lookup(".fxt-lib-catalog-count").queryLabeled().getText().contains("2"));
+    }
+
+    @Test
+    void unparsableCatalogShowsError(FxRobot robot) throws Exception {
+        Path bad = dir.resolve("bad.xml");
+        Files.writeString(bad, "<catalog");
+        robot.interact(() -> panel.addCatalogFile(bad));
+        WaitForAsyncUtils.waitForFxEvents();
+        assertFalse(robot.lookup(".fxt-lib-catalog-error").queryAll().isEmpty());
     }
 }

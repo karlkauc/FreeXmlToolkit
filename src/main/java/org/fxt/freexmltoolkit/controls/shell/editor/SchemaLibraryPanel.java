@@ -8,6 +8,7 @@ import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.layout.*;
+import javafx.stage.FileChooser;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.*;
@@ -15,6 +16,7 @@ import org.fxt.freexmltoolkit.service.*;
 import org.fxt.freexmltoolkit.util.DialogHelper;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.Locale;
 
 /**
@@ -39,6 +41,9 @@ public class SchemaLibraryPanel extends VBox {
     private final TableView<SchemaLibraryEntry> mappings = new TableView<>();
     private final Label status = new Label();
 
+    // Catalogs
+    private final ListView<SchemaCatalogRef> catalogList = new ListView<>();
+
     public SchemaLibraryPanel(EditorHost editorHost) {
         this(editorHost, SchemaLibraryServiceImpl.shared(), SchemaResourceCache.shared(),
                 ServiceRegistry.get(XmlService.class));
@@ -60,7 +65,7 @@ public class SchemaLibraryPanel extends VBox {
 
         filtered = new FilteredList<>(library.getEntries());
         mappingsTab.setContent(buildMappingsTab());
-        catalogsTab.setContent(new Label("Catalogs — Task 14"));   // replaced in Task 14
+        catalogsTab.setContent(buildCatalogsTab());
         cacheTab.setContent(new Label("Cache — Task 15"));         // replaced in Task 15
         for (Tab t : new Tab[]{mappingsTab, catalogsTab, cacheTab}) {
             t.setClosable(false);
@@ -179,6 +184,106 @@ public class SchemaLibraryPanel extends VBox {
         VBox box = new VBox(4, tools, filter, mappings);
         VBox.setVgrow(mappings, Priority.ALWAYS);
         return box;
+    }
+
+    // ------------------------------------------------------------------ Catalogs
+
+    private Node buildCatalogsTab() {
+        catalogList.setId("library-catalogs-list");
+        catalogList.setPlaceholder(new Label("No XML catalogs registered. Add an OASIS catalog.xml to map system IDs and URIs."));
+        catalogList.setCellFactory(lv -> new ListCell<>() {
+            @Override protected void updateItem(SchemaCatalogRef ref, boolean empty) {
+                super.updateItem(ref, empty);
+                if (empty || ref == null) { setGraphic(null); setText(null); return; }
+                Label path = new Label(ref.path());
+                path.getStyleClass().add("fxt-lib-catalog-path");
+                String err = library.catalogErrors().get(ref.id());
+                Label info = new Label();
+                if (err != null) {
+                    info.setText("Error: " + err);
+                    info.getStyleClass().add("fxt-lib-catalog-error");
+                } else {
+                    info.setText(library.catalogEntryCount(ref.id()) + " entries" + (ref.enabled() ? "" : " (disabled)"));
+                    info.getStyleClass().add("fxt-lib-catalog-count");
+                }
+                info.setWrapText(true);
+                VBox box = new VBox(2, path, info);
+                box.setOpacity(ref.enabled() ? 1.0 : 0.6);
+                setGraphic(box);
+            }
+        });
+        catalogList.setOnMouseClicked(ev -> {
+            if (ev.getClickCount() == 2) {
+                SchemaCatalogRef s = catalogList.getSelectionModel().getSelectedItem();
+                if (s != null) editorHost.openFile(s.asPath().toFile());
+            }
+        });
+
+        var selected = catalogList.getSelectionModel().selectedItemProperty();
+        Button add = toolButton("library-catalog-add", "Add catalog…", "bi-plus-circle", this::chooseCatalog);
+        Button remove = toolButton("library-catalog-remove", "Remove", "bi-trash", () -> {
+            SchemaCatalogRef s = selected.get();
+            if (s != null) { catalogList.getSelectionModel().clearSelection(); library.removeCatalog(s.id()); refreshCatalogs(); }
+        });
+        Button toggle = toolButton("library-catalog-toggle", "Enable / disable", "bi-toggle-on", () -> {
+            SchemaCatalogRef s = selected.get();
+            if (s != null) { library.setCatalogEnabled(s.id(), !s.enabled()); refreshCatalogs(); }
+        });
+        Button reload = toolButton("library-catalog-reload", "Reload catalogs", "bi-arrow-clockwise", () -> { library.reloadCatalogs(); refreshCatalogs(); });
+        Button importBtn = toolButton("library-catalog-import", "Import entries into Mappings…", "bi-box-arrow-in-down", this::importSelectedCatalog);
+        remove.disableProperty().bind(selected.isNull());
+        toggle.disableProperty().bind(selected.isNull());
+        importBtn.disableProperty().bind(selected.isNull());
+        FlowPane tools = new FlowPane(2, 2, add, remove, toggle, reload, importBtn);
+        tools.getStyleClass().add("fxt-schema-tools");
+
+        VBox box = new VBox(4, tools, catalogList);
+        VBox.setVgrow(catalogList, Priority.ALWAYS);
+        refreshCatalogs();
+        return box;
+    }
+
+    void refreshCatalogs() {
+        catalogList.getSelectionModel().clearSelection();
+        catalogList.getItems().setAll(library.getCatalogs());
+    }
+
+    private void chooseCatalog() {
+        FileChooser fc = new FileChooser();
+        fc.setTitle("Select XML catalog");
+        fc.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("XML catalogs", "*.xml"),
+                new FileChooser.ExtensionFilter("All files", "*.*"));
+        File f = fc.showOpenDialog(getScene() != null ? getScene().getWindow() : null);
+        if (f != null) addCatalogFile(f.toPath());
+    }
+
+    /** Registers {@code catalog} (also used by tests, no chooser). */
+    void addCatalogFile(Path catalog) {
+        library.addCatalog(catalog);
+        refreshCatalogs();
+        String err = library.catalogErrors().get(library.getCatalogs().getLast().id());
+        setStatus(err != null ? "Catalog added but unparsable: " + err : "Catalog added: " + catalog.getFileName());
+    }
+
+    private void importSelectedCatalog() {
+        SchemaCatalogRef s = catalogList.getSelectionModel().getSelectedItem();
+        if (s == null) return;
+        try {
+            var preview = library.importCatalog(s.asPath());
+            if (preview.isEmpty()) { setStatus("No importable namespace mappings in " + s.asPath().getFileName()); return; }
+            var existing = library.getEntries().stream().map(SchemaLibraryEntry::key).collect(java.util.stream.Collectors.toSet());
+            new CatalogImportDialog(preview, existing).showAndWait().ifPresent(chosen -> {
+                int added = 0;
+                for (SchemaLibraryEntry e : chosen) {
+                    try { library.addEntry(e.withSource(EntrySource.USER)); added++; }
+                    catch (IllegalArgumentException ex) { setStatus("Skipped " + e.namespace() + ": " + ex.getMessage()); }
+                }
+                setStatus("Imported " + added + " mapping(s) from " + s.asPath().getFileName());
+                tabs.getSelectionModel().select(mappingsTab);
+            });
+        } catch (java.io.IOException e) {
+            setStatus("Cannot read catalog: " + e.getMessage());
+        }
     }
 
     private ContextMenu mappingsContextMenu() {

@@ -2449,3 +2449,6 @@
 .fxt-schema-library-panel .table-row-cell.fxt-lib-bundled .table-cell { -fx-text-fill: -fxt-text-muted; -fx-font-style: italic; }
 .fxt-lib-status { -fx-padding: 4 8 6 8; -fx-font-size: 11px; -fx-text-fill: -fxt-text-muted; }
 .fxt-lib-error { -fx-text-fill: -fxt-danger; }
+.fxt-lib-catalog-path { -fx-font-weight: bold; }
+.fxt-lib-catalog-count { -fx-text-fill: -fxt-text-muted; -fx-font-size: 11px; }
+.fxt-lib-catalog-error { -fx-text-fill: -fxt-danger; -fx-font-size: 11px; }
