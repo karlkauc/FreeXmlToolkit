@@ -80,11 +80,11 @@ public class NamespaceSchemaDownloader {
     }
 
     /**
-     * Creates a downloader using the application {@link ConnectionService} and a
-     * new {@link SchemaResourceCache} instance.
+     * Creates a downloader using the application {@link ConnectionService} and the
+     * shared {@link SchemaResourceCache} instance.
      */
     public NamespaceSchemaDownloader() {
-        this(ServiceRegistry.get(ConnectionService.class), new SchemaResourceCache());
+        this(ServiceRegistry.get(ConnectionService.class), SchemaResourceCache.shared());
     }
 
     /**

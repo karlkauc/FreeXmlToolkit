@@ -952,7 +952,7 @@ public class SchemaResolver {
          */
         public ValidationResourceResolver(Path baseDir) {
             this.baseDir = baseDir;
-            this.cache = new org.fxt.freexmltoolkit.service.SchemaResourceCache();
+            this.cache = org.fxt.freexmltoolkit.service.SchemaResourceCache.shared();
         }
 
         @Override

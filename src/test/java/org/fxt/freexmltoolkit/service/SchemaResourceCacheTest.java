@@ -239,4 +239,45 @@ class SchemaResourceCacheTest {
             assertDoesNotThrow(() -> cache.saveIndex());
         }
     }
+
+    // =========================================================================
+    // Entry Management Tests
+    // =========================================================================
+
+    @Nested
+    @DisplayName("Entry management")
+    class EntryManagement {
+
+        @Test
+        void listsAndRemovesEntries(@org.junit.jupiter.api.io.TempDir java.nio.file.Path dir) throws Exception {
+            SchemaResourceCache c = new SchemaResourceCache(dir);
+            java.nio.file.Path f = dir.resolve("abc.xsd");
+            java.nio.file.Files.writeString(f, "<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema' targetNamespace='urn:t'/>");
+            c.getCacheIndex().addOrUpdateEntry(SchemaCacheEntry.builder()
+                    .localFilename("abc.xsd").remoteUrl("https://example.org/abc.xsd")
+                    .downloadTimestamp(java.time.Instant.now()).fileSizeBytes(10).build());
+            c.saveIndex();
+
+            assertEquals(1, c.listEntries().size());
+            assertEquals(f, c.pathOf(c.listEntries().getFirst()));
+            assertTrue(c.entryForUrl("https://example.org/abc.xsd").isPresent());
+
+            assertTrue(c.removeEntry("abc.xsd"));
+            assertFalse(java.nio.file.Files.exists(f));
+            assertTrue(c.listEntries().isEmpty());
+            assertFalse(c.removeEntry("abc.xsd"));
+        }
+
+        @Test
+        void separateDirectoriesAreIsolated(@org.junit.jupiter.api.io.TempDir java.nio.file.Path dir) {
+            SchemaResourceCache c = new SchemaResourceCache(dir.resolve("sub"));
+            assertEquals(dir.resolve("sub"), c.getCacheDirectory());
+            assertTrue(c.listEntries().isEmpty());
+        }
+
+        @Test
+        void refreshOfUnsafeUrlIsEmpty(@org.junit.jupiter.api.io.TempDir java.nio.file.Path dir) {
+            assertTrue(new SchemaResourceCache(dir).refresh("http://127.0.0.1/x.xsd").isEmpty());
+        }
+    }
 }

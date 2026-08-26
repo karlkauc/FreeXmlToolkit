@@ -14,6 +14,7 @@ import org.fxt.freexmltoolkit.service.FileAssociationService;
 import org.fxt.freexmltoolkit.service.FileAssociationServiceImpl;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
+import org.fxt.freexmltoolkit.service.SchemaResourceCache;
 import org.fxt.freexmltoolkit.service.SchematronService;
 import org.fxt.freexmltoolkit.service.SchematronServiceImpl;
 import org.fxt.freexmltoolkit.service.UpdateCheckService;
@@ -107,6 +108,9 @@ public final class ServiceRegistry {
 
         // 11. FileAssociationService - registers OS file-type associations
         registerFactory(FileAssociationService.class, FileAssociationServiceImpl::getInstance);
+
+        // 12. SchemaResourceCache - shared on-disk cache for remote schemas
+        registerFactory(SchemaResourceCache.class, SchemaResourceCache::getInstance);
 
         initialized = true;
     }

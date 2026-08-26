@@ -71,15 +71,15 @@ public class SchemaResourceCache {
 
     private static final Logger logger = LogManager.getLogger(SchemaResourceCache.class);
 
-    private static final Path CACHE_DIR = Path.of(
+    private static final Path DEFAULT_CACHE_DIR = Path.of(
             FileUtils.getUserDirectory().getAbsolutePath(),
             ".freeXmlToolkit", "cache", "schemas"
     );
 
-    private static final Path INDEX_FILE = CACHE_DIR.resolve("cache-index.json");
-
     private static final Duration HTTP_TIMEOUT = Duration.ofSeconds(30);
 
+    private final Path cacheDir;
+    private final Path indexFile;
     private final ConcurrentHashMap<String, Path> urlToLocalPath = new ConcurrentHashMap<>();
     private final HttpClient httpClient;
     private final SchemaCacheIndex cacheIndex;
@@ -90,9 +90,22 @@ public class SchemaResourceCache {
     private final AtomicLong downloadErrors = new AtomicLong(0);
 
     /**
-     * Creates a new schema resource cache instance.
+     * Creates a new schema resource cache instance rooted at the default
+     * ({@code ~/.freeXmlToolkit/cache/schemas/}) directory.
      */
     public SchemaResourceCache() {
+        this(DEFAULT_CACHE_DIR);
+    }
+
+    /**
+     * Creates a cache rooted at {@code cacheDir} (tests and tools).
+     *
+     * @param cacheDir the directory in which cached schema files and the index are stored
+     */
+    public SchemaResourceCache(Path cacheDir) {
+        this.cacheDir = cacheDir.toAbsolutePath().normalize();
+        this.indexFile = this.cacheDir.resolve("cache-index.json");
+
         HttpClient.Builder clientBuilder = HttpClient.newBuilder()
                 .connectTimeout(HTTP_TIMEOUT)
                 .followRedirects(HttpClient.Redirect.NORMAL)
@@ -106,19 +119,44 @@ public class SchemaResourceCache {
 
         // Ensure cache directory exists
         try {
-            if (!Files.exists(CACHE_DIR)) {
-                Files.createDirectories(CACHE_DIR);
-                logger.info("Created schema cache directory: {}", CACHE_DIR);
+            if (!Files.exists(this.cacheDir)) {
+                Files.createDirectories(this.cacheDir);
+                logger.info("Created schema cache directory: {}", this.cacheDir);
             }
         } catch (IOException e) {
-            logger.error("Failed to create schema cache directory: {}", CACHE_DIR, e);
+            logger.error("Failed to create schema cache directory: {}", this.cacheDir, e);
         }
 
         // Load or create cache index
-        this.cacheIndex = SchemaCacheIndex.load(INDEX_FILE);
+        this.cacheIndex = SchemaCacheIndex.load(this.indexFile);
 
         // Load existing cached files into memory map
         loadExistingCache();
+    }
+
+    private static final class Holder {
+        static final SchemaResourceCache INSTANCE = new SchemaResourceCache();
+    }
+
+    /**
+     * The application-wide cache instance (lazy).
+     *
+     * @return the shared singleton instance rooted at the default cache directory
+     */
+    public static SchemaResourceCache getInstance() {
+        return Holder.INSTANCE;
+    }
+
+    /**
+     * Registry instance when the registry is initialized, else the lazy singleton.
+     *
+     * @return the {@link org.fxt.freexmltoolkit.di.ServiceRegistry}-managed instance if the
+     * registry has been initialized, otherwise {@link #getInstance()}
+     */
+    public static SchemaResourceCache shared() {
+        return org.fxt.freexmltoolkit.di.ServiceRegistry.isRegistered(SchemaResourceCache.class)
+                ? org.fxt.freexmltoolkit.di.ServiceRegistry.get(SchemaResourceCache.class)
+                : getInstance();
     }
 
     /**
@@ -168,7 +206,7 @@ public class SchemaResourceCache {
         }
 
         // Check if file exists on disk (might have been cached in previous session)
-        Path localPath = CACHE_DIR.resolve(filename);
+        Path localPath = cacheDir.resolve(filename);
         if (Files.exists(localPath)) {
             urlToLocalPath.put(url, localPath);
             cacheHits.incrementAndGet();
@@ -221,7 +259,7 @@ public class SchemaResourceCache {
             }
 
             // Save index after download
-            cacheIndex.save(INDEX_FILE);
+            cacheIndex.save(indexFile);
 
             urlToLocalPath.put(url, localPath);
             logger.info("Cached remote schema: {} -> {}", url, localPath);
@@ -395,7 +433,7 @@ public class SchemaResourceCache {
         }
         for (SchemaCacheEntry entry : cacheIndex.getEntries().values()) {
             if (entry.schema() != null && targetNamespace.equals(entry.schema().targetNamespace())) {
-                Path localPath = CACHE_DIR.resolve(entry.localFilename());
+                Path localPath = cacheDir.resolve(entry.localFilename());
                 if (Files.exists(localPath)) {
                     cacheHits.incrementAndGet();
                     cacheIndex.recordAccess(entry.localFilename());
@@ -420,8 +458,81 @@ public class SchemaResourceCache {
         }
 
         String filename = generateFilename(url);
-        Path localPath = CACHE_DIR.resolve(filename);
+        Path localPath = cacheDir.resolve(filename);
         return Files.exists(localPath);
+    }
+
+    /**
+     * Snapshot of all index entries, newest download first.
+     *
+     * @return an immutable, timestamp-sorted list of cache entries
+     */
+    public synchronized List<SchemaCacheEntry> listEntries() {
+        return cacheIndex.getEntries().values().stream()
+                .sorted(java.util.Comparator.comparing(SchemaCacheEntry::downloadTimestamp,
+                        java.util.Comparator.nullsLast(java.util.Comparator.reverseOrder())))
+                .toList();
+    }
+
+    /**
+     * Resolves the local on-disk path of a cache entry.
+     *
+     * @param entry the cache entry
+     * @return the path of the cached file inside this cache's directory
+     */
+    public Path pathOf(SchemaCacheEntry entry) {
+        return cacheDir.resolve(entry.localFilename());
+    }
+
+    /**
+     * Looks up the cache entry for a remote URL.
+     *
+     * @param url the remote URL
+     * @return the matching entry, or empty if the URL is not cached
+     */
+    public synchronized Optional<SchemaCacheEntry> entryForUrl(String url) {
+        return cacheIndex.getEntryByUrl(url);
+    }
+
+    /**
+     * Deletes the cached file and its index entry.
+     *
+     * @param localFilename the local filename of the entry to remove
+     * @return false if no such entry exists
+     */
+    public synchronized boolean removeEntry(String localFilename) {
+        SchemaCacheEntry entry = cacheIndex.getEntry(localFilename).orElse(null);
+        if (entry == null) {
+            return false;
+        }
+        try {
+            Files.deleteIfExists(cacheDir.resolve(localFilename));
+        } catch (IOException e) {
+            logger.warn("Could not delete cached schema {}: {}", localFilename, e.getMessage());
+        }
+        urlToLocalPath.values().removeIf(p -> p.getFileName().toString().equals(localFilename));
+        cacheIndex.removeEntry(localFilename);
+        saveIndex();
+        return true;
+    }
+
+    /**
+     * Re-downloads {@code url}, replacing the cached copy.
+     *
+     * @param url the remote URL to refresh
+     * @return the refreshed local path, or empty on an unsafe URL or download failure
+     */
+    public Optional<Path> refresh(String url) {
+        if (!PathValidator.isUrlSafeToAccess(url)) {
+            return Optional.empty();
+        }
+        removeEntry(generateFilename(url));
+        try {
+            return Optional.of(getOrDownload(url));
+        } catch (IOException e) {
+            logger.warn("Refresh failed for {}: {}", url, e.getMessage());
+            return Optional.empty();
+        }
     }
 
     /**
@@ -433,8 +544,8 @@ public class SchemaResourceCache {
         int deleted = 0;
 
         try {
-            if (Files.exists(CACHE_DIR)) {
-                File[] files = CACHE_DIR.toFile().listFiles();
+            if (Files.exists(cacheDir)) {
+                File[] files = cacheDir.toFile().listFiles();
                 if (files != null) {
                     for (File file : files) {
                         if (file.delete()) {
@@ -467,8 +578,8 @@ public class SchemaResourceCache {
         long totalSize = 0;
 
         try {
-            if (Files.exists(CACHE_DIR)) {
-                File[] files = CACHE_DIR.toFile().listFiles();
+            if (Files.exists(cacheDir)) {
+                File[] files = cacheDir.toFile().listFiles();
                 if (files != null) {
                     totalFiles = files.length;
                     for (File file : files) {
@@ -495,7 +606,7 @@ public class SchemaResourceCache {
      * @return the cache directory path
      */
     public Path getCacheDirectory() {
-        return CACHE_DIR;
+        return cacheDir;
     }
 
     /**
@@ -511,7 +622,7 @@ public class SchemaResourceCache {
      * Saves the cache index to disk.
      */
     public void saveIndex() {
-        cacheIndex.save(INDEX_FILE);
+        cacheIndex.save(indexFile);
     }
 
     /**
@@ -548,14 +659,14 @@ public class SchemaResourceCache {
      */
     private void loadExistingCache() {
         try {
-            if (Files.exists(CACHE_DIR)) {
-                logger.debug("Loading existing schema cache from: {}", CACHE_DIR);
+            if (Files.exists(cacheDir)) {
+                logger.debug("Loading existing schema cache from: {}", cacheDir);
 
                 // Rebuild URL-to-path mappings from index
                 for (var entry : cacheIndex.getEntries().entrySet()) {
                     String filename = entry.getKey();
                     SchemaCacheEntry cacheEntry = entry.getValue();
-                    Path localPath = CACHE_DIR.resolve(filename);
+                    Path localPath = cacheDir.resolve(filename);
 
                     if (Files.exists(localPath) && cacheEntry.remoteUrl() != null) {
                         urlToLocalPath.put(cacheEntry.remoteUrl(), localPath);
@@ -563,7 +674,7 @@ public class SchemaResourceCache {
                 }
 
                 // Also scan for files not in index (from previous versions)
-                File[] files = CACHE_DIR.toFile().listFiles();
+                File[] files = cacheDir.toFile().listFiles();
                 if (files != null) {
                     for (File file : files) {
                         if (file.isFile() && !file.getName().equals("cache-index.json")) {
@@ -594,7 +705,7 @@ public class SchemaResourceCache {
                 }
 
                 // Save updated index
-                cacheIndex.save(INDEX_FILE);
+                cacheIndex.save(indexFile);
             }
         } catch (Exception e) {
             logger.warn("Error loading existing cache", e);

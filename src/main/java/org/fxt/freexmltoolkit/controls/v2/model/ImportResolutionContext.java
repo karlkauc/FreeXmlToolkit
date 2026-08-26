@@ -61,7 +61,7 @@ final class ImportResolutionContext {
 
     SchemaResourceCache schemaCache() {
         if (schemaCache == null) {
-            schemaCache = new SchemaResourceCache();
+            schemaCache = SchemaResourceCache.shared();
         }
         return schemaCache;
     }
