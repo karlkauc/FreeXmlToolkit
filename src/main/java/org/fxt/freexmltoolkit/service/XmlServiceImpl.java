@@ -2301,23 +2301,26 @@ public class XmlServiceImpl implements XmlService {
 
     /**
      * Lists MD5-named directories in the schema cache root (excluding 'schemas' directory).
+     * Does not follow symlinks to prevent deleting target contents outside the cache.
      * @param cacheRoot the root directory to scan
      * @return sorted list of MD5-named Path objects, or empty list if cacheRoot doesn't exist
      */
     static java.util.List<Path> listAutoDetectedSchemaCacheDirs(Path cacheRoot) {
         if (!Files.isDirectory(cacheRoot)) return java.util.List.of();
         try (var s = Files.list(cacheRoot)) {
-            return s.filter(Files::isDirectory)
+            return s.filter(p -> Files.isDirectory(p, java.nio.file.LinkOption.NOFOLLOW_LINKS))
+                    .filter(p -> !Files.isSymbolicLink(p))
                     .filter(p -> MD5_DIR.matcher(p.getFileName().toString()).matches())
                     .sorted().toList();
         } catch (IOException e) {
-            LogManager.getLogger(XmlService.class).warn("Cannot list schema cache {}: {}", cacheRoot, e.getMessage());
+            logger.warn("Cannot list schema cache {}: {}", cacheRoot, e.getMessage());
             return java.util.List.of();
         }
     }
 
     /**
      * Recursively deletes all MD5-named directories and their contents in the schema cache.
+     * Does not follow symlinks.
      * @param cacheRoot the root directory to clean
      * @return total number of files deleted
      */
@@ -2330,7 +2333,7 @@ public class XmlServiceImpl implements XmlService {
                     Files.deleteIfExists(p);
                 }
             } catch (IOException e) {
-                LogManager.getLogger(XmlService.class).warn("Cannot delete {}: {}", dir, e.getMessage());
+                logger.warn("Cannot delete {}: {}", dir, e.getMessage());
             }
         }
         return deleted;

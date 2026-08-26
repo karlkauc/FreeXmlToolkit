@@ -18,4 +18,28 @@ class XmlServiceLegacySchemaCacheTest {
         assertFalse(Files.exists(md5));
         assertTrue(Files.exists(root.resolve("schemas").resolve("keep.xsd")));
     }
+
+    @Test void symlinksAreNotFollowed(@TempDir Path root, @TempDir Path external) throws Exception {
+        // Create a file outside the cache root
+        Files.writeString(external.resolve("target-file.txt"), "content");
+
+        // Create an MD5-named symlink inside cache root pointing to the external dir
+        Path symlink = root.resolve("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
+        try {
+            Files.createSymbolicLink(symlink, external);
+        } catch (UnsupportedOperationException e) {
+            // Platform doesn't support symlinks; skip test
+            org.junit.jupiter.api.Assumptions.assumeTrue(false, "Platform does not support symlinks");
+        }
+
+        // Verify symlink is not listed as a cache directory
+        assertTrue(XmlServiceImpl.listAutoDetectedSchemaCacheDirs(root).isEmpty(),
+                   "Symlinks should not be listed as MD5 directories");
+
+        // Verify clearing cache doesn't delete the external file
+        assertEquals(0, XmlServiceImpl.clearAutoDetectedSchemaCache(root),
+                     "Should not delete files when no real MD5 dirs exist");
+        assertTrue(Files.exists(external.resolve("target-file.txt")),
+                   "External file should not be deleted");
+    }
 }
