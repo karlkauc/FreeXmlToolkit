@@ -5,6 +5,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.stage.FileChooser;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.domain.EntrySource;
@@ -88,8 +89,20 @@ public class SchemaLibraryEntryDialog extends Dialog<SchemaLibraryEntry> {
         grid.addRow(3, new Label("Root element:"), rootElement);
         grid.addRow(4, new Label("Description:"), description);
         grid.add(error, 0, 5, 2, 1);
+        // Label column sized to its content, input column takes the rest so the fields fill
+        // the dialog width instead of shrinking to their prompt text.
+        javafx.scene.layout.ColumnConstraints labelCol = new javafx.scene.layout.ColumnConstraints();
+        labelCol.setMinWidth(Region.USE_PREF_SIZE);
+        javafx.scene.layout.ColumnConstraints fieldCol = new javafx.scene.layout.ColumnConstraints();
+        fieldCol.setHgrow(Priority.ALWAYS);
+        fieldCol.setFillWidth(true);
+        grid.getColumnConstraints().addAll(labelCol, fieldCol);
         GridPane.setHgrow(namespace, Priority.ALWAYS);
         GridPane.setHgrow(locationRow, Priority.ALWAYS);
+        GridPane.setHgrow(kind, Priority.ALWAYS);
+        GridPane.setHgrow(rootElement, Priority.ALWAYS);
+        GridPane.setHgrow(description, Priority.ALWAYS);
+        kind.setMaxWidth(Double.MAX_VALUE);
         getDialogPane().setContent(grid);
         getDialogPane().setPrefWidth(560);
 

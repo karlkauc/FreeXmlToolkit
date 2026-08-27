@@ -24,6 +24,19 @@
     -fx-padding: 20px;
 }
 
+/* light-theme.css / dark-theme.css give .text-field and .text-area a flat single-layer
+ * background (no border), which is invisible here because .dialog-pane above uses the same
+ * -bg-primary color: a field and its dialog background are the same white/dark shade with
+ * zero contrast at rest (only the :focused rule adds a border). Give every text input inside
+ * a dialog an explicit resting border so it reads as an editable field. Higher specificity
+ * than the plain ".text-field" selector wins the cascade regardless of stylesheet order. */
+.dialog-pane .text-field,
+.dialog-pane .text-area {
+    -fx-border-color: -border-medium;
+    -fx-border-width: 1px;
+    -fx-border-radius: 6px;
+}
+
 .dialog-pane > .button-bar {
     -fx-background-color: -bg-secondary;
     -fx-border-color: -border-light;

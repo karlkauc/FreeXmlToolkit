@@ -83,9 +83,10 @@ public class SchemaLibraryPanel extends VBox {
             t.setClosable(false);
             t.getStyleClass().add("utility-tab");
         }
-        mappingsTab.setGraphic(new IconifyIcon("bi-diagram-3"));
-        catalogsTab.setGraphic(new IconifyIcon("bi-journal-bookmark"));
-        cacheTab.setGraphic(new IconifyIcon("bi-hdd"));
+        // No tab-graphic icons here: at the default side-panel width (~260px) an icon per tab
+        // pushes the header past the available space and the Cache tab lands in the overflow
+        // menu. Text-only labels plus a zero min width let all three tabs fit.
+        tabs.setTabMinWidth(0);
         tabs.setId("schema-library-tabs");
         tabs.getTabs().addAll(mappingsTab, catalogsTab, cacheTab);
         VBox.setVgrow(tabs, Priority.ALWAYS);
@@ -140,12 +141,21 @@ public class SchemaLibraryPanel extends VBox {
         TableColumn<SchemaLibraryEntry, String> nsCol = new TableColumn<>("Namespace");
         nsCol.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(
                 namespaceLabel(cd.getValue())));
+        nsCol.setCellFactory(c -> tooltipCell());
+        nsCol.setMinWidth(60);
         TableColumn<SchemaLibraryEntry, String> locCol = new TableColumn<>("Location");
         locCol.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(cd.getValue().location()));
+        locCol.setCellFactory(c -> tooltipCell());
+        locCol.setMinWidth(60);
+        // Kind and Source are hidden by default: at the default ~260px side-panel width there
+        // is only room for Namespace/Location to stay readable. Both remain reachable via the
+        // table's column-visibility menu button (setTableMenuButtonVisible below).
         TableColumn<SchemaLibraryEntry, String> kindCol = new TableColumn<>("Kind");
         kindCol.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(cd.getValue().kind().label()));
+        kindCol.setVisible(false);
         TableColumn<SchemaLibraryEntry, String> srcCol = new TableColumn<>("Source");
         srcCol.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(cd.getValue().source().name().toLowerCase(Locale.ROOT)));
+        srcCol.setVisible(false);
         TableColumn<SchemaLibraryEntry, Boolean> enabledCol = new TableColumn<>("On");
         enabledCol.setCellValueFactory(cd -> new javafx.beans.property.SimpleBooleanProperty(cd.getValue().enabled()));
         enabledCol.setCellFactory(c -> new CheckBoxTableCell<>(idx -> {
@@ -160,8 +170,9 @@ public class SchemaLibraryPanel extends VBox {
             });
             return prop;
         }));
-        enabledCol.setPrefWidth(40);
+        enabledCol.setPrefWidth(40); enabledCol.setMinWidth(40); enabledCol.setMaxWidth(40);
         mappings.getColumns().setAll(java.util.List.of(statusCol, nsCol, locCol, kindCol, srcCol, enabledCol));
+        mappings.setTableMenuButtonVisible(true);
         mappings.setRowFactory(tv -> {
             TableRow<SchemaLibraryEntry> row = new TableRow<>() {
                 @Override protected void updateItem(SchemaLibraryEntry item, boolean empty) {
@@ -282,21 +293,29 @@ public class SchemaLibraryPanel extends VBox {
         cacheTable.setPlaceholder(new Label("No cached remote schemas."));
         TableColumn<SchemaCacheEntry, String> url = new TableColumn<>("URL");
         url.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(urlOf(cd.getValue())));
+        url.setCellFactory(c -> tooltipCell());
+        url.setMinWidth(80);
         TableColumn<SchemaCacheEntry, String> ns = new TableColumn<>("Target namespace");
         ns.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(
                 cd.getValue().schema() == null || cd.getValue().schema().targetNamespace() == null ? "" : cd.getValue().schema().targetNamespace()));
+        ns.setCellFactory(c -> tooltipCell());
         TableColumn<SchemaCacheEntry, String> size = new TableColumn<>("Size");
         size.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(
                 org.apache.commons.io.FileUtils.byteCountToDisplaySize(cd.getValue().fileSizeBytes())));
+        // Downloaded and Hits are hidden by default to keep URL/Size readable at the default
+        // ~260px side-panel width; both remain reachable via the table menu button below.
         TableColumn<SchemaCacheEntry, String> when = new TableColumn<>("Downloaded");
         when.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(
                 cd.getValue().downloadTimestamp() == null ? "" :
                         java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
                                 .withZone(java.time.ZoneId.systemDefault()).format(cd.getValue().downloadTimestamp())));
+        when.setVisible(false);
         TableColumn<SchemaCacheEntry, String> hits = new TableColumn<>("Hits");
         hits.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(
                 cd.getValue().usage() == null ? "0" : String.valueOf(cd.getValue().usage().accessCount())));
+        hits.setVisible(false);
         cacheTable.getColumns().setAll(java.util.List.of(url, ns, size, when, hits));
+        cacheTable.setTableMenuButtonVisible(true);
         cacheTable.setRowFactory(tv -> {
             TableRow<SchemaCacheEntry> row = new TableRow<>();
             row.setOnMouseClicked(ev -> { if (ev.getClickCount() == 2 && !row.isEmpty()) editorHost.openFile(cache.pathOf(row.getItem()).toFile()); });
@@ -580,6 +599,26 @@ public class SchemaLibraryPanel extends VBox {
     }
 
     void setStatus(String text) { status.setText(text == null ? "" : text); }
+
+    /**
+     * Text cell whose tooltip always carries the full, untruncated value — the column itself
+     * may be narrower than the text (namespace URIs, remote URLs) and JavaFX clips the label
+     * with an ellipsis, so hovering is the only way to read the rest.
+     */
+    private static <T> TableCell<T, String> tooltipCell() {
+        return new TableCell<>() {
+            @Override protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null || item.isEmpty()) {
+                    setText(null);
+                    setTooltip(null);
+                } else {
+                    setText(item);
+                    setTooltip(new Tooltip(item));
+                }
+            }
+        };
+    }
 
     private static IconifyIcon icon(String literal, String color) {
         IconifyIcon i = new IconifyIcon(literal);

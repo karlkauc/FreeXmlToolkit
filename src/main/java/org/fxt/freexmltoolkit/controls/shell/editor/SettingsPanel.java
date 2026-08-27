@@ -254,6 +254,7 @@ public class SettingsPanel extends VBox {
         initFileAssociationControls();
 
         schemaLibraryAutoBind.setId("settings-schema-library-autobind");
+        schemaLibraryAutoBind.setWrapText(true);
         manageSchemaCache.setId("settings-manage-schema-cache");
         manageSchemaCache.setGraphic(iconGraphic("bi-collection"));
         manageSchemaCache.setOnAction(e -> manageSchemaCacheAction.run());
