@@ -1375,7 +1375,6 @@ public class XsdDocumentationService {
             NodeList includeNodes = (NodeList) xpath.evaluate("//xs:include[@schemaLocation]", document, XPathConstants.NODESET);
             NodeList importNodes = (NodeList) xpath.evaluate("//xs:import[@schemaLocation]", document, XPathConstants.NODESET);
             
-            boolean modified = false;
 
             // Process xs:include elements (local files)
             for (int i = 0; i < includeNodes.getLength(); i++) {
@@ -1399,39 +1398,25 @@ public class XsdDocumentationService {
                 String location = importElement.getAttribute("schemaLocation");
 
                 if (isRemote(location)) {
-                    String fileName = getFileNameFromUrl(location);
-                    if (fileName.isEmpty()) {
-                        logger.warn("Could not determine filename from URL, skipping: {}", location);
-                        continue;
-                    }
-
-                    // Rewrite path even if already processed, to ensure consistency
-                    if (!importElement.getAttribute("schemaLocation").equals(fileName)) {
-                        importElement.setAttribute("schemaLocation", fileName);
-                        modified = true;
-                    }
-
                     if (processedUrls.contains(location)) {
-                        continue; // Already downloaded
+                        continue; // Already resolved
                     }
-
+                    // Never touch the user's files: a remote import is resolved through the
+                    // Schema Library / XML catalogs first and otherwise fetched into the shared
+                    // schema cache (proxy-aware, SSRF-checked). The DOM is only updated in
+                    // memory — the source schema on disk is left byte-for-byte unchanged.
                     try {
-                        Path localPath = baseDirectory.resolve(fileName);
-
-                        if (Files.exists(localPath)) {
-                            logger.info("Skipping download, file already exists locally: {}", localPath);
-                        } else {
-                            logger.info("Downloading remote schema from {} to {}", location, localPath);
-                            try (InputStream in = new URI(location).toURL().openStream()) {
-                                Files.copy(in, localPath);
-                            }
+                        String namespace = importElement.getAttribute("namespace");
+                        Path localPath = resolveRemoteImport(namespace, location, baseDirectory);
+                        if (localPath == null) {
+                            logger.warn("Remote import could not be resolved (offline or unreachable): {}", location);
+                            continue;
                         }
-
-                        // Add the downloaded file to the processing queue
+                        importElement.setAttribute("schemaLocation", localPath.toUri().toString());
                         filesToProcess.add(localPath);
                         processedUrls.add(location);
                     } catch (Exception e) {
-                        logger.error("Failed to download or process remote schema: {}", location, e);
+                        logger.error("Failed to resolve remote schema: {}", location, e);
                     }
                 } else if (!location.isEmpty()) {
                     // Handle local imports
@@ -1445,18 +1430,6 @@ public class XsdDocumentationService {
                 }
             }
 
-            if (modified) {
-                logger.info("Rewriting schema file with updated local paths: {}", currentFile);
-                try (Writer writer = Files.newBufferedWriter(currentFile, StandardCharsets.UTF_8)) {
-                    TransformerFactory factory = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureTransformerFactory();
-                    factory.setFeature(javax.xml.XMLConstants.FEATURE_SECURE_PROCESSING, true);
-                    Transformer transformer = factory.newTransformer();
-                    transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-                    transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", String.valueOf(ServiceRegistry.get(PropertiesService.class).getXmlIndentSpaces()));
-                    transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
-                    transformer.transform(new DOMSource(document), new StreamResult(writer));
-                }
-            }
         }
     }
 
@@ -3891,6 +3864,29 @@ public class XsdDocumentationService {
                 .replace(">", "&gt;")
                 .replace("\"", "&quot;")
                 .replace("'", "&apos;");
+    }
+
+    /**
+     * Resolves a remote {@code xs:import} to a local file without writing into the user's
+     * directory: Schema Library / catalog mappings first, then the shared schema cache
+     * (downloads only when allowed by the offline rule). Returns {@code null} on a miss.
+     */
+    private Path resolveRemoteImport(String namespace, String location, Path baseDirectory) {
+        SchemaLibraryService library = SchemaLibraryServiceImpl.shared();
+        String baseUri = baseDirectory != null ? baseDirectory.toUri().toString() : null;
+        return SchemaLibraryLookup.localFileFor(library, namespace, location, baseUri, library.isRemoteDownloadAllowed())
+                .or(() -> {
+                    if (!library.isRemoteDownloadAllowed() || !PathValidator.isUrlSafeToAccess(location)) {
+                        return java.util.Optional.empty();
+                    }
+                    try {
+                        return java.util.Optional.of(SchemaResourceCache.shared().getOrDownload(location));
+                    } catch (java.io.IOException e) {
+                        logger.warn("Cannot download imported schema {}: {}", location, e.getMessage());
+                        return java.util.Optional.empty();
+                    }
+                })
+                .orElse(null);
     }
 
     private boolean isRemote(String location) {
