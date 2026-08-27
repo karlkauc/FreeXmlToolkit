@@ -2,6 +2,11 @@ package org.fxt.freexmltoolkit.controls.shell.editor;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.fxt.freexmltoolkit.controls.v2.editor.flatten.FlattenOptions;
 import org.junit.jupiter.api.Test;
 
@@ -43,6 +48,49 @@ class SchemaActionRunnerTest {
         assertTrue(report.contains("Schema Statistics"), report);
         assertTrue(report.contains("Complex types:"), report);
         assertTrue(report.contains("Elements:"), report);
+    }
+
+    /**
+     * Regression test for issue #36: {@code xsheet-master.xsd} imports 7 sibling schemas via
+     * relative {@code schemaLocation}s. Without a base directory those imports cannot be
+     * resolved from disk and are simply dropped (a namespace-URL download is attempted in the
+     * real app, but is disabled here via {@code fxt.schema.namespaceFallback=false}); with the
+     * document's directory as base directory the imports resolve locally and their elements/types
+     * are counted too (via {@code XsdStatisticsCollector} walking {@code getImportedSchemas()}).
+     */
+    @Test
+    void statisticsWithBaseDirectoryResolvesRelativeImports() throws Exception {
+        String xsheetMaster = Files.readString(Path.of("src/test/resources/xsd/xsheet/xsheet-master.xsd"));
+        Path xsheetDir = Path.of("src/test/resources/xsd/xsheet");
+
+        String withoutBaseDir = SchemaActionRunner.statistics(xsheetMaster);
+        String withBaseDir = SchemaActionRunner.statistics(xsheetMaster, xsheetDir);
+
+        assertFalse(withoutBaseDir.startsWith("ERROR:"), withoutBaseDir);
+        assertFalse(withBaseDir.startsWith("ERROR:"), withBaseDir);
+
+        int elementsWithout = intAfter(withoutBaseDir, "Elements:");
+        int elementsWith = intAfter(withBaseDir, "Elements:");
+        int complexTypesWithout = intAfter(withoutBaseDir, "Complex types:");
+        int complexTypesWith = intAfter(withBaseDir, "Complex types:");
+
+        // With the base directory, the imported schemas' global elements/complex types
+        // (e.g. ExposureSheet + ProductionType/TimelineType/FrameType/LayerType from
+        // xsheet-core.xsd) are counted; without it, master.xsd alone has none of these.
+        assertTrue(complexTypesWith > 0, "expected complex types from imported schemas: " + withBaseDir);
+        assertTrue(elementsWith > elementsWithout,
+                "base directory should resolve imports and increase the element count: "
+                        + withoutBaseDir + "\n---\n" + withBaseDir);
+        assertTrue(complexTypesWith > complexTypesWithout,
+                "base directory should resolve imports and increase the complex type count: "
+                        + withoutBaseDir + "\n---\n" + withBaseDir);
+    }
+
+    /** Extracts the integer following a report label like {@code "Elements:        3"}. */
+    private static int intAfter(String report, String label) {
+        Matcher m = Pattern.compile(Pattern.quote(label) + "\\s*(\\d+)").matcher(report);
+        assertTrue(m.find(), "label '" + label + "' not found in: " + report);
+        return Integer.parseInt(m.group(1));
     }
 
     @Test

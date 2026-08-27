@@ -67,8 +67,22 @@ public final class SchemaActionRunner {
 
     /** Collects schema statistics into a plain-text report. @return report or {@code "ERROR: …"}. */
     public static String statistics(String xsdContent) {
+        return statistics(xsdContent, null);
+    }
+
+    /**
+     * Collects schema statistics, resolving relative {@code xs:import}/{@code xs:include}
+     * {@code schemaLocation}s against {@code baseDirectory} (issue #36: without a base directory
+     * relative imports fall back to a namespace-URL download instead of being read from disk).
+     *
+     * @return report or {@code "ERROR: …"}.
+     */
+    public static String statistics(String xsdContent, Path baseDirectory) {
         try {
-            XsdSchema schema = new XsdNodeFactory().fromString(xsdContent);
+            XsdNodeFactory factory = new XsdNodeFactory();
+            XsdSchema schema = baseDirectory != null
+                    ? factory.fromString(xsdContent, baseDirectory)
+                    : factory.fromString(xsdContent);
             XsdStatistics s = new XsdStatisticsCollector(schema).collect();
             java.util.Set<String> unused = s.unusedTypes() == null
                     ? java.util.Set.of() : s.unusedTypes();
@@ -115,8 +129,22 @@ public final class SchemaActionRunner {
      * @return the report text, or {@code "ERROR: …"} if the schema could not be parsed
      */
     public static String qualityReport(String xsdContent) {
+        return qualityReport(xsdContent, null);
+    }
+
+    /**
+     * Runs the V2 {@link XsdQualityChecker}, resolving relative {@code xs:import}/{@code xs:include}
+     * {@code schemaLocation}s against {@code baseDirectory} (issue #36: without a base directory
+     * relative imports fall back to a namespace-URL download instead of being read from disk).
+     *
+     * @return the report text, or {@code "ERROR: …"} if the schema could not be parsed
+     */
+    public static String qualityReport(String xsdContent, Path baseDirectory) {
         try {
-            XsdSchema schema = new XsdNodeFactory().fromString(xsdContent);
+            XsdNodeFactory factory = new XsdNodeFactory();
+            XsdSchema schema = baseDirectory != null
+                    ? factory.fromString(xsdContent, baseDirectory)
+                    : factory.fromString(xsdContent);
             XsdQualityChecker.QualityResult result = new XsdQualityChecker(schema).check();
 
             StringBuilder sb = new StringBuilder();

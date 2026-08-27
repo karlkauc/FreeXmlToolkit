@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import javafx.scene.Scene;
@@ -156,6 +157,63 @@ class TypeLibraryPanelTest {
         WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS, () -> host.getOpenDocuments().stream()
                 .anyMatch(d -> d.getPath() != null && d.getPath().equals(xsd)));
         org.mockito.Mockito.verify(event).setDropCompleted(true);
+    }
+
+    /**
+     * Regression test for issue #36: {@code xsheet-master.xsd} imports 7 sibling schemas via
+     * relative {@code schemaLocation}s (e.g. {@code xsheet-core.xsd}). Opening the file directly
+     * from {@code src/test/resources/xsd/xsheet/} (siblings present on disk, unlike a copy into an
+     * isolated {@code @TempDir}) exercises {@code EditorHost.resolveActiveSchemaForLibrary()},
+     * which must thread the document's directory into the parse so the imports resolve locally
+     * instead of falling back to a namespace-URL download.
+     */
+    @Test
+    void typeLibraryListsTypesFromRelativelyImportedSchema() throws Exception {
+        Path master = Path.of("src/test/resources/xsd/xsheet/xsheet-master.xsd").toAbsolutePath();
+        assertTrue(Files.exists(master), "fixture missing: " + master);
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(master));
+        WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("xsheet-core.xsd")).orElse(false));
+        WaitForAsyncUtils.waitForFxEvents();
+
+        // schema-elements-list / schema-complex-list are populated from
+        // EditorHost.resolveActiveSchemaForLibrary(); wait for the async refresh to pick up
+        // ExposureSheet + the four complex types declared in the imported xsheet-core.xsd.
+        WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS,
+                () -> list("schema-complex-list").getItems().size() >= 4);
+
+        List<String> elementNames = list("schema-elements-list").getItems().stream()
+                .map(XsdNode::getName).toList();
+        List<String> complexTypeNames = list("schema-complex-list").getItems().stream()
+                .map(XsdNode::getName).toList();
+
+        assertTrue(elementNames.contains("ExposureSheet"),
+                "expected the global element from xsheet-core.xsd: " + elementNames);
+        assertTrue(complexTypeNames.contains("ProductionType"),
+                "expected a complex type from xsheet-core.xsd: " + complexTypeNames);
+
+        // The import must have resolved via the local file, not a namespace-URL download.
+        // XsdSchemaReference.isResolved() is never true (known gotcha) — check
+        // getResolvedPath() != null instead.
+        var schemaRoot = host.getActiveSchemaRoot();
+        // Force the Tree view to parse (getActiveSchemaRoot() only reflects an already-built
+        // structured view), matching how a user would inspect the imports after Find/Reveal.
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.setActiveViewMode(ViewMode.TREE);
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        schemaRoot = host.getActiveSchemaRoot();
+        assertTrue(schemaRoot.isPresent(), "the Tree view should have parsed the schema");
+        List<org.fxt.freexmltoolkit.controls.v2.model.XsdImport> imports = schemaRoot.get().getChildren().stream()
+                .filter(org.fxt.freexmltoolkit.controls.v2.model.XsdImport.class::isInstance)
+                .map(org.fxt.freexmltoolkit.controls.v2.model.XsdImport.class::cast)
+                .toList();
+        assertEquals(7, imports.size(), "xsheet-master.xsd declares 7 imports");
+        assertTrue(imports.stream().allMatch(i -> i.getResolvedPath() != null),
+                "all 7 relative imports must resolve against the document's directory: "
+                        + imports.stream().map(i -> i.getSchemaLocation() + "=" + i.getResolvedPath()).toList());
     }
 
     @Test

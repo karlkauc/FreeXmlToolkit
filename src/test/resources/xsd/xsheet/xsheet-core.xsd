@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    targetNamespace="http://schemas.animation.org/xsheet/core"
+    xmlns="http://schemas.animation.org/xsheet/core"
+    elementFormDefault="qualified">
+
+    <xs:element name="ExposureSheet">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="Production" type="ProductionType"/>
+                <xs:element name="Timeline" type="TimelineType"/>
+            </xs:sequence>
+            <xs:attribute name="version" type="xs:string" use="required"/>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:complexType name="ProductionType">
+        <xs:sequence>
+            <xs:element name="Title" type="xs:string"/>
+            <xs:element name="SceneNumber" type="xs:string"/>
+            <xs:element name="ShotNumber" type="xs:string"/>
+            <xs:element name="FrameRate" type="xs:positiveInteger"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="TimelineType">
+        <xs:sequence>
+            <xs:element name="Frame" type="FrameType" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="FrameType">
+        <xs:sequence>
+            <xs:element name="Layer" type="LayerType" maxOccurs="unbounded"/>
+        </xs:sequence>
+        <xs:attribute name="number" type="xs:positiveInteger" use="required"/>
+    </xs:complexType>
+
+    <xs:complexType name="LayerType">
+        <xs:sequence>
+            <xs:element name="Drawing" type="xs:string"/>
+        </xs:sequence>
+        <xs:attribute name="name" type="xs:string" use="required"/>
+    </xs:complexType>
+
+</xs:schema>

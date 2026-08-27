@@ -213,8 +213,25 @@ public class XsdTreeView extends TreeView<XsdNode> implements XmlSearchTarget {
      * @return {@code true} if parsing succeeded; on failure the tree is cleared
      */
     public boolean setXsdFromText(String xsdContent) {
+        return setXsdFromText(xsdContent, null);
+    }
+
+    /**
+     * Parses XSD text and renders it, resolving relative {@code xs:import}/{@code xs:include}
+     * {@code schemaLocation}s against {@code schemaFile}'s directory when it is on disk (issue #36:
+     * without a base directory, relative imports fall back to a namespace-URL download instead of
+     * being read from disk).
+     *
+     * @param schemaFile the document's path on disk, or {@code null} when unsaved/not on disk
+     * @return {@code true} if parsing succeeded; on failure the tree is cleared
+     */
+    public boolean setXsdFromText(String xsdContent, java.nio.file.Path schemaFile) {
         try {
-            setSchema(new XsdNodeFactory().fromString(xsdContent));
+            XsdNodeFactory factory = new XsdNodeFactory();
+            XsdSchema schema = schemaFile != null
+                    ? factory.fromStringWithSchemaFile(xsdContent, schemaFile, schemaFile.getParent())
+                    : factory.fromString(xsdContent);
+            setSchema(schema);
             return true;
         } catch (Exception e) {
             setRoot(null);

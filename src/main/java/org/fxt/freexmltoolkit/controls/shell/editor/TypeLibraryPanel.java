@@ -222,8 +222,10 @@ public class TypeLibraryPanel extends VBox {
             return;
         }
         String xsd = editorHost.getActiveText().orElse("");
+        java.nio.file.Path baseDir = editorHost.getActiveDocument().map(OpenDocument::getPath)
+                .map(java.nio.file.Path::getParent).orElse(null);
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
-            java.util.List<String> usages = TypeUsageRunner.findUsages(xsd, typeName);
+            java.util.List<String> usages = TypeUsageRunner.findUsages(xsd, baseDir, typeName);
             StringBuilder report = new StringBuilder("Usages of type '").append(typeName).append("'\n");
             report.append("=".repeat(report.length() - 1)).append('\n');
             if (usages.isEmpty()) {
@@ -294,12 +296,18 @@ public class TypeLibraryPanel extends VBox {
 
     /** Collects statistics for the active XSD and opens a text report (async). */
     public void statisticsActive() {
-        runAsync(SchemaActionRunner::statistics, EditorFileType.OTHER, "Statistics.txt");
+        java.nio.file.Path baseDir = editorHost.getActiveDocument().map(OpenDocument::getPath)
+                .map(java.nio.file.Path::getParent).orElse(null);
+        runAsync(content -> SchemaActionRunner.statistics(content, baseDir),
+                EditorFileType.OTHER, "Statistics.txt");
     }
 
     /** Runs the schema quality checker and opens its report in a new tab. */
     public void qualityActive() {
-        runAsync(SchemaActionRunner::qualityReport, EditorFileType.OTHER, "SchemaQuality.txt");
+        java.nio.file.Path baseDir = editorHost.getActiveDocument().map(OpenDocument::getPath)
+                .map(java.nio.file.Path::getParent).orElse(null);
+        runAsync(content -> SchemaActionRunner.qualityReport(content, baseDir),
+                EditorFileType.OTHER, "SchemaQuality.txt");
     }
 
     /**

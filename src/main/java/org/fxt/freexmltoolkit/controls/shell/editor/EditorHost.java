@@ -614,8 +614,14 @@ public class EditorHost extends BorderPane {
             var doc = getActiveDocument();
             if (doc.isPresent() && doc.get().getFileType() == EditorFileType.XSD) {
                 try {
-                    schema = new org.fxt.freexmltoolkit.controls.v2.model.XsdNodeFactory()
-                            .fromString(getActiveText().orElse(""));
+                    var factory = new org.fxt.freexmltoolkit.controls.v2.model.XsdNodeFactory();
+                    java.nio.file.Path path = doc.get().getPath();
+                    // Resolve relative xs:import/xs:include against the file's directory when
+                    // it is on disk, so the Type Library sees externally defined types instead
+                    // of falling back to a namespace-URL download (issue #36).
+                    schema = path != null
+                            ? factory.fromStringWithSchemaFile(getActiveText().orElse(""), path, path.getParent())
+                            : factory.fromString(getActiveText().orElse(""));
                 } catch (Exception ignored) {
                     return null;
                 }
@@ -3545,7 +3551,7 @@ public class EditorHost extends BorderPane {
             if (editorContext != null) {
                 treeView.setSchema(editorContext.getSchema());
             } else {
-                treeView.setXsdFromText(view.getText());
+                treeView.setXsdFromText(view.getText(), document.getPath());
             }
         }
 

@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema elementFormDefault="qualified" targetNamespace="http://schemas.animation.org/xsheet/camera" xmlns="http://schemas.animation.org/xsheet/camera" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+<!-- ===================================== -->
+<!-- Root Camera Definition                -->
+<!-- ===================================== -->
+	<xs:element name="Camera">
+		<xs:complexType>
+			<xs:sequence>
+<!-- Optional human-readable move -->
+				<xs:element maxOccurs="unbounded" minOccurs="0" name="CameraMove" type="CameraMoveType"/>
+<!-- Machine-readable animation -->
+				<xs:element maxOccurs="unbounded" minOccurs="1" name="Keyframe" type="CameraKeyframeType"/>
+			</xs:sequence>
+			<xs:attribute name="cameraId" type="xs:string" use="required"/>
+			<xs:attribute name="name" type="xs:string"/>
+			<xs:attribute default="Orthographic" name="projection" type="ProjectionType"/>
+		</xs:complexType>
+	</xs:element>
+<!-- ===================================== -->
+<!-- Human-readable camera moves           -->
+<!-- ===================================== -->
+	<xs:complexType name="CameraMoveType">
+		<xs:sequence>
+			<xs:element minOccurs="0" name="Description" type="xs:string"/>
+		</xs:sequence>
+		<xs:attribute name="type" type="CameraMoveEnum" use="required"/>
+		<xs:attribute name="startFrame" type="xs:positiveInteger" use="required"/>
+		<xs:attribute name="endFrame" type="xs:positiveInteger" use="required"/>
+	</xs:complexType>
+<!-- ===================================== -->
+<!-- Camera Keyframes                      -->
+<!-- ===================================== -->
+	<xs:complexType name="CameraKeyframeType">
+		<xs:attribute name="frame" type="xs:positiveInteger" use="required"/>
+<!-- Position -->
+		<xs:attribute default="0" name="x" type="xs:decimal"/>
+		<xs:attribute default="0" name="y" type="xs:decimal"/>
+		<xs:attribute default="0" name="z" type="xs:decimal"/>
+<!-- Rotation -->
+		<xs:attribute default="0" name="rotationX" type="xs:decimal"/>
+		<xs:attribute default="0" name="rotationY" type="xs:decimal"/>
+		<xs:attribute default="0" name="rotationZ" type="xs:decimal"/>
+<!-- Viewing -->
+		<xs:attribute default="1.0" name="zoom" type="xs:decimal"/>
+		<xs:attribute default="35" name="focalLength" type="xs:decimal"/>
+<!-- Curve -->
+		<xs:attribute default="Bezier" name="interpolation" type="InterpolationType"/>
+<!-- Optional cue -->
+		<xs:attribute name="note" type="xs:string"/>
+	</xs:complexType>
+<!-- ===================================== -->
+<!-- Enumerations                          -->
+<!-- ===================================== -->
+	<xs:simpleType name="CameraMoveEnum">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="HOLD"/>
+			<xs:enumeration value="PAN_LEFT"/>
+			<xs:enumeration value="PAN_RIGHT"/>
+			<xs:enumeration value="PAN_UP"/>
+			<xs:enumeration value="PAN_DOWN"/>
+			<xs:enumeration value="TRUCK_LEFT"/>
+			<xs:enumeration value="TRUCK_RIGHT"/>
+			<xs:enumeration value="TRUCK_FORWARD"/>
+			<xs:enumeration value="TRUCK_BACK"/>
+			<xs:enumeration value="ZOOM_IN"/>
+			<xs:enumeration value="ZOOM_OUT"/>
+			<xs:enumeration value="TILT_UP"/>
+			<xs:enumeration value="TILT_DOWN"/>
+			<xs:enumeration value="ROLL"/>
+			<xs:enumeration value="CUSTOM"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="InterpolationType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="Step"/>
+			<xs:enumeration value="Linear"/>
+			<xs:enumeration value="Bezier"/>
+			<xs:enumeration value="Spline"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="ProjectionType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="Orthographic"/>
+			<xs:enumeration value="Perspective"/>
+		</xs:restriction>
+	</xs:simpleType>
+</xs:schema>

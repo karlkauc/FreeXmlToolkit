@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema
+ xmlns:xs="http://www.w3.org/2001/XMLSchema"
+ targetNamespace="http://schemas.animation.org/xsheet/otio"
+ xmlns="http://schemas.animation.org/xsheet/otio"
+ elementFormDefault="qualified">
+
+ <xs:element name="OpenTimelineIOReference">
+     <xs:complexType>
+         <xs:sequence>
+             <xs:element name="ClipID"
+                         type="xs:string"/>
+             <xs:element name="TrackID"
+                         type="xs:string"
+                         minOccurs="0"/>
+             <xs:element name="TimelineID"
+                         type="xs:string"
+                         minOccurs="0"/>
+         </xs:sequence>
+     </xs:complexType>
+ </xs:element>
+
+</xs:schema>

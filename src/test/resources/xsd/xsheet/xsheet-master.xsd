@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema
+ xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+ <xs:import namespace="http://schemas.animation.org/xsheet/core"
+            schemaLocation="xsheet-core.xsd"/>
+
+ <xs:import namespace="http://schemas.animation.org/xsheet/assets"
+            schemaLocation="xsheet-assets.xsd"/>
+
+ <xs:import namespace="http://schemas.animation.org/xsheet/audio"
+            schemaLocation="xsheet-audio.xsd"/>
+
+ <xs:import namespace="http://schemas.animation.org/xsheet/camera"
+            schemaLocation="xsheet-camera.xsd"/>
+
+ <xs:import namespace="http://schemas.animation.org/xsheet/review"
+            schemaLocation="xsheet-review.xsd"/>
+
+ <xs:import namespace="http://schemas.animation.org/xsheet/versioning"
+            schemaLocation="xsheet-versioning.xsd"/>
+
+ <xs:import namespace="http://schemas.animation.org/xsheet/otio"
+            schemaLocation="xsheet-otio.xsd"/>
+
+</xs:schema>

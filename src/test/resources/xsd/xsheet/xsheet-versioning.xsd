@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema
+ xmlns:xs="http://www.w3.org/2001/XMLSchema"
+ targetNamespace="http://schemas.animation.org/xsheet/versioning"
+ xmlns="http://schemas.animation.org/xsheet/versioning"
+ elementFormDefault="qualified">
+
+ <xs:element name="VersionInfo">
+     <xs:complexType>
+         <xs:sequence>
+             <xs:element name="Major"
+                         type="xs:nonNegativeInteger"/>
+             <xs:element name="Minor"
+                         type="xs:nonNegativeInteger"/>
+             <xs:element name="Revision"
+                         type="xs:nonNegativeInteger"/>
+         </xs:sequence>
+     </xs:complexType>
+ </xs:element>
+
+</xs:schema>
