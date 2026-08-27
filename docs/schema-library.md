@@ -43,11 +43,12 @@ The library is consulted whenever a document needs a schema but doesn't say whic
 *The Mappings tab: namespace → schema entries with status icons, filter and toolbar.*
 
 The table has one row per mapping: a status icon, **Namespace** (or `<root> (no namespace)`
-for root-element mappings), **Location**, **Kind** (`XSD` or `JSON_SCHEMA`), **Source**
-(`user`, `catalog` or `bundled`) and an **On** checkbox to enable/disable the row without
-deleting it. The **filter** field searches namespace, location, description and root
-element. Bundled rows render in italics and can only be enabled/disabled, never edited or
-removed.
+for root-element mappings), **Location** and an **On** checkbox to enable/disable the row
+without deleting it. Two more columns, **Kind** (`XSD` or `JSON_SCHEMA`) and **Source**
+(`user`, `catalog` or `bundled`), are hidden by default to keep the table readable in the
+narrow side panel - click the small menu button at the table's top-right corner to show
+them. The **filter** field searches namespace, location, description and root element.
+Bundled rows render in italics and can only be enabled/disabled, never edited or removed.
 
 | Icon | Status | Meaning |
 |------|--------|---------|
@@ -107,12 +108,13 @@ Example catalog mapping the bundled X3D 4.0 namespace to a local copy:
 
 Every remote schema resolved through the library (or downloaded because a document
 referenced it directly) is cached under `~/.freeXmlToolkit/cache/schemas`. The Cache tab
-lists **URL**, **Target namespace**, file **Size**, **Downloaded** timestamp and **Hits**
-(access count), with a **filter** over URL/namespace. **Open** opens the cached file as an
-editor tab; **Reveal** shows the cache folder in the system file manager; **Refresh**
-re-downloads the selected entry; **Delete** removes one cached file (re-downloaded on next
-use); **Clear** wipes the entire cache. A footer line reports the total file count, total
-size and the cache hit ratio.
+lists **URL**, **Target namespace** and file **Size** by default, with a **filter** over
+URL/namespace. Two more columns, **Downloaded** timestamp and **Hits** (access count), are
+hidden by default - click the table's menu button to show them. **Open** opens the cached
+file as an editor tab; **Reveal** shows the cache folder in the system file manager;
+**Refresh** re-downloads the selected entry; **Delete** removes one cached file
+(re-downloaded on next use); **Clear** wipes the entire cache. A footer line reports the
+total file count, total size and the cache hit ratio.
 
 A collapsible **"Auto-detected schemas (legacy cache)"** group underneath holds the older,
 separate cache of schemas auto-downloaded from `xsi:schemaLocation` references (one folder
