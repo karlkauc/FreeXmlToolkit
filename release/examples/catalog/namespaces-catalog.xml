@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Chained from catalog.xml: namespace -> schema (used for documents without xsi:schemaLocation). -->
+<catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog">
+    <uri name="urn:example:invoice" uri="schemas/invoice.xsd"/>
+    <uri name="http://schemas.example.org/common/1.0" uri="schemas/common.xsd"/>
+</catalog>

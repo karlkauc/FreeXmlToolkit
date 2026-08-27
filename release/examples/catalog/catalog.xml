@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  OASIS XML Catalog example for FreeXmlToolkit's Schema Library.
+
+  Register this file in  Schema Library › Catalogs › Add catalog…  and every reference
+  below is served from the local schemas/ folder instead of the (non-existent) host
+  schemas.example.org.
+
+  Entry types demonstrated:
+    system        exact systemId  -> local file      (xs:import schemaLocation, xsi:schemaLocation)
+    rewriteSystem systemId prefix -> local prefix    (whole families of URLs at once)
+    uri           namespace/URI   -> local file      (documents that only declare a namespace)
+    public        public identifier -> local file    (used by the validator's resource resolver)
+    nextCatalog   chain another catalog file
+-->
+<catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog" prefer="public">
+
+    <!-- 1. Exact mapping of the URL used in invoice.xsd's xs:import -->
+    <system systemId="http://schemas.example.org/common/1.0/common.xsd"
+            uri="schemas/common.xsd"/>
+
+    <!-- 2. Everything under http://schemas.example.org/invoice/ lives in schemas/ -->
+    <rewriteSystem systemIdStartString="http://schemas.example.org/invoice/1.0/"
+                   rewritePrefix="schemas/"/>
+
+    <!-- 3. Public identifier (rarely used with XSD, shown for completeness) -->
+    <public publicId="-//Example//DTD Common Types 1.0//EN"
+            uri="schemas/common.xsd"/>
+
+    <!-- 4. Namespace mappings live in a second catalog, chained via nextCatalog -->
+    <nextCatalog catalog="namespaces-catalog.xml"/>
+</catalog>

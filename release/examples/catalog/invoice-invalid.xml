@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Same as invoice.xml but with two errors (currency code, missing <total>) so you can
+     see that validation really runs against the catalog-resolved schemas. -->
+<invoice xmlns="urn:example:invoice"
+         xmlns:c="http://schemas.example.org/common/1.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="urn:example:invoice http://schemas.example.org/invoice/1.0/invoice.xsd">
+    <number>INV-2026-0044</number>
+    <issued>2026-08-27</issued>
+    <billTo>
+        <c:street>Am Hof 3</c:street>
+        <c:city>Linz</c:city>
+        <c:postalCode>4020</c:postalCode>
+        <c:country>AT</c:country>
+    </billTo>
+    <line>
+        <description>Broken currency code</description>
+        <quantity>1</quantity>
+        <price currency="euro">10.00</price>
+    </line>
+</invoice>

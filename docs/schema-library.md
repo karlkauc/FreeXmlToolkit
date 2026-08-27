@@ -101,6 +101,16 @@ Example catalog mapping the bundled X3D 4.0 namespace to a local copy:
 </catalog>
 ```
 
+### Try it: the shipped catalog example
+
+`release/examples/catalog/` contains a complete, self-contained demo: an invoice schema that
+imports shared types from the **non-existent** host `schemas.example.org`, a `catalog.xml`
+(with `system`, `rewriteSystem`, `public` and a chained `nextCatalog`) that maps every such
+reference to the local `schemas/` folder, and three instance documents — one with an
+unreachable `xsi:schemaLocation`, one with only a namespace, one with deliberate errors.
+Register `catalog.xml` in the Catalogs tab, open the documents and validate; the folder's
+`README.md` walks through each step.
+
 ## 4. Schema cache
 
 ![Schema Library - Cache](img/unified-shell-schema-library-cache.png)

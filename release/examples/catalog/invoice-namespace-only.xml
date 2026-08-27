@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- No xsi:schemaLocation at all: the schema is found through the catalog's
+     <uri name="urn:example:invoice"> entry (namespaces-catalog.xml). -->
+<invoice xmlns="urn:example:invoice"
+         xmlns:c="http://schemas.example.org/common/1.0">
+    <number>INV-2026-0043</number>
+    <issued>2026-08-27</issued>
+    <billTo>
+        <c:street>Hauptplatz 5</c:street>
+        <c:city>Graz</c:city>
+        <c:postalCode>8010</c:postalCode>
+        <c:country>AT</c:country>
+    </billTo>
+    <line>
+        <description>Catalog setup</description>
+        <quantity>2</quantity>
+        <price currency="EUR">90.00</price>
+    </line>
+    <total currency="EUR">180.00</total>
+</invoice>

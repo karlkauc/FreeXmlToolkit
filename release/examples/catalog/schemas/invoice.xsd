@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Invoice schema. It imports the shared types from a URL that does NOT exist
+  (schemas.example.org is not a real host). The catalog.xml next to this folder maps
+  that URL to schemas/common.xsd, so the import resolves offline.
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns="urn:example:invoice"
+           xmlns:c="http://schemas.example.org/common/1.0"
+           targetNamespace="urn:example:invoice"
+           elementFormDefault="qualified">
+
+    <xs:import namespace="http://schemas.example.org/common/1.0"
+               schemaLocation="http://schemas.example.org/common/1.0/common.xsd"/>
+
+    <xs:element name="invoice">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="number" type="xs:string"/>
+                <xs:element name="issued" type="xs:date"/>
+                <xs:element name="billTo" type="c:Address"/>
+                <xs:element name="line" maxOccurs="unbounded">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="description" type="xs:string"/>
+                            <xs:element name="quantity" type="xs:positiveInteger"/>
+                            <xs:element name="price" type="c:Money"/>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+                <xs:element name="total" type="c:Money"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>
