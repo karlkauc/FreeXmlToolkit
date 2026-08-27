@@ -219,6 +219,23 @@ class SchemaLibraryVisualDocScreenshotGenerator {
         shot("08-autobind-json");
         System.out.println("[visual] json bound schema = " + host.activeSchemaProperty().get());
 
+        // 8b. Shipped catalog example: declared but unreachable xsi:schemaLocation, resolved via catalog
+        Path exampleCatalog = Path.of("release/examples/catalog/catalog.xml").toAbsolutePath();
+        if (Files.isRegularFile(exampleCatalog)) {
+            library.addCatalog(exampleCatalog);
+            Path invoice = exampleCatalog.resolveSibling("invoice.xml");
+            onFx(() -> host.openFile(invoice));
+            WaitForAsyncUtils.waitFor(20, TimeUnit.SECONDS, () -> {
+                var f = host.activeSchemaProperty().get();
+                return f != null && f.getName().equals("invoice.xsd");
+            });
+            onFx(() -> shell.getSelectionModel().select(Activity.VALIDATION));
+            settle(1000);
+            shot("08b-catalog-example-statusbar");
+            System.out.println("[visual] catalog example bound = " + host.activeSchemaProperty().get()
+                    + " source=" + host.activeSchemaSourceProperty().get());
+        }
+
         // 9. Settings page: SCHEMA LIBRARY card
         onFx(() -> shell.getSelectionModel().select(Activity.SETTINGS));
         settle(1200);
