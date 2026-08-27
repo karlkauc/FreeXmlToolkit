@@ -2646,12 +2646,24 @@ public class EditorHost extends BorderPane {
                 }
                 return new SchemaDetection(fromLibrary, SchemaStatus.READY);
             }
-            // A reference exists — from here on, every failure is an ERROR (the user
-            // expects IntelliSense but won't get it), not a silent "No XSD".
-            if (!service.loadSchemaFromLocation(declared.get())) {
-                return SchemaDetection.FAILED; // referenced, but not resolvable
+            // A reference exists. Schema Library / XML catalogs first: a `system` or
+            // `rewriteSystem` catalog entry (or a user mapping) may redirect the declared
+            // location to a local file, so an unreachable URL never has to be fetched.
+            File xsd = schemaFromLibraryForDeclared(content, declared.get(), baseDir);
+            if (xsd == null) {
+                // From here on, every failure is an ERROR (the user expects IntelliSense
+                // but won't get it), not a silent "No XSD".
+                if (!service.loadSchemaFromLocation(declared.get())) {
+                    // Unreachable location: the Schema Library may still know the
+                    // document's namespace (user mapping, catalog `uri`, bundled entry).
+                    xsd = schemaFromLibrary(content);
+                    if (xsd == null) {
+                        return SchemaDetection.FAILED; // referenced, but not resolvable
+                    }
+                } else {
+                    xsd = service.getCurrentXsdFile();
+                }
             }
-            File xsd = service.getCurrentXsdFile();
             if (xsd == null || !xsd.exists() || !tab.view.loadSchema(xsd)) {
                 return SchemaDetection.FAILED; // resolved, but missing or unparsable
             }
@@ -2659,6 +2671,31 @@ public class EditorHost extends BorderPane {
         } catch (Exception e) {
             // detection is best-effort; a malformed document simply binds no schema
             return SchemaDetection.NOT_FOUND;
+        }
+    }
+
+    /**
+     * Schema Library lookup for a document WITH a declared schema location: catalog
+     * {@code system}/{@code rewriteSystem} entries and user mappings are matched against
+     * the declared location (resolved against the document's directory), then the root
+     * namespace is tried. Honours the auto-bind toggle and the offline rule. Returns null
+     * on a miss. Worker-thread safe.
+     */
+    private static File schemaFromLibraryForDeclared(String content, String declared, File baseDir) {
+        try {
+            if (!org.fxt.freexmltoolkit.di.ServiceRegistry.get(org.fxt.freexmltoolkit.service.PropertiesService.class)
+                    .isSchemaLibraryAutoBindEnabled()) {
+                return null;
+            }
+            var library = org.fxt.freexmltoolkit.service.SchemaLibraryServiceImpl.shared();
+            String namespace = org.fxt.freexmltoolkit.service.XmlRootElementSniffer.sniff(content)
+                    .map(r -> r.namespace()).filter(ns -> !ns.isEmpty()).orElse(null);
+            String baseUri = baseDir != null ? baseDir.toURI().toString() : null;
+            return org.fxt.freexmltoolkit.service.SchemaLibraryLookup
+                    .localFileFor(library, namespace, declared, baseUri, library.isRemoteDownloadAllowed())
+                    .map(java.nio.file.Path::toFile).orElse(null);
+        } catch (Exception e) {
+            return null;   // best-effort
         }
     }
 

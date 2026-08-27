@@ -138,6 +138,44 @@ class EditorHostLibraryAutoBindTest {
     }
 
     @Test
+    void declaredUnreachableLocationIsRewrittenByCatalog(@TempDir Path tmp) throws Exception {
+        Path xsd = tmp.resolve("schemas").resolve("test.xsd");
+        Files.createDirectories(xsd.getParent());
+        Files.writeString(xsd, XSD);
+        Path catalog = tmp.resolve("catalog.xml");
+        Files.writeString(catalog, "<catalog xmlns='urn:oasis:names:tc:entity:xmlns:xml:catalog'>"
+                + "<rewriteSystem systemIdStartString='http://schemas.invalid/v1/' rewritePrefix='schemas/'/></catalog>");
+        var svc = new SchemaLibraryServiceImpl(tmp.resolve("lib.json"), new SchemaResourceCache(tmp.resolve("cache")),
+                () -> new ByteArrayInputStream("{\"version\":1,\"entries\":[]}".getBytes()));
+        svc.addCatalog(catalog);
+        ServiceRegistry.register(SchemaLibraryService.class, svc);
+        Path xml = tmp.resolve("doc.xml");
+        Files.writeString(xml, "<root xmlns=\"urn:lib:test\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\""
+                + " xsi:schemaLocation=\"urn:lib:test http://schemas.invalid/v1/test.xsd\"><alpha>x</alpha></root>\n");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml.toFile()));
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> host.activeSchemaProperty().get() != null);
+        assertEquals(xsd.toFile().getAbsoluteFile(), host.activeSchemaProperty().get().getAbsoluteFile());
+        assertEquals(EditorHost.SchemaStatus.READY, host.activeSchemaStatusProperty().get());
+    }
+
+    @Test
+    void declaredUnreachableLocationFallsBackToNamespaceMapping(@TempDir Path tmp) throws Exception {
+        Path xsd = tmp.resolve("lib").resolve("test.xsd");
+        Files.createDirectories(xsd.getParent());
+        Files.writeString(xsd, XSD);
+        registerLibraryWith(tmp, "urn:lib:test", xsd);
+        Path xml = tmp.resolve("doc.xml");
+        Files.writeString(xml, "<root xmlns=\"urn:lib:test\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\""
+                + " xsi:schemaLocation=\"urn:lib:test http://schemas.invalid/v1/test.xsd\"><alpha>x</alpha></root>\n");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml.toFile()));
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> host.activeSchemaProperty().get() != null);
+        assertEquals(xsd.toFile().getAbsoluteFile(), host.activeSchemaProperty().get().getAbsoluteFile());
+        assertEquals(EditorHost.SchemaStatus.READY, host.activeSchemaStatusProperty().get());
+    }
+
+    @Test
     void toggleOffDisablesLibraryAutoBind(@TempDir Path tmp) throws Exception {
         Path xsd = tmp.resolve("lib.xsd");
         Files.writeString(xsd, XSD);
