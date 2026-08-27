@@ -958,6 +958,28 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#nothing-offered-although-the-element-is-empty" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Nothing Offered Although the Element Is Empty?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prefix-missing-or-unexpected" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prefix Missing or Unexpected?
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2114,6 +2136,28 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#nothing-offered-although-the-element-is-empty" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Nothing Offered Although the Element Is Empty?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prefix-missing-or-unexpected" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prefix Missing or Unexpected?
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2165,6 +2209,16 @@
 <h3 id="1-smart-element-suggestions">1. Smart Element Suggestions<a class="headerlink" href="#1-smart-element-suggestions" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Context-Aware</strong>: Shows only valid child elements for your current location</li>
+<li><strong>Position-Aware</strong>: Inside an <code>xs:sequence</code> only the elements that may follow the
+  siblings already present are offered - an element that has reached its <code>maxOccurs</code> (or an
+  <code>xs:choice</code> whose alternative is already there) disappears from the list. Elements that
+  already exist <em>after</em> the cursor are respected too, so you cannot insert a child in the
+  wrong order.</li>
+<li><strong>Namespace-Aware</strong>: Suggestions are inserted with the prefix your document declares for the
+  element's namespace. A child of a type imported from another namespace (e.g. <code>c:street</code>
+  when the document declares <code>xmlns:c="…"</code>) is inserted as <code>&lt;c:street&gt;&lt;/c:street&gt;</code>; elements
+  in the default namespace stay unprefixed. Typing the local name (<code>&lt;st</code>) still matches
+  <code>c:street</code>.</li>
 <li><strong>Based on Schema</strong>: Suggestions come from your loaded XSD schema</li>
 <li><strong>Reduces Errors</strong>: You can't accidentally add invalid elements</li>
 </ul>
@@ -2297,6 +2351,14 @@ schema validation.</p>
 <li>Check that the correct schema is loaded</li>
 <li>Verify the XML structure is valid up to your cursor position</li>
 </ul>
+<h3 id="nothing-offered-although-the-element-is-empty">Nothing Offered Although the Element Is Empty?<a class="headerlink" href="#nothing-offered-although-the-element-is-empty" title="Permanent link">&para;</a></h3>
+<p>The list also honours the elements that already exist <em>after</em> the cursor. If you type <code>&lt;</code>
+directly in front of the first existing child of a sequence, nothing may legally go there -
+move the cursor after the last child that belongs before your new element.</p>
+<h3 id="prefix-missing-or-unexpected">Prefix Missing or Unexpected?<a class="headerlink" href="#prefix-missing-or-unexpected" title="Permanent link">&para;</a></h3>
+<p>Prefixes are taken from the <code>xmlns</code> declarations of your document. If the namespace of the
+suggested element is not declared at all, the prefix used inside the schema is inserted -
+add the matching <code>xmlns:</code> declaration to the root element.</p>
 <hr />
 <h2 id="navigation">Navigation<a class="headerlink" href="#navigation" title="Permanent link">&para;</a></h2>
 <table>
