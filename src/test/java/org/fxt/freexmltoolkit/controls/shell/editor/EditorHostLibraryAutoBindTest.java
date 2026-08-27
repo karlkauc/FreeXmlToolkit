@@ -77,6 +77,7 @@ class EditorHostLibraryAutoBindTest {
         WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> host.activeSchemaProperty().get() != null);
         assertEquals(xsd.toFile().getAbsoluteFile(), host.activeSchemaProperty().get().getAbsoluteFile());
         assertEquals(EditorHost.SchemaStatus.READY, host.activeSchemaStatusProperty().get());
+        assertEquals(EditorHost.SchemaSource.LIBRARY, host.activeSchemaSourceProperty().get());
     }
 
     /**
@@ -135,6 +136,7 @@ class EditorHostLibraryAutoBindTest {
         assertEquals(manualXsd.toFile().getAbsoluteFile(), validated.getAbsoluteFile());
         WaitForAsyncUtils.waitForFxEvents();
         assertEquals(manualXsd.toFile().getAbsoluteFile(), host.activeSchemaProperty().get().getAbsoluteFile());
+        assertEquals(EditorHost.SchemaSource.MANUAL, host.activeSchemaSourceProperty().get());
     }
 
     @Test
@@ -157,6 +159,7 @@ class EditorHostLibraryAutoBindTest {
         WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> host.activeSchemaProperty().get() != null);
         assertEquals(xsd.toFile().getAbsoluteFile(), host.activeSchemaProperty().get().getAbsoluteFile());
         assertEquals(EditorHost.SchemaStatus.READY, host.activeSchemaStatusProperty().get());
+        assertEquals(EditorHost.SchemaSource.CATALOG, host.activeSchemaSourceProperty().get());
     }
 
     @Test
@@ -173,6 +176,7 @@ class EditorHostLibraryAutoBindTest {
         WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> host.activeSchemaProperty().get() != null);
         assertEquals(xsd.toFile().getAbsoluteFile(), host.activeSchemaProperty().get().getAbsoluteFile());
         assertEquals(EditorHost.SchemaStatus.READY, host.activeSchemaStatusProperty().get());
+        assertEquals(EditorHost.SchemaSource.LIBRARY, host.activeSchemaSourceProperty().get());
     }
 
     @Test

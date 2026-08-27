@@ -42,6 +42,10 @@ public class EditorHost extends BorderPane {
     private final ReadOnlyObjectWrapper<File> activeSchema = new ReadOnlyObjectWrapper<>(this, "activeSchema", null);
     private final ReadOnlyObjectWrapper<SchemaStatus> activeSchemaStatus =
             new ReadOnlyObjectWrapper<>(this, "activeSchemaStatus", SchemaStatus.NONE);
+    private final ReadOnlyObjectWrapper<SchemaSource> activeSchemaSource =
+            new ReadOnlyObjectWrapper<>(this, "activeSchemaSource", SchemaSource.NONE);
+    private final javafx.beans.property.ReadOnlyStringWrapper activeSchemaSourceDetail =
+            new javafx.beans.property.ReadOnlyStringWrapper(this, "activeSchemaSourceDetail", null);
     private final ReadOnlyObjectWrapper<ViewMode> activeViewMode =
             new ReadOnlyObjectWrapper<>(this, "activeViewMode", ViewMode.TEXT);
     private final ReadOnlyObjectWrapper<XsdNode> activeSelectedNode =
@@ -81,11 +85,36 @@ public class EditorHost extends BorderPane {
      */
     public enum SchemaStatus { NONE, LOADING, READY, ERROR }
 
-    /** Outcome of a schema auto-detection run: the bound XSD (or null) plus the terminal status. */
-    private record SchemaDetection(File schema, SchemaStatus status) {
-        static final SchemaDetection NOT_FOUND = new SchemaDetection(null, SchemaStatus.NONE);
-        static final SchemaDetection FAILED = new SchemaDetection(null, SchemaStatus.ERROR);
+    /**
+     * How the active document's schema binding was established, surfaced in the status bar
+     * next to {@link SchemaStatus#READY} so a catalog- or library-resolved schema is
+     * distinguishable from one the document declared itself or the user picked by hand.
+     * <ul>
+     *   <li>{@link #NONE} — no binding</li>
+     *   <li>{@link #DECLARED} — loaded from the location the document itself declared
+     *       ({@code xsi:schemaLocation} / JSON {@code $schema})</li>
+     *   <li>{@link #CATALOG} — resolved through a registered XML catalog entry
+     *       ({@code system}/{@code rewriteSystem}/{@code public}/{@code uri})</li>
+     *   <li>{@link #LIBRARY} — resolved through a Schema Library mapping (user or bundled
+     *       entry), by namespace or root element</li>
+     *   <li>{@link #MANUAL} — bound by hand (Validation panel "Change", drag-and-drop,
+     *       {@link #setSchemaForActiveDocument})</li>
+     * </ul>
+     */
+    public enum SchemaSource { NONE, DECLARED, LIBRARY, CATALOG, MANUAL }
+
+    /**
+     * Outcome of a schema auto-detection run: the bound XSD (or null) plus the terminal
+     * status, how the binding was resolved, and an optional human-readable detail
+     * (catalog target / namespace / root element) for the status bar tooltip.
+     */
+    private record SchemaDetection(File schema, SchemaStatus status, SchemaSource source, String sourceDetail) {
+        static final SchemaDetection NOT_FOUND = new SchemaDetection(null, SchemaStatus.NONE, SchemaSource.NONE, null);
+        static final SchemaDetection FAILED = new SchemaDetection(null, SchemaStatus.ERROR, SchemaSource.NONE, null);
     }
+
+    /** A Schema Library / catalog resolution result, carrying provenance for the status bar. */
+    private record LibraryHit(File file, SchemaSource source, String detail) { }
     /** The most recently active editor tab — insertion target when a tool tab is in front. */
     private EditorTab lastEditorTab;
 
@@ -145,10 +174,14 @@ public class EditorHost extends BorderPane {
                 activeCaret.set(et.view.getCodeArea().getCaretPosition());
                 activeSchema.set(et.schemaFile);
                 activeSchemaStatus.set(et.schemaStatus);
+                activeSchemaSource.set(et.schemaSource);
+                activeSchemaSourceDetail.set(et.schemaSourceDetail);
                 activeViewMode.set(et.viewMode);
             } else {
                 activeSchema.set(null);
                 activeSchemaStatus.set(SchemaStatus.NONE);
+                activeSchemaSource.set(SchemaSource.NONE);
+                activeSchemaSourceDetail.set(null);
             }
             // A different document's last result must not linger; validation re-runs
             // (continuous, or via Validate/F8) for the newly active document.
@@ -335,6 +368,20 @@ public class EditorHost extends BorderPane {
     /** @return the active document's schema-binding lifecycle (IntelliSense availability). */
     public ReadOnlyObjectProperty<SchemaStatus> activeSchemaStatusProperty() {
         return activeSchemaStatus.getReadOnlyProperty();
+    }
+
+    /** @return how the active document's schema binding was established (declared/catalog/library/manual). */
+    public ReadOnlyObjectProperty<SchemaSource> activeSchemaSourceProperty() {
+        return activeSchemaSource.getReadOnlyProperty();
+    }
+
+    /**
+     * @return a human-readable detail for {@link #activeSchemaSourceProperty()} — the
+     *         resolved catalog target for {@link SchemaSource#CATALOG}, the matched
+     *         namespace/root element for {@link SchemaSource#LIBRARY}, or {@code null}.
+     */
+    public javafx.beans.property.ReadOnlyStringProperty activeSchemaSourceDetailProperty() {
+        return activeSchemaSourceDetail.getReadOnlyProperty();
     }
 
     /** @return the active document's current view mode (Text/Tree/Graphic). */
@@ -2033,6 +2080,7 @@ public class EditorHost extends BorderPane {
                     : SchemaRebindPolicy.SchemaBindingOrigin.MANUAL;
             et.view.invalidateIntelliSenseCache();
             activeSchema.set(xsd);
+            publishSchemaSource(et, xsd == null ? SchemaSource.NONE : SchemaSource.MANUAL, null);
             publishSchemaStatus(et, xsd == null ? SchemaStatus.NONE : SchemaStatus.READY);
             loadXmlSchemaProviderAsync(et, xsd);
             return true;
@@ -2338,6 +2386,20 @@ public class EditorHost extends BorderPane {
         }
     }
 
+    /**
+     * Records how a tab's schema binding was established and mirrors it into
+     * {@link #activeSchemaSource}/{@link #activeSchemaSourceDetail} when the tab is
+     * front-most. Must be called on the FX thread (same publish pattern as {@link #activeSchema}).
+     */
+    private void publishSchemaSource(EditorTab tab, SchemaSource source, String detail) {
+        tab.schemaSource = source;
+        tab.schemaSourceDetail = detail;
+        if (tab.isSelected()) {
+            activeSchemaSource.set(source);
+            activeSchemaSourceDetail.set(detail);
+        }
+    }
+
     private void loadAsync(EditorTab tab, Path path) {
         tab.beginLoading();
         tab.schemaBindingGen.incrementAndGet(); // supersede queued schema reconciles
@@ -2372,6 +2434,7 @@ public class EditorHost extends BorderPane {
                         if (tab.isSelected()) {
                             activeSchema.set(autoXsd);
                         }
+                        publishSchemaSource(tab, detection.source(), detection.sourceDetail());
                         loadXmlSchemaProviderAsync(tab, autoXsd);
                     }
                     // Always publish a terminal status so LOADING can never stick. When the
@@ -2430,7 +2493,7 @@ public class EditorHost extends BorderPane {
             try {
                 if (tab.schemaFile != null) {
                     // the other detection won while we waited
-                    detection = new SchemaDetection(null, SchemaStatus.READY);
+                    detection = new SchemaDetection(null, SchemaStatus.READY, SchemaSource.NONE, null);
                 } else {
                     detection = detectSchemaFor(tab, content, path);
                 }
@@ -2447,6 +2510,7 @@ public class EditorHost extends BorderPane {
                     if (tab.isSelected()) {
                         activeSchema.set(autoXsd);
                     }
+                    publishSchemaSource(tab, result.source(), result.sourceDetail());
                     loadXmlSchemaProviderAsync(tab, autoXsd);
                 }
                 // Terminal status in every branch, so LOADING never sticks.
@@ -2514,6 +2578,7 @@ public class EditorHost extends BorderPane {
                     tab.schemaOrigin = SchemaRebindPolicy.SchemaBindingOrigin.NONE;
                     Platform.runLater(() -> {
                         clearSchemaBindingUi(tab);
+                        publishSchemaSource(tab, SchemaSource.NONE, null);
                         publishSchemaStatus(tab, SchemaStatus.NONE);
                     });
                     return null;
@@ -2534,11 +2599,13 @@ public class EditorHost extends BorderPane {
                             if (tab.isSelected()) {
                                 activeSchema.set(xsd);
                             }
+                            publishSchemaSource(tab, detection.source(), detection.sourceDetail());
                             loadXmlSchemaProviderAsync(tab, xsd);
                         } else {
                             // Declared but unresolvable: drop the stale binding too —
                             // keeping it would silently validate against the wrong schema.
                             clearSchemaBindingUi(tab);
+                            publishSchemaSource(tab, SchemaSource.NONE, null);
                         }
                         // Terminal status in every branch, so LOADING never sticks.
                         publishSchemaStatus(tab, detection.status());
@@ -2588,9 +2655,9 @@ public class EditorHost extends BorderPane {
             // so without this the very first validation would CLEAR it. Re-resolving
             // the library lookup here is deterministic for local entries (same path
             // every call), so it correctly short-circuits to KEEP once bound.
-            File fromLibrary = schemaFromLibrary(content);
+            LibraryHit fromLibrary = schemaFromLibrary(content);
             if (fromLibrary != null) {
-                declared = fromLibrary.getAbsolutePath();
+                declared = fromLibrary.file().getAbsolutePath();
             }
         }
         return declared;
@@ -2636,38 +2703,51 @@ public class EditorHost extends BorderPane {
             tab.lastDetectedSchemaLocation = declared.orElse(null);
             if (declared.isEmpty()) {
                 // No xsi:schemaLocation — ask the Schema Library by root namespace / root element.
-                File fromLibrary = schemaFromLibrary(content);
+                LibraryHit fromLibrary = schemaFromLibrary(content);
                 if (fromLibrary == null) {
                     return SchemaDetection.NOT_FOUND; // the document references no schema
                 }
-                tab.lastDetectedSchemaLocation = fromLibrary.getAbsolutePath();
-                if (!tab.view.loadSchema(fromLibrary)) {
+                tab.lastDetectedSchemaLocation = fromLibrary.file().getAbsolutePath();
+                if (!tab.view.loadSchema(fromLibrary.file())) {
                     return SchemaDetection.FAILED;
                 }
-                return new SchemaDetection(fromLibrary, SchemaStatus.READY);
+                return new SchemaDetection(fromLibrary.file(), SchemaStatus.READY,
+                        fromLibrary.source(), fromLibrary.detail());
             }
             // A reference exists. Schema Library / XML catalogs first: a `system` or
             // `rewriteSystem` catalog entry (or a user mapping) may redirect the declared
             // location to a local file, so an unreachable URL never has to be fetched.
-            File xsd = schemaFromLibraryForDeclared(content, declared.get(), baseDir);
-            if (xsd == null) {
+            LibraryHit hit = schemaFromLibraryForDeclared(content, declared.get(), baseDir);
+            File xsd;
+            SchemaSource source;
+            String detail;
+            if (hit != null) {
+                xsd = hit.file();
+                source = hit.source();
+                detail = hit.detail();
+            } else {
                 // From here on, every failure is an ERROR (the user expects IntelliSense
                 // but won't get it), not a silent "No XSD".
                 if (!service.loadSchemaFromLocation(declared.get())) {
                     // Unreachable location: the Schema Library may still know the
                     // document's namespace (user mapping, catalog `uri`, bundled entry).
-                    xsd = schemaFromLibrary(content);
-                    if (xsd == null) {
+                    LibraryHit fallback = schemaFromLibrary(content);
+                    if (fallback == null) {
                         return SchemaDetection.FAILED; // referenced, but not resolvable
                     }
+                    xsd = fallback.file();
+                    source = fallback.source();
+                    detail = fallback.detail();
                 } else {
                     xsd = service.getCurrentXsdFile();
+                    source = SchemaSource.DECLARED;
+                    detail = declared.get();
                 }
             }
             if (xsd == null || !xsd.exists() || !tab.view.loadSchema(xsd)) {
                 return SchemaDetection.FAILED; // resolved, but missing or unparsable
             }
-            return new SchemaDetection(xsd, SchemaStatus.READY);
+            return new SchemaDetection(xsd, SchemaStatus.READY, source, detail);
         } catch (Exception e) {
             // detection is best-effort; a malformed document simply binds no schema
             return SchemaDetection.NOT_FOUND;
@@ -2681,7 +2761,7 @@ public class EditorHost extends BorderPane {
      * namespace is tried. Honours the auto-bind toggle and the offline rule. Returns null
      * on a miss. Worker-thread safe.
      */
-    private static File schemaFromLibraryForDeclared(String content, String declared, File baseDir) {
+    private static LibraryHit schemaFromLibraryForDeclared(String content, String declared, File baseDir) {
         try {
             if (!org.fxt.freexmltoolkit.di.ServiceRegistry.get(org.fxt.freexmltoolkit.service.PropertiesService.class)
                     .isSchemaLibraryAutoBindEnabled()) {
@@ -2692,8 +2772,10 @@ public class EditorHost extends BorderPane {
                     .map(r -> r.namespace()).filter(ns -> !ns.isEmpty()).orElse(null);
             String baseUri = baseDir != null ? baseDir.toURI().toString() : null;
             return org.fxt.freexmltoolkit.service.SchemaLibraryLookup
-                    .localFileFor(library, namespace, declared, baseUri, library.isRemoteDownloadAllowed())
-                    .map(java.nio.file.Path::toFile).orElse(null);
+                    .lookup(library, namespace, declared, baseUri, library.isRemoteDownloadAllowed())
+                    .map(hit -> new LibraryHit(hit.file().toFile(),
+                            hit.viaCatalog() ? SchemaSource.CATALOG : SchemaSource.LIBRARY, hit.detail()))
+                    .orElse(null);
         } catch (Exception e) {
             return null;   // best-effort
         }
@@ -2710,7 +2792,7 @@ public class EditorHost extends BorderPane {
      * disabling remote downloads ({@code -Dfxt.schema.namespaceFallback=false}, as the test
      * suite does) restricts auto-binding to local and already-cached entries too.</p>
      */
-    private static File schemaFromLibrary(String content) {
+    private static LibraryHit schemaFromLibrary(String content) {
         try {
             if (!org.fxt.freexmltoolkit.di.ServiceRegistry.get(org.fxt.freexmltoolkit.service.PropertiesService.class)
                     .isSchemaLibraryAutoBindEnabled()) {
@@ -2719,12 +2801,24 @@ public class EditorHost extends BorderPane {
             var root = org.fxt.freexmltoolkit.service.XmlRootElementSniffer.sniff(content).orElse(null);
             if (root == null) return null;
             var library = org.fxt.freexmltoolkit.service.SchemaLibraryServiceImpl.shared();
-            var entry = root.namespace().isEmpty()
+            boolean byRootElement = root.namespace().isEmpty();
+            var entry = byRootElement
                     ? library.resolveByRootElement(root.localName())
                     : library.resolveNamespace(root.namespace(), org.fxt.freexmltoolkit.domain.SchemaKind.XSD);
-            return entry.flatMap(e -> org.fxt.freexmltoolkit.service.SchemaLibraryLookup
-                            .materializeIfAllowed(library, e, library.isRemoteDownloadAllowed()))
+            if (entry.isEmpty()) return null;
+            File file = org.fxt.freexmltoolkit.service.SchemaLibraryLookup
+                    .materializeIfAllowed(library, entry.get(), library.isRemoteDownloadAllowed())
                     .map(java.nio.file.Path::toFile).orElse(null);
+            if (file == null) return null;
+            // resolveByRootElement never consults catalogs, so a root-element match is
+            // always a plain library mapping; a namespace match may be catalog-sourced.
+            SchemaSource source = !byRootElement
+                    && entry.get().source() == org.fxt.freexmltoolkit.domain.EntrySource.CATALOG
+                    ? SchemaSource.CATALOG : SchemaSource.LIBRARY;
+            String detail = source == SchemaSource.CATALOG
+                    ? entry.get().location()
+                    : (byRootElement ? root.localName() : root.namespace());
+            return new LibraryHit(file, source, detail);
         } catch (Exception e) {
             return null;   // best-effort
         }
@@ -2747,14 +2841,17 @@ public class EditorHost extends BorderPane {
             if (raw.isPresent() && org.fxt.freexmltoolkit.di.ServiceRegistry
                     .get(org.fxt.freexmltoolkit.service.PropertiesService.class).isSchemaLibraryAutoBindEnabled()) {
                 var library = org.fxt.freexmltoolkit.service.SchemaLibraryServiceImpl.shared();
-                File mapped = library.resolveJsonSchema(raw.get())
-                        .flatMap(e -> org.fxt.freexmltoolkit.service.SchemaLibraryLookup
+                var entry = library.resolveJsonSchema(raw.get());
+                File mapped = entry.flatMap(e -> org.fxt.freexmltoolkit.service.SchemaLibraryLookup
                                 .materializeIfAllowed(library, e, library.isRemoteDownloadAllowed()))
                         .map(java.nio.file.Path::toFile).orElse(null);
                 if (mapped != null) {
                     tab.lastDetectedSchemaLocation = raw.get();
                     if (!tab.view.loadSchema(mapped)) return SchemaDetection.FAILED;
-                    return new SchemaDetection(mapped, SchemaStatus.READY);
+                    SchemaSource source = entry.get().source() == org.fxt.freexmltoolkit.domain.EntrySource.CATALOG
+                            ? SchemaSource.CATALOG : SchemaSource.LIBRARY;
+                    String detail = source == SchemaSource.CATALOG ? entry.get().location() : raw.get();
+                    return new SchemaDetection(mapped, SchemaStatus.READY, source, detail);
                 }
             }
             java.util.Optional<String> declared = service.getSchemaLocationFromJsonContent(content);
@@ -2770,7 +2867,7 @@ public class EditorHost extends BorderPane {
             if (schema == null || !schema.exists() || !tab.view.loadSchema(schema)) {
                 return SchemaDetection.FAILED; // referenced, but not resolvable/parsable
             }
-            return new SchemaDetection(schema, SchemaStatus.READY);
+            return new SchemaDetection(schema, SchemaStatus.READY, SchemaSource.DECLARED, declared.get());
         } catch (Exception e) {
             // detection is best-effort; a malformed document simply binds no schema
             return SchemaDetection.NOT_FOUND;
@@ -3102,6 +3199,10 @@ public class EditorHost extends BorderPane {
         private volatile String lastDetectedSchemaLocation;
         /** Written on the loader thread, read on the FX thread (tab switch) — hence volatile. */
         private volatile SchemaStatus schemaStatus = SchemaStatus.NONE;
+        /** How {@link #schemaFile} was resolved (declared/catalog/library/manual); status-bar detail. */
+        private volatile SchemaSource schemaSource = SchemaSource.NONE;
+        /** Tooltip detail for {@link #schemaSource} — catalog target, or matched namespace/root element. */
+        private volatile String schemaSourceDetail;
         private File schematronFile;
         /** Composes the debugger's and the quick-fix feature's gutter contributions. */
         private final CompositeGutterFactory gutter = new CompositeGutterFactory();

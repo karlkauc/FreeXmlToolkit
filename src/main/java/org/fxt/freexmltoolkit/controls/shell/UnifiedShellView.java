@@ -1554,6 +1554,7 @@ public class UnifiedShellView extends BorderPane {
         // A listener (not a binding) because text, icon, tooltip and style class change together.
         editorHost.activeSchemaStatusProperty().addListener((obs, o, n) -> updateSchemaStatusIndicator());
         editorHost.activeSchemaProperty().addListener((obs, o, n) -> updateSchemaStatusIndicator());
+        editorHost.activeSchemaSourceProperty().addListener((obs, o, n) -> updateSchemaStatusIndicator());
         editorHost.activeTabProperty().addListener((obs, o, n) -> updateSchemaStatusIndicator());
         updateSchemaStatusIndicator();
         statusSchema.managedProperty().bind(statusSchema.textProperty().isNotEmpty());
@@ -1599,12 +1600,14 @@ public class UnifiedShellView extends BorderPane {
         String kind = schemaKindLabel(doc.getFileType());
         var status = editorHost.activeSchemaStatusProperty().get();
         java.io.File schema = editorHost.activeSchemaProperty().get();
-        statusSchema.setText(schemaStatusText(status, schema, kind));
-        IconifyIcon icon = new IconifyIcon(schemaStatusIcon(status));
+        var source = editorHost.activeSchemaSourceProperty().get();
+        String detail = editorHost.activeSchemaSourceDetailProperty().get();
+        statusSchema.setText(schemaStatusText(status, schema, kind, source));
+        IconifyIcon icon = new IconifyIcon(schemaStatusIcon(status, source));
         icon.setIconSize(12);
         statusSchema.setGraphic(icon);
         statusSchema.getStyleClass().add(schemaStatusStyleClass(status));
-        statusSchema.setTooltip(new javafx.scene.control.Tooltip(schemaStatusTooltip(status, schema, kind)));
+        statusSchema.setTooltip(new javafx.scene.control.Tooltip(schemaStatusTooltip(status, schema, kind, source, detail)));
     }
 
     /** @return the indicator's schema-kind label for a file type (package-private for unit tests). */
@@ -1621,16 +1624,61 @@ public class UnifiedShellView extends BorderPane {
     /** Kind-aware variant: {@code kind} is {@code "XSD"} or {@code "JSON Schema"}. */
     static String schemaStatusText(org.fxt.freexmltoolkit.controls.shell.editor.EditorHost.SchemaStatus status,
             java.io.File schema, String kind) {
-        return switch (status) {
+        return schemaStatusText(status, schema, kind,
+                org.fxt.freexmltoolkit.controls.shell.editor.EditorHost.SchemaSource.DECLARED);
+    }
+
+    /**
+     * Source-aware variant: a READY binding resolved through a catalog, a Schema Library
+     * mapping, or a manual pick gets a {@code (catalog)}/{@code (library)}/{@code (manual)}
+     * suffix so the user can tell a declared binding from a resolved one at a glance.
+     */
+    static String schemaStatusText(org.fxt.freexmltoolkit.controls.shell.editor.EditorHost.SchemaStatus status,
+            java.io.File schema, String kind,
+            org.fxt.freexmltoolkit.controls.shell.editor.EditorHost.SchemaSource source) {
+        String text = switch (status) {
             case LOADING -> "Detecting " + kind + "…";
             case READY -> schema != null ? kind + ": " + schema.getName() : kind + " ready";
             case ERROR -> kind + " error";
             case NONE -> "No " + kind;
         };
+        if (status == org.fxt.freexmltoolkit.controls.shell.editor.EditorHost.SchemaStatus.READY && schema != null) {
+            text += schemaSourceSuffix(source);
+        }
+        return text;
+    }
+
+    /** @return the {@code " (catalog)"}/{@code " (library)"}/{@code " (manual)"} status-text suffix, or {@code ""}. */
+    private static String schemaSourceSuffix(
+            org.fxt.freexmltoolkit.controls.shell.editor.EditorHost.SchemaSource source) {
+        return switch (source) {
+            case CATALOG -> " (catalog)";
+            case LIBRARY -> " (library)";
+            case MANUAL -> " (manual)";
+            case DECLARED, NONE -> "";
+        };
     }
 
     /** @return the {@code bi-*} icon literal for a schema status (package-private for unit tests). */
     static String schemaStatusIcon(org.fxt.freexmltoolkit.controls.shell.editor.EditorHost.SchemaStatus status) {
+        return schemaStatusIcon(status, org.fxt.freexmltoolkit.controls.shell.editor.EditorHost.SchemaSource.DECLARED);
+    }
+
+    /**
+     * Source-aware variant: a READY binding resolved through a catalog or the Schema Library
+     * gets its own icon ({@code bi-journal-bookmark} / {@code bi-collection}) instead of the
+     * plain checkmark, so the resolution path is visible without opening the tooltip.
+     */
+    static String schemaStatusIcon(org.fxt.freexmltoolkit.controls.shell.editor.EditorHost.SchemaStatus status,
+            org.fxt.freexmltoolkit.controls.shell.editor.EditorHost.SchemaSource source) {
+        if (status == org.fxt.freexmltoolkit.controls.shell.editor.EditorHost.SchemaStatus.READY) {
+            if (source == org.fxt.freexmltoolkit.controls.shell.editor.EditorHost.SchemaSource.CATALOG) {
+                return "bi-journal-bookmark";
+            }
+            if (source == org.fxt.freexmltoolkit.controls.shell.editor.EditorHost.SchemaSource.LIBRARY) {
+                return "bi-collection";
+            }
+        }
         return switch (status) {
             case LOADING -> "bi-hourglass-split";
             case READY -> "bi-check-circle";
@@ -1661,8 +1709,27 @@ public class UnifiedShellView extends BorderPane {
      */
     static String schemaStatusTooltip(org.fxt.freexmltoolkit.controls.shell.editor.EditorHost.SchemaStatus status,
             java.io.File schema, String kind) {
+        return schemaStatusTooltip(status, schema, kind,
+                org.fxt.freexmltoolkit.controls.shell.editor.EditorHost.SchemaSource.DECLARED, null);
+    }
+
+    /**
+     * Source-aware variant: a READY binding resolved through a catalog, a Schema Library
+     * mapping, or a manual pick gets an extra explanatory line plus the absolute schema
+     * path appended to the base tooltip.
+     *
+     * @param source the binding's resolution path
+     * @param detail for {@link org.fxt.freexmltoolkit.controls.shell.editor.EditorHost.SchemaSource#CATALOG}
+     *               the resolved catalog target, for
+     *               {@link org.fxt.freexmltoolkit.controls.shell.editor.EditorHost.SchemaSource#LIBRARY}
+     *               the matched namespace/root element; ignored otherwise, may be {@code null}
+     */
+    static String schemaStatusTooltip(org.fxt.freexmltoolkit.controls.shell.editor.EditorHost.SchemaStatus status,
+            java.io.File schema, String kind,
+            org.fxt.freexmltoolkit.controls.shell.editor.EditorHost.SchemaSource source, String detail) {
+        String tooltip;
         if ("JSON Schema".equals(kind)) {
-            return switch (status) {
+            tooltip = switch (status) {
                 case LOADING -> "Detecting the declared JSON Schema — schema validation will be available shortly";
                 case READY -> "Schema validation is active (schema: " + (schema != null ? schema.getName() : "bound")
                         + "). Click to bind a different JSON Schema";
@@ -1671,14 +1738,34 @@ public class UnifiedShellView extends BorderPane {
                 case NONE -> "No JSON Schema is bound — validation is well-formedness only. "
                         + "Click to bind a JSON Schema";
             };
+        } else {
+            tooltip = switch (status) {
+                case LOADING -> "Detecting and parsing the linked XSD schema — IntelliSense will be available shortly";
+                case READY -> "IntelliSense is available (schema: " + (schema != null ? schema.getName() : "bound")
+                        + "). Click to bind a different XSD";
+                case ERROR -> "The linked XSD could not be loaded — IntelliSense is unavailable. "
+                        + "Click to bind an XSD manually";
+                case NONE -> "No XSD schema is linked — IntelliSense is limited. Click to bind an XSD";
+            };
         }
-        return switch (status) {
-            case LOADING -> "Detecting and parsing the linked XSD schema — IntelliSense will be available shortly";
-            case READY -> "IntelliSense is available (schema: " + (schema != null ? schema.getName() : "bound")
-                    + "). Click to bind a different XSD";
-            case ERROR -> "The linked XSD could not be loaded — IntelliSense is unavailable. "
-                    + "Click to bind an XSD manually";
-            case NONE -> "No XSD schema is linked — IntelliSense is limited. Click to bind an XSD";
+        if (status == org.fxt.freexmltoolkit.controls.shell.editor.EditorHost.SchemaStatus.READY && schema != null) {
+            String sourceLine = schemaSourceTooltipLine(source, detail);
+            if (sourceLine != null) {
+                tooltip += "\n" + sourceLine + "\nPath: " + schema.getAbsolutePath();
+            }
+        }
+        return tooltip;
+    }
+
+    /** @return the extra tooltip line explaining how a READY binding was resolved, or {@code null} for none. */
+    private static String schemaSourceTooltipLine(
+            org.fxt.freexmltoolkit.controls.shell.editor.EditorHost.SchemaSource source, String detail) {
+        return switch (source) {
+            case CATALOG -> "Resolved through an XML catalog: " + (detail != null ? detail : "unknown target");
+            case LIBRARY -> "Mapped by the Schema Library"
+                    + (detail != null && !detail.isBlank() ? " (" + detail + ")" : "");
+            case MANUAL -> "Bound manually";
+            case DECLARED, NONE -> null;
         };
     }
 

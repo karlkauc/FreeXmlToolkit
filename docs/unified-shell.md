@@ -1285,6 +1285,13 @@ The status bar at the bottom of the window includes:
     **"JSON Schema: name"**, **"No JSON Schema"** and **"JSON Schema error"**, and refer
     to schema *validation* (JSON has no schema-driven IntelliSense).
 
+    A loaded schema's label also shows *how* it was bound: a plain **"XSD: name"** when the
+    document declared the location itself, **"XSD: name (catalog)"** when an XML catalog
+    entry resolved it (bookmark icon), **"XSD: name (library)"** when a Schema Library
+    mapping resolved it (collection icon), and **"XSD: name (manual)"** when you picked it
+    by hand — the tooltip adds the resolved catalog target or matched namespace/root
+    element plus the schema's absolute path.
+
     **Click the indicator** in any state to choose a schema file (`.xsd`, or `.json` for
     JSON documents) and bind it to the active
     document; for XML the binding drives both **IntelliSense** and **schema validation**,

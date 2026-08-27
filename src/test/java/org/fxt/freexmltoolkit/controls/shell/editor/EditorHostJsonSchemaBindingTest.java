@@ -9,6 +9,7 @@ import java.util.concurrent.TimeUnit;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
+import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost.SchemaSource;
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost.SchemaStatus;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -65,6 +66,7 @@ class EditorHostJsonSchemaBindingTest {
         awaitStatus(SchemaStatus.READY);
         assertNotNull(host.activeSchemaProperty().get(), "READY must come with the bound schema");
         assertEquals("product-schema.json", host.activeSchemaProperty().get().getName());
+        assertEquals(SchemaSource.DECLARED, host.activeSchemaSourceProperty().get());
     }
 
     @Test

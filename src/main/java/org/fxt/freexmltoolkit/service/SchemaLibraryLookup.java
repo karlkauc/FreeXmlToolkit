@@ -8,6 +8,7 @@ import java.util.Optional;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.domain.EntrySource;
 import org.fxt.freexmltoolkit.domain.SchemaEntryStatus;
 import org.fxt.freexmltoolkit.domain.SchemaKind;
 import org.fxt.freexmltoolkit.domain.SchemaLibraryEntry;
@@ -39,6 +40,81 @@ public final class SchemaLibraryLookup {
     private SchemaLibraryLookup() { }
 
     /**
+     * A resolved local file plus which branch of the lookup order matched, so callers can
+     * tell a catalog-mediated resolution ({@code system}/{@code rewriteSystem}/{@code public}
+     * catalog entries, or a {@code uri} catalog entry consulted by namespace) from a plain
+     * Schema Library mapping (a user or bundled namespace/root-element entry).
+     *
+     * @param file       the resolved local file
+     * @param viaCatalog {@code true} when the hit came from an XML catalog entry
+     * @param detail     for a catalog hit, the resolved target location; for a library hit,
+     *                   the namespace (or root element) that matched
+     */
+    public record Hit(Path file, boolean viaCatalog, String detail) { }
+
+    /**
+     * Resolves a schema reference to a readable local file through the Schema Library,
+     * reporting which branch matched.
+     *
+     * @param library          the library to consult (a null library is a miss)
+     * @param namespace        the target namespace to fall back to, may be null/blank
+     * @param systemId         the declared system identifier / schema location, may be null/blank
+     * @param publicId         the declared public identifier (catalogs only), may be null/blank
+     * @param baseUri          base URI used to absolutize a relative {@code systemId}, may be null
+     * @param downloadsAllowed whether an uncached remote entry may be downloaded
+     * @return the resolved hit, or empty on a miss
+     */
+    public static Optional<Hit> lookup(SchemaLibraryService library, String namespace, String systemId,
+                                       String publicId, String baseUri, boolean downloadsAllowed) {
+        if (library == null) return Optional.empty();
+        try {
+            if (systemId != null && !systemId.isBlank()) {
+                Optional<URI> resolved = library.resolveSystemId(systemId, baseUri);
+                if (resolved.isPresent()) {
+                    Optional<Path> file = serve(resolved.get(), downloadsAllowed);
+                    if (file.isPresent()) return Optional.of(new Hit(file.get(), true, resolved.get().toString()));
+                }
+            }
+            if (publicId != null && !publicId.isBlank()) {
+                Optional<URI> resolved = library.resolvePublicId(publicId);
+                if (resolved.isPresent()) {
+                    Optional<Path> file = serve(resolved.get(), downloadsAllowed);
+                    if (file.isPresent()) return Optional.of(new Hit(file.get(), true, resolved.get().toString()));
+                }
+            }
+            if (namespace != null && !namespace.isBlank()) {
+                Optional<SchemaLibraryEntry> entry = library.resolveNamespace(namespace, SchemaKind.XSD);
+                if (entry.isPresent()) {
+                    Optional<Path> file = materializeIfAllowed(library, entry.get(), downloadsAllowed);
+                    if (file.isPresent()) {
+                        boolean viaCatalog = entry.get().source() == EntrySource.CATALOG;
+                        String detail = viaCatalog ? entry.get().location() : namespace;
+                        return Optional.of(new Hit(file.get(), viaCatalog, detail));
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logger.debug("Schema Library lookup failed for '{}' (ns {}): {}", systemId, namespace, e.getMessage());
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Convenience overload without a public identifier.
+     *
+     * @param library          the library to consult
+     * @param namespace        the target namespace, may be null/blank
+     * @param systemId         the declared system identifier, may be null/blank
+     * @param baseUri          base URI for a relative {@code systemId}, may be null
+     * @param downloadsAllowed whether an uncached remote entry may be downloaded
+     * @return the resolved hit, or empty on a miss
+     */
+    public static Optional<Hit> lookup(SchemaLibraryService library, String namespace, String systemId,
+                                       String baseUri, boolean downloadsAllowed) {
+        return lookup(library, namespace, systemId, null, baseUri, downloadsAllowed);
+    }
+
+    /**
      * Resolves a schema reference to a readable local file through the Schema Library.
      *
      * @param library          the library to consult (a null library is a miss)
@@ -51,26 +127,7 @@ public final class SchemaLibraryLookup {
      */
     public static Optional<Path> localFileFor(SchemaLibraryService library, String namespace, String systemId,
                                               String publicId, String baseUri, boolean downloadsAllowed) {
-        if (library == null) return Optional.empty();
-        try {
-            if (systemId != null && !systemId.isBlank()) {
-                Optional<Path> hit = library.resolveSystemId(systemId, baseUri)
-                        .flatMap(uri -> serve(uri, downloadsAllowed));
-                if (hit.isPresent()) return hit;
-            }
-            if (publicId != null && !publicId.isBlank()) {
-                Optional<Path> hit = library.resolvePublicId(publicId)
-                        .flatMap(uri -> serve(uri, downloadsAllowed));
-                if (hit.isPresent()) return hit;
-            }
-            if (namespace != null && !namespace.isBlank()) {
-                Optional<SchemaLibraryEntry> entry = library.resolveNamespace(namespace, SchemaKind.XSD);
-                if (entry.isPresent()) return materializeIfAllowed(library, entry.get(), downloadsAllowed);
-            }
-        } catch (Exception e) {
-            logger.debug("Schema Library lookup failed for '{}' (ns {}): {}", systemId, namespace, e.getMessage());
-        }
-        return Optional.empty();
+        return lookup(library, namespace, systemId, publicId, baseUri, downloadsAllowed).map(Hit::file);
     }
 
     /**
