@@ -12,6 +12,7 @@ public class XmlContext {
 
     private final int caretPosition;
     private final String textBeforeCaret;
+    private final String textAfterCaret;
     private final ContextType type;
     private final String parentElement;
     private final String currentElement;
@@ -29,6 +30,7 @@ public class XmlContext {
     private XmlContext(Builder builder) {
         this.caretPosition = builder.caretPosition;
         this.textBeforeCaret = builder.textBeforeCaret;
+        this.textAfterCaret = builder.textAfterCaret;
         this.type = builder.type;
         this.parentElement = builder.parentElement;
         this.currentElement = builder.currentElement;
@@ -57,6 +59,15 @@ public class XmlContext {
      */
     public String getTextBeforeCaret() {
         return textBeforeCaret;
+    }
+
+    /**
+     * Gets the text after the caret position (empty if unknown).
+     *
+     * @return the text after caret
+     */
+    public String getTextAfterCaret() {
+        return textAfterCaret;
     }
 
     /**
@@ -190,6 +201,7 @@ public class XmlContext {
     public static class Builder {
         private int caretPosition;
         private String textBeforeCaret = "";
+        private String textAfterCaret = "";
         private ContextType type = ContextType.UNKNOWN;
         private String parentElement;
         private String currentElement;
@@ -218,6 +230,17 @@ public class XmlContext {
          */
         public Builder textBeforeCaret(String textBeforeCaret) {
             this.textBeforeCaret = textBeforeCaret;
+            return this;
+        }
+
+        /**
+         * Sets the text after the caret.
+         *
+         * @param textAfterCaret the text after caret
+         * @return this builder for chaining
+         */
+        public Builder textAfterCaret(String textAfterCaret) {
+            this.textAfterCaret = textAfterCaret == null ? "" : textAfterCaret;
             return this;
         }
 

@@ -38,7 +38,8 @@ public class ContextAnalyzer {
 
         XmlContext.Builder builder = new XmlContext.Builder()
                 .caretPosition(safeCaretPos)
-                .textBeforeCaret(textBeforeCaret);
+                .textBeforeCaret(textBeforeCaret)
+                .textAfterCaret(text.substring(safeCaretPos));
 
         // Check for special contexts first
         if (isInComment(textBeforeCaret)) {
@@ -160,6 +161,12 @@ public class ContextAnalyzer {
                 // Incomplete tag — cursor is inside a tag. Look ahead in the full text
                 // to get the complete tag name.
                 int fullClose = fullText.indexOf('>', nextOpen);
+                // A '<' typed in front of existing markup ("<|<c:city>") is not the start of
+                // that following tag: cut the look-ahead at the next '<'.
+                int nextTagStart = fullText.indexOf('<', nextOpen + 1);
+                if (nextTagStart != -1 && nextTagStart < fullClose) {
+                    fullClose = nextTagStart;
+                }
                 if (fullClose != -1) {
                     String tag = fullText.substring(nextOpen + 1, fullClose);
                     if (!tag.startsWith("!--") && !tag.startsWith("![CDATA[") && !tag.startsWith("?")
@@ -200,15 +207,15 @@ public class ContextAnalyzer {
     }
 
     /**
-     * Extracts the element name from a tag string.
+     * Extracts the (possibly prefixed) element name from a tag string.
      */
     private static String extractElementName(String tag) {
-        // Extract name before space or end of string
-        int spaceIndex = tag.indexOf(' ');
-        if (spaceIndex != -1) {
-            return tag.substring(0, spaceIndex);
+        // Extract name before whitespace or end of string
+        int end = 0;
+        while (end < tag.length() && !Character.isWhitespace(tag.charAt(end))) {
+            end++;
         }
-        return tag.trim();
+        return tag.substring(0, end).trim();
     }
 
     /**

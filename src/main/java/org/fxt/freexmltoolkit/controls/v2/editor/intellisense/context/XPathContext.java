@@ -27,7 +27,9 @@ public class XPathContext {
     }
 
     /**
-     * Builds an XPath string from the element stack.
+     * Builds an XPath string from the element stack. Namespace prefixes are stripped because
+     * the schema element map (and the completion cache) are keyed by local names; the stack
+     * itself keeps the qualified names for closing-tag completion.
      *
      * @param elementStack the element stack
      * @return the XPath string
@@ -38,7 +40,8 @@ public class XPathContext {
         }
         StringBuilder sb = new StringBuilder();
         for (String element : elementStack) {
-            sb.append('/').append(element);
+            int colon = element.lastIndexOf(':');
+            sb.append('/').append(colon >= 0 ? element.substring(colon + 1) : element);
         }
         return sb.toString();
     }

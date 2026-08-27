@@ -176,4 +176,10 @@ class ContextAnalyzerTest {
         XmlContext context = ContextAnalyzer.analyze(xml, xml.length());
         assertEquals("span", context.getXPathContext().getCurrentElement());
     }
+    @Test
+    void xpathStripsNamespacePrefixes() {
+        String xml = "<invoice xmlns:c=\"urn:c\"><billTo><c:street>Hauptplatz</c:street><c:city>";
+        XmlContext context = ContextAnalyzer.analyze(xml, xml.length());
+        assertEquals("/invoice/billTo/city", context.getXPath());
+    }
 }

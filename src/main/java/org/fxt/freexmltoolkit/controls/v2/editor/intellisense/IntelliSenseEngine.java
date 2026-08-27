@@ -11,6 +11,7 @@ import org.fxmisc.richtext.CodeArea;
 import org.fxt.freexmltoolkit.controls.v2.editor.core.EditorContext;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.cache.CompletionCache;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.context.ContextAnalyzer;
+import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.context.ContextType;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.context.XPathContext;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.context.XmlContext;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.model.CompletionItem;
@@ -132,19 +133,23 @@ public class IntelliSenseEngine {
             return;
         }
 
+        // Element completions depend on the siblings already present around the caret
+        // (sequence position, maxOccurs), so they must not be served from the XPath-keyed cache.
+        boolean cacheable = currentContext.getType() != ContextType.ELEMENT;
+
         // Try cache first
-        List<CompletionItem> items = completionCache.get(
+        List<CompletionItem> items = cacheable ? completionCache.get(
                 currentContext.getXPath(),
                 currentContext.getType(),
                 editorContext.getCurrentMode()
-        );
+        ) : null;
 
         // If not in cache, get from providers
         if (items == null) {
             items = providerRegistry.getCompletions(currentContext, editorContext.getCurrentMode());
 
             // Cache the results
-            if (!items.isEmpty()) {
+            if (cacheable && !items.isEmpty()) {
                 completionCache.put(
                         currentContext.getXPath(),
                         currentContext.getType(),
@@ -335,8 +340,12 @@ public class IntelliSenseEngine {
             return caretPos;
         }
 
-        // Case-insensitive prefix match
-        if (label.toLowerCase().startsWith(typedText.toLowerCase())) {
+        // Case-insensitive prefix match against the label or, for a qualified label
+        // ("c:street"), against its local part — typing "<st" must still complete to "c:street".
+        String typed = typedText.toLowerCase();
+        int colon = label.indexOf(':');
+        String localPart = colon >= 0 ? label.substring(colon + 1) : label;
+        if (label.toLowerCase().startsWith(typed) || localPart.toLowerCase().startsWith(typed)) {
             logger.debug("Found partial text: '{}' matching label '{}'", typedText, label);
             return start;
         }

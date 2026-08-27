@@ -51,18 +51,13 @@ class XsdCompletionProviderFilteringTest {
 
     @Test
     void testCountExistingSiblings() throws Exception {
-        Method method = XsdCompletionProvider.class.getDeclaredMethod("countExistingSiblings", String.class, String.class);
-        method.setAccessible(true);
-
         // Test with Type element already present
         String xml1 = """
             <AssetDetails>
                 <Future>
                     <Type>BF</Type>
                     <""";
-
-        @SuppressWarnings("unchecked")
-        Map<String, Integer> counts1 = (Map<String, Integer>) method.invoke(provider, xml1, "Future");
+        Map<String, Integer> counts1 = countExistingSiblings(xml1, "Future");
         assertEquals(1, counts1.getOrDefault("Type", 0), "Type should be counted once");
 
         // Test with multiple elements
@@ -72,9 +67,7 @@ class XsdCompletionProviderFilteringTest {
                 <Child2>B</Child2>
                 <Child1>C</Child1>
                 <""";
-
-        @SuppressWarnings("unchecked")
-        Map<String, Integer> counts2 = (Map<String, Integer>) method.invoke(provider, xml2, "Parent");
+        Map<String, Integer> counts2 = countExistingSiblings(xml2, "Parent");
         assertEquals(2, counts2.getOrDefault("Child1", 0), "Child1 should be counted twice");
         assertEquals(1, counts2.getOrDefault("Child2", 0), "Child2 should be counted once");
 
@@ -86,9 +79,7 @@ class XsdCompletionProviderFilteringTest {
                         <Nested>X</Nested>
                     </Child>
                     <""";
-
-        @SuppressWarnings("unchecked")
-        Map<String, Integer> counts3 = (Map<String, Integer>) method.invoke(provider, xml3, "Parent");
+        Map<String, Integer> counts3 = countExistingSiblings(xml3, "Parent");
         assertEquals(1, counts3.getOrDefault("Child", 0), "Child should be counted once");
         assertEquals(0, counts3.getOrDefault("Nested", 0), "Nested should not be counted (not direct child)");
 
@@ -99,9 +90,7 @@ class XsdCompletionProviderFilteringTest {
                     <Empty/>
                     <Another/>
                     <""";
-
-        @SuppressWarnings("unchecked")
-        Map<String, Integer> counts4 = (Map<String, Integer>) method.invoke(provider, xml4, "Parent");
+        Map<String, Integer> counts4 = countExistingSiblings(xml4, "Parent");
         assertEquals(1, counts4.getOrDefault("Empty", 0), "Empty should be counted once");
         assertEquals(1, counts4.getOrDefault("Another", 0), "Another should be counted once");
 
@@ -112,18 +101,13 @@ class XsdCompletionProviderFilteringTest {
                     <!-- <Commented>X</Commented> -->
                     <Real>Y</Real>
                     <""";
-
-        @SuppressWarnings("unchecked")
-        Map<String, Integer> counts5 = (Map<String, Integer>) method.invoke(provider, xml5, "Parent");
+        Map<String, Integer> counts5 = countExistingSiblings(xml5, "Parent");
         assertEquals(0, counts5.getOrDefault("Commented", 0), "Commented should not be counted");
         assertEquals(1, counts5.getOrDefault("Real", 0), "Real should be counted once");
     }
 
     @Test
     void testCountExistingSiblingsWithRealWorldExample() throws Exception {
-        Method method = XsdCompletionProvider.class.getDeclaredMethod("countExistingSiblings", String.class, String.class);
-        method.setAccessible(true);
-
         // Real-world FundsXML example
         String fundsXml = """
             <?xml version="1.0" encoding="UTF-8"?>
@@ -138,9 +122,7 @@ class XsdCompletionProviderFilteringTest {
                             <Currency>EUR</Currency>
                         </BasePrice>
                         <""";
-
-        @SuppressWarnings("unchecked")
-        Map<String, Integer> counts = (Map<String, Integer>) method.invoke(provider, fundsXml, "Future");
+        Map<String, Integer> counts = countExistingSiblings(fundsXml, "Future");
 
         assertEquals(1, counts.getOrDefault("Type", 0), "Type should be counted once");
         assertEquals(1, counts.getOrDefault("Listing", 0), "Listing should be counted once");
@@ -153,35 +135,55 @@ class XsdCompletionProviderFilteringTest {
 
     @Test
     void testCountExistingSiblingsEmptyParent() throws Exception {
-        Method method = XsdCompletionProvider.class.getDeclaredMethod("countExistingSiblings", String.class, String.class);
-        method.setAccessible(true);
-
         // Test with empty parent - no children yet
         String xml = """
             <Root>
                 <Parent>
                     <""";
-
-        @SuppressWarnings("unchecked")
-        Map<String, Integer> counts = (Map<String, Integer>) method.invoke(provider, xml, "Parent");
+        Map<String, Integer> counts = countExistingSiblings(xml, "Parent");
         assertTrue(counts.isEmpty(), "Counts should be empty for parent with no children");
     }
 
     @Test
     void testCountExistingSiblingsParentNotFound() throws Exception {
-        Method method = XsdCompletionProvider.class.getDeclaredMethod("countExistingSiblings", String.class, String.class);
-        method.setAccessible(true);
-
         String xml = """
             <Root>
                 <Other>
                     <Child>A</Child>
                 </Other>
                 <""";
-
-        @SuppressWarnings("unchecked")
-        Map<String, Integer> counts = (Map<String, Integer>) method.invoke(provider, xml, "NonExistent");
+        Map<String, Integer> counts = countExistingSiblings(xml, "NonExistent");
         assertTrue(counts.isEmpty(), "Counts should be empty when parent not found");
+    }
+
+    /** Counts the direct children (local names) before the caret via {@link DirectChildScanner}. */
+    private static Map<String, Integer> countExistingSiblings(String textBeforeCaret, String parent) {
+        Map<String, Integer> counts = new java.util.HashMap<>();
+        for (String name : DirectChildScanner.scan(textBeforeCaret, null, parent).before()) {
+            counts.merge(name, 1, Integer::sum);
+        }
+        return counts;
+    }
+
+    @Test
+    void siblingScanStripsPrefixesAndFindsPrefixedParent() {
+        String xml = """
+            <invoice xmlns:c="urn:c">
+                <c:billTo>
+                    <c:street>Hauptplatz 5</c:street>
+                    <""";
+        Map<String, Integer> counts = countExistingSiblings(xml, "billTo");
+        assertEquals(1, counts.getOrDefault("street", 0));
+        assertEquals(0, counts.getOrDefault("c:street", 0));
+    }
+
+    @Test
+    void siblingScanSeesChildrenAfterTheCaretUpToParentClose() {
+        String before = "<root><p><a/><";
+        String after = "<b><x/></b><c/></p><d/></root>";
+        DirectChildScanner.Siblings s = DirectChildScanner.scan(before, after, "p");
+        assertEquals(java.util.List.of("a"), s.before());
+        assertEquals(java.util.List.of("b", "c"), s.after());
     }
 
     /**

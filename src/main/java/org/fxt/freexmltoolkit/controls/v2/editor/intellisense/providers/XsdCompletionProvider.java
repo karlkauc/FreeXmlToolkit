@@ -1,23 +1,22 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.intellisense.providers;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.editor.core.EditorMode;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.context.ContextType;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.context.XmlContext;
+import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.context.XmlNamespaceDeclarations;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.model.CompletionItem;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.model.CompletionItemType;
 import org.fxt.freexmltoolkit.controls.v2.editor.services.XmlSchemaProvider;
 import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
 import org.fxt.freexmltoolkit.domain.XsdElementDisplayUtils;
+import org.fxt.freexmltoolkit.domain.XsdElementNamespaceResolver;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
 
 /**
@@ -87,38 +86,25 @@ public class XsdCompletionProvider implements CompletionProvider {
         }
 
         if (parentInfo != null && parentInfo.getChildren() != null) {
-            // Extract the actual parent element name from the XPath
             // The XPath like "/root/parent/child" means we're inside "child",
             // so "child" is the parent for our completions
             String actualParent = extractLastElementFromXPath(parentPath);
 
-            // Count existing sibling elements to filter by maxOccurs
-            Map<String, Integer> siblingCounts = countExistingSiblings(
-                context.getTextBeforeCaret(),
-                actualParent
-            );
-            logger.debug("Smart filtering: actualParent='{}', siblingCounts={}", actualParent, siblingCounts);
+            // Direct children already present before/after the caret (local names, in order)
+            DirectChildScanner.Siblings siblings = DirectChildScanner.scan(
+                    context.getTextBeforeCaret(), context.getTextAfterCaret(), actualParent);
+            logger.debug("Smart filtering: actualParent='{}', siblings={}", actualParent, siblings);
 
-            // Collect all real child elements, recursively digging into compositors
-            List<XsdExtendedElement> realChildren = new ArrayList<>();
-            collectRealChildElements(parentInfo, xsdData, realChildren, new java.util.HashSet<>());
+            // Only the children that may legally appear at this position (sequence order, maxOccurs)
+            List<XsdExtendedElement> allowed = new AllowedChildrenCalculator(xsdData)
+                    .compute(parentInfo, siblings.before(), siblings.after());
 
-            // Create completion items, filtering out elements that reached maxOccurs
+            // Prefix each name the way the instance document declares its namespaces
+            XmlNamespaceDeclarations declarations = XmlNamespaceDeclarations.scan(context.getTextBeforeCaret());
+
             int index = 0;
-            for (XsdExtendedElement childInfo : realChildren) {
-                String elementName = childInfo.getElementName();
-                int maxOccurs = getMaxOccurs(childInfo);
-                int currentCount = siblingCounts.getOrDefault(elementName, 0);
-
-                // Skip elements that have reached their maxOccurs limit
-                if (maxOccurs > 0 && currentCount >= maxOccurs) {
-                    logger.debug("Filtering out '{}': maxOccurs={}, count={}",
-                        elementName, maxOccurs, currentCount);
-                    continue;
-                }
-
-                CompletionItem item = createElementCompletionItem(childInfo, index++);
-                items.add(item);
+            for (XsdExtendedElement childInfo : allowed) {
+                items.add(createElementCompletionItem(childInfo, index++, xsdData, declarations));
             }
         }
 
@@ -126,119 +112,7 @@ public class XsdCompletionProvider implements CompletionProvider {
     }
 
     /**
-     * Counts how many times each child element appears in the current parent element.
-     * Only counts direct children, not nested elements.
-     *
-     * @param textBeforeCaret the XML text from the beginning to the cursor position
-     * @param parentElement   the name of the parent element
-     * @return a map of element names to their occurrence counts
-     */
-    private Map<String, Integer> countExistingSiblings(String textBeforeCaret, String parentElement) {
-        Map<String, Integer> counts = new HashMap<>();
-
-        if (textBeforeCaret == null || textBeforeCaret.isEmpty() ||
-            parentElement == null || parentElement.isEmpty()) {
-            return counts;
-        }
-
-        // Find the last opening tag for the parent element
-        String openTag = "<" + parentElement;
-        int parentStart = textBeforeCaret.lastIndexOf(openTag);
-        if (parentStart < 0) {
-            return counts;
-        }
-
-        // Find end of opening tag (after '>')
-        int tagEnd = textBeforeCaret.indexOf('>', parentStart);
-        if (tagEnd < 0) {
-            return counts;
-        }
-
-        // Extract content between parent start and cursor
-        String content = textBeforeCaret.substring(tagEnd + 1);
-
-        // Remove comments and CDATA to avoid counting elements inside them
-        content = removeCommentsAndCData(content);
-
-        // Use stack-based counting to only count direct children
-        // Match all opening and closing tags
-        Pattern tagPattern = Pattern.compile("<(/?)([a-zA-Z][a-zA-Z0-9_:-]*)(?:\\s[^>]*)?(/?)>");
-        Matcher matcher = tagPattern.matcher(content);
-
-        int depth = 0;
-        while (matcher.find()) {
-            boolean isClosing = !matcher.group(1).isEmpty();
-            String tagName = matcher.group(2);
-            boolean isSelfClosing = !matcher.group(3).isEmpty();
-
-            if (isClosing) {
-                // Closing tag - decrease depth
-                depth--;
-            } else if (isSelfClosing) {
-                // Self-closing tag at depth 0 = direct child
-                if (depth == 0) {
-                    counts.merge(tagName, 1, Integer::sum);
-                }
-            } else {
-                // Opening tag
-                if (depth == 0) {
-                    // Direct child of parent
-                    counts.merge(tagName, 1, Integer::sum);
-                }
-                depth++;
-            }
-        }
-
-        logger.debug("Counted siblings in '{}': {}", parentElement, counts);
-        return counts;
-    }
-
-    /**
-     * Removes XML comments and CDATA sections from content.
-     */
-    private String removeCommentsAndCData(String content) {
-        if (content == null) {
-            return "";
-        }
-        // Remove comments: <!-- ... -->
-        content = content.replaceAll("<!--[\\s\\S]*?-->", "");
-        // Remove CDATA: <![CDATA[ ... ]]>
-        content = content.replaceAll("<!\\[CDATA\\[[\\s\\S]*?]]>", "");
-        return content;
-    }
-
-    /**
-     * Extracts the maxOccurs value from an XsdExtendedElement.
-     *
-     * @param element the XSD element info
-     * @return maxOccurs value, -1 for "unbounded" (no limit)
-     */
-    private int getMaxOccurs(XsdExtendedElement element) {
-        org.w3c.dom.Node cardNode = element.getCardinalityNode();
-        org.w3c.dom.Node currentNode = element.getCurrentNode();
-
-        // Try cardinalityNode first (for element references), then currentNode
-        org.w3c.dom.Node sourceNode = cardNode != null ? cardNode : currentNode;
-        if (sourceNode == null) {
-            return -1; // No info available, assume unbounded
-        }
-
-        String maxOccurs = XsdElementDisplayUtils.getNodeAttribute(sourceNode, "maxOccurs");
-        if (maxOccurs == null || maxOccurs.isEmpty()) {
-            return 1; // Default maxOccurs is 1
-        }
-        if ("unbounded".equals(maxOccurs)) {
-            return -1; // No limit
-        }
-        try {
-            return Integer.parseInt(maxOccurs);
-        } catch (NumberFormatException e) {
-            return -1; // Parse error, assume unbounded
-        }
-    }
-
-    /**
-     * Extracts the last element name from an XPath.
+     * Extracts the last element's local name from an XPath.
      * For "/FundsXML4/AssetDetails/Future" returns "Future".
      *
      * @param xpath the XPath string
@@ -249,34 +123,31 @@ public class XsdCompletionProvider implements CompletionProvider {
             return null;
         }
         int lastSlash = xpath.lastIndexOf('/');
-        if (lastSlash < 0) {
-            return xpath;
-        }
-        String lastPart = xpath.substring(lastSlash + 1);
-        return lastPart.isEmpty() ? null : lastPart;
+        String lastPart = lastSlash < 0 ? xpath : xpath.substring(lastSlash + 1);
+        return lastPart.isEmpty() ? null : DirectChildScanner.localName(lastPart);
     }
 
     /**
-     * Recursively collects real child elements, skipping compositor elements.
-     * Delegates to {@link XsdElementDisplayUtils#collectRealChildElements}.
-     */
-    private void collectRealChildElements(XsdExtendedElement parent, XsdDocumentationData xsdData,
-                                          List<XsdExtendedElement> result, java.util.Set<String> visited) {
-        XsdElementDisplayUtils.collectRealChildElements(parent, xsdData, result, visited);
-    }
-
-    /**
-     * Creates a completion item from XSD element info.
+     * Creates a completion item from XSD element info. The label/insert text is the name
+     * qualified with the prefix the instance document binds to the element's namespace.
      * Delegates to {@link XsdElementDisplayUtils#buildCompletionItem} and adds IntelliSense-specific description.
      */
-    private CompletionItem createElementCompletionItem(XsdExtendedElement elementInfo, int index) {
+    private CompletionItem createElementCompletionItem(XsdExtendedElement elementInfo, int index,
+                                                       XsdDocumentationData xsdData,
+                                                       XmlNamespaceDeclarations declarations) {
         // Build the base item with all display fields via shared utility
         CompletionItem baseItem = XsdElementDisplayUtils.buildCompletionItem(elementInfo, index);
 
         // Re-build with IntelliSense-specific description (tooltip)
         String documentation = buildElementDescription(elementInfo);
 
-        return new CompletionItem.Builder(baseItem.getLabel(), baseItem.getInsertText(), baseItem.getType())
+        String namespaceUri = XsdElementNamespaceResolver.resolveNamespaceUri(elementInfo, xsdData);
+        String schemaPrefix = baseItem.getPrefix() != null ? baseItem.getPrefix() : schemaPrefixFor(namespaceUri, xsdData);
+        String qualifiedName = declarations.qualify(elementInfo.getElementName(), namespaceUri, schemaPrefix);
+        int colon = qualifiedName.indexOf(':');
+        String usedPrefix = colon > 0 ? qualifiedName.substring(0, colon) : null;
+
+        return new CompletionItem.Builder(qualifiedName, qualifiedName, baseItem.getType())
                 .description(documentation)
                 .dataType(baseItem.getDataType())
                 .required(baseItem.isRequired())
@@ -285,9 +156,22 @@ public class XsdCompletionProvider implements CompletionProvider {
                 .defaultValue(baseItem.getDefaultValue())
                 .facetHints(baseItem.getFacetHints())
                 .examples(baseItem.getExamples())
-                .namespace(baseItem.getNamespace())
-                .prefix(baseItem.getPrefix())
+                .namespace(namespaceUri)
+                .prefix(usedPrefix)
                 .build();
+    }
+
+    /** The prefix the schema files themselves bind to {@code namespaceUri}, or null. */
+    private static String schemaPrefixFor(String namespaceUri, XsdDocumentationData xsdData) {
+        if (namespaceUri == null || xsdData.getNamespaces() == null) {
+            return null;
+        }
+        return xsdData.getNamespaces().entrySet().stream()
+                .filter(e -> namespaceUri.equals(e.getValue()))
+                .map(Map.Entry::getKey)
+                .filter(p -> p != null && !p.isBlank())
+                .findFirst()
+                .orElse(null);
     }
 
     /**

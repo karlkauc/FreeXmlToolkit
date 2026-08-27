@@ -1436,61 +1436,34 @@ public class XsdDocumentationService {
     /**
      * Initialize caches for global definitions from all processed schema files.
      */
+    /**
+     * Initializes the global-definition caches from every schema file that
+     * {@link #processAllSchemas()} collected — main schema, includes, local imports and
+     * remote imports resolved through the Schema Library / catalogs / schema cache. Re-walking
+     * the imports from disk here would silently skip the resolved remote ones (their DOM was
+     * only rewritten in memory), leaving e.g. imported complexTypes unresolved.
+     */
     private void initializeCachesFromAllSchemas() throws Exception {
-        Path baseDirectory = new File(this.xsdFilePath).toPath().getParent();
-        if (baseDirectory == null) {
-            baseDirectory = new File(".").toPath();
-        }
-
-        // Start with the main schema file
-        Queue<Path> filesToProcess = new LinkedList<>();
-        filesToProcess.add(new File(this.xsdFilePath).toPath());
-        Set<String> processedFiles = new HashSet<>();
-
-        while (!filesToProcess.isEmpty()) {
-            Path currentFile = filesToProcess.poll();
-            if (!Files.exists(currentFile)) {
-                continue;
-            }
-
-            String currentFilePath = currentFile.toAbsolutePath().toString();
-            if (processedFiles.contains(currentFilePath)) {
-                continue;
-            }
-            processedFiles.add(currentFilePath);
-
+        for (Path currentFile : schemaFilesToScan()) {
             logger.debug("Initializing caches from: {}", currentFile);
             Document document = parseXsdContent(Files.readString(currentFile, StandardCharsets.UTF_8));
-
-            // Initialize caches for this document
             initializeCaches(document);
+        }
+    }
 
-            // Find and queue included/imported files
-            NodeList includeNodes = (NodeList) xpath.evaluate("//xs:include[@schemaLocation]", document, XPathConstants.NODESET);
-            NodeList importNodes = (NodeList) xpath.evaluate("//xs:import[@schemaLocation]", document, XPathConstants.NODESET);
-
-            for (int i = 0; i < includeNodes.getLength(); i++) {
-                Element includeElement = (Element) includeNodes.item(i);
-                String location = includeElement.getAttribute("schemaLocation");
-                if (!location.isEmpty()) {
-                    Path includedFile = baseDirectory.resolve(location);
-                    if (Files.exists(includedFile)) {
-                        filesToProcess.add(includedFile);
-                    }
-                }
-            }
-
-            for (int i = 0; i < importNodes.getLength(); i++) {
-                Element importElement = (Element) importNodes.item(i);
-                String location = importElement.getAttribute("schemaLocation");
-                if (!location.isEmpty() && !isRemote(location)) {
-                    Path importedFile = baseDirectory.resolve(location);
-                    if (Files.exists(importedFile)) {
-                        filesToProcess.add(importedFile);
-                    }
-                }
+    /** The schema files collected by {@link #processAllSchemas()}, falling back to the main schema. */
+    private List<Path> schemaFilesToScan() {
+        List<Path> files = new ArrayList<>();
+        Path main = new File(this.xsdFilePath).toPath().toAbsolutePath().normalize();
+        if (Files.exists(main)) {
+            files.add(main);
+        }
+        for (Path p : processedSchemaFiles) {
+            if (!files.contains(p) && Files.exists(p)) {
+                files.add(p);
             }
         }
+        return files;
     }
 
     private void traverseNode(Node node, String currentXPath, String parentXPath, int level, Set<Node> visitedOnPath) {
@@ -2854,69 +2827,18 @@ public class XsdDocumentationService {
             }
         }
 
-        // Add namespaces from included schemas
-        Path baseDirectory = new File(this.xsdFilePath).toPath().getParent();
-        if (baseDirectory != null) {
-            Queue<Path> filesToProcess = new LinkedList<>();
-            filesToProcess.add(new File(this.xsdFilePath).toPath());
-            Set<String> processedFiles = new HashSet<>();
-
-            while (!filesToProcess.isEmpty()) {
-                Path currentFile = filesToProcess.poll();
-                if (!Files.exists(currentFile)) {
-                    continue;
-                }
-
-                String currentFilePath = currentFile.toAbsolutePath().toString();
-                if (processedFiles.contains(currentFilePath)) {
-                    continue;
-                }
-                processedFiles.add(currentFilePath);
-
-                Document document = parseXsdContent(Files.readString(currentFile, StandardCharsets.UTF_8));
-                Element currentSchemaElement = document.getDocumentElement();
-
-                // Add namespaces from this schema
-                var currentAttributes = currentSchemaElement.getAttributes();
-                for (int i = 0; i < currentAttributes.getLength(); i++) {
-                    Node attr = currentAttributes.item(i);
-                    if (attr.getNodeName().startsWith("xmlns:")) {
-                        String prefix = attr.getLocalName();
-                        String uri = attr.getNodeValue();
-                        if (!nsMap.containsKey(prefix)) {
-                            nsMap.put(prefix, uri);
-                        }
-                    }
-                }
-
-                // Find and queue included/imported files
-                NodeList includeNodes = (NodeList) xpath.evaluate("//xs:include[@schemaLocation]", document, XPathConstants.NODESET);
-                NodeList importNodes = (NodeList) xpath.evaluate("//xs:import[@schemaLocation]", document, XPathConstants.NODESET);
-
-                for (int i = 0; i < includeNodes.getLength(); i++) {
-                    Element includeElement = (Element) includeNodes.item(i);
-                    String location = includeElement.getAttribute("schemaLocation");
-                    if (!location.isEmpty()) {
-                        Path includedFile = baseDirectory.resolve(location);
-                        if (Files.exists(includedFile)) {
-                            filesToProcess.add(includedFile);
-                        }
-                    }
-                }
-
-                for (int i = 0; i < importNodes.getLength(); i++) {
-                    Element importElement = (Element) importNodes.item(i);
-                    String location = importElement.getAttribute("schemaLocation");
-                    if (!location.isEmpty() && !isRemote(location)) {
-                        Path importedFile = baseDirectory.resolve(location);
-                        if (Files.exists(importedFile)) {
-                            filesToProcess.add(importedFile);
-                        }
-                    }
+        // Add namespaces from included/imported schemas (including resolved remote imports)
+        for (Path currentFile : schemaFilesToScan()) {
+            Document document = parseXsdContent(Files.readString(currentFile, StandardCharsets.UTF_8));
+            var currentAttributes = document.getDocumentElement().getAttributes();
+            for (int i = 0; i < currentAttributes.getLength(); i++) {
+                Node attr = currentAttributes.item(i);
+                if (attr.getNodeName().startsWith("xmlns:")) {
+                    nsMap.putIfAbsent(attr.getLocalName(), attr.getNodeValue());
                 }
             }
         }
-        
+
         xsdDocumentationData.setNamespaces(nsMap);
     }
 

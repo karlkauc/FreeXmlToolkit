@@ -162,6 +162,10 @@ public class MutableXmlSchemaProvider implements XmlSchemaProvider {
         java.util.List<String> cleanSegments = new java.util.ArrayList<>();
         for (String seg : inputSegments) {
             String cleaned = seg.replaceAll("\\[.*\\]", "").trim(); // Remove predicates
+            int colon = cleaned.lastIndexOf(':');                 // Map keys use local names
+            if (colon >= 0) {
+                cleaned = cleaned.substring(colon + 1);
+            }
             if (!cleaned.isEmpty()) {
                 cleanSegments.add(cleaned);
             }
