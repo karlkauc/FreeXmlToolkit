@@ -5356,6 +5356,12 @@ tell exactly when IntelliSense (XML) or schema validation (JSON) becomes availab
 <p>For JSON documents the same four states read <strong>"Detecting JSON Schema…"</strong>,
 <strong>"JSON Schema: name"</strong>, <strong>"No JSON Schema"</strong> and <strong>"JSON Schema error"</strong>, and refer
 to schema <em>validation</em> (JSON has no schema-driven IntelliSense).</p>
+<p>A loaded schema's label also shows <em>how</em> it was bound: a plain <strong>"XSD: name"</strong> when the
+document declared the location itself, <strong>"XSD: name (catalog)"</strong> when an XML catalog
+entry resolved it (bookmark icon), <strong>"XSD: name (library)"</strong> when a Schema Library
+mapping resolved it (collection icon), and <strong>"XSD: name (manual)"</strong> when you picked it
+by hand — the tooltip adds the resolved catalog target or matched namespace/root
+element plus the schema's absolute path.</p>
 <p><strong>Click the indicator</strong> in any state to choose a schema file (<code>.xsd</code>, or <code>.json</code> for
 JSON documents) and bind it to the active
 document; for XML the binding drives both <strong>IntelliSense</strong> and <strong>schema validation</strong>,

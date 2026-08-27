@@ -2014,6 +2014,12 @@ three sources, tried in this order:</p>
 </ol>
 <p>The first match wins, and a schema you bind <strong>manually</strong> in the Validation panel or status
 bar always takes priority over anything the library resolves.</p>
+<p>The status bar's schema indicator shows how the active binding was resolved: a plain
+<code>XSD: invoice.xsd</code> for a schema the document declared itself, <code>XSD: invoice.xsd (catalog)</code>
+for one an XML catalog entry redirected to, <code>XSD: invoice.xsd (library)</code> for one a Schema
+Library mapping supplied, and <code>XSD: invoice.xsd (manual)</code> for one you picked by hand; hover
+the indicator for the resolved location and, for catalog/library bindings, the matched
+namespace or catalog target.</p>
 <p>The library is consulted whenever a document needs a schema but doesn't say which one:</p>
 <ul>
 <li><strong>XML auto-binding</strong> - a document without <code>xsi:schemaLocation</code> /
