@@ -20,6 +20,7 @@ package org.fxt.freexmltoolkit.service;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.Authenticator;
 import java.net.HttpURLConnection;
@@ -31,6 +32,8 @@ import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 
@@ -107,132 +110,18 @@ public class ConnectionServiceImpl implements ConnectionService {
         HttpURLConnection connection = null;
 
         try {
-            // Log proxy configuration for debugging
-            logger.debug("Testing HTTP request to: {}", uri);
-            logger.debug("Proxy properties: manualProxy={}, useSystemProxy={}, http.proxyHost={}, socksProxyHost={}",
-                    testProperties.getProperty("manualProxy", "false"),
-                    testProperties.getProperty("useSystemProxy", "true"),
-                    testProperties.getProperty("http.proxy.host", "not set"),
-                    System.getProperty("socksProxyHost", "not set"));
-
-            // Read the SSL-bypass opt-in. SECURITY: the bypass is applied ONLY to this specific
-            // connection (see applySslBypassToConnection below), never to the JVM-global
-            // HttpsURLConnection defaults. Poisoning the global defaults would silently disable
-            // certificate validation for every other HTTPS connection in the process - including
-            // auto-update downloads - which must always validate certificates.
-            boolean trustAllCerts = Boolean.parseBoolean(testProperties.getProperty("ssl.trustAllCerts", "false"));
-            if (trustAllCerts) {
-                logger.warn("!!! SECURITY WARNING !!! SSL certificate validation is disabled for this "
-                        + "connection test only ({}).", uri);
-            }
-
-            // Configure proxy authentication
-            configureProxyAuthentication(testProperties);
-
-            // Configure proxy
-            Proxy proxy = configureProxy(testProperties);
-
-            // Create connection based on proxy configuration:
-            // - non-null, non-NO_PROXY: use explicit proxy
-            // - Proxy.NO_PROXY: user chose no proxy, bypass all
-            // - null: delegate to Java's ProxySelector (handles PAC/WPAD)
-            URL url = uri.toURL();
-
-            if (proxy == null) {
-                // Delegate to Java's ProxySelector (PAC/WPAD auto-configuration)
-                connection = (HttpURLConnection) url.openConnection();
-                logger.debug("Using Java ProxySelector (PAC/WPAD delegation)");
-            } else if (proxy == Proxy.NO_PROXY) {
-                connection = (HttpURLConnection) url.openConnection(Proxy.NO_PROXY);
-                logger.debug("Using direct connection (user chose no proxy)");
-            } else {
-                connection = (HttpURLConnection) url.openConnection(proxy);
-                logger.debug("Using explicit proxy: {}", proxy);
-            }
-
-            // Configure connection
-            connection.setRequestMethod("GET");
-            connection.setConnectTimeout(30000);
-            connection.setReadTimeout(30000);
-            connection.setRequestProperty("User-Agent", "FreeXmlToolkit/2.0");
-            connection.setRequestProperty("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
-
-            // Apply SSL settings to this specific connection if it's HTTPS
-            if (trustAllCerts && connection instanceof HttpsURLConnection httpsConnection) {
-                try {
-                    applySslBypassToConnection(httpsConnection);
-                } catch (Exception sslEx) {
-                    logger.warn("Failed to apply SSL bypass to connection, using default SSL settings: {}", sslEx.getMessage());
-                }
-            }
-
-            // Execute request and follow redirects manually (including HTTP→HTTPS)
-            int responseCode = connection.getResponseCode();
-            String responseBody = "";
-            URI finalUri = uri;
-            int maxRedirects = 5;
-            int redirectCount = 0;
-
-            while (responseCode >= 300 && responseCode < 400 && redirectCount < maxRedirects) {
-                String location = connection.getHeaderField("Location");
-                if (location == null || location.isEmpty()) {
-                    logger.warn("Redirect response {} without Location header for: {}", responseCode, finalUri);
-                    break;
-                }
-
-                // Close current connection
-                connection.disconnect();
-
-                // Parse redirect location (can be relative or absolute)
-                URI redirectUri;
-                if (location.startsWith("http://") || location.startsWith("https://")) {
-                    redirectUri = new URI(location);
-                } else {
-                    // Relative URL - resolve against current URL
-                    redirectUri = finalUri.resolve(location);
-                }
-
-                logger.debug("Following redirect {} → {} ({})", responseCode, redirectUri, redirectCount + 1);
-
-                // Create new connection for redirect (same proxy logic)
-                url = redirectUri.toURL();
-                if (proxy == null) {
-                    connection = (HttpURLConnection) url.openConnection();
-                } else {
-                    connection = (HttpURLConnection) url.openConnection(proxy);
-                }
-
-                // Configure connection
-                connection.setRequestMethod("GET");
-                connection.setConnectTimeout(30000);
-                connection.setReadTimeout(30000);
-                connection.setRequestProperty("User-Agent", "FreeXmlToolkit/2.0");
-                connection.setRequestProperty("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
-
-                // Apply SSL settings if redirected to HTTPS
-                if (trustAllCerts && connection instanceof HttpsURLConnection httpsConnection) {
-                    try {
-                        applySslBypassToConnection(httpsConnection);
-                    } catch (Exception sslEx) {
-                        logger.warn("Failed to apply SSL bypass to redirect connection: {}", sslEx.getMessage());
-                    }
-                }
-
-                // Get response
-                responseCode = connection.getResponseCode();
-                finalUri = redirectUri;
-                redirectCount++;
-            }
+            ConnectionAttempt attempt = openConnectionFollowingRedirects(uri, testProperties);
+            connection = attempt.connection();
 
             // Read final response
-            responseBody = readResponse(connection);
+            String responseBody = readResponse(connection);
 
             logger.debug("HTTP request completed: {} - Status: {}, Response length: {} (after {} redirects)",
-                    finalUri, responseCode, responseBody.length(), redirectCount);
+                    attempt.finalUri(), attempt.responseCode(), responseBody.length(), attempt.redirectCount());
 
             return new ConnectionResult(
-                    finalUri,
-                    responseCode,
+                    attempt.finalUri(),
+                    attempt.responseCode(),
                     System.currentTimeMillis() - start,
                     getHeaders(connection),
                     responseBody
@@ -257,6 +146,191 @@ public class ConnectionServiceImpl implements ConnectionService {
                 logger.debug("HTTP connection closed for: {}", uri);
             }
         }
+    }
+
+    /**
+     * Fetches {@code uri} as raw bytes, reusing the exact same proxy/authentication/SSL/redirect
+     * handling as {@link #testHttpRequest(URI, Properties)}. Used by {@link SchemaResourceCache}
+     * so remote schema downloads go through the configured corporate-proxy settings instead of
+     * bypassing them (which yields HTTP 407 behind an authenticating proxy).
+     *
+     * @param uri the URI of the target resource
+     * @return the raw HTTP response
+     * @throws IOException on a transport-level failure (DNS, connection refused, TLS, etc.)
+     */
+    @Override
+    public BinaryResponse fetchBinary(URI uri) throws IOException {
+        Properties properties = propertiesService.loadProperties();
+        HttpURLConnection connection = null;
+
+        try {
+            ConnectionAttempt attempt = openConnectionFollowingRedirects(uri, properties);
+            connection = attempt.connection();
+
+            byte[] body = readResponseBytes(connection);
+
+            logger.debug("Binary HTTP request completed: {} - Status: {}, Body length: {} (after {} redirects)",
+                    attempt.finalUri(), attempt.responseCode(), body.length, attempt.redirectCount());
+
+            return new BinaryResponse(attempt.finalUri(), attempt.responseCode(), getSingleValuedHeaders(connection), body);
+        } catch (IOException e) {
+            throw e;
+        } catch (Exception e) {
+            // Transport-level failures must surface as IOException (never swallowed into a status)
+            // so SchemaResourceCache's describeCause() can report the root cause (proxy/TLS/DNS).
+            throw new IOException(e.getMessage(), e);
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+                logger.debug("Binary HTTP connection closed for: {}", uri);
+            }
+        }
+    }
+
+    /**
+     * Result of {@link #openConnectionFollowingRedirects(URI, Properties)}: a connection
+     * positioned after the final (non-redirect) response code has been read. The caller is
+     * responsible for reading the body and disconnecting.
+     *
+     * @param connection    the final connection
+     * @param finalUri      the URI actually connected to (after following any redirects)
+     * @param responseCode  the final HTTP response code
+     * @param redirectCount how many redirects were followed
+     */
+    private record ConnectionAttempt(HttpURLConnection connection, URI finalUri, int responseCode, int redirectCount) {}
+
+    /**
+     * Resolves the proxy/authentication/SSL settings from {@code testProperties}, opens a
+     * connection to {@code uri}, and follows up to 5 redirects (including HTTP→HTTPS).
+     *
+     * <p>This is the single source of truth for the proxy/auth/SSL/redirect handling, shared by
+     * both the text response path ({@link #testHttpRequest}) and the binary response path
+     * ({@link #fetchBinary}) — do not duplicate this logic elsewhere.
+     *
+     * @param uri            the URI to connect to
+     * @param testProperties connection settings (proxy, auth, SSL bypass)
+     * @return the final connection, positioned after the response code has been read
+     * @throws Exception on any failure resolving/opening the connection or following redirects
+     */
+    private ConnectionAttempt openConnectionFollowingRedirects(URI uri, Properties testProperties) throws Exception {
+        // Log proxy configuration for debugging
+        logger.debug("Testing HTTP request to: {}", uri);
+        logger.debug("Proxy properties: manualProxy={}, useSystemProxy={}, http.proxyHost={}, socksProxyHost={}",
+                testProperties.getProperty("manualProxy", "false"),
+                testProperties.getProperty("useSystemProxy", "true"),
+                testProperties.getProperty("http.proxy.host", "not set"),
+                System.getProperty("socksProxyHost", "not set"));
+
+        // Read the SSL-bypass opt-in. SECURITY: the bypass is applied ONLY to this specific
+        // connection (see applySslBypassToConnection below), never to the JVM-global
+        // HttpsURLConnection defaults. Poisoning the global defaults would silently disable
+        // certificate validation for every other HTTPS connection in the process - including
+        // auto-update downloads - which must always validate certificates.
+        boolean trustAllCerts = Boolean.parseBoolean(testProperties.getProperty("ssl.trustAllCerts", "false"));
+        if (trustAllCerts) {
+            logger.warn("!!! SECURITY WARNING !!! SSL certificate validation is disabled for this "
+                    + "connection test only ({}).", uri);
+        }
+
+        // Configure proxy authentication
+        configureProxyAuthentication(testProperties);
+
+        // Configure proxy
+        Proxy proxy = configureProxy(testProperties);
+
+        // Create connection based on proxy configuration:
+        // - non-null, non-NO_PROXY: use explicit proxy
+        // - Proxy.NO_PROXY: user chose no proxy, bypass all
+        // - null: delegate to Java's ProxySelector (handles PAC/WPAD)
+        URL url = uri.toURL();
+        HttpURLConnection connection;
+
+        if (proxy == null) {
+            // Delegate to Java's ProxySelector (PAC/WPAD auto-configuration)
+            connection = (HttpURLConnection) url.openConnection();
+            logger.debug("Using Java ProxySelector (PAC/WPAD delegation)");
+        } else if (proxy == Proxy.NO_PROXY) {
+            connection = (HttpURLConnection) url.openConnection(Proxy.NO_PROXY);
+            logger.debug("Using direct connection (user chose no proxy)");
+        } else {
+            connection = (HttpURLConnection) url.openConnection(proxy);
+            logger.debug("Using explicit proxy: {}", proxy);
+        }
+
+        // Configure connection
+        connection.setRequestMethod("GET");
+        connection.setConnectTimeout(30000);
+        connection.setReadTimeout(30000);
+        connection.setRequestProperty("User-Agent", "FreeXmlToolkit/2.0");
+        connection.setRequestProperty("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+
+        // Apply SSL settings to this specific connection if it's HTTPS
+        if (trustAllCerts && connection instanceof HttpsURLConnection httpsConnection) {
+            try {
+                applySslBypassToConnection(httpsConnection);
+            } catch (Exception sslEx) {
+                logger.warn("Failed to apply SSL bypass to connection, using default SSL settings: {}", sslEx.getMessage());
+            }
+        }
+
+        // Execute request and follow redirects manually (including HTTP→HTTPS)
+        int responseCode = connection.getResponseCode();
+        URI finalUri = uri;
+        int maxRedirects = 5;
+        int redirectCount = 0;
+
+        while (responseCode >= 300 && responseCode < 400 && redirectCount < maxRedirects) {
+            String location = connection.getHeaderField("Location");
+            if (location == null || location.isEmpty()) {
+                logger.warn("Redirect response {} without Location header for: {}", responseCode, finalUri);
+                break;
+            }
+
+            // Close current connection
+            connection.disconnect();
+
+            // Parse redirect location (can be relative or absolute)
+            URI redirectUri;
+            if (location.startsWith("http://") || location.startsWith("https://")) {
+                redirectUri = new URI(location);
+            } else {
+                // Relative URL - resolve against current URL
+                redirectUri = finalUri.resolve(location);
+            }
+
+            logger.debug("Following redirect {} → {} ({})", responseCode, redirectUri, redirectCount + 1);
+
+            // Create new connection for redirect (same proxy logic)
+            url = redirectUri.toURL();
+            if (proxy == null) {
+                connection = (HttpURLConnection) url.openConnection();
+            } else {
+                connection = (HttpURLConnection) url.openConnection(proxy);
+            }
+
+            // Configure connection
+            connection.setRequestMethod("GET");
+            connection.setConnectTimeout(30000);
+            connection.setReadTimeout(30000);
+            connection.setRequestProperty("User-Agent", "FreeXmlToolkit/2.0");
+            connection.setRequestProperty("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+
+            // Apply SSL settings if redirected to HTTPS
+            if (trustAllCerts && connection instanceof HttpsURLConnection httpsConnection) {
+                try {
+                    applySslBypassToConnection(httpsConnection);
+                } catch (Exception sslEx) {
+                    logger.warn("Failed to apply SSL bypass to redirect connection: {}", sslEx.getMessage());
+                }
+            }
+
+            // Get response
+            responseCode = connection.getResponseCode();
+            finalUri = redirectUri;
+            redirectCount++;
+        }
+
+        return new ConnectionAttempt(connection, finalUri, responseCode, redirectCount);
     }
 
     /**
@@ -428,7 +502,28 @@ public class ConnectionServiceImpl implements ConnectionService {
         
         return response.toString();
     }
-    
+
+    /**
+     * Reads the raw response body bytes from an HTTP connection.
+     *
+     * <p>On an error status (&ge;400) the error stream is read on a best-effort basis: proxies
+     * and servers don't always provide one, and the cache callers of {@link #fetchBinary} only
+     * need the status code and headers in that case, so a missing/unreadable error body yields an
+     * empty array rather than an exception.
+     */
+    private byte[] readResponseBytes(HttpURLConnection connection) throws IOException {
+        if (connection.getResponseCode() >= 400) {
+            try (InputStream errorStream = connection.getErrorStream()) {
+                return errorStream != null ? errorStream.readAllBytes() : new byte[0];
+            } catch (IOException e) {
+                return new byte[0];
+            }
+        }
+        try (InputStream is = connection.getInputStream()) {
+            return is.readAllBytes();
+        }
+    }
+
     /**
      * Extracts headers from an HTTP connection
      */
@@ -437,5 +532,20 @@ public class ConnectionServiceImpl implements ConnectionService {
                 .filter(entry -> entry.getKey() != null)
                 .map(entry -> entry.getKey() + ": " + String.join(", ", entry.getValue()))
                 .toArray(String[]::new);
+    }
+
+    /**
+     * Extracts the single-valued response headers used by {@link SchemaResourceCache}
+     * (Content-Type, Last-Modified, ETag, Content-Length).
+     */
+    private Map<String, String> getSingleValuedHeaders(HttpURLConnection connection) {
+        Map<String, String> headers = new HashMap<>();
+        for (String key : new String[]{"Content-Type", "Last-Modified", "ETag", "Content-Length"}) {
+            String value = connection.getHeaderField(key);
+            if (value != null) {
+                headers.put(key, value);
+            }
+        }
+        return headers;
     }
 }

@@ -394,4 +394,31 @@ class ConnectionServiceTest {
         assertSame(beforeVerifier, javax.net.ssl.HttpsURLConnection.getDefaultHostnameVerifier(),
                 "Global default HostnameVerifier must not be replaced by trustAllCerts");
     }
+
+    @Test
+    @DisplayName("fetchBinary should succeed for a reachable URL")
+    void fetchBinarySuccess() throws IOException {
+        URI testUri = URI.create("http://localhost:" + testPort + "/success");
+
+        ConnectionService.BinaryResponse response = connectionService.fetchBinary(testUri);
+
+        assertNotNull(response, "Response should not be null");
+        assertEquals(200, response.status(), "HTTP status should be 200");
+        assertNotNull(response.body(), "Body should not be null");
+        assertTrue(new String(response.body(), StandardCharsets.UTF_8).contains("<xml>Success Response</xml>"),
+                "Body should contain expected content");
+        assertEquals("application/xml", response.headers().get("Content-Type"),
+                "Content-Type header should be extracted");
+    }
+
+    @Test
+    @DisplayName("fetchBinary should throw IOException for an unreachable host (no network needed)")
+    void fetchBinaryUnreachableHostThrowsIOException() {
+        // .invalid is reserved (RFC 2606), so DNS resolution fails deterministically without
+        // requiring real network access.
+        URI testUri = URI.create("https://schema.invalid/x.xsd");
+
+        assertThrows(IOException.class, () -> connectionService.fetchBinary(testUri),
+                "fetchBinary must surface transport failures as IOException, not swallow them into a status code");
+    }
 }

@@ -18,8 +18,10 @@
 
 package org.fxt.freexmltoolkit.service;
 
+import java.io.IOException;
 import java.net.Proxy;
 import java.net.URI;
+import java.util.Map;
 
 import org.fxt.freexmltoolkit.domain.ConnectionResult;
 
@@ -66,5 +68,30 @@ public interface ConnectionService {
      * @return a ConnectionResult object containing the details of the HTTP response
      */
     ConnectionResult testHttpRequest(URI url, java.util.Properties testProperties);
+
+    /**
+     * Raw HTTP GET result (bytes, not decoded text).
+     *
+     * @param finalUri the URI actually fetched (after following any redirects)
+     * @param status   the HTTP status code
+     * @param headers  single-valued response headers (e.g. Content-Type, Last-Modified, ETag, Content-Length)
+     * @param body     the raw response body bytes
+     */
+    record BinaryResponse(URI finalUri, int status, Map<String, String> headers, byte[] body) {}
+
+    /**
+     * Fetches {@code uri} as raw bytes with the configured proxy/authentication/SSL settings.
+     *
+     * <p>Unlike {@link #executeHttpRequest(URI)}, transport failures (DNS, connection refused,
+     * TLS errors, etc.) are propagated as {@link IOException} rather than folded into a status
+     * code, so callers can surface the root cause.
+     *
+     * @param uri the URI of the target resource
+     * @return the raw HTTP response
+     * @throws IOException on a transport-level failure
+     */
+    default BinaryResponse fetchBinary(URI uri) throws IOException {
+        throw new UnsupportedOperationException("fetchBinary not supported");
+    }
 
 }

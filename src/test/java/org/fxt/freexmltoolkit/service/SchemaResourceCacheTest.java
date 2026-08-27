@@ -3,6 +3,9 @@ package org.fxt.freexmltoolkit.service;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.IOException;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -314,6 +317,104 @@ class SchemaResourceCacheTest {
             assertTrue(java.nio.file.Files.exists(cached), "the cached file must survive a failed refresh");
             assertTrue(c.entryForUrl(url).isPresent(), "the index entry must survive a failed refresh");
             assertTrue(c.isCached(url));
+        }
+    }
+
+    // =========================================================================
+    // Download via ConnectionService (proxy credentials, HTTP 407)
+    // =========================================================================
+
+    @Nested
+    @DisplayName("Download via ConnectionService")
+    class DownloadViaConnectionService {
+
+        private static final String XSD_BODY =
+                "<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema' targetNamespace='urn:t'/>";
+
+        /** Stub ConnectionService that returns a fixed BinaryResponse or throws a fixed IOException. */
+        private static final class StubConnectionService implements ConnectionService {
+            private final BinaryResponse response;
+            private final IOException failure;
+
+            StubConnectionService(BinaryResponse response) {
+                this.response = response;
+                this.failure = null;
+            }
+
+            StubConnectionService(IOException failure) {
+                this.response = null;
+                this.failure = failure;
+            }
+
+            @Override
+            public BinaryResponse fetchBinary(URI uri) throws IOException {
+                if (failure != null) {
+                    throw failure;
+                }
+                return response;
+            }
+
+            @Override
+            public java.net.Proxy resolveProxy() {
+                return null;
+            }
+
+            @Override
+            public org.fxt.freexmltoolkit.domain.ConnectionResult executeHttpRequest(URI url) {
+                throw new UnsupportedOperationException("not used by this test");
+            }
+
+            @Override
+            public String getTextContentFromURL(URI uri) {
+                throw new UnsupportedOperationException("not used by this test");
+            }
+
+            @Override
+            public org.fxt.freexmltoolkit.domain.ConnectionResult testHttpRequest(URI url, java.util.Properties testProperties) {
+                throw new UnsupportedOperationException("not used by this test");
+            }
+        }
+
+        @Test
+        @DisplayName("200 response writes bytes unchanged and records schema/http metadata")
+        void successfulDownloadWritesBytesAndMetadata(@org.junit.jupiter.api.io.TempDir java.nio.file.Path dir) throws Exception {
+            byte[] body = XSD_BODY.getBytes(StandardCharsets.UTF_8);
+            ConnectionService.BinaryResponse response = new ConnectionService.BinaryResponse(
+                    URI.create("https://example.org/t.xsd"), 200,
+                    Map.of("Content-Type", "application/xml"), body);
+            StubConnectionService stub = new StubConnectionService(response);
+            SchemaResourceCache cache = new SchemaResourceCache(dir, stub);
+
+            java.nio.file.Path localPath = cache.getOrDownload("https://example.org/t.xsd");
+
+            assertArrayEquals(body, java.nio.file.Files.readAllBytes(localPath), "cached bytes must match the response body unchanged");
+
+            var entry = cache.entryForUrl("https://example.org/t.xsd");
+            assertTrue(entry.isPresent(), "an index entry must be recorded");
+            assertEquals("urn:t", entry.get().schema().targetNamespace());
+            assertEquals("application/xml", entry.get().http().contentType());
+        }
+
+        @Test
+        @DisplayName("HTTP 407 (proxy authentication required) surfaces in the thrown IOException")
+        void proxyAuthenticationRequiredSurfacesInMessage(@org.junit.jupiter.api.io.TempDir java.nio.file.Path dir) {
+            ConnectionService.BinaryResponse response = new ConnectionService.BinaryResponse(
+                    URI.create("https://example.org/t.xsd"), 407, Map.of(), new byte[0]);
+            StubConnectionService stub = new StubConnectionService(response);
+            SchemaResourceCache cache = new SchemaResourceCache(dir, stub);
+
+            IOException ex = assertThrows(IOException.class, () -> cache.getOrDownload("https://example.org/t.xsd"));
+            assertTrue(ex.getMessage().contains("HTTP 407"), ex.getMessage());
+        }
+
+        @Test
+        @DisplayName("transport failure from the ConnectionService (describeCause path) surfaces in the message")
+        void transportFailureSurfacesInMessage(@org.junit.jupiter.api.io.TempDir java.nio.file.Path dir) {
+            StubConnectionService stub = new StubConnectionService(new IOException("Proxy Authentication Required"));
+            SchemaResourceCache cache = new SchemaResourceCache(dir, stub);
+
+            IOException ex = assertThrows(IOException.class, () -> cache.getOrDownload("https://example.org/t.xsd"));
+            assertTrue(ex.getMessage().contains("Proxy Authentication Required"), ex.getMessage());
         }
     }
 }

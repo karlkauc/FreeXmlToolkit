@@ -21,17 +21,11 @@ package org.fxt.freexmltoolkit.service;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.Authenticator;
-import java.net.ProxySelector;
 import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HexFormat;
@@ -47,6 +41,7 @@ import javax.xml.stream.XMLStreamReader;
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.util.PathValidator;
 import org.fxt.freexmltoolkit.util.SecureXmlFactory;
 
@@ -76,13 +71,15 @@ public class SchemaResourceCache {
             ".freeXmlToolkit", "cache", "schemas"
     );
 
-    private static final Duration HTTP_TIMEOUT = Duration.ofSeconds(30);
-
     private final Path cacheDir;
     private final Path indexFile;
     private final ConcurrentHashMap<String, Path> urlToLocalPath = new ConcurrentHashMap<>();
-    private final HttpClient httpClient;
     private final SchemaCacheIndex cacheIndex;
+
+    // Resolved lazily from the ServiceRegistry on first use (unless injected via the
+    // package-private test constructor), so this constructor never depends on registry
+    // initialization order.
+    private volatile ConnectionService connectionService;
 
     // Statistics (kept for backward compatibility)
     private final AtomicLong cacheHits = new AtomicLong(0);
@@ -98,24 +95,27 @@ public class SchemaResourceCache {
     }
 
     /**
-     * Creates a cache rooted at {@code cacheDir} (tests and tools).
+     * Creates a cache rooted at {@code cacheDir} (tests and tools). The {@link ConnectionService}
+     * used for downloads is resolved lazily from the {@link ServiceRegistry} on first use.
      *
      * @param cacheDir the directory in which cached schema files and the index are stored
      */
     public SchemaResourceCache(Path cacheDir) {
+        this(cacheDir, null);
+    }
+
+    /**
+     * Creates a cache rooted at {@code cacheDir}, using the given {@link ConnectionService} for
+     * downloads instead of resolving one lazily from the {@link ServiceRegistry} (test injection).
+     *
+     * @param cacheDir          the directory in which cached schema files and the index are stored
+     * @param connectionService the connection service to use for downloads, or {@code null} to
+     *                          resolve one lazily from the {@link ServiceRegistry} on first use
+     */
+    SchemaResourceCache(Path cacheDir, ConnectionService connectionService) {
         this.cacheDir = cacheDir.toAbsolutePath().normalize();
         this.indexFile = this.cacheDir.resolve("cache-index.json");
-
-        HttpClient.Builder clientBuilder = HttpClient.newBuilder()
-                .connectTimeout(HTTP_TIMEOUT)
-                .followRedirects(HttpClient.Redirect.NORMAL)
-                .proxy(ProxySelector.getDefault());
-        // Enable NTLM/system auth for corporate proxies
-        Authenticator auth = Authenticator.getDefault();
-        if (auth != null) {
-            clientBuilder.authenticator(auth);
-        }
-        this.httpClient = clientBuilder.build();
+        this.connectionService = connectionService;
 
         // Ensure cache directory exists
         try {
@@ -226,14 +226,14 @@ public class SchemaResourceCache {
         long startTime = System.currentTimeMillis();
 
         try {
-            HttpResponse<byte[]> response = fetch(url);
+            ConnectionService.BinaryResponse response = fetch(url);
 
             long downloadDuration = System.currentTimeMillis() - startTime;
 
-            if (response.statusCode() != 200) {
+            if (response.status() != 200) {
                 downloadErrors.incrementAndGet();
                 cacheIndex.recordDownloadError();
-                throw new IOException("HTTP " + response.statusCode() + " for URL: " + url);
+                throw new IOException("HTTP " + response.status() + " for URL: " + url);
             }
 
             byte[] content = response.body();
@@ -258,11 +258,6 @@ public class SchemaResourceCache {
             logger.info("Cached remote schema: {} -> {}", url, localPath);
             return localPath;
 
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            downloadErrors.incrementAndGet();
-            cacheIndex.recordDownloadError();
-            throw new IOException("Download interrupted for URL: " + url, e);
         } catch (Exception e) {
             downloadErrors.incrementAndGet();
             cacheIndex.recordDownloadError();
@@ -286,20 +281,30 @@ public class SchemaResourceCache {
     }
 
     /**
-     * Performs the raw HTTP GET for {@code url} (no caching, no validation).
+     * Performs the raw HTTP GET for {@code url} (no caching, no validation), routed through the
+     * shared {@link ConnectionService} so proxy authentication (corporate proxies returning
+     * HTTP 407) and SSL settings from the app's Settings page are applied — the same handling
+     * every other download in the app already goes through.
      *
      * @param url the URL to fetch
      * @return the raw HTTP response
-     * @throws IOException          on an I/O failure
-     * @throws InterruptedException if the calling thread is interrupted while waiting
+     * @throws IOException on a transport-level failure
      */
-    private HttpResponse<byte[]> fetch(String url) throws IOException, InterruptedException {
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(url))
-                .timeout(HTTP_TIMEOUT)
-                .GET()
-                .build();
-        return httpClient.send(request, HttpResponse.BodyHandlers.ofByteArray());
+    private ConnectionService.BinaryResponse fetch(String url) throws IOException {
+        return connectionService().fetchBinary(URI.create(url));
+    }
+
+    /**
+     * Resolves the {@link ConnectionService} to use for downloads, lazily falling back to the
+     * {@link ServiceRegistry} on first use if none was injected via the test constructor.
+     */
+    private ConnectionService connectionService() {
+        ConnectionService cs = this.connectionService;
+        if (cs == null) {
+            cs = ServiceRegistry.get(ConnectionService.class);
+            this.connectionService = cs;
+        }
+        return cs;
     }
 
     /**
@@ -310,7 +315,7 @@ public class SchemaResourceCache {
             String url,
             Path localPath,
             byte[] content,
-            HttpResponse<byte[]> response,
+            ConnectionService.BinaryResponse response,
             long downloadDuration
     ) {
         // Calculate hashes
@@ -318,13 +323,18 @@ public class SchemaResourceCache {
         String sha256Hash = calculateHash(content, "SHA-256");
 
         // Extract HTTP headers
-        Long contentLength = response.headers().firstValueAsLong("Content-Length").stream()
-                .boxed().findFirst().orElse(null);
+        Long contentLength;
+        try {
+            String contentLengthHeader = response.headers().get("Content-Length");
+            contentLength = contentLengthHeader != null ? Long.valueOf(contentLengthHeader) : null;
+        } catch (NumberFormatException e) {
+            contentLength = null;
+        }
         SchemaCacheEntry.HttpInfo httpInfo = new SchemaCacheEntry.HttpInfo(
-                response.statusCode(),
-                response.headers().firstValue("Content-Type").orElse(null),
-                response.headers().firstValue("Last-Modified").orElse(null),
-                response.headers().firstValue("ETag").orElse(null),
+                response.status(),
+                response.headers().get("Content-Type"),
+                response.headers().get("Last-Modified"),
+                response.headers().get("ETag"),
                 contentLength,
                 downloadDuration
         );
@@ -559,9 +569,9 @@ public class SchemaResourceCache {
         Path tmp = null;
         long startTime = System.currentTimeMillis();
         try {
-            HttpResponse<byte[]> response = fetch(url);
-            if (response.statusCode() != 200) {
-                throw new IOException("HTTP " + response.statusCode() + " for URL: " + url);
+            ConnectionService.BinaryResponse response = fetch(url);
+            if (response.status() != 200) {
+                throw new IOException("HTTP " + response.status() + " for URL: " + url);
             }
             byte[] content = response.body();
             Files.createDirectories(cacheDir);
@@ -575,12 +585,6 @@ public class SchemaResourceCache {
             urlToLocalPath.put(url, localPath);
             logger.info("Refreshed cached schema: {} -> {}", url, localPath);
             return Optional.of(localPath);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            downloadErrors.incrementAndGet();
-            cacheIndex.recordDownloadError();
-            logger.warn("Refresh interrupted for {}", url);
-            return Optional.empty();
         } catch (Exception e) {
             downloadErrors.incrementAndGet();
             cacheIndex.recordDownloadError();
