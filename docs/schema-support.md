@@ -76,7 +76,9 @@ JSON Schemas bind and validate the same way XSD schemas do for XML - see the
 **Full Support** - Register one or more OASIS `catalog.xml` files in the
 [Schema Library](schema-library.md)'s Catalogs tab to resolve `system`, `public`, `uri`,
 `rewriteSystem`, `rewriteURI`, `nextCatalog` and `xml:base` entries when the toolkit looks
-up an `xs:import`/`xs:include` or a schema reference by system ID.
+up an `xs:import`/`xs:include` or a schema reference by system ID. During validation the
+lookup tries the **system identifier**, then the **public identifier** (`public` entries),
+then the namespace, so `public` entries resolve schemas too.
 
 ---
 

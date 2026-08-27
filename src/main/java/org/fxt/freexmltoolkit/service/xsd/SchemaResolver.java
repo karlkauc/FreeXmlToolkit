@@ -666,28 +666,18 @@ public class SchemaResolver {
 
     /**
      * Looks up a schema in the Schema Library, first by systemId/catalog (using
-     * {@code schemaLocation} as the system identifier), then by namespace.
+     * {@code schemaLocation} as the system identifier), then by namespace. The offline rule
+     * of {@link org.fxt.freexmltoolkit.service.SchemaLibraryLookup} applies: remote entries
+     * are only downloaded when {@code isRemoteDownloadAllowed()}.
      *
      * @return the resolved local file path, or {@code null} on a miss; never throws.
      */
     private static Path libraryPathFor(String namespace, String schemaLocation, Path baseDir) {
-        try {
-            var library = org.fxt.freexmltoolkit.service.SchemaLibraryServiceImpl.shared();
-            String base = baseDir != null ? baseDir.toUri().toString() : null;
-            if (schemaLocation != null && !schemaLocation.isBlank()) {
-                var hit = library.resolveSystemId(schemaLocation, base);
-                if (hit.isPresent() && "file".equalsIgnoreCase(hit.get().getScheme())) {
-                    Path p = Path.of(hit.get());
-                    if (Files.isRegularFile(p)) return p;
-                }
-            }
-            if (namespace != null && !namespace.isBlank()) {
-                return library.resolveNamespaceToFile(namespace, org.fxt.freexmltoolkit.domain.SchemaKind.XSD).orElse(null);
-            }
-        } catch (Exception e) {
-            logger.debug("Schema Library lookup failed for '{}': {}", schemaLocation, e.getMessage());
-        }
-        return null;
+        var library = org.fxt.freexmltoolkit.service.SchemaLibraryServiceImpl.shared();
+        String base = baseDir != null ? baseDir.toUri().toString() : null;
+        return org.fxt.freexmltoolkit.service.SchemaLibraryLookup
+                .localFileFor(library, namespace, schemaLocation, base, library.isRemoteDownloadAllowed())
+                .orElse(null);
     }
 
     /**
@@ -1052,7 +1042,8 @@ public class SchemaResolver {
         /**
          * Attempts to serve the requested resource from the Schema Library (user mappings,
          * then registered catalogs, then bundled standards) before falling back to the
-         * resolver's own remote/local resolution logic.
+         * resolver's own remote/local resolution logic. The lookup order is systemId,
+         * publicId (catalog {@code public} entries) and finally the namespace.
          *
          * @param normalizedBase the already-normalized base URI of the current request, i.e.
          *                       the same value {@link #resolveResource} just recorded as the
@@ -1071,17 +1062,10 @@ public class SchemaResolver {
             try {
                 org.fxt.freexmltoolkit.service.SchemaLibraryService library =
                         org.fxt.freexmltoolkit.service.SchemaLibraryServiceImpl.shared();
-                Path target = null;
-                var bySystemId = library.resolveSystemId(systemId, baseURI);
-                if (bySystemId.isPresent() && "file".equalsIgnoreCase(bySystemId.get().getScheme())) {
-                    target = Path.of(bySystemId.get());
-                } else if (bySystemId.isPresent()) {
-                    // catalog pointed to a remote URI: go through the cache (SSRF-checked there)
-                    target = cache.getOrDownload(bySystemId.get().toString());
-                } else if (namespaceURI != null && !namespaceURI.isBlank()) {
-                    target = library.resolveNamespaceToFile(namespaceURI,
-                            org.fxt.freexmltoolkit.domain.SchemaKind.XSD).orElse(null);
-                }
+                Path target = org.fxt.freexmltoolkit.service.SchemaLibraryLookup
+                        .localFileFor(library, namespaceURI, systemId, publicId, baseURI,
+                                library.isRemoteDownloadAllowed())
+                        .orElse(null);
                 if (target == null || !java.nio.file.Files.isRegularFile(target)) {
                     return null;
                 }

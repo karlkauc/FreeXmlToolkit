@@ -145,6 +145,35 @@ class SchemaLibraryPanelTest {
         assertTrue(library.getEntries().stream().anyMatch(e -> e.namespace().equals("urn:fresh")));
     }
 
+    /**
+     * C3: a cache entry indexed from disk ({@code SchemaResourceCache.loadExistingCache})
+     * has no {@code remoteUrl}. Filtering must not NPE, the row must still be listed, and
+     * Refresh must be disabled for it.
+     */
+    @SuppressWarnings("unchecked")
+    @Test
+    void cacheTabToleratesEntriesWithoutRemoteUrl(FxRobot robot) throws Exception {
+        Path f = cache.getCacheDirectory().resolve("legacy.xsd");
+        Files.createDirectories(f.getParent());
+        Files.writeString(f, "<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'/>");
+        cache.getCacheIndex().addOrUpdateEntry(SchemaCacheEntry.builder().localFilename("legacy.xsd")
+                .fileSizeBytes(42).build());   // no remoteUrl, no timestamp
+        cache.saveIndex();
+        robot.interact(() -> { panel.showCacheTab(); panel.refreshCache(); });
+        WaitForAsyncUtils.waitForFxEvents();
+        TableView<SchemaCacheEntry> table = robot.lookup("#library-cache-table").queryAs(TableView.class);
+        assertEquals(1, table.getItems().size());
+
+        robot.clickOn("#library-cache-filter").write("legacy");
+        WaitForAsyncUtils.waitForFxEvents();   // surfaces an FX-thread NPE from the predicate
+        assertEquals(1, table.getItems().size(), "the row must survive the filter");
+
+        robot.interact(() -> table.getSelectionModel().select(0));
+        WaitForAsyncUtils.waitForFxEvents();
+        assertTrue(robot.lookup("#library-cache-refresh").queryButton().isDisabled(),
+                "Refresh must be disabled without a remote URL");
+    }
+
     @SuppressWarnings("unchecked")
     @Test
     void cacheTabListsEntriesAndDeletes(FxRobot robot) throws Exception {

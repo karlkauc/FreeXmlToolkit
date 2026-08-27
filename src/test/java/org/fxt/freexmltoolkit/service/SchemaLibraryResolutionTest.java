@@ -129,6 +129,60 @@ class SchemaLibraryResolutionTest {
     }
 
     /**
+     * C2/I3: with remote downloads disabled the shared lookup must serve local and already-cached
+     * entries only — an uncached remote bundled/user entry must NOT hit the network. The counting
+     * cache proves no download attempt is made. {@code .invalid} is reserved (RFC 2606), so the
+     * "allowed" leg fails fast without real network access.
+     */
+    @Test
+    void remoteEntriesAreNotDownloadedWhenDownloadsAreDisabled() {
+        AtomicInteger downloadAttempts = new AtomicInteger();
+        SchemaResourceCache countingCache = new SchemaResourceCache(dir.resolve("cache3")) {
+            @Override public Path getOrDownload(String url, String referencingUrl) throws IOException {
+                downloadAttempts.incrementAndGet();
+                return super.getOrDownload(url, referencingUrl);
+            }
+        };
+        String bundled = """
+                {"version":1,"entries":[
+                  {"namespace":"urn:remote","location":"https://schema.invalid/remote.xsd","kind":"XSD","description":"remote"}
+                ]}""";
+        SchemaLibraryServiceImpl offline = new SchemaLibraryServiceImpl(dir.resolve("lib3.json"), countingCache,
+                () -> new ByteArrayInputStream(bundled.getBytes(StandardCharsets.UTF_8)));
+
+        assertTrue(SchemaLibraryLookup.localFileFor(offline, "urn:remote", null, null, false).isEmpty());
+        assertEquals(0, downloadAttempts.get(), "no download attempt when remote downloads are disabled");
+
+        // A local entry is served regardless of the flag.
+        offline.addEntry(SchemaLibraryEntry.user("urn:local", localXsd.toString(), SchemaKind.XSD, "", null));
+        assertEquals(localXsd, SchemaLibraryLookup.localFileFor(offline, "urn:local", null, null, false).orElseThrow());
+        assertEquals(0, downloadAttempts.get());
+
+        // With downloads allowed the entry IS attempted (and fails offline).
+        assertTrue(SchemaLibraryLookup.localFileFor(offline, "urn:remote", null, null, true).isEmpty());
+        assertEquals(1, downloadAttempts.get(), "download attempted once downloads are allowed");
+    }
+
+    /** I1: {@code resolveSystemId} matches BUNDLED entries by location, not just USER entries. */
+    @Test
+    void resolveSystemIdMatchesBundledLocation() {
+        assertEquals(java.net.URI.create("https://example.org/bundled.xsd"),
+                svc.resolveSystemId("https://example.org/bundled.xsd", null).orElseThrow());
+    }
+
+    /** I2: catalog {@code public} entries are resolvable. */
+    @Test
+    void resolvePublicIdUsesCatalogPublicEntries() throws Exception {
+        Path cat = dir.resolve("public-catalog.xml");
+        Files.writeString(cat, ("<catalog xmlns='%s'><public publicId='-//ACME//DTD Thing//EN' uri='local.xsd'/></catalog>")
+                .formatted(CATALOG_NS));
+        svc.addCatalog(cat);
+        assertEquals(localXsd.toUri(), svc.resolvePublicId("-//ACME//DTD Thing//EN").orElseThrow());
+        assertTrue(svc.resolvePublicId("-//ACME//DTD Unknown//EN").isEmpty());
+        assertTrue(svc.resolvePublicId(null).isEmpty());
+    }
+
+    /**
      * A failed remote materialize() must not be retried on every call within the retry window
      * (10 minutes by default): the next materialize() should return empty without a new download
      * attempt. {@code https://schema.invalid/x.xsd} uses the reserved {@code .invalid} TLD (RFC 2606),

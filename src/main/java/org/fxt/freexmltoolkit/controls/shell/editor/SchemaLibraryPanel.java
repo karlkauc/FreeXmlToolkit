@@ -139,7 +139,7 @@ public class SchemaLibraryPanel extends VBox {
 
         TableColumn<SchemaLibraryEntry, String> nsCol = new TableColumn<>("Namespace");
         nsCol.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(
-                cd.getValue().namespace().isEmpty() ? "<" + cd.getValue().rootElement() + "> (no namespace)" : cd.getValue().namespace()));
+                namespaceLabel(cd.getValue())));
         TableColumn<SchemaLibraryEntry, String> locCol = new TableColumn<>("Location");
         locCol.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(cd.getValue().location()));
         TableColumn<SchemaLibraryEntry, String> kindCol = new TableColumn<>("Kind");
@@ -268,8 +268,11 @@ public class SchemaLibraryPanel extends VBox {
         cacheFilter.setPromptText("Filter URL or namespace…");
         cacheFilter.textProperty().addListener((o, a, text) -> {
             String q = text == null ? "" : text.trim().toLowerCase(Locale.ROOT);
+            // remoteUrl() is null for files indexed from disk without an index entry
+            // (SchemaResourceCache.loadExistingCache), so never dereference it directly.
             cacheFiltered.setPredicate(q.isEmpty() ? null : e ->
-                    e.remoteUrl().toLowerCase(Locale.ROOT).contains(q)
+                    (e.remoteUrl() != null && e.remoteUrl().toLowerCase(Locale.ROOT).contains(q))
+                            || e.localFilename().toLowerCase(Locale.ROOT).contains(q)
                             || (e.schema() != null && e.schema().targetNamespace() != null
                                 && e.schema().targetNamespace().toLowerCase(Locale.ROOT).contains(q)));
         });
@@ -278,7 +281,7 @@ public class SchemaLibraryPanel extends VBox {
         cacheTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         cacheTable.setPlaceholder(new Label("No cached remote schemas."));
         TableColumn<SchemaCacheEntry, String> url = new TableColumn<>("URL");
-        url.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(cd.getValue().remoteUrl()));
+        url.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(urlOf(cd.getValue())));
         TableColumn<SchemaCacheEntry, String> ns = new TableColumn<>("Target namespace");
         ns.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(
                 cd.getValue().schema() == null || cd.getValue().schema().targetNamespace() == null ? "" : cd.getValue().schema().targetNamespace()));
@@ -312,16 +315,17 @@ public class SchemaLibraryPanel extends VBox {
         });
         Button refresh = toolButton("library-cache-refresh", "Re-download", "bi-arrow-clockwise", () -> {
             var s = selected.get();
-            if (s == null) return;
-            setStatus("Refreshing " + s.remoteUrl() + "…");
+            if (s == null || s.remoteUrl() == null) return;   // nothing to re-download
+            String remote = s.remoteUrl();
+            setStatus("Refreshing " + remote + "…");
             org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
-                var result = cache.refresh(s.remoteUrl());
-                Platform.runLater(() -> { setStatus(result.isPresent() ? "Refreshed " + s.remoteUrl() : "Refresh failed for " + s.remoteUrl()); refreshCache(); });
+                var result = cache.refresh(remote);
+                Platform.runLater(() -> { setStatus(result.isPresent() ? "Refreshed " + remote : "Refresh failed for " + remote); refreshCache(); });
             });
         });
         Button delete = toolButton("library-cache-delete", "Delete cached file", "bi-trash", () -> {
             var s = selected.get();
-            if (s != null && DialogHelper.showConfirmation("Delete Cached Schema", "Delete the cached copy of\n" + s.remoteUrl() + "?",
+            if (s != null && DialogHelper.showConfirmation("Delete Cached Schema", "Delete the cached copy of\n" + urlOf(s) + "?",
                     "It will be downloaded again on next use.")) {
                 deleteSelectedCacheEntryWithoutConfirm();
             }
@@ -336,7 +340,9 @@ public class SchemaLibraryPanel extends VBox {
             }
         });
         open.disableProperty().bind(selected.isNull());
-        refresh.disableProperty().bind(selected.isNull());
+        // A file indexed from disk has no remote URL, so there is nothing to re-download.
+        refresh.disableProperty().bind(javafx.beans.binding.Bindings.createBooleanBinding(
+                () -> selected.get() == null || selected.get().remoteUrl() == null, selected));
         delete.disableProperty().bind(selected.isNull());
         FlowPane tools = new FlowPane(2, 2, open, reveal, refresh, delete, clear);
         tools.getStyleClass().add("fxt-schema-tools");
@@ -364,6 +370,25 @@ public class SchemaLibraryPanel extends VBox {
         return box;
     }
 
+    /**
+     * Namespace column text: the namespace, or - for a no-namespace entry - the root element
+     * it binds. Some no-namespace entries (older X3D versions) declare no root element and
+     * are only reachable by their location, so they render as plain "(no namespace)".
+     */
+    private static String namespaceLabel(SchemaLibraryEntry entry) {
+        if (!entry.namespace().isEmpty()) return entry.namespace();
+        return entry.rootElement() != null ? "<" + entry.rootElement() + "> (no namespace)" : "(no namespace)";
+    }
+
+    /**
+     * Display text for a cache entry's URL column and status messages: entries indexed from
+     * disk ({@code SchemaResourceCache.loadExistingCache}) carry no {@code remoteUrl}, so
+     * their local filename is shown instead of {@code null}.
+     */
+    private static String urlOf(SchemaCacheEntry entry) {
+        return entry.remoteUrl() != null ? entry.remoteUrl() : entry.localFilename() + " (local copy)";
+    }
+
     /** Reloads the cache table and footer (FX thread). */
     void refreshCache() {
         cacheTable.getSelectionModel().clearSelection();
@@ -386,7 +411,7 @@ public class SchemaLibraryPanel extends VBox {
         cacheTable.getSelectionModel().clearSelection();
         cache.removeEntry(s.localFilename());
         refreshCache();
-        setStatus("Deleted cached copy of " + s.remoteUrl());
+        setStatus("Deleted cached copy of " + urlOf(s));
     }
 
     private void chooseCatalog() {

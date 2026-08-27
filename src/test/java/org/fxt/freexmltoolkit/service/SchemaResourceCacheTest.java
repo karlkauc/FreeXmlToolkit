@@ -279,5 +279,32 @@ class SchemaResourceCacheTest {
         void refreshOfUnsafeUrlIsEmpty(@org.junit.jupiter.api.io.TempDir java.nio.file.Path dir) {
             assertTrue(new SchemaResourceCache(dir).refresh("http://127.0.0.1/x.xsd").isEmpty());
         }
+
+        /**
+         * A failed refresh must be non-destructive: the previously cached file and its index
+         * entry survive. {@code .invalid} is reserved (RFC 2606), so the download fails
+         * immediately without real network access.
+         */
+        @Test
+        void failedRefreshKeepsTheCachedCopy(@org.junit.jupiter.api.io.TempDir java.nio.file.Path dir) throws Exception {
+            SchemaResourceCache c = new SchemaResourceCache(dir);
+            String url = "https://schema.invalid/keep.xsd";
+            java.security.MessageDigest md5 = java.security.MessageDigest.getInstance("MD5");
+            String name = java.util.HexFormat.of().formatHex(
+                    md5.digest(url.getBytes(java.nio.charset.StandardCharsets.UTF_8))) + ".xsd";
+            java.nio.file.Path cached = c.getCacheDirectory().resolve(name);
+            java.nio.file.Files.writeString(cached, "<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'/>");
+            c.getCacheIndex().addOrUpdateEntry(SchemaCacheEntry.builder()
+                    .localFilename(name).remoteUrl(url)
+                    .downloadTimestamp(java.time.Instant.now()).fileSizeBytes(50).build());
+            c.saveIndex();
+            assertTrue(c.isCached(url), "precondition: the URL is cached");
+
+            assertTrue(c.refresh(url).isEmpty(), "refresh of an unreachable URL must fail");
+
+            assertTrue(java.nio.file.Files.exists(cached), "the cached file must survive a failed refresh");
+            assertTrue(c.entryForUrl(url).isPresent(), "the index entry must survive a failed refresh");
+            assertTrue(c.isCached(url));
+        }
     }
 }

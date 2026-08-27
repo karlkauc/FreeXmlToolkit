@@ -651,25 +651,21 @@ public class XsdNodeFactory {
     /**
      * Library lookup for an xs:include: resolves the declared {@code schemaLocation} as a
      * catalog/user systemId (typically the remote URL an OASIS catalog rewrites to a local
-     * file). Returns null on a miss (never throws).
+     * file). Remote library entries are only downloaded when this factory's
+     * {@code remoteNamespaceFallbackEnabled} flag is set. Returns null on a miss (never throws).
      *
      * @param schemaLocation the declared schemaLocation
      * @param baseDirectory  base directory of the declaring file, used as the base URI for
      *                       resolving a relative systemId
      * @return the resolved local file, or null if the library has no matching entry
      */
-    private static Path resolveIncludeViaLibrary(String schemaLocation, Path baseDirectory) {
-        try {
-            var hit = org.fxt.freexmltoolkit.service.SchemaLibraryServiceImpl.shared()
-                    .resolveSystemId(schemaLocation, baseDirectory != null ? baseDirectory.toUri().toString() : null);
-            if (hit.isPresent() && "file".equalsIgnoreCase(hit.get().getScheme())) {
-                Path p = Path.of(hit.get());
-                return Files.isRegularFile(p) ? p : null;
-            }
-        } catch (Exception e) {
-            logger.debug("Schema Library lookup failed for include '{}': {}", schemaLocation, e.getMessage());
-        }
-        return null;
+    private Path resolveIncludeViaLibrary(String schemaLocation, Path baseDirectory) {
+        return org.fxt.freexmltoolkit.service.SchemaLibraryLookup.localFileFor(
+                        org.fxt.freexmltoolkit.service.SchemaLibraryServiceImpl.shared(),
+                        null, schemaLocation,
+                        baseDirectory != null ? baseDirectory.toUri().toString() : null,
+                        remoteNamespaceFallbackEnabled)
+                .orElse(null);
     }
 
     /**
@@ -2050,7 +2046,8 @@ public class XsdNodeFactory {
     /**
      * Library lookup for an xs:import: the declared {@code schemaLocation} is tried as a
      * catalog/user systemId first, then the import's namespace against the library's
-     * namespace mappings. Returns null on a miss (never throws).
+     * namespace mappings. Remote library entries are only downloaded when this factory's
+     * {@code remoteNamespaceFallbackEnabled} flag is set. Returns null on a miss (never throws).
      *
      * @param namespace        the import's target namespace, may be null
      * @param schemaLocation   the declared schemaLocation, may be null (namespace-only lookup)
@@ -2058,22 +2055,13 @@ public class XsdNodeFactory {
      *                         resolve a relative schemaLocation against the catalog's systemId
      * @return the resolved local file, or null if the library has no matching entry
      */
-    private static Path resolveImportViaLibrary(String namespace, String schemaLocation, Path declaringBaseDir) {
-        try {
-            var library = org.fxt.freexmltoolkit.service.SchemaLibraryServiceImpl.shared();
-            String base = declaringBaseDir != null ? declaringBaseDir.toUri().toString() : null;
-            var bySystemId = library.resolveSystemId(schemaLocation, base);
-            if (bySystemId.isPresent() && "file".equalsIgnoreCase(bySystemId.get().getScheme())) {
-                Path p = Path.of(bySystemId.get());
-                if (Files.isRegularFile(p)) return p;
-            }
-            if (namespace != null && !namespace.isBlank()) {
-                return library.resolveNamespaceToFile(namespace, org.fxt.freexmltoolkit.domain.SchemaKind.XSD).orElse(null);
-            }
-        } catch (Exception e) {
-            logger.debug("Schema Library lookup failed for import '{}': {}", schemaLocation, e.getMessage());
-        }
-        return null;
+    private Path resolveImportViaLibrary(String namespace, String schemaLocation, Path declaringBaseDir) {
+        return org.fxt.freexmltoolkit.service.SchemaLibraryLookup.localFileFor(
+                        org.fxt.freexmltoolkit.service.SchemaLibraryServiceImpl.shared(),
+                        namespace, schemaLocation,
+                        declaringBaseDir != null ? declaringBaseDir.toUri().toString() : null,
+                        remoteNamespaceFallbackEnabled)
+                .orElse(null);
     }
 
     /**

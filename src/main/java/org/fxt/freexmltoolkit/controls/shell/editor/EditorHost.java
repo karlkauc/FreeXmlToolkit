@@ -2659,6 +2659,12 @@ public class EditorHost extends BorderPane {
      * Schema Library lookup for a document without a schema reference: the document
      * element's namespace (or, without a namespace, its local name) is mapped to an XSD.
      * Returns null when auto-binding is disabled or nothing matches. Worker-thread safe.
+     *
+     * <p>Auto-binding is a user-enabled feature, so a remote entry is downloaded on first
+     * use — but it goes through the same offline rule as the resolver hooks
+     * ({@link org.fxt.freexmltoolkit.service.SchemaLibraryLookup#materializeIfAllowed}), so
+     * disabling remote downloads ({@code -Dfxt.schema.namespaceFallback=false}, as the test
+     * suite does) restricts auto-binding to local and already-cached entries too.</p>
      */
     private static File schemaFromLibrary(String content) {
         try {
@@ -2672,7 +2678,9 @@ public class EditorHost extends BorderPane {
             var entry = root.namespace().isEmpty()
                     ? library.resolveByRootElement(root.localName())
                     : library.resolveNamespace(root.namespace(), org.fxt.freexmltoolkit.domain.SchemaKind.XSD);
-            return entry.flatMap(library::materialize).map(java.nio.file.Path::toFile).orElse(null);
+            return entry.flatMap(e -> org.fxt.freexmltoolkit.service.SchemaLibraryLookup
+                            .materializeIfAllowed(library, e, library.isRemoteDownloadAllowed()))
+                    .map(java.nio.file.Path::toFile).orElse(null);
         } catch (Exception e) {
             return null;   // best-effort
         }
@@ -2695,7 +2703,9 @@ public class EditorHost extends BorderPane {
             if (raw.isPresent() && org.fxt.freexmltoolkit.di.ServiceRegistry
                     .get(org.fxt.freexmltoolkit.service.PropertiesService.class).isSchemaLibraryAutoBindEnabled()) {
                 var library = org.fxt.freexmltoolkit.service.SchemaLibraryServiceImpl.shared();
-                File mapped = library.resolveJsonSchema(raw.get()).flatMap(library::materialize)
+                File mapped = library.resolveJsonSchema(raw.get())
+                        .flatMap(e -> org.fxt.freexmltoolkit.service.SchemaLibraryLookup
+                                .materializeIfAllowed(library, e, library.isRemoteDownloadAllowed()))
                         .map(java.nio.file.Path::toFile).orElse(null);
                 if (mapped != null) {
                     tab.lastDetectedSchemaLocation = raw.get();

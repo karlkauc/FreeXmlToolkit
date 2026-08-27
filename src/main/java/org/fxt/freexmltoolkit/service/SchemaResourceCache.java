@@ -226,14 +226,7 @@ public class SchemaResourceCache {
         long startTime = System.currentTimeMillis();
 
         try {
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(url))
-                    .timeout(HTTP_TIMEOUT)
-                    .GET()
-                    .build();
-
-            HttpResponse<byte[]> response = httpClient.send(request,
-                    HttpResponse.BodyHandlers.ofByteArray());
+            HttpResponse<byte[]> response = fetch(url);
 
             long downloadDuration = System.currentTimeMillis() - startTime;
 
@@ -275,6 +268,23 @@ public class SchemaResourceCache {
             cacheIndex.recordDownloadError();
             throw new IOException("Failed to download schema from URL: " + url, e);
         }
+    }
+
+    /**
+     * Performs the raw HTTP GET for {@code url} (no caching, no validation).
+     *
+     * @param url the URL to fetch
+     * @return the raw HTTP response
+     * @throws IOException          on an I/O failure
+     * @throws InterruptedException if the calling thread is interrupted while waiting
+     */
+    private HttpResponse<byte[]> fetch(String url) throws IOException, InterruptedException {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .timeout(HTTP_TIMEOUT)
+                .GET()
+                .build();
+        return httpClient.send(request, HttpResponse.BodyHandlers.ofByteArray());
     }
 
     /**
@@ -517,21 +527,54 @@ public class SchemaResourceCache {
     }
 
     /**
-     * Re-downloads {@code url}, replacing the cached copy.
+     * Re-downloads {@code url} and replaces the cached copy — <b>non-destructively</b>: the
+     * new content is written to a temporary file first and only swapped in after a successful
+     * download, so a failed refresh leaves the previously cached file and its index entry
+     * untouched (and returns empty).
      *
      * @param url the remote URL to refresh
      * @return the refreshed local path, or empty on an unsafe URL or download failure
      */
-    public Optional<Path> refresh(String url) {
+    public synchronized Optional<Path> refresh(String url) {
         if (!PathValidator.isUrlSafeToAccess(url)) {
             return Optional.empty();
         }
-        removeEntry(generateFilename(url));
+        String filename = generateFilename(url);
+        Path localPath = cacheDir.resolve(filename);
+        Path tmp = null;
+        long startTime = System.currentTimeMillis();
         try {
-            return Optional.of(getOrDownload(url));
-        } catch (IOException e) {
-            logger.warn("Refresh failed for {}: {}", url, e.getMessage());
+            HttpResponse<byte[]> response = fetch(url);
+            if (response.statusCode() != 200) {
+                throw new IOException("HTTP " + response.statusCode() + " for URL: " + url);
+            }
+            byte[] content = response.body();
+            Files.createDirectories(cacheDir);
+            tmp = Files.createTempFile(cacheDir, filename + ".", ".refresh");
+            Files.write(tmp, content);
+            Files.move(tmp, localPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            tmp = null;
+            cacheIndex.addOrUpdateEntry(createCacheEntry(filename, url, localPath, content, response,
+                    System.currentTimeMillis() - startTime));
+            cacheIndex.save(indexFile);
+            urlToLocalPath.put(url, localPath);
+            logger.info("Refreshed cached schema: {} -> {}", url, localPath);
+            return Optional.of(localPath);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            downloadErrors.incrementAndGet();
+            cacheIndex.recordDownloadError();
+            logger.warn("Refresh interrupted for {}", url);
             return Optional.empty();
+        } catch (Exception e) {
+            downloadErrors.incrementAndGet();
+            cacheIndex.recordDownloadError();
+            logger.warn("Refresh failed for {} (cached copy kept): {}", url, e.getMessage());
+            return Optional.empty();
+        } finally {
+            if (tmp != null) {
+                try { Files.deleteIfExists(tmp); } catch (IOException ignore) { /* best effort */ }
+            }
         }
     }
 

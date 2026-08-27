@@ -18,7 +18,7 @@ class ActivityTest {
     void allExpectedActivitiesArePresentInOrder() {
         Activity[] expected = {
                 Activity.EXPLORER, Activity.SEARCH, Activity.FAVORITES, Activity.VALIDATION,
-                Activity.TRANSFORM, Activity.SCHEMA, Activity.PDF_FOP,
+                Activity.TRANSFORM, Activity.SCHEMA, Activity.SCHEMA_LIBRARY, Activity.PDF_FOP,
                 Activity.SIGNATURE, Activity.FUNDSXML, Activity.HELP, Activity.SETTINGS
         };
         assertArrayEquals(expected, Activity.values(),

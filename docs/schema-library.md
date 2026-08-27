@@ -16,7 +16,7 @@ three sources, tried in this order:
 
 1. **Your mappings** - entries you added yourself (the Mappings tab, source `USER`).
 2. **XML catalogs** - OASIS `catalog.xml` files you registered (the Catalogs tab).
-3. **Bundled standards** - 28 well-known W3C/OASIS/industry schemas shipped with the
+3. **Bundled standards** - 25 well-known W3C/OASIS/industry schemas shipped with the
    application (see [Bundled standards](#5-bundled-standards)).
 
 The first match wins, and a schema you bind **manually** in the Validation panel or status
@@ -31,8 +31,9 @@ The library is consulted whenever a document needs a schema but doesn't say whic
   the legacy schema parser, an import or include that can't be resolved locally is looked
   up by its namespace or system ID.
 - **JSON `$schema` URIs** - a JSON document's `$schema` member that isn't a plain local/HTTP
-  reference (or a `json-schema.org` meta-schema id that happens to be mapped) resolves
-  through the library.
+  reference resolves through the library. Meta-schema ids (`json-schema.org/...`) are *not*
+  bundled, so a JSON **schema document** still binds nothing - but you can map one yourself
+  as a `USER` entry if you want schema documents validated against their dialect.
 - **XSLT/XQuery `doc()` / `document()`** - a system ID the engine can't resolve directly
   falls back to the library (and catalogs) the same way.
 
@@ -73,6 +74,11 @@ The Catalogs tab registers OASIS `catalog.xml` files and supports the core catal
 elements: `system`, `public`, `uri`, `rewriteSystem`, `rewriteURI`, `nextCatalog` and
 `xml:base`. Catalogs are parsed **without any network access** - `nextCatalog` is only
 followed for local files, with cycle protection and a depth cap of 10.
+
+During validation a reference is looked up by its **system identifier** first, then by its
+**public identifier** (`public` entries), and finally by namespace. `public` entries are
+therefore honoured for schema resolution even though they cannot be imported into the
+Mappings tab (a public identifier is not a namespace).
 
 - **Add catalog…** registers a `catalog.xml` file; **Remove** unregisters it (the file
   itself is untouched); **Enable / disable** toggles it without removing it; **Reload
@@ -115,7 +121,7 @@ files are simply re-downloaded the next time a document references them.
 
 ## 5. Bundled standards
 
-FreeXmlToolkit ships a curated list of 28 well-known namespace → schema mappings so common
+FreeXmlToolkit ships a curated list of 25 well-known namespace → schema mappings so common
 standards validate out of the box, without you having to hunt down and register the schema
 yourself. Bundled entries are grouped by family:
 
@@ -123,24 +129,40 @@ yourself. Bundled entries are grouped by family:
   `xmldsig-core`, `xmlenc-core`, `XLink` 1.1, `XInclude` 1.0, XSLT 2.0/3.0 stylesheet schema.
 - **Markup** - XHTML 1.0 Strict, SVG 1.1, MathML 3.
 - **Web services** - SOAP 1.1 and 1.2 envelopes, WSDL 1.1.
-- **3D graphics** - X3D 3.0 through 4.0.
+- **3D graphics** - X3D 3.0 through 4.0. X3D documents carry **no namespace** (they point at
+  their schema with `xsi:noNamespaceSchemaLocation`), so these are no-namespace entries:
+  **4.0** and **3.3** additionally declare the root element `X3D` and are found by
+  auto-binding (4.0 is listed first and therefore wins); 3.0-3.2 are reached by their
+  **location** whenever a document or an `xs:import` names that URL.
 - **Finance/industry** - FundsXML 4, XBRL 2.1 (instance + linkbase), UBL 2.1 (Invoice,
   Order, CreditNote), UN/CEFACT Cross Industry Invoice D16B (ZUGFeRD/Factur-X).
-- **JSON Schema meta-schemas** - 2020-12, 2019-09, and draft-07.
+
+The JSON Schema **meta-schemas** are deliberately *not* bundled: `$schema` in a JSON schema
+document declares its dialect, not a validation binding, and a bundled meta-schema mapping
+would bind every schema document to it. Add one as your own mapping if you want that.
 
 The list itself lives in `src/main/resources/schema-library/bundled.json`. Bundled entries
 are **not downloaded at install time** - like any remote mapping, the actual schema file is
 fetched into the cache the first time it's needed, so a bundled entry needs network access
 once before it shows the ✔ **Available** status.
 
+**Offline rule:** a remote library entry is downloaded on first use only when remote
+downloads are permitted. Starting the application with `-Dfxt.schema.namespaceFallback=false`
+turns them off (the test suite does this) - resolution then uses **local files and
+already-cached copies only**, and every other entry is simply a miss. Local entries and
+cached entries always resolve, with or without network access.
+
 ## 6. Settings
 
 The **SCHEMA LIBRARY** card in Settings (gear icon at the bottom of the activity bar) holds:
 
-- **"Use the Schema Library to bind schemas automatically"** - the master switch for all
-  auto-binding described in [§1](#1-what-the-schema-library-is) (default **on**). Turning it
-  off disables library lookups everywhere, but manual bindings and catalogs used explicitly
-  (e.g. via `xs:import`/`xs:include` resolution) are unaffected.
+- **"Use the Schema Library to bind schemas automatically"** - controls **automatic binding
+  in the editor** only (default **on**): the XML root-namespace / root-element lookup and the
+  JSON `$schema` lookup described in [§1](#1-what-the-schema-library-is). Turning it off means
+  a document without its own schema reference stays unbound. It does **not** switch the
+  library off: the resolver hooks - `xs:import` / `xs:include` resolution, XML catalogs and
+  XSLT/XQuery `doc()` / `document()` - keep consulting the library either way, and manual
+  bindings are unaffected.
 - The **library file** location, `~/.freeXmlToolkit/schema-library.json`, shown for
   reference.
 - A **"Manage schema cache…"** link that jumps straight to the Schema Library activity's
@@ -154,7 +176,8 @@ The **SCHEMA LIBRARY** card in Settings (gear icon at the bottom of the activity
   match. For no-namespace XSDs, the library matches by root element name instead.
 - Make sure the mapping's **On** checkbox is checked; a disabled entry (including a
   disabled catalog) is skipped during resolution.
-- Confirm the **"Use the Schema Library to bind schemas automatically"** setting is on.
+- Confirm the **"Use the Schema Library to bind schemas automatically"** setting is on (it
+  gates editor auto-binding only, not `xs:import`/catalog resolution).
 - If the document already has a manually bound schema (or an `xsi:schemaLocation`), that
   wins - the library is only consulted when there's no other reference.
 
@@ -165,6 +188,10 @@ files are followed, and the depth is capped at 10.
 **A download keeps failing / the status stays ✖ error:** hover the status icon for the
 error message. A failed download is remembered for **10 minutes** to avoid hammering an
 unreachable server; use **Download / verify** on the Mappings tab to retry immediately.
+
+**A remote mapping never leaves ☁ "Not downloaded yet":** remote downloads may be turned
+off (`-Dfxt.schema.namespaceFallback=false`); with them off only local and already-cached
+entries resolve. Use **Download / verify** to fetch one explicitly.
 
 **"URL is not allowed" when adding a mapping:** the location resolves to a private or
 internal network address (loopback, link-local, RFC 1918 ranges, etc.) and is rejected as

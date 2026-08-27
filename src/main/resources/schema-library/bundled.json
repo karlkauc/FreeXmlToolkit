@@ -14,20 +14,17 @@
     {"namespace": "http://schemas.xmlsoap.org/soap/envelope/", "location": "https://schemas.xmlsoap.org/soap/envelope/", "kind": "XSD", "description": "SOAP 1.1 envelope"},
     {"namespace": "http://www.w3.org/2003/05/soap-envelope", "location": "https://www.w3.org/2003/05/soap-envelope/", "kind": "XSD", "description": "SOAP 1.2 envelope"},
     {"namespace": "http://schemas.xmlsoap.org/wsdl/", "location": "https://schemas.xmlsoap.org/wsdl/", "kind": "XSD", "description": "WSDL 1.1"},
-    {"namespace": "http://www.web3d.org/specifications/x3d-3.0.xsd", "location": "https://www.web3d.org/specifications/x3d-3.0.xsd", "kind": "XSD", "description": "X3D 3.0", "rootElement": "X3D"},
-    {"namespace": "http://www.web3d.org/specifications/x3d-3.1.xsd", "location": "https://www.web3d.org/specifications/x3d-3.1.xsd", "kind": "XSD", "description": "X3D 3.1"},
-    {"namespace": "http://www.web3d.org/specifications/x3d-3.2.xsd", "location": "https://www.web3d.org/specifications/x3d-3.2.xsd", "kind": "XSD", "description": "X3D 3.2"},
-    {"namespace": "http://www.web3d.org/specifications/x3d-3.3.xsd", "location": "https://www.web3d.org/specifications/x3d-3.3.xsd", "kind": "XSD", "description": "X3D 3.3"},
-    {"namespace": "http://www.web3d.org/specifications/x3d-4.0.xsd", "location": "https://www.web3d.org/specifications/x3d-4.0.xsd", "kind": "XSD", "description": "X3D 4.0 (Extensible 3D graphics)"},
+    {"namespace": "", "location": "https://www.web3d.org/specifications/x3d-4.0.xsd", "kind": "XSD", "description": "X3D 4.0 (Extensible 3D graphics) - default for <X3D> documents without a namespace", "rootElement": "X3D"},
+    {"namespace": "", "location": "https://www.web3d.org/specifications/x3d-3.3.xsd", "kind": "XSD", "description": "X3D 3.3 (Extensible 3D graphics)", "rootElement": "X3D"},
+    {"namespace": "", "location": "https://www.web3d.org/specifications/x3d-3.2.xsd", "kind": "XSD", "description": "X3D 3.2 (Extensible 3D graphics) - reachable by schema location"},
+    {"namespace": "", "location": "https://www.web3d.org/specifications/x3d-3.1.xsd", "kind": "XSD", "description": "X3D 3.1 (Extensible 3D graphics) - reachable by schema location"},
+    {"namespace": "", "location": "https://www.web3d.org/specifications/x3d-3.0.xsd", "kind": "XSD", "description": "X3D 3.0 (Extensible 3D graphics) - reachable by schema location"},
     {"namespace": "http://www.fundsxml.org/XMLSchema/4.2.2", "location": "https://raw.githubusercontent.com/fundsxml/schema/master/FundsXML4.xsd", "kind": "XSD", "description": "FundsXML 4"},
     {"namespace": "http://www.xbrl.org/2003/instance", "location": "https://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd", "kind": "XSD", "description": "XBRL 2.1 instance"},
     {"namespace": "http://www.xbrl.org/2003/linkbase", "location": "https://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd", "kind": "XSD", "description": "XBRL 2.1 linkbase"},
     {"namespace": "urn:oasis:names:specification:ubl:schema:xsd:Invoice-2", "location": "https://docs.oasis-open.org/ubl/os-UBL-2.1/xsd/maindoc/UBL-Invoice-2.1.xsd", "kind": "XSD", "description": "UBL 2.1 Invoice"},
     {"namespace": "urn:oasis:names:specification:ubl:schema:xsd:Order-2", "location": "https://docs.oasis-open.org/ubl/os-UBL-2.1/xsd/maindoc/UBL-Order-2.1.xsd", "kind": "XSD", "description": "UBL 2.1 Order"},
     {"namespace": "urn:oasis:names:specification:ubl:schema:xsd:CreditNote-2", "location": "https://docs.oasis-open.org/ubl/os-UBL-2.1/xsd/maindoc/UBL-CreditNote-2.1.xsd", "kind": "XSD", "description": "UBL 2.1 CreditNote"},
-    {"namespace": "urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100", "location": "https://raw.githubusercontent.com/ConnectingEurope/eInvoicing-EN16931/master/cii/schema/D16B%20SCRDM%20(Subset)/uncoupled%20clm/CII/uncefact/data/standard/CrossIndustryInvoice_100pD16B.xsd", "kind": "XSD", "description": "UN/CEFACT Cross Industry Invoice D16B (ZUGFeRD/Factur-X)"},
-    {"namespace": "https://json-schema.org/draft/2020-12/schema", "location": "https://json-schema.org/draft/2020-12/schema", "kind": "JSON_SCHEMA", "description": "JSON Schema 2020-12 meta-schema"},
-    {"namespace": "http://json-schema.org/draft-07/schema#", "location": "https://json-schema.org/draft-07/schema", "kind": "JSON_SCHEMA", "description": "JSON Schema draft-07 meta-schema"},
-    {"namespace": "https://json-schema.org/draft/2019-09/schema", "location": "https://json-schema.org/draft/2019-09/schema", "kind": "JSON_SCHEMA", "description": "JSON Schema 2019-09 meta-schema"}
+    {"namespace": "urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100", "location": "https://raw.githubusercontent.com/ConnectingEurope/eInvoicing-EN16931/master/cii/schema/D16B%20SCRDM%20(Subset)/uncoupled%20clm/CII/uncefact/data/standard/CrossIndustryInvoice_100pD16B.xsd", "kind": "XSD", "description": "UN/CEFACT Cross Industry Invoice D16B (ZUGFeRD/Factur-X)"}
   ]
 }

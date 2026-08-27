@@ -79,6 +79,30 @@ class SchemaResolverLibraryHookTest {
         in.getByteStream().close();
     }
 
+    /**
+     * I2: a catalog {@code public} entry is honoured — the systemId is unknown, but the
+     * declared public identifier maps to a local file.
+     */
+    @Test
+    void catalogPublicEntryIsHonoured(@TempDir Path dir) throws Exception {
+        Path local = dir.resolve("public.xsd");
+        Files.writeString(local, "<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'/>");
+        Path cat = dir.resolve("catalog.xml");
+        Files.writeString(cat, "<catalog xmlns='urn:oasis:names:tc:entity:xmlns:xml:catalog'>"
+                + "<public publicId='-//ACME//SCHEMA Thing//EN' uri='public.xsd'/></catalog>");
+        var svc = emptyLibrary(dir);
+        svc.addCatalog(cat);
+        ServiceRegistry.reset();
+        ServiceRegistry.register(SchemaLibraryService.class, svc);
+
+        var resolver = new SchemaResolver(XsdParseOptions.defaults()).createLSResourceResolver(dir);
+        LSInput in = resolver.resolveResource("http://www.w3.org/2001/XMLSchema", null,
+                "-//ACME//SCHEMA Thing//EN", "urn:unknown", null);
+        assertNotNull(in, "the catalog public entry should serve the resource");
+        assertEquals(local.toUri().toString(), in.getSystemId());
+        in.getByteStream().close();
+    }
+
     @Test
     void cycleThroughALibraryServedSchemaIsDetected(@TempDir Path dir) throws Exception {
         // main.xsd imports urn:types via an unresolvable location, served by the library from

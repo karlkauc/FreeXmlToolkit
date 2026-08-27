@@ -31,7 +31,9 @@ class SchemaLibraryServiceImplTest {
         svc = newService();
     }
 
+    /** Reloads from disk; {@code awaitSave()} first because the writer runs off-thread (I6). */
     SchemaLibraryServiceImpl newService() {
+        if (svc != null) svc.awaitSave();
         return new SchemaLibraryServiceImpl(dir.resolve("schema-library.json"), cache,
                 () -> new ByteArrayInputStream(BUNDLED.getBytes(StandardCharsets.UTF_8)));
     }
@@ -47,6 +49,7 @@ class SchemaLibraryServiceImplTest {
     void addPersistsAndReloads() throws Exception {
         SchemaLibraryEntry added = svc.addEntry(SchemaLibraryEntry.user("urn:u", "/tmp/u.xsd", SchemaKind.XSD, "U", null));
         assertEquals(EntrySource.USER, added.source());
+        svc.awaitSave();
         assertTrue(Files.exists(svc.getStorageFile()));
 
         SchemaLibraryServiceImpl reloaded = newService();

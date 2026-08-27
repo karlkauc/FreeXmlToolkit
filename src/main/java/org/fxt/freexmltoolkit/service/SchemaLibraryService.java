@@ -34,8 +34,31 @@ public interface SchemaLibraryService {
 
     Optional<SchemaLibraryEntry> resolveNamespace(String namespace, SchemaKind kind);
 
-    /** user entries, then catalogs (system → uri) */
+    /** user entries, then catalogs (system → uri), then bundled entries (by location) */
     Optional<URI> resolveSystemId(String systemId, String baseUri);
+
+    /**
+     * Resolves an XML {@code publicId} through the registered catalogs' {@code public} entries.
+     * Library entries have no public identifier, so only catalogs can match here.
+     *
+     * @param publicId the public identifier to look up, may be null
+     * @return the mapped absolute URI, or empty on a miss
+     */
+    Optional<URI> resolvePublicId(String publicId);
+
+    /**
+     * Whether the library may go to the network to materialize a remote entry.
+     *
+     * <p>Backed by the same {@code fxt.schema.namespaceFallback} system property that gates
+     * {@code XsdNodeFactory}'s namespace-URL fallback (default {@code true}); the test suite
+     * sets it to {@code false}, so library hooks stay offline in tests. Local entries and
+     * already-cached remote entries are served regardless of this flag.</p>
+     *
+     * @return true when remote library entries may be downloaded
+     */
+    default boolean isRemoteDownloadAllowed() {
+        return Boolean.parseBoolean(System.getProperty("fxt.schema.namespaceFallback", "true"));
+    }
 
     Optional<SchemaLibraryEntry> resolveJsonSchema(String schemaUri);
 

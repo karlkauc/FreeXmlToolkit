@@ -193,19 +193,16 @@ public class XsltTransformationEngine {
             final net.sf.saxon.lib.ResourceResolver defaultResolver = config.getResourceResolver();
             config.setResourceResolver(request -> {
                 if (request != null && request.uri != null) {
-                    // Schema Library / catalogs first: a mapped URI is served from its local target.
-                    java.util.Optional<java.net.URI> mapped = java.util.Optional.empty();
-                    try {
-                        mapped = org.fxt.freexmltoolkit.service.SchemaLibraryServiceImpl.shared()
-                                .resolveSystemId(request.uri, request.baseUri);
-                    } catch (Exception e) {
-                        logger.debug("Schema Library lookup failed for {}: {}", request.uri, e.getMessage());
-                    }
-                    if (mapped.isPresent() && "file".equalsIgnoreCase(mapped.get().getScheme())) {
-                        java.nio.file.Path p = java.nio.file.Path.of(mapped.get());
-                        if (java.nio.file.Files.isRegularFile(p)) {
-                            return new javax.xml.transform.stream.StreamSource(p.toFile());
-                        }
+                    // Schema Library / catalogs first: a mapped URI is served from its local
+                    // target (or its cached copy; an uncached remote entry is only downloaded
+                    // when SchemaLibraryLookup's offline rule allows it).
+                    var library = org.fxt.freexmltoolkit.service.SchemaLibraryServiceImpl.shared();
+                    java.nio.file.Path mapped = org.fxt.freexmltoolkit.service.SchemaLibraryLookup
+                            .localFileFor(library, null, request.uri, request.baseUri,
+                                    library.isRemoteDownloadAllowed())
+                            .orElse(null);
+                    if (mapped != null) {
+                        return new javax.xml.transform.stream.StreamSource(mapped.toFile());
                     }
                 }
                 if (request != null && isRemoteScheme(schemeOfRequest(request))) {

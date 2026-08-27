@@ -34,6 +34,20 @@ class SchemaLibraryEntryTest {
         assertEquals("root", e.rootElement());
     }
 
+    /**
+     * No-namespace entries (X3D and friends) must not collapse onto {@code XSD|}: their key
+     * carries the root element and the location, so several versions stay distinguishable.
+     */
+    @Test
+    void noNamespaceEntriesKeyOnRootElementAndLocation() {
+        SchemaLibraryEntry v40 = SchemaLibraryEntry.user("", "https://example.org/x3d-4.0.xsd", SchemaKind.XSD, "", "X3D");
+        SchemaLibraryEntry v33 = SchemaLibraryEntry.user("", "https://example.org/x3d-3.3.xsd", SchemaKind.XSD, "", "X3D");
+        assertEquals("XSD||X3D|https://example.org/x3d-4.0.xsd", v40.key());
+        assertNotEquals(v40.key(), v33.key());
+        SchemaLibraryEntry noRoot = SchemaLibraryEntry.user("", "https://example.org/x3d-3.0.xsd", SchemaKind.XSD, "", null);
+        assertNotEquals(v40.key(), noRoot.key());
+    }
+
     @Test
     void catalogRefOfPath() {
         SchemaCatalogRef ref = SchemaCatalogRef.of(java.nio.file.Path.of("/tmp/catalog.xml"));

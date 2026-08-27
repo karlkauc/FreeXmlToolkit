@@ -84,8 +84,8 @@ JSON documents bind a JSON Schema the same way XML documents bind an XSD:
   (e.g. `"$schema": "./product-schema.json"`) is detected when the file opens.
   Relative paths resolve against the document's folder; `http(s)` URLs are
   downloaded and cached. (Values pointing at `json-schema.org` meta-schemas are
-  dialect declarations, not bindings, and are ignored - unless that meta-schema
-  URI is itself mapped in the Schema Library, in which case it binds too.) If the
+  dialect declarations, not bindings, and are ignored - unless *you* map that
+  meta-schema URI in the Schema Library yourself; none are bundled.) If the
   `$schema` URI isn't directly resolvable, the Schema Library is consulted next -
   see [Schema Library](schema-library.md).
 - **Manual:** click the **JSON Schema** indicator in the status bar, use the

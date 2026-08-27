@@ -39,6 +39,11 @@ public class SchemaLibraryServiceImpl implements SchemaLibraryService {
                 Path.of(FileUtils.getUserDirectory().getAbsolutePath(), ".freeXmlToolkit", "schema-library.json"),
                 SchemaResourceCache.shared(),
                 () -> SchemaLibraryServiceImpl.class.getResourceAsStream(BUNDLED_RESOURCE));
+
+        static {
+            // The writer thread is a daemon, so flush any pending write before the JVM exits.
+            Runtime.getRuntime().addShutdownHook(new Thread(INSTANCE::awaitSave, "schema-library-flush"));
+        }
     }
 
     public static SchemaLibraryServiceImpl getInstance() { return Holder.INSTANCE; }
@@ -82,7 +87,12 @@ public class SchemaLibraryServiceImpl implements SchemaLibraryService {
             if (in == null) { logger.warn("Bundled schema library resource not found"); return; }
             SchemaLibraryFile f = GSON.fromJson(new InputStreamReader(in, StandardCharsets.UTF_8), SchemaLibraryFile.class);
             for (SchemaLibraryFile.EntryDto d : f.entries) {
-                bundledEntries.add(new SchemaLibraryEntry("bundled:" + d.kind + ":" + d.namespace, d.namespace, d.location,
+                // The id is derived from key() (not from kind+namespace): several bundled
+                // entries legitimately share an empty namespace (the X3D versions), and
+                // duplicate ids would break enable/disable and selection in the UI.
+                SchemaLibraryEntry probe = new SchemaLibraryEntry("bundled", d.namespace, d.location,
+                        SchemaKind.valueOf(d.kind), EntrySource.BUNDLED, true, d.description, d.rootElement);
+                bundledEntries.add(new SchemaLibraryEntry("bundled:" + probe.key(), d.namespace, d.location,
                         SchemaKind.valueOf(d.kind), EntrySource.BUNDLED, true, d.description, d.rootElement));
             }
         } catch (Exception e) {
@@ -111,6 +121,31 @@ public class SchemaLibraryServiceImpl implements SchemaLibraryService {
         }
     }
 
+    /**
+     * Single-threaded, daemon writer for {@link #save()}. The JSON is serialized synchronously
+     * under {@code lock} (so the persisted state always matches the mutation that triggered it
+     * and writes stay ordered); only the file I/O is handed off, keeping the FX thread free
+     * when a panel handler mutates the library. Tests that reload the file immediately after a
+     * mutation call {@link #awaitSave()}.
+     */
+    private final java.util.concurrent.ExecutorService writer =
+            java.util.concurrent.Executors.newSingleThreadExecutor(r -> {
+                Thread t = new Thread(r, "schema-library-writer");
+                t.setDaemon(true);
+                return t;
+            });
+
+    /** Blocks until every {@link #save()} submitted so far has hit the disk (tests, shutdown). */
+    void awaitSave() {
+        try {
+            writer.submit(() -> { }).get(30, java.util.concurrent.TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } catch (Exception e) {
+            logger.warn("Waiting for the schema library write failed: {}", e.getMessage());
+        }
+    }
+
     private void save() {
         SchemaLibraryFile f = new SchemaLibraryFile();
         for (SchemaLibraryEntry e : userEntries) {
@@ -125,10 +160,20 @@ public class SchemaLibraryServiceImpl implements SchemaLibraryService {
             f.catalogs.add(d);
         }
         f.disabledBundled.addAll(disabledBundled);
+        final String json = GSON.toJson(f);   // serialized under the caller's lock
+        try {
+            writer.execute(() -> writeStorage(json));
+        } catch (java.util.concurrent.RejectedExecutionException shuttingDown) {
+            writeStorage(json);
+        }
+    }
+
+    /** Atomic replace of the storage file; runs on the {@link #writer} thread. */
+    private void writeStorage(String json) {
         try {
             Files.createDirectories(storageFile.getParent());
             Path tmp = storageFile.resolveSibling(storageFile.getFileName() + ".tmp");
-            Files.writeString(tmp, GSON.toJson(f), StandardCharsets.UTF_8);
+            Files.writeString(tmp, json, StandardCharsets.UTF_8);
             Files.move(tmp, storageFile, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
         } catch (IOException e) {
             logger.error("Cannot save schema library to {}: {}", storageFile, e.getMessage());
@@ -359,12 +404,15 @@ public class SchemaLibraryServiceImpl implements SchemaLibraryService {
         if (systemId == null || systemId.isBlank()) return Optional.empty();
         URI absolute = absolutize(systemId, baseUri);
         String absoluteString = absolute != null ? absolute.toString() : systemId;
+        URI bundledHit = null;
         for (SchemaLibraryEntry e : snapshot) {
-            if (!e.enabled() || e.source() != EntrySource.USER) continue;
+            if (!e.enabled()) continue;
             URI loc = locationUri(e);
-            if (loc != null && (loc.toString().equals(absoluteString) || e.location().equals(systemId))) {
-                return Optional.of(loc);
-            }
+            if (loc == null || !(loc.toString().equals(absoluteString) || e.location().equals(systemId))) continue;
+            // USER entries win outright; a bundled location match is only the last resort so a
+            // registered catalog can still override it (spec §3.2).
+            if (e.source() == EntrySource.USER) return Optional.of(loc);
+            if (bundledHit == null) bundledHit = loc;
         }
         for (LoadedCatalog lc : catalogsLoaded()) {
             if (!lc.ref().enabled() || lc.parsed() == null) continue;
@@ -372,6 +420,18 @@ public class SchemaLibraryServiceImpl implements SchemaLibraryService {
             if (t.isEmpty() && absolute != null) t = lc.parsed().matchSystem(absoluteString);
             if (t.isEmpty()) t = lc.parsed().matchUri(systemId);
             if (t.isEmpty() && absolute != null) t = lc.parsed().matchUri(absoluteString);
+            if (t.isPresent()) {
+                try { return Optional.of(URI.create(t.get())); } catch (IllegalArgumentException ignore) { }
+            }
+        }
+        return Optional.ofNullable(bundledHit);
+    }
+
+    @Override public Optional<URI> resolvePublicId(String publicId) {
+        if (publicId == null || publicId.isBlank()) return Optional.empty();
+        for (LoadedCatalog lc : catalogsLoaded()) {
+            if (!lc.ref().enabled() || lc.parsed() == null) continue;
+            Optional<String> t = lc.parsed().matchPublic(publicId);
             if (t.isPresent()) {
                 try { return Optional.of(URI.create(t.get())); } catch (IllegalArgumentException ignore) { }
             }

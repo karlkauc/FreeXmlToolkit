@@ -35,8 +35,22 @@ public record SchemaLibraryEntry(String id, String namespace, String location, S
                 EntrySource.USER, true, description, rootElement);
     }
 
-    /** {@code kind|namespace} — the identity used for bundled overrides. */
-    public String key() { return kind + "|" + namespace; }
+    /**
+     * The identity used for bundled overrides and duplicate detection.
+     *
+     * <p>For a namespaced entry this is {@code kind|namespace}. No-namespace entries
+     * (matched by root element or by their location, e.g. the X3D schemas) would all
+     * collapse onto {@code kind|} instead, so for them the key is
+     * {@code kind||rootElement|location} — which keeps several versions of the same
+     * no-namespace standard distinguishable.</p>
+     *
+     * @return the entry's identity key
+     */
+    public String key() {
+        return namespace.isEmpty()
+                ? kind + "||" + rootElement + "|" + location
+                : kind + "|" + namespace;
+    }
 
     public boolean isRemote() {
         return location.startsWith("http://") || location.startsWith("https://");
