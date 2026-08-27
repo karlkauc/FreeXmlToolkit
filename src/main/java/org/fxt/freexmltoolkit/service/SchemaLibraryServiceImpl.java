@@ -503,6 +503,7 @@ public class SchemaLibraryServiceImpl implements SchemaLibraryService {
             sessionErrors.put(entry.id(), e.getMessage());
             failedAt.put(entry.id(), System.currentTimeMillis());
             logger.warn("Cannot download schema for {} from {}: {}", entry.namespace(), entry.location(), e.getMessage());
+            logger.debug("Download failure details for {}", entry.location(), e);
             return Optional.empty();
         }
     }

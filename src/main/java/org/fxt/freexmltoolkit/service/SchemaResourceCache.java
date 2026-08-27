@@ -266,8 +266,23 @@ public class SchemaResourceCache {
         } catch (Exception e) {
             downloadErrors.incrementAndGet();
             cacheIndex.recordDownloadError();
-            throw new IOException("Failed to download schema from URL: " + url, e);
+            // Keep the root cause visible in the message: callers typically log only
+            // getMessage(), and a bare "failed to download" hides proxy/TLS/DNS problems.
+            throw new IOException("Failed to download schema from URL: " + url
+                    + " (" + describeCause(e) + ")", e);
         }
+    }
+
+    /** Renders the exception chain as {@code Type: message → Type: message} for log messages. */
+    static String describeCause(Throwable t) {
+        StringBuilder sb = new StringBuilder();
+        java.util.Set<Throwable> seen = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+        for (Throwable c = t; c != null && seen.add(c); c = c.getCause()) {
+            if (sb.length() > 0) sb.append(" \u2192 ");
+            sb.append(c.getClass().getSimpleName());
+            if (c.getMessage() != null && !c.getMessage().isBlank()) sb.append(": ").append(c.getMessage());
+        }
+        return sb.toString();
     }
 
     /**

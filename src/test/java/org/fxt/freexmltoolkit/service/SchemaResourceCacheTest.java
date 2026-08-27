@@ -276,6 +276,15 @@ class SchemaResourceCacheTest {
         }
 
         @Test
+        void downloadFailureMessageNamesTheRootCause(@org.junit.jupiter.api.io.TempDir java.nio.file.Path dir) {
+            var ex = org.junit.jupiter.api.Assertions.assertThrows(java.io.IOException.class,
+                    () -> new SchemaResourceCache(dir).getOrDownload("https://schema.invalid/x.xsd"));
+            assertTrue(ex.getMessage().contains("schema.invalid"), ex.getMessage());
+            assertTrue(ex.getMessage().contains("UnknownHostException") || ex.getMessage().contains("ConnectException"),
+                    "cause must be visible in the message: " + ex.getMessage());
+        }
+
+        @Test
         void refreshOfUnsafeUrlIsEmpty(@org.junit.jupiter.api.io.TempDir java.nio.file.Path dir) {
             assertTrue(new SchemaResourceCache(dir).refresh("http://127.0.0.1/x.xsd").isEmpty());
         }
