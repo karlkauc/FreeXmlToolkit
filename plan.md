@@ -175,7 +175,7 @@ Branch: `main` (work directly, commit per step). Session name: `intellisense-nam
 - [x] Step 4 cache bypass for element completion
 - [x] Step 5 prefix stripping in `ContextAnalyzer` / `MutableXmlSchemaProvider` + test
 - [x] Step 6 end-to-end catalog test (`CatalogExampleIntelliSenseTest`, 6 scenarios green); remote-import cache gap WAS reproduced and fixed (`initializeCachesFromAllSchemas` + namespace collector now iterate `processedSchemaFiles`)
-- [ ] Step 7 full `./gradlew test`, docs update, commit + push
+- [x] Step 7 full `./gradlew test` (6792 tests, only `EditorHostHtmlPreviewTest` timed out once and passes in isolation — unrelated flake), docs updated, committed + pushed. **DONE.**
 
 ### Notes / decisions made during implementation
 - Prefixes are kept in the `XPathContext` element stack (closing-tag completion needs `ns:element`) and stripped only in `buildXPath()`.

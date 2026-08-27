@@ -20,6 +20,16 @@ When you type `<` in the XML Editor, a popup appears showing only the elements t
 ### 1. Smart Element Suggestions
 
 - **Context-Aware**: Shows only valid child elements for your current location
+- **Position-Aware**: Inside an `xs:sequence` only the elements that may follow the
+  siblings already present are offered - an element that has reached its `maxOccurs` (or an
+  `xs:choice` whose alternative is already there) disappears from the list. Elements that
+  already exist *after* the cursor are respected too, so you cannot insert a child in the
+  wrong order.
+- **Namespace-Aware**: Suggestions are inserted with the prefix your document declares for the
+  element's namespace. A child of a type imported from another namespace (e.g. `c:street`
+  when the document declares `xmlns:c="…"`) is inserted as `<c:street></c:street>`; elements
+  in the default namespace stay unprefixed. Typing the local name (`<st`) still matches
+  `c:street`.
 - **Based on Schema**: Suggestions come from your loaded XSD schema
 - **Reduces Errors**: You can't accidentally add invalid elements
 
@@ -114,6 +124,18 @@ schema validation.
 
 - Check that the correct schema is loaded
 - Verify the XML structure is valid up to your cursor position
+
+### Nothing Offered Although the Element Is Empty?
+
+The list also honours the elements that already exist *after* the cursor. If you type `<`
+directly in front of the first existing child of a sequence, nothing may legally go there -
+move the cursor after the last child that belongs before your new element.
+
+### Prefix Missing or Unexpected?
+
+Prefixes are taken from the `xmlns` declarations of your document. If the namespace of the
+suggested element is not declared at all, the prefix used inside the schema is inserted -
+add the matching `xmlns:` declaration to the root element.
 
 ---
 
