@@ -1999,11 +1999,12 @@ bar always takes priority over anything the library resolves.</p>
 <p><img alt="Schema Library - Mappings" src="../img/unified-shell-schema-library-mappings.png" />
 <em>The Mappings tab: namespace → schema entries with status icons, filter and toolbar.</em></p>
 <p>The table has one row per mapping: a status icon, <strong>Namespace</strong> (or <code>&lt;root&gt; (no namespace)</code>
-for root-element mappings), <strong>Location</strong>, <strong>Kind</strong> (<code>XSD</code> or <code>JSON_SCHEMA</code>), <strong>Source</strong>
-(<code>user</code>, <code>catalog</code> or <code>bundled</code>) and an <strong>On</strong> checkbox to enable/disable the row without
-deleting it. The <strong>filter</strong> field searches namespace, location, description and root
-element. Bundled rows render in italics and can only be enabled/disabled, never edited or
-removed.</p>
+for root-element mappings), <strong>Location</strong> and an <strong>On</strong> checkbox to enable/disable the row
+without deleting it. Two more columns, <strong>Kind</strong> (<code>XSD</code> or <code>JSON_SCHEMA</code>) and <strong>Source</strong>
+(<code>user</code>, <code>catalog</code> or <code>bundled</code>), are hidden by default to keep the table readable in the
+narrow side panel - click the small menu button at the table's top-right corner to show
+them. The <strong>filter</strong> field searches namespace, location, description and root element.
+Bundled rows render in italics and can only be enabled/disabled, never edited or removed.</p>
 <table>
 <thead>
 <tr>
@@ -2077,12 +2078,13 @@ Mappings tab (a public identifier is not a namespace).</p>
 <em>The Cache tab: remote schemas downloaded and cached under <code>~/.freeXmlToolkit/cache/schemas</code>.</em></p>
 <p>Every remote schema resolved through the library (or downloaded because a document
 referenced it directly) is cached under <code>~/.freeXmlToolkit/cache/schemas</code>. The Cache tab
-lists <strong>URL</strong>, <strong>Target namespace</strong>, file <strong>Size</strong>, <strong>Downloaded</strong> timestamp and <strong>Hits</strong>
-(access count), with a <strong>filter</strong> over URL/namespace. <strong>Open</strong> opens the cached file as an
-editor tab; <strong>Reveal</strong> shows the cache folder in the system file manager; <strong>Refresh</strong>
-re-downloads the selected entry; <strong>Delete</strong> removes one cached file (re-downloaded on next
-use); <strong>Clear</strong> wipes the entire cache. A footer line reports the total file count, total
-size and the cache hit ratio.</p>
+lists <strong>URL</strong>, <strong>Target namespace</strong> and file <strong>Size</strong> by default, with a <strong>filter</strong> over
+URL/namespace. Two more columns, <strong>Downloaded</strong> timestamp and <strong>Hits</strong> (access count), are
+hidden by default - click the table's menu button to show them. <strong>Open</strong> opens the cached
+file as an editor tab; <strong>Reveal</strong> shows the cache folder in the system file manager;
+<strong>Refresh</strong> re-downloads the selected entry; <strong>Delete</strong> removes one cached file
+(re-downloaded on next use); <strong>Clear</strong> wipes the entire cache. A footer line reports the
+total file count, total size and the cache hit ratio.</p>
 <p>A collapsible <strong>"Auto-detected schemas (legacy cache)"</strong> group underneath holds the older,
 separate cache of schemas auto-downloaded from <code>xsi:schemaLocation</code> references (one folder
 per schema URL, keyed by an MD5 hash). It is read-only except for a <strong>Clear</strong> button; those
