@@ -1241,11 +1241,12 @@ public class EditorHost extends BorderPane {
     private void fetchUrlAsync(String url) {
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
             try {
-                java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
-                java.net.http.HttpResponse<String> response = client.send(
-                        java.net.http.HttpRequest.newBuilder(java.net.URI.create(url)).GET().build(),
-                        java.net.http.HttpResponse.BodyHandlers.ofString());
-                String body = response.body();
+                // Go through the ConnectionService so the proxy / authentication / SSL settings
+                // from the Settings page apply (a bare HttpClient gets HTTP 407 behind an
+                // authenticating proxy).
+                String body = org.fxt.freexmltoolkit.di.ServiceRegistry
+                        .get(org.fxt.freexmltoolkit.service.ConnectionService.class)
+                        .getTextContentFromURL(java.net.URI.create(url));
                 String name = urlFileName(url);
                 EditorFileType type = EditorFileType.fromFileName(name);
                 Platform.runLater(() -> openGeneratedDocument(body, type, name));
