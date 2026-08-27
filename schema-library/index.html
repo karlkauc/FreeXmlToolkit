@@ -12,13 +12,13 @@
         <meta name="author" content="Karl Kauc">
       
       
-        <link rel="canonical" href="https://karlkauc.github.io/FreeXmlToolkit/xml-editor-features/">
+        <link rel="canonical" href="https://karlkauc.github.io/FreeXmlToolkit/schema-library/">
       
       
-        <link rel="prev" href="../xml-editor/">
+        <link rel="prev" href="../schema-support/">
       
       
-        <link rel="next" href="../context-sensitive-intellisense/">
+        <link rel="next" href="../xslt-viewer/">
       
       
         
@@ -29,7 +29,7 @@
     
     
       
-        <title>Editor Features - FreeXmlToolkit Documentation</title>
+        <title>Schema Library - FreeXmlToolkit Documentation</title>
       
     
     
@@ -82,7 +82,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#xml-editor-features" class="md-skip">
+        <a href="#schema-library" class="md-skip">
           Skip to content
         </a>
       
@@ -115,7 +115,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Editor Features
+              Schema Library
             
           </span>
         </div>
@@ -302,12 +302,10 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
+      <li class="md-tabs__item">
         <a href="../xml-editor/" class="md-tabs__link">
           
   
@@ -344,10 +342,12 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
+      <li class="md-tabs__item md-tabs__item--active">
         <a href="../xsd-tools/" class="md-tabs__link">
           
   
@@ -616,31 +616,28 @@
       
   
   
-    
   
   
-  
     
     
     
     
-      
-        
-        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
         
           
-          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
             
   
   
@@ -658,7 +655,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
             
@@ -701,37 +698,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Editor Features
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../xml-editor-features/" class="md-nav__link">
         
   
   
@@ -747,337 +717,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#search-find" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Search (Find)
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Search (Find)">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#finding-text-in-your-document" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Finding Text in Your Document
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#search-works-in-all-views" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Search Works in All Views
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#switching-views-while-searching" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Switching Views While Searching
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#where-search-is-available" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Where Search Is Available
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#searching-across-many-files" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Searching Across Many Files
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#schematron-integration" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Schematron Integration
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Schematron Integration">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#what-is-schematron" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        What is Schematron?
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#how-to-use-schematron" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        How to Use Schematron
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#saving-schematron-files-as-favorites" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Saving Schematron Files as Favorites
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#auto-completion-intellisense" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Auto-Completion (IntelliSense)
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Auto-Completion (IntelliSense)">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#smart-element-suggestions" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Smart Element Suggestions
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#how-it-works" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        How It Works
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#auto-closing-tags" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Auto-Closing Tags
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#grid-editor-graphic-view" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Grid Editor (Graphic View)
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Grid Editor (Graphic View)">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#edit-xml-like-a-spreadsheet" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Edit XML Like a Spreadsheet
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#how-to-use" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        How to Use
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#reading-the-grid" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Reading the Grid
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#properties-inspector" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Properties Inspector
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#code-folding" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Code Folding
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Code Folding">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#hide-sections-for-better-navigation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Hide Sections for Better Navigation
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#tree-view" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Tree View
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Tree View">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#visual-document-structure" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Visual Document Structure
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#supported-schema-formats" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Supported Schema Formats
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#navigation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Navigation
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1267,28 +906,31 @@
       
   
   
+    
   
   
+  
     
     
     
     
+      
+        
+        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" checked>
         
           
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
-        
-          
-          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
             
   
   
@@ -1306,7 +948,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_7">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1433,10 +1075,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../schema-library/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Schema Library
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -1452,6 +1121,114 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-what-the-schema-library-is" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. What the Schema Library is
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-mappings-tab" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Mappings tab
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-xml-catalogs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. XML catalogs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-schema-cache" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Schema cache
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-bundled-standards" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Bundled standards
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Settings
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Troubleshooting
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#navigation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Navigation
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -2076,232 +1853,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#search-find" class="md-nav__link">
+  <a href="#1-what-the-schema-library-is" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Search (Find)
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Search (Find)">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#finding-text-in-your-document" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Finding Text in Your Document
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#search-works-in-all-views" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Search Works in All Views
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#switching-views-while-searching" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Switching Views While Searching
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#where-search-is-available" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Where Search Is Available
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#searching-across-many-files" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Searching Across Many Files
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#schematron-integration" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Schematron Integration
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Schematron Integration">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#what-is-schematron" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        What is Schematron?
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#how-to-use-schematron" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        How to Use Schematron
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#saving-schematron-files-as-favorites" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Saving Schematron Files as Favorites
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#auto-completion-intellisense" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Auto-Completion (IntelliSense)
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Auto-Completion (IntelliSense)">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#smart-element-suggestions" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Smart Element Suggestions
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#how-it-works" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        How It Works
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#auto-closing-tags" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Auto-Closing Tags
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#grid-editor-graphic-view" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Grid Editor (Graphic View)
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Grid Editor (Graphic View)">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#edit-xml-like-a-spreadsheet" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Edit XML Like a Spreadsheet
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#how-to-use" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        How to Use
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#reading-the-grid" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Reading the Grid
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#properties-inspector" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Properties Inspector
+        1. What the Schema Library is
       
     </span>
   </a>
@@ -2309,66 +1864,65 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#code-folding" class="md-nav__link">
+  <a href="#2-mappings-tab" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Code Folding
+        2. Mappings tab
       
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Code Folding">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#hide-sections-for-better-navigation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Hide Sections for Better Navigation
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#tree-view" class="md-nav__link">
+  <a href="#3-xml-catalogs" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Tree View
+        3. XML catalogs
       
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Tree View">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#visual-document-structure" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Visual Document Structure
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#supported-schema-formats" class="md-nav__link">
+  <a href="#4-schema-cache" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Supported Schema Formats
+        4. Schema cache
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-bundled-standards" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Bundled standards
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Settings
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Troubleshooting
       
     </span>
   </a>
@@ -2406,192 +1960,201 @@
   
 
 
-<h1 id="xml-editor-features">XML Editor Features<a class="headerlink" href="#xml-editor-features" title="Permanent link">&para;</a></h1>
+<h1 id="schema-library">Schema Library<a class="headerlink" href="#schema-library" title="Permanent link">&para;</a></h1>
 <blockquote>
 <p><strong>Version:</strong> 2.0.1</p>
 </blockquote>
-<p>This page describes the advanced features available in the XML Editor.</p>
+<p>The <strong>Schema Library</strong> maps namespaces (and JSON <code>$schema</code> URIs) to schema files, so
+documents that don't carry an explicit reference to their schema can still be validated
+and get IntelliSense automatically.</p>
 <hr />
-<h2 id="search-find">Search (Find)<a class="headerlink" href="#search-find" title="Permanent link">&para;</a></h2>
-<blockquote>
-<p>Search works in <strong>every view mode</strong> — Text, Tree and Graphic — for both XML documents and XSD schemas.</p>
-</blockquote>
-<h3 id="finding-text-in-your-document">Finding Text in Your Document<a class="headerlink" href="#finding-text-in-your-document" title="Permanent link">&para;</a></h3>
-<p>Press <strong>Ctrl+F</strong> to open the Find feature and type the text you are looking for. Use the up and down arrows (<strong>Find Previous</strong> / <strong>Find Next</strong>, or Enter / Shift+Enter) to move between matches. When you reach the last match, the search wraps around and continues from the beginning.</p>
-<h3 id="search-works-in-all-views">Search Works in All Views<a class="headerlink" href="#search-works-in-all-views" title="Permanent link">&para;</a></h3>
-<p>You can search in the <strong>Text</strong>, <strong>Tree</strong> or <strong>Graphic</strong> view of a document:</p>
-<ul>
-<li><strong>Text view</strong> - Matches are highlighted in the source code. <strong>Replace</strong> is available here.</li>
-<li><strong>Graphic view (XML instances)</strong> - The search looks through element names, attribute names, and values across the whole document. When you press the up/down arrows, the editor jumps directly to the matching node: if the match is inside a collapsed node, its parent nodes are expanded automatically, the matching row is selected, and it is scrolled into view.</li>
-<li><strong>Tree and Graphic views (XSD schemas)</strong> - The search looks through the schema nodes themselves: element/attribute/type names, documentation and appinfo, type references, fixed/default values, enumeration and facet values, and comments. Matching nodes are revealed (collapsed branches expand), selected, and scrolled into view — in the Graphic diagram this includes loading lazily rendered subtrees.</li>
-</ul>
-<p>Searching is <strong>case-insensitive</strong> in all views.</p>
-<h3 id="switching-views-while-searching">Switching Views While Searching<a class="headerlink" href="#switching-views-while-searching" title="Permanent link">&para;</a></h3>
-<p>If you switch the view mode (Text / Tree / Graphic) or the file tab while the search bar is open, the search automatically re-targets the view you switched to, so you can keep navigating without retyping your search term.</p>
-<h3 id="where-search-is-available">Where Search Is Available<a class="headerlink" href="#where-search-is-available" title="Permanent link">&para;</a></h3>
-<p>Pressing <strong>Ctrl+F</strong> opens an <strong>inline search bar</strong> at the top of the editor, with up/down
-chevron arrows for Find Previous / Find Next and a replace toggle (Text view only). The same
-bar works in every view mode and every XML-family document type.</p>
-<blockquote>
-<p><strong>Note:</strong> In the <strong>Tree</strong> and <strong>Graphic</strong> views, search is for finding and navigating only - <strong>Replace</strong> is not available there (the replace toggle is disabled). To replace text, use the <strong>Text</strong> view.</p>
-<p><strong>Note:</strong> HTML documents have a rendered, read-only <strong>Preview</strong> view instead of Tree/Graphic (see <a href="../unified-shell/#html-preview">HTML Preview</a>). Pressing <strong>Ctrl+F</strong> there searches the document's underlying markup text, not the rendered page.</p>
-</blockquote>
-<h3 id="searching-across-many-files">Searching Across Many Files<a class="headerlink" href="#searching-across-many-files" title="Permanent link">&para;</a></h3>
-<p>Ctrl+F searches the <strong>active document</strong>. To search - and replace -
-across <strong>all files of a folder</strong>, by plain text or by an XPath expression, use the
-<strong>Search</strong> activity in the Unified Shell: press <strong>Ctrl+Shift+F</strong> (Find in Files) or
-<strong>Ctrl+Shift+H</strong> (Replace in Files), or click the magnifying-glass icon in the activity
-bar. See the <a href="../unified-shell/#search-panel">Search Panel</a> guide.</p>
-<blockquote>
-<p><strong>Changed shortcut:</strong> Ctrl+Shift+F used to format the document - <strong>Format Document is
-now Shift+Alt+F</strong>.</p>
-</blockquote>
-<hr />
-<h2 id="schematron-integration">Schematron Integration<a class="headerlink" href="#schematron-integration" title="Permanent link">&para;</a></h2>
-<p><img alt="Schematron Validation" src="../img/xml-editor-schematron.png" />
-<em>Schematron validation in the Validation panel - the bound rules file in SOURCES, the
-findings in the PROBLEMS list</em></p>
-<h3 id="what-is-schematron">What is Schematron?<a class="headerlink" href="#what-is-schematron" title="Permanent link">&para;</a></h3>
-<p>Schematron lets you create custom validation rules for your XML documents. While XSD schemas validate the structure, Schematron validates business rules - for example, "if field A contains X, then field B must not be empty."</p>
-<h3 id="how-to-use-schematron">How to Use Schematron<a class="headerlink" href="#how-to-use-schematron" title="Permanent link">&para;</a></h3>
+<h2 id="1-what-the-schema-library-is">1. What the Schema Library is<a class="headerlink" href="#1-what-the-schema-library-is" title="Permanent link">&para;</a></h2>
+<p>A <strong>mapping</strong> connects a namespace - or, for no-namespace XSDs, a root element name - to a
+schema <strong>location</strong>: a local file path or an <code>http(s)</code> URL. The library draws mappings from
+three sources, tried in this order:</p>
 <ol>
-<li>Open an XML file in the editor</li>
-<li>Open the <strong>Validation</strong> panel from the activity bar</li>
-<li>In the <strong>SOURCES</strong> section, click <strong>Change</strong> on the Schematron row and pick a <code>.sch</code>
-   file - or pick a favorited Schematron from the row's <strong>star</strong> menu, or simply drop a
-   <code>.sch</code> file onto the row</li>
-<li>Click <strong>Run Validation</strong> - the findings appear in the <strong>PROBLEMS</strong> list (each row tagged
-   with a <strong>Schematron</strong> badge); click a problem to jump to the offending element</li>
-<li>Enable <strong>Validate while typing</strong> (the panel's ⋮ menu) to check as you type</li>
+<li><strong>Your mappings</strong> - entries you added yourself (the Mappings tab, source <code>USER</code>).</li>
+<li><strong>XML catalogs</strong> - OASIS <code>catalog.xml</code> files you registered (the Catalogs tab).</li>
+<li><strong>Bundled standards</strong> - 25 well-known W3C/OASIS/industry schemas shipped with the
+   application (see <a href="#5-bundled-standards">Bundled standards</a>).</li>
 </ol>
-<p>Problems whose rules define <strong>quick fixes</strong> can be corrected in place: click the yellow
-lightbulb in the editor gutter (or press <strong>Alt+Enter</strong> / <strong>Ctrl+.</strong>), or right-click the
-problem row and pick a fix from the <strong>Quick Fix</strong> submenu. See
-<a href="../schematron-quick-fixes/">Schematron Quick Fixes</a>.</p>
-<h3 id="saving-schematron-files-as-favorites">Saving Schematron Files as Favorites<a class="headerlink" href="#saving-schematron-files-as-favorites" title="Permanent link">&para;</a></h3>
-<p>Save frequently used Schematron files for quick access:
-- Add them to your <a href="../favorites-system/">Favorites</a> (for example with <strong>Add current</strong> in the
-  Favorites panel while the <code>.sch</code> file is open)
-- Organize them in favorites folders like "Business Rules"
-- Bind a saved rules file in one click via the <strong>star</strong> menu on the Validation panel's
-  Schematron row - or from the Explorer's Schematron bar</p>
-<p>Learn more: <a href="../schematron-support/">Schematron Support</a> | <a href="../favorites-system/">Favorites System</a></p>
-<hr />
-<h2 id="auto-completion-intellisense">Auto-Completion (IntelliSense)<a class="headerlink" href="#auto-completion-intellisense" title="Permanent link">&para;</a></h2>
-<p><img alt="IntelliSense Popup" src="../img/xml-editor-intellisense-popup.png" />
-<em>Auto-completion suggestions popup</em></p>
-<h3 id="smart-element-suggestions">Smart Element Suggestions<a class="headerlink" href="#smart-element-suggestions" title="Permanent link">&para;</a></h3>
-<p>When you type <code>&lt;</code> in the editor, a popup shows only the elements that are valid at your current position based on your XSD schema.</p>
-<h3 id="how-it-works">How It Works<a class="headerlink" href="#how-it-works" title="Permanent link">&para;</a></h3>
-<ol>
-<li><strong>Type <code>&lt;</code></strong> - A popup appears with valid element options</li>
-<li><strong>Use arrow keys</strong> - Navigate through the suggestions</li>
-<li><strong>Press Enter</strong> - Insert the selected element</li>
-<li><strong>Press Escape</strong> - Close the popup</li>
-</ol>
-<h3 id="auto-closing-tags">Auto-Closing Tags<a class="headerlink" href="#auto-closing-tags" title="Permanent link">&para;</a></h3>
-<p>When you type an opening tag like <code>&lt;element&gt;</code>, the editor automatically adds the closing tag <code>&lt;/element&gt;</code> and places your cursor between them.</p>
-<p>Learn more: <a href="../context-sensitive-intellisense/">Auto-Completion Guide</a></p>
-<hr />
-<h2 id="grid-editor-graphic-view">Grid Editor (Graphic View)<a class="headerlink" href="#grid-editor-graphic-view" title="Permanent link">&para;</a></h2>
-<blockquote>
-<p>For XML (and XSLT/Schematron) documents, switching to the <strong>Graphic</strong>
-view opens the editable XMLSpy-style grid.</p>
-</blockquote>
-<p><img alt="XML Grid view in the Unified Shell" src="../img/unified-shell-xml-grid.png" />
-<em>The grid in the Unified Shell's Graphic view — table-like editing with the inspector</em></p>
-<h3 id="edit-xml-like-a-spreadsheet">Edit XML Like a Spreadsheet<a class="headerlink" href="#edit-xml-like-a-spreadsheet" title="Permanent link">&para;</a></h3>
-<p>The grid displays your XML data in a table format, making it easy to edit structured data.</p>
-<h3 id="how-to-use">How to Use<a class="headerlink" href="#how-to-use" title="Permanent link">&para;</a></h3>
-<ol>
-<li>Open an XML file in the editor</li>
-<li>Switch to the <strong>Graphic</strong> view with the segmented view switch</li>
-<li>Click cells to edit values directly</li>
-<li>Add, delete, or move nodes using the right-click context menu</li>
-<li>Select a row to view and edit its properties in the Properties inspector</li>
-<li>Switch back to the <strong>Text</strong> view to see the updated code</li>
-</ol>
-<p>Changes made in any view are synchronized automatically.</p>
-<h3 id="reading-the-grid">Reading the Grid<a class="headerlink" href="#reading-the-grid" title="Permanent link">&para;</a></h3>
+<p>The first match wins, and a schema you bind <strong>manually</strong> in the Validation panel or status
+bar always takes priority over anything the library resolves.</p>
+<p>The library is consulted whenever a document needs a schema but doesn't say which one:</p>
 <ul>
-<li>The <strong>header strip</strong> at the top reads <em>"Grid view · nested · repeating elements as embedded
-  grids"</em> and offers a <strong>Collapse all</strong> button that folds every container at once.</li>
-<li>Rows holding a simple value are marked with <strong><code>{}</code></strong>.</li>
-<li>Collapsed containers show a <strong>"collapsed"</strong> hint so you know there is hidden content.</li>
-<li>Repeating elements appear as <strong>embedded grids</strong> - small tables nested inside the row.</li>
+<li><strong>XML auto-binding</strong> - a document without <code>xsi:schemaLocation</code> /
+  <code>xsi:noNamespaceSchemaLocation</code> is looked up by its root element's namespace, or (for
+  no-namespace schemas) by the root element's local name.</li>
+<li><strong><code>xs:import</code> / <code>xs:include</code> resolution</strong> - during validation, in the XSD editor, and in
+  the legacy schema parser, an import or include that can't be resolved locally is looked
+  up by its namespace or system ID.</li>
+<li><strong>JSON <code>$schema</code> URIs</strong> - a JSON document's <code>$schema</code> member that isn't a plain local/HTTP
+  reference resolves through the library. Meta-schema ids (<code>json-schema.org/...</code>) are <em>not</em>
+  bundled, so a JSON <strong>schema document</strong> still binds nothing - but you can map one yourself
+  as a <code>USER</code> entry if you want schema documents validated against their dialect.</li>
+<li><strong>XSLT/XQuery <code>doc()</code> / <code>document()</code></strong> - a system ID the engine can't resolve directly
+  falls back to the library (and catalogs) the same way.</li>
 </ul>
-<hr />
-<h2 id="properties-inspector">Properties Inspector<a class="headerlink" href="#properties-inspector" title="Permanent link">&para;</a></h2>
-<blockquote>
-<p>You can view <strong>and edit</strong> a node's properties from <strong>all three</strong>
-XML views (Text, Tree, and Graphic).</p>
-</blockquote>
-<p>The Properties inspector shows the details of the selected node and lets you edit them. Toggle
-it with the panel toggle at the right end of the editor toolbar.</p>
-<ul>
-<li><strong>Select a node</strong> by moving the text caret into an element (Text view), clicking a node
-  (Tree view), or selecting a row in the grid (Graphic view).</li>
-<li><strong>Edit</strong> the element name, namespace (prefix/URI), attributes (add/rename/remove), leaf text,
-  and the text of comments, CDATA, and processing instructions.</li>
-<li>Edits are written straight back to the document text, keeping everything in sync.</li>
-<li>When a schema is bound, the inspector also shows read-only hints: the schema-derived type,
-  documentation, and lists of valid child elements and example values.</li>
-<li>All views share one in-memory model, so edits and Undo/Redo history carry over when you
-  switch views.</li>
-</ul>
-<p>See the <a href="../xml-editor/#properties-inspector">Properties Inspector</a> section for full details.</p>
-<hr />
-<h2 id="code-folding">Code Folding<a class="headerlink" href="#code-folding" title="Permanent link">&para;</a></h2>
-<p><img alt="Code Folding" src="../img/xml-editor-folding.png" />
-<em>Code folding - collapse XML sections to focus on the parts that matter</em></p>
-<h3 id="hide-sections-for-better-navigation">Hide Sections for Better Navigation<a class="headerlink" href="#hide-sections-for-better-navigation" title="Permanent link">&para;</a></h3>
-<p>For large XML files, you can collapse sections to focus on what you're working on:</p>
-<ul>
-<li><strong>Collapse</strong>: Click the minus (-) icon next to an element</li>
-<li><strong>Expand</strong>: Click the plus (+) icon to show the content again</li>
-<li><strong>Nested Folding</strong>: Collapse parent elements to hide all children</li>
-</ul>
-<hr />
-<h2 id="tree-view">Tree View<a class="headerlink" href="#tree-view" title="Permanent link">&para;</a></h2>
-<p><img alt="Tree View Panel" src="../img/xml-editor-tree.png" />
-<em>An XML document in the Tree view</em></p>
-<h3 id="visual-document-structure">Visual Document Structure<a class="headerlink" href="#visual-document-structure" title="Permanent link">&para;</a></h3>
-<p>The tree view shows your XML document as a hierarchical structure:</p>
-<ul>
-<li><strong>Navigate</strong>: Click on tree nodes to jump to that location in the text</li>
-<li><strong>Understand Structure</strong>: Quickly see how your document is organized</li>
-<li><strong>Expand/Collapse</strong>: Click arrows to show or hide child elements</li>
-<li><strong>Edit Properties</strong>: Click a node to select it and edit its properties in the
-  <a href="#properties-inspector">Properties Inspector</a></li>
-</ul>
-<hr />
-<h2 id="supported-schema-formats">Supported Schema Formats<a class="headerlink" href="#supported-schema-formats" title="Permanent link">&para;</a></h2>
+<h2 id="2-mappings-tab">2. Mappings tab<a class="headerlink" href="#2-mappings-tab" title="Permanent link">&para;</a></h2>
+<p><img alt="Schema Library - Mappings" src="../img/unified-shell-schema-library-mappings.png" />
+<em>The Mappings tab: namespace → schema entries with status icons, filter and toolbar.</em></p>
+<p>The table has one row per mapping: a status icon, <strong>Namespace</strong> (or <code>&lt;root&gt; (no namespace)</code>
+for root-element mappings), <strong>Location</strong>, <strong>Kind</strong> (<code>XSD</code> or <code>JSON_SCHEMA</code>), <strong>Source</strong>
+(<code>user</code>, <code>catalog</code> or <code>bundled</code>) and an <strong>On</strong> checkbox to enable/disable the row without
+deleting it. The <strong>filter</strong> field searches namespace, location, description and root
+element. Bundled rows render in italics and can only be enabled/disabled, never edited or
+removed.</p>
 <table>
 <thead>
 <tr>
-<th>Format</th>
-<th>Support</th>
+<th>Icon</th>
+<th>Status</th>
+<th>Meaning</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>XSD (XML Schema)</td>
-<td>Full support with IntelliSense</td>
+<td>✔</td>
+<td>Available</td>
+<td>The schema file exists locally, or its remote copy is already cached</td>
 </tr>
 <tr>
-<td>Schematron</td>
-<td>Business rules validation</td>
+<td>☁</td>
+<td>Not downloaded yet</td>
+<td>A remote schema that hasn't been fetched yet</td>
 </tr>
 <tr>
-<td>DTD</td>
-<td>Not supported</td>
+<td>⚠</td>
+<td>File missing</td>
+<td>A local path that no longer exists on disk</td>
 </tr>
 <tr>
-<td>RelaxNG</td>
-<td>Not supported</td>
+<td>✖</td>
+<td>Error</td>
+<td>The last download/verification attempt failed (hover for the error message)</td>
 </tr>
 </tbody>
 </table>
+<p>Toolbar actions: <strong>Add mapping…</strong> and <strong>Edit…</strong> open the mapping dialog (namespace,
+location, kind, description, optional root element); <strong>Remove</strong> deletes a <code>USER</code> mapping;
+<strong>Enable / disable</strong> toggles the <strong>On</strong> column for the selected row; <strong>Add schema of
+current document</strong> prefills a new mapping from the active document's bound schema; and
+<strong>Download / verify</strong> materializes a remote entry immediately (also clearing a remembered
+failure, see <a href="#7-troubleshooting">Troubleshooting</a>). <strong>Double-clicking</strong> a row opens the
+resolved schema file as an editor tab; the context menu offers the same <strong>Open schema</strong>,
+<strong>Edit…</strong>, <strong>Remove</strong> and a <strong>Copy namespace</strong> action.</p>
+<h2 id="3-xml-catalogs">3. XML catalogs<a class="headerlink" href="#3-xml-catalogs" title="Permanent link">&para;</a></h2>
+<p><img alt="Schema Library - Catalogs" src="../img/unified-shell-schema-library-catalogs.png" />
+<em>The Catalogs tab: registered OASIS catalog.xml files with their entry count or error.</em></p>
+<p>The Catalogs tab registers OASIS <code>catalog.xml</code> files and supports the core catalog
+elements: <code>system</code>, <code>public</code>, <code>uri</code>, <code>rewriteSystem</code>, <code>rewriteURI</code>, <code>nextCatalog</code> and
+<code>xml:base</code>. Catalogs are parsed <strong>without any network access</strong> - <code>nextCatalog</code> is only
+followed for local files, with cycle protection and a depth cap of 10.</p>
+<p>During validation a reference is looked up by its <strong>system identifier</strong> first, then by its
+<strong>public identifier</strong> (<code>public</code> entries), and finally by namespace. <code>public</code> entries are
+therefore honoured for schema resolution even though they cannot be imported into the
+Mappings tab (a public identifier is not a namespace).</p>
+<ul>
+<li><strong>Add catalog…</strong> registers a <code>catalog.xml</code> file; <strong>Remove</strong> unregisters it (the file
+  itself is untouched); <strong>Enable / disable</strong> toggles it without removing it; <strong>Reload
+  catalogs</strong> re-parses every registered catalog (useful after editing one by hand).</li>
+<li>Each row shows either the parsed <strong>entry count</strong> or, if the file is missing/invalid, a
+  red <strong>error</strong> message.</li>
+<li><strong>Import entries into Mappings…</strong> converts the catalog's <code>system</code>/<code>uri</code> entries into
+  regular Mappings-tab entries: a preview dialog lists what would be imported, with entries
+  that already exist (by namespace/kind) shown disabled so you don't create duplicates.</li>
+<li><strong>Double-click</strong> a catalog row to open the <code>catalog.xml</code> file itself as an editor tab.</li>
+</ul>
+<p>Example catalog mapping the bundled X3D 4.0 namespace to a local copy:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="cp">&lt;?xml version="1.0"?&gt;</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nt">&lt;catalog</span><span class="w"> </span><span class="na">xmlns=</span><span class="s">"urn:oasis:names:tc:entity:xmlns:xml:catalog"</span><span class="nt">&gt;</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="nt">&lt;uri</span><span class="w"> </span><span class="na">name=</span><span class="s">"http://www.web3d.org/specifications/x3d-4.0.xsd"</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">         </span><span class="na">uri=</span><span class="s">"schemas/x3d-4.0.xsd"</span><span class="nt">/&gt;</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="nt">&lt;/catalog&gt;</span>
+</code></pre></div>
+<h2 id="4-schema-cache">4. Schema cache<a class="headerlink" href="#4-schema-cache" title="Permanent link">&para;</a></h2>
+<p><img alt="Schema Library - Cache" src="../img/unified-shell-schema-library-cache.png" />
+<em>The Cache tab: remote schemas downloaded and cached under <code>~/.freeXmlToolkit/cache/schemas</code>.</em></p>
+<p>Every remote schema resolved through the library (or downloaded because a document
+referenced it directly) is cached under <code>~/.freeXmlToolkit/cache/schemas</code>. The Cache tab
+lists <strong>URL</strong>, <strong>Target namespace</strong>, file <strong>Size</strong>, <strong>Downloaded</strong> timestamp and <strong>Hits</strong>
+(access count), with a <strong>filter</strong> over URL/namespace. <strong>Open</strong> opens the cached file as an
+editor tab; <strong>Reveal</strong> shows the cache folder in the system file manager; <strong>Refresh</strong>
+re-downloads the selected entry; <strong>Delete</strong> removes one cached file (re-downloaded on next
+use); <strong>Clear</strong> wipes the entire cache. A footer line reports the total file count, total
+size and the cache hit ratio.</p>
+<p>A collapsible <strong>"Auto-detected schemas (legacy cache)"</strong> group underneath holds the older,
+separate cache of schemas auto-downloaded from <code>xsi:schemaLocation</code> references (one folder
+per schema URL, keyed by an MD5 hash). It is read-only except for a <strong>Clear</strong> button; those
+files are simply re-downloaded the next time a document references them.</p>
+<h2 id="5-bundled-standards">5. Bundled standards<a class="headerlink" href="#5-bundled-standards" title="Permanent link">&para;</a></h2>
+<p>FreeXmlToolkit ships a curated list of 25 well-known namespace → schema mappings so common
+standards validate out of the box, without you having to hunt down and register the schema
+yourself. Bundled entries are grouped by family:</p>
+<ul>
+<li><strong>W3C core</strong> - <code>xml</code> (XML namespace attributes), <code>XMLSchema</code> (schema for schemas),
+  <code>xmldsig-core</code>, <code>xmlenc-core</code>, <code>XLink</code> 1.1, <code>XInclude</code> 1.0, XSLT 2.0/3.0 stylesheet schema.</li>
+<li><strong>Markup</strong> - XHTML 1.0 Strict, SVG 1.1, MathML 3.</li>
+<li><strong>Web services</strong> - SOAP 1.1 and 1.2 envelopes, WSDL 1.1.</li>
+<li><strong>3D graphics</strong> - X3D 3.0 through 4.0. X3D documents carry <strong>no namespace</strong> (they point at
+  their schema with <code>xsi:noNamespaceSchemaLocation</code>), so these are no-namespace entries:
+  <strong>4.0</strong> and <strong>3.3</strong> additionally declare the root element <code>X3D</code> and are found by
+  auto-binding (4.0 is listed first and therefore wins); 3.0-3.2 are reached by their
+  <strong>location</strong> whenever a document or an <code>xs:import</code> names that URL.</li>
+<li><strong>Finance/industry</strong> - FundsXML 4, XBRL 2.1 (instance + linkbase), UBL 2.1 (Invoice,
+  Order, CreditNote), UN/CEFACT Cross Industry Invoice D16B (ZUGFeRD/Factur-X).</li>
+</ul>
+<p>The JSON Schema <strong>meta-schemas</strong> are deliberately <em>not</em> bundled: <code>$schema</code> in a JSON schema
+document declares its dialect, not a validation binding, and a bundled meta-schema mapping
+would bind every schema document to it. Add one as your own mapping if you want that.</p>
+<p>The list itself lives in <code>src/main/resources/schema-library/bundled.json</code>. Bundled entries
+are <strong>not downloaded at install time</strong> - like any remote mapping, the actual schema file is
+fetched into the cache the first time it's needed, so a bundled entry needs network access
+once before it shows the ✔ <strong>Available</strong> status.</p>
+<p><strong>Offline rule:</strong> a remote library entry is downloaded on first use only when remote
+downloads are permitted. Starting the application with <code>-Dfxt.schema.namespaceFallback=false</code>
+turns them off (the test suite does this) - resolution then uses <strong>local files and
+already-cached copies only</strong>, and every other entry is simply a miss. Local entries and
+cached entries always resolve, with or without network access.</p>
+<h2 id="6-settings">6. Settings<a class="headerlink" href="#6-settings" title="Permanent link">&para;</a></h2>
+<p>The <strong>SCHEMA LIBRARY</strong> card in Settings (gear icon at the bottom of the activity bar) holds:</p>
+<ul>
+<li><strong>"Use the Schema Library to bind schemas automatically"</strong> - controls <strong>automatic binding
+  in the editor</strong> only (default <strong>on</strong>): the XML root-namespace / root-element lookup and the
+  JSON <code>$schema</code> lookup described in <a href="#1-what-the-schema-library-is">§1</a>. Turning it off means
+  a document without its own schema reference stays unbound. It does <strong>not</strong> switch the
+  library off: the resolver hooks - <code>xs:import</code> / <code>xs:include</code> resolution, XML catalogs and
+  XSLT/XQuery <code>doc()</code> / <code>document()</code> - keep consulting the library either way, and manual
+  bindings are unaffected.</li>
+<li>The <strong>library file</strong> location, <code>~/.freeXmlToolkit/schema-library.json</code>, shown for
+  reference.</li>
+<li>A <strong>"Manage schema cache…"</strong> link that jumps straight to the Schema Library activity's
+  Cache tab. The same link also appears in the <strong>TEMP &amp; CACHE</strong> card.</li>
+</ul>
+<h2 id="7-troubleshooting">7. Troubleshooting<a class="headerlink" href="#7-troubleshooting" title="Permanent link">&para;</a></h2>
+<p><strong>A document isn't binding a schema I expect:</strong></p>
+<ul>
+<li>Check the namespace actually matches - a typo or a trailing slash difference means no
+  match. For no-namespace XSDs, the library matches by root element name instead.</li>
+<li>Make sure the mapping's <strong>On</strong> checkbox is checked; a disabled entry (including a
+  disabled catalog) is skipped during resolution.</li>
+<li>Confirm the <strong>"Use the Schema Library to bind schemas automatically"</strong> setting is on (it
+  gates editor auto-binding only, not <code>xs:import</code>/catalog resolution).</li>
+<li>If the document already has a manually bound schema (or an <code>xsi:schemaLocation</code>), that
+  wins - the library is only consulted when there's no other reference.</li>
+</ul>
+<p><strong>A catalog shows a red error:</strong> the file is missing, unreadable, or not well-formed XML.
+Fix the file and click <strong>Reload catalogs</strong>, or check the <code>nextCatalog</code> chain - only local
+files are followed, and the depth is capped at 10.</p>
+<p><strong>A download keeps failing / the status stays ✖ error:</strong> hover the status icon for the
+error message. A failed download is remembered for <strong>10 minutes</strong> to avoid hammering an
+unreachable server; use <strong>Download / verify</strong> on the Mappings tab to retry immediately.</p>
+<p><strong>A remote mapping never leaves ☁ "Not downloaded yet":</strong> remote downloads may be turned
+off (<code>-Dfxt.schema.namespaceFallback=false</code>); with them off only local and already-cached
+entries resolve. Use <strong>Download / verify</strong> to fetch one explicitly.</p>
+<p><strong>"URL is not allowed" when adding a mapping:</strong> the location resolves to a private or
+internal network address (loopback, link-local, RFC 1918 ranges, etc.) and is rejected as
+unsafe - remote schema locations must be reachable public URLs.</p>
 <hr />
 <h2 id="navigation">Navigation<a class="headerlink" href="#navigation" title="Permanent link">&para;</a></h2>
 <table>
@@ -2604,13 +2167,13 @@ it with the panel toggle at the right end of the editor toolbar.</p>
 </thead>
 <tbody>
 <tr>
-<td><a href="../xml-editor/">XML Editor</a></td>
+<td><a href="../schema-support/">Schema Support</a></td>
 <td><a href="../">Home</a></td>
-<td><a href="../xsd-tools/">XSD Tools</a></td>
+<td><a href="../xslt-viewer/">XSLT Viewer</a></td>
 </tr>
 </tbody>
 </table>
-<p><strong>All Pages:</strong> <a href="../unified-shell/">Unified Shell</a> | <a href="../xml-editor/">XML Editor</a> | <a href="./">XML Features</a> | <a href="../json-editor/">JSON Editor</a> | <a href="../xsd-tools/">XSD Tools</a> | <a href="../profiled-xml-generation/">Profiled XML Generation</a> | <a href="../xsd-validation/">XSD Validation</a> | <a href="../xslt-viewer/">XSLT Viewer</a> | <a href="../xslt-developer/">XSLT Developer</a> | <a href="../pdf-generator/">FOP/PDF</a> | <a href="../digital-signatures/">Signatures</a> | <a href="../context-sensitive-intellisense/">IntelliSense</a> | <a href="../schematron-support/">Schematron</a> | <a href="../fundsxml-extensions/">FundsXML Extensions</a> | <a href="../favorites-system/">Favorites</a> | <a href="../template-management/">Templates</a> | <a href="../technology-stack/">Tech Stack</a> | <a href="../SECURITY/">Security</a> | <a href="../licenses/">Licenses</a></p>
+<p><strong>All Pages:</strong> <a href="../unified-shell/">Unified Shell</a> | <a href="../xml-editor/">XML Editor</a> | <a href="../xml-editor-features/">XML Features</a> | <a href="../json-editor/">JSON Editor</a> | <a href="../xsd-tools/">XSD Tools</a> | <a href="../profiled-xml-generation/">Profiled XML Generation</a> | <a href="../xsd-validation/">XSD Validation</a> | <a href="./">Schema Library</a> | <a href="../xslt-viewer/">XSLT Viewer</a> | <a href="../xslt-developer/">XSLT Developer</a> | <a href="../pdf-generator/">FOP/PDF</a> | <a href="../digital-signatures/">Signatures</a> | <a href="../context-sensitive-intellisense/">IntelliSense</a> | <a href="../schematron-support/">Schematron</a> | <a href="../fundsxml-extensions/">FundsXML Extensions</a> | <a href="../favorites-system/">Favorites</a> | <a href="../template-management/">Templates</a> | <a href="../technology-stack/">Tech Stack</a> | <a href="../SECURITY/">Security</a> | <a href="../licenses/">Licenses</a></p>
 
 
 
@@ -2648,7 +2211,7 @@ it with the panel toggle at the right end of the editor toolbar.</p>
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../xml-editor/" class="md-footer__link md-footer__link--prev" aria-label="Previous: XML Editor">
+          <a href="../schema-support/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Schema Support">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -2658,20 +2221,20 @@ it with the panel toggle at the right end of the editor toolbar.</p>
                 Previous
               </span>
               <div class="md-ellipsis">
-                XML Editor
+                Schema Support
               </div>
             </div>
           </a>
         
         
           
-          <a href="../context-sensitive-intellisense/" class="md-footer__link md-footer__link--next" aria-label="Next: Auto-Completion">
+          <a href="../xslt-viewer/" class="md-footer__link md-footer__link--next" aria-label="Next: XSLT Viewer">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Auto-Completion
+                XSLT Viewer
               </div>
             </div>
             <div class="md-footer__button md-icon">
