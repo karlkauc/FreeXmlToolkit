@@ -1168,6 +1168,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="3. XML catalogs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#try-it-the-shipped-catalog-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Try it: the shipped catalog example
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1883,6 +1900,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="3. XML catalogs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#try-it-the-shipped-catalog-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Try it: the shipped catalog example
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2073,6 +2107,14 @@ Mappings tab (a public identifier is not a namespace).</p>
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">         </span><span class="na">uri=</span><span class="s">"schemas/x3d-4.0.xsd"</span><span class="nt">/&gt;</span>
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="nt">&lt;/catalog&gt;</span>
 </code></pre></div>
+<h3 id="try-it-the-shipped-catalog-example">Try it: the shipped catalog example<a class="headerlink" href="#try-it-the-shipped-catalog-example" title="Permanent link">&para;</a></h3>
+<p><code>release/examples/catalog/</code> contains a complete, self-contained demo: an invoice schema that
+imports shared types from the <strong>non-existent</strong> host <code>schemas.example.org</code>, a <code>catalog.xml</code>
+(with <code>system</code>, <code>rewriteSystem</code>, <code>public</code> and a chained <code>nextCatalog</code>) that maps every such
+reference to the local <code>schemas/</code> folder, and three instance documents — one with an
+unreachable <code>xsi:schemaLocation</code>, one with only a namespace, one with deliberate errors.
+Register <code>catalog.xml</code> in the Catalogs tab, open the documents and validate; the folder's
+<code>README.md</code> walks through each step.</p>
 <h2 id="4-schema-cache">4. Schema cache<a class="headerlink" href="#4-schema-cache" title="Permanent link">&para;</a></h2>
 <p><img alt="Schema Library - Cache" src="../img/unified-shell-schema-library-cache.png" />
 <em>The Cache tab: remote schemas downloaded and cached under <code>~/.freeXmlToolkit/cache/schemas</code>.</em></p>
