@@ -33,9 +33,9 @@ public class SchemaLibraryPanel extends VBox {
     private final XmlService xmlService;
 
     private final TabPane tabs = new TabPane();
-    private final Tab mappingsTab = new Tab("Mappings");
-    private final Tab catalogsTab = new Tab("Catalogs");
-    private final Tab cacheTab = new Tab("Cache");
+    private final Tab mappingsTab = new Tab();
+    private final Tab catalogsTab = new Tab();
+    private final Tab cacheTab = new Tab();
 
     // Mappings
     private final TextField filter = new TextField();
@@ -83,9 +83,16 @@ public class SchemaLibraryPanel extends VBox {
             t.setClosable(false);
             t.getStyleClass().add("utility-tab");
         }
-        // No tab-graphic icons here: at the default side-panel width (~260px) an icon per tab
-        // pushes the header past the available space and the Cache tab lands in the overflow
-        // menu. Text-only labels plus a zero min width let all three tabs fit.
+        // Icon-only tabs (with a tooltip carrying the full name): at the default side-panel
+        // width (~260px) even text-only labels ("Mappings"/"Catalogs"/"Cache") were too wide
+        // for all three to fit without triggering the TabPane overflow menu. A 16px icon per
+        // tab plus the tightened header/tab padding below comfortably fits three tabs.
+        mappingsTab.setGraphic(tabIcon("bi-diagram-3"));
+        catalogsTab.setGraphic(tabIcon("bi-journal-bookmark"));
+        cacheTab.setGraphic(tabIcon("bi-hdd"));
+        mappingsTab.setTooltip(new Tooltip("Mappings"));
+        catalogsTab.setTooltip(new Tooltip("Catalogs"));
+        cacheTab.setTooltip(new Tooltip("Cache"));
         tabs.setTabMinWidth(0);
         tabs.setId("schema-library-tabs");
         tabs.getTabs().addAll(mappingsTab, catalogsTab, cacheTab);
@@ -618,6 +625,13 @@ public class SchemaLibraryPanel extends VBox {
                 }
             }
         };
+    }
+
+    /** 16px icon for a tab graphic (icon-only tabs; the full name lives in the Tab's tooltip). */
+    private static IconifyIcon tabIcon(String literal) {
+        IconifyIcon i = new IconifyIcon(literal);
+        i.setIconSize(16);
+        return i;
     }
 
     private static IconifyIcon icon(String literal, String color) {
