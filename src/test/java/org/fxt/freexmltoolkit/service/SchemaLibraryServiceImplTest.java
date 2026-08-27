@@ -38,6 +38,13 @@ class SchemaLibraryServiceImplTest {
                 () -> new ByteArrayInputStream(BUNDLED.getBytes(StandardCharsets.UTF_8)));
     }
 
+    @org.junit.jupiter.api.AfterEach
+    void flushWriter() {
+        // The library persists on a background writer thread; wait for it so the @TempDir
+        // cleanup does not race with a file still being written.
+        if (svc != null) svc.awaitSave();
+    }
+
     @Test
     void startsWithBundledEntriesOnly() {
         assertEquals(2, svc.getEntries().size());

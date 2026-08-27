@@ -136,7 +136,7 @@ public class SchemaLibraryServiceImpl implements SchemaLibraryService {
             });
 
     /** Blocks until every {@link #save()} submitted so far has hit the disk (tests, shutdown). */
-    void awaitSave() {
+    public void awaitSave() {
         try {
             writer.submit(() -> { }).get(30, java.util.concurrent.TimeUnit.SECONDS);
         } catch (InterruptedException e) {

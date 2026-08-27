@@ -64,7 +64,8 @@ class EditorHostJsonSchemaLibraryTest {
         Path json = tmp.resolve("p.json");
         Files.writeString(json, "{\"$schema\":\"https://example.org/person.json\",\"name\":\"x\"}");
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(json.toFile()));
-        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> host.activeSchemaProperty().get() != null);
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> host.activeSchemaProperty().get() != null
+                        && host.activeSchemaStatusProperty().get() == EditorHost.SchemaStatus.READY);
         assertEquals(schema.toFile().getAbsoluteFile(), host.activeSchemaProperty().get().getAbsoluteFile());
     }
 
@@ -86,7 +87,8 @@ class EditorHostJsonSchemaLibraryTest {
         Path json = tmp.resolve("p.json");
         Files.writeString(json, "{\"$schema\":\"https://example.org/person.json\",\"name\":\"x\"}");
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(json.toFile()));
-        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> host.activeSchemaProperty().get() != null);
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> host.activeSchemaProperty().get() != null
+                        && host.activeSchemaStatusProperty().get() == EditorHost.SchemaStatus.READY);
         assertEquals(schema.toFile().getAbsoluteFile(), host.activeSchemaProperty().get().getAbsoluteFile());
 
         String content = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.getActiveText().orElse(""));
@@ -121,7 +123,8 @@ class EditorHostJsonSchemaLibraryTest {
         Path json = tmp.resolve("p.json");
         Files.writeString(json, "{\"$schema\":\"" + metaSchemaId + "\",\"name\":\"x\"}");
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(json.toFile()));
-        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> host.activeSchemaProperty().get() != null);
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> host.activeSchemaProperty().get() != null
+                        && host.activeSchemaStatusProperty().get() == EditorHost.SchemaStatus.READY);
         assertEquals(schema.toFile().getAbsoluteFile(), host.activeSchemaProperty().get().getAbsoluteFile());
 
         ServiceRegistry.get(PropertiesService.class).setSchemaLibraryAutoBindEnabled(false);

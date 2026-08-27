@@ -48,6 +48,7 @@ class CatalogExampleTest {
     @AfterEach
     void tearDown() {
         ServiceRegistry.reset();
+        library.awaitSave();   // background writer must finish before @TempDir cleanup
     }
 
     @Test

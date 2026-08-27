@@ -74,7 +74,8 @@ class EditorHostLibraryAutoBindTest {
         Files.writeString(xml, "<root xmlns=\"urn:lib:test\"><alpha>x</alpha></root>\n");
 
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml.toFile()));
-        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> host.activeSchemaProperty().get() != null);
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> host.activeSchemaProperty().get() != null
+                        && host.activeSchemaStatusProperty().get() == EditorHost.SchemaStatus.READY);
         assertEquals(xsd.toFile().getAbsoluteFile(), host.activeSchemaProperty().get().getAbsoluteFile());
         assertEquals(EditorHost.SchemaStatus.READY, host.activeSchemaStatusProperty().get());
         assertEquals(EditorHost.SchemaSource.LIBRARY, host.activeSchemaSourceProperty().get());
@@ -97,7 +98,8 @@ class EditorHostLibraryAutoBindTest {
         Files.writeString(xml, "<root xmlns=\"urn:lib:test\"><alpha>x</alpha></root>\n");
 
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml.toFile()));
-        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> host.activeSchemaProperty().get() != null);
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> host.activeSchemaProperty().get() != null
+                        && host.activeSchemaStatusProperty().get() == EditorHost.SchemaStatus.READY);
         assertEquals(xsd.toFile().getAbsoluteFile(), host.activeSchemaProperty().get().getAbsoluteFile());
 
         String content = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.getActiveText().orElse(""));
@@ -121,7 +123,8 @@ class EditorHostLibraryAutoBindTest {
         Files.writeString(xml, "<root xmlns=\"urn:lib:test\"/>\n");
 
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml.toFile()));
-        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> host.activeSchemaProperty().get() != null);
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> host.activeSchemaProperty().get() != null
+                        && host.activeSchemaStatusProperty().get() == EditorHost.SchemaStatus.READY);
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.setSchemaForActiveDocument(manualXsd.toFile()));
         WaitForAsyncUtils.waitForFxEvents();
 
@@ -156,7 +159,8 @@ class EditorHostLibraryAutoBindTest {
                 + " xsi:schemaLocation=\"urn:lib:test http://schemas.invalid/v1/test.xsd\"><alpha>x</alpha></root>\n");
 
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml.toFile()));
-        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> host.activeSchemaProperty().get() != null);
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> host.activeSchemaProperty().get() != null
+                        && host.activeSchemaStatusProperty().get() == EditorHost.SchemaStatus.READY);
         assertEquals(xsd.toFile().getAbsoluteFile(), host.activeSchemaProperty().get().getAbsoluteFile());
         assertEquals(EditorHost.SchemaStatus.READY, host.activeSchemaStatusProperty().get());
         assertEquals(EditorHost.SchemaSource.CATALOG, host.activeSchemaSourceProperty().get());
@@ -173,7 +177,8 @@ class EditorHostLibraryAutoBindTest {
                 + " xsi:schemaLocation=\"urn:lib:test http://schemas.invalid/v1/test.xsd\"><alpha>x</alpha></root>\n");
 
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml.toFile()));
-        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> host.activeSchemaProperty().get() != null);
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> host.activeSchemaProperty().get() != null
+                        && host.activeSchemaStatusProperty().get() == EditorHost.SchemaStatus.READY);
         assertEquals(xsd.toFile().getAbsoluteFile(), host.activeSchemaProperty().get().getAbsoluteFile());
         assertEquals(EditorHost.SchemaStatus.READY, host.activeSchemaStatusProperty().get());
         assertEquals(EditorHost.SchemaSource.LIBRARY, host.activeSchemaSourceProperty().get());
