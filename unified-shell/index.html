@@ -4178,12 +4178,14 @@ Statistics, Schema Quality, Generate Sample XML / Documentation) on the left.</e
 <li><strong>Flatten</strong> - Merge included schemas into a single standalone file. The <strong>Flatten Schema…</strong> button opens an options dialog first: strip annotations, strip XML comments, remove unused global types and groups, and minify the output — all checked by default for a minimal schema suited to server-side validation; uncheck everything for a plain flatten that keeps documentation. Imports (<code>xs:import</code>, different namespaces) are never merged. See <a href="../xsd-tools/#8-xsd-flattener">XSD Flattener</a> for details.</li>
 </ul>
 <div class="admonition note">
-<p class="admonition-title">Missing imported schemas download automatically</p>
+<p class="admonition-title">Missing imported schemas resolve automatically</p>
 <p>If a schema's <code>xs:import</code> points to a file that is not found next to the schema, the
-toolkit fetches it from the import's namespace URL and caches it locally, so the
-imported types still appear in the Tree and Graphic views - even offline on later
-loads. See
-<a href="../xsd-tools/#automatic-download-of-imported-schemas">Automatic Download of Imported Schemas</a>.</p>
+toolkit looks it up in the Schema Library and your XML catalogs, then in the schema
+cache, and finally downloads it from the declared or namespace URL into the cache -
+so the imported types still appear in the Tree and Graphic views, even offline on
+later loads. Nested imports inside imported schemas are followed too, and your own
+schema files are never modified. See
+<a href="../xsd-tools/#automatic-resolution-of-imported-schemas">Automatic Resolution of Imported Schemas</a>.</p>
 </div>
 <h3 id="the-schema-panel">The Schema Panel<a class="headerlink" href="#the-schema-panel" title="Permanent link">&para;</a></h3>
 <p>The <strong>Schema</strong> activity's side panel lists the active schema's top-level declarations,
@@ -4795,9 +4797,14 @@ appearing in the recent list.</p>
   every validation run</strong> (Run Validation, the toolbar's Validate, and live validation):
   a schema reference you add or change in the editor is picked up immediately - even in
   unsaved or untitled documents - and a removed reference downgrades validation to a
-  well-formedness check (the status bar shows <strong>"No XSD"</strong>). Remote <code>https</code> schema URLs
-  are downloaded to the schema cache as before. A schema you picked yourself (via
-  <strong>Change</strong>, a favorite, or the status bar) is never overridden.</li>
+  well-formedness check (the status bar shows <strong>"No XSD"</strong>). A declared location is first
+  looked up in your XML catalogs and Schema Library mappings; remote <code>https</code> schema URLs
+  that no catalog redirects are downloaded to the schema cache, and if the download fails,
+  a Schema Library mapping for the document's namespace is used instead. The status bar
+  shows how the schema was found - plain <strong>"XSD: name"</strong> for a declared location,
+  <strong>"(catalog)"</strong>, <strong>"(library)"</strong> or <strong>"(manual)"</strong> otherwise (see
+  <a href="#status-bar">Status Bar</a>). A schema you picked yourself (via <strong>Change</strong>, a favorite, or
+  the status bar) is never overridden.</li>
 <li><strong>JSON documents work the same way</strong>: a top-level <code>"$schema"</code> member pointing at a
   schema file or URL auto-binds that <strong>JSON Schema</strong> on open, is re-checked before every
   validation run, and a manual choice always wins. (Values pointing at <code>json-schema.org</code>

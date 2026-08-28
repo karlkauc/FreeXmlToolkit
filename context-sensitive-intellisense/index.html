@@ -970,6 +970,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#the-first-child-is-offered-again-inside-a-repeatable-element" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The First Child Is Offered Again Inside a Repeatable Element?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#prefix-missing-or-unexpected" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2148,6 +2159,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#the-first-child-is-offered-again-inside-a-repeatable-element" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The First Child Is Offered Again Inside a Repeatable Element?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#prefix-missing-or-unexpected" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2196,7 +2218,7 @@
 
 <h1 id="auto-completion-intellisense">Auto-Completion (IntelliSense)<a class="headerlink" href="#auto-completion-intellisense" title="Permanent link">&para;</a></h1>
 <blockquote>
-<p><strong>Version:</strong> 1.10.0</p>
+<p><strong>Version:</strong> 2.1.0</p>
 </blockquote>
 <p>The XML Editor includes smart auto-completion that helps you write XML faster and with fewer errors.</p>
 <hr />
@@ -2213,7 +2235,13 @@
   siblings already present are offered - an element that has reached its <code>maxOccurs</code> (or an
   <code>xs:choice</code> whose alternative is already there) disappears from the list. Elements that
   already exist <em>after</em> the cursor are respected too, so you cannot insert a child in the
-  wrong order.</li>
+  wrong order. Completion is strict about position: only what the schema allows at exactly
+  that spot is listed.</li>
+<li><strong>Repeatable elements</strong>: When the element you are inside may itself repeat (for example a
+  FundsXML <code>&lt;Fund&gt;</code> with <code>maxOccurs="unbounded"</code>), only its <em>remaining</em> children are
+  offered - the list does not start over with the first child just because the element can
+  occur again. Only a repeatable group (<code>xs:sequence</code> / <code>xs:choice</code> with <code>maxOccurs</code> above
+  1) starts over once all of its members are present.</li>
 <li><strong>Namespace-Aware</strong>: Suggestions are inserted with the prefix your document declares for the
   element's namespace. A child of a type imported from another namespace (e.g. <code>c:street</code>
   when the document declares <code>xmlns:c="…"</code>) is inserted as <code>&lt;c:street&gt;&lt;/c:street&gt;</code>; elements
@@ -2355,6 +2383,10 @@ schema validation.</p>
 <p>The list also honours the elements that already exist <em>after</em> the cursor. If you type <code>&lt;</code>
 directly in front of the first existing child of a sequence, nothing may legally go there -
 move the cursor after the last child that belongs before your new element.</p>
+<h3 id="the-first-child-is-offered-again-inside-a-repeatable-element">The First Child Is Offered Again Inside a Repeatable Element?<a class="headerlink" href="#the-first-child-is-offered-again-inside-a-repeatable-element" title="Permanent link">&para;</a></h3>
+<p>It no longer is. Earlier versions treated a repeatable element like a repeatable group and
+restarted its content model. If you want to add another occurrence of the element itself,
+close the current one and type <code>&lt;</code> after it.</p>
 <h3 id="prefix-missing-or-unexpected">Prefix Missing or Unexpected?<a class="headerlink" href="#prefix-missing-or-unexpected" title="Permanent link">&para;</a></h3>
 <p>Prefixes are taken from the <code>xmlns</code> declarations of your document. If the namespace of the
 suggested element is not declared at all, the prefix used inside the schema is inserted -

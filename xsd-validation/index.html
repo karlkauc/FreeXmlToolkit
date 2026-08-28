@@ -2274,7 +2274,7 @@
 
 <h1 id="xsd-validation">XSD Validation<a class="headerlink" href="#xsd-validation" title="Permanent link">&para;</a></h1>
 <blockquote>
-<p><strong>Version:</strong> 2.0.1</p>
+<p><strong>Version:</strong> 2.1.0</p>
 <p><strong>Note:</strong> The standalone <em>XSD Validation</em> tab has been retired.
 Validation — XSD and Schematron, single-file and batch — now lives in the
 <strong>Unified Shell's Validation activity panel</strong>. The capabilities below are
@@ -2351,7 +2351,10 @@ dedicated sidebar tab.</p>
      well-formedness check and the status bar shows <strong>"No XSD"</strong>. A schema you bound
      manually is never overridden by this automatic detection. If the document has no
      <code>xsi:schemaLocation</code>, the Schema Library is consulted by root namespace (or root
-     element) - see <a href="../schema-library/">Schema Library</a>.</li>
+     element) - see <a href="../schema-library/">Schema Library</a>. A declared location is also
+     checked against your XML catalogs and library mappings before anything is downloaded,
+     and the status bar indicator shows how the schema was found: <strong>"XSD: name"</strong> (declared),
+     <strong>"(catalog)"</strong>, <strong>"(library)"</strong> or <strong>"(manual)"</strong>.</li>
 <li><strong>Manual</strong>: Bind an XSD yourself - click the <strong>"No XSD"</strong> indicator in the status bar (or
      click the toolbar's <strong>Schema</strong> button - <strong>Set XSD Schema…</strong>), pick a schema in the Validation panel's
      <strong>SOURCES</strong> section, or simply <strong>drop</strong> an <code>.xsd</code> file from your file manager onto the

@@ -3104,7 +3104,7 @@
 
 <h1 id="security-features">Security Features<a class="headerlink" href="#security-features" title="Permanent link">&para;</a></h1>
 <blockquote>
-<p><strong>Version:</strong> 1.10.0</p>
+<p><strong>Version:</strong> 2.1.0</p>
 </blockquote>
 <p>This page describes the security measures built into FreeXmlToolkit to protect you from XML-based attacks.</p>
 <hr />
@@ -3352,13 +3352,15 @@
 2. Reference them using file paths or <code>file://</code> URLs
 3. Place them in the same directory as your XML files for relative references</p>
 <h3 id="automatic-import-resolution-is-covered-too">Automatic Import Resolution Is Covered Too<a class="headerlink" href="#automatic-import-resolution-is-covered-too" title="Permanent link">&para;</a></h3>
-<p>When the XSD editor cannot find an imported schema file locally, it can
-download the schema from the import's namespace URL (see
-<a href="../xsd-tools/#automatic-download-of-imported-schemas">Automatic Download of Imported Schemas</a>).
+<p>When an imported schema file cannot be found locally or through the Schema Library and
+XML catalogs, the toolkit can download it from the import's <code>schemaLocation</code> URL or its
+namespace URL (see
+<a href="../xsd-tools/#automatic-resolution-of-imported-schemas">Automatic Resolution of Imported Schemas</a>).
 These downloads go through the same SSRF protection: only public <code>http</code>/<code>https</code> addresses are
 contacted, and the downloaded content is verified to be a real XML Schema before it is used.
-Downloaded schemas are cached in <code>~/.freeXmlToolkit/cache/schemas/</code>. To disable the automatic
-lookup entirely, start the application with the system property
+Downloaded schemas are cached in <code>~/.freeXmlToolkit/cache/schemas/</code> only - nothing is ever
+written into your schema's folder, and your schema file is never rewritten. To disable
+remote downloads entirely, start the application with the system property
 <code>-Dfxt.schema.namespaceFallback=false</code>.</p>
 <hr />
 <h2 id="path-traversal-protection">Path Traversal Protection<a class="headerlink" href="#path-traversal-protection" title="Permanent link">&para;</a></h2>
