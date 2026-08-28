@@ -1,6 +1,6 @@
 # XML Digital Signatures
 
-> **Version:** 1.10.0
+> **Version:** 2.1.0
 
 > **Note:** Signing, signature validation (including detailed and PKIX
 > trust/chain/revocation/timestamp validation) and self-signed certificate creation

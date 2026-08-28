@@ -1,6 +1,6 @@
 # PDF Generator (FOP)
 
-> **Version:** 2.0.1
+> **Version:** 2.1.0
 
 Create professional PDF documents from your XML files using Apache FOP (Formatting Objects Processor).
 

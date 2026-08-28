@@ -1,6 +1,6 @@
 # Schematron Validation
 
-> **Version:** 2.0.1
+> **Version:** 2.1.0
 
 > **Note:** The standalone *Schematron* editor tab has been retired.
 > Schematron editing and validation — rule check, templates, tester, visual

@@ -1,6 +1,6 @@
 # Schematron Quick Fixes (SQF)
 
-> **Version:** 2.0.1
+> **Version:** 2.1.0
 
 FreeXmlToolkit understands **Schematron Quick Fix (SQF)** definitions — the
 `sqf:*` vocabulary (namespace `http://www.schematron-quickfix.com/validator/process`)

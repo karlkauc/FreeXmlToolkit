@@ -1,6 +1,6 @@
 # FreeXmlToolkit Documentation
 
-> **Version:** 1.10.0
+> **Version:** 2.1.0
 
 ## Welcome
 
@@ -95,8 +95,9 @@ Work with XML Schema files:
 | **Sample XML Generator** | Generate valid sample XML files with customizable rules |
 | **Profiled Generation** | Control values per element, save profiles, batch generate |
 | **Schema Flattening** | Combine multiple schema files into one standalone schema, optionally reduced for validation servers |
+| **Schema Library & XML Catalogs** | Map namespaces to schema files, register OASIS `catalog.xml` files, and manage the cache of downloaded schemas - documents without a schema reference bind automatically |
 
-Learn more: [XSD Tools Guide](xsd-tools.md) | [Profiled XML Generation](profiled-xml-generation.md) | [XSD Validation](xsd-validation.md)
+Learn more: [XSD Tools Guide](xsd-tools.md) | [Profiled XML Generation](profiled-xml-generation.md) | [XSD Validation](xsd-validation.md) | [Schema Library](schema-library.md)
 
 ### XSLT Transformation
 
@@ -262,6 +263,7 @@ If the interface appears blurry or animations are slow, your system may be using
 | [XSD Tools](xsd-tools.md)                     | Working with XML schemas                 |
 | [Profiled XML Generation](profiled-xml-generation.md) | Advanced sample XML generation with profiles |
 | [XSD Validation](xsd-validation.md)           | Validating XML against schemas           |
+| [Schema Library](schema-library.md)           | Namespace mappings, XML catalogs, schema cache |
 | [XSLT Viewer](xslt-viewer.md)                 | Quick XSLT transformations               |
 | [XSLT Developer](xslt-developer.md)           | Full XSLT/XQuery development environment |
 | [PDF Generator](pdf-generator.md)             | Creating PDF documents                   |
@@ -278,6 +280,8 @@ If the interface appears blurry or animations are slow, your system may be using
 | [Favorites System](favorites-system.md) | Quick access to your files |
 | [Template Management](template-management.md) | Reusable code snippets |
 | [Schema Support](schema-support.md) | Supported schema formats |
+| [File Associations](file-associations.md) | Open XML, XSD, XSLT and more from your file manager |
+| [Execution Statistics](execution-statistics.md) | Optional timing statistics for validations, transformations and other operations |
 
 ### Reference
 

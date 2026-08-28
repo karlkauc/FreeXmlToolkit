@@ -1,6 +1,6 @@
 # Template Management
 
-> **Version:** 1.10.0
+> **Version:** 2.1.0
 
 Create and manage reusable XML templates, XPath snippets, and code patterns to speed up your work.
 

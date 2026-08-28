@@ -1,6 +1,6 @@
 # XSD Tools
 
-> **Version:** 2.0.1
+> **Version:** 2.1.0
 
 > **Note:** The standalone *XSD Editor* tab has been retired. XSD
 > editing — the Text/Tree/Graphic views, the inspector, the Type Library, type
@@ -71,7 +71,7 @@ The Graphic View lets you explore and edit your schemas visually.
 - **Ctrl+S** to save (a backup is created automatically)
 - The toolbar's **Save ▾** split button saves the schema; its arrow menu offers **Save As…** (save under a new name) and **Save All** (saves every open tab)
 
-### Automatic Download of Imported Schemas
+### Automatic Resolution of Imported Schemas
 
 Some schemas import other schemas that are not shipped alongside them.
 For example, many financial schemas contain:
@@ -81,28 +81,45 @@ For example, many financial schemas contain:
            schemaLocation="xmldsig-core-schema.xsd"/>
 ```
 
-If `xmldsig-core-schema.xsd` is not in the same folder as your schema, FreeXmlToolkit now
-resolves the import automatically:
+If `xmldsig-core-schema.xsd` is not next to your schema, FreeXmlToolkit resolves the
+import automatically, trying these sources in order:
 
-1. It looks for a previously downloaded copy in the local schema cache - if found, the
-   schema loads **without any network access**.
-2. Otherwise it fetches the schema from the import's **namespace URL** (following
-   redirects, using your proxy settings) - this is how the W3C hosts the XML signature
-   schema, for instance.
-3. The downloaded content is verified to be a real XML Schema, then stored in the cache
-   (`~/.freeXmlToolkit/cache/schemas/`) so future loads work offline.
+1. **Next to the declaring file** - a relative `schemaLocation` is resolved against the
+   folder of the schema that declares the import (also for imports declared inside an
+   imported or included file).
+2. **The [Schema Library](schema-library.md)** - your own mappings, registered XML
+   catalogs and the bundled standards, matched by the declared location (system ID) first
+   and then by the import's namespace. A hit here loads **without any network access**.
+3. **The schema cache** - a previously downloaded copy under
+   `~/.freeXmlToolkit/cache/schemas/`, again without network access.
+4. **The declared URL** - an `http(s)` `schemaLocation` is downloaded (following redirects,
+   using your proxy settings).
+5. **The namespace URL** - as a last resort the schema is fetched from the import's
+   namespace URL, which is how the W3C hosts the XML signature schema, for instance.
+
+Downloaded content is verified to be a real XML Schema, then stored in the cache so future
+loads work offline. Imports are resolved **transitively**: an imported schema's own
+`xs:import` and `xs:include` declarations (and imports declared inside an included file)
+are followed too, with circular imports detected and a nesting depth cap of 10.
 
 A few things to know:
 
-- Only imports whose namespace is an `http://` or `https://` URL are looked up.
-- `xs:include` references are **not** affected - included files must still be available at
-  their given location.
+- **Your files are never touched.** Resolved and downloaded schemas go to the shared cache
+  only - nothing is written into your schema's folder, and the schema itself is never
+  rewritten. This applies everywhere imports are resolved: the schema views, validation,
+  the Type Library, statistics, Schema Quality and documentation generation.
+- Only imports whose namespace is an `http://` or `https://` URL are looked up by
+  namespace (step 5).
+- `xs:include` references are resolved relative to the including file, or through an XML
+  catalog / Schema Library entry for their location - they are not looked up by namespace.
 - Internal and private network addresses are never contacted - see
   [Security Features](SECURITY.md#ssrf-server-side-request-forgery-protection).
-- Clearing the cache folder (Settings → Temp & Cache) is safe: missing schemas are simply
-  re-downloaded the next time they are needed.
-- *Advanced:* to turn the lookup off entirely (for example in fully offline environments),
-  start the application with the system property `-Dfxt.schema.namespaceFallback=false`.
+- Clearing the cache (Settings → Temp & Cache, or the Schema Library's Cache tab) is safe:
+  missing schemas are simply re-downloaded the next time they are needed.
+- *Advanced:* to turn remote downloads off entirely (for example in fully offline
+  environments), start the application with the system property
+  `-Dfxt.schema.namespaceFallback=false` - local files, catalog hits and already-cached
+  copies still resolve.
 
 ---
 
@@ -327,7 +344,10 @@ Create professional documentation from your XSD file automatically.
 !!! tip
     Generation works from the schema's **last-saved** version on disk so that relative
     `xs:include` / `xs:import` references resolve correctly - save the XSD first to document
-    your latest edits.
+    your latest edits. Remote imports are resolved through the Schema Library, XML catalogs
+    and the schema cache (see
+    [Automatic Resolution of Imported Schemas](#automatic-resolution-of-imported-schemas));
+    the generator never modifies your schema file or writes into its folder.
 
 ### Generation Options
 

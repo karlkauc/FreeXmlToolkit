@@ -1,6 +1,6 @@
 # XSD Validation
 
-> **Version:** 2.0.1
+> **Version:** 2.1.0
 
 > **Note:** The standalone *XSD Validation* tab has been retired.
 > Validation — XSD and Schematron, single-file and batch — now lives in the
@@ -52,7 +52,10 @@ Use this mode to validate one XML file against a schema.
      well-formedness check and the status bar shows **"No XSD"**. A schema you bound
      manually is never overridden by this automatic detection. If the document has no
      `xsi:schemaLocation`, the Schema Library is consulted by root namespace (or root
-     element) - see [Schema Library](schema-library.md).
+     element) - see [Schema Library](schema-library.md). A declared location is also
+     checked against your XML catalogs and library mappings before anything is downloaded,
+     and the status bar indicator shows how the schema was found: **"XSD: name"** (declared),
+     **"(catalog)"**, **"(library)"** or **"(manual)"**.
    - **Manual**: Bind an XSD yourself - click the **"No XSD"** indicator in the status bar (or
      click the toolbar's **Schema** button - **Set XSD Schema…**), pick a schema in the Validation panel's
      **SOURCES** section, or simply **drop** an `.xsd` file from your file manager onto the

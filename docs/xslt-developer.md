@@ -1,6 +1,6 @@
 # XSLT Developer
 
-> **Version:** 2.0.1
+> **Version:** 2.1.0
 
 > **Note:** The standalone *XSLT Developer* tab has been retired. Its
 > capabilities now live in the **[Unified Shell](unified-shell.md)'s Transform panel**

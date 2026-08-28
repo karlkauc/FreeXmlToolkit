@@ -1,6 +1,6 @@
 # XML Editor
 
-> **Version:** 2.0.1
+> **Version:** 2.1.0
 
 The XML Editor is the main feature of FreeXmlToolkit. It provides a powerful and easy-to-use interface for working with XML files.
 

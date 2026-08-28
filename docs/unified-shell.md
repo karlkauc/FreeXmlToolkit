@@ -271,12 +271,14 @@ Statistics, Schema Quality, Generate Sample XML / Documentation) on the left.*
 - **Sample Data** - Generate sample XML from the schema
 - **Flatten** - Merge included schemas into a single standalone file. The **Flatten Schema…** button opens an options dialog first: strip annotations, strip XML comments, remove unused global types and groups, and minify the output — all checked by default for a minimal schema suited to server-side validation; uncheck everything for a plain flatten that keeps documentation. Imports (`xs:import`, different namespaces) are never merged. See [XSD Flattener](xsd-tools.md#8-xsd-flattener) for details.
 
-!!! note "Missing imported schemas download automatically"
+!!! note "Missing imported schemas resolve automatically"
     If a schema's `xs:import` points to a file that is not found next to the schema, the
-    toolkit fetches it from the import's namespace URL and caches it locally, so the
-    imported types still appear in the Tree and Graphic views - even offline on later
-    loads. See
-    [Automatic Download of Imported Schemas](xsd-tools.md#automatic-download-of-imported-schemas).
+    toolkit looks it up in the Schema Library and your XML catalogs, then in the schema
+    cache, and finally downloads it from the declared or namespace URL into the cache -
+    so the imported types still appear in the Tree and Graphic views, even offline on
+    later loads. Nested imports inside imported schemas are followed too, and your own
+    schema files are never modified. See
+    [Automatic Resolution of Imported Schemas](xsd-tools.md#automatic-resolution-of-imported-schemas).
 
 ### The Schema Panel
 
@@ -868,9 +870,14 @@ appearing in the recent list.
   every validation run** (Run Validation, the toolbar's Validate, and live validation):
   a schema reference you add or change in the editor is picked up immediately - even in
   unsaved or untitled documents - and a removed reference downgrades validation to a
-  well-formedness check (the status bar shows **"No XSD"**). Remote `https` schema URLs
-  are downloaded to the schema cache as before. A schema you picked yourself (via
-  **Change**, a favorite, or the status bar) is never overridden.
+  well-formedness check (the status bar shows **"No XSD"**). A declared location is first
+  looked up in your XML catalogs and Schema Library mappings; remote `https` schema URLs
+  that no catalog redirects are downloaded to the schema cache, and if the download fails,
+  a Schema Library mapping for the document's namespace is used instead. The status bar
+  shows how the schema was found - plain **"XSD: name"** for a declared location,
+  **"(catalog)"**, **"(library)"** or **"(manual)"** otherwise (see
+  [Status Bar](#status-bar)). A schema you picked yourself (via **Change**, a favorite, or
+  the status bar) is never overridden.
 - **JSON documents work the same way**: a top-level `"$schema"` member pointing at a
   schema file or URL auto-binds that **JSON Schema** on open, is re-checked before every
   validation run, and a manual choice always wins. (Values pointing at `json-schema.org`

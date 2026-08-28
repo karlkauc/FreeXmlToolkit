@@ -1,6 +1,6 @@
 # Thread Pool Management Architecture
 
-> **Version:** 1.0.0
+> **Version:** 2.1.0
 
 ## Overview
 

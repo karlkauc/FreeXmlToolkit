@@ -1,6 +1,6 @@
 # Security Features
 
-> **Version:** 1.10.0
+> **Version:** 2.1.0
 
 This page describes the security measures built into FreeXmlToolkit to protect you from XML-based attacks.
 
@@ -171,13 +171,15 @@ You should:
 
 ### Automatic Import Resolution Is Covered Too
 
-When the XSD editor cannot find an imported schema file locally, it can
-download the schema from the import's namespace URL (see
-[Automatic Download of Imported Schemas](xsd-tools.md#automatic-download-of-imported-schemas)).
+When an imported schema file cannot be found locally or through the Schema Library and
+XML catalogs, the toolkit can download it from the import's `schemaLocation` URL or its
+namespace URL (see
+[Automatic Resolution of Imported Schemas](xsd-tools.md#automatic-resolution-of-imported-schemas)).
 These downloads go through the same SSRF protection: only public `http`/`https` addresses are
 contacted, and the downloaded content is verified to be a real XML Schema before it is used.
-Downloaded schemas are cached in `~/.freeXmlToolkit/cache/schemas/`. To disable the automatic
-lookup entirely, start the application with the system property
+Downloaded schemas are cached in `~/.freeXmlToolkit/cache/schemas/` only - nothing is ever
+written into your schema's folder, and your schema file is never rewritten. To disable
+remote downloads entirely, start the application with the system property
 `-Dfxt.schema.namespaceFallback=false`.
 
 ---

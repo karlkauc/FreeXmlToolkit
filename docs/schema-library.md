@@ -1,6 +1,6 @@
 # Schema Library
 
-> **Version:** 2.0.1
+> **Version:** 2.1.0
 
 The **Schema Library** maps namespaces (and JSON `$schema` URIs) to schema files, so
 documents that don't carry an explicit reference to their schema can still be validated

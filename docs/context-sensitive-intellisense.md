@@ -1,6 +1,6 @@
 # Auto-Completion (IntelliSense)
 
-> **Version:** 1.10.0
+> **Version:** 2.1.0
 
 The XML Editor includes smart auto-completion that helps you write XML faster and with fewer errors.
 
@@ -24,7 +24,13 @@ When you type `<` in the XML Editor, a popup appears showing only the elements t
   siblings already present are offered - an element that has reached its `maxOccurs` (or an
   `xs:choice` whose alternative is already there) disappears from the list. Elements that
   already exist *after* the cursor are respected too, so you cannot insert a child in the
-  wrong order.
+  wrong order. Completion is strict about position: only what the schema allows at exactly
+  that spot is listed.
+- **Repeatable elements**: When the element you are inside may itself repeat (for example a
+  FundsXML `<Fund>` with `maxOccurs="unbounded"`), only its *remaining* children are
+  offered - the list does not start over with the first child just because the element can
+  occur again. Only a repeatable group (`xs:sequence` / `xs:choice` with `maxOccurs` above
+  1) starts over once all of its members are present.
 - **Namespace-Aware**: Suggestions are inserted with the prefix your document declares for the
   element's namespace. A child of a type imported from another namespace (e.g. `c:street`
   when the document declares `xmlns:c="…"`) is inserted as `<c:street></c:street>`; elements
@@ -130,6 +136,12 @@ schema validation.
 The list also honours the elements that already exist *after* the cursor. If you type `<`
 directly in front of the first existing child of a sequence, nothing may legally go there -
 move the cursor after the last child that belongs before your new element.
+
+### The First Child Is Offered Again Inside a Repeatable Element?
+
+It no longer is. Earlier versions treated a repeatable element like a repeatable group and
+restarted its content model. If you want to add another occurrence of the element itself,
+close the current one and type `<` after it.
 
 ### Prefix Missing or Unexpected?
 
