@@ -65,6 +65,20 @@ class AllowedChildrenCalculatorTest {
     }
 
     @Test
+    void repeatableParentElementDoesNotRestartItsOwnContent() {
+        // <Fund maxOccurs="unbounded"> — the element repeats, its content model does not
+        node("/Fund", "Fund", "element", "1", "unbounded", "/Fund/SEQUENCE_1");
+        node("/Fund/SEQUENCE_1", "SEQUENCE", "sequence", "1", "1",
+                "/Fund/SEQUENCE_1/Identifiers", "/Fund/SEQUENCE_1/Names", "/Fund/SEQUENCE_1/Currency");
+        node("/Fund/SEQUENCE_1/Identifiers", "Identifiers", "element", "1", "1");
+        node("/Fund/SEQUENCE_1/Names", "Names", "element", "1", "1");
+        node("/Fund/SEQUENCE_1/Currency", "Currency", "element", "1", "1");
+        assertEquals(List.of("Names"), names(compute("/Fund", List.of("Identifiers"), List.of())));
+        assertEquals(List.of(), names(compute("/Fund", List.of("Identifiers"), List.of("Names", "Currency"))));
+        assertEquals(List.of(), names(compute("/Fund", List.of("Identifiers", "Names", "Currency"), List.of())));
+    }
+
+    @Test
     void siblingsAfterCaretCapTheSuggestions() {
         sequenceSchema();
         // caret between city and country: only the optional postalCode fits (country is already there)

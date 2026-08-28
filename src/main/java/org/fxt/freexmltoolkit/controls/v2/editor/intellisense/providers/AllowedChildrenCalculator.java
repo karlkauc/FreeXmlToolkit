@@ -121,8 +121,10 @@ final class AllowedChildrenCalculator {
             }
         }
 
-        // A repeatable sequence group that is exhausted may start over.
-        if (out.size() == sizeBefore && lastIdx >= 0 && maxOccurs(container) > 1) {
+        // A repeatable sequence group that is exhausted may start over. This applies to
+        // compositors only: an element's maxOccurs repeats the element, not its content.
+        if (out.size() == sizeBefore && lastIdx >= 0 && kindOf(container) != Kind.ELEMENT
+                && maxOccurs(container) > 1) {
             collectSequence(container, particles, Map.of(), after, out, visited);
         }
     }
