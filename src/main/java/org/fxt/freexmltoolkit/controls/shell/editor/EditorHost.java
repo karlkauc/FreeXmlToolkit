@@ -2073,7 +2073,14 @@ public class EditorHost extends BorderPane {
             return false;
         }
         et.schemaBindingGen.incrementAndGet(); // supersede queued schema reconciles
-        if (et.view.loadSchema(xsd)) {
+        boolean bound;
+        if (xsd == null) {
+            et.view.clearSchema(); // loadSchema(null) is a no-op failure in the views
+            bound = true;
+        } else {
+            bound = et.view.loadSchema(xsd);
+        }
+        if (bound) {
             et.schemaFile = xsd;
             et.schemaOrigin = xsd == null
                     ? SchemaRebindPolicy.SchemaBindingOrigin.NONE

@@ -719,6 +719,57 @@ public class PropertiesServiceImpl implements PropertiesService {
         logger.debug("Cleared all recent Schematron files");
     }
 
+    // XSD recent files implementation
+
+    private static final int MAX_RECENT_XSD_FILES = 10;
+    private static final String RECENT_XSD_KEY = "xsd.recent.file.";
+
+    @Override
+    public List<File> getRecentXsdFiles() {
+        List<File> recentFiles = new java.util.ArrayList<>();
+        for (int i = 0; i < MAX_RECENT_XSD_FILES; i++) {
+            String path = properties.getProperty(RECENT_XSD_KEY + i);
+            if (path != null && !path.isEmpty()) {
+                File file = new File(path);
+                if (file.exists()) {
+                    recentFiles.add(file);
+                }
+            }
+        }
+        return recentFiles;
+    }
+
+    @Override
+    public void addRecentXsdFile(File file) {
+        if (file == null || !file.exists()) {
+            return;
+        }
+        List<File> recentFiles = new java.util.ArrayList<>(getRecentXsdFiles());
+        recentFiles.removeIf(f -> f.getAbsolutePath().equals(file.getAbsolutePath()));
+        recentFiles.addFirst(file);
+        while (recentFiles.size() > MAX_RECENT_XSD_FILES) {
+            recentFiles.removeLast();
+        }
+        for (int i = 0; i < MAX_RECENT_XSD_FILES; i++) {
+            if (i < recentFiles.size()) {
+                properties.setProperty(RECENT_XSD_KEY + i, recentFiles.get(i).getAbsolutePath());
+            } else {
+                properties.remove(RECENT_XSD_KEY + i);
+            }
+        }
+        saveProperties(properties);
+        logger.debug("Added recent XSD file: {}", file.getAbsolutePath());
+    }
+
+    @Override
+    public void clearRecentXsdFiles() {
+        for (int i = 0; i < MAX_RECENT_XSD_FILES; i++) {
+            properties.remove(RECENT_XSD_KEY + i);
+        }
+        saveProperties(properties);
+        logger.debug("Cleared all recent XSD files");
+    }
+
     // JSON Editor settings implementation
 
     private static final int MAX_RECENT_JSON_FILES = 10;

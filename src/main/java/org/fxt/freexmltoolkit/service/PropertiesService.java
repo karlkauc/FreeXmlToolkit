@@ -516,6 +516,29 @@ public interface PropertiesService {
      */
     void clearRecentSchematronFiles();
 
+    // XSD recent files
+
+    /**
+     * Gets the list of recently used XSD schemas (most recent first;
+     * files that no longer exist are omitted).
+     *
+     * @return list of recently used XSD files
+     */
+    List<File> getRecentXsdFiles();
+
+    /**
+     * Adds an XSD file to the recent files list (moves it to the front
+     * if already present). Null or non-existing files are ignored.
+     *
+     * @param file the file to add
+     */
+    void addRecentXsdFile(File file);
+
+    /**
+     * Clears all recent XSD files.
+     */
+    void clearRecentXsdFiles();
+
     // JSON Editor settings
 
     /**

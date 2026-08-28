@@ -58,6 +58,13 @@ public class ExplorerPanel extends VBox {
     private final MenuButton schematronMenu = new MenuButton();
     /** Shell-wired: (files, schematron) → run validation in the Validation activity. */
     private java.util.function.BiConsumer<java.util.List<File>, File> schematronValidateAction;
+    /**
+     * XSD picker: unlike the sticky Schematron it mirrors the schema bound to the
+     * active document (auto-detected or manual); picking rebinds and re-validates.
+     */
+    private final MenuButton xsdMenu = new MenuButton();
+    /** Shell-wired: re-run validation of the active document after its XSD changed. */
+    private Runnable xsdValidateAction;
 
     public ExplorerPanel(EditorHost editorHost) {
         this.editorHost = editorHost;
@@ -139,6 +146,7 @@ public class ExplorerPanel extends VBox {
 
         getChildren().addAll(header,
                 buildTransformBar(),
+                buildXsdBar(),
                 buildSchematronBar(),
                 openHeader, openEditorsBox,
                 workspaceHeader, workspace,
@@ -158,8 +166,13 @@ public class ExplorerPanel extends VBox {
             syncOpenEditors();
             added.forEach(this::rememberRecent);
         });
-        editorHost.activeTabProperty().addListener((obs, oldV, newV) -> syncOpenEditors());
+        editorHost.activeTabProperty().addListener((obs, oldV, newV) -> {
+            syncOpenEditors();
+            refreshXsdLabel();
+        });
+        editorHost.activeSchemaProperty().addListener((obs, oldV, newV) -> refreshXsdLabel());
         syncOpenEditors();
+        refreshXsdLabel();
 
         // The recent/favorites ListViews are built while the side panel is hidden (welcome mode,
         // width 0); refresh them once the panel gets a real width so their cells render correctly.
@@ -416,6 +429,136 @@ public class ExplorerPanel extends VBox {
     }
 
     // ----- one-click Schematron validation --------------------------------------
+
+    /**
+     * Builds the Explorer XSD bar: a picker ({@link #xsdMenu}) that shows the schema
+     * bound to the active document. Choosing (or dropping) an XSD binds it to the
+     * active document and immediately re-runs validation via {@link #xsdValidateAction}.
+     */
+    private HBox buildXsdBar() {
+        xsdMenu.setId("explorer-xsd");
+        xsdMenu.setGraphic(icon("bi-file-earmark-code", 14));
+        xsdMenu.getStyleClass().add("fxt-tool-button");
+        xsdMenu.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(xsdMenu, Priority.ALWAYS);
+        xsdMenu.setTooltip(new javafx.scene.control.Tooltip(
+                "XSD schema of the active document — pick another to rebind and validate"));
+        xsdMenu.setOnShowing(e -> refreshXsdMenu());
+        refreshXsdLabel();
+        org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(xsdMenu,
+                org.fxt.freexmltoolkit.service.DragDropService.XSD_EXTENSIONS, this::useXsd);
+
+        HBox bar = new HBox(6, xsdMenu);
+        bar.setId("explorer-xsd-bar");
+        bar.getStyleClass().add("fxt-sp-header");
+        bar.setAlignment(Pos.CENTER_LEFT);
+        return bar;
+    }
+
+    /** Rebuilds the XSD dropdown: recents · Favorites · Choose… · Unbind · Clear recent. */
+    private void refreshXsdMenu() {
+        xsdMenu.getItems().clear();
+        for (File file : recentXsdFiles()) {
+            MenuItem item = new MenuItem(file.getName());
+            item.setOnAction(e -> useXsd(file));
+            xsdMenu.getItems().add(item);
+        }
+        if (!xsdMenu.getItems().isEmpty()) {
+            xsdMenu.getItems().add(new javafx.scene.control.SeparatorMenuItem());
+        }
+        xsdMenu.getItems().add(FavoritesMenu.submenu("Favorites",
+                org.fxt.freexmltoolkit.domain.FileFavorite.FileType.XSD, this::useXsd));
+        xsdMenu.getItems().add(menuItem("Choose XSD…", this::chooseXsdFile));
+        MenuItem unbind = menuItem("Unbind schema", this::unbindXsd);
+        unbind.setDisable(editorHost.activeSchemaProperty().get() == null);
+        xsdMenu.getItems().add(unbind);
+        xsdMenu.getItems().add(menuItem("Clear recent", this::clearRecentXsd));
+    }
+
+    /** Updates the dropdown text to the name of the active document's bound schema. */
+    private void refreshXsdLabel() {
+        File schema = editorHost.activeSchemaProperty().get();
+        xsdMenu.setText(schema != null ? schema.getName() : "XSD…");
+    }
+
+    /**
+     * Binds {@code file} as the XSD of the active document, records it as most recent
+     * and re-runs validation. Also the programmatic entry point for the shell and tests.
+     */
+    public void useXsd(File file) {
+        if (file == null) {
+            return;
+        }
+        if (propertiesService != null) {
+            propertiesService.addRecentXsdFile(file);
+        }
+        if (editorHost.setSchemaForActiveDocument(file)) {
+            runXsdValidation();
+        }
+        refreshXsdLabel();
+    }
+
+    /** Removes the XSD binding of the active document and re-validates (clears stale problems). */
+    public void unbindXsd() {
+        if (editorHost.setSchemaForActiveDocument(null)) {
+            runXsdValidation();
+        }
+        refreshXsdLabel();
+    }
+
+    private void runXsdValidation() {
+        if (xsdValidateAction != null) {
+            xsdValidateAction.run();
+        }
+    }
+
+    /** Clears the recent-XSD store (the document binding is untouched). */
+    public void clearRecentXsd() {
+        if (propertiesService != null) {
+            propertiesService.clearRecentXsdFiles();
+        }
+    }
+
+    /** Opens a file chooser to pick an XSD, then binds it to the active document. */
+    private void chooseXsdFile() {
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Choose XSD Schema");
+        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XSD Schema", "*.xsd"));
+        File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser,
+                getScene() != null ? getScene().getWindow() : null);
+        if (file != null) {
+            useXsd(file);
+        }
+    }
+
+    private java.util.List<File> recentXsdFiles() {
+        if (propertiesService == null) {
+            return java.util.List.of();
+        }
+        try {
+            return propertiesService.getRecentXsdFiles();
+        } catch (Throwable t) {
+            return java.util.List.of();
+        }
+    }
+
+    /**
+     * Wires the XSD picker to the shell: the action re-validates the active document
+     * after its schema was changed through the Explorer.
+     *
+     * @param action the action to run (ignored if {@code null})
+     */
+    public void setXsdValidateAction(Runnable action) {
+        if (action != null) {
+            this.xsdValidateAction = action;
+        }
+    }
+
+    /** @return the XSD dropdown item texts (rebuilds the menu) — for tests/observers. */
+    public java.util.List<String> xsdMenuItemTexts() {
+        refreshXsdMenu();
+        return xsdMenu.getItems().stream().map(MenuItem::getText).toList();
+    }
 
     /**
      * Builds the Explorer validation bar: a Schematron picker ({@link #schematronMenu})

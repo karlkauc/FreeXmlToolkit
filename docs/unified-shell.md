@@ -676,12 +676,38 @@ select several files at once.
     parameters, watch-and-rerun, and the result table, use the full
     [Transform panel](#transform-panel).
 
+### XSD Bar (the active document's schema)
+
+> See - and change - the XSD schema bound to the active document without leaving
+> the Explorer; switching the schema re-validates immediately.
+
+An **XSD bar** sits between the Transform bar and the Schematron bar. Unlike the two
+sticky pickers around it, the **XSD picker** (file-code icon) always mirrors the
+**active document**: it shows the name of the schema currently bound to it - whether
+that binding came from an `xsi:schemaLocation` declaration, the Schema Library, or a
+manual choice - and reads **"XSD…"** while the document has no schema. Switching tabs
+updates the label. Click it to:
+
+- rebind one of your **recently used XSDs** (listed at the top),
+- pick one of your **Favorites** (the XSD favorites the
+  [Validation panel](#validation-panel) offers too),
+- **Choose XSD…** - pick an `.xsd` file from disk,
+- **Unbind schema** - remove the document's schema binding (disabled when none is bound), or
+- **Clear recent** - empty the recent list.
+
+You can also **drop** an `.xsd` file from your file manager onto the picker.
+
+Choosing, dropping, or unbinding a schema **binds it to the active document as a manual
+binding** (the status-bar XSD indicator and the Validation panel's SOURCES row follow) and
+**runs validation right away** - the PROBLEMS list and the status bar refresh without
+pressing **F8**. The recent-XSD list is shared across documents and sessions.
+
 ### Schematron Bar (one-click validation from the Explorer)
 
 > Validate XML files against a Schematron straight from the
 > Explorer, without switching to the Validation activity first.
 
-A **Schematron bar** sits directly below the Transform bar. It keeps one Schematron
+A **Schematron bar** sits directly below the XSD bar. It keeps one Schematron
 fixed and validates whichever XML file(s) you pick in the tree - ideal for repeatedly
 checking many files against the same rule set.
 

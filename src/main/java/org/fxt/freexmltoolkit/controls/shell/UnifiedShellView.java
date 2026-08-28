@@ -700,6 +700,7 @@ public class UnifiedShellView extends BorderPane {
                 var explorer = new org.fxt.freexmltoolkit.controls.shell.editor.ExplorerPanel(editorHost);
                 explorer.setNewFileAction(this::newDocument);
                 explorer.setSchematronValidateAction(this::validateWithSchematron);
+                explorer.setXsdValidateAction(() -> validationPanel().revalidate());
                 explorerPanel = explorer;
                 yield explorer;
             }
