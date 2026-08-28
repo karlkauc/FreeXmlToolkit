@@ -1065,6 +1065,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#xsd-bar-the-active-documents-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        XSD Bar (the active document's schema)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#schematron-bar-one-click-validation-from-the-explorer" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3234,6 +3245,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#xsd-bar-the-active-documents-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        XSD Bar (the active document's schema)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#schematron-bar-one-click-validation-from-the-explorer" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4596,12 +4618,36 @@ tree and click <strong>Transform</strong> again - the stylesheet stays put. For 
 parameters, watch-and-rerun, and the result table, use the full
 <a href="#transform-panel">Transform panel</a>.</p>
 </div>
+<h3 id="xsd-bar-the-active-documents-schema">XSD Bar (the active document's schema)<a class="headerlink" href="#xsd-bar-the-active-documents-schema" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p>See - and change - the XSD schema bound to the active document without leaving
+the Explorer; switching the schema re-validates immediately.</p>
+</blockquote>
+<p>An <strong>XSD bar</strong> sits between the Transform bar and the Schematron bar. Unlike the two
+sticky pickers around it, the <strong>XSD picker</strong> (file-code icon) always mirrors the
+<strong>active document</strong>: it shows the name of the schema currently bound to it - whether
+that binding came from an <code>xsi:schemaLocation</code> declaration, the Schema Library, or a
+manual choice - and reads <strong>"XSD…"</strong> while the document has no schema. Switching tabs
+updates the label. Click it to:</p>
+<ul>
+<li>rebind one of your <strong>recently used XSDs</strong> (listed at the top),</li>
+<li>pick one of your <strong>Favorites</strong> (the XSD favorites the
+  <a href="#validation-panel">Validation panel</a> offers too),</li>
+<li><strong>Choose XSD…</strong> - pick an <code>.xsd</code> file from disk,</li>
+<li><strong>Unbind schema</strong> - remove the document's schema binding (disabled when none is bound), or</li>
+<li><strong>Clear recent</strong> - empty the recent list.</li>
+</ul>
+<p>You can also <strong>drop</strong> an <code>.xsd</code> file from your file manager onto the picker.</p>
+<p>Choosing, dropping, or unbinding a schema <strong>binds it to the active document as a manual
+binding</strong> (the status-bar XSD indicator and the Validation panel's SOURCES row follow) and
+<strong>runs validation right away</strong> - the PROBLEMS list and the status bar refresh without
+pressing <strong>F8</strong>. The recent-XSD list is shared across documents and sessions.</p>
 <h3 id="schematron-bar-one-click-validation-from-the-explorer">Schematron Bar (one-click validation from the Explorer)<a class="headerlink" href="#schematron-bar-one-click-validation-from-the-explorer" title="Permanent link">&para;</a></h3>
 <blockquote>
 <p>Validate XML files against a Schematron straight from the
 Explorer, without switching to the Validation activity first.</p>
 </blockquote>
-<p>A <strong>Schematron bar</strong> sits directly below the Transform bar. It keeps one Schematron
+<p>A <strong>Schematron bar</strong> sits directly below the XSD bar. It keeps one Schematron
 fixed and validates whichever XML file(s) you pick in the tree - ideal for repeatedly
 checking many files against the same rule set.</p>
 <p>The bar has two controls:</p>
