@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Mirrors the FundsXML4.xsd shape: a no-namespace schema referencing an imported global element. -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
+           elementFormDefault="qualified">
+    <xs:import namespace="http://www.w3.org/2000/09/xmldsig#" schemaLocation="signature.xsd"/>
+    <xs:element name="Document">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="Payload" type="xs:string"/>
+                <xs:element ref="ds:Signature" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>

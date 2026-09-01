@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Minimal stand-in for xmldsig-core-schema.xsd: a global element in a foreign namespace. -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
+           targetNamespace="http://www.w3.org/2000/09/xmldsig#"
+           elementFormDefault="qualified">
+    <xs:element name="Signature" type="ds:SignatureType"/>
+    <xs:complexType name="SignatureType">
+        <xs:sequence>
+            <xs:element name="SignedInfo" type="xs:string"/>
+            <xs:element name="SignatureValue" type="xs:string"/>
+        </xs:sequence>
+        <xs:attribute name="Id" type="xs:ID"/>
+    </xs:complexType>
+</xs:schema>

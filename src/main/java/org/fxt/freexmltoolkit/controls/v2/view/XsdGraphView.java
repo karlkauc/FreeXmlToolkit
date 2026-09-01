@@ -168,6 +168,12 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
         }
 
         this.xsdSchema = context.getSchema();
+        // Refs into an imported namespace (e.g. ref="ds:Signature" from xmldsig-core-schema.xsd)
+        // can only be resolved when the visual tree builder sees the imported schemas.
+        // XsdNodeFactory keeps imported components out of the main schema tree on purpose — it
+        // only tags them with source info — but flattens transitive imports onto the root schema,
+        // so seeding from the schema itself covers nested imports too.
+        this.importedSchemas = new HashMap<>(xsdSchema.getImportedSchemas());
         this.renderer = new XsdNodeRenderer();
         this.selectionModel = context.getSelectionModel();
 
