@@ -158,6 +158,33 @@ class XsdDocumentationLanguageSelectionTest {
         assertTrue(allHtml.contains("TYPE_GERMAN_TEXT"));
         assertTrue(allHtml.contains("ATTR_GERMAN_TEXT"));
         assertTrue(allHtml.contains("SIMPLE_GERMAN_TEXT"));
+        assertTrue(allHtml.contains("ENUM_GERMAN_TEXT"));
+    }
+
+    @Test
+    @DisplayName("Type pages render the type's own documentation and the enumeration value docs")
+    void typePagesRenderDocumentation(@TempDir Path tmp) throws Exception {
+        Path xsd = tmp.resolve("langs.xsd");
+        Files.writeString(xsd, XSD, StandardCharsets.UTF_8);
+        Path out = tmp.resolve("out");
+
+        XsdDocumentationService service = new XsdDocumentationService();
+        service.setXsdFilePath(xsd.toString());
+        service.setMethod(XsdDocumentationService.ImageOutputMethod.SVG);
+        service.setIncludedLanguages(Set.of("en"));
+        service.generateXsdDocumentation(out.toFile());
+
+        String simpleTypePage = Files.readString(out.resolve("simpleTypes").resolve("CodeType.html"), StandardCharsets.UTF_8);
+        assertTrue(simpleTypePage.contains("SIMPLE_ENGLISH_TEXT"), "simple type documentation must be rendered");
+        assertTrue(simpleTypePage.contains("ENUM_ENGLISH_TEXT"), "enumeration value documentation must be rendered");
+        assertFalse(simpleTypePage.contains("SIMPLE_GERMAN_TEXT"));
+        assertFalse(simpleTypePage.contains("ENUM_GERMAN_TEXT"));
+
+        String complexTypePage = Files.readString(out.resolve("complexTypes").resolve("ItemType.html"), StandardCharsets.UTF_8);
+        assertTrue(complexTypePage.contains("TYPE_ENGLISH_TEXT"), "complex type documentation must be rendered");
+        assertTrue(complexTypePage.contains("ATTR_ENGLISH_TEXT"), "attribute documentation must be rendered");
+        assertFalse(complexTypePage.contains("TYPE_GERMAN_TEXT"));
+        assertFalse(complexTypePage.contains("ATTR_GERMAN_TEXT"));
     }
 
     private static String concat(List<Path> files) throws IOException {

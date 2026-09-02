@@ -118,8 +118,9 @@
         <!-- Card body -->
         <div class="p-6 md:p-8 space-y-10">
             <!-- Section: Documentation (Multi-Language Support) -->
-            <section th:with="documentation=${this.getDocumentationsFromNode(complexTypeNode)}"
-                     th:if="${documentation != null and not #maps.isEmpty(documentation)}"
+            <!-- th:with must live on an outer block: Thymeleaf evaluates th:if before th:with on the same tag -->
+            <th:block th:with="documentation=${this.getDocumentationsFromNode(complexTypeNode)}">
+            <section th:if="${documentation != null and not #maps.isEmpty(documentation)}"
                      class="documentation-section">
                 <h2 id="documentation" class="text-lg font-semibold text-slate-800 mb-3">Documentation</h2>
                 <div class="bg-slate-100/75 p-4 rounded-md space-y-2">
@@ -137,6 +138,7 @@
                     </div>
                 </div>
             </section>
+            </th:block>
 
             <!-- Section: Attributes -->
             <section th:if="${not #lists.isEmpty(this.getAttributes(complexTypeNode))}">

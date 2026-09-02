@@ -86,8 +86,9 @@
     <div class="space-y-8">
 
         <!-- 1. Documentation (Multi-Language Support) -->
-        <section th:with="documentation=${this.getDocumentationsFromNode(simpleTypeNode)}"
-                 th:if="${documentation != null and not #maps.isEmpty(documentation)}"
+        <!-- th:with must live on an outer block: Thymeleaf evaluates th:if before th:with on the same tag -->
+        <th:block th:with="documentation=${this.getDocumentationsFromNode(simpleTypeNode)}">
+        <section th:if="${documentation != null and not #maps.isEmpty(documentation)}"
                  class="bg-white p-6 rounded-xl shadow-md border border-slate-200 documentation-section">
             <h2 id="documentation" class="text-xl font-semibold text-slate-900 mb-4">Documentation</h2>
             <div class="prose prose-slate max-w-none">
@@ -105,6 +106,7 @@
                 </div>
             </div>
         </section>
+        </th:block>
 
         <!-- 2. Restrictions -->
         <section class="bg-white rounded-xl shadow-md border border-slate-200">
@@ -141,8 +143,8 @@
                                         <code class="font-mono bg-slate-100 text-slate-800 px-2 py-1 rounded-md"
                                               th:text="${this.getAttributeValue(enumNode, 'value')}"></code>
                                         <!-- Documentation for the individual enum value (Multi-Language) -->
-                                        <div th:with="enumDocs=${this.getDocumentationsFromNode(enumNode)}"
-                                             th:if="${enumDocs != null and not #maps.isEmpty(enumDocs)}"
+                                        <th:block th:with="enumDocs=${this.getDocumentationsFromNode(enumNode)}">
+                                        <div th:if="${enumDocs != null and not #maps.isEmpty(enumDocs)}"
                                              class="mt-1 pl-2 text-slate-600 text-xs italic documentation-section">
                                             <span th:each="doc, iterStat: ${enumDocs}"
                                                   class="doc-content"
@@ -150,6 +152,7 @@
                                                   th:attr="data-lang=${doc.key}"
                                                   th:utext="${doc.value}"></span>
                                         </div>
+                                        </th:block>
                                     </li>
                                 </ul>
                             </td>
