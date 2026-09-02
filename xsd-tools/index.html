@@ -3125,42 +3125,39 @@ tab is already open re-analyzes the active document instead of adding a second t
 <p>Every finding is a link into the schema: selecting a row, an unused type or an affected element
 switches the document to the <strong>Tree</strong> view and reveals the node.</p>
 <h3 id="statistics">Statistics<a class="headerlink" href="#statistics" title="Permanent link">&para;</a></h3>
-<p>The <strong>Statistics</strong> tab shows the schema metrics at a glance, grouped into cards:</p>
+<p>The <strong>Statistics</strong> tab opens with a row of tiles for the declaration counts (elements,
+attributes, complex and simple types, groups, attribute groups), followed by detail cards:</p>
 <table>
 <thead>
 <tr>
-<th>Group</th>
+<th>Card</th>
 <th>Metrics</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><strong>Schema</strong></td>
-<td>XSD version (1.0/1.1), target namespace, form defaults, namespaces, schema files, includes / imports, unresolved references</td>
+<td>XSD version (1.0/1.1), target namespace, form defaults, namespaces, total nodes</td>
 </tr>
 <tr>
-<td><strong>Declarations</strong></td>
-<td>Elements, attributes, complex and simple types, groups, attribute groups, total nodes</td>
+<td><strong>Files</strong></td>
+<td>Schema files, includes / imports, unresolved references, and node counts per file for multi-file schemas</td>
 </tr>
 <tr>
 <td><strong>Constraints</strong></td>
 <td>Counts of <code>xs:key</code>, <code>xs:keyref</code>, <code>xs:unique</code>, and assertions</td>
 </tr>
 <tr>
-<td><strong>Cardinality</strong></td>
-<td>Optional, required, and unbounded elements</td>
-</tr>
-<tr>
 <td><strong>Documentation</strong></td>
-<td>Coverage percentage, documented nodes, appinfo nodes, documentation languages</td>
+<td>Coverage bar (green ≥ 75 %, yellow ≥ 40 %, red below), documented nodes, appinfo nodes, documentation languages</td>
 </tr>
 <tr>
-<td><strong>Nodes per file</strong></td>
-<td>Node counts per schema file (only for multi-file schemas)</td>
+<td><strong>Cardinality</strong></td>
+<td>Optional vs. required elements as a two-segment bar, plus the unbounded element count</td>
 </tr>
 <tr>
 <td><strong>Most used types</strong></td>
-<td>The named types with the most references and their usage counts</td>
+<td>The named types with the most references; the usage bar is relative to the most used type</td>
 </tr>
 <tr>
 <td><strong>Unused types</strong></td>
