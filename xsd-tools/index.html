@@ -3315,11 +3315,16 @@ the generator never modifies your schema file or writes into its folder.</p>
 <h3 id="language-settings">Language Settings<a class="headerlink" href="#language-settings" title="Permanent link">&para;</a></h3>
 <p>For multi-language schemas, you can:</p>
 <ol>
-<li>Click <strong>Scan Languages</strong> to detect available languages</li>
-<li>Select which languages to include</li>
+<li>Click <strong>Scan languages</strong> to detect the <code>xml:lang</code> values used in the schema</li>
+<li>Untick the languages you do not want in the output</li>
 <li>Choose a fallback language for missing translations</li>
-<li>Use "Select All" or "Deselect All" for quick selection</li>
 </ol>
+<p>De-selected languages are dropped everywhere: element detail pages, type pages, attribute and
+enumeration documentation, the Data Dictionary (HTML and Excel), the search index, the SVG
+diagrams and the <em>Source Code</em> snippets on the detail pages. Documentation without an <code>xml:lang</code>
+attribute ("default") is always kept as a fallback. The schema files copied next to the
+documentation are left untouched. Leaving every language ticked (or not scanning at all) includes
+all of them.</p>
 <h3 id="adding-technical-notes-to-your-schema">Adding Technical Notes to Your Schema<a class="headerlink" href="#adding-technical-notes-to-your-schema" title="Permanent link">&para;</a></h3>
 <p>You can add structured technical information directly in your XSD files:</p>
 <p><strong>Supported tags:</strong></p>
