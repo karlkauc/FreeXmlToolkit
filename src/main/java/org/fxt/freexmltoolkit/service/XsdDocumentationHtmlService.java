@@ -585,9 +585,9 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
             context.setVariable("this", this); // Important so that this.* works in the template
             context.setVariable("element", element);
 
-            // Pass ALL documentation for multi-language support with on-the-fly switching
-            // The template will render each language with data-lang attribute
-            context.setVariable("documentation", element.getAllLanguageDocumentation());
+            // Pass the documentation of all selected languages for on-the-fly switching
+            // (the template renders each language with a data-lang attribute).
+            context.setVariable("documentation", element.getFilteredLanguageDocumentation(includedLanguages));
             context.setVariable("sampleData", element.getDisplaySampleData());
             context.setVariable("appInfos", element.getGenericAppInfos());
             context.setVariable("code", element.getSourceCode());
@@ -901,9 +901,8 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
             item.put("url", "details/" + element.getPageName());
             // Use clean XPath without container elements for searching
             item.put("xpath", getCleanXPath(element));
-            String docText = element.getDocumentations().stream()
-                    .map(XsdExtendedElement.DocumentationInfo::content)
-                    .collect(Collectors.joining(" "));
+            String docText = String.join(" ",
+                    element.getFilteredLanguageDocumentation(includedLanguages).values());
             item.put("doc", docText);
             searchData.add(item);
         }
@@ -1034,32 +1033,35 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
         return getAttributeValue(node, attrName, null);
     }
 
+    /**
+     * Joins the documentation texts of a node (type overview pages), honouring the user's
+     * language selection like {@link #getDocumentationsFromNode(Node)}.
+     */
     public String getDocumentationFromNode(Node node) {
-        if (node == null) {
-            return "";
-        }
-
-        Node annotationNode = getDirectChildElement(node, "annotation");
-        if (annotationNode == null) {
-            return "";
-        }
-
-        List<String> docStrings = new ArrayList<>();
-        for (Node docNode : getDirectChildElements(annotationNode, "documentation")) {
-            docStrings.add(docNode.getTextContent());
-        }
-        return String.join("\n", docStrings);
+        return String.join("\n", getDocumentationsFromNode(node).values());
     }
 
     /**
-     * Gets all documentation from a node as a Map with language keys.
-     * This method supports multi-language documentation switching.
+     * Gets all documentation from a node as a Map with language keys, restricted to the
+     * user-selected languages (see {@link #setIncludedLanguages(Set)}). Used directly by the
+     * complex/simple type templates for type, attribute and enumeration documentation.
      *
      * @param node The XSD node to get documentation from
      * @return A LinkedHashMap of language codes to documentation content (preserves order).
      *         If no xml:lang attribute, uses "default" as key.
      */
     public Map<String, String> getDocumentationsFromNode(Node node) {
+        return filterByIncludedLanguages(getAllDocumentationsFromNode(node));
+    }
+
+    /**
+     * Gets all documentation from a node as a Map with language keys, ignoring the language
+     * selection.
+     *
+     * @param node The XSD node to get documentation from
+     * @return A LinkedHashMap of language codes to documentation content (preserves order).
+     */
+    private Map<String, String> getAllDocumentationsFromNode(Node node) {
         Map<String, String> result = new LinkedHashMap<>();
         if (node == null) {
             return result;
@@ -1428,8 +1430,8 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
             return "";
         }
 
-        // Get all documentation for multi-language support
-        Map<String, String> allDocs = element.getAllLanguageDocumentation();
+        // Only the selected languages (plus the "default" fallback) are eligible
+        Map<String, String> allDocs = element.getFilteredLanguageDocumentation(includedLanguages);
         if (allDocs.isEmpty()) {
             return "";
         }
@@ -1748,7 +1750,7 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
             if (typeNode == null) {
                 return java.util.Collections.emptyMap();
             }
-            return filterByIncludedLanguages(getDocumentationsFromNode(typeNode));
+            return getDocumentationsFromNode(typeNode);
         });
     }
 

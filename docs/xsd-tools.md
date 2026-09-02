@@ -387,10 +387,16 @@ Create professional documentation from your XSD file automatically.
 
 For multi-language schemas, you can:
 
-1. Click **Scan Languages** to detect available languages
-2. Select which languages to include
+1. Click **Scan languages** to detect the `xml:lang` values used in the schema
+2. Untick the languages you do not want in the output
 3. Choose a fallback language for missing translations
-4. Use "Select All" or "Deselect All" for quick selection
+
+De-selected languages are dropped everywhere: element detail pages, type pages, attribute and
+enumeration documentation, the Data Dictionary (HTML and Excel), the search index, the SVG
+diagrams and the *Source Code* snippets on the detail pages. Documentation without an `xml:lang`
+attribute ("default") is always kept as a fallback. The schema files copied next to the
+documentation are left untouched. Leaving every language ticked (or not scanning at all) includes
+all of them.
 
 ### Adding Technical Notes to Your Schema
 

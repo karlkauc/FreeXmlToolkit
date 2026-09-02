@@ -51,6 +51,7 @@ import java.util.concurrent.CancellationException;
 import java.util.random.RandomGenerator;
 import java.util.stream.Collectors;
 
+import javax.xml.XMLConstants;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -312,6 +313,21 @@ public class XsdDocumentationService {
         } else {
             this.includedLanguages = null;
         }
+    }
+
+    /**
+     * Tells whether documentation in the given (lower-case) language should be part of the output.
+     * The untagged "default" documentation is always kept as fallback; without a configured
+     * selection every language is included.
+     *
+     * @param normalizedLang lower-case language code, or "default" for untagged documentation
+     * @return true if documentation in this language must be collected
+     */
+    private boolean isLanguageIncluded(String normalizedLang) {
+        if (includedLanguages == null || includedLanguages.isEmpty() || "default".equals(normalizedLang)) {
+            return true;
+        }
+        return includedLanguages.stream().anyMatch(lang -> lang.equalsIgnoreCase(normalizedLang));
     }
 
     /**
@@ -2868,6 +2884,9 @@ public class XsdDocumentationService {
             // Normalize language to lowercase for case-insensitive comparison
             String normalizedLang = lang != null ? lang.toLowerCase() : "default";
             discoveredLanguages.add(normalizedLang); // Track discovered language for UI configuration
+            if (!isLanguageIncluded(normalizedLang)) {
+                continue; // De-selected in the generator options: never reaches any output format
+            }
             extendedElem.addDocumentation(new DocumentationInfo(normalizedLang, docNode.getTextContent()));
         }
 
@@ -3761,11 +3780,47 @@ public class XsdDocumentationService {
             StringWriter writer = new StringWriter();
             // Gets the Transformer instance that is specific to the current thread.
             Transformer transformer = transformerThreadLocal.get();
-            transformer.transform(new DOMSource(node), new StreamResult(writer));
+            transformer.transform(new DOMSource(withoutDeselectedDocumentation(node)), new StreamResult(writer));
             return writer.toString();
         } catch (Exception e) {
             logger.warn("Could not serialize node to string.", e);
             return "<!-- Error serializing node -->";
+        }
+    }
+
+    /**
+     * Returns the node to serialize for the "Source Code" snippets. When the user has de-selected
+     * documentation languages, a deep copy without the {@code xs:documentation} elements of those
+     * languages is returned so the snippets do not leak documentation that was excluded from the
+     * output; otherwise the node itself is returned.
+     */
+    private Node withoutDeselectedDocumentation(Node node) {
+        if (includedLanguages == null || includedLanguages.isEmpty() || node == null) {
+            return node;
+        }
+        Node copy = node.cloneNode(true);
+        removeDeselectedDocumentation(copy);
+        return copy;
+    }
+
+    private void removeDeselectedDocumentation(Node node) {
+        NodeList children = node.getChildNodes();
+        // Iterate backwards because removing a child shifts the indices of later siblings.
+        for (int i = children.getLength() - 1; i >= 0; i--) {
+            Node child = children.item(i);
+            if (child.getNodeType() != Node.ELEMENT_NODE) {
+                continue;
+            }
+            if ("documentation".equals(child.getLocalName())
+                    && XMLConstants.W3C_XML_SCHEMA_NS_URI.equals(child.getNamespaceURI())) {
+                String lang = getAttributeValue(child, "xml:lang", "default");
+                String normalizedLang = lang != null ? lang.toLowerCase() : "default";
+                if (!isLanguageIncluded(normalizedLang)) {
+                    node.removeChild(child);
+                }
+                continue;
+            }
+            removeDeselectedDocumentation(child);
         }
     }
 
