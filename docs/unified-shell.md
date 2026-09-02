@@ -258,7 +258,7 @@ When editing an XSD file, the editor host and the **Schema** activity provide:
 
 ![XSD schema in the Graphic view](img/unified-shell-schema-graphic.png)
 *An XSD open in the Graphic view, with the Schema activity panel (Type Library, Flatten,
-Statistics, Schema Quality, Generate Sample XML / Documentation) on the left.*
+Schema Analysis, Generate Sample XML / Documentation) on the left.*
 
 ![XSD schema in the Tree view](img/unified-shell-schema-tree.png)
 *The same schema in the Tree view - select a node to edit its properties in the inspector.*
@@ -266,7 +266,7 @@ Statistics, Schema Quality, Generate Sample XML / Documentation) on the left.*
 - **Text** - Source code editing with syntax highlighting; moving the caret into a schema construct also lets you edit its properties in the Properties pane (see [Properties Inspector](#properties-inspector))
 - **Graphic** - Visual XMLSpy-style schema diagram
 - **Type Editor** - Edit ComplexTypes graphically, SimpleTypes with form editor
-- **Analysis** - Schema statistics, identity constraints, quality checks
+- **Analysis** - The **Schema Analysis** tool tab: statistics incl. unused types, quality checks with score, identity constraints, XPath validation - every finding reveals its node in the Tree view (see [Schema Analysis](xsd-tools.md#5-schema-analysis))
 - **Documentation** - Generate HTML/Word/PDF documentation (see below)
 - **Sample Data** - Generate sample XML from the schema
 - **Flatten** - Merge included schemas into a single standalone file. The **Flatten Schema…** button opens an options dialog first: strip annotations, strip XML comments, remove unused global types and groups, and minify the output — all checked by default for a minimal schema suited to server-side validation; uncheck everything for a plain flatten that keeps documentation. Imports (`xs:import`, different namespaces) are never merged. See [XSD Flattener](xsd-tools.md#8-xsd-flattener) for details.
@@ -287,7 +287,7 @@ grouped into **GLOBAL ELEMENTS**, **COMPLEX TYPES**, and **SIMPLE TYPES** (colla
 sections), with a **filter field** on top. Click a declaration to reveal it in the Tree
 view; double-click a type to open it in its dedicated **Type Editor** tab; right-click for
 **Reveal in Tree / Open Type Editor / Find Usage**. The schema tools (Generate XSD from
-XML / batch, Sample XML plain/advanced, Flatten, Statistics, Schema Quality,
+XML / batch, Sample XML plain/advanced, Flatten, Schema Analysis,
 Documentation) sit as a **strip of icon buttons directly above the filter** - hover for
 the tool's name.
 

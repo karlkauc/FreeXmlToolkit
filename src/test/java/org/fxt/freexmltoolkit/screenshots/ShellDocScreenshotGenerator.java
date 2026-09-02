@@ -120,15 +120,25 @@ class ShellDocScreenshotGenerator {
             onFx(() -> flattenDialog.get().close());
             settle();
 
-            // Schema statistics open as an in-shell text tab. The action moved into
-            // the panel's ⋮ overflow menu, so drive the panel directly.
+            // Schema Analysis (statistics, quality, constraints, XPath) opens as an
+            // in-shell tool tab; drive the Schema panel's tool button directly.
             onFx(() -> {
                 var panel = shell.lookup(".fxt-schema-panel");
                 if (panel instanceof org.fxt.freexmltoolkit.controls.shell.editor.TypeLibraryPanel library) {
-                    library.statisticsActive();
+                    library.analyzeActive();
                 }
             });
             settle(900);
+            for (int i = 0; i < 40; i++) {
+                var done = new java.util.concurrent.atomic.AtomicBoolean();
+                onFx(() -> done.set(shell.lookup("#analysis-status") instanceof javafx.scene.control.Label l
+                        && l.getText().startsWith("Analyzed")));
+                if (done.get()) {
+                    break;
+                }
+                settle(250);
+            }
+            settle(600);
             shot("unified-shell-schema-statistics");
         }
 

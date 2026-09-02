@@ -61,21 +61,36 @@ class SchemaGenerateTest {
     }
 
     @Test
-    void statisticsOpensReport(@TempDir Path tmp) throws Exception {
+    void analysisOpensToolTab(@TempDir Path tmp) throws Exception {
         Path xsd = tmp.resolve("schema.xsd");
         Files.writeString(xsd, "<xs:schema xmlns:xs=\"http://www.w3.org/2001/XMLSchema\">"
+                + "<xs:complexType name=\"Orphan\"><xs:sequence>"
+                + "<xs:element name=\"a\" type=\"xs:string\"/></xs:sequence></xs:complexType>"
                 + "<xs:element name=\"root\" type=\"xs:string\"/></xs:schema>");
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xsd));
         WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
                 () -> host.getActiveText().map(t -> t.contains("xs:element")).orElse(false));
 
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
-            panel.statisticsActive();
+            panel.analyzeActive();
             return null;
         });
-        WaitForAsyncUtils.waitFor(6, TimeUnit.SECONDS,
-                () -> host.getActiveText().map(t -> t.contains("Schema Statistics")).orElse(false));
-        assertTrue(host.getActiveText().orElse("").contains("Elements:"));
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> {
+            WaitForAsyncUtils.waitForFxEvents();
+            var view = host.lookup("#schema-analysis-tabs");
+            return view != null && view.getParent() != null
+                    && host.lookup("#analysis-unused-types") instanceof javafx.scene.control.ListView<?> list
+                    && list.getItems().contains("Orphan");
+        });
+        assertNotNull(host.lookup("#schema-analysis-tabs"), "the Schema Analysis tool tab is open");
+
+        // Opening it again focuses the existing tab instead of adding a second one.
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.analyzeActive();
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        assertEquals(1, host.lookupAll("#schema-analysis-tabs").size());
     }
 
     @Test

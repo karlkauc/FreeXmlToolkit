@@ -788,11 +788,66 @@ public class EditorHost extends BorderPane {
     public void selectNodeInActiveTree(XsdNode node) {
         withActive(et -> {
             if (et.viewMode == ViewMode.TREE && et.treeView != null) {
-                et.treeView.selectNode(node);
+                et.treeView.revealNode(node);
             } else if (et.viewMode == ViewMode.GRAPHIC && et.xsdGraphView != null) {
                 et.xsdGraphView.selectModelNode(node);
             }
         });
+    }
+
+    /**
+     * Reveals, in the Tree view, the live-model node whose schema XPath
+     * ({@link XsdNode#getXPath()}, e.g. {@code /xs:schema/xs:complexType[@name='T']/xs:sequence})
+     * equals {@code xpath}. Used by reports that analyzed a <em>fresh</em> parse of the
+     * document and therefore cannot navigate by node identity. Unnamed siblings (two
+     * {@code xs:sequence} under one parent) share an XPath; the first match wins.
+     *
+     * @return true if a node was found and selected
+     */
+    public boolean revealSchemaNodeByXPath(String xpath) {
+        if (xpath == null || xpath.isBlank()) {
+            return false;
+        }
+        EditorTab et = resolveStructuredEditorTab();
+        if (et == null) {
+            return false;
+        }
+        if (tabPane.getSelectionModel().getSelectedItem() != et) {
+            tabPane.getSelectionModel().select(et);
+        }
+        setActiveViewMode(ViewMode.TREE);
+        XsdNode root = getActiveSchemaRoot().orElse(null);
+        XsdNode match = findNodeByXPath(root, xpath);
+        if (match == null) {
+            return false;
+        }
+        selectNodeInActiveTree(match);
+        return true;
+    }
+
+    /** Depth-first search for the first node whose {@code getXPath()} equals {@code xpath}; cycle-safe. */
+    private static XsdNode findNodeByXPath(XsdNode root, String xpath) {
+        if (root == null) {
+            return null;
+        }
+        java.util.Set<XsdNode> visited = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+        java.util.Deque<XsdNode> stack = new java.util.ArrayDeque<>();
+        stack.push(root);
+        while (!stack.isEmpty()) {
+            XsdNode n = stack.pop();
+            if (!visited.add(n)) {
+                continue;
+            }
+            if (xpath.equals(n.getXPath())) {
+                return n;
+            }
+            // Children are pushed in reverse so document order is searched first.
+            java.util.List<XsdNode> children = n.getChildren();
+            for (int i = children.size() - 1; i >= 0; i--) {
+                stack.push(children.get(i));
+            }
+        }
+        return null;
     }
 
     private void refreshSelectedNode() {
@@ -926,6 +981,16 @@ public class EditorHost extends BorderPane {
         if (tab.getContent() instanceof ExecutionStatsView view) {
             tab.setOnClosed(e -> view.dispose());
         }
+    }
+
+    /** @return whether a (non-document) tool tab with the given title is open. */
+    public boolean hasToolTab(String title) {
+        for (Tab tab : tabPane.getTabs()) {
+            if (!(tab instanceof EditorTab) && title.equals(tab.getText())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** @return whether the given tab is still open in this host. */

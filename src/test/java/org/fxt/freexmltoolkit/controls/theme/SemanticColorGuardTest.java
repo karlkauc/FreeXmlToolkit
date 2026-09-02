@@ -42,7 +42,13 @@ class SemanticColorGuardTest {
             "src/main/java/org/fxt/freexmltoolkit/controls/SchematronTester.java",
             "src/main/java/org/fxt/freexmltoolkit/controls/diff/DiffView.java",
             "src/main/java/org/fxt/freexmltoolkit/domain/ValidationStatus.java",
-            "src/main/java/org/fxt/freexmltoolkit/domain/SnippetValidationRule.java"
+            "src/main/java/org/fxt/freexmltoolkit/domain/SnippetValidationRule.java",
+            "src/main/java/org/fxt/freexmltoolkit/controls/shell/editor/analysis/AnalysisSupport.java",
+            "src/main/java/org/fxt/freexmltoolkit/controls/shell/editor/analysis/SchemaAnalysisView.java",
+            "src/main/java/org/fxt/freexmltoolkit/controls/shell/editor/analysis/StatisticsSection.java",
+            "src/main/java/org/fxt/freexmltoolkit/controls/shell/editor/analysis/QualitySection.java",
+            "src/main/java/org/fxt/freexmltoolkit/controls/shell/editor/analysis/IdentityConstraintsSection.java",
+            "src/main/java/org/fxt/freexmltoolkit/controls/shell/editor/analysis/XPathSection.java"
     );
 
     /** A 6-digit hex colour literal (e.g. {@code #dc3545}). */

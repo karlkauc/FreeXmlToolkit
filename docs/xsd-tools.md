@@ -107,7 +107,7 @@ A few things to know:
 - **Your files are never touched.** Resolved and downloaded schemas go to the shared cache
   only - nothing is written into your schema's folder, and the schema itself is never
   rewritten. This applies everywhere imports are resolved: the schema views, validation,
-  the Type Library, statistics, Schema Quality and documentation generation.
+  the Type Library, Schema Analysis and documentation generation.
 - Only imports whose namespace is an `http://` or `https://` URL are looked up by
   namespace (step 5).
 - `xs:include` references are resolved relative to the including file, or through an XML
@@ -141,7 +141,7 @@ top-level declarations so you can browse, find, and open every type in the schem
 | **Reveal in Tree**    | Click a declaration to reveal it in the schema's Tree view           |
 | **Open Type Editor**  | Double-click a type to open it in its own [Type Editor](#3-type-editor) tab |
 | **Find Usage**        | Right-click a type to find the places where it is used              |
-| **Schema tools**      | A strip of icon buttons above the filter: Generate XSD from XML (single/batch), Generate Sample XML (plain/advanced), Flatten Schema, Statistics, Schema Quality, and Generate Documentation - hover a button for its name |
+| **Schema tools**      | A strip of icon buttons above the filter: Generate XSD from XML (single/batch), Generate Sample XML (plain/advanced), Flatten Schema, Schema Analysis, and Generate Documentation - hover a button for its name |
 
 ### How to Use
 
@@ -268,43 +268,66 @@ For the selected schema node you can edit:
 
 ## 5. Schema Analysis
 
-Two tool buttons in the **Schema** activity's side panel analyze the active XSD. Each opens
-its result as a report tab in the editor area, so you can read, compare, or save it like any
-other document.
+The **Schema Analysis** button in the **Schema** activity's tool strip analyzes the active XSD
+and opens the report as a tool tab in the editor area. The analysis runs in the background on
+the current editor text (unsaved changes included); imports and includes are resolved relative
+to the file. The header shows the document, the quality score, the number of issues and the
+number of unused types; **Refresh** re-runs the analysis, and opening the tool again while the
+tab is already open re-analyzes the active document instead of adding a second tab.
 
-![Schema statistics in the Unified Shell](img/unified-shell-schema-statistics.png)
-*Schema statistics open as a report tab from the Schema activity's **Statistics** action*
+![Schema analysis in the Unified Shell](img/unified-shell-schema-statistics.png)
+*The Schema Analysis tool tab with its four sub-tabs, opened from the Schema activity*
 
+Every finding is a link into the schema: selecting a row, an unused type or an affected element
+switches the document to the **Tree** view and reveals the node.
 
 ### Statistics
 
-The **Statistics** button produces a report with schema metrics at a glance:
+The **Statistics** tab shows the schema metrics at a glance, grouped into cards:
 
-| Metric                     | Description                                          |
-|----------------------------|------------------------------------------------------|
-| **XSD Version**            | 1.0 or 1.1 features detected                         |
-| **Element Count**          | Total number of elements                             |
-| **Attribute Count**        | Total attributes defined                             |
-| **Type Count**             | Number of SimpleTypes and ComplexTypes               |
-| **Group Count**            | Model groups and attribute groups                    |
-| **Includes / Imports**     | How many schema files are pulled in                  |
-| **Constraints**            | Counts of `xs:key`, `xs:keyref`, `xs:unique`, and assertions |
-| **Cardinality**            | Optional, required, and unbounded elements           |
-| **Documentation Coverage** | Percentage of documented nodes                       |
-| **Unused Types**           | Named types that are never referenced (listed by name) |
+| Group                | Metrics                                                                  |
+|----------------------|--------------------------------------------------------------------------|
+| **Schema**           | XSD version (1.0/1.1), target namespace, form defaults, namespaces, schema files, includes / imports, unresolved references |
+| **Declarations**     | Elements, attributes, complex and simple types, groups, attribute groups, total nodes |
+| **Constraints**      | Counts of `xs:key`, `xs:keyref`, `xs:unique`, and assertions             |
+| **Cardinality**      | Optional, required, and unbounded elements                               |
+| **Documentation**    | Coverage percentage, documented nodes, appinfo nodes, documentation languages |
+| **Nodes per file**   | Node counts per schema file (only for multi-file schemas)                |
+| **Most used types**  | The named types with the most references and their usage counts          |
+| **Unused types**     | Every named type that is never referenced, listed by name - click one to reveal it |
+
+**Export** writes the statistics as CSV, JSON, HTML, PDF, or Excel.
 
 ### Quality Checks
 
-The **Schema Quality** button runs automated quality checks and reports a score plus a list
-of issues:
+The **Quality Checks** tab shows a score (0-100) with its rating, the number of checks passed,
+the dominant naming convention, and the issues found. Filter the table by severity, category,
+or free text; select an issue to read its suggestion and to jump to the affected elements.
 
-| Check                      | Description                       |
-|----------------------------|-----------------------------------|
-| **Naming Conventions**     | Consistent element/type naming    |
-| **Documentation Coverage** | Percentage of documented elements |
-| **Unused Types**           | Types defined but never used      |
-| **Circular References**    | Detect circular type references   |
-| **Best Practices**         | Common XSD best practices         |
+| Check                              | Description                                                        |
+|------------------------------------|--------------------------------------------------------------------|
+| **Naming Convention**              | Element/type names that deviate from the schema's dominant convention (UpperCamelCase, lowerCamelCase, snake_case, kebab-case) |
+| **Best Practice**                  | `xs:any` / `xs:anyAttribute` wildcards, unbounded content without limits, deep nesting, anonymous complex types |
+| **Deprecated**                     | Components marked as deprecated in `xs:appinfo`                     |
+| **Constraint Conflict**            | Enumeration values that conflict with length facets                |
+| **Inconsistent Definition**        | The same name defined with different content in several places    |
+| **Duplicate Definition**           | Different names with identical structure                            |
+| **Duplicate Element in Container** | The same element declared twice in one sequence, choice, or all (ambiguity error) |
+
+**Export** writes the quality report as CSV, JSON, HTML, PDF, or Excel.
+
+### Identity Constraints
+
+The **Identity Constraints** tab lists every `xs:key`, `xs:keyref`, `xs:unique`, and
+`xs:assert` with its parent element, selector, fields, referenced key or test expression, and a
+validation status - for example a `keyref` whose `refer` points to a key that does not exist.
+
+### XPath Validation
+
+The **XPath Validation** tab checks the XPath expressions used by identity constraints and
+assertions: syntax, element names that do not occur in the schema, and constructs that are not
+allowed in selectors and fields. The expressions are checked statically against the schema;
+they are not evaluated against a sample XML document.
 
 !!! note
     Identity constraints (`xs:key`, `xs:keyref`, `xs:unique`, `xs:assert`) can also be

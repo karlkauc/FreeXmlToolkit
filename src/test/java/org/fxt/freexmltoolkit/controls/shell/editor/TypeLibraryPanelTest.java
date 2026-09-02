@@ -121,8 +121,10 @@ class TypeLibraryPanelTest {
         assertTrue(names.contains("Generate Sample XML…"), names.toString());
         assertTrue(names.contains("Generate Sample XML (Advanced)…"), names.toString());
         assertTrue(names.contains("Flatten Schema…"), names.toString());
-        assertTrue(names.contains("Statistics"), names.toString());
-        assertTrue(names.contains("Schema Quality"), names.toString());
+        assertTrue(names.contains("Schema Analysis"), names.toString());
+        assertFalse(names.contains("Statistics"), "replaced by Schema Analysis: " + names);
+        assertFalse(names.contains("Schema Quality"), "replaced by Schema Analysis: " + names);
+        assertNotNull(panel.lookup("#schema-tool-analysis"));
         assertTrue(names.contains("Generate Documentation…"), names.toString());
         assertNotNull(panel.lookup("#schema-tool-documentation"),
                 "the tools must be visible buttons (not hidden in an overflow menu)");

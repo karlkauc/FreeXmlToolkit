@@ -195,6 +195,16 @@ public class XsdTreeView extends TreeView<XsdNode> implements XmlSearchTarget {
      * @return true if the node is (still) present in the tree
      */
     private boolean revealMatch(XsdNode node) {
+        return revealNode(node);
+    }
+
+    /**
+     * Expands the ancestors of the given node (by identity), selects it and scrolls it into
+     * view — unlike {@link #selectNode(XsdNode)}, which silently no-ops on collapsed items.
+     *
+     * @return true if the node is present in the tree
+     */
+    public boolean revealNode(XsdNode node) {
         TreeItem<XsdNode> item = findItem(getRoot(), node);
         if (item == null) {
             return false;

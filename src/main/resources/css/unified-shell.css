@@ -2216,6 +2216,180 @@
     -fx-progress-color: -fxt-accent;
 }
 
+/* ----- Schema Analysis (editor-area tool tab) ------------------------------ */
+.fxt-analysis {
+    -fx-background-color: -fxt-bg-canvas;
+}
+
+.fxt-analysis-subtitle {
+    -fx-font-size: 12px;
+    -fx-text-fill: -fxt-text-primary;
+}
+
+/* Nested sub-tab strip: token-based so it follows Dark mode (the global
+   .tab-pane rules in fxt-theme.css are hardcoded light colours). */
+.fxt-analysis-tabs > .tab-header-area {
+    -fx-background-color: -fxt-bg-surface;
+    -fx-padding: 0 0 0 4;
+}
+
+.fxt-analysis-tabs > .tab-header-area > .tab-header-background {
+    -fx-background-color: -fxt-bg-surface;
+    -fx-border-color: transparent transparent -fxt-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.fxt-analysis-tabs > .tab-header-area > .headers-region > .tab {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-border-width: 0 0 2 0;
+    -fx-padding: 6 12 6 12;
+}
+
+.fxt-analysis-tabs > .tab-header-area > .headers-region > .tab:hover {
+    -fx-background-color: -fxt-bg-surface-2;
+}
+
+.fxt-analysis-tabs > .tab-header-area > .headers-region > .tab:selected {
+    -fx-background-color: -fxt-bg-canvas;
+    -fx-border-color: transparent transparent -fxt-primary transparent;
+}
+
+.fxt-analysis-tabs > .tab-header-area > .headers-region > .tab .tab-label {
+    -fx-text-fill: -fxt-text-secondary;
+    -fx-font-size: 12px;
+}
+
+.fxt-analysis-tabs > .tab-header-area > .headers-region > .tab:selected .tab-label {
+    -fx-text-fill: -fxt-text-primary;
+    -fx-font-weight: bold;
+}
+
+.fxt-analysis-tabs > .tab-content-area {
+    -fx-background-color: -fxt-bg-canvas;
+    -fx-padding: 10 0 0 0;
+}
+
+.fxt-analysis-section {
+    -fx-background-color: -fxt-bg-canvas;
+}
+
+.fxt-analysis-group {
+    -fx-background-color: -fxt-bg-surface;
+    -fx-background-radius: 8;
+    -fx-border-color: -fxt-border;
+    -fx-border-radius: 8;
+    -fx-padding: 10 14 12 14;
+    -fx-min-width: 240;
+}
+
+.fxt-analysis-group-title {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 10.5px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-secondary;
+}
+
+.fxt-analysis-key {
+    -fx-font-size: 12px;
+    -fx-text-fill: -fxt-text-secondary;
+}
+
+.fxt-analysis-value {
+    -fx-font-size: 12px;
+    -fx-text-fill: -fxt-text-primary;
+}
+
+/* Quality score tile — border colour signals the band */
+.fxt-analysis-score {
+    -fx-background-color: -fxt-bg-surface;
+    -fx-background-radius: 10;
+    -fx-border-color: -fxt-border;
+    -fx-border-width: 2;
+    -fx-border-radius: 10;
+    -fx-padding: 12 24 12 24;
+    -fx-min-width: 180;
+}
+
+.fxt-analysis-score-number {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 26px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-primary;
+}
+
+.fxt-analysis-score-description {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-secondary;
+}
+
+.fxt-analysis-score-good { -fx-border-color: -fxt-success; }
+.fxt-analysis-score-good .fxt-analysis-score-number { -fx-text-fill: -fxt-success; }
+.fxt-analysis-score-fair { -fx-border-color: -fxt-warning; }
+.fxt-analysis-score-fair .fxt-analysis-score-number { -fx-text-fill: -fxt-warning; }
+.fxt-analysis-score-poor { -fx-border-color: -fxt-danger; }
+.fxt-analysis-score-poor .fxt-analysis-score-number { -fx-text-fill: -fxt-danger; }
+
+/* Count chips (severity / constraint counts) */
+.fxt-analysis-chip {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-padding: 2 9 2 9;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-background-color: -fxt-tool-neutral-bg;
+    -fx-border-color: -fxt-tool-neutral-border;
+    -fx-text-fill: -fxt-tool-neutral-fg;
+}
+
+.fxt-analysis-chip-error {
+    -fx-background-color: -fxt-tool-danger-bg;
+    -fx-border-color: -fxt-tool-danger-border;
+    -fx-text-fill: -fxt-tool-danger-fg;
+}
+
+.fxt-analysis-chip-warning {
+    -fx-background-color: -fxt-tool-warning-bg;
+    -fx-border-color: -fxt-tool-warning-border;
+    -fx-text-fill: -fxt-tool-warning-fg;
+}
+
+.fxt-analysis-chip-info, .fxt-analysis-chip-suggestion {
+    -fx-background-color: -fxt-tool-info-bg;
+    -fx-border-color: -fxt-tool-info-border;
+    -fx-text-fill: -fxt-tool-info-fg;
+}
+
+.fxt-analysis-chip-ok {
+    -fx-background-color: -fxt-tool-success-bg;
+    -fx-border-color: -fxt-tool-success-border;
+    -fx-text-fill: -fxt-tool-success-fg;
+}
+
+.fxt-analysis-details {
+    -fx-background-color: -fxt-bg-surface-2;
+    -fx-background-radius: 8;
+    -fx-border-color: -fxt-border;
+    -fx-border-radius: 8;
+    -fx-padding: 10 14 10 14;
+}
+
+.fxt-analysis-empty {
+    -fx-font-size: 12px;
+    -fx-text-fill: -fxt-text-muted;
+}
+
+/* Busy scrim while the engines run */
+.fxt-analysis-overlay {
+    -fx-background-color: rgba(245, 247, 250, 0.6);
+}
+
+.root.fxt-theme-dark .fxt-analysis-overlay {
+    -fx-background-color: rgba(15, 20, 25, 0.6);
+}
+
 /* ----- Editor file-loading spinner overlay ----------------------------- */
 /* Translucent scrim over the editor while a file is read/schema-detected.
    Backdrop tracks the theme's canvas color so it dims consistently in both. */

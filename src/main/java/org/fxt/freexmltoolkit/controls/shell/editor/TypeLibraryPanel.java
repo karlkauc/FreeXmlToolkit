@@ -20,6 +20,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.controls.shell.editor.analysis.SchemaAnalysisView;
 import org.fxt.freexmltoolkit.controls.shell.schema.XsdNodeLabels;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNodeType;
@@ -70,8 +71,7 @@ public class TypeLibraryPanel extends VBox {
                 toolButton("schema-tool-sample", "Generate Sample XML…", "bi-filetype-xml", this::generateSampleXmlForActive),
                 toolButton("schema-tool-sample-advanced", "Generate Sample XML (Advanced)…", "bi-sliders", this::generateProfiledSampleForActive),
                 toolButton("schema-tool-flatten", "Flatten Schema…", "bi-layers", this::flattenActive),
-                toolButton("schema-tool-statistics", "Statistics", "bi-bar-chart", this::statisticsActive),
-                toolButton("schema-tool-quality", "Schema Quality", "bi-patch-check", this::qualityActive),
+                toolButton("schema-tool-analysis", "Schema Analysis", SchemaAnalysisView.ICON, this::analyzeActive),
                 toolButton("schema-tool-documentation", "Generate Documentation…", "bi-file-earmark-text", this::generateDocumentationForActive));
         tools.setId("schema-tools");
         tools.getStyleClass().add("fxt-schema-tools");
@@ -294,20 +294,21 @@ public class TypeLibraryPanel extends VBox {
                 EditorFileType.XSD, "Flattened.xsd");
     }
 
-    /** Collects statistics for the active XSD and opens a text report (async). */
-    public void statisticsActive() {
-        java.nio.file.Path baseDir = editorHost.getActiveDocument().map(OpenDocument::getPath)
-                .map(java.nio.file.Path::getParent).orElse(null);
-        runAsync(content -> SchemaActionRunner.statistics(content, baseDir),
-                EditorFileType.OTHER, "Statistics.txt");
-    }
-
-    /** Runs the schema quality checker and opens its report in a new tab. */
-    public void qualityActive() {
-        java.nio.file.Path baseDir = editorHost.getActiveDocument().map(OpenDocument::getPath)
-                .map(java.nio.file.Path::getParent).orElse(null);
-        runAsync(content -> SchemaActionRunner.qualityReport(content, baseDir),
-                EditorFileType.OTHER, "SchemaQuality.txt");
+    /**
+     * Opens (or focuses) the singleton "Schema Analysis" tool tab — statistics incl. unused
+     * types, quality checks, identity constraints and XPath validation for the active XSD.
+     * Re-focusing an existing tab re-runs the analysis so the report follows the active document.
+     */
+    public void analyzeActive() {
+        boolean existed = editorHost.hasToolTab(SchemaAnalysisView.TITLE);
+        javafx.scene.control.Tab tab = editorHost.openOrFocusToolTab(SchemaAnalysisView.TITLE,
+                SchemaAnalysisView.ICON, () -> new SchemaAnalysisView(editorHost));
+        if (tab.getContent() instanceof SchemaAnalysisView view) {
+            tab.setOnClosed(e -> view.dispose());
+            if (existed) {
+                view.refresh();
+            }
+        }
     }
 
     /**
