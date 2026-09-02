@@ -2265,6 +2265,14 @@
     -fx-font-weight: bold;
 }
 
+.fxt-analysis-tabs > .tab-header-area > .headers-region > .tab .iconify-icon {
+    -fx-icon-color: -fxt-text-secondary;
+}
+
+.fxt-analysis-tabs > .tab-header-area > .headers-region > .tab:selected .iconify-icon {
+    -fx-icon-color: -fxt-primary;
+}
+
 .fxt-analysis-tabs > .tab-content-area {
     -fx-background-color: -fxt-bg-canvas;
     -fx-padding: 10 0 0 0;
@@ -2297,6 +2305,201 @@
 
 .fxt-analysis-value {
     -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-primary;
+}
+
+/* First per-file row in the Files card: a little breathing room above the file list */
+.fxt-analysis-key-section {
+    -fx-padding: 6 0 0 0;
+}
+
+.fxt-analysis-value-mono {
+    -fx-font-family: "JetBrains Mono", monospace;
+    -fx-font-weight: normal;
+    -fx-font-size: 11.5px;
+}
+
+/* Statistics: KPI tiles (big number + icon caption) */
+.fxt-analysis-stat {
+    -fx-background-color: -fxt-bg-surface;
+    -fx-background-radius: 10;
+    -fx-border-color: -fxt-border;
+    -fx-border-radius: 10;
+    -fx-padding: 12 14 10 14;
+}
+
+.fxt-analysis-stat-number {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-primary;
+}
+
+.fxt-analysis-stat-label {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 11px;
+    -fx-text-fill: -fxt-text-secondary;
+}
+
+.fxt-analysis-stat-label .iconify-icon,
+.fxt-analysis-group-title .iconify-icon {
+    -fx-icon-color: -fxt-primary;
+}
+
+/* Statistics: coverage bar (band colours) and the optional/required segment bar */
+.fxt-analysis-bar {
+    -fx-pref-height: 8;
+    -fx-min-height: 8;
+    -fx-max-height: 8;
+}
+
+.fxt-analysis-bar > .track {
+    -fx-background-color: -fxt-bg-surface-2;
+    -fx-background-radius: 4;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+}
+
+.fxt-analysis-bar > .bar {
+    -fx-background-color: -fxt-primary;
+    -fx-background-radius: 4;
+    -fx-background-insets: 0;
+    -fx-padding: 4;
+}
+
+.fxt-analysis-bar-good > .bar { -fx-background-color: -fxt-success; }
+.fxt-analysis-bar-fair > .bar { -fx-background-color: -fxt-warning; }
+.fxt-analysis-bar-poor > .bar { -fx-background-color: -fxt-danger; }
+
+.fxt-analysis-bar-value {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-primary;
+}
+
+.fxt-analysis-seg-track {
+    -fx-background-color: -fxt-bg-surface-2;
+    -fx-background-radius: 4;
+}
+
+.fxt-analysis-seg-optional { -fx-background-color: -fxt-primary; }
+.fxt-analysis-seg-required { -fx-background-color: -fxt-accent; }
+
+.fxt-analysis-seg-track > .fxt-analysis-seg:first-child { -fx-background-radius: 4 0 0 4; }
+.fxt-analysis-seg-track > .fxt-analysis-seg:last-child { -fx-background-radius: 0 4 4 0; }
+
+.fxt-analysis-seg-swatch {
+    -fx-background-radius: 2;
+}
+
+/* Statistics: usage bar in the "Most used types" table */
+.fxt-analysis-usage-track {
+    -fx-background-color: -fxt-bg-surface-2;
+    -fx-background-radius: 4;
+}
+
+.fxt-analysis-usage-fill {
+    -fx-background-color: -fxt-primary;
+    -fx-background-radius: 4;
+    -fx-pref-height: 8;
+    -fx-min-height: 8;
+    -fx-max-height: 8;
+}
+
+/* Statistics: token-based table / list chrome (modena defaults are hardcoded light) */
+.fxt-analysis-table {
+    -fx-background-color: -fxt-bg-surface;
+    -fx-background-radius: 8;
+    -fx-border-color: -fxt-border;
+    -fx-border-radius: 8;
+    -fx-padding: 1;
+}
+
+.fxt-analysis-table .column-header-background {
+    -fx-background-color: -fxt-bg-surface-2;
+    -fx-background-radius: 7 7 0 0;
+}
+
+.fxt-analysis-table .column-header-background .filler {
+    -fx-background-color: transparent;
+}
+
+.fxt-analysis-table .column-header {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent transparent -fxt-border transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 6 10 6 10;
+    -fx-size: 28;
+}
+
+.fxt-analysis-table .column-header .label {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 10.5px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-secondary;
+    -fx-alignment: CENTER_LEFT;
+}
+
+.fxt-analysis-table .table-row-cell {
+    -fx-background-color: -fxt-bg-surface;
+    -fx-border-color: transparent transparent -fxt-border transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-table-cell-border-color: transparent;
+    -fx-cell-size: 30;
+}
+
+.fxt-analysis-table .table-row-cell:hover {
+    -fx-background-color: -fxt-bg-surface-2;
+}
+
+.fxt-analysis-table .table-row-cell:filled:selected {
+    -fx-background-color: -fxt-bg-subtle;
+}
+
+.fxt-analysis-table .table-cell {
+    -fx-text-fill: -fxt-text-primary;
+    -fx-font-size: 12px;
+    -fx-padding: 4 10 4 10;
+    -fx-alignment: CENTER_LEFT;
+}
+
+.fxt-analysis-table .table-row-cell:filled:selected .table-cell {
+    -fx-text-fill: -fxt-text-primary;
+}
+
+.fxt-analysis-list {
+    -fx-background-color: -fxt-bg-surface;
+    -fx-background-radius: 8;
+    -fx-border-color: -fxt-border;
+    -fx-border-radius: 8;
+    -fx-padding: 1;
+}
+
+.fxt-analysis-list .list-cell {
+    -fx-background-color: -fxt-bg-surface;
+    -fx-text-fill: -fxt-text-primary;
+    -fx-font-size: 12px;
+    -fx-padding: 6 10 6 10;
+    -fx-border-color: transparent transparent -fxt-border transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-graphic-text-gap: 8;
+}
+
+.fxt-analysis-list .list-cell:empty {
+    -fx-border-color: transparent;
+}
+
+.fxt-analysis-list .list-cell .iconify-icon {
+    -fx-icon-color: -fxt-text-secondary;
+}
+
+.fxt-analysis-list .list-cell:filled:hover {
+    -fx-background-color: -fxt-bg-surface-2;
+}
+
+.fxt-analysis-list .list-cell:filled:selected {
+    -fx-background-color: -fxt-bg-subtle;
     -fx-text-fill: -fxt-text-primary;
 }
 

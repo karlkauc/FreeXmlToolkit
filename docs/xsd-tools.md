@@ -283,17 +283,17 @@ switches the document to the **Tree** view and reveals the node.
 
 ### Statistics
 
-The **Statistics** tab shows the schema metrics at a glance, grouped into cards:
+The **Statistics** tab opens with a row of tiles for the declaration counts (elements,
+attributes, complex and simple types, groups, attribute groups), followed by detail cards:
 
-| Group                | Metrics                                                                  |
+| Card                 | Metrics                                                                  |
 |----------------------|--------------------------------------------------------------------------|
-| **Schema**           | XSD version (1.0/1.1), target namespace, form defaults, namespaces, schema files, includes / imports, unresolved references |
-| **Declarations**     | Elements, attributes, complex and simple types, groups, attribute groups, total nodes |
+| **Schema**           | XSD version (1.0/1.1), target namespace, form defaults, namespaces, total nodes |
+| **Files**            | Schema files, includes / imports, unresolved references, and node counts per file for multi-file schemas |
 | **Constraints**      | Counts of `xs:key`, `xs:keyref`, `xs:unique`, and assertions             |
-| **Cardinality**      | Optional, required, and unbounded elements                               |
-| **Documentation**    | Coverage percentage, documented nodes, appinfo nodes, documentation languages |
-| **Nodes per file**   | Node counts per schema file (only for multi-file schemas)                |
-| **Most used types**  | The named types with the most references and their usage counts          |
+| **Documentation**    | Coverage bar (green ≥ 75 %, yellow ≥ 40 %, red below), documented nodes, appinfo nodes, documentation languages |
+| **Cardinality**      | Optional vs. required elements as a two-segment bar, plus the unbounded element count |
+| **Most used types**  | The named types with the most references; the usage bar is relative to the most used type |
 | **Unused types**     | Every named type that is never referenced, listed by name - click one to reveal it |
 
 **Export** writes the statistics as CSV, JSON, HTML, PDF, or Excel.

@@ -7,8 +7,10 @@ import java.util.concurrent.TimeUnit;
 
 import javafx.scene.Scene;
 import javafx.scene.control.ListView;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 
 import org.junit.jupiter.api.Test;
@@ -52,6 +54,19 @@ class SchemaAnalysisViewTest {
         ListView<String> unused = (ListView<String>) view.lookup("#analysis-unused-types");
         assertNotNull(unused);
         assertEquals(List.of("OrphanType"), unused.getItems());
+    }
+
+    @Test
+    void statisticsShowsKpiTilesAndCoverageBar() {
+        WaitForAsyncUtils.waitForFxEvents();
+        HBox kpis = (HBox) view.lookup("#analysis-kpis");
+        assertNotNull(kpis);
+        assertEquals(6, kpis.getChildren().size(), "one KPI tile per declaration kind");
+        ProgressBar coverage = (ProgressBar) view.lookup("#analysis-coverage-bar");
+        assertNotNull(coverage);
+        assertEquals(data.statistics().documentationCoveragePercent() / 100.0, coverage.getProgress(), 1e-6);
+        assertTrue(coverage.getStyleClass().stream().anyMatch(c -> c.startsWith("fxt-analysis-bar-")));
+        assertNotNull(view.lookup("#analysis-top-types"));
     }
 
     @Test
