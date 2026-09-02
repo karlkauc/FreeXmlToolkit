@@ -1281,6 +1281,28 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#identity-constraints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Identity Constraints
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#xpath-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        XPath Validation
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2497,6 +2519,28 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#identity-constraints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Identity Constraints
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#xpath-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        XPath Validation
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2868,7 +2912,7 @@ are followed too, with circular imports detected and a nesting depth cap of 10.<
 <li><strong>Your files are never touched.</strong> Resolved and downloaded schemas go to the shared cache
   only - nothing is written into your schema's folder, and the schema itself is never
   rewritten. This applies everywhere imports are resolved: the schema views, validation,
-  the Type Library, statistics, Schema Quality and documentation generation.</li>
+  the Type Library, Schema Analysis and documentation generation.</li>
 <li>Only imports whose namespace is an <code>http://</code> or <code>https://</code> URL are looked up by
   namespace (step 5).</li>
 <li><code>xs:include</code> references are resolved relative to the including file, or through an XML
@@ -2919,7 +2963,7 @@ top-level declarations so you can browse, find, and open every type in the schem
 </tr>
 <tr>
 <td><strong>Schema tools</strong></td>
-<td>A strip of icon buttons above the filter: Generate XSD from XML (single/batch), Generate Sample XML (plain/advanced), Flatten Schema, Statistics, Schema Quality, and Generate Documentation - hover a button for its name</td>
+<td>A strip of icon buttons above the filter: Generate XSD from XML (single/batch), Generate Sample XML (plain/advanced), Flatten Schema, Schema Analysis, and Generate Documentation - hover a button for its name</td>
 </tr>
 </tbody>
 </table>
@@ -3070,44 +3114,33 @@ when you switch between Text, Tree, and Graphic.</p>
 </blockquote>
 <hr />
 <h2 id="5-schema-analysis">5. Schema Analysis<a class="headerlink" href="#5-schema-analysis" title="Permanent link">&para;</a></h2>
-<p>Two tool buttons in the <strong>Schema</strong> activity's side panel analyze the active XSD. Each opens
-its result as a report tab in the editor area, so you can read, compare, or save it like any
-other document.</p>
-<p><img alt="Schema statistics in the Unified Shell" src="../img/unified-shell-schema-statistics.png" />
-<em>Schema statistics open as a report tab from the Schema activity's </em><em>Statistics</em><em> action</em></p>
+<p>The <strong>Schema Analysis</strong> button in the <strong>Schema</strong> activity's tool strip analyzes the active XSD
+and opens the report as a tool tab in the editor area. The analysis runs in the background on
+the current editor text (unsaved changes included); imports and includes are resolved relative
+to the file. The header shows the document, the quality score, the number of issues and the
+number of unused types; <strong>Refresh</strong> re-runs the analysis, and opening the tool again while the
+tab is already open re-analyzes the active document instead of adding a second tab.</p>
+<p><img alt="Schema analysis in the Unified Shell" src="../img/unified-shell-schema-statistics.png" />
+<em>The Schema Analysis tool tab with its four sub-tabs, opened from the Schema activity</em></p>
+<p>Every finding is a link into the schema: selecting a row, an unused type or an affected element
+switches the document to the <strong>Tree</strong> view and reveals the node.</p>
 <h3 id="statistics">Statistics<a class="headerlink" href="#statistics" title="Permanent link">&para;</a></h3>
-<p>The <strong>Statistics</strong> button produces a report with schema metrics at a glance:</p>
+<p>The <strong>Statistics</strong> tab shows the schema metrics at a glance, grouped into cards:</p>
 <table>
 <thead>
 <tr>
-<th>Metric</th>
-<th>Description</th>
+<th>Group</th>
+<th>Metrics</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><strong>XSD Version</strong></td>
-<td>1.0 or 1.1 features detected</td>
+<td><strong>Schema</strong></td>
+<td>XSD version (1.0/1.1), target namespace, form defaults, namespaces, schema files, includes / imports, unresolved references</td>
 </tr>
 <tr>
-<td><strong>Element Count</strong></td>
-<td>Total number of elements</td>
-</tr>
-<tr>
-<td><strong>Attribute Count</strong></td>
-<td>Total attributes defined</td>
-</tr>
-<tr>
-<td><strong>Type Count</strong></td>
-<td>Number of SimpleTypes and ComplexTypes</td>
-</tr>
-<tr>
-<td><strong>Group Count</strong></td>
-<td>Model groups and attribute groups</td>
-</tr>
-<tr>
-<td><strong>Includes / Imports</strong></td>
-<td>How many schema files are pulled in</td>
+<td><strong>Declarations</strong></td>
+<td>Elements, attributes, complex and simple types, groups, attribute groups, total nodes</td>
 </tr>
 <tr>
 <td><strong>Constraints</strong></td>
@@ -3118,18 +3151,28 @@ other document.</p>
 <td>Optional, required, and unbounded elements</td>
 </tr>
 <tr>
-<td><strong>Documentation Coverage</strong></td>
-<td>Percentage of documented nodes</td>
+<td><strong>Documentation</strong></td>
+<td>Coverage percentage, documented nodes, appinfo nodes, documentation languages</td>
 </tr>
 <tr>
-<td><strong>Unused Types</strong></td>
-<td>Named types that are never referenced (listed by name)</td>
+<td><strong>Nodes per file</strong></td>
+<td>Node counts per schema file (only for multi-file schemas)</td>
+</tr>
+<tr>
+<td><strong>Most used types</strong></td>
+<td>The named types with the most references and their usage counts</td>
+</tr>
+<tr>
+<td><strong>Unused types</strong></td>
+<td>Every named type that is never referenced, listed by name - click one to reveal it</td>
 </tr>
 </tbody>
 </table>
+<p><strong>Export</strong> writes the statistics as CSV, JSON, HTML, PDF, or Excel.</p>
 <h3 id="quality-checks">Quality Checks<a class="headerlink" href="#quality-checks" title="Permanent link">&para;</a></h3>
-<p>The <strong>Schema Quality</strong> button runs automated quality checks and reports a score plus a list
-of issues:</p>
+<p>The <strong>Quality Checks</strong> tab shows a score (0-100) with its rating, the number of checks passed,
+the dominant naming convention, and the issues found. Filter the table by severity, category,
+or free text; select an issue to read its suggestion and to jump to the affected elements.</p>
 <table>
 <thead>
 <tr>
@@ -3139,27 +3182,45 @@ of issues:</p>
 </thead>
 <tbody>
 <tr>
-<td><strong>Naming Conventions</strong></td>
-<td>Consistent element/type naming</td>
+<td><strong>Naming Convention</strong></td>
+<td>Element/type names that deviate from the schema's dominant convention (UpperCamelCase, lowerCamelCase, snake_case, kebab-case)</td>
 </tr>
 <tr>
-<td><strong>Documentation Coverage</strong></td>
-<td>Percentage of documented elements</td>
+<td><strong>Best Practice</strong></td>
+<td><code>xs:any</code> / <code>xs:anyAttribute</code> wildcards, unbounded content without limits, deep nesting, anonymous complex types</td>
 </tr>
 <tr>
-<td><strong>Unused Types</strong></td>
-<td>Types defined but never used</td>
+<td><strong>Deprecated</strong></td>
+<td>Components marked as deprecated in <code>xs:appinfo</code></td>
 </tr>
 <tr>
-<td><strong>Circular References</strong></td>
-<td>Detect circular type references</td>
+<td><strong>Constraint Conflict</strong></td>
+<td>Enumeration values that conflict with length facets</td>
 </tr>
 <tr>
-<td><strong>Best Practices</strong></td>
-<td>Common XSD best practices</td>
+<td><strong>Inconsistent Definition</strong></td>
+<td>The same name defined with different content in several places</td>
+</tr>
+<tr>
+<td><strong>Duplicate Definition</strong></td>
+<td>Different names with identical structure</td>
+</tr>
+<tr>
+<td><strong>Duplicate Element in Container</strong></td>
+<td>The same element declared twice in one sequence, choice, or all (ambiguity error)</td>
 </tr>
 </tbody>
 </table>
+<p><strong>Export</strong> writes the quality report as CSV, JSON, HTML, PDF, or Excel.</p>
+<h3 id="identity-constraints">Identity Constraints<a class="headerlink" href="#identity-constraints" title="Permanent link">&para;</a></h3>
+<p>The <strong>Identity Constraints</strong> tab lists every <code>xs:key</code>, <code>xs:keyref</code>, <code>xs:unique</code>, and
+<code>xs:assert</code> with its parent element, selector, fields, referenced key or test expression, and a
+validation status - for example a <code>keyref</code> whose <code>refer</code> points to a key that does not exist.</p>
+<h3 id="xpath-validation">XPath Validation<a class="headerlink" href="#xpath-validation" title="Permanent link">&para;</a></h3>
+<p>The <strong>XPath Validation</strong> tab checks the XPath expressions used by identity constraints and
+assertions: syntax, element names that do not occur in the schema, and constructs that are not
+allowed in selectors and fields. The expressions are checked statically against the schema;
+they are not evaluated against a sample XML document.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Identity constraints (<code>xs:key</code>, <code>xs:keyref</code>, <code>xs:unique</code>, <code>xs:assert</code>) can also be

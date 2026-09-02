@@ -4187,14 +4187,14 @@ XProc document is active and selects the XML document the run works on. See
 <p>When editing an XSD file, the editor host and the <strong>Schema</strong> activity provide:</p>
 <p><img alt="XSD schema in the Graphic view" src="../img/unified-shell-schema-graphic.png" />
 <em>An XSD open in the Graphic view, with the Schema activity panel (Type Library, Flatten,
-Statistics, Schema Quality, Generate Sample XML / Documentation) on the left.</em></p>
+Schema Analysis, Generate Sample XML / Documentation) on the left.</em></p>
 <p><img alt="XSD schema in the Tree view" src="../img/unified-shell-schema-tree.png" />
 <em>The same schema in the Tree view - select a node to edit its properties in the inspector.</em></p>
 <ul>
 <li><strong>Text</strong> - Source code editing with syntax highlighting; moving the caret into a schema construct also lets you edit its properties in the Properties pane (see <a href="#properties-inspector">Properties Inspector</a>)</li>
 <li><strong>Graphic</strong> - Visual XMLSpy-style schema diagram</li>
 <li><strong>Type Editor</strong> - Edit ComplexTypes graphically, SimpleTypes with form editor</li>
-<li><strong>Analysis</strong> - Schema statistics, identity constraints, quality checks</li>
+<li><strong>Analysis</strong> - The <strong>Schema Analysis</strong> tool tab: statistics incl. unused types, quality checks with score, identity constraints, XPath validation - every finding reveals its node in the Tree view (see <a href="../xsd-tools/#5-schema-analysis">Schema Analysis</a>)</li>
 <li><strong>Documentation</strong> - Generate HTML/Word/PDF documentation (see below)</li>
 <li><strong>Sample Data</strong> - Generate sample XML from the schema</li>
 <li><strong>Flatten</strong> - Merge included schemas into a single standalone file. The <strong>Flatten Schema…</strong> button opens an options dialog first: strip annotations, strip XML comments, remove unused global types and groups, and minify the output — all checked by default for a minimal schema suited to server-side validation; uncheck everything for a plain flatten that keeps documentation. Imports (<code>xs:import</code>, different namespaces) are never merged. See <a href="../xsd-tools/#8-xsd-flattener">XSD Flattener</a> for details.</li>
@@ -4215,7 +4215,7 @@ grouped into <strong>GLOBAL ELEMENTS</strong>, <strong>COMPLEX TYPES</strong>, a
 sections), with a <strong>filter field</strong> on top. Click a declaration to reveal it in the Tree
 view; double-click a type to open it in its dedicated <strong>Type Editor</strong> tab; right-click for
 <strong>Reveal in Tree / Open Type Editor / Find Usage</strong>. The schema tools (Generate XSD from
-XML / batch, Sample XML plain/advanced, Flatten, Statistics, Schema Quality,
+XML / batch, Sample XML plain/advanced, Flatten, Schema Analysis,
 Documentation) sit as a <strong>strip of icon buttons directly above the filter</strong> - hover for
 the tool's name.</p>
 <p>The <strong>whole panel is a drop zone</strong>: drop an <code>.xsd</code> file from your
