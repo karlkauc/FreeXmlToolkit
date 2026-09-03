@@ -3223,10 +3223,13 @@ constraint in the Tree view and fills the details pane with the validation messa
 element (a link), selector and fields, and - for a keyref - a link that selects the referenced
 key.</p>
 <h3 id="xpath-validation">XPath Validation<a class="headerlink" href="#xpath-validation" title="Permanent link">&para;</a></h3>
-<p>The <strong>XPath Validation</strong> tab checks the XPath expressions used by identity constraints and
-assertions: syntax, element names that do not occur in the schema, and constructs that are not
-allowed in selectors and fields. The expressions are checked statically against the schema;
-they are not evaluated against a sample XML document.</p>
+<p>The <strong>XPath Validation</strong> tab lists every XPath expression used by identity constraints and
+assertions - each selector, each field and each assert test is one row - with its status:
+<strong>Valid</strong>, or the most severe finding for it (syntax errors, element names that do not occur
+in the schema, constructs that are not allowed in selectors and fields). The status chips
+above the table are clickable filters, and the details pane shows the full expression, the
+findings and a link to the parent element. The expressions are checked statically against the
+schema; they are not evaluated against a sample XML document.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Identity constraints (<code>xs:key</code>, <code>xs:keyref</code>, <code>xs:unique</code>, <code>xs:assert</code>) can also be
