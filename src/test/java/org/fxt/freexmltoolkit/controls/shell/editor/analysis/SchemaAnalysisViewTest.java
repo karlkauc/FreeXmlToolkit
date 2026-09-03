@@ -131,6 +131,26 @@ class SchemaAnalysisViewTest {
     }
 
     @Test
+    void xpathTableListsEveryExpressionAndFiltersByStatus() throws Exception {
+        WaitForAsyncUtils.waitForFxEvents();
+        TableView<?> table = (TableView<?>) view.lookup("#analysis-xpath-table");
+        FlowPane chips = (FlowPane) view.lookup("#analysis-xpath-chips");
+        Label count = (Label) view.lookup("#analysis-xpath-count");
+        // key: selector + field, keyref: selector + field — all valid in the test schema
+        assertEquals(4, table.getItems().size());
+        assertEquals("4 expressions", count.getText());
+        assertEquals(1, chips.getChildren().size(), "only a 'valid' chip when nothing is wrong");
+        Label valid = (Label) chips.getChildren().getFirst();
+        assertEquals("4 valid", valid.getText());
+
+        WaitForAsyncUtils.asyncFx(() -> valid.getOnMouseClicked().handle(null));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> valid.getStyleClass().contains("fxt-analysis-chip-active"));
+        WaitForAsyncUtils.waitForFxEvents();
+        assertEquals(4, table.getItems().size());
+        assertEquals("4 expressions", count.getText());
+    }
+
+    @Test
     void constraintTypeChipFiltersTheTable() throws Exception {
         WaitForAsyncUtils.waitForFxEvents();
         TableView<?> table = (TableView<?>) view.lookup("#analysis-constraints-table");

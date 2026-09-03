@@ -333,10 +333,13 @@ key.
 
 ### XPath Validation
 
-The **XPath Validation** tab checks the XPath expressions used by identity constraints and
-assertions: syntax, element names that do not occur in the schema, and constructs that are not
-allowed in selectors and fields. The expressions are checked statically against the schema;
-they are not evaluated against a sample XML document.
+The **XPath Validation** tab lists every XPath expression used by identity constraints and
+assertions - each selector, each field and each assert test is one row - with its status:
+**Valid**, or the most severe finding for it (syntax errors, element names that do not occur
+in the schema, constructs that are not allowed in selectors and fields). The status chips
+above the table are clickable filters, and the details pane shows the full expression, the
+findings and a link to the parent element. The expressions are checked statically against the
+schema; they are not evaluated against a sample XML document.
 
 !!! note
     Identity constraints (`xs:key`, `xs:keyref`, `xs:unique`, `xs:assert`) can also be

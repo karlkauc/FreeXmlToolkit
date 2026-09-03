@@ -54,6 +54,8 @@ public class SchemaAnalysisView extends BorderPane {
     private final StackPane overlay = new StackPane();
     private Future<?> running;
     private SchemaAnalysisData data;
+    /** The document analyzed last (refresh target while this tool tab is the active one). */
+    private OpenDocument document;
 
     /** Creates the view and immediately analyzes the host's active XSD document. */
     public SchemaAnalysisView(EditorHost editorHost) {
@@ -121,20 +123,46 @@ public class SchemaAnalysisView extends BorderPane {
         return tab;
     }
 
-    /** Re-analyzes the host's active XSD document off the FX thread. */
+    /**
+     * Re-analyzes an XSD document off the FX thread: the host's active document if it is an
+     * XSD, else the document analyzed last (if still open), else any open XSD. The fallbacks
+     * matter because this tool tab is itself the active tab whenever its Refresh button is
+     * clicked.
+     */
     public void refresh() {
         if (editorHost == null) {
             status.setText(NO_DOCUMENT);
             return;
         }
-        Optional<OpenDocument> doc = editorHost.getActiveDocument();
-        if (doc.isEmpty() || doc.get().getFileType() != EditorFileType.XSD) {
+        Optional<OpenDocument> doc = editorHost.getActiveDocument().filter(SchemaAnalysisView::isXsd);
+        if (doc.isEmpty() && document != null && editorHost.getOpenDocuments().contains(document)) {
+            doc = Optional.of(document);
+        }
+        if (doc.isEmpty()) {
+            doc = editorHost.getOpenDocuments().stream().filter(SchemaAnalysisView::isXsd).findFirst();
+        }
+        if (doc.isEmpty()) {
             status.setText(NO_DOCUMENT);
             return;
         }
-        String text = editorHost.getActiveText().orElse("");
-        String name = doc.get().getDisplayName();
-        Path path = doc.get().getPath();
+        refresh(doc.get());
+    }
+
+    /** Analyzes {@code doc} (which must be open in the host) off the FX thread. */
+    public void refresh(OpenDocument doc) {
+        if (editorHost == null || doc == null || !isXsd(doc)) {
+            status.setText(NO_DOCUMENT);
+            return;
+        }
+        Optional<String> documentText = editorHost.getDocumentText(doc);
+        if (documentText.isEmpty()) {
+            status.setText(NO_DOCUMENT);
+            return;
+        }
+        document = doc;
+        String text = documentText.get();
+        String name = doc.getDisplayName();
+        Path path = doc.getPath();
         cancelRunning();
         showBusy(true);
         status.setText("Analyzing " + name + "…");
@@ -178,6 +206,10 @@ public class SchemaAnalysisView extends BorderPane {
                 + " · " + AnalysisSupport.plural(unused, "unused type"));
         status.getStyleClass().remove("fxt-lib-error");
         status.setText("Analyzed " + data.documentName());
+    }
+
+    private static boolean isXsd(OpenDocument doc) {
+        return doc != null && doc.getFileType() == EditorFileType.XSD;
     }
 
     private void showBusy(boolean busy) {

@@ -301,12 +301,18 @@ public class TypeLibraryPanel extends VBox {
      */
     public void analyzeActive() {
         boolean existed = editorHost.hasToolTab(SchemaAnalysisView.TITLE);
+        // Capture the document before the tool tab takes over as the active tab.
+        var active = editorHost.getActiveDocument().orElse(null);
         javafx.scene.control.Tab tab = editorHost.openOrFocusToolTab(SchemaAnalysisView.TITLE,
                 SchemaAnalysisView.ICON, () -> new SchemaAnalysisView(editorHost));
         if (tab.getContent() instanceof SchemaAnalysisView view) {
             tab.setOnClosed(e -> view.dispose());
             if (existed) {
-                view.refresh();
+                if (active != null && active.getFileType() == org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.XSD) {
+                    view.refresh(active);
+                } else {
+                    view.refresh();
+                }
             }
         }
     }

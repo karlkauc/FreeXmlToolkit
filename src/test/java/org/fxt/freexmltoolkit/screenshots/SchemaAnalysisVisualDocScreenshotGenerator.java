@@ -82,14 +82,74 @@ class SchemaAnalysisVisualDocScreenshotGenerator {
         shot("analysis-quality-light");
         selectSubTab(2);
         shot("analysis-constraints-light");
+        selectSubTab(3);
+        shot("analysis-xpath-light");
 
         onFx(() -> ThemeManager.apply(shell.getScene(), true));
         settle(800);
         shot("analysis-quality-dark");
         selectSubTab(2);
         shot("analysis-constraints-dark");
+        selectSubTab(3);
+        shot("analysis-xpath-dark");
         selectSubTab(0);
         shot("analysis-statistics-dark");
+
+        // A small schema with broken constraint XPaths so the XPath tab shows findings.
+        java.nio.file.Path broken = java.nio.file.Files.createTempFile("broken-xpath-", ".xsd");
+        java.nio.file.Files.writeString(broken, """
+                <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:vc="http://www.w3.org/2007/XMLSchema-versioning"
+                           vc:minVersion="1.1">
+                  <xs:element name="orders">
+                    <xs:complexType>
+                      <xs:sequence>
+                        <xs:element name="order" maxOccurs="unbounded">
+                          <xs:complexType>
+                            <xs:attribute name="id" type="xs:string"/>
+                            <xs:attribute name="customer" type="xs:string"/>
+                            <xs:attribute name="total" type="xs:decimal"/>
+                            <xs:assert test="@total >= 0"/>
+                            <xs:assert test="@total >= (("/>
+                          </xs:complexType>
+                        </xs:element>
+                        <xs:element name="customer" maxOccurs="unbounded">
+                          <xs:complexType><xs:attribute name="id" type="xs:string"/></xs:complexType>
+                        </xs:element>
+                      </xs:sequence>
+                    </xs:complexType>
+                    <xs:key name="orderKey"><xs:selector xpath="order"/><xs:field xpath="@id"/></xs:key>
+                    <xs:key name="customerKey"><xs:selector xpath="customer"/><xs:field xpath="@id"/></xs:key>
+                    <xs:keyref name="orderCustomer" refer="customerKey"><xs:selector xpath="order"/><xs:field xpath="@customer"/></xs:keyref>
+                    <xs:unique name="invoiceUnique"><xs:selector xpath="invoice"/><xs:field xpath="@number"/></xs:unique>
+                    <xs:keyref name="danglingRef" refer="noSuchKey"><xs:selector xpath="order"/><xs:field xpath="@id"/></xs:keyref>
+                  </xs:element>
+                </xs:schema>
+                """);
+        onFx(() -> host.openFile(broken));
+        WaitForAsyncUtils.waitFor(15, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("danglingRef")).orElse(false));
+        onFx(() -> shell.getSelectionModel().select(Activity.SCHEMA));
+        settle(500);
+        onFx(() -> {
+            if (shell.lookup(".fxt-schema-panel") instanceof TypeLibraryPanel library) {
+                library.analyzeActive();
+            }
+        });
+        WaitForAsyncUtils.waitFor(60, TimeUnit.SECONDS, () -> {
+            var done = new java.util.concurrent.atomic.AtomicBoolean();
+            onFx(() -> done.set(shell.lookup("#analysis-status") instanceof Label l
+                    && l.getText().startsWith("Analyzed broken-xpath")));
+            return done.get();
+        });
+        settle(600);
+        selectSubTab(3);
+        shot("analysis-xpath-findings-dark");
+        onFx(() -> ThemeManager.apply(shell.getScene(), false));
+        settle(800);
+        shot("analysis-xpath-findings-light");
+        selectSubTab(2);
+        shot("analysis-constraints-findings-light");
+        java.nio.file.Files.deleteIfExists(broken);
         onFx(() -> ThemeManager.apply(shell.getScene(), false));
         settle(300);
     }
@@ -98,7 +158,8 @@ class SchemaAnalysisVisualDocScreenshotGenerator {
         onFx(() -> {
             if (shell.lookup("#schema-analysis-tabs") instanceof TabPane tabs) {
                 tabs.getSelectionModel().select(index);
-                String tableId = index == 1 ? "#analysis-quality-table" : index == 2 ? "#analysis-constraints-table" : null;
+                String tableId = index == 1 ? "#analysis-quality-table" : index == 2 ? "#analysis-constraints-table"
+                        : index == 3 ? "#analysis-xpath-table" : null;
                 if (tableId != null && shell.lookup(tableId) instanceof TableView<?> table
                         && !table.getItems().isEmpty()) {
                     table.getSelectionModel().select(0);
