@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdIdentityConstraintAnalyzer;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -69,6 +70,36 @@ class SchemaAnalysisRunnerTest {
         // The validator only records XPaths with findings; well-formed selectors/fields yield none.
         assertTrue(data.xpath().isAllValid(), data.xpath().issues().toString());
         assertEquals(0, data.xpath().errorCount());
+    }
+
+    @Test
+    void assertsInLocalComplexTypesReachConstraintsAndXPathReport() throws Exception {
+        String xsd = """
+                <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                  <xs:element name="order">
+                    <xs:complexType>
+                      <xs:attribute name="total" type="xs:decimal"/>
+                      <xs:assert test="@total >= 0"/>
+                      <xs:assert test="@total >= (("/>
+                    </xs:complexType>
+                  </xs:element>
+                </xs:schema>
+                """;
+        SchemaAnalysisData data = SchemaAnalysisRunner.analyze(xsd, "asserts.xsd", null);
+
+        assertEquals(2, data.constraints().asserts().size(), data.constraints().getAllConstraints().toString());
+        var ok = data.constraints().asserts().get(0);
+        var broken = data.constraints().asserts().get(1);
+        assertEquals("@total >= 0", ok.testExpression());
+        assertEquals("order", ok.parentElementName(), "anonymous complexType is skipped, the element names the context");
+        assertEquals(XsdIdentityConstraintAnalyzer.ValidationStatus.VALID, ok.status());
+        assertEquals(XsdIdentityConstraintAnalyzer.ValidationStatus.ERROR, broken.status());
+        assertTrue(broken.statusMessage().startsWith("Syntax error"), broken.statusMessage());
+        assertEquals(1, data.constraints().errorCount());
+        assertEquals(1, data.xpath().errorCount(), data.xpath().issues().toString());
+        assertTrue(data.xpath().getErrors().getFirst().message().startsWith("Syntax error"),
+                data.xpath().getErrors().getFirst().message());
+        assertEquals("@total >= ((", data.xpath().getErrors().getFirst().xpath());
     }
 
     @Test

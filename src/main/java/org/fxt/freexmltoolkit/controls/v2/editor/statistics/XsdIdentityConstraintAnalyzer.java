@@ -33,6 +33,9 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdUnique;
  */
 public class XsdIdentityConstraintAnalyzer {
 
+    /** Lazily created Saxon compiler for assert syntax checks. */
+    private net.sf.saxon.s9api.XPathCompiler xpathCompiler;
+
     private static final Logger logger = LogManager.getLogger(XsdIdentityConstraintAnalyzer.class);
 
     private final XsdSchema schema;
@@ -423,9 +426,11 @@ public class XsdIdentityConstraintAnalyzer {
         while (parent != null) {
             if (parent instanceof XsdElement element) {
                 return element.getName();
-            } else if (parent instanceof XsdComplexType complexType) {
+            } else if (parent instanceof XsdComplexType complexType
+                    && complexType.getName() != null && !complexType.getName().isBlank()) {
                 return complexType.getName();
             }
+            // anonymous complex types (and content/derivation wrappers) name nothing — keep climbing
             parent = parent.getParent();
         }
         return "(root)";
@@ -491,10 +496,31 @@ public class XsdIdentityConstraintAnalyzer {
         if (test == null || test.isBlank()) {
             return ValidationStatus.ERROR;
         }
+        return assertSyntaxError(test) == null ? ValidationStatus.VALID : ValidationStatus.ERROR;
+    }
 
-        // Basic syntax check - more detailed validation is done by XsdXPathValidator
-        // For now, just check if the expression is not empty
-        return ValidationStatus.VALID;
+    /**
+     * Compiles an assert test with Saxon (the same check {@link XsdXPathValidator} applies) so the
+     * constraint status agrees with the XPath report.
+     *
+     * @return a "Syntax error: …" message, or {@code null} when the expression compiles
+     */
+    private String assertSyntaxError(String test) {
+        try {
+            if (xpathCompiler == null) {
+                xpathCompiler = new net.sf.saxon.s9api.Processor(false).newXPathCompiler();
+                xpathCompiler.declareNamespace("xs", "http://www.w3.org/2001/XMLSchema");
+                xpathCompiler.declareNamespace("fn", "http://www.w3.org/2005/xpath-functions");
+            }
+            xpathCompiler.compile(test);
+            return null;
+        } catch (net.sf.saxon.s9api.SaxonApiException e) {
+            String message = e.getMessage() == null ? "" : e.getMessage();
+            if (message.contains(":")) {
+                message = message.substring(message.lastIndexOf(':') + 1).trim();
+            }
+            return "Syntax error: " + message;
+        }
     }
 
     /**
@@ -545,6 +571,7 @@ public class XsdIdentityConstraintAnalyzer {
         if (test == null || test.isBlank()) {
             return "Missing 'test' expression";
         }
-        return "Valid XPath 2.0";
+        String syntaxError = assertSyntaxError(test);
+        return syntaxError != null ? syntaxError : "Valid XPath 2.0";
     }
 }

@@ -360,4 +360,56 @@ class XsdNodeFactoryTest {
         assertEquals("This is a test element", element.getDocumentation());
         assertEquals("Some application info", element.getAppinfoAsString());
     }
+
+    @Test
+    void parsesXsd11AssertsInComplexTypeExtensionAndRestriction() throws Exception {
+        String xsd = """
+                <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                  <xs:complexType name="BaseType">
+                    <xs:attribute name="total" type="xs:decimal"/>
+                    <xs:assert test="@total >= 0"/>
+                    <xs:assert test="@total >= ((" xpathDefaultNamespace="##targetNamespace"/>
+                  </xs:complexType>
+                  <xs:complexType name="ExtType">
+                    <xs:complexContent>
+                      <xs:extension base="BaseType">
+                        <xs:attribute name="tax" type="xs:decimal"/>
+                        <xs:assert test="@tax le @total"/>
+                      </xs:extension>
+                    </xs:complexContent>
+                  </xs:complexType>
+                  <xs:complexType name="ResType">
+                    <xs:complexContent>
+                      <xs:restriction base="BaseType">
+                        <xs:assert test="@total lt 100"/>
+                      </xs:restriction>
+                    </xs:complexContent>
+                  </xs:complexType>
+                </xs:schema>
+                """;
+        XsdSchema schema = new XsdNodeFactory().fromString(xsd);
+
+        java.util.List<XsdAssert> asserts = new java.util.ArrayList<>();
+        collectAsserts(schema, asserts);
+        assertEquals(4, asserts.size(), asserts.stream().map(XsdAssert::getTest).toList().toString());
+        assertEquals("@total >= 0", asserts.get(0).getTest());
+        assertEquals("##targetNamespace", asserts.get(1).getXpathDefaultNamespace());
+        assertEquals(XsdNodeType.COMPLEX_TYPE, asserts.get(0).getParent().getNodeType());
+        assertEquals(XsdNodeType.EXTENSION, asserts.get(2).getParent().getNodeType());
+        assertEquals(XsdNodeType.RESTRICTION, asserts.get(3).getParent().getNodeType());
+        assertEquals("1.1", schema.detectXsdVersion());
+
+        String out = new org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSerializer().serialize(schema);
+        assertEquals(4, out.split("<xs:assert ", -1).length - 1, out);
+        assertTrue(out.contains("test=\"@tax le @total\""), out);
+    }
+
+    private static void collectAsserts(XsdNode node, java.util.List<XsdAssert> into) {
+        if (node instanceof XsdAssert a) {
+            into.add(a);
+        }
+        for (XsdNode child : node.getChildren()) {
+            collectAsserts(child, into);
+        }
+    }
 }

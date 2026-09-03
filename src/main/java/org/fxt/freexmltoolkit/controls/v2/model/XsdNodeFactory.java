@@ -1038,6 +1038,8 @@ public class XsdNodeFactory {
             } else if (isXsdElement(childElement, "attributeGroup")) {
                 XsdAttributeGroup attributeGroup = parseAttributeGroupRef(childElement);
                 complexType.addChild(attributeGroup);
+            } else if (isXsdElement(childElement, "assert")) {
+                complexType.addChild(parseAssert(childElement));
             }
         }
 
@@ -1150,6 +1152,8 @@ public class XsdNodeFactory {
                 restriction.addFacet(facet);
             } else if (isXsdElement(childElement, "annotation")) {
                 parseAnnotation(childElement, restriction);
+            } else if (isXsdElement(childElement, "assert")) {
+                restriction.addChild(parseAssert(childElement));
             }
         }
 
@@ -1298,6 +1302,8 @@ public class XsdNodeFactory {
                 } else if (isXsdElement(childElement, "anyAttribute")) {
                     XsdAnyAttribute anyAttr = parseAnyAttribute(childElement);
                     extension.addChild(anyAttr);
+                } else if (isXsdElement(childElement, "assert")) {
+                    extension.addChild(parseAssert(childElement));
                 }
             }
         }
@@ -1418,6 +1424,26 @@ public class XsdNodeFactory {
         parseIdentityConstraintChildren(keyElement, key);
 
         return key;
+    }
+
+    /**
+     * Parses an XSD 1.1 {@code xs:assert} (allowed in complexType, complexContent/simpleContent
+     * extension and restriction): the {@code test} XPath, the optional
+     * {@code xpathDefaultNamespace} and its annotation.
+     */
+    private XsdAssert parseAssert(Element assertElement) {
+        XsdAssert assertion = new XsdAssert(assertElement.getAttribute("test"));
+        if (assertElement.hasAttribute("xpathDefaultNamespace")) {
+            assertion.setXpathDefaultNamespace(assertElement.getAttribute("xpathDefaultNamespace"));
+        }
+        NodeList children = assertElement.getChildNodes();
+        for (int i = 0; i < children.getLength(); i++) {
+            if (children.item(i) instanceof Element child && isXsdElement(child, "annotation")) {
+                parseAnnotation(child, assertion);
+            }
+        }
+        tagNodeWithSourceInfo(assertion);
+        return assertion;
     }
 
     /**
