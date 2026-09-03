@@ -412,4 +412,93 @@ class XsdNodeFactoryTest {
             collectAsserts(child, into);
         }
     }
+
+    @Test
+    void parsesContentModelInsideComplexContentRestrictionAndExtension() throws Exception {
+        String xsd = """
+                <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                  <xs:group name="AddressGroup">
+                    <xs:sequence><xs:element name="street" type="xs:string"/></xs:sequence>
+                  </xs:group>
+                  <xs:attributeGroup name="AuditAttrs">
+                    <xs:attribute name="createdBy" type="xs:string"/>
+                  </xs:attributeGroup>
+                  <xs:complexType name="BaseType">
+                    <xs:sequence><xs:element name="name" type="xs:string"/><xs:any minOccurs="0"/></xs:sequence>
+                    <xs:attribute name="id" type="xs:string"/>
+                    <xs:anyAttribute/>
+                  </xs:complexType>
+                  <xs:complexType name="RestrictedType">
+                    <xs:complexContent>
+                      <xs:restriction base="BaseType">
+                        <xs:annotation><xs:documentation>narrowed</xs:documentation></xs:annotation>
+                        <xs:sequence><xs:element name="name" type="xs:string"/></xs:sequence>
+                        <xs:attribute name="id" type="xs:string" use="required"/>
+                        <xs:attributeGroup ref="AuditAttrs"/>
+                        <xs:anyAttribute processContents="lax"/>
+                      </xs:restriction>
+                    </xs:complexContent>
+                  </xs:complexType>
+                  <xs:complexType name="GroupedType">
+                    <xs:complexContent>
+                      <xs:extension base="BaseType">
+                        <xs:group ref="AddressGroup"/>
+                      </xs:extension>
+                    </xs:complexContent>
+                  </xs:complexType>
+                  <xs:complexType name="MeasureType">
+                    <xs:simpleContent>
+                      <xs:restriction base="xs:string">
+                        <xs:simpleType><xs:restriction base="xs:string"><xs:maxLength value="3"/></xs:restriction></xs:simpleType>
+                        <xs:attribute name="unit" type="xs:string"/>
+                      </xs:restriction>
+                    </xs:simpleContent>
+                  </xs:complexType>
+                </xs:schema>
+                """;
+        XsdSchema schema = new XsdNodeFactory().fromString(xsd);
+
+        XsdRestriction restricted = firstRestriction(schema, "RestrictedType");
+        assertEquals(java.util.List.of(XsdNodeType.SEQUENCE, XsdNodeType.ATTRIBUTE, XsdNodeType.ATTRIBUTE_GROUP,
+                        XsdNodeType.ANY_ATTRIBUTE),
+                restricted.getChildren().stream().map(XsdNode::getNodeType).toList());
+        assertEquals("narrowed", restricted.getDocumentations().getFirst().getText());
+        assertEquals("id", restricted.getChildren().get(1).getName());
+
+        XsdNode extension = findType(schema, "GroupedType").getChildren().getFirst().getChildren().getFirst();
+        assertEquals(XsdNodeType.EXTENSION, extension.getNodeType());
+        assertEquals(java.util.List.of(XsdNodeType.GROUP), extension.getChildren().stream().map(XsdNode::getNodeType).toList());
+
+        XsdRestriction measure = firstRestriction(schema, "MeasureType");
+        assertEquals(java.util.List.of(XsdNodeType.SIMPLE_TYPE, XsdNodeType.ATTRIBUTE),
+                measure.getChildren().stream().map(XsdNode::getNodeType).toList());
+
+        String out = new org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSerializer().serialize(schema);
+        int restrictionStart = out.indexOf("<xs:restriction base=\"BaseType\"");
+        int restrictionEnd = out.indexOf("</xs:restriction>", restrictionStart);
+        String body = out.substring(restrictionStart, restrictionEnd);
+        assertTrue(body.contains("<xs:sequence") && body.contains("name=\"id\"") && body.contains("ref=\"AuditAttrs\"")
+                && body.contains("<xs:anyAttribute"), body);
+    }
+
+    private static XsdComplexType findType(XsdSchema schema, String name) {
+        return schema.getChildren().stream()
+                .filter(n -> n instanceof XsdComplexType && name.equals(n.getName()))
+                .map(n -> (XsdComplexType) n).findFirst().orElseThrow();
+    }
+
+    private static XsdRestriction firstRestriction(XsdSchema schema, String typeName) {
+        java.util.List<XsdRestriction> found = new java.util.ArrayList<>();
+        collect(findType(schema, typeName), found, XsdRestriction.class);
+        return found.getFirst();
+    }
+
+    private static <T extends XsdNode> void collect(XsdNode node, java.util.List<T> into, Class<T> type) {
+        if (type.isInstance(node)) {
+            into.add(type.cast(node));
+        }
+        for (XsdNode child : node.getChildren()) {
+            collect(child, into, type);
+        }
+    }
 }

@@ -1154,6 +1154,24 @@ public class XsdNodeFactory {
                 parseAnnotation(childElement, restriction);
             } else if (isXsdElement(childElement, "assert")) {
                 restriction.addChild(parseAssert(childElement));
+            } else if (isXsdElement(childElement, "simpleType")) {
+                // inline base type of a simpleType / simpleContent restriction
+                restriction.addChild(parseSimpleType(childElement));
+            } else if (isXsdElement(childElement, "sequence")) {
+                // complexContent restriction: the narrowed content model + attribute uses
+                restriction.addChild(parseSequence(childElement));
+            } else if (isXsdElement(childElement, "choice")) {
+                restriction.addChild(parseChoice(childElement));
+            } else if (isXsdElement(childElement, "all")) {
+                restriction.addChild(parseAll(childElement));
+            } else if (isXsdElement(childElement, "group")) {
+                restriction.addChild(parseGroupRef(childElement));
+            } else if (isXsdElement(childElement, "attribute")) {
+                restriction.addChild(parseAttribute(childElement));
+            } else if (isXsdElement(childElement, "attributeGroup")) {
+                restriction.addChild(parseAttributeGroupRef(childElement));
+            } else if (isXsdElement(childElement, "anyAttribute")) {
+                restriction.addChild(parseAnyAttribute(childElement));
             }
         }
 
@@ -1284,7 +1302,9 @@ public class XsdNodeFactory {
             if (child.getNodeType() == Node.ELEMENT_NODE) {
                 Element childElement = (Element) child;
 
-                if (isXsdElement(childElement, "sequence")) {
+                if (isXsdElement(childElement, "annotation")) {
+                    parseAnnotation(childElement, extension);
+                } else if (isXsdElement(childElement, "sequence")) {
                     XsdSequence sequence = parseSequence(childElement);
                     extension.addChild(sequence);
                 } else if (isXsdElement(childElement, "choice")) {
@@ -1293,6 +1313,8 @@ public class XsdNodeFactory {
                 } else if (isXsdElement(childElement, "all")) {
                     XsdAll all = parseAll(childElement);
                     extension.addChild(all);
+                } else if (isXsdElement(childElement, "group")) {
+                    extension.addChild(parseGroupRef(childElement));
                 } else if (isXsdElement(childElement, "attribute")) {
                     XsdAttribute attribute = parseAttribute(childElement);
                     extension.addChild(attribute);
