@@ -157,9 +157,13 @@ class FopPanelTest {
         Path xsl = tmp.resolve("layout.xsl");
         Files.writeString(xsl, XSLT_FO);
 
+        // Build the mocks on the test thread: the first Mockito mock in the JVM generates classes
+        // (ByteBuddy) and blew the 2 s FX window under full-suite load when created inside it.
+        javafx.scene.input.DragEvent xmlDrop = dropEventWithFiles(xml.toFile());
+        javafx.scene.input.DragEvent xslDrop = dropEventWithFiles(xsl.toFile());
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
-            xmlRow.getOnDragDropped().handle(dropEventWithFiles(xml.toFile()));
-            xslRow.getOnDragDropped().handle(dropEventWithFiles(xsl.toFile()));
+            xmlRow.getOnDragDropped().handle(xmlDrop);
+            xslRow.getOnDragDropped().handle(xslDrop);
             return null;
         });
 

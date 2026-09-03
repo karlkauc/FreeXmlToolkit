@@ -27,6 +27,11 @@ class NodeContextMenuTest {
     @Start
     void start(Stage stage) {
         this.stage = stage;
+        // Warm up outside the timed blocks: the first icon literal loads the whole Iconify set
+        // (~2000 icons) and the first ContextMenu loads the menu control classes — under the
+        // load of a full-suite run that alone exceeded the 2 s waitForAsyncFx window.
+        org.fxt.freexmltoolkit.controls.icons.IconifyIconService.getInstance().resolve("bi-clipboard-plus");
+        NodeContextMenu.build(new RecordingActions(), () -> null);
     }
 
     /** Invokes the menu's onShowing handler directly (headless popups don't fire it reliably). */
