@@ -2833,7 +2833,7 @@ document, and use XSD files effectively.</p>
 </tr>
 <tr>
 <td><strong>Preview</strong></td>
-<td>Preview generated documentation</td>
+<td>The editor's Preview view renders HTML files, e.g. generated documentation opened in the shell</td>
 </tr>
 <tr>
 <td><strong>Generate Example Data</strong></td>
@@ -2856,7 +2856,7 @@ document, and use XSD files effectively.</p>
 <li><strong>Easy Navigation</strong>: Click on elements to explore their structure</li>
 <li><strong>Edit Documentation</strong>: Add or edit documentation for schema elements using the inline tab-based editor (no modal dialogs)</li>
 <li><strong>Add Examples</strong>: Include example values for elements</li>
-<li><strong>Drag &amp; Drop</strong>: Reorganize elements by dragging them</li>
+<li><strong>Reorder and Duplicate</strong>: Move nodes up and down, copy, cut, paste and duplicate them from the context menu</li>
 <li><strong>Full Undo/Redo</strong>: Go back and forward through your changes</li>
 </ul>
 <h3 id="how-to-use">How to Use<a class="headerlink" href="#how-to-use" title="Permanent link">&para;</a></h3>
@@ -2866,7 +2866,7 @@ document, and use XSD files effectively.</p>
 <li><strong>Select</strong> an element by clicking on it</li>
 <li><strong>Edit properties</strong> in the panel on the right (name, type, cardinality/occurrence, use, form, constraints, documentation, and facets)</li>
 <li><strong>Add children</strong> using the context menu (right-click)</li>
-<li><strong>Drag</strong> elements to move them</li>
+<li><strong>Reorder</strong> nodes with <strong>Move Up</strong> / <strong>Move Down</strong> from the context menu; <strong>Delete</strong> removes the selected node</li>
 </ol>
 <blockquote>
 <p><strong>Editing properties from any view:</strong> The same Properties pane is
@@ -2875,11 +2875,11 @@ available in the <strong>Text</strong> view as well as the Graphic and Tree view
 </blockquote>
 <h3 id="tips">Tips<a class="headerlink" href="#tips" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>Double-click</strong> an element to edit its name</li>
-<li><strong>Right-click</strong> for a context menu with common actions</li>
+<li><strong>Right-click</strong> for a context menu with common actions (<strong>Rename…</strong>, <strong>Change Type…</strong>, <strong>Change Cardinality…</strong>, add/move/delete)</li>
+<li>Edit the name and every other property in the Properties pane on the right</li>
 <li><strong>Ctrl+Z</strong> to undo, <strong>Ctrl+Y</strong> to redo</li>
-<li><strong>Ctrl+S</strong> to save (a backup is created automatically)</li>
-<li>The toolbar's <strong>Save ▾</strong> split button saves the schema; its arrow menu offers <strong>Save As…</strong> (save under a new name) and <strong>Save All</strong> (saves every open tab)</li>
+<li><strong>Ctrl+S</strong> to save (a backup is created automatically - Settings → XSD lets you turn this off or change the number of kept versions, 3 by default)</li>
+<li>The toolbar's <strong>Save ▾</strong> split button saves the schema; its arrow menu offers <strong>Save As…</strong> (Ctrl+Shift+S, save under a new name) and <strong>Save All</strong> (saves every open tab)</li>
 </ul>
 <h3 id="automatic-resolution-of-imported-schemas">Automatic Resolution of Imported Schemas<a class="headerlink" href="#automatic-resolution-of-imported-schemas" title="Permanent link">&para;</a></h3>
 <p>Some schemas import other schemas that are not shipped alongside them.
@@ -3226,7 +3226,7 @@ key.</p>
 <p>The <strong>XPath Validation</strong> tab lists every XPath expression used by identity constraints and
 assertions - each selector, each field and each assert test is one row - with its status:
 <strong>Valid</strong>, or the most severe finding for it (syntax errors, element names that do not occur
-in the schema, constructs that are not allowed in selectors and fields). The status chips
+in the schema, empty assert tests). The status chips
 above the table are clickable filters, and the details pane shows the full expression, the
 findings and a link to the parent element. The expressions are checked statically against the
 schema; they are not evaluated against a sample XML document.</p>
@@ -3296,28 +3296,44 @@ the generator never modifies your schema file or writes into its folder.</p>
 </thead>
 <tbody>
 <tr>
-<td><strong>Image Format</strong></td>
-<td>Choose PNG or SVG for diagrams</td>
+<td><strong>Use Markdown renderer</strong></td>
+<td>Render Markdown formatting inside <code>xs:documentation</code> text</td>
 </tr>
 <tr>
-<td><strong>Use Markdown Renderer</strong></td>
-<td>Render Markdown formatting in documentation</td>
+<td><strong>Include type definitions in source code</strong></td>
+<td>Show the type's XSD source on the detail pages</td>
 </tr>
 <tr>
-<td><strong>Open file after creation</strong></td>
-<td>Automatically open the generated file</td>
-</tr>
-<tr>
-<td><strong>Create example data if missing</strong></td>
-<td>Generate sample values</td>
-</tr>
-<tr>
-<td><strong>Include type definitions</strong></td>
-<td>Show type source code</td>
+<td><strong>Show documentation in diagrams</strong></td>
+<td>Print the documentation text inside the SVG element boxes</td>
 </tr>
 <tr>
 <td><strong>Generate SVG overview page</strong></td>
 <td>Interactive full-schema SVG</td>
+</tr>
+<tr>
+<td><strong>Add metadata in output</strong></td>
+<td>Generator name, date and schema information in the output</td>
+</tr>
+<tr>
+<td><strong>Deduplicate data dictionary by type</strong></td>
+<td>List each type once in the Data Dictionary instead of per usage</td>
+</tr>
+<tr>
+<td><strong>Image format</strong></td>
+<td>SVG (default), PNG or JPG for the diagrams</td>
+</tr>
+<tr>
+<td><strong>Favicon</strong></td>
+<td>A custom icon file for the HTML output</td>
+</tr>
+<tr>
+<td><strong>PDF / Word options</strong></td>
+<td>Cover page, table of contents, data dictionary, schema diagram, element diagrams, page numbers, PDF bookmarks</td>
+</tr>
+<tr>
+<td><strong>Open the generated documentation after creation</strong></td>
+<td>Opens <code>index.html</code> (HTML) or the generated file in your system viewer</td>
 </tr>
 </tbody>
 </table>
@@ -3375,8 +3391,9 @@ rule-based, batch-capable generation shown above.</p>
 <li>Load your XSD file</li>
 <li>Open the <strong>Schema</strong> panel from the activity bar and click <strong>Generate Sample XML</strong></li>
 <li>Choose your options:<ul>
-<li><strong>Mandatory Only</strong>: Include only required elements</li>
-<li><strong>Max Occurrences</strong>: Limit repeating elements</li>
+<li><strong>Only mandatory elements</strong>: Include only required elements</li>
+<li><strong>Max. repetitions</strong>: Limit repeating elements</li>
+<li><strong>Realistic values</strong>: Honor enumerations, patterns and value ranges when inventing values</li>
 </ul>
 </li>
 <li>Click <strong>Generate</strong></li>
@@ -3499,11 +3516,11 @@ like any other document:</p>
 <tbody>
 <tr>
 <td><strong>Elements</strong></td>
-<td>Elements, Attributes, Groups</td>
+<td>Elements, attributes, groups, attribute groups, <code>xs:any</code> / <code>xs:anyAttribute</code></td>
 </tr>
 <tr>
 <td><strong>Types</strong></td>
-<td>ComplexTypes, SimpleTypes</td>
+<td>ComplexTypes, SimpleTypes (restriction, list, union), simple/complex content with extension and restriction</td>
 </tr>
 <tr>
 <td><strong>Compositors</strong></td>
@@ -3511,15 +3528,15 @@ like any other document:</p>
 </tr>
 <tr>
 <td><strong>Constraints</strong></td>
-<td>Patterns, Enumerations, Length limits</td>
+<td>Facets: patterns, enumerations, length limits, value ranges, digits, whiteSpace, assertion / explicitTimezone (XSD 1.1)</td>
 </tr>
 <tr>
 <td><strong>References</strong></td>
-<td>Import, Include, Redefine</td>
+<td>Import, Include (resolved, also transitively); Redefine and Override are parsed but not resolved</td>
 </tr>
 <tr>
 <td><strong>XSD 1.1</strong></td>
-<td>Assertions, Alternatives, Open Content</td>
+<td>Assertions (<code>xs:assert</code>) are loaded, shown and analysed; <code>xs:alternative</code> and <code>xs:openContent</code> are honored by the XSD 1.1 validator but not shown in the graphical views</td>
 </tr>
 <tr>
 <td><strong>Identity</strong></td>
@@ -3542,36 +3559,40 @@ like any other document:</p>
 <td>Save file</td>
 </tr>
 <tr>
+<td><code>Ctrl+Shift+S</code></td>
+<td>Save As</td>
+</tr>
+<tr>
 <td><code>Ctrl+Z</code></td>
 <td>Undo</td>
 </tr>
 <tr>
-<td><code>Ctrl+Y</code></td>
+<td><code>Ctrl+Y</code> / <code>Ctrl+Shift+Z</code></td>
 <td>Redo</td>
 </tr>
 <tr>
 <td><code>Ctrl+F</code></td>
-<td>Find/Replace</td>
+<td>Find</td>
+</tr>
+<tr>
+<td><code>Ctrl+H</code></td>
+<td>Find &amp; Replace</td>
 </tr>
 <tr>
 <td><code>Ctrl+Shift+X</code></td>
 <td>Toggle the Query Console</td>
 </tr>
 <tr>
-<td><code>Ctrl+D</code></td>
-<td>Add to favorites</td>
+<td><code>Shift+Alt+F</code></td>
+<td>Format document</td>
 </tr>
 <tr>
 <td><code>Delete</code></td>
-<td>Delete selected element</td>
-</tr>
-<tr>
-<td><code>F2</code></td>
-<td>Rename element</td>
+<td>Delete the selected node (Tree / Graphic view)</td>
 </tr>
 <tr>
 <td><code>F8</code></td>
-<td>Validate schema</td>
+<td>Validate</td>
 </tr>
 </tbody>
 </table>
