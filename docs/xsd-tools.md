@@ -28,7 +28,7 @@ When you open an `.xsd` file in the [Unified Shell](unified-shell.md), the edito
 | **Text View**             | Raw XSD source code editor                              |
 | **Schema Analysis**       | Statistics, constraints, validation, and quality checks |
 | **Documentation**         | Generate HTML, Word, or PDF documentation               |
-| **Preview**               | Preview generated documentation                         |
+| **Preview**               | The editor's Preview view renders HTML files, e.g. generated documentation opened in the shell |
 | **Generate Example Data** | Create sample XML from schema with customizable rules and profiles |
 | **Flatten Schema**        | Merge includes into one standalone file, with optional reduction for server-side validation |
 
@@ -47,7 +47,7 @@ The Graphic View lets you explore and edit your schemas visually.
 - **Easy Navigation**: Click on elements to explore their structure
 - **Edit Documentation**: Add or edit documentation for schema elements using the inline tab-based editor (no modal dialogs)
 - **Add Examples**: Include example values for elements
-- **Drag & Drop**: Reorganize elements by dragging them
+- **Reorder and Duplicate**: Move nodes up and down, copy, cut, paste and duplicate them from the context menu
 - **Full Undo/Redo**: Go back and forward through your changes
 
 ### How to Use
@@ -57,7 +57,7 @@ The Graphic View lets you explore and edit your schemas visually.
 3. **Select** an element by clicking on it
 4. **Edit properties** in the panel on the right (name, type, cardinality/occurrence, use, form, constraints, documentation, and facets)
 5. **Add children** using the context menu (right-click)
-6. **Drag** elements to move them
+6. **Reorder** nodes with **Move Up** / **Move Down** from the context menu; **Delete** removes the selected node
 
 > **Editing properties from any view:** The same Properties pane is
 > available in the **Text** view as well as the Graphic and Tree views. See
@@ -65,11 +65,11 @@ The Graphic View lets you explore and edit your schemas visually.
 
 ### Tips
 
-- **Double-click** an element to edit its name
-- **Right-click** for a context menu with common actions
+- **Right-click** for a context menu with common actions (**Rename…**, **Change Type…**, **Change Cardinality…**, add/move/delete)
+- Edit the name and every other property in the Properties pane on the right
 - **Ctrl+Z** to undo, **Ctrl+Y** to redo
-- **Ctrl+S** to save (a backup is created automatically)
-- The toolbar's **Save ▾** split button saves the schema; its arrow menu offers **Save As…** (save under a new name) and **Save All** (saves every open tab)
+- **Ctrl+S** to save (a backup is created automatically - Settings → XSD lets you turn this off or change the number of kept versions, 3 by default)
+- The toolbar's **Save ▾** split button saves the schema; its arrow menu offers **Save As…** (Ctrl+Shift+S, save under a new name) and **Save All** (saves every open tab)
 
 ### Automatic Resolution of Imported Schemas
 
@@ -336,7 +336,7 @@ key.
 The **XPath Validation** tab lists every XPath expression used by identity constraints and
 assertions - each selector, each field and each assert test is one row - with its status:
 **Valid**, or the most severe finding for it (syntax errors, element names that do not occur
-in the schema, constructs that are not allowed in selectors and fields). The status chips
+in the schema, empty assert tests). The status chips
 above the table are clickable filters, and the details pane shows the full expression, the
 findings and a link to the parent element. The expressions are checked statically against the
 schema; they are not evaluated against a sample XML document.
@@ -386,14 +386,18 @@ Create professional documentation from your XSD file automatically.
 
 ### Generation Options
 
-| Option                             | Description                                 |
-|------------------------------------|---------------------------------------------|
-| **Image Format**                   | Choose PNG or SVG for diagrams              |
-| **Use Markdown Renderer**          | Render Markdown formatting in documentation |
-| **Open file after creation**       | Automatically open the generated file       |
-| **Create example data if missing** | Generate sample values                      |
-| **Include type definitions**       | Show type source code                       |
-| **Generate SVG overview page**     | Interactive full-schema SVG                 |
+| Option                                          | Description                                                        |
+|-------------------------------------------------|--------------------------------------------------------------------|
+| **Use Markdown renderer**                       | Render Markdown formatting inside `xs:documentation` text          |
+| **Include type definitions in source code**     | Show the type's XSD source on the detail pages                     |
+| **Show documentation in diagrams**              | Print the documentation text inside the SVG element boxes          |
+| **Generate SVG overview page**                  | Interactive full-schema SVG                                        |
+| **Add metadata in output**                      | Generator name, date and schema information in the output          |
+| **Deduplicate data dictionary by type**         | List each type once in the Data Dictionary instead of per usage    |
+| **Image format**                                | SVG (default), PNG or JPG for the diagrams                         |
+| **Favicon**                                     | A custom icon file for the HTML output                             |
+| **PDF / Word options**                          | Cover page, table of contents, data dictionary, schema diagram, element diagrams, page numbers, PDF bookmarks |
+| **Open the generated documentation after creation** | Opens `index.html` (HTML) or the generated file in your system viewer |
 
 ### Language Settings
 
@@ -461,8 +465,9 @@ For simple use cases, you can generate sample XML in seconds:
 1. Load your XSD file
 2. Open the **Schema** panel from the activity bar and click **Generate Sample XML**
 3. Choose your options:
-    - **Mandatory Only**: Include only required elements
-    - **Max Occurrences**: Limit repeating elements
+    - **Only mandatory elements**: Include only required elements
+    - **Max. repetitions**: Limit repeating elements
+    - **Realistic values**: Honor enumerations, patterns and value ranges when inventing values
 4. Click **Generate**
 5. **Validate** the generated XML against the schema
 6. Save or copy the generated XML
@@ -544,31 +549,32 @@ When saving schemas from the graphical editor, `xs:include` and `xs:import` decl
 
 ## Supported XSD Features
 
-| Category        | Features                               |
-|-----------------|----------------------------------------|
-| **Elements**    | Elements, Attributes, Groups           |
-| **Types**       | ComplexTypes, SimpleTypes              |
-| **Compositors** | Sequence, Choice, All                  |
-| **Constraints** | Patterns, Enumerations, Length limits  |
-| **References**  | Import, Include, Redefine              |
-| **XSD 1.1**     | Assertions, Alternatives, Open Content |
-| **Identity**    | Key, KeyRef, Unique                    |
+| Category        | Features                                                                 |
+|-----------------|--------------------------------------------------------------------------|
+| **Elements**    | Elements, attributes, groups, attribute groups, `xs:any` / `xs:anyAttribute` |
+| **Types**       | ComplexTypes, SimpleTypes (restriction, list, union), simple/complex content with extension and restriction |
+| **Compositors** | Sequence, Choice, All                                                    |
+| **Constraints** | Facets: patterns, enumerations, length limits, value ranges, digits, whiteSpace, assertion / explicitTimezone (XSD 1.1) |
+| **References**  | Import, Include (resolved, also transitively); Redefine and Override are parsed but not resolved |
+| **XSD 1.1**     | Assertions (`xs:assert`) are loaded, shown and analysed; `xs:alternative` and `xs:openContent` are honored by the XSD 1.1 validator but not shown in the graphical views |
+| **Identity**    | Key, KeyRef, Unique                                                      |
 
 ---
 
 ## Keyboard Shortcuts
 
-| Shortcut | Action                  |
-|----------|-------------------------|
-| `Ctrl+S` | Save file               |
-| `Ctrl+Z` | Undo                    |
-| `Ctrl+Y` | Redo                    |
-| `Ctrl+F` | Find/Replace            |
-| `Ctrl+Shift+X` | Toggle the Query Console |
-| `Ctrl+D` | Add to favorites        |
-| `Delete` | Delete selected element |
-| `F2`     | Rename element          |
-| `F8`     | Validate schema         |
+| Shortcut       | Action                                        |
+|----------------|-----------------------------------------------|
+| `Ctrl+S`       | Save file                                     |
+| `Ctrl+Shift+S` | Save As                                       |
+| `Ctrl+Z`       | Undo                                          |
+| `Ctrl+Y` / `Ctrl+Shift+Z` | Redo                               |
+| `Ctrl+F`       | Find                                          |
+| `Ctrl+H`       | Find & Replace                                |
+| `Ctrl+Shift+X` | Toggle the Query Console                      |
+| `Shift+Alt+F`  | Format document                               |
+| `Delete`       | Delete the selected node (Tree / Graphic view) |
+| `F8`           | Validate                                      |
 
 ---
 
