@@ -340,10 +340,13 @@ public class XsdQualityChecker {
 
         // Calculate score
         int totalChecks = calculateTotalChecks(namingByConvention);
-        int passedChecks = totalChecks - issues.stream()
+        // Errors/warnings can affect more elements than there are naming checks; clamp so the
+        // "x of y checks passed" figure never goes negative.
+        int failedChecks = issues.stream()
                 .filter(i -> i.severity() == IssueSeverity.ERROR || i.severity() == IssueSeverity.WARNING)
                 .mapToInt(i -> i.affectedElements().size())
                 .sum();
+        int passedChecks = Math.max(0, totalChecks - failedChecks);
         int score = totalChecks > 0 ? Math.max(0, Math.min(100, (passedChecks * 100) / totalChecks)) : 100;
 
         long duration = System.currentTimeMillis() - startTime;

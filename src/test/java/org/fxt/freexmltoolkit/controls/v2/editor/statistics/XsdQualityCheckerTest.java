@@ -333,6 +333,31 @@ class XsdQualityCheckerTest {
         }
     }
 
+    @Nested
+    @DisplayName("Passed Checks")
+    class PassedChecksTests {
+
+        @Test
+        @DisplayName("passedChecks never drops below zero even when issues outnumber the checks")
+        void testPassedChecksClampedAtZero() {
+            // One named type = one naming check, but several error-level issues on it.
+            XsdSimpleType simpleType = new XsdSimpleType("BadType");
+            XsdRestriction restriction = new XsdRestriction("xs:string");
+            restriction.addFacet(new XsdFacet(XsdFacetType.MAX_LENGTH, "3"));
+            restriction.addFacet(new XsdFacet(XsdFacetType.ENUMERATION, "TOOLONG-1"));
+            restriction.addFacet(new XsdFacet(XsdFacetType.ENUMERATION, "TOOLONG-2"));
+            restriction.addFacet(new XsdFacet(XsdFacetType.ENUMERATION, "TOOLONG-3"));
+            simpleType.addChild(restriction);
+            schema.addChild(simpleType);
+
+            QualityResult result = new XsdQualityChecker(schema).check();
+
+            assertTrue(result.passedChecks() >= 0, "passedChecks must not be negative: " + result.passedChecks());
+            assertTrue(result.passedChecks() <= result.totalChecks(), "passedChecks must not exceed totalChecks");
+            assertEquals(0, result.score());
+        }
+    }
+
     // ========== Issue Category Tests ==========
 
     @Nested

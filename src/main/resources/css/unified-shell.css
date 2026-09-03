@@ -2407,8 +2407,11 @@
     -fx-max-height: 8;
 }
 
-/* Statistics: token-based table / list chrome (modena defaults are hardcoded light) */
-.fxt-analysis-table {
+/* Statistics / Quality: token-based table chrome. The themed sheets paint `.table-cell`
+   with its own opaque background (covering the row selection) and pin the selected text
+   colour with !important, and `.table-view .table-row-cell` ties our two-class selectors —
+   hence the `.table-view.fxt-analysis-table` prefix and the !important text-fill. */
+.table-view.fxt-analysis-table {
     -fx-background-color: -fxt-bg-surface;
     -fx-background-radius: 8;
     -fx-border-color: -fxt-border;
@@ -2416,16 +2419,16 @@
     -fx-padding: 1;
 }
 
-.fxt-analysis-table .column-header-background {
+.table-view.fxt-analysis-table .column-header-background {
     -fx-background-color: -fxt-bg-surface-2;
     -fx-background-radius: 7 7 0 0;
 }
 
-.fxt-analysis-table .column-header-background .filler {
+.table-view.fxt-analysis-table .column-header-background .filler {
     -fx-background-color: transparent;
 }
 
-.fxt-analysis-table .column-header {
+.table-view.fxt-analysis-table .column-header {
     -fx-background-color: transparent;
     -fx-border-color: transparent transparent -fxt-border transparent;
     -fx-border-width: 0 0 1 0;
@@ -2433,7 +2436,7 @@
     -fx-size: 28;
 }
 
-.fxt-analysis-table .column-header .label {
+.table-view.fxt-analysis-table .column-header .label {
     -fx-font-family: "Inter", sans-serif;
     -fx-font-size: 10.5px;
     -fx-font-weight: bold;
@@ -2441,7 +2444,8 @@
     -fx-alignment: CENTER_LEFT;
 }
 
-.fxt-analysis-table .table-row-cell {
+.table-view.fxt-analysis-table .table-row-cell,
+.table-view.fxt-analysis-table .table-row-cell:odd {
     -fx-background-color: -fxt-bg-surface;
     -fx-border-color: transparent transparent -fxt-border transparent;
     -fx-border-width: 0 0 1 0;
@@ -2449,23 +2453,32 @@
     -fx-cell-size: 30;
 }
 
-.fxt-analysis-table .table-row-cell:hover {
+.table-view.fxt-analysis-table .table-row-cell:filled:hover {
     -fx-background-color: -fxt-bg-surface-2;
 }
 
-.fxt-analysis-table .table-row-cell:filled:selected {
+.table-view.fxt-analysis-table .table-row-cell:filled:selected,
+.table-view.fxt-analysis-table .table-row-cell:filled:selected:hover {
     -fx-background-color: -fxt-bg-subtle;
 }
 
-.fxt-analysis-table .table-cell {
+.table-view.fxt-analysis-table .table-cell,
+.table-view.fxt-analysis-table .table-cell:hover {
+    -fx-background-color: transparent;
     -fx-text-fill: -fxt-text-primary;
     -fx-font-size: 12px;
     -fx-padding: 4 10 4 10;
     -fx-alignment: CENTER_LEFT;
 }
 
-.fxt-analysis-table .table-row-cell:filled:selected .table-cell {
-    -fx-text-fill: -fxt-text-primary;
+.table-view.fxt-analysis-table .table-row-cell:filled:selected .table-cell,
+.table-view.fxt-analysis-table .table-row-cell:filled:selected:focused .table-cell,
+.table-view.fxt-analysis-table .table-row-cell:filled:selected .table-cell .label {
+    -fx-text-fill: -fxt-text-primary !important;
+}
+
+.table-view.fxt-analysis-table .table-row-cell:filled:selected .table-cell .text {
+    -fx-fill: -fxt-text-primary !important;
 }
 
 .fxt-analysis-list {
@@ -2569,6 +2582,94 @@
     -fx-background-color: -fxt-tool-success-bg;
     -fx-border-color: -fxt-tool-success-border;
     -fx-text-fill: -fxt-tool-success-fg;
+}
+
+/* Clickable count chips: the active one is filled with its tone colour */
+.fxt-analysis-chip-active {
+    -fx-background-color: -fxt-primary;
+    -fx-border-color: -fxt-primary;
+    -fx-text-fill: white;
+}
+.fxt-analysis-chip-error.fxt-analysis-chip-active { -fx-background-color: -fxt-danger; -fx-border-color: -fxt-danger; }
+.fxt-analysis-chip-warning.fxt-analysis-chip-active { -fx-background-color: -fxt-warning; -fx-border-color: -fxt-warning; }
+.fxt-analysis-chip-info.fxt-analysis-chip-active,
+.fxt-analysis-chip-suggestion.fxt-analysis-chip-active { -fx-background-color: -fxt-info; -fx-border-color: -fxt-info; }
+.fxt-analysis-chip-active .iconify-icon { -fx-icon-color: white; }
+
+.fxt-analysis-chip-error .iconify-icon { -fx-icon-color: -fxt-tool-danger-fg; }
+.fxt-analysis-chip-warning .iconify-icon { -fx-icon-color: -fxt-tool-warning-fg; }
+.fxt-analysis-chip-info .iconify-icon,
+.fxt-analysis-chip-suggestion .iconify-icon { -fx-icon-color: -fxt-tool-info-fg; }
+
+/* Severity icons in the issues table and details pane */
+.fxt-analysis-sev-error .iconify-icon { -fx-icon-color: -fxt-danger; }
+.fxt-analysis-sev-warning .iconify-icon { -fx-icon-color: -fxt-warning; }
+.fxt-analysis-sev-info .iconify-icon { -fx-icon-color: -fxt-info; }
+.fxt-analysis-sev-suggestion .iconify-icon { -fx-icon-color: -fxt-text-secondary; }
+
+/* Filter bar: token-styled combos (the themed .list-cell:selected rule paints the
+   button cell primary-blue otherwise) and a secondary-coloured funnel icon */
+.fxt-analysis-filter .iconify-icon {
+    -fx-icon-color: -fxt-text-secondary;
+}
+
+.fxt-analysis-filter .combo-box {
+    -fx-background-color: -fxt-bg-surface;
+    -fx-background-radius: 6;
+    -fx-border-color: -fxt-border;
+    -fx-border-radius: 6;
+    -fx-padding: 0;
+}
+
+.fxt-analysis-filter .combo-box:hover,
+.fxt-analysis-filter .combo-box:focused {
+    -fx-border-color: -fxt-primary;
+}
+
+.fxt-analysis-filter .combo-box > .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: -fxt-text-primary;
+    -fx-font-size: 12px;
+    -fx-padding: 4 6 4 8;
+}
+
+.fxt-analysis-filter .combo-box > .arrow-button {
+    -fx-background-color: transparent;
+}
+
+.fxt-analysis-filter .combo-box > .arrow-button > .arrow {
+    -fx-background-color: -fxt-text-secondary;
+}
+
+.fxt-analysis-filter .text-field {
+    -fx-background-color: -fxt-bg-surface;
+    -fx-background-radius: 6;
+    -fx-border-color: -fxt-border;
+    -fx-border-radius: 6;
+    -fx-text-fill: -fxt-text-primary;
+    -fx-prompt-text-fill: -fxt-text-muted;
+    -fx-padding: 4 8 4 8;
+}
+
+.fxt-analysis-filter .text-field:focused {
+    -fx-border-color: -fxt-primary;
+}
+
+.fxt-analysis-count {
+    -fx-font-size: 12px;
+    -fx-text-fill: -fxt-text-secondary;
+}
+
+/* Monospace location column / details line */
+.table-view.fxt-analysis-table .fxt-analysis-cell-mono {
+    -fx-font-family: "JetBrains Mono", monospace;
+    -fx-font-size: 11px;
+}
+
+.fxt-analysis-location {
+    -fx-font-family: "JetBrains Mono", monospace;
+    -fx-font-size: 11px;
+    -fx-text-fill: -fxt-text-secondary;
 }
 
 .fxt-analysis-details {

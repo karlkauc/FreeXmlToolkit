@@ -4,8 +4,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
-/** The documentation-coverage band drives the bar colour on the Statistics sub-tab. */
+/** Pure helpers of the Statistics / Quality sub-tabs. */
 class StatisticsSectionTest {
+
+    @Test
+    void qualityCountTextDistinguishesFilteredFromUnfiltered() {
+        assertEquals("1 issue", QualitySection.countText(1, 1));
+        assertEquals("2251 issues", QualitySection.countText(2251, 2251));
+        assertEquals("Showing 350 of 2251 issues", QualitySection.countText(350, 2251));
+        assertEquals("Showing 0 of 1 issue", QualitySection.countText(0, 1));
+    }
 
     @Test
     void coverageBandThresholds() {

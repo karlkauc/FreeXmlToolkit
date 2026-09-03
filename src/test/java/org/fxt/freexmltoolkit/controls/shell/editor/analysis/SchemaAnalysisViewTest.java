@@ -6,10 +6,13 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import javafx.scene.Scene;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 
@@ -84,6 +87,36 @@ class SchemaAnalysisViewTest {
         WaitForAsyncUtils.asyncFx(() -> search.setText(""));
         WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
                 () -> table.getItems().size() == data.quality().issues().size());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void severityChipTogglesTheSeverityFilter() throws Exception {
+        WaitForAsyncUtils.waitForFxEvents();
+        TableView<?> table = (TableView<?>) view.lookup("#analysis-quality-table");
+        ComboBox<String> severity = (ComboBox<String>) view.lookup("#analysis-quality-severity");
+        FlowPane chips = (FlowPane) view.lookup("#analysis-quality-severity-chips");
+        Label count = (Label) view.lookup("#analysis-quality-count");
+        assertNotNull(chips);
+        assertFalse(chips.getChildren().isEmpty(), "the test schema produces issues");
+        int total = data.quality().issues().size();
+        assertEquals(total + " issues", count.getText());
+
+        Label chip = (Label) chips.getChildren().getFirst();
+        String wanted = chip.getText().replaceAll("^\\d+ ", "").replaceAll("s$", "");
+        long expected = data.quality().issues().stream()
+                .filter(i -> AnalysisSupport.titleCase(i.severity()).equalsIgnoreCase(wanted)).count();
+
+        WaitForAsyncUtils.asyncFx(() -> chip.getOnMouseClicked().handle(null));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> !QualitySection.ALL.equals(severity.getValue()));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> table.getItems().size() == expected);
+        assertTrue(chip.getStyleClass().contains("fxt-analysis-chip-active"));
+        assertEquals("Showing " + expected + " of " + total + " issues", count.getText());
+
+        WaitForAsyncUtils.asyncFx(() -> chip.getOnMouseClicked().handle(null));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> QualitySection.ALL.equals(severity.getValue()));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> table.getItems().size() == total);
+        assertFalse(chip.getStyleClass().contains("fxt-analysis-chip-active"));
     }
 
     @Test

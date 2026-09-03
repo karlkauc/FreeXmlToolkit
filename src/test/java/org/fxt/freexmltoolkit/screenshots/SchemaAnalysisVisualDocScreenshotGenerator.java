@@ -9,6 +9,8 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.control.Label;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.TableView;
 import javafx.stage.Stage;
 
 import org.fxt.freexmltoolkit.controls.shell.Activity;
@@ -76,12 +78,36 @@ class SchemaAnalysisVisualDocScreenshotGenerator {
         });
         settle(800);
         shot("analysis-statistics-light");
+        selectSubTab(1);
+        shot("analysis-quality-light");
 
         onFx(() -> ThemeManager.apply(shell.getScene(), true));
         settle(800);
+        shot("analysis-quality-dark");
+        selectSubTab(0);
         shot("analysis-statistics-dark");
         onFx(() -> ThemeManager.apply(shell.getScene(), false));
         settle(300);
+    }
+
+    private void selectSubTab(int index) {
+        onFx(() -> {
+            if (shell.lookup("#schema-analysis-tabs") instanceof TabPane tabs) {
+                tabs.getSelectionModel().select(index);
+                if (index == 1 && shell.lookup("#analysis-quality-table") instanceof TableView<?> table
+                        && !table.getItems().isEmpty()) {
+                    table.getSelectionModel().select(0);
+                }
+            }
+        });
+        settle(600);
+        // Selecting an issue reveals its node in the Tree view (switches the document tab);
+        // come back to the tool tab so the details pane is what gets captured.
+        onFx(() -> shell.getEditorHost().openOrFocusToolTab(
+                org.fxt.freexmltoolkit.controls.shell.editor.analysis.SchemaAnalysisView.TITLE,
+                org.fxt.freexmltoolkit.controls.shell.editor.analysis.SchemaAnalysisView.ICON,
+                () -> { throw new IllegalStateException("analysis tab should already be open"); }));
+        settle(800);
     }
 
     private void onFx(Runnable action) {

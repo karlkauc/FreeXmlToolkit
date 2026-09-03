@@ -301,8 +301,12 @@ attributes, complex and simple types, groups, attribute groups), followed by det
 ### Quality Checks
 
 The **Quality Checks** tab shows a score (0-100) with its rating, the number of checks passed,
-the dominant naming convention, and the issues found. Filter the table by severity, category,
-or free text; select an issue to read its suggestion and to jump to the affected elements.
+the dominant naming convention, and the issues found. The count chips next to the score
+(by severity and by category) are clickable filters - click one to show only those issues,
+click it again to clear. The filter bar offers the same severity and category selection plus a
+free-text search and reports how many issues are currently shown. Every row carries a severity
+icon; the location column shows the XPath (full text in the tooltip). Select an issue to read
+its suggestion and location and to jump to the affected elements.
 
 | Check                              | Description                                                        |
 |------------------------------------|--------------------------------------------------------------------|

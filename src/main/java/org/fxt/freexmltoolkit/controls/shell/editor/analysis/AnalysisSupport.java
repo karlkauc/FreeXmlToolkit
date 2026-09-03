@@ -18,6 +18,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.FxtGui;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdQualityChecker;
 import org.fxt.freexmltoolkit.util.FileChooserHelper;
 
 /** Small UI helpers shared by the Schema Analysis sections (columns, chips, export menu). */
@@ -82,6 +83,19 @@ final class AnalysisSupport {
         Label label = new Label(text);
         label.getStyleClass().add("fxt-analysis-empty");
         return label;
+    }
+
+    /** The icon for a quality-issue severity (colour comes from the {@code fxt-analysis-sev-*} CSS class). */
+    static IconifyIcon severityIcon(XsdQualityChecker.IssueSeverity severity, int size) {
+        String literal = switch (severity) {
+            case ERROR -> "bi-x-circle-fill";
+            case WARNING -> "bi-exclamation-triangle-fill";
+            case INFO -> "bi-info-circle-fill";
+            case SUGGESTION -> "bi-lightbulb-fill";
+        };
+        IconifyIcon icon = icon(literal, size);
+        icon.getStyleClass().add("fxt-analysis-sev-icon");
+        return icon;
     }
 
     static IconifyIcon icon(String literal, int size) {

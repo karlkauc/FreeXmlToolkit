@@ -1,6 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.analysis;
 
 import java.nio.file.Path;
+import java.util.EnumMap;
 import java.util.Locale;
 import java.util.Map;
 
@@ -9,15 +10,20 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.geometry.Pos;
+import javafx.scene.Cursor;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost;
@@ -30,14 +36,14 @@ import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdQualityChecker.Qu
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdQualityExporter;
 
 /**
- * "Quality Checks" sub-tab: score tile, severity counts, a filterable issues table (severity /
- * category / text) and a details pane. Selecting an issue reveals its node in the Tree view;
- * affected elements are links to the corresponding global declarations. Exports via
- * {@link XsdQualityExporter}.
+ * "Quality Checks" sub-tab: score tile, clickable severity / category count chips, a filterable
+ * issues table (severity / category / text) with a visible-count read-out, and a details pane.
+ * Selecting an issue reveals its node in the Tree view; affected elements are links to the
+ * corresponding global declarations. Exports via {@link XsdQualityExporter}.
  */
 final class QualitySection extends VBox {
 
-    private static final String ALL = "All";
+    static final String ALL = "All";
 
     private final EditorHost editorHost;
     private final Label status = new Label();
@@ -46,10 +52,12 @@ final class QualitySection extends VBox {
     private final Label scoreChecks = new Label();
     private final Label scoreNaming = new Label();
     private final VBox scoreTile = new VBox(2, scoreNumber, scoreDescription, scoreChecks, scoreNaming);
-    private final FlowPane chips = new FlowPane(6, 6);
+    private final FlowPane severityChips = new FlowPane(6, 6);
+    private final FlowPane categoryChips = new FlowPane(6, 6);
     private final ComboBox<String> severityFilter = new ComboBox<>();
     private final ComboBox<String> categoryFilter = new ComboBox<>();
     private final TextField search = new TextField();
+    private final Label count = new Label();
     private final ObservableList<QualityIssue> issues = FXCollections.observableArrayList();
     private final FilteredList<QualityIssue> filtered = new FilteredList<>(issues);
     private final TableView<QualityIssue> table = new TableView<>();
@@ -62,6 +70,7 @@ final class QualitySection extends VBox {
         setSpacing(10);
 
         status.getStyleClass().add("fxt-placeholder-text");
+        status.managedProperty().bind(status.textProperty().isNotEmpty());
         HBox toolbar = new HBox(8, AnalysisSupport.exportMenu("Schema Quality", status, this::export), status);
         toolbar.setAlignment(Pos.CENTER_LEFT);
 
@@ -71,8 +80,13 @@ final class QualitySection extends VBox {
         scoreDescription.getStyleClass().add("fxt-analysis-score-description");
         scoreChecks.getStyleClass().add("fxt-analysis-key");
         scoreNaming.getStyleClass().add("fxt-analysis-key");
-        chips.setAlignment(Pos.CENTER_LEFT);
-        VBox summary = new VBox(8, AnalysisSupport.groupTitle("Issues by severity"), chips);
+        severityChips.setId("analysis-quality-severity-chips");
+        severityChips.setAlignment(Pos.CENTER_LEFT);
+        categoryChips.setId("analysis-quality-category-chips");
+        categoryChips.setAlignment(Pos.CENTER_LEFT);
+        VBox summary = new VBox(6,
+                AnalysisSupport.groupTitle("Issues by severity"), severityChips,
+                AnalysisSupport.groupTitle("Issues by category"), categoryChips);
         summary.setAlignment(Pos.CENTER_LEFT);
         HBox.setHgrow(summary, Priority.ALWAYS);
         HBox header = new HBox(16, scoreTile, summary);
@@ -103,15 +117,24 @@ final class QualitySection extends VBox {
         severityFilter.valueProperty().addListener((obs, o, n) -> applyFilter());
         categoryFilter.valueProperty().addListener((obs, o, n) -> applyFilter());
         search.textProperty().addListener((obs, o, n) -> applyFilter());
-        Label filterIcon = new Label(null, AnalysisSupport.icon("bi-funnel", 14));
-        HBox filterBar = new HBox(8, filterIcon, severityFilter, categoryFilter, search, clear);
+        count.setId("analysis-quality-count");
+        count.getStyleClass().add("fxt-analysis-count");
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        HBox filterBar = new HBox(8,
+                new Label(null, AnalysisSupport.icon("bi-funnel", 14)),
+                filterLabel("Severity"), severityFilter,
+                filterLabel("Category"), categoryFilter,
+                search, clear, spacer, count);
+        filterBar.getStyleClass().add("fxt-analysis-filter");
         filterBar.setAlignment(Pos.CENTER_LEFT);
 
         table.setId("analysis-quality-table");
-        table.getColumns().add(AnalysisSupport.column("Severity", i -> AnalysisSupport.titleCase(i.severity()), 90));
+        table.getStyleClass().add("fxt-analysis-table");
+        table.getColumns().add(severityColumn());
         table.getColumns().add(AnalysisSupport.column("Category", i -> AnalysisSupport.titleCase(i.category()), 170));
         table.getColumns().add(AnalysisSupport.column("Message", QualityIssue::message, 420));
-        table.getColumns().add(AnalysisSupport.column("Location", QualitySection::location, -1));
+        table.getColumns().add(locationColumn());
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         table.setPlaceholder(AnalysisSupport.emptyLabel("No quality issues found."));
         SortedList<QualityIssue> sorted = new SortedList<>(filtered);
@@ -143,25 +166,67 @@ final class QualitySection extends VBox {
         scoreTile.getStyleClass().add(score >= 75 ? "fxt-analysis-score-good"
                 : score >= 60 ? "fxt-analysis-score-fair" : "fxt-analysis-score-poor");
 
-        chips.getChildren().clear();
-        Map<IssueSeverity, Long> counts = new java.util.EnumMap<>(IssueSeverity.class);
+        Map<IssueSeverity, Long> bySeverity = new EnumMap<>(IssueSeverity.class);
+        Map<IssueCategory, Long> byCategory = new EnumMap<>(IssueCategory.class);
         for (QualityIssue issue : result.issues()) {
-            counts.merge(issue.severity(), 1L, Long::sum);
+            bySeverity.merge(issue.severity(), 1L, Long::sum);
+            byCategory.merge(issue.category(), 1L, Long::sum);
         }
+        severityChips.getChildren().clear();
+        categoryChips.getChildren().clear();
         if (result.issues().isEmpty()) {
-            chips.getChildren().add(AnalysisSupport.chip("No issues", "ok"));
+            severityChips.getChildren().add(AnalysisSupport.chip("No issues", "ok"));
+            categoryChips.getChildren().add(AnalysisSupport.chip("No issues", "ok"));
         }
         for (IssueSeverity s : IssueSeverity.values()) {
-            long n = counts.getOrDefault(s, 0L);
+            long n = bySeverity.getOrDefault(s, 0L);
             if (n > 0) {
-                chips.getChildren().add(AnalysisSupport.chip(
+                Label chip = AnalysisSupport.chip(
                         AnalysisSupport.plural(n, AnalysisSupport.titleCase(s).toLowerCase(Locale.ROOT)),
-                        s.name().toLowerCase(Locale.ROOT)));
+                        s.name().toLowerCase(Locale.ROOT));
+                chip.setGraphic(AnalysisSupport.severityIcon(s, 12));
+                chip.setGraphicTextGap(5);
+                toggleChip(chip, severityFilter, AnalysisSupport.titleCase(s));
+                severityChips.getChildren().add(chip);
+            }
+        }
+        for (IssueCategory c : IssueCategory.values()) {
+            long n = byCategory.getOrDefault(c, 0L);
+            if (n > 0) {
+                Label chip = AnalysisSupport.chip(AnalysisSupport.titleCase(c) + " " + n, "neutral");
+                toggleChip(chip, categoryFilter, AnalysisSupport.titleCase(c));
+                categoryChips.getChildren().add(chip);
             }
         }
         issues.setAll(result.issues());
         showDetails(null);
+        applyFilter();
         status.setText("");
+    }
+
+    /** Makes {@code chip} toggle {@code filter} between {@code value} and "All"; highlights it while active. */
+    private static void toggleChip(Label chip, ComboBox<String> filter, String value) {
+        chip.setCursor(Cursor.HAND);
+        chip.setTooltip(new Tooltip("Click to show only these issues"));
+        chip.setOnMouseClicked(e -> filter.setValue(value.equals(filter.getValue()) ? ALL : value));
+        Runnable sync = () -> {
+            boolean active = value.equals(filter.getValue());
+            if (active != chip.getStyleClass().contains("fxt-analysis-chip-active")) {
+                if (active) {
+                    chip.getStyleClass().add("fxt-analysis-chip-active");
+                } else {
+                    chip.getStyleClass().remove("fxt-analysis-chip-active");
+                }
+            }
+        };
+        filter.valueProperty().addListener((obs, o, n) -> sync.run());
+        sync.run();
+    }
+
+    private static Label filterLabel(String text) {
+        Label label = new Label(text);
+        label.getStyleClass().add("fxt-analysis-key");
+        return label;
     }
 
     private void applyFilter() {
@@ -183,10 +248,61 @@ final class QualitySection extends VBox {
                     || (issue.affectedElements() != null
                         && issue.affectedElements().stream().anyMatch(a -> contains(a, text)));
         });
+        count.setText(countText(filtered.size(), issues.size()));
+    }
+
+    /** "2251 issues" when nothing is filtered out, else "Showing 350 of 2251 issues". */
+    static String countText(int visible, int total) {
+        if (visible == total) {
+            return AnalysisSupport.plural(total, "issue");
+        }
+        return "Showing " + visible + " of " + AnalysisSupport.plural(total, "issue");
     }
 
     private static boolean contains(String haystack, String needle) {
         return haystack != null && haystack.toLowerCase(Locale.ROOT).contains(needle);
+    }
+
+    private static TableColumn<QualityIssue, IssueSeverity> severityColumn() {
+        TableColumn<QualityIssue, IssueSeverity> column = new TableColumn<>("Severity");
+        column.setPrefWidth(110);
+        column.setCellValueFactory(c -> new javafx.beans.property.ReadOnlyObjectWrapper<>(c.getValue().severity()));
+        column.setCellFactory(col -> new TableCell<>() {
+            @Override
+            protected void updateItem(IssueSeverity item, boolean empty) {
+                super.updateItem(item, empty);
+                getStyleClass().removeIf(c -> c.startsWith("fxt-analysis-sev-"));
+                if (empty || item == null) {
+                    setText(null);
+                    setGraphic(null);
+                    return;
+                }
+                setText(AnalysisSupport.titleCase(item));
+                setGraphic(AnalysisSupport.severityIcon(item, 14));
+                setGraphicTextGap(6);
+                getStyleClass().add("fxt-analysis-sev-" + item.name().toLowerCase(Locale.ROOT));
+            }
+        });
+        return column;
+    }
+
+    private static TableColumn<QualityIssue, String> locationColumn() {
+        TableColumn<QualityIssue, String> column = AnalysisSupport.column("Location", QualitySection::location, -1);
+        column.setCellFactory(col -> new TableCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null || item.isEmpty()) {
+                    setText(null);
+                    setTooltip(null);
+                    return;
+                }
+                setText(item);
+                setTooltip(new Tooltip(item));
+            }
+        });
+        column.getStyleClass().add("fxt-analysis-cell-mono");
+        return column;
     }
 
     private void showDetails(QualityIssue issue) {
@@ -195,10 +311,19 @@ final class QualitySection extends VBox {
             details.getChildren().add(AnalysisSupport.emptyLabel("Select an issue to see its suggestion and affected elements."));
             return;
         }
-        Label message = new Label(issue.message());
+        Label message = new Label(issue.message(), AnalysisSupport.severityIcon(issue.severity(), 14));
+        message.setGraphicTextGap(6);
         message.setWrapText(true);
-        message.getStyleClass().add("fxt-analysis-value");
+        message.getStyleClass().addAll("fxt-analysis-value",
+                "fxt-analysis-sev-" + issue.severity().name().toLowerCase(Locale.ROOT));
         details.getChildren().add(message);
+        String location = location(issue);
+        if (location != null && !location.isBlank()) {
+            Label where = new Label(location);
+            where.setWrapText(true);
+            where.getStyleClass().add("fxt-analysis-location");
+            details.getChildren().add(where);
+        }
         if (issue.suggestion() != null && !issue.suggestion().isBlank()) {
             Label suggestion = new Label("Suggestion: " + issue.suggestion());
             suggestion.setWrapText(true);
@@ -207,7 +332,9 @@ final class QualitySection extends VBox {
         }
         if (issue.affectedElements() != null && !issue.affectedElements().isEmpty()) {
             FlowPane links = new FlowPane(6, 2);
-            links.getChildren().add(new Label("Affected: "));
+            Label affected = new Label("Affected: ");
+            affected.getStyleClass().add("fxt-analysis-key");
+            links.getChildren().add(affected);
             for (String name : issue.affectedElements()) {
                 Hyperlink link = new Hyperlink(name);
                 link.setOnAction(e -> {
