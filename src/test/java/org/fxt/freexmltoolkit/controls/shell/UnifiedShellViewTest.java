@@ -142,6 +142,50 @@ class UnifiedShellViewTest {
     }
 
     @Test
+    void ctrlShiftDTogglesTheFavoritesPanel() {
+        WaitForAsyncUtils.waitForFxEvents();
+        assertNull(shell.lookup(".fxt-side-panel"), "dashboard starts without a side panel");
+
+        fireShortcut(javafx.scene.input.KeyCode.D, true);
+        assertEquals(Activity.FAVORITES, shell.getSelectionModel().getActive(), "Ctrl+Shift+D selects Favorites");
+        assertTrue(shell.isLeftPanelOpen(), "Ctrl+Shift+D reveals the side panel");
+        assertNotNull(shell.lookup(".fxt-side-panel"));
+
+        fireShortcut(javafx.scene.input.KeyCode.D, true);
+        assertFalse(shell.isLeftPanelOpen(), "a second Ctrl+Shift+D collapses the side panel");
+
+        fireShortcut(javafx.scene.input.KeyCode.D, true);
+        assertTrue(shell.isLeftPanelOpen(), "a third Ctrl+Shift+D opens it again");
+        assertEquals(Activity.FAVORITES, shell.getSelectionModel().getActive());
+    }
+
+    @Test
+    void ctrlDAddsTheActiveDocumentToFavorites(@org.junit.jupiter.api.io.TempDir java.nio.file.Path tmp) throws Exception {
+        java.nio.file.Path xml = tmp.resolve("shortcut-favorite.xml");
+        java.nio.file.Files.writeString(xml, "<root/>");
+        var favorites = org.fxt.freexmltoolkit.service.FavoritesService.getInstance();
+        try {
+            assertFalse(shell.addActiveDocumentToFavorites(), "no document open → nothing to add");
+
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> shell.getEditorHost().openFile(xml));
+            WaitForAsyncUtils.waitFor(5, java.util.concurrent.TimeUnit.SECONDS,
+                    () -> shell.getEditorHost().getActiveDocument().map(d -> xml.equals(d.getPath())).orElse(false));
+
+            fireShortcut(javafx.scene.input.KeyCode.D, false);
+            assertTrue(favorites.isFavorite(xml.toString()), "Ctrl+D must add the active document to favorites");
+        } finally {
+            favorites.removeFavoriteByPath(xml.toString());
+        }
+    }
+
+    /** Fires Ctrl(+Shift)+{@code code} on the shell so its shortcut handler runs. */
+    private void fireShortcut(javafx.scene.input.KeyCode code, boolean shift) {
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> shell.fireEvent(new javafx.scene.input.KeyEvent(
+                javafx.scene.input.KeyEvent.KEY_PRESSED, "", "", code, shift, true, false, false)));
+        WaitForAsyncUtils.waitForFxEvents();
+    }
+
+    @Test
     void documentActionToolbarButtonsArePresentAndGatedWhenNoDocument() {
         WaitForAsyncUtils.waitForFxEvents();
         // Validate/Transform are direct toolbar buttons …

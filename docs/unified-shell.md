@@ -1356,13 +1356,10 @@ The status bar at the bottom of the window includes:
 | Ctrl+Shift+H | **Replace in Files** - opens the Search panel with the replace row expanded |
 | F8 | Validate |
 | Shift+Alt+F | Format (pretty-print) the active document |
-| Ctrl+D | Add to favorites |
-| Ctrl+L | Toggle linked files |
+| Ctrl+D | Add the active document to favorites |
+| Ctrl+Shift+D | Show the Favorites panel (press again to collapse the side panel) |
 | Ctrl+Shift+X | Toggle Query Console (XPath/XQuery) |
 | Ctrl+Enter | Run the active XPath/XQuery, XSLT or XProc document (Run Query / Run Transform / Run Pipeline) |
-| Ctrl+Shift+P | Toggle properties |
-| Ctrl+E | XML to Spreadsheet |
-| Ctrl+T | Templates |
 | Ctrl+G | Generate XSD |
 
 !!! warning "Changed shortcut"

@@ -272,7 +272,8 @@ public class FavoritesActivityPanel extends VBox {
      * as soon as any favorite has one (the rest gathers under "Uncategorized",
      * last), otherwise by file type (enum order). Favorites sort by name.
      */
-    private void refresh() {
+    /** Re-reads the favorites list (also called by the shell after Ctrl+D). */
+    public void refresh() {
         list.getSelectionModel().clearSelection();
         String query = search.getText() != null ? search.getText().strip().toLowerCase(Locale.ROOT) : "";
         List<FileFavorite> all = FavoritesService.getInstance().getAllFavorites().stream()

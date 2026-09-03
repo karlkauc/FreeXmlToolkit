@@ -425,6 +425,16 @@ public class UnifiedShellView extends BorderPane {
                     event.consume();
                 }
             }
+            case D -> {
+                // Ctrl+D adds the active document to favorites, Ctrl+Shift+D toggles the
+                // Favorites side panel (both listed in the Keyboard Shortcuts dialog).
+                if (event.isShiftDown()) {
+                    toggleFavoritesPanel();
+                } else {
+                    addActiveDocumentToFavorites();
+                }
+                event.consume();
+            }
             case Z -> {
                 // Shell-level Undo/Redo so they work regardless of which view (Text/Tree/
                 // Graphic) has focus. This only fires when the focused editor did not already
@@ -508,6 +518,39 @@ public class UnifiedShellView extends BorderPane {
     private void revealSidePanel() {
         activityChosen = true;
         setLeftPanelVisible(true);
+    }
+
+    /**
+     * Ctrl+Shift+D: shows the Favorites side panel, or collapses the side panel when Favorites
+     * is already the visible activity.
+     */
+    public void toggleFavoritesPanel() {
+        if (selectionModel.getActive() == Activity.FAVORITES && isLeftPanelOpen() && activityChosen) {
+            setLeftPanelVisible(false);
+            return;
+        }
+        selectionModel.select(Activity.FAVORITES);
+        revealSidePanel();
+    }
+
+    /**
+     * Ctrl+D: adds the active document to favorites and refreshes the Favorites panel.
+     *
+     * @return {@code true} if a saved document was active and added; {@code false} for no
+     * document or an unsaved buffer
+     */
+    public boolean addActiveDocumentToFavorites() {
+        java.util.Optional<org.fxt.freexmltoolkit.controls.shell.editor.OpenDocument> doc =
+                editorHost.getActiveDocument().filter(d -> d.getPath() != null);
+        if (doc.isEmpty()) {
+            return false;
+        }
+        org.fxt.freexmltoolkit.service.FavoritesService.getInstance().addFavorite(doc.get().getPath().toFile());
+        if (sidePanels.get(Activity.FAVORITES)
+                instanceof org.fxt.freexmltoolkit.controls.shell.editor.FavoritesActivityPanel favorites) {
+            favorites.refresh();
+        }
+        return true;
     }
 
     /** Shows the Schema Library activity with its Cache tab selected. */
