@@ -10,7 +10,6 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.geometry.Pos;
-import javafx.scene.Cursor;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Hyperlink;
@@ -186,7 +185,7 @@ final class QualitySection extends VBox {
                         s.name().toLowerCase(Locale.ROOT));
                 chip.setGraphic(AnalysisSupport.severityIcon(s, 12));
                 chip.setGraphicTextGap(5);
-                toggleChip(chip, severityFilter, AnalysisSupport.titleCase(s));
+                AnalysisSupport.toggleChip(chip, severityFilter.valueProperty(), AnalysisSupport.titleCase(s), ALL);
                 severityChips.getChildren().add(chip);
             }
         }
@@ -194,7 +193,7 @@ final class QualitySection extends VBox {
             long n = byCategory.getOrDefault(c, 0L);
             if (n > 0) {
                 Label chip = AnalysisSupport.chip(AnalysisSupport.titleCase(c) + " " + n, "neutral");
-                toggleChip(chip, categoryFilter, AnalysisSupport.titleCase(c));
+                AnalysisSupport.toggleChip(chip, categoryFilter.valueProperty(), AnalysisSupport.titleCase(c), ALL);
                 categoryChips.getChildren().add(chip);
             }
         }
@@ -202,25 +201,6 @@ final class QualitySection extends VBox {
         showDetails(null);
         applyFilter();
         status.setText("");
-    }
-
-    /** Makes {@code chip} toggle {@code filter} between {@code value} and "All"; highlights it while active. */
-    private static void toggleChip(Label chip, ComboBox<String> filter, String value) {
-        chip.setCursor(Cursor.HAND);
-        chip.setTooltip(new Tooltip("Click to show only these issues"));
-        chip.setOnMouseClicked(e -> filter.setValue(value.equals(filter.getValue()) ? ALL : value));
-        Runnable sync = () -> {
-            boolean active = value.equals(filter.getValue());
-            if (active != chip.getStyleClass().contains("fxt-analysis-chip-active")) {
-                if (active) {
-                    chip.getStyleClass().add("fxt-analysis-chip-active");
-                } else {
-                    chip.getStyleClass().remove("fxt-analysis-chip-active");
-                }
-            }
-        };
-        filter.valueProperty().addListener((obs, o, n) -> sync.run());
-        sync.run();
     }
 
     private static Label filterLabel(String text) {
@@ -248,15 +228,7 @@ final class QualitySection extends VBox {
                     || (issue.affectedElements() != null
                         && issue.affectedElements().stream().anyMatch(a -> contains(a, text)));
         });
-        count.setText(countText(filtered.size(), issues.size()));
-    }
-
-    /** "2251 issues" when nothing is filtered out, else "Showing 350 of 2251 issues". */
-    static String countText(int visible, int total) {
-        if (visible == total) {
-            return AnalysisSupport.plural(total, "issue");
-        }
-        return "Showing " + visible + " of " + AnalysisSupport.plural(total, "issue");
+        count.setText(AnalysisSupport.countText(filtered.size(), issues.size(), "issue"));
     }
 
     private static boolean contains(String haystack, String needle) {

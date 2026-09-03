@@ -80,10 +80,14 @@ class SchemaAnalysisVisualDocScreenshotGenerator {
         shot("analysis-statistics-light");
         selectSubTab(1);
         shot("analysis-quality-light");
+        selectSubTab(2);
+        shot("analysis-constraints-light");
 
         onFx(() -> ThemeManager.apply(shell.getScene(), true));
         settle(800);
         shot("analysis-quality-dark");
+        selectSubTab(2);
+        shot("analysis-constraints-dark");
         selectSubTab(0);
         shot("analysis-statistics-dark");
         onFx(() -> ThemeManager.apply(shell.getScene(), false));
@@ -94,7 +98,8 @@ class SchemaAnalysisVisualDocScreenshotGenerator {
         onFx(() -> {
             if (shell.lookup("#schema-analysis-tabs") instanceof TabPane tabs) {
                 tabs.getSelectionModel().select(index);
-                if (index == 1 && shell.lookup("#analysis-quality-table") instanceof TableView<?> table
+                String tableId = index == 1 ? "#analysis-quality-table" : index == 2 ? "#analysis-constraints-table" : null;
+                if (tableId != null && shell.lookup(tableId) instanceof TableView<?> table
                         && !table.getItems().isEmpty()) {
                     table.getSelectionModel().select(0);
                 }

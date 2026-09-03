@@ -110,12 +110,14 @@ class SchemaAnalysisViewTest {
         WaitForAsyncUtils.asyncFx(() -> chip.getOnMouseClicked().handle(null));
         WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> !QualitySection.ALL.equals(severity.getValue()));
         WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> table.getItems().size() == expected);
+        WaitForAsyncUtils.waitForFxEvents();
         assertTrue(chip.getStyleClass().contains("fxt-analysis-chip-active"));
         assertEquals("Showing " + expected + " of " + total + " issues", count.getText());
 
         WaitForAsyncUtils.asyncFx(() -> chip.getOnMouseClicked().handle(null));
         WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> QualitySection.ALL.equals(severity.getValue()));
         WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> table.getItems().size() == total);
+        WaitForAsyncUtils.waitForFxEvents();
         assertFalse(chip.getStyleClass().contains("fxt-analysis-chip-active"));
     }
 
@@ -126,6 +128,29 @@ class SchemaAnalysisViewTest {
         assertNotNull(table);
         assertEquals(2, table.getItems().size());
         assertNotNull(view.lookup("#analysis-xpath-table"));
+    }
+
+    @Test
+    void constraintTypeChipFiltersTheTable() throws Exception {
+        WaitForAsyncUtils.waitForFxEvents();
+        TableView<?> table = (TableView<?>) view.lookup("#analysis-constraints-table");
+        FlowPane chips = (FlowPane) view.lookup("#analysis-constraints-type-chips");
+        Label count = (Label) view.lookup("#analysis-constraints-count");
+        assertEquals(2, chips.getChildren().size(), "one chip per constraint kind present (key, keyref)");
+        assertEquals("2 constraints", count.getText());
+
+        Label keyrefChip = (Label) chips.getChildren().get(1);
+        assertEquals("1 keyref", keyrefChip.getText());
+        WaitForAsyncUtils.asyncFx(() -> keyrefChip.getOnMouseClicked().handle(null));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> table.getItems().size() == 1);
+        WaitForAsyncUtils.waitForFxEvents();
+        assertTrue(keyrefChip.getStyleClass().contains("fxt-analysis-chip-active"));
+        assertEquals("Showing 1 of 2 constraints", count.getText());
+
+        WaitForAsyncUtils.asyncFx(() -> keyrefChip.getOnMouseClicked().handle(null));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> table.getItems().size() == 2);
+        WaitForAsyncUtils.waitForFxEvents();
+        assertEquals("2 constraints", count.getText());
     }
 
     @Test

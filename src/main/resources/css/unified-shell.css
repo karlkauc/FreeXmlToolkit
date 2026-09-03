@@ -2453,6 +2453,11 @@
     -fx-cell-size: 30;
 }
 
+.table-view.fxt-analysis-table .table-row-cell:empty {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
 .table-view.fxt-analysis-table .table-row-cell:filled:hover {
     -fx-background-color: -fxt-bg-surface-2;
 }
@@ -2601,11 +2606,21 @@
 .fxt-analysis-chip-info .iconify-icon,
 .fxt-analysis-chip-suggestion .iconify-icon { -fx-icon-color: -fxt-tool-info-fg; }
 
+/* Neutral icons inside analysis tables / details (kind icons); the severity rules below
+   share their specificity and come later, so they still win for status icons. */
+.fxt-analysis-table .iconify-icon,
+.fxt-analysis-details .iconify-icon {
+    -fx-icon-color: -fxt-text-secondary;
+}
+
 /* Severity icons in the issues table and details pane */
 .fxt-analysis-sev-error .iconify-icon { -fx-icon-color: -fxt-danger; }
 .fxt-analysis-sev-warning .iconify-icon { -fx-icon-color: -fxt-warning; }
 .fxt-analysis-sev-info .iconify-icon { -fx-icon-color: -fxt-info; }
 .fxt-analysis-sev-suggestion .iconify-icon { -fx-icon-color: -fxt-text-secondary; }
+.fxt-analysis-sev-ok .iconify-icon { -fx-icon-color: -fxt-success; }
+.fxt-analysis-chip-ok.fxt-analysis-chip-active { -fx-background-color: -fxt-success; -fx-border-color: -fxt-success; }
+.fxt-analysis-chip-ok .iconify-icon { -fx-icon-color: -fxt-tool-success-fg; }
 
 /* Filter bar: token-styled combos (the themed .list-cell:selected rule paints the
    button cell primary-blue otherwise) and a secondary-coloured funnel icon */

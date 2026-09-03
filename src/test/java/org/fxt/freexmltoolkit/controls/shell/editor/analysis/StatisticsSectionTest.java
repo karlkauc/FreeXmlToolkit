@@ -9,10 +9,10 @@ class StatisticsSectionTest {
 
     @Test
     void qualityCountTextDistinguishesFilteredFromUnfiltered() {
-        assertEquals("1 issue", QualitySection.countText(1, 1));
-        assertEquals("2251 issues", QualitySection.countText(2251, 2251));
-        assertEquals("Showing 350 of 2251 issues", QualitySection.countText(350, 2251));
-        assertEquals("Showing 0 of 1 issue", QualitySection.countText(0, 1));
+        assertEquals("1 issue", AnalysisSupport.countText(1, 1, "issue"));
+        assertEquals("2251 issues", AnalysisSupport.countText(2251, 2251, "issue"));
+        assertEquals("Showing 350 of 2251 issues", AnalysisSupport.countText(350, 2251, "issue"));
+        assertEquals("Showing 0 of 1 issue", AnalysisSupport.countText(0, 1, "issue"));
     }
 
     @Test

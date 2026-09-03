@@ -7,17 +7,21 @@ import java.util.function.Function;
 
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.beans.property.Property;
+import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.Tooltip;
 import javafx.stage.FileChooser;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.FxtGui;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdIdentityConstraintAnalyzer;
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdQualityChecker;
 import org.fxt.freexmltoolkit.util.FileChooserHelper;
 
@@ -69,6 +73,58 @@ final class AnalysisSupport {
         Label chip = new Label(text);
         chip.getStyleClass().addAll("fxt-analysis-chip", "fxt-analysis-chip-" + tone);
         return chip;
+    }
+
+    /**
+     * Makes {@code chip} toggle {@code filter} between {@code value} and {@code all}; the chip
+     * carries {@code fxt-analysis-chip-active} while its value is the current filter.
+     */
+    static void toggleChip(Label chip, Property<String> filter, String value, String all) {
+        chip.setCursor(Cursor.HAND);
+        chip.setTooltip(new Tooltip("Click to show only these entries"));
+        chip.setOnMouseClicked(e -> filter.setValue(value.equals(filter.getValue()) ? all : value));
+        Runnable sync = () -> {
+            boolean active = value.equals(filter.getValue());
+            if (active != chip.getStyleClass().contains("fxt-analysis-chip-active")) {
+                if (active) {
+                    chip.getStyleClass().add("fxt-analysis-chip-active");
+                } else {
+                    chip.getStyleClass().remove("fxt-analysis-chip-active");
+                }
+            }
+        };
+        filter.addListener((obs, o, n) -> sync.run());
+        sync.run();
+    }
+
+    /** "3 issues" when nothing is filtered out, else "Showing 1 of 3 issues". */
+    static String countText(int visible, int total, String singular) {
+        if (visible == total) {
+            return plural(total, singular);
+        }
+        return "Showing " + visible + " of " + plural(total, singular);
+    }
+
+    /** The icon for an identity-constraint validation status (colour via {@code fxt-analysis-sev-*}). */
+    static IconifyIcon statusIcon(XsdIdentityConstraintAnalyzer.ValidationStatus status, int size) {
+        String literal = switch (status) {
+            case VALID -> "bi-check-circle-fill";
+            case WARNING -> "bi-exclamation-triangle-fill";
+            case ERROR -> "bi-x-circle-fill";
+        };
+        IconifyIcon icon = icon(literal, size);
+        icon.getStyleClass().add("fxt-analysis-sev-icon");
+        return icon;
+    }
+
+    /** The icon for an identity-constraint kind. */
+    static String constraintIcon(XsdIdentityConstraintAnalyzer.ConstraintType type) {
+        return switch (type) {
+            case KEY -> "bi-key";
+            case KEYREF -> "bi-link-45deg";
+            case UNIQUE -> "bi-fingerprint";
+            case ASSERT -> "bi-check2-circle";
+        };
     }
 
     /** An uppercase group heading inside a section. */

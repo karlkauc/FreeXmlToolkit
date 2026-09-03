@@ -325,6 +325,11 @@ its suggestion and location and to jump to the affected elements.
 The **Identity Constraints** tab lists every `xs:key`, `xs:keyref`, `xs:unique`, and
 `xs:assert` with its parent element, selector, fields, referenced key or test expression, and a
 validation status - for example a `keyref` whose `refer` points to a key that does not exist.
+The count chips above the table filter by kind (key, keyref, unique, assert) and by status
+(errors, warnings); click a chip again to clear the filter. Selecting a row reveals the
+constraint in the Tree view and fills the details pane with the validation message, the parent
+element (a link), selector and fields, and - for a keyref - a link that selects the referenced
+key.
 
 ### XPath Validation
 
