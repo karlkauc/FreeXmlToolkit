@@ -178,6 +178,26 @@ class UnifiedShellViewTest {
         }
     }
 
+    @Test
+    void ctrlLTogglesTheLeftPanelAndCtrlShiftPTheInspector() {
+        WaitForAsyncUtils.waitForFxEvents();
+        assertNull(shell.lookup(".fxt-side-panel"), "dashboard starts without a side panel");
+
+        fireShortcut(javafx.scene.input.KeyCode.L, false);
+        assertTrue(shell.isLeftPanelOpen(), "Ctrl+L reveals the side panel from the dashboard");
+        assertNotNull(shell.lookup(".fxt-side-panel"));
+        fireShortcut(javafx.scene.input.KeyCode.L, false);
+        assertFalse(shell.isLeftPanelOpen(), "a second Ctrl+L hides it");
+        fireShortcut(javafx.scene.input.KeyCode.L, false);
+        assertTrue(shell.isLeftPanelOpen(), "a third Ctrl+L shows it again");
+
+        boolean inspectorBefore = shell.isInspectorOpen();
+        fireShortcut(javafx.scene.input.KeyCode.P, true);
+        assertEquals(!inspectorBefore, shell.isInspectorOpen(), "Ctrl+Shift+P toggles the Properties inspector");
+        fireShortcut(javafx.scene.input.KeyCode.P, true);
+        assertEquals(inspectorBefore, shell.isInspectorOpen(), "a second Ctrl+Shift+P restores it");
+    }
+
     /** Fires Ctrl(+Shift)+{@code code} on the shell so its shortcut handler runs. */
     private void fireShortcut(javafx.scene.input.KeyCode code, boolean shift) {
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> shell.fireEvent(new javafx.scene.input.KeyEvent(

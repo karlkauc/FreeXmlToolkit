@@ -223,9 +223,9 @@ with the closely related actions:
 ### Icon-only buttons (hover for the tooltip)
 
 - **Undo** (Ctrl+Z) / **Redo** (Ctrl+Y)
-- **Insert Template…** - Insert a snippet from the template system
+- **Insert Template…** (Ctrl+T) - Insert a snippet from the template system
 - **Compare with File…** - Side-by-side diff and merge (see [Compare & Merge](#compare-merge))
-- **Spreadsheet Converter…** - Excel / CSV ↔ XML conversion
+- **Spreadsheet Converter…** (Ctrl+E) - Excel / CSV ↔ XML conversion
 - **Query Console** (Ctrl+Shift+X) - Toggle the bottom XPath/XQuery console (terminal icon)
 - **Transform with XSLT…** - Pick a stylesheet and transform the active XML document
 
@@ -241,7 +241,8 @@ XProc document is active and selects the XML document the run works on. See
 
 ## Panel Toggles
 
-- **Linked** (Ctrl+L) - Show/hide linked files panel
+- **Side panel** (Ctrl+L) - Show/hide the left side panel (the active activity's Explorer,
+  Validation, Transform, Schema, … panel); the same as the **«** button in the panel header
 - **Query Console** (Ctrl+Shift+X) - Show/hide the bottom XPath/XQuery query console (terminal
   icon in the editor toolbar). See [Query Console](#query-console) below.
 - **Properties** (Ctrl+Shift+P) - Show/hide properties and validation sidebar. For XML files,
@@ -1360,6 +1361,10 @@ The status bar at the bottom of the window includes:
 | Ctrl+Shift+D | Show the Favorites panel (press again to collapse the side panel) |
 | Ctrl+Shift+X | Toggle Query Console (XPath/XQuery) |
 | Ctrl+Enter | Run the active XPath/XQuery, XSLT or XProc document (Run Query / Run Transform / Run Pipeline) |
+| Ctrl+L | Show/hide the left side panel |
+| Ctrl+Shift+P | Show/hide the Properties inspector |
+| Ctrl+E | Spreadsheet Converter… (Excel / CSV ↔ XML) |
+| Ctrl+T | Insert Template… (needs an open document) |
 | Ctrl+G | Generate XSD |
 
 !!! warning "Changed shortcut"

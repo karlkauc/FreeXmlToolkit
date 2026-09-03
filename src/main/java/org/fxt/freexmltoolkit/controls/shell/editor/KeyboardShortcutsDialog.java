@@ -37,6 +37,11 @@ public final class KeyboardShortcutsDialog {
                 new String[]{"F5", "Execute (Validate/Transform)"},
                 new String[]{"Ctrl+D", "Add to Favorites"},
                 new String[]{"Ctrl+Shift+D", "Toggle Favorites Panel"},
+                new String[]{"Ctrl+L", "Toggle Side Panel"},
+                new String[]{"Ctrl+Shift+P", "Toggle Properties Inspector"},
+                new String[]{"Ctrl+Shift+X", "Toggle Query Console"},
+                new String[]{"Ctrl+E", "Spreadsheet Converter"},
+                new String[]{"Ctrl+T", "Insert Template"},
                 new String[]{"F1", "Show Help"}
         );
         return DialogHelper.createHelpDialog(

@@ -435,6 +435,30 @@ public class UnifiedShellView extends BorderPane {
                 }
                 event.consume();
             }
+            case L -> {
+                if (!event.isShiftDown()) {
+                    toggleLeftPanel();
+                    event.consume();
+                }
+            }
+            case P -> {
+                if (event.isShiftDown()) {
+                    setInspectorVisible(!isInspectorOpen());
+                    event.consume();
+                }
+            }
+            case E -> {
+                if (!event.isShiftDown()) {
+                    convertSpreadsheet();
+                    event.consume();
+                }
+            }
+            case T -> {
+                if (!event.isShiftDown()) {
+                    insertTemplate();
+                    event.consume();
+                }
+            }
             case Z -> {
                 // Shell-level Undo/Redo so they work regardless of which view (Text/Tree/
                 // Graphic) has focus. This only fires when the focused editor did not already
@@ -518,6 +542,18 @@ public class UnifiedShellView extends BorderPane {
     private void revealSidePanel() {
         activityChosen = true;
         setLeftPanelVisible(true);
+    }
+
+    /**
+     * Ctrl+L: shows or hides the left side panel (the active activity's panel) - also from the
+     * full-width dashboard, where it is hidden until an activity is chosen.
+     */
+    public void toggleLeftPanel() {
+        if (isLeftPanelOpen() && activityChosen) {
+            setLeftPanelVisible(false);
+        } else {
+            revealSidePanel();
+        }
     }
 
     /**
