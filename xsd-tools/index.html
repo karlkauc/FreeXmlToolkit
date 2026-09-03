@@ -3216,7 +3216,12 @@ its suggestion and location and to jump to the affected elements.</p>
 <h3 id="identity-constraints">Identity Constraints<a class="headerlink" href="#identity-constraints" title="Permanent link">&para;</a></h3>
 <p>The <strong>Identity Constraints</strong> tab lists every <code>xs:key</code>, <code>xs:keyref</code>, <code>xs:unique</code>, and
 <code>xs:assert</code> with its parent element, selector, fields, referenced key or test expression, and a
-validation status - for example a <code>keyref</code> whose <code>refer</code> points to a key that does not exist.</p>
+validation status - for example a <code>keyref</code> whose <code>refer</code> points to a key that does not exist.
+The count chips above the table filter by kind (key, keyref, unique, assert) and by status
+(errors, warnings); click a chip again to clear the filter. Selecting a row reveals the
+constraint in the Tree view and fills the details pane with the validation message, the parent
+element (a link), selector and fields, and - for a keyref - a link that selects the referenced
+key.</p>
 <h3 id="xpath-validation">XPath Validation<a class="headerlink" href="#xpath-validation" title="Permanent link">&para;</a></h3>
 <p>The <strong>XPath Validation</strong> tab checks the XPath expressions used by identity constraints and
 assertions: syntax, element names that do not occur in the schema, and constructs that are not
