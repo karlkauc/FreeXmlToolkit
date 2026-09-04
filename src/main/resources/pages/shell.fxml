@@ -60,10 +60,6 @@
                                     </children>
                                 </HBox>
                                 <Region HBox.hgrow="ALWAYS"/>
-                                <Button styleClass="fxt-header-icon" focusTraversable="false" onAction="#onNotifications">
-                                    <graphic><IconifyIcon iconLiteral="bi-bell" iconSize="16"/></graphic>
-                                    <tooltip><Tooltip text="Notifications"/></tooltip>
-                                </Button>
                                 <Button styleClass="fxt-header-icon" focusTraversable="false" onAction="#onHelp">
                                     <graphic><IconifyIcon iconLiteral="bi-question-circle" iconSize="16"/></graphic>
                                     <tooltip><Tooltip text="Help"/></tooltip>

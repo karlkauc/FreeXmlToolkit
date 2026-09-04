@@ -970,7 +970,6 @@ public class UnifiedShellView extends BorderPane {
     @FXML public void onGenerateDocs() { editorActions.generateDocsActive(window()); }
     @FXML public void onTypeEditor() { editorActions.openTypeEditorActive(); }
     @FXML public void onValidate() { validateActive(); }
-    @FXML public void onNotifications() { /* no-op placeholder (Figma "future" header) */ }
     @FXML public void onHelp() { selectionModel.select(Activity.HELP); }
     @FXML public void onToggleTheme() { toggleTheme(); }
     @FXML public void onSearchPillClicked() { openQueryConsole(); }
