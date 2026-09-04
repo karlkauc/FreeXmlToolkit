@@ -215,6 +215,39 @@ class UnifiedShellViewTest {
         assertTrue(shell.isQueryConsoleShown(), "Ctrl+Shift+K is not bound and leaves the console alone");
     }
 
+    @Test
+    void f1OpensTheHelpActivity() {
+        WaitForAsyncUtils.waitForFxEvents();
+        fireKey(javafx.scene.input.KeyCode.F1);
+        assertEquals(Activity.HELP, shell.getSelectionModel().getActive(), "F1 opens the Help activity");
+    }
+
+    @Test
+    void f5WithoutADocumentIsANoOp() {
+        WaitForAsyncUtils.waitForFxEvents();
+        Activity before = shell.getSelectionModel().getActive();
+        fireKey(javafx.scene.input.KeyCode.F5);
+        assertEquals(before, shell.getSelectionModel().getActive(),
+                "F5 on the empty dashboard must neither validate nor switch activities");
+    }
+
+    @Test
+    void f11TogglesFullScreen() {
+        WaitForAsyncUtils.waitForFxEvents();
+        javafx.stage.Stage stage = (javafx.stage.Stage) shell.getScene().getWindow();
+        assertFalse(stage.isFullScreen(), "stage starts windowed");
+        fireKey(javafx.scene.input.KeyCode.F11);
+        assertTrue(stage.isFullScreen(), "F11 enters full screen");
+        fireKey(javafx.scene.input.KeyCode.F11);
+        assertFalse(stage.isFullScreen(), "a second F11 leaves full screen");
+    }
+
+    private void fireKey(javafx.scene.input.KeyCode code) {
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> shell.fireEvent(new javafx.scene.input.KeyEvent(
+                javafx.scene.input.KeyEvent.KEY_PRESSED, "", "", code, false, false, false, false)));
+        WaitForAsyncUtils.waitForFxEvents();
+    }
+
     private void fireShortcut(javafx.scene.input.KeyCode code, boolean shift) {
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> shell.fireEvent(new javafx.scene.input.KeyEvent(
                 javafx.scene.input.KeyEvent.KEY_PRESSED, "", "", code, shift, true, false, false)));

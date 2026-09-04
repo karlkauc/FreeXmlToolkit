@@ -282,6 +282,9 @@ If the interface appears blurry or animations are slow, your system may be using
 | `Shift+Alt+F` | Format (pretty-print) the document |
 | `F8` | Validate the current document |
 | `Ctrl+Enter` | Run the current transformation / query |
+| `F5` | Execute: run a query / stylesheet / pipeline, or validate any other document |
+| `F1` | Open the Help panel |
+| `F11` | Toggle full screen |
 | `Ctrl+T` | Insert a template |
 | `Ctrl+Shift+X` | Toggle the Query Console |
 | `Ctrl+D` / `Ctrl+Shift+D` | Add current file to Favorites / show the Favorites panel |

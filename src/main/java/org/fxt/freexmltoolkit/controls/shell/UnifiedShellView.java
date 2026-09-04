@@ -363,11 +363,33 @@ public class UnifiedShellView extends BorderPane {
     }
 
     private void handleShortcut(javafx.scene.input.KeyEvent event) {
-        // F8 validates the active document (no modifier).
-        if (event.getCode() == javafx.scene.input.KeyCode.F8) {
-            validateActive();
-            event.consume();
-            return;
+        // Function keys (no modifier) - all listed in the Keyboard Shortcuts dialog.
+        switch (event.getCode()) {
+            case F1 -> {
+                // F1 opens the Help activity, like the header's Help button.
+                selectionModel.select(Activity.HELP);
+                event.consume();
+                return;
+            }
+            case F5 -> {
+                // F5 "executes" the active document: runnable types (XQuery/XPath/XSLT/XProc)
+                // go through the toolbar's Run action, everything else is validated.
+                executeActive();
+                event.consume();
+                return;
+            }
+            case F8 -> {
+                // F8 validates the active document.
+                validateActive();
+                event.consume();
+                return;
+            }
+            case F11 -> {
+                toggleFullScreen();
+                event.consume();
+                return;
+            }
+            default -> { /* fall through to the modifier shortcuts below */ }
         }
         // Shift+Alt+F formats the active document (VS Code convention;
         // Ctrl+Shift+F is Find in Files since the Search activity exists).
@@ -956,6 +978,28 @@ public class UnifiedShellView extends BorderPane {
     @FXML public void onToggleInspector() { setInspectorVisible(inspectorToggle.isSelected()); }
     @FXML public void onCollapseLeftPanel() { setLeftPanelVisible(false); }
     @FXML public void onCollapseInspector() { setInspectorVisible(false); }
+
+    /**
+     * F5: runs the active document when its type is runnable (the Run split button's
+     * primary action), otherwise validates it. Does nothing without an open document.
+     */
+    private void executeActive() {
+        if (editorHost.getActiveDocument().isEmpty()) {
+            return;
+        }
+        if (!actionRun.isDisabled()) {
+            onRunPrimary();
+        } else {
+            validateActive();
+        }
+    }
+
+    /** F11: toggles the shell window's full-screen mode. */
+    private void toggleFullScreen() {
+        if (window() instanceof javafx.stage.Stage stage) {
+            stage.setFullScreen(!stage.isFullScreen());
+        }
+    }
 
     /**
      * Validates the active document from the editor toolbar: well-formedness only when

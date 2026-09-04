@@ -97,6 +97,27 @@ class UnifiedShellValidateTest {
     }
 
     @Test
+    void f5ShortcutValidatesANonRunnableDocument(@TempDir Path tmp) throws Exception {
+        Path xml = tmp.resolve("malformed3.xml");
+        Files.writeString(xml, "<root><a></root>"); // not well-formed
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> shell.getEditorHost().openFile(xml));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> shell.getEditorHost().getActiveText().map(t -> t.contains("root")).orElse(false));
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            shell.fireEvent(new javafx.scene.input.KeyEvent(javafx.scene.input.KeyEvent.KEY_PRESSED,
+                    "", "", javafx.scene.input.KeyCode.F5, false, false, false, false));
+            return null;
+        });
+
+        WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS, () -> validationPanel() != null
+                && validationPanel().getProblemCount() > 0);
+        assertTrue(validationPanel().getProblemCount() > 0,
+                "pressing F5 on an XML document must validate it (Execute = validate for non-runnable types)");
+    }
+
+    @Test
     void problemsPanelBelowEditorShowsAfterFailedValidation(@TempDir Path tmp) throws Exception {
         Path xml = tmp.resolve("malformed3.xml");
         Files.writeString(xml, "<root><a></root>"); // not well-formed

@@ -1383,6 +1383,9 @@ The status bar at the bottom of the window includes (left to right):
 | Ctrl+Shift+X | Toggle Query Console (XPath/XQuery) |
 | Ctrl+K | Open the Query Console and focus its input (same as the header search pill) |
 | Ctrl+Enter | Run the active XPath/XQuery, XSLT or XProc document (Run Query / Run Transform / Run Pipeline) |
+| F5 | Execute: runs the active XPath/XQuery, XSLT or XProc document, validates any other document |
+| F1 | Open the Help panel |
+| F11 | Toggle full screen |
 | Ctrl+L | Show/hide the left side panel |
 | Ctrl+Shift+P | Show/hide the Properties inspector |
 | Ctrl+E | Spreadsheet Converter… (Excel / CSV ↔ XML) |
