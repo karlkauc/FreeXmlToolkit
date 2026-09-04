@@ -463,7 +463,7 @@ Create sample XML files based on your XSD schema. This is useful for testing, da
 For simple use cases, you can generate sample XML in seconds:
 
 1. Load your XSD file
-2. Open the **Schema** panel from the activity bar and click **Generate Sample XML**
+2. Open the **Schema** panel from the activity bar and click **Generate Sample XML…**
 3. Choose your options:
     - **Only mandatory elements**: Include only required elements
     - **Max. repetitions**: Limit repeating elements

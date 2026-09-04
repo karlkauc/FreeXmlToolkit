@@ -8,7 +8,9 @@
 Whether you're a business professional, developer, or just someone who needs to work with XML documents, this toolkit
 provides everything you need in one convenient application.
 
-![FreeXmlToolkit Application](docs/img/app.png)
+![FreeXmlToolkit Application](docs/img/main-window.png)
+
+**[⬇ Download the latest release](https://github.com/karlkauc/FreeXmlToolkit/releases/latest)** – Windows (.exe/.msi/portable), macOS (.dmg/.pkg, Apple Silicon & Intel), Linux (.deb/.rpm/portable). Full guide: [karlkauc.github.io/FreeXmlToolkit](https://karlkauc.github.io/FreeXmlToolkit/).
 
 ## <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: inline; vertical-align: middle; margin-right: 8px;"><circle cx="12" cy="12" r="10" stroke="#007bff" stroke-width="2"/><circle cx="12" cy="12" r="6" stroke="#007bff" stroke-width="1.5"/><circle cx="12" cy="12" r="2" fill="#007bff"/></svg> What is FreeXmlToolkit?
 
@@ -21,7 +23,7 @@ as your personal XML assistant that helps you work smarter, not harder.
 ### <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: inline; vertical-align: middle; margin-right: 8px;"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25Z" fill="#17a2b8" stroke="#17a2b8" stroke-width="0.5"/><path d="M20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83Z" fill="#17a2b8" stroke="#17a2b8" stroke-width="0.5"/></svg> **Smart XML Editor**
 
 - **Write and Edit XML**: A modern, user-friendly text editor specifically designed for XML files
-- **Grid Editor Mode**: Edit XML files as structured data in a table-like grid interface for easier data management
+- **Graphic (Grid) View**: Edit XML files as structured data in a table-like grid - the Graphic view of every XML document
 - **IntelliSense/Auto-Completion**: Smart code completion that suggests only valid XML elements based on your XSD schema
 - **Code Folding**: Collapse and expand XML sections for better navigation in large files
 - **Graphical Tree View**: Visual tree representation and editing of XML structure alongside the text editor
@@ -140,13 +142,12 @@ While FreeXmlToolkit is powerful and comprehensive, there are some schema format
 
 ### **Option 1: Download Ready-to-Use Version (Recommended)**
 
-1. Go to the [Releases page](https://github.com/karlkauc/FreeXmlToolkit/releases)
-2. Download the latest version for your operating system
-3. Extract the ZIP file to a folder on your computer
-4. Install and run the application:
-    - **Windows**: Run the installer (no administrator rights required)
-    - **Mac**: Install the `.app` file
-    - **Linux**: Install and run the application
+1. Go to the [Releases page](https://github.com/karlkauc/FreeXmlToolkit/releases/latest) (or use the download buttons on the [documentation home page](https://karlkauc.github.io/FreeXmlToolkit/))
+2. Download the package for your operating system:
+    - **Windows** (x64): `.exe` installer (no administrator rights required), `.msi` for managed deployments, or the portable `…windows-x64-app-image….zip`
+    - **macOS** (Apple Silicon `arm64` or Intel `x64`): `.dmg` (drag to Applications), `.pkg` installer, or the portable app-image `.zip`
+    - **Linux** (x64): `.deb` (`sudo dpkg -i …`), `.rpm` (`sudo rpm -i …`), or the portable app-image `.zip`
+3. Run the installer, or extract the portable ZIP to a folder and start `FreeXmlToolkit` from there
 
 **Note**: FreeXmlToolkit is designed to be user-friendly. On Windows, you don't need administrator privileges to install
 the application - standard installation process without elevated permissions required!
@@ -166,46 +167,43 @@ cd FreeXmlToolkit
 ### **First Steps**
 
 1. **Launch the Application**: Start FreeXmlToolkit from your computer
-2. **Explore the Interface**: The main window has tabs for different functions
-3. **Open a File**: Use the file menu or drag and drop XML files into the application
-4. **Try the Features**: Each tab offers different tools - experiment to see what each does
+2. **Explore the Interface**: The window is a single workspace (the *Unified Shell*): an activity bar on the left switches the side panel (Explorer, Search, Favorites, Validation, Transform, Schema, Schema Library, PDF/FOP, Signature, Help, Settings), the center holds your file tabs with Text / Tree / Graphic views
+3. **Open a File**: Use **Open** on the toolbar (Ctrl+O), the Explorer panel, or drag and drop files into the window
+4. **Try the Features**: Pick an activity on the left - each side panel offers the tools for that task
 
 ### **Common Workflows**
 
 **Editing XML Files:**
 
-1. Go to the "XML" tab
-2. Open your XML file
-3. Make your changes
-4. Save when done
+1. Open your XML file (Ctrl+O or drag & drop)
+2. Edit in the Text view, or switch to the Tree or Graphic view
+3. Save when done (Ctrl+S)
 
 **Validating XML:**
 
-1. Go to the "Validation" tab
-2. Load your XML file
-3. Select your XSD schema
-4. Click "Validate" to check for errors
+1. Open your XML file
+2. Open the **Validation** activity and pick the XSD (or let the Schema Library bind it automatically)
+3. Click **Validate** on the toolbar (F8) - problems appear in the PROBLEMS list
 
 **Creating Documentation:**
 
-1. Go to the "XSD" tab
-2. Load your XSD schema file
-3. Click "Generate Documentation"
-4. View the beautiful HTML output
+1. Open your XSD schema file
+2. Open the **Schema** activity
+3. Click **Generate Documentation…**
+4. View the HTML output
 
 **Transforming XML:**
 
-1. Go to the "XSLT" tab
-2. Load your XML file
-3. Load your XSLT stylesheet
-4. See the transformed result instantly
+1. Open your XML file
+2. Open the **Transform** activity and choose your XSLT stylesheet
+3. Click **Run** (Ctrl+Enter) - the result appears in the OUTPUT panel
 
 **Using Favorites:**
 
-1. **Saving Files**: Click the "★ Add" button in any editor to save the current file as a favorite
-2. **Organizing**: Choose a category when saving (e.g., "My Schemas", "Templates") or create a new one
-3. **Loading Files**: Click the "Favorites" dropdown in any editor to quickly open saved files
-4. **Managing**: Access all favorites from the dropdown menu's "Manage Favorites" option
+1. **Saving Files**: Press Ctrl+D (or **Add current** in the Favorites panel) to save the open file as a favorite
+2. **Organizing**: Right-click a favorite to rename it or move it into a folder (e.g., "My Schemas", "Templates")
+3. **Loading Files**: Open the **Favorites** activity (Ctrl+Shift+D) and click an entry
+4. **Managing**: Click **Manage…** in the Favorites panel for smart collections and clean-up
 
 ## <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: inline; vertical-align: middle; margin-right: 8px;"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" fill="#17a2b8"/></svg> Getting Help
 
@@ -214,7 +212,7 @@ cd FreeXmlToolkit
 - **Official Documentation**: For a complete feature guide, check out the [official documentation](https://karlkauc.github.io/FreeXmlToolkit/).
 - **User Guide**: Check the [Wiki](https://github.com/karlkauc/FreeXmlToolkit/wiki) for detailed instructions
 - **Examples**: Look in the `examples/` folder for sample files and templates
-- **Built-in Help**: Use the Help tab within the application
+- **Built-in Help**: Open the **Help** activity within the application
 
 ### **Support**
 

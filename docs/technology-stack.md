@@ -75,7 +75,7 @@ FreeXmlToolkit is built using modern Java technologies and libraries to provide 
 ### XSD Editor V2 Architecture (MVVM Variant)
 The XSD Editor V2 uses a sophisticated MVVM variant:
 - **Model Layer:** Pure XsdNode tree with PropertyChangeSupport
-- **Command Pattern:** All editing operations for undo/redo (31 commands)
+- **Command Pattern:** All editing operations for undo/redo (46 XSD commands in `controls/v2/editor/commands`, 16 XML-instance commands in `controls/v2/xmleditor/commands`)
 - **Observable Properties:** Reactive UI updates without tight coupling
 - **Incremental Rendering:** Only changed nodes re-render
 
@@ -105,18 +105,16 @@ The XSD Editor V2 uses a sophisticated MVVM variant:
 
 ### IntelliSense System
 ```
-org.fxt.freexmltoolkit.controls.intellisense/
-├── XmlIntelliSenseEngine     # Main orchestrator
-├── XsdIntegrationAdapter     # XSD-based suggestions
-├── CompletionCache           # Performance caching
-├── CompletionContext         # Context-aware completion
-└── AttributeValueHelper      # Type-aware attribute editing
-
 org.fxt.freexmltoolkit.controls.v2.editor.intellisense/
-├── IntelliSenseEngine        # V2 main engine
-├── ContextAnalyzer           # XPath context detection
-├── XsdCompletionProvider     # XSD-based completions
-└── IntelliSensePopup         # Completion UI
+├── IntelliSenseEngine        # Main orchestrator for XML-family documents
+├── XPathIntelliSenseEngine   # Completion inside XPath/XQuery expressions
+├── providers/                # XsdCompletionProvider, XsltCompletionProvider, XslFoCompletionProvider,
+│                             # SchematronCompletionProvider, XPathCompletionProvider, PatternCompletionProvider
+├── context/                  # ContextAnalyzer, XmlContext, XPathContext, XPathCalculator, …
+├── registry/ProviderRegistry # Picks the providers for the current document type
+├── triggers/TriggerSystem    # Decides when the popup opens (<, /, space, …)
+├── cache/CompletionCache     # Performance caching
+└── ui/                       # Completion popup and hover UI
 ```
 
 Key Features:
@@ -139,7 +137,7 @@ Centralized thread management with 5 specialized pools:
 - **IO Pool:** File operations, network requests
 - **UI Pool:** JavaFX Application Thread operations
 - **Scheduled Pool:** Periodic tasks (memory monitoring)
-- **Single Pool:** Serial task execution
+- **Background Pool:** Low-priority background work (fixed-size pool)
 
 ## Build Configuration
 
@@ -147,7 +145,7 @@ Centralized thread management with 5 specialized pools:
 - **Java Toolchain:** Configured for Java 25
 - **Native Packaging:** Cross-platform executable generation (jpackage)
 - **Dependency Updates:** Automated dependency update checking
-- **Test Heap:** 16GB max configured for large schema tests
+- **Test Heap:** 3 GB max for the unit-test JVM (8 GB for the documentation-screenshot and stress tasks)
 
 ### Repository Configuration
 ```kotlin
@@ -204,7 +202,7 @@ dependencies {
 ### Native Packaging
 - **jpackage:** Java native packaging tool for platform-specific installers
 - **JLink:** Custom runtime images for reduced distribution size
-- **Platform-Specific Builds:** Windows (.exe), macOS (.dmg), and Linux (AppImage)
+- **Platform-Specific Builds:** Windows (`.exe` installer, `.msi`, portable ZIP), macOS (`.dmg`, `.pkg`, portable ZIP; Apple Silicon and Intel), Linux (`.deb`, `.rpm`, portable ZIP). The portable ZIPs contain the jpackage app-image with a bundled runtime.
 
 ### JavaFX Runtime
 JavaFX 25 is bundled with Liberica Full JDK, providing:

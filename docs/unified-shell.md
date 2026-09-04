@@ -20,11 +20,12 @@ XML file next to its XSD schema, XSLT stylesheets and Schematron rules at the sa
 
 | Area | Purpose |
 |------|---------|
-| **Activity bar** (far left) | Switch tools / side panels: Explorer, Search, Transform, Validation, Signature, Type Library, Schema Library, FOP/PDF, Favorites, Settings, Help - plus a **FundsXML** activity when the optional [FundsXML extension](fundsxml-extensions.md) is enabled (see [FundsXML Panel](#fundsxml-panel)). **Always visible** - it cannot be collapsed. (Settings opens as a full page in the editor area - see [Settings Page](#settings-page).) |
+| **Activity bar** (far left) | Switch tools / side panels: Explorer, Search, Favorites, Validation, Transform, Schema, Schema Library, PDF/FOP, Signature, Help, Settings - plus a **FundsXML** activity when the optional [FundsXML extension](fundsxml-extensions.md) is enabled (see [FundsXML Panel](#fundsxml-panel)). **Always visible** - it cannot be collapsed. (Settings opens as a full page in the editor area - see [Settings Page](#settings-page).) |
+| **Header bar** (top) | The breadcrumb (application / active file), a centered **search pill** (*"Search · run XPath / XQuery…"*) that opens the bottom [Query Console](#query-console) when clicked, and the Notifications, Help and Theme buttons. |
 | **Side panel** | The panel for the selected activity (e.g. the Transform panel, the Validation panel). **Resizable and collapsible** (see [Resizing and collapsing the side panels](#collapsing-the-side-panels)). |
 | **Editor host** (center) | Tabs of open documents, each with the Text, Tree and Graphic view modes - plus a rendered **Preview** for HTML documents (see [View Modes](#view-modes)). |
 | **Inspector** (right) | View **and edit** the selected node's properties from any view. **Resizable and collapsible** (see [Resizing and collapsing the side panels](#collapsing-the-side-panels)). |
-| **Status bar** (bottom) | Caret position, the XSD / IntelliSense indicator (see [Status Bar](#status-bar)) and a memory indicator. |
+| **Status bar** (bottom) | Caret position (Ln/Col), character count, file type, the XSD / IntelliSense indicator, the encoding label (UTF-8), the last recorded run (Developer feature), a memory indicator and the active file's path (see [Status Bar](#status-bar)). |
 
 #### Resizing and collapsing the side panels {#collapsing-the-side-panels}
 
@@ -56,7 +57,7 @@ collapsed to give the editor more room - the activity bar always stays visible.
 ### Key Features
 
 - **Multi-tab editing** - Open multiple files of different types in one view
-- **Automatic file type detection** - Files are recognized by extension (.xml, .xsd, .xsl, .xpl, .xq, .xpath, .sch, .json, .html)
+- **Automatic file type detection** - Files are recognized by extension (.xml, .xsd, .xsl/.xslt, .xpl/.xproc, .xq/.xquery/.xqm/.xqy, .xpath, .sch/.schematron, .json, .html/.htm/.xhtml); anything else opens as plain text
 - **View modes per document** - Text, Tree and Graphic, all over one shared model, plus a rendered **Preview** for HTML documents (see [View Modes](#view-modes))
 - **Inspector editing everywhere** - edit node properties from the Text, Tree and Graphic views, not just one
 - **Integrated XPath/XQuery** - a bottom [Query Console](#query-console) queries the active
@@ -147,6 +148,10 @@ shows the editable grid:
   the parent), **Enter** toggles a container / starts editing a value, **Home/End** jump to
   the first/last row, **F2** renames, and the usual **Ctrl+C/X/V**, **Ctrl+D** (duplicate)
   and **Delete** act on the selected node.
+- **Copy XPath / Copy Node**: the grid's context menu offers **Copy XPath** (**Ctrl+Shift+X**),
+  **Copy Cell Content** (**Ctrl+Shift+C**) and **Copy Node (XML)** (**Ctrl+Alt+C**). Note that
+  **inside the grid Ctrl+Shift+X is Copy XPath**, so the shell-level Query Console toggle
+  needs the terminal-icon toolbar button while the grid has focus.
 
 ### HTML Preview (Preview view for HTML) {#html-preview}
 
@@ -187,8 +192,8 @@ would show it:
 | **XProc** | .xpl, .xproc | Pipeline editor (Text + Tree view), Run Pipeline via the embedded XML Calabash engine - see [XProc Pipelines](#xproc-pipelines) |
 | **XQuery** | .xq, .xquery, .xqm, .xqy | Query editor with highlighting + IntelliSense, Run Query against a selectable target - see [Query Documents](#query-documents-the-target-selector) |
 | **XPath** | .xpath | Single-expression query editor, Run Query against a selectable target - see [Query Documents](#query-documents-the-target-selector) |
-| **Schematron** | .sch | Code editor + Visual Builder + Tester + Documentation Generator |
-| **JSON** | .json, .jsonc, .json5 | Text + tree view, JSONPath queries, JSON Schema validation |
+| **Schematron** | .sch, .schematron | Code editor + Visual Builder + Tester + Documentation Generator |
+| **JSON** | .json | Text + tree view, JSONPath queries, JSON Schema validation. Only `.json` is registered - `.jsonc` / `.json5` files open as plain text - but JSONC/JSON5 syntax (comments, trailing commas) *inside* a `.json` file is tolerated by the editor. |
 | **HTML** | .html, .htm, .xhtml | Rendered read-only **Preview** (the default view) + Text editing; also the format of HTML/XHTML transform results opened as editor tabs - see [HTML Preview](#html-preview) |
 
 ## Toolbar
@@ -251,7 +256,7 @@ XProc document is active and selects the XML document the run works on. See
   (the grid). For XSD files, the same inspector lets you edit a schema node's
   properties from **all three** XSD views - Text, Tree, and Graphic. See
   [Properties Inspector](#properties-inspector) below.
-- **Favorites** (Ctrl+Shift+B) - Show/hide favorites panel
+- **Favorites** (Ctrl+Shift+D) - Show/hide the favorites panel (Ctrl+D adds the active document to favorites)
 
 ## XSD Views & Tools
 
@@ -558,6 +563,7 @@ header's ⋮ (overflow) menu:
 | **Auto-open result tab** | Additionally opens every successful result as a regular editor tab (HTML/XHTML results open rendered in the [Preview](#html-preview) view). **Off by default.** |
 | **Debug XSLT…** | Opens the stylesheet as a document with a breakpoint gutter and a Debug tool tab (step into/over/out, continue, stop; variables, call stack, breakpoints, and XPath watches). |
 | **Batch Transform…** | Runs the active stylesheet/XQuery over many XML files, with per-file results and "Save All". |
+| **Execution Statistics** | Opens the **Execution Statistics** tool tab (duration, CPU and memory per XSLT/XQuery/validation run). Runs are only recorded while **Record execution statistics** is enabled in the Settings page's **DEVELOPER** card. |
 
 > XSLT version selection (1.0/2.0/3.0) is intentionally not offered: Saxon HE
 > auto-detects the version from the stylesheet's `version` attribute, so an
@@ -943,7 +949,10 @@ appearing in the recent list.
 
 Problems appear in two places:
 
-- The **PROBLEMS** list at the bottom of the side panel.
+- The **PROBLEMS** list at the bottom of the side panel. Its section header carries an
+  **Export problems to Excel** button (spreadsheet icon, enabled once there are problems)
+  that saves the current list as an `.xlsx` workbook, plus the Schematron report button
+  described below.
 - The **PROBLEMS panel below the editor**: it appears automatically when
   validation finds problems, shows error/warning counts in its header, and can be collapsed
   to just the header. Each row shows the message and the file/line in a monospaced label.
@@ -1201,12 +1210,18 @@ short note that settings are edited in the main window). Change any option and c
 | **Theme** | Switch between **Light** and **Dark**. |
 | **Editor** | XML indent and JSON indent (spaces); **Auto-format after loading**; **Pretty-print XSD on save**; **Pretty-print Schematron on load**. |
 | **XSD** | **Auto-save** (with an interval in minutes); **Create backups on save** (with the number of versions to keep, and an optional **separate backup directory**). |
+| **Schema Library** | **Use the Schema Library to bind schemas automatically**; shows the library file's location and a **Manage schema cache…** link. See [Schema Library](schema-library.md). |
 | **Parser** | **XML parser** engine (Xerces or Saxon); **Allow XSLT extension functions**. |
-| **Rendering** | JavaFX graphics pipeline: **Auto** / **Hardware** / **Software** (takes effect after restart). See [Rendering mode (hardware vs. software)](#rendering-mode) below. |
-| **Temp & Cache** | **Use system temp folder** or a custom temp folder; **Clear Temp Folder** to free disk space; **Clear Cache Folder** to delete cached files (downloaded schemas etc.). |
-| **Templates** | A configurable **templates directory**, plus a **New / Edit / Delete** list of your own templates. See [Managing your templates](#managing-your-templates) below. |
-| **General** | **Check for updates on startup**; **Use small icons**. |
+| **Rendering** | JavaFX graphics pipeline: **Auto** / **Hardware** / **Software** (takes effect after restart), with the active pipeline and GPU status. See [Rendering mode (hardware vs. software)](#rendering-mode) below. |
+| **Temp & Cache** | **Use system temp folder** or a custom temp folder; **Clear Temp Folder** to free disk space; **Clear Cache Folder** to delete cached files (downloaded schemas etc.); **Manage schema cache…**. |
+| **General** | **Check for updates on startup**; **Use small icons**; **Show toolbar button labels**; **Show activity bar labels**; toolbar icon size (**Small** / **Large**); **Show left side panel**; **Show Properties (inspector) panel**. |
 | **File Associations** | Make FreeXmlToolkit the **default application** for XML, XSD, XSLT, Schematron and JSON files (per user, no admin rights). See [File Associations](file-associations.md). |
+| **User Info** | **Name**, **Email** and **Company** - used, for example, when generating documentation or signing. |
+| **Security** | **Trust all certificates** - accept any TLS certificate for HTTPS downloads (schemas, updates). Use with care. |
+| **Usage Statistics** | **Enable usage tracking** (local, anonymous feature-usage counters shown on the Welcome page) and **Clear statistics**. |
+| **Developer** | **Record execution statistics** - collects duration, CPU and memory per XSLT/XQuery/validation run; view them in the **Execution Statistics** tool tab or via the "last run" item in the status bar. |
+| **FundsXML** | **Enable FundsXML extensions** - adds the [FundsXML activity](fundsxml-extensions.md) to the activity bar. |
+| **Templates** | A configurable **templates directory**, plus a **New / Edit / Delete** list of your own templates. See [Managing your templates](#managing-your-templates) below. |
 | **HTTP Proxy** | **Use system proxy**, or enter a proxy host and port. |
 
 ### Clearing the Cache Folder
@@ -1303,8 +1318,10 @@ When no document is open, the editor shows a welcome dashboard with:
 > The schema indicator shows the schema *loading lifecycle*, so you can
 > tell exactly when IntelliSense (XML) or schema validation (JSON) becomes available.
 
-The status bar at the bottom of the window includes:
+The status bar at the bottom of the window includes (left to right):
 
+- The **caret position** (`Ln 1, Col 1`), the **character count** of the active document and
+  its **file type** label (XML, XSD, XSLT, …).
 - A **schema indicator** showing the schema-binding state of the active document — an
   **XSD** for XML-family documents, a **JSON Schema** for JSON documents:
 
@@ -1338,8 +1355,13 @@ The status bar at the bottom of the window includes:
     your file manager onto it to bind the schema to the active document in one move - it
     glows **green** while a loadable file hovers over it and **red** for a wrong file type
     (which is rejected).
+- An **encoding label** (**UTF-8**).
+- A **last run** item (right-hand side) showing the last recorded XSLT/XQuery/validation run -
+  it appears only while **Record execution statistics** (Settings → **DEVELOPER**) is on;
+  **click it** to open the **Execution Statistics** tool tab.
 - A **memory monitor** showing the JVM heap usage as **used / max MB**. **Click it** to run
   garbage collection, which can free memory after working with large files.
+- The **file path** of the active document (or *No file open*).
 
 ## Keyboard Shortcuts
 
@@ -1349,8 +1371,7 @@ The status bar at the bottom of the window includes:
 | Ctrl+O | Open file |
 | Ctrl+S | Save current tab |
 | Ctrl+Shift+S | Save As (the Save ▾ menu also offers Save All) |
-| Ctrl+W | Close tab |
-| Ctrl+Z / Ctrl+Y | Undo / Redo |
+| Ctrl+Z / Ctrl+Y (or Ctrl+Shift+Z) | Undo / Redo (works from the Text, Tree and Graphic views) |
 | Ctrl+F | Find (in the active document) |
 | Ctrl+H | Find and Replace (in the active document) |
 | Ctrl+Shift+F | **Find in Files** - opens the [Search panel](#search-panel), prefilled with the editor selection |
@@ -1365,7 +1386,7 @@ The status bar at the bottom of the window includes:
 | Ctrl+Shift+P | Show/hide the Properties inspector |
 | Ctrl+E | Spreadsheet Converter… (Excel / CSV ↔ XML) |
 | Ctrl+T | Insert Template… (needs an open document) |
-| Ctrl+G | Generate XSD |
+| Alt+Enter / Ctrl+. | Quick Fix - apply a [Schematron Quick Fix](schematron-quick-fixes.md) on the caret line |
 
 !!! warning "Changed shortcut"
     **Ctrl+Shift+F no longer formats the document.** Following the VS Code convention, it
@@ -1681,12 +1702,12 @@ functionality now lives in the shell:
 
 | Former tab | Now in the shell |
 |------------|------------------|
-| XSD Editor / Tools | Open an `.xsd`: Text/Tree/Graphic views + inspector; **Type Library** activity for type editing, documentation, flatten and schema analysis |
+| XSD Editor / Tools | Open an `.xsd`: Text/Tree/Graphic views + inspector; **Schema** activity (Type Library panel) for type editing, documentation, flatten and schema analysis |
 | XSD Validation | **Validation** activity (single + batch, XSD & Schematron) |
 | JSON Editor | Open a `.json`: Text + Tree views |
 | XSLT Viewer | **Transform** panel (set stylesheet, transform, preview, browser) |
 | Schematron | **Validation** activity: check rules, templates, tester, builder, documentation, CSV/JSON export |
-| Schema Generator | **Type Library** / Generate XSD from XML |
+| Schema Generator | **Schema** activity / Generate XSD from XML |
 | Digital Signatures | **Signature** activity (sign, validate, trust validation, certificate creation) |
 | FOP / PDF | **FOP** activity (XSL-FO → PDF + preview) |
 | XSLT Developer | **Transform** panel + editor: run/live transform, parameters, and the ⋮ tools (batch, profile, trace, debugger) — see [XSLT Developer](xslt-developer.md) |

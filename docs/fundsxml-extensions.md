@@ -69,8 +69,8 @@ Whenever content is downloaded (automatically or manually), the application will
 - Register the **examples folder** as a Favorite under **FundsXML Examples**, plus the most compact sample XMLs (up to 10) as individual file favorites for one-click access.
 - Register each **XSLT stylesheet** found in the examples as an XSLT Favorite under **FundsXML XSLT**.
 - Register the Schematron files as Favorites under the category **FundsXML Schematron**.
-- Register the most compact sample XMLs as **new-document templates** under the **FundsXML** category, so you can start a fresh document from a real sample via *File → New from Template*.
-- Seed the XPath/XQuery snippets into your **Saved Queries**, tagged `fundsxml` - they show up in the [Query Console](unified-shell.md#query-console)'s **Snippets** menu under a **FUNDSXML** section (for example *fund-summary*, *top-holdings*, *look-through*, *aggregate-by-assettype*), in the XPath/XQuery tab of the XSLT Developer, and via right-click in the XML editor.
+- Register the most compact sample XMLs as **new-document templates** under the **FundsXML** category, so you can start a fresh document from a real sample via the toolbar's **New** button (Ctrl+N) → **Template** list.
+- Seed the XPath/XQuery snippets into your **Saved Queries**, tagged `fundsxml` - they show up in the [Query Console](unified-shell.md#query-console)'s **Snippets** menu under a **FUNDSXML** section (for example *fund-summary*, *top-holdings*, *look-through*, *aggregate-by-assettype*), and in the Transform panel's XPATH mode under the **Saved** menu.
 - Select the newly downloaded schema version as the **active** version.
 - Make a compact starter sample available from the Welcome page's **Open Example** card, so you can immediately try **Validate active document** in the FundsXML panel.
 
@@ -251,7 +251,7 @@ These preferences are stored in your `FreeXmlToolkit.properties` file in the use
 ### A download fails
 
 - Check your internet connection.
-- If you are behind a corporate proxy, configure proxy settings under **Settings -> Connection**.
+- If you are behind a corporate proxy, configure proxy settings in the **HTTP PROXY** card of **Settings**.
 - Verify that github.com is reachable from your network.
 - Retry with **Download / Update Content** in the FundsXML side panel; the panel's status line shows the reason for the failure.
 

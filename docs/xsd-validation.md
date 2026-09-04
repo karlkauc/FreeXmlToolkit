@@ -68,19 +68,27 @@ Click the toolbar's **Validate** button or press **F8** to start validation.
 
 ### Step 3: View Results
 
-Results appear immediately:
+The panel's status line reports the outcome right away:
 
-| Status | Meaning |
-|--------|---------|
-| **Green checkmark** | Your XML is valid |
-| **Red X** | Errors were found |
+| Status line | Meaning |
+|-------------|---------|
+| **Valid** | The document conforms to the bound XSD (and Schematron, if one is bound) |
+| **Well-formed** | No schema is bound - only the well-formedness check ran and it passed |
+| **N problem(s)** | Problems were found; they are listed in the **PROBLEMS** section |
 
-If validation fails, you'll see a list of errors with:
-- **Error message** - What's wrong
-- **Line number** - Where the problem is
-- **Severity** - Error, Warning, or Info
+Each entry in the **PROBLEMS** list reads `[source] Ln N: message`:
 
-Click an error to see more details. When validating inside the [Unified Shell](unified-shell.md#jump-to-validation-errors), **double-click** an error to jump straight to its line in the Text view and the matching element in the Graphic view.
+- **Source** - `XSD`, `Well-formed`, or `Schematron`, so you can tell which check reported it
+- **Line number** - where the problem is
+- **Severity icon** - red ✕ for errors, orange ⚠ for warnings
+
+Selecting a problem jumps to its line in the editor. The same problems are mirrored in the
+**PROBLEMS** panel below the editor, whose header shows error and warning counters; see
+[Jump to Validation Errors](unified-shell.md#jump-to-validation-errors) for navigation details.
+
+> **Validate while typing** (on by default, toggle in the panel's ⋮ menu) re-runs validation
+> shortly after every edit, tab switch, or schema change, so the list stays current without
+> pressing F8.
 
 ---
 
@@ -92,14 +100,22 @@ Validate multiple XML files at once. Useful for testing entire folders of XML do
 *Batch validation with multiple files*
 
 
-### XSD Mode Selection
+### Which Schema Is Used
 
-Choose how schemas are determined for each file:
+There is no per-run schema picker. A batch run validates **every selected file against the
+XSD (and Schematron) currently bound to the active document** - the ones shown in the
+Validation panel's **SOURCES** section and in the status bar's XSD indicator:
 
-| Mode | Description |
-|------|-------------|
-| **Auto-detect XSD per file** | Each XML file uses its own referenced schema |
-| **Use same XSD for all files** | All files are validated against a single schema you select |
+| Bound in SOURCES | What the batch run does |
+|------------------|-------------------------|
+| **XSD** | Every file is validated against that one schema |
+| **Schematron** | Every file is additionally checked against that Schematron |
+| **none** | Every file gets a well-formedness check only |
+
+The files' own `xsi:schemaLocation` references are **not** consulted during a batch run.
+To validate a folder against a particular schema, open any XML document, bind the XSD
+(**Change** in the SOURCES row, the ★ favorites menu, drag & drop, or the toolbar's
+**Schema** button), then start the batch.
 
 ### Running Batch Validation
 
@@ -123,9 +139,11 @@ The **RESULTS** list shows one row per file:
 | **File name** | Name of the XML file |
 | **Badge** | Number of problems found in that file |
 
-Select a row to see that file's problems; **double-click** a row to open the file in the
-editor. A plain-text report of the run is available via the panel's ⋮ menu
-(**Open last batch report**).
+Select a row to see that file's problems in the **PROBLEMS** section; **double-click** a row
+to open the file in the editor. A plain-text report of the run (schema names plus one
+`file: valid / N problem(s)` line per file) opens as a document via the panel's ⋮ menu
+(**Open last batch report**). A running batch can be cancelled from the progress bar; the
+results collected so far are kept.
 
 ### Summary
 
@@ -141,22 +159,21 @@ and the panel's status line repeats it ("2 of 25 file(s) failed").
 
 ## Exporting Results
 
-### Single File Export
+There is one export: the **Export problems to Excel** button (Excel icon) in the header of
+the **PROBLEMS** section. It is enabled whenever the list contains problems and writes
+**exactly the problems currently shown**:
 
-Click **Export** in the toolbar to save errors to Excel.
+- after a single-file run, the active document's problems;
+- after a batch run, the problems of the file selected in **RESULTS** - pick a row first,
+  then export. There is no all-files export; use **Open last batch report** (⋮ menu) for a
+  per-file overview of the whole run.
 
-### Batch Export
+The suggested file name is `<document>-problems.xlsx`. The workbook contains:
 
-| Button | Description |
-|--------|-------------|
-| **Export All** | Export all validation results to Excel |
-| **Export Selected** | Export only the selected file's errors |
-
-The Excel export includes:
-- File name and path
-- Error messages with line numbers
-- Schema used
-- Validation timestamp
+| Sheet | Content |
+|-------|---------|
+| **Summary** | Source file, generation timestamp, and counts (total, errors, warnings) |
+| **Problems** | One row per problem: `#`, `Source`, `Severity`, `Line`, `Message` - with a frozen header row and an auto-filter |
 
 ---
 
@@ -164,23 +181,37 @@ The Excel export includes:
 
 Save frequently used XML and XSD files to favorites for quick access:
 
-- **Add Favorite** (Ctrl+D) - Add current file to favorites
-- **Favorites** (Ctrl+Shift+D) - Show/hide favorites panel
+- **Ctrl+D** - add the active document to favorites
+- **Ctrl+Shift+D** - show the Favorites side panel (or collapse it when it is already shown)
+- The **★** menu on each SOURCES row lists your favorites of that type (XSD, Schematron, or
+  JSON) - one click binds the schema without a file chooser.
 
 ---
 
-## Toolbar Reference
+## Controls Reference
 
-| Button | Shortcut | Description |
-|--------|----------|-------------|
-| **Open XML** | - | Load XML file to validate |
-| **Open XSD** | - | Load XSD schema manually |
-| **Validate** | F8 | Start validation |
-| **Clear** | - | Clear results |
-| **Export** | - | Export to Excel |
-| **Add Favorite** | Ctrl+D | Add to favorites |
-| **Favorites** | Ctrl+Shift+D | Toggle favorites panel |
-| **Help** | F1 | Show help |
+### Validation panel
+
+| Control | Description |
+|---------|-------------|
+| **SOURCES · XSD row** | The bound XSD (or *none*). Click the name to open the schema in the editor, **★** to pick a favorite, **Change** to browse; drop an `.xsd` onto the row to bind it. |
+| **SOURCES · Schematron row** | The bound Schematron (`.sch`), with the same name / ★ / Change / drop behavior. |
+| **SOURCES · JSON Schema row** | Shown instead of the two rows above while a JSON document is active. |
+| **Single file / Batch** | Segmented toggle that decides what **Run Validation** does. |
+| **Run Validation** | Single file: validates the active document. Batch: opens the **Select XML files…** / **Select folder…** menu. |
+| **Status line** | *Valid*, *Well-formed*, *N problem(s)*, batch summaries, or a precondition hint (e.g. *No document open*). |
+| **RESULTS** | Per-file rows of the last batch run (collapsible section). |
+| **PROBLEMS** | The problem list (collapsible), with two header buttons: **Open detailed Schematron report** (enabled after a run with a bound Schematron) and **Export problems to Excel**. |
+| **⋮ menu** | **Schematron Tools** (Rule Templates, Tester, Rule Builder, Check Rules, Validation Report, Documentation), **Validate against FundsXML** (only when the FundsXML extension is enabled in Settings), **Validate while typing**, **Open last batch report**. |
+
+### Editor toolbar and status bar
+
+| Control | Shortcut | Description |
+|---------|----------|-------------|
+| **Validate** | F8 | Validates the active document - well-formedness, or against the bound XSD / Schematron |
+| **Schema** (primary click) | - | **Set XSD Schema…** - bind an XSD (or a JSON Schema for JSON documents) to the active document |
+| **Schema ▾** menu | - | **Set XSD Schema…**, **Generate Documentation…**, **Type Editor…** |
+| **XSD indicator** (status bar) | - | Shows *No XSD*, *Detecting XSD…*, *XSD: name* (with *(catalog)* / *(library)* / *(manual)*), or *XSD error*; click it to bind a schema, or drop an `.xsd` onto it |
 
 ---
 
@@ -197,11 +228,17 @@ The validation engine uses Xerces 2.12.2 with full XSD 1.1 support.
 
 ## Tips
 
-- Use **Autodetect** when your XML already references its schema via `xsi:schemaLocation`
-- Use **Batch Validation** for testing multiple files efficiently
-- **Export to Excel** when working with large documents or sharing results
-- The **Filter** dropdown helps focus on files that need attention
-- Double-click a file in the batch table to open it in the XML Editor
+- If your XML already references its schema via `xsi:schemaLocation`, just open it - the
+  schema is bound automatically and the status bar shows how it was found
+- Use **Batch Validation** for testing multiple files efficiently - remember that all files
+  are checked against the XSD bound to the active document
+- **Export to Excel** when working with large documents or sharing results; the Problems
+  sheet has an auto-filter, so you can narrow it by source or severity in Excel
+- There is no filter inside the panel: in a batch run, the red ✕ / orange ⚠ icons and the
+  count badges in **RESULTS** show at a glance which files need attention, and the
+  **PROBLEMS** panel below the editor counts errors and warnings separately in its header
+- Double-click a file in **RESULTS** to open it in the editor; select a problem to jump to
+  its line
 
 ---
 
@@ -209,10 +246,10 @@ The validation engine uses Xerces 2.12.2 with full XSD 1.1 support.
 
 | Shortcut | Action |
 |----------|--------|
-| F8 | Start validation |
-| Ctrl+D | Add to favorites |
-| Ctrl+Shift+D | Toggle favorites |
-| F1 | Help |
+| F8 | Validate the active document |
+| Ctrl+O | Open a file |
+| Ctrl+D | Add the active document to favorites |
+| Ctrl+Shift+D | Show the Favorites panel |
 
 ---
 

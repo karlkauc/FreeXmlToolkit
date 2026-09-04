@@ -1,6 +1,38 @@
 # FreeXmlToolkit Documentation
 
-> **Version:** 2.1.0
+<a id="download"></a>
+<div class="fxt-download">
+  <p class="fxt-download__lead">Free, open-source desktop app for XML, XSD, XSLT, Schematron and JSON – Windows, macOS and Linux. No registration, no admin rights needed.</p>
+  <div class="fxt-download__grid">
+    <div class="fxt-download-card" data-fxt-platform="windows">
+      <p class="fxt-download-card__title"><span aria-hidden="true">🪟</span> Windows <span class="fxt-download-card__arch">x64 · Windows 10/11</span></p>
+      <a class="md-button md-button--primary" data-fxt-asset="win-exe" href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">Download .exe installer<span class="fxt-asset-size"></span></a>
+      <ul class="fxt-download-card__alts">
+        <li><a data-fxt-asset="win-msi" href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">MSI package</a> – for silent / Group Policy deployment<span class="fxt-asset-size"></span></li>
+        <li><a data-fxt-asset="win-zip" href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">Portable ZIP</a> – no installation, extract and run<span class="fxt-asset-size"></span></li>
+      </ul>
+    </div>
+    <div class="fxt-download-card" data-fxt-platform="macos">
+      <p class="fxt-download-card__title"><span aria-hidden="true">🍎</span> macOS <span class="fxt-download-card__arch">Apple Silicon &amp; Intel</span></p>
+      <a class="md-button md-button--primary" data-fxt-asset="mac-arm64-dmg" href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">Download .dmg (Apple Silicon)<span class="fxt-asset-size"></span></a>
+      <ul class="fxt-download-card__alts">
+        <li><a data-fxt-asset="mac-x64-dmg" href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">Intel .dmg</a> – for Intel-based Macs<span class="fxt-asset-size"></span></li>
+        <li><a data-fxt-asset="mac-arm64-pkg" href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">.pkg installer</a> (Apple Silicon) · <a data-fxt-asset="mac-x64-pkg" href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">.pkg</a> (Intel)</li>
+        <li><a data-fxt-asset="mac-arm64-zip" href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">Portable ZIP</a> (Apple Silicon) · <a data-fxt-asset="mac-x64-zip" href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">Portable ZIP</a> (Intel)</li>
+      </ul>
+    </div>
+    <div class="fxt-download-card" data-fxt-platform="linux">
+      <p class="fxt-download-card__title"><span aria-hidden="true">🐧</span> Linux <span class="fxt-download-card__arch">x64</span></p>
+      <a class="md-button md-button--primary" data-fxt-asset="linux-deb" href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">Download .deb package<span class="fxt-asset-size"></span></a>
+      <ul class="fxt-download-card__alts">
+        <li><a data-fxt-asset="linux-rpm" href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">.rpm package</a> – Fedora, RHEL, openSUSE<span class="fxt-asset-size"></span></li>
+        <li>.deb is for Ubuntu, Debian and Linux Mint</li>
+        <li><a data-fxt-asset="linux-zip" href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">Portable ZIP</a> – any distribution, extract and run<span class="fxt-asset-size"></span></li>
+      </ul>
+    </div>
+  </div>
+  <p class="fxt-download__meta">Latest release: <strong class="fxt-release-version">see GitHub</strong><span class="fxt-release-date"></span> · <a href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">All downloads and release notes on GitHub</a> · Licensed under Apache 2.0 · <a href="https://github.com/karlkauc/FreeXmlToolkit">Source code</a></p>
+</div>
 
 ## Welcome
 
@@ -21,15 +53,15 @@ FreeXmlToolkit is a free desktop application for working with XML files. It help
 
 ### Works On All Platforms
 
-FreeXmlToolkit is available for Windows, macOS, and Linux in multiple formats. Choose the one that works best for you.
+FreeXmlToolkit is available for Windows, macOS, and Linux in multiple formats. Choose the one that works best for you - all files are published on the [GitHub Releases page](https://github.com/karlkauc/FreeXmlToolkit/releases/latest) (see the [download buttons](#download) above).
 
 #### Windows
 
 | Format | Architecture | Description |
 |--------|--------------|-------------|
-| `.exe` | x64, ARM64 | **Installer** - Standard setup wizard. No admin rights required. Recommended for most users. |
-| `.msi` | x64, ARM64 | **MSI Package** - For enterprise deployment and silent installation via Group Policy. |
-| `.zip` | x64, ARM64 | **Portable** - No installation needed. Extract and run. Good for USB drives or restricted systems. |
+| `.exe` | x64 | **Installer** - Standard setup wizard. No admin rights required. Recommended for most users. |
+| `.msi` | x64 | **MSI Package** - For enterprise deployment and silent installation via Group Policy. |
+| `.zip` | x64 | **Portable** - No installation needed. Extract and run. Good for USB drives or restricted systems. |
 
 #### macOS
 
@@ -43,13 +75,11 @@ FreeXmlToolkit is available for Windows, macOS, and Linux in multiple formats. C
 
 | Format | Architecture | Description |
 |--------|--------------|-------------|
-| `.deb` | x64, ARM64 | **Debian Package** - For Ubuntu, Debian, Linux Mint. Install with `sudo dpkg -i` or double-click. |
-| `.rpm` | x64, ARM64 | **RPM Package** - For Fedora, Red Hat, openSUSE. Install with `sudo rpm -i` or `dnf install`. |
-| `.zip` | x64, ARM64 | **Portable** - No installation needed. Extract and run. Works on any Linux distribution. |
+| `.deb` | x64 | **Debian Package** - For Ubuntu, Debian, Linux Mint. Install with `sudo dpkg -i` or double-click. |
+| `.rpm` | x64 | **RPM Package** - For Fedora, Red Hat, openSUSE. Install with `sudo rpm -i` or `dnf install`. |
+| `.zip` | x64 | **Portable** - No installation needed. Extract and run. Works on any Linux distribution. |
 
-> **Note:** Choose the architecture that matches your computer:
-> - **x64** - Most computers (Intel/AMD processors)
-> - **ARM64** - Newer ARM-based computers (Apple Silicon Macs, Windows on ARM, Raspberry Pi 4/5)
+> **Note:** On macOS, pick the build that matches your Mac: **Apple Silicon (ARM64)** for M-series Macs, **Intel (x64)** for older Macs (Apple menu → *About This Mac* shows the chip). Windows and Linux builds are provided for **x64** (Intel/AMD) only.
 
 ---
 
@@ -76,7 +106,7 @@ Edit and validate JSON files with multiple format support:
 
 | Feature | What It Does |
 |---------|--------------|
-| **Multi-Format Support** | Edit JSON, JSONC (with comments), and JSON5 |
+| **Multi-Format Support** | Edit JSON files, including JSONC-style comments and JSON5 syntax inside `.json` files |
 | **Tree View** | Navigate JSON structure visually |
 | **JSONPath Queries** | Extract data using JSONPath expressions |
 | **Schema Validation** | Validate against JSON Schema (Draft-07, 2019-09, 2020-12) - the schema is auto-detected from the document's `$schema` member, or bound manually; problems appear with line numbers |
@@ -179,9 +209,12 @@ Learn more: [FundsXML Extensions Guide](fundsxml-extensions.md)
 
 ### Installation
 
-1. **Download** the installer for your operating system from the releases page
-2. **Run** the installer (no administrator rights required on Windows)
-3. **Launch** FreeXmlToolkit from your applications menu
+1. **Download** the package for your operating system using the [download buttons](#download) at the top of this page (or from the [GitHub Releases page](https://github.com/karlkauc/FreeXmlToolkit/releases/latest))
+2. **Install** it:
+    - **Windows:** run the `.exe` installer (no administrator rights required) or the `.msi`; the portable `.zip` only needs to be extracted
+    - **macOS:** open the `.dmg` and drag FreeXmlToolkit to *Applications*, or run the `.pkg` installer
+    - **Linux:** `sudo dpkg -i freexmltoolkit-*.deb` (Debian/Ubuntu) or `sudo rpm -i freexmltoolkit-*.rpm` (Fedora/RHEL/openSUSE); the portable `.zip` only needs to be extracted
+3. **Launch** FreeXmlToolkit from your applications menu (portable: run `FreeXmlToolkit` / `FreeXmlToolkit.exe` in the extracted folder)
 
 ### Your First Steps
 
@@ -189,7 +222,7 @@ Learn more: [FundsXML Extensions Guide](fundsxml-extensions.md)
 2. **Edit multiple files**: The shell handles XML, XSD, XSLT, Schematron and JSON files in tabs, each with Text / Tree / Graphic views - HTML files get a rendered read-only Preview view instead
 3. **Start editing**: Type `<` to see auto-completion suggestions
 4. **Validate**: Use the Validation activity (or the toolbar's **Validate** button, F8) to check your document for errors
-5. **Reach every tool**: Pick a tool from the activity bar on the left (Search, Transform, Validation, Signature, Type Library, FOP, …)
+5. **Reach every tool**: Pick a tool from the activity bar on the left (Explorer, Search, Favorites, Validation, Transform, Schema, Schema Library, PDF/FOP, Signature, FundsXML, Help, Settings)
 
 Learn more: [Unified Shell Guide](unified-shell.md)
 
@@ -205,6 +238,7 @@ The application includes example files in the `examples/` folder to help you get
 - **xpath/** - XPath 3.1 snippets for the Query Console
 - **xproc/** - XProc 3.0 pipelines (identity, slimming, CSV/JSON export, reports)
 - **schematron/** - Schematron business rules
+- **catalog/** - OASIS XML catalog example for the Schema Library
 - **json/** - JSON Schema validation demos (`$schema` auto-binding, valid/invalid instances, Draft-07 / 2019-09 / 2020-12 dialects)
 - **signature/** - Signed XML document with demo keystore
 - **templates/** - XML snippet templates
@@ -224,7 +258,7 @@ On some Windows computers, the application may fail to start or crash immediatel
 2. **Try the portable version** -- If you used the installer (.exe or .msi), try the portable (.zip) version instead.
 3. **Report the issue** -- If the problem persists, please report it on the project's GitHub Issues page with your Windows version and graphics card model.
 
-> **Note:** Starting with version 1.6.3, FreeXmlToolkit automatically falls back to software rendering if your graphics hardware is not fully compatible. This resolves most startup crashes on Windows.
+> **Note:** Since version 1.6.3, FreeXmlToolkit picks a safe renderer automatically (software rendering on graphics adapters it does not recognise). You can force hardware or software rendering under **Settings → RENDERING**; the change takes effect after a restart.
 
 ### Application Looks Blurry or Slow
 
@@ -236,14 +270,23 @@ If the interface appears blurry or animations are slow, your system may be using
 
 | Shortcut | Action |
 |----------|--------|
-| `Ctrl+S` | Save file |
+| `Ctrl+N` | New file |
+| `Ctrl+O` | Open file |
+| `Ctrl+S` / `Ctrl+Shift+S` | Save / Save As |
 | `Ctrl+Z` | Undo |
-| `Ctrl+Y` | Redo |
+| `Ctrl+Y` (or `Ctrl+Shift+Z`) | Redo |
 | `Ctrl+F` | Find text |
 | `Ctrl+H` | Find and replace |
 | `Ctrl+Shift+F` | Find in Files (search across a folder) |
 | `Ctrl+Shift+H` | Replace in Files |
 | `Shift+Alt+F` | Format (pretty-print) the document |
+| `F8` | Validate the current document |
+| `Ctrl+Enter` | Run the current transformation / query |
+| `Ctrl+T` | Insert a template |
+| `Ctrl+Shift+X` | Toggle the Query Console |
+| `Ctrl+D` / `Ctrl+Shift+D` | Add current file to Favorites / show the Favorites panel |
+| `Ctrl+E` / `Ctrl+Shift+P` / `Ctrl+L` | Show the Explorer / Schema / Schema Library panel |
+| `Alt+Enter` (or `Ctrl+.`) | Apply a Schematron Quick Fix |
 | `<` | Open auto-completion |
 | `Enter` | Accept suggestion |
 | `Escape` | Close popup |

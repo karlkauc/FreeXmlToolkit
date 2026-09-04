@@ -109,9 +109,9 @@ FreeXmlToolkit uses Saxon for XSLT/XQuery processing. By default, the `ALLOW_EXT
 
 If you need to use Java extensions in your XSLT transformations:
 
-1. Open the application settings
-2. Find the security section
-3. Enable "Allow XSLT Extensions"
+1. Open **Settings** (gear icon at the bottom of the activity bar)
+2. Find the **PARSER** card
+3. Enable **Allow XSLT extension functions** and click **Save**
 
 **Warning:** Only enable this if you trust all XSLT stylesheets you will process. Malicious stylesheets could:
 - Read files from your computer
@@ -320,14 +320,15 @@ update.requireChecksum=true
 ### Finding Security Settings
 
 1. Open FreeXmlToolkit
-2. Go to **Settings** (or use the keyboard shortcut)
-3. Look for the **Security** section
+2. Open **Settings** (gear icon at the bottom of the activity bar)
+3. The relevant options are spread over two cards: **PARSER** and **SECURITY**
 
 ### Available Settings
 
-| Setting | Description | Default |
-|---------|-------------|---------|
-| Allow XSLT Extensions | Enable Java extension functions in XSLT | **Off** (secure) |
+| Card | Setting | Description | Default |
+|------|---------|-------------|---------|
+| PARSER | Allow XSLT extension functions | Enable Java extension functions in XSLT | **Off** (secure) |
+| SECURITY | Trust all certificates | Accept any TLS certificate for HTTPS downloads (schemas, updates). Leave off unless a corporate proxy re-signs traffic | **Off** (secure) |
 
 ### Security Property Reference
 

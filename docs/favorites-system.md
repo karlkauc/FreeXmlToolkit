@@ -9,7 +9,7 @@ Save your frequently used files for quick access. The favorites system works acr
 ## Overview
 
 ![Favorites Overview](img/favorites-overview.png)
-*The Favorites panel with Smart Collections, Categories, Projects, and Templates & Snippets*
+*The Favorites panel with its **Add current** and **Manage…** buttons, the search field, and favorites grouped by file type*
 
 The favorites system helps you quickly access the files you use most often. Save any file as a favorite and open it with one click from any editor.
 
@@ -29,9 +29,9 @@ The favorites system helps you quickly access the files you use most often. Save
 
 | Feature | Description |
 |---------|-------------|
-| **Custom Categories** | Create folders like "Project Files", "Templates", "Schemas" |
-| **Easy Management** | Create, rename, and delete categories |
-| **Mixed Files** | Store different file types in the same category |
+| **Folders** | Move favorites into folders like "Project Files", "Templates", "Schemas" (context menu **Move to folder**) |
+| **Easy Management** | Rename or remove favorites from the panel; the **Manage…** view offers smart collections and clean-up |
+| **Mixed Files** | Store different file types in the same folder |
 
 ### File Information
 
@@ -41,12 +41,15 @@ The favorites system helps you quickly access the files you use most often. Save
 | **Descriptions** | Add notes about what each file is for |
 | **File Icons** | Quickly see file types at a glance |
 
-### Grouped by File Type (Unified Shell)
+### Grouped by Folder or File Type (Unified Shell)
 
-The **Favorites panel** in the Unified Shell (star icon in the activity bar) groups your
-favorites **by file type** - for example **XML Document**, **JSON Document**, **XSD Schema**,
-**Schematron Rules**, and **XSLT Stylesheet**. Each entry shows a **colored type icon**, so you can tell
-the file kinds apart at a glance. Click an entry to open it as an editor tab.
+The **Favorites panel** in the Unified Shell (star icon in the activity bar, or
+**Ctrl+Shift+D**) groups your favorites **by folder** as soon as at least one favorite has
+been moved into a folder; favorites without a folder are listed under **Uncategorized** at
+the end. While no folder is in use, the panel groups **by file type** instead - for example
+**XML Document**, **JSON Document**, **XSD Schema**, **Schematron Rules**, and **XSLT
+Stylesheet**. Each entry shows a **colored type icon**, so you can tell the file kinds apart
+at a glance. Click an entry to open it as an editor tab; the search field filters by name or path.
 
 Keystore and trust store files (`.jks`, `.p12`, `.pfx`, `.keystore`)
 are recognized as their own **Keystore** type with a lock icon - they form their own group in the Favorites panel and feed the keystore
@@ -78,24 +81,29 @@ submenus. While you have no matching favorites, the star button is grayed out.
 
 ### Adding Files to Favorites
 
-1. **Open a file** in any editor
-2. **Click the star button** in the toolbar
-3. **Fill in the form:**
-   - **Name:** A descriptive name (auto-filled with filename)
-   - **Category:** Choose or create a category
-   - **Description:** Optional notes about the file
+1. **Open a file** (it must be saved to disk - unsaved buffers cannot be added)
+2. Press **Ctrl+D** or click **Add current** in the Favorites panel - the file is added
+   immediately under its file name, without a dialog
+3. **Optionally**, right-click the new entry to give it a different name (**Rename…**) or to
+   put it into a folder (**Move to folder**)
 
 ### Opening Favorites
 
-1. **Open the "Favorites" activity** from the activity bar on the left
-2. **Browse categories** if you have multiple
+1. **Open the "Favorites" activity** from the activity bar on the left (or press **Ctrl+Shift+D**)
+2. **Browse the folder or file-type groups**, or type in the search field
 3. **Click any file** to open it immediately
 
 ### Managing Favorites
 
-The favorites menu includes:
-- **Remove missing files** - Clean up favorites that point to deleted files
-- **Edit favorites** - Change names, categories, or descriptions
+Right-click an entry in the Favorites panel for its context menu:
+- **Open** - Open the file as an editor tab
+- **Rename…** - Change the display name
+- **Move to folder** - Put the favorite into an existing folder or a new one
+- **Remove** - Delete the favorite (the file itself is untouched)
+
+Click **Manage…** for the full-size **Favorites Manager** view: it adds smart collections
+(recently used, most used) and a **Clean up** button that removes favorites whose files no
+longer exist.
 
 ---
 
@@ -122,7 +130,7 @@ The favorites menu includes:
 | Type | Extension |
 |------|-----------|
 | XML documents | .xml |
-| JSON documents (incl. JSON Schemas) | .json, .jsonc, .json5 |
+| JSON documents (incl. JSON Schemas) | .json (`.jsonc`/`.json5` files are grouped here too, but open as plain text) |
 | XSD schemas | .xsd |
 | Schematron rules | .sch |
 | XSLT stylesheets | .xsl, .xslt |

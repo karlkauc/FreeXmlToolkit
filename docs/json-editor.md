@@ -14,8 +14,13 @@ The JSON Editor provides a powerful environment for editing, validating, and que
 
 FreeXmlToolkit includes a full-featured JSON Editor that supports:
 - **Standard JSON** - RFC 8259 compliant
-- **JSONC** - JSON with Comments (single-line `//` and block `/* */`)
-- **JSON5** - Extended JSON with trailing commas, unquoted keys, and comments
+- **JSONC syntax** - JSON with Comments (single-line `//` and block `/* */`)
+- **JSON5 syntax** - trailing commas, unquoted keys, single-quoted strings, and comments
+
+> **File extensions:** only `.json` is registered as a JSON file. The JSONC/JSON5
+> syntax above is tolerated *inside* `.json` files - the format is detected from the
+> content, not from the extension. Files named `.jsonc` or `.json5` open as plain
+> **Text** (no JSON tree view, JSONPath, or schema binding).
 
 ![JSON in the Unified Shell](img/unified-shell-json-tree.png)
 ***JSON editing (text + tree view) in the Unified Shell***
@@ -118,7 +123,7 @@ resolve as expected.
 | `Ctrl+O` | Open file |
 | `Ctrl+S` | Save file |
 | `Ctrl+Shift+S` | Save as |
-| `Ctrl+Alt+F` | Format JSON |
+| `Shift+Alt+F` | Format JSON |
 | `F8` | Validate JSON |
 | `Ctrl+Z` | Undo |
 | `Ctrl+Y` | Redo |
@@ -127,6 +132,11 @@ resolve as expected.
 | `Ctrl+0` | Reset zoom |
 
 ## Supported Formats
+
+All three flavors below are recognized inside a `.json` file; the editor auto-detects
+the flavor from the content (syntax highlighting and the tree view strip comments and
+trailing commas before parsing). Remember that `.jsonc`/`.json5` file names are not
+registered - rename such files to `.json` to get the JSON features.
 
 ### JSON (Standard)
 ```json
@@ -137,7 +147,7 @@ resolve as expected.
 }
 ```
 
-### JSONC (JSON with Comments)
+### JSONC syntax (JSON with Comments)
 ```jsonc
 {
   // This is a single-line comment
@@ -148,7 +158,7 @@ resolve as expected.
 }
 ```
 
-### JSON5
+### JSON5 syntax
 ```json5
 {
   // Unquoted keys

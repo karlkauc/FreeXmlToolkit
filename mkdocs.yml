@@ -38,6 +38,7 @@ theme:
     - search.suggest
     - content.code.copy
     - content.tabs.link
+    - announce.dismiss
   icon:
     repo: fontawesome/brands/github
   logo: img/logo.png
@@ -84,10 +85,14 @@ extra:
 extra_css:
   - overrides/stylesheets/extra.css
 
+extra_javascript:
+  - overrides/javascripts/download.js
+
 copyright: Copyright &copy; 2024-2026 Karl Kauc
 
 nav:
   - Home: index.md
+  - Download: https://github.com/karlkauc/FreeXmlToolkit/releases/latest
   - Unified Shell: unified-shell.md
   - File Associations: file-associations.md
   - Execution Statistics: execution-statistics.md

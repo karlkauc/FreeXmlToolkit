@@ -110,7 +110,8 @@ The grid provides:
   "collapsed" hint
 - **Direct Cell Editing**: Click cells to edit values directly
 - **Easy Navigation**: Move through the document using arrow keys
-- **Sorting**: Sort data by clicking column headers
+- **Sorting**: Right-click a sortable table column and choose **Sort Column → Sort Ascending /
+  Sort Descending** (clicking a column header does not sort)
 - **Structural Editing**: Add, delete, and move nodes through the right-click context menu
 - **Edit Properties**: Select a row to edit its properties in the Properties inspector -
   see [Properties Inspector](#properties-inspector)
@@ -370,8 +371,8 @@ Learn more: [Template Management](template-management.md)
 
 ## Schema Generator
 
-Press **Ctrl+G** (or use the Schema panel's **Generate XSD from XML** tool) to generate an
-XSD schema from your XML:
+Open the **Schema** activity and click its **Generate XSD from XML** tool button (or
+**Generate XSD (Batch)…** for several files) to generate an XSD schema from your XML:
 
 - Analyze XML structure
 - Generate matching XSD schema
@@ -401,13 +402,12 @@ Learn more: [Favorites System](favorites-system.md)
 | Ctrl+O | Open file |
 | Ctrl+S | Save file |
 | Ctrl+Shift+S | Save As |
-| Ctrl+W | Close tab |
 | Ctrl+Z | Undo |
 | Ctrl+Y | Redo |
 | Ctrl+F | Find |
 | Ctrl+H | Replace |
-| Ctrl+G | Generate XSD from the XML |
-| Ctrl+D | Add to favorites |
+| Ctrl+D | Add the current file to favorites |
+| Ctrl+Shift+D | Toggle the Favorites panel |
 | Shift+Alt+F | Format/Pretty Print |
 | Ctrl+Shift+X | Toggle the Query Console |
 | Ctrl+E | XML/Excel converter |
@@ -425,7 +425,7 @@ Learn more: [Favorites System](favorites-system.md)
 - **Font Size**: Hold `Ctrl` and scroll the mouse wheel to adjust the font size (`Ctrl+0` resets)
 - **Quick Validation**: Errors are highlighted as you type
 - **Drag & Drop**: Drag files directly into the editor window
-- **Recent Files**: Use the Recent menu for quick access
+- **Recent Files**: Reopen recent files from the Explorer panel's **RECENT** section or the Welcome page
 
 ---
 

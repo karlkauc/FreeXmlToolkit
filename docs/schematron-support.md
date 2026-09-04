@@ -3,11 +3,12 @@
 > **Version:** 2.1.0
 
 > **Note:** The standalone *Schematron* editor tab has been retired.
-> Schematron editing and validation — rule check, templates, tester, visual
-> builder, documentation, and CSV/JSON export of results — now live in the
-> **Unified Shell's Validation activity panel**. Open a `.sch` file and use the
-> Validation panel's Schematron tools. The capabilities below are unchanged; they
-> are reached through the shell rather than a dedicated sidebar tab.
+> `.sch` files open as ordinary editor tabs in the [Unified Shell](unified-shell.md),
+> and validation runs in the **Validation activity panel**. The Schematron tools —
+> rule check, templates, tester, visual builder, documentation, and the validation
+> report — sit in the Validation panel's **⋮ menu → Schematron Tools**. The
+> capabilities below are unchanged; they are reached through the shell rather than a
+> dedicated sidebar tab.
 
 Schematron lets you create custom validation rules that go beyond what XSD schemas can check. It's perfect for validating business rules and data relationships.
 
@@ -47,75 +48,49 @@ With a `.sch` file active, the relevant actions are:
 | **Save ▾** | Ctrl+S | Save the current file; the arrow menu holds **Save As…** (Ctrl+Shift+S) and **Save All** |
 | **Undo** / **Redo** | Ctrl+Z / Ctrl+Y | Undo / redo the last change (icon buttons) |
 | **Format ▾** | Shift+Alt+F | Pretty-print the file. (Note: Ctrl+Shift+F opens [Find in Files](unified-shell.md#search-panel), not document search.) |
-| **Validate** | F8 | Check the Schematron syntax |
+| **Validate** | F8 | Check that the Schematron file is well-formed XML (the result appears in the Validation panel's PROBLEMS list). Use **Check Rules** for a deeper rule-level inspection |
+| **Query Console** | Ctrl+Shift+X | Toggle the bottom XPath/XQuery console — the place to try out rule expressions |
 
-Rule templates, the tester, and the visual builder are reached through the **Validation
-activity panel** (see the note at the top of this page).
+Rule templates, the tester, the visual builder, and **Check Rules** are reached through the
+**Validation activity panel** (see [Schematron Tools in the Unified Shell](#schematron-tools-in-the-unified-shell)).
 
 ---
 
-## Code Editor
+## Editing Schematron Files
 
-The Code tab provides a full-featured Schematron editor:
+A `.sch` (or `.schematron`) file opens as a normal file tab in the shell's editor — there is
+no separate Schematron editor. The document is detected as Schematron by its namespace
+(`http://purl.oclc.org/dsdl/schematron`), which enables:
 
-### Editor Toolbar
+- **Syntax highlighting** and **IntelliSense** for Schematron elements (`pattern`, `rule`,
+  `assert`, `report`, …) in the **Text** view
+- A **Tree** view of the file's patterns, rules, and assertions (switch views in the editor
+  toolbar)
+- Well-formedness checking with **Validate** (F8); rule-level problems are found with
+  **Check Rules** (see below)
 
-| Button | Description |
-|--------|-------------|
-| **Load Schematron** | Open an existing file |
-| **New File** | Create empty Schematron |
-| **Save ▾** | Save the current file; **Save As…** and **Save All** sit in the arrow menu |
-| **New Rule** | Insert rule template |
-| **New Pattern** | Insert pattern template |
-| **Format** | Format/prettify the XML |
-| **Validate** | Check Schematron syntax |
-| **Test Rules** | Test against XML files |
+To create a new Schematron file, use **New** (Ctrl+N) and pick the Schematron template in
+the New File dialog. Ready-made rule snippets are inserted from **Rule Templates**.
 
-### Sidebar Panels
+### Testing XPath Expressions
 
-The sidebar provides helpful tools:
-
-#### Quick Help
-
-Shows Schematron basics:
-- `<pattern>` - Groups related rules together
-- `<rule>` - Defines context and conditions
-- `<assert>` - Tests a condition (must be true)
-- `<report>` - Reports a finding (when condition is true)
-
-Common XPath expressions for Schematron rules.
-
-#### Document Structure
-
-Shows the structure of your current Schematron schema - patterns, rules, and assertions.
-
-#### Rule Templates
-
-Pre-built rule templates you can insert:
-- Required field check
-- Unique value check
-- Conditional requirement
-- Value comparison
-- Cross-reference validation
-
-#### XPath Tester
-
-Test XPath expressions against sample XML:
-1. Enter an XPath expression
-2. Click **Test**
-3. See the result
+To try out a rule's `context` or `test` expression, open the XML document you want to
+check and press **Ctrl+Shift+X** to show the **Query Console**. It evaluates XPath (and
+XQuery) against the active document and lists the matching nodes, so you can refine an
+expression before putting it into a rule. See
+[Query Console](unified-shell.md#query-console) in the Unified Shell guide.
 
 ---
 
 ## Schematron Tools in the Unified Shell
 
-When you work with a Schematron file in the [Unified Shell](unified-shell.md), the
-**Validation** panel offers a set of Schematron tools:
+The **Validation** activity panel offers a set of Schematron tools in its **⋮ menu**
+under *Schematron Tools*. Each one opens as a closable tool tab in the editor area:
 
 | Tool | What It Does |
 |------|--------------|
-| **Rule Templates** | Insert ready-made Schematron rule patterns |
-| **Tester** | Run the rules against an XML file |
+| **Rule Templates** | Insert ready-made Schematron rule patterns into the active editor |
+| **Tester** | Run the rules against an XML file (pre-loads the bound Schematron, if any) |
 | **Rule Builder** | Build rules visually |
 | **Check Rules** | Inspect the Schematron file itself for problems |
 | **Documentation** | Generate documentation for the Schematron file |
@@ -246,20 +221,27 @@ Shell guide.
 
 ### Test Against XML Files
 
-1. Click **Test Rules** in the toolbar
-2. Select one or more XML files
-3. View validation results
+1. Open the **Validation** activity and choose **⋮ → Schematron Tools → Tester**
+2. Pick the Schematron file with **Browse…** (the one bound to the active document is
+   pre-loaded) and add the XML file(s) to test with **Add XML Files**
+3. Click **Run Tests** and review the results in the Tester tab
+
+For a quick check of many files at once, the Explorer's
+[Schematron bar](unified-shell.md#schematron-bar-one-click-validation-from-the-explorer)
+validates the selected XML files against a sticky Schematron in one click.
 
 ### Integration with XML Editor
 
 Use Schematron validation directly in the XML Editor:
 
-1. Open an XML file in the XML Editor
-2. In the validation panel, select your Schematron file - or simply **drop** a `.sch` /
-   `.schematron` file from your file manager onto the panel's SCHEMATRON source row or
-   onto the Explorer's Schematron picker
-3. Errors are highlighted in the editor
-4. Click errors to jump to the problem location
+1. Open an XML file in the editor
+2. In the **Validation** panel's SOURCES section, click the **Schematron** row to select
+   your Schematron file (or pick one from its favorites menu) - or simply **drop** a
+   `.sch` / `.schematron` file from your file manager onto that row or onto the
+   Explorer's Schematron picker
+3. Press **Validate** (F8) or click **Run Validation** in the panel; with **Validate while
+   typing** on, the document is re-checked as you edit
+4. Errors are highlighted in the editor; click a problem to jump to its location
 
 In the PROBLEMS panel below the editor, Schematron findings carry a **Schematron**
 source badge (so they are easy to tell apart from XSD errors), and hovering a row shows
@@ -326,12 +308,14 @@ Common XPath expressions for Schematron rules:
 
 | Shortcut | Action |
 |----------|--------|
+| Ctrl+N | New file (Schematron template available) |
 | Ctrl+S | Save file |
 | Ctrl+Shift+S | Save As |
-| Ctrl+R | Add new rule |
+| F8 | Validate the active document |
+| Ctrl+Shift+X | Toggle the Query Console (XPath/XQuery) |
+| Alt+Enter / Ctrl+. | Open the Quick Fix chooser on the current line |
 | Ctrl+D | Add to favorites |
 | Ctrl+Shift+D | Toggle favorites |
-| F1 | Help |
 
 ---
 
@@ -341,7 +325,7 @@ Common XPath expressions for Schematron rules:
 - **Test both ways** - Test with valid and invalid sample files
 - **Clear messages** - Write helpful error messages for users
 - **Use patterns** - Group related rules into patterns
-- **XPath Tester** - Use the sidebar to test expressions
+- **Query Console** - Press Ctrl+Shift+X to test XPath expressions against the open document before using them in a rule
 
 ---
 

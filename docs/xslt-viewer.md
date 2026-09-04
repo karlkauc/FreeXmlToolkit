@@ -32,8 +32,8 @@ recipe that tells the computer how to convert your XML data into a different for
 structure.
 
 ![XSLT Concept](img/xslt-factsheet.png)
-*XML input + XSLT rules = Output: a FundsXML factsheet stylesheet rendered as HTML in the
-OUTPUT panel below the editor*
+*XML input + XSLT rules = Output: the `examples/xslt/FundsXML_Factsheet.xslt` stylesheet
+rendered as HTML in the OUTPUT panel below the editor*
 
 **Common uses:**
 
@@ -339,17 +339,23 @@ Group items by a common value:
 
 ## Included Example Files
 
-FreeXmlToolkit includes professional example stylesheets in the `examples/xsl/` folder:
+FreeXmlToolkit includes example XSLT stylesheets in the `examples/xslt/` folder, for example:
 
-| Stylesheet                       | Description                      |
-|----------------------------------|----------------------------------|
-| `FundsXML_Factsheet.xsl`         | Generate a fund factsheet report |
-| `FundsXML_ExecutiveSummary.xsl`  | Create an executive summary      |
-| `FundsXML_DataQualityReport.xsl` | Data quality validation report   |
-| `FundsXML_PortfolioAnalysis.xsl` | Portfolio analysis with charts   |
-| `FundsXML_RiskReport.xsl`        | Risk analysis report             |
+| Stylesheet                                  | Description                                   |
+|---------------------------------------------|-----------------------------------------------|
+| `FundsXML_Factsheet.xslt`                   | Fund factsheet as an HTML page                |
+| `FundsXML_DataQualityReport_HTML.xsl`       | Data quality report (HTML)                    |
+| `FundsXML_CompleteDQReport_HTML.xsl`        | Complete data-quality report (HTML)           |
+| `FundsXML_AssetAnalysis_HTML.xsl`           | Asset analysis with tables (HTML)             |
+| `FundsXML_to_JSON.xslt`                     | Export a FundsXML document as JSON            |
+| `FundsXML_Positions_to_CSV.xslt`            | Export positions as CSV                       |
+| `Check_FundsXML_File.xslt`                  | Consistency checks with a text report         |
 
 Use these with the example XML file `examples/xml/FundsXML_422_Bond_Fund.xml`.
+
+The stylesheets in `examples/xsl/` (`FundsXML_Factsheet.xsl`, `FundsXML_RiskReport.xsl`, …) are
+**XSL-FO** stylesheets for PDF output - use them with the [PDF Generator (FOP)](pdf-generator.md),
+not with the XSLT transform.
 
 ---
 

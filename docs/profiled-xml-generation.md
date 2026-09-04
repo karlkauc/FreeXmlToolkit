@@ -1,366 +1,234 @@
 # Profiled XML Generation
 
-Generate realistic, customized XML sample data from your XSD schemas. This feature lets you control exactly how each element and attribute gets its value, save your configurations as reusable profiles, and generate multiple files in one go.
+> **Version:** 2.1.0
+
+Generate customized sample XML from an XSD schema. The **Generate Sample XML (Advanced)…** dialog lists every element and attribute path of your schema, lets you pick a generation strategy per path, saves those settings as reusable profiles, and can write a whole batch of files in one go.
 
 ---
 
-## Why Use Profiled Generation?
+## Overview
 
-The basic sample XML generator creates generic data based on element types. That is useful for quick tests, but real-world scenarios often need more:
+The basic **Generate Sample XML** action (see [XSD Tools](xsd-tools.md)) invents generic values from the element types. The advanced dialog adds:
 
-- **Integration testing** -- You need specific values in specific fields (country codes, IDs, dates).
-- **Data migration** -- You want sample files that look like actual production data.
-- **System setup** -- You need multiple files with sequential IDs and realistic names.
-- **Schema validation** -- You want to test edge cases by omitting optional fields or using boundary values.
+- **Per-XPath rules** -- choose one of 11 strategies for any element or attribute (fixed value, sequence, template, omit, ...).
+- **Profiles** -- save the rules and options under a name and load them again later.
+- **Batch generation** -- write many files at once, with sequence counters that continue from file to file.
 
-Profiled generation solves these by letting you define rules for individual XPath locations in your XML.
-
----
-
-## Getting Started
-
-1. Open your XSD file in the [Unified Shell](unified-shell.md) so it is the active document.
-2. Open the **Schema** panel from the activity bar and choose **Generate Sample XML (Advanced)…**.
-3. You will see the generation workspace with a rules table on the left and an XML preview on the right.
-
-If you have used this before: the basic controls (mandatory only, max occurrences) are still there. Without any rules, generation works exactly as it did before.
+Without any rules (all rows left on **Auto**) the dialog produces exactly what the basic generator produces, using the same *Only mandatory elements* and *Max. repetitions* options.
 
 ---
 
-## The Generation Workspace
+## Opening the Dialog
 
-The workspace is split into several areas:
+1. Open your XSD in the [Unified Shell](unified-shell.md) so it is the active document. An unsaved schema works too -- the current editor text is used.
+2. Open the **Schema** activity in the activity bar.
+3. In the panel's tool button row, click **Generate Sample XML (Advanced)…** (the sliders icon).
 
-### Toolbar
-
-At the top, you will find:
-
-- **Generate** -- Create the XML output.
-- **Validate** -- Check the generated XML against the schema.
-- **Profile dropdown** -- Select a saved profile.
-- **Save / Save As / Delete** -- Manage your profiles.
-
-### Configuration Bar
-
-Below the toolbar:
-
-- **XSD file path** -- Shows which schema is loaded.
-- **Mandatory only** -- When checked, only required elements are generated.
-- **Max occurrences** -- Limits how many times repeating elements appear (default: 3).
-- **Batch count** -- How many files to generate (default: 1).
-- **File name pattern** -- Naming pattern for batch files (for example, `order_{seq:3}.xml`).
-- **Output directory** -- Where batch files are saved (choose with the Browse button).
-
-### Rules Table
-
-The left side of the workspace shows a table of generation rules. Each row defines how a specific XPath location in the XML should be populated. The columns are:
-
-| Column | Description |
-|--------|-------------|
-| **XPath** | The path to the element or attribute |
-| **Strategy** | How the value should be generated |
-| **Enabled** | Toggle the rule on or off without deleting it |
-
-When you select a rule in the table, a configuration panel appears below it. This panel shows settings specific to the chosen strategy.
-
-### XML Preview
-
-The right side shows the generated XML with syntax highlighting. For batch generation, it shows the first generated file.
+FreeXmlToolkit first scans the schema in the background and then shows the dialog with one row per element and attribute path. If the active document is not an XSD you get the message *Open an XSD schema first.*; if no paths can be extracted, *Could not extract any XPaths from the schema.*
 
 ---
 
-## Generation Strategies
+## The Dialog
 
-Each rule uses a strategy to determine the value. Here are all available strategies:
+![Generate Sample XML (Advanced)](img/xsd-sample-generator.png)
+*The advanced dialog with its per-XPath rules table*
 
-### Auto (Default)
+The modal dialog **Generate Sample XML (Advanced)** is resizable and has, from top to bottom:
 
-Uses the standard type-based generation. This is the same behavior as the basic generator. Numbers get numeric values, dates get date values, strings get string values, and so on. You do not need to configure anything.
+| Area | Contents |
+|------|----------|
+| **Profile bar** | `Profile:` drop-down of saved profiles, **Load**, **Save As…** |
+| **Per-XPath generation rules** | Table with the columns **XPath**, **Type**, **Strategy**, **Value / Pattern** |
+| Hint line | A one-line reminder of what the *Value / Pattern* cell means per strategy |
+| **Options** | **Only mandatory elements**, **Max. repetitions**, **Batch count**, **File name pattern** |
+| Buttons | **OK** (generate) and **Cancel** |
 
-**When to use:** For elements where you do not care about the specific value.
-
-### Fixed Value
-
-Always uses a specific value you provide.
-
-| Setting | Description |
-|---------|-------------|
-| **Value** | The exact value to use |
-
-**Example:** Set a country code to always be `AT`, or a currency to `EUR`.
-
-### Omit
-
-Skips the element or attribute entirely, even if the schema marks it as required.
-
-**When to use:** Testing how your system handles missing data, or generating minimal files.
-
-### Empty
-
-Creates the element in the XML but leaves its content empty.
-
-**When to use:** Testing required-but-empty field handling.
-
-### XSD Example
-
-Uses example values found in the XSD annotations (from `xs:documentation` or `xs:appinfo`). If no example is found, falls back to auto-generation.
-
-**When to use:** When your schema already contains good example values.
-
-### Enum Cycle
-
-For elements with enumeration restrictions, cycles through the allowed values in order. If the element appears three times and the enumeration has values `A`, `B`, `C`, the generated values will be `A`, `B`, `C`. The cycle continues across batch files.
-
-**When to use:** Ensuring all enumeration values appear in your test data.
-
-### Sequence
-
-Generates auto-incrementing values using a pattern.
-
-| Setting | Description |
-|---------|-------------|
-| **Pattern** | The format string, for example `ORD-{seq:6}` |
-| **Start** | The first number in the sequence (default: 1) |
-| **Step** | How much to increment each time (default: 1) |
-
-The `{seq:N}` placeholder is replaced with a zero-padded number, where `N` is the number of digits. For example, `ORD-{seq:4}` with start 1 produces `ORD-0001`, `ORD-0002`, `ORD-0003`, and so on.
-
-Sequence counters persist across batch files. If you generate 5 files with 3 orders each, the IDs continue from 1 to 15.
-
-**When to use:** Generating unique IDs, order numbers, or any incrementing values.
-
-### XPath Reference
-
-Copies the value from another element that was already generated in the same file.
-
-| Setting | Description |
-|---------|-------------|
-| **Reference XPath** | The XPath of the element to copy from |
-
-**Example:** You want a confirmation message to include the order ID. Set the reference to `/order/@id`, and the value from that attribute will be reused.
-
-**When to use:** When one field should match or reference another field in the same document.
-
-### Random from List
-
-Picks a random value from a list you provide.
-
-| Setting | Description |
-|---------|-------------|
-| **Values** | Comma-separated list of possible values |
-
-**Example:** Enter `Mueller,Schmidt,Huber,Wagner` to get random German last names.
-
-**When to use:** Creating realistic-looking data with variety across multiple files or repeating elements.
-
-### Template
-
-Combines multiple placeholders into a single value.
-
-| Setting | Description |
-|---------|-------------|
-| **Pattern** | A string with placeholders |
-
-Available placeholders:
-
-| Placeholder | Description | Example |
-|-------------|-------------|---------|
-| `{seq:N}` | Zero-padded sequence number | `{seq:4}` becomes `0001` |
-| `{date:format}` | Current date in the given format | `{date:yyyy-MM-dd}` becomes `2026-04-16` |
-| `{random:N}` | Random N-digit number | `{random:4}` becomes `7283` |
-| `{ref:xpath}` | Value from another XPath | `{ref:/order/@id}` copies the order ID |
-
-**Example:** The pattern `INV-{seq:4}-{date:yyyy}` produces values like `INV-0001-2026`, `INV-0002-2026`.
-
-**When to use:** Creating composite values that include sequences, dates, or references.
-
-### Null
-
-Sets the element to `xsi:nil="true"`. This only works for elements that are marked as nillable in the schema.
-
-**When to use:** Testing how your system handles explicitly null values.
+There is no preview inside the dialog: the result opens as a new editor tab (single document) or is written to a folder you choose (batch) once you press **OK** -- see [What Happens After OK](#what-happens-after-ok).
 
 ---
 
-## Working with Rules
+## The Rules Table
 
-### Adding Rules Manually
+The table is pre-filled from the schema; you cannot add or remove rows. Each row is one element or attribute path in schema order:
 
-1. Click the **Add** button below the rules table.
-2. Enter the XPath for the element or attribute.
-3. Choose a strategy from the dropdown.
-4. Configure the strategy settings in the panel below the table.
+| Column | Editable | Description |
+|--------|----------|-------------|
+| **XPath** | no | The path of the element (`/order/customer/name`) or attribute (`/order/@id`). Compositor groups (`xs:sequence`, `xs:choice`, `xs:all`) do not appear in the path. |
+| **Type** | no | The XSD type of the element or attribute (`xs:string`, `CustomerType`, ...). |
+| **Strategy** | yes | Drop-down with the 11 strategies below. Default: **Auto**. |
+| **Value / Pattern** | yes | One free-text cell whose meaning depends on the strategy (fixed value, pattern, list, or reference). Double-click to edit, press Enter to commit. |
 
-### Auto-Fill from XSD
+Only rows whose strategy is *not* **Auto** become rules. Everything else is generated as usual.
 
-Instead of typing XPaths manually, click the **Auto-fill from XSD** button. This scans the loaded schema and populates the rules table with all available XPaths, each set to the **Auto** strategy by default. You can then change individual strategies as needed.
+### Strategies
 
-This is the recommended way to start: auto-fill first, then customize.
+| Strategy | What it does | Value / Pattern cell |
+|----------|--------------|----------------------|
+| **Auto** | Standard type-based generation (the default). | ignored |
+| **Fixed Value** | Always writes the literal you enter. | the value, e.g. `EUR` |
+| **Omit** | Leaves the element or attribute out entirely, even if the schema requires it. | ignored |
+| **Empty** | Writes the element/attribute with no content. | ignored |
+| **XSD Example** | Picks one of the example values found in the element's XSD annotations. If the schema has none, the value is empty. | ignored |
+| **Enum Cycle** | Walks through the enumeration values of the element's type in order (`A`, `B`, `C`, `A`, ...). Empty if the type has no enumeration. | ignored |
+| **Sequence** | Auto-incrementing number, starting at 1 in steps of 1. | pattern with `{seq:N}` (zero-padded to `N` digits) or `{seq}` (no padding), e.g. `ORD-{seq:4}` gives `ORD-0001`, `ORD-0002`, ... A pattern without a placeholder yields just the number. |
+| **XPath Reference** | Copies the value that was already generated for another path in the same document. | the source XPath, e.g. `/order/@id` |
+| **Random from List** | Picks a random entry from your list on every occurrence. | comma-separated values, e.g. `Mueller,Schmidt,Huber` |
+| **Template** | Builds the value from a string with placeholders (see below). | the template, e.g. `INV-{seq:4}-{date:yyyy}` |
+| **Null (xsi:nil)** | Writes the element as `<name xsi:nil="true"/>`. Only valid for nillable elements. | ignored |
 
-### Enabling and Disabling Rules
+Every strategy applies to attributes as well as elements.
 
-Each rule has an enabled/disabled toggle. Disabling a rule keeps it in the table (with all its settings) but ignores it during generation. This is useful for temporarily turning off rules without losing your configuration.
+### Template Placeholders
 
-### Rule Priority
+| Placeholder | Result | Example |
+|-------------|--------|---------|
+| `{seq:N}` / `{seq}` | Auto-incrementing number, zero-padded to `N` digits (or unpadded) | `{seq:4}` -> `0001` |
+| `{date:format}` | Current date/time in a Java `DateTimeFormatter` pattern (default `yyyy-MM-dd`) | `{date:yyyy}` -> `2026` |
+| `{random:N}` | Random number with `N` digits (default 4, max 18) | `{random:4}` -> `7283` |
+| `{ref:xpath}` | Value already generated for another path in the same document | `{ref:/order/@id}` |
+| `{file:N}` | Number of the current batch file (1-based), zero-padded to `N` digits | `{file:2}` -> `01` |
 
-When multiple rules could match the same element (for example, an exact path and a descendant wildcard), the rule with the highest priority number wins. If priorities are equal, more specific paths take precedence:
+Example: `INV-{seq:4}-{date:yyyy}` produces `INV-0001-2026`, `INV-0002-2026`, ...
 
-1. Exact paths (most specific): `/order/customer/name`
-2. Wildcard paths: `/order/item[*]/sku`
-3. Descendant paths (least specific): `//sku`
+### Notes on Individual Strategies
 
-### XPath Patterns
+- **Sequence** and **Enum Cycle** keep one counter per XPath. Repeating elements therefore get consecutive values, and the counters continue across batch files.
+- **XPath Reference** and `{ref:...}` only find values that were generated *earlier* in the same document (document order); otherwise the result is empty. The lookup uses the generator's internal path, so it is reliable for elements and attributes directly under the root element (such as `/order/@id`); paths nested inside `xs:sequence`/`xs:choice` groups may not resolve.
+- **Omit**, **Empty**, **Null** and **Fixed Value** are applied literally -- they can produce XML that does not validate (missing mandatory element, empty number, `xsi:nil` on a non-nillable element).
+- Rules inside an `xs:choice` steer the choice: if one option of a choice has a non-Auto rule somewhere in its subtree, the generator picks that option instead of a random one.
+- Elements with a `fixed` or `default` value in the schema keep that value under **Auto**.
 
-Rules use simplified XPath expressions:
+---
 
-| Pattern | Matches | Example |
-|---------|---------|---------|
-| `/root/child/element` | Exact path | `/order/customer/name` |
-| `/root/child[*]/element` | Any index position | `/order/item[*]/sku` |
-| `//element` | Any element at any depth | `//sku` |
-| `/root/@attribute` | An attribute | `/order/@id` |
+## Options
+
+| Option | Default | Effect |
+|--------|---------|--------|
+| **Only mandatory elements** | off | Optional elements and attributes are skipped. Exception: an optional element or attribute that has a rule, or whose descendants have a rule, is still generated so the rule can take effect. |
+| **Max. repetitions** | 2 (1..50) | Upper bound for elements and choices with `maxOccurs` greater than 1 or `unbounded`. |
+| **Batch count** | 1 (1..1000) | Number of documents to generate. `1` opens a single document in the editor; anything above `1` switches to [batch generation](#batch-generation). |
+| **File name pattern** | `sample_{seq:3}.xml` | Names of the batch files; `{seq:N}` is replaced by the zero-padded file number. Only used when *Batch count* is greater than 1. |
+
+---
+
+## What Happens After OK
+
+**Batch count = 1**
+
+The document is generated in the background and opened as a new editor tab named `Sample.xml`. From there you can validate it against the schema (it carries an `xsi:schemaLocation` / `xsi:noNamespaceSchemaLocation` pointing at your XSD), edit it, and save it wherever you like. If generation fails you get an error dialog instead.
+
+**Batch count > 1**
+
+A folder chooser titled *Choose output folder for N files* appears. After you pick a folder, all files are generated and written there in the background, and a message reports how many files were written (for example *Wrote 5 of 5 files to: …*). Cancelling the folder chooser aborts without generating anything.
 
 ---
 
 ## Profiles
 
-Profiles let you save your generation configuration and reuse it later. This is especially useful when you need to generate test data repeatedly during development.
+A profile stores the current rules (all non-Auto rows with their Value / Pattern), plus the four options. Profiles are not tied to a particular schema file.
 
-### Saving a Profile
+### Save As…
 
-1. Configure your rules and settings.
-2. Click **Save As** in the toolbar.
-3. Enter a name for the profile.
-4. The profile is saved and appears in the profile dropdown.
+1. Set up rules and options.
+2. Click **Save As…**, enter a name in the *Save Profile* prompt and confirm.
+3. The profile appears in the **Profile** drop-down and is selected.
 
-To update an existing profile, make your changes and click **Save**.
+Saving under an existing name overwrites that profile. The file name is derived from the profile name; characters other than letters, digits, `_` and `-` are replaced with `_`, so `My Profile` and `My_Profile` refer to the same file.
 
-### Loading a Profile
+### Load
 
-Select a profile from the dropdown in the toolbar. All rules and settings are restored.
-
-### Deleting a Profile
-
-Select the profile in the dropdown and click **Delete**.
+Select a profile in the drop-down and click **Load**. Every row is first reset to **Auto**; then each rule of the profile whose XPath matches a row sets that row's strategy and value. Rules for paths that do not exist in the current schema are ignored (and are dropped when you press OK or save again). The options are restored as well.
 
 ### Where Profiles Are Stored
 
-Profiles are saved as JSON files in your user directory:
+Profiles are JSON files in `generation-profiles` inside your FreeXmlToolkit user folder:
 
 - **Windows:** `C:\Users\<your-name>\.freeXmlToolkit\generation-profiles\`
 - **macOS:** `/Users/<your-name>/.freeXmlToolkit/generation-profiles/`
 - **Linux:** `/home/<your-name>/.freeXmlToolkit/generation-profiles/`
 
-### Sharing Profiles
-
-You can share profiles with other users:
-
-- **Export:** Use the export function to save a profile to any location on your computer.
-- **Import:** Use the import function to load a profile from a file.
-
-Simply copy the JSON profile file and share it. The recipient can import it into their own FreeXmlToolkit installation.
+The dialog has no delete, rename, export or import function. To remove a profile, delete its `.json` file; to share one, copy the file into the same folder on the other machine -- it shows up in the drop-down the next time the dialog opens.
 
 ---
 
 ## Batch Generation
 
-Generate multiple XML files at once, each with different values.
+1. Configure rules and options as usual.
+2. Set **Batch count** to the number of files (up to 1000).
+3. Adjust the **File name pattern** if needed, for example `order_{seq:3}.xml`.
+4. Click **OK** and choose the output folder.
 
-### How to Use Batch Generation
+### File Names
 
-1. Set the **Batch count** to the number of files you want (for example, 5).
-2. Set a **File name pattern** (for example, `order_{seq:3}.xml`).
-3. Choose an **Output directory** using the Browse button.
-4. Click **Generate**.
+`{seq:N}` in the pattern is replaced by the file number starting at 1, zero-padded to `N` digits; `{seq}` gives the unpadded number:
 
-### File Name Patterns
+| Pattern | Files |
+|---------|-------|
+| `sample_{seq:3}.xml` | `sample_001.xml`, `sample_002.xml`, ... |
+| `test_{seq}.xml` | `test_1.xml`, `test_2.xml`, ... |
 
-The file name pattern supports the `{seq:N}` placeholder, where `N` is the number of digits for zero-padding:
-
-| Pattern | Files Generated |
-|---------|-----------------|
-| `order_{seq:3}.xml` | `order_001.xml`, `order_002.xml`, `order_003.xml` |
-| `test_{seq:2}.xml` | `test_01.xml`, `test_02.xml` |
-| `data_{seq:4}.xml` | `data_0001.xml`, `data_0002.xml` |
+A pattern without a placeholder names every file the same, so each file overwrites the previous one -- keep the `{seq:N}` placeholder. An empty pattern falls back to `example_1.xml`, `example_2.xml`, ...
 
 ### How Strategies Behave Across Files
 
-| Strategy | Across Files |
+| Strategy | Across files |
 |----------|--------------|
-| **Sequence** | Counters keep incrementing. File 1 might have IDs 1-3, file 2 has 4-6. |
-| **Enum Cycle** | Cycling continues. If file 1 ends on value B, file 2 starts with C. |
-| **Random from List** | Different random picks per file. |
-| **Auto** | Different generated values per file. |
-| **Fixed** | Same value in every file. |
-| **XPath Reference** | References are resolved within each file independently. |
+| **Sequence**, `{seq}` | Counters continue: file 1 has `0001`-`0002`, file 2 continues with `0003`. |
+| **Enum Cycle** | Cycling continues where the previous file stopped. |
+| **XPath Reference**, `{ref}` | Resolved within each file; references never cross files. |
+| `{file:N}` | The number of the current file. |
+| **Random from List**, **Auto**, `{random}` | Fresh picks in every file. |
+| **Fixed Value** | The same value in every file. |
+
+If every row is left on **Auto**, each batch file is produced by the basic generator with the given options.
 
 ---
 
 ## Common Tasks
 
-### Generate Test Data with Sequential IDs
+### Sequential IDs
 
-1. Open your XSD file.
-2. In the **Schema** panel, choose **Generate Sample XML (Advanced)…**.
-3. Click **Auto-fill from XSD**.
-4. Find the ID element in the rules table (for example, `/order/@id`).
-5. Change its strategy to **Sequence**.
-6. Set the pattern to `ORD-{seq:6}`, start to `1`, step to `1`.
-7. Click **Generate**.
+1. Find the ID row (for example `/order/@id`) and set its strategy to **Sequence**.
+2. Enter `ORD-{seq:6}` in **Value / Pattern**.
+3. Click **OK** -- the new tab contains `ORD-000001`, `ORD-000002`, ...
 
-### Generate Multiple Files for Load Testing
+### Realistic Names and Fixed Codes
 
-1. Follow the steps above to configure your rules.
-2. Set **Batch count** to the number of files you need (for example, 100).
-3. Set the **File name pattern** to `test_{seq:4}.xml`.
-4. Choose an output directory.
-5. Click **Generate**.
+1. Set the name row to **Random from List** with `Smith,Johnson,Williams,Brown`.
+2. Set the country row to **Fixed Value** with `US`.
+3. Set the e-mail row to **Template** with `user{seq:3}@example.com`.
+4. Click **OK**.
 
-### Create Realistic Customer Data
+### Many Files for Load Testing
 
-1. Load your XSD file and click **Auto-fill from XSD**.
-2. Set the name field to **Random from List** with values like `Smith,Johnson,Williams,Brown,Jones`.
-3. Set the country field to **Fixed** with value `US`.
-4. Set the email field to **Template** with pattern `user{seq:3}@example.com`.
-5. Click **Generate**.
+1. Configure the rules, then set **Batch count** to `100` and the pattern to `test_{seq:4}.xml`.
+2. Click **OK** and pick a folder -- you get `test_0001.xml` to `test_0100.xml`.
 
-### Skip Optional Fields
+### Minimal Documents
 
-1. Load your XSD and click **Auto-fill from XSD**.
-2. Check the **Mandatory only** checkbox, or
-3. Find specific optional elements in the rules table and set their strategy to **Omit**.
+Check **Only mandatory elements**, or set specific optional rows to **Omit**.
 
 ---
 
-## Backward Compatibility
+## Tips and FAQ
 
-If you do not configure any rules, the generator behaves exactly as it did before this feature was added. The basic controls (mandatory only, max occurrences) work the same way. You only need to use profiles and rules when you want more control.
+**The generated XML fails validation.**
+Check for **Omit** on mandatory paths, **Fixed Value** entries that do not match the type, **Empty** on numeric or date types, and **Null** on elements that are not nillable.
 
----
+**An XPath Reference stays empty.**
+The referenced path must be generated before the referencing one (document order), and nested paths inside compositor groups may not resolve -- see [Notes on Individual Strategies](#notes-on-individual-strategies). Use **Fixed Value** or **Template** if you only need identical literals.
 
-## Troubleshooting
+**The sequence restarts at 1.**
+Counters live only for one run (single document or one batch). Every click on **OK** starts again at 1; the start value and step cannot be changed in the dialog.
 
-### Generated XML fails validation
+**A saved profile loads with fewer rules than I saved.**
+Rules are matched to table rows by their exact XPath. If the schema changed (renamed or removed paths), those rules have nothing to attach to and are skipped.
 
-- Check that **Omit** is not used on mandatory elements that the schema requires.
-- Verify that **Fixed** values match the expected data type (for example, do not put text in a numeric field).
-- Make sure **Null** is only used on elements marked as nillable in the schema.
+**Can I generate two files with the same name?**
+No -- the files are written into one folder, so a later file with the same name replaces the earlier one. Keep `{seq:N}` in the pattern.
 
-### XPath Reference shows empty values
-
-- The referenced XPath must appear earlier in the XML than the element using it. The generator processes elements in document order, so a reference can only point to something already generated.
-
-### Sequence numbers restart unexpectedly
-
-- Sequence counters persist across batch files but reset when you click Generate again. If you need to continue from a previous run, adjust the **Start** value.
-
-### Auto-fill shows fewer XPaths than expected
-
-- Auto-fill extracts XPaths from the schema structure. Elements inside deeply nested or imported schemas may not appear. You can always add rules manually for any XPath.
-
-### Profile not loading
-
-- Make sure the profile was saved for the same schema (or a compatible one). Profiles are associated with the schema file they were created for.
+**Where is the Validate button?**
+Not in the dialog: open the generated tab and use the **Validate** action of the shell (see [XSD Validation](xsd-validation.md)).
 
 ---
 
