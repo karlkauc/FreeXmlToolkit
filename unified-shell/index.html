@@ -3912,7 +3912,7 @@ XML file next to its XSD schema, XSLT stylesheets and Schematron rules at the sa
 </tr>
 <tr>
 <td><strong>Header bar</strong> (top)</td>
-<td>The breadcrumb (application / active file), a centered <strong>search pill</strong> (<em>"Search · run XPath / XQuery…"</em>) that opens the bottom <a href="#query-console">Query Console</a> when clicked, and the Notifications, Help and Theme buttons.</td>
+<td>The breadcrumb (application / active file), a centered <strong>search pill</strong> (<em>"Search · run XPath / XQuery…"</em>, shortcut <strong>Ctrl+K</strong>) that opens the bottom <a href="#query-console">Query Console</a> when clicked, and the Notifications, Help and Theme buttons.</td>
 </tr>
 <tr>
 <td><strong>Side panel</strong></td>
@@ -5612,6 +5612,10 @@ glows <strong>green</strong> while a loadable file hovers over it and <strong>re
 <td>Toggle Query Console (XPath/XQuery)</td>
 </tr>
 <tr>
+<td>Ctrl+K</td>
+<td>Open the Query Console and focus its input (same as the header search pill)</td>
+</tr>
+<tr>
 <td>Ctrl+Enter</td>
 <td>Run the active XPath/XQuery, XSLT or XProc document (Run Query / Run Transform / Run Pipeline)</td>
 </tr>
@@ -5837,7 +5841,8 @@ latest edits.</p>
 without switching to the Transform activity.</p>
 </blockquote>
 <p>The <strong>Query Console</strong> is a panel that opens along the <strong>bottom of the editor</strong>. Toggle it with the
-<strong>terminal icon</strong> in the editor toolbar or with <strong>Ctrl+Shift+X</strong>. It runs against whichever
+<strong>terminal icon</strong> in the editor toolbar or with <strong>Ctrl+Shift+X</strong>; <strong>Ctrl+K</strong> (or a click on the
+header search pill) opens it and focuses the query input. It runs against whichever
 document is currently active, so it is the fastest way to probe an XML or JSON file while you work.</p>
 <p><img alt="Query Console docked at the bottom of the editor" src="../img/unified-shell-query-console.png" />
 <em>The Query Console with IntelliSense: typing <code>/</code> in the XPath input opens the completion popup
@@ -5871,7 +5876,7 @@ pane shows the previous run's XML result with syntax highlighting.</em></p>
 (<strong>Ctrl+0</strong> resets it).</p>
 <h3 id="running-a-query">Running a Query<a class="headerlink" href="#running-a-query" title="Permanent link">&para;</a></h3>
 <ol>
-<li>Open the console (terminal icon or <strong>Ctrl+Shift+X</strong>) - it opens focused on the query input.</li>
+<li>Open the console (<strong>Ctrl+K</strong>, the header search pill, the terminal icon, or <strong>Ctrl+Shift+X</strong>) - it opens focused on the query input.</li>
 <li>Choose <strong>XPath</strong> or <strong>XQuery</strong> with the mode toggle.</li>
 <li>Type your expression, then click <strong>Run</strong> (in XPath mode, <strong>Enter</strong> also runs).</li>
 <li>The result appears on the right. Use <strong>Copy</strong> to put it on the clipboard.</li>
