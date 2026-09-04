@@ -21,7 +21,7 @@ XML file next to its XSD schema, XSLT stylesheets and Schematron rules at the sa
 | Area | Purpose |
 |------|---------|
 | **Activity bar** (far left) | Switch tools / side panels: Explorer, Search, Favorites, Validation, Transform, Schema, Schema Library, PDF/FOP, Signature, Help, Settings - plus a **FundsXML** activity when the optional [FundsXML extension](fundsxml-extensions.md) is enabled (see [FundsXML Panel](#fundsxml-panel)). **Always visible** - it cannot be collapsed. (Settings opens as a full page in the editor area - see [Settings Page](#settings-page).) |
-| **Header bar** (top) | The breadcrumb (application / active file), a centered **search pill** (*"Search · run XPath / XQuery…"*) that opens the bottom [Query Console](#query-console) when clicked, and the Notifications, Help and Theme buttons. |
+| **Header bar** (top) | The breadcrumb (application / active file), a centered **search pill** (*"Search · run XPath / XQuery…"*, shortcut **Ctrl+K**) that opens the bottom [Query Console](#query-console) when clicked, and the Notifications, Help and Theme buttons. |
 | **Side panel** | The panel for the selected activity (e.g. the Transform panel, the Validation panel). **Resizable and collapsible** (see [Resizing and collapsing the side panels](#collapsing-the-side-panels)). |
 | **Editor host** (center) | Tabs of open documents, each with the Text, Tree and Graphic view modes - plus a rendered **Preview** for HTML documents (see [View Modes](#view-modes)). |
 | **Inspector** (right) | View **and edit** the selected node's properties from any view. **Resizable and collapsible** (see [Resizing and collapsing the side panels](#collapsing-the-side-panels)). |
@@ -1381,6 +1381,7 @@ The status bar at the bottom of the window includes (left to right):
 | Ctrl+D | Add the active document to favorites |
 | Ctrl+Shift+D | Show the Favorites panel (press again to collapse the side panel) |
 | Ctrl+Shift+X | Toggle Query Console (XPath/XQuery) |
+| Ctrl+K | Open the Query Console and focus its input (same as the header search pill) |
 | Ctrl+Enter | Run the active XPath/XQuery, XSLT or XProc document (Run Query / Run Transform / Run Pipeline) |
 | Ctrl+L | Show/hide the left side panel |
 | Ctrl+Shift+P | Show/hide the Properties inspector |
@@ -1531,7 +1532,8 @@ parameters; for output-format options, parameters, recent stylesheets, and watch
 > without switching to the Transform activity.
 
 The **Query Console** is a panel that opens along the **bottom of the editor**. Toggle it with the
-**terminal icon** in the editor toolbar or with **Ctrl+Shift+X**. It runs against whichever
+**terminal icon** in the editor toolbar or with **Ctrl+Shift+X**; **Ctrl+K** (or a click on the
+header search pill) opens it and focuses the query input. It runs against whichever
 document is currently active, so it is the fastest way to probe an XML or JSON file while you work.
 
 ![Query Console docked at the bottom of the editor](img/unified-shell-query-console.png)
@@ -1568,7 +1570,7 @@ Like the text editor, every console area zooms with the mouse: hold **Ctrl** and
 
 ### Running a Query
 
-1. Open the console (terminal icon or **Ctrl+Shift+X**) - it opens focused on the query input.
+1. Open the console (**Ctrl+K**, the header search pill, the terminal icon, or **Ctrl+Shift+X**) - it opens focused on the query input.
 2. Choose **XPath** or **XQuery** with the mode toggle.
 3. Type your expression, then click **Run** (in XPath mode, **Enter** also runs).
 4. The result appears on the right. Use **Copy** to put it on the clipboard.

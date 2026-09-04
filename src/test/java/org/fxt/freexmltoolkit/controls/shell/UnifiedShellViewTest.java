@@ -199,6 +199,22 @@ class UnifiedShellViewTest {
     }
 
     /** Fires Ctrl(+Shift)+{@code code} on the shell so its shortcut handler runs. */
+    @Test
+    void ctrlKOpensTheQueryConsoleAndKeepsItOpen() {
+        WaitForAsyncUtils.waitForFxEvents();
+        assertFalse(shell.isQueryConsoleShown(), "Query Console must be hidden on startup");
+
+        fireShortcut(javafx.scene.input.KeyCode.K, false);
+        assertTrue(shell.isQueryConsoleShown(), "Ctrl+K opens the Query Console (header search pill)");
+        assertNotNull(shell.lookup(".fxt-query-console"));
+
+        fireShortcut(javafx.scene.input.KeyCode.K, false);
+        assertTrue(shell.isQueryConsoleShown(), "a second Ctrl+K only re-focuses the console, it does not close it");
+
+        fireShortcut(javafx.scene.input.KeyCode.K, true);
+        assertTrue(shell.isQueryConsoleShown(), "Ctrl+Shift+K is not bound and leaves the console alone");
+    }
+
     private void fireShortcut(javafx.scene.input.KeyCode code, boolean shift) {
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> shell.fireEvent(new javafx.scene.input.KeyEvent(
                 javafx.scene.input.KeyEvent.KEY_PRESSED, "", "", code, shift, true, false, false)));

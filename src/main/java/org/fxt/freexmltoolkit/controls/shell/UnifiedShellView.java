@@ -425,6 +425,14 @@ public class UnifiedShellView extends BorderPane {
                     event.consume();
                 }
             }
+            case K -> {
+                // Ctrl+K mirrors the header search pill (labelled "Ctrl K"): open the
+                // Query Console and focus its input, or just focus it when already shown.
+                if (!event.isShiftDown()) {
+                    openQueryConsole();
+                    event.consume();
+                }
+            }
             case D -> {
                 // Ctrl+D adds the active document to favorites, Ctrl+Shift+D toggles the
                 // Favorites side panel (both listed in the Keyboard Shortcuts dialog).
@@ -513,6 +521,15 @@ public class UnifiedShellView extends BorderPane {
             workSplit.getItems().add(queryConsole);
             workSplit.setDividerPositions(0.7);
             queryConsole.focusInput();
+        }
+    }
+
+    /** Shows the Query Console (if hidden) and focuses its query input; used by Ctrl+K and the header search pill. */
+    public void openQueryConsole() {
+        if (isQueryConsoleShown()) {
+            queryConsole.focusInput();
+        } else {
+            toggleQueryConsole();
         }
     }
 
@@ -934,7 +951,7 @@ public class UnifiedShellView extends BorderPane {
     @FXML public void onNotifications() { /* no-op placeholder (Figma "future" header) */ }
     @FXML public void onHelp() { selectionModel.select(Activity.HELP); }
     @FXML public void onToggleTheme() { toggleTheme(); }
-    @FXML public void onSearchPillClicked() { if (!isQueryConsoleShown()) { toggleQueryConsole(); } }
+    @FXML public void onSearchPillClicked() { openQueryConsole(); }
     @FXML public void onToggleLeftPanel() { setLeftPanelVisible(leftPanelToggle.isSelected()); }
     @FXML public void onToggleInspector() { setInspectorVisible(inspectorToggle.isSelected()); }
     @FXML public void onCollapseLeftPanel() { setLeftPanelVisible(false); }

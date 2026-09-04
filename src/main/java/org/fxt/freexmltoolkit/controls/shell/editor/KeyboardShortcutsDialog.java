@@ -40,6 +40,7 @@ public final class KeyboardShortcutsDialog {
                 new String[]{"Ctrl+L", "Toggle Side Panel"},
                 new String[]{"Ctrl+Shift+P", "Toggle Properties Inspector"},
                 new String[]{"Ctrl+Shift+X", "Toggle Query Console"},
+                new String[]{"Ctrl+K", "Open Query Console (search)"},
                 new String[]{"Ctrl+E", "Spreadsheet Converter"},
                 new String[]{"Ctrl+T", "Insert Template"},
                 new String[]{"F1", "Show Help"}

@@ -285,7 +285,9 @@ If the interface appears blurry or animations are slow, your system may be using
 | `Ctrl+T` | Insert a template |
 | `Ctrl+Shift+X` | Toggle the Query Console |
 | `Ctrl+D` / `Ctrl+Shift+D` | Add current file to Favorites / show the Favorites panel |
-| `Ctrl+E` / `Ctrl+Shift+P` / `Ctrl+L` | Show the Explorer / Schema / Schema Library panel |
+| `Ctrl+K` | Open the Query Console (same as the header search field) |
+| `Ctrl+L` / `Ctrl+Shift+P` | Show/hide the left side panel / the Properties inspector |
+| `Ctrl+E` | Spreadsheet Converter (Excel / CSV ↔ XML) |
 | `Alt+Enter` (or `Ctrl+.`) | Apply a Schematron Quick Fix |
 | `<` | Open auto-completion |
 | `Enter` | Accept suggestion |
