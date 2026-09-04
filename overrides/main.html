@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block announce %}
+<span class="fxt-announce">
+  <span class="fxt-announce__icon" aria-hidden="true">⬇</span>
+  FreeXmlToolkit <strong class="fxt-release-version">latest release</strong> is available –
+  <a href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">Download now</a>
+  <span class="fxt-announce__sep">·</span>
+  <a href="{{ config.site_url }}#download">All platforms</a>
+</span>
+{% endblock %}
