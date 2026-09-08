@@ -2323,10 +2323,11 @@ shell rather than a dedicated sidebar tab.</p>
 - <strong>JSONC syntax</strong> - JSON with Comments (single-line <code>//</code> and block <code>/* */</code>)
 - <strong>JSON5 syntax</strong> - trailing commas, unquoted keys, single-quoted strings, and comments</p>
 <blockquote>
-<p><strong>File extensions:</strong> only <code>.json</code> is registered as a JSON file. The JSONC/JSON5
-syntax above is tolerated <em>inside</em> <code>.json</code> files - the format is detected from the
-content, not from the extension. Files named <code>.jsonc</code> or <code>.json5</code> open as plain
-<strong>Text</strong> (no JSON tree view, JSONPath, or schema binding).</p>
+<p><strong>File extensions:</strong> <code>.json</code>, <code>.jsonc</code> and <code>.json5</code> all open in the JSON editor
+(tree view, JSONPath, schema binding). The flavor is detected from the <em>content</em>, not
+from the extension - a <code>.json</code> file with comments is treated as JSONC just like a
+<code>.jsonc</code> file. Only <code>.json</code> is offered for operating-system file associations
+(<code>.jsonc</code>/<code>.json5</code> have no MIME type in the shared databases).</p>
 </blockquote>
 <p><img alt="JSON in the Unified Shell" src="../img/unified-shell-json-tree.png" />
 <strong><em>JSON editing (text + tree view) in the Unified Shell</em></strong></p>
@@ -2533,10 +2534,9 @@ dialect demo each for Draft-07 and 2019-09. Open
 </tbody>
 </table>
 <h2 id="supported-formats">Supported Formats<a class="headerlink" href="#supported-formats" title="Permanent link">&para;</a></h2>
-<p>All three flavors below are recognized inside a <code>.json</code> file; the editor auto-detects
-the flavor from the content (syntax highlighting and the tree view strip comments and
-trailing commas before parsing). Remember that <code>.jsonc</code>/<code>.json5</code> file names are not
-registered - rename such files to <code>.json</code> to get the JSON features.</p>
+<p>All three flavors below are recognized in <code>.json</code>, <code>.jsonc</code> and <code>.json5</code> files; the
+editor auto-detects the flavor from the content (syntax highlighting and the tree view
+strip comments and trailing commas before parsing).</p>
 <h3 id="json-standard">JSON (Standard)<a class="headerlink" href="#json-standard" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p">{</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"John"</span><span class="p">,</span>

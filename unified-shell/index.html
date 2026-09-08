@@ -3960,7 +3960,7 @@ collapsed to give the editor more room - the activity bar always stays visible.<
 <h3 id="key-features">Key Features<a class="headerlink" href="#key-features" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Multi-tab editing</strong> - Open multiple files of different types in one view</li>
-<li><strong>Automatic file type detection</strong> - Files are recognized by extension (.xml/.wsdl, .xsd, .xsl/.xslt, .xpl/.xproc, .xq/.xquery/.xqm/.xqy, .xpath, .sch/.schematron, .json, .html/.htm/.xhtml); anything else opens as plain text</li>
+<li><strong>Automatic file type detection</strong> - Files are recognized by extension (.xml/.wsdl, .xsd, .xsl/.xslt, .xpl/.xproc, .xq/.xquery/.xqm/.xqy, .xpath, .sch/.schematron, .json/.jsonc/.json5, .html/.htm/.xhtml); anything else opens as plain text</li>
 <li><strong>View modes per document</strong> - Text, Tree and Graphic, all over one shared model, plus a rendered <strong>Preview</strong> for HTML documents (see <a href="#view-modes">View Modes</a>)</li>
 <li><strong>Inspector editing everywhere</strong> - edit node properties from the Text, Tree and Graphic views, not just one</li>
 <li><strong>Integrated XPath/XQuery</strong> - a bottom <a href="#query-console">Query Console</a> queries the active
@@ -4170,8 +4170,8 @@ would show it:</p>
 </tr>
 <tr>
 <td><strong>JSON</strong></td>
-<td>.json</td>
-<td>Text + tree view, JSONPath queries, JSON Schema validation. Only <code>.json</code> is registered - <code>.jsonc</code> / <code>.json5</code> files open as plain text - but JSONC/JSON5 syntax (comments, trailing commas) <em>inside</em> a <code>.json</code> file is tolerated by the editor.</td>
+<td>.json, .jsonc, .json5</td>
+<td>Text + tree view, JSONPath queries, JSON Schema validation. The JSON/JSONC/JSON5 flavor is detected from the content, so comments and trailing commas are accepted in any of the three.</td>
 </tr>
 <tr>
 <td><strong>HTML</strong></td>
