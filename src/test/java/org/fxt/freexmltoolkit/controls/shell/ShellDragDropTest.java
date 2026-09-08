@@ -31,9 +31,11 @@ class ShellDragDropTest {
     }
 
     @Test
-    void acceptsXmlFamilyFilesOnly() {
+    void acceptsEveryEditorFileTypeOnly() {
         assertTrue(UnifiedShellView.acceptsDrop(List.of(new File("a.xml"))));
         assertTrue(UnifiedShellView.acceptsDrop(List.of(new File("a.xsd"))));
+        assertTrue(UnifiedShellView.acceptsDrop(List.of(new File("a.json"))), "JSON files open in the editor");
+        assertTrue(UnifiedShellView.acceptsDrop(List.of(new File("a.html"))), "HTML files open in Preview");
         assertFalse(UnifiedShellView.acceptsDrop(List.of(new File("a.png"))));
         assertFalse(UnifiedShellView.acceptsDrop(List.of()));
     }
@@ -116,11 +118,13 @@ class ShellDragDropTest {
     void openDroppedFilesOpensSupportedFiles(@TempDir Path tmp) throws Exception {
         File xml = tmp.resolve("dropped.xml").toFile();
         Files.writeString(xml.toPath(), "<root/>");
+        File json = tmp.resolve("dropped.json").toFile();
+        Files.writeString(json.toPath(), "{\"a\": 1}");
         File png = tmp.resolve("ignored.png").toFile();
         Files.writeString(png.toPath(), "x");
 
         int opened = WaitForAsyncUtils.waitForAsyncFx(2000,
-                () -> shell.openDroppedFiles(List.of(xml, png)));
-        assertEquals(1, opened, "only the XML file is opened");
+                () -> shell.openDroppedFiles(List.of(xml, json, png)));
+        assertEquals(2, opened, "the XML and the JSON file are opened, the PNG is ignored");
     }
 }

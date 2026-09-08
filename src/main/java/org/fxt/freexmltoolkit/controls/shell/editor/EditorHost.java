@@ -3151,8 +3151,8 @@ public class EditorHost extends BorderPane {
     private void setupDragAndDrop() {
         setOnDragOver(event -> {
             var dragboard = event.getDragboard();
-            if (dragboard.hasFiles()
-                    && DragDropService.hasFilesWithExtensions(dragboard.getFiles(), DragDropService.ALL_XML_RELATED)) {
+            if (dragboard.hasFiles() && DragDropService.hasFilesWithExtensions(
+                    dragboard.getFiles(), EditorFileType.openableExtensions())) {
                 event.acceptTransferModes(javafx.scene.input.TransferMode.COPY);
             }
             event.consume();
@@ -3162,7 +3162,7 @@ public class EditorHost extends BorderPane {
             boolean done = false;
             if (dragboard.hasFiles()) {
                 for (File file : DragDropService.filterByExtensions(dragboard.getFiles(),
-                        DragDropService.ALL_XML_RELATED)) {
+                        EditorFileType.openableExtensions())) {
                     try {
                         openFile(file.toPath());
                         done = true;

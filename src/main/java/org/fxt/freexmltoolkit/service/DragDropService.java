@@ -69,12 +69,6 @@ public class DragDropService {
     public static final List<String> WSDL_EXTENSIONS = List.of(".wsdl");
 
     // Combined extension lists for convenience
-    /** All XML-related file extensions. */
-    public static final List<String> ALL_XML_RELATED = Stream.of(
-            XML_EXTENSIONS, XSD_EXTENSIONS, XSLT_EXTENSIONS, XQUERY_EXTENSIONS, XPATH_EXTENSIONS,
-            XPROC_EXTENSIONS, SCHEMATRON_EXTENSIONS, WSDL_EXTENSIONS
-    ).flatMap(List::stream).toList();
-
     /** XML and XSLT file extensions. */
     public static final List<String> XML_AND_XSLT = Stream.of(
             XML_EXTENSIONS, XSLT_EXTENSIONS

@@ -98,4 +98,19 @@ class EditorFileTypeTest {
             }
         }
     }
+
+    @Test
+    void openableExtensionsCoverEveryTypedExtensionWithLeadingDot() {
+        var openable = EditorFileType.openableExtensions();
+        for (EditorFileType t : EditorFileType.values()) {
+            for (String ext : t.extensions()) {
+                assertTrue(openable.contains("." + ext), () -> "'." + ext + "' must be droppable/openable");
+            }
+        }
+        assertTrue(openable.contains(".json"), "JSON documents open in the editor");
+        assertTrue(openable.contains(".html"), "HTML documents open in the editor (Preview)");
+        assertEquals(openable.size(), openable.stream().distinct().count(), "no duplicates");
+        assertEquals(EditorFileType.OTHER, EditorFileType.fromFileName("a.png"));
+        assertFalse(openable.contains(".png"), "unknown types stay excluded");
+    }
 }

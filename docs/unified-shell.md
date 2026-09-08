@@ -57,7 +57,7 @@ collapsed to give the editor more room - the activity bar always stays visible.
 ### Key Features
 
 - **Multi-tab editing** - Open multiple files of different types in one view
-- **Automatic file type detection** - Files are recognized by extension (.xml, .xsd, .xsl/.xslt, .xpl/.xproc, .xq/.xquery/.xqm/.xqy, .xpath, .sch/.schematron, .json, .html/.htm/.xhtml); anything else opens as plain text
+- **Automatic file type detection** - Files are recognized by extension (.xml/.wsdl, .xsd, .xsl/.xslt, .xpl/.xproc, .xq/.xquery/.xqm/.xqy, .xpath, .sch/.schematron, .json, .html/.htm/.xhtml); anything else opens as plain text
 - **View modes per document** - Text, Tree and Graphic, all over one shared model, plus a rendered **Preview** for HTML documents (see [View Modes](#view-modes))
 - **Inspector editing everywhere** - edit node properties from the Text, Tree and Graphic views, not just one
 - **Integrated XPath/XQuery** - a bottom [Query Console](#query-console) queries the active
@@ -78,7 +78,7 @@ collapsed to give the editor more room - the activity bar always stays visible.
 ## Getting Started
 
 1. The Unified Shell opens automatically on startup.
-2. Use the **Explorer** activity (or **File → Open**) to open files; **File → New** (Ctrl+N) opens the guided [New File dialog](#new-file-dialog) to create a new file from a template or schema.
+2. Use the **Explorer** activity (or **File → Open**) to open files; **File → New** (Ctrl+N) opens the guided [New File dialog](#new-file-dialog) to create a new file from a template or schema. You can also **drag & drop** files from your file manager anywhere onto the window - every [supported file type](#supported-file-types) (XML, XSD, XSLT, XProc, XQuery, XPath, Schematron, JSON, HTML) opens as a new tab; other files are ignored.
 3. Files open as tabs in the editor host - switch tabs by clicking their headers, and switch view modes (Text / Tree / Graphic - plus **Preview** for HTML files) with the segmented view switch.
 
 ## New File Dialog
@@ -186,7 +186,7 @@ would show it:
 
 | Type | Extensions | Features |
 |------|-----------|----------|
-| **XML** | .xml | Text + graphic view, XSD/Schematron linking, IntelliSense, continuous validation |
+| **XML** | .xml, .wsdl | Text + graphic view, XSD/Schematron linking, IntelliSense, continuous validation |
 | **XSD** | .xsd | Text + graphic view, Type Library, Type Editor, Schema Analysis, Documentation, Sample Data, Flatten |
 | **XSLT** | .xsl, .xslt | XSLT editor + XML input + output preview, live transform, parameters, performance metrics |
 | **XProc** | .xpl, .xproc | Pipeline editor (Text + Tree view), Run Pipeline via the embedded XML Calabash engine - see [XProc Pipelines](#xproc-pipelines) |

@@ -296,16 +296,20 @@ public class UnifiedShellView extends BorderPane {
         });
     }
 
-    /** @return {@code true} if {@code files} contains at least one XML-family file the shell can open. */
+    /**
+     * @return {@code true} if {@code files} contains at least one file of a type the editor host
+     *         can open (XML family, JSON, HTML, query documents — see
+     *         {@link org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType#openableExtensions()})
+     */
     public static boolean acceptsDrop(java.util.List<java.io.File> files) {
-        return files != null && org.fxt.freexmltoolkit.service.DragDropService
-                .hasFilesWithExtensions(files, org.fxt.freexmltoolkit.service.DragDropService.ALL_XML_RELATED);
+        return files != null && org.fxt.freexmltoolkit.service.DragDropService.hasFilesWithExtensions(files,
+                org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.openableExtensions());
     }
 
-    /** Opens every supported (XML-family) file from {@code files} in the editor host. @return the count opened. */
+    /** Opens every file of a supported editor type from {@code files} in the editor host. @return the count opened. */
     public int openDroppedFiles(java.util.List<java.io.File> files) {
-        java.util.List<java.io.File> supported = org.fxt.freexmltoolkit.service.DragDropService
-                .filterByExtensions(files, org.fxt.freexmltoolkit.service.DragDropService.ALL_XML_RELATED);
+        java.util.List<java.io.File> supported = org.fxt.freexmltoolkit.service.DragDropService.filterByExtensions(
+                files, org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.openableExtensions());
         for (java.io.File f : supported) {
             try {
                 editorHost.openFile(f.toPath());

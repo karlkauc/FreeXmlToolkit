@@ -8,7 +8,7 @@ import java.util.Locale;
  * editor (syntax, IntelliSense) and the inspector can adapt to the content.
  */
 public enum EditorFileType {
-    XML("XML", "bi-code-slash", "#1373d9", "xml"),
+    XML("XML", "bi-code-slash", "#1373d9", "xml", "wsdl"),
     XSD("XSD", "bi-diagram-3", "#2f9e44", "xsd"),
     XSLT("XSLT", "bi-arrow-repeat", "#f08c00", "xsl", "xslt"),
     SCHEMATRON("Schematron", "bi-check2-square", "#e8590c", "sch", "schematron"),
@@ -128,6 +128,24 @@ public enum EditorFileType {
             case OTHER -> "";
         };
     }
+
+    /**
+     * Every file extension (with leading dot, e.g. {@code ".json"}) that the editor host
+     * can open, derived from the typed entries of this enum. This is the single source of
+     * truth for "what may be dropped onto / opened in the shell", so a newly supported type
+     * automatically becomes droppable too.
+     *
+     * @return the lowercase, dot-prefixed extensions of every type except {@link #OTHER}
+     */
+    public static List<String> openableExtensions() {
+        return OPENABLE_EXTENSIONS;
+    }
+
+    private static final List<String> OPENABLE_EXTENSIONS = java.util.Arrays.stream(values())
+            .filter(type -> type != OTHER)
+            .flatMap(type -> type.extensions.stream())
+            .map(ext -> "." + ext)
+            .toList();
 
     /**
      * Classifies a file by its name's extension (case-insensitive).
