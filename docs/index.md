@@ -106,7 +106,7 @@ Edit and validate JSON files with multiple format support:
 
 | Feature | What It Does |
 |---------|--------------|
-| **Multi-Format Support** | Edit JSON files, including JSONC-style comments and JSON5 syntax inside `.json` files |
+| **Multi-Format Support** | Edit `.json`, `.jsonc` and `.json5` files, including JSONC-style comments and JSON5 syntax |
 | **Tree View** | Navigate JSON structure visually |
 | **JSONPath Queries** | Extract data using JSONPath expressions |
 | **Schema Validation** | Validate against JSON Schema (Draft-07, 2019-09, 2020-12) - the schema is auto-detected from the document's `$schema` member, or bound manually; problems appear with line numbers |

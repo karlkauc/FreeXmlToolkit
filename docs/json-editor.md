@@ -17,10 +17,11 @@ FreeXmlToolkit includes a full-featured JSON Editor that supports:
 - **JSONC syntax** - JSON with Comments (single-line `//` and block `/* */`)
 - **JSON5 syntax** - trailing commas, unquoted keys, single-quoted strings, and comments
 
-> **File extensions:** only `.json` is registered as a JSON file. The JSONC/JSON5
-> syntax above is tolerated *inside* `.json` files - the format is detected from the
-> content, not from the extension. Files named `.jsonc` or `.json5` open as plain
-> **Text** (no JSON tree view, JSONPath, or schema binding).
+> **File extensions:** `.json`, `.jsonc` and `.json5` all open in the JSON editor
+> (tree view, JSONPath, schema binding). The flavor is detected from the *content*, not
+> from the extension - a `.json` file with comments is treated as JSONC just like a
+> `.jsonc` file. Only `.json` is offered for operating-system file associations
+> (`.jsonc`/`.json5` have no MIME type in the shared databases).
 
 ![JSON in the Unified Shell](img/unified-shell-json-tree.png)
 ***JSON editing (text + tree view) in the Unified Shell***
@@ -133,10 +134,9 @@ resolve as expected.
 
 ## Supported Formats
 
-All three flavors below are recognized inside a `.json` file; the editor auto-detects
-the flavor from the content (syntax highlighting and the tree view strip comments and
-trailing commas before parsing). Remember that `.jsonc`/`.json5` file names are not
-registered - rename such files to `.json` to get the JSON features.
+All three flavors below are recognized in `.json`, `.jsonc` and `.json5` files; the
+editor auto-detects the flavor from the content (syntax highlighting and the tree view
+strip comments and trailing commas before parsing).
 
 ### JSON (Standard)
 ```json

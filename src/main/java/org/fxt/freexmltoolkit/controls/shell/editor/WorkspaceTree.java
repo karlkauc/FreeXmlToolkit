@@ -22,9 +22,10 @@ import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
  */
 public class WorkspaceTree extends VBox {
 
-    private static final List<String> ALLOWED =
-            List.of("xml", "xsd", "xsl", "xslt", "sch", "schematron", "json",
-                    "xq", "xquery", "xqm", "xqy", "xpath", "xpl", "xproc");
+    /** Extensions (without dot) shown in the tree — every type the editor host can open. */
+    private static final List<String> ALLOWED = EditorFileType.openableExtensions().stream()
+            .map(ext -> ext.substring(1))
+            .toList();
 
     private final TreeView<Path> tree = new TreeView<>();
     private final Consumer<Path> fileOpener;

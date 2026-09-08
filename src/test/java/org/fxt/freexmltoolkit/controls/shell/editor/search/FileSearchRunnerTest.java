@@ -20,6 +20,14 @@ class FileSearchRunnerTest {
     }
 
     @Test
+    void defaultGlobsCoverEveryEditorFileType() {
+        assertEquals(org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.openableGlobs(),
+                FileSearchRunner.DEFAULT_GLOBS);
+        assertTrue(FileSearchRunner.DEFAULT_GLOBS.contains("*.jsonc"));
+        assertTrue(FileSearchRunner.DEFAULT_GLOBS.contains("*.html"));
+    }
+
+    @Test
     void findsMatchesWithLineNumbersAcrossFiles(@TempDir Path dir) throws Exception {
         Files.writeString(dir.resolve("a.xml"), "<root>\n  <name>Foo</name>\n  <name>foo</name>\n</root>");
         Files.writeString(dir.resolve("b.xml"), "<root/>");

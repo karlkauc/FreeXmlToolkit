@@ -1,7 +1,10 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+
+import javafx.stage.FileChooser;
 
 /**
  * Classifies a file opened in the Unified editor host by its extension, so the
@@ -12,7 +15,7 @@ public enum EditorFileType {
     XSD("XSD", "bi-diagram-3", "#2f9e44", "xsd"),
     XSLT("XSLT", "bi-arrow-repeat", "#f08c00", "xsl", "xslt"),
     SCHEMATRON("Schematron", "bi-check2-square", "#e8590c", "sch", "schematron"),
-    JSON("JSON", "bi-braces", "#1098ad", "json"),
+    JSON("JSON", "bi-braces", "#1098ad", "json", "jsonc", "json5"),
     XQUERY("XQuery", "bi-code-square", "#6f42c1", "xq", "xquery", "xqm", "xqy"),
     XPATH("XPath", "bi-slash-square", "#d63384", "xpath"),
     XPROC("XProc", "bi-diagram-2", "#0ca678", "xpl", "xproc"),
@@ -141,10 +144,49 @@ public enum EditorFileType {
         return OPENABLE_EXTENSIONS;
     }
 
+    /**
+     * The same set as {@link #openableExtensions()} as file-chooser / file-search globs
+     * (e.g. {@code "*.json"}).
+     *
+     * @return one {@code "*.<ext>"} glob per openable extension, in enum order
+     */
+    public static List<String> openableGlobs() {
+        return OPENABLE_GLOBS;
+    }
+
+    /**
+     * Builds the extension filters for an "Open"-style {@link FileChooser}: an
+     * "All supported files" filter first, then one filter per type (in enum order) and
+     * finally "All files". Every filter is derived from this enum, so a newly supported
+     * type shows up in every file chooser without further registration.
+     *
+     * @return a fresh, mutable list of filters (a filter cannot be shared between choosers)
+     */
+    public static List<FileChooser.ExtensionFilter> fileChooserFilters() {
+        List<FileChooser.ExtensionFilter> filters = new ArrayList<>();
+        filters.add(new FileChooser.ExtensionFilter("All supported files", OPENABLE_GLOBS));
+        for (EditorFileType type : values()) {
+            if (type != OTHER) {
+                filters.add(new FileChooser.ExtensionFilter(
+                        type.label + " (" + String.join(", ", type.globs()) + ")", type.globs()));
+            }
+        }
+        filters.add(new FileChooser.ExtensionFilter("All files", "*.*"));
+        return filters;
+    }
+
+    private List<String> globs() {
+        return extensions.stream().map(ext -> "*." + ext).toList();
+    }
+
     private static final List<String> OPENABLE_EXTENSIONS = java.util.Arrays.stream(values())
             .filter(type -> type != OTHER)
             .flatMap(type -> type.extensions.stream())
             .map(ext -> "." + ext)
+            .toList();
+
+    private static final List<String> OPENABLE_GLOBS = OPENABLE_EXTENSIONS.stream()
+            .map(ext -> "*" + ext)
             .toList();
 
     /**

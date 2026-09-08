@@ -57,7 +57,7 @@ collapsed to give the editor more room - the activity bar always stays visible.
 ### Key Features
 
 - **Multi-tab editing** - Open multiple files of different types in one view
-- **Automatic file type detection** - Files are recognized by extension (.xml/.wsdl, .xsd, .xsl/.xslt, .xpl/.xproc, .xq/.xquery/.xqm/.xqy, .xpath, .sch/.schematron, .json, .html/.htm/.xhtml); anything else opens as plain text
+- **Automatic file type detection** - Files are recognized by extension (.xml/.wsdl, .xsd, .xsl/.xslt, .xpl/.xproc, .xq/.xquery/.xqm/.xqy, .xpath, .sch/.schematron, .json/.jsonc/.json5, .html/.htm/.xhtml); anything else opens as plain text
 - **View modes per document** - Text, Tree and Graphic, all over one shared model, plus a rendered **Preview** for HTML documents (see [View Modes](#view-modes))
 - **Inspector editing everywhere** - edit node properties from the Text, Tree and Graphic views, not just one
 - **Integrated XPath/XQuery** - a bottom [Query Console](#query-console) queries the active
@@ -193,7 +193,7 @@ would show it:
 | **XQuery** | .xq, .xquery, .xqm, .xqy | Query editor with highlighting + IntelliSense, Run Query against a selectable target - see [Query Documents](#query-documents-the-target-selector) |
 | **XPath** | .xpath | Single-expression query editor, Run Query against a selectable target - see [Query Documents](#query-documents-the-target-selector) |
 | **Schematron** | .sch, .schematron | Code editor + Visual Builder + Tester + Documentation Generator |
-| **JSON** | .json | Text + tree view, JSONPath queries, JSON Schema validation. Only `.json` is registered - `.jsonc` / `.json5` files open as plain text - but JSONC/JSON5 syntax (comments, trailing commas) *inside* a `.json` file is tolerated by the editor. |
+| **JSON** | .json, .jsonc, .json5 | Text + tree view, JSONPath queries, JSON Schema validation. The JSON/JSONC/JSON5 flavor is detected from the content, so comments and trailing commas are accepted in any of the three. |
 | **HTML** | .html, .htm, .xhtml | Rendered read-only **Preview** (the default view) + Text editing; also the format of HTML/XHTML transform results opened as editor tabs - see [HTML Preview](#html-preview) |
 
 ## Toolbar

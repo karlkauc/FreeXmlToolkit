@@ -23,6 +23,9 @@ class EditorFileTypeTest {
         assertEquals(EditorFileType.XSLT, EditorFileType.fromFileName("t.xslt"));
         assertEquals(EditorFileType.SCHEMATRON, EditorFileType.fromFileName("rules.sch"));
         assertEquals(EditorFileType.JSON, EditorFileType.fromFileName("config.json"));
+        assertEquals(EditorFileType.JSON, EditorFileType.fromFileName("settings.jsonc"));
+        assertEquals(EditorFileType.JSON, EditorFileType.fromFileName("data.JSON5"));
+        assertEquals(EditorFileType.XML, EditorFileType.fromFileName("service.wsdl"));
         assertEquals(EditorFileType.XQUERY, EditorFileType.fromFileName("query.xq"));
         assertEquals(EditorFileType.XQUERY, EditorFileType.fromFileName("query.xquery"));
         assertEquals(EditorFileType.XQUERY, EditorFileType.fromFileName("module.xqm"));
@@ -108,9 +111,41 @@ class EditorFileTypeTest {
             }
         }
         assertTrue(openable.contains(".json"), "JSON documents open in the editor");
+        assertTrue(openable.contains(".jsonc"), "JSONC documents open in the editor");
+        assertTrue(openable.contains(".json5"), "JSON5 documents open in the editor");
         assertTrue(openable.contains(".html"), "HTML documents open in the editor (Preview)");
         assertEquals(openable.size(), openable.stream().distinct().count(), "no duplicates");
         assertEquals(EditorFileType.OTHER, EditorFileType.fromFileName("a.png"));
         assertFalse(openable.contains(".png"), "unknown types stay excluded");
+    }
+
+    @Test
+    void openableGlobsMirrorOpenableExtensions() {
+        var globs = EditorFileType.openableGlobs();
+        assertEquals(EditorFileType.openableExtensions().size(), globs.size());
+        assertTrue(globs.contains("*.xml"));
+        assertTrue(globs.contains("*.jsonc"));
+        assertTrue(globs.contains("*.html"));
+        assertTrue(globs.stream().allMatch(g -> g.startsWith("*.")), "every glob is '*.<ext>'");
+    }
+
+    @Test
+    void fileChooserFiltersOfferEverySupportedTypePlusAllFiles() {
+        var filters = EditorFileType.fileChooserFilters();
+        assertEquals("All supported files", filters.getFirst().getDescription());
+        assertTrue(filters.getFirst().getExtensions().containsAll(EditorFileType.openableGlobs()),
+                "the first filter accepts every openable type");
+        assertEquals("All files", filters.getLast().getDescription());
+        assertEquals(java.util.List.of("*.*"), filters.getLast().getExtensions());
+        for (EditorFileType t : EditorFileType.values()) {
+            if (t == EditorFileType.OTHER) {
+                continue;
+            }
+            var own = filters.stream().filter(f -> f.getDescription().startsWith(t.label())).findFirst();
+            assertTrue(own.isPresent(), () -> "a filter for " + t.label());
+            for (String ext : t.extensions()) {
+                assertTrue(own.get().getExtensions().contains("*." + ext), () -> t.label() + " filter lists *." + ext);
+            }
+        }
     }
 }

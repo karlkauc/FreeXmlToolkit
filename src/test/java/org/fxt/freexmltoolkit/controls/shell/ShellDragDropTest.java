@@ -35,6 +35,8 @@ class ShellDragDropTest {
         assertTrue(UnifiedShellView.acceptsDrop(List.of(new File("a.xml"))));
         assertTrue(UnifiedShellView.acceptsDrop(List.of(new File("a.xsd"))));
         assertTrue(UnifiedShellView.acceptsDrop(List.of(new File("a.json"))), "JSON files open in the editor");
+        assertTrue(UnifiedShellView.acceptsDrop(List.of(new File("a.jsonc"))), "JSONC files open in the editor");
+        assertTrue(UnifiedShellView.acceptsDrop(List.of(new File("a.json5"))), "JSON5 files open in the editor");
         assertTrue(UnifiedShellView.acceptsDrop(List.of(new File("a.html"))), "HTML files open in Preview");
         assertFalse(UnifiedShellView.acceptsDrop(List.of(new File("a.png"))));
         assertFalse(UnifiedShellView.acceptsDrop(List.of()));

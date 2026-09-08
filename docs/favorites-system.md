@@ -130,7 +130,7 @@ longer exist.
 | Type | Extension |
 |------|-----------|
 | XML documents | .xml |
-| JSON documents (incl. JSON Schemas) | .json (`.jsonc`/`.json5` files are grouped here too, but open as plain text) |
+| JSON documents (incl. JSON Schemas) | .json, .jsonc, .json5 |
 | XSD schemas | .xsd |
 | Schematron rules | .sch |
 | XSLT stylesheets | .xsl, .xslt |

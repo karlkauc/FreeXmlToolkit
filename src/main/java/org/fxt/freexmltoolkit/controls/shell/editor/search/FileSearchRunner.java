@@ -32,10 +32,9 @@ public final class FileSearchRunner {
     /** Per-file match cap so a degenerate query cannot flood the results tree. */
     public static final int MAX_MATCHES_PER_FILE = 1000;
 
-    /** Default file-name globs, mirroring the Explorer workspace tree's extensions. */
-    public static final List<String> DEFAULT_GLOBS = List.of(
-            "*.xml", "*.xsd", "*.xsl", "*.xslt", "*.sch", "*.schematron", "*.json",
-            "*.xq", "*.xquery", "*.xqm", "*.xqy", "*.xpath", "*.xpl", "*.xproc");
+    /** Default file-name globs: every type the editor host can open (same set as the Explorer tree). */
+    public static final List<String> DEFAULT_GLOBS =
+            org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.openableGlobs();
 
     private FileSearchRunner() {
     }

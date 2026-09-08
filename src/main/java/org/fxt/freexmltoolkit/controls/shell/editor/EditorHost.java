@@ -1142,12 +1142,7 @@ public class EditorHost extends BorderPane {
     public void openFileChooser() {
         javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
         chooser.setTitle("Open File");
-        chooser.getExtensionFilters().addAll(
-                new javafx.stage.FileChooser.ExtensionFilter("XML / XSD / XSLT / Schematron / JSON",
-                        "*.xml", "*.xsd", "*.xsl", "*.xslt", "*.sch", "*.schematron", "*.json"),
-                new javafx.stage.FileChooser.ExtensionFilter("XQuery / XPath / XProc",
-                        "*.xq", "*.xquery", "*.xqm", "*.xqy", "*.xpath", "*.xpl", "*.xproc"),
-                new javafx.stage.FileChooser.ExtensionFilter("All files", "*.*"));
+        chooser.getExtensionFilters().addAll(EditorFileType.fileChooserFilters());
         File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
             openFile(file.toPath());

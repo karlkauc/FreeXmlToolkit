@@ -780,12 +780,7 @@ public class ExplorerPanel extends VBox {
     private void openFile() {
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Open File");
-        chooser.getExtensionFilters().addAll(
-                new FileChooser.ExtensionFilter("XML / XSD / XSLT / Schematron / JSON",
-                        "*.xml", "*.xsd", "*.xsl", "*.xslt", "*.sch", "*.schematron", "*.json"),
-                new FileChooser.ExtensionFilter("XQuery / XPath / XProc",
-                        "*.xq", "*.xquery", "*.xqm", "*.xqy", "*.xpath", "*.xpl", "*.xproc"),
-                new FileChooser.ExtensionFilter("All files", "*.*"));
+        chooser.getExtensionFilters().addAll(EditorFileType.fileChooserFilters());
         File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
             editorHost.openFile(file.toPath());
