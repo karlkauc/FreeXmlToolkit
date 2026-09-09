@@ -20,8 +20,12 @@ package org.fxt.freexmltoolkit.controls.jsoneditor.view;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javafx.application.Platform;
 import javafx.geometry.Insets;
@@ -42,6 +46,7 @@ import javafx.scene.paint.Color;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.controls.jsoneditor.editor.JsonEditorContext;
 import org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonArray;
 import org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonDocument;
 import org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonNode;
@@ -52,7 +57,8 @@ import org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonPrimitive;
  * A TreeView-based component for displaying and navigating JSON documents.
  * Provides a hierarchical view of the JSON structure.
  */
-public class JsonTreeView extends VBox implements PropertyChangeListener {
+public class JsonTreeView extends VBox implements PropertyChangeListener,
+        org.fxt.freexmltoolkit.controls.shared.utilities.XmlSearchTarget {
 
     private static final Logger logger = LogManager.getLogger(JsonTreeView.class);
 
@@ -61,6 +67,21 @@ public class JsonTreeView extends VBox implements PropertyChangeListener {
     private final Label statusLabel;
 
     private JsonDocument document;
+
+    /** The shell's shared editor context (model + undo history), or {@code null} when standalone. */
+    private JsonEditorContext context;
+    private final PropertyChangeListener contextListener = evt -> {
+        if ("document".equals(evt.getPropertyName())) {
+            Platform.runLater(() -> setDocument(context != null ? context.getDocument() : null));
+        } else if ("modelChanged".equals(evt.getPropertyName())) {
+            Platform.runLater(this::rebuildPreservingState);
+        }
+    };
+
+    // Shell search-bar state (XmlSearchTarget)
+    private String lastSearchText = "";
+    private List<TreeItem<JsonNode>> searchMatches = new ArrayList<>();
+    private int currentMatchIndex = -1;
     private final Map<String, TreeItem<JsonNode>> nodeIdToTreeItem = new HashMap<>();
 
     // Selection callback
@@ -117,6 +138,54 @@ public class JsonTreeView extends VBox implements PropertyChangeListener {
      *
      * @param document the JSON document to display, or null to clear the view
      */
+    /**
+     * Binds the tree to the shell's shared {@link JsonEditorContext}: the tree shows the
+     * context's document and rebuilds (keeping expansion and selection) whenever a command
+     * is executed, undone or redone on it — no re-parse of the text needed.
+     *
+     * @param ctx the shared context, or {@code null} to show nothing
+     */
+    public void setContext(JsonEditorContext ctx) {
+        if (this.context != null) {
+            this.context.removePropertyChangeListener(contextListener);
+        }
+        this.context = ctx;
+        if (ctx != null) {
+            ctx.addPropertyChangeListener(contextListener);
+            setDocument(ctx.getDocument());
+        } else {
+            setDocument(null);
+        }
+    }
+
+    /** @return the bound shared context, or {@code null} */
+    public JsonEditorContext getContext() {
+        return context;
+    }
+
+    /** Rebuilds the tree items from the (mutated) model, restoring expansion and selection by node id. */
+    public void rebuildPreservingState() {
+        Set<String> expandedIds = new HashSet<>();
+        for (Map.Entry<String, TreeItem<JsonNode>> e : nodeIdToTreeItem.entrySet()) {
+            if (e.getValue().isExpanded()) {
+                expandedIds.add(e.getKey());
+            }
+        }
+        JsonNode selected = getSelectedNode();
+        boolean hadTree = treeView.getRoot() != null;
+        rebuildTree();
+        if (hadTree) {
+            for (Map.Entry<String, TreeItem<JsonNode>> e : nodeIdToTreeItem.entrySet()) {
+                if (!e.getValue().getChildren().isEmpty()) {
+                    e.getValue().setExpanded(expandedIds.contains(e.getKey()));
+                }
+            }
+        }
+        if (selected != null) {
+            selectNode(selected);
+        }
+    }
+
     public void setDocument(JsonDocument document) {
         // Remove old listener
         if (this.document != null) {
@@ -348,6 +417,86 @@ public class JsonTreeView extends VBox implements PropertyChangeListener {
     public void propertyChange(PropertyChangeEvent evt) {
         // Rebuild tree when document changes
         Platform.runLater(this::rebuildTree);
+    }
+
+    // ==================== Search (XmlSearchTarget, shell search bar) ====================
+
+    @Override
+    public boolean find(String searchText, boolean forward) {
+        if (searchText == null || searchText.isEmpty()) {
+            return false;
+        }
+        if (!searchText.equals(lastSearchText)) {
+            rebuildMatches(searchText);
+        }
+        if (searchMatches.isEmpty()) {
+            return false;
+        }
+        if (forward) {
+            currentMatchIndex = (currentMatchIndex + 1) % searchMatches.size();
+        } else {
+            currentMatchIndex = (currentMatchIndex - 1 + searchMatches.size()) % searchMatches.size();
+        }
+        reveal(searchMatches.get(currentMatchIndex));
+        return true;
+    }
+
+    @Override
+    public int findAll(String searchText) {
+        rebuildMatches(searchText);
+        if (!searchMatches.isEmpty()) {
+            currentMatchIndex = 0;
+            reveal(searchMatches.get(0));
+        }
+        return searchMatches.size();
+    }
+
+    @Override
+    public void clearSearch() {
+        lastSearchText = "";
+        searchMatches = new ArrayList<>();
+        currentMatchIndex = -1;
+    }
+
+    private void rebuildMatches(String searchText) {
+        lastSearchText = searchText == null ? "" : searchText;
+        searchMatches = new ArrayList<>();
+        currentMatchIndex = -1;
+        if (lastSearchText.isEmpty()) {
+            return;
+        }
+        collectMatches(treeView.getRoot(), lastSearchText.toLowerCase(), searchMatches);
+    }
+
+    private static void collectMatches(TreeItem<JsonNode> item, String query, List<TreeItem<JsonNode>> out) {
+        if (item == null) {
+            return;
+        }
+        JsonNode node = item.getValue();
+        if (node != null && matches(node, query)) {
+            out.add(item);
+        }
+        for (TreeItem<JsonNode> child : item.getChildren()) {
+            collectMatches(child, query, out);
+        }
+    }
+
+    private static boolean matches(JsonNode node, String query) {
+        if (node.getKey() != null && node.getKey().toLowerCase().contains(query)) {
+            return true;
+        }
+        return node instanceof JsonPrimitive primitive
+                && primitive.getValueAsString().toLowerCase().contains(query);
+    }
+
+    private void reveal(TreeItem<JsonNode> match) {
+        TreeItem<JsonNode> parent = match.getParent();
+        while (parent != null) {
+            parent.setExpanded(true);
+            parent = parent.getParent();
+        }
+        treeView.getSelectionModel().select(match);
+        treeView.scrollTo(treeView.getRow(match));
     }
 
     // ==================== Tree Cell ====================

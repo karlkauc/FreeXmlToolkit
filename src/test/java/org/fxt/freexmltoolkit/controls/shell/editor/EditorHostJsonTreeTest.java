@@ -17,8 +17,8 @@ import org.testfx.framework.junit5.Start;
 import org.testfx.util.WaitForAsyncUtils;
 
 /**
- * Verifies a JSON document gains a Tree view mode (but not Graphic) in the
- * shell, reusing the existing JSON tree component.
+ * Verifies a JSON document gains Tree and Graphic view modes in the shell; the Tree
+ * reuses the existing JSON tree component bound to the shared JSON context.
  */
 @ExtendWith(ApplicationExtension.class)
 class EditorHostJsonTreeTest {
@@ -33,10 +33,10 @@ class EditorHostJsonTreeTest {
     }
 
     @Test
-    void jsonDocumentSupportsTreeButNotGraphic(@TempDir Path tmp) throws Exception {
+    void jsonDocumentSupportsTreeAndGraphic(@TempDir Path tmp) throws Exception {
         openJson(tmp);
         assertTrue(host.activeSupportsView(ViewMode.TREE), "JSON must support the Tree view");
-        assertFalse(host.activeSupportsView(ViewMode.GRAPHIC), "JSON must not offer the Graphic view");
+        assertTrue(host.activeSupportsView(ViewMode.GRAPHIC), "JSON must offer the Graphic (grid) view");
     }
 
     @Test

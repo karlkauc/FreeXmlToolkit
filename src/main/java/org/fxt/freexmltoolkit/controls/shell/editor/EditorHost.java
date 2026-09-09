@@ -1591,13 +1591,22 @@ public class EditorHost extends BorderPane {
         return saved;
     }
 
-    /** Undo: command stack in structured (Tree/Graphic) mode, editor undo in Text mode. */
+    /**
+     * Undo: the model command stack in structured (Tree/Graphic) mode — XSD, XML instance
+     * or JSON, whichever is active and has history — editor undo otherwise.
+     */
     public void undoActive() {
         if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et
                 && et.viewMode.isStructured() && et.editorContext != null) {
             if (et.undoStructured()) {
                 refreshSelectedNode();
             }
+        } else if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et
+                && et.viewMode.isStructured() && et.jsonEditorContext != null && et.jsonEditorContext.canUndo()) {
+            undoJson();
+        } else if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et
+                && et.viewMode.isStructured() && et.xmlEditorContext != null && et.xmlEditorContext.canUndo()) {
+            undoXml();
         } else {
             withActive(et -> et.view.undo());
         }
@@ -1609,6 +1618,12 @@ public class EditorHost extends BorderPane {
             if (et.redoStructured()) {
                 refreshSelectedNode();
             }
+        } else if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et
+                && et.viewMode.isStructured() && et.jsonEditorContext != null && et.jsonEditorContext.canRedo()) {
+            redoJson();
+        } else if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et
+                && et.viewMode.isStructured() && et.xmlEditorContext != null && et.xmlEditorContext.canRedo()) {
+            redoXml();
         } else {
             withActive(et -> et.view.redo());
         }
@@ -1948,6 +1963,113 @@ public class EditorHost extends BorderPane {
         return false;
     }
 
+    /** Undoes the last JSON edit on the shared context and round-trips to text. */
+    public boolean undoJson() {
+        if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et && et.undoJson()) {
+            activeJsonNode.set(null);
+            refreshSelectedNode();
+            rebuildActiveJsonGrid();
+            return true;
+        }
+        return false;
+    }
+
+    /** Redoes the last undone JSON edit on the shared context and round-trips to text. */
+    public boolean redoJson() {
+        if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et && et.redoJson()) {
+            activeJsonNode.set(null);
+            refreshSelectedNode();
+            rebuildActiveJsonGrid();
+            return true;
+        }
+        return false;
+    }
+
+    /** Rebuilds the JSON grid rows from the shared model (the tree listens to the context itself). */
+    private void rebuildActiveJsonGrid() {
+        if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et
+                && et.viewMode == ViewMode.GRAPHIC && et.jsonGridView != null) {
+            et.jsonGridView.rebuild();
+        }
+    }
+
+    /** Runs a command on the selected JSON node via the JSON command stack + round-trip. */
+    private boolean editActiveJson(
+            java.util.function.Function<org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonNode,
+                    org.fxt.freexmltoolkit.controls.jsoneditor.commands.JsonCommand> factory) {
+        if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et
+                && et.currentJsonSelection != null) {
+            var command = factory.apply(et.currentJsonSelection);
+            if (command == null || !et.editJson(command)) {
+                return false;
+            }
+            // Same node object edited in place: force the inspector to re-read it.
+            activeJsonNode.set(null);
+            refreshSelectedNode();
+            rebuildActiveJsonGrid();
+            return true;
+        }
+        return false;
+    }
+
+    /** Renames the selected JSON object property (Inspector); rejects blank/duplicate keys. */
+    public boolean renameActiveJsonKey(String newKey) {
+        String key = newKey == null ? "" : newKey.trim();
+        if (key.isEmpty()) {
+            return false;
+        }
+        return editActiveJson(node -> node.getParent() instanceof org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonObject
+                && !key.equals(node.getKey())
+                ? new org.fxt.freexmltoolkit.controls.jsoneditor.commands.RenameKeyCommand(node, key) : null);
+    }
+
+    /**
+     * Sets the selected JSON primitive's value from text, keeping its type (numbers and
+     * booleans are parsed; unparsable text is rejected).
+     */
+    public boolean setActiveJsonValue(String text) {
+        return editActiveJson(node -> {
+            if (!(node instanceof org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonPrimitive primitive)) {
+                return null;
+            }
+            Object value;
+            try {
+                value = org.fxt.freexmltoolkit.controls.jsoneditor.grid.JsonValueParser.parse(text, primitive.getNodeType());
+            } catch (IllegalArgumentException e) {
+                return null;
+            }
+            if (java.util.Objects.equals(value, primitive.getValue())) {
+                return null;
+            }
+            return new org.fxt.freexmltoolkit.controls.jsoneditor.commands.SetPrimitiveValueCommand(primitive, value);
+        });
+    }
+
+    /** Changes the selected JSON value's type (Inspector): primitive conversions or a fresh empty node. */
+    public boolean changeActiveJsonType(org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonNodeType type) {
+        return editActiveJson(node -> {
+            if (type == null || node.getNodeType() == type
+                    || node.getParent() == null
+                    || node.getParent() instanceof org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonDocument) {
+                return null;
+            }
+            boolean primitiveTarget = type != org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonNodeType.OBJECT
+                    && type != org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonNodeType.ARRAY;
+            if (node instanceof org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonPrimitive primitive && primitiveTarget) {
+                return new org.fxt.freexmltoolkit.controls.jsoneditor.commands.ChangeValueTypeCommand(primitive, type);
+            }
+            org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonNode replacement = switch (type) {
+                case NUMBER -> new org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonPrimitive(java.math.BigInteger.ZERO);
+                case BOOLEAN -> new org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonPrimitive(Boolean.FALSE);
+                case NULL -> org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonPrimitive.nullValue();
+                case OBJECT -> new org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonObject();
+                case ARRAY -> new org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonArray();
+                default -> new org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonPrimitive("");
+            };
+            return new org.fxt.freexmltoolkit.controls.jsoneditor.commands.ReplaceNodeCommand(node, replacement);
+        });
+    }
+
     /** Rebuilds the XML Tree from the shared model (undo/redo may have changed structure). */
     private void rebuildActiveXmlTree() {
         if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et
@@ -2100,11 +2222,13 @@ public class EditorHost extends BorderPane {
             return null;
         }
         boolean xsd = et.document.getFileType() == EditorFileType.XSD;
+        boolean json = et.document.getFileType() == EditorFileType.JSON;
         return switch (et.viewMode) {
             // Preview has no structured search target; Ctrl+F binds the (hidden) code area.
             case TEXT, PREVIEW -> null;
-            case TREE -> xsd ? et.treeView : null;
+            case TREE -> xsd ? et.treeView : (json ? et.jsonTreeView : null);
             case GRAPHIC -> xsd ? et.xsdGraphView
+                    : json ? (et.jsonGridView != null ? et.jsonGridView.getSearchTarget() : null)
                     : (et.xmlGridView != null ? et.xmlGridView.getSearchTarget() : null);
         };
     }
@@ -3230,6 +3354,7 @@ public class EditorHost extends BorderPane {
         private org.fxt.freexmltoolkit.controls.jsoneditor.view.JsonTreeView jsonTreeView;
         private org.fxt.freexmltoolkit.controls.shell.schema.XmlInstanceTreeView xmlInstanceTreeView;
         private XmlGridView xmlGridView;
+        private JsonGridView jsonGridView;
         /** The read-only HTML Preview (a WebView, or a text fallback without javafx.scene.web). */
         private javafx.scene.Node htmlPreviewNode;
         private java.util.function.Consumer<String> htmlPreviewUpdater;
@@ -3247,6 +3372,12 @@ public class EditorHost extends BorderPane {
         private org.fxt.freexmltoolkit.controls.v2.xmleditor.editor.XmlEditorContext xmlEditorContext;
         /** Editor text {@link #xmlEditorContext} was parsed from (avoid needless re-parse; detect external edits). */
         private String lastParsedXmlText;
+        /** Shared JSON model+command context across Text/Tree/Grid (mirrors {@link #xmlEditorContext}). */
+        private org.fxt.freexmltoolkit.controls.jsoneditor.editor.JsonEditorContext jsonEditorContext;
+        /** Editor text {@link #jsonEditorContext} was parsed from. */
+        private String lastParsedJsonText;
+        /** Parser message of the last failed JSON parse (shown by the grid placeholder). */
+        private String lastJsonParseError;
         /** Coalesces bursts of model-change events into a single round-trip (P1). */
         private final javafx.animation.PauseTransition roundTripDebounce =
                 new javafx.animation.PauseTransition(javafx.util.Duration.millis(150));
@@ -3353,7 +3484,7 @@ public class EditorHost extends BorderPane {
                     default -> true;
                 };
                 case GRAPHIC -> switch (document.getFileType()) {
-                    case XSD, XML, XSLT, SCHEMATRON -> true;
+                    case XSD, XML, XSLT, SCHEMATRON, JSON -> true;
                     default -> false;
                 };
             };
@@ -3379,6 +3510,27 @@ public class EditorHost extends BorderPane {
                 showOnly(htmlPreviewNode);
                 return;
             }
+            // JSON: Tree and Graphic share ONE JsonEditorContext (model + undo history),
+            // exactly like the XML instance views below.
+            if (document.getFileType() == EditorFileType.JSON) {
+                ensureJsonModelParsed();
+                if (target == ViewMode.GRAPHIC) {
+                    ensureJsonGrid();
+                    if (jsonEditorContext != null) {
+                        jsonGridView.setContext(jsonEditorContext);
+                    } else if (lastJsonParseError != null) {
+                        jsonGridView.showParseError(lastJsonParseError);
+                    } else {
+                        jsonGridView.setContext(null);
+                    }
+                    showOnly(jsonGridView);
+                } else {
+                    ensureJsonTree();
+                    jsonTreeView.setContext(jsonEditorContext);
+                    showOnly(jsonTreeView);
+                }
+                return;
+            }
             // For XML-family instances, Graphic is the editable XMLSpy-style grid
             // over the shared context (the XSD diagram below covers schemas).
             if (target == ViewMode.GRAPHIC && document.getFileType() != EditorFileType.XSD) {
@@ -3386,13 +3538,6 @@ public class EditorHost extends BorderPane {
                 ensureXmlModelParsed();
                 xmlGridView.setContext(xmlEditorContext);
                 showOnly(xmlGridView);
-                return;
-            }
-            // JSON offers a read-only Tree view (no XSD model / commands).
-            if (document.getFileType() == EditorFileType.JSON) {
-                ensureJsonTree();
-                renderJsonTree();
-                showOnly(jsonTreeView);
                 return;
             }
             // XML instances (incl. XSLT/Schematron) get a selectable Tree over the shared model.
@@ -3506,6 +3651,53 @@ public class EditorHost extends BorderPane {
             }
             view.replaceTextRegion(region[0], region[1], xml.substring(region[0], region[2]));
             lastParsedXmlText = view.getText();
+            document.setDirty(true);
+        }
+
+        /** JSON counterpart of {@link #ensureXmlModelParsed()}: re-parses only when the text changed. */
+        private void ensureJsonModelParsed() {
+            if (jsonEditorContext == null || !java.util.Objects.equals(view.getText(), lastParsedJsonText)) {
+                parseJsonModel();
+            }
+        }
+
+        private void parseJsonModel() {
+            String text = view.getText();
+            lastJsonParseError = null;
+            if (text == null || text.isBlank()) {
+                jsonEditorContext = null;
+                lastParsedJsonText = null;
+                return;
+            }
+            try {
+                var ctx = new org.fxt.freexmltoolkit.controls.jsoneditor.editor.JsonEditorContext();
+                ctx.loadDocumentFromString(text);
+                jsonEditorContext = ctx;
+                lastParsedJsonText = text;
+            } catch (Exception e) {
+                // Invalid JSON while typing is expected; the views show a placeholder.
+                org.apache.logging.log4j.LogManager.getLogger(EditorHost.class)
+                        .debug("JSON structured views: could not parse current text", e);
+                jsonEditorContext = null;
+                lastParsedJsonText = null;
+                lastJsonParseError = e.getMessage();
+            }
+        }
+
+        /** Serializes the shared JSON model back into the editor text via a minimal diff (caret/scroll preserved). */
+        private void roundTripJsonModelToText() {
+            if (jsonEditorContext == null) {
+                return;
+            }
+            String json = jsonEditorContext.serializeToString();
+            String current = view.getText();
+            int[] region = TextDiff.minimalReplaceRegion(current, json);
+            if (region[0] == region[1] && region[0] == region[2]) {
+                lastParsedJsonText = current; // already in sync
+                return;
+            }
+            view.replaceTextRegion(region[0], region[1], json.substring(region[0], region[2]));
+            lastParsedJsonText = view.getText();
             document.setDirty(true);
         }
 
@@ -4139,6 +4331,39 @@ public class EditorHost extends BorderPane {
             return false;
         }
 
+        /** Undo on the shared JSON context; round-trips the reverted model to text. */
+        boolean undoJson() {
+            if (jsonEditorContext != null && jsonEditorContext.undo()) {
+                currentJsonSelection = null;
+                roundTripJsonModelToText();
+                return true;
+            }
+            return false;
+        }
+
+        /** Redo on the shared JSON context; round-trips the re-applied model to text. */
+        boolean redoJson() {
+            if (jsonEditorContext != null && jsonEditorContext.redo()) {
+                currentJsonSelection = null;
+                roundTripJsonModelToText();
+                return true;
+            }
+            return false;
+        }
+
+        /** Executes a JSON command on the shared context and round-trips to text. */
+        boolean editJson(org.fxt.freexmltoolkit.controls.jsoneditor.commands.JsonCommand command) {
+            if (command == null) {
+                return false;
+            }
+            ensureJsonModelParsed();
+            if (jsonEditorContext == null || !jsonEditorContext.executeCommand(command)) {
+                return false;
+            }
+            roundTripJsonModelToText();
+            return true;
+        }
+
         boolean redoStructured() {
             if (editorContext != null && editorContext.getCommandManager().redo()) {
                 applyModelChange();
@@ -4403,6 +4628,19 @@ public class EditorHost extends BorderPane {
             }
         }
 
+        private void ensureJsonGrid() {
+            if (jsonGridView == null) {
+                jsonGridView = new JsonGridView();
+                // Grid edits mutate the shared context directly; round-trip it via a minimal diff.
+                jsonGridView.setOnModified(json -> roundTripJsonModelToText());
+                jsonGridView.setOnSelectionChanged(node -> {
+                    currentJsonSelection = node;
+                    selectionCallback.run();
+                });
+                contentStack.getChildren().add(jsonGridView);
+            }
+        }
+
         /** Executes an XML-instance command on the shared context and round-trips to text. */
         boolean editXml(org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.XmlCommand command) {
             if (command == null) {
@@ -4461,20 +4699,6 @@ public class EditorHost extends BorderPane {
                 });
                 xmlInstanceTreeView.setOnGoToDefinition(goToDefinitionCallback);
                 contentStack.getChildren().add(xmlInstanceTreeView);
-            }
-        }
-
-        /** Parses the current JSON text into the tree; an invalid document shows an empty tree. */
-        private void renderJsonTree() {
-            try {
-                jsonTreeView.setDocument(
-                        org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonNodeFactory.parse(view.getText()));
-            } catch (Exception e) {
-                // Invalid JSON while typing is expected; show an empty tree but leave a
-                // trace so a genuine parser problem is not silently swallowed.
-                org.apache.logging.log4j.LogManager.getLogger(EditorHost.class)
-                        .debug("JSON tree view: could not parse current text, showing empty tree", e);
-                jsonTreeView.setDocument(new org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonDocument());
             }
         }
 

@@ -18,13 +18,16 @@ FreeXmlToolkit includes a full-featured JSON Editor that supports:
 - **JSON5 syntax** - trailing commas, unquoted keys, single-quoted strings, and comments
 
 > **File extensions:** `.json`, `.jsonc` and `.json5` all open in the JSON editor
-> (tree view, JSONPath, schema binding). The flavor is detected from the *content*, not
+> (tree view, grid view, JSONPath, schema binding). The flavor is detected from the *content*, not
 > from the extension - a `.json` file with comments is treated as JSONC just like a
 > `.jsonc` file. Only `.json` is offered for operating-system file associations
 > (`.jsonc`/`.json5` have no MIME type in the shared databases).
 
 ![JSON in the Unified Shell](img/unified-shell-json-tree.png)
 ***JSON editing (text + tree view) in the Unified Shell***
+
+![JSON in the grid view](img/unified-shell-json-grid.png)
+***The same document in the Graphic (grid) view - the XMLSpy-style grid the shell also uses for XML***
 
 ## Features
 
@@ -50,6 +53,26 @@ The tree view provides a hierarchical view of your JSON structure:
 | **Search** | Search for keys or values within the tree |
 | **Sync with Editor** | Synchronize selection between tree and text |
 | **Type Icons** | Visual icons for objects, arrays, strings, numbers, booleans, and null |
+
+The tree shares the document model with the grid view and the Properties inspector, so an
+edit made there shows up in the tree immediately, and Ctrl+F searches keys and values.
+
+### Grid View
+
+The **Graphic** view mode shows the document as the editable XMLSpy-style **grid** - the
+very same grid the shell uses for XML files, so it is instantly familiar:
+
+| Feature | Description |
+|---------|-------------|
+| **Rows** | The root `$`, object properties (`key = value`) and array items (`[0]`, `[1]`, …); objects and arrays collapse/expand |
+| **Type glyphs** | `{}` object, `[]` array, `"` string, `#` number, `T`/`F` boolean, `∅` null - each in its own colour; strings are shown quoted |
+| **Arrays of objects** | Rendered as embedded tables (one column per key); click a column header to sort, expand nested objects inline |
+| **Inline editing** | Double-click a value; the type is kept (numbers must stay numbers, booleans toggle, `null` stays `null` unless you type text). Double-click a key to rename it |
+| **Context menu** | Add Property / Array Item / Sibling, Rename Key (F2), Duplicate (Ctrl+D), Copy/Cut/Paste, Copy Cell Content, Copy JSONPath (Ctrl+Shift+X), Copy Node (JSON), Change Type, Move Up/Down (Alt+↑/↓), Sort Column, Delete |
+| **Undo/Redo** | Every grid edit is one undo step (Ctrl+Z / Ctrl+Y) and is written back into the text |
+| **Search** | Ctrl+F finds keys and values, revealing matches inside collapsed nodes |
+
+See [Unified Shell - The Grid for JSON](unified-shell.md#json-grid) for details.
 
 ### Hover Information
 
@@ -147,6 +170,12 @@ strip comments and trailing commas before parsing).
 }
 ```
 
+!!! warning "Grid edits rewrite JSONC / JSON5 as standard JSON"
+    Comments, unquoted keys, single quotes and trailing commas are not part of the document
+    model behind the tree and grid views. Editing in the **grid** (or through the Properties
+    inspector) therefore rewrites the file as standard JSON on the first edit - the grid warns
+    you once when it opens such a file. Edit in the **Text** view to keep them.
+
 ### JSONC syntax (JSON with Comments)
 ```jsonc
 {
@@ -189,7 +218,8 @@ With a JSON file active, the relevant actions are:
 | **Validate** | Check the JSON syntax (F8) |
 
 Actions that do not apply to JSON (e.g. **Run** or the XSLT transform) are greyed out. The
-**Tree** view is switched with the Text/Tree view switch at the right end of the toolbar.
+**Tree** and **Graphic** (grid) views are switched with the Text/Tree/Graphic view switch at
+the right end of the toolbar.
 
 ## Tree View Icons
 
@@ -205,7 +235,8 @@ Actions that do not apply to JSON (e.g. **Run** or the XSLT transform) are greye
 
 ## Tips and Best Practices
 
-1. **Use the Tree View** for navigating large JSON documents
+1. **Use the Tree View** for navigating large JSON documents, and the **Grid View** to edit
+   arrays of objects like a table
 2. **Enable Auto-Format** after pasting JSON from external sources
 3. **Use JSONPath** to quickly extract specific data
 4. **Validate against Schema** to ensure data quality

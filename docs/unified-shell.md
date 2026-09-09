@@ -124,7 +124,7 @@ Every document tab offers the same view modes:
 |------|---------------|
 | **Text** | Source code editing with syntax highlighting |
 | **Tree** | The document as a hierarchical tree |
-| **Graphic** | A visual editor that depends on the document type: for **XML**, **XSLT**, and **Schematron** files it shows the editable XMLSpy-style **grid**; for **XSD** files it shows the **schema diagram** |
+| **Graphic** | A visual editor that depends on the document type: for **XML**, **XSLT**, **Schematron** and **JSON** files it shows the editable XMLSpy-style **grid**; for **XSD** files it shows the **schema diagram** |
 | **Preview** | *(HTML documents only.)* The page rendered read-only in an embedded web view - see [HTML Preview](#html-preview) |
 
 All views share one in-memory model per document, so edits and Undo/Redo history are preserved
@@ -152,6 +152,42 @@ shows the editable grid:
   **Copy Cell Content** (**Ctrl+Shift+C**) and **Copy Node (XML)** (**Ctrl+Alt+C**). Note that
   **inside the grid Ctrl+Shift+X is Copy XPath**, so the shell-level Query Console toggle
   needs the terminal-icon toolbar button while the grid has focus.
+
+### The Grid (Graphic view for JSON) {#json-grid}
+
+JSON documents (`.json`, `.jsonc`, `.json5`) get the **same grid** in the **Graphic** view -
+same header strip, same rows, same keyboard shortcuts and context menu - so a JSON file
+looks and feels exactly like an XML file in the grid:
+
+![A JSON document in the Graphic (grid) view](img/unified-shell-json-grid.png)
+
+- The **root** value is the `$` row; **object properties** and **array items** (`[0]`, `[1]`, …)
+  are the rows beneath it. Objects and arrays are collapsible containers showing their child
+  count; scalar properties show as `key = value` rows.
+- Every row carries a **type glyph** in its own colour: `{}` object, `[]` array, `"` string,
+  `#` number, `T`/`F` boolean and `∅` null. **Strings are shown quoted** (`= "Alice"`) - like
+  XML leaf values - so `"42"` and `42` are never confused.
+- **Arrays of objects** are rendered as **embedded grids** (a table with one column per key,
+  merged across all items), exactly like repeating elements in XML. Column headers **sort**
+  the array (numbers, dates and strings are recognised), nested objects expand inline.
+- **Inline editing** keeps the value's type: double-click a number and type a number
+  (anything else is rejected with a hint and the editor stays open), booleans toggle between
+  `true`/`false`, `null` stays `null` unless you type text. Double-click a key to rename it
+  (duplicate keys are refused).
+- The context menu mirrors the XML one: **Add** (Property / Array Item / Sibling Before /
+  After), **Rename Key** (F2), **Duplicate** (Ctrl+D), **Copy / Cut / Paste as Sibling /
+  Paste as Child**, **Copy Cell Content**, **Copy JSONPath** (Ctrl+Shift+X - e.g.
+  `$.items[1].name`), **Copy Node (JSON)**, **Change Type** (String / Number / Boolean /
+  Null / Object / Array), **Move Up / Down** (Alt+↑/↓), **Sort Column** and **Delete**.
+- All edits go through the document's **undo history** (Ctrl+Z / Ctrl+Y) and are written back
+  into the text - the Text, Tree and Graphic views share one model, and the **Properties**
+  inspector edits keys and values from any of them.
+
+!!! warning "Comments and JSON5 syntax are not preserved"
+    The grid edits the parsed *model*. Comments (JSONC) and JSON5 syntax (unquoted keys,
+    single quotes, trailing commas) are not part of it, so the **first grid edit rewrites the
+    file as standard JSON**. The grid shows a warning the first time it opens such a file;
+    if you need to keep the comments, edit in the Text view instead.
 
 ### HTML Preview (Preview view for HTML) {#html-preview}
 
@@ -193,7 +229,7 @@ would show it:
 | **XQuery** | .xq, .xquery, .xqm, .xqy | Query editor with highlighting + IntelliSense, Run Query against a selectable target - see [Query Documents](#query-documents-the-target-selector) |
 | **XPath** | .xpath | Single-expression query editor, Run Query against a selectable target - see [Query Documents](#query-documents-the-target-selector) |
 | **Schematron** | .sch, .schematron | Code editor + Visual Builder + Tester + Documentation Generator |
-| **JSON** | .json, .jsonc, .json5 | Text + tree view, JSONPath queries, JSON Schema validation. The JSON/JSONC/JSON5 flavor is detected from the content, so comments and trailing commas are accepted in any of the three. |
+| **JSON** | .json, .jsonc, .json5 | Text + tree + editable **grid** view (see [The Grid for JSON](#json-grid)), JSONPath queries, JSON Schema validation. The JSON/JSONC/JSON5 flavor is detected from the content, so comments and trailing commas are accepted in any of the three. |
 | **HTML** | .html, .htm, .xhtml | Rendered read-only **Preview** (the default view) + Text editing; also the format of HTML/XHTML transform results opened as editor tabs - see [HTML Preview](#html-preview) |
 
 ## Toolbar
@@ -1398,7 +1434,7 @@ The status bar at the bottom of the window includes (left to right):
     **Format Document moved to Shift+Alt+F** - the toolbar's **Format** button works
     unchanged. The in-editor find/replace stays on **Ctrl+F / Ctrl+H**.
 
-> **Search in all view modes:** Pressing **Ctrl+F** opens an inline search bar with up/down chevron arrows for Find Previous / Find Next (Enter / Shift+Enter work too). The search works in the **Text**, **Tree** and **Graphic** views. In the structured views it searches the nodes themselves — for XSD schemas that is element/attribute/type names, documentation and appinfo, type references, fixed/default values, enumeration and facet values, and comments; for XML instances in the Graphic grid it is element names, attribute names, and values. A match hidden inside a collapsed branch is revealed automatically (ancestors expand), selected, and scrolled into view; matches wrap around when you reach the end. Switching the view mode or tab while the bar is open re-targets the search to the active view. **Replace** is available in the Text view only — in Tree/Graphic views the replace toggle is disabled. In an HTML document's **Preview**, Ctrl+F searches the underlying markup text, not the rendered page. See [XML Editor Features](xml-editor-features.md#search-find) for details.
+> **Search in all view modes:** Pressing **Ctrl+F** opens an inline search bar with up/down chevron arrows for Find Previous / Find Next (Enter / Shift+Enter work too). The search works in the **Text**, **Tree** and **Graphic** views. In the structured views it searches the nodes themselves — for XSD schemas that is element/attribute/type names, documentation and appinfo, type references, fixed/default values, enumeration and facet values, and comments; for XML instances in the Graphic grid it is element names, attribute names, and values; for JSON documents (Tree and Graphic) it is keys and values. A match hidden inside a collapsed branch is revealed automatically (ancestors expand), selected, and scrolled into view; matches wrap around when you reach the end. Switching the view mode or tab while the bar is open re-targets the search to the active view. **Replace** is available in the Text view only — in Tree/Graphic views the replace toggle is disabled. In an HTML document's **Preview**, Ctrl+F searches the underlying markup text, not the rendered page. See [XML Editor Features](xml-editor-features.md#search-find) for details.
 
 ## Compare & Merge
 

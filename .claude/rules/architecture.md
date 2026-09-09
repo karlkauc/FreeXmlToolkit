@@ -36,7 +36,9 @@ Legacy per-tool tabs/controllers are gone; `controller/` only keeps `UnifiedShel
 | `ExplorerPanel`, `ValidationPanel`, `TransformPanel`, `FavoritesActivityPanel`, `FopPanel`, `SignaturePanel`, `FundsXmlPanel`, `SchemaLibraryPanel`, `HelpPanel`, `SettingsPanel` | Side-panel content per activity (Settings opens as a main-area tab instead) | `controls/shell/editor/` |
 | `SchemaLibraryService` / `SchemaCatalogParser` | Namespace→schema mappings, catalogs, bundled list; consulted first by all resolvers | `service/`, `service/catalog/` |
 | `EditorWelcomePane` | Welcome/Dashboard (quick actions, stats, tools grid) | `controls/shell/editor/` |
-| `XmlGridView` → `XmlCanvasView` | Instance grid shown in Graphic mode for XML | `controls/shell/editor/`, `controls/v2/xmleditor/view/` |
+| `GridViewShell` → `XmlGridView` / `JsonGridView` | Grid shown in Graphic mode for XML / JSON (shared header + placeholder) | `controls/shell/editor/` |
+| `GridCanvasView<N>` + `GridModelAdapter<N>` | Model-agnostic XMLSpy-style grid canvas (render, scroll, hit-test, inline edit, search); `XmlCanvasView`/`XmlGridAdapter` bind XML, `JsonCanvasView`/`JsonGridAdapter` bind JSON | `controls/v2/xmleditor/view/`, `controls/jsoneditor/grid/` |
+| `JsonEditorContext` + `controls/jsoneditor/commands/` | Shared JSON model + undo stack across Text/Tree/Graphic (JSON counterpart of `XmlEditorContext`) | `controls/jsoneditor/editor/` |
 | `InspectorPanel` | Right-hand Properties panel | `controls/shell/inspector/` |
 | `XsdTreeView`, `TypeLibrary`, `NodeContextMenu`, … | Schema activity views | `controls/shell/schema/` |
 | `*Runner` (ValidationRunner, TransformRunner, FopRunner, …) | Off-thread workhorses for panel actions | `controls/shell/editor/` |

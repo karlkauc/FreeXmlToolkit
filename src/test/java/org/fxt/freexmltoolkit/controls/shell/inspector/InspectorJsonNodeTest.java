@@ -23,8 +23,8 @@ import org.testfx.framework.junit5.Start;
 import org.testfx.util.WaitForAsyncUtils;
 
 /**
- * Item 3 (deferred polish): selecting a JSON node in the Tree populates the inspector with
- * read-only key / kind / value.
+ * Selecting a JSON node in the Tree populates the inspector with key / kind / JSONPath / value;
+ * the key and the scalar value are editable and commit through the shared JSON context.
  */
 @ExtendWith(ApplicationExtension.class)
 class InspectorJsonNodeTest {
@@ -72,5 +72,51 @@ class InspectorJsonNodeTest {
         assertEquals("Alice", inspector.getJsonValueText());
         assertTrue(inspector.getKindText().toUpperCase().contains("STRING"),
                 "kind must reflect the JSON node type, was: " + inspector.getKindText());
+    }
+
+    @Test
+    void editingValueAndKeyCommitsThroughTheSharedContext(@TempDir Path tmp) throws Exception {
+        Path json = tmp.resolve("data.json");
+        Files.writeString(json, "{\n  \"name\": \"Alice\",\n  \"age\": 30,\n  \"items\": [1, 2]\n}\n");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(json));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("Alice")).orElse(false));
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.setActiveViewMode(ViewMode.TREE);
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        JsonTreeView tree = WaitForAsyncUtils.waitForAsyncFx(2000, () -> (JsonTreeView) host.lookupAll("*").stream()
+                .filter(n -> n instanceof JsonTreeView).findFirst().orElseThrow());
+        var document = tree.getDocument();
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            tree.selectNode(((JsonObject) tree.getDocument().getRootValue()).getProperty("age"));
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS, () -> "age".equals(inspector.getNodeNameText()));
+
+        // Value edit keeps the number type and round-trips into the text
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            inspector.setJsonValueTextForTest("31");
+            inspector.commitValueTextForTest();
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS, () -> host.getActiveText().orElse("").contains("\"age\": 31"));
+        assertSame(document, tree.getDocument(), "the tree keeps the shared document (no re-parse)");
+
+        // Key rename
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            inspector.setNodeNameTextForTest("years");
+            inspector.commitNameForTest();
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS, () -> host.getActiveText().orElse("").contains("\"years\": 31"));
+
+        // Array items show their index path
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            tree.selectNode(((JsonObject) tree.getDocument().getRootValue()).getProperty("items").getChild(1));
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS, () -> "$.items[1]".equals(inspector.getXPathText()));
     }
 }

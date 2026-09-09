@@ -2,16 +2,6 @@ package org.fxt.freexmltoolkit.controls.shell.editor;
 
 import java.util.function.Consumer;
 
-import javafx.geometry.Pos;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
-
-import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.shared.utilities.XmlSearchTarget;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.editor.XmlEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode;
@@ -19,13 +9,13 @@ import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.XmlCanvasView;
 
 /**
  * The XML instance Grid view for the unified shell: an XMLSpy-style editable grid
- * over an XML document, backed by the existing Canvas-based {@link XmlCanvasView}.
+ * over an XML document, backed by the Canvas-based {@link XmlCanvasView}.
  *
  * <p>Acts as the toast container for the canvas and round-trips edits back to the
  * owning editor via {@link #setOnModified(Consumer)} (the same mechanism the
  * retired legacy {@code XmlEditor} used for its graphic view).</p>
  */
-public class XmlGridView extends StackPane {
+public class XmlGridView extends GridViewShell {
 
     private Consumer<String> onModified;
     private Consumer<XmlNode> onSelectionChanged;
@@ -33,8 +23,12 @@ public class XmlGridView extends StackPane {
     private XmlCanvasView canvasView;
 
     public XmlGridView() {
-        getStyleClass().add("fxt-xml-grid");
-        setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+        super();
+    }
+
+    @Override
+    protected String subtitle() {
+        return "· nested · repeating elements as embedded grids";
     }
 
     /** @return the current grid's editor context (model + command stack), or {@code null}. */
@@ -70,21 +64,18 @@ public class XmlGridView extends StackPane {
      */
     public void setXml(String xml) {
         if (xml == null || xml.isBlank()) {
-            getChildren().clear();
             context = null;
             canvasView = null;
-            getChildren().add(placeholder("No XML content to display."));
+            showPlaceholder("No XML content to display.");
             return;
         }
         XmlEditorContext ctx = new XmlEditorContext();
         try {
             ctx.loadDocumentFromString(xml);
         } catch (Exception e) {
-            getChildren().clear();
             context = null;
             canvasView = null;
-            getChildren().add(placeholder("Cannot display grid:\n\n"
-                    + e.getMessage() + "\n\nFix the XML errors first."));
+            showPlaceholder("Cannot display grid:\n\n" + e.getMessage() + "\n\nFix the XML errors first.");
             return;
         }
         setContext(ctx);
@@ -99,16 +90,14 @@ public class XmlGridView extends StackPane {
      * @param ctx the shared context to render (may be {@code null})
      */
     public void setContext(XmlEditorContext ctx) {
-        if (ctx == this.context && !getChildren().isEmpty()
-                && getChildren().get(0) instanceof VBox box
-                && box.getChildren().stream().anyMatch(n -> n instanceof XmlCanvasView)) {
+        if (ctx == this.context && showsCanvas(XmlCanvasView.class)) {
             return; // already showing this context
         }
         getChildren().clear();
         this.context = ctx;
         this.canvasView = null;
         if (ctx == null || ctx.getDocument() == null) {
-            getChildren().add(placeholder("No XML content to display."));
+            showPlaceholder("No XML content to display.");
             return;
         }
         ctx.getSelectionModel().addPropertyChangeListener("selectedNode", evt -> {
@@ -118,51 +107,11 @@ public class XmlGridView extends StackPane {
         });
         XmlCanvasView view = new XmlCanvasView(ctx);
         this.canvasView = view;
-        view.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-        view.setToastContainer(this);
         view.setOnDocumentModified(modified -> {
             if (modified != null && onModified != null) {
                 onModified.accept(modified);
             }
         });
-        VBox.setVgrow(view, Priority.ALWAYS);
-        getChildren().add(new VBox(buildHeader(view), view));
-        // Arrow-key navigation should work right away, without a mouse click first.
-        javafx.application.Platform.runLater(view::focusCanvas);
-    }
-
-    /** The mockup's grid header: table icon · "Grid view" · subtitle ·…· Collapse all. */
-    private HBox buildHeader(XmlCanvasView view) {
-        Label title = new Label("Grid view", icon("bi-table", 15));
-        title.getStyleClass().add("fxt-grid-title");
-        Label subtitle = new Label("· nested · repeating elements as embedded grids");
-        subtitle.getStyleClass().add("fxt-grid-subtitle");
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-        Button collapseAll = new Button("Collapse all", icon("bi-arrows-collapse", 13));
-        collapseAll.setId("grid-collapse-all");
-        collapseAll.getStyleClass().add("fxt-tool-button");
-        collapseAll.setOnAction(e -> view.collapseAll());
-        HBox header = new HBox(8, title, subtitle, spacer, collapseAll);
-        header.getStyleClass().add("fxt-grid-header");
-        header.setAlignment(Pos.CENTER_LEFT);
-        return header;
-    }
-
-    private static IconifyIcon icon(String literal, int size) {
-        IconifyIcon icon = new IconifyIcon(literal);
-        icon.setIconSize(size);
-        return icon;
-    }
-
-    private VBox placeholder(String message) {
-        Label label = new Label(message);
-        label.getStyleClass().add("fxt-empty-state-text");
-        label.setWrapText(true);
-        VBox box = new VBox(label);
-        box.getStyleClass().add("fxt-empty-state");
-        box.setFillWidth(true);
-        VBox.setVgrow(label, Priority.NEVER);
-        return box;
+        installCanvas(view);
     }
 }

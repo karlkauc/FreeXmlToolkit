@@ -25,6 +25,7 @@ class SemanticColorGuardTest {
     private static final List<String> MIGRATED_FILES = List.of(
             "src/main/java/org/fxt/freexmltoolkit/controls/v2/editor/menu/XsdContextMenuFactory.java",
             "src/main/java/org/fxt/freexmltoolkit/controls/v2/xmleditor/view/XmlGridContextMenu.java",
+            "src/main/java/org/fxt/freexmltoolkit/controls/jsoneditor/grid/JsonGridContextMenu.java",
             "src/main/java/org/fxt/freexmltoolkit/controls/shared/utilities/XmlContextMenuManager.java",
             "src/main/java/org/fxt/freexmltoolkit/controls/jsoneditor/editor/JsonContextMenuManager.java",
             "src/main/java/org/fxt/freexmltoolkit/util/ContextMenuFactory.java",

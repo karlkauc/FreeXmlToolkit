@@ -200,7 +200,23 @@ class ShellDocScreenshotGenerator {
 
         // --- JSON document in the Tree view ---
         Path json = Path.of(System.getProperty("java.io.tmpdir"), "fxt-shell-doc-sample.json");
-        Files.writeString(json, "{\n  \"fund\": {\n    \"id\": \"EAM\",\n    \"items\": [1, 2, 3],\n    \"active\": true\n  }\n}\n");
+        Files.writeString(json, """
+                {
+                  "fund": {
+                    "id": "EAM",
+                    "name": "Example Fund",
+                    "active": true,
+                    "nav": 123.45,
+                    "manager": null,
+                    "positions": [
+                      {"isin": "DE0001234567", "name": "Bond A", "amount": 1000},
+                      {"isin": "US0009876543", "name": "Share B", "amount": 250},
+                      {"isin": "AT0005550005", "name": "Fund C", "amount": 75}
+                    ],
+                    "tags": ["equity", "bond"]
+                  }
+                }
+                """);
         json.toFile().deleteOnExit();
         onFx(() -> host.openFile(json));
         WaitForAsyncUtils.waitFor(8, TimeUnit.SECONDS,
@@ -208,6 +224,17 @@ class ShellDocScreenshotGenerator {
         onFx(() -> host.setActiveViewMode(ViewMode.TREE));
         settle();
         shot("unified-shell-json-tree");
+
+        // --- The same JSON document in the Graphic (grid) view ---
+        onFx(() -> host.setActiveViewMode(ViewMode.GRAPHIC));
+        settle();
+        onFx(() -> host.lookupAll("*").stream()
+                .filter(n -> n instanceof org.fxt.freexmltoolkit.controls.shell.editor.JsonGridView)
+                .map(n -> ((org.fxt.freexmltoolkit.controls.shell.editor.JsonGridView) n).getCanvasView())
+                .filter(java.util.Objects::nonNull)
+                .findFirst().ifPresent(canvas -> canvas.expandAll()));
+        settle();
+        shot("unified-shell-json-grid");
 
         // --- HTML document rendered in the read-only Preview view (the default for HTML) ---
         Path html = Path.of(System.getProperty("java.io.tmpdir"), "fxt-shell-doc-report.html");

@@ -97,4 +97,16 @@ class XmlCanvasSearchTest {
         assertEquals(1, matches.size());
         assertSame(match, matches.get(0));
     }
+
+    @Test
+    void matchesJsonRowsByKeyAndValue() {
+        FlatRow name = row(RowType.JSON_STRING, "name", "Alice");
+        FlatRow age = row(RowType.JSON_NUMBER, "age", "30");
+        FlatRow items = row(RowType.JSON_ARRAY, "items", null);
+        List<FlatRow> rows = List.of(name, age, items);
+
+        assertEquals(List.of(age), XmlCanvasSearch.findMatches(rows, "30"));
+        assertEquals(List.of(name), XmlCanvasSearch.findMatches(rows, "alice"));
+        assertEquals(List.of(items), XmlCanvasSearch.findMatches(rows, "ITEM"));
+    }
 }

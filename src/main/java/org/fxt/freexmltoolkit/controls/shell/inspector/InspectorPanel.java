@@ -514,7 +514,7 @@ public class InspectorPanel extends VBox {
         xmlTextArea.setPrefRowCount(2);
         xmlTextArea.focusedProperty().addListener((o, was, isNow) -> {
             if (!isNow) {
-                commit(() -> editorHost.setActiveXmlElementText(xmlTextArea.getText()));
+                commit(this::commitValueText);
             }
         });
 
@@ -761,7 +761,7 @@ public class InspectorPanel extends VBox {
 
     /** Runs an edit only if it is a genuine user change (not a programmatic repopulate) on a node. */
     private void commit(Runnable edit) {
-        if (!updating && (currentXsdNode != null || currentXmlNode != null)) {
+        if (!updating && (currentXsdNode != null || currentXmlNode != null || currentJsonNode != null)) {
             edit.run();
         }
     }
@@ -774,7 +774,40 @@ public class InspectorPanel extends VBox {
             }
         } else if (currentXmlNode != null) {
             editorHost.renameActiveXmlNode(name);
+        } else if (currentJsonNode != null && nameField.isEditable()) {
+            editorHost.renameActiveJsonKey(name);
         }
+    }
+
+    /** Commits the Value text area: the XML element text, or the JSON primitive's value (type kept). */
+    private void commitValueText() {
+        if (currentJsonNode != null) {
+            if (xmlTextArea.isEditable()) {
+                editorHost.setActiveJsonValue(xmlTextArea.getText());
+            }
+        } else {
+            editorHost.setActiveXmlElementText(xmlTextArea.getText());
+        }
+    }
+
+    /** Test seam: types into the Value text area. */
+    void setJsonValueTextForTest(String text) {
+        xmlTextArea.setText(text);
+    }
+
+    /** Test seam: types into the Name field. */
+    void setNodeNameTextForTest(String text) {
+        nameField.setText(text);
+    }
+
+    /** Test seam: commits the Value text area as if it lost focus. */
+    void commitValueTextForTest() {
+        commit(this::commitValueText);
+    }
+
+    /** Test seam: commits the Name field as if Enter was pressed. */
+    void commitNameForTest() {
+        commit(this::commitName);
     }
 
     /**
@@ -1192,19 +1225,24 @@ public class InspectorPanel extends VBox {
         return out.toString();
     }
 
-    /** Read-only JSON node info: key, kind (node type) and scalar value. */
+    /**
+     * JSON node info: key (editable for object properties), kind (node type), JSONPath, depth
+     * and the scalar value (editable for primitives; the type is kept when committing).
+     */
     private void populateJsonNode(org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonNode node) {
         String key = node.getKey();
         String kind = node.getNodeType() == null ? "JSON" : node.getNodeType().name();
-        setHeader(blankToPlaceholder(key), kind);
+        boolean keyEditable = node.getParent() instanceof org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonObject;
+        boolean valueEditable = node instanceof org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonPrimitive;
+        setHeader(blankToPlaceholder(key != null ? key : jsonLabel(node)), kind);
         kindValue.setText(kind);
-        nameField.setEditable(false);
+        nameField.setEditable(keyEditable);
         nameField.setText(key == null ? "" : key);
-        xpathValue.setText(jsonPath(node));
+        xpathValue.setText(node.getPath());
         depthValue.setText(Integer.toString(jsonDepth(node)));
 
         xmlTextLabel.setText("Value");
-        xmlTextArea.setEditable(false);
+        xmlTextArea.setEditable(valueEditable);
         xmlTextArea.setText(jsonValue(node));
         show(xmlTextBox, true);
         show(xmlAttrBox, false);
@@ -1225,15 +1263,9 @@ public class InspectorPanel extends VBox {
         return s == null ? "" : s;
     }
 
-    private String jsonPath(org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonNode node) {
-        java.util.Deque<String> parts = new java.util.ArrayDeque<>();
-        for (var n = node; n != null; n = n.getParent()) {
-            String k = n.getKey();
-            if (k != null && !k.isBlank()) {
-                parts.push(k);
-            }
-        }
-        return parts.isEmpty() ? "$" : "$." + String.join(".", parts);
+    /** {@code [i]} for array items, {@code $} for the root value (keys are shown directly). */
+    private String jsonLabel(org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonNode node) {
+        return org.fxt.freexmltoolkit.controls.jsoneditor.grid.JsonGridAdapter.labelOf(node);
     }
 
     private int jsonDepth(org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonNode node) {
