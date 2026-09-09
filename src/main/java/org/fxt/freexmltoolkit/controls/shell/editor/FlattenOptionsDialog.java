@@ -5,6 +5,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.GridPane;
 
 import org.fxt.freexmltoolkit.controls.v2.editor.flatten.FlattenOptions;
@@ -23,6 +24,8 @@ public class FlattenOptionsDialog extends Dialog<FlattenOptions> {
     private final CheckBox minify = new CheckBox("Minified output (no indentation)");
     private final CheckBox removeUnusedTypes =
             new CheckBox("Remove unused global types and groups");
+    private final CheckBox trackSourceFiles =
+            new CheckBox("Track source files (xs:appinfo)");
 
     public FlattenOptionsDialog() {
         setTitle("Flatten Schema");
@@ -33,6 +36,10 @@ public class FlattenOptionsDialog extends Dialog<FlattenOptions> {
         removeComments.setSelected(true);
         minify.setSelected(true);
         removeUnusedTypes.setSelected(true);
+        trackSourceFiles.setSelected(false);
+        trackSourceFiles.setTooltip(new Tooltip(
+                "Marks every component that came from an included file with an fxt:sourceFile "
+                        + "annotation naming that file."));
 
         Label hint = new Label("Uncheck all options for a plain flatten that keeps documentation.");
         hint.setOpacity(0.7);
@@ -45,7 +52,8 @@ public class FlattenOptionsDialog extends Dialog<FlattenOptions> {
         grid.add(removeComments, 0, 1);
         grid.add(removeUnusedTypes, 0, 2);
         grid.add(minify, 0, 3);
-        grid.add(hint, 0, 4);
+        grid.add(trackSourceFiles, 0, 4);
+        grid.add(hint, 0, 5);
         getDialogPane().setContent(grid);
 
         setResultConverter(button -> button == ButtonType.OK ? currentOptions() : null);
@@ -54,14 +62,22 @@ public class FlattenOptionsDialog extends Dialog<FlattenOptions> {
     /** @return the options reflecting the current control state. */
     public FlattenOptions currentOptions() {
         return new FlattenOptions(removeAnnotations.isSelected(), removeComments.isSelected(),
-                minify.isSelected(), removeUnusedTypes.isSelected(), true);
+                minify.isSelected(), removeUnusedTypes.isSelected(), true,
+                trackSourceFiles.isSelected());
+    }
+
+    /** Sets the control state (for tests/observers), leaving source-file tracking off. */
+    public void setOptions(boolean annotations, boolean comments, boolean minified, boolean unusedTypes) {
+        setOptions(annotations, comments, minified, unusedTypes, false);
     }
 
     /** Sets the control state (for tests/observers). */
-    public void setOptions(boolean annotations, boolean comments, boolean minified, boolean unusedTypes) {
+    public void setOptions(boolean annotations, boolean comments, boolean minified, boolean unusedTypes,
+                           boolean sourceFiles) {
         removeAnnotations.setSelected(annotations);
         removeComments.setSelected(comments);
         minify.setSelected(minified);
         removeUnusedTypes.setSelected(unusedTypes);
+        trackSourceFiles.setSelected(sourceFiles);
     }
 }

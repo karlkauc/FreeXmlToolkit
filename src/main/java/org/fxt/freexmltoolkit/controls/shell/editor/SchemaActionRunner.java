@@ -75,11 +75,25 @@ public final class SchemaActionRunner {
      * see {@link FlattenOptions}. @return the flattened XSD, or {@code "ERROR: …"}.
      */
     public static String flatten(String xsdContent, Path baseDirectory, FlattenOptions options) {
+        return flatten(xsdContent, baseDirectory, null, options);
+    }
+
+    /**
+     * Flattens an XSD, additionally passing the path of the schema the content came from.
+     * Knowing the main schema file enables per-node origin tracking during parsing, which is
+     * what {@link FlattenOptions#trackSourceFiles()} writes into the output.
+     *
+     * @param xsdContent     the schema content (may contain unsaved edits)
+     * @param baseDirectory  directory used to resolve xs:include locations (may be null)
+     * @param mainSchemaFile the file the content belongs to (may be null for unsaved content)
+     * @param options        the reduction options
+     * @return the flattened XSD, or {@code "ERROR: …"}
+     */
+    public static String flatten(String xsdContent, Path baseDirectory, Path mainSchemaFile,
+                                 FlattenOptions options) {
         try {
             XsdNodeFactory factory = new XsdNodeFactory();
-            XsdSchema schema = baseDirectory != null
-                    ? factory.fromString(xsdContent, baseDirectory)
-                    : factory.fromString(xsdContent);
+            XsdSchema schema = factory.fromStringWithSchemaFile(xsdContent, mainSchemaFile, baseDirectory);
             if (options.requiresTransform()) {
                 new SchemaFlattenTransformer().apply(schema, options);
             }

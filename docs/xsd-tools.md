@@ -517,7 +517,7 @@ Combine multiple XSD files into a single, standalone file. Useful when your sche
 
 ### Flatten Options
 
-Before flattening, a dialog lets you reduce the output. All four options are **checked by default**, which produces the smallest possible schema — ideal for deploying to a validation server:
+Before flattening, a dialog lets you reduce the output. The four reduction options are **checked by default**, which produces the smallest possible schema — ideal for deploying to a validation server:
 
 | Option | What it does |
 |--------|--------------|
@@ -525,8 +525,33 @@ Before flattening, a dialog lets you reduce the output. All four options are **c
 | **Remove XML comments** | Strips all XML comments, including comments at the top of the file |
 | **Remove unused global types and groups** | Removes global types, groups and attribute groups that are not reachable from any global element or attribute — dead weight in large schema libraries. (Skipped automatically if the schema uses `xs:redefine` or `xs:override`.) |
 | **Minified output (no indentation)** | Collapses the whitespace between tags for the smallest file size |
+| **Track source files (`xs:appinfo`)** | *Off by default.* Adds an `fxt:sourceFile` annotation to every global component that came from an included file, naming that file — see below |
 
-**Uncheck all four options** for a plain flatten that keeps documentation, comments and formatting — the previous behavior.
+**Uncheck all four reduction options** for a plain flatten that keeps documentation, comments and formatting — the previous behavior.
+
+### Keeping Track of Where Components Came From
+
+Flattening merges every included file into one document, which normally loses the information
+about which file a type or element originally came from. Tick **Track source files** to keep it:
+each global element, type, group, attribute group and attribute that was pulled in from an
+`xs:include` gets an annotation naming its origin.
+
+```xml
+<xs:complexType name="PersonType">
+    <xs:annotation>
+        <xs:appinfo>
+            <fxt:sourceFile xmlns:fxt="http://freexmltoolkit.org/schema/flattening">types.xsd</fxt:sourceFile>
+        </xs:appinfo>
+    </xs:annotation>
+    ...
+</xs:complexType>
+```
+
+The markers are added **after** the reductions, so they survive **Remove annotations** — you can
+combine a fully reduced schema with full origin tracking. Components defined in the main file are
+not marked, and a stale marker from an earlier flatten is replaced rather than duplicated.
+The option needs a saved file: for unsaved content there is no directory to resolve includes
+against, so nothing is merged and nothing is marked.
 
 The reduced schema is verified to still compile as a valid schema before it is shown, so you can deploy it with confidence.
 

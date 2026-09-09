@@ -50,6 +50,18 @@ class FlattenOptionsDialogTest {
     }
 
     @Test
+    void sourceFileTrackingIsOffByDefaultAndCanBeEnabled() {
+        var defaults = WaitForAsyncUtils.waitForAsyncFx(2000, () -> dialog.currentOptions());
+        assertFalse(defaults.trackSourceFiles(), "tracking adds markers, so it is opt-in");
+
+        var enabled = WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            dialog.setOptions(false, false, false, false, true);
+            return dialog.currentOptions();
+        });
+        assertTrue(enabled.trackSourceFiles());
+    }
+
+    @Test
     void okReturnsOptionsCancelReturnsNull() {
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
             assertNotNull(dialog.getResultConverter().call(ButtonType.OK));

@@ -288,9 +288,9 @@ public class TypeLibraryPanel extends VBox {
 
     /** Flattens the active XSD with the given options, without asking (async). */
     public void flattenActive(org.fxt.freexmltoolkit.controls.v2.editor.flatten.FlattenOptions options) {
-        java.nio.file.Path baseDir = editorHost.getActiveDocument().map(OpenDocument::getPath)
-                .map(java.nio.file.Path::getParent).orElse(null);
-        runAsync(content -> SchemaActionRunner.flatten(content, baseDir, options),
+        java.nio.file.Path schemaFile = editorHost.getActiveDocument().map(OpenDocument::getPath).orElse(null);
+        java.nio.file.Path baseDir = schemaFile != null ? schemaFile.getParent() : null;
+        runAsync(content -> SchemaActionRunner.flatten(content, baseDir, schemaFile, options),
                 EditorFileType.XSD, "Flattened.xsd");
     }
 

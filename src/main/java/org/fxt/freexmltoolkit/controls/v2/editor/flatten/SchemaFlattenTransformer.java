@@ -43,6 +43,9 @@ public final class SchemaFlattenTransformer {
 
     private static final Logger logger = LogManager.getLogger(SchemaFlattenTransformer.class);
 
+    /** JavaDoc-style tag the serializer turns back into a clean {@code fxt:sourceFile} element. */
+    private static final String SOURCE_FILE_TAG = "@sourceFile";
+
     /** Applies all reductions selected in {@code options} to {@code schema}. */
     public void apply(XsdSchema schema, FlattenOptions options) {
         if (schema == null || options == null || !options.requiresTransform()) {
@@ -60,6 +63,71 @@ public final class SchemaFlattenTransformer {
         if (options.removeUnusedTypes()) {
             removeUnusedGlobalComponents(schema);
         }
+        // Last: the markers must survive stripAnnotations(), and there is no point marking
+        // components that the reductions above just removed.
+        if (options.trackSourceFiles()) {
+            addSourceFileMarkers(schema);
+        }
+    }
+
+    /**
+     * Marks every global component that was inlined from an included file with an
+     * {@code @sourceFile <filename>} appinfo entry — the persisted counterpart of the in-memory
+     * {@link org.fxt.freexmltoolkit.controls.v2.model.IncludeSourceInfo}, which does not survive
+     * writing the flattened schema to disk.
+     */
+    private void addSourceFileMarkers(XsdSchema schema) {
+        for (XsdNode child : schema.getChildren()) {
+            if (!isTrackableGlobal(child) || !child.isFromInclude()) {
+                continue;
+            }
+            java.nio.file.Path sourceFile = child.getSourceFile();
+            if (sourceFile == null || sourceFile.getFileName() == null) {
+                continue;
+            }
+            setSourceFileMarker(child, sourceFile.getFileName().toString());
+        }
+    }
+
+    /** The top-level constructs a source-file marker is attached to. */
+    private boolean isTrackableGlobal(XsdNode node) {
+        return node instanceof XsdElement
+                || node instanceof XsdComplexType
+                || node instanceof XsdSimpleType
+                || node instanceof XsdGroup
+                || node instanceof XsdAttributeGroup
+                || node instanceof XsdAttribute;
+    }
+
+    /**
+     * Replaces any marker the node already carries (a schema can be flattened twice, and an
+     * included file may itself be a flatten result) with one naming {@code fileName}.
+     */
+    private void setSourceFileMarker(XsdNode node, String fileName) {
+        XsdAppInfo appinfo = new XsdAppInfo();
+        XsdAppInfo existing = node.getAppinfo();
+        if (existing != null) {
+            for (XsdAppInfo.AppInfoEntry entry : existing.getEntries()) {
+                if (!isSourceFileMarker(entry)) {
+                    appinfo.addEntry(entry);
+                }
+            }
+        }
+        appinfo.addEntry(null, SOURCE_FILE_TAG + " " + fileName);
+        node.setAppinfo(appinfo);
+        logger.trace("Marked global component '{}' as originating from '{}'", node.getName(), fileName);
+    }
+
+    /**
+     * A marker is either the tag form produced here or the raw {@code fxt:sourceFile} element a
+     * previously flattened file was parsed from.
+     */
+    private boolean isSourceFileMarker(XsdAppInfo.AppInfoEntry entry) {
+        if (SOURCE_FILE_TAG.equals(entry.getTag())) {
+            return true;
+        }
+        String rawXml = entry.getRawXml();
+        return rawXml != null && (rawXml.contains(":sourceFile") || rawXml.contains("<sourceFile"));
     }
 
     private void stripAnnotations(XsdSchema schema) {
