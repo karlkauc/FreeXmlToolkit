@@ -59,7 +59,8 @@ public class DocumentationView extends BorderPane {
 
     /** All generation options (captured from the form; also built directly by tests). */
     record DocOptions(File xsd, File output, String format,
-                      boolean useMarkdown, boolean includeTypeDefs, boolean showDocInSvg,
+                      XsdDocumentationService.MarkdownMode markdown,
+                      boolean includeTypeDefs, boolean showDocInSvg,
                       boolean svgOverview, boolean addMetadata, boolean deduplicateDataDictionaryByType,
                       String imageFormat,
                       Set<String> languages, String fallbackLanguage, boolean openAfter,
@@ -86,7 +87,12 @@ public class DocumentationView extends BorderPane {
     private final ToggleButton html = segment("HTML");
     private final ToggleButton pdf = segment("PDF");
     private final ToggleButton word = segment("Word");
-    private final CheckBox useMarkdown = new CheckBox("Use Markdown renderer");
+    /** The three labels of the Markdown rendering choice. */
+    static final String MARKDOWN_ALL = "All documentation";
+    static final String MARKDOWN_PER_NODE = "Per node (@markdown)";
+    static final String MARKDOWN_OFF = "Off";
+
+    private final ComboBox<String> markdownMode = new ComboBox<>();
     private final CheckBox includeTypeDefs = new CheckBox("Include type definitions in source code");
     private final CheckBox showDocInSvg = new CheckBox("Show documentation in diagrams");
     private final CheckBox svgOverview = new CheckBox("Generate SVG overview page");
@@ -222,7 +228,14 @@ public class DocumentationView extends BorderPane {
         refreshFormatOptions();
 
         // --- OPTIONS ----------------------------------------------------------------------
-        useMarkdown.setSelected(true);
+        markdownMode.setId("docgen-markdown-mode");
+        markdownMode.getItems().addAll(MARKDOWN_ALL, MARKDOWN_PER_NODE, MARKDOWN_OFF);
+        markdownMode.getSelectionModel().selectFirst();
+        markdownMode.setTooltip(new javafx.scene.control.Tooltip(
+                "\"Per node\" renders only the nodes whose xs:appinfo says @markdown = true; "
+                        + "every other node keeps its documentation as plain text."));
+        Label markdownLabel = new Label("Markdown rendering");
+        markdownLabel.getStyleClass().add("fxt-sig-field-label");
         showDocInSvg.setSelected(true);
         imageFormat.getItems().addAll("SVG", "PNG", "JPG");
         imageFormat.getSelectionModel().selectFirst();
@@ -246,7 +259,7 @@ public class DocumentationView extends BorderPane {
         dedupDataDictionary.setTooltip(new javafx.scene.control.Tooltip(
                 "List each named complex/simple type only once instead of every recursive occurrence "
                         + "(elements with a built-in or no type are still listed individually)."));
-        VBox optionsBox = new VBox(8, useMarkdown, includeTypeDefs, showDocInSvg, svgOverview,
+        VBox optionsBox = new VBox(8, markdownLabel, markdownMode, includeTypeDefs, showDocInSvg, svgOverview,
                 addMetadata, dedupDataDictionary, imageLabel, imageFormat, faviconLabel, faviconRow);
 
         // --- LANGUAGES -----------------------------------------------------------------------
@@ -353,10 +366,19 @@ public class DocumentationView extends BorderPane {
                 pdfColorScheme.getValue(), pdfWatermark.getValue(),
                 pageNumbers.isSelected(), pdfBookmarks.isSelected());
         return new DocOptions(xsdFile, outputTarget, selectedFormat(),
-                useMarkdown.isSelected(), includeTypeDefs.isSelected(), showDocInSvg.isSelected(),
+                selectedMarkdownMode(), includeTypeDefs.isSelected(), showDocInSvg.isSelected(),
                 svgOverview.isSelected(), addMetadata.isSelected(), dedupDataDictionary.isSelected(),
                 imageFormat.getValue(),
                 languages, fallbackLanguage.getValue(), openAfter.isSelected(), faviconFile, format);
+    }
+
+    /** @return the Markdown mode currently selected in the form. */
+    XsdDocumentationService.MarkdownMode selectedMarkdownMode() {
+        return switch (markdownMode.getValue() == null ? MARKDOWN_ALL : markdownMode.getValue()) {
+            case MARKDOWN_PER_NODE -> XsdDocumentationService.MarkdownMode.PER_NODE;
+            case MARKDOWN_OFF -> XsdDocumentationService.MarkdownMode.OFF;
+            default -> XsdDocumentationService.MarkdownMode.ALL;
+        };
     }
 
     String selectedFormat() {
@@ -546,7 +568,7 @@ public class DocumentationView extends BorderPane {
     private void runGeneration(DocOptions options) throws Exception {
         XsdDocumentationService service = new XsdDocumentationService();
         service.setXsdFilePath(options.xsd().getAbsolutePath());
-        service.setUseMarkdownRenderer(options.useMarkdown());
+        service.setMarkdownMode(options.markdown());
         service.setIncludeTypeDefinitionsInSourceCode(options.includeTypeDefs());
         service.setShowDocumentationInSvg(options.showDocInSvg());
         service.setGenerateSvgOverviewPage(options.svgOverview());
@@ -571,7 +593,7 @@ public class DocumentationView extends BorderPane {
 
         switch (options.format()) {
             case "PDF" -> {
-                service.processXsd(options.useMarkdown());
+                service.processXsd(options.markdown());
                 XsdDocumentationPdfService pdfService = new XsdDocumentationPdfService();
                 pdfService.setProgressListener(listener);
                 if (options.languages() != null && !options.languages().isEmpty()) {
@@ -585,7 +607,7 @@ public class DocumentationView extends BorderPane {
                 pdfService.generatePdfDocumentation(options.output(), service.xsdDocumentationData);
             }
             case "Word" -> {
-                service.processXsd(options.useMarkdown());
+                service.processXsd(options.markdown());
                 XsdDocumentationWordService wordService = new XsdDocumentationWordService();
                 wordService.setProgressListener(listener);
                 if (options.languages() != null && !options.languages().isEmpty()) {

@@ -1609,22 +1609,12 @@ public class XsdNodeFactory {
                     }
                 }
 
-                if (hasChildElements) {
-                    // Serialize inner XML content
-                    String rawXml = serializeInnerXml(childElement);
-                    String textContent = childElement.getTextContent();
-                    appInfo.addEntry(source, textContent != null ? textContent.trim() : "", rawXml);
-                } else {
-                    // Simple text content
-                    String appinfoContent = childElement.getTextContent();
-                    if (appinfoContent != null && !appinfoContent.trim().isEmpty()) {
-                        appInfo.addEntry(source, appinfoContent.trim());
-                    } else if (source != null && !source.isEmpty()) {
-                        // Source-only appinfo such as <xs:appinfo source="@since 4.2.8"/>:
-                        // the JavaDoc-style tag lives in the source attribute, so use it as content.
-                        appInfo.addEntry(source, source);
-                    }
-                }
+                // XsdAppInfo resolves the tag/value split for all supported encodings
+                // (source="@since" + text, the legacy source="@since 4.2.8", and the old
+                // duplicated form that wrote the tag into both).
+                String textContent = childElement.getTextContent();
+                appInfo.addEntry(source, textContent,
+                        hasChildElements ? serializeInnerXml(childElement) : null);
             }
         }
 

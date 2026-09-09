@@ -11,6 +11,7 @@ import java.util.concurrent.TimeUnit;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
+import org.fxt.freexmltoolkit.service.XsdDocumentationService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
@@ -59,7 +60,7 @@ class DocumentationViewTest {
 
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
             view.generate(new DocumentationView.DocOptions(xsd.toFile(), out.toFile(), "HTML",
-                    true, false, false, false, false, false, "SVG", Set.of(), null, false, null, null));
+                    XsdDocumentationService.MarkdownMode.ALL, false, false, false, false, false, "SVG", Set.of(), null, false, null, null));
             return null;
         });
         WaitForAsyncUtils.waitFor(60, TimeUnit.SECONDS,
@@ -82,7 +83,8 @@ class DocumentationViewTest {
         });
         var options = view.currentOptions();
         assertEquals("HTML", options.format(), "HTML is the default format");
-        assertTrue(options.useMarkdown(), "Markdown renderer defaults to on");
+        assertEquals(XsdDocumentationService.MarkdownMode.ALL, options.markdown(),
+                "Markdown renderer defaults to rendering all documentation");
         assertTrue(options.openAfter(), "open-after defaults to on");
         assertEquals("SVG", options.imageFormat());
         assertEquals(xsd.toFile(), options.xsd());
@@ -123,7 +125,7 @@ class DocumentationViewTest {
 
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
             view.generate(new DocumentationView.DocOptions(xsd.toFile(), out.toFile(), "PDF",
-                    true, false, false, false, false, false, "SVG", Set.of(), null, false, null,
+                    XsdDocumentationService.MarkdownMode.ALL, false, false, false, false, false, "SVG", Set.of(), null, false, null,
                     new DocumentationView.FormatOptions("Letter", true, false, true, true,
                             false, false, "Professional", "Draft", true, true)));
             return null;
@@ -186,7 +188,7 @@ class DocumentationViewTest {
         Files.writeString(xsd, XSD);
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
             view.generate(new DocumentationView.DocOptions(xsd.toFile(), null, "HTML",
-                    true, false, false, false, false, false, "SVG", Set.of(), null, false, null, null));
+                    XsdDocumentationService.MarkdownMode.ALL, false, false, false, false, false, "SVG", Set.of(), null, false, null, null));
             return null;
         });
         WaitForAsyncUtils.waitForFxEvents();

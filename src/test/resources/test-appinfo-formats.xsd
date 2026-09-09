@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Fixture for the xs:appinfo tag encodings and the per-node Markdown switch.
+  Covers: the canonical source="@tag" + text form, the legacy source="@tag value" form,
+  fxt:exampleValues, the legacy altova:exampleValues, and @markdown true/false/absent.
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:fxt="http://freexmltoolkit.org/xml-schema-extensions"
+           xmlns:altova="http://www.altova.com/xml-schema-extensions"
+           elementFormDefault="qualified">
+
+    <xs:element name="Root">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="CanonicalTags" type="xs:string">
+                    <xs:annotation>
+                        <xs:documentation>Documentation with **bold** text.</xs:documentation>
+                        <xs:appinfo source="@since">4.0.0</xs:appinfo>
+                        <xs:appinfo source="@version">1.2</xs:appinfo>
+                        <xs:appinfo source="@see">{@link /Root/LegacyTags}</xs:appinfo>
+                        <xs:appinfo source="@deprecated">Use LegacyTags instead.</xs:appinfo>
+                        <xs:appinfo source="@markdown">true</xs:appinfo>
+                    </xs:annotation>
+                </xs:element>
+
+                <xs:element name="LegacyTags" type="xs:string">
+                    <xs:annotation>
+                        <xs:documentation>Documentation with **bold** text.</xs:documentation>
+                        <xs:appinfo source="@since 4.0.0"/>
+                        <xs:appinfo source="@see {@link /Root/CanonicalTags}"/>
+                    </xs:annotation>
+                </xs:element>
+
+                <xs:element name="FxtExamples" type="xs:string">
+                    <xs:annotation>
+                        <xs:documentation>Element with example values in the fxt namespace.</xs:documentation>
+                        <xs:appinfo>
+                            <fxt:exampleValues>
+                                <fxt:example value="TRX-0815"/>
+                                <fxt:example value="TRX-0816"/>
+                            </fxt:exampleValues>
+                        </xs:appinfo>
+                    </xs:annotation>
+                </xs:element>
+
+                <xs:element name="AltovaExamples" type="xs:string">
+                    <xs:annotation>
+                        <xs:documentation>Element with example values in the legacy Altova namespace.</xs:documentation>
+                        <xs:appinfo>
+                            <altova:exampleValues>
+                                <altova:example value="WBAH"/>
+                                <altova:example value="XLON"/>
+                            </altova:exampleValues>
+                        </xs:appinfo>
+                    </xs:annotation>
+                </xs:element>
+
+                <xs:element name="MarkdownOff" type="xs:string">
+                    <xs:annotation>
+                        <xs:documentation>Documentation with **bold** text.</xs:documentation>
+                        <xs:appinfo source="@markdown">false</xs:appinfo>
+                    </xs:annotation>
+                </xs:element>
+
+                <xs:element name="MarkdownUnset" type="xs:string">
+                    <xs:annotation>
+                        <xs:documentation>Documentation with **bold** text.</xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>

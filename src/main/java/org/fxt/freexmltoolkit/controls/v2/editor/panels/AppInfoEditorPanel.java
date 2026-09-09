@@ -1,6 +1,7 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.panels;
 
 import java.util.Objects;
+import java.util.Set;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -38,6 +39,10 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
  * @since 2.0
  */
 public class AppInfoEditorPanel extends VBox {
+
+    /** Tags this panel manages directly; every other entry is carried over untouched. */
+    private static final Set<String> MANAGED_TAGS =
+            Set.of("@since", "@version", "@author", "@see", "@deprecated");
 
     private static final Logger logger = LogManager.getLogger(AppInfoEditorPanel.class);
 
@@ -386,6 +391,18 @@ public class AppInfoEditorPanel extends VBox {
     private XsdAppInfo createAppInfoFromUI() {
         XsdAppInfo appInfo = new XsdAppInfo();
 
+        // Carry over everything this panel does not manage - raw XML blocks such as
+        // fxt:exampleValues, the @sourceFile marker, @markdown and unknown tags. Without this the
+        // panel would silently drop them on every edit.
+        XsdAppInfo current = currentNode != null ? currentNode.getAppinfo() : null;
+        if (current != null) {
+            for (XsdAppInfo.AppInfoEntry entry : current.getEntries()) {
+                if (entry.hasRawXml() || entry.getTag() == null || !MANAGED_TAGS.contains(entry.getTag())) {
+                    appInfo.addEntry(entry);
+                }
+            }
+        }
+
         // Version info
         String since = sinceField.getText();
         if (since != null && !since.trim().isEmpty()) {
@@ -528,9 +545,10 @@ public class AppInfoEditorPanel extends VBox {
                 return; // No change
             }
 
-            // Create and execute command
-            String newAppInfoString = hasData ? newAppInfo.toDisplayString() : "";
-            ChangeAppinfoCommand command = new ChangeAppinfoCommand(editorContext, currentNode, newAppInfoString);
+            // Create and execute command. The structured overload preserves raw-XML entries -
+            // the display-string form cannot round-trip them.
+            ChangeAppinfoCommand command = new ChangeAppinfoCommand(editorContext, currentNode,
+                    hasData ? newAppInfo : null);
             editorContext.getCommandManager().executeCommand(command);
 
             logger.debug("AppInfo changed for node: {}", currentNode.getName());

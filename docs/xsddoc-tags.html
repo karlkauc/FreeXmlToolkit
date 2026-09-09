@@ -98,8 +98,42 @@ edits them, in the HTML documentation generator and in the XSD editor.</p>
   <li><strong><code>xs:documentation</code></strong> — human-readable prose, multi-language via
       <code>xml:lang</code>.</li>
   <li><strong><code>xs:appinfo</code></strong> — machine-readable metadata. Its <code>source</code>
-      attribute carries the JavaDoc-style tag.</li>
+      attribute carries the JavaDoc-style tag, the element's text content its value:
+      <code>&lt;xs:appinfo source="@since"&gt;4.0.0&lt;/xs:appinfo&gt;</code>.</li>
 </ul>
+
+<div class="note">
+  <p><strong>Legacy encoding.</strong> Older schemas (FundsXML among them) packed tag and value
+  into the attribute alone: <code>&lt;xs:appinfo source="@since 4.0.0"/&gt;</code>. That form is
+  still read — as is the duplicated <code>&lt;xs:appinfo source="@since 4.0.0"&gt;@since
+  4.0.0&lt;/xs:appinfo&gt;</code> some older versions of the editor produced — and is rewritten
+  into the canonical form the next time the schema is saved from the toolkit. The generated
+  documentation is identical either way.</p>
+</div>
+
+<h3>Namespaces</h3>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Prefix</th><th>Namespace URI</th><th>Used for</th></tr></thead>
+  <tbody>
+    <tr><td><code>fxt</code></td>
+        <td><code>http://freexmltoolkit.org/xml-schema-extensions</code></td>
+        <td><code>fxt:exampleValues</code> — the toolkit's example values</td></tr>
+    <tr><td><code>fxt</code></td>
+        <td><code>http://freexmltoolkit.org/schema/flattening</code></td>
+        <td><code>fxt:sourceFile</code> — origin tracking when flattening
+            (<a href="#sourcefile">details</a>)</td></tr>
+    <tr><td><code>altova</code></td>
+        <td><code>http://www.altova.com/xml-schema-extensions</code></td>
+        <td><code>altova:exampleValues</code> — read for compatibility, never written</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>Both extension blocks declare their prefix on the <code>xs:appinfo</code> child itself rather
+than on <code>xs:schema</code>, so a schema edited by the toolkit does not collect namespace
+declarations it does not otherwise need.</p>
 
 <h2>2. The specially handled tags</h2>
 
@@ -148,8 +182,17 @@ edits them, in the HTML documentation generator and in the XSD editor.</p>
       <td class="yes">Autocomplete popup over the schema's element paths</td>
     </tr>
     <tr>
-      <td><code>altova:exampleValues</code></td>
-      <td>Example values (FundsXML convention)</td>
+      <td><code>@markdown</code></td>
+      <td><code>true</code>/<code>false</code> — whether this node's documentation is rendered as
+          Markdown (<a href="#markdown">details</a>)</td>
+      <td class="yes">Honored when the generator's <em>Markdown rendering</em> is set to
+          <em>Per node</em></td>
+      <td class="yes">“Markdown” choice (<em>Not set</em> / <em>Markdown</em> / <em>Plain text</em>)</td>
+    </tr>
+    <tr>
+      <td><code>fxt:exampleValues</code><br><code>altova:exampleValues</code></td>
+      <td>Example values. Written as <code>fxt:</code>; the Altova form (the FundsXML convention)
+          is still read</td>
       <td class="yes">“Sample Data” on the detail page</td>
       <td class="yes">“Example values” list; also feeds sample-XML generation and IntelliSense</td>
     </tr>
@@ -181,15 +224,17 @@ generator, and one row per language in the Inspector.</p>
         &lt;xs:documentation xml:lang="en"&gt;A single financial transaction.&lt;/xs:documentation&gt;
         &lt;xs:documentation xml:lang="de"&gt;Eine einzelne Transaktion.&lt;/xs:documentation&gt;
 
-        &lt;xs:appinfo source="@since 4.0.0"/&gt;
-        &lt;xs:appinfo source="@version 1.2"/&gt;
-        &lt;xs:appinfo source="@see {@link /FundsXML4/ControlData}"/&gt;
-        &lt;xs:appinfo source="@see {@link TransactionType}"/&gt;
-        &lt;xs:appinfo source="@deprecated Use {@link /FundsXML4/NewTransaction} instead."/&gt;
+        &lt;xs:appinfo source="@since"&gt;4.0.0&lt;/xs:appinfo&gt;
+        &lt;xs:appinfo source="@version"&gt;1.2&lt;/xs:appinfo&gt;
+        &lt;xs:appinfo source="@see"&gt;{@link /FundsXML4/ControlData}&lt;/xs:appinfo&gt;
+        &lt;xs:appinfo source="@see"&gt;{@link TransactionType}&lt;/xs:appinfo&gt;
+        &lt;xs:appinfo source="@deprecated"&gt;Use {@link /FundsXML4/NewTransaction} instead.&lt;/xs:appinfo&gt;
+        &lt;xs:appinfo source="@markdown"&gt;true&lt;/xs:appinfo&gt;
         &lt;xs:appinfo&gt;
-            &lt;altova:exampleValues xmlns:altova="http://www.altova.com/xml-schema-extensions"&gt;
-                &lt;altova:example value="TRX-0815"/&gt;
-            &lt;/altova:exampleValues&gt;
+            &lt;fxt:exampleValues xmlns:fxt="http://freexmltoolkit.org/xml-schema-extensions"&gt;
+                &lt;fxt:example value="TRX-0815"/&gt;
+                &lt;fxt:example value="TRX-0816"/&gt;
+            &lt;/fxt:exampleValues&gt;
         &lt;/xs:appinfo&gt;
     &lt;/xs:annotation&gt;
 &lt;/xs:element&gt;</code></pre>
@@ -218,14 +263,17 @@ generator, and one row per language in the Inspector.</p>
     <tr><td><code>{@link}</code> → HTML</td>
         <td><code>service/XsdDocumentationHtmlService.parseJavadocLinks()</code></td></tr>
     <tr><td>Editor model</td>
-        <td><code>controls/v2/model/XsdAppInfo.java</code> (tag parsing, structured getters/setters,
-            example values)</td></tr>
+        <td><code>controls/v2/model/XsdAppInfo.java</code> — the single place that knows the tag
+            encodings (<code>tagOf()</code>, <code>valueOf()</code>), the structured
+            getters/setters, and the example values. Both parsers and both serializers go through
+            it, and <code>XsdDocumentationService</code> reuses <code>tagOf</code>/<code>valueOf</code>
+            so the reader and the writer cannot drift apart.</td></tr>
     <tr><td>Editor model (link tags)</td>
         <td><code>controls/v2/model/XsdDocInfo.java</code> — <code>{@link}</code> pattern,
             <code>SeeReference</code>, <code>DeprecationInfo</code></td></tr>
     <tr><td>Inspector UI</td>
         <td><code>controls/shell/inspector/AppInfoFieldsEditor.java</code> —
-            <code>MANAGED_TAGS = {@since, @version, @see, @deprecated}</code></td></tr>
+            <code>MANAGED_TAGS = {@since, @version, @see, @deprecated, @markdown}</code></td></tr>
     <tr><td>Parsers (XSD → model)</td>
         <td><code>controls/v2/model/XsdNodeFactory.java</code>,
             <code>service/xsd/adapters/XsdModelAdapter.java</code></td></tr>
@@ -238,13 +286,54 @@ generator, and one row per language in the Inspector.</p>
     <tr><td>Quality checks</td>
         <td><code>controls/v2/editor/statistics/XsdQualityChecker.checkDeprecated()</code> → issue
             category <em>Deprecated</em></td></tr>
+    <tr><td>Markdown mode</td>
+        <td><code>service/XsdDocumentationService.MarkdownMode</code> (OFF / ALL / PER_NODE),
+            chosen in <code>controls/shell/editor/DocumentationView.java</code></td></tr>
     <tr><td>User documentation</td>
         <td><code>docs/xsd-tools.md</code> — “Adding Technical Notes to Your Schema”</td></tr>
   </tbody>
 </table>
 </div>
 
-<h2 id="sourcefile">5. <code>fxt:sourceFile</code> — origin tracking when flattening</h2>
+<h2 id="markdown">5. <code>@markdown</code> — per-node Markdown rendering</h2>
+
+<p><code>xs:documentation</code> content can be rendered as Markdown. The documentation generator
+offers three choices under <strong>Markdown rendering</strong>, matching
+<code>XsdDocumentationService.MarkdownMode</code>:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Choice</th><th>Mode</th><th>Effect</th></tr></thead>
+  <tbody>
+    <tr><td>All documentation <em>(default)</em></td><td><code>ALL</code></td>
+        <td>Every node's documentation goes through the Markdown renderer. <code>@markdown</code>
+            is ignored.</td></tr>
+    <tr><td>Per node (<code>@markdown</code>)</td><td><code>PER_NODE</code></td>
+        <td>Only nodes whose annotation says <code>@markdown = true</code> are rendered; every
+            other node — including nodes that say nothing — stays plain text.</td></tr>
+    <tr><td>Off</td><td><code>OFF</code></td>
+        <td>Nothing is rendered, whatever the nodes say.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<pre><code>&lt;xs:element name="Transaction"&gt;
+    &lt;xs:annotation&gt;
+        &lt;xs:documentation&gt;A **single** financial transaction.&lt;/xs:documentation&gt;
+        &lt;xs:appinfo source="@markdown"&gt;true&lt;/xs:appinfo&gt;
+    &lt;/xs:annotation&gt;
+&lt;/xs:element&gt;</code></pre>
+
+<p>In the Inspector the tag is a three-state <strong>Markdown</strong> choice: <em>Not set</em>
+(no tag is written), <em>Markdown</em> (<code>true</code>) and <em>Plain text</em>
+(<code>false</code>). Like the other tags it is read from the element's own annotation and from
+the annotation of its resolved type — a type-level <code>@markdown</code> therefore applies to
+every element using that type unless the element states its own.</p>
+
+<p><code>@markdown</code> is a rendering hint, not documentation: it never appears in the
+“Additional Information” section of a generated page.</p>
+
+<h2 id="sourcefile">6. <code>fxt:sourceFile</code> — origin tracking when flattening</h2>
 
 <p>This is the toolkit's own <code>xs:appinfo</code> extension, in the namespace
 <code>http://freexmltoolkit.org/schema/flattening</code> (prefix <code>fxt</code>). It answers a
@@ -316,7 +405,7 @@ once on <code>xs:schema</code>.</p>
 <p>Reading, preserving and re-serializing the marker is always active, so schemas that carry it
 round trip correctly regardless of which path produced them.</p>
 
-<h2>6. Findings</h2>
+<h2>7. Findings</h2>
 
 <div class="finding fixed" id="finding-1">
   <h3>1. Source-only <code>xs:appinfo</code> never reached the editor model<span class="badge ok">fixed</span></h3>
@@ -356,16 +445,44 @@ round trip correctly regardless of which path produced them.</p>
   carries raw XML such as <code>altova:exampleValues</code> — keeps its content unchanged:</p>
   <pre><code>&lt;xs:appinfo source="@since 4.2.8"/&gt;
 &lt;xs:appinfo source="urn:example:tooling"&gt;generated by the mapping tool&lt;/xs:appinfo&gt;</code></pre>
+  <p><strong>Superseded.</strong> The self-closing output was later replaced by the canonical
+  encoding described in section 1 — the tag alone in <code>source</code>, the value as text
+  content. <code>XsdAppInfo.isSourceOnly()</code> is gone; a tag without a value still serializes
+  self-closing (<code>&lt;xs:appinfo source="@deprecated"/&gt;</code>), and an entry with a real
+  URI <code>source</code> or raw XML is still written unchanged.</p>
 </div>
 
-<h2>7. Tests</h2>
+<h2>8. Tests</h2>
 
-<p><code>XsdAppInfoSourceOnlyTest</code> (<code>controls/v2/model/</code>) covers both fixes:
-parsing a source-only appinfo through <code>XsdNodeFactory</code> and through
-<code>XsdModelAdapter</code>, the self-closing serialization of the managed tags, the preservation
-of distinct text content, and a parse → serialize round trip.</p>
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Test</th><th>Covers</th></tr></thead>
+  <tbody>
+    <tr><td><code>controls/v2/model/XsdAppInfoTagFormatTest</code></td>
+        <td>All three tag encodings through both parsers, tag-boundary matching
+            (<code>@sinceVersion</code> is not <code>@since</code>), and the migration to the
+            canonical form on save</td></tr>
+    <tr><td><code>controls/v2/model/XsdAppInfoSourceOnlyTest</code></td>
+        <td>The legacy source-only form specifically</td></tr>
+    <tr><td><code>controls/v2/model/XsdAppInfoExampleValuesTest</code></td>
+        <td><code>fxt:exampleValues</code> output, reading a legacy <code>altova:</code> block, and
+            rewriting one when the values change</td></tr>
+    <tr><td><code>service/XsdDocumentationAppInfoFormatTest</code></td>
+        <td>The documentation pipeline: both tag encodings, example values in either namespace, and
+            the three Markdown modes</td></tr>
+    <tr><td><code>controls/shell/inspector/AppInfoFieldsEditorTest</code></td>
+        <td>The Inspector: an untouched example-values block is carried over verbatim, a changed
+            one is rewritten as <code>fxt:</code>, and the Markdown choice round-trips</td></tr>
+  </tbody>
+</table>
+</div>
 
-<pre><code>./gradlew test --tests "org.fxt.freexmltoolkit.controls.v2.model.XsdAppInfoSourceOnlyTest"</code></pre>
+<pre><code>./gradlew test \
+  --tests "org.fxt.freexmltoolkit.controls.v2.model.XsdAppInfoTagFormatTest" \
+  --tests "org.fxt.freexmltoolkit.controls.v2.model.XsdAppInfoSourceOnlyTest" \
+  --tests "org.fxt.freexmltoolkit.controls.v2.model.XsdAppInfoExampleValuesTest" \
+  --tests "org.fxt.freexmltoolkit.service.XsdDocumentationAppInfoFormatTest" \
+  --tests "org.fxt.freexmltoolkit.controls.shell.inspector.AppInfoFieldsEditorTest"</code></pre>
 
 </main>
 </body>

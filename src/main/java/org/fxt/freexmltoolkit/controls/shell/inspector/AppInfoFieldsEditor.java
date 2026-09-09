@@ -1,5 +1,6 @@
 package org.fxt.freexmltoolkit.controls.shell.inspector;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -10,6 +11,7 @@ import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
@@ -37,7 +39,13 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 public final class AppInfoFieldsEditor extends VBox {
 
     /** Tags this editor manages directly; all other entries are preserved untouched. */
-    private static final Set<String> MANAGED_TAGS = Set.of("@since", "@version", "@see", "@deprecated");
+    private static final Set<String> MANAGED_TAGS =
+            Set.of("@since", "@version", "@see", "@deprecated", "@markdown");
+
+    /** The three states of the per-node Markdown preference. */
+    private static final String MARKDOWN_UNSET = "Not set";
+    private static final String MARKDOWN_ON = "Markdown";
+    private static final String MARKDOWN_OFF = "Plain text";
 
     private final Supplier<XsdSchema> schemaSupplier;
     private final Consumer<XsdAppInfo> onCommit;
@@ -47,6 +55,7 @@ public final class AppInfoFieldsEditor extends VBox {
     private final ObservableList<String> seeItems = FXCollections.observableArrayList();
     private final ListView<String> seeList = new ListView<>(seeItems);
     private final Button removeSeeButton = new Button("Remove");
+    private final ComboBox<String> markdownChoice = new ComboBox<>();
     private final CheckBox deprecatedCheck = new CheckBox("Deprecated");
     private final TextArea deprecatedArea = new TextArea();
     private final ObservableList<String> exampleItems = FXCollections.observableArrayList();
@@ -100,6 +109,14 @@ public final class AppInfoFieldsEditor extends VBox {
         HBox seeButtons = new HBox(6, addSee, removeSeeButton);
         seeButtons.setAlignment(Pos.CENTER_LEFT);
 
+        markdownChoice.setId("inspector-appinfo-markdown");
+        markdownChoice.getItems().addAll(MARKDOWN_UNSET, MARKDOWN_ON, MARKDOWN_OFF);
+        markdownChoice.getSelectionModel().selectFirst();
+        markdownChoice.setMaxWidth(Double.MAX_VALUE);
+        markdownChoice.setTooltip(new javafx.scene.control.Tooltip(
+                "Whether this node's documentation is rendered as Markdown. Only used when the "
+                        + "documentation generator is set to \"Per node\"."));
+
         deprecatedCheck.setId("inspector-appinfo-deprecated");
         deprecatedArea.setId("inspector-appinfo-deprecated-note");
         deprecatedArea.getStyleClass().add("fxt-inspector-edit");
@@ -128,6 +145,7 @@ public final class AppInfoFieldsEditor extends VBox {
                 subLabel("@version"), versionField,
                 subLabel("@see"), seeList, seeButtons,
                 deprecatedCheck, deprecatedArea,
+                subLabel("Markdown"), markdownChoice,
                 subLabel("Example values"), exampleList, exampleButtons);
     }
 
@@ -147,6 +165,11 @@ public final class AppInfoFieldsEditor extends VBox {
         });
         deprecatedCheck.selectedProperty().addListener((o, ov, nv) -> {
             deprecatedArea.setDisable(!nv);
+            if (!updating) {
+                commit();
+            }
+        });
+        markdownChoice.valueProperty().addListener((o, ov, nv) -> {
             if (!updating) {
                 commit();
             }
@@ -188,6 +211,10 @@ public final class AppInfoFieldsEditor extends VBox {
             deprecatedCheck.setSelected(deprecated);
             deprecatedArea.setDisable(!deprecated);
             deprecatedArea.setText(nullToEmpty(base.getDeprecated()));
+            Boolean markdown = base.getMarkdown();
+            markdownChoice.setValue(markdown == null
+                    ? MARKDOWN_UNSET
+                    : (markdown ? MARKDOWN_ON : MARKDOWN_OFF));
             exampleItems.setAll(base.getExampleValues());
         } finally {
             updating = false;
@@ -200,11 +227,18 @@ public final class AppInfoFieldsEditor extends VBox {
             return;
         }
         XsdAppInfo result = new XsdAppInfo();
+        // An untouched example-values block is carried over verbatim, so a schema that still uses
+        // the legacy altova: namespace is only rewritten once the user actually edits the values.
+        List<String> examples = new ArrayList<>(exampleItems);
+        boolean examplesChanged = base == null || !examples.equals(base.getExampleValues());
         // Carry over entries this editor does not manage (raw XML, @sourceFile, @author, unknown
-        // tags). Example values are managed via their own list, so exclude them here and rebuild below.
+        // tags).
         if (base != null) {
             for (XsdAppInfo.AppInfoEntry entry : base.getEntries()) {
                 if (XsdAppInfo.isExampleValuesEntry(entry)) {
+                    if (!examplesChanged) {
+                        result.addEntry(entry);
+                    }
                     continue;
                 }
                 if (entry.hasRawXml() || entry.getTag() == null || !MANAGED_TAGS.contains(entry.getTag())) {
@@ -222,7 +256,14 @@ public final class AppInfoFieldsEditor extends VBox {
         if (deprecatedCheck.isSelected()) {
             result.setDeprecated(deprecatedArea.getText() == null ? "" : deprecatedArea.getText().trim());
         }
-        result.setExampleValues(new java.util.ArrayList<>(exampleItems));
+        result.setMarkdown(switch (nullToEmpty(markdownChoice.getValue())) {
+            case MARKDOWN_ON -> Boolean.TRUE;
+            case MARKDOWN_OFF -> Boolean.FALSE;
+            default -> null;
+        });
+        if (examplesChanged) {
+            result.setExampleValues(examples);
+        }
         onCommit.accept(result);
     }
 

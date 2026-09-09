@@ -80,6 +80,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.BatchValidationFile;
 import org.fxt.freexmltoolkit.domain.XmlParserType;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdAppInfo;
 import org.fxt.freexmltoolkit.domain.XsdDocInfo;
 import org.fxt.freexmltoolkit.util.SecureXmlFactory;
 import org.jetbrains.annotations.NotNull;
@@ -1755,14 +1756,26 @@ public class XmlServiceImpl implements XmlService {
                 }
             }
 
-            // Add new javadoc appinfo elements
+            // Add new javadoc appinfo elements: the tag goes into @source, its value into the
+            // element's text content.
             String[] javadocLines = javadoc.trim().split("\n");
             for (String line : javadocLines) {
-                if (!line.trim().isEmpty()) {
-                    Element appinfo = doc.createElementNS(xsdNs, "xs:appinfo");
-                    appinfo.setAttribute("source", line.trim());
-                    annotation.appendChild(appinfo);
+                String trimmed = line.trim();
+                if (trimmed.isEmpty()) {
+                    continue;
                 }
+                String tag = XsdAppInfo.tagOf(trimmed);
+                Element appinfo = doc.createElementNS(xsdNs, "xs:appinfo");
+                if (tag != null) {
+                    appinfo.setAttribute("source", tag);
+                    String value = XsdAppInfo.valueOf(trimmed, "");
+                    if (!value.isEmpty()) {
+                        appinfo.setTextContent(value);
+                    }
+                } else {
+                    appinfo.setTextContent(trimmed);
+                }
+                annotation.appendChild(appinfo);
             }
         }
 
@@ -1779,8 +1792,8 @@ public class XmlServiceImpl implements XmlService {
 
         // 2. Define namespaces
         final String xsdNs = "http://www.w3.org/2001/XMLSchema";
-        final String altovaNs = "http://www.altova.com";
-        final String altovaPrefix = "altova";
+        final String fxtNs = XsdAppInfo.FXT_EXT_NS;
+        final String fxtPrefix = "fxt";
 
         // 3. Find the target element using a robust XPath resolution logic
         if (elementXpath == null || !elementXpath.startsWith("/")) {
@@ -1846,20 +1859,22 @@ public class XmlServiceImpl implements XmlService {
                 ? (Element) appInfoList.item(0)
                 : (Element) annotation.appendChild(doc.createElementNS(xsdNs, "xsd:appinfo"));
 
-        // 6. Remove existing exampleValues
-        NodeList existingExamplesList = appinfo.getElementsByTagNameNS(altovaNs, "exampleValues");
-        for (int i = existingExamplesList.getLength() - 1; i >= 0; i--) {
-            appinfo.removeChild(existingExamplesList.item(i));
+        // 6. Remove existing exampleValues (both the fxt: and the legacy altova: namespace)
+        for (String ns : new String[]{fxtNs, XsdAppInfo.ALTOVA_NS}) {
+            NodeList existingExamplesList = appinfo.getElementsByTagNameNS(ns, "exampleValues");
+            for (int i = existingExamplesList.getLength() - 1; i >= 0; i--) {
+                appinfo.removeChild(existingExamplesList.item(i));
+            }
         }
 
         // 7. Add new exampleValues if the list is not empty
         if (exampleValues != null && !exampleValues.isEmpty()) {
-            if (!root.hasAttribute("xmlns:" + altovaPrefix)) {
-                root.setAttributeNS(XMLConstants.XMLNS_ATTRIBUTE_NS_URI, "xmlns:" + altovaPrefix, altovaNs);
+            if (!root.hasAttribute("xmlns:" + fxtPrefix)) {
+                root.setAttributeNS(XMLConstants.XMLNS_ATTRIBUTE_NS_URI, "xmlns:" + fxtPrefix, fxtNs);
             }
-            Element exampleValuesContainer = doc.createElementNS(altovaNs, altovaPrefix + ":exampleValues");
+            Element exampleValuesContainer = doc.createElementNS(fxtNs, fxtPrefix + ":exampleValues");
             for (String value : exampleValues) {
-                Element exampleElement = doc.createElementNS(altovaNs, altovaPrefix + ":example");
+                Element exampleElement = doc.createElementNS(fxtNs, fxtPrefix + ":example");
                 exampleElement.setAttribute("value", value);
                 exampleValuesContainer.appendChild(exampleElement);
             }
@@ -1939,13 +1954,18 @@ public class XmlServiceImpl implements XmlService {
                 Element appInfo = (Element) appInfoList.item(i);
                 String source = appInfo.getAttribute("source");
 
-                if (source != null && !source.isBlank()) {
-                    if (source.startsWith("@since")) {
-                        docInfo.setSince(source.substring("@since".length()).trim());
-                    } else if (source.startsWith("@see")) {
-                        docInfo.addSee(source.substring("@see".length()).trim());
-                    } else if (source.startsWith("@deprecated")) {
-                        docInfo.setDeprecated(source.substring("@deprecated".length()).trim());
+                String tag = XsdAppInfo.tagOf(source);
+                if (tag != null) {
+                    // The value is the element's text content, falling back to the remainder of
+                    // @source for the legacy <xs:appinfo source="@since 4.0.0"/> encoding.
+                    String value = XsdAppInfo.valueOf(source, appInfo.getTextContent());
+                    switch (tag) {
+                        case "@since" -> docInfo.setSince(value);
+                        case "@see" -> docInfo.addSee(value);
+                        case "@deprecated" -> docInfo.setDeprecated(value);
+                        default -> {
+                            // other tags are not modelled by XsdDocInfo
+                        }
                     }
                 }
             }

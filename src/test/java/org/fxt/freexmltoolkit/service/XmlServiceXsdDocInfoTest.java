@@ -69,6 +69,15 @@ public class XmlServiceXsdDocInfoTest {
                         </xs:annotation>
                     </xs:element>
                 
+                    <xs:element name="CanonicalElement" type="xs:string">
+                        <xs:annotation>
+                            <xs:documentation>Element using the canonical tag form</xs:documentation>
+                            <xs:appinfo source="@since">3.1.0</xs:appinfo>
+                            <xs:appinfo source="@see">{@link CanonicalType}</xs:appinfo>
+                            <xs:appinfo source="@deprecated">Use OtherElement instead</xs:appinfo>
+                        </xs:annotation>
+                    </xs:element>
+                
                     <xs:element name="NoAnnotationsElement" type="xs:string">
                         <xs:annotation>
                             <xs:documentation>Element without doc annotations</xs:documentation>
@@ -103,6 +112,16 @@ public class XmlServiceXsdDocInfoTest {
     }
 
     @Test
+    void testGetElementDocInfo_WithCanonicalTagForm() throws Exception {
+        XsdDocInfo docInfo = xmlService.getElementDocInfo(testXsdFile, "/CanonicalElement");
+
+        assertNotNull(docInfo);
+        assertEquals("3.1.0", docInfo.getSince());
+        assertTrue(docInfo.getSee().contains("{@link CanonicalType}"));
+        assertEquals("Use OtherElement instead", docInfo.getDeprecated());
+    }
+
+    @Test
     void testGetElementDocInfo_WithNoAnnotations() throws Exception {
         XsdDocInfo docInfo = xmlService.getElementDocInfo(testXsdFile, "/NoAnnotationsElement");
 
@@ -129,5 +148,10 @@ public class XmlServiceXsdDocInfoTest {
         assertEquals("3.0.0", docInfo.getSince());
         assertTrue(docInfo.getSee().contains("{@link UpdatedType}"));
         assertEquals("This is deprecated", docInfo.getDeprecated());
+
+        // The tags must be written in the canonical form: tag in @source, value as text.
+        String written = Files.readString(testXsdFile.toPath());
+        assertTrue(written.contains("source=\"@since\""), written);
+        assertFalse(written.contains("source=\"@since 3.0.0\""), written);
     }
 }

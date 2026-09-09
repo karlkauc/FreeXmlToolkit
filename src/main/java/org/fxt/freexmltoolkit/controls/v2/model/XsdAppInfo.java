@@ -7,13 +7,22 @@ import java.util.Objects;
 /**
  * Represents structured xs:appinfo content with JavaDoc-style tags.
  * <p>
- * Supports tags like:
+ * The canonical serialization keeps the tag in the {@code source} attribute and the value in the
+ * element's text content:
+ * <pre>{@code
+ * <xs:appinfo source="@since">4.0.0</xs:appinfo>
+ * }</pre>
+ * The legacy form that packed both into the attribute ({@code <xs:appinfo source="@since 4.0.0"/>})
+ * is still read and is migrated to the canonical form on the next save.
+ * <p>
+ * Supported tags:
  * <ul>
  *   <li>@since - Version information</li>
  *   <li>@see - References to other elements</li>
  *   <li>@deprecated - Deprecation notices</li>
  *   <li>@author - Author information</li>
  *   <li>@version - Version details</li>
+ *   <li>@markdown - Whether the node's documentation is rendered as Markdown</li>
  * </ul>
  *
  * @since 2.0
@@ -28,7 +37,7 @@ public class XsdAppInfo {
     public static class AppInfoEntry {
         private final String source;  // The "source" attribute from xs:appinfo
         private final String tag;     // e.g., "@since", "@see", "@deprecated"
-        private final String content; // The content after the tag
+        private final String content; // The value of the tag (or the plain text content)
         private final String rawXml;  // Raw XML content (if appinfo contains XML elements)
 
         public AppInfoEntry(String source, String tag, String content) {
@@ -56,7 +65,7 @@ public class XsdAppInfo {
 
         /**
          * Gets the raw XML content of the appinfo element.
-         * This is used when the appinfo contains XML elements (like altova:exampleValues).
+         * This is used when the appinfo contains XML elements (like fxt:exampleValues).
          *
          * @return the raw XML content, or null if only text content
          */
@@ -96,7 +105,7 @@ public class XsdAppInfo {
         @Override
         public String toString() {
             if (tag != null && !tag.isEmpty()) {
-                return tag + " " + content;
+                return content == null || content.isEmpty() ? tag : tag + " " + content;
             }
             return content;
         }
@@ -114,10 +123,10 @@ public class XsdAppInfo {
     }
 
     /**
-     * Adds an appinfo entry with source and content (parses tag from content).
+     * Adds an appinfo entry with source and content (parses tag from source or content).
      *
      * @param source  the source attribute value
-     * @param content the content (may start with a tag like "@since")
+     * @param content the text content of the appinfo element
      */
     public void addEntry(String source, String content) {
         addEntry(source, content, null);
@@ -125,52 +134,128 @@ public class XsdAppInfo {
 
     /**
      * Adds an appinfo entry with source, content, and optional raw XML.
+     * <p>
+     * Handles all three encodings of a JavaDoc-style tag: the canonical
+     * {@code source="@since"} + text content, the legacy {@code source="@since 4.0.0"} with no
+     * text content, and the old duplicated artifact that wrote the tag into both.
      *
      * @param source  the source attribute value
-     * @param content the text content (may start with a tag like "@since")
+     * @param content the text content (may itself start with a tag like "@since")
      * @param rawXml  the raw XML content (if appinfo contains XML elements)
      */
     public void addEntry(String source, String content, String rawXml) {
-        // If we have raw XML, store it directly
+        String text = content == null ? "" : content.trim();
+        String trimmedSource = source == null ? null : source.trim();
+
         if (rawXml != null && !rawXml.trim().isEmpty()) {
-            String trimmedContent = content != null ? content.trim() : "";
-            String tag = null;
-
-            // Parse JavaDoc-style tag from source attribute if present
-            if (source != null && source.startsWith("@")) {
-                int spaceIndex = source.indexOf(' ');
-                if (spaceIndex > 0) {
-                    tag = source.substring(0, spaceIndex);
-                } else {
-                    tag = source;
-                }
-            }
-
-            entries.add(new AppInfoEntry(source, tag, trimmedContent, rawXml.trim()));
+            entries.add(new AppInfoEntry(source, tagOf(trimmedSource), text, rawXml.trim()));
             return;
         }
 
-        if (content == null || content.trim().isEmpty()) {
+        String sourceTag = tagOf(trimmedSource);
+        if (sourceTag != null) {
+            entries.add(new AppInfoEntry(sourceTag, sourceTag, valueOf(trimmedSource, text), null));
             return;
         }
 
-        String trimmedContent = content.trim();
-        String tag = null;
-        String actualContent = trimmedContent;
-
-        // Parse JavaDoc-style tag
-        if (trimmedContent.startsWith("@")) {
-            int spaceIndex = trimmedContent.indexOf(' ');
-            if (spaceIndex > 0) {
-                tag = trimmedContent.substring(0, spaceIndex);
-                actualContent = trimmedContent.substring(spaceIndex + 1).trim();
-            } else {
-                tag = trimmedContent;
-                actualContent = "";
-            }
+        boolean hasSource = trimmedSource != null && !trimmedSource.isEmpty();
+        if (text.isEmpty() && !hasSource) {
+            return;
         }
 
-        entries.add(new AppInfoEntry(source, tag, actualContent, null));
+        // Legacy form without a source attribute: the tag lives in the text content.
+        if (!hasSource && text.startsWith("@")) {
+            String tag = tagOf(text);
+            entries.add(new AppInfoEntry(tag, tag, valueOf(text, ""), null));
+            return;
+        }
+
+        entries.add(new AppInfoEntry(source, null, text, null));
+    }
+
+    /**
+     * Extracts the JavaDoc-style tag from an appinfo {@code source} attribute.
+     *
+     * @param source the source attribute value
+     * @return the tag (e.g. {@code "@since"}), or null when the source is not a tag
+     */
+    public static String tagOf(String source) {
+        if (source == null) {
+            return null;
+        }
+        String trimmed = source.trim();
+        if (!trimmed.startsWith("@") || trimmed.length() < 2) {
+            return null;
+        }
+        int space = indexOfWhitespace(trimmed);
+        return space > 0 ? trimmed.substring(0, space) : trimmed;
+    }
+
+    /**
+     * Resolves the value of a tagged appinfo from its {@code source} attribute and its text
+     * content. The text content wins; the remainder of the source attribute is the legacy
+     * fallback.
+     *
+     * @param source      the source attribute value (must start with the tag)
+     * @param textContent the element's text content (may be empty)
+     * @return the tag's value, never null
+     */
+    public static String valueOf(String source, String textContent) {
+        String tag = tagOf(source);
+        if (tag == null) {
+            return textContent == null ? "" : textContent.trim();
+        }
+        String trimmedSource = source.trim();
+        String fromSource = trimmedSource.length() > tag.length()
+                ? trimmedSource.substring(tag.length()).trim()
+                : "";
+        String text = textContent == null ? "" : textContent.trim();
+        if (!text.isEmpty()) {
+            // Strip a repeated tag written by older versions of the editor.
+            if (text.equals(trimmedSource)) {
+                text = fromSource;
+            } else if (text.equals(tag)) {
+                text = "";
+            } else if (text.startsWith(tag) && isWhitespace(text.charAt(tag.length()))) {
+                text = text.substring(tag.length()).trim();
+            }
+        }
+        return text.isEmpty() ? fromSource : text;
+    }
+
+    /**
+     * Parses the truthiness of a flag-style tag value such as {@code @markdown}.
+     *
+     * @param value the raw value
+     * @return TRUE/FALSE for a recognised value, null when the value says nothing
+     */
+    public static Boolean parseBooleanFlag(String value) {
+        if (value == null) {
+            return null;
+        }
+        return switch (value.trim().toLowerCase()) {
+            case "true", "1", "yes", "on" -> Boolean.TRUE;
+            case "false", "0", "no", "off" -> Boolean.FALSE;
+            default -> null;
+        };
+    }
+
+    private static int indexOfWhitespace(String text) {
+        for (int i = 0; i < text.length(); i++) {
+            if (isWhitespace(text.charAt(i))) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private static boolean isWhitespace(char c) {
+        return c == ' ' || c == '\t' || c == '\n' || c == '\r';
+    }
+
+    /** Adds (or re-adds) a tagged entry in the canonical form. */
+    private void addTagEntry(String tag, String value) {
+        entries.add(new AppInfoEntry(tag, tag, value == null ? "" : value.trim(), null));
     }
 
     /**
@@ -220,13 +305,19 @@ public class XsdAppInfo {
     }
 
     /**
-     * Namespace URI for FreeXmlToolkit flattening extensions.
+     * Namespace URI for FreeXmlToolkit flattening extensions ({@code fxt:sourceFile}).
      */
     private static final String FXT_NS = "http://freexmltoolkit.org/schema/flattening";
 
     /**
+     * Namespace URI for the FreeXmlToolkit XSD extensions - the namespace
+     * {@code <fxt:exampleValues>} is written in.
+     */
+    public static final String FXT_EXT_NS = "http://freexmltoolkit.org/xml-schema-extensions";
+
+    /**
      * Altova namespace URI for {@code <altova:exampleValues>} — the convention used by FundsXML
-     * schemas and recognised by {@code XsdDocumentationService}.
+     * schemas. Still read, but no longer written.
      */
     public static final String ALTOVA_NS = "http://www.altova.com/xml-schema-extensions";
 
@@ -238,64 +329,34 @@ public class XsdAppInfo {
     public List<String> toXmlStrings() {
         List<String> xmlStrings = new ArrayList<>();
         for (AppInfoEntry entry : entries) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("<xs:appinfo");
-            if (entry.getSource() != null && !entry.getSource().isEmpty()) {
-                sb.append(" source=\"").append(escapeXml(entry.getSource())).append("\"");
-            }
+            String content = entry.getContent() == null ? "" : entry.getContent();
 
-            // A source-only entry carries its whole payload in the source attribute
-            // (<xs:appinfo source="@since 4.2.8"/>) - writing the text content as well would
-            // duplicate the tag on every save.
-            if (isSourceOnly(entry)) {
-                sb.append("/>");
-                xmlStrings.add(sb.toString());
+            // The source-tracking marker keeps its own element form (see the Flatten Schema tool).
+            if ("@sourceFile".equals(entry.getTag()) && !entry.hasRawXml()) {
+                xmlStrings.add("<xs:appinfo><fxt:sourceFile xmlns:fxt=\"" + FXT_NS + "\">"
+                        + escapeXml(content) + "</fxt:sourceFile></xs:appinfo>");
                 continue;
             }
 
-            sb.append(">");
-
-            // Check for special @sourceFile tag (source tracking feature)
-            if ("@sourceFile".equals(entry.getTag())) {
-                // Serialize as clean fxt:sourceFile element with only the necessary namespace
-                sb.append("<fxt:sourceFile xmlns:fxt=\"").append(FXT_NS).append("\">");
-                sb.append(escapeXml(entry.getContent()));
-                sb.append("</fxt:sourceFile>");
-            } else if (entry.hasRawXml()) {
-                // Use raw XML for other complex content
-                sb.append("\n").append(entry.getRawXml()).append("\n");
-            } else {
-                // Simple text content
-                if (entry.getTag() != null && !entry.getTag().isEmpty()) {
-                    sb.append(escapeXml(entry.getTag())).append(" ");
-                }
-                sb.append(escapeXml(entry.getContent()));
+            StringBuilder sb = new StringBuilder();
+            sb.append("<xs:appinfo");
+            String source = entry.getTag() != null && !entry.getTag().isEmpty()
+                    ? entry.getTag()
+                    : entry.getSource();
+            if (source != null && !source.isEmpty()) {
+                sb.append(" source=\"").append(escapeXml(source)).append("\"");
             }
 
-            sb.append("</xs:appinfo>");
+            if (entry.hasRawXml()) {
+                sb.append(">\n").append(entry.getRawXml()).append("\n</xs:appinfo>");
+            } else if (content.isEmpty()) {
+                sb.append("/>");
+            } else {
+                sb.append(">").append(escapeXml(content)).append("</xs:appinfo>");
+            }
             xmlStrings.add(sb.toString());
         }
         return xmlStrings;
-    }
-
-    /**
-     * Checks whether an entry's text content would merely repeat its {@code source} attribute -
-     * the self-closing form {@code <xs:appinfo source="@since 4.2.8"/>} used by the JavaDoc-style
-     * tags and produced by the structured setters.
-     *
-     * @param entry the entry to test
-     * @return true if the entry serializes as a self-closing element
-     */
-    private static boolean isSourceOnly(AppInfoEntry entry) {
-        String source = entry.getSource();
-        if (source == null || source.isBlank() || entry.hasRawXml()) {
-            return false;
-        }
-        String content = entry.getContent() == null ? "" : entry.getContent();
-        String reconstructed = entry.getTag() == null || entry.getTag().isEmpty()
-                ? content
-                : entry.getTag() + " " + content;
-        return source.trim().equals(reconstructed.trim());
     }
 
     /**
@@ -315,15 +376,21 @@ public class XsdAppInfo {
             AppInfoEntry entry = entries.get(i);
             if (entry.getTag() != null && !entry.getTag().isEmpty()) {
                 sb.append(entry.getTag()).append(" ");
+                sb.append(entry.getContent());
+            } else if ((entry.getContent() == null || entry.getContent().isEmpty())
+                    && entry.getSource() != null && !entry.getSource().isEmpty()) {
+                // A bare <xs:appinfo source="urn:..."/> has no text of its own to show.
+                sb.append(entry.getSource());
+            } else {
+                sb.append(entry.getContent());
             }
-            sb.append(entry.getContent());
         }
         return sb.toString();
     }
 
     /**
      * Parses display string back to entries.
-     * Each line starting with @ is treated as a new entry.
+     * Each line starting with @ is treated as a tagged entry.
      *
      * @param displayString the string from UI
      * @return XsdAppInfo instance
@@ -337,8 +404,14 @@ public class XsdAppInfo {
         String[] lines = displayString.split("\n");
         for (String line : lines) {
             String trimmedLine = line.trim();
-            if (!trimmedLine.isEmpty()) {
-                appInfo.addEntry(trimmedLine, trimmedLine);
+            if (trimmedLine.isEmpty()) {
+                continue;
+            }
+            String tag = tagOf(trimmedLine);
+            if (tag != null) {
+                appInfo.addTagEntry(tag, valueOf(trimmedLine, ""));
+            } else {
+                appInfo.addEntry(null, trimmedLine, null);
             }
         }
 
@@ -364,10 +437,7 @@ public class XsdAppInfo {
      * @return the since version, or null if not set
      */
     public String getSince() {
-        return getEntriesWithTag("@since").stream()
-                .findFirst()
-                .map(AppInfoEntry::getContent)
-                .orElse(null);
+        return firstContentOf("@since");
     }
 
     /**
@@ -378,8 +448,7 @@ public class XsdAppInfo {
     public void setSince(String version) {
         removeEntriesWithTag("@since");
         if (version != null && !version.trim().isEmpty()) {
-            String trimmed = version.trim();
-            addEntry("@since " + trimmed, "@since " + trimmed);
+            addTagEntry("@since", version);
         }
     }
 
@@ -389,10 +458,7 @@ public class XsdAppInfo {
      * @return the version, or null if not set
      */
     public String getVersion() {
-        return getEntriesWithTag("@version").stream()
-                .findFirst()
-                .map(AppInfoEntry::getContent)
-                .orElse(null);
+        return firstContentOf("@version");
     }
 
     /**
@@ -403,8 +469,7 @@ public class XsdAppInfo {
     public void setVersion(String version) {
         removeEntriesWithTag("@version");
         if (version != null && !version.trim().isEmpty()) {
-            String trimmed = version.trim();
-            addEntry("@version " + trimmed, "@version " + trimmed);
+            addTagEntry("@version", version);
         }
     }
 
@@ -414,10 +479,7 @@ public class XsdAppInfo {
      * @return the author, or null if not set
      */
     public String getAuthor() {
-        return getEntriesWithTag("@author").stream()
-                .findFirst()
-                .map(AppInfoEntry::getContent)
-                .orElse(null);
+        return firstContentOf("@author");
     }
 
     /**
@@ -428,8 +490,7 @@ public class XsdAppInfo {
     public void setAuthor(String author) {
         removeEntriesWithTag("@author");
         if (author != null && !author.trim().isEmpty()) {
-            String trimmed = author.trim();
-            addEntry("@author " + trimmed, "@author " + trimmed);
+            addTagEntry("@author", author);
         }
     }
 
@@ -451,8 +512,7 @@ public class XsdAppInfo {
      */
     public void addSeeReference(String reference) {
         if (reference != null && !reference.trim().isEmpty()) {
-            String trimmed = reference.trim();
-            addEntry("@see " + trimmed, "@see " + trimmed);
+            addTagEntry("@see", reference);
         }
     }
 
@@ -483,10 +543,7 @@ public class XsdAppInfo {
      * @return the deprecation message (may contain {@link} tags), or null if not deprecated
      */
     public String getDeprecated() {
-        return getEntriesWithTag("@deprecated").stream()
-                .findFirst()
-                .map(AppInfoEntry::getContent)
-                .orElse(null);
+        return firstContentOf("@deprecated");
     }
 
     /**
@@ -506,8 +563,7 @@ public class XsdAppInfo {
     public void setDeprecated(String message) {
         removeEntriesWithTag("@deprecated");
         if (message != null) {
-            String trimmed = message.trim();
-            addEntry("@deprecated " + trimmed, "@deprecated " + trimmed);
+            addTagEntry("@deprecated", message);
         }
     }
 
@@ -519,6 +575,30 @@ public class XsdAppInfo {
     }
 
     /**
+     * Gets the node-level Markdown rendering preference (@markdown).
+     *
+     * @return TRUE/FALSE when the node states a preference, null when it does not
+     */
+    public Boolean getMarkdown() {
+        return getEntriesWithTag("@markdown").stream()
+                .findFirst()
+                .map(e -> parseBooleanFlag(e.getContent()))
+                .orElse(null);
+    }
+
+    /**
+     * Sets the node-level Markdown rendering preference.
+     *
+     * @param markdown TRUE/FALSE to state a preference, null to remove the tag
+     */
+    public void setMarkdown(Boolean markdown) {
+        removeEntriesWithTag("@markdown");
+        if (markdown != null) {
+            addTagEntry("@markdown", markdown ? "true" : "false");
+        }
+    }
+
+    /**
      * Removes all entries with a specific tag.
      *
      * @param tag the tag to remove (e.g., "@since", "@deprecated")
@@ -527,20 +607,33 @@ public class XsdAppInfo {
         entries.removeIf(e -> Objects.equals(tag, e.getTag()));
     }
 
-    // ==================== Example Values (altova:exampleValues) ====================
+    private String firstContentOf(String tag) {
+        return getEntriesWithTag(tag).stream()
+                .findFirst()
+                .map(AppInfoEntry::getContent)
+                .orElse(null);
+    }
+
+    // ==================== Example Values (fxt:exampleValues / altova:exampleValues) ====================
 
     /**
-     * Checks whether an entry holds an {@code altova:exampleValues} block.
+     * Checks whether an entry holds an {@code exampleValues} block, in either the FreeXmlToolkit
+     * or the Altova namespace.
      *
      * @param entry the entry to test
      * @return true if the entry's raw XML contains an {@code exampleValues} element
      */
     public static boolean isExampleValuesEntry(AppInfoEntry entry) {
-        return entry != null && entry.hasRawXml() && entry.getRawXml().contains("exampleValues");
+        if (entry == null || !entry.hasRawXml()) {
+            return false;
+        }
+        String raw = entry.getRawXml();
+        return raw.contains(":exampleValues") || raw.contains("<exampleValues");
     }
 
     /**
-     * Gets the example values declared via {@code altova:exampleValues}.
+     * Gets the example values declared via {@code fxt:exampleValues} or the legacy
+     * {@code altova:exampleValues}.
      *
      * @return the list of example values (empty if none)
      */
@@ -562,17 +655,18 @@ public class XsdAppInfo {
     /**
      * Checks whether any example values are present.
      *
-     * @return true if an {@code altova:exampleValues} block exists
+     * @return true if an {@code exampleValues} block exists
      */
     public boolean hasExampleValues() {
         return entries.stream().anyMatch(XsdAppInfo::isExampleValuesEntry);
     }
 
     /**
-     * Replaces the {@code altova:exampleValues} block with the given values. Any existing
-     * exampleValues entry is removed first; a blank/empty list clears example values entirely.
-     * The block carries its own {@code xmlns:altova} declaration so it serializes as valid XML
-     * regardless of the schema-root namespace declarations.
+     * Replaces the example-values block with the given values, written as
+     * {@code fxt:exampleValues}. Any existing block (including a legacy {@code altova:} one) is
+     * removed first; a blank/empty list clears example values entirely. The block carries its own
+     * {@code xmlns:fxt} declaration so it serializes as valid XML regardless of the schema-root
+     * namespace declarations.
      *
      * @param values the example values (null/empty clears)
      */
@@ -586,11 +680,11 @@ public class XsdAppInfo {
             return;
         }
         StringBuilder sb = new StringBuilder();
-        sb.append("<altova:exampleValues xmlns:altova=\"").append(ALTOVA_NS).append("\">");
+        sb.append("<fxt:exampleValues xmlns:fxt=\"").append(FXT_EXT_NS).append("\">");
         for (String v : clean) {
-            sb.append("<altova:example value=\"").append(escapeXml(v)).append("\"/>");
+            sb.append("<fxt:example value=\"").append(escapeXml(v)).append("\"/>");
         }
-        sb.append("</altova:exampleValues>");
+        sb.append("</fxt:exampleValues>");
         entries.add(new AppInfoEntry(null, null, "", sb.toString()));
     }
 

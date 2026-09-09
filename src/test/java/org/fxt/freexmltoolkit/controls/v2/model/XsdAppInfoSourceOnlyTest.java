@@ -17,12 +17,12 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests for source-only {@code xs:appinfo} elements — the self-closing form
- * {@code <xs:appinfo source="@since 4.2.8"/>} used throughout FundsXML and recommended by the
- * user documentation. The JavaDoc-style tag lives in the {@code source} attribute only, with no
- * text content, and must survive parsing, editing and serialization.
+ * Tests for the legacy source-only {@code xs:appinfo} form
+ * {@code <xs:appinfo source="@since 4.2.8"/>} used throughout FundsXML: the JavaDoc-style tag and
+ * its value both live in the {@code source} attribute. It must still parse, and it is migrated to
+ * the canonical {@code <xs:appinfo source="@since">4.2.8</xs:appinfo>} form on serialization.
  */
-@DisplayName("Source-only xs:appinfo (JavaDoc tags in @source)")
+@DisplayName("Legacy source-only xs:appinfo (tag and value in @source)")
 class XsdAppInfoSourceOnlyTest {
 
     private static final String SCHEMA_WITH_SOURCE_ONLY_APPINFO = """
@@ -69,8 +69,8 @@ class XsdAppInfoSourceOnlyTest {
     }
 
     @Test
-    @DisplayName("A managed tag serializes as a self-closing appinfo without duplicated text")
-    void managedTagSerializesAsSelfClosingAppinfo() {
+    @DisplayName("A managed tag serializes with the tag in @source and the value as text")
+    void managedTagSerializesInTheCanonicalForm() {
         XsdAppInfo appinfo = new XsdAppInfo();
         appinfo.setSince("4.2.8");
         appinfo.addSeeReference("{@link /FundsXML4/ControlData}");
@@ -79,9 +79,9 @@ class XsdAppInfoSourceOnlyTest {
         List<String> xml = appinfo.toXmlStrings();
 
         assertEquals(List.of(
-                "<xs:appinfo source=\"@since 4.2.8\"/>",
-                "<xs:appinfo source=\"@see {@link /FundsXML4/ControlData}\"/>",
-                "<xs:appinfo source=\"@deprecated Use NewTransaction instead.\"/>"), xml);
+                "<xs:appinfo source=\"@since\">4.2.8</xs:appinfo>",
+                "<xs:appinfo source=\"@see\">{@link /FundsXML4/ControlData}</xs:appinfo>",
+                "<xs:appinfo source=\"@deprecated\">Use NewTransaction instead.</xs:appinfo>"), xml);
     }
 
     @Test
@@ -97,14 +97,16 @@ class XsdAppInfoSourceOnlyTest {
     }
 
     @Test
-    @DisplayName("Round trip keeps the documented self-closing form")
-    void roundTripKeepsSelfClosingForm() throws Exception {
+    @DisplayName("Round trip migrates the legacy form to the canonical one")
+    void roundTripMigratesToTheCanonicalForm() throws Exception {
         XsdSchema schema = new XsdNodeFactory().fromString(SCHEMA_WITH_SOURCE_ONLY_APPINFO);
 
         String serialized = new XsdSerializer().serialize(schema);
 
-        assertTrue(serialized.contains("<xs:appinfo source=\"@since 4.2.8\"/>"),
-                "the @since tag must round trip in its self-closing form, was:\n" + serialized);
+        assertTrue(serialized.contains("<xs:appinfo source=\"@since\">4.2.8</xs:appinfo>"),
+                "the @since tag must be written in the canonical form, was:\n" + serialized);
+        assertFalse(serialized.contains("source=\"@since 4.2.8\""),
+                "the legacy form must not survive a save, was:\n" + serialized);
         assertFalse(serialized.contains(">@since"),
                 "the tag must not be duplicated into the text content, was:\n" + serialized);
     }

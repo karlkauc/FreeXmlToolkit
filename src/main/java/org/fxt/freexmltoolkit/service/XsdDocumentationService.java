@@ -71,6 +71,7 @@ import javax.xml.xpath.XPathFactory;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdAppInfo;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.IdentityConstraint;
 import org.fxt.freexmltoolkit.domain.OpenContent;
@@ -100,7 +101,8 @@ public class XsdDocumentationService {
     private static final Logger logger = LogManager.getLogger(XsdDocumentationService.class);
     private static final String NS_PREFIX = "xs";
     private static final String NS_URI = "http://www.w3.org/2001/XMLSchema";
-    private static final String ALTOVA_NS_URI = "http://www.altova.com/xml-schema-extensions";
+    private static final String ALTOVA_NS_URI = XsdAppInfo.ALTOVA_NS;
+    private static final String FXT_EXT_NS_URI = XsdAppInfo.FXT_EXT_NS;
 
     String xsdFilePath;
     public XsdDocumentationData xsdDocumentationData = new XsdDocumentationData();
@@ -120,8 +122,21 @@ public class XsdDocumentationService {
         SVG, PNG, JPG
     }
 
+    /**
+     * How the Markdown renderer is applied to {@code xs:documentation} content.
+     * <ul>
+     *   <li>{@link #OFF} - never render Markdown</li>
+     *   <li>{@link #ALL} - render every node's documentation as Markdown</li>
+     *   <li>{@link #PER_NODE} - render only nodes whose {@code xs:appinfo} says
+     *       {@code @markdown = true}</li>
+     * </ul>
+     */
+    public enum MarkdownMode {
+        OFF, ALL, PER_NODE
+    }
+
     private ImageOutputMethod imageOutputMethod = ImageOutputMethod.SVG;
-    Boolean useMarkdownRenderer = true;
+    MarkdownMode markdownMode = MarkdownMode.ALL;
     Boolean includeTypeDefinitionsInSourceCode = false;
 
     private TaskProgressListener progressListener;
@@ -219,8 +234,35 @@ public class XsdDocumentationService {
         this.parallelProcessing = parallelProcessing;
     }
 
+    /**
+     * Sets how the Markdown renderer is applied.
+     *
+     * @param markdownMode the mode; null falls back to {@link MarkdownMode#ALL}
+     */
+    public void setMarkdownMode(MarkdownMode markdownMode) {
+        this.markdownMode = markdownMode == null ? MarkdownMode.ALL : markdownMode;
+    }
+
+    /**
+     * @return how the Markdown renderer is applied
+     */
+    public MarkdownMode getMarkdownMode() {
+        return markdownMode;
+    }
+
+    /**
+     * Compatibility overload of {@link #setMarkdownMode(MarkdownMode)}.
+     *
+     * @param useMarkdownRenderer true maps to {@link MarkdownMode#ALL}, false to
+     *                            {@link MarkdownMode#OFF}
+     */
     public void setUseMarkdownRenderer(Boolean useMarkdownRenderer) {
-        this.useMarkdownRenderer = useMarkdownRenderer;
+        setMarkdownMode(Boolean.FALSE.equals(useMarkdownRenderer) ? MarkdownMode.OFF : MarkdownMode.ALL);
+    }
+
+    /** @return the per-element default derived from the current {@link MarkdownMode}. */
+    private boolean defaultMarkdownRendering() {
+        return markdownMode == MarkdownMode.ALL;
     }
 
     public void setIncludeTypeDefinitionsInSourceCode(Boolean includeTypeDefinitionsInSourceCode) {
@@ -377,7 +419,7 @@ public class XsdDocumentationService {
 
     public void generateXsdDocumentation(File outputDirectory) throws Exception {
         logger.debug("Starting documentation generation...");
-        processXsd(this.useMarkdownRenderer);
+        processXsd(this.markdownMode);
 
         xsdDocumentationHtmlService.setOutputDirectory(outputDirectory);
         xsdDocumentationHtmlService.setDocumentationData(xsdDocumentationData);
@@ -487,8 +529,25 @@ public class XsdDocumentationService {
         }
     }
 
+    /**
+     * Compatibility overload of {@link #processXsd(MarkdownMode)}.
+     *
+     * @param useMarkdownRenderer true maps to {@link MarkdownMode#ALL}, false to
+     *                            {@link MarkdownMode#OFF}
+     * @throws Exception if the schema cannot be processed
+     */
     public void processXsd(Boolean useMarkdownRenderer) throws Exception {
-        this.useMarkdownRenderer = useMarkdownRenderer;
+        processXsd(Boolean.FALSE.equals(useMarkdownRenderer) ? MarkdownMode.OFF : MarkdownMode.ALL);
+    }
+
+    /**
+     * Parses the schema and builds the documentation model.
+     *
+     * @param markdownMode how the Markdown renderer is applied
+     * @throws Exception if the schema cannot be processed
+     */
+    public void processXsd(MarkdownMode markdownMode) throws Exception {
+        setMarkdownMode(markdownMode);
         initializeXmlTools();
 
         // Process all schemas (including xs:include and xs:import)
@@ -1594,7 +1653,7 @@ public class XsdDocumentationService {
         }
 
         XsdExtendedElement extendedElem = new XsdExtendedElement();
-        extendedElem.setUseMarkdownRenderer(this.useMarkdownRenderer);
+        extendedElem.setUseMarkdownRenderer(defaultMarkdownRendering());
         extendedElem.setCurrentNode(node);
         extendedElem.setCounter(counter++);
         extendedElem.setLevel(level);
@@ -1629,7 +1688,7 @@ public class XsdDocumentationService {
 
     private void processElementOrAttribute(Node node, String currentXPath, String parentXPath, int level, Set<Node> visitedOnPath) {
         XsdExtendedElement extendedElem = new XsdExtendedElement();
-        extendedElem.setUseMarkdownRenderer(this.useMarkdownRenderer);
+        extendedElem.setUseMarkdownRenderer(defaultMarkdownRendering());
         extendedElem.setCurrentNode(node);
 
         // Check if this element is from a reference and set the cardinality node
@@ -2873,6 +2932,37 @@ public class XsdDocumentationService {
         logger.debug("Type usage index built with {} types.", typeUsageMap.size());
     }
 
+    /**
+     * Reads the example values declared by an {@code xs:appinfo}, accepting both the
+     * FreeXmlToolkit namespace and the legacy Altova one.
+     *
+     * @param appInfoNode the appinfo element
+     * @return the declared example values, empty when the appinfo declares none
+     */
+    private List<String> readExampleValues(Node appInfoNode) {
+        List<String> values = new ArrayList<>();
+        for (Node appInfoChild : getDirectChildElements(appInfoNode)) {
+            if (!isExampleValuesNamespace(appInfoChild.getNamespaceURI())
+                    || !"exampleValues".equals(appInfoChild.getLocalName())) {
+                continue;
+            }
+            for (Node exampleNode : getDirectChildElements(appInfoChild)) {
+                if (isExampleValuesNamespace(exampleNode.getNamespaceURI())
+                        && "example".equals(exampleNode.getLocalName())) {
+                    String value = getAttributeValue(exampleNode, "value");
+                    if (value != null) {
+                        values.add(value);
+                    }
+                }
+            }
+        }
+        return values;
+    }
+
+    private static boolean isExampleValuesNamespace(String namespaceUri) {
+        return ALTOVA_NS_URI.equals(namespaceUri) || FXT_EXT_NS_URI.equals(namespaceUri);
+    }
+
     private void processAnnotations(Node annotationNode, XsdExtendedElement extendedElem) {
         if (annotationNode == null) {
             return;
@@ -2896,40 +2986,42 @@ public class XsdDocumentationService {
         List<String> exampleValues = new ArrayList<>(extendedElem.getExampleValues()); // Mutable copy for example values
 
         for (Node appInfoNode : getDirectChildElements(annotationNode, "appinfo")) {
-            // Process Javadoc-style tags
             String source = getAttributeValue(appInfoNode, "source");
-            if (source != null && !source.isBlank()) {
-                if (source.startsWith("@since")) {
-                    xsdDocInfo.setSince(source.substring("@since".length()).trim());
-                } else if (source.startsWith("@see")) {
-                    xsdDocInfo.addSee(source.substring("@see".length()).trim());
-                } else if (source.startsWith("@deprecated")) {
-                    xsdDocInfo.setDeprecated(source.substring("@deprecated".length()).trim());
-                } else {
-                    genericAppInfos.add(source);
+
+            // Example values (fxt: or the legacy altova: convention) - independent of @source.
+            List<String> declaredExamples = readExampleValues(appInfoNode);
+            if (!declaredExamples.isEmpty()) {
+                exampleValues.addAll(declaredExamples);
+                continue;
+            }
+
+            // JavaDoc-style tags. The tag lives in @source; its value is the element's text
+            // content, falling back to the remainder of @source for the legacy encoding
+            // <xs:appinfo source="@since 4.0.0"/>.
+            String tag = XsdAppInfo.tagOf(source);
+            if (tag == null) {
+                String generic = (source != null && !source.isBlank())
+                        ? source
+                        : appInfoNode.getTextContent();
+                if (generic != null && !generic.isBlank()) {
+                    genericAppInfos.add(generic);
                 }
-            } else {
-                // Extract Altova example values
-                boolean isAltovaExample = false;
-                for (Node appInfoChild : getDirectChildElements(appInfoNode)) {
-                    // Check if the node belongs to Altova and is <exampleValues>
-                    if (ALTOVA_NS_URI.equals(appInfoChild.getNamespaceURI()) && "exampleValues".equals(appInfoChild.getLocalName())) {
-                        isAltovaExample = true;
-                        // Iterate through all <example> children
-                        for (Node exampleNode : getDirectChildElements(appInfoChild)) {
-                            if (ALTOVA_NS_URI.equals(exampleNode.getNamespaceURI()) && "example".equals(exampleNode.getLocalName())) {
-                                String value = getAttributeValue(exampleNode, "value");
-                                if (value != null) {
-                                    exampleValues.add(value);
-                                }
-                            }
-                        }
+                continue;
+            }
+
+            String value = XsdAppInfo.valueOf(source, appInfoNode.getTextContent());
+            switch (tag) {
+                case "@since" -> xsdDocInfo.setSince(value);
+                case "@see" -> xsdDocInfo.addSee(value);
+                case "@deprecated" -> xsdDocInfo.setDeprecated(value);
+                case "@markdown" -> {
+                    // Only honored when the generator was asked to follow the node values.
+                    Boolean markdown = XsdAppInfo.parseBooleanFlag(value);
+                    if (markdownMode == MarkdownMode.PER_NODE && markdown != null) {
+                        extendedElem.setUseMarkdownRenderer(markdown);
                     }
                 }
-                // If it wasn't an Altova example, treat as generic info
-                if (!isAltovaExample) {
-                    genericAppInfos.add(appInfoNode.getTextContent());
-                }
+                default -> genericAppInfos.add(value.isEmpty() ? tag : tag + " " + value);
             }
         }
 

@@ -388,7 +388,7 @@ Create professional documentation from your XSD file automatically.
 
 | Option                                          | Description                                                        |
 |-------------------------------------------------|--------------------------------------------------------------------|
-| **Use Markdown renderer**                       | Render Markdown formatting inside `xs:documentation` text          |
+| **Markdown rendering**                          | *All documentation* (default), *Per node (`@markdown`)*, or *Off* - see below      |
 | **Include type definitions in source code**     | Show the type's XSD source on the detail pages                     |
 | **Show documentation in diagrams**              | Print the documentation text inside the SVG element boxes          |
 | **Generate SVG overview page**                  | Interactive full-schema SVG                                        |
@@ -398,6 +398,29 @@ Create professional documentation from your XSD file automatically.
 | **Favicon**                                     | A custom icon file for the HTML output                             |
 | **PDF / Word options**                          | Cover page, table of contents, data dictionary, schema diagram, element diagrams, page numbers, PDF bookmarks |
 | **Open the generated documentation after creation** | Opens `index.html` (HTML) or the generated file in your system viewer |
+
+#### Markdown rendering
+
+`xs:documentation` text can be rendered as Markdown, so `**bold**`, lists and links show up
+formatted on the generated pages. The choice has three settings:
+
+| Setting | Effect |
+|---------|--------|
+| **All documentation** *(default)* | Every node's documentation is rendered as Markdown |
+| **Per node (`@markdown`)** | Only nodes whose annotation says `@markdown` is `true` are rendered - everything else, including nodes that say nothing, stays plain text |
+| **Off** | Nothing is rendered, whatever the nodes say |
+
+The per-node switch lives in the schema itself and is edited in the Inspector's **Markdown**
+choice (*Not set* / *Markdown* / *Plain text*):
+
+```xml
+<xs:element name="Transaction">
+    <xs:annotation>
+        <xs:documentation>A **single** financial transaction.</xs:documentation>
+        <xs:appinfo source="@markdown">true</xs:appinfo>
+    </xs:annotation>
+</xs:element>
+```
 
 ### Language Settings
 
@@ -418,12 +441,21 @@ all of them.
 
 You can add structured technical information directly in your XSD files:
 
+The tag goes into the `source` attribute of an `xs:appinfo`, its value into the element's text
+content.
+
 **Supported tags:**
 
 - `@since` - When a feature was introduced
-- `@see` - References to other elements
+- `@version` - Version detail of the component
+- `@see` - References to other elements (may occur several times)
 - `@deprecated` - Mark elements as deprecated
-- `{@link /path/to/element}` - Create clickable links
+- `@markdown` - `true`/`false`, whether this node's documentation is rendered as Markdown
+  (see [Markdown rendering](#markdown-rendering))
+- `{@link /path/to/element}` - Create clickable links inside `@see` and `@deprecated`
+
+Example values are a separate block rather than a tag. They appear as **Sample Data** on the
+detail pages and also feed the sample-XML generator and IntelliSense.
 
 **Example in your XSD:**
 
@@ -432,17 +464,32 @@ You can add structured technical information directly in your XSD files:
 <xs:element name="Transaction">
     <xs:annotation>
         <!-- User-friendly documentation -->
-        <xs:documentation>
-            Represents a single financial transaction.
-        </xs:documentation>
+        <xs:documentation xml:lang="en">A single financial transaction.</xs:documentation>
+        <xs:documentation xml:lang="de">Eine einzelne Transaktion.</xs:documentation>
 
         <!-- Technical notes for developers -->
-        <xs:appinfo source="@since 4.0.0"/>
-        <xs:appinfo source="@see {@link /FundsXML4/ControlData}"/>
-        <xs:appinfo source="@deprecated Use NewTransaction instead."/>
+        <xs:appinfo source="@since">4.0.0</xs:appinfo>
+        <xs:appinfo source="@version">1.2</xs:appinfo>
+        <xs:appinfo source="@see">{@link /FundsXML4/ControlData}</xs:appinfo>
+        <xs:appinfo source="@deprecated">Use {@link /FundsXML4/NewTransaction} instead.</xs:appinfo>
+        <xs:appinfo source="@markdown">true</xs:appinfo>
+
+        <!-- Example values -->
+        <xs:appinfo>
+            <fxt:exampleValues xmlns:fxt="http://freexmltoolkit.org/xml-schema-extensions">
+                <fxt:example value="TRX-0815"/>
+                <fxt:example value="TRX-0816"/>
+            </fxt:exampleValues>
+        </xs:appinfo>
     </xs:annotation>
 </xs:element>
 ```
+
+> **Older schemas keep working.** The form that packs tag and value into the attribute alone -
+> `<xs:appinfo source="@since 4.0.0"/>`, used throughout FundsXML - is still read, and so is
+> `altova:exampleValues`. Both are rewritten into the form above the next time you save the
+> schema from the toolkit; the generated documentation is the same either way. An
+> `altova:exampleValues` block is only converted once you actually change the example values.
 
 ---
 

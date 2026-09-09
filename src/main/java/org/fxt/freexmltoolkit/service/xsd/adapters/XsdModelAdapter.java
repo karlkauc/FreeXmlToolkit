@@ -848,32 +848,22 @@ public class XsdModelAdapter {
                                 }
                             }
 
-                            if (hasChildElements) {
-                                // Check for special fxt:sourceFile element (source tracking feature)
-                                if (firstChildElement != null &&
-                                    "sourceFile".equals(firstChildElement.getLocalName()) &&
-                                    "http://freexmltoolkit.org/schema/flattening".equals(firstChildElement.getNamespaceURI())) {
-                                    // Store as @sourceFile tag with just the filename
-                                    String fileName = firstChildElement.getTextContent();
-                                    if (fileName != null && !fileName.trim().isEmpty()) {
-                                        appInfo.addEntry(source, "@sourceFile " + fileName.trim());
-                                    }
-                                } else {
-                                    // Other complex XML content - serialize as rawXml
-                                    String rawXml = serializeInnerXml(childEl);
-                                    String textContent = childEl.getTextContent();
-                                    appInfo.addEntry(source, textContent != null ? textContent.trim() : "", rawXml);
+                            // Special fxt:sourceFile element (source tracking feature): store it
+                            // as an @sourceFile tag so it serializes back as a clean element.
+                            if (hasChildElements && firstChildElement != null
+                                    && "sourceFile".equals(firstChildElement.getLocalName())
+                                    && "http://freexmltoolkit.org/schema/flattening".equals(firstChildElement.getNamespaceURI())) {
+                                String fileName = firstChildElement.getTextContent();
+                                if (fileName != null && !fileName.trim().isEmpty()) {
+                                    appInfo.addEntry(null, "@sourceFile " + fileName.trim(), null);
                                 }
                             } else {
-                                // Simple text content
-                                String appinfoContent = childEl.getTextContent();
-                                if (appinfoContent != null && !appinfoContent.trim().isEmpty()) {
-                                    appInfo.addEntry(source, appinfoContent.trim());
-                                } else if (source != null && !source.isEmpty()) {
-                                    // Source-only appinfo such as <xs:appinfo source="@since 4.2.8"/>:
-                                    // the JavaDoc-style tag lives in the source attribute, so use it as content.
-                                    appInfo.addEntry(source, source);
-                                }
+                                // XsdAppInfo resolves the tag/value split for all supported
+                                // encodings (source="@since" + text, the legacy
+                                // source="@since 4.2.8", and the old duplicated form).
+                                String textContent = childEl.getTextContent();
+                                appInfo.addEntry(source, textContent,
+                                        hasChildElements ? serializeInnerXml(childEl) : null);
                             }
                         }
                     }

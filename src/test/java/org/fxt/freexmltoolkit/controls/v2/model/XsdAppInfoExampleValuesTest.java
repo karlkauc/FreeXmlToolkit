@@ -9,7 +9,8 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests for the {@code altova:exampleValues} support in {@link XsdAppInfo}.
+ * Tests for the example-values support in {@link XsdAppInfo}: values are written as
+ * {@code fxt:exampleValues}, while the legacy {@code altova:exampleValues} form is still read.
  */
 class XsdAppInfoExampleValuesTest {
 
@@ -22,13 +23,43 @@ class XsdAppInfoExampleValuesTest {
     }
 
     @Test
-    void rawXml_carriesInlineAltovaNamespace() {
+    void rawXml_carriesInlineFxtNamespace() {
         XsdAppInfo appInfo = new XsdAppInfo();
         appInfo.setExampleValues(List.of("A"));
         XsdAppInfo.AppInfoEntry entry = appInfo.getEntries().stream()
                 .filter(XsdAppInfo::isExampleValuesEntry).findFirst().orElseThrow();
-        assertTrue(entry.getRawXml().contains("xmlns:altova=\"" + XsdAppInfo.ALTOVA_NS + "\""));
-        assertTrue(entry.getRawXml().contains("<altova:example value=\"A\"/>"));
+        assertTrue(entry.getRawXml().contains("xmlns:fxt=\"" + XsdAppInfo.FXT_EXT_NS + "\""));
+        assertTrue(entry.getRawXml().contains("<fxt:example value=\"A\"/>"));
+        assertFalse(entry.getRawXml().contains("altova"), "new blocks no longer use the Altova namespace");
+    }
+
+    @Test
+    void legacyAltovaBlock_isStillRecognisedAndRead() {
+        XsdAppInfo appInfo = new XsdAppInfo();
+        appInfo.addEntry(null, "", "<altova:exampleValues xmlns:altova=\"" + XsdAppInfo.ALTOVA_NS + "\">"
+                + "<altova:example value=\"WBAH\"/><altova:example value=\"XLON\"/>"
+                + "</altova:exampleValues>");
+
+        assertTrue(appInfo.hasExampleValues());
+        assertEquals(List.of("WBAH", "XLON"), appInfo.getExampleValues());
+
+        // Untouched, a legacy block round-trips verbatim - it is only rewritten once the values
+        // are replaced.
+        assertTrue(appInfo.toXmlStrings().getFirst().contains("altova:exampleValues"));
+    }
+
+    @Test
+    void replacingALegacyBlock_writesTheFxtNamespace() {
+        XsdAppInfo appInfo = new XsdAppInfo();
+        appInfo.addEntry(null, "", "<altova:exampleValues xmlns:altova=\"" + XsdAppInfo.ALTOVA_NS + "\">"
+                + "<altova:example value=\"WBAH\"/></altova:exampleValues>");
+
+        appInfo.setExampleValues(List.of("WBAH", "XLON"));
+
+        assertEquals(1, appInfo.getEntries().stream().filter(XsdAppInfo::isExampleValuesEntry).count());
+        String xml = appInfo.toXmlStrings().getFirst();
+        assertTrue(xml.contains("<fxt:exampleValues"), xml);
+        assertFalse(xml.contains("altova"), xml);
     }
 
     @Test

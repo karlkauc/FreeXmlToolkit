@@ -349,9 +349,11 @@ a tab in the main editor area with the full option set:
 - **SOURCE & OUTPUT** - the XSD (the active schema is pre-filled) and the output folder
   (HTML) or file (PDF/Word).
 - **FORMAT** - HTML, PDF, or Word.
-- **OPTIONS** - Markdown renderer, type definitions in source code, documentation in
-  diagrams, SVG overview page, metadata, the diagram image format (SVG/PNG/JPG), and a
-  **favicon** (.ico/.png/.svg) embedded into the generated HTML site.
+- **OPTIONS** - **Markdown rendering** (*All documentation*, *Per node (`@markdown`)*, or
+  *Off*), type definitions in source code, documentation in diagrams, SVG overview page,
+  metadata, the diagram image format (SVG/PNG/JPG), and a **favicon** (.ico/.png/.svg)
+  embedded into the generated HTML site. See
+  [Generation Options](xsd-tools.md#generation-options) for what the Markdown settings do.
 - **PDF/WORD OPTIONS** *(shown for those formats)* - page size (A4/Letter/Legal, PDF also
   A3), orientation, and the content building blocks (cover page, table of contents, data
   dictionary, schema/element diagrams). PDF additionally offers the **color scheme**
@@ -1108,6 +1110,11 @@ When an XSD file is open, the **Properties** inspector (Ctrl+Shift+P) shows the 
 node. In addition to name, type, cardinality, facets, and constraints, you can now:
 
 - **Edit the node's `xs:appinfo`** - The machine-readable metadata attached to the node.
+  Structured fields cover `@since`, `@version`, `@see`, `@deprecated`, a **Markdown** choice
+  (*Not set* / *Markdown* / *Plain text*, written as `@markdown`) and the node's **example
+  values**. Everything the fields do not cover - other tags and custom XML inside the appinfo -
+  is preserved untouched. See [Adding Technical Notes to Your
+  Schema](xsd-tools.md#adding-technical-notes-to-your-schema).
 - **Edit multi-language `xs:documentation`** - One row per language. Use **Add language** to add
   a translation and the **✕** button to remove one.
 - **Edit comments** - Select an XSD comment in the tree to edit its text. To add a new comment,
