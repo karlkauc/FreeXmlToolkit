@@ -162,7 +162,18 @@ public class EditorHost extends BorderPane {
         setupDragAndDrop();
         // Show the welcome empty-state while no document is open; swap to the tab
         // pane as soon as one opens, and back again when the last tab closes.
-        tabPane.getTabs().addListener((javafx.collections.ListChangeListener<Tab>) c -> updateCenter());
+        tabPane.getTabs().addListener((javafx.collections.ListChangeListener<Tab>) c -> {
+            // Abandon a removed tab's background schema work here rather than in setOnClosed:
+            // this fires however the tab goes away, including programmatic removal.
+            while (c.next()) {
+                for (Tab removed : c.getRemoved()) {
+                    if (removed instanceof EditorTab et) {
+                        et.closed.set(true);
+                    }
+                }
+            }
+            updateCenter();
+        });
         updateCenter();
         tabPane.getSelectionModel().selectedItemProperty().addListener((obs, oldT, newT) -> {
             if (newT instanceof EditorTab et) {
@@ -2570,6 +2581,33 @@ public class EditorHost extends BorderPane {
      * when the tab is front-most. Must be called on the FX thread (same publish pattern as
      * {@link #activeSchema}).
      */
+    /**
+     * Cooperative cancellation for a tab's background schema work.
+     * <p>
+     * Cancellation is cooperative by design: a detection already inside a blocking call still
+     * runs to that call's own timeout - interrupting Xerces or a socket read mid-flight is not
+     * safe - but nothing further is started, and no result is applied.
+     *
+     * @param tab the tab whose background work is checking in
+     * @return true when that work should stop: the tab was closed, or the application is
+     *         shutting down
+     */
+    private static boolean isAbandoned(EditorTab tab) {
+        return tab.closed.get() || org.fxt.freexmltoolkit.FxtGui.executorService.isShutdown();
+    }
+
+    /**
+     * Counts schema bindings actually applied to a tab. Observable so tests can assert that a
+     * detection abandoned mid-flight applies nothing; nothing in the UI reads it.
+     */
+    private final java.util.concurrent.atomic.AtomicInteger schemaBindingsApplied =
+            new java.util.concurrent.atomic.AtomicInteger();
+
+    /** @return how many schema bindings have been applied since this host was created */
+    int schemaBindingsApplied() {
+        return schemaBindingsApplied.get();
+    }
+
     private void publishSchemaStatus(EditorTab tab, SchemaStatus status) {
         tab.schemaStatus = status;
         if (tab.isSelected()) {
@@ -2616,12 +2654,19 @@ public class EditorHost extends BorderPane {
             // schema has its own status, already published as LOADING above, so the pending
             // binding stays visible to the user.
             Platform.runLater(() -> {
+                if (isAbandoned(tab)) {
+                    return;
+                }
                 tab.view.setText(content);
                 tab.refreshPreviewIfActive();
                 tab.endLoading();
                 tab.document.setDirty(false);
                 tab.attachDirtyTracking();
             });
+
+            if (isAbandoned(tab)) {
+                return; // closed (or shutting down) while the file was being read
+            }
 
             SchemaDetection detected = null;
             // Same per-tab guard as redetectSchemaForActiveDocument: never run two
@@ -2633,8 +2678,14 @@ public class EditorHost extends BorderPane {
                     tab.schemaDetecting.set(false);
                 }
             }
+            if (isAbandoned(tab)) {
+                return; // closed while detecting - binding it would parse a schema for nothing
+            }
             SchemaDetection detection = detected;
             Platform.runLater(() -> {
+                if (isAbandoned(tab)) {
+                    return; // closed between the check above and this pulse
+                }
                 File autoXsd = detection != null ? detection.schema() : null;
                 if (autoXsd != null) {
                     tab.schemaFile = autoXsd;
@@ -2645,6 +2696,7 @@ public class EditorHost extends BorderPane {
                     }
                     publishSchemaSource(tab, detection.source(), detection.sourceDetail());
                     loadXmlSchemaProviderAsync(tab, autoXsd);
+                    schemaBindingsApplied.incrementAndGet();
                 }
                 // Always publish a terminal status so LOADING can never stick. When the
                 // CAS was lost (a concurrent detection ran), fall back to the tab's
@@ -2677,6 +2729,9 @@ public class EditorHost extends BorderPane {
         Path path = tab.document.getPath();
         long generation = tab.schemaBindingGen.incrementAndGet(); // supersede queued reconciles
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            if (isAbandoned(tab)) {
+                return;
+            }
             // One detection at a time per tab: the open-time detection (loadAsync) or a
             // second redetect may still be running, and the schema pipeline's Xerces
             // deferred DOM is not thread-safe (concurrent runs corrupted it).
@@ -2689,8 +2744,9 @@ public class EditorHost extends BorderPane {
             // at an unroutable host waits out the connect timeout, measured at ~35 s here.
             long deadline = System.nanoTime() + java.util.concurrent.TimeUnit.SECONDS.toNanos(120);
             while (!tab.schemaDetecting.compareAndSet(false, true)) {
-                if (tab.schemaBindingGen.get() != generation || System.nanoTime() > deadline) {
-                    return; // superseded while waiting, or the holder never released
+                if (tab.schemaBindingGen.get() != generation || System.nanoTime() > deadline
+                        || isAbandoned(tab)) {
+                    return; // superseded, abandoned, or the holder never released
                 }
                 try {
                     Thread.sleep(25);
@@ -2718,8 +2774,14 @@ public class EditorHost extends BorderPane {
             } finally {
                 tab.schemaDetecting.set(false);
             }
+            if (isAbandoned(tab)) {
+                return; // closed while detecting - binding it would parse a schema for nothing
+            }
             SchemaDetection result = detection;
             Platform.runLater(() -> {
+                if (isAbandoned(tab)) {
+                    return; // closed between the check above and this pulse
+                }
                 File autoXsd = result.schema();
                 if (autoXsd != null) {
                     tab.schemaFile = autoXsd;
@@ -2730,6 +2792,7 @@ public class EditorHost extends BorderPane {
                     }
                     publishSchemaSource(tab, result.source(), result.sourceDetail());
                     loadXmlSchemaProviderAsync(tab, autoXsd);
+                    schemaBindingsApplied.incrementAndGet();
                 }
                 // Terminal status in every branch, so LOADING never sticks.
                 publishSchemaStatus(tab, result.status());
@@ -3437,6 +3500,14 @@ public class EditorHost extends BorderPane {
          * (Xerces deferred DOM in XsdDocumentationService) is not thread-safe.
          */
         private final java.util.concurrent.atomic.AtomicBoolean schemaDetecting =
+                new java.util.concurrent.atomic.AtomicBoolean(false);
+        /**
+         * Set once the tab has been closed. Background schema work polls it so a detection that
+         * is already running stops before its next stage and never applies its result to a tab
+         * nobody can see - which would otherwise go on to parse the whole schema
+         * ({@link #loadXmlSchemaProviderAsync}) for a discarded document.
+         */
+        private final java.util.concurrent.atomic.AtomicBoolean closed =
                 new java.util.concurrent.atomic.AtomicBoolean(false);
         /**
          * Generation of the schema binding, bumped on the FX thread by every entry point
