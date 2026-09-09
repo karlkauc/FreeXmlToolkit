@@ -14,6 +14,7 @@ import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 
 import org.fxt.freexmltoolkit.service.sqf.SqfFixSuggestion;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.testfx.framework.junit5.ApplicationExtension;
@@ -30,6 +31,15 @@ class QuickFixUserEntryFlowTest {
 
     private EditorHost host;
     private ValidationPanel panel;
+
+    /**
+     * Compiles the Schematron engine once, before any timed wait: the first validation in a
+     * JVM takes seconds, every later one milliseconds.
+     */
+    @BeforeAll
+    static void warmUpSchematron() {
+        SchematronWarmUp.warmUp();
+    }
 
     @Start
     void start(Stage stage) {

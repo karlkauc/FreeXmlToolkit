@@ -259,9 +259,13 @@ class SignaturePanelTest {
         Path trustStore = tmp.resolve("anchors.p12");
         Files.writeString(trustStore, "x");
 
+        // Build the mocked drag events BEFORE the timed FX block: creating the first Mockito mock
+        // in a JVM costs ~2.4 s of ByteBuddy code generation, which alone exceeds the budget below.
+        var keystoreDrop = dropEventWithFiles(keystore.toFile());
+        var trustDrop = dropEventWithFiles(trustStore.toFile());
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
-            keystoreRow.getOnDragDropped().handle(dropEventWithFiles(keystore.toFile()));
-            trustRow.getOnDragDropped().handle(dropEventWithFiles(trustStore.toFile()));
+            keystoreRow.getOnDragDropped().handle(keystoreDrop);
+            trustRow.getOnDragDropped().handle(trustDrop);
             return null;
         });
 

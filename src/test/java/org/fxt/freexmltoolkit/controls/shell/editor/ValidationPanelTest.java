@@ -10,6 +10,7 @@ import javafx.scene.Scene;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
@@ -36,6 +37,15 @@ class ValidationPanelTest {
 
     private EditorHost host;
     private ValidationPanel panel;
+
+    /**
+     * Compiles the Schematron engine once, before any timed wait: the first validation in a
+     * JVM takes seconds, every later one milliseconds.
+     */
+    @BeforeAll
+    static void warmUpSchematron() {
+        SchematronWarmUp.warmUp();
+    }
 
     @Start
     void start(Stage stage) {

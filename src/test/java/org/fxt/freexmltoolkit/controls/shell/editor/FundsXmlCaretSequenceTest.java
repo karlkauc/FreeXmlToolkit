@@ -43,7 +43,11 @@ class FundsXmlCaretSequenceTest {
     void textCaretResolvesDataSupplierAfterViewSwitches() throws Exception {
         File xml = new File("src/test/resources/FundsXML_306.xml");
         WaitForAsyncUtils.waitForAsyncFx(3000, () -> host.openFile(xml.toPath()));
-        WaitForAsyncUtils.waitFor(8, TimeUnit.SECONDS,
+        // The instance declares its namespace as a remote URL, so opening it resolves (and on a
+        // cold cache downloads) the FundsXML 3.0.6 schema before the text becomes available -
+        // measured at ~10-13 s cold against ~0.3 s once cached. The caret behaviour under test
+        // needs none of that, so wait generously rather than let the download decide the outcome.
+        WaitForAsyncUtils.waitFor(45, TimeUnit.SECONDS,
                 () -> host.getActiveText().map(t -> t.contains("DataSupplier")).orElse(false));
 
         // Grid: select root, add an attribute (round-trips).
