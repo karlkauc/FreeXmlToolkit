@@ -4389,9 +4389,11 @@ a tab in the main editor area with the full option set:</p>
 <li><strong>SOURCE &amp; OUTPUT</strong> - the XSD (the active schema is pre-filled) and the output folder
   (HTML) or file (PDF/Word).</li>
 <li><strong>FORMAT</strong> - HTML, PDF, or Word.</li>
-<li><strong>OPTIONS</strong> - Markdown renderer, type definitions in source code, documentation in
-  diagrams, SVG overview page, metadata, the diagram image format (SVG/PNG/JPG), and a
-  <strong>favicon</strong> (.ico/.png/.svg) embedded into the generated HTML site.</li>
+<li><strong>OPTIONS</strong> - <strong>Markdown rendering</strong> (<em>All documentation</em>, <em>Per node (<code>@markdown</code>)</em>, or
+  <em>Off</em>), type definitions in source code, documentation in diagrams, SVG overview page,
+  metadata, the diagram image format (SVG/PNG/JPG), and a <strong>favicon</strong> (.ico/.png/.svg)
+  embedded into the generated HTML site. See
+  <a href="../xsd-tools/#generation-options">Generation Options</a> for what the Markdown settings do.</li>
 <li><strong>PDF/WORD OPTIONS</strong> <em>(shown for those formats)</em> - page size (A4/Letter/Legal, PDF also
   A3), orientation, and the content building blocks (cover page, table of contents, data
   dictionary, schema/element diagrams). PDF additionally offers the <strong>color scheme</strong>
@@ -5259,7 +5261,12 @@ of files written to a folder you choose. For a full walkthrough, see
 <p>When an XSD file is open, the <strong>Properties</strong> inspector (Ctrl+Shift+P) shows the selected schema
 node. In addition to name, type, cardinality, facets, and constraints, you can now:</p>
 <ul>
-<li><strong>Edit the node's <code>xs:appinfo</code></strong> - The machine-readable metadata attached to the node.</li>
+<li><strong>Edit the node's <code>xs:appinfo</code></strong> - The machine-readable metadata attached to the node.
+  Structured fields cover <code>@since</code>, <code>@version</code>, <code>@see</code>, <code>@deprecated</code>, a <strong>Markdown</strong> choice
+  (<em>Not set</em> / <em>Markdown</em> / <em>Plain text</em>, written as <code>@markdown</code>) and the node's <strong>example
+  values</strong>. Everything the fields do not cover - other tags and custom XML inside the appinfo -
+  is preserved untouched. See <a href="../xsd-tools/#adding-technical-notes-to-your-schema">Adding Technical Notes to Your
+  Schema</a>.</li>
 <li><strong>Edit multi-language <code>xs:documentation</code></strong> - One row per language. Use <strong>Add language</strong> to add
   a translation and the <strong>✕</strong> button to remove one.</li>
 <li><strong>Edit comments</strong> - Select an XSD comment in the tree to edit its text. To add a new comment,

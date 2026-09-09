@@ -1420,6 +1420,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Generation Options">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#markdown-rendering" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Markdown rendering
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
           <li class="md-nav__item">
@@ -2669,6 +2686,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Generation Options">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#markdown-rendering" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Markdown rendering
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
           <li class="md-nav__item">
@@ -3387,8 +3421,8 @@ the generator never modifies your schema file or writes into its folder.</p>
 </thead>
 <tbody>
 <tr>
-<td><strong>Use Markdown renderer</strong></td>
-<td>Render Markdown formatting inside <code>xs:documentation</code> text</td>
+<td><strong>Markdown rendering</strong></td>
+<td><em>All documentation</em> (default), <em>Per node (<code>@markdown</code>)</em>, or <em>Off</em> - see below</td>
 </tr>
 <tr>
 <td><strong>Include type definitions in source code</strong></td>
@@ -3428,6 +3462,40 @@ the generator never modifies your schema file or writes into its folder.</p>
 </tr>
 </tbody>
 </table>
+<h4 id="markdown-rendering">Markdown rendering<a class="headerlink" href="#markdown-rendering" title="Permanent link">&para;</a></h4>
+<p><code>xs:documentation</code> text can be rendered as Markdown, so <code>**bold**</code>, lists and links show up
+formatted on the generated pages. The choice has three settings:</p>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>All documentation</strong> <em>(default)</em></td>
+<td>Every node's documentation is rendered as Markdown</td>
+</tr>
+<tr>
+<td><strong>Per node (<code>@markdown</code>)</strong></td>
+<td>Only nodes whose annotation says <code>@markdown</code> is <code>true</code> are rendered - everything else, including nodes that say nothing, stays plain text</td>
+</tr>
+<tr>
+<td><strong>Off</strong></td>
+<td>Nothing is rendered, whatever the nodes say</td>
+</tr>
+</tbody>
+</table>
+<p>The per-node switch lives in the schema itself and is edited in the Inspector's <strong>Markdown</strong>
+choice (<em>Not set</em> / <em>Markdown</em> / <em>Plain text</em>):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">&lt;xs:element</span><span class="w"> </span><span class="na">name=</span><span class="s">"Transaction"</span><span class="nt">&gt;</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">    </span><span class="nt">&lt;xs:annotation&gt;</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">        </span><span class="nt">&lt;xs:documentation&gt;</span>A<span class="w"> </span>**single**<span class="w"> </span>financial<span class="w"> </span>transaction.<span class="nt">&lt;/xs:documentation&gt;</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">        </span><span class="nt">&lt;xs:appinfo</span><span class="w"> </span><span class="na">source=</span><span class="s">"@markdown"</span><span class="nt">&gt;</span>true<span class="nt">&lt;/xs:appinfo&gt;</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">    </span><span class="nt">&lt;/xs:annotation&gt;</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="nt">&lt;/xs:element&gt;</span>
+</code></pre></div>
 <h3 id="language-settings">Language Settings<a class="headerlink" href="#language-settings" title="Permanent link">&para;</a></h3>
 <p>For multi-language schemas, you can:</p>
 <ol>
@@ -3443,28 +3511,51 @@ documentation are left untouched. Leaving every language ticked (or not scanning
 all of them.</p>
 <h3 id="adding-technical-notes-to-your-schema">Adding Technical Notes to Your Schema<a class="headerlink" href="#adding-technical-notes-to-your-schema" title="Permanent link">&para;</a></h3>
 <p>You can add structured technical information directly in your XSD files:</p>
+<p>The tag goes into the <code>source</code> attribute of an <code>xs:appinfo</code>, its value into the element's text
+content.</p>
 <p><strong>Supported tags:</strong></p>
 <ul>
 <li><code>@since</code> - When a feature was introduced</li>
-<li><code>@see</code> - References to other elements</li>
+<li><code>@version</code> - Version detail of the component</li>
+<li><code>@see</code> - References to other elements (may occur several times)</li>
 <li><code>@deprecated</code> - Mark elements as deprecated</li>
-<li><code>{@link /path/to/element}</code> - Create clickable links</li>
+<li><code>@markdown</code> - <code>true</code>/<code>false</code>, whether this node's documentation is rendered as Markdown
+  (see <a href="#markdown-rendering">Markdown rendering</a>)</li>
+<li><code>{@link /path/to/element}</code> - Create clickable links inside <code>@see</code> and <code>@deprecated</code></li>
 </ul>
+<p>Example values are a separate block rather than a tag. They appear as <strong>Sample Data</strong> on the
+detail pages and also feed the sample-XML generator and IntelliSense.</p>
 <p><strong>Example in your XSD:</strong></p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">&lt;xs:element</span><span class="w"> </span><span class="na">name=</span><span class="s">"Transaction"</span><span class="nt">&gt;</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">    </span><span class="nt">&lt;xs:annotation&gt;</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">        </span><span class="cm">&lt;!-- User-friendly documentation --&gt;</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">        </span><span class="nt">&lt;xs:documentation&gt;</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">            </span>Represents<span class="w"> </span>a<span class="w"> </span>single<span class="w"> </span>financial<span class="w"> </span>transaction.
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">        </span><span class="nt">&lt;/xs:documentation&gt;</span>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">        </span><span class="cm">&lt;!-- Technical notes for developers --&gt;</span>
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">        </span><span class="nt">&lt;xs:appinfo</span><span class="w"> </span><span class="na">source=</span><span class="s">"@since 4.0.0"</span><span class="nt">/&gt;</span>
-<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">        </span><span class="nt">&lt;xs:appinfo</span><span class="w"> </span><span class="na">source=</span><span class="s">"@see {@link /FundsXML4/ControlData}"</span><span class="nt">/&gt;</span>
-<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">        </span><span class="nt">&lt;xs:appinfo</span><span class="w"> </span><span class="na">source=</span><span class="s">"@deprecated Use NewTransaction instead."</span><span class="nt">/&gt;</span>
-<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">    </span><span class="nt">&lt;/xs:annotation&gt;</span>
-<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="nt">&lt;/xs:element&gt;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">&lt;xs:element</span><span class="w"> </span><span class="na">name=</span><span class="s">"Transaction"</span><span class="nt">&gt;</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">    </span><span class="nt">&lt;xs:annotation&gt;</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">        </span><span class="cm">&lt;!-- User-friendly documentation --&gt;</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">        </span><span class="nt">&lt;xs:documentation</span><span class="w"> </span><span class="na">xml:lang=</span><span class="s">"en"</span><span class="nt">&gt;</span>A<span class="w"> </span>single<span class="w"> </span>financial<span class="w"> </span>transaction.<span class="nt">&lt;/xs:documentation&gt;</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">        </span><span class="nt">&lt;xs:documentation</span><span class="w"> </span><span class="na">xml:lang=</span><span class="s">"de"</span><span class="nt">&gt;</span>Eine<span class="w"> </span>einzelne<span class="w"> </span>Transaktion.<span class="nt">&lt;/xs:documentation&gt;</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">        </span><span class="cm">&lt;!-- Technical notes for developers --&gt;</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">        </span><span class="nt">&lt;xs:appinfo</span><span class="w"> </span><span class="na">source=</span><span class="s">"@since"</span><span class="nt">&gt;</span>4.0.0<span class="nt">&lt;/xs:appinfo&gt;</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">        </span><span class="nt">&lt;xs:appinfo</span><span class="w"> </span><span class="na">source=</span><span class="s">"@version"</span><span class="nt">&gt;</span>1.2<span class="nt">&lt;/xs:appinfo&gt;</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">        </span><span class="nt">&lt;xs:appinfo</span><span class="w"> </span><span class="na">source=</span><span class="s">"@see"</span><span class="nt">&gt;</span>{@link<span class="w"> </span>/FundsXML4/ControlData}<span class="nt">&lt;/xs:appinfo&gt;</span>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">        </span><span class="nt">&lt;xs:appinfo</span><span class="w"> </span><span class="na">source=</span><span class="s">"@deprecated"</span><span class="nt">&gt;</span>Use<span class="w"> </span>{@link<span class="w"> </span>/FundsXML4/NewTransaction}<span class="w"> </span>instead.<span class="nt">&lt;/xs:appinfo&gt;</span>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="w">        </span><span class="nt">&lt;xs:appinfo</span><span class="w"> </span><span class="na">source=</span><span class="s">"@markdown"</span><span class="nt">&gt;</span>true<span class="nt">&lt;/xs:appinfo&gt;</span>
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="w">        </span><span class="cm">&lt;!-- Example values --&gt;</span>
+<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="w">        </span><span class="nt">&lt;xs:appinfo&gt;</span>
+<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="w">            </span><span class="nt">&lt;fxt:exampleValues</span><span class="w"> </span><span class="na">xmlns:fxt=</span><span class="s">"http://freexmltoolkit.org/xml-schema-extensions"</span><span class="nt">&gt;</span>
+<a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="w">                </span><span class="nt">&lt;fxt:example</span><span class="w"> </span><span class="na">value=</span><span class="s">"TRX-0815"</span><span class="nt">/&gt;</span>
+<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="w">                </span><span class="nt">&lt;fxt:example</span><span class="w"> </span><span class="na">value=</span><span class="s">"TRX-0816"</span><span class="nt">/&gt;</span>
+<a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a><span class="w">            </span><span class="nt">&lt;/fxt:exampleValues&gt;</span>
+<a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a><span class="w">        </span><span class="nt">&lt;/xs:appinfo&gt;</span>
+<a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a><span class="w">    </span><span class="nt">&lt;/xs:annotation&gt;</span>
+<a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a><span class="nt">&lt;/xs:element&gt;</span>
 </code></pre></div>
+<blockquote>
+<p><strong>Older schemas keep working.</strong> The form that packs tag and value into the attribute alone -
+<code>&lt;xs:appinfo source="@since 4.0.0"/&gt;</code>, used throughout FundsXML - is still read, and so is
+<code>altova:exampleValues</code>. Both are rewritten into the form above the next time you save the
+schema from the toolkit; the generated documentation is the same either way. An
+<code>altova:exampleValues</code> block is only converted once you actually change the example values.</p>
+</blockquote>
 <hr />
 <h2 id="7-sample-xml-generator">7. Sample XML Generator<a class="headerlink" href="#7-sample-xml-generator" title="Permanent link">&para;</a></h2>
 <p>Create sample XML files based on your XSD schema. This is useful for testing, data migration, or as a starting template.</p>
@@ -3589,14 +3680,14 @@ like any other document:</p>
 about which file a type or element originally came from. Tick <strong>Track source files</strong> to keep it:
 each global element, type, group, attribute group and attribute that was pulled in from an
 <code>xs:include</code> gets an annotation naming its origin.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">&lt;xs:complexType</span><span class="w"> </span><span class="na">name=</span><span class="s">"PersonType"</span><span class="nt">&gt;</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">    </span><span class="nt">&lt;xs:annotation&gt;</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">        </span><span class="nt">&lt;xs:appinfo&gt;</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">            </span><span class="nt">&lt;fxt:sourceFile</span><span class="w"> </span><span class="na">xmlns:fxt=</span><span class="s">"http://freexmltoolkit.org/schema/flattening"</span><span class="nt">&gt;</span>types.xsd<span class="nt">&lt;/fxt:sourceFile&gt;</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">        </span><span class="nt">&lt;/xs:appinfo&gt;</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">    </span><span class="nt">&lt;/xs:annotation&gt;</span>
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">    </span>...
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="nt">&lt;/xs:complexType&gt;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nt">&lt;xs:complexType</span><span class="w"> </span><span class="na">name=</span><span class="s">"PersonType"</span><span class="nt">&gt;</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">    </span><span class="nt">&lt;xs:annotation&gt;</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">        </span><span class="nt">&lt;xs:appinfo&gt;</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">            </span><span class="nt">&lt;fxt:sourceFile</span><span class="w"> </span><span class="na">xmlns:fxt=</span><span class="s">"http://freexmltoolkit.org/schema/flattening"</span><span class="nt">&gt;</span>types.xsd<span class="nt">&lt;/fxt:sourceFile&gt;</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">        </span><span class="nt">&lt;/xs:appinfo&gt;</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">    </span><span class="nt">&lt;/xs:annotation&gt;</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">    </span>...
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="nt">&lt;/xs:complexType&gt;</span>
 </code></pre></div>
 <p>The markers are added <strong>after</strong> the reductions, so they survive <strong>Remove annotations</strong> — you can
 combine a fully reduced schema with full origin tracking. Components defined in the main file are
