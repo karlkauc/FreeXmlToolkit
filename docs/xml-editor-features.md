@@ -8,7 +8,7 @@ This page describes the advanced features available in the XML Editor.
 
 ## Search (Find)
 
-> Search works in **every view mode** — Text, Tree and Graphic — for both XML documents and XSD schemas.
+> Search works in **every view mode** — Text, Tree and Graphic — for XML documents, XSD schemas and JSON documents.
 
 ### Finding Text in Your Document
 
@@ -21,6 +21,7 @@ You can search in the **Text**, **Tree** or **Graphic** view of a document:
 - **Text view** - Matches are highlighted in the source code. **Replace** is available here.
 - **Graphic view (XML instances)** - The search looks through element names, attribute names, and values across the whole document. When you press the up/down arrows, the editor jumps directly to the matching node: if the match is inside a collapsed node, its parent nodes are expanded automatically, the matching row is selected, and it is scrolled into view.
 - **Tree and Graphic views (XSD schemas)** - The search looks through the schema nodes themselves: element/attribute/type names, documentation and appinfo, type references, fixed/default values, enumeration and facet values, and comments. Matching nodes are revealed (collapsed branches expand), selected, and scrolled into view — in the Graphic diagram this includes loading lazily rendered subtrees.
+- **Tree and Graphic views (JSON documents)** - The search looks through the keys and values of the document. Matches inside collapsed objects or arrays are revealed, selected, and scrolled into view, the same way as in the XML grid.
 
 Searching is **case-insensitive** in all views.
 
@@ -32,7 +33,7 @@ If you switch the view mode (Text / Tree / Graphic) or the file tab while the se
 
 Pressing **Ctrl+F** opens an **inline search bar** at the top of the editor, with up/down
 chevron arrows for Find Previous / Find Next and a replace toggle (Text view only). The same
-bar works in every view mode and every XML-family document type.
+bar works in every view mode, for every XML-family document type and for JSON documents.
 
 > **Note:** In the **Tree** and **Graphic** views, search is for finding and navigating only - **Replace** is not available there (the replace toggle is disabled). To replace text, use the **Text** view.
 
@@ -166,6 +167,10 @@ it with the panel toggle at the right end of the editor toolbar.
   switch views.
 
 See the [Properties Inspector](xml-editor.md#properties-inspector) section for full details.
+
+> **JSON documents** get the same inspector: select a node in the Tree or Graphic (grid)
+> view to edit its key and scalar value and to see its JSONPath - see
+> [Unified Shell - JSON Files](unified-shell.md#json-files).
 
 ---
 

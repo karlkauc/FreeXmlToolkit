@@ -177,8 +177,9 @@ looks and feels exactly like an XML file in the grid:
 - The context menu mirrors the XML one: **Add** (Property / Array Item / Sibling Before /
   After), **Rename Key** (F2), **Duplicate** (Ctrl+D), **Copy / Cut / Paste as Sibling /
   Paste as Child**, **Copy Cell Content**, **Copy JSONPath** (Ctrl+Shift+X - e.g.
-  `$.items[1].name`), **Copy Node (JSON)**, **Change Type** (String / Number / Boolean /
-  Null / Object / Array), **Move Up / Down** (Alt+↑/↓), **Sort Column** and **Delete**.
+  `$.items[1].name`), **Copy Node (JSON)** (Ctrl+Alt+C), **Change Type** (String / Number /
+  Boolean / Null / Object / Array), **Move Up / Down** (Alt+↑/↓), **Expand All / Collapse
+  All**, **Sort Column** and **Delete**. Copy Cell Content is Ctrl+Shift+C, as in the XML grid.
 - All edits go through the document's **undo history** (Ctrl+Z / Ctrl+Y) and are written back
   into the text - the Text, Tree and Graphic views share one model, and the **Properties**
   inspector edits keys and values from any of them.
@@ -1470,7 +1471,8 @@ any error to jump straight to its location:
 
 > Property editing works in **all** views - for XML files in Text, Tree, and
 > Graphic, and for XSD files in the **Text** view as well as the Tree and Graphic views
-> (see [XSD Files](#xsd-files) below).
+> (see [XSD Files](#xsd-files) below). For JSON files the inspector edits keys and values
+> from the Tree and Graphic views (see [JSON Files](#json-files) below).
 >
 > The **NODE & XPATH** section shows the XPath on its own full-width
 > line below the "XPath" header, so long paths do not get squeezed by the icon column.
@@ -1529,6 +1531,25 @@ lets you edit it from whichever view you are in. XSD files have the same three v
 All three XSD views share one in-memory schema model, so your edits and Undo/Redo history are
 preserved when you switch between Text, Tree, and Graphic. Structural editing (adding, deleting,
 and moving nodes) remains a Tree/Graphic capability through the right-click context menu.
+
+### JSON Files
+
+When a JSON file is open, select a node in the **Tree** or **Graphic** (grid) view and the
+Properties sidebar shows it:
+
+- **NODE & XPATH** shows the node's **JSONPath** (e.g. `$.items[1]`) instead of an XPath;
+  click the value to copy it.
+- The **key** field is editable for object properties - changing it renames the key
+  (duplicate keys are refused). Array items (`[0]`, `[1]`, …) and the root `$` have no key.
+- The **Value** field is editable for scalars (strings, numbers, booleans, `null`); the type
+  is kept, so a number must stay a number. Objects and arrays show a summary instead.
+- The node **type** and **depth** are shown for information.
+
+The inspector shares the document model with the grid, the tree and the text, so an edit here
+is one undo step (Ctrl+Z) and is written back into the text immediately. Structural editing
+(adding, deleting, moving or duplicating nodes, changing a value's type) is done in the grid's
+right-click context menu - see [The Grid for JSON](#json-grid). In the Text view the inspector
+shows only the document type for JSON files.
 
 ## Editor Toolbar Document Actions
 
@@ -1745,7 +1766,7 @@ functionality now lives in the shell:
 |------------|------------------|
 | XSD Editor / Tools | Open an `.xsd`: Text/Tree/Graphic views + inspector; **Schema** activity (Type Library panel) for type editing, documentation, flatten and schema analysis |
 | XSD Validation | **Validation** activity (single + batch, XSD & Schematron) |
-| JSON Editor | Open a `.json`: Text + Tree views |
+| JSON Editor | Open a `.json` / `.jsonc` / `.json5`: Text / Tree / Graphic (grid) views + inspector; JSONPath via the Query Console; JSON Schema validation in the **Validation** activity |
 | XSLT Viewer | **Transform** panel (set stylesheet, transform, preview, browser) |
 | Schematron | **Validation** activity: check rules, templates, tester, builder, documentation, CSV/JSON export |
 | Schema Generator | **Schema** activity / Generate XSD from XML |

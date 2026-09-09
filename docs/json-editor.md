@@ -5,9 +5,9 @@ The JSON Editor provides a powerful environment for editing, validating, and que
 > **Version:** 2.1.0
 
 > **Note:** The standalone *JSON Editor* tab has been retired. JSON
-> editing — text editing plus the tree view and validation — now lives in the
-> **Unified Shell**: open a `.json` file and the JSON editor view (text/tree) is
-> available there. The capabilities below are unchanged; they are now part of the
+> editing — text editing, the tree and grid views, and validation — now lives in the
+> **Unified Shell**: open a `.json` file and the **Text**, **Tree** and **Graphic** (grid)
+> views are available there. The capabilities below are unchanged; they are now part of the
 > shell rather than a dedicated sidebar tab.
 
 ## Overview
@@ -24,7 +24,7 @@ FreeXmlToolkit includes a full-featured JSON Editor that supports:
 > (`.jsonc`/`.json5` have no MIME type in the shared databases).
 
 ![JSON in the Unified Shell](img/unified-shell-json-tree.png)
-***JSON editing (text + tree view) in the Unified Shell***
+***The Tree view of a JSON document in the Unified Shell***
 
 ![JSON in the grid view](img/unified-shell-json-grid.png)
 ***The same document in the Graphic (grid) view - the XMLSpy-style grid the shell also uses for XML***
@@ -68,11 +68,27 @@ very same grid the shell uses for XML files, so it is instantly familiar:
 | **Type glyphs** | `{}` object, `[]` array, `"` string, `#` number, `T`/`F` boolean, `∅` null - each in its own colour; strings are shown quoted |
 | **Arrays of objects** | Rendered as embedded tables (one column per key); click a column header to sort, expand nested objects inline |
 | **Inline editing** | Double-click a value; the type is kept (numbers must stay numbers, booleans toggle, `null` stays `null` unless you type text). Double-click a key to rename it |
-| **Context menu** | Add Property / Array Item / Sibling, Rename Key (F2), Duplicate (Ctrl+D), Copy/Cut/Paste, Copy Cell Content, Copy JSONPath (Ctrl+Shift+X), Copy Node (JSON), Change Type, Move Up/Down (Alt+↑/↓), Sort Column, Delete |
+| **Context menu** | Add Property / Array Item / Sibling Before / After, Rename Key (F2), Duplicate (Ctrl+D), Copy / Cut / Paste as Sibling / Paste as Child, Copy Cell Content (Ctrl+Shift+C), Copy JSONPath (Ctrl+Shift+X), Copy Node (JSON) (Ctrl+Alt+C), Change Type, Move Up/Down (Alt+↑/↓), Expand All / Collapse All, Sort Column, Delete |
 | **Undo/Redo** | Every grid edit is one undo step (Ctrl+Z / Ctrl+Y) and is written back into the text |
 | **Search** | Ctrl+F finds keys and values, revealing matches inside collapsed nodes |
 
 See [Unified Shell - The Grid for JSON](unified-shell.md#json-grid) for details.
+
+### Properties Inspector
+
+The **Properties** inspector on the right (Ctrl+Shift+P) works for JSON documents too. Select
+a node in the **Tree** or **Graphic** (grid) view and the inspector shows:
+
+- the **key** - editable for object properties (renaming a key here is the same as
+  **Rename Key** in the grid; duplicate keys are refused),
+- the node **type** (object, array, string, number, boolean, null) and its **depth**,
+- the **JSONPath** of the node in the NODE & XPATH line (e.g. `$.items[1]`) - click it to
+  copy the path,
+- the **value** - editable for strings, numbers, booleans and `null`; the type is kept, so a
+  number stays a number.
+
+Edits made in the inspector are undoable (Ctrl+Z) and written back into the text just like
+grid edits. See [Unified Shell - Properties Inspector](unified-shell.md#json-files) for details.
 
 ### Hover Information
 
@@ -149,8 +165,14 @@ resolve as expected.
 | `Ctrl+Shift+S` | Save as |
 | `Shift+Alt+F` | Format JSON |
 | `F8` | Validate JSON |
-| `Ctrl+Z` | Undo |
+| `Ctrl+Z` | Undo (also for tree/grid/inspector edits) |
 | `Ctrl+Y` | Redo |
+| `F2` | Rename the selected key (grid) |
+| `Ctrl+D` | Duplicate the selected node (grid; elsewhere Ctrl+D adds the file to favorites) |
+| `Alt+↑` / `Alt+↓` | Move the selected node up / down (grid) |
+| `Ctrl+Shift+X` | Copy JSONPath (grid; elsewhere it toggles the Query Console) |
+| `Ctrl+Shift+C` | Copy Cell Content (grid) |
+| `Ctrl+Alt+C` | Copy Node (JSON) (grid) |
 | `Ctrl++` | Zoom in |
 | `Ctrl+-` | Zoom out |
 | `Ctrl+0` | Reset zoom |
