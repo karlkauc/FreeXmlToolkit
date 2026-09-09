@@ -1577,6 +1577,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#json-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        JSON Files
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -3768,6 +3779,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#json-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        JSON Files
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -4137,8 +4159,9 @@ looks and feels exactly like an XML file in the grid:</p>
 <li>The context menu mirrors the XML one: <strong>Add</strong> (Property / Array Item / Sibling Before /
   After), <strong>Rename Key</strong> (F2), <strong>Duplicate</strong> (Ctrl+D), <strong>Copy / Cut / Paste as Sibling /
   Paste as Child</strong>, <strong>Copy Cell Content</strong>, <strong>Copy JSONPath</strong> (Ctrl+Shift+X - e.g.
-  <code>$.items[1].name</code>), <strong>Copy Node (JSON)</strong>, <strong>Change Type</strong> (String / Number / Boolean /
-  Null / Object / Array), <strong>Move Up / Down</strong> (Alt+↑/↓), <strong>Sort Column</strong> and <strong>Delete</strong>.</li>
+  <code>$.items[1].name</code>), <strong>Copy Node (JSON)</strong> (Ctrl+Alt+C), <strong>Change Type</strong> (String / Number /
+  Boolean / Null / Object / Array), <strong>Move Up / Down</strong> (Alt+↑/↓), <strong>Expand All / Collapse
+  All</strong>, <strong>Sort Column</strong> and <strong>Delete</strong>. Copy Cell Content is Ctrl+Shift+C, as in the XML grid.</li>
 <li>All edits go through the document's <strong>undo history</strong> (Ctrl+Z / Ctrl+Y) and are written back
   into the text - the Text, Tree and Graphic views share one model, and the <strong>Properties</strong>
   inspector edits keys and values from any of them.</li>
@@ -5778,7 +5801,8 @@ any error to jump straight to its location:</p>
 <blockquote>
 <p>Property editing works in <strong>all</strong> views - for XML files in Text, Tree, and
 Graphic, and for XSD files in the <strong>Text</strong> view as well as the Tree and Graphic views
-(see <a href="#xsd-files">XSD Files</a> below).</p>
+(see <a href="#xsd-files">XSD Files</a> below). For JSON files the inspector edits keys and values
+from the Tree and Graphic views (see <a href="#json-files">JSON Files</a> below).</p>
 <p>The <strong>NODE &amp; XPATH</strong> section shows the XPath on its own full-width
 line below the "XPath" header, so long paths do not get squeezed by the icon column.</p>
 <p>The inspector is not fixed-width: drag the divider line
@@ -5830,6 +5854,23 @@ lets you edit it from whichever view you are in. XSD files have the same three v
 <p>All three XSD views share one in-memory schema model, so your edits and Undo/Redo history are
 preserved when you switch between Text, Tree, and Graphic. Structural editing (adding, deleting,
 and moving nodes) remains a Tree/Graphic capability through the right-click context menu.</p>
+<h3 id="json-files">JSON Files<a class="headerlink" href="#json-files" title="Permanent link">&para;</a></h3>
+<p>When a JSON file is open, select a node in the <strong>Tree</strong> or <strong>Graphic</strong> (grid) view and the
+Properties sidebar shows it:</p>
+<ul>
+<li><strong>NODE &amp; XPATH</strong> shows the node's <strong>JSONPath</strong> (e.g. <code>$.items[1]</code>) instead of an XPath;
+  click the value to copy it.</li>
+<li>The <strong>key</strong> field is editable for object properties - changing it renames the key
+  (duplicate keys are refused). Array items (<code>[0]</code>, <code>[1]</code>, …) and the root <code>$</code> have no key.</li>
+<li>The <strong>Value</strong> field is editable for scalars (strings, numbers, booleans, <code>null</code>); the type
+  is kept, so a number must stay a number. Objects and arrays show a summary instead.</li>
+<li>The node <strong>type</strong> and <strong>depth</strong> are shown for information.</li>
+</ul>
+<p>The inspector shares the document model with the grid, the tree and the text, so an edit here
+is one undo step (Ctrl+Z) and is written back into the text immediately. Structural editing
+(adding, deleting, moving or duplicating nodes, changing a value's type) is done in the grid's
+right-click context menu - see <a href="#json-grid">The Grid for JSON</a>. In the Text view the inspector
+shows only the document type for JSON files.</p>
 <h2 id="editor-toolbar-document-actions">Editor Toolbar Document Actions<a class="headerlink" href="#editor-toolbar-document-actions" title="Permanent link">&para;</a></h2>
 <blockquote>
 <p>Trigger per-document operations from the editor toolbar without leaving
@@ -6080,7 +6121,7 @@ functionality now lives in the shell:</p>
 </tr>
 <tr>
 <td>JSON Editor</td>
-<td>Open a <code>.json</code>: Text + Tree views</td>
+<td>Open a <code>.json</code> / <code>.jsonc</code> / <code>.json5</code>: Text / Tree / Graphic (grid) views + inspector; JSONPath via the Query Console; JSON Schema validation in the <strong>Validation</strong> activity</td>
 </tr>
 <tr>
 <td>XSLT Viewer</td>

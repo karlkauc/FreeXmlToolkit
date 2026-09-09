@@ -1062,6 +1062,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#properties-inspector" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Properties Inspector
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#hover-information" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2128,6 +2139,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#properties-inspector" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Properties Inspector
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#hover-information" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2334,9 +2356,9 @@
 <blockquote>
 <p><strong>Version:</strong> 2.1.0</p>
 <p><strong>Note:</strong> The standalone <em>JSON Editor</em> tab has been retired. JSON
-editing — text editing plus the tree view and validation — now lives in the
-<strong>Unified Shell</strong>: open a <code>.json</code> file and the JSON editor view (text/tree) is
-available there. The capabilities below are unchanged; they are now part of the
+editing — text editing, the tree and grid views, and validation — now lives in the
+<strong>Unified Shell</strong>: open a <code>.json</code> file and the <strong>Text</strong>, <strong>Tree</strong> and <strong>Graphic</strong> (grid)
+views are available there. The capabilities below are unchanged; they are now part of the
 shell rather than a dedicated sidebar tab.</p>
 </blockquote>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
@@ -2352,7 +2374,7 @@ from the extension - a <code>.json</code> file with comments is treated as JSONC
 (<code>.jsonc</code>/<code>.json5</code> have no MIME type in the shared databases).</p>
 </blockquote>
 <p><img alt="JSON in the Unified Shell" src="../img/unified-shell-json-tree.png" />
-<strong><em>JSON editing (text + tree view) in the Unified Shell</em></strong></p>
+<strong><em>The Tree view of a JSON document in the Unified Shell</em></strong></p>
 <p><img alt="JSON in the grid view" src="../img/unified-shell-json-grid.png" />
 <strong><em>The same document in the Graphic (grid) view - the XMLSpy-style grid the shell also uses for XML</em></strong></p>
 <h2 id="features">Features<a class="headerlink" href="#features" title="Permanent link">&para;</a></h2>
@@ -2454,7 +2476,7 @@ very same grid the shell uses for XML files, so it is instantly familiar:</p>
 </tr>
 <tr>
 <td><strong>Context menu</strong></td>
-<td>Add Property / Array Item / Sibling, Rename Key (F2), Duplicate (Ctrl+D), Copy/Cut/Paste, Copy Cell Content, Copy JSONPath (Ctrl+Shift+X), Copy Node (JSON), Change Type, Move Up/Down (Alt+↑/↓), Sort Column, Delete</td>
+<td>Add Property / Array Item / Sibling Before / After, Rename Key (F2), Duplicate (Ctrl+D), Copy / Cut / Paste as Sibling / Paste as Child, Copy Cell Content (Ctrl+Shift+C), Copy JSONPath (Ctrl+Shift+X), Copy Node (JSON) (Ctrl+Alt+C), Change Type, Move Up/Down (Alt+↑/↓), Expand All / Collapse All, Sort Column, Delete</td>
 </tr>
 <tr>
 <td><strong>Undo/Redo</strong></td>
@@ -2467,6 +2489,20 @@ very same grid the shell uses for XML files, so it is instantly familiar:</p>
 </tbody>
 </table>
 <p>See <a href="../unified-shell/#json-grid">Unified Shell - The Grid for JSON</a> for details.</p>
+<h3 id="properties-inspector">Properties Inspector<a class="headerlink" href="#properties-inspector" title="Permanent link">&para;</a></h3>
+<p>The <strong>Properties</strong> inspector on the right (Ctrl+Shift+P) works for JSON documents too. Select
+a node in the <strong>Tree</strong> or <strong>Graphic</strong> (grid) view and the inspector shows:</p>
+<ul>
+<li>the <strong>key</strong> - editable for object properties (renaming a key here is the same as
+  <strong>Rename Key</strong> in the grid; duplicate keys are refused),</li>
+<li>the node <strong>type</strong> (object, array, string, number, boolean, null) and its <strong>depth</strong>,</li>
+<li>the <strong>JSONPath</strong> of the node in the NODE &amp; XPATH line (e.g. <code>$.items[1]</code>) - click it to
+  copy the path,</li>
+<li>the <strong>value</strong> - editable for strings, numbers, booleans and <code>null</code>; the type is kept, so a
+  number stays a number.</li>
+</ul>
+<p>Edits made in the inspector are undoable (Ctrl+Z) and written back into the text just like
+grid edits. See <a href="../unified-shell/#json-files">Unified Shell - Properties Inspector</a> for details.</p>
 <h3 id="hover-information">Hover Information<a class="headerlink" href="#hover-information" title="Permanent link">&para;</a></h3>
 <p>When you hover over any element in the JSON editor, you'll see:
 - <strong>JSONPath</strong> - The full path to the current element (e.g., <code>$.store.book[0].title</code>)
@@ -2581,11 +2617,35 @@ dialect demo each for Draft-07 and 2019-09. Open
 </tr>
 <tr>
 <td><code>Ctrl+Z</code></td>
-<td>Undo</td>
+<td>Undo (also for tree/grid/inspector edits)</td>
 </tr>
 <tr>
 <td><code>Ctrl+Y</code></td>
 <td>Redo</td>
+</tr>
+<tr>
+<td><code>F2</code></td>
+<td>Rename the selected key (grid)</td>
+</tr>
+<tr>
+<td><code>Ctrl+D</code></td>
+<td>Duplicate the selected node (grid; elsewhere Ctrl+D adds the file to favorites)</td>
+</tr>
+<tr>
+<td><code>Alt+↑</code> / <code>Alt+↓</code></td>
+<td>Move the selected node up / down (grid)</td>
+</tr>
+<tr>
+<td><code>Ctrl+Shift+X</code></td>
+<td>Copy JSONPath (grid; elsewhere it toggles the Query Console)</td>
+</tr>
+<tr>
+<td><code>Ctrl+Shift+C</code></td>
+<td>Copy Cell Content (grid)</td>
+</tr>
+<tr>
+<td><code>Ctrl+Alt+C</code></td>
+<td>Copy Node (JSON) (grid)</td>
 </tr>
 <tr>
 <td><code>Ctrl++</code></td>
