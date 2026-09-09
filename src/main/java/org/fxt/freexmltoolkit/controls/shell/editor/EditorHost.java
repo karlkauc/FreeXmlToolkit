@@ -2598,50 +2598,61 @@ public class EditorHost extends BorderPane {
             publishSchemaStatus(tab, SchemaStatus.LOADING);
         }
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            String content;
             try {
-                String content = Files.readString(path, StandardCharsets.UTF_8);
-                SchemaDetection detected = null;
-                // Same per-tab guard as redetectSchemaForActiveDocument: never run two
-                // schema detections for one tab concurrently (Xerces DOM is not thread-safe).
-                if (tab.schemaDetecting.compareAndSet(false, true)) {
-                    try {
-                        detected = detectSchemaFor(tab, content, path);
-                    } finally {
-                        tab.schemaDetecting.set(false);
-                    }
-                }
-                SchemaDetection detection = detected;
-                Platform.runLater(() -> {
-                    tab.view.setText(content);
-                    tab.refreshPreviewIfActive();
-                    tab.endLoading();
-                    tab.document.setDirty(false);
-                    tab.attachDirtyTracking();
-                    File autoXsd = detection != null ? detection.schema() : null;
-                    if (autoXsd != null) {
-                        tab.schemaFile = autoXsd;
-                        tab.schemaOrigin = SchemaRebindPolicy.SchemaBindingOrigin.AUTO;
-                        tab.view.invalidateIntelliSenseCache();
-                        if (tab.isSelected()) {
-                            activeSchema.set(autoXsd);
-                        }
-                        publishSchemaSource(tab, detection.source(), detection.sourceDetail());
-                        loadXmlSchemaProviderAsync(tab, autoXsd);
-                    }
-                    // Always publish a terminal status so LOADING can never stick. When the
-                    // CAS was lost (a concurrent detection ran), fall back to the tab's
-                    // current binding.
-                    publishSchemaStatus(tab, detection != null
-                            ? detection.status()
-                            : (tab.schemaFile != null ? SchemaStatus.READY : SchemaStatus.NONE));
-                });
+                content = Files.readString(path, StandardCharsets.UTF_8);
             } catch (IOException e) {
                 Platform.runLater(() -> {
                     tab.view.setText("Could not read " + path + ": " + e.getMessage());
                     tab.endLoading();
                     publishSchemaStatus(tab, SchemaStatus.NONE);
                 });
+                return;
             }
+
+            // Show the document as soon as it has been read. Schema detection below can take
+            // seconds - a remote xsi:schemaLocation (or a namespace the Schema Library resolves
+            // remotely) is downloaded - and the editor must not sit empty for that long. The
+            // schema has its own status, already published as LOADING above, so the pending
+            // binding stays visible to the user.
+            Platform.runLater(() -> {
+                tab.view.setText(content);
+                tab.refreshPreviewIfActive();
+                tab.endLoading();
+                tab.document.setDirty(false);
+                tab.attachDirtyTracking();
+            });
+
+            SchemaDetection detected = null;
+            // Same per-tab guard as redetectSchemaForActiveDocument: never run two
+            // schema detections for one tab concurrently (Xerces DOM is not thread-safe).
+            if (tab.schemaDetecting.compareAndSet(false, true)) {
+                try {
+                    detected = detectSchemaFor(tab, content, path);
+                } finally {
+                    tab.schemaDetecting.set(false);
+                }
+            }
+            SchemaDetection detection = detected;
+            Platform.runLater(() -> {
+                File autoXsd = detection != null ? detection.schema() : null;
+                if (autoXsd != null) {
+                    tab.schemaFile = autoXsd;
+                    tab.schemaOrigin = SchemaRebindPolicy.SchemaBindingOrigin.AUTO;
+                    tab.view.invalidateIntelliSenseCache();
+                    if (tab.isSelected()) {
+                        activeSchema.set(autoXsd);
+                    }
+                    publishSchemaSource(tab, detection.source(), detection.sourceDetail());
+                    loadXmlSchemaProviderAsync(tab, autoXsd);
+                }
+                // Always publish a terminal status so LOADING can never stick. When the
+                // CAS was lost (a concurrent detection ran), fall back to the tab's
+                // current binding.
+                publishSchemaStatus(tab, detection != null
+                        ? detection.status()
+                        : (tab.schemaFile != null ? SchemaStatus.READY : SchemaStatus.NONE));
+            });
         });
     }
 
@@ -2669,8 +2680,24 @@ public class EditorHost extends BorderPane {
             // One detection at a time per tab: the open-time detection (loadAsync) or a
             // second redetect may still be running, and the schema pipeline's Xerces
             // deferred DOM is not thread-safe (concurrent runs corrupted it).
-            if (!tab.schemaDetecting.compareAndSet(false, true)) {
-                return;
+            // Do NOT give up on a lost race - the holder may itself be superseded and bind
+            // nothing, and no later task would retry; wait for it, then re-check with fresh
+            // state (same rule as reconcileSchemaBinding). The wait is bounded so a stuck
+            // holder can never pin a thread of the fixed-size pool for good: giving up then is
+            // no worse than the unconditional skip this replaces. The bound has to clear the
+            // slowest realistic holder - an open-time detection whose declared location points
+            // at an unroutable host waits out the connect timeout, measured at ~35 s here.
+            long deadline = System.nanoTime() + java.util.concurrent.TimeUnit.SECONDS.toNanos(120);
+            while (!tab.schemaDetecting.compareAndSet(false, true)) {
+                if (tab.schemaBindingGen.get() != generation || System.nanoTime() > deadline) {
+                    return; // superseded while waiting, or the holder never released
+                }
+                try {
+                    Thread.sleep(25);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    return;
+                }
             }
             if (tab.schemaBindingGen.get() != generation) {
                 // superseded: a fresher snapshot owns the binding now
