@@ -785,6 +785,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#json-grid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Grid (Graphic view for JSON)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#html-preview" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2965,6 +2976,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#json-grid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Grid (Graphic view for JSON)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#html-preview" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4061,7 +4083,7 @@ modes - each with its own icon - plus, for <strong>HTML documents only</strong>,
 </tr>
 <tr>
 <td><strong>Graphic</strong></td>
-<td>A visual editor that depends on the document type: for <strong>XML</strong>, <strong>XSLT</strong>, and <strong>Schematron</strong> files it shows the editable XMLSpy-style <strong>grid</strong>; for <strong>XSD</strong> files it shows the <strong>schema diagram</strong></td>
+<td>A visual editor that depends on the document type: for <strong>XML</strong>, <strong>XSLT</strong>, <strong>Schematron</strong> and <strong>JSON</strong> files it shows the editable XMLSpy-style <strong>grid</strong>; for <strong>XSD</strong> files it shows the <strong>schema diagram</strong></td>
 </tr>
 <tr>
 <td><strong>Preview</strong></td>
@@ -4093,6 +4115,41 @@ shows the editable grid:</p>
   <strong>inside the grid Ctrl+Shift+X is Copy XPath</strong>, so the shell-level Query Console toggle
   needs the terminal-icon toolbar button while the grid has focus.</li>
 </ul>
+<h3 id="json-grid">The Grid (Graphic view for JSON)<a class="headerlink" href="#json-grid" title="Permanent link">&para;</a></h3>
+<p>JSON documents (<code>.json</code>, <code>.jsonc</code>, <code>.json5</code>) get the <strong>same grid</strong> in the <strong>Graphic</strong> view -
+same header strip, same rows, same keyboard shortcuts and context menu - so a JSON file
+looks and feels exactly like an XML file in the grid:</p>
+<p><img alt="A JSON document in the Graphic (grid) view" src="../img/unified-shell-json-grid.png" /></p>
+<ul>
+<li>The <strong>root</strong> value is the <code>$</code> row; <strong>object properties</strong> and <strong>array items</strong> (<code>[0]</code>, <code>[1]</code>, …)
+  are the rows beneath it. Objects and arrays are collapsible containers showing their child
+  count; scalar properties show as <code>key = value</code> rows.</li>
+<li>Every row carries a <strong>type glyph</strong> in its own colour: <code>{}</code> object, <code>[]</code> array, <code>"</code> string,
+  <code>#</code> number, <code>T</code>/<code>F</code> boolean and <code>∅</code> null. <strong>Strings are shown quoted</strong> (<code>= "Alice"</code>) - like
+  XML leaf values - so <code>"42"</code> and <code>42</code> are never confused.</li>
+<li><strong>Arrays of objects</strong> are rendered as <strong>embedded grids</strong> (a table with one column per key,
+  merged across all items), exactly like repeating elements in XML. Column headers <strong>sort</strong>
+  the array (numbers, dates and strings are recognised), nested objects expand inline.</li>
+<li><strong>Inline editing</strong> keeps the value's type: double-click a number and type a number
+  (anything else is rejected with a hint and the editor stays open), booleans toggle between
+  <code>true</code>/<code>false</code>, <code>null</code> stays <code>null</code> unless you type text. Double-click a key to rename it
+  (duplicate keys are refused).</li>
+<li>The context menu mirrors the XML one: <strong>Add</strong> (Property / Array Item / Sibling Before /
+  After), <strong>Rename Key</strong> (F2), <strong>Duplicate</strong> (Ctrl+D), <strong>Copy / Cut / Paste as Sibling /
+  Paste as Child</strong>, <strong>Copy Cell Content</strong>, <strong>Copy JSONPath</strong> (Ctrl+Shift+X - e.g.
+  <code>$.items[1].name</code>), <strong>Copy Node (JSON)</strong>, <strong>Change Type</strong> (String / Number / Boolean /
+  Null / Object / Array), <strong>Move Up / Down</strong> (Alt+↑/↓), <strong>Sort Column</strong> and <strong>Delete</strong>.</li>
+<li>All edits go through the document's <strong>undo history</strong> (Ctrl+Z / Ctrl+Y) and are written back
+  into the text - the Text, Tree and Graphic views share one model, and the <strong>Properties</strong>
+  inspector edits keys and values from any of them.</li>
+</ul>
+<div class="admonition warning">
+<p class="admonition-title">Comments and JSON5 syntax are not preserved</p>
+<p>The grid edits the parsed <em>model</em>. Comments (JSONC) and JSON5 syntax (unquoted keys,
+single quotes, trailing commas) are not part of it, so the <strong>first grid edit rewrites the
+file as standard JSON</strong>. The grid shows a warning the first time it opens such a file;
+if you need to keep the comments, edit in the Text view instead.</p>
+</div>
 <h3 id="html-preview">HTML Preview (Preview view for HTML)<a class="headerlink" href="#html-preview" title="Permanent link">&para;</a></h3>
 <p>HTML documents (<code>.html</code>, <code>.htm</code>, <code>.xhtml</code>) get their own <strong>Preview</strong> view mode - the eye
 icon in the segmented view switch - that renders the page read-only, the way a browser
@@ -4171,7 +4228,7 @@ would show it:</p>
 <tr>
 <td><strong>JSON</strong></td>
 <td>.json, .jsonc, .json5</td>
-<td>Text + tree view, JSONPath queries, JSON Schema validation. The JSON/JSONC/JSON5 flavor is detected from the content, so comments and trailing commas are accepted in any of the three.</td>
+<td>Text + tree + editable <strong>grid</strong> view (see <a href="#json-grid">The Grid for JSON</a>), JSONPath queries, JSON Schema validation. The JSON/JSONC/JSON5 flavor is detected from the content, so comments and trailing commas are accepted in any of the three.</td>
 </tr>
 <tr>
 <td><strong>HTML</strong></td>
@@ -5661,7 +5718,7 @@ now opens <strong>Search (Find in Files)</strong>, and <strong>Ctrl+Shift+H</str
 unchanged. The in-editor find/replace stays on <strong>Ctrl+F / Ctrl+H</strong>.</p>
 </div>
 <blockquote>
-<p><strong>Search in all view modes:</strong> Pressing <strong>Ctrl+F</strong> opens an inline search bar with up/down chevron arrows for Find Previous / Find Next (Enter / Shift+Enter work too). The search works in the <strong>Text</strong>, <strong>Tree</strong> and <strong>Graphic</strong> views. In the structured views it searches the nodes themselves — for XSD schemas that is element/attribute/type names, documentation and appinfo, type references, fixed/default values, enumeration and facet values, and comments; for XML instances in the Graphic grid it is element names, attribute names, and values. A match hidden inside a collapsed branch is revealed automatically (ancestors expand), selected, and scrolled into view; matches wrap around when you reach the end. Switching the view mode or tab while the bar is open re-targets the search to the active view. <strong>Replace</strong> is available in the Text view only — in Tree/Graphic views the replace toggle is disabled. In an HTML document's <strong>Preview</strong>, Ctrl+F searches the underlying markup text, not the rendered page. See <a href="../xml-editor-features/#search-find">XML Editor Features</a> for details.</p>
+<p><strong>Search in all view modes:</strong> Pressing <strong>Ctrl+F</strong> opens an inline search bar with up/down chevron arrows for Find Previous / Find Next (Enter / Shift+Enter work too). The search works in the <strong>Text</strong>, <strong>Tree</strong> and <strong>Graphic</strong> views. In the structured views it searches the nodes themselves — for XSD schemas that is element/attribute/type names, documentation and appinfo, type references, fixed/default values, enumeration and facet values, and comments; for XML instances in the Graphic grid it is element names, attribute names, and values; for JSON documents (Tree and Graphic) it is keys and values. A match hidden inside a collapsed branch is revealed automatically (ancestors expand), selected, and scrolled into view; matches wrap around when you reach the end. Switching the view mode or tab while the bar is open re-targets the search to the active view. <strong>Replace</strong> is available in the Text view only — in Tree/Graphic views the replace toggle is disabled. In an HTML document's <strong>Preview</strong>, Ctrl+F searches the underlying markup text, not the rendered page. See <a href="../xml-editor-features/#search-find">XML Editor Features</a> for details.</p>
 </blockquote>
 <h2 id="compare-merge">Compare &amp; Merge<a class="headerlink" href="#compare-merge" title="Permanent link">&para;</a></h2>
 <p>Both the XML and XSD editors include a <strong>Compare</strong> toolbar button (tooltip <em>"Compare with file..."</em>)

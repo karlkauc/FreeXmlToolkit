@@ -1051,6 +1051,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#grid-view" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Grid View
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#hover-information" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2106,6 +2117,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#grid-view" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Grid View
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#hover-information" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2324,13 +2346,15 @@ shell rather than a dedicated sidebar tab.</p>
 - <strong>JSON5 syntax</strong> - trailing commas, unquoted keys, single-quoted strings, and comments</p>
 <blockquote>
 <p><strong>File extensions:</strong> <code>.json</code>, <code>.jsonc</code> and <code>.json5</code> all open in the JSON editor
-(tree view, JSONPath, schema binding). The flavor is detected from the <em>content</em>, not
+(tree view, grid view, JSONPath, schema binding). The flavor is detected from the <em>content</em>, not
 from the extension - a <code>.json</code> file with comments is treated as JSONC just like a
 <code>.jsonc</code> file. Only <code>.json</code> is offered for operating-system file associations
 (<code>.jsonc</code>/<code>.json5</code> have no MIME type in the shared databases).</p>
 </blockquote>
 <p><img alt="JSON in the Unified Shell" src="../img/unified-shell-json-tree.png" />
 <strong><em>JSON editing (text + tree view) in the Unified Shell</em></strong></p>
+<p><img alt="JSON in the grid view" src="../img/unified-shell-json-grid.png" />
+<strong><em>The same document in the Graphic (grid) view - the XMLSpy-style grid the shell also uses for XML</em></strong></p>
 <h2 id="features">Features<a class="headerlink" href="#features" title="Permanent link">&para;</a></h2>
 <h3 id="text-editor">Text Editor<a class="headerlink" href="#text-editor" title="Permanent link">&para;</a></h3>
 <table>
@@ -2399,6 +2423,50 @@ from the extension - a <code>.json</code> file with comments is treated as JSONC
 </tr>
 </tbody>
 </table>
+<p>The tree shares the document model with the grid view and the Properties inspector, so an
+edit made there shows up in the tree immediately, and Ctrl+F searches keys and values.</p>
+<h3 id="grid-view">Grid View<a class="headerlink" href="#grid-view" title="Permanent link">&para;</a></h3>
+<p>The <strong>Graphic</strong> view mode shows the document as the editable XMLSpy-style <strong>grid</strong> - the
+very same grid the shell uses for XML files, so it is instantly familiar:</p>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Rows</strong></td>
+<td>The root <code>$</code>, object properties (<code>key = value</code>) and array items (<code>[0]</code>, <code>[1]</code>, …); objects and arrays collapse/expand</td>
+</tr>
+<tr>
+<td><strong>Type glyphs</strong></td>
+<td><code>{}</code> object, <code>[]</code> array, <code>"</code> string, <code>#</code> number, <code>T</code>/<code>F</code> boolean, <code>∅</code> null - each in its own colour; strings are shown quoted</td>
+</tr>
+<tr>
+<td><strong>Arrays of objects</strong></td>
+<td>Rendered as embedded tables (one column per key); click a column header to sort, expand nested objects inline</td>
+</tr>
+<tr>
+<td><strong>Inline editing</strong></td>
+<td>Double-click a value; the type is kept (numbers must stay numbers, booleans toggle, <code>null</code> stays <code>null</code> unless you type text). Double-click a key to rename it</td>
+</tr>
+<tr>
+<td><strong>Context menu</strong></td>
+<td>Add Property / Array Item / Sibling, Rename Key (F2), Duplicate (Ctrl+D), Copy/Cut/Paste, Copy Cell Content, Copy JSONPath (Ctrl+Shift+X), Copy Node (JSON), Change Type, Move Up/Down (Alt+↑/↓), Sort Column, Delete</td>
+</tr>
+<tr>
+<td><strong>Undo/Redo</strong></td>
+<td>Every grid edit is one undo step (Ctrl+Z / Ctrl+Y) and is written back into the text</td>
+</tr>
+<tr>
+<td><strong>Search</strong></td>
+<td>Ctrl+F finds keys and values, revealing matches inside collapsed nodes</td>
+</tr>
+</tbody>
+</table>
+<p>See <a href="../unified-shell/#json-grid">Unified Shell - The Grid for JSON</a> for details.</p>
 <h3 id="hover-information">Hover Information<a class="headerlink" href="#hover-information" title="Permanent link">&para;</a></h3>
 <p>When you hover over any element in the JSON editor, you'll see:
 - <strong>JSONPath</strong> - The full path to the current element (e.g., <code>$.store.book[0].title</code>)
@@ -2544,6 +2612,13 @@ strip comments and trailing commas before parsing).</p>
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="nt">"active"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="p">}</span>
 </code></pre></div>
+<div class="admonition warning">
+<p class="admonition-title">Grid edits rewrite JSONC / JSON5 as standard JSON</p>
+<p>Comments, unquoted keys, single quotes and trailing commas are not part of the document
+model behind the tree and grid views. Editing in the <strong>grid</strong> (or through the Properties
+inspector) therefore rewrites the file as standard JSON on the first edit - the grid warns
+you once when it opens such a file. Edit in the <strong>Text</strong> view to keep them.</p>
+</div>
 <h3 id="jsonc-syntax-json-with-comments">JSONC syntax (JSON with Comments)<a class="headerlink" href="#jsonc-syntax-json-with-comments" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>{
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>  // This is a single-line comment
@@ -2609,7 +2684,8 @@ actions sit in <strong>split buttons</strong> with a visible <strong>▾</strong
 </tbody>
 </table>
 <p>Actions that do not apply to JSON (e.g. <strong>Run</strong> or the XSLT transform) are greyed out. The
-<strong>Tree</strong> view is switched with the Text/Tree view switch at the right end of the toolbar.</p>
+<strong>Tree</strong> and <strong>Graphic</strong> (grid) views are switched with the Text/Tree/Graphic view switch at
+the right end of the toolbar.</p>
 <h2 id="tree-view-icons">Tree View Icons<a class="headerlink" href="#tree-view-icons" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -2651,7 +2727,8 @@ actions sit in <strong>split buttons</strong> with a visible <strong>▾</strong
 </table>
 <h2 id="tips-and-best-practices">Tips and Best Practices<a class="headerlink" href="#tips-and-best-practices" title="Permanent link">&para;</a></h2>
 <ol>
-<li><strong>Use the Tree View</strong> for navigating large JSON documents</li>
+<li><strong>Use the Tree View</strong> for navigating large JSON documents, and the <strong>Grid View</strong> to edit
+   arrays of objects like a table</li>
 <li><strong>Enable Auto-Format</strong> after pasting JSON from external sources</li>
 <li><strong>Use JSONPath</strong> to quickly extract specific data</li>
 <li><strong>Validate against Schema</strong> to ensure data quality</li>
