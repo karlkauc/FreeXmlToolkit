@@ -463,7 +463,7 @@ class FlatRowTest {
     void testRowTypeValues() {
         FlatRow.RowType[] types = FlatRow.RowType.values();
         assertNotNull(types);
-        assertEquals(7, types.length);
+        assertEquals(13, types.length, "7 XML row types + 6 JSON row types");
 
         // Verify all expected types are present
         assertNotNull(FlatRow.RowType.ELEMENT);
@@ -473,6 +473,18 @@ class FlatRowTest {
         assertNotNull(FlatRow.RowType.CDATA);
         assertNotNull(FlatRow.RowType.PROCESSING_INSTRUCTION);
         assertNotNull(FlatRow.RowType.DOCUMENT);
+
+        // JSON row types with their behavioural categories
+        assertTrue(FlatRow.RowType.JSON_OBJECT.isContainer());
+        assertTrue(FlatRow.RowType.JSON_ARRAY.isContainer());
+        assertTrue(FlatRow.RowType.JSON_STRING.isScalarLeaf());
+        assertTrue(FlatRow.RowType.JSON_NUMBER.isScalarLeaf());
+        assertTrue(FlatRow.RowType.JSON_BOOLEAN.isScalarLeaf());
+        assertTrue(FlatRow.RowType.JSON_NULL.isScalarLeaf());
+        assertTrue(FlatRow.RowType.ELEMENT.isContainer());
+        assertTrue(FlatRow.RowType.ATTRIBUTE.isAttribute());
+        assertFalse(FlatRow.RowType.ELEMENT.isJson());
+        assertTrue(FlatRow.RowType.JSON_NULL.isJson());
     }
 
     // ==================== applyVisibility Tests ====================

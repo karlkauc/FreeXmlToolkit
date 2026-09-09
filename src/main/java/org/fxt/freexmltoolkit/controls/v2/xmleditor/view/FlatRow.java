@@ -42,23 +42,82 @@ public class FlatRow {
     // ==================== RowType Enum ====================
 
     /**
-     * Enumerates the kinds of XML items that can appear as rows.
+     * Enumerates the kinds of items that can appear as rows. The XML constants are the
+     * original XMLSpy-style row kinds; the {@code JSON_*} constants back the JSON grid.
+     * Every constant carries a behavioural {@link Category} so the canvas can treat
+     * "expandable container", "scalar leaf" and "inline attribute" rows uniformly
+     * without knowing the underlying document model.
      */
     public enum RowType {
         /** An XML element (may have children, attributes, text). */
-        ELEMENT,
+        ELEMENT(Category.CONTAINER),
         /** An XML attribute belonging to an element. */
-        ATTRIBUTE,
+        ATTRIBUTE(Category.ATTRIBUTE),
         /** A text node inside an element. */
-        TEXT,
+        TEXT(Category.NOTE),
         /** An XML comment ({@code <!-- ... -->}). */
-        COMMENT,
+        COMMENT(Category.NOTE),
         /** A CDATA section ({@code <![CDATA[ ... ]]>}). */
-        CDATA,
+        CDATA(Category.NOTE),
         /** A processing instruction ({@code <?target data?>}). */
-        PROCESSING_INSTRUCTION,
+        PROCESSING_INSTRUCTION(Category.NOTE),
         /** The XML document root. */
-        DOCUMENT
+        DOCUMENT(Category.NOTE),
+        /** A JSON object ({@code {...}}); expandable when it has properties. */
+        JSON_OBJECT(Category.CONTAINER),
+        /** A JSON array ({@code [...]}); expandable when it has items. */
+        JSON_ARRAY(Category.CONTAINER),
+        /** A JSON string value. */
+        JSON_STRING(Category.LEAF),
+        /** A JSON number value. */
+        JSON_NUMBER(Category.LEAF),
+        /** A JSON boolean value. */
+        JSON_BOOLEAN(Category.LEAF),
+        /** A JSON {@code null} value. */
+        JSON_NULL(Category.LEAF);
+
+        /** Behavioural category shared by XML and JSON row types. */
+        public enum Category {
+            /** Expandable node with children (XML element, JSON object/array). */
+            CONTAINER,
+            /** Scalar leaf shown as {@code name = value} (JSON primitives). */
+            LEAF,
+            /** Inline attribute row that stays visible while its parent is collapsed. */
+            ATTRIBUTE,
+            /** Non-editable-structure notes: text, comment, CDATA, PI, document. */
+            NOTE
+        }
+
+        private final Category category;
+
+        RowType(Category category) {
+            this.category = category;
+        }
+
+        /** @return the behavioural category of this row type */
+        public Category getCategory() {
+            return category;
+        }
+
+        /** @return true for expandable container rows (XML element, JSON object/array) */
+        public boolean isContainer() {
+            return category == Category.CONTAINER;
+        }
+
+        /** @return true for inline attribute rows */
+        public boolean isAttribute() {
+            return category == Category.ATTRIBUTE;
+        }
+
+        /** @return true for scalar leaf rows (JSON primitives) */
+        public boolean isScalarLeaf() {
+            return category == Category.LEAF;
+        }
+
+        /** @return true for the JSON row kinds */
+        public boolean isJson() {
+            return name().startsWith("JSON_");
+        }
     }
 
     // ==================== Core Fields ====================
@@ -69,8 +128,8 @@ public class FlatRow {
     /** The nesting depth of this row (0 = top-level). */
     private final int depth;
 
-    /** The underlying XML model node. */
-    private final XmlNode modelNode;
+    /** The underlying model node ({@code XmlNode} for XML rows, {@code JsonNode} for JSON rows). */
+    private final Object modelNode;
 
     /** The parent FlatRow in the flattened list (null for root rows). */
     private final FlatRow parentRow;
@@ -119,13 +178,13 @@ public class FlatRow {
      *
      * @param type       the kind of XML item (ELEMENT, ATTRIBUTE, TEXT, etc.)
      * @param depth      nesting depth (0 = root level)
-     * @param modelNode  the underlying XML model node
+     * @param modelNode  the underlying model node (XML or JSON)
      * @param parentRow  the parent FlatRow, or null for top-level rows
      * @param label      display label (element/attribute name), may be null for TEXT/COMMENT
      * @param value      display value (attribute value or leaf text), may be null
      * @param childCount number of direct children (0 for leaf nodes and non-elements)
      */
-    public FlatRow(RowType type, int depth, XmlNode modelNode, FlatRow parentRow,
+    public FlatRow(RowType type, int depth, Object modelNode, FlatRow parentRow,
                    String label, String value, int childCount) {
         this.type = type;
         this.depth = depth;
@@ -157,11 +216,11 @@ public class FlatRow {
     }
 
     /**
-     * Returns the underlying XML model node.
+     * Returns the underlying model node ({@code XmlNode} or {@code JsonNode}).
      *
      * @return the model node
      */
-    public XmlNode getModelNode() {
+    public Object getModelNode() {
         return modelNode;
     }
 
@@ -318,24 +377,26 @@ public class FlatRow {
     /**
      * Returns whether this row can be expanded.
      *
-     * <p>A row is expandable if it is an ELEMENT type and has at least one child.</p>
+     * <p>A row is expandable if it is a container type (XML element, JSON object/array)
+     * and has at least one child.</p>
      *
-     * @return true if this is an element with children
+     * @return true if this is a container with children
      */
     public boolean isExpandable() {
-        return type == RowType.ELEMENT && childCount > 0;
+        return type.isContainer() && childCount > 0;
     }
 
     /**
      * Returns whether this row is a leaf element that directly contains a text value.
      *
-     * <p>A leaf-with-value row is an ELEMENT type with no children but a non-null value.
-     * These are typically displayed inline: {@code <title>XML Guide</title>}</p>
+     * <p>A leaf-with-value row is an ELEMENT type (or a JSON scalar type) with no children
+     * but a non-null value. These are displayed inline as {@code name = "value"}, e.g.
+     * {@code <title>XML Guide</title>} or {@code "title": "XML Guide"}.</p>
      *
-     * @return true if this is an element with value and no children
+     * @return true if this is a leaf with a value and no children
      */
     public boolean isLeafWithValue() {
-        return type == RowType.ELEMENT && childCount == 0 && value != null;
+        return (type == RowType.ELEMENT || type.isScalarLeaf()) && childCount == 0 && value != null;
     }
 
     /**
@@ -575,7 +636,7 @@ public class FlatRow {
         for (FlatRow row : rows) {
             // An attribute's visibility anchors on its element row, not on the
             // element's expanded state.
-            FlatRow anchor = (row.getType() == RowType.ATTRIBUTE) ? row.getParentRow() : row;
+            FlatRow anchor = row.getType().isAttribute() ? row.getParentRow() : row;
             row.setVisible(anchor == null || ancestorsExpanded(anchor));
         }
     }
@@ -594,8 +655,8 @@ public class FlatRow {
     }
 
     public static void toggleExpand(FlatRow elementRow, List<FlatRow> allRows) {
-        if (elementRow.getType() != RowType.ELEMENT) {
-            return; // Only elements are expandable
+        if (!elementRow.getType().isContainer()) {
+            return; // Only container rows (elements, objects, arrays) are expandable
         }
 
         if (elementRow.isExpanded()) {
@@ -604,7 +665,7 @@ public class FlatRow {
             elementRow.setExpanded(false);
             for (FlatRow row : allRows) {
                 if (isDescendantOf(row, elementRow)) {
-                    if (row.getType() == RowType.ATTRIBUTE && row.getParentRow() == elementRow) {
+                    if (row.getType().isAttribute() && row.getParentRow() == elementRow) {
                         // Direct attributes stay visible
                         continue;
                     }
@@ -617,8 +678,8 @@ public class FlatRow {
             for (FlatRow row : allRows) {
                 if (row.getParentRow() == elementRow) {
                     row.setVisible(true);
-                    // If this child element is itself expanded, show its subtree too
-                    if (row.getType() == RowType.ELEMENT && row.isExpanded()) {
+                    // If this child container is itself expanded, show its subtree too
+                    if (row.getType().isContainer() && row.isExpanded()) {
                         showExpandedSubtree(row, allRows);
                     }
                 }
@@ -637,7 +698,7 @@ public class FlatRow {
         for (FlatRow row : allRows) {
             if (row.getParentRow() == elementRow) {
                 row.setVisible(true);
-                if (row.getType() == RowType.ELEMENT && row.isExpanded()) {
+                if (row.getType().isContainer() && row.isExpanded()) {
                     showExpandedSubtree(row, allRows);
                 }
             }

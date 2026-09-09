@@ -50,7 +50,7 @@ import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider;
 /**
  * Context menu for XML Grid View with all editing operations.
  */
-public class XmlGridContextMenu {
+public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
 
     private static final Logger logger = LogManager.getLogger(XmlGridContextMenu.class);
 

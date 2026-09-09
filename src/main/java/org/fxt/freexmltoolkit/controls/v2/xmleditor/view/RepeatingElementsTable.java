@@ -180,7 +180,7 @@ public class RepeatingElementsTable {
     // ==================== Data ====================
 
     private final String elementName;
-    private final List<XmlElement> elements;
+    private final List<GridRecord> records;
     private final List<TableColumn> columns = new ArrayList<>();
     private final List<TableRow> rows = new ArrayList<>();
     private final int depth;
@@ -332,9 +332,9 @@ public class RepeatingElementsTable {
      */
     public static class TableRow {
         /**
-         * The XML element that this row represents.
+         * The model-agnostic record this row was built from.
          */
-        private final XmlElement element;
+        private final GridRecord record;
 
         /**
          * Map of column names to their string values.
@@ -342,9 +342,9 @@ public class RepeatingElementsTable {
         private final Map<String, String> values = new LinkedHashMap<>();
 
         /**
-         * Map of column names to complex child elements (elements with nested structure).
+         * Map of column names to complex child nodes (nodes with nested structure).
          */
-        private final Map<String, XmlElement> complexChildren = new LinkedHashMap<>();
+        private final Map<String, Object> complexChildren = new LinkedHashMap<>();
 
         /**
          * Display-only attribute summaries per column (e.g. {@code ccy=EUR} for
@@ -364,16 +364,43 @@ public class RepeatingElementsTable {
          * @param element the XML element this row represents
          */
         public TableRow(XmlElement element) {
-            this.element = element;
+            this(new XmlGridRecord(element));
+        }
+
+        /**
+         * Constructs a new TableRow for the specified record.
+         *
+         * @param record the record this row represents
+         */
+        public TableRow(GridRecord record) {
+            this.record = record;
+        }
+
+        /**
+         * Returns the record this row was built from.
+         *
+         * @return the underlying record
+         */
+        public GridRecord getRecord() {
+            return record;
+        }
+
+        /**
+         * Returns the model node this row represents (XmlElement or JsonObject).
+         *
+         * @return the underlying model node
+         */
+        public Object getNode() {
+            return record.node();
         }
 
         /**
          * Returns the XML element that this row represents.
          *
-         * @return the underlying XML element
+         * @return the underlying XML element, or {@code null} for non-XML records
          */
         public XmlElement getElement() {
-            return element;
+            return record.node() instanceof XmlElement el ? el : null;
         }
 
         /**
@@ -386,11 +413,11 @@ public class RepeatingElementsTable {
         }
 
         /**
-         * Returns the map of column names to complex child elements.
+         * Returns the map of column names to complex child nodes.
          *
          * @return the complex children map
          */
-        public Map<String, XmlElement> getComplexChildren() {
+        public Map<String, Object> getComplexChildren() {
             return complexChildren;
         }
 
@@ -428,12 +455,12 @@ public class RepeatingElementsTable {
         }
 
         /**
-         * Returns the complex child element for the specified column.
+         * Returns the complex child node for the specified column.
          *
          * @param columnName the column name
-         * @return the complex child element, or null if not found
+         * @return the complex child node, or null if not found
          */
-        public XmlElement getComplexChild(String columnName) {
+        public Object getComplexChild(String columnName) {
             return complexChildren.get(columnName);
         }
 
@@ -490,9 +517,8 @@ public class RepeatingElementsTable {
             } else {
                 expandedColumns.add(columnName);
                 if (!expandedCellRows.containsKey(columnName)) {
-                    XmlElement child = complexChildren.get(columnName);
-                    if (child != null) {
-                        expandedCellRows.put(columnName, FlatRow.flattenElement(child));
+                    if (complexChildren.containsKey(columnName)) {
+                        expandedCellRows.put(columnName, record.flattenComplexChild(columnName));
                     }
                 }
             }
@@ -535,8 +561,36 @@ public class RepeatingElementsTable {
      */
     public RepeatingElementsTable(String elementName, List<XmlElement> elements,
                                    int depth, Runnable onLayoutChangedCallback) {
+        this(elementName, toRecords(elements), depth, onLayoutChangedCallback, true);
+    }
+
+    /**
+     * Creates a table over model-agnostic records (used by the JSON grid for arrays of
+     * objects; the XML grid goes through the {@code List<XmlElement>} constructor).
+     *
+     * @param name                    the common name of the repeating group (tag name / property key)
+     * @param records                 one record per repeating node, in document order
+     * @param depth                   nesting depth of the owning row
+     * @param onLayoutChangedCallback invoked when the table's layout changes (may be {@code null})
+     * @return the new table
+     */
+    public static RepeatingElementsTable ofRecords(String name, List<? extends GridRecord> records,
+                                                   int depth, Runnable onLayoutChangedCallback) {
+        return new RepeatingElementsTable(name, new ArrayList<>(records), depth, onLayoutChangedCallback, true);
+    }
+
+    private static List<GridRecord> toRecords(List<XmlElement> elements) {
+        List<GridRecord> records = new ArrayList<>(elements.size());
+        for (XmlElement element : elements) {
+            records.add(new XmlGridRecord(element));
+        }
+        return records;
+    }
+
+    private RepeatingElementsTable(String elementName, List<GridRecord> records,
+                                   int depth, Runnable onLayoutChangedCallback, boolean fromRecords) {
         this.elementName = elementName;
-        this.elements = new ArrayList<>(elements);
+        this.records = records;
         this.depth = depth;
         this.onLayoutChangedCallback = onLayoutChangedCallback;
 
@@ -562,45 +616,19 @@ public class RepeatingElementsTable {
      * the merged order will be [A, B, C, D, E] because B appears before C in Element2.</p>
      */
     private void analyzeStructure() {
-        // Collect all unique column names for validation
-        Set<String> allAttributeNames = new LinkedHashSet<>();
-        Set<String> allChildElementNames = new LinkedHashSet<>();
-        boolean hasDirectText = false;
-
-        // Also build per-element column order lists for merging
+        // Per-record column keys (document order) for merging, plus the union of keys
+        // actually present so stale cached columns are dropped.
         List<List<String>> perElementOrders = new ArrayList<>();
-
-        for (XmlElement element : elements) {
-            List<String> elementColumnOrder = new ArrayList<>();
-
-            // Collect attributes (in document order)
-            for (String attrName : element.getAttributes().keySet()) {
-                allAttributeNames.add(attrName);
-                elementColumnOrder.add("@" + attrName);
-            }
-
-            // Collect first-level child element names (in document order)
-            for (XmlNode child : element.getChildren()) {
-                if (child instanceof XmlElement) {
-                    String childName = ((XmlElement) child).getName();
-                    allChildElementNames.add(childName);
-                    // Only add first occurrence of each child name per element
-                    if (!elementColumnOrder.contains(childName)) {
-                        elementColumnOrder.add(childName);
-                    }
-                } else if (child instanceof XmlText) {
-                    String text = ((XmlText) child).getText().trim();
-                    if (!text.isEmpty()) {
-                        hasDirectText = true;
-                        // Add text marker if not already present
-                        if (!elementColumnOrder.contains("#text")) {
-                            elementColumnOrder.add("#text");
-                        }
-                    }
+        Set<String> presentKeys = new LinkedHashSet<>();
+        Map<String, GridRecord> keyOwner = new HashMap<>();
+        for (GridRecord record : records) {
+            List<String> keys = record.columnKeys();
+            perElementOrders.add(new ArrayList<>(keys));
+            for (String key : keys) {
+                if (presentKeys.add(key)) {
+                    keyOwner.put(key, record);
                 }
             }
-
-            perElementOrders.add(elementColumnOrder);
         }
 
         // Check if we have a cached column order for this element type
@@ -609,37 +637,24 @@ public class RepeatingElementsTable {
         // Merge all element orders into a unified order respecting document order
         List<String> mergedOrder = mergeColumnOrders(perElementOrders);
 
+        List<String> finalOrder;
         if (cachedOrder != null) {
             // Use cached order for known columns, but insert new columns at correct positions
-            List<String> finalOrder = mergeCachedWithNew(cachedOrder, mergedOrder);
-
-            for (String colName : finalOrder) {
-                if (colName.startsWith("@") && allAttributeNames.contains(colName.substring(1))) {
-                    columns.add(new TableColumn(colName.substring(1), ColumnType.ATTRIBUTE));
-                } else if (colName.equals("#text") && hasDirectText) {
-                    columns.add(new TableColumn("#text", ColumnType.TEXT_CONTENT));
-                } else if (allChildElementNames.contains(colName)) {
-                    columns.add(new TableColumn(colName, ColumnType.CHILD_ELEMENT));
-                }
-            }
-
-            // Update cache with the new merged order
-            columnOrderCache.put(elementName, finalOrder);
+            finalOrder = mergeCachedWithNew(cachedOrder, mergedOrder);
         } else {
-            // First time - use merged order and cache it
-            for (String colName : mergedOrder) {
-                if (colName.startsWith("@") && allAttributeNames.contains(colName.substring(1))) {
-                    columns.add(new TableColumn(colName.substring(1), ColumnType.ATTRIBUTE));
-                } else if (colName.equals("#text") && hasDirectText) {
-                    columns.add(new TableColumn("#text", ColumnType.TEXT_CONTENT));
-                } else if (allChildElementNames.contains(colName)) {
-                    columns.add(new TableColumn(colName, ColumnType.CHILD_ELEMENT));
-                }
-            }
-
-            // Cache the column order for future rebuilds
-            columnOrderCache.put(elementName, mergedOrder);
+            // First time - use merged order
+            finalOrder = mergedOrder;
         }
+
+        for (String key : finalOrder) {
+            GridRecord owner = keyOwner.get(key);
+            if (owner != null) {
+                columns.add(new TableColumn(owner.columnName(key), owner.columnType(key)));
+            }
+        }
+
+        // Cache the column order for future rebuilds
+        columnOrderCache.put(elementName, finalOrder);
     }
 
     /**
@@ -767,138 +782,29 @@ public class RepeatingElementsTable {
     }
 
     /**
-     * Builds table rows from elements.
+     * Builds table rows from the records: cell values, display-only attribute suffixes and
+     * complex (expandable) children are copied for every column the record provides.
      */
     private void buildRows() {
-        for (XmlElement element : elements) {
-            TableRow row = new TableRow(element);
-
-            // Extract attribute values
+        for (GridRecord record : records) {
+            TableRow row = new TableRow(record);
             for (TableColumn col : columns) {
-                if (col.getType() == ColumnType.ATTRIBUTE) {
-                    String value = element.getAttributes().get(col.getName());
-                    if (value != null) {
-                        row.getValues().put(col.getName(), value);
-                    }
+                String name = col.getName();
+                String value = record.values().get(name);
+                if (value != null) {
+                    row.getValues().put(name, value);
+                }
+                String suffix = record.attributeSuffixes().get(name);
+                if (suffix != null) {
+                    row.getAttributeSuffixes().put(name, suffix);
+                }
+                Object complex = record.complexChildren().get(name);
+                if (complex != null) {
+                    row.getComplexChildren().put(name, complex);
                 }
             }
-
-            // Extract child element text values
-            for (XmlNode child : element.getChildren()) {
-                if (child instanceof XmlElement) {
-                    XmlElement childEl = (XmlElement) child;
-                    String childName = childEl.getName();
-
-                    // Check if this is a column
-                    for (TableColumn col : columns) {
-                        if (col.getType() == ColumnType.CHILD_ELEMENT &&
-                            col.getName().equals(childName)) {
-                            String text = extractElementText(childEl);
-                            if (!row.getValues().containsKey(childName)) {
-                                row.getValues().put(childName, text);
-                                // The cell element's own attributes (e.g. ccy="EUR" on an
-                                // Amount) are shown as a display-only suffix next to the value.
-                                if (!childEl.getAttributes().isEmpty()) {
-                                    row.getAttributeSuffixes().put(childName,
-                                            formatAttributes(childEl));
-                                }
-                                // Store complex children for later expansion
-                                if (hasElementChildren(childEl)) {
-                                    row.getComplexChildren().put(childName, childEl);
-                                }
-                            }
-                            break;
-                        }
-                    }
-                } else if (child instanceof XmlText) {
-                    String text = ((XmlText) child).getText().trim();
-                    if (!text.isEmpty()) {
-                        row.getValues().put("#text", text);
-                    }
-                }
-            }
-
             rows.add(row);
         }
-    }
-
-    /**
-     * Formats an element's attributes as a compact display summary, e.g.
-     * {@code ccy=EUR} or {@code ccy=EUR lang=de}.
-     */
-    private static String formatAttributes(XmlElement element) {
-        StringBuilder summary = new StringBuilder();
-        for (Map.Entry<String, String> attribute : element.getAttributes().entrySet()) {
-            if (summary.length() > 0) {
-                summary.append(' ');
-            }
-            summary.append(attribute.getKey()).append('=').append(attribute.getValue());
-        }
-        return summary.toString();
-    }
-
-    /**
-     * Checks if an element has child elements (not just text).
-     */
-    private boolean hasElementChildren(XmlElement element) {
-        for (XmlNode child : element.getChildren()) {
-            if (child instanceof XmlElement) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Extracts text content from an element.
-     * For leaf elements (only text), returns the text.
-     * For complex elements (with child elements), returns a summary showing child element names.
-     */
-    private String extractElementText(XmlElement element) {
-        StringBuilder text = new StringBuilder();
-        List<String> childElementNames = new ArrayList<>();
-
-        for (XmlNode child : element.getChildren()) {
-            if (child instanceof XmlElement childElement) {
-                childElementNames.add(childElement.getName());
-            } else if (child instanceof XmlText) {
-                String t = ((XmlText) child).getText().trim();
-                if (!t.isEmpty()) {
-                    if (text.length() > 0) {
-                        text.append(" ");
-                    }
-                    text.append(t);
-                }
-            }
-        }
-
-        // If it has element children, show element names
-        if (!childElementNames.isEmpty()) {
-            // Build summary showing element names (max 3, then "...")
-            StringBuilder summary = new StringBuilder();
-            int shown = 0;
-            for (String name : childElementNames) {
-                if (shown > 0) {
-                    summary.append(", ");
-                }
-                if (shown >= 3) {
-                    summary.append("...");
-                    break;
-                }
-                summary.append("<").append(name).append(">");
-                shown++;
-            }
-
-            if (text.length() > 0) {
-                // Mixed content: show text + child summary
-                return text.toString() + " [" + summary + "]";
-            } else {
-                // Only element children - show as expandable
-                return summary.toString();
-            }
-        }
-
-        return text.toString();
     }
 
     /**
@@ -1282,7 +1188,35 @@ public class RepeatingElementsTable {
      * @return the list of elements
      */
     public List<XmlElement> getElements() {
+        List<XmlElement> elements = new ArrayList<>(records.size());
+        for (GridRecord record : records) {
+            if (record.node() instanceof XmlElement el) {
+                elements.add(el);
+            }
+        }
         return elements;
+    }
+
+    /**
+     * Returns the records displayed in this table (one per repeating node).
+     *
+     * @return the records, in row order
+     */
+    public List<GridRecord> getRecords() {
+        return records;
+    }
+
+    /**
+     * Returns the model nodes displayed in this table (XmlElement / JsonObject).
+     *
+     * @return the nodes, in row order
+     */
+    public List<Object> getNodes() {
+        List<Object> nodes = new ArrayList<>(records.size());
+        for (GridRecord record : records) {
+            nodes.add(record.node());
+        }
+        return nodes;
     }
 
     /**
@@ -1291,7 +1225,7 @@ public class RepeatingElementsTable {
      * @return the element count
      */
     public int getElementCount() {
-        return elements.size();
+        return records.size();
     }
 
     /**
@@ -1599,10 +1533,30 @@ public class RepeatingElementsTable {
      * @return the selected XML element, or null if no row is selected
      */
     public XmlElement getSelectedElement() {
+        TableRow row = getSelectedRow();
+        return row != null ? row.getElement() : null;
+    }
+
+    /**
+     * Returns the currently selected table row.
+     *
+     * @return the selected row, or null if no row is selected
+     */
+    public TableRow getSelectedRow() {
         if (selectedRowIndex >= 0 && selectedRowIndex < rows.size()) {
-            return rows.get(selectedRowIndex).getElement();
+            return rows.get(selectedRowIndex);
         }
         return null;
+    }
+
+    /**
+     * Returns the model node of the currently selected row.
+     *
+     * @return the selected node, or null if no row is selected
+     */
+    public Object getSelectedNode() {
+        TableRow row = getSelectedRow();
+        return row != null ? row.getNode() : null;
     }
 
     /**

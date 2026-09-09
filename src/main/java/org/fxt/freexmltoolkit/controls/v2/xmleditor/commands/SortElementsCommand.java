@@ -1,11 +1,7 @@
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.commands;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.AbstractMap;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -13,6 +9,7 @@ import java.util.Map;
 
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.GridColumnSort;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.RepeatingElementsTable;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.RepeatingElementsTable.ColumnDataType;
 
@@ -44,15 +41,6 @@ public class SortElementsCommand implements XmlCommand {
     // For undo - stores original indices of elements within parent's children
     private List<Integer> originalIndices;
     private boolean executed = false;
-
-    // Date formatters for parsing
-    private static final List<DateTimeFormatter> DATE_FORMATTERS = Arrays.asList(
-            DateTimeFormatter.ISO_LOCAL_DATE,                    // 2024-01-15
-            DateTimeFormatter.ofPattern("dd.MM.yyyy"),           // 15.01.2024
-            DateTimeFormatter.ofPattern("MM/dd/yyyy"),           // 01/15/2024
-            DateTimeFormatter.ofPattern("yyyy-MM"),              // 2024-01
-            DateTimeFormatter.ofPattern("dd/MM/yyyy")            // 15/01/2024
-    );
 
     /**
      * Constructs a command to sort elements by a column.
@@ -171,29 +159,11 @@ public class SortElementsCommand implements XmlCommand {
     }
 
     /**
-     * Creates a comparator based on the detected data type.
+     * Creates a comparator over elements that compares their cell text in this column
+     * using the shared {@link GridColumnSort} rules (numeric / date / string, empties last).
      */
     private Comparator<XmlElement> createComparator() {
-        Comparator<XmlElement> comparator = (e1, e2) -> {
-            String v1 = getColumnValue(e1);
-            String v2 = getColumnValue(e2);
-
-            // Handle nulls/empties - always sort to end
-            if (v1 == null || v1.trim().isEmpty()) {
-                return 1;
-            }
-            if (v2 == null || v2.trim().isEmpty()) {
-                return -1;
-            }
-
-            return switch (dataType) {
-                case NUMERIC -> compareNumeric(v1, v2);
-                case DATE -> compareDates(v1, v2);
-                default -> v1.compareToIgnoreCase(v2);
-            };
-        };
-
-        return ascending ? comparator : comparator.reversed();
+        return Comparator.comparing(this::getColumnValue, GridColumnSort.comparator(dataType, ascending));
     }
 
     /**
@@ -207,65 +177,5 @@ public class SortElementsCommand implements XmlCommand {
             }
         }
         return "";
-    }
-
-    /**
-     * Compares two numeric string values.
-     */
-    private int compareNumeric(String v1, String v2) {
-        try {
-            double d1 = Double.parseDouble(v1.replace(",", "").replace(" ", "").trim());
-            double d2 = Double.parseDouble(v2.replace(",", "").replace(" ", "").trim());
-            return Double.compare(d1, d2);
-        } catch (NumberFormatException e) {
-            // Fallback to string comparison
-            return v1.compareToIgnoreCase(v2);
-        }
-    }
-
-    /**
-     * Compares two date string values.
-     */
-    private int compareDates(String v1, String v2) {
-        LocalDate date1 = parseDate(v1);
-        LocalDate date2 = parseDate(v2);
-
-        if (date1 == null && date2 == null) {
-            return 0;
-        }
-        if (date1 == null) {
-            return 1;
-        }
-        if (date2 == null) {
-            return -1;
-        }
-
-        return date1.compareTo(date2);
-    }
-
-    /**
-     * Attempts to parse a date string using multiple formats.
-     */
-    private LocalDate parseDate(String value) {
-        if (value == null || value.trim().isEmpty()) {
-            return null;
-        }
-
-        String v = value.trim();
-
-        // Handle datetime by extracting date part
-        if (v.contains("T")) {
-            v = v.substring(0, v.indexOf("T"));
-        }
-
-        for (DateTimeFormatter formatter : DATE_FORMATTERS) {
-            try {
-                return LocalDate.parse(v, formatter);
-            } catch (DateTimeParseException ignored) {
-                // Try next format
-            }
-        }
-
-        return null;
     }
 }
