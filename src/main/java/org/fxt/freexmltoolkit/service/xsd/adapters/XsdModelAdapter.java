@@ -870,8 +870,9 @@ public class XsdModelAdapter {
                                 if (appinfoContent != null && !appinfoContent.trim().isEmpty()) {
                                     appInfo.addEntry(source, appinfoContent.trim());
                                 } else if (source != null && !source.isEmpty()) {
-                                    // Source-only appinfo (like track source files feature)
-                                    appInfo.addEntry(source, "");
+                                    // Source-only appinfo such as <xs:appinfo source="@since 4.2.8"/>:
+                                    // the JavaDoc-style tag lives in the source attribute, so use it as content.
+                                    appInfo.addEntry(source, source);
                                 }
                             }
                         }

@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>XsdDoc Tags — JavaDoc-style annotations in xs:appinfo</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg-soft: #f6f8fa;
+    --bg-code: #f2f4f7;
+    --fg: #1f2933;
+    --fg-muted: #5b6673;
+    --border: #d9e0e8;
+    --accent: #1373d9;
+    --ok: #28a745;
+    --warn: #ffc107;
+    --danger: #dc3545;
+    --info: #17a2b8;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #12161c;
+      --bg-soft: #1a2029;
+      --bg-code: #0e1218;
+      --fg: #dfe6ee;
+      --fg-muted: #97a3b2;
+      --border: #2b3542;
+      --accent: #4ea3ff;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 2rem 1.25rem 4rem;
+    background: var(--bg);
+    color: var(--fg);
+    font: 15px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  main { max-width: 62rem; margin: 0 auto; }
+  h1 { font-size: 1.9rem; line-height: 1.2; margin: 0 0 .35rem; }
+  h2 {
+    font-size: 1.25rem; margin: 2.5rem 0 .75rem;
+    padding-bottom: .35rem; border-bottom: 1px solid var(--border);
+  }
+  h3 { font-size: 1.02rem; margin: 1.6rem 0 .5rem; }
+  p, li { color: var(--fg); }
+  .lede { color: var(--fg-muted); margin: 0 0 1.5rem; font-size: 1.02rem; }
+  code, pre { font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace; }
+  code { background: var(--bg-code); padding: .1em .35em; border-radius: 4px; font-size: .88em; }
+  pre {
+    background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px;
+    padding: 1rem; overflow-x: auto; font-size: .85rem; line-height: 1.5;
+  }
+  pre code { background: none; padding: 0; font-size: inherit; }
+  .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 8px; }
+  table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+  th, td { text-align: left; padding: .55rem .75rem; vertical-align: top; border-bottom: 1px solid var(--border); }
+  th { background: var(--bg-soft); font-weight: 600; white-space: nowrap; }
+  tr:last-child td { border-bottom: none; }
+  td code { white-space: nowrap; }
+  .yes { color: var(--ok); font-weight: 600; }
+  .no { color: var(--danger); font-weight: 600; }
+  .partial { color: var(--info); font-weight: 600; }
+  .finding {
+    border: 1px solid var(--border); border-left: 4px solid var(--danger);
+    border-radius: 8px; padding: 1rem 1.15rem; margin: 1.25rem 0; background: var(--bg-soft);
+  }
+  .finding.fixed { border-left-color: var(--ok); }
+  .finding h3 { margin-top: 0; }
+  .badge {
+    display: inline-block; font-size: .72rem; font-weight: 700; letter-spacing: .04em;
+    text-transform: uppercase; padding: .15rem .5rem; border-radius: 999px;
+    background: var(--danger); color: #fff; vertical-align: middle; margin-left: .5rem;
+  }
+  .badge.ok { background: var(--ok); }
+  .note {
+    border-left: 4px solid var(--accent); background: var(--bg-soft);
+    padding: .75rem 1rem; border-radius: 0 8px 8px 0; margin: 1rem 0;
+  }
+  .meta { color: var(--fg-muted); font-size: .85rem; margin-bottom: 2rem; }
+  ul.tight { margin: .4rem 0; padding-left: 1.3rem; }
+  ul.tight li { margin: .2rem 0; }
+</style>
+</head>
+<body>
+<main>
+
+<h1>XsdDoc Tags</h1>
+<p class="lede">JavaDoc-style annotations in <code>xs:appinfo</code> — how FreeXmlToolkit reads, renders and
+edits them, in the HTML documentation generator and in the XSD editor.</p>
+<p class="meta">Analysis of the code base · 2026-09-09 · <code>FreeXmlToolkit</code></p>
+
+<h2>1. Where the metadata lives</h2>
+
+<p>Everything structured hangs off <code>xs:annotation</code> with its two children:</p>
+<ul class="tight">
+  <li><strong><code>xs:documentation</code></strong> — human-readable prose, multi-language via
+      <code>xml:lang</code>.</li>
+  <li><strong><code>xs:appinfo</code></strong> — machine-readable metadata. Its <code>source</code>
+      attribute carries the JavaDoc-style tag.</li>
+</ul>
+
+<h2>2. The specially handled tags</h2>
+
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th>Tag</th><th>Meaning</th><th>HTML documentation</th><th>XSD editor (Inspector)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>@since</code></td>
+      <td>Schema version that introduced the component</td>
+      <td class="yes">“Since” field in the JavaDoc block</td>
+      <td class="yes">Text field <code>@since</code></td>
+    </tr>
+    <tr>
+      <td><code>@see</code></td>
+      <td>Cross reference; may occur several times</td>
+      <td class="yes">“See Also” list, <code>{@link}</code> resolved to hyperlinks</td>
+      <td class="yes">List with Add/Remove + <code>{@link}</code> autocomplete</td>
+    </tr>
+    <tr>
+      <td><code>@deprecated</code></td>
+      <td>Deprecation marker plus reason</td>
+      <td class="yes">Red warning box at the top of the detail page</td>
+      <td class="yes">“Deprecated” checkbox + note field</td>
+    </tr>
+    <tr>
+      <td><code>@version</code></td>
+      <td>Version detail of the component</td>
+      <td class="partial">Only under “Additional Information”</td>
+      <td class="yes">Text field <code>@version</code></td>
+    </tr>
+    <tr>
+      <td><code>@author</code></td>
+      <td>Author</td>
+      <td class="partial">Only under “Additional Information”</td>
+      <td class="partial">No field — but preserved unchanged on edit</td>
+    </tr>
+    <tr>
+      <td><code>{@link XPath|Name}</code></td>
+      <td>Inline link inside <code>@see</code> / <code>@deprecated</code></td>
+      <td class="yes"><code>&lt;a href&gt;</code> to the target's detail page</td>
+      <td class="yes">Autocomplete popup over the schema's element paths</td>
+    </tr>
+    <tr>
+      <td><code>altova:exampleValues</code></td>
+      <td>Example values (FundsXML convention)</td>
+      <td class="yes">“Sample Data” on the detail page</td>
+      <td class="yes">“Example values” list; also feeds sample-XML generation and IntelliSense</td>
+    </tr>
+    <tr>
+      <td><code>@sourceFile</code> / <code>fxt:sourceFile</code></td>
+      <td>Internal origin tracking when flattening a multi-file schema</td>
+      <td class="no">—</td>
+      <td class="partial">Internal; passed through untouched</td>
+    </tr>
+    <tr>
+      <td><em>anything else</em></td>
+      <td>Arbitrary <code>source</code> string or text content</td>
+      <td class="partial">“Additional Information” section (HTML-escaped)</td>
+      <td class="partial">Preserved untouched</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>On top of that, <code>xs:documentation/@xml:lang</code> gets special treatment: it drives the
+language switcher on the generated pages, the “Scan languages” filter of the documentation
+generator, and one row per language in the Inspector.</p>
+
+<h2>3. Example</h2>
+
+<pre><code>&lt;xs:element name="Transaction"&gt;
+    &lt;xs:annotation&gt;
+        &lt;xs:documentation xml:lang="en"&gt;A single financial transaction.&lt;/xs:documentation&gt;
+        &lt;xs:documentation xml:lang="de"&gt;Eine einzelne Transaktion.&lt;/xs:documentation&gt;
+
+        &lt;xs:appinfo source="@since 4.0.0"/&gt;
+        &lt;xs:appinfo source="@version 1.2"/&gt;
+        &lt;xs:appinfo source="@see {@link /FundsXML4/ControlData}"/&gt;
+        &lt;xs:appinfo source="@see {@link TransactionType}"/&gt;
+        &lt;xs:appinfo source="@deprecated Use {@link /FundsXML4/NewTransaction} instead."/&gt;
+        &lt;xs:appinfo&gt;
+            &lt;altova:exampleValues xmlns:altova="http://www.altova.com/xml-schema-extensions"&gt;
+                &lt;altova:example value="TRX-0815"/&gt;
+            &lt;/altova:exampleValues&gt;
+        &lt;/xs:appinfo&gt;
+    &lt;/xs:annotation&gt;
+&lt;/xs:element&gt;</code></pre>
+
+<div class="note">
+  <strong><code>{@link}</code> resolution:</strong> the target may be an absolute XPath
+  (<code>/FundsXML4/ControlData</code> — synthetic <code>CHOICE_n</code> / <code>SEQUENCE_n</code>
+  path segments are stripped before matching) or a plain element name (first match wins).
+  A target that cannot be resolved degrades to plain <code>&lt;code&gt;</code> text instead of
+  failing the build.
+</div>
+
+<h2>4. Where this lives in the code</h2>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Concern</th><th>Location</th></tr></thead>
+  <tbody>
+    <tr><td>Parsing for the HTML documentation</td>
+        <td><code>service/XsdDocumentationService.java</code> → <code>processAnnotations()</code></td></tr>
+    <tr><td>Model behind a documentation page</td>
+        <td><code>domain/XsdDocInfo.java</code> (only <code>@since</code>, <code>@see</code>, <code>@deprecated</code>)</td></tr>
+    <tr><td>Rendering</td>
+        <td><code>resources/xsdDocumentation/details/templateDetail.html</code> — JavaDoc section and
+            “Additional Information” section</td></tr>
+    <tr><td><code>{@link}</code> → HTML</td>
+        <td><code>service/XsdDocumentationHtmlService.parseJavadocLinks()</code></td></tr>
+    <tr><td>Editor model</td>
+        <td><code>controls/v2/model/XsdAppInfo.java</code> (tag parsing, structured getters/setters,
+            example values)</td></tr>
+    <tr><td>Editor model (link tags)</td>
+        <td><code>controls/v2/model/XsdDocInfo.java</code> — <code>{@link}</code> pattern,
+            <code>SeeReference</code>, <code>DeprecationInfo</code></td></tr>
+    <tr><td>Inspector UI</td>
+        <td><code>controls/shell/inspector/AppInfoFieldsEditor.java</code> —
+            <code>MANAGED_TAGS = {@since, @version, @see, @deprecated}</code></td></tr>
+    <tr><td>Parsers (XSD → model)</td>
+        <td><code>controls/v2/model/XsdNodeFactory.java</code>,
+            <code>service/xsd/adapters/XsdModelAdapter.java</code></td></tr>
+    <tr><td>Serialization (model → XSD)</td>
+        <td><code>controls/v2/editor/serialization/XsdSerializer.java</code> →
+            <code>XsdAppInfo.toXmlStrings()</code></td></tr>
+    <tr><td>Statistics</td>
+        <td><code>controls/v2/editor/statistics/XsdStatisticsCollector.java</code> — nodes with
+            appinfo, counts per tag</td></tr>
+    <tr><td>Quality checks</td>
+        <td><code>controls/v2/editor/statistics/XsdQualityChecker.checkDeprecated()</code> → issue
+            category <em>Deprecated</em></td></tr>
+    <tr><td>User documentation</td>
+        <td><code>docs/xsd-tools.md</code> — “Adding Technical Notes to Your Schema”</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2>5. Findings</h2>
+
+<div class="finding fixed" id="finding-1">
+  <h3>1. Source-only <code>xs:appinfo</code> never reached the editor model<span class="badge ok">fixed</span></h3>
+  <p>The documented (and, in <code>FundsXML4.xsd</code>, ubiquitous) form is a self-closing element
+  whose whole payload sits in the <code>source</code> attribute:</p>
+  <pre><code>&lt;xs:appinfo source="@since 4.2.8"/&gt;</code></pre>
+  <p>Both model parsers dropped it:</p>
+  <ul class="tight">
+    <li><code>XsdNodeFactory</code> had no <code>else</code> branch for appinfo without text content.</li>
+    <li><code>XsdModelAdapter</code> called <code>addEntry(source, "")</code>, and
+        <code>XsdAppInfo.addEntry()</code> discards entries with empty content.</li>
+  </ul>
+  <p><strong>Effect:</strong> the generated HTML documentation showed “Since 4.2.8” (it reads the
+  <code>source</code> attribute directly), while the Inspector showed an empty <code>@since</code>
+  field for the same node — and saving the file dropped the tag.</p>
+  <p><strong>Fix:</strong> both parsers now fall back to the <code>source</code> attribute as the
+  entry content when the element has no text content, so the tag is parsed exactly as it is for
+  the text-content form:</p>
+  <ul class="tight">
+    <li><code>XsdNodeFactory.parseAnnotation()</code> — new <code>else if</code> branch
+        <code>appInfo.addEntry(source, source)</code>.</li>
+    <li><code>XsdModelAdapter.parseAnnotation()</code> — <code>addEntry(source, "")</code>
+        replaced by <code>addEntry(source, source)</code>.</li>
+  </ul>
+</div>
+
+<div class="finding fixed" id="finding-2">
+  <h3>2. The editor wrote every tag twice<span class="badge ok">fixed</span></h3>
+  <p><code>XsdAppInfo.toXmlStrings()</code> emitted the tag both as the <code>source</code> attribute
+  and as text content:</p>
+  <pre><code>&lt;xs:appinfo source="@since 4.2.8"&gt;@since 4.2.8&lt;/xs:appinfo&gt;</code></pre>
+  <p>That round-trips and is read correctly by the documentation generator, but it deviates from the
+  documented form and inflates every edited schema.</p>
+  <p><strong>Fix:</strong> <code>toXmlStrings()</code> now writes a self-closing element whenever
+  the text content would merely repeat the <code>source</code> attribute
+  (<code>XsdAppInfo.isSourceOnly()</code>). An entry whose text differs from its source — or that
+  carries raw XML such as <code>altova:exampleValues</code> — keeps its content unchanged:</p>
+  <pre><code>&lt;xs:appinfo source="@since 4.2.8"/&gt;
+&lt;xs:appinfo source="urn:example:tooling"&gt;generated by the mapping tool&lt;/xs:appinfo&gt;</code></pre>
+</div>
+
+<h2>6. Tests</h2>
+
+<p><code>XsdAppInfoSourceOnlyTest</code> (<code>controls/v2/model/</code>) covers both fixes:
+parsing a source-only appinfo through <code>XsdNodeFactory</code> and through
+<code>XsdModelAdapter</code>, the self-closing serialization of the managed tags, the preservation
+of distinct text content, and a parse → serialize round trip.</p>
+
+<pre><code>./gradlew test --tests "org.fxt.freexmltoolkit.controls.v2.model.XsdAppInfoSourceOnlyTest"</code></pre>
+
+</main>
+</body>
+</html>

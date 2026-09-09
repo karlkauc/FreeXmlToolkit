@@ -243,6 +243,16 @@ public class XsdAppInfo {
             if (entry.getSource() != null && !entry.getSource().isEmpty()) {
                 sb.append(" source=\"").append(escapeXml(entry.getSource())).append("\"");
             }
+
+            // A source-only entry carries its whole payload in the source attribute
+            // (<xs:appinfo source="@since 4.2.8"/>) - writing the text content as well would
+            // duplicate the tag on every save.
+            if (isSourceOnly(entry)) {
+                sb.append("/>");
+                xmlStrings.add(sb.toString());
+                continue;
+            }
+
             sb.append(">");
 
             // Check for special @sourceFile tag (source tracking feature)
@@ -266,6 +276,26 @@ public class XsdAppInfo {
             xmlStrings.add(sb.toString());
         }
         return xmlStrings;
+    }
+
+    /**
+     * Checks whether an entry's text content would merely repeat its {@code source} attribute -
+     * the self-closing form {@code <xs:appinfo source="@since 4.2.8"/>} used by the JavaDoc-style
+     * tags and produced by the structured setters.
+     *
+     * @param entry the entry to test
+     * @return true if the entry serializes as a self-closing element
+     */
+    private static boolean isSourceOnly(AppInfoEntry entry) {
+        String source = entry.getSource();
+        if (source == null || source.isBlank() || entry.hasRawXml()) {
+            return false;
+        }
+        String content = entry.getContent() == null ? "" : entry.getContent();
+        String reconstructed = entry.getTag() == null || entry.getTag().isEmpty()
+                ? content
+                : entry.getTag() + " " + content;
+        return source.trim().equals(reconstructed.trim());
     }
 
     /**
