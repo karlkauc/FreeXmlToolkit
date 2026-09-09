@@ -1534,6 +1534,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#keeping-track-of-where-components-came-from" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Keeping Track of Where Components Came From
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#what-happens-to-includes-and-imports" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2772,6 +2783,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#keeping-track-of-where-components-came-from" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Keeping Track of Where Components Came From
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#what-happens-to-includes-and-imports" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3530,7 +3552,7 @@ like any other document:</p>
 <li>The flattened schema opens as a new editor tab (<code>Flattened.xsd</code>), ready for you to review and save</li>
 </ol>
 <h3 id="flatten-options">Flatten Options<a class="headerlink" href="#flatten-options" title="Permanent link">&para;</a></h3>
-<p>Before flattening, a dialog lets you reduce the output. All four options are <strong>checked by default</strong>, which produces the smallest possible schema — ideal for deploying to a validation server:</p>
+<p>Before flattening, a dialog lets you reduce the output. The four reduction options are <strong>checked by default</strong>, which produces the smallest possible schema — ideal for deploying to a validation server:</p>
 <table>
 <thead>
 <tr>
@@ -3555,9 +3577,32 @@ like any other document:</p>
 <td><strong>Minified output (no indentation)</strong></td>
 <td>Collapses the whitespace between tags for the smallest file size</td>
 </tr>
+<tr>
+<td><strong>Track source files (<code>xs:appinfo</code>)</strong></td>
+<td><em>Off by default.</em> Adds an <code>fxt:sourceFile</code> annotation to every global component that came from an included file, naming that file — see below</td>
+</tr>
 </tbody>
 </table>
-<p><strong>Uncheck all four options</strong> for a plain flatten that keeps documentation, comments and formatting — the previous behavior.</p>
+<p><strong>Uncheck all four reduction options</strong> for a plain flatten that keeps documentation, comments and formatting — the previous behavior.</p>
+<h3 id="keeping-track-of-where-components-came-from">Keeping Track of Where Components Came From<a class="headerlink" href="#keeping-track-of-where-components-came-from" title="Permanent link">&para;</a></h3>
+<p>Flattening merges every included file into one document, which normally loses the information
+about which file a type or element originally came from. Tick <strong>Track source files</strong> to keep it:
+each global element, type, group, attribute group and attribute that was pulled in from an
+<code>xs:include</code> gets an annotation naming its origin.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">&lt;xs:complexType</span><span class="w"> </span><span class="na">name=</span><span class="s">"PersonType"</span><span class="nt">&gt;</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">    </span><span class="nt">&lt;xs:annotation&gt;</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">        </span><span class="nt">&lt;xs:appinfo&gt;</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">            </span><span class="nt">&lt;fxt:sourceFile</span><span class="w"> </span><span class="na">xmlns:fxt=</span><span class="s">"http://freexmltoolkit.org/schema/flattening"</span><span class="nt">&gt;</span>types.xsd<span class="nt">&lt;/fxt:sourceFile&gt;</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">        </span><span class="nt">&lt;/xs:appinfo&gt;</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">    </span><span class="nt">&lt;/xs:annotation&gt;</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">    </span>...
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="nt">&lt;/xs:complexType&gt;</span>
+</code></pre></div>
+<p>The markers are added <strong>after</strong> the reductions, so they survive <strong>Remove annotations</strong> — you can
+combine a fully reduced schema with full origin tracking. Components defined in the main file are
+not marked, and a stale marker from an earlier flatten is replaced rather than duplicated.
+The option needs a saved file: for unsaved content there is no directory to resolve includes
+against, so nothing is merged and nothing is marked.</p>
 <p>The reduced schema is verified to still compile as a valid schema before it is shown, so you can deploy it with confidence.</p>
 <h3 id="what-happens-to-includes-and-imports">What Happens to Includes and Imports<a class="headerlink" href="#what-happens-to-includes-and-imports" title="Permanent link">&para;</a></h3>
 <ul>

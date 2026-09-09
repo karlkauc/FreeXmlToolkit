@@ -295,13 +295,26 @@ once on <code>xs:schema</code>.</p>
   schema to disk and reopening it.
 </div>
 
-<h3>Status</h3>
-<p>Writing the marker is currently an API-level option: the shell's <strong>Flatten Schema</strong>
-dialog (<code>FlattenOptionsDialog</code> → <code>FlattenOptions</code> →
-<code>SchemaFlattenTransformer</code>) does not offer it, and no production code sets
-<code>addSourceFileAsAppinfo(true)</code> — only
-<code>XsdFlatteningSourceFileTrackingTest</code> does. Reading, preserving and re-serializing the
-marker is always active, so schemas that carry it round trip correctly.</p>
+<h3>Two ways in</h3>
+<p>The marker is written by two independent paths:</p>
+<ul class="tight">
+  <li><strong>The shell's Flatten Schema dialog</strong> — the <em>Track source files
+      (xs:appinfo)</em> checkbox (off by default). It sets
+      <code>FlattenOptions.trackSourceFiles</code>, and
+      <code>SchemaFlattenTransformer.addSourceFileMarkers()</code> derives the file name from each
+      global component's in-memory <code>IncludeSourceInfo</code>. The markers are added
+      <em>after</em> the reductions, so they survive “Remove annotations”, and a stale marker from
+      an earlier flatten is replaced rather than duplicated. Origin tracking needs the path of the
+      schema being flattened, which <code>TypeLibraryPanel</code> passes into
+      <code>SchemaActionRunner.flatten()</code>; unsaved content resolves no includes and is
+      therefore never marked.</li>
+  <li><strong>The parsing service</strong> — <code>XsdParseOptions.addSourceFileAsAppinfo</code>
+      (default <code>false</code>), applied by <code>SchemaResolver</code> while it merges the DOM.
+      This is an API-level option with no UI; only
+      <code>XsdFlatteningSourceFileTrackingTest</code> turns it on.</li>
+</ul>
+<p>Reading, preserving and re-serializing the marker is always active, so schemas that carry it
+round trip correctly regardless of which path produced them.</p>
 
 <h2>6. Findings</h2>
 
