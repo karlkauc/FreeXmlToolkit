@@ -2031,6 +2031,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#15-after-f5-typed-values-for-patterns-on-typed-bases-re-audit-2026-09-11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15. After F5: typed values for patterns on typed bases (re-audit, 2026-09-11)
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2059,7 +2070,7 @@ real-world schemas, including optional elements, and validates every generated f
 <blockquote>
 <p><strong>Update (same day):</strong> the plan's four quick wins (A1, A2, D1, F3) are implemented. §1–§10 describe the baseline;
 §11 has the re-audit. A5 (bounded memory) and A4 (roots from included documents) follow in §12 and §13; §14
-covers A3 (include resolution) and the defects it exposed.</p>
+covers A3 (include resolution) and the defects it exposed; §15 covers F5 (typed values for patterns).</p>
 </blockquote>
 <h2 id="1-summary">1. Summary<a class="headerlink" href="#1-summary" title="Permanent link">&para;</a></h2>
 <p><strong>Corpus:</strong> <code>src/test/resources/xsd/real-world</code>, 35 schemas that users loaded into xsd-viewer.online by URL, each with
@@ -3231,6 +3242,13 @@ run.</p>
 <td>913 · 571 (of 1,814: SIRI offers 385 roots, UCI completes)</td>
 <td>0</td>
 </tr>
+<tr>
+<td>2026-09-11</td>
+<td>F5 typed values for patterns on typed bases (§15)</td>
+<td>28 · 19</td>
+<td>1,621 · 1,130 (of 1,814: UCI 709 · 566 of 722)</td>
+<td>0</td>
+</tr>
 </tbody>
 </table>
 <h2 id="11-after-the-quick-wins-re-audit-2026-09-10">11. After the quick wins (re-audit, 2026-09-10)<a class="headerlink" href="#11-after-the-quick-wins-re-audit-2026-09-10" title="Permanent link">&para;</a></h2>
@@ -3993,6 +4011,87 @@ the sample is invalid.</p>
 <li>KML 124 of 269: abstract global elements offered as roots (E3).</li>
 <li>SIRI 20, JATS 13, XBRL 8, INSPIRE 7, AEAT Modelo 170 3 (all its roots, namespace qualification, WP C).</li>
 <li><strong>Random flips:</strong> datajud (choice selection, R2) and one XBRL realistic root.</li>
+</ul>
+<h2 id="15-after-f5-typed-values-for-patterns-on-typed-bases-re-audit-2026-09-11">15. After F5: typed values for patterns on typed bases (re-audit, 2026-09-11)<a class="headerlink" href="#15-after-f5-typed-values-for-patterns-on-typed-bases-re-audit-2026-09-11" title="Permanent link">&para;</a></h2>
+<p><strong>Change</strong> (commit <code>fb638fdf</code>): a pattern on a built-in date/time, numeric or boolean base narrows the type's lexical
+space. The generator used to sample the pattern alone; it now generates values of the type (date/time also with <code>Z</code>
+or <code>+00:00</code>) and keeps the first one the pattern accepts, falling back to pattern sampling. Both generators take their
+values from this path. Test: <code>XsdSampleDataGeneratorTest.patternOnTypedBaseYieldsAValidTypedValue</code> (5 cases, each
+value validated with Xerces). Patterns on typed bases occur in UCI (<code>dateTime</code>, <code>time</code>, <code>int</code>), KSeF FA(3)
+(<code>decimal</code>, <code>date</code>), A-GRA and the two bigconecta schemas (<code>boolean</code>).</p>
+<p><strong>First global element</strong> (31 evaluable schemas):</p>
+<table>
+<thead>
+<tr>
+<th>Generator / mode</th>
+<th>Valid: §14 → now</th>
+<th>No XML</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>plain, mandatory only</td>
+<td>26 → <strong>28</strong></td>
+<td>0</td>
+</tr>
+<tr>
+<td>plain, with optional elements</td>
+<td>20 → 19</td>
+<td>0</td>
+</tr>
+<tr>
+<td>realistic, mandatory only</td>
+<td>26 → <strong>27</strong></td>
+<td>0</td>
+</tr>
+<tr>
+<td>realistic, with optional elements</td>
+<td>19 → 19</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+<p>UCI's first element is now valid in both mandatory-only combinations. The other changes are random flips (datajud,
+SIRI realistic with optional elements).</p>
+<p><strong>Every offered root</strong> (same 1,814 validated samples per combination as in §14):</p>
+<table>
+<thead>
+<tr>
+<th>Generator / mode</th>
+<th>Valid: §14 → now</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>plain, mandatory only</td>
+<td>913 → <strong>1,621</strong></td>
+</tr>
+<tr>
+<td>plain, with optional elements</td>
+<td>571 → <strong>1,130</strong></td>
+</tr>
+<tr>
+<td>realistic, mandatory only</td>
+<td>815 → <strong>1,520</strong></td>
+</tr>
+<tr>
+<td>realistic, with optional elements</td>
+<td>414 → <strong>990</strong></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>UCI 2.5</strong> (722 roots): 0 → 709 · 566 valid (plain, mandatory · optional), 0 → 707 · 575 (realistic).</li>
+<li><strong>Remaining invalid samples</strong> (plain, mandatory only: 193 of 1,814):</li>
+<li>KML 125: abstract global elements offered as roots (E3)</li>
+<li>SIRI 2.2 21, JATS 12, XBRL 8, INSPIRE 7</li>
+<li>UCI 13: abstract types without <code>xsi:type</code> (<code>cvc-type.2</code>, e.g. <code>Metadata</code>, <code>Configuration</code>) and required
+    content missing (<code>cvc-complex-type.2.4.i/j</code>)</li>
+<li>AEAT Modelo 170 3 (namespace qualification, C), xmldsig 2, rim 1, SIRI FR-IDF 1</li>
+<li><strong>By key</strong> (plain, mandatory only): <code>cvc-elt.2</code> (abstract element) in 143 samples and <code>cvc-type.2</code> (abstract type)
+  in 83 make WP E the largest cluster. With optional elements, <code>cvc-id.1</code> (IDREF without ID, 275 samples, nearly all
+  JATS, WP H) comes first, then E.</li>
+<li><strong>Next:</strong> E (abstract roots, substitution groups, <code>xsi:type</code> for abstract types), then H.</li>
 </ul>
 
 
