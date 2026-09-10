@@ -118,6 +118,10 @@ public class XsdSampleDataGenerator {
 
         // Priority 3: Regex-Pattern with length restrictions
         if (restriction != null && restriction.facets().containsKey("pattern")) {
+            String typed = typedValueMatchingPattern(restriction.base(), restriction, recursionDepth);
+            if (typed != null) {
+                return typed;
+            }
             String result = generateFromPatternWithLengthRestrictions(restriction, element.getElementName());
             if (result != null) {
                 return result;
@@ -180,6 +184,10 @@ public class XsdSampleDataGenerator {
 
         // Re-check for patterns after type resolution (type may define them)
         if (effectiveRestriction != null && effectiveRestriction.facets().containsKey("pattern")) {
+            String typed = typedValueMatchingPattern(resolvedType, effectiveRestriction, recursionDepth);
+            if (typed != null) {
+                return typed;
+            }
             String result = generateFromPatternWithLengthRestrictions(effectiveRestriction, element.getElementName());
             if (result != null) {
                 return result;
@@ -295,6 +303,59 @@ public class XsdSampleDataGenerator {
                 yield ""; // Fallback for unknown simple types
             }
         };
+    }
+
+    /** Built-in types whose lexical space a pattern narrows; their values must come from the type, not the pattern. */
+    private static final java.util.Set<String> TYPED_PATTERN_BASES = java.util.Set.of("datetime", "date", "time",
+            "gyear", "gyearmonth", "gmonth", "gmonthday", "gday", "duration", "decimal", "integer", "long", "int",
+            "short", "byte", "float", "double", "boolean");
+    /** Types with an optional time zone, tried without one, as UTC {@code Z} and as {@code +00:00}. */
+    private static final java.util.Set<String> ZONED_TYPES = java.util.Set.of("datetime", "date", "time");
+    private static final int TYPED_PATTERN_ATTEMPTS = 10;
+
+    /**
+     * For a pattern on a typed built-in base, generates values of that type and returns the first one the pattern
+     * accepts. UCI {@code DateTimeType} restricts {@code xs:dateTime} with {@code .+Z}: sampling the pattern alone
+     * gave strings such as {@code CZ}, which are no date-time at all.
+     *
+     * @return a matching typed value, or {@code null} if the base is not such a type or no attempt matched
+     */
+    private String typedValueMatchingPattern(String baseType, RestrictionInfo restriction, int recursionDepth) {
+        if (baseType == null) {
+            return null;
+        }
+        String base = baseType.substring(baseType.lastIndexOf(':') + 1).toLowerCase(Locale.ROOT);
+        if (!TYPED_PATTERN_BASES.contains(base)) {
+            return null;
+        }
+        List<java.util.regex.Pattern> patterns = new ArrayList<>();
+        for (String pattern : restriction.facets().get("pattern")) {
+            try {
+                patterns.add(java.util.regex.Pattern.compile(pattern));
+            } catch (java.util.regex.PatternSyntaxException e) {
+                logger.debug("Pattern '{}' is not a Java regex, sampling it instead: {}", pattern, e.getMessage());
+            }
+        }
+        if (patterns.isEmpty()) {
+            return null;
+        }
+        Map<String, List<String>> facets = new java.util.HashMap<>(restriction.facets());
+        facets.remove("pattern");
+        XsdExtendedElement typed = new XsdExtendedElement();
+        typed.setElementType("xs:" + base);
+        typed.setRestrictionInfo(new RestrictionInfo(baseType, facets));
+        for (int attempt = 0; attempt < TYPED_PATTERN_ATTEMPTS; attempt++) {
+            String value = generateRecursive(typed, recursionDepth + 1);
+            List<String> candidates = ZONED_TYPES.contains(base)
+                    ? List.of(value, value + "Z", value + "+00:00")
+                    : List.of(value);
+            for (String candidate : candidates) {
+                if (patterns.stream().anyMatch(p -> p.matcher(candidate).matches())) {
+                    return candidate;
+                }
+            }
+        }
+        return null;
     }
 
     /**

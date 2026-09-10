@@ -78,6 +78,40 @@ class XsdSampleDataGeneratorTest {
                 org.junit.jupiter.params.provider.Arguments.of("[a-zA-Z0-9]{1,100000}", 100000));
     }
 
+    @ParameterizedTest(name = "{0} with pattern {1}")
+    @CsvSource(delimiter = '|', value = {
+            "xs:dateTime|.+Z",
+            "xs:dateTime|\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z",
+            "xs:date|\\d{4}-\\d{2}-\\d{2}",
+            "xs:time|.+Z",
+            "xs:decimal|\\d+\\.\\d{2}"
+    })
+    @DisplayName("A pattern on a typed base narrows the type's lexical space instead of replacing the type")
+    void patternOnTypedBaseYieldsAValidTypedValue(String base, String pattern) throws Exception {
+        // UCI DateTimeType restricts xs:dateTime with the pattern .+Z; sampling the pattern alone gave values such as
+        // "CZ", invalid in all 722 UCI messages
+        XsdExtendedElement element = new XsdExtendedElement();
+        element.setElementType("t:RestrictedType");
+        element.setRestrictionInfo(new XsdExtendedElement.RestrictionInfo(base, Map.of("pattern", List.of(pattern))));
+        javax.xml.validation.Validator validator = new org.apache.xerces.jaxp.validation.XMLSchemaFactory()
+                .newSchema(new javax.xml.transform.stream.StreamSource(new java.io.StringReader("""
+                        <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                          <xs:element name="v">
+                            <xs:simpleType>
+                              <xs:restriction base="%s"><xs:pattern value="%s"/></xs:restriction>
+                            </xs:simpleType>
+                          </xs:element>
+                        </xs:schema>
+                        """.formatted(base, pattern)))).newValidator();
+
+        for (int i = 0; i < 20; i++) {
+            String value = generator.generate(element);
+            String escaped = value.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
+            validator.validate(new javax.xml.transform.stream.StreamSource(
+                    new java.io.StringReader("<v>" + escaped + "</v>")));
+        }
+    }
+
     @ParameterizedTest(name = "pattern with maxLength {1}")
     @org.junit.jupiter.params.provider.MethodSource("largeRepetitionPatterns")
     @DisplayName("Patterns with large repetition bounds generate a short matching value quickly")
