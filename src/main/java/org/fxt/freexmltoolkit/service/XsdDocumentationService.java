@@ -153,6 +153,8 @@ public class XsdDocumentationService {
     private Map<String, Node> simpleTypeMap = new HashMap<>();
     private Map<String, Node> groupMap = new HashMap<>();
     private Map<String, Node> attributeGroupMap = new HashMap<>();
+    /** Global type definitions keyed by kind, target namespace and local name ({@link #qualifiedKey}). */
+    private final Map<String, Node> qualifiedGlobalDefs = new HashMap<>();
 
     // Language configuration for documentation generation
     private final Set<String> discoveredLanguages = new LinkedHashSet<>();
@@ -554,8 +556,7 @@ public class XsdDocumentationService {
         processAllSchemas();
 
         // Parse the main XSD file
-        String xsdContent = Files.readString(new File(xsdFilePath).toPath(), StandardCharsets.UTF_8);
-        this.doc = parseXsdContent(xsdContent);
+        this.doc = parseXsdFile(new File(xsdFilePath).toPath());
 
         // Initialize caches for global definitions from all processed schemas
         initializeCachesFromAllSchemas();
@@ -1228,8 +1229,8 @@ public class XsdDocumentationService {
             // Handle extension - process base type and then current content
             String baseType = getAttributeValue(contentNode, "base");
             if (baseType != null) {
-                Node baseTypeNode = findTypeDefinition(null, baseType);
-                if (baseTypeNode != null) {
+                Node baseTypeNode = findGlobalType(baseType, contentNode);
+                if (baseTypeNode != null && !derivesFromItself(baseTypeNode)) {
                     Node baseContentModel = findContentModel(baseTypeNode, null);
                     if (baseContentModel != null) {
                         extractMandatoryChildren(baseContentModel, mandatoryChildren);
@@ -1278,8 +1279,8 @@ public class XsdDocumentationService {
             // Handle extension - process base type and then current content
             String baseType = getAttributeValue(contentNode, "base");
             if (baseType != null) {
-                Node baseTypeNode = findTypeDefinition(null, baseType);
-                if (baseTypeNode != null) {
+                Node baseTypeNode = findGlobalType(baseType, contentNode);
+                if (baseTypeNode != null && !derivesFromItself(baseTypeNode)) {
                     Node baseContentModel = findContentModel(baseTypeNode, null);
                     if (baseContentModel != null) {
                         extractAllChildren(baseContentModel, allChildren);
@@ -1444,7 +1445,7 @@ public class XsdDocumentationService {
             processedSchemaFiles.add(currentFile.toAbsolutePath().normalize());
 
             logger.debug("Processing schema file: {}", currentFile);
-            Document document = parseXsdContent(Files.readString(currentFile, StandardCharsets.UTF_8));
+            Document document = parseXsdFile(currentFile);
 
             // Process both xs:include and xs:import elements
             NodeList includeNodes = (NodeList) xpath.evaluate("//xs:include[@schemaLocation]", document, XPathConstants.NODESET);
@@ -1521,7 +1522,7 @@ public class XsdDocumentationService {
     private void initializeCachesFromAllSchemas() throws Exception {
         for (Path currentFile : schemaFilesToScan()) {
             logger.debug("Initializing caches from: {}", currentFile);
-            Document document = parseXsdContent(Files.readString(currentFile, StandardCharsets.UTF_8));
+            Document document = parseXsdFile(currentFile);
             initializeCaches(document);
         }
     }
@@ -1994,8 +1995,8 @@ public class XsdDocumentationService {
         // Handle extension
         if ("extension".equals(localName)) {
             String baseType = getAttributeValue(contentNode, "base");
-            Node baseTypeNode = findTypeDefinition(null, baseType);
-            if (baseTypeNode != null) {
+            Node baseTypeNode = findGlobalType(baseType, contentNode);
+            if (baseTypeNode != null && !derivesFromItself(baseTypeNode)) {
                 // First, process the base type's content
                 Node baseContentModel = findContentModel(baseTypeNode, null);
                 if (baseContentModel != null) {
@@ -2031,7 +2032,93 @@ public class XsdDocumentationService {
         }
     }
 
+    /**
+     * Generates a sample XML instance for the first global element of the schema (document order).
+     *
+     * @param mandatoryOnly  emit only required elements/attributes when {@code true}
+     * @param maxOccurrences cap on repeated elements
+     * @return the sample XML, or an XML comment describing why none could be generated
+     */
     public String generateSampleXml(boolean mandatoryOnly, int maxOccurrences) {
+        String processingError = ensureProcessedForSampleXml();
+        if (processingError != null) {
+            return processingError;
+        }
+
+        List<XsdExtendedElement> rootElements = findRootElements(xsdDocumentationData.getExtendedXsdElementMap());
+        if (rootElements.isEmpty()) {
+            return "<!-- No root element found in XSD -->";
+        }
+        return generateSampleXmlFor(rootElements.getFirst(), mandatoryOnly, maxOccurrences);
+    }
+
+    /**
+     * Generates a sample XML instance for the named global element. The schema is processed at most
+     * once, so generating for several roots in a row reuses the same element map.
+     *
+     * @param rootElementName local name of a global element, as returned by {@link #getRootElementNames()}
+     * @param mandatoryOnly   emit only required elements/attributes when {@code true}
+     * @param maxOccurrences  cap on repeated elements
+     * @return the sample XML, or an XML comment when the schema could not be processed
+     * @throws IllegalArgumentException if the schema has no global element with that name
+     */
+    public String generateSampleXml(String rootElementName, boolean mandatoryOnly, int maxOccurrences) {
+        String processingError = ensureProcessedForSampleXml();
+        if (processingError != null) {
+            return processingError;
+        }
+        XsdExtendedElement rootElement = findRootElement(xsdDocumentationData.getExtendedXsdElementMap(), rootElementName);
+        return generateSampleXmlFor(rootElement, mandatoryOnly, maxOccurrences);
+    }
+
+    /**
+     * Lists the global elements a sample XML can be generated for, in schema document order.
+     *
+     * @return the root element names; empty when the schema has none or could not be processed
+     */
+    public List<String> getRootElementNames() {
+        if (ensureProcessedForSampleXml() != null) {
+            return List.of();
+        }
+        return findRootElements(xsdDocumentationData.getExtendedXsdElementMap()).stream()
+                .map(XsdExtendedElement::getElementName)
+                .toList();
+    }
+
+    /**
+     * Global elements of the processed schema, sorted by document order.
+     *
+     * @param elementMap the XPath-keyed element map of a processed schema
+     * @return the root elements
+     */
+    static List<XsdExtendedElement> findRootElements(Map<String, XsdExtendedElement> elementMap) {
+        return elementMap.values().stream()
+                .filter(e -> e.getParentXpath() == null || e.getParentXpath().equals("/"))
+                .sorted(Comparator.comparing(XsdExtendedElement::getCounter))
+                .toList();
+    }
+
+    /**
+     * Looks up a global element by its local name.
+     *
+     * @param elementMap      the XPath-keyed element map of a processed schema
+     * @param rootElementName the local name of the global element
+     * @return the root element
+     * @throws IllegalArgumentException if there is no global element with that name
+     */
+    static XsdExtendedElement findRootElement(Map<String, XsdExtendedElement> elementMap, String rootElementName) {
+        return findRootElements(elementMap).stream()
+                .filter(e -> e.getElementName().equals(rootElementName))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("No global element named '" + rootElementName + "'"));
+    }
+
+    /**
+     * Runs {@link #processXsd(Boolean)} once if the element map is still empty.
+     *
+     * @return {@code null} on success, otherwise the XML comment reported to the caller
+     */
+    private String ensureProcessedForSampleXml() {
         if (xsdDocumentationData.getExtendedXsdElementMap().isEmpty()) {
             try {
                 processXsd(false);
@@ -2040,23 +2127,16 @@ public class XsdDocumentationService {
                 return "<!-- Error processing XSD: " + e.getMessage() + " -->";
             }
         }
+        return null;
+    }
 
-        List<XsdExtendedElement> rootElements = xsdDocumentationData.getExtendedXsdElementMap().values().stream()
-                .filter(e -> e.getParentXpath() == null || e.getParentXpath().equals("/"))
-                .sorted(Comparator.comparing(XsdExtendedElement::getCounter))
-                .toList();
-
-        if (rootElements.isEmpty()) {
-            return "<!-- No root element found in XSD -->";
-        }
-
+    private String generateSampleXmlFor(XsdExtendedElement rootElement, boolean mandatoryOnly, int maxOccurrences) {
         StringBuilder xmlBuilder = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-        
+
         // Add schema reference (supports namespaced and no-namespace schemas)
         String targetNamespace = xsdDocumentationData.getTargetNamespace();
         String schemaLocationUri = new File(xsdFilePath).toURI().toString();
 
-        XsdExtendedElement rootElement = rootElements.getFirst();
         String rootName = rootElement.getElementName();
         xmlBuilder.append("<").append(rootName)
                  .append(" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"");
@@ -2106,18 +2186,29 @@ public class XsdDocumentationService {
             xmlBuilder.append(" ").append(attrName).append("=\"").append(escapeXml(attrValue)).append("\"");
         }
 
-        xmlBuilder.append(">\n");
-
-        // Create and populate identity constraint tracker for unique value generation
-        IdentityConstraintTracker constraintTracker = new IdentityConstraintTracker();
-        constraintTracker.scanConstraints(xsdDocumentationData.getExtendedXsdElementMap());
-
         // Build the content without the root element tags (only child elements, not attributes)
         List<XsdExtendedElement> rootChildElements = rootElement.getChildren().stream()
                 .map(xsdDocumentationData.getExtendedXsdElementMap()::get)
                 .filter(Objects::nonNull)
                 .filter(e -> !e.getElementName().startsWith("@"))
                 .toList();
+
+        if (rootChildElements.isEmpty()) {
+            // Simple or empty content: the root carries its own value and no indentation whitespace
+            String rootValue = rootElement.getDisplaySampleData() != null ? rootElement.getDisplaySampleData() : "";
+            if (rootValue.isEmpty()) {
+                xmlBuilder.append("/>\n");
+            } else {
+                xmlBuilder.append(">").append(escapeXml(rootValue)).append("</").append(rootName).append(">\n");
+            }
+            return xmlBuilder.toString();
+        }
+
+        xmlBuilder.append(">\n");
+
+        // Create and populate identity constraint tracker for unique value generation
+        IdentityConstraintTracker constraintTracker = new IdentityConstraintTracker();
+        constraintTracker.scanConstraints(xsdDocumentationData.getExtendedXsdElementMap());
 
         for (XsdExtendedElement child : rootChildElements) {
             buildXmlElementContent(xmlBuilder, child, mandatoryOnly, maxOccurrences, 1, constraintTracker);
@@ -2819,7 +2910,19 @@ public class XsdDocumentationService {
         });
     }
 
-    private Document parseXsdContent(String xsdContent) throws Exception {
+    /**
+     * Parses a schema file from its bytes, so the XML parser honours the encoding declaration and a byte order mark
+     * (reading the file as a UTF-8 string breaks e.g. windows-1251 schemas and UTF-8 files with a BOM).
+     */
+    private Document parseXsdFile(Path file) throws Exception {
+        try (InputStream in = Files.newInputStream(file)) {
+            InputSource source = new InputSource(in);
+            source.setSystemId(file.toUri().toString());
+            return newXsdDocumentBuilder().parse(source);
+        }
+    }
+
+    private DocumentBuilder newXsdDocumentBuilder() throws Exception {
         DocumentBuilderFactory factory = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureDocumentBuilderFactory();
         factory.setNamespaceAware(true);
         // Allow DOCTYPE declarations (required for some W3C schemas like xmldsig-core-schema.xsd)
@@ -2830,8 +2933,7 @@ public class XsdDocumentationService {
         factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
         factory.setExpandEntityReferences(false);
 
-        DocumentBuilder builder = factory.newDocumentBuilder();
-        return builder.parse(new InputSource(new StringReader(xsdContent)));
+        return factory.newDocumentBuilder();
     }
 
     private void initializeCaches(Document doc) throws Exception {
@@ -2854,10 +2956,18 @@ public class XsdDocumentationService {
 
         // Accumulate definitions from this document
         elementMap.putAll(findAndCacheGlobalDefs(doc, "element"));
-        complexTypeMap.putAll(findAndCacheGlobalDefs(doc, "complexType"));
-        simpleTypeMap.putAll(findAndCacheGlobalDefs(doc, "simpleType"));
+        Map<String, Node> complexTypes = findAndCacheGlobalDefs(doc, "complexType");
+        Map<String, Node> simpleTypes = findAndCacheGlobalDefs(doc, "simpleType");
+        complexTypeMap.putAll(complexTypes);
+        simpleTypeMap.putAll(simpleTypes);
         groupMap.putAll(findAndCacheGlobalDefs(doc, "group"));
         attributeGroupMap.putAll(findAndCacheGlobalDefs(doc, "attributeGroup"));
+
+        // Namespace-qualified view of the type definitions: two namespaces may declare a type with the same local
+        // name, and the local-name maps above keep only one of them.
+        String targetNamespace = doc.getDocumentElement().getAttribute("targetNamespace");
+        complexTypes.forEach((name, node) -> qualifiedGlobalDefs.put(qualifiedKey("complexType", targetNamespace, name), node));
+        simpleTypes.forEach((name, node) -> qualifiedGlobalDefs.put(qualifiedKey("simpleType", targetNamespace, name), node));
     }
 
     private void populateDocumentationData() throws Exception {
@@ -2904,7 +3014,7 @@ public class XsdDocumentationService {
 
         // Add namespaces from included/imported schemas (including resolved remote imports)
         for (Path currentFile : schemaFilesToScan()) {
-            Document document = parseXsdContent(Files.readString(currentFile, StandardCharsets.UTF_8));
+            Document document = parseXsdFile(currentFile);
             var currentAttributes = document.getDocumentElement().getAttributes();
             for (int i = 0; i < currentAttributes.getLength(); i++) {
                 Node attr = currentAttributes.item(i);
@@ -3422,7 +3532,7 @@ public class XsdDocumentationService {
 
         // First, inherit facets from the base type if it's a named type (not primitive)
         if (base != null && !base.startsWith("xs:") && !base.startsWith("xsd:")) {
-            RestrictionInfo inheritedFacets = getInheritedFacets(base);
+            RestrictionInfo inheritedFacets = getInheritedFacets(base, restrictionNode, new HashSet<>());
             if (inheritedFacets != null && inheritedFacets.facets() != null) {
                 // Create mutable copies of inherited facet lists so they can be extended
                 inheritedFacets.facets().forEach((k, v) -> facets.put(k, new ArrayList<>(v)));
@@ -3451,17 +3561,18 @@ public class XsdDocumentationService {
      * This handles cases like a restriction with base="LEICodeType" where the actual
      * pattern facet is defined in the LEICodeType simpleType.
      *
-     * @param typeName The name of the type to get inherited facets from.
+     * @param typeName    The name of the type to get inherited facets from.
+     * @param contextNode The node carrying the reference, whose in-scope namespaces resolve the prefix.
+     * @param visiting    Simple types already on the derivation chain (guards against circular derivations).
      * @return RestrictionInfo with the ultimate base type and all inherited facets.
      */
-    private RestrictionInfo getInheritedFacets(String typeName) {
+    private RestrictionInfo getInheritedFacets(String typeName, Node contextNode, Set<Node> visiting) {
         if (typeName == null || typeName.isEmpty()) {
             return null;
         }
 
-        String cleanTypeName = stripNamespace(typeName);
-        Node typeNode = simpleTypeMap.get(cleanTypeName);
-        if (typeNode == null) {
+        Node typeNode = lookupGlobalDefinition("simpleType", simpleTypeMap, typeName, contextNode);
+        if (typeNode == null || !visiting.add(typeNode)) {
             return null;
         }
 
@@ -3477,7 +3588,7 @@ public class XsdDocumentationService {
 
         // First get inherited facets from the base type
         if (baseType != null && !baseType.startsWith("xs:") && !baseType.startsWith("xsd:")) {
-            RestrictionInfo inherited = getInheritedFacets(baseType);
+            RestrictionInfo inherited = getInheritedFacets(baseType, restriction, visiting);
             if (inherited != null && inherited.facets() != null) {
                 facets.putAll(inherited.facets());
                 baseType = inherited.base(); // Use the ultimate primitive type
@@ -3508,16 +3619,69 @@ public class XsdDocumentationService {
                 return inlineSimple;
             }
         }
-        // Case 2: Global reference
-        if (typeName != null && !typeName.isEmpty()) {
-            String cleanTypeName = stripNamespace(typeName);
-            Node typeNode = complexTypeMap.get(cleanTypeName);
-            if (typeNode != null) {
-                return typeNode;
-            }
-            return simpleTypeMap.get(cleanTypeName);
+        // Case 2: Global reference, resolved through the prefix bound at the referencing element
+        return findGlobalType(typeName, elementNode);
+    }
+
+    /**
+     * Finds a global complex or simple type by QName.
+     *
+     * @param typeName    the (possibly prefixed) type name
+     * @param contextNode the node carrying the reference, or {@code null} to look up by local name only
+     * @return the type definition node, or {@code null}
+     */
+    private Node findGlobalType(String typeName, Node contextNode) {
+        if (typeName == null || typeName.isEmpty()) {
+            return null;
         }
-        return null;
+        Node typeNode = lookupGlobalDefinition("complexType", complexTypeMap, typeName, contextNode);
+        return typeNode != null ? typeNode : lookupGlobalDefinition("simpleType", simpleTypeMap, typeName, contextNode);
+    }
+
+    /**
+     * Resolves a global definition referenced by a QName using the namespace bound to its prefix at
+     * {@code contextNode}. Falls back to the local-name map when the namespace is unknown or has no matching
+     * definition (e.g. chameleon includes).
+     */
+    private Node lookupGlobalDefinition(String kind, Map<String, Node> localNameMap, String qName, Node contextNode) {
+        String localName = stripNamespace(qName);
+        if (contextNode != null) {
+            int colon = qName.indexOf(':');
+            String prefix = colon > 0 ? qName.substring(0, colon) : null;
+            String namespace = contextNode.lookupNamespaceURI(prefix);
+            if (namespace != null || prefix == null) {
+                Node node = qualifiedGlobalDefs.get(qualifiedKey(kind, namespace, localName));
+                if (node != null) {
+                    return node;
+                }
+            }
+        }
+        return localNameMap.get(localName);
+    }
+
+    private static String qualifiedKey(String kind, String namespace, String localName) {
+        return kind + "{" + (namespace == null ? "" : namespace) + "}" + localName;
+    }
+
+    /**
+     * Whether following the extension chain from {@code typeNode} leads back to a type already on the chain, which
+     * only an invalid schema can declare. Guards the recursive base-type expansion in
+     * {@link #processComplexContent}.
+     */
+    private boolean derivesFromItself(Node typeNode) {
+        Set<Node> chain = Collections.newSetFromMap(new IdentityHashMap<>());
+        Node current = typeNode;
+        while (current != null) {
+            if (!chain.add(current)) {
+                return true;
+            }
+            Node contentModel = findContentModel(current, null);
+            if (contentModel == null || !"extension".equals(contentModel.getLocalName())) {
+                return false;
+            }
+            current = findGlobalType(getAttributeValue(contentModel, "base"), contentModel);
+        }
+        return false;
     }
 
     /**

@@ -137,11 +137,27 @@ public class ProfiledXmlGeneratorService {
      * @return the generated XML as a string
      */
     public String generateRealistic(GenerationProfile profile, XsdDocumentationData data, String xsdFilePath) {
+        return generateRealistic(profile, data, xsdFilePath, null);
+    }
+
+    /**
+     * Like {@link #generateRealistic(GenerationProfile, XsdDocumentationData, String)}, but for the named
+     * global element instead of the first one.
+     *
+     * @param profile         generation profile (mandatoryOnly / maxOccurrences honoured; rules optional)
+     * @param data            the parsed XSD documentation data
+     * @param xsdFilePath     the path to the XSD file
+     * @param rootElementName local name of the global element, or {@code null} for the first one
+     * @return the generated XML as a string
+     * @throws IllegalArgumentException if the schema has no global element with that name
+     */
+    public String generateRealistic(GenerationProfile profile, XsdDocumentationData data, String xsdFilePath,
+                                    String rootElementName) {
         XsdSampleDataGenerator sampleGenerator = new XsdSampleDataGenerator();
         setupTypeResolver(sampleGenerator, data);
         ValueStrategyFactory strategyFactory = new ValueStrategyFactory(sampleGenerator);
         GenerationContext context = new GenerationContext();
-        return buildXmlDocument(profile, data, xsdFilePath, strategyFactory, context);
+        return buildXmlDocument(profile, data, xsdFilePath, strategyFactory, context, rootElementName);
     }
 
     /**
@@ -261,19 +277,26 @@ public class ProfiledXmlGeneratorService {
     private String buildXmlDocument(GenerationProfile profile, XsdDocumentationData data,
                                      String xsdFilePath, ValueStrategyFactory strategyFactory,
                                      GenerationContext context) {
+        return buildXmlDocument(profile, data, xsdFilePath, strategyFactory, context, null);
+    }
+
+    private String buildXmlDocument(GenerationProfile profile, XsdDocumentationData data,
+                                     String xsdFilePath, ValueStrategyFactory strategyFactory,
+                                     GenerationContext context, String rootElementName) {
         Map<String, XsdExtendedElement> elementMap = data.getExtendedXsdElementMap();
 
-        List<XsdExtendedElement> rootElements = elementMap.values().stream()
-                .filter(e -> e.getParentXpath() == null || e.getParentXpath().equals("/"))
-                .sorted(Comparator.comparing(XsdExtendedElement::getCounter))
-                .toList();
-
-        if (rootElements.isEmpty()) {
-            return "<!-- No root element found in XSD -->";
+        XsdExtendedElement rootElement;
+        if (rootElementName == null) {
+            List<XsdExtendedElement> rootElements = XsdDocumentationService.findRootElements(elementMap);
+            if (rootElements.isEmpty()) {
+                return "<!-- No root element found in XSD -->";
+            }
+            rootElement = rootElements.getFirst();
+        } else {
+            rootElement = XsdDocumentationService.findRootElement(elementMap, rootElementName);
         }
 
         StringBuilder xml = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-        XsdExtendedElement rootElement = rootElements.getFirst();
         String rootName = rootElement.getElementName();
 
         // Schema location and namespace declarations
@@ -317,14 +340,31 @@ public class ProfiledXmlGeneratorService {
             renderAttribute(xml, attr, attrXpath, profile, enabledRules, strategyFactory, context, constraintTracker);
         }
 
-        xml.append(">\n");
-
         // Root element children
         List<XsdExtendedElement> rootChildren = rootElement.getChildren().stream()
                 .map(elementMap::get)
                 .filter(Objects::nonNull)
                 .filter(e -> !e.getElementName().startsWith("@"))
                 .toList();
+
+        if (rootChildren.isEmpty()) {
+            // Simple or empty content: the root carries its own value and no indentation whitespace
+            String rootXpath = rootElement.getCurrentXpath();
+            context.setCurrentXPath(rootXpath);
+            String value = resolveElementValue(rootElement, rootXpath, matchRule(rootXpath, enabledRules).orElse(null),
+                    strategyFactory, context, constraintTracker);
+            if (ValueStrategy.NIL_SENTINEL.equals(value)) {
+                xml.append(" xsi:nil=\"true\"/>\n");
+            } else if (value.isEmpty()) {
+                xml.append("/>\n");
+            } else {
+                xml.append(">").append(escapeXml(value)).append("</").append(rootName).append(">\n");
+                context.recordGeneratedValue(rootXpath, value);
+            }
+            return xml.toString();
+        }
+
+        xml.append(">\n");
 
         for (XsdExtendedElement child : rootChildren) {
             buildElement(xml, child, profile, enabledRules, elementMap, strategyFactory, context, constraintTracker, 1);

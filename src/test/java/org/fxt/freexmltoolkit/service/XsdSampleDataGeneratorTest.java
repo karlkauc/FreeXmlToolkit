@@ -8,6 +8,8 @@ import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 /**
  * Test class for XsdSampleDataGenerator - generates sample data based on XSD types and restrictions.
@@ -19,6 +21,42 @@ class XsdSampleDataGeneratorTest {
     @BeforeEach
     void setUp() {
         generator = new XsdSampleDataGenerator();
+    }
+
+    @ParameterizedTest(name = "{0} in [{1}, {2}]")
+    @CsvSource({
+            "xs:unsignedByte, 128, 254",
+            "xs:unsignedShort, 40000, 65535",
+            "xs:unsignedInt, 3000000000, 4294967295",
+            "xs:unsignedLong, 10000000000000000000, 18446744073709551615"
+    })
+    @DisplayName("Unsigned values above the signed Java range stay within their facets")
+    void unsignedValuesAboveSignedRangeStayInRange(String type, String min, String max) {
+        XsdExtendedElement element = new XsdExtendedElement();
+        element.setElementType(type);
+        element.setRestrictionInfo(new XsdExtendedElement.RestrictionInfo(type,
+                Map.of("minInclusive", List.of(min), "maxInclusive", List.of(max))));
+
+        for (int i = 0; i < 25; i++) {
+            String result = generator.generate(element);
+            java.math.BigInteger value = new java.math.BigInteger(result);
+            assertTrue(value.compareTo(new java.math.BigInteger(min)) >= 0 && value.compareTo(new java.math.BigInteger(max)) <= 0,
+                    type + " value " + result + " outside [" + min + ", " + max + "]");
+        }
+    }
+
+    @ParameterizedTest(name = "{0} without facets is non-negative")
+    @CsvSource({"xs:unsignedByte, 255", "xs:unsignedShort, 65535", "xs:unsignedInt, 4294967295", "xs:unsignedLong, 18446744073709551615"})
+    @DisplayName("Unsigned values without facets stay inside the type's value space")
+    void unsignedValuesWithoutFacetsStayInValueSpace(String type, String typeMax) {
+        XsdExtendedElement element = new XsdExtendedElement();
+        element.setElementType(type);
+
+        for (int i = 0; i < 25; i++) {
+            java.math.BigInteger value = new java.math.BigInteger(generator.generate(element));
+            assertTrue(value.signum() >= 0 && value.compareTo(new java.math.BigInteger(typeMax)) <= 0,
+                    type + " value " + value + " outside its value space");
+        }
     }
 
     @Test

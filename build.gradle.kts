@@ -383,6 +383,9 @@ tasks.test {
         // inherently flaky under headless CI / shared-machine load. Their conclusions are already
         // recorded in the design docs, so they are non-gating like the perf benchmark above.
         excludeTestsMatching("*SpikeTest*")
+        // Long-running, non-gating corpus audit of the sample XML generator — run it via the
+        // dedicated `sampleXmlAudit` task instead.
+        excludeTestsMatching("*RealWorldAuditTest*")
     }
 }
 
@@ -441,6 +444,33 @@ tasks.register<Test>("perfBenchmark") {
     }
     filter { includeTestsMatching("*PerfBenchmark*") }
     jvmArgs("--enable-preview", "--enable-native-access=ALL-UNNAMED")
+}
+
+// Non-gating audit of the sample XML generator against the real-world XSD corpus in
+// src/test/resources/xsd/real-world (skipped when the corpus is absent). Each schema runs in its
+// own worker JVM; results land in build/sample-xml-audit (results.json, summary.csv, samples).
+//   ./gradlew sampleXmlAudit [-Dsample.audit.only=folder1,folder2] [-Dsample.audit.parallel=2]
+tasks.register<Test>("sampleXmlAudit") {
+    group = "verification"
+    description = "Audit the sample XML generator against the real-world XSD corpus (writes build/sample-xml-audit)."
+    useJUnitPlatform()
+    maxHeapSize = "2G"
+    testClassesDirs = sourceSets["test"].output.classesDirs
+    classpath = sourceSets["test"].runtimeClasspath
+    testLogging {
+        events("passed", "skipped", "failed")
+        showStandardStreams = true
+    }
+    filter { includeTestsMatching("org.fxt.freexmltoolkit.service.sampleaudit.SampleXmlGeneratorRealWorldAuditTest") }
+    systemProperty("sample.audit", "true")
+    systemProperty("fxt.suppressErrorDialogs", "true")
+    listOf(
+        "sample.audit.only", "sample.audit.parallel", "sample.audit.workerHeap",
+        "sample.audit.schemaTimeoutMinutes", "sample.audit.processTimeoutMinutes",
+        "sample.audit.sampleTimeoutSeconds", "sample.audit.maxRootsPerSchema"
+    ).forEach { key -> System.getProperty(key)?.let { systemProperty(key, it) } }
+    outputs.upToDateWhen { false }
+    doFirst { systemProperty("sample.audit.classpath", classpath.asPath) }
 }
 
 // JaCoCo Code Coverage Configuration

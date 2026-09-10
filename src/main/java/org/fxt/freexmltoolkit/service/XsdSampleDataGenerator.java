@@ -1,6 +1,7 @@
 package org.fxt.freexmltoolkit.service;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -223,22 +224,30 @@ public class XsdSampleDataGenerator {
                 BigDecimal randomDecimal = generateNumberInRange(effectiveRestriction, new BigDecimal("-10000"), BigDecimal.valueOf(-1));
                 yield DatatypeConverter.printInteger(randomDecimal.toBigInteger());
             }
-            case "long", "unsignedlong" -> {
+            case "long" -> {
                 BigDecimal randomDecimal = generateNumberInRange(effectiveRestriction, new BigDecimal("10000"), new BigDecimal("50000"));
                 yield DatatypeConverter.printLong(randomDecimal.longValue());
             }
-            case "int", "unsignedint" -> {
+            case "int" -> {
                 BigDecimal randomDecimal = generateNumberInRange(effectiveRestriction, new BigDecimal("100"), new BigDecimal("5000"));
                 yield DatatypeConverter.printInt(randomDecimal.intValue());
             }
-            case "short", "unsignedshort" -> {
+            case "short" -> {
                 BigDecimal randomDecimal = generateNumberInRange(effectiveRestriction, BigDecimal.ONE, new BigDecimal("100"));
                 yield DatatypeConverter.printShort(randomDecimal.shortValue());
             }
-            case "byte", "unsignedbyte" -> {
+            case "byte" -> {
                 BigDecimal randomDecimal = generateNumberInRange(effectiveRestriction, BigDecimal.ZERO, new BigDecimal("127"));
                 yield DatatypeConverter.printByte(randomDecimal.byteValue());
             }
+            case "unsignedlong" -> generateUnsignedInteger(effectiveRestriction,
+                    new BigDecimal("10000"), new BigDecimal("50000"), UNSIGNED_LONG_MAX);
+            case "unsignedint" -> generateUnsignedInteger(effectiveRestriction,
+                    new BigDecimal("100"), new BigDecimal("5000"), UNSIGNED_INT_MAX);
+            case "unsignedshort" -> generateUnsignedInteger(effectiveRestriction,
+                    BigDecimal.ONE, new BigDecimal("100"), UNSIGNED_SHORT_MAX);
+            case "unsignedbyte" -> generateUnsignedInteger(effectiveRestriction,
+                    BigDecimal.ZERO, new BigDecimal("127"), UNSIGNED_BYTE_MAX);
 
             // Date, Time and Boolean
             case "date" -> {
@@ -861,6 +870,21 @@ public class XsdSampleDataGenerator {
      * Generates a random number (as BigDecimal) considering
      * min/max restrictions from the XSD.
      */
+    private static final BigInteger UNSIGNED_BYTE_MAX = BigInteger.valueOf(255);
+    private static final BigInteger UNSIGNED_SHORT_MAX = BigInteger.valueOf(65535);
+    private static final BigInteger UNSIGNED_INT_MAX = new BigInteger("4294967295");
+    private static final BigInteger UNSIGNED_LONG_MAX = new BigInteger("18446744073709551615");
+
+    /**
+     * Generates an unsigned integer within the facets, printed from {@link BigInteger}: the signed Java types
+     * ({@code byte}, {@code short}, …) would wrap values above their maximum into negative numbers.
+     */
+    private String generateUnsignedInteger(RestrictionInfo restriction, BigDecimal defaultMin, BigDecimal defaultMax,
+                                           BigInteger typeMax) {
+        BigInteger value = generateNumberInRange(restriction, defaultMin, defaultMax).toBigInteger();
+        return value.max(BigInteger.ZERO).min(typeMax).toString();
+    }
+
     private BigDecimal generateNumberInRange(RestrictionInfo restriction, BigDecimal defaultMin, BigDecimal defaultMax) {
         BigDecimal min = defaultMin;
         BigDecimal max = defaultMax;
