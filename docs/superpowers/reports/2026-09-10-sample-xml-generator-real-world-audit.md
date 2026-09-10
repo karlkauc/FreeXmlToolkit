@@ -7,7 +7,7 @@ The improvement plan derived from these numbers is
 `docs/superpowers/plans/2026-09-10-sample-xml-generator-validity.md`.
 
 > **Update (same day):** the plan's four quick wins (A1, A2, D1, F3) are implemented. §1–§10 describe the baseline;
-> §11 has the re-audit.
+> §11 has the re-audit. A5 (bounded memory) and A4 (roots from included documents) follow in §12 and §13.
 
 ## 1. Summary
 
@@ -391,6 +391,7 @@ The task skips itself when the corpus folder is absent.
 | 2026-09-10 | Baseline | 19 · 14 | 74 · 63 (of 130) | 7 |
 | 2026-09-10 | Quick wins A1, A2 (types), D1, F3 | 23 · 18 | 82 · 70 (of 132) | 4 |
 | 2026-09-10 | A5 bounded memory (§12) | 24 · 17 | 229 · 200 (of 1,124: UCI, KML and more SIRI roots now generate) | 1 |
+| 2026-09-10 | A4 roots from included documents (§13) | 23 · 19 | 534 · 325 (of 1,677: JATS and SIRI now offer their included roots) | 0 |
 
 ## 11. After the quick wins (re-audit, 2026-09-10)
 
@@ -558,3 +559,57 @@ These numbers are not comparable with the earlier 82 / 70, because the set of ro
 - **Random flips:** as before (datajud, Subsonic, nuspec, XTCE), within the known clusters.
 - **Still open for "no XML":** A4 (roots from included documents, JATS). The documentation of UBL 2.1 still needs
   more memory than 3 GB.
+
+## 13. After A4: roots from included documents (re-audit, 2026-09-10)
+
+**Change** (commit `be93cdc9`):
+- **More roots:** `getRootElementNames()` now also offers the global elements of included documents of the main
+  target namespace, including chameleon includes. Imports of other namespaces are not offered. Each name appears once,
+  in document order.
+- **Default root:** `getDefaultRootElementName()`, used by both generators, keeps the first element of the main
+  document. Only when the main document declares none does it pick the first included element that is neither
+  abstract nor referenced via `ref`.
+- **Documentation:** `processXsd` is unchanged.
+- **Test:** `SampleXmlIncludedRootsTest` (3).
+
+**First global element** (31 evaluable schemas):
+
+| Generator / mode | Valid: A5 → A4 | No XML: A5 → A4 |
+|---|---|---|
+| plain, mandatory only | 24 → 23 | 1 → **0** |
+| plain, with optional elements | 17 → 19 | 2 → **1** |
+| realistic, mandatory only | 24 → 22 | 1 → **0** |
+| realistic, with optional elements | 19 → 19 | 2 → **1** |
+
+- **JATS:** now generates `article` instead of answering "No root element found". The sample is still invalid:
+  the required `front` is missing (`cvc-complex-type.2.4.b`). JATS is among the schemas whose nested includes the
+  generator cannot find (WP A3).
+- **Only remaining "no XML":** UBL 2.1 with optional elements (node limit).
+- **Valid counts:** they moved by random flips (datajud, goAML, XTCE 2018/2025).
+- **Sampler defect found and fixed:** the XTCE 2025 flip exposed it. For `NameType` `[^.\[\]:/ \t]+` the sampler
+  could pick a tab or line feed, which an attribute value normalizes to a space. It no longer emits tabs or line
+  breaks (`BoundedPatternSamplerTest.samplesContainNoLineBreaksOrTabs`); the fix came after this audit run.
+
+**Every offered root** (not comparable with §12, the set of roots grew again):
+
+| Schema | Roots offered: A5 → A4 | Valid plain req · opt | Valid realistic req · opt |
+|---|---|---|---|
+| JATS 1.4 | 0 → 308 | 206 · 55 | 206 · 55 |
+| SIRI 2.2 | 6 → 268 | 101 · 71 | 86 · 53 |
+| SIRI IDF 2.0 | 6 → 217 | not validated (publisher schema incomplete) | – |
+
+| Generator / mode | Valid | Validated |
+|---|---|---|
+| plain, mandatory only | 534 | 1,677 |
+| plain, with optional elements | 325 | 1,675 |
+| realistic, mandatory only | 513 | 1,610 |
+| realistic, with optional elements | 302 | 1,607 |
+
+- **JATS errors:** 710 invalid samples in total. The most frequent keys (samples containing them):
+  - `cvc-id.1` (468): IDREF without a matching ID, WP H
+  - `cvc-complex-type.2.4.b` (222)
+  - `cvc-complex-type.4` (176)
+  - `cvc-elt.2` (176)
+  - `cvc-complex-type.2.4.a` (142)
+- **Harness:** the UCI worker exceeded its 45-minute budget this time, and the realistic breadth stopped at 655 of
+  722 roots. The larger JATS and SIRI breadth sets running in parallel made the run longer.

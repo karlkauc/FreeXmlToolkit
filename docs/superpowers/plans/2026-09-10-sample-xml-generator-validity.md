@@ -61,6 +61,9 @@ Of the 274 invalid samples, the report maps each validation error to one of the 
   - UCI, A-GRA, KML and goAML now generate.
   - Remaining "no XML": JATS (**A4 next**) and UBL 2.1 with optional elements (node limit).
   - KSeF FA(3) generates XML, but its validation times out in the audit.
+- **Progress after A4** (report §13): no XML 0 · 1 · 0 · 1, only UBL 2.1 with optional elements (node limit).
+  - JATS generates `article`, still invalid: its content modules are among the includes that are not found.
+  - Next: **A3**, then B.
 
 ## Global Constraints
 
@@ -118,7 +121,11 @@ reports "No root element found". UCI and A-GRA run out of memory even with a 14 
     follow `xs:redefine`/`xs:override` locations.
   - Golden test: a nested directory corpus with `../` includes.
   - Re-audit expectation: SIRI 2.2 `ServiceDelivery` (missing `ResponseTimestamp`) should become valid.
-- [ ] **A4. Offer roots from included documents.** `populateDocumentationData` only takes
+- [x] **A4. Offer roots from included documents.** *(done 2026-09-10, commit `be93cdc9`, report §13:
+  - roots from same-namespace includes, chameleon includes included
+  - default root = first main-document element, otherwise the first unreferenced non-abstract element of an include
+    (JATS → `article`)
+  - abstract roots are still offered, see E3)* `populateDocumentationData` only takes
   `/xs:schema/xs:element[@name]` of the main document (`:2961`). The app therefore offers 0 of JATS's 308
   same-namespace global elements and 3 of SIRI's 385.
   - Collect global elements of every document with the main target namespace (includes, chameleon includes), in

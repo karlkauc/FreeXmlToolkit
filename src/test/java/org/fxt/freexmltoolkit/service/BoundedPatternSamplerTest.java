@@ -47,6 +47,17 @@ class BoundedPatternSamplerTest {
     }
 
     @Test
+    void samplesContainNoLineBreaksOrTabs() {
+        // XTCE NameType [^.\[\]:/ \t]+: the transition for U+0000..U+001F offered only TAB, LF and CR as XML characters;
+        // in an attribute value they are normalized to spaces, which the pattern forbids
+        BoundedPatternSampler sampler = new BoundedPatternSampler("[^.\\[\\]:/ \\t]+", new Random(13));
+        for (int i = 0; i < 20_000; i++) {
+            String value = sampler.sample(1, 20);
+            assertTrue(value.chars().noneMatch(c -> c == '\t' || c == '\n' || c == '\r'), value);
+        }
+    }
+
+    @Test
     void negatedClassesPreferPrintableCharacters() {
         BoundedPatternSampler sampler = new BoundedPatternSampler("[^a]{5}", new Random(5));
         for (int i = 0; i < 500; i++) {

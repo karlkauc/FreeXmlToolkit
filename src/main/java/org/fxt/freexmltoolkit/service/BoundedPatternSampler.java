@@ -23,8 +23,8 @@ import dk.brics.automaton.Transition;
  * a {@link StackOverflowError} on a default thread stack and in an {@link OutOfMemoryError} on a large one. This
  * sampler walks the same automaton (same regular expression syntax and predefined character classes as Generex)
  * iteratively and only takes transitions from which an accepting state stays reachable within the remaining length,
- * so it needs at most {@code maxLength} steps. It only emits characters XML 1.0 allows, preferring printable ASCII,
- * so the samples can be embedded in XML documents.</p>
+ * so it needs at most {@code maxLength} steps. It only emits characters XML 1.0 allows, preferring printable ASCII and
+ * never tabs or line breaks, so the samples can be embedded in XML elements and attributes.</p>
  */
 final class BoundedPatternSampler {
 
@@ -123,10 +123,12 @@ final class BoundedPatternSampler {
 
     /**
      * Character ranges tried in order when picking a character of a transition: printable ASCII first, then the other
-     * characters XML 1.0 allows. Control characters, surrogates, U+FFFE and U+FFFF are never picked.
+     * characters XML 1.0 allows, the space last. Control characters, surrogates, U+FFFE and U+FFFF are never picked,
+     * and neither are tab, line feed and carriage return: in attribute values they are normalized to spaces, which a
+     * pattern may forbid (XTCE {@code NameType}).
      */
     private static final int[][] XML_CHARACTER_RANGES = {
-            {0x21, 0x7E}, {0xA1, 0xD7FF}, {0xE000, 0xFFFD}, {0x20, 0x20}, {0x9, 0xA}, {0xD, 0xD}
+            {0x21, 0x7E}, {0xA1, 0xD7FF}, {0xE000, 0xFFFD}, {0x20, 0x20}
     };
 
     private static boolean hasXmlCharacter(Transition transition) {
