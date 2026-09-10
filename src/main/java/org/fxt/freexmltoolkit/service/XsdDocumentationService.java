@@ -164,6 +164,11 @@ public class XsdDocumentationService {
     /** Documentation entry per xs:documentation node for the current run, shared by all expanded copies. */
     private final Map<Node, DocumentationInfo> documentationMemo = new java.util.concurrent.ConcurrentHashMap<>();
 
+    /** Global elements of included documents of the main target namespace (sample root candidates). */
+    private final List<Node> includedGlobalElements = new ArrayList<>();
+    /** Local names of all elements referenced via {@code ref} in any schema document. */
+    private final Set<String> referencedElementNames = new HashSet<>();
+
     /** Set by {@link #processXsd}: every global element is expanded, so sample generation needs no expansion. */
     private boolean fullyProcessed;
     private boolean schemaLoaded;
@@ -659,7 +664,7 @@ public class XsdDocumentationService {
             return;
         }
         loadSchema(markdownMode);
-        Node globalElement = xsdDocumentationData.getGlobalElements().stream()
+        Node globalElement = sampleRootElements().stream()
                 .filter(node -> rootElementName.equals(getAttributeValue(node, "name")))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("No global element named '" + rootElementName + "'"));
@@ -1616,11 +1621,49 @@ public class XsdDocumentationService {
      * only rewritten in memory), leaving e.g. imported complexTypes unresolved.
      */
     private void initializeCachesFromAllSchemas() throws Exception {
+        includedGlobalElements.clear();
+        referencedElementNames.clear();
+        Path main = new File(this.xsdFilePath).toPath().toAbsolutePath().normalize();
+        String mainNamespace = doc != null ? doc.getDocumentElement().getAttribute("targetNamespace") : "";
         for (Path currentFile : schemaFilesToScan()) {
             logger.debug("Initializing caches from: {}", currentFile);
             Document document = parseXsdFile(currentFile);
             initializeCaches(document);
+            collectSampleRootCandidates(document, currentFile.equals(main), mainNamespace);
         }
+    }
+
+    /**
+     * Records every element name referenced via {@code ref}, and the global elements of an included document of the
+     * main target namespace as sample root candidates. A document without a target namespace counts as a chameleon
+     * include of the main namespace.
+     */
+    private void collectSampleRootCandidates(Document document, boolean mainDocument, String mainNamespace) throws Exception {
+        NodeList refs = (NodeList) xpath.evaluate("//xs:element/@ref", document, XPathConstants.NODESET);
+        for (int i = 0; i < refs.getLength(); i++) {
+            referencedElementNames.add(stripNamespace(refs.item(i).getNodeValue()));
+        }
+        String namespace = document.getDocumentElement().getAttribute("targetNamespace");
+        if (mainDocument || !(namespace.isEmpty() || namespace.equals(mainNamespace))) {
+            return;
+        }
+        includedGlobalElements.addAll(nodeListToList(
+                (NodeList) xpath.evaluate("/xs:schema/xs:element[@name]", document, XPathConstants.NODESET)));
+    }
+
+    /**
+     * Global elements offered as sample roots: those of the main document, then those of included documents of the
+     * same namespace; each name once, in document order.
+     */
+    private List<Node> sampleRootElements() {
+        Map<String, Node> roots = new LinkedHashMap<>();
+        for (Node node : xsdDocumentationData.getGlobalElements()) {
+            roots.putIfAbsent(getAttributeValue(node, "name"), node);
+        }
+        for (Node node : includedGlobalElements) {
+            roots.putIfAbsent(getAttributeValue(node, "name"), node);
+        }
+        return new ArrayList<>(roots.values());
     }
 
     /** The schema files collected by {@link #processAllSchemas()}, falling back to the main schema. */
@@ -2174,11 +2217,11 @@ public class XsdDocumentationService {
             if (loadError != null) {
                 return loadError;
             }
-            List<String> roots = getRootElementNames();
-            if (roots.isEmpty()) {
+            String root = getDefaultRootElementName();
+            if (root == null) {
                 return "<!-- No root element found in XSD -->";
             }
-            return generateSampleXml(roots.getFirst(), mandatoryOnly, maxOccurrences);
+            return generateSampleXml(root, mandatoryOnly, maxOccurrences);
         }
 
         List<XsdExtendedElement> rootElements = findRootElements(xsdDocumentationData.getExtendedXsdElementMap());
@@ -2235,9 +2278,42 @@ public class XsdDocumentationService {
         if (loadSchemaForSample() != null) {
             return List.of();
         }
-        return xsdDocumentationData.getGlobalElements().stream()
+        return sampleRootElements().stream()
                 .map(node -> getAttributeValue(node, "name"))
                 .toList();
+    }
+
+    /**
+     * The global element a sample is generated for when no root is chosen: the first element of the main document, as
+     * before. If the main document declares none (JATS keeps all of them in included modules), the first element of an
+     * included document that is neither abstract nor referenced by another element, then the first non-abstract one.
+     *
+     * @return the root element name, or {@code null} if the schema has no global element or could not be loaded
+     */
+    public String getDefaultRootElementName() {
+        if (fullyProcessed) {
+            List<XsdExtendedElement> roots = findRootElements(xsdDocumentationData.getExtendedXsdElementMap());
+            return roots.isEmpty() ? null : roots.getFirst().getElementName();
+        }
+        if (loadSchemaForSample() != null) {
+            return null;
+        }
+        if (!xsdDocumentationData.getGlobalElements().isEmpty()) {
+            return getAttributeValue(xsdDocumentationData.getGlobalElements().getFirst(), "name");
+        }
+        List<Node> candidates = sampleRootElements();
+        return candidates.stream()
+                .filter(node -> !isAbstractDeclaration(node)
+                        && !referencedElementNames.contains(getAttributeValue(node, "name")))
+                .findFirst()
+                .or(() -> candidates.stream().filter(node -> !isAbstractDeclaration(node)).findFirst())
+                .or(() -> candidates.stream().findFirst())
+                .map(node -> getAttributeValue(node, "name"))
+                .orElse(null);
+    }
+
+    private boolean isAbstractDeclaration(Node elementNode) {
+        return "true".equals(getAttributeValue(elementNode, "abstract"));
     }
 
     /**

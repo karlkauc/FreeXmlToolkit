@@ -1,7 +1,6 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
 import java.io.File;
-import java.util.List;
 
 import org.fxt.freexmltoolkit.service.SampleXmlLimits;
 import org.fxt.freexmltoolkit.service.XsdDocumentationService;
@@ -44,11 +43,10 @@ public final class SampleXmlRunner {
             }
             // Expand only the first root, not every global element (bounded memory for large schemas)
             service.loadSchema(XsdDocumentationService.MarkdownMode.ALL);
-            List<String> roots = service.getRootElementNames();
-            if (roots.isEmpty()) {
+            String root = service.getDefaultRootElementName();
+            if (root == null) {
                 return "<!-- No root element found in XSD -->";
             }
-            String root = roots.getFirst();
             service.expandForSample(root, mandatoryOnly, XsdDocumentationService.MarkdownMode.ALL);
             var profile = new org.fxt.freexmltoolkit.domain.GenerationProfile("Realistic");
             profile.setMandatoryOnly(mandatoryOnly);
