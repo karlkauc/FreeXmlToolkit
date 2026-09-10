@@ -1761,7 +1761,7 @@ public class XsdDocumentationService {
                     return;
                 }
 
-                Node referencedNode = findReferencedNode(node.getLocalName(), ref);
+                Node referencedNode = findReferencedNode(node.getLocalName(), ref, node);
                 if (referencedNode != null) {
                     // Store the reference node to preserve cardinality attributes (minOccurs/maxOccurs)
                     referenceNodeThreadLocal.set(node);
@@ -1831,7 +1831,7 @@ public class XsdDocumentationService {
         String namespaceUri = getNamespaceUriForReference(ref);
 
         // Try to get documentation from the imported schema if available
-        Node referencedNode = findReferencedNode("element", ref);
+        Node referencedNode = findReferencedNode("element", ref, node);
         if (referencedNode != null) {
             // Prefer building the full subtree from the referenced element
             referenceNodeThreadLocal.set(node);
@@ -2175,7 +2175,7 @@ public class XsdDocumentationService {
         if (ref == null || ref.isBlank()) {
             return;
         }
-        Node group = findReferencedNode("attributeGroup", ref);
+        Node group = findReferencedNode("attributeGroup", ref, groupRef);
         if (group == null) {
             logger.warn("Reference '{}' for node 'attributeGroup' could not be resolved.", ref);
             return;
@@ -2220,7 +2220,7 @@ public class XsdDocumentationService {
         if (ref == null || ref.isBlank() || (pruneOptionalParticles && isOptionalParticle(groupRef))) {
             return;
         }
-        Node group = findReferencedNode("group", ref);
+        Node group = findReferencedNode("group", ref, groupRef);
         if (group == null) {
             logger.warn("Reference '{}' for node 'group' could not be resolved.", ref);
             return;
@@ -3353,19 +3353,25 @@ public class XsdDocumentationService {
         }
 
         // Accumulate definitions from this document
-        elementMap.putAll(findAndCacheGlobalDefs(doc, "element"));
+        Map<String, Node> elements = findAndCacheGlobalDefs(doc, "element");
         Map<String, Node> complexTypes = findAndCacheGlobalDefs(doc, "complexType");
         Map<String, Node> simpleTypes = findAndCacheGlobalDefs(doc, "simpleType");
+        Map<String, Node> groups = findAndCacheGlobalDefs(doc, "group");
+        Map<String, Node> attributeGroups = findAndCacheGlobalDefs(doc, "attributeGroup");
+        elementMap.putAll(elements);
         complexTypeMap.putAll(complexTypes);
         simpleTypeMap.putAll(simpleTypes);
-        groupMap.putAll(findAndCacheGlobalDefs(doc, "group"));
-        attributeGroupMap.putAll(findAndCacheGlobalDefs(doc, "attributeGroup"));
+        groupMap.putAll(groups);
+        attributeGroupMap.putAll(attributeGroups);
 
-        // Namespace-qualified view of the type definitions: two namespaces may declare a type with the same local
-        // name, and the local-name maps above keep only one of them.
+        // Namespace-qualified view of the global definitions: two namespaces may declare one with the same local
+        // name (JATS and MathML both declare sec, list and title), and the local-name maps above keep only one.
         String targetNamespace = doc.getDocumentElement().getAttribute("targetNamespace");
+        elements.forEach((name, node) -> qualifiedGlobalDefs.put(qualifiedKey("element", targetNamespace, name), node));
         complexTypes.forEach((name, node) -> qualifiedGlobalDefs.put(qualifiedKey("complexType", targetNamespace, name), node));
         simpleTypes.forEach((name, node) -> qualifiedGlobalDefs.put(qualifiedKey("simpleType", targetNamespace, name), node));
+        groups.forEach((name, node) -> qualifiedGlobalDefs.put(qualifiedKey("group", targetNamespace, name), node));
+        attributeGroups.forEach((name, node) -> qualifiedGlobalDefs.put(qualifiedKey("attributeGroup", targetNamespace, name), node));
     }
 
     private void populateDocumentationData() throws Exception {
@@ -4209,13 +4215,20 @@ public class XsdDocumentationService {
     }
 
     public Node findReferencedNode(String localName, String ref) {
-        String cleanRef = stripNamespace(ref);
+        return findReferencedNode(localName, ref, null);
+    }
+
+    /**
+     * Resolves a {@code ref} to a global element, group or attribute group in the namespace its prefix is bound to at
+     * {@code contextNode}, falling back to the local name.
+     *
+     * @param contextNode the node carrying the reference, or {@code null} to look up by local name only
+     */
+    private Node findReferencedNode(String localName, String ref, Node contextNode) {
         return switch (localName) {
-            case "group" -> groupMap.get(cleanRef);
-            case "attributeGroup" -> attributeGroupMap.get(cleanRef);
-            case "element" -> elementMap.get(cleanRef);
-            // Note: element references are handled in the main traversal logic
-            // by looking up in the global element map, but this could be centralized here too.
+            case "group" -> lookupGlobalDefinition("group", groupMap, ref, contextNode);
+            case "attributeGroup" -> lookupGlobalDefinition("attributeGroup", attributeGroupMap, ref, contextNode);
+            case "element" -> lookupGlobalDefinition("element", elementMap, ref, contextNode);
             default -> null;
         };
     }
