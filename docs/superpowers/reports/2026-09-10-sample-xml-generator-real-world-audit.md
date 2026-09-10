@@ -7,7 +7,8 @@ The improvement plan derived from these numbers is
 `docs/superpowers/plans/2026-09-10-sample-xml-generator-validity.md`.
 
 > **Update (same day):** the plan's four quick wins (A1, A2, D1, F3) are implemented. §1–§10 describe the baseline;
-> §11 has the re-audit. A5 (bounded memory) and A4 (roots from included documents) follow in §12 and §13.
+> §11 has the re-audit. A5 (bounded memory) and A4 (roots from included documents) follow in §12 and §13; §14
+> covers A3 (include resolution) and the defects it exposed.
 
 ## 1. Summary
 
@@ -392,6 +393,7 @@ The task skips itself when the corpus folder is absent.
 | 2026-09-10 | Quick wins A1, A2 (types), D1, F3 | 23 · 18 | 82 · 70 (of 132) | 4 |
 | 2026-09-10 | A5 bounded memory (§12) | 24 · 17 | 229 · 200 (of 1,124: UCI, KML and more SIRI roots now generate) | 1 |
 | 2026-09-10 | A4 roots from included documents (§13) | 23 · 19 | 534 · 325 (of 1,677: JATS and SIRI now offer their included roots) | 0 |
+| 2026-09-11 | A3 includes, B inherited attributes, G6 group refs, D4, A6, A2 element refs (§14) | 26 · 20 | 913 · 571 (of 1,814: SIRI offers 385 roots, UCI completes) | 0 |
 
 ## 11. After the quick wins (re-audit, 2026-09-10)
 
@@ -613,3 +615,98 @@ These numbers are not comparable with the earlier 82 / 70, because the set of ro
   - `cvc-complex-type.2.4.a` (142)
 - **Harness:** the UCI worker exceeded its 45-minute budget this time, and the realistic breadth stopped at 655 of
   722 roots. The larger JATS and SIRI breadth sets running in parallel made the run longer.
+
+## 14. After A3: includes relative to their document, and what it exposed (re-audit, 2026-09-11)
+
+**A3** (commit `47df9550`): every `schemaLocation` resolves against the document that declares it, not the main
+schema's directory. A remote `xs:include` goes through the Schema Library like a remote import, and relative references
+of a remote document resolve against its URL. Test: `XsdNestedIncludeResolutionTest` (2). `xs:redefine` and
+`xs:override` are still not followed; no corpus schema uses them.
+
+Unresolved include and import locations per schema (unique, from the generator log):
+
+| Schema | A4 | Now | Remaining |
+|---|---|---|---|
+| SIRI 2.2 | 45 | 0 | – |
+| SIRI IDF 2.0 | 48 | 2 | `siri_common-v1.3.xsd`, `xml.xsd` (missing at the publisher) |
+| SIRI FR-IDF 2.4 | 47 | 1 | `xml.xsd` |
+| JATS 1.4 | 30 | 2 | `standard-modules/xml.xsd`, `xlink.xsd` |
+| INSPIRE Addresses | 8 | 0 | – |
+| UBL 2.1 | 4 | 0 | – |
+
+**What the newly reached content exposed.** Three intermediate audit runs found defects that A3 made visible. Each
+was fixed test-first before the final run:
+
+| Run | Finding | Fix |
+|---|---|---|
+| `a3` (stopped) | SIRI 2.2 up from 101 to 305 valid roots, but INSPIRE down from 5 to 1 of 13 and JATS `article` still `<article/>` | see the four rows below (commit `aa335644`) |
+| | a prefixed `attributeGroup` ref was emitted as an element (`<gml:SRSReferenceGroup/>`) | only element refs take the external-reference path (C3 in part) |
+| | an element whose children emit nothing (GML `ReferenceType`) got indentation whitespace: `cvc-complex-type.2.1` on `gn:nameStatus`/`gn:nativeness` (88 samples each) | self-closing tag in both generators (D4) |
+| | the plain generator emitted an optional `sequence` in mandatory-only mode without declaring its `gml` prefix | skip optional containers there, as the realistic generator does (D4) |
+| | a `<xs:group ref>` as a type's content model was never expanded (JATS: 182 such content models) | `processGroupReference` for content models, compositors and extensions (G6) |
+| | attributes of a base type next to its particle, attribute groups and a restriction's inherited attributes were dropped (rim `IdentifiableType@id`) | WP B; a multi-level simpleContent base now resolves to its simple type (F4 in part) |
+| `a3b` (stopped) | JATS `article` (both modes) and SIRI `Siri` with optional elements exceeded the 1,000,000-node limit | A6, commit `16eaca90` |
+| `a3c` | JATS with optional elements down from 55 to 36: MathML attributes on JATS `sec` and `list` | A2 element references, commit `741ba3df` |
+
+- **A6, bounded sample expansion:** compositors reached through `processComplexContent` bypassed the mandatory-only
+  pruning, and optional content recursing through many different declarations (JATS inline elements, SIRI
+  `AffectedLine` → `AffectedStopPoint` → `Lines`) grew with the number of permutations. A sample now expands the
+  optional content of each element declaration once; later occurrences get their required content only. The
+  documentation expansion is unchanged.
+
+  | Expansion | Before | After |
+  |---|---|---|
+  | JATS `article`, mandatory only | > 1,000,000 nodes | 237 nodes, 1.3 s |
+  | JATS `article`, with optional elements | > 1,000,000 nodes | 175,165 nodes, 6.8 s |
+  | SIRI `Siri`, with optional elements | > 1,000,000 nodes | 11,298 nodes, 1.3 s |
+
+- **A2 element references:** JATS imports MathML, which declares its own global `sec`, `list`, `title`, `annotation`
+  and `product`. Element, group and attribute-group references were resolved by local name, so JATS `sec` got the
+  MathML content and, once attribute groups expanded, its attributes. They now resolve in the namespace of the
+  referencing document.
+- **Tests:** `SampleXmlForeignContentTest`, `SampleXmlGroupReferenceTest`, `SampleXmlInheritedAttributesTest`,
+  `SampleXmlBoundedExpansionTest`, `CrossNamespaceReferenceResolutionTest` (4 each: both generators × both modes,
+  validated with Xerces). The golden hashes of `ProcessXsdEquivalenceTest` and `ProcessXsdSnippetEquivalenceTest`
+  (FundsXML 4.2.8) are unchanged.
+
+**First global element** (final run `a3d`, 31 evaluable schemas):
+
+| Generator / mode | Valid: A4 → now | No XML: A4 → now |
+|---|---|---|
+| plain, mandatory only | 23 → **26** | 0 → 0 |
+| plain, with optional elements | 19 → **20** | 1 → **0** |
+| realistic, mandatory only | 22 → **26** | 0 → 0 |
+| realistic, with optional elements | 19 → 19 | 1 → **0** |
+
+KSeF FA(3) generates XML in all four combinations, but its validation still exceeds the harness's 120 seconds, so it
+is counted in neither column. UBL 2.1 with optional elements now generates XML instead of reporting the node limit;
+the sample is invalid.
+
+**Every offered root** (not comparable with §13 in total: SIRI offers 385 roots instead of 268, and UCI completes):
+
+| Generator / mode | Valid | Validated |
+|---|---|---|
+| plain, mandatory only | 913 | 1,814 |
+| plain, with optional elements | 571 | 1,814 |
+| realistic, mandatory only | 815 | 1,814 |
+| realistic, with optional elements | 414 | 1,814 |
+
+| Schema | Valid plain req · opt: A4 → now | Valid realistic req · opt: A4 → now |
+|---|---|---|
+| rim (43 roots) | 19 · 14 → **42 · 42** | 19 · 14 → **42 · 42** |
+| SIRI 2.2 | 101 · 71 of 268 → **365 · 306** of 385 | 86 · 53 → **269 · 162** |
+| JATS 1.4 (308 roots) | 206 · 55 → **295** · 38 | 206 · 55 → **298** · 33 |
+| INSPIRE Addresses (13 roots) | 5 · 3 → 6 · 2 | 5 · 3 → 6 · 2 |
+
+- **JATS with optional elements** stays below A4: 196 of its 270 invalid samples fail only on `cvc-id.1`. Attribute
+  groups now emit `rid` and other IDREF attributes, and nothing emits a matching ID (WP H).
+- **INSPIRE with optional elements** now reaches more GML content and with it abstract elements (`cvc-elt.2`,
+  `cvc-type.2`, WP E).
+- **Remaining invalid samples** (plain, mandatory only), by schema:
+  - UCI 722 of 722: one type. `DateTimeType` restricts `xs:dateTime` with the pattern `.+Z`, and the generator
+    samples the pattern instead of generating a date-time (`CZ`, `s&W5vyZ`, occasionally an empty value;
+    `cvc-datatype-valid.1.2.1`, WP F5). 661 samples fail only on `MessageHeader/Timestamp`, which every UCI message
+    has; the other 61 also on further `DateTimeType` elements.
+  - KML 124 of 269: abstract global elements offered as roots (E3).
+  - SIRI 20, JATS 13, XBRL 8, INSPIRE 7, AEAT Modelo 170 3 (all its roots, namespace qualification, WP C).
+- **Random flips:** datajud (choice selection, R2) and one XBRL realistic root.

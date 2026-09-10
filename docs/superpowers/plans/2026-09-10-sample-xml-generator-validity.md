@@ -63,7 +63,14 @@ Of the 274 invalid samples, the report maps each validation error to one of the 
   - KSeF FA(3) generates XML, but its validation times out in the audit.
 - **Progress after A4** (report §13): no XML 0 · 1 · 0 · 1, only UBL 2.1 with optional elements (node limit).
   - JATS generates `article`, still invalid: its content modules are among the includes that are not found.
-  - Next: **A3**, then B.
+- **Progress after A3, B, G6, D4, A6 and the A2 element references** (report §14): first element valid
+  26 · 20 · 26 · 19, no XML 0 · 0 · 0 · 0 (KSeF FA(3) still exceeds the validation timeout).
+  - rim 42 of 43 roots valid in every mode; SIRI 2.2 365 of 385 (mandatory only); JATS 295 of 308 and `article`
+    valid (mandatory only).
+  - Largest remaining clusters: UCI `DateTimeType` (`xs:dateTime` with pattern `.+Z`, sampled as a string; 722
+    samples, one type, F5), abstract
+    roots and elements (E, KML 124), IDREF without ID (H, most of JATS with optional elements), namespace
+    qualification (C, AEAT). Next: **F5 for the UCI timestamp**, then E3, H and C.
 
 ## Global Constraints
 
@@ -99,9 +106,11 @@ reports "No root element found". UCI and A-GRA run out of memory even with a 14 
 - [x] **A2. Namespace-aware global definition maps.** *(types done 2026-09-10:
   `lookupGlobalDefinition`/`findGlobalType` resolve complex and simple types through the prefix, with a local-name
   fallback; `getInheritedFacets` has a cycle guard; the three extension expansions skip circular chains
-  (`derivesFromItself`); `CrossNamespaceTypeResolutionTest`. Still keyed by local name: `elementMap`, `groupMap`,
-  `attributeGroupMap` and the sample type resolver `resolveTypeToBase` / `resolvedTypeMemo`, which gives KSeF FA(3)
-  wrong facets for its value generation.)* `simpleTypeMap`, `complexTypeMap`, `elementMap`,
+  (`derivesFromItself`); `CrossNamespaceTypeResolutionTest`. Element, group and attribute-group references followed on
+  2026-09-10 (`CrossNamespaceReferenceResolutionTest`): JATS imports MathML, which declares its own `sec`, `list`,
+  `title`, `annotation` and `product`, so JATS `sec` had MathML content and attributes once B2 expanded attribute
+  groups. Still keyed by local name: the sample type resolver `resolveTypeToBase` / `resolvedTypeMemo`, which gives
+  KSeF FA(3) wrong facets for its value generation.)* `simpleTypeMap`, `complexTypeMap`, `elementMap`,
   `groupMap` and `attributeGroupMap` are keyed by local name (`stripNamespace`).
   - **UBL:** `udt:IdentifierType` extends `ccts-cct:IdentifierType`, so `processComplexContent` (`:1995-2004`)
     recurses into itself.
@@ -111,7 +120,11 @@ reports "No root element found". UCI and A-GRA run out of memory even with a 14 
   - Add a visited-set cycle guard to `getInheritedFacets`, `findTypeDefinition` and the extension branch of
     `processComplexContent`.
   - Golden test: two namespaces declaring a type with the same local name, one deriving from the other.
-- [ ] **A3. Resolve includes/imports relative to the including document.**
+- [x] **A3. Resolve includes/imports relative to the including document.** *(done 2026-09-10, commit `47df9550`,
+  report §14: every `schemaLocation` resolves against its declaring document; a remote `xs:include` goes through the
+  Schema Library; relative references of a remote document resolve against its URL; `XsdNestedIncludeResolutionTest`.
+  Not done: `xs:redefine`/`xs:override`, which no corpus schema uses. The re-audit exposed defects in the newly
+  reached GML and JATS content, fixed alongside: C3 in part, D4, G6.)*
   - `processAllSchemas` resolves every local `schemaLocation` against the main schema's directory (`:1460`,
     `:1498`, and `baseUri` at `:1485`).
   - Per processing run, the generator logged about 58 "Included file not found" and 11 "Imported file not found"
@@ -147,6 +160,13 @@ reports "No root element found". UCI and A-GRA run out of memory even with a 14 
     expanded subtree per named type instead of copying it per path.
   - Acceptance: every corpus schema generates within the default 6 GB worker heap.
   - Keep a hard node budget with a clear error comment instead of OOM.
+- [x] **A6. Bounded sample expansion of recursive optional content.** *(done 2026-09-10, report §14.)* Once group
+  references and includes resolved (A3, G6), JATS `article` (both modes) and SIRI `Siri` with optional elements
+  exceeded the node limit. Compositors reached through `processComplexContent` bypassed the mandatory-only pruning,
+  and optional content recursing through many different declarations (JATS inline elements) grew with the number of
+  permutations. A sample now expands the optional content of each element declaration once; later occurrences get
+  their required content only. JATS `article`: 237 nodes mandatory-only, 175,165 with optional elements; SIRI
+  `Siri`: 11,298. Test: `SampleXmlBoundedExpansionTest`.
 
 **Target:** "no XML" drops from 7 to 0 of 31 (plus A-GRA once its missing include is tolerated).
 
@@ -163,6 +183,12 @@ reports "No root element found". UCI and A-GRA run out of memory even with a 14 
   - Fix: render the root through the same path as child elements. Emit text for simple content, a self-closing tag
     for empty content, and no indentation whitespace inside simple or empty content.
   - Apply the same fix to `ProfiledXmlGeneratorService.buildXmlDocument`.
+- [x] **D4. Empty content below the root.** *(done 2026-09-10, found by the A3 re-audit: INSPIRE `gn:nameStatus`,
+  `gn:nativeness`, `specification`.)* An element whose only children are structural containers that emit nothing
+  (GML `ReferenceType` = empty `sequence` + attribute groups) was written as `<x>`, newline, indentation, `</x>`.
+  Both generators now write a self-closing tag. The plain generator also skips an optional `sequence`/`all` in
+  mandatory-only mode, as the namespace collection and the realistic generator do; emitting it had used an
+  undeclared `gml` prefix (`SampleXmlForeignContentTest`).
 - [ ] **D2. Attribute-only complex types are not simple content.** `XsdSampleDataGenerator.java:147-155` treats an
   element whose children are all attributes as `simpleContent` and generates text for it. rim `LocalizedString`
   (124 occurrences), `Address` and `PersonName` break on that.
@@ -179,14 +205,20 @@ reports "No root element found". UCI and A-GRA run out of memory even with a 14 
 missing: rim `@id` (from `IdentifiableType`, two extension levels up), XTCE `@parameterRef`, Subsonic
 `jukeboxPlaylist@currentIndex|playing|gain` (base `JukeboxStatus`), INSPIRE `@uom`.
 
-- [ ] **B1.** In `processComplexContent`'s extension branch (`:1995-2004`), only the base type's *content model* is
+- [x] **B1.** *(done 2026-09-10: the extension branch adds the base type's own attributes; a complexContent or
+  simpleContent restriction inherits the attributes of its base chain unless it restates or prohibits them
+  (`processRestrictionBaseAttributes`); prohibited attributes are left out.)* In `processComplexContent`'s extension branch (`:1995-2004`), only the base type's *content model* is
   processed (`findContentModel`), so attributes and `attributeGroup` refs of the base are dropped.
   - Walk the full derivation chain (with the A2 cycle guard) and collect attribute uses and attribute groups of
     every level, for `complexContent` and `simpleContent` extensions and restrictions (a restriction may prohibit
     attributes).
-- [ ] **B2.** Verify `attributeGroup` refs at every level, including nested groups and groups from imported
+- [x] **B2.** *(done 2026-09-10: attribute groups were not expanded anywhere; `processAttributeUses` now expands
+  them, nested groups included, on types, extensions and restrictions. Groups are still looked up by local name, see
+  A2.)* Verify `attributeGroup` refs at every level, including nested groups and groups from imported
   namespaces (see C3).
-- [ ] **B3.** Golden tests:
+- [x] **B3.** *(done 2026-09-10: `SampleXmlInheritedAttributesTest`, both generators × both modes, validated with
+  Xerces; it also needed a multi-level simpleContent base (`LengthType` → `MeasureType` → `xs:double`), now followed by
+  `simpleContentBaseType`, part of F4.)* Golden tests:
   - a three-level extension chain with a required attribute at the top
   - a `simpleContent` extension with a required attribute (`MeasureType@uom`)
   - an attribute group in the base
@@ -215,7 +247,9 @@ default namespace unless they came through a prefixed element `ref`. Examples:
   `ns1…` on clashes). Write every element as `prefix:local`. For no-namespace local elements under a default-namespace
   root, either render the root with a prefix or emit `xmlns=""`. Cover `collectUsedNamespaces` (`:2138` today, which
   skips attributes) and the profiled generator.
-- [ ] **C3. Attribute refs to other namespaces.**
+- [ ] **C3. Attribute refs to other namespaces.** *(in part, 2026-09-10: a prefixed `attribute`, `attributeGroup`
+  or `group` ref is no longer emitted as an element (`SampleXmlForeignContentTest`); imported attribute groups expand
+  to attributes (B2). Still open: emitting a foreign attribute with a declared prefix; `xlink:href` refs are dropped.)*
   - Handle `xs:attribute ref="xlink:href"` and imported `attributeGroup`s as attributes with a declared prefix, never
     as elements.
   - Qualified local attributes (`attributeFormDefault`) get a prefix too.
@@ -257,6 +291,11 @@ samples (xlink attributes currently emitted as child elements) valid.
   - `choice minOccurs=2` with recursive options
   - required `xs:any ##other`
   - a sequence with `minOccurs=2`
+- [x] **G6. Model group references.** *(done 2026-09-10, found by the A3 re-audit: JATS `article` came out as
+  `<article/>`.)* A `<xs:group ref>` that is a type's whole content model was never resolved, one inside a
+  compositor was ignored, and one inside an extension was traversed at the parent's XPath. `processGroupReference`
+  expands the group's compositor in place in all three positions (cycle guard, optional refs pruned in mandatory-only
+  mode); `SampleXmlGroupReferenceTest`. Corpus: JATS 182 such content models, INSPIRE 8, SIRI 16.
 
 ## WP F: Simple value generation
 
@@ -275,7 +314,8 @@ samples (xlink attributes currently emitted as child elements) valid.
   *signed* Java type (`printByte(value.byteValue())` etc., `:226-241`). Values above the signed maximum wrap to
   negative numbers (Garmin `Cadence = -77`, 233 occurrences). Use the right range per built-in type and print via
   `BigInteger`.
-- [ ] **F4. Facets on attributes and simple content.** Attribute types with a pattern (XTCE `NameType`
+- [ ] **F4. Facets on attributes and simple content.** *(in part, 2026-09-10: a simpleContent chain through
+  several named complex types now resolves to its simple base, `simpleContentBaseType`.)* Attribute types with a pattern (XTCE `NameType`
   `[^.\[\]:/ \t]+`) and simple-content elements (SIRI FR-IDF `StopPointRef` NMTOKEN, INSPIRE `value` double) come
   out empty. Use the same type resolution for attributes and simple-content bases as for elements.
 - [ ] **F5. Pattern generation.** *(partly done with A5: `BoundedPatternSampler` terminates within the length range,
