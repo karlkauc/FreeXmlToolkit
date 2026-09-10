@@ -8,7 +8,7 @@ The improvement plan derived from these numbers is
 
 > **Update (same day):** the plan's four quick wins (A1, A2, D1, F3) are implemented. §1–§10 describe the baseline;
 > §11 has the re-audit. A5 (bounded memory) and A4 (roots from included documents) follow in §12 and §13; §14
-> covers A3 (include resolution) and the defects it exposed.
+> covers A3 (include resolution) and the defects it exposed; §15 covers F5 (typed values for patterns).
 
 ## 1. Summary
 
@@ -394,6 +394,7 @@ The task skips itself when the corpus folder is absent.
 | 2026-09-10 | A5 bounded memory (§12) | 24 · 17 | 229 · 200 (of 1,124: UCI, KML and more SIRI roots now generate) | 1 |
 | 2026-09-10 | A4 roots from included documents (§13) | 23 · 19 | 534 · 325 (of 1,677: JATS and SIRI now offer their included roots) | 0 |
 | 2026-09-11 | A3 includes, B inherited attributes, G6 group refs, D4, A6, A2 element refs (§14) | 26 · 20 | 913 · 571 (of 1,814: SIRI offers 385 roots, UCI completes) | 0 |
+| 2026-09-11 | F5 typed values for patterns on typed bases (§15) | 28 · 19 | 1,621 · 1,130 (of 1,814: UCI 709 · 566 of 722) | 0 |
 
 ## 11. After the quick wins (re-audit, 2026-09-10)
 
@@ -710,3 +711,45 @@ the sample is invalid.
   - KML 124 of 269: abstract global elements offered as roots (E3).
   - SIRI 20, JATS 13, XBRL 8, INSPIRE 7, AEAT Modelo 170 3 (all its roots, namespace qualification, WP C).
 - **Random flips:** datajud (choice selection, R2) and one XBRL realistic root.
+
+## 15. After F5: typed values for patterns on typed bases (re-audit, 2026-09-11)
+
+**Change** (commit `fb638fdf`): a pattern on a built-in date/time, numeric or boolean base narrows the type's lexical
+space. The generator used to sample the pattern alone; it now generates values of the type (date/time also with `Z`
+or `+00:00`) and keeps the first one the pattern accepts, falling back to pattern sampling. Both generators take their
+values from this path. Test: `XsdSampleDataGeneratorTest.patternOnTypedBaseYieldsAValidTypedValue` (5 cases, each
+value validated with Xerces). Patterns on typed bases occur in UCI (`dateTime`, `time`, `int`), KSeF FA(3)
+(`decimal`, `date`), A-GRA and the two bigconecta schemas (`boolean`).
+
+**First global element** (31 evaluable schemas):
+
+| Generator / mode | Valid: §14 → now | No XML |
+|---|---|---|
+| plain, mandatory only | 26 → **28** | 0 |
+| plain, with optional elements | 20 → 19 | 0 |
+| realistic, mandatory only | 26 → **27** | 0 |
+| realistic, with optional elements | 19 → 19 | 0 |
+
+UCI's first element is now valid in both mandatory-only combinations. The other changes are random flips (datajud,
+SIRI realistic with optional elements).
+
+**Every offered root** (same 1,814 validated samples per combination as in §14):
+
+| Generator / mode | Valid: §14 → now |
+|---|---|
+| plain, mandatory only | 913 → **1,621** |
+| plain, with optional elements | 571 → **1,130** |
+| realistic, mandatory only | 815 → **1,520** |
+| realistic, with optional elements | 414 → **990** |
+
+- **UCI 2.5** (722 roots): 0 → 709 · 566 valid (plain, mandatory · optional), 0 → 707 · 575 (realistic).
+- **Remaining invalid samples** (plain, mandatory only: 193 of 1,814):
+  - KML 125: abstract global elements offered as roots (E3)
+  - SIRI 2.2 21, JATS 12, XBRL 8, INSPIRE 7
+  - UCI 13: abstract types without `xsi:type` (`cvc-type.2`, e.g. `Metadata`, `Configuration`) and required
+    content missing (`cvc-complex-type.2.4.i/j`)
+  - AEAT Modelo 170 3 (namespace qualification, C), xmldsig 2, rim 1, SIRI FR-IDF 1
+- **By key** (plain, mandatory only): `cvc-elt.2` (abstract element) in 143 samples and `cvc-type.2` (abstract type)
+  in 83 make WP E the largest cluster. With optional elements, `cvc-id.1` (IDREF without ID, 275 samples, nearly all
+  JATS, WP H) comes first, then E.
+- **Next:** E (abstract roots, substitution groups, `xsi:type` for abstract types), then H.

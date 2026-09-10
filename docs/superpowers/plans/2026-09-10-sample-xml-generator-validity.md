@@ -71,6 +71,10 @@ Of the 274 invalid samples, the report maps each validation error to one of the 
     samples, one type, F5), abstract
     roots and elements (E, KML 124), IDREF without ID (H, most of JATS with optional elements), namespace
     qualification (C, AEAT). Next: **F5 for the UCI timestamp**, then E3, H and C.
+- **Progress after F5 typed values for patterns** (report §15): first element valid 28 · 19 · 27 · 19, no XML 0;
+  breadth valid 1,621 · 1,130 · 1,520 · 990 of 1,814 (UCI 0 → 709 of 722 mandatory-only).
+  - Largest remaining clusters: abstract elements and types (E: `cvc-elt.2` 143, `cvc-type.2` 83 samples, KML 125
+    abstract roots), IDREF without ID with optional elements (H: 275, nearly all JATS). Next: **E**, then H.
 
 ## Global Constraints
 
@@ -319,7 +323,11 @@ samples (xlink attributes currently emitted as child elements) valid.
   `[^.\[\]:/ \t]+`) and simple-content elements (SIRI FR-IDF `StopPointRef` NMTOKEN, INSPIRE `value` double) come
   out empty. Use the same type resolution for attributes and simple-content bases as for elements.
 - [ ] **F5. Pattern generation.** *(partly done with A5: `BoundedPatternSampler` terminates within the length range,
-  caps repetitions and emits only XML 1.0 characters. Pattern intersection and XSD escapes are still open.)*
+  caps repetitions and emits only XML 1.0 characters. Pattern intersection and XSD escapes are still open.
+  2026-09-11: a pattern on a typed built-in base (date/time, numeric, boolean) narrows the type's lexical space; the
+  generator now produces values of the type (date/time also with `Z` or `+00:00`) and keeps the first one the pattern
+  accepts, falling back to pattern sampling. UCI `DateTimeType` (`xs:dateTime`, `.+Z`) had made all 722 UCI samples
+  invalid. Test: `XsdSampleDataGeneratorTest.patternOnTypedBaseYieldsAValidTypedValue`.)*
   - Restrict Generex output to printable characters. The XTCE samples contain unassigned or control code points;
     one realistic XTCE sample is not even well-formed.
   - Intersect patterns across the derivation chain (all steps must match).
