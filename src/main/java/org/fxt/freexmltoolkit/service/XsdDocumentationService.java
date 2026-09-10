@@ -155,6 +155,27 @@ public class XsdDocumentationService {
     private Map<String, Node> attributeGroupMap = new HashMap<>();
     /** Global type definitions keyed by kind, target namespace and local name ({@link #qualifiedKey}). */
     private final Map<String, Node> qualifiedGlobalDefs = new HashMap<>();
+    /**
+     * Source code snippet per schema node for the current run. A node is expanded once per XPath it is reachable
+     * under, and every copy carries the same snippet (it depends on the node and the run's options only), so the
+     * copies share one String instead of serializing the node again.
+     */
+    private final Map<Node, String> sourceSnippetMemo = new java.util.concurrent.ConcurrentHashMap<>();
+    /** Documentation entry per xs:documentation node for the current run, shared by all expanded copies. */
+    private final Map<Node, DocumentationInfo> documentationMemo = new java.util.concurrent.ConcurrentHashMap<>();
+
+    /** Set by {@link #processXsd}: every global element is expanded, so sample generation needs no expansion. */
+    private boolean fullyProcessed;
+    private boolean schemaLoaded;
+    /** Root, mode and Markdown mode of the current {@link #expandForSample} expansion, or {@code null}. */
+    private String sampleExpansionKey;
+    /** Node limit while expanding for a sample; -1 outside such an expansion. */
+    private int expansionNodeLimit = -1;
+    private String expansionRootName;
+    /** Skip optional particles while expanding for a mandatory-only sample. */
+    private boolean pruneOptionalParticles;
+    /** Character limit while building a plain sample; -1 outside generation. */
+    private long outputCharLimit = -1;
 
     // Language configuration for documentation generation
     private final Set<String> discoveredLanguages = new LinkedHashSet<>();
@@ -549,6 +570,38 @@ public class XsdDocumentationService {
      * @throws Exception if the schema cannot be processed
      */
     public void processXsd(MarkdownMode markdownMode) throws Exception {
+        loadSchemaDefinitions(markdownMode);
+
+        // Start traversal from global elements
+        resetExpansion();
+        for (Node globalElement : xsdDocumentationData.getGlobalElements()) {
+            String rootName = getAttributeValue(globalElement, "name");
+            traverseNode(globalElement, "/" + rootName, null, 0, new HashSet<>());
+        }
+
+        // Build the type usage map after traversal
+        buildTypeUsageMap();
+        fullyProcessed = true;
+        sampleExpansionKey = null;
+    }
+
+    /**
+     * Loads the schema - all schema files, the global definition caches and the sample type resolver - without
+     * expanding any element. Does nothing but update the Markdown mode when the schema is already loaded. The sample
+     * XML methods load on demand; call this directly to get loading errors as exceptions.
+     *
+     * @param markdownMode how the Markdown renderer is applied
+     * @throws Exception if the schema cannot be loaded
+     */
+    public void loadSchema(MarkdownMode markdownMode) throws Exception {
+        if (schemaLoaded) {
+            setMarkdownMode(markdownMode);
+            return;
+        }
+        loadSchemaDefinitions(markdownMode);
+    }
+
+    private void loadSchemaDefinitions(MarkdownMode markdownMode) throws Exception {
         setMarkdownMode(markdownMode);
         initializeXmlTools();
 
@@ -567,20 +620,63 @@ public class XsdDocumentationService {
         // Configure the sample data generator with type resolver BEFORE traversal
         // so that sample data generation can resolve named types to base XML types
         configureTypeResolver();
+        schemaLoaded = true;
+    }
 
-        // Reset per-run node-metadata memo before traversal
+    /** Resets the per-run node metadata memos and the XPath counter before a traversal. */
+    private void resetExpansion() {
         identityConstraintMemo.clear();
         resolvedTypeMemo.clear();
-
-        // Start traversal from global elements
+        sourceSnippetMemo.clear();
+        documentationMemo.clear();
         counter = 0;
-        for (Node globalElement : xsdDocumentationData.getGlobalElements()) {
-            String rootName = getAttributeValue(globalElement, "name");
-            traverseNode(globalElement, "/" + rootName, null, 0, new HashSet<>());
-        }
+    }
 
-        // Build the type usage map after traversal
-        buildTypeUsageMap();
+    /**
+     * Expands only one global element for sample XML generation, replacing the previous sample expansion. Unlike
+     * {@link #processXsd(MarkdownMode)}, which expands every global element for the documentation, this keeps memory
+     * proportional to the chosen root: in mandatory-only mode optional particles are not expanded at all (choice
+     * options stay, the generators pick among all of them), and the expansion stops with a
+     * {@link SampleXmlLimits.LimitExceededException} beyond {@link SampleXmlLimits#maxExpandedNodes()} nodes.
+     * Does nothing after {@link #processXsd(MarkdownMode)} or when the same root and mode are already expanded.
+     *
+     * <p>Only for generation without profile rules: a rule targeting an optional path finds nothing in a
+     * mandatory-only expansion.</p>
+     *
+     * @param rootElementName local name of a global element, as returned by {@link #getRootElementNames()}
+     * @param mandatoryOnly   expand required particles only
+     * @param markdownMode    how the Markdown renderer is applied
+     * @throws IllegalArgumentException              if the schema has no global element with that name
+     * @throws SampleXmlLimits.LimitExceededException if the root expands beyond the node limit
+     * @throws Exception                             if the schema cannot be loaded
+     */
+    public void expandForSample(String rootElementName, boolean mandatoryOnly, MarkdownMode markdownMode) throws Exception {
+        if (fullyProcessed) {
+            return;
+        }
+        String key = rootElementName + '|' + mandatoryOnly + '|' + markdownMode;
+        if (key.equals(sampleExpansionKey)) {
+            return;
+        }
+        loadSchema(markdownMode);
+        Node globalElement = xsdDocumentationData.getGlobalElements().stream()
+                .filter(node -> rootElementName.equals(getAttributeValue(node, "name")))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("No global element named '" + rootElementName + "'"));
+
+        sampleExpansionKey = null;
+        xsdDocumentationData.setExtendedXsdElementMap(null);
+        resetExpansion();
+        expansionNodeLimit = SampleXmlLimits.maxExpandedNodes();
+        expansionRootName = rootElementName;
+        pruneOptionalParticles = mandatoryOnly;
+        try {
+            traverseNode(globalElement, "/" + rootElementName, null, 0, new HashSet<>());
+        } finally {
+            expansionNodeLimit = -1;
+            pruneOptionalParticles = false;
+        }
+        sampleExpansionKey = key;
     }
 
     /**
@@ -1542,8 +1638,40 @@ public class XsdDocumentationService {
         return files;
     }
 
+    /**
+     * Whether a particle can be left out of a mandatory-only sample expansion: an element (or element reference),
+     * sequence, choice or all with {@code minOccurs="0"}, matching {@link XsdExtendedElement#isMandatory()}. Choice
+     * options are kept because the generators select among all options.
+     */
+    private boolean isOptionalParticle(Node node) {
+        String localName = node.getLocalName();
+        if (!"element".equals(localName) && !"sequence".equals(localName)
+                && !"choice".equals(localName) && !"all".equals(localName)) {
+            return false;
+        }
+        Node parent = node.getParentNode();
+        if (parent != null && "choice".equals(parent.getLocalName())) {
+            return false;
+        }
+        String minOccurs = getAttributeValue(node, "minOccurs");
+        if (minOccurs == null) {
+            return false;
+        }
+        try {
+            return Integer.parseInt(minOccurs.trim()) <= 0;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
     private void traverseNode(Node node, String currentXPath, String parentXPath, int level, Set<Node> visitedOnPath) {
         if (node == null || node.getNodeType() != Node.ELEMENT_NODE || level > MAX_ALLOWED_DEPTH) {
+            return;
+        }
+        if (expansionNodeLimit >= 0 && xsdDocumentationData.getExtendedXsdElementMap().size() > expansionNodeLimit) {
+            throw SampleXmlLimits.nodeLimitExceeded(expansionRootName, expansionNodeLimit);
+        }
+        if (pruneOptionalParticles && level > 0 && isOptionalParticle(node)) {
             return;
         }
         if (visitedOnPath.contains(node)) {
@@ -1675,7 +1803,7 @@ public class XsdDocumentationService {
         extendedElem.addDocumentation(new XsdExtendedElement.DocumentationInfo("default",
                 "Element imported from namespace: " + (namespaceUri != null ? namespaceUri : ref)));
         // Store source code from the reference node itself
-        extendedElem.setSourceCode(nodeToString(node));
+        extendedElem.setSourceCode(sourceSnippet(node));
 
         // Add to parent's children list
         if (parentXPath != null && xsdDocumentationData.getExtendedXsdElementMap().containsKey(parentXPath)) {
@@ -2033,16 +2161,24 @@ public class XsdDocumentationService {
     }
 
     /**
-     * Generates a sample XML instance for the first global element of the schema (document order).
+     * Generates a sample XML instance for the first global element of the schema (document order). Unless
+     * {@link #processXsd(MarkdownMode)} has run, only that element is expanded ({@link #expandForSample}).
      *
      * @param mandatoryOnly  emit only required elements/attributes when {@code true}
      * @param maxOccurrences cap on repeated elements
      * @return the sample XML, or an XML comment describing why none could be generated
      */
     public String generateSampleXml(boolean mandatoryOnly, int maxOccurrences) {
-        String processingError = ensureProcessedForSampleXml();
-        if (processingError != null) {
-            return processingError;
+        if (!fullyProcessed) {
+            String loadError = loadSchemaForSample();
+            if (loadError != null) {
+                return loadError;
+            }
+            List<String> roots = getRootElementNames();
+            if (roots.isEmpty()) {
+                return "<!-- No root element found in XSD -->";
+            }
+            return generateSampleXml(roots.getFirst(), mandatoryOnly, maxOccurrences);
         }
 
         List<XsdExtendedElement> rootElements = findRootElements(xsdDocumentationData.getExtendedXsdElementMap());
@@ -2053,35 +2189,54 @@ public class XsdDocumentationService {
     }
 
     /**
-     * Generates a sample XML instance for the named global element. The schema is processed at most
-     * once, so generating for several roots in a row reuses the same element map.
+     * Generates a sample XML instance for the named global element. Unless {@link #processXsd(MarkdownMode)} has run,
+     * only that element is expanded ({@link #expandForSample}); generating the same root and mode again reuses the
+     * expansion.
      *
      * @param rootElementName local name of a global element, as returned by {@link #getRootElementNames()}
      * @param mandatoryOnly   emit only required elements/attributes when {@code true}
      * @param maxOccurrences  cap on repeated elements
-     * @return the sample XML, or an XML comment when the schema could not be processed
+     * @return the sample XML, or an XML comment when the schema could not be processed or a limit was exceeded
      * @throws IllegalArgumentException if the schema has no global element with that name
      */
     public String generateSampleXml(String rootElementName, boolean mandatoryOnly, int maxOccurrences) {
-        String processingError = ensureProcessedForSampleXml();
-        if (processingError != null) {
-            return processingError;
+        if (!fullyProcessed) {
+            String loadError = loadSchemaForSample();
+            if (loadError != null) {
+                return loadError;
+            }
+            try {
+                expandForSample(rootElementName, mandatoryOnly, MarkdownMode.OFF);
+            } catch (SampleXmlLimits.LimitExceededException e) {
+                return e.toXmlComment();
+            } catch (IllegalArgumentException e) {
+                throw e;
+            } catch (Exception e) {
+                logger.error("Failed to process XSD for sample XML generation.", e);
+                return "<!-- Error processing XSD: " + e.getMessage() + " -->";
+            }
         }
         XsdExtendedElement rootElement = findRootElement(xsdDocumentationData.getExtendedXsdElementMap(), rootElementName);
         return generateSampleXmlFor(rootElement, mandatoryOnly, maxOccurrences);
     }
 
     /**
-     * Lists the global elements a sample XML can be generated for, in schema document order.
+     * Lists the global elements a sample XML can be generated for, in schema document order. Loads the schema if
+     * needed but expands no element.
      *
-     * @return the root element names; empty when the schema has none or could not be processed
+     * @return the root element names; empty when the schema has none or could not be loaded
      */
     public List<String> getRootElementNames() {
-        if (ensureProcessedForSampleXml() != null) {
+        if (fullyProcessed) {
+            return findRootElements(xsdDocumentationData.getExtendedXsdElementMap()).stream()
+                    .map(XsdExtendedElement::getElementName)
+                    .toList();
+        }
+        if (loadSchemaForSample() != null) {
             return List.of();
         }
-        return findRootElements(xsdDocumentationData.getExtendedXsdElementMap()).stream()
-                .map(XsdExtendedElement::getElementName)
+        return xsdDocumentationData.getGlobalElements().stream()
+                .map(node -> getAttributeValue(node, "name"))
                 .toList();
     }
 
@@ -2114,20 +2269,21 @@ public class XsdDocumentationService {
     }
 
     /**
-     * Runs {@link #processXsd(Boolean)} once if the element map is still empty.
+     * Loads the schema once for sample generation (see {@link #loadSchema(MarkdownMode)}).
      *
      * @return {@code null} on success, otherwise the XML comment reported to the caller
      */
-    private String ensureProcessedForSampleXml() {
-        if (xsdDocumentationData.getExtendedXsdElementMap().isEmpty()) {
-            try {
-                processXsd(false);
-            } catch (Exception e) {
-                logger.error("Failed to process XSD for sample XML generation.", e);
-                return "<!-- Error processing XSD: " + e.getMessage() + " -->";
-            }
+    private String loadSchemaForSample() {
+        if (schemaLoaded) {
+            return null;
         }
-        return null;
+        try {
+            loadSchema(MarkdownMode.OFF);
+            return null;
+        } catch (Exception e) {
+            logger.error("Failed to process XSD for sample XML generation.", e);
+            return "<!-- Error processing XSD: " + e.getMessage() + " -->";
+        }
     }
 
     private String generateSampleXmlFor(XsdExtendedElement rootElement, boolean mandatoryOnly, int maxOccurrences) {
@@ -2210,8 +2366,15 @@ public class XsdDocumentationService {
         IdentityConstraintTracker constraintTracker = new IdentityConstraintTracker();
         constraintTracker.scanConstraints(xsdDocumentationData.getExtendedXsdElementMap());
 
-        for (XsdExtendedElement child : rootChildElements) {
-            buildXmlElementContent(xmlBuilder, child, mandatoryOnly, maxOccurrences, 1, constraintTracker);
+        outputCharLimit = SampleXmlLimits.maxOutputChars();
+        try {
+            for (XsdExtendedElement child : rootChildElements) {
+                buildXmlElementContent(xmlBuilder, child, mandatoryOnly, maxOccurrences, 1, constraintTracker);
+            }
+        } catch (SampleXmlLimits.LimitExceededException e) {
+            return e.toXmlComment();
+        } finally {
+            outputCharLimit = -1;
         }
 
         xmlBuilder.append("</").append(rootName).append(">\n");
@@ -2454,6 +2617,9 @@ public class XsdDocumentationService {
     private void buildXmlElementContent(StringBuilder sb, XsdExtendedElement element, boolean mandatoryOnly, int maxOccurrences, int indentLevel, IdentityConstraintTracker constraintTracker) {
         if (Thread.currentThread().isInterrupted()) {
             throw new java.util.concurrent.CancellationException("XML generation cancelled");
+        }
+        if (outputCharLimit >= 0 && sb.length() > outputCharLimit) {
+            throw SampleXmlLimits.outputLimitExceeded(outputCharLimit);
         }
         if (element == null || (mandatoryOnly && !element.isMandatory())) {
             return;
@@ -3087,7 +3253,8 @@ public class XsdDocumentationService {
             if (!isLanguageIncluded(normalizedLang)) {
                 continue; // De-selected in the generator options: never reaches any output format
             }
-            extendedElem.addDocumentation(new DocumentationInfo(normalizedLang, docNode.getTextContent()));
+            extendedElem.addDocumentation(documentationMemo.computeIfAbsent(docNode,
+                    n -> new DocumentationInfo(normalizedLang, n.getTextContent())));
         }
 
         // 2. Process AppInfo tags (for Javadoc and Altova examples)
@@ -4031,6 +4198,11 @@ public class XsdDocumentationService {
         return list;
     }
 
+    /** The (memoized) source code snippet of a schema node; see {@link #sourceSnippetMemo}. */
+    private String sourceSnippet(Node node) {
+        return sourceSnippetMemo.computeIfAbsent(node, this::nodeToString);
+    }
+
     private String nodeToString(Node node) {
         try {
             StringWriter writer = new StringWriter();
@@ -4155,7 +4327,7 @@ public class XsdDocumentationService {
      */
     private void setSourceCodeSnippets(XsdExtendedElement extendedElem, Node node, String typeName, Node typeDefinitionNode) {
         // Always set the element's own source code
-        String elementSourceCode = nodeToString(node);
+        String elementSourceCode = sourceSnippet(node);
 
         // If the option is disabled or there's no type reference, set only element source code
         if (!includeTypeDefinitionsInSourceCode || typeName == null || typeName.isEmpty()) {
@@ -4186,7 +4358,7 @@ public class XsdDocumentationService {
 
         // If we found a global type definition, set it separately
         if (globalTypeNode != null) {
-            String typeSourceCode = nodeToString(globalTypeNode);
+            String typeSourceCode = sourceSnippet(globalTypeNode);
             logger.debug("Setting separate type definition for '{}' in referencedTypeCode", cleanTypeName);
 
             // Set element source code (without type definition)

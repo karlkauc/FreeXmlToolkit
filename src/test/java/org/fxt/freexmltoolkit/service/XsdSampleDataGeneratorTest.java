@@ -45,6 +45,57 @@ class XsdSampleDataGeneratorTest {
         }
     }
 
+    @Test
+    @DisplayName("Pattern generation terminates quickly even on a thread with a very large stack")
+    void patternGenerationIsBoundedOnLargeStacks() throws Exception {
+        // Generex.random recursed without a depth bound for patterns such as .+Z (A-GRA Timestamp). On a default stack
+        // that ended in a caught StackOverflowError; on the audit worker's 256 MB stack it exhausted the heap.
+        XsdExtendedElement element = new XsdExtendedElement();
+        element.setElementType("xs:string");
+        element.setRestrictionInfo(new XsdExtendedElement.RestrictionInfo("xs:string", Map.of("pattern", List.of(".+Z"))));
+        java.util.concurrent.FutureTask<Integer> task = new java.util.concurrent.FutureTask<>(() -> {
+            int matching = 0;
+            for (int i = 0; i < 5000; i++) {
+                String value = generator.generate(element);
+                if (value.length() <= 50 && value.endsWith("Z")) {
+                    matching++;
+                }
+            }
+            return matching;
+        });
+        Thread thread = new Thread(null, task, "large-stack-generator", 256L * 1024 * 1024);
+        thread.setDaemon(true);
+        thread.start();
+
+        assertEquals(5000, task.get(20, java.util.concurrent.TimeUnit.SECONDS));
+    }
+
+    static java.util.stream.Stream<org.junit.jupiter.params.provider.Arguments> largeRepetitionPatterns() {
+        return java.util.stream.Stream.of(
+                // as the XML parser hands over A-GRA's (.|&#10;|&#13;){0,4096}: with real line break characters
+                org.junit.jupiter.params.provider.Arguments.of("(.|\n|\r){0,4096}", 4096),
+                org.junit.jupiter.params.provider.Arguments.of("[ -~]{0,1024}", 1024),
+                org.junit.jupiter.params.provider.Arguments.of("[a-zA-Z0-9]{1,100000}", 100000));
+    }
+
+    @ParameterizedTest(name = "pattern with maxLength {1}")
+    @org.junit.jupiter.params.provider.MethodSource("largeRepetitionPatterns")
+    @DisplayName("Patterns with large repetition bounds generate a short matching value quickly")
+    void largeRepetitionBoundsDoNotExhaustMemory(String pattern, int maxLength) {
+        // A-GRA declares (.|&#10;|&#13;){0,4096}: Generex built a huge automaton and a 4096-deep recursion, which
+        // exhausted a 6 GB heap within seconds.
+        XsdExtendedElement element = new XsdExtendedElement();
+        element.setElementType("xs:string");
+        element.setRestrictionInfo(new XsdExtendedElement.RestrictionInfo("xs:string",
+                Map.of("pattern", List.of(pattern), "maxLength", List.of(String.valueOf(maxLength)))));
+
+        String result = assertTimeoutPreemptively(java.time.Duration.ofSeconds(10), () -> generator.generate(element));
+
+        assertTrue(result.length() <= maxLength, "length " + result.length());
+        assertTrue(java.util.regex.Pattern.compile(pattern, java.util.regex.Pattern.DOTALL).matcher(result).matches(),
+                "'" + result + "' does not match " + pattern);
+    }
+
     @ParameterizedTest(name = "{0} without facets is non-negative")
     @CsvSource({"xs:unsignedByte, 255", "xs:unsignedShort, 65535", "xs:unsignedInt, 4294967295", "xs:unsignedLong, 18446744073709551615"})
     @DisplayName("Unsigned values without facets stay inside the type's value space")

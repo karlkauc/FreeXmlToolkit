@@ -390,6 +390,7 @@ The task skips itself when the corpus folder is absent.
 |---|---|---|---|---|
 | 2026-09-10 | Baseline | 19 · 14 | 74 · 63 (of 130) | 7 |
 | 2026-09-10 | Quick wins A1, A2 (types), D1, F3 | 23 · 18 | 82 · 70 (of 132) | 4 |
+| 2026-09-10 | A5 bounded memory (§12) | 24 · 17 | 229 · 200 (of 1,124: UCI, KML and more SIRI roots now generate) | 1 |
 
 ## 11. After the quick wins (re-audit, 2026-09-10)
 
@@ -461,3 +462,99 @@ The task skips itself when the corpus folder is absent.
   time limit for validating a single sample. The cause is not analysed yet.
 - **Why "no XML" stays at 4:** the loading fixes turned crashes into OOMs, so the memory problem (WP A5) is now the
   main reason for "no XML".
+
+## 12. After A5: bounded memory (re-audit, 2026-09-10)
+
+**Root causes, measured** (class histograms, generator stacks):
+- **Markdown renderer per entry:** every `XsdExtendedElement` built its own flexmark `Parser` and `HtmlRenderer` (with
+  options, regex patterns, maps and lists), several kilobytes per XPath entry.
+- **Snippets per copy:** a schema node reachable under many XPaths was serialized again for every copy (goAML: 942
+  nodes, 161,172 entries, 45 million characters of source snippets).
+- **Eager expansion:** sample generation used the documentation's expansion of *every* global element (UBL 2.1 was
+  still growing at 2.55 million entries when it ran out of memory).
+- **Generex:** `Generex.random` recurses without a depth bound. For A-GRA's `.+Z` (`Timestamp`, `Epoch`) it
+  occasionally recursed tens of thousands of levels deep. On a default thread stack that ended in a caught
+  `StackOverflowError` (47 of 20,000 calls); on the audit worker's 256 MB stack it filled a 6 GB heap within seconds.
+
+**Changes:**
+- **Shared Markdown:** one Markdown parser and renderer for all elements.
+- **Shared snippets and documentation:** source snippets and documentation entries are built once per schema node
+  and shared by all copies. Every XPath's snippet and rendered documentation stays byte-identical: the golden hashes
+  of `ProcessXsdSnippetEquivalenceTest` were captured before the change.
+- **Root-scoped expansion:** `expandForSample` expands only the chosen root; in mandatory-only mode it skips optional
+  particles (choice options stay).
+- **Limits:** expansion stops at `fxt.sampleXml.maxExpandedNodes` (1,000,000), output at `fxt.sampleXml.maxOutputChars`
+  (50,000,000); both generators then return an XML comment naming the limit.
+- **`getRootElementNames()`:** loads the schema without expanding anything. `processXsd` for the documentation still
+  expands every global element.
+- **`BoundedPatternSampler`** replaces `Generex.random`:
+  - a random walk over the same automaton that only takes transitions from which an accepting state stays reachable
+    within the remaining length
+  - repetition bounds capped at 256
+  - only characters XML 1.0 allows, printable ASCII first
+- **Harness:** unpaired surrogates are written safely, and validation runs under a time limit (`VALIDATION_TIMEOUT`,
+  `sample.audit.validationTimeoutSeconds`, 120 s).
+
+**New tests:** `SampleXmlExpansionLimitTest` (4), `BoundedPatternSamplerTest` (8), `ProcessXsdSnippetEquivalenceTest`
+(2), and in `XsdSampleDataGeneratorTest` the cases "large thread stack" and "large repetition bounds".
+`ConstraintAwareSampleXmlTest` raises the output limit locally, because its FundsXML4 sample with
+`maxOccurrences=3` has 184 million characters. Regression over all generator and documentation test classes: 427
+tests, no failures.
+
+**Heap of the full documentation expansion** (`processXsd`, 3 GB test JVM, after GC):
+
+| Schema | Entries | Before | After |
+|---|---|---|---|
+| goAML 5.0.2 | 161,172 | 730 MB | 249 MB |
+| FundsXML 4 | 55,778 | 471 MB | 189 MB |
+| OGC KML 2.2 | 2,227,144 | out of memory | 2.1 GB, completes |
+| UBL 2.1 Invoice | more than 2.5 million | out of memory | still out of memory; sample generation no longer depends on it |
+
+**First global element** (31 evaluable schemas):
+
+| Generator / mode | Valid: baseline → quick wins → A5 | No XML: baseline → quick wins → A5 |
+|---|---|---|
+| plain, mandatory only | 19 → 23 → **24** | 7 → 4 → **1** |
+| plain, with optional elements | 14 → 18 → 17 | 7 → 4 → **2** |
+| realistic, mandatory only | 20 → 22 → **24** | 7 → 4 → **1** |
+| realistic, with optional elements | 15 → 15 → **19** | 7 → 5 → **2** |
+
+The remaining "no XML" cases are JATS (no root in the main document, WP A4) and UBL 2.1 with optional elements (the
+node-limit comment). KSeF FA(3) generates XML, but its validation did not finish within the time limit, so it counts
+as neither valid, invalid nor "no XML" (see the note below the effects table).
+
+**Every offered root:** 1,124 validated roots instead of 132, because UCI (722 roots), KML (269) and SIRI 2.2 / SIRI
+IDF (6 roots each instead of 3) now generate. The A-GRA roots (860) generate as well but cannot be validated, because
+the publisher's schema is incomplete.
+
+| Generator / mode | Valid of 1,124 |
+|---|---|
+| plain, mandatory only | 229 |
+| plain, with optional elements | 200 |
+| realistic, mandatory only | 223 |
+| realistic, with optional elements | 195 |
+
+These numbers are not comparable with the earlier 82 / 70, because the set of roots changed.
+
+**Effects per schema:**
+
+| Schema | Quick wins | A5 |
+|---|---|---|
+| UBL 2.1 Invoice | out of memory, no XML | mandatory only: XML (still invalid); with optional elements: "expands to more than 1,000,000 nodes for root 'Invoice'" |
+| OASIS UCI 2.5.0 | out of memory | all 722 roots generate, none valid yet (structural clusters). One sample exceeds 50 million characters, two realistic samples time out. |
+| A-GRA 6.0a | out of memory | all 860 roots generate (not validatable); one realistic timeout |
+| OGC KML 2.2 | out of memory at 6 GB | first element valid in all four combinations; roots 145/269 · 129/269 (plain) and 141/269 · 123/269 (realistic), 124 of them abstract |
+| goAML 5.0.2 | first element in three combinations, then out of memory | all samples generate; valid except plain with optional elements |
+| SIRI 2.2, SIRI IDF 2.0 | 3 roots offered | 6 roots: the full expansion used to lose `ServiceRequest`, `SubscriptionRequest` and `CapabilitiesRequest` |
+| KSeF FA(3) | XML in all eight combinations, invalid | XML generated; validation did not finish within 120 s (`VALIDATION_TIMEOUT`); see below |
+
+- **KSeF FA(3):** the re-run with the validation time limit generated XML for all four first-element combinations,
+  but none of them finished validating within 120 s (`VALIDATION_TIMEOUT`). After four stuck validation threads the
+  harness skipped the breadth samples. Validating FA(3) samples was already slow in the quick-win run (35 minutes for
+  the worker). The likely cause is Xerces pattern matching backtracking on a generated value; that is not analysed
+  yet. It is counted as "XML generated, not validated", not as "no XML".
+- **Character regression, fixed:** the first A5 run, before the character fix of the sampler, produced 935 of 1,444
+  realistic UCI samples that were not well-formed, because of control characters from `.+Z`.
+- **Random flips:** as before (datajud, Subsonic, nuspec, XTCE), within the known clusters.
+- **Still open for "no XML":** A4 (roots from included documents, JATS). The documentation of UBL 2.1 still needs
+  more memory than 3 GB.

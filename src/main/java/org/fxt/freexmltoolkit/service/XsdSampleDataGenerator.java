@@ -23,7 +23,6 @@ import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement.RestrictionInfo;
 
-import com.mifmif.common.regex.Generex;
 
 /**
  * Generates sample data for XSD elements based on their type,
@@ -300,7 +299,7 @@ public class XsdSampleDataGenerator {
 
     /**
      * Generates a string from a regex pattern while respecting length restrictions.
-     * Uses Generex library with length parameters when available.
+     * Uses {@link BoundedPatternSampler} with length parameters when available.
      *
      * @param restriction The restriction info containing pattern and length facets
      * @param elementName The element name for logging purposes
@@ -331,31 +330,31 @@ public class XsdSampleDataGenerator {
         }
 
         try {
-            Generex generex = new Generex(patternValue);
+            BoundedPatternSampler sampler = new BoundedPatternSampler(patternValue, ThreadLocalRandom.current());
 
             // If exact length is specified, use it
             if (exactLength != null) {
-                return generateWithLengthHint(generex, exactLength, exactLength, patternValue);
+                return generateWithLengthHint(sampler,exactLength, exactLength, patternValue);
             }
 
             // If min and max length are specified, use them
             if (minLength != null && maxLength != null) {
-                return generateWithLengthHint(generex, minLength, maxLength, patternValue);
+                return generateWithLengthHint(sampler,minLength, maxLength, patternValue);
             }
 
             // If only minLength is specified
             if (minLength != null) {
-                return generateWithLengthHint(generex, minLength, minLength + 20, patternValue);
+                return generateWithLengthHint(sampler,minLength, minLength + 20, patternValue);
             }
 
             // If only maxLength is specified
             if (maxLength != null) {
-                return generateWithLengthHint(generex, 1, maxLength, patternValue);
+                return generateWithLengthHint(sampler,1, maxLength, patternValue);
             }
 
             // No length restrictions - still use validation and fallback logic
             // Use 1-50 as reasonable default range
-            return generateWithLengthHint(generex, 1, 50, patternValue);
+            return generateWithLengthHint(sampler,1, 50, patternValue);
 
         } catch (StackOverflowError e) {
             // Generex can cause StackOverflowError on complex patterns with recursive structures
@@ -419,7 +418,7 @@ public class XsdSampleDataGenerator {
      * Generates a string using Generex with length hints, with retry logic.
      * Validates that the generated string actually matches the pattern.
      */
-    private String generateWithLengthHint(Generex generex, int minLen, int maxLen, String pattern) {
+    private String generateWithLengthHint(BoundedPatternSampler sampler, int minLen, int maxLen, String pattern) {
         // Compile pattern for validation (XML Schema patterns are implicitly anchored)
         java.util.regex.Pattern regexPattern;
         try {
@@ -429,37 +428,24 @@ public class XsdSampleDataGenerator {
             regexPattern = null;
         }
 
-        // Try using Generex's random(min, max) if the pattern supports it
-        try {
-            String result = generex.random(minLen, maxLen);
-            if (isValidResult(result, minLen, maxLen, regexPattern)) {
-                return result;
-            }
-        } catch (StackOverflowError e) {
-            // Generex can cause StackOverflowError on recursive patterns
-            logger.debug("Generex random(min, max) caused StackOverflowError for pattern '{}', using fallback", pattern);
-            return generateFallbackForPattern(pattern, minLen);
-        } catch (Exception e) {
-            // Generex random(min, max) may throw exceptions for some patterns
-            logger.debug("Generex random(min, max) failed for pattern '{}': {}", pattern, e.getMessage());
-        }
-
-        // Fallback: try generating multiple times and pick one with valid length AND pattern match
+        // Sample within the length range. Retry a few times: the validation regex (java.util.regex) can reject a
+        // sample that the automaton syntax accepts.
         try {
             for (int attempt = 0; attempt < MAX_PATTERN_GENERATION_ATTEMPTS; attempt++) {
-                String result = generex.random();
+                String result = sampler.sample(minLen, maxLen);
+                if (result == null) {
+                    break; // no member of the language fits the length range
+                }
                 if (isValidResult(result, minLen, maxLen, regexPattern)) {
                     return result;
                 }
             }
-        } catch (StackOverflowError e) {
-            // Generex can cause StackOverflowError on recursive patterns
-            logger.debug("Generex random() caused StackOverflowError for pattern '{}', using fallback", pattern);
-            return generateFallbackForPattern(pattern, minLen);
+        } catch (RuntimeException e) {
+            logger.debug("Sampling pattern '{}' failed: {}", pattern, e.getMessage());
         }
 
         // Last resort: use fallback generator which is pattern-aware
-        logger.debug("Generex failed to produce valid output for pattern '{}', using fallback generator", pattern);
+        logger.debug("No valid sample for pattern '{}', using fallback generator", pattern);
         return generateFallbackForPattern(pattern, minLen);
     }
 

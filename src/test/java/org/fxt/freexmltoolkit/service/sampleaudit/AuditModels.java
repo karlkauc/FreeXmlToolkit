@@ -30,6 +30,8 @@ final class AuditModels {
         GENERATOR_EXCEPTION,
         /** The generator did not finish within the sample time budget. */
         TIMEOUT,
+        /** The sample was generated, but validating it did not finish within the validation time budget. */
+        VALIDATION_TIMEOUT,
         /** Not run (root cap or aborted after stuck generator threads). */
         SKIPPED
     }

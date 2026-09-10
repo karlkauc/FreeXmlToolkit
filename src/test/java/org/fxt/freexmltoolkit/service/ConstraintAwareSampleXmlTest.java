@@ -32,8 +32,15 @@ class ConstraintAwareSampleXmlTest {
         XsdDocumentationService service = new XsdDocumentationService();
         service.setXsdFilePath(schemaPath);
 
-        // Generate with maxOccurrences=3 to trigger repeated elements
-        String sampleXml = service.generateSampleXml(false, 3);
+        // Generate with maxOccurrences=3 to trigger repeated elements. The sample has about 184 million characters,
+        // more than the default output limit, which is not what this test is about.
+        String sampleXml;
+        System.setProperty(SampleXmlLimits.MAX_OUTPUT_CHARS_PROPERTY, "250000000");
+        try {
+            sampleXml = service.generateSampleXml(false, 3);
+        } finally {
+            System.clearProperty(SampleXmlLimits.MAX_OUTPUT_CHARS_PROPERTY);
+        }
 
         assertNotNull(sampleXml, "Sample XML should not be null");
         assertFalse(sampleXml.isBlank(), "Sample XML should not be empty");

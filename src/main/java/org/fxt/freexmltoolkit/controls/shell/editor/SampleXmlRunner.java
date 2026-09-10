@@ -1,7 +1,9 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
 import java.io.File;
+import java.util.List;
 
+import org.fxt.freexmltoolkit.service.SampleXmlLimits;
 import org.fxt.freexmltoolkit.service.XsdDocumentationService;
 
 /**
@@ -40,12 +42,21 @@ public final class SampleXmlRunner {
             if (!realistic) {
                 return service.generateSampleXml(mandatoryOnly, maxOccurrences);
             }
-            service.processXsd(Boolean.TRUE);
+            // Expand only the first root, not every global element (bounded memory for large schemas)
+            service.loadSchema(XsdDocumentationService.MarkdownMode.ALL);
+            List<String> roots = service.getRootElementNames();
+            if (roots.isEmpty()) {
+                return "<!-- No root element found in XSD -->";
+            }
+            String root = roots.getFirst();
+            service.expandForSample(root, mandatoryOnly, XsdDocumentationService.MarkdownMode.ALL);
             var profile = new org.fxt.freexmltoolkit.domain.GenerationProfile("Realistic");
             profile.setMandatoryOnly(mandatoryOnly);
             profile.setMaxOccurrences(maxOccurrences);
             return new org.fxt.freexmltoolkit.service.ProfiledXmlGeneratorService()
-                    .generateRealistic(profile, service.xsdDocumentationData, xsd.getAbsolutePath());
+                    .generateRealistic(profile, service.xsdDocumentationData, xsd.getAbsolutePath(), root);
+        } catch (SampleXmlLimits.LimitExceededException e) {
+            return e.toXmlComment();
         } catch (Exception e) {
             return "ERROR: " + e.getMessage();
         }

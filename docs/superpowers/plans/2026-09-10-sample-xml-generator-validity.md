@@ -57,6 +57,10 @@ Of the 274 invalid samples, the report maps each validation error to one of the 
 
   UBL 2.1 and goAML now fail on memory instead of parsing or recursion, which makes **A5 the next priority** for
   "no XML".
+- **Progress after A5** (report §12): first element valid 24 · 17 · 24 · 19, no XML 1 · 2 · 1 · 2.
+  - UCI, A-GRA, KML and goAML now generate.
+  - Remaining "no XML": JATS (**A4 next**) and UBL 2.1 with optional elements (node limit).
+  - KSeF FA(3) generates XML, but its validation times out in the audit.
 
 ## Global Constraints
 
@@ -121,7 +125,13 @@ reports "No root element found". UCI and A-GRA run out of memory even with a 14 
     document order.
   - Expose them via `getRootElementNames()`, mark abstract ones, and default to the first non-abstract root.
   - Test: `JATS-archivearticle1-4.xsd` offers `article`.
-- [ ] **A5. Bounded memory.** `processXsd` expands the full subtree of *every* global element into the XPath map
+- [x] **A5. Bounded memory.** *(done 2026-09-10, report §12:
+  - shared Markdown renderer; snippets and documentation shared per schema node
+  - root-scoped sample expansion (`expandForSample`) with node and output limits (`SampleXmlLimits`)
+  - `BoundedPatternSampler` instead of `Generex.random`
+  - UCI, A-GRA, KML and goAML now generate; UBL 2.1 generates mandatory-only and reports the node limit with
+    optional elements
+  - still open: the full documentation `processXsd` of UBL 2.1 exceeds a 3 GB heap)* `processXsd` expands the full subtree of *every* global element into the XPath map
   before a single sample is generated. UCI (722 globals, one file) and A-GRA (860 globals) exhaust 14 GB. KML
   (292 globals) needs more than 6 GB and 78 s per `processXsd` run.
   - Measure with a heap histogram which part grows: the per-node documentation strings, `sourceCode` copies of every
@@ -261,7 +271,8 @@ samples (xlink attributes currently emitted as child elements) valid.
 - [ ] **F4. Facets on attributes and simple content.** Attribute types with a pattern (XTCE `NameType`
   `[^.\[\]:/ \t]+`) and simple-content elements (SIRI FR-IDF `StopPointRef` NMTOKEN, INSPIRE `value` double) come
   out empty. Use the same type resolution for attributes and simple-content bases as for elements.
-- [ ] **F5. Pattern generation.**
+- [ ] **F5. Pattern generation.** *(partly done with A5: `BoundedPatternSampler` terminates within the length range,
+  caps repetitions and emits only XML 1.0 characters. Pattern intersection and XSD escapes are still open.)*
   - Restrict Generex output to printable characters. The XTCE samples contain unassigned or control code points;
     one realistic XTCE sample is not even well-formed.
   - Intersect patterns across the derivation chain (all steps must match).
@@ -330,7 +341,7 @@ Then do A3–A5 and B, re-measure, and take the gate decision with the numbers.
 3. Corpus audit: `./gradlew sampleXmlAudit` (about 10 minutes; since the quick wins about 40 minutes because of the
    KSeF FA(3) validation). Compare `build/sample-xml-audit/summary.csv` with the baseline above and append the numbers
    to the report's history table.
-   - [ ] Harness: add a time limit for validating a single sample (FA(3) took about 35 minutes) and record it as
+   - [x] Harness: add a time limit for validating a single sample *(done with A5)* (FA(3) took about 35 minutes) and record it as
      `VALIDATION_TIMEOUT`.
 4. Optional ratchet, once the corpus licence question is settled: `SampleXmlCorpusRatchetTest` with per-schema
    minimum valid counts from `summary.csv`, skipped when the corpus is absent.

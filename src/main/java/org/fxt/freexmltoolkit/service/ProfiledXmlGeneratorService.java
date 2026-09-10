@@ -66,6 +66,8 @@ public class ProfiledXmlGeneratorService {
     private static final ConcurrentHashMap<String, Pattern> WILDCARD_PATTERN_CACHE = new ConcurrentHashMap<>();
 
     private final Random random;
+    /** Character limit while building a document; -1 outside generation. */
+    private long outputCharLimit = -1;
 
     /**
      * Creates a generator with a non-deterministic {@link Random} source. CHOICE
@@ -366,8 +368,15 @@ public class ProfiledXmlGeneratorService {
 
         xml.append(">\n");
 
-        for (XsdExtendedElement child : rootChildren) {
-            buildElement(xml, child, profile, enabledRules, elementMap, strategyFactory, context, constraintTracker, 1);
+        outputCharLimit = SampleXmlLimits.maxOutputChars();
+        try {
+            for (XsdExtendedElement child : rootChildren) {
+                buildElement(xml, child, profile, enabledRules, elementMap, strategyFactory, context, constraintTracker, 1);
+            }
+        } catch (SampleXmlLimits.LimitExceededException e) {
+            return e.toXmlComment();
+        } finally {
+            outputCharLimit = -1;
         }
 
         xml.append("</").append(rootName).append(">\n");
@@ -380,6 +389,9 @@ public class ProfiledXmlGeneratorService {
                                IdentityConstraintTracker constraintTracker, int indentLevel) {
         if (Thread.currentThread().isInterrupted()) {
             throw new java.util.concurrent.CancellationException("XML generation cancelled");
+        }
+        if (outputCharLimit >= 0 && sb.length() > outputCharLimit) {
+            throw SampleXmlLimits.outputLimitExceeded(outputCharLimit);
         }
         if (element == null) {
             return;

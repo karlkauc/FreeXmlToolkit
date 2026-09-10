@@ -136,7 +136,7 @@ class SampleXmlGeneratorRealWorldAuditTest {
                 "-Dlog4j2.configurationFile=" + OUT.resolve("log4j2-audit.xml").toAbsolutePath()));
         for (String key : List.of("user.home", "fxt.properties.file", "fxt.schema.namespaceFallback",
                 "fxt.suppressErrorDialogs", "sample.audit.sampleTimeoutSeconds", "sample.audit.processTimeoutMinutes",
-                "sample.audit.maxRootsPerSchema")) {
+                "sample.audit.validationTimeoutSeconds", "sample.audit.maxRootsPerSchema")) {
             String value = System.getProperty(key);
             if (value != null) {
                 command.add("-D" + key + "=" + value);

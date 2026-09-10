@@ -36,6 +36,7 @@ import org.fxt.freexmltoolkit.domain.SchemaLibraryEntry;
 import org.fxt.freexmltoolkit.service.ProfiledXmlGeneratorService;
 import org.fxt.freexmltoolkit.service.SchemaLibraryService;
 import org.fxt.freexmltoolkit.service.SchemaLibraryServiceImpl;
+import org.fxt.freexmltoolkit.service.SampleXmlLimits;
 import org.fxt.freexmltoolkit.service.SchemaResourceCache;
 import org.fxt.freexmltoolkit.service.XsdDocumentationService;
 import org.fxt.freexmltoolkit.service.sampleaudit.AuditModels.GlobalElement;
@@ -72,6 +73,7 @@ public final class SampleXmlAuditWorker {
     private final boolean xsd11;
     private final Path outDir;
     private final long sampleTimeoutSeconds = Long.getLong("sample.audit.sampleTimeoutSeconds", 120);
+    private final long validationTimeoutSeconds = Long.getLong("sample.audit.validationTimeoutSeconds", 120);
     private final long processTimeoutSeconds = 60 * Long.getLong("sample.audit.processTimeoutMinutes", 15);
     private final int maxRoots = Integer.getInteger("sample.audit.maxRootsPerSchema", Integer.MAX_VALUE);
 
@@ -214,7 +216,7 @@ public final class SampleXmlAuditWorker {
         XsdDocumentationService service = new XsdDocumentationService();
         service.setXsdFilePath(mainXsd.toString());
         Timed<List<String>> processed = timed(() -> {
-            service.processXsd(false);
+            service.loadSchema(XsdDocumentationService.MarkdownMode.OFF);
             return service.getRootElementNames();
         }, processTimeoutSeconds);
         result.plainProcessMillis = processed.millis();
@@ -239,7 +241,7 @@ public final class SampleXmlAuditWorker {
         XsdDocumentationService service = new XsdDocumentationService();
         service.setXsdFilePath(mainXsd.toString());
         Timed<List<String>> processed = timed(() -> {
-            service.processXsd(Boolean.TRUE);
+            service.loadSchema(XsdDocumentationService.MarkdownMode.ALL);
             return service.getRootElementNames();
         }, processTimeoutSeconds);
         result.realisticProcessMillis = processed.millis();
@@ -257,8 +259,14 @@ public final class SampleXmlAuditWorker {
                 GenerationProfile profile = new GenerationProfile("Realistic");
                 profile.setMandatoryOnly(mandatoryOnly);
                 profile.setMaxOccurrences(MAX_OCCURRENCES);
-                record("all", "realistic", mandatoryOnly, root, timed(() -> generator.generateRealistic(profile,
-                        service.xsdDocumentationData, mainXsd.toString(), root), sampleTimeoutSeconds));
+                record("all", "realistic", mandatoryOnly, root, timed(() -> {
+                    try {
+                        service.expandForSample(root, mandatoryOnly, XsdDocumentationService.MarkdownMode.ALL);
+                    } catch (SampleXmlLimits.LimitExceededException e) {
+                        return e.toXmlComment();
+                    }
+                    return generator.generateRealistic(profile, service.xsdDocumentationData, mainXsd.toString(), root);
+                }, sampleTimeoutSeconds));
             }
         }
     }
@@ -290,22 +298,34 @@ public final class SampleXmlAuditWorker {
             String xml = Objects.requireNonNullElse(call.value(), "");
             chars = xml.length();
             String head = xml.stripLeading();
-            if (head.isEmpty() || head.startsWith("ERROR:") || head.startsWith("<!-- Error processing XSD")
-                    || head.startsWith("<!-- No root element found")) {
+            if (head.isEmpty() || head.startsWith("ERROR:") || head.startsWith("<!--")) {
                 status = SampleStatus.GENERATOR_ERROR;
                 failure = head.length() > 500 ? head.substring(0, 500) : head;
             } else {
-                validation = AuditSchemaCompiler.validate(schema, xml);
-                if (root == null) {
-                    root = localName(validation.rootElement());
-                }
-                file = writeSample(rootSet, generator, mode, root, xml);
-                if (!validation.wellFormed()) {
-                    status = SampleStatus.NOT_WELL_FORMED;
-                } else if (schema == null) {
-                    status = SampleStatus.NOT_VALIDATED;
+                // Validation runs under a time budget: Xerces pattern matching can backtrack for a very long time on a
+                // generated value (KSeF FA(3) blocked a worker for over 30 minutes)
+                String sampleXml = xml;
+                Timed<AuditSchemaCompiler.Validation> validated =
+                        timed(() -> AuditSchemaCompiler.validate(schema, sampleXml), validationTimeoutSeconds);
+                validation = validated.value();
+                if (validation == null) {
+                    status = SampleStatus.VALIDATION_TIMEOUT;
+                    failure = validated.timedOut()
+                            ? "validation did not finish within " + validationTimeoutSeconds + " s"
+                            : describe(validated.error());
+                    file = writeSample(rootSet, generator, mode, root, xml);
                 } else {
-                    status = validation.errorCount() == 0 ? SampleStatus.VALID : SampleStatus.INVALID;
+                    if (root == null) {
+                        root = localName(validation.rootElement());
+                    }
+                    file = writeSample(rootSet, generator, mode, root, xml);
+                    if (!validation.wellFormed()) {
+                        status = SampleStatus.NOT_WELL_FORMED;
+                    } else if (schema == null) {
+                        status = SampleStatus.NOT_VALIDATED;
+                    } else {
+                        status = validation.errorCount() == 0 ? SampleStatus.VALID : SampleStatus.INVALID;
+                    }
                 }
             }
         }
@@ -325,7 +345,8 @@ public final class SampleXmlAuditWorker {
     }
 
     private void append(SampleResult sample) throws IOException {
-        Files.writeString(samplesFile(), COMPACT.toJson(sample) + "\n", UTF_8,
+        // getBytes: issue messages and snippets may carry unpaired surrogates from generated values
+        Files.write(samplesFile(), (COMPACT.toJson(sample) + "\n").getBytes(UTF_8),
                 StandardOpenOption.CREATE, StandardOpenOption.APPEND);
         String combo = sample.rootSet() + "/" + sample.generator() + "/" + sample.mode();
         tally.computeIfAbsent(combo, k -> new int[SampleStatus.values().length])[sample.status().ordinal()]++;
@@ -338,7 +359,8 @@ public final class SampleXmlAuditWorker {
         String baseName = "first".equals(rootSet) ? "first" : sanitize(root);
         if (xml.length() <= LARGE_SAMPLE_CHARS) {
             Path file = dir.resolve(baseName + ".xml");
-            Files.writeString(file, xml, UTF_8);
+            // getBytes replaces unpaired surrogates (Generex can produce them) instead of throwing like writeString
+            Files.write(file, xml.getBytes(UTF_8));
             return outDir.relativize(file).toString();
         }
         Path file = dir.resolve(baseName + ".xml.gz");
@@ -352,7 +374,7 @@ public final class SampleXmlAuditWorker {
     private void phase(String phase) throws IOException {
         result.phase = phase;
         Path tmp = outDir.resolve("schema.json.tmp");
-        Files.writeString(tmp, PRETTY.toJson(result), UTF_8);
+        Files.write(tmp, PRETTY.toJson(result).getBytes(UTF_8));
         Files.move(tmp, outDir.resolve("schema.json"), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
     }
 
