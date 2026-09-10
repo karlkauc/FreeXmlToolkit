@@ -1516,98 +1516,113 @@ public class XsdDocumentationService {
     }
 
     /**
-     * Processes all schemas including xs:include and xs:import elements.
-     * This method downloads remote schemas and processes local includes.
+     * Collects the main schema and every schema document it reaches through {@code xs:include} and
+     * {@code xs:import}, transitively. Never touches the user's files: remote documents are resolved
+     * through the Schema Library / XML catalogs first and otherwise fetched into the shared schema
+     * cache (proxy-aware, SSRF-checked).
      */
     private void processAllSchemas() throws Exception {
-        Path baseDirectory = new File(this.xsdFilePath).toPath().getParent();
-        if (baseDirectory == null) {
-            baseDirectory = new File(".").toPath(); // Fallback to current directory
-        }
-
+        Path mainFile = new File(this.xsdFilePath).toPath().toAbsolutePath().normalize();
         Queue<Path> filesToProcess = new LinkedList<>();
-        filesToProcess.add(new File(this.xsdFilePath).toPath());
+        filesToProcess.add(mainFile);
 
-        Set<String> processedFiles = new HashSet<>();
-        Set<String> processedUrls = new HashSet<>();
+        // Base URI per collected file: its own location, or the remote URL a cached copy stands for
+        Map<Path, String> baseUris = new HashMap<>();
+        baseUris.put(mainFile, mainFile.toUri().toString());
+        Map<String, java.util.Optional<Path>> remoteResolutions = new HashMap<>();
+        Set<Path> processedFiles = new HashSet<>();
         processedSchemaFiles.clear();
 
         while (!filesToProcess.isEmpty()) {
             Path currentFile = filesToProcess.poll();
-            if (!Files.exists(currentFile)) {
+            if (!Files.exists(currentFile) || !processedFiles.add(currentFile)) {
                 continue;
             }
-
-            String currentFilePath = currentFile.toAbsolutePath().toString();
-            if (processedFiles.contains(currentFilePath)) {
-                continue;
-            }
-            processedFiles.add(currentFilePath);
-            processedSchemaFiles.add(currentFile.toAbsolutePath().normalize());
+            processedSchemaFiles.add(currentFile);
 
             logger.debug("Processing schema file: {}", currentFile);
             Document document = parseXsdFile(currentFile);
 
-            // Process both xs:include and xs:import elements
             NodeList includeNodes = (NodeList) xpath.evaluate("//xs:include[@schemaLocation]", document, XPathConstants.NODESET);
-            NodeList importNodes = (NodeList) xpath.evaluate("//xs:import[@schemaLocation]", document, XPathConstants.NODESET);
-            
-
-            // Process xs:include elements (local files)
             for (int i = 0; i < includeNodes.getLength(); i++) {
-                Element includeElement = (Element) includeNodes.item(i);
-                String location = includeElement.getAttribute("schemaLocation");
-
-                if (!location.isEmpty()) {
-                    Path includedFile = baseDirectory.resolve(location);
-                    if (Files.exists(includedFile)) {
-                        logger.debug("Found local include: {}", includedFile);
-                        filesToProcess.add(includedFile);
-                    } else {
-                        logger.warn("Included file not found: {}", includedFile);
-                    }
+                String location = ((Element) includeNodes.item(i)).getAttribute("schemaLocation");
+                // An included document has the including one's namespace: never resolve it by namespace
+                Path includedFile = resolveSchemaReference(location, null, currentFile, baseUris, remoteResolutions);
+                if (includedFile != null) {
+                    filesToProcess.add(includedFile);
+                } else if (!location.isEmpty()) {
+                    logger.warn("Included file not found: {} (included from {})", location, currentFile);
                 }
             }
 
-            // Process xs:import elements (remote files)
+            NodeList importNodes = (NodeList) xpath.evaluate("//xs:import[@schemaLocation]", document, XPathConstants.NODESET);
             for (int i = 0; i < importNodes.getLength(); i++) {
                 Element importElement = (Element) importNodes.item(i);
                 String location = importElement.getAttribute("schemaLocation");
-
-                if (isRemote(location)) {
-                    if (processedUrls.contains(location)) {
-                        continue; // Already resolved
-                    }
-                    // Never touch the user's files: a remote import is resolved through the
-                    // Schema Library / XML catalogs first and otherwise fetched into the shared
-                    // schema cache (proxy-aware, SSRF-checked). The DOM is only updated in
-                    // memory — the source schema on disk is left byte-for-byte unchanged.
-                    try {
-                        String namespace = importElement.getAttribute("namespace");
-                        Path localPath = resolveRemoteImport(namespace, location, baseDirectory);
-                        if (localPath == null) {
-                            logger.warn("Remote import could not be resolved (offline or unreachable): {}", location);
-                            continue;
-                        }
-                        importElement.setAttribute("schemaLocation", localPath.toUri().toString());
-                        filesToProcess.add(localPath);
-                        processedUrls.add(location);
-                    } catch (Exception e) {
-                        logger.error("Failed to resolve remote schema: {}", location, e);
-                    }
+                Path importedFile = resolveSchemaReference(location, importElement.getAttribute("namespace"),
+                        currentFile, baseUris, remoteResolutions);
+                if (importedFile != null) {
+                    filesToProcess.add(importedFile);
                 } else if (!location.isEmpty()) {
-                    // Handle local imports
-                    Path importedFile = baseDirectory.resolve(location);
-                    if (Files.exists(importedFile)) {
-                        logger.debug("Found local import: {}", importedFile);
-                        filesToProcess.add(importedFile);
-                    } else {
-                        logger.warn("Imported file not found: {}", importedFile);
-                    }
+                    logger.warn("Imported file not found: {} (imported from {})", location, currentFile);
                 }
             }
-
         }
+    }
+
+    /**
+     * Resolves a {@code schemaLocation} of the schema document {@code referencingFile} to a local file.
+     * A relative location is relative to the referencing document, not to the main schema. For a
+     * document that stands for a remote URL, a relative location without a local counterpart is
+     * resolved against that URL. Remote locations go through {@link #resolveRemoteImport}.
+     *
+     * @param baseUris          base URI per collected file; receives the entry of the resolved file
+     * @param remoteResolutions memo of remote lookups, so an unreachable URL is only tried once
+     * @return the normalized local file, or {@code null} if the location cannot be resolved
+     */
+    private Path resolveSchemaReference(String location, String namespace, Path referencingFile,
+                                        Map<Path, String> baseUris, Map<String, java.util.Optional<Path>> remoteResolutions) {
+        if (location.isEmpty()) {
+            return null;
+        }
+        String baseUri = baseUris.get(referencingFile);
+        String remoteLocation = null;
+        try {
+            if (isRemote(location)) {
+                remoteLocation = location;
+            } else {
+                Path local = referencingFile.resolveSibling(location).toAbsolutePath().normalize();
+                if (Files.exists(local)) {
+                    baseUris.putIfAbsent(local, local.toUri().toString());
+                    return local;
+                }
+                if (isRemote(baseUri)) {
+                    remoteLocation = URI.create(baseUri).resolve(location).toString();
+                }
+            }
+        } catch (RuntimeException e) {
+            logger.debug("Invalid schema location '{}' in {}: {}", location, referencingFile, e.getMessage());
+            return null;
+        }
+        if (remoteLocation == null) {
+            return null;
+        }
+        String target = remoteLocation;
+        java.util.Optional<Path> resolved = remoteResolutions.computeIfAbsent(target, url -> {
+            try {
+                return java.util.Optional.ofNullable(resolveRemoteImport(namespace, url, baseUri))
+                        .map(path -> path.toAbsolutePath().normalize());
+            } catch (Exception e) {
+                logger.error("Failed to resolve remote schema: {}", url, e);
+                return java.util.Optional.empty();
+            }
+        });
+        if (resolved.isEmpty()) {
+            logger.warn("Remote schema could not be resolved (offline or unreachable): {}", target);
+            return null;
+        }
+        baseUris.putIfAbsent(resolved.get(), target);
+        return resolved.get();
     }
 
     /**
@@ -4348,13 +4363,12 @@ public class XsdDocumentationService {
     }
 
     /**
-     * Resolves a remote {@code xs:import} to a local file without writing into the user's
-     * directory: Schema Library / catalog mappings first, then the shared schema cache
+     * Resolves a remote {@code xs:include} or {@code xs:import} to a local file without writing into
+     * the user's directory: Schema Library / catalog mappings first, then the shared schema cache
      * (downloads only when allowed by the offline rule). Returns {@code null} on a miss.
      */
-    private Path resolveRemoteImport(String namespace, String location, Path baseDirectory) {
+    private Path resolveRemoteImport(String namespace, String location, String baseUri) {
         SchemaLibraryService library = SchemaLibraryServiceImpl.shared();
-        String baseUri = baseDirectory != null ? baseDirectory.toUri().toString() : null;
         return SchemaLibraryLookup.localFileFor(library, namespace, location, baseUri, library.isRemoteDownloadAllowed())
                 .or(() -> {
                     if (!library.isRemoteDownloadAllowed() || !PathValidator.isUrlSafeToAccess(location)) {
