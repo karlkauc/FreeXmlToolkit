@@ -2009,6 +2009,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#13-after-a4-roots-from-included-documents-re-audit-2026-09-10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. After A4: roots from included documents (re-audit, 2026-09-10)
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2036,7 +2047,7 @@ real-world schemas, including optional elements, and validates every generated f
 <code>docs/superpowers/plans/2026-09-10-sample-xml-generator-validity.md</code>.</p>
 <blockquote>
 <p><strong>Update (same day):</strong> the plan's four quick wins (A1, A2, D1, F3) are implemented. §1–§10 describe the baseline;
-§11 has the re-audit.</p>
+§11 has the re-audit. A5 (bounded memory) and A4 (roots from included documents) follow in §12 and §13.</p>
 </blockquote>
 <h2 id="1-summary">1. Summary<a class="headerlink" href="#1-summary" title="Permanent link">&para;</a></h2>
 <p><strong>Corpus:</strong> <code>src/test/resources/xsd/real-world</code>, 35 schemas that users loaded into xsd-viewer.online by URL, each with
@@ -3194,6 +3205,13 @@ run.</p>
 <td>229 · 200 (of 1,124: UCI, KML and more SIRI roots now generate)</td>
 <td>1</td>
 </tr>
+<tr>
+<td>2026-09-10</td>
+<td>A4 roots from included documents (§13)</td>
+<td>23 · 19</td>
+<td>534 · 325 (of 1,677: JATS and SIRI now offer their included roots)</td>
+<td>0</td>
+</tr>
 </tbody>
 </table>
 <h2 id="11-after-the-quick-wins-re-audit-2026-09-10">11. After the quick wins (re-audit, 2026-09-10)<a class="headerlink" href="#11-after-the-quick-wins-re-audit-2026-09-10" title="Permanent link">&para;</a></h2>
@@ -3570,6 +3588,130 @@ the publisher's schema is incomplete.</p>
 <li><strong>Random flips:</strong> as before (datajud, Subsonic, nuspec, XTCE), within the known clusters.</li>
 <li><strong>Still open for "no XML":</strong> A4 (roots from included documents, JATS). The documentation of UBL 2.1 still needs
   more memory than 3 GB.</li>
+</ul>
+<h2 id="13-after-a4-roots-from-included-documents-re-audit-2026-09-10">13. After A4: roots from included documents (re-audit, 2026-09-10)<a class="headerlink" href="#13-after-a4-roots-from-included-documents-re-audit-2026-09-10" title="Permanent link">&para;</a></h2>
+<p><strong>Change</strong> (commit <code>be93cdc9</code>):
+- <strong>More roots:</strong> <code>getRootElementNames()</code> now also offers the global elements of included documents of the main
+  target namespace, including chameleon includes. Imports of other namespaces are not offered. Each name appears once,
+  in document order.
+- <strong>Default root:</strong> <code>getDefaultRootElementName()</code>, used by both generators, keeps the first element of the main
+  document. Only when the main document declares none does it pick the first included element that is neither
+  abstract nor referenced via <code>ref</code>.
+- <strong>Documentation:</strong> <code>processXsd</code> is unchanged.
+- <strong>Test:</strong> <code>SampleXmlIncludedRootsTest</code> (3).</p>
+<p><strong>First global element</strong> (31 evaluable schemas):</p>
+<table>
+<thead>
+<tr>
+<th>Generator / mode</th>
+<th>Valid: A5 → A4</th>
+<th>No XML: A5 → A4</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>plain, mandatory only</td>
+<td>24 → 23</td>
+<td>1 → <strong>0</strong></td>
+</tr>
+<tr>
+<td>plain, with optional elements</td>
+<td>17 → 19</td>
+<td>2 → <strong>1</strong></td>
+</tr>
+<tr>
+<td>realistic, mandatory only</td>
+<td>24 → 22</td>
+<td>1 → <strong>0</strong></td>
+</tr>
+<tr>
+<td>realistic, with optional elements</td>
+<td>19 → 19</td>
+<td>2 → <strong>1</strong></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>JATS:</strong> now generates <code>article</code> instead of answering "No root element found". The sample is still invalid:
+  the required <code>front</code> is missing (<code>cvc-complex-type.2.4.b</code>). JATS is among the schemas whose nested includes the
+  generator cannot find (WP A3).</li>
+<li><strong>Only remaining "no XML":</strong> UBL 2.1 with optional elements (node limit).</li>
+<li><strong>Valid counts:</strong> they moved by random flips (datajud, goAML, XTCE 2018/2025).</li>
+<li><strong>Sampler defect found and fixed:</strong> the XTCE 2025 flip exposed it. For <code>NameType</code> <code>[^.\[\]:/ \t]+</code> the sampler
+  could pick a tab or line feed, which an attribute value normalizes to a space. It no longer emits tabs or line
+  breaks (<code>BoundedPatternSamplerTest.samplesContainNoLineBreaksOrTabs</code>); the fix came after this audit run.</li>
+</ul>
+<p><strong>Every offered root</strong> (not comparable with §12, the set of roots grew again):</p>
+<table>
+<thead>
+<tr>
+<th>Schema</th>
+<th>Roots offered: A5 → A4</th>
+<th>Valid plain req · opt</th>
+<th>Valid realistic req · opt</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>JATS 1.4</td>
+<td>0 → 308</td>
+<td>206 · 55</td>
+<td>206 · 55</td>
+</tr>
+<tr>
+<td>SIRI 2.2</td>
+<td>6 → 268</td>
+<td>101 · 71</td>
+<td>86 · 53</td>
+</tr>
+<tr>
+<td>SIRI IDF 2.0</td>
+<td>6 → 217</td>
+<td>not validated (publisher schema incomplete)</td>
+<td>–</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>Generator / mode</th>
+<th>Valid</th>
+<th>Validated</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>plain, mandatory only</td>
+<td>534</td>
+<td>1,677</td>
+</tr>
+<tr>
+<td>plain, with optional elements</td>
+<td>325</td>
+<td>1,675</td>
+</tr>
+<tr>
+<td>realistic, mandatory only</td>
+<td>513</td>
+<td>1,610</td>
+</tr>
+<tr>
+<td>realistic, with optional elements</td>
+<td>302</td>
+<td>1,607</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>JATS errors:</strong> 710 invalid samples in total. The most frequent keys (samples containing them):</li>
+<li><code>cvc-id.1</code> (468): IDREF without a matching ID, WP H</li>
+<li><code>cvc-complex-type.2.4.b</code> (222)</li>
+<li><code>cvc-complex-type.4</code> (176)</li>
+<li><code>cvc-elt.2</code> (176)</li>
+<li><code>cvc-complex-type.2.4.a</code> (142)</li>
+<li><strong>Harness:</strong> the UCI worker exceeded its 45-minute budget this time, and the realistic breadth stopped at 655 of
+  722 roots. The larger JATS and SIRI breadth sets running in parallel made the run longer.</li>
 </ul>
 
 
