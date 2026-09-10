@@ -179,6 +179,10 @@ public class XsdDocumentationService {
     private String expansionRootName;
     /** Skip optional particles while expanding for a mandatory-only sample. */
     private boolean pruneOptionalParticles;
+    /** Set while {@link #expandForSample} runs; the documentation expansion is never bounded this way. */
+    private boolean sampleExpansion;
+    /** Element declarations whose optional content the current sample expansion has already expanded. */
+    private final Set<Node> sampleOptionalContentExpanded = Collections.newSetFromMap(new IdentityHashMap<>());
     /** Character limit while building a plain sample; -1 outside generation. */
     private long outputCharLimit = -1;
 
@@ -675,11 +679,15 @@ public class XsdDocumentationService {
         expansionNodeLimit = SampleXmlLimits.maxExpandedNodes();
         expansionRootName = rootElementName;
         pruneOptionalParticles = mandatoryOnly;
+        sampleExpansion = true;
+        sampleOptionalContentExpanded.clear();
         try {
             traverseNode(globalElement, "/" + rootElementName, null, 0, new HashSet<>());
         } finally {
             expansionNodeLimit = -1;
             pruneOptionalParticles = false;
+            sampleExpansion = false;
+            sampleOptionalContentExpanded.clear();
         }
         sampleExpansionKey = key;
     }
@@ -1769,7 +1777,18 @@ public class XsdDocumentationService {
             }
 
             String localName = node.getLocalName();
-            if ("element".equals(localName) || "attribute".equals(localName)) {
+            if (sampleExpansion && !pruneOptionalParticles && "element".equals(localName)
+                    && !sampleOptionalContentExpanded.add(node)) {
+                // A sample expands the optional content of each declaration once; later occurrences get their
+                // required content only. Grammars whose optional content recurses through many different
+                // elements (JATS inline elements, SIRI AffectedLine/AffectedStopPoint) stay linear in size.
+                pruneOptionalParticles = true;
+                try {
+                    processElementOrAttribute(node, currentXPath, parentXPath, level, visitedOnPath);
+                } finally {
+                    pruneOptionalParticles = false;
+                }
+            } else if ("element".equals(localName) || "attribute".equals(localName)) {
                 processElementOrAttribute(node, currentXPath, parentXPath, level, visitedOnPath);
             } else if ("sequence".equals(localName) || "choice".equals(localName) || "all".equals(localName)) {
                 // Create explicit sequence/choice/all nodes for SVG visualization
@@ -2233,6 +2252,11 @@ public class XsdDocumentationService {
         // Handle the case where contentNode itself is a choice/sequence/all
         // This happens when an inline complexType has a direct compositor as its content
         if ("choice".equals(localName) || "sequence".equals(localName) || "all".equals(localName)) {
+            // A compositor reached here bypasses traverseNode, so prune it the same way (JATS mixed content:
+            // <complexType mixed="true"><choice minOccurs="0" maxOccurs="unbounded">)
+            if (pruneOptionalParticles && isOptionalParticle(contentNode)) {
+                return;
+            }
             // Create a wrapper element for this compositor
             String containerName = localName.toUpperCase();
             String containerXPath = parentXPath + "/" + containerName + "_" + counter;
