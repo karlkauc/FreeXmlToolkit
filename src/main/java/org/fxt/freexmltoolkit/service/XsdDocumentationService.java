@@ -1698,12 +1698,12 @@ public class XsdDocumentationService {
 
     /**
      * Whether a particle can be left out of a mandatory-only sample expansion: an element (or element reference),
-     * sequence, choice or all with {@code minOccurs="0"}, matching {@link XsdExtendedElement#isMandatory()}. Choice
-     * options are kept because the generators select among all options.
+     * group reference, sequence, choice or all with {@code minOccurs="0"}, matching
+     * {@link XsdExtendedElement#isMandatory()}. Choice options are kept because the generators select among all options.
      */
     private boolean isOptionalParticle(Node node) {
         String localName = node.getLocalName();
-        if (!"element".equals(localName) && !"sequence".equals(localName)
+        if (!"element".equals(localName) && !"group".equals(localName) && !"sequence".equals(localName)
                 && !"choice".equals(localName) && !"all".equals(localName)) {
             return false;
         }
@@ -1743,8 +1743,9 @@ public class XsdDocumentationService {
             String ref = getAttributeValue(node, "ref");
             if (ref != null && !ref.isEmpty()) {
                 // Handle elements from external namespaces (e.g., ds:Signature from XML Digital Signature)
-                // These are included in documentation but marked as external references
-                if (ref.contains(":") && isExternalNamespaceReference(ref)) {
+                // These are included in documentation but marked as external references. Prefixed
+                // attribute, attributeGroup and group references are resolved below, never emitted as elements.
+                if ("element".equals(node.getLocalName()) && ref.contains(":") && isExternalNamespaceReference(ref)) {
                     if (logger.isDebugEnabled()) {
                         logger.debug("Processing external namespace reference for documentation: {}", ref);
                     }
@@ -1949,7 +1950,7 @@ public class XsdDocumentationService {
                             if (baseType != null && !baseType.isEmpty()) {
                                 // Use the base type (e.g., xs:decimal) for sample data generation
                                 // since the generator needs the primitive type, not the named type
-                                resolvedType = baseType;
+                                resolvedType = simpleContentBaseType(baseType, extension);
                                 if (logger.isDebugEnabled()) {
                                     logger.debug("Resolved named type '{}' to base type '{}' via simpleContent extension",
                                             typeName, baseType);
@@ -1977,7 +1978,7 @@ public class XsdDocumentationService {
                         if (extension != null) {
                             String baseType = getAttributeValue(extension, "base");
                             if (baseType != null && !baseType.isEmpty()) {
-                                extendedElem.setElementType(baseType);
+                                extendedElem.setElementType(simpleContentBaseType(baseType, extension));
                             } else {
                                 extendedElem.setElementType("(anonymous)");
                             }
@@ -2019,6 +2020,8 @@ public class XsdDocumentationService {
                         String containerName = childLocalName.toUpperCase();
                         childXPath = currentXPath + "/" + containerName + "_" + counter;
                         traverseNode(child, childXPath, currentXPath, level + 1, visitedOnPath);
+                    } else if ("group".equals(childLocalName)) {
+                        processGroupReference(child, currentXPath, level + 1, visitedOnPath);
                     }
                 }
             } else {
@@ -2110,15 +2113,29 @@ public class XsdDocumentationService {
         if (contextNode == null) {
             return;
         }
+        processAttributeUses(contextNode, parentXPath, level, visitedOnPath, new HashSet<>());
+    }
 
-        for (Node child : getDirectChildElements(contextNode)) {
+    /**
+     * Adds the {@code attribute} children of {@code holder} and the attributes of its {@code attributeGroup}
+     * references (nested groups included) to {@code parentXPath}. Names in {@code declaredNames} are skipped and every
+     * name seen is recorded there, so a derived declaration hides the inherited one; a prohibited attribute is left out.
+     */
+    private void processAttributeUses(Node holder, String parentXPath, int level, Set<Node> visitedOnPath,
+                                      Set<String> declaredNames) {
+        for (Node child : getDirectChildElements(holder)) {
             String localName = child.getLocalName();
+            if ("attributeGroup".equals(localName)) {
+                processAttributeGroupReference(child, parentXPath, level, visitedOnPath, declaredNames);
+                continue;
+            }
             if (!"attribute".equals(localName)) {
                 continue;
             }
 
             String childName = getAttributeValue(child, "name", getAttributeValue(child, "ref"));
-            if (childName == null || childName.isBlank()) {
+            if (childName == null || childName.isBlank() || !declaredNames.add(stripNamespace(childName))
+                    || "prohibited".equals(getAttributeValue(child, "use"))) {
                 continue;
             }
 
@@ -2133,8 +2150,85 @@ public class XsdDocumentationService {
         }
     }
 
+    private void processAttributeGroupReference(Node groupRef, String parentXPath, int level, Set<Node> visitedOnPath,
+                                                Set<String> declaredNames) {
+        String ref = getAttributeValue(groupRef, "ref");
+        if (ref == null || ref.isBlank()) {
+            return;
+        }
+        Node group = findReferencedNode("attributeGroup", ref);
+        if (group == null) {
+            logger.warn("Reference '{}' for node 'attributeGroup' could not be resolved.", ref);
+            return;
+        }
+        if (!visitedOnPath.add(group)) {
+            return; // an attribute group that contains itself
+        }
+        try {
+            processAttributeUses(group, parentXPath, level, visitedOnPath, declaredNames);
+        } finally {
+            visitedOnPath.remove(group);
+        }
+    }
+
+    /**
+     * Adds the attributes a complexContent or simpleContent restriction inherits: those of every type in its base chain
+     * that are not declared (restated or prohibited) closer to the restriction.
+     */
+    private void processRestrictionBaseAttributes(Node restriction, String parentXPath, int level,
+                                                  Set<Node> visitedOnPath, Set<String> declaredNames) {
+        Set<Node> chain = Collections.newSetFromMap(new IdentityHashMap<>());
+        Node type = findGlobalType(getAttributeValue(restriction, "base"), restriction);
+        while (type != null && chain.add(type)) {
+            processAttributeUses(type, parentXPath, level, visitedOnPath, declaredNames);
+            Node derivation = findContentModel(type, null);
+            if (derivation == null || !("extension".equals(derivation.getLocalName())
+                    || "restriction".equals(derivation.getLocalName()))) {
+                return;
+            }
+            processAttributeUses(derivation, parentXPath, level, visitedOnPath, declaredNames);
+            type = findGlobalType(getAttributeValue(derivation, "base"), derivation);
+        }
+    }
+
+    /**
+     * Expands a model group reference ({@code <xs:group ref="…"/>}) in place: the particles of the referenced
+     * group's compositor become children of {@code parentXPath}, whether the reference is a type's whole content
+     * model, a particle of a compositor or part of an extension.
+     */
+    private void processGroupReference(Node groupRef, String parentXPath, int level, Set<Node> visitedOnPath) {
+        String ref = getAttributeValue(groupRef, "ref");
+        if (ref == null || ref.isBlank() || (pruneOptionalParticles && isOptionalParticle(groupRef))) {
+            return;
+        }
+        Node group = findReferencedNode("group", ref);
+        if (group == null) {
+            logger.warn("Reference '{}' for node 'group' could not be resolved.", ref);
+            return;
+        }
+        if (!visitedOnPath.add(group)) {
+            return; // a group that contains itself
+        }
+        try {
+            for (Node compositor : getDirectChildElements(group)) {
+                String name = compositor.getLocalName();
+                if ("sequence".equals(name) || "choice".equals(name) || "all".equals(name)) {
+                    processComplexContent(compositor, parentXPath, level, visitedOnPath);
+                }
+            }
+        } finally {
+            visitedOnPath.remove(group);
+        }
+    }
+
     private void processComplexContent(Node contentNode, String parentXPath, int level, Set<Node> visitedOnPath) {
         String localName = contentNode.getLocalName();
+
+        // A group reference as the whole content model (JATS: <complexType><group ref="article-full-model"/>)
+        if ("group".equals(localName)) {
+            processGroupReference(contentNode, parentXPath, level, visitedOnPath);
+            return;
+        }
 
         // Handle the case where contentNode itself is a choice/sequence/all
         // This happens when an inline complexType has a direct compositor as its content
@@ -2170,6 +2264,8 @@ public class XsdDocumentationService {
                 } else if ("sequence".equals(childLocalName) || "choice".equals(childLocalName) || "all".equals(childLocalName)) {
                     // Nested compositor
                     processComplexContent(child, containerXPath, level + 1, visitedOnPath);
+                } else if ("group".equals(childLocalName)) {
+                    processGroupReference(child, containerXPath, level + 1, visitedOnPath);
                 } else if ("attribute".equals(childLocalName)) {
                     String childXPath = parentXPath + "/@" + childName; // Attributes go on parent, not container
                     traverseNode(child, childXPath, parentXPath, level + 1, visitedOnPath);
@@ -2188,6 +2284,9 @@ public class XsdDocumentationService {
                 if (baseContentModel != null) {
                     processComplexContent(baseContentModel, parentXPath, level, visitedOnPath);
                 }
+                // Then the attributes declared on the base type itself, next to its particle or without one
+                // (rim IdentifiableType@id, Subsonic JukeboxStatus); a derived base's own are handled by the recursion
+                processAttributes(baseTypeNode, parentXPath, level, visitedOnPath);
             }
         }
 
@@ -2197,12 +2296,8 @@ public class XsdDocumentationService {
             String childLocalName = child.getLocalName();
             String childXPath;
 
-            if ("attribute".equals(childLocalName)) {
-                childXPath = parentXPath + "/@" + childName;
-                // Ensure attributes are added as children of the parent element (only if not already added)
-                if (xsdDocumentationData.getExtendedXsdElementMap().containsKey(parentXPath)) {
-                    xsdDocumentationData.getExtendedXsdElementMap().get(parentXPath).addChild(childXPath);
-                }
+            if ("attribute".equals(childLocalName) || "attributeGroup".equals(childLocalName)) {
+                continue; // attribute uses follow the particles, see below
             } else if ("element".equals(childLocalName)) {
                 childXPath = parentXPath + "/" + childName;
             } else if ("sequence".equals(childLocalName) || "choice".equals(childLocalName) || "all".equals(childLocalName)) {
@@ -2211,10 +2306,20 @@ public class XsdDocumentationService {
                 childXPath = parentXPath + "/" + containerName + "_" + counter;
                 traverseNode(child, childXPath, parentXPath, level + 1, visitedOnPath);
                 continue; // Skip normal traverseNode call for containers
+            } else if ("group".equals(childLocalName)) {
+                processGroupReference(child, parentXPath, level + 1, visitedOnPath);
+                continue;
             } else {
                 childXPath = parentXPath; // For other containers
             }
             traverseNode(child, childXPath, parentXPath, level + 1, visitedOnPath);
+        }
+
+        // Attribute uses of this extension or restriction; a restriction also inherits the base chain's attributes
+        Set<String> declaredAttributes = new HashSet<>();
+        processAttributeUses(contentNode, parentXPath, level, visitedOnPath, declaredAttributes);
+        if ("restriction".equals(localName)) {
+            processRestrictionBaseAttributes(contentNode, parentXPath, level, visitedOnPath, declaredAttributes);
         }
     }
 
@@ -2869,13 +2974,20 @@ public class XsdDocumentationService {
             if (childElements.isEmpty() && sampleData.isEmpty()) {
                 sb.append("/>\n"); // Self-closing tag
             } else {
+                int startTagEnd = sb.length();
                 sb.append(">");
                 sb.append(escapeXml(sampleData));
 
                 if (!childElements.isEmpty()) {
-                    sb.append("\n");
+                    int contentStart = sb.append("\n").length();
                     // Process children, handling CHOICE elements with random selection
                     processChildElementsForGeneration(sb, childElements, mandatoryOnly, maxOccurrences, indentLevel + 1, constraintTracker);
+                    if (sb.length() == contentStart && sampleData.isEmpty()) {
+                        // Only structural children that produced nothing: empty content allows no whitespace
+                        sb.setLength(startTagEnd);
+                        sb.append("/>\n");
+                        continue;
+                    }
                     sb.append(indent);
                 }
                 sb.append("</").append(qualifiedName).append(">\n");
@@ -2904,6 +3016,11 @@ public class XsdDocumentationService {
 
             // Check if this child is a SEQUENCE or ALL container (structural, not actual XML elements)
             if (elementName.startsWith("SEQUENCE") || elementName.startsWith("ALL")) {
+                // An optional container is left out in mandatory-only mode, as buildXmlElementContent and the
+                // namespace collection do; emitting it declared no namespace for its foreign elements
+                if (mandatoryOnly && !childElement.isMandatory()) {
+                    continue;
+                }
                 // SEQUENCE and ALL are structural containers - just output all their children
                 // without outputting the container element itself
                 List<XsdExtendedElement> containerChildren = childElement.getChildren().stream()
@@ -3940,6 +4057,38 @@ public class XsdDocumentationService {
             current = findGlobalType(getAttributeValue(contentModel, "base"), contentModel);
         }
         return false;
+    }
+
+    /**
+     * Follows simpleContent derivations through named complex types to the type the content is based on (GML
+     * {@code LengthType} → {@code MeasureType} → {@code xs:double}), so a value is generated for that type.
+     *
+     * @param baseType the base of a simpleContent extension
+     * @param context  the node declaring {@code baseType}, for prefix resolution
+     * @return the first base that is not a named complex type with simple content
+     */
+    private String simpleContentBaseType(String baseType, Node context) {
+        Set<Node> chain = Collections.newSetFromMap(new IdentityHashMap<>());
+        String current = baseType;
+        Node currentContext = context;
+        while (true) {
+            Node type = findGlobalType(current, currentContext);
+            Node simpleContent = type != null && "complexType".equals(type.getLocalName()) && chain.add(type)
+                    ? getDirectChildElement(type, "simpleContent") : null;
+            if (simpleContent == null) {
+                return current;
+            }
+            Node derivation = getDirectChildElement(simpleContent, "extension");
+            if (derivation == null) {
+                derivation = getDirectChildElement(simpleContent, "restriction");
+            }
+            String next = derivation != null ? getAttributeValue(derivation, "base") : null;
+            if (next == null || next.isEmpty()) {
+                return current;
+            }
+            current = next;
+            currentContext = derivation;
+        }
     }
 
     /**

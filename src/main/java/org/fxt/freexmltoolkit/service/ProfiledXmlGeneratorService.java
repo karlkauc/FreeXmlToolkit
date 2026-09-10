@@ -519,15 +519,26 @@ public class ProfiledXmlGeneratorService {
             if (childElements.isEmpty() && value.isEmpty()) {
                 sb.append("/>\n");
             } else {
+                int startTagEnd = sb.length();
                 sb.append(">").append(escapeXml(value));
+                boolean emptyContent = false;
                 if (!childElements.isEmpty()) {
-                    sb.append("\n");
+                    int contentStart = sb.append("\n").length();
                     for (XsdExtendedElement child : childElements) {
                         buildElement(sb, child, profile, rules, elementMap, strategyFactory, context, constraintTracker, indentLevel + 1);
                     }
-                    sb.append(indent);
+                    // Only structural children that produced nothing: empty content allows no whitespace
+                    emptyContent = sb.length() == contentStart && value.isEmpty();
+                    if (!emptyContent) {
+                        sb.append(indent);
+                    }
                 }
-                sb.append("</").append(qualifiedName).append(">\n");
+                if (emptyContent) {
+                    sb.setLength(startTagEnd);
+                    sb.append("/>\n");
+                } else {
+                    sb.append("</").append(qualifiedName).append(">\n");
+                }
             }
 
             // Record generated value for XPATH_REF
