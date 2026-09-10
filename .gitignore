@@ -174,6 +174,10 @@ src/test/resources/demo-json/deeply-nested.json
 src/test/resources/3elements/sample_3_occurences.xml
 src/test/resources/3elements/validation_errors.csv
 
+# Real-world XSD corpus for the sample XML generator audit (./gradlew sampleXmlAudit).
+# The schemas belong to their publishers - keep them local; the audit skips itself without them.
+src/test/resources/xsd/real-world/
+
 # Git worktrees
 .worktrees/
 
