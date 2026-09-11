@@ -2108,6 +2108,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#22-after-g7-particles-with-the-same-name-in-one-content-model-re-audit-2026-09-11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        22. After G7: particles with the same name in one content model (re-audit, 2026-09-11)
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2139,7 +2150,8 @@ real-world schemas, including optional elements, and validates every generated f
 covers A3 (include resolution) and the defects it exposed; §15 covers F5 (typed values for patterns); §16 covers E
 (abstract elements and types) and the defects it exposed; §17 covers C (namespace qualification); §18 covers the
 realistic generator's type resolution (R1); §19 covers inherited facets (F4); §20 covers required wildcards (G3);
-§21 covers QName, binary and union values (F1, F2) and IDs for references (H).</p>
+§21 covers QName, binary and union values (F1, F2) and IDs for references (H); §22 covers particles with the same
+name in one content model.</p>
 </blockquote>
 <h2 id="1-summary">1. Summary<a class="headerlink" href="#1-summary" title="Permanent link">&para;</a></h2>
 <p><strong>Corpus:</strong> <code>src/test/resources/xsd/real-world</code>, 35 schemas that users loaded into xsd-viewer.online by URL, each with
@@ -3358,6 +3370,13 @@ run.</p>
 <td>F1/F2 QName, binary and union values; H IDs for references; unsubstituted abstract elements (§21)</td>
 <td>30 · 24</td>
 <td>1,671 · 1,664 (of 1,672; realistic 1,670 · 1,659)</td>
+<td>0</td>
+</tr>
+<tr>
+<td>2026-09-11</td>
+<td>G7 particles with the same name in one content model (§22)</td>
+<td>30 · 25</td>
+<td>1,672 · 1,663 (of 1,672; realistic 1,672 · 1,661)</td>
 <td>0</td>
 </tr>
 </tbody>
@@ -4911,6 +4930,69 @@ and stay open. Test: <code>SampleXmlSimpleValuesTest</code>.</p>
 <li>XTCE and Garmin: duplicate or suffixed key values (H2)</li>
 <li>UBL <code>WitnessParty</code> order, datajud's choice, and KSeF FA(3), whose validation exceeds the audit's time limit</li>
 <li><strong>Next:</strong> particles with the same name in one compositor (JATS <code>ruby</code>), then choices that produce content (G1).</li>
+</ul>
+<h2 id="22-after-g7-particles-with-the-same-name-in-one-content-model-re-audit-2026-09-11">22. After G7: particles with the same name in one content model (re-audit, 2026-09-11)<a class="headerlink" href="#22-after-g7-particles-with-the-same-name-in-one-content-model-re-audit-2026-09-11" title="Permanent link">&para;</a></h2>
+<p><strong>Cause.</strong> The element map keys a particle as its parent's XPath plus its name. Two particles with the same name under
+one parent therefore shared one key, and the second replaced the first:
+- JATS <code>ruby-model</code> is <code>rb, (rt | (rp, rt, rp))</code>; samples lacked the second <code>rp</code> (<code>cvc-complex-type.2.4.b</code>)
+- FundsXML4 declares <code>UKAssumedPortfolioReturn</code> and <code>UCITSExistingPerformanceFees</code> twice in the UK sequence; the
+  documentation showed only the second of each, under the first one's key and with its text</p>
+<p><strong>Change.</strong> A further particle with the same name gets <code>name[2]</code>, <code>name[3]</code> and so on as its key, at every place an
+element child is keyed. Clean XPaths in the exports are built from element names and are unaffected. Test:
+<code>SampleXmlRepeatedParticlesTest</code> (two <code>rp</code> in one sequence, an extension restating a base element).</p>
+<p><strong>Golden update.</strong> A canonical dump of the FundsXML 4 element map before and after differs by exactly two added
+entries, <code>UKAssumedPortfolioReturn[2]</code> and <code>UCITSExistingPerformanceFees[2]</code>, plus the parent's children list and the
+first entry's documentation, which now is its own (08140 instead of 08180). No entry was removed. The expected hashes
+of <code>ProcessXsdEquivalenceTest</code> and <code>ProcessXsdSnippetEquivalenceTest</code> were updated with that note.</p>
+<p><strong>Audit</strong> (after <code>92524714</code>):</p>
+<table>
+<thead>
+<tr>
+<th>Measure</th>
+<th>plain req</th>
+<th>plain opt</th>
+<th>realistic req</th>
+<th>realistic opt</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>First element valid (of 31), §21 → now</td>
+<td>30 → 30</td>
+<td>24 → 25</td>
+<td>30 → 30</td>
+<td>25 → 24</td>
+</tr>
+<tr>
+<td>Breadth valid (of 1,672), §21 → now</td>
+<td>1,671 → <strong>1,672</strong></td>
+<td>1,664 → 1,663</td>
+<td>1,670 → <strong>1,672</strong></td>
+<td>1,659 → <strong>1,661</strong></td>
+</tr>
+<tr>
+<td>Invalid samples (of 1,672), §21 → now</td>
+<td>1 → <strong>0</strong></td>
+<td>8 → 9</td>
+<td>2 → <strong>0</strong></td>
+<td>13 → <strong>11</strong></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>Mandatory elements only:</strong> every sample of every offered root is valid, in both generators.</li>
+<li><strong>JATS</strong> <code>ruby</code> is valid in every mode. JATS has 308 of 308 valid roots with mandatory elements only.</li>
+<li>The changes with optional elements are random choice selections: JATS 305 → 304 (plain) and 300 → 303
+  (realistic), and datajud's invalid sample moved from plain to realistic.</li>
+<li><strong>Remaining</strong> (all with optional elements):</li>
+<li>JATS, 4 plain and 5 realistic: required choices that come out empty in <code>statement</code>, <code>question</code>, <code>speech</code> and
+    <code>open-access</code> (G1)</li>
+<li>datajud, 1 realistic: <code>comunicacaoprocessual</code> requires a strict <code>xs:any</code> that no declaration satisfies (G1)</li>
+<li>XTCE, 2 per generator, and Garmin, 1 per generator: duplicate key values and a <code>dateTime</code> key with the suffix
+    <code>_1</code> (H2)</li>
+<li>INSPIRE <code>bu-base:Building</code> and UBL <code>WitnessParty</code> order, 1 per generator each; KSeF FA(3) validation still
+    exceeds the audit's time limit</li>
+<li><strong>Next:</strong> choices that pick options with complete content (G1).</li>
 </ul>
 
 
