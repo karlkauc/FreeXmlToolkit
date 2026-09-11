@@ -2152,6 +2152,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#26-after-the-garmin-round-keyrefs-before-their-keys-derived-types-without-recursion-re-audit-2026-09-11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        26. After the Garmin round: keyrefs before their keys, derived types without recursion (re-audit, 2026-09-11)
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2184,7 +2195,7 @@ covers A3 (include resolution) and the defects it exposed; §15 covers F5 (typed
 (abstract elements and types) and the defects it exposed; §17 covers C (namespace qualification); §18 covers the
 realistic generator's type resolution (R1); §19 covers inherited facets (F4); §20 covers required wildcards (G3);
 §21 covers QName, binary and union values (F1, F2) and IDs for references (H); §22 covers particles with the same
-name in one content model; §23 covers choices that pick options with complete content (G1); §24 covers key values of their own type (H2); §25 covers numbers rounded within their bounds (F6).</p>
+name in one content model; §23 covers choices that pick options with complete content (G1); §24 covers key values of their own type (H2); §25 covers numbers rounded within their bounds (F6); §26 covers Garmin's keyrefs and workout steps (H2, E).</p>
 </blockquote>
 <h2 id="1-summary">1. Summary<a class="headerlink" href="#1-summary" title="Permanent link">&para;</a></h2>
 <p><strong>Corpus:</strong> <code>src/test/resources/xsd/real-world</code>, 35 schemas that users loaded into xsd-viewer.online by URL, each with
@@ -3431,6 +3442,13 @@ run.</p>
 <td>F6 numbers rounded within their bounds (§25)</td>
 <td>30 · 29</td>
 <td>1,672 · 1,671 (of 1,672; realistic 1,672 · 1,671)</td>
+<td>0</td>
+</tr>
+<tr>
+<td>2026-09-11</td>
+<td>Garmin keyrefs before their keys, derived types without recursion (§26)</td>
+<td>30 · 30</td>
+<td>1,672 · 1,672 (of 1,672; realistic 1,672 · 1,672)</td>
 <td>0</td>
 </tr>
 </tbody>
@@ -5220,6 +5238,63 @@ exclusive range narrower than two steps inward by a quarter of its width; intege
   because its required <code>Step</code> always took the derived type <code>Repeat_t</code>, whose required <code>Child</code> recursion is cut; and a
   suffixed key value can exceed <code>maxLength="15"</code> of <code>RestrictedToken_t</code>.</li>
 <li><strong>Next:</strong> Garmin's keys and workout steps.</li>
+</ul>
+<h2 id="26-after-the-garmin-round-keyrefs-before-their-keys-derived-types-without-recursion-re-audit-2026-09-11">26. After the Garmin round: keyrefs before their keys, derived types without recursion (re-audit, 2026-09-11)<a class="headerlink" href="#26-after-the-garmin-round-keyrefs-before-their-keys-derived-types-without-recursion-re-audit-2026-09-11" title="Permanent link">&para;</a></h2>
+<p><strong>Cause.</strong> Garmin's <code>TrainingCenterDatabase</code> was the last invalid root, for three reasons:
+- <code>Folders</code> lists <code>CourseNameRef</code> and <code>WorkoutNameRef</code> before the courses and workouts they refer to. With no key value
+  yet, the key tracker gave each keyref a suffixed fallback value that no key held. That fallback also ran without the
+  element's facets, so a suffix could push an <code>Id</code> past <code>maxLength="15"</code>.
+- No <code>Workout</code> was generated at all. Its required <code>Step</code> is of the abstract type <code>AbstractStep_t</code>, and the sample always
+  took the first derived type, <code>Repeat_t</code>. Its required <code>Child</code> is an <code>AbstractStep_t</code> again; the recursion was cut, the
+  step's content was incomplete, and since G1 the optional workout is left out.</p>
+<p><strong>Change.</strong>
+- A keyref reached before its key reserves one value, its unsuffixed base. Every such keyref reuses it, and the key
+  takes it as its first value, as IDs already do for early IDREFs.
+- An abstract type gets a concrete derived type whose own content does not declare an element of the abstract type
+  again (Garmin <code>Step_t</code> before <code>Repeat_t</code>); a recursive one is used only when no other exists.
+- Tests: <code>SampleXmlRecursiveDerivedTypeTest</code> (both generators and modes) and
+  <code>IdentityConstraintTrackerTest.aKeyrefBeforeItsKeyReservesTheKeysFirstValue</code>.</p>
+<p><strong>Audit</strong> (after <code>87dc322f</code>):</p>
+<table>
+<thead>
+<tr>
+<th>Measure</th>
+<th>plain req</th>
+<th>plain opt</th>
+<th>realistic req</th>
+<th>realistic opt</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>First element valid (of 31), §25 → now</td>
+<td>30 → 30</td>
+<td>29 → <strong>30</strong></td>
+<td>30 → 30</td>
+<td>29 → 29</td>
+</tr>
+<tr>
+<td>Breadth valid (of 1,672), §25 → now</td>
+<td>1,672 → 1,672</td>
+<td>1,671 → <strong>1,672</strong></td>
+<td>1,672 → 1,672</td>
+<td>1,671 → <strong>1,672</strong></td>
+</tr>
+<tr>
+<td>Invalid samples (of 1,672), §25 → now</td>
+<td>0 → 0</td>
+<td>1 → <strong>0</strong></td>
+<td>0 → 0</td>
+<td>1 → <strong>0</strong></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>Every validated sample of every offered root is valid</strong>, in both generators and both modes: 1,672 of 1,672 each.</li>
+<li><strong>Garmin</strong> generates workouts now. That exposed one more key defect in the realistic first-element sample:
+  <code>StepIdMustBeUnique</code> selects <code>.//*</code> with the field <code>StepId</code>, so <code>Step/StepId</code> and <code>Child/StepId</code> share one unique
+  constraint. Each numeric value is its random base plus a shared counter, and two bases can meet (<code>8</code> twice).</li>
+<li><strong>Next:</strong> numeric key values checked against the values already used.</li>
 </ul>
 
 
