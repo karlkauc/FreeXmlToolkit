@@ -2119,6 +2119,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#23-after-g1-choices-pick-options-with-complete-content-re-audit-2026-09-11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        23. After G1: choices pick options with complete content (re-audit, 2026-09-11)
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2151,7 +2162,7 @@ covers A3 (include resolution) and the defects it exposed; §15 covers F5 (typed
 (abstract elements and types) and the defects it exposed; §17 covers C (namespace qualification); §18 covers the
 realistic generator's type resolution (R1); §19 covers inherited facets (F4); §20 covers required wildcards (G3);
 §21 covers QName, binary and union values (F1, F2) and IDs for references (H); §22 covers particles with the same
-name in one content model.</p>
+name in one content model; §23 covers choices that pick options with complete content (G1).</p>
 </blockquote>
 <h2 id="1-summary">1. Summary<a class="headerlink" href="#1-summary" title="Permanent link">&para;</a></h2>
 <p><strong>Corpus:</strong> <code>src/test/resources/xsd/real-world</code>, 35 schemas that users loaded into xsd-viewer.online by URL, each with
@@ -3377,6 +3388,13 @@ run.</p>
 <td>G7 particles with the same name in one content model (§22)</td>
 <td>30 · 25</td>
 <td>1,672 · 1,663 (of 1,672; realistic 1,672 · 1,661)</td>
+<td>0</td>
+</tr>
+<tr>
+<td>2026-09-11</td>
+<td>G1 choices pick options with complete content (§23)</td>
+<td>30 · 27</td>
+<td>1,672 · 1,668 (of 1,672; realistic 1,672 · 1,669)</td>
 <td>0</td>
 </tr>
 </tbody>
@@ -4993,6 +5011,69 @@ of <code>ProcessXsdEquivalenceTest</code> and <code>ProcessXsdSnippetEquivalence
 <li>INSPIRE <code>bu-base:Building</code> and UBL <code>WitnessParty</code> order, 1 per generator each; KSeF FA(3) validation still
     exceeds the audit's time limit</li>
 <li><strong>Next:</strong> choices that pick options with complete content (G1).</li>
+</ul>
+<h2 id="23-after-g1-choices-pick-options-with-complete-content-re-audit-2026-09-11">23. After G1: choices pick options with complete content (re-audit, 2026-09-11)<a class="headerlink" href="#23-after-g1-choices-pick-options-with-complete-content-re-audit-2026-09-11" title="Permanent link">&para;</a></h2>
+<p><strong>Cause.</strong> A sample expansion cannot expand every required particle, and it left no trace where it stopped:
+- Recursion through the same element declaration or group is cut. JATS <code>fn</code> holds <code>(p)+</code>, so an <code>fn</code> inside a <code>p</code>
+  gets a required choice without any option; <code>statement</code> offers <code>p</code> or a nested <code>statement</code>, and inside a <code>p</code> both
+  are cut.
+- A strict <code>xs:any</code> needs a declaration and is not recorded. datajud <code>comunicacaoprocessual</code> requires one for
+  <code>##other</code>, and no imported schema declares an element there.
+- An abstract element that nothing substitutes was emitted where the content model requires it (INSPIRE
+  <code>bu-base:Building</code>).</p>
+<p>The generators then picked a choice option at random, or emitted an optional element, whose required content was
+missing.</p>
+<p><strong>Change.</strong> The expansion marks an entry whose required content it could not expand. A choice counts as complete when
+one option is. Both generators pick only among options with complete content, and they leave out optional content that
+cannot be completed. When no option is complete, the old random pick stays. The documentation model is not marked, so
+the golden hashes are unchanged. Test: <code>SampleXmlIncompleteContentTest</code> (five content models from JATS, datajud and
+INSPIRE, both generators and modes, 16 runs each).</p>
+<p><strong>Audit</strong> (after <code>2b64b208</code>):</p>
+<table>
+<thead>
+<tr>
+<th>Measure</th>
+<th>plain req</th>
+<th>plain opt</th>
+<th>realistic req</th>
+<th>realistic opt</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>First element valid (of 31), §22 → now</td>
+<td>30 → 30</td>
+<td>25 → <strong>27</strong></td>
+<td>30 → 30</td>
+<td>24 → <strong>27</strong></td>
+</tr>
+<tr>
+<td>Breadth valid (of 1,672), §22 → now</td>
+<td>1,672 → 1,672</td>
+<td>1,663 → <strong>1,668</strong></td>
+<td>1,672 → 1,672</td>
+<td>1,661 → <strong>1,669</strong></td>
+</tr>
+<tr>
+<td>Invalid samples (of 1,672), §22 → now</td>
+<td>0 → 0</td>
+<td>9 → <strong>4</strong></td>
+<td>0 → 0</td>
+<td>11 → <strong>3</strong></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>JATS</strong> 308 of 308, <strong>INSPIRE</strong> 12 of 12, <strong>datajud</strong> and <strong>UBL</strong> 1 of 1: valid in every mode.</li>
+<li>INSPIRE's <code>Address</code> no longer contains the abstract <code>bu-base:Building</code>; the optional element that required it is left
+  out.</li>
+<li><strong>Remaining:</strong></li>
+<li>XTCE, 2 per generator: duplicate <code>@name</code> values for <code>containerNameKey</code> and <code>parameterNameKey</code>, and <code>messageNameKey</code>
+    selecting <code>MessageSet/*</code>, which includes <code>LongDescription</code> without a name (H2)</li>
+<li>Garmin, 1 per generator: the <code>dateTime</code> key <code>Id</code> gets the suffix <code>_1</code> (H2)</li>
+<li>UCI, 1 plain sample: <code>AngleType</code> with <code>maxInclusive="3.141592653589793E0"</code> got <code>3.1416</code>, a random value rounded
+    past the bound (F)</li>
+<li><strong>Next:</strong> H2, key values of their own type.</li>
 </ul>
 
 
