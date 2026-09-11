@@ -434,6 +434,16 @@ public class ProfiledXmlGeneratorService {
             return;
         }
 
+        if (XsdDocumentationService.isWildcardPlaceholder(element)) {
+            int repeatCount = XsdDocumentationService.limitRepeatedOccurrences(element,
+                    calculateElementRepeatCount(element, maxOccurrences), repeatedXpaths);
+            for (int i = 0; i < repeatCount; i++) {
+                XsdDocumentationService.appendWildcardSample(sb, element, "\t".repeat(indentLevel),
+                        emissionDefaultNamespace);
+            }
+            return;
+        }
+
         // Handle container elements (SEQUENCE, CHOICE, ALL)
         if (elementName.startsWith("SEQUENCE") || elementName.startsWith("ALL")) {
             List<XsdExtendedElement> containerChildren = element.getChildren().stream()

@@ -1748,7 +1748,7 @@ public class XsdDocumentationService {
     private boolean isOptionalParticle(Node node) {
         String localName = node.getLocalName();
         if (!"element".equals(localName) && !"group".equals(localName) && !"sequence".equals(localName)
-                && !"choice".equals(localName) && !"all".equals(localName)) {
+                && !"choice".equals(localName) && !"all".equals(localName) && !"any".equals(localName)) {
             return false;
         }
         Node parent = node.getParentNode();
@@ -1860,6 +1860,101 @@ public class XsdDocumentationService {
             if (trackRecursion) {
                 visitedOnPath.remove(node);
             }
+        }
+    }
+
+    /**
+     * Records an element wildcard ({@code xs:any}) of a sample expansion at its position in the content model, so
+     * both generators can emit an element for it (xmldsig {@code SignatureProperty}, XBRL {@code segment}, UBL
+     * {@code ExtensionContent}). Only wildcards a sample element satisfies without a declaration ({@code lax},
+     * {@code skip}) are recorded; the documentation model is left as it is.
+     */
+    private void addWildcardPlaceholder(Node wildcard, String parentXPath, int level) {
+        if (!sampleExpansion || (pruneOptionalParticles && isOptionalParticle(wildcard))
+                || wildcardSampleNamespace(wildcard) == null) {
+            return;
+        }
+        String xpath = parentXPath + "/ANY_" + counter;
+        XsdExtendedElement placeholder = new XsdExtendedElement();
+        placeholder.setElementName("ANY");
+        placeholder.setElementType(WILDCARD_TYPE);
+        placeholder.setCurrentXpath(xpath);
+        placeholder.setParentXpath(parentXPath);
+        placeholder.setLevel(level);
+        placeholder.setCounter(counter++);
+        placeholder.setCurrentNode(wildcard);
+        if (xsdDocumentationData.getExtendedXsdElementMap().containsKey(parentXPath)) {
+            xsdDocumentationData.getExtendedXsdElementMap().get(parentXPath).addChild(xpath);
+        }
+        xsdDocumentationData.putExtendedXsdElement(xpath, placeholder);
+    }
+
+    private static final String WILDCARD_TYPE = "(wildcard)";
+    /** Namespace of the element a sample writes for {@code ##any} and {@code ##other} wildcards. */
+    static final String WILDCARD_SAMPLE_NAMESPACE = "urn:fxt:sample:extension";
+
+    /** Whether an element map entry stands for an element wildcard of a sample expansion. */
+    static boolean isWildcardPlaceholder(XsdExtendedElement element) {
+        return WILDCARD_TYPE.equals(element.getElementType()) && element.getCurrentNode() != null
+                && "any".equals(element.getCurrentNode().getLocalName());
+    }
+
+    /**
+     * The namespace of the element a sample writes for a wildcard: the sample namespace for {@code ##any} and
+     * {@code ##other}, none ({@code ""}) for {@code ##local}, the declaring document's target namespace for
+     * {@code ##targetNamespace}, else the first listed namespace; {@code null} for {@code processContents="strict"},
+     * which needs a declaration.
+     */
+    static String wildcardSampleNamespace(Node wildcard) {
+        if (!(wildcard instanceof Element any)) {
+            return null;
+        }
+        String processContents = any.hasAttribute("processContents") ? any.getAttribute("processContents") : "strict";
+        if ("strict".equals(processContents.trim())) {
+            return null;
+        }
+        String constraint = any.hasAttribute("namespace") ? any.getAttribute("namespace").trim() : "##any";
+        for (String token : constraint.split("\\s+")) {
+            switch (token) {
+                case "##any", "##other" -> {
+                    return WILDCARD_SAMPLE_NAMESPACE;
+                }
+                case "##local" -> {
+                    return "";
+                }
+                case "##targetNamespace" -> {
+                    return any.getOwnerDocument().getDocumentElement().getAttribute("targetNamespace");
+                }
+                default -> {
+                    if (!token.isEmpty()) {
+                        return token;
+                    }
+                }
+            }
+        }
+        return WILDCARD_SAMPLE_NAMESPACE;
+    }
+
+    /**
+     * Writes the element a sample emits for a wildcard placeholder, declaring its namespace on the element itself.
+     *
+     * @param defaultNamespace the default namespace in scope
+     */
+    static void appendWildcardSample(StringBuilder sb, XsdExtendedElement wildcard, String indent,
+                                     String defaultNamespace) {
+        String namespace = wildcardSampleNamespace(wildcard.getCurrentNode());
+        if (namespace == null) {
+            return;
+        }
+        sb.append(indent);
+        if (namespace.equals(defaultNamespace)) {
+            sb.append("<sample/>\n");
+        } else if (namespace.isEmpty()) {
+            sb.append("<sample xmlns=\"\"/>\n");
+        } else {
+            sb.append("<ext:sample xmlns:ext=\"")
+                    .append(namespace.replace("&", "&amp;").replace("<", "&lt;").replace("\"", "&quot;"))
+                    .append("\"/>\n");
         }
     }
 
@@ -2158,6 +2253,8 @@ public class XsdDocumentationService {
                         traverseNode(child, childXPath, currentXPath, level + 1, visitedOnPath);
                     } else if ("group".equals(childLocalName)) {
                         processGroupReference(child, currentXPath, level + 1, visitedOnPath);
+                    } else if ("any".equals(childLocalName)) {
+                        addWildcardPlaceholder(child, currentXPath, level + 1);
                     }
                 }
             } else {
@@ -2412,6 +2509,8 @@ public class XsdDocumentationService {
                 } else if ("attribute".equals(childLocalName)) {
                     String childXPath = parentXPath + "/@" + childName; // Attributes go on parent, not container
                     traverseNode(child, childXPath, parentXPath, level + 1, visitedOnPath);
+                } else if ("any".equals(childLocalName)) {
+                    addWildcardPlaceholder(child, containerXPath, level + 1);
                 }
             }
             return; // Done processing this compositor
@@ -2451,6 +2550,9 @@ public class XsdDocumentationService {
                 continue; // Skip normal traverseNode call for containers
             } else if ("group".equals(childLocalName)) {
                 processGroupReference(child, parentXPath, level + 1, visitedOnPath);
+                continue;
+            } else if ("any".equals(childLocalName)) {
+                addWildcardPlaceholder(child, parentXPath, level + 1);
                 continue;
             } else {
                 childXPath = parentXPath; // For other containers
@@ -3142,6 +3244,15 @@ public class XsdDocumentationService {
         String elementName = element.getElementName();
         if (elementName == null || elementName.startsWith("@")) {
             return; // Attributes are handled by their parent
+        }
+
+        if (isWildcardPlaceholder(element)) {
+            int repeatCount = limitRepeatedOccurrences(element, elementRepeatCount(element, maxOccurrences),
+                    repeatedXpaths);
+            for (int i = 0; i < repeatCount; i++) {
+                appendWildcardSample(sb, element, "\t".repeat(indentLevel), emissionDefaultNamespace);
+            }
+            return;
         }
 
         // Skip optional container elements that would be empty
