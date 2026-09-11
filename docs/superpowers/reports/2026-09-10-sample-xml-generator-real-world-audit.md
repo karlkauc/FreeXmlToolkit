@@ -9,7 +9,8 @@ The improvement plan derived from these numbers is
 > **Update (same day):** the plan's four quick wins (A1, A2, D1, F3) are implemented. §1–§10 describe the baseline;
 > §11 has the re-audit. A5 (bounded memory) and A4 (roots from included documents) follow in §12 and §13; §14
 > covers A3 (include resolution) and the defects it exposed; §15 covers F5 (typed values for patterns); §16 covers E
-> (abstract elements and types) and the defects it exposed; §17 covers C (namespace qualification).
+> (abstract elements and types) and the defects it exposed; §17 covers C (namespace qualification); §18 covers the
+> realistic generator's type resolution (R1).
 
 ## 1. Summary
 
@@ -398,6 +399,7 @@ The task skips itself when the corpus folder is absent.
 | 2026-09-11 | F5 typed values for patterns on typed bases (§15) | 28 · 19 | 1,621 · 1,130 (of 1,814: UCI 709 · 566 of 722) | 0 |
 | 2026-09-11 | E abstract elements and types, the defects it exposed, H1/H2 identity values (§16) | 28 · 21 | 1,637 · 1,548 (of 1,672: abstract roots no longer offered) | 0 |
 | 2026-09-11 | C namespace qualification and the defects it exposed (§17) | 30 · 25 | 1,657 · 1,629 (of 1,672) | 0 |
+| 2026-09-11 | R1 type resolution in the realistic generator (§18) | 30 · 24 | 1,658 · 1,637 (of 1,672; realistic 1,657 · 1,634) | 0 |
 
 ## 11. After the quick wins (re-audit, 2026-09-10)
 
@@ -928,3 +930,44 @@ regressions, each fixed test-first (commit `3fe56987`):
 - **Largest remaining cluster:** the realistic generator's SIRI values (100 samples mandatory only, 208 with optional
   elements: empty `NMTOKEN` and `PopulatedStringType` values, `cvc-complex-type.2.2` on simple content). Next: those
   values, then G (choices, required `xs:any`).
+
+## 18. After R1: type resolution in the realistic generator (re-audit, 2026-09-11)
+
+**Cause.** After C, the largest remaining cluster was SIRI 2.2 with the realistic generator: 100 invalid samples with
+mandatory elements only and 208 with optional elements. Nearly all errors were empty values, `cvc-datatype-valid.1.2.1`
+(`''` is not a valid `NMTOKEN`), `cvc-minLength-valid` (`PopulatedStringType`) and `cvc-complex-type.2.2` on simple
+content. The plain generator wrote values at the same paths.
+
+The realistic generator resolved a named type by scanning the element map for an element of the same type name and
+taking that element's type. For a simple-content chain this never reaches a built-in type:
+- `RequestorRef` has type `ParticipantRefStructure`, simple content extending `ParticipantCodeType`, which restricts
+  `NMTOKEN`
+- `Name` has type `NaturalLanguageStringStructure`, simple content extending `PopulatedStringType` (`minLength="1"`)
+
+The value generator then fell back to an empty string.
+
+**Change** (commit `cea64f2d`). The schema processing service hands its namespace-aware type resolution
+(`resolveTypeToBase`, the one the plain generator uses) to the documentation data through a small domain interface,
+`NamedTypeResolver`. The realistic generator uses it; data not produced by the service keeps the element map scan.
+The structural walk still exists in both generators (rest of R1). Test: `SampleXmlRealisticValuesTest`.
+
+**Audit:**
+
+| Measure | plain req | plain opt | realistic req | realistic opt |
+|---|---|---|---|---|
+| First element valid (of 31), §17 → R1 | 30 → 30 | 25 → 24 | 28 → **30** | 23 → **24** |
+| Breadth valid (of 1,672), §17 → R1 | 1,657 → 1,658 | 1,629 → 1,637 | 1,553 → **1,657** | 1,423 → **1,634** |
+| Invalid samples (of 1,672), §17 → R1 | 15 → 14 | 43 → 35 | 119 → **15** | 249 → **38** |
+
+- **The realistic generator is now on par with the plain one** (15 · 38 invalid against 14 · 35).
+- **SIRI 2.2** with the realistic generator: 271 → 370 of 370 (mandatory only), 164 → 351 (with optional elements).
+  SIRI FR-IDF 2 of 2 and KML 145 · 144 of 145 in both realistic modes; FundsXML 4's first element is valid in every
+  mode.
+- Per root, 335 samples turned valid and 9 invalid, all random flips of choice selection and values (datajud, JATS
+  `ruby`, a UCI `hexBinary` of `length="6"`, a KML abstract head without members).
+- **Remaining invalid** (plain, mandatory only: 14): JATS 7 (IDREFs in documents without any ID, 6), XBRL 5 (abstract
+  `item`/`tuple` without members, union and QName values), xmldsig 2 (required `xs:any`, G3).
+- **With optional elements** (plain: 35): SIRI 21 (`cvc-type.3.1.3` and `cvc-enumeration-valid`, not analysed yet),
+  XBRL 6, JATS 3, single samples in INSPIRE, XTCE, UBL and Garmin.
+- **Next:** analyse the SIRI values with optional elements, then G (choices that produce content, required
+  `xs:any`) and IDREFs without any ID.

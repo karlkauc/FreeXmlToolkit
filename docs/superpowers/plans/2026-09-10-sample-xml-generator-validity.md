@@ -93,6 +93,12 @@ Of the 274 invalid samples, the report maps each validation error to one of the 
     `xlink`, also in the app), `fixed`/`default` on attribute references, dk.brics operators in XSD patterns, and
     e-mail patterns that skipped the sampler.
   - Largest remaining cluster: realistic SIRI values (100 · 208 samples). Next: **those values** (F, R1), then G.
+- **Progress after R1 type resolution in the realistic generator** (report §18): first element valid 30 · 24 · 30 · 24,
+  no XML 0; breadth valid 1,658 · 1,637 · 1,657 · 1,634 of 1,672 (invalid 14 · 35 · 15 · 38).
+  - The realistic generator is on par with the plain one; SIRI 2.2 realistic 271 → 370 of 370 (mandatory only),
+    164 → 351 (with optional elements).
+  - Remaining: SIRI with optional elements 21 (`cvc-type.3.1.3`, `cvc-enumeration-valid`, not analysed), XBRL 5–6,
+    JATS IDREFs in documents without any ID (6), xmldsig required `xs:any` (2). Next: **analyse SIRI**, then G.
 
 ## Global Constraints
 
@@ -421,7 +427,12 @@ samples (xlink attributes currently emitted as child elements) valid.
 - [ ] **R1.** The realistic generator produced the same structural failures. It differs only in values: its own,
   weaker `setupTypeResolver` (`ProfiledXmlGeneratorService.java:855`) scans the element map per lookup. Route it
   through `XsdDocumentationService.resolveTypeToBase` and share the structural rendering (D, C, G) instead of keeping
-  two copies of the walk.
+  two copies of the walk. *(in part, 2026-09-11: the realistic generator
+  resolved named types by scanning the element map for an element of the same type name, which never reached the
+  built-in type of a simple-content chain; SIRI `ParticipantRefStructure` → `ParticipantCodeType` → `NMTOKEN` and
+  `NaturalLanguageStringStructure` → `PopulatedStringType` came out empty. The schema processing service now hands its
+  namespace-aware resolver to the documentation data (`NamedTypeResolver`), and the realistic generator uses it;
+  `SampleXmlRealisticValuesTest`. The structural walk still exists twice.)*
 - [ ] **R2.** Seedable randomness for values and choices, so an audit run is reproducible. The datajud first
   element flipped between valid and invalid across runs.
 
