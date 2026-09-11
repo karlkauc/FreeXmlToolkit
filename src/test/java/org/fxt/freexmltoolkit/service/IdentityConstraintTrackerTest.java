@@ -415,6 +415,33 @@ class IdentityConstraintTrackerTest {
         assertNotEquals(firstName, secondName, "later key values stay unique");
     }
 
+    @Test
+    void numericValuesOfOneConstraintNeverRepeatAcrossFieldPaths() {
+        // Garmin StepIdMustBeUnique selects .//* with the field StepId: Step/StepId and Child/StepId advance different
+        // random bases with one counter, so 7 + 1 met 8 + 0
+        Map<String, XsdExtendedElement> elementMap = new LinkedHashMap<>();
+        XsdExtendedElement workout = createElementWithChildren("/Root/Workout");
+        IdentityConstraint unique = new IdentityConstraint(IdentityConstraint.Type.UNIQUE, "StepIdMustBeUnique");
+        unique.setSelector("Step|Step/Child");
+        unique.addField("StepId");
+        workout.setIdentityConstraints(List.of(unique));
+        elementMap.put("/Root/Workout", workout);
+        elementMap.put("/Root/Workout/Step", createElementWithChildren("/Root/Workout/Step"));
+        elementMap.put("/Root/Workout/Step/StepId",
+                createLeafElement("/Root/Workout/Step/StepId", "xs:positiveInteger"));
+        elementMap.put("/Root/Workout/Step/Child", createElementWithChildren("/Root/Workout/Step/Child"));
+        elementMap.put("/Root/Workout/Step/Child/StepId",
+                createLeafElement("/Root/Workout/Step/Child/StepId", "xs:positiveInteger"));
+        tracker.scanConstraints(elementMap);
+
+        List<String> values = new ArrayList<>();
+        for (String[] call : new String[][]{{"Step", "7"}, {"Step/Child", "6"}, {"Step/Child", "6"}, {"Step", "7"}}) {
+            String xpath = "/Root/Workout/" + call[0] + "/StepId";
+            values.add(tracker.getUniqueValue(xpath, call[1], elementMap.get(xpath)));
+        }
+        assertEquals(values.size(), new HashSet<>(values).size(), "distinct values: " + values);
+    }
+
     private Map<String, XsdExtendedElement> buildSimpleKeyMap() {
         Map<String, XsdExtendedElement> elementMap = new LinkedHashMap<>();
 

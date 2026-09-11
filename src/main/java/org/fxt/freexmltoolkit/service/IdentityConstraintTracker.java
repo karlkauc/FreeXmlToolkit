@@ -323,6 +323,19 @@ public class IdentityConstraintTracker {
             }
         }
 
+        // Two field paths of one constraint advance different bases with one counter (Garmin StepIdMustBeUnique on
+        // Step/StepId and Child/StepId met at 8): a numeric or typed value already used is advanced until it is new
+        List<String> used = generatedValues.getOrDefault(constraintName, List.of());
+        for (int step = 0; used.contains(uniqueValue) && step < MAX_DISTINCT_STEPS; step++) {
+            String next = isNumeric(uniqueValue)
+                    ? String.valueOf(Long.parseLong(uniqueValue.trim()) + 1)
+                    : incrementedTypedValue(uniqueValue, 1);
+            if (next == null) {
+                break;
+            }
+            uniqueValue = next;
+        }
+
         // Track generated value for KEYREF resolution
         generatedValues.computeIfAbsent(constraintName, k -> new ArrayList<>()).add(uniqueValue);
 
@@ -439,6 +452,9 @@ public class IdentityConstraintTracker {
         }
         return step.substring(step.indexOf(':') + 1);
     }
+
+    /** Steps a repeated numeric or typed key value is advanced at most to find an unused one. */
+    private static final int MAX_DISTINCT_STEPS = 1000;
 
     /** Attempts to sample a pattern value that the constraint has not used yet. */
     private static final int DISTINCT_PATTERN_ATTEMPTS = 20;
