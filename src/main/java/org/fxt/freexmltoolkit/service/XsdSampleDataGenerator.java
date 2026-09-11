@@ -542,10 +542,9 @@ public class XsdSampleDataGenerator {
             return true;
         }
 
-        // Email-like patterns (with + or *) cause recursion issues in Generex, and very long
-        // patterns are often problematic too.
-        return (pattern.contains("@") && (pattern.contains("+") || pattern.contains("*")))
-                || pattern.length() > 500;
+        // Very long patterns are often problematic too. (E-mail patterns such as .+@.+ are no longer excluded: the
+        // bounded sampler handles them, the fallback wrote "@" for KML atomEmailAddress.)
+        return pattern.length() > 500;
     }
 
     /**

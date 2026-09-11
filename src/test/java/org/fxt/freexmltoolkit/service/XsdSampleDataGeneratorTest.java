@@ -112,6 +112,23 @@ class XsdSampleDataGeneratorTest {
         }
     }
 
+    @ParameterizedTest(name = "{0}")
+    @org.junit.jupiter.params.provider.ValueSource(strings = {".+@.+", "[^@]+@[^@]+\\.[a-z]{2,}"})
+    @DisplayName("E-mail patterns are sampled, not replaced by the fallback")
+    void emailPatternsYieldMatchingValues(String pattern) {
+        // KML atomEmailAddress .+@.+: a pattern with '@' and '+' was classed as too complex for Generex and the
+        // fallback wrote "@"; the bounded sampler handles it
+        XsdExtendedElement element = new XsdExtendedElement();
+        element.setElementType("xs:string");
+        element.setRestrictionInfo(new XsdExtendedElement.RestrictionInfo("xs:string",
+                Map.of("pattern", List.of(pattern))));
+
+        for (int i = 0; i < 20; i++) {
+            String value = generator.generate(element);
+            assertTrue(value.matches(pattern), "'" + value + "' does not match " + pattern);
+        }
+    }
+
     @ParameterizedTest(name = "pattern with maxLength {1}")
     @org.junit.jupiter.params.provider.MethodSource("largeRepetitionPatterns")
     @DisplayName("Patterns with large repetition bounds generate a short matching value quickly")
