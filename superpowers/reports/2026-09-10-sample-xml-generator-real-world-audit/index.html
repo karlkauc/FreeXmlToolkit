@@ -2042,6 +2042,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#16-after-e-abstract-elements-and-types-and-what-it-exposed-re-audit-2026-09-11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16. After E: abstract elements and types, and what it exposed (re-audit, 2026-09-11)
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2070,7 +2081,8 @@ real-world schemas, including optional elements, and validates every generated f
 <blockquote>
 <p><strong>Update (same day):</strong> the plan's four quick wins (A1, A2, D1, F3) are implemented. §1–§10 describe the baseline;
 §11 has the re-audit. A5 (bounded memory) and A4 (roots from included documents) follow in §12 and §13; §14
-covers A3 (include resolution) and the defects it exposed; §15 covers F5 (typed values for patterns).</p>
+covers A3 (include resolution) and the defects it exposed; §15 covers F5 (typed values for patterns); §16 covers E
+(abstract elements and types) and the defects it exposed.</p>
 </blockquote>
 <h2 id="1-summary">1. Summary<a class="headerlink" href="#1-summary" title="Permanent link">&para;</a></h2>
 <p><strong>Corpus:</strong> <code>src/test/resources/xsd/real-world</code>, 35 schemas that users loaded into xsd-viewer.online by URL, each with
@@ -3249,6 +3261,13 @@ run.</p>
 <td>1,621 · 1,130 (of 1,814: UCI 709 · 566 of 722)</td>
 <td>0</td>
 </tr>
+<tr>
+<td>2026-09-11</td>
+<td>E abstract elements and types, the defects it exposed, H1/H2 identity values (§16)</td>
+<td>28 · 21</td>
+<td>1,637 · 1,548 (of 1,672: abstract roots no longer offered)</td>
+<td>0</td>
+</tr>
 </tbody>
 </table>
 <h2 id="11-after-the-quick-wins-re-audit-2026-09-10">11. After the quick wins (re-audit, 2026-09-10)<a class="headerlink" href="#11-after-the-quick-wins-re-audit-2026-09-10" title="Permanent link">&para;</a></h2>
@@ -4092,6 +4111,244 @@ SIRI realistic with optional elements).</p>
   in 83 make WP E the largest cluster. With optional elements, <code>cvc-id.1</code> (IDREF without ID, 275 samples, nearly all
   JATS, WP H) comes first, then E.</li>
 <li><strong>Next:</strong> E (abstract roots, substitution groups, <code>xsi:type</code> for abstract types), then H.</li>
+</ul>
+<h2 id="16-after-e-abstract-elements-and-types-and-what-it-exposed-re-audit-2026-09-11">16. After E: abstract elements and types, and what it exposed (re-audit, 2026-09-11)<a class="headerlink" href="#16-after-e-abstract-elements-and-types-and-what-it-exposed-re-audit-2026-09-11" title="Permanent link">&para;</a></h2>
+<p><strong>Change</strong> (commit <code>684dc174</code>). An instance may contain neither an abstract element nor an element of an abstract type
+without <code>xsi:type</code>. While expanding for a sample (the documentation model is unchanged):
+- <strong>E1 substitution groups:</strong> a reference to an abstract element expands a concrete member of its substitution group.
+  Abstract members are searched too, nearest first, preferring the head's namespace and skipping members already on
+  the current path. A member from another namespace gets that namespace's prefix.
+- <strong>E2 abstract types:</strong> an element whose type is abstract expands the nearest concrete derived global type. Both
+  generators emit it as <code>xsi:type</code> and declare its prefix on the root when the type is foreign.
+- <strong>E3 abstract roots:</strong> abstract global elements are no longer offered as roots, and the default root is the first
+  non-abstract global element. The breadth denominator therefore shrinks (KML 269 → 145 roots, SIRI 2.2 385 → 370,
+  XBRL 10 → 8, INSPIRE 13 → 12).</p>
+<p>Test: <code>SampleXmlAbstractContentTest</code> (substitution through an abstract member, a recursive member, <code>xsi:type</code> on a
+child and on the root, GML heads with members in a third namespace).</p>
+<p><strong>First audit</strong> (1,672 validated samples per combination; F5 had 1,814 including the abstract roots):</p>
+<table>
+<thead>
+<tr>
+<th>Measure</th>
+<th>plain req</th>
+<th>plain opt</th>
+<th>realistic req</th>
+<th>realistic opt</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>First element valid (of 31), F5 → E</td>
+<td>28 → 28</td>
+<td>19 → 20</td>
+<td>27 → 27</td>
+<td>19 → 20</td>
+</tr>
+<tr>
+<td>Breadth valid, F5 → E</td>
+<td>1,621 → 1,630</td>
+<td>1,130 → 1,173</td>
+<td>1,520 → 1,529</td>
+<td>990 → 1,004</td>
+</tr>
+<tr>
+<td>Samples with <code>cvc-elt.2</code> (abstract element)</td>
+<td>143 → <strong>0</strong></td>
+<td>173 → 3</td>
+<td>142 → 1</td>
+<td>175 → 2</td>
+</tr>
+<tr>
+<td>Samples with <code>cvc-type.2</code> (abstract type)</td>
+<td>83 → <strong>0</strong></td>
+<td>154 → 1</td>
+<td>83 → 0</td>
+<td>149 → 1</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>Fixed schemas:</strong> KML 145 of 145 (plain, mandatory only; F5 144 of 269), rim 43 of 43 in every mode, SIRI 2.2
+  365 of 370, UCI 714 of 722.</li>
+<li><strong>Left:</strong> heads without any concrete member in the corpus: INSPIRE <code>bu-base:Building</code> and <code>BuildingPart</code> (the
+  members live in modules the Addresses schema does not import), KML <code>UpdateOpExtensionGroup</code> and XBRL <code>item</code>/<code>tuple</code>
+  (filled only by taxonomies).</li>
+</ul>
+<p><strong>Exposed defects.</strong> Per root, 177 samples turned valid and 100 turned invalid. 79 of those were UCI with optional
+elements, where concrete types now bring in content that older defects break. Each was fixed test-first (commit
+<code>7b80b666</code>):</p>
+<table>
+<thead>
+<tr>
+<th>Defect</th>
+<th>Evidence</th>
+<th>Fix</th>
+<th>Test</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>G4: repetition capped below <code>minOccurs</code></td>
+<td>252 invalid UCI samples with optional elements (<code>Vertex</code> ≥ 3, <code>KnotVector</code> ≥ 4, <code>Covariance</code> 6–120 at maximum 2)</td>
+<td>elements and choices repeat at least <code>minOccurs</code> times</td>
+<td><code>SampleXmlOccurrenceBoundsTest</code></td>
+</tr>
+<tr>
+<td>Bounds of an element reference inherited by all its content</td>
+<td>found by that test: a child of a <code>ref minOccurs="4"</code> repeated four times</td>
+<td>the referenced declaration consumes the bounds; documentation cardinalities of such children are corrected too</td>
+<td><code>SampleXmlOccurrenceBoundsTest</code></td>
+</tr>
+<tr>
+<td>Pattern sampler ignores the minimum length while walking</td>
+<td>UCI <code>NITF_DeclassificationExemptionType</code> (length 4): the walk took <code>[DNIO]</code>, ended at length 1, and the fallback concatenated all alternatives (<code>X1 25X9I</code>)</td>
+<td>transitions that can no longer reach the minimum length are skipped</td>
+<td><code>BoundedPatternSamplerTest</code></td>
+</tr>
+<tr>
+<td>A repeated compositor counted as recursion</td>
+<td>UCI <code>StoreList</code> (type <code>StoreLoadoutItemPET</code>) inside <code>StoreLoadoutItemType</code> was emitted without its required <code>Location</code></td>
+<td>while expanding for a sample, only element declarations and groups count as recursion</td>
+<td><code>SampleXmlAbstractContentTest</code></td>
+</tr>
+</tbody>
+</table>
+<p>The other turned-invalid samples are the known random flips of choice selection and realistic values (SIRI dates,
+XBRL unions, datajud).</p>
+<p><strong>Second audit</strong> (after <code>7b80b666</code>):</p>
+<table>
+<thead>
+<tr>
+<th>Measure</th>
+<th>plain req</th>
+<th>plain opt</th>
+<th>realistic req</th>
+<th>realistic opt</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Breadth valid (of 1,672), first E audit → second</td>
+<td>1,630 → 1,636</td>
+<td>1,173 → <strong>1,290</strong></td>
+<td>1,529 → 1,537</td>
+<td>1,004 → <strong>1,124</strong></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>UCI 2.5:</strong> 714 → 722 of 722 (plain, mandatory only), 593 → 718 with optional elements.</li>
+<li><strong>New regressions</strong>, all because element references now repeat with their own <code>maxOccurs</code>:</li>
+<li>duplicate IDs (<code>cvc-id.2</code>): KML with optional elements 139 → 124, xmldsig 22 → 19 (<code>Reference/@Id</code>)</li>
+<li>duplicate <code>unique</code> values: SIRI <code>KeyValuePair_unique</code> and <code>TypeOfValue_unique</code>, Garmin
+    <code>RunningSubFolderNamesMustBeUnique</code></li>
+<li>no XML for UBL 2.1 <code>Invoice</code> with optional elements: 470 references with <code>maxOccurs="unbounded"</code> doubled the
+    document per level until it exceeded the 50 MB output limit</li>
+</ul>
+<p><strong>Fixes</strong> (commit <code>7f3d07ec</code>, test-first):</p>
+<table>
+<thead>
+<tr>
+<th>Defect</th>
+<th>Fix</th>
+<th>Test</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>H1: one ID value per schema node, repeated for every occurrence; IDREFs to IDs that were never emitted</td>
+<td>both generators generate <code>xs:ID</code> values per occurrence and point <code>xs:IDREF(S)</code> at an ID of the same document; an IDREF before any ID reserves the next one, and references left dangling point at the first emitted ID</td>
+<td><code>SampleXmlIdentityValuesTest</code></td>
+</tr>
+<tr>
+<td>H2: selector and field paths with prefixes, <code>.//</code>, <code>*</code> or <code>\|</code> never matched, so their fields got no unique values</td>
+<td><code>IdentityConstraintTracker</code> resolves them against the element map</td>
+<td><code>IdentityConstraintTrackerTest</code>, <code>SampleXmlIdentityValuesTest</code></td>
+</tr>
+<tr>
+<td>Repeated ancestors multiply optional repetitions</td>
+<td>repetitions beyond <code>minOccurs</code> are emitted only the first time an XPath is emitted in a document; later emissions get <code>max(minOccurs, 1)</code></td>
+<td><code>SampleXmlOccurrenceBoundsTest</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Third audit</strong> (after <code>7f3d07ec</code>):</p>
+<table>
+<thead>
+<tr>
+<th>Measure</th>
+<th>plain req</th>
+<th>plain opt</th>
+<th>realistic req</th>
+<th>realistic opt</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>First element valid (of 31), F5 → now</td>
+<td>28 → 28</td>
+<td>19 → <strong>21</strong></td>
+<td>27 → 27</td>
+<td>19 → 19</td>
+</tr>
+<tr>
+<td>Breadth valid (of 1,672), second audit → now</td>
+<td>1,636 → 1,637</td>
+<td>1,290 → <strong>1,548</strong></td>
+<td>1,537 → 1,537</td>
+<td>1,124 → <strong>1,390</strong></td>
+</tr>
+<tr>
+<td>Samples with <code>cvc-id.1</code> (IDREF without ID), second audit → now</td>
+<td>6 → 6</td>
+<td>268 → <strong>0</strong></td>
+<td>5 → 5</td>
+<td>274 → <strong>0</strong></td>
+</tr>
+</tbody>
+</table>
+<p>No schema is without XML: UBL 2.1 with optional elements generates again (still invalid).</p>
+<p><strong>The whole round, F5 → now</strong> (invalid samples among every offered root; F5 validated 1,814 samples per
+combination including the abstract roots, now 1,672):</p>
+<table>
+<thead>
+<tr>
+<th>Generator / mode</th>
+<th>Invalid: F5 → now</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>plain, mandatory only</td>
+<td>193 → <strong>35</strong></td>
+</tr>
+<tr>
+<td>plain, with optional elements</td>
+<td>684 → <strong>124</strong></td>
+</tr>
+<tr>
+<td>realistic, mandatory only</td>
+<td>294 → <strong>135</strong></td>
+</tr>
+<tr>
+<td>realistic, with optional elements</td>
+<td>824 → <strong>282</strong></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>Per schema:</strong> UCI 722 · 719 of 722 (plain, mandatory · optional), JATS 295 · 275 of 308, KML 145 · 141 of 145,
+  rim 43 of 43 and xmldsig 22 of 24 in every mode.</li>
+<li><strong>No schema regressed</strong> against F5 beyond the known random flips (datajud one sample, SIRI realistic mandatory-only
+  271 → 269).</li>
+<li><strong>Remaining, plain, mandatory only (35):</strong> JATS 13 (<code>xlink</code> attributes on foreign-namespace references, C3, and
+  IDREFs in documents without any ID), INSPIRE 6 and AEAT Modelo 170 3 (namespace qualification, C), XBRL 6 (abstract
+  <code>item</code>/<code>tuple</code> without members, union values), SIRI 4.</li>
+<li><strong>Remaining with optional elements:</strong> SIRI 58 (plain, mostly <code>cvc-complex-type.2.4.a</code>, not analysed yet) and 207
+  (realistic: values that break their facets, <code>cvc-datatype-valid.1.2.1</code>, <code>cvc-minLength-valid</code>,
+  <code>cvc-complex-type.2.2</code>), JATS 33 · 26 (<code>xlink</code> attributes).</li>
+<li><strong>Next:</strong> C (namespace qualification, including foreign attributes such as <code>xlink:href</code>), then the SIRI values of
+  the realistic generator.</li>
 </ul>
 
 
