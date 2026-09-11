@@ -9,7 +9,7 @@ The improvement plan derived from these numbers is
 > **Update (same day):** the plan's four quick wins (A1, A2, D1, F3) are implemented. §1–§10 describe the baseline;
 > §11 has the re-audit. A5 (bounded memory) and A4 (roots from included documents) follow in §12 and §13; §14
 > covers A3 (include resolution) and the defects it exposed; §15 covers F5 (typed values for patterns); §16 covers E
-> (abstract elements and types) and the defects it exposed.
+> (abstract elements and types) and the defects it exposed; §17 covers C (namespace qualification).
 
 ## 1. Summary
 
@@ -397,6 +397,7 @@ The task skips itself when the corpus folder is absent.
 | 2026-09-11 | A3 includes, B inherited attributes, G6 group refs, D4, A6, A2 element refs (§14) | 26 · 20 | 913 · 571 (of 1,814: SIRI offers 385 roots, UCI completes) | 0 |
 | 2026-09-11 | F5 typed values for patterns on typed bases (§15) | 28 · 19 | 1,621 · 1,130 (of 1,814: UCI 709 · 566 of 722) | 0 |
 | 2026-09-11 | E abstract elements and types, the defects it exposed, H1/H2 identity values (§16) | 28 · 21 | 1,637 · 1,548 (of 1,672: abstract roots no longer offered) | 0 |
+| 2026-09-11 | C namespace qualification and the defects it exposed (§17) | 30 · 25 | 1,657 · 1,629 (of 1,672) | 0 |
 
 ## 11. After the quick wins (re-audit, 2026-09-10)
 
@@ -855,3 +856,75 @@ combination including the abstract roots, now 1,672):
   `cvc-complex-type.2.2`), JATS 33 · 26 (`xlink` attributes).
 - **Next:** C (namespace qualification, including foreign attributes such as `xlink:href`), then the SIRI values of
   the realistic generator.
+
+## 17. After C: namespace qualification (re-audit, 2026-09-11)
+
+**Change** (commit `f25d1944`). Samples used the root's default namespace for everything that did not come through
+a prefixed element reference. While expanding, every element and attribute now records the namespace its
+declaration gives it:
+- a global declaration takes the target namespace of its document
+- a local declaration takes it only when qualified, by `form` or by its own document's `elementFormDefault` or
+  `attributeFormDefault`; otherwise it has no namespace
+
+Both generators keep the main target namespace as the default namespace and track the default in scope. An
+unqualified local element gets `xmlns=""`, a main-namespace element below it `xmlns="…"` again, and every foreign
+namespace one schema-wide prefix. Global attributes resolve, so `ref="xlink:href"` and `ref="xml:lang"` are emitted
+with their prefix, and `use="required"` on the reference counts. Test: `SampleXmlNamespaceQualificationTest` (AEAT,
+INSPIRE, SIRI FR-IDF, JATS and XBRL constructs, `xml:lang`).
+
+**First audit:**
+
+| Measure | plain req | plain opt | realistic req | realistic opt |
+|---|---|---|---|---|
+| First element valid (of 31), §16 → C | 28 → **30** | 21 → **23** | 27 → **29** | 19 → **20** |
+| Breadth valid (of 1,672), §16 → C | 1,637 → 1,649 | 1,548 → 1,563 | 1,537 → 1,546 | 1,390 → 1,392 |
+| Samples with an element in the wrong namespace | 10 → **0** | 66 → **0** | 10 → **0** | 27 → **0** |
+
+- **Fixed schemas:** AEAT Modelo 170 3 of 3 in every mode (was 0), INSPIRE Addresses 12 of 12 with mandatory elements
+  only (was 6), SIRI FR-IDF 2 of 2 (plain), SIRI 2.2 with optional elements 312 → 331 (plain).
+- "Wrong namespace" counts samples whose `cvc-complex-type.2.4.a/b` error names an expected element with the same
+  local name in another namespace.
+
+**Exposed defects.** Per root, 103 samples turned valid and 58 invalid. Three older defects were behind the
+regressions, each fixed test-first (commit `3fe56987`):
+
+| Defect | Evidence | Fix | Test |
+|---|---|---|---|
+| An import whose relative `schemaLocation` names a missing file was not looked up in the Schema Library | JATS imports `standard-modules/xlink.xsd`; its copy is mapped by namespace, so every `xlink:href`, `xml:lang` and `xml:base` stayed unresolved (millions of log warnings per run). Affects the app too | resolve such an import by namespace through the Schema Library, without download | `SampleXmlNamespaceQualificationTest` |
+| `fixed`/`default` on an attribute reference ignored | INSPIRE `<attribute ref="xlink:type" fixed="simple"/>` got `locator` or `resource` once the attribute resolved | the reference's value wins, in the element map and in both generators | `SampleXmlNamespaceQualificationTest` |
+| dk.brics operators in XSD patterns | KML `atomEmailAddress` `.+@.+`: `@` is the "any string" operator, the sampler failed and the fallback wrote `@` | parse without automaton operators, so `@`, `&`, `~`, `#` and `<` are literals | `BoundedPatternSamplerTest` |
+
+**Second audit** (after `3fe56987`):
+
+| Measure | plain req | plain opt | realistic req | realistic opt |
+|---|---|---|---|---|
+| Breadth valid (of 1,672), first C audit → second | 1,649 → 1,653 | 1,563 → **1,606** | 1,546 → 1,554 | 1,392 → **1,424** |
+| Samples missing a qualified attribute (`cvc-complex-type.4`) | 4 → **0** | 32 → **0** | 6 → **0** | 24 → **0** |
+
+- **JATS** with optional elements 271 → 303 of 308 (plain), 283 → 303 (realistic); its worker log went from 11.5
+  million "could not be resolved" warnings to none.
+- **INSPIRE** with optional elements 0 → 11 of 12; **FundsXML 4**'s first element is now valid with optional elements
+  too.
+- Per root, 112 samples turned valid and 23 invalid, all known random flips of choice selection and values.
+- **One exposed defect left:** KML `atom:email` (`.+@.+`) still came out as `@`. `XsdSampleDataGenerator` classed a
+  pattern with `@` and `+` as "too complex" (a heuristic from the Generex days) and went straight to its fallback,
+  so the sampler fix never applied.
+
+**Third audit** (after `389dfb59`, which lets e-mail patterns reach the sampler):
+
+| Measure | plain req | plain opt | realistic req | realistic opt |
+|---|---|---|---|---|
+| First element valid (of 31), §16 → now | 28 → **30** | 21 → **25** | 27 → **28** | 19 → **23** |
+| Breadth valid (of 1,672), §16 → now | 1,637 → **1,657** | 1,548 → **1,629** | 1,537 → 1,553 | 1,390 → 1,423 |
+| Invalid samples (of 1,672), §16 → now | 35 → **15** | 124 → **43** | 135 → 119 | 282 → 249 |
+
+- **Samples with an element in the wrong namespace or a missing qualified attribute:** 0 in every mode (§16: 17 · 109
+  · 17 · 56). KML `atomEmailAddress` values are valid again.
+- **Per schema:** AEAT 3 of 3 and SIRI FR-IDF 2 of 2 (plain) in every run; INSPIRE 12 · 11 of 12; JATS 300 · 301 of
+  308 (plain), 301 · 303 (realistic); KML 145 of 145 in both plain modes; SIRI 2.2 370 · 350 of 370 (plain).
+- **No schema regressed** against §16 beyond the known random flips (datajud, one sample).
+- **Remaining invalid** (plain, mandatory only: 15): JATS 8, XBRL 5 (abstract `item`/`tuple` without members, union and
+  QName values), xmldsig 2 (required `xs:any`, G3).
+- **Largest remaining cluster:** the realistic generator's SIRI values (100 samples mandatory only, 208 with optional
+  elements: empty `NMTOKEN` and `PopulatedStringType` values, `cvc-complex-type.2.2` on simple content). Next: those
+  values, then G (choices, required `xs:any`).

@@ -85,6 +85,14 @@ Of the 274 invalid samples, the report maps each validation error to one of the 
     (G2), identity-constraint paths with prefixes, `.//`, `*` and `|` (H2), and exponential repetition (UBL 2.1).
   - Largest remaining clusters: namespace qualification including foreign attributes (C: JATS `xlink`, INSPIRE,
     AEAT) and realistic values for SIRI with optional elements (207 samples). Next: **C**, then those values.
+- **Progress after C and the defects it exposed** (report §17): first element valid 30 · 25 · 28 · 23, no XML 0;
+  breadth valid 1,657 · 1,629 · 1,553 · 1,423 of 1,672 (invalid 35 · 124 · 135 · 282 → 15 · 43 · 119 · 249).
+  - Samples with an element in the wrong namespace or a missing qualified attribute → 0 in every mode; AEAT 3 of 3,
+    INSPIRE 12 of 12, JATS 301 of 308 and KML 145 of 145 with optional elements (plain).
+  - Fixed on the way: imports of a missing relative file now resolve through the Schema Library by namespace (JATS
+    `xlink`, also in the app), `fixed`/`default` on attribute references, dk.brics operators in XSD patterns, and
+    e-mail patterns that skipped the sampler.
+  - Largest remaining cluster: realistic SIRI values (100 · 208 samples). Next: **those values** (F, R1), then G.
 
 ## Global Constraints
 
@@ -250,25 +258,36 @@ default namespace unless they came through a prefixed element `ref`. Examples:
 - XBRL `xlink:type`/`xlink:href` attribute refs are emitted as *child elements*, because `traverseNode` routes any
   prefixed `ref` to `processExternalNamespaceReference` (`:1557-1565`).
 
-- [ ] **C1. Namespace per particle.** Record on each `XsdExtendedElement` the namespace it must be emitted in:
+- [x] **C1. Namespace per particle.** Record on each `XsdExtendedElement` the namespace it must be emitted in:
   - global element: the target namespace of its declaring document
   - local element: the declaring document's target namespace if `form="qualified"` or that document's
     `elementFormDefault="qualified"`, else no namespace
   
   `elementFormDefault`/`attributeFormDefault` are read today (`:2950-2951`) but never used, and only for the main
-  document.
-- [ ] **C2. Rendering.** Declare one prefix per used namespace on the root (reuse the schema's prefixes, generate
+  document. *(2026-09-11: every element and attribute of a sample expansion records the namespace its declaration
+  gives it, using the declaring document's `form` defaults; `XsdExtendedElement.getEmitNamespace()`.)*
+- [x] **C2. Rendering.** Declare one prefix per used namespace on the root (reuse the schema's prefixes, generate
   `ns1…` on clashes). Write every element as `prefix:local`. For no-namespace local elements under a default-namespace
   root, either render the root with a prefix or emit `xmlns=""`. Cover `collectUsedNamespaces` (`:2138` today, which
-  skips attributes) and the profiled generator.
-- [ ] **C3. Attribute refs to other namespaces.** *(in part, 2026-09-10: a prefixed `attribute`, `attributeGroup`
+  skips attributes) and the profiled generator. *(2026-09-11: both generators keep the main target namespace as the
+  default and track the default in scope: an unqualified local element gets `xmlns=""`, a main-namespace element
+  below it `xmlns="…"`; foreign namespaces get one schema-wide prefix each (the declaring document's, another of the
+  schema's, or a generated `nsN`, never shared); the collectors include attributes, also optional ones with a fixed or
+  default value.)*
+- [x] **C3. Attribute refs to other namespaces.** *(in part, 2026-09-10: a prefixed `attribute`, `attributeGroup`
   or `group` ref is no longer emitted as an element (`SampleXmlForeignContentTest`); imported attribute groups expand
   to attributes (B2). Still open: emitting a foreign attribute with a declared prefix; `xlink:href` refs are dropped.)*
   - Handle `xs:attribute ref="xlink:href"` and imported `attributeGroup`s as attributes with a declared prefix, never
     as elements.
   - Qualified local attributes (`attributeFormDefault`) get a prefix too.
   - `xml:lang` uses the reserved `xml` prefix.
-- [ ] **C4.** Golden tests:
+  - *(2026-09-11: global attributes resolve, so `ref="xlink:href"` and `ref="xml:lang"` are emitted with their prefix
+    (`xml` never declared), `use="required"` on the reference counts, and qualified local attributes get a prefix;
+    `SampleXmlNamespaceQualificationTest`. Found by the C re-audit: a reference's own `fixed` or `default` wins over
+    the referenced declaration's (INSPIRE `xlink:type fixed="simple"`), and an import whose relative `schemaLocation`
+    names a missing file resolves through the Schema Library by namespace (JATS `standard-modules/xlink.xsd`, which
+    left every `xlink:href` unresolved; also affects the app).)*
+- [x] **C4.** Golden tests *(`SampleXmlNamespaceQualificationTest`; chameleon includes in `SampleXmlIncludedRootsTest`)*:
   - a type imported from namespace B used by an element in A, with B qualified and with B unqualified
   - a chameleon include
   - an `xlink` attribute group
@@ -349,7 +368,10 @@ samples (xlink attributes currently emitted as child elements) valid.
   invalid. Test: `XsdSampleDataGeneratorTest.patternOnTypedBaseYieldsAValidTypedValue`. 2026-09-11, commit
   `7b80b666`: the sampler skips transitions that can no longer reach the minimum length; UCI
   `NITF_DeclassificationExemptionType` (length 4) had fallen back to concatenated alternatives. Test:
-  `BoundedPatternSamplerTest.alternativesThatCannotReachTheMinimumLengthAreAvoided`.)*
+  `BoundedPatternSamplerTest.alternativesThatCannotReachTheMinimumLengthAreAvoided`. Found by the C re-audit: the
+  sampler parses patterns without the dk.brics automaton operators, so `@`, `&`, `~`, `#` and `<` are literals (KML
+  `.+@.+` had produced `@`), and `XsdSampleDataGenerator` no longer sends patterns with `@` and `+` straight to its
+  fallback, a Generex-era heuristic (`XsdSampleDataGeneratorTest.emailPatternsYieldMatchingValues`).)*
   - Restrict Generex output to printable characters. The XTCE samples contain unassigned or control code points;
     one realistic XTCE sample is not even well-formed.
   - Intersect patterns across the derivation chain (all steps must match).
