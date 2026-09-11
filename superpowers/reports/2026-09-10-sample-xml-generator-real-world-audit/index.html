@@ -2130,6 +2130,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#24-after-h2-key-values-of-their-own-type-re-audit-2026-09-11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        24. After H2: key values of their own type (re-audit, 2026-09-11)
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2162,7 +2173,7 @@ covers A3 (include resolution) and the defects it exposed; §15 covers F5 (typed
 (abstract elements and types) and the defects it exposed; §17 covers C (namespace qualification); §18 covers the
 realistic generator's type resolution (R1); §19 covers inherited facets (F4); §20 covers required wildcards (G3);
 §21 covers QName, binary and union values (F1, F2) and IDs for references (H); §22 covers particles with the same
-name in one content model; §23 covers choices that pick options with complete content (G1).</p>
+name in one content model; §23 covers choices that pick options with complete content (G1); §24 covers key values of their own type (H2).</p>
 </blockquote>
 <h2 id="1-summary">1. Summary<a class="headerlink" href="#1-summary" title="Permanent link">&para;</a></h2>
 <p><strong>Corpus:</strong> <code>src/test/resources/xsd/real-world</code>, 35 schemas that users loaded into xsd-viewer.online by URL, each with
@@ -3395,6 +3406,13 @@ run.</p>
 <td>G1 choices pick options with complete content (§23)</td>
 <td>30 · 27</td>
 <td>1,672 · 1,668 (of 1,672; realistic 1,672 · 1,669)</td>
+<td>0</td>
+</tr>
+<tr>
+<td>2026-09-11</td>
+<td>H2 key values of their own type (§24)</td>
+<td>30 · 29</td>
+<td>1,672 · 1,670 (of 1,672; realistic 1,672 · 1,671)</td>
 <td>0</td>
 </tr>
 </tbody>
@@ -5074,6 +5092,64 @@ INSPIRE, both generators and modes, 16 runs each).</p>
 <li>UCI, 1 plain sample: <code>AngleType</code> with <code>maxInclusive="3.141592653589793E0"</code> got <code>3.1416</code>, a random value rounded
     past the bound (F)</li>
 <li><strong>Next:</strong> H2, key values of their own type.</li>
+</ul>
+<h2 id="24-after-h2-key-values-of-their-own-type-re-audit-2026-09-11">24. After H2: key values of their own type (re-audit, 2026-09-11)<a class="headerlink" href="#24-after-h2-key-values-of-their-own-type-re-audit-2026-09-11" title="Permanent link">&para;</a></h2>
+<p><strong>Cause.</strong> Three identity constraints broke, in XTCE and Garmin only:
+- XTCE <code>containerNameKey</code> and <code>parameterNameKey</code> use <code>@name</code> of <code>NameType</code>, a pattern on <code>normalizedString</code>. A suffix
+  would break the pattern, so the key tracker kept the sampled name, and every repetition of the element repeated it.
+- Garmin <code>ActivityIdMustBeUnique</code> uses <code>Id</code> of type <code>xsd:dateTime</code>. The tracker appended <code>_1</code>, which is no date-time.
+- XTCE <code>messageNameKey</code> selects <code>MessageSet/*</code>. <code>MessageSetType</code> extends <code>OptionalNameDescriptionType</code>, so the selector
+  also picks the optional <code>LongDescription</code> and <code>AliasSet</code>, which have no <code>name</code>. Any <code>MessageSet</code> with a description
+  violates the key.</p>
+<p><strong>Change.</strong>
+- A repeated key value of a date-time, time, date or decimal is advanced in its own lexical space: seconds, days, or 1.
+- A repeated value of a string pattern is sampled again until it is new; a typed pattern value is advanced if the
+  result still matches.
+- The tracker records elements a key selects in which one of its fields cannot be found. Both generators leave such an
+  optional element out.
+- Tests: <code>SampleXmlIdentityKeysTest</code> (both generators and modes) and three cases in <code>IdentityConstraintTrackerTest</code>.</p>
+<p><strong>Audit</strong> (after <code>5cdf327e</code>):</p>
+<table>
+<thead>
+<tr>
+<th>Measure</th>
+<th>plain req</th>
+<th>plain opt</th>
+<th>realistic req</th>
+<th>realistic opt</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>First element valid (of 31), §23 → now</td>
+<td>30 → 30</td>
+<td>27 → <strong>29</strong></td>
+<td>30 → 30</td>
+<td>27 → <strong>29</strong></td>
+</tr>
+<tr>
+<td>Breadth valid (of 1,672), §23 → now</td>
+<td>1,672 → 1,672</td>
+<td>1,668 → <strong>1,670</strong></td>
+<td>1,672 → 1,672</td>
+<td>1,669 → <strong>1,671</strong></td>
+</tr>
+<tr>
+<td>Invalid samples (of 1,672), §23 → now</td>
+<td>0 → 0</td>
+<td>4 → <strong>2</strong></td>
+<td>0 → 0</td>
+<td>3 → <strong>1</strong></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>XTCE</strong>, both schema variants: valid in every mode.</li>
+<li><strong>Garmin</strong>, 1 per generator: with valid date-time keys, validation now reaches two older key defects. A keyref
+  (<code>CourseNameKeyRef</code>) got a suffixed fallback value because no course name had been generated yet, and a suffixed
+  key value exceeds <code>maxLength="15"</code> of <code>RestrictedToken_t</code>. Both were already among Garmin's error keys in §21.</li>
+<li><strong>UCI</strong>, 1 plain sample: <code>AngleHalfType</code> (<code>maxInclusive</code> π/2) got <code>1.5708</code>, the rounding defect of §23 (F6).</li>
+<li><strong>Next:</strong> numbers rounded within their bounds (F6), then the remaining Garmin key values.</li>
 </ul>
 
 
