@@ -108,6 +108,7 @@ public class ProfiledXmlGeneratorService {
         XsdSampleDataGenerator generator = new XsdSampleDataGenerator();
         if (valueSeed != null) {
             generator.setRandom(new Random(valueSeed));
+            generator.setClock(XsdSampleDataGenerator.SEEDED_CLOCK);
         }
         return generator;
     }
@@ -479,8 +480,14 @@ public class ProfiledXmlGeneratorService {
                     .filter(Objects::nonNull)
                     .filter(e -> e.getElementName() != null && !e.getElementName().startsWith("@"))
                     .toList();
-            for (XsdExtendedElement child : containerChildren) {
-                buildElement(sb, child, profile, rules, elementMap, strategyFactory, context, constraintTracker, indentLevel);
+            // A model group repeats as a whole, like an element (a sequence with minOccurs="2")
+            int groupRepeats = XsdDocumentationService.limitRepeatedOccurrences(element,
+                    calculateElementRepeatCount(element, maxOccurrences), repeatedXpaths);
+            for (int repetition = 0; repetition < groupRepeats; repetition++) {
+                for (XsdExtendedElement child : containerChildren) {
+                    buildElement(sb, child, profile, rules, elementMap, strategyFactory, context, constraintTracker,
+                            indentLevel);
+                }
             }
             return;
         }

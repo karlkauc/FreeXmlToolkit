@@ -155,6 +155,7 @@ public class XsdDocumentationService {
     public void setSampleSeed(long seed) {
         random = new java.util.Random(seed);
         xsdSampleDataGenerator.setRandom(new java.util.Random(seed ^ VALUE_SEED_SALT));
+        xsdSampleDataGenerator.setClock(XsdSampleDataGenerator.SEEDED_CLOCK);
     }
     XsdDocumentationHtmlService xsdDocumentationHtmlService = new XsdDocumentationHtmlService();
     XsdDocumentationSvgService xsdDocumentationSvgService = new XsdDocumentationSvgService();
@@ -3451,8 +3452,13 @@ public class XsdDocumentationService {
                     .filter(Objects::nonNull)
                     .filter(e -> e.getElementName() != null && !e.getElementName().startsWith("@"))
                     .toList();
-            for (XsdExtendedElement child : containerChildren) {
-                buildXmlElementContent(sb, child, mandatoryOnly, maxOccurrences, indentLevel, constraintTracker);
+            // A model group repeats as a whole, like an element (a sequence with minOccurs="2")
+            int groupRepeats = limitRepeatedOccurrences(element, elementRepeatCount(element, maxOccurrences),
+                    repeatedXpaths);
+            for (int repetition = 0; repetition < groupRepeats; repetition++) {
+                for (XsdExtendedElement child : containerChildren) {
+                    buildXmlElementContent(sb, child, mandatoryOnly, maxOccurrences, indentLevel, constraintTracker);
+                }
             }
             return;
         }
@@ -3649,8 +3655,14 @@ public class XsdDocumentationService {
                     if (logger.isDebugEnabled()) {
                         logger.debug("Processing {} container with {} children", elementName, containerChildren.size());
                     }
-                    // Recursively process children (they may contain nested CHOICE/SEQUENCE)
-                    processChildElementsForGeneration(sb, containerChildren, mandatoryOnly, maxOccurrences, indentLevel, constraintTracker);
+                    // Recursively process children (they may contain nested CHOICE/SEQUENCE); a model group repeats
+                    // as a whole, like an element
+                    int groupRepeats = limitRepeatedOccurrences(childElement,
+                            elementRepeatCount(childElement, maxOccurrences), repeatedXpaths);
+                    for (int repetition = 0; repetition < groupRepeats; repetition++) {
+                        processChildElementsForGeneration(sb, containerChildren, mandatoryOnly, maxOccurrences,
+                                indentLevel, constraintTracker);
+                    }
                 }
             // Check if this child is a CHOICE container
             } else if (elementName.startsWith("CHOICE")) {

@@ -12,7 +12,8 @@ import org.junit.jupiter.params.provider.CsvSource;
 
 /**
  * A seed makes a sample reproducible: choices, repetitions and values are drawn from one seeded source, in both
- * generators. The audit's datajud first element flipped between valid and invalid from one run to the next.
+ * generators, independent of the time of the run. The audit's datajud first element flipped between valid and invalid
+ * from one run to the next.
  */
 class SampleXmlReproducibilityTest {
 
@@ -39,6 +40,8 @@ class SampleXmlReproducibilityTest {
                             </xs:simpleType>
                           </xs:element>
                           <xs:element name="due" type="xs:date"/>
+                          <xs:element name="updated" type="xs:dateTime"/>
+                          <xs:element name="batch" type="xs:NMTOKEN"/>
                           <xs:element name="price">
                             <xs:simpleType>
                               <xs:restriction base="xs:decimal">
@@ -71,6 +74,8 @@ class SampleXmlReproducibilityTest {
 
         for (long seed : new long[]{1L, 42L, 20260911L}) {
             String first = SampleXmlRunner.generate(xsd.toFile(), mandatoryOnly, 5, realistic, seed);
+            // Two audit runs lie minutes apart: dates and timestamps must not follow the clock
+            Thread.sleep(1_100);
             String second = SampleXmlRunner.generate(xsd.toFile(), mandatoryOnly, 5, realistic, seed);
             assertEquals(first, second, "seed " + seed);
         }

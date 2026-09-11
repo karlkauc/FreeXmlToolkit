@@ -37,6 +37,15 @@ public class XsdSampleDataGenerator {
     private final AtomicInteger idCounter = new AtomicInteger(1);
     /** The source of every random value; seed it with {@link #setRandom} for reproducible samples. */
     private RandomGenerator random = RandomGenerator.getDefault();
+    /** Anchors date ranges and timestamps; a seeded sample uses {@link #SEEDED_CLOCK}. */
+    private java.time.Clock clock = java.time.Clock.systemUTC();
+
+    /**
+     * The clock of a seeded sample. Date ranges and timestamps must not follow the time of the run: the bounded draws
+     * would shift the random stream (two seeded audits minutes apart differed in 2,029 samples).
+     */
+    public static final java.time.Clock SEEDED_CLOCK =
+            java.time.Clock.fixed(java.time.Instant.parse("2026-01-01T00:00:00Z"), java.time.ZoneOffset.UTC);
     private final List<String> generatedIds = new ArrayList<>();
     private final Deque<String> reservedIdsForRefs = new ArrayDeque<>();
 
@@ -87,6 +96,11 @@ public class XsdSampleDataGenerator {
     /** Sets the source of random values, for example a seeded {@link java.util.Random}. */
     public void setRandom(RandomGenerator random) {
         this.random = random;
+    }
+
+    /** Sets the clock that anchors date ranges and timestamps, see {@link #SEEDED_CLOCK}. */
+    public void setClock(java.time.Clock clock) {
+        this.clock = clock;
     }
 
     /** The source of random values, shared with the pattern sampler and the identity-constraint tracker. */
@@ -345,14 +359,14 @@ public class XsdSampleDataGenerator {
             // Date, Time and Boolean
             case "date" -> {
                 long minDay = LocalDate.of(2020, 1, 1).toEpochDay();
-                long maxDay = LocalDate.now().toEpochDay();
+                long maxDay = LocalDate.now(clock).toEpochDay();
                 long randomDay = random.nextLong(minDay, maxDay);
                 yield LocalDate.ofEpochDay(randomDay).format(DateTimeFormatter.ISO_LOCAL_DATE);
             }
             case "datetime" -> {
-                LocalDateTime start = LocalDateTime.now().minusYears(1);
+                LocalDateTime start = LocalDateTime.now(clock).minusYears(1);
                 long startSeconds = start.toEpochSecond(java.time.ZoneOffset.UTC);
-                long endSeconds = LocalDateTime.now().toEpochSecond(java.time.ZoneOffset.UTC);
+                long endSeconds = LocalDateTime.now(clock).toEpochSecond(java.time.ZoneOffset.UTC);
                 long randomSeconds = random.nextLong(startSeconds, endSeconds);
                 yield LocalDateTime.ofEpochSecond(randomSeconds, 0, java.time.ZoneOffset.UTC).format(DateTimeFormatter.ISO_DATE_TIME);
             }
@@ -362,11 +376,11 @@ public class XsdSampleDataGenerator {
                     random.nextInt(0, 60)
             ).format(DateTimeFormatter.ISO_LOCAL_TIME);
             case "gyear" ->
-                    String.valueOf(random.nextInt(1990, LocalDate.now().getYear() + 1));
+                    String.valueOf(random.nextInt(1990, LocalDate.now(clock).getYear() + 1));
             case "gmonth" -> String.format("--%02d", random.nextInt(1, 13));
             case "gday" -> String.format("---%02d", random.nextInt(1, 29));
             case "gyearmonth" -> String.format("%d-%02d",
-                    random.nextInt(2020, LocalDate.now().getYear() + 1),
+                    random.nextInt(2020, LocalDate.now(clock).getYear() + 1),
                     random.nextInt(1, 13));
             case "gmonthday" -> String.format("--%02d-%02d",
                     random.nextInt(1, 13),
@@ -959,7 +973,7 @@ public class XsdSampleDataGenerator {
      */
     private String generateNmToken(RestrictionInfo restriction) {
         // Generate a timestamp-like NMTOKEN for values like export.time
-        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+        String timestamp = LocalDateTime.now(clock).format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
         String base = "T" + timestamp;
 
         if (restriction != null) {
