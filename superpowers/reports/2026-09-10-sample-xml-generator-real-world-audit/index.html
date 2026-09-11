@@ -2097,6 +2097,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#21-after-f1f2-and-h-qname-binary-and-union-values-ids-for-references-re-audit-2026-09-11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        21. After F1/F2 and H: QName, binary and union values, IDs for references (re-audit, 2026-09-11)
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2127,7 +2138,8 @@ real-world schemas, including optional elements, and validates every generated f
 §11 has the re-audit. A5 (bounded memory) and A4 (roots from included documents) follow in §12 and §13; §14
 covers A3 (include resolution) and the defects it exposed; §15 covers F5 (typed values for patterns); §16 covers E
 (abstract elements and types) and the defects it exposed; §17 covers C (namespace qualification); §18 covers the
-realistic generator's type resolution (R1); §19 covers inherited facets (F4); §20 covers required wildcards (G3).</p>
+realistic generator's type resolution (R1); §19 covers inherited facets (F4); §20 covers required wildcards (G3);
+§21 covers QName, binary and union values (F1, F2) and IDs for references (H).</p>
 </blockquote>
 <h2 id="1-summary">1. Summary<a class="headerlink" href="#1-summary" title="Permanent link">&para;</a></h2>
 <p><strong>Corpus:</strong> <code>src/test/resources/xsd/real-world</code>, 35 schemas that users loaded into xsd-viewer.online by URL, each with
@@ -3339,6 +3351,13 @@ run.</p>
 <td>G3 required element wildcards (§20)</td>
 <td>30 · 25</td>
 <td>1,660 · 1,654 (of 1,672; realistic 1,662 · 1,654)</td>
+<td>0</td>
+</tr>
+<tr>
+<td>2026-09-11</td>
+<td>F1/F2 QName, binary and union values; H IDs for references; unsubstituted abstract elements (§21)</td>
+<td>30 · 24</td>
+<td>1,671 · 1,664 (of 1,672; realistic 1,670 · 1,659)</td>
 <td>0</td>
 </tr>
 </tbody>
@@ -4783,6 +4802,115 @@ optional <code>##any</code>).</p>
   UBL, Garmin and KML.</li>
 <li><strong>Next:</strong> the remaining simple values (F: <code>QName</code>, binary <code>length</code>, inline union members), then IDREFs in documents
   without any ID (H).</li>
+</ul>
+<h2 id="21-after-f1f2-and-h-qname-binary-and-union-values-ids-for-references-re-audit-2026-09-11">21. After F1/F2 and H: QName, binary and union values, IDs for references (re-audit, 2026-09-11)<a class="headerlink" href="#21-after-f1f2-and-h-qname-binary-and-union-values-ids-for-references-re-audit-2026-09-11" title="Permanent link">&para;</a></h2>
+<p><strong>Cause.</strong> Three kinds of simple value were empty or ignored their facets:
+- XBRL <code>measure</code> has the built-in type <code>QName</code>. The value generator had no branch for <code>QName</code> (nor for
+  <code>anySimpleType</code>) and wrote an empty string.
+- XBRL <code>nonZeroDecimal</code> is a union of two inline simple types, without <code>memberTypes</code>. Type resolution only followed
+  <code>memberTypes</code>, found nothing, and the value came out empty.
+- <code>hexBinary</code> and <code>base64Binary</code> always got a fixed value of 5 octets. UCI <code>AA_CodeType</code> (<code>length="6"</code>) and
+  <code>SHA_2_256_HashType</code> (<code>length="32"</code>) require other lengths.</p>
+<p><strong>Change.</strong> <code>QName</code>, <code>anySimpleType</code> and <code>anyAtomicType</code> get <code>sample</code>, an unprefixed NCName that is a valid QName in
+any namespace context. A union without <code>memberTypes</code> resolves to its first inline member. Binary values have as many
+octets as <code>length</code> demands, or five within <code>minLength</code> and <code>maxLength</code>. NOTATION and ENTITY values need declarations
+and stay open. Test: <code>SampleXmlSimpleValuesTest</code>.</p>
+<p><strong>First audit</strong> (after <code>c11842fb</code>):</p>
+<table>
+<thead>
+<tr>
+<th>Measure</th>
+<th>plain req</th>
+<th>plain opt</th>
+<th>realistic req</th>
+<th>realistic opt</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Breadth valid (of 1,672), §20 → F1/F2</td>
+<td>1,660 → 1,665</td>
+<td>1,654 → <strong>1,610</strong></td>
+<td>1,662 → 1,663</td>
+<td>1,654 → <strong>1,609</strong></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>XBRL</strong> 8 of 8 roots in three modes (was 4), <strong>UCI</strong> 722 of 722 in every mode.</li>
+<li><strong>KML regressed</strong> with optional elements, 144 → 93 of 145 in both generators (<code>cvc-elt.2</code>). KML declares
+  <code>ObjectSimpleExtensionGroup</code> abstract, of type <code>anySimpleType</code>, and nothing substitutes it. Its value used to be
+  empty, so the optional element was skipped as an empty container; with a value for <code>anySimpleType</code> it was emitted.</li>
+</ul>
+<p><strong>Fixes</strong> (test-first, together with H):</p>
+<table>
+<thead>
+<tr>
+<th>Defect</th>
+<th>Fix</th>
+<th>Test</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>An abstract element nothing substitutes was emitted where the content model could do without it</td>
+<td>while expanding for a sample, such an element is left out when it is optional or one option of a choice</td>
+<td><code>SampleXmlAbstractContentTest</code></td>
+</tr>
+<tr>
+<td>H: JATS <code>answer</code> requires <code>pointer-to-question</code> (IDREFS) but its <code>id</code> is optional; with mandatory elements only, the reference pointed at nothing (11 samples)</td>
+<td>an optional ID attribute is emitted when the same element emits a required IDREF</td>
+<td><code>SampleXmlIdReferencesTest</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Second audit</strong> (after <code>830ec3a9</code>):</p>
+<table>
+<thead>
+<tr>
+<th>Measure</th>
+<th>plain req</th>
+<th>plain opt</th>
+<th>realistic req</th>
+<th>realistic opt</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>First element valid (of 31), §20 → now</td>
+<td>30 → 30</td>
+<td>25 → 24</td>
+<td>30 → 30</td>
+<td>25 → 25</td>
+</tr>
+<tr>
+<td>Breadth valid (of 1,672), §20 → now</td>
+<td>1,660 → <strong>1,671</strong></td>
+<td>1,654 → <strong>1,664</strong></td>
+<td>1,662 → <strong>1,670</strong></td>
+<td>1,654 → <strong>1,659</strong></td>
+</tr>
+<tr>
+<td>Invalid samples (of 1,672), §20 → now</td>
+<td>12 → <strong>1</strong></td>
+<td>18 → <strong>8</strong></td>
+<td>10 → <strong>2</strong></td>
+<td>18 → <strong>13</strong></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>KML</strong> 145 of 145, <strong>XBRL</strong> 8 of 8 and <strong>UCI</strong> 722 of 722 in every mode; no IDREF without an ID is left.</li>
+<li>Per root, 44 samples turned valid and 11 invalid, all random choice selections in JATS and datajud.</li>
+<li><strong>Since F5</strong> (§15), the invalid samples per combination fell from 193 · 684 · 294 · 824 (of 1,814) to 1 · 8 · 2 · 13
+  (of 1,672).</li>
+<li><strong>Remaining:</strong></li>
+<li>JATS: in <code>ruby-model</code> (<code>rb, (rt | (rp, rt, rp))</code>) both <code>rp</code> references get the same element-map key, so the second
+    overwrites the first; <code>statement</code> and <code>question</code> get empty required choices now and then</li>
+<li>INSPIRE <code>bu-base:Building</code>: a required abstract element whose members the Addresses schema does not import</li>
+<li>XTCE and Garmin: duplicate or suffixed key values (H2)</li>
+<li>UBL <code>WitnessParty</code> order, datajud's choice, and KSeF FA(3), whose validation exceeds the audit's time limit</li>
+<li><strong>Next:</strong> particles with the same name in one compositor (JATS <code>ruby</code>), then choices that produce content (G1).</li>
 </ul>
 
 
