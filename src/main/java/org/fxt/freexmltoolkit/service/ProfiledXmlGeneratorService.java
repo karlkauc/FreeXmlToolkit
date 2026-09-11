@@ -1004,7 +1004,8 @@ public class ProfiledXmlGeneratorService {
      * instance of every optional CHOICE which inflated output by an order of magnitude.
      */
     private int calculateChoiceRepeatCount(XsdExtendedElement element, boolean mandatoryOnly, int maxOccurrences) {
-        Node node = element.getCurrentNode();
+        // A choice expanded from a group reference repeats by the reference's bounds
+        Node node = element.getCardinalityNode() != null ? element.getCardinalityNode() : element.getCurrentNode();
         String minOccursStr = getAttributeValue(node, "minOccurs", "1");
         String maxOccursStr = getAttributeValue(node, "maxOccurs", "1");
 

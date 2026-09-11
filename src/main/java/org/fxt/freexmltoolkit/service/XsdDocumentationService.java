@@ -246,6 +246,8 @@ public class XsdDocumentationService {
 
     // Thread-local storage for element reference nodes (to preserve cardinality attributes)
     private static final ThreadLocal<Node> referenceNodeThreadLocal = new ThreadLocal<>();
+    /** The group reference whose group's compositor is being expanded; its bounds are the compositor's. */
+    private static final ThreadLocal<Node> groupReferenceThreadLocal = new ThreadLocal<>();
     private static final ThreadLocal<String> forcedNamespacePrefixThreadLocal = new ThreadLocal<>();
     private static final ThreadLocal<String> forcedNamespaceUriThreadLocal = new ThreadLocal<>();
 
@@ -2561,7 +2563,12 @@ public class XsdDocumentationService {
             for (Node compositor : getDirectChildElements(group)) {
                 String name = compositor.getLocalName();
                 if ("sequence".equals(name) || "choice".equals(name) || "all".equals(name)) {
-                    processComplexContent(compositor, parentXPath, level, visitedOnPath);
+                    groupReferenceThreadLocal.set(groupRef);
+                    try {
+                        processComplexContent(compositor, parentXPath, level, visitedOnPath);
+                    } finally {
+                        groupReferenceThreadLocal.remove();
+                    }
                 }
             }
         } finally {
@@ -2599,6 +2606,12 @@ public class XsdDocumentationService {
             containerElem.setCounter(counter);
             containerElem.setCurrentNode(contentNode);
             containerElem.setElementType("(container)");
+            // A sample repeats a referenced group by the reference's bounds (MathML mfrac: minOccurs="2")
+            Node groupReference = groupReferenceThreadLocal.get();
+            groupReferenceThreadLocal.remove();
+            if (sampleExpansion && groupReference != null) {
+                containerElem.setCardinalityNode(groupReference);
+            }
 
             // Add container as child of parent
             if (xsdDocumentationData.getExtendedXsdElementMap().containsKey(parentXPath)) {
@@ -3469,8 +3482,9 @@ public class XsdDocumentationService {
                     .filter(e -> e.getElementName() != null && !e.getElementName().startsWith("@"))
                     .toList();
             if (!choiceOptions.isEmpty()) {
-                // Get minOccurs and maxOccurs from the CHOICE element
-                Node choiceNode = element.getCurrentNode();
+                // Get minOccurs and maxOccurs from the CHOICE element, or from the group reference that holds it
+                Node choiceNode = element.getCardinalityNode() != null
+                        ? element.getCardinalityNode() : element.getCurrentNode();
                 String minOccursStr = getAttributeValue(choiceNode, "minOccurs", "1");
                 String maxOccursStr = getAttributeValue(choiceNode, "maxOccurs", "1");
 
@@ -3666,8 +3680,9 @@ public class XsdDocumentationService {
                 }
             // Check if this child is a CHOICE container
             } else if (elementName.startsWith("CHOICE")) {
-                // Get the choice's cardinality
-                Node choiceNode = childElement.getCurrentNode();
+                // Get the choice's cardinality, or the cardinality of the group reference that holds it
+                Node choiceNode = childElement.getCardinalityNode() != null
+                        ? childElement.getCardinalityNode() : childElement.getCurrentNode();
                 String minOccursStr = getAttributeValue(choiceNode, "minOccurs", "1");
                 String maxOccursStr = getAttributeValue(choiceNode, "maxOccurs", "1");
 
