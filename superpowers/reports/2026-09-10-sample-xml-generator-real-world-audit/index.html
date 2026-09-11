@@ -2141,6 +2141,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#25-after-f6-numbers-rounded-within-their-bounds-re-audit-2026-09-11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        25. After F6: numbers rounded within their bounds (re-audit, 2026-09-11)
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2173,7 +2184,7 @@ covers A3 (include resolution) and the defects it exposed; §15 covers F5 (typed
 (abstract elements and types) and the defects it exposed; §17 covers C (namespace qualification); §18 covers the
 realistic generator's type resolution (R1); §19 covers inherited facets (F4); §20 covers required wildcards (G3);
 §21 covers QName, binary and union values (F1, F2) and IDs for references (H); §22 covers particles with the same
-name in one content model; §23 covers choices that pick options with complete content (G1); §24 covers key values of their own type (H2).</p>
+name in one content model; §23 covers choices that pick options with complete content (G1); §24 covers key values of their own type (H2); §25 covers numbers rounded within their bounds (F6).</p>
 </blockquote>
 <h2 id="1-summary">1. Summary<a class="headerlink" href="#1-summary" title="Permanent link">&para;</a></h2>
 <p><strong>Corpus:</strong> <code>src/test/resources/xsd/real-world</code>, 35 schemas that users loaded into xsd-viewer.online by URL, each with
@@ -3413,6 +3424,13 @@ run.</p>
 <td>H2 key values of their own type (§24)</td>
 <td>30 · 29</td>
 <td>1,672 · 1,670 (of 1,672; realistic 1,672 · 1,671)</td>
+<td>0</td>
+</tr>
+<tr>
+<td>2026-09-11</td>
+<td>F6 numbers rounded within their bounds (§25)</td>
+<td>30 · 29</td>
+<td>1,672 · 1,671 (of 1,672; realistic 1,672 · 1,671)</td>
 <td>0</td>
 </tr>
 </tbody>
@@ -5150,6 +5168,58 @@ INSPIRE, both generators and modes, 16 runs each).</p>
   key value exceeds <code>maxLength="15"</code> of <code>RestrictedToken_t</code>. Both were already among Garmin's error keys in §21.</li>
 <li><strong>UCI</strong>, 1 plain sample: <code>AngleHalfType</code> (<code>maxInclusive</code> π/2) got <code>1.5708</code>, the rounding defect of §23 (F6).</li>
 <li><strong>Next:</strong> numbers rounded within their bounds (F6), then the remaining Garmin key values.</li>
+</ul>
+<h2 id="25-after-f6-numbers-rounded-within-their-bounds-re-audit-2026-09-11">25. After F6: numbers rounded within their bounds (re-audit, 2026-09-11)<a class="headerlink" href="#25-after-f6-numbers-rounded-within-their-bounds-re-audit-2026-09-11" title="Permanent link">&para;</a></h2>
+<p><strong>Cause.</strong> Generated <code>float</code>, <code>double</code> and <code>decimal</code> values were rounded after they had been drawn from their range:
+- <code>double</code> got four fraction digits, <code>float</code> and <code>decimal</code> two, all rounded half up. UCI <code>AngleType</code> is an <code>xs:double</code>
+  in [-π, π], and a value just below π became <code>3.1416</code>; <code>AngleHalfType</code> got <code>1.5708</code> above π/2.
+- An exclusive bound stepped inward by one. A <code>decimal</code> in (0, 1) became the range [1, 0], which yielded <code>0</code>.</p>
+<p><strong>Change.</strong> A rounded value is checked against the facets: half up first, else rounded toward the inside of the range,
+else left unrounded. <code>float</code> and <code>double</code> bounds are compared in their binary value space, as Xerces compares them. An
+exclusive range narrower than two steps inward by a quarter of its width; integer ranges keep whole steps. Test:
+<code>XsdSampleDataGeneratorTest.roundedNumbersStayWithinTheirBounds</code> (six bound combinations, 20 values each).</p>
+<p><strong>Audit</strong> (after <code>f6a498cd</code>):</p>
+<table>
+<thead>
+<tr>
+<th>Measure</th>
+<th>plain req</th>
+<th>plain opt</th>
+<th>realistic req</th>
+<th>realistic opt</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>First element valid (of 31), §24 → now</td>
+<td>30 → 30</td>
+<td>29 → 29</td>
+<td>30 → 30</td>
+<td>29 → 29</td>
+</tr>
+<tr>
+<td>Breadth valid (of 1,672), §24 → now</td>
+<td>1,672 → 1,672</td>
+<td>1,670 → <strong>1,671</strong></td>
+<td>1,672 → 1,672</td>
+<td>1,671 → 1,671</td>
+</tr>
+<tr>
+<td>Invalid samples (of 1,672), §24 → now</td>
+<td>0 → 0</td>
+<td>2 → <strong>1</strong></td>
+<td>0 → 0</td>
+<td>1 → 1</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>UCI</strong> 722 of 722 in every mode.</li>
+<li><strong>Remaining:</strong> Garmin's <code>TrainingCenterDatabase</code>, 1 per generator. <code>CourseNameRef</code> and <code>WorkoutNameRef</code> in <code>Folders</code>
+  come before any course or workout and get suffixed fallback values that no key holds; no <code>Workout</code> is generated,
+  because its required <code>Step</code> always took the derived type <code>Repeat_t</code>, whose required <code>Child</code> recursion is cut; and a
+  suffixed key value can exceed <code>maxLength="15"</code> of <code>RestrictedToken_t</code>.</li>
+<li><strong>Next:</strong> Garmin's keys and workout steps.</li>
 </ul>
 
 
