@@ -12,7 +12,7 @@ The improvement plan derived from these numbers is
 > (abstract elements and types) and the defects it exposed; §17 covers C (namespace qualification); §18 covers the
 > realistic generator's type resolution (R1); §19 covers inherited facets (F4); §20 covers required wildcards (G3);
 > §21 covers QName, binary and union values (F1, F2) and IDs for references (H); §22 covers particles with the same
-> name in one content model.
+> name in one content model; §23 covers choices that pick options with complete content (G1).
 
 ## 1. Summary
 
@@ -406,6 +406,7 @@ The task skips itself when the corpus folder is absent.
 | 2026-09-11 | G3 required element wildcards (§20) | 30 · 25 | 1,660 · 1,654 (of 1,672; realistic 1,662 · 1,654) | 0 |
 | 2026-09-11 | F1/F2 QName, binary and union values; H IDs for references; unsubstituted abstract elements (§21) | 30 · 24 | 1,671 · 1,664 (of 1,672; realistic 1,670 · 1,659) | 0 |
 | 2026-09-11 | G7 particles with the same name in one content model (§22) | 30 · 25 | 1,672 · 1,663 (of 1,672; realistic 1,672 · 1,661) | 0 |
+| 2026-09-11 | G1 choices pick options with complete content (§23) | 30 · 27 | 1,672 · 1,668 (of 1,672; realistic 1,672 · 1,669) | 0 |
 
 ## 11. After the quick wins (re-audit, 2026-09-10)
 
@@ -1149,3 +1150,42 @@ of `ProcessXsdEquivalenceTest` and `ProcessXsdSnippetEquivalenceTest` were updat
   - INSPIRE `bu-base:Building` and UBL `WitnessParty` order, 1 per generator each; KSeF FA(3) validation still
     exceeds the audit's time limit
 - **Next:** choices that pick options with complete content (G1).
+
+## 23. After G1: choices pick options with complete content (re-audit, 2026-09-11)
+
+**Cause.** A sample expansion cannot expand every required particle, and it left no trace where it stopped:
+- Recursion through the same element declaration or group is cut. JATS `fn` holds `(p)+`, so an `fn` inside a `p`
+  gets a required choice without any option; `statement` offers `p` or a nested `statement`, and inside a `p` both
+  are cut.
+- A strict `xs:any` needs a declaration and is not recorded. datajud `comunicacaoprocessual` requires one for
+  `##other`, and no imported schema declares an element there.
+- An abstract element that nothing substitutes was emitted where the content model requires it (INSPIRE
+  `bu-base:Building`).
+
+The generators then picked a choice option at random, or emitted an optional element, whose required content was
+missing.
+
+**Change.** The expansion marks an entry whose required content it could not expand. A choice counts as complete when
+one option is. Both generators pick only among options with complete content, and they leave out optional content that
+cannot be completed. When no option is complete, the old random pick stays. The documentation model is not marked, so
+the golden hashes are unchanged. Test: `SampleXmlIncompleteContentTest` (five content models from JATS, datajud and
+INSPIRE, both generators and modes, 16 runs each).
+
+**Audit** (after `2b64b208`):
+
+| Measure | plain req | plain opt | realistic req | realistic opt |
+|---|---|---|---|---|
+| First element valid (of 31), §22 → now | 30 → 30 | 25 → **27** | 30 → 30 | 24 → **27** |
+| Breadth valid (of 1,672), §22 → now | 1,672 → 1,672 | 1,663 → **1,668** | 1,672 → 1,672 | 1,661 → **1,669** |
+| Invalid samples (of 1,672), §22 → now | 0 → 0 | 9 → **4** | 0 → 0 | 11 → **3** |
+
+- **JATS** 308 of 308, **INSPIRE** 12 of 12, **datajud** and **UBL** 1 of 1: valid in every mode.
+- INSPIRE's `Address` no longer contains the abstract `bu-base:Building`; the optional element that required it is left
+  out.
+- **Remaining:**
+  - XTCE, 2 per generator: duplicate `@name` values for `containerNameKey` and `parameterNameKey`, and `messageNameKey`
+    selecting `MessageSet/*`, which includes `LongDescription` without a name (H2)
+  - Garmin, 1 per generator: the `dateTime` key `Id` gets the suffix `_1` (H2)
+  - UCI, 1 plain sample: `AngleType` with `maxInclusive="3.141592653589793E0"` got `3.1416`, a random value rounded
+    past the bound (F)
+- **Next:** H2, key values of their own type.

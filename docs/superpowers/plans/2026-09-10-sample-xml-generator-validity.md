@@ -125,6 +125,11 @@ Of the 274 invalid samples, the report maps each validation error to one of the 
   - Remaining, all with optional elements: empty required choices (G1: JATS `statement`, `question`, `speech`,
     `open-access`; datajud's strict `xs:any`), key values (H2: XTCE, Garmin), INSPIRE `bu-base:Building`, UBL
     `WitnessParty` order. Next: **G1**.
+- **Progress after G1 choices with complete content** (report §23): first element valid 30 · 27 · 30 · 27, no XML 0;
+  breadth valid 1,672 · 1,668 · 1,672 · 1,669 of 1,672 (invalid 0 · 4 · 0 · 3).
+  - JATS 308 of 308, INSPIRE 12 of 12, datajud and UBL valid in every mode.
+  - Remaining: key values (H2: XTCE duplicate names and `messageNameKey` on `MessageSet/*`, Garmin `dateTime` key),
+    one UCI `AngleType` value rounded past `maxInclusive`. Next: **H2**.
 
 ## Global Constraints
 
@@ -332,12 +337,16 @@ samples (xlink attributes currently emitted as child elements) valid.
 
 **Evidence:** 33 samples are touched, 22 of them only by this package.
 
-- [ ] **G1. Choice option selection** (`buildXmlElementContent` `:2473-2527`, `processChildElementsForGeneration`
+- [x] **G1. Choice option selection** (`buildXmlElementContent` `:2473-2527`, `processChildElementsForGeneration`
   `:2654-2725`).
   - A random option is chosen and then skipped when it is optional (mandatory-only mode) or would be empty. A
     required choice then ends up empty (datajud `comunicacaoprocessual`).
   - Fix: choose only among options that produce content. In mandatory-only mode prefer the option with the smallest
     required content, and fall back to emitting an optional option's minimal content instead of nothing.
+  - *(2026-09-11, report §23: the sample expansion marks entries whose required content it could not expand, a cut
+    recursion, a strict wildcard or an abstract element without a member. Both generators pick only options with
+    complete content and leave out optional content that cannot be completed; `SampleXmlIncompleteContentTest`. The
+    smallest-content preference in mandatory-only mode was not needed.)*
 - [ ] **G2. Required recursion.** `traverseNode` aborts a branch as soon as a node repeats on the path (`:1548`). A
   choice with `minOccurs="2"` whose options recurse (XTCE `ORedConditions`/`ANDedConditions`) then has too few
   children.
