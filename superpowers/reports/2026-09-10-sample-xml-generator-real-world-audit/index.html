@@ -2086,6 +2086,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#20-after-g3-required-element-wildcards-re-audit-2026-09-11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        20. After G3: required element wildcards (re-audit, 2026-09-11)
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2116,7 +2127,7 @@ real-world schemas, including optional elements, and validates every generated f
 §11 has the re-audit. A5 (bounded memory) and A4 (roots from included documents) follow in §12 and §13; §14
 covers A3 (include resolution) and the defects it exposed; §15 covers F5 (typed values for patterns); §16 covers E
 (abstract elements and types) and the defects it exposed; §17 covers C (namespace qualification); §18 covers the
-realistic generator's type resolution (R1); §19 covers inherited facets (F4).</p>
+realistic generator's type resolution (R1); §19 covers inherited facets (F4); §20 covers required wildcards (G3).</p>
 </blockquote>
 <h2 id="1-summary">1. Summary<a class="headerlink" href="#1-summary" title="Permanent link">&para;</a></h2>
 <p><strong>Corpus:</strong> <code>src/test/resources/xsd/real-world</code>, 35 schemas that users loaded into xsd-viewer.online by URL, each with
@@ -3321,6 +3332,13 @@ run.</p>
 <td>F4 a restriction's facets replace its base's (§19)</td>
 <td>30 · 25</td>
 <td>1,657 · 1,651 (of 1,672; realistic 1,657 · 1,651)</td>
+<td>0</td>
+</tr>
+<tr>
+<td>2026-09-11</td>
+<td>G3 required element wildcards (§20)</td>
+<td>30 · 25</td>
+<td>1,660 · 1,654 (of 1,672; realistic 1,662 · 1,654)</td>
 <td>0</td>
 </tr>
 </tbody>
@@ -4704,6 +4722,67 @@ that note.</p>
   without any ID), XBRL 5, xmldsig 3 (required <code>xs:any</code> in <code>SignatureProperty</code>).</li>
 <li><strong>Next, by samples affected:</strong> required <code>xs:any</code> (G3: xmldsig, XBRL, UBL, 14 samples), QName values (F1: XBRL
   <code>measure</code>, 13), IDREFs in documents without any ID (H, 11), <code>hexBinary</code> with <code>length</code> (F, 7).</li>
+</ul>
+<h2 id="20-after-g3-required-element-wildcards-re-audit-2026-09-11">20. After G3: required element wildcards (re-audit, 2026-09-11)<a class="headerlink" href="#20-after-g3-required-element-wildcards-re-audit-2026-09-11" title="Permanent link">&para;</a></h2>
+<p><strong>Cause.</strong> The generators recorded <code>xs:any</code> for the documentation only and never emitted an element for it, so an
+element whose content is a required wildcard came out empty (<code>cvc-complex-type.2.4.b</code>, 14 samples):
+- xmldsig <code>SignatureProperty</code>: a choice of <code>&lt;any namespace="##other" processContents="lax"/&gt;</code>
+- XBRL <code>segment</code>: <code>&lt;any namespace="##other" processContents="lax" minOccurs="1" maxOccurs="unbounded"/&gt;</code>
+- UBL <code>ExtensionContent</code>: <code>&lt;any namespace="##other" processContents="lax"/&gt;</code></p>
+<p><strong>Change.</strong> While expanding for a sample, a wildcard is recorded at its position in the content model, and both
+generators write an element there, repeated like an element:
+- <code>##any</code> and <code>##other</code>: <code>&lt;ext:sample xmlns:ext="urn:fxt:sample:extension"/&gt;</code>
+- <code>##local</code>: <code>&lt;sample xmlns=""/&gt;</code>
+- <code>##targetNamespace</code> or a list: an element in that (the first listed) namespace</p>
+<p>The namespace is declared on the element itself. A <code>strict</code> wildcard needs a declaration and is still left out; the
+corpus declares 53 <code>lax</code> and 3 <code>skip</code> wildcards and no <code>strict</code> one. The documentation model is unchanged. Test:
+<code>SampleXmlWildcardTest</code> (choice, <code>minOccurs="1"</code>, <code>skip</code>, <code>##local</code> between two elements, a namespace list and an
+optional <code>##any</code>).</p>
+<p><strong>Audit</strong> (after <code>17037fae</code>):</p>
+<table>
+<thead>
+<tr>
+<th>Measure</th>
+<th>plain req</th>
+<th>plain opt</th>
+<th>realistic req</th>
+<th>realistic opt</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>First element valid (of 31), §19 → G3</td>
+<td>30 → 30</td>
+<td>25 → 25</td>
+<td>29 → <strong>30</strong></td>
+<td>25 → 25</td>
+</tr>
+<tr>
+<td>Breadth valid (of 1,672), §19 → G3</td>
+<td>1,657 → <strong>1,660</strong></td>
+<td>1,651 → <strong>1,654</strong></td>
+<td>1,657 → <strong>1,662</strong></td>
+<td>1,651 → <strong>1,654</strong></td>
+</tr>
+<tr>
+<td>Invalid samples (of 1,672), §19 → G3</td>
+<td>15 → <strong>12</strong></td>
+<td>21 → <strong>18</strong></td>
+<td>15 → <strong>10</strong></td>
+<td>21 → <strong>18</strong></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>xmldsig</strong> is valid in every mode: 24 of 24 roots (was 22). <strong>XBRL</strong> 4 of 8 in every mode (was 2–3).</li>
+<li>Wildcard errors (<code>WC[…]</code> in <code>cvc-complex-type.2.4.b</code>) fell from 28 to 2.</li>
+<li>Per root, 24 samples turned valid and 9 invalid, all random choice selections in JATS.</li>
+<li><strong>Remaining</strong> (plain, mandatory only: 12): JATS 7 (IDREFs in documents without any ID), XBRL 4 (empty <code>QName</code>
+  <code>measure</code>, the inline union <code>nonZeroDecimal</code>), KML 1 (a head without members). With optional elements (plain: 18):
+  UCI 5 (<code>hexBinary</code> values that ignore <code>length</code>, decimal bounds), JATS 4, XBRL 4, single samples in INSPIRE, XTCE,
+  UBL, Garmin and KML.</li>
+<li><strong>Next:</strong> the remaining simple values (F: <code>QName</code>, binary <code>length</code>, inline union members), then IDREFs in documents
+  without any ID (H).</li>
 </ul>
 
 
