@@ -82,6 +82,9 @@ public class IdentityConstraintTracker {
      */
     private final Map<String, Integer> counters = new HashMap<>();
 
+    /** Per KEY or UNIQUE constraint: the value keyrefs used before the key had one; the key's next value. */
+    private final Map<String, String> reservedKeyValues = new HashMap<>();
+
     /** Elements a KEY selector selects that cannot carry one of its fields, see {@link #isKeylessSelection}. */
     private final Set<String> keylessSelections = new HashSet<>();
 
@@ -254,11 +257,21 @@ public class IdentityConstraintTracker {
                 return value;
             }
         }
-        // Fallback: if referenced values not yet generated, use base with suffix
+        // No key value yet (Garmin lists CourseNameRef in Folders before the Courses): every such keyref shares one
+        // reserved value, which the referenced key takes as its first value
+        if (referredConstraint != null && baseSampleData != null && !baseSampleData.isEmpty()) {
+            return reservedKeyValues.computeIfAbsent(referredConstraint, name -> baseSampleData);
+        }
         return generateUniqueConstraintValue(info.constraintName, baseSampleData, null);
     }
 
     private String generateUniqueConstraintValue(String constraintName, String baseSampleData, XsdExtendedElement element) {
+        String reserved = reservedKeyValues.remove(constraintName);
+        if (reserved != null) {
+            counters.merge(constraintName, 1, Integer::sum);
+            generatedValues.computeIfAbsent(constraintName, k -> new ArrayList<>()).add(reserved);
+            return reserved;
+        }
         int counter = counters.getOrDefault(constraintName, 0) + 1;
         counters.put(constraintName, counter);
 

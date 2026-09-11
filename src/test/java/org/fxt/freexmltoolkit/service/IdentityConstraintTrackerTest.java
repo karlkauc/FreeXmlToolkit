@@ -378,6 +378,43 @@ class IdentityConstraintTrackerTest {
         assertEquals("2026-07-06", IdentityConstraintTracker.incrementedTypedValue("2026-07-05", 1));
     }
 
+    @Test
+    void aKeyrefBeforeItsKeyReservesTheKeysFirstValue() {
+        // Garmin lists CourseNameRef in Folders before the Courses; a suffixed fallback matched no course name
+        Map<String, XsdExtendedElement> elementMap = new LinkedHashMap<>();
+        XsdExtendedElement root = createElementWithChildren("/Root");
+        IdentityConstraint key = new IdentityConstraint(IdentityConstraint.Type.KEY, "courseNameKey");
+        key.setSelector("Courses/Course");
+        key.addField("Name");
+        IdentityConstraint keyref = new IdentityConstraint(IdentityConstraint.Type.KEYREF, "courseNameKeyRef");
+        keyref.setSelector("Folders/CourseNameRef");
+        keyref.addField("Id");
+        keyref.setRefer("courseNameKey");
+        root.setIdentityConstraints(List.of(key, keyref));
+        elementMap.put("/Root", root);
+        elementMap.put("/Root/Folders", createElementWithChildren("/Root/Folders"));
+        elementMap.put("/Root/Folders/CourseNameRef", createElementWithChildren("/Root/Folders/CourseNameRef"));
+        elementMap.put("/Root/Folders/CourseNameRef/Id",
+                createLeafElement("/Root/Folders/CourseNameRef/Id", "xs:token"));
+        elementMap.put("/Root/Courses", createElementWithChildren("/Root/Courses"));
+        elementMap.put("/Root/Courses/Course", createElementWithChildren("/Root/Courses/Course"));
+        elementMap.put("/Root/Courses/Course/Name", createLeafElement("/Root/Courses/Course/Name", "xs:token"));
+        tracker.scanConstraints(elementMap);
+
+        String firstRef = tracker.getUniqueValue("/Root/Folders/CourseNameRef/Id", "aaaa",
+                elementMap.get("/Root/Folders/CourseNameRef/Id"));
+        String secondRef = tracker.getUniqueValue("/Root/Folders/CourseNameRef/Id", "aaaa",
+                elementMap.get("/Root/Folders/CourseNameRef/Id"));
+        String firstName = tracker.getUniqueValue("/Root/Courses/Course/Name", "aaaa",
+                elementMap.get("/Root/Courses/Course/Name"));
+        String secondName = tracker.getUniqueValue("/Root/Courses/Course/Name", "aaaa",
+                elementMap.get("/Root/Courses/Course/Name"));
+
+        assertEquals(firstRef, secondRef, "keyrefs before the key share one reserved value");
+        assertEquals(firstRef, firstName, "the key takes the reserved value first");
+        assertNotEquals(firstName, secondName, "later key values stay unique");
+    }
+
     private Map<String, XsdExtendedElement> buildSimpleKeyMap() {
         Map<String, XsdExtendedElement> elementMap = new LinkedHashMap<>();
 

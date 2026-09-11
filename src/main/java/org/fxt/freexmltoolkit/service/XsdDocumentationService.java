@@ -4063,13 +4063,18 @@ public class XsdDocumentationService {
 
     /**
      * A concrete global complex type derived, directly or through abstract intermediates, from the abstract type
-     * {@code abstractType}: the nearest one, preferring the abstract type's namespace; {@code null} if there is none.
+     * {@code abstractType}: the nearest one, preferring the abstract type's namespace and a type whose own content does
+     * not declare an element of the abstract type again; {@code null} if there is none. Garmin {@code AbstractStep_t}
+     * has {@code Repeat_t}, whose required {@code Child} is an {@code AbstractStep_t} again, declared before
+     * {@code Step_t}; the recursion was cut and the workout left without its step.
      */
     private Node concreteDerivedType(Node abstractType) {
         String namespace = instanceNamespace(abstractType);
+        String abstractName = getAttributeValue(abstractType, "name");
         Set<Node> seen = Collections.newSetFromMap(new IdentityHashMap<>());
         seen.add(abstractType);
         ArrayDeque<Node> bases = new ArrayDeque<>(List.of(abstractType));
+        Node sameNamespace = null;
         Node otherNamespace = null;
         while (!bases.isEmpty()) {
             for (Node derived : indexedFor(derivedComplexTypes, "derivedFrom", bases.poll())) {
@@ -4079,13 +4084,33 @@ public class XsdDocumentationService {
                 if (isAbstractDeclaration(derived)) {
                     bases.add(derived);
                 } else if (instanceNamespace(derived).equals(namespace)) {
-                    return derived;
+                    if (!declaresElementOfType(derived, abstractName)) {
+                        return derived;
+                    }
+                    if (sameNamespace == null) {
+                        sameNamespace = derived;
+                    }
                 } else if (otherNamespace == null) {
                     otherNamespace = derived;
                 }
             }
         }
-        return otherNamespace;
+        return sameNamespace != null ? sameNamespace : otherNamespace;
+    }
+
+    /** Whether a type declares, anywhere in its own content, an element whose type has the local name {@code name}. */
+    private static boolean declaresElementOfType(Node type, String name) {
+        if (name == null || !(type instanceof Element typeElement)) {
+            return false;
+        }
+        NodeList elements = typeElement.getElementsByTagNameNS(NS_URI, "element");
+        for (int i = 0; i < elements.getLength(); i++) {
+            String elementType = ((Element) elements.item(i)).getAttribute("type");
+            if (elementType.substring(elementType.indexOf(':') + 1).equals(name)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
