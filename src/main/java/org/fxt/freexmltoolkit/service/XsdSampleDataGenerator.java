@@ -284,17 +284,18 @@ public class XsdSampleDataGenerator {
             // Float and Double types - use Locale.US to ensure dot decimal separator
             case "float" -> {
                 BigDecimal randomDecimal = generateNumberInRange(effectiveRestriction, new BigDecimal("0.01"), new BigDecimal("999.99"));
-                yield String.format(Locale.US, "%.2f", randomDecimal.floatValue());
+                yield roundWithinBounds(randomDecimal, 2, effectiveRestriction, NumberSpace.FLOAT).toPlainString();
             }
             case "double" -> {
                 BigDecimal randomDecimal = generateNumberInRange(effectiveRestriction, new BigDecimal("0.01"), new BigDecimal("9999.99"));
-                yield String.format(Locale.US, "%.4f", randomDecimal.doubleValue());
+                yield roundWithinBounds(randomDecimal, 4, effectiveRestriction, NumberSpace.DOUBLE).toPlainString();
             }
 
             // Numeric types using the helper method
             case "decimal" -> {
                 BigDecimal randomDecimal = generateNumberInRange(effectiveRestriction, new BigDecimal("1.00"), new BigDecimal("1000.00"));
-                yield DatatypeConverter.printDecimal(randomDecimal.setScale(2, RoundingMode.HALF_UP));
+                yield DatatypeConverter.printDecimal(
+                        roundWithinBounds(randomDecimal, 2, effectiveRestriction, NumberSpace.DECIMAL));
             }
             case "integer", "positiveinteger", "nonnegativeinteger" -> {
                 BigDecimal randomDecimal = generateNumberInRange(effectiveRestriction, BigDecimal.ONE, new BigDecimal("10000"));
@@ -1043,13 +1044,16 @@ public class XsdSampleDataGenerator {
 
         if (restriction != null) {
             Map<String, List<String>> facets = restriction.facets();
+            BigDecimal minExclusive = null;
+            BigDecimal maxExclusive = null;
             if (facets.containsKey("minInclusive")) {
                 try {
                     min = new BigDecimal(facets.get("minInclusive").getFirst());
                 } catch (NumberFormatException e) { /* ignore */ }
             } else if (facets.containsKey("minExclusive")) {
                 try {
-                    min = new BigDecimal(facets.get("minExclusive").getFirst()).add(BigDecimal.ONE);
+                    minExclusive = new BigDecimal(facets.get("minExclusive").getFirst());
+                    min = minExclusive;
                 } catch (NumberFormatException e) { /* ignore */ }
             }
 
@@ -1059,8 +1063,22 @@ public class XsdSampleDataGenerator {
                 } catch (NumberFormatException e) { /* ignore */ }
             } else if (facets.containsKey("maxExclusive")) {
                 try {
-                    max = new BigDecimal(facets.get("maxExclusive").getFirst()).subtract(BigDecimal.ONE);
+                    maxExclusive = new BigDecimal(facets.get("maxExclusive").getFirst());
+                    max = maxExclusive;
                 } catch (NumberFormatException e) { /* ignore */ }
+            }
+            // An exclusive bound steps inward by one, or by a quarter of a range narrower than two (decimal (0, 1)
+            // became [1, 0], which yielded 0); integer ranges of two or more keep whole steps
+            BigDecimal step = BigDecimal.ONE;
+            if (minExclusive != null && maxExclusive != null
+                    && maxExclusive.subtract(minExclusive).compareTo(BigDecimal.valueOf(2)) < 0) {
+                step = maxExclusive.subtract(minExclusive).divide(BigDecimal.valueOf(4));
+            }
+            if (minExclusive != null) {
+                min = minExclusive.add(step);
+            }
+            if (maxExclusive != null) {
+                max = maxExclusive.subtract(step);
             }
         }
 
@@ -1116,6 +1134,54 @@ public class XsdSampleDataGenerator {
         }
 
         return randomValue;
+    }
+
+    /** The value space a generated number is compared in: float and double bounds are rounded to binary values. */
+    private enum NumberSpace { FLOAT, DOUBLE, DECIMAL }
+
+    /**
+     * Rounds a generated number to {@code scale} fraction digits without leaving its facet bounds: half up, else
+     * toward the inside of the range, else unrounded. UCI {@code AngleType} is an {@code xs:double} in [-π, π];
+     * half-up rounding to four digits gave {@code 3.1416}.
+     */
+    static BigDecimal roundWithinBounds(BigDecimal value, int scale, RestrictionInfo restriction, NumberSpace space) {
+        for (RoundingMode mode : new RoundingMode[]{RoundingMode.HALF_UP, RoundingMode.FLOOR, RoundingMode.CEILING}) {
+            BigDecimal rounded = value.setScale(scale, mode);
+            if (withinBounds(rounded, restriction, space)) {
+                return rounded;
+            }
+        }
+        return value.stripTrailingZeros();
+    }
+
+    private static boolean withinBounds(BigDecimal value, RestrictionInfo restriction, NumberSpace space) {
+        if (restriction == null || restriction.facets() == null) {
+            return true;
+        }
+        Map<String, List<String>> facets = restriction.facets();
+        return satisfies(value, facets.get("minInclusive"), space, c -> c >= 0)
+                && satisfies(value, facets.get("minExclusive"), space, c -> c > 0)
+                && satisfies(value, facets.get("maxInclusive"), space, c -> c <= 0)
+                && satisfies(value, facets.get("maxExclusive"), space, c -> c < 0);
+    }
+
+    /** Whether comparing {@code value} with the first bound, in the given value space, passes {@code test}. */
+    private static boolean satisfies(BigDecimal value, List<String> bound, NumberSpace space,
+                                     java.util.function.IntPredicate test) {
+        if (bound == null || bound.isEmpty()) {
+            return true;
+        }
+        try {
+            String lexical = bound.getFirst().trim();
+            int comparison = switch (space) {
+                case FLOAT -> Float.compare(value.floatValue(), Float.parseFloat(lexical));
+                case DOUBLE -> Double.compare(value.doubleValue(), Double.parseDouble(lexical));
+                case DECIMAL -> value.compareTo(new BigDecimal(lexical));
+            };
+            return test.test(comparison);
+        } catch (NumberFormatException e) {
+            return true; // INF, NaN or an unparsable bound: not checked
+        }
     }
 
     /**

@@ -112,6 +112,48 @@ class XsdSampleDataGeneratorTest {
         }
     }
 
+    @ParameterizedTest(name = "{0} {1}")
+    @CsvSource(delimiter = '|', value = {
+            "xs:double|minInclusive=1.00001;maxInclusive=1.00004",
+            "xs:float|minInclusive=0.001;maxInclusive=0.004",
+            "xs:decimal|minInclusive=0.001;maxInclusive=0.004",
+            "xs:double|minInclusive=-3.141592653589793238462;maxInclusive=3.141592653589793238462",
+            "xs:decimal|minExclusive=0;maxExclusive=1",
+            "xs:double|minExclusive=0;maxExclusive=0.5"
+    })
+    @DisplayName("Rounding a generated number keeps it within its bounds")
+    void roundedNumbersStayWithinTheirBounds(String base, String bounds) throws Exception {
+        // UCI AngleType is an xs:double in [-pi, pi]; a random value rounded to four digits gave 3.1416
+        Map<String, List<String>> facets = new LinkedHashMap<>();
+        StringBuilder facetXml = new StringBuilder();
+        for (String bound : bounds.split(";")) {
+            String[] parts = bound.split("=");
+            facets.put(parts[0], List.of(parts[1]));
+            facetXml.append("<xs:").append(parts[0]).append(" value=\"").append(parts[1]).append("\"/>");
+        }
+        XsdExtendedElement element = new XsdExtendedElement();
+        element.setElementType("t:BoundedType");
+        element.setRestrictionInfo(new XsdExtendedElement.RestrictionInfo(base, facets));
+        javax.xml.validation.Validator validator = new org.apache.xerces.jaxp.validation.XMLSchemaFactory()
+                .newSchema(new javax.xml.transform.stream.StreamSource(new java.io.StringReader("""
+                        <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                          <xs:element name="v">
+                            <xs:simpleType><xs:restriction base="%s">%s</xs:restriction></xs:simpleType>
+                          </xs:element>
+                        </xs:schema>
+                        """.formatted(base, facetXml)))).newValidator();
+
+        for (int i = 0; i < 20; i++) {
+            String value = generator.generate(element);
+            try {
+                validator.validate(new javax.xml.transform.stream.StreamSource(
+                        new java.io.StringReader("<v>" + value + "</v>")));
+            } catch (org.xml.sax.SAXException e) {
+                fail("'" + value + "' for " + base + " " + bounds + ": " + e.getMessage());
+            }
+        }
+    }
+
     @ParameterizedTest(name = "{0}")
     @org.junit.jupiter.params.provider.ValueSource(strings = {".+@.+", "[^@]+@[^@]+\\.[a-z]{2,}"})
     @DisplayName("E-mail patterns are sampled, not replaced by the fallback")
