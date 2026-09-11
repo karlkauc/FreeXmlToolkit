@@ -55,6 +55,18 @@ class SampleXmlReproducibilityTest {
                             </xs:simpleType>
                           </xs:element>
                         </xs:sequence>
+                        <xs:attribute name="shipped" use="required">
+                          <xs:simpleType>
+                            <xs:restriction base="xs:string">
+                              <xs:enumeration value="yes"/><xs:enumeration value="no"/>
+                            </xs:restriction>
+                          </xs:simpleType>
+                        </xs:attribute>
+                        <xs:attribute name="tracking" use="required">
+                          <xs:simpleType>
+                            <xs:restriction base="xs:string"><xs:pattern value="[A-Z]{3}[0-9]{5}"/></xs:restriction>
+                          </xs:simpleType>
+                        </xs:attribute>
                       </xs:complexType>
                     </xs:element>
                   </xs:sequence>

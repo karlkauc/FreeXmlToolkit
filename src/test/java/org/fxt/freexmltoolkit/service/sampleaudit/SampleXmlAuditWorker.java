@@ -267,6 +267,9 @@ public final class SampleXmlAuditWorker {
                 profile.setMaxOccurrences(MAX_OCCURRENCES);
                 record("all", "realistic", mandatoryOnly, root, timed(() -> {
                     try {
+                        if (SEED != null) {
+                            service.setSampleSeed(SEED);
+                        }
                         service.expandForSample(root, mandatoryOnly, XsdDocumentationService.MarkdownMode.ALL);
                     } catch (SampleXmlLimits.LimitExceededException e) {
                         return e.toXmlComment();

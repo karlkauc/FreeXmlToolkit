@@ -46,10 +46,12 @@ public final class SampleXmlRunner {
         try {
             XsdDocumentationService service = new XsdDocumentationService();
             service.setXsdFilePath(xsd.getAbsolutePath());
+            if (seed != null) {
+                // The expansion generates the sample data of every element and attribute, which the realistic
+                // generator emits for attributes
+                service.setSampleSeed(seed);
+            }
             if (!realistic) {
-                if (seed != null) {
-                    service.setSampleSeed(seed);
-                }
                 return service.generateSampleXml(mandatoryOnly, maxOccurrences);
             }
             // Expand only the first root, not every global element (bounded memory for large schemas)
