@@ -922,6 +922,15 @@ public class ProfiledXmlGeneratorService {
     }
 
     private void setupTypeResolver(XsdSampleDataGenerator generator, XsdDocumentationData data) {
+        if (data.getNamedTypeResolver() != null) {
+            // The schema processing service's resolver follows derivation chains across documents and namespaces
+            generator.setTypeResolver(typeName -> {
+                var resolution = data.getNamedTypeResolver().resolve(typeName);
+                return resolution == null ? null
+                        : new XsdSampleDataGenerator.ResolvedType(resolution.baseType(), resolution.restriction());
+            });
+            return;
+        }
         Map<String, XsdExtendedElement> elementMap = data.getExtendedXsdElementMap();
         generator.setTypeResolver(typeName -> {
             for (XsdExtendedElement elem : elementMap.values()) {

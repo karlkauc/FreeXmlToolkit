@@ -718,6 +718,14 @@ public class XsdDocumentationService {
      */
     private void configureTypeResolver() {
         xsdSampleDataGenerator.setTypeResolver(typeName -> resolveTypeToBase(typeName, new HashSet<>()));
+        // The realistic generator only sees the documentation data: hand it the same resolver (SIRI
+        // ParticipantRefStructure -> ParticipantCodeType -> NMTOKEN came out empty through its element map scan)
+        xsdDocumentationData.setNamedTypeResolver(typeName -> {
+            XsdSampleDataGenerator.ResolvedType resolved = resolveTypeToBase(typeName, new HashSet<>());
+            return resolved == null ? null
+                    : new org.fxt.freexmltoolkit.domain.NamedTypeResolver.Resolution(resolved.baseType(),
+                    resolved.mergedRestriction());
+        });
     }
 
     /**

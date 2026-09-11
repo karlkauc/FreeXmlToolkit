@@ -60,6 +60,8 @@ public class XsdDocumentationData {
 
     // XSD 1.1 default open content (applies to all types in schema)
     private OpenContent defaultOpenContent;
+    /** Resolves named types for sample values; set by the schema processing service. */
+    private NamedTypeResolver namedTypeResolver;
 
     public OpenContent getDefaultOpenContent() {
         return defaultOpenContent;
@@ -67,6 +69,18 @@ public class XsdDocumentationData {
 
     public void setDefaultOpenContent(OpenContent defaultOpenContent) {
         this.defaultOpenContent = defaultOpenContent;
+    }
+
+    /**
+     * The resolver of named types the schema processing service provides, or {@code null} when this data was not
+     * produced by it.
+     */
+    public NamedTypeResolver getNamedTypeResolver() {
+        return namedTypeResolver;
+    }
+
+    public void setNamedTypeResolver(NamedTypeResolver namedTypeResolver) {
+        this.namedTypeResolver = namedTypeResolver;
     }
 
     public String getAttributeFormDefault() {
