@@ -68,6 +68,10 @@ public class ProfiledXmlGeneratorService {
     private final Random random;
     /** Character limit while building a document; -1 outside generation. */
     private long outputCharLimit = -1;
+    /** XPaths whose repetitions beyond minOccurs the current document already emitted. */
+    private final Set<String> repeatedXpaths = new HashSet<>();
+    /** Generates the per-occurrence ID and IDREF values of the current document. */
+    private XsdSampleDataGenerator identityValues;
 
     /**
      * Creates a generator with a non-deterministic {@link Random} source. CHOICE
@@ -286,6 +290,9 @@ public class ProfiledXmlGeneratorService {
                                      String xsdFilePath, ValueStrategyFactory strategyFactory,
                                      GenerationContext context, String rootElementName) {
         Map<String, XsdExtendedElement> elementMap = data.getExtendedXsdElementMap();
+        identityValues = strategyFactory.generator();
+        identityValues.startDocument();
+        repeatedXpaths.clear();
 
         XsdExtendedElement rootElement;
         if (rootElementName == null) {
@@ -363,7 +370,7 @@ public class ProfiledXmlGeneratorService {
                 xml.append(">").append(escapeXml(value)).append("</").append(rootName).append(">\n");
                 context.recordGeneratedValue(rootXpath, value);
             }
-            return xml.toString();
+            return identityValues.resolveDanglingReferences(xml.toString());
         }
 
         xml.append(">\n");
@@ -380,7 +387,7 @@ public class ProfiledXmlGeneratorService {
         }
 
         xml.append("</").append(rootName).append(">\n");
-        return xml.toString();
+        return identityValues.resolveDanglingReferences(xml.toString());
     }
 
     private void buildElement(StringBuilder sb, XsdExtendedElement element, GenerationProfile profile,
@@ -476,7 +483,8 @@ public class ProfiledXmlGeneratorService {
 
         // Calculate repeat count for this element; a per-rule maxOccurrences config
         // overrides the profile's global setting for this xpath only.
-        int repeatCount = calculateElementRepeatCount(element, maxOccurrences);
+        int repeatCount = XsdDocumentationService.limitRepeatedOccurrences(element,
+                calculateElementRepeatCount(element, maxOccurrences), repeatedXpaths);
         int override = findRepeatOverride(xpath, rules);
         if (override >= 0) {
             repeatCount = override;
@@ -578,6 +586,11 @@ public class ProfiledXmlGeneratorService {
             attrValue = fixedOrDefault;
         } else {
             attrValue = attr.getDisplaySampleData() != null ? attr.getDisplaySampleData() : "";
+            attrValue = switch (identityValues.identityKind(attr)) {
+                case ID -> identityValues.nextId();
+                case IDREF -> identityValues.nextIdReference();
+                case NONE -> attrValue;
+            };
         }
 
         // Apply constraint tracking

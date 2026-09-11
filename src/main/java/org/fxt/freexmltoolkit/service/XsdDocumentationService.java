@@ -197,6 +197,8 @@ public class XsdDocumentationService {
     private final Set<Node> sampleOptionalContentExpanded = Collections.newSetFromMap(new IdentityHashMap<>());
     /** Character limit while building a plain sample; -1 outside generation. */
     private long outputCharLimit = -1;
+    /** XPaths whose repetitions beyond minOccurs the current plain sample already emitted. */
+    private final Set<String> repeatedXpaths = new HashSet<>();
 
     // Language configuration for documentation generation
     private final Set<String> discoveredLanguages = new LinkedHashSet<>();
@@ -2629,6 +2631,8 @@ public class XsdDocumentationService {
 
     private String generateSampleXmlFor(XsdExtendedElement rootElement, boolean mandatoryOnly, int maxOccurrences) {
         StringBuilder xmlBuilder = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+        xsdSampleDataGenerator.startDocument();
+        repeatedXpaths.clear();
 
         // Add schema reference (supports namespaced and no-namespace schemas)
         String targetNamespace = xsdDocumentationData.getTargetNamespace();
@@ -2680,7 +2684,7 @@ public class XsdDocumentationService {
             String attrName = attr.getElementName().substring(1); // Remove @ prefix
             String attrValue = (fixedOrDefault != null)
                     ? fixedOrDefault
-                    : (attr.getDisplaySampleData() != null ? attr.getDisplaySampleData() : "");
+                    : occurrenceValue(attr, attr.getDisplaySampleData() != null ? attr.getDisplaySampleData() : "");
             xmlBuilder.append(" ").append(attrName).append("=\"").append(escapeXml(attrValue)).append("\"");
         }
 
@@ -2693,13 +2697,13 @@ public class XsdDocumentationService {
 
         if (rootChildElements.isEmpty()) {
             // Simple or empty content: the root carries its own value and no indentation whitespace
-            String rootValue = rootElement.getDisplaySampleData() != null ? rootElement.getDisplaySampleData() : "";
+            String rootValue = textValue(rootElement);
             if (rootValue.isEmpty()) {
                 xmlBuilder.append("/>\n");
             } else {
                 xmlBuilder.append(">").append(escapeXml(rootValue)).append("</").append(rootName).append(">\n");
             }
-            return xmlBuilder.toString();
+            return xsdSampleDataGenerator.resolveDanglingReferences(xmlBuilder.toString());
         }
 
         xmlBuilder.append(">\n");
@@ -2721,7 +2725,45 @@ public class XsdDocumentationService {
 
         xmlBuilder.append("</").append(rootName).append(">\n");
 
-        return xmlBuilder.toString();
+        return xsdSampleDataGenerator.resolveDanglingReferences(xmlBuilder.toString());
+    }
+
+    /**
+     * The text a plain sample emits for an element: its sample data, generated anew per occurrence for an ID or IDREF
+     * (the element map holds one value per schema node). Fixed and default values stay.
+     */
+    private String textValue(XsdExtendedElement element) {
+        String value = element.getDisplaySampleData() != null ? element.getDisplaySampleData() : "";
+        if (value.isEmpty() || getAttributeValue(element.getCurrentNode(), "fixed") != null
+                || getAttributeValue(element.getCurrentNode(), "default") != null) {
+            return value;
+        }
+        return occurrenceValue(element, value);
+    }
+
+    /** A fresh ID or an IDREF to an emitted ID when {@code node} has such a type, else {@code value}. */
+    private String occurrenceValue(XsdExtendedElement node, String value) {
+        return switch (xsdSampleDataGenerator.identityKind(node)) {
+            case ID -> xsdSampleDataGenerator.nextId();
+            case IDREF -> xsdSampleDataGenerator.nextIdReference();
+            case NONE -> value;
+        };
+    }
+
+    /**
+     * Repetitions beyond {@code minOccurs} only decorate a sample: they are emitted the first time an XPath is emitted
+     * in a document, later emissions (inside a repeated ancestor) get {@code max(minOccurs, 1)}. UBL 2.1 references
+     * almost every element with {@code maxOccurs="unbounded"}, so repeating every level doubled the document per level.
+     *
+     * @param repeatedXpaths the XPaths of the current document that already emitted their repetitions
+     */
+    static int limitRepeatedOccurrences(XsdExtendedElement element, int repeatCount, Set<String> repeatedXpaths) {
+        Node bounds = element.getCardinalityNode() != null ? element.getCardinalityNode() : element.getCurrentNode();
+        int required = Math.max(1, Math.min(occurs(bounds, "minOccurs"), MAX_REQUIRED_REPETITIONS));
+        if (repeatCount <= required || repeatedXpaths.add(element.getCurrentXpath())) {
+            return repeatCount;
+        }
+        return required;
     }
 
     /** Upper bound for repeating an element or choice to reach its {@code minOccurs}. */
@@ -3100,7 +3142,8 @@ public class XsdDocumentationService {
             return;
         }
 
-        int repeatCount = elementRepeatCount(element, maxOccurrences);
+        int repeatCount = limitRepeatedOccurrences(element, elementRepeatCount(element, maxOccurrences),
+                repeatedXpaths);
 
         for (int i = 0; i < repeatCount; i++) {
             String indent = "\t".repeat(indentLevel);
@@ -3138,7 +3181,7 @@ public class XsdDocumentationService {
                 String attrName = attr.getElementName().substring(1);
                 String attrValue = (fixedOrDefault != null)
                         ? fixedOrDefault
-                        : (attr.getDisplaySampleData() != null ? attr.getDisplaySampleData() : "");
+                        : occurrenceValue(attr, attr.getDisplaySampleData() != null ? attr.getDisplaySampleData() : "");
 
                 // Apply constraint tracking for attributes
                 String attrXpath = element.getCurrentXpath() + "/@" + attrName;
@@ -3150,7 +3193,7 @@ public class XsdDocumentationService {
                 sb.append(" ").append(attrName).append("=\"").append(escapeXml(attrValue)).append("\"");
             }
 
-            String sampleData = element.getDisplaySampleData() != null ? element.getDisplaySampleData() : "";
+            String sampleData = textValue(element);
 
             // Apply constraint tracking for element text content
             if (constraintTracker != null && !sampleData.isEmpty()) {

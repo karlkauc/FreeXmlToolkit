@@ -273,6 +273,60 @@ class IdentityConstraintTrackerTest {
 
     // --- Helper methods ---
 
+    @Test
+    void selectorsAndFieldsWithPrefixesDescendantsWildcardsAndUnionsAreResolved() {
+        // SIRI .//siri:KeyValue and siri:Values/siri:*, Garmin tc2:Folder with @Name: the literal paths never matched
+        Map<String, XsdExtendedElement> elementMap = new LinkedHashMap<>();
+        XsdExtendedElement box = node(elementMap, "/Root/Box", "Box");
+        IdentityConstraint descendants = new IdentityConstraint(IdentityConstraint.Type.UNIQUE, "keys");
+        descendants.setSelector(".//t:Item");
+        descendants.addField("t:Code");
+        box.setIdentityConstraints(List.of(descendants));
+        node(elementMap, "/Root/Box/SEQUENCE_1", "SEQUENCE");
+        node(elementMap, "/Root/Box/SEQUENCE_1/Group", "Group");
+        node(elementMap, "/Root/Box/SEQUENCE_1/Group/Item", "Item");
+        node(elementMap, "/Root/Box/SEQUENCE_1/Group/Item/Code", "Code");
+
+        XsdExtendedElement folders = node(elementMap, "/Root/Folders", "Folders");
+        IdentityConstraint names = new IdentityConstraint(IdentityConstraint.Type.UNIQUE, "names");
+        names.setSelector("t:Folder");
+        names.addField("@Name");
+        folders.setIdentityConstraints(List.of(names));
+        node(elementMap, "/Root/Folders/Folder", "Folder");
+        node(elementMap, "/Root/Folders/Folder/@Name", "@Name");
+
+        XsdExtendedElement values = node(elementMap, "/Root/Values", "Values");
+        IdentityConstraint codes = new IdentityConstraint(IdentityConstraint.Type.UNIQUE, "codes");
+        codes.setSelector("t:*|t:Size");
+        codes.addField("t:TypeCode");
+        values.setIdentityConstraints(List.of(codes));
+        node(elementMap, "/Root/Values/Colour", "Colour");
+        node(elementMap, "/Root/Values/Colour/TypeCode", "TypeCode");
+        node(elementMap, "/Root/Values/Size", "Size");
+        node(elementMap, "/Root/Values/Size/TypeCode", "TypeCode");
+
+        tracker.scanConstraints(elementMap);
+
+        assertTrue(tracker.isConstrainedField("/Root/Box/SEQUENCE_1/Group/Item/Code"));
+        assertTrue(tracker.isConstrainedField("/Root/Folders/Folder/@Name"));
+        assertTrue(tracker.isConstrainedField("/Root/Values/Colour/TypeCode"));
+        assertTrue(tracker.isConstrainedField("/Root/Values/Size/TypeCode"));
+    }
+
+    /** Adds an element to the map and to its parent's children. */
+    private static XsdExtendedElement node(Map<String, XsdExtendedElement> elementMap, String xpath, String name) {
+        XsdExtendedElement element = new XsdExtendedElement();
+        element.setCurrentXpath(xpath);
+        element.setElementName(name);
+        String parent = xpath.substring(0, xpath.lastIndexOf('/'));
+        element.setParentXpath(parent.isEmpty() ? null : parent);
+        if (elementMap.containsKey(parent)) {
+            elementMap.get(parent).addChild(xpath);
+        }
+        elementMap.put(xpath, element);
+        return element;
+    }
+
     private Map<String, XsdExtendedElement> buildSimpleKeyMap() {
         Map<String, XsdExtendedElement> elementMap = new LinkedHashMap<>();
 

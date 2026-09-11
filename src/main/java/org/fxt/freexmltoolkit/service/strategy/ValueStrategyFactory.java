@@ -33,7 +33,10 @@ public class ValueStrategyFactory {
 
     private final Map<GenerationStrategy, ValueStrategy> cache = new EnumMap<>(GenerationStrategy.class);
 
+    private final XsdSampleDataGenerator generator;
+
     public ValueStrategyFactory(XsdSampleDataGenerator generator) {
+        this.generator = generator;
         cache.put(GenerationStrategy.AUTO, new AutoValueStrategy(generator));
         cache.put(GenerationStrategy.FIXED, new FixedValueStrategy());
         cache.put(GenerationStrategy.OMIT, new OmitValueStrategy());
@@ -54,6 +57,11 @@ public class ValueStrategyFactory {
      * @return the corresponding value strategy, never null
      * @throws IllegalArgumentException if no strategy is registered for the given type
      */
+    /** The sample data generator behind {@link GenerationStrategy#AUTO}. */
+    public XsdSampleDataGenerator generator() {
+        return generator;
+    }
+
     public ValueStrategy forStrategy(GenerationStrategy strategy) {
         ValueStrategy result = cache.get(strategy);
         if (result == null) {

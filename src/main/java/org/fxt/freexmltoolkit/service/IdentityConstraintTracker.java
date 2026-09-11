@@ -19,6 +19,8 @@ package org.fxt.freexmltoolkit.service;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.List;
 import java.util.Map;
 
@@ -123,29 +125,30 @@ public class IdentityConstraintTracker {
                 // Resolve selector XPath relative to the element that defines the constraint.
                 // The selector is a relative XPath like "FundStaticData/Benchmarks/Benchmark"
                 // which resolves relative to the constraint-defining element's XPath.
-                String resolvedSelectorXpath = resolveRelativePath(elementXpath, selector, elementMap);
-
-                if (resolvedSelectorXpath == null) {
+                List<String> selectedXpaths = resolvePaths(elementXpath, selector, elementMap);
+                if (selectedXpaths.isEmpty()) {
                     logger.debug("Could not resolve selector '{}' for constraint '{}' from '{}'",
                             selector, constraint.getName(), elementXpath);
                     continue;
                 }
 
-                // Resolve each field XPath relative to the resolved selector
-                for (String field : fields) {
-                    String resolvedFieldXpath = resolveRelativePath(resolvedSelectorXpath, field, elementMap);
-
-                    if (resolvedFieldXpath != null) {
-                        constrainedFields.put(resolvedFieldXpath, new ConstraintFieldInfo(
-                                constraint.getName(),
-                                constraint.getType(),
-                                constraint.getRefer()
-                        ));
-                        logger.debug("Mapped constraint field: {} -> {} ({})",
-                                resolvedFieldXpath, constraint.getName(), constraint.getType());
-                    } else {
-                        logger.debug("Could not resolve field '{}' for constraint '{}' from selector '{}'",
-                                field, constraint.getName(), resolvedSelectorXpath);
+                // Resolve each field XPath relative to every selected element
+                for (String selectedXpath : selectedXpaths) {
+                    for (String field : fields) {
+                        List<String> fieldXpaths = resolvePaths(selectedXpath, field, elementMap);
+                        if (fieldXpaths.isEmpty()) {
+                            logger.debug("Could not resolve field '{}' for constraint '{}' from selector '{}'",
+                                    field, constraint.getName(), selectedXpath);
+                        }
+                        for (String fieldXpath : fieldXpaths) {
+                            constrainedFields.put(fieldXpath, new ConstraintFieldInfo(
+                                    constraint.getName(),
+                                    constraint.getType(),
+                                    constraint.getRefer()
+                            ));
+                            logger.debug("Mapped constraint field: {} -> {} ({})",
+                                    fieldXpath, constraint.getName(), constraint.getType());
+                        }
                     }
                 }
             }
@@ -303,73 +306,105 @@ public class IdentityConstraintTracker {
      * @param elementMap  the element map for validation
      * @return the resolved full XPath, or null if not found
      */
-    private String resolveRelativePath(String baseXpath, String relativePath, Map<String, XsdExtendedElement> elementMap) {
-        if (baseXpath == null || relativePath == null) {
-            return null;
-        }
-
-        // Handle attribute fields (e.g., "@id")
-        if (relativePath.startsWith("@")) {
-            String candidateXpath = baseXpath + "/" + relativePath;
-            if (elementMap.containsKey(candidateXpath)) {
-                return candidateXpath;
-            }
-            return null;
-        }
-
-        // Simple case: direct concatenation works
-        String directPath = baseXpath + "/" + relativePath;
-        if (elementMap.containsKey(directPath)) {
-            return directPath;
-        }
-
-        // The relative path might need to skip SEQUENCE/CHOICE/ALL containers.
-        // Split relative path into segments and try to match step by step.
-        String[] segments = relativePath.split("/");
-        return resolvePathSegments(baseXpath, segments, 0, elementMap);
-    }
-
     /**
-     * Recursively resolves path segments against the element map, skipping structural
-     * containers (SEQUENCE, CHOICE, ALL) that exist in the XPath map but not in XSD selectors.
+     * Resolves a selector or field XPath of the restricted identity-constraint syntax against the element map:
+     * alternatives ({@code a|b}), a leading {@code ./} or {@code .//} (descendants), name tests with or without a
+     * prefix (the map is keyed by local names, element references by their QName), {@code *} and {@code @attribute}.
+     * Structural containers (SEQUENCE, CHOICE, ALL) in the map are skipped.
+     *
+     * @return the XPaths of the element map the path selects, in map order; empty if none
      */
-    private String resolvePathSegments(String currentXpath, String[] segments, int segmentIndex,
-                                       Map<String, XsdExtendedElement> elementMap) {
-        if (segmentIndex >= segments.length) {
-            // All segments resolved
-            return elementMap.containsKey(currentXpath) ? currentXpath : null;
+    private List<String> resolvePaths(String baseXpath, String path, Map<String, XsdExtendedElement> elementMap) {
+        Set<String> result = new LinkedHashSet<>();
+        if (baseXpath == null || path == null) {
+            return List.of();
         }
-
-        String segment = segments[segmentIndex];
-
-        // Try direct match: currentXpath/segment
-        String directPath = currentXpath + "/" + segment;
-        String result = resolvePathSegments(directPath, segments, segmentIndex + 1, elementMap);
-        if (result != null) {
-            return result;
-        }
-
-        // Try skipping through container nodes (SEQUENCE_*, CHOICE_*, ALL_*)
-        XsdExtendedElement currentElement = elementMap.get(currentXpath);
-        if (currentElement != null && currentElement.getChildren() != null) {
-            for (String childXpath : currentElement.getChildren()) {
-                XsdExtendedElement child = elementMap.get(childXpath);
-                if (child == null) {
-                    continue;
+        for (String alternative : path.split("\\|")) {
+            String steps = alternative.trim();
+            boolean descendants = steps.startsWith(".//");
+            if (descendants) {
+                steps = steps.substring(3);
+            } else if (steps.startsWith("./")) {
+                steps = steps.substring(2);
+            }
+            if (steps.isEmpty() || ".".equals(steps)) {
+                if (elementMap.containsKey(baseXpath)) {
+                    result.add(baseXpath);
                 }
-
-                String childName = child.getElementName();
-                if (childName != null && (childName.startsWith("SEQUENCE") || childName.startsWith("CHOICE") || childName.startsWith("ALL"))) {
-                    // Skip container: try resolving from the container's XPath
-                    result = resolvePathSegments(childXpath, segments, segmentIndex, elementMap);
-                    if (result != null) {
-                        return result;
+                continue;
+            }
+            String[] segments = steps.split("/");
+            if (descendants) {
+                String prefix = baseXpath + "/";
+                for (Map.Entry<String, XsdExtendedElement> entry : elementMap.entrySet()) {
+                    if (entry.getKey().startsWith(prefix) && nameMatches(entry.getValue(), segments[0])) {
+                        resolveSegments(entry.getKey(), segments, 1, elementMap, result);
                     }
                 }
+            } else {
+                resolveSegments(baseXpath, segments, 0, elementMap, result);
             }
         }
+        return new ArrayList<>(result);
+    }
 
-        return null;
+    private void resolveSegments(String currentXpath, String[] segments, int index,
+                                 Map<String, XsdExtendedElement> elementMap, Set<String> result) {
+        if (index >= segments.length) {
+            if (elementMap.containsKey(currentXpath)) {
+                result.add(currentXpath);
+            }
+            return;
+        }
+        String segment = segments[index].trim();
+        // Direct concatenation, for maps whose parents do not list their children
+        String direct = currentXpath + "/" + localName(segment);
+        if (!"*".equals(segment) && elementMap.containsKey(direct)) {
+            resolveSegments(direct, segments, index + 1, elementMap, result);
+        }
+        XsdExtendedElement current = elementMap.get(currentXpath);
+        if (current == null || current.getChildren() == null) {
+            return;
+        }
+        for (String childXpath : current.getChildren()) {
+            XsdExtendedElement child = elementMap.get(childXpath);
+            if (child == null || child.getElementName() == null || childXpath.equals(direct)) {
+                continue;
+            }
+            if (isContainer(child)) {
+                resolveSegments(childXpath, segments, index, elementMap, result);
+            } else if (nameMatches(child, segment)) {
+                resolveSegments(childXpath, segments, index + 1, elementMap, result);
+            }
+        }
+    }
+
+    /** Whether a name test ({@code name}, {@code p:name}, {@code *}, {@code @name}, {@code @p:name}) matches. */
+    private static boolean nameMatches(XsdExtendedElement element, String segment) {
+        String name = element.getElementName();
+        if (name == null || isContainer(element)) {
+            return false;
+        }
+        boolean attributeTest = segment.startsWith("@");
+        if (attributeTest != name.startsWith("@")) {
+            return false;
+        }
+        String test = localName(attributeTest ? segment.substring(1) : segment);
+        String actual = localName(attributeTest ? name.substring(1) : name);
+        return "*".equals(test) || test.equals(actual);
+    }
+
+    private static boolean isContainer(XsdExtendedElement element) {
+        String name = element.getElementName();
+        return name != null && (name.startsWith("SEQUENCE") || name.startsWith("CHOICE") || name.startsWith("ALL"));
+    }
+
+    /** {@code p:name} → {@code name}; an attribute test keeps its {@code @}. */
+    private static String localName(String step) {
+        if (step.startsWith("@")) {
+            return "@" + localName(step.substring(1));
+        }
+        return step.substring(step.indexOf(':') + 1);
     }
 
     private static boolean hasPattern(XsdExtendedElement element) {

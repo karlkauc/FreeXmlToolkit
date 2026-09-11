@@ -34,7 +34,9 @@ class SampleXmlOccurrenceBoundsTest {
                   <xs:sequence>
                     <xs:element name="polygon">
                       <xs:complexType>
-                        <xs:sequence><xs:element name="vertex" type="xs:int" minOccurs="3" maxOccurs="unbounded"/></xs:sequence>
+                        <xs:sequence>
+                          <xs:element name="vertex" type="xs:int" minOccurs="3" maxOccurs="unbounded"/>
+                        </xs:sequence>
                       </xs:complexType>
                     </xs:element>
                     <xs:element name="covariance" type="xs:double" minOccurs="6" maxOccurs="120"/>
@@ -70,6 +72,38 @@ class SampleXmlOccurrenceBoundsTest {
         assertTrue(count(xml, "<knot>") >= 4, xml);
         assertEquals(count(xml, "<knot>"), count(xml, "<weight>"), xml);
         assertTrue(count(xml, "<point>") + count(xml, "<line>") >= 3, xml);
+        new org.apache.xerces.jaxp.validation.XMLSchemaFactory().newSchema(xsd.toFile())
+                .newValidator().validate(new StreamSource(new StringReader(xml)));
+    }
+
+    @ParameterizedTest(name = "realistic={0}, mandatoryOnly={1}")
+    @CsvSource({"false,true", "false,false", "true,true", "true,false"})
+    void repeatedAncestorsDoNotMultiplyRepetitions(boolean realistic, boolean mandatoryOnly) throws Exception {
+        // UBL 2.1 references almost every element with maxOccurs="unbounded": repeating each level twice doubled the
+        // document per level and exceeded the output limit
+        StringBuilder schema = new StringBuilder("""
+                <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="urn:deep" targetNamespace="urn:deep"
+                           elementFormDefault="qualified">
+                  <xs:element name="root">
+                    <xs:complexType>
+                      <xs:sequence><xs:element ref="level1" maxOccurs="unbounded"/></xs:sequence>
+                    </xs:complexType>
+                  </xs:element>
+                """);
+        int depth = 24;
+        for (int level = 1; level < depth; level++) {
+            schema.append("  <xs:element name=\"level").append(level).append("\"><xs:complexType><xs:sequence>")
+                    .append("<xs:element ref=\"level").append(level + 1).append("\" maxOccurs=\"unbounded\"/>")
+                    .append("</xs:sequence></xs:complexType></xs:element>\n");
+        }
+        schema.append("  <xs:element name=\"level").append(depth).append("\" type=\"xs:int\"/>\n</xs:schema>\n");
+        Path xsd = dir.resolve("deep.xsd");
+        Files.writeString(xsd, schema.toString());
+
+        String xml = SampleXmlRunner.generate(xsd.toFile(), mandatoryOnly, 2, realistic);
+
+        assertTrue(count(xml, "<level" + depth + ">") >= 2 && count(xml, "<level" + depth + ">") <= 4 * depth,
+                xml.length() > 2000 ? xml.substring(0, 2000) : xml);
         new org.apache.xerces.jaxp.validation.XMLSchemaFactory().newSchema(xsd.toFile())
                 .newValidator().validate(new StreamSource(new StringReader(xml)));
     }

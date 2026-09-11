@@ -98,11 +98,13 @@ class SampleXmlExpansionLimitTest {
     @Test
     void sampleAboveTheCharacterLimitReturnsAnErrorComment() throws Exception {
         System.setProperty(CHAR_LIMIT, "100000");
+        // Every level requires two copies of the next: 2^18 leaves. Required repetitions are never shortened, unlike
+        // optional ones (maxOccurs="unbounded" repeats only at the first emission of an XPath).
         StringBuilder types = new StringBuilder();
         for (int i = 0; i < 18; i++) {
             types.append("""
                       <xs:complexType name="N%d">
-                        <xs:sequence><xs:element name="n%d" type="%s" maxOccurs="unbounded"/></xs:sequence>
+                        <xs:sequence><xs:element name="n%d" type="%s" minOccurs="2" maxOccurs="2"/></xs:sequence>
                       </xs:complexType>
                     """.formatted(i, i, i == 17 ? "xs:string" : "N" + (i + 1)));
         }

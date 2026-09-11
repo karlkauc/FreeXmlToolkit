@@ -10,6 +10,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -72,6 +73,10 @@ public class XsdSampleDataGenerator {
     }
 
     private TypeResolver typeResolver;
+    private final Map<String, IdentityKind> identityKindByType = new HashMap<>();
+
+    /** Whether values of a type identify ({@code xs:ID}) or refer to ({@code xs:IDREF}, {@code xs:IDREFS}) elements. */
+    public enum IdentityKind { NONE, ID, IDREF }
 
     /**
      * Sets the type resolver for resolving named types to base XML types.
@@ -79,6 +84,74 @@ public class XsdSampleDataGenerator {
      */
     public void setTypeResolver(TypeResolver resolver) {
         this.typeResolver = resolver;
+        identityKindByType.clear();
+    }
+
+    /**
+     * Whether the element's or attribute's type is (derived from) {@code xs:ID} or {@code xs:IDREF(S)}. Such values
+     * must be generated per occurrence: an ID must be unique in the document, an IDREF must match an emitted ID.
+     */
+    public IdentityKind identityKind(XsdExtendedElement element) {
+        if (element == null) {
+            return IdentityKind.NONE;
+        }
+        String type = element.getElementType();
+        if (type == null && element.getRestrictionInfo() != null) {
+            type = element.getRestrictionInfo().base();
+        }
+        if (type == null) {
+            return IdentityKind.NONE;
+        }
+        return identityKindByType.computeIfAbsent(type, this::resolveIdentityKind);
+    }
+
+    private IdentityKind resolveIdentityKind(String type) {
+        String base = type;
+        if (typeResolver != null && !isBaseXmlType(type)) {
+            ResolvedType resolved = typeResolver.resolve(type);
+            if (resolved != null && resolved.baseType() != null) {
+                base = resolved.baseType();
+            }
+        }
+        return switch (base.substring(base.lastIndexOf(':') + 1).toLowerCase(Locale.ROOT)) {
+            case "id" -> IdentityKind.ID;
+            case "idref", "idrefs" -> IdentityKind.IDREF;
+            default -> IdentityKind.NONE;
+        };
+    }
+
+    /** Starts a new document: IDs generated before (for the element map, or for another document) are forgotten. */
+    public void startDocument() {
+        generatedIds.clear();
+        reservedIdsForRefs.clear();
+    }
+
+    /** A new ID, unique in the current document; takes over an ID an earlier IDREF already refers to. */
+    public String nextId() {
+        return generateUniqueId();
+    }
+
+    /** An IDREF to an ID of the current document, or to one reserved for the next {@link #nextId()}. */
+    public String nextIdReference() {
+        return generateIdReference();
+    }
+
+    /**
+     * Points IDREFs whose reserved ID was never emitted at the first emitted ID of the document.
+     *
+     * @param xml the generated document
+     * @return the document with every reference resolvable, when it contains at least one ID
+     */
+    public String resolveDanglingReferences(String xml) {
+        if (xml == null || reservedIdsForRefs.isEmpty() || generatedIds.isEmpty()) {
+            return xml;
+        }
+        String target = generatedIds.getFirst();
+        for (String dangling : reservedIdsForRefs) {
+            xml = xml.replaceAll("\\b" + java.util.regex.Pattern.quote(dangling) + "\\b",
+                    java.util.regex.Matcher.quoteReplacement(target));
+        }
+        return xml;
     }
 
     /**
