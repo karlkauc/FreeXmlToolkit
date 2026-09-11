@@ -350,7 +350,8 @@ public class ProfiledXmlGeneratorService {
 
         for (XsdExtendedElement attr : rootAttributes) {
             String attrXpath = rootElement.getCurrentXpath() + "/@" + attr.getElementName().substring(1);
-            renderAttribute(xml, attr, attrXpath, profile, enabledRules, strategyFactory, context, constraintTracker);
+            renderAttribute(xml, attr, attrXpath, profile, enabledRules, strategyFactory, context, constraintTracker,
+                    XsdDocumentationService.idForEmittedReference(attr, rootAttributes, identityValues));
         }
 
         // Root element children
@@ -532,7 +533,8 @@ public class ProfiledXmlGeneratorService {
 
             for (XsdExtendedElement attr : attributes) {
                 String attrXpath = xpath + "/@" + attr.getElementName().substring(1);
-                renderAttribute(sb, attr, attrXpath, profile, rules, strategyFactory, context, constraintTracker);
+                renderAttribute(sb, attr, attrXpath, profile, rules, strategyFactory, context, constraintTracker,
+                        XsdDocumentationService.idForEmittedReference(attr, attributes, identityValues));
             }
 
             // Resolve value for this element
@@ -587,7 +589,7 @@ public class ProfiledXmlGeneratorService {
     private void renderAttribute(StringBuilder sb, XsdExtendedElement attr, String attrXpath,
                                   GenerationProfile profile, List<XPathRule> rules,
                                   ValueStrategyFactory strategyFactory, GenerationContext context,
-                                  IdentityConstraintTracker constraintTracker) {
+                                  IdentityConstraintTracker constraintTracker, boolean idForReference) {
         Optional<XPathRule> attrRule = matchRule(attrXpath, rules);
 
         // Handle OMIT for attributes
@@ -597,7 +599,8 @@ public class ProfiledXmlGeneratorService {
 
         // Skip optional attributes in mandatory-only mode (unless explicitly ruled)
         String fixedOrDefault = XsdDocumentationService.fixedOrDefaultValue(attr);
-        if (profile.isMandatoryOnly() && !attr.isMandatory() && fixedOrDefault == null && attrRule.isEmpty()) {
+        if (profile.isMandatoryOnly() && !attr.isMandatory() && fixedOrDefault == null && attrRule.isEmpty()
+                && !idForReference) {
             return;
         }
 

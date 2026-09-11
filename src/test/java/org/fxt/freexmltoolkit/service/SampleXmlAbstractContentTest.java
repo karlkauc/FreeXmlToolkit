@@ -189,6 +189,27 @@ class SampleXmlAbstractContentTest {
             </xs:schema>
             """;
 
+    /** KML {@code ObjectSimpleExtensionGroup}: an abstract head nothing substitutes, with a simple type. */
+    private static final String EXTENSION_POINTS = """
+            <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="urn:ext" targetNamespace="urn:ext"
+                       elementFormDefault="qualified">
+              <xs:element name="LookAt">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="range" type="xs:double"/>
+                    <xs:element ref="ObjectSimpleExtensionGroup" minOccurs="0" maxOccurs="unbounded"/>
+                    <xs:choice>
+                      <xs:element ref="AltitudeExtensionGroup"/>
+                      <xs:element name="altitude" type="xs:double"/>
+                    </xs:choice>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="ObjectSimpleExtensionGroup" abstract="true" type="xs:anySimpleType"/>
+              <xs:element name="AltitudeExtensionGroup" abstract="true" type="xs:anySimpleType"/>
+            </xs:schema>
+            """;
+
     @TempDir
     Path dir;
 
@@ -258,6 +279,18 @@ class SampleXmlAbstractContentTest {
         String xml = SampleXmlRunner.generate(xsd.toFile(), mandatoryOnly, 2, realistic);
 
         assertFalse(xml.contains("<storeList xsi:type=\"ItemType\"/>"), "required location missing:\n" + xml);
+        assertValid(xsd, xml);
+    }
+
+    @ParameterizedTest(name = "realistic={0}, mandatoryOnly={1}")
+    @CsvSource({"false,true", "false,false", "true,true", "true,false"})
+    void anAbstractElementNothingSubstitutesIsLeftOutWhereItMayBe(boolean realistic, boolean mandatoryOnly)
+            throws Exception {
+        Path xsd = write("extension-points.xsd", EXTENSION_POINTS);
+
+        String xml = SampleXmlRunner.generate(xsd.toFile(), mandatoryOnly, 2, realistic);
+
+        assertFalse(xml.contains("ExtensionGroup"), "abstract element without members emitted:\n" + xml);
         assertValid(xsd, xml);
     }
 

@@ -1812,6 +1812,9 @@ public class XsdDocumentationService {
                 if (referencedNode != null) {
                     boolean elementRef = "element".equals(node.getLocalName());
                     Node emitted = elementRef ? sampleSubstitute(referencedNode, visitedOnPath) : referencedNode;
+                    if (elementRef && isUnsubstitutedAbstract(emitted) && mayBeLeftOut(node)) {
+                        return; // no instance may contain it; the content model does not need it here
+                    }
                     String emittedNamespace = instanceNamespace(emitted);
                     boolean switchNamespace = emitted != referencedNode
                             && !emittedNamespace.equals(instanceNamespace(referencedNode));
@@ -1963,6 +1966,27 @@ public class XsdDocumentationService {
         }
     }
 
+    /**
+     * Whether a sample expansion reached an abstract element that nothing substitutes: KML declares
+     * {@code ObjectSimpleExtensionGroup} ({@code anySimpleType}) without any member, and an instance may not contain
+     * it.
+     */
+    private boolean isUnsubstitutedAbstract(Node declaration) {
+        return sampleExpansion && isAbstractDeclaration(declaration);
+    }
+
+    /** Whether a particle may be absent: {@code minOccurs="0"}, or one option of a choice with others. */
+    private boolean mayBeLeftOut(Node particle) {
+        String minOccurs = getAttributeValue(particle, "minOccurs");
+        if (minOccurs != null && "0".equals(minOccurs.trim())) {
+            return true;
+        }
+        Node parent = particle.getParentNode();
+        return parent != null && "choice".equals(parent.getLocalName()) && getDirectChildElements(parent).stream()
+                .filter(n -> !"annotation".equals(n.getLocalName()))
+                .count() > 1;
+    }
+
     private static boolean isCompositor(Node node) {
         String localName = node.getLocalName();
         return "sequence".equals(localName) || "choice".equals(localName) || "all".equals(localName);
@@ -2026,6 +2050,9 @@ public class XsdDocumentationService {
             // Prefer building the full subtree from the referenced element (or, for an abstract one in a sample, from
             // a concrete substitution group member, which may belong to yet another namespace)
             Node emitted = sampleSubstitute(referencedNode, visitedOnPath);
+            if (isUnsubstitutedAbstract(emitted) && mayBeLeftOut(node)) {
+                return; // no instance may contain it; the content model does not need it here
+            }
             referenceNodeThreadLocal.set(node);
             if (emitted != referencedNode && !instanceNamespace(emitted).equals(instanceNamespace(referencedNode))) {
                 forceNamespace(instanceNamespace(emitted), emitted);
@@ -2812,7 +2839,8 @@ public class XsdDocumentationService {
         for (XsdExtendedElement attr : rootAttributes) {
             // Include attribute if mandatory, or if it has a fixed/default value
             String fixedOrDefault = fixedOrDefaultValue(attr);
-            if (mandatoryOnly && !attr.isMandatory() && fixedOrDefault == null) {
+            if (mandatoryOnly && !attr.isMandatory() && fixedOrDefault == null
+                    && !idForEmittedReference(attr, rootAttributes, xsdSampleDataGenerator)) {
                 continue;
             }
             String attrName = attributeName(attr);
@@ -2955,6 +2983,21 @@ public class XsdDocumentationService {
         if (element.getXsiTypePrefix() != null && element.getXsiTypeNamespace() != null) {
             namespaces.put(element.getXsiTypePrefix(), element.getXsiTypeNamespace());
         }
+    }
+
+    /**
+     * Whether an optional attribute is emitted in mandatory-only mode after all: it is the element's ID and the element
+     * emits a required IDREF(S), which would otherwise point at nothing (JATS {@code answer} requires
+     * {@code pointer-to-question} and has an optional {@code id}).
+     */
+    static boolean idForEmittedReference(XsdExtendedElement attribute, List<XsdExtendedElement> attributes,
+                                         XsdSampleDataGenerator identityValues) {
+        if (identityValues.identityKind(attribute) != XsdSampleDataGenerator.IdentityKind.ID) {
+            return false;
+        }
+        return attributes.stream().anyMatch(other -> other != attribute && other.isMandatory()
+                && fixedOrDefaultValue(other) == null
+                && identityValues.identityKind(other) == XsdSampleDataGenerator.IdentityKind.IDREF);
     }
 
     /** Upper bound for repeating an element or choice to reach its {@code minOccurs}. */
@@ -3367,7 +3410,8 @@ public class XsdDocumentationService {
             for (XsdExtendedElement attr : attributes) {
                 // Include attribute if mandatory, or if it has a fixed/default value even when mandatoryOnly is true
                 String fixedOrDefault = fixedOrDefaultValue(attr);
-                if (mandatoryOnly && !attr.isMandatory() && fixedOrDefault == null) {
+                if (mandatoryOnly && !attr.isMandatory() && fixedOrDefault == null
+                        && !idForEmittedReference(attr, attributes, xsdSampleDataGenerator)) {
                     continue;
                 }
                 String attrName = attributeName(attr);
