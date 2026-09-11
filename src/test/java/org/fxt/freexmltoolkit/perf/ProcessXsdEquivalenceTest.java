@@ -29,7 +29,10 @@ class ProcessXsdEquivalenceTest {
     // 2026-09-11: a restriction's facets replace its base type's facets of the same name instead of being appended.
     // Exactly two entries changed, both restr only: a pattern declared identically on a type and its base was listed
     // twice (FundsXML4 IndirectReporting country subdivision codes).
-    private static final String EXPECTED_SHA256 = "081689e57078f6f70ac59def597ab76f051fd647a9cba5ddc2ec859ac3d2756f";
+    // 2026-09-11: particles with the same name in one compositor get their own key (name[2]). Exactly two entries
+    // were added: FundsXML4 UK declares UCITSExistingPerformanceFees and UKAssumedPortfolioReturn twice; before, the
+    // second replaced the first, including its documentation.
+    private static final String EXPECTED_SHA256 = "d161985a4d7d40f20b7b8b1409f3cb79a18531ebebb9221aeda2918021edfacd";
 
     @Test
     void expandedElementMapIsByteIdentical() throws Exception {

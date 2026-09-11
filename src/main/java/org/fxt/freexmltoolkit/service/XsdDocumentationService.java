@@ -1860,7 +1860,8 @@ public class XsdDocumentationService {
                 // For groups, just traverse their children (groups are references)
                 for (Node child : getDirectChildElements(node)) {
                     String childName = getAttributeValue(child, "name", getAttributeValue(child, "ref"));
-                    String childXPath = "element".equals(child.getLocalName()) ? currentXPath + "/" + childName : currentXPath;
+                    String childXPath = "element".equals(child.getLocalName())
+                            ? uniqueChildXPath(currentXPath + "/" + childName) : currentXPath;
                     traverseNode(child, childXPath, currentXPath, level, visitedOnPath);
                 }
             }
@@ -1985,6 +1986,24 @@ public class XsdDocumentationService {
         return parent != null && "choice".equals(parent.getLocalName()) && getDirectChildElements(parent).stream()
                 .filter(n -> !"annotation".equals(n.getLocalName()))
                 .count() > 1;
+    }
+
+    /**
+     * The element map key of an element particle: {@code candidate}, or {@code candidate[n]} when an earlier particle
+     * with the same name under the same parent already holds it. JATS {@code ruby-model} ({@code rp, rt, rp}) and an
+     * extension that restates a base element have two particles of one name; with one key, the second replaced the
+     * first.
+     */
+    private String uniqueChildXPath(String candidate) {
+        Map<String, XsdExtendedElement> map = xsdDocumentationData.getExtendedXsdElementMap();
+        if (!map.containsKey(candidate)) {
+            return candidate;
+        }
+        int position = 2;
+        while (map.containsKey(candidate + "[" + position + "]")) {
+            position++;
+        }
+        return candidate + "[" + position + "]";
     }
 
     private static boolean isCompositor(Node node) {
@@ -2276,7 +2295,7 @@ public class XsdDocumentationService {
                     String childXPath;
 
                     if ("element".equals(childLocalName)) {
-                        childXPath = currentXPath + "/" + childName;
+                        childXPath = uniqueChildXPath(currentXPath + "/" + childName);
                         traverseNode(child, childXPath, currentXPath, level + 1, visitedOnPath);
                     } else if ("sequence".equals(childLocalName) || "choice".equals(childLocalName) || "all".equals(childLocalName)) {
                         // Nested containers
@@ -2531,7 +2550,7 @@ public class XsdDocumentationService {
                 String childLocalName = child.getLocalName();
 
                 if ("element".equals(childLocalName)) {
-                    String childXPath = containerXPath + "/" + childName;
+                    String childXPath = uniqueChildXPath(containerXPath + "/" + childName);
                     traverseNode(child, childXPath, containerXPath, level + 1, visitedOnPath);
                 } else if ("sequence".equals(childLocalName) || "choice".equals(childLocalName) || "all".equals(childLocalName)) {
                     // Nested compositor
@@ -2573,7 +2592,7 @@ public class XsdDocumentationService {
             if ("attribute".equals(childLocalName) || "attributeGroup".equals(childLocalName)) {
                 continue; // attribute uses follow the particles, see below
             } else if ("element".equals(childLocalName)) {
-                childXPath = parentXPath + "/" + childName;
+                childXPath = uniqueChildXPath(parentXPath + "/" + childName);
             } else if ("sequence".equals(childLocalName) || "choice".equals(childLocalName) || "all".equals(childLocalName)) {
                 // Create explicit sequence/choice/all nodes for SVG visualization
                 String containerName = childLocalName.toUpperCase();

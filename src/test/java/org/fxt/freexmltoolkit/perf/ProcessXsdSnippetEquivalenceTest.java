@@ -26,8 +26,11 @@ class ProcessXsdSnippetEquivalenceTest {
     private static final char SEP = '';
 
     // Captured from the code before the memory optimizations. DO NOT edit after capture.
-    private static final String EXPECTED_SNIPPETS_SHA256 = "33e4d44a37fd78c0e179821c50391342d6c69d2371d8c15695fcf79e8e8fd03b";
-    private static final String EXPECTED_RENDERED_DOCS_SHA256 = "3231801c114bd42313e67d1a2e145cfe53e27f9ac743720477c4fa1b61d61053";
+    // 2026-09-11 (both hashes): particles with the same name in one compositor get their own key (name[2]). Exactly
+    // two entries were added: FundsXML4 UK declares UCITSExistingPerformanceFees and UKAssumedPortfolioReturn twice;
+    // before, the second replaced the first, including its documentation.
+    private static final String EXPECTED_SNIPPETS_SHA256 = "822e4faa3e7e34cfc2c57da5332ae9fc687a88e1af1bddfde64944022cc3d704";
+    private static final String EXPECTED_RENDERED_DOCS_SHA256 = "ba5c1f0d21d58443ec7e9a25974ec19e4ad25869c72335e082aebf484a48a7c2";
 
     @Test
     void sourceSnippetsPerXpathAreUnchanged() throws Exception {
