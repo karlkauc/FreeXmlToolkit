@@ -289,11 +289,10 @@ public class ProfiledXmlGeneratorService {
 
         XsdExtendedElement rootElement;
         if (rootElementName == null) {
-            List<XsdExtendedElement> rootElements = XsdDocumentationService.findRootElements(elementMap);
-            if (rootElements.isEmpty()) {
+            rootElement = XsdDocumentationService.findDefaultRootElement(elementMap);
+            if (rootElement == null) {
                 return "<!-- No root element found in XSD -->";
             }
-            rootElement = rootElements.getFirst();
         } else {
             rootElement = XsdDocumentationService.findRootElement(elementMap, rootElementName);
         }
@@ -307,6 +306,7 @@ public class ProfiledXmlGeneratorService {
 
         xml.append("<").append(rootName)
                 .append(" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"");
+        XsdDocumentationService.appendXsiType(xml, rootElement);
 
         if (targetNamespace != null && !targetNamespace.isBlank()) {
             xml.append(" xmlns=\"").append(targetNamespace).append("\"")
@@ -487,6 +487,7 @@ public class ProfiledXmlGeneratorService {
             String qualifiedName = getQualifiedName(element);
 
             sb.append(indent).append("<").append(qualifiedName);
+            XsdDocumentationService.appendXsiType(sb, element);
 
             // Attributes
             List<XsdExtendedElement> attributes = element.getChildren().stream()
@@ -881,6 +882,9 @@ public class ProfiledXmlGeneratorService {
         String ns = element.getSourceNamespace();
         if (prefix != null && !prefix.isEmpty() && ns != null && !ns.isEmpty()) {
             namespaces.put(prefix, ns);
+        }
+        if (element.getXsiTypePrefix() != null && element.getXsiTypeNamespace() != null) {
+            namespaces.put(element.getXsiTypePrefix(), element.getXsiTypeNamespace());
         }
 
         List<XsdExtendedElement> children = element.getChildren().stream()

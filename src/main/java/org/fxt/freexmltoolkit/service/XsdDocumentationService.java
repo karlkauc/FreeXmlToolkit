@@ -31,6 +31,7 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -45,6 +46,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.CancellationException;
@@ -168,6 +170,16 @@ public class XsdDocumentationService {
     private final List<Node> includedGlobalElements = new ArrayList<>();
     /** Local names of all elements referenced via {@code ref} in any schema document. */
     private final Set<String> referencedElementNames = new HashSet<>();
+    /**
+     * Substitution group members keyed by their head ({@link #qualifiedKey} of kind {@code substitutionHead}, plus a
+     * local-name fallback of kind {@code substitutionHead*}), in document order.
+     */
+    private final Map<String, List<Node>> substitutionMembers = new HashMap<>();
+    /**
+     * Global complex types keyed by the base type they extend or restrict (kind {@code derivedFrom}, plus a local-name
+     * fallback of kind {@code derivedFrom*}), in document order.
+     */
+    private final Map<String, List<Node>> derivedComplexTypes = new HashMap<>();
 
     /** Set by {@link #processXsd}: every global element is expanded, so sample generation needs no expansion. */
     private boolean fullyProcessed;
@@ -1646,6 +1658,8 @@ public class XsdDocumentationService {
     private void initializeCachesFromAllSchemas() throws Exception {
         includedGlobalElements.clear();
         referencedElementNames.clear();
+        substitutionMembers.clear();
+        derivedComplexTypes.clear();
         Path main = new File(this.xsdFilePath).toPath().toAbsolutePath().normalize();
         String mainNamespace = doc != null ? doc.getDocumentElement().getAttribute("targetNamespace") : "";
         for (Path currentFile : schemaFilesToScan()) {
@@ -1763,12 +1777,25 @@ public class XsdDocumentationService {
 
                 Node referencedNode = findReferencedNode(node.getLocalName(), ref, node);
                 if (referencedNode != null) {
+                    boolean elementRef = "element".equals(node.getLocalName());
+                    Node emitted = elementRef ? sampleSubstitute(referencedNode, visitedOnPath) : referencedNode;
+                    String emittedNamespace = instanceNamespace(emitted);
+                    boolean switchNamespace = emitted != referencedNode
+                            && !emittedNamespace.equals(instanceNamespace(referencedNode));
+                    String outerPrefix = forcedNamespacePrefixThreadLocal.get();
+                    String outerUri = forcedNamespaceUriThreadLocal.get();
+                    if (switchNamespace) {
+                        forceNamespace(emittedNamespace, emitted);
+                    }
                     // Store the reference node to preserve cardinality attributes (minOccurs/maxOccurs)
                     referenceNodeThreadLocal.set(node);
                     try {
-                        traverseNode(referencedNode, currentXPath, parentXPath, level, visitedOnPath);
+                        traverseNode(emitted, currentXPath, parentXPath, level, visitedOnPath);
                     } finally {
                         referenceNodeThreadLocal.remove();
+                        if (switchNamespace) {
+                            restoreForcedNamespace(outerPrefix, outerUri);
+                        }
                     }
                 } else {
                     logger.warn("Reference '{}' for node '{}' could not be resolved.", ref, node.getLocalName());
@@ -1807,6 +1834,34 @@ public class XsdDocumentationService {
     }
 
     /**
+     * Makes the elements expanded next take {@code namespace}: no prefix for the sample's default namespace, else the
+     * {@link #instancePrefix} for it.
+     */
+    private void forceNamespace(String namespace, Node declaration) {
+        String prefix = instancePrefix(namespace, declaration);
+        if (prefix == null) {
+            forcedNamespacePrefixThreadLocal.remove();
+            forcedNamespaceUriThreadLocal.remove();
+        } else {
+            forcedNamespacePrefixThreadLocal.set(prefix);
+            forcedNamespaceUriThreadLocal.set(namespace);
+        }
+    }
+
+    private void restoreForcedNamespace(String prefix, String uri) {
+        if (prefix == null) {
+            forcedNamespacePrefixThreadLocal.remove();
+        } else {
+            forcedNamespacePrefixThreadLocal.set(prefix);
+        }
+        if (uri == null) {
+            forcedNamespaceUriThreadLocal.remove();
+        } else {
+            forcedNamespaceUriThreadLocal.set(uri);
+        }
+    }
+
+    /**
      * Processes an external namespace reference (e.g., ds:Signature from xs:import).
      * Creates an XsdExtendedElement to represent the external reference in documentation.
      * The element will be marked as an external reference and included in the documentation
@@ -1833,12 +1888,18 @@ public class XsdDocumentationService {
         // Try to get documentation from the imported schema if available
         Node referencedNode = findReferencedNode("element", ref, node);
         if (referencedNode != null) {
-            // Prefer building the full subtree from the referenced element
+            // Prefer building the full subtree from the referenced element (or, for an abstract one in a sample, from
+            // a concrete substitution group member, which may belong to yet another namespace)
+            Node emitted = sampleSubstitute(referencedNode, visitedOnPath);
             referenceNodeThreadLocal.set(node);
-            forcedNamespacePrefixThreadLocal.set(prefix);
-            forcedNamespaceUriThreadLocal.set(namespaceUri);
+            if (emitted != referencedNode && !instanceNamespace(emitted).equals(instanceNamespace(referencedNode))) {
+                forceNamespace(instanceNamespace(emitted), emitted);
+            } else {
+                forcedNamespacePrefixThreadLocal.set(prefix);
+                forcedNamespaceUriThreadLocal.set(namespaceUri);
+            }
             try {
-                traverseNode(referencedNode, elementXPath, parentXPath, level, visitedOnPath);
+                traverseNode(emitted, elementXPath, parentXPath, level, visitedOnPath);
             } finally {
                 referenceNodeThreadLocal.remove();
                 forcedNamespacePrefixThreadLocal.remove();
@@ -1952,6 +2013,21 @@ public class XsdDocumentationService {
         // --- Type, Documentation, and Content Processing ---
         String typeName = getAttributeValue(node, "type");
         Node typeDefinitionNode = findTypeDefinition(node, typeName);
+
+        // A sample cannot use an abstract type: expand a concrete derived type and emit it as xsi:type
+        if (sampleExpansion && !isAttribute && !isContainer && typeDefinitionNode != null
+                && "complexType".equals(typeDefinitionNode.getLocalName())
+                && isAbstractDeclaration(typeDefinitionNode)) {
+            Node concreteType = concreteDerivedType(typeDefinitionNode);
+            if (concreteType != null) {
+                String typeNamespace = instanceNamespace(concreteType);
+                String prefix = instancePrefix(typeNamespace, concreteType);
+                String localTypeName = getAttributeValue(concreteType, "name");
+                typeName = prefix == null ? localTypeName : prefix + ":" + localTypeName;
+                extendedElem.setXsiType(typeName, typeNamespace.isEmpty() ? null : typeNamespace, prefix);
+                typeDefinitionNode = concreteType;
+            }
+        }
 
         if (isContainer) {
             extendedElem.setElementType("(container)");
@@ -2368,11 +2444,11 @@ public class XsdDocumentationService {
             return generateSampleXml(root, mandatoryOnly, maxOccurrences);
         }
 
-        List<XsdExtendedElement> rootElements = findRootElements(xsdDocumentationData.getExtendedXsdElementMap());
-        if (rootElements.isEmpty()) {
+        XsdExtendedElement rootElement = findDefaultRootElement(xsdDocumentationData.getExtendedXsdElementMap());
+        if (rootElement == null) {
             return "<!-- No root element found in XSD -->";
         }
-        return generateSampleXmlFor(rootElements.getFirst(), mandatoryOnly, maxOccurrences);
+        return generateSampleXmlFor(rootElement, mandatoryOnly, maxOccurrences);
     }
 
     /**
@@ -2408,14 +2484,15 @@ public class XsdDocumentationService {
     }
 
     /**
-     * Lists the global elements a sample XML can be generated for, in schema document order. Loads the schema if
-     * needed but expands no element.
+     * Lists the global elements a sample XML can be generated for, in schema document order. Abstract elements are
+     * left out: no instance may contain one. Loads the schema if needed but expands no element.
      *
      * @return the root element names; empty when the schema has none or could not be loaded
      */
     public List<String> getRootElementNames() {
         if (fullyProcessed) {
             return findRootElements(xsdDocumentationData.getExtendedXsdElementMap()).stream()
+                    .filter(e -> !isAbstractRoot(e))
                     .map(XsdExtendedElement::getElementName)
                     .toList();
         }
@@ -2423,27 +2500,35 @@ public class XsdDocumentationService {
             return List.of();
         }
         return sampleRootElements().stream()
+                .filter(node -> !isAbstractDeclaration(node))
                 .map(node -> getAttributeValue(node, "name"))
                 .toList();
     }
 
     /**
-     * The global element a sample is generated for when no root is chosen: the first element of the main document, as
-     * before. If the main document declares none (JATS keeps all of them in included modules), the first element of an
-     * included document that is neither abstract nor referenced by another element, then the first non-abstract one.
+     * The global element a sample is generated for when no root is chosen: the first non-abstract element of the main
+     * document (the first one if all are abstract). If the main document declares none (JATS keeps all of them in
+     * included modules), the first element of an included document that is neither abstract nor referenced by another
+     * element, then the first non-abstract one.
      *
      * @return the root element name, or {@code null} if the schema has no global element or could not be loaded
      */
     public String getDefaultRootElementName() {
         if (fullyProcessed) {
-            List<XsdExtendedElement> roots = findRootElements(xsdDocumentationData.getExtendedXsdElementMap());
-            return roots.isEmpty() ? null : roots.getFirst().getElementName();
+            XsdExtendedElement root = findDefaultRootElement(xsdDocumentationData.getExtendedXsdElementMap());
+            return root == null ? null : root.getElementName();
         }
         if (loadSchemaForSample() != null) {
             return null;
         }
-        if (!xsdDocumentationData.getGlobalElements().isEmpty()) {
-            return getAttributeValue(xsdDocumentationData.getGlobalElements().getFirst(), "name");
+        List<Node> mainElements = xsdDocumentationData.getGlobalElements();
+        if (!mainElements.isEmpty()) {
+            return mainElements.stream()
+                    .filter(node -> !isAbstractDeclaration(node))
+                    .findFirst()
+                    .or(() -> Optional.of(mainElements.getFirst()))
+                    .map(node -> getAttributeValue(node, "name"))
+                    .orElse(null);
         }
         List<Node> candidates = sampleRootElements();
         return candidates.stream()
@@ -2458,6 +2543,27 @@ public class XsdDocumentationService {
 
     private boolean isAbstractDeclaration(Node elementNode) {
         return "true".equals(getAttributeValue(elementNode, "abstract"));
+    }
+
+    /**
+     * The root generated when none is chosen: the first non-abstract global element of the processed schema, the first
+     * one if all are abstract, or {@code null} if there is none.
+     *
+     * @param elementMap the XPath-keyed element map of a processed schema
+     * @return the default root element, or {@code null}
+     */
+    static XsdExtendedElement findDefaultRootElement(Map<String, XsdExtendedElement> elementMap) {
+        List<XsdExtendedElement> roots = findRootElements(elementMap);
+        return roots.stream()
+                .filter(e -> !isAbstractRoot(e))
+                .findFirst()
+                .orElse(roots.isEmpty() ? null : roots.getFirst());
+    }
+
+    /** Whether a root of a processed schema is an abstract global element. */
+    static boolean isAbstractRoot(XsdExtendedElement root) {
+        return root.getCurrentNode() instanceof org.w3c.dom.Element element
+                && "true".equals(element.getAttribute("abstract"));
     }
 
     /**
@@ -2516,6 +2622,7 @@ public class XsdDocumentationService {
         String rootName = rootElement.getElementName();
         xmlBuilder.append("<").append(rootName)
                  .append(" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"");
+        appendXsiType(xmlBuilder, rootElement);
 
         if (targetNamespace != null && !targetNamespace.isBlank()) {
             // Default namespace and schemaLocation pair (namespace + absolute file URI)
@@ -2603,6 +2710,17 @@ public class XsdDocumentationService {
     }
 
     /**
+     * Appends {@code xsi:type} for an element whose declared type is abstract.
+     *
+     * @see XsdExtendedElement#getXsiType()
+     */
+    static void appendXsiType(StringBuilder sb, XsdExtendedElement element) {
+        if (element.getXsiType() != null) {
+            sb.append(" xsi:type=\"").append(element.getXsiType()).append('"');
+        }
+    }
+
+    /**
      * Collects all namespaces used by elements in the tree.
      * This is needed to declare namespace prefixes for elements from imported schemas.
      * @param element The root element to start from
@@ -2646,6 +2764,9 @@ public class XsdDocumentationService {
         String namespace = element.getSourceNamespace();
         if (prefix != null && !prefix.isEmpty() && namespace != null && !namespace.isEmpty()) {
             namespaces.put(prefix, namespace);
+        }
+        if (element.getXsiTypePrefix() != null && element.getXsiTypeNamespace() != null) {
+            namespaces.put(element.getXsiTypePrefix(), element.getXsiTypeNamespace());
         }
 
         // Process children recursively
@@ -2949,6 +3070,7 @@ public class XsdDocumentationService {
             }
 
             sb.append(indent).append("<").append(qualifiedName);
+            appendXsiType(sb, element);
 
             // Find all attributes for this element by searching for elements with @ prefix in the children
             List<XsdExtendedElement> attributes = element.getChildren().stream()
@@ -3372,6 +3494,166 @@ public class XsdDocumentationService {
         simpleTypes.forEach((name, node) -> qualifiedGlobalDefs.put(qualifiedKey("simpleType", targetNamespace, name), node));
         groups.forEach((name, node) -> qualifiedGlobalDefs.put(qualifiedKey("group", targetNamespace, name), node));
         attributeGroups.forEach((name, node) -> qualifiedGlobalDefs.put(qualifiedKey("attributeGroup", targetNamespace, name), node));
+
+        indexSubstitutionGroups(doc);
+        indexDerivedComplexTypes(doc);
+    }
+
+    /** Records every global element of {@code doc} under each head of its (XSD 1.1: list-valued) substitution group. */
+    private void indexSubstitutionGroups(Document doc) throws Exception {
+        NodeList members = (NodeList) xpath.evaluate("/xs:schema/xs:element[@name and @substitutionGroup]", doc,
+                XPathConstants.NODESET);
+        for (int i = 0; i < members.getLength(); i++) {
+            Node member = members.item(i);
+            for (String head : getAttributeValue(member, "substitutionGroup").trim().split("\\s+")) {
+                if (!head.isEmpty()) {
+                    indexByQName(substitutionMembers, "substitutionHead", head, member, member);
+                }
+            }
+        }
+    }
+
+    /** Records every global complex type of {@code doc} under the base type of its complex or simple content. */
+    private void indexDerivedComplexTypes(Document doc) throws Exception {
+        NodeList types = (NodeList) xpath.evaluate(
+                "/xs:schema/xs:complexType[@name]/*[local-name()='complexContent' or local-name()='simpleContent']"
+                        + "/*[(local-name()='extension' or local-name()='restriction') and @base]",
+                doc, XPathConstants.NODESET);
+        for (int i = 0; i < types.getLength(); i++) {
+            Node derivation = types.item(i);
+            Node type = derivation.getParentNode().getParentNode();
+            indexByQName(derivedComplexTypes, "derivedFrom", getAttributeValue(derivation, "base"), derivation, type);
+        }
+    }
+
+    private static void indexByQName(Map<String, List<Node>> index, String kind, String qName, Node context,
+                                     Node value) {
+        int colon = qName.indexOf(':');
+        String prefix = colon > 0 ? qName.substring(0, colon) : null;
+        String localName = qName.substring(colon + 1);
+        index.computeIfAbsent(qualifiedKey(kind, context.lookupNamespaceURI(prefix), localName), k -> new ArrayList<>())
+                .add(value);
+        index.computeIfAbsent(qualifiedKey(kind + "*", null, localName), k -> new ArrayList<>()).add(value);
+    }
+
+    /** Entries of {@code index} for the global declaration {@code node}: by namespace and name, else by name. */
+    private static List<Node> indexedFor(Map<String, List<Node>> index, String kind, Node node) {
+        String name = ((org.w3c.dom.Element) node).getAttribute("name");
+        List<Node> entries = index.get(qualifiedKey(kind, declaredNamespace(node), name));
+        if (entries == null) {
+            entries = index.get(qualifiedKey(kind + "*", null, name));
+        }
+        return entries == null ? List.of() : entries;
+    }
+
+    /** The target namespace of the schema document declaring {@code node}; empty for none (chameleon). */
+    private static String declaredNamespace(Node node) {
+        return node.getOwnerDocument().getDocumentElement().getAttribute("targetNamespace");
+    }
+
+    /** The namespace a global declaration takes in an instance: its document's, or the main one for a chameleon. */
+    private String instanceNamespace(Node node) {
+        String namespace = declaredNamespace(node);
+        if (!namespace.isEmpty()) {
+            return namespace;
+        }
+        String main = xsdDocumentationData.getTargetNamespace();
+        return main == null ? "" : main;
+    }
+
+    /**
+     * The element a sample emits for the global element {@code declaration}: the declaration itself, or, while
+     * expanding for a sample, a concrete member of its substitution group when it is abstract. Members of abstract
+     * members are searched too, nearest first, preferring the head's namespace; a member on the current path is
+     * skipped so the expansion stays finite (KML {@code Folder} contains {@code AbstractFeatureGroup}).
+     */
+    private Node sampleSubstitute(Node declaration, Set<Node> visitedOnPath) {
+        if (!sampleExpansion || !isAbstractDeclaration(declaration)) {
+            return declaration;
+        }
+        String headNamespace = instanceNamespace(declaration);
+        Set<Node> seen = Collections.newSetFromMap(new IdentityHashMap<>());
+        seen.add(declaration);
+        ArrayDeque<Node> heads = new ArrayDeque<>(List.of(declaration));
+        Node otherNamespace = null;
+        while (!heads.isEmpty()) {
+            for (Node member : indexedFor(substitutionMembers, "substitutionHead", heads.poll())) {
+                if (!seen.add(member)) {
+                    continue;
+                }
+                if (isAbstractDeclaration(member)) {
+                    heads.add(member);
+                } else if (!visitedOnPath.contains(member)) {
+                    if (instanceNamespace(member).equals(headNamespace)) {
+                        return member;
+                    }
+                    if (otherNamespace == null) {
+                        otherNamespace = member;
+                    }
+                }
+            }
+        }
+        return otherNamespace != null ? otherNamespace : declaration;
+    }
+
+    /**
+     * A concrete global complex type derived, directly or through abstract intermediates, from the abstract type
+     * {@code abstractType}: the nearest one, preferring the abstract type's namespace; {@code null} if there is none.
+     */
+    private Node concreteDerivedType(Node abstractType) {
+        String namespace = instanceNamespace(abstractType);
+        Set<Node> seen = Collections.newSetFromMap(new IdentityHashMap<>());
+        seen.add(abstractType);
+        ArrayDeque<Node> bases = new ArrayDeque<>(List.of(abstractType));
+        Node otherNamespace = null;
+        while (!bases.isEmpty()) {
+            for (Node derived : indexedFor(derivedComplexTypes, "derivedFrom", bases.poll())) {
+                if (!seen.add(derived)) {
+                    continue;
+                }
+                if (isAbstractDeclaration(derived)) {
+                    bases.add(derived);
+                } else if (instanceNamespace(derived).equals(namespace)) {
+                    return derived;
+                } else if (otherNamespace == null) {
+                    otherNamespace = derived;
+                }
+            }
+        }
+        return otherNamespace;
+    }
+
+    /**
+     * The prefix a sample uses for {@code namespace}: none for the main target namespace (the sample's default
+     * namespace) or no namespace, else the prefix the declaring document binds, one of the schema's prefixes for it,
+     * or a generated one.
+     */
+    private String instancePrefix(String namespace, Node declaration) {
+        String main = xsdDocumentationData.getTargetNamespace();
+        if (namespace == null || namespace.isEmpty() || namespace.equals(main)) {
+            return null;
+        }
+        Map<String, String> known = xsdDocumentationData.getNamespaces() != null
+                ? xsdDocumentationData.getNamespaces() : Map.of();
+        String own = declaration.lookupPrefix(namespace);
+        if (own != null && !own.isEmpty() && !"xsi".equals(own)
+                && namespace.equals(known.getOrDefault(own, namespace))) {
+            return own;
+        }
+        String mapped = known.entrySet().stream()
+                .filter(e -> namespace.equals(e.getValue()) && !"xsi".equals(e.getKey()))
+                .map(Map.Entry::getKey)
+                .sorted()
+                .findFirst()
+                .orElse(null);
+        if (mapped != null) {
+            return mapped;
+        }
+        int n = 1;
+        while (known.containsKey("ns" + n)) {
+            n++;
+        }
+        return "ns" + n;
     }
 
     private void populateDocumentationData() throws Exception {

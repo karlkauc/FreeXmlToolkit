@@ -56,9 +56,9 @@ class SampleXmlIncludedRootsTest {
                 """);
 
         XsdDocumentationService service = service(main);
-        assertEquals(List.of("title", "block", "article"), service.getRootElementNames());
+        assertEquals(List.of("title", "article"), service.getRootElementNames());
 
-        // title is referenced by article and block is abstract, so article is the natural document root
+        // block is abstract and never a root; title is referenced by article, so article is the natural document root
         String first = service.generateSampleXml(false, 1);
         assertTrue(first.contains("<article"), first);
         assertValid(main, first);

@@ -123,6 +123,11 @@ public class XsdExtendedElement implements Serializable {
     private boolean externalNamespaceReference = false;
     private String externalNamespaceUri;
 
+    // Sample generation only: the concrete type emitted as xsi:type for an element whose declared type is abstract
+    private String xsiType;
+    private String xsiTypeNamespace;
+    private String xsiTypePrefix;
+
     public void setSourceNamespace(String sourceNamespace) {
         this.sourceNamespace = sourceNamespace;
     }
@@ -153,6 +158,37 @@ public class XsdExtendedElement implements Serializable {
 
     public void setExternalNamespaceUri(String externalNamespaceUri) {
         this.externalNamespaceUri = externalNamespaceUri;
+    }
+
+    /**
+     * The {@code xsi:type} value a sample emits for this element, a concrete type derived from its abstract declared
+     * type; {@code null} when the declared type is used.
+     */
+    public String getXsiType() {
+        return xsiType;
+    }
+
+    /** The namespace of {@link #getXsiType()}, or {@code null}. */
+    public String getXsiTypeNamespace() {
+        return xsiTypeNamespace;
+    }
+
+    /** The prefix {@link #getXsiType()} is written with, or {@code null} when it is unprefixed. */
+    public String getXsiTypePrefix() {
+        return xsiTypePrefix;
+    }
+
+    /**
+     * Sets the {@code xsi:type} a sample emits for this element.
+     *
+     * @param qName     the type name as written in the instance, prefixed when {@code prefix} is set
+     * @param namespace the type's namespace, or {@code null}
+     * @param prefix    the prefix the instance must declare for {@code namespace}, or {@code null}
+     */
+    public void setXsiType(String qName, String namespace, String prefix) {
+        this.xsiType = qName;
+        this.xsiTypeNamespace = namespace;
+        this.xsiTypePrefix = prefix;
     }
 
     // Helper records for structured data
