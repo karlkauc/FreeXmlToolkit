@@ -586,8 +586,7 @@ public class ProfiledXmlGeneratorService {
         }
 
         // Skip optional attributes in mandatory-only mode (unless explicitly ruled)
-        String fixedOrDefault = getAttributeValue(attr.getCurrentNode(), "fixed",
-                getAttributeValue(attr.getCurrentNode(), "default", null));
+        String fixedOrDefault = XsdDocumentationService.fixedOrDefaultValue(attr);
         if (profile.isMandatoryOnly() && !attr.isMandatory() && fixedOrDefault == null && attrRule.isEmpty()) {
             return;
         }

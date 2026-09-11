@@ -1624,6 +1624,11 @@ public class XsdDocumentationService {
                     baseUris.putIfAbsent(local, local.toUri().toString());
                     return local;
                 }
+                Path mapped = libraryFileForNamespace(namespace, baseUri);
+                if (mapped != null) {
+                    baseUris.putIfAbsent(mapped, mapped.toUri().toString());
+                    return mapped;
+                }
                 if (isRemote(baseUri)) {
                     remoteLocation = URI.create(baseUri).resolve(location).toString();
                 }
@@ -2213,9 +2218,11 @@ public class XsdDocumentationService {
             processWildcards(contentModel, extendedElem);
         }
 
-        // Prefer fixed/default values where present (especially for attributes)
-        String fixedValue = getAttributeValue(node, "fixed");
-        String defaultValue = getAttributeValue(node, "default");
+        // Prefer fixed/default values where present (especially for attributes); a reference may set its own
+        String fixedValue = refNode != null && getAttributeValue(refNode, "fixed") != null
+                ? getAttributeValue(refNode, "fixed") : getAttributeValue(node, "fixed");
+        String defaultValue = refNode != null && getAttributeValue(refNode, "default") != null
+                ? getAttributeValue(refNode, "default") : getAttributeValue(node, "default");
 
         // Final steps - generate separate source code snippets
         setSourceCodeSnippets(extendedElem, node, typeName, typeDefinitionNode);
@@ -2689,8 +2696,7 @@ public class XsdDocumentationService {
 
         for (XsdExtendedElement attr : rootAttributes) {
             // Include attribute if mandatory, or if it has a fixed/default value
-            String fixedOrDefault = getAttributeValue(attr.getCurrentNode(), "fixed",
-                    getAttributeValue(attr.getCurrentNode(), "default", null));
+            String fixedOrDefault = fixedOrDefaultValue(attr);
             if (mandatoryOnly && !attr.isMandatory() && fixedOrDefault == null) {
                 continue;
             }
@@ -2747,8 +2753,7 @@ public class XsdDocumentationService {
      */
     private String textValue(XsdExtendedElement element) {
         String value = element.getDisplaySampleData() != null ? element.getDisplaySampleData() : "";
-        if (value.isEmpty() || getAttributeValue(element.getCurrentNode(), "fixed") != null
-                || getAttributeValue(element.getCurrentNode(), "default") != null) {
+        if (value.isEmpty() || fixedOrDefaultValue(element) != null) {
             return value;
         }
         return occurrenceValue(element, value);
@@ -2777,6 +2782,25 @@ public class XsdDocumentationService {
             return repeatCount;
         }
         return required;
+    }
+
+    /**
+     * The fixed or default value of an element or attribute, or {@code null}: a reference's own {@code fixed} or
+     * {@code default} wins over the referenced declaration's (INSPIRE
+     * {@code <attribute ref="xlink:type" fixed="simple"/>}).
+     */
+    static String fixedOrDefaultValue(XsdExtendedElement node) {
+        for (Node holder : new Node[]{node.getCardinalityNode(), node.getCurrentNode()}) {
+            if (holder instanceof Element declaration) {
+                if (declaration.hasAttribute("fixed")) {
+                    return declaration.getAttribute("fixed");
+                }
+                if (declaration.hasAttribute("default")) {
+                    return declaration.getAttribute("default");
+                }
+            }
+        }
+        return null;
     }
 
     /** The name a sample writes for an element: prefixed when its namespace is not the default namespace. */
@@ -3218,7 +3242,7 @@ public class XsdDocumentationService {
             // Render attributes
             for (XsdExtendedElement attr : attributes) {
                 // Include attribute if mandatory, or if it has a fixed/default value even when mandatoryOnly is true
-                String fixedOrDefault = getAttributeValue(attr.getCurrentNode(), "fixed", getAttributeValue(attr.getCurrentNode(), "default", null));
+                String fixedOrDefault = fixedOrDefaultValue(attr);
                 if (mandatoryOnly && !attr.isMandatory() && fixedOrDefault == null) {
                     continue;
                 }
@@ -5040,6 +5064,21 @@ public class XsdDocumentationService {
      * the user's directory: Schema Library / catalog mappings first, then the shared schema cache
      * (downloads only when allowed by the offline rule). Returns {@code null} on a miss.
      */
+    /**
+     * The local schema the Schema Library maps an imported namespace to, when the import's relative
+     * {@code schemaLocation} names a file that does not exist (JATS imports {@code standard-modules/xlink.xsd}). No
+     * download.
+     */
+    private Path libraryFileForNamespace(String namespace, String baseUri) {
+        if (namespace == null || namespace.isBlank() || (baseUri != null && isRemote(baseUri))) {
+            return null;
+        }
+        return SchemaLibraryLookup.localFileFor(SchemaLibraryServiceImpl.shared(), namespace, null, baseUri, false)
+                .map(path -> path.toAbsolutePath().normalize())
+                .filter(Files::exists)
+                .orElse(null);
+    }
+
     private Path resolveRemoteImport(String namespace, String location, String baseUri) {
         SchemaLibraryService library = SchemaLibraryServiceImpl.shared();
         return SchemaLibraryLookup.localFileFor(library, namespace, location, baseUri, library.isRemoteDownloadAllowed())

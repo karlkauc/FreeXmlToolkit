@@ -56,7 +56,9 @@ final class BoundedPatternSampler {
         for (Map.Entry<String, String> characterClass : PREDEFINED_CHARACTER_CLASSES.entrySet()) {
             regex = regex.replaceAll(characterClass.getKey(), characterClass.getValue());
         }
-        this.automaton = new RegExp(regex).toAutomaton();
+        // RegExp.NONE: '&', '~', '#', '@' and '<' are literals in XSD patterns, not automaton operators (KML .+@.+);
+        // a double quote would open a brics string literal
+        this.automaton = new RegExp(regex.replace("\"", "\\\""), RegExp.NONE).toAutomaton();
         this.distanceToAccept = distancesToAccept(automaton);
         this.longestToAccept = longestDistancesToAccept(automaton, distanceToAccept);
         this.random = random;

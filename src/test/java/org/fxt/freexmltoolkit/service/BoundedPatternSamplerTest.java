@@ -35,6 +35,21 @@ class BoundedPatternSamplerTest {
     }
 
     @Test
+    void automatonOperatorsOfTheSamplerAreLiteralCharactersInXsdPatterns() {
+        // KML atomEmailAddress .+@.+: '@' is the "any string" operator of dk.brics RegExp, so the sampler failed and
+        // the fallback emitted "@"; '&', '~', '#' and '<' are XSD literals too
+        String[] patterns = {".+@.+", "[a-z]+&[a-z]+", "~[0-9]{2}", "#[A-F0-9]{6}", "<[a-z]+>"};
+        for (String pattern : patterns) {
+            BoundedPatternSampler sampler = new BoundedPatternSampler(pattern, new Random(19));
+            for (int i = 0; i < 200; i++) {
+                String value = sampler.sample(1, 30);
+                assertNotNull(value, pattern);
+                assertTrue(value.matches(pattern), pattern + " -> " + value);
+            }
+        }
+    }
+
+    @Test
     void returnsNullWhenNoMemberFitsTheLengthRange() {
         assertNull(new BoundedPatternSampler("[a-z]{2}", new Random(1)).sample(5, 8));
     }
