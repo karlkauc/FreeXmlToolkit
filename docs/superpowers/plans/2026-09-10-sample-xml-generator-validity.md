@@ -130,6 +130,11 @@ Of the 274 invalid samples, the report maps each validation error to one of the 
   - JATS 308 of 308, INSPIRE 12 of 12, datajud and UBL valid in every mode.
   - Remaining: key values (H2: XTCE duplicate names and `messageNameKey` on `MessageSet/*`, Garmin `dateTime` key),
     one UCI `AngleType` value rounded past `maxInclusive`. Next: **H2**.
+- **Progress after H2 key values of their own type** (report §24): first element valid 30 · 29 · 30 · 29, no XML 0;
+  breadth valid 1,672 · 1,670 · 1,672 · 1,671 of 1,672 (invalid 0 · 2 · 0 · 1).
+  - XTCE valid in every mode.
+  - Remaining: Garmin keyref fallback without generated key values and a suffixed key past `maxLength` (H2), UCI
+    angles rounded past `maxInclusive` (F6). Next: **F6**, then the Garmin keys.
 
 ## Global Constraints
 
@@ -481,6 +486,12 @@ samples (xlink attributes currently emitted as child elements) valid.
   `containerRef`). *(in part, 2026-09-11, commit `7f3d07ec`: selector and field paths with prefixes, `.//`, `*` and `|` resolve against
   the element map (SIRI `.//siri:KeyValue`, `siri:Values/siri:*`, Garmin `tc2:Folder/@Name`), so their fields get
   unique values; `IdentityConstraintTrackerTest`. Keys on dateTime/QName values and keyref completeness are open.)*
+  *(2026-09-11, report §24, found by the G1 re-audit: a repeated key value of a date-time, time, date or decimal is
+  advanced in its own lexical space instead of getting a suffix (Garmin `Id`); a repeated string-pattern value is
+  sampled again (XTCE `NameType`); an optional element a key selects but that cannot hold one of its fields is left
+  out (XTCE `messageNameKey` on `MessageSet/*`). `SampleXmlIdentityKeysTest`, `IdentityConstraintTrackerTest`. A QName
+  key with a suffix stays a valid QName. Open: Garmin `CourseNameKeyRef` gets a suffixed fallback when no key value
+  was generated yet, and a suffixed key value can exceed `maxLength`.)*
 
 ## WP R: Realistic path parity and reproducibility
 

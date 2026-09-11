@@ -12,7 +12,7 @@ The improvement plan derived from these numbers is
 > (abstract elements and types) and the defects it exposed; §17 covers C (namespace qualification); §18 covers the
 > realistic generator's type resolution (R1); §19 covers inherited facets (F4); §20 covers required wildcards (G3);
 > §21 covers QName, binary and union values (F1, F2) and IDs for references (H); §22 covers particles with the same
-> name in one content model; §23 covers choices that pick options with complete content (G1).
+> name in one content model; §23 covers choices that pick options with complete content (G1); §24 covers key values of their own type (H2).
 
 ## 1. Summary
 
@@ -407,6 +407,7 @@ The task skips itself when the corpus folder is absent.
 | 2026-09-11 | F1/F2 QName, binary and union values; H IDs for references; unsubstituted abstract elements (§21) | 30 · 24 | 1,671 · 1,664 (of 1,672; realistic 1,670 · 1,659) | 0 |
 | 2026-09-11 | G7 particles with the same name in one content model (§22) | 30 · 25 | 1,672 · 1,663 (of 1,672; realistic 1,672 · 1,661) | 0 |
 | 2026-09-11 | G1 choices pick options with complete content (§23) | 30 · 27 | 1,672 · 1,668 (of 1,672; realistic 1,672 · 1,669) | 0 |
+| 2026-09-11 | H2 key values of their own type (§24) | 30 · 29 | 1,672 · 1,670 (of 1,672; realistic 1,672 · 1,671) | 0 |
 
 ## 11. After the quick wins (re-audit, 2026-09-10)
 
@@ -1189,3 +1190,36 @@ INSPIRE, both generators and modes, 16 runs each).
   - UCI, 1 plain sample: `AngleType` with `maxInclusive="3.141592653589793E0"` got `3.1416`, a random value rounded
     past the bound (F)
 - **Next:** H2, key values of their own type.
+
+## 24. After H2: key values of their own type (re-audit, 2026-09-11)
+
+**Cause.** Three identity constraints broke, in XTCE and Garmin only:
+- XTCE `containerNameKey` and `parameterNameKey` use `@name` of `NameType`, a pattern on `normalizedString`. A suffix
+  would break the pattern, so the key tracker kept the sampled name, and every repetition of the element repeated it.
+- Garmin `ActivityIdMustBeUnique` uses `Id` of type `xsd:dateTime`. The tracker appended `_1`, which is no date-time.
+- XTCE `messageNameKey` selects `MessageSet/*`. `MessageSetType` extends `OptionalNameDescriptionType`, so the selector
+  also picks the optional `LongDescription` and `AliasSet`, which have no `name`. Any `MessageSet` with a description
+  violates the key.
+
+**Change.**
+- A repeated key value of a date-time, time, date or decimal is advanced in its own lexical space: seconds, days, or 1.
+- A repeated value of a string pattern is sampled again until it is new; a typed pattern value is advanced if the
+  result still matches.
+- The tracker records elements a key selects in which one of its fields cannot be found. Both generators leave such an
+  optional element out.
+- Tests: `SampleXmlIdentityKeysTest` (both generators and modes) and three cases in `IdentityConstraintTrackerTest`.
+
+**Audit** (after `5cdf327e`):
+
+| Measure | plain req | plain opt | realistic req | realistic opt |
+|---|---|---|---|---|
+| First element valid (of 31), §23 → now | 30 → 30 | 27 → **29** | 30 → 30 | 27 → **29** |
+| Breadth valid (of 1,672), §23 → now | 1,672 → 1,672 | 1,668 → **1,670** | 1,672 → 1,672 | 1,669 → **1,671** |
+| Invalid samples (of 1,672), §23 → now | 0 → 0 | 4 → **2** | 0 → 0 | 3 → **1** |
+
+- **XTCE**, both schema variants: valid in every mode.
+- **Garmin**, 1 per generator: with valid date-time keys, validation now reaches two older key defects. A keyref
+  (`CourseNameKeyRef`) got a suffixed fallback value because no course name had been generated yet, and a suffixed
+  key value exceeds `maxLength="15"` of `RestrictedToken_t`. Both were already among Garmin's error keys in §21.
+- **UCI**, 1 plain sample: `AngleHalfType` (`maxInclusive` π/2) got `1.5708`, the rounding defect of §23 (F6).
+- **Next:** numbers rounded within their bounds (F6), then the remaining Garmin key values.
