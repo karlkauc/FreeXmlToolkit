@@ -132,6 +132,9 @@ public class XsdExtendedElement implements Serializable {
     private String emitNamespace;
     private String emitPrefix;
 
+    // Sample expansions only: a required particle below this entry could not be expanded
+    private boolean sampleContentIncomplete;
+
     public void setSourceNamespace(String sourceNamespace) {
         this.sourceNamespace = sourceNamespace;
     }
@@ -212,6 +215,18 @@ public class XsdExtendedElement implements Serializable {
     public void setEmission(String namespace, String prefix) {
         this.emitNamespace = namespace;
         this.emitPrefix = prefix;
+    }
+
+    /**
+     * Whether a sample expansion could not expand a required particle below this entry: recursion through the same
+     * declaration or group was cut, a strict wildcard needs a declaration, or an abstract element has no member.
+     */
+    public boolean isSampleContentIncomplete() {
+        return sampleContentIncomplete;
+    }
+
+    public void markSampleContentIncomplete() {
+        this.sampleContentIncomplete = true;
     }
 
     public void setXsiType(String qName, String namespace, String prefix) {

@@ -70,6 +70,8 @@ public class ProfiledXmlGeneratorService {
     private long outputCharLimit = -1;
     /** XPaths whose repetitions beyond minOccurs the current document already emitted. */
     private final Set<String> repeatedXpaths = new HashSet<>();
+    /** Completeness of element map entries for the current document (XsdDocumentationService#hasCompleteContent). */
+    private final Map<String, Boolean> completeContent = new HashMap<>();
     /** Generates the per-occurrence ID and IDREF values of the current document. */
     private XsdSampleDataGenerator identityValues;
     /** Default namespace in scope at the element being written. */
@@ -295,6 +297,7 @@ public class ProfiledXmlGeneratorService {
         identityValues = strategyFactory.generator();
         identityValues.startDocument();
         repeatedXpaths.clear();
+        completeContent.clear();
         emissionDefaultNamespace = data.getTargetNamespace() == null || data.getTargetNamespace().isBlank()
                 ? "" : data.getTargetNamespace();
 
@@ -434,6 +437,11 @@ public class ProfiledXmlGeneratorService {
                 && !hasDescendantRule(xpath, rules)) {
             return;
         }
+        // Optional content a sample cannot complete (a cut recursion, a strict wildcard) is left out
+        if (!element.isMandatory() && matchedRule.isEmpty() && !hasDescendantRule(xpath, rules)
+                && !XsdDocumentationService.hasCompleteContent(element, elementMap, completeContent)) {
+            return;
+        }
 
         if (XsdDocumentationService.isWildcardPlaceholder(element)) {
             int repeatCount = XsdDocumentationService.limitRepeatedOccurrences(element,
@@ -480,7 +488,9 @@ public class ProfiledXmlGeneratorService {
                 if (repeatCount == 0 && !preferred.isEmpty()) {
                     repeatCount = 1;
                 }
-                List<XsdExtendedElement> selectionPool = preferred.isEmpty() ? choiceOptions : preferred;
+                List<XsdExtendedElement> selectionPool = preferred.isEmpty()
+                        ? XsdDocumentationService.completeOptions(choiceOptions, elementMap, completeContent)
+                        : preferred;
                 for (int i = 0; i < repeatCount; i++) {
                     XsdExtendedElement selected = selectionPool.get(random.nextInt(selectionPool.size()));
                     buildElement(sb, selected, profile, rules, elementMap, strategyFactory, context, constraintTracker, indentLevel);

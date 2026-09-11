@@ -205,6 +205,8 @@ public class XsdDocumentationService {
     private long outputCharLimit = -1;
     /** XPaths whose repetitions beyond minOccurs the current plain sample already emitted. */
     private final Set<String> repeatedXpaths = new HashSet<>();
+    /** Completeness of element map entries for the current sample document, see {@link #hasCompleteContent}. */
+    private final Map<String, Boolean> completeContent = new HashMap<>();
 
     // Language configuration for documentation generation
     private final Set<String> discoveredLanguages = new LinkedHashSet<>();
@@ -1787,6 +1789,7 @@ public class XsdDocumentationService {
         boolean trackRecursion = !sampleExpansion || !isCompositor(node);
         if (trackRecursion && visitedOnPath.contains(node)) {
             logger.info("Recursion detected at node '{}' on path '{}'. Aborting this branch.", getAttributeValue(node, "name"), currentXPath);
+            markIncompleteUnlessOptional(particleOf(node), parentXPath);
             return;
         }
         if (trackRecursion) {
@@ -1812,8 +1815,11 @@ public class XsdDocumentationService {
                 if (referencedNode != null) {
                     boolean elementRef = "element".equals(node.getLocalName());
                     Node emitted = elementRef ? sampleSubstitute(referencedNode, visitedOnPath) : referencedNode;
-                    if (elementRef && isUnsubstitutedAbstract(emitted) && mayBeLeftOut(node)) {
-                        return; // no instance may contain it; the content model does not need it here
+                    if (elementRef && isUnsubstitutedAbstract(emitted)) {
+                        if (mayBeLeftOut(node)) {
+                            return; // no instance may contain it; the content model does not need it here
+                        }
+                        markIncompleteContent(parentXPath);
                     }
                     String emittedNamespace = instanceNamespace(emitted);
                     boolean switchNamespace = emitted != referencedNode
@@ -1876,11 +1882,15 @@ public class XsdDocumentationService {
      * Records an element wildcard ({@code xs:any}) of a sample expansion at its position in the content model, so
      * both generators can emit an element for it (xmldsig {@code SignatureProperty}, XBRL {@code segment}, UBL
      * {@code ExtensionContent}). Only wildcards a sample element satisfies without a declaration ({@code lax},
-     * {@code skip}) are recorded; the documentation model is left as it is.
+     * {@code skip}) are recorded; a required strict one leaves its parent's content incomplete. The documentation
+     * model is left as it is.
      */
     private void addWildcardPlaceholder(Node wildcard, String parentXPath, int level) {
-        if (!sampleExpansion || (pruneOptionalParticles && isOptionalParticle(wildcard))
-                || wildcardSampleNamespace(wildcard) == null) {
+        if (!sampleExpansion || (pruneOptionalParticles && isOptionalParticle(wildcard))) {
+            return;
+        }
+        if (wildcardSampleNamespace(wildcard) == null) {
+            markIncompleteUnlessOptional(wildcard, parentXPath);
             return;
         }
         String xpath = parentXPath + "/ANY_" + counter;
@@ -1989,6 +1999,41 @@ public class XsdDocumentationService {
     }
 
     /**
+     * Records that a sample expansion could not expand a required particle below {@code parentXPath}: recursion through
+     * the same declaration or group was cut, or a strict wildcard needs a declaration. Nothing is recorded for a
+     * particle that may be left out.
+     */
+    private void markIncompleteUnlessOptional(Node particle, String parentXPath) {
+        if (!mayBeLeftOut(particle)) {
+            markIncompleteContent(parentXPath);
+        }
+    }
+
+    /**
+     * Marks the content of a sample expansion entry incomplete (see {@link #hasCompleteContent}). A choice is never
+     * marked: it stays complete while one of its other options is.
+     */
+    private void markIncompleteContent(String parentXPath) {
+        XsdExtendedElement parent = sampleExpansion && parentXPath != null
+                ? xsdDocumentationData.getExtendedXsdElementMap().get(parentXPath) : null;
+        if (parent != null && !(parent.getElementName() != null && parent.getElementName().startsWith("CHOICE"))) {
+            parent.markSampleContentIncomplete();
+        }
+    }
+
+    /** The particle through which a declaration is expanded: the reference that reached it, or the declaration. */
+    private static Node particleOf(Node declaration) {
+        if (referenceNodeThreadLocal.get() instanceof Element reference && declaration instanceof Element declared
+                && reference.getLocalName().equals(declared.getLocalName())) {
+            String ref = reference.getAttribute("ref");
+            if (ref.substring(ref.indexOf(':') + 1).equals(declared.getAttribute("name"))) {
+                return reference;
+            }
+        }
+        return declaration;
+    }
+
+    /**
      * The element map key of an element particle: {@code candidate}, or {@code candidate[n]} when an earlier particle
      * with the same name under the same parent already holds it. JATS {@code ruby-model} ({@code rp, rt, rp}) and an
      * extension that restates a base element have two particles of one name; with one key, the second replaced the
@@ -2069,8 +2114,11 @@ public class XsdDocumentationService {
             // Prefer building the full subtree from the referenced element (or, for an abstract one in a sample, from
             // a concrete substitution group member, which may belong to yet another namespace)
             Node emitted = sampleSubstitute(referencedNode, visitedOnPath);
-            if (isUnsubstitutedAbstract(emitted) && mayBeLeftOut(node)) {
-                return; // no instance may contain it; the content model does not need it here
+            if (isUnsubstitutedAbstract(emitted)) {
+                if (mayBeLeftOut(node)) {
+                    return; // no instance may contain it; the content model does not need it here
+                }
+                markIncompleteContent(parentXPath);
             }
             referenceNodeThreadLocal.set(node);
             if (emitted != referencedNode && !instanceNamespace(emitted).equals(instanceNamespace(referencedNode))) {
@@ -2493,6 +2541,7 @@ public class XsdDocumentationService {
             return;
         }
         if (!visitedOnPath.add(group)) {
+            markIncompleteUnlessOptional(groupRef, parentXPath);
             return; // a group that contains itself
         }
         try {
@@ -2812,6 +2861,7 @@ public class XsdDocumentationService {
         StringBuilder xmlBuilder = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
         xsdSampleDataGenerator.startDocument();
         repeatedXpaths.clear();
+        completeContent.clear();
         String documentNamespace = xsdDocumentationData.getTargetNamespace();
         emissionDefaultNamespace = documentNamespace == null || documentNamespace.isBlank() ? "" : documentNamespace;
 
@@ -2937,6 +2987,50 @@ public class XsdDocumentationService {
      *
      * @param repeatedXpaths the XPaths of the current document that already emitted their repetitions
      */
+    /**
+     * Whether a sample can give an element map entry valid required content: no required particle below it was cut
+     * from the sample expansion (JATS {@code fn} holding only {@code p} inside a {@code p}, datajud's strict
+     * {@code xs:any}). A choice is complete when one option is; an optional particle never makes its parent
+     * incomplete.
+     *
+     * @param memo completeness per XPath for the current document
+     */
+    static boolean hasCompleteContent(XsdExtendedElement entry, Map<String, XsdExtendedElement> map,
+                                      Map<String, Boolean> memo) {
+        Boolean known = memo.get(entry.getCurrentXpath());
+        if (known != null) {
+            return known;
+        }
+        boolean complete = !entry.isSampleContentIncomplete();
+        if (complete) {
+            List<XsdExtendedElement> particles = entry.getChildren().stream()
+                    .map(map::get)
+                    .filter(Objects::nonNull)
+                    .filter(e -> e.getElementName() != null && !e.getElementName().startsWith("@"))
+                    .toList();
+            boolean choice = entry.getElementName() != null && entry.getElementName().startsWith("CHOICE");
+            complete = choice
+                    ? particles.stream().anyMatch(option -> !option.isMandatory()
+                            || hasCompleteContent(option, map, memo))
+                    : particles.stream().allMatch(child -> !child.isMandatory()
+                            || hasCompleteContent(child, map, memo));
+        }
+        memo.put(entry.getCurrentXpath(), complete);
+        return complete;
+    }
+
+    /**
+     * The options of a choice a sample picks from: those whose content a sample can complete, or all of them when none
+     * can (JATS {@code statement-model} offers {@code p} or a nested {@code statement}, whose expansion is cut).
+     */
+    static List<XsdExtendedElement> completeOptions(List<XsdExtendedElement> options,
+                                                    Map<String, XsdExtendedElement> map, Map<String, Boolean> memo) {
+        List<XsdExtendedElement> complete = options.stream()
+                .filter(option -> !option.isMandatory() || hasCompleteContent(option, map, memo))
+                .toList();
+        return complete.isEmpty() ? options : complete;
+    }
+
     static int limitRepeatedOccurrences(XsdExtendedElement element, int repeatCount, Set<String> repeatedXpaths) {
         Node bounds = element.getCardinalityNode() != null ? element.getCardinalityNode() : element.getCurrentNode();
         int required = Math.max(1, Math.min(occurs(bounds, "minOccurs"), MAX_REQUIRED_REPETITIONS));
@@ -3312,6 +3406,10 @@ public class XsdDocumentationService {
         if (elementName == null || elementName.startsWith("@")) {
             return; // Attributes are handled by their parent
         }
+        if (!element.isMandatory()
+                && !hasCompleteContent(element, xsdDocumentationData.getExtendedXsdElementMap(), completeContent)) {
+            return; // optional content a sample cannot complete (a cut recursion, a strict wildcard) is left out
+        }
 
         if (isWildcardPlaceholder(element)) {
             int repeatCount = limitRepeatedOccurrences(element, elementRepeatCount(element, maxOccurrences),
@@ -3388,9 +3486,11 @@ public class XsdDocumentationService {
                     }
                 }
 
-                // Generate the appropriate number of selections from the choice
+                // Generate the appropriate number of selections from the options a sample can complete
+                List<XsdExtendedElement> selectable = completeOptions(choiceOptions,
+                        xsdDocumentationData.getExtendedXsdElementMap(), completeContent);
                 for (int i = 0; i < repeatCount; i++) {
-                    XsdExtendedElement selected = choiceOptions.get(random.nextInt(choiceOptions.size()));
+                    XsdExtendedElement selected = selectable.get(random.nextInt(selectable.size()));
                     buildXmlElementContent(sb, selected, mandatoryOnly, maxOccurrences, indentLevel, constraintTracker);
                 }
             }
@@ -3508,6 +3608,10 @@ public class XsdDocumentationService {
             if (elementName == null) {
                 continue;
             }
+            if (!childElement.isMandatory() && !hasCompleteContent(childElement,
+                    xsdDocumentationData.getExtendedXsdElementMap(), completeContent)) {
+                continue; // optional content a sample cannot complete is left out
+            }
 
             // Check if this child is a SEQUENCE or ALL container (structural, not actual XML elements)
             if (elementName.startsWith("SEQUENCE") || elementName.startsWith("ALL")) {
@@ -3591,7 +3695,9 @@ public class XsdDocumentationService {
                     }
                 }
 
-                // Randomly select ONE element from the choice options
+                // Randomly select ONE element from the options a sample can complete
+                choiceOptions = completeOptions(choiceOptions, xsdDocumentationData.getExtendedXsdElementMap(),
+                        completeContent);
                 XsdExtendedElement selectedOption = choiceOptions.get(random.nextInt(choiceOptions.size()));
                 logger.debug("Selected element '{}' from CHOICE (1 of {} options)",
                         selectedOption.getElementName(), choiceOptions.size());
