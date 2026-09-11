@@ -155,6 +155,12 @@ public class XsdDocumentationService {
     private Map<String, Node> simpleTypeMap = new HashMap<>();
     private Map<String, Node> groupMap = new HashMap<>();
     private Map<String, Node> attributeGroupMap = new HashMap<>();
+    private Map<String, Node> attributeMap = new HashMap<>();
+    private static final String XML_NAMESPACE_URI = "http://www.w3.org/XML/1998/namespace";
+    /** Prefix per namespace chosen for samples, so two namespaces never share a prefix. */
+    private final Map<String, String> samplePrefixes = new HashMap<>();
+    /** Default namespace in scope at the element a plain sample is writing. */
+    private String emissionDefaultNamespace = "";
     /** Global type definitions keyed by kind, target namespace and local name ({@link #qualifiedKey}). */
     private final Map<String, Node> qualifiedGlobalDefs = new HashMap<>();
     /**
@@ -1662,6 +1668,7 @@ public class XsdDocumentationService {
         referencedElementNames.clear();
         substitutionMembers.clear();
         derivedComplexTypes.clear();
+        samplePrefixes.clear();
         Path main = new File(this.xsdFilePath).toPath().toAbsolutePath().normalize();
         String mainNamespace = doc != null ? doc.getDocumentElement().getAttribute("targetNamespace") : "";
         for (Path currentFile : schemaFilesToScan()) {
@@ -1998,6 +2005,10 @@ public class XsdDocumentationService {
             name = getAttributeValue(node, "name");
         }
         extendedElem.setElementName(isAttribute ? "@" + name : name);
+        if (!isContainer) {
+            String emitNamespace = declarationNamespace(node, isAttribute);
+            extendedElem.setEmission(emitNamespace, emissionPrefix(emitNamespace, node, isAttribute));
+        }
 
         // NEW: Read the origin of the namespace from the attribute set by the Flattener.
         String sourceNamespace = getAttributeValue(node, "fxt:sourceNamespace");
@@ -2633,6 +2644,8 @@ public class XsdDocumentationService {
         StringBuilder xmlBuilder = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
         xsdSampleDataGenerator.startDocument();
         repeatedXpaths.clear();
+        String documentNamespace = xsdDocumentationData.getTargetNamespace();
+        emissionDefaultNamespace = documentNamespace == null || documentNamespace.isBlank() ? "" : documentNamespace;
 
         // Add schema reference (supports namespaced and no-namespace schemas)
         String targetNamespace = xsdDocumentationData.getTargetNamespace();
@@ -2681,7 +2694,7 @@ public class XsdDocumentationService {
             if (mandatoryOnly && !attr.isMandatory() && fixedOrDefault == null) {
                 continue;
             }
-            String attrName = attr.getElementName().substring(1); // Remove @ prefix
+            String attrName = attributeName(attr);
             String attrValue = (fixedOrDefault != null)
                     ? fixedOrDefault
                     : occurrenceValue(attr, attr.getDisplaySampleData() != null ? attr.getDisplaySampleData() : "");
@@ -2766,6 +2779,45 @@ public class XsdDocumentationService {
         return required;
     }
 
+    /** The name a sample writes for an element: prefixed when its namespace is not the default namespace. */
+    static String qualifiedElementName(XsdExtendedElement element) {
+        String prefix = element.getEmitNamespace() != null
+                ? element.getEmitPrefix() : element.getSourceNamespacePrefix();
+        String name = element.getElementName();
+        return prefix != null && !prefix.isEmpty() ? prefix + ":" + name : name;
+    }
+
+    /**
+     * The default namespace in scope inside an element: an unprefixed element of a known namespace makes its namespace
+     * the default (written as {@code xmlns="…"} where it differs from the inherited one, {@code xmlns=""} for an
+     * unqualified local element); a prefixed element keeps the inherited default.
+     */
+    static String elementDefaultNamespace(XsdExtendedElement element, String inherited) {
+        if (element.getEmitNamespace() == null || element.getEmitPrefix() != null) {
+            return inherited;
+        }
+        return element.getEmitNamespace();
+    }
+
+    /** The name a sample writes for an attribute: prefixed when qualified ({@code xlink:href}, {@code xml:lang}). */
+    static String attributeName(XsdExtendedElement attribute) {
+        String name = attribute.getElementName().substring(1);
+        return attribute.getEmitPrefix() != null ? attribute.getEmitPrefix() + ":" + name : name;
+    }
+
+    /** Records the prefix declarations an element or attribute needs on the root ({@code xml} is predeclared). */
+    static void declareEmissionNamespace(Map<String, String> namespaces, XsdExtendedElement element) {
+        boolean known = element.getEmitNamespace() != null;
+        String prefix = known ? element.getEmitPrefix() : element.getSourceNamespacePrefix();
+        String namespace = known ? element.getEmitNamespace() : element.getSourceNamespace();
+        if (prefix != null && !prefix.isEmpty() && !"xml".equals(prefix) && namespace != null && !namespace.isEmpty()) {
+            namespaces.put(prefix, namespace);
+        }
+        if (element.getXsiTypePrefix() != null && element.getXsiTypeNamespace() != null) {
+            namespaces.put(element.getXsiTypePrefix(), element.getXsiTypeNamespace());
+        }
+    }
+
     /** Upper bound for repeating an element or choice to reach its {@code minOccurs}. */
     static final int MAX_REQUIRED_REPETITIONS = 10_000;
 
@@ -2839,7 +2891,10 @@ public class XsdDocumentationService {
      */
     private void collectNamespacesRecursive(XsdExtendedElement element, boolean mandatoryOnly,
                                            Map<String, String> namespaces, Set<String> visited) {
-        if (element == null || (mandatoryOnly && !element.isMandatory())) {
+        String elementName = element == null ? null : element.getElementName();
+        boolean attribute = elementName != null && elementName.startsWith("@");
+        // Optional attributes with a fixed or default value are emitted in mandatory-only mode too
+        if (elementName == null || (!attribute && mandatoryOnly && !element.isMandatory())) {
             return;
         }
 
@@ -2851,19 +2906,9 @@ public class XsdDocumentationService {
             visited.add(elementXpath);
         }
 
-        String elementName = element.getElementName();
-        if (elementName == null || elementName.startsWith("@")) {
-            return; // Skip attributes and null names
-        }
-
-        // Check if this element has a namespace prefix (from imported schema)
-        String prefix = element.getSourceNamespacePrefix();
-        String namespace = element.getSourceNamespace();
-        if (prefix != null && !prefix.isEmpty() && namespace != null && !namespace.isEmpty()) {
-            namespaces.put(prefix, namespace);
-        }
-        if (element.getXsiTypePrefix() != null && element.getXsiTypeNamespace() != null) {
-            namespaces.put(element.getXsiTypePrefix(), element.getXsiTypeNamespace());
+        declareEmissionNamespace(namespaces, element);
+        if (attribute) {
+            return;
         }
 
         // Process children recursively
@@ -3148,14 +3193,13 @@ public class XsdDocumentationService {
         for (int i = 0; i < repeatCount; i++) {
             String indent = "\t".repeat(indentLevel);
 
-            // Build qualified element name with namespace prefix if needed
-            String qualifiedName = element.getElementName();
-            String prefix = element.getSourceNamespacePrefix();
-            if (prefix != null && !prefix.isEmpty()) {
-                qualifiedName = prefix + ":" + qualifiedName;
-            }
+            String qualifiedName = qualifiedElementName(element);
+            String elementDefaultNamespace = elementDefaultNamespace(element, emissionDefaultNamespace);
 
             sb.append(indent).append("<").append(qualifiedName);
+            if (!elementDefaultNamespace.equals(emissionDefaultNamespace)) {
+                sb.append(" xmlns=\"").append(escapeXml(elementDefaultNamespace)).append('"');
+            }
             appendXsiType(sb, element);
 
             // Find all attributes for this element by searching for elements with @ prefix in the children
@@ -3178,13 +3222,14 @@ public class XsdDocumentationService {
                 if (mandatoryOnly && !attr.isMandatory() && fixedOrDefault == null) {
                     continue;
                 }
-                String attrName = attr.getElementName().substring(1);
+                String attrName = attributeName(attr);
                 String attrValue = (fixedOrDefault != null)
                         ? fixedOrDefault
                         : occurrenceValue(attr, attr.getDisplaySampleData() != null ? attr.getDisplaySampleData() : "");
 
                 // Apply constraint tracking for attributes
-                String attrXpath = element.getCurrentXpath() + "/@" + attrName;
+                String attrXpath = attr.getCurrentXpath() != null ? attr.getCurrentXpath()
+                        : element.getCurrentXpath() + "/@" + attrName;
                 if (constraintTracker != null && fixedOrDefault == null
                         && (constraintTracker.isConstrainedField(attrXpath) || constraintTracker.isKeyrefField(attrXpath))) {
                     attrValue = constraintTracker.getUniqueValue(attrXpath, attrValue, attr);
@@ -3213,7 +3258,14 @@ public class XsdDocumentationService {
                 if (!childElements.isEmpty()) {
                     int contentStart = sb.append("\n").length();
                     // Process children, handling CHOICE elements with random selection
-                    processChildElementsForGeneration(sb, childElements, mandatoryOnly, maxOccurrences, indentLevel + 1, constraintTracker);
+                    String outerDefaultNamespace = emissionDefaultNamespace;
+                    emissionDefaultNamespace = elementDefaultNamespace;
+                    try {
+                        processChildElementsForGeneration(sb, childElements, mandatoryOnly, maxOccurrences,
+                                indentLevel + 1, constraintTracker);
+                    } finally {
+                        emissionDefaultNamespace = outerDefaultNamespace;
+                    }
                     if (sb.length() == contentStart && sampleData.isEmpty()) {
                         // Only structural children that produced nothing: empty content allows no whitespace
                         sb.setLength(startTagEnd);
@@ -3559,6 +3611,9 @@ public class XsdDocumentationService {
         if (attributeGroupMap == null) {
             attributeGroupMap = new HashMap<>();
         }
+        if (attributeMap == null) {
+            attributeMap = new HashMap<>();
+        }
 
         // Accumulate definitions from this document
         Map<String, Node> elements = findAndCacheGlobalDefs(doc, "element");
@@ -3566,11 +3621,13 @@ public class XsdDocumentationService {
         Map<String, Node> simpleTypes = findAndCacheGlobalDefs(doc, "simpleType");
         Map<String, Node> groups = findAndCacheGlobalDefs(doc, "group");
         Map<String, Node> attributeGroups = findAndCacheGlobalDefs(doc, "attributeGroup");
+        Map<String, Node> attributes = findAndCacheGlobalDefs(doc, "attribute");
         elementMap.putAll(elements);
         complexTypeMap.putAll(complexTypes);
         simpleTypeMap.putAll(simpleTypes);
         groupMap.putAll(groups);
         attributeGroupMap.putAll(attributeGroups);
+        attributeMap.putAll(attributes);
 
         // Namespace-qualified view of the global definitions: two namespaces may declare one with the same local
         // name (JATS and MathML both declare sec, list and title), and the local-name maps above keep only one.
@@ -3580,6 +3637,7 @@ public class XsdDocumentationService {
         simpleTypes.forEach((name, node) -> qualifiedGlobalDefs.put(qualifiedKey("simpleType", targetNamespace, name), node));
         groups.forEach((name, node) -> qualifiedGlobalDefs.put(qualifiedKey("group", targetNamespace, name), node));
         attributeGroups.forEach((name, node) -> qualifiedGlobalDefs.put(qualifiedKey("attributeGroup", targetNamespace, name), node));
+        attributes.forEach((name, node) -> qualifiedGlobalDefs.put(qualifiedKey("attribute", targetNamespace, name), node));
 
         indexSubstitutionGroups(doc);
         indexDerivedComplexTypes(doc);
@@ -3719,27 +3777,87 @@ public class XsdDocumentationService {
         if (namespace == null || namespace.isEmpty() || namespace.equals(main)) {
             return null;
         }
+        return prefixFor(namespace, declaration);
+    }
+
+    /**
+     * The prefix a sample binds to {@code namespace}, the same for the whole schema: {@code xml} for the XML namespace,
+     * else the prefix the declaring document binds, one of the schema's prefixes for it, or a generated {@code nsN}. A
+     * prefix is never shared by two namespaces.
+     */
+    private String prefixFor(String namespace, Node declaration) {
+        if (XML_NAMESPACE_URI.equals(namespace)) {
+            return "xml";
+        }
+        String chosen = samplePrefixes.get(namespace);
+        if (chosen != null) {
+            return chosen;
+        }
         Map<String, String> known = xsdDocumentationData.getNamespaces() != null
                 ? xsdDocumentationData.getNamespaces() : Map.of();
         String own = declaration.lookupPrefix(namespace);
-        if (own != null && !own.isEmpty() && !"xsi".equals(own)
-                && namespace.equals(known.getOrDefault(own, namespace))) {
-            return own;
+        if (isFreePrefix(own, namespace, known)) {
+            chosen = own;
+        } else {
+            chosen = known.entrySet().stream()
+                    .filter(e -> namespace.equals(e.getValue()) && isFreePrefix(e.getKey(), namespace, known))
+                    .map(Map.Entry::getKey)
+                    .sorted()
+                    .findFirst()
+                    .orElse(null);
         }
-        String mapped = known.entrySet().stream()
-                .filter(e -> namespace.equals(e.getValue()) && !"xsi".equals(e.getKey()))
-                .map(Map.Entry::getKey)
-                .sorted()
-                .findFirst()
-                .orElse(null);
-        if (mapped != null) {
-            return mapped;
+        if (chosen == null) {
+            int n = 1;
+            while (known.containsKey("ns" + n) || samplePrefixes.containsValue("ns" + n)) {
+                n++;
+            }
+            chosen = "ns" + n;
         }
-        int n = 1;
-        while (known.containsKey("ns" + n)) {
-            n++;
+        samplePrefixes.put(namespace, chosen);
+        return chosen;
+    }
+
+    private boolean isFreePrefix(String prefix, String namespace, Map<String, String> known) {
+        return prefix != null && !prefix.isEmpty() && !"xsi".equals(prefix) && !"xml".equals(prefix)
+                && namespace.equals(known.getOrDefault(prefix, namespace)) && !samplePrefixes.containsValue(prefix);
+    }
+
+    /**
+     * The namespace of an element or attribute declaration in an instance: a global one takes its document's target
+     * namespace; a local one only when it is qualified ({@code form}, else the document's {@code elementFormDefault}
+     * or {@code attributeFormDefault}), otherwise none ({@code ""}). AEAT Modelo 170 {@code comun:Modelo} is a
+     * qualified local element of an imported type; SIRI FR-IDF {@code MessageText} an unqualified one.
+     */
+    private String declarationNamespace(Node declaration, boolean attribute) {
+        Node parent = declaration.getParentNode();
+        boolean global = parent != null && "schema".equals(parent.getLocalName());
+        if (!global) {
+            String form = getAttributeValue(declaration, "form");
+            if (form == null) {
+                form = declaration.getOwnerDocument().getDocumentElement()
+                        .getAttribute(attribute ? "attributeFormDefault" : "elementFormDefault");
+            }
+            if (!"qualified".equals(form)) {
+                return "";
+            }
         }
-        return "ns" + n;
+        return instanceNamespace(declaration);
+    }
+
+    /**
+     * The prefix an element or attribute is written with: none without a namespace, none for an element of the main
+     * target namespace (the sample's default namespace), otherwise {@link #prefixFor}. Attributes never take the
+     * default namespace, so a qualified attribute always has a prefix.
+     */
+    private String emissionPrefix(String namespace, Node declaration, boolean attribute) {
+        if (namespace.isEmpty()) {
+            return null;
+        }
+        String main = xsdDocumentationData.getTargetNamespace();
+        if (!attribute && namespace.equals(main == null ? "" : main)) {
+            return null;
+        }
+        return prefixFor(namespace, declaration);
     }
 
     private void populateDocumentationData() throws Exception {
@@ -4597,6 +4715,7 @@ public class XsdDocumentationService {
             case "group" -> lookupGlobalDefinition("group", groupMap, ref, contextNode);
             case "attributeGroup" -> lookupGlobalDefinition("attributeGroup", attributeGroupMap, ref, contextNode);
             case "element" -> lookupGlobalDefinition("element", elementMap, ref, contextNode);
+            case "attribute" -> lookupGlobalDefinition("attribute", attributeMap, ref, contextNode);
             default -> null;
         };
     }

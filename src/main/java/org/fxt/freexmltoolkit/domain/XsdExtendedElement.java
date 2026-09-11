@@ -128,6 +128,10 @@ public class XsdExtendedElement implements Serializable {
     private String xsiTypeNamespace;
     private String xsiTypePrefix;
 
+    // Sample generation: the namespace this element or attribute is emitted in ("" for none) and its prefix
+    private String emitNamespace;
+    private String emitPrefix;
+
     public void setSourceNamespace(String sourceNamespace) {
         this.sourceNamespace = sourceNamespace;
     }
@@ -185,6 +189,31 @@ public class XsdExtendedElement implements Serializable {
      * @param namespace the type's namespace, or {@code null}
      * @param prefix    the prefix the instance must declare for {@code namespace}, or {@code null}
      */
+    /**
+     * The namespace a sample emits this element or attribute in, as its declaration gives it: {@code ""} for no
+     * namespace, {@code null} when unknown (the legacy {@link #getSourceNamespacePrefix()} applies).
+     */
+    public String getEmitNamespace() {
+        return emitNamespace;
+    }
+
+    /** The prefix of {@link #getEmitNamespace()}, or {@code null} when the element is written unprefixed. */
+    public String getEmitPrefix() {
+        return emitPrefix;
+    }
+
+    /**
+     * Sets the namespace and prefix a sample emits this element or attribute with.
+     *
+     * @param namespace the namespace, {@code ""} for none
+     * @param prefix    the prefix, or {@code null} for an unprefixed element (default namespace) or a
+     *                  no-namespace attribute
+     */
+    public void setEmission(String namespace, String prefix) {
+        this.emitNamespace = namespace;
+        this.emitPrefix = prefix;
+    }
+
     public void setXsiType(String qName, String namespace, String prefix) {
         this.xsiType = qName;
         this.xsiTypeNamespace = namespace;
@@ -422,7 +451,11 @@ public class XsdExtendedElement implements Serializable {
 
         // Default for element is "1", for attribute it's based on "use"
         if (elementName != null && elementName.startsWith("@")) {
-            String use = getAttributeValue(currentNode, "use");
+            // For attribute references, use="required" is on the reference
+            String use = cardinalityNode != null ? getAttributeValue(cardinalityNode, "use") : null;
+            if (use == null) {
+                use = getAttributeValue(currentNode, "use");
+            }
             return "required".equals(use);
         }
 

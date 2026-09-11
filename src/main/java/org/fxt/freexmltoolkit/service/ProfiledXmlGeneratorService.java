@@ -72,6 +72,8 @@ public class ProfiledXmlGeneratorService {
     private final Set<String> repeatedXpaths = new HashSet<>();
     /** Generates the per-occurrence ID and IDREF values of the current document. */
     private XsdSampleDataGenerator identityValues;
+    /** Default namespace in scope at the element being written. */
+    private String emissionDefaultNamespace = "";
 
     /**
      * Creates a generator with a non-deterministic {@link Random} source. CHOICE
@@ -293,6 +295,8 @@ public class ProfiledXmlGeneratorService {
         identityValues = strategyFactory.generator();
         identityValues.startDocument();
         repeatedXpaths.clear();
+        emissionDefaultNamespace = data.getTargetNamespace() == null || data.getTargetNamespace().isBlank()
+                ? "" : data.getTargetNamespace();
 
         XsdExtendedElement rootElement;
         if (rootElementName == null) {
@@ -494,7 +498,13 @@ public class ProfiledXmlGeneratorService {
             String indent = "\t".repeat(indentLevel);
             String qualifiedName = getQualifiedName(element);
 
+            String elementDefaultNamespace = XsdDocumentationService.elementDefaultNamespace(element,
+                    emissionDefaultNamespace);
+
             sb.append(indent).append("<").append(qualifiedName);
+            if (!elementDefaultNamespace.equals(emissionDefaultNamespace)) {
+                sb.append(" xmlns=\"").append(escapeXml(elementDefaultNamespace)).append('"');
+            }
             XsdDocumentationService.appendXsiType(sb, element);
 
             // Attributes
@@ -533,8 +543,15 @@ public class ProfiledXmlGeneratorService {
                 boolean emptyContent = false;
                 if (!childElements.isEmpty()) {
                     int contentStart = sb.append("\n").length();
-                    for (XsdExtendedElement child : childElements) {
-                        buildElement(sb, child, profile, rules, elementMap, strategyFactory, context, constraintTracker, indentLevel + 1);
+                    String outerDefaultNamespace = emissionDefaultNamespace;
+                    emissionDefaultNamespace = elementDefaultNamespace;
+                    try {
+                        for (XsdExtendedElement child : childElements) {
+                            buildElement(sb, child, profile, rules, elementMap, strategyFactory, context,
+                                    constraintTracker, indentLevel + 1);
+                        }
+                    } finally {
+                        emissionDefaultNamespace = outerDefaultNamespace;
                     }
                     // Only structural children that produced nothing: empty content allows no whitespace
                     emptyContent = sb.length() == contentStart && value.isEmpty();
@@ -575,7 +592,7 @@ public class ProfiledXmlGeneratorService {
             return;
         }
 
-        String attrName = attr.getElementName().substring(1);
+        String attrName = XsdDocumentationService.attributeName(attr);
         String attrValue;
 
         if (attrRule.isPresent() && attrRule.get().getStrategy() != GenerationStrategy.AUTO) {
@@ -882,7 +899,10 @@ public class ProfiledXmlGeneratorService {
     private void collectNamespacesRecursive(XsdExtendedElement element, boolean mandatoryOnly,
                                              Map<String, String> namespaces, Set<String> visited,
                                              Map<String, XsdExtendedElement> elementMap) {
-        if (element == null || (mandatoryOnly && !element.isMandatory())) {
+        boolean attribute = element != null && element.getElementName() != null
+                && element.getElementName().startsWith("@");
+        // Optional attributes with a fixed or default value are emitted in mandatory-only mode too
+        if (element == null || (!attribute && mandatoryOnly && !element.isMandatory())) {
             return;
         }
         String xpath = element.getCurrentXpath();
@@ -891,14 +911,7 @@ public class ProfiledXmlGeneratorService {
         }
         visited.add(xpath);
 
-        String prefix = element.getSourceNamespacePrefix();
-        String ns = element.getSourceNamespace();
-        if (prefix != null && !prefix.isEmpty() && ns != null && !ns.isEmpty()) {
-            namespaces.put(prefix, ns);
-        }
-        if (element.getXsiTypePrefix() != null && element.getXsiTypeNamespace() != null) {
-            namespaces.put(element.getXsiTypePrefix(), element.getXsiTypeNamespace());
-        }
+        XsdDocumentationService.declareEmissionNamespace(namespaces, element);
 
         List<XsdExtendedElement> children = element.getChildren().stream()
                 .map(elementMap::get)
@@ -1040,12 +1053,7 @@ public class ProfiledXmlGeneratorService {
     }
 
     private String getQualifiedName(XsdExtendedElement element) {
-        String name = element.getElementName();
-        String prefix = element.getSourceNamespacePrefix();
-        if (prefix != null && !prefix.isEmpty()) {
-            return prefix + ":" + name;
-        }
-        return name;
+        return XsdDocumentationService.qualifiedElementName(element);
     }
 
     String resolveFileName(String pattern, int fileNumber) {
