@@ -361,9 +361,12 @@ public class XsdSampleDataGenerator {
             case "duration" -> "P1Y2M3DT4H5M6S";
             case "boolean" -> String.valueOf(ThreadLocalRandom.current().nextBoolean());
 
-            // Binary types
-            case "base64binary" -> "SGVsbG8gV29ybGQ="; // "Hello World" in Base64
-            case "hexbinary" -> "48656C6C6F"; // "Hello" in hex
+            // An unprefixed NCName is a valid QName in any namespace context (XBRL measure); any simple value
+            case "qname", "anysimpletype", "anyatomictype" -> "sample";
+
+            // Binary types: length facets count octets (UCI SHA_2_256_HashType, hexBinary of length 32)
+            case "base64binary" -> binarySample(effectiveRestriction, true);
+            case "hexbinary" -> binarySample(effectiveRestriction, false);
 
             default -> {
                 // Recursive attempt for derived types
@@ -896,6 +899,36 @@ public class XsdSampleDataGenerator {
     /**
      * Extracts an integer facet value from the facets map.
      */
+    /**
+     * Octets of "Hello World", as many as {@code length} demands, or five within {@code minLength} and
+     * {@code maxLength}, written in base64 or upper-case hex.
+     */
+    private String binarySample(RestrictionInfo restriction, boolean base64) {
+        int octets = 5;
+        if (restriction != null && restriction.facets() != null) {
+            Integer length = getIntFacet(restriction.facets(), "length");
+            Integer minLength = getIntFacet(restriction.facets(), "minLength");
+            Integer maxLength = getIntFacet(restriction.facets(), "maxLength");
+            if (length != null) {
+                octets = length;
+            } else {
+                if (minLength != null) {
+                    octets = Math.max(octets, minLength);
+                }
+                if (maxLength != null) {
+                    octets = Math.min(octets, maxLength);
+                }
+            }
+        }
+        byte[] bytes = new byte[Math.clamp(octets, 0, 4096)];
+        byte[] text = "Hello World".getBytes(java.nio.charset.StandardCharsets.US_ASCII);
+        for (int i = 0; i < bytes.length; i++) {
+            bytes[i] = text[i % text.length];
+        }
+        return base64 ? java.util.Base64.getEncoder().encodeToString(bytes)
+                : java.util.HexFormat.of().withUpperCase().formatHex(bytes);
+    }
+
     private Integer getIntFacet(Map<String, List<String>> facets, String facetName) {
         if (facets.containsKey(facetName)) {
             try {

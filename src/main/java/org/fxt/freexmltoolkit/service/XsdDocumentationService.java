@@ -840,8 +840,13 @@ public class XsdDocumentationService {
             String memberTypes = getAttributeValue(unionNode, "memberTypes");
             if (memberTypes != null && !memberTypes.isBlank()) {
                 // Use the first member type
-                String firstMember = memberTypes.split("\\s+")[0];
+                String firstMember = memberTypes.trim().split("\\s+")[0];
                 return resolveTypeToBase(firstMember, visited);
+            }
+            // Member types declared inline (XBRL nonZeroDecimal): use the first one
+            Node inlineMember = getDirectChildElement(unionNode, "simpleType");
+            if (inlineMember != null) {
+                return resolveSimpleType(inlineMember, visited);
             }
         }
 
