@@ -89,7 +89,10 @@ class SampleXmlReproducibilityTest {
             // Two audit runs lie minutes apart: dates and timestamps must not follow the clock
             Thread.sleep(1_100);
             String second = SampleXmlRunner.generate(xsd.toFile(), mandatoryOnly, 5, realistic, seed);
+            // An audit worker generates many samples in one process: a sample must not depend on its predecessors
+            String third = SampleXmlRunner.generate(xsd.toFile(), mandatoryOnly, 5, realistic, seed);
             assertEquals(first, second, "seed " + seed);
+            assertEquals(second, third, "seed " + seed + ", third run");
         }
     }
 }

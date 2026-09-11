@@ -5,11 +5,34 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 import org.junit.jupiter.api.Test;
 
 class BoundedPatternSamplerTest {
+
+    @Test
+    void repeatedConstructionsWithOneSeedGiveTheSameSamples() {
+        // The automaton library iterates its transitions in an order that depends on object identity, so the same
+        // seed walked different paths depending on how much had been allocated before (two seeded audit runs differed
+        // in 178 samples)
+        String pattern = "[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}";
+        List<String> first = samplesOf(pattern);
+        for (int build = 2; build <= 5; build++) {
+            assertEquals(first, samplesOf(pattern), "build " + build);
+        }
+    }
+
+    private static List<String> samplesOf(String pattern) {
+        BoundedPatternSampler sampler = new BoundedPatternSampler(pattern, new Random(42));
+        List<String> samples = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            samples.add(sampler.sample(3, 20));
+        }
+        return samples;
+    }
 
     @Test
     void samplesStayWithinTheLengthRange() {

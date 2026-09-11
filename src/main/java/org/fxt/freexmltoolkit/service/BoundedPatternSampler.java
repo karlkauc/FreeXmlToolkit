@@ -40,6 +40,10 @@ final class BoundedPatternSampler {
     /** Generex's predefined character classes, applied before the pattern is parsed. */
     private static final Map<String, String> PREDEFINED_CHARACTER_CLASSES = predefinedCharacterClasses();
 
+    /** Candidate transitions are walked in this order, so a seeded sample does not depend on the automaton's layout. */
+    private static final java.util.Comparator<Transition> TRANSITION_ORDER =
+            java.util.Comparator.comparingInt(Transition::getMin).thenComparingInt(Transition::getMax);
+
     private final Automaton automaton;
     private final Map<State, Integer> distanceToAccept;
     /** Longest number of transitions from a state to an accepting state; {@link Integer#MAX_VALUE} past a cycle. */
@@ -95,6 +99,9 @@ final class BoundedPatternSampler {
             if (candidates.isEmpty()) {
                 return state.isAccept() && length >= minLength ? value.toString() : null;
             }
+            // The automaton's transitions are held in a set whose order follows object identity, so the same seed
+            // walked different paths from one automaton to the next; sorting by character range makes it repeatable
+            candidates.sort(TRANSITION_ORDER);
             Transition transition = candidates.get(random.nextInt(candidates.size()));
             value.append((char) pickXmlCharacter(transition));
             state = transition.getDest();

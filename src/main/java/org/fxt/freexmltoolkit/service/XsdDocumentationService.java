@@ -153,10 +153,29 @@ public class XsdDocumentationService {
      * with {@code seed}. Call it before each sample that should not depend on the samples generated before it.
      */
     public void setSampleSeed(long seed) {
-        random = new java.util.Random(seed);
-        xsdSampleDataGenerator.setRandom(new java.util.Random(seed ^ VALUE_SEED_SALT));
+        sampleSeed = seed;
+        reseedSample();
+    }
+
+    /**
+     * Restarts the seeded streams. Loading the schema draws values of its own, and how many depends on what the
+     * process did before, so every expansion and every document starts from the seed again.
+     */
+    private void reseedSample() {
+        if (sampleSeed == null) {
+            return;
+        }
+        random = new java.util.Random(sampleSeed);
+        xsdSampleDataGenerator.setRandom(new java.util.Random(sampleSeed ^ VALUE_SEED_SALT));
         xsdSampleDataGenerator.setClock(XsdSampleDataGenerator.SEEDED_CLOCK);
     }
+
+    /** The seed of reproducible samples, or {@code null} for random ones. */
+    public Long sampleSeed() {
+        return sampleSeed;
+    }
+
+    private Long sampleSeed;
     XsdDocumentationHtmlService xsdDocumentationHtmlService = new XsdDocumentationHtmlService();
     XsdDocumentationSvgService xsdDocumentationSvgService = new XsdDocumentationSvgService();
 
@@ -713,6 +732,7 @@ public class XsdDocumentationService {
         sampleExpansionKey = null;
         xsdDocumentationData.setExtendedXsdElementMap(null);
         resetExpansion();
+        reseedSample();
         expansionNodeLimit = SampleXmlLimits.maxExpandedNodes();
         expansionRootName = rootElementName;
         pruneOptionalParticles = mandatoryOnly;
@@ -2885,6 +2905,7 @@ public class XsdDocumentationService {
 
     private String generateSampleXmlFor(XsdExtendedElement rootElement, boolean mandatoryOnly, int maxOccurrences) {
         StringBuilder xmlBuilder = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+        reseedSample();
         xsdSampleDataGenerator.startDocument();
         repeatedXpaths.clear();
         completeContent.clear();
