@@ -2064,6 +2064,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#18-after-r1-type-resolution-in-the-realistic-generator-re-audit-2026-09-11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        18. After R1: type resolution in the realistic generator (re-audit, 2026-09-11)
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2093,7 +2104,8 @@ real-world schemas, including optional elements, and validates every generated f
 <p><strong>Update (same day):</strong> the plan's four quick wins (A1, A2, D1, F3) are implemented. §1–§10 describe the baseline;
 §11 has the re-audit. A5 (bounded memory) and A4 (roots from included documents) follow in §12 and §13; §14
 covers A3 (include resolution) and the defects it exposed; §15 covers F5 (typed values for patterns); §16 covers E
-(abstract elements and types) and the defects it exposed; §17 covers C (namespace qualification).</p>
+(abstract elements and types) and the defects it exposed; §17 covers C (namespace qualification); §18 covers the
+realistic generator's type resolution (R1).</p>
 </blockquote>
 <h2 id="1-summary">1. Summary<a class="headerlink" href="#1-summary" title="Permanent link">&para;</a></h2>
 <p><strong>Corpus:</strong> <code>src/test/resources/xsd/real-world</code>, 35 schemas that users loaded into xsd-viewer.online by URL, each with
@@ -3284,6 +3296,13 @@ run.</p>
 <td>C namespace qualification and the defects it exposed (§17)</td>
 <td>30 · 25</td>
 <td>1,657 · 1,629 (of 1,672)</td>
+<td>0</td>
+</tr>
+<tr>
+<td>2026-09-11</td>
+<td>R1 type resolution in the realistic generator (§18)</td>
+<td>30 · 24</td>
+<td>1,658 · 1,637 (of 1,672; realistic 1,657 · 1,634)</td>
 <td>0</td>
 </tr>
 </tbody>
@@ -4537,6 +4556,70 @@ regressions, each fixed test-first (commit <code>3fe56987</code>):</p>
 <li><strong>Largest remaining cluster:</strong> the realistic generator's SIRI values (100 samples mandatory only, 208 with optional
   elements: empty <code>NMTOKEN</code> and <code>PopulatedStringType</code> values, <code>cvc-complex-type.2.2</code> on simple content). Next: those
   values, then G (choices, required <code>xs:any</code>).</li>
+</ul>
+<h2 id="18-after-r1-type-resolution-in-the-realistic-generator-re-audit-2026-09-11">18. After R1: type resolution in the realistic generator (re-audit, 2026-09-11)<a class="headerlink" href="#18-after-r1-type-resolution-in-the-realistic-generator-re-audit-2026-09-11" title="Permanent link">&para;</a></h2>
+<p><strong>Cause.</strong> After C, the largest remaining cluster was SIRI 2.2 with the realistic generator: 100 invalid samples with
+mandatory elements only and 208 with optional elements. Nearly all errors were empty values, <code>cvc-datatype-valid.1.2.1</code>
+(<code>''</code> is not a valid <code>NMTOKEN</code>), <code>cvc-minLength-valid</code> (<code>PopulatedStringType</code>) and <code>cvc-complex-type.2.2</code> on simple
+content. The plain generator wrote values at the same paths.</p>
+<p>The realistic generator resolved a named type by scanning the element map for an element of the same type name and
+taking that element's type. For a simple-content chain this never reaches a built-in type:
+- <code>RequestorRef</code> has type <code>ParticipantRefStructure</code>, simple content extending <code>ParticipantCodeType</code>, which restricts
+  <code>NMTOKEN</code>
+- <code>Name</code> has type <code>NaturalLanguageStringStructure</code>, simple content extending <code>PopulatedStringType</code> (<code>minLength="1"</code>)</p>
+<p>The value generator then fell back to an empty string.</p>
+<p><strong>Change</strong> (commit <code>cea64f2d</code>). The schema processing service hands its namespace-aware type resolution
+(<code>resolveTypeToBase</code>, the one the plain generator uses) to the documentation data through a small domain interface,
+<code>NamedTypeResolver</code>. The realistic generator uses it; data not produced by the service keeps the element map scan.
+The structural walk still exists in both generators (rest of R1). Test: <code>SampleXmlRealisticValuesTest</code>.</p>
+<p><strong>Audit:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Measure</th>
+<th>plain req</th>
+<th>plain opt</th>
+<th>realistic req</th>
+<th>realistic opt</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>First element valid (of 31), §17 → R1</td>
+<td>30 → 30</td>
+<td>25 → 24</td>
+<td>28 → <strong>30</strong></td>
+<td>23 → <strong>24</strong></td>
+</tr>
+<tr>
+<td>Breadth valid (of 1,672), §17 → R1</td>
+<td>1,657 → 1,658</td>
+<td>1,629 → 1,637</td>
+<td>1,553 → <strong>1,657</strong></td>
+<td>1,423 → <strong>1,634</strong></td>
+</tr>
+<tr>
+<td>Invalid samples (of 1,672), §17 → R1</td>
+<td>15 → 14</td>
+<td>43 → 35</td>
+<td>119 → <strong>15</strong></td>
+<td>249 → <strong>38</strong></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>The realistic generator is now on par with the plain one</strong> (15 · 38 invalid against 14 · 35).</li>
+<li><strong>SIRI 2.2</strong> with the realistic generator: 271 → 370 of 370 (mandatory only), 164 → 351 (with optional elements).
+  SIRI FR-IDF 2 of 2 and KML 145 · 144 of 145 in both realistic modes; FundsXML 4's first element is valid in every
+  mode.</li>
+<li>Per root, 335 samples turned valid and 9 invalid, all random flips of choice selection and values (datajud, JATS
+  <code>ruby</code>, a UCI <code>hexBinary</code> of <code>length="6"</code>, a KML abstract head without members).</li>
+<li><strong>Remaining invalid</strong> (plain, mandatory only: 14): JATS 7 (IDREFs in documents without any ID, 6), XBRL 5 (abstract
+  <code>item</code>/<code>tuple</code> without members, union and QName values), xmldsig 2 (required <code>xs:any</code>, G3).</li>
+<li><strong>With optional elements</strong> (plain: 35): SIRI 21 (<code>cvc-type.3.1.3</code> and <code>cvc-enumeration-valid</code>, not analysed yet),
+  XBRL 6, JATS 3, single samples in INSPIRE, XTCE, UBL and Garmin.</li>
+<li><strong>Next:</strong> analyse the SIRI values with optional elements, then G (choices that produce content, required
+  <code>xs:any</code>) and IDREFs without any ID.</li>
 </ul>
 
 
