@@ -135,6 +135,11 @@ Of the 274 invalid samples, the report maps each validation error to one of the 
   - XTCE valid in every mode.
   - Remaining: Garmin keyref fallback without generated key values and a suffixed key past `maxLength` (H2), UCI
     angles rounded past `maxInclusive` (F6). Next: **F6**, then the Garmin keys.
+- **Progress after F6 numbers within their bounds** (report §25): first element valid 30 · 29 · 30 · 29, no XML 0;
+  breadth valid 1,672 · 1,671 · 1,672 · 1,671 of 1,672 (invalid 0 · 1 · 0 · 1).
+  - UCI 722 of 722 in every mode. Only Garmin's root is left.
+  - Remaining: keyrefs before their keys, no `Workout` because `Repeat_t` recursion leaves its step incomplete, and a
+    suffixed key past `maxLength` (H2). Next: **the Garmin keys and steps**.
 
 ## Global Constraints
 
@@ -443,7 +448,10 @@ samples (xlink attributes currently emitted as child elements) valid.
     one realistic XTCE sample is not even well-formed.
   - Intersect patterns across the derivation chain (all steps must match).
   - Translate XSD-only escapes (`\i`, `\c`, `\p{Is…}`) before Generex.
-- [ ] **F6.** `min/maxExclusive` for decimals: use the smallest step that fits `fractionDigits`, not ±1.
+- [x] **F6.** `min/maxExclusive` for decimals: use the smallest step that fits `fractionDigits`, not ±1.
+  *(2026-09-11, report §25, found by the G1 re-audit: an exclusive range narrower than two steps inward by a quarter
+  of its width, and rounded `float`, `double` and `decimal` values stay within their facets, compared in their own
+  value space (UCI `AngleType` got `3.1416` above π); `XsdSampleDataGeneratorTest`.)*
 
 ## WP E: Abstract elements and types
 

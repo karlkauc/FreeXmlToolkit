@@ -12,7 +12,7 @@ The improvement plan derived from these numbers is
 > (abstract elements and types) and the defects it exposed; §17 covers C (namespace qualification); §18 covers the
 > realistic generator's type resolution (R1); §19 covers inherited facets (F4); §20 covers required wildcards (G3);
 > §21 covers QName, binary and union values (F1, F2) and IDs for references (H); §22 covers particles with the same
-> name in one content model; §23 covers choices that pick options with complete content (G1); §24 covers key values of their own type (H2).
+> name in one content model; §23 covers choices that pick options with complete content (G1); §24 covers key values of their own type (H2); §25 covers numbers rounded within their bounds (F6).
 
 ## 1. Summary
 
@@ -408,6 +408,7 @@ The task skips itself when the corpus folder is absent.
 | 2026-09-11 | G7 particles with the same name in one content model (§22) | 30 · 25 | 1,672 · 1,663 (of 1,672; realistic 1,672 · 1,661) | 0 |
 | 2026-09-11 | G1 choices pick options with complete content (§23) | 30 · 27 | 1,672 · 1,668 (of 1,672; realistic 1,672 · 1,669) | 0 |
 | 2026-09-11 | H2 key values of their own type (§24) | 30 · 29 | 1,672 · 1,670 (of 1,672; realistic 1,672 · 1,671) | 0 |
+| 2026-09-11 | F6 numbers rounded within their bounds (§25) | 30 · 29 | 1,672 · 1,671 (of 1,672; realistic 1,672 · 1,671) | 0 |
 
 ## 11. After the quick wins (re-audit, 2026-09-10)
 
@@ -1223,3 +1224,30 @@ INSPIRE, both generators and modes, 16 runs each).
   key value exceeds `maxLength="15"` of `RestrictedToken_t`. Both were already among Garmin's error keys in §21.
 - **UCI**, 1 plain sample: `AngleHalfType` (`maxInclusive` π/2) got `1.5708`, the rounding defect of §23 (F6).
 - **Next:** numbers rounded within their bounds (F6), then the remaining Garmin key values.
+
+## 25. After F6: numbers rounded within their bounds (re-audit, 2026-09-11)
+
+**Cause.** Generated `float`, `double` and `decimal` values were rounded after they had been drawn from their range:
+- `double` got four fraction digits, `float` and `decimal` two, all rounded half up. UCI `AngleType` is an `xs:double`
+  in [-π, π], and a value just below π became `3.1416`; `AngleHalfType` got `1.5708` above π/2.
+- An exclusive bound stepped inward by one. A `decimal` in (0, 1) became the range [1, 0], which yielded `0`.
+
+**Change.** A rounded value is checked against the facets: half up first, else rounded toward the inside of the range,
+else left unrounded. `float` and `double` bounds are compared in their binary value space, as Xerces compares them. An
+exclusive range narrower than two steps inward by a quarter of its width; integer ranges keep whole steps. Test:
+`XsdSampleDataGeneratorTest.roundedNumbersStayWithinTheirBounds` (six bound combinations, 20 values each).
+
+**Audit** (after `f6a498cd`):
+
+| Measure | plain req | plain opt | realistic req | realistic opt |
+|---|---|---|---|---|
+| First element valid (of 31), §24 → now | 30 → 30 | 29 → 29 | 30 → 30 | 29 → 29 |
+| Breadth valid (of 1,672), §24 → now | 1,672 → 1,672 | 1,670 → **1,671** | 1,672 → 1,672 | 1,671 → 1,671 |
+| Invalid samples (of 1,672), §24 → now | 0 → 0 | 2 → **1** | 0 → 0 | 1 → 1 |
+
+- **UCI** 722 of 722 in every mode.
+- **Remaining:** Garmin's `TrainingCenterDatabase`, 1 per generator. `CourseNameRef` and `WorkoutNameRef` in `Folders`
+  come before any course or workout and get suffixed fallback values that no key holds; no `Workout` is generated,
+  because its required `Step` always took the derived type `Repeat_t`, whose required `Child` recursion is cut; and a
+  suffixed key value can exceed `maxLength="15"` of `RestrictedToken_t`.
+- **Next:** Garmin's keys and workout steps.
