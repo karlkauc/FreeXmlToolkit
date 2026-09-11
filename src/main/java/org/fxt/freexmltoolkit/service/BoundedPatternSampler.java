@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
+import java.util.random.RandomGenerator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -44,14 +44,14 @@ final class BoundedPatternSampler {
     private final Map<State, Integer> distanceToAccept;
     /** Longest number of transitions from a state to an accepting state; {@link Integer#MAX_VALUE} past a cycle. */
     private final Map<State, Integer> longestToAccept;
-    private final Random random;
+    private final RandomGenerator random;
 
     /**
      * @param pattern the pattern (Generex / dk.brics syntax)
      * @param random  the source of randomness
      * @throws IllegalArgumentException if the pattern cannot be parsed or repeats a group too often
      */
-    BoundedPatternSampler(String pattern, Random random) {
+    BoundedPatternSampler(String pattern, RandomGenerator random) {
         String regex = capRepetitionBounds(pattern);
         for (Map.Entry<String, String> characterClass : PREDEFINED_CHARACTER_CLASSES.entrySet()) {
             regex = regex.replaceAll(characterClass.getKey(), characterClass.getValue());

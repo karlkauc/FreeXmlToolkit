@@ -143,7 +143,19 @@ public class XsdDocumentationService {
 
     private TaskProgressListener progressListener;
     private final XsdSampleDataGenerator xsdSampleDataGenerator = new XsdSampleDataGenerator();
-    private final RandomGenerator random = RandomGenerator.getDefault();
+    private RandomGenerator random = RandomGenerator.getDefault();
+
+    /** Separates the value stream from the choice stream of one seed, so a changed choice does not shift values. */
+    static final long VALUE_SEED_SALT = 0x5DEECE66DL;
+
+    /**
+     * Makes the samples of this service reproducible: choices, repetitions and values are drawn from sources seeded
+     * with {@code seed}. Call it before each sample that should not depend on the samples generated before it.
+     */
+    public void setSampleSeed(long seed) {
+        random = new java.util.Random(seed);
+        xsdSampleDataGenerator.setRandom(new java.util.Random(seed ^ VALUE_SEED_SALT));
+    }
     XsdDocumentationHtmlService xsdDocumentationHtmlService = new XsdDocumentationHtmlService();
     XsdDocumentationSvgService xsdDocumentationSvgService = new XsdDocumentationSvgService();
 
@@ -2941,6 +2953,7 @@ public class XsdDocumentationService {
 
         // Create and populate identity constraint tracker for unique value generation
         IdentityConstraintTracker constraintTracker = new IdentityConstraintTracker();
+        constraintTracker.setRandom(xsdSampleDataGenerator.random());
         constraintTracker.scanConstraints(xsdDocumentationData.getExtendedXsdElementMap());
 
         outputCharLimit = SampleXmlLimits.maxOutputChars();

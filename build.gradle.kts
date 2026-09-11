@@ -467,7 +467,8 @@ tasks.register<Test>("sampleXmlAudit") {
     listOf(
         "sample.audit.only", "sample.audit.parallel", "sample.audit.workerHeap",
         "sample.audit.schemaTimeoutMinutes", "sample.audit.processTimeoutMinutes",
-        "sample.audit.sampleTimeoutSeconds", "sample.audit.validationTimeoutSeconds", "sample.audit.maxRootsPerSchema"
+        "sample.audit.sampleTimeoutSeconds", "sample.audit.validationTimeoutSeconds", "sample.audit.maxRootsPerSchema",
+        "sample.audit.seed"
     ).forEach { key -> System.getProperty(key)?.let { systemProperty(key, it) } }
     outputs.upToDateWhen { false }
     doFirst { systemProperty("sample.audit.classpath", classpath.asPath) }

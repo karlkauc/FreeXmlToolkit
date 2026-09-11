@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.random.RandomGenerator;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import jakarta.xml.bind.DatatypeConverter;
@@ -35,6 +35,8 @@ public class XsdSampleDataGenerator {
     private static final int MAX_RECURSION_DEPTH = 10;
     private static final int MAX_PATTERN_GENERATION_ATTEMPTS = 10;
     private final AtomicInteger idCounter = new AtomicInteger(1);
+    /** The source of every random value; seed it with {@link #setRandom} for reproducible samples. */
+    private RandomGenerator random = RandomGenerator.getDefault();
     private final List<String> generatedIds = new ArrayList<>();
     private final Deque<String> reservedIdsForRefs = new ArrayDeque<>();
 
@@ -82,6 +84,16 @@ public class XsdSampleDataGenerator {
      * Sets the type resolver for resolving named types to base XML types.
      * @param resolver The type resolver implementation
      */
+    /** Sets the source of random values, for example a seeded {@link java.util.Random}. */
+    public void setRandom(RandomGenerator random) {
+        this.random = random;
+    }
+
+    /** The source of random values, shared with the pattern sampler and the identity-constraint tracker. */
+    public RandomGenerator random() {
+        return random;
+    }
+
     public void setTypeResolver(TypeResolver resolver) {
         this.typeResolver = resolver;
         identityKindByType.clear();
@@ -182,7 +194,7 @@ public class XsdSampleDataGenerator {
             if (enumerations != null && !enumerations.isEmpty()) {
                 List<String> validEnums = filterEnumerationsByConstraints(enumerations, restriction);
                 if (!validEnums.isEmpty()) {
-                    int randomIndex = ThreadLocalRandom.current().nextInt(validEnums.size());
+                    int randomIndex = random.nextInt(validEnums.size());
                     return validEnums.get(randomIndex);
                 }
                 // If no valid values after filtering, fall through to type-based generation
@@ -250,7 +262,7 @@ public class XsdSampleDataGenerator {
         if (effectiveRestriction != null && effectiveRestriction.facets().containsKey("enumeration")) {
             List<String> enumerations = effectiveRestriction.facets().get("enumeration");
             if (enumerations != null && !enumerations.isEmpty()) {
-                int randomIndex = ThreadLocalRandom.current().nextInt(enumerations.size());
+                int randomIndex = random.nextInt(enumerations.size());
                 return enumerations.get(randomIndex);
             }
         }
@@ -334,33 +346,33 @@ public class XsdSampleDataGenerator {
             case "date" -> {
                 long minDay = LocalDate.of(2020, 1, 1).toEpochDay();
                 long maxDay = LocalDate.now().toEpochDay();
-                long randomDay = ThreadLocalRandom.current().nextLong(minDay, maxDay);
+                long randomDay = random.nextLong(minDay, maxDay);
                 yield LocalDate.ofEpochDay(randomDay).format(DateTimeFormatter.ISO_LOCAL_DATE);
             }
             case "datetime" -> {
                 LocalDateTime start = LocalDateTime.now().minusYears(1);
                 long startSeconds = start.toEpochSecond(java.time.ZoneOffset.UTC);
                 long endSeconds = LocalDateTime.now().toEpochSecond(java.time.ZoneOffset.UTC);
-                long randomSeconds = ThreadLocalRandom.current().nextLong(startSeconds, endSeconds);
+                long randomSeconds = random.nextLong(startSeconds, endSeconds);
                 yield LocalDateTime.ofEpochSecond(randomSeconds, 0, java.time.ZoneOffset.UTC).format(DateTimeFormatter.ISO_DATE_TIME);
             }
             case "time" -> LocalTime.of(
-                    ThreadLocalRandom.current().nextInt(0, 24),
-                    ThreadLocalRandom.current().nextInt(0, 60),
-                    ThreadLocalRandom.current().nextInt(0, 60)
+                    random.nextInt(0, 24),
+                    random.nextInt(0, 60),
+                    random.nextInt(0, 60)
             ).format(DateTimeFormatter.ISO_LOCAL_TIME);
             case "gyear" ->
-                    String.valueOf(ThreadLocalRandom.current().nextInt(1990, LocalDate.now().getYear() + 1));
-            case "gmonth" -> String.format("--%02d", ThreadLocalRandom.current().nextInt(1, 13));
-            case "gday" -> String.format("---%02d", ThreadLocalRandom.current().nextInt(1, 29));
+                    String.valueOf(random.nextInt(1990, LocalDate.now().getYear() + 1));
+            case "gmonth" -> String.format("--%02d", random.nextInt(1, 13));
+            case "gday" -> String.format("---%02d", random.nextInt(1, 29));
             case "gyearmonth" -> String.format("%d-%02d",
-                    ThreadLocalRandom.current().nextInt(2020, LocalDate.now().getYear() + 1),
-                    ThreadLocalRandom.current().nextInt(1, 13));
+                    random.nextInt(2020, LocalDate.now().getYear() + 1),
+                    random.nextInt(1, 13));
             case "gmonthday" -> String.format("--%02d-%02d",
-                    ThreadLocalRandom.current().nextInt(1, 13),
-                    ThreadLocalRandom.current().nextInt(1, 29));
+                    random.nextInt(1, 13),
+                    random.nextInt(1, 29));
             case "duration" -> "P1Y2M3DT4H5M6S";
-            case "boolean" -> String.valueOf(ThreadLocalRandom.current().nextBoolean());
+            case "boolean" -> String.valueOf(random.nextBoolean());
 
             // An unprefixed NCName is a valid QName in any namespace context (XBRL measure); any simple value
             case "qname", "anysimpletype", "anyatomictype" -> "sample";
@@ -468,7 +480,7 @@ public class XsdSampleDataGenerator {
         }
 
         try {
-            BoundedPatternSampler sampler = new BoundedPatternSampler(patternValue, ThreadLocalRandom.current());
+            BoundedPatternSampler sampler = new BoundedPatternSampler(patternValue, random);
 
             // If exact length is specified, use it
             if (exactLength != null) {
@@ -755,14 +767,14 @@ public class XsdSampleDataGenerator {
                 String chars = expandCharacterClass(segment.characterClass());
                 int count = segment.minRepeat();
                 if (segment.maxRepeat() > segment.minRepeat()) {
-                    count = ThreadLocalRandom.current().nextInt(
+                    count = random.nextInt(
                             segment.minRepeat(),
                             Math.min(segment.maxRepeat() + 1, segment.minRepeat() + 10)
                     );
                 }
 
                 for (int i = 0; i < count && !chars.isEmpty(); i++) {
-                    result.append(chars.charAt(ThreadLocalRandom.current().nextInt(chars.length())));
+                    result.append(chars.charAt(random.nextInt(chars.length())));
                 }
             }
         }
@@ -780,7 +792,7 @@ public class XsdSampleDataGenerator {
 
             StringBuilder padded = new StringBuilder(output);
             while (padded.length() < targetLength && !padChars.isEmpty()) {
-                padded.append(padChars.charAt(ThreadLocalRandom.current().nextInt(padChars.length())));
+                padded.append(padChars.charAt(random.nextInt(padChars.length())));
             }
             output = padded.toString();
         }
@@ -891,7 +903,7 @@ public class XsdSampleDataGenerator {
                 charOptions.append("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
             }
 
-            int randomIndex = ThreadLocalRandom.current().nextInt(charOptions.length());
+            int randomIndex = random.nextInt(charOptions.length());
             sb.append(charOptions.charAt(randomIndex));
         }
         return sb.toString();
@@ -1012,7 +1024,7 @@ public class XsdSampleDataGenerator {
                     logger.warn("minLength ({}) is greater than maxLength ({}) for a string restriction. Using minLength.", min, max);
                     return "a".repeat(min);
                 }
-                int targetLength = (min.equals(max)) ? min : ThreadLocalRandom.current().nextInt(min, max + 1);
+                int targetLength = (min.equals(max)) ? min : random.nextInt(min, max + 1);
                 return "a".repeat(targetLength);
             }
         }
@@ -1121,7 +1133,7 @@ public class XsdSampleDataGenerator {
         }
 
         BigDecimal range = max.subtract(min);
-        BigDecimal randomValue = min.add(range.multiply(BigDecimal.valueOf(Math.random())));
+        BigDecimal randomValue = min.add(range.multiply(BigDecimal.valueOf(random.nextDouble())));
 
         // Apply fractionDigits constraint
         if (fractionDigits >= 0) {

@@ -32,6 +32,14 @@ public final class SampleXmlRunner {
      * @see #generate(File, boolean, int)
      */
     public static String generate(File xsd, boolean mandatoryOnly, int maxOccurrences, boolean realistic) {
+        return generate(xsd, mandatoryOnly, maxOccurrences, realistic, null);
+    }
+
+    /**
+     * @param seed seeds choices, repetitions and values for a reproducible sample, or {@code null} for random ones
+     * @see #generate(File, boolean, int, boolean)
+     */
+    public static String generate(File xsd, boolean mandatoryOnly, int maxOccurrences, boolean realistic, Long seed) {
         if (!xsd.isFile()) {
             return "ERROR: file not found: " + xsd;
         }
@@ -39,6 +47,9 @@ public final class SampleXmlRunner {
             XsdDocumentationService service = new XsdDocumentationService();
             service.setXsdFilePath(xsd.getAbsolutePath());
             if (!realistic) {
+                if (seed != null) {
+                    service.setSampleSeed(seed);
+                }
                 return service.generateSampleXml(mandatoryOnly, maxOccurrences);
             }
             // Expand only the first root, not every global element (bounded memory for large schemas)
@@ -51,8 +62,10 @@ public final class SampleXmlRunner {
             var profile = new org.fxt.freexmltoolkit.domain.GenerationProfile("Realistic");
             profile.setMandatoryOnly(mandatoryOnly);
             profile.setMaxOccurrences(maxOccurrences);
-            return new org.fxt.freexmltoolkit.service.ProfiledXmlGeneratorService()
-                    .generateRealistic(profile, service.xsdDocumentationData, xsd.getAbsolutePath(), root);
+            var generator = seed != null
+                    ? new org.fxt.freexmltoolkit.service.ProfiledXmlGeneratorService(seed)
+                    : new org.fxt.freexmltoolkit.service.ProfiledXmlGeneratorService();
+            return generator.generateRealistic(profile, service.xsdDocumentationData, xsd.getAbsolutePath(), root);
         } catch (SampleXmlLimits.LimitExceededException e) {
             return e.toXmlComment();
         } catch (Exception e) {

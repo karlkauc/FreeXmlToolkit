@@ -82,6 +82,14 @@ public class IdentityConstraintTracker {
      */
     private final Map<String, Integer> counters = new HashMap<>();
 
+    /** The source of random pattern samples; the generators hand over their seeded one. */
+    private java.util.random.RandomGenerator random = java.util.random.RandomGenerator.getDefault();
+
+    /** Sets the source of random pattern samples, for example the sample generator's seeded one. */
+    public void setRandom(java.util.random.RandomGenerator random) {
+        this.random = random;
+    }
+
     /** Per KEY or UNIQUE constraint: the value keyrefs used before the key had one; the key's next value. */
     private final Map<String, String> reservedKeyValues = new HashMap<>();
 
@@ -490,7 +498,7 @@ public class IdentityConstraintTracker {
         try {
             BoundedPatternSampler sampler = new BoundedPatternSampler(
                     element.getRestrictionInfo().facets().get("pattern").getFirst(),
-                    java.util.concurrent.ThreadLocalRandom.current());
+                    random);
             for (int attempt = 0; attempt < DISTINCT_PATTERN_ATTEMPTS; attempt++) {
                 String candidate = sampler.sample(minLength, maxLength);
                 if (fits.test(candidate)) {

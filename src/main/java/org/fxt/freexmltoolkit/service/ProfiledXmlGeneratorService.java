@@ -66,6 +66,8 @@ public class ProfiledXmlGeneratorService {
     private static final ConcurrentHashMap<String, Pattern> WILDCARD_PATTERN_CACHE = new ConcurrentHashMap<>();
 
     private final Random random;
+    /** Seed of the value stream, or {@code null} for unseeded values. */
+    private final Long valueSeed;
     /** Character limit while building a document; -1 outside generation. */
     private long outputCharLimit = -1;
     /** XPaths whose repetitions beyond minOccurs the current document already emitted. */
@@ -83,6 +85,7 @@ public class ProfiledXmlGeneratorService {
      */
     public ProfiledXmlGeneratorService() {
         this.random = new Random();
+        this.valueSeed = null;
     }
 
     /**
@@ -90,13 +93,23 @@ public class ProfiledXmlGeneratorService {
      * random cardinality picks become reproducible across runs. Useful for tests
      * that want to assert on the generated structure.
      *
-     * <p>Note: values supplied via {@link XsdSampleDataGenerator} (numeric samples,
-     * dates, enumeration picks when no enumeration filter applies) still draw from
-     * {@link java.util.concurrent.ThreadLocalRandom} and are not affected by this
-     * seed; structural reproducibility only covers CHOICE pathways.</p>
+     * <p>The values supplied via {@link XsdSampleDataGenerator} (numeric samples, dates,
+     * enumeration picks, pattern samples) are seeded as well, from a separate stream, so a
+     * document is reproducible as a whole. Rule strategies that pick at random
+     * ({@code RANDOM_FROM_LIST}, {@code TEMPLATE}, {@code XSD_EXAMPLE}) are not seeded.</p>
      */
     public ProfiledXmlGeneratorService(long seed) {
         this.random = new Random(seed);
+        this.valueSeed = seed ^ XsdDocumentationService.VALUE_SEED_SALT;
+    }
+
+    /** A sample data generator, seeded when this service was created with a seed. */
+    private XsdSampleDataGenerator newSampleGenerator() {
+        XsdSampleDataGenerator generator = new XsdSampleDataGenerator();
+        if (valueSeed != null) {
+            generator.setRandom(new Random(valueSeed));
+        }
+        return generator;
     }
 
     /**
@@ -127,7 +140,7 @@ public class ProfiledXmlGeneratorService {
                 profile.isMandatoryOnly(),
                 profile.getMaxOccurrences());
 
-        XsdSampleDataGenerator sampleGenerator = new XsdSampleDataGenerator();
+        XsdSampleDataGenerator sampleGenerator = newSampleGenerator();
         setupTypeResolver(sampleGenerator, data);
         ValueStrategyFactory strategyFactory = new ValueStrategyFactory(sampleGenerator);
         GenerationContext context = new GenerationContext();
@@ -163,7 +176,7 @@ public class ProfiledXmlGeneratorService {
      */
     public String generateRealistic(GenerationProfile profile, XsdDocumentationData data, String xsdFilePath,
                                     String rootElementName) {
-        XsdSampleDataGenerator sampleGenerator = new XsdSampleDataGenerator();
+        XsdSampleDataGenerator sampleGenerator = newSampleGenerator();
         setupTypeResolver(sampleGenerator, data);
         ValueStrategyFactory strategyFactory = new ValueStrategyFactory(sampleGenerator);
         GenerationContext context = new GenerationContext();
@@ -188,7 +201,7 @@ public class ProfiledXmlGeneratorService {
         GenerationContext context = null;
 
         if (!delegate) {
-            sampleGenerator = new XsdSampleDataGenerator();
+            sampleGenerator = newSampleGenerator();
             setupTypeResolver(sampleGenerator, data);
             strategyFactory = new ValueStrategyFactory(sampleGenerator);
             context = new GenerationContext();
@@ -343,6 +356,7 @@ public class ProfiledXmlGeneratorService {
         // Root element attributes
         List<XPathRule> enabledRules = profile.getEnabledRules();
         IdentityConstraintTracker constraintTracker = new IdentityConstraintTracker();
+        constraintTracker.setRandom(strategyFactory.generator().random());
         constraintTracker.scanConstraints(elementMap);
 
         List<XsdExtendedElement> rootAttributes = rootElement.getChildren().stream()

@@ -58,6 +58,8 @@ import com.google.gson.GsonBuilder;
 public final class SampleXmlAuditWorker {
 
     static final int MAX_OCCURRENCES = 2;
+    /** Seeds every sample for a reproducible run ({@code -Dsample.audit.seed}), or {@code null} for random samples. */
+    private static final Long SEED = Long.getLong("sample.audit.seed");
     private static final long LARGE_SAMPLE_CHARS = 2_000_000;
     private static final int MAX_STUCK_THREADS = 3;
     private static final String[] GENERATORS = {"plain", "realistic"};
@@ -206,7 +208,7 @@ public final class SampleXmlAuditWorker {
             for (boolean mandatoryOnly : MANDATORY_ONLY) {
                 boolean realistic = "realistic".equals(generator);
                 Timed<String> call = timed(() -> SampleXmlRunner.generate(mainXsd.toFile(), mandatoryOnly,
-                        MAX_OCCURRENCES, realistic), processTimeoutSeconds + sampleTimeoutSeconds);
+                        MAX_OCCURRENCES, realistic, SEED), processTimeoutSeconds + sampleTimeoutSeconds);
                 record("first", generator, mandatoryOnly, null, call);
             }
         }
@@ -231,8 +233,12 @@ public final class SampleXmlAuditWorker {
                     recordSkipped("plain", mandatoryOnly, root);
                     continue;
                 }
-                record("all", "plain", mandatoryOnly, root,
-                        timed(() -> service.generateSampleXml(root, mandatoryOnly, MAX_OCCURRENCES), sampleTimeoutSeconds));
+                record("all", "plain", mandatoryOnly, root, timed(() -> {
+                    if (SEED != null) {
+                        service.setSampleSeed(SEED);
+                    }
+                    return service.generateSampleXml(root, mandatoryOnly, MAX_OCCURRENCES);
+                }, sampleTimeoutSeconds));
             }
         }
     }
@@ -265,7 +271,10 @@ public final class SampleXmlAuditWorker {
                     } catch (SampleXmlLimits.LimitExceededException e) {
                         return e.toXmlComment();
                     }
-                    return generator.generateRealistic(profile, service.xsdDocumentationData, mainXsd.toString(), root);
+                    ProfiledXmlGeneratorService sampleGenerator =
+                            SEED != null ? new ProfiledXmlGeneratorService(SEED) : generator;
+                    return sampleGenerator.generateRealistic(profile, service.xsdDocumentationData, mainXsd.toString(),
+                            root);
                 }, sampleTimeoutSeconds));
             }
         }
