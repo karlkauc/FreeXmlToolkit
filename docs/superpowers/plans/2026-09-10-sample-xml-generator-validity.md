@@ -110,6 +110,15 @@ Of the 274 invalid samples, the report maps each validation error to one of the 
   - xmldsig 24 of 24 and XBRL 4 of 8 in every mode; wildcard errors 28 → 2.
   - Remaining: `QName`, binary `length` and inline union values (F: XBRL, UCI), IDREFs in documents without any ID
     (H: JATS 7). Next: **those values**, then H.
+- **Progress after F1/F2 values, H IDs for references and unsubstituted abstract elements** (report §21): first
+  element valid 30 · 24 · 30 · 25, no XML 0; breadth valid 1,671 · 1,664 · 1,670 · 1,659 of 1,672 (invalid
+  1 · 8 · 2 · 13; §15: 193 · 684 · 294 · 824 of 1,814).
+  - KML 145 of 145, XBRL 8 of 8 and UCI 722 of 722 in every mode; no IDREF without an ID is left.
+  - Found on the way: an abstract element nothing substitutes (KML `ObjectSimpleExtensionGroup`) is left out where
+    the content model allows it.
+  - Remaining: particles with the same name in one compositor collide in the element map (JATS `ruby`), empty
+    required choices (G1: JATS `statement`, `question`, datajud), duplicate key values (H2: XTCE, Garmin). Next:
+    **the element-map collision**, then G1.
 
 ## Global Constraints
 
@@ -370,9 +379,15 @@ samples (xlink attributes currently emitted as child elements) valid.
   - QName: `prefix:local`, with a prefix declared on the root (e.g. the target-namespace prefix).
   - NOTATION: a declared notation or omit.
   - anySimpleType: `"text"`.
+  - *(in part, 2026-09-11: `QName`, `anySimpleType` and `anyAtomicType` get `sample`, an unprefixed NCName that is
+    a valid QName in any namespace context (XBRL `measure`); `hexBinary` and `base64Binary` honour `length`,
+    `minLength` and `maxLength`, counted in octets (UCI `SHA_2_256_HashType`, 32 octets). NOTATION and ENTITY values
+    need declarations and stay open; `SampleXmlSimpleValuesTest`.)*
 - [ ] **F2. Unions and lists.** Generate a value from the first member type that can produce one, including inline
   `simpleType` members; for lists, emit 1..n items. Today union members resolve to one (named) member or nothing.
   Evidence: XBRL `nonZeroDecimal`, `dateUnion`, XTCE `EpochType`.
+  - *(in part, 2026-09-11: a union whose member types are declared inline, without `memberTypes`, resolves to its
+    first inline member (XBRL `nonZeroDecimal`); `SampleXmlSimpleValuesTest`.)*
 - [x] **F3. Unsigned ranges.** *(done 2026-09-10: `generateUnsignedInteger` prints via `BigInteger` and clamps to
   the type's value space; `XsdSampleDataGeneratorTest`)* `unsignedByte`, `unsignedShort`, `unsignedInt` and `unsignedLong` are printed via the
   *signed* Java type (`printByte(value.byteValue())` etc., `:226-241`). Values above the signed maximum wrap to
@@ -424,7 +439,9 @@ samples (xlink attributes currently emitted as child elements) valid.
 - [x] **E3. Abstract roots.** Do not offer abstract global elements as roots (or list them last and generate a
   substitution-group member instead). KML has 124 abstract globals, XBRL 2, INSPIRE 1. *(2026-09-11, same commit:
   `getRootElementNames()` leaves them out and the default root is the first non-abstract global element. The
-  documentation model (`processXsd`) still expands them.)*
+  documentation model (`processXsd`) still expands them. Found by the F1 re-audit: an abstract element nothing
+  substitutes, such as KML `ObjectSimpleExtensionGroup`, is left out of a sample where it is optional or one option of
+  a choice; `SampleXmlAbstractContentTest`.)*
 
 ## WP H: Identity constraints and IDs
 
@@ -436,7 +453,9 @@ samples (xlink attributes currently emitted as child elements) valid.
   fields. *(2026-09-11, commit `7f3d07ec`, found by the E re-audit once element references repeated: both generators generate values of
   `xs:ID` type per occurrence and point `xs:IDREF(S)` at an ID of the same document; an IDREF emitted before any ID
   reserves the next one, and references left dangling at the end point at the first emitted ID. Constrained fields
-  already went through `IdentityConstraintTracker`. Test: `SampleXmlIdentityValuesTest`.)*
+  already went through `IdentityConstraintTracker`. Test: `SampleXmlIdentityValuesTest`. With mandatory elements only,
+  an optional ID attribute is emitted too when the same element emits a required IDREF (JATS `answer`
+  `pointer-to-question`); `SampleXmlIdReferencesTest`.)*
 - [ ] **H2.** `IdentityConstraintTracker`: support attribute fields reached through `selector` paths with `.//`,
   union selectors (`a|b`), and keys on dateTime/QName values. Ensure a `keyref` has a matching key (XTCE
   `containerRef`). *(in part, 2026-09-11, commit `7f3d07ec`: selector and field paths with prefixes, `.//`, `*` and `|` resolve against

@@ -10,7 +10,8 @@ The improvement plan derived from these numbers is
 > §11 has the re-audit. A5 (bounded memory) and A4 (roots from included documents) follow in §12 and §13; §14
 > covers A3 (include resolution) and the defects it exposed; §15 covers F5 (typed values for patterns); §16 covers E
 > (abstract elements and types) and the defects it exposed; §17 covers C (namespace qualification); §18 covers the
-> realistic generator's type resolution (R1); §19 covers inherited facets (F4); §20 covers required wildcards (G3).
+> realistic generator's type resolution (R1); §19 covers inherited facets (F4); §20 covers required wildcards (G3);
+> §21 covers QName, binary and union values (F1, F2) and IDs for references (H).
 
 ## 1. Summary
 
@@ -402,6 +403,7 @@ The task skips itself when the corpus folder is absent.
 | 2026-09-11 | R1 type resolution in the realistic generator (§18) | 30 · 24 | 1,658 · 1,637 (of 1,672; realistic 1,657 · 1,634) | 0 |
 | 2026-09-11 | F4 a restriction's facets replace its base's (§19) | 30 · 25 | 1,657 · 1,651 (of 1,672; realistic 1,657 · 1,651) | 0 |
 | 2026-09-11 | G3 required element wildcards (§20) | 30 · 25 | 1,660 · 1,654 (of 1,672; realistic 1,662 · 1,654) | 0 |
+| 2026-09-11 | F1/F2 QName, binary and union values; H IDs for references; unsubstituted abstract elements (§21) | 30 · 24 | 1,671 · 1,664 (of 1,672; realistic 1,670 · 1,659) | 0 |
 
 ## 11. After the quick wins (re-audit, 2026-09-10)
 
@@ -1053,3 +1055,56 @@ optional `##any`).
   UBL, Garmin and KML.
 - **Next:** the remaining simple values (F: `QName`, binary `length`, inline union members), then IDREFs in documents
   without any ID (H).
+
+## 21. After F1/F2 and H: QName, binary and union values, IDs for references (re-audit, 2026-09-11)
+
+**Cause.** Three kinds of simple value were empty or ignored their facets:
+- XBRL `measure` has the built-in type `QName`. The value generator had no branch for `QName` (nor for
+  `anySimpleType`) and wrote an empty string.
+- XBRL `nonZeroDecimal` is a union of two inline simple types, without `memberTypes`. Type resolution only followed
+  `memberTypes`, found nothing, and the value came out empty.
+- `hexBinary` and `base64Binary` always got a fixed value of 5 octets. UCI `AA_CodeType` (`length="6"`) and
+  `SHA_2_256_HashType` (`length="32"`) require other lengths.
+
+**Change.** `QName`, `anySimpleType` and `anyAtomicType` get `sample`, an unprefixed NCName that is a valid QName in
+any namespace context. A union without `memberTypes` resolves to its first inline member. Binary values have as many
+octets as `length` demands, or five within `minLength` and `maxLength`. NOTATION and ENTITY values need declarations
+and stay open. Test: `SampleXmlSimpleValuesTest`.
+
+**First audit** (after `c11842fb`):
+
+| Measure | plain req | plain opt | realistic req | realistic opt |
+|---|---|---|---|---|
+| Breadth valid (of 1,672), §20 → F1/F2 | 1,660 → 1,665 | 1,654 → **1,610** | 1,662 → 1,663 | 1,654 → **1,609** |
+
+- **XBRL** 8 of 8 roots in three modes (was 4), **UCI** 722 of 722 in every mode.
+- **KML regressed** with optional elements, 144 → 93 of 145 in both generators (`cvc-elt.2`). KML declares
+  `ObjectSimpleExtensionGroup` abstract, of type `anySimpleType`, and nothing substitutes it. Its value used to be
+  empty, so the optional element was skipped as an empty container; with a value for `anySimpleType` it was emitted.
+
+**Fixes** (test-first, together with H):
+
+| Defect | Fix | Test |
+|---|---|---|
+| An abstract element nothing substitutes was emitted where the content model could do without it | while expanding for a sample, such an element is left out when it is optional or one option of a choice | `SampleXmlAbstractContentTest` |
+| H: JATS `answer` requires `pointer-to-question` (IDREFS) but its `id` is optional; with mandatory elements only, the reference pointed at nothing (11 samples) | an optional ID attribute is emitted when the same element emits a required IDREF | `SampleXmlIdReferencesTest` |
+
+**Second audit** (after `830ec3a9`):
+
+| Measure | plain req | plain opt | realistic req | realistic opt |
+|---|---|---|---|---|
+| First element valid (of 31), §20 → now | 30 → 30 | 25 → 24 | 30 → 30 | 25 → 25 |
+| Breadth valid (of 1,672), §20 → now | 1,660 → **1,671** | 1,654 → **1,664** | 1,662 → **1,670** | 1,654 → **1,659** |
+| Invalid samples (of 1,672), §20 → now | 12 → **1** | 18 → **8** | 10 → **2** | 18 → **13** |
+
+- **KML** 145 of 145, **XBRL** 8 of 8 and **UCI** 722 of 722 in every mode; no IDREF without an ID is left.
+- Per root, 44 samples turned valid and 11 invalid, all random choice selections in JATS and datajud.
+- **Since F5** (§15), the invalid samples per combination fell from 193 · 684 · 294 · 824 (of 1,814) to 1 · 8 · 2 · 13
+  (of 1,672).
+- **Remaining:**
+  - JATS: in `ruby-model` (`rb, (rt | (rp, rt, rp))`) both `rp` references get the same element-map key, so the second
+    overwrites the first; `statement` and `question` get empty required choices now and then
+  - INSPIRE `bu-base:Building`: a required abstract element whose members the Addresses schema does not import
+  - XTCE and Garmin: duplicate or suffixed key values (H2)
+  - UBL `WitnessParty` order, datajud's choice, and KSeF FA(3), whose validation exceeds the audit's time limit
+- **Next:** particles with the same name in one compositor (JATS `ruby`), then choices that produce content (G1).
