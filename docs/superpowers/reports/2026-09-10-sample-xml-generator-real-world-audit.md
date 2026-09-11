@@ -11,7 +11,8 @@ The improvement plan derived from these numbers is
 > covers A3 (include resolution) and the defects it exposed; §15 covers F5 (typed values for patterns); §16 covers E
 > (abstract elements and types) and the defects it exposed; §17 covers C (namespace qualification); §18 covers the
 > realistic generator's type resolution (R1); §19 covers inherited facets (F4); §20 covers required wildcards (G3);
-> §21 covers QName, binary and union values (F1, F2) and IDs for references (H).
+> §21 covers QName, binary and union values (F1, F2) and IDs for references (H); §22 covers particles with the same
+> name in one content model.
 
 ## 1. Summary
 
@@ -404,6 +405,7 @@ The task skips itself when the corpus folder is absent.
 | 2026-09-11 | F4 a restriction's facets replace its base's (§19) | 30 · 25 | 1,657 · 1,651 (of 1,672; realistic 1,657 · 1,651) | 0 |
 | 2026-09-11 | G3 required element wildcards (§20) | 30 · 25 | 1,660 · 1,654 (of 1,672; realistic 1,662 · 1,654) | 0 |
 | 2026-09-11 | F1/F2 QName, binary and union values; H IDs for references; unsubstituted abstract elements (§21) | 30 · 24 | 1,671 · 1,664 (of 1,672; realistic 1,670 · 1,659) | 0 |
+| 2026-09-11 | G7 particles with the same name in one content model (§22) | 30 · 25 | 1,672 · 1,663 (of 1,672; realistic 1,672 · 1,661) | 0 |
 
 ## 11. After the quick wins (re-audit, 2026-09-10)
 
@@ -1108,3 +1110,42 @@ and stay open. Test: `SampleXmlSimpleValuesTest`.
   - XTCE and Garmin: duplicate or suffixed key values (H2)
   - UBL `WitnessParty` order, datajud's choice, and KSeF FA(3), whose validation exceeds the audit's time limit
 - **Next:** particles with the same name in one compositor (JATS `ruby`), then choices that produce content (G1).
+
+## 22. After G7: particles with the same name in one content model (re-audit, 2026-09-11)
+
+**Cause.** The element map keys a particle as its parent's XPath plus its name. Two particles with the same name under
+one parent therefore shared one key, and the second replaced the first:
+- JATS `ruby-model` is `rb, (rt | (rp, rt, rp))`; samples lacked the second `rp` (`cvc-complex-type.2.4.b`)
+- FundsXML4 declares `UKAssumedPortfolioReturn` and `UCITSExistingPerformanceFees` twice in the UK sequence; the
+  documentation showed only the second of each, under the first one's key and with its text
+
+**Change.** A further particle with the same name gets `name[2]`, `name[3]` and so on as its key, at every place an
+element child is keyed. Clean XPaths in the exports are built from element names and are unaffected. Test:
+`SampleXmlRepeatedParticlesTest` (two `rp` in one sequence, an extension restating a base element).
+
+**Golden update.** A canonical dump of the FundsXML 4 element map before and after differs by exactly two added
+entries, `UKAssumedPortfolioReturn[2]` and `UCITSExistingPerformanceFees[2]`, plus the parent's children list and the
+first entry's documentation, which now is its own (08140 instead of 08180). No entry was removed. The expected hashes
+of `ProcessXsdEquivalenceTest` and `ProcessXsdSnippetEquivalenceTest` were updated with that note.
+
+**Audit** (after `92524714`):
+
+| Measure | plain req | plain opt | realistic req | realistic opt |
+|---|---|---|---|---|
+| First element valid (of 31), §21 → now | 30 → 30 | 24 → 25 | 30 → 30 | 25 → 24 |
+| Breadth valid (of 1,672), §21 → now | 1,671 → **1,672** | 1,664 → 1,663 | 1,670 → **1,672** | 1,659 → **1,661** |
+| Invalid samples (of 1,672), §21 → now | 1 → **0** | 8 → 9 | 2 → **0** | 13 → **11** |
+
+- **Mandatory elements only:** every sample of every offered root is valid, in both generators.
+- **JATS** `ruby` is valid in every mode. JATS has 308 of 308 valid roots with mandatory elements only.
+- The changes with optional elements are random choice selections: JATS 305 → 304 (plain) and 300 → 303
+  (realistic), and datajud's invalid sample moved from plain to realistic.
+- **Remaining** (all with optional elements):
+  - JATS, 4 plain and 5 realistic: required choices that come out empty in `statement`, `question`, `speech` and
+    `open-access` (G1)
+  - datajud, 1 realistic: `comunicacaoprocessual` requires a strict `xs:any` that no declaration satisfies (G1)
+  - XTCE, 2 per generator, and Garmin, 1 per generator: duplicate key values and a `dateTime` key with the suffix
+    `_1` (H2)
+  - INSPIRE `bu-base:Building` and UBL `WitnessParty` order, 1 per generator each; KSeF FA(3) validation still
+    exceeds the audit's time limit
+- **Next:** choices that pick options with complete content (G1).

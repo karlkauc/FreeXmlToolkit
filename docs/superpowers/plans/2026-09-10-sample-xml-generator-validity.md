@@ -119,6 +119,12 @@ Of the 274 invalid samples, the report maps each validation error to one of the 
   - Remaining: particles with the same name in one compositor collide in the element map (JATS `ruby`), empty
     required choices (G1: JATS `statement`, `question`, datajud), duplicate key values (H2: XTCE, Garmin). Next:
     **the element-map collision**, then G1.
+- **Progress after G7 particles with the same name** (report §22): first element valid 30 · 25 · 30 · 24, no XML 0;
+  breadth valid 1,672 · 1,663 · 1,672 · 1,661 of 1,672 (invalid 0 · 9 · 0 · 11).
+  - Every sample with mandatory elements only is valid, in both generators; JATS `ruby` is valid in every mode.
+  - Remaining, all with optional elements: empty required choices (G1: JATS `statement`, `question`, `speech`,
+    `open-access`; datajud's strict `xs:any`), key values (H2: XTCE, Garmin), INSPIRE `bu-base:Building`, UBL
+    `WitnessParty` order. Next: **G1**.
 
 ## Global Constraints
 
@@ -359,6 +365,11 @@ samples (xlink attributes currently emitted as child elements) valid.
   referenced element's content. Commit `7f3d07ec`: repetitions beyond `minOccurs` are emitted only the first time
   an XPath is emitted in a document (UBL 2.1 exceeded the output limit). Repeating `sequence`/`all` groups is still
   open; `SampleXmlOccurrenceBoundsTest`.)*
+- [ ] **G7. Particles with the same name in one compositor.** *(2026-09-11, found by the F1/H re-audit: the element
+  map keys a particle as parent XPath plus name, so JATS `ruby-model` (`rb, (rt | (rp, rt, rp))`) and FundsXML4 UK,
+  which declares `UCITSExistingPerformanceFees` and `UKAssumedPortfolioReturn` twice, lost the first of two particles
+  of one name, in samples and in the documentation. A further particle now gets `name[n]` as its key;
+  `SampleXmlRepeatedParticlesTest`. The FundsXML golden map gained exactly these two entries.)*
 - [ ] **G5.** Golden tests:
   - a required choice with only optional options
   - `choice minOccurs=2` with recursive options
