@@ -105,6 +105,11 @@ Of the 274 invalid samples, the report maps each validation error to one of the 
     370 in every mode.
   - Remaining, by samples affected: required `xs:any` (G3, 14), QName values (F1, 13), IDREFs in documents without
     any ID (H, 11), `hexBinary` with `length` (F, 7). Next: **G3**, then F1.
+- **Progress after G3 required wildcards** (report §20): first element valid 30 · 25 · 30 · 25, no XML 0; breadth
+  valid 1,660 · 1,654 · 1,662 · 1,654 of 1,672 (invalid 12 · 18 · 10 · 18).
+  - xmldsig 24 of 24 and XBRL 4 of 8 in every mode; wildcard errors 28 → 2.
+  - Remaining: `QName`, binary `length` and inline union values (F: XBRL, UCI), IDREFs in documents without any ID
+    (H: JATS 7). Next: **those values**, then H.
 
 ## Global Constraints
 
@@ -332,6 +337,11 @@ samples (xlink attributes currently emitted as child elements) valid.
     namespace such as `urn:fxt:sample`; for a list, use the first listed namespace. With `processContents="strict"`,
     pick a global element of an allowed namespace.
   - Evidence: xmldsig `SignatureProperty` (8 samples), XBRL `segment`/`scenario`.
+  - *(2026-09-11, for `processContents="lax"` and `"skip"`, all the corpus uses: while expanding for a sample, a
+    wildcard is recorded at its position in the content model, and both generators write an element there, in
+    `urn:fxt:sample:extension` for `##any`/`##other`, without a namespace for `##local`, else in the first listed
+    namespace, declared on the element itself. `strict` wildcards, which need a declaration, are still left out;
+    `SampleXmlWildcardTest`.)*
 - [ ] **G4. Occurrence bounds.** Honour `minOccurs`/`maxOccurs` on `sequence`/`all` (repeat the group), and emit at
   least `minOccurs` repetitions in mandatory-only mode. Today a repeating element always gets `maxOccurrences` copies,
   even in mandatory-only mode (`:2529-2543`). *(in part, 2026-09-11, commit `7b80b666`, found by the E re-audit:

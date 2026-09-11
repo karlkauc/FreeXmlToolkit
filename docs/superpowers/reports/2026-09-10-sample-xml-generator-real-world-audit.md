@@ -10,7 +10,7 @@ The improvement plan derived from these numbers is
 > §11 has the re-audit. A5 (bounded memory) and A4 (roots from included documents) follow in §12 and §13; §14
 > covers A3 (include resolution) and the defects it exposed; §15 covers F5 (typed values for patterns); §16 covers E
 > (abstract elements and types) and the defects it exposed; §17 covers C (namespace qualification); §18 covers the
-> realistic generator's type resolution (R1); §19 covers inherited facets (F4).
+> realistic generator's type resolution (R1); §19 covers inherited facets (F4); §20 covers required wildcards (G3).
 
 ## 1. Summary
 
@@ -401,6 +401,7 @@ The task skips itself when the corpus folder is absent.
 | 2026-09-11 | C namespace qualification and the defects it exposed (§17) | 30 · 25 | 1,657 · 1,629 (of 1,672) | 0 |
 | 2026-09-11 | R1 type resolution in the realistic generator (§18) | 30 · 24 | 1,658 · 1,637 (of 1,672; realistic 1,657 · 1,634) | 0 |
 | 2026-09-11 | F4 a restriction's facets replace its base's (§19) | 30 · 25 | 1,657 · 1,651 (of 1,672; realistic 1,657 · 1,651) | 0 |
+| 2026-09-11 | G3 required element wildcards (§20) | 30 · 25 | 1,660 · 1,654 (of 1,672; realistic 1,662 · 1,654) | 0 |
 
 ## 11. After the quick wins (re-audit, 2026-09-10)
 
@@ -1015,3 +1016,40 @@ that note.
   without any ID), XBRL 5, xmldsig 3 (required `xs:any` in `SignatureProperty`).
 - **Next, by samples affected:** required `xs:any` (G3: xmldsig, XBRL, UBL, 14 samples), QName values (F1: XBRL
   `measure`, 13), IDREFs in documents without any ID (H, 11), `hexBinary` with `length` (F, 7).
+
+## 20. After G3: required element wildcards (re-audit, 2026-09-11)
+
+**Cause.** The generators recorded `xs:any` for the documentation only and never emitted an element for it, so an
+element whose content is a required wildcard came out empty (`cvc-complex-type.2.4.b`, 14 samples):
+- xmldsig `SignatureProperty`: a choice of `<any namespace="##other" processContents="lax"/>`
+- XBRL `segment`: `<any namespace="##other" processContents="lax" minOccurs="1" maxOccurs="unbounded"/>`
+- UBL `ExtensionContent`: `<any namespace="##other" processContents="lax"/>`
+
+**Change.** While expanding for a sample, a wildcard is recorded at its position in the content model, and both
+generators write an element there, repeated like an element:
+- `##any` and `##other`: `<ext:sample xmlns:ext="urn:fxt:sample:extension"/>`
+- `##local`: `<sample xmlns=""/>`
+- `##targetNamespace` or a list: an element in that (the first listed) namespace
+
+The namespace is declared on the element itself. A `strict` wildcard needs a declaration and is still left out; the
+corpus declares 53 `lax` and 3 `skip` wildcards and no `strict` one. The documentation model is unchanged. Test:
+`SampleXmlWildcardTest` (choice, `minOccurs="1"`, `skip`, `##local` between two elements, a namespace list and an
+optional `##any`).
+
+**Audit** (after `17037fae`):
+
+| Measure | plain req | plain opt | realistic req | realistic opt |
+|---|---|---|---|---|
+| First element valid (of 31), §19 → G3 | 30 → 30 | 25 → 25 | 29 → **30** | 25 → 25 |
+| Breadth valid (of 1,672), §19 → G3 | 1,657 → **1,660** | 1,651 → **1,654** | 1,657 → **1,662** | 1,651 → **1,654** |
+| Invalid samples (of 1,672), §19 → G3 | 15 → **12** | 21 → **18** | 15 → **10** | 21 → **18** |
+
+- **xmldsig** is valid in every mode: 24 of 24 roots (was 22). **XBRL** 4 of 8 in every mode (was 2–3).
+- Wildcard errors (`WC[…]` in `cvc-complex-type.2.4.b`) fell from 28 to 2.
+- Per root, 24 samples turned valid and 9 invalid, all random choice selections in JATS.
+- **Remaining** (plain, mandatory only: 12): JATS 7 (IDREFs in documents without any ID), XBRL 4 (empty `QName`
+  `measure`, the inline union `nonZeroDecimal`), KML 1 (a head without members). With optional elements (plain: 18):
+  UCI 5 (`hexBinary` values that ignore `length`, decimal bounds), JATS 4, XBRL 4, single samples in INSPIRE, XTCE,
+  UBL, Garmin and KML.
+- **Next:** the remaining simple values (F: `QName`, binary `length`, inline union members), then IDREFs in documents
+  without any ID (H).
