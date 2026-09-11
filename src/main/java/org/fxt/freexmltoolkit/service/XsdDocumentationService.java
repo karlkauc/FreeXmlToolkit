@@ -3410,6 +3410,10 @@ public class XsdDocumentationService {
                 && !hasCompleteContent(element, xsdDocumentationData.getExtendedXsdElementMap(), completeContent)) {
             return; // optional content a sample cannot complete (a cut recursion, a strict wildcard) is left out
         }
+        if (!element.isMandatory() && constraintTracker != null
+                && constraintTracker.isKeylessSelection(element.getCurrentXpath())) {
+            return; // a key selects it, but it cannot carry the key's field
+        }
 
         if (isWildcardPlaceholder(element)) {
             int repeatCount = limitRepeatedOccurrences(element, elementRepeatCount(element, maxOccurrences),

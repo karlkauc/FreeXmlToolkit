@@ -442,6 +442,11 @@ public class ProfiledXmlGeneratorService {
                 && !XsdDocumentationService.hasCompleteContent(element, elementMap, completeContent)) {
             return;
         }
+        // A key selects it, but it cannot carry the key's field
+        if (!element.isMandatory() && matchedRule.isEmpty() && constraintTracker != null
+                && constraintTracker.isKeylessSelection(xpath)) {
+            return;
+        }
 
         if (XsdDocumentationService.isWildcardPlaceholder(element)) {
             int repeatCount = XsdDocumentationService.limitRepeatedOccurrences(element,

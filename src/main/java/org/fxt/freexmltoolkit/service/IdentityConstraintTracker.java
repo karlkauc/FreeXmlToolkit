@@ -19,6 +19,7 @@ package org.fxt.freexmltoolkit.service;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.List;
@@ -81,6 +82,9 @@ public class IdentityConstraintTracker {
      */
     private final Map<String, Integer> counters = new HashMap<>();
 
+    /** Elements a KEY selector selects that cannot carry one of its fields, see {@link #isKeylessSelection}. */
+    private final Set<String> keylessSelections = new HashSet<>();
+
     /**
      * Maps constraint names to their constraint definitions for KEYREF resolution.
      */
@@ -139,6 +143,9 @@ public class IdentityConstraintTracker {
                         if (fieldXpaths.isEmpty()) {
                             logger.debug("Could not resolve field '{}' for constraint '{}' from selector '{}'",
                                     field, constraint.getName(), selectedXpath);
+                            if (constraint.getType() == IdentityConstraint.Type.KEY) {
+                                keylessSelections.add(selectedXpath);
+                            }
                         }
                         for (String fieldXpath : fieldXpaths) {
                             constrainedFields.put(fieldXpath, new ConstraintFieldInfo(
@@ -175,6 +182,15 @@ public class IdentityConstraintTracker {
      * @param elementXpath the full XPath of the element
      * @return true if the element is constrained by KEYREF
      */
+    /**
+     * Whether a KEY constraint selects the element but none of its declarations holds one of the key's fields: every
+     * instance of it violates the key. XTCE {@code messageNameKey} selects {@code MessageSet/*}, which includes the
+     * optional {@code LongDescription} without {@code @name}; a sample leaves such an optional element out.
+     */
+    public boolean isKeylessSelection(String elementXpath) {
+        return keylessSelections.contains(elementXpath);
+    }
+
     public boolean isKeyrefField(String elementXpath) {
         ConstraintFieldInfo info = constrainedFields.get(elementXpath);
         return info != null && info.constraintType == IdentityConstraint.Type.KEYREF;
@@ -254,12 +270,16 @@ public class IdentityConstraintTracker {
             // Cycle through enumeration values for uniqueness
             uniqueValue = enumerations.get((counter - 1) % enumerations.size());
         } else if (hasPattern(element)) {
-            // Element has a pattern restriction - appending suffixes would violate it.
-            // Use the base value as-is (pattern validity > uniqueness constraint).
-            uniqueValue = (baseSampleData != null && !baseSampleData.isEmpty())
+            // A suffix would violate the pattern: a typed value is incremented if it still matches, a string value is
+            // sampled again (XTCE NameType names every container); the base value stays when nothing distinct fits
+            String base = (baseSampleData != null && !baseSampleData.isEmpty())
                     ? baseSampleData : constraintName + "_" + counter;
+            uniqueValue = counter == 1 ? base : distinctPatternValue(constraintName, base, counter, element);
         } else if (baseSampleData == null || baseSampleData.isEmpty()) {
             uniqueValue = constraintName + "_" + counter;
+        } else if (incrementedTypedValue(baseSampleData, counter - 1) != null) {
+            // Date, time, date-time and decimal keys keep their type (Garmin Activity Id is an xsd:dateTime)
+            uniqueValue = incrementedTypedValue(baseSampleData, counter - 1);
         } else if (isNumeric(baseSampleData)) {
             // For numeric values, increment the number
             try {
@@ -405,6 +425,125 @@ public class IdentityConstraintTracker {
             return "@" + localName(step.substring(1));
         }
         return step.substring(step.indexOf(':') + 1);
+    }
+
+    /** Attempts to sample a pattern value that the constraint has not used yet. */
+    private static final int DISTINCT_PATTERN_ATTEMPTS = 20;
+
+    /**
+     * A value for the {@code counter}-th occurrence of a pattern-restricted key field that the constraint has not used
+     * yet: the typed base incremented, or a new sample of a string pattern within the length facets. Falls back to
+     * {@code base}.
+     */
+    private String distinctPatternValue(String constraintName, String base, int counter, XsdExtendedElement element) {
+        List<String> used = generatedValues.getOrDefault(constraintName, List.of());
+        List<java.util.regex.Pattern> patterns = new ArrayList<>();
+        for (String pattern : element.getRestrictionInfo().facets().get("pattern")) {
+            try {
+                patterns.add(java.util.regex.Pattern.compile(pattern));
+            } catch (RuntimeException e) {
+                return base; // not a Java regex: the value cannot be checked
+            }
+        }
+        java.util.function.Predicate<String> fits = value -> value != null && !used.contains(value)
+                && patterns.stream().anyMatch(p -> p.matcher(value).matches());
+        String incremented = incrementedTypedValue(base, counter - 1);
+        if (incremented != null) {
+            return fits.test(incremented) ? incremented : base;
+        }
+        if (!isStringBase(element.getRestrictionInfo().base())) {
+            return base;
+        }
+        Map<String, List<String>> facets = element.getRestrictionInfo().facets();
+        int length = intFacet(facets, "length", -1);
+        int minLength = length >= 0 ? length : intFacet(facets, "minLength", 1);
+        int maxLength = length >= 0 ? length : intFacet(facets, "maxLength", Math.max(minLength, 1) + 16);
+        try {
+            BoundedPatternSampler sampler = new BoundedPatternSampler(
+                    element.getRestrictionInfo().facets().get("pattern").getFirst(),
+                    java.util.concurrent.ThreadLocalRandom.current());
+            for (int attempt = 0; attempt < DISTINCT_PATTERN_ATTEMPTS; attempt++) {
+                String candidate = sampler.sample(minLength, maxLength);
+                if (fits.test(candidate)) {
+                    return candidate;
+                }
+            }
+        } catch (RuntimeException e) {
+            // an unsupported pattern: keep the base value
+        }
+        return base;
+    }
+
+    /** Whether a restriction base is a string type, whose pattern values may be sampled freely. */
+    private static boolean isStringBase(String base) {
+        String local = base == null ? "" : base.substring(base.indexOf(':') + 1);
+        return List.of("string", "normalizedString", "token", "Name", "NCName", "NMTOKEN", "ID", "IDREF", "language",
+                "anyURI").contains(local);
+    }
+
+    private static int intFacet(Map<String, List<String>> facets, String name, int fallback) {
+        List<String> values = facets.get(name);
+        if (values == null || values.isEmpty()) {
+            return fallback;
+        }
+        try {
+            return Integer.parseInt(values.getFirst().trim());
+        } catch (NumberFormatException e) {
+            return fallback;
+        }
+    }
+
+    /**
+     * {@code value} advanced by {@code steps} in its own lexical space, or {@code null} if it is no date-time
+     * ({@code +steps} seconds), time (seconds), date (days) or decimal with a fraction ({@code +steps}); integers keep
+     * the numeric branch.
+     */
+    static String incrementedTypedValue(String value, int steps) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        String trimmed = value.trim();
+        try {
+            if (trimmed.matches("-?\\d{4,}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})?")) {
+                int zone = zoneStart(trimmed, trimmed.indexOf('T'));
+                String local = trimmed.substring(0, zone);
+                return java.time.LocalDateTime.parse(local).plusSeconds(steps).format(DATE_TIME)
+                        + trimmed.substring(zone);
+            }
+            if (trimmed.matches("\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})?")) {
+                int zone = zoneStart(trimmed, 0);
+                return java.time.LocalTime.parse(trimmed.substring(0, zone)).plusSeconds(steps).format(TIME)
+                        + trimmed.substring(zone);
+            }
+            if (trimmed.matches("-?\\d{4,}-\\d{2}-\\d{2}(Z|[+-]\\d{2}:\\d{2})?")) {
+                int zone = trimmed.length() > 10 ? 10 : trimmed.length();
+                return java.time.LocalDate.parse(trimmed.substring(0, zone)).plusDays(steps) + trimmed.substring(zone);
+            }
+            if (trimmed.matches("[+-]?\\d*\\.\\d+")) {
+                return new java.math.BigDecimal(trimmed).add(java.math.BigDecimal.valueOf(steps)).toPlainString();
+            }
+        } catch (RuntimeException e) {
+            return null;
+        }
+        return null;
+    }
+
+    /** Lexical date-time and time with seconds: {@code LocalDateTime.toString()} drops {@code :00} seconds. */
+    private static final java.time.format.DateTimeFormatter DATE_TIME =
+            java.time.format.DateTimeFormatter.ofPattern("uuuu-MM-dd'T'HH:mm:ss");
+    private static final java.time.format.DateTimeFormatter TIME =
+            java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss");
+
+    /** Index where the time zone of a lexical time or date-time starts (its length if there is none). */
+    private static int zoneStart(String value, int from) {
+        int z = value.indexOf('Z', from);
+        if (z >= 0) {
+            return z;
+        }
+        int plus = value.indexOf('+', from);
+        int minus = value.indexOf('-', value.indexOf(':', from));
+        int zone = plus >= 0 ? plus : minus;
+        return zone >= 0 ? zone : value.length();
     }
 
     private static boolean hasPattern(XsdExtendedElement element) {

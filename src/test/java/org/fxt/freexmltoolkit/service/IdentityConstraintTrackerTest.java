@@ -327,6 +327,57 @@ class IdentityConstraintTrackerTest {
         return element;
     }
 
+    @Test
+    void repeatedPatternKeyValuesAreDistinctAndMatchThePattern() {
+        Map<String, XsdExtendedElement> elementMap = buildSimpleKeyMap();
+        XsdExtendedElement field = elementMap.get("/Root/Items/Item/ItemID");
+        // XTCE NameType: the same sampled name for every container broke containerNameKey
+        field.setRestrictionInfo(new XsdExtendedElement.RestrictionInfo("normalizedString",
+                Map.of("pattern", List.of("[^./:\\[\\] ]+"))));
+        tracker.scanConstraints(elementMap);
+
+        Set<String> values = new HashSet<>();
+        for (int i = 0; i < 5; i++) {
+            String value = tracker.getUniqueValue("/Root/Items/Item/ItemID", "Name1", field);
+            assertTrue(value.matches("[^./:\\[\\] ]+"), "matches the pattern: " + value);
+            values.add(value);
+        }
+        assertEquals(5, values.size(), "distinct key values: " + values);
+    }
+
+    @Test
+    void repeatedTypedKeyValuesKeepTheirType() throws Exception {
+        javax.xml.datatype.DatatypeFactory datatypes = javax.xml.datatype.DatatypeFactory.newInstance();
+        // Garmin Activity Id is an xsd:dateTime key; a suffix "_1" made it invalid
+        for (String base : List.of("2026-07-05T22:25:59", "2026-07-05T22:25:40Z", "22:25:59", "2026-07-05", "12.5")) {
+            tracker = new IdentityConstraintTracker();
+            Map<String, XsdExtendedElement> elementMap = buildSimpleKeyMap();
+            XsdExtendedElement field = elementMap.get("/Root/Items/Item/ItemID");
+            tracker.scanConstraints(elementMap);
+
+            Set<String> values = new HashSet<>();
+            for (int i = 0; i < 3; i++) {
+                String value = tracker.getUniqueValue("/Root/Items/Item/ItemID", base, field);
+                if (base.contains("-") || base.contains(":")) {
+                    assertDoesNotThrow(() -> datatypes.newXMLGregorianCalendar(value), "a date or dateTime: " + value);
+                } else {
+                    assertDoesNotThrow(() -> new java.math.BigDecimal(value), "a decimal: " + value);
+                }
+                values.add(value);
+            }
+            assertEquals(3, values.size(), "distinct key values for " + base + ": " + values);
+        }
+    }
+
+    @Test
+    void anIncrementedDateTimeKeepsItsSeconds() {
+        assertEquals("2026-07-05T22:26:00", IdentityConstraintTracker.incrementedTypedValue("2026-07-05T22:25:59", 1));
+        assertEquals("2026-07-05T22:26:00+02:00",
+                IdentityConstraintTracker.incrementedTypedValue("2026-07-05T22:25:59+02:00", 1));
+        assertEquals("22:26:00", IdentityConstraintTracker.incrementedTypedValue("22:25:59", 1));
+        assertEquals("2026-07-06", IdentityConstraintTracker.incrementedTypedValue("2026-07-05", 1));
+    }
+
     private Map<String, XsdExtendedElement> buildSimpleKeyMap() {
         Map<String, XsdExtendedElement> elementMap = new LinkedHashMap<>();
 
