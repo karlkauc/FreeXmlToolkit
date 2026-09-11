@@ -42,6 +42,8 @@ final class BoundedPatternSampler {
 
     private final Automaton automaton;
     private final Map<State, Integer> distanceToAccept;
+    /** Longest number of transitions from a state to an accepting state; {@link Integer#MAX_VALUE} past a cycle. */
+    private final Map<State, Integer> longestToAccept;
     private final Random random;
 
     /**
@@ -56,6 +58,7 @@ final class BoundedPatternSampler {
         }
         this.automaton = new RegExp(regex).toAutomaton();
         this.distanceToAccept = distancesToAccept(automaton);
+        this.longestToAccept = longestDistancesToAccept(automaton, distanceToAccept);
         this.random = random;
     }
 
@@ -67,7 +70,7 @@ final class BoundedPatternSampler {
     String sample(int minLength, int maxLength) {
         int max = (int) Math.min(maxLength, Math.max(minLength, 0) + (long) MAX_SAMPLE_LENGTH);
         State state = automaton.getInitialState();
-        if (distance(state) > max) {
+        if (distance(state) > max || longest(state) < minLength) {
             return null;
         }
         StringBuilder value = new StringBuilder();
@@ -79,7 +82,11 @@ final class BoundedPatternSampler {
             }
             candidates.clear();
             for (Transition transition : state.getTransitions()) {
-                if (hasXmlCharacter(transition) && distance(transition.getDest()) <= max - length - 1) {
+                State dest = transition.getDest();
+                // the destination must still reach an accepting state within the maximum and at the minimum length
+                // (UCI NITF length 4 with the alternative [DNIO] ended the walk at length 1)
+                if (hasXmlCharacter(transition) && distance(dest) <= max - length - 1
+                        && longest(dest) >= minLength - length - 1) {
                     candidates.add(transition);
                 }
             }
@@ -154,6 +161,54 @@ final class BoundedPatternSampler {
 
     private int distance(State state) {
         return distanceToAccept.getOrDefault(state, Integer.MAX_VALUE);
+    }
+
+    private int longest(State state) {
+        return longestToAccept.getOrDefault(state, -1);
+    }
+
+    /**
+     * Longest number of transitions from every state that can reach an accepting state, peeling states whose
+     * successors are all resolved (reverse topological order); states left over lie on or before a cycle and get
+     * {@link Integer#MAX_VALUE}.
+     */
+    private static Map<State, Integer> longestDistancesToAccept(Automaton automaton, Map<State, Integer> coReachable) {
+        Map<State, List<State>> predecessors = new HashMap<>();
+        Map<State, Integer> unresolvedSuccessors = new HashMap<>();
+        Map<State, Integer> longest = new HashMap<>();
+        for (State state : coReachable.keySet()) {
+            int successors = 0;
+            for (Transition transition : state.getTransitions()) {
+                if (hasXmlCharacter(transition) && coReachable.containsKey(transition.getDest())) {
+                    predecessors.computeIfAbsent(transition.getDest(), k -> new ArrayList<>()).add(state);
+                    successors++;
+                }
+            }
+            unresolvedSuccessors.put(state, successors);
+            longest.put(state, state.isAccept() ? 0 : -1);
+        }
+        ArrayDeque<State> resolved = new ArrayDeque<>();
+        unresolvedSuccessors.forEach((state, successors) -> {
+            if (successors == 0) {
+                resolved.add(state);
+            }
+        });
+        Map<State, Integer> result = new HashMap<>();
+        while (!resolved.isEmpty()) {
+            State state = resolved.poll();
+            int value = longest.get(state);
+            result.put(state, value);
+            for (State predecessor : predecessors.getOrDefault(state, List.of())) {
+                longest.merge(predecessor, value + 1, Math::max);
+                if (unresolvedSuccessors.merge(predecessor, -1, Integer::sum) == 0) {
+                    resolved.add(predecessor);
+                }
+            }
+        }
+        for (State state : coReachable.keySet()) {
+            result.putIfAbsent(state, Integer.MAX_VALUE);
+        }
+        return result;
     }
 
     /** Shortest number of transitions from every state to an accepting state (breadth-first over reversed edges). */

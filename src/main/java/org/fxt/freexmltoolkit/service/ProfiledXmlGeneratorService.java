@@ -947,29 +947,18 @@ public class ProfiledXmlGeneratorService {
             return 0;
         }
         if (mandatoryOnly) {
-            return minOccurs;
+            return Math.min(minOccurs, XsdDocumentationService.MAX_REQUIRED_REPETITIONS);
         }
 
         int effectiveMax = Math.min(choiceMaxOccurs, maxOccurrences);
         if (minOccurs >= effectiveMax) {
-            return effectiveMax;
+            return Math.min(minOccurs, XsdDocumentationService.MAX_REQUIRED_REPETITIONS); // at least minOccurs
         }
         return minOccurs + random.nextInt(effectiveMax - minOccurs + 1);
     }
 
     private int calculateElementRepeatCount(XsdExtendedElement element, int maxOccurrences) {
-        String maxOccurs = getAttributeValue(element.getCurrentNode(), "maxOccurs", "1");
-        if ("1".equals(maxOccurs)) {
-            return 1;
-        }
-        if ("unbounded".equalsIgnoreCase(maxOccurs)) {
-            return maxOccurrences;
-        }
-        try {
-            return Math.min(Integer.parseInt(maxOccurs), maxOccurrences);
-        } catch (NumberFormatException e) {
-            return 1;
-        }
+        return XsdDocumentationService.elementRepeatCount(element, maxOccurrences);
     }
 
     /**

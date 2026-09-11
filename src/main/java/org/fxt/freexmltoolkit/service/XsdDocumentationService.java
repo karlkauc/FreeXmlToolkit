@@ -1754,11 +1754,17 @@ public class XsdDocumentationService {
         if (pruneOptionalParticles && level > 0 && isOptionalParticle(node)) {
             return;
         }
-        if (visitedOnPath.contains(node)) {
+        // A type reached again through a different element declaration repeats its compositor, which is no recursion:
+        // every cycle passes through an element declaration or a group. Samples need that content (UCI
+        // StoreLoadoutItemType holds StoreList of its own abstract base); the documentation keeps the stricter guard.
+        boolean trackRecursion = !sampleExpansion || !isCompositor(node);
+        if (trackRecursion && visitedOnPath.contains(node)) {
             logger.info("Recursion detected at node '{}' on path '{}'. Aborting this branch.", getAttributeValue(node, "name"), currentXPath);
             return;
         }
-        visitedOnPath.add(node);
+        if (trackRecursion) {
+            visitedOnPath.add(node);
+        }
 
         try {
             // Handle references (ref="...")
@@ -1829,8 +1835,15 @@ public class XsdDocumentationService {
                 }
             }
         } finally {
-            visitedOnPath.remove(node);
+            if (trackRecursion) {
+                visitedOnPath.remove(node);
+            }
         }
+    }
+
+    private static boolean isCompositor(Node node) {
+        String localName = node.getLocalName();
+        return "sequence".equals(localName) || "choice".equals(localName) || "all".equals(localName);
     }
 
     /**
@@ -1963,6 +1976,8 @@ public class XsdDocumentationService {
         Node refNode = referenceNodeThreadLocal.get();
         if (refNode != null) {
             extendedElem.setCardinalityNode(refNode);
+            // The reference's minOccurs/maxOccurs belong to the referenced declaration, not to its content
+            referenceNodeThreadLocal.remove();
         }
 
         extendedElem.setCounter(counter++);
@@ -2709,6 +2724,46 @@ public class XsdDocumentationService {
         return xmlBuilder.toString();
     }
 
+    /** Upper bound for repeating an element or choice to reach its {@code minOccurs}. */
+    static final int MAX_REQUIRED_REPETITIONS = 10_000;
+
+    /**
+     * How often a sample repeats an element: up to {@code maxOccurrences} within its {@code maxOccurs}, and at least
+     * its {@code minOccurs} (UCI {@code Covariance} needs 6 to 120 values). The occurrence bounds of an element
+     * reference are read from the reference.
+     */
+    static int elementRepeatCount(XsdExtendedElement element, int maxOccurrences) {
+        Node bounds = element.getCardinalityNode() != null ? element.getCardinalityNode() : element.getCurrentNode();
+        return repeatCount(occurs(bounds, "minOccurs"), occurs(bounds, "maxOccurs"), maxOccurrences);
+    }
+
+    /**
+     * {@code min(maxOccurs, maxOccurrences)}, raised to {@code minOccurs} (capped at
+     * {@link #MAX_REQUIRED_REPETITIONS}).
+     *
+     * @param maxOccurs {@code -1} for unbounded
+     */
+    static int repeatCount(int minOccurs, int maxOccurs, int maxOccurrences) {
+        int upper = maxOccurs < 0 ? maxOccurrences : Math.min(maxOccurs, maxOccurrences);
+        return Math.max(upper, Math.min(minOccurs, MAX_REQUIRED_REPETITIONS));
+    }
+
+    /** An occurrence bound of a particle: 1 when absent or unparsable, -1 for {@code unbounded}. */
+    static int occurs(Node particle, String attribute) {
+        String value = particle instanceof org.w3c.dom.Element element ? element.getAttribute(attribute) : "";
+        if (value.isBlank()) {
+            return 1;
+        }
+        if ("unbounded".equalsIgnoreCase(value.trim())) {
+            return -1;
+        }
+        try {
+            return Integer.parseInt(value.trim());
+        } catch (NumberFormatException e) {
+            return 1;
+        }
+    }
+
     /**
      * Appends {@code xsi:type} for an element whose declared type is abstract.
      *
@@ -3026,11 +3081,11 @@ public class XsdDocumentationService {
                 // Calculate repeat count based on mode
                 int repeatCount;
                 if (mandatoryOnly) {
-                    repeatCount = minOccurs;
+                    repeatCount = Math.min(minOccurs, MAX_REQUIRED_REPETITIONS);
                 } else {
                     int effectiveMax = Math.min(choiceMaxOccurs, maxOccurrences);
                     if (minOccurs >= effectiveMax) {
-                        repeatCount = effectiveMax;
+                        repeatCount = Math.min(minOccurs, MAX_REQUIRED_REPETITIONS); // at least minOccurs
                     } else {
                         repeatCount = minOccurs + random.nextInt(effectiveMax - minOccurs + 1);
                     }
@@ -3045,19 +3100,7 @@ public class XsdDocumentationService {
             return;
         }
 
-        String maxOccurs = getAttributeValue(element.getCurrentNode(), "maxOccurs", "1");
-        int repeatCount = 1;
-        if (!"1".equals(maxOccurs)) {
-            if ("unbounded".equalsIgnoreCase(maxOccurs)) {
-                repeatCount = maxOccurrences;
-            } else {
-                try {
-                    repeatCount = Math.min(Integer.parseInt(maxOccurs), maxOccurrences);
-                } catch (NumberFormatException e) {
-                    repeatCount = 1;
-                }
-            }
-        }
+        int repeatCount = elementRepeatCount(element, maxOccurrences);
 
         for (int i = 0; i < repeatCount; i++) {
             String indent = "\t".repeat(indentLevel);
@@ -3230,13 +3273,13 @@ public class XsdDocumentationService {
                 int repeatCount;
                 if (mandatoryOnly) {
                     // In mandatory mode, generate exactly minOccurs times
-                    repeatCount = minOccurs;
+                    repeatCount = Math.min(minOccurs, MAX_REQUIRED_REPETITIONS);
                 } else {
                     // In non-mandatory mode, generate between minOccurs and maxOccurs
                     // Use a random value in that range, but cap at maxOccurrences
                     int effectiveMax = Math.min(maxOccurs, maxOccurrences);
                     if (minOccurs >= effectiveMax) {
-                        repeatCount = effectiveMax;
+                        repeatCount = Math.min(minOccurs, MAX_REQUIRED_REPETITIONS); // at least minOccurs
                     } else {
                         repeatCount = minOccurs + random.nextInt(effectiveMax - minOccurs + 1);
                     }

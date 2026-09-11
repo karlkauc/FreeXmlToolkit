@@ -158,6 +158,37 @@ class SampleXmlAbstractContentTest {
             </schema>
             """;
 
+    /** UCI {@code StoreLoadoutConfiguration}: the concrete type of an abstract type contains itself. */
+    private static final String LOADOUT = """
+            <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="urn:load" targetNamespace="urn:load"
+                       elementFormDefault="qualified">
+              <xs:element name="configuration">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="hardpoint" type="ItemPET" minOccurs="0" maxOccurs="unbounded"/>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+              <xs:complexType name="ItemPET" abstract="true"/>
+              <xs:complexType name="ItemType">
+                <xs:complexContent>
+                  <xs:extension base="ItemPET">
+                    <xs:sequence>
+                      <xs:element name="location" type="xs:int"/>
+                      <xs:element name="possibleStore" type="StoreType" minOccurs="0" maxOccurs="unbounded"/>
+                    </xs:sequence>
+                  </xs:extension>
+                </xs:complexContent>
+              </xs:complexType>
+              <xs:complexType name="StoreType">
+                <xs:sequence><xs:element name="carriage" type="CarriageType"/></xs:sequence>
+              </xs:complexType>
+              <xs:complexType name="CarriageType">
+                <xs:sequence><xs:element name="storeList" type="ItemPET" maxOccurs="unbounded"/></xs:sequence>
+              </xs:complexType>
+            </xs:schema>
+            """;
+
     @TempDir
     Path dir;
 
@@ -218,6 +249,18 @@ class SampleXmlAbstractContentTest {
         assertValid(xsd, xml);
     }
 
+    @ParameterizedTest(name = "realistic={0}, mandatoryOnly={1}")
+    @CsvSource({"false,true", "false,false", "true,true", "true,false"})
+    void aConcreteTypeThatContainsItselfKeepsItsRequiredContent(boolean realistic, boolean mandatoryOnly)
+            throws Exception {
+        Path xsd = write("loadout.xsd", LOADOUT);
+
+        String xml = SampleXmlRunner.generate(xsd.toFile(), mandatoryOnly, 2, realistic);
+
+        assertFalse(xml.contains("<storeList xsi:type=\"ItemType\"/>"), "required location missing:\n" + xml);
+        assertValid(xsd, xml);
+    }
+
     @Test
     void theDocumentationModelKeepsAbstractDeclarations() throws Exception {
         Path xsd = write("sources.xsd", SOURCES);
@@ -260,7 +303,11 @@ class SampleXmlAbstractContentTest {
     }
 
     private static void assertValid(Path xsd, String xml) throws Exception {
-        new org.apache.xerces.jaxp.validation.XMLSchemaFactory().newSchema(xsd.toFile())
-                .newValidator().validate(new StreamSource(new StringReader(xml)));
+        try {
+            new org.apache.xerces.jaxp.validation.XMLSchemaFactory().newSchema(xsd.toFile())
+                    .newValidator().validate(new StreamSource(new StringReader(xml)));
+        } catch (org.xml.sax.SAXException e) {
+            throw new AssertionError(e.getMessage() + " in:\n" + xml, e);
+        }
     }
 }

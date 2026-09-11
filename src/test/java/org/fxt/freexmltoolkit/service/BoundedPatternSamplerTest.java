@@ -1,6 +1,7 @@
 package org.fxt.freexmltoolkit.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -17,6 +18,19 @@ class BoundedPatternSamplerTest {
             String value = sampler.sample(5, 8);
             assertTrue(value.length() >= 5 && value.length() <= 8, value);
             assertTrue(value.matches("[a-z]+"), value);
+        }
+    }
+
+    @Test
+    void alternativesThatCannotReachTheMinimumLengthAreAvoided() {
+        // UCI NITF_DeclassificationExemptionType (length 4): picking [DNIO] ended the walk at length 1, the sampler
+        // returned null and the generator fell back to concatenating the alternatives ("X1 25X9I ")
+        String pattern = "(X[1-8]( ){2})|25X[1-9]|[DNIO]|( ){4}";
+        BoundedPatternSampler sampler = new BoundedPatternSampler(pattern, new Random(17));
+        for (int i = 0; i < 2000; i++) {
+            String value = sampler.sample(4, 4);
+            assertNotNull(value);
+            assertTrue(value.length() == 4 && value.matches(pattern), value);
         }
     }
 
