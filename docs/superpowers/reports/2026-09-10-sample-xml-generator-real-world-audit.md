@@ -12,7 +12,7 @@ The improvement plan derived from these numbers is
 > (abstract elements and types) and the defects it exposed; §17 covers C (namespace qualification); §18 covers the
 > realistic generator's type resolution (R1); §19 covers inherited facets (F4); §20 covers required wildcards (G3);
 > §21 covers QName, binary and union values (F1, F2) and IDs for references (H); §22 covers particles with the same
-> name in one content model; §23 covers choices that pick options with complete content (G1); §24 covers key values of their own type (H2); §25 covers numbers rounded within their bounds (F6); §26 covers Garmin's keyrefs and workout steps (H2, E).
+> name in one content model; §23 covers choices that pick options with complete content (G1); §24 covers key values of their own type (H2); §25 covers numbers rounded within their bounds (F6); §26 covers Garmin's keyrefs and workout steps (H2, E); §27 covers unique values across field paths (H2).
 
 ## 1. Summary
 
@@ -410,6 +410,7 @@ The task skips itself when the corpus folder is absent.
 | 2026-09-11 | H2 key values of their own type (§24) | 30 · 29 | 1,672 · 1,670 (of 1,672; realistic 1,672 · 1,671) | 0 |
 | 2026-09-11 | F6 numbers rounded within their bounds (§25) | 30 · 29 | 1,672 · 1,671 (of 1,672; realistic 1,672 · 1,671) | 0 |
 | 2026-09-11 | Garmin keyrefs before their keys, derived types without recursion (§26) | 30 · 30 | 1,672 · 1,672 (of 1,672; realistic 1,672 · 1,672) | 0 |
+| 2026-09-11 | H2 unique values across field paths (§27) | 30 · 30 | 1,672 · 1,672 (of 1,672; realistic 1,672 · 1,672) | 0 |
 
 ## 11. After the quick wins (re-audit, 2026-09-10)
 
@@ -1284,3 +1285,29 @@ exclusive range narrower than two steps inward by a quarter of its width; intege
   `StepIdMustBeUnique` selects `.//*` with the field `StepId`, so `Step/StepId` and `Child/StepId` share one unique
   constraint. Each numeric value is its random base plus a shared counter, and two bases can meet (`8` twice).
 - **Next:** numeric key values checked against the values already used.
+
+## 27. After H2: unique values across field paths (re-audit, 2026-09-11)
+
+**Cause.** Garmin `StepIdMustBeUnique` selects `.//*` with the field `StepId`, so `Step/StepId` and `Child/StepId`
+are two field paths of one unique constraint. The key tracker gives a numeric field its random base plus a counter
+shared by the constraint, and two different bases met: `7` + 1 and `8` + 0 both gave `8`.
+
+**Change.** Before a key or unique value is recorded, a numeric or typed value the constraint has already used is
+advanced until it is new. Suffixed string values never collide, because the suffix counter is shared. Test:
+`IdentityConstraintTrackerTest.numericValuesOfOneConstraintNeverRepeatAcrossFieldPaths`.
+
+**Audit** (after `f6810c84`):
+
+| Measure | plain req | plain opt | realistic req | realistic opt |
+|---|---|---|---|---|
+| First element valid (of 31), §26 → now | 30 → 30 | 30 → 30 | 30 → 30 | 29 → **30** |
+| Breadth valid (of 1,672), §26 → now | 1,672 → 1,672 | 1,672 → 1,672 | 1,672 → 1,672 | 1,672 → 1,672 |
+| Invalid samples, all measures | 0 | 0 | 0 | 0 |
+
+- **No sample of the corpus is invalid any more**, neither the first element nor any offered root, in both generators
+  and both modes.
+- The 31st evaluable schema, KSeF FA(3), still exceeds the audit's validation time limit; the four other schemas are
+  not evaluable (§1).
+- **Since F5** (§15), the invalid samples per combination fell from 193 · 684 · 294 · 824 (of 1,814) to 0 · 0 · 0 · 0
+  (of 1,672).
+- **Next:** reproducible runs (R2), so a clean audit can be repeated exactly.

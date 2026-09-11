@@ -145,6 +145,9 @@ Of the 274 invalid samples, the report maps each validation error to one of the 
   - Every validated sample of every offered root is valid in both generators and modes.
   - Remaining: Garmin's realistic first-element sample repeats a `StepId` value, because two field paths of one unique
     constraint advance different numeric bases with one counter (H2). Next: **numeric key values against used values**.
+- **Progress after unique values across field paths** (report §27): first element valid 30 · 30 · 30 · 30, no XML 0;
+  breadth valid 1,672 · 1,672 · 1,672 · 1,672 of 1,672. No sample of the corpus is invalid; KSeF FA(3) still exceeds
+  the validation time limit. Next: **R2**, reproducible runs.
 
 ## Global Constraints
 
@@ -497,7 +500,7 @@ samples (xlink attributes currently emitted as child elements) valid.
   already went through `IdentityConstraintTracker`. Test: `SampleXmlIdentityValuesTest`. With mandatory elements only,
   an optional ID attribute is emitted too when the same element emits a required IDREF (JATS `answer`
   `pointer-to-question`); `SampleXmlIdReferencesTest`.)*
-- [ ] **H2.** `IdentityConstraintTracker`: support attribute fields reached through `selector` paths with `.//`,
+- [x] **H2.** `IdentityConstraintTracker`: support attribute fields reached through `selector` paths with `.//`,
   union selectors (`a|b`), and keys on dateTime/QName values. Ensure a `keyref` has a matching key (XTCE
   `containerRef`). *(in part, 2026-09-11, commit `7f3d07ec`: selector and field paths with prefixes, `.//`, `*` and `|` resolve against
   the element map (SIRI `.//siri:KeyValue`, `siri:Values/siri:*`, Garmin `tc2:Folder/@Name`), so their fields get
@@ -511,6 +514,10 @@ samples (xlink attributes currently emitted as child elements) valid.
   base value, which every such keyref reuses and the key takes first (Garmin `CourseNameRef` in `Folders`); the
   fallback had run without the element's facets, so a suffix exceeded `maxLength`.
   `IdentityConstraintTrackerTest.aKeyrefBeforeItsKeyReservesTheKeysFirstValue`.)*
+  *(2026-09-11, report §27, found by the Garmin re-audit: two field paths of one constraint advanced different numeric
+  bases with a shared counter (Garmin `StepIdMustBeUnique` on `Step/StepId` and `Child/StepId`); a numeric or typed
+  value the constraint already used is now advanced until it is new.
+  `IdentityConstraintTrackerTest.numericValuesOfOneConstraintNeverRepeatAcrossFieldPaths`.)*
 
 ## WP R: Realistic path parity and reproducibility
 
