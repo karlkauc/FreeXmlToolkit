@@ -75,6 +75,16 @@ Of the 274 invalid samples, the report maps each validation error to one of the 
   breadth valid 1,621 · 1,130 · 1,520 · 990 of 1,814 (UCI 0 → 709 of 722 mandatory-only).
   - Largest remaining clusters: abstract elements and types (E: `cvc-elt.2` 143, `cvc-type.2` 83 samples, KML 125
     abstract roots), IDREF without ID with optional elements (H: 275, nearly all JATS). Next: **E**, then H.
+- **Progress after E, the defects it exposed, and H1/H2** (report §16): first element valid 28 · 21 · 27 · 19, no XML
+  0; breadth valid 1,637 · 1,548 · 1,537 · 1,390 of 1,672 (abstract roots are no longer offered; F5: 1,621 · 1,130 ·
+  1,520 · 990 of 1,814).
+  - Samples with abstract elements or types 143 · 83 → 0 (plain, mandatory only); IDREF without ID with optional
+    elements 268 → 0; UCI 722 · 719 of 722, JATS 275 of 308 with optional elements.
+  - Fixed on the way (found by the re-audits): `minOccurs` above the repetition cap (G4), reference bounds inherited by
+    the referenced content, sampler dead ends below the minimum length (F5), repeated compositors counted as recursion
+    (G2), identity-constraint paths with prefixes, `.//`, `*` and `|` (H2), and exponential repetition (UBL 2.1).
+  - Largest remaining clusters: namespace qualification including foreign attributes (C: JATS `xlink`, INSPIRE,
+    AEAT) and realistic values for SIRI with optional elements (207 samples). Next: **C**, then those values.
 
 ## Global Constraints
 
@@ -282,6 +292,10 @@ samples (xlink attributes currently emitted as child elements) valid.
   children.
   - Let the generator (not the documentation walk) expand recursive particles on demand, with a depth budget. Near
     the budget, pick the non-recursive option.
+  - *(in part, 2026-09-11, commit `7b80b666`, found by the E re-audit: a compositor reached again through another
+    element declaration no longer counts as recursion while expanding for a sample, so a concrete type that contains
+    itself keeps its required content (UCI `StoreLoadoutItemType`). Recursion through the same element declaration or
+    group is still cut; `SampleXmlAbstractContentTest`.)*
 - [ ] **G3. Required wildcards.** `xs:any` is only recorded (`processWildcards` `:3425`).
   - For `minOccurs ≥ 1`, emit one element that the namespace constraint allows. For `##other`, use a foreign
     namespace such as `urn:fxt:sample`; for a list, use the first listed namespace. With `processContents="strict"`,
@@ -289,7 +303,12 @@ samples (xlink attributes currently emitted as child elements) valid.
   - Evidence: xmldsig `SignatureProperty` (8 samples), XBRL `segment`/`scenario`.
 - [ ] **G4. Occurrence bounds.** Honour `minOccurs`/`maxOccurs` on `sequence`/`all` (repeat the group), and emit at
   least `minOccurs` repetitions in mandatory-only mode. Today a repeating element always gets `maxOccurrences` copies,
-  even in mandatory-only mode (`:2529-2543`).
+  even in mandatory-only mode (`:2529-2543`). *(in part, 2026-09-11, commit `7b80b666`, found by the E re-audit:
+  elements and choices repeat at least `minOccurs` times, also beyond `maxOccurrences` (UCI `Covariance` 6–120, 252
+  invalid samples); the bounds of an element reference are read from the reference and no longer inherited by the
+  referenced element's content. Commit `7f3d07ec`: repetitions beyond `minOccurs` are emitted only the first time
+  an XPath is emitted in a document (UBL 2.1 exceeded the output limit). Repeating `sequence`/`all` groups is still
+  open; `SampleXmlOccurrenceBoundsTest`.)*
 - [ ] **G5.** Golden tests:
   - a required choice with only optional options
   - `choice minOccurs=2` with recursive options
@@ -327,7 +346,10 @@ samples (xlink attributes currently emitted as child elements) valid.
   2026-09-11: a pattern on a typed built-in base (date/time, numeric, boolean) narrows the type's lexical space; the
   generator now produces values of the type (date/time also with `Z` or `+00:00`) and keeps the first one the pattern
   accepts, falling back to pattern sampling. UCI `DateTimeType` (`xs:dateTime`, `.+Z`) had made all 722 UCI samples
-  invalid. Test: `XsdSampleDataGeneratorTest.patternOnTypedBaseYieldsAValidTypedValue`.)*
+  invalid. Test: `XsdSampleDataGeneratorTest.patternOnTypedBaseYieldsAValidTypedValue`. 2026-09-11, commit
+  `7b80b666`: the sampler skips transitions that can no longer reach the minimum length; UCI
+  `NITF_DeclassificationExemptionType` (length 4) had fallen back to concatenated alternatives. Test:
+  `BoundedPatternSamplerTest.alternativesThatCannotReachTheMinimumLengthAreAvoided`.)*
   - Restrict Generex output to printable characters. The XTCE samples contain unassigned or control code points;
     one realistic XTCE sample is not even well-formed.
   - Intersect patterns across the derivation chain (all steps must match).
@@ -339,25 +361,38 @@ samples (xlink attributes currently emitted as child elements) valid.
 **Evidence:** 26 samples are touched, 12 of them only by this package: XBRL `item`/`tuple`, INSPIRE
 `bu-base:Building`, `AddressComponent`, rim `Action`, Garmin `Creator` (`AbstractSource_t`).
 
-- [ ] **E1. Substitution groups.** Build a substitution-group index over all documents. Where a particle
+- [x] **E1. Substitution groups.** Build a substitution-group index over all documents. Where a particle
   references an abstract element (or any head element), emit a concrete, non-abstract member, preferring the target
-  namespace.
-- [ ] **E2. Abstract types.** For an element whose type is abstract, choose a concrete derived type (extension or
-  restriction, any namespace), emit `xsi:type="prefix:Type"` and generate the derived content.
-- [ ] **E3. Abstract roots.** Do not offer abstract global elements as roots (or list them last and generate a
-  substitution-group member instead). KML has 124 abstract globals, XBRL 2, INSPIRE 1.
+  namespace. *(2026-09-11, commit `684dc174`: while expanding for a sample, a reference to an abstract element expands
+  a concrete member, searched through abstract members nearest first, preferring the head's namespace and skipping
+  members on the current path; a member from another namespace gets that namespace's prefix. A non-abstract head is
+  still emitted as itself. Test: `SampleXmlAbstractContentTest`.)*
+- [x] **E2. Abstract types.** For an element whose type is abstract, choose a concrete derived type (extension or
+  restriction, any namespace), emit `xsi:type="prefix:Type"` and generate the derived content. *(2026-09-11, same
+  commit: nearest concrete derived global complex type, preferring the abstract type's namespace; both generators emit
+  `xsi:type`, unprefixed in the sample's default namespace, and declare a foreign prefix on the root. `block` is not
+  consulted.)*
+- [x] **E3. Abstract roots.** Do not offer abstract global elements as roots (or list them last and generate a
+  substitution-group member instead). KML has 124 abstract globals, XBRL 2, INSPIRE 1. *(2026-09-11, same commit:
+  `getRootElementNames()` leaves them out and the default root is the first non-abstract global element. The
+  documentation model (`processXsd`) still expands them.)*
 
 ## WP H: Identity constraints and IDs
 
 **Evidence:** 13 samples are touched, all together with other packages (XTCE, Garmin TCX, FundsXML4).
 
-- [ ] **H1.** In the plain path, a value is computed once per schema node (`displaySampleData`) and repeated for
+- [x] **H1.** In the plain path, a value is computed once per schema node (`displaySampleData`) and repeated for
   every occurrence. Keys, uniques and IDs therefore collide. Examples: `Folder@Name` "ExampleText", `Activity/Id`
   dateTime, FundsXML4 `UniqueID` `id_generated_1`. Generate per occurrence for ID-typed values and constrained
-  fields.
+  fields. *(2026-09-11, commit `7f3d07ec`, found by the E re-audit once element references repeated: both generators generate values of
+  `xs:ID` type per occurrence and point `xs:IDREF(S)` at an ID of the same document; an IDREF emitted before any ID
+  reserves the next one, and references left dangling at the end point at the first emitted ID. Constrained fields
+  already went through `IdentityConstraintTracker`. Test: `SampleXmlIdentityValuesTest`.)*
 - [ ] **H2.** `IdentityConstraintTracker`: support attribute fields reached through `selector` paths with `.//`,
   union selectors (`a|b`), and keys on dateTime/QName values. Ensure a `keyref` has a matching key (XTCE
-  `containerRef`).
+  `containerRef`). *(in part, 2026-09-11, commit `7f3d07ec`: selector and field paths with prefixes, `.//`, `*` and `|` resolve against
+  the element map (SIRI `.//siri:KeyValue`, `siri:Values/siri:*`, Garmin `tc2:Folder/@Name`), so their fields get
+  unique values; `IdentityConstraintTrackerTest`. Keys on dateTime/QName values and keyref completeness are open.)*
 
 ## WP R: Realistic path parity and reproducibility
 

@@ -8,7 +8,8 @@ The improvement plan derived from these numbers is
 
 > **Update (same day):** the plan's four quick wins (A1, A2, D1, F3) are implemented. §1–§10 describe the baseline;
 > §11 has the re-audit. A5 (bounded memory) and A4 (roots from included documents) follow in §12 and §13; §14
-> covers A3 (include resolution) and the defects it exposed; §15 covers F5 (typed values for patterns).
+> covers A3 (include resolution) and the defects it exposed; §15 covers F5 (typed values for patterns); §16 covers E
+> (abstract elements and types) and the defects it exposed.
 
 ## 1. Summary
 
@@ -395,6 +396,7 @@ The task skips itself when the corpus folder is absent.
 | 2026-09-10 | A4 roots from included documents (§13) | 23 · 19 | 534 · 325 (of 1,677: JATS and SIRI now offer their included roots) | 0 |
 | 2026-09-11 | A3 includes, B inherited attributes, G6 group refs, D4, A6, A2 element refs (§14) | 26 · 20 | 913 · 571 (of 1,814: SIRI offers 385 roots, UCI completes) | 0 |
 | 2026-09-11 | F5 typed values for patterns on typed bases (§15) | 28 · 19 | 1,621 · 1,130 (of 1,814: UCI 709 · 566 of 722) | 0 |
+| 2026-09-11 | E abstract elements and types, the defects it exposed, H1/H2 identity values (§16) | 28 · 21 | 1,637 · 1,548 (of 1,672: abstract roots no longer offered) | 0 |
 
 ## 11. After the quick wins (re-audit, 2026-09-10)
 
@@ -753,3 +755,103 @@ SIRI realistic with optional elements).
   in 83 make WP E the largest cluster. With optional elements, `cvc-id.1` (IDREF without ID, 275 samples, nearly all
   JATS, WP H) comes first, then E.
 - **Next:** E (abstract roots, substitution groups, `xsi:type` for abstract types), then H.
+
+## 16. After E: abstract elements and types, and what it exposed (re-audit, 2026-09-11)
+
+**Change** (commit `684dc174`). An instance may contain neither an abstract element nor an element of an abstract type
+without `xsi:type`. While expanding for a sample (the documentation model is unchanged):
+- **E1 substitution groups:** a reference to an abstract element expands a concrete member of its substitution group.
+  Abstract members are searched too, nearest first, preferring the head's namespace and skipping members already on
+  the current path. A member from another namespace gets that namespace's prefix.
+- **E2 abstract types:** an element whose type is abstract expands the nearest concrete derived global type. Both
+  generators emit it as `xsi:type` and declare its prefix on the root when the type is foreign.
+- **E3 abstract roots:** abstract global elements are no longer offered as roots, and the default root is the first
+  non-abstract global element. The breadth denominator therefore shrinks (KML 269 → 145 roots, SIRI 2.2 385 → 370,
+  XBRL 10 → 8, INSPIRE 13 → 12).
+
+Test: `SampleXmlAbstractContentTest` (substitution through an abstract member, a recursive member, `xsi:type` on a
+child and on the root, GML heads with members in a third namespace).
+
+**First audit** (1,672 validated samples per combination; F5 had 1,814 including the abstract roots):
+
+| Measure | plain req | plain opt | realistic req | realistic opt |
+|---|---|---|---|---|
+| First element valid (of 31), F5 → E | 28 → 28 | 19 → 20 | 27 → 27 | 19 → 20 |
+| Breadth valid, F5 → E | 1,621 → 1,630 | 1,130 → 1,173 | 1,520 → 1,529 | 990 → 1,004 |
+| Samples with `cvc-elt.2` (abstract element) | 143 → **0** | 173 → 3 | 142 → 1 | 175 → 2 |
+| Samples with `cvc-type.2` (abstract type) | 83 → **0** | 154 → 1 | 83 → 0 | 149 → 1 |
+
+- **Fixed schemas:** KML 145 of 145 (plain, mandatory only; F5 144 of 269), rim 43 of 43 in every mode, SIRI 2.2
+  365 of 370, UCI 714 of 722.
+- **Left:** heads without any concrete member in the corpus: INSPIRE `bu-base:Building` and `BuildingPart` (the
+  members live in modules the Addresses schema does not import), KML `UpdateOpExtensionGroup` and XBRL `item`/`tuple`
+  (filled only by taxonomies).
+
+**Exposed defects.** Per root, 177 samples turned valid and 100 turned invalid. 79 of those were UCI with optional
+elements, where concrete types now bring in content that older defects break. Each was fixed test-first (commit
+`7b80b666`):
+
+| Defect | Evidence | Fix | Test |
+|---|---|---|---|
+| G4: repetition capped below `minOccurs` | 252 invalid UCI samples with optional elements (`Vertex` ≥ 3, `KnotVector` ≥ 4, `Covariance` 6–120 at maximum 2) | elements and choices repeat at least `minOccurs` times | `SampleXmlOccurrenceBoundsTest` |
+| Bounds of an element reference inherited by all its content | found by that test: a child of a `ref minOccurs="4"` repeated four times | the referenced declaration consumes the bounds; documentation cardinalities of such children are corrected too | `SampleXmlOccurrenceBoundsTest` |
+| Pattern sampler ignores the minimum length while walking | UCI `NITF_DeclassificationExemptionType` (length 4): the walk took `[DNIO]`, ended at length 1, and the fallback concatenated all alternatives (`X1 25X9I `) | transitions that can no longer reach the minimum length are skipped | `BoundedPatternSamplerTest` |
+| A repeated compositor counted as recursion | UCI `StoreList` (type `StoreLoadoutItemPET`) inside `StoreLoadoutItemType` was emitted without its required `Location` | while expanding for a sample, only element declarations and groups count as recursion | `SampleXmlAbstractContentTest` |
+
+The other turned-invalid samples are the known random flips of choice selection and realistic values (SIRI dates,
+XBRL unions, datajud).
+
+**Second audit** (after `7b80b666`):
+
+| Measure | plain req | plain opt | realistic req | realistic opt |
+|---|---|---|---|---|
+| Breadth valid (of 1,672), first E audit → second | 1,630 → 1,636 | 1,173 → **1,290** | 1,529 → 1,537 | 1,004 → **1,124** |
+
+- **UCI 2.5:** 714 → 722 of 722 (plain, mandatory only), 593 → 718 with optional elements.
+- **New regressions**, all because element references now repeat with their own `maxOccurs`:
+  - duplicate IDs (`cvc-id.2`): KML with optional elements 139 → 124, xmldsig 22 → 19 (`Reference/@Id`)
+  - duplicate `unique` values: SIRI `KeyValuePair_unique` and `TypeOfValue_unique`, Garmin
+    `RunningSubFolderNamesMustBeUnique`
+  - no XML for UBL 2.1 `Invoice` with optional elements: 470 references with `maxOccurs="unbounded"` doubled the
+    document per level until it exceeded the 50 MB output limit
+
+**Fixes** (commit `7f3d07ec`, test-first):
+
+| Defect | Fix | Test |
+|---|---|---|
+| H1: one ID value per schema node, repeated for every occurrence; IDREFs to IDs that were never emitted | both generators generate `xs:ID` values per occurrence and point `xs:IDREF(S)` at an ID of the same document; an IDREF before any ID reserves the next one, and references left dangling point at the first emitted ID | `SampleXmlIdentityValuesTest` |
+| H2: selector and field paths with prefixes, `.//`, `*` or `\|` never matched, so their fields got no unique values | `IdentityConstraintTracker` resolves them against the element map | `IdentityConstraintTrackerTest`, `SampleXmlIdentityValuesTest` |
+| Repeated ancestors multiply optional repetitions | repetitions beyond `minOccurs` are emitted only the first time an XPath is emitted in a document; later emissions get `max(minOccurs, 1)` | `SampleXmlOccurrenceBoundsTest` |
+
+**Third audit** (after `7f3d07ec`):
+
+| Measure | plain req | plain opt | realistic req | realistic opt |
+|---|---|---|---|---|
+| First element valid (of 31), F5 → now | 28 → 28 | 19 → **21** | 27 → 27 | 19 → 19 |
+| Breadth valid (of 1,672), second audit → now | 1,636 → 1,637 | 1,290 → **1,548** | 1,537 → 1,537 | 1,124 → **1,390** |
+| Samples with `cvc-id.1` (IDREF without ID), second audit → now | 6 → 6 | 268 → **0** | 5 → 5 | 274 → **0** |
+
+No schema is without XML: UBL 2.1 with optional elements generates again (still invalid).
+
+**The whole round, F5 → now** (invalid samples among every offered root; F5 validated 1,814 samples per
+combination including the abstract roots, now 1,672):
+
+| Generator / mode | Invalid: F5 → now |
+|---|---|
+| plain, mandatory only | 193 → **35** |
+| plain, with optional elements | 684 → **124** |
+| realistic, mandatory only | 294 → **135** |
+| realistic, with optional elements | 824 → **282** |
+
+- **Per schema:** UCI 722 · 719 of 722 (plain, mandatory · optional), JATS 295 · 275 of 308, KML 145 · 141 of 145,
+  rim 43 of 43 and xmldsig 22 of 24 in every mode.
+- **No schema regressed** against F5 beyond the known random flips (datajud one sample, SIRI realistic mandatory-only
+  271 → 269).
+- **Remaining, plain, mandatory only (35):** JATS 13 (`xlink` attributes on foreign-namespace references, C3, and
+  IDREFs in documents without any ID), INSPIRE 6 and AEAT Modelo 170 3 (namespace qualification, C), XBRL 6 (abstract
+  `item`/`tuple` without members, union values), SIRI 4.
+- **Remaining with optional elements:** SIRI 58 (plain, mostly `cvc-complex-type.2.4.a`, not analysed yet) and 207
+  (realistic: values that break their facets, `cvc-datatype-valid.1.2.1`, `cvc-minLength-valid`,
+  `cvc-complex-type.2.2`), JATS 33 · 26 (`xlink` attributes).
+- **Next:** C (namespace qualification, including foreign attributes such as `xlink:href`), then the SIRI values of
+  the realistic generator.
