@@ -140,6 +140,11 @@ Of the 274 invalid samples, the report maps each validation error to one of the 
   - UCI 722 of 722 in every mode. Only Garmin's root is left.
   - Remaining: keyrefs before their keys, no `Workout` because `Repeat_t` recursion leaves its step incomplete, and a
     suffixed key past `maxLength` (H2). Next: **the Garmin keys and steps**.
+- **Progress after the Garmin keyrefs and derived types** (report §26): first element valid 30 · 30 · 30 · 29, no XML
+  0; breadth valid 1,672 · 1,672 · 1,672 · 1,672 of 1,672 (invalid 0 · 0 · 0 · 0).
+  - Every validated sample of every offered root is valid in both generators and modes.
+  - Remaining: Garmin's realistic first-element sample repeats a `StepId` value, because two field paths of one unique
+    constraint advance different numeric bases with one counter (H2). Next: **numeric key values against used values**.
 
 ## Global Constraints
 
@@ -384,7 +389,7 @@ samples (xlink attributes currently emitted as child elements) valid.
   referenced element's content. Commit `7f3d07ec`: repetitions beyond `minOccurs` are emitted only the first time
   an XPath is emitted in a document (UBL 2.1 exceeded the output limit). Repeating `sequence`/`all` groups is still
   open; `SampleXmlOccurrenceBoundsTest`.)*
-- [ ] **G7. Particles with the same name in one compositor.** *(2026-09-11, found by the F1/H re-audit: the element
+- [x] **G7. Particles with the same name in one compositor.** *(2026-09-11, found by the F1/H re-audit: the element
   map keys a particle as parent XPath plus name, so JATS `ruby-model` (`rb, (rt | (rp, rt, rp))`) and FundsXML4 UK,
   which declares `UCITSExistingPerformanceFees` and `UKAssumedPortfolioReturn` twice, lost the first of two particles
   of one name, in samples and in the documentation. A further particle now gets `name[n]` as its key;
@@ -469,6 +474,9 @@ samples (xlink attributes currently emitted as child elements) valid.
   commit: nearest concrete derived global complex type, preferring the abstract type's namespace; both generators emit
   `xsi:type`, unprefixed in the sample's default namespace, and declare a foreign prefix on the root. `block` is not
   consulted.)*
+  *(2026-09-11, report §26: an abstract type gets a concrete derived type whose own content does not declare an element
+  of the abstract type again; Garmin's first derived type `Repeat_t` requires a recursive `Child`, so workouts were
+  left out as incomplete. `SampleXmlRecursiveDerivedTypeTest`.)*
 - [x] **E3. Abstract roots.** Do not offer abstract global elements as roots (or list them last and generate a
   substitution-group member instead). KML has 124 abstract globals, XBRL 2, INSPIRE 1. *(2026-09-11, same commit:
   `getRootElementNames()` leaves them out and the default root is the first non-abstract global element. The
@@ -498,8 +506,11 @@ samples (xlink attributes currently emitted as child elements) valid.
   advanced in its own lexical space instead of getting a suffix (Garmin `Id`); a repeated string-pattern value is
   sampled again (XTCE `NameType`); an optional element a key selects but that cannot hold one of its fields is left
   out (XTCE `messageNameKey` on `MessageSet/*`). `SampleXmlIdentityKeysTest`, `IdentityConstraintTrackerTest`. A QName
-  key with a suffix stays a valid QName. Open: Garmin `CourseNameKeyRef` gets a suffixed fallback when no key value
-  was generated yet, and a suffixed key value can exceed `maxLength`.)*
+  key with a suffix stays a valid QName.)*
+  *(2026-09-11, report §26, found by the H2 and F6 re-audits: a keyref reached before its key reserves its unsuffixed
+  base value, which every such keyref reuses and the key takes first (Garmin `CourseNameRef` in `Folders`); the
+  fallback had run without the element's facets, so a suffix exceeded `maxLength`.
+  `IdentityConstraintTrackerTest.aKeyrefBeforeItsKeyReservesTheKeysFirstValue`.)*
 
 ## WP R: Realistic path parity and reproducibility
 

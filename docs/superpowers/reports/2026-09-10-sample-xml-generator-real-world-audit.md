@@ -12,7 +12,7 @@ The improvement plan derived from these numbers is
 > (abstract elements and types) and the defects it exposed; §17 covers C (namespace qualification); §18 covers the
 > realistic generator's type resolution (R1); §19 covers inherited facets (F4); §20 covers required wildcards (G3);
 > §21 covers QName, binary and union values (F1, F2) and IDs for references (H); §22 covers particles with the same
-> name in one content model; §23 covers choices that pick options with complete content (G1); §24 covers key values of their own type (H2); §25 covers numbers rounded within their bounds (F6).
+> name in one content model; §23 covers choices that pick options with complete content (G1); §24 covers key values of their own type (H2); §25 covers numbers rounded within their bounds (F6); §26 covers Garmin's keyrefs and workout steps (H2, E).
 
 ## 1. Summary
 
@@ -409,6 +409,7 @@ The task skips itself when the corpus folder is absent.
 | 2026-09-11 | G1 choices pick options with complete content (§23) | 30 · 27 | 1,672 · 1,668 (of 1,672; realistic 1,672 · 1,669) | 0 |
 | 2026-09-11 | H2 key values of their own type (§24) | 30 · 29 | 1,672 · 1,670 (of 1,672; realistic 1,672 · 1,671) | 0 |
 | 2026-09-11 | F6 numbers rounded within their bounds (§25) | 30 · 29 | 1,672 · 1,671 (of 1,672; realistic 1,672 · 1,671) | 0 |
+| 2026-09-11 | Garmin keyrefs before their keys, derived types without recursion (§26) | 30 · 30 | 1,672 · 1,672 (of 1,672; realistic 1,672 · 1,672) | 0 |
 
 ## 11. After the quick wins (re-audit, 2026-09-10)
 
@@ -1251,3 +1252,35 @@ exclusive range narrower than two steps inward by a quarter of its width; intege
   because its required `Step` always took the derived type `Repeat_t`, whose required `Child` recursion is cut; and a
   suffixed key value can exceed `maxLength="15"` of `RestrictedToken_t`.
 - **Next:** Garmin's keys and workout steps.
+
+## 26. After the Garmin round: keyrefs before their keys, derived types without recursion (re-audit, 2026-09-11)
+
+**Cause.** Garmin's `TrainingCenterDatabase` was the last invalid root, for three reasons:
+- `Folders` lists `CourseNameRef` and `WorkoutNameRef` before the courses and workouts they refer to. With no key value
+  yet, the key tracker gave each keyref a suffixed fallback value that no key held. That fallback also ran without the
+  element's facets, so a suffix could push an `Id` past `maxLength="15"`.
+- No `Workout` was generated at all. Its required `Step` is of the abstract type `AbstractStep_t`, and the sample always
+  took the first derived type, `Repeat_t`. Its required `Child` is an `AbstractStep_t` again; the recursion was cut, the
+  step's content was incomplete, and since G1 the optional workout is left out.
+
+**Change.**
+- A keyref reached before its key reserves one value, its unsuffixed base. Every such keyref reuses it, and the key
+  takes it as its first value, as IDs already do for early IDREFs.
+- An abstract type gets a concrete derived type whose own content does not declare an element of the abstract type
+  again (Garmin `Step_t` before `Repeat_t`); a recursive one is used only when no other exists.
+- Tests: `SampleXmlRecursiveDerivedTypeTest` (both generators and modes) and
+  `IdentityConstraintTrackerTest.aKeyrefBeforeItsKeyReservesTheKeysFirstValue`.
+
+**Audit** (after `87dc322f`):
+
+| Measure | plain req | plain opt | realistic req | realistic opt |
+|---|---|---|---|---|
+| First element valid (of 31), §25 → now | 30 → 30 | 29 → **30** | 30 → 30 | 29 → 29 |
+| Breadth valid (of 1,672), §25 → now | 1,672 → 1,672 | 1,671 → **1,672** | 1,672 → 1,672 | 1,671 → **1,672** |
+| Invalid samples (of 1,672), §25 → now | 0 → 0 | 1 → **0** | 0 → 0 | 1 → **0** |
+
+- **Every validated sample of every offered root is valid**, in both generators and both modes: 1,672 of 1,672 each.
+- **Garmin** generates workouts now. That exposed one more key defect in the realistic first-element sample:
+  `StepIdMustBeUnique` selects `.//*` with the field `StepId`, so `Step/StepId` and `Child/StepId` share one unique
+  constraint. Each numeric value is its random base plus a shared counter, and two bases can meet (`8` twice).
+- **Next:** numeric key values checked against the values already used.
