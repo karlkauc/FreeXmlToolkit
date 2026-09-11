@@ -10,7 +10,7 @@ The improvement plan derived from these numbers is
 > §11 has the re-audit. A5 (bounded memory) and A4 (roots from included documents) follow in §12 and §13; §14
 > covers A3 (include resolution) and the defects it exposed; §15 covers F5 (typed values for patterns); §16 covers E
 > (abstract elements and types) and the defects it exposed; §17 covers C (namespace qualification); §18 covers the
-> realistic generator's type resolution (R1).
+> realistic generator's type resolution (R1); §19 covers inherited facets (F4).
 
 ## 1. Summary
 
@@ -400,6 +400,7 @@ The task skips itself when the corpus folder is absent.
 | 2026-09-11 | E abstract elements and types, the defects it exposed, H1/H2 identity values (§16) | 28 · 21 | 1,637 · 1,548 (of 1,672: abstract roots no longer offered) | 0 |
 | 2026-09-11 | C namespace qualification and the defects it exposed (§17) | 30 · 25 | 1,657 · 1,629 (of 1,672) | 0 |
 | 2026-09-11 | R1 type resolution in the realistic generator (§18) | 30 · 24 | 1,658 · 1,637 (of 1,672; realistic 1,657 · 1,634) | 0 |
+| 2026-09-11 | F4 a restriction's facets replace its base's (§19) | 30 · 25 | 1,657 · 1,651 (of 1,672; realistic 1,657 · 1,651) | 0 |
 
 ## 11. After the quick wins (re-audit, 2026-09-10)
 
@@ -971,3 +972,46 @@ The structural walk still exists in both generators (rest of R1). Test: `SampleX
   XBRL 6, JATS 3, single samples in INSPIRE, XTCE, UBL and Garmin.
 - **Next:** analyse the SIRI values with optional elements, then G (choices that produce content, required
   `xs:any`) and IDREFs without any ID.
+
+## 19. After F4: a restriction's facets replace its base's (re-audit, 2026-09-11)
+
+**Cause.** After R1, most remaining SIRI 2.2 samples with optional elements failed on two sibling elements of
+`MonitoringValidityConditionStructure`: `DayType` came out as `schoolDays` or `everyDay`, `HolidayType` as `weekdays`
+or `saturday` (`cvc-enumeration-valid`, `cvc-type.3.1.3`, in both generators). Their types are:
+- `DaysOfWeekEnumerationx`, a restriction of `DayTypeEnumeration` to 12 of its 22 values
+- `HolidayTypeEnumerationx`, a restriction of the same type to the other 10
+
+`parseRestriction` and `getInheritedFacets` first copied the base type's facets and then *appended* the restriction's
+own values to the same lists. Both elements therefore allowed all 22 values, and the documentation listed them too.
+
+**Change.** Each facet declared by a derivation step replaces the inherited facet of the same name, in the element
+map and therefore in the documentation. Patterns declared on different steps must all match (intersection, F5); the
+most derived one is kept. Test: `SampleXmlRestrictedFacetsTest` (enumeration subsets of a shared base, a narrower
+`maxLength`, both generators × both modes).
+
+**Golden update.** `ProcessXsdEquivalenceTest` hashes the FundsXML 4 element map, facets included. A canonical dump
+before and after the change differs in exactly 2 of 46,601 entries, only in their facets: FundsXML 4 declares the same
+pattern on a type and on its base, which was listed twice and is now listed once. The expected hash was updated with
+that note.
+
+**Audit** (after `03c7bb5d`):
+
+| Measure | plain req | plain opt | realistic req | realistic opt |
+|---|---|---|---|---|
+| First element valid (of 31), §18 → F4 | 30 → 30 | 24 → **25** | 30 → 29 | 24 → **25** |
+| Breadth valid (of 1,672), §18 → F4 | 1,658 → 1,657 | 1,637 → **1,651** | 1,657 → 1,657 | 1,634 → **1,651** |
+| Invalid samples (of 1,672), §18 → F4 | 14 → 15 | 35 → **21** | 15 → 15 | 38 → **21** |
+
+- **SIRI 2.2** is valid in every mode: 370 of 370 roots (plain with optional elements 355 → 370, realistic 351 → 370).
+  No sample has a `DayType` or `HolidayType` error any more.
+- Per root, 43 samples turned valid and 12 invalid, all random flips: choices in JATS and datajud, KML's
+  `UpdateOpExtensionGroup` head without members, a UCI `hexBinary` of `length="6"` and a UCI angle rounded to 6.2832,
+  above `maxInclusive` 2π.
+- **Since F5** (§15), the invalid samples per combination fell from 193 · 684 · 294 · 824 (of 1,814) to 15 · 21 · 15 ·
+  21 (of 1,672).
+- **Remaining** (plain, with optional elements: 21): UCI 7 (`hexBinary` values that ignore `length`, decimal bounds),
+  XBRL 5 (empty QName `measure`, empty union values, required `xs:any` in `segment`), JATS 3 (choices), KML 2,
+  single samples in INSPIRE, XTCE, UBL and Garmin. With mandatory elements only (15): JATS 7 (IDREFs in documents
+  without any ID), XBRL 5, xmldsig 3 (required `xs:any` in `SignatureProperty`).
+- **Next, by samples affected:** required `xs:any` (G3: xmldsig, XBRL, UBL, 14 samples), QName values (F1: XBRL
+  `measure`, 13), IDREFs in documents without any ID (H, 11), `hexBinary` with `length` (F, 7).

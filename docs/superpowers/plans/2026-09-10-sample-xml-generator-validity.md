@@ -99,6 +99,12 @@ Of the 274 invalid samples, the report maps each validation error to one of the 
     164 → 351 (with optional elements).
   - Remaining: SIRI with optional elements 21 (`cvc-type.3.1.3`, `cvc-enumeration-valid`, not analysed), XBRL 5–6,
     JATS IDREFs in documents without any ID (6), xmldsig required `xs:any` (2). Next: **analyse SIRI**, then G.
+- **Progress after F4 inherited facets** (report §19): first element valid 30 · 25 · 29 · 25, no XML 0; breadth valid
+  1,657 · 1,651 · 1,657 · 1,651 of 1,672 (invalid 15 · 21 · 15 · 21; §15: 193 · 684 · 294 · 824 of 1,814).
+  - The SIRI cluster was a facet defect: a restriction's enumeration was appended to its base's. SIRI 2.2 is now 370 of
+    370 in every mode.
+  - Remaining, by samples affected: required `xs:any` (G3, 14), QName values (F1, 13), IDREFs in documents without
+    any ID (H, 11), `hexBinary` with `length` (F, 7). Next: **G3**, then F1.
 
 ## Global Constraints
 
@@ -366,6 +372,11 @@ samples (xlink attributes currently emitted as child elements) valid.
   several named complex types now resolves to its simple base, `simpleContentBaseType`.)* Attribute types with a pattern (XTCE `NameType`
   `[^.\[\]:/ \t]+`) and simple-content elements (SIRI FR-IDF `StopPointRef` NMTOKEN, INSPIRE `value` double) come
   out empty. Use the same type resolution for attributes and simple-content bases as for elements.
+  - *(2026-09-11, found by the R1 re-audit: a restriction's facets were appended to its base type's, so SIRI
+    `DaysOfWeekEnumerationx`, which lists 12 of `DayTypeEnumeration`'s 22 values, allowed all 22 and `DayType` came
+    out as `schoolDays`. Each facet of a derivation step now replaces the inherited facet of the same name, in the
+    element map and therefore in the documentation too; `SampleXmlRestrictedFacetsTest`. Patterns of different
+    steps must all match (intersection, see F5); the derived pattern is kept.)*
 - [ ] **F5. Pattern generation.** *(partly done with A5: `BoundedPatternSampler` terminates within the length range,
   caps repetitions and emits only XML 1.0 characters. Pattern intersection and XSD escapes are still open.
   2026-09-11: a pattern on a typed built-in base (date/time, numeric, boolean) narrows the type's lexical space; the
