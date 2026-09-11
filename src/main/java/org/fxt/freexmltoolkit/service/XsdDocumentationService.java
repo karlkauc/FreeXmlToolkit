@@ -4466,16 +4466,9 @@ public class XsdDocumentationService {
             }
         }
 
-        // Then, parse direct child facets (these override inherited facets)
-        for (Node facetNode : getDirectChildElements(restrictionNode)) {
-            String facetName = facetNode.getLocalName();
-            if (!"annotation".equals(facetName)) {
-                // Adds the value to the list of the corresponding facet name.
-                // computeIfAbsent ensures that the list exists.
-                facets.computeIfAbsent(facetName, k -> new ArrayList<>())
-                        .add(getAttributeValue(facetNode, "value"));
-            }
-        }
+        // Then the restriction's own facets: each replaces the inherited facet of the same name (SIRI
+        // DaysOfWeekEnumerationx lists 12 of DayTypeEnumeration's 22 values; appending gave all 22 again)
+        facets.putAll(directFacets(restrictionNode));
         return new RestrictionInfo(base, facets);
     }
 
@@ -4518,16 +4511,26 @@ public class XsdDocumentationService {
             }
         }
 
-        // Then add this type's direct facets (override inherited)
+        // Then this type's own facets, each replacing the inherited facet of the same name
+        facets.putAll(directFacets(restriction));
+
+        return new RestrictionInfo(baseType, facets);
+    }
+
+    /**
+     * The facets declared directly on a restriction, values grouped by facet name in document order. A derivation
+     * step's facet replaces the base type's facet of the same name: a restriction's enumeration is a subset of its
+     * base's, never an addition.
+     */
+    private Map<String, List<String>> directFacets(Node restriction) {
+        Map<String, List<String>> facets = new LinkedHashMap<>();
         for (Node facetNode : getDirectChildElements(restriction)) {
             String facetName = facetNode.getLocalName();
             if (!"annotation".equals(facetName)) {
-                facets.computeIfAbsent(facetName, k -> new ArrayList<>())
-                        .add(getAttributeValue(facetNode, "value"));
+                facets.computeIfAbsent(facetName, k -> new ArrayList<>()).add(getAttributeValue(facetNode, "value"));
             }
         }
-
-        return new RestrictionInfo(baseType, facets);
+        return facets;
     }
 
     private Node findTypeDefinition(Node elementNode, String typeName) {

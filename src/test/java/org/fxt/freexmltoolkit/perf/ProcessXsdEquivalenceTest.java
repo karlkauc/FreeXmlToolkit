@@ -26,7 +26,10 @@ class ProcessXsdEquivalenceTest {
     private static final char SEP = '';
 
     // Captured from the CURRENT (pre-optimization) code in Task 1 step 4. DO NOT edit after capture.
-    private static final String EXPECTED_SHA256 = "9c43873e2920fb7fbe574dbefe8a0e75b014e5076d239e6fcb492670f3d7c178";
+    // 2026-09-11: a restriction's facets replace its base type's facets of the same name instead of being appended.
+    // Exactly two entries changed, both restr only: a pattern declared identically on a type and its base was listed
+    // twice (FundsXML4 IndirectReporting country subdivision codes).
+    private static final String EXPECTED_SHA256 = "081689e57078f6f70ac59def597ab76f051fd647a9cba5ddc2ec859ac3d2756f";
 
     @Test
     void expandedElementMapIsByteIdentical() throws Exception {
