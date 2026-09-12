@@ -273,13 +273,17 @@ reports "No root element found". UCI and A-GRA run out of memory even with a 14 
   Both generators now write a self-closing tag. The plain generator also skips an optional `sequence`/`all` in
   mandatory-only mode, as the namespace collection and the realistic generator do; emitting it had used an
   undeclared `gml` prefix (`SampleXmlForeignContentTest`).
-- [ ] **D2. Attribute-only complex types are not simple content.** `XsdSampleDataGenerator.java:147-155` treats an
+- [x] **D2. Attribute-only complex types are not simple content.** `XsdSampleDataGenerator.java:147-155` treats an
   element whose children are all attributes as `simpleContent` and generates text for it. rim `LocalizedString`
   (124 occurrences), `Address` and `PersonName` break on that.
   - Decide from the type definition (`complexContent` / `simpleContent` / no content model), not from the child
     list.
   - Store a content-type flag (EMPTY, SIMPLE, ELEMENT_ONLY, MIXED) on `XsdExtendedElement` during `processXsd`.
-- [ ] **D3. Mixed content.** Emit no text inside element-only content; for `mixed="true"`, text is optional.
+- [x] **D3. Mixed content.** Emit no text inside element-only content; for `mixed="true"`, text is optional.
+  *(2026-09-12: both are done, by the rounds on empty content (D4), inherited attributes (B) and simple content (F4).
+  A test of the three content types — attributes only, element only, mixed, in both generators and modes — passes on
+  the current code and stays as a guard: `SampleXmlContentTypeTest`. The corpus holds 164 attribute-only complex
+  types and 281 `mixed="true"` types, all of them valid in the audit.)*
 
 **Target:** the 58 "alone" samples become valid (rim 38, XBRL 16, INSPIRE 4).
 
