@@ -12,7 +12,7 @@ The improvement plan derived from these numbers is
 > (abstract elements and types) and the defects it exposed; §17 covers C (namespace qualification); §18 covers the
 > realistic generator's type resolution (R1); §19 covers inherited facets (F4); §20 covers required wildcards (G3);
 > §21 covers QName, binary and union values (F1, F2) and IDs for references (H); §22 covers particles with the same
-> name in one content model; §23 covers choices that pick options with complete content (G1); §24 covers key values of their own type (H2); §25 covers numbers rounded within their bounds (F6); §26 covers Garmin's keyrefs and workout steps (H2, E); §27 covers unique values across field paths (H2).
+> name in one content model; §23 covers choices that pick options with complete content (G1); §24 covers key values of their own type (H2); §25 covers numbers rounded within their bounds (F6); §26 covers Garmin's keyrefs and workout steps (H2, E); §27 covers unique values across field paths (H2); §28 covers reproducible runs from a seed (R2); §29 covers model groups that repeat and the bounds of group references (G4).
 
 ## 1. Summary
 
@@ -411,6 +411,8 @@ The task skips itself when the corpus folder is absent.
 | 2026-09-11 | F6 numbers rounded within their bounds (§25) | 30 · 29 | 1,672 · 1,671 (of 1,672; realistic 1,672 · 1,671) | 0 |
 | 2026-09-11 | Garmin keyrefs before their keys, derived types without recursion (§26) | 30 · 30 | 1,672 · 1,672 (of 1,672; realistic 1,672 · 1,672) | 0 |
 | 2026-09-11 | H2 unique values across field paths (§27) | 30 · 30 | 1,672 · 1,672 (of 1,672; realistic 1,672 · 1,672) | 0 |
+| 2026-09-12 | G4 model groups repeat, bounds of group references (§29) | 30 · 30 | 1,672 · 1,672 (of 1,672; realistic 1,672 · 1,672) | 0 |
+| 2026-09-12 | R2 reproducible runs from a seed (§28) | 30 · 30 | 1,672 · 1,672 (of 1,672; realistic 1,672 · 1,672) | 0 |
 
 ## 11. After the quick wins (re-audit, 2026-09-10)
 
@@ -1311,3 +1313,80 @@ advanced until it is new. Suffixed string values never collide, because the suff
 - **Since F5** (§15), the invalid samples per combination fell from 193 · 684 · 294 · 824 (of 1,814) to 0 · 0 · 0 · 0
   (of 1,672).
 - **Next:** reproducible runs (R2), so a clean audit can be repeated exactly.
+
+## 28. After R2: reproducible runs from a seed (2026-09-11)
+
+**Cause.** A sample drew its randomness from several unrelated sources, so no run could be repeated:
+- the plain generator picked choices and repetitions from an unseeded `RandomGenerator`
+- the realistic generator could be seeded, but only for its choices
+- every value (enumeration picks, dates, numbers, string padding, pattern samples) came from `ThreadLocalRandom` or
+  `Math.random()`, and the key tracker sampled patterns from `ThreadLocalRandom` too
+
+Earlier audits showed single samples flipping between valid and invalid from one run to the next (datajud, §21).
+
+**Change.**
+- The value generator holds one random source that can be replaced; the pattern sampler and the key tracker use it.
+- `XsdDocumentationService.setSampleSeed(long)` seeds the choices and, from a separate stream, the values. The
+  realistic generator's seed constructor now seeds its values the same way.
+- `SampleXmlRunner.generate` takes an optional seed. The audit forwards `-Dsample.audit.seed` to every worker, which
+  seeds each sample before it is generated, so a sample does not depend on the samples before it.
+- Profile rules that pick at random (`RANDOM_FROM_LIST`, `TEMPLATE`, `XSD_EXAMPLE`) stay unseeded.
+- Test: `SampleXmlReproducibilityTest` (a choice, a repetition, an enumeration, a date, a decimal range and a pattern;
+  both generators and modes, three seeds).
+
+**First seeded audits** (after `5b64228d`, two runs with `-Dsample.audit.seed=42`):
+
+| Measure | Result |
+|---|---|
+| Samples compared | 11,504 |
+| Same status and error keys | 11,504 |
+| Byte-identical output | 9,475 |
+| Different output size | 2,029 (plain 99, realistic 1,930) |
+
+Both runs had no invalid sample. The remaining differences came from the clock: `date` and `dateTime` ranges ended at
+the time of the run, and `NMTOKEN` values carried a timestamp. A bounded draw over a range that changed by a few minutes
+could consume a different number of random steps and shift every later value. A seeded generator now anchors dates and
+timestamps at a fixed instant (`XsdSampleDataGenerator.SEEDED_CLOCK`, 2026-01-01T00:00Z);
+`SampleXmlReproducibilityTest` generates twice, a second apart.
+
+**Seeded audits** (four pairs, each two runs with `-Dsample.audit.seed=42`, 11,504 samples compared per pair):
+
+| Pair | After | Identical | Differing |
+|---|---|---|---|
+| 1 | the seed itself (`5b64228d`) | 9,475 | 2,029 |
+| 2 | the fixed clock (`13634de0`) | 9,545 | 1,959 |
+| 3 | the seeded expansion (`a74eb970`) | 11,326 | 178 |
+| 4 | the sorted pattern walk (`5e2e03a6`) | **11,504** | **0** |
+
+Every pair agreed on every status and error key; only the generated values differed. Three causes had to go:
+- Dates and `NMTOKEN` timestamps followed the clock, and a bounded draw over a range that moved consumed a different
+  number of random steps.
+- Attribute values come from the schema expansion, which the realistic path never seeded.
+- The pattern sampler walked the automaton's transitions in the order of a set that hashes by object identity, so the
+  same seed picked different characters depending on what the process had allocated before. A probe showed the same
+  sampler, built three times in one JVM with one seed, producing two different results.
+
+Both runs of the fourth pair were valid throughout: 1,672 of 1,672 per combination, first element 30 of 31 evaluable
+schemas in all four modes.
+
+## 29. After G4: model groups that repeat (2026-09-11)
+
+**Cause.** Both generators repeated elements and choices to their `minOccurs`, but never a `sequence` or `all`. A
+`<xs:sequence minOccurs="2">` came out once and missed its second group. The corpus has no such group (its 18 model
+groups with `minOccurs` of two or more are all choices), so no audit sample showed it.
+
+**Change.** A `sequence` or `all` repeats as a whole, like an element: at least `minOccurs`, up to `maxOccurrences`
+within `maxOccurs`, and repetitions beyond `minOccurs` only the first time its XPath is emitted in a document. Test:
+`SampleXmlGroupRepetitionTest` (a repeated sequence, a repeated sequence as a choice option, and a required choice
+whose options are all optional).
+
+**Bounds of a group reference.** `<xs:group ref="..." minOccurs="2"/>` binds the referenced group's content model, but
+both generators read the bounds from the group's compositor, which carries none. MathML `mfrac` (JATS) holds its
+expression group twice and came out with one child; the corpus has 11 such references, none of them reached by a
+sample. While expanding for a sample, the container of a referenced group's compositor now carries the reference as its
+cardinality node, and both generators read a choice's bounds from it first. The documentation model is unchanged.
+Test: `SampleXmlGroupReferenceBoundsTest` (a choice group that occurs twice, a sequence group with `minOccurs="2"`).
+
+**Audit** (after `62387367`, the run that also served the seeded comparison): unchanged, 1,672 of 1,672 valid per
+combination and no invalid sample. Neither change shows in the corpus: it has no `sequence` or `all` with `minOccurs`
+of two or more, and no sample reaches the 11 group references that repeat.

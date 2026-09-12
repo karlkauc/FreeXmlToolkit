@@ -392,12 +392,20 @@ samples (xlink attributes currently emitted as child elements) valid.
   referenced element's content. Commit `7f3d07ec`: repetitions beyond `minOccurs` are emitted only the first time
   an XPath is emitted in a document (UBL 2.1 exceeded the output limit). Repeating `sequence`/`all` groups is still
   open; `SampleXmlOccurrenceBoundsTest`.)*
+  *(2026-09-11, report §29: a `sequence` or `all` repeats as a whole, like an element; the corpus has no such group.
+  `SampleXmlGroupRepetitionTest`.)*
+  *(2026-09-12, report §29: the bounds of a group reference apply to the referenced group; while expanding for a
+  sample the compositor's container carries the reference as its cardinality node, and both generators read a
+  choice's bounds from it. MathML `mfrac` (JATS) needs its expression group twice; the corpus has 11 such
+  references. `SampleXmlGroupReferenceBoundsTest`.)*
 - [x] **G7. Particles with the same name in one compositor.** *(2026-09-11, found by the F1/H re-audit: the element
   map keys a particle as parent XPath plus name, so JATS `ruby-model` (`rb, (rt | (rp, rt, rp))`) and FundsXML4 UK,
   which declares `UCITSExistingPerformanceFees` and `UKAssumedPortfolioReturn` twice, lost the first of two particles
   of one name, in samples and in the documentation. A further particle now gets `name[n]` as its key;
   `SampleXmlRepeatedParticlesTest`. The FundsXML golden map gained exactly these two entries.)*
-- [ ] **G5.** Golden tests:
+- [ ] **G5.** Golden tests: *(2026-09-11: `choice minOccurs=2` in `SampleXmlOccurrenceBoundsTest`, required
+  `xs:any ##other` in `SampleXmlWildcardTest` and `SampleXmlIncompleteContentTest`, a sequence with `minOccurs=2` and
+  a required choice with only optional options in `SampleXmlGroupRepetitionTest`.)*
   - a required choice with only optional options
   - `choice minOccurs=2` with recursive options
   - required `xs:any ##other`
@@ -532,6 +540,12 @@ samples (xlink attributes currently emitted as child elements) valid.
   `SampleXmlRealisticValuesTest`. The structural walk still exists twice.)*
 - [ ] **R2.** Seedable randomness for values and choices, so an audit run is reproducible. The datajud first
   element flipped between valid and invalid across runs.
+  *(2026-09-11, report §28: the value generator, the pattern sampler and the key tracker share one replaceable random
+  source; `XsdDocumentationService.setSampleSeed` and the realistic generator's seed constructor seed choices and
+  values from separate streams; `SampleXmlRunner.generate` takes a seed and the audit forwards
+  `-Dsample.audit.seed`. Random profile rules stay unseeded. `SampleXmlReproducibilityTest`.)*
+  *(Found by the first two seeded audits, 2,029 of 11,504 samples differed in size: date ranges and `NMTOKEN`
+  timestamps followed the clock. A seeded generator uses the fixed `SEEDED_CLOCK`.)*
 
 ---
 
