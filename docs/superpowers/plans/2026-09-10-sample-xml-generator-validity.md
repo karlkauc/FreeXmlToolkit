@@ -151,6 +151,13 @@ Of the 274 invalid samples, the report maps each validation error to one of the 
 
 ## Global Constraints
 
+- **Progress after G4/G4b and R2** (report §28, §29): breadth valid 1,672 · 1,672 · 1,672 · 1,672 of 1,672, first
+  element 30 · 30 · 30 · 30; unchanged, since neither change shows in the corpus.
+  - Two audit runs with one seed are byte-identical (11,504 of 11,504 samples), after three causes: clock-dependent
+    dates, an unseeded schema expansion, and a pattern walk that followed the automaton's identity-hashed transition
+    order.
+  - Next: the open points of WP D (attribute-only complex types, mixed content), F1 NOTATION/ENTITY, F2 lists, F5
+    pattern intersection, G2 recursion on demand, G3 strict wildcards, R1 the structural walk that exists twice.
 - **No behaviour loss:** keep `generateSampleXml(boolean, int)`, `generateSampleXml(String, boolean, int)`,
   `getRootElementNames()` and `ProfiledXmlGeneratorService.generateRealistic(…, rootElementName)` working;
   profiles and XPath rules keep matching.
@@ -403,7 +410,7 @@ samples (xlink attributes currently emitted as child elements) valid.
   which declares `UCITSExistingPerformanceFees` and `UKAssumedPortfolioReturn` twice, lost the first of two particles
   of one name, in samples and in the documentation. A further particle now gets `name[n]` as its key;
   `SampleXmlRepeatedParticlesTest`. The FundsXML golden map gained exactly these two entries.)*
-- [ ] **G5.** Golden tests: *(2026-09-11: `choice minOccurs=2` in `SampleXmlOccurrenceBoundsTest`, required
+- [x] **G5.** Golden tests: *(2026-09-11: `choice minOccurs=2` in `SampleXmlOccurrenceBoundsTest`, required
   `xs:any ##other` in `SampleXmlWildcardTest` and `SampleXmlIncompleteContentTest`, a sequence with `minOccurs=2` and
   a required choice with only optional options in `SampleXmlGroupRepetitionTest`.)*
   - a required choice with only optional options
@@ -538,7 +545,7 @@ samples (xlink attributes currently emitted as child elements) valid.
   `NaturalLanguageStringStructure` → `PopulatedStringType` came out empty. The schema processing service now hands its
   namespace-aware resolver to the documentation data (`NamedTypeResolver`), and the realistic generator uses it;
   `SampleXmlRealisticValuesTest`. The structural walk still exists twice.)*
-- [ ] **R2.** Seedable randomness for values and choices, so an audit run is reproducible. The datajud first
+- [x] **R2.** Seedable randomness for values and choices, so an audit run is reproducible. The datajud first
   element flipped between valid and invalid across runs.
   *(2026-09-11, report §28: the value generator, the pattern sampler and the key tracker share one replaceable random
   source; `XsdDocumentationService.setSampleSeed` and the realistic generator's seed constructor seed choices and
