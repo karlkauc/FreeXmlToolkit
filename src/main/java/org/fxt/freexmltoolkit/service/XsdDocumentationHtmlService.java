@@ -49,6 +49,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
+import org.fxt.freexmltoolkit.util.MarkdownSupport;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.templatemode.TemplateMode;
@@ -111,6 +112,10 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
 
     public void setDocumentationData(XsdDocumentationData xsdDocumentationData) {
         this.xsdDocumentationData = xsdDocumentationData;
+        // This service instance outlives a single run (it is a field of XsdDocumentationService),
+        // and the cached type documentation is Markdown-mode dependent: a second run with another
+        // mode would otherwise be served stale HTML.
+        typeDocumentationCache.clear();
     }
 
     // Language configuration for filtering documentation output
@@ -1092,7 +1097,35 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
             }
         }
 
+        // Render after merging, so a Markdown block spanning two xs:documentation entries of the
+        // same language still parses. The plain branch is HTML-escaped, which is what makes the
+        // templates' th:utext safe for either branch.
+        boolean markdown = renderMarkdownFor(node);
+        result.replaceAll((lang, content) -> MarkdownSupport.renderOrEscape(content, markdown));
+
         return result;
+    }
+
+    /**
+     * Decides whether the documentation of this node renders as Markdown, mirroring the element
+     * pipeline: {@link XsdDocumentationService.MarkdownMode#OFF} is a hard kill switch, otherwise
+     * the node's own {@code @markdown} beats the mode's default.
+     *
+     * <p>Type, attribute and enumeration nodes each carry their own annotation, so each decides
+     * for itself; there is no inheritance from an enclosing type here.
+     *
+     * @param node the XSD node whose documentation is being read
+     * @return true when the documentation of this node is Markdown
+     */
+    private boolean renderMarkdownFor(Node node) {
+        XsdDocumentationService.MarkdownMode mode = (xsdDocService == null)
+                ? XsdDocumentationService.MarkdownMode.OFF      // safe default for bare instances
+                : xsdDocService.getMarkdownMode();
+        if (mode == XsdDocumentationService.MarkdownMode.OFF) {
+            return false;
+        }
+        Boolean flag = MarkdownSupport.markdownFlag(getDirectChildElement(node, "annotation"));
+        return (flag != null) ? flag : mode == XsdDocumentationService.MarkdownMode.ALL;
     }
 
     public String getRestrictionBase(Node simpleTypeNode) {

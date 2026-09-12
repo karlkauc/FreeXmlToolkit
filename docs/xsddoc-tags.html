@@ -306,8 +306,8 @@ offers three choices under <strong>Markdown rendering</strong>, matching
   <thead><tr><th>Choice</th><th>Mode</th><th>Effect</th></tr></thead>
   <tbody>
     <tr><td>All documentation <em>(default)</em></td><td><code>ALL</code></td>
-        <td>Every node's documentation goes through the Markdown renderer. <code>@markdown</code>
-            is ignored.</td></tr>
+        <td>Every node's documentation goes through the Markdown renderer, unless that node
+            itself says <code>@markdown = false</code>.</td></tr>
     <tr><td>Per node (<code>@markdown</code>)</td><td><code>PER_NODE</code></td>
         <td>Only nodes whose annotation says <code>@markdown = true</code> are rendered; every
             other node — including nodes that say nothing — stays plain text.</td></tr>
@@ -323,6 +323,10 @@ offers three choices under <strong>Markdown rendering</strong>, matching
         &lt;xs:appinfo source="@markdown"&gt;true&lt;/xs:appinfo&gt;
     &lt;/xs:annotation&gt;
 &lt;/xs:element&gt;</code></pre>
+
+<p>A node's own <code>@markdown</code> always beats the chosen mode; only <code>OFF</code> is
+absolute. The same rule applies to the documentation of named types, attributes and enumerations
+on the generated type pages, each of which decides from its own annotation.</p>
 
 <p>In the Inspector the tag is a three-state <strong>Markdown</strong> choice: <em>Not set</em>
 (no tag is written), <em>Markdown</em> (<code>true</code>) and <em>Plain text</em>

@@ -207,6 +207,24 @@ class XsdDocumentationPdfServiceTest {
     /**
      * Creates test documentation data for testing.
      */
+    @Test
+    void testGeneratesWithRenderedMarkdownDocumentation() throws Exception {
+        // Given: documentation that already went through the Markdown renderer. It is flattened to
+        // plain text before it reaches the intermediate XML / XSL-FO stage.
+        File outputFile = tempDir.resolve("markdown-output.pdf").toFile();
+        XsdExtendedElement element = testData.getExtendedXsdElementMap().get("/Person");
+        element.setUseMarkdownRenderer(false); // the content below is already rendered HTML
+        element.setDocumentations(List.of(new XsdExtendedElement.DocumentationInfo(
+                "default", "<p><strong>bold</strong></p><ul><li>a</li><li>b</li></ul>")));
+
+        // When
+        pdfService.generatePdfDocumentation(outputFile, testData);
+
+        // Then
+        assertTrue(outputFile.exists(), "PDF should be generated from HTML documentation");
+        assertTrue(outputFile.length() > 0, "PDF should not be empty");
+    }
+
     private XsdDocumentationData createTestDocumentationData() throws Exception {
         XsdDocumentationData data = new XsdDocumentationData();
         data.setXsdFilePath("/test/TestSchema.xsd");

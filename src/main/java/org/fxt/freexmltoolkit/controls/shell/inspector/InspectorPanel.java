@@ -47,6 +47,7 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNodeXPath;
+import org.fxt.freexmltoolkit.util.MarkdownSupport;
 
 /**
  * The Unified shell inspector — the editable properties pane. It keeps the Figma flat
@@ -1198,31 +1199,7 @@ public class InspectorPanel extends VBox {
      * dropped, common entities decoded, and intra-line whitespace collapsed.
      */
     static String htmlToPlainText(String html) {
-        if (html == null) {
-            return "";
-        }
-        String s = html
-                .replaceAll("(?i)<\\s*br\\s*/?>", "\n")
-                .replaceAll("(?i)</\\s*(p|div|li|tr|h[1-6])\\s*>", "\n")
-                .replaceAll("<[^>]+>", " ")
-                .replace("&nbsp;", " ")
-                .replace("&amp;", "&")
-                .replace("&lt;", "<")
-                .replace("&gt;", ">")
-                .replace("&quot;", "\"")
-                .replace("&#39;", "'")
-                .replace("&apos;", "'");
-        StringBuilder out = new StringBuilder();
-        for (String line : s.split("\n")) {
-            String t = line.replaceAll("[ \\t\\x0B\\f\\r]+", " ").trim();
-            if (!t.isEmpty()) {
-                if (out.length() > 0) {
-                    out.append('\n');
-                }
-                out.append(t);
-            }
-        }
-        return out.toString();
+        return MarkdownSupport.toPlainText(html);
     }
 
     /**

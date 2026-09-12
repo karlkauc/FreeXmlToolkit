@@ -52,6 +52,7 @@ import org.apache.poi.xwpf.usermodel.XWPFTableRow;
 import org.fxt.freexmltoolkit.domain.WordDocumentationConfig;
 import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
+import org.fxt.freexmltoolkit.util.MarkdownSupport;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTBody;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTBorder;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTDocument1;
@@ -1297,8 +1298,9 @@ public class XsdDocumentationWordService {
             doc = docs.values().iterator().next();
         }
 
-        // Strip HTML tags and return
-        return doc.replaceAll("<[^>]*>", "").trim();
+        // Flatten to plain text: keeps paragraphs and list items apart and decodes entities,
+        // so rendered Markdown does not run together in the Word table cell.
+        return MarkdownSupport.toPlainText(doc);
     }
 
     private void reportProgress(String message) {

@@ -84,33 +84,64 @@ class XsdDocumentationAppInfoFormatTest {
     }
 
     @Test
-    @DisplayName("MarkdownMode.ALL renders every node")
-    void markdownModeAll() throws Exception {
+    @DisplayName("MarkdownMode.ALL renders every node that does not opt out")
+    void markdownModeAllHonoursNodeFalse() throws Exception {
         XsdDocumentationService service = process(XsdDocumentationService.MarkdownMode.ALL);
 
         assertTrue(isRendered(service, "CanonicalTags"));
-        assertTrue(isRendered(service, "MarkdownOff"));
         assertTrue(isRendered(service, "MarkdownUnset"));
+        // The node's own @markdown = false now beats the mode's default; it used to be ignored.
+        assertFalseRendered(service, "MarkdownOff");
     }
 
     @Test
     @DisplayName("MarkdownMode.OFF renders no node, whatever @markdown says")
-    void markdownModeOff() throws Exception {
+    void markdownModeOffIgnoresNodeTrue() throws Exception {
         XsdDocumentationService service = process(XsdDocumentationService.MarkdownMode.OFF);
 
         assertFalseRendered(service, "CanonicalTags");
         assertFalseRendered(service, "MarkdownOff");
         assertFalseRendered(service, "MarkdownUnset");
+        // Not even a type-level or element-level @markdown = true survives OFF.
+        assertFalseRendered(service, "TypeMarkdownInherited");
+        assertFalseRendered(service, "ElementOnTypeOff");
     }
 
     @Test
     @DisplayName("MarkdownMode.PER_NODE renders only the nodes that ask for it")
-    void markdownModePerNode() throws Exception {
+    void markdownModePerNodeHonoursNodeTrue() throws Exception {
         XsdDocumentationService service = process(XsdDocumentationService.MarkdownMode.PER_NODE);
 
         assertTrue(isRendered(service, "CanonicalTags"), "@markdown = true must render");
         assertFalseRendered(service, "MarkdownOff");
         assertFalseRendered(service, "MarkdownUnset");
+    }
+
+    @Test
+    @DisplayName("an element's own @markdown beats the one inherited from its type")
+    void elementFlagBeatsTypeFlag() throws Exception {
+        for (XsdDocumentationService.MarkdownMode mode : List.of(
+                XsdDocumentationService.MarkdownMode.ALL,
+                XsdDocumentationService.MarkdownMode.PER_NODE)) {
+            XsdDocumentationService service = process(mode);
+
+            // Type says true, the element says false -> the element wins.
+            assertFalseRendered(service, "TypeMarkdownOverridden");
+            // Type says false, the element says true -> the element wins.
+            assertTrue(isRendered(service, "ElementOnTypeOff"),
+                    "element @markdown = true must win over its type in mode " + mode);
+        }
+    }
+
+    @Test
+    @DisplayName("the type's @markdown applies when the element itself is silent")
+    void typeFlagAppliesWhenElementIsSilent() throws Exception {
+        XsdDocumentationService perNode = process(XsdDocumentationService.MarkdownMode.PER_NODE);
+        assertTrue(isRendered(perNode, "TypeMarkdownInherited"),
+                "an element without its own @markdown inherits the type's preference");
+
+        XsdDocumentationService all = process(XsdDocumentationService.MarkdownMode.ALL);
+        assertTrue(isRendered(all, "TypeMarkdownInherited"));
     }
 
     @Test

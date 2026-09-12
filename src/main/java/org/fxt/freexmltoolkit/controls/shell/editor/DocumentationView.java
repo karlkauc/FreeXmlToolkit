@@ -232,8 +232,10 @@ public class DocumentationView extends BorderPane {
         markdownMode.getItems().addAll(MARKDOWN_ALL, MARKDOWN_PER_NODE, MARKDOWN_OFF);
         markdownMode.getSelectionModel().selectFirst();
         markdownMode.setTooltip(new javafx.scene.control.Tooltip(
-                "\"Per node\" renders only the nodes whose xs:appinfo says @markdown = true; "
-                        + "every other node keeps its documentation as plain text."));
+                "A node's own xs:appinfo @markdown always wins over this setting. "
+                        + "\"All documentation\" renders every node that does not say @markdown = false; "
+                        + "\"Per node\" renders only the nodes that say @markdown = true; "
+                        + "\"Off\" never renders, whatever the nodes say."));
         Label markdownLabel = new Label("Markdown rendering");
         markdownLabel.getStyleClass().add("fxt-sig-field-label");
         showDocInSvg.setSelected(true);

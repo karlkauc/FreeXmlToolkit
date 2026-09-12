@@ -23,7 +23,6 @@ import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -32,13 +31,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.fxt.freexmltoolkit.util.MarkdownSupport;
 import org.w3c.dom.Node;
-
-import com.vladsch.flexmark.ext.gfm.strikethrough.StrikethroughExtension;
-import com.vladsch.flexmark.ext.tables.TablesExtension;
-import com.vladsch.flexmark.html.HtmlRenderer;
-import com.vladsch.flexmark.parser.Parser;
-import com.vladsch.flexmark.util.data.MutableDataSet;
 
 /**
  * Represents an extended XSD element with additional properties and methods,
@@ -92,28 +86,6 @@ public class XsdExtendedElement implements Serializable {
 
     // Markdown rendering
     private Boolean useMarkdownRenderer = true;
-
-    /**
-     * One Markdown parser/renderer pair for all instances. Both are immutable and thread-safe once built; creating
-     * them per element cost several kilobytes per XPath entry and exhausted the heap for large schemas, whose
-     * element maps hold hundreds of thousands of entries.
-     */
-    private static final class Markdown {
-        private static final Parser PARSER;
-        private static final HtmlRenderer RENDERER;
-
-        static {
-            MutableDataSet options = new MutableDataSet();
-            options.set(Parser.EXTENSIONS, Arrays.asList(TablesExtension.create(), StrikethroughExtension.create()));
-            options.set(HtmlRenderer.SOFT_BREAK, "<br />\n");
-            PARSER = Parser.builder(options).build();
-            RENDERER = HtmlRenderer.builder(options).build();
-        }
-
-        private static String render(String markdown) {
-            return RENDERER.render(PARSER.parse(markdown));
-        }
-    }
 
     // Namespace
     private String sourceNamespace;
@@ -280,7 +252,7 @@ public class XsdExtendedElement implements Serializable {
         return documentations.stream()
                 .collect(Collectors.toMap(
                         doc -> doc.lang() != null ? doc.lang().toLowerCase() : "default",
-                        doc -> useMarkdownRenderer ? Markdown.render(doc.content()) : doc.content(),
+                        doc -> useMarkdownRenderer ? MarkdownSupport.render(doc.content()) : doc.content(),
                         (existing, replacement) -> existing // In case of duplicate langs, keep first
                 ));
     }
@@ -317,7 +289,7 @@ public class XsdExtendedElement implements Serializable {
                 })
                 .collect(Collectors.toMap(
                         doc -> doc.lang() != null ? doc.lang().toLowerCase() : "default",
-                        doc -> useMarkdownRenderer ? Markdown.render(doc.content()) : doc.content(),
+                        doc -> useMarkdownRenderer ? MarkdownSupport.render(doc.content()) : doc.content(),
                         (existing, replacement) -> existing, // In case of duplicate langs, keep first
                         LinkedHashMap::new // Preserve insertion order
                 ));
@@ -338,7 +310,7 @@ public class XsdExtendedElement implements Serializable {
         return documentations.stream()
                 .collect(Collectors.toMap(
                         doc -> doc.lang() != null ? doc.lang().toLowerCase() : "default",
-                        doc -> useMarkdownRenderer ? Markdown.render(doc.content()) : doc.content(),
+                        doc -> useMarkdownRenderer ? MarkdownSupport.render(doc.content()) : doc.content(),
                         (existing, replacement) -> existing, // In case of duplicate langs, keep first
                         LinkedHashMap::new // Preserve insertion order
                 ));
@@ -357,7 +329,7 @@ public class XsdExtendedElement implements Serializable {
                 .map(DocumentationInfo::content)
                 .collect(Collectors.joining("\n\n"));
 
-        return useMarkdownRenderer ? Markdown.render(rawContent) : rawContent;
+        return useMarkdownRenderer ? MarkdownSupport.render(rawContent) : rawContent;
     }
 
     /**

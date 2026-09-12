@@ -106,7 +106,7 @@
                     <!-- NEU: Dokumentation wird mit Hilfsmethode ausgelesen -->
                     <div class="mt-2" th:if="${this.getDocumentationFromNode(complexTypeNode) != ''}">
                         <p class="text-sm text-slate-600"
-                           th:text="${this.getDocumentationFromNode(complexTypeNode)}">
+                           th:utext="${this.getDocumentationFromNode(complexTypeNode)}">
                             Documentation of the complex type...
                         </p>
                     </div>

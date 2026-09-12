@@ -30,6 +30,7 @@ import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
+import org.fxt.freexmltoolkit.util.MarkdownSupport;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement.DocumentationInfo;
 import org.w3c.dom.Node;
 
@@ -439,21 +440,7 @@ public class DataDictionaryExcelExporter {
      * Strips HTML tags from content for Excel display.
      */
     private String stripHtml(String content) {
-        if (content == null || content.isEmpty()) {
-            return "";
-        }
-        // Remove HTML tags
-        String text = content.replaceAll("<[^>]+>", "");
-        // Decode common HTML entities
-        text = text.replace("&amp;", "&")
-                .replace("&lt;", "<")
-                .replace("&gt;", ">")
-                .replace("&quot;", "\"")
-                .replace("&apos;", "'")
-                .replace("&nbsp;", " ");
-        // Normalize whitespace
-        text = text.replaceAll("\\s+", " ").trim();
-        return text;
+        return MarkdownSupport.toPlainText(content);
     }
 
     private String getMinOccurs(XsdExtendedElement element) {

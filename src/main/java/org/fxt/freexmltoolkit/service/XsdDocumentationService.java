@@ -353,6 +353,22 @@ public class XsdDocumentationService {
         return markdownMode == MarkdownMode.ALL;
     }
 
+    /**
+     * Resolves the effective Markdown rendering for one node.
+     *
+     * <p>{@link MarkdownMode#OFF} is a hard kill switch; otherwise a node's own {@code @markdown}
+     * beats the mode's default, so {@code ALL} still honours a node that opts out.
+     *
+     * @param nodeFlag the node's stated preference, or null when it says nothing
+     * @return whether this node's documentation renders as Markdown
+     */
+    boolean resolveMarkdownRendering(Boolean nodeFlag) {
+        if (markdownMode == MarkdownMode.OFF) {
+            return false;
+        }
+        return nodeFlag != null ? nodeFlag : defaultMarkdownRendering();
+    }
+
     public void setIncludeTypeDefinitionsInSourceCode(Boolean includeTypeDefinitionsInSourceCode) {
         this.includeTypeDefinitionsInSourceCode = includeTypeDefinitionsInSourceCode;
     }
@@ -2430,11 +2446,14 @@ public class XsdDocumentationService {
             }
         }
 
-        // Process annotations from the element itself and its type definition
-        processAnnotations(getDirectChildElement(node, "annotation"), extendedElem);
-        if (typeDefinitionNode != null) {
-            processAnnotations(getDirectChildElement(typeDefinitionNode, "annotation"), extendedElem);
-        }
+        // Process annotations from the element itself and its type definition. The element's own
+        // @markdown wins; the type's annotation only supplies the fallback.
+        Boolean ownMarkdown = processAnnotations(getDirectChildElement(node, "annotation"), extendedElem);
+        Boolean typeMarkdown = typeDefinitionNode != null
+                ? processAnnotations(getDirectChildElement(typeDefinitionNode, "annotation"), extendedElem)
+                : null;
+        extendedElem.setUseMarkdownRenderer(
+                resolveMarkdownRendering(ownMarkdown != null ? ownMarkdown : typeMarkdown));
 
         // Process list and union types (for simpleType definitions)
         if (typeDefinitionNode != null && "simpleType".equals(typeDefinitionNode.getLocalName())) {
@@ -4443,10 +4462,19 @@ public class XsdDocumentationService {
         return ALTOVA_NS_URI.equals(namespaceUri) || FXT_EXT_NS_URI.equals(namespaceUri);
     }
 
-    private void processAnnotations(Node annotationNode, XsdExtendedElement extendedElem) {
+    /**
+     * Reads documentation and appinfo tags of one {@code xs:annotation} into the element.
+     *
+     * @param annotationNode the annotation to read, may be null
+     * @param extendedElem   the element to populate
+     * @return the {@code @markdown} flag stated by this annotation, or null when it says nothing.
+     *         Applying it (including the element-beats-type rule) is the caller's job.
+     */
+    private Boolean processAnnotations(Node annotationNode, XsdExtendedElement extendedElem) {
         if (annotationNode == null) {
-            return;
+            return null;
         }
+        Boolean markdownFlag = null;
 
         // 1. Extract documentation
         for (Node docNode : getDirectChildElements(annotationNode, "documentation")) {
@@ -4496,10 +4524,10 @@ public class XsdDocumentationService {
                 case "@see" -> xsdDocInfo.addSee(value);
                 case "@deprecated" -> xsdDocInfo.setDeprecated(value);
                 case "@markdown" -> {
-                    // Only honored when the generator was asked to follow the node values.
+                    // Recorded only; OFF and the element-beats-type rule are applied by the caller.
                     Boolean markdown = XsdAppInfo.parseBooleanFlag(value);
-                    if (markdownMode == MarkdownMode.PER_NODE && markdown != null) {
-                        extendedElem.setUseMarkdownRenderer(markdown);
+                    if (markdown != null) {
+                        markdownFlag = markdown; // last explicit value within one annotation wins
                     }
                 }
                 default -> genericAppInfos.add(value.isEmpty() ? tag : tag + " " + value);
@@ -4516,6 +4544,7 @@ public class XsdDocumentationService {
         if (!exampleValues.isEmpty()) {
             extendedElem.setExampleValues(exampleValues);
         }
+        return markdownFlag;
     }
 
     /**

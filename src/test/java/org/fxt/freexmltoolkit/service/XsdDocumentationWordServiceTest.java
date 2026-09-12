@@ -161,6 +161,33 @@ class XsdDocumentationWordServiceTest {
     /**
      * Creates test documentation data for testing.
      */
+    @Test
+    void testDataDictionaryDescriptionIsFlattenedPlainText() throws Exception {
+        // Given: documentation that already went through the Markdown renderer
+        File outputFile = tempDir.resolve("markdown-output.docx").toFile();
+        XsdExtendedElement element = testData.getExtendedXsdElementMap().get("/Person");
+        element.setUseMarkdownRenderer(false); // the content below is already rendered HTML
+        element.setDocumentations(List.of(new XsdExtendedElement.DocumentationInfo(
+                "default", "<p><strong>bold</strong></p><ul><li>a</li><li>b</li></ul>")));
+
+        // When
+        wordService.generateWordDocumentation(outputFile, testData);
+
+        // Then: the cell carries readable text, not tags, entities or run-together list items
+        StringBuilder tableText = new StringBuilder();
+        try (FileInputStream fis = new FileInputStream(outputFile);
+             XWPFDocument doc = new XWPFDocument(fis)) {
+            doc.getTables().forEach(t -> t.getRows().forEach(
+                    r -> r.getTableCells().forEach(c -> tableText.append(c.getText()).append('\n'))));
+        }
+        String text = tableText.toString();
+
+        assertTrue(text.contains("bold"), "documentation text must survive, was: " + text);
+        assertFalse(text.contains("<strong>"), "HTML tags must be stripped, was: " + text);
+        assertFalse(text.contains("&lt;"), "entities must be decoded, was: " + text);
+        assertFalse(text.contains("ab"), "list items must not run together, was: " + text);
+    }
+
     private XsdDocumentationData createTestDocumentationData() throws Exception {
         XsdDocumentationData data = new XsdDocumentationData();
         data.setXsdFilePath("/test/TestSchema.xsd");

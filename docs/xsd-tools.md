@@ -406,9 +406,14 @@ formatted on the generated pages. The choice has three settings:
 
 | Setting | Effect |
 |---------|--------|
-| **All documentation** *(default)* | Every node's documentation is rendered as Markdown |
+| **All documentation** *(default)* | Every node's documentation is rendered as Markdown, unless that node itself says `@markdown` is `false` |
 | **Per node (`@markdown`)** | Only nodes whose annotation says `@markdown` is `true` are rendered - everything else, including nodes that say nothing, stays plain text |
 | **Off** | Nothing is rendered, whatever the nodes say |
+
+A node's own `@markdown` always beats the chosen setting - only **Off** is absolute. Where an
+element and its type disagree, the element wins; the type's `@markdown` applies to every element
+using it that does not state its own. The same rule drives the complexType, simpleType, attribute
+and enumeration documentation on the generated type pages.
 
 The per-node switch lives in the schema itself and is edited in the Inspector's **Markdown**
 choice (*Not set* / *Markdown* / *Plain text*):

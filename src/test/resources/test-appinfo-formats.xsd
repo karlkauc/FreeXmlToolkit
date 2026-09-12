@@ -67,7 +67,77 @@
                         <xs:documentation>Documentation with **bold** text.</xs:documentation>
                     </xs:annotation>
                 </xs:element>
+
+                <xs:element name="TypeMarkdownInherited" type="MarkdownType">
+                    <xs:annotation>
+                        <xs:documentation>Documentation with **bold** text.</xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+
+                <xs:element name="TypeMarkdownOverridden" type="MarkdownType">
+                    <xs:annotation>
+                        <xs:documentation>Documentation with **bold** text.</xs:documentation>
+                        <xs:appinfo source="@markdown">false</xs:appinfo>
+                    </xs:annotation>
+                </xs:element>
+
+                <xs:element name="ElementOnTypeOff" type="PlainType">
+                    <xs:annotation>
+                        <xs:documentation>Documentation with **bold** text.</xs:documentation>
+                        <xs:appinfo source="@markdown">true</xs:appinfo>
+                    </xs:annotation>
+                </xs:element>
+
+                <xs:element name="ComplexTypeMarkdown" type="DocumentedComplexType"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
+    <!-- Type-level @markdown: the type states the preference, an element may override it. -->
+    <xs:simpleType name="MarkdownType">
+        <xs:annotation>
+            <xs:documentation>Type documentation with **bold** text.</xs:documentation>
+            <xs:appinfo source="@markdown">true</xs:appinfo>
+        </xs:annotation>
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+
+    <xs:simpleType name="PlainType">
+        <xs:annotation>
+            <xs:documentation>Type documentation with **bold** text.</xs:documentation>
+            <xs:appinfo source="@markdown">false</xs:appinfo>
+        </xs:annotation>
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+
+    <xs:complexType name="DocumentedComplexType">
+        <xs:annotation>
+            <xs:documentation>Complex type documentation with **bold** text.</xs:documentation>
+            <xs:appinfo source="@markdown">true</xs:appinfo>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="Inner" type="xs:string"/>
+        </xs:sequence>
+        <xs:attribute name="plainAttr" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>Attribute documentation with **bold** text.</xs:documentation>
+                <xs:appinfo source="@markdown">false</xs:appinfo>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+
+    <!-- The enumeration opts in while its own type stays silent. -->
+    <xs:simpleType name="EnumMarkdownType">
+        <xs:annotation>
+            <xs:documentation>Type documentation with **bold** text.</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="A">
+                <xs:annotation>
+                    <xs:documentation>Enumeration documentation with **bold** text.</xs:documentation>
+                    <xs:appinfo source="@markdown">true</xs:appinfo>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
 </xs:schema>
