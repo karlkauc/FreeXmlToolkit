@@ -1942,7 +1942,8 @@ public class XsdDocumentationService {
         if (!sampleExpansion || (pruneOptionalParticles && isOptionalParticle(wildcard))) {
             return;
         }
-        if (wildcardSampleNamespace(wildcard) == null) {
+        Node strictElement = wildcardSampleNamespace(wildcard) == null ? strictWildcardElement(wildcard) : null;
+        if (wildcardSampleNamespace(wildcard) == null && strictElement == null) {
             markIncompleteUnlessOptional(wildcard, parentXPath);
             return;
         }
@@ -1955,10 +1956,58 @@ public class XsdDocumentationService {
         placeholder.setLevel(level);
         placeholder.setCounter(counter++);
         placeholder.setCurrentNode(wildcard);
+        if (strictElement != null) {
+            // A strict wildcard needs a declaration: the sample writes this global element
+            placeholder.setReferencedTypeName(getAttributeValue(strictElement, "name"));
+            placeholder.setSourceNamespace(instanceNamespace(strictElement));
+        }
         if (xsdDocumentationData.getExtendedXsdElementMap().containsKey(parentXPath)) {
             xsdDocumentationData.getExtendedXsdElementMap().get(parentXPath).addChild(xpath);
         }
         xsdDocumentationData.putExtendedXsdElement(xpath, placeholder);
+    }
+
+    /**
+     * A global element a {@code processContents="strict"} wildcard may hold: one the namespace constraint allows,
+     * concrete, and of a built-in simple type, so an empty element is a valid instance of it. {@code null} when the
+     * schema declares none (datajud requires {@code ##other} without importing a schema of another namespace).
+     */
+    private Node strictWildcardElement(Node wildcard) {
+        if (!(wildcard instanceof Element any)) {
+            return null;
+        }
+        String constraint = any.hasAttribute("namespace") ? any.getAttribute("namespace").trim() : "##any";
+        String ownNamespace = any.getOwnerDocument().getDocumentElement().getAttribute("targetNamespace");
+        List<Node> candidates = new ArrayList<>(xsdDocumentationData.getGlobalElements());
+        candidates.addAll(includedGlobalElements);
+        for (Node candidate : candidates) {
+            String namespace = instanceNamespace(candidate);
+            String type = getAttributeValue(candidate, "type");
+            if (isAbstractDeclaration(candidate) || type == null || !isBaseXmlType(type)) {
+                continue;
+            }
+            if (allowsNamespace(constraint, namespace, ownNamespace)) {
+                return candidate;
+            }
+        }
+        return null;
+    }
+
+    /** Whether a wildcard's namespace constraint allows an element of {@code namespace}. */
+    private static boolean allowsNamespace(String constraint, String namespace, String ownNamespace) {
+        for (String token : constraint.split("\\s+")) {
+            boolean allowed = switch (token) {
+                case "##any" -> true;
+                case "##other" -> !namespace.equals(ownNamespace);
+                case "##local" -> namespace.isEmpty();
+                case "##targetNamespace" -> namespace.equals(ownNamespace);
+                default -> token.equals(namespace);
+            };
+            if (allowed) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static final String WILDCARD_TYPE = "(wildcard)";
@@ -2015,16 +2064,22 @@ public class XsdDocumentationService {
     static void appendWildcardSample(StringBuilder sb, XsdExtendedElement wildcard, String indent,
                                      String defaultNamespace) {
         String namespace = wildcardSampleNamespace(wildcard.getCurrentNode());
+        String name = "sample";
+        if (wildcard.getReferencedTypeName() != null) {
+            // A strict wildcard: the expansion chose a global element the validator can look up
+            name = wildcard.getReferencedTypeName();
+            namespace = wildcard.getSourceNamespace() == null ? "" : wildcard.getSourceNamespace();
+        }
         if (namespace == null) {
             return;
         }
         sb.append(indent);
         if (namespace.equals(defaultNamespace)) {
-            sb.append("<sample/>\n");
+            sb.append('<').append(name).append("/>\n");
         } else if (namespace.isEmpty()) {
-            sb.append("<sample xmlns=\"\"/>\n");
+            sb.append('<').append(name).append(" xmlns=\"\"/>\n");
         } else {
-            sb.append("<ext:sample xmlns:ext=\"")
+            sb.append("<ext:").append(name).append(" xmlns:ext=\"")
                     .append(namespace.replace("&", "&amp;").replace("<", "&lt;").replace("\"", "&quot;"))
                     .append("\"/>\n");
         }

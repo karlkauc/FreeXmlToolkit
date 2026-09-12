@@ -385,7 +385,7 @@ samples (xlink attributes currently emitted as child elements) valid.
     element declaration no longer counts as recursion while expanding for a sample, so a concrete type that contains
     itself keeps its required content (UCI `StoreLoadoutItemType`). Recursion through the same element declaration or
     group is still cut; `SampleXmlAbstractContentTest`.)*
-- [ ] **G3. Required wildcards.** `xs:any` is only recorded (`processWildcards` `:3425`).
+- [x] **G3. Required wildcards.** `xs:any` is only recorded (`processWildcards` `:3425`).
   - For `minOccurs ≥ 1`, emit one element that the namespace constraint allows. For `##other`, use a foreign
     namespace such as `urn:fxt:sample`; for a list, use the first listed namespace. With `processContents="strict"`,
     pick a global element of an allowed namespace.
@@ -395,14 +395,20 @@ samples (xlink attributes currently emitted as child elements) valid.
     `urn:fxt:sample:extension` for `##any`/`##other`, without a namespace for `##local`, else in the first listed
     namespace, declared on the element itself. `strict` wildcards, which need a declaration, are still left out;
     `SampleXmlWildcardTest`.)*
-- [ ] **G4. Occurrence bounds.** Honour `minOccurs`/`maxOccurs` on `sequence`/`all` (repeat the group), and emit at
+  - *(2026-09-12: a `strict` wildcard now gets a global element the validator can look up: a concrete one of a
+    built-in type whose namespace the constraint allows (`##any`, `##other`, `##local`, `##targetNamespace` or a
+    listed one), taken from the main document and the included ones. Where the schema declares none — datajud
+    requires `##other` without importing a schema of another namespace — the content stays incomplete and the
+    generators leave it out as before. The corpus holds 35 strict wildcards, 8 of them required (INSPIRE 3, SIRI 2,
+    datajud 2, UBL 1). `SampleXmlStrictWildcardTest`.)*
+- [x] **G4. Occurrence bounds.** Honour `minOccurs`/`maxOccurs` on `sequence`/`all` (repeat the group), and emit at
   least `minOccurs` repetitions in mandatory-only mode. Today a repeating element always gets `maxOccurrences` copies,
   even in mandatory-only mode (`:2529-2543`). *(in part, 2026-09-11, commit `7b80b666`, found by the E re-audit:
   elements and choices repeat at least `minOccurs` times, also beyond `maxOccurrences` (UCI `Covariance` 6–120, 252
   invalid samples); the bounds of an element reference are read from the reference and no longer inherited by the
   referenced element's content. Commit `7f3d07ec`: repetitions beyond `minOccurs` are emitted only the first time
-  an XPath is emitted in a document (UBL 2.1 exceeded the output limit). Repeating `sequence`/`all` groups is still
-  open; `SampleXmlOccurrenceBoundsTest`.)*
+  an XPath is emitted in a document (UBL 2.1 exceeded the output limit); `SampleXmlOccurrenceBoundsTest`. Repeating
+  `sequence`/`all` groups followed on 2026-09-11, see below.)*
   *(2026-09-11, report §29: a `sequence` or `all` repeats as a whole, like an element; the corpus has no such group.
   `SampleXmlGroupRepetitionTest`.)*
   *(2026-09-12, report §29: the bounds of a group reference apply to the referenced group; while expanding for a
@@ -456,7 +462,7 @@ samples (xlink attributes currently emitted as child elements) valid.
   *signed* Java type (`printByte(value.byteValue())` etc., `:226-241`). Values above the signed maximum wrap to
   negative numbers (Garmin `Cadence = -77`, 233 occurrences). Use the right range per built-in type and print via
   `BigInteger`.
-- [ ] **F4. Facets on attributes and simple content.** *(in part, 2026-09-10: a simpleContent chain through
+- [x] **F4. Facets on attributes and simple content.** *(in part, 2026-09-10: a simpleContent chain through
   several named complex types now resolves to its simple base, `simpleContentBaseType`.)* Attribute types with a pattern (XTCE `NameType`
   `[^.\[\]:/ \t]+`) and simple-content elements (SIRI FR-IDF `StopPointRef` NMTOKEN, INSPIRE `value` double) come
   out empty. Use the same type resolution for attributes and simple-content bases as for elements.
@@ -465,6 +471,9 @@ samples (xlink attributes currently emitted as child elements) valid.
     out as `schoolDays`. Each facet of a derivation step now replaces the inherited facet of the same name, in the
     element map and therefore in the documentation too; `SampleXmlRestrictedFacetsTest`. Patterns of different
     steps must all match (intersection, see F5); the derived pattern is kept.)*
+  - *(2026-09-12: attribute types with a pattern and simple-content bases resolve like element types — XTCE names its
+    containers through such an attribute, and the key values of the H2 round build on it. What remains is the pattern
+    intersection, which belongs to F5.)*
 - [ ] **F5. Pattern generation.** *(partly done with A5: `BoundedPatternSampler` terminates within the length range,
   caps repetitions and emits only XML 1.0 characters. Pattern intersection and XSD escapes are still open.
   2026-09-11: a pattern on a typed built-in base (date/time, numeric, boolean) narrows the type's lexical space; the
