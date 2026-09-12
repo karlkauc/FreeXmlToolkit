@@ -1,5 +1,11 @@
 # Sample XML Generator: Valid Output on Real-World Schemas (Improvement Plan)
 
+**Status: closed on 2026-09-12.** 33 of the 37 points are done. Every sample the audit corpus offers is valid in both
+generators and both modes (1,672 of 1,672 per combination, §27 and §30 of the report), and two runs with the same seed
+are byte-identical (§28). The four points below stay open on purpose: the corpus no longer shows any of them, so they
+would be guesswork rather than measured work. Pick them up if a schema ever demands it.
+
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan work package by work package. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** "Generate Sample XML…" (plain and realistic, mandatory-only and with optional elements) produces
@@ -385,6 +391,9 @@ samples (xlink attributes currently emitted as child elements) valid.
     element declaration no longer counts as recursion while expanding for a sample, so a concrete type that contains
     itself keeps its required content (UCI `StoreLoadoutItemType`). Recursion through the same element declaration or
     group is still cut; `SampleXmlAbstractContentTest`.)*
+  *(left open on 2026-09-12: since G1 a choice avoids options whose required content a sample cannot complete, and
+  an optional particle with incomplete content is left out, so no corpus sample lacks required content any more.
+  Expanding recursion on demand would only widen the content of such samples.)*
 - [x] **G3. Required wildcards.** `xs:any` is only recorded (`processWildcards` `:3425`).
   - For `minOccurs ≥ 1`, emit one element that the namespace constraint allows. For `##other`, use a foreign
     namespace such as `urn:fxt:sample`; for a list, use the first listed namespace. With `processContents="strict"`,
@@ -446,6 +455,8 @@ samples (xlink attributes currently emitted as child elements) valid.
     a valid QName in any namespace context (XBRL `measure`); `hexBinary` and `base64Binary` honour `length`,
     `minLength` and `maxLength`, counted in octets (UCI `SHA_2_256_HashType`, 32 octets). NOTATION and ENTITY values
     need declarations and stay open; `SampleXmlSimpleValuesTest`.)*
+  - *(left open on 2026-09-12: `QName`, `anySimpleType` and the binary types are done; `NOTATION` and `ENTITY` are
+    not. The corpus declares ten notations but types nothing with them, and holds no `ENTITY` at all.)*
 - [x] **F2. Unions and lists.** Generate a value from the first member type that can produce one, including inline
   `simpleType` members; for lists, emit 1..n items. Today union members resolve to one (named) member or nothing.
   Evidence: XBRL `nonZeroDecimal`, `dateUnion`, XTCE `EpochType`.
@@ -490,6 +501,9 @@ samples (xlink attributes currently emitted as child elements) valid.
     one realistic XTCE sample is not even well-formed.
   - Intersect patterns across the derivation chain (all steps must match).
   - Translate XSD-only escapes (`\i`, `\c`, `\p{Is…}`) before Generex.
+  - *(left open on 2026-09-12: what remains is intersecting the patterns of a derivation chain and translating the
+    XSD-only escapes. Exactly one corpus type inherits a pattern over two steps, in a schema that does not compile,
+    and no corpus pattern uses `\i`, `\c` or `\p{Is…}`.)*
 - [x] **F6.** `min/maxExclusive` for decimals: use the smallest step that fits `fractionDigits`, not ±1.
   *(2026-09-11, report §25, found by the G1 re-audit: an exclusive range narrower than two steps inward by a quarter
   of its width, and rounded `float`, `double` and `decimal` values stay within their facets, compared in their own
@@ -564,6 +578,8 @@ samples (xlink attributes currently emitted as child elements) valid.
   `NaturalLanguageStringStructure` → `PopulatedStringType` came out empty. The schema processing service now hands its
   namespace-aware resolver to the documentation data (`NamedTypeResolver`), and the realistic generator uses it;
   `SampleXmlRealisticValuesTest`. The structural walk still exists twice.)*
+  - *(left open on 2026-09-12: the values are shared through `NamedTypeResolver`; what remains is merging the two
+    structural walks, a refactoring without a validity gain.)*
 - [x] **R2.** Seedable randomness for values and choices, so an audit run is reproducible. The datajud first
   element flipped between valid and invalid across runs.
   *(2026-09-11, report §28: the value generator, the pattern sampler and the key tracker share one replaceable random
