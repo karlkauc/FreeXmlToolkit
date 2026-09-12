@@ -761,7 +761,7 @@ public class XsdDocumentationService {
             XsdSampleDataGenerator.ResolvedType resolved = resolveTypeToBase(typeName, new HashSet<>());
             return resolved == null ? null
                     : new org.fxt.freexmltoolkit.domain.NamedTypeResolver.Resolution(resolved.baseType(),
-                    resolved.mergedRestriction());
+                    resolved.mergedRestriction(), resolved.list());
         });
     }
 
@@ -838,6 +838,22 @@ public class XsdDocumentationService {
             String baseType = getAttributeValue(restriction, "base");
             Map<String, List<String>> facets = extractFacetsFromRestriction(restriction);
 
+            // A restriction without a base holds its base type inline (a list of doubles with length="2")
+            if (baseType == null || baseType.isBlank()) {
+                Node inlineBase = getDirectChildElement(restriction, "simpleType");
+                XsdSampleDataGenerator.ResolvedType inner = inlineBase == null
+                        ? null : resolveSimpleType(inlineBase, visited);
+                if (inner != null) {
+                    Map<String, List<String>> merged = new HashMap<>();
+                    if (inner.mergedRestriction() != null && inner.mergedRestriction().facets() != null) {
+                        merged.putAll(inner.mergedRestriction().facets());
+                    }
+                    merged.putAll(facets);
+                    return new XsdSampleDataGenerator.ResolvedType(inner.baseType(),
+                            new XsdExtendedElement.RestrictionInfo(inner.baseType(), merged), inner.list());
+                }
+            }
+
             // Recursively resolve the base type
             XsdSampleDataGenerator.ResolvedType baseResolved = resolveTypeToBase(baseType, visited);
             if (baseResolved != null) {
@@ -867,7 +883,9 @@ public class XsdDocumentationService {
             String itemType = getAttributeValue(listNode, "itemType");
             if (itemType != null) {
                 XsdSampleDataGenerator.ResolvedType itemResolved = resolveTypeToBase(itemType, visited);
-                return itemResolved; // Return the item type's resolution
+                // The item type's resolution, marked as a list so a sample writes several items
+                return itemResolved == null ? null : new XsdSampleDataGenerator.ResolvedType(
+                        itemResolved.baseType(), itemResolved.mergedRestriction(), true);
             }
         }
 

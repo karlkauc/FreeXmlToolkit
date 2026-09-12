@@ -440,11 +440,17 @@ samples (xlink attributes currently emitted as child elements) valid.
     a valid QName in any namespace context (XBRL `measure`); `hexBinary` and `base64Binary` honour `length`,
     `minLength` and `maxLength`, counted in octets (UCI `SHA_2_256_HashType`, 32 octets). NOTATION and ENTITY values
     need declarations and stay open; `SampleXmlSimpleValuesTest`.)*
-- [ ] **F2. Unions and lists.** Generate a value from the first member type that can produce one, including inline
+- [x] **F2. Unions and lists.** Generate a value from the first member type that can produce one, including inline
   `simpleType` members; for lists, emit 1..n items. Today union members resolve to one (named) member or nothing.
   Evidence: XBRL `nonZeroDecimal`, `dateUnion`, XTCE `EpochType`.
   - *(in part, 2026-09-11: a union whose member types are declared inline, without `memberTypes`, resolves to its
     first inline member (XBRL `nonZeroDecimal`); `SampleXmlSimpleValuesTest`.)*
+  - *(2026-09-12: a list value holds several items of its item type. A restriction without a `base` resolves through
+    its inline `simpleType`, so `<xs:restriction><xs:simpleType><xs:list itemType="xs:double"/></xs:simpleType>
+    <xs:length value="2"/></xs:restriction>` no longer comes out empty; the resolution carries a list flag through
+    `NamedTypeResolver` to the realistic generator, and the length facets count items, not characters. The corpus
+    holds 24 list types (INSPIRE 11, SIRI 11, KML 2). `SampleXmlListValuesTest`. Open: choosing the first union
+    member that can actually produce a value.)*
 - [x] **F3. Unsigned ranges.** *(done 2026-09-10: `generateUnsignedInteger` prints via `BigInteger` and clamps to
   the type's value space; `XsdSampleDataGeneratorTest`)* `unsignedByte`, `unsignedShort`, `unsignedInt` and `unsignedLong` are printed via the
   *signed* Java type (`printByte(value.byteValue())` etc., `:226-241`). Values above the signed maximum wrap to

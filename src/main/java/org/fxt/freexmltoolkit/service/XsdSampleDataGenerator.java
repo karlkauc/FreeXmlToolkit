@@ -11,6 +11,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -66,7 +67,12 @@ public class XsdSampleDataGenerator {
      * @param baseType The base XML type name
      * @param mergedRestriction The merged restriction info
      */
-    public record ResolvedType(String baseType, RestrictionInfo mergedRestriction) {}
+    public record ResolvedType(String baseType, RestrictionInfo mergedRestriction, boolean list) {
+        /** A resolved type whose values are single items, not a whitespace-separated list. */
+        public ResolvedType(String baseType, RestrictionInfo mergedRestriction) {
+            this(baseType, mergedRestriction, false);
+        }
+    }
 
     /**
      * Functional interface for type resolution.
@@ -261,15 +267,22 @@ public class XsdSampleDataGenerator {
         String resolvedType = elementType;
         RestrictionInfo effectiveRestriction = restriction;
 
+        boolean listValue = element.getListItemType() != null && !element.getListItemType().isEmpty();
+
         if (typeResolver != null && !isBaseXmlType(elementType)) {
             ResolvedType resolved = typeResolver.resolve(elementType);
             if (resolved != null && resolved.baseType() != null) {
                 resolvedType = resolved.baseType();
                 // Merge restrictions: type hierarchy restrictions take precedence, element restrictions override
                 effectiveRestriction = mergeRestrictions(resolved.mergedRestriction(), restriction);
+                listValue = listValue || resolved.list();
                 logger.debug("Resolved type '{}' to base type '{}' for element '{}'",
                         elementType, resolvedType, element.getElementName());
             }
+        }
+
+        if (listValue) {
+            return listSample(element, resolvedType, effectiveRestriction, recursionDepth);
         }
 
         // Re-check for enumerations after type resolution (type may define them)
@@ -1007,6 +1020,60 @@ public class XsdSampleDataGenerator {
         String id = "id_generated_" + idCounter.getAndIncrement();
         reservedIdsForRefs.addLast(id);
         return id;
+    }
+
+    /** Items a list value holds when its length facets say nothing. */
+    private static final int DEFAULT_LIST_ITEMS = 2;
+    /** Length facets of a list count items, not characters, so they never reach an item's own value. */
+    private static final java.util.Set<String> LIST_LENGTH_FACETS =
+            java.util.Set.of("length", "minLength", "maxLength");
+
+    /**
+     * A whitespace-separated list value: as many items as the length facets demand, each generated for the item type
+     * (INSPIRE and SIRI hold 11 list types each, KML two).
+     */
+    private String listSample(XsdExtendedElement element, String itemType, RestrictionInfo restriction,
+                              int recursionDepth) {
+        Map<String, List<String>> facets = restriction == null || restriction.facets() == null
+                ? Map.of() : restriction.facets();
+        int items = intFacetOrDefault(facets, "length", -1);
+        if (items < 0) {
+            int min = intFacetOrDefault(facets, "minLength", 1);
+            int max = intFacetOrDefault(facets, "maxLength", Math.max(min, DEFAULT_LIST_ITEMS));
+            items = Math.max(min, Math.min(max, DEFAULT_LIST_ITEMS));
+        }
+
+        Map<String, List<String>> itemFacets = new LinkedHashMap<>();
+        facets.forEach((name, values) -> {
+            if (!LIST_LENGTH_FACETS.contains(name)) {
+                itemFacets.put(name, values);
+            }
+        });
+        XsdExtendedElement item = new XsdExtendedElement();
+        item.setElementName(element.getElementName());
+        item.setElementType(itemType);
+        item.setRestrictionInfo(new RestrictionInfo(itemType, itemFacets));
+
+        StringBuilder value = new StringBuilder();
+        for (int i = 0; i < Math.max(1, items); i++) {
+            if (i > 0) {
+                value.append(' ');
+            }
+            value.append(generateRecursive(item, recursionDepth + 1));
+        }
+        return value.toString();
+    }
+
+    private static int intFacetOrDefault(Map<String, List<String>> facets, String name, int fallback) {
+        List<String> values = facets.get(name);
+        if (values == null || values.isEmpty()) {
+            return fallback;
+        }
+        try {
+            return Integer.parseInt(values.getFirst().trim());
+        } catch (NumberFormatException e) {
+            return fallback;
+        }
     }
 
     private String generateStringSample(RestrictionInfo restriction) {

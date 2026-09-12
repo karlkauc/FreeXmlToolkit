@@ -37,7 +37,13 @@ public interface NamedTypeResolver {
      *
      * @param baseType    the built-in base type, for example {@code xs:NMTOKEN}
      * @param restriction the facets merged along the derivation chain, or {@code null}
+     * @param list        whether values of the type are whitespace-separated items of {@code baseType}
      */
-    record Resolution(String baseType, XsdExtendedElement.RestrictionInfo restriction) {
+    record Resolution(String baseType, XsdExtendedElement.RestrictionInfo restriction, boolean list) {
+
+        /** A resolved type whose values are single items. */
+        public Resolution(String baseType, XsdExtendedElement.RestrictionInfo restriction) {
+            this(baseType, restriction, false);
+        }
     }
 }

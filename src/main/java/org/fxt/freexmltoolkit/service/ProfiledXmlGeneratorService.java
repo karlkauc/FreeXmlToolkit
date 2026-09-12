@@ -976,7 +976,8 @@ public class ProfiledXmlGeneratorService {
             generator.setTypeResolver(typeName -> {
                 var resolution = data.getNamedTypeResolver().resolve(typeName);
                 return resolution == null ? null
-                        : new XsdSampleDataGenerator.ResolvedType(resolution.baseType(), resolution.restriction());
+                        : new XsdSampleDataGenerator.ResolvedType(resolution.baseType(), resolution.restriction(),
+                                resolution.list());
             });
             return;
         }
