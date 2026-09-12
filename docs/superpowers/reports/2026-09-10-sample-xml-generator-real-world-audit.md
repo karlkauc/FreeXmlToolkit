@@ -12,7 +12,8 @@ The improvement plan derived from these numbers is
 > (abstract elements and types) and the defects it exposed; §17 covers C (namespace qualification); §18 covers the
 > realistic generator's type resolution (R1); §19 covers inherited facets (F4); §20 covers required wildcards (G3);
 > §21 covers QName, binary and union values (F1, F2) and IDs for references (H); §22 covers particles with the same
-> name in one content model; §23 covers choices that pick options with complete content (G1); §24 covers key values of their own type (H2); §25 covers numbers rounded within their bounds (F6); §26 covers Garmin's keyrefs and workout steps (H2, E); §27 covers unique values across field paths (H2); §28 covers reproducible runs from a seed (R2); §29 covers model groups that repeat and the bounds of group references (G4).
+> name in one content model; §23 covers choices that pick options with complete content (G1); §24 covers key values of their own type (H2); §25 covers numbers rounded within their bounds (F6); §26 covers Garmin's keyrefs and workout steps (H2, E); §27 covers unique values across field paths (H2); §28 covers reproducible runs from a seed (R2); §29 covers model groups that repeat and the bounds of group references (G4); §30 covers list values (F2), strict
+> wildcards (G3) and what the plan leaves open.
 
 ## 1. Summary
 
@@ -413,6 +414,7 @@ The task skips itself when the corpus folder is absent.
 | 2026-09-11 | H2 unique values across field paths (§27) | 30 · 30 | 1,672 · 1,672 (of 1,672; realistic 1,672 · 1,672) | 0 |
 | 2026-09-12 | G4 model groups repeat, bounds of group references (§29) | 30 · 30 | 1,672 · 1,672 (of 1,672; realistic 1,672 · 1,672) | 0 |
 | 2026-09-12 | R2 reproducible runs from a seed (§28) | 30 · 30 | 1,672 · 1,672 (of 1,672; realistic 1,672 · 1,672) | 0 |
+| 2026-09-12 | F2 list values, G3 strict wildcards (§30) | 30 · 30 | 1,672 · 1,672 (of 1,672; realistic 1,672 · 1,672) | 0 |
 
 ## 11. After the quick wins (re-audit, 2026-09-10)
 
@@ -1390,3 +1392,37 @@ Test: `SampleXmlGroupReferenceBoundsTest` (a choice group that occurs twice, a s
 **Audit** (after `62387367`, the run that also served the seeded comparison): unchanged, 1,672 of 1,672 valid per
 combination and no invalid sample. Neither change shows in the corpus: it has no `sequence` or `all` with `minOccurs`
 of two or more, and no sample reaches the 11 group references that repeat.
+
+## 30. After F2 and G3: list values, strict wildcards, and what is left (2026-09-12)
+
+**List values (F2).** A list type holds whitespace-separated items, and its length facets count items. Two gaps made
+such a value come out empty or too short: a restriction without a `base` attribute holds its base type inline, which
+stayed unresolved, and the resolution lost the information that the type is a list, so the realistic generator wrote a
+single item. Both resolutions now carry a list flag, and the value generator writes as many items as the facets demand.
+The corpus holds 24 list types (INSPIRE 11, SIRI 11, KML 2). Test: `SampleXmlListValuesTest`.
+
+**Strict wildcards (G3).** A wildcard with `processContents="strict"` needs an element the validator can look up, so
+none was written at all and the content counted as incomplete. A sample now picks a concrete global element of a
+built-in type whose namespace the constraint allows, from the main document and the included ones. Where the schema
+declares none — datajud requires `##other` without importing a schema of another namespace — the content stays
+incomplete and is left out as before. The corpus holds 35 strict wildcards, 8 of them required (INSPIRE 3, SIRI 2,
+datajud 2, UBL 1). Test: `SampleXmlStrictWildcardTest`.
+
+**Content types (D2, D3).** A complex type with attributes only and one with element-only content get no text, mixed
+content may have some. The defects the plan described are gone, fixed by the rounds on empty content, inherited
+attributes and simple content; a test over the three content types passes unchanged and stays as a guard
+(`SampleXmlContentTypeTest`). The corpus holds 164 attribute-only complex types and 281 mixed ones.
+
+**What the plan leaves open.** 33 of 37 points are done. The four that remain have no evidence left in the corpus:
+- **G2**, recursion expanded on demand: since G1 a choice avoids options whose content a sample cannot complete.
+- **F1**, `NOTATION` and `ENTITY` values: the corpus declares ten notations but uses none as a type, and `ENTITY`
+  appears nowhere.
+- **F5**, intersecting the patterns of a derivation chain: exactly one type in the corpus inherits a pattern over two
+  steps, in a schema that does not compile.
+- **R1**, merging the two structural walks: a refactoring, not a validity gap.
+
+**Audit** (after `cefb03e9`): unchanged and clean — 1,672 of 1,672 samples valid per combination, and the first
+element of all 30 measurable schemas valid in both generators and modes. The JVM crashed in its garbage collector
+while the run generated the JATS samples, the second such crash in this corpus (the fourth seeded pair hit the same
+collector in another frame). A run of that schema alone finished clean with 308 of 308 valid samples per combination,
+so the crash is sporadic and not caused by the round.
