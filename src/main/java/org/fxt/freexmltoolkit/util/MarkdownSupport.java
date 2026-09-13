@@ -154,7 +154,16 @@ public final class MarkdownSupport {
         return out.toString();
     }
 
-    private static String escapeHtml(String text) {
+    /**
+     * HTML-escapes text that is emitted into a page unrendered, so it is safe for {@code th:utext}.
+     *
+     * @param text the raw text, may be null
+     * @return the escaped text, never null
+     */
+    public static String escapeHtml(String text) {
+        if (text == null) {
+            return "";
+        }
         return text.replace("&", "&amp;")
                 .replace("<", "&lt;")
                 .replace(">", "&gt;")

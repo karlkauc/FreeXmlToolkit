@@ -419,9 +419,10 @@ Documentation that is *not* rendered as Markdown appears literally: `**bold**` s
 typed instead of being formatted. If you want text formatted, write Markdown and leave the
 rendering on.
 
-On the generated type pages (complexType, simpleType, attributes, enumerations) the unrendered
-text is additionally HTML-escaped, so markup written straight into `xs:documentation` shows as the
-tags themselves there. Element documentation is passed through as-is.
+Unrendered text is HTML-escaped everywhere it appears in the generated HTML, so markup written
+straight into `xs:documentation` shows as the tags themselves instead of being applied. The PDF,
+Word and Excel outputs are unaffected: they flatten the documentation to plain text and drop the
+markup as before.
 
 Formatting is a feature of the **HTML** output. The PDF, Word and Excel outputs are plain text:
 the documentation is flattened for them, but paragraphs, list items and headings each keep their

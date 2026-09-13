@@ -338,11 +338,10 @@ every element using that type unless the element states its own.</p>
 <code>**bold**</code> stays visible as typed instead of being formatted. Write Markdown (or turn
 the node's Markdown on) if the text is meant to be formatted.</p>
 
-<p>For the documentation of named types, attributes and enumerations the unrendered text is
-additionally HTML-escaped, so markup written straight into <code>xs:documentation</code> shows as
-the tags themselves on the type pages. Element documentation is passed through unchanged — raw
-HTML written into an element's <code>xs:documentation</code> still reaches the generated page as
-markup.</p>
+<p>Unrendered text is HTML-escaped wherever it is written into the generated HTML — element
+documentation just like the documentation of named types, attributes and enumerations — so markup
+written straight into <code>xs:documentation</code> shows as the tags themselves rather than being
+applied.</p>
 
 <p>PDF, Word and the Excel data dictionary are plain-text formats: rendered documentation is
 flattened for them, with paragraphs, list items and headings kept on separate lines and HTML

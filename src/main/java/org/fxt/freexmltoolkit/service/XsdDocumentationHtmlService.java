@@ -592,7 +592,7 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
 
             // Pass the documentation of all selected languages for on-the-fly switching
             // (the template renders each language with a data-lang attribute).
-            context.setVariable("documentation", element.getFilteredLanguageDocumentation(includedLanguages));
+            context.setVariable("documentation", htmlSafeElementDocs(element));
             context.setVariable("sampleData", element.getDisplaySampleData());
             context.setVariable("appInfos", element.getGenericAppInfos());
             context.setVariable("code", element.getSourceCode());
@@ -1457,6 +1457,32 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
     }
 
 
+    /**
+     * The documentation of an element, safe to emit with {@code th:utext}.
+     *
+     * <p>When the documentation was rendered as Markdown it is already HTML. When it was not, the
+     * raw {@code xs:documentation} text would otherwise reach the page as markup, so it is escaped
+     * here - the same rule {@link #getAllDocumentationsFromNode(Node)} applies to type, attribute
+     * and enumeration documentation.
+     *
+     * <p>Deliberately applied at the HTML boundary rather than in {@link XsdExtendedElement}: the
+     * PDF, Word and Excel exporters read the unescaped getters and flatten them with
+     * {@link MarkdownSupport#toPlainText(String)}, which would decode the entities again and turn
+     * stripped markup into visible tags.
+     *
+     * @param element the element whose documentation is rendered
+     * @return the language map, escaped where the documentation is not Markdown
+     */
+    private Map<String, String> htmlSafeElementDocs(XsdExtendedElement element) {
+        Map<String, String> rendered = element.getFilteredLanguageDocumentation(includedLanguages);
+        if (rendered.isEmpty() || !Boolean.FALSE.equals(element.getUseMarkdownRenderer())) {
+            return rendered;
+        }
+        Map<String, String> safe = new LinkedHashMap<>(rendered);
+        safe.replaceAll((lang, content) -> MarkdownSupport.escapeHtml(content));
+        return safe;
+    }
+
     public String getChildDocumentation(String xpath) {
         XsdExtendedElement element = xsdDocumentationData.getExtendedXsdElementMap().get(xpath);
         if (element == null) {
@@ -1464,7 +1490,7 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
         }
 
         // Only the selected languages (plus the "default" fallback) are eligible
-        Map<String, String> allDocs = element.getFilteredLanguageDocumentation(includedLanguages);
+        Map<String, String> allDocs = htmlSafeElementDocs(element);
         if (allDocs.isEmpty()) {
             return "";
         }
@@ -1491,7 +1517,7 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
         }
 
         // Honour the user's language selection (mirrors the Excel exporter / detail pages).
-        Map<String, String> docs = element.getFilteredLanguageDocumentation(includedLanguages);
+        Map<String, String> docs = htmlSafeElementDocs(element);
         if (docs.isEmpty()) {
             return java.util.Collections.emptyMap();
         }
