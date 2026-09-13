@@ -185,8 +185,8 @@ declarations it does not otherwise need.</p>
       <td><code>@markdown</code></td>
       <td><code>true</code>/<code>false</code> — whether this node's documentation is rendered as
           Markdown (<a href="#markdown">details</a>)</td>
-      <td class="yes">Honored when the generator's <em>Markdown rendering</em> is set to
-          <em>Per node</em></td>
+      <td class="yes">Honored in every <em>Markdown rendering</em> mode except <em>Off</em> —
+          a node can opt in or out whatever the mode says</td>
       <td class="yes">“Markdown” choice (<em>Not set</em> / <em>Markdown</em> / <em>Plain text</em>)</td>
     </tr>
     <tr>
@@ -333,6 +333,20 @@ on the generated type pages, each of which decides from its own annotation.</p>
 (<code>false</code>). Like the other tags it is read from the element's own annotation and from
 the annotation of its resolved type — a type-level <code>@markdown</code> therefore applies to
 every element using that type unless the element states its own.</p>
+
+<p>Documentation that is <em>not</em> rendered as Markdown is emitted literally:
+<code>**bold**</code> stays visible as typed instead of being formatted. Write Markdown (or turn
+the node's Markdown on) if the text is meant to be formatted.</p>
+
+<p>For the documentation of named types, attributes and enumerations the unrendered text is
+additionally HTML-escaped, so markup written straight into <code>xs:documentation</code> shows as
+the tags themselves on the type pages. Element documentation is passed through unchanged — raw
+HTML written into an element's <code>xs:documentation</code> still reaches the generated page as
+markup.</p>
+
+<p>PDF, Word and the Excel data dictionary are plain-text formats: rendered documentation is
+flattened for them, with paragraphs, list items and headings kept on separate lines and HTML
+entities decoded. Only the HTML output shows the formatting itself.</p>
 
 <p><code>@markdown</code> is a rendering hint, not documentation: it never appears in the
 “Additional Information” section of a generated page.</p>
