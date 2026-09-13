@@ -18,242 +18,158 @@
 
 package org.fxt.freexmltoolkit.service;
 
-import java.awt.*;
-import java.io.*;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import static org.junit.jupiter.api.Assertions.*;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
+import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-import org.w3c.dom.Document;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
+import org.junit.jupiter.api.io.TempDir;
 
-import net.sf.saxon.s9api.XdmNode;
+/**
+ * End-to-end coverage for the generated HTML documentation site.
+ *
+ * <p>Runs against the small {@code testSchema.xsd} rather than a FundsXML schema so the whole
+ * pipeline (root page, type lists, data dictionary, search index, detail pages, languages.json)
+ * stays fast enough for the normal test run. Note the schema declares no globally named types -
+ * every complexType/simpleType in it is anonymous - so the assertions target the pages that are
+ * always produced.
+ */
+@DisplayName("XSD HTML documentation generation")
+class GenerateXsdHtmlDocumentationTest {
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@Disabled("Temporarily disabled")
-public class GenerateXsdHtmlDocumentationTest {
+    private static final String SIMPLE_XSD_FILE = "src/test/resources/testSchema.xsd";
+    private static final String XML_420_XSD = "src/test/resources/FundsXML_420.xsd";
 
-    final static String XML_LATEST_XSD = "src/test/resources/FundsXML4.xsd";
-    final static String XML_420_XSD = "src/test/resources/FundsXML_420.xsd";
-    final static String XML_429_XSD = "src/test/resources/FundsXML_429.xsd";
-    final static String XML_306_XSD = "src/test/resources/FundsXML_306.xsd";
-    final static String SIMPLE_XSD_FILE = "src/test/resources/testSchema.xsd";
+    private static XsdDocumentationService service() {
+        XsdDocumentationService service = new XsdDocumentationService();
+        service.setXsdFilePath(SIMPLE_XSD_FILE);
+        service.setMethod(XsdDocumentationService.ImageOutputMethod.SVG);
+        return service;
+    }
 
-    final XsdDocumentationService xsdDocumentationService = new XsdDocumentationService();
-    private final static Logger logger = LogManager.getLogger(GenerateXsdHtmlDocumentationTest.class);
-
-    @Test
-    void parseXsdTest() throws Exception {
-        xsdDocumentationService.setXsdFilePath(XML_420_XSD);
-        xsdDocumentationService.setMethod(XsdDocumentationService.ImageOutputMethod.SVG);
-        xsdDocumentationService.processXsd(true);
-        var elements = xsdDocumentationService.xsdDocumentationData.getExtendedXsdElementMap();
-
-        System.out.println("------------");
-        for (String s : elements.keySet()) {
-            logger.debug("xPath: {}", s);
-        }
-        logger.debug("Size: {}", elements.size());
+    private static String read(File file) throws Exception {
+        return Files.readString(file.toPath(), StandardCharsets.UTF_8);
     }
 
     @Test
-    void generateSeperatedFiles() throws Exception {
-        logger.debug("Creating Documentation");
-        xsdDocumentationService.setXsdFilePath(XML_420_XSD);
-        xsdDocumentationService.parallelProcessing = true;
-        xsdDocumentationService.generateXsdDocumentation(new File("output/testSchema"));
+    @DisplayName("parsing populates the element map with the schema's elements")
+    void parseXsdPopulatesTheElementMap() throws Exception {
+        XsdDocumentationService service = service();
+
+        service.processXsd(XsdDocumentationService.MarkdownMode.ALL);
+        var elements = service.xsdDocumentationData.getExtendedXsdElementMap();
+
+        assertFalse(elements.isEmpty(), "the element map must not be empty");
+        assertTrue(elements.values().stream().anyMatch(e -> "Cars".equals(e.getElementName())),
+                "the root element Cars must be in the map");
+        assertTrue(elements.values().stream().anyMatch(e -> "Manufatorer".equals(e.getElementName())),
+                "a deeply nested element must be reached too");
     }
 
     @Test
-    void testWithSeparateCalls() throws Exception {
-        final var testFilePath = new File("output/testSchema");
-        // xsdDocumentationService.debug = true;
-        xsdDocumentationService.setXsdFilePath(SIMPLE_XSD_FILE);
-        xsdDocumentationService.setMethod(XsdDocumentationService.ImageOutputMethod.SVG);
-        xsdDocumentationService.processXsd(true);
+    @DisplayName("generation produces the whole site")
+    void generatesTheDocumentationSite(@TempDir Path outputDir) throws Exception {
+        File target = outputDir.toFile();
 
+        service().generateXsdDocumentation(target);
 
-        // xsdDocumentationService.generateRootPage(testFilePath);
-        // xsdDocumentationService.generateComplexTypePages(testFilePath);
-        // xsdDocumentationService.generateDetailPages(testFilePath);
+        File index = new File(target, "index.html");
+        assertTrue(index.isFile(), "index.html must exist");
+        assertTrue(index.length() > 0, "index.html must not be empty");
+        assertTrue(read(index).contains("Cars"), "the root element must appear on the start page");
 
-        //  xsdDocumentationService.generateHtmlDocumentation(new File("output/test123"));
+        assertTrue(new File(target, "dataDictionary.html").isFile(), "data dictionary must exist");
+        assertTrue(new File(target, "complexTypes.html").isFile(), "complex type list must exist");
+        assertTrue(new File(target, "simpleTypes.html").isFile(), "simple type list must exist");
+        assertTrue(new File(target, "assets").isDirectory(), "assets must be copied");
+
+        File details = new File(target, "details");
+        assertTrue(details.isDirectory(), "detail pages must be generated");
+        File[] detailPages = details.listFiles((d, n) -> n.endsWith(".html"));
+        assertNotNull(detailPages);
+        assertTrue(detailPages.length > 0, "there must be at least one detail page");
     }
 
+    @Test
+    @DisplayName("the search index and language list are written and carry the schema's content")
+    void writesSearchIndexAndLanguages(@TempDir Path outputDir) throws Exception {
+        File target = outputDir.toFile();
 
-    /**
-     * Versucht, die angegebene URL im Standard-Desktop-Browser zu öffnen.
-     *
-     * @param url Die zu öffnende URL.
-     */
-    private void openUrlInBrowser(String url) {
-        try {
-            if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-                Desktop.getDesktop().browse(new java.net.URI(url));
-                logger.info("Browser geöffnet mit URL: {}", url);
-            } else {
-                logger.warn("Konnte den Browser nicht automatisch öffnen. Bitte öffnen Sie manuell: {}", url);
+        service().generateXsdDocumentation(target);
+
+        File searchIndex = new File(target, "search_index.json");
+        assertTrue(searchIndex.isFile(), "search_index.json must exist");
+        assertTrue(read(searchIndex).contains("Cars"), "the search index must list the root element");
+
+        assertTrue(new File(target, "languages.json").isFile(), "languages.json must exist");
+    }
+
+    @Test
+    @DisplayName("documentation text from the schema reaches the detail pages")
+    void documentationTextReachesTheDetailPages(@TempDir Path outputDir) throws Exception {
+        File target = outputDir.toFile();
+
+        service().generateXsdDocumentation(target);
+
+        File[] detailPages = new File(target, "details").listFiles((d, n) -> n.endsWith(".html"));
+        assertNotNull(detailPages);
+        boolean found = false;
+        for (File page : detailPages) {
+            if (read(page).contains("manufactor doc")) {
+                found = true;
+                break;
             }
-        } catch (Exception e) {
-            logger.error("Fehler beim Öffnen des Browsers.", e);
         }
+        assertTrue(found, "the xs:documentation of Cars must appear on a detail page");
     }
 
     @Test
-    void createHtmlTable420() {
-        xsdDocumentationService.setXsdFilePath(XML_420_XSD);
-        // xsdDocumentationService.generateDocumentation("test-doc.html");
-    }
+    @DisplayName("parallel generation produces the same site as sequential")
+    void parallelGenerationProducesTheSameSite(@TempDir Path outputDir) throws Exception {
+        File target = outputDir.toFile();
+        XsdDocumentationService service = service();
+        service.setParallelProcessing(true);
 
-    @Test
-    void createHtmlTable() {
-        xsdDocumentationService.setXsdFilePath(XML_306_XSD);
-        // xsdDocumentationService.generateDocumentation("test-doc_306.html");
-    }
+        service.generateXsdDocumentation(target);
 
-    @Test
-    void generateXsdSourceFromNode() {
-        Map<String, String> complexTypes = new HashMap<>();
-
-        try {
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            factory.setNamespaceAware(true);
-            DocumentBuilder builder = factory.newDocumentBuilder();
-            Document doc = builder.parse(new InputSource(new FileReader(XML_420_XSD)));
-
-            Transformer transformer = TransformerFactory.newInstance().newTransformer();
-            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
-            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-
-            // Use Saxon XPath 3.1 via SaxonXPathHelper
-            String expression = "//xs:complexType[@name='AccountType']";
-            List<XdmNode> nodes = SaxonXPathHelper.evaluateNodes(doc, expression, SaxonXPathHelper.XSD_NAMESPACES);
-
-            for (XdmNode node : nodes) {
-                String elementName = SaxonXPathHelper.getAttributeValue(node, "name");
-                if (elementName != null && !elementName.isEmpty()) {
-                    logger.debug("Element: {}", elementName);
-                    // Get the serialized form of the node
-                    String nodeContent = node.toString();
-                    complexTypes.put(elementName, nodeContent);
-                }
-            }
-
-            logger.debug("OUTPUT FOR AccountType: ");
-            logger.debug(complexTypes.get("AccountType"));
-
-        } catch (Exception exe) {
-            logger.error(exe.getMessage());
-        }
-    }
-
-
-    @Test
-    public void t2() throws ParserConfigurationException, IOException, SAXException {
-        String schema = "<xs:schema xmlns:xs=\"http://w...content-available-to-author-only...3.org/2001/XMLSchema\" targetNamespace=\"http://x...content-available-to-author-only...e.com/cloud/adapter/nxsd/surrogate/request\"\r\n" +
-                "       xmlns=\"http://x...content-available-to-author-only...e.com/cloud/adapter/nxsd/surrogate/request\"\r\n" +
-                "       elementFormDefault=\"qualified\">\r\n" +
-                "<xs:element name=\"myapp\">\r\n" +
-                "    <xs:complexType>\r\n" +
-                "    <xs:sequence>\r\n" +
-                "        <xs:element name=\"content\">\r\n" +
-                "            <xs:complexType>\r\n" +
-                "                <xs:sequence>\r\n" +
-                "                    <xs:element name=\"EmployeeID\" type=\"xs:string\" maxOccurs=\"1\" minOccurs=\"0\"/>\r\n" +
-                "                    <xs:element name=\"EName\" type=\"xs:string\" maxOccurs=\"1\" minOccurs=\"0\"/>\r\n" +
-                "                </xs:sequence>\r\n" +
-                "            </xs:complexType>\r\n" +
-                "        </xs:element>\r\n" +
-                "        <xs:element name=\"attribute\">\r\n" +
-                "            <xs:complexType>\r\n" +
-                "                <xs:sequence>\r\n" +
-                "                    <xs:element name=\"item\" type=\"xs:integer\" maxOccurs=\"1\" minOccurs=\"0\"/>\r\n" +
-                "                </xs:sequence>\r\n" +
-                "            </xs:complexType>\r\n" +
-                "        </xs:element>\r\n" +
-                "    </xs:sequence>\r\n" +
-                "    </xs:complexType>\r\n" +
-                "</xs:element>\r\n" +
-                "</xs:schema>\r\n";
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        factory.setNamespaceAware(true);
-        DocumentBuilder builder = factory.newDocumentBuilder();
-        Document doc = builder.parse(new InputSource(new StringReader(schema)));
-
-        // Use Saxon XPath 3.1 via SaxonXPathHelper
-        String expression = "//xs:element[@name='myapp']//xs:element[@name='content']";
-        List<XdmNode> nodes = SaxonXPathHelper.evaluateNodes(doc, expression, SaxonXPathHelper.XSD_NAMESPACES);
-
-        System.out.println("Node count: " + nodes.size());
-    }
-
-    @Test
-    void compareParallelVsSequentialPerformance() throws Exception {
-        logger.info("Starting performance comparison: Parallel vs. Sequential Documentation Generation");
-
-        // --- Configuration ---
-        final String xsdFile = XML_420_XSD; // A reasonably complex XSD for a good test
-        final File outputDirSequential = new File("../output/docs_sequential");
-        final File outputDirParallel = new File("../output/docs_parallel");
-
-        // --- 1. Sequential Execution ---
-        logger.info("--- Running Sequential Test ---");
-        XsdDocumentationService sequentialService = new XsdDocumentationService();
-        sequentialService.setXsdFilePath(xsdFile);
-        sequentialService.setParallelProcessing(false);
-        sequentialService.setMethod(XsdDocumentationService.ImageOutputMethod.SVG);
-
-        long startTimeSequential = System.currentTimeMillis();
-        sequentialService.generateXsdDocumentation(outputDirSequential);
-        long endTimeSequential = System.currentTimeMillis();
-        long durationSequential = endTimeSequential - startTimeSequential;
-        logger.info("--- Sequential execution finished in: {} ---", formatDuration(durationSequential));
-
-        // --- 2. Parallel Execution ---
-        logger.info("--- Running Parallel Test ---");
-        XsdDocumentationService parallelService = new XsdDocumentationService();
-        parallelService.setXsdFilePath(xsdFile);
-        parallelService.setParallelProcessing(true);
-        parallelService.setMethod(XsdDocumentationService.ImageOutputMethod.SVG);
-
-        long startTimeParallel = System.currentTimeMillis();
-        parallelService.generateXsdDocumentation(outputDirParallel);
-        long endTimeParallel = System.currentTimeMillis();
-        long durationParallel = endTimeParallel - startTimeParallel;
-        logger.info("--- Parallel execution finished in: {} ---", formatDuration(durationParallel));
-
-        // --- 3. Summary ---
-        logger.info("================== PERFORMANCE SUMMARY ==================");
-        logger.info("Sequential Time: {}", formatDuration(durationSequential));
-        logger.info("Parallel Time:   {}", formatDuration(durationParallel));
-
-        if (durationSequential > 0 && durationParallel > 0) {
-            double improvement = ((double) (durationSequential - durationParallel) / durationSequential) * 100;
-            logger.info("Performance Improvement with Parallel Processing: {}%", String.format("%.2f", improvement));
-        }
-        logger.info("=======================================================");
+        assertTrue(new File(target, "index.html").isFile(), "index.html must exist");
+        assertTrue(new File(target, "dataDictionary.html").isFile(), "data dictionary must exist");
+        File[] detailPages = new File(target, "details").listFiles((d, n) -> n.endsWith(".html"));
+        assertNotNull(detailPages);
+        assertTrue(detailPages.length > 0, "the parallel path must generate detail pages too");
     }
 
     /**
-     * Formatiert eine Millisekunden-Dauer in einen lesbareren String, der auch Sekunden enthält.
-     *
-     * @param millis Die Dauer in Millisekunden.
-     * @return Ein formatierter String (z.B. "12345 ms (12.35 s)").
+     * Benchmark, not a correctness test: it has no assertions and generates the documentation for a
+     * full FundsXML schema twice, which takes far too long for the normal suite. Enable it by hand
+     * when comparing the parallel and sequential pipelines.
      */
-    private String formatDuration(long millis) {
-        return String.format("%,d ms (%.2f s)", millis, millis / 1000.0);
+    @Test
+    @Disabled("Benchmark, not a correctness test - run manually when profiling the pipeline")
+    void compareParallelVsSequentialPerformance(@TempDir Path outputDir) throws Exception {
+        XsdDocumentationService sequential = new XsdDocumentationService();
+        sequential.setXsdFilePath(XML_420_XSD);
+        sequential.setParallelProcessing(false);
+        sequential.setMethod(XsdDocumentationService.ImageOutputMethod.SVG);
+
+        long startSequential = System.currentTimeMillis();
+        sequential.generateXsdDocumentation(outputDir.resolve("sequential").toFile());
+        long durationSequential = System.currentTimeMillis() - startSequential;
+
+        XsdDocumentationService parallel = new XsdDocumentationService();
+        parallel.setXsdFilePath(XML_420_XSD);
+        parallel.setParallelProcessing(true);
+        parallel.setMethod(XsdDocumentationService.ImageOutputMethod.SVG);
+
+        long startParallel = System.currentTimeMillis();
+        parallel.generateXsdDocumentation(outputDir.resolve("parallel").toFile());
+        long durationParallel = System.currentTimeMillis() - startParallel;
+
+        System.out.printf("sequential: %,d ms / parallel: %,d ms%n", durationSequential, durationParallel);
     }
 }
