@@ -3494,9 +3494,10 @@ and enumeration documentation on the generated type pages.</p>
 <p>Documentation that is <em>not</em> rendered as Markdown appears literally: <code>**bold**</code> stays visible as
 typed instead of being formatted. If you want text formatted, write Markdown and leave the
 rendering on.</p>
-<p>On the generated type pages (complexType, simpleType, attributes, enumerations) the unrendered
-text is additionally HTML-escaped, so markup written straight into <code>xs:documentation</code> shows as the
-tags themselves there. Element documentation is passed through as-is.</p>
+<p>Unrendered text is HTML-escaped everywhere it appears in the generated HTML, so markup written
+straight into <code>xs:documentation</code> shows as the tags themselves instead of being applied. The PDF,
+Word and Excel outputs are unaffected: they flatten the documentation to plain text and drop the
+markup as before.</p>
 <p>Formatting is a feature of the <strong>HTML</strong> output. The PDF, Word and Excel outputs are plain text:
 the documentation is flattened for them, but paragraphs, list items and headings each keep their
 own line instead of running together.</p>
