@@ -3491,6 +3491,15 @@ formatted on the generated pages. The choice has three settings:</p>
 element and its type disagree, the element wins; the type's <code>@markdown</code> applies to every element
 using it that does not state its own. The same rule drives the complexType, simpleType, attribute
 and enumeration documentation on the generated type pages.</p>
+<p>Documentation that is <em>not</em> rendered as Markdown appears literally: <code>**bold**</code> stays visible as
+typed instead of being formatted. If you want text formatted, write Markdown and leave the
+rendering on.</p>
+<p>On the generated type pages (complexType, simpleType, attributes, enumerations) the unrendered
+text is additionally HTML-escaped, so markup written straight into <code>xs:documentation</code> shows as the
+tags themselves there. Element documentation is passed through as-is.</p>
+<p>Formatting is a feature of the <strong>HTML</strong> output. The PDF, Word and Excel outputs are plain text:
+the documentation is flattened for them, but paragraphs, list items and headings each keep their
+own line instead of running together.</p>
 <p>The per-node switch lives in the schema itself and is edited in the Inspector's <strong>Markdown</strong>
 choice (<em>Not set</em> / <em>Markdown</em> / <em>Plain text</em>):</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">&lt;xs:element</span><span class="w"> </span><span class="na">name=</span><span class="s">"Transaction"</span><span class="nt">&gt;</span>
