@@ -732,14 +732,16 @@ public class XsdDocumentationImageService {
      * Draws modern sequence/choice symbols
      */
     private void drawModernSequenceChoiceSymbol(Document document, double rootPathEndX, double rootPathCenterY,
-                                                double gapBetweenSides, boolean isSequence, boolean _isChoice,
+                                                double gapBetweenSides, boolean isSequence, boolean isChoice,
                                                 List<XsdExtendedElement> childElements, Element svgRoot,
                                                 double[] maxRightEdge) {
 
-        final double symbolWidth = isSequence ? 50 : 30;
+        final double symbolWidth = isSequence ? 50 : (isChoice ? 30 : 40);
         final double symbolHeight = 30;
         final double symbolCenterX = rootPathEndX + (gapBetweenSides / 2);
         final double symbolCenterY = rootPathCenterY;
+
+        String strokeColor = isChoice ? COLOR_STROKE_CHOICE : (isSequence ? COLOR_STROKE_SEQUENCE : COLOR_STROKE_ANY);
 
         // Connection line from root element to sequence/choice symbol (solid, group-colored)
         Element pathToSymbol = document.createElementNS(svgNS, "line");
@@ -748,7 +750,7 @@ public class XsdDocumentationImageService {
         pathToSymbol.setAttribute("x2", String.valueOf(symbolCenterX - symbolWidth / 2));
         pathToSymbol.setAttribute("y2", String.valueOf(rootPathCenterY));
         pathToSymbol.setAttribute("class", "connection-line");
-        pathToSymbol.setAttribute("style", "stroke: " + COLOR_STROKE_SEQUENCE + "; stroke-width: 2; fill: none;");
+        pathToSymbol.setAttribute("style", "stroke: " + strokeColor + "; stroke-width: 2; fill: none;");
         svgRoot.appendChild(pathToSymbol);
 
         // Group cardinality
@@ -816,7 +818,7 @@ public class XsdDocumentationImageService {
             seqGroup.appendChild(seqIconUse);
 
             svgRoot.appendChild(seqGroup);
-        } else { // CHOICE
+        } else if (isChoice) {
             // Choice as labeled rounded rectangle with dashed border, like XsdDiagramView
             Element choiceGroup = document.createElementNS(svgNS, "g");
 
@@ -840,6 +842,22 @@ public class XsdDocumentationImageService {
             choiceGroup.appendChild(choiceIconUse);
 
             svgRoot.appendChild(choiceGroup);
+        } else { // ALL
+            Element allGroup = document.createElementNS(svgNS, "g");
+
+            Element allRect = document.createElementNS(svgNS, "rect");
+            allRect.setAttribute("x", String.valueOf(symbolCenterX - symbolWidth / 2));
+            allRect.setAttribute("y", String.valueOf(symbolCenterY - symbolHeight / 2));
+            allRect.setAttribute("width", String.valueOf(symbolWidth));
+            allRect.setAttribute("height", String.valueOf(symbolHeight));
+            allRect.setAttribute("fill", COLOR_BOX_FILL_ANY);
+            allRect.setAttribute("stroke", COLOR_STROKE_ANY);
+            allRect.setAttribute("stroke-width", "2");
+            allRect.setAttribute("rx", "4");
+            allRect.setAttribute("ry", "4");
+            allGroup.appendChild(allRect);
+
+            svgRoot.appendChild(allGroup);
         }
 
         // Track the right edge of the compositor symbol
@@ -1664,13 +1682,13 @@ public class XsdDocumentationImageService {
                     }
                 } else {
                     svgRoot.appendChild(createStraightConnection(document, connectionStartX, connectionStartY,
-                            symbolX, symbolY + symbolHeight / 2, false, strokeColor));
+                            targetX, targetY, false, strokeColor));
                 }
 
-                // Recursively draw compositor's children
-                double compositorChildrenStartX = symbolX + symbolWidth + 40;
-                double compositorConnectionStartX = symbolX + symbolWidth;
-                double compositorConnectionStartY = symbolY + symbolHeight / 2;
+                // Recursively draw compositor's children starting from the symbol's right edge
+                double compositorConnectionStartX = symbolX + symbolWidth / 2.0;
+                double compositorConnectionStartY = symbolY + symbolHeight / 2.0;
+                double compositorChildrenStartX = compositorConnectionStartX + 40;
 
                 String childStrokeColor = compositorType.equals("choice") ? COLOR_STROKE_CHOICE :
                         (compositorType.equals("sequence") ? COLOR_STROKE_SEQUENCE : COLOR_STROKE_ANY);
