@@ -103,13 +103,17 @@
                                   class="inline-flex items-center rounded-md bg-blue-100 px-2 py-1 text-xs font-medium text-blue-700">Mixed</span>
                         </div>
                     </div>
-                    <!-- NEU: Dokumentation wird mit Hilfsmethode ausgelesen -->
-                    <div class="mt-2" th:if="${this.getDocumentationFromNode(complexTypeNode) != ''}">
-                        <p class="text-sm text-slate-600"
-                           th:utext="${this.getDocumentationFromNode(complexTypeNode)}">
-                            Documentation of the complex type...
-                        </p>
+                    <!-- Dokumentation mit Multi-Language Support -->
+                    <th:block th:with="documentation=${this.getDocumentationsFromNode(complexTypeNode)}">
+                    <div class="mt-2 documentation-section" th:if="${documentation != null and not #maps.isEmpty(documentation)}">
+                        <div th:each="doc, iterStat: ${documentation}"
+                             class="doc-content text-sm text-slate-600"
+                             th:classappend="${iterStat.first} ? 'lang-visible' : 'lang-hidden'"
+                             th:attr="data-lang=${doc.key}">
+                            <span th:utext="${doc.value}"></span>
+                        </div>
                     </div>
+                    </th:block>
                 </a>
             </li>
         </ul>

@@ -117,10 +117,17 @@
                     </a>
                 </td>
                 <td class="px-6 py-4 align-top text-slate-600 text-sm">
-                    <!-- Zeigt die Dokumentation des Typs an -->
-                    <div th:utext="${this.getDocumentationFromNode(simpleTypeNode)}">
-                        Documentation for this type...
+                    <!-- Zeigt die Dokumentation des Typs an (Multi-Language Support) -->
+                    <th:block th:with="documentation=${this.getDocumentationsFromNode(simpleTypeNode)}">
+                    <div class="documentation-section" th:if="${documentation != null and not #maps.isEmpty(documentation)}">
+                        <div th:each="doc, iterStat: ${documentation}"
+                             class="doc-content"
+                             th:classappend="${iterStat.first} ? 'lang-visible' : 'lang-hidden'"
+                             th:attr="data-lang=${doc.key}">
+                            <span th:utext="${doc.value}"></span>
+                        </div>
                     </div>
+                    </th:block>
                 </td>
             </tr>
             </tbody>

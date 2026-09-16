@@ -187,6 +187,31 @@ class XsdDocumentationLanguageSelectionTest {
         assertFalse(complexTypePage.contains("ATTR_GERMAN_TEXT"));
     }
 
+    @Test
+    @DisplayName("Type overview pages render multi-language documentation sections with data-lang attributes")
+    void typeOverviewPagesRenderMultiLanguageDocumentation(@TempDir Path tmp) throws Exception {
+        Path xsd = tmp.resolve("langs.xsd");
+        Files.writeString(xsd, XSD, StandardCharsets.UTF_8);
+        Path out = tmp.resolve("out");
+
+        XsdDocumentationService service = new XsdDocumentationService();
+        service.setXsdFilePath(xsd.toString());
+        service.setMethod(XsdDocumentationService.ImageOutputMethod.SVG);
+        service.generateXsdDocumentation(out.toFile());
+
+        String complexTypesList = Files.readString(out.resolve("complexTypes.html"), StandardCharsets.UTF_8);
+        assertTrue(complexTypesList.contains("data-lang=\"en\""), "complexTypes.html must contain data-lang=\"en\"");
+        assertTrue(complexTypesList.contains("data-lang=\"de\""), "complexTypes.html must contain data-lang=\"de\"");
+        assertTrue(complexTypesList.contains("TYPE_ENGLISH_TEXT"));
+        assertTrue(complexTypesList.contains("TYPE_GERMAN_TEXT"));
+
+        String simpleTypesList = Files.readString(out.resolve("simpleTypes.html"), StandardCharsets.UTF_8);
+        assertTrue(simpleTypesList.contains("data-lang=\"en\""), "simpleTypes.html must contain data-lang=\"en\"");
+        assertTrue(simpleTypesList.contains("data-lang=\"de\""), "simpleTypes.html must contain data-lang=\"de\"");
+        assertTrue(simpleTypesList.contains("SIMPLE_ENGLISH_TEXT"));
+        assertTrue(simpleTypesList.contains("SIMPLE_GERMAN_TEXT"));
+    }
+
     private static String concat(List<Path> files) throws IOException {
         StringBuilder sb = new StringBuilder();
         for (Path p : files) {
