@@ -873,9 +873,7 @@ public class XsdExtendedElement implements Serializable {
             return null;
         }
 
-        var children = parent.getChildNodes();
-        for (int i = 0; i < children.getLength(); i++) {
-            Node child = children.item(i);
+        for (Node child = parent.getFirstChild(); child != null; child = child.getNextSibling()) {
             if (child.getNodeType() == Node.ELEMENT_NODE) {
                 String childLocalName = child.getLocalName();
                 if (childLocalName == null) {

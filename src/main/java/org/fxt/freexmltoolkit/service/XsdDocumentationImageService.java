@@ -1145,9 +1145,7 @@ public class XsdDocumentationImageService {
     private void removeClassAttributes(Element element) {
         element.removeAttribute("class");
 
-        NodeList children = element.getChildNodes();
-        for (int i = 0; i < children.getLength(); i++) {
-            Node child = children.item(i);
+        for (Node child = element.getFirstChild(); child != null; child = child.getNextSibling()) {
             if (child instanceof Element) {
                 removeClassAttributes((Element) child);
             }
@@ -1225,9 +1223,7 @@ public class XsdDocumentationImageService {
     private void removeAllClassAttributes(Element element) {
         element.removeAttribute("class");
 
-        NodeList children = element.getChildNodes();
-        for (int i = 0; i < children.getLength(); i++) {
-            Node child = children.item(i);
+        for (Node child = element.getFirstChild(); child != null; child = child.getNextSibling()) {
             if (child instanceof Element) {
                 removeAllClassAttributes((Element) child);
             }
@@ -1893,18 +1889,14 @@ public class XsdDocumentationImageService {
 
         try {
             // First, check for inline xs:complexType child
-            org.w3c.dom.NodeList childNodes = node.getChildNodes();
-            if (childNodes != null) {
-                for (int i = 0; i < childNodes.getLength(); i++) {
-                    org.w3c.dom.Node child = childNodes.item(i);
-                    if (child != null && child.getNodeType() == org.w3c.dom.Node.ELEMENT_NODE) {
-                        String localName = child.getLocalName();
-                        if ("complexType".equals(localName)) {
-                            // Found inline complexType, check for compositor
-                            String compositor = findCompositorInComplexType(child);
-                            if (compositor != null) {
-                                return compositor;
-                            }
+            for (org.w3c.dom.Node child = node.getFirstChild(); child != null; child = child.getNextSibling()) {
+                if (child.getNodeType() == org.w3c.dom.Node.ELEMENT_NODE) {
+                    String localName = child.getLocalName();
+                    if ("complexType".equals(localName)) {
+                        // Found inline complexType, check for compositor
+                        String compositor = findCompositorInComplexType(child);
+                        if (compositor != null) {
+                            return compositor;
                         }
                     }
                 }
@@ -1938,7 +1930,7 @@ public class XsdDocumentationImageService {
                 }
             }
         } catch (Exception e) {
-            // Silently handle any DOM exceptions (e.g., when working with mock nodes in tests or corrupted NodeList cache)
+            // Silently handle any DOM exceptions (e.g., when working with mock nodes in tests)
             logger.trace("Could not detect compositor for element: {}", element.getElementName(), e);
             return null;
         }
@@ -1955,15 +1947,8 @@ public class XsdDocumentationImageService {
         }
 
         try {
-            org.w3c.dom.NodeList children = complexTypeNode.getChildNodes();
-            if (children == null) {
-                return null;
-            }
-
-            int length = children.getLength();
-            for (int i = 0; i < length; i++) {
-                org.w3c.dom.Node child = children.item(i);
-                if (child != null && child.getNodeType() == org.w3c.dom.Node.ELEMENT_NODE) {
+            for (org.w3c.dom.Node child = complexTypeNode.getFirstChild(); child != null; child = child.getNextSibling()) {
+                if (child.getNodeType() == org.w3c.dom.Node.ELEMENT_NODE) {
                     String localName = child.getLocalName();
                     if ("sequence".equals(localName)) {
                         return "sequence";
@@ -1975,7 +1960,6 @@ public class XsdDocumentationImageService {
                 }
             }
         } catch (Exception e) {
-            // Handle DOM exceptions (e.g., corrupted NodeList cache)
             logger.trace("Could not iterate children of complexType node", e);
             return null;
         }
@@ -1991,27 +1975,23 @@ public class XsdDocumentationImageService {
         }
 
         try {
-            // Get all complexType elements in the schema
-            org.w3c.dom.NodeList complexTypes = document.getElementsByTagNameNS("http://www.w3.org/2001/XMLSchema", "complexType");
-
-            if (complexTypes == null) {
+            org.w3c.dom.Element root = document.getDocumentElement();
+            if (root == null) {
                 return null;
             }
-
-            int length = complexTypes.getLength();
-            for (int i = 0; i < length; i++) {
-                org.w3c.dom.Node complexType = complexTypes.item(i);
-                if (complexType != null && complexType.getNodeType() == org.w3c.dom.Node.ELEMENT_NODE) {
-                    org.w3c.dom.Element complexTypeElement = (org.w3c.dom.Element) complexType;
-                    String nameAttribute = complexTypeElement.getAttribute("name");
-
-                    if (typeName.equals(nameAttribute)) {
-                        return complexType;
+            for (org.w3c.dom.Node child = root.getFirstChild(); child != null; child = child.getNextSibling()) {
+                if (child.getNodeType() == org.w3c.dom.Node.ELEMENT_NODE) {
+                    String localName = child.getLocalName();
+                    if ("complexType".equals(localName)) {
+                        org.w3c.dom.Element complexTypeElement = (org.w3c.dom.Element) child;
+                        String nameAttribute = complexTypeElement.getAttribute("name");
+                        if (typeName.equals(nameAttribute)) {
+                            return child;
+                        }
                     }
                 }
             }
         } catch (Exception e) {
-            // Handle DOM exceptions (e.g., corrupted NodeList cache)
             logger.trace("Could not search for complexType: {}", typeName, e);
             return null;
         }

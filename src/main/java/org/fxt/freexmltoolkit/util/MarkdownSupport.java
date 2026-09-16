@@ -99,9 +99,7 @@ public final class MarkdownSupport {
             return null;
         }
         Boolean flag = null;
-        NodeList children = annotationNode.getChildNodes();
-        for (int i = 0; i < children.getLength(); i++) {
-            Node child = children.item(i);
+        for (Node child = annotationNode.getFirstChild(); child != null; child = child.getNextSibling()) {
             if (child.getNodeType() != Node.ELEMENT_NODE || !"appinfo".equals(child.getLocalName())) {
                 continue;
             }

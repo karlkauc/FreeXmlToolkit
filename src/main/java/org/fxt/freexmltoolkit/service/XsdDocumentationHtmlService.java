@@ -1034,7 +1034,7 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
     // =================================================================================
     // Helper methods for Thymeleaf to interact with DOM Nodes
     // =================================================================================
-    public String getAttributeValue(Node node, String attrName) {
+    public synchronized String getAttributeValue(Node node, String attrName) {
         return getAttributeValue(node, attrName, null);
     }
 
@@ -1042,7 +1042,7 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
      * Joins the documentation texts of a node (type overview pages), honouring the user's
      * language selection like {@link #getDocumentationsFromNode(Node)}.
      */
-    public String getDocumentationFromNode(Node node) {
+    public synchronized String getDocumentationFromNode(Node node) {
         return String.join("\n", getDocumentationsFromNode(node).values());
     }
 
@@ -1055,7 +1055,7 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
      * @return A LinkedHashMap of language codes to documentation content (preserves order).
      *         If no xml:lang attribute, uses "default" as key.
      */
-    public Map<String, String> getDocumentationsFromNode(Node node) {
+    public synchronized Map<String, String> getDocumentationsFromNode(Node node) {
         return filterByIncludedLanguages(getAllDocumentationsFromNode(node));
     }
 
@@ -1066,7 +1066,7 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
      * @param node The XSD node to get documentation from
      * @return A LinkedHashMap of language codes to documentation content (preserves order).
      */
-    private Map<String, String> getAllDocumentationsFromNode(Node node) {
+    private synchronized Map<String, String> getAllDocumentationsFromNode(Node node) {
         Map<String, String> result = new LinkedHashMap<>();
         if (node == null) {
             return result;
@@ -1117,7 +1117,7 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
      * @param node the XSD node whose documentation is being read
      * @return true when the documentation of this node is Markdown
      */
-    private boolean renderMarkdownFor(Node node) {
+    private synchronized boolean renderMarkdownFor(Node node) {
         XsdDocumentationService.MarkdownMode mode = (xsdDocService == null)
                 ? XsdDocumentationService.MarkdownMode.OFF      // safe default for bare instances
                 : xsdDocService.getMarkdownMode();
@@ -1128,12 +1128,12 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
         return (flag != null) ? flag : mode == XsdDocumentationService.MarkdownMode.ALL;
     }
 
-    public String getRestrictionBase(Node simpleTypeNode) {
+    public synchronized String getRestrictionBase(Node simpleTypeNode) {
         Node restrictionNode = getDirectChildElement(simpleTypeNode, "restriction");
         return (restrictionNode != null) ? getAttributeValue(restrictionNode, "base") : "";
     }
 
-    public List<Node> getRestrictionFacets(Node simpleTypeNode) {
+    public synchronized List<Node> getRestrictionFacets(Node simpleTypeNode) {
         Node restrictionNode = getDirectChildElement(simpleTypeNode, "restriction");
         if (restrictionNode == null) {
             return Collections.emptyList();
@@ -1147,7 +1147,7 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
         return facets;
     }
 
-    private Node getDirectChildElement(Node parent, String childName) {
+    private synchronized Node getDirectChildElement(Node parent, String childName) {
         if (parent == null) {
             return null;
         }
@@ -1166,7 +1166,7 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
      * @param complexTypeNode The DOM node of the complexType.
      * @return A list of DOM nodes representing the attributes.
      */
-    public List<Node> getAttributes(Node complexTypeNode) {
+    public synchronized List<Node> getAttributes(Node complexTypeNode) {
         if (complexTypeNode == null) {
             return Collections.emptyList();
         }
@@ -1222,7 +1222,7 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
     /**
      * A helper method that processes attributes and attribute groups within a node.
      */
-    private void processAttributesInContainer(Node containerNode, List<Node> attributes, Set<String> processedAttributeNames) {
+    private synchronized void processAttributesInContainer(Node containerNode, List<Node> attributes, Set<String> processedAttributeNames) {
         // Direct attributes
         for (Node attrNode : getDirectChildElements(containerNode, "attribute")) {
             String attrName = getAttributeValue(attrNode, "name");
@@ -1242,7 +1242,7 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
         }
     }
 
-    public List<Node> getDirectChildElements(Node parent, String childName) {
+    public synchronized List<Node> getDirectChildElements(Node parent, String childName) {
         if (parent == null) {
             return Collections.emptyList();
         }
@@ -1261,7 +1261,7 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
      * @param element The XsdExtendedElement.
      * @return A string representing the cardinality.
      */
-    public String getCardinality(XsdExtendedElement element) {
+    public synchronized String getCardinality(XsdExtendedElement element) {
         if (element == null || element.getCurrentNode() == null) {
             return "1"; // Default
         }
@@ -1374,7 +1374,7 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
         return null;
     }
 
-    public String getAttributeValue(Node node, String attrName, String defaultValue) {
+    public synchronized String getAttributeValue(Node node, String attrName, String defaultValue) {
         if (node == null || node.getAttributes() == null) {
             return defaultValue;
         }
@@ -1389,7 +1389,7 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
      * @param node The DOM node
      * @return The local name of the node, or empty string if node is null
      */
-    public String getLocalName(Node node) {
+    public synchronized String getLocalName(Node node) {
         if (node == null) {
             return "";
         }
@@ -1403,7 +1403,7 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
      * @param node The DOM node
      * @return The parent node, or null if node is null or has no parent
      */
-    public Node getParentNode(Node node) {
+    public synchronized Node getParentNode(Node node) {
         if (node == null) {
             return null;
         }
@@ -1417,7 +1417,7 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
      * @param attrNode The attribute node.
      * @return true if the type is linkable.
      */
-    public boolean isAttributeTypeLinkable(Node attrNode) {
+    public synchronized boolean isAttributeTypeLinkable(Node attrNode) {
         if (attrNode == null) {
             return false;
         }
@@ -1435,7 +1435,7 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
      * @param attrNode The attribute node.
      * @return The path to the HTML page, e.g. "../simpleTypes/MySimpleType.html".
      */
-    public String getAttributeTypePageName(Node attrNode) {
+    public synchronized String getAttributeTypePageName(Node attrNode) {
         if (attrNode == null) {
             return "";
         }

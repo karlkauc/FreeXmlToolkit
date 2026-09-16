@@ -992,9 +992,7 @@ public class XsdDocumentationService {
     private Map<String, List<String>> extractFacetsFromRestriction(Node restriction) {
         Map<String, List<String>> facets = new HashMap<>();
 
-        NodeList children = restriction.getChildNodes();
-        for (int i = 0; i < children.getLength(); i++) {
-            Node child = children.item(i);
+        for (Node child = restriction.getFirstChild(); child != null; child = child.getNextSibling()) {
             if (child.getNodeType() != Node.ELEMENT_NODE) {
                 continue;
             }
