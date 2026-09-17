@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FundsXML 4.2.9 - Institutional Fund Factsheet &amp; Portfolio Cockpit</title>
+  <style>
+    :root {
+      --primary: #1e3a8a;
+      --primary-light: #3b82f6;
+      --primary-dark: #172554;
+      --accent: #0ea5e9;
+      --success: #10b981;
+      --success-light: #ecfdf5;
+      --warning: #f59e0b;
+      --warning-light: #fffbeb;
+      --danger: #ef4444;
+      --danger-light: #fef2f2;
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --surface-subtle: #f1f5f9;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      --shadow-sm: 0 1px 2px 0 rgba(0,0,0,0.05);
+      --shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
+      --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
+      --radius: 10px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--font); background-color: var(--bg); color: var(--text); line-height: 1.5; padding: 24px; }
+    .container { max-width: 1380px; margin: 0 auto; }
+    
+    /* Header */
+    .fund-header {
+      background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+      color: #ffffff;
+      padding: 30px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-lg);
+      margin-bottom: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    .fund-header::after {
+      content: "FundsXML 4.2.9";
+      position: absolute;
+      right: -20px;
+      bottom: -20px;
+      font-size: 80px;
+      font-weight: 900;
+      color: rgba(255,255,255,0.04);
+      pointer-events: none;
+    }
+    .header-top { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px; margin-bottom: 20px; }
+    .fund-title { font-size: 26px; font-weight: 700; letter-spacing: -0.5px; }
+    .fund-subtitle { color: #93c5fd; font-size: 14px; margin-top: 4px; display: flex; gap: 16px; flex-wrap: wrap; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 9999px;
+      font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .badge-ucits { background-color: rgba(255,255,255,0.2); color: #fff; }
+    .badge-success { background-color: var(--success-light); color: #065f46; border: 1px solid #a7f3d0; }
+    .badge-warning { background-color: var(--warning-light); color: #92400e; border: 1px solid #fde68a; }
+    .badge-equity { background-color: #dbeafe; color: #1e40af; }
+    .badge-bond { background-color: #fef3c7; color: #92400e; }
+    .badge-fund { background-color: #f3e8ff; color: #6b21a8; }
+    .badge-cash { background-color: #e0f2fe; color: #0369a1; }
+    
+    /* KPI Stats Grid */
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-top: 20px; }
+    .kpi-card {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 8px;
+      padding: 14px 16px;
+    }
+    .kpi-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: #93c5fd; margin-bottom: 4px; }
+    .kpi-value { font-size: 22px; font-weight: 700; color: #ffffff; }
+    .kpi-subtext { font-size: 11px; color: #cbd5e1; margin-top: 2px; }
+
+    /* Navigation Tabs */
+    .tabs { display: flex; gap: 8px; margin-bottom: 24px; border-bottom: 2px solid var(--border); padding-bottom: 2px; }
+    .tab-btn {
+      background: none; border: none; padding: 10px 20px; font-size: 14px; font-weight: 600;
+      color: var(--text-muted); cursor: pointer; border-radius: 6px 6px 0 0; transition: all 0.2s;
+    }
+    .tab-btn:hover { color: var(--primary); background-color: var(--surface-subtle); }
+    .tab-btn.active { color: var(--primary); border-bottom: 3px solid var(--primary); background-color: #eff6ff; }
+
+    /* Content Cards & Grids */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; margin-bottom: 24px; }
+    @media (max-width: 992px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+    
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+    .card-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #fafafa;
+    }
+    .card-title { font-size: 16px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 8px; }
+    .card-body { padding: 20px; }
+
+    /* Key Information Table */
+    .info-list { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 24px; }
+    .info-item { display: flex; justify-content: space-between; font-size: 13px; border-bottom: 1px dashed var(--border); padding-bottom: 4px; }
+    .info-label { color: var(--text-muted); }
+    .info-val { font-weight: 600; text-align: right; }
+
+    /* Visual Bars & Charts */
+    .bar-row { margin-bottom: 14px; }
+    .bar-header { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px; font-weight: 600; }
+    .progress-track { height: 10px; background-color: var(--surface-subtle); border-radius: 9999px; overflow: hidden; }
+    .progress-fill { height: 100%; border-radius: 9999px; transition: width 0.5s ease-in-out; }
+    
+    /* Interactive Filter Bar */
+    .filter-bar {
+      display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;
+      margin-bottom: 16px; background: var(--surface); padding: 12px 16px; border-radius: 8px; border: 1px solid var(--border);
+    }
+    .search-input {
+      padding: 8px 14px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; min-width: 260px;
+      outline: none; transition: border-color 0.2s;
+    }
+    .search-input:focus { border-color: var(--primary-light); box-shadow: 0 0 0 3px rgba(59,130,246,0.15); }
+    .filter-pills { display: flex; gap: 6px; }
+    .pill-btn {
+      padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; border: 1px solid var(--border);
+      background: var(--surface); cursor: pointer; color: var(--text-muted); transition: all 0.2s;
+    }
+    .pill-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+    /* Modern Table */
+    .data-table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 8px; }
+    .data-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; background: white; }
+    .data-table th {
+      background: #f8fafc; padding: 12px 14px; font-weight: 600; color: var(--text-muted);
+      border-bottom: 1px solid var(--border); cursor: pointer; user-select: none; white-space: nowrap;
+    }
+    .data-table th:hover { background: #f1f5f9; color: var(--primary); }
+    .data-table td { padding: 12px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    .data-table tr:hover { background-color: #f8fafc; }
+    .data-table .num { text-align: right; font-variant-numeric: tabular-nums; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+    
+    /* SRI Indicator */
+    .sri-scale { display: flex; gap: 4px; margin-top: 8px; }
+    .sri-box {
+      flex: 1; text-align: center; padding: 8px 4px; font-size: 12px; font-weight: 700; border-radius: 4px;
+      color: white; opacity: 0.3; transition: all 0.2s;
+    }
+    .sri-1 { background-color: #22c55e; }
+    .sri-2 { background-color: #84cc16; }
+    .sri-3 { background-color: #eab308; }
+    .sri-4 { background-color: #f97316; }
+    .sri-5 { background-color: #ef4444; }
+    .sri-6 { background-color: #b91c1c; }
+    .sri-7 { background-color: #7f1d1d; }
+    .sri-active { opacity: 1; transform: scale(1.08); box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
+
+    /* Footer */
+    .report-footer {
+      margin-top: 32px; padding-top: 16px; border-top: 1px solid var(--border);
+      display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); flex-wrap: wrap; gap: 12px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <!-- Fund Main Header -->
+  <header class="fund-header">
+    <div class="header-top">
+      <div>
+        <div style="display:flex; align-items:center; gap: 10px; margin-bottom: 6px;">
+          <span class="badge badge-ucits">UCITS Fund</span>
+          <span class="badge" style="background: rgba(16,185,129,0.2); color:#6ee7b7; border: 1px solid rgba(16,185,129,0.4)">Active / Open-Ended</span>
+          <span style="font-size: 12px; color: #bfdbfe;">FundsXML 4.2.9 Verified</span>
+        </div>
+        <h1 class="fund-title">DEMO GLOBAL DIVERSIFIED GROWTH FUND</h1>
+        <div class="fund-subtitle">
+          <span><strong>ISIN:</strong> AT0000A0X913</span>
+          <span><strong>LEI:</strong> 529900EXAMPLELEI99</span>
+          <span><strong>Valuation Date:</strong> 2026-03-31</span>
+          <span><strong>Fund Currency:</strong> EUR</span>
+        </div>
+      </div>
+      <div style="text-align: right;">
+        <button onclick="window.print()" style="background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3); padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600;">🖨️ Export PDF / Print</button>
+      </div>
+    </div>
+
+    <!-- KPI Stats Grid -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">Total Net Assets (TNA)</div>
+        <div class="kpi-value">€ 348.52 M</div>
+        <div class="kpi-subtext">+1.42% MoM Change</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Total Positions</div>
+        <div class="kpi-value">666</div>
+        <div class="kpi-subtext">224 Unique Assets</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Share Classes</div>
+        <div class="kpi-value">9 Tranches</div>
+        <div class="kpi-subtext">EUR, USD, CHF (Hedged)</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Summary Risk Indicator (SRI)</div>
+        <div class="kpi-value">3 <span style="font-size: 14px; font-weight: normal;">of 7</span></div>
+        <div class="kpi-subtext">Moderate Market Risk</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Weighted Ongoing Charges (OCF)</div>
+        <div class="kpi-value">0.82 %</div>
+        <div class="kpi-subtext">Base Mgmt Fee: 0.65%</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <nav class="tabs">
+    <button class="tab-btn active" onclick="switchTab('tab-overview', this)">📊 Fund Overview &amp; Allocation</button>
+    <button class="tab-btn" onclick="switchTab('tab-positions', this)">📋 Portfolio Holdings (666)</button>
+    <button class="tab-btn" onclick="switchTab('tab-shareclasses', this)">🏷️ Share Classes (9)</button>
+    <button class="tab-btn" onclick="switchTab('tab-regulatory', this)">⚖️ ESG &amp; Regulatory Disclosures (EMT/EET/PRIIPs)</button>
+  </nav>
+
+  <!-- TAB 1: OVERVIEW & ALLOCATION -->
+  <div id="tab-overview" class="tab-content">
+    <div class="grid-3">
+      <!-- Master Fund Data -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">🏢 Fund Static Profile</span>
+        </div>
+        <div class="card-body">
+          <div class="info-list" style="grid-template-columns: 1fr;">
+            <div class="info-item"><span class="info-label">Management Company (ManCo)</span><span class="info-val">Global Asset Management AG</span></div>
+            <div class="info-item"><span class="info-label">Custodian Bank</span><span class="info-val">Central Custody Bank Europe</span></div>
+            <div class="info-item"><span class="info-label">Fund Domicile / Legal Form</span><span class="info-val">Austria (InvFG 2011 UCITS)</span></div>
+            <div class="info-item"><span class="info-label">Inception Date</span><span class="info-val">2014-11-03</span></div>
+            <div class="info-item"><span class="info-label">Fiscal Year End</span><span class="info-val">December 31</span></div>
+            <div class="info-item"><span class="info-label">Primary Benchmark</span><span class="info-val">60% MSCI World / 40% Bloomberg Agg</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Asset Allocation Breakdown (SVG Donut) -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">🥧 Asset Allocation</span>
+          <span style="font-size: 12px; color: var(--text-muted);">% of NAV</span>
+        </div>
+        <div class="card-body">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px;">
+            <!-- SVG Donut Chart -->
+            <svg width="140" height="140" viewBox="0 0 42 42" style="transform: rotate(-90deg); flex-shrink: 0;">
+              <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#e2e8f0" stroke-width="6"></circle>
+              <!-- Equities (52.4%) -->
+              <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#3b82f6" stroke-width="6" stroke-dasharray="52.4 47.6" stroke-dashoffset="0"></circle>
+              <!-- Bonds (36.8%) -->
+              <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#f59e0b" stroke-width="6" stroke-dasharray="36.8 63.2" stroke-dashoffset="-52.4"></circle>
+              <!-- Funds (6.5%) -->
+              <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#8b5cf6" stroke-width="6" stroke-dasharray="6.5 93.5" stroke-dashoffset="-89.2"></circle>
+              <!-- Cash (4.3%) -->
+              <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#10b981" stroke-width="6" stroke-dasharray="4.3 95.7" stroke-dashoffset="-95.7"></circle>
+            </svg>
+            <div style="flex: 1; font-size: 12px;">
+              <div style="margin-bottom: 6px; display: flex; justify-content: space-between;">
+                <span><span style="color:#3b82f6;">■</span> Equities (EQ)</span><strong>52.4%</strong>
+              </div>
+              <div style="margin-bottom: 6px; display: flex; justify-content: space-between;">
+                <span><span style="color:#f59e0b;">■</span> Bonds (BO)</span><strong>36.8%</strong>
+              </div>
+              <div style="margin-bottom: 6px; display: flex; justify-content: space-between;">
+                <span><span style="color:#8b5cf6;">■</span> Investment Funds (FU)</span><strong>6.5%</strong>
+              </div>
+              <div style="margin-bottom: 6px; display: flex; justify-content: space-between;">
+                <span><span style="color:#10b981;">■</span> Cash &amp; Liquidity (CA)</span><strong>4.3%</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Currency Exposure Bars -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">💱 Currency Exposure</span>
+          <span style="font-size: 12px; color: var(--text-muted);">Net FX Risk</span>
+        </div>
+        <div class="card-body">
+          <div class="bar-row">
+            <div class="bar-header"><span>EUR (Base Currency)</span><span>58.2%</span></div>
+            <div class="progress-track"><div class="progress-fill" style="width: 58.2%; background-color: #1e3a8a;"></div></div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-header"><span>USD (US Dollar)</span><span>28.4%</span></div>
+            <div class="progress-track"><div class="progress-fill" style="width: 28.4%; background-color: #0ea5e9;"></div></div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-header"><span>CHF (Swiss Franc)</span><span>7.8%</span></div>
+            <div class="progress-track"><div class="progress-fill" style="width: 7.8%; background-color: #10b981;"></div></div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-header"><span>GBP (British Pound)</span><span>5.6%</span></div>
+            <div class="progress-track"><div class="progress-fill" style="width: 5.6%; background-color: #f59e0b;"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top 5 Holdings Table Preview -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">⭐ Top 5 Holdings by Portfolio Weight</span>
+        <button class="pill-btn" onclick="switchTab('tab-positions', document.querySelectorAll('.tab-btn')[1])">View All 666 Holdings →</button>
+      </div>
+      <div class="card-body" style="padding: 0;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Instrument / Security Description</th>
+              <th>ISIN / Identifier</th>
+              <th>Asset Class</th>
+              <th>Currency</th>
+              <th class="num">Holding / Nominal</th>
+              <th class="num">Price</th>
+              <th class="num">Market Value (EUR)</th>
+              <th class="num">Weight (%)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>1</strong></td>
+              <td><strong>MICROSOFT CORP. REGISTERED SHARES</strong></td>
+              <td class="mono">US5949181045</td>
+              <td><span class="badge badge-equity">Equity</span></td>
+              <td>USD</td>
+              <td class="num">38,500</td>
+              <td class="num">420.55</td>
+              <td class="num">14,920,450.00</td>
+              <td class="num"><strong>4.28%</strong></td>
+            </tr>
+            <tr>
+              <td><strong>2</strong></td>
+              <td><strong>APPLE INC. REGISTERED SHARES</strong></td>
+              <td class="mono">US0378331005</td>
+              <td><span class="badge badge-equity">Equity</span></td>
+              <td>USD</td>
+              <td class="num">72,000</td>
+              <td class="num">178.10</td>
+              <td class="num">11,825,840.00</td>
+              <td class="num"><strong>3.39%</strong></td>
+            </tr>
+            <tr>
+              <td><strong>3</strong></td>
+              <td><strong>BUNDESREP. DEUTSCHLAND ANL. V.2024 (2034)</strong></td>
+              <td class="mono">DE000BU2Z007</td>
+              <td><span class="badge badge-bond">Bond</span></td>
+              <td>EUR</td>
+              <td class="num">10,000,000</td>
+              <td class="num">102.35%</td>
+              <td class="num">10,235,000.00</td>
+              <td class="num"><strong>2.94%</strong></td>
+            </tr>
+            <tr>
+              <td><strong>4</strong></td>
+              <td><strong>ASML HOLDING NV EO -,09</strong></td>
+              <td class="mono">NL0010273215</td>
+              <td><span class="badge badge-equity">Equity</span></td>
+              <td>EUR</td>
+              <td class="num">11,200</td>
+              <td class="num">885.40</td>
+              <td class="num">9,916,480.00</td>
+              <td class="num"><strong>2.85%</strong></td>
+            </tr>
+            <tr>
+              <td><strong>5</strong></td>
+              <td><strong>REPUBLIC OF AUSTRIA 2033 2.90%</strong></td>
+              <td class="mono">AT0000A32435</td>
+              <td><span class="badge badge-bond">Bond</span></td>
+              <td>EUR</td>
+              <td class="num">8,500,000</td>
+              <td class="num">101.80%</td>
+              <td class="num">8,653,000.00</td>
+              <td class="num"><strong>2.48%</strong></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: PORTFOLIO HOLDINGS WITH LIVE FILTER -->
+  <div id="tab-positions" class="tab-content" style="display:none;">
+    <div class="filter-bar">
+      <input type="text" id="positionSearch" class="search-input" placeholder="🔍 Search by name, ISIN, asset class, country..." onkeyup="filterPositions()">
+      <div class="filter-pills">
+        <button class="pill-btn active" onclick="filterAssetType('ALL', this)">All (666)</button>
+        <button class="pill-btn" onclick="filterAssetType('EQ', this)">Equities</button>
+        <button class="pill-btn" onclick="filterAssetType('BO', this)">Bonds</button>
+        <button class="pill-btn" onclick="filterAssetType('FU', this)">Funds</button>
+        <button class="pill-btn" onclick="filterAssetType('CA', this)">Cash</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body" style="padding: 0;">
+        <div class="data-table-wrap">
+          <table class="data-table" id="positionsTable">
+            <thead>
+              <tr onclick="sortTable(event)">
+                <th>ID</th>
+                <th>Instrument Name</th>
+                <th>ISIN</th>
+                <th>Asset Type</th>
+                <th>Country</th>
+                <th>Currency</th>
+                <th class="num">Holding / Units</th>
+                <th class="num">Price</th>
+                <th class="num">Market Value (EUR)</th>
+                <th class="num">Weight (%)</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="positionsBody">
+              <tr data-type="EQ">
+                <td class="mono">POS_001</td>
+                <td><strong>MICROSOFT CORP.</strong></td>
+                <td class="mono">US5949181045</td>
+                <td><span class="badge badge-equity">EQ (Equity)</span></td>
+                <td>US 🇺🇸</td>
+                <td>USD</td>
+                <td class="num">38,500</td>
+                <td class="num">420.55</td>
+                <td class="num">14,920,450.00</td>
+                <td class="num"><strong>4.28%</strong></td>
+                <td><span class="badge badge-success">Audited</span></td>
+              </tr>
+              <tr data-type="EQ">
+                <td class="mono">POS_002</td>
+                <td><strong>APPLE INC.</strong></td>
+                <td class="mono">US0378331005</td>
+                <td><span class="badge badge-equity">EQ (Equity)</span></td>
+                <td>US 🇺🇸</td>
+                <td>USD</td>
+                <td class="num">72,000</td>
+                <td class="num">178.10</td>
+                <td class="num">11,825,840.00</td>
+                <td class="num"><strong>3.39%</strong></td>
+                <td><span class="badge badge-success">Audited</span></td>
+              </tr>
+              <tr data-type="BO">
+                <td class="mono">POS_003</td>
+                <td><strong>BUNDESREP. DEUTSCHLAND 2034</strong></td>
+                <td class="mono">DE000BU2Z007</td>
+                <td><span class="badge badge-bond">BO (Bond)</span></td>
+                <td>DE 🇩🇪</td>
+                <td>EUR</td>
+                <td class="num">10,000,000</td>
+                <td class="num">102.35%</td>
+                <td class="num">10,235,000.00</td>
+                <td class="num"><strong>2.94%</strong></td>
+                <td><span class="badge badge-success">Audited</span></td>
+              </tr>
+              <tr data-type="BO">
+                <td class="mono">POS_004</td>
+                <td><strong>REPUBLIC OF AUSTRIA 2033</strong></td>
+                <td class="mono">AT0000A32435</td>
+                <td><span class="badge badge-bond">BO (Bond)</span></td>
+                <td>AT 🇦🇹</td>
+                <td>EUR</td>
+                <td class="num">8,500,000</td>
+                <td class="num">101.80%</td>
+                <td class="num">8,653,000.00</td>
+                <td class="num"><strong>2.48%</strong></td>
+                <td><span class="badge badge-success">Audited</span></td>
+              </tr>
+              <tr data-type="FU">
+                <td class="mono">POS_005</td>
+                <td><strong>ISHARES CORE S&amp;P 500 UCITS ETF</strong></td>
+                <td class="mono">IE00B5BMR087</td>
+                <td><span class="badge badge-fund">FU (Fund)</span></td>
+                <td>IE 🇮🇪</td>
+                <td>USD</td>
+                <td class="num">14,200</td>
+                <td class="num">524.30</td>
+                <td class="num">6,860,110.00</td>
+                <td class="num"><strong>1.97%</strong></td>
+                <td><span class="badge badge-success">Audited</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 3: SHARE CLASSES & FEES -->
+  <div id="tab-shareclasses" class="tab-content" style="display:none;">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">🏷️ Share Class Profile &amp; Expense Breakdown</span>
+      </div>
+      <div class="card-body" style="padding: 0;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ISIN / Tranche</th>
+              <th>Share Class Name</th>
+              <th>Currency</th>
+              <th>Distribution Policy</th>
+              <th>Currency Hedging</th>
+              <th>Inception</th>
+              <th class="num">NAV per Share</th>
+              <th class="num">Shares Outstanding</th>
+              <th class="num">Class TNA Volume</th>
+              <th class="num">Mgmt Fee</th>
+              <th class="num">OCF / TER</th>
+              <th>Registered Countries</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="mono"><strong>AT0000A0X913</strong></td>
+              <td>Demo Fund - Tranche A (Distributing)</td>
+              <td>EUR</td>
+              <td><span class="badge badge-success">Distributing</span></td>
+              <td>No</td>
+              <td>2014-11-03</td>
+              <td class="num">142.85</td>
+              <td class="num">1,240,000</td>
+              <td class="num">€ 177.13 M</td>
+              <td class="num">0.65%</td>
+              <td class="num"><strong>0.82%</strong></td>
+              <td>AT, DE, CH, LU</td>
+            </tr>
+            <tr>
+              <td class="mono"><strong>AT0000A0X921</strong></td>
+              <td>Demo Fund - Tranche T (Accumulating)</td>
+              <td>EUR</td>
+              <td><span class="badge badge-warning">Accumulating</span></td>
+              <td>No</td>
+              <td>2016-04-15</td>
+              <td class="num">188.40</td>
+              <td class="num">680,000</td>
+              <td class="num">€ 128.11 M</td>
+              <td class="num">0.65%</td>
+              <td class="num"><strong>0.82%</strong></td>
+              <td>AT, DE, CH</td>
+            </tr>
+            <tr>
+              <td class="mono"><strong>AT0000A0X939</strong></td>
+              <td>Demo Fund - Tranche I-USD (Institutional Hedged)</td>
+              <td>USD</td>
+              <td><span class="badge badge-warning">Accumulating</span></td>
+              <td><span class="badge badge-equity">USD-Hedged</span></td>
+              <td>2019-09-01</td>
+              <td class="num">112.30</td>
+              <td class="num">410,000</td>
+              <td class="num">$ 46.04 M</td>
+              <td class="num">0.35%</td>
+              <td class="num"><strong>0.45%</strong></td>
+              <td>AT, DE, LU, UK</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 4: REGULATORY & ESG -->
+  <div id="tab-regulatory" class="tab-content" style="display:none;">
+    <div class="grid-2">
+      <!-- PRIIPs & Risk Figures -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">📉 PRIIPs RTS &amp; Key Risk Metrics</span>
+        </div>
+        <div class="card-body">
+          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 8px;">Summary Risk Indicator (SRI pursuant to PRIIPs Regulatory Technical Standards):</p>
+          <div class="sri-scale">
+            <div class="sri-box sri-1">1</div>
+            <div class="sri-box sri-2">2</div>
+            <div class="sri-box sri-3 sri-active">3</div>
+            <div class="sri-box sri-4">4</div>
+            <div class="sri-box sri-5">5</div>
+            <div class="sri-box sri-6">6</div>
+            <div class="sri-box sri-7">7</div>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); margin-top: 4px;">
+            <span>Lower Risk (Typically lower rewards)</span>
+            <span>Higher Risk (Typically higher rewards)</span>
+          </div>
+
+          <div class="info-list" style="grid-template-columns: 1fr; margin-top: 20px;">
+            <div class="info-item"><span class="info-label">Annualized Volatility (1 Year p.a.)</span><span class="info-val">8.45 %</span></div>
+            <div class="info-item"><span class="info-label">Sharpe Ratio (Risk-Free: 2.50%)</span><span class="info-val">1.18</span></div>
+            <div class="info-item"><span class="info-label">Modified Duration (Fixed Income Portion)</span><span class="info-val">4.62 Years</span></div>
+            <div class="info-item"><span class="info-label">Value at Risk (VaR 99% / 20-Day Horizon)</span><span class="info-val">4.12 %</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ESG / EET / SFDR Data -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">🌱 ESG &amp; SFDR Regulatory Classification (EET)</span>
+        </div>
+        <div class="card-body">
+          <div class="info-list" style="grid-template-columns: 1fr;">
+            <div class="info-item"><span class="info-label">SFDR Classification (EU 2019/2088)</span><span class="info-val"><span class="badge badge-success">Article 8 (Light Green)</span></span></div>
+            <div class="info-item"><span class="info-label">EU Taxonomy Alignment</span><span class="info-val">14.8 %</span></div>
+            <div class="info-item"><span class="info-label">Sustainable Investments Minimum Share</span><span class="info-val">30.0 %</span></div>
+            <div class="info-item"><span class="info-label">PAI Consideration (Principal Adverse Impacts)</span><span class="info-val">Yes (Climate, Human Rights)</span></div>
+            <div class="info-item"><span class="info-label">Exclusion Screening (Controversial Weapons, Tobacco)</span><span class="info-val">100% Compliant</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="report-footer">
+    <div>
+      <strong>FreeXmlToolkit</strong> | Standard FundsXML 4.2.9 Institutional Transformation &bull; Generated on 2026-09-17
+    </div>
+    <div>
+      Document ID: <span class="mono">FXT-DOC-2026-00429</span> &bull; Data Supplier: <span class="mono">Central Data Supplier AG</span>
+    </div>
+  </footer>
+</div>
+
+<script>
+  function switchTab(tabId, btn) {
+    document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    document.getElementById(tabId).style.display = 'block';
+    btn.classList.add('active');
+  }
+
+  function filterPositions() {
+    const q = document.getElementById('positionSearch').value.toLowerCase();
+    const rows = document.querySelectorAll('#positionsBody tr');
+    rows.forEach(r => {
+      const txt = r.innerText.toLowerCase();
+      r.style.display = txt.includes(q) ? '' : 'none';
+    });
+  }
+
+  function filterAssetType(type, btn) {
+    document.querySelectorAll('.filter-pills .pill-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const rows = document.querySelectorAll('#positionsBody tr');
+    rows.forEach(r => {
+      if (type === 'ALL' || r.getAttribute('data-type') === type) {
+        r.style.display = '';
+      } else {
+        r.style.display = 'none';
+      }
+    });
+  }
+
+  let sortAsc = true;
+  function sortTable(e) {
+    const th = e.target.closest('th');
+    if (!th) return;
+    const table = th.closest('table');
+    const tbody = table.querySelector('tbody');
+    const colIndex = Array.from(th.parentNode.children).indexOf(th);
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    
+    rows.sort((a, b) => {
+      const aVal = a.children[colIndex].innerText.trim().replace(/[%€$,]/g, '');
+      const bVal = b.children[colIndex].innerText.trim().replace(/[%€$,]/g, '');
+      const aNum = parseFloat(aVal);
+      const bNum = parseFloat(bVal);
+      if (!isNaN(aNum) && !isNaN(bNum)) {
+        return sortAsc ? aNum - bNum : bNum - aNum;
+      }
+      return sortAsc ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+    });
+    sortAsc = !sortAsc;
+    rows.forEach(r => tbody.appendChild(r));
+  }
+</script>
+
+</body>
+</html>

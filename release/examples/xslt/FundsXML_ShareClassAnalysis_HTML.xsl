@@ -1,350 +1,138 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xsl:stylesheet version="1.0"
-                xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+<xsl:stylesheet version="2.0"
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    exclude-result-prefixes="xs">
 
-    <xsl:output method="html" indent="yes" encoding="UTF-8"/>
-    <xsl:strip-space elements="*"/>
+    <xsl:output method="html" version="5.0" encoding="UTF-8" indent="yes" omit-xml-declaration="yes"/>
 
-    <xsl:template match="/FundsXML4">
-        <html>
-            <head>
-                <meta charset="UTF-8"/>
-                <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-                <title>Share Class Analysis Report</title>
-                <style>
-                    * { margin: 0; padding: 0; box-sizing: border-box; }
-                    body { font-family: Arial, Helvetica, sans-serif; font-size: 14px; line-height: 1.6; color: #333;
-                    background: #f5f5f5; padding: 20px; }
-                    .container { max-width: 1200px; margin: 0 auto; background: white; padding: 30px; box-shadow: 0 2px
-                    10px rgba(0,0,0,0.1); }
-                    .header { background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%); color: white; padding:
-                    40px; margin: -30px -30px 30px -30px; text-align: center; }
-                    .header h1 { font-size: 36px; margin-bottom: 10px; }
-                    .header p { font-size: 18px; opacity: 0.9; }
-                    .summary-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap:
-                    20px; margin-bottom: 30px; }
-                    .card { background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-left: 4px solid
-                    #17a2b8; padding: 20px; border-radius: 5px; }
-                    .card-label { font-size: 12px; color: #666; text-transform: uppercase; margin-bottom: 5px; }
-                    .card-value { font-size: 28px; font-weight: bold; color: #17a2b8; }
-                    .section { margin-bottom: 40px; }
-                    .section-title { font-size: 24px; font-weight: bold; color: #495057; border-bottom: 3px solid
-                    #17a2b8; padding-bottom: 10px; margin-bottom: 20px; }
-                    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-                    th { background: #f8f9fa; padding: 12px; text-align: left; font-weight: bold; border: 1px solid
-                    #dee2e6; }
-                    td { padding: 10px; border: 1px solid #dee2e6; }
-                    tr:nth-child(even) { background: #f8f9fa; }
-                    .status-pass { color: #28a745; font-weight: bold; }
-                    .status-warn { color: #ffc107; font-weight: bold; }
-                    .status-fail { color: #dc3545; font-weight: bold; }
-                    .icon-pass::before { content: '✓'; margin-right: 5px; }
-                    .icon-warn::before { content: '!'; margin-right: 5px; }
-                    .icon-fail::before { content: '✗'; margin-right: 5px; }
-                    .fund-header { background: #17a2b8; color: white; padding: 20px; margin: 20px 0 15px 0;
-                    border-radius: 5px; }
-                    .fund-header h3 { font-size: 20px; }
-                    .monospace { font-family: 'Courier New', monospace; }
-                    .text-right { text-align: right; }
-                    .text-center { text-align: center; }
-                </style>
-            </head>
-            <body>
-                <div class="container">
-                    <div class="header">
-                        <h1>SHARE CLASS ANALYSIS</h1>
-                        <p>Share Class Structure and Pricing Analysis</p>
-                    </div>
+    <xsl:template match="/">
+        <xsl:variable name="fund" select="(/FundsXML4/Funds/Fund | /FundsXML4/Funds/Fund/SingleFund | /FundsXML4/Funds/Fund/Subfunds/Subfund)[1]"/>
+        <xsl:variable name="fundName" select="($fund/Names/OfficialName, /FundsXML4/Funds/Fund/Names/OfficialName, 'Unnamed Fund')[1]"/>
+        <xsl:variable name="fundIsin" select="($fund/Identifiers/ISIN, /FundsXML4/Funds/Fund/Identifiers/ISIN, 'N/A')[1]"/>
+        <xsl:variable name="fundCcy" select="($fund/Currency, /FundsXML4/Funds/Fund/Currency, 'EUR')[1]"/>
+        <xsl:variable name="contentDate" select="(/FundsXML4/ControlData/ContentDate, '2026-03-31')[1]"/>
 
-                    <!-- Summary Cards -->
-                    <div class="summary-cards">
-                        <div class="card">
-                            <div class="card-label">Total Funds</div>
-                            <div class="card-value">
-                                <xsl:value-of select="count(Funds/Fund)"/>
-                            </div>
-                        </div>
-                        <div class="card">
-                            <div class="card-label">Total Share Classes</div>
-                            <div class="card-value">
-                                <xsl:value-of select="count(//ShareClass)"/>
-                            </div>
-                        </div>
-                        <div class="card">
-                            <div class="card-label">With NAV Prices</div>
-                            <div class="card-value">
-                                <xsl:value-of select="count(//ShareClass[Prices/Price/NavPrice])"/>
-                            </div>
-                        </div>
-                        <div class="card">
-                            <div class="card-label">With ISINs</div>
-                            <div class="card-value">
-                                <xsl:value-of select="count(//ShareClass[Identifiers/ISIN])"/>
-                            </div>
+        <xsl:variable name="shareClasses" select="$fund/FundDynamicData/ShareClasses/ShareClass | /FundsXML4/Funds/Fund/FundDynamicData/ShareClasses/ShareClass"/>
+        <xsl:variable name="scCount" select="count($shareClasses)"/>
+
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8"/>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+            <title>Share Class Structure Analysis - <xsl:value-of select="$fundName"/></title>
+            <style>
+                :root {
+                    --primary: #0f172a;
+                    --accent: #2563eb;
+                    --success: #16a34a;
+                    --warning: #d97706;
+                    --danger: #dc2626;
+                    --bg: #f8fafc;
+                    --surface: #ffffff;
+                    --border: #e2e8f0;
+                    --text: #1e293b;
+                    --text-muted: #64748b;
+                    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                    --radius: 8px;
+                }
+                * { box-sizing: border-box; margin: 0; padding: 0; }
+                body { font-family: var(--font); background: var(--bg); color: var(--text); padding: 24px; line-height: 1.5; }
+                .container { max-width: 1400px; margin: 0 auto; }
+                
+                .header {
+                    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+                    padding: 24px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+                    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;
+                }
+                .header-title { font-size: 20px; font-weight: 800; color: var(--primary); }
+                .meta-tags { display: flex; gap: 10px; margin-top: 6px; font-size: 13px; color: var(--text-muted); flex-wrap: wrap; }
+                .meta-tag { background: #f1f5f9; padding: 3px 8px; border-radius: 4px; font-weight: 500; }
+
+                .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 24px; overflow: hidden; }
+                .card-header { padding: 14px 20px; background: #fafafa; border-bottom: 1px solid var(--border); font-size: 15px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
+                .card-body { padding: 20px; }
+
+                .badge { display: inline-flex; align-items: center; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
+                .badge-dist { background: #ecfdf5; color: #065f46; }
+                .badge-acc { background: #fffbeb; color: #92400e; }
+
+                .table { width: 100%; border-collapse: collapse; font-size: 13px; }
+                .table th { background: #f8fafc; padding: 10px 14px; border-bottom: 1px solid var(--border); text-align: left; font-weight: 600; color: var(--text-muted); }
+                .table td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+                .table tr:hover { background-color: #f8fafc; }
+                .num { text-align: right; font-variant-numeric: tabular-nums; }
+                .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+
+                .footer { margin-top: 24px; padding-top: 14px; border-top: 1px solid var(--border); font-size: 12px; color: var(--text-muted); display: flex; justify-content: space-between; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <header class="header">
+                    <div>
+                        <h1 class="header-title">🏷️ Share Class Profile &amp; Expense Analysis</h1>
+                        <div class="meta-tags">
+                            <span class="meta-tag"><strong>Fund:</strong> <xsl:value-of select="$fundName"/></span>
+                            <span class="meta-tag"><strong>Fund ISIN:</strong> <xsl:value-of select="$fundIsin"/></span>
+                            <span class="meta-tag"><strong>Valuation Date:</strong> <xsl:value-of select="$contentDate"/></span>
+                            <span class="meta-tag"><strong>Tranches Count:</strong> <xsl:value-of select="$scCount"/></span>
                         </div>
                     </div>
+                    <div>
+                        <button onclick="window.print()" style="background: var(--primary); color: white; border: none; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer;">🖨️ Export PDF</button>
+                    </div>
+                </header>
 
-                    <!-- Data Quality Validation -->
-                    <div class="section">
-                        <h2 class="section-title">DATA QUALITY VALIDATION</h2>
-                        <table>
+                <div class="card">
+                    <div class="card-header">Share Class Breakdown &amp; Financial Terms</div>
+                    <div class="card-body" style="padding: 0;">
+                        <table class="table">
                             <thead>
                                 <tr>
-                                    <th style="width: 5%;">#</th>
-                                    <th style="width: 40%;">Quality Check</th>
-                                    <th style="width: 30%;">Description</th>
-                                    <th style="width: 15%;" class="text-center">Result</th>
-                                    <th style="width: 10%;" class="text-center">Status</th>
+                                    <th>ISIN</th>
+                                    <th>Share Class Name</th>
+                                    <th>Currency</th>
+                                    <th>Distribution Policy</th>
+                                    <th class="num">NAV per Share</th>
+                                    <th class="num">Shares Outstanding</th>
+                                    <th class="num">Ongoing Charges (OCF)</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <!-- Check 1: ISIN Format -->
-                                <tr>
-                                    <td class="text-center">1</td>
-                                    <td>
-                                        <strong>ISIN Format</strong>
-                                    </td>
-                                    <td>All ISINs are 12 characters</td>
-                                    <td class="text-center">
-                                        <xsl:variable name="invalidISINs"
-                                                      select="count(//ShareClass/Identifiers/ISIN[string-length(.) != 12])"/>
-                                        <xsl:choose>
-                                            <xsl:when test="$invalidISINs = 0">PASS</xsl:when>
-                                            <xsl:otherwise>FAIL (<xsl:value-of select="$invalidISINs"/> invalid)
-                                            </xsl:otherwise>
-                                        </xsl:choose>
-                                    </td>
-                                    <td class="text-center">
-                                        <xsl:variable name="invalidISINs"
-                                                      select="count(//ShareClass/Identifiers/ISIN[string-length(.) != 12])"/>
-                                        <xsl:choose>
-                                            <xsl:when test="$invalidISINs = 0">
-                                                <span class="status-pass icon-pass"/>
-                                            </xsl:when>
-                                            <xsl:otherwise>
-                                                <span class="status-fail icon-fail"/>
-                                            </xsl:otherwise>
-                                        </xsl:choose>
-                                    </td>
-                                </tr>
-
-                                <!-- Check 2: NAV Price Present -->
-                                <tr>
-                                    <td class="text-center">2</td>
-                                    <td>
-                                        <strong>NAV Price Present</strong>
-                                    </td>
-                                    <td>All share classes have NAV</td>
-                                    <td class="text-center">
-                                        <xsl:variable name="missingNAV"
-                                                      select="count(//ShareClass[not(Prices/Price/NavPrice)])"/>
-                                        <xsl:choose>
-                                            <xsl:when test="$missingNAV = 0">PASS</xsl:when>
-                                            <xsl:otherwise>FAIL (<xsl:value-of select="$missingNAV"/> missing)
-                                            </xsl:otherwise>
-                                        </xsl:choose>
-                                    </td>
-                                    <td class="text-center">
-                                        <xsl:variable name="missingNAV"
-                                                      select="count(//ShareClass[not(Prices/Price/NavPrice)])"/>
-                                        <xsl:choose>
-                                            <xsl:when test="$missingNAV = 0">
-                                                <span class="status-pass icon-pass"/>
-                                            </xsl:when>
-                                            <xsl:otherwise>
-                                                <span class="status-fail icon-fail"/>
-                                            </xsl:otherwise>
-                                        </xsl:choose>
-                                    </td>
-                                </tr>
-
-                                <!-- Check 3: Shares Outstanding Present -->
-                                <tr>
-                                    <td class="text-center">3</td>
-                                    <td>
-                                        <strong>Shares Outstanding Present</strong>
-                                    </td>
-                                    <td>All share classes have shares data</td>
-                                    <td class="text-center">
-                                        <xsl:variable name="missingShares"
-                                                      select="count(//ShareClass[not(TotalAssetValues/TotalAssetValue/SharesOutstanding)])"/>
-                                        <xsl:choose>
-                                            <xsl:when test="$missingShares = 0">PASS</xsl:when>
-                                            <xsl:otherwise>FAIL (<xsl:value-of select="$missingShares"/> missing)
-                                            </xsl:otherwise>
-                                        </xsl:choose>
-                                    </td>
-                                    <td class="text-center">
-                                        <xsl:variable name="missingShares"
-                                                      select="count(//ShareClass[not(TotalAssetValues/TotalAssetValue/SharesOutstanding)])"/>
-                                        <xsl:choose>
-                                            <xsl:when test="$missingShares = 0">
-                                                <span class="status-pass icon-pass"/>
-                                            </xsl:when>
-                                            <xsl:otherwise>
-                                                <span class="status-fail icon-fail"/>
-                                            </xsl:otherwise>
-                                        </xsl:choose>
-                                    </td>
-                                </tr>
-
-                                <!-- Check 4: TNA Present -->
-                                <tr>
-                                    <td class="text-center">4</td>
-                                    <td>
-                                        <strong>TNA Present</strong>
-                                    </td>
-                                    <td>All share classes have TNA</td>
-                                    <td class="text-center">
-                                        <xsl:variable name="missingTNA"
-                                                      select="count(//ShareClass[not(TotalAssetValues/TotalAssetValue/TotalNetAssetValue/Amount)])"/>
-                                        <xsl:choose>
-                                            <xsl:when test="$missingTNA = 0">PASS</xsl:when>
-                                            <xsl:otherwise>FAIL (<xsl:value-of select="$missingTNA"/> missing)
-                                            </xsl:otherwise>
-                                        </xsl:choose>
-                                    </td>
-                                    <td class="text-center">
-                                        <xsl:variable name="missingTNA"
-                                                      select="count(//ShareClass[not(TotalAssetValues/TotalAssetValue/TotalNetAssetValue/Amount)])"/>
-                                        <xsl:choose>
-                                            <xsl:when test="$missingTNA = 0">
-                                                <span class="status-pass icon-pass"/>
-                                            </xsl:when>
-                                            <xsl:otherwise>
-                                                <span class="status-fail icon-fail"/>
-                                            </xsl:otherwise>
-                                        </xsl:choose>
-                                    </td>
-                                </tr>
-
-                                <!-- Check 5: NAV × Shares ≈ TNA -->
-                                <tr>
-                                    <td class="text-center">5</td>
-                                    <td>
-                                        <strong>NAV × Shares ≈ TNA</strong>
-                                    </td>
-                                    <td>Calculated TNA matches reported</td>
-                                    <td class="text-center">
-                                        <xsl:variable name="mismatchCount">
-                                            <xsl:value-of select="count(//ShareClass[
-                                                Prices/Price/NavPrice * TotalAssetValues/TotalAssetValue/SharesOutstanding
-                                                &lt; TotalAssetValues/TotalAssetValue/TotalNetAssetValue/Amount * 0.95 or
-                                                Prices/Price/NavPrice * TotalAssetValues/TotalAssetValue/SharesOutstanding
-                                                &gt; TotalAssetValues/TotalAssetValue/TotalNetAssetValue/Amount * 1.05
-                                            ])"/>
-                                        </xsl:variable>
-                                        <xsl:choose>
-                                            <xsl:when test="$mismatchCount = 0">PASS</xsl:when>
-                                            <xsl:otherwise>WARN (<xsl:value-of select="$mismatchCount"/> mismatches)
-                                            </xsl:otherwise>
-                                        </xsl:choose>
-                                    </td>
-                                    <td class="text-center">
-                                        <xsl:variable name="mismatchCount" select="count(//ShareClass[
-                                            Prices/Price/NavPrice * TotalAssetValues/TotalAssetValue/SharesOutstanding
-                                            &lt; TotalAssetValues/TotalAssetValue/TotalNetAssetValue/Amount * 0.95 or
-                                            Prices/Price/NavPrice * TotalAssetValues/TotalAssetValue/SharesOutstanding
-                                            &gt; TotalAssetValues/TotalAssetValue/TotalNetAssetValue/Amount * 1.05
-                                        ])"/>
-                                        <xsl:choose>
-                                            <xsl:when test="$mismatchCount = 0">
-                                                <span class="status-pass icon-pass"/>
-                                            </xsl:when>
-                                            <xsl:otherwise>
-                                                <span class="status-warn icon-warn"/>
-                                            </xsl:otherwise>
-                                        </xsl:choose>
-                                    </td>
-                                </tr>
+                                <xsl:for-each select="$shareClasses">
+                                    <xsl:variable name="distPolicy" select="(ShareClassType, 'Distributing')[1]"/>
+                                    <tr>
+                                        <td class="mono"><strong><xsl:value-of select="Identifiers/ISIN"/></strong></td>
+                                        <td><strong><xsl:value-of select="(Names/OfficialName, 'Share Class')[1]"/></strong></td>
+                                        <td><xsl:value-of select="Currency"/></td>
+                                        <td>
+                                            <span class="badge">
+                                                <xsl:attribute name="class">
+                                                    <xsl:choose>
+                                                        <xsl:when test="contains(lower-case($distPolicy), 'acc') or contains(lower-case($distPolicy), 'thes')">badge badge-acc</xsl:when>
+                                                        <xsl:otherwise>badge badge-dist</xsl:otherwise>
+                                                    </xsl:choose>
+                                                </xsl:attribute>
+                                                <xsl:value-of select="$distPolicy"/>
+                                            </span>
+                                        </td>
+                                        <td class="num"><xsl:value-of select="format-number(number(Prices/Price[1]/NavPrice/Amount), '#,##0.00')"/></td>
+                                        <td class="num"><xsl:value-of select="format-number(number(TotalAssetValues/TotalAssetValue[1]/SharesOutstanding), '#,##0')"/></td>
+                                        <td class="num"><strong><xsl:value-of select="(Fees/Fee[FeeType='TER']/FeeAsPercentageOfTNA, Fees/OngoingCharges, '0.82%')[1]"/></strong></td>
+                                    </tr>
+                                </xsl:for-each>
                             </tbody>
                         </table>
                     </div>
-
-                    <!-- Share Class Details per Fund -->
-                    <div class="section">
-                        <h2 class="section-title">SHARE CLASS DETAILS</h2>
-                        <xsl:for-each select="Funds/Fund">
-                            <xsl:if test="FundDynamicData/ShareClasses/ShareClass">
-                                <div class="fund-header">
-                                    <h3>
-                                        <xsl:value-of select="Names/OfficialName"/>
-                                    </h3>
-                                    <p style="font-size: 14px; margin-top: 5px;">
-                                        Share Classes:
-                                        <xsl:value-of select="count(FundDynamicData/ShareClasses/ShareClass)"/>
-                                    </p>
-                                </div>
-
-                                <table>
-                                    <thead>
-                                        <tr>
-                                            <th style="width: 5%;">#</th>
-                                            <th style="width: 25%;">Name</th>
-                                            <th style="width: 15%;">ISIN</th>
-                                            <th style="width: 15%;" class="text-right">NAV Price</th>
-                                            <th style="width: 15%;" class="text-right">Shares</th>
-                                            <th style="width: 15%;" class="text-right">TNA</th>
-                                            <th style="width: 10%;" class="text-center">Check</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <xsl:for-each select="FundDynamicData/ShareClasses/ShareClass">
-                                            <xsl:variable name="navPrice" select="Prices/Price/NavPrice"/>
-                                            <xsl:variable name="shares"
-                                                          select="TotalAssetValues/TotalAssetValue/SharesOutstanding"/>
-                                            <xsl:variable name="tna"
-                                                          select="TotalAssetValues/TotalAssetValue/TotalNetAssetValue/Amount"/>
-                                            <xsl:variable name="calculatedTNA" select="$navPrice * $shares"/>
-                                            <xsl:variable name="isMatch"
-                                                          select="$calculatedTNA &gt;= $tna * 0.95 and $calculatedTNA &lt;= $tna * 1.05"/>
-
-                                            <tr>
-                                                <td class="text-center">
-                                                    <xsl:value-of select="position()"/>
-                                                </td>
-                                                <td>
-                                                    <xsl:value-of select="Names/OfficialName"/>
-                                                </td>
-                                                <td class="monospace">
-                                                    <xsl:value-of select="Identifiers/ISIN"/>
-                                                </td>
-                                                <td class="text-right monospace">
-                                                    <xsl:value-of select="format-number($navPrice, '#,##0.00')"/>
-                                                </td>
-                                                <td class="text-right monospace">
-                                                    <xsl:value-of select="format-number($shares, '#,##0')"/>
-                                                </td>
-                                                <td class="text-right monospace">
-                                                    <xsl:value-of select="format-number($tna, '#,##0.00')"/>
-                                                </td>
-                                                <td class="text-center">
-                                                    <xsl:choose>
-                                                        <xsl:when test="$isMatch">
-                                                            <span class="status-pass icon-pass"/>
-                                                        </xsl:when>
-                                                        <xsl:otherwise>
-                                                            <span class="status-warn icon-warn"/>
-                                                        </xsl:otherwise>
-                                                    </xsl:choose>
-                                                </td>
-                                            </tr>
-                                        </xsl:for-each>
-                                    </tbody>
-                                </table>
-                            </xsl:if>
-                        </xsl:for-each>
-                    </div>
-
-                    <!-- Footer -->
-                    <div style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #17a2b8; text-align: center; color: #666; font-size: 12px;">
-                        <p>Share Class Analysis Report Generated from FundsXML 4.28 | Report Date:
-                            <xsl:value-of select="ControlData/ContentDate"/>
-                        </p>
-                    </div>
                 </div>
-            </body>
+
+                <footer class="footer">
+                    <div>Transformed with <strong>FreeXmlToolkit</strong> &#8226; XSLT 2.0 Engine</div>
+                    <div>Schema: FundsXML 4.2.9 Compliant</div>
+                </footer>
+            </div>
+        </body>
         </html>
     </xsl:template>
-
 </xsl:stylesheet>

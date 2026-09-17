@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FundsXML 4.2.9 - Comprehensive Financial Consistency &amp; Governance Cockpit</title>
+  <style>
+    :root {
+      --primary: #0f172a;
+      --primary-light: #1e293b;
+      --accent: #2563eb;
+      --accent-light: #3b82f6;
+      --success: #16a34a;
+      --success-bg: #f0fdf4;
+      --warning: #d97706;
+      --warning-bg: #fffbeb;
+      --danger: #dc2626;
+      --danger-bg: #fef2f2;
+      --info: #0284c7;
+      --info-bg: #f0f9ff;
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      --radius: 8px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--font); background: var(--bg); color: var(--text); padding: 24px; line-height: 1.5; }
+    .container { max-width: 1440px; margin: 0 auto; }
+
+    /* Header */
+    .header {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 24px 28px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;
+    }
+    .header-info h1 { font-size: 22px; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 10px; }
+    .meta-tags { display: flex; gap: 10px; margin-top: 8px; font-size: 13px; color: var(--text-muted); flex-wrap: wrap; }
+    .meta-tag { background: #f1f5f9; padding: 3px 10px; border-radius: 4px; font-weight: 500; }
+    
+    /* Top Scorecard Grid */
+    .score-grid { display: grid; grid-template-columns: 300px 1fr; gap: 24px; margin-bottom: 24px; }
+    @media (max-width: 992px) { .score-grid { grid-template-columns: 1fr; } }
+    
+    .score-box {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 24px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    }
+    .gauge-svg { width: 160px; height: 160px; transform: rotate(-90deg); }
+    .gauge-bg { fill: none; stroke: #e2e8f0; stroke-width: 12; }
+    .gauge-fill { fill: none; stroke: var(--success); stroke-width: 12; stroke-linecap: round; transition: stroke-dashoffset 1s ease; }
+    .score-number { font-size: 34px; font-weight: 800; color: var(--primary); margin-top: -105px; margin-bottom: 55px; }
+    
+    .metrics-summary {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+    }
+    @media (max-width: 1200px) { .metrics-summary { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 600px) { .metrics-summary { grid-template-columns: 1fr; } }
+    
+    .metric-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 18px 20px; display: flex; flex-direction: column; justify-content: space-between;
+    }
+    .metric-card.critical { border-left: 4px solid var(--danger); }
+    .metric-card.warning { border-left: 4px solid var(--warning); }
+    .metric-card.passed { border-left: 4px solid var(--success); }
+    .metric-card.info { border-left: 4px solid var(--info); }
+    .metric-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); }
+    .metric-count { font-size: 32px; font-weight: 800; margin: 6px 0; }
+    .metric-desc { font-size: 12px; color: var(--text-muted); }
+
+    /* Section Cards & Accordions */
+    .section-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      margin-bottom: 20px; overflow: hidden;
+    }
+    .section-header {
+      padding: 16px 20px; background: #fafafa; border-bottom: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none;
+    }
+    .section-header:hover { background: #f4f4f5; }
+    .section-title { font-size: 15px; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 8px; }
+    .section-body { padding: 20px; }
+    
+    /* Reconciliation Box */
+    .recon-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 16px; }
+    @media (max-width: 900px) { .recon-grid { grid-template-columns: 1fr; } }
+    .recon-box { background: #f8fafc; border: 1px solid var(--border); border-radius: 6px; padding: 14px; text-align: center; }
+    .recon-label { font-size: 12px; color: var(--text-muted); font-weight: 600; margin-bottom: 4px; }
+    .recon-val { font-size: 19px; font-weight: 700; font-family: ui-monospace, monospace; }
+
+    /* Badges & Tables */
+    .badge {
+      display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 4px;
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+    }
+    .badge-pass { background: var(--success-bg); color: var(--success); border: 1px solid #bbf7d0; }
+    .badge-warn { background: var(--warning-bg); color: var(--warning); border: 1px solid #fef08a; }
+    .badge-crit { background: var(--danger-bg); color: var(--danger); border: 1px solid #fecaca; }
+    .badge-info { background: var(--info-bg); color: var(--info); border: 1px solid #bae6fd; }
+
+    .table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .table th { background: #f8fafc; padding: 10px 14px; border-bottom: 1px solid var(--border); text-align: left; font-weight: 600; color: var(--text-muted); }
+    .table td { padding: 12px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    .table tr:hover { background-color: #f8fafc; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+    .num { text-align: right; font-variant-numeric: tabular-nums; }
+
+    /* Filter Controls */
+    .filter-group { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+    .btn-filter {
+      padding: 6px 12px; font-size: 12px; font-weight: 600; border-radius: 4px; border: 1px solid var(--border);
+      background: white; cursor: pointer; color: var(--text-muted);
+    }
+    .btn-filter.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+    /* Quick jump navigation */
+    .jump-nav { display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 4px; }
+    .jump-link {
+      padding: 6px 12px; font-size: 12px; font-weight: 600; background: var(--surface);
+      border: 1px solid var(--border); border-radius: 6px; text-decoration: none; color: var(--text-muted); white-space: nowrap;
+    }
+    .jump-link:hover { color: var(--accent); border-color: var(--accent-light); }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <!-- Top Navigation / Header -->
+  <header class="header">
+    <div class="header-info">
+      <h1>🛡️ Financial Consistency &amp; Business Governance Cockpit</h1>
+      <div class="meta-tags">
+        <span class="meta-tag"><strong>Fund:</strong> DEMO GLOBAL DIVERSIFIED FUND (AT0000A0X913)</span>
+        <span class="meta-tag"><strong>Valuation Date:</strong> 2026-03-31</span>
+        <span class="meta-tag"><strong>Scope:</strong> Advanced Financial &amp; Quantitative Governance (Post-XSD)</span>
+        <span class="meta-tag"><strong>Engine:</strong> Saxon HE 12.10</span>
+      </div>
+    </div>
+    <div>
+      <button onclick="window.print()" style="background: var(--primary); color: white; border: none; padding: 9px 18px; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer;">📑 Export Audit Protocol</button>
+    </div>
+  </header>
+
+  <!-- High Level Score & Severity Cards -->
+  <div class="score-grid">
+    <!-- SVG Circular Score Gauge -->
+    <div class="score-box">
+      <svg class="gauge-svg" viewBox="0 0 100 100">
+        <circle class="gauge-bg" cx="50" cy="50" r="40"></circle>
+        <!-- 98.6% Score: circumference = 2 * PI * 40 = 251.32, offset = 251.32 * (1 - 0.986) = 3.52 -->
+        <circle class="gauge-fill" cx="50" cy="50" r="40" stroke-dasharray="251.32" stroke-dashoffset="3.52"></circle>
+      </svg>
+      <div class="score-number">98.6%</div>
+      <div style="font-weight: 700; font-size: 15px; color: var(--primary);">Financial Health Score</div>
+      <div style="font-size: 12px; color: var(--success); font-weight: 600; margin-top: 2px;">● Institutional Grade (Audit Ready)</div>
+    </div>
+
+    <!-- Severity Counts -->
+    <div class="metrics-summary">
+      <div class="metric-card passed">
+        <div class="metric-title">Rules Passed</div>
+        <div class="metric-count" style="color: var(--success);">78</div>
+        <div class="metric-desc">Reconciliations &amp; Limits OK</div>
+      </div>
+      <div class="metric-card warning">
+        <div class="metric-title">Audit Warnings</div>
+        <div class="metric-count" style="color: var(--warning);">2</div>
+        <div class="metric-desc">Stale price &amp; Accrual rounding</div>
+      </div>
+      <div class="metric-card critical">
+        <div class="metric-title">Critical Breaches</div>
+        <div class="metric-count" style="color: var(--danger);">0</div>
+        <div class="metric-desc">Zero NAV breaks / limits OK</div>
+      </div>
+      <div class="metric-card info">
+        <div class="metric-title">Evaluated Entities</div>
+        <div class="metric-count" style="color: var(--info);">675</div>
+        <div class="metric-desc">Positions, tranches &amp; FX rates</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Jump Bar -->
+  <div class="jump-nav">
+    <a href="#sec-nav" class="jump-link">⚖️ 1. NAV Reconciliation</a>
+    <a href="#sec-valuation" class="jump-link">🔢 2. Valuation &amp; Weights</a>
+    <a href="#sec-fx" class="jump-link">💱 3. FX Rate Consistency</a>
+    <a href="#sec-bonds" class="jump-link">🏷️ 4. Accrued Interest &amp; Bonds</a>
+    <a href="#sec-shareclasses" class="jump-link">💳 5. Share Class Fees &amp; Prices</a>
+    <a href="#sec-freshness" class="jump-link">⏱️ 6. Price Freshness &amp; Lifecycle</a>
+    <a href="#sec-ucits" class="jump-link">🏛️ 7. UCITS Limits &amp; Cash</a>
+    <a href="#sec-esg" class="jump-link">🌱 8. Risk &amp; SFDR Alignment</a>
+    <a href="#sec-findings" class="jump-link">📝 9. Remediation Protocol</a>
+  </div>
+
+  <!-- SECTION 1: NAV & RECONCILIATION MATRIX -->
+  <div class="section-card" id="sec-nav">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-title">⚖️ 1. Three-Way NAV &amp; Balance Sheet Reconciliation</span>
+      <span class="badge badge-pass">✓ 100% Reconciled</span>
+    </div>
+    <div class="section-body">
+      <div class="recon-grid">
+        <div class="recon-box">
+          <div class="recon-label">Reported Fund TNA (TotalNetAssetValue)</div>
+          <div class="recon-val" style="color: var(--primary);">€ 348,521,490.00</div>
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">/FundDynamicData/TotalAssetValues</div>
+        </div>
+        <div class="recon-box">
+          <div class="recon-label">Sum of Portfolio Holdings (&Sigma; Positions + Cash)</div>
+          <div class="recon-val" style="color: var(--primary);">€ 348,521,490.00</div>
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">&Sigma; (Positions + Cash - Liabilities)</div>
+        </div>
+        <div class="recon-box">
+          <div class="recon-label">TNA vs Holdings Variance (Delta)</div>
+          <div class="recon-val" style="color: var(--success);">€ 0.00 (0.000%)</div>
+          <div style="font-size: 11px; color: var(--success); font-weight: 600; margin-top: 4px;">Exact Zero Variance Match</div>
+        </div>
+      </div>
+
+      <div class="recon-grid" style="margin-bottom: 0;">
+        <div class="recon-box">
+          <div class="recon-label">Aggregated Share Class Capitalisation</div>
+          <div class="recon-val">€ 348,521,490.00</div>
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">&Sigma; (NavPrice &times; Shares &times; FX) [9 Classes]</div>
+        </div>
+        <div class="recon-box">
+          <div class="recon-label">Total Cash &amp; Overnight Balances</div>
+          <div class="recon-val">€ 14,986,425.30</div>
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">4.30% of Fund NAV (Healthy liquidity)</div>
+        </div>
+        <div class="recon-box">
+          <div class="recon-label">Accrued Management &amp; Audit Fees</div>
+          <div class="recon-val">€ -1,240,110.00</div>
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Accrued fund liabilities</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 2: MATHEMATICAL VALUATION & WEIGHT CONSISTENCY -->
+  <div class="section-card" id="sec-valuation">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-title">🔢 2. Mathematical Valuation &amp; Portfolio Weight Integrity</span>
+      <span class="badge badge-pass">✓ Valid</span>
+    </div>
+    <div class="section-body">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Valuation / Weighting Check</th>
+            <th>Mathematical Formula &amp; Verification Rule</th>
+            <th class="num">Audited Count</th>
+            <th class="num">Passed</th>
+            <th class="num">Variance</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Position Market Value Recalculation</strong></td>
+            <td class="mono">Holdings &times; Price &times; FXRate &divide; PriceFactor == TotalValue</td>
+            <td class="num">666</td>
+            <td class="num">666</td>
+            <td class="num">0</td>
+            <td><span class="badge badge-pass">Pass</span></td>
+          </tr>
+          <tr>
+            <td><strong>Portfolio Weight Sum Check (&Sigma; TotalPercentage)</strong></td>
+            <td class="mono">&Sigma; TotalPercentage == 100.00% (&plusmn; 0.05% rounding tolerance)</td>
+            <td class="num">1 Fund</td>
+            <td class="num">100.00%</td>
+            <td class="num">0.00%</td>
+            <td><span class="badge badge-pass">Pass</span></td>
+          </tr>
+          <tr>
+            <td><strong>Weight Formula Consistency</strong></td>
+            <td class="mono">TotalPercentage &equiv; (Position TotalValue &divide; Fund TNA) &times; 100</td>
+            <td class="num">666</td>
+            <td class="num">666</td>
+            <td class="num">0</td>
+            <td><span class="badge badge-pass">Pass</span></td>
+          </tr>
+          <tr>
+            <td><strong>Negative Position Value Sanity</strong></td>
+            <td class="mono">TotalValue &lt; 0 only permissible on derivative short commitments</td>
+            <td class="num">666</td>
+            <td class="num">666</td>
+            <td class="num">0</td>
+            <td><span class="badge badge-pass">Pass</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SECTION 3: CROSS-POSITION FX RATE CONSISTENCY -->
+  <div class="section-card" id="sec-fx">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-title">💱 3. Foreign Exchange (FX) Cross-Rate Consistency</span>
+      <span class="badge badge-pass">✓ Consistent</span>
+    </div>
+    <div class="section-body">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Currency Pair</th>
+            <th>Quoted Direction</th>
+            <th class="num">Observed Rate</th>
+            <th class="num">Applied Positions</th>
+            <th class="num">Max FX Dispersion</th>
+            <th>Consistency Result</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>USD / EUR</strong></td>
+            <td class="mono">M (Multiply) / Base: EUR</td>
+            <td class="num">1.0825</td>
+            <td class="num">184</td>
+            <td class="num">0.0000</td>
+            <td><span class="badge badge-pass">Uniform Rate</span></td>
+          </tr>
+          <tr>
+            <td><strong>CHF / EUR</strong></td>
+            <td class="mono">M (Multiply) / Base: EUR</td>
+            <td class="num">0.9650</td>
+            <td class="num">42</td>
+            <td class="num">0.0000</td>
+            <td><span class="badge badge-pass">Uniform Rate</span></td>
+          </tr>
+          <tr>
+            <td><strong>GBP / EUR</strong></td>
+            <td class="mono">M (Multiply) / Base: EUR</td>
+            <td class="num">0.8540</td>
+            <td class="num">28</td>
+            <td class="num">0.0000</td>
+            <td><span class="badge badge-pass">Uniform Rate</span></td>
+          </tr>
+          <tr>
+            <td><strong>JPY / EUR</strong></td>
+            <td class="mono">D (Divide) / Base: EUR</td>
+            <td class="num">162.40</td>
+            <td class="num">16</td>
+            <td class="num">0.0000</td>
+            <td><span class="badge badge-pass">Uniform Rate</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SECTION 4: ACCRUED INTEREST & FIXED INCOME ANALYTICS -->
+  <div class="section-card" id="sec-bonds">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-title">🏷️ 4. Fixed Income Accrued Interest (Stückzinsen) Audit</span>
+      <span class="badge badge-warn">1 Warning</span>
+    </div>
+    <div class="section-body">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Accrued Interest Verification</th>
+            <th>Financial Plausibility Rule</th>
+            <th class="num">Bonds Checked</th>
+            <th class="num">Compliant</th>
+            <th class="num">Anomalies</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Accrued Interest Ceiling Check</strong></td>
+            <td class="mono">AccruedInterest &le; (Nominal &times; CouponRate &divide; Frequency)</td>
+            <td class="num">84</td>
+            <td class="num">83</td>
+            <td class="num">1</td>
+            <td><span class="badge badge-warn">Warning</span></td>
+          </tr>
+          <tr>
+            <td><strong>Zero Accrued Interest on Equities/Funds</strong></td>
+            <td class="mono">Equities, ETFs, and Cash must have AccruedInterest == 0</td>
+            <td class="num">582</td>
+            <td class="num">582</td>
+            <td class="num">0</td>
+            <td><span class="badge badge-pass">Pass</span></td>
+          </tr>
+          <tr>
+            <td><strong>Coupon Bearing Bonds with Zero Accruals</strong></td>
+            <td class="mono">Coupon &gt; 0 &rArr; AccruedInterest &gt; 0 (unless ValDate == CouponDate)</td>
+            <td class="num">84</td>
+            <td class="num">84</td>
+            <td class="num">0</td>
+            <td><span class="badge badge-pass">Pass</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SECTION 5: SHARE CLASS PRICING, FEES & EXPENSES -->
+  <div class="section-card" id="sec-shareclasses">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-title">💳 5. Share Class Pricing Logic &amp; Expense Ratio Sanity</span>
+      <span class="badge badge-pass">✓ Passed</span>
+    </div>
+    <div class="section-body">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Share Class Check</th>
+            <th>Financial Constraint Rule</th>
+            <th class="num">Classes Audited</th>
+            <th class="num">Passed</th>
+            <th class="num">Exceptions</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Price Spread Hierarchy</strong></td>
+            <td class="mono">SubscriptionPrice &ge; NAV Price &ge; RedemptionPrice</td>
+            <td class="num">9</td>
+            <td class="num">9</td>
+            <td class="num">0</td>
+            <td><span class="badge badge-pass">Pass</span></td>
+          </tr>
+          <tr>
+            <td><strong>Total Expense vs Management Fee Ceiling</strong></td>
+            <td class="mono">OngoingCharges (TER / OCF) &ge; ManagementFee</td>
+            <td class="num">9</td>
+            <td class="num">9</td>
+            <td class="num">0</td>
+            <td><span class="badge badge-pass">Pass</span></td>
+          </tr>
+          <tr>
+            <td><strong>Class Market Capitalisation Math</strong></td>
+            <td class="mono">SharesOutstanding &times; NavPrice == ShareClass TotalValue</td>
+            <td class="num">9</td>
+            <td class="num">9</td>
+            <td class="num">0</td>
+            <td><span class="badge badge-pass">Pass</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SECTION 6: MARKET FRESHNESS & INSTRUMENT LIFECYCLE -->
+  <div class="section-card" id="sec-freshness">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-title">⏱️ 6. Pricing Freshness &amp; Instrument Lifecycle Audit</span>
+      <span class="badge badge-warn">1 Warning</span>
+    </div>
+    <div class="section-body">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Lifecycle / Freshness Rule</th>
+            <th>Audit Condition</th>
+            <th>Result &amp; Observed Variance</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Stale Market Pricing Detection</strong></td>
+            <td>Position/PriceDate == ValuationDate (2026-03-31)</td>
+            <td>665 positions priced at valuation date; 1 security (US912828...) priced 4 days prior</td>
+            <td><span class="badge badge-warn">Warning</span></td>
+          </tr>
+          <tr>
+            <td><strong>Future Valuation Dates (Premature Pricing)</strong></td>
+            <td>Position/PriceDate &le; ValuationDate</td>
+            <td>Zero positions priced with future timestamps</td>
+            <td><span class="badge badge-pass">Pass</span></td>
+          </tr>
+          <tr>
+            <td><strong>Active Portfolio Matured Bonds Check</strong></td>
+            <td>AssetDetails/Bond/MaturityDate &gt; ValuationDate</td>
+            <td>Zero expired/matured bonds carried in portfolio holdings</td>
+            <td><span class="badge badge-pass">Pass</span></td>
+          </tr>
+          <tr>
+            <td><strong>Coupon Payment Schedule Chronology</strong></td>
+            <td>DateFirstCoupon &le; NextCouponDate &le; DateLastCoupon</td>
+            <td>Chronological coupon timeline intact across all 84 fixed-income assets</td>
+            <td><span class="badge badge-pass">Pass</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SECTION 7: REGULATORY INVESTMENT LIMITS & CASH DRAG -->
+  <div class="section-card" id="sec-ucits">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-title">🏛️ 7. UCITS Limits, Cash Drag &amp; Leverage Governance</span>
+      <span class="badge badge-pass">✓ UCITS Compliant</span>
+    </div>
+    <div class="section-body">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Regulatory Constraint</th>
+            <th>Legal Threshold (UCITS / AIFMD)</th>
+            <th>Portfolio Actual</th>
+            <th>Compliance Assessment</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Single Non-Sovereign Issuer Exposure</strong></td>
+            <td>Max 10.0% of NAV (UCITS Art. 52)</td>
+            <td>4.28% (Microsoft Corp.)</td>
+            <td>Well below maximum 10% ceiling</td>
+            <td><span class="badge badge-pass">Pass</span></td>
+          </tr>
+          <tr>
+            <td><strong>UCITS 40% Cluster Limit (&Sigma; exposures &gt; 5%)</strong></td>
+            <td>Max 40.0% of NAV</td>
+            <td>14.72% (Sovereign bonds exempt)</td>
+            <td>Comfortably within 40% cluster cap</td>
+            <td><span class="badge badge-pass">Pass</span></td>
+          </tr>
+          <tr>
+            <td><strong>Maximum Temporary Cash Borrowing / Overdraft</strong></td>
+            <td>Max 10.0% of NAV</td>
+            <td>0.00% (No overdraft / net positive cash)</td>
+            <td>No leverage breach</td>
+            <td><span class="badge badge-pass">Pass</span></td>
+          </tr>
+          <tr>
+            <td><strong>Cash Drag / Liquidity Ceiling Monitoring</strong></td>
+            <td>Internal Target: &le; 10.0% Cash</td>
+            <td>4.30% Cash (&euro; 14.98 M)</td>
+            <td>Healthy operational liquidity buffer</td>
+            <td><span class="badge badge-pass">Pass</span></td>
+          </tr>
+          <tr>
+            <td><strong>Unlisted Securities Ratio (Trash Ratio)</strong></td>
+            <td>Max 10.0% of NAV (Listed = 'N')</td>
+            <td>0.00% (All holdings officially listed)</td>
+            <td>100% listed instruments</td>
+            <td><span class="badge badge-pass">Pass</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SECTION 8: RISK METRICS & ESG DISCLOSURE ALIGNMENT -->
+  <div class="section-card" id="sec-esg">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-title">🌱 8. Risk Indicator &amp; SFDR Regulatory Consistency</span>
+      <span class="badge badge-pass">✓ Consistent</span>
+    </div>
+    <div class="section-body">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Regulatory Alignment Test</th>
+            <th>Evaluated Metrics</th>
+            <th>Plausibility Outcome</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>SRI vs Annualized Volatility Plausibility</strong></td>
+            <td>Reported SRI: 3 (Vol Range: 5.0% &ndash; 12.0%) vs Actual Vol: 8.45%</td>
+            <td>Reported PRIIPs SRI score aligns mathematically with 1Y historical volatility</td>
+            <td><span class="badge badge-pass">Pass</span></td>
+          </tr>
+          <tr>
+            <td><strong>SFDR Article 8 Minimum Investment Commitment</strong></td>
+            <td>SFDR Category: Article 8 &rArr; Sustainable Investments &ge; 0%</td>
+            <td>Reported 30.0% minimum sustainable share + 14.8% EU taxonomy alignment</td>
+            <td><span class="badge badge-pass">Pass</span></td>
+          </tr>
+          <tr>
+            <td><strong>Principal Adverse Impacts (PAI) Disclosure</strong></td>
+            <td>PAI Consideration Flag == 'Y' &rArr; PAI Narrative populated</td>
+            <td>Mandatory climate and human rights indicators complete</td>
+            <td><span class="badge badge-pass">Pass</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SECTION 9: ACTIONABLE REMEDIATION PROTOCOL -->
+  <div class="section-card" id="sec-findings">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-title">📝 9. Governance Remediation &amp; Exception Log</span>
+      <span class="badge badge-info">2 Active Audit Items</span>
+    </div>
+    <div class="section-body">
+      <div class="filter-group">
+        <button class="btn-filter active" onclick="filterFindings('ALL', this)">All Findings (2)</button>
+        <button class="btn-filter" onclick="filterFindings('CRIT', this)">Critical (0)</button>
+        <button class="btn-filter" onclick="filterFindings('WARN', this)">Warnings (2)</button>
+      </div>
+
+      <table class="table" id="findingsTable">
+        <thead>
+          <tr>
+            <th>Severity</th>
+            <th>Entity ID</th>
+            <th>Instrument / Holding Name</th>
+            <th>Business Discrepancy</th>
+            <th>Recommended Financial Remediation</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr data-sev="WARN">
+            <td><span class="badge badge-warn">Warning</span></td>
+            <td class="mono">POS_219 (US912828...)</td>
+            <td><strong>US TREASURY 10Y BOND</strong></td>
+            <td>PriceDate (2026-03-27) is 4 days older than fund valuation date (2026-03-31).</td>
+            <td>Verify market valuation source with pricing vendor (Refinitiv/Bloomberg) for month-end mark-to-market.</td>
+          </tr>
+          <tr data-sev="WARN">
+            <td><span class="badge badge-warn">Warning</span></td>
+            <td class="mono">POS_312 (XS198273...)</td>
+            <td><strong>CORP BOND EUR 3.5% 2028</strong></td>
+            <td>Accrued interest (&euro; 18,250.00) exceeds theoretical quarterly coupon cap (&euro; 17,500.00) by &euro; 750.</td>
+            <td>Review day-count convention (Actual/Actual vs 30E/360) and verify accrued interest accrual engine.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer style="margin-top: 32px; padding-top: 16px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted);">
+    <div>
+      <strong>FreeXmlToolkit</strong> | Advanced Financial Governance &amp; Consistency Engine &bull; Schema: FundsXML 4.2.9
+    </div>
+    <div>
+      Report Generated: 2026-09-17 14:50:00 &bull; Audit Session: <span class="mono">GOV-FXT-99214</span>
+    </div>
+  </footer>
+</div>
+
+<script>
+  function toggleSection(header) {
+    const body = header.nextElementSibling;
+    body.style.display = (body.style.display === 'none') ? 'block' : 'none';
+  }
+
+  function filterFindings(sev, btn) {
+    document.querySelectorAll('.filter-group .btn-filter').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('#findingsTable tbody tr').forEach(r => {
+      if (sev === 'ALL' || r.getAttribute('data-sev') === sev) {
+        r.style.display = '';
+      } else {
+        r.style.display = 'none';
+      }
+    });
+  }
+</script>
+
+</body>
+</html>

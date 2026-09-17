@@ -1,0 +1,682 @@
+<!DOCTYPE HTML>
+<html lang="en">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Fund Factsheet - DEMO FUND 01</title>
+      <style>
+                :root {
+                    --primary: #1e3a8a;
+                    --primary-dark: #172554;
+                    --accent: #0ea5e9;
+                    --success: #10b981;
+                    --warning: #f59e0b;
+                    --danger: #ef4444;
+                    --bg: #f8fafc;
+                    --surface: #ffffff;
+                    --border: #e2e8f0;
+                    --text: #0f172a;
+                    --text-muted: #64748b;
+                    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+                    --radius: 8px;
+                }
+                * { box-sizing: border-box; margin: 0; padding: 0; }
+                body { font-family: var(--font); background: var(--bg); color: var(--text); padding: 24px; line-height: 1.5; }
+                .container { max-width: 1380px; margin: 0 auto; }
+                .fund-header {
+                    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+                    color: #fff; padding: 26px 30px; border-radius: var(--radius); margin-bottom: 24px;
+                    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+                }
+                .header-top { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px; margin-bottom: 16px; }
+                .fund-title { font-size: 24px; font-weight: 700; }
+                .fund-subtitle { color: #93c5fd; font-size: 13px; margin-top: 4px; display: flex; gap: 16px; flex-wrap: wrap; }
+                .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-top: 16px; }
+                .kpi-card { background: rgba(255,255,255,0.12); padding: 12px 16px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.15); }
+                .kpi-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #93c5fd; }
+                .kpi-value { font-size: 20px; font-weight: 700; color: #fff; margin-top: 2px; }
+                .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 24px; overflow: hidden; }
+                .card-header { padding: 14px 20px; background: #fafafa; border-bottom: 1px solid var(--border); font-size: 15px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
+                .card-body { padding: 20px; }
+                .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; }
+                @media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
+                .table { width: 100%; border-collapse: collapse; font-size: 13px; }
+                .table th { background: #f8fafc; padding: 10px 14px; border-bottom: 1px solid var(--border); text-align: left; font-weight: 600; color: var(--text-muted); }
+                .table td { padding: 10px 14px; border-bottom: 1px solid var(--border); }
+                .table tr:hover { background-color: #f8fafc; }
+                .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+                .num { text-align: right; font-variant-numeric: tabular-nums; }
+                .badge { display: inline-flex; align-items: center; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+                .badge-eq { background: #dbeafe; color: #1e40af; }
+                .badge-bo { background: #fef3c7; color: #92400e; }
+                .badge-fu { background: #f3e8ff; color: #6b21a8; }
+                .badge-ca { background: #e0f2fe; color: #0369a1; }
+                .badge-oth { background: #f1f5f9; color: #475569; }
+                .search-bar { padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; width: 280px; }
+                .footer { margin-top: 24px; padding-top: 14px; border-top: 1px solid var(--border); font-size: 12px; color: var(--text-muted); display: flex; justify-content: space-between; }
+            </style>
+   </head>
+   <body>
+      <div class="container">
+         <header class="fund-header">
+            <div class="header-top">
+               <div>
+                  <h1 class="fund-title">DEMO FUND 01</h1>
+                  <div class="fund-subtitle"><span><strong>ISIN:</strong>N/A</span><span><strong>Valuation Date:</strong>2021-11-30</span><span><strong>Fund Currency:</strong>EUR</span><span><strong>Document ID:</strong>EAM_FUND_001</span></div>
+               </div>
+               <div><button onclick="window.print()" style="background: rgba(255,255,255,0.2); color:#fff; border: 1px solid rgba(255,255,255,0.3); padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600;">🖨️ Export PDF</button></div>
+            </div>
+            <div class="kpi-grid">
+               <div class="kpi-card">
+                  <div class="kpi-label">Total Net Assets (NAV)</div>
+                  <div class="kpi-value">EUR 255,355,819.05</div>
+               </div>
+               <div class="kpi-card">
+                  <div class="kpi-label">Total Positions</div>
+                  <div class="kpi-value">222</div>
+               </div>
+               <div class="kpi-card">
+                  <div class="kpi-label">Master Assets</div>
+                  <div class="kpi-value">224</div>
+               </div>
+               <div class="kpi-card">
+                  <div class="kpi-label">Share Classes</div>
+                  <div class="kpi-value">0 Tranches</div>
+               </div>
+            </div>
+         </header>
+         <div class="grid-2">
+            <div class="card">
+               <div class="card-header">🥧 Asset Class Allocation</div>
+               <div class="card-body">
+                  <table class="table">
+                     <thead>
+                        <tr>
+                           <th>Asset Class</th>
+                           <th class="num">Positions</th>
+                           <th class="num">Market Value</th>
+                           <th class="num">Weight (%)</th>
+                        </tr>
+                     </thead>
+                     <tbody>
+                        <tr>
+                           <td><span class="badge badge-eq">Equities (EQ)</span></td>
+                           <td class="num">0</td>
+                           <td class="num">0.00</td>
+                           <td class="num"><strong>0.00%</strong></td>
+                        </tr>
+                        <tr>
+                           <td><span class="badge badge-bo">Bonds (BO)</span></td>
+                           <td class="num">217</td>
+                           <td class="num">247,494,174.93</td>
+                           <td class="num"><strong>96.92%</strong></td>
+                        </tr>
+                        <tr>
+                           <td><span class="badge badge-fu">Funds (FU)</span></td>
+                           <td class="num">1</td>
+                           <td class="num">26,602.23</td>
+                           <td class="num"><strong>0.01%</strong></td>
+                        </tr>
+                        <tr>
+                           <td><span class="badge badge-ca">Cash &amp; Liquidity (CA)</span></td>
+                           <td class="num">0</td>
+                           <td class="num">0.00</td>
+                           <td class="num"><strong>0.00%</strong></td>
+                        </tr>
+                     </tbody>
+                  </table>
+               </div>
+            </div>
+            <div class="card">
+               <div class="card-header">🏷️ Share Classes (0)</div>
+               <div class="card-body" style="padding: 0;">
+                  <table class="table">
+                     <thead>
+                        <tr>
+                           <th>ISIN</th>
+                           <th>Currency</th>
+                           <th>Distribution</th>
+                           <th class="num">NAV Price</th>
+                           <th class="num">Shares</th>
+                        </tr>
+                     </thead>
+                     <tbody></tbody>
+                  </table>
+               </div>
+            </div>
+         </div>
+         <div class="card">
+            <div class="card-header"><span>📋 Top Portfolio Holdings</span><input type="text" id="liveSearch" class="search-bar" placeholder="🔍 Instant search..." onkeyup="doSearch()"></div>
+            <div class="card-body" style="padding: 0;">
+               <table class="table" id="posTable">
+                  <thead>
+                     <tr>
+                        <th>#</th>
+                        <th>Instrument Description</th>
+                        <th>ISIN</th>
+                        <th>Asset Type</th>
+                        <th>Currency</th>
+                        <th class="num">Holding / Nominal</th>
+                        <th class="num">Market Value (EUR)</th>
+                        <th class="num">Weight (%)</th>
+                     </tr>
+                  </thead>
+                  <tbody>
+                     <tr>
+                        <td>1</td>
+                        <td><strong>EUR Account</strong></td>
+                        <td class="mono">N/A</td>
+                        <td><span class="badge badge-oth">AC</span></td>
+                        <td>EUR</td>
+                        <td class="num">7,928,598.39</td>
+                        <td class="num">7,928,598.39</td>
+                        <td class="num"><strong>3.10%</strong></td>
+                     </tr>
+                     <tr>
+                        <td>2</td>
+                        <td><strong>KELAG-KAERNT.ELE.12-22MTN</strong></td>
+                        <td class="mono">AT0000A0X913</td>
+                        <td><span class="badge badge-bo">BO</span></td>
+                        <td>EUR</td>
+                        <td class="num">1,859,030.14</td>
+                        <td class="num">1,859,030.14</td>
+                        <td class="num"><strong>0.73%</strong></td>
+                     </tr>
+                     <tr>
+                        <td>3</td>
+                        <td><strong>VOESTALPINE 17/24 MTN</strong></td>
+                        <td class="mono">AT0000A1Y3P7</td>
+                        <td><span class="badge badge-bo">BO</span></td>
+                        <td>EUR</td>
+                        <td class="num">1,238,653.15</td>
+                        <td class="num">1,238,653.15</td>
+                        <td class="num"><strong>0.49%</strong></td>
+                     </tr>
+                     <tr>
+                        <td>4</td>
+                        <td><strong>WIENERBERGER 20/25</strong></td>
+                        <td class="mono">AT0000A2GLA0</td>
+                        <td><span class="badge badge-bo">BO</span></td>
+                        <td>EUR</td>
+                        <td class="num">752,630.4</td>
+                        <td class="num">752,630.40</td>
+                        <td class="num"><strong>0.29%</strong></td>
+                     </tr>
+                     <tr>
+                        <td>5</td>
+                        <td><strong>OBERBANK 21/29 MTN</strong></td>
+                        <td class="mono">AT0000A2N7F1</td>
+                        <td><span class="badge badge-bo">BO</span></td>
+                        <td>EUR</td>
+                        <td class="num">1,185,592.17</td>
+                        <td class="num">1,185,592.17</td>
+                        <td class="num"><strong>0.46%</strong></td>
+                     </tr>
+                     <tr>
+                        <td>6</td>
+                        <td><strong>KOMM.AUS. 21/24 MTN</strong></td>
+                        <td class="mono">AT0000A2R9G1</td>
+                        <td><span class="badge badge-bo">BO</span></td>
+                        <td>EUR</td>
+                        <td class="num">1,297,611.9</td>
+                        <td class="num">1,297,611.90</td>
+                        <td class="num"><strong>0.51%</strong></td>
+                     </tr>
+                     <tr>
+                        <td>7</td>
+                        <td><strong>CESKA SPORIT 21/28 FLRMTN</strong></td>
+                        <td class="mono">AT0000A2STV4</td>
+                        <td><span class="badge badge-bo">BO</span></td>
+                        <td>EUR</td>
+                        <td class="num">1,081,960.51</td>
+                        <td class="num">1,081,960.51</td>
+                        <td class="num"><strong>0.42%</strong></td>
+                     </tr>
+                     <tr>
+                        <td>8</td>
+                        <td><strong>KBC GROEP 16/23 MTN</strong></td>
+                        <td class="mono">BE0002266352</td>
+                        <td><span class="badge badge-bo">BO</span></td>
+                        <td>EUR</td>
+                        <td class="num">508,897.78</td>
+                        <td class="num">508,897.78</td>
+                        <td class="num"><strong>0.20%</strong></td>
+                     </tr>
+                     <tr>
+                        <td>9</td>
+                        <td><strong>ELIA TRANSM. B. 17-27 MTN</strong></td>
+                        <td class="mono">BE0002276450</td>
+                        <td><span class="badge badge-bo">BO</span></td>
+                        <td>EUR</td>
+                        <td class="num">1,055,316.1</td>
+                        <td class="num">1,055,316.10</td>
+                        <td class="num"><strong>0.41%</strong></td>
+                     </tr>
+                     <tr>
+                        <td>10</td>
+                        <td><strong>KBC GROEP 21/27 FLR MTN</strong></td>
+                        <td class="mono">BE0002832138</td>
+                        <td><span class="badge badge-bo">BO</span></td>
+                        <td>EUR</td>
+                        <td class="num">995,350</td>
+                        <td class="num">995,350.00</td>
+                        <td class="num"><strong>0.39%</strong></td>
+                     </tr>
+                     <tr>
+                        <td>11</td>
+                        <td><strong>ALLIANZ SUB 2012/2042</strong></td>
+                        <td class="mono">DE000A1RE1Q3</td>
+                        <td><span class="badge badge-bo">BO</span></td>
+                        <td>EUR</td>
+                        <td class="num">2,109,461.64</td>
+                        <td class="num">2,109,461.64</td>
+                        <td class="num"><strong>0.83%</strong></td>
+                     </tr>
+                     <tr>
+                        <td>12</td>
+                        <td><strong>AAREAL BANK MTN S.304</strong></td>
+                        <td class="mono">DE000A289LU4</td>
+                        <td><span class="badge badge-bo">BO</span></td>
+                        <td>EUR</td>
+                        <td class="num">1,269,382.32</td>
+                        <td class="num">1,269,382.32</td>
+                        <td class="num"><strong>0.50%</strong></td>
+                     </tr>
+                     <tr>
+                        <td>13</td>
+                        <td><strong>EVONIK IND.MTN 20/25</strong></td>
+                        <td class="mono">DE000A289NX4</td>
+                        <td><span class="badge badge-bo">BO</span></td>
+                        <td>EUR</td>
+                        <td class="num">1,222,648.96</td>
+                        <td class="num">1,222,648.96</td>
+                        <td class="num"><strong>0.48%</strong></td>
+                     </tr>
+                     <tr>
+                        <td>14</td>
+                        <td><strong>DT.PFBR.BANK MTN.35289</strong></td>
+                        <td class="mono">DE000A2GSLC6</td>
+                        <td><span class="badge badge-bo">BO</span></td>
+                        <td>EUR</td>
+                        <td class="num">1,006,544.52</td>
+                        <td class="num">1,006,544.52</td>
+                        <td class="num"><strong>0.39%</strong></td>
+                     </tr>
+                     <tr>
+                        <td>15</td>
+                        <td><strong>EVONIK IND.21/81</strong></td>
+                        <td class="mono">DE000A3E5WW4</td>
+                        <td><span class="badge badge-bo">BO</span></td>
+                        <td>EUR</td>
+                        <td class="num">689,447.26</td>
+                        <td class="num">689,447.26</td>
+                        <td class="num"><strong>0.27%</strong></td>
+                     </tr>
+                     <tr>
+                        <td>16</td>
+                        <td><strong>COBA MTN 16/23</strong></td>
+                        <td class="mono">DE000CZ40LR5</td>
+                        <td><span class="badge badge-bo">BO</span></td>
+                        <td>EUR</td>
+                        <td class="num">1,312,064.61</td>
+                        <td class="num">1,312,064.61</td>
+                        <td class="num"><strong>0.51%</strong></td>
+                     </tr>
+                     <tr>
+                        <td>17</td>
+                        <td><strong>COBA 19/26 S.940</strong></td>
+                        <td class="mono">DE000CZ45VC5</td>
+                        <td><span class="badge badge-bo">BO</span></td>
+                        <td>EUR</td>
+                        <td class="num">2,025,422.49</td>
+                        <td class="num">2,025,422.49</td>
+                        <td class="num"><strong>0.79%</strong></td>
+                     </tr>
+                     <tr>
+                        <td>18</td>
+                        <td><strong>LBBW NACHR.MTN 16/26</strong></td>
+                        <td class="mono">DE000LB1B2E5</td>
+                        <td><span class="badge badge-bo">BO</span></td>
+                        <td>EUR</td>
+                        <td class="num">1,413,329.19</td>
+                        <td class="num">1,413,329.19</td>
+                        <td class="num"><strong>0.55%</strong></td>
+                     </tr>
+                     <tr>
+                        <td>19</td>
+                        <td><strong>LBBW MTN 19/24</strong></td>
+                        <td class="mono">DE000LB2CHW4</td>
+                        <td><span class="badge badge-bo">BO</span></td>
+                        <td>EUR</td>
+                        <td class="num">1,011,444.08</td>
+                        <td class="num">1,011,444.08</td>
+                        <td class="num"><strong>0.40%</strong></td>
+                     </tr>
+                     <tr>
+                        <td>20</td>
+                        <td><strong>SYMRISE AG ANL.19/25</strong></td>
+                        <td class="mono">DE000SYM7720</td>
+                        <td><span class="badge badge-bo">BO</span></td>
+                        <td>EUR</td>
+                        <td class="num">831,507.4</td>
+                        <td class="num">831,507.40</td>
+                        <td class="num"><strong>0.33%</strong></td>
+                     </tr>
+                     <tr>
+                        <td>21</td>
+                        <td><strong>DSV A/S 17/24</strong></td>
+                        <td class="mono">DK0030403993</td>
+                        <td><span class="badge badge-bo">BO</span></td>
+                        <td>EUR</td>
+                        <td class="num">1,049,354.11</td>
+                        <td class="num">1,049,354.11</td>
+                        <td class="num"><strong>0.41%</strong></td>
+                     </tr>
+                     <tr>
+                        <td>22</td>
+                        <td><strong>NYKREDIT 20/26 MTN</strong></td>
+                        <td class="mono">DK0030467105</td>
+                        <td><span class="badge badge-bo">BO</span></td>
+                        <td>EUR</td>
+                        <td class="num">1,495,400.72</td>
+                        <td class="num">1,495,400.72</td>
+                        <td class="num"><strong>0.59%</strong></td>
+                     </tr>
+                     <tr>
+                        <td>23</td>
+                        <td><strong>FERROV.EMIS. 20/28</strong></td>
+                        <td class="mono">ES0205032040</td>
+                        <td><span class="badge badge-bo">BO</span></td>
+                        <td>EUR</td>
+                        <td class="num">1,198,771.68</td>
+                        <td class="num">1,198,771.68</td>
+                        <td class="num"><strong>0.47%</strong></td>
+                     </tr>
+                     <tr>
+                        <td>24</td>
+                        <td><strong>LEGRAND 12/22</strong></td>
+                        <td class="mono">FR0011234921</td>
+                        <td><span class="badge badge-bo">BO</span></td>
+                        <td>EUR</td>
+                        <td class="num">517,752.4</td>
+                        <td class="num">517,752.40</td>
+                        <td class="num"><strong>0.20%</strong></td>
+                     </tr>
+                     <tr>
+                        <td>25</td>
+                        <td><strong>IMERYS 14-24 MTN</strong></td>
+                        <td class="mono">FR0012370872</td>
+                        <td><span class="badge badge-bo">BO</span></td>
+                        <td>EUR</td>
+                        <td class="num">1,070,902.02</td>
+                        <td class="num">1,070,902.02</td>
+                        <td class="num"><strong>0.42%</strong></td>
+                     </tr>
+                     <tr>
+                        <td>26</td>
+                        <td><strong>RCI BANQUE 15/22 MTN</strong></td>
+                        <td class="mono">FR0012759744</td>
+                        <td><span class="badge badge-bo">BO</span></td>
+                        <td>EUR</td>
+                        <td class="num">1,723,618.36</td>
+                        <td class="num">1,723,618.36</td>
+                        <td class="num"><strong>0.67%</strong></td>
+                     </tr>
+                     <tr>
+                        <td>27</td>
+                        <td><strong>BANQUE POSTALE 15/27 FLR</strong></td>
+                        <td class="mono">FR0013054913</td>
+                        <td><span class="badge badge-bo">BO</span></td>
+                        <td>EUR</td>
+                        <td class="num">1,023,559.94</td>
+                        <td class="num">1,023,559.94</td>
+                        <td class="num"><strong>0.40%</strong></td>
+                     </tr>
+                     <tr>
+                        <td>28</td>
+                        <td><strong>LAGARDERE 16/23</strong></td>
+                        <td class="mono">FR0013153160</td>
+                        <td><span class="badge badge-bo">BO</span></td>
+                        <td>EUR</td>
+                        <td class="num">416,681.64</td>
+                        <td class="num">416,681.64</td>
+                        <td class="num"><strong>0.16%</strong></td>
+                     </tr>
+                     <tr>
+                        <td>29</td>
+                        <td><strong>TELEPERFORM. 17-24</strong></td>
+                        <td class="mono">FR0013248465</td>
+                        <td><span class="badge badge-bo">BO</span></td>
+                        <td>EUR</td>
+                        <td class="num">622,785.98</td>
+                        <td class="num">622,785.98</td>
+                        <td class="num"><strong>0.24%</strong></td>
+                     </tr>
+                     <tr>
+                        <td>30</td>
+                        <td><strong>SUEZ 17/UND. FLR</strong></td>
+                        <td class="mono">FR0013252061</td>
+                        <td><span class="badge badge-bo">BO</span></td>
+                        <td>EUR</td>
+                        <td class="num">1,056,412.63</td>
+                        <td class="num">1,056,412.63</td>
+                        <td class="num"><strong>0.41%</strong></td>
+                     </tr>
+                     <tr>
+                        <td>31</td>
+                        <td><strong>ARKEMA 17/27 MTN</strong></td>
+                        <td class="mono">FR0013252277</td>
+                        <td><span class="badge badge-bo">BO</span></td>
+                        <td>EUR</td>
+                        <td class="num">859,148.38</td>
+                        <td class="num">859,148.38</td>
+                        <td class="num"><strong>0.34%</strong></td>
+                     </tr>
+                     <tr>
+                        <td>32</td>
+                        <td><strong>GECINA 17-27 MTN</strong></td>
+                        <td class="mono">FR0013266350</td>
+                        <td><span class="badge badge-bo">BO</span></td>
+                        <td>EUR</td>
+                        <td class="num">746,818.59</td>
+                        <td class="num">746,818.59</td>
+                        <td class="num"><strong>0.29%</strong></td>
+                     </tr>
+                     <tr>
+                        <td>33</td>
+                        <td><strong>ICADE S.A. 17/27</strong></td>
+                        <td class="mono">FR0013281755</td>
+                        <td><span class="badge badge-bo">BO</span></td>
+                        <td>EUR</td>
+                        <td class="num">634,368.89</td>
+                        <td class="num">634,368.89</td>
+                        <td class="num"><strong>0.25%</strong></td>
+                     </tr>
+                     <tr>
+                        <td>34</td>
+                        <td><strong>WORLDLINE 17/24</strong></td>
+                        <td class="mono">FR0013281946</td>
+                        <td><span class="badge badge-bo">BO</span></td>
+                        <td>EUR</td>
+                        <td class="num">936,200.34</td>
+                        <td class="num">936,200.34</td>
+                        <td class="num"><strong>0.37%</strong></td>
+                     </tr>
+                     <tr>
+                        <td>35</td>
+                        <td><strong>DANONE 17/UND. FLR MTN</strong></td>
+                        <td class="mono">FR0013292828</td>
+                        <td><span class="badge badge-bo">BO</span></td>
+                        <td>EUR</td>
+                        <td class="num">510,085.62</td>
+                        <td class="num">510,085.62</td>
+                        <td class="num"><strong>0.20%</strong></td>
+                     </tr>
+                     <tr>
+                        <td>36</td>
+                        <td><strong>ORANGE 18/30 MTN</strong></td>
+                        <td class="mono">FR0013310224</td>
+                        <td><span class="badge badge-bo">BO</span></td>
+                        <td>EUR</td>
+                        <td class="num">2,050,414.3</td>
+                        <td class="num">2,050,414.30</td>
+                        <td class="num"><strong>0.80%</strong></td>
+                     </tr>
+                     <tr>
+                        <td>37</td>
+                        <td><strong>CAPGEMINI 18-24</strong></td>
+                        <td class="mono">FR0013327962</td>
+                        <td><span class="badge badge-bo">BO</span></td>
+                        <td>EUR</td>
+                        <td class="num">1,231,552.86</td>
+                        <td class="num">1,231,552.86</td>
+                        <td class="num"><strong>0.48%</strong></td>
+                     </tr>
+                     <tr>
+                        <td>38</td>
+                        <td><strong>URW 18/UND. FLR</strong></td>
+                        <td class="mono">FR0013330537</td>
+                        <td><span class="badge badge-bo">BO</span></td>
+                        <td>EUR</td>
+                        <td class="num">995,228.59</td>
+                        <td class="num">995,228.59</td>
+                        <td class="num"><strong>0.39%</strong></td>
+                     </tr>
+                     <tr>
+                        <td>39</td>
+                        <td><strong>LA POSTE 18-UND. FLR</strong></td>
+                        <td class="mono">FR0013331949</td>
+                        <td><span class="badge badge-bo">BO</span></td>
+                        <td>EUR</td>
+                        <td class="num">1,061,732.97</td>
+                        <td class="num">1,061,732.97</td>
+                        <td class="num"><strong>0.42%</strong></td>
+                     </tr>
+                     <tr>
+                        <td>40</td>
+                        <td><strong>MICHELIN 18-38</strong></td>
+                        <td class="mono">FR0013357860</td>
+                        <td><span class="badge badge-bo">BO</span></td>
+                        <td>EUR</td>
+                        <td class="num">1,277,477.37</td>
+                        <td class="num">1,277,477.37</td>
+                        <td class="num"><strong>0.50%</strong></td>
+                     </tr>
+                     <tr>
+                        <td>41</td>
+                        <td><strong>AIR LIQUIDE 19/30 MTN</strong></td>
+                        <td class="mono">FR0013428067</td>
+                        <td><span class="badge badge-bo">BO</span></td>
+                        <td>EUR</td>
+                        <td class="num">1,027,307.09</td>
+                        <td class="num">1,027,307.09</td>
+                        <td class="num"><strong>0.40%</strong></td>
+                     </tr>
+                     <tr>
+                        <td>42</td>
+                        <td><strong>ALSTOM 19/26</strong></td>
+                        <td class="mono">FR0013453040</td>
+                        <td><span class="badge badge-bo">BO</span></td>
+                        <td>EUR</td>
+                        <td class="num">800,643.15</td>
+                        <td class="num">800,643.15</td>
+                        <td class="num"><strong>0.31%</strong></td>
+                     </tr>
+                     <tr>
+                        <td>43</td>
+                        <td><strong>PERNOD-RICARD 19/27</strong></td>
+                        <td class="mono">FR0013456431</td>
+                        <td><span class="badge badge-bo">BO</span></td>
+                        <td>EUR</td>
+                        <td class="num">1,218,243.66</td>
+                        <td class="num">1,218,243.66</td>
+                        <td class="num"><strong>0.48%</strong></td>
+                     </tr>
+                     <tr>
+                        <td>44</td>
+                        <td><strong>ACCOR 19/UND. FLR</strong></td>
+                        <td class="mono">FR0013457157</td>
+                        <td><span class="badge badge-bo">BO</span></td>
+                        <td>EUR</td>
+                        <td class="num">286,764.13</td>
+                        <td class="num">286,764.13</td>
+                        <td class="num"><strong>0.11%</strong></td>
+                     </tr>
+                     <tr>
+                        <td>45</td>
+                        <td><strong>ICADE S.A. 19/29</strong></td>
+                        <td class="mono">FR0013457967</td>
+                        <td><span class="badge badge-bo">BO</span></td>
+                        <td>EUR</td>
+                        <td class="num">1,478,239.93</td>
+                        <td class="num">1,478,239.93</td>
+                        <td class="num"><strong>0.58%</strong></td>
+                     </tr>
+                     <tr>
+                        <td>46</td>
+                        <td><strong>CNP ASSURANC 19/50FLR MTN</strong></td>
+                        <td class="mono">FR0013463775</td>
+                        <td><span class="badge badge-bo">BO</span></td>
+                        <td>EUR</td>
+                        <td class="num">1,038,568.08</td>
+                        <td class="num">1,038,568.08</td>
+                        <td class="num"><strong>0.41%</strong></td>
+                     </tr>
+                     <tr>
+                        <td>47</td>
+                        <td><strong>BPCE 19/24 MTN</strong></td>
+                        <td class="mono">FR0013464930</td>
+                        <td><span class="badge badge-bo">BO</span></td>
+                        <td>EUR</td>
+                        <td class="num">1,206,883.52</td>
+                        <td class="num">1,206,883.52</td>
+                        <td class="num"><strong>0.47%</strong></td>
+                     </tr>
+                     <tr>
+                        <td>48</td>
+                        <td><strong>BNP PARIBAS 19/26 FLR MTN</strong></td>
+                        <td class="mono">FR0013465358</td>
+                        <td><span class="badge badge-bo">BO</span></td>
+                        <td>EUR</td>
+                        <td class="num">1,009,336.05</td>
+                        <td class="num">1,009,336.05</td>
+                        <td class="num"><strong>0.40%</strong></td>
+                     </tr>
+                     <tr>
+                        <td>49</td>
+                        <td><strong>BNP PARIBAS 20/32 FLR MTN</strong></td>
+                        <td class="mono">FR0013476611</td>
+                        <td><span class="badge badge-bo">BO</span></td>
+                        <td>EUR</td>
+                        <td class="num">1,303,840.28</td>
+                        <td class="num">1,303,840.28</td>
+                        <td class="num"><strong>0.51%</strong></td>
+                     </tr>
+                     <tr>
+                        <td>50</td>
+                        <td><strong>CAPGEMINI 20/26</strong></td>
+                        <td class="mono">FR0013507852</td>
+                        <td><span class="badge badge-bo">BO</span></td>
+                        <td>EUR</td>
+                        <td class="num">748,594.84</td>
+                        <td class="num">748,594.84</td>
+                        <td class="num"><strong>0.29%</strong></td>
+                     </tr>
+                  </tbody>
+               </table>
+            </div>
+         </div>
+         <footer class="footer">
+            <div>Transformed with <strong>FreeXmlToolkit</strong> • XSLT 2.0 Engine (Saxon-HE)</div>
+            <div>Schema: FundsXML 4.2.9 Compliant</div>
+         </footer>
+      </div><script>
+                function doSearch() {
+                    var q = document.getElementById('liveSearch').value.toLowerCase();
+                    var rows = document.querySelectorAll('#posTable tbody tr');
+                    rows.forEach(function(r) {
+                        r.style.display = r.innerText.toLowerCase().indexOf(q) >= 0 ? '' : 'none';
+                    });
+                }
+            </script></body>
+</html>
