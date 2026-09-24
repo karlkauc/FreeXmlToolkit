@@ -122,6 +122,7 @@ nav:
   - Security:
     - Security Features: SECURITY.md
     - Digital Signatures: digital-signatures.md
+    - Privacy & Telemetry: telemetry.md
   - Reference:
     - Technology Stack: technology-stack.md
     - Licenses: licenses.md

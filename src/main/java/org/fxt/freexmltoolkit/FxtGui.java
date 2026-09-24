@@ -24,7 +24,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import javafx.animation.FadeTransition;
@@ -50,6 +49,9 @@ import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 import org.fxt.freexmltoolkit.service.SystemProxyDetector;
 import org.fxt.freexmltoolkit.service.ThreadPoolManager;
 import org.fxt.freexmltoolkit.service.UsageTrackingService;
+import org.fxt.freexmltoolkit.service.telemetry.ErrorReportingThreadPoolExecutor;
+import org.fxt.freexmltoolkit.service.telemetry.Telemetry;
+import org.fxt.freexmltoolkit.service.telemetry.TelemetryService;
 import org.fxt.freexmltoolkit.util.RenderingPipelineDetector;
 import org.fxt.freexmltoolkit.util.StartupFileOpener;
 
@@ -96,14 +98,15 @@ public class FxtGui extends Application {
     /**
      * Global executor service for background tasks.
      */
-    public static final ExecutorService executorService = Executors.newFixedThreadPool(
+    public static final ExecutorService executorService = ErrorReportingThreadPoolExecutor.fixed(
             Runtime.getRuntime().availableProcessors(),
             runnable -> {
                 Thread t = new Thread(runnable);
                 t.setDaemon(true);
                 t.setName("FxtGui-Worker-" + threadCounter.getAndIncrement());
                 return t;
-            }
+            },
+            "executor"
     );
 
     static final String APP_ICON_PATH = "img/logo.png";
@@ -132,6 +135,10 @@ public class FxtGui extends Application {
     public void init() throws Exception {
         super.init();
 
+        // Log (with stack trace) and anonymously report every uncaught exception. Installed
+        // first so that failures during the remaining startup are captured too.
+        installUncaughtExceptionHandler();
+
         // Proxy setup MUST happen before anything that could trigger HTTP requests
         // (e.g., ServiceRegistry lazy-loading services that make network calls)
         setPropertyIfAbsent("java.net.useSystemProxies", "true");
@@ -153,11 +160,51 @@ public class FxtGui extends Application {
         ServiceRegistry.initialize();
         logger.info("Service registry initialization complete");
 
+        // Anonymous opt-out telemetry (no-op in tests / dev builds, see docs/telemetry.md)
+        try {
+            Telemetry.install(ServiceRegistry.get(TelemetryService.class));
+        } catch (Throwable t) {
+            logger.warn("Telemetry unavailable: {}", t.toString());
+        }
+
         // Register custom XSD type icons
         logger.info("Registering XSD type icons...");
         org.fxt.freexmltoolkit.controls.v2.view.XsdTypeIconPaths.registerAll();
 
         registerOpenFileHandler();
+    }
+
+    /** Guards the uncaught-exception handler against re-entrance (e.g. a failing logger). */
+    private static final ThreadLocal<Boolean> IN_UNCAUGHT_HANDLER = new ThreadLocal<>();
+
+    /**
+     * Installs the default uncaught-exception handler: logs the exception with its stack
+     * trace and reports it anonymously ({@code where = "uncaught"}), then delegates to a
+     * previously installed default handler, if any. Never throws.
+     */
+    static void installUncaughtExceptionHandler() {
+        Thread.UncaughtExceptionHandler previous = Thread.getDefaultUncaughtExceptionHandler();
+        Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
+            if (Boolean.TRUE.equals(IN_UNCAUGHT_HANDLER.get())) {
+                return;
+            }
+            IN_UNCAUGHT_HANDLER.set(Boolean.TRUE);
+            try {
+                try {
+                    logger.error("Uncaught exception in thread '{}'", thread.getName(), throwable);
+                } catch (Throwable ignored) {
+                    // logging must not break the handler
+                }
+                Telemetry.reportError(throwable, "uncaught");
+                if (previous != null) {
+                    previous.uncaughtException(thread, throwable);
+                }
+            } catch (Throwable ignored) {
+                // never propagate from the handler
+            } finally {
+                IN_UNCAUGHT_HANDLER.remove();
+            }
+        });
     }
 
     /**
@@ -295,10 +342,17 @@ public class FxtGui extends Application {
                     // arrive as plain program args) into the editor.
                     StartupFileOpener.setConsumer(shellController.getShellView()::openFile);
                     StartupFileOpener.enqueueRawArgs(getParameters().getRaw());
+
+                    // One-time, non-blocking telemetry notice (nothing is sent before it was shown).
+                    PauseTransition noticeDelay = new PauseTransition(Duration.seconds(2));
+                    noticeDelay.setOnFinished(ev -> org.fxt.freexmltoolkit.controls.shell.TelemetryNotice
+                            .showIfNeeded(primaryStage, () -> shellController.getShellView().openSettings()));
+                    noticeDelay.play();
                 }));
                 readyPause.play();
 
                 startUsageTracking();
+                Telemetry.get().trackAppStart();
 
                 org.fxt.freexmltoolkit.controls.shell.ShellBootstrap.getInstance().scheduleStartupTasks();
             } catch (IOException e) {
@@ -444,6 +498,14 @@ public class FxtGui extends Application {
 
         startWatch.stop();
         var currentDuration = startWatch.getDuration(); // / 1000;
+
+        // Telemetry: record the session end and flush the queue (bounded to 3 s).
+        try {
+            Telemetry.get().trackAppExit(currentDuration);
+            Telemetry.get().shutdown(java.time.Duration.ofSeconds(3));
+        } catch (Throwable t) {
+            logger.debug("Telemetry shutdown failed: {}", t.toString());
+        }
 
         var prop = getPropertiesService().loadProperties();
         if (prop == null) {

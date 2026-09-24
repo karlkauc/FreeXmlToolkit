@@ -118,7 +118,6 @@ public class PropertiesServiceImpl implements PropertiesService {
         properties.setProperty("https.proxy.password", "");
         properties.setProperty(LAST_OPEN_DIRECTORY_KEY, System.getProperty("user.home"));
         properties.setProperty("language", "");
-        properties.setProperty("sendUsageStatistics", "false");
         properties.setProperty("usageDuration", "0");
         properties.setProperty("useSystemTempFolder", "true");
         // Note: xml.editor.use.v2 property removed - V2 is now the only editor

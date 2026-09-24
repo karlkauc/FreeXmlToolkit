@@ -200,6 +200,10 @@ tasks {
         // unresolvable http-namespace import (e.g. xmldsig in FundsXML fixtures).
         // Tests that cover the fallback re-enable it with an injected downloader.
         systemProperty("fxt.schema.namespaceFallback", "false")
+        // Telemetry kill switch: tests must never record or send anonymous usage/error
+        // telemetry (TelemetryServiceImpl.isKillSwitchActive). Applies to every Test task
+        // (test, docScreenshots, perfBenchmark, sampleXmlAudit).
+        systemProperty("fxt.telemetry.disabled", "true")
         doFirst {
             val propsFile = isolatedProps.get().asFile
             propsFile.parentFile.mkdirs()
@@ -223,6 +227,14 @@ tasks {
             // developing, pass e.g. -Dprism.order=sw explicitly on the command line.
             "-Dprism.verbose=false"        // Reduce graphics logging
         )
+        // Dev runs (gradlew run / demos) never send telemetry; opt in explicitly with
+        // `./gradlew run -Dfxt.telemetry.force=true` to test against the real endpoint.
+        if (System.getProperty("fxt.telemetry.force") == "true") {
+            systemProperty("fxt.telemetry.force", "true")
+            System.getProperty("fxt.telemetry.endpoint")?.let { systemProperty("fxt.telemetry.endpoint", it) }
+        } else {
+            systemProperty("fxt.telemetry.disabled", "true")
+        }
     }
 }
 
@@ -371,6 +383,7 @@ tasks.test {
     // several TestFX tests deliberately exercise error paths, and a blocking showAndWait() on the
     // FX thread would freeze the headless suite.
     systemProperty("fxt.suppressErrorDialogs", "true")
+    systemProperty("fxt.telemetry.disabled", "true") // also set for all Test tasks in withType<Test>
 
     // The documentation screenshot generator must NOT run as part of the normal test suite:
     // it requires a real (non-Monocle) display and writes binary assets into docs/img.
@@ -464,6 +477,7 @@ tasks.register<Test>("sampleXmlAudit") {
     filter { includeTestsMatching("org.fxt.freexmltoolkit.service.sampleaudit.SampleXmlGeneratorRealWorldAuditTest") }
     systemProperty("sample.audit", "true")
     systemProperty("fxt.suppressErrorDialogs", "true")
+    systemProperty("fxt.telemetry.disabled", "true") // also set for all Test tasks in withType<Test>
     listOf(
         "sample.audit.only", "sample.audit.parallel", "sample.audit.workerHeap",
         "sample.audit.schemaTimeoutMinutes", "sample.audit.processTimeoutMinutes",

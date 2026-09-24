@@ -20,6 +20,7 @@ import javafx.stage.Window;
 import org.fxt.freexmltoolkit.FxtGui;
 import org.fxt.freexmltoolkit.service.XsltTransformationEngine;
 import org.fxt.freexmltoolkit.service.XsltTransformationResult;
+import org.fxt.freexmltoolkit.service.telemetry.UsageEvents;
 
 /**
  * Editor-level document actions surfaced on the Unified shell's top toolbar so the
@@ -99,12 +100,16 @@ public final class EditorActions {
         // declared in the buffer (added/changed/removed references take effect this run).
         var schemaSupplier = editorHost.schemaForValidation(content);
         File schematron = editorHost.getActiveSchematron();
+        var docKind = editorHost.getActiveDocument().map(d -> d.getFileType().docKind()).orElse(null);
         FxtGui.executorService.submit(() -> {
+            long t0 = System.nanoTime();
             File schema = schemaSupplier.get();
             List<ValidationProblem> result = json
                     ? ValidationRunner.validateJson(content, schema)
                     : ValidationRunner.run(content, schema, schematron);
             boolean hasSchema = json ? schema != null : (schema != null || schematron != null);
+            UsageEvents.validated(UsageEvents.schemaKind(json, schema != null, !json && schematron != null),
+                    docKind, result.size(), t0, false, false);
             Platform.runLater(() -> {
                 String summary = result.isEmpty()
                         ? (hasSchema ? "Valid" : "Well-formed")
@@ -156,17 +161,21 @@ public final class EditorActions {
         Map<String, Object> params = Map.of();
         XsltTransformationEngine.OutputFormat format = XsltTransformationEngine.OutputFormat.XML;
         FxtGui.executorService.submit(() -> {
+            long t0 = System.nanoTime();
             String output;
+            boolean ok = false;
             try {
                 String xsltContent = Files.readString(xslt.toPath(), StandardCharsets.UTF_8);
                 XsltTransformationResult result =
                         TransformRunner.transformForReport(xml, xsltContent, params, format);
+                ok = result.isSuccess();
                 output = result.isSuccess()
                         ? result.getOutputContent()
                         : "ERROR: " + result.getErrorMessage();
             } catch (Exception e) {
                 output = "ERROR: " + e.getMessage();
             }
+            UsageEvents.xsltTransformed(1, t0, ok);
             String finalOutput = output;
             Platform.runLater(() -> editorHost.openToolTab(
                     "Transform: " + xslt.getName(), "bi-arrow-left-right", textRegion(finalOutput)));
@@ -211,6 +220,7 @@ public final class EditorActions {
         String queryTarget = doc.getDisplayName();
         final int gen = ++queryRunGeneration;
         FxtGui.executorService.submit(() -> {
+            long t0 = System.nanoTime();
             var probe = org.fxt.freexmltoolkit.service.ExecutionStatsService.getInstance().begin(
                     xquery ? org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.XQUERY
                             : org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.XPATH,
@@ -231,6 +241,7 @@ public final class EditorActions {
                         XsltTransformationEngine.OutputFormat.XML);
                 XQueryTableRunner.XQueryTable table = XQueryTableRunner.run(xml, query);
                 boolean ok = !result.startsWith("ERROR");
+                UsageEvents.xqueryExecuted(t0, ok);
                 long elapsedMs = probe.finish(xml.length(), ok ? result.length() : -1, ok,
                         org.fxt.freexmltoolkit.service.ExecutionStats.firstLine(result));
                 Platform.runLater(() -> {
@@ -242,6 +253,7 @@ public final class EditorActions {
             } else {
                 String result = TransformRunner.runXPath(xml, query);
                 boolean ok = !result.startsWith("ERROR");
+                UsageEvents.xpathExecuted(t0, ok);
                 long elapsedMs = probe.finish(xml.length(), ok ? result.length() : -1, ok,
                         org.fxt.freexmltoolkit.service.ExecutionStats.firstLine(result));
                 Platform.runLater(() -> {
@@ -286,6 +298,7 @@ public final class EditorActions {
         String stylesheetName = doc.getDisplayName();
         final int gen = ++queryRunGeneration;
         FxtGui.executorService.submit(() -> {
+            long t0 = System.nanoTime();
             var probe = org.fxt.freexmltoolkit.service.ExecutionStatsService.getInstance().begin(
                     org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.XSLT, stylesheetName);
             String xml;
@@ -307,6 +320,7 @@ public final class EditorActions {
                 probe.phase("Compile", fullResult.getCompilationTime());
                 probe.phase("Transform", fullResult.getTransformationTime());
             }
+            UsageEvents.xsltTransformed(1, t0, fullResult.isSuccess());
             long elapsedMs = probe.finish(xml.length(),
                     fullResult.isSuccess() ? result.length() : -1, fullResult.isSuccess(),
                     org.fxt.freexmltoolkit.service.ExecutionStats.firstLine(result));
@@ -344,6 +358,7 @@ public final class EditorActions {
         String pipelineName = doc.getDisplayName();
         final int gen = ++queryRunGeneration;
         FxtGui.executorService.submit(() -> {
+            long t0 = System.nanoTime();
             var probe = org.fxt.freexmltoolkit.service.ExecutionStatsService.getInstance().begin(
                     org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.XPROC, pipelineName);
             String inputXmlText = resolved.map(EditorHost.ResolvedQueryTarget::xmlText).orElse(null);
@@ -351,6 +366,7 @@ public final class EditorActions {
             XProcRunner.Result result =
                     XProcRunner.runPipeline(pipeline, pipelineFile, inputXmlText, inputXmlFile);
             boolean ok = !result.isError();
+            UsageEvents.xprocExecuted(t0, ok);
             long elapsedMs = probe.finish(inputXmlText != null ? inputXmlText.length() : -1,
                     ok ? result.text().length() : -1, ok,
                     org.fxt.freexmltoolkit.service.ExecutionStats.firstLine(result.text()));

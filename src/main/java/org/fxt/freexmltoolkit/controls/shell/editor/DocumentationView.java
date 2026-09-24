@@ -540,16 +540,22 @@ public class DocumentationView extends BorderPane {
         long start = System.currentTimeMillis();
         startElapsedTimer(start);
         running = FxtGui.executorService.submit(() -> {
+            long t0 = System.nanoTime();
             String result;
+            var usageStatus = org.fxt.freexmltoolkit.service.telemetry.TelemetryEvent.Status.OK;
             try {
                 runGeneration(options);
                 result = "Generated " + options.format() + " in " + humanDuration(System.currentTimeMillis() - start)
                         + " — " + options.output().getAbsolutePath();
             } catch (InterruptedException | java.util.concurrent.CancellationException e) {
                 result = "Cancelled.";
+                usageStatus = org.fxt.freexmltoolkit.service.telemetry.TelemetryEvent.Status.CANCELLED;
             } catch (Throwable t) {
                 result = "ERROR: " + (t.getMessage() != null ? t.getMessage() : t.toString());
+                usageStatus = org.fxt.freexmltoolkit.service.telemetry.TelemetryEvent.Status.ERROR;
             }
+            org.fxt.freexmltoolkit.service.telemetry.UsageEvents.schemaDocGenerated(
+                    options.format(), t0, usageStatus);
             String finalResult = result;
             Platform.runLater(() -> {
                 stopElapsedTimer();

@@ -15,7 +15,7 @@ import org.fxt.freexmltoolkit.service.UpdateCheckService;
 
 /**
  * Owns the application's startup background tasks (app-update + FundsXML-update
- * checks) and their scheduler.
+ * checks, periodic telemetry flush) and their scheduler.
  * Invoked once at boot by FxtGui; shut down by FxtGui.stop().
  */
 public final class ShellBootstrap {
@@ -49,6 +49,24 @@ public final class ShellBootstrap {
         scheduled = true;
         scheduler.schedule(this::checkForAppUpdate, 2, TimeUnit.SECONDS);
         scheduler.schedule(this::fundsXmlStartupSync, 5, TimeUnit.SECONDS);
+        // Anonymous telemetry: first flush after ~60 s, then every 5 minutes. The flush itself
+        // runs on the telemetry worker thread, so this scheduler thread is never blocked.
+        scheduler.scheduleWithFixedDelay(ShellBootstrap::flushTelemetry,
+                TELEMETRY_FIRST_FLUSH_SECONDS, TELEMETRY_FLUSH_INTERVAL_SECONDS, TimeUnit.SECONDS);
+    }
+
+    /** Delay of the first periodic telemetry flush. */
+    static final long TELEMETRY_FIRST_FLUSH_SECONDS = 60;
+    /** Interval of the periodic telemetry flush. */
+    static final long TELEMETRY_FLUSH_INTERVAL_SECONDS = 300;
+
+    private static void flushTelemetry() {
+        try {
+            org.fxt.freexmltoolkit.service.telemetry.Telemetry.get().flushAsync();
+        } catch (Throwable t) {
+            // a periodic task that throws is silently cancelled — never let that happen
+            logger.debug("Telemetry flush scheduling failed: {}", t.toString());
+        }
     }
 
     private void checkForAppUpdate() {
@@ -57,7 +75,10 @@ public final class ShellBootstrap {
             if (svc == null || !svc.isUpdateCheckEnabled()) {
                 return;
             }
-            svc.checkForUpdates().thenAccept(info -> {
+            svc.checkForUpdates().whenComplete((info, err) ->
+                    org.fxt.freexmltoolkit.service.telemetry.UsageEvents.updateCheck("startup",
+                            org.fxt.freexmltoolkit.controls.shell.editor.UpdateActionRunner.usageResult(info, err))
+            ).thenAccept(info -> {
                 if (info != null && info.updateAvailable()) {
                     // Reuses the shared update-notification flow (boot → dialog dependency,
                     // intentional for now; extract an UpdateNotificationService if it grows).

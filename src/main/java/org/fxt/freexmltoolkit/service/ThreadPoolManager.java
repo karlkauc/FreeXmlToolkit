@@ -18,6 +18,8 @@ import java.util.function.Supplier;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.service.telemetry.ErrorReportingThreadPoolExecutor;
+import org.fxt.freexmltoolkit.service.telemetry.Telemetry;
 
 /**
  * Centralized thread pool management for the FreeXmlToolkit application.
@@ -72,7 +74,7 @@ public class ThreadPoolManager {
         logger.info("Initializing ThreadPoolManager with {} CPU cores", CPU_CORES);
 
         // UI Executor - High priority, fast completion
-        this.uiExecutor = Executors.newFixedThreadPool(UI_POOL_SIZE, new ThreadFactory() {
+        this.uiExecutor = ErrorReportingThreadPoolExecutor.fixed(UI_POOL_SIZE, new ThreadFactory() {
             private final AtomicInteger counter = new AtomicInteger(1);
 
             @Override
@@ -82,7 +84,7 @@ public class ThreadPoolManager {
                 t.setPriority(Thread.MAX_PRIORITY - 1);
                 return t;
             }
-        });
+        }, "threadpool.ui");
 
         // CPU Intensive Executor - Work-stealing pool for parallel processing
         this.cpuIntensiveExecutor = new ForkJoinPool(
@@ -98,7 +100,7 @@ public class ThreadPoolManager {
         );
 
         // I/O Executor - Many threads for concurrent I/O operations
-        this.ioExecutor = Executors.newFixedThreadPool(IO_POOL_SIZE, new ThreadFactory() {
+        this.ioExecutor = ErrorReportingThreadPoolExecutor.fixed(IO_POOL_SIZE, new ThreadFactory() {
             private final AtomicInteger counter = new AtomicInteger(1);
 
             @Override
@@ -108,7 +110,7 @@ public class ThreadPoolManager {
                 t.setPriority(Thread.NORM_PRIORITY);
                 return t;
             }
-        });
+        }, "threadpool.io");
 
         // Scheduled Executor - For timed/delayed operations
         this.scheduledExecutor = Executors.newScheduledThreadPool(2, new ThreadFactory() {
@@ -124,7 +126,7 @@ public class ThreadPoolManager {
         });
 
         // Background Executor - Low priority cleanup and maintenance
-        this.backgroundExecutor = Executors.newFixedThreadPool(BACKGROUND_POOL_SIZE, new ThreadFactory() {
+        this.backgroundExecutor = ErrorReportingThreadPoolExecutor.fixed(BACKGROUND_POOL_SIZE, new ThreadFactory() {
             private final AtomicInteger counter = new AtomicInteger(1);
 
             @Override
@@ -134,7 +136,7 @@ public class ThreadPoolManager {
                 t.setPriority(Thread.MIN_PRIORITY + 1);
                 return t;
             }
-        });
+        }, "threadpool.background");
 
         // Start performance monitoring
         startPerformanceMonitoring();
@@ -196,6 +198,7 @@ public class ThreadPoolManager {
                     if (throwable != null) {
                         totalTasksFailed.incrementAndGet();
                         logger.debug("UI task '{}' failed", taskId, throwable);
+                        reportUnexpectedFailure(throwable, "threadpool.ui");
                     } else {
                         long executionTime = Duration.between(startTime, Instant.now()).toMillis();
                         totalExecutionTime.addAndGet(executionTime);
@@ -249,6 +252,7 @@ public class ThreadPoolManager {
                     if (throwable != null) {
                         totalTasksFailed.incrementAndGet();
                         logger.debug("CPU task '{}' failed", taskId, throwable);
+                        reportUnexpectedFailure(throwable, "threadpool.cpu");
                     } else {
                         long executionTime = Duration.between(startTime, Instant.now()).toMillis();
                         totalExecutionTime.addAndGet(executionTime);
@@ -302,6 +306,7 @@ public class ThreadPoolManager {
                     if (throwable != null) {
                         totalTasksFailed.incrementAndGet();
                         logger.debug("I/O task '{}' failed", taskId, throwable);
+                        reportUnexpectedFailure(throwable, "threadpool.io");
                     } else {
                         long executionTime = Duration.between(startTime, Instant.now()).toMillis();
                         totalExecutionTime.addAndGet(executionTime);
@@ -347,6 +352,7 @@ public class ThreadPoolManager {
                 future.complete(null);
             } catch (Exception e) {
                 future.completeExceptionally(e);
+                reportUnexpectedFailure(e, "threadpool.scheduled");
             } finally {
                 runningTasks.remove(taskId);
             }
@@ -387,6 +393,7 @@ public class ThreadPoolManager {
                     runningTasks.remove(taskId);
                     if (throwable != null) {
                         logger.debug("Background task '{}' failed", taskId, throwable);
+                        reportUnexpectedFailure(throwable, "threadpool.background");
                     }
                 });
 
@@ -444,6 +451,23 @@ public class ThreadPoolManager {
                 getActiveThreadCount(backgroundExecutor),
                 cpuIntensiveExecutor.getQueuedTaskCount()
         );
+    }
+
+    /**
+     * Reports a task failure to telemetry (anonymous, deduplicated). Cancellations and
+     * interruptions are expected and not reported. Callers still receive the failed future
+     * unchanged.
+     */
+    private static void reportUnexpectedFailure(Throwable throwable, String where) {
+        Throwable t = throwable;
+        while ((t instanceof java.util.concurrent.CompletionException
+                || t instanceof java.util.concurrent.ExecutionException) && t.getCause() != null) {
+            t = t.getCause();
+        }
+        if (t instanceof java.util.concurrent.CancellationException || t instanceof InterruptedException) {
+            return;
+        }
+        Telemetry.reportError(t, where);
     }
 
     private int getActiveThreadCount(ExecutorService executor) {

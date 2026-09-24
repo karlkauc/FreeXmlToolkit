@@ -480,7 +480,11 @@ public class ContextMenuManagerV2 implements XmlContextMenuManager.XmlContextAct
                 codeArea.moveTo(newCaretPos);
                 logger.debug("XML formatted successfully");
             }
+            org.fxt.freexmltoolkit.service.telemetry.UsageEvents.formatted(
+                    org.fxt.freexmltoolkit.service.telemetry.DocKind.XML, true);
         } catch (Exception e) {
+            org.fxt.freexmltoolkit.service.telemetry.UsageEvents.formatted(
+                    org.fxt.freexmltoolkit.service.telemetry.DocKind.XML, false);
             logger.error("Error formatting XML: {}", e.getMessage(), e);
             Platform.runLater(() -> {
                 Alert alert = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(

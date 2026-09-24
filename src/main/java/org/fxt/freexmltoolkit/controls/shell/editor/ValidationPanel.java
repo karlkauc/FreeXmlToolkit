@@ -33,6 +33,7 @@ import javafx.util.Duration;
 
 import org.fxt.freexmltoolkit.FxtGui;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.service.telemetry.UsageEvents;
 
 /**
  * The Validation activity side panel, laid out after the Figma mockup
@@ -256,7 +257,7 @@ public class ValidationPanel extends VBox {
         liveValidation.setOnAction(e -> scheduleRevalidation());
         debounce.setOnFinished(e -> {
             if (liveValidation.isSelected()) {
-                revalidate();
+                revalidate(true);
             }
         });
         editorHost.activeCaretProperty().addListener((obs, oldV, newV) -> scheduleRevalidation());
@@ -394,7 +395,9 @@ public class ValidationPanel extends VBox {
     public void openSchematronCheck() {
         String text = editorHost.getActiveText().orElse("");
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            long t0 = System.nanoTime();
             var issues = SchematronCheckRunner.check(text);
+            UsageEvents.schematronChecked(issues.size(), t0);
             javafx.application.Platform.runLater(() -> editorHost.openToolTab(
                     "Schematron Check", "bi-bug", new SchematronCheckResultView(issues)));
         });
@@ -444,6 +447,14 @@ public class ValidationPanel extends VBox {
 
     /** Runs validation of the active document (XSD + optional Schematron), async. */
     public void revalidate() {
+        revalidate(false);
+    }
+
+    /**
+     * @param live {@code true} when triggered by continuous (typing) validation rather than an
+     *             explicit user action — only affects usage statistics (throttled)
+     */
+    private void revalidate(boolean live) {
         if (editorHost.getActiveDocument().isEmpty()) {
             PanelStatus.precondition(status, "No document open");
             setProblems(List.of());
@@ -477,8 +488,10 @@ public class ValidationPanel extends VBox {
         File schematron = editorHost.getActiveSchematron();
         String documentName = editorHost.getActiveDocument()
                 .map(OpenDocument::getDisplayName).orElse(null);
+        var docKind = editorHost.getActiveDocument().map(d -> d.getFileType().docKind()).orElse(null);
         PanelStatus.info(status, "Validating…");
         FxtGui.executorService.submit(() -> {
+            long t0 = System.nanoTime();
             var probe = org.fxt.freexmltoolkit.service.ExecutionStatsService.getInstance().begin(
                     org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.VALIDATION,
                     documentName != null ? documentName : "document");
@@ -488,6 +501,8 @@ public class ValidationPanel extends VBox {
                             ValidationRunner.validateJson(content, schema), null)
                     : ValidationRunner.runWithReport(content, schema, schematron, documentName);
             List<ValidationProblem> result = runResult.problems();
+            UsageEvents.validated(UsageEvents.schemaKind(json, schema != null, !json && schematron != null),
+                    docKind, result.size(), t0, false, live);
             probe.phase("XSD", runResult.xsdMillis());
             probe.phase("Schematron", runResult.schematronMillis());
             long elapsedMs = probe.finish(content.length(), -1, result.isEmpty(),
@@ -610,9 +625,13 @@ public class ValidationPanel extends VBox {
             PanelStatus.info(status, "Cancelling…");
         });
         FxtGui.executorService.submit(() -> {
+            long t0 = System.nanoTime();
             List<ValidationRunner.FileValidationResult> results = ValidationRunner.batch(files, xsd, schematron,
                     done -> javafx.application.Platform.runLater(() -> progress.setProgress(done)),
                     cancelled::get);
+            UsageEvents.batchValidated(UsageEvents.schemaKind(false, xsd != null, schematron != null),
+                    results.size(), (int) results.stream().mapToLong(ValidationRunner.FileValidationResult::errorCount).sum(), t0,
+                    cancelled.get());
             String report = ValidationRunner.report(results, xsd, schematron);
             javafx.application.Platform.runLater(() -> {
                 progress.finish();

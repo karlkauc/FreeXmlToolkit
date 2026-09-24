@@ -11,6 +11,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat;
+import org.fxt.freexmltoolkit.service.telemetry.RecordingTelemetryService;
+import org.fxt.freexmltoolkit.service.telemetry.Telemetry;
+import org.fxt.freexmltoolkit.service.telemetry.TelemetryEvent;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -37,6 +40,27 @@ class BatchTransformRunnerTest {
         assertEquals("2", results.get(0).output().strip());
         assertTrue(results.get(1).ok());
         assertFalse(results.get(2).ok(), "malformed XML should fail");
+    }
+
+    @Test
+    void recordsOneAnonymousUsageEventPerBatch(@TempDir Path dir) throws Exception {
+        File good = write(dir, "secret-name.xml", "<root><item/></root>");
+        File bad = write(dir, "b.xml", "<root><item></root>"); // malformed
+        RecordingTelemetryService telemetry = new RecordingTelemetryService();
+        Telemetry.install(telemetry);
+        try {
+            BatchTransformRunner.runXsltBatch(List.of(good, bad), XSLT, Map.of(), OutputFormat.TEXT);
+        } finally {
+            Telemetry.reset();
+        }
+
+        List<TelemetryEvent> events = telemetry.events("xslt_transform");
+        assertEquals(1, events.size());
+        TelemetryEvent e = events.get(0);
+        assertEquals(2, e.fileCount());
+        assertEquals(1, e.errorCount());
+        assertEquals(TelemetryEvent.Status.OK, e.status());
+        assertFalse(e.toJson().toString().contains("secret-name"), "file names must never be sent");
     }
 
     @Test

@@ -21,6 +21,7 @@ package org.fxt.freexmltoolkit.service;
 import java.io.IOException;
 import java.net.Proxy;
 import java.net.URI;
+import java.time.Duration;
 import java.util.Map;
 
 import org.fxt.freexmltoolkit.domain.ConnectionResult;
@@ -92,6 +93,30 @@ public interface ConnectionService {
      */
     default BinaryResponse fetchBinary(URI uri) throws IOException {
         throw new UnsupportedOperationException("fetchBinary not supported");
+    }
+
+    /**
+     * Result of {@link #postJson(URI, String, Duration)}.
+     *
+     * @param status the HTTP status code
+     * @param body   the response body (UTF-8, possibly empty; error bodies are read best-effort)
+     */
+    record HttpPostResult(int status, String body) {}
+
+    /**
+     * POSTs a JSON document ({@code Content-Type: application/json; charset=utf-8}) with the
+     * configured proxy/proxy-authentication/SSL settings — the same resolution as the GET
+     * paths, so it works behind authenticating corporate proxies. Redirects are
+     * <b>not</b> followed. The {@code User-Agent} is {@code FreeXmlToolkit/<version>}.
+     *
+     * @param uri      the target URI
+     * @param jsonBody the request body
+     * @param timeout  connect and read timeout
+     * @return the status code and response body (any status, including 4xx/5xx)
+     * @throws IOException on a transport-level failure (DNS, connection refused, TLS, timeout)
+     */
+    default HttpPostResult postJson(URI uri, String jsonBody, Duration timeout) throws IOException {
+        throw new UnsupportedOperationException("postJson not supported");
     }
 
 }

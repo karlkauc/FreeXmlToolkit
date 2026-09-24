@@ -100,6 +100,9 @@ public class SettingsPanel extends VBox {
     // Usage statistics
     private final CheckBox trackingEnabled = new CheckBox("Enable usage tracking");
     private final Label usageStatus = new Label();
+    // Anonymous telemetry (opt-out, see docs/telemetry.md)
+    private final CheckBox telemetryUsage = new CheckBox("Send anonymous usage statistics");
+    private final CheckBox telemetryErrors = new CheckBox("Send anonymous error reports");
 
     // Developer
     private final CheckBox execStatsEnabled = new CheckBox("Record execution statistics");
@@ -209,6 +212,22 @@ public class SettingsPanel extends VBox {
             }
         });
 
+        telemetryUsage.setId("settings-telemetry-usage");
+        telemetryErrors.setId("settings-telemetry-errors");
+        telemetryUsage.setWrapText(true);
+        telemetryErrors.setWrapText(true);
+        Label telemetryHint = new Label("Helps improve FreeXmlToolkit. Only anonymous data is sent "
+                + "(feature usage, timings, document type, error signatures) — never file names, "
+                + "paths or content. The local statistics above stay on this computer.");
+        telemetryHint.setWrapText(true);
+        telemetryHint.setMinHeight(Region.USE_PREF_SIZE); // wrap fully instead of ellipsizing
+        telemetryHint.getStyleClass().add("fxt-placeholder-text");
+        javafx.scene.control.Hyperlink whatIsSent = new javafx.scene.control.Hyperlink("What is sent?");
+        whatIsSent.setId("settings-telemetry-what");
+        whatIsSent.setGraphic(iconGraphic("bi-info-circle"));
+        whatIsSent.setOnAction(e -> org.fxt.freexmltoolkit.controls.dialogs.TelemetryInfoDialog.show(
+                getScene() != null ? getScene().getWindow() : null));
+
         templatesDir.setPromptText("templates directory (leave empty for default)");
         templatesList.setPrefHeight(140);
         templatesList.setCellFactory(lv -> templateCell());
@@ -242,6 +261,7 @@ public class SettingsPanel extends VBox {
         assocHint.setWrapText(true);
         assocHint.getStyleClass().add("fxt-placeholder-text");
         execStatsHint.setWrapText(true);
+        execStatsHint.setMinHeight(Region.USE_PREF_SIZE);
         execStatsHint.getStyleClass().add("fxt-placeholder-text");
         assocStatus.setWrapText(true);
         assocStatus.getStyleClass().add("fxt-placeholder-text");
@@ -313,7 +333,9 @@ public class SettingsPanel extends VBox {
                 card("SECURITY", "bi-shield-lock", "#dc3545",
                         trustAllCerts),
                 card("USAGE STATISTICS", "bi-graph-up", "#6c757d",
-                        trackingEnabled, fill(clearStats), usageStatus),
+                        trackingEnabled, fill(clearStats), usageStatus,
+                        new javafx.scene.control.Separator(),
+                        telemetryUsage, telemetryErrors, telemetryHint, whatIsSent),
                 card("DEVELOPER", "bi-speedometer2", "#495057",
                         execStatsEnabled, execStatsHint),
                 card("FUNDSXML", "bi-file-earmark-code", "#20c997",
@@ -573,6 +595,8 @@ public class SettingsPanel extends VBox {
                     props.get("ssl.trustAllCerts") == null ? "false" : props.get("ssl.trustAllCerts")));
             trackingEnabled.setSelected(
                     UsageTrackingServiceImpl.getInstance().isTrackingEnabled());
+            telemetryUsage.setSelected(props.isTelemetryUsageEnabled());
+            telemetryErrors.setSelected(props.isTelemetryErrorsEnabled());
             execStatsEnabled.setSelected(Boolean.parseBoolean(orEmpty(
                     props.get(org.fxt.freexmltoolkit.service.DeveloperPropertyKeys.EXECUTION_STATS_ENABLED))));
             fundsXmlEnabled.setSelected(Boolean.parseBoolean(
@@ -647,6 +671,7 @@ public class SettingsPanel extends VBox {
             props.set("ssl.trustAllCerts", String.valueOf(trustAllCerts.isSelected()));
             UsageTrackingServiceImpl.getInstance()
                     .setTrackingEnabled(trackingEnabled.isSelected());
+            saveTelemetrySettings(props);
             props.set(org.fxt.freexmltoolkit.service.DeveloperPropertyKeys.EXECUTION_STATS_ENABLED,
                     String.valueOf(execStatsEnabled.isSelected()));
             boolean fundsXmlWasEnabled = Boolean.parseBoolean(props.get(
@@ -665,6 +690,34 @@ public class SettingsPanel extends VBox {
         } catch (Throwable ignored) {
             // properties service unavailable — nothing to persist
         }
+    }
+
+    /**
+     * Persists the two telemetry toggles. The running service is informed too, so that turning
+     * a toggle off immediately drops the queued events of that kind.
+     */
+    private void saveTelemetrySettings(PropertiesService props) {
+        props.setTelemetryUsageEnabled(telemetryUsage.isSelected());
+        props.setTelemetryErrorsEnabled(telemetryErrors.isSelected());
+        try {
+            var telemetry = org.fxt.freexmltoolkit.service.telemetry.Telemetry.get();
+            if (telemetry.isActive()) {
+                telemetry.setUsageEnabled(telemetryUsage.isSelected());
+                telemetry.setErrorReportingEnabled(telemetryErrors.isSelected());
+            }
+        } catch (Throwable ignored) {
+            // telemetry unavailable — the persisted properties are authoritative
+        }
+    }
+
+    /** @return the "Send anonymous usage statistics" checkbox (for tests/observers). */
+    public CheckBox getTelemetryUsageCheckBox() {
+        return telemetryUsage;
+    }
+
+    /** @return the "Send anonymous error reports" checkbox (for tests/observers). */
+    public CheckBox getTelemetryErrorsCheckBox() {
+        return telemetryErrors;
     }
 
     /** Sets a callback invoked after settings are persisted (e.g. to refresh the activity bar). */

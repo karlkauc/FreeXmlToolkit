@@ -61,7 +61,7 @@ public class PropertiesServiceTest {
 
         Properties properties = propertiesService.loadProperties();
         Assertions.assertEquals(System.getProperty("java.io.tmpdir"), properties.getProperty("customTempFolder"));
-        Assertions.assertEquals("false", properties.getProperty("sendUsageStatistics"));
+        Assertions.assertNull(properties.getProperty("sendUsageStatistics"));
     }
 
     @Test

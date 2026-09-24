@@ -49,7 +49,10 @@ class SemanticColorGuardTest {
             "src/main/java/org/fxt/freexmltoolkit/controls/shell/editor/analysis/StatisticsSection.java",
             "src/main/java/org/fxt/freexmltoolkit/controls/shell/editor/analysis/QualitySection.java",
             "src/main/java/org/fxt/freexmltoolkit/controls/shell/editor/analysis/IdentityConstraintsSection.java",
-            "src/main/java/org/fxt/freexmltoolkit/controls/shell/editor/analysis/XPathSection.java"
+            "src/main/java/org/fxt/freexmltoolkit/controls/shell/editor/analysis/XPathSection.java",
+            "src/main/java/org/fxt/freexmltoolkit/controls/dialogs/ErrorReportDialog.java",
+            "src/main/java/org/fxt/freexmltoolkit/controls/dialogs/TelemetryInfoDialog.java",
+            "src/main/java/org/fxt/freexmltoolkit/controls/shell/TelemetryNotice.java"
     );
 
     /** A 6-digit hex colour literal (e.g. {@code #dc3545}). */

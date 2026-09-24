@@ -22,6 +22,7 @@ import javafx.scene.layout.BorderPane;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.service.DragDropService;
+import org.fxt.freexmltoolkit.service.telemetry.UsageEvents;
 
 /**
  * The file-type-aware center of the Unified shell: a tab pane of open documents.
@@ -408,9 +409,14 @@ public class EditorHost extends BorderPane {
     /** Switches the active document to the given view mode (structured modes apply to XSD). */
     public void setActiveViewMode(ViewMode mode) {
         withActive(et -> {
+            ViewMode before = et.viewMode;
             et.setViewMode(mode);
             activeViewMode.set(et.viewMode);
             refreshSelectedNode();
+            if (et.viewMode != before && et.viewMode != null) {
+                UsageEvents.viewModeChanged(et.viewMode.name().toLowerCase(java.util.Locale.ROOT),
+                        et.document.getFileType().docKind());
+            }
         });
     }
 
@@ -1367,7 +1373,7 @@ public class EditorHost extends BorderPane {
                         .getTextContentFromURL(java.net.URI.create(url));
                 String name = urlFileName(url);
                 EditorFileType type = EditorFileType.fromFileName(name);
-                Platform.runLater(() -> openGeneratedDocument(body, type, name));
+                Platform.runLater(() -> openGeneratedDocument(body, type, name, UsageEvents.SOURCE_URL));
             } catch (Exception e) {
                 Platform.runLater(() -> org.fxt.freexmltoolkit.util.DialogHelper.showActionError(
                         "Open from URL", "Could not fetch \"" + url + "\".",
@@ -1417,6 +1423,7 @@ public class EditorHost extends BorderPane {
                 nodeClipboard, this::openNamedTypeEditor, this::goToXmlDefinition);
         addTab(tab);
         tab.attachDirtyTracking();
+        UsageEvents.fileOpened(type != null ? type.docKind() : null, -1, UsageEvents.SOURCE_NEW);
         return tab.document;
     }
 
@@ -1427,12 +1434,24 @@ public class EditorHost extends BorderPane {
      * @return the new document
      */
     public OpenDocument openGeneratedDocument(String content, EditorFileType type, String displayName) {
+        return openGeneratedDocument(content, type, displayName, UsageEvents.SOURCE_GENERATED);
+    }
+
+    /**
+     * Like {@link #openGeneratedDocument(String, EditorFileType, String)}, with the usage-statistics
+     * source ({@code UsageEvents.SOURCE_*}) — e.g. a New File dialog passes {@code SOURCE_NEW}.
+     */
+    public OpenDocument openGeneratedDocument(String content, EditorFileType type, String displayName,
+                                              String usageSource) {
         EditorTab tab = new EditorTab(OpenDocument.untitled(displayName, type), this::refreshSelectedNode,
                 nodeClipboard, this::openNamedTypeEditor, this::goToXmlDefinition);
         addTab(tab);
         tab.view.setText(content);
         tab.attachDirtyTracking();
         tab.document.setDirty(true);
+        // character count as a cheap size proxy (no encoding on the FX thread)
+        UsageEvents.fileOpened(type != null ? type.docKind() : null,
+                content != null ? content.length() : -1, usageSource);
         return tab.document;
     }
 
@@ -1475,6 +1494,7 @@ public class EditorHost extends BorderPane {
         rememberRecentXslt(xsltFile);
         out.showPending("Transforming…");
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            long t0 = System.nanoTime();
             var probe = org.fxt.freexmltoolkit.service.ExecutionStatsService.getInstance().begin(
                     org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.XSLT,
                     xsltFile.getName() + " (preview)");
@@ -1499,6 +1519,7 @@ public class EditorHost extends BorderPane {
                 result = "ERROR: " + e.getMessage();
             }
             boolean ok = !result.startsWith("ERROR");
+            UsageEvents.xsltTransformed(1, t0, ok);
             long elapsedMs = probe.finish(inputChars, ok ? result.length() : -1, ok,
                     org.fxt.freexmltoolkit.service.ExecutionStats.firstLine(result));
             String finalResult = result;
@@ -1576,7 +1597,11 @@ public class EditorHost extends BorderPane {
     /** Saves the active document to its current path (must be titled). @return success */
     public boolean saveActive() {
         Tab tab = tabPane.getSelectionModel().getSelectedItem();
-        return tab instanceof EditorTab et && !et.document.isUntitled() && write(et, et.document.getPath());
+        boolean saved = tab instanceof EditorTab et && !et.document.isUntitled() && write(et, et.document.getPath());
+        if (saved) {
+            UsageEvents.fileSaved(((EditorTab) tab).document.getFileType().docKind(), 1);
+        }
+        return saved;
     }
 
     /** Saves the active document to {@code target} (Save As). */
@@ -1585,6 +1610,7 @@ public class EditorHost extends BorderPane {
         if (tab instanceof EditorTab et && write(et, target)) {
             et.document.setPath(target);
             et.refreshIcon();
+            UsageEvents.fileSaved(et.document.getFileType().docKind(), 1);
             return true;
         }
         return false;
@@ -1599,6 +1625,7 @@ public class EditorHost extends BorderPane {
                 saved++;
             }
         }
+        UsageEvents.fileSaved(null, saved);
         return saved;
     }
 
@@ -2183,11 +2210,13 @@ public class EditorHost extends BorderPane {
             if (formatted != null && !formatted.isBlank()) {
                 et.view.setText(formatted);
                 et.document.setDirty(true);
+                UsageEvents.formatted(et.document.getFileType().docKind(), true);
                 return true;
             }
         } catch (Exception ignored) {
             // invalid content: leave the text untouched
         }
+        UsageEvents.formatted(et.document.getFileType().docKind(), false);
         return false;
     }
 
@@ -2639,6 +2668,8 @@ public class EditorHost extends BorderPane {
             String content;
             try {
                 content = Files.readString(path, StandardCharsets.UTF_8);
+                UsageEvents.fileOpened(tab.document.getFileType().docKind(), sizeOrUnknown(path),
+                        UsageEvents.SOURCE_FILE);
             } catch (IOException e) {
                 Platform.runLater(() -> {
                     tab.view.setText("Could not read " + path + ": " + e.getMessage());
@@ -3341,6 +3372,15 @@ public class EditorHost extends BorderPane {
         }
         int colon = last.indexOf(':');
         return colon >= 0 ? last.substring(colon + 1) : last;
+    }
+
+    /** @return the file size in bytes, or {@code -1} if it cannot be determined (call off the FX thread). */
+    private static long sizeOrUnknown(Path path) {
+        try {
+            return Files.size(path);
+        } catch (IOException | RuntimeException e) {
+            return -1;
+        }
     }
 
     private boolean write(EditorTab tab, Path target) {

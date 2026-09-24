@@ -22,6 +22,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.Authenticator;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
@@ -32,6 +33,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -184,6 +186,76 @@ public class ConnectionServiceImpl implements ConnectionService {
                 connection.disconnect();
                 logger.debug("Binary HTTP connection closed for: {}", uri);
             }
+        }
+    }
+
+    /** Max response body kept from a POST (the telemetry API answers with tiny JSON documents). */
+    private static final int MAX_POST_RESPONSE_BYTES = 64 * 1024;
+
+    /**
+     * POSTs {@code jsonBody} using the same proxy / proxy-authentication / SSL resolution as
+     * {@link #openConnectionFollowingRedirects} (via {@link #configureProxyAuthentication} and
+     * {@link #configureProxy}). Redirects are not followed for POST.
+     */
+    @Override
+    public HttpPostResult postJson(URI uri, String jsonBody, Duration timeout) throws IOException {
+        Properties properties = propertiesService.loadProperties();
+        HttpURLConnection connection = null;
+        int timeoutMs = (int) Math.max(1, Math.min(Integer.MAX_VALUE, timeout == null ? 10_000 : timeout.toMillis()));
+        try {
+            boolean trustAllCerts = Boolean.parseBoolean(properties.getProperty("ssl.trustAllCerts", "false"));
+            configureProxyAuthentication(properties);
+            Proxy proxy = configureProxy(properties);
+            URL url = uri.toURL();
+            if (proxy == null) {
+                connection = (HttpURLConnection) url.openConnection();
+            } else {
+                connection = (HttpURLConnection) url.openConnection(proxy);
+            }
+            connection.setRequestMethod("POST");
+            connection.setInstanceFollowRedirects(false);
+            connection.setDoOutput(true);
+            connection.setConnectTimeout(timeoutMs);
+            connection.setReadTimeout(timeoutMs);
+            connection.setRequestProperty("User-Agent",
+                    "FreeXmlToolkit/" + org.fxt.freexmltoolkit.util.VersionUtil.getVersion());
+            connection.setRequestProperty("Content-Type", "application/json; charset=utf-8");
+            connection.setRequestProperty("Accept", "application/json");
+            if (trustAllCerts && connection instanceof HttpsURLConnection httpsConnection) {
+                try {
+                    applySslBypassToConnection(httpsConnection);
+                } catch (Exception sslEx) {
+                    logger.warn("Failed to apply SSL bypass to POST connection: {}", sslEx.getMessage());
+                }
+            }
+            byte[] bytes = (jsonBody == null ? "" : jsonBody).getBytes(StandardCharsets.UTF_8);
+            connection.setFixedLengthStreamingMode(bytes.length);
+            try (OutputStream os = connection.getOutputStream()) {
+                os.write(bytes);
+            }
+            int status = connection.getResponseCode();
+            String body = readPostResponse(connection, status);
+            logger.debug("HTTP POST completed: {} - Status: {}", uri, status);
+            return new HttpPostResult(status, body);
+        } catch (IOException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new IOException(e.getMessage(), e);
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
+        }
+    }
+
+    private static String readPostResponse(HttpURLConnection connection, int status) {
+        try (InputStream in = status >= 400 ? connection.getErrorStream() : connection.getInputStream()) {
+            if (in == null) {
+                return "";
+            }
+            return new String(in.readNBytes(MAX_POST_RESPONSE_BYTES), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            return "";
         }
     }
 

@@ -202,10 +202,12 @@ public class FopPanel extends VBox {
             PanelStatus.info(status, "Cancelled");
         });
         task[0] = FxtGui.executorService.submit(() -> {
+            long t0 = System.nanoTime();
             var probe = org.fxt.freexmltoolkit.service.ExecutionStatsService.getInstance().begin(
                     org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.FOP_PDF, pdfOutput.getName());
             String result = FopRunner.generate(xmlFile, xsl, pdfOutput, options);
             boolean generated = result.startsWith("OK:");
+            org.fxt.freexmltoolkit.service.telemetry.UsageEvents.pdfGenerated(t0, generated);
             long elapsedMs = probe.finish(xmlFile.length(), generated ? pdfOutput.length() : -1, generated,
                     org.fxt.freexmltoolkit.service.ExecutionStats.firstLine(result));
             boolean showStats = org.fxt.freexmltoolkit.service.ExecutionStatsService.getInstance().isEnabled();

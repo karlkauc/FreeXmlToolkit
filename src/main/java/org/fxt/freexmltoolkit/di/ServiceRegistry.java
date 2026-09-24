@@ -26,6 +26,8 @@ import org.fxt.freexmltoolkit.service.UsageTrackingServiceImpl;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XmlServiceImpl;
 import org.fxt.freexmltoolkit.service.fundsxml.FundsXmlExtensionService;
+import org.fxt.freexmltoolkit.service.telemetry.TelemetryService;
+import org.fxt.freexmltoolkit.service.telemetry.TelemetryServiceImpl;
 
 /**
  * Central registry for service instances with support for dependency injection.
@@ -116,6 +118,10 @@ public final class ServiceRegistry {
 
         // 13. SchemaLibraryService - namespace → schema mappings, catalogs, bundled standards
         registerFactory(SchemaLibraryService.class, SchemaLibraryServiceImpl::getInstance);
+
+        // 14. TelemetryService - anonymous opt-out usage/error telemetry (see docs/telemetry.md).
+        //     Callers should prefer Telemetry.get(), which is a no-op until FxtGui installs it.
+        registerFactory(TelemetryService.class, TelemetryServiceImpl::createDefault);
 
         initialized = true;
     }

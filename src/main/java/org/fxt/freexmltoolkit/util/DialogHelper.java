@@ -21,8 +21,10 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 
+import org.fxt.freexmltoolkit.controls.dialogs.ErrorReportDialog;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
+import org.fxt.freexmltoolkit.service.telemetry.Telemetry;
 
 /**
  * Utility class for creating consistent, modern dialogs across the application.
@@ -211,6 +213,8 @@ public class DialogHelper {
      * @param message the failure message
      */
     public static void notifyActionFailure(String title, String message) {
+        // Anonymous error telemetry: only a fixed code + the dialog title slug, never the message.
+        Telemetry.reportError(ACTION_FAILED_CODE, "dialog." + title);
         if (Boolean.getBoolean("fxt.suppressErrorDialogs")) {
             return;
         }
@@ -236,7 +240,7 @@ public class DialogHelper {
      * @param remedy       what the user can do about it / which options they have
      */
     public static void showActionError(String title, String whatHappened, String remedy) {
-        showActionErrorWithDetail(title, whatHappened, remedy, null);
+        showActionErrorWithDetail(title, whatHappened, remedy, null, null);
     }
 
     /**
@@ -252,7 +256,7 @@ public class DialogHelper {
      */
     public static void showActionError(String title, String whatHappened, String remedy, Throwable detail) {
         showActionErrorWithDetail(title, whatHappened, remedy,
-                detail == null ? null : getStackTraceAsString(detail));
+                detail == null ? null : getStackTraceAsString(detail), detail);
     }
 
     /**
@@ -268,11 +272,20 @@ public class DialogHelper {
      *                        "Technical details" section (may be null/blank)
      */
     public static void showActionError(String title, String whatHappened, String remedy, String technicalDetail) {
-        showActionErrorWithDetail(title, whatHappened, remedy, technicalDetail);
+        showActionErrorWithDetail(title, whatHappened, remedy, technicalDetail, null);
     }
 
+    /** Fixed telemetry error code for action-failure dialogs that have no throwable. */
+    private static final String ACTION_FAILED_CODE = "ui.action_failed";
+
     private static void showActionErrorWithDetail(String title, String whatHappened, String remedy,
-                                                  String detailText) {
+                                                  String detailText, Throwable cause) {
+        // Anonymous error telemetry (never the message / detail text, which may contain paths).
+        if (cause != null) {
+            Telemetry.reportError(cause, "dialog." + title);
+        } else {
+            Telemetry.reportError(ACTION_FAILED_CODE, "dialog." + title);
+        }
         if (Boolean.getBoolean("fxt.suppressErrorDialogs")) {
             return;
         }
@@ -286,10 +299,50 @@ public class DialogHelper {
             textArea.setWrapText(false);
             textArea.setMaxWidth(Double.MAX_VALUE);
             textArea.setMaxHeight(Double.MAX_VALUE);
+            VBox.setVgrow(textArea, Priority.ALWAYS);
             expandableContent.getChildren().addAll(label, textArea);
+            addErrorReportButton(expandableContent, alert, cause);
             alert.getDialogPane().setExpandableContent(expandableContent);
+        } else {
+            addErrorReportButtonToButtonBar(alert, cause);
         }
         alert.showAndWait();
+    }
+
+    /**
+     * Appends a right-aligned "Send error report…" button to an error dialog's detail area
+     * (only when anonymous error reporting is enabled).
+     */
+    private static void addErrorReportButton(VBox detailArea, Alert alert, Throwable cause) {
+        Button report = ErrorReportDialog.createReportButton(
+                () -> alert.getDialogPane().getScene() == null ? null : alert.getDialogPane().getScene().getWindow(),
+                cause);
+        if (report != null) {
+            HBox row = new HBox(report);
+            row.setAlignment(Pos.CENTER_RIGHT);
+            detailArea.getChildren().add(row);
+        }
+    }
+
+    /**
+     * For error dialogs without a detail area: offers "Send error report…" as a left-aligned
+     * button in the button bar (the dialog stays open while the report dialog is shown).
+     */
+    private static void addErrorReportButtonToButtonBar(Alert alert, Throwable cause) {
+        if (!ErrorReportDialog.isAvailable()) {
+            return;
+        }
+        ButtonType reportType = new ButtonType("Send error report…", ButtonBar.ButtonData.LEFT);
+        alert.getButtonTypes().add(reportType);
+        Button report = (Button) alert.getDialogPane().lookupButton(reportType);
+        IconifyIcon icon = new IconifyIcon("bi-send");
+        icon.setIconSize(16);
+        report.setGraphic(icon);
+        report.addEventFilter(javafx.event.ActionEvent.ACTION, evt -> {
+            evt.consume();
+            ErrorReportDialog.show(alert.getDialogPane().getScene() == null ? null
+                    : alert.getDialogPane().getScene().getWindow(), cause);
+        });
     }
 
     /**
@@ -391,6 +444,7 @@ public class DialogHelper {
      * @param exception the exception to display
      */
     public static void showException(String title, String header, Exception exception) {
+        Telemetry.reportError(exception, "dialog." + title);
         Alert alert = createAlert(Alert.AlertType.ERROR, title, header,
                                   exception.getMessage(), "bi-bug");
 
@@ -404,7 +458,9 @@ public class DialogHelper {
         textArea.setMaxWidth(Double.MAX_VALUE);
         textArea.setMaxHeight(Double.MAX_VALUE);
 
+        VBox.setVgrow(textArea, Priority.ALWAYS);
         expandableContent.getChildren().add(textArea);
+        addErrorReportButton(expandableContent, alert, exception);
         alert.getDialogPane().setExpandableContent(expandableContent);
 
         alert.showAndWait();

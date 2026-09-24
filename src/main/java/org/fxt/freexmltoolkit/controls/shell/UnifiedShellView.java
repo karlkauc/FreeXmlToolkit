@@ -254,6 +254,9 @@ public class UnifiedShellView extends BorderPane {
         selectionModel.activeProperty().addListener((obs, oldV, newV) -> {
             revealSidePanel();
             showSidePanelFor(newV);
+            if (newV != null) {
+                org.fxt.freexmltoolkit.service.telemetry.UsageEvents.activityOpened(newV.id());
+            }
         });
         // A press on the already-active activity fires no model change but should still land there.
         activityBar.setOnUserSelect(this::revealSidePanel);
@@ -860,6 +863,15 @@ public class UnifiedShellView extends BorderPane {
     }
 
     /**
+     * Opens the Settings page (selects the Settings activity and focuses its main-area tab).
+     * Used e.g. by the first-start telemetry notice's "Settings…" button.
+     */
+    public void openSettings() {
+        selectionModel.select(Activity.SETTINGS);
+        openSettingsTab();
+    }
+
+    /**
      * Opens (or re-selects) the Settings page as a tab in the main editor area —
      * the Settings activity's content lives there, not in the narrow side panel.
      */
@@ -1424,8 +1436,11 @@ public class UnifiedShellView extends BorderPane {
         if (result.schema() != null && result.generateMandatory()) {
             java.io.File schema = result.schema();
             org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+                long t0 = System.nanoTime();
                 String xml = org.fxt.freexmltoolkit.controls.shell.editor.SampleXmlRunner
                         .generate(schema, true, 2, false);
+                org.fxt.freexmltoolkit.service.telemetry.UsageEvents.sampleGenerated(
+                        "skeleton", 1, t0, !xml.startsWith("ERROR:"));
                 javafx.application.Platform.runLater(() -> {
                     if (xml.startsWith("ERROR:")) {
                         org.fxt.freexmltoolkit.util.DialogHelper.showActionError("New File",
@@ -1455,7 +1470,8 @@ public class UnifiedShellView extends BorderPane {
         if (content == null || content.isBlank()) {
             editorHost.newDocument(type);
         } else {
-            editorHost.openGeneratedDocument(content, type, name);
+            editorHost.openGeneratedDocument(content, type, name,
+                    org.fxt.freexmltoolkit.service.telemetry.UsageEvents.SOURCE_NEW);
         }
         if (result.schema() != null && result.template() == null) {
             editorHost.setSchemaForActiveDocument(result.schema());

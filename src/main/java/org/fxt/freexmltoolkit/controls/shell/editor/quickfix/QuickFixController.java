@@ -131,6 +131,7 @@ public final class QuickFixController {
             return;
         }
         logger.info("Applied quick fix: {}", plan.fixTitle());
+        org.fxt.freexmltoolkit.service.telemetry.UsageEvents.quickFixApplied();
         if (onFixApplied != null) {
             onFixApplied.run();
         }

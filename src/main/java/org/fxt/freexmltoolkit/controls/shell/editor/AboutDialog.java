@@ -137,6 +137,13 @@ public final class AboutDialog {
         Button issueBtn = linkButton("bi-bug", "Report an issue",
                 "https://github.com/karlkauc/FreeXmlToolkit/issues/new");
         HBox links = new HBox(8, githubBtn, docsBtn, issueBtn);
+        if (org.fxt.freexmltoolkit.controls.dialogs.ErrorReportDialog.isAvailable()) {
+            // Anonymous, in-app problem report (no GitHub account needed).
+            Button reportBtn = linkButton("bi-send", "Report a problem…", null);
+            reportBtn.setOnAction(e -> org.fxt.freexmltoolkit.controls.dialogs.ErrorReportDialog.show(
+                    dialogPane.getScene() == null ? null : dialogPane.getScene().getWindow(), null));
+            links.getChildren().add(reportBtn);
+        }
         links.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
 
         VBox content = new VBox(14, header, new Separator(), info, legal, links);
@@ -223,27 +230,31 @@ public final class AboutDialog {
 
         UpdateCheckService service = ServiceRegistry.get(UpdateCheckService.class);
         service.checkForUpdates()
-                .whenComplete((updateInfo, ex) -> Platform.runLater(() -> {
-                    trigger.setText(original);
-                    trigger.setDisable(false);
-                    if (ex != null) {
-                        showUpdateCheckError(ex);
-                        return;
-                    }
-                    if (updateInfo != null && updateInfo.updateAvailable()) {
-                        showUpdateDialog(updateInfo);
-                    } else {
-                        Alert info = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
-                                Alert.AlertType.INFORMATION, "Up to date",
-                                "You are running the latest version.",
-                                "FreeXmlToolkit "
-                                        + (updateInfo != null ? updateInfo.currentVersion()
-                                                : VersionUtil.getVersion())
-                                        + " is current.");
-                        info.initOwner(trigger.getScene().getWindow());
-                        info.showAndWait();
-                    }
-                }));
+                .whenComplete((updateInfo, ex) -> {
+                    org.fxt.freexmltoolkit.service.telemetry.UsageEvents.updateCheck(
+                            "manual", UpdateActionRunner.usageResult(updateInfo, ex));
+                    Platform.runLater(() -> {
+                        trigger.setText(original);
+                        trigger.setDisable(false);
+                        if (ex != null) {
+                            showUpdateCheckError(ex);
+                            return;
+                        }
+                        if (updateInfo != null && updateInfo.updateAvailable()) {
+                            showUpdateDialog(updateInfo);
+                        } else {
+                            Alert info = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
+                                    Alert.AlertType.INFORMATION, "Up to date",
+                                    "You are running the latest version.",
+                                    "FreeXmlToolkit "
+                                            + (updateInfo != null ? updateInfo.currentVersion()
+                                                    : VersionUtil.getVersion())
+                                            + " is current.");
+                            info.initOwner(trigger.getScene().getWindow());
+                            info.showAndWait();
+                        }
+                    });
+                });
     }
 
     // Ported from MainController.showUpdateCheckError (helper of checkForUpdatesFromAbout).

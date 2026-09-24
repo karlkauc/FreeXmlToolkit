@@ -25,6 +25,7 @@ import javafx.stage.FileChooser;
 import org.fxt.freexmltoolkit.FxtGui;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.service.SignatureService;
+import org.fxt.freexmltoolkit.service.telemetry.UsageEvents;
 
 /**
  * The Signature activity side panel, laid out after the Figma mockup
@@ -260,6 +261,7 @@ public class SignaturePanel extends VBox {
             } catch (Exception e) {
                 result = "ERROR: " + e.getMessage();
             }
+            UsageEvents.certificateCreated(created != null);
             File ks = created;
             String finalResult = result;
             Platform.runLater(() -> {
@@ -334,14 +336,18 @@ public class SignaturePanel extends VBox {
                 ? siblingFile(xml, ".sig.xml") : siblingFile(xml, ".signed.xml");
         PanelStatus.info(status, "Signing…");
         FxtGui.executorService.submit(() -> {
+            long t0 = System.nanoTime();
             String result;
+            boolean ok = false;
             try {
                 File signed = new SignatureService()
                         .signDocument(xml, keystore, ksPw, aliasName, aliasPw, output.getAbsolutePath(), type);
                 result = "Signed: " + signed.getName();
+                ok = true;
             } catch (Exception e) {
                 result = "ERROR: " + e.getMessage();
             }
+            UsageEvents.signed(t0, ok);
             String finalResult = result;
             Platform.runLater(() -> {
                 if (finalResult.startsWith("Signed:")) {
@@ -365,6 +371,7 @@ public class SignaturePanel extends VBox {
         }
         PanelStatus.info(status, "Validating…");
         FxtGui.executorService.submit(() -> {
+            long t0 = System.nanoTime();
             SignatureService.ValidationOutcome outcome;
             try {
                 outcome = new SignatureService().validateSignatureDetailed(xml);
@@ -374,6 +381,8 @@ public class SignaturePanel extends VBox {
                         "Failed to validate the signature: " + e.getMessage(), e);
             }
             SignatureService.ValidationOutcome result = outcome;
+            UsageEvents.signatureVerified("basic",
+                    result.status().name().toLowerCase(java.util.Locale.ROOT), t0);
             Platform.runLater(() -> reportValidationOutcome(result));
         });
     }
@@ -422,7 +431,9 @@ public class SignaturePanel extends VBox {
         }
         PanelStatus.info(status, "Validating…");
         FxtGui.executorService.submit(() -> {
+            long t0 = System.nanoTime();
             String report = SignatureActionRunner.describeSignature(xml);
+            UsageEvents.signatureVerified("details", report.startsWith("ERROR") ? "error" : "report", t0);
             Platform.runLater(() -> {
                 PanelStatus.success(status, "Validation report opened");
                 editorHost.openGeneratedDocument(report, EditorFileType.OTHER, "Signature-Report.txt");
@@ -470,15 +481,20 @@ public class SignaturePanel extends VBox {
         char[] storePassword = keystorePassword.getText().isBlank() ? null : keystorePassword.getText().toCharArray();
         PanelStatus.info(status, "Validating trust…");
         FxtGui.executorService.submit(() -> {
+            long t0 = System.nanoTime();
             String report;
+            String outcome;
             try {
                 java.security.KeyStore trustStore = loadTrustStore(store, storePassword);
                 SignatureTrustValidator.TrustResult result =
                         SignatureTrustValidator.validate(xml, trustStore, revocation);
                 report = "Trust validation of " + xml.getName() + "\n\n" + result.report();
+                outcome = result.trusted() ? "valid" : "untrusted";
             } catch (Exception e) {
                 report = "ERROR: " + e.getMessage();
+                outcome = "error";
             }
+            UsageEvents.signatureVerified("trust", outcome, t0);
             String finalReport = report;
             Platform.runLater(() -> {
                 PanelStatus.success(status, "Trust report opened");

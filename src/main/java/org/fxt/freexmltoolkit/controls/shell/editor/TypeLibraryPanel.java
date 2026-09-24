@@ -24,6 +24,7 @@ import org.fxt.freexmltoolkit.controls.shell.editor.analysis.SchemaAnalysisView;
 import org.fxt.freexmltoolkit.controls.shell.schema.XsdNodeLabels;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNodeType;
+import org.fxt.freexmltoolkit.service.telemetry.UsageEvents;
 
 /**
  * The Schema activity side panel, laid out after the Figma mockup
@@ -254,7 +255,9 @@ public class TypeLibraryPanel extends VBox {
             return;
         }
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            long t0 = System.nanoTime();
             String result = SchemaActionRunner.generateXsdFromMultiple(files);
+            UsageEvents.xsdGenerated(files.size(), t0, !result.startsWith("ERROR:"));
             javafx.application.Platform.runLater(() -> {
                 if (result.startsWith("ERROR:")) {
                     alert(javafx.scene.control.Alert.AlertType.ERROR, "Generate XSD (Batch)", result);
@@ -267,7 +270,8 @@ public class TypeLibraryPanel extends VBox {
 
     /** Infers an XSD from the active XML document and opens it as a new tab (async). */
     public void generateXsdFromActive() {
-        runAsync(SchemaActionRunner::generateXsdFromXml, EditorFileType.XSD, "Generated.xsd");
+        runAsync(SchemaActionRunner::generateXsdFromXml, EditorFileType.XSD, "Generated.xsd",
+                (t0, ok) -> UsageEvents.xsdGenerated(1, t0, ok));
     }
 
     /**
@@ -344,7 +348,9 @@ public class TypeLibraryPanel extends VBox {
         int maxOccurrences = options.get().maxOccurrences();
         boolean realistic = options.get().realistic();
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            long t0 = System.nanoTime();
             String result = SampleXmlRunner.generate(xsd, mandatoryOnly, maxOccurrences, realistic);
+            UsageEvents.sampleGenerated("basic", 1, t0, !result.startsWith("ERROR:"));
             javafx.application.Platform.runLater(() -> {
                 if (result.startsWith("ERROR:")) {
                     alert(javafx.scene.control.Alert.AlertType.ERROR, "Generate Sample XML", result);
@@ -384,7 +390,9 @@ public class TypeLibraryPanel extends VBox {
             org.fxt.freexmltoolkit.domain.GenerationProfile profile, String title) {
         if (profile.getBatchCount() <= 1) {
             org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+                long t0 = System.nanoTime();
                 String result = ProfiledSampleRunner.generate(xsd, profile);
+                UsageEvents.sampleGenerated("profiled", 1, t0, !result.startsWith("ERROR"));
                 javafx.application.Platform.runLater(() -> {
                     if (result.startsWith("ERROR")) {
                         alert(javafx.scene.control.Alert.AlertType.ERROR, title, result);
@@ -402,8 +410,10 @@ public class TypeLibraryPanel extends VBox {
             return;
         }
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            long t0 = System.nanoTime();
             var files = ProfiledSampleRunner.generateBatch(xsd, profile);
             var written = ProfiledSampleRunner.writeBatch(dir, files);
+            UsageEvents.sampleGenerated("profiled", written.size(), t0, !written.isEmpty());
             javafx.application.Platform.runLater(() -> alert(
                     javafx.scene.control.Alert.AlertType.INFORMATION, title,
                     "Wrote " + written.size() + " of " + profile.getBatchCount()
@@ -447,12 +457,26 @@ public class TypeLibraryPanel extends VBox {
 
     private void runAsync(java.util.function.Function<String, String> action,
                           EditorFileType outputType, String outputName) {
+        runAsync(action, outputType, outputName, null);
+    }
+
+    /**
+     * @param usage optional usage-statistics callback receiving the {@link System#nanoTime()}
+     *              start and the success flag (called on the worker thread)
+     */
+    private void runAsync(java.util.function.Function<String, String> action,
+                          EditorFileType outputType, String outputName,
+                          java.util.function.BiConsumer<Long, Boolean> usage) {
         if (editorHost.getActiveDocument().isEmpty()) {
             return;
         }
         String content = editorHost.getActiveText().orElse("");
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            long t0 = System.nanoTime();
             String result = action.apply(content);
+            if (usage != null) {
+                usage.accept(t0, !result.startsWith("ERROR:"));
+            }
             javafx.application.Platform.runLater(() -> {
                 if (result.startsWith("ERROR:")) {
                     alert(javafx.scene.control.Alert.AlertType.ERROR, "Schema Tool", result);

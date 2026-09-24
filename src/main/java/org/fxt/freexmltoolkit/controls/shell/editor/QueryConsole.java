@@ -45,6 +45,7 @@ import org.fxt.freexmltoolkit.domain.XPathSnippet;
 import org.fxt.freexmltoolkit.service.FavoritesService;
 import org.fxt.freexmltoolkit.service.XPathSnippetRepository;
 import org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat;
+import org.fxt.freexmltoolkit.service.telemetry.UsageEvents;
 import org.fxt.freexmltoolkit.service.fundsxml.FundsXmlPostDownloadRegistrar;
 import org.fxt.freexmltoolkit.util.DialogHelper;
 
@@ -319,6 +320,7 @@ public class QueryConsole extends Region {
         setResultsText("Running…");
         final int gen = ++runGeneration;
         FxtGui.executorService.submit(() -> {
+            long t0 = System.nanoTime();
             var probe = org.fxt.freexmltoolkit.service.ExecutionStatsService.getInstance().begin(
                     json ? org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.JSONPATH
                             : org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.XPATH,
@@ -326,6 +328,11 @@ public class QueryConsole extends Region {
             String result = json ? TransformRunner.runJsonPath(content, path)
                     : TransformRunner.runXPath(content, path);
             boolean ok = !result.startsWith("ERROR");
+            if (json) {
+                UsageEvents.jsonPathExecuted(t0, ok);
+            } else {
+                UsageEvents.xpathExecuted(t0, ok);
+            }
             long elapsedMs = probe.finish(content.length(), ok ? result.length() : -1, ok,
                     org.fxt.freexmltoolkit.service.ExecutionStats.firstLine(result));
             Platform.runLater(() -> {
@@ -355,10 +362,12 @@ public class QueryConsole extends Region {
         setResultsText("Running…");
         final int gen = ++runGeneration;
         FxtGui.executorService.submit(() -> {
+            long t0 = System.nanoTime();
             var probe = org.fxt.freexmltoolkit.service.ExecutionStatsService.getInstance().begin(
                     org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.XQUERY, "Query console");
             String result = TransformRunner.runXQuery(xml, xquery, Map.of(), OutputFormat.XML);
             boolean ok = !result.startsWith("ERROR");
+            UsageEvents.xqueryExecuted(t0, ok);
             long elapsedMs = probe.finish(xml.length(), ok ? result.length() : -1, ok,
                     org.fxt.freexmltoolkit.service.ExecutionStats.firstLine(result));
             Platform.runLater(() -> {

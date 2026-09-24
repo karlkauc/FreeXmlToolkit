@@ -67,6 +67,15 @@ public class HelpPanel extends VBox {
                 linksTitle, docs, fundsSite, schemaDocs,
                 checkUpdates, updateStatus);
 
+        // Anonymous in-app problem report — only when error reporting is enabled.
+        if (org.fxt.freexmltoolkit.controls.dialogs.ErrorReportDialog.isAvailable()) {
+            Button reportProblem = button("Report a Problem…", "bi-send",
+                    () -> org.fxt.freexmltoolkit.controls.dialogs.ErrorReportDialog.show(
+                            getScene() != null ? getScene().getWindow() : null, null));
+            reportProblem.setId("help-report-problem");
+            getChildren().add(getChildren().indexOf(linksTitle), reportProblem);
+        }
+
         // FundsXML extension — only when enabled in the settings (conditional).
         if (FundsXmlActionRunner.isEnabled()) {
             Label fundsTitle = new Label("FUNDSXML");
@@ -88,8 +97,12 @@ public class HelpPanel extends VBox {
     /** Checks for application updates asynchronously and shows the result. */
     public void checkForUpdates() {
         updateStatus.setText("Checking…");
-        UpdateActionRunner.check().whenComplete((info, err) -> Platform.runLater(() ->
-                updateStatus.setText(err != null ? "Update check failed." : UpdateActionRunner.describe(info))));
+        UpdateActionRunner.check().whenComplete((info, err) -> {
+            org.fxt.freexmltoolkit.service.telemetry.UsageEvents.updateCheck("manual",
+                    UpdateActionRunner.usageResult(info, err));
+            Platform.runLater(() ->
+                    updateStatus.setText(err != null ? "Update check failed." : UpdateActionRunner.describe(info)));
+        });
     }
 
     /** @return the update-status line (for tests/observers). */

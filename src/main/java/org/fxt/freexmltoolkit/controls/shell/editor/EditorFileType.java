@@ -6,6 +6,8 @@ import java.util.Locale;
 
 import javafx.stage.FileChooser;
 
+import org.fxt.freexmltoolkit.service.telemetry.DocKind;
+
 /**
  * Classifies a file opened in the Unified editor host by its extension, so the
  * editor (syntax, IntelliSense) and the inspector can adapt to the content.
@@ -52,6 +54,18 @@ public enum EditorFileType {
     /** @return the lowercase file extensions mapped to this type. */
     public List<String> extensions() {
         return extensions;
+    }
+
+    /** @return the coarse telemetry document kind for this type (never {@code null}). */
+    public DocKind docKind() {
+        return switch (this) {
+            case XML, XPROC -> DocKind.XML;
+            case XSD -> DocKind.XSD;
+            case XSLT -> DocKind.XSLT;
+            case SCHEMATRON -> DocKind.SCHEMATRON;
+            case JSON -> DocKind.JSON;
+            default -> DocKind.OTHER;
+        };
     }
 
     /** @return the primary (first) file extension for this type, or {@code "txt"} if none. */

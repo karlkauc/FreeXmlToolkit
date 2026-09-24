@@ -37,6 +37,7 @@ import org.fxt.freexmltoolkit.controls.shell.editor.debug.BatchTransformView;
 import org.fxt.freexmltoolkit.domain.FileFavorite;
 import org.fxt.freexmltoolkit.service.FavoritesService;
 import org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat;
+import org.fxt.freexmltoolkit.service.telemetry.UsageEvents;
 import org.fxt.freexmltoolkit.util.DialogHelper;
 
 /**
@@ -219,7 +220,7 @@ public class TransformPanel extends VBox {
         // Never re-transform the transform-result tab itself (feedback loop).
         liveDebounce.setOnFinished(e -> {
             if (livePreview.isSelected() && xsltFile != null && isTransformableDocumentActive()) {
-                transform();
+                transform(true);
             }
         });
         livePreview.setOnAction(e -> scheduleLivePreview());
@@ -231,7 +232,7 @@ public class TransformPanel extends VBox {
                 new javafx.animation.KeyFrame(Duration.millis(1500), e -> {
                     if (watchXslt.isSelected() && xsltFile != null && pollXsltChanged()
                             && isTransformableDocumentActive()) {
-                        transform();
+                        transform(true);
                     }
                 }));
         xsltWatch.setCycleCount(javafx.animation.Animation.INDEFINITE);
@@ -374,11 +375,13 @@ public class TransformPanel extends VBox {
         OutputFormat format = chosenFormat(OutputFormat.XML);
         out.showPending("Running…");
         FxtGui.executorService.submit(() -> {
+            long t0 = System.nanoTime();
             var probe = org.fxt.freexmltoolkit.service.ExecutionStatsService.getInstance()
                     .begin(org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.XQUERY, "XQuery editor");
             String result = TransformRunner.runXQuery(xml, xquery, params, format);
             XQueryTableRunner.XQueryTable table = XQueryTableRunner.run(xml, xquery);
             boolean ok = !result.startsWith("ERROR");
+            UsageEvents.xqueryExecuted(t0, ok);
             long elapsedMs = probe.finish(xml.length(), ok ? result.length() : -1, ok,
                     org.fxt.freexmltoolkit.service.ExecutionStats.firstLine(result));
             Platform.runLater(() -> out.showXQueryResult(result, table, format, elapsedMs));
@@ -836,6 +839,11 @@ public class TransformPanel extends VBox {
      * or the remembered source, when the result tab is active).
      */
     public void transform() {
+        transform(false);
+    }
+
+    /** @param live triggered by live preview / stylesheet watch (only affects usage statistics) */
+    private void transform(boolean live) {
         if (xsltFile == null) {
             out.showError("Select an XSLT stylesheet first.");
             return;
@@ -889,6 +897,7 @@ public class TransformPanel extends VBox {
             out.showPending("Cancelled");
         });
         task[0] = FxtGui.executorService.submit(() -> {
+            long t0 = System.nanoTime();
             var probe = org.fxt.freexmltoolkit.service.ExecutionStatsService.getInstance()
                     .begin(org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.XSLT, xslt.getName());
             String result;
@@ -914,6 +923,7 @@ public class TransformPanel extends VBox {
                 probe.phase("Transform", fullResult.getTransformationTime());
             }
             boolean ok = !result.startsWith("ERROR");
+            UsageEvents.xsltTransformed(1, t0, ok, live);
             long elapsedMs = probe.finish(xml.length(), ok ? result.length() : -1, ok,
                     org.fxt.freexmltoolkit.service.ExecutionStats.firstLine(result));
             String finalResult = result;
@@ -972,6 +982,7 @@ public class TransformPanel extends VBox {
         boolean json = isJsonActive();
         out.showPending("Running…");
         FxtGui.executorService.submit(() -> {
+            long t0 = System.nanoTime();
             var probe = org.fxt.freexmltoolkit.service.ExecutionStatsService.getInstance().begin(
                     json ? org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.JSONPATH
                             : org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.XPATH,
@@ -979,6 +990,11 @@ public class TransformPanel extends VBox {
             String result = json ? TransformRunner.runJsonPath(content, path)
                     : TransformRunner.runXPath(content, path);
             boolean ok = !result.startsWith("ERROR");
+            if (json) {
+                UsageEvents.jsonPathExecuted(t0, ok);
+            } else {
+                UsageEvents.xpathExecuted(t0, ok);
+            }
             long elapsedMs = probe.finish(content.length(), ok ? result.length() : -1, ok,
                     org.fxt.freexmltoolkit.service.ExecutionStats.firstLine(result));
             Platform.runLater(() -> out.showQueryResult(result, elapsedMs));

@@ -22,6 +22,7 @@ public final class BatchTransformRunner {
     private static List<BatchFileResult> runBatch(List<File> files,
             org.fxt.freexmltoolkit.service.ExecutionStats.OperationType operationType,
             java.util.function.Function<String, org.fxt.freexmltoolkit.service.XsltTransformationResult> perFile) {
+        long t0 = System.nanoTime();
         List<BatchFileResult> results = new ArrayList<>();
         for (File file : files) {
             // One execution-statistics entry per file — mass transformations are the
@@ -45,6 +46,9 @@ public final class BatchTransformRunner {
                 results.add(new BatchFileResult(file, null, false, "ERROR: " + e.getMessage(), ms));
             }
         }
+        org.fxt.freexmltoolkit.service.telemetry.UsageEvents.batchTransformed(
+                operationType == org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.XQUERY,
+                results.size(), (int) results.stream().filter(r -> !r.ok()).count(), t0);
         return results;
     }
 

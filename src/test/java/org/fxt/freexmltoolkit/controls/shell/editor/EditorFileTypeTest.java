@@ -148,4 +148,14 @@ class EditorFileTypeTest {
             }
         }
     }
+
+    @Test
+    void mapsToCoarseTelemetryDocKind() {
+        for (EditorFileType type : EditorFileType.values()) {
+            assertNotNull(type.docKind(), type.name());
+        }
+        assertEquals(org.fxt.freexmltoolkit.service.telemetry.DocKind.XML, EditorFileType.XPROC.docKind());
+        assertEquals(org.fxt.freexmltoolkit.service.telemetry.DocKind.XSD, EditorFileType.XSD.docKind());
+        assertEquals(org.fxt.freexmltoolkit.service.telemetry.DocKind.OTHER, EditorFileType.XQUERY.docKind());
+    }
 }

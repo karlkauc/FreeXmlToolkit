@@ -612,4 +612,66 @@ public interface PropertiesService {
     default void setSchemaLibraryAutoBindEnabled(boolean enabled) {
         // no-op default for implementations that don't persist this setting
     }
+
+    // Telemetry settings (opt-out; see docs/telemetry.md)
+
+    /** Property key: random installation UUID used for anonymous telemetry. */
+    String TELEMETRY_INSTALL_ID = "telemetry.installId";
+    /** Property key: anonymous usage statistics enabled (default true). */
+    String TELEMETRY_USAGE_ENABLED = "telemetry.usage.enabled";
+    /** Property key: anonymous error reports enabled (default true). */
+    String TELEMETRY_ERRORS_ENABLED = "telemetry.errors.enabled";
+    /** Property key: whether the one-time telemetry notice has been shown (default false). */
+    String TELEMETRY_NOTICE_SHOWN = "telemetry.noticeShown";
+    /** Property key: telemetry endpoint base URL override. */
+    String TELEMETRY_ENDPOINT = "telemetry.endpoint";
+
+    /** @return whether anonymous usage statistics are sent (default: true, opt-out) */
+    default boolean isTelemetryUsageEnabled() {
+        String v = get(TELEMETRY_USAGE_ENABLED);
+        return v == null || v.isBlank() || Boolean.parseBoolean(v.trim());
+    }
+
+    /** @param enabled whether anonymous usage statistics are sent */
+    default void setTelemetryUsageEnabled(boolean enabled) {
+        set(TELEMETRY_USAGE_ENABLED, String.valueOf(enabled));
+    }
+
+    /** @return whether anonymous error reports are sent (default: true, opt-out) */
+    default boolean isTelemetryErrorsEnabled() {
+        String v = get(TELEMETRY_ERRORS_ENABLED);
+        return v == null || v.isBlank() || Boolean.parseBoolean(v.trim());
+    }
+
+    /** @param enabled whether anonymous error reports are sent */
+    default void setTelemetryErrorsEnabled(boolean enabled) {
+        set(TELEMETRY_ERRORS_ENABLED, String.valueOf(enabled));
+    }
+
+    /** @return whether the one-time telemetry notice was shown (default: false) */
+    default boolean isTelemetryNoticeShown() {
+        return Boolean.parseBoolean(get(TELEMETRY_NOTICE_SHOWN));
+    }
+
+    /** @param shown whether the one-time telemetry notice was shown */
+    default void setTelemetryNoticeShown(boolean shown) {
+        set(TELEMETRY_NOTICE_SHOWN, String.valueOf(shown));
+    }
+
+    /** @return the persisted installation id, or null if none was created yet */
+    default String getTelemetryInstallId() {
+        String v = get(TELEMETRY_INSTALL_ID);
+        return v == null || v.isBlank() ? null : v.trim();
+    }
+
+    /** @param installId the installation id to persist */
+    default void setTelemetryInstallId(String installId) {
+        set(TELEMETRY_INSTALL_ID, installId);
+    }
+
+    /** @return the configured telemetry endpoint override, or null */
+    default String getTelemetryEndpoint() {
+        String v = get(TELEMETRY_ENDPOINT);
+        return v == null || v.isBlank() ? null : v.trim();
+    }
 }
