@@ -81,6 +81,12 @@ collapsed to give the editor more room - the activity bar always stays visible.
 2. Use the **Explorer** activity (or **File → Open**) to open files; **File → New** (Ctrl+N) opens the guided [New File dialog](#new-file-dialog) to create a new file from a template or schema. You can also **drag & drop** files from your file manager anywhere onto the window - every [supported file type](#supported-file-types) (XML, XSD, XSLT, XProc, XQuery, XPath, Schematron, JSON, HTML) opens as a new tab; other files are ignored.
 3. Files open as tabs in the editor host - switch tabs by clicking their headers, and switch view modes (Text / Tree / Graphic - plus **Preview** for HTML files) with the segmented view switch.
 
+After the first start, a small **Anonymous usage statistics** notice appears once in the
+bottom-right corner of the window. It explains that FreeXmlToolkit sends anonymous usage
+statistics and error reports (never file names, paths or content). Click **OK** to continue,
+**Settings…** to switch it off, or **What is sent?** to see the exact data. Nothing is sent
+before you have acknowledged this notice. See [Privacy & Anonymous Telemetry](telemetry.md).
+
 ## New File Dialog
 
 > Creating a new file opens a guided dialog instead of silently
@@ -1238,6 +1244,24 @@ has three tabs - **Mappings**, **Catalogs** and **Cache** - and a shared status 
 bottom. See the [Schema Library guide](schema-library.md) for the full reference, including
 the resolution order, the bundled standards list and troubleshooting.
 
+## Help Panel & About
+
+The **Help** activity (F1) shows the version and build, and buttons for **GitHub**, **About**,
+**Keyboard Shortcuts**, **Check for Updates**, and links to the documentation.
+
+- **Report a Problem…** opens the **Send Error Report** dialog. Describe what you were doing,
+  optionally leave an email address if you would like a reply, and click **Send**. The report
+  is sent anonymously - no GitHub account is needed. The collapsible **Preview of the data that
+  will be sent** shows exactly what is transmitted.
+- The **About** dialog offers the same **Report a problem…** button next to **Report an issue**
+  (which opens the GitHub Issues page).
+- When an **error dialog** appears, it has a **Send error report…** button that opens the same
+  dialog. Tick **Include technical details** to attach the anonymous error signature (exception
+  type and code locations - never messages, paths or content).
+
+These buttons are only shown while **Send anonymous error reports** is enabled in
+[Settings](#settings-page). See [Privacy & Anonymous Telemetry](telemetry.md) for details.
+
 ## Settings Page
 
 > Settings open as a **full page** (a tab in the main editor
@@ -1262,7 +1286,7 @@ short note that settings are edited in the main window). Change any option and c
 | **File Associations** | Make FreeXmlToolkit the **default application** for XML, XSD, XSLT, Schematron and JSON files (per user, no admin rights). See [File Associations](file-associations.md). |
 | **User Info** | **Name**, **Email** and **Company** - used, for example, when generating documentation or signing. |
 | **Security** | **Trust all certificates** - accept any TLS certificate for HTTPS downloads (schemas, updates). Use with care. |
-| **Usage Statistics** | **Enable usage tracking** (local, anonymous feature-usage counters shown on the Welcome page) and **Clear statistics**. |
+| **Usage Statistics** | **Enable usage tracking** (local, anonymous feature-usage counters shown on the Welcome page) and **Clear statistics**. Below them: **Send anonymous usage statistics** and **Send anonymous error reports** (both on by default) and a **What is sent?** link that shows the exact data and your anonymous installation ID. See [Privacy & Anonymous Telemetry](telemetry.md). |
 | **Developer** | **Record execution statistics** - collects duration, CPU and memory per XSLT/XQuery/validation run; view them in the **Execution Statistics** tool tab or via the "last run" item in the status bar. |
 | **FundsXML** | **Enable FundsXML extensions** - adds the [FundsXML activity](fundsxml-extensions.md) to the activity bar. |
 | **Templates** | A configurable **templates directory**, plus a **New / Edit / Delete** list of your own templates. See [Managing your templates](#managing-your-templates) below. |

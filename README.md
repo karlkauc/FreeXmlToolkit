@@ -220,6 +220,10 @@ cd FreeXmlToolkit
 - **Request Features**: Have an idea for improvement? Let us know!
 - **Ask Questions**: Use the Issues page to ask questions or get help
 
+### **Privacy**
+
+FreeXmlToolkit sends anonymous usage statistics and error reports (never file names, paths or document content). Both are on by default and can be switched off under **Settings → Usage Statistics**. See [Privacy & Anonymous Telemetry](https://karlkauc.github.io/FreeXmlToolkit/telemetry/) for exactly what is sent.
+
 ## <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: inline; vertical-align: middle; margin-right: 8px;"><path d="M6 11h2v9H6zm3.5-10h2v19h-2zm3.5 5h2v14h-2zm3.5-2h2v16h-2z" fill="#fd7e14"/><circle cx="4" cy="3" r="1.5" fill="#fd7e14"/><circle cx="12" cy="2" r="1.5" fill="#fd7e14"/><circle cx="20" cy="3" r="1.5" fill="#fd7e14"/></svg> Contributing
 
 We welcome contributions from everyone! Whether you're a developer, designer, or just someone who uses the application:

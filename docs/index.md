@@ -337,6 +337,7 @@ If the interface appears blurry or animations are slow, your system may be using
 | Page | Description |
 |------|-------------|
 | [Security Features](SECURITY.md) | Built-in protections against XML attacks |
+| [Privacy & Anonymous Telemetry](telemetry.md) | What the anonymous usage statistics and error reports contain, and how to switch them off |
 | [Technology Stack](technology-stack.md) | Libraries and versions used |
 | [Third-Party Licenses](licenses.md) | License information |
 
@@ -346,7 +347,7 @@ If the interface appears blurry or animations are slow, your system may be using
 
 - Browse the documentation pages listed above
 - Check the example files included with the application
-- Report issues on the project's GitHub page
+- Report issues on the project's GitHub page, or send an anonymous report from inside the app with **Help → Report a Problem…**
 
 ---
 
@@ -356,4 +357,4 @@ If the interface appears blurry or animations are slow, your system may be using
 
 **Features:** [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [FundsXML Extensions](fundsxml-extensions.md) | [Schema Support](schema-support.md) | [Favorites](favorites-system.md) | [Templates](template-management.md)
 
-**Reference:** [Security](SECURITY.md) | [Tech Stack](technology-stack.md) | [Licenses](licenses.md)
+**Reference:** [Security](SECURITY.md) | [Privacy & Telemetry](telemetry.md) | [Tech Stack](technology-stack.md) | [Licenses](licenses.md)
