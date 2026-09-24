@@ -1428,6 +1428,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#help-panel-about" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Help Panel &amp; About
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#settings-page" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3658,6 +3669,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#help-panel-about" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Help Panel &amp; About
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#settings-page" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4056,6 +4078,11 @@ collapsed to give the editor more room - the activity bar always stays visible.<
 <li>Use the <strong>Explorer</strong> activity (or <strong>File → Open</strong>) to open files; <strong>File → New</strong> (Ctrl+N) opens the guided <a href="#new-file-dialog">New File dialog</a> to create a new file from a template or schema. You can also <strong>drag &amp; drop</strong> files from your file manager anywhere onto the window - every <a href="#supported-file-types">supported file type</a> (XML, XSD, XSLT, XProc, XQuery, XPath, Schematron, JSON, HTML) opens as a new tab; other files are ignored.</li>
 <li>Files open as tabs in the editor host - switch tabs by clicking their headers, and switch view modes (Text / Tree / Graphic - plus <strong>Preview</strong> for HTML files) with the segmented view switch.</li>
 </ol>
+<p>After the first start, a small <strong>Anonymous usage statistics</strong> notice appears once in the
+bottom-right corner of the window. It explains that FreeXmlToolkit sends anonymous usage
+statistics and error reports (never file names, paths or content). Click <strong>OK</strong> to continue,
+<strong>Settings…</strong> to switch it off, or <strong>What is sent?</strong> to see the exact data. Nothing is sent
+before you have acknowledged this notice. See <a href="../telemetry/">Privacy &amp; Anonymous Telemetry</a>.</p>
 <h2 id="new-file-dialog">New File Dialog<a class="headerlink" href="#new-file-dialog" title="Permanent link">&para;</a></h2>
 <blockquote>
 <p>Creating a new file opens a guided dialog instead of silently
@@ -5407,6 +5434,22 @@ to auto-bind XML, XSD and JSON documents that don't carry an explicit schema ref
 has three tabs - <strong>Mappings</strong>, <strong>Catalogs</strong> and <strong>Cache</strong> - and a shared status line at the
 bottom. See the <a href="../schema-library/">Schema Library guide</a> for the full reference, including
 the resolution order, the bundled standards list and troubleshooting.</p>
+<h2 id="help-panel-about">Help Panel &amp; About<a class="headerlink" href="#help-panel-about" title="Permanent link">&para;</a></h2>
+<p>The <strong>Help</strong> activity (F1) shows the version and build, and buttons for <strong>GitHub</strong>, <strong>About</strong>,
+<strong>Keyboard Shortcuts</strong>, <strong>Check for Updates</strong>, and links to the documentation.</p>
+<ul>
+<li><strong>Report a Problem…</strong> opens the <strong>Send Error Report</strong> dialog. Describe what you were doing,
+  optionally leave an email address if you would like a reply, and click <strong>Send</strong>. The report
+  is sent anonymously - no GitHub account is needed. The collapsible <strong>Preview of the data that
+  will be sent</strong> shows exactly what is transmitted.</li>
+<li>The <strong>About</strong> dialog offers the same <strong>Report a problem…</strong> button next to <strong>Report an issue</strong>
+  (which opens the GitHub Issues page).</li>
+<li>When an <strong>error dialog</strong> appears, it has a <strong>Send error report…</strong> button that opens the same
+  dialog. Tick <strong>Include technical details</strong> to attach the anonymous error signature (exception
+  type and code locations - never messages, paths or content).</li>
+</ul>
+<p>These buttons are only shown while <strong>Send anonymous error reports</strong> is enabled in
+<a href="#settings-page">Settings</a>. See <a href="../telemetry/">Privacy &amp; Anonymous Telemetry</a> for details.</p>
 <h2 id="settings-page">Settings Page<a class="headerlink" href="#settings-page" title="Permanent link">&para;</a></h2>
 <blockquote>
 <p>Settings open as a <strong>full page</strong> (a tab in the main editor
@@ -5471,7 +5514,7 @@ short note that settings are edited in the main window). Change any option and c
 </tr>
 <tr>
 <td><strong>Usage Statistics</strong></td>
-<td><strong>Enable usage tracking</strong> (local, anonymous feature-usage counters shown on the Welcome page) and <strong>Clear statistics</strong>.</td>
+<td><strong>Enable usage tracking</strong> (local, anonymous feature-usage counters shown on the Welcome page) and <strong>Clear statistics</strong>. Below them: <strong>Send anonymous usage statistics</strong> and <strong>Send anonymous error reports</strong> (both on by default) and a <strong>What is sent?</strong> link that shows the exact data and your anonymous installation ID. See <a href="../telemetry/">Privacy &amp; Anonymous Telemetry</a>.</td>
 </tr>
 <tr>
 <td><strong>Developer</strong></td>
