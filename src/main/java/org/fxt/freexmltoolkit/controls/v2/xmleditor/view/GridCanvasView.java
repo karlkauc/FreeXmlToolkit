@@ -160,6 +160,19 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     private int editingTableRowIndex = -1;
     private String editingTableColumnName = null;
 
+    // Column resizing (drag a separator in an embedded table's column-header row)
+    private static final double RESIZE_HANDLE = 4;
+
+    /** An in-progress column drag: which column of which table, and where it started. */
+    private record ColumnDrag(RepeatingElementsTable table, int columnIndex,
+                              double startModelX, double startWidth) {
+    }
+
+    private ColumnDrag columnDrag = null;
+    private boolean columnDragMoved = false;
+    /** Set after a drag so the MOUSE_CLICKED JavaFX fires afterwards does not sort/select. */
+    private boolean suppressNextClick = false;
+
     // Table selection/hover state (kept for repeating table integration)
     private RepeatingElementsTable selectedTable = null;
     private RepeatingElementsTable hoveredTable = null;
@@ -1572,9 +1585,20 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             return;
         }
 
-        // Check column header click (sort)
+        // Check column header click (sort) — unless the click is on a resize handle
         double colHeaderY = tableScreenTop + RepeatingElementsTable.HEADER_HEIGHT;
         if (my >= colHeaderY && my < colHeaderY + RepeatingElementsTable.ROW_HEIGHT) {
+            int sepIdx = table.getColumnSeparatorAt(mx, RESIZE_HANDLE);
+            if (sepIdx >= 0) {
+                if (event.getClickCount() == 2) {
+                    // Double-click on the handle: back to automatic (content) width
+                    table.setColumnUserWidth(table.getColumn(sepIdx).getName(), null);
+                    recalculateVisibleRows();
+                    updateScrollBars();
+                    render();
+                }
+                return;
+            }
             int colIdx = table.getColumnIndexAt(mx);
             if (colIdx >= 0) {
                 RepeatingElementsTable.TableColumn col = table.getColumn(colIdx);
@@ -1875,11 +1899,87 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                 canvas.requestFocus();
             }
         });
+
+        // Column resizing: press on a separator in a column-header row, drag, release
+        canvas.addEventHandler(MouseEvent.MOUSE_PRESSED, e -> {
+            if (e.getButton() != MouseButton.PRIMARY || editField != null || activeWidgetNode != null) {
+                return;
+            }
+            ColumnDrag handle = findColumnHandleAt(toModelX(e.getX()), toViewportY(e.getY()));
+            if (handle != null) {
+                columnDrag = handle;
+                columnDragMoved = false;
+                e.consume();
+            }
+        });
+        canvas.addEventHandler(MouseEvent.MOUSE_DRAGGED, e -> {
+            if (columnDrag == null) {
+                return;
+            }
+            double delta = toModelX(e.getX()) - columnDrag.startModelX();
+            double newWidth = Math.max(RepeatingElementsTable.MIN_COLUMN_WIDTH, columnDrag.startWidth() + delta);
+            RepeatingElementsTable.TableColumn col = columnDrag.table().getColumn(columnDrag.columnIndex());
+            if (col != null && Math.abs(col.getWidth() - newWidth) >= 0.5) {
+                columnDrag.table().setColumnUserWidth(col.getName(), newWidth);
+                columnDragMoved = true;
+                recalculateVisibleRows();
+                updateScrollBars();
+                render();
+            }
+            canvas.setCursor(Cursor.H_RESIZE);
+            e.consume();
+        });
+        canvas.addEventHandler(MouseEvent.MOUSE_RELEASED, e -> {
+            if (columnDrag != null) {
+                suppressNextClick = columnDragMoved;
+                columnDrag = null;
+                e.consume();
+            }
+        });
+    }
+
+    /**
+     * Finds the column separator under the pointer: the pointer must sit in the
+     * column-header row of an expanded embedded table, within {@link #RESIZE_HANDLE}
+     * pixels of a column's right edge.
+     *
+     * @param mx x in model units
+     * @param my y in unscaled viewport units
+     * @return the drag descriptor, or {@code null} when no handle is there
+     */
+    private ColumnDrag findColumnHandleAt(double mx, double my) {
+        int rowIndex = findRowIndexAtScreenY(my);
+        if (rowIndex < 0 || rowIndex >= visibleRows.size()) {
+            return null;
+        }
+        FlatRow owner = visibleRows.get(rowIndex);
+        if (!owner.hasRepeatingTable() || !owner.isExpanded()) {
+            return null;
+        }
+        RepeatingElementsTable table = owner.getRepeatingTable();
+        if (!table.isExpanded()) {
+            return null;
+        }
+        double tableTop = rowYPositions[rowIndex] - scrollOffsetY + ownRowHeight(owner);
+        double headerTop = tableTop + RepeatingElementsTable.HEADER_HEIGHT;
+        if (my < headerTop || my >= headerTop + RepeatingElementsTable.ROW_HEIGHT) {
+            return null;
+        }
+        int colIdx = table.getColumnSeparatorAt(mx, RESIZE_HANDLE);
+        if (colIdx < 0) {
+            return null;
+        }
+        return new ColumnDrag(table, colIdx, mx, table.getColumn(colIdx).getWidth());
     }
 
     // ==================== Mouse Handling ====================
 
     private void handleMouseClick(MouseEvent event) {
+        if (suppressNextClick) {
+            // The click that JavaFX fires after a column drag must not sort or select.
+            suppressNextClick = false;
+            return;
+        }
         double mx = toModelX(event.getX());
         double my = toViewportY(event.getY());
 
@@ -2049,7 +2149,9 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         }
 
         // Update cursor
-        if (hoveredExpandBar != null) {
+        if (columnDrag != null || findColumnHandleAt(mx, my) != null) {
+            canvas.setCursor(Cursor.H_RESIZE);
+        } else if (hoveredExpandBar != null) {
             canvas.setCursor(Cursor.HAND);
         } else {
             canvas.setCursor(Cursor.DEFAULT);
