@@ -64,6 +64,18 @@ public final class ProfiledSampleRunner {
      * @return the generated files, or an empty list on failure
      */
     public static List<GeneratedFile> generateBatch(File xsd, GenerationProfile profile) {
+        return generateBatch(xsd, profile, null);
+    }
+
+    /**
+     * Like {@link #generateBatch(File, GenerationProfile)}, for files that will be written into
+     * {@code outputDir}: their schema reference is made relative to that folder, so the batch
+     * validates from where it lands (see {@link org.fxt.freexmltoolkit.service.SampleSchemaLocation}).
+     *
+     * @param outputDir the folder the files will be written to, or {@code null} when unknown
+     * @return the generated files, or an empty list on failure
+     */
+    public static List<GeneratedFile> generateBatch(File xsd, GenerationProfile profile, File outputDir) {
         if (xsd == null || !xsd.isFile()) {
             return List.of();
         }
@@ -72,7 +84,9 @@ public final class ProfiledSampleRunner {
             if (data == null) {
                 return List.of();
             }
-            return new ProfiledXmlGeneratorService().generateBatch(profile, data, xsd.getAbsolutePath());
+            ProfiledXmlGeneratorService generator = new ProfiledXmlGeneratorService();
+            generator.setOutputDirectory(outputDir != null ? outputDir.toPath() : null);
+            return generator.generateBatch(profile, data, xsd.getAbsolutePath());
         } catch (Exception e) {
             return List.of();
         }

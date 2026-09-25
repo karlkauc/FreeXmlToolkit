@@ -249,4 +249,43 @@ class EditorHostTest {
         assertEquals(EditorFileType.XSD, doc.getFileType(), "type follows the new extension");
         assertFalse(doc.isDirty());
     }
+
+    /**
+     * A generated sample references its schema by bare file name and is bound to it directly;
+     * saving it into another folder relativizes the reference so it keeps resolving there.
+     */
+    @Test
+    void generatedSampleIsBoundToItsSchemaAndSaveAsRelativizesTheReference(
+            @org.junit.jupiter.api.io.TempDir Path tmp) throws Exception {
+        Path xsd = tmp.resolve("xsd").resolve("Order.xsd");
+        Files.createDirectories(xsd.getParent());
+        Files.writeString(xsd, """
+                <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                  <xs:element name="Order"><xs:complexType><xs:sequence>
+                    <xs:element name="Id" type="xs:string"/>
+                  </xs:sequence></xs:complexType></xs:element>
+                </xs:schema>
+                """);
+        Path target = tmp.resolve("xml").resolve("sample.xml");
+        Files.createDirectories(target.getParent());
+        String sample = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                + "<Order xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\""
+                + " xsi:noNamespaceSchemaLocation=\"Order.xsd\"><Id>1</Id></Order>";
+
+        boolean bound = WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
+            host.openGeneratedDocument(sample, EditorFileType.XML, "Sample.xml");
+            return host.bindGeneratedSchemaToActiveDocument(xsd.toFile());
+        });
+        assertTrue(bound, "the source schema must be bound to the generated tab");
+        assertEquals(xsd.toFile(), host.activeSchemaProperty().get());
+
+        boolean ok = WaitForAsyncUtils.waitForAsyncFx(5000, () -> host.saveActiveAs(target));
+        WaitForAsyncUtils.waitForFxEvents();
+
+        assertTrue(ok, "saveActiveAs should succeed");
+        String written = Files.readString(target);
+        assertTrue(written.contains("xsi:noNamespaceSchemaLocation=\"../xsd/Order.xsd\""), written);
+        assertTrue(written.contains("<Id>1</Id>"), "the body is untouched");
+        assertEquals(written, host.getActiveText().orElseThrow(), "the editor buffer shows the saved text");
+    }
 }

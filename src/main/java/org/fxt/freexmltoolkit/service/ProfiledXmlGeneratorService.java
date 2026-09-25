@@ -18,7 +18,6 @@
 
 package org.fxt.freexmltoolkit.service;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -78,6 +77,21 @@ public class ProfiledXmlGeneratorService {
     private XsdSampleDataGenerator identityValues;
     /** Default namespace in scope at the element being written. */
     private String emissionDefaultNamespace = "";
+    /**
+     * Folder the generated documents will be written to (batch mode); the schema reference
+     * in their root element is made relative to it. {@code null} = unsaved editor document,
+     * referenced by the schema's bare file name. See {@link SampleSchemaLocation}.
+     */
+    private java.nio.file.Path outputDirectory;
+
+    /**
+     * @param outputDirectory the folder the generated documents will be written to, or
+     *                        {@code null} for a document that opens unsaved in the editor
+     * @see SampleSchemaLocation#forSample(String, java.nio.file.Path)
+     */
+    public void setOutputDirectory(java.nio.file.Path outputDirectory) {
+        this.outputDirectory = outputDirectory;
+    }
 
     /**
      * Creates a generator with a non-deterministic {@link Random} source. CHOICE
@@ -261,6 +275,7 @@ public class ProfiledXmlGeneratorService {
     String delegateToPlainGenerator(GenerationProfile profile, String xsdFilePath) {
         XsdDocumentationService docService = new XsdDocumentationService();
         docService.setXsdFilePath(xsdFilePath);
+        docService.setSampleOutputDirectory(outputDirectory);
         return docService.generateSampleXml(profile.isMandatoryOnly(), profile.getMaxOccurrences());
     }
 
@@ -328,9 +343,10 @@ public class ProfiledXmlGeneratorService {
         StringBuilder xml = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
         String rootName = rootElement.getElementName();
 
-        // Schema location and namespace declarations
+        // Schema location and namespace declarations — a portable (relative) reference,
+        // never an absolute file: URI of this machine (see SampleSchemaLocation)
         String targetNamespace = data.getTargetNamespace();
-        String schemaLocationUri = new File(xsdFilePath).toURI().toString();
+        String schemaLocationUri = SampleSchemaLocation.forSample(xsdFilePath, outputDirectory);
 
         xml.append("<").append(rootName)
                 .append(" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"");

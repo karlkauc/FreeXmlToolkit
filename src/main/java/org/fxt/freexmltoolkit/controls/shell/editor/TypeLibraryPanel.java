@@ -339,7 +339,7 @@ public class TypeLibraryPanel extends VBox {
                 if (result.startsWith("ERROR:")) {
                     alert(javafx.scene.control.Alert.AlertType.ERROR, "Generate Sample XML", result);
                 } else {
-                    editorHost.openGeneratedDocument(result, EditorFileType.XML, "Sample.xml");
+                    openSample(result, xsd);
                 }
             });
         });
@@ -381,7 +381,7 @@ public class TypeLibraryPanel extends VBox {
                     if (result.startsWith("ERROR")) {
                         alert(javafx.scene.control.Alert.AlertType.ERROR, title, result);
                     } else {
-                        editorHost.openGeneratedDocument(result, EditorFileType.XML, "Sample.xml");
+                        openSample(result, xsd);
                     }
                 });
             });
@@ -395,7 +395,7 @@ public class TypeLibraryPanel extends VBox {
         }
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
             long t0 = System.nanoTime();
-            var files = ProfiledSampleRunner.generateBatch(xsd, profile);
+            var files = ProfiledSampleRunner.generateBatch(xsd, profile, dir);
             var written = ProfiledSampleRunner.writeBatch(dir, files);
             UsageEvents.sampleGenerated("profiled", written.size(), t0, !written.isEmpty());
             javafx.application.Platform.runLater(() -> alert(
@@ -403,6 +403,17 @@ public class TypeLibraryPanel extends VBox {
                     "Wrote " + written.size() + " of " + profile.getBatchCount()
                             + " files to:\n" + dir.getAbsolutePath()));
         });
+    }
+
+    /**
+     * Opens a generated sample as a new tab and binds the schema it was generated from:
+     * the sample references the XSD only by file name (portable, resolvable once saved next
+     * to it), so without the direct binding the unsaved tab would only be well-formedness
+     * checked. FX thread.
+     */
+    private void openSample(String xml, File xsd) {
+        editorHost.openGeneratedDocument(xml, EditorFileType.XML, "Sample.xml");
+        editorHost.bindGeneratedSchemaToActiveDocument(xsd);
     }
 
     /**

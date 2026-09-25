@@ -1607,7 +1607,7 @@ public class EditorHost extends BorderPane {
     /** Saves the active document to {@code target} (Save As). */
     public boolean saveActiveAs(Path target) {
         Tab tab = tabPane.getSelectionModel().getSelectedItem();
-        if (tab instanceof EditorTab et && write(et, target)) {
+        if (tab instanceof EditorTab et && write(et, relocateGeneratedSchemaReference(et, target))) {
             et.document.setPath(target);
             et.refreshIcon();
             UsageEvents.fileSaved(et.document.getFileType().docKind(), 1);
@@ -2292,6 +2292,40 @@ public class EditorHost extends BorderPane {
      * @return success
      */
     public boolean setSchemaForActiveDocument(File xsd) {
+        return bindSchemaToActiveDocument(xsd, SchemaRebindPolicy.SchemaBindingOrigin.MANUAL,
+                SchemaSource.MANUAL, null, null);
+    }
+
+    /**
+     * Binds the schema a generated document was produced from (Generate Sample XML). The
+     * document's root element references that schema only by file name — resolvable once
+     * saved next to it, but not for the unsaved tab — so the binding is established directly,
+     * and validation works on the very first run. The binding counts as auto-detected from
+     * the declared reference (not as a manual choice): the reconcile keeps it while the
+     * declaration is unchanged, and re-detects when the user edits or the first save
+     * relativizes the reference.
+     *
+     * @return success
+     */
+    public boolean bindGeneratedSchemaToActiveDocument(File xsd) {
+        if (xsd == null) {
+            return false;
+        }
+        Tab tab = tabPane.getSelectionModel().getSelectedItem();
+        if (!(tab instanceof EditorTab et)) {
+            return false;
+        }
+        // What the reconcile will sniff from the buffer (no base directory: untitled).
+        String declared = org.fxt.freexmltoolkit.di.ServiceRegistry
+                .get(org.fxt.freexmltoolkit.service.XmlService.class)
+                .getSchemaNameFromXmlContent(et.view.getText(), null)
+                .orElse(null);
+        return bindSchemaToActiveDocument(xsd, SchemaRebindPolicy.SchemaBindingOrigin.AUTO,
+                SchemaSource.DECLARED, xsd.getAbsolutePath(), declared);
+    }
+
+    private boolean bindSchemaToActiveDocument(File xsd, SchemaRebindPolicy.SchemaBindingOrigin origin,
+                                               SchemaSource source, String sourceDetail, String declared) {
         Tab tab = tabPane.getSelectionModel().getSelectedItem();
         if (!(tab instanceof EditorTab et) || !et.view.supportsSchema()) {
             return false;
@@ -2306,12 +2340,15 @@ public class EditorHost extends BorderPane {
         }
         if (bound) {
             et.schemaFile = xsd;
-            et.schemaOrigin = xsd == null
-                    ? SchemaRebindPolicy.SchemaBindingOrigin.NONE
-                    : SchemaRebindPolicy.SchemaBindingOrigin.MANUAL;
+            et.schemaOrigin = xsd == null ? SchemaRebindPolicy.SchemaBindingOrigin.NONE : origin;
+            if (xsd != null && origin == SchemaRebindPolicy.SchemaBindingOrigin.AUTO) {
+                // Behaves like a detection result: an unchanged declaration is KEEP-fast-pathed.
+                // Manual bindings/clears leave the last detection alone (MANUAL never rebinds).
+                et.lastDetectedSchemaLocation = declared;
+            }
             et.view.invalidateIntelliSenseCache();
             activeSchema.set(xsd);
-            publishSchemaSource(et, xsd == null ? SchemaSource.NONE : SchemaSource.MANUAL, null);
+            publishSchemaSource(et, xsd == null ? SchemaSource.NONE : source, xsd == null ? null : sourceDetail);
             publishSchemaStatus(et, xsd == null ? SchemaStatus.NONE : SchemaStatus.READY);
             loadXmlSchemaProviderAsync(et, xsd);
             return true;
@@ -3459,12 +3496,32 @@ public class EditorHost extends BorderPane {
         javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
         chooser.setTitle("Save As");
         File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showSaveDialog(chooser, getScene() != null ? getScene().getWindow() : null);
-        if (file != null && write(tab, file.toPath())) {
+        if (file != null && write(tab, relocateGeneratedSchemaReference(tab, file.toPath()))) {
             tab.document.setPath(file.toPath());
             tab.refreshIcon();
             return true;
         }
         return false;
+    }
+
+    /**
+     * First save of a generated document (Generate Sample XML): its root element references
+     * the bound schema by bare file name, which only resolves next to the schema. Saving it
+     * anywhere else rewrites that reference to a path relative to {@code target}'s folder,
+     * so the file validates from where it lands — also in other tools and after a restart.
+     * Titled documents and hand-written references are never touched
+     * (see {@link org.fxt.freexmltoolkit.service.SampleSchemaLocation#relocate}).
+     *
+     * @return {@code target}, for chaining into {@link #write(EditorTab, Path)}
+     */
+    private Path relocateGeneratedSchemaReference(EditorTab tab, Path target) {
+        File xsd = tab.schemaFile;
+        if (xsd != null && tab.document.isUntitled() && target != null && target.getParent() != null) {
+            org.fxt.freexmltoolkit.service.SampleSchemaLocation
+                    .relocate(tab.view.getText(), xsd, target.getParent())
+                    .ifPresent(tab.view::setText);
+        }
+        return target;
     }
 
     /** A tab bound to one {@link OpenDocument}, its editor view, and Text/Tree/Graphic modes. */

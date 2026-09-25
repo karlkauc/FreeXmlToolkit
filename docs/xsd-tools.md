@@ -555,13 +555,18 @@ For a complete guide with step-by-step instructions and examples, see **[Profile
 
 ### Validation
 
-The generated sample opens as a normal editor tab (`Sample.xml`), so you can validate it
-like any other document:
+The generated sample opens as a normal editor tab (`Sample.xml`) that is already bound to
+the schema it was generated from, so you can validate it right away:
 
-1. Bind the schema if it is not picked up automatically (Validation panel → SOURCES, or the
-   status bar's XSD indicator)
-2. Click **Validate** (F8)
-3. Problems appear in the PROBLEMS list - click one to jump to its line
+1. Click **Validate** (F8) - the result is *Valid* or a list of problems, not merely
+   *Well-formed*
+2. Problems appear in the PROBLEMS list - click one to jump to its line
+
+The sample's root element references the schema by file name
+(`xsi:noNamespaceSchemaLocation="FundsXML4.xsd"`, or the `xsi:schemaLocation` pair for a
+namespaced schema) rather than by an absolute `file:` path, so it can be moved and shared.
+Saving it for the first time into another folder rewrites the reference to a relative path
+(for example `../xsd/FundsXML4.xsd`), so it keeps resolving there - also in other tools.
 
 ---
 

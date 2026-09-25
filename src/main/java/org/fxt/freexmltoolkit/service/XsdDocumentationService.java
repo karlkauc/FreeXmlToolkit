@@ -149,6 +149,22 @@ public class XsdDocumentationService {
     static final long VALUE_SEED_SALT = 0x5DEECE66DL;
 
     /**
+     * Folder the generated samples will be written to; the schema reference in their root
+     * element is made relative to it. {@code null} (the default) means "unsaved document":
+     * the schema is then referenced by its bare file name.
+     */
+    private java.nio.file.Path sampleOutputDirectory;
+
+    /**
+     * @param outputDirectory the folder the generated samples will be written to, or
+     *                        {@code null} for a sample that opens unsaved in the editor
+     * @see SampleSchemaLocation#forSample(String, java.nio.file.Path)
+     */
+    public void setSampleOutputDirectory(java.nio.file.Path outputDirectory) {
+        this.sampleOutputDirectory = outputDirectory;
+    }
+
+    /**
      * Makes the samples of this service reproducible: choices, repetitions and values are drawn from sources seeded
      * with {@code seed}. Call it before each sample that should not depend on the samples generated before it.
      */
@@ -3002,9 +3018,11 @@ public class XsdDocumentationService {
         String documentNamespace = xsdDocumentationData.getTargetNamespace();
         emissionDefaultNamespace = documentNamespace == null || documentNamespace.isBlank() ? "" : documentNamespace;
 
-        // Add schema reference (supports namespaced and no-namespace schemas)
+        // Add schema reference (supports namespaced and no-namespace schemas). Portable by
+        // design: the bare file name, or a path relative to a known output folder — never
+        // an absolute file: URI of this machine (see SampleSchemaLocation).
         String targetNamespace = xsdDocumentationData.getTargetNamespace();
-        String schemaLocationUri = new File(xsdFilePath).toURI().toString();
+        String schemaLocationUri = SampleSchemaLocation.forSample(xsdFilePath, sampleOutputDirectory);
 
         String rootName = rootElement.getElementName();
         xmlBuilder.append("<").append(rootName)
