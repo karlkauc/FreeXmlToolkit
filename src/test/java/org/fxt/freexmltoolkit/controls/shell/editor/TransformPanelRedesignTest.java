@@ -58,8 +58,11 @@ class TransformPanelRedesignTest {
                 .filter(java.util.Objects::nonNull).toList();
         assertTrue(texts.containsAll(java.util.List.of(
                         "Live preview", "Watch stylesheet file", "Profile run", "Trace run",
-                        "Auto-open result tab", "Debug XSLT…", "Batch Transform…")),
-                "all former ADVANCED options must remain reachable, was: " + texts);
+                        "Auto-open result tab")),
+                "all former ADVANCED toggles must remain in the ⋮ menu, was: " + texts);
+        assertTrue(panel.toolLabels().containsAll(java.util.List.of(
+                        "Debug XSLT…", "Batch Transform…", "Execution Statistics")),
+                "the former ADVANCED tools must be visible TOOLS rows, was: " + panel.toolLabels());
         long checkItems = overflow.getItems().stream().filter(i -> i instanceof CheckMenuItem).count();
         assertEquals(5, checkItems, "the five toggles must be check menu items");
     }

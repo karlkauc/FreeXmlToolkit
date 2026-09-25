@@ -19,9 +19,7 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
@@ -77,15 +75,9 @@ public class FavoritesActivityPanel extends VBox {
         Label title = new Label("FAVORITES");
         title.getStyleClass().add("fxt-side-panel-title");
 
-        Button addCurrent = new Button("Add current", icon("bi-star"));
-        addCurrent.getStyleClass().add("fxt-tool-button");
-        addCurrent.setOnAction(e -> addCurrent());
-        Button manage = new Button("Manage…", icon("bi-sliders"));
-        manage.setId("favorites-manage");
-        manage.getStyleClass().add("fxt-tool-button");
-        manage.setOnAction(e -> openManager());
-        Region actionSpacer = new Region();
-        HBox.setHgrow(actionSpacer, Priority.ALWAYS);
+        PanelActionList actions = new PanelActionList(
+                PanelAction.of("favorites-add-current", "bi-star", "Add current", this::addCurrent),
+                PanelAction.of("favorites-manage", "bi-sliders", "Manage…", this::openManager));
 
         search.setId("favorites-search");
         search.setPromptText("Search…");
@@ -147,7 +139,7 @@ public class FavoritesActivityPanel extends VBox {
         menu.setOnShowing(e -> rebuildMoveToMenu(moveTo));
         list.setContextMenu(menu);
 
-        getChildren().addAll(title, new HBox(6, addCurrent, actionSpacer, manage), search, list);
+        getChildren().addAll(title, actions, search, list);
         refresh();
     }
 

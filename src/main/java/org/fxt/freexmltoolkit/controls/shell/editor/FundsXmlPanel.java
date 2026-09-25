@@ -5,11 +5,11 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
 import org.fxt.freexmltoolkit.FxtGui;
-import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.service.fundsxml.FundsXmlExtensionService;
 
 /** The FundsXML activity side panel: manage versions, validate the active document, docs/resources. */
@@ -59,7 +59,6 @@ public class FundsXmlPanel extends VBox {
         hideProgress();
 
         // --- Management ---
-        Label mgmt = sectionTitle("MANAGEMENT");
         versionCombo.getItems().setAll(FundsXmlRunner.installedVersions());
         String active = FundsXmlRunner.activeVersion();
         if (active != null) {
@@ -71,35 +70,38 @@ public class FundsXmlPanel extends VBox {
                 PanelStatus.info(status, "Active schema version: " + v);
             }
         });
-        Button download = button("Download / Update Content", "bi-cloud-arrow-down", this::download);
+        VBox versionBox = new VBox(4, new Label("Active version"), versionCombo);
+        versionBox.getStyleClass().add("fxt-tp-section-body");
+        PanelActionList management = new PanelActionList(
+                PanelAction.of("fundsxml-download", "bi-cloud-arrow-down", "Download / Update Content", this::download));
+        HBox managementHeader = SidePanelLayout.sectionHeader(new Label("MANAGEMENT"), versionBox, management);
 
         // --- Action ---
-        Label action = sectionTitle("VALIDATE");
-        Button validate = button("Validate active document", "bi-check2-circle", this::validate);
+        PanelActionList validation = new PanelActionList(
+                PanelAction.of("fundsxml-validate", "bi-check2-circle", "Validate active document", this::validate));
 
         // --- Docs & resources ---
-        Label docs = sectionTitle("DOCS & RESOURCES");
-        Button openSchema = button("Open Schema in Editor", "bi-file-earmark-code", this::openSchemaInEditor);
-        Button genDocs = button("Generate Schema Documentation", "bi-file-earmark-text", this::generateDocs);
-        Button examples = button("Open Examples Folder", "bi-folder2-open",
-                () -> openFolder(FundsXmlRunner.examplesDir()));
-        Button schema = button("Open Schema Folder", "bi-folder2-open",
-                () -> openFolder(FundsXmlRunner.schemaDir()));
-        Button schematron = button("Open Schematron Folder", "bi-folder2-open",
-                () -> openFolder(FundsXmlRunner.schematronDir()));
-        Button online = button("Open Online Docs", "bi-globe",
-                () -> openUrl("https://fundsxml.org/"));
+        PanelActionList docs = new PanelActionList(
+                PanelAction.of("fundsxml-open-schema", "bi-file-earmark-code", "Open Schema in Editor",
+                        this::openSchemaInEditor),
+                PanelAction.of("fundsxml-generate-docs", "bi-file-earmark-text", "Generate Schema Documentation",
+                        this::generateDocs),
+                PanelAction.of("fundsxml-examples-folder", "bi-folder2-open", "Open Examples Folder",
+                        () -> openFolder(FundsXmlRunner.examplesDir())),
+                PanelAction.of("fundsxml-schema-folder", "bi-folder2-open", "Open Schema Folder",
+                        () -> openFolder(FundsXmlRunner.schemaDir())),
+                PanelAction.of("fundsxml-schematron-folder", "bi-folder2-open", "Open Schematron Folder",
+                        () -> openFolder(FundsXmlRunner.schematronDir())),
+                PanelAction.of("fundsxml-online-docs", "bi-globe", "Open Online Docs",
+                        () -> openUrl("https://fundsxml.org/")));
 
         VBox spacer = new VBox();
         VBox.setVgrow(spacer, Priority.ALWAYS);
 
         getChildren().addAll(title,
-                mgmt, new Label("Active version"), versionCombo, SidePanelLayout.fill(download),
-                action, SidePanelLayout.fill(validate),
-                docs, SidePanelLayout.fill(openSchema), SidePanelLayout.fill(genDocs),
-                SidePanelLayout.fill(examples),
-                SidePanelLayout.fill(schema), SidePanelLayout.fill(schematron),
-                SidePanelLayout.fill(online),
+                managementHeader, versionBox, management,
+                PanelActionList.section("VALIDATE", false, validation),
+                PanelActionList.section("DOCS & RESOURCES", false, docs),
                 spacer, progress, status);
 
         // Observe background downloads (startup sync, settings toggle, this panel's button).
@@ -198,18 +200,4 @@ public class FundsXmlPanel extends VBox {
         }
     }
 
-    private Label sectionTitle(String text) {
-        Label l = new Label(text);
-        l.getStyleClass().add("fxt-side-panel-title");
-        return l;
-    }
-
-    private Button button(String text, String icon, Runnable action) {
-        IconifyIcon graphic = new IconifyIcon(icon);
-        graphic.setIconSize(16);
-        Button button = new Button(text, graphic);
-        button.getStyleClass().add("fxt-tool-button");
-        button.setOnAction(e -> action.run());
-        return button;
-    }
 }

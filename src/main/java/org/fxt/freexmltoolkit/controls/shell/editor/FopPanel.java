@@ -11,7 +11,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContextMenu;
-import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
@@ -80,7 +79,7 @@ public class FopPanel extends VBox {
         xmlFavoritesMenu = FavoritesMenu.create(
                 org.fxt.freexmltoolkit.domain.FileFavorite.FileType.XML,
                 "XML favorites", this::setXmlOverride);
-        HBox xmlRow = sourceRow("bi-code-slash", xmlName, () ->
+        HBox xmlRow = new SourceRow("bi-code-slash", xmlName, () ->
                 xmlMenu.show(xmlName, Side.BOTTOM, 0, 0), xmlFavoritesMenu);
         xmlRow.setId("fop-xml-row");
         org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(xmlRow,
@@ -93,7 +92,7 @@ public class FopPanel extends VBox {
         xslFavoritesMenu = FavoritesMenu.create(
                 org.fxt.freexmltoolkit.domain.FileFavorite.FileType.XSLT,
                 "XSLT favorites", this::setXslFile);
-        HBox xslRow = sourceRow("bi-file-earmark-code", xslName, this::chooseXsl, xslFavoritesMenu);
+        HBox xslRow = new SourceRow("bi-file-earmark-code", xslName, this::chooseXsl, xslFavoritesMenu);
         xslRow.setId("fop-xsl-row");
         org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(xslRow,
                 org.fxt.freexmltoolkit.service.DragDropService.XSLT_EXTENSIONS, this::setXslFile);
@@ -139,12 +138,13 @@ public class FopPanel extends VBox {
         status.getStyleClass().add("fxt-vp-status");
         status.setWrapText(true);
 
-        previewButton = toolButton("Preview", "bi-eye", this::previewPdf);
+        // Result actions: enabled once a PDF has been generated.
+        PanelActionList resultActions = new PanelActionList();
+        previewButton = resultActions.add(PanelAction.of("fop-preview", "bi-eye", "Preview PDF", this::previewPdf));
         previewButton.setDisable(true);
-        openButton = toolButton("Open PDF", "bi-box-arrow-up-right", this::openPdf);
+        openButton = resultActions.add(PanelAction.of("fop-open", "bi-box-arrow-up-right", "Open PDF", this::openPdf));
         openButton.setDisable(true);
-        VBox resultBox = new VBox(8, SidePanelLayout.fill(previewButton), SidePanelLayout.fill(openButton));
-        resultBox.getStyleClass().add("fxt-vp-run-box");
+        VBox resultBox = PanelActionList.section("RESULT", false, resultActions);
 
         VBox content = new VBox(
                 inputHeader, xmlRow, xslRow,
@@ -363,22 +363,6 @@ public class FopPanel extends VBox {
 
     // ----- shared mockup-language helpers ------------------------------------
 
-    /** A source row: file-type icon · name · [extras ·] "Change" link (shared mockup style). */
-    private HBox sourceRow(String iconLiteral, Label nameLabel, Runnable changeAction,
-                           javafx.scene.Node... extras) {
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-        Hyperlink change = new Hyperlink("Change");
-        change.getStyleClass().add("fxt-vp-change");
-        change.setOnAction(e -> changeAction.run());
-        HBox row = new HBox(8, icon(iconLiteral, 15), nameLabel, spacer);
-        row.getChildren().addAll(extras);
-        row.getChildren().add(change);
-        row.getStyleClass().add("fxt-vp-source-row");
-        row.setAlignment(Pos.CENTER_LEFT);
-        return row;
-    }
-
     /** Sets a source-row name, toggling the muted "none" style. */
     private static void setSourceName(Label label, String name) {
         label.setText(name != null ? name : "none");
@@ -386,13 +370,6 @@ public class FopPanel extends VBox {
         if (name == null) {
             label.getStyleClass().add("fxt-vp-source-none");
         }
-    }
-
-    private Button toolButton(String text, String iconLiteral, Runnable action) {
-        Button button = new Button(text, icon(iconLiteral, 16));
-        button.getStyleClass().add("fxt-tool-button");
-        button.setOnAction(e -> action.run());
-        return button;
     }
 
     private static Label fieldLabel(String text) {

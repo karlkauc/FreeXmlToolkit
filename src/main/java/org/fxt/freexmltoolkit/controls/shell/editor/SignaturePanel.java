@@ -9,7 +9,6 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
-import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.ScrollPane;
@@ -101,7 +100,7 @@ public class SignaturePanel extends VBox {
         keystoreFavoritesMenu = FavoritesMenu.create(
                 org.fxt.freexmltoolkit.domain.FileFavorite.FileType.KEYSTORE,
                 "Keystore favorites", this::setKeystore);
-        HBox keystoreRow = sourceRow("bi-file-earmark-lock", keystoreName,
+        HBox keystoreRow = new SourceRow("bi-file-earmark-lock", keystoreName,
                 this::chooseKeystore, keystoreFavoritesMenu);
         keystoreRow.setId("sig-keystore-row");
         org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(keystoreRow,
@@ -123,9 +122,10 @@ public class SignaturePanel extends VBox {
         // --- VALIDATE section ---------------------------------------------------
         Button validate = primaryButton("Validate Signature", "bi-shield-check",
                 "sig-validate-run", this::validateActive);
-        Button validateDetails = toolButton("Validate (Details)", "bi-card-list", this::validateDetailsActive);
+        PanelActionList validateTools = new PanelActionList(PanelAction.of("sig-validate-details",
+                "bi-card-list", "Validate (Details)", this::validateDetailsActive));
         VBox validateSection = section(Action.VALIDATE, "sig-section-validate",
-                runBox(validate, SidePanelLayout.fill(validateDetails)));
+                runBox(validate), validateTools);
 
         // --- CREATE CERTIFICATE section ------------------------------------------
         cnField.setPromptText("Common Name (CN)");
@@ -153,7 +153,7 @@ public class SignaturePanel extends VBox {
         trustStoreFavoritesMenu = FavoritesMenu.create(
                 org.fxt.freexmltoolkit.domain.FileFavorite.FileType.KEYSTORE,
                 "Trust store favorites", this::setTrustStore);
-        HBox trustRow = sourceRow("bi-key", trustStoreName, this::chooseTrustStore, trustStoreFavoritesMenu);
+        HBox trustRow = new SourceRow("bi-key", trustStoreName, this::chooseTrustStore, trustStoreFavoritesMenu);
         trustRow.setId("sig-truststore-row");
         org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(trustRow,
                 org.fxt.freexmltoolkit.service.DragDropService.KEYSTORE_EXTENSIONS, this::setTrustStore);
@@ -577,21 +577,6 @@ public class SignaturePanel extends VBox {
         return box;
     }
 
-    /** A source row: file-type icon · name · "Change" link (shared mockup style). */
-    private HBox sourceRow(String iconLiteral, Label nameLabel, Runnable changeAction, Node... extras) {
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-        Hyperlink change = new Hyperlink("Change");
-        change.getStyleClass().add("fxt-vp-change");
-        change.setOnAction(e -> changeAction.run());
-        HBox row = new HBox(8, icon(iconLiteral, 15), nameLabel, spacer);
-        row.getChildren().addAll(extras);
-        row.getChildren().add(change);
-        row.getStyleClass().add("fxt-vp-source-row");
-        row.setAlignment(Pos.CENTER_LEFT);
-        return row;
-    }
-
     /** Sets a source-row name, toggling the muted "none" style. */
     private static void setSourceName(Label label, String name) {
         label.setText(name != null ? name : "none");
@@ -605,14 +590,6 @@ public class SignaturePanel extends VBox {
         Button button = new Button(text, icon(iconLiteral, 14));
         button.setId(id);
         button.getStyleClass().add("fxt-primary-button");
-        button.setMaxWidth(Double.MAX_VALUE);
-        button.setOnAction(e -> action.run());
-        return button;
-    }
-
-    private Button toolButton(String text, String iconLiteral, Runnable action) {
-        Button button = new Button(text, icon(iconLiteral, 16));
-        button.getStyleClass().add("fxt-secondary-button");
         button.setMaxWidth(Double.MAX_VALUE);
         button.setOnAction(e -> action.run());
         return button;

@@ -895,7 +895,8 @@ your saved files.
 - The **search field** filters the list by name or path as you type.
 - Click a favorite to open it as an editor tab. Right-click for **Open**, **Rename…**,
   **Move to folder** (existing folders, *(No folder)*, or **New folder…**), and **Remove**.
-- **Add current** stars the active document.
+- The action rows at the top: **Add current** stars the active document, **Manage…** opens the
+  management view described below.
 
 ### Manage Favorites (editor area)
 
@@ -1141,10 +1142,10 @@ node. In addition to name, type, cardinality, facets, and constraints, you can n
 ## Signature Panel
 
 The **Signature** panel (open it from the activity bar) signs and validates XML signatures.
-Its top is an **action nav** of four buttons - the actions render as
-raised, bordered buttons, and **Validate (Details)** as an outlined secondary button -
-selecting one shows the matching form below it, next to the shared **KEYSTORE** section
-(keystore file with a *Change* link, alias, and the two passwords).
+Its top is an **action nav** of four buttons - selecting one shows the matching form
+below it, next to the shared **KEYSTORE** section (keystore file with a **Change** button,
+alias, and the two passwords). Secondary actions such as **Validate (Details)** are
+labelled rows (icon + name) below the section's primary button.
 The keystore row also carries a **star menu** that lists your favorited keystores -
 keystore files (`.jks`, `.p12`, `.pfx`, `.keystore`) are now their own **Keystore**
 favorite type with a lock icon (see [Favorites](favorites-system.md)):
@@ -1211,7 +1212,8 @@ The **PDF / FOP** panel renders the XML to PDF with an XSL-FO stylesheet (Apache
   Portrait/Landscape) is passed to the stylesheet as the XSLT parameters `page-size` and
   `page-orientation` for stylesheets that support them.
 - **Generate PDF** asks for the output file, renders off the UI thread, and opens the
-  result in the in-app **PDF preview**; **Preview** and **Open PDF** re-open it any time.
+  result in the in-app **PDF preview**; the **RESULT** rows **Preview PDF** and **Open PDF**
+  re-open it any time.
 
 See [PDF Generator](pdf-generator.md) for stylesheet guidance.
 
@@ -1229,7 +1231,7 @@ they are ready.
 
 ![FundsXML panel in the Unified Shell](img/unified-shell-fundsxml.png)
 
-The panel offers:
+The panel offers three collapsible sections whose actions are labelled rows (icon + name):
 
 - **MANAGEMENT** - Pick the **Active version** among the downloaded schema releases, or
   click **Download / Update Content** to force a manual refresh. A **progress bar with
@@ -1240,7 +1242,7 @@ The panel offers:
 - **DOCS & RESOURCES** - **Open Schema in Editor** opens the active version's
   `FundsXML4.xsd` as a normal editor tab (Text or Graphic/diagram view);
   **Generate Schema Documentation** produces browsable HTML docs; the **Open … Folder**
-  buttons show the cached examples, schema and Schematron files; **Open Online Docs**
+  rows show the cached examples, schema and Schematron files; **Open Online Docs**
   opens fundsxml.org.
 
 See the [FundsXML Extensions guide](fundsxml-extensions.md) for the full feature
@@ -1256,9 +1258,10 @@ the resolution order, the bundled standards list and troubleshooting.
 
 ## Help Panel & About
 
-The **Help** activity (F1) shows the version and build, and buttons for **GitHub**,
-**Sponsor this Project**, **About**, **Keyboard Shortcuts**, **Check for Updates**, and links to
-the documentation.
+The **Help** activity (F1) shows the version and build, followed by labelled action rows
+grouped into **PROJECT** (**GitHub**, **Sponsor this Project**, **About**, **Keyboard
+Shortcuts**, and **Report a Problem…** when error reporting is enabled), **DOCUMENTATION**
+(links to the documentation) and **UPDATES** (**Check for Updates**).
 
 - **Sponsor this Project** opens the project's [GitHub Sponsors](https://github.com/sponsors/karlkauc)
   page in your browser. The same link is in the **About** dialog, as a small banner on the
