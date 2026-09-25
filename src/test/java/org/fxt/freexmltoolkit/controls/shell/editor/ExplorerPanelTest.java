@@ -165,15 +165,19 @@ class ExplorerPanelTest {
     }
 
     @Test
-    void headerOffersFlatActionsAndOverflowMenu() {
+    void headerOffersFlatActionsAndToolsSectionOffersLabelledRows() {
         WaitForAsyncUtils.waitForFxEvents();
-        for (String id : new String[]{"#explorer-new-file", "#explorer-open-folder",
-                "#explorer-refresh", "#explorer-overflow"}) {
+        for (String id : new String[]{"#explorer-new-file", "#explorer-open-folder", "#explorer-refresh"}) {
             assertNotNull(panel.lookup(id), "the Explorer header must offer the " + id + " action");
         }
-        var texts = panel.overflowMenuItemTexts();
-        assertTrue(texts.contains("Open file…"), texts.toString());
-        assertTrue(texts.contains("Clear recent"), texts.toString());
+        assertNull(panel.lookup("#explorer-overflow"), "no hidden ⋮ menu: every action is a visible row");
+        var labels = panel.toolLabels();
+        assertEquals(java.util.List.of("Transform selected file(s)", "Validate with Schematron",
+                "Open file…", "Clear recent"), labels);
+        for (String id : new String[]{"#explorer-transform", "#explorer-validate",
+                "#explorer-open-file", "#explorer-clear-recent"}) {
+            assertNotNull(panel.lookup(id), "TOOLS must offer the " + id + " row");
+        }
     }
 
     @Test

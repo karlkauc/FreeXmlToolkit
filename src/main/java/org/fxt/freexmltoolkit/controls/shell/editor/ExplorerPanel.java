@@ -49,7 +49,9 @@ public class ExplorerPanel extends VBox {
     private final VBox openEditorsBox = new VBox();
     private final WorkspaceTree workspace = new WorkspaceTree(this::openWorkspaceFile);
     private final Label workspaceTitle = new Label("WORKSPACE");
-    private final MenuButton overflowMenu = new MenuButton();
+    private PanelActionList transformActions;
+    private PanelActionList validateActions;
+    private PanelActionList fileActions;
     /** Sticky stylesheet for the Explorer's one-click transform; shared via the recent-XSLT store. */
     private File currentXslt;
     private final MenuButton stylesheetMenu = new MenuButton();
@@ -70,25 +72,26 @@ public class ExplorerPanel extends VBox {
         this.editorHost = editorHost;
         getStyleClass().add("fxt-explorer-panel");
 
-        // --- header: EXPLORER ... [new file][open folder][refresh][⋮] -------
+        // --- header: EXPLORER ... [new file][open folder][refresh] ----------
         Label title = new Label("EXPLORER");
         title.getStyleClass().addAll("fxt-side-panel-title", "fxt-sp-title");
         Region headerSpacer = new Region();
         HBox.setHgrow(headerSpacer, Priority.ALWAYS);
-        overflowMenu.setId("explorer-overflow");
-        overflowMenu.setGraphic(icon("bi-three-dots-vertical", 14));
-        overflowMenu.getStyleClass().add("fxt-sp-overflow");
-        overflowMenu.getItems().addAll(
-                menuItem("Open file…", this::openFile),
-                menuItem("Clear recent", this::clearRecent));
         HBox header = new HBox(10, title, headerSpacer,
                 flatAction("explorer-new-file", "bi-file-earmark-plus", "New file", this::newFile),
                 flatAction("explorer-open-folder", "bi-folder-plus", "Open folder…", this::chooseFolder),
                 flatAction("explorer-refresh", "bi-arrow-clockwise", "Refresh workspace",
-                        workspace::refresh),
-                overflowMenu);
+                        workspace::refresh));
         header.getStyleClass().add("fxt-sp-header");
         header.setAlignment(Pos.CENTER_LEFT);
+
+        // --- TOOLS: the three pickers, each with its labelled action row, + file actions
+        fileActions = new PanelActionList(
+                PanelAction.of("explorer-open-file", "bi-folder2-open", "Open file…", this::openFile),
+                PanelAction.of("explorer-clear-recent", "bi-eraser", "Clear recent", this::clearRecent));
+        VBox toolsBody = new VBox(buildTransformBlock(), buildXsdBlock(), buildSchematronBlock(), fileActions);
+        HBox toolsHeader = SidePanelLayout.sectionHeader(new Label("TOOLS"), toolsBody);
+        toolsHeader.setId("explorer-tools-header");
 
         // --- OPEN EDITORS (VBox of rows) -------------------------------------
         openEditorsBox.getStyleClass().add("fxt-open-editors-box");
@@ -145,9 +148,7 @@ public class ExplorerPanel extends VBox {
         javafx.scene.layout.VBox favRecentPane = buildFavoritesRecentTabs();
 
         getChildren().addAll(header,
-                buildTransformBar(),
-                buildXsdBar(),
-                buildSchematronBar(),
+                toolsHeader, toolsBody,
                 openHeader, openEditorsBox,
                 workspaceHeader, workspace,
                 favRecentPane);
@@ -282,29 +283,17 @@ public class ExplorerPanel extends VBox {
      * selection and clicking Transform is a single click. With multiple files selected the run
      * is delegated to the batch transform tooling.
      */
-    private HBox buildTransformBar() {
+    private VBox buildTransformBlock() {
         stylesheetMenu.setId("explorer-stylesheet");
         stylesheetMenu.setGraphic(icon("bi-file-earmark-code", 14));
-        stylesheetMenu.getStyleClass().add("fxt-tool-button");
-        stylesheetMenu.setMaxWidth(Double.MAX_VALUE);
-        HBox.setHgrow(stylesheetMenu, Priority.ALWAYS);
         stylesheetMenu.setOnShowing(e -> refreshStylesheetMenu());
         refreshStylesheetLabel();
         org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(stylesheetMenu,
                 org.fxt.freexmltoolkit.service.DragDropService.XSLT_EXTENSIONS, this::setCurrentXslt);
-
-        Button transformButton = new Button("Transform", icon("bi-play-fill", 14));
-        transformButton.setId("explorer-transform");
-        transformButton.getStyleClass().add("fxt-tool-button");
-        transformButton.setTooltip(new javafx.scene.control.Tooltip(
-                "Transform selected XML file(s) with the current stylesheet"));
-        transformButton.setOnAction(e -> runExplorerTransform());
-
-        HBox bar = new HBox(6, stylesheetMenu, transformButton);
-        bar.setId("explorer-transform-bar");
-        bar.getStyleClass().add("fxt-sp-header");
-        bar.setAlignment(Pos.CENTER_LEFT);
-        return bar;
+        transformActions = new PanelActionList(PanelAction.of("explorer-transform", "bi-play-fill",
+                "Transform selected file(s)", this::runExplorerTransform)
+                .tooltip("Transform selected XML file(s) with the current stylesheet"));
+        return pickerBlock("explorer-transform-bar", stylesheetMenu, transformActions);
     }
 
     /** Rebuilds the stylesheet dropdown from the shared recent-XSLT store. */
@@ -435,24 +424,17 @@ public class ExplorerPanel extends VBox {
      * bound to the active document. Choosing (or dropping) an XSD binds it to the
      * active document and immediately re-runs validation via {@link #xsdValidateAction}.
      */
-    private HBox buildXsdBar() {
+    private VBox buildXsdBlock() {
         xsdMenu.setId("explorer-xsd");
         xsdMenu.setGraphic(icon("bi-file-earmark-code", 14));
-        xsdMenu.getStyleClass().add("fxt-tool-button");
-        xsdMenu.setMaxWidth(Double.MAX_VALUE);
-        HBox.setHgrow(xsdMenu, Priority.ALWAYS);
         xsdMenu.setTooltip(new javafx.scene.control.Tooltip(
                 "XSD schema of the active document — pick another to rebind and validate"));
         xsdMenu.setOnShowing(e -> refreshXsdMenu());
         refreshXsdLabel();
         org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(xsdMenu,
                 org.fxt.freexmltoolkit.service.DragDropService.XSD_EXTENSIONS, this::useXsd);
-
-        HBox bar = new HBox(6, xsdMenu);
-        bar.setId("explorer-xsd-bar");
-        bar.getStyleClass().add("fxt-sp-header");
-        bar.setAlignment(Pos.CENTER_LEFT);
-        return bar;
+        // Rebinding validates right away, so the XSD picker needs no action row.
+        return pickerBlock("explorer-xsd-bar", xsdMenu, null);
     }
 
     /** Rebuilds the XSD dropdown: recents · Favorites · Choose… · Unbind · Clear recent. */
@@ -566,29 +548,42 @@ public class ExplorerPanel extends VBox {
      * The chosen Schematron stays fixed across files, so switching the XML selection
      * and clicking Validate is a single click.
      */
-    private HBox buildSchematronBar() {
+    private VBox buildSchematronBlock() {
         schematronMenu.setId("explorer-schematron");
         schematronMenu.setGraphic(icon("bi-ui-checks-grid", 14));
-        schematronMenu.getStyleClass().add("fxt-tool-button");
-        schematronMenu.setMaxWidth(Double.MAX_VALUE);
-        HBox.setHgrow(schematronMenu, Priority.ALWAYS);
         schematronMenu.setOnShowing(e -> refreshSchematronMenu());
         refreshSchematronLabel();
         org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(schematronMenu,
                 org.fxt.freexmltoolkit.service.DragDropService.SCHEMATRON_EXTENSIONS, this::useSchematron);
+        validateActions = new PanelActionList(PanelAction.of("explorer-validate", "bi-play-fill",
+                "Validate with Schematron", this::runExplorerValidation)
+                .tooltip("Validate selected XML file(s) with the current Schematron"));
+        return pickerBlock("explorer-schematron-bar", schematronMenu, validateActions);
+    }
 
-        Button validateButton = new Button("Validate", icon("bi-play-fill", 14));
-        validateButton.setId("explorer-validate");
-        validateButton.getStyleClass().add("fxt-tool-button");
-        validateButton.setTooltip(new javafx.scene.control.Tooltip(
-                "Validate selected XML file(s) with the current Schematron"));
-        validateButton.setOnAction(e -> runExplorerValidation());
+    /**
+     * A TOOLS block: a full-width file picker (MenuButton) with its labelled action row
+     * directly beneath, so picker and action stay adjacent and no label is truncated.
+     */
+    private static VBox pickerBlock(String id, MenuButton picker, PanelActionList actions) {
+        picker.getStyleClass().addAll("fxt-tool-button", "fxt-explorer-picker");
+        picker.setMaxWidth(Double.MAX_VALUE);
+        picker.setAlignment(Pos.CENTER_LEFT);
+        VBox block = new VBox(picker);
+        if (actions != null) {
+            block.getChildren().add(actions);
+        }
+        block.setId(id);
+        block.getStyleClass().add("fxt-explorer-picker-block");
+        return block;
+    }
 
-        HBox bar = new HBox(6, schematronMenu, validateButton);
-        bar.setId("explorer-schematron-bar");
-        bar.getStyleClass().add("fxt-sp-header");
-        bar.setAlignment(Pos.CENTER_LEFT);
-        return bar;
+    /** @return the labels of the TOOLS action rows in display order (for tests/observers). */
+    public java.util.List<String> toolLabels() {
+        java.util.List<String> labels = new java.util.ArrayList<>(transformActions.labels());
+        labels.addAll(validateActions.labels());
+        labels.addAll(fileActions.labels());
+        return labels;
     }
 
     /** Rebuilds the Schematron dropdown: recents · Favorites · Choose… · Clear recent. */
@@ -764,9 +759,6 @@ public class ExplorerPanel extends VBox {
     }
 
     /** @return all ⋮-menu item texts (for tests/observers). */
-    public java.util.List<String> overflowMenuItemTexts() {
-        return overflowMenu.getItems().stream().map(MenuItem::getText).toList();
-    }
 
     private void chooseFolder() {
         DirectoryChooser chooser = new DirectoryChooser();

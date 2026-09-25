@@ -2772,6 +2772,17 @@
     -fx-padding: 14 12 13 16;
 }
 
+/* Explorer TOOLS blocks: a full-width file picker with its labelled action row beneath.
+   The picker's left padding lines its icon up with the action rows' icons. */
+.fxt-explorer-picker-block {
+    -fx-padding: 0 8 2 8;
+}
+
+.fxt-explorer-picker {
+    -fx-padding: 4 8 4 11;
+    -fx-font-size: 12.5px;
+}
+
 .fxt-sp-title {
     -fx-font-size: 11px;
     -fx-font-weight: bold;

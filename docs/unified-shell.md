@@ -669,9 +669,12 @@ The OUTPUT panel header shows:
 
 Open the **Explorer** panel from the activity bar to manage files.
 
-- **Header actions** (top right): New file, Open folder, Refresh workspace, and a ⋮ menu
-  with **Open file…** and **Clear recent**. **New file** opens the same guided
-  [New File dialog](#new-file-dialog) as the toolbar's **New** button.
+- **Header actions** (top right): New file, Open folder, Refresh workspace. **New file**
+  opens the same guided [New File dialog](#new-file-dialog) as the toolbar's **New** button.
+- **TOOLS** - a collapsible section directly below the header with the three file pickers
+  (stylesheet, XSD, Schematron - see the sections below), each followed by its labelled
+  action row, plus the **Open file…** and **Clear recent** rows. There is no hidden ⋮
+  menu: every Explorer action is a visible row with icon and name.
 - **OPEN EDITORS** - one row per open document. The **active document is highlighted**
   (blue, bold) and unsaved documents show a **dot** on the right. Click a row to switch to
   that document.
@@ -692,11 +695,11 @@ Open the **Explorer** panel from the activity bar to manage files.
 > Run an XSLT stylesheet against XML files straight from the Explorer,
 > without switching to the Transform activity.
 
-A small **Transform bar** sits directly below the **EXPLORER** header. It lets you keep a
+The first block of the **TOOLS** section is the **Transform** block. It lets you keep a
 stylesheet fixed and apply it to whichever XML file you pick in the tree - ideal for repeatedly
 running the same evaluation, dashboard, or data-quality stylesheet across many files.
 
-The bar has two controls:
+The block has two controls:
 
 - **Stylesheet picker** - a dropdown (file-code icon) labelled **"Stylesheet…"** until you choose
   one, then showing the chosen stylesheet's file name. Click it to:
@@ -708,8 +711,8 @@ The bar has two controls:
     manager directly onto the picker - it becomes the current stylesheet and joins the
     recent list, just like choosing it from the menu. The picker glows **green** while a
     loadable file hovers over it and **red** for a wrong file type (which is rejected).
-- **Transform** button (play icon) - runs the chosen stylesheet against your selected XML file(s).
-  Tooltip: *"Transform selected XML file(s) with the current stylesheet"*.
+- **Transform selected file(s)** row (play icon) - runs the chosen stylesheet against your
+  selected XML file(s). Tooltip: *"Transform selected XML file(s) with the current stylesheet"*.
 
 The chosen stylesheet is **sticky** and is **shared with the [Transform panel](#transform-panel)**:
 both places draw from the same recent-stylesheet list, so a stylesheet you pick here also appears
@@ -730,7 +733,7 @@ select several files at once.
 
 !!! tip
     Primary workflow: choose your stylesheet once, then just switch the selected XML file in the
-    tree and click **Transform** again - the stylesheet stays put. For output-format overrides,
+    tree and click **Transform selected file(s)** again - the stylesheet stays put. For output-format overrides,
     parameters, watch-and-rerun, and the result table, use the full
     [Transform panel](#transform-panel).
 
@@ -739,8 +742,8 @@ select several files at once.
 > See - and change - the XSD schema bound to the active document without leaving
 > the Explorer; switching the schema re-validates immediately.
 
-An **XSD bar** sits between the Transform bar and the Schematron bar. Unlike the two
-sticky pickers around it, the **XSD picker** (file-code icon) always mirrors the
+The **XSD picker** sits between the Transform and Schematron blocks of the TOOLS section.
+Unlike the two sticky pickers around it, the **XSD picker** (file-code icon) always mirrors the
 **active document**: it shows the name of the schema currently bound to it - whether
 that binding came from an `xsi:schemaLocation` declaration, the Schema Library, or a
 manual choice - and reads **"XSD…"** while the document has no schema. Switching tabs
@@ -765,11 +768,11 @@ pressing **F8**. The recent-XSD list is shared across documents and sessions.
 > Validate XML files against a Schematron straight from the
 > Explorer, without switching to the Validation activity first.
 
-A **Schematron bar** sits directly below the XSD bar. It keeps one Schematron
-fixed and validates whichever XML file(s) you pick in the tree - ideal for repeatedly
-checking many files against the same rule set.
+The **Schematron** block sits directly below the XSD picker in the TOOLS section. It keeps
+one Schematron fixed and validates whichever XML file(s) you pick in the tree - ideal for
+repeatedly checking many files against the same rule set.
 
-The bar has two controls:
+The block has two controls:
 
 - **Schematron picker** - a dropdown (checks-grid icon) labelled **"Schematron…"** until you
   choose one, then showing the chosen file's name. Click it to:
@@ -784,12 +787,12 @@ The bar has two controls:
     the recent list, just like choosing it from the menu. The picker glows **green**
     while a loadable file hovers over it and **red** for a wrong file type (which is
     rejected).
-- **Validate** button (play icon) - validates your selected XML file(s) against the chosen
-  Schematron. Tooltip: *"Validate selected XML file(s) with the current Schematron"*.
+- **Validate with Schematron** row (play icon) - validates your selected XML file(s) against
+  the chosen Schematron. Tooltip: *"Validate selected XML file(s) with the current Schematron"*.
 
 Picking a Schematron also **binds it to the active document**, so the
 [Validation panel](#validation-panel) and live validation use it too. Clicking
-**Validate** switches to the **Validation** activity and shows the result there:
+**Validate with Schematron** switches to the **Validation** activity and shows the result there:
 a single active document runs through the normal single-file flow (problems list,
 detailed Schematron report), a multi-file tree selection through the **batch** flow
 with one RESULTS row per file. With no tree selection, the active editor document
