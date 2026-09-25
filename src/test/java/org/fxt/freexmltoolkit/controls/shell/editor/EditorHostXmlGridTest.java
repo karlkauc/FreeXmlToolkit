@@ -7,6 +7,8 @@ import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
 
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.stage.Stage;
 
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.XmlCanvasView;
@@ -68,6 +70,57 @@ class EditorHostXmlGridTest {
         boolean hasGrid = WaitForAsyncUtils.waitForAsyncFx(2000, () ->
                 host.lookupAll("*").stream().anyMatch(n -> n instanceof XmlCanvasView));
         assertTrue(hasGrid, "Grid mode must embed the Canvas-based XmlCanvasView grid");
+    }
+
+    @Test
+    void gridHeaderOffersExpandAllCollapseAllAndZoom(@TempDir Path tmp) throws Exception {
+        Path xml = tmp.resolve("order.xml");
+        Files.writeString(xml, XML);
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("item")).orElse(false));
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.setActiveViewMode(ViewMode.GRAPHIC);
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+
+        XmlCanvasView canvas = WaitForAsyncUtils.waitForAsyncFx(2000, () -> (XmlCanvasView) host.lookupAll("*")
+                .stream().filter(n -> n instanceof XmlCanvasView).findFirst().orElseThrow());
+        try {
+            // Collapse all → only the root and its attribute row stay; Expand all → the item group returns.
+            fire("#grid-collapse-all");
+            assertEquals(2, canvas.visibleRowCount(), "order + @id");
+            fire("#grid-expand-all");
+            assertEquals(3, canvas.visibleRowCount(), "order + @id + item group");
+
+            // Zoom pill: reset, then two steps in → 120 %.
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+                ((Label) host.lookup("#grid-zoom-label")).getOnMouseClicked()
+                        .handle(null);
+                return null;
+            });
+            fire("#grid-zoom-in");
+            fire("#grid-zoom-in");
+            assertEquals(1.2, canvas.getZoom(), 0.001);
+            assertEquals("120%", WaitForAsyncUtils.waitForAsyncFx(2000,
+                    () -> ((Label) host.lookup("#grid-zoom-label")).getText()));
+            fire("#grid-zoom-out");
+            assertEquals(1.1, canvas.getZoom(), 0.001);
+        } finally {
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+                canvas.zoomReset();
+                return null;
+            });
+        }
+    }
+
+    private void fire(String buttonId) {
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            ((Button) host.lookup(buttonId)).fire();
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
     }
 
     @Test

@@ -145,6 +145,43 @@ class EditorHostJsonGridTest {
     }
 
     @Test
+    void gridZoomIsPersistedAndAppliedToNewlyOpenedGrids(@TempDir Path tmp) throws Exception {
+        openJson(tmp);
+        switchTo(ViewMode.GRAPHIC);
+        JsonCanvasView first = canvas();
+        try {
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+                first.setZoom(1.3);
+                return null;
+            });
+            WaitForAsyncUtils.waitForFxEvents();
+            assertEquals(1.3, org.fxt.freexmltoolkit.di.ServiceRegistry
+                    .get(org.fxt.freexmltoolkit.service.PropertiesService.class).getGridZoom(), 0.001,
+                    "zooming the grid persists the factor");
+
+            Path second = tmp.resolve("second.json");
+            Files.writeString(second, "{\"x\": 1}");
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(second));
+            WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                    () -> host.getActiveText().map(t -> t.contains("\"x\"")).orElse(false));
+            switchTo(ViewMode.GRAPHIC);
+            JsonCanvasView next = canvas();
+            assertNotSame(first, next);
+            assertEquals(1.3, next.getZoom(), 0.001, "a newly created grid starts at the persisted zoom");
+        } finally {
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+                canvas().zoomReset();
+                return null;
+            });
+        }
+    }
+
+    private JsonCanvasView canvas() {
+        return WaitForAsyncUtils.waitForAsyncFx(2000, () -> (JsonCanvasView) host.lookupAll("*").stream()
+                .filter(n -> n instanceof JsonCanvasView && n.getScene() != null).findFirst().orElseThrow());
+    }
+
+    @Test
     void invalidJsonShowsAPlaceholderInsteadOfTheGrid(@TempDir Path tmp) throws Exception {
         Path json = tmp.resolve("broken.json");
         Files.writeString(json, "{\"a\": }");

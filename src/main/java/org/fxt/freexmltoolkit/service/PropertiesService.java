@@ -613,6 +613,41 @@ public interface PropertiesService {
         // no-op default for implementations that don't persist this setting
     }
 
+    // Grid view (Graphic mode) settings
+
+    /** Property key: zoom factor of the XML/JSON grid (1.0 = 100 %). */
+    String GRID_ZOOM = "grid.zoom";
+    /** Smallest persisted grid zoom factor. */
+    double GRID_ZOOM_MIN = 0.5;
+    /** Largest persisted grid zoom factor. */
+    double GRID_ZOOM_MAX = 3.0;
+
+    /**
+     * @return the persisted grid zoom factor, clamped to [0.5, 3.0]; 1.0 when unset or
+     * unparseable
+     */
+    default double getGridZoom() {
+        String v = get(GRID_ZOOM);
+        if (v == null || v.isBlank()) {
+            return 1.0;
+        }
+        try {
+            double z = Double.parseDouble(v.trim());
+            if (Double.isNaN(z)) {
+                return 1.0;
+            }
+            return Math.max(GRID_ZOOM_MIN, Math.min(GRID_ZOOM_MAX, z));
+        } catch (NumberFormatException e) {
+            return 1.0;
+        }
+    }
+
+    /** @param zoom the grid zoom factor to persist (clamped to [0.5, 3.0]) */
+    default void setGridZoom(double zoom) {
+        double z = Math.max(GRID_ZOOM_MIN, Math.min(GRID_ZOOM_MAX, zoom));
+        set(GRID_ZOOM, String.valueOf(z));
+    }
+
     // Telemetry settings (opt-out; see docs/telemetry.md)
 
     /** Property key: random installation UUID used for anonymous telemetry. */

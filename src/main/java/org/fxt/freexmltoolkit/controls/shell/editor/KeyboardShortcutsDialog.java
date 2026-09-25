@@ -43,6 +43,9 @@ public final class KeyboardShortcutsDialog {
                 new String[]{"Ctrl+K", "Open Query Console (search)"},
                 new String[]{"Ctrl+E", "Spreadsheet Converter"},
                 new String[]{"Ctrl+T", "Insert Template"},
+                new String[]{"Ctrl++ / Ctrl+-", "Grid view: zoom in / out"},
+                new String[]{"Ctrl+0", "Grid view: reset zoom to 100%"},
+                new String[]{"Ctrl+Mouse wheel", "Zoom (Text view: font size, Grid view: whole grid)"},
                 new String[]{"F1", "Open the Help panel"}
         );
         return DialogHelper.createHelpDialog(

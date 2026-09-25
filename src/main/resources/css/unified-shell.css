@@ -1202,6 +1202,24 @@
     -fx-cursor: hand;
 }
 
+/* The same pill inline in the Grid view header: flat, no shadow, compact buttons. */
+.fxt-grid-zoom-pill {
+    -fx-effect: null;
+    -fx-padding: 0 2 0 2;
+    -fx-background-radius: 14;
+    -fx-border-radius: 14;
+}
+
+.fxt-grid-zoom-pill .fxt-graph-zoom-button {
+    -fx-min-width: 22;
+    -fx-min-height: 22;
+    -fx-font-size: 13px;
+}
+
+.fxt-grid-zoom-pill .fxt-graph-zoom-label {
+    -fx-padding: 0 6 0 6;
+}
+
 /* ----- Welcome / Dashboard (Figma "Redesign · Unified — Welcome / Dashboard") ----- */
 .fxt-welcome-scroll, .fxt-welcome-scroll > .viewport {
     -fx-background-color: transparent;

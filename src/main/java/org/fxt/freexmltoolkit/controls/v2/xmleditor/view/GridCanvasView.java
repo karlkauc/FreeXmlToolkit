@@ -2679,6 +2679,11 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         return adapter;
     }
 
+    /** @return the number of rows currently visible (expanded ancestors), not counting table rows */
+    public int visibleRowCount() {
+        return visibleRows.size();
+    }
+
     public void expandAll() {
         for (FlatRow row : allRows) {
             if (row.isExpandable()) {
