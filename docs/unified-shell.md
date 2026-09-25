@@ -436,8 +436,8 @@ XSLT work happens in the [Transform Panel](#transform-panel) (Activity Bar → *
 - **Parameters** - Define XSLT parameters (name = value rows)
 - **Output method** - Auto-detect or choose XML, HTML, XHTML, Text, or JSON output
 - **Timing** - The OUTPUT panel status shows execution time and output size
-- **Profile / Trace / Debug** (⋮ menu) - Per-template timings, template-match trace with
-  `xsl:message` output, and the interactive debugger
+- **Profile / Trace** (⋮ menu) and **Debug XSLT…** (TOOLS section) - Per-template timings,
+  template-match trace with `xsl:message` output, and the interactive debugger
 - **Open in browser** - View HTML output in your default browser from the OUTPUT panel
 
 ## XProc Pipelines
@@ -476,13 +476,14 @@ target and streams the result into the OUTPUT panel.*
 > (STYLESHEET, INPUT, OUTPUT METHOD, PARAMETERS, XPATH, XQUERY) with a single primary
 > **Run Transform** button. Results do not open as an editor tab -
 > they appear in the **[OUTPUT panel](#the-output-panel-results)** docked below the
-> editor. All secondary toggles and tools sit in the panel header's ⋮ (overflow) menu.
+> editor. The secondary toggles sit in the panel header's ⋮ (overflow) menu; the advanced
+> tools are labelled rows in the **TOOLS** section below the run button.
 
 The **Transform** panel (open it from the **Transform** icon in the activity bar on the
 left) runs XSLT transformations, XPath/JSONPath queries, and XQuery expressions. The panel
-header reads **TRANSFORM** and carries a **⋮ (overflow) menu** with the secondary options
-(see [The ⋮ Menu](#the-transform-menu) below). Each section header is clickable to collapse
-or expand that section.
+header reads **TRANSFORM** and carries a **⋮ (overflow) menu** with the secondary toggles
+(see [The ⋮ Menu and the TOOLS section](#the-transform-menu) below). Each section header
+is clickable to collapse or expand that section.
 
 !!! tip
     For a quick, one-click transform without opening this panel, use the
@@ -596,8 +597,7 @@ appear in the same OUTPUT panel below the editor.
 
 ### The Transform ⋮ Menu
 
-The secondary toggles and tools (the former **Advanced** section) live in the panel
-header's ⋮ (overflow) menu:
+The secondary **toggles** live in the panel header's ⋮ (overflow) menu:
 
 | Entry | What it does |
 |-------|--------------|
@@ -606,6 +606,12 @@ header's ⋮ (overflow) menu:
 | **Profile run** | A transform also opens a read-only **Profile** tool tab (timings + per-template execution times). |
 | **Trace run** | A transform also opens a **Trace** tool tab (template matches + `xsl:message` output). |
 | **Auto-open result tab** | Additionally opens every successful result as a regular editor tab (HTML/XHTML results open rendered in the [Preview](#html-preview) view). **Off by default.** |
+
+The advanced **tools** are labelled rows (icon + name) in the collapsible **TOOLS**
+section directly below the **Run Transform** button:
+
+| Row | What it does |
+|-----|--------------|
 | **Debug XSLT…** | Opens the stylesheet as a document with a breakpoint gutter and a Debug tool tab (step into/over/out, continue, stop; variables, call stack, breakpoints, and XPath watches). |
 | **Batch Transform…** | Runs the active stylesheet/XQuery over many XML files, with per-file results and "Save All". |
 | **Execution Statistics** | Opens the **Execution Statistics** tool tab (duration, CPU and memory per XSLT/XQuery/validation run). Runs are only recorded while **Record execution statistics** is enabled in the Settings page's **DEVELOPER** card. |
@@ -924,8 +930,8 @@ Open the **Validation** panel from the activity bar to validate the active docum
 The **SOURCES** section shows the schemas bound to the active document, and its rows
 follow the document's type: for XML-family documents it shows the **XSD** and
 **Schematron** rows, for JSON documents a single **JSON Schema** row.
-Click **Change** next to a source to pick a different file. **Every**
-row carries a **star button** next to its *Change* link: on the XSD row it opens a
+Click the **Change** button next to a source to pick a different file. **Every**
+row carries a **star button** next to its *Change* button: on the XSD row it opens a
 quick-select menu of your favorited XSD schemas, on the Schematron row a menu of your
 favorited Schematron files, and on the JSON Schema row a menu of your favorited JSON
 files - pick one to bind it in a single click, without browsing the
@@ -988,7 +994,7 @@ appearing in the recent list.
   The **RESULTS** list then shows one row per file with a status icon (red ✕ = errors,
   orange ⚠ = warnings only, green ✓ = valid) and a badge with the problem count. Select a
   row to see that file's problems; double-click to open the file. The plain-text batch
-  report is available via the ⋮ menu (**Open last batch report**).
+  report opens from the **TOOLS** section (**Open Last Batch Report**).
 
 ### Problems
 
@@ -1026,9 +1032,8 @@ editor gutter on lines with fixable problems (click it, or press **Alt+Enter** /
 After validating a document that has a Schematron file bound, open the report in
 either of two ways:
 
-- Click the **report button** (journal icon, tooltip *"Open detailed Schematron report"*)
-  in the header of the Validation panel's **PROBLEMS** section.
-- Pick **Schematron Tools → Validation Report** from the ⋮ menu.
+- Click the **Validation Report** row in the Validation panel's **TOOLS** section (it is
+  enabled once a run with a bound Schematron has finished).
 
 The report opens as a **Schematron Report** tool tab showing the document name, the
 Schematron file, a severity summary (errors / warnings), and a table with one row per
@@ -1050,21 +1055,26 @@ report:
 - **Save SVRL (XML)** - the raw SVRL output (Schematron Validation Report Language)
   of the run, for further processing by other tools.
 
-### The ⋮ Menu
+### The TOOLS Section and the ⋮ Menu
 
-Secondary tools live in the panel header's ⋮ (overflow) menu:
+The Schematron tooling and the report exports are labelled rows (icon + name) in the
+collapsible **TOOLS** section between the run button and RESULTS. It starts collapsed so
+the result lists keep their space; click the header to expand it:
 
-| Entry | What It Does |
-|------|--------------|
-| **Schematron Tools → Rule Templates** | Insert ready-made Schematron rule patterns |
-| **Schematron Tools → Tester** | Run the Schematron rules against an XML file |
-| **Schematron Tools → Rule Builder** | Build rules visually |
-| **Schematron Tools → Check Rules** | Run an error detector over the Schematron itself and show a categorised issue table |
-| **Schematron Tools → Documentation** | Open the Schematron documentation generator |
-| **Schematron Tools → Validation Report** | Open the [detailed Schematron report](#detailed-schematron-report) of the last validation run |
+| Row | What It Does |
+|-----|--------------|
+| **Rule Templates** | Insert ready-made Schematron rule patterns |
+| **Schematron Tester** | Run the Schematron rules against an XML file |
+| **Rule Builder** | Build rules visually |
+| **Check Rules** | Run an error detector over the Schematron itself and show a categorised issue table |
+| **Validation Report** | Open the [detailed Schematron report](#detailed-schematron-report) of the last validation run (enabled after such a run) |
+| **Schematron Documentation** | Open the Schematron documentation generator |
+| **Export Problems to Excel** | Save the PROBLEMS list as an Excel workbook (enabled while there are problems) |
+| **Open Last Batch Report** | Open the plain-text report of the last batch run |
 | **Validate against FundsXML** | (When the FundsXML extension is enabled) validate against the FundsXML schema |
-| **Validate while typing** | Toggle continuous (debounced) validation |
-| **Open last batch report** | Open the plain-text report of the last batch run |
+
+The panel header's ⋮ (overflow) menu keeps only the **Validate while typing** toggle for
+continuous (debounced) validation.
 
 > **Check Rules** inspects the Schematron file for problems and lists them
 > by category - XML syntax, structural, XPath, semantic, and best-practice issues - so you can

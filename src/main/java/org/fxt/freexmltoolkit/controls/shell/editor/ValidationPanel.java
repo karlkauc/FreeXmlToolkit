@@ -13,7 +13,6 @@ import javafx.geometry.Side;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.ContextMenu;
-import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
@@ -63,16 +62,18 @@ public class ValidationPanel extends VBox {
     private final MenuButton xsdFavoritesMenu = new MenuButton();
     private MenuButton schematronFavoritesMenu;
     private final MenuButton overflowMenu = new MenuButton();
-    private final MenuItem openBatchReport = new MenuItem("Open last batch report");
     private final CheckMenuItem liveValidation = new CheckMenuItem("Validate while typing");
     private final ToggleButton singleMode = new ToggleButton("Single file");
     private final ToggleButton batchMode = new ToggleButton("Batch");
-    private final Button exportProblems = new Button();
-    private final Button schematronReportButton = new Button();
+    private final PanelActionList tools = new PanelActionList();
+    private Button exportProblems;
+    private Button schematronReportButton;
     private SchematronReportData lastSchematronReport;
     private final ContextMenu batchSourceMenu = new ContextMenu();
     private final PauseTransition debounce = new PauseTransition(Duration.millis(600));
     private String lastBatchReport;
+    private final javafx.beans.property.BooleanProperty batchReportMissing =
+            new javafx.beans.property.SimpleBooleanProperty(true);
     // SOURCES rows; the visible set follows the active document's type (XML family
     // shows XSD + Schematron, JSON shows the JSON Schema row).
     private HBox xsdRow;
@@ -107,14 +108,14 @@ public class ValidationPanel extends VBox {
         xsdFavoritesMenu.setGraphic(icon("bi-star", 13));
         xsdFavoritesMenu.getStyleClass().add("fxt-vp-source-fav");
         xsdFavoritesMenu.setOnShowing(e -> refreshXsdFavoritesMenu());
-        xsdRow = sourceRow("bi-diagram-3", xsdName, this::chooseXsd, xsdFavoritesMenu);
+        xsdRow = new SourceRow("bi-diagram-3", xsdName, this::chooseXsd, xsdFavoritesMenu);
         xsdRow.setId("validation-xsd-row");
         org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(xsdRow,
                 org.fxt.freexmltoolkit.service.DragDropService.XSD_EXTENSIONS, this::useXsd);
         schematronFavoritesMenu = FavoritesMenu.create(
                 org.fxt.freexmltoolkit.domain.FileFavorite.FileType.SCHEMATRON,
                 "Schematron favorites", this::useSchematron);
-        schematronRow = sourceRow("bi-ui-checks-grid", schematronName,
+        schematronRow = new SourceRow("bi-ui-checks-grid", schematronName,
                 this::chooseSchematron, schematronFavoritesMenu);
         schematronRow.setId("validation-schematron-row");
         org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(schematronRow,
@@ -124,7 +125,7 @@ public class ValidationPanel extends VBox {
         jsonSchemaFavoritesMenu = FavoritesMenu.create(
                 org.fxt.freexmltoolkit.domain.FileFavorite.FileType.JSON,
                 "JSON Schema favorites", this::useJsonSchema);
-        jsonSchemaRow = sourceRow("bi-braces", jsonSchemaName,
+        jsonSchemaRow = new SourceRow("bi-braces", jsonSchemaName,
                 this::chooseJsonSchema, jsonSchemaFavoritesMenu);
         jsonSchemaRow.setId("validation-json-schema-row");
         org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(jsonSchemaRow,
@@ -231,25 +232,10 @@ public class ValidationPanel extends VBox {
             }
         });
 
-        // Export the problems to an Excel workbook (enabled only when there are problems).
-        exportProblems.setId("validation-export-problems");
-        exportProblems.getStyleClass().add("fxt-sp-action");
-        exportProblems.setGraphic(icon("bi-file-earmark-excel", 14));
-        exportProblems.setTooltip(new javafx.scene.control.Tooltip("Export problems to Excel"));
-        exportProblems.setOnAction(e -> exportProblemsToExcel());
-        exportProblems.disableProperty().bind(javafx.beans.binding.Bindings.isEmpty(problems));
-        // Detailed Schematron report (enabled after a validation run with a bound Schematron).
-        schematronReportButton.setId("validation-schematron-report");
-        schematronReportButton.getStyleClass().add("fxt-sp-action");
-        schematronReportButton.setGraphic(icon("bi-journal-check", 14));
-        schematronReportButton.setTooltip(
-                new javafx.scene.control.Tooltip("Open detailed Schematron report"));
-        schematronReportButton.setOnAction(e -> openSchematronReport());
-        schematronReportButton.setDisable(true);
         Label problemsLabel = new Label("PROBLEMS");
-        CollapsibleSection problemsSection = new CollapsibleSection(
-                problemsLabel, problemsList, true, schematronReportButton, exportProblems);
+        CollapsibleSection problemsSection = new CollapsibleSection(problemsLabel, problemsList, true);
         problemsSection.setId("validation-problems-section");
+        VBox toolsSection = buildTools();
 
         // Continuous (debounced) validation: re-validate shortly after the active
         // document changes (typing / tab switch / schema binding), when enabled.
@@ -280,40 +266,57 @@ public class ValidationPanel extends VBox {
         getChildren().addAll(header,
                 sectionHeader(new Label("SOURCES")), xsdRow, schematronRow, jsonSchemaRow,
                 runBox, status,
+                toolsSection,
                 resultsSection,
                 problemsSection);
     }
 
-    /** Builds the ⋮ overflow menu (tools that are not part of the mockup's main flow). */
+    /** The ⋮ overflow menu keeps only toggles; every tool is a visible row in TOOLS. */
     private void buildOverflowMenu() {
-        Menu schematronTools = new Menu("Schematron Tools");
-        schematronTools.getItems().addAll(
-                menuItem("Rule Templates", this::openSchematronTemplates),
-                menuItem("Tester", this::openSchematronTester),
-                menuItem("Rule Builder", this::openSchematronBuilder),
-                menuItem("Check Rules", this::openSchematronCheck),
-                menuItem("Validation Report", this::openSchematronReport),
-                menuItem("Documentation", this::openSchematronDocumentation));
-        overflowMenu.getItems().add(schematronTools);
-        // FundsXML extension — only when enabled in the settings. The FundsXML activity
-        // is its primary home; this link keeps it reachable from the validation context.
-        if (FundsXmlRunner.isEnabled()) {
-            overflowMenu.getItems().add(menuItem("Validate against FundsXML", this::validateFundsXml));
-        }
-        openBatchReport.setDisable(true);
-        openBatchReport.setOnAction(e -> {
-            if (lastBatchReport != null) {
-                editorHost.openGeneratedDocument(lastBatchReport, EditorFileType.OTHER, "BatchReport.txt");
-            }
-        });
-        overflowMenu.getItems().addAll(new SeparatorMenuItem(), liveValidation,
-                new SeparatorMenuItem(), openBatchReport);
+        overflowMenu.getItems().add(liveValidation);
     }
 
-    private static MenuItem menuItem(String text, Runnable action) {
-        MenuItem item = new MenuItem(text);
-        item.setOnAction(e -> action.run());
-        return item;
+    /**
+     * The TOOLS section: labelled rows for the Schematron tooling, the report exports and
+     * the FundsXML check. Starts collapsed because the RESULTS/PROBLEMS lists below need
+     * the space; the header stays visible so the tools are one click away.
+     */
+    private VBox buildTools() {
+        tools.setId("validation-tools");
+        tools.add(PanelAction.of("validation-tool-templates", "bi-journal-code", "Rule Templates",
+                this::openSchematronTemplates));
+        tools.add(PanelAction.of("validation-tool-tester", "bi-flask", "Schematron Tester",
+                this::openSchematronTester));
+        tools.add(PanelAction.of("validation-tool-builder", "bi-tools", "Rule Builder",
+                this::openSchematronBuilder));
+        tools.add(PanelAction.of("validation-tool-check", "bi-check2-square", "Check Rules",
+                this::openSchematronCheck));
+        // Enabled after a validation run with a bound Schematron (see revalidate).
+        schematronReportButton = tools.add(PanelAction.of("validation-schematron-report", "bi-journal-check",
+                "Validation Report", this::openSchematronReport)
+                .tooltip("Detailed report of the last Schematron run"));
+        schematronReportButton.setDisable(true);
+        tools.add(PanelAction.of("validation-tool-documentation", "bi-book", "Schematron Documentation",
+                this::openSchematronDocumentation));
+        exportProblems = tools.add(PanelAction.of("validation-export-problems", "bi-file-earmark-excel",
+                "Export Problems to Excel", this::exportProblemsToExcel)
+                .disabledWhen(javafx.beans.binding.Bindings.isEmpty(problems)));
+        tools.add(PanelAction.of("validation-tool-batch-report", "bi-file-earmark-text",
+                "Open Last Batch Report", this::openBatchReport)
+                .disabledWhen(batchReportMissing));
+        // FundsXML extension — only when enabled in the settings. The FundsXML activity
+        // is its primary home; this row keeps it reachable from the validation context.
+        if (FundsXmlRunner.isEnabled()) {
+            tools.add(PanelAction.of("validation-tool-fundsxml", "bi-shield-check", "Validate against FundsXML",
+                    this::validateFundsXml));
+        }
+        return PanelActionList.section("TOOLS", true, tools);
+    }
+
+    private void openBatchReport() {
+        if (lastBatchReport != null) {
+            editorHost.openGeneratedDocument(lastBatchReport, EditorFileType.OTHER, "BatchReport.txt");
+        }
     }
 
     /** A SOURCES/RESULTS/PROBLEMS section header: chevron + small bold label. */
@@ -324,22 +327,6 @@ public class ValidationPanel extends VBox {
         header.getStyleClass().add("fxt-vp-section-header");
         header.setAlignment(Pos.CENTER_LEFT);
         return header;
-    }
-
-    /** A source row: file-type icon · file name · (extras) · "Change" link. */
-    private HBox sourceRow(String iconLiteral, Label nameLabel, Runnable changeAction,
-                           javafx.scene.Node... extras) {
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-        Hyperlink change = new Hyperlink("Change");
-        change.getStyleClass().add("fxt-vp-change");
-        change.setOnAction(e -> changeAction.run());
-        HBox row = new HBox(8, icon(iconLiteral, 15), nameLabel, spacer);
-        row.getChildren().addAll(extras);
-        row.getChildren().add(change);
-        row.getStyleClass().add("fxt-vp-source-row");
-        row.setAlignment(Pos.CENTER_LEFT);
-        return row;
     }
 
     private void validateFundsXml() {
@@ -557,6 +544,11 @@ public class ValidationPanel extends VBox {
         return liveValidation.isSelected();
     }
 
+    /** @return the TOOLS rows' labels in display order (for tests/observers). */
+    public List<String> toolLabels() {
+        return tools.labels();
+    }
+
     /** @return all ⋮-menu item texts, flattened including submenu entries (for tests/observers). */
     public List<String> overflowMenuItemTexts() {
         List<String> texts = new ArrayList<>();
@@ -645,12 +637,12 @@ public class ValidationPanel extends VBox {
         });
     }
 
-    /** Publishes a finished batch run: RESULTS header + list and the ⋮ report entry. */
+    /** Publishes a finished batch run: RESULTS header + list and the TOOLS report row. */
     void showBatchResults(List<ValidationRunner.FileValidationResult> results, String report) {
         batchList.getSelectionModel().clearSelection();
         batchResults.setAll(results);
         lastBatchReport = report;
-        openBatchReport.setDisable(false);
+        batchReportMissing.set(false);
         long failed = batchFailedCount();
         resultsHeaderLabel.setText(failed > 0
                 ? "RESULTS · " + failed + " OF " + results.size() + " FAILED"
@@ -929,8 +921,7 @@ public class ValidationPanel extends VBox {
         private final boolean growWhenExpanded;
         private boolean expanded = true;
 
-        CollapsibleSection(Label titleLabel, Region body, boolean growWhenExpanded,
-                           javafx.scene.Node... trailing) {
+        CollapsibleSection(Label titleLabel, Region body, boolean growWhenExpanded) {
             this.body = body;
             this.growWhenExpanded = growWhenExpanded;
             getStyleClass().add("fxt-vp-section");
@@ -948,7 +939,6 @@ public class ValidationPanel extends VBox {
 
             HBox header = new HBox(4, clickable);
             header.setAlignment(Pos.CENTER_LEFT);
-            header.getChildren().addAll(trailing);
 
             if (growWhenExpanded) {
                 VBox.setVgrow(body, Priority.ALWAYS);

@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import javafx.scene.Scene;
@@ -138,7 +139,7 @@ class ValidationPanelTest {
         Files.writeString(xml, "<root/>");
 
         var reportButton = (javafx.scene.control.Button) panel.lookup("#validation-schematron-report");
-        assertNotNull(reportButton, "the PROBLEMS header must offer the Schematron report button");
+        assertNotNull(reportButton, "the TOOLS section must offer the Validation Report row");
         assertTrue(reportButton.isDisabled(), "the report button must be disabled before any run");
 
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
@@ -221,14 +222,19 @@ class ValidationPanelTest {
     }
 
     @Test
-    void exposesSchematronToolsInOverflowMenu() {
+    void exposesSchematronToolsAsLabelledRows() {
         WaitForAsyncUtils.waitForFxEvents();
-        var texts = panel.overflowMenuItemTexts();
-        for (String label : new String[]{"Rule Templates", "Tester", "Rule Builder",
-                "Check Rules", "Documentation"}) {
-            assertTrue(texts.contains(label),
-                    "the ⋮ menu must offer the '" + label + "' Schematron tool: " + texts);
+        var labels = panel.toolLabels();
+        for (String label : new String[]{"Rule Templates", "Schematron Tester", "Rule Builder",
+                "Check Rules", "Validation Report", "Schematron Documentation",
+                "Export Problems to Excel", "Open Last Batch Report"}) {
+            assertTrue(labels.contains(label),
+                    "the TOOLS section must offer the '" + label + "' row: " + labels);
         }
+        var overflow = panel.overflowMenuItemTexts();
+        assertEquals(List.of("Validate while typing"), overflow,
+                "the ⋮ menu keeps only the toggle; tools are visible rows");
+        assertNotNull(panel.lookup("#validation-export-problems"));
     }
 
     @Test
@@ -330,7 +336,7 @@ class ValidationPanelTest {
         WaitForAsyncUtils.waitForFxEvents();
         assertNotNull(built[0], "ValidationPanel must construct");
 
-        boolean fundsEntryPresent = built[0].overflowMenuItemTexts()
+        boolean fundsEntryPresent = built[0].toolLabels()
                 .contains("Validate against FundsXML");
         assertEquals(FundsXmlRunner.isEnabled(), fundsEntryPresent,
                 "the FundsXML validation entry must be present iff the feature flag is enabled");

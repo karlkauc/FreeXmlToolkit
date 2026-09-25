@@ -13,7 +13,6 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.ContextMenu;
-import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuButton;
@@ -67,6 +66,7 @@ public class TransformPanel extends VBox {
     private final MenuButton savedQueriesMenu;
     private final MenuButton recentXsltMenu = new MenuButton();
     private final MenuButton overflowMenu = new MenuButton();
+    private PanelActionList tools;
     private final CheckMenuItem livePreview = new CheckMenuItem("Live preview");
     private final CheckMenuItem watchXslt = new CheckMenuItem("Watch stylesheet file");
     private final CheckMenuItem profileCheck = new CheckMenuItem("Profile run");
@@ -129,7 +129,7 @@ public class TransformPanel extends VBox {
         xsltFavMenu.getStyleClass().add("fxt-vp-source-fav");
         xsltFavMenu.setOnShowing(e -> refreshXsltFavMenu());
         xsltPos.getStyleClass().add("fxt-vp-browse-pos");
-        HBox xsltRow = sourceRow("bi-arrow-repeat", xsltName, this::chooseXslt,
+        HBox xsltRow = new SourceRow("bi-arrow-repeat", xsltName, this::chooseXslt,
                 recentXsltMenu, xsltFavMenu, prevXsltBtn, xsltPos, nextXsltBtn);
         xsltRow.setId("transform-xslt-row");
         // Drops behave like picking a favorite: record access, sync the browse position, auto-run.
@@ -147,7 +147,7 @@ public class TransformPanel extends VBox {
         inputFavMenu.getStyleClass().add("fxt-vp-source-fav");
         inputFavMenu.setOnShowing(e -> refreshInputFavMenu());
         inputPos.getStyleClass().add("fxt-vp-browse-pos");
-        HBox inputRow = sourceRow("bi-code-slash", inputName, () ->
+        HBox inputRow = new SourceRow("bi-code-slash", inputName, () ->
                 inputMenu.show(inputName, javafx.geometry.Side.BOTTOM, 0, 0),
                 inputFavMenu, prevInputBtn, inputPos, nextInputBtn);
         inputRow.setId("transform-input-row");
@@ -163,9 +163,8 @@ public class TransformPanel extends VBox {
         HBox outputHeader = SidePanelLayout.sectionHeader(new Label("OUTPUT METHOD"), formatGrid);
 
         // --- PARAMETERS ----------------------------------------------------------
-        Hyperlink addParam = new Hyperlink("Add parameter");
-        addParam.getStyleClass().add("fxt-vp-change");
-        addParam.setOnAction(e -> addParameter("", ""));
+        Button addParam = PanelActionList.inlineRow("Add parameter", "bi-plus-circle", () -> addParameter("", ""));
+        addParam.setId("transform-add-parameter");
         VBox paramsBox = new VBox(4, paramRows, addParam);
         paramsBox.getStyleClass().add("fxt-tp-params");
         HBox paramsHeader = SidePanelLayout.sectionHeader(new Label("PARAMETERS"), paramsBox);
@@ -180,6 +179,15 @@ public class TransformPanel extends VBox {
         VBox runBox = new VBox(8, run, progress);
         runBox.getStyleClass().add("fxt-vp-run-box");
         run.prefWidthProperty().bind(runBox.widthProperty());
+
+        // --- TOOLS: the advanced tools as visible rows (formerly ⋮ entries) ----------
+        tools = new PanelActionList(
+                PanelAction.of("transform-tool-debug", "bi-bug", "Debug XSLT…", this::startDebug),
+                PanelAction.of("transform-tool-batch", "bi-collection", "Batch Transform…", this::openBatch),
+                PanelAction.of("transform-tool-stats", "bi-speedometer2", "Execution Statistics",
+                        editorHost::openExecutionStats));
+        tools.setId("transform-tools");
+        VBox toolsSection = PanelActionList.section("TOOLS", false, tools);
 
         // --- XPATH / JSONPATH (collapsed) -------------------------------------
         xpathField.getStyleClass().add("fxt-xpath-field");
@@ -253,6 +261,7 @@ public class TransformPanel extends VBox {
                 outputHeader, formatGrid,
                 paramsHeader, paramsBox,
                 runBox,
+                toolsSection,
                 xpathHeader, xpathBox,
                 xqueryHeader, xqueryBox);
         javafx.scene.control.ScrollPane controlsScroll = new javafx.scene.control.ScrollPane(controls);
@@ -264,16 +273,17 @@ public class TransformPanel extends VBox {
         getChildren().addAll(header, controlsScroll);
     }
 
-    /** Builds the ⋮ overflow menu (toggles and tools that are not part of the mockup's main flow). */
+    /** The ⋮ overflow menu keeps only the toggles; the tools are visible rows in TOOLS. */
     private void buildOverflowMenu() {
         overflowMenu.getItems().addAll(
                 livePreview, watchXslt,
                 new SeparatorMenuItem(), profileCheck, traceCheck,
-                new SeparatorMenuItem(), autoOpenResultTab,
-                new SeparatorMenuItem(),
-                menuItem("Debug XSLT…", this::startDebug),
-                menuItem("Batch Transform…", this::openBatch),
-                menuItem("Execution Statistics", editorHost::openExecutionStats));
+                new SeparatorMenuItem(), autoOpenResultTab);
+    }
+
+    /** @return the TOOLS rows' labels in display order (for tests/observers). */
+    public List<String> toolLabels() {
+        return tools.labels();
     }
 
     /** The segmented OUTPUT METHOD control: all six choices in a 2×3 grid, one selected. */
@@ -304,22 +314,6 @@ public class TransformPanel extends VBox {
             HBox.setHgrow(toggle, Priority.ALWAYS);
             row.getChildren().add(toggle);
         }
-        return row;
-    }
-
-    /** A source row: file-type icon · file name · (extras) · "Change" link. */
-    private HBox sourceRow(String iconLiteral, Label nameLabel, Runnable changeAction,
-                           javafx.scene.Node... extras) {
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-        Hyperlink change = new Hyperlink("Change");
-        change.getStyleClass().add("fxt-vp-change");
-        change.setOnAction(e -> changeAction.run());
-        HBox row = new HBox(8, icon(iconLiteral, 15), nameLabel, spacer);
-        row.getChildren().addAll(extras);
-        row.getChildren().add(change);
-        row.getStyleClass().add("fxt-vp-source-row");
-        row.setAlignment(Pos.CENTER_LEFT);
         return row;
     }
 
@@ -463,7 +457,7 @@ public class TransformPanel extends VBox {
         return chosenFormat(TransformRunner.detectXsltOutputFormat(xsltContent));
     }
 
-    // ----- advanced tools (overflow menu) ------------------------------------
+    // ----- advanced tools (TOOLS rows) ---------------------------------------
 
     /** Launches the interactive XSLT debugger for the active XML + selected stylesheet. */
     public void startDebug() {
