@@ -2156,6 +2156,16 @@
     -fx-padding: 0 0 2 0;
 }
 
+/* Fixed square so the strip never re-wraps while a button is hovered or pressed. */
+.fxt-schema-tools-button {
+    -fx-pref-width: 26;
+    -fx-min-width: 26;
+    -fx-max-width: 26;
+    -fx-pref-height: 26;
+    -fx-min-height: 26;
+    -fx-max-height: 26;
+}
+
 /* ----- Favorites manager (editor-area tool tab) --------------------------- */
 .fxt-favmgr {
     -fx-background-color: -fxt-bg-canvas;

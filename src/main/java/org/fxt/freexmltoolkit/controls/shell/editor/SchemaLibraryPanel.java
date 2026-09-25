@@ -647,7 +647,9 @@ public class SchemaLibraryPanel extends VBox {
         Button b = new Button(null, i);
         b.setId(id);
         b.setTooltip(new Tooltip(tooltip));
-        b.getStyleClass().add("fxt-tool-button");
+        // Compact, size-stable list-editing toolbar (selection-bound CRUD, not follow-on
+        // actions): the shared flat icon class plus a fixed 26 px square.
+        b.getStyleClass().addAll("fxt-sp-action", "fxt-schema-tools-button");
         b.setOnAction(e -> action.run());
         return b;
     }

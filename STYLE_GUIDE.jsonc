@@ -918,6 +918,32 @@
       "shadow": "dropshadow(gaussian, rgba(0, 0, 0, 0.05), 10, 0, 0, 2)"
     },
 
+    // Side-panel actions (PanelActionList / PanelAction / SourceRow in controls/shell/editor/)
+    // Follow-on actions of an activity side panel ("Generate Documentation…", "Debug XSLT…",
+    // "Open PDF") are NEVER icon-only buttons, hyperlinks or hidden ⋮ entries: they are
+    // full-width rows with icon + label under a collapsible section header (TOOLS, RESULT, …).
+    // ⋮ overflow menus keep only toggles (CheckMenuItems). Rows keep their geometry in every
+    // state - hover/pressed/focus change colours only (ShellCssStabilityTest guards this).
+    "panelActions": {
+      "rowStyleClass": "fxt-action-row",
+      "listStyleClass": "fxt-action-list",
+      "variants": {
+        "primary": "fxt-action-row-primary (filled, one per list at most)",
+        "inline": "fxt-action-row-inline (22px, next to a field or in a SourceRow: 'Change', 'Add parameter')"
+      },
+      "rowHeight": "28px (pref = min = max)",
+      "padding": "0 8 0 10",
+      "iconSize": "15px",
+      "fontSize": "12.5px, normal weight (never bold)",
+      "textOverrun": "ellipsis, never wrap",
+      "hover": { "background": "-fxt-bg-subtle", "iconColor": "-fxt-primary" },
+      "pressed": { "background": "-fxt-bg-surface-2" },
+      "focusVisible": { "borderColor": "-fxt-primary (the base rule already reserves a 1px transparent border)" },
+      "disabled": { "opacity": 0.45 },
+      "tooltip": "only when it adds information beyond the label",
+      "exception": "Selection-bound list-editing toolbars (Schema Library Add/Edit/Remove…) stay compact icon squares: fxt-sp-action + fxt-schema-tools-button (26x26)."
+    },
+
     // Action Card (Dashboard)
     "actionCard": {
       "background": "white",
@@ -1078,7 +1104,15 @@
       ".btn-warning",
       ".btn-info",
       ".btn-outline",
-      ".toolbar-button"
+      ".toolbar-button",
+      ".fxt-action-list",
+      ".fxt-action-row",
+      ".fxt-action-row-primary",
+      ".fxt-action-row-inline",
+      ".fxt-primary-button",
+      ".fxt-secondary-button",
+      ".fxt-tool-button",
+      ".fxt-sp-action"
     ],
 
     // Tabs
@@ -1239,6 +1273,10 @@
     "statusIndicator": {
       "example": "<IconifyIcon iconLiteral=\"bi-check-circle-fill\" iconColor=\"#28a745\"/>",
       "notes": "Use fill variants for status indicators"
+    },
+    "panelAction": {
+      "example": "PanelActionList tools = new PanelActionList(PanelAction.of(\"schema-tool-documentation\", \"bi-file-earmark-text\", \"Generate Documentation…\", this::generateDocumentation).disabledWhen(noSchema)); VBox section = PanelActionList.section(\"TOOLS\", false, tools);",
+      "notes": "Java only (side panels are built in code). Use SourceRow for 'icon · file name · Change' rows. Never add a Hyperlink or icon-only Button for a follow-on action."
     }
   }
 }
