@@ -5066,7 +5066,8 @@ your saved files.</p>
 <li>The <strong>search field</strong> filters the list by name or path as you type.</li>
 <li>Click a favorite to open it as an editor tab. Right-click for <strong>Open</strong>, <strong>Rename…</strong>,
   <strong>Move to folder</strong> (existing folders, <em>(No folder)</em>, or <strong>New folder…</strong>), and <strong>Remove</strong>.</li>
-<li><strong>Add current</strong> stars the active document.</li>
+<li>The action rows at the top: <strong>Add current</strong> stars the active document, <strong>Manage…</strong> opens the
+  management view described below.</li>
 </ul>
 <h3 id="manage-favorites-editor-area">Manage Favorites (editor area)<a class="headerlink" href="#manage-favorites-editor-area" title="Permanent link">&para;</a></h3>
 <p>Click <strong>Manage…</strong> to open the full management view as a tab in the main editor area:</p>
@@ -5392,10 +5393,10 @@ node. In addition to name, type, cardinality, facets, and constraints, you can n
 </ul>
 <h2 id="signature-panel">Signature Panel<a class="headerlink" href="#signature-panel" title="Permanent link">&para;</a></h2>
 <p>The <strong>Signature</strong> panel (open it from the activity bar) signs and validates XML signatures.
-Its top is an <strong>action nav</strong> of four buttons - the actions render as
-raised, bordered buttons, and <strong>Validate (Details)</strong> as an outlined secondary button -
-selecting one shows the matching form below it, next to the shared <strong>KEYSTORE</strong> section
-(keystore file with a <em>Change</em> link, alias, and the two passwords).
+Its top is an <strong>action nav</strong> of four buttons - selecting one shows the matching form
+below it, next to the shared <strong>KEYSTORE</strong> section (keystore file with a <strong>Change</strong> button,
+alias, and the two passwords). Secondary actions such as <strong>Validate (Details)</strong> are
+labelled rows (icon + name) below the section's primary button.
 The keystore row also carries a <strong>star menu</strong> that lists your favorited keystores -
 keystore files (<code>.jks</code>, <code>.p12</code>, <code>.pfx</code>, <code>.keystore</code>) are now their own <strong>Keystore</strong>
 favorite type with a lock icon (see <a href="../favorites-system/">Favorites</a>):</p>
@@ -5458,7 +5459,8 @@ create a certificate. The highlight disappears as soon as you start typing in th
   Portrait/Landscape) is passed to the stylesheet as the XSLT parameters <code>page-size</code> and
   <code>page-orientation</code> for stylesheets that support them.</li>
 <li><strong>Generate PDF</strong> asks for the output file, renders off the UI thread, and opens the
-  result in the in-app <strong>PDF preview</strong>; <strong>Preview</strong> and <strong>Open PDF</strong> re-open it any time.</li>
+  result in the in-app <strong>PDF preview</strong>; the <strong>RESULT</strong> rows <strong>Preview PDF</strong> and <strong>Open PDF</strong>
+  re-open it any time.</li>
 </ul>
 <p>See <a href="../pdf-generator/">PDF Generator</a> for stylesheet guidance.</p>
 <h2 id="fundsxml-panel">FundsXML Panel<a class="headerlink" href="#fundsxml-panel" title="Permanent link">&para;</a></h2>
@@ -5473,7 +5475,7 @@ Enabling it is enough - the official FundsXML schema, examples, Schematron rules
 snippets download automatically in the background, and a toast notification appears when
 they are ready.</p>
 <p><img alt="FundsXML panel in the Unified Shell" src="../img/unified-shell-fundsxml.png" /></p>
-<p>The panel offers:</p>
+<p>The panel offers three collapsible sections whose actions are labelled rows (icon + name):</p>
 <ul>
 <li><strong>MANAGEMENT</strong> - Pick the <strong>Active version</strong> among the downloaded schema releases, or
   click <strong>Download / Update Content</strong> to force a manual refresh. A <strong>progress bar with
@@ -5484,7 +5486,7 @@ they are ready.</p>
 <li><strong>DOCS &amp; RESOURCES</strong> - <strong>Open Schema in Editor</strong> opens the active version's
   <code>FundsXML4.xsd</code> as a normal editor tab (Text or Graphic/diagram view);
   <strong>Generate Schema Documentation</strong> produces browsable HTML docs; the <strong>Open … Folder</strong>
-  buttons show the cached examples, schema and Schematron files; <strong>Open Online Docs</strong>
+  rows show the cached examples, schema and Schematron files; <strong>Open Online Docs</strong>
   opens fundsxml.org.</li>
 </ul>
 <p>See the <a href="../fundsxml-extensions/">FundsXML Extensions guide</a> for the full feature
@@ -5496,9 +5498,10 @@ has three tabs - <strong>Mappings</strong>, <strong>Catalogs</strong> and <stron
 bottom. See the <a href="../schema-library/">Schema Library guide</a> for the full reference, including
 the resolution order, the bundled standards list and troubleshooting.</p>
 <h2 id="help-panel-about">Help Panel &amp; About<a class="headerlink" href="#help-panel-about" title="Permanent link">&para;</a></h2>
-<p>The <strong>Help</strong> activity (F1) shows the version and build, and buttons for <strong>GitHub</strong>,
-<strong>Sponsor this Project</strong>, <strong>About</strong>, <strong>Keyboard Shortcuts</strong>, <strong>Check for Updates</strong>, and links to
-the documentation.</p>
+<p>The <strong>Help</strong> activity (F1) shows the version and build, followed by labelled action rows
+grouped into <strong>PROJECT</strong> (<strong>GitHub</strong>, <strong>Sponsor this Project</strong>, <strong>About</strong>, <strong>Keyboard
+Shortcuts</strong>, and <strong>Report a Problem…</strong> when error reporting is enabled), <strong>DOCUMENTATION</strong>
+(links to the documentation) and <strong>UPDATES</strong> (<strong>Check for Updates</strong>).</p>
 <ul>
 <li>
 <p><strong>Sponsor this Project</strong> opens the project's <a href="https://github.com/sponsors/karlkauc">GitHub Sponsors</a>
