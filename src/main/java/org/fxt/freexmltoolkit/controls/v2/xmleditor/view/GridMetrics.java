@@ -32,6 +32,10 @@ public record GridMetrics(TextMeasurer measurer, double wrapWidth) {
     public static final double CHILD_COUNT_GAP = 4;
     /** Horizontal offset of a complex cell's text (room for the expand arrow). */
     public static final double COMPLEX_ARROW_OFFSET = 14;
+    /** Gap between a cell value and its display-only attribute suffix. */
+    public static final double SUFFIX_GAP = 8;
+    /** Narrowest text area a value is ever wrapped to (keeps wrapping sane in tiny columns). */
+    public static final double MIN_TEXT_WIDTH = 40;
     /** Default wrap width for values (about 66 monospace glyphs). */
     public static final double DEFAULT_WRAP_WIDTH = 480;
 

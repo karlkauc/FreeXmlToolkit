@@ -465,7 +465,7 @@ class RepeatingElementsTableTest {
 
         double maxNamePortion = row.getExpandedCellRows("AssetDetails").stream()
                 .filter(FlatRow::isVisible)
-                .mapToDouble(RepeatingElementsTable::subRowNameColumnWidth)
+                .mapToDouble(r -> RepeatingElementsTable.subRowNameColumnWidth(r, GridMetrics.estimated()))
                 .max()
                 .orElseThrow();
 
@@ -475,9 +475,9 @@ class RepeatingElementsTableTest {
     }
 
     /**
-     * When the name portion ALONE exceeds {@code MAX_COLUMN_WIDTH_EXPANDED},
-     * the column must grow past the cap: the cap only limits value-driven
-     * growth, never the space names need (the table scrolls horizontally).
+     * When the name portion ALONE exceeds the wrap width, the column must grow
+     * past it: the wrap width only limits value-driven growth (values wrap),
+     * never the space names need (the table scrolls horizontally).
      */
     @Test
     void testColumnWidthExceedsExpandedCapWhenNamesRequireIt() {
@@ -502,15 +502,15 @@ class RepeatingElementsTableTest {
 
         double maxNamePortion = row.getExpandedCellRows("Nested").stream()
                 .filter(FlatRow::isVisible)
-                .mapToDouble(RepeatingElementsTable::subRowNameColumnWidth)
+                .mapToDouble(r -> RepeatingElementsTable.subRowNameColumnWidth(r, GridMetrics.estimated()))
                 .max()
                 .orElseThrow();
 
         assertTrue(RepeatingElementsTable.CELL_PADDING * 2 + maxNamePortion
-                        > RepeatingElementsTable.MAX_COLUMN_WIDTH_EXPANDED,
-                "Test setup: the name portion alone must exceed the expanded cap");
-        assertTrue(col.getWidth() > RepeatingElementsTable.MAX_COLUMN_WIDTH_EXPANDED,
-                "Column must exceed the expanded cap when names require it, was " + col.getWidth());
+                        > GridMetrics.DEFAULT_WRAP_WIDTH,
+                "Test setup: the name portion alone must exceed the wrap width");
+        assertTrue(col.getWidth() > GridMetrics.DEFAULT_WRAP_WIDTH,
+                "Column must exceed the wrap width when names require it, was " + col.getWidth());
         assertEquals(RepeatingElementsTable.CELL_PADDING * 2 + maxNamePortion, col.getWidth(), 0.001,
                 "Column width must equal exactly the name-portion floor");
     }
@@ -527,50 +527,173 @@ class RepeatingElementsTableTest {
 
         // "(12)" has one glyph more than "(5)" → exactly SUB_ROW_SMALL_CHAR_WIDTH (6.0) wider.
         assertEquals(6.0,
-                RepeatingElementsTable.subRowNameColumnWidth(expandable12)
-                        - RepeatingElementsTable.subRowNameColumnWidth(expandable5),
+                RepeatingElementsTable.subRowNameColumnWidth(expandable12, GridMetrics.estimated())
+                        - RepeatingElementsTable.subRowNameColumnWidth(expandable5, GridMetrics.estimated()),
                 0.001,
                 "A longer child-count suffix must widen the name portion per glyph");
 
         // Expandable vs leaf: expand bar (12) + suffix gap (4) + "(5)" (3 * 6.0 = 18) = 34.
         assertEquals(34.0,
-                RepeatingElementsTable.subRowNameColumnWidth(expandable5)
-                        - RepeatingElementsTable.subRowNameColumnWidth(leaf),
+                RepeatingElementsTable.subRowNameColumnWidth(expandable5, GridMetrics.estimated())
+                        - RepeatingElementsTable.subRowNameColumnWidth(leaf, GridMetrics.estimated()),
                 0.001,
                 "Expandable rows must budget expand bar and child-count suffix");
     }
 
     /**
-     * Verifies that value-driven growth does not push the column beyond
-     * {@code MAX_COLUMN_WIDTH_EXPANDED}. This prevents a single massive text
-     * value from blowing up the whole table layout. (Name-driven growth may
-     * exceed the cap — see testColumnWidthExceedsExpandedCapWhenNamesRequireIt.)
+     * Value-driven growth stops at the wrap width: a very long value does not
+     * blow up the column; it wraps onto further lines and the row grows instead.
+     * (Name-driven growth may exceed it — see testColumnWidthExceedsExpandedCapWhenNamesRequireIt.)
      */
     @Test
-    void testColumnWidthCappedAtMaxExpanded() {
-        XmlElement asset = new XmlElement("Asset");
-        XmlElement nested = new XmlElement("Nested");
-        XmlElement deep = new XmlElement(
-                "SuperLongElementNameThatShouldPushTheWidthOutByItself");
-        deep.addChild(createElementWithText(
-                "EvenDeeperLabelThatIsVeryLongAndVerbose",
-                "a value that is also very long to force the column to want to grow past the max allowed expanded width"));
-        nested.addChild(deep);
-        asset.addChild(nested);
+    void testValueDrivenWidthIsCappedAtWrapWidthAndWraps() {
+        String longValue = "word ".repeat(60).trim(); // 299 chars ≈ 2153 px unwrapped
+        XmlElement item1 = new XmlElement("Item");
+        item1.addChild(createElementWithText("Text", longValue));
+        XmlElement item2 = new XmlElement("Item");
+        item2.addChild(createElementWithText("Text", "short"));
 
         RepeatingElementsTable table = new RepeatingElementsTable(
-                "Asset", List.of(asset), 0, () -> {});
-        RepeatingElementsTable.TableColumn col = table.getColumns().stream()
-                .filter(c -> "Nested".equals(c.getName()))
-                .findFirst()
-                .orElseThrow(() -> new AssertionError("Nested column not found"));
+                "Item", List.of(item1, item2), 0, () -> {});
+        RepeatingElementsTable.TableColumn col = table.getColumn("Text");
 
-        table.getRows().get(0).toggleColumnExpanded("Nested");
-        table.recalculateColumnWidths();
+        assertTrue(col.getWidth() <= GridMetrics.DEFAULT_WRAP_WIDTH + RepeatingElementsTable.CELL_PADDING * 2 + 0.001,
+                "Column width must not exceed wrap width + padding, was " + col.getWidth());
+        assertTrue(col.getWidth() > 400, "Column should still use the available wrap width, was " + col.getWidth());
 
-        assertTrue(col.getWidth() <= 500.0001,
-                "Column width must not exceed MAX_COLUMN_WIDTH_EXPANDED, was "
-                        + col.getWidth());
+        RepeatingElementsTable.TableRow longRow = table.getRows().get(0);
+        RepeatingElementsTable.CellLayout layout = table.getCellLayout(longRow, "Text");
+        assertTrue(layout.summary().lineCount() > 1, "long value must wrap");
+        assertEquals(String.join(" ", layout.summary().lines()), longValue, "wrapping must not lose text");
+        assertTrue(table.calculateRowHeight(longRow) > RepeatingElementsTable.ROW_HEIGHT,
+                "row with wrapped value must be taller than a single line");
+        assertEquals(RepeatingElementsTable.ROW_HEIGHT, table.calculateRowHeight(table.getRows().get(1)), 0.001,
+                "single-line row keeps the standard height");
+    }
+
+    /** The column header never wraps or truncates: it is a floor for the column width. */
+    @Test
+    void testHeaderWidthIsAFloorForTheColumn() {
+        XmlElement a = new XmlElement("Row");
+        a.addChild(createElementWithText("AVeryLongColumnHeaderNameThatMustFit", "x"));
+        RepeatingElementsTable table = new RepeatingElementsTable("Row", List.of(a, a), 0, () -> {});
+        RepeatingElementsTable.TableColumn col = table.getColumns().get(0);
+        double headerWidth = GridMetrics.estimated().width(col.getDisplayName(), GridFont.ROW_BOLD);
+        assertTrue(col.getWidth() >= headerWidth + RepeatingElementsTable.CELL_PADDING * 2 - 0.001,
+                "column must be at least as wide as its header, was " + col.getWidth());
+    }
+
+    // ==================== User Column Widths ====================
+
+    @Test
+    void testUserWidthOverridesContentAndIsFlooredAtMinimum() {
+        RepeatingElementsTable table = twoColumnTable("Ovr");
+        double natural = table.getColumn("A").getWidth();
+
+        table.setColumnUserWidth("A", 300.0);
+        assertEquals(300.0, table.getColumn("A").getWidth(), 0.001);
+        assertTrue(table.getColumn("A").hasUserWidth());
+
+        table.setColumnUserWidth("A", 10.0);
+        assertEquals(RepeatingElementsTable.MIN_COLUMN_WIDTH, table.getColumn("A").getWidth(), 0.001,
+                "user width is floored at MIN_COLUMN_WIDTH");
+
+        table.setColumnUserWidth("A", null);
+        assertEquals(natural, table.getColumn("A").getWidth(), 0.001, "clearing returns to natural width");
+        assertFalse(table.getColumn("A").hasUserWidth());
+    }
+
+    @Test
+    void testUserWidthSurvivesRebuildAndIsDroppedByClearAllCaches() {
+        RepeatingElementsTable first = twoColumnTable("Cached");
+        first.setColumnUserWidth("B", 222.0);
+
+        RepeatingElementsTable rebuilt = twoColumnTable("Cached");
+        assertEquals(222.0, rebuilt.getColumn("B").getWidth(), 0.001,
+                "a rebuilt table with the same element name restores the user width");
+
+        RepeatingElementsTable.clearAllCaches();
+        RepeatingElementsTable fresh = twoColumnTable("Cached");
+        assertFalse(fresh.getColumn("B").hasUserWidth());
+    }
+
+    @Test
+    void testNarrowingAColumnWrapsMoreLinesAndKeepsRowTopsConsistent() {
+        XmlElement r1 = new XmlElement("R");
+        r1.addChild(createElementWithText("A", "alpha beta gamma delta epsilon zeta eta theta"));
+        XmlElement r2 = new XmlElement("R");
+        r2.addChild(createElementWithText("A", "x"));
+        RepeatingElementsTable table = new RepeatingElementsTable("R", List.of(r1, r2), 0, () -> {});
+        table.setX(0);
+        table.setY(0);
+
+        double before = table.calculateRowHeight(table.getRows().get(0));
+        assertEquals(RepeatingElementsTable.ROW_HEIGHT, before, 0.001, "fits on one line at natural width");
+
+        table.setColumnUserWidth("A", 100.0);
+        double after = table.calculateRowHeight(table.getRows().get(0));
+        assertTrue(after > before, "narrower column must wrap into more lines");
+
+        double dataTop = RepeatingElementsTable.HEADER_HEIGHT + RepeatingElementsTable.ROW_HEIGHT;
+        assertEquals(dataTop, table.getRowY(0), 0.001);
+        assertEquals(dataTop + after, table.getRowY(1), 0.001);
+        assertEquals(0, table.getRowIndexAt(dataTop + after - 1));
+        assertEquals(1, table.getRowIndexAt(dataTop + after + 1));
+        assertEquals(-1, table.getRowIndexAt(dataTop - 1), "column header row is not a data row");
+        assertEquals(dataTop + after + RepeatingElementsTable.ROW_HEIGHT + RepeatingElementsTable.GRID_PADDING,
+                table.calculateHeight(), 0.001);
+    }
+
+    @Test
+    void testLayoutIsNotRecomputedWithoutInvalidation() {
+        int[] calls = {0};
+        TextMeasurer counting = (text, font) -> {
+            calls[0]++;
+            return text == null ? 0 : text.length() * 7.2;
+        };
+        RepeatingElementsTable table = twoColumnTable("Count");
+        table.setMetrics(new GridMetrics(counting, GridMetrics.DEFAULT_WRAP_WIDTH));
+        table.calculateHeight();
+        int afterFirst = calls[0];
+        assertTrue(afterFirst > 0, "setMetrics + first query must measure");
+
+        table.calculateHeight();
+        table.calculateWidth(0);
+        table.calculateRowHeight(table.getRows().get(0));
+        table.getRowY(1);
+        assertEquals(afterFirst, calls[0], "no measurement without invalidation");
+
+        table.getRows().get(0).toggleColumnExpanded("A"); // not complex → no-op layout-wise, but invalidates
+        table.calculateHeight();
+        assertTrue(calls[0] > afterFirst, "invalidation triggers a new layout");
+    }
+
+    @Test
+    void testColumnSeparatorHitTesting() {
+        RepeatingElementsTable table = twoColumnTable("Sep");
+        table.setX(0);
+        double w0 = table.getColumn("A").getWidth();
+        double w1 = table.getColumn("B").getWidth();
+        double sep0 = RepeatingElementsTable.GRID_PADDING + w0;
+        double sep1 = sep0 + w1;
+
+        assertEquals(0, table.getColumnSeparatorAt(sep0, 4));
+        assertEquals(0, table.getColumnSeparatorAt(sep0 - 3, 4));
+        assertEquals(0, table.getColumnSeparatorAt(sep0 + 3, 4));
+        assertEquals(-1, table.getColumnSeparatorAt(sep0 + 10, 4));
+        assertEquals(1, table.getColumnSeparatorAt(sep1, 4), "the last column's right edge is a handle too");
+        assertEquals(-1, table.getColumnSeparatorAt(RepeatingElementsTable.GRID_PADDING, 4),
+                "the table's left edge is not a separator");
+    }
+
+    private RepeatingElementsTable twoColumnTable(String name) {
+        XmlElement e1 = new XmlElement(name);
+        e1.addChild(createElementWithText("A", "one"));
+        e1.addChild(createElementWithText("B", "two"));
+        XmlElement e2 = new XmlElement(name);
+        e2.addChild(createElementWithText("A", "three"));
+        e2.addChild(createElementWithText("B", "four"));
+        return new RepeatingElementsTable(name, List.of(e1, e2), 0, () -> {});
     }
 
     // ==================== Helper Methods ====================

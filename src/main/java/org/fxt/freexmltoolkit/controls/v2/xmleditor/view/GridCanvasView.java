@@ -1281,7 +1281,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         double cellNameColWidth = 0;
         for (FlatRow row : visibleCellRows) {
             cellNameColWidth = Math.max(cellNameColWidth,
-                    RepeatingElementsTable.subRowNameColumnWidth(row));
+                    RepeatingElementsTable.subRowNameColumnWidth(row, GridMetrics.estimated()));
         }
         // Safety net only — inert while the sizing guarantee above holds.
         cellNameColWidth = Math.min(cellNameColWidth, cellWidth - cellPadding * 2);

@@ -50,10 +50,10 @@ public class RepeatingElementsTable {
     public static final double HEADER_HEIGHT = 28;
 
     /**
-     * The height of each data row in pixels.
-     * This also applies to the column header row.
+     * The height of a single-line data row in pixels (alias of {@link GridMetrics#ROW_HEIGHT}).
+     * This also applies to the column header row. Rows with wrapped text are taller.
      */
-    public static final double ROW_HEIGHT = 24;
+    public static final double ROW_HEIGHT = GridMetrics.ROW_HEIGHT;
 
     /**
      * The minimum width of a table column in pixels.
@@ -62,60 +62,23 @@ public class RepeatingElementsTable {
     public static final double MIN_COLUMN_WIDTH = 80;
 
     /**
-     * The maximum width of a table column in pixels for non-expanded content.
-     */
-    public static final double MAX_COLUMN_WIDTH = 250;
-
-    /**
-     * The maximum width of a table column in pixels when it has expanded cells.
-     * This cap only limits value-driven growth; the column always stays at least
-     * wide enough for the widest sub-row name portion (see
-     * {@link #subRowNameColumnWidth(FlatRow)}), even beyond this cap.
-     */
-    public static final double MAX_COLUMN_WIDTH_EXPANDED = 500;
-
-    /**
      * The padding around the grid content in pixels.
      * Applied to all sides of the table.
      */
     public static final double GRID_PADDING = 8;
 
     /**
-     * The padding inside each cell in pixels.
+     * The padding inside each cell in pixels (alias of {@link GridMetrics#CELL_PADDING}).
      * Applied horizontally to cell content.
      */
-    public static final double CELL_PADDING = 6;
+    public static final double CELL_PADDING = GridMetrics.CELL_PADDING;
 
     /**
      * The minimum width of a table in pixels.
      */
     private static final double MIN_TABLE_WIDTH = 200;
 
-    // ==================== Sub-Row Layout Constants ====================
-    // These must stay in sync with XmlCanvasView.INDENT / ICON_AREA_WIDTH /
-    // EXPAND_BAR_WIDTH so that column width calculations match the actual
-    // rendering inside renderCellTree().
-
-    /** Indentation per depth level for sub-rows in expanded complex cells. */
-    private static final double SUB_ROW_INDENT = 20;
-
-    /** Icon area width in sub-rows (must match XmlCanvasView.ICON_AREA_WIDTH). */
-    private static final double SUB_ROW_ICON_AREA_WIDTH = 24;
-
-    /** Expand-bar width in sub-rows (must match XmlCanvasView.EXPAND_BAR_WIDTH). */
-    private static final double SUB_ROW_EXPAND_BAR_WIDTH = 12;
-
-    /** Approximate glyph width in pixels for ROW_FONT used in sub-rows. */
-    private static final double SUB_ROW_CHAR_WIDTH = 7.2;
-
-    /** Gap between the label and the value column inside a sub-row. */
-    private static final double SUB_ROW_LABEL_VALUE_GAP = 20;
-
-    /** Approximate glyph width in pixels for XmlCanvasView.SMALL_FONT (Monospaced 10). */
-    private static final double SUB_ROW_SMALL_CHAR_WIDTH = 6.0;
-
-    /** Gap between the label and the "(n)" child-count suffix inside a sub-row. */
-    private static final double SUB_ROW_CHILD_COUNT_GAP = 4;
+    private static final double[] NO_TOPS = new double[0];
 
     // ==================== Column Order Cache ====================
     // Caches the original column order per element name to maintain stability after sorting
@@ -169,12 +132,18 @@ public class RepeatingElementsTable {
         sortStateCache.clear();
     }
 
+    // ==================== Column Width Override Cache ====================
+    // User-dragged column widths per element name, so they survive the table
+    // rebuild that follows every edit/sort/undo (same idea as the sort-state cache).
+    private static final Map<String, Map<String, Double>> columnWidthOverrideCache = new HashMap<>();
+
     /**
      * Clears all caches. Call this when loading a new document.
      */
     public static void clearAllCaches() {
         columnOrderCache.clear();
         sortStateCache.clear();
+        columnWidthOverrideCache.clear();
     }
 
     // ==================== Data ====================
@@ -192,6 +161,13 @@ public class RepeatingElementsTable {
     private double y;
     private double width;
     private double height;
+
+    /** Measurer + wrap width; the estimating default keeps the class toolkit-free. */
+    private GridMetrics metrics = GridMetrics.estimated();
+    /** False whenever column widths, row heights or cell layouts must be recomputed. */
+    private boolean layoutValid = false;
+    /** Row top offsets relative to the first data row; {@code rowTops[rows.size()]} = total. */
+    private double[] rowTops = new double[]{0};
 
     // ==================== State ====================
 
@@ -231,9 +207,15 @@ public class RepeatingElementsTable {
         private final ColumnType type;
 
         /**
-         * The current width of this column in pixels.
+         * The current (effective) width of this column in pixels.
          */
         private double width;
+
+        /** The width the content would like (unwrapped), for auto-fit and diagnostics. */
+        private double contentWidth;
+
+        /** A user-dragged width, or {@code null} for automatic sizing. */
+        private Double userWidth;
 
         /**
          * Constructs a new TableColumn with the specified name and type.
@@ -245,6 +227,21 @@ public class RepeatingElementsTable {
             this.name = name;
             this.type = type;
             this.width = MIN_COLUMN_WIDTH;
+        }
+
+        /** @return the unwrapped content width (values, header, expanded sub-rows) */
+        public double getContentWidth() {
+            return contentWidth;
+        }
+
+        /** @return the user-dragged width, or {@code null} when sized automatically */
+        public Double getUserWidth() {
+            return userWidth;
+        }
+
+        /** @return whether a user-dragged width overrides automatic sizing */
+        public boolean hasUserWidth() {
+            return userWidth != null;
         }
 
         /**
@@ -357,6 +354,27 @@ public class RepeatingElementsTable {
          * Whether this row is expanded to show additional details.
          */
         private boolean expanded = false;
+
+        /** Per-column measured layout, filled by the owning table's layout pass. */
+        private final Map<String, CellLayout> cellLayouts = new HashMap<>();
+
+        /** The row height from the last layout pass; {@code -1} = needs layout. */
+        private double layoutHeight = -1;
+
+        /** @return the measured layout of the given column's cell (after the table laid out) */
+        public CellLayout getCellLayout(String columnName) {
+            return cellLayouts.get(columnName);
+        }
+
+        /** @return the row height from the last layout pass, or -1 if not laid out */
+        public double getLayoutHeight() {
+            return layoutHeight;
+        }
+
+        /** Marks this row's cell layouts stale; the owning table re-lays out on next query. */
+        public void invalidateLayout() {
+            layoutHeight = -1;
+        }
 
         /**
          * Constructs a new TableRow for the specified XML element.
@@ -522,6 +540,7 @@ public class RepeatingElementsTable {
                     }
                 }
             }
+            invalidateLayout();
         }
 
         /**
@@ -596,10 +615,11 @@ public class RepeatingElementsTable {
 
         analyzeStructure();
         buildRows();
-        calculateColumnWidths();
 
-        // Restore sort state from cache if previously sorted
+        // Restore sort state and user column widths from the caches, then lay out.
         restoreSortStateFromCache();
+        restoreColumnWidthsFromCache();
+        ensureLayout();
     }
 
     // ==================== Structure Analysis ====================
@@ -813,211 +833,399 @@ public class RepeatingElementsTable {
      * suffix for expandable rows, and the label/value gap — everything left of the
      * value column, excluding {@link #CELL_PADDING}.
      *
-     * <p>This is the single source of truth shared by {@link #calculateColumnWidths()}
-     * and {@link XmlCanvasView#renderCellTree(List, double, double, double)}. The
-     * invariant both sides rely on: <em>column width &ge; CELL_PADDING * 2 + the
-     * maximum of this value over all visible sub-rows</em>, so node names are never
-     * truncated.</p>
+     * <p>This is the single source of truth shared by the table's layout pass and the
+     * canvas' cell-tree renderer. The invariant both sides rely on: <em>column width
+     * &ge; CELL_PADDING * 2 + the maximum of this value over all visible sub-rows</em>,
+     * so node names are never truncated.</p>
+     *
+     * @param row the sub-row
+     * @param m   the metrics to measure with
+     * @return the name-portion width in unscaled pixels
      */
-    static double subRowNameColumnWidth(FlatRow row) {
-        double width = row.getDepth() * SUB_ROW_INDENT + SUB_ROW_ICON_AREA_WIDTH;
+    static double subRowNameColumnWidth(FlatRow row, GridMetrics m) {
+        double width = row.getDepth() * GridMetrics.INDENT + GridMetrics.ICON_AREA_WIDTH;
         if (row.isExpandable()) {
-            width += SUB_ROW_EXPAND_BAR_WIDTH;
+            width += GridMetrics.EXPAND_BAR_WIDTH;
         }
         if (row.getLabel() != null) {
-            width += row.getLabel().length() * SUB_ROW_CHAR_WIDTH;
+            width += m.width(row.getLabel(), GridFont.ROW);
         }
         if (row.isExpandable()) {
             String suffix = "(" + row.getChildCount() + ")";
-            width += SUB_ROW_CHILD_COUNT_GAP + suffix.length() * SUB_ROW_SMALL_CHAR_WIDTH;
+            width += GridMetrics.CHILD_COUNT_GAP + m.width(suffix, GridFont.SMALL);
         }
-        return width + SUB_ROW_LABEL_VALUE_GAP;
+        return width + GridMetrics.SUB_ROW_LABEL_VALUE_GAP;
+    }
+
+    // ==================== Layout ====================
+
+    /**
+     * The measured layout of one table cell.
+     *
+     * @param summary          the cell's (wrapped) summary text
+     * @param suffixOnNewLine  whether the attribute suffix did not fit after the last summary line
+     * @param suffixX          x offset of the suffix relative to the cell text start (when inline)
+     * @param summaryHeight    height of the summary block including a suffix line, if any
+     * @param nameColumnWidth  width of the sub-row name column for an expanded cell (0 otherwise)
+     * @param visibleSubRows   the visible sub-rows of an expanded cell, in draw order
+     * @param subRowBlocks     the wrapped value block of each visible sub-row
+     * @param subRowTops       top offset of each visible sub-row relative to the sub-row area
+     * @param height           total cell height (summary + sub-rows)
+     */
+    public record CellLayout(TextBlock summary, boolean suffixOnNewLine, double suffixX,
+                             double summaryHeight, double nameColumnWidth,
+                             List<FlatRow> visibleSubRows, List<TextBlock> subRowBlocks,
+                             double[] subRowTops, double height) {
+
+        /**
+         * @param yInSubRows y relative to the top of the sub-row area (below the summary)
+         * @return the index into {@link #visibleSubRows()} at that y, or -1
+         */
+        public int subRowIndexAt(double yInSubRows) {
+            if (yInSubRows < 0 || subRowBlocks.isEmpty()) {
+                return -1;
+            }
+            int lo = 0;
+            int hi = subRowBlocks.size() - 1;
+            while (lo <= hi) {
+                int mid = (lo + hi) >>> 1;
+                double top = subRowTops[mid];
+                double bottom = top + subRowBlocks.get(mid).height();
+                if (yInSubRows < top) {
+                    hi = mid - 1;
+                } else if (yInSubRows >= bottom) {
+                    lo = mid + 1;
+                } else {
+                    return mid;
+                }
+            }
+            return -1;
+        }
+
+        /** @return the height of the given visible sub-row */
+        public double subRowHeight(int index) {
+            return subRowBlocks.get(index).height();
+        }
     }
 
     /**
-     * Calculates optimal column widths based on content.
+     * Replaces the metrics (measurer + wrap width) and re-lays out on next query.
      *
-     * <p>Takes into account both the regular row values and the content of any
-     * expanded complex cells. When a column contains an expanded cell, its width
-     * is allowed to grow up to {@link #MAX_COLUMN_WIDTH_EXPANDED}; otherwise the
-     * cap is {@link #MAX_COLUMN_WIDTH}. The cap only limits value-driven growth:
-     * the column never drops below the widest sub-row name portion (see
-     * {@link #subRowNameColumnWidth(FlatRow)}), so names are always fully visible
-     * while values may be truncated by the renderer. The formula mirrors the
-     * layout inside
-     * {@link XmlCanvasView#renderCellTree(List, double, double, double)}.</p>
+     * @param metrics the metrics to use
      */
-    private void calculateColumnWidths() {
+    public void setMetrics(GridMetrics metrics) {
+        if (metrics != null && metrics != this.metrics) {
+            this.metrics = metrics;
+            invalidateLayout();
+        }
+    }
+
+    /** @return the metrics this table lays out with */
+    public GridMetrics getMetrics() {
+        return metrics;
+    }
+
+    /** Marks column widths, row heights and cell layouts stale. */
+    public void invalidateLayout() {
+        layoutValid = false;
+    }
+
+    /** Runs the layout pass if anything (table or any row) is stale. */
+    private void ensureLayout() {
+        if (layoutValid) {
+            for (TableRow row : rows) {
+                if (row.layoutHeight < 0) {
+                    layoutValid = false;
+                    break;
+                }
+            }
+        }
+        if (!layoutValid) {
+            layout();
+        }
+    }
+
+    /**
+     * The layout pass: measured column widths (content-driven, capped at the wrap
+     * width for values, user overrides win), then per-cell wrapped text blocks and
+     * row heights, then the table's width/height.
+     */
+    private void layout() {
+        GridMetrics m = metrics;
+        double pad2 = CELL_PADDING * 2;
+        double maxValueColumn = m.wrapWidth() + pad2;
+
+        // -- Column pass --
         for (TableColumn col : columns) {
-            double maxWidth = col.getDisplayName().length() * 8 + CELL_PADDING * 2;
-            boolean anyCellExpanded = false;
+            String name = col.getName();
+            String header = col.getDisplayName() + (isSortedBy(name) ? " \u25B2" : "");
+            double headerWidth = m.width(header, GridFont.ROW_BOLD) + pad2;
+            double contentWidth = 0;
             double maxNameCol = 0;
 
             for (TableRow row : rows) {
-                String value = row.getValue(col.getName());
-                double valueWidth = value.length() * SUB_ROW_CHAR_WIDTH + CELL_PADDING * 2;
-                // Leave space for the complex-cell expand arrow (~14px offset).
-                if (row.hasComplexChild(col.getName())) {
-                    valueWidth += 14;
+                double w = m.width(row.getValue(name), GridFont.ROW);
+                if (row.hasComplexChild(name)) {
+                    w += GridMetrics.COMPLEX_ARROW_OFFSET;
                 }
-                maxWidth = Math.max(maxWidth, valueWidth);
+                String suffix = row.getAttributeSuffix(name);
+                if (suffix != null && !suffix.isEmpty()) {
+                    w += GridMetrics.SUFFIX_GAP + m.width(suffix, GridFont.ROW);
+                }
+                contentWidth = Math.max(contentWidth, w + pad2);
 
-                // Account for expanded cell content (only visible sub-rows contribute).
-                // The renderer aligns all values at one shared name column, so the
-                // width must cover max(name portion) + max(value) across sub-rows,
-                // not just the widest single-row sum.
-                if (row.isColumnExpanded(col.getName())) {
-                    anyCellExpanded = true;
+                if (row.isColumnExpanded(name)) {
                     double maxSubValue = 0;
-                    List<FlatRow> cellRows = row.getExpandedCellRows(col.getName());
-                    for (FlatRow subRow : cellRows) {
-                        if (!subRow.isVisible()) {
+                    for (FlatRow sub : row.getExpandedCellRows(name)) {
+                        if (!sub.isVisible()) {
                             continue;
                         }
-                        maxNameCol = Math.max(maxNameCol, subRowNameColumnWidth(subRow));
-                        if (subRow.getValue() != null) {
-                            maxSubValue = Math.max(maxSubValue,
-                                    subRow.getValue().length() * SUB_ROW_CHAR_WIDTH);
+                        maxNameCol = Math.max(maxNameCol, subRowNameColumnWidth(sub, m));
+                        if (sub.getValue() != null) {
+                            maxSubValue = Math.max(maxSubValue, m.width(sub.getValue(), GridFont.ROW));
                         }
                     }
-                    maxWidth = Math.max(maxWidth, CELL_PADDING * 2 + maxNameCol + maxSubValue);
+                    contentWidth = Math.max(contentWidth, pad2 + maxNameCol + maxSubValue);
                 }
             }
 
-            double effectiveMax = anyCellExpanded ? MAX_COLUMN_WIDTH_EXPANDED : MAX_COLUMN_WIDTH;
-            double clamped = Math.max(MIN_COLUMN_WIDTH, Math.min(maxWidth, effectiveMax));
-            // Names always fit: the name portion may exceed the expanded cap.
-            col.setWidth(Math.max(clamped, CELL_PADDING * 2 + maxNameCol));
+            col.contentWidth = contentWidth;
+            // Values are capped at the wrap width (they wrap); header and sub-row names never are.
+            double natural = Math.max(
+                    Math.max(MIN_COLUMN_WIDTH, headerWidth),
+                    Math.max(Math.min(contentWidth, maxValueColumn), pad2 + maxNameCol));
+            col.setWidth(col.userWidth != null ? Math.max(col.userWidth, MIN_COLUMN_WIDTH) : natural);
+        }
+
+        // -- Row pass --
+        rowTops = new double[rows.size() + 1];
+        double top = 0;
+        for (int r = 0; r < rows.size(); r++) {
+            TableRow row = rows.get(r);
+            row.cellLayouts.clear();
+            double rowHeight = ROW_HEIGHT;
+            for (TableColumn col : columns) {
+                CellLayout cell = layoutCell(row, col, m);
+                row.cellLayouts.put(col.getName(), cell);
+                rowHeight = Math.max(rowHeight, cell.height());
+            }
+            row.layoutHeight = rowHeight;
+            rowTops[r] = top;
+            top += rowHeight;
+        }
+        rowTops[rows.size()] = top;
+
+        double totalColWidth = 0;
+        for (TableColumn col : columns) {
+            totalColWidth += col.getWidth();
+        }
+        this.width = Math.max(MIN_TABLE_WIDTH, totalColWidth + GRID_PADDING * 2);
+        this.height = expanded
+                ? HEADER_HEIGHT + ROW_HEIGHT + top + GRID_PADDING
+                : HEADER_HEIGHT + GRID_PADDING;
+        layoutValid = true;
+    }
+
+    private CellLayout layoutCell(TableRow row, TableColumn col, GridMetrics m) {
+        String name = col.getName();
+        boolean complex = row.hasComplexChild(name);
+        double textAvail = Math.max(GridMetrics.MIN_TEXT_WIDTH,
+                col.getWidth() - CELL_PADDING * 2 - (complex ? GridMetrics.COMPLEX_ARROW_OFFSET : 0));
+        TextBlock summary = TextBlock.of(m, row.getValue(name), GridFont.ROW, textAvail);
+
+        boolean suffixOnNewLine = false;
+        double suffixX = 0;
+        double summaryHeight = summary.height();
+        String suffix = row.getAttributeSuffix(name);
+        if (suffix != null && !suffix.isEmpty()) {
+            double lastLineWidth = m.width(summary.lastLine(), GridFont.ROW);
+            double suffixWidth = m.width(suffix, GridFont.ROW);
+            if (lastLineWidth + GridMetrics.SUFFIX_GAP + suffixWidth <= textAvail) {
+                suffixX = lastLineWidth + GridMetrics.SUFFIX_GAP;
+            } else {
+                suffixOnNewLine = true;
+                summaryHeight += GridMetrics.LINE_HEIGHT;
+            }
+        }
+
+        List<FlatRow> visibleSubRows = List.of();
+        List<TextBlock> subRowBlocks = List.of();
+        double[] subRowTops = NO_TOPS;
+        double nameColumnWidth = 0;
+        double subRowsHeight = 0;
+        if (row.isColumnExpanded(name)) {
+            visibleSubRows = new ArrayList<>();
+            for (FlatRow sub : row.getExpandedCellRows(name)) {
+                if (sub.isVisible()) {
+                    visibleSubRows.add(sub);
+                    nameColumnWidth = Math.max(nameColumnWidth, subRowNameColumnWidth(sub, m));
+                }
+            }
+            double valueAvail = Math.max(GridMetrics.MIN_TEXT_WIDTH,
+                    col.getWidth() - CELL_PADDING * 2 - nameColumnWidth);
+            subRowBlocks = new ArrayList<>(visibleSubRows.size());
+            subRowTops = new double[visibleSubRows.size()];
+            for (int i = 0; i < visibleSubRows.size(); i++) {
+                subRowTops[i] = subRowsHeight;
+                TextBlock block = TextBlock.of(m, visibleSubRows.get(i).getValue(), GridFont.ROW, valueAvail);
+                subRowBlocks.add(block);
+                subRowsHeight += block.height();
+            }
+        }
+        return new CellLayout(summary, suffixOnNewLine, suffixX, summaryHeight, nameColumnWidth,
+                visibleSubRows, subRowBlocks, subRowTops, summaryHeight + subRowsHeight);
+    }
+
+    /**
+     * @param row        a row of this table
+     * @param columnName a column name
+     * @return the measured layout of that cell (lays out first if stale)
+     */
+    public CellLayout getCellLayout(TableRow row, String columnName) {
+        ensureLayout();
+        return row.getCellLayout(columnName);
+    }
+
+    /**
+     * Sets or clears a user-dragged column width. The value is floored at
+     * {@link #MIN_COLUMN_WIDTH}, remembered per element name across rebuilds and
+     * triggers a re-layout (text re-wraps to the new width).
+     *
+     * @param columnName the column
+     * @param width      the new width, or {@code null} to return to automatic sizing
+     */
+    public void setColumnUserWidth(String columnName, Double width) {
+        TableColumn col = getColumn(columnName);
+        if (col == null) {
+            return;
+        }
+        col.userWidth = width == null ? null : Math.max(width, MIN_COLUMN_WIDTH);
+        Map<String, Double> overrides = columnWidthOverrideCache.computeIfAbsent(elementName, k -> new HashMap<>());
+        if (col.userWidth == null) {
+            overrides.remove(columnName);
+            if (overrides.isEmpty()) {
+                columnWidthOverrideCache.remove(elementName);
+            }
+        } else {
+            overrides.put(columnName, col.userWidth);
+        }
+        invalidateLayout();
+        ensureLayout();
+    }
+
+    private void restoreColumnWidthsFromCache() {
+        Map<String, Double> overrides = columnWidthOverrideCache.get(elementName);
+        if (overrides == null) {
+            return;
+        }
+        for (TableColumn col : columns) {
+            Double w = overrides.get(col.getName());
+            if (w != null) {
+                col.userWidth = w;
+            }
         }
     }
 
     /**
-     * Recalculates column widths based on text content.
-     *
-     * <p>Iterates through all columns and rows, checking text content width
-     * and applying the standard constraints.</p>
+     * Re-runs the layout pass (column widths, row heights, cell text).
      */
     public void recalculateColumnWidths() {
-        calculateColumnWidths();
+        invalidateLayout();
+        ensureLayout();
     }
 
-    // ==================== Layout Calculation ====================
-
     /**
-     * Calculates the height of this table, including any expanded child grids inside cells.
-     *
-     * <p>When collapsed, returns only the header height plus padding.
-     * When expanded, includes the column header row and all data rows with
-     * their variable heights (accounting for expanded cells).</p>
-     *
-     * @return the calculated height in pixels
+     * @return the height of this table (lays out first if stale): header + padding when
+     * collapsed, header + column header + all rows + padding when expanded
      */
     public double calculateHeight() {
-        if (!expanded) {
-            this.height = HEADER_HEIGHT + GRID_PADDING;
-        } else {
-            // Header + column header
-            double h = HEADER_HEIGHT + ROW_HEIGHT;
-
-            // Add height for each row (variable height due to expanded cells)
-            for (TableRow row : rows) {
-                double rowHeight = calculateRowHeight(row);
-                h += rowHeight;
-            }
-
-            this.height = h + GRID_PADDING;
-        }
-        return this.height;
+        ensureLayout();
+        return height;
     }
 
     /**
-     * Returns the height of a single data row, accounting for expanded complex cells.
-     *
-     * <p>When a row has expanded complex cells, the row height is determined by the
-     * tallest expanded cell (summary line + child rows). If no cells are expanded,
-     * the standard fixed row height is returned.</p>
-     *
-     * @param row the table row to measure
-     * @return the row height in pixels
+     * @param row a row of this table
+     * @return the row's height (summary line plus wrapped lines and expanded sub-rows)
      */
     public double calculateRowHeight(TableRow row) {
-        double maxCellHeight = ROW_HEIGHT;
-        for (String colName : row.getExpandedColumns()) {
-            List<FlatRow> cellRows = row.getExpandedCellRows(colName);
-            // Count only visible rows (collapsed sub-rows should not take space)
-            long visibleCount = cellRows.stream().filter(FlatRow::isVisible).count();
-            double cellHeight = ROW_HEIGHT + visibleCount * ROW_HEIGHT; // summary + visible child rows
-            maxCellHeight = Math.max(maxCellHeight, cellHeight);
-        }
-        return maxCellHeight;
+        ensureLayout();
+        return row.layoutHeight;
     }
 
     /**
-     * Gets the Y position of a specific row within this table.
-     *
-     * <p>The Y position accounts for variable row heights caused by expanded cells.
-     * It starts after the table header and column header rows.</p>
+     * @param rowIndex a row index
+     * @return the row's top offset relative to the first data row
+     */
+    public double getRowTop(int rowIndex) {
+        ensureLayout();
+        return rowTops[Math.max(0, Math.min(rowIndex, rows.size()))];
+    }
+
+    /**
+     * Gets the absolute Y position of a row's top edge (after the table header and
+     * the column header row).
      *
      * @param rowIndex the zero-based index of the row
      * @return the Y coordinate of the row's top edge in pixels
      */
     public double getRowY(int rowIndex) {
-        double rowY = y + HEADER_HEIGHT + ROW_HEIGHT;  // After table header + column headers
-
-        for (int i = 0; i < rowIndex && i < rows.size(); i++) {
-            // Each row has variable height based on expanded cells
-            rowY += calculateRowHeight(rows.get(i));
-        }
-
-        return rowY;
+        return y + HEADER_HEIGHT + ROW_HEIGHT + getRowTop(rowIndex);
     }
 
     /**
-     * Gets the row index at a specific Y position.
-     *
-     * <p>This method accounts for variable row heights caused by expanded cells.
-     * Returns -1 if the Y position is in the header area or outside the table.</p>
+     * Gets the row index at an absolute Y position (ignores the expanded flag).
      *
      * @param py the Y coordinate to test
-     * @return the zero-based row index, or -1 if in header area or outside
+     * @return the zero-based row index, or -1 if in the header area or outside
      */
     public int getRowIndexAtY(double py) {
-        if (py < y + HEADER_HEIGHT + ROW_HEIGHT) {
-            return -1;  // In header area
+        ensureLayout();
+        double rel = py - (y + HEADER_HEIGHT + ROW_HEIGHT);
+        if (rel < 0 || rel >= rowTops[rows.size()]) {
+            return -1;
         }
-
-        double currentY = y + HEADER_HEIGHT + ROW_HEIGHT;
-
-        for (int i = 0; i < rows.size(); i++) {
-            double rowHeight = calculateRowHeight(rows.get(i));
-            double rowEndY = currentY + rowHeight;
-
-            if (py >= currentY && py < rowEndY) {
-                return i;
+        int lo = 0;
+        int hi = rows.size() - 1;
+        while (lo <= hi) {
+            int mid = (lo + hi) >>> 1;
+            if (rel < rowTops[mid]) {
+                hi = mid - 1;
+            } else if (rel >= rowTops[mid + 1]) {
+                lo = mid + 1;
+            } else {
+                return mid;
             }
-            currentY = rowEndY;
         }
-
         return -1;
     }
 
     /**
-     * Calculates the width of this table based on column widths.
-     *
-     * <p>The table width is the sum of all column widths plus padding on both sides.
-     * The minimum width is enforced from {@link #MIN_TABLE_WIDTH}.</p>
-     *
-     * @param availableWidth the available width (currently unused, for future expansion)
-     * @return the calculated width in pixels
+     * @param availableWidth unused (tables are never shrunk to fit; they scroll)
+     * @return the table width (lays out first if stale)
      */
     public double calculateWidth(double availableWidth) {
-        double totalColWidth = 0;
-        for (TableColumn col : columns) {
-            totalColWidth += col.getWidth();
-        }
+        ensureLayout();
+        return width;
+    }
 
-        this.width = Math.max(MIN_TABLE_WIDTH, totalColWidth + GRID_PADDING * 2);
-        return this.width;
+    /**
+     * Finds the column whose right edge is within {@code tolerance} of {@code px}
+     * (the drag handle for resizing).
+     *
+     * @param px        absolute x coordinate
+     * @param tolerance hit tolerance in pixels
+     * @return the column index whose right edge was hit, or -1
+     */
+    public int getColumnSeparatorAt(double px, double tolerance) {
+        ensureLayout();
+        double edge = x + GRID_PADDING;
+        for (int i = 0; i < columns.size(); i++) {
+            edge += columns.get(i).getWidth();
+            if (Math.abs(px - edge) <= tolerance) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     /**
@@ -1078,30 +1286,13 @@ public class RepeatingElementsTable {
     }
 
     /**
-     * Gets the row index at a given Y coordinate, accounting for variable row heights.
+     * Gets the row index at an absolute Y coordinate, accounting for variable row heights.
      *
      * @param py the Y coordinate to test
-     * @return the zero-based row index, or -1 if in header area or outside
+     * @return the zero-based row index, or -1 if collapsed, in the header area or outside
      */
     public int getRowIndexAt(double py) {
-        if (!expanded) {
-            return -1;
-        }
-
-        double dataStartY = y + HEADER_HEIGHT + ROW_HEIGHT; // After main header + column header
-        if (py < dataStartY) {
-            return -1;
-        }
-
-        double currentY = dataStartY;
-        for (int i = 0; i < rows.size(); i++) {
-            double rowHeight = calculateRowHeight(rows.get(i));
-            if (py >= currentY && py < currentY + rowHeight) {
-                return i;
-            }
-            currentY += rowHeight;
-        }
-        return -1;
+        return expanded ? getRowIndexAtY(py) : -1;
     }
 
     /**
@@ -1345,6 +1536,7 @@ public class RepeatingElementsTable {
     public void setExpanded(boolean expanded) {
         boolean old = this.expanded;
         this.expanded = expanded;
+        invalidateLayout();
         pcs.firePropertyChange("expanded", old, expanded);
     }
 
@@ -1485,6 +1677,7 @@ public class RepeatingElementsTable {
         boolean oldAscending = this.sortAscending;
         this.sortedColumnName = columnName;
         this.sortAscending = ascending;
+        invalidateLayout(); // the sort marker widens the header
 
         // Persist to cache for survival across rebuilds
         if (columnName != null) {
