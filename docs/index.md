@@ -31,7 +31,7 @@
       </ul>
     </div>
   </div>
-  <p class="fxt-download__meta">Latest release: <strong class="fxt-release-version">see GitHub</strong><span class="fxt-release-date"></span> · <a href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">All downloads and release notes on GitHub</a> · Licensed under Apache 2.0 · <a href="https://github.com/karlkauc/FreeXmlToolkit">Source code</a></p>
+  <p class="fxt-download__meta">Latest release: <strong class="fxt-release-version">see GitHub</strong><span class="fxt-release-date"></span> · <a href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">All downloads and release notes on GitHub</a> · Licensed under Apache 2.0 · <a href="https://github.com/karlkauc/FreeXmlToolkit">Source code</a> · <a href="https://github.com/sponsors/karlkauc">&#9829; Sponsor</a></p>
 </div>
 
 ## Welcome
@@ -340,6 +340,16 @@ If the interface appears blurry or animations are slow, your system may be using
 | [Privacy & Anonymous Telemetry](telemetry.md) | What the anonymous usage statistics and error reports contain, and how to switch them off |
 | [Technology Stack](technology-stack.md) | Libraries and versions used |
 | [Third-Party Licenses](licenses.md) | License information |
+
+---
+
+## Support the Project
+
+FreeXmlToolkit is free and open source. If it saves you time, please consider sponsoring its development — sponsorships directly fund maintenance, bug fixes and new features.
+
+[&#9829; Sponsor on GitHub](https://github.com/sponsors/karlkauc){ .md-button .md-button--primary }
+
+Inside the application the sponsor link is available in the **Help** panel (**Sponsor this Project**), in the **About** dialog, on the **Welcome** page and under **Settings → Support the Project**. Starring the repository and reporting bugs helps too.
 
 ---
 

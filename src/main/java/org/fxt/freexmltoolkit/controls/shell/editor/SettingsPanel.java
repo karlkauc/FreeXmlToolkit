@@ -21,6 +21,7 @@ import javafx.scene.layout.VBox;
 
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.theme.DesignTokens;
+import org.fxt.freexmltoolkit.controls.theme.SemanticColors;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.FileAssociationResult;
 import org.fxt.freexmltoolkit.domain.UnifiedEditorFileType;
@@ -31,6 +32,7 @@ import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.TemplateFileService;
 import org.fxt.freexmltoolkit.service.TemplateRepository;
 import org.fxt.freexmltoolkit.service.UsageTrackingServiceImpl;
+import org.fxt.freexmltoolkit.util.ProjectLinks;
 
 /**
  * The Settings page, opened as a tab in the main editor area (the Settings
@@ -346,7 +348,8 @@ public class SettingsPanel extends VBox {
                         new Label("Your templates:"),
                         fill(templatesList), templateButtons),
                 card("HTTP PROXY", "bi-globe", "#6610f2",
-                        useSystemProxy, proxyHost, proxyPort));
+                        useSystemProxy, proxyHost, proxyPort),
+                buildSupportCard());
         cards.setPrefWrapLength(820);
 
         save.getStyleClass().add("fxt-primary-button");
@@ -359,6 +362,19 @@ public class SettingsPanel extends VBox {
         scroll.getStyleClass().add("fxt-settings-scroll");
         VBox.setVgrow(scroll, Priority.ALWAYS);
         getChildren().add(scroll);
+    }
+
+    /** "Support the Project" card: short pitch plus a button to the GitHub Sponsors page. */
+    private static VBox buildSupportCard() {
+        Label pitch = new Label("FreeXmlToolkit is free and open source. If it saves you time, "
+                + "please consider sponsoring its development on GitHub.");
+        pitch.setWrapText(true);
+        pitch.getStyleClass().add("fxt-placeholder-text");
+        Button sponsor = new Button("Sponsor on GitHub", ProjectLinks.sponsorIcon(14));
+        sponsor.setId("settings-sponsor");
+        sponsor.getStyleClass().add("fxt-tool-button");
+        sponsor.setOnAction(e -> ProjectLinks.openInBrowser(ProjectLinks.SPONSORS_URL));
+        return card("SUPPORT THE PROJECT", "bi-heart-fill", SemanticColors.SPONSOR, pitch, sponsor);
     }
 
     /** A color-coded settings card: tinted icon tile + title, then the section's controls. */

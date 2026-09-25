@@ -1246,8 +1246,13 @@ the resolution order, the bundled standards list and troubleshooting.
 
 ## Help Panel & About
 
-The **Help** activity (F1) shows the version and build, and buttons for **GitHub**, **About**,
-**Keyboard Shortcuts**, **Check for Updates**, and links to the documentation.
+The **Help** activity (F1) shows the version and build, and buttons for **GitHub**,
+**Sponsor this Project**, **About**, **Keyboard Shortcuts**, **Check for Updates**, and links to
+the documentation.
+
+- **Sponsor this Project** opens the project's [GitHub Sponsors](https://github.com/sponsors/karlkauc)
+  page in your browser. The same link is in the **About** dialog, as a small banner on the
+  **Welcome** page and under **Settings → Support the Project**.
 
 - **Report a Problem…** opens the **Send Error Report** dialog. Describe what you were doing,
   optionally leave an email address if you would like a reply, and click **Send**. The report

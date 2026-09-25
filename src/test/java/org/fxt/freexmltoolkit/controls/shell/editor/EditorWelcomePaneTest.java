@@ -178,6 +178,12 @@ class EditorWelcomePaneTest {
         return WaitForAsyncUtils.waitForAsyncFx(2000, () -> ((Label) pane.lookup(id)).getText());
     }
 
+    @Test
+    void showsTheSponsorLink() {
+        Node link = WaitForAsyncUtils.waitForAsyncFx(2000, () -> pane.lookup("#welcome-sponsor"));
+        assertNotNull(link, "the welcome page must link to GitHub Sponsors");
+    }
+
     private void fire(String id) {
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
             ButtonBase b = (ButtonBase) pane.lookup(id);

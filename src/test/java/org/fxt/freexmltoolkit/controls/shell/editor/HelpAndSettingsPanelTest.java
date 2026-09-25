@@ -67,6 +67,13 @@ class HelpAndSettingsPanelTest {
     }
 
     @Test
+    void settingsOffersSponsorCard() {
+        WaitForAsyncUtils.waitForFxEvents();
+        Object sponsor = WaitForAsyncUtils.waitForAsyncFx(2000, () -> settings.lookup("#settings-sponsor"));
+        assertNotNull(sponsor, "Settings must offer the 'Sponsor on GitHub' button");
+    }
+
+    @Test
     void settingsTogglesDesignTokenThemeOnRoot() {
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
             settings.applyTheme(true);

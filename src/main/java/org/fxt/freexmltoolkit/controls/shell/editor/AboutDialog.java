@@ -32,6 +32,7 @@ import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.UpdateInfo;
 import org.fxt.freexmltoolkit.service.UpdateCheckService;
+import org.fxt.freexmltoolkit.util.ProjectLinks;
 import org.fxt.freexmltoolkit.util.VersionUtil;
 
 /** Shell "About" dialog (ported from the legacy MainController). */
@@ -130,13 +131,13 @@ public final class AboutDialog {
         licenseLink.setStyle("-fx-padding: 0; -fx-text-fill: #0b5ed7;");
         VBox legal = new VBox(2, copyright, licenseLink);
 
-        Button githubBtn = linkButton("bi-github", "GitHub",
-                "https://github.com/karlkauc/FreeXmlToolkit");
-        Button docsBtn = linkButton("bi-book", "Documentation",
-                "https://karlkauc.github.io/FreeXmlToolkit");
-        Button issueBtn = linkButton("bi-bug", "Report an issue",
-                "https://github.com/karlkauc/FreeXmlToolkit/issues/new");
-        HBox links = new HBox(8, githubBtn, docsBtn, issueBtn);
+        Button githubBtn = linkButton("bi-github", "GitHub", ProjectLinks.GITHUB_URL);
+        Button sponsorBtn = linkButton("bi-heart-fill", "Sponsor", ProjectLinks.SPONSORS_URL);
+        sponsorBtn.setId("about-sponsor");
+        sponsorBtn.setGraphic(ProjectLinks.sponsorIcon(16));
+        Button docsBtn = linkButton("bi-book", "Documentation", ProjectLinks.DOCS_URL);
+        Button issueBtn = linkButton("bi-bug", "Report an issue", ProjectLinks.ISSUES_URL);
+        HBox links = new HBox(8, githubBtn, sponsorBtn, docsBtn, issueBtn);
         if (org.fxt.freexmltoolkit.controls.dialogs.ErrorReportDialog.isAvailable()) {
             // Anonymous, in-app problem report (no GitHub account needed).
             Button reportBtn = linkButton("bi-send", "Report a problem…", null);
@@ -210,16 +211,8 @@ public final class AboutDialog {
         return btn;
     }
 
-    // Ported verbatim from MainController.openExternalUrl.
     private static void openExternalUrl(String url) {
-        try {
-            if (java.awt.Desktop.isDesktopSupported()
-                    && java.awt.Desktop.getDesktop().isSupported(java.awt.Desktop.Action.BROWSE)) {
-                java.awt.Desktop.getDesktop().browse(new java.net.URI(url));
-            }
-        } catch (Exception ex) {
-            logger.warn("Could not open URL {}: {}", url, ex.getMessage());
-        }
+        ProjectLinks.openInBrowser(url);
     }
 
     // Ported verbatim from MainController.checkForUpdatesFromAbout.

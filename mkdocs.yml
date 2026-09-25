@@ -80,6 +80,9 @@ extra:
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/karlkauc/FreeXmlToolkit
+    - icon: fontawesome/solid/heart
+      link: https://github.com/sponsors/karlkauc
+      name: Sponsor on GitHub
   generator: false
 
 extra_css:
@@ -93,6 +96,7 @@ copyright: Copyright &copy; 2024-2026 Karl Kauc
 nav:
   - Home: index.md
   - Download: https://github.com/karlkauc/FreeXmlToolkit/releases/latest
+  - Sponsor: https://github.com/sponsors/karlkauc
   - Unified Shell: unified-shell.md
   - File Associations: file-associations.md
   - Execution Statistics: execution-statistics.md

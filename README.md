@@ -3,6 +3,7 @@
 [![Java](https://img.shields.io/badge/Java-25-orange.svg)](https://openjdk.org/)
 [![JavaFX](https://img.shields.io/badge/JavaFX-25-blue.svg)](https://openjfx.io/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](LICENSE.md)
+[![Sponsor](https://img.shields.io/github/sponsors/karlkauc?label=Sponsor&logo=GitHub&color=ea4aaa)](https://github.com/sponsors/karlkauc)
 
 **FreeXmlToolkit** is a powerful, all-in-one desktop application that makes working with XML files simple and efficient.
 Whether you're a business professional, developer, or just someone who needs to work with XML documents, this toolkit
@@ -223,6 +224,21 @@ cd FreeXmlToolkit
 ### **Privacy**
 
 FreeXmlToolkit sends anonymous usage statistics and error reports (never file names, paths or document content). Both are on by default and can be switched off under **Settings → Usage Statistics**. See [Privacy & Anonymous Telemetry](https://karlkauc.github.io/FreeXmlToolkit/telemetry/) for exactly what is sent.
+
+## <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: inline; vertical-align: middle; margin-right: 8px;"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#db61a2"/></svg> Support the Project
+
+FreeXmlToolkit is free and open source, and it will stay that way. If it saves you time at work, please consider
+**[sponsoring its development on GitHub](https://github.com/sponsors/karlkauc)** — sponsorships directly fund
+maintenance, bug fixes and new features.
+
+Not able to sponsor? You can still help a lot:
+
+- ⭐ **Star** the repository on GitHub
+- 🐞 **Report bugs** and suggest features
+- 📣 **Tell colleagues** who work with XML about it
+
+Inside the app you find the sponsor link under **Help → Sponsor this Project**, in the **About** dialog and in
+**Settings → Support the Project**.
 
 ## <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: inline; vertical-align: middle; margin-right: 8px;"><path d="M6 11h2v9H6zm3.5-10h2v19h-2zm3.5 5h2v14h-2zm3.5-2h2v16h-2z" fill="#fd7e14"/><circle cx="4" cy="3" r="1.5" fill="#fd7e14"/><circle cx="12" cy="2" r="1.5" fill="#fd7e14"/><circle cx="20" cy="3" r="1.5" fill="#fd7e14"/></svg> Contributing
 

@@ -46,4 +46,6 @@ public final class SemanticColors {
     public static final String TEAL = "#20c997";
     /** Secondary accent (indigo) — advanced/less-common actions. */
     public static final String INDIGO = "#6610f2";
+    /** Sponsor / support the project (GitHub Sponsors pink) — heart icons. */
+    public static final String SPONSOR = "#db61a2";
 }

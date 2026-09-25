@@ -1380,6 +1380,22 @@
 .fxt-welcome-tips .iconify-icon {
     -fx-icon-color: -fxt-primary;
 }
+/* Sponsor banner on the welcome page (GitHub Sponsors pink, subtle) */
+.fxt-welcome-sponsor {
+    -fx-background-color: rgba(219, 97, 162, 0.07);
+    -fx-background-radius: 10;
+    -fx-border-color: rgba(219, 97, 162, 0.22);
+    -fx-border-radius: 10;
+    -fx-padding: 10 16;
+}
+.fxt-welcome-sponsor .label {
+    -fx-text-fill: -fxt-text-secondary;
+    -fx-font-size: 12px;
+}
+.fxt-welcome-sponsor .hyperlink {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
 .fxt-tool-card .iconify-icon, .fxt-tool-card .ikonli-font-icon {
     -fx-icon-color: -fxt-text-muted;
 }

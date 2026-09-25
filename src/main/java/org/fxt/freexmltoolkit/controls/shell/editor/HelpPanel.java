@@ -1,6 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
-import java.net.URI;
 import java.util.List;
 
 import javafx.application.Platform;
@@ -10,6 +9,7 @@ import javafx.scene.layout.VBox;
 
 import org.fxt.freexmltoolkit.FxtGui;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.util.ProjectLinks;
 import org.fxt.freexmltoolkit.util.VersionUtil;
 
 /**
@@ -18,8 +18,8 @@ import org.fxt.freexmltoolkit.util.VersionUtil;
  */
 public class HelpPanel extends VBox {
 
-    private static final String GITHUB_URL = "https://github.com/karlkauc/FreeXmlToolkit";
-    private static final String DOCS_URL = "https://karlkauc.github.io/FreeXmlToolkit";
+    private static final String GITHUB_URL = ProjectLinks.GITHUB_URL;
+    private static final String DOCS_URL = ProjectLinks.DOCS_URL;
     private static final String FUNDSXML_SITE_URL = "http://www.fundsxml.org";
     private static final String SCHEMA_DOCS_URL = "https://fundsxml.github.io/";
 
@@ -44,6 +44,9 @@ public class HelpPanel extends VBox {
         vendor.getStyleClass().add("fxt-placeholder-text");
 
         Button github = button("GitHub", "bi-github", () -> browse(GITHUB_URL));
+        Button sponsor = button("Sponsor this Project", "bi-heart-fill", () -> browse(ProjectLinks.SPONSORS_URL));
+        sponsor.setGraphic(ProjectLinks.sponsorIcon(16));
+        sponsor.setId("help-sponsor");
 
         Button aboutBtn = button("About", "bi-info-circle",
                 () -> AboutDialog.show(getScene() != null ? getScene().getWindow() : null));
@@ -62,7 +65,7 @@ public class HelpPanel extends VBox {
         updateStatus.getStyleClass().add("fxt-placeholder-text");
         updateStatus.setWrapText(true);
 
-        getChildren().addAll(title, appName, version, build, vendor, github,
+        getChildren().addAll(title, appName, version, build, vendor, github, sponsor,
                 aboutBtn, shortcutsBtn,
                 linksTitle, docs, fundsSite, schemaDocs,
                 checkUpdates, updateStatus);
@@ -116,19 +119,15 @@ public class HelpPanel extends VBox {
     }
 
     /**
-     * @return the documentation quick-link URLs offered by the panel (GitHub plus
+     * @return the quick-link URLs offered by the panel (GitHub, GitHub Sponsors, plus
      *         the FXT docs, FundsXML site and schema docs the legacy Help tab embedded).
      */
     public List<String> getQuickLinkUrls() {
-        return List.of(GITHUB_URL, DOCS_URL, FUNDSXML_SITE_URL, SCHEMA_DOCS_URL);
+        return List.of(GITHUB_URL, ProjectLinks.SPONSORS_URL, DOCS_URL, FUNDSXML_SITE_URL, SCHEMA_DOCS_URL);
     }
 
     private void browse(String url) {
-        try {
-            java.awt.Desktop.getDesktop().browse(URI.create(url));
-        } catch (Exception ignored) {
-            // no desktop browser available
-        }
+        ProjectLinks.openInBrowser(url);
     }
 
     private Button button(String text, String icon, Runnable action) {

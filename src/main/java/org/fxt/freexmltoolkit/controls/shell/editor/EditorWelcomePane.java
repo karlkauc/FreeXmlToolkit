@@ -23,6 +23,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.util.ProjectLinks;
 import org.fxt.freexmltoolkit.util.VersionUtil;
 
 /**
@@ -68,6 +69,7 @@ public class EditorWelcomePane extends VBox {
                 buildStats(),
                 buildTrend(),
                 buildTips(),
+                buildSponsor(),
                 buildLowerRow(onOpenRecent, onClearRecent, onAction));
         content.getStyleClass().add("fxt-welcome-content");
         content.setPadding(new Insets(40));
@@ -251,6 +253,20 @@ public class EditorWelcomePane extends VBox {
         HBox banner = new HBox(10, icon("bi-lightbulb", 16), tip);
         banner.setAlignment(Pos.CENTER_LEFT);
         banner.getStyleClass().add("fxt-welcome-tips");
+        return banner;
+    }
+
+    /** Low-key sponsor banner (same shape as the tips banner) linking to GitHub Sponsors. */
+    private Region buildSponsor() {
+        Label text = new Label("FreeXmlToolkit is free and open source. If it saves you time, "
+                + "consider sponsoring its development.");
+        text.setWrapText(true);
+        Hyperlink link = new Hyperlink("Sponsor on GitHub");
+        link.setId("welcome-sponsor");
+        link.setOnAction(e -> ProjectLinks.openInBrowser(ProjectLinks.SPONSORS_URL));
+        HBox banner = new HBox(10, ProjectLinks.sponsorIcon(16), text, link);
+        banner.setAlignment(Pos.CENTER_LEFT);
+        banner.getStyleClass().add("fxt-welcome-sponsor");
         return banner;
     }
 

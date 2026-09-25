@@ -30,6 +30,14 @@ class HelpDialogsTest {
     }
 
     @Test
+    void aboutDialogOffersSponsorLink() {
+        Dialog<Void> dialog = WaitForAsyncUtils.waitForAsyncFx(3000, () -> AboutDialog.build(null));
+        javafx.scene.Node sponsor = WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> findById(dialog.getDialogPane().getContent(), "about-sponsor"));
+        assertNotNull(sponsor, "About dialog must offer the Sponsor link");
+    }
+
+    @Test
     void shortcutsDialogBuilds() {
         Dialog<?> dialog = WaitForAsyncUtils.waitForAsyncFx(3000, () -> KeyboardShortcutsDialog.build());
         assertNotNull(dialog.getDialogPane(), "shortcuts dialog pane");
@@ -37,6 +45,24 @@ class HelpDialogsTest {
         // DialogHelper renders each shortcut's KEY string as a Label; verify a known one is present.
         String text = dialogText(dialog);
         assertTrue(text.contains("Ctrl+Z"), "shows Ctrl+Z shortcut");
+    }
+
+    private static javafx.scene.Node findById(javafx.scene.Node node, String id) {
+        if (node == null) {
+            return null;
+        }
+        if (id.equals(node.getId())) {
+            return node;
+        }
+        if (node instanceof javafx.scene.Parent p) {
+            for (javafx.scene.Node child : p.getChildrenUnmodifiable()) {
+                javafx.scene.Node hit = findById(child, id);
+                if (hit != null) {
+                    return hit;
+                }
+            }
+        }
+        return null;
     }
 
     private static String dialogText(Dialog<?> dialog) {

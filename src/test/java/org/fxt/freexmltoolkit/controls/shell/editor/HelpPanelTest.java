@@ -40,4 +40,12 @@ class HelpPanelTest {
         assertTrue(urls.contains("https://fundsxml.github.io/"),
                 "FundsXML4 schema documentation link must be offered");
     }
+
+    @Test
+    void offersTheGitHubSponsorsLink() {
+        assertTrue(panel.getQuickLinkUrls().contains(org.fxt.freexmltoolkit.util.ProjectLinks.SPONSORS_URL),
+                "GitHub Sponsors link must be offered");
+        Object sponsor = org.testfx.util.WaitForAsyncUtils.waitForAsyncFx(2000, () -> panel.lookup("#help-sponsor"));
+        assertNotNull(sponsor, "Help panel must show the 'Sponsor this Project' button");
+    }
 }
