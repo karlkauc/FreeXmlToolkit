@@ -429,7 +429,7 @@ Learn more: [Favorites System](favorites-system.md)
 
 - **Multiple Files**: Open multiple XML files in different tabs
 - **Remember Location**: The editor remembers the last folder you used
-- **Font Size**: Hold `Ctrl` and scroll the mouse wheel to adjust the font size (`Ctrl+0` resets)
+- **Font Size / Zoom**: Hold `Ctrl` and scroll the mouse wheel to adjust the font size in the Text view (`Ctrl+0` resets); in the Graphic view the same gesture zooms the whole grid
 - **Quick Validation**: Errors are highlighted as you type
 - **Drag & Drop**: Drag files directly into the editor window
 - **Recent Files**: Reopen recent files from the Explorer panel's **RECENT** section or the Welcome page

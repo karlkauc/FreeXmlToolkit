@@ -71,6 +71,7 @@ very same grid the shell uses for XML files, so it is instantly familiar:
 | **Context menu** | Add Property / Array Item / Sibling Before / After, Rename Key (F2), Duplicate (Ctrl+D), Copy / Cut / Paste as Sibling / Paste as Child, Copy Cell Content (Ctrl+Shift+C), Copy JSONPath (Ctrl+Shift+X), Copy Node (JSON) (Ctrl+Alt+C), Change Type, Move Up/Down (Alt+↑/↓), Expand All / Collapse All, Sort Column, Delete |
 | **Undo/Redo** | Every grid edit is one undo step (Ctrl+Z / Ctrl+Y) and is written back into the text |
 | **Search** | Ctrl+F finds keys and values, revealing matches inside collapsed nodes |
+| **Zoom & layout** | Zoom the whole grid with Ctrl+mouse wheel, Ctrl + / Ctrl − or the header's zoom pill (Ctrl 0 resets; the factor is shared with the XML grid). Nothing is cut off - long strings wrap onto further lines - and the columns of an array table can be dragged to a new width (double-click the separator to auto-fit). **Expand all** / **Collapse all** buttons sit in the header |
 
 See [Unified Shell - The Grid for JSON](unified-shell.md#json-grid) for details.
 
@@ -173,9 +174,10 @@ resolve as expected.
 | `Ctrl+Shift+X` | Copy JSONPath (grid; elsewhere it toggles the Query Console) |
 | `Ctrl+Shift+C` | Copy Cell Content (grid) |
 | `Ctrl+Alt+C` | Copy Node (JSON) (grid) |
-| `Ctrl++` | Zoom in |
-| `Ctrl+-` | Zoom out |
-| `Ctrl+0` | Reset zoom |
+| `Ctrl++` | Zoom in (Text view: font size, Graphic view: the grid) |
+| `Ctrl+-` | Zoom out (Text view: font size, Graphic view: the grid) |
+| `Ctrl+0` | Reset zoom (Text view: font size, Graphic view: the grid) |
+| `Ctrl+mouse wheel` | Zoom (Text view: font size, Graphic view: the whole grid) |
 
 ## Supported Formats
 

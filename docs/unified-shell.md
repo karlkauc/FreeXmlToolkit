@@ -201,6 +201,12 @@ looks and feels exactly like an XML file in the grid:
 - All edits go through the document's **undo history** (Ctrl+Z / Ctrl+Y) and are written back
   into the text - the Text, Tree and Graphic views share one model, and the **Properties**
   inspector edits keys and values from any of them.
+- **Zoom, wrapping and column widths** behave exactly as in the XML grid: the header's
+  **zoom pill** and **Ctrl+mouse wheel** / **Ctrl +** / **Ctrl −** / **Ctrl 0** zoom the whole
+  grid (the factor is shared with the XML grid), long strings **wrap** instead of being cut
+  off, and the columns of an embedded array table can be **dragged** to a new width
+  (double-click the separator to auto-fit). **Expand all** / **Collapse all** sit in the
+  header strip as well.
 
 !!! warning "Comments and JSON5 syntax are not preserved"
     The grid edits the parsed *model*. Comments (JSONC) and JSON5 syntax (unquoted keys,
@@ -1493,6 +1499,9 @@ The status bar at the bottom of the window includes (left to right):
 | Ctrl+E | Spreadsheet Converter… (Excel / CSV ↔ XML) |
 | Ctrl+T | Insert Template… (needs an open document) |
 | Alt+Enter / Ctrl+. | Quick Fix - apply a [Schematron Quick Fix](schematron-quick-fixes.md) on the caret line |
+| Ctrl++ / Ctrl+- | Graphic view: zoom the grid in / out (10 % steps, 50-300 %) |
+| Ctrl+0 | Reset the zoom to 100 % (Text view: font size, Graphic view: the grid) |
+| Ctrl+mouse wheel | Zoom (Text view: font size, Graphic view: the whole grid) |
 
 !!! warning "Changed shortcut"
     **Ctrl+Shift+F no longer formats the document.** Following the VS Code convention, it
