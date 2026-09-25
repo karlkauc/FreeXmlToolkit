@@ -142,7 +142,19 @@ When an XML-instance document (XML, XSLT, or Schematron) is in the **Graphic** v
 shows the editable grid:
 
 - A **header strip** at the top reads *"Grid view · nested · repeating elements as embedded
-  grids"* and offers a **Collapse all** button that folds every container at once.
+  grids"* and offers the **zoom pill** (`− 100% +`), **Expand all** and **Collapse all**
+  buttons that unfold or fold every container at once.
+- **Nothing is cut off.** Cells and rows take the width their content needs; long values
+  **wrap** onto further lines (the row grows) instead of being shortened with "…". Very wide
+  content is reached with the horizontal scrollbar (Shift+wheel).
+- **Zoom** the whole grid - text, rows, icons and embedded tables - with **Ctrl+mouse wheel**,
+  **Ctrl +** / **Ctrl −** (10 % steps, 50-300 %) or the `−`/`+` buttons; **Ctrl 0** or a
+  click on the percentage resets to 100 %. The zoom factor is remembered across files, XML
+  and JSON grids and restarts.
+- **Column widths** in embedded grids size themselves to their content; drag a column
+  separator in the column-header row to resize a column (text re-wraps to the new width),
+  and **double-click the separator** to return to automatic sizing. Dragged widths survive
+  edits and undo.
 - Rows with a simple value are marked with a **`{}`** marker so you can tell value rows from
   containers at a glance.
 - **Attributes always show** as `@name` rows directly beneath their element - also while the

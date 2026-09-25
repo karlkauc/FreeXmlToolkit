@@ -105,7 +105,13 @@ The grid provides:
 
 - **Table View**: Edit XML data in a spreadsheet-like interface
 - **Header Strip**: A header at the top ("Grid view · nested · repeating elements as embedded
-  grids") with a **Collapse all** button that folds every container at once
+  grids") with the zoom pill (`− 100% +`) and **Expand all** / **Collapse all** buttons
+- **Nothing Cut Off**: Cells grow to their content and long values wrap onto further lines
+  (the row grows) instead of being shortened with "…"
+- **Zoom**: `Ctrl`+mouse wheel or `Ctrl` `+` / `Ctrl` `−` zoom the whole grid (50-300 %),
+  `Ctrl` `0` resets; the factor is remembered across files and restarts
+- **Column Widths**: Drag a separator in an embedded grid's column-header row to resize a
+  column (text re-wraps); double-click the separator to return to automatic sizing
 - **Value Markers**: Rows with a simple value are marked with `{}`; collapsed containers show a
   "collapsed" hint
 - **Direct Cell Editing**: Click cells to edit values directly
@@ -412,7 +418,8 @@ Learn more: [Favorites System](favorites-system.md)
 | Ctrl+Shift+X | Toggle the Query Console |
 | Ctrl+E | XML/Excel converter |
 | Ctrl+T | Templates |
-| Ctrl+mouse wheel | Zoom the editor font (Ctrl+0 resets) |
+| Ctrl+mouse wheel | Zoom the editor font in the Text view, the whole grid in the Graphic view (Ctrl+0 resets) |
+| Ctrl++ / Ctrl+- | Graphic view: zoom the grid in / out |
 | F8 | Validate |
 | `<` | Open auto-completion |
 

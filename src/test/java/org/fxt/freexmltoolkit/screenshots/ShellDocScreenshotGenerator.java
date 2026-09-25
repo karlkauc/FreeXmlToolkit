@@ -332,6 +332,14 @@ class ShellDocScreenshotGenerator {
             settle();
             onFx(() -> host.setActiveViewMode(ViewMode.GRAPHIC));
             settle();
+            // Unfold everything so the embedded grids and wrapped values are visible. Other
+            // (inactive) grid tabs carry the same button id, so fire every one of them.
+            onFx(() -> host.lookupAll("#grid-expand-all").forEach(n -> {
+                if (n instanceof javafx.scene.control.Button expandAll) {
+                    expandAll.fire();
+                }
+            }));
+            settle();
             shot("unified-shell-xml-grid");
         }
 

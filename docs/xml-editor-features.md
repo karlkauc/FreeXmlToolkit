@@ -141,10 +141,16 @@ Changes made in any view are synchronized automatically.
 ### Reading the Grid
 
 - The **header strip** at the top reads *"Grid view · nested · repeating elements as embedded
-  grids"* and offers a **Collapse all** button that folds every container at once.
+  grids"* and offers the **zoom pill** (`− 100% +`) plus **Expand all** and **Collapse all**
+  buttons.
+- **Nothing is truncated**: cells grow to their content, long values wrap onto more lines and
+  the row grows with them.
+- **Zoom** the grid with **Ctrl+mouse wheel** or **Ctrl +/−** (**Ctrl 0** resets); the factor
+  is remembered for all grids.
 - Rows holding a simple value are marked with **`{}`**.
 - Collapsed containers show a **"collapsed"** hint so you know there is hidden content.
-- Repeating elements appear as **embedded grids** - small tables nested inside the row.
+- Repeating elements appear as **embedded grids** - small tables nested inside the row. Drag a
+  column separator in the column-header row to resize a column; double-click it to auto-fit.
 
 ---
 
