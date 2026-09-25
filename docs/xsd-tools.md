@@ -555,8 +555,9 @@ For a complete guide with step-by-step instructions and examples, see **[Profile
 
 ### Validation
 
-The generated sample opens as a normal editor tab (`Sample.xml`) that is already bound to
-the schema it was generated from, so you can validate it right away:
+The generated sample is pretty-printed like **Format Document** (Shift+Alt+F) and opens as a
+normal editor tab (`Sample.xml`) that is already bound to the schema it was generated from, so
+you can validate it right away:
 
 1. Click **Validate** (F8) - the result is *Valid* or a list of problems, not merely
    *Well-formed*

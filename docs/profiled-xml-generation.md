@@ -115,7 +115,7 @@ Example: `INV-{seq:4}-{date:yyyy}` produces `INV-0001-2026`, `INV-0002-2026`, ..
 
 **Batch count = 1**
 
-The document is generated in the background and opened as a new editor tab named `Sample.xml`, already bound to the schema it was generated from, so **Run Validation** reports *Valid* (or the actual problems) right away — not just *Well-formed*. From there you can edit it and save it wherever you like. If generation fails you get an error dialog instead.
+The document is generated in the background, pretty-printed like **Format Document** (Shift+Alt+F), and opened as a new editor tab named `Sample.xml`, already bound to the schema it was generated from, so **Run Validation** reports *Valid* (or the actual problems) right away — not just *Well-formed*. From there you can edit it and save it wherever you like. If generation fails you get an error dialog instead.
 
 The root element carries an `xsi:schemaLocation` / `xsi:noNamespaceSchemaLocation` that names the XSD by file name (for example `xsi:noNamespaceSchemaLocation="FundsXML4.xsd"`) — never an absolute `file:` path of your machine, so the sample stays valid when it is shared or moved. When you save the sample for the first time into a folder other than the schema's, that reference is rewritten to a relative path (for example `../xsd/FundsXML4.xsd`), so the file keeps validating from where it lands — in FreeXmlToolkit after a restart and in other tools alike.
 

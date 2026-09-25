@@ -333,7 +333,8 @@ public class TypeLibraryPanel extends VBox {
         boolean realistic = options.get().realistic();
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
             long t0 = System.nanoTime();
-            String result = SampleXmlRunner.generate(xsd, mandatoryOnly, maxOccurrences, realistic);
+            String result = SampleXmlRunner.format(
+                    SampleXmlRunner.generate(xsd, mandatoryOnly, maxOccurrences, realistic));
             UsageEvents.sampleGenerated("basic", 1, t0, !result.startsWith("ERROR:"));
             javafx.application.Platform.runLater(() -> {
                 if (result.startsWith("ERROR:")) {
@@ -375,7 +376,7 @@ public class TypeLibraryPanel extends VBox {
         if (profile.getBatchCount() <= 1) {
             org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
                 long t0 = System.nanoTime();
-                String result = ProfiledSampleRunner.generate(xsd, profile);
+                String result = SampleXmlRunner.format(ProfiledSampleRunner.generate(xsd, profile));
                 UsageEvents.sampleGenerated("profiled", 1, t0, !result.startsWith("ERROR"));
                 javafx.application.Platform.runLater(() -> {
                     if (result.startsWith("ERROR")) {
@@ -395,7 +396,10 @@ public class TypeLibraryPanel extends VBox {
         }
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
             long t0 = System.nanoTime();
-            var files = ProfiledSampleRunner.generateBatch(xsd, profile, dir);
+            var files = ProfiledSampleRunner.generateBatch(xsd, profile, dir).stream()
+                    .map(f -> new org.fxt.freexmltoolkit.domain.GeneratedFile(f.fileName(),
+                            SampleXmlRunner.format(f.content())))
+                    .toList();
             var written = ProfiledSampleRunner.writeBatch(dir, files);
             UsageEvents.sampleGenerated("profiled", written.size(), t0, !written.isEmpty());
             javafx.application.Platform.runLater(() -> alert(

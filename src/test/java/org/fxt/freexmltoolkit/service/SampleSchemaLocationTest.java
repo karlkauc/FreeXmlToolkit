@@ -83,6 +83,28 @@ class SampleSchemaLocationTest {
         assertTrue(relocated.get().contains("<Item xsi:nil=\"true\"/>"), "the body is untouched");
     }
 
+    /** Generated samples are pretty-printed: the root start tag spans several lines. */
+    @Test
+    void relocateHandlesAWrappedRootStartTag() throws Exception {
+        Path xsd = dir.resolve("xsd").resolve("FundsXML4.xsd");
+        Path target = dir.resolve("xml");
+        Files.createDirectories(xsd.getParent());
+        Files.createDirectories(target);
+        Files.writeString(xsd, "<x/>");
+        String xml = """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <FundsXML4 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                           xsi:noNamespaceSchemaLocation="FundsXML4.xsd"
+                           xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+                   <ControlData/>
+                </FundsXML4>
+                """;
+
+        String relocated = SampleSchemaLocation.relocate(xml, xsd.toFile(), target).orElseThrow();
+
+        assertTrue(relocated.contains("\n           xsi:noNamespaceSchemaLocation=\"../xsd/FundsXML4.xsd\"\n"), relocated);
+    }
+
     @Test
     void relocateRewritesOnlyTheLocationHalfOfASchemaLocationPair() throws Exception {
         Path xsd = dir.resolve("schemas").resolve("Order.xsd");

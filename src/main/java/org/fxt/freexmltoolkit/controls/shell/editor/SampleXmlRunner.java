@@ -16,6 +16,31 @@ public final class SampleXmlRunner {
     private SampleXmlRunner() {
     }
 
+    /** Indentation of the editor's Format Document action ({@code EditorHost.formatActive}). */
+    private static final int FORMAT_INDENT = 2;
+
+    /**
+     * Pretty-prints a generated sample exactly like the editor's Format Document action
+     * (Shift+Alt+F), so the opened tab or written file needs no manual reformatting.
+     * Error results ({@code "ERROR: …"}) and non-document results (e.g. a limit comment)
+     * pass through unchanged. Run off the UI thread — it parses the whole document.
+     */
+    public static String format(String xml) {
+        if (xml == null) {
+            return null;
+        }
+        String head = xml.stripLeading();
+        if (xml.startsWith("ERROR:") || !head.startsWith("<") || head.startsWith("<!--")) {
+            return xml;
+        }
+        try {
+            String formatted = org.fxt.freexmltoolkit.service.XmlService.prettyFormat(xml, FORMAT_INDENT);
+            return formatted == null || formatted.isBlank() ? xml : formatted;
+        } catch (Exception e) {
+            return xml; // never lose the generated content over a formatting problem
+        }
+    }
+
     /**
      * @param xsd            the schema file (its location is referenced via {@code xsi:schemaLocation})
      * @param mandatoryOnly  emit only required elements/attributes when {@code true}

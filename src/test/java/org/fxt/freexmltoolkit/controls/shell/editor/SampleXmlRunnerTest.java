@@ -28,6 +28,27 @@ class SampleXmlRunnerTest {
         assertTrue(SampleXmlRunner.generate(new File("/no/such.xsd"), false, 1).startsWith("ERROR:"));
     }
 
+    /** The opened sample looks exactly like after Format Document (Shift+Alt+F). */
+    @Test
+    void formatMatchesTheEditorsFormatDocumentAction() {
+        String xml = SampleXmlRunner.generate(XSD, false, 2);
+
+        String formatted = SampleXmlRunner.format(xml);
+
+        assertEquals(org.fxt.freexmltoolkit.service.XmlService.prettyFormat(xml, 2), formatted);
+        assertTrue(formatted.contains("xsi:noNamespaceSchemaLocation=\"purchageOrder.xsd\"")
+                        || formatted.contains("purchageOrder.xsd\""),
+                "the schema reference survives formatting: " + formatted);
+        assertTrue(formatted.matches("(?s).*\\n +<ShipTo.*"), "child elements on their own indented lines: " + formatted);
+    }
+
+    @Test
+    void formatPassesErrorsAndCommentsThrough() {
+        assertEquals("ERROR: boom", SampleXmlRunner.format("ERROR: boom"));
+        assertEquals("<!-- No root element found in XSD -->",
+                SampleXmlRunner.format("<!-- No root element found in XSD -->"));
+    }
+
     @Test
     void realisticModeHonorsEnumerations(@org.junit.jupiter.api.io.TempDir java.nio.file.Path tmp)
             throws Exception {
