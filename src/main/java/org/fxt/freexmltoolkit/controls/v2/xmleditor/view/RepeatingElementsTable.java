@@ -1179,8 +1179,15 @@ public class RepeatingElementsTable {
      * @return the zero-based row index, or -1 if in the header area or outside
      */
     public int getRowIndexAtY(double py) {
+        return getRowIndexAtDataOffset(py - (y + HEADER_HEIGHT + ROW_HEIGHT));
+    }
+
+    /**
+     * @param rel y relative to the top of the first data row
+     * @return the zero-based row index at that offset, or -1 if outside the rows
+     */
+    public int getRowIndexAtDataOffset(double rel) {
         ensureLayout();
-        double rel = py - (y + HEADER_HEIGHT + ROW_HEIGHT);
         if (rel < 0 || rel >= rowTops[rows.size()]) {
             return -1;
         }

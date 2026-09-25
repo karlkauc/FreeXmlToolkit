@@ -97,24 +97,25 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
     // ==================== Layout Constants ====================
 
-    private static final double ROW_HEIGHT = 24;
-    private static final double INDENT = 20;
-    private static final double ICON_AREA_WIDTH = 24;
-    private static final double EXPAND_BAR_WIDTH = 12;
+    private static final double ROW_HEIGHT = GridMetrics.ROW_HEIGHT;
+    private static final double LINE_HEIGHT = GridMetrics.LINE_HEIGHT;
+    private static final double INDENT = GridMetrics.INDENT;
+    private static final double ICON_AREA_WIDTH = GridMetrics.ICON_AREA_WIDTH;
+    private static final double EXPAND_BAR_WIDTH = GridMetrics.EXPAND_BAR_WIDTH;
     private static final double SCROLLBAR_WIDTH = 14;
     private static final double LEFT_MARGIN = 8;
     private static final double NAME_VALUE_GAP = 16;
     private static final double MIN_NAME_COL_WIDTH = 120;
     private static final double MIN_VALUE_COL_WIDTH = 100;
 
-    /**
-     * Approximate glyph width in pixels for ROW_FONT (Monospaced 12).
-     * Must stay in sync with RepeatingElementsTable.SUB_ROW_CHAR_WIDTH.
-     */
-    private static final double CHAR_WIDTH = 7.2;
+    /** Measured text metrics shared with the embedded tables (real FX font measurement). */
+    private final GridMetrics metrics = new GridMetrics(TextMeasurer.fx(), GridMetrics.DEFAULT_WRAP_WIDTH);
 
     /** Calculated name column width (adapts to content). */
     private double nameColumnWidth = MIN_NAME_COL_WIDTH;
+
+    /** Total height of each visible row (own lines plus an expanded inline table). */
+    private double[] rowHeights = new double[0];
 
     // ==================== Scroll State ====================
 
@@ -285,10 +286,10 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
     // ==================== Fonts ====================
 
-    private static final Font ROW_FONT = Font.font("Monospaced", FontWeight.NORMAL, 12);
-    private static final Font ROW_FONT_BOLD = Font.font("Monospaced", FontWeight.SEMI_BOLD, 12);
-    private static final Font SMALL_FONT = Font.font("Monospaced", FontWeight.NORMAL, 10);
-    private static final Font ICON_FONT = Font.font("Monospaced", FontWeight.BOLD, 11);
+    private static final Font ROW_FONT = GridFont.ROW.toFont();
+    private static final Font ROW_FONT_BOLD = GridFont.ROW_BOLD.toFont();
+    private static final Font SMALL_FONT = GridFont.SMALL.toFont();
+    private static final Font ICON_FONT = GridFont.ICON.toFont();
 
     // ==================== Constructor ====================
 
@@ -463,6 +464,11 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
         allRows = adapter.flatten();
         adapter.attachTables(allRows, this::markLayoutDirty);
+        for (FlatRow row : allRows) {
+            if (row.hasRepeatingTable()) {
+                row.getRepeatingTable().setMetrics(metrics);
+            }
+        }
 
         // Restore expand state
         if (!expandState.isEmpty()) {
@@ -515,41 +521,109 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             }
         }
 
-        // Calculate name column width based on content
+        // Name column: measured label (+ child-count extras) of the widest visible row
         double maxNameWidth = MIN_NAME_COL_WIDTH;
         for (FlatRow row : visibleRows) {
             if (row.getLabel() != null) {
-                double labelWidth = getRowLabelX(row) + row.getLabel().length() * 7.2 + NAME_VALUE_GAP;
+                double labelWidth = getRowLabelX(row) + labelTextWidth(row) + childCountExtrasWidth(row)
+                        + NAME_VALUE_GAP;
                 maxNameWidth = Math.max(maxNameWidth, labelWidth);
             }
         }
         nameColumnWidth = maxNameWidth;
 
-        // Calculate Y positions and total dimensions accounting for expanded tables
+        // Value blocks (wrapped at the wrap width), Y positions, row heights and extents
         rowYPositions = new double[visibleRows.size()];
+        rowHeights = new double[visibleRows.size()];
         double currentY = 0;
         double maxWidth = nameColumnWidth + MIN_VALUE_COL_WIDTH + LEFT_MARGIN;
 
         for (int i = 0; i < visibleRows.size(); i++) {
+            FlatRow row = visibleRows.get(i);
             rowYPositions[i] = currentY;
-            currentY += ROW_HEIGHT;
+
+            double rowHeight = ROW_HEIGHT;
+            if (row.getValue() != null) {
+                String text = row.isLeafWithValue() ? adapter.decorateLeafValue(row) : row.getValue();
+                TextBlock block = TextBlock.of(metrics, text, GridFont.ROW, metrics.wrapWidth());
+                row.setValueBlock(block);
+                rowHeight = block.height();
+                maxWidth = Math.max(maxWidth, nameColumnWidth + block.width() + NAME_VALUE_GAP);
+            } else {
+                row.setValueBlock(null);
+            }
 
             // If this row has an expanded repeating table, add table height
-            FlatRow row = visibleRows.get(i);
             if (row.hasRepeatingTable() && row.isExpanded()) {
                 RepeatingElementsTable table = row.getRepeatingTable();
                 table.calculateWidth(canvas.getWidth());
                 table.calculateHeight();
-                currentY += table.getHeight();
+                rowHeight += table.getHeight();
 
                 // Track table width for horizontal scroll
                 double tableRight = getRowLabelX(row) + table.getWidth();
                 maxWidth = Math.max(maxWidth, tableRight);
             }
+
+            rowHeights[i] = rowHeight;
+            currentY += rowHeight;
         }
 
         totalHeight = currentY;
         totalWidth = Math.max(maxWidth, canvas.getWidth());
+    }
+
+    /** @return the height of the row's own lines (without an expanded inline table) */
+    private double ownRowHeight(FlatRow row) {
+        TextBlock block = row.getValueBlock();
+        return block != null ? block.height() : ROW_HEIGHT;
+    }
+
+    /** @return the measured width of the row's label as drawn (attributes carry the "@") */
+    private double labelTextWidth(FlatRow row) {
+        if (row.getLabel() == null) {
+            return 0;
+        }
+        String label = row.getType() == FlatRow.RowType.ATTRIBUTE ? "@" + row.getLabel() : row.getLabel();
+        return metrics.width(label, GridFont.ROW_BOLD);
+    }
+
+    /** @return the width of the "(n)" child count (and grid icon) drawn after an expandable label */
+    private double childCountExtrasWidth(FlatRow row) {
+        if (!row.isExpandable()) {
+            return 0;
+        }
+        double w = 6 + metrics.width(childCountText(row), GridFont.SMALL);
+        if (row.hasRepeatingTable()) {
+            w += 12;
+        }
+        return w;
+    }
+
+    private static String childCountText(FlatRow row) {
+        return "(" + row.getChildCount() + (row.hasRepeatingTable() ? "x" : "") + ")";
+    }
+
+    /**
+     * Draws a wrapped text block: the first line centred on {@code firstLineCenterY},
+     * every further line {@link #LINE_HEIGHT} lower. Lines outside the canvas are skipped.
+     */
+    private void drawTextBlock(TextBlock block, double x, double firstLineCenterY) {
+        if (block == null) {
+            return;
+        }
+        double canvasBottom = canvas.getHeight() + LINE_HEIGHT;
+        List<String> lines = block.lines();
+        for (int k = 0; k < lines.size(); k++) {
+            double y = firstLineCenterY + k * LINE_HEIGHT;
+            if (y < -LINE_HEIGHT) {
+                continue;
+            }
+            if (y > canvasBottom) {
+                break;
+            }
+            gc.fillText(lines.get(k), x, y);
+        }
     }
 
     /**
@@ -604,7 +678,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             FlatRow row = visibleRows.get(i);
             if (row.hasRepeatingTable() && row.isExpanded()) {
                 double rowY = rowYPositions[i] - scrollOffsetY;
-                double tableY = rowY + ROW_HEIGHT; // Table starts below the header row
+                double tableY = rowY + ownRowHeight(row); // Table starts below the owner row
                 renderInlineTable(row, tableY);
             }
         }
@@ -624,6 +698,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     private void drawRow(FlatRow row, int visibleIndex) {
         double y = rowYPositions[visibleIndex] - scrollOffsetY;
         double w = Math.max(totalWidth, canvas.getWidth() + scrollOffsetX);
+        double h = ownRowHeight(row);
 
         // -- Background --
         Color bgColor;
@@ -637,19 +712,19 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             bgColor = (visibleIndex % 2 == 0) ? ROW_BG_EVEN : ROW_BG_ODD;
         }
         gc.setFill(bgColor);
-        gc.fillRect(0, y, w, ROW_HEIGHT);
+        gc.fillRect(0, y, w, h);
 
         // -- Selection border --
         if (row.isSelected()) {
             gc.setStroke(SELECTED_BORDER);
             gc.setLineWidth(2);
-            gc.strokeRect(1, y + 1, w - 2, ROW_HEIGHT - 2);
+            gc.strokeRect(1, y + 1, w - 2, h - 2);
         }
 
         // -- Row separator line (bottom) --
         gc.setStroke(ROW_SEPARATOR);
         gc.setLineWidth(0.5);
-        gc.strokeLine(LEFT_MARGIN, y + ROW_HEIGHT, w, y + ROW_HEIGHT);
+        gc.strokeLine(LEFT_MARGIN, y + h, w, y + h);
 
         // -- Icon --
         double iconX = LEFT_MARGIN + (row.getDepth() + 1) * INDENT;
@@ -675,9 +750,9 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             gc.fillText(label, labelX, iconCenterY);
         }
 
-        // -- Value text --
+        // -- Value text (wrapped; the block was laid out in recalculateVisibleRows) --
         double valueX = nameColumnWidth;
-        if (row.getValue() != null && !isEditingThisRowValue) {
+        if (row.getValueBlock() != null && !isEditingThisRowValue) {
             gc.setFont(ROW_FONT);
             gc.setFill(getRowValueColor(row.getType()));
 
@@ -686,17 +761,13 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                 gc.setFill(TEXT_SECONDARY);
                 gc.fillText("=", valueX - 12, iconCenterY);
                 gc.setFill(row.getType().isJson() ? getRowValueColor(row.getType()) : TEXT_CONTENT);
-                String displayValue = adapter.decorateLeafValue(row);
-                gc.fillText(displayValue, valueX, iconCenterY);
-            } else {
-                gc.fillText(row.getValue(), valueX, iconCenterY);
             }
+            drawTextBlock(row.getValueBlock(), valueX, iconCenterY);
         }
 
         // -- Child count for expandable elements --
         if (row.isExpandable()) {
-            double labelWidth = (row.getLabel() != null ? row.getLabel().length() * 7.2 : 0);
-            double countX = labelX + labelWidth + 6;
+            double countX = labelX + labelTextWidth(row) + 6;
 
             // Grid icon for repeating table rows
             if (row.hasRepeatingTable()) {
@@ -711,7 +782,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                 countX += 12;
             }
 
-            String countText = "(" + row.getChildCount() + (row.hasRepeatingTable() ? "x" : "") + ")";
+            String countText = childCountText(row);
             gc.setFont(SMALL_FONT);
             gc.setFill(row.hasRepeatingTable() ? TABLE_HEADER_TEXT : CHILD_COUNT_COLOR);
             gc.setTextAlign(TextAlignment.LEFT);
@@ -722,7 +793,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             // leader line (per the Figma "Graphic + Grid" mockup).
             if (!row.isExpanded()) {
                 double rightEdge = canvas.getWidth() + scrollOffsetX - 16;
-                double hintStart = countX + countText.length() * 6.5 + 18;
+                double hintStart = countX + metrics.width(countText, GridFont.SMALL) + 18;
                 if (rightEdge - 70 > hintStart) {
                     gc.setStroke(ROW_SEPARATOR);
                     gc.setLineWidth(1);
@@ -1030,14 +1101,10 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
      * @return total height in pixels
      */
     private double getRowTotalHeight(int visibleIndex) {
-        double height = ROW_HEIGHT;
-        if (visibleIndex >= 0 && visibleIndex < visibleRows.size()) {
-            FlatRow row = visibleRows.get(visibleIndex);
-            if (row.hasRepeatingTable() && row.isExpanded()) {
-                height += row.getRepeatingTable().getHeight();
-            }
+        if (visibleIndex >= 0 && visibleIndex < rowHeights.length) {
+            return rowHeights[visibleIndex];
         }
-        return height;
+        return ROW_HEIGHT;
     }
 
     // ==================== Table Rendering ====================
@@ -1115,8 +1182,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                 displayName += table.isSortAscending() ? " \u25B2" : " \u25BC";
             }
 
-            gc.fillText(truncateText(displayName, colWidth - RepeatingElementsTable.CELL_PADDING * 2),
-                    colX + RepeatingElementsTable.CELL_PADDING, colCenterY);
+            gc.fillText(displayName, colX + RepeatingElementsTable.CELL_PADDING, colCenterY);
 
             colX += colWidth;
         }
@@ -1194,12 +1260,22 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                     }
                 }
 
-                // Cell value (with offset for expand arrow on complex cells)
-                String value = row.getValue(colName);
+                // Cell value (wrapped; offset for the expand arrow on complex cells)
+                RepeatingElementsTable.CellLayout layout = table.getCellLayout(row, colName);
                 gc.setFont(ROW_FONT);
                 gc.setTextAlign(TextAlignment.LEFT);
 
-                double textOffsetX = isComplex ? 14 : 0;
+                double textOffsetX = isComplex ? GridMetrics.COMPLEX_ARROW_OFFSET : 0;
+                double textX = cellX + RepeatingElementsTable.CELL_PADDING + textOffsetX;
+
+                // A user-dragged column may be narrower than its content: clip to the cell.
+                boolean clip = col.hasUserWidth();
+                if (clip) {
+                    gc.save();
+                    gc.beginPath();
+                    gc.rect(cellX, rowTop, colWidth, rowHeight);
+                    gc.clip();
+                }
 
                 if (col.getType() == RepeatingElementsTable.ColumnType.ATTRIBUTE) {
                     gc.setFill(TEXT_ATTRIBUTE_VALUE);
@@ -1208,29 +1284,28 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                 } else {
                     gc.setFill(TEXT_CONTENT);
                 }
-
-                double cellTextWidth = colWidth - RepeatingElementsTable.CELL_PADDING * 2 - textOffsetX;
-                String shownValue = truncateText(value, cellTextWidth);
-                gc.fillText(shownValue, cellX + RepeatingElementsTable.CELL_PADDING + textOffsetX, cellCenterY);
+                drawTextBlock(layout.summary(), textX, cellCenterY);
 
                 // The cell element's own attributes (display-only, e.g. ccy=EUR) in the
-                // attribute color, right after the value.
+                // attribute color, right after the value (or on their own line).
                 String attributeSuffix = row.getAttributeSuffix(colName);
                 if (attributeSuffix != null && !attributeSuffix.isEmpty()) {
-                    double valueWidth = shownValue.length() * CHAR_WIDTH; // same approximation as truncateText
-                    double suffixSpace = cellTextWidth - valueWidth - 8;
-                    if (suffixSpace > 20) {
-                        gc.setFill(TEXT_ATTRIBUTE_NAME);
-                        gc.fillText(truncateText(attributeSuffix, suffixSpace),
-                                cellX + RepeatingElementsTable.CELL_PADDING + textOffsetX + valueWidth + 8,
-                                cellCenterY);
+                    gc.setFill(TEXT_ATTRIBUTE_NAME);
+                    double lastLineY = cellCenterY + (layout.summary().lineCount() - 1) * LINE_HEIGHT;
+                    if (layout.suffixOnNewLine()) {
+                        gc.fillText(attributeSuffix, textX, lastLineY + LINE_HEIGHT);
+                    } else {
+                        gc.fillText(attributeSuffix, textX + layout.suffixX(), lastLineY);
                     }
                 }
 
-                // Draw expanded cell content as a full tree (sub-rows below the summary line)
+                // Draw expanded cell content as a full tree (sub-rows below the summary block)
                 if (row.isColumnExpanded(colName)) {
-                    List<FlatRow> cellRows = row.getExpandedCellRows(colName);
-                    renderCellTree(cellRows, cellX, rowTop + RepeatingElementsTable.ROW_HEIGHT, colWidth);
+                    renderCellTree(layout, cellX, rowTop + layout.summaryHeight(), colWidth);
+                }
+
+                if (clip) {
+                    gc.restore();
                 }
 
                 cellX += colWidth;
@@ -1254,46 +1329,33 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     /**
      * Renders a full tree view within an expanded cell's content area.
      * Supports recursive expand/collapse, expand indicators, tree lines,
-     * icons, labels, values, and child counts -- the same behavior as
+     * icons, labels, wrapped values, and child counts -- the same behavior as
      * the main tree view but rendered within cell bounds.
      *
-     * @param cellRows  the flattened rows for this cell
+     * @param layout    the cell's measured layout (visible sub-rows, tops, value blocks)
      * @param cellX     the X coordinate of the cell's left edge
-     * @param cellY     the Y coordinate where cell content starts (below summary line)
+     * @param cellY     the Y coordinate where the sub-rows start (below the summary block)
      * @param cellWidth the width of the cell
      */
-    private void renderCellTree(List<FlatRow> cellRows, double cellX, double cellY, double cellWidth) {
-        // Filter to visible rows only
-        List<FlatRow> visibleCellRows = cellRows.stream()
-                .filter(FlatRow::isVisible)
-                .toList();
-
+    private void renderCellTree(RepeatingElementsTable.CellLayout layout, double cellX, double cellY,
+                                double cellWidth) {
+        List<FlatRow> visibleCellRows = layout.visibleSubRows();
         if (visibleCellRows.isEmpty()) {
             return;
         }
 
         double cellPadding = RepeatingElementsTable.CELL_PADDING;
-
-        // Size the name column to the widest visible name portion. Names always
-        // win over values: calculateColumnWidths() guarantees the column is at
-        // least CELL_PADDING * 2 + max(subRowNameColumnWidth), so names are never
-        // truncated; values get the remaining width and may be ellipsized.
-        double cellNameColWidth = 0;
-        for (FlatRow row : visibleCellRows) {
-            cellNameColWidth = Math.max(cellNameColWidth,
-                    RepeatingElementsTable.subRowNameColumnWidth(row, GridMetrics.estimated()));
-        }
-        // Safety net only — inert while the sizing guarantee above holds.
-        cellNameColWidth = Math.min(cellNameColWidth, cellWidth - cellPadding * 2);
+        double cellNameColWidth = layout.nameColumnWidth();
 
         // Draw tree connection lines within cell
-        drawCellTreeLines(visibleCellRows, cellX + cellPadding, cellY);
+        drawCellTreeLines(layout, cellX + cellPadding, cellY);
 
         // Draw each visible sub-row
         for (int i = 0; i < visibleCellRows.size(); i++) {
             FlatRow row = visibleCellRows.get(i);
-            double rowY = cellY + i * RepeatingElementsTable.ROW_HEIGHT;
-            double rowCenterY = rowY + RepeatingElementsTable.ROW_HEIGHT / 2;
+            double rowY = cellY + layout.subRowTops()[i];
+            double rowHeight = layout.subRowHeight(i);
+            double rowCenterY = rowY + ROW_HEIGHT / 2;
 
             double contentX = cellX + cellPadding + row.getDepth() * INDENT;
 
@@ -1306,40 +1368,37 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             double iconX = contentX + (row.isExpandable() ? EXPAND_BAR_WIDTH : 0);
             drawRowIcon(row, iconX, rowCenterY);
 
-            // Draw label
+            // Draw label (never truncated: the column reserves the full name portion)
             double labelX = iconX + ICON_AREA_WIDTH;
             gc.setFont(ROW_FONT);
             gc.setFill(getRowLabelColor(row.getType()));
             gc.setTextAlign(TextAlignment.LEFT);
             gc.setTextBaseline(VPos.CENTER);
             if (row.getLabel() != null) {
-                double availLabel = cellNameColWidth - row.getDepth() * INDENT
-                        - ICON_AREA_WIDTH - (row.isExpandable() ? EXPAND_BAR_WIDTH : 0);
-                gc.fillText(truncateText(row.getLabel(), availLabel), labelX, rowCenterY);
+                gc.fillText(row.getLabel(), labelX, rowCenterY);
             }
 
             // Draw child count for expandable elements
             if (row.isExpandable()) {
                 gc.setFont(SMALL_FONT);
                 gc.setFill(TEXT_SECONDARY);
-                double afterLabel = labelX + (row.getLabel() != null ? row.getLabel().length() * CHAR_WIDTH : 0) + 4;
+                double afterLabel = labelX + (row.getLabel() != null ? metrics.width(row.getLabel(), GridFont.ROW) : 0)
+                        + GridMetrics.CHILD_COUNT_GAP;
                 gc.fillText("(" + row.getChildCount() + ")", afterLabel, rowCenterY);
             }
 
-            // Draw value
+            // Draw value (wrapped)
             double valueX = cellX + cellPadding + cellNameColWidth;
             if (row.getValue() != null) {
                 gc.setFont(ROW_FONT);
                 gc.setFill(getRowValueColor(row.getType()));
-                double availValue = cellWidth - cellPadding * 2 - cellNameColWidth;
-                gc.fillText(truncateText(row.getValue(), availValue), valueX, rowCenterY);
+                drawTextBlock(layout.subRowBlocks().get(i), valueX, rowCenterY);
             }
 
             // Row separator
             gc.setStroke(ROW_SEPARATOR);
             gc.setLineWidth(0.3);
-            gc.strokeLine(cellX + cellPadding, rowY + RepeatingElementsTable.ROW_HEIGHT,
-                    cellX + cellWidth - cellPadding, rowY + RepeatingElementsTable.ROW_HEIGHT);
+            gc.strokeLine(cellX + cellPadding, rowY + rowHeight, cellX + cellWidth - cellPadding, rowY + rowHeight);
         }
     }
 
@@ -1375,14 +1434,15 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
      * Draws tree connection lines for visible sub-rows within a cell.
      * Connects child rows to their parent with horizontal branch lines.
      *
-     * @param visibleCellRows the visible sub-rows in the cell
-     * @param baseX           the X offset for tree line calculations
-     * @param baseY           the Y coordinate where the first sub-row starts
+     * @param layout the cell layout (visible sub-rows and their tops)
+     * @param baseX  the X offset for tree line calculations
+     * @param baseY  the Y coordinate where the first sub-row starts
      */
-    private void drawCellTreeLines(List<FlatRow> visibleCellRows, double baseX, double baseY) {
+    private void drawCellTreeLines(RepeatingElementsTable.CellLayout layout, double baseX, double baseY) {
         gc.setStroke(TREE_LINE_COLOR);
         gc.setLineWidth(0.5);
 
+        List<FlatRow> visibleCellRows = layout.visibleSubRows();
         for (int i = 0; i < visibleCellRows.size(); i++) {
             FlatRow row = visibleCellRows.get(i);
             FlatRow parent = row.getParentRow();
@@ -1390,8 +1450,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                 continue; // Skip rows whose parent is the virtual root
             }
 
-            double rowY = baseY + i * RepeatingElementsTable.ROW_HEIGHT
-                    + RepeatingElementsTable.ROW_HEIGHT / 2;
+            double rowY = baseY + layout.subRowTops()[i] + ROW_HEIGHT / 2;
             double parentBarX = baseX + parent.getDepth() * INDENT + EXPAND_BAR_WIDTH / 2;
             double iconX = baseX + row.getDepth() * INDENT
                     + (row.isExpandable() ? EXPAND_BAR_WIDTH : 0);
@@ -1466,24 +1525,20 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                     RepeatingElementsTable.TableColumn col = table.getColumn(colIdx);
                     if (col != null && row.isColumnExpanded(col.getName())) {
                         List<FlatRow> cellRows = row.getExpandedCellRows(col.getName());
-                        List<FlatRow> visibleCellRows = cellRows.stream()
-                                .filter(FlatRow::isVisible).toList();
+                        RepeatingElementsTable.CellLayout layout = table.getCellLayout(row, col.getName());
 
-                        // Calculate Y of this row's top edge
+                        // Y of this row's top edge, then of the sub-row area below the summary
                         double dataStartY = tableScreenTop + RepeatingElementsTable.HEADER_HEIGHT
                                 + RepeatingElementsTable.ROW_HEIGHT;
-                        double rowTopY = dataStartY;
-                        for (int i = 0; i < rowIdx; i++) {
-                            rowTopY += table.calculateRowHeight(table.getRows().get(i));
-                        }
-                        double subRowStartY = rowTopY + RepeatingElementsTable.ROW_HEIGHT; // after summary
+                        double rowTopY = dataStartY + table.getRowTop(rowIdx);
+                        double subRowStartY = rowTopY + layout.summaryHeight();
                         double cellLeft = table.getColumnX(col.getName());
                         double cellPad = RepeatingElementsTable.CELL_PADDING;
 
                         // Determine which sub-row was clicked
-                        int subRowIdx = (int) ((my - subRowStartY) / RepeatingElementsTable.ROW_HEIGHT);
-                        if (subRowIdx >= 0 && subRowIdx < visibleCellRows.size()) {
-                            FlatRow subRow = visibleCellRows.get(subRowIdx);
+                        int subRowIdx = layout.subRowIndexAt(my - subRowStartY);
+                        if (subRowIdx >= 0) {
+                            FlatRow subRow = layout.visibleSubRows().get(subRowIdx);
 
                             // Check if click is on this sub-row's expand indicator
                             if (subRow.isExpandable()) {
@@ -1580,19 +1635,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
      */
     private int getTableRowIndexAtScreenY(RepeatingElementsTable table, double screenY, double tableScreenTop) {
         double dataStartY = tableScreenTop + RepeatingElementsTable.HEADER_HEIGHT + RepeatingElementsTable.ROW_HEIGHT;
-        if (screenY < dataStartY) {
-            return -1;
-        }
-
-        double currentY = dataStartY;
-        for (int i = 0; i < table.getRows().size(); i++) {
-            double rowHeight = table.calculateRowHeight(table.getRows().get(i));
-            if (screenY >= currentY && screenY < currentY + rowHeight) {
-                return i;
-            }
-            currentY += rowHeight;
-        }
-        return -1;
+        return table.getRowIndexAtDataOffset(screenY - dataStartY);
     }
 
     /**
@@ -1619,13 +1662,10 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
         String currentValue = row.getValue(columnName);
 
-        // Calculate cell position (using cumulative row heights)
+        // Calculate cell position (using the table's cached row tops)
         double cellX = table.getColumnX(columnName) - scrollOffsetX;
         double dataStartY = tableScreenTop + RepeatingElementsTable.HEADER_HEIGHT + RepeatingElementsTable.ROW_HEIGHT;
-        double cellY = dataStartY;
-        for (int i = 0; i < rowIndex; i++) {
-            cellY += table.calculateRowHeight(table.getRows().get(i));
-        }
+        double cellY = dataStartY + table.getRowTop(rowIndex);
         double cellWidth = col.getWidth();
 
         GridModelAdapter.EditSpec spec = adapter.cellEditSpec(table, rowIndex, columnName);
@@ -1660,17 +1700,6 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             case JSON_NULL -> TEXT_JSON_NULL;
             default -> TEXT_CONTENT;
         };
-    }
-
-    private String truncateText(String text, double maxWidth) {
-        if (text == null) {
-            return "";
-        }
-        int maxChars = (int) (maxWidth / CHAR_WIDTH);
-        if (text.length() <= maxChars) {
-            return text;
-        }
-        return text.substring(0, Math.max(0, maxChars - 3)) + "...";
     }
 
     // ==================== Event Handlers ====================
@@ -1766,7 +1795,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             FlatRow tableOwner = visibleRows.get(rowIndex);
             if (tableOwner.hasRepeatingTable() && tableOwner.isExpanded()) {
                 double rowScreenY = rowYPositions[rowIndex] - scrollOffsetY;
-                double tableTop = rowScreenY + ROW_HEIGHT;
+                double tableTop = rowScreenY + ownRowHeight(tableOwner);
                 RepeatingElementsTable table = tableOwner.getRepeatingTable();
                 double tableBottom = tableTop + table.getHeight();
                 if (my >= tableTop && my < tableBottom) {
@@ -1868,7 +1897,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             FlatRow tableOwner = visibleRows.get(rowIndex);
             if (tableOwner.hasRepeatingTable() && tableOwner.isExpanded()) {
                 double rowScreenY = rowYPositions[rowIndex] - scrollOffsetY;
-                double tableTop = rowScreenY + ROW_HEIGHT;
+                double tableTop = rowScreenY + ownRowHeight(tableOwner);
                 RepeatingElementsTable table = tableOwner.getRepeatingTable();
                 double tableBottom = tableTop + table.getHeight();
                 if (my >= tableTop && my < tableBottom) {
@@ -1958,19 +1987,14 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
             if (!row.isExpanded()) {
                 // Collapsed: just check the element's own row
-                if (absoluteY >= rowY && absoluteY < rowY + ROW_HEIGHT) {
+                if (absoluteY >= rowY && absoluteY < rowY + rowHeights[i]) {
                     return row;
                 }
             } else {
                 // Expanded: check the full bar range
                 int lastDescIdx = findLastVisibleDescendantIndex(row, i);
                 double barTop = rowY;
-                double barBottom = rowYPositions[lastDescIdx] + ROW_HEIGHT;
-                // Also account for table height on the last descendant
-                FlatRow lastDesc = visibleRows.get(lastDescIdx);
-                if (lastDesc.hasRepeatingTable() && lastDesc.isExpanded()) {
-                    barBottom += lastDesc.getRepeatingTable().getHeight();
-                }
+                double barBottom = rowYPositions[lastDescIdx] + rowHeights[lastDescIdx];
 
                 if (absoluteY >= barTop && absoluteY < barBottom) {
                     return row;
@@ -2153,7 +2177,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         }
 
         double rowTop = rowYPositions[idx];
-        double rowBottom = rowTop + ROW_HEIGHT;
+        double rowBottom = rowTop + ownRowHeight(row);
         double viewTop = scrollOffsetY;
         double viewBottom = viewTop + canvas.getHeight();
 
@@ -2235,7 +2259,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     private void createEditField(GridModelAdapter.EditSpec spec, double x, double y, double width) {
         String currentValue = spec.currentValue();
         // Calculate minimum width based on content
-        double contentBasedWidth = (currentValue != null ? currentValue.length() : 0) * 8 + 30;
+        double contentBasedWidth = metrics.width(currentValue, GridFont.ROW) + 30;
         double effectiveWidth = Math.max(width, Math.max(contentBasedWidth, 120));
 
         // Type-aware widget supplied by the adapter (schema-driven for XML, type-driven for JSON)
@@ -2577,6 +2601,43 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                 }
             }
         }
+    }
+
+    // ==================== Layout introspection (tests) ====================
+
+    /** @return the currently visible rows, in draw order (test hook) */
+    List<FlatRow> visibleRowList() {
+        return visibleRows;
+    }
+
+    /** @return the laid-out value text of a row, or {@code null} (test hook) */
+    TextBlock valueBlockOf(FlatRow row) {
+        return row.getValueBlock();
+    }
+
+    /** @return the total height of visible row {@code i} incl. its inline table (test hook) */
+    double rowHeightAt(int i) {
+        return rowHeights[i];
+    }
+
+    /** @return the top offset of visible row {@code i} in content space (test hook) */
+    double rowTopAt(int i) {
+        return rowYPositions[i];
+    }
+
+    /** @return the scrollable content width in unscaled pixels (test hook) */
+    double contentWidth() {
+        return totalWidth;
+    }
+
+    /** @return the scrollable content height in unscaled pixels (test hook) */
+    double contentHeight() {
+        return totalHeight;
+    }
+
+    /** @return the x where the value column starts (test hook) */
+    double nameColumnWidthValue() {
+        return nameColumnWidth;
     }
 
     // ==================== Search (XmlSearchTarget) ====================

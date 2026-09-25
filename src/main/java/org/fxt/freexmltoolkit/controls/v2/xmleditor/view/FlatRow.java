@@ -171,6 +171,22 @@ public class FlatRow {
      */
     private int attributeIndex = -1;
 
+    /**
+     * The measured, wrapped value text as laid out by the canvas (transient view state;
+     * rows are rebuilt on every model change, so no invalidation is needed).
+     */
+    private TextBlock valueBlock;
+
+    /** @return the canvas' laid-out value text, or {@code null} before layout */
+    public TextBlock getValueBlock() {
+        return valueBlock;
+    }
+
+    /** @param valueBlock the laid-out value text */
+    public void setValueBlock(TextBlock valueBlock) {
+        this.valueBlock = valueBlock;
+    }
+
     // ==================== Constructor ====================
 
     /**
