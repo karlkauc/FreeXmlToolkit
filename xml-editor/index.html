@@ -2913,7 +2913,13 @@ is active - see <a href="../unified-shell/#query-documents-the-target-selector">
 <ul>
 <li><strong>Table View</strong>: Edit XML data in a spreadsheet-like interface</li>
 <li><strong>Header Strip</strong>: A header at the top ("Grid view · nested · repeating elements as embedded
-  grids") with a <strong>Collapse all</strong> button that folds every container at once</li>
+  grids") with the zoom pill (<code>− 100% +</code>) and <strong>Expand all</strong> / <strong>Collapse all</strong> buttons</li>
+<li><strong>Nothing Cut Off</strong>: Cells grow to their content and long values wrap onto further lines
+  (the row grows) instead of being shortened with "…"</li>
+<li><strong>Zoom</strong>: <code>Ctrl</code>+mouse wheel or <code>Ctrl</code> <code>+</code> / <code>Ctrl</code> <code>−</code> zoom the whole grid (50-300 %),
+  <code>Ctrl</code> <code>0</code> resets; the factor is remembered across files and restarts</li>
+<li><strong>Column Widths</strong>: Drag a separator in an embedded grid's column-header row to resize a
+  column (text re-wraps); double-click the separator to return to automatic sizing</li>
 <li><strong>Value Markers</strong>: Rows with a simple value are marked with <code>{}</code>; collapsed containers show a
   "collapsed" hint</li>
 <li><strong>Direct Cell Editing</strong>: Click cells to edit values directly</li>
@@ -3289,7 +3295,11 @@ into the query panel or the <a href="../unified-shell/#query-console">Query Cons
 </tr>
 <tr>
 <td>Ctrl+mouse wheel</td>
-<td>Zoom the editor font (Ctrl+0 resets)</td>
+<td>Zoom the editor font in the Text view, the whole grid in the Graphic view (Ctrl+0 resets)</td>
+</tr>
+<tr>
+<td>Ctrl++ / Ctrl+-</td>
+<td>Graphic view: zoom the grid in / out</td>
 </tr>
 <tr>
 <td>F8</td>

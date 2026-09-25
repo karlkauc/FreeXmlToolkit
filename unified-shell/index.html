@@ -4221,7 +4221,19 @@ when you switch views.</p>
 shows the editable grid:</p>
 <ul>
 <li>A <strong>header strip</strong> at the top reads <em>"Grid view · nested · repeating elements as embedded
-  grids"</em> and offers a <strong>Collapse all</strong> button that folds every container at once.</li>
+  grids"</em> and offers the <strong>zoom pill</strong> (<code>− 100% +</code>), <strong>Expand all</strong> and <strong>Collapse all</strong>
+  buttons that unfold or fold every container at once.</li>
+<li><strong>Nothing is cut off.</strong> Cells and rows take the width their content needs; long values
+  <strong>wrap</strong> onto further lines (the row grows) instead of being shortened with "…". Very wide
+  content is reached with the horizontal scrollbar (Shift+wheel).</li>
+<li><strong>Zoom</strong> the whole grid - text, rows, icons and embedded tables - with <strong>Ctrl+mouse wheel</strong>,
+  <strong>Ctrl +</strong> / <strong>Ctrl −</strong> (10 % steps, 50-300 %) or the <code>−</code>/<code>+</code> buttons; <strong>Ctrl 0</strong> or a
+  click on the percentage resets to 100 %. The zoom factor is remembered across files, XML
+  and JSON grids and restarts.</li>
+<li><strong>Column widths</strong> in embedded grids size themselves to their content; drag a column
+  separator in the column-header row to resize a column (text re-wraps to the new width),
+  and <strong>double-click the separator</strong> to return to automatic sizing. Dragged widths survive
+  edits and undo.</li>
 <li>Rows with a simple value are marked with a <strong><code>{}</code></strong> marker so you can tell value rows from
   containers at a glance.</li>
 <li><strong>Attributes always show</strong> as <code>@name</code> rows directly beneath their element - also while the
