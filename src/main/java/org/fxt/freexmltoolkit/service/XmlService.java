@@ -216,22 +216,52 @@ public interface XmlService {
             // Remove whitespace-only text nodes to ensure clean formatting
             normalizeWhitespace(doc.getDocumentElement());
 
-            // Now transform with indentation
-            Transformer transformer = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureTransformerFactory().newTransformer();
+            // Now transform with indentation. The XML declaration is written by hand: the
+            // JDK serializer would glue the root start tag onto the declaration's line.
+            Transformer transformer = prettyPrintTransformerFactory().newTransformer();
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
             transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", String.valueOf(indent));
-            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
+            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
             transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
 
             DOMSource source = new DOMSource(doc);
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             StreamResult res = new StreamResult(outputStream);
             transformer.transform(source, res);
-            return outputStream.toString("UTF-8");
+            String body = outputStream.toString("UTF-8").stripLeading();
+            String version = doc.getXmlVersion() != null ? doc.getXmlVersion() : "1.0";
+            String standalone = doc.getXmlStandalone() ? " standalone=\"yes\"" : "";
+            return "<?xml version=\"" + version + "\" encoding=\"UTF-8\"" + standalone + "?>\n" + body;
         } catch (Exception e) {
             logger.error("Error formatting XML: {}", e.getMessage());
             return input;
         }
+    }
+
+    /**
+     * The JDK's built-in (Xalan XSLTC) transformer factory for pretty-printing: it honours
+     * {@code indent-amount} and keeps every start tag on one line. The default factory on
+     * the classpath is Saxon-HE, which ignores {@code indent-amount} (always 3 spaces) and
+     * wraps start tags longer than 80 characters onto several attribute lines; its own
+     * {@code saxon:indent-spaces} / {@code saxon:line-length} parameters are PE/EE-only.
+     * Falls back to the secure default factory should the JDK class be unavailable.
+     */
+    private static javax.xml.transform.TransformerFactory prettyPrintTransformerFactory() {
+        javax.xml.transform.TransformerFactory factory;
+        try {
+            factory = javax.xml.transform.TransformerFactory.newInstance(
+                    "com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl", null);
+        } catch (javax.xml.transform.TransformerFactoryConfigurationError e) {
+            return org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureTransformerFactory();
+        }
+        try {
+            factory.setFeature(javax.xml.XMLConstants.FEATURE_SECURE_PROCESSING, true);
+            factory.setAttribute(javax.xml.XMLConstants.ACCESS_EXTERNAL_DTD, "");
+            factory.setAttribute(javax.xml.XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
+        } catch (Exception e) {
+            LogManager.getLogger(XmlService.class).debug("Pretty-print factory security setup: {}", e.getMessage());
+        }
+        return factory;
     }
 
     /**
