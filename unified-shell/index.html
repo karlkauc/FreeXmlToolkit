@@ -4829,9 +4829,12 @@ the panel's <strong>Preview</strong> view.</p>
 <h2 id="explorer-panel">Explorer Panel<a class="headerlink" href="#explorer-panel" title="Permanent link">&para;</a></h2>
 <p>Open the <strong>Explorer</strong> panel from the activity bar to manage files.</p>
 <ul>
-<li><strong>Header actions</strong> (top right): New file, Open folder, Refresh workspace, and a ⋮ menu
-  with <strong>Open file…</strong> and <strong>Clear recent</strong>. <strong>New file</strong> opens the same guided
-  <a href="#new-file-dialog">New File dialog</a> as the toolbar's <strong>New</strong> button.</li>
+<li><strong>Header actions</strong> (top right): New file, Open folder, Refresh workspace. <strong>New file</strong>
+  opens the same guided <a href="#new-file-dialog">New File dialog</a> as the toolbar's <strong>New</strong> button.</li>
+<li><strong>TOOLS</strong> - a collapsible section directly below the header with the three file pickers
+  (stylesheet, XSD, Schematron - see the sections below), each followed by its labelled
+  action row, plus the <strong>Open file…</strong> and <strong>Clear recent</strong> rows. There is no hidden ⋮
+  menu: every Explorer action is a visible row with icon and name.</li>
 <li><strong>OPEN EDITORS</strong> - one row per open document. The <strong>active document is highlighted</strong>
   (blue, bold) and unsaved documents show a <strong>dot</strong> on the right. Click a row to switch to
   that document.</li>
@@ -4852,10 +4855,10 @@ the panel's <strong>Preview</strong> view.</p>
 <p>Run an XSLT stylesheet against XML files straight from the Explorer,
 without switching to the Transform activity.</p>
 </blockquote>
-<p>A small <strong>Transform bar</strong> sits directly below the <strong>EXPLORER</strong> header. It lets you keep a
+<p>The first block of the <strong>TOOLS</strong> section is the <strong>Transform</strong> block. It lets you keep a
 stylesheet fixed and apply it to whichever XML file you pick in the tree - ideal for repeatedly
 running the same evaluation, dashboard, or data-quality stylesheet across many files.</p>
-<p>The bar has two controls:</p>
+<p>The block has two controls:</p>
 <ul>
 <li>
 <p><strong>Stylesheet picker</strong> - a dropdown (file-code icon) labelled <strong>"Stylesheet…"</strong> until you choose
@@ -4869,8 +4872,8 @@ running the same evaluation, dashboard, or data-quality stylesheet across many f
 manager directly onto the picker - it becomes the current stylesheet and joins the
 recent list, just like choosing it from the menu. The picker glows <strong>green</strong> while a
 loadable file hovers over it and <strong>red</strong> for a wrong file type (which is rejected).
-- <strong>Transform</strong> button (play icon) - runs the chosen stylesheet against your selected XML file(s).
-  Tooltip: <em>"Transform selected XML file(s) with the current stylesheet"</em>.</p>
+- <strong>Transform selected file(s)</strong> row (play icon) - runs the chosen stylesheet against your
+  selected XML file(s). Tooltip: <em>"Transform selected XML file(s) with the current stylesheet"</em>.</p>
 </li>
 </ul>
 <p>The chosen stylesheet is <strong>sticky</strong> and is <strong>shared with the <a href="#transform-panel">Transform panel</a></strong>:
@@ -4891,7 +4894,7 @@ select several files at once.</p>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
 <p>Primary workflow: choose your stylesheet once, then just switch the selected XML file in the
-tree and click <strong>Transform</strong> again - the stylesheet stays put. For output-format overrides,
+tree and click <strong>Transform selected file(s)</strong> again - the stylesheet stays put. For output-format overrides,
 parameters, watch-and-rerun, and the result table, use the full
 <a href="#transform-panel">Transform panel</a>.</p>
 </div>
@@ -4900,8 +4903,8 @@ parameters, watch-and-rerun, and the result table, use the full
 <p>See - and change - the XSD schema bound to the active document without leaving
 the Explorer; switching the schema re-validates immediately.</p>
 </blockquote>
-<p>An <strong>XSD bar</strong> sits between the Transform bar and the Schematron bar. Unlike the two
-sticky pickers around it, the <strong>XSD picker</strong> (file-code icon) always mirrors the
+<p>The <strong>XSD picker</strong> sits between the Transform and Schematron blocks of the TOOLS section.
+Unlike the two sticky pickers around it, the <strong>XSD picker</strong> (file-code icon) always mirrors the
 <strong>active document</strong>: it shows the name of the schema currently bound to it - whether
 that binding came from an <code>xsi:schemaLocation</code> declaration, the Schema Library, or a
 manual choice - and reads <strong>"XSD…"</strong> while the document has no schema. Switching tabs
@@ -4924,10 +4927,10 @@ pressing <strong>F8</strong>. The recent-XSD list is shared across documents and
 <p>Validate XML files against a Schematron straight from the
 Explorer, without switching to the Validation activity first.</p>
 </blockquote>
-<p>A <strong>Schematron bar</strong> sits directly below the XSD bar. It keeps one Schematron
-fixed and validates whichever XML file(s) you pick in the tree - ideal for repeatedly
-checking many files against the same rule set.</p>
-<p>The bar has two controls:</p>
+<p>The <strong>Schematron</strong> block sits directly below the XSD picker in the TOOLS section. It keeps
+one Schematron fixed and validates whichever XML file(s) you pick in the tree - ideal for
+repeatedly checking many files against the same rule set.</p>
+<p>The block has two controls:</p>
 <ul>
 <li>
 <p><strong>Schematron picker</strong> - a dropdown (checks-grid icon) labelled <strong>"Schematron…"</strong> until you
@@ -4944,13 +4947,13 @@ file manager directly onto the picker - it becomes the current Schematron and jo
 the recent list, just like choosing it from the menu. The picker glows <strong>green</strong>
 while a loadable file hovers over it and <strong>red</strong> for a wrong file type (which is
 rejected).
-- <strong>Validate</strong> button (play icon) - validates your selected XML file(s) against the chosen
-  Schematron. Tooltip: <em>"Validate selected XML file(s) with the current Schematron"</em>.</p>
+- <strong>Validate with Schematron</strong> row (play icon) - validates your selected XML file(s) against
+  the chosen Schematron. Tooltip: <em>"Validate selected XML file(s) with the current Schematron"</em>.</p>
 </li>
 </ul>
 <p>Picking a Schematron also <strong>binds it to the active document</strong>, so the
 <a href="#validation-panel">Validation panel</a> and live validation use it too. Clicking
-<strong>Validate</strong> switches to the <strong>Validation</strong> activity and shows the result there:
+<strong>Validate with Schematron</strong> switches to the <strong>Validation</strong> activity and shows the result there:
 a single active document runs through the normal single-file flow (problems list,
 detailed Schematron report), a multi-file tree selection through the <strong>batch</strong> flow
 with one RESULTS row per file. With no tree selection, the active editor document
