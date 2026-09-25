@@ -87,19 +87,26 @@ final class PanelActionList extends VBox {
 
     /**
      * A single action row outside a list (e.g. the "Change" button of a {@link SourceRow}
-     * or "Add parameter" below a form). Same look and size stability, compact height.
+     * or "Add parameter" below a form). Same look and size stability, compact height;
+     * {@code iconLiteral} may be {@code null} where horizontal space is scarce.
      */
     static Button inlineRow(String label, String iconLiteral, Runnable onAction) {
         Button button = row(label, iconLiteral, onAction);
         button.getStyleClass().add(INLINE_STYLE_CLASS);
+        // Never shrink below the label: in a crowded SourceRow the file name ellipsises
+        // first, the action verb stays legible.
+        button.setMinWidth(Region.USE_PREF_SIZE);
         button.setMaxWidth(Region.USE_PREF_SIZE);
         return button;
     }
 
     private static Button row(String label, String iconLiteral, Runnable onAction) {
-        IconifyIcon icon = new IconifyIcon(iconLiteral);
-        icon.setIconSize(ICON_SIZE);
-        Button button = new Button(label, icon);
+        Button button = new Button(label);
+        if (iconLiteral != null) {
+            IconifyIcon icon = new IconifyIcon(iconLiteral);
+            icon.setIconSize(ICON_SIZE);
+            button.setGraphic(icon);
+        }
         button.getStyleClass().add(ROW_STYLE_CLASS);
         button.setMaxWidth(Double.MAX_VALUE);
         button.setAlignment(Pos.CENTER_LEFT);

@@ -2866,7 +2866,7 @@
    header. Rows have a FIXED height and every state rule restates the base geometry, so a
    row never moves or grows on hover / press / focus (guarded by ShellCssStabilityTest). */
 .fxt-action-list {
-    -fx-padding: 0 8 4 8;
+    -fx-padding: 0 6 4 6;
     -fx-spacing: 1;
 }
 
@@ -2877,7 +2877,7 @@
     -fx-border-color: transparent;
     -fx-border-width: 1;
     -fx-border-radius: 6;
-    -fx-padding: 0 8 0 10;
+    -fx-padding: 0 6 0 8;
     -fx-pref-height: 28;
     -fx-min-height: 28;
     -fx-max-height: 28;
@@ -2907,7 +2907,7 @@
 .fxt-action-row:pressed {
     -fx-background-color: -fxt-bg-surface-2;
     -fx-background-insets: 0;
-    -fx-padding: 0 8 0 10;
+    -fx-padding: 0 6 0 8;
 }
 
 /* Keyboard focus ring: the transparent 1px border of the base rule turns primary, so the
@@ -2939,7 +2939,8 @@
     -fx-background-color: derive(-fxt-primary, -18%);
 }
 
-/* Compact single row next to a form field or in a source row ("Change", "Add parameter"). */
+/* Compact single row next to a form field or in a source row ("Change", "Add parameter").
+   Always outlined, so a text-only "Change" still reads as a button, not a link. */
 .fxt-action-row-inline {
     -fx-pref-height: 22;
     -fx-min-height: 22;
@@ -2947,6 +2948,11 @@
     -fx-padding: 0 6 0 6;
     -fx-font-size: 11.5px;
     -fx-text-fill: -fxt-primary;
+    -fx-border-color: -fxt-border;
+}
+
+.fxt-action-row-inline:hover {
+    -fx-border-color: -fxt-primary;
 }
 
 .fxt-action-row-inline:armed,

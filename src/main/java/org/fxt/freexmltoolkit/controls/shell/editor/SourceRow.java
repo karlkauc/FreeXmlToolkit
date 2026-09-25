@@ -26,7 +26,10 @@ final class SourceRow extends HBox {
         icon.setIconSize(15);
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-        change = PanelActionList.inlineRow("Change", "bi-folder2-open", changeAction);
+        // Text-only: the row already carries the file-type icon and up to five extras
+        // (favourites, browse arrows), so the button must stay narrow; its outline keeps
+        // it recognisable as a button.
+        change = PanelActionList.inlineRow("Change", null, changeAction);
         getChildren().addAll(icon, nameLabel, spacer);
         getChildren().addAll(extras);
         getChildren().add(change);
