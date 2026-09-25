@@ -6,6 +6,8 @@ import java.util.Objects;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.Labeled;
+import javafx.scene.control.MenuButton;
 import javafx.scene.control.OverrunStyle;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.Region;
@@ -28,6 +30,7 @@ final class PanelActionList extends VBox {
     static final String ROW_STYLE_CLASS = "fxt-action-row";
     static final String PRIMARY_STYLE_CLASS = "fxt-action-row-primary";
     static final String INLINE_STYLE_CLASS = "fxt-action-row-inline";
+    static final String MENU_STYLE_CLASS = "fxt-action-row-menu";
     private static final int ICON_SIZE = 15;
 
     PanelActionList(PanelAction... actions) {
@@ -58,6 +61,25 @@ final class PanelActionList extends VBox {
         return button;
     }
 
+    /**
+     * Appends a drop-down row: the given {@link MenuButton} styled like an action row
+     * (icon · label · ▾), for choices such as "Saved Queries" or "Examples". The caller
+     * keeps ownership of the menu's items.
+     */
+    MenuButton addMenu(MenuButton menu, String id, String iconLiteral, String label) {
+        IconifyIcon icon = new IconifyIcon(iconLiteral);
+        icon.setIconSize(ICON_SIZE);
+        menu.setGraphic(icon);
+        menu.setText(label);
+        menu.setId(id);
+        menu.getStyleClass().addAll(ROW_STYLE_CLASS, MENU_STYLE_CLASS);
+        menu.setMaxWidth(Double.MAX_VALUE);
+        menu.setAlignment(Pos.CENTER_LEFT);
+        menu.setMnemonicParsing(false);
+        getChildren().add(menu);
+        return menu;
+    }
+
     /** @return the row button with the given id, or {@code null} */
     Button button(String id) {
         for (var child : getChildren()) {
@@ -71,8 +93,8 @@ final class PanelActionList extends VBox {
     /** @return the row labels in display order (for tests/observers) */
     List<String> labels() {
         return getChildren().stream()
-                .filter(n -> n instanceof Button)
-                .map(n -> ((Button) n).getText())
+                .filter(n -> n instanceof Labeled)
+                .map(n -> ((Labeled) n).getText())
                 .toList();
     }
 

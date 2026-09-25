@@ -222,9 +222,9 @@ class TransformPanelTest {
         boolean hasSave = WaitForAsyncUtils.waitForAsyncFx(2000, () -> panel.lookupAll(".button").stream()
                 .anyMatch(n -> n instanceof javafx.scene.control.Button b && "Save Query".equals(b.getText())));
         boolean hasSaved = WaitForAsyncUtils.waitForAsyncFx(2000, () -> panel.lookupAll(".menu-button").stream()
-                .anyMatch(n -> n instanceof javafx.scene.control.MenuButton b && "Saved".equals(b.getText())));
+                .anyMatch(n -> n instanceof javafx.scene.control.MenuButton b && "Saved Queries".equals(b.getText())));
         assertTrue(hasSave, "panel must offer a 'Save Query' action");
-        assertTrue(hasSaved, "panel must offer a 'Saved' queries menu");
+        assertTrue(hasSaved, "panel must offer a 'Saved Queries' menu row");
     }
 
     @Test

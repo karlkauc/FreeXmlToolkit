@@ -585,12 +585,13 @@ The result appears in the **OUTPUT panel** below the editor - see
 
 Two further sections, **collapsed by default**, run queries against the transform input:
 
-- **XPATH** - a query field with **Run**, **Save Query** (store the current expression
-  under a name), and a **Saved** menu listing your saved queries (pick one to load it).
+- **XPATH** - a query field with the action rows **Run Query**, **Save Query** (store the
+  current expression under a name), and a **Saved Queries** drop-down listing your saved
+  queries (pick one to load it).
   When the active document is **JSON**, the section is titled **JSONPATH** and the field
   evaluates a JSONPath expression instead.
-- **XQUERY** - a multi-line query area with **Run XQuery** and an **Examples** menu
-  (Simple, FLWOR, HTML report, Data-quality check).
+- **XQUERY** - a multi-line query area with the **Run XQuery** row and an **Examples**
+  drop-down (Simple, FLWOR, HTML report, Data-quality check).
 
 Both inputs offer context-aware [autocomplete](#xpath-xquery-autocomplete). Query results
 appear in the same OUTPUT panel below the editor.
@@ -1756,7 +1757,7 @@ The Transform panel's query sections provide query management (the bottom
 [Query Console](#query-console) offers a lighter Save / Snippets pair instead):
 
 - **XPATH section** - **Save Query** stores the current expression under a name, and the
-  **Saved** menu lists every saved query. Each entry is a submenu
+  **Saved Queries** drop-down lists every saved query. Each entry is a submenu
   offering the same management actions as the Query Console's Snippets menu: **Load into
   query field**, **Open in editor**, **Overwrite with current query**, **Rename…** and
   **Delete…** (the latter three with the same confirmation/collision rules).

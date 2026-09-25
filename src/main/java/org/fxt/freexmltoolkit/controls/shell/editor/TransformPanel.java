@@ -192,18 +192,17 @@ public class TransformPanel extends VBox {
         // --- XPATH / JSONPATH (collapsed) -------------------------------------
         xpathField.getStyleClass().add("fxt-xpath-field");
         HBox.setHgrow(xpathField, Priority.ALWAYS);
-        Button runXPath = button("Run", "bi-lightning-charge", this::runXPath);
         xpathField.setOnAction(e -> runXPath());
         updatePathMode();
         editorHost.activeTabProperty().addListener((obs, oldV, newV) -> updatePathMode());
-        Button saveQuery = button("Save Query", "bi-save", this::saveCurrentQuery);
-        savedQueriesMenu = new MenuButton("Saved");
-        savedQueriesMenu.setGraphic(icon("bi-collection", 16));
-        savedQueriesMenu.getStyleClass().add("fxt-tool-button");
+        PanelActionList xpathActions = new PanelActionList(
+                PanelAction.of("transform-xpath-run", "bi-lightning-charge", "Run Query", this::runXPath)
+                        .asPrimary(),
+                PanelAction.of("transform-xpath-save", "bi-save", "Save Query", this::saveCurrentQuery));
+        savedQueriesMenu = new MenuButton();
         savedQueriesMenu.setOnShowing(e -> refreshSavedQueriesMenu());
-        VBox xpathBox = new VBox(6,
-                new HBox(6, xpathField, runXPath),
-                new HBox(6, saveQuery, savedQueriesMenu));
+        xpathActions.addMenu(savedQueriesMenu, "transform-xpath-saved", "bi-collection", "Saved Queries");
+        VBox xpathBox = new VBox(6, xpathField, xpathActions);
         xpathBox.getStyleClass().add("fxt-tp-section-body");
         HBox xpathHeader = SidePanelLayout.sectionHeader(true, pathLabel, xpathBox);
 
@@ -211,15 +210,16 @@ public class TransformPanel extends VBox {
         xqueryArea.setPromptText("for $x in /root/item return string($x)");
         xqueryArea.setPrefRowCount(4);
         xqueryArea.getStyleClass().add("fxt-xpath-field");
-        Button runXQuery = button("Run XQuery", "bi-braces", this::runXQuery);
-        MenuButton examplesMenu = new MenuButton("Examples");
-        examplesMenu.getStyleClass().add("fxt-tool-button");
+        PanelActionList xqueryActions = new PanelActionList(
+                PanelAction.of("transform-xquery-run", "bi-braces", "Run XQuery", this::runXQuery).asPrimary());
+        MenuButton examplesMenu = new MenuButton();
         examplesMenu.getItems().addAll(
                 exampleItem("Simple", "simple"),
                 exampleItem("FLWOR", "flwor"),
                 exampleItem("HTML report", "html"),
                 exampleItem("Data-quality check", "dq"));
-        VBox xqueryBox = new VBox(6, xqueryArea, new HBox(6, runXQuery, examplesMenu));
+        xqueryActions.addMenu(examplesMenu, "transform-xquery-examples", "bi-journal-code", "Examples");
+        VBox xqueryBox = new VBox(6, xqueryArea, xqueryActions);
         xqueryBox.getStyleClass().add("fxt-tp-section-body");
         HBox xqueryHeader = SidePanelLayout.sectionHeader(true, new Label("XQUERY"), xqueryBox);
 
@@ -1265,13 +1265,6 @@ public class TransformPanel extends VBox {
         IconifyIcon graphic = new IconifyIcon(literal);
         graphic.setIconSize(size);
         return graphic;
-    }
-
-    private Button button(String text, String icon, Runnable action) {
-        Button button = new Button(text, icon(icon, 16));
-        button.getStyleClass().add("fxt-tool-button");
-        button.setOnAction(e -> action.run());
-        return button;
     }
 
     /** A single editable XSLT parameter: name = value, with a remove action (mockup style). */

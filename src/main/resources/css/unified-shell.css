@@ -2939,6 +2939,31 @@
     -fx-background-color: derive(-fxt-primary, -18%);
 }
 
+/* Drop-down row (MenuButton styled as an action row): label text via the inner .label,
+   a themed ▾ arrow pinned to the right, and none of modena's menu-button chrome. */
+.fxt-action-row-menu > .label {
+    -fx-text-fill: -fxt-text-primary;
+    -fx-padding: 0;
+}
+
+.fxt-action-row-menu > .arrow-button {
+    -fx-padding: 0 0 0 6;
+}
+
+.fxt-action-row-menu > .arrow-button > .arrow {
+    -fx-background-color: -fxt-text-secondary;
+    -fx-padding: 3 4 3 4;
+}
+
+.fxt-action-row-menu:hover > .arrow-button > .arrow,
+.fxt-action-row-menu:showing > .arrow-button > .arrow {
+    -fx-background-color: -fxt-primary;
+}
+
+.fxt-action-row-menu:showing {
+    -fx-background-color: -fxt-bg-surface-2;
+}
+
 /* Compact single row next to a form field or in a source row ("Change", "Add parameter").
    Always outlined, so a text-only "Change" still reads as a button, not a link. */
 .fxt-action-row-inline {
