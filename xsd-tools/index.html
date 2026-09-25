@@ -3709,14 +3709,18 @@ its value. Open it from <strong>Generate Sample XML (Advanced)…</strong> in th
 </table>
 <p>For a complete guide with step-by-step instructions and examples, see <strong><a href="../profiled-xml-generation/">Profiled XML Generation</a></strong>.</p>
 <h3 id="validation">Validation<a class="headerlink" href="#validation" title="Permanent link">&para;</a></h3>
-<p>The generated sample opens as a normal editor tab (<code>Sample.xml</code>), so you can validate it
-like any other document:</p>
+<p>The generated sample opens as a normal editor tab (<code>Sample.xml</code>) that is already bound to
+the schema it was generated from, so you can validate it right away:</p>
 <ol>
-<li>Bind the schema if it is not picked up automatically (Validation panel → SOURCES, or the
-   status bar's XSD indicator)</li>
-<li>Click <strong>Validate</strong> (F8)</li>
+<li>Click <strong>Validate</strong> (F8) - the result is <em>Valid</em> or a list of problems, not merely
+   <em>Well-formed</em></li>
 <li>Problems appear in the PROBLEMS list - click one to jump to its line</li>
 </ol>
+<p>The sample's root element references the schema by file name
+(<code>xsi:noNamespaceSchemaLocation="FundsXML4.xsd"</code>, or the <code>xsi:schemaLocation</code> pair for a
+namespaced schema) rather than by an absolute <code>file:</code> path, so it can be moved and shared.
+Saving it for the first time into another folder rewrites the reference to a relative path
+(for example <code>../xsd/FundsXML4.xsd</code>), so it keeps resolving there - also in other tools.</p>
 <hr />
 <h2 id="8-xsd-flattener">8. XSD Flattener<a class="headerlink" href="#8-xsd-flattener" title="Permanent link">&para;</a></h2>
 <p>Combine multiple XSD files into a single, standalone file. Useful when your schema is split across several files via <code>&lt;xs:include&gt;</code>, or when you want a minimal schema for a validation server.</p>
