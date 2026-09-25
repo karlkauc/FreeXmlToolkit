@@ -7,6 +7,8 @@ import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.PauseTransition;
 import javafx.animation.Timeline;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.geometry.Orientation;
 import javafx.geometry.VPos;
 import javafx.scene.Cursor;
@@ -123,6 +125,22 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     private double scrollOffsetY = 0;
     private double totalHeight = 0;
     private double totalWidth = 0;
+
+    // ==================== Zoom ====================
+
+    /** Smallest zoom factor (50 %). */
+    public static final double ZOOM_MIN = 0.5;
+    /** Largest zoom factor (300 %). */
+    public static final double ZOOM_MAX = 3.0;
+    /** Zoom step for Ctrl +/- and Ctrl+wheel. */
+    public static final double ZOOM_STEP = 0.1;
+
+    /**
+     * The zoom factor applied to the whole grid (fonts, rows, icons, tables). All layout
+     * stays in unscaled model pixels; the factor is applied when drawing, when converting
+     * mouse coordinates and when placing the inline editor.
+     */
+    private final DoubleProperty zoom = new SimpleDoubleProperty(this, "zoom", 1.0);
 
     // ==================== Selection / Hover State ====================
 
@@ -404,8 +422,8 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     }
 
     private void updateScrollBars() {
-        double viewportWidth = canvas.getWidth();
-        double viewportHeight = canvas.getHeight();
+        double viewportWidth = viewportWidthModel();
+        double viewportHeight = viewportHeightModel();
 
         // Vertical scroll bar
         if (totalHeight <= viewportHeight) {
@@ -419,6 +437,9 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             vScrollBar.setVisibleAmount(viewportHeight);
             vScrollBar.setBlockIncrement(viewportHeight * 0.9);
             vScrollBar.setUnitIncrement(ROW_HEIGHT);
+            if (scrollOffsetY > vScrollBar.getMax()) {
+                vScrollBar.setValue(vScrollBar.getMax());
+            }
         }
 
         // Horizontal scroll bar
@@ -433,7 +454,76 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             hScrollBar.setVisibleAmount(viewportWidth);
             hScrollBar.setBlockIncrement(100);
             hScrollBar.setUnitIncrement(20);
+            if (scrollOffsetX > hScrollBar.getMax()) {
+                hScrollBar.setValue(hScrollBar.getMax());
+            }
         }
+    }
+
+    // ==================== Zoom API & coordinate conversion ====================
+
+    /** @return the zoom property (1.0 = 100 %) */
+    public DoubleProperty zoomProperty() {
+        return zoom;
+    }
+
+    /** @return the current zoom factor */
+    public double getZoom() {
+        return zoom.get();
+    }
+
+    /**
+     * Sets the zoom factor, clamped to [{@link #ZOOM_MIN}, {@link #ZOOM_MAX}] and rounded
+     * to a tenth. Cancels a running inline edit, keeps the scroll position (in model
+     * units) and re-renders.
+     *
+     * @param factor the new zoom factor
+     */
+    public void setZoom(double factor) {
+        double clamped = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, factor));
+        double rounded = Math.round(clamped * 10.0) / 10.0;
+        if (Math.abs(rounded - zoom.get()) < 0.0001) {
+            return;
+        }
+        cancelEditing();
+        zoom.set(rounded);
+        updateScrollBars();
+        render();
+    }
+
+    /** Zooms in by one {@link #ZOOM_STEP}. */
+    public void zoomIn() {
+        setZoom(getZoom() + ZOOM_STEP);
+    }
+
+    /** Zooms out by one {@link #ZOOM_STEP}. */
+    public void zoomOut() {
+        setZoom(getZoom() - ZOOM_STEP);
+    }
+
+    /** Resets the zoom to 100 %. */
+    public void zoomReset() {
+        setZoom(1.0);
+    }
+
+    /** @return the viewport width in unscaled model pixels */
+    private double viewportWidthModel() {
+        return canvas.getWidth() / getZoom();
+    }
+
+    /** @return the viewport height in unscaled model pixels */
+    private double viewportHeightModel() {
+        return canvas.getHeight() / getZoom();
+    }
+
+    /** @return the model-space x (scroll applied) for a canvas-relative screen x */
+    private double toModelX(double screenX) {
+        return screenX / getZoom() + scrollOffsetX;
+    }
+
+    /** @return the unscaled viewport y (scroll NOT applied) for a canvas-relative screen y */
+    private double toViewportY(double screenY) {
+        return screenY / getZoom();
     }
 
     // ==================== Tree Building ====================
@@ -570,7 +660,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         }
 
         totalHeight = currentY;
-        totalWidth = Math.max(maxWidth, canvas.getWidth());
+        totalWidth = maxWidth;
     }
 
     /** @return the height of the row's own lines (without an expanded inline table) */
@@ -612,7 +702,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         if (block == null) {
             return;
         }
-        double canvasBottom = canvas.getHeight() + LINE_HEIGHT;
+        double canvasBottom = viewportHeightModel() + LINE_HEIGHT;
         List<String> lines = block.lines();
         for (int k = 0; k < lines.size(); k++) {
             double y = firstLineCenterY + k * LINE_HEIGHT;
@@ -655,14 +745,16 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             return;
         }
 
-        // Calculate visible row range using Y positions
+        // Calculate visible row range using Y positions (viewport in model units)
         int firstVisible = findRowIndexAtY(scrollOffsetY);
-        int lastVisible = findRowIndexAtY(scrollOffsetY + h);
+        int lastVisible = findRowIndexAtY(scrollOffsetY + viewportHeightModel());
         if (firstVisible < 0) firstVisible = 0;
         if (lastVisible < 0 || lastVisible >= visibleRows.size()) lastVisible = visibleRows.size() - 1;
 
-        // Save and translate for scroll offset
+        // Save, apply the zoom, then translate for the horizontal scroll offset
         gc.save();
+        double z = getZoom();
+        gc.scale(z, z);
         gc.translate(-scrollOffsetX, 0);
 
         // Draw tree lines first (behind everything)
@@ -697,7 +789,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
      */
     private void drawRow(FlatRow row, int visibleIndex) {
         double y = rowYPositions[visibleIndex] - scrollOffsetY;
-        double w = Math.max(totalWidth, canvas.getWidth() + scrollOffsetX);
+        double w = Math.max(totalWidth, viewportWidthModel() + scrollOffsetX);
         double h = ownRowHeight(row);
 
         // -- Background --
@@ -792,7 +884,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             // Collapsed containers get a muted right-aligned "collapsed" hint with a faint
             // leader line (per the Figma "Graphic + Grid" mockup).
             if (!row.isExpanded()) {
-                double rightEdge = canvas.getWidth() + scrollOffsetX - 16;
+                double rightEdge = viewportWidthModel() + scrollOffsetX - 16;
                 double hintStart = countX + metrics.width(countText, GridFont.SMALL) + 18;
                 if (rightEdge - 70 > hintStart) {
                     gc.setStroke(ROW_SEPARATOR);
@@ -1725,13 +1817,27 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
         // Mouse wheel scrolling (vertical and horizontal)
         canvas.addEventHandler(ScrollEvent.SCROLL, e -> {
+            // Ctrl + wheel zooms (like the text editor and the XSD diagram)
+            if (e.isControlDown() || e.isShortcutDown()) {
+                if (e.getDeltaY() > 0) {
+                    zoomIn();
+                } else if (e.getDeltaY() < 0) {
+                    zoomOut();
+                }
+                e.consume();
+                return;
+            }
+
             boolean changed = false;
+            double z = getZoom();
+            double viewportW = viewportWidthModel();
+            double viewportH = viewportHeightModel();
 
             // Horizontal scrolling: Shift + scroll or trackpad horizontal gesture
             if (e.isShiftDown() || Math.abs(e.getDeltaX()) > Math.abs(e.getDeltaY())) {
-                if (totalWidth > canvas.getWidth()) {
-                    double deltaX = e.isShiftDown() ? -e.getDeltaY() : -e.getDeltaX();
-                    double newOffsetX = Math.max(0, Math.min(scrollOffsetX + deltaX, totalWidth - canvas.getWidth()));
+                if (totalWidth > viewportW) {
+                    double deltaX = (e.isShiftDown() ? -e.getDeltaY() : -e.getDeltaX()) / z;
+                    double newOffsetX = Math.max(0, Math.min(scrollOffsetX + deltaX, totalWidth - viewportW));
                     if (newOffsetX != scrollOffsetX) {
                         scrollOffsetX = newOffsetX;
                         hScrollBar.setValue(scrollOffsetX);
@@ -1740,9 +1846,9 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                 }
             } else {
                 // Vertical scrolling
-                if (totalHeight > canvas.getHeight()) {
-                    double deltaY = -e.getDeltaY();
-                    double newOffsetY = Math.max(0, Math.min(scrollOffsetY + deltaY, totalHeight - canvas.getHeight()));
+                if (totalHeight > viewportH) {
+                    double deltaY = -e.getDeltaY() / z;
+                    double newOffsetY = Math.max(0, Math.min(scrollOffsetY + deltaY, totalHeight - viewportH));
                     if (newOffsetY != scrollOffsetY) {
                         scrollOffsetY = newOffsetY;
                         vScrollBar.setValue(scrollOffsetY);
@@ -1774,8 +1880,8 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     // ==================== Mouse Handling ====================
 
     private void handleMouseClick(MouseEvent event) {
-        double mx = event.getX() + scrollOffsetX;
-        double my = event.getY();
+        double mx = toModelX(event.getX());
+        double my = toViewportY(event.getY());
 
         if (visibleRows.isEmpty()) {
             return;
@@ -1879,8 +1985,8 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     }
 
     private void handleMouseMove(MouseEvent event) {
-        double mx = event.getX() + scrollOffsetX;
-        double my = event.getY();
+        double mx = toModelX(event.getX());
+        double my = toViewportY(event.getY());
 
         if (visibleRows.isEmpty()) {
             return;
@@ -2011,6 +2117,28 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         // If editing, don't handle navigation keys
         if (editField != null || activeWidgetNode != null) {
             return;
+        }
+
+        // Zoom shortcuts: Ctrl + / Ctrl - / Ctrl 0 (also the numpad keys)
+        if (event.isShortcutDown()) {
+            switch (event.getCode()) {
+                case PLUS, ADD, EQUALS -> {
+                    zoomIn();
+                    event.consume();
+                    return;
+                }
+                case MINUS, SUBTRACT -> {
+                    zoomOut();
+                    event.consume();
+                    return;
+                }
+                case DIGIT0, NUMPAD0 -> {
+                    zoomReset();
+                    event.consume();
+                    return;
+                }
+                default -> { /* not a zoom key */ }
+            }
         }
 
         N selected = getSelectedNode();
@@ -2179,12 +2307,12 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         double rowTop = rowYPositions[idx];
         double rowBottom = rowTop + ownRowHeight(row);
         double viewTop = scrollOffsetY;
-        double viewBottom = viewTop + canvas.getHeight();
+        double viewBottom = viewTop + viewportHeightModel();
 
         if (rowTop < viewTop) {
             animateScrollTo(rowTop - 20);
         } else if (rowBottom > viewBottom) {
-            animateScrollTo(rowBottom - canvas.getHeight() + 20);
+            animateScrollTo(rowBottom - viewportHeightModel() + 20);
         }
     }
 
@@ -2192,7 +2320,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
      * Smoothly animate scroll to target Y position.
      */
     private void animateScrollTo(double targetY) {
-        targetY = Math.max(0, Math.min(targetY, totalHeight - canvas.getHeight()));
+        targetY = Math.max(0, Math.min(targetY, totalHeight - viewportHeightModel()));
 
         Timeline timeline = new Timeline(
             new KeyFrame(Duration.ZERO, new KeyValue(vScrollBar.valueProperty(), scrollOffsetY)),
@@ -2221,7 +2349,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
         double x = nameColumnWidth - scrollOffsetX;
         double y = rowYPositions[idx] - scrollOffsetY + 2;
-        double width = Math.max(canvas.getWidth() - nameColumnWidth, MIN_VALUE_COL_WIDTH);
+        double width = Math.max(viewportWidthModel() - nameColumnWidth, MIN_VALUE_COL_WIDTH);
 
         GridModelAdapter.EditSpec spec = adapter.editSpec(row, false);
         createEditField(spec != null ? spec
@@ -2255,12 +2383,21 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     /**
      * Installs the inline editor described by the spec: a type-aware widget when the
      * adapter supplied one, otherwise a plain text field (with the spec's tooltip, if any).
+     *
+     * @param spec  what to edit
+     * @param vx    x in unscaled viewport coordinates (scroll applied, zoom not)
+     * @param vy    y in unscaled viewport coordinates
+     * @param width the field width in unscaled pixels
      */
-    private void createEditField(GridModelAdapter.EditSpec spec, double x, double y, double width) {
+    private void createEditField(GridModelAdapter.EditSpec spec, double vx, double vy, double width) {
         String currentValue = spec.currentValue();
         // Calculate minimum width based on content
         double contentBasedWidth = metrics.width(currentValue, GridFont.ROW) + 30;
-        double effectiveWidth = Math.max(width, Math.max(contentBasedWidth, 120));
+        double z = getZoom();
+        double effectiveWidth = Math.max(width, Math.max(contentBasedWidth, 120)) * z;
+        double x = vx * z;
+        double y = vy * z;
+        double fieldHeight = ROW_HEIGHT * z;
 
         // Type-aware widget supplied by the adapter (schema-driven for XML, type-driven for JSON)
         {
@@ -2272,9 +2409,9 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
                 double widgetMinWidth = effectiveWidth;
                 if (activeWidgetNode instanceof javafx.scene.control.DatePicker) {
-                    widgetMinWidth = Math.max(widgetMinWidth, 160);
+                    widgetMinWidth = Math.max(widgetMinWidth, 160 * z);
                 } else if (activeWidgetNode instanceof javafx.scene.control.ComboBox) {
-                    widgetMinWidth = Math.max(widgetMinWidth, 150);
+                    widgetMinWidth = Math.max(widgetMinWidth, 150 * z);
                 }
 
                 if (activeWidgetNode instanceof javafx.scene.layout.Region region) {
@@ -2282,7 +2419,8 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                     region.setLayoutY(y);
                     region.setPrefWidth(widgetMinWidth);
                     region.setMinWidth(widgetMinWidth);
-                    region.setPrefHeight(ROW_HEIGHT);
+                    region.setPrefHeight(fieldHeight);
+                    region.setStyle(String.format(java.util.Locale.ROOT, "-fx-font-size: %.1fpx;", 12 * z));
                 } else {
                     activeWidgetNode.setLayoutX(x);
                     activeWidgetNode.setLayoutY(y);
@@ -2318,8 +2456,9 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         editField.setLayoutY(y);
         editField.setPrefWidth(effectiveWidth);
         editField.setMinWidth(effectiveWidth);
-        editField.setPrefHeight(ROW_HEIGHT);
-        editField.setStyle("-fx-font-size: 12px; -fx-font-family: 'Segoe UI'; -fx-padding: 2 6;");
+        editField.setPrefHeight(fieldHeight);
+        editField.setStyle(String.format(java.util.Locale.ROOT,
+                "-fx-font-size: %.1fpx; -fx-font-family: 'Segoe UI'; -fx-padding: 2 6;", 12 * z));
 
         // Add documentation tooltip if available
         if (spec.tooltip() != null) {
@@ -2638,6 +2777,26 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     /** @return the x where the value column starts (test hook) */
     double nameColumnWidthValue() {
         return nameColumnWidth;
+    }
+
+    /** @return the drawing canvas, the target of mouse events (test hook) */
+    Canvas canvasNode() {
+        return canvas;
+    }
+
+    /** @return the open plain-text inline editor, or {@code null} (test hook) */
+    TextField editFieldForTest() {
+        return editField;
+    }
+
+    /** @return the horizontal scroll range, 0 when the content fits (test hook) */
+    double hScrollBarMax() {
+        return hScrollBar.isDisabled() ? 0 : hScrollBar.getMax();
+    }
+
+    /** @return the vertical scroll offset in model units (test hook) */
+    double scrollOffsetYValue() {
+        return scrollOffsetY;
     }
 
     // ==================== Search (XmlSearchTarget) ====================
