@@ -4278,6 +4278,12 @@ looks and feels exactly like an XML file in the grid:</p>
 <li>All edits go through the document's <strong>undo history</strong> (Ctrl+Z / Ctrl+Y) and are written back
   into the text - the Text, Tree and Graphic views share one model, and the <strong>Properties</strong>
   inspector edits keys and values from any of them.</li>
+<li><strong>Zoom, wrapping and column widths</strong> behave exactly as in the XML grid: the header's
+  <strong>zoom pill</strong> and <strong>Ctrl+mouse wheel</strong> / <strong>Ctrl +</strong> / <strong>Ctrl −</strong> / <strong>Ctrl 0</strong> zoom the whole
+  grid (the factor is shared with the XML grid), long strings <strong>wrap</strong> instead of being cut
+  off, and the columns of an embedded array table can be <strong>dragged</strong> to a new width
+  (double-click the separator to auto-fit). <strong>Expand all</strong> / <strong>Collapse all</strong> sit in the
+  header strip as well.</li>
 </ul>
 <div class="admonition warning">
 <p class="admonition-title">Comments and JSON5 syntax are not preserved</p>
@@ -5896,6 +5902,18 @@ glows <strong>green</strong> while a loadable file hovers over it and <strong>re
 <tr>
 <td>Alt+Enter / Ctrl+.</td>
 <td>Quick Fix - apply a <a href="../schematron-quick-fixes/">Schematron Quick Fix</a> on the caret line</td>
+</tr>
+<tr>
+<td>Ctrl++ / Ctrl+-</td>
+<td>Graphic view: zoom the grid in / out (10 % steps, 50-300 %)</td>
+</tr>
+<tr>
+<td>Ctrl+0</td>
+<td>Reset the zoom to 100 % (Text view: font size, Graphic view: the grid)</td>
+</tr>
+<tr>
+<td>Ctrl+mouse wheel</td>
+<td>Zoom (Text view: font size, Graphic view: the whole grid)</td>
 </tr>
 </tbody>
 </table>
