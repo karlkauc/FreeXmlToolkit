@@ -485,10 +485,19 @@
  */
 .fxt-tool-button {
     -fx-background-color: transparent;
+    -fx-background-insets: 0;
     -fx-background-radius: 6;
+    -fx-border-width: 0;
     -fx-padding: 4 8 4 8;
+    -fx-font-weight: normal;
     -fx-cursor: hand;
     -fx-text-fill: -fxt-text-secondary;
+}
+
+/* Pressed = colour only. The legacy .button:pressed rule used to shift padding/insets,
+   which made every panel button jump while the mouse was down (see ShellCssStabilityTest). */
+.fxt-tool-button:pressed {
+    -fx-background-color: -fxt-bg-surface-2;
 }
 
 /* A MenuButton renders its text via an inner LabeledImpl with style class "label",
@@ -1262,6 +1271,10 @@
     -fx-border-color: -fxt-primary;
     -fx-background-color: -fxt-bg-subtle;
 }
+.fxt-quick-card:pressed, .fxt-tool-card:pressed {
+    -fx-border-color: -fxt-primary;
+    -fx-background-color: -fxt-bg-surface-2;
+}
 .fxt-quick-card-primary {
     -fx-background-color: -fxt-primary;
     -fx-border-color: -fxt-primary;
@@ -1776,7 +1789,6 @@
     -fx-border-color: -fxt-border;
     -fx-border-radius: 6;
     -fx-text-fill: -fxt-primary;
-    -fx-font-weight: bold;
 }
 
 .fxt-primary-button {
@@ -1796,6 +1808,10 @@
 
 .fxt-primary-button:hover {
     -fx-background-color: derive(-fxt-primary, -10%);
+}
+
+.fxt-primary-button:pressed {
+    -fx-background-color: derive(-fxt-primary, -18%);
 }
 
 /* Secondary panel action: outlined sibling of .fxt-primary-button, so lesser
@@ -1825,6 +1841,11 @@
 
 .fxt-secondary-button:hover .iconify-icon {
     -fx-icon-color: -fxt-primary;
+}
+
+.fxt-secondary-button:pressed {
+    -fx-background-color: -fxt-bg-surface-2;
+    -fx-border-color: -fxt-primary;
 }
 
 .fxt-vp-status {
@@ -1991,7 +2012,6 @@
     -fx-background-color: -fxt-bg-subtle;
     -fx-border-color: -fxt-primary;
     -fx-text-fill: -fxt-primary;
-    -fx-font-weight: bold;
 }
 
 .fxt-sig-nav:selected .iconify-icon {
@@ -2778,6 +2798,10 @@
 
 .fxt-sp-action:hover .iconify-icon {
     -fx-icon-color: -fxt-primary;
+}
+
+.fxt-sp-action:pressed {
+    -fx-background-color: -fxt-bg-surface-2;
 }
 
 .fxt-sp-overflow {

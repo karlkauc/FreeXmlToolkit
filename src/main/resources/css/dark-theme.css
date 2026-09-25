@@ -191,8 +191,6 @@
 
 .button:pressed {
   -fx-background-color: #2d2d30;
-  -fx-background-insets: 1 0 0 0;
-  -fx-padding: 6px 15px 4px 15px;
 }
 
 .menu_button {
@@ -228,8 +226,6 @@
 
 .button:default:pressed {
   -fx-background-color: #1177bb;
-  -fx-background-insets: 1 0 0 0;
-  -fx-padding: 6px 15px 4px 15px;
 }
 
 .label {

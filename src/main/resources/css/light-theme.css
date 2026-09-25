@@ -157,8 +157,6 @@
 
 .button:pressed {
   -fx-background-color: #e9ecef;
-  -fx-background-insets: 1 0 0 0; /* Simuliert das Hineindrücken */
-  -fx-padding: 6px 15px 4px 15px; /* Verschiebt den Text um 1px nach unten */
 }
 
 .menu_button {
@@ -194,8 +192,6 @@
 
 .button:default:pressed {
   -fx-background-color: #0a5ccb;
-  -fx-background-insets: 1 0 0 0;
-  -fx-padding: 6px 15px 4px 15px;
 }
 
 .label {
