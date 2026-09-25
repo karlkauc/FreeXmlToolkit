@@ -2840,6 +2840,104 @@
     -fx-icon-color: -fxt-text-muted;
 }
 
+/* ----- Panel action lists (PanelActionList / PanelAction) ---------------------------
+   Follow-on actions of a side panel: full-width rows with icon + label under a section
+   header. Rows have a FIXED height and every state rule restates the base geometry, so a
+   row never moves or grows on hover / press / focus (guarded by ShellCssStabilityTest). */
+.fxt-action-list {
+    -fx-padding: 0 8 4 8;
+    -fx-spacing: 1;
+}
+
+.fxt-action-row {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 6;
+    -fx-border-color: transparent;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-padding: 0 8 0 10;
+    -fx-pref-height: 28;
+    -fx-min-height: 28;
+    -fx-max-height: 28;
+    -fx-alignment: center-left;
+    -fx-graphic-text-gap: 8;
+    -fx-font-size: 12.5px;
+    -fx-font-weight: normal;
+    -fx-text-fill: -fxt-text-primary;
+    -fx-text-overrun: ellipsis;
+    -fx-wrap-text: false;
+    -fx-cursor: hand;
+}
+
+.fxt-action-row .iconify-icon {
+    -fx-icon-color: -fxt-text-secondary;
+}
+
+.fxt-action-row:hover {
+    -fx-background-color: -fxt-bg-subtle;
+}
+
+.fxt-action-row:hover .iconify-icon {
+    -fx-icon-color: -fxt-primary;
+}
+
+.fxt-action-row:armed,
+.fxt-action-row:pressed {
+    -fx-background-color: -fxt-bg-surface-2;
+    -fx-background-insets: 0;
+    -fx-padding: 0 8 0 10;
+}
+
+/* Keyboard focus ring: the transparent 1px border of the base rule turns primary, so the
+   ring costs no extra pixels. Mouse clicks do not show it (:focus-visible). */
+.fxt-action-row:focus-visible {
+    -fx-border-color: -fxt-primary;
+}
+
+.fxt-action-row:disabled {
+    -fx-opacity: 0.45;
+}
+
+.fxt-action-row-primary {
+    -fx-background-color: -fxt-primary;
+    -fx-text-fill: -fxt-on-primary;
+}
+
+.fxt-action-row-primary .iconify-icon,
+.fxt-action-row-primary:hover .iconify-icon {
+    -fx-icon-color: -fxt-on-primary;
+}
+
+.fxt-action-row-primary:hover {
+    -fx-background-color: derive(-fxt-primary, -10%);
+}
+
+.fxt-action-row-primary:armed,
+.fxt-action-row-primary:pressed {
+    -fx-background-color: derive(-fxt-primary, -18%);
+}
+
+/* Compact single row next to a form field or in a source row ("Change", "Add parameter"). */
+.fxt-action-row-inline {
+    -fx-pref-height: 22;
+    -fx-min-height: 22;
+    -fx-max-height: 22;
+    -fx-padding: 0 6 0 6;
+    -fx-font-size: 11.5px;
+    -fx-text-fill: -fxt-primary;
+}
+
+.fxt-action-row-inline:armed,
+.fxt-action-row-inline:pressed {
+    -fx-padding: 0 6 0 6;
+}
+
+.fxt-action-row-inline .iconify-icon,
+.fxt-action-row-inline:hover .iconify-icon {
+    -fx-icon-color: -fxt-primary;
+}
+
 /* OPEN EDITORS rows (a plain VBox of .fxt-open-row, not a ListView): icon · name · dirty dot;
    active row = subtle bg + primary bold name; the file icon keeps its bound per-type color. */
 .fxt-open-row {

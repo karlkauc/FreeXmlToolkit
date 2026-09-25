@@ -58,7 +58,8 @@ class ShellCssStabilityTest {
             ".fxt-analysis-tabs > .tab-header-area > .headers-region > .tab:selected .tab-label"
     );
 
-    private static final Pattern STATE = Pattern.compile(":(pressed|hover|focused|armed|selected|showing)\\b");
+    private static final Pattern STATE =
+            Pattern.compile(":(pressed|hover|focused|focus-visible|armed|selected|showing)\\b");
     private static final Pattern RULE = Pattern.compile("([^{}]+)\\{([^{}]*)}");
     private static final Pattern DECLARATION = Pattern.compile("(-fx-[a-z-]+)\\s*:\\s*([^;]+);");
     private static final Pattern COMMENT = Pattern.compile("/\\*.*?\\*/", Pattern.DOTALL);

@@ -337,8 +337,8 @@ sections), with a **filter field** on top. Click a declaration to reveal it in t
 view; double-click a type to open it in its dedicated **Type Editor** tab; right-click for
 **Reveal in Tree / Open Type Editor / Find Usage**. The schema tools (Generate XSD from
 XML / batch, Sample XML plain/advanced, Flatten, Schema Analysis,
-Documentation) sit as a **strip of icon buttons directly above the filter** - hover for
-the tool's name.
+Documentation) are **labelled rows in the collapsible TOOLS section directly above the
+filter** - each row shows an icon and the tool's name, so nothing hides behind a tooltip.
 
 The **whole panel is a drop zone**: drop an `.xsd` file from your
 file manager anywhere on it to **open that schema as a document** - the panel then shows
