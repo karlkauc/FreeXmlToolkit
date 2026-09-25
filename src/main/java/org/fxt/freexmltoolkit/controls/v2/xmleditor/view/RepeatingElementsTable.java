@@ -361,6 +361,9 @@ public class RepeatingElementsTable {
         /** The row height from the last layout pass; {@code -1} = needs layout. */
         private double layoutHeight = -1;
 
+        /** The table this row belongs to (set by the table while building rows). */
+        private RepeatingElementsTable owner;
+
         /** @return the measured layout of the given column's cell (after the table laid out) */
         public CellLayout getCellLayout(String columnName) {
             return cellLayouts.get(columnName);
@@ -374,6 +377,9 @@ public class RepeatingElementsTable {
         /** Marks this row's cell layouts stale; the owning table re-lays out on next query. */
         public void invalidateLayout() {
             layoutHeight = -1;
+            if (owner != null) {
+                owner.invalidateLayout();
+            }
         }
 
         /**
@@ -808,6 +814,7 @@ public class RepeatingElementsTable {
     private void buildRows() {
         for (GridRecord record : records) {
             TableRow row = new TableRow(record);
+            row.owner = this;
             for (TableColumn col : columns) {
                 String name = col.getName();
                 String value = record.values().get(name);
@@ -865,14 +872,16 @@ public class RepeatingElementsTable {
      * @param summary          the cell's (wrapped) summary text
      * @param suffixOnNewLine  whether the attribute suffix did not fit after the last summary line
      * @param suffixX          x offset of the suffix relative to the cell text start (when inline)
-     * @param summaryHeight    height of the summary block including a suffix line, if any
+     * @param suffix           the laid-out attribute suffix (one line when inline, wrapped when on
+     *                         its own lines), or {@code null} when the cell has none
+     * @param summaryHeight    height of the summary block including the suffix lines, if any
      * @param nameColumnWidth  width of the sub-row name column for an expanded cell (0 otherwise)
      * @param visibleSubRows   the visible sub-rows of an expanded cell, in draw order
      * @param subRowBlocks     the wrapped value block of each visible sub-row
      * @param subRowTops       top offset of each visible sub-row relative to the sub-row area
      * @param height           total cell height (summary + sub-rows)
      */
-    public record CellLayout(TextBlock summary, boolean suffixOnNewLine, double suffixX,
+    public record CellLayout(TextBlock summary, boolean suffixOnNewLine, double suffixX, TextBlock suffix,
                              double summaryHeight, double nameColumnWidth,
                              List<FlatRow> visibleSubRows, List<TextBlock> subRowBlocks,
                              double[] subRowTops, double height) {
@@ -930,16 +939,11 @@ public class RepeatingElementsTable {
         layoutValid = false;
     }
 
-    /** Runs the layout pass if anything (table or any row) is stale. */
+    /**
+     * Runs the layout pass if the table is stale. Rows invalidate the table through their
+     * back-reference, so this is an O(1) flag check (it runs once per cell per render).
+     */
     private void ensureLayout() {
-        if (layoutValid) {
-            for (TableRow row : rows) {
-                if (row.layoutHeight < 0) {
-                    layoutValid = false;
-                    break;
-                }
-            }
-        }
         if (!layoutValid) {
             layout();
         }
@@ -1035,6 +1039,7 @@ public class RepeatingElementsTable {
 
         boolean suffixOnNewLine = false;
         double suffixX = 0;
+        TextBlock suffixBlock = null;
         double summaryHeight = summary.height();
         String suffix = row.getAttributeSuffix(name);
         if (suffix != null && !suffix.isEmpty()) {
@@ -1042,9 +1047,12 @@ public class RepeatingElementsTable {
             double suffixWidth = m.width(suffix, GridFont.ROW);
             if (lastLineWidth + GridMetrics.SUFFIX_GAP + suffixWidth <= textAvail) {
                 suffixX = lastLineWidth + GridMetrics.SUFFIX_GAP;
+                suffixBlock = new TextBlock(List.of(suffix), suffixWidth, GridMetrics.ROW_HEIGHT);
             } else {
+                // Own line(s) below the value, wrapped like the value itself.
                 suffixOnNewLine = true;
-                summaryHeight += GridMetrics.LINE_HEIGHT;
+                suffixBlock = TextBlock.of(m, suffix, GridFont.ROW, textAvail);
+                summaryHeight += suffixBlock.lineCount() * GridMetrics.LINE_HEIGHT;
             }
         }
 
@@ -1072,7 +1080,7 @@ public class RepeatingElementsTable {
                 subRowsHeight += block.height();
             }
         }
-        return new CellLayout(summary, suffixOnNewLine, suffixX, summaryHeight, nameColumnWidth,
+        return new CellLayout(summary, suffixOnNewLine, suffixX, suffixBlock, summaryHeight, nameColumnWidth,
                 visibleSubRows, subRowBlocks, subRowTops, summaryHeight + subRowsHeight);
     }
 

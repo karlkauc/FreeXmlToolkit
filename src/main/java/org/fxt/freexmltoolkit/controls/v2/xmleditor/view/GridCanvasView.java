@@ -165,7 +165,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
     /** An in-progress column drag: which column of which table, and where it started. */
     private record ColumnDrag(RepeatingElementsTable table, int columnIndex,
-                              double startModelX, double startWidth) {
+                              double startScreenX, double startWidth) {
     }
 
     private ColumnDrag columnDrag = null;
@@ -1276,7 +1276,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                 gc.strokeLine(colX, colHeaderY, colX, colHeaderY + RepeatingElementsTable.ROW_HEIGHT);
             }
 
-            // Column name
+            // Column name (clipped: a user-narrowed column may be narrower than its header)
             gc.setFill(TEXT_SECONDARY);
             gc.setFont(ROW_FONT_BOLD);
             gc.setTextAlign(TextAlignment.LEFT);
@@ -1287,17 +1287,30 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                 displayName += table.isSortAscending() ? " \u25B2" : " \u25BC";
             }
 
+            gc.save();
+            gc.beginPath();
+            gc.rect(colX, colHeaderY, colWidth, RepeatingElementsTable.ROW_HEIGHT);
+            gc.clip();
             gc.fillText(displayName, colX + RepeatingElementsTable.CELL_PADDING, colCenterY);
+            gc.restore();
 
             colX += colWidth;
         }
 
-        // -- Data rows (cumulative positioning for variable row heights) --
+        // -- Data rows (cached row tops; only the rows inside the viewport are drawn) --
         double dataY = colHeaderY + RepeatingElementsTable.ROW_HEIGHT;
-        double currentRowY = dataY;
-        for (int r = 0; r < table.getRows().size(); r++) {
+        int rowCount = table.getRows().size();
+        int firstRow = dataY < 0 ? table.getRowIndexAtDataOffset(-dataY) : 0;
+        if (firstRow < 0) {
+            firstRow = 0;
+        }
+        int lastRow = table.getRowIndexAtDataOffset(viewportHeightModel() - dataY);
+        if (lastRow < 0) {
+            lastRow = rowCount - 1;
+        }
+        for (int r = firstRow; r <= lastRow && r < rowCount; r++) {
             RepeatingElementsTable.TableRow row = table.getRows().get(r);
-            double rowTop = currentRowY;
+            double rowTop = dataY + table.getRowTop(r);
             double rowHeight = table.calculateRowHeight(row);
 
             // Row background
@@ -1373,14 +1386,12 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                 double textOffsetX = isComplex ? GridMetrics.COMPLEX_ARROW_OFFSET : 0;
                 double textX = cellX + RepeatingElementsTable.CELL_PADDING + textOffsetX;
 
-                // A user-dragged column may be narrower than its content: clip to the cell.
-                boolean clip = col.hasUserWidth();
-                if (clip) {
-                    gc.save();
-                    gc.beginPath();
-                    gc.rect(cellX, rowTop, colWidth, rowHeight);
-                    gc.clip();
-                }
+                // Clip to the cell: nothing (a user-narrowed column, an over-wide line) may
+                // ever run into the neighbouring cell.
+                gc.save();
+                gc.beginPath();
+                gc.rect(cellX, rowTop, colWidth, rowHeight);
+                gc.clip();
 
                 if (col.getType() == RepeatingElementsTable.ColumnType.ATTRIBUTE) {
                     gc.setFill(TEXT_ATTRIBUTE_VALUE);
@@ -1392,15 +1403,14 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                 drawTextBlock(layout.summary(), textX, cellCenterY);
 
                 // The cell element's own attributes (display-only, e.g. ccy=EUR) in the
-                // attribute color, right after the value (or on their own line).
-                String attributeSuffix = row.getAttributeSuffix(colName);
-                if (attributeSuffix != null && !attributeSuffix.isEmpty()) {
+                // attribute color, right after the value or wrapped on their own lines.
+                if (layout.suffix() != null) {
                     gc.setFill(TEXT_ATTRIBUTE_NAME);
                     double lastLineY = cellCenterY + (layout.summary().lineCount() - 1) * LINE_HEIGHT;
                     if (layout.suffixOnNewLine()) {
-                        gc.fillText(attributeSuffix, textX, lastLineY + LINE_HEIGHT);
+                        drawTextBlock(layout.suffix(), textX, lastLineY + LINE_HEIGHT);
                     } else {
-                        gc.fillText(attributeSuffix, textX + layout.suffixX(), lastLineY);
+                        gc.fillText(layout.suffix().lastLine(), textX + layout.suffixX(), lastLineY);
                     }
                 }
 
@@ -1409,14 +1419,11 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                     renderCellTree(layout, cellX, rowTop + layout.summaryHeight(), colWidth);
                 }
 
-                if (clip) {
-                    gc.restore();
-                }
+                gc.restore();
 
                 cellX += colWidth;
             }
 
-            currentRowY += rowHeight;
         }
 
         // -- Table outer border --
@@ -1841,8 +1848,13 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
         // Mouse wheel scrolling (vertical and horizontal)
         canvas.addEventHandler(ScrollEvent.SCROLL, e -> {
-            // Ctrl + wheel zooms (like the text editor and the XSD diagram)
+            // Ctrl + wheel zooms (like the text editor and the XSD diagram) — but never while an
+            // inline edit is running: zooming cancels the editor and would drop the typed text.
             if (e.isControlDown() || e.isShortcutDown()) {
+                if (editField != null || activeWidgetNode != null) {
+                    e.consume();
+                    return;
+                }
                 if (e.getDeltaY() > 0) {
                     zoomIn();
                 } else if (e.getDeltaY() < 0) {
@@ -1907,7 +1919,9 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             }
             ColumnDrag handle = findColumnHandleAt(toModelX(e.getX()), toViewportY(e.getY()));
             if (handle != null) {
-                columnDrag = handle;
+                // Anchor on the SCREEN x: narrowing a column can shrink the content width and
+                // pull the horizontal scroll offset back, which must not feed into the delta.
+                columnDrag = new ColumnDrag(handle.table(), handle.columnIndex(), e.getX(), handle.startWidth());
                 columnDragMoved = false;
                 e.consume();
             }
@@ -1916,7 +1930,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             if (columnDrag == null) {
                 return;
             }
-            double delta = toModelX(e.getX()) - columnDrag.startModelX();
+            double delta = (e.getX() - columnDrag.startScreenX()) / getZoom();
             double newWidth = Math.max(RepeatingElementsTable.MIN_COLUMN_WIDTH, columnDrag.startWidth() + delta);
             RepeatingElementsTable.TableColumn col = columnDrag.table().getColumn(columnDrag.columnIndex());
             if (col != null && Math.abs(col.getWidth() - newWidth) >= 0.5) {
@@ -1969,7 +1983,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         if (colIdx < 0) {
             return null;
         }
-        return new ColumnDrag(table, colIdx, mx, table.getColumn(colIdx).getWidth());
+        return new ColumnDrag(table, colIdx, 0, table.getColumn(colIdx).getWidth());
     }
 
     // ==================== Mouse Handling ====================
@@ -2904,6 +2918,11 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     /** @return the vertical scroll offset in model units (test hook) */
     double scrollOffsetYValue() {
         return scrollOffsetY;
+    }
+
+    /** @return the horizontal scroll offset in model units (test hook) */
+    double scrollOffsetXValue() {
+        return scrollOffsetX;
     }
 
     // ==================== Search (XmlSearchTarget) ====================

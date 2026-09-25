@@ -686,6 +686,35 @@ class RepeatingElementsTableTest {
                 "the table's left edge is not a separator");
     }
 
+    /**
+     * A display-only attribute suffix wider than the cell's text area must wrap onto
+     * further lines (budgeted in the summary height) instead of running into the next cell.
+     */
+    @Test
+    void testWideAttributeSuffixWrapsOntoFurtherLines() {
+        XmlElement r1 = new XmlElement("Row");
+        XmlElement amount = createElementWithText("Amount", "1.00");
+        for (int i = 0; i < 12; i++) {
+            amount.setAttribute("attribute" + i, "value" + i); // ≈ 220 chars of suffix ≈ 1580 px
+        }
+        r1.addChild(amount);
+        XmlElement r2 = new XmlElement("Row");
+        r2.addChild(createElementWithText("Amount", "2.00"));
+        RepeatingElementsTable table = new RepeatingElementsTable("Row", List.of(r1, r2), 0, () -> {});
+
+        RepeatingElementsTable.TableRow row = table.getRows().get(0);
+        RepeatingElementsTable.CellLayout layout = table.getCellLayout(row, "Amount");
+        double textAvail = table.getColumn("Amount").getWidth() - RepeatingElementsTable.CELL_PADDING * 2;
+
+        assertTrue(layout.suffixOnNewLine(), "a suffix that does not fit after the value gets its own lines");
+        assertNotNull(layout.suffix(), "the suffix is laid out as a text block");
+        assertTrue(layout.suffix().lineCount() > 1, "the suffix wraps, lines=" + layout.suffix().lineCount());
+        assertTrue(layout.suffix().width() <= textAvail + 0.001, "no suffix line exceeds the cell text area");
+        assertEquals(layout.summary().height() + layout.suffix().lineCount() * GridMetrics.LINE_HEIGHT,
+                layout.summaryHeight(), 0.001, "every suffix line is budgeted in the cell height");
+        assertTrue(table.calculateRowHeight(row) >= layout.summaryHeight(), "the row is tall enough");
+    }
+
     private RepeatingElementsTable twoColumnTable(String name) {
         XmlElement e1 = new XmlElement(name);
         e1.addChild(createElementWithText("A", "one"));

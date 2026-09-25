@@ -148,6 +148,23 @@ class XmlCanvasViewZoomTest {
     }
 
     @Test
+    void ctrlWheelWhileEditingKeepsTheEditorAndTheZoom() {
+        WaitForAsyncUtils.waitForFxEvents();
+        int childIdx = view.visibleRowList().indexOf(view.visibleRowList().stream()
+                .filter(r -> "child".equals(r.getLabel())).findFirst().orElseThrow());
+        click(view.nameColumnWidthValue() + 10, view.rowTopAt(childIdx) + GridMetrics.ROW_HEIGHT / 2, 2);
+        assertNotNull(view.editFieldForTest(), "double-click opens the inline editor");
+
+        fx(() -> Event.fireEvent(view.canvasNode(), new ScrollEvent(ScrollEvent.SCROLL, 10, 10, 10, 10,
+                false, true, false, false, false, false,
+                0, 40, 0, 40, ScrollEvent.HorizontalTextScrollUnits.NONE, 0,
+                ScrollEvent.VerticalTextScrollUnits.NONE, 0, 0, null)));
+
+        assertNotNull(view.editFieldForTest(), "zooming must not silently discard a running edit");
+        assertEquals(1.0, view.getZoom(), 0.001, "zoom is ignored while editing");
+    }
+
+    @Test
     void horizontalScrollExtentFollowsTheZoom() {
         WaitForAsyncUtils.waitForFxEvents();
         double canvasW = view.canvasNode().getWidth();

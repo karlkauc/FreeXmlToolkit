@@ -12,6 +12,7 @@ import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.input.ScrollEvent;
 import javafx.stage.Stage;
 
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.editor.XmlEditorContext;
@@ -117,6 +118,33 @@ class XmlCanvasViewColumnResizeTest {
 
         mouse(MouseEvent.MOUSE_MOVED, 300, 5, 0, true);
         assertEquals(Cursor.DEFAULT, view.canvasNode().getCursor());
+    }
+
+    @Test
+    void dragIsNotCompoundedByHorizontalScrolling() {
+        fx(view::expandAll);
+        fx(() -> view.setZoom(2.0));
+        assertTrue(view.hScrollBarMax() > 0, "fixture must be wider than the viewport at 200%");
+
+        // Scroll to the far right (Shift+wheel with a huge delta clamps at the maximum).
+        fx(() -> Event.fireEvent(view.canvasNode(), new ScrollEvent(ScrollEvent.SCROLL, 10, 10, 10, 10,
+                true, false, false, false, false, false, 0, -100000, 0, -100000,
+                ScrollEvent.HorizontalTextScrollUnits.NONE, 0, ScrollEvent.VerticalTextScrollUnits.NONE, 0,
+                0, null)));
+        double offset = view.scrollOffsetXValue();
+        assertTrue(offset > 0, "must be scrolled horizontally");
+
+        RepeatingElementsTable table = tableRow().getRepeatingTable();
+        double start = table.getColumn("b").getWidth();
+        double y = headerCenterY() * 2;
+        double sepScreen = (separatorX() - offset) * 2;
+        assertTrue(sepScreen > 0 && sepScreen < view.canvasNode().getWidth(), "separator on screen: " + sepScreen);
+
+        drag(sepScreen, sepScreen - 40, y);
+
+        table = tableRow().getRepeatingTable();
+        assertEquals(start - 20, table.getColumn("b").getWidth(), 0.5,
+                "40 screen px at 200% are 20 model px — the shrinking scroll offset must not feed back");
     }
 
     @Test
