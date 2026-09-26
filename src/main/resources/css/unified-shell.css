@@ -392,6 +392,26 @@
     -fx-font-weight: 600;
 }
 
+/* Last-run badge: chip in the workflow's bg/border/fg; the result icon is bound to a semantic
+   colour in UnifiedShellView.showLastRunBadge (spec 2026-09-26 §2). Padding lives only here. */
+.fxt-status-badge {
+    -fx-padding: 1 8 1 8;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-border-color: transparent;
+    -fx-font-size: 10.5px;
+    -fx-font-weight: 600;
+}
+.fxt-status-badge.fxt-wf-workspace { -fx-background-color: -fxt-wf-workspace-bg; -fx-border-color: -fxt-wf-workspace-border; -fx-text-fill: -fxt-wf-workspace-fg; }
+.fxt-status-badge.fxt-wf-validation { -fx-background-color: -fxt-wf-validation-bg; -fx-border-color: -fxt-wf-validation-border; -fx-text-fill: -fxt-wf-validation-fg; }
+.fxt-status-badge.fxt-wf-transform { -fx-background-color: -fxt-wf-transform-bg; -fx-border-color: -fxt-wf-transform-border; -fx-text-fill: -fxt-wf-transform-fg; }
+.fxt-status-badge.fxt-wf-schema { -fx-background-color: -fxt-wf-schema-bg; -fx-border-color: -fxt-wf-schema-border; -fx-text-fill: -fxt-wf-schema-fg; }
+.fxt-status-badge.fxt-wf-pdf { -fx-background-color: -fxt-wf-pdf-bg; -fx-border-color: -fxt-wf-pdf-border; -fx-text-fill: -fxt-wf-pdf-fg; }
+.fxt-status-badge.fxt-wf-signature { -fx-background-color: -fxt-wf-signature-bg; -fx-border-color: -fxt-wf-signature-border; -fx-text-fill: -fxt-wf-signature-fg; }
+.fxt-status-badge.fxt-wf-fundsxml { -fx-background-color: -fxt-wf-fundsxml-bg; -fx-border-color: -fxt-wf-fundsxml-border; -fx-text-fill: -fxt-wf-fundsxml-fg; }
+.fxt-status-badge.fxt-wf-neutral { -fx-background-color: -fxt-wf-neutral-bg; -fx-border-color: -fxt-wf-neutral-border; -fx-text-fill: -fxt-wf-neutral-fg; }
+
 /* ----- Editor center / toolbar / tabs --------------------------------- */
 .fxt-editor-center {
     -fx-background-color: -fxt-bg-canvas;
@@ -1332,6 +1352,24 @@
     -fx-max-width: 36; -fx-max-height: 36;
     -fx-icon-color: -fxt-primary;
 }
+/* Welcome tool cards: chip = workflow bg, icon = workflow accent (spec 2026-09-26 §2). Outranks the
+   .fxt-tool-card .iconify-icon muted rule by specificity. */
+.fxt-card-icon.fxt-wf-workspace { -fx-background-color: -fxt-wf-workspace-bg; }
+.fxt-card-icon.fxt-wf-validation { -fx-background-color: -fxt-wf-validation-bg; }
+.fxt-card-icon.fxt-wf-transform { -fx-background-color: -fxt-wf-transform-bg; }
+.fxt-card-icon.fxt-wf-schema { -fx-background-color: -fxt-wf-schema-bg; }
+.fxt-card-icon.fxt-wf-pdf { -fx-background-color: -fxt-wf-pdf-bg; }
+.fxt-card-icon.fxt-wf-signature { -fx-background-color: -fxt-wf-signature-bg; }
+.fxt-card-icon.fxt-wf-fundsxml { -fx-background-color: -fxt-wf-fundsxml-bg; }
+.fxt-card-icon.fxt-wf-neutral { -fx-background-color: -fxt-wf-neutral-bg; }
+.fxt-tool-card .fxt-card-icon.fxt-wf-workspace .iconify-icon { -fx-icon-color: -fxt-wf-workspace-accent; }
+.fxt-tool-card .fxt-card-icon.fxt-wf-validation .iconify-icon { -fx-icon-color: -fxt-wf-validation-accent; }
+.fxt-tool-card .fxt-card-icon.fxt-wf-transform .iconify-icon { -fx-icon-color: -fxt-wf-transform-accent; }
+.fxt-tool-card .fxt-card-icon.fxt-wf-schema .iconify-icon { -fx-icon-color: -fxt-wf-schema-accent; }
+.fxt-tool-card .fxt-card-icon.fxt-wf-pdf .iconify-icon { -fx-icon-color: -fxt-wf-pdf-accent; }
+.fxt-tool-card .fxt-card-icon.fxt-wf-signature .iconify-icon { -fx-icon-color: -fxt-wf-signature-accent; }
+.fxt-tool-card .fxt-card-icon.fxt-wf-fundsxml .iconify-icon { -fx-icon-color: -fxt-wf-fundsxml-accent; }
+.fxt-tool-card .fxt-card-icon.fxt-wf-neutral .iconify-icon { -fx-icon-color: -fxt-wf-neutral-accent; }
 .fxt-card-icon-primary {
     -fx-background-color: rgba(255, 255, 255, 0.18);
     -fx-background-radius: 8;
