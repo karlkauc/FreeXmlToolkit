@@ -38,7 +38,7 @@ With an XML file active, the toolbar offers:
 | **Query Console** | Ctrl+Shift+X | Toggle the bottom XPath/XQuery console (icon button) |
 | **Transform XSLT** | - | Pick a stylesheet and transform the active XML (icon button) |
 | **Schema ▾** | - | **Set XSD Schema…** for IntelliSense and validation; the arrow menu also holds **Generate Documentation…** and **Type Editor…** (enabled for XSD files) |
-| **Validate** | F8 | Validate the document (accent-colored primary action) |
+| **Validate** | F8 | Validate the document (the toolbar's primary action, filled in Validation green - see [Colours: workflows and actions](unified-shell.md#colours-workflows-and-actions)) |
 
 The **Run ▾** button and the **Target** dropdown appear when a query, XSLT, or XProc document
 is active - see [Query Documents](unified-shell.md#query-documents-the-target-selector).

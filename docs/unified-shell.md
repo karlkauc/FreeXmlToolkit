@@ -294,7 +294,7 @@ fallback. The toolbar groups its actions three ways:
 
 - **New** (Ctrl+N) - Open the guided [New File dialog](#new-file-dialog) to create an XML, XSD, XSLT, Schematron, JSON, XProc, XQuery, XPath, or HTML file from a template or schema
 - **Open** (Ctrl+O) - Open one or more files
-- **Validate** (F8) - Validate the active document; this is the toolbar's primary action and keeps the filled accent color. XML validates against the bound XSD/Schematron if one is set, otherwise for well-formedness.
+- **Validate** (F8) - Validate the active document; this is the toolbar's primary action and the only filled button in the row - it is filled in the green of the Validation workflow (see [Colours: workflows and actions](#colours-workflows-and-actions)). XML validates against the bound XSD/Schematron if one is set, otherwise for well-formedness.
 
 ### Split buttons (click the ▾ arrow for related actions)
 
