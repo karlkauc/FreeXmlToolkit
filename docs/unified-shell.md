@@ -90,9 +90,11 @@ Colour tells you two things at a glance, and the two never mix on one surface:
 - **What an action does.** Menu items and the action rows of the side panels colour their icon
   by the kind of action, in every editor and every view: green adds or creates (Add, Paste,
   Duplicate, Validate, Generate), red removes (Delete, Remove, Clear, Cut), orange edits in
-  place (Rename, Edit value), cyan navigates (Go to Definition, Open, Reveal, Find), purple
-  changes structure (Change Type, Cardinality, Move Up/Down), blue runs a tool (Format, Sort,
-  Save, Export, Download) and grey is neutral (Copy, Expand/Collapse, Undo/Redo).
+  place (Rename, Edit value), cyan navigates to something that already exists (Go to
+  Definition, Reveal, Find, opening a favorite or a generated PDF), purple changes structure
+  (Change Type, Cardinality, Move Up/Down), blue runs a tool (Format, Sort, Save, Export,
+  Download, "Open file…" with a file chooser) and grey is neutral (Copy, Expand/Collapse,
+  Undo/Redo).
 
 Result colours always win: a failed run shows a red icon on an orange Transform badge, a
 passed validation a green check. Both layers switch with the light/dark theme.

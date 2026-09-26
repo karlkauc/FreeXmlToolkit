@@ -42,6 +42,16 @@ class ActionColorMenuGuardTest {
     }
 
     @Test
+    void noStaleColourCommentsNextToActionColours() throws IOException {
+        Pattern stale = Pattern.compile("ActionColor\\.[A-Z]+\\)\\);\\s*//\\s*(Green|Yellow|Teal|Orange|Gray|Grey|Purple|Blue|Red|Info)");
+        for (String file : MENU_FILES) {
+            String src = Files.readString(Path.of(file));
+            assertFalse(stale.matcher(src).find(),
+                    () -> file + " still carries a colour-name comment next to an ActionColor role");
+        }
+    }
+
+    @Test
     void changeTypeSubItemsAreStructureNotCreate() throws IOException {
         String src = Files.readString(Path.of(
                 "src/main/java/org/fxt/freexmltoolkit/controls/jsoneditor/grid/JsonGridContextMenu.java"));

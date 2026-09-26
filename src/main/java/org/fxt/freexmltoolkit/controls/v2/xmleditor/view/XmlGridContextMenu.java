@@ -105,26 +105,26 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
 
         // === Add Submenu ===
         Menu addMenu = new Menu("Add");
-        addMenu.setGraphic(createColoredIcon("bi-plus-circle", ActionColor.CREATE)); // Green
+        addMenu.setGraphic(createColoredIcon("bi-plus-circle", ActionColor.CREATE));
 
         addElementItem = new MenuItem("Child Element");
-        addElementItem.setGraphic(createColoredIcon("bi-code-slash", ActionColor.CREATE)); // Green
+        addElementItem.setGraphic(createColoredIcon("bi-code-slash", ActionColor.CREATE));
         addElementItem.setOnAction(e -> addChildElement());
 
         addAttributeItem = new MenuItem("Attribute");
-        addAttributeItem.setGraphic(createColoredIcon("bi-at", ActionColor.CREATE)); // Yellow
+        addAttributeItem.setGraphic(createColoredIcon("bi-at", ActionColor.CREATE));
         addAttributeItem.setOnAction(e -> addAttribute());
 
         addTextItem = new MenuItem("Text Content");
-        addTextItem.setGraphic(createColoredIcon("bi-fonts", ActionColor.CREATE)); // Teal
+        addTextItem.setGraphic(createColoredIcon("bi-fonts", ActionColor.CREATE));
         addTextItem.setOnAction(e -> addTextContent());
 
         addSiblingBeforeItem = new MenuItem("Sibling Before");
-        addSiblingBeforeItem.setGraphic(createColoredIcon("bi-arrow-up", ActionColor.CREATE)); // Green
+        addSiblingBeforeItem.setGraphic(createColoredIcon("bi-arrow-up", ActionColor.CREATE));
         addSiblingBeforeItem.setOnAction(e -> addSiblingElement(true));
 
         addSiblingAfterItem = new MenuItem("Sibling After");
-        addSiblingAfterItem.setGraphic(createColoredIcon("bi-arrow-down", ActionColor.CREATE)); // Green
+        addSiblingAfterItem.setGraphic(createColoredIcon("bi-arrow-down", ActionColor.CREATE));
         addSiblingAfterItem.setOnAction(e -> addSiblingElement(false));
 
         addMenu.getItems().addAll(
@@ -135,93 +135,93 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
 
         // === Edit Items ===
         renameItem = new MenuItem("Rename");
-        renameItem.setGraphic(createColoredIcon("bi-pencil", ActionColor.MODIFY)); // Orange
+        renameItem.setGraphic(createColoredIcon("bi-pencil", ActionColor.MODIFY));
         renameItem.setOnAction(e -> renameElement());
         renameItem.setAccelerator(new KeyCodeCombination(KeyCode.F2));
 
         duplicateItem = new MenuItem("Duplicate");
-        duplicateItem.setGraphic(createColoredIcon("bi-files", ActionColor.CREATE)); // Teal green
+        duplicateItem.setGraphic(createColoredIcon("bi-files", ActionColor.CREATE));
         duplicateItem.setOnAction(e -> duplicateElement());
         duplicateItem.setAccelerator(new KeyCodeCombination(KeyCode.D, KeyCombination.CONTROL_DOWN));
 
         // === Clipboard ===
         copyItem = new MenuItem("Copy");
-        copyItem.setGraphic(createColoredIcon("bi-clipboard", ActionColor.NEUTRAL)); // Gray
+        copyItem.setGraphic(createColoredIcon("bi-clipboard", ActionColor.NEUTRAL));
         copyItem.setOnAction(e -> copyElement());
         copyItem.setAccelerator(new KeyCodeCombination(KeyCode.C, KeyCombination.CONTROL_DOWN));
 
         cutItem = new MenuItem("Cut");
-        cutItem.setGraphic(createColoredIcon("bi-scissors", ActionColor.DELETE)); // Orange
+        cutItem.setGraphic(createColoredIcon("bi-scissors", ActionColor.DELETE));
         cutItem.setOnAction(e -> cutElement());
         cutItem.setAccelerator(new KeyCodeCombination(KeyCode.X, KeyCombination.CONTROL_DOWN));
 
         pasteItem = new MenuItem("Paste as Sibling");
-        pasteItem.setGraphic(createColoredIcon("bi-clipboard-check", ActionColor.CREATE)); // Gray
+        pasteItem.setGraphic(createColoredIcon("bi-clipboard-check", ActionColor.CREATE));
         pasteItem.setOnAction(e -> pasteAsSibling());
         pasteItem.setAccelerator(new KeyCodeCombination(KeyCode.V, KeyCombination.CONTROL_DOWN));
 
         pasteAsChildItem = new MenuItem("Paste as Child");
-        pasteAsChildItem.setGraphic(createColoredIcon("bi-clipboard-plus", ActionColor.CREATE)); // Gray
+        pasteAsChildItem.setGraphic(createColoredIcon("bi-clipboard-plus", ActionColor.CREATE));
         pasteAsChildItem.setOnAction(e -> pasteAsChild());
         pasteAsChildItem.setAccelerator(new KeyCodeCombination(KeyCode.V, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN));
 
         copyCellContentItem = new MenuItem("Copy Cell Content");
-        copyCellContentItem.setGraphic(createColoredIcon("bi-clipboard-data", ActionColor.NEUTRAL)); // Teal
+        copyCellContentItem.setGraphic(createColoredIcon("bi-clipboard-data", ActionColor.NEUTRAL));
         copyCellContentItem.setOnAction(e -> copyCellContent());
         copyCellContentItem.setAccelerator(new KeyCodeCombination(KeyCode.C, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN));
 
         copyXPathItem = new MenuItem("Copy XPath");
-        copyXPathItem.setGraphic(createColoredIcon("bi-diagram-3", ActionColor.NEUTRAL)); // Purple
+        copyXPathItem.setGraphic(createColoredIcon("bi-diagram-3", ActionColor.NEUTRAL));
         copyXPathItem.setOnAction(e -> copyXPath());
         copyXPathItem.setAccelerator(new KeyCodeCombination(KeyCode.X, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN));
 
         copyNodeItem = new MenuItem("Copy Node (XML)");
-        copyNodeItem.setGraphic(createColoredIcon("bi-clipboard-data", ActionColor.NEUTRAL)); // Purple
+        copyNodeItem.setGraphic(createColoredIcon("bi-clipboard-data", ActionColor.NEUTRAL));
         copyNodeItem.setOnAction(e -> copyNode());
         copyNodeItem.setAccelerator(new KeyCodeCombination(KeyCode.C, KeyCombination.CONTROL_DOWN, KeyCombination.ALT_DOWN));
 
         // === Go to Definition (navigate to XSD schema definition) ===
         goToDefinitionItem = new MenuItem("Go to Definition");
-        goToDefinitionItem.setGraphic(createColoredIcon("bi-box-arrow-up-right", ActionColor.NAVIGATE)); // Info/teal
+        goToDefinitionItem.setGraphic(createColoredIcon("bi-box-arrow-up-right", ActionColor.NAVIGATE));
         goToDefinitionItem.setOnAction(e -> goToDefinition());
 
         // === Move ===
         moveUpItem = new MenuItem("Move Up");
-        moveUpItem.setGraphic(createColoredIcon("bi-arrow-up-circle", ActionColor.STRUCTURE)); // Gray
+        moveUpItem.setGraphic(createColoredIcon("bi-arrow-up-circle", ActionColor.STRUCTURE));
         moveUpItem.setOnAction(e -> moveElement(-1));
         moveUpItem.setAccelerator(new KeyCodeCombination(KeyCode.UP, KeyCombination.ALT_DOWN));
 
         moveDownItem = new MenuItem("Move Down");
-        moveDownItem.setGraphic(createColoredIcon("bi-arrow-down-circle", ActionColor.STRUCTURE)); // Gray
+        moveDownItem.setGraphic(createColoredIcon("bi-arrow-down-circle", ActionColor.STRUCTURE));
         moveDownItem.setOnAction(e -> moveElement(1));
         moveDownItem.setAccelerator(new KeyCodeCombination(KeyCode.DOWN, KeyCombination.ALT_DOWN));
 
         // === Expand/Collapse ===
         expandAllItem = new MenuItem("Expand All");
-        expandAllItem.setGraphic(createColoredIcon("bi-arrows-expand", ActionColor.NEUTRAL)); // Blue
+        expandAllItem.setGraphic(createColoredIcon("bi-arrows-expand", ActionColor.NEUTRAL));
         expandAllItem.setOnAction(e -> expandAll());
 
         collapseAllItem = new MenuItem("Collapse All");
-        collapseAllItem.setGraphic(createColoredIcon("bi-arrows-collapse", ActionColor.NEUTRAL)); // Blue
+        collapseAllItem.setGraphic(createColoredIcon("bi-arrows-collapse", ActionColor.NEUTRAL));
         collapseAllItem.setOnAction(e -> collapseAll());
 
         // === Sort (for table columns) ===
         sortMenu = new Menu("Sort Column");
-        sortMenu.setGraphic(createColoredIcon("bi-sort-down", ActionColor.TOOL)); // Blue
+        sortMenu.setGraphic(createColoredIcon("bi-sort-down", ActionColor.TOOL));
 
         sortAscendingItem = new MenuItem("Sort Ascending");
-        sortAscendingItem.setGraphic(createColoredIcon("bi-sort-up", ActionColor.TOOL)); // Green
+        sortAscendingItem.setGraphic(createColoredIcon("bi-sort-up", ActionColor.TOOL));
         sortAscendingItem.setOnAction(e -> sortColumn(true));
 
         sortDescendingItem = new MenuItem("Sort Descending");
-        sortDescendingItem.setGraphic(createColoredIcon("bi-sort-down-alt", ActionColor.TOOL)); // Red
+        sortDescendingItem.setGraphic(createColoredIcon("bi-sort-down-alt", ActionColor.TOOL));
         sortDescendingItem.setOnAction(e -> sortColumn(false));
 
         sortMenu.getItems().addAll(sortAscendingItem, sortDescendingItem);
 
         // === Delete ===
         deleteItem = new MenuItem("Delete");
-        deleteItem.setGraphic(createColoredIcon("bi-trash", ActionColor.DELETE)); // Red
+        deleteItem.setGraphic(createColoredIcon("bi-trash", ActionColor.DELETE));
         deleteItem.setOnAction(e -> deleteElement());
         deleteItem.setAccelerator(new KeyCodeCombination(KeyCode.DELETE));
 

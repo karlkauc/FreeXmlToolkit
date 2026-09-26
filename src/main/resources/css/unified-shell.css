@@ -32,6 +32,8 @@
     -fx-background-color: transparent, transparent;
     -fx-background-insets: 0, 0 0 0 3;
     -fx-background-radius: 2 8 8 2, 8;
+    /* Reserve the indicator strip as padding so the icon is centred in the 3 px-narrower item surface. */
+    -fx-padding: 0 0 0 3;
     -fx-min-width: 40;
     -fx-min-height: 40;
     -fx-max-width: 40;
@@ -74,7 +76,10 @@
 }
 
 /* Selected = item surface + 3 px indicator and icon/label in the workflow's rail colour
-   (-fxt-wf-<id>-rail, see design-tokens.css / controls/theme/Workflow). */
+   (-fxt-wf-<id>-rail, see design-tokens.css / controls/theme/Workflow).
+   Each colour block combines two selectors: "… .iconify-icon" (icon) and ".fxt-activity-button-labeled…"
+   (label text). -fx-icon-color is a no-op on the button itself and -fx-text-fill a no-op on the icon;
+   the pairing just keeps icon and label colour in one place. */
 .fxt-activity-button:selected {
     -fx-background-color: -fxt-wf-workspace-rail, #3b3866;
 }
@@ -1370,6 +1375,15 @@
 .fxt-tool-card .fxt-card-icon.fxt-wf-signature .iconify-icon { -fx-icon-color: -fxt-wf-signature-accent; }
 .fxt-tool-card .fxt-card-icon.fxt-wf-fundsxml .iconify-icon { -fx-icon-color: -fxt-wf-fundsxml-accent; }
 .fxt-tool-card .fxt-card-icon.fxt-wf-neutral .iconify-icon { -fx-icon-color: -fxt-wf-neutral-accent; }
+/* Card hover border in the workflow colour (spec §2, Welcome tool cards); the card carries fxt-wf-<id> too. */
+.fxt-tool-card.fxt-wf-workspace:hover { -fx-border-color: -fxt-wf-workspace-border; }
+.fxt-tool-card.fxt-wf-validation:hover { -fx-border-color: -fxt-wf-validation-border; }
+.fxt-tool-card.fxt-wf-transform:hover { -fx-border-color: -fxt-wf-transform-border; }
+.fxt-tool-card.fxt-wf-schema:hover { -fx-border-color: -fxt-wf-schema-border; }
+.fxt-tool-card.fxt-wf-pdf:hover { -fx-border-color: -fxt-wf-pdf-border; }
+.fxt-tool-card.fxt-wf-signature:hover { -fx-border-color: -fxt-wf-signature-border; }
+.fxt-tool-card.fxt-wf-fundsxml:hover { -fx-border-color: -fxt-wf-fundsxml-border; }
+.fxt-tool-card.fxt-wf-neutral:hover { -fx-border-color: -fxt-wf-neutral-border; }
 .fxt-card-icon-primary {
     -fx-background-color: rgba(255, 255, 255, 0.18);
     -fx-background-radius: 8;

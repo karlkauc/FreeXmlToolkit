@@ -46,6 +46,34 @@ class UnifiedShellViewTest {
     }
 
     @Test
+    void lastRunBadgeTakesWorkflowClassAndSemanticResultIcon() {
+        WaitForAsyncUtils.waitForFxEvents();
+        var ok = new org.fxt.freexmltoolkit.service.ExecutionStats(1,
+                org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.XSLT, "factsheet.xsl",
+                java.time.LocalDateTime.now(), 84, 80, 0, 0, 0, 0, 100, 200, java.util.Map.of(), true, null);
+        var failed = new org.fxt.freexmltoolkit.service.ExecutionStats(2,
+                org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.VALIDATION, "a.xml",
+                java.time.LocalDateTime.now(), 12, 10, 0, 0, 0, 0, 100, 0, java.util.Map.of(), false, "boom");
+
+        Label badge = WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            shell.showLastRunBadge(ok);
+            return (Label) shell.lookup(".fxt-status-badge");
+        });
+        assertNotNull(badge, "the last-run label carries the badge class");
+        assertTrue(badge.getStyleClass().contains("fxt-wf-transform"), "XSLT run → transform workflow chip");
+        assertEquals(ok.shortLabel(), badge.getText());
+        var icon = (org.fxt.freexmltoolkit.controls.icons.IconifyIcon) badge.getGraphic();
+        assertEquals("bi-check-circle", icon.getIconLiteral());
+        assertTrue(icon.iconColorProperty().isBound(), "result icon colour is bound (CSS-proof)");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> { shell.showLastRunBadge(failed); return null; });
+        assertTrue(badge.getStyleClass().contains("fxt-wf-validation"), "VALIDATION run → validation chip");
+        assertFalse(badge.getStyleClass().contains("fxt-wf-transform"), "exactly one workflow class");
+        assertEquals("bi-x-circle",
+                ((org.fxt.freexmltoolkit.controls.icons.IconifyIcon) badge.getGraphic()).getIconLiteral());
+    }
+
+    @Test
     void activityBarRendersOneButtonPerActivity() {
         WaitForAsyncUtils.waitForFxEvents();
         // lookupAll must run on the FX thread (scene graph may still be mutating)

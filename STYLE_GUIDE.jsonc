@@ -89,9 +89,9 @@
         "CREATE":    { "token": "-fxt-success", "verbs": "Add, Insert, New, Paste, Duplicate, Validate, Generate" },
         "DELETE":    { "token": "-fxt-danger",  "verbs": "Delete, Remove, Clear, Cut" },
         "MODIFY":    { "token": "-fxt-accent",  "verbs": "Rename, Edit value, Comment toggle" },
-        "NAVIGATE":  { "token": "-fxt-info",    "verbs": "Go to Definition, Reveal, Open referenced/report/tool, Find" },
+        "NAVIGATE":  { "token": "-fxt-info",    "verbs": "Go to Definition, Reveal, Open referenced/report/tool, Find — 'Open' of a KNOWN thing (a favorite, a saved query, the generated PDF) navigates" },
         "STRUCTURE": { "token": "-fxt-purple",  "verbs": "Change Type, Cardinality, Move Up/Down, Reorder" },
-        "TOOL":      { "token": "-fxt-primary", "verbs": "Format, Minify, Sort, Run/Execute in menus, Open/Save/Export, Download" },
+        "TOOL":      { "token": "-fxt-primary", "verbs": "Format, Minify, Sort, Run/Execute in menus, Open…/Save/Export, Download — 'Open…' that shows a file chooser is a tool, not navigation" },
         "NEUTRAL":   { "token": "-fxt-neutral", "verbs": "Copy (all variants), Expand/Collapse, Select all, Undo/Redo, Settings" }
       }
     },

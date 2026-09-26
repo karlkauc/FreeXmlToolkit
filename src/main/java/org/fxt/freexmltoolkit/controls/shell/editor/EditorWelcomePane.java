@@ -175,7 +175,7 @@ public class EditorWelcomePane extends VBox {
             for (var cat : org.fxt.freexmltoolkit.service.SkillTracker.getFeaturesByCategory()) {
                 double progress = org.fxt.freexmltoolkit.service.SkillTracker
                         .getCategoryProgress(cat.name(), statsModel);
-                Region card = trendCategoryCard(cat.name(), progress, categoryColor(cat.name()));
+                Region card = trendCategoryCard(cat.name(), progress, categoryAccent(cat.name()));
                 HBox.setHgrow(card, Priority.ALWAYS);
                 catRow.getChildren().add(card);
                 count++;
@@ -191,10 +191,13 @@ public class EditorWelcomePane extends VBox {
         return box;
     }
 
-    /** Workflow accent per feature category (spec 2026-09-26 §2, Welcome); theme-aware hex for inline styles. */
-    private static String categoryColor(String category) {
-        return org.fxt.freexmltoolkit.controls.theme.SemanticStyle.hex(
-                org.fxt.freexmltoolkit.controls.theme.Workflow.forCategory(category).accent());
+    /**
+     * Workflow accent per feature category (spec 2026-09-26 §2, Welcome) as a looked-up colour name
+     * ({@code -fxt-wf-<id>-accent}). Inline styles resolve looked-up colours through the scene, so the
+     * dot and bar follow a live light/dark switch instead of baking one theme's hex. Package-private for tests.
+     */
+    static String categoryAccent(String category) {
+        return org.fxt.freexmltoolkit.controls.theme.Workflow.forCategory(category).accent().cssVariable();
     }
 
     /**
@@ -203,7 +206,7 @@ public class EditorWelcomePane extends VBox {
      *
      * @param category the category display name
      * @param progress discovery progress as a 0–100 percentage
-     * @param color    the category accent colour (CSS hex)
+     * @param color    the category accent colour (a looked-up colour name such as -fxt-wf-validation-accent)
      */
     private Region trendCategoryCard(String category, double progress, String color) {
         Region dot = new Region();
@@ -476,6 +479,9 @@ public class EditorWelcomePane extends VBox {
         b.setAlignment(Pos.CENTER_LEFT);
         b.setMaxWidth(Double.MAX_VALUE);
         b.getStyleClass().add("fxt-tool-card");
+        // The card itself carries the workflow class too, for the hover border (.fxt-tool-card.fxt-wf-<id>:hover).
+        org.fxt.freexmltoolkit.controls.shell.Activity.fromId(activityKey).ifPresent(a ->
+                org.fxt.freexmltoolkit.controls.theme.WorkflowStyle.apply(b, a.workflow()));
         // Make the graphic fill the button so the chevron sits flush right (CSS padding is 16).
         g.prefWidthProperty().bind(b.widthProperty().subtract(32));
         b.setOnAction(e -> onAction.accept(activityKey));

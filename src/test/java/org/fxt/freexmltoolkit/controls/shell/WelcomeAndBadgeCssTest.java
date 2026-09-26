@@ -25,6 +25,19 @@ class WelcomeAndBadgeCssTest {
     }
 
     @Test
+    void toolCardHoverBorderFollowsTheWorkflow() throws IOException {
+        String css = Files.readString(Path.of("src/main/resources/css/unified-shell.css"));
+        for (Workflow wf : Workflow.values()) {
+            assertTrue(css.contains(".fxt-tool-card." + wf.cssClass() + ":hover"),
+                    wf + ": Welcome tool card hover border rule (spec §2, Welcome tool cards)");
+        }
+        String pane = Files.readString(Path.of(
+                "src/main/java/org/fxt/freexmltoolkit/controls/shell/editor/EditorWelcomePane.java"));
+        assertTrue(pane.contains("WorkflowStyle.apply(b, a.workflow())"),
+                "the workflow class must also be put on the card button, not only on the icon tile");
+    }
+
+    @Test
     void plainActionRowsKeepPressedFeedbackInsideWorkflowScopes() throws IOException {
         String css = Files.readString(Path.of("src/main/resources/css/unified-shell.css"));
         for (Workflow wf : Workflow.values()) {
