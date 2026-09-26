@@ -69,6 +69,24 @@
     -fxt-tool-warning-bg: #fff6e6;  -fxt-tool-warning-border: #ffe0a3;  -fxt-tool-warning-fg: #b8860b;
     -fxt-tool-danger-bg:  #fdeaea;  -fxt-tool-danger-border:  #f5c2c2;  -fxt-tool-danger-fg:  #e03131;
     -fxt-tool-neutral-bg: #f2f4f8;  -fxt-tool-neutral-border: #dde1e7;  -fxt-tool-neutral-fg: #5a6472;
+
+    /* Workflow colour families (spec 2026-09-26, see controls/theme/Workflow):
+       accent = icon tint · fg = text on surface · fill = filled primary action (white label)
+       bg = tint · border = chip outline · rail = indicator/icon on the always-navy Activity Bar
+       (= the DARK accent in both themes). Kept in lock-step with DesignTokens.ColorToken.WF_*. */
+    -fxt-wf-workspace-accent: #1373d9;  -fxt-wf-workspace-fg: #126ccc;  -fxt-wf-workspace-fill: #1373d9;  -fxt-wf-workspace-bg: #eaf2fd;  -fxt-wf-workspace-border: #c4dcf8;  -fxt-wf-workspace-rail: #4c9bf5;
+    -fxt-wf-validation-accent: #2f9e44; -fxt-wf-validation-fg: #1f7a35; -fxt-wf-validation-fill: #1f7a35; -fxt-wf-validation-bg: #eaf6ee; -fxt-wf-validation-border: #bfe3cb; -fxt-wf-validation-rail: #51cf66;
+    -fxt-wf-transform-accent: #f08c2e;  -fxt-wf-transform-fg: #ac560d;  -fxt-wf-transform-fill: #b35a0e;  -fxt-wf-transform-bg: #fdf0e6;  -fxt-wf-transform-border: #f9cfae;  -fxt-wf-transform-rail: #f59f46;
+    -fxt-wf-schema-accent: #6f42c1;     -fxt-wf-schema-fg: #6f42c1;     -fxt-wf-schema-fill: #6f42c1;     -fxt-wf-schema-bg: #f3f0ff;     -fxt-wf-schema-border: #d0bfff;     -fxt-wf-schema-rail: #b197fc;
+    -fxt-wf-pdf-accent: #d6336c;        -fxt-wf-pdf-fg: #c2255c;        -fxt-wf-pdf-fill: #c2255c;        -fxt-wf-pdf-bg: #fff0f6;        -fxt-wf-pdf-border: #fcc2d7;        -fxt-wf-pdf-rail: #f783ac;
+    -fxt-wf-signature-accent: #1098ad;  -fxt-wf-signature-fg: #0b7285;  -fxt-wf-signature-fill: #0b7285;  -fxt-wf-signature-bg: #e7f6f8;  -fxt-wf-signature-border: #b9e3e9;  -fxt-wf-signature-rail: #4dd4e8;
+    -fxt-wf-fundsxml-accent: #12a594;   -fxt-wf-fundsxml-fg: #0b7a6e;   -fxt-wf-fundsxml-fill: #0b7a6e;   -fxt-wf-fundsxml-bg: #e6fcf5;   -fxt-wf-fundsxml-border: #a8ecd6;   -fxt-wf-fundsxml-rail: #38d9a9;
+    -fxt-wf-neutral-accent: #5a6472;    -fxt-wf-neutral-fg: #5a6472;    -fxt-wf-neutral-fill: #5a6472;    -fxt-wf-neutral-bg: #f2f4f8;    -fxt-wf-neutral-border: #dde1e7;    -fxt-wf-neutral-rail: #9ba6b3;
+
+    /* Action-colour roles (spec §3, see controls/theme/ActionColor) — aliases of the semantic tokens. */
+    -fxt-action-create: -fxt-success;   -fxt-action-delete: -fxt-danger;   -fxt-action-modify: -fxt-accent;
+    -fxt-action-navigate: -fxt-info;    -fxt-action-structure: -fxt-purple; -fxt-action-tool: -fxt-primary;
+    -fxt-action-neutral: -fxt-neutral;
 }
 
 /* ----- Dark (root style class "fxt-theme-dark") ----------------------- */
@@ -123,6 +141,21 @@
     -fxt-tool-warning-bg: #2e2410;  -fxt-tool-warning-border: #5a4a1f;  -fxt-tool-warning-fg: #fab005;
     -fxt-tool-danger-bg:  #2e1414;  -fxt-tool-danger-border:  #5a2b2b;  -fxt-tool-danger-fg:  #ff8787;
     -fxt-tool-neutral-bg: #1c232c;  -fxt-tool-neutral-border: #2a323d;  -fxt-tool-neutral-fg: #9ba6b3;
+
+    /* Workflow colour families — dark */
+    -fxt-wf-workspace-accent: #4c9bf5;  -fxt-wf-workspace-fg: #4c9bf5;  -fxt-wf-workspace-fill: #1f6feb;  -fxt-wf-workspace-bg: #14283f;  -fxt-wf-workspace-border: #275077;  -fxt-wf-workspace-rail: #4c9bf5;
+    -fxt-wf-validation-accent: #51cf66; -fxt-wf-validation-fg: #51cf66; -fxt-wf-validation-fill: #238636; -fxt-wf-validation-bg: #14301e; -fxt-wf-validation-border: #2b5a3a; -fxt-wf-validation-rail: #51cf66;
+    -fxt-wf-transform-accent: #f59f46;  -fxt-wf-transform-fg: #f59f46;  -fxt-wf-transform-fill: #b35a0e;  -fxt-wf-transform-bg: #2e2010;  -fxt-wf-transform-border: #5c3f1c;  -fxt-wf-transform-rail: #f59f46;
+    -fxt-wf-schema-accent: #b197fc;     -fxt-wf-schema-fg: #b197fc;     -fxt-wf-schema-fill: #7048e8;     -fxt-wf-schema-bg: #241b3d;     -fxt-wf-schema-border: #463374;     -fxt-wf-schema-rail: #b197fc;
+    -fxt-wf-pdf-accent: #f783ac;        -fxt-wf-pdf-fg: #f783ac;        -fxt-wf-pdf-fill: #d6336c;        -fxt-wf-pdf-bg: #33161f;        -fxt-wf-pdf-border: #66293d;        -fxt-wf-pdf-rail: #f783ac;
+    -fxt-wf-signature-accent: #4dd4e8;  -fxt-wf-signature-fg: #4dd4e8;  -fxt-wf-signature-fill: #0b7285;  -fxt-wf-signature-bg: #0e2a30;  -fxt-wf-signature-border: #1f4a53;  -fxt-wf-signature-rail: #4dd4e8;
+    -fxt-wf-fundsxml-accent: #38d9a9;   -fxt-wf-fundsxml-fg: #38d9a9;   -fxt-wf-fundsxml-fill: #0b7a6e;   -fxt-wf-fundsxml-bg: #0f2b26;   -fxt-wf-fundsxml-border: #1f5348;   -fxt-wf-fundsxml-rail: #38d9a9;
+    -fxt-wf-neutral-accent: #9ba6b3;    -fxt-wf-neutral-fg: #9ba6b3;    -fxt-wf-neutral-fill: #5a6472;    -fxt-wf-neutral-bg: #1c232c;    -fxt-wf-neutral-border: #2a323d;    -fxt-wf-neutral-rail: #9ba6b3;
+
+    /* Action-colour roles — same aliases, dark values come from the semantic tokens above. */
+    -fxt-action-create: -fxt-success;   -fxt-action-delete: -fxt-danger;   -fxt-action-modify: -fxt-accent;
+    -fxt-action-navigate: -fxt-info;    -fxt-action-structure: -fxt-purple; -fxt-action-tool: -fxt-primary;
+    -fxt-action-neutral: -fxt-neutral;
 }
 
 /* ----- Opt-in typography utilities ------------------------------------ */
