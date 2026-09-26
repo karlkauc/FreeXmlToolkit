@@ -68,6 +68,36 @@ class XmlCodeEditorDarkThemeTest {
         assertTrue(gutterBackground().getBrightness() > 0.8, "gutter is light again in light");
     }
 
+    @Test
+    void editorSurfaceAndCaretLineUseTheDarkTokens() {
+        WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
+            editor.setText("<a>\n  <b>Root element of FundsXML</b>\n</a>\n");
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        switchTheme(true);
+        Color surface = WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
+            Region area = editor.getCodeArea();
+            assertNotNull(area.getBackground(), "code area paints a background");
+            return (Color) area.getBackground().getFills().get(0).getFill();
+        });
+        assertEquals(org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.BG_SURFACE
+                .color(org.fxt.freexmltoolkit.controls.theme.DesignTokens.Theme.DARK), surface,
+                "dark editor background is the surface token (Figma bg/surface), not the legacy #1e1e1e");
+        Color caretLine = WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
+            List<Node> lines = new java.util.ArrayList<>();
+            collectByClass(editor.getCodeArea(), "current-line", lines);
+            assertFalse(lines.isEmpty(), "the caret line carries the current-line style class");
+            Region line = (Region) lines.get(0);
+            assertNotNull(line.getBackground(), "caret line is tinted");
+            return (Color) line.getBackground().getFills().get(0).getFill();
+        });
+        assertEquals(org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.CODE_CURLINE
+                .color(org.fxt.freexmltoolkit.controls.theme.DesignTokens.Theme.DARK), caretLine,
+                "dark caret-line tint is the code/curline token");
+        switchTheme(false);
+    }
+
     private void switchTheme(boolean dark) {
         WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
             ThemeManager.apply(editor.getScene(), dark);

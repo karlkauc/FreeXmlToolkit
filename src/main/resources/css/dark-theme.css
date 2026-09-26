@@ -94,16 +94,18 @@
   -fx-fill: #6a9955;  /* Green for comments */
 }
 
-/* Line Numbers */
+/* Line Numbers — gutter = bg/surface-2 dark (#1c232c), see DesignTokens.BG_SURFACE_2 */
 .lineno {
-  -fx-background-color: #1e1e1e;
+  -fx-background-color: #1c232c;
   -fx-text-fill: #858585;
 }
 
-/* Code Area Defaults */
+/* Code Area Defaults — editor surface = bg/surface dark (#161b22, Figma), not the legacy #1e1e1e.
+   Literal hex on purpose: dialogs load this sheet without the fxt-theme-dark root class, where a
+   -fxt-* token would resolve to its LIGHT value. */
 .code-area {
   -fx-font-family: monospace;
-  -fx-background-color: #1e1e1e;
+  -fx-background-color: #161b22;
 }
 
 /* =================================================================
@@ -249,7 +251,7 @@
 }
 
 .code-area {
-  -fx-background-color: #1e1e1e;
+  -fx-background-color: #161b22;
 }
 
 /* JSON editor's internal status bar (colors only; padding comes from fxt-theme.css) */
@@ -259,7 +261,7 @@
 }
 
 .code-area .paragraph-box:has-caret {
-  -fx-background-color: #2a2a2a;
+  -fx-background-color: #1b2438;
 }
 
 /* XmlCodeEditorV2/JsonCodeEditor attach fxt-theme.css at NODE level, whose light
@@ -267,11 +269,11 @@
    scope wins on specificity regardless of attachment level. The unscoped rules above stay
    for dialogs, whose scene root never carries the theme style class. */
 .root.fxt-theme-dark .code-area {
-  -fx-background-color: #1e1e1e;
+  -fx-background-color: -fxt-bg-surface;
 }
 
 .root.fxt-theme-dark .code-area .paragraph-box:has-caret {
-  -fx-background-color: #2a2a2a;
+  -fx-background-color: -fxt-code-curline;
 }
 
 /* The caret line is a custom `current-line` paragraph style (XmlCodeEditorV2 /
@@ -279,7 +281,7 @@
    json-editor.css; these selectors out-specify both. */
 .root.fxt-theme-dark .code-area .current-line,
 .root.fxt-theme-dark .code-area .paragraph-text.current-line {
-  -fx-background-color: #2a2a2a;
+  -fx-background-color: -fxt-code-curline;
 }
 
 /* Plain text without a syntax class (element content such as <xs:documentation> text)
@@ -1962,7 +1964,7 @@
 }
 
 .xml-code-area {
-  -fx-background-color: #1e1e1e;
+  -fx-background-color: #161b22;
 }
 
 .xml-code-area .paragraph-box {
@@ -2152,7 +2154,7 @@
 }
 
 .json-code-area {
-  -fx-background-color: #1e1e1e;
+  -fx-background-color: #161b22;
 }
 
 .json-code-area .paragraph-box {
