@@ -13,7 +13,7 @@
     -fx-font-family: "Inter", "Segoe UI", sans-serif;
 }
 
-/* ----- Activity Bar (dark rail, Figma "future" — dark even in light theme) --- */
+/* ----- Activity Bar (navy rail in both themes; chrome/rail/* in Figma) ------------------ */
 .fxt-activity-bar {
     -fx-background-color: #2a284c;
     -fx-border-color: #3b3866;
@@ -25,9 +25,13 @@
     -fx-alignment: TOP_CENTER;
 }
 
+/* Two background layers: [0] = the full button (only its left 3 px stay visible = the
+   selected indicator, style B of the workflow-colour spec 2026-09-26), [1] = the item surface
+   inset by 3 px on the left. Geometry lives here only; the state rules below change colours. */
 .fxt-activity-button {
-    -fx-background-color: transparent;
-    -fx-background-radius: 8;
+    -fx-background-color: transparent, transparent;
+    -fx-background-insets: 0, 0 0 0 3;
+    -fx-background-radius: 2 8 8 2, 8;
     -fx-min-width: 40;
     -fx-min-height: 40;
     -fx-max-width: 40;
@@ -55,33 +59,45 @@
     -fx-alignment: CENTER;
 }
 
-.fxt-activity-button-labeled:hover {
-    -fx-text-fill: #e9ecf1;
-}
-
-.fxt-activity-button-labeled:selected {
-    -fx-text-fill: #ffffff;
-}
-
 .fxt-activity-button .iconify-icon {
     -fx-icon-color: #a5a3c4;
 }
 
 .fxt-activity-button:hover {
-    -fx-background-color: #3b3866;
+    -fx-background-color: transparent, #3b3866;
 }
 
-.fxt-activity-button:hover .iconify-icon {
+.fxt-activity-button:hover .iconify-icon,
+.fxt-activity-button-labeled:hover {
     -fx-icon-color: #e9ecf1;
+    -fx-text-fill: #e9ecf1;
 }
 
+/* Selected = item surface + 3 px indicator and icon/label in the workflow's rail colour
+   (-fxt-wf-<id>-rail, see design-tokens.css / controls/theme/Workflow). */
 .fxt-activity-button:selected {
-    -fx-background-color: -fxt-primary;
+    -fx-background-color: -fxt-wf-workspace-rail, #3b3866;
 }
-
-.fxt-activity-button:selected .iconify-icon {
-    -fx-icon-color: #ffffff;
+.fxt-activity-button:selected .iconify-icon,
+.fxt-activity-button-labeled:selected {
+    -fx-icon-color: -fxt-wf-workspace-rail;
+    -fx-text-fill: -fxt-wf-workspace-rail;
 }
+.fxt-activity-button.fxt-wf-validation:selected { -fx-background-color: -fxt-wf-validation-rail, #3b3866; }
+.fxt-activity-button.fxt-wf-validation:selected .iconify-icon, .fxt-activity-button-labeled.fxt-wf-validation:selected { -fx-icon-color: -fxt-wf-validation-rail; -fx-text-fill: -fxt-wf-validation-rail; }
+.fxt-activity-button.fxt-wf-transform:selected { -fx-background-color: -fxt-wf-transform-rail, #3b3866; }
+.fxt-activity-button.fxt-wf-transform:selected .iconify-icon, .fxt-activity-button-labeled.fxt-wf-transform:selected { -fx-icon-color: -fxt-wf-transform-rail; -fx-text-fill: -fxt-wf-transform-rail; }
+.fxt-activity-button.fxt-wf-schema:selected { -fx-background-color: -fxt-wf-schema-rail, #3b3866; }
+.fxt-activity-button.fxt-wf-schema:selected .iconify-icon, .fxt-activity-button-labeled.fxt-wf-schema:selected { -fx-icon-color: -fxt-wf-schema-rail; -fx-text-fill: -fxt-wf-schema-rail; }
+.fxt-activity-button.fxt-wf-pdf:selected { -fx-background-color: -fxt-wf-pdf-rail, #3b3866; }
+.fxt-activity-button.fxt-wf-pdf:selected .iconify-icon, .fxt-activity-button-labeled.fxt-wf-pdf:selected { -fx-icon-color: -fxt-wf-pdf-rail; -fx-text-fill: -fxt-wf-pdf-rail; }
+.fxt-activity-button.fxt-wf-signature:selected { -fx-background-color: -fxt-wf-signature-rail, #3b3866; }
+.fxt-activity-button.fxt-wf-signature:selected .iconify-icon, .fxt-activity-button-labeled.fxt-wf-signature:selected { -fx-icon-color: -fxt-wf-signature-rail; -fx-text-fill: -fxt-wf-signature-rail; }
+.fxt-activity-button.fxt-wf-fundsxml:selected { -fx-background-color: -fxt-wf-fundsxml-rail, #3b3866; }
+.fxt-activity-button.fxt-wf-fundsxml:selected .iconify-icon, .fxt-activity-button-labeled.fxt-wf-fundsxml:selected { -fx-icon-color: -fxt-wf-fundsxml-rail; -fx-text-fill: -fxt-wf-fundsxml-rail; }
+/* Help / Settings (neutral): brand-blue indicator, white icon and label (spec D3). */
+.fxt-activity-button.fxt-wf-neutral:selected { -fx-background-color: -fxt-wf-workspace-rail, #3b3866; }
+.fxt-activity-button.fxt-wf-neutral:selected .iconify-icon, .fxt-activity-button-labeled.fxt-wf-neutral:selected { -fx-icon-color: #ffffff; -fx-text-fill: #ffffff; }
 
 /* ----- Panel progress / cancel row ------------------------------------ */
 .fxt-panel-progress {
