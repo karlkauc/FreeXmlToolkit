@@ -67,12 +67,12 @@ class ActivityTest {
     @Test
     void everyActivityHasAWorkflow() {
         assertEquals(org.fxt.freexmltoolkit.controls.theme.Workflow.WORKSPACE, Activity.EXPLORER.workflow());
-        assertEquals(org.fxt.freexmltoolkit.controls.theme.Workflow.WORKSPACE, Activity.SEARCH.workflow());
-        assertEquals(org.fxt.freexmltoolkit.controls.theme.Workflow.WORKSPACE, Activity.FAVORITES.workflow());
+        assertEquals(org.fxt.freexmltoolkit.controls.theme.Workflow.SEARCH, Activity.SEARCH.workflow());
+        assertEquals(org.fxt.freexmltoolkit.controls.theme.Workflow.FAVORITES, Activity.FAVORITES.workflow());
         assertEquals(org.fxt.freexmltoolkit.controls.theme.Workflow.VALIDATION, Activity.VALIDATION.workflow());
         assertEquals(org.fxt.freexmltoolkit.controls.theme.Workflow.TRANSFORM, Activity.TRANSFORM.workflow());
         assertEquals(org.fxt.freexmltoolkit.controls.theme.Workflow.SCHEMA, Activity.SCHEMA.workflow());
-        assertEquals(org.fxt.freexmltoolkit.controls.theme.Workflow.SCHEMA, Activity.SCHEMA_LIBRARY.workflow());
+        assertEquals(org.fxt.freexmltoolkit.controls.theme.Workflow.SCHEMA_LIBRARY, Activity.SCHEMA_LIBRARY.workflow());
         assertEquals(org.fxt.freexmltoolkit.controls.theme.Workflow.PDF, Activity.PDF_FOP.workflow());
         assertEquals(org.fxt.freexmltoolkit.controls.theme.Workflow.SIGNATURE, Activity.SIGNATURE.workflow());
         assertEquals(org.fxt.freexmltoolkit.controls.theme.Workflow.FUNDSXML, Activity.FUNDSXML.workflow());

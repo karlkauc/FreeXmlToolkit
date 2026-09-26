@@ -32,6 +32,8 @@
     -fx-background-color: transparent, transparent;
     -fx-background-insets: 0, 0 0 0 3;
     -fx-background-radius: 2 8 8 2, 8;
+    /* Reserve the indicator strip as padding so the icon is centred in the 3 px-narrower item surface. */
+    -fx-padding: 0 0 0 3;
     -fx-min-width: 40;
     -fx-min-height: 40;
     -fx-max-width: 40;
@@ -74,7 +76,10 @@
 }
 
 /* Selected = item surface + 3 px indicator and icon/label in the workflow's rail colour
-   (-fxt-wf-<id>-rail, see design-tokens.css / controls/theme/Workflow). */
+   (-fxt-wf-<id>-rail, see design-tokens.css / controls/theme/Workflow).
+   Each colour block combines two selectors: "… .iconify-icon" (icon) and ".fxt-activity-button-labeled…"
+   (label text). -fx-icon-color is a no-op on the button itself and -fx-text-fill a no-op on the icon;
+   the pairing just keeps icon and label colour in one place. */
 .fxt-activity-button:selected {
     -fx-background-color: -fxt-wf-workspace-rail, #3b3866;
 }
@@ -95,6 +100,12 @@
 .fxt-activity-button.fxt-wf-signature:selected .iconify-icon, .fxt-activity-button-labeled.fxt-wf-signature:selected { -fx-icon-color: -fxt-wf-signature-rail; -fx-text-fill: -fxt-wf-signature-rail; }
 .fxt-activity-button.fxt-wf-fundsxml:selected { -fx-background-color: -fxt-wf-fundsxml-rail, #3b3866; }
 .fxt-activity-button.fxt-wf-fundsxml:selected .iconify-icon, .fxt-activity-button-labeled.fxt-wf-fundsxml:selected { -fx-icon-color: -fxt-wf-fundsxml-rail; -fx-text-fill: -fxt-wf-fundsxml-rail; }
+.fxt-activity-button.fxt-wf-search:selected { -fx-background-color: -fxt-wf-search-rail, #3b3866; }
+.fxt-activity-button.fxt-wf-search:selected .iconify-icon, .fxt-activity-button-labeled.fxt-wf-search:selected { -fx-icon-color: -fxt-wf-search-rail; -fx-text-fill: -fxt-wf-search-rail; }
+.fxt-activity-button.fxt-wf-favorites:selected { -fx-background-color: -fxt-wf-favorites-rail, #3b3866; }
+.fxt-activity-button.fxt-wf-favorites:selected .iconify-icon, .fxt-activity-button-labeled.fxt-wf-favorites:selected { -fx-icon-color: -fxt-wf-favorites-rail; -fx-text-fill: -fxt-wf-favorites-rail; }
+.fxt-activity-button.fxt-wf-schema-library:selected { -fx-background-color: -fxt-wf-schema-library-rail, #3b3866; }
+.fxt-activity-button.fxt-wf-schema-library:selected .iconify-icon, .fxt-activity-button-labeled.fxt-wf-schema-library:selected { -fx-icon-color: -fxt-wf-schema-library-rail; -fx-text-fill: -fxt-wf-schema-library-rail; }
 /* Help / Settings (neutral): brand-blue indicator, white icon and label (spec D3). */
 .fxt-activity-button.fxt-wf-neutral:selected { -fx-background-color: -fxt-wf-workspace-rail, #3b3866; }
 .fxt-activity-button.fxt-wf-neutral:selected .iconify-icon, .fxt-activity-button-labeled.fxt-wf-neutral:selected { -fx-icon-color: #ffffff; -fx-text-fill: #ffffff; }
@@ -411,6 +422,9 @@
 .fxt-status-badge.fxt-wf-signature { -fx-background-color: -fxt-wf-signature-bg; -fx-border-color: -fxt-wf-signature-border; -fx-text-fill: -fxt-wf-signature-fg; }
 .fxt-status-badge.fxt-wf-fundsxml { -fx-background-color: -fxt-wf-fundsxml-bg; -fx-border-color: -fxt-wf-fundsxml-border; -fx-text-fill: -fxt-wf-fundsxml-fg; }
 .fxt-status-badge.fxt-wf-neutral { -fx-background-color: -fxt-wf-neutral-bg; -fx-border-color: -fxt-wf-neutral-border; -fx-text-fill: -fxt-wf-neutral-fg; }
+.fxt-status-badge.fxt-wf-search { -fx-background-color: -fxt-wf-search-bg; -fx-border-color: -fxt-wf-search-border; -fx-text-fill: -fxt-wf-search-fg; }
+.fxt-status-badge.fxt-wf-favorites { -fx-background-color: -fxt-wf-favorites-bg; -fx-border-color: -fxt-wf-favorites-border; -fx-text-fill: -fxt-wf-favorites-fg; }
+.fxt-status-badge.fxt-wf-schema-library { -fx-background-color: -fxt-wf-schema-library-bg; -fx-border-color: -fxt-wf-schema-library-border; -fx-text-fill: -fxt-wf-schema-library-fg; }
 
 /* ----- Editor center / toolbar / tabs --------------------------------- */
 .fxt-editor-center {
@@ -1362,6 +1376,9 @@
 .fxt-card-icon.fxt-wf-signature { -fx-background-color: -fxt-wf-signature-bg; }
 .fxt-card-icon.fxt-wf-fundsxml { -fx-background-color: -fxt-wf-fundsxml-bg; }
 .fxt-card-icon.fxt-wf-neutral { -fx-background-color: -fxt-wf-neutral-bg; }
+.fxt-card-icon.fxt-wf-search { -fx-background-color: -fxt-wf-search-bg; }
+.fxt-card-icon.fxt-wf-favorites { -fx-background-color: -fxt-wf-favorites-bg; }
+.fxt-card-icon.fxt-wf-schema-library { -fx-background-color: -fxt-wf-schema-library-bg; }
 .fxt-tool-card .fxt-card-icon.fxt-wf-workspace .iconify-icon { -fx-icon-color: -fxt-wf-workspace-accent; }
 .fxt-tool-card .fxt-card-icon.fxt-wf-validation .iconify-icon { -fx-icon-color: -fxt-wf-validation-accent; }
 .fxt-tool-card .fxt-card-icon.fxt-wf-transform .iconify-icon { -fx-icon-color: -fxt-wf-transform-accent; }
@@ -1370,6 +1387,21 @@
 .fxt-tool-card .fxt-card-icon.fxt-wf-signature .iconify-icon { -fx-icon-color: -fxt-wf-signature-accent; }
 .fxt-tool-card .fxt-card-icon.fxt-wf-fundsxml .iconify-icon { -fx-icon-color: -fxt-wf-fundsxml-accent; }
 .fxt-tool-card .fxt-card-icon.fxt-wf-neutral .iconify-icon { -fx-icon-color: -fxt-wf-neutral-accent; }
+.fxt-tool-card .fxt-card-icon.fxt-wf-search .iconify-icon { -fx-icon-color: -fxt-wf-search-accent; }
+.fxt-tool-card .fxt-card-icon.fxt-wf-favorites .iconify-icon { -fx-icon-color: -fxt-wf-favorites-accent; }
+.fxt-tool-card .fxt-card-icon.fxt-wf-schema-library .iconify-icon { -fx-icon-color: -fxt-wf-schema-library-accent; }
+/* Card hover border in the workflow colour (spec §2, Welcome tool cards); the card carries fxt-wf-<id> too. */
+.fxt-tool-card.fxt-wf-workspace:hover { -fx-border-color: -fxt-wf-workspace-border; }
+.fxt-tool-card.fxt-wf-validation:hover { -fx-border-color: -fxt-wf-validation-border; }
+.fxt-tool-card.fxt-wf-transform:hover { -fx-border-color: -fxt-wf-transform-border; }
+.fxt-tool-card.fxt-wf-schema:hover { -fx-border-color: -fxt-wf-schema-border; }
+.fxt-tool-card.fxt-wf-pdf:hover { -fx-border-color: -fxt-wf-pdf-border; }
+.fxt-tool-card.fxt-wf-signature:hover { -fx-border-color: -fxt-wf-signature-border; }
+.fxt-tool-card.fxt-wf-fundsxml:hover { -fx-border-color: -fxt-wf-fundsxml-border; }
+.fxt-tool-card.fxt-wf-neutral:hover { -fx-border-color: -fxt-wf-neutral-border; }
+.fxt-tool-card.fxt-wf-search:hover { -fx-border-color: -fxt-wf-search-border; }
+.fxt-tool-card.fxt-wf-favorites:hover { -fx-border-color: -fxt-wf-favorites-border; }
+.fxt-tool-card.fxt-wf-schema-library:hover { -fx-border-color: -fxt-wf-schema-library-border; }
 .fxt-card-icon-primary {
     -fx-background-color: rgba(255, 255, 255, 0.18);
     -fx-background-radius: 8;
@@ -3096,6 +3128,27 @@
 .fxt-wf-fundsxml .fxt-primary-button, .fxt-wf-fundsxml .fxt-action-row-primary { -fx-background-color: -fxt-wf-fundsxml-fill; }
 .fxt-wf-fundsxml .fxt-primary-button:hover, .fxt-wf-fundsxml .fxt-action-row-primary:hover { -fx-background-color: derive(-fxt-wf-fundsxml-fill, -10%); }
 .fxt-wf-fundsxml .fxt-primary-button:pressed, .fxt-wf-fundsxml .fxt-action-row-primary:pressed, .fxt-wf-fundsxml .fxt-action-row-primary:armed { -fx-background-color: derive(-fxt-wf-fundsxml-fill, -18%); }
+
+.fxt-wf-search .fxt-panel-title { -fx-text-fill: -fxt-wf-search-fg; }
+.fxt-wf-search .fxt-action-row:hover { -fx-background-color: -fxt-wf-search-bg; }
+.fxt-wf-search .fxt-action-row:armed, .fxt-wf-search .fxt-action-row:pressed { -fx-background-color: derive(-fxt-wf-search-bg, -8%); }
+.fxt-wf-search .fxt-primary-button, .fxt-wf-search .fxt-action-row-primary { -fx-background-color: -fxt-wf-search-fill; }
+.fxt-wf-search .fxt-primary-button:hover, .fxt-wf-search .fxt-action-row-primary:hover { -fx-background-color: derive(-fxt-wf-search-fill, -10%); }
+.fxt-wf-search .fxt-primary-button:pressed, .fxt-wf-search .fxt-action-row-primary:pressed, .fxt-wf-search .fxt-action-row-primary:armed { -fx-background-color: derive(-fxt-wf-search-fill, -18%); }
+
+.fxt-wf-favorites .fxt-panel-title { -fx-text-fill: -fxt-wf-favorites-fg; }
+.fxt-wf-favorites .fxt-action-row:hover { -fx-background-color: -fxt-wf-favorites-bg; }
+.fxt-wf-favorites .fxt-action-row:armed, .fxt-wf-favorites .fxt-action-row:pressed { -fx-background-color: derive(-fxt-wf-favorites-bg, -8%); }
+.fxt-wf-favorites .fxt-primary-button, .fxt-wf-favorites .fxt-action-row-primary { -fx-background-color: -fxt-wf-favorites-fill; }
+.fxt-wf-favorites .fxt-primary-button:hover, .fxt-wf-favorites .fxt-action-row-primary:hover { -fx-background-color: derive(-fxt-wf-favorites-fill, -10%); }
+.fxt-wf-favorites .fxt-primary-button:pressed, .fxt-wf-favorites .fxt-action-row-primary:pressed, .fxt-wf-favorites .fxt-action-row-primary:armed { -fx-background-color: derive(-fxt-wf-favorites-fill, -18%); }
+
+.fxt-wf-schema-library .fxt-panel-title { -fx-text-fill: -fxt-wf-schema-library-fg; }
+.fxt-wf-schema-library .fxt-action-row:hover { -fx-background-color: -fxt-wf-schema-library-bg; }
+.fxt-wf-schema-library .fxt-action-row:armed, .fxt-wf-schema-library .fxt-action-row:pressed { -fx-background-color: derive(-fxt-wf-schema-library-bg, -8%); }
+.fxt-wf-schema-library .fxt-primary-button, .fxt-wf-schema-library .fxt-action-row-primary { -fx-background-color: -fxt-wf-schema-library-fill; }
+.fxt-wf-schema-library .fxt-primary-button:hover, .fxt-wf-schema-library .fxt-action-row-primary:hover { -fx-background-color: derive(-fxt-wf-schema-library-fill, -10%); }
+.fxt-wf-schema-library .fxt-primary-button:pressed, .fxt-wf-schema-library .fxt-action-row-primary:pressed, .fxt-wf-schema-library .fxt-action-row-primary:armed { -fx-background-color: derive(-fxt-wf-schema-library-fill, -18%); }
 
 /* Help / Settings: neutral title, brand-primary buttons (unchanged look). */
 .fxt-wf-neutral .fxt-panel-title { -fx-text-fill: -fxt-text-secondary; }

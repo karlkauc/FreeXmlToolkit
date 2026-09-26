@@ -81,6 +81,9 @@
     -fxt-wf-pdf-accent: #d6336c;        -fxt-wf-pdf-fg: #c2255c;        -fxt-wf-pdf-fill: #c2255c;        -fxt-wf-pdf-bg: #fff0f6;        -fxt-wf-pdf-border: #fcc2d7;        -fxt-wf-pdf-rail: #f783ac;
     -fxt-wf-signature-accent: #1098ad;  -fxt-wf-signature-fg: #0b7285;  -fxt-wf-signature-fill: #0b7285;  -fxt-wf-signature-bg: #e7f6f8;  -fxt-wf-signature-border: #b9e3e9;  -fxt-wf-signature-rail: #4dd4e8;
     -fxt-wf-fundsxml-accent: #12a594;   -fxt-wf-fundsxml-fg: #0b7a6e;   -fxt-wf-fundsxml-fill: #0b7a6e;   -fxt-wf-fundsxml-bg: #e6fcf5;   -fxt-wf-fundsxml-border: #a8ecd6;   -fxt-wf-fundsxml-rail: #38d9a9;
+    -fxt-wf-search-accent: #4c5fd5; -fxt-wf-search-fg: #3f51c9; -fxt-wf-search-fill: #3f51c9; -fxt-wf-search-bg: #eceefc; -fxt-wf-search-border: #c5cbf5; -fxt-wf-search-rail: #9775fa;
+    -fxt-wf-favorites-accent: #e69500; -fxt-wf-favorites-fg: #9a6400; -fxt-wf-favorites-fill: #9a6400; -fxt-wf-favorites-bg: #fff4d6; -fxt-wf-favorites-border: #f5dc9b; -fxt-wf-favorites-rail: #ffd43b;
+    -fxt-wf-schema-library-accent: #be4bdb; -fxt-wf-schema-library-fg: #9c36b5; -fxt-wf-schema-library-fill: #9c36b5; -fxt-wf-schema-library-bg: #f8f0fc; -fxt-wf-schema-library-border: #eebefa; -fxt-wf-schema-library-rail: #da77f2;
     -fxt-wf-neutral-accent: #5a6472;    -fxt-wf-neutral-fg: #5a6472;    -fxt-wf-neutral-fill: #5a6472;    -fxt-wf-neutral-bg: #f2f4f8;    -fxt-wf-neutral-border: #dde1e7;    -fxt-wf-neutral-rail: #9ba6b3;
 
     /* Action-colour roles (spec §3, see controls/theme/ActionColor) — aliases of the semantic tokens. */
@@ -150,6 +153,9 @@
     -fxt-wf-pdf-accent: #f783ac;        -fxt-wf-pdf-fg: #f783ac;        -fxt-wf-pdf-fill: #d6336c;        -fxt-wf-pdf-bg: #33161f;        -fxt-wf-pdf-border: #66293d;        -fxt-wf-pdf-rail: #f783ac;
     -fxt-wf-signature-accent: #4dd4e8;  -fxt-wf-signature-fg: #4dd4e8;  -fxt-wf-signature-fill: #0b7285;  -fxt-wf-signature-bg: #0e2a30;  -fxt-wf-signature-border: #1f4a53;  -fxt-wf-signature-rail: #4dd4e8;
     -fxt-wf-fundsxml-accent: #38d9a9;   -fxt-wf-fundsxml-fg: #38d9a9;   -fxt-wf-fundsxml-fill: #0b7a6e;   -fxt-wf-fundsxml-bg: #0f2b26;   -fxt-wf-fundsxml-border: #1f5348;   -fxt-wf-fundsxml-rail: #38d9a9;
+    -fxt-wf-search-accent: #9775fa; -fxt-wf-search-fg: #9775fa; -fxt-wf-search-fill: #5b4fd6; -fxt-wf-search-bg: #1e1b45; -fxt-wf-search-border: #3d3880; -fxt-wf-search-rail: #9775fa;
+    -fxt-wf-favorites-accent: #ffd43b; -fxt-wf-favorites-fg: #ffd43b; -fxt-wf-favorites-fill: #9a6400; -fxt-wf-favorites-bg: #332a10; -fxt-wf-favorites-border: #66541f; -fxt-wf-favorites-rail: #ffd43b;
+    -fxt-wf-schema-library-accent: #da77f2; -fxt-wf-schema-library-fg: #da77f2; -fxt-wf-schema-library-fill: #9c36b5; -fxt-wf-schema-library-bg: #2e1a33; -fxt-wf-schema-library-border: #5a3566; -fxt-wf-schema-library-rail: #da77f2;
     -fxt-wf-neutral-accent: #9ba6b3;    -fxt-wf-neutral-fg: #9ba6b3;    -fxt-wf-neutral-fill: #5a6472;    -fxt-wf-neutral-bg: #1c232c;    -fxt-wf-neutral-border: #2a323d;    -fxt-wf-neutral-rail: #9ba6b3;
 
     /* Action-colour roles — same aliases, dark values come from the semantic tokens above. */

@@ -42,6 +42,7 @@ public final class SemanticIcon {
 
     private static final CopyOnWriteArrayList<Reg> REGISTRY = new CopyOnWriteArrayList<>();
     private static final CopyOnWriteArrayList<Bound> BOUND = new CopyOnWriteArrayList<>();
+    private static final int PRUNE_EVERY = 64;
 
     static {
         ThemeManager.addThemeChangeListener(SemanticIcon::recolorAll);
@@ -83,7 +84,17 @@ public final class SemanticIcon {
         icon.iconColorProperty().unbind();
         icon.iconColorProperty().bind(color);
         BOUND.add(new Bound(new WeakReference<>(icon), color, token));
+        if (BOUND.size() % PRUNE_EVERY == 0) {
+            // Drop collected icons without waiting for a theme switch (e.g. the status badge binds a
+            // fresh icon per recorded run for the lifetime of the session).
+            BOUND.removeIf(b -> b.icon().get() == null);
+        }
         return icon;
+    }
+
+    /** Number of live-or-not-yet-pruned bound registrations; package-private for tests. */
+    static int boundRegistrySize() {
+        return BOUND.size();
     }
 
     /** Binds the icon colour to the token of the action role; see {@link #bind(IconifyIcon, DesignTokens.ColorToken)}. */

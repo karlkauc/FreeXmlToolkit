@@ -56,10 +56,13 @@
     // panel, the editor-toolbar group tint, the status-bar last-run badge and the Welcome tool-card chip.
     "workflowColors": {
       "families": {
-        "workspace":  { "activities": "Explorer, Search, Favorites", "hue": "brand blue",   "accentLight": "#1373d9", "accentDark": "#4c9bf5" },
+        "workspace":      { "activities": "Explorer",             "hue": "brand blue", "accentLight": "#1373d9", "accentDark": "#4c9bf5" },
+        "search":         { "activities": "Search",               "hue": "indigo",     "accentLight": "#4c5fd5", "accentDark": "#9775fa" },
+        "favorites":      { "activities": "Favorites",            "hue": "amber",      "accentLight": "#e69500", "accentDark": "#ffd43b" },
         "validation": { "activities": "Validation",                  "hue": "green",        "accentLight": "#2f9e44", "accentDark": "#51cf66" },
         "transform":  { "activities": "Transform",                   "hue": "brand orange", "accentLight": "#f08c2e", "accentDark": "#f59f46" },
-        "schema":     { "activities": "Schema, Schema Library",      "hue": "purple",       "accentLight": "#6f42c1", "accentDark": "#b197fc" },
+        "schema":         { "activities": "Schema",               "hue": "purple",     "accentLight": "#6f42c1", "accentDark": "#b197fc" },
+        "schema-library": { "activities": "Schema Library",       "hue": "grape",      "accentLight": "#be4bdb", "accentDark": "#da77f2" },
         "pdf":        { "activities": "PDF / FOP",                   "hue": "rose",         "accentLight": "#d6336c", "accentDark": "#f783ac" },
         "signature":  { "activities": "Signature",                   "hue": "cyan",         "accentLight": "#1098ad", "accentDark": "#4dd4e8" },
         "fundsxml":   { "activities": "FundsXML (extension)",        "hue": "teal",         "accentLight": "#12a594", "accentDark": "#38d9a9" },
@@ -78,7 +81,7 @@
         "At most one filled workflow-coloured element per side panel — the primary action; everything else is tint, text or icon.",
         "Workflow colour lives on chrome that names the workflow (rail, title, primary, badge, toolbar group); never on body text, lists, tables or editors.",
         "Semantic result colours (success / danger / warning) always win over the workflow colour when both apply.",
-        "Workspace, Help and Settings use brand blue, so the default view of the app is unchanged.",
+        "Explorer (workspace), Help and Settings use brand blue, so the default view of the app is unchanged; every other activity has its own family.",
         "Never two workflow hues on one surface — except 16px icon tints in the editor toolbar.",
         "Action colours never appear on chrome; workflow colours never appear in menus."
       ],
@@ -89,9 +92,9 @@
         "CREATE":    { "token": "-fxt-success", "verbs": "Add, Insert, New, Paste, Duplicate, Validate, Generate" },
         "DELETE":    { "token": "-fxt-danger",  "verbs": "Delete, Remove, Clear, Cut" },
         "MODIFY":    { "token": "-fxt-accent",  "verbs": "Rename, Edit value, Comment toggle" },
-        "NAVIGATE":  { "token": "-fxt-info",    "verbs": "Go to Definition, Reveal, Open referenced/report/tool, Find" },
+        "NAVIGATE":  { "token": "-fxt-info",    "verbs": "Go to Definition, Reveal, Open referenced/report/tool, Find — 'Open' of a KNOWN thing (a favorite, a saved query, the generated PDF) navigates" },
         "STRUCTURE": { "token": "-fxt-purple",  "verbs": "Change Type, Cardinality, Move Up/Down, Reorder" },
-        "TOOL":      { "token": "-fxt-primary", "verbs": "Format, Minify, Sort, Run/Execute in menus, Open/Save/Export, Download" },
+        "TOOL":      { "token": "-fxt-primary", "verbs": "Format, Minify, Sort, Run/Execute in menus, Open…/Save/Export, Download — 'Open…' that shows a file chooser is a tool, not navigation" },
         "NEUTRAL":   { "token": "-fxt-neutral", "verbs": "Copy (all variants), Expand/Collapse, Select all, Undo/Redo, Settings" }
       }
     },

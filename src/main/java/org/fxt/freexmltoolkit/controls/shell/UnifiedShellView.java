@@ -807,8 +807,9 @@ public class UnifiedShellView extends BorderPane {
     /**
      * Status-bar "last run" badge (spec 2026-09-26 §2): chip in the colours of the workflow that ran,
      * result icon in the semantic colour (success/danger wins over the workflow colour).
+     * Package-private so the shell test can feed a synthetic run.
      */
-    private void showLastRunBadge(org.fxt.freexmltoolkit.service.ExecutionStats stats) {
+    void showLastRunBadge(org.fxt.freexmltoolkit.service.ExecutionStats stats) {
         if (stats == null) {
             return;
         }

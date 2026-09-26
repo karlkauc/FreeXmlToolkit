@@ -15,12 +15,12 @@ import org.fxt.freexmltoolkit.controls.theme.Workflow;
  */
 public enum Activity {
     EXPLORER("explorer", "Explorer", "bi-folder2-open", Workflow.WORKSPACE),
-    SEARCH("search", "Search", "bi-search", Workflow.WORKSPACE),
-    FAVORITES("favorites", "Favorites", "bi-star", Workflow.WORKSPACE),
+    SEARCH("search", "Search", "bi-search", Workflow.SEARCH),
+    FAVORITES("favorites", "Favorites", "bi-star", Workflow.FAVORITES),
     VALIDATION("validation", "Validation", "bi-check2-circle", Workflow.VALIDATION),
     TRANSFORM("transform", "Transform", "bi-arrow-repeat", Workflow.TRANSFORM),
     SCHEMA("schema", "Schema", "bi-diagram-3", Workflow.SCHEMA),
-    SCHEMA_LIBRARY("schema-library", "Schema Library", "bi-collection", Workflow.SCHEMA),
+    SCHEMA_LIBRARY("schema-library", "Schema Library", "bi-collection", Workflow.SCHEMA_LIBRARY),
     PDF_FOP("pdf", "PDF / FOP", "bi-file-earmark-pdf", Workflow.PDF),
     SIGNATURE("signature", "Signature", "bi-shield-lock", Workflow.SIGNATURE),
     FUNDSXML("fundsxml", "FundsXML", "bi-file-earmark-code", Workflow.FUNDSXML),

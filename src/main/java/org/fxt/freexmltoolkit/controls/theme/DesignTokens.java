@@ -130,6 +130,27 @@ public final class DesignTokens {
         WF_FUNDSXML_BORDER("-fxt-wf-fundsxml-border", "#a8ecd6", "#1f5348"),
         WF_FUNDSXML_RAIL("-fxt-wf-fundsxml-rail", "#38d9a9", "#38d9a9"),
 
+        WF_SEARCH_ACCENT("-fxt-wf-search-accent", "#4c5fd5", "#9775fa"),
+        WF_SEARCH_FG("-fxt-wf-search-fg", "#3f51c9", "#9775fa"),
+        WF_SEARCH_FILL("-fxt-wf-search-fill", "#3f51c9", "#5b4fd6"),
+        WF_SEARCH_BG("-fxt-wf-search-bg", "#eceefc", "#1e1b45"),
+        WF_SEARCH_BORDER("-fxt-wf-search-border", "#c5cbf5", "#3d3880"),
+        WF_SEARCH_RAIL("-fxt-wf-search-rail", "#9775fa", "#9775fa"),
+
+        WF_FAVORITES_ACCENT("-fxt-wf-favorites-accent", "#e69500", "#ffd43b"),
+        WF_FAVORITES_FG("-fxt-wf-favorites-fg", "#9a6400", "#ffd43b"),
+        WF_FAVORITES_FILL("-fxt-wf-favorites-fill", "#9a6400", "#9a6400"),
+        WF_FAVORITES_BG("-fxt-wf-favorites-bg", "#fff4d6", "#332a10"),
+        WF_FAVORITES_BORDER("-fxt-wf-favorites-border", "#f5dc9b", "#66541f"),
+        WF_FAVORITES_RAIL("-fxt-wf-favorites-rail", "#ffd43b", "#ffd43b"),
+
+        WF_SCHEMA_LIBRARY_ACCENT("-fxt-wf-schema-library-accent", "#be4bdb", "#da77f2"),
+        WF_SCHEMA_LIBRARY_FG("-fxt-wf-schema-library-fg", "#9c36b5", "#da77f2"),
+        WF_SCHEMA_LIBRARY_FILL("-fxt-wf-schema-library-fill", "#9c36b5", "#9c36b5"),
+        WF_SCHEMA_LIBRARY_BG("-fxt-wf-schema-library-bg", "#f8f0fc", "#2e1a33"),
+        WF_SCHEMA_LIBRARY_BORDER("-fxt-wf-schema-library-border", "#eebefa", "#5a3566"),
+        WF_SCHEMA_LIBRARY_RAIL("-fxt-wf-schema-library-rail", "#da77f2", "#da77f2"),
+
         WF_NEUTRAL_ACCENT("-fxt-wf-neutral-accent", "#5a6472", "#9ba6b3"),
         WF_NEUTRAL_FG("-fxt-wf-neutral-fg", "#5a6472", "#9ba6b3"),
         WF_NEUTRAL_FILL("-fxt-wf-neutral-fill", "#5a6472", "#5a6472"),

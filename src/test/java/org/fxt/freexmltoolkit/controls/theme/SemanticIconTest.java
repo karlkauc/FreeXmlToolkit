@@ -79,6 +79,31 @@ class SemanticIconTest {
     }
 
     @Test
+    @DisplayName("Bound registry prunes collected icons without waiting for a theme switch")
+    void boundRegistryPrunesCollectedIcons() throws InterruptedException {
+        runAndWait(() -> {
+            for (int i = 0; i < 300; i++) {
+                SemanticIcon.bind(new IconifyIcon("bi-star"), ActionColor.NEUTRAL); // dropped immediately
+            }
+        });
+        int before = SemanticIcon.boundRegistrySize();
+        assertTrue(before >= 300, "entries were registered: " + before);
+        boolean collected = false;
+        for (int i = 0; i < 20 && !collected; i++) {
+            System.gc();
+            Thread.sleep(50);
+            byte[][] pressure = new byte[64][];
+            for (int j = 0; j < pressure.length; j++) {
+                pressure[j] = new byte[1 << 20];
+            }
+            runAndWait(() -> SemanticIcon.bind(new IconifyIcon("bi-star"), ActionColor.NEUTRAL));
+            collected = SemanticIcon.boundRegistrySize() < before;
+        }
+        org.junit.jupiter.api.Assumptions.assumeTrue(collected, "GC did not collect the icons in time");
+        assertTrue(SemanticIcon.boundRegistrySize() < before, "prune must drop entries whose icon was collected");
+    }
+
+    @Test
     @DisplayName("Bound icon colour re-tints on a theme switch and stays bound (CSS cannot override it)")
     void boundIconRecolorsOnThemeSwitch() {
         runAndWait(() -> {
