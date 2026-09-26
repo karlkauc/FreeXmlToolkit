@@ -14,6 +14,8 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.controls.theme.ActionColor;
+import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
 
 /**
  * The shared "follow-on actions" block of the activity side panels: a vertical list of
@@ -42,7 +44,8 @@ final class PanelActionList extends VBox {
 
     /** Appends a row for {@code action} and returns its button. */
     Button add(PanelAction action) {
-        Button button = row(action.label(), action.iconLiteral(), action.onAction());
+        Button button = row(action.label(), action.iconLiteral(), action.onAction(),
+                action.primary() ? null : action.color());
         button.setId(action.id());
         if (action.primary()) {
             button.getStyleClass().add(PRIMARY_STYLE_CLASS);
@@ -69,6 +72,7 @@ final class PanelActionList extends VBox {
     MenuButton addMenu(MenuButton menu, String id, String iconLiteral, String label) {
         IconifyIcon icon = new IconifyIcon(iconLiteral);
         icon.setIconSize(ICON_SIZE);
+        SemanticIcon.bind(icon, ActionColor.NEUTRAL);
         menu.setGraphic(icon);
         menu.setText(label);
         menu.setId(id);
@@ -113,7 +117,7 @@ final class PanelActionList extends VBox {
      * {@code iconLiteral} may be {@code null} where horizontal space is scarce.
      */
     static Button inlineRow(String label, String iconLiteral, Runnable onAction) {
-        Button button = row(label, iconLiteral, onAction);
+        Button button = row(label, iconLiteral, onAction, ActionColor.NEUTRAL);
         button.getStyleClass().add(INLINE_STYLE_CLASS);
         // Never shrink below the label: in a crowded SourceRow the file name ellipsises
         // first, the action verb stays legible.
@@ -122,11 +126,19 @@ final class PanelActionList extends VBox {
         return button;
     }
 
-    private static Button row(String label, String iconLiteral, Runnable onAction) {
+    /**
+     * @param color the action-colour role bound to the icon, or {@code null} to leave the colour to CSS
+     *              (primary rows: white icon on the workflow fill)
+     */
+    private static Button row(String label, String iconLiteral, Runnable onAction, ActionColor color) {
         Button button = new Button(label);
         if (iconLiteral != null) {
             IconifyIcon icon = new IconifyIcon(iconLiteral);
             icon.setIconSize(ICON_SIZE);
+            if (color != null) {
+                // Bound, not set: the .fxt-action-row .iconify-icon CSS rule would otherwise repaint it.
+                SemanticIcon.bind(icon, color);
+            }
             button.setGraphic(icon);
         }
         button.getStyleClass().add(ROW_STYLE_CLASS);

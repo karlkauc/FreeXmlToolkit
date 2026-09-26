@@ -2925,16 +2925,14 @@
     -fx-cursor: hand;
 }
 
+/* Row icons carry their ACTION colour (bound in PanelActionList; spec 2026-09-26 §3). The
+   fallback below only applies to icons nobody bound; hover does not recolour the icon. */
 .fxt-action-row .iconify-icon {
     -fx-icon-color: -fxt-text-secondary;
 }
 
 .fxt-action-row:hover {
     -fx-background-color: -fxt-bg-subtle;
-}
-
-.fxt-action-row:hover .iconify-icon {
-    -fx-icon-color: -fxt-primary;
 }
 
 .fxt-action-row:armed,

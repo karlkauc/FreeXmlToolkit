@@ -17,6 +17,8 @@ import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.controls.theme.ActionColor;
+import org.fxt.freexmltoolkit.controls.theme.DesignTokens;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.framework.junit5.ApplicationExtension;
@@ -51,8 +53,10 @@ class PanelActionListTest {
     @Start
     void start(Stage stage) {
         list = new PanelActionList(
-                PanelAction.of("act-one", "bi-magic", "Generate XSD from XML", fired::incrementAndGet),
+                PanelAction.of("act-one", "bi-magic", "Generate XSD from XML", fired::incrementAndGet)
+                        .color(ActionColor.CREATE),
                 PanelAction.of("act-two", "bi-layers", "Flatten Schema…", fired::incrementAndGet)
+                        .color(ActionColor.DELETE)
                         .disabledWhen(busy),
                 PanelAction.of("act-three", "bi-file-earmark-text", "Validation Report", fired::incrementAndGet)
                         .visibleWhen(reportAvailable)
@@ -79,6 +83,18 @@ class PanelActionListTest {
 
     private String css(String resource) {
         return getClass().getResource(resource).toExternalForm();
+    }
+
+    @Test
+    void rowIconsAreBoundToTheirActionColourAndPrimaryStaysWhite() {
+        WaitForAsyncUtils.waitForFxEvents();
+        IconifyIcon create = (IconifyIcon) list.button("act-one").getGraphic();
+        IconifyIcon delete = (IconifyIcon) list.button("act-two").getGraphic();
+        IconifyIcon primary = (IconifyIcon) list.button("act-primary").getGraphic();
+        assertTrue(create.iconColorProperty().isBound(), "plain row icon is bound (CSS-proof)");
+        assertEquals(ActionColor.CREATE.token().color(DesignTokens.Theme.LIGHT), create.getIconColor());
+        assertEquals(ActionColor.DELETE.token().color(DesignTokens.Theme.LIGHT), delete.getIconColor());
+        assertFalse(primary.iconColorProperty().isBound(), "primary row icon is left to CSS (on-primary)");
     }
 
     @Test

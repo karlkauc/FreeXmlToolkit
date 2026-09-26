@@ -26,6 +26,7 @@ import javafx.scene.paint.Color;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.domain.FileFavorite;
 import org.fxt.freexmltoolkit.service.FavoritesService;
+import org.fxt.freexmltoolkit.controls.theme.ActionColor;
 
 /**
  * The Favorites activity side panel: lists saved file favorites — grouped by
@@ -76,7 +77,7 @@ public class FavoritesActivityPanel extends VBox {
         title.getStyleClass().addAll("fxt-side-panel-title", "fxt-panel-title");
 
         PanelActionList actions = new PanelActionList(
-                PanelAction.of("favorites-add-current", "bi-star", "Add current", this::addCurrent),
+                PanelAction.of("favorites-add-current", "bi-star", "Add current", this::addCurrent).color(ActionColor.CREATE),
                 PanelAction.of("favorites-manage", "bi-sliders", "Manage…", this::openManager));
 
         search.setId("favorites-search");

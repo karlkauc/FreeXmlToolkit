@@ -38,6 +38,7 @@ import org.fxt.freexmltoolkit.service.FavoritesService;
 import org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat;
 import org.fxt.freexmltoolkit.service.telemetry.UsageEvents;
 import org.fxt.freexmltoolkit.util.DialogHelper;
+import org.fxt.freexmltoolkit.controls.theme.ActionColor;
 
 /**
  * The Transform activity side panel, laid out after the Figma mockup
@@ -182,10 +183,10 @@ public class TransformPanel extends VBox {
 
         // --- TOOLS: the advanced tools as visible rows (formerly ⋮ entries) ----------
         tools = new PanelActionList(
-                PanelAction.of("transform-tool-debug", "bi-bug", "Debug XSLT…", this::startDebug),
-                PanelAction.of("transform-tool-batch", "bi-collection", "Batch Transform…", this::openBatch),
+                PanelAction.of("transform-tool-debug", "bi-bug", "Debug XSLT…", this::startDebug).color(ActionColor.TOOL),
+                PanelAction.of("transform-tool-batch", "bi-collection", "Batch Transform…", this::openBatch).color(ActionColor.TOOL),
                 PanelAction.of("transform-tool-stats", "bi-speedometer2", "Execution Statistics",
-                        editorHost::openExecutionStats));
+                        editorHost::openExecutionStats).color(ActionColor.NAVIGATE));
         tools.setId("transform-tools");
         VBox toolsSection = PanelActionList.section("TOOLS", false, tools);
 
@@ -196,9 +197,9 @@ public class TransformPanel extends VBox {
         updatePathMode();
         editorHost.activeTabProperty().addListener((obs, oldV, newV) -> updatePathMode());
         PanelActionList xpathActions = new PanelActionList(
-                PanelAction.of("transform-xpath-run", "bi-lightning-charge", "Run Query", this::runXPath)
+                PanelAction.of("transform-xpath-run", "bi-lightning-charge", "Run Query", this::runXPath).color(ActionColor.TOOL)
                         .asPrimary(),
-                PanelAction.of("transform-xpath-save", "bi-save", "Save Query", this::saveCurrentQuery));
+                PanelAction.of("transform-xpath-save", "bi-save", "Save Query", this::saveCurrentQuery).color(ActionColor.TOOL));
         savedQueriesMenu = new MenuButton();
         savedQueriesMenu.setOnShowing(e -> refreshSavedQueriesMenu());
         xpathActions.addMenu(savedQueriesMenu, "transform-xpath-saved", "bi-collection", "Saved Queries");
@@ -211,7 +212,7 @@ public class TransformPanel extends VBox {
         xqueryArea.setPrefRowCount(4);
         xqueryArea.getStyleClass().add("fxt-xpath-field");
         PanelActionList xqueryActions = new PanelActionList(
-                PanelAction.of("transform-xquery-run", "bi-braces", "Run XQuery", this::runXQuery).asPrimary());
+                PanelAction.of("transform-xquery-run", "bi-braces", "Run XQuery", this::runXQuery).color(ActionColor.TOOL).asPrimary());
         MenuButton examplesMenu = new MenuButton();
         examplesMenu.getItems().addAll(
                 exampleItem("Simple", "simple"),

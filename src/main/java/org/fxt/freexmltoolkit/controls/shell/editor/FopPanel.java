@@ -23,6 +23,7 @@ import javafx.stage.FileChooser;
 
 import org.fxt.freexmltoolkit.FxtGui;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.controls.theme.ActionColor;
 
 /**
  * The PDF/FOP activity side panel, laid out after the Figma mockup
@@ -140,9 +141,9 @@ public class FopPanel extends VBox {
 
         // Result actions: enabled once a PDF has been generated.
         PanelActionList resultActions = new PanelActionList();
-        previewButton = resultActions.add(PanelAction.of("fop-preview", "bi-eye", "Preview PDF", this::previewPdf));
+        previewButton = resultActions.add(PanelAction.of("fop-preview", "bi-eye", "Preview PDF", this::previewPdf).color(ActionColor.NAVIGATE));
         previewButton.setDisable(true);
-        openButton = resultActions.add(PanelAction.of("fop-open", "bi-box-arrow-up-right", "Open PDF", this::openPdf));
+        openButton = resultActions.add(PanelAction.of("fop-open", "bi-box-arrow-up-right", "Open PDF", this::openPdf).color(ActionColor.NAVIGATE));
         openButton.setDisable(true);
         VBox resultBox = PanelActionList.section("RESULT", false, resultActions);
 
