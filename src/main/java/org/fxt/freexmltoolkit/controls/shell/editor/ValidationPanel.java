@@ -33,6 +33,7 @@ import javafx.util.Duration;
 import org.fxt.freexmltoolkit.FxtGui;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.service.telemetry.UsageEvents;
+import org.fxt.freexmltoolkit.controls.theme.ActionColor;
 
 /**
  * The Validation activity side panel, laid out after the Figma mockup
@@ -90,7 +91,7 @@ public class ValidationPanel extends VBox {
         // UnifiedShellViewTest) identify the active panel's title by it; the later
         // .fxt-vp-title rule wins the visual styling.
         Label title = new Label("VALIDATION");
-        title.getStyleClass().addAll("fxt-side-panel-title", "fxt-vp-title");
+        title.getStyleClass().addAll("fxt-side-panel-title", "fxt-vp-title", "fxt-panel-title");
         Region headerSpacer = new Region();
         HBox.setHgrow(headerSpacer, Priority.ALWAYS);
         overflowMenu.setId("validation-overflow");
@@ -284,31 +285,31 @@ public class ValidationPanel extends VBox {
     private VBox buildTools() {
         tools.setId("validation-tools");
         tools.add(PanelAction.of("validation-tool-templates", "bi-journal-code", "Rule Templates",
-                this::openSchematronTemplates));
+                this::openSchematronTemplates).color(ActionColor.NAVIGATE));
         tools.add(PanelAction.of("validation-tool-tester", "bi-flask", "Schematron Tester",
-                this::openSchematronTester));
+                this::openSchematronTester).color(ActionColor.NAVIGATE));
         tools.add(PanelAction.of("validation-tool-builder", "bi-tools", "Rule Builder",
-                this::openSchematronBuilder));
+                this::openSchematronBuilder).color(ActionColor.NAVIGATE));
         tools.add(PanelAction.of("validation-tool-check", "bi-check2-square", "Check Rules",
-                this::openSchematronCheck));
+                this::openSchematronCheck).color(ActionColor.CREATE));
         // Enabled after a validation run with a bound Schematron (see revalidate).
         schematronReportButton = tools.add(PanelAction.of("validation-schematron-report", "bi-journal-check",
-                "Validation Report", this::openSchematronReport)
+                "Validation Report", this::openSchematronReport).color(ActionColor.NAVIGATE)
                 .tooltip("Detailed report of the last Schematron run"));
         schematronReportButton.setDisable(true);
         tools.add(PanelAction.of("validation-tool-documentation", "bi-book", "Schematron Documentation",
-                this::openSchematronDocumentation));
+                this::openSchematronDocumentation).color(ActionColor.NAVIGATE));
         exportProblems = tools.add(PanelAction.of("validation-export-problems", "bi-file-earmark-excel",
-                "Export Problems to Excel", this::exportProblemsToExcel)
+                "Export Problems to Excel", this::exportProblemsToExcel).color(ActionColor.TOOL)
                 .disabledWhen(javafx.beans.binding.Bindings.isEmpty(problems)));
         tools.add(PanelAction.of("validation-tool-batch-report", "bi-file-earmark-text",
-                "Open Last Batch Report", this::openBatchReport)
+                "Open Last Batch Report", this::openBatchReport).color(ActionColor.NAVIGATE)
                 .disabledWhen(batchReportMissing));
         // FundsXML extension — only when enabled in the settings. The FundsXML activity
         // is its primary home; this row keeps it reachable from the validation context.
         if (FundsXmlRunner.isEnabled()) {
             tools.add(PanelAction.of("validation-tool-fundsxml", "bi-shield-check", "Validate against FundsXML",
-                    this::validateFundsXml));
+                    this::validateFundsXml).color(ActionColor.CREATE));
         }
         return PanelActionList.section("TOOLS", true, tools);
     }

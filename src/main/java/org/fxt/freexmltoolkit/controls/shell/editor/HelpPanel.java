@@ -10,6 +10,7 @@ import javafx.scene.layout.VBox;
 import org.fxt.freexmltoolkit.FxtGui;
 import org.fxt.freexmltoolkit.util.ProjectLinks;
 import org.fxt.freexmltoolkit.util.VersionUtil;
+import org.fxt.freexmltoolkit.controls.theme.ActionColor;
 
 /**
  * The Help activity side panel: about / version information and quick links.
@@ -29,7 +30,7 @@ public class HelpPanel extends VBox {
         getStyleClass().add("fxt-side-panel-content");
 
         Label title = new Label("HELP");
-        title.getStyleClass().add("fxt-side-panel-title");
+        title.getStyleClass().addAll("fxt-side-panel-title", "fxt-panel-title");
 
         Label appName = new Label("FreeXmlToolkit");
         appName.getStyleClass().add("fxt-welcome-headline");
@@ -43,7 +44,7 @@ public class HelpPanel extends VBox {
         vendor.getStyleClass().add("fxt-placeholder-text");
 
         PanelActionList project = new PanelActionList(
-                PanelAction.of("help-github", "bi-github", "GitHub", () -> browse(GITHUB_URL)),
+                PanelAction.of("help-github", "bi-github", "GitHub", () -> browse(GITHUB_URL)).color(ActionColor.NAVIGATE),
                 PanelAction.of("help-sponsor", "bi-heart-fill", "Sponsor this Project",
                         () -> browse(ProjectLinks.SPONSORS_URL)),
                 PanelAction.of("help-about", "bi-info-circle", "About",
@@ -54,19 +55,19 @@ public class HelpPanel extends VBox {
         if (org.fxt.freexmltoolkit.controls.dialogs.ErrorReportDialog.isAvailable()) {
             project.add(PanelAction.of("help-report-problem", "bi-send", "Report a Problem…",
                     () -> org.fxt.freexmltoolkit.controls.dialogs.ErrorReportDialog.show(
-                            getScene() != null ? getScene().getWindow() : null, null)));
+                            getScene() != null ? getScene().getWindow() : null, null)).color(ActionColor.NAVIGATE));
         }
 
         // Documentation quick links — open in the system browser (replaces the legacy
         // Help tab's embedded WebViews for the FXT docs, FundsXML site and schema docs).
         PanelActionList docs = new PanelActionList(
-                PanelAction.of("help-docs", "bi-book", "Documentation", () -> browse(DOCS_URL)),
-                PanelAction.of("help-fundsxml-site", "bi-globe", "FundsXML Website", () -> browse(FUNDSXML_SITE_URL)),
+                PanelAction.of("help-docs", "bi-book", "Documentation", () -> browse(DOCS_URL)).color(ActionColor.NAVIGATE),
+                PanelAction.of("help-fundsxml-site", "bi-globe", "FundsXML Website", () -> browse(FUNDSXML_SITE_URL)).color(ActionColor.NAVIGATE),
                 PanelAction.of("help-schema-docs", "bi-file-earmark-text", "FundsXML4 Schema Docs",
-                        () -> browse(SCHEMA_DOCS_URL)));
+                        () -> browse(SCHEMA_DOCS_URL)).color(ActionColor.NAVIGATE));
 
         PanelActionList updates = new PanelActionList(
-                PanelAction.of("help-check-updates", "bi-arrow-clockwise", "Check for Updates", this::checkForUpdates));
+                PanelAction.of("help-check-updates", "bi-arrow-clockwise", "Check for Updates", this::checkForUpdates).color(ActionColor.TOOL));
         updateStatus.getStyleClass().addAll("fxt-placeholder-text", "fxt-tp-section-body");
         updateStatus.setWrapText(true);
 
@@ -87,7 +88,7 @@ public class HelpPanel extends VBox {
                             String msg = FundsXmlActionRunner.checkForUpdate();
                             Platform.runLater(() -> fundsStatus.setText(msg));
                         });
-                    }));
+                    }).color(ActionColor.TOOL));
             getChildren().addAll(PanelActionList.section("FUNDSXML", false, funds), fundsStatus);
         }
     }

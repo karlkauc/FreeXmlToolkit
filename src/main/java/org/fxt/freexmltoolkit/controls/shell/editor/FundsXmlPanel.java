@@ -11,6 +11,7 @@ import javafx.scene.layout.VBox;
 
 import org.fxt.freexmltoolkit.FxtGui;
 import org.fxt.freexmltoolkit.service.fundsxml.FundsXmlExtensionService;
+import org.fxt.freexmltoolkit.controls.theme.ActionColor;
 
 /** The FundsXML activity side panel: manage versions, validate the active document, docs/resources. */
 public class FundsXmlPanel extends VBox {
@@ -52,7 +53,7 @@ public class FundsXmlPanel extends VBox {
         getStyleClass().add("fxt-side-panel-content");
 
         Label title = new Label("FUNDSXML");
-        title.getStyleClass().add("fxt-side-panel-title");
+        title.getStyleClass().addAll("fxt-side-panel-title", "fxt-panel-title");
         status.getStyleClass().add("fxt-placeholder-text");
         status.setWrapText(true);
         progress.setMaxWidth(Double.MAX_VALUE);
@@ -73,27 +74,27 @@ public class FundsXmlPanel extends VBox {
         VBox versionBox = new VBox(4, new Label("Active version"), versionCombo);
         versionBox.getStyleClass().add("fxt-tp-section-body");
         PanelActionList management = new PanelActionList(
-                PanelAction.of("fundsxml-download", "bi-cloud-arrow-down", "Download / Update Content", this::download));
+                PanelAction.of("fundsxml-download", "bi-cloud-arrow-down", "Download / Update Content", this::download).color(ActionColor.TOOL));
         HBox managementHeader = SidePanelLayout.sectionHeader(new Label("MANAGEMENT"), versionBox, management);
 
         // --- Action ---
         PanelActionList validation = new PanelActionList(
-                PanelAction.of("fundsxml-validate", "bi-check2-circle", "Validate active document", this::validate));
+                PanelAction.of("fundsxml-validate", "bi-check2-circle", "Validate active document", this::validate).color(ActionColor.CREATE));
 
         // --- Docs & resources ---
         PanelActionList docs = new PanelActionList(
                 PanelAction.of("fundsxml-open-schema", "bi-file-earmark-code", "Open Schema in Editor",
-                        this::openSchemaInEditor),
+                        this::openSchemaInEditor).color(ActionColor.NAVIGATE),
                 PanelAction.of("fundsxml-generate-docs", "bi-file-earmark-text", "Generate Schema Documentation",
-                        this::generateDocs),
+                        this::generateDocs).color(ActionColor.CREATE),
                 PanelAction.of("fundsxml-examples-folder", "bi-folder2-open", "Open Examples Folder",
-                        () -> openFolder(FundsXmlRunner.examplesDir())),
+                        () -> openFolder(FundsXmlRunner.examplesDir())).color(ActionColor.NAVIGATE),
                 PanelAction.of("fundsxml-schema-folder", "bi-folder2-open", "Open Schema Folder",
-                        () -> openFolder(FundsXmlRunner.schemaDir())),
+                        () -> openFolder(FundsXmlRunner.schemaDir())).color(ActionColor.NAVIGATE),
                 PanelAction.of("fundsxml-schematron-folder", "bi-folder2-open", "Open Schematron Folder",
-                        () -> openFolder(FundsXmlRunner.schematronDir())),
+                        () -> openFolder(FundsXmlRunner.schematronDir())).color(ActionColor.NAVIGATE),
                 PanelAction.of("fundsxml-online-docs", "bi-globe", "Open Online Docs",
-                        () -> openUrl("https://fundsxml.org/")));
+                        () -> openUrl("https://fundsxml.org/")).color(ActionColor.NAVIGATE));
 
         VBox spacer = new VBox();
         VBox.setVgrow(spacer, Priority.ALWAYS);

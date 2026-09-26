@@ -28,7 +28,6 @@ class SemanticColorGuardTest {
             "src/main/java/org/fxt/freexmltoolkit/controls/jsoneditor/grid/JsonGridContextMenu.java",
             "src/main/java/org/fxt/freexmltoolkit/controls/shared/utilities/XmlContextMenuManager.java",
             "src/main/java/org/fxt/freexmltoolkit/controls/jsoneditor/editor/JsonContextMenuManager.java",
-            "src/main/java/org/fxt/freexmltoolkit/util/ContextMenuFactory.java",
             "src/main/java/org/fxt/freexmltoolkit/controls/dialogs/UpdateProgressDialog.java",
             "src/main/java/org/fxt/freexmltoolkit/debugger/ui/BreakpointGutterFactory.java",
             "src/main/java/org/fxt/freexmltoolkit/controls/v2/editor/managers/ContextMenuManagerV2.java",

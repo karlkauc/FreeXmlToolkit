@@ -26,6 +26,8 @@ import javafx.scene.paint.Color;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.domain.FileFavorite;
 import org.fxt.freexmltoolkit.service.FavoritesService;
+import org.fxt.freexmltoolkit.controls.theme.ActionColor;
+import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
 
 /**
  * The Favorites activity side panel: lists saved file favorites — grouped by
@@ -73,10 +75,10 @@ public class FavoritesActivityPanel extends VBox {
         getStyleClass().add("fxt-side-panel-content");
 
         Label title = new Label("FAVORITES");
-        title.getStyleClass().add("fxt-side-panel-title");
+        title.getStyleClass().addAll("fxt-side-panel-title", "fxt-panel-title");
 
         PanelActionList actions = new PanelActionList(
-                PanelAction.of("favorites-add-current", "bi-star", "Add current", this::addCurrent),
+                PanelAction.of("favorites-add-current", "bi-star", "Add current", this::addCurrent).color(ActionColor.CREATE),
                 PanelAction.of("favorites-manage", "bi-sliders", "Manage…", this::openManager));
 
         search.setId("favorites-search");
@@ -114,12 +116,12 @@ public class FavoritesActivityPanel extends VBox {
         });
 
         ContextMenu menu = new ContextMenu();
-        MenuItem open = new MenuItem("Open", icon("bi-folder2-open"));
+        MenuItem open = new MenuItem("Open", SemanticIcon.paint(icon("bi-folder2-open"), ActionColor.NAVIGATE));
         open.setOnAction(e -> selectedFavorite().ifPresent(f -> {
             FavoritesService.getInstance().recordAccess(f.getFilePath());
             editorHost.openFile(Path.of(f.getFilePath()));
         }));
-        MenuItem rename = new MenuItem("Rename…", icon("bi-pencil"));
+        MenuItem rename = new MenuItem("Rename…", SemanticIcon.paint(icon("bi-pencil"), ActionColor.MODIFY));
         rename.setOnAction(e -> selectedFavorite().ifPresent(f -> {
             TextInputDialog dialog = new TextInputDialog(displayName(f));
             dialog.setTitle("Rename Favorite");
@@ -128,8 +130,8 @@ public class FavoritesActivityPanel extends VBox {
             dialog.showAndWait().map(String::strip).filter(s -> !s.isEmpty())
                     .ifPresent(newName -> renameFavorite(f, newName));
         }));
-        Menu moveTo = new Menu("Move to folder", icon("bi-folder-symlink"));
-        MenuItem remove = new MenuItem("Remove", icon("bi-trash"));
+        Menu moveTo = new Menu("Move to folder", SemanticIcon.paint(icon("bi-folder-symlink"), ActionColor.STRUCTURE));
+        MenuItem remove = new MenuItem("Remove", SemanticIcon.paint(icon("bi-trash"), ActionColor.DELETE));
         remove.setOnAction(e -> selectedFavorite().ifPresent(f -> {
             FavoritesService.getInstance().removeFavorite(f);
             refresh();
@@ -218,7 +220,7 @@ public class FavoritesActivityPanel extends VBox {
             // no store (tests)
         }
         for (String folder : folders) {
-            MenuItem item = new MenuItem(folder, icon("bi-folder"));
+            MenuItem item = new MenuItem(folder, SemanticIcon.paint(icon("bi-folder"), ActionColor.NEUTRAL));
             item.setOnAction(e -> selectedFavorite().ifPresent(f -> moveToFolder(f, folder)));
             moveTo.getItems().add(item);
         }
@@ -227,7 +229,7 @@ public class FavoritesActivityPanel extends VBox {
         }
         MenuItem noFolder = new MenuItem("(No folder)");
         noFolder.setOnAction(e -> selectedFavorite().ifPresent(f -> moveToFolder(f, null)));
-        MenuItem newFolder = new MenuItem("New folder…", icon("bi-folder-plus"));
+        MenuItem newFolder = new MenuItem("New folder…", SemanticIcon.paint(icon("bi-folder-plus"), ActionColor.CREATE));
         newFolder.setOnAction(e -> selectedFavorite().ifPresent(f -> {
             TextInputDialog dialog = new TextInputDialog();
             dialog.setTitle("New Folder");

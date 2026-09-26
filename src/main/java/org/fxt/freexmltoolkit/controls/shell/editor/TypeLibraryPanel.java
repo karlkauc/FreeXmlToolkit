@@ -25,6 +25,8 @@ import org.fxt.freexmltoolkit.controls.shell.schema.XsdNodeLabels;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNodeType;
 import org.fxt.freexmltoolkit.service.telemetry.UsageEvents;
+import org.fxt.freexmltoolkit.controls.theme.ActionColor;
+import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
 
 /**
  * The Schema activity side panel, laid out after the Figma mockup
@@ -59,7 +61,7 @@ public class TypeLibraryPanel extends VBox {
 
         // --- header: SCHEMA -----------------------------------------------------
         Label title = new Label("SCHEMA");
-        title.getStyleClass().addAll("fxt-side-panel-title", "fxt-vp-title");
+        title.getStyleClass().addAll("fxt-side-panel-title", "fxt-vp-title", "fxt-panel-title");
         Region headerSpacer = new Region();
         HBox.setHgrow(headerSpacer, Priority.ALWAYS);
         HBox header = new HBox(title, headerSpacer);
@@ -68,13 +70,13 @@ public class TypeLibraryPanel extends VBox {
 
         // --- schema tools: labelled action rows in a TOOLS section above the filter ----
         tools = new PanelActionList(
-                PanelAction.of("schema-tool-generate", "bi-magic", "Generate XSD from XML", this::generateXsdFromActive),
-                PanelAction.of("schema-tool-generate-batch", "bi-files", "Generate XSD (Batch)…", this::generateXsdBatch),
-                PanelAction.of("schema-tool-sample", "bi-filetype-xml", "Generate Sample XML…", this::generateSampleXmlForActive),
-                PanelAction.of("schema-tool-sample-advanced", "bi-sliders", "Generate Sample XML (Advanced)…", this::generateProfiledSampleForActive),
-                PanelAction.of("schema-tool-flatten", "bi-layers", "Flatten Schema…", this::flattenActive),
-                PanelAction.of("schema-tool-analysis", SchemaAnalysisView.ICON, "Schema Analysis", this::analyzeActive),
-                PanelAction.of("schema-tool-documentation", "bi-file-earmark-text", "Generate Documentation…", this::generateDocumentationForActive));
+                PanelAction.of("schema-tool-generate", "bi-magic", "Generate XSD from XML", this::generateXsdFromActive).color(ActionColor.CREATE),
+                PanelAction.of("schema-tool-generate-batch", "bi-files", "Generate XSD (Batch)…", this::generateXsdBatch).color(ActionColor.CREATE),
+                PanelAction.of("schema-tool-sample", "bi-filetype-xml", "Generate Sample XML…", this::generateSampleXmlForActive).color(ActionColor.CREATE),
+                PanelAction.of("schema-tool-sample-advanced", "bi-sliders", "Generate Sample XML (Advanced)…", this::generateProfiledSampleForActive).color(ActionColor.CREATE),
+                PanelAction.of("schema-tool-flatten", "bi-layers", "Flatten Schema…", this::flattenActive).color(ActionColor.TOOL),
+                PanelAction.of("schema-tool-analysis", SchemaAnalysisView.ICON, "Schema Analysis", this::analyzeActive).color(ActionColor.NAVIGATE),
+                PanelAction.of("schema-tool-documentation", "bi-file-earmark-text", "Generate Documentation…", this::generateDocumentationForActive).color(ActionColor.CREATE));
         tools.setId("schema-tools");
         VBox toolsSection = PanelActionList.section("TOOLS", false, tools);
 
@@ -514,7 +516,8 @@ public class TypeLibraryPanel extends VBox {
     }
 
     private MenuItem menuItem(String text, String iconLiteral, Runnable action) {
-        MenuItem item = new MenuItem(text, icon(iconLiteral, 16));
+        // Reveal / Open Type Editor / Find Usage all navigate (spec 2026-09-26 §3).
+        MenuItem item = new MenuItem(text, SemanticIcon.paint(icon(iconLiteral, 16), ActionColor.NAVIGATE));
         item.setOnAction(e -> action.run());
         return item;
     }

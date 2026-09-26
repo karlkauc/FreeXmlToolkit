@@ -78,6 +78,65 @@ public final class DesignTokens {
         TEAL("-fxt-teal", "#12a594", "#38d9a9"),
         INDIGO("-fxt-indigo", "#4c5fd5", "#9775fa"),
 
+        // Workflow colour families (spec 2026-09-26 §1.3). Slots: accent (icon tint), fg (text on
+        // surface), fill (filled primary action, white label), bg (tint), border, rail (= the dark
+        // accent in BOTH themes because the Activity Bar is always navy). See Workflow.
+        WF_WORKSPACE_ACCENT("-fxt-wf-workspace-accent", "#1373d9", "#4c9bf5"),
+        WF_WORKSPACE_FG("-fxt-wf-workspace-fg", "#126ccc", "#4c9bf5"),
+        WF_WORKSPACE_FILL("-fxt-wf-workspace-fill", "#1373d9", "#1f6feb"),
+        WF_WORKSPACE_BG("-fxt-wf-workspace-bg", "#eaf2fd", "#14283f"),
+        WF_WORKSPACE_BORDER("-fxt-wf-workspace-border", "#c4dcf8", "#275077"),
+        WF_WORKSPACE_RAIL("-fxt-wf-workspace-rail", "#4c9bf5", "#4c9bf5"),
+
+        WF_VALIDATION_ACCENT("-fxt-wf-validation-accent", "#2f9e44", "#51cf66"),
+        WF_VALIDATION_FG("-fxt-wf-validation-fg", "#1f7a35", "#51cf66"),
+        WF_VALIDATION_FILL("-fxt-wf-validation-fill", "#1f7a35", "#238636"),
+        WF_VALIDATION_BG("-fxt-wf-validation-bg", "#eaf6ee", "#14301e"),
+        WF_VALIDATION_BORDER("-fxt-wf-validation-border", "#bfe3cb", "#2b5a3a"),
+        WF_VALIDATION_RAIL("-fxt-wf-validation-rail", "#51cf66", "#51cf66"),
+
+        WF_TRANSFORM_ACCENT("-fxt-wf-transform-accent", "#f08c2e", "#f59f46"),
+        WF_TRANSFORM_FG("-fxt-wf-transform-fg", "#ac560d", "#f59f46"),
+        WF_TRANSFORM_FILL("-fxt-wf-transform-fill", "#b35a0e", "#b35a0e"),
+        WF_TRANSFORM_BG("-fxt-wf-transform-bg", "#fdf0e6", "#2e2010"),
+        WF_TRANSFORM_BORDER("-fxt-wf-transform-border", "#f9cfae", "#5c3f1c"),
+        WF_TRANSFORM_RAIL("-fxt-wf-transform-rail", "#f59f46", "#f59f46"),
+
+        WF_SCHEMA_ACCENT("-fxt-wf-schema-accent", "#6f42c1", "#b197fc"),
+        WF_SCHEMA_FG("-fxt-wf-schema-fg", "#6f42c1", "#b197fc"),
+        WF_SCHEMA_FILL("-fxt-wf-schema-fill", "#6f42c1", "#7048e8"),
+        WF_SCHEMA_BG("-fxt-wf-schema-bg", "#f3f0ff", "#241b3d"),
+        WF_SCHEMA_BORDER("-fxt-wf-schema-border", "#d0bfff", "#463374"),
+        WF_SCHEMA_RAIL("-fxt-wf-schema-rail", "#b197fc", "#b197fc"),
+
+        WF_PDF_ACCENT("-fxt-wf-pdf-accent", "#d6336c", "#f783ac"),
+        WF_PDF_FG("-fxt-wf-pdf-fg", "#c2255c", "#f783ac"),
+        WF_PDF_FILL("-fxt-wf-pdf-fill", "#c2255c", "#d6336c"),
+        WF_PDF_BG("-fxt-wf-pdf-bg", "#fff0f6", "#33161f"),
+        WF_PDF_BORDER("-fxt-wf-pdf-border", "#fcc2d7", "#66293d"),
+        WF_PDF_RAIL("-fxt-wf-pdf-rail", "#f783ac", "#f783ac"),
+
+        WF_SIGNATURE_ACCENT("-fxt-wf-signature-accent", "#1098ad", "#4dd4e8"),
+        WF_SIGNATURE_FG("-fxt-wf-signature-fg", "#0b7285", "#4dd4e8"),
+        WF_SIGNATURE_FILL("-fxt-wf-signature-fill", "#0b7285", "#0b7285"),
+        WF_SIGNATURE_BG("-fxt-wf-signature-bg", "#e7f6f8", "#0e2a30"),
+        WF_SIGNATURE_BORDER("-fxt-wf-signature-border", "#b9e3e9", "#1f4a53"),
+        WF_SIGNATURE_RAIL("-fxt-wf-signature-rail", "#4dd4e8", "#4dd4e8"),
+
+        WF_FUNDSXML_ACCENT("-fxt-wf-fundsxml-accent", "#12a594", "#38d9a9"),
+        WF_FUNDSXML_FG("-fxt-wf-fundsxml-fg", "#0b7a6e", "#38d9a9"),
+        WF_FUNDSXML_FILL("-fxt-wf-fundsxml-fill", "#0b7a6e", "#0b7a6e"),
+        WF_FUNDSXML_BG("-fxt-wf-fundsxml-bg", "#e6fcf5", "#0f2b26"),
+        WF_FUNDSXML_BORDER("-fxt-wf-fundsxml-border", "#a8ecd6", "#1f5348"),
+        WF_FUNDSXML_RAIL("-fxt-wf-fundsxml-rail", "#38d9a9", "#38d9a9"),
+
+        WF_NEUTRAL_ACCENT("-fxt-wf-neutral-accent", "#5a6472", "#9ba6b3"),
+        WF_NEUTRAL_FG("-fxt-wf-neutral-fg", "#5a6472", "#9ba6b3"),
+        WF_NEUTRAL_FILL("-fxt-wf-neutral-fill", "#5a6472", "#5a6472"),
+        WF_NEUTRAL_BG("-fxt-wf-neutral-bg", "#f2f4f8", "#1c232c"),
+        WF_NEUTRAL_BORDER("-fxt-wf-neutral-border", "#dde1e7", "#2a323d"),
+        WF_NEUTRAL_RAIL("-fxt-wf-neutral-rail", "#9ba6b3", "#9ba6b3"),
+
         CODE_TEXT("-fxt-code-text", "#1a1d21", "#e6eaf0"),
         CODE_ELEM("-fxt-code-elem", "#1f6fb2", "#6cb6ff"),
         CODE_ATTR("-fxt-code-attr", "#c56a12", "#e0a458"),

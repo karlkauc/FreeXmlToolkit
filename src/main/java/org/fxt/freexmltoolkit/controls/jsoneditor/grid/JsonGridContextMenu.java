@@ -47,7 +47,7 @@ import org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonNode;
 import org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonNodeType;
 import org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonObject;
 import org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonPrimitive;
-import org.fxt.freexmltoolkit.controls.theme.DesignTokens;
+import org.fxt.freexmltoolkit.controls.theme.ActionColor;
 import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.GridContextMenu;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.RepeatingElementsTable;
@@ -117,22 +117,22 @@ public class JsonGridContextMenu implements GridContextMenu<JsonNode> {
 
         // === Add Submenu ===
         Menu addMenu = new Menu("Add");
-        addMenu.setGraphic(createColoredIcon("bi-plus-circle", DesignTokens.ColorToken.SUCCESS));
+        addMenu.setGraphic(createColoredIcon("bi-plus-circle", ActionColor.CREATE));
 
         addPropertyItem = new MenuItem("Property");
-        addPropertyItem.setGraphic(createColoredIcon("bi-braces", DesignTokens.ColorToken.SUCCESS));
+        addPropertyItem.setGraphic(createColoredIcon("bi-braces", ActionColor.CREATE));
         addPropertyItem.setOnAction(e -> addProperty());
 
         addArrayItemItem = new MenuItem("Array Item");
-        addArrayItemItem.setGraphic(createColoredIcon("bi-list-ol", DesignTokens.ColorToken.SUCCESS));
+        addArrayItemItem.setGraphic(createColoredIcon("bi-list-ol", ActionColor.CREATE));
         addArrayItemItem.setOnAction(e -> addArrayItem());
 
         addSiblingBeforeItem = new MenuItem("Sibling Before");
-        addSiblingBeforeItem.setGraphic(createColoredIcon("bi-arrow-up", DesignTokens.ColorToken.SUCCESS));
+        addSiblingBeforeItem.setGraphic(createColoredIcon("bi-arrow-up", ActionColor.CREATE));
         addSiblingBeforeItem.setOnAction(e -> addSibling(true));
 
         addSiblingAfterItem = new MenuItem("Sibling After");
-        addSiblingAfterItem.setGraphic(createColoredIcon("bi-arrow-down", DesignTokens.ColorToken.SUCCESS));
+        addSiblingAfterItem.setGraphic(createColoredIcon("bi-arrow-down", ActionColor.CREATE));
         addSiblingAfterItem.setOnAction(e -> addSibling(false));
 
         addMenu.getItems().addAll(
@@ -143,98 +143,98 @@ public class JsonGridContextMenu implements GridContextMenu<JsonNode> {
 
         // === Edit Items ===
         renameItem = new MenuItem("Rename Key");
-        renameItem.setGraphic(createColoredIcon("bi-pencil", DesignTokens.ColorToken.ACCENT));
+        renameItem.setGraphic(createColoredIcon("bi-pencil", ActionColor.MODIFY));
         renameItem.setOnAction(e -> renameKey());
         renameItem.setAccelerator(new KeyCodeCombination(KeyCode.F2));
 
         duplicateItem = new MenuItem("Duplicate");
-        duplicateItem.setGraphic(createColoredIcon("bi-files", DesignTokens.ColorToken.TEAL));
+        duplicateItem.setGraphic(createColoredIcon("bi-files", ActionColor.CREATE));
         duplicateItem.setOnAction(e -> duplicateNode());
         duplicateItem.setAccelerator(new KeyCodeCombination(KeyCode.D, KeyCombination.CONTROL_DOWN));
 
         // === Clipboard ===
         copyItem = new MenuItem("Copy");
-        copyItem.setGraphic(createColoredIcon("bi-clipboard", DesignTokens.ColorToken.NEUTRAL));
+        copyItem.setGraphic(createColoredIcon("bi-clipboard", ActionColor.NEUTRAL));
         copyItem.setOnAction(e -> copyNodeToInternalClipboard());
         copyItem.setAccelerator(new KeyCodeCombination(KeyCode.C, KeyCombination.CONTROL_DOWN));
 
         cutItem = new MenuItem("Cut");
-        cutItem.setGraphic(createColoredIcon("bi-scissors", DesignTokens.ColorToken.ACCENT));
+        cutItem.setGraphic(createColoredIcon("bi-scissors", ActionColor.DELETE));
         cutItem.setOnAction(e -> cutNode());
         cutItem.setAccelerator(new KeyCodeCombination(KeyCode.X, KeyCombination.CONTROL_DOWN));
 
         pasteItem = new MenuItem("Paste as Sibling");
-        pasteItem.setGraphic(createColoredIcon("bi-clipboard-check", DesignTokens.ColorToken.NEUTRAL));
+        pasteItem.setGraphic(createColoredIcon("bi-clipboard-check", ActionColor.CREATE));
         pasteItem.setOnAction(e -> pasteAsSibling());
         pasteItem.setAccelerator(new KeyCodeCombination(KeyCode.V, KeyCombination.CONTROL_DOWN));
 
         pasteAsChildItem = new MenuItem("Paste as Child");
-        pasteAsChildItem.setGraphic(createColoredIcon("bi-clipboard-plus", DesignTokens.ColorToken.NEUTRAL));
+        pasteAsChildItem.setGraphic(createColoredIcon("bi-clipboard-plus", ActionColor.CREATE));
         pasteAsChildItem.setOnAction(e -> pasteAsChild());
         pasteAsChildItem.setAccelerator(new KeyCodeCombination(KeyCode.V, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN));
 
         copyCellContentItem = new MenuItem("Copy Cell Content");
-        copyCellContentItem.setGraphic(createColoredIcon("bi-clipboard-data", DesignTokens.ColorToken.INFO));
+        copyCellContentItem.setGraphic(createColoredIcon("bi-clipboard-data", ActionColor.NEUTRAL));
         copyCellContentItem.setOnAction(e -> copyCellContent());
         copyCellContentItem.setAccelerator(new KeyCodeCombination(KeyCode.C, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN));
 
         copyPathItem = new MenuItem("Copy JSONPath");
-        copyPathItem.setGraphic(createColoredIcon("bi-diagram-3", DesignTokens.ColorToken.PURPLE));
+        copyPathItem.setGraphic(createColoredIcon("bi-diagram-3", ActionColor.NEUTRAL));
         copyPathItem.setOnAction(e -> copyPath());
         copyPathItem.setAccelerator(new KeyCodeCombination(KeyCode.X, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN));
 
         copyNodeItem = new MenuItem("Copy Node (JSON)");
-        copyNodeItem.setGraphic(createColoredIcon("bi-clipboard-data", DesignTokens.ColorToken.PURPLE));
+        copyNodeItem.setGraphic(createColoredIcon("bi-clipboard-data", ActionColor.NEUTRAL));
         copyNodeItem.setOnAction(e -> copyNodeJson());
         copyNodeItem.setAccelerator(new KeyCodeCombination(KeyCode.C, KeyCombination.CONTROL_DOWN, KeyCombination.ALT_DOWN));
 
         // === Change Type ===
         changeTypeMenu = new Menu("Change Type");
-        changeTypeMenu.setGraphic(createColoredIcon("bi-arrow-repeat", DesignTokens.ColorToken.INFO));
+        changeTypeMenu.setGraphic(createColoredIcon("bi-arrow-repeat", ActionColor.STRUCTURE));
         for (JsonNodeType type : VALUE_TYPES) {
             MenuItem item = new MenuItem(typeLabel(type));
-            item.setGraphic(createColoredIcon(typeIcon(type), DesignTokens.ColorToken.INFO));
+            item.setGraphic(createColoredIcon(typeIcon(type), ActionColor.STRUCTURE));
             item.setOnAction(e -> changeType(type));
             changeTypeMenu.getItems().add(item);
         }
 
         // === Move ===
         moveUpItem = new MenuItem("Move Up");
-        moveUpItem.setGraphic(createColoredIcon("bi-arrow-up-circle", DesignTokens.ColorToken.NEUTRAL));
+        moveUpItem.setGraphic(createColoredIcon("bi-arrow-up-circle", ActionColor.STRUCTURE));
         moveUpItem.setOnAction(e -> moveNode(-1));
         moveUpItem.setAccelerator(new KeyCodeCombination(KeyCode.UP, KeyCombination.ALT_DOWN));
 
         moveDownItem = new MenuItem("Move Down");
-        moveDownItem.setGraphic(createColoredIcon("bi-arrow-down-circle", DesignTokens.ColorToken.NEUTRAL));
+        moveDownItem.setGraphic(createColoredIcon("bi-arrow-down-circle", ActionColor.STRUCTURE));
         moveDownItem.setOnAction(e -> moveNode(1));
         moveDownItem.setAccelerator(new KeyCodeCombination(KeyCode.DOWN, KeyCombination.ALT_DOWN));
 
         // === Expand/Collapse ===
         expandAllItem = new MenuItem("Expand All");
-        expandAllItem.setGraphic(createColoredIcon("bi-arrows-expand", DesignTokens.ColorToken.PRIMARY));
+        expandAllItem.setGraphic(createColoredIcon("bi-arrows-expand", ActionColor.NEUTRAL));
         expandAllItem.setOnAction(e -> expandAll());
 
         collapseAllItem = new MenuItem("Collapse All");
-        collapseAllItem.setGraphic(createColoredIcon("bi-arrows-collapse", DesignTokens.ColorToken.PRIMARY));
+        collapseAllItem.setGraphic(createColoredIcon("bi-arrows-collapse", ActionColor.NEUTRAL));
         collapseAllItem.setOnAction(e -> collapseAll());
 
         // === Sort (for table columns) ===
         sortMenu = new Menu("Sort Column");
-        sortMenu.setGraphic(createColoredIcon("bi-sort-down", DesignTokens.ColorToken.PRIMARY));
+        sortMenu.setGraphic(createColoredIcon("bi-sort-down", ActionColor.TOOL));
 
         sortAscendingItem = new MenuItem("Sort Ascending");
-        sortAscendingItem.setGraphic(createColoredIcon("bi-sort-up", DesignTokens.ColorToken.SUCCESS));
+        sortAscendingItem.setGraphic(createColoredIcon("bi-sort-up", ActionColor.TOOL));
         sortAscendingItem.setOnAction(e -> sortColumn(true));
 
         sortDescendingItem = new MenuItem("Sort Descending");
-        sortDescendingItem.setGraphic(createColoredIcon("bi-sort-down-alt", DesignTokens.ColorToken.DANGER));
+        sortDescendingItem.setGraphic(createColoredIcon("bi-sort-down-alt", ActionColor.TOOL));
         sortDescendingItem.setOnAction(e -> sortColumn(false));
 
         sortMenu.getItems().addAll(sortAscendingItem, sortDescendingItem);
 
         // === Delete ===
         deleteItem = new MenuItem("Delete");
-        deleteItem.setGraphic(createColoredIcon("bi-trash", DesignTokens.ColorToken.DANGER));
+        deleteItem.setGraphic(createColoredIcon("bi-trash", ActionColor.DELETE));
         deleteItem.setOnAction(e -> deleteNode());
         deleteItem.setAccelerator(new KeyCodeCombination(KeyCode.DELETE));
 
@@ -263,7 +263,7 @@ public class JsonGridContextMenu implements GridContextMenu<JsonNode> {
         return menu;
     }
 
-    private IconifyIcon createColoredIcon(String icon, DesignTokens.ColorToken color) {
+    private IconifyIcon createColoredIcon(String icon, ActionColor color) {
         IconifyIcon fontIcon = new IconifyIcon(icon);
         fontIcon.setIconSize(12);
         return SemanticIcon.paint(fontIcon, color);

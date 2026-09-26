@@ -804,12 +804,35 @@ public class UnifiedShellView extends BorderPane {
         return defaultWidth;
     }
 
+    /**
+     * Status-bar "last run" badge (spec 2026-09-26 §2): chip in the colours of the workflow that ran,
+     * result icon in the semantic colour (success/danger wins over the workflow colour).
+     */
+    private void showLastRunBadge(org.fxt.freexmltoolkit.service.ExecutionStats stats) {
+        if (stats == null) {
+            return;
+        }
+        var workflow = org.fxt.freexmltoolkit.controls.theme.Workflow.forOperationType(
+                stats.type() == null ? null : stats.type().name());
+        org.fxt.freexmltoolkit.controls.theme.WorkflowStyle.apply(statusLastRun, workflow);
+        IconifyIcon result = new IconifyIcon(stats.success() ? "bi-check-circle" : "bi-x-circle");
+        result.setIconSize(11);
+        org.fxt.freexmltoolkit.controls.theme.SemanticIcon.bind(result, stats.success()
+                ? org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.SUCCESS
+                : org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.DANGER);
+        statusLastRun.setGraphic(result);
+        statusLastRun.setText(stats.shortLabel());
+    }
+
     private void showSidePanelFor(Activity activity) {
         if (activity == Activity.SETTINGS) {
             // Settings content lives in a main-area tab; (re)open/focus it on every
             // selection. The side panel only carries a pointer to it.
             openSettingsTab();
         }
+        // Workflow colour scope for the panel's title, primary action and row hover (spec 2026-09-26 §2).
+        org.fxt.freexmltoolkit.controls.theme.WorkflowStyle.apply(sidePanelHost,
+                activity == null ? null : activity.workflow());
         sidePanelHost.getChildren().setAll(sidePanel(activity));
     }
 
@@ -854,7 +877,7 @@ public class UnifiedShellView extends BorderPane {
         VBox panel = new VBox();
         panel.getStyleClass().add("fxt-side-panel-content");
         Label titleLabel = new Label(title);
-        titleLabel.getStyleClass().add("fxt-side-panel-title");
+        titleLabel.getStyleClass().addAll("fxt-side-panel-title", "fxt-panel-title");
         Label hintLabel = new Label(hint);
         hintLabel.getStyleClass().add("fxt-placeholder-text");
         hintLabel.setWrapText(true);
@@ -889,6 +912,7 @@ public class UnifiedShellView extends BorderPane {
             // Turning the developer feature off hides the "last run" status-bar item.
             if (!org.fxt.freexmltoolkit.service.ExecutionStatsService.getInstance().isEnabled()) {
                 statusLastRun.setText("");
+                statusLastRun.setGraphic(null);
             }
         });
         settings.setOnFundsXmlEnabled(() -> {
@@ -1695,9 +1719,9 @@ public class UnifiedShellView extends BorderPane {
         statusLastRun.setTooltip(new javafx.scene.control.Tooltip(
                 "Last recorded operation — click for execution statistics"));
         statusLastRun.setOnMouseClicked(e -> editorHost.openExecutionStats());
+        statusLastRun.getStyleClass().add("fxt-status-badge");
         org.fxt.freexmltoolkit.service.ExecutionStatsService.getInstance().addListener(
-                stats -> javafx.application.Platform.runLater(
-                        () -> statusLastRun.setText(stats.shortLabel())));
+                stats -> javafx.application.Platform.runLater(() -> showLastRunBadge(stats)));
 
         // The schema indicator tracks the active document's schema-binding lifecycle (detecting /
         // ready / none / error) — XSD for the XML family (IntelliSense + validation), JSON Schema

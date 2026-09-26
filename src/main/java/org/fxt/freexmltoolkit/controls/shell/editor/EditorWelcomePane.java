@@ -191,19 +191,10 @@ public class EditorWelcomePane extends VBox {
         return box;
     }
 
-    /** Distinct, theme-stable accent colour per feature category (falls back to the primary hue). */
+    /** Workflow accent per feature category (spec 2026-09-26 §2, Welcome); theme-aware hex for inline styles. */
     private static String categoryColor(String category) {
-        return switch (category) {
-            case "Validation" -> "#2f9e44";     // green
-            case "Editing" -> "#1373D9";        // indigo
-            case "Query" -> "#17a2b8";          // cyan
-            case "Transformation" -> "#f08c00"; // orange
-            case "Tools" -> "#7048e8";          // violet
-            case "Security" -> "#e03131";       // red
-            case "Export" -> "#0ca678";         // teal
-            case "Organization" -> "#e64980";   // pink
-            default -> "#1373D9";
-        };
+        return org.fxt.freexmltoolkit.controls.theme.SemanticStyle.hex(
+                org.fxt.freexmltoolkit.controls.theme.Workflow.forCategory(category).accent());
     }
 
     /**
@@ -464,6 +455,9 @@ public class EditorWelcomePane extends VBox {
             Consumer<String> onAction) {
         StackPane tile = new StackPane(icon(iconLiteral, 16));
         tile.getStyleClass().add("fxt-card-icon");
+        // Workflow colour chip: bg tint + accent icon (spec 2026-09-26 §2, Welcome tool cards).
+        org.fxt.freexmltoolkit.controls.shell.Activity.fromId(activityKey).ifPresent(a ->
+                org.fxt.freexmltoolkit.controls.theme.WorkflowStyle.apply(tile, a.workflow()));
 
         Label t = new Label(title);
         t.getStyleClass().add("fxt-card-title");

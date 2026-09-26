@@ -22,6 +22,7 @@ import javafx.stage.FileChooser;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.service.PropertiesService;
+import org.fxt.freexmltoolkit.controls.theme.ActionColor;
 
 /**
  * The Explorer activity side panel, laid out after the Figma mockup
@@ -74,7 +75,7 @@ public class ExplorerPanel extends VBox {
 
         // --- header: EXPLORER ... [new file][open folder][refresh] ----------
         Label title = new Label("EXPLORER");
-        title.getStyleClass().addAll("fxt-side-panel-title", "fxt-sp-title");
+        title.getStyleClass().addAll("fxt-side-panel-title", "fxt-sp-title", "fxt-panel-title");
         Region headerSpacer = new Region();
         HBox.setHgrow(headerSpacer, Priority.ALWAYS);
         HBox header = new HBox(10, title, headerSpacer,
@@ -87,8 +88,8 @@ public class ExplorerPanel extends VBox {
 
         // --- TOOLS: the three pickers, each with its labelled action row, + file actions
         fileActions = new PanelActionList(
-                PanelAction.of("explorer-open-file", "bi-folder2-open", "Open file…", this::openFile),
-                PanelAction.of("explorer-clear-recent", "bi-eraser", "Clear recent", this::clearRecent));
+                PanelAction.of("explorer-open-file", "bi-folder2-open", "Open file…", this::openFile).color(ActionColor.TOOL),
+                PanelAction.of("explorer-clear-recent", "bi-eraser", "Clear recent", this::clearRecent).color(ActionColor.DELETE));
         VBox toolsBody = new VBox(buildTransformBlock(), buildXsdBlock(), buildSchematronBlock(), fileActions);
         HBox toolsHeader = SidePanelLayout.sectionHeader(new Label("TOOLS"), toolsBody);
         toolsHeader.setId("explorer-tools-header");
@@ -291,7 +292,7 @@ public class ExplorerPanel extends VBox {
         org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(stylesheetMenu,
                 org.fxt.freexmltoolkit.service.DragDropService.XSLT_EXTENSIONS, this::setCurrentXslt);
         transformActions = new PanelActionList(PanelAction.of("explorer-transform", "bi-play-fill",
-                "Transform selected file(s)", this::runExplorerTransform)
+                "Transform selected file(s)", this::runExplorerTransform).color(ActionColor.TOOL)
                 .tooltip("Transform selected XML file(s) with the current stylesheet"));
         return pickerBlock("explorer-transform-bar", stylesheetMenu, transformActions);
     }
@@ -556,7 +557,7 @@ public class ExplorerPanel extends VBox {
         org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(schematronMenu,
                 org.fxt.freexmltoolkit.service.DragDropService.SCHEMATRON_EXTENSIONS, this::useSchematron);
         validateActions = new PanelActionList(PanelAction.of("explorer-validate", "bi-play-fill",
-                "Validate with Schematron", this::runExplorerValidation)
+                "Validate with Schematron", this::runExplorerValidation).color(ActionColor.CREATE)
                 .tooltip("Validate selected XML file(s) with the current Schematron"));
         return pickerBlock("explorer-schematron-bar", schematronMenu, validateActions);
     }

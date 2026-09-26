@@ -34,7 +34,7 @@ public class SearchPanel extends VBox {
         getStyleClass().addAll("fxt-side-panel-content", "fxt-search-panel");
 
         Label title = new Label("SEARCH");
-        title.getStyleClass().addAll("fxt-side-panel-title", "fxt-vp-title");
+        title.getStyleClass().addAll("fxt-side-panel-title", "fxt-vp-title", "fxt-panel-title");
         Region headerSpacer = new Region();
         HBox.setHgrow(headerSpacer, Priority.ALWAYS);
         HBox header = new HBox(title, headerSpacer);

@@ -49,22 +49,50 @@
       "cyan": "#17a2b8"
     },
 
-    // Tab Category Colors (for grouping related functionality)
-    "tabs": {
-      "primary": {
-        "dark": "#9c27b0",         // Purple - primary editing tabs
-        "light": "#e1bee7",
-        "gradient": "linear-gradient(to bottom, #ba68c8, #9c27b0)"
+    // Workflow colour families (spec docs/superpowers/specs/2026-09-26-workflow-colours-branding-design.md,
+    // Java: controls/theme/Workflow, CSS: -fxt-wf-<id>-{accent,fg,fill,bg,border,rail} in design-tokens.css).
+    // One family per Activity; it colours ONLY the chrome that names the workflow: the Activity-Bar
+    // indicator (style B: 3px bar + tinted icon), the side-panel title, the ONE primary action of the
+    // panel, the editor-toolbar group tint, the status-bar last-run badge and the Welcome tool-card chip.
+    "workflowColors": {
+      "families": {
+        "workspace":  { "activities": "Explorer, Search, Favorites", "hue": "brand blue",   "accentLight": "#1373d9", "accentDark": "#4c9bf5" },
+        "validation": { "activities": "Validation",                  "hue": "green",        "accentLight": "#2f9e44", "accentDark": "#51cf66" },
+        "transform":  { "activities": "Transform",                   "hue": "brand orange", "accentLight": "#f08c2e", "accentDark": "#f59f46" },
+        "schema":     { "activities": "Schema, Schema Library",      "hue": "purple",       "accentLight": "#6f42c1", "accentDark": "#b197fc" },
+        "pdf":        { "activities": "PDF / FOP",                   "hue": "rose",         "accentLight": "#d6336c", "accentDark": "#f783ac" },
+        "signature":  { "activities": "Signature",                   "hue": "cyan",         "accentLight": "#1098ad", "accentDark": "#4dd4e8" },
+        "fundsxml":   { "activities": "FundsXML (extension)",        "hue": "teal",         "accentLight": "#12a594", "accentDark": "#38d9a9" },
+        "neutral":    { "activities": "Help, Settings",              "hue": "none (brand blue indicator, white icon)", "accentLight": "#5a6472", "accentDark": "#9ba6b3" }
       },
-      "output": {
-        "dark": "#43a047",         // Green - output generation tabs
-        "light": "#c8e6c9",
-        "gradient": "linear-gradient(to bottom, #66bb6a, #43a047)"
+      "slots": {
+        "accent": "icon tint (toolbar group, welcome chip icon)",
+        "fg": "text on a surface (panel title, badge text) — >= 4.5:1",
+        "fill": "filled primary action with a white label — >= 4.5:1 against white (dark values differ from -fxt-primary on purpose)",
+        "bg": "tint (badge background, action-row hover, welcome chip)",
+        "border": "badge / chip outline",
+        "rail": "indicator + icon on the always-navy Activity Bar (= dark accent in both themes)"
       },
-      "utility": {
-        "dark": "#1e88e5",         // Blue - utility tabs
-        "light": "#bbdefb",
-        "gradient": "linear-gradient(to bottom, #42a5f5, #1e88e5)"
+      "styleClassHook": "fxt-wf-<id> on the rail button (ActivityBar) and on the side-panel host (UnifiedShellView); WorkflowStyle.apply(node, workflow) keeps exactly one",
+      "restraintRules": [
+        "At most one filled workflow-coloured element per side panel — the primary action; everything else is tint, text or icon.",
+        "Workflow colour lives on chrome that names the workflow (rail, title, primary, badge, toolbar group); never on body text, lists, tables or editors.",
+        "Semantic result colours (success / danger / warning) always win over the workflow colour when both apply.",
+        "Workspace, Help and Settings use brand blue, so the default view of the app is unchanged.",
+        "Never two workflow hues on one surface — except 16px icon tints in the editor toolbar.",
+        "Action colours never appear on chrome; workflow colours never appear in menus."
+      ],
+      // Action-colour roles for menu items and panel action rows (Java: controls/theme/ActionColor,
+      // CSS aliases: -fxt-action-<role>). Paint with SemanticIcon.paint(icon, ActionColor.X) or bind with
+      // SemanticIcon.bind(icon, ActionColor.X) where a CSS -fx-icon-color rule would override the colour.
+      "actionColors": {
+        "CREATE":    { "token": "-fxt-success", "verbs": "Add, Insert, New, Paste, Duplicate, Validate, Generate" },
+        "DELETE":    { "token": "-fxt-danger",  "verbs": "Delete, Remove, Clear, Cut" },
+        "MODIFY":    { "token": "-fxt-accent",  "verbs": "Rename, Edit value, Comment toggle" },
+        "NAVIGATE":  { "token": "-fxt-info",    "verbs": "Go to Definition, Reveal, Open referenced/report/tool, Find" },
+        "STRUCTURE": { "token": "-fxt-purple",  "verbs": "Change Type, Cardinality, Move Up/Down, Reorder" },
+        "TOOL":      { "token": "-fxt-primary", "verbs": "Format, Minify, Sort, Run/Execute in menus, Open/Save/Export, Download" },
+        "NEUTRAL":   { "token": "-fxt-neutral", "verbs": "Copy (all variants), Expand/Collapse, Select all, Undo/Redo, Settings" }
       }
     },
 
@@ -834,27 +862,12 @@
   // ICON COLOR MAPPINGS
   // ============================================================================
   "iconColors": {
-    "semantic": {
-      "success": "#28a745",   // Green - bi-check-circle, bi-play-fill
-      "info": "#17a2b8",      // Cyan - bi-info-circle, bi-save
-      "warning": "#ffc107",   // Yellow - bi-star, bi-exclamation-triangle
-      "danger": "#dc3545",    // Red - bi-x-circle, bi-trash, bi-diagram-3 (Schema Generator)
-      "primary": "#007bff",   // Blue - bi-folder2-open, bi-file-earmark-code
-      "secondary": "#6c757d", // Gray - bi-arrow-clockwise, bi-clock-history
-      "purple": "#6f42c1",    // Purple - bi-search, bi-braces
-      "teal": "#20c997",      // Teal - bi-code-square
-      "orange": "#fd7e14"     // Orange - bi-arrow-repeat (XSLT)
-    },
-    "tabSpecific": {
-      "xmlEditor": null,              // Default icon color
-      "xsdEditor": "dodgerblue",      // Blue for XSD
-      "schemaGenerator": "#dc3545",   // Red for Schema Generator
-      "xslt": "#e27429",              // Orange
-      "schematron": "#ff6b6b",        // Light red
-      "fop": "INDIANRED",             // PDF
-      "signature": "#578013",         // Green
-      "help": "#5151e8"               // Violet/blue
-    }
+    // Menu items and panel action rows: ActionColor roles (see colors.workflowColors.actionColors).
+    // Chrome that names a workflow: Workflow slots (see colors.workflowColors). Legacy per-tab colours
+    // (xsdEditor dodgerblue, xslt #e27429, fop INDIANRED, …) are retired.
+    "menusAndActionRows": "SemanticIcon.paint(icon, ActionColor.<ROLE>) / SemanticIcon.bind(...)",
+    "editorToolbar": "fxt-tool-create (New), fxt-tool-primary (Open/Save = workspace), fxt-tool-transform (Transform/Run), fxt-tool-schema (Schema), fxt-tool-neutral (editing tools), fxt-tool-accent (Validate, filled -fxt-wf-validation-fill)",
+    "results": "success / danger / warning tokens always win over a workflow colour (status badge icon, PROBLEMS chips)"
   },
 
   // ============================================================================
@@ -936,7 +949,8 @@
       "iconSize": "15px",
       "fontSize": "12.5px, normal weight (never bold)",
       "textOverrun": "ellipsis, never wrap",
-      "hover": { "background": "-fxt-bg-subtle", "iconColor": "-fxt-primary" },
+      "iconColor": "bound to the row's ActionColor (PanelAction.color); primary rows use -fxt-on-primary via CSS",
+      "hover": { "background": "-fxt-bg-subtle, or -fxt-wf-<id>-bg inside a workflow-scoped side panel; the icon keeps its action colour" },
       "pressed": { "background": "-fxt-bg-surface-2" },
       "focusVisible": { "borderColor": "-fxt-primary (the base rule already reserves a 1px transparent border)" },
       "disabled": { "opacity": 0.45 },
@@ -1005,16 +1019,7 @@
         "padding": "8px 12px",
         "hoverBackground": "rgba(74, 144, 226, 0.1)"
       },
-      "iconClasses": {
-        "success": ".menu-icon-success",
-        "info": ".menu-icon-info",
-        "warning": ".menu-icon-warning",
-        "danger": ".menu-icon-danger",
-        "primary": ".menu-icon-primary",
-        "purple": ".menu-icon-purple",
-        "orange": ".menu-icon-orange",
-        "teal": ".menu-icon-teal"
-      }
+      "iconColors": "Menu icons are painted via SemanticIcon.paint(icon, ActionColor.<ROLE>) — see workflowColors.actionColors; the old .menu-icon-* CSS classes were removed."
     },
 
     // Toolbar
@@ -1229,12 +1234,12 @@
       "NEVER use bi-database - it is not in the bundle!",
       "Standard icon size in FXML: iconSize='16'",
       "Toolbar icon size: iconSize='20'",
-      "Always provide iconColor for semantic meaning",
+      "Menu and action-row icons take an ActionColor role (SemanticIcon.paint / bind); never a raw hex or a raw ColorToken",
       "CSS -fx-icon-color overrides a programmatically set colour on every pass — bind() the property to keep a per-item colour"
     ],
     "colors": [
-      "Use semantic colors for actions (success=green, danger=red, etc.)",
-      "Use tab category colors for grouping related functionality",
+      "Use ActionColor for actions (CREATE green, DELETE red, MODIFY orange, NAVIGATE cyan, STRUCTURE purple, TOOL blue, NEUTRAL grey)",
+      "Use the Workflow family only on chrome that names the workflow (rail, panel title, primary action, toolbar group, badge) — never on the same surface as action colours",
       "Maintain consistency between light and dark themes",
       "Use CSS variables when possible for theme support"
     ],
@@ -1242,7 +1247,7 @@
       "Use standard button variants for consistent styling",
       "Action cards should have fixed height (160px) for dashboard layout",
       "Dialog headers should use gradient variants for visual hierarchy",
-      "Toolbar icons should have colored styleClasses for semantic meaning"
+      "Editor-toolbar icons are tinted per owning workflow via fxt-tool-* style classes; only Validate is filled"
     ],
     "bestPractices": [
       "All user-facing text must be in English",

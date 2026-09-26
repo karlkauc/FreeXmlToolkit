@@ -13,7 +13,7 @@ import org.apache.logging.log4j.Logger;
 import org.fxmisc.richtext.CodeArea;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.shared.utilities.XmlContextMenuManager;
-import org.fxt.freexmltoolkit.controls.theme.DesignTokens;
+import org.fxt.freexmltoolkit.controls.theme.ActionColor;
 import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
 import org.fxt.freexmltoolkit.controls.v2.editor.core.EditorContext;
 import org.fxt.freexmltoolkit.controls.v2.editor.core.NavigationRequest;
@@ -96,12 +96,12 @@ public class ContextMenuManagerV2 implements XmlContextMenuManager.XmlContextAct
 
         // Create Undo item
         undoMenuItem = new MenuItem("Undo (Ctrl+Z)");
-        undoMenuItem.setGraphic(createColoredIcon("bi-arrow-counterclockwise", DesignTokens.ColorToken.NEUTRAL));
+        undoMenuItem.setGraphic(createColoredIcon("bi-arrow-counterclockwise", ActionColor.NEUTRAL));
         undoMenuItem.setOnAction(e -> performUndo());
 
         // Create Redo item
         redoMenuItem = new MenuItem("Redo (Ctrl+Y)");
-        redoMenuItem.setGraphic(createColoredIcon("bi-arrow-clockwise", DesignTokens.ColorToken.NEUTRAL));
+        redoMenuItem.setGraphic(createColoredIcon("bi-arrow-clockwise", ActionColor.NEUTRAL));
         redoMenuItem.setOnAction(e -> performRedo());
 
         // Insert after Comment Lines (position 1, before first separator)
@@ -135,7 +135,7 @@ public class ContextMenuManagerV2 implements XmlContextMenuManager.XmlContextAct
     /**
      * Creates a colored IconifyIcon for menu items.
      */
-    private IconifyIcon createColoredIcon(String iconLiteral, DesignTokens.ColorToken token) {
+    private IconifyIcon createColoredIcon(String iconLiteral, ActionColor token) {
         IconifyIcon icon = new IconifyIcon(iconLiteral);
         icon.setIconSize(12);
         return SemanticIcon.paint(icon, token);

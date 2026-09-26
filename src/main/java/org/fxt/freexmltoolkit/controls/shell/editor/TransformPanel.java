@@ -38,6 +38,8 @@ import org.fxt.freexmltoolkit.service.FavoritesService;
 import org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat;
 import org.fxt.freexmltoolkit.service.telemetry.UsageEvents;
 import org.fxt.freexmltoolkit.util.DialogHelper;
+import org.fxt.freexmltoolkit.controls.theme.ActionColor;
+import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
 
 /**
  * The Transform activity side panel, laid out after the Figma mockup
@@ -109,7 +111,7 @@ public class TransformPanel extends VBox {
         // Carries the shared side-panel-title class too: the shell convention (and
         // UnifiedShellViewTest) identify the active panel's title by it.
         Label title = new Label("TRANSFORM");
-        title.getStyleClass().addAll("fxt-side-panel-title", "fxt-vp-title");
+        title.getStyleClass().addAll("fxt-side-panel-title", "fxt-vp-title", "fxt-panel-title");
         Region headerSpacer = new Region();
         HBox.setHgrow(headerSpacer, Priority.ALWAYS);
         overflowMenu.setId("transform-overflow");
@@ -182,10 +184,10 @@ public class TransformPanel extends VBox {
 
         // --- TOOLS: the advanced tools as visible rows (formerly ⋮ entries) ----------
         tools = new PanelActionList(
-                PanelAction.of("transform-tool-debug", "bi-bug", "Debug XSLT…", this::startDebug),
-                PanelAction.of("transform-tool-batch", "bi-collection", "Batch Transform…", this::openBatch),
+                PanelAction.of("transform-tool-debug", "bi-bug", "Debug XSLT…", this::startDebug).color(ActionColor.TOOL),
+                PanelAction.of("transform-tool-batch", "bi-collection", "Batch Transform…", this::openBatch).color(ActionColor.TOOL),
                 PanelAction.of("transform-tool-stats", "bi-speedometer2", "Execution Statistics",
-                        editorHost::openExecutionStats));
+                        editorHost::openExecutionStats).color(ActionColor.NAVIGATE));
         tools.setId("transform-tools");
         VBox toolsSection = PanelActionList.section("TOOLS", false, tools);
 
@@ -196,9 +198,9 @@ public class TransformPanel extends VBox {
         updatePathMode();
         editorHost.activeTabProperty().addListener((obs, oldV, newV) -> updatePathMode());
         PanelActionList xpathActions = new PanelActionList(
-                PanelAction.of("transform-xpath-run", "bi-lightning-charge", "Run Query", this::runXPath)
+                PanelAction.of("transform-xpath-run", "bi-lightning-charge", "Run Query", this::runXPath).color(ActionColor.TOOL)
                         .asPrimary(),
-                PanelAction.of("transform-xpath-save", "bi-save", "Save Query", this::saveCurrentQuery));
+                PanelAction.of("transform-xpath-save", "bi-save", "Save Query", this::saveCurrentQuery).color(ActionColor.TOOL));
         savedQueriesMenu = new MenuButton();
         savedQueriesMenu.setOnShowing(e -> refreshSavedQueriesMenu());
         xpathActions.addMenu(savedQueriesMenu, "transform-xpath-saved", "bi-collection", "Saved Queries");
@@ -211,7 +213,7 @@ public class TransformPanel extends VBox {
         xqueryArea.setPrefRowCount(4);
         xqueryArea.getStyleClass().add("fxt-xpath-field");
         PanelActionList xqueryActions = new PanelActionList(
-                PanelAction.of("transform-xquery-run", "bi-braces", "Run XQuery", this::runXQuery).asPrimary());
+                PanelAction.of("transform-xquery-run", "bi-braces", "Run XQuery", this::runXQuery).color(ActionColor.TOOL).asPrimary());
         MenuButton examplesMenu = new MenuButton();
         examplesMenu.getItems().addAll(
                 exampleItem("Simple", "simple"),
@@ -1071,19 +1073,19 @@ public class TransformPanel extends VBox {
     private MenuItem savedQueryItem(File file) {
         Menu menu = new Menu(savedQueryDisplayName(file));
 
-        MenuItem load = new MenuItem("Load into query field", icon("bi-slash-square", 16));
+        MenuItem load = new MenuItem("Load into query field", SemanticIcon.paint(icon("bi-slash-square", 16), ActionColor.NAVIGATE));
         load.setOnAction(e -> loadQueryFromFile(file));
 
-        MenuItem open = new MenuItem("Open in editor", icon("bi-pencil-square", 16));
+        MenuItem open = new MenuItem("Open in editor", SemanticIcon.paint(icon("bi-pencil-square", 16), ActionColor.NAVIGATE));
         open.setOnAction(e -> editorHost.openFile(file));
 
-        MenuItem overwrite = new MenuItem("Overwrite with current query", icon("bi-save", 16));
+        MenuItem overwrite = new MenuItem("Overwrite with current query", SemanticIcon.paint(icon("bi-save", 16), ActionColor.MODIFY));
         overwrite.setOnAction(e -> overwriteSavedQuery(file));
 
-        MenuItem rename = new MenuItem("Rename…", icon("bi-pencil", 16));
+        MenuItem rename = new MenuItem("Rename…", SemanticIcon.paint(icon("bi-pencil", 16), ActionColor.MODIFY));
         rename.setOnAction(e -> renameSavedQuery(file));
 
-        MenuItem delete = new MenuItem("Delete…", icon("bi-trash", 16));
+        MenuItem delete = new MenuItem("Delete…", SemanticIcon.paint(icon("bi-trash", 16), ActionColor.DELETE));
         delete.setOnAction(e -> deleteSavedQuery(file));
 
         menu.getItems().addAll(load, open, new SeparatorMenuItem(), overwrite, rename, delete);

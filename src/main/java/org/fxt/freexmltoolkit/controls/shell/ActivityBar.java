@@ -132,6 +132,9 @@ public class ActivityBar extends VBox {
         button.setId("activity-" + activity.id());
         button.setToggleGroup(group);
         button.getStyleClass().add("fxt-activity-button");
+        // Workflow colour hook (spec 2026-09-26 §2): CSS paints the selected indicator and icon in
+        // the activity's workflow/rail colour — .fxt-activity-button.fxt-wf-<id>:selected.
+        button.getStyleClass().add(activity.workflow().cssClass());
         button.setFocusTraversable(false);
         button.setUserData(activity);
 

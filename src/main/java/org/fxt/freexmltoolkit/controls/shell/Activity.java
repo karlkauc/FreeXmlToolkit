@@ -2,6 +2,8 @@ package org.fxt.freexmltoolkit.controls.shell;
 
 import java.util.Optional;
 
+import org.fxt.freexmltoolkit.controls.theme.Workflow;
+
 /**
  * The activities of the new Unified shell, shown as icons in the left Activity
  * Bar (VS-Code style). The declaration order is the Activity Bar order and
@@ -12,27 +14,34 @@ import java.util.Optional;
  * Bootstrap {@link #icon()} literal resolvable by {@code IconifyIcon}.
  */
 public enum Activity {
-    EXPLORER("explorer", "Explorer", "bi-folder2-open"),
-    SEARCH("search", "Search", "bi-search"),
-    FAVORITES("favorites", "Favorites", "bi-star"),
-    VALIDATION("validation", "Validation", "bi-check2-circle"),
-    TRANSFORM("transform", "Transform", "bi-arrow-repeat"),
-    SCHEMA("schema", "Schema", "bi-diagram-3"),
-    SCHEMA_LIBRARY("schema-library", "Schema Library", "bi-collection"),
-    PDF_FOP("pdf", "PDF / FOP", "bi-file-earmark-pdf"),
-    SIGNATURE("signature", "Signature", "bi-shield-lock"),
-    FUNDSXML("fundsxml", "FundsXML", "bi-file-earmark-code"),
-    HELP("help", "Help", "bi-question-circle"),
-    SETTINGS("settings", "Settings", "bi-gear");
+    EXPLORER("explorer", "Explorer", "bi-folder2-open", Workflow.WORKSPACE),
+    SEARCH("search", "Search", "bi-search", Workflow.WORKSPACE),
+    FAVORITES("favorites", "Favorites", "bi-star", Workflow.WORKSPACE),
+    VALIDATION("validation", "Validation", "bi-check2-circle", Workflow.VALIDATION),
+    TRANSFORM("transform", "Transform", "bi-arrow-repeat", Workflow.TRANSFORM),
+    SCHEMA("schema", "Schema", "bi-diagram-3", Workflow.SCHEMA),
+    SCHEMA_LIBRARY("schema-library", "Schema Library", "bi-collection", Workflow.SCHEMA),
+    PDF_FOP("pdf", "PDF / FOP", "bi-file-earmark-pdf", Workflow.PDF),
+    SIGNATURE("signature", "Signature", "bi-shield-lock", Workflow.SIGNATURE),
+    FUNDSXML("fundsxml", "FundsXML", "bi-file-earmark-code", Workflow.FUNDSXML),
+    HELP("help", "Help", "bi-question-circle", Workflow.NEUTRAL),
+    SETTINGS("settings", "Settings", "bi-gear", Workflow.NEUTRAL);
 
     private final String id;
     private final String label;
     private final String icon;
+    private final Workflow workflow;
 
-    Activity(String id, String label, String icon) {
+    Activity(String id, String label, String icon, Workflow workflow) {
         this.id = id;
         this.label = label;
         this.icon = icon;
+        this.workflow = workflow;
+    }
+
+    /** @return the workflow colour family this activity belongs to (spec 2026-09-26 §1.1). */
+    public Workflow workflow() {
+        return workflow;
     }
 
     /** @return the stable identifier (used for persistence and lookup). */

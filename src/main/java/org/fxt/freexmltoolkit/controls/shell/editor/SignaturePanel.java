@@ -25,6 +25,7 @@ import org.fxt.freexmltoolkit.FxtGui;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.service.SignatureService;
 import org.fxt.freexmltoolkit.service.telemetry.UsageEvents;
+import org.fxt.freexmltoolkit.controls.theme.ActionColor;
 
 /**
  * The Signature activity side panel, laid out after the Figma mockup
@@ -72,7 +73,7 @@ public class SignaturePanel extends VBox {
         // Keeps the shared side-panel-title class: the shell convention (and
         // UnifiedShellViewTest) identify the active panel's title by it.
         Label title = new Label("SIGNATURE");
-        title.getStyleClass().addAll("fxt-side-panel-title", "fxt-vp-title");
+        title.getStyleClass().addAll("fxt-side-panel-title", "fxt-vp-title", "fxt-panel-title");
         Region headerSpacer = new Region();
         HBox.setHgrow(headerSpacer, Priority.ALWAYS);
         HBox header = new HBox(title, headerSpacer);
@@ -123,7 +124,7 @@ public class SignaturePanel extends VBox {
         Button validate = primaryButton("Validate Signature", "bi-shield-check",
                 "sig-validate-run", this::validateActive);
         PanelActionList validateTools = new PanelActionList(PanelAction.of("sig-validate-details",
-                "bi-card-list", "Validate (Details)", this::validateDetailsActive));
+                "bi-card-list", "Validate (Details)", this::validateDetailsActive).color(ActionColor.CREATE));
         VBox validateSection = section(Action.VALIDATE, "sig-section-validate",
                 runBox(validate), validateTools);
 
