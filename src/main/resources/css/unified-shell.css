@@ -543,8 +543,8 @@
  * ===== Editor toolbar (Action Bar): variant E — one slim row, inline icon+label =====
  * Figma page 04 "E — Split-Buttons": frequent actions are labeled inline buttons, related
  * actions fold into SplitMenuButtons with a visible ▾ arrow, secondary tools are icon-only;
- * only the prominent Validate button gets a filled-primary accent (.fxt-tool-accent). The
- * semantic ToolColor classes (.fxt-tool-primary/.success/…) are intentionally NOT colored.
+ * only the prominent Validate button is filled (.fxt-tool-accent, validation green). The
+ * ToolColor classes tint the icon per owning workflow (see the rules below).
  * Scoped to .fxt-editor-toolbar so the shared global .fxt-tool-button default is untouched.
  */
 .fxt-editor-toolbar .fxt-tool-button {
@@ -566,7 +566,13 @@
 /* Thunderbird-style subtle icon colorization: each action group tints its icon with
    its semantic token (theme-aware); labels stay near-black, only Validate is filled.
    The extra .fxt-tool-button class outranks the generic icon rule below. */
-.fxt-editor-toolbar .fxt-tool-button.fxt-tool-primary .iconify-icon { -fx-icon-color: -fxt-primary; }
+/* Icon tints per owning workflow (spec 2026-09-26 §2): file group = workspace, New = CREATE,
+   Transform/Run = transform, Schema = schema; editing tools stay neutral. Labels stay near-black. */
+.fxt-editor-toolbar .fxt-tool-button.fxt-tool-primary .iconify-icon   { -fx-icon-color: -fxt-wf-workspace-accent; }
+.fxt-editor-toolbar .fxt-tool-button.fxt-tool-create .iconify-icon    { -fx-icon-color: -fxt-action-create; }
+.fxt-editor-toolbar .fxt-tool-button.fxt-tool-transform .iconify-icon { -fx-icon-color: -fxt-wf-transform-accent; }
+.fxt-editor-toolbar .fxt-tool-button.fxt-tool-schema .iconify-icon    { -fx-icon-color: -fxt-wf-schema-accent; }
+/* Legacy semantic classes still used outside the shell toolbar row. */
 .fxt-editor-toolbar .fxt-tool-button.fxt-tool-success .iconify-icon { -fx-icon-color: -fxt-success; }
 .fxt-editor-toolbar .fxt-tool-button.fxt-tool-info .iconify-icon    { -fx-icon-color: -fxt-info; }
 .fxt-editor-toolbar .fxt-tool-button.fxt-tool-warning .iconify-icon { -fx-icon-color: -fxt-warning; }
@@ -613,17 +619,17 @@
     -fx-opacity: 0.4;
 }
 
-/* ----- Filled accent button (Validate) ----- */
+/* ----- Filled Validate button: the one filled toolbar action points at the Validation workflow (D4) ----- */
 .fxt-editor-toolbar .fxt-tool-button.fxt-tool-accent {
-    -fx-background-color: -fxt-primary;
-    -fx-border-color: -fxt-primary;
+    -fx-background-color: -fxt-wf-validation-fill;
+    -fx-border-color: -fxt-wf-validation-fill;
     -fx-text-fill: -fxt-on-primary;
 }
 .fxt-editor-toolbar .fxt-tool-button.fxt-tool-accent .iconify-icon {
     -fx-icon-color: -fxt-on-primary;
 }
 .fxt-editor-toolbar .fxt-tool-button.fxt-tool-accent:hover {
-    -fx-background-color: derive(-fxt-primary, -8%);
+    -fx-background-color: derive(-fxt-wf-validation-fill, -8%);
 }
 .fxt-editor-toolbar .fxt-tool-button.fxt-tool-accent:hover .iconify-icon {
     -fx-icon-color: -fxt-on-primary;

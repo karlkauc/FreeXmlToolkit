@@ -88,14 +88,17 @@
                                         <!-- Variant E (Figma page 04): one slim row. Frequent actions are labeled
                                              buttons; related actions fold into SplitMenuButtons (primary click +
                                              visible ▾ menu); secondary tools are icon-only with tooltips. Buttons
-                                             with text="" stay icon-only regardless of the show-labels setting. -->
+                                             with text="" stay icon-only regardless of the show-labels setting.
+                                             Icon tints follow the owning workflow (spec 2026-09-26 §2): file group =
+                                             workspace blue, New = CREATE, editing tools neutral, Transform/Run =
+                                             transform, Schema = schema, Validate filled in validation green. -->
                                         <Button id="action-new" text="New"
-                                                styleClass="fxt-tool-button, fxt-tool-success" onAction="#onNew">
+                                                styleClass="fxt-tool-button, fxt-tool-create" onAction="#onNew">
                                             <graphic><IconifyIcon iconLiteral="bi-file-earmark-plus" iconSize="16"/></graphic>
                                             <tooltip><Tooltip text="New (Ctrl+N)"/></tooltip>
                                         </Button>
                                         <Button id="action-open" text="Open"
-                                                styleClass="fxt-tool-button, fxt-tool-warning" onAction="#onOpen">
+                                                styleClass="fxt-tool-button, fxt-tool-primary" onAction="#onOpen">
                                             <graphic><IconifyIcon iconLiteral="bi-folder2-open" iconSize="16"/></graphic>
                                             <tooltip><Tooltip text="Open (Ctrl+O)"/></tooltip>
                                         </Button>
@@ -126,7 +129,7 @@
                                         </Button>
                                         <Separator orientation="VERTICAL"/>
                                         <SplitMenuButton id="action-format" text="Format"
-                                                         styleClass="fxt-tool-button, fxt-tool-info, fxt-tool-split"
+                                                         styleClass="fxt-tool-button, fxt-tool-neutral, fxt-tool-split"
                                                          onAction="#onFormat">
                                             <graphic><IconifyIcon iconLiteral="bi-text-indent-left" iconSize="16"/></graphic>
                                             <tooltip><Tooltip text="Format (Shift+Alt+F) — arrow: Minify"/></tooltip>
@@ -137,17 +140,17 @@
                                             </items>
                                         </SplitMenuButton>
                                         <Button id="action-insert-template" text=""
-                                                styleClass="fxt-tool-button, fxt-tool-purple" onAction="#onInsertTemplate">
+                                                styleClass="fxt-tool-button, fxt-tool-neutral" onAction="#onInsertTemplate">
                                             <graphic><IconifyIcon iconLiteral="bi-puzzle" iconSize="16"/></graphic>
                                             <tooltip><Tooltip text="Insert Template…"/></tooltip>
                                         </Button>
                                         <Button id="action-compare" text=""
-                                                styleClass="fxt-tool-button, fxt-tool-indigo" onAction="#onCompare">
+                                                styleClass="fxt-tool-button, fxt-tool-neutral" onAction="#onCompare">
                                             <graphic><IconifyIcon iconLiteral="bi-layout-split" iconSize="16"/></graphic>
                                             <tooltip><Tooltip text="Compare with File…"/></tooltip>
                                         </Button>
                                         <Button id="action-spreadsheet" text=""
-                                                styleClass="fxt-tool-button, fxt-tool-success" onAction="#onSpreadsheet">
+                                                styleClass="fxt-tool-button, fxt-tool-neutral" onAction="#onSpreadsheet">
                                             <graphic><IconifyIcon iconLiteral="bi-table" iconSize="16"/></graphic>
                                             <tooltip><Tooltip text="Spreadsheet Converter… (Excel / CSV ↔ XML)"/></tooltip>
                                         </Button>
@@ -158,7 +161,7 @@
                                         </Button>
                                         <Separator orientation="VERTICAL"/>
                                         <Button fx:id="actionTransform" id="doc-action-transform" text=""
-                                                styleClass="fxt-tool-button, fxt-tool-info" onAction="#onTransform">
+                                                styleClass="fxt-tool-button, fxt-tool-transform" onAction="#onTransform">
                                             <graphic><IconifyIcon iconLiteral="bi-arrow-left-right" iconSize="16"/></graphic>
                                             <tooltip><Tooltip text="Transform with XSLT… (choose a stylesheet)"/></tooltip>
                                         </Button>
@@ -168,7 +171,7 @@
                                             <tooltip><Tooltip text="Choose the XML document the query / transform runs against"/></tooltip>
                                         </MenuButton>
                                         <SplitMenuButton fx:id="actionRun" id="doc-action-run" text="Run"
-                                                         styleClass="fxt-tool-button, fxt-tool-success, fxt-tool-split"
+                                                         styleClass="fxt-tool-button, fxt-tool-transform, fxt-tool-split"
                                                          onAction="#onRunPrimary">
                                             <graphic><IconifyIcon iconLiteral="bi-play-fill" iconSize="16"/></graphic>
                                             <tooltip><Tooltip text="Run the active document against the selected target (Ctrl+Enter) — arrow: Run Query / Transform / Pipeline"/></tooltip>
@@ -188,7 +191,7 @@
                                             </items>
                                         </SplitMenuButton>
                                         <SplitMenuButton id="action-set-schema" text="Schema"
-                                                         styleClass="fxt-tool-button, fxt-tool-purple, fxt-tool-split"
+                                                         styleClass="fxt-tool-button, fxt-tool-schema, fxt-tool-split"
                                                          onAction="#onSetSchema">
                                             <graphic><IconifyIcon iconLiteral="bi-diagram-3" iconSize="16"/></graphic>
                                             <tooltip><Tooltip text="Set XSD Schema… (IntelliSense &amp; validation) — arrow: Generate Docs / Type Editor"/></tooltip>
