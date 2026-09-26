@@ -35,9 +35,12 @@ im Thunderbird-Supernova-Brand (Navy-Chrome, Blau, Orange).
   für alle Menüs und Aktionszeilen. Beides innerhalb des Brand-Rahmens.
 - **D2 Familien statt zwölf Farben.** Explorer, Search und Favorites sind „die App“ und bleiben
   Brand-Blau; Help und Settings sind neutral. Sieben Farbfamilien reichen.
-- **D3 Rail-Auswahl als Indikator** (3-px-Balken + getöntes Icon) statt gefüllter Pille — in Figma
-  als Variante A/B zur Entscheidung aufgebaut, Empfehlung B.
-- **D4 Validate-Toolbar-Button in Validation-Grün** statt Brand-Blau — ebenfalls als Variante.
+- **D3 Rail-Auswahl als Indikator** (Stil B: 3-px-Balken + getöntes Icon auf `chrome/rail/item-bg`).
+  Entschieden 2026-09-26; die gefüllte Pille (Stil A) bleibt nur als verworfene Variante auf dem Sheet.
+- **D4 Validate-Toolbar-Button in Validation-Grün** (`validation/fill`) statt Brand-Blau. Entschieden 2026-09-26.
+- **D6 Transform bleibt Brand-Orange** (kein Teal-Fallback). Entschieden 2026-09-26.
+- **D7 Der Dark-`fill`-Slot (z. B. `#1f6feb`) gilt nur für Workflow-Buttons.** Der Brand-Primär-Button
+  behält `-fxt-primary` (Dark `#4c9bf5`). Entschieden 2026-09-26.
 - **D5 TEAL und INDIGO** werden für Aktionen nicht mehr verwendet (nur noch Workflow/Dateityp).
 - **Deliverable dieser Runde:** Figma-Seite `05 · Workflow Colours & Branding` in der Datei
   `FreeXmlToolkit — UI Modernization` (Key `oqJVcInD6RgKaQ4dYmMWYh`) plus diese Spec.
@@ -306,14 +309,13 @@ Ein generierter Selektor-Block je Familie, z. B.
 
 ---
 
-## 9. Offene Fragen
+## 9. Entschiedene Fragen (2026-09-26)
 
-1. **Rail-Auswahl A vs. B** — Entscheidung auf dem Figma-Komponenten-Sheet.
-2. **Validate-Toolbar-Button grün oder blau** — Variante auf dem Sheet.
-3. **Transform = Brand-Orange** kollidiert flächenfremd mit MODIFY-Orange in Menüs und mit
-   Warning-Chips in PROBLEMS. Die Schichtung hält sie auf getrennten Flächen; wirkt der
-   Transform-Screen unruhig, ist der Fallback Transform = Teal, FundsXML = Indigo.
-4. **Dark-Primär-Button:** der `fill`-Slot `#1f6feb` korrigiert Weiß-auf-`#4c9bf5` (2.9:1).
-   Gilt das auch für den Brand-Primär-Button oder nur für Workflow-Buttons?
-5. **Icon-Store-Abdeckung in Figma** für Aktions-Icons (z. B. `bi-signpost-2`, `bi-arrows-move`);
-   fehlende SVGs werden aus `src/main/resources/icons/iconify/bi.json` nachgeladen.
+1. **Rail-Auswahl:** Stil B (Indikator). → D3
+2. **Validate-Toolbar-Button:** grün. → D4
+3. **Transform:** bleibt Brand-Orange; die Schichtung hält MODIFY-Orange (Menü-Icons) und
+   Warning-Chips (PROBLEMS) auf anderen Flächen. → D6
+4. **Dark-`fill`:** nur für Workflow-Buttons; Brand-Primär-Button unverändert. → D7
+5. **Icon-Store:** erledigt, 121 Icons in der Figma-Datei.
+
+Keine offenen Fragen mehr; die Umsetzung kann nach Abschnitt 7 starten.
