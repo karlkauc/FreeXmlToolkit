@@ -66,4 +66,30 @@ class SemanticIconTest {
                     icon.getIconColor(), "icon must re-tint back to the light token");
         });
     }
+
+    @Test
+    @DisplayName("Action-colour overload paints with the role's token")
+    void paintsActionColor() {
+        runAndWait(() -> {
+            Scene scene = new Scene(new StackPane(), 10, 10);
+            ThemeManager.apply(scene, false);
+            IconifyIcon icon = SemanticIcon.paint(new IconifyIcon("bi-trash"), ActionColor.DELETE);
+            assertEquals(DesignTokens.ColorToken.DANGER.color(DesignTokens.Theme.LIGHT), icon.getIconColor());
+        });
+    }
+
+    @Test
+    @DisplayName("Bound icon colour re-tints on a theme switch and stays bound (CSS cannot override it)")
+    void boundIconRecolorsOnThemeSwitch() {
+        runAndWait(() -> {
+            Scene scene = new Scene(new StackPane(), 10, 10);
+            ThemeManager.apply(scene, false);
+            IconifyIcon icon = SemanticIcon.bind(new IconifyIcon("bi-plus-circle"), ActionColor.CREATE);
+            assertTrue(icon.iconColorProperty().isBound(), "icon colour must be bound");
+            assertEquals(DesignTokens.ColorToken.SUCCESS.color(DesignTokens.Theme.LIGHT), icon.getIconColor());
+            ThemeManager.apply(scene, true);
+            assertEquals(DesignTokens.ColorToken.SUCCESS.color(DesignTokens.Theme.DARK), icon.getIconColor());
+            ThemeManager.apply(scene, false);
+        });
+    }
 }
