@@ -282,6 +282,13 @@
   -fx-background-color: #2a2a2a;
 }
 
+/* Plain text without a syntax class (element content such as <xs:documentation> text)
+   would otherwise keep RichTextFX's default black fill. Declared BEFORE the syntax palette
+   below so the equally specific syntax rules still win their ties. */
+.root.fxt-theme-dark .code-area .text {
+  -fx-fill: -fxt-code-text;
+}
+
 /* XML syntax palette for dark mode — brighter counterparts of the Figma light palette
    in scss/xml-highlighting.css (node-level sheet; these selectors out-specify it).
    Also used by the Query Console results and the OUTPUT pane. */

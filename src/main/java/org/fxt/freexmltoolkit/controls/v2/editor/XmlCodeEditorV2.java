@@ -199,8 +199,12 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
             // Opaque gutter background so horizontally scrolled text never shows through
             // behind the line numbers. Set inline (highest precedence) to guarantee it paints
             // regardless of stylesheet cascade; keep the .lineno class for semantic styling.
+            // The colour is the theme-aware surface-2 token and is re-applied on a theme switch
+            // (SemanticStyle keeps a weak registration), so the gutter is dark in dark mode.
             hbox.getStyleClass().add("lineno");
-            hbox.setStyle("-fx-background-color: #e3e3e3;");
+            org.fxt.freexmltoolkit.controls.theme.SemanticStyle.style(hbox,
+                    org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.BG_SURFACE_2,
+                    hex -> "-fx-background-color: " + hex + ";");
 
             // Optional extra gutter (e.g. breakpoint markers) — first slot
             if (extraGutterFactory != null) {
