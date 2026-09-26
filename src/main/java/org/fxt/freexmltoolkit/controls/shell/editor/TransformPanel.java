@@ -39,6 +39,7 @@ import org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat;
 import org.fxt.freexmltoolkit.service.telemetry.UsageEvents;
 import org.fxt.freexmltoolkit.util.DialogHelper;
 import org.fxt.freexmltoolkit.controls.theme.ActionColor;
+import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
 
 /**
  * The Transform activity side panel, laid out after the Figma mockup
@@ -1072,19 +1073,19 @@ public class TransformPanel extends VBox {
     private MenuItem savedQueryItem(File file) {
         Menu menu = new Menu(savedQueryDisplayName(file));
 
-        MenuItem load = new MenuItem("Load into query field", icon("bi-slash-square", 16));
+        MenuItem load = new MenuItem("Load into query field", SemanticIcon.paint(icon("bi-slash-square", 16), ActionColor.NAVIGATE));
         load.setOnAction(e -> loadQueryFromFile(file));
 
-        MenuItem open = new MenuItem("Open in editor", icon("bi-pencil-square", 16));
+        MenuItem open = new MenuItem("Open in editor", SemanticIcon.paint(icon("bi-pencil-square", 16), ActionColor.NAVIGATE));
         open.setOnAction(e -> editorHost.openFile(file));
 
-        MenuItem overwrite = new MenuItem("Overwrite with current query", icon("bi-save", 16));
+        MenuItem overwrite = new MenuItem("Overwrite with current query", SemanticIcon.paint(icon("bi-save", 16), ActionColor.MODIFY));
         overwrite.setOnAction(e -> overwriteSavedQuery(file));
 
-        MenuItem rename = new MenuItem("Rename…", icon("bi-pencil", 16));
+        MenuItem rename = new MenuItem("Rename…", SemanticIcon.paint(icon("bi-pencil", 16), ActionColor.MODIFY));
         rename.setOnAction(e -> renameSavedQuery(file));
 
-        MenuItem delete = new MenuItem("Delete…", icon("bi-trash", 16));
+        MenuItem delete = new MenuItem("Delete…", SemanticIcon.paint(icon("bi-trash", 16), ActionColor.DELETE));
         delete.setOnAction(e -> deleteSavedQuery(file));
 
         menu.getItems().addAll(load, open, new SeparatorMenuItem(), overwrite, rename, delete);

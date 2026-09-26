@@ -1005,16 +1005,7 @@
         "padding": "8px 12px",
         "hoverBackground": "rgba(74, 144, 226, 0.1)"
       },
-      "iconClasses": {
-        "success": ".menu-icon-success",
-        "info": ".menu-icon-info",
-        "warning": ".menu-icon-warning",
-        "danger": ".menu-icon-danger",
-        "primary": ".menu-icon-primary",
-        "purple": ".menu-icon-purple",
-        "orange": ".menu-icon-orange",
-        "teal": ".menu-icon-teal"
-      }
+      "iconColors": "Menu icons are painted via SemanticIcon.paint(icon, ActionColor.<ROLE>) — see workflowColors.actionColors; the old .menu-icon-* CSS classes were removed."
     },
 
     // Toolbar

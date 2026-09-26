@@ -20,6 +20,8 @@ import org.fxt.freexmltoolkit.util.DialogHelper;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Locale;
+import org.fxt.freexmltoolkit.controls.theme.ActionColor;
+import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
 
 /**
  * Side panel of the Schema Library activity: namespace mappings, registered XML catalogs
@@ -500,13 +502,13 @@ public class SchemaLibraryPanel extends VBox {
     }
 
     private ContextMenu mappingsContextMenu() {
-        MenuItem open = new MenuItem("Open schema", new IconifyIcon("bi-box-arrow-up-right"));
+        MenuItem open = new MenuItem("Open schema", SemanticIcon.paint(new IconifyIcon("bi-box-arrow-up-right"), ActionColor.NAVIGATE));
         open.setOnAction(e -> { var s = mappings.getSelectionModel().getSelectedItem(); if (s != null) openEntry(s); });
-        MenuItem edit = new MenuItem("Edit…", new IconifyIcon("bi-pencil"));
+        MenuItem edit = new MenuItem("Edit…", SemanticIcon.paint(new IconifyIcon("bi-pencil"), ActionColor.MODIFY));
         edit.setOnAction(e -> editSelected());
-        MenuItem remove = new MenuItem("Remove", new IconifyIcon("bi-trash"));
+        MenuItem remove = new MenuItem("Remove", SemanticIcon.paint(new IconifyIcon("bi-trash"), ActionColor.DELETE));
         remove.setOnAction(e -> removeSelected());
-        MenuItem copy = new MenuItem("Copy namespace", new IconifyIcon("bi-clipboard"));
+        MenuItem copy = new MenuItem("Copy namespace", SemanticIcon.paint(new IconifyIcon("bi-clipboard"), ActionColor.NEUTRAL));
         copy.setOnAction(e -> {
             var s = mappings.getSelectionModel().getSelectedItem();
             if (s != null) {

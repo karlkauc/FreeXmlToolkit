@@ -10,6 +10,8 @@ import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TextInputDialog;
 
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.controls.theme.ActionColor;
+import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 
 /**
@@ -26,40 +28,41 @@ public final class NodeContextMenu {
     /** @return a context menu whose items invoke {@code actions} on {@code currentNode.get()}. */
     public static ContextMenu build(NodeEditActions actions, Supplier<XsdNode> currentNode) {
         ContextMenu menu = new ContextMenu();
-        MenuItem paste = item("Paste", "bi-clipboard-plus", currentNode, actions::paste);
+        MenuItem paste = item("Paste", "bi-clipboard-plus", ActionColor.CREATE, currentNode, actions::paste);
         menu.getItems().addAll(
-                item("Add Element…", "bi-plus-circle", currentNode,
+                item("Add Element…", "bi-plus-circle", ActionColor.CREATE, currentNode,
                         node -> promptName(actions::addElement, node, "Add Element", "NewElement")),
-                item("Add Container Element…", "bi-node-plus", currentNode,
+                item("Add Container Element…", "bi-node-plus", ActionColor.CREATE, currentNode,
                         node -> promptName(actions::addContainerElement, node, "Add Container Element", "NewContainer")),
-                item("Add Attribute…", "bi-at", currentNode,
+                item("Add Attribute…", "bi-at", ActionColor.CREATE, currentNode,
                         node -> promptName(actions::addAttribute, node, "Add Attribute", "newAttribute")),
-                item("Add Sequence", "bi-list-ol", currentNode, actions::addSequence),
-                item("Add Choice", "bi-signpost-split", currentNode, actions::addChoice),
-                item("Add All", "bi-list-check", currentNode, actions::addAll),
-                item("Add Comment…", "bi-chat-left-text", currentNode,
+                item("Add Sequence", "bi-list-ol", ActionColor.CREATE, currentNode, actions::addSequence),
+                item("Add Choice", "bi-signpost-split", ActionColor.CREATE, currentNode, actions::addChoice),
+                item("Add All", "bi-list-check", ActionColor.CREATE, currentNode, actions::addAll),
+                item("Add Comment…", "bi-chat-left-text", ActionColor.CREATE, currentNode,
                         node -> promptComment(actions, node)),
                 new SeparatorMenuItem(),
-                item("Rename…", "bi-pencil", currentNode, node -> promptRename(actions, node)),
-                item("Change Type…", "bi-type", currentNode, node -> promptChangeType(actions, node)),
-                item("Change Cardinality…", "bi-arrows-expand", currentNode, node -> promptCardinality(actions, node)),
+                item("Rename…", "bi-pencil", ActionColor.MODIFY, currentNode, node -> promptRename(actions, node)),
+                item("Change Type…", "bi-type", ActionColor.STRUCTURE, currentNode, node -> promptChangeType(actions, node)),
+                item("Change Cardinality…", "bi-arrows-expand", ActionColor.STRUCTURE, currentNode, node -> promptCardinality(actions, node)),
                 new SeparatorMenuItem(),
-                item("Copy", "bi-clipboard", currentNode, actions::copy),
-                item("Cut", "bi-scissors", currentNode, actions::cut),
+                item("Copy", "bi-clipboard", ActionColor.NEUTRAL, currentNode, actions::copy),
+                item("Cut", "bi-scissors", ActionColor.DELETE, currentNode, actions::cut),
                 paste,
                 new SeparatorMenuItem(),
-                item("Duplicate", "bi-copy", currentNode, actions::duplicate),
-                item("Move Up", "bi-arrow-up", currentNode, actions::moveUp),
-                item("Move Down", "bi-arrow-down", currentNode, actions::moveDown),
+                item("Duplicate", "bi-copy", ActionColor.CREATE, currentNode, actions::duplicate),
+                item("Move Up", "bi-arrow-up", ActionColor.STRUCTURE, currentNode, actions::moveUp),
+                item("Move Down", "bi-arrow-down", ActionColor.STRUCTURE, currentNode, actions::moveDown),
                 new SeparatorMenuItem(),
-                item("Delete", "bi-trash", currentNode, actions::delete));
+                item("Delete", "bi-trash", ActionColor.DELETE, currentNode, actions::delete));
         // Enable Paste only when the clipboard holds a node (re-checked on each open).
         menu.setOnShowing(e -> paste.setDisable(!actions.canPaste()));
         return menu;
     }
 
-    private static MenuItem item(String text, String icon, Supplier<XsdNode> currentNode, Consumer<XsdNode> action) {
-        IconifyIcon graphic = new IconifyIcon(icon);
+    private static MenuItem item(String text, String icon, ActionColor role, Supplier<XsdNode> currentNode,
+                                 Consumer<XsdNode> action) {
+        IconifyIcon graphic = SemanticIcon.paint(new IconifyIcon(icon), role);
         graphic.setIconSize(16);
         MenuItem menuItem = new MenuItem(text, graphic);
         menuItem.setOnAction(e -> {

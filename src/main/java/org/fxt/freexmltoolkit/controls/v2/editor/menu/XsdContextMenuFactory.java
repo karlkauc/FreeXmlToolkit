@@ -15,7 +15,7 @@ import javafx.scene.input.ClipboardContent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
-import org.fxt.freexmltoolkit.controls.theme.DesignTokens;
+import org.fxt.freexmltoolkit.controls.theme.ActionColor;
 import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
 import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.editor.clipboard.XsdClipboard;
@@ -129,7 +129,7 @@ public class XsdContextMenuFactory {
         ContextMenu menu = new ContextMenu();
 
         menu.getItems().add(
-                createMenuItem("Add Root Element", () -> {
+                createMenuItem("Add Root Element", "bi-plus-circle", ActionColor.CREATE, () -> {
                     org.fxt.freexmltoolkit.controls.v2.model.XsdSchema schema = editorContext.getSchema();
                     if (schema != null) {
                         handleAddRootElement(schema);
@@ -147,21 +147,21 @@ public class XsdContextMenuFactory {
 
         // Add submenu with icon
         Menu addMenu = new Menu("Add");
-        addMenu.setGraphic(createColoredIcon("bi-plus-circle", DesignTokens.ColorToken.SUCCESS));
+        addMenu.setGraphic(createColoredIcon("bi-plus-circle", ActionColor.CREATE));
         addMenu.getItems().addAll(
-                createMenuItemConditional("Element", "bi-plus", DesignTokens.ColorToken.SUCCESS,
+                createMenuItemConditional("Element", "bi-plus", ActionColor.CREATE,
                         () -> handleAddElement(node), () -> canAddElement(node)),
-                createMenuItemConditional("Attribute", "bi-at", DesignTokens.ColorToken.WARNING,
+                createMenuItemConditional("Attribute", "bi-at", ActionColor.CREATE,
                         () -> handleAddAttribute(node), () -> canAddAttribute(node)),
                 new SeparatorMenuItem(),
-                createMenuItemConditional("Sequence", "bi-list-ol", DesignTokens.ColorToken.NEUTRAL,
+                createMenuItemConditional("Sequence", "bi-list-ol", ActionColor.CREATE,
                         () -> handleAddSequence(node), () -> canAddCompositor(node)),
-                createMenuItemConditional("Choice", "bi-card-list", DesignTokens.ColorToken.NEUTRAL,
+                createMenuItemConditional("Choice", "bi-card-list", ActionColor.CREATE,
                         () -> handleAddChoice(node), () -> canAddCompositor(node)),
-                createMenuItemConditional("All", "bi-grid-3x3", DesignTokens.ColorToken.NEUTRAL,
+                createMenuItemConditional("All", "bi-grid-3x3", ActionColor.CREATE,
                         () -> handleAddAll(node), () -> canAddCompositor(node)),
                 new SeparatorMenuItem(),
-                createMenuItem("Comment", "bi-chat-left-quote", DesignTokens.ColorToken.NEUTRAL, () -> handleAddComment(node))
+                createMenuItem("Comment", "bi-chat-left-quote", ActionColor.CREATE, () -> handleAddComment(node))
         );
 
         // Check if element has a ComplexType or SimpleType reference - if so, add "Edit Type in Editor" option
@@ -172,65 +172,65 @@ public class XsdContextMenuFactory {
         Menu moveMenu = createMoveMenu(node);
 
         // Create clipboard menu items
-        MenuItem copyItem = createMenuItem("Copy Node", "bi-clipboard", DesignTokens.ColorToken.NEUTRAL, () -> handleCopy(node));
-        MenuItem cutItem = createMenuItem("Cut Node", "bi-scissors", DesignTokens.ColorToken.ACCENT, () -> handleCut(node));
+        MenuItem copyItem = createMenuItem("Copy Node", "bi-clipboard", ActionColor.NEUTRAL, () -> handleCopy(node));
+        MenuItem cutItem = createMenuItem("Cut Node", "bi-scissors", ActionColor.DELETE, () -> handleCut(node));
         MenuItem pasteItem = createPasteMenuItem(node);
 
         if (hasComplexTypeReference) {
             menu.getItems().addAll(
-                    createMenuItemAlwaysEnabled("Edit Referenced Type in Editor", "bi-box-arrow-up-right", DesignTokens.ColorToken.INFO,
+                    createMenuItemAlwaysEnabled("Edit Referenced Type in Editor", "bi-box-arrow-up-right", ActionColor.NAVIGATE,
                             () -> handleEditReferencedComplexType(node)),
                     new SeparatorMenuItem(),
                     addMenu,
                     new SeparatorMenuItem(),
-                    createMenuItem("Change Type", "bi-arrow-left-right", DesignTokens.ColorToken.PRIMARY, () -> handleChangeType(node)),
-                    createMenuItem("Rename", "bi-pencil", DesignTokens.ColorToken.ACCENT, () -> handleRename(node)),
-                    createMenuItem("Edit Cardinality", "bi-hash", DesignTokens.ColorToken.PURPLE, () -> handleChangeCardinality(node)),
+                    createMenuItem("Change Type", "bi-arrow-left-right", ActionColor.STRUCTURE, () -> handleChangeType(node)),
+                    createMenuItem("Rename", "bi-pencil", ActionColor.MODIFY, () -> handleRename(node)),
+                    createMenuItem("Edit Cardinality", "bi-hash", ActionColor.STRUCTURE, () -> handleChangeCardinality(node)),
                     new SeparatorMenuItem(),
                     moveMenu,
                     copyItem,
                     cutItem,
                     pasteItem,
-                    createMenuItem("Duplicate", "bi-files", DesignTokens.ColorToken.TEAL, () -> handleDuplicate(node)),
-                    createMenuItem("Delete", "bi-trash", DesignTokens.ColorToken.DANGER, () -> handleDelete(node)),
+                    createMenuItem("Duplicate", "bi-files", ActionColor.CREATE, () -> handleDuplicate(node)),
+                    createMenuItem("Delete", "bi-trash", ActionColor.DELETE, () -> handleDelete(node)),
                     new SeparatorMenuItem(),
-                    createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", DesignTokens.ColorToken.WARNING, () -> handleCopyXPath(node))
+                    createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", ActionColor.NEUTRAL, () -> handleCopyXPath(node))
             );
         } else if (hasSimpleTypeReference) {
             // Element references a SimpleType - show Edit Type option without Add submenu
             menu.getItems().addAll(
-                    createMenuItemAlwaysEnabled("Edit Referenced Type in Editor", "bi-box-arrow-up-right", DesignTokens.ColorToken.INFO,
+                    createMenuItemAlwaysEnabled("Edit Referenced Type in Editor", "bi-box-arrow-up-right", ActionColor.NAVIGATE,
                             () -> handleEditReferencedSimpleType(node)),
                     new SeparatorMenuItem(),
-                    createMenuItem("Change Type", "bi-arrow-left-right", DesignTokens.ColorToken.PRIMARY, () -> handleChangeType(node)),
-                    createMenuItem("Rename", "bi-pencil", DesignTokens.ColorToken.ACCENT, () -> handleRename(node)),
-                    createMenuItem("Edit Cardinality", "bi-hash", DesignTokens.ColorToken.PURPLE, () -> handleChangeCardinality(node)),
+                    createMenuItem("Change Type", "bi-arrow-left-right", ActionColor.STRUCTURE, () -> handleChangeType(node)),
+                    createMenuItem("Rename", "bi-pencil", ActionColor.MODIFY, () -> handleRename(node)),
+                    createMenuItem("Edit Cardinality", "bi-hash", ActionColor.STRUCTURE, () -> handleChangeCardinality(node)),
                     new SeparatorMenuItem(),
                     moveMenu,
                     copyItem,
                     cutItem,
                     pasteItem,
-                    createMenuItem("Duplicate", "bi-files", DesignTokens.ColorToken.TEAL, () -> handleDuplicate(node)),
-                    createMenuItem("Delete", "bi-trash", DesignTokens.ColorToken.DANGER, () -> handleDelete(node)),
+                    createMenuItem("Duplicate", "bi-files", ActionColor.CREATE, () -> handleDuplicate(node)),
+                    createMenuItem("Delete", "bi-trash", ActionColor.DELETE, () -> handleDelete(node)),
                     new SeparatorMenuItem(),
-                    createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", DesignTokens.ColorToken.WARNING, () -> handleCopyXPath(node))
+                    createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", ActionColor.NEUTRAL, () -> handleCopyXPath(node))
             );
         } else {
             menu.getItems().addAll(
                     addMenu,
                     new SeparatorMenuItem(),
-                    createMenuItem("Change Type", "bi-arrow-left-right", DesignTokens.ColorToken.PRIMARY, () -> handleChangeType(node)),
-                    createMenuItem("Rename", "bi-pencil", DesignTokens.ColorToken.ACCENT, () -> handleRename(node)),
-                    createMenuItem("Edit Cardinality", "bi-hash", DesignTokens.ColorToken.PURPLE, () -> handleChangeCardinality(node)),
+                    createMenuItem("Change Type", "bi-arrow-left-right", ActionColor.STRUCTURE, () -> handleChangeType(node)),
+                    createMenuItem("Rename", "bi-pencil", ActionColor.MODIFY, () -> handleRename(node)),
+                    createMenuItem("Edit Cardinality", "bi-hash", ActionColor.STRUCTURE, () -> handleChangeCardinality(node)),
                     new SeparatorMenuItem(),
                     moveMenu,
                     copyItem,
                     cutItem,
                     pasteItem,
-                    createMenuItem("Duplicate", "bi-files", DesignTokens.ColorToken.TEAL, () -> handleDuplicate(node)),
-                    createMenuItem("Delete", "bi-trash", DesignTokens.ColorToken.DANGER, () -> handleDelete(node)),
+                    createMenuItem("Duplicate", "bi-files", ActionColor.CREATE, () -> handleDuplicate(node)),
+                    createMenuItem("Delete", "bi-trash", ActionColor.DELETE, () -> handleDelete(node)),
                     new SeparatorMenuItem(),
-                    createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", DesignTokens.ColorToken.WARNING, () -> handleCopyXPath(node))
+                    createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", ActionColor.NEUTRAL, () -> handleCopyXPath(node))
             );
         }
 
@@ -248,22 +248,22 @@ public class XsdContextMenuFactory {
 
         if (hasSimpleTypeReference) {
             menu.getItems().add(
-                    createMenuItemAlwaysEnabled("Edit Referenced Type in Editor", "bi-box-arrow-up-right", DesignTokens.ColorToken.INFO,
+                    createMenuItemAlwaysEnabled("Edit Referenced Type in Editor", "bi-box-arrow-up-right", ActionColor.NAVIGATE,
                             () -> handleEditReferencedAttributeSimpleType(node))
             );
             menu.getItems().add(new SeparatorMenuItem());
         }
 
         menu.getItems().addAll(
-                createMenuItem("Change Type", "bi-arrow-left-right", DesignTokens.ColorToken.PRIMARY,
+                createMenuItem("Change Type", "bi-arrow-left-right", ActionColor.STRUCTURE,
                         () -> handleChangeType(node)),
-                createMenuItem("Rename", "bi-pencil", DesignTokens.ColorToken.ACCENT, () -> handleRename(node)),
-                createMenuItem("Toggle Required/Optional", "bi-toggle-on", DesignTokens.ColorToken.NEUTRAL,
+                createMenuItem("Rename", "bi-pencil", ActionColor.MODIFY, () -> handleRename(node)),
+                createMenuItem("Toggle Required/Optional", "bi-toggle-on", ActionColor.STRUCTURE,
                         () -> handleToggleUse(node)),
                 new SeparatorMenuItem(),
-                createMenuItem("Delete", "bi-trash", DesignTokens.ColorToken.DANGER, () -> handleDelete(node)),
+                createMenuItem("Delete", "bi-trash", ActionColor.DELETE, () -> handleDelete(node)),
                 new SeparatorMenuItem(),
-                createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", DesignTokens.ColorToken.WARNING, () -> handleCopyXPath(node))
+                createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", ActionColor.NEUTRAL, () -> handleCopyXPath(node))
         );
 
         return menu;
@@ -277,28 +277,28 @@ public class XsdContextMenuFactory {
 
         // Add submenu
         Menu addMenu = new Menu("Add");
-        addMenu.setGraphic(createColoredIcon("bi-plus-circle", DesignTokens.ColorToken.SUCCESS));
+        addMenu.setGraphic(createColoredIcon("bi-plus-circle", ActionColor.CREATE));
         addMenu.getItems().addAll(
-                createMenuItem("Element", "bi-plus", DesignTokens.ColorToken.SUCCESS, () -> handleAddElement(node)),
-                createMenuItem("Attribute", "bi-at", DesignTokens.ColorToken.WARNING, () -> handleAddAttribute(node)),
+                createMenuItem("Element", "bi-plus", ActionColor.CREATE, () -> handleAddElement(node)),
+                createMenuItem("Attribute", "bi-at", ActionColor.CREATE, () -> handleAddAttribute(node)),
                 new SeparatorMenuItem(),
-                createMenuItem("Sequence", "bi-list-ol", DesignTokens.ColorToken.NEUTRAL, () -> handleAddCompositorToComplexType(node, "sequence")),
-                createMenuItem("Choice", "bi-card-list", DesignTokens.ColorToken.NEUTRAL, () -> handleAddCompositorToComplexType(node, "choice")),
-                createMenuItem("All", "bi-grid-3x3", DesignTokens.ColorToken.NEUTRAL, () -> handleAddCompositorToComplexType(node, "all")),
+                createMenuItem("Sequence", "bi-list-ol", ActionColor.CREATE, () -> handleAddCompositorToComplexType(node, "sequence")),
+                createMenuItem("Choice", "bi-card-list", ActionColor.CREATE, () -> handleAddCompositorToComplexType(node, "choice")),
+                createMenuItem("All", "bi-grid-3x3", ActionColor.CREATE, () -> handleAddCompositorToComplexType(node, "all")),
                 new SeparatorMenuItem(),
-                createMenuItem("Comment", "bi-chat-left-quote", DesignTokens.ColorToken.NEUTRAL, () -> handleAddComment(node))
+                createMenuItem("Comment", "bi-chat-left-quote", ActionColor.CREATE, () -> handleAddComment(node))
         );
 
         menu.getItems().addAll(
-                createMenuItemAlwaysEnabled("Edit Type in Editor", () -> handleEditComplexType(node)),
+                createMenuItemAlwaysEnabled("Edit Type in Editor", "bi-box-arrow-up-right", ActionColor.NAVIGATE, () -> handleEditComplexType(node)),
                 new SeparatorMenuItem(),
                 addMenu,
                 new SeparatorMenuItem(),
-                createMenuItem("Rename", () -> handleRename(node)),
+                createMenuItem("Rename", "bi-pencil", ActionColor.MODIFY, () -> handleRename(node)),
                 new SeparatorMenuItem(),
-                createMenuItem("Delete", () -> handleDelete(node)),
+                createMenuItem("Delete", "bi-trash", ActionColor.DELETE, () -> handleDelete(node)),
                 new SeparatorMenuItem(),
-                createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", DesignTokens.ColorToken.WARNING, () -> handleCopyXPath(node))
+                createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", ActionColor.NEUTRAL, () -> handleCopyXPath(node))
         );
 
         return menu;
@@ -311,13 +311,13 @@ public class XsdContextMenuFactory {
         ContextMenu menu = new ContextMenu();
 
         menu.getItems().addAll(
-                createMenuItemAlwaysEnabled("Edit Type in Editor", () -> handleEditSimpleType(node)),
+                createMenuItemAlwaysEnabled("Edit Type in Editor", "bi-box-arrow-up-right", ActionColor.NAVIGATE, () -> handleEditSimpleType(node)),
                 new SeparatorMenuItem(),
-                createMenuItem("Rename", () -> handleRename(node)),
+                createMenuItem("Rename", "bi-pencil", ActionColor.MODIFY, () -> handleRename(node)),
                 new SeparatorMenuItem(),
-                createMenuItem("Delete", () -> handleDelete(node)),
+                createMenuItem("Delete", "bi-trash", ActionColor.DELETE, () -> handleDelete(node)),
                 new SeparatorMenuItem(),
-                createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", DesignTokens.ColorToken.WARNING, () -> handleCopyXPath(node))
+                createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", ActionColor.NEUTRAL, () -> handleCopyXPath(node))
         );
 
         return menu;
@@ -331,45 +331,45 @@ public class XsdContextMenuFactory {
 
         // Add Element submenu with icon
         Menu addMenu = new Menu("Add");
-        addMenu.setGraphic(createColoredIcon("bi-plus-circle", DesignTokens.ColorToken.SUCCESS));
+        addMenu.setGraphic(createColoredIcon("bi-plus-circle", ActionColor.CREATE));
         addMenu.getItems().addAll(
-                createMenuItemConditional("Element", "bi-plus", DesignTokens.ColorToken.SUCCESS,
+                createMenuItemConditional("Element", "bi-plus", ActionColor.CREATE,
                         () -> handleAddElement(node), () -> canAddElement(node)),
                 new SeparatorMenuItem(),
-                createMenuItem("Comment", "bi-chat-left-quote", DesignTokens.ColorToken.NEUTRAL, () -> handleAddComment(node))
+                createMenuItem("Comment", "bi-chat-left-quote", ActionColor.CREATE, () -> handleAddComment(node))
         );
 
         // Change Type submenu with icon
         Menu changeTypeMenu = new Menu("Change Type");
-        changeTypeMenu.setGraphic(createColoredIcon("bi-arrow-repeat", DesignTokens.ColorToken.INFO));
+        changeTypeMenu.setGraphic(createColoredIcon("bi-arrow-repeat", ActionColor.STRUCTURE));
 
         if (node.getType() != NodeWrapperType.SEQUENCE) {
             changeTypeMenu.getItems().add(
-                    createMenuItem("Sequence", "bi-list-ol", DesignTokens.ColorToken.NEUTRAL,
+                    createMenuItem("Sequence", "bi-list-ol", ActionColor.STRUCTURE,
                             () -> handleChangeCompositorType(node, "sequence"))
             );
         }
 
         if (node.getType() != NodeWrapperType.CHOICE) {
             changeTypeMenu.getItems().add(
-                    createMenuItem("Choice", "bi-card-list", DesignTokens.ColorToken.NEUTRAL,
+                    createMenuItem("Choice", "bi-card-list", ActionColor.STRUCTURE,
                             () -> handleChangeCompositorType(node, "choice"))
             );
         }
 
         if (node.getType() != NodeWrapperType.ALL) {
             changeTypeMenu.getItems().add(
-                    createMenuItem("All", "bi-grid-3x3", DesignTokens.ColorToken.NEUTRAL,
+                    createMenuItem("All", "bi-grid-3x3", ActionColor.STRUCTURE,
                             () -> handleChangeCompositorType(node, "all"))
             );
         }
 
         // Edit Cardinality
-        MenuItem editCardinalityItem = createMenuItem("Edit Cardinality", "bi-hash", DesignTokens.ColorToken.PURPLE,
+        MenuItem editCardinalityItem = createMenuItem("Edit Cardinality", "bi-hash", ActionColor.STRUCTURE,
                 () -> handleChangeCardinality(node));
 
         // Delete
-        MenuItem deleteItem = createMenuItem("Delete", "bi-trash", DesignTokens.ColorToken.DANGER,
+        MenuItem deleteItem = createMenuItem("Delete", "bi-trash", ActionColor.DELETE,
                 () -> handleDelete(node));
 
         menu.getItems().addAll(
@@ -379,7 +379,7 @@ public class XsdContextMenuFactory {
                 new SeparatorMenuItem(),
                 deleteItem,
                 new SeparatorMenuItem(),
-                createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", DesignTokens.ColorToken.WARNING, () -> handleCopyXPath(node))
+                createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", ActionColor.NEUTRAL, () -> handleCopyXPath(node))
         );
 
         return menu;
@@ -392,15 +392,15 @@ public class XsdContextMenuFactory {
         ContextMenu menu = new ContextMenu();
 
         menu.getItems().addAll(
-                createMenuItem("Add Root Element", () -> {
+                createMenuItem("Add Root Element", "bi-plus-circle", ActionColor.CREATE, () -> {
                     Object modelObject = node.getModelObject();
                     if (modelObject instanceof XsdNode parentNode) {
                         handleAddRootElement(parentNode);
                     }
                 }),
-                createMenuItem("Add Comment", "bi-chat-left-quote", DesignTokens.ColorToken.NEUTRAL, () -> handleAddComment(node)),
+                createMenuItem("Add Comment", "bi-chat-left-quote", ActionColor.CREATE, () -> handleAddComment(node)),
                 new SeparatorMenuItem(),
-                createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", DesignTokens.ColorToken.WARNING, () -> handleCopyXPath(node))
+                createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", ActionColor.NEUTRAL, () -> handleCopyXPath(node))
         );
 
         return menu;
@@ -413,12 +413,12 @@ public class XsdContextMenuFactory {
         ContextMenu menu = new ContextMenu();
 
         menu.getItems().addAll(
-                createMenuItem("Add Element", () -> handleAddElement(node)),
+                createMenuItem("Add Element", "bi-plus", ActionColor.CREATE, () -> handleAddElement(node)),
                 new SeparatorMenuItem(),
-                createMenuItem("Rename", () -> handleRename(node)),
-                createMenuItem("Delete", () -> handleDelete(node)),
+                createMenuItem("Rename", "bi-pencil", ActionColor.MODIFY, () -> handleRename(node)),
+                createMenuItem("Delete", "bi-trash", ActionColor.DELETE, () -> handleDelete(node)),
                 new SeparatorMenuItem(),
-                createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", DesignTokens.ColorToken.WARNING, () -> handleCopyXPath(node))
+                createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", ActionColor.NEUTRAL, () -> handleCopyXPath(node))
         );
 
         return menu;
@@ -431,10 +431,10 @@ public class XsdContextMenuFactory {
         ContextMenu menu = new ContextMenu();
 
         menu.getItems().addAll(
-                createMenuItem("Edit Value", () -> handleEditEnumerationValue(node)),
-                createMenuItem("Delete", () -> handleDelete(node)),
+                createMenuItem("Edit Value", "bi-pencil", ActionColor.MODIFY, () -> handleEditEnumerationValue(node)),
+                createMenuItem("Delete", "bi-trash", ActionColor.DELETE, () -> handleDelete(node)),
                 new SeparatorMenuItem(),
-                createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", DesignTokens.ColorToken.WARNING, () -> handleCopyXPath(node))
+                createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", ActionColor.NEUTRAL, () -> handleCopyXPath(node))
         );
 
         return menu;
@@ -447,8 +447,8 @@ public class XsdContextMenuFactory {
         ContextMenu menu = new ContextMenu();
 
         menu.getItems().addAll(
-                createMenuItem("Edit Comment", "bi-pencil", DesignTokens.ColorToken.ACCENT, () -> handleEditComment(node)),
-                createMenuItem("Delete", "bi-trash", DesignTokens.ColorToken.DANGER, () -> handleDelete(node))
+                createMenuItem("Edit Comment", "bi-pencil", ActionColor.MODIFY, () -> handleEditComment(node)),
+                createMenuItem("Delete", "bi-trash", ActionColor.DELETE, () -> handleDelete(node))
         );
 
         return menu;
@@ -461,20 +461,22 @@ public class XsdContextMenuFactory {
         ContextMenu menu = new ContextMenu();
 
         menu.getItems().addAll(
-                createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", DesignTokens.ColorToken.WARNING, () -> handleCopyXPath(node))
+                createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", ActionColor.NEUTRAL, () -> handleCopyXPath(node))
         );
 
         return menu;
     }
 
     /**
-     * Creates a menu item with action.
+     * Creates a menu item with icon and action.
      *
-     * @param text   the menu item text
-     * @param action the action to execute
+     * @param text        the menu item text
+     * @param iconLiteral the icon literal (e.g., "bi-plus-circle")
+     * @param iconColor   the icon color (e.g., ActionColor.CREATE)
+     * @param action      the action to execute
      * @return the menu item
      */
-    private MenuItem createMenuItem(String text, Runnable action) {
+    private MenuItem createMenuItem(String text, String iconLiteral, ActionColor iconColor, Runnable action) {
         MenuItem item = new MenuItem(text);
         item.setOnAction(e -> {
             if (!editorContext.isEditMode()) {
@@ -487,35 +489,7 @@ public class XsdContextMenuFactory {
         // Disable menu items when not in edit mode
         item.setDisable(!editorContext.isEditMode());
 
-        return item;
-    }
-
-    /**
-     * Creates a menu item with icon and action.
-     *
-     * @param text        the menu item text
-     * @param iconLiteral the icon literal (e.g., "bi-plus-circle")
-     * @param iconColor   the icon color (e.g., DesignTokens.ColorToken.SUCCESS)
-     * @param action      the action to execute
-     * @return the menu item
-     */
-    private MenuItem createMenuItem(String text, String iconLiteral, DesignTokens.ColorToken iconColor, Runnable action) {
-        MenuItem item = createMenuItem(text, action);
         item.setGraphic(createColoredIcon(iconLiteral, iconColor));
-        return item;
-    }
-
-    /**
-     * Creates a menu item that is always enabled (regardless of edit mode).
-     * Used for navigation actions like "Edit Type in Editor".
-     *
-     * @param text   the menu item text
-     * @param action the action to execute
-     * @return the menu item
-     */
-    private MenuItem createMenuItemAlwaysEnabled(String text, Runnable action) {
-        MenuItem item = new MenuItem(text);
-        item.setOnAction(e -> action.run());
         return item;
     }
 
@@ -525,12 +499,13 @@ public class XsdContextMenuFactory {
      *
      * @param text        the menu item text
      * @param iconLiteral the icon literal (e.g., "bi-box-arrow-up-right")
-     * @param iconColor   the icon color (e.g., DesignTokens.ColorToken.INFO)
+     * @param iconColor   the icon color (e.g., ActionColor.CREATE)
      * @param action      the action to execute
      * @return the menu item
      */
-    private MenuItem createMenuItemAlwaysEnabled(String text, String iconLiteral, DesignTokens.ColorToken iconColor, Runnable action) {
-        MenuItem item = createMenuItemAlwaysEnabled(text, action);
+    private MenuItem createMenuItemAlwaysEnabled(String text, String iconLiteral, ActionColor iconColor, Runnable action) {
+        MenuItem item = new MenuItem(text);
+        item.setOnAction(e -> action.run());
         item.setGraphic(createColoredIcon(iconLiteral, iconColor));
         return item;
     }
@@ -541,12 +516,12 @@ public class XsdContextMenuFactory {
      *
      * @param text              the menu item text
      * @param iconLiteral       the icon literal (e.g., "bi-list-ol")
-     * @param iconColor         the icon color (e.g., DesignTokens.ColorToken.NEUTRAL)
+     * @param iconColor         the icon color (e.g., ActionColor.CREATE)
      * @param action            the action to execute
      * @param enabledCondition  supplier that returns true if item should be enabled
      * @return the menu item
      */
-    private MenuItem createMenuItemConditional(String text, String iconLiteral, DesignTokens.ColorToken iconColor,
+    private MenuItem createMenuItemConditional(String text, String iconLiteral, ActionColor iconColor,
                                                Runnable action, Supplier<Boolean> enabledCondition) {
         MenuItem item = createMenuItem(text, iconLiteral, iconColor, action);
         item.setDisable(!enabledCondition.get());
@@ -979,7 +954,7 @@ public class XsdContextMenuFactory {
      */
     private Menu createMoveMenu(VisualNode node) {
         Menu moveMenu = new Menu("Move");
-        moveMenu.setGraphic(createColoredIcon("bi-arrows-move", DesignTokens.ColorToken.NEUTRAL));
+        moveMenu.setGraphic(createColoredIcon("bi-arrows-move", ActionColor.STRUCTURE));
 
         // Determine if Move Up/Down should be enabled
         Object modelObject = node.getModelObject();
@@ -995,8 +970,8 @@ public class XsdContextMenuFactory {
             }
         }
 
-        MenuItem moveUpItem = createMenuItem("Move Up", "bi-arrow-up", DesignTokens.ColorToken.SUCCESS, () -> handleMoveUp(node));
-        MenuItem moveDownItem = createMenuItem("Move Down", "bi-arrow-down", DesignTokens.ColorToken.DANGER, () -> handleMoveDown(node));
+        MenuItem moveUpItem = createMenuItem("Move Up", "bi-arrow-up", ActionColor.STRUCTURE, () -> handleMoveUp(node));
+        MenuItem moveDownItem = createMenuItem("Move Down", "bi-arrow-down", ActionColor.STRUCTURE, () -> handleMoveDown(node));
 
         // Override enabled state based on position
         if (!canMoveUp) {
@@ -1135,7 +1110,7 @@ public class XsdContextMenuFactory {
      */
     private MenuItem createPasteMenuItem(VisualNode node) {
         XsdClipboard clipboard = editorContext.getClipboard();
-        MenuItem pasteItem = createMenuItem("Paste Node", "bi-clipboard-check", DesignTokens.ColorToken.SUCCESS, () -> handlePaste(node));
+        MenuItem pasteItem = createMenuItem("Paste Node", "bi-clipboard-check", ActionColor.CREATE, () -> handlePaste(node));
 
         // Disable paste if clipboard is empty
         if (!clipboard.hasContent()) {
@@ -1650,10 +1625,10 @@ public class XsdContextMenuFactory {
      * Matches the style from XmlGraphicEditor for consistent look & feel.
      *
      * @param iconLiteral the icon literal (e.g., "bi-plus-circle")
-     * @param color the hex color code (e.g., DesignTokens.ColorToken.SUCCESS)
+     * @param color the hex color code (e.g., ActionColor.CREATE)
      * @return the configured IconifyIcon
      */
-    private IconifyIcon createColoredIcon(String iconLiteral, DesignTokens.ColorToken color) {
+    private IconifyIcon createColoredIcon(String iconLiteral, ActionColor color) {
         IconifyIcon icon = new IconifyIcon(iconLiteral);
         icon.setIconSize(12);
         return SemanticIcon.paint(icon, color);

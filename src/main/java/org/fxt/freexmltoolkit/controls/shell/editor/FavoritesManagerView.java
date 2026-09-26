@@ -30,6 +30,8 @@ import javafx.scene.layout.VBox;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.domain.FileFavorite;
 import org.fxt.freexmltoolkit.service.FavoritesService;
+import org.fxt.freexmltoolkit.controls.theme.ActionColor;
+import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
 
 /**
  * The full favorites management view, shown as a tool tab in the main editor
@@ -144,9 +146,9 @@ public class FavoritesManagerView extends BorderPane {
         table.getColumns().setAll(List.of(nameCol, typeCol, folderCol, pathCol));
 
         ContextMenu rowMenu = new ContextMenu();
-        MenuItem open = new MenuItem("Open", icon("bi-folder2-open", 16));
+        MenuItem open = new MenuItem("Open", SemanticIcon.paint(icon("bi-folder2-open", 16), ActionColor.NAVIGATE));
         open.setOnAction(e -> openSelected());
-        MenuItem remove = new MenuItem("Remove from favorites", icon("bi-x-circle", 16));
+        MenuItem remove = new MenuItem("Remove from favorites", SemanticIcon.paint(icon("bi-x-circle", 16), ActionColor.DELETE));
         remove.setOnAction(e -> removeSelected());
         rowMenu.getItems().addAll(open, new SeparatorMenuItem(), remove);
         table.setContextMenu(rowMenu);

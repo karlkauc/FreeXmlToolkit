@@ -26,6 +26,7 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNodeType;
 import org.fxt.freexmltoolkit.service.telemetry.UsageEvents;
 import org.fxt.freexmltoolkit.controls.theme.ActionColor;
+import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
 
 /**
  * The Schema activity side panel, laid out after the Figma mockup
@@ -515,7 +516,8 @@ public class TypeLibraryPanel extends VBox {
     }
 
     private MenuItem menuItem(String text, String iconLiteral, Runnable action) {
-        MenuItem item = new MenuItem(text, icon(iconLiteral, 16));
+        // Reveal / Open Type Editor / Find Usage all navigate (spec 2026-09-26 §3).
+        MenuItem item = new MenuItem(text, SemanticIcon.paint(icon(iconLiteral, 16), ActionColor.NAVIGATE));
         item.setOnAction(e -> action.run());
         return item;
     }
