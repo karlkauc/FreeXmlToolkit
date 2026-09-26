@@ -97,7 +97,9 @@ Colour tells you two things at a glance, and the two never mix on one surface:
   Undo/Redo).
 
 Result colours always win: a failed run shows a red icon on an orange Transform badge, a
-passed validation a green check. Both layers switch with the light/dark theme.
+passed validation a green check. Both layers switch with the light/dark theme:
+
+![Validation activity in the dark theme](img/unified-shell-validation-dark.png)
 
 ## Getting Started
 

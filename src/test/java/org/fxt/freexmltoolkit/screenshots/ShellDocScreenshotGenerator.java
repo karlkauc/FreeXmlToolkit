@@ -79,6 +79,8 @@ class ShellDocScreenshotGenerator {
                     () -> host.getActiveText().map(t -> !t.isBlank()).orElse(false));
             settle();
             shot("unified-shell-overview");
+            // Dark-theme counterpart (workflow colours + dark XML text view), same scene state.
+            darkShot("unified-shell-overview-dark");
         }
 
         // --- XSD in the Graphic view (Schema activity) ---
@@ -146,6 +148,7 @@ class ShellDocScreenshotGenerator {
         onFx(() -> shell.getSelectionModel().select(Activity.VALIDATION));
         settle();
         shot("unified-shell-validation");
+        darkShot("unified-shell-validation-dark");
 
         onFx(() -> shell.getSelectionModel().select(Activity.TRANSFORM));
         settle();
@@ -492,6 +495,15 @@ class ShellDocScreenshotGenerator {
     private void settle(long millis) {
         WaitForAsyncUtils.sleep(millis, TimeUnit.MILLISECONDS);
         WaitForAsyncUtils.waitForFxEvents();
+    }
+
+    /** Switches the scene to the dark theme, captures {@code name}, and switches back to light. */
+    private void darkShot(String name) throws Exception {
+        onFx(() -> org.fxt.freexmltoolkit.controls.shell.ThemeManager.apply(root.getScene(), true));
+        settle(600);
+        shot(name);
+        onFx(() -> org.fxt.freexmltoolkit.controls.shell.ThemeManager.apply(root.getScene(), false));
+        settle(600);
     }
 
     private void shot(String name) throws Exception {
