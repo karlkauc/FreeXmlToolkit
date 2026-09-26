@@ -67,7 +67,7 @@ public class SchemaLibraryPanel extends VBox {
         getStyleClass().add("fxt-schema-library-panel");
 
         Label title = new Label("SCHEMA LIBRARY");
-        title.getStyleClass().addAll("fxt-side-panel-title", "fxt-vp-title");
+        title.getStyleClass().addAll("fxt-side-panel-title", "fxt-vp-title", "fxt-panel-title");
         HBox header = new HBox(title);
         header.getStyleClass().add("fxt-vp-header");
         header.setAlignment(Pos.CENTER_LEFT);

@@ -52,7 +52,7 @@ public class FundsXmlPanel extends VBox {
         getStyleClass().add("fxt-side-panel-content");
 
         Label title = new Label("FUNDSXML");
-        title.getStyleClass().add("fxt-side-panel-title");
+        title.getStyleClass().addAll("fxt-side-panel-title", "fxt-panel-title");
         status.getStyleClass().add("fxt-placeholder-text");
         status.setWrapText(true);
         progress.setMaxWidth(Double.MAX_VALUE);

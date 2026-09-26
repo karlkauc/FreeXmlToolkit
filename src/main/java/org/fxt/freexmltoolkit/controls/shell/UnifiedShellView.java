@@ -810,6 +810,9 @@ public class UnifiedShellView extends BorderPane {
             // selection. The side panel only carries a pointer to it.
             openSettingsTab();
         }
+        // Workflow colour scope for the panel's title, primary action and row hover (spec 2026-09-26 §2).
+        org.fxt.freexmltoolkit.controls.theme.WorkflowStyle.apply(sidePanelHost,
+                activity == null ? null : activity.workflow());
         sidePanelHost.getChildren().setAll(sidePanel(activity));
     }
 
@@ -854,7 +857,7 @@ public class UnifiedShellView extends BorderPane {
         VBox panel = new VBox();
         panel.getStyleClass().add("fxt-side-panel-content");
         Label titleLabel = new Label(title);
-        titleLabel.getStyleClass().add("fxt-side-panel-title");
+        titleLabel.getStyleClass().addAll("fxt-side-panel-title", "fxt-panel-title");
         Label hintLabel = new Label(hint);
         hintLabel.getStyleClass().add("fxt-placeholder-text");
         hintLabel.setWrapText(true);

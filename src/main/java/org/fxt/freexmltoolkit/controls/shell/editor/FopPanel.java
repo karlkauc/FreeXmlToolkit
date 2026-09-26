@@ -60,7 +60,7 @@ public class FopPanel extends VBox {
 
         // --- header: PDF / FOP -------------------------------------------------
         Label title = new Label("PDF / FOP");
-        title.getStyleClass().addAll("fxt-side-panel-title", "fxt-vp-title");
+        title.getStyleClass().addAll("fxt-side-panel-title", "fxt-vp-title", "fxt-panel-title");
         Region headerSpacer = new Region();
         HBox.setHgrow(headerSpacer, Priority.ALWAYS);
         HBox header = new HBox(title, headerSpacer);

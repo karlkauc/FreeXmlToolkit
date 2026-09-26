@@ -29,7 +29,7 @@ public class HelpPanel extends VBox {
         getStyleClass().add("fxt-side-panel-content");
 
         Label title = new Label("HELP");
-        title.getStyleClass().add("fxt-side-panel-title");
+        title.getStyleClass().addAll("fxt-side-panel-title", "fxt-panel-title");
 
         Label appName = new Label("FreeXmlToolkit");
         appName.getStyleClass().add("fxt-welcome-headline");

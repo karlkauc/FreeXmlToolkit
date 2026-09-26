@@ -151,7 +151,7 @@ public class SettingsPanel extends VBox {
         getStyleClass().add("fxt-side-panel-content");
 
         Label title = new Label("SETTINGS");
-        title.getStyleClass().add("fxt-side-panel-title");
+        title.getStyleClass().addAll("fxt-side-panel-title", "fxt-panel-title");
 
         ToggleGroup themeGroup = new ToggleGroup();
         light.setToggleGroup(themeGroup);

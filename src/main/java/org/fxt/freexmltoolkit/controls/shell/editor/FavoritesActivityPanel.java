@@ -73,7 +73,7 @@ public class FavoritesActivityPanel extends VBox {
         getStyleClass().add("fxt-side-panel-content");
 
         Label title = new Label("FAVORITES");
-        title.getStyleClass().add("fxt-side-panel-title");
+        title.getStyleClass().addAll("fxt-side-panel-title", "fxt-panel-title");
 
         PanelActionList actions = new PanelActionList(
                 PanelAction.of("favorites-add-current", "bi-star", "Add current", this::addCurrent),

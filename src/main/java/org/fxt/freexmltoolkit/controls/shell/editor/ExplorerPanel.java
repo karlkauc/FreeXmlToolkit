@@ -74,7 +74,7 @@ public class ExplorerPanel extends VBox {
 
         // --- header: EXPLORER ... [new file][open folder][refresh] ----------
         Label title = new Label("EXPLORER");
-        title.getStyleClass().addAll("fxt-side-panel-title", "fxt-sp-title");
+        title.getStyleClass().addAll("fxt-side-panel-title", "fxt-sp-title", "fxt-panel-title");
         Region headerSpacer = new Region();
         HBox.setHgrow(headerSpacer, Priority.ALWAYS);
         HBox header = new HBox(10, title, headerSpacer,
