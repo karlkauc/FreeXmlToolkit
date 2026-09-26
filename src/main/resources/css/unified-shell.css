@@ -3044,47 +3044,55 @@
    UnifiedShellView puts fxt-wf-<id> on the side-panel host; only the panel title, the ONE
    primary action and the row-hover tint take the workflow colour. Everything else in the panel
    stays neutral; icons on plain rows use their ACTION colour (bound in PanelActionList).
-   Order matters: the plain-row hover rule of a family precedes its primary-row rules. */
+   Order matters: the plain-row hover and armed/pressed rules of a family precede its primary-row
+   rules (equal specificity, later wins), so a pressed plain row darkens and a primary row keeps its fill. */
 .fxt-panel-title { -fx-text-fill: -fxt-text-secondary; }
 
 .fxt-wf-workspace .fxt-panel-title { -fx-text-fill: -fxt-wf-workspace-fg; }
 .fxt-wf-workspace .fxt-action-row:hover { -fx-background-color: -fxt-wf-workspace-bg; }
+.fxt-wf-workspace .fxt-action-row:armed, .fxt-wf-workspace .fxt-action-row:pressed { -fx-background-color: derive(-fxt-wf-workspace-bg, -8%); }
 .fxt-wf-workspace .fxt-primary-button, .fxt-wf-workspace .fxt-action-row-primary { -fx-background-color: -fxt-wf-workspace-fill; }
 .fxt-wf-workspace .fxt-primary-button:hover, .fxt-wf-workspace .fxt-action-row-primary:hover { -fx-background-color: derive(-fxt-wf-workspace-fill, -10%); }
 .fxt-wf-workspace .fxt-primary-button:pressed, .fxt-wf-workspace .fxt-action-row-primary:pressed, .fxt-wf-workspace .fxt-action-row-primary:armed { -fx-background-color: derive(-fxt-wf-workspace-fill, -18%); }
 
 .fxt-wf-validation .fxt-panel-title { -fx-text-fill: -fxt-wf-validation-fg; }
 .fxt-wf-validation .fxt-action-row:hover { -fx-background-color: -fxt-wf-validation-bg; }
+.fxt-wf-validation .fxt-action-row:armed, .fxt-wf-validation .fxt-action-row:pressed { -fx-background-color: derive(-fxt-wf-validation-bg, -8%); }
 .fxt-wf-validation .fxt-primary-button, .fxt-wf-validation .fxt-action-row-primary { -fx-background-color: -fxt-wf-validation-fill; }
 .fxt-wf-validation .fxt-primary-button:hover, .fxt-wf-validation .fxt-action-row-primary:hover { -fx-background-color: derive(-fxt-wf-validation-fill, -10%); }
 .fxt-wf-validation .fxt-primary-button:pressed, .fxt-wf-validation .fxt-action-row-primary:pressed, .fxt-wf-validation .fxt-action-row-primary:armed { -fx-background-color: derive(-fxt-wf-validation-fill, -18%); }
 
 .fxt-wf-transform .fxt-panel-title { -fx-text-fill: -fxt-wf-transform-fg; }
 .fxt-wf-transform .fxt-action-row:hover { -fx-background-color: -fxt-wf-transform-bg; }
+.fxt-wf-transform .fxt-action-row:armed, .fxt-wf-transform .fxt-action-row:pressed { -fx-background-color: derive(-fxt-wf-transform-bg, -8%); }
 .fxt-wf-transform .fxt-primary-button, .fxt-wf-transform .fxt-action-row-primary { -fx-background-color: -fxt-wf-transform-fill; }
 .fxt-wf-transform .fxt-primary-button:hover, .fxt-wf-transform .fxt-action-row-primary:hover { -fx-background-color: derive(-fxt-wf-transform-fill, -10%); }
 .fxt-wf-transform .fxt-primary-button:pressed, .fxt-wf-transform .fxt-action-row-primary:pressed, .fxt-wf-transform .fxt-action-row-primary:armed { -fx-background-color: derive(-fxt-wf-transform-fill, -18%); }
 
 .fxt-wf-schema .fxt-panel-title { -fx-text-fill: -fxt-wf-schema-fg; }
 .fxt-wf-schema .fxt-action-row:hover { -fx-background-color: -fxt-wf-schema-bg; }
+.fxt-wf-schema .fxt-action-row:armed, .fxt-wf-schema .fxt-action-row:pressed { -fx-background-color: derive(-fxt-wf-schema-bg, -8%); }
 .fxt-wf-schema .fxt-primary-button, .fxt-wf-schema .fxt-action-row-primary { -fx-background-color: -fxt-wf-schema-fill; }
 .fxt-wf-schema .fxt-primary-button:hover, .fxt-wf-schema .fxt-action-row-primary:hover { -fx-background-color: derive(-fxt-wf-schema-fill, -10%); }
 .fxt-wf-schema .fxt-primary-button:pressed, .fxt-wf-schema .fxt-action-row-primary:pressed, .fxt-wf-schema .fxt-action-row-primary:armed { -fx-background-color: derive(-fxt-wf-schema-fill, -18%); }
 
 .fxt-wf-pdf .fxt-panel-title { -fx-text-fill: -fxt-wf-pdf-fg; }
 .fxt-wf-pdf .fxt-action-row:hover { -fx-background-color: -fxt-wf-pdf-bg; }
+.fxt-wf-pdf .fxt-action-row:armed, .fxt-wf-pdf .fxt-action-row:pressed { -fx-background-color: derive(-fxt-wf-pdf-bg, -8%); }
 .fxt-wf-pdf .fxt-primary-button, .fxt-wf-pdf .fxt-action-row-primary { -fx-background-color: -fxt-wf-pdf-fill; }
 .fxt-wf-pdf .fxt-primary-button:hover, .fxt-wf-pdf .fxt-action-row-primary:hover { -fx-background-color: derive(-fxt-wf-pdf-fill, -10%); }
 .fxt-wf-pdf .fxt-primary-button:pressed, .fxt-wf-pdf .fxt-action-row-primary:pressed, .fxt-wf-pdf .fxt-action-row-primary:armed { -fx-background-color: derive(-fxt-wf-pdf-fill, -18%); }
 
 .fxt-wf-signature .fxt-panel-title { -fx-text-fill: -fxt-wf-signature-fg; }
 .fxt-wf-signature .fxt-action-row:hover { -fx-background-color: -fxt-wf-signature-bg; }
+.fxt-wf-signature .fxt-action-row:armed, .fxt-wf-signature .fxt-action-row:pressed { -fx-background-color: derive(-fxt-wf-signature-bg, -8%); }
 .fxt-wf-signature .fxt-primary-button, .fxt-wf-signature .fxt-action-row-primary { -fx-background-color: -fxt-wf-signature-fill; }
 .fxt-wf-signature .fxt-primary-button:hover, .fxt-wf-signature .fxt-action-row-primary:hover { -fx-background-color: derive(-fxt-wf-signature-fill, -10%); }
 .fxt-wf-signature .fxt-primary-button:pressed, .fxt-wf-signature .fxt-action-row-primary:pressed, .fxt-wf-signature .fxt-action-row-primary:armed { -fx-background-color: derive(-fxt-wf-signature-fill, -18%); }
 
 .fxt-wf-fundsxml .fxt-panel-title { -fx-text-fill: -fxt-wf-fundsxml-fg; }
 .fxt-wf-fundsxml .fxt-action-row:hover { -fx-background-color: -fxt-wf-fundsxml-bg; }
+.fxt-wf-fundsxml .fxt-action-row:armed, .fxt-wf-fundsxml .fxt-action-row:pressed { -fx-background-color: derive(-fxt-wf-fundsxml-bg, -8%); }
 .fxt-wf-fundsxml .fxt-primary-button, .fxt-wf-fundsxml .fxt-action-row-primary { -fx-background-color: -fxt-wf-fundsxml-fill; }
 .fxt-wf-fundsxml .fxt-primary-button:hover, .fxt-wf-fundsxml .fxt-action-row-primary:hover { -fx-background-color: derive(-fxt-wf-fundsxml-fill, -10%); }
 .fxt-wf-fundsxml .fxt-primary-button:pressed, .fxt-wf-fundsxml .fxt-action-row-primary:pressed, .fxt-wf-fundsxml .fxt-action-row-primary:armed { -fx-background-color: derive(-fxt-wf-fundsxml-fill, -18%); }

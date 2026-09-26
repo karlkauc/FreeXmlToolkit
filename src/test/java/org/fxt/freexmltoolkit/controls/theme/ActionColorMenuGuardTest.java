@@ -40,4 +40,13 @@ class ActionColorMenuGuardTest {
         assertFalse(Files.exists(Path.of("src/main/java/org/fxt/freexmltoolkit/util/ContextMenuFactory.java")),
                 "dead util/ContextMenuFactory must be gone");
     }
+
+    @Test
+    void changeTypeSubItemsAreStructureNotCreate() throws IOException {
+        String src = Files.readString(Path.of(
+                "src/main/java/org/fxt/freexmltoolkit/controls/jsoneditor/grid/JsonGridContextMenu.java"));
+        assertTrue(src.contains("createColoredIcon(typeIcon(type), ActionColor.STRUCTURE)"),
+                "JSON grid 'Change Type' entries change structure (spec §3), they do not create content");
+        assertFalse(src.contains("createColoredIcon(typeIcon(type), ActionColor.CREATE)"));
+    }
 }

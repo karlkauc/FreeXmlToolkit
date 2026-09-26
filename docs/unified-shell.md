@@ -84,7 +84,7 @@ Colour tells you two things at a glance, and the two never mix on one surface:
   Library purple, PDF / FOP rose, Signature cyan, FundsXML teal. The colour appears only on the
   chrome that names the workflow: the bar next to the selected Activity-Bar icon, the panel
   title (VALIDATION, TRANSFORM, …), the panel's one primary button (Run Validation, Run
-  Transform, Generate PDF, Sign Document), the tint of the matching toolbar group, the
+  Transform, Generate PDF, Validate Signature), the tint of the matching toolbar group, the
   Welcome tool card chips and the "last run" badge in the status bar. Help and Settings stay
   neutral, so the default view of the app looks as before.
 - **What an action does.** Menu items and the action rows of the side panels colour their icon

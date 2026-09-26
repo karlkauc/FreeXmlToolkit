@@ -193,7 +193,7 @@ public class JsonGridContextMenu implements GridContextMenu<JsonNode> {
         changeTypeMenu.setGraphic(createColoredIcon("bi-arrow-repeat", ActionColor.STRUCTURE));
         for (JsonNodeType type : VALUE_TYPES) {
             MenuItem item = new MenuItem(typeLabel(type));
-            item.setGraphic(createColoredIcon(typeIcon(type), ActionColor.CREATE));
+            item.setGraphic(createColoredIcon(typeIcon(type), ActionColor.STRUCTURE));
             item.setOnAction(e -> changeType(type));
             changeTypeMenu.getItems().add(item);
         }

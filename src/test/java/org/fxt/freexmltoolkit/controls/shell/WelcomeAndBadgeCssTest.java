@@ -23,4 +23,20 @@ class WelcomeAndBadgeCssTest {
                 "src/main/java/org/fxt/freexmltoolkit/controls/shell/editor/EditorWelcomePane.java"))
                 .contains("#e64980"), "hard-coded category colours are gone");
     }
+
+    @Test
+    void plainActionRowsKeepPressedFeedbackInsideWorkflowScopes() throws IOException {
+        String css = Files.readString(Path.of("src/main/resources/css/unified-shell.css"));
+        for (Workflow wf : Workflow.values()) {
+            if (wf == Workflow.NEUTRAL) {
+                continue; // Help/Settings are not scoped
+            }
+            String hover = "." + wf.cssClass() + " .fxt-action-row:hover";
+            String armed = "." + wf.cssClass() + " .fxt-action-row:armed";
+            int h = css.indexOf(hover);
+            int a = css.indexOf(armed);
+            assertTrue(a >= 0, wf + ": scoped hover rule needs a scoped :armed/:pressed rule, otherwise a click shows no feedback");
+            assertTrue(a > h, wf + ": the :armed rule must follow the :hover rule (same specificity, later wins)");
+        }
+    }
 }

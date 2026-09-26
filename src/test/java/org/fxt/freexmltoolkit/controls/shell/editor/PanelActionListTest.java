@@ -92,8 +92,12 @@ class PanelActionListTest {
         IconifyIcon delete = (IconifyIcon) list.button("act-two").getGraphic();
         IconifyIcon primary = (IconifyIcon) list.button("act-primary").getGraphic();
         assertTrue(create.iconColorProperty().isBound(), "plain row icon is bound (CSS-proof)");
-        assertEquals(ActionColor.CREATE.token().color(DesignTokens.Theme.LIGHT), create.getIconColor());
-        assertEquals(ActionColor.DELETE.token().color(DesignTokens.Theme.LIGHT), delete.getIconColor());
+        // Compare against the CURRENT theme: SemanticIcon.bind resolves ThemeManager.currentTheme() from the
+        // persisted ui.theme property, and this test must not depend on the developer's last app run
+        // (ThemeManager.apply is not used here because it reorders the stylesheets the geometry test relies on).
+        DesignTokens.Theme theme = org.fxt.freexmltoolkit.controls.shell.ThemeManager.currentTheme();
+        assertEquals(ActionColor.CREATE.token().color(theme), create.getIconColor());
+        assertEquals(ActionColor.DELETE.token().color(theme), delete.getIconColor());
         assertFalse(primary.iconColorProperty().isBound(), "primary row icon is left to CSS (on-primary)");
     }
 
