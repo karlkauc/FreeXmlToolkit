@@ -63,4 +63,23 @@ class ActivityTest {
         assertEquals(Optional.empty(), Activity.fromId("does-not-exist"));
         assertEquals(Optional.empty(), Activity.fromId(null));
     }
+
+    @Test
+    void everyActivityHasAWorkflow() {
+        assertEquals(org.fxt.freexmltoolkit.controls.theme.Workflow.WORKSPACE, Activity.EXPLORER.workflow());
+        assertEquals(org.fxt.freexmltoolkit.controls.theme.Workflow.WORKSPACE, Activity.SEARCH.workflow());
+        assertEquals(org.fxt.freexmltoolkit.controls.theme.Workflow.WORKSPACE, Activity.FAVORITES.workflow());
+        assertEquals(org.fxt.freexmltoolkit.controls.theme.Workflow.VALIDATION, Activity.VALIDATION.workflow());
+        assertEquals(org.fxt.freexmltoolkit.controls.theme.Workflow.TRANSFORM, Activity.TRANSFORM.workflow());
+        assertEquals(org.fxt.freexmltoolkit.controls.theme.Workflow.SCHEMA, Activity.SCHEMA.workflow());
+        assertEquals(org.fxt.freexmltoolkit.controls.theme.Workflow.SCHEMA, Activity.SCHEMA_LIBRARY.workflow());
+        assertEquals(org.fxt.freexmltoolkit.controls.theme.Workflow.PDF, Activity.PDF_FOP.workflow());
+        assertEquals(org.fxt.freexmltoolkit.controls.theme.Workflow.SIGNATURE, Activity.SIGNATURE.workflow());
+        assertEquals(org.fxt.freexmltoolkit.controls.theme.Workflow.FUNDSXML, Activity.FUNDSXML.workflow());
+        assertEquals(org.fxt.freexmltoolkit.controls.theme.Workflow.NEUTRAL, Activity.HELP.workflow());
+        assertEquals(org.fxt.freexmltoolkit.controls.theme.Workflow.NEUTRAL, Activity.SETTINGS.workflow());
+        for (Activity a : Activity.values()) {
+            assertNotNull(a.workflow(), () -> a + " has no workflow");
+        }
+    }
 }
