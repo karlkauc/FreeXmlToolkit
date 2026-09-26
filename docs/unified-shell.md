@@ -75,6 +75,28 @@ collapsed to give the editor more room - the activity bar always stays visible.
   (see [Resizing and collapsing the side panels](#collapsing-the-side-panels))
 - **Favorites** - Quick access to frequently used files
 
+### Colours: workflows and actions
+
+Colour tells you two things at a glance, and the two never mix on one surface:
+
+- **Which workflow you are in.** Every activity has one accent colour: Explorer, Search and
+  Favorites share the brand blue; Validation is green, Transform orange, Schema and Schema
+  Library purple, PDF / FOP rose, Signature cyan, FundsXML teal. The colour appears only on the
+  chrome that names the workflow: the bar next to the selected Activity-Bar icon, the panel
+  title (VALIDATION, TRANSFORM, …), the panel's one primary button (Run Validation, Run
+  Transform, Generate PDF, Sign Document), the tint of the matching toolbar group, the
+  Welcome tool card chips and the "last run" badge in the status bar. Help and Settings stay
+  neutral, so the default view of the app looks as before.
+- **What an action does.** Menu items and the action rows of the side panels colour their icon
+  by the kind of action, in every editor and every view: green adds or creates (Add, Paste,
+  Duplicate, Validate, Generate), red removes (Delete, Remove, Clear, Cut), orange edits in
+  place (Rename, Edit value), cyan navigates (Go to Definition, Open, Reveal, Find), purple
+  changes structure (Change Type, Cardinality, Move Up/Down), blue runs a tool (Format, Sort,
+  Save, Export, Download) and grey is neutral (Copy, Expand/Collapse, Undo/Redo).
+
+Result colours always win: a failed run shows a red icon on an orange Transform badge, a
+passed validation a green check. Both layers switch with the light/dark theme.
+
 ## Getting Started
 
 1. The Unified Shell opens automatically on startup.

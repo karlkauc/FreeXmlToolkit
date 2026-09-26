@@ -80,7 +80,11 @@ replacement for the old `FontIcon`: same `iconLiteral` / `iconSize` / `iconColor
 3. **`IconifyIconCoverageTest` is the safety net:** it fails the build if any `bi-*` literal in
    FXML/Java is not in the bundle. Run `./gradlew test --tests "*IconifyIconCoverageTest"`.
 4. **Standard sizes:** Menu items: `iconSize="16"`, Toolbar: `iconSize="20"`, Empty states: `iconSize="48"` or `iconSize="64"`
-5. **Semantic colors:** Success `#28a745`, Danger `#dc3545`, Info `#17a2b8`, Warning `#ffc107`, Primary `#007bff`
+5. **Colours are roles, not hex:** menu items and panel action rows take an `ActionColor`
+   (`SemanticIcon.paint(icon, ActionColor.DELETE)`, or `SemanticIcon.bind(...)` where CSS would
+   override it); chrome that names a workflow (rail, panel title, primary action, toolbar group,
+   status badge) takes the activity's `Workflow` family (`-fxt-wf-<id>-*` tokens, class `fxt-wf-<id>`).
+   See `STYLE_GUIDE.jsonc` → `colors.workflowColors` and `controls/theme/{Workflow,ActionColor}.java`.
 
 ### Example FXML Icon Usage
 
