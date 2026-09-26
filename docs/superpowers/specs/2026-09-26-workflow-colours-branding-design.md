@@ -33,8 +33,10 @@ im Thunderbird-Supernova-Brand (Navy-Chrome, Blau, Orange).
 - **D1 Geschichtetes Konzept.** Jede Activity erhält eine Workflow-Akzentfarbe (Rail, Panel-Header,
   Primär-Button, Toolbar-Gruppe, Status-Badge). Darunter liegt eine einheitliche Aktions-Semantik
   für alle Menüs und Aktionszeilen. Beides innerhalb des Brand-Rahmens.
-- **D2 Familien statt zwölf Farben.** Explorer, Search und Favorites sind „die App“ und bleiben
-  Brand-Blau; Help und Settings sind neutral. Sieben Farbfamilien reichen.
+- **D2 (revidiert 2026-09-26 nach Sichtung in der App):** Jede Activity bekommt eine **eigene**
+  Familie; nur Help und Settings bleiben neutral. Ursprünglich teilten Explorer/Search/Favorites
+  und Schema/Schema Library je eine Farbe — auf der Rail nicht unterscheidbar. Neu: Search =
+  Indigo, Favorites = Amber, Schema Library = Grape. Zehn Farbfamilien plus Neutral.
 - **D3 Rail-Auswahl als Indikator** (Stil B: 3-px-Balken + getöntes Icon auf `chrome/rail/item-bg`).
   Entschieden 2026-09-26; die gefüllte Pille (Stil A) bleibt nur als verworfene Variante auf dem Sheet.
 - **D4 Validate-Toolbar-Button in Validation-Grün** (`validation/fill`) statt Brand-Blau. Entschieden 2026-09-26.
@@ -54,10 +56,13 @@ im Thunderbird-Supernova-Brand (Navy-Chrome, Blau, Orange).
 
 | Familie | Activities | Farbton | Begründung |
 |---|---|---|---|
-| `workspace` | Explorer, Search, Favorites | Brand-Blau | kein Workflow, sondern der Arbeitsplatz; Default-Ansicht bleibt wie heute |
+| `workspace` | Explorer | Brand-Blau | der Arbeitsplatz; Default-Ansicht bleibt wie heute |
+| `search` | Search | Indigo | Blau-Nachbar mit eigenem Ton, unterscheidbar von Explorer-Blau und Schema-Violett |
+| `favorites` | Favorites | Amber | passt zum gesetzten Stern; weit weg von Transform-Orange (kühleres Gelb) |
 | `validation` | Validation | Grün | Welcome-Kategorie ist bereits `#2f9e44`; Check-Semantik; Success-Tokens existieren |
 | `transform` | Transform | Brand-Akzent Orange | Welcome „Transformation“ `#f08c00`, Legacy-XSLT `#e27429`; der Brand-Akzent bekommt einen Besitzer (Hero-Workflow) |
-| `schema` | Schema, Schema Library | Violett | „Struktur = violett“ existiert schon (Cardinality, Schema-Toolbar-Gruppe); Library ist Geschwister von Schema |
+| `schema` | Schema | Violett | „Struktur = violett“ existiert schon (Cardinality, Schema-Toolbar-Gruppe) |
+| `schema-library` | Schema Library | Grape | Geschwister von Schema, deshalb im Violett-Magenta-Bereich, aber klar heller und rötlicher |
 | `pdf` | PDF / FOP | Rosé | PDF-Rot-Anklang ohne Danger-Rot: ein roter „Generate PDF“ wirkt destruktiv |
 | `signature` | Signature | Cyan (`-fxt-info`) | „verifiziert“-Konvention; klar getrennt von Validation-Grün |
 | `fundsxml` | FundsXML (Extension) | Teal | Finance-nah, aber nicht Validation-Grün; Regel für künftige Extensions ohne eigene Marke |
@@ -89,9 +94,12 @@ Kontrastangaben sind WCAG-Relativleuchtdichte-Schätzungen (± 0,2). Rail `#2A28
 | id | accent | fg (Kontrast auf Weiß) | fill (Weiß darauf) | bg | border |
 |---|---|---|---|---|---|
 | workspace | `#1373d9` (= primary) | `#126ccc` 5.2:1 | `#1373d9` 4.7:1 | `#eaf2fd` | `#c4dcf8` |
+| search | `#4c5fd5` (= indigo) | `#3f51c9` 6.5:1 | `#3f51c9` 6.5:1 | `#eceefc` | `#c5cbf5` |
+| favorites | `#e69500` | `#9a6400` 5.0:1 | `#9a6400` 5.0:1 | `#fff4d6` | `#f5dc9b` |
 | validation | `#2f9e44` (= success) | `#1f7a35` 5.4:1 (= success-text) | `#1f7a35` 5.4:1 | `#eaf6ee` | `#bfe3cb` |
 | transform | `#f08c2e` (= accent) | `#ac560d` 5.1:1 | `#b35a0e` 4.8:1 | `#fdf0e6` | `#f9cfae` |
 | schema | `#6f42c1` (= purple) | `#6f42c1` 6.5:1 | `#6f42c1` 6.5:1 | `#f3f0ff` | `#d0bfff` |
+| schema-library | `#be4bdb` | `#9c36b5` 5.8:1 | `#9c36b5` 5.8:1 | `#f8f0fc` | `#eebefa` |
 | pdf | `#d6336c` | `#c2255c` 5.7:1 | `#c2255c` 5.7:1 | `#fff0f6` | `#fcc2d7` |
 | signature | `#1098ad` (= info) | `#0b7285` 5.6:1 | `#0b7285` 5.6:1 | `#e7f6f8` | `#b9e3e9` |
 | fundsxml | `#12a594` (= teal) | `#0b7a6e` 5.2:1 | `#0b7a6e` 5.2:1 | `#e6fcf5` | `#a8ecd6` |
@@ -102,9 +110,12 @@ Kontrastangaben sind WCAG-Relativleuchtdichte-Schätzungen (± 0,2). Rail `#2A28
 | id | accent (auf Rail / auf Fläche) | fg | fill (Weiß darauf) | bg | border |
 |---|---|---|---|---|---|
 | workspace | `#4c9bf5` 4.9:1 / 6.1:1 | `#4c9bf5` | `#1f6feb` 4.9:1 | `#14283f` | `#275077` |
+| search | `#9775fa` 4.1:1 / 5.1:1 | `#9775fa` | `#5b4fd6` 5.9:1 | `#1e1b45` | `#3d3880` |
+| favorites | `#ffd43b` 9.8:1 / 12.1:1 | `#ffd43b` | `#9a6400` 5.0:1 | `#332a10` | `#66541f` |
 | validation | `#51cf66` 7.0:1 / 8.7:1 | `#51cf66` | `#238636` 4.6:1 | `#14301e` | `#2b5a3a` |
 | transform | `#f59f46` 6.6:1 / 8.3:1 | `#f59f46` | `#b35a0e` 4.8:1 | `#2e2010` | `#5c3f1c` |
 | schema | `#b197fc` 5.8:1 / 7.2:1 | `#b197fc` | `#7048e8` 5.6:1 | `#241b3d` | `#463374` |
+| schema-library | `#da77f2` 5.3:1 / 6.5:1 | `#da77f2` | `#9c36b5` 5.8:1 | `#2e1a33` | `#5a3566` |
 | pdf | `#f783ac` 5.8:1 / 7.3:1 | `#f783ac` | `#d6336c` 4.6:1 | `#33161f` | `#66293d` |
 | signature | `#4dd4e8` 8.0:1 / 10:1 | `#4dd4e8` | `#0b7285` 5.6:1 | `#0e2a30` | `#1f4a53` |
 | fundsxml | `#38d9a9` 7.5:1 / 9.3:1 | `#38d9a9` | `#0b7a6e` 5.2:1 | `#0f2b26` | `#1f5348` |
@@ -147,7 +158,7 @@ erreicht nur ~2.9:1 (siehe offene Frage 9.4).
    Toolbar-Gruppe); nie auf Fließtext, Listen, Tabellen oder Editoren.
 3. Semantische Ergebnisfarben (success/danger/warning) schlagen die Workflow-Farbe, wenn beide
    zutreffen.
-4. Workspace, Help und Settings nutzen Brand-Blau; die Default-Ansicht der App bleibt unverändert.
+4. Explorer (Workspace), Help und Settings nutzen Brand-Blau; die Default-Ansicht der App bleibt unverändert.
 5. Nie zwei Workflow-Farbtöne auf einer Fläche, außer als 16-px-Icon-Tints in der Editor-Toolbar.
 6. Aktionsfarben erscheinen nie auf Chrome; Workflow-Farben erscheinen nie in Menüs.
 
@@ -219,8 +230,8 @@ Datei (`fxt/icons`, Shared Plugin Data) wurde von 81 auf 121 Bootstrap-Icons erw
 ```
 -fxt-wf-<id>-accent  -fxt-wf-<id>-fg  -fxt-wf-<id>-fill  -fxt-wf-<id>-bg  -fxt-wf-<id>-border
 ```
-für `<id>` ∈ workspace, validation, transform, schema, pdf, signature, fundsxml, neutral (40 Tokens
-je Modus), plus `-fxt-wf-<id>-rail` (= Dark-accent in beiden Modi) und Aliase
+für `<id>` ∈ workspace, search, favorites, validation, transform, schema, schema-library, pdf,
+signature, fundsxml, neutral (66 Tokens je Modus), plus `-fxt-wf-<id>-rail` (= Dark-accent in beiden Modi) und Aliase
 `-fxt-action-create`, `-fxt-action-delete`, `-fxt-action-modify`, `-fxt-action-navigate`,
 `-fxt-action-structure`, `-fxt-action-tool`, `-fxt-action-neutral` auf die bestehenden
 Semantik-Tokens.
@@ -230,8 +241,7 @@ Semantik-Tokens.
 - `DesignTokens.ColorToken`: Einträge `WF_<ID>_<SLOT>` (40) mit Light/Dark-Werten aus 1.3.
 - Neues `enum Workflow { WORKSPACE, VALIDATION, TRANSFORM, SCHEMA, PDF, SIGNATURE, FUNDSXML, NEUTRAL }`
   mit `accent()`, `fg()`, `fill()`, `bg()`, `border()` → `ColorToken` und `cssClass()` → `fxt-wf-<id>`.
-- `Activity.workflow()` liefert die Familie (Explorer/Search/Favorites → WORKSPACE, Schema Library →
-  SCHEMA, Help/Settings → NEUTRAL).
+- `Activity.workflow()` liefert die Familie (eine je Activity; Help/Settings → NEUTRAL).
 - Neues `enum ActionColor { CREATE, DELETE, MODIFY, NAVIGATE, STRUCTURE, TOOL, NEUTRAL }` mit
   `token()` → `ColorToken`; `SemanticIcon.paint(icon, ActionColor)` als Overload.
 - `PanelAction` erhält ein optionales Feld `ActionColor color` (Default NEUTRAL).

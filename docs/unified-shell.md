@@ -79,9 +79,9 @@ collapsed to give the editor more room - the activity bar always stays visible.
 
 Colour tells you two things at a glance, and the two never mix on one surface:
 
-- **Which workflow you are in.** Every activity has one accent colour: Explorer, Search and
-  Favorites share the brand blue; Validation is green, Transform orange, Schema and Schema
-  Library purple, PDF / FOP rose, Signature cyan, FundsXML teal. The colour appears only on the
+- **Which workflow you are in.** Every activity has its own accent colour: Explorer brand
+  blue, Search indigo, Favorites amber, Validation green, Transform orange, Schema purple,
+  Schema Library grape, PDF / FOP rose, Signature cyan, FundsXML teal. The colour appears only on the
   chrome that names the workflow: the bar next to the selected Activity-Bar icon, the panel
   title (VALIDATION, TRANSFORM, …), the panel's one primary button (Run Validation, Run
   Transform, Generate PDF, Validate Signature), the tint of the matching toolbar group, the
