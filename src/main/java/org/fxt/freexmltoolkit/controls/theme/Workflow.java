@@ -8,7 +8,9 @@ import org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken;
  * The workflow colour families of the Unified Shell (design spec
  * {@code docs/superpowers/specs/2026-09-26-workflow-colours-branding-design.md}).
  * <p>
- * Each activity belongs to exactly one family ({@code Activity.workflow()}); the family
+ * Each activity has its own family ({@code Activity.workflow()}) — only Help and Settings share
+ * {@link #NEUTRAL} (user decision 2026-09-26: Explorer/Search/Favorites and Schema/Schema Library
+ * must be told apart at a glance). The family
  * colours only the chrome that names the workflow: the Activity-Bar indicator, the side-panel
  * title, the one primary action of the panel, the editor-toolbar group and the status badge.
  * Body text, lists, editors, menus and dialogs never take a workflow colour — menus use
@@ -29,12 +31,18 @@ import org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken;
 public enum Workflow {
     WORKSPACE("workspace", ColorToken.WF_WORKSPACE_ACCENT, ColorToken.WF_WORKSPACE_FG, ColorToken.WF_WORKSPACE_FILL,
             ColorToken.WF_WORKSPACE_BG, ColorToken.WF_WORKSPACE_BORDER, ColorToken.WF_WORKSPACE_RAIL),
+    SEARCH("search", ColorToken.WF_SEARCH_ACCENT, ColorToken.WF_SEARCH_FG, ColorToken.WF_SEARCH_FILL,
+            ColorToken.WF_SEARCH_BG, ColorToken.WF_SEARCH_BORDER, ColorToken.WF_SEARCH_RAIL),
+    FAVORITES("favorites", ColorToken.WF_FAVORITES_ACCENT, ColorToken.WF_FAVORITES_FG, ColorToken.WF_FAVORITES_FILL,
+            ColorToken.WF_FAVORITES_BG, ColorToken.WF_FAVORITES_BORDER, ColorToken.WF_FAVORITES_RAIL),
     VALIDATION("validation", ColorToken.WF_VALIDATION_ACCENT, ColorToken.WF_VALIDATION_FG, ColorToken.WF_VALIDATION_FILL,
             ColorToken.WF_VALIDATION_BG, ColorToken.WF_VALIDATION_BORDER, ColorToken.WF_VALIDATION_RAIL),
     TRANSFORM("transform", ColorToken.WF_TRANSFORM_ACCENT, ColorToken.WF_TRANSFORM_FG, ColorToken.WF_TRANSFORM_FILL,
             ColorToken.WF_TRANSFORM_BG, ColorToken.WF_TRANSFORM_BORDER, ColorToken.WF_TRANSFORM_RAIL),
     SCHEMA("schema", ColorToken.WF_SCHEMA_ACCENT, ColorToken.WF_SCHEMA_FG, ColorToken.WF_SCHEMA_FILL,
             ColorToken.WF_SCHEMA_BG, ColorToken.WF_SCHEMA_BORDER, ColorToken.WF_SCHEMA_RAIL),
+    SCHEMA_LIBRARY("schema-library", ColorToken.WF_SCHEMA_LIBRARY_ACCENT, ColorToken.WF_SCHEMA_LIBRARY_FG, ColorToken.WF_SCHEMA_LIBRARY_FILL,
+            ColorToken.WF_SCHEMA_LIBRARY_BG, ColorToken.WF_SCHEMA_LIBRARY_BORDER, ColorToken.WF_SCHEMA_LIBRARY_RAIL),
     PDF("pdf", ColorToken.WF_PDF_ACCENT, ColorToken.WF_PDF_FG, ColorToken.WF_PDF_FILL,
             ColorToken.WF_PDF_BG, ColorToken.WF_PDF_BORDER, ColorToken.WF_PDF_RAIL),
     SIGNATURE("signature", ColorToken.WF_SIGNATURE_ACCENT, ColorToken.WF_SIGNATURE_FG, ColorToken.WF_SIGNATURE_FILL,

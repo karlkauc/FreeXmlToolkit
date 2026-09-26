@@ -39,6 +39,23 @@ class WorkflowTest {
         assertEquals(Color.web("#ac560d"), Workflow.TRANSFORM.fg().color(DesignTokens.Theme.LIGHT));
         assertEquals(Color.web("#d6336c"), Workflow.PDF.accent().color(DesignTokens.Theme.LIGHT));
         assertEquals(Color.web("#1f6feb"), Workflow.WORKSPACE.fill().color(DesignTokens.Theme.DARK));
+        // Distinct families for the three workspace activities and for the two schema activities
+        // (user decision 2026-09-26, after seeing the shared colours in the app).
+        assertEquals(Color.web("#4c5fd5"), Workflow.SEARCH.accent().color(DesignTokens.Theme.LIGHT));
+        assertEquals(Color.web("#9775fa"), Workflow.SEARCH.rail().color(DesignTokens.Theme.LIGHT));
+        assertEquals(Color.web("#e69500"), Workflow.FAVORITES.accent().color(DesignTokens.Theme.LIGHT));
+        assertEquals(Color.web("#9a6400"), Workflow.FAVORITES.fg().color(DesignTokens.Theme.LIGHT));
+        assertEquals(Color.web("#be4bdb"), Workflow.SCHEMA_LIBRARY.accent().color(DesignTokens.Theme.LIGHT));
+        assertEquals("fxt-wf-schema-library", Workflow.SCHEMA_LIBRARY.cssClass());
+        assertEquals("-fxt-wf-schema-library-fill", Workflow.SCHEMA_LIBRARY.fill().cssVariable());
+    }
+
+    @Test
+    void everyActivityColourIsDistinctExceptHelpAndSettings() {
+        java.util.Set<Color> seen = new java.util.HashSet<>();
+        for (Workflow wf : Workflow.values()) {
+            assertTrue(seen.add(wf.accent().color(DesignTokens.Theme.LIGHT)), wf + " shares its light accent");
+        }
     }
 
     @Test
