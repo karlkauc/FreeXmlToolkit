@@ -4,6 +4,7 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.Locale;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyStringWrapper;
@@ -23,6 +24,9 @@ import org.fxt.freexmltoolkit.FxtGui;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdIdentityConstraintAnalyzer;
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdQualityChecker;
+import org.fxt.freexmltoolkit.controls.v2.editor.statistics.report.ReportFormat;
+import org.fxt.freexmltoolkit.controls.v2.editor.statistics.report.ReportModel;
+import org.fxt.freexmltoolkit.controls.v2.editor.statistics.report.ReportWriters;
 import org.fxt.freexmltoolkit.util.FileChooserHelper;
 
 /** Small UI helpers shared by the Schema Analysis sections (columns, chips, export menu). */
@@ -33,29 +37,10 @@ final class AnalysisSupport {
     private AnalysisSupport() {
     }
 
-    /** The report export formats offered by the Statistics and Quality sections. */
-    enum ExportFormat {
-        CSV("csv", "CSV", "bi-filetype-csv"),
-        JSON("json", "JSON", "bi-filetype-json"),
-        HTML("html", "HTML", "bi-filetype-html"),
-        PDF("pdf", "PDF", "bi-filetype-pdf"),
-        EXCEL("xlsx", "Excel", "bi-file-earmark-excel");
-
-        final String extension;
-        final String label;
-        final String icon;
-
-        ExportFormat(String extension, String label, String icon) {
-            this.extension = extension;
-            this.label = label;
-            this.icon = icon;
-        }
-    }
-
-    /** Writes one report format to a file; may throw (the exporters declare checked exceptions). */
+    /** Writes one report format to a file; may throw (the writers declare checked exceptions). */
     @FunctionalInterface
     interface ExportWriter {
-        void write(ExportFormat format, Path target) throws Exception;
+        void write(ReportFormat format, Path target) throws Exception;
     }
 
     /** A read-only text column backed by {@code value}. */
@@ -166,28 +151,42 @@ final class AnalysisSupport {
      */
     static MenuButton exportMenu(String baseName, Label status, ExportWriter writer) {
         MenuButton menu = new MenuButton("Export", icon("bi-download", 16));
-        menu.setId("analysis-export-" + baseName);
+        menu.setId("analysis-export-" + baseName.toLowerCase(Locale.ROOT).replace(' ', '-'));
         menu.getStyleClass().add("fxt-tool-button");
-        for (ExportFormat format : ExportFormat.values()) {
-            MenuItem item = new MenuItem(format.label, icon(format.icon, 16));
+        for (ReportFormat format : ReportFormat.values()) {
+            MenuItem item = new MenuItem(format.label(), icon(format.icon(), 16));
             item.setOnAction(e -> export(menu, baseName, format, status, writer));
             menu.getItems().add(item);
         }
         return menu;
     }
 
-    private static void export(Node owner, String baseName, ExportFormat format, Label status, ExportWriter writer) {
+    /**
+     * An "Export" menu that renders the {@link ReportModel} supplied at click time through
+     * {@link ReportWriters}; the supplier may return {@code null} while nothing is loaded.
+     */
+    static MenuButton reportMenu(String baseName, Label status, Supplier<ReportModel> model) {
+        return exportMenu(baseName, status, (format, target) -> {
+            ReportModel report = model.get();
+            if (report == null) {
+                throw new IllegalStateException("Nothing to export yet — run the analysis first");
+            }
+            ReportWriters.write(report, format, target);
+        });
+    }
+
+    private static void export(Node owner, String baseName, ReportFormat format, Label status, ExportWriter writer) {
         FileChooser chooser = new FileChooser();
-        chooser.setTitle("Export " + baseName + " as " + format.label);
-        chooser.setInitialFileName(baseName.toLowerCase(Locale.ROOT).replace(' ', '-') + "." + format.extension);
+        chooser.setTitle("Export " + baseName + " as " + format.label());
+        chooser.setInitialFileName(baseName.toLowerCase(Locale.ROOT).replace(' ', '-') + "." + format.extension());
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(
-                format.label + " File (*." + format.extension + ")", "*." + format.extension));
+                format.label() + " File (*." + format.extension() + ")", "*." + format.extension()));
         File file = FileChooserHelper.showSaveDialog(chooser,
                 owner.getScene() != null ? owner.getScene().getWindow() : null);
         if (file == null) {
             return;
         }
-        status.setText("Exporting " + format.label + "…");
+        status.setText("Exporting " + format.label() + "…");
         FxtGui.executorService.submit(() -> {
             String outcome;
             try {

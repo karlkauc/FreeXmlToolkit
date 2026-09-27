@@ -49,6 +49,8 @@ final class IdentityConstraintsSection extends VBox {
     private final StringProperty typeFilter = new SimpleStringProperty(ALL);
     private final StringProperty statusFilter = new SimpleStringProperty(ALL);
     private final Label count = new Label();
+    private final Label exportStatus = new Label();
+    private SchemaAnalysisData data;
     private final ObservableList<IdentityConstraintInfo> constraints = FXCollections.observableArrayList();
     private final FilteredList<IdentityConstraintInfo> filtered = new FilteredList<>(constraints);
     private final TableView<IdentityConstraintInfo> table = new TableView<>();
@@ -69,7 +71,12 @@ final class IdentityConstraintsSection extends VBox {
         HBox.setHgrow(spacer, Priority.ALWAYS);
         Label divider = new Label("·");
         divider.getStyleClass().add("fxt-analysis-key");
-        HBox header = new HBox(10, typeChips, divider, statusChips, spacer, count);
+        exportStatus.setId("analysis-constraints-status");
+        exportStatus.getStyleClass().add("fxt-placeholder-text");
+        exportStatus.managedProperty().bind(exportStatus.textProperty().isNotEmpty());
+        HBox header = new HBox(10, AnalysisSupport.reportMenu("Identity Constraints", exportStatus,
+                () -> data == null ? null : SchemaAnalysisReport.constraints(data)),
+                typeChips, divider, statusChips, spacer, count, exportStatus);
         header.setAlignment(Pos.CENTER_LEFT);
         typeFilter.addListener((obs, o, n) -> applyFilter());
         statusFilter.addListener((obs, o, n) -> applyFilter());
@@ -111,6 +118,8 @@ final class IdentityConstraintsSection extends VBox {
     }
 
     void setData(SchemaAnalysisData data) {
+        this.data = data;
+        exportStatus.setText("");
         AnalysisResult r = data.constraints();
         typeFilter.set(ALL);
         statusFilter.set(ALL);

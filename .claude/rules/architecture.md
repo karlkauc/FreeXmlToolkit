@@ -42,6 +42,8 @@ Legacy per-tool tabs/controllers are gone; `controller/` only keeps `UnifiedShel
 | `InspectorPanel` | Right-hand Properties panel | `controls/shell/inspector/` |
 | `XsdTreeView`, `TypeLibrary`, `NodeContextMenu`, … | Schema activity views | `controls/shell/schema/` |
 | `*Runner` (ValidationRunner, TransformRunner, FopRunner, …) | Off-thread workhorses for panel actions | `controls/shell/editor/` |
+| `SchemaAnalysisRunner` → `SchemaAnalysisData`; `SchemaAnalysisView` + `*Section` (Statistics, Types, Quality, Identity Constraints, XPath) | Schema Analysis tool tab; `SchemaAnalysisReport` builds the `report/ReportModel` that the CSV/JSON/HTML/PDF/XLSX writers render | `controls/shell/editor/analysis/`, `controls/v2/editor/statistics/{,report/}` |
+| `SchemaReferenceGraph` | One reference graph per schema (globals, every `type`/`base`/`ref`/`substitutionGroup` edge, unreferenced vs. unreachable, Tarjan cycles) shared by statistics, quality checks, `TypeUsageFinder` and the flatten transformer | `controls/v2/editor/usage/` |
 
 ## XSD Editor V2 (model layer under the shell)
 
@@ -75,8 +77,8 @@ element.setName("NewName");
 commandManager.executeCommand(new RenameNodeCommand(element, "NewName"));
 ```
 
-**31 Concrete Commands:**
-- Structure (11): `AddElementCommand`, `AddContainerElementCommand`, `AddAttributeCommand`, `AddSequenceCommand`, `AddChoiceCommand`, `AddAllCommand`, `AddCompositorCommand`, `DeleteNodeCommand`, `MoveNodeCommand`, `DuplicateNodeCommand`, `PasteNodeCommand`
+**32 Concrete Commands:**
+- Structure (12): `AddElementCommand`, `AddContainerElementCommand`, `AddAttributeCommand`, `AddSequenceCommand`, `AddChoiceCommand`, `AddAllCommand`, `AddCompositorCommand`, `DeleteNodeCommand`, `DeleteNodesCommand` (several nodes, one undo step), `MoveNodeCommand`, `DuplicateNodeCommand`, `PasteNodeCommand`
 - Properties (9): `RenameNodeCommand`, `ChangeCardinalityCommand`, `ChangeTypeCommand`, `ChangeFormCommand`, `ChangeUseCommand`, `ChangeSubstitutionGroupCommand`, `ChangeDocumentationCommand`, `ChangeDocumentationsCommand`, `ChangeAppinfoCommand`
 - Facets (3): `AddFacetCommand`, `DeleteFacetCommand`, `EditFacetCommand`
 - Constraints (5): `AddPatternCommand`, `DeletePatternCommand`, `AddEnumerationCommand`, `DeleteEnumerationCommand`, `ChangeConstraintsCommand`

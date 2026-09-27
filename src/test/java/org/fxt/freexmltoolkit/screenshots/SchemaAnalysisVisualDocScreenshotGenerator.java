@@ -79,19 +79,23 @@ class SchemaAnalysisVisualDocScreenshotGenerator {
         settle(800);
         shot("analysis-statistics-light");
         selectSubTab(1);
-        shot("analysis-quality-light");
+        shot("analysis-types-light");
         selectSubTab(2);
-        shot("analysis-constraints-light");
+        shot("analysis-quality-light");
         selectSubTab(3);
+        shot("analysis-constraints-light");
+        selectSubTab(4);
         shot("analysis-xpath-light");
 
         onFx(() -> ThemeManager.apply(shell.getScene(), true));
         settle(800);
-        shot("analysis-quality-dark");
-        selectSubTab(2);
-        shot("analysis-constraints-dark");
-        selectSubTab(3);
         shot("analysis-xpath-dark");
+        selectSubTab(2);
+        shot("analysis-quality-dark");
+        selectSubTab(3);
+        shot("analysis-constraints-dark");
+        selectSubTab(1);
+        shot("analysis-types-dark");
         selectSubTab(0);
         shot("analysis-statistics-dark");
 
@@ -158,8 +162,8 @@ class SchemaAnalysisVisualDocScreenshotGenerator {
         onFx(() -> {
             if (shell.lookup("#schema-analysis-tabs") instanceof TabPane tabs) {
                 tabs.getSelectionModel().select(index);
-                String tableId = index == 1 ? "#analysis-quality-table" : index == 2 ? "#analysis-constraints-table"
-                        : index == 3 ? "#analysis-xpath-table" : null;
+                String tableId = index == 1 ? "#analysis-types-table" : index == 2 ? "#analysis-quality-table"
+                        : index == 3 ? "#analysis-constraints-table" : index == 4 ? "#analysis-xpath-table" : null;
                 if (tableId != null && shell.lookup(tableId) instanceof TableView<?> table
                         && !table.getItems().isEmpty()) {
                     table.getSelectionModel().select(0);

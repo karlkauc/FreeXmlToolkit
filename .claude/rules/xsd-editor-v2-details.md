@@ -62,11 +62,11 @@ public interface XsdCommand {
 
 **Key Methods:** `executeCommand(XsdCommand)`, `undo()`, `redo()`, `clear()`
 
-## All 31 Concrete Commands
+## All 32 Concrete Commands
 
 | Category | Commands |
 |----------|----------|
-| Structure (11) | AddElementCommand, AddContainerElementCommand, AddAttributeCommand, AddSequenceCommand, AddChoiceCommand, AddAllCommand, AddCompositorCommand, DeleteNodeCommand, MoveNodeCommand, DuplicateNodeCommand, PasteNodeCommand |
+| Structure (12) | AddElementCommand, AddContainerElementCommand, AddAttributeCommand, AddSequenceCommand, AddChoiceCommand, AddAllCommand, AddCompositorCommand, DeleteNodeCommand, DeleteNodesCommand, MoveNodeCommand, DuplicateNodeCommand, PasteNodeCommand |
 | Properties (9) | RenameNodeCommand, ChangeCardinalityCommand, ChangeTypeCommand, ChangeFormCommand, ChangeUseCommand, ChangeSubstitutionGroupCommand, ChangeDocumentationCommand, ChangeDocumentationsCommand, ChangeAppinfoCommand |
 | Facets (3) | AddFacetCommand, DeleteFacetCommand, EditFacetCommand |
 | Constraints (5) | AddPatternCommand, DeletePatternCommand, AddEnumerationCommand, DeleteEnumerationCommand, ChangeConstraintsCommand |
@@ -235,7 +235,7 @@ org.fxt.freexmltoolkit/
 │   └── Schematron*.java                # Schematron tooling controls
 ├── controls/v2/                        # Model/editor layer (used by the shell)
 │   ├── model/                          # XSD domain model (38 classes)
-│   ├── editor/                         # XsdEditorContext, 31 commands, panels,
+│   ├── editor/                         # XsdEditorContext, 32 commands, panels,
 │   │   │                               #   selection, menu, serialization
 │   ├── xmleditor/                      # XML-instance counterpart (XmlEditorContext,
 │   │   │                               #   commands, StreamingXmlParser, canvas views)

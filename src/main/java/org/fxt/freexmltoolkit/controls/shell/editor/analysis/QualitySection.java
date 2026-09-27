@@ -1,6 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.analysis;
 
-import java.nio.file.Path;
 import java.util.EnumMap;
 import java.util.Locale;
 import java.util.Map;
@@ -32,13 +31,12 @@ import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdQualityChecker.Is
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdQualityChecker.NamingConvention;
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdQualityChecker.QualityIssue;
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdQualityChecker.QualityResult;
-import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdQualityExporter;
 
 /**
  * "Quality Checks" sub-tab: score tile, clickable severity / category count chips, a filterable
  * issues table (severity / category / text) with a visible-count read-out, and a details pane.
  * Selecting an issue reveals its node in the Tree view; affected elements are links to the
- * corresponding global declarations. Exports via {@link XsdQualityExporter}.
+ * corresponding global declarations. Exports the Quality section of {@link SchemaAnalysisReport}.
  */
 final class QualitySection extends VBox {
 
@@ -53,6 +51,7 @@ final class QualitySection extends VBox {
     private final VBox scoreTile = new VBox(2, scoreNumber, scoreDescription, scoreChecks, scoreNaming);
     private final FlowPane severityChips = new FlowPane(6, 6);
     private final FlowPane categoryChips = new FlowPane(6, 6);
+    private final FlowPane namingChips = new FlowPane(6, 6);
     private final ComboBox<String> severityFilter = new ComboBox<>();
     private final ComboBox<String> categoryFilter = new ComboBox<>();
     private final TextField search = new TextField();
@@ -62,6 +61,7 @@ final class QualitySection extends VBox {
     private final TableView<QualityIssue> table = new TableView<>();
     private final VBox details = new VBox(4);
     private QualityResult result;
+    private SchemaAnalysisData data;
 
     QualitySection(EditorHost editorHost) {
         this.editorHost = editorHost;
@@ -70,7 +70,8 @@ final class QualitySection extends VBox {
 
         status.getStyleClass().add("fxt-placeholder-text");
         status.managedProperty().bind(status.textProperty().isNotEmpty());
-        HBox toolbar = new HBox(8, AnalysisSupport.exportMenu("Schema Quality", status, this::export), status);
+        HBox toolbar = new HBox(8, AnalysisSupport.reportMenu("Schema Quality", status,
+                () -> data == null ? null : SchemaAnalysisReport.quality(data)), status);
         toolbar.setAlignment(Pos.CENTER_LEFT);
 
         scoreTile.getStyleClass().add("fxt-analysis-score");
@@ -83,9 +84,12 @@ final class QualitySection extends VBox {
         severityChips.setAlignment(Pos.CENTER_LEFT);
         categoryChips.setId("analysis-quality-category-chips");
         categoryChips.setAlignment(Pos.CENTER_LEFT);
+        namingChips.setId("analysis-quality-naming");
+        namingChips.setAlignment(Pos.CENTER_LEFT);
         VBox summary = new VBox(6,
                 AnalysisSupport.groupTitle("Issues by severity"), severityChips,
-                AnalysisSupport.groupTitle("Issues by category"), categoryChips);
+                AnalysisSupport.groupTitle("Issues by category"), categoryChips,
+                AnalysisSupport.groupTitle("Naming conventions"), namingChips);
         summary.setAlignment(Pos.CENTER_LEFT);
         HBox.setHgrow(summary, Priority.ALWAYS);
         HBox header = new HBox(16, scoreTile, summary);
@@ -133,6 +137,7 @@ final class QualitySection extends VBox {
         table.getColumns().add(severityColumn());
         table.getColumns().add(AnalysisSupport.column("Category", i -> AnalysisSupport.titleCase(i.category()), 170));
         table.getColumns().add(AnalysisSupport.column("Message", QualityIssue::message, 420));
+        table.getColumns().add(fileColumn());
         table.getColumns().add(locationColumn());
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         table.setPlaceholder(AnalysisSupport.emptyLabel("No quality issues found."));
@@ -154,6 +159,7 @@ final class QualitySection extends VBox {
     }
 
     void setData(SchemaAnalysisData data) {
+        this.data = data;
         result = data.quality();
         int score = result.score();
         scoreNumber.setText(score + " / 100");
@@ -196,6 +202,19 @@ final class QualitySection extends VBox {
                 AnalysisSupport.toggleChip(chip, categoryFilter.valueProperty(), AnalysisSupport.titleCase(c), ALL);
                 categoryChips.getChildren().add(chip);
             }
+        }
+        namingChips.getChildren().clear();
+        for (NamingConvention convention : NamingConvention.values()) {
+            int n = result.namingDistribution().getOrDefault(convention, 0);
+            if (n > 0) {
+                boolean dominant = convention == naming;
+                Label chip = AnalysisSupport.chip(convention.getDisplayName() + " " + n, dominant ? "ok" : "neutral");
+                chip.setTooltip(new Tooltip(dominant ? "Dominant convention" : "Deviates from the dominant convention"));
+                namingChips.getChildren().add(chip);
+            }
+        }
+        if (namingChips.getChildren().isEmpty()) {
+            namingChips.getChildren().add(AnalysisSupport.chip("No named components", "neutral"));
         }
         issues.setAll(result.issues());
         showDetails(null);
@@ -253,6 +272,26 @@ final class QualitySection extends VBox {
                 setGraphic(AnalysisSupport.severityIcon(item, 14));
                 setGraphicTextGap(6);
                 getStyleClass().add("fxt-analysis-sev-" + item.name().toLowerCase(Locale.ROOT));
+            }
+        });
+        return column;
+    }
+
+    /** Source file of the finding (include file name), full path in the tooltip. */
+    private static TableColumn<QualityIssue, String> fileColumn() {
+        TableColumn<QualityIssue, String> column = AnalysisSupport.column("File", QualityIssue::getSourceFileName, 100);
+        column.setCellFactory(col -> new TableCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setTooltip(null);
+                    return;
+                }
+                setText(item);
+                QualityIssue issue = getTableRow() != null ? getTableRow().getItem() : null;
+                setTooltip(issue != null && issue.sourceFile() != null ? new Tooltip(issue.sourceFile().toString()) : null);
             }
         });
         return column;
@@ -338,17 +377,6 @@ final class QualitySection extends VBox {
             return String.join(", ", issue.affectedElements());
         }
         return issue.getSourceFileName();
-    }
-
-    private void export(AnalysisSupport.ExportFormat format, Path target) throws Exception {
-        XsdQualityExporter exporter = new XsdQualityExporter();
-        switch (format) {
-            case CSV -> exporter.exportToCsv(result, target);
-            case JSON -> exporter.exportToJson(result, target);
-            case HTML -> exporter.exportToHtml(result, target);
-            case PDF -> exporter.exportToPdf(result, target);
-            case EXCEL -> exporter.exportToExcel(result, target);
-        }
     }
 
     /** @return the checker result currently shown (for tests/observers). */
