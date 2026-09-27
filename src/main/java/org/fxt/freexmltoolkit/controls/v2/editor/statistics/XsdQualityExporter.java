@@ -471,6 +471,11 @@ public class XsdQualityExporter {
             case INCONSISTENT_DEFINITION -> "Inconsistent Definition";
             case DUPLICATE_DEFINITION -> "Duplicate Definition";
             case DUPLICATE_ELEMENT_IN_CONTAINER -> "Duplicate Element in Container";
+            case UNRESOLVED_REFERENCE -> "Unresolved Reference";
+            case CIRCULAR_REFERENCE -> "Circular Reference";
+            case UNUSED_COMPONENT -> "Unused Component";
+            case MISSING_DOCUMENTATION -> "Missing Documentation";
+            case INLINE_CANDIDATE -> "Inline Candidate";
         };
     }
 

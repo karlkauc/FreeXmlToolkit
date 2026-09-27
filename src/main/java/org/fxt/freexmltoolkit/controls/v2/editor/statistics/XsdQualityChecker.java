@@ -15,6 +15,7 @@ import java.util.regex.Pattern;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.v2.editor.usage.SchemaReferenceGraph;
 import org.fxt.freexmltoolkit.controls.v2.model.IncludeSourceInfo;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdAll;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdAny;
@@ -46,6 +47,7 @@ public class XsdQualityChecker {
     private static final Logger logger = LogManager.getLogger(XsdQualityChecker.class);
 
     private final XsdSchema schema;
+    private SchemaReferenceGraph graph;
 
     // Naming patterns
     private static final Pattern CAMEL_CASE = Pattern.compile("^[A-Z][a-zA-Z0-9]*$");
@@ -63,7 +65,17 @@ public class XsdQualityChecker {
         CONSTRAINT_CONFLICT,
         INCONSISTENT_DEFINITION,
         DUPLICATE_DEFINITION,
-        DUPLICATE_ELEMENT_IN_CONTAINER
+        DUPLICATE_ELEMENT_IN_CONTAINER,
+        /** A type/ref/base names a component that is declared nowhere (ERROR). */
+        UNRESOLVED_REFERENCE,
+        /** Derivation cycle (ERROR) or recursive content model (INFO). */
+        CIRCULAR_REFERENCE,
+        /** Named type, group or attribute group nothing references or reaches (INFO). */
+        UNUSED_COMPONENT,
+        /** Global component without xs:documentation (SUGGESTION). */
+        MISSING_DOCUMENTATION,
+        /** Named type used exactly once — could be an anonymous inline type (SUGGESTION). */
+        INLINE_CANDIDATE
     }
 
     /**
@@ -200,6 +212,16 @@ public class XsdQualityChecker {
         }
 
         /**
+         * Creates an issue of any category located at {@code node} (may be {@code null}).
+         */
+        public static QualityIssue of(IssueCategory category, IssueSeverity severity, String message,
+                                      String suggestion, List<String> affected, XsdNode node) {
+            String xpath = node != null ? node.getXPath() : null;
+            Path sourceFile = getSourceFileFromNode(node);
+            return new QualityIssue(category, severity, message, suggestion, affected, node, xpath, sourceFile);
+        }
+
+        /**
          * Gets the source file name for display (without full path).
          */
         public String getSourceFileName() {
@@ -280,8 +302,19 @@ public class XsdQualityChecker {
      * @param schema the XSD schema to check
      */
     public XsdQualityChecker(XsdSchema schema) {
+        this(schema, null);
+    }
+
+    /**
+     * Creates a checker that reuses an already built {@link SchemaReferenceGraph}.
+     *
+     * @param schema the XSD schema to check (must not be null)
+     * @param graph  the schema's reference graph, or {@code null} to build one lazily
+     */
+    public XsdQualityChecker(XsdSchema schema, SchemaReferenceGraph graph) {
         Objects.requireNonNull(schema, "Schema cannot be null");
         this.schema = schema;
+        this.graph = graph;
     }
 
     /**
@@ -322,6 +355,12 @@ public class XsdQualityChecker {
 
         // Check for duplicate elements within containers (sequence/choice/all) - schema error
         checkDuplicateElementsInContainers(issues);
+
+        // Graph-based checks: unresolved references, cycles, unused components, documentation, inline candidates
+        if (graph == null) {
+            graph = SchemaReferenceGraph.build(schema);
+        }
+        issues.addAll(new XsdComponentChecks(graph).check());
 
         // Calculate naming distribution
         Map<NamingConvention, Integer> namingDistribution = new EnumMap<>(NamingConvention.class);

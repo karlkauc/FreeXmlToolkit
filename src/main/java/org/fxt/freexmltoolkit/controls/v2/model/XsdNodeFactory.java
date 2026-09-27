@@ -420,6 +420,11 @@ public class XsdNodeFactory {
                 XsdAttributeGroup attributeGroup = parseAttributeGroup(childElement);
                 tagNodeWithSourceInfo(attributeGroup);
                 schema.addChild(attributeGroup);
+            } else if (isXsdElement(childElement, "attribute")) {
+                // Global attribute declaration (referenced via <xs:attribute ref="..."/>)
+                XsdAttribute attribute = parseAttribute(childElement);
+                tagNodeWithSourceInfo(attribute);
+                schema.addChild(attribute);
             } else if (isXsdElement(childElement, "annotation")) {
                 parseAnnotation(childElement, schema);
             } else if (isXsdElement(childElement, "import")) {

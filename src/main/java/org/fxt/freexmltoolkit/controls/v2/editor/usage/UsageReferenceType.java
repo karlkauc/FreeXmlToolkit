@@ -41,7 +41,32 @@ public enum UsageReferenceType {
     /**
      * Alternative type (XSD 1.1): {@code <xs:alternative type="MyType"/>}
      */
-    ALTERNATIVE_TYPE("Alternative type");
+    ALTERNATIVE_TYPE("Alternative type"),
+
+    /**
+     * Element reference: {@code <xs:element ref="tns:MyElement"/>}
+     */
+    ELEMENT_REF("Element reference"),
+
+    /**
+     * Attribute reference: {@code <xs:attribute ref="tns:myAttribute"/>}
+     */
+    ATTRIBUTE_REF("Attribute reference"),
+
+    /**
+     * Group reference: {@code <xs:group ref="MyGroup"/>}
+     */
+    GROUP_REF("Group reference"),
+
+    /**
+     * Attribute group reference: {@code <xs:attributeGroup ref="MyAttributes"/>}
+     */
+    ATTRIBUTE_GROUP_REF("Attribute group reference"),
+
+    /**
+     * Substitution group head: {@code <xs:element name="x" substitutionGroup="MyHead"/>}
+     */
+    SUBSTITUTION_GROUP("Substitution group");
 
     private final String displayName;
 
