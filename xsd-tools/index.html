@@ -1386,6 +1386,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Types
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#quality-checks" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2680,6 +2691,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Types
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#quality-checks" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3024,7 +3046,7 @@ document, and use XSD files effectively.</p>
 </tr>
 <tr>
 <td><strong>Schema Analysis</strong></td>
-<td>Statistics, constraints, validation, and quality checks</td>
+<td>Statistics, type library with unused-component cleanup, quality checks, identity constraints and XPath validation - exportable as CSV / JSON / HTML / PDF / Excel</td>
 </tr>
 <tr>
 <td><strong>Documentation</strong></td>
@@ -3162,7 +3184,7 @@ top-level declarations so you can browse, find, and open every type in the schem
 </tr>
 <tr>
 <td><strong>Schema tools</strong></td>
-<td>A strip of icon buttons above the filter: Generate XSD from XML (single/batch), Generate Sample XML (plain/advanced), Flatten Schema, Schema Analysis, and Generate Documentation - hover a button for its name</td>
+<td>Labelled rows in the collapsible <strong>TOOLS</strong> section above the filter: Generate XSD from XML (single/batch), Generate Sample XML (plain/advanced), Flatten Schema, Schema Analysis, and Generate Documentation</td>
 </tr>
 </tbody>
 </table>
@@ -3313,16 +3335,23 @@ when you switch between Text, Tree, and Graphic.</p>
 </blockquote>
 <hr />
 <h2 id="5-schema-analysis">5. Schema Analysis<a class="headerlink" href="#5-schema-analysis" title="Permanent link">&para;</a></h2>
-<p>The <strong>Schema Analysis</strong> button in the <strong>Schema</strong> activity's tool strip analyzes the active XSD
+<p>The <strong>Schema Analysis</strong> row in the <strong>Schema</strong> panel's <strong>TOOLS</strong> section analyzes the active XSD
 and opens the report as a tool tab in the editor area. The analysis runs in the background on
 the current editor text (unsaved changes included); imports and includes are resolved relative
-to the file. The header shows the document, the quality score, the number of issues and the
-number of unused types; <strong>Refresh</strong> re-runs the analysis, and opening the tool again while the
+to the file. The header shows the document, the quality score, the number of issues, the
+number of unused types and - when unused components drag further components along - the size
+of the unreachable set; <strong>Refresh</strong> re-runs the analysis, and opening the tool again while the
 tab is already open re-analyzes the active document instead of adding a second tab.</p>
 <p><img alt="Schema analysis in the Unified Shell" src="../img/unified-shell-schema-statistics.png" />
-<em>The Schema Analysis tool tab with its four sub-tabs, opened from the Schema activity</em></p>
-<p>Every finding is a link into the schema: selecting a row, an unused type or an affected element
-switches the document to the <strong>Tree</strong> view and reveals the node.</p>
+<em>The Schema Analysis tool tab with its five sub-tabs, opened from the Schema activity</em></p>
+<p>Every finding is a link into the schema: selecting a row, an unused type, a usage location or
+an affected element switches the document to the <strong>Tree</strong> view and reveals the node.</p>
+<p><strong>Export</strong> in the header writes the <strong>complete report</strong> - every section of every sub-tab - as
+CSV, JSON, HTML, PDF, or Excel. Each sub-tab additionally has its own <strong>Export</strong> menu that
+writes just that section in the same formats. All formats carry the same content: CSV as one
+block per section (facts as <code>Key,Value</code>, then each table), JSON as sections keyed by id with
+tables as arrays of objects, HTML with a table of contents, PDF with one chapter per section,
+and Excel with one sheet per section.</p>
 <h3 id="statistics">Statistics<a class="headerlink" href="#statistics" title="Permanent link">&para;</a></h3>
 <p>The <strong>Statistics</strong> tab opens with a row of tiles for the declaration counts (elements,
 attributes, complex and simple types, groups, attribute groups), followed by detail cards:</p>
@@ -3348,11 +3377,34 @@ attributes, complex and simple types, groups, attribute groups), followed by det
 </tr>
 <tr>
 <td><strong>Documentation</strong></td>
-<td>Coverage bar (green ≥ 75 %, yellow ≥ 40 %, red below), documented nodes, appinfo nodes, documentation languages</td>
+<td>Coverage bar (green ≥ 75 %, yellow ≥ 40 %, red below), documented nodes, appinfo nodes, documentation languages, the most frequent appinfo tags (<code>@deprecated</code>, <code>@since</code>, …)</td>
 </tr>
 <tr>
 <td><strong>Cardinality</strong></td>
 <td>Optional vs. required elements as a two-segment bar, plus the unbounded element count</td>
+</tr>
+<tr>
+<td><strong>Complexity</strong></td>
+<td>Deepest element nesting (hover for the XPath), longest type-derivation chain, widest complex type, average declarations per type, abstract types / elements, substitution-group heads / members, anonymous types, mixed content, extensions / restrictions, XSD 1.1 features</td>
+</tr>
+<tr>
+<td><strong>Facets</strong></td>
+<td>Total facets and enumeration values, plus a count per facet kind (<code>pattern</code>, <code>maxLength</code>, …)</td>
+</tr>
+</tbody>
+</table>
+<p>Below the cards:</p>
+<table>
+<thead>
+<tr>
+<th>Section</th>
+<th>Content</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Schema references</strong></td>
+<td>One row per <code>xs:include</code> / <code>xs:import</code> with its location, resolution status (error in the tooltip), namespace and the number of elements, types and groups it contributes; shown only for multi-file schemas</td>
 </tr>
 <tr>
 <td><strong>Most used types</strong></td>
@@ -3362,56 +3414,118 @@ attributes, complex and simple types, groups, attribute groups), followed by det
 <td><strong>Unused types</strong></td>
 <td>Every named type that is never referenced, listed by name - click one to reveal it</td>
 </tr>
+<tr>
+<td><strong>Unused groups / attribute groups</strong></td>
+<td>Global <code>xs:group</code>s and <code>xs:attributeGroup</code>s nothing references</td>
+</tr>
+<tr>
+<td><strong>Circular references</strong></td>
+<td>Type-derivation cycles (a type deriving from itself - an error) and recursive content models (<code>Folder → FolderType → Folder</code>, legal); click one to reveal its first member</td>
+</tr>
 </tbody>
 </table>
-<p><strong>Export</strong> writes the statistics as CSV, JSON, HTML, PDF, or Excel.</p>
+<h3 id="types">Types<a class="headerlink" href="#types" title="Permanent link">&para;</a></h3>
+<p>The <strong>Types</strong> tab is the type library of the schema: one row per global complex type, simple
+type, group and attribute group with its kind, name, base (<code>extends X</code>, <code>restricts X</code>,
+<code>list of X</code>, <code>union of A, B</code>), first documentation line, usage count and - for multi-file
+schemas - the include file it comes from. The usage chip is red for <strong>0</strong> usages, orange for
+one to three, green otherwise. The chips above the table filter by kind, <strong>Unused</strong> (never
+referenced), <strong>Unreachable</strong> (not reachable from any global element or attribute, directly or
+through other components - the cascading unused set) and <strong>Single use</strong> (named types used
+exactly once, candidates for an inline anonymous type); the text field searches name, base and
+documentation.</p>
+<p>Selecting a row reveals the component in the Tree view and fills the <strong>Used in</strong> list with
+every reference to it (element and attribute types, base types, list item and union member
+types, <code>ref</code>s, <code>substitutionGroup</code>s - references from included files are marked with the file
+name, references from imported schemas with <code>[import]</code>); selecting a usage reveals the
+referring node. The <strong>Documentation</strong> box shows the full documentation text.</p>
+<p><strong>Remove unused (N)…</strong> deletes every unreachable component of the analyzed document in one
+step: a confirmation lists what will be removed; components declared in included files are
+skipped (they belong to another file). The deletion goes through the editor's command stack,
+so <strong>Ctrl+Z</strong> in the document restores all of them at once, and the analysis re-runs afterwards.</p>
 <h3 id="quality-checks">Quality Checks<a class="headerlink" href="#quality-checks" title="Permanent link">&para;</a></h3>
 <p>The <strong>Quality Checks</strong> tab shows a score (0-100) with its rating, the number of checks passed,
-the dominant naming convention, and the issues found. The count chips next to the score
-(by severity and by category) are clickable filters - click one to show only those issues,
-click it again to clear. The filter bar offers the same severity and category selection plus a
-free-text search and reports how many issues are currently shown. Every row carries a severity
-icon; the location column shows the XPath (full text in the tooltip). Select an issue to read
-its suggestion and location and to jump to the affected elements.</p>
+the dominant naming convention and its distribution (chips per convention, the dominant one in
+green), and the issues found. The count chips next to the score (by severity and by category)
+are clickable filters - click one to show only those issues, click it again to clear. The filter
+bar offers the same severity and category selection plus a free-text search and reports how many
+issues are currently shown. Every row carries a severity icon; the <strong>File</strong> column names the
+include file of a finding (full path in the tooltip) and the location column shows the XPath.
+Select an issue to read its suggestion and location and to jump to the affected elements.</p>
 <table>
 <thead>
 <tr>
 <th>Check</th>
+<th>Severity</th>
 <th>Description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><strong>Naming Convention</strong></td>
-<td>Element/type names that deviate from the schema's dominant convention (UpperCamelCase, lowerCamelCase, snake_case, kebab-case)</td>
+<td>Warning</td>
+<td>Element, attribute, type and group names that deviate from the schema's dominant convention (UpperCamelCase, lowerCamelCase, snake_case, kebab-case)</td>
 </tr>
 <tr>
 <td><strong>Best Practice</strong></td>
+<td>Info / Warning</td>
 <td><code>xs:any</code> / <code>xs:anyAttribute</code> wildcards, unbounded content without limits, deep nesting, anonymous complex types</td>
 </tr>
 <tr>
 <td><strong>Deprecated</strong></td>
+<td>Warning</td>
 <td>Components marked as deprecated in <code>xs:appinfo</code></td>
 </tr>
 <tr>
 <td><strong>Constraint Conflict</strong></td>
+<td>Error</td>
 <td>Enumeration values that conflict with length facets</td>
 </tr>
 <tr>
 <td><strong>Inconsistent Definition</strong></td>
+<td>Warning</td>
 <td>The same name defined with different content in several places</td>
 </tr>
 <tr>
 <td><strong>Duplicate Definition</strong></td>
+<td>Info</td>
 <td>Different names with identical structure</td>
 </tr>
 <tr>
 <td><strong>Duplicate Element in Container</strong></td>
+<td>Error</td>
 <td>The same element declared twice in one sequence, choice, or all (ambiguity error)</td>
+</tr>
+<tr>
+<td><strong>Unresolved Reference</strong></td>
+<td>Error</td>
+<td>A <code>type</code>, <code>ref</code>, <code>base</code>, <code>itemType</code>, <code>memberTypes</code>, <code>substitutionGroup</code> or XSD 1.1 <code>alternative</code> type naming a component that is declared nowhere (XSD built-ins, prefixes bound to other namespaces and unknown prefixes are ignored)</td>
+</tr>
+<tr>
+<td><strong>Circular Reference</strong></td>
+<td>Error / Info</td>
+<td>A type deriving from itself, directly or indirectly (error); a recursive content model (info)</td>
+</tr>
+<tr>
+<td><strong>Unused Component</strong></td>
+<td>Info</td>
+<td>A named type, group or attribute group that nothing references, or that is only referenced from other unused components</td>
+</tr>
+<tr>
+<td><strong>Missing Documentation</strong></td>
+<td>Suggestion</td>
+<td>A global component without <code>xs:documentation</code></td>
+</tr>
+<tr>
+<td><strong>Inline Candidate</strong></td>
+<td>Suggestion</td>
+<td>A named type used exactly once as an element or attribute type - could be declared inline (abstract types and types from included files are not suggested)</td>
 </tr>
 </tbody>
 </table>
-<p><strong>Export</strong> writes the quality report as CSV, JSON, HTML, PDF, or Excel.</p>
+<p>The score counts only <strong>Error</strong> and <strong>Warning</strong> issues, so the informational checks (unused
+components, recursion, missing documentation, inline candidates) never lower it; documentation
+coverage has its own percentage on the Statistics tab.</p>
 <h3 id="identity-constraints">Identity Constraints<a class="headerlink" href="#identity-constraints" title="Permanent link">&para;</a></h3>
 <p>The <strong>Identity Constraints</strong> tab lists every <code>xs:key</code>, <code>xs:keyref</code>, <code>xs:unique</code>, and
 <code>xs:assert</code> with its parent element, selector, fields, referenced key or test expression, and a
@@ -3466,7 +3580,7 @@ see <a href="#what-you-can-edit-in-the-properties-pane">What You Can Edit in the
 <h3 id="how-to-generate-documentation">How to Generate Documentation<a class="headerlink" href="#how-to-generate-documentation" title="Permanent link">&para;</a></h3>
 <ol>
 <li>Open your XSD file in the editor host</li>
-<li>Click <strong>Generate Documentation…</strong> in the <strong>Schema</strong> panel's tool strip (or pick it from
+<li>Click <strong>Generate Documentation…</strong> in the <strong>Schema</strong> panel's <strong>TOOLS</strong> section (or pick it from
    the editor toolbar's <strong>Schema ▾</strong> menu) - the generator opens as a tab in the editor area</li>
 <li>Check <strong>SOURCE &amp; OUTPUT</strong>: the active schema is pre-filled; choose the output folder
    (HTML) or file (PDF/Word)</li>
