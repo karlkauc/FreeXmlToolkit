@@ -359,7 +359,7 @@ Schema Analysis, Generate Sample XML / Documentation) on the left.*
 - **Text** - Source code editing with syntax highlighting; moving the caret into a schema construct also lets you edit its properties in the Properties pane (see [Properties Inspector](#properties-inspector))
 - **Graphic** - Visual XMLSpy-style schema diagram
 - **Type Editor** - Edit ComplexTypes graphically, SimpleTypes with form editor
-- **Analysis** - The **Schema Analysis** tool tab: statistics incl. unused types, quality checks with score, identity constraints, XPath validation - every finding reveals its node in the Tree view (see [Schema Analysis](xsd-tools.md#5-schema-analysis))
+- **Analysis** - The **Schema Analysis** tool tab: statistics incl. complexity metrics, unused types / groups and circular references, a Types tab with usage locations and "Remove unused", quality checks with score, identity constraints, XPath validation - every finding reveals its node in the Tree view, and the whole report exports as CSV / JSON / HTML / PDF / Excel (see [Schema Analysis](xsd-tools.md#5-schema-analysis))
 - **Documentation** - Generate HTML/Word/PDF documentation (see below)
 - **Sample Data** - Generate sample XML from the schema
 - **Flatten** - Merge included schemas into a single standalone file. The **Flatten Schema…** button opens an options dialog first: strip annotations, strip XML comments, remove unused global types and groups, and minify the output — all checked by default for a minimal schema suited to server-side validation; uncheck everything for a plain flatten that keeps documentation. Imports (`xs:import`, different namespaces) are never merged. See [XSD Flattener](xsd-tools.md#8-xsd-flattener) for details.

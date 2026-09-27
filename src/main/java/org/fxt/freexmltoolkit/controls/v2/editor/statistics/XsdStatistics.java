@@ -7,10 +7,12 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.fxt.freexmltoolkit.controls.v2.model.XsdFacetType;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNodeType;
 
 /**
@@ -41,6 +43,8 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdNodeType;
  * @param schemaReferences List of schema references
  * @param nodeCountsByFile Map of node counts by file
  * @param unresolvedReferencesCount Number of unresolved references
+ * @param componentUsage Usage of groups/attribute groups, unreachable components, single-use types and cycles
+ * @param complexity Structural complexity metrics
  * @param collectedAt Timestamp when statistics were collected
  * @since 2.0
  */
@@ -81,6 +85,12 @@ public record XsdStatistics(
         Map<Path, Map<XsdNodeType, Integer>> nodeCountsByFile,
         int unresolvedReferencesCount,
 
+        // Component usage beyond named types (groups, reachability, cycles)
+        ComponentUsage componentUsage,
+
+        // Structural complexity metrics
+        ComplexityMetrics complexity,
+
         // Metadata
         LocalDateTime collectedAt
 ) {
@@ -93,6 +103,106 @@ public record XsdStatistics(
         @Override
         public int compareTo(TypeUsageEntry other) {
             return Integer.compare(other.usageCount, this.usageCount); // Descending order
+        }
+    }
+
+    /**
+     * Usage facts about global components that go beyond the named-type counters.
+     *
+     * @param unusedGroups           global {@code xs:group}s never referenced
+     * @param unusedAttributeGroups  global {@code xs:attributeGroup}s never referenced
+     * @param unreachableComponents  types/groups/attribute groups no global element or attribute
+     *                               reaches, directly or transitively ("Kind 'name'" labels,
+     *                               declaration order) — the cascading unused set
+     * @param singleUseTypes         named types referenced exactly once (inline candidates)
+     * @param containmentCycles      reference cycles over all edges (recursive content models),
+     *                               each as its member labels
+     * @param derivationCycles       cycles over base/itemType/memberTypes only (invalid schemas)
+     */
+    public record ComponentUsage(Set<String> unusedGroups,
+                                 Set<String> unusedAttributeGroups,
+                                 List<String> unreachableComponents,
+                                 List<String> singleUseTypes,
+                                 List<List<String>> containmentCycles,
+                                 List<List<String>> derivationCycles) {
+
+        public static final ComponentUsage EMPTY = new ComponentUsage(Set.of(), Set.of(), List.of(), List.of(), List.of(), List.of());
+
+        public ComponentUsage {
+            unusedGroups = unusedGroups == null ? Set.of() : Collections.unmodifiableSet(new LinkedHashSet<>(unusedGroups));
+            unusedAttributeGroups = unusedAttributeGroups == null ? Set.of() : Collections.unmodifiableSet(new LinkedHashSet<>(unusedAttributeGroups));
+            unreachableComponents = unreachableComponents == null ? List.of() : List.copyOf(unreachableComponents);
+            singleUseTypes = singleUseTypes == null ? List.of() : List.copyOf(singleUseTypes);
+            containmentCycles = containmentCycles == null ? List.of() : List.copyOf(containmentCycles);
+            derivationCycles = derivationCycles == null ? List.of() : List.copyOf(derivationCycles);
+        }
+
+        /** @return unused groups + unused attribute groups. */
+        public int unusedGroupCount() {
+            return unusedGroups.size() + unusedAttributeGroups.size();
+        }
+    }
+
+    /**
+     * Structural complexity metrics of the schema.
+     *
+     * @param maxElementNestingDepth     deepest lexical element nesting (element inside element,
+     *                                   anonymous types only — type references are not followed)
+     * @param deepestElementXPath        the XPath of that deepest element, or {@code null}
+     * @param avgChildrenPerComplexType  average number of element/attribute declarations directly
+     *                                   in a complex type's content model
+     * @param maxChildrenPerComplexType  the largest such content model
+     * @param widestComplexType          name (or XPath when anonymous) of the widest complex type
+     * @param maxTypeDerivationDepth     number of derivation steps in the longest base-type chain
+     *                                   among named types (1 = derives from a built-in or a
+     *                                   non-derived type, 0 = no derived types)
+     * @param abstractTypes              {@code abstract="true"} complex types
+     * @param abstractElements           {@code abstract="true"} elements
+     * @param substitutionGroupHeads     distinct elements named as a substitution group head
+     * @param substitutionGroupMembers   elements declaring {@code substitutionGroup}
+     * @param anonymousComplexTypes      complex types without a name (inline)
+     * @param anonymousSimpleTypes       simple types without a name (inline)
+     * @param mixedContentTypes          complex types with {@code mixed="true"}
+     * @param extensions                 {@code xs:extension} derivations
+     * @param restrictions               {@code xs:restriction} derivations (simple and complex)
+     * @param facetCounts                facets by kind
+     * @param enumerationValues          total {@code xs:enumeration} values
+     * @param xsd11Features              {@code xs:assert}, {@code xs:alternative},
+     *                                   {@code xs:openContent} and XSD 1.1 facets
+     */
+    public record ComplexityMetrics(int maxElementNestingDepth,
+                                    String deepestElementXPath,
+                                    double avgChildrenPerComplexType,
+                                    int maxChildrenPerComplexType,
+                                    String widestComplexType,
+                                    int maxTypeDerivationDepth,
+                                    int abstractTypes,
+                                    int abstractElements,
+                                    int substitutionGroupHeads,
+                                    int substitutionGroupMembers,
+                                    int anonymousComplexTypes,
+                                    int anonymousSimpleTypes,
+                                    int mixedContentTypes,
+                                    int extensions,
+                                    int restrictions,
+                                    Map<XsdFacetType, Integer> facetCounts,
+                                    int enumerationValues,
+                                    int xsd11Features) {
+
+        public static final ComplexityMetrics EMPTY = new ComplexityMetrics(
+                0, null, 0, 0, null, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, Map.of(), 0, 0);
+
+        public ComplexityMetrics {
+            Map<XsdFacetType, Integer> copy = new EnumMap<>(XsdFacetType.class);
+            if (facetCounts != null) {
+                copy.putAll(facetCounts);
+            }
+            facetCounts = Collections.unmodifiableMap(copy);
+        }
+
+        /** @return total number of facets of any kind. */
+        public int totalFacets() {
+            return facetCounts.values().stream().mapToInt(Integer::intValue).sum();
         }
     }
 
@@ -120,6 +230,10 @@ public record XsdStatistics(
         private double documentationCoveragePercent = 0.0;
         private Map<String, Integer> appInfoTagCounts = new HashMap<>();
         private Set<String> documentationLanguages = new HashSet<>();
+
+        // Component usage / complexity
+        private ComponentUsage componentUsage = ComponentUsage.EMPTY;
+        private ComplexityMetrics complexity = ComplexityMetrics.EMPTY;
 
         // Type Usage Statistics
         private Map<String, Integer> typeUsageCounts = new HashMap<>();
@@ -323,6 +437,16 @@ public record XsdStatistics(
             return this;
         }
 
+        public Builder componentUsage(ComponentUsage usage) {
+            this.componentUsage = usage != null ? usage : ComponentUsage.EMPTY;
+            return this;
+        }
+
+        public Builder complexity(ComplexityMetrics metrics) {
+            this.complexity = metrics != null ? metrics : ComplexityMetrics.EMPTY;
+            return this;
+        }
+
         public Builder unresolvedReferencesCount(int count) {
             this.unresolvedReferencesCount = count;
             return this;
@@ -379,6 +503,8 @@ public record XsdStatistics(
                     Collections.unmodifiableList(new ArrayList<>(schemaReferences)),
                     Collections.unmodifiableMap(immutableNodeCountsByFile),
                     unresolvedReferencesCount,
+                    componentUsage,
+                    complexity,
                     LocalDateTime.now()
             );
         }

@@ -803,4 +803,106 @@ class XsdQualityCheckerTest {
             assertEquals(2, issues.size(), "Should detect two duplicate groups");
         }
     }
+
+    // ========== Graph-based component checks ==========
+
+    @Nested
+    @DisplayName("Component Checks (reference graph)")
+    class ComponentCheckTests {
+
+        private QualityResult run(String body) throws Exception {
+            XsdSchema parsed = new XsdNodeFactory().fromString(
+                    "<xs:schema xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" xmlns:tns=\"urn:t\" targetNamespace=\"urn:t\">"
+                            + body + "</xs:schema>");
+            return new XsdQualityChecker(parsed).check();
+        }
+
+        private List<QualityIssue> of(QualityResult result, IssueCategory category) {
+            return result.issues().stream().filter(i -> i.category() == category).toList();
+        }
+
+        @Test
+        @DisplayName("unresolved local reference is an ERROR and lowers the score")
+        void unresolvedReference() throws Exception {
+            QualityResult result = run("""
+                    <xs:element name="Root" type="tns:Missing"><xs:annotation><xs:documentation>d</xs:documentation></xs:annotation></xs:element>
+                    <xs:element name="Fine" type="xs:string"><xs:annotation><xs:documentation>d</xs:documentation></xs:annotation></xs:element>
+                    """);
+            List<QualityIssue> issues = of(result, IssueCategory.UNRESOLVED_REFERENCE);
+            assertEquals(1, issues.size());
+            assertEquals(IssueSeverity.ERROR, issues.get(0).severity());
+            assertTrue(issues.get(0).message().contains("'Missing'"));
+            assertEquals(List.of("Missing"), issues.get(0).affectedElements());
+            assertNotNull(issues.get(0).xpath());
+            assertTrue(result.score() < 100, "an ERROR must affect the score");
+        }
+
+        @Test
+        @DisplayName("derivation cycle is an ERROR, containment recursion only INFO")
+        void cycles() throws Exception {
+            QualityResult result = run("""
+                    <xs:simpleType name="A"><xs:restriction base="tns:B"/></xs:simpleType>
+                    <xs:simpleType name="B"><xs:restriction base="tns:A"/></xs:simpleType>
+                    <xs:element name="Folder" type="tns:FolderType"/>
+                    <xs:complexType name="FolderType"><xs:sequence><xs:element ref="tns:Folder" minOccurs="0"/></xs:sequence></xs:complexType>
+                    """);
+            List<QualityIssue> issues = of(result, IssueCategory.CIRCULAR_REFERENCE);
+            assertEquals(2, issues.size(), issues.toString());
+            QualityIssue derivation = issues.stream().filter(i -> i.severity() == IssueSeverity.ERROR).findFirst().orElseThrow();
+            assertEquals("Type derivation cycle: A → B → A", derivation.message());
+            QualityIssue recursion = issues.stream().filter(i -> i.severity() == IssueSeverity.INFO).findFirst().orElseThrow();
+            assertEquals("Recursive content model: Folder → FolderType → Folder", recursion.message());
+        }
+
+        @Test
+        @DisplayName("unused and unreachable components are INFO and do not change the score")
+        void unusedComponents() throws Exception {
+            QualityResult result = run("""
+                    <xs:element name="Root" type="xs:string"><xs:annotation><xs:documentation>d</xs:documentation></xs:annotation></xs:element>
+                    <xs:complexType name="Orphan"><xs:annotation><xs:documentation>d</xs:documentation></xs:annotation><xs:sequence><xs:element name="Item" type="tns:Leaf"/></xs:sequence></xs:complexType>
+                    <xs:simpleType name="Leaf"><xs:annotation><xs:documentation>d</xs:documentation></xs:annotation><xs:restriction base="xs:string"/></xs:simpleType>
+                    <xs:group name="G"><xs:annotation><xs:documentation>d</xs:documentation></xs:annotation><xs:sequence><xs:element name="Entry" type="xs:string"/></xs:sequence></xs:group>
+                    """);
+            List<QualityIssue> issues = of(result, IssueCategory.UNUSED_COMPONENT);
+            assertEquals(3, issues.size(), issues.toString());
+            assertTrue(issues.stream().allMatch(i -> i.severity() == IssueSeverity.INFO));
+            assertTrue(issues.stream().anyMatch(i -> i.message().startsWith("Complex type 'Orphan' is never referenced")));
+            assertTrue(issues.stream().anyMatch(i -> i.message().startsWith("Group 'G' is never referenced")));
+            assertTrue(issues.stream().anyMatch(i -> i.message().startsWith("Simple type 'Leaf' is only referenced from")));
+            assertEquals(100, result.score());
+        }
+
+        @Test
+        @DisplayName("missing documentation on global components is a SUGGESTION")
+        void missingDocumentation() throws Exception {
+            QualityResult result = run("""
+                    <xs:element name="Documented" type="xs:string"><xs:annotation><xs:documentation>d</xs:documentation></xs:annotation></xs:element>
+                    <xs:element name="Bare" type="xs:string"/>
+                    """);
+            List<QualityIssue> issues = of(result, IssueCategory.MISSING_DOCUMENTATION);
+            assertEquals(1, issues.size());
+            assertEquals(IssueSeverity.SUGGESTION, issues.get(0).severity());
+            assertEquals(List.of("Bare"), issues.get(0).affectedElements());
+            assertEquals(100, result.score());
+        }
+
+        @Test
+        @DisplayName("single-use named type via element type is an inline candidate; base-type use is not")
+        void inlineCandidates() throws Exception {
+            QualityResult result = run("""
+                    <xs:element name="Root" type="tns:RootType"/>
+                    <xs:complexType name="RootType"><xs:sequence>
+                      <xs:element name="a" type="tns:OnceType"/>
+                      <xs:element name="b" type="tns:Twice"/><xs:element name="c" type="tns:Twice"/>
+                    </xs:sequence></xs:complexType>
+                    <xs:simpleType name="OnceType"><xs:restriction base="tns:BaseOnce"/></xs:simpleType>
+                    <xs:simpleType name="BaseOnce"><xs:restriction base="xs:string"/></xs:simpleType>
+                    <xs:simpleType name="Twice"><xs:restriction base="xs:string"/></xs:simpleType>
+                    """);
+            List<QualityIssue> issues = of(result, IssueCategory.INLINE_CANDIDATE);
+            List<String> names = issues.stream().map(i -> i.affectedElements().get(0)).sorted().toList();
+            assertEquals(List.of("OnceType", "RootType"), names);
+            assertTrue(issues.stream().allMatch(i -> i.severity() == IssueSeverity.SUGGESTION));
+        }
+    }
 }

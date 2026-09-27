@@ -33,15 +33,20 @@ import javafx.scene.layout.VBox;
 
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost;
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdStatistics;
-import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdStatisticsExporter;
+import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdSchemaReferenceInfo;
+import org.fxt.freexmltoolkit.controls.v2.editor.usage.ComponentInfo;
+import org.fxt.freexmltoolkit.controls.v2.editor.usage.SchemaReferenceGraph.ComponentKind;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdFacetType;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNodeType;
 
 /**
- * "Statistics" sub-tab: a KPI row with the declaration counts, detail cards (schema, constraints,
- * cardinality with an optional/required bar, documentation with a coverage bar) in an even grid,
- * the most used named types with usage bars, and the list of unused named types. Selecting a type
- * reveals it in the Tree view. Exports via {@link XsdStatisticsExporter}.
+ * "Statistics" sub-tab: a KPI row with the declaration counts, detail cards (schema, files,
+ * constraints, documentation with a coverage bar, cardinality with an optional/required bar,
+ * complexity, facets) in an even grid, the schema-reference table (includes / imports with their
+ * resolution status), the most used named types with usage bars, the unused named types, unused
+ * groups / attribute groups and circular references. Selecting an entry reveals it in the Tree
+ * view. Exports the statistics sections of {@link SchemaAnalysisReport}.
  */
 final class StatisticsSection extends VBox {
 
@@ -56,7 +61,17 @@ final class StatisticsSection extends VBox {
     private final Label unusedTitle = AnalysisSupport.groupTitle("Unused types");
     private final Label topTypesTitle = AnalysisSupport.groupTitle("Most used types");
     private final Set<String> simpleTypeNames = new HashSet<>();
+    private final Set<String> attributeGroupNames = new HashSet<>();
+    private final TableView<XsdSchemaReferenceInfo> references = new TableView<>();
+    private final VBox referencesBox;
+    private final Label referencesTitle = AnalysisSupport.groupTitle("Schema references");
+    private final ListView<String> unusedGroups = new ListView<>();
+    private final Label unusedGroupsTitle = AnalysisSupport.groupTitle("Unused groups");
+    private final ListView<String> cycles = new ListView<>();
+    private final Label cyclesTitle = AnalysisSupport.groupTitle("Circular references");
+    private final Map<String, String> xpathByComponent = new java.util.HashMap<>();
     private XsdStatistics statistics;
+    private SchemaAnalysisData data;
     private int maxUsage = 1;
 
     StatisticsSection(EditorHost editorHost) {
@@ -65,7 +80,8 @@ final class StatisticsSection extends VBox {
 
         status.getStyleClass().add("fxt-placeholder-text");
         status.managedProperty().bind(status.textProperty().isNotEmpty());
-        HBox toolbar = new HBox(8, AnalysisSupport.exportMenu("Schema Statistics", status, this::export), status);
+        HBox toolbar = new HBox(8, AnalysisSupport.reportMenu("Schema Statistics", status,
+                () -> data == null ? null : SchemaAnalysisReport.statistics(data)), status);
         toolbar.setAlignment(Pos.CENTER_LEFT);
 
         kpis.setId("analysis-kpis");
@@ -121,6 +137,80 @@ final class StatisticsSection extends VBox {
             }
         });
 
+        unusedGroups.setId("analysis-unused-groups");
+        unusedGroups.getStyleClass().add("fxt-analysis-list");
+        unusedGroups.setPlaceholder(AnalysisSupport.emptyLabel("All groups and attribute groups are used."));
+        unusedGroups.setMinHeight(120);
+        unusedGroups.setPrefHeight(160);
+        unusedGroups.setCellFactory(list -> new ListCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setGraphic(null);
+                } else {
+                    setText(item);
+                    setGraphic(AnalysisSupport.icon(attributeGroupNames.contains(item) ? "bi-tags" : "bi-collection", 14));
+                }
+            }
+        });
+        unusedGroups.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
+            if (newV != null && editorHost != null) {
+                String kind = attributeGroupNames.contains(newV) ? ComponentKind.ATTRIBUTE_GROUP.name() : ComponentKind.GROUP.name();
+                String xpath = xpathByComponent.get(kind + ":" + newV);
+                if (xpath == null || !editorHost.revealSchemaNodeByXPath(xpath)) {
+                    editorHost.revealTypeByName(newV);
+                }
+            }
+        });
+
+        cycles.setId("analysis-cycles");
+        cycles.getStyleClass().add("fxt-analysis-list");
+        cycles.setPlaceholder(AnalysisSupport.emptyLabel("No circular references."));
+        cycles.setMinHeight(120);
+        cycles.setPrefHeight(160);
+        cycles.setCellFactory(list -> new ListCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setGraphic(null);
+                    setTooltip(null);
+                } else {
+                    boolean derivation = item.startsWith(DERIVATION_PREFIX);
+                    setText(item.substring(item.indexOf(' ') + 1));
+                    setGraphic(AnalysisSupport.icon(derivation ? "bi-x-circle-fill" : "bi-arrow-repeat", 14));
+                    setTooltip(new Tooltip(derivation ? "Type derivation cycle — invalid schema" : "Recursive content model (legal)"));
+                }
+            }
+        });
+        cycles.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
+            if (newV != null && editorHost != null) {
+                String first = firstMember(newV);
+                if (first != null) {
+                    editorHost.revealTypeByName(first);
+                }
+            }
+        });
+
+        references.setId("analysis-references");
+        references.getStyleClass().add("fxt-analysis-table");
+        references.getColumns().add(AnalysisSupport.column("Type", XsdSchemaReferenceInfo::getTypeDisplayName, 80));
+        references.getColumns().add(AnalysisSupport.column("Location", XsdSchemaReferenceInfo::schemaLocation, 260));
+        references.getColumns().add(referenceStatusColumn());
+        references.getColumns().add(AnalysisSupport.column("Namespace", r -> r.namespace() == null ? "" : r.namespace(), 220));
+        references.getColumns().add(AnalysisSupport.column("Elements", r -> Integer.toString(r.elementCount()), 80));
+        references.getColumns().add(AnalysisSupport.column("Types", r -> Integer.toString(r.typeCount()), 70));
+        references.getColumns().add(AnalysisSupport.column("Groups", r -> Integer.toString(r.groupCount()), 70));
+        references.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+        references.setPrefHeight(150);
+        references.setMinHeight(110);
+        referencesBox = new VBox(6, referencesTitle, references);
+        referencesBox.managedProperty().bind(referencesBox.visibleProperty());
+        referencesBox.setVisible(false);
+
         VBox topBox = new VBox(6, topTypesTitle, topTypes);
         VBox unusedBox = new VBox(6, unusedTitle, unusedTypes);
         VBox.setVgrow(topTypes, Priority.ALWAYS);
@@ -130,7 +220,15 @@ final class StatisticsSection extends VBox {
         HBox typeRow = new HBox(12, topBox, unusedBox);
         VBox.setVgrow(typeRow, Priority.ALWAYS);
 
-        VBox content = new VBox(16, kpis, cards, typeRow);
+        VBox groupsBox = new VBox(6, unusedGroupsTitle, unusedGroups);
+        VBox cyclesBox = new VBox(6, cyclesTitle, cycles);
+        HBox.setHgrow(groupsBox, Priority.ALWAYS);
+        HBox.setHgrow(cyclesBox, Priority.ALWAYS);
+        unusedGroups.setMaxWidth(Double.MAX_VALUE);
+        cycles.setMaxWidth(Double.MAX_VALUE);
+        HBox groupRow = new HBox(12, groupsBox, cyclesBox);
+
+        VBox content = new VBox(16, kpis, cards, referencesBox, typeRow, groupRow);
         content.setPadding(new Insets(4, 4, 12, 4));
         ScrollPane scroll = new ScrollPane(content);
         scroll.setFitToWidth(true);
@@ -143,14 +241,23 @@ final class StatisticsSection extends VBox {
     }
 
     void setData(SchemaAnalysisData data) {
+        this.data = data;
         statistics = data.statistics();
         XsdStatistics s = statistics;
         simpleTypeNames.clear();
+        attributeGroupNames.clear();
+        xpathByComponent.clear();
         if (data.schema() != null) {
             for (XsdNode child : data.schema().getChildren()) {
                 if (child.getNodeType() == XsdNodeType.SIMPLE_TYPE && child.getName() != null) {
                     simpleTypeNames.add(child.getName());
                 }
+            }
+        }
+        for (ComponentInfo component : data.components()) {
+            xpathByComponent.put(component.kind().name() + ":" + component.name(), component.xpath());
+            if (component.kind() == ComponentKind.ATTRIBUTE_GROUP) {
+                attributeGroupNames.add(component.name());
             }
         }
 
@@ -177,17 +284,37 @@ final class StatisticsSection extends VBox {
                 row("Unique", s.getNodeCount(XsdNodeType.UNIQUE)),
                 row("Assertions", s.getNodeCount(XsdNodeType.ASSERT)))));
         cardList.add(card("Documentation", "bi-bookmark",
-                coverageBar(s.documentationCoveragePercent()), rows(
-                        row("Documented nodes", s.nodesWithDocumentation()),
-                        row("Nodes with appinfo", s.nodesWithAppInfo()),
-                        row("Languages", s.documentationLanguages() == null || s.documentationLanguages().isEmpty()
-                                ? "(none)" : String.join(", ", s.documentationLanguages().stream().sorted().toList())))));
+                coverageBar(s.documentationCoveragePercent()), documentationRows(s)));
         cardList.add(card("Cardinality", "bi-layers",
                 cardinalityBar(s.optionalElements(), s.requiredElements()), rows(
                         row("Optional elements", s.optionalElements()),
                         row("Required elements", s.requiredElements()),
                         row("Unbounded elements", s.unboundedElements()))));
+        cardList.add(complexityCard(s.complexity()));
+        cardList.add(facetsCard(s.complexity()));
         layoutCards(cardList);
+
+        List<XsdSchemaReferenceInfo> refs = s.schemaReferences() == null ? List.of() : s.schemaReferences();
+        references.getItems().setAll(refs);
+        referencesBox.setVisible(!refs.isEmpty());
+        referencesTitle.setText("SCHEMA REFERENCES (" + refs.size() + ")"
+                + (s.unresolvedReferencesCount() > 0 ? " · " + s.unresolvedReferencesCount() + " unresolved" : ""));
+
+        XsdStatistics.ComponentUsage usage = s.componentUsage();
+        List<String> groups = new ArrayList<>(usage.unusedGroups());
+        groups.addAll(usage.unusedAttributeGroups());
+        unusedGroups.getItems().setAll(groups);
+        unusedGroupsTitle.setText("UNUSED GROUPS / ATTRIBUTE GROUPS (" + groups.size() + ")");
+        List<String> cycleItems = new ArrayList<>();
+        for (List<String> cycle : usage.derivationCycles()) {
+            cycleItems.add(DERIVATION_PREFIX + chain(cycle));
+        }
+        for (List<String> cycle : usage.containmentCycles()) {
+            cycleItems.add(CONTAINMENT_PREFIX + chain(cycle));
+        }
+        cycles.getItems().setAll(cycleItems);
+        cyclesTitle.setText("CIRCULAR REFERENCES (" + cycleItems.size() + ")"
+                + (usage.derivationCycles().isEmpty() ? "" : " · " + usage.derivationCycles().size() + " derivation error(s)"));
 
         List<XsdStatistics.TypeUsageEntry> top = s.topUsedTypes() == null ? List.of() : s.topUsedTypes();
         maxUsage = Math.max(1, top.stream().mapToInt(XsdStatistics.TypeUsageEntry::usageCount).max().orElse(1));
@@ -197,6 +324,105 @@ final class StatisticsSection extends VBox {
         unusedTitle.setText("UNUSED TYPES (" + unused.size() + ")");
         topTypesTitle.setText("MOST USED TYPES (" + top.size() + ")");
         status.setText("");
+    }
+
+    private static final String DERIVATION_PREFIX = "derivation ";
+    private static final String CONTAINMENT_PREFIX = "containment ";
+
+    /** "Complex type 'A' → Simple type 'B' → …" shortened to the local names. */
+    private static String chain(List<String> cycle) {
+        List<String> names = cycle.stream().map(StatisticsSection::localName).toList();
+        return String.join(" → ", names) + (names.isEmpty() ? "" : " → " + names.get(0));
+    }
+
+    /** The name inside the quotes of a "Kind 'name'" label, else the label itself. */
+    static String localName(String label) {
+        int open = label.indexOf('\'');
+        int close = label.lastIndexOf('\'');
+        return open >= 0 && close > open ? label.substring(open + 1, close) : label;
+    }
+
+    /** The first member name of a cycle list entry ("prefix A → B → A"). */
+    static String firstMember(String item) {
+        String chain = item.substring(item.indexOf(' ') + 1);
+        int arrow = chain.indexOf(" → ");
+        return arrow > 0 ? chain.substring(0, arrow) : chain.isBlank() ? null : chain;
+    }
+
+    private static List<Row> documentationRows(XsdStatistics s) {
+        List<Row> rows = new ArrayList<>(rows(
+                row("Documented nodes", s.nodesWithDocumentation()),
+                row("Nodes with appinfo", s.nodesWithAppInfo()),
+                row("Languages", s.documentationLanguages() == null || s.documentationLanguages().isEmpty()
+                        ? "(none)" : String.join(", ", s.documentationLanguages().stream().sorted().toList()))));
+        if (s.appInfoTagCounts() != null) {
+            s.appInfoTagCounts().entrySet().stream()
+                    .sorted(Map.Entry.<String, Integer>comparingByValue().reversed().thenComparing(Map.Entry.comparingByKey()))
+                    .limit(5)
+                    .forEach(e -> rows.add(row(e.getKey() + " tags", e.getValue())));
+        }
+        return rows;
+    }
+
+    private static VBox complexityCard(XsdStatistics.ComplexityMetrics c) {
+        Row depth = row("Max element nesting", c.maxElementNestingDepth());
+        if (c.deepestElementXPath() != null) {
+            depth.value().setTooltip(new Tooltip(c.deepestElementXPath()));
+        }
+        Row widest = row("Max declarations per type", c.maxChildrenPerComplexType());
+        if (c.widestComplexType() != null) {
+            widest.value().setTooltip(new Tooltip(c.widestComplexType()));
+        }
+        return card("Complexity", "bi-speedometer2", null, rows(
+                depth,
+                row("Max derivation depth", c.maxTypeDerivationDepth()),
+                widest,
+                row("Avg declarations per type", String.format(Locale.ROOT, "%.1f", c.avgChildrenPerComplexType())),
+                row("Abstract types / elements", c.abstractTypes() + " / " + c.abstractElements()),
+                row("Substitution heads / members", c.substitutionGroupHeads() + " / " + c.substitutionGroupMembers()),
+                row("Anonymous complex / simple", c.anonymousComplexTypes() + " / " + c.anonymousSimpleTypes()),
+                row("Mixed content types", c.mixedContentTypes()),
+                row("Extensions / restrictions", c.extensions() + " / " + c.restrictions()),
+                row("XSD 1.1 features", c.xsd11Features())));
+    }
+
+    private static VBox facetsCard(XsdStatistics.ComplexityMetrics c) {
+        List<Row> rows = new ArrayList<>();
+        rows.add(row("Facets", c.totalFacets()));
+        rows.add(row("Enumeration values", c.enumerationValues()));
+        for (XsdFacetType type : XsdFacetType.values()) {
+            int count = c.facetCounts().getOrDefault(type, 0);
+            if (count > 0) {
+                rows.add(row(AnalysisSupport.titleCase(type), count));
+            }
+        }
+        return card("Facets", "bi-sliders", null, rows);
+    }
+
+    private static TableColumn<XsdSchemaReferenceInfo, String> referenceStatusColumn() {
+        TableColumn<XsdSchemaReferenceInfo, String> column = AnalysisSupport.column("Status", XsdSchemaReferenceInfo::getStatusDisplayName, 90);
+        column.setCellFactory(col -> new TableCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                getStyleClass().removeIf(cls -> cls.startsWith("fxt-analysis-sev-"));
+                if (empty || item == null) {
+                    setText(null);
+                    setGraphic(null);
+                    setTooltip(null);
+                    return;
+                }
+                XsdSchemaReferenceInfo ref = getTableRow() != null ? getTableRow().getItem() : null;
+                boolean ok = ref == null || ref.resolved();
+                setText(item);
+                setGraphic(AnalysisSupport.icon(ok ? "bi-check-circle-fill" : "bi-x-circle-fill", 13));
+                setGraphicTextGap(5);
+                getStyleClass().add(ok ? "fxt-analysis-sev-info" : "fxt-analysis-sev-error");
+                setTooltip(ref != null && ref.errorMessage() != null ? new Tooltip(ref.errorMessage())
+                        : ref != null && ref.resolvedPath() != null ? new Tooltip(ref.resolvedPath().toString()) : null);
+            }
+        });
+        return column;
     }
 
     // ---------------------------------------------------------------- KPI tiles
@@ -431,16 +657,5 @@ final class StatisticsSection extends VBox {
             }
         });
         return column;
-    }
-
-    private void export(AnalysisSupport.ExportFormat format, Path target) throws Exception {
-        XsdStatisticsExporter exporter = new XsdStatisticsExporter();
-        switch (format) {
-            case CSV -> exporter.exportToCsv(statistics, target);
-            case JSON -> exporter.exportToJson(statistics, target);
-            case HTML -> exporter.exportToHtml(statistics, target);
-            case PDF -> exporter.exportToPdf(statistics, target);
-            case EXCEL -> exporter.exportToExcel(statistics, target);
-        }
     }
 }

@@ -114,6 +114,8 @@ final class XPathSection extends VBox {
     private final FlowPane chips = new FlowPane(6, 6);
     private final StringProperty statusFilter = new SimpleStringProperty(ALL);
     private final Label count = new Label();
+    private final Label exportStatus = new Label();
+    private SchemaAnalysisData data;
     private final ObservableList<Row> rows = FXCollections.observableArrayList();
     private final FilteredList<Row> filtered = new FilteredList<>(rows);
     private final TableView<Row> table = new TableView<>();
@@ -130,7 +132,12 @@ final class XPathSection extends VBox {
         count.getStyleClass().add("fxt-analysis-count");
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-        HBox header = new HBox(10, chips, spacer, count);
+        exportStatus.setId("analysis-xpath-status");
+        exportStatus.getStyleClass().add("fxt-placeholder-text");
+        exportStatus.managedProperty().bind(exportStatus.textProperty().isNotEmpty());
+        HBox header = new HBox(10, AnalysisSupport.reportMenu("XPath Validation", exportStatus,
+                () -> data == null ? null : SchemaAnalysisReport.xpath(data)),
+                chips, spacer, count, exportStatus);
         header.setAlignment(Pos.CENTER_LEFT);
         statusFilter.addListener((obs, o, n) -> applyFilter());
 
@@ -167,6 +174,8 @@ final class XPathSection extends VBox {
     }
 
     void setData(SchemaAnalysisData data) {
+        this.data = data;
+        exportStatus.setText("");
         statusFilter.set(ALL);
         rows.setAll(buildRows(data));
 

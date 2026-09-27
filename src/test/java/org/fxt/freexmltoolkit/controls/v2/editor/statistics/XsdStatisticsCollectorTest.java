@@ -325,4 +325,112 @@ class XsdStatisticsCollectorTest {
             assertNotNull(stats.collectedAt());
         }
     }
+
+    // ========== Component usage & complexity (reference graph) ==========
+
+    @Nested
+    @DisplayName("Component Usage and Complexity")
+    class ComponentUsageAndComplexityTests {
+
+        private static final String XSD = """
+                <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="urn:t" targetNamespace="urn:t">
+                  <xs:element name="Root" type="tns:RootType" abstract="false"/>
+                  <xs:element name="Head" type="xs:string" abstract="true"/>
+                  <xs:element name="Member" type="xs:string" substitutionGroup="tns:Head"/>
+                  <xs:complexType name="RootType" mixed="true">
+                    <xs:sequence>
+                      <xs:element name="a" type="tns:Once"/>
+                      <xs:element name="b">
+                        <xs:complexType><xs:sequence>
+                          <xs:element name="c"><xs:complexType><xs:sequence><xs:element name="d" type="xs:string"/></xs:sequence></xs:complexType></xs:element>
+                        </xs:sequence></xs:complexType>
+                      </xs:element>
+                      <xs:group ref="tns:UsedGroup"/>
+                    </xs:sequence>
+                    <xs:attribute name="id" type="xs:ID"/>
+                  </xs:complexType>
+                  <xs:complexType name="Base" abstract="true"><xs:sequence><xs:element name="x" type="xs:int"/></xs:sequence></xs:complexType>
+                  <xs:complexType name="Level1"><xs:complexContent><xs:extension base="tns:Base"/></xs:complexContent></xs:complexType>
+                  <xs:complexType name="Level2"><xs:complexContent><xs:extension base="tns:Level1"/></xs:complexContent></xs:complexType>
+                  <xs:element name="Deep" type="tns:Level2"/>
+                  <xs:simpleType name="Once"><xs:restriction base="xs:string"><xs:enumeration value="A"/><xs:enumeration value="B"/><xs:maxLength value="3"/></xs:restriction></xs:simpleType>
+                  <xs:simpleType name="Orphan"><xs:restriction base="xs:string"><xs:pattern value="[a-z]+"/></xs:restriction></xs:simpleType>
+                  <xs:group name="UsedGroup"><xs:sequence><xs:element name="g" type="xs:string"/></xs:sequence></xs:group>
+                  <xs:group name="UnusedGroup"><xs:sequence><xs:element name="u" type="xs:string"/></xs:sequence></xs:group>
+                  <xs:attributeGroup name="UnusedAG"><xs:attribute name="ua" type="xs:string"/></xs:attributeGroup>
+                  <xs:complexType name="Node"><xs:sequence><xs:element name="child" type="tns:Node" minOccurs="0"/></xs:sequence></xs:complexType>
+                </xs:schema>
+                """;
+
+        private XsdStatistics stats;
+
+        @BeforeEach
+        void collect() throws Exception {
+            XsdSchema parsed = new XsdNodeFactory().fromString(XSD);
+            stats = new XsdStatisticsCollector(parsed).collect();
+        }
+
+        @Test
+        @DisplayName("reports unused groups, attribute groups and the cascading unreachable set")
+        void componentUsage() {
+            XsdStatistics.ComponentUsage usage = stats.componentUsage();
+            assertEquals(java.util.Set.of("UnusedGroup"), usage.unusedGroups());
+            assertEquals(java.util.Set.of("UnusedAG"), usage.unusedAttributeGroups());
+            assertTrue(usage.unreachableComponents().contains("Simple type 'Orphan'"), usage.unreachableComponents().toString());
+            assertTrue(usage.unreachableComponents().contains("Complex type 'Node'"));
+            assertTrue(usage.unreachableComponents().contains("Group 'UnusedGroup'"));
+            assertFalse(usage.unreachableComponents().contains("Complex type 'RootType'"));
+            assertEquals(2, usage.unusedGroupCount());
+            assertTrue(stats.unusedTypes().contains("Orphan"));
+            assertFalse(stats.unusedTypes().contains("Node"), "self-referencing type counts as referenced");
+        }
+
+        @Test
+        @DisplayName("lists single-use types and containment cycles")
+        void singleUseAndCycles() {
+            XsdStatistics.ComponentUsage usage = stats.componentUsage();
+            assertTrue(usage.singleUseTypes().contains("Once"));
+            assertTrue(usage.singleUseTypes().contains("Level2"));
+            assertFalse(usage.singleUseTypes().contains("Node"), "self reference is not a use");
+            assertEquals(java.util.List.of(java.util.List.of("Complex type 'Node'")), usage.containmentCycles());
+            assertTrue(usage.derivationCycles().isEmpty());
+        }
+
+        @Test
+        @DisplayName("computes nesting depth, derivation depth, abstract/substitution counts and facets")
+        void complexity() {
+            XsdStatistics.ComplexityMetrics c = stats.complexity();
+            assertEquals(3, c.maxElementNestingDepth(), "Root? no — b > c > d is the deepest lexical chain");
+            assertTrue(c.deepestElementXPath().endsWith("xs:element[@name='d']"), c.deepestElementXPath());
+            assertEquals(2, c.maxTypeDerivationDepth(), "Level2 → Level1 → Base = two derivation steps");
+            assertEquals(1, c.abstractTypes());
+            assertEquals(1, c.abstractElements());
+            assertEquals(1, c.substitutionGroupHeads());
+            assertEquals(1, c.substitutionGroupMembers());
+            assertEquals(2, c.anonymousComplexTypes());
+            assertEquals(0, c.anonymousSimpleTypes());
+            assertEquals(1, c.mixedContentTypes());
+            assertEquals(2, c.extensions());
+            assertEquals(2, c.restrictions());
+            assertEquals(2, c.enumerationValues());
+            assertEquals(2, c.facetCounts().get(XsdFacetType.ENUMERATION));
+            assertEquals(1, c.facetCounts().get(XsdFacetType.MAX_LENGTH));
+            assertEquals(1, c.facetCounts().get(XsdFacetType.PATTERN));
+            assertEquals(4, c.totalFacets());
+            assertEquals(0, c.xsd11Features());
+            // RootType: a, b, group ref (not a declaration), id → 3 declarations; widest overall
+            assertEquals(3, c.maxChildrenPerComplexType());
+            assertEquals("RootType", c.widestComplexType());
+            assertTrue(c.avgChildrenPerComplexType() > 0);
+        }
+
+        @Test
+        @DisplayName("empty schema yields EMPTY records")
+        void emptySchema() {
+            XsdStatistics empty = new XsdStatisticsCollector(new XsdSchema()).collect();
+            assertEquals(XsdStatistics.ComponentUsage.EMPTY, empty.componentUsage());
+            assertEquals(0, empty.complexity().maxElementNestingDepth());
+            assertEquals(0, empty.complexity().totalFacets());
+        }
+    }
 }

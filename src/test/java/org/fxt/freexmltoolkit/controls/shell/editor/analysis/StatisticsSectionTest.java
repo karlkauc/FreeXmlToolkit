@@ -56,4 +56,12 @@ class StatisticsSectionTest {
         assertEquals("good", StatisticsSection.coverageBand(75));
         assertEquals("good", StatisticsSection.coverageBand(100));
     }
+
+    @Test
+    void cycleLabelsResolveToLocalNames() {
+        assertEquals("FolderType", StatisticsSection.localName("Complex type 'FolderType'"));
+        assertEquals("plain", StatisticsSection.localName("plain"));
+        assertEquals("Folder", StatisticsSection.firstMember("containment Folder → FolderType → Folder"));
+        assertEquals("Node", StatisticsSection.firstMember("derivation Node → Node"));
+    }
 }

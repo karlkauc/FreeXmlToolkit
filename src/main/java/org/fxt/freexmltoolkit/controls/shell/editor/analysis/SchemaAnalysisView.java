@@ -30,9 +30,10 @@ import org.fxt.freexmltoolkit.controls.shell.editor.OpenDocument;
 
 /**
  * The "Schema Analysis" tool tab: analyzes the active XSD document off the FX thread
- * ({@link SchemaAnalysisRunner}) and presents the result in four sub-tabs — Statistics,
- * Quality Checks, Identity Constraints and XPath Validation. Findings navigate to the
- * schema node in the Tree view. Opened from the Schema activity's tool strip.
+ * ({@link SchemaAnalysisRunner}) and presents the result in five sub-tabs — Statistics,
+ * Types, Quality Checks, Identity Constraints and XPath Validation. Findings navigate to the
+ * schema node in the Tree view; the header exports the full report in every format. Opened
+ * from the Schema activity's tool strip.
  */
 public class SchemaAnalysisView extends BorderPane {
 
@@ -48,6 +49,7 @@ public class SchemaAnalysisView extends BorderPane {
     private final Button refresh = new Button("Refresh", AnalysisSupport.icon("bi-arrow-clockwise", 16));
     private final TabPane tabs = new TabPane();
     private final StatisticsSection statistics;
+    private final TypesSection types;
     private final QualitySection quality;
     private final IdentityConstraintsSection constraints;
     private final XPathSection xpath;
@@ -84,13 +86,16 @@ public class SchemaAnalysisView extends BorderPane {
         refresh.setOnAction(e -> refresh());
         status.setId("analysis-status");
         status.getStyleClass().add("fxt-placeholder-text");
-        HBox header = new HBox(12, titles, status, refresh);
+        HBox header = new HBox(12, titles, status,
+                AnalysisSupport.reportMenu("Schema Analysis Report", status, () -> data == null ? null : SchemaAnalysisReport.full(data)),
+                refresh);
         header.getStyleClass().add("fxt-analysis-header");
         header.setAlignment(Pos.CENTER_LEFT);
         header.setPadding(new Insets(0, 0, 10, 0));
         setTop(header);
 
         statistics = new StatisticsSection(editorHost);
+        types = new TypesSection(editorHost);
         quality = new QualitySection(editorHost);
         constraints = new IdentityConstraintsSection(editorHost);
         xpath = new XPathSection(editorHost);
@@ -99,6 +104,7 @@ public class SchemaAnalysisView extends BorderPane {
         tabs.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
         tabs.getTabs().addAll(
                 tab("Statistics", "bi-bar-chart", statistics),
+                tab("Types", "bi-collection", types),
                 tab("Quality Checks", "bi-award", quality),
                 tab("Identity Constraints", "bi-key", constraints),
                 tab("XPath Validation", "bi-check2-circle", xpath));
@@ -196,14 +202,22 @@ public class SchemaAnalysisView extends BorderPane {
     private void setData(SchemaAnalysisData data) {
         this.data = data;
         statistics.setData(data);
+        types.setData(data);
+        types.setDocument(document, () -> {
+            if (document != null) {
+                refresh(document);
+            }
+        });
         quality.setData(data);
         constraints.setData(data);
         xpath.setData(data);
         int unused = data.statistics().unusedTypes() == null ? 0 : data.statistics().unusedTypes().size();
+        int unreachable = data.unreachableComponents().size();
         subtitle.setText(data.documentName()
                 + " · Score " + data.quality().score() + " / 100 (" + data.quality().getScoreDescription() + ")"
                 + " · " + AnalysisSupport.plural(data.quality().issues().size(), "issue")
-                + " · " + AnalysisSupport.plural(unused, "unused type"));
+                + " · " + AnalysisSupport.plural(unused, "unused type")
+                + (unreachable > unused ? " · " + unreachable + " unreachable components" : ""));
         status.getStyleClass().remove("fxt-lib-error");
         status.setText("Analyzed " + data.documentName());
     }

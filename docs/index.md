@@ -126,6 +126,7 @@ Work with XML Schema files:
 | **Sample XML Generator** | Generate valid sample XML files with customizable rules |
 | **Profiled Generation** | Control values per element, save profiles, batch generate |
 | **Schema Flattening** | Combine multiple schema files into one standalone schema, optionally reduced for validation servers |
+| **Schema Analysis** | Statistics, a type library with one-click removal of unused components, quality checks, identity-constraint and XPath validation - exportable as CSV, JSON, HTML, PDF or Excel |
 | **Schema Library & XML Catalogs** | Map namespaces to schema files, register OASIS `catalog.xml` files, and manage the cache of downloaded schemas - documents without a schema reference bind automatically |
 
 Learn more: [XSD Tools Guide](xsd-tools.md) | [Profiled XML Generation](profiled-xml-generation.md) | [XSD Validation](xsd-validation.md) | [Schema Library](schema-library.md)

@@ -6,12 +6,15 @@ import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdIdentityConstrain
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdQualityChecker;
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdStatisticsCollector;
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdXPathValidator;
+import org.fxt.freexmltoolkit.controls.v2.editor.usage.ComponentInfo;
+import org.fxt.freexmltoolkit.controls.v2.editor.usage.SchemaReferenceGraph;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNodeFactory;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 
 /**
- * UI-free entry point of the Schema Analysis tool: parses an XSD once and runs the
- * statistics, quality, identity-constraint and XPath engines on the result. Meant to
+ * UI-free entry point of the Schema Analysis tool: parses an XSD once, builds the reference
+ * graph once and runs the statistics, quality, identity-constraint and XPath engines on the
+ * result, plus the per-component usage rows of the Types tab. Meant to
  * run off the FX thread; the returned model is private to the caller.
  */
 public final class SchemaAnalysisRunner {
@@ -34,10 +37,12 @@ public final class SchemaAnalysisRunner {
         XsdSchema schema = path != null
                 ? factory.fromStringWithSchemaFile(xsdText, path, path.getParent())
                 : factory.fromString(xsdText);
+        SchemaReferenceGraph graph = SchemaReferenceGraph.build(schema);
         return new SchemaAnalysisData(documentName, path, schema,
-                new XsdStatisticsCollector(schema).collect(),
-                new XsdQualityChecker(schema).check(),
+                new XsdStatisticsCollector(schema, graph).collect(),
+                new XsdQualityChecker(schema, graph).check(),
                 new XsdIdentityConstraintAnalyzer(schema).analyze(),
-                new XsdXPathValidator(schema).validateAll());
+                new XsdXPathValidator(schema).validateAll(),
+                ComponentInfo.collect(graph));
     }
 }

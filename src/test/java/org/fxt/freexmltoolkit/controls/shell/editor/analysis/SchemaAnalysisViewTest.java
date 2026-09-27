@@ -6,9 +6,11 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.control.MenuButton;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
@@ -23,8 +25,8 @@ import org.testfx.framework.junit5.Start;
 import org.testfx.util.WaitForAsyncUtils;
 
 /**
- * TestFX verification of the Schema Analysis tool tab: four sub-tabs, the unused-type list,
- * the quality issues table with its text filter, and the identity-constraints table.
+ * TestFX verification of the Schema Analysis tool tab: five sub-tabs, the unused-type list,
+ * the Types tab, the quality issues table with its text filter, and the identity-constraints table.
  */
 @ExtendWith(ApplicationExtension.class)
 class SchemaAnalysisViewTest {
@@ -42,12 +44,69 @@ class SchemaAnalysisViewTest {
     }
 
     @Test
-    void showsFourSubTabs() {
+    void showsFiveSubTabsAndTheReportExportMenu() {
         WaitForAsyncUtils.waitForFxEvents();
-        assertEquals(List.of("Statistics", "Quality Checks", "Identity Constraints", "XPath Validation"),
+        assertEquals(List.of("Statistics", "Types", "Quality Checks", "Identity Constraints", "XPath Validation"),
                 view.subTabTitles());
         assertTrue(view.getData().isPresent());
         assertTrue(view.getStatusText().contains("test.xsd"), view.getStatusText());
+        MenuButton export = (MenuButton) view.lookup("#analysis-export-schema-analysis-report");
+        assertNotNull(export, "full report export in the header");
+        assertEquals(5, export.getItems().size(), "one item per report format");
+        assertNotNull(view.lookup("#analysis-export-identity-constraints"), "constraints export");
+        assertNotNull(view.lookup("#analysis-export-xpath-validation"), "xpath export");
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void typesTabListsComponentsFiltersByChipAndKeepsRemoveDisabledWithoutHost() throws Exception {
+        WaitForAsyncUtils.waitForFxEvents();
+        TableView<?> table = (TableView<?>) view.lookup("#analysis-types-table");
+        assertNotNull(table);
+        assertEquals(2, table.getItems().size(), "PersonType + OrphanType");
+        Label count = (Label) view.lookup("#analysis-types-count");
+        assertEquals("2 components", count.getText());
+        Button remove = (Button) view.lookup("#analysis-types-remove-unused");
+        assertTrue(remove.isDisabled(), "no editor host → nothing to remove into");
+        assertEquals("Remove unused (1)…", remove.getText());
+
+        FlowPane chips = (FlowPane) view.lookup("#analysis-types-chips");
+        Label unusedChip = chips.getChildren().stream().map(Label.class::cast)
+                .filter(c -> c.getText().startsWith(TypesSection.UNUSED)).findFirst().orElseThrow();
+        assertEquals("Unused 1", unusedChip.getText());
+        WaitForAsyncUtils.asyncFx(() -> unusedChip.getOnMouseClicked().handle(null));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> table.getItems().size() == 1);
+        WaitForAsyncUtils.waitForFxEvents();
+        assertEquals("Showing 1 of 2 components", count.getText());
+
+        // selecting the used type fills the "used in" list with the referring element
+        WaitForAsyncUtils.asyncFx(() -> unusedChip.getOnMouseClicked().handle(null));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> table.getItems().size() == 2);
+        TextField search = (TextField) view.lookup("#analysis-types-search");
+        WaitForAsyncUtils.asyncFx(() -> search.setText("person"));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> table.getItems().size() == 1);
+        WaitForAsyncUtils.asyncFx(() -> table.getSelectionModel().select(0));
+        ListView<?> usages = (ListView<?>) view.lookup("#analysis-types-usages");
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> usages.getItems().size() == 1);
+        WaitForAsyncUtils.asyncFx(() -> search.setText(""));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> table.getItems().size() == 2);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void statisticsShowsGroupsCyclesAndComplexityCards() {
+        WaitForAsyncUtils.waitForFxEvents();
+        ListView<String> groups = (ListView<String>) view.lookup("#analysis-unused-groups");
+        assertNotNull(groups);
+        assertTrue(groups.getItems().isEmpty(), "the test schema declares no groups");
+        ListView<String> cycles = (ListView<String>) view.lookup("#analysis-cycles");
+        assertNotNull(cycles);
+        assertTrue(cycles.getItems().isEmpty());
+        assertNotNull(view.lookup("#analysis-references"), "schema references table exists (hidden when empty)");
+        assertFalse(view.lookup("#analysis-references").getParent().isVisible());
+        FlowPane naming = (FlowPane) view.lookup("#analysis-quality-naming");
+        assertNotNull(naming);
+        assertFalse(naming.getChildren().isEmpty(), "naming convention chips");
     }
 
     @Test

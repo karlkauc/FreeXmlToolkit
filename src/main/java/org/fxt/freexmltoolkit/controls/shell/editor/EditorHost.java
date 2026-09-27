@@ -1869,6 +1869,77 @@ public class EditorHost extends BorderPane {
         return editActivePreservingSelection(et -> et.deleteNode(node));
     }
 
+    /** Outcome of {@link #removeUnusedSchemaComponents}. */
+    public record ComponentRemoval(int removed, java.util.List<String> skippedFromInclude, java.util.List<String> notFound) {
+    }
+
+    /**
+     * Deletes global schema components (types, groups, attribute groups) from {@code doc} as one
+     * undoable command — the Schema Analysis "Remove unused…" action. Works whichever tab is
+     * selected: the target is located by document identity, not by the active tab. Components
+     * declared in {@code xs:include}d files are skipped (the serializer never writes inlined
+     * include content back), as are names that no longer exist in the live model.
+     *
+     * @param doc  the open XSD document to edit
+     * @param keys the components to delete
+     * @return the outcome, or empty when the document is not open, cannot be parsed, or uses
+     *         {@code xs:redefine}/{@code xs:override} (their reference semantics are not modeled)
+     */
+    public Optional<ComponentRemoval> removeUnusedSchemaComponents(
+            OpenDocument doc,
+            java.util.List<org.fxt.freexmltoolkit.controls.v2.editor.usage.SchemaReferenceGraph.ComponentKey> keys) {
+        if (doc == null || keys == null || keys.isEmpty()) {
+            return Optional.empty();
+        }
+        EditorTab target = null;
+        for (Tab tab : tabPane.getTabs()) {
+            if (tab instanceof EditorTab et && et.document == doc) {
+                target = et;
+                break;
+            }
+        }
+        if (target == null) {
+            return Optional.empty();
+        }
+        target.ensureModelParsed();
+        if (target.editorContext == null) {
+            return Optional.empty();
+        }
+        org.fxt.freexmltoolkit.controls.v2.model.XsdSchema schema = target.editorContext.getSchema();
+        java.util.Map<org.fxt.freexmltoolkit.controls.v2.editor.usage.SchemaReferenceGraph.ComponentKey, XsdNode> globals =
+                new java.util.HashMap<>();
+        for (XsdNode child : schema.getChildren()) {
+            if (child instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdRedefine
+                    || child instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdOverride) {
+                return Optional.empty();
+            }
+            var key = org.fxt.freexmltoolkit.controls.v2.editor.usage.SchemaReferenceGraph.keyOf(child);
+            if (key != null) {
+                globals.putIfAbsent(key, child);
+            }
+        }
+        java.util.List<XsdNode> nodes = new java.util.ArrayList<>();
+        java.util.List<String> skipped = new java.util.ArrayList<>();
+        java.util.List<String> notFound = new java.util.ArrayList<>();
+        for (var key : keys) {
+            XsdNode node = globals.get(key);
+            if (node == null) {
+                notFound.add(key.localName());
+            } else if (node.isFromInclude()) {
+                skipped.add(key.localName());
+            } else {
+                nodes.add(node);
+            }
+        }
+        if (nodes.isEmpty()) {
+            return Optional.of(new ComponentRemoval(0, skipped, notFound));
+        }
+        var command = new org.fxt.freexmltoolkit.controls.v2.editor.commands.DeleteNodesCommand(
+                nodes, "Remove " + nodes.size() + " unused component" + (nodes.size() == 1 ? "" : "s"));
+        boolean ok = target.executeAndApply(command);
+        return Optional.of(new ComponentRemoval(ok ? nodes.size() : 0, skipped, notFound));
+    }
+
     /** Adds an identity constraint (key/keyref/unique) to the selected element via the command stack. */
     public boolean addActiveIdentityConstraint(
             org.fxt.freexmltoolkit.controls.v2.editor.commands.AddIdentityConstraintCommand.Kind kind,

@@ -26,6 +26,7 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdOverride;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdRedefine;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdRestriction;
+import org.fxt.freexmltoolkit.controls.v2.editor.usage.SchemaReferenceGraph;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdUnion;
@@ -178,99 +179,18 @@ public final class SchemaFlattenTransformer {
      * are present (their reference semantics are not modeled here).
      */
     private void removeUnusedGlobalComponents(XsdSchema schema) {
-        Map<String, XsdNode> globals = new HashMap<>();
-        Deque<XsdNode> queue = new ArrayDeque<>();
-        for (XsdNode child : schema.getChildren()) {
-            if (child instanceof XsdRedefine || child instanceof XsdOverride) {
-                logger.warn("Schema contains xs:redefine/xs:override — skipping unused-type removal.");
-                return;
-            }
-            if (isShakableGlobal(child) && child.getName() != null && !child.getName().isBlank()) {
-                globals.put(child.getName(), child);
-            } else if (child instanceof XsdElement || child instanceof XsdAttribute) {
-                queue.add(child);
-            }
-        }
-        if (globals.isEmpty()) {
+        SchemaReferenceGraph graph = SchemaReferenceGraph.build(schema);
+        if (graph.hasRedefineOrOverride()) {
+            logger.warn("Schema contains xs:redefine/xs:override — skipping unused-type removal.");
             return;
         }
-
-        Set<String> retained = new HashSet<>();
-        Set<String> visitedIds = new HashSet<>();
-        while (!queue.isEmpty()) {
-            XsdNode root = queue.poll();
-            collectReachableRefs(root, globals, retained, queue, visitedIds);
-        }
-
-        for (Map.Entry<String, XsdNode> entry : globals.entrySet()) {
-            if (!retained.contains(entry.getKey())) {
-                logger.debug("Removing unused global component '{}'", entry.getKey());
-                schema.removeChild(entry.getValue());
+        for (SchemaReferenceGraph.ComponentKey key : graph.unreachable()) {
+            SchemaReferenceGraph.Component component = graph.component(key);
+            if (component != null) {
+                logger.debug("Removing unused global component '{}'", key);
+                schema.removeChild(component.node());
             }
         }
-    }
-
-    private boolean isShakableGlobal(XsdNode node) {
-        return node instanceof XsdComplexType
-                || node instanceof XsdSimpleType
-                || (node instanceof XsdGroup group && !group.isReference())
-                || (node instanceof XsdAttributeGroup attributeGroup && !attributeGroup.isReference());
-    }
-
-    /** Walks {@code root}'s subtree and enqueues newly retained global components. */
-    private void collectReachableRefs(XsdNode root, Map<String, XsdNode> globals,
-                                      Set<String> retained, Deque<XsdNode> queue,
-                                      Set<String> visitedIds) {
-        Deque<XsdNode> stack = new ArrayDeque<>();
-        stack.push(root);
-        while (!stack.isEmpty()) {
-            XsdNode node = stack.pop();
-            String id = node.getId();
-            if (id != null && !visitedIds.add(id)) {
-                continue;
-            }
-            for (String ref : referencedNames(node)) {
-                if (ref == null || ref.isBlank()) {
-                    continue;
-                }
-                String localName = stripPrefix(ref);
-                XsdNode target = globals.get(localName);
-                if (target != null && retained.add(localName)) {
-                    queue.add(target);
-                }
-            }
-            for (XsdNode child : node.getChildren()) {
-                stack.push(child);
-            }
-        }
-    }
-
-    /** All type/group names a single node references (same edges as TypeUsageFinder). */
-    private List<String> referencedNames(XsdNode node) {
-        List<String> refs = new ArrayList<>(2);
-        switch (node) {
-            case XsdElement element -> refs.add(element.getType());
-            case XsdAttribute attribute -> refs.add(attribute.getType());
-            case XsdRestriction restriction -> refs.add(restriction.getBase());
-            case XsdExtension extension -> refs.add(extension.getBase());
-            case XsdList list -> refs.add(list.getItemType());
-            case XsdUnion union -> {
-                if (union.getMemberTypes() != null) {
-                    refs.addAll(union.getMemberTypes());
-                }
-            }
-            case XsdAlternative alternative -> refs.add(alternative.getType());
-            case XsdGroup group -> refs.add(group.getRef());
-            case XsdAttributeGroup attributeGroup -> refs.add(attributeGroup.getRef());
-            default -> {
-            }
-        }
-        return refs;
-    }
-
-    private String stripPrefix(String name) {
-        int colon = name.lastIndexOf(':');
-        return colon >= 0 && colon < name.length() - 1 ? name.substring(colon + 1) : name;
     }
 
     /** Cycle-safe pre-order visit of every node in the schema tree. */
