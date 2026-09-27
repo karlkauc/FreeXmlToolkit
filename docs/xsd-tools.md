@@ -363,9 +363,12 @@ Select an issue to read its suggestion and location and to jump to the affected 
 | **Missing Documentation**          | Suggestion      | A global component without `xs:documentation`                       |
 | **Inline Candidate**               | Suggestion      | A named type used exactly once as an element or attribute type - could be declared inline (abstract types and types from included files are not suggested) |
 
-The score counts only **Error** and **Warning** issues, so the informational checks (unused
-components, recursion, missing documentation, inline candidates) never lower it; documentation
-coverage has its own percentage on the Statistics tab.
+The score is the share of checked declarations (every named element, attribute, type and
+group) that no **Error** or **Warning** counts against: a naming deviation or a deep nesting
+costs one declaration, an inconsistent definition costs every declaration of that name, a
+duplicate element every occurrence. The informational checks (unused components, recursion,
+missing documentation, inline candidates) never lower it; documentation coverage has its own
+percentage on the Statistics tab.
 
 ### Identity Constraints
 

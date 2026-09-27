@@ -122,6 +122,10 @@ public class XsdQualityChecker {
      * @param sourceNode The source node in the DOM
      * @param xpath The XPath to the source node
      * @param sourceFile The source file path
+     * @param affectedCount The number of declarations this issue counts against the score — for
+     *                      most checks the size of {@code affectedElements}; for checks whose
+     *                      list holds descriptive lines (variants, locations, differences) the
+     *                      number of declarations involved
      */
     public record QualityIssue(
             IssueCategory category,
@@ -131,8 +135,19 @@ public class XsdQualityChecker {
             List<String> affectedElements,
             XsdNode sourceNode,
             String xpath,
-            Path sourceFile
+            Path sourceFile,
+            int affectedCount
     ) {
+        /**
+         * Compatibility constructor: the number of failed checks equals the size of
+         * {@code affectedElements} (one entry per affected component).
+         */
+        public QualityIssue(IssueCategory category, IssueSeverity severity, String message, String suggestion,
+                            List<String> affectedElements, XsdNode sourceNode, String xpath, Path sourceFile) {
+            this(category, severity, message, suggestion, affectedElements, sourceNode, xpath, sourceFile,
+                    affectedElements != null ? affectedElements.size() : 0);
+        }
+
         /**
          * Creates a naming convention issue.
          */
@@ -184,10 +199,12 @@ public class XsdQualityChecker {
          * Creates an inconsistent definition issue (same name, different content).
          */
         public static QualityIssue inconsistentDefinitionIssue(String message, String suggestion,
-                                                                List<String> affected, XsdNode node) {
+                                                                List<String> affected, XsdNode node,
+                                                                int declarations) {
             String xpath = node != null ? node.getXPath() : null;
             Path sourceFile = getSourceFileFromNode(node);
-            return new QualityIssue(IssueCategory.INCONSISTENT_DEFINITION, IssueSeverity.WARNING, message, suggestion, affected, node, xpath, sourceFile);
+            return new QualityIssue(IssueCategory.INCONSISTENT_DEFINITION, IssueSeverity.WARNING, message, suggestion,
+                    affected, node, xpath, sourceFile, declarations);
         }
 
         /**
@@ -205,10 +222,12 @@ public class XsdQualityChecker {
          * This is a schema error as it creates ambiguous element ordering.
          */
         public static QualityIssue duplicateElementInContainerIssue(String message, String suggestion,
-                                                                     List<String> affected, XsdNode containerNode) {
+                                                                     List<String> affected, XsdNode containerNode,
+                                                                     int occurrences) {
             String xpath = containerNode != null ? containerNode.getXPath() : null;
             Path sourceFile = getSourceFileFromNode(containerNode);
-            return new QualityIssue(IssueCategory.DUPLICATE_ELEMENT_IN_CONTAINER, IssueSeverity.ERROR, message, suggestion, affected, containerNode, xpath, sourceFile);
+            return new QualityIssue(IssueCategory.DUPLICATE_ELEMENT_IN_CONTAINER, IssueSeverity.ERROR, message, suggestion,
+                    affected, containerNode, xpath, sourceFile, occurrences);
         }
 
         /**
@@ -379,11 +398,13 @@ public class XsdQualityChecker {
 
         // Calculate score
         int totalChecks = calculateTotalChecks(namingByConvention);
-        // Errors/warnings can affect more elements than there are naming checks; clamp so the
-        // "x of y checks passed" figure never goes negative.
+        // Each ERROR/WARNING counts its affected declarations (affectedCount — never the descriptive
+        // lines some checks keep in affectedElements). Errors/warnings can still affect more
+        // declarations than there are naming checks; clamp so the "x of y checks passed" figure
+        // never goes negative.
         int failedChecks = issues.stream()
                 .filter(i -> i.severity() == IssueSeverity.ERROR || i.severity() == IssueSeverity.WARNING)
-                .mapToInt(i -> i.affectedElements().size())
+                .mapToInt(QualityIssue::affectedCount)
                 .sum();
         int passedChecks = Math.max(0, totalChecks - failedChecks);
         int score = totalChecks > 0 ? Math.max(0, Math.min(100, (passedChecks * 100) / totalChecks)) : 100;
@@ -843,7 +864,8 @@ public class XsdQualityChecker {
                         "Multiple definitions of '" + name + "' with different content (" + bySignature.size() + " variants)",
                         "Consider unifying the definitions or using different names to clarify intent",
                         affected,
-                        firstNode
+                        firstNode,
+                        nodes.size()
                 ));
             }
         }
@@ -1184,7 +1206,8 @@ public class XsdQualityChecker {
                         "Remove one of the duplicate element definitions or rename one to create distinct elements. " +
                                 "Duplicate elements in a " + containerType + " cause validation ambiguity.",
                         affected,
-                        container
+                        container,
+                        elements.size()
                 ));
             }
         }

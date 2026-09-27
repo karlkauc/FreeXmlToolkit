@@ -312,7 +312,7 @@ public final class SchemaAnalysisReport {
         for (QualityIssue issue : sorted) {
             issues.add(ReportRow.withTone(tone(issue.severity()),
                     issue.severity().name(), AnalysisSupport.titleCase(issue.category()), issue.message(), issue.suggestion(),
-                    issue.xpath(), issue.getSourceFileName(), issue.affectedElements().size(),
+                    issue.xpath(), issue.getSourceFileName(), issue.affectedCount(),
                     String.join("; ", issue.affectedElements())));
         }
         return new ReportSection(QUALITY, "Quality checks", facts, List.of(

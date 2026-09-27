@@ -905,4 +905,58 @@ class XsdQualityCheckerTest {
             assertTrue(issues.stream().allMatch(i -> i.severity() == IssueSeverity.SUGGESTION));
         }
     }
+
+    @Nested
+    @DisplayName("Score weighting")
+    class ScoreWeightingTests {
+
+        @Test
+        @DisplayName("an inconsistent definition counts its declarations, not its description lines")
+        void inconsistentDefinitionWeighsDeclarations() throws Exception {
+            // 12 UpperCamelCase names checked; 'Value' is declared twice with different types.
+            StringBuilder body = new StringBuilder();
+            for (int i = 0; i < 10; i++) {
+                body.append("<xs:element name=\"Fine").append(i).append("\" type=\"xs:string\"/>");
+            }
+            body.append("<xs:complexType name=\"A\"><xs:sequence><xs:element name=\"Value\" type=\"xs:string\"/></xs:sequence></xs:complexType>");
+            body.append("<xs:complexType name=\"B\"><xs:sequence><xs:element name=\"Value\" type=\"xs:int\"/></xs:sequence></xs:complexType>");
+            XsdSchema parsed = new XsdNodeFactory().fromString(
+                    "<xs:schema xmlns:xs=\"http://www.w3.org/2001/XMLSchema\">" + body + "</xs:schema>");
+            QualityResult result = new XsdQualityChecker(parsed).check();
+
+            QualityIssue issue = result.issues().stream()
+                    .filter(i -> i.category() == IssueCategory.INCONSISTENT_DEFINITION).findFirst().orElseThrow();
+            assertEquals(2, issue.affectedCount(), "two declarations of 'Value'");
+            assertTrue(issue.affectedElements().size() > 2, "the description keeps its variant/location lines");
+            assertEquals(result.totalChecks() - 2, result.passedChecks());
+            assertTrue(result.score() >= 80, "score " + result.score());
+        }
+
+        @Test
+        @DisplayName("a duplicate element in a container counts its occurrences")
+        void duplicateElementWeighsOccurrences() throws Exception {
+            XsdSchema parsed = new XsdNodeFactory().fromString("""
+                    <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                      <xs:complexType name="T"><xs:sequence>
+                        <xs:element name="Dup" type="xs:string"/>
+                        <xs:element name="Other" type="xs:string"/>
+                        <xs:element name="Dup" type="xs:string"/>
+                      </xs:sequence></xs:complexType>
+                    </xs:schema>
+                    """);
+            QualityResult result = new XsdQualityChecker(parsed).check();
+            QualityIssue issue = result.issues().stream()
+                    .filter(i -> i.category() == IssueCategory.DUPLICATE_ELEMENT_IN_CONTAINER).findFirst().orElseThrow();
+            assertEquals(2, issue.affectedCount());
+            assertEquals(3, issue.affectedElements().size(), "headline + two locations");
+        }
+
+        @Test
+        @DisplayName("the compatibility constructor derives affectedCount from the list size")
+        void compatibilityConstructor() {
+            QualityIssue issue = new QualityIssue(IssueCategory.BEST_PRACTICE, IssueSeverity.INFO, "m", null,
+                    List.of("a", "b", "c"), null, null, null);
+            assertEquals(3, issue.affectedCount());
+        }
+    }
 }
