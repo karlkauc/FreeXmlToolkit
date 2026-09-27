@@ -26,7 +26,7 @@ When you open an `.xsd` file in the [Unified Shell](unified-shell.md), the edito
 | **Type Library**          | Browse and analyze all types in your schema             |
 | **Type Editor**           | Edit ComplexTypes and SimpleTypes graphically           |
 | **Text View**             | Raw XSD source code editor                              |
-| **Schema Analysis**       | Statistics, constraints, validation, and quality checks |
+| **Schema Analysis**       | Statistics, type library with unused-component cleanup, quality checks, identity constraints and XPath validation - exportable as CSV / JSON / HTML / PDF / Excel |
 | **Documentation**         | Generate HTML, Word, or PDF documentation               |
 | **Preview**               | The editor's Preview view renders HTML files, e.g. generated documentation opened in the shell |
 | **Generate Example Data** | Create sample XML from schema with customizable rules and profiles |
@@ -141,7 +141,7 @@ top-level declarations so you can browse, find, and open every type in the schem
 | **Reveal in Tree**    | Click a declaration to reveal it in the schema's Tree view           |
 | **Open Type Editor**  | Double-click a type to open it in its own [Type Editor](#3-type-editor) tab |
 | **Find Usage**        | Right-click a type to find the places where it is used              |
-| **Schema tools**      | A strip of icon buttons above the filter: Generate XSD from XML (single/batch), Generate Sample XML (plain/advanced), Flatten Schema, Schema Analysis, and Generate Documentation - hover a button for its name |
+| **Schema tools**      | Labelled rows in the collapsible **TOOLS** section above the filter: Generate XSD from XML (single/batch), Generate Sample XML (plain/advanced), Flatten Schema, Schema Analysis, and Generate Documentation |
 
 ### How to Use
 
@@ -268,7 +268,7 @@ For the selected schema node you can edit:
 
 ## 5. Schema Analysis
 
-The **Schema Analysis** button in the **Schema** activity's tool strip analyzes the active XSD
+The **Schema Analysis** row in the **Schema** panel's **TOOLS** section analyzes the active XSD
 and opens the report as a tool tab in the editor area. The analysis runs in the background on
 the current editor text (unsaved changes included); imports and includes are resolved relative
 to the file. The header shows the document, the quality score, the number of issues, the
@@ -328,9 +328,9 @@ documentation.
 
 Selecting a row reveals the component in the Tree view and fills the **Used in** list with
 every reference to it (element and attribute types, base types, list item and union member
-types, `ref`s, `substitutionGroup`s - including references from imported schemas, marked
-`[import]`); selecting a usage reveals the referring node. The **Documentation** box shows the
-full documentation text.
+types, `ref`s, `substitutionGroup`s - references from included files are marked with the file
+name, references from imported schemas with `[import]`); selecting a usage reveals the
+referring node. The **Documentation** box shows the full documentation text.
 
 **Remove unused (N)…** deletes every unreachable component of the analyzed document in one
 step: a confirmation lists what will be removed; components declared in included files are
@@ -350,18 +350,18 @@ Select an issue to read its suggestion and location and to jump to the affected 
 
 | Check                              | Severity        | Description                                                        |
 |------------------------------------|-----------------|--------------------------------------------------------------------|
-| **Naming Convention**              | Warning         | Element/type names that deviate from the schema's dominant convention (UpperCamelCase, lowerCamelCase, snake_case, kebab-case) |
+| **Naming Convention**              | Warning         | Element, attribute, type and group names that deviate from the schema's dominant convention (UpperCamelCase, lowerCamelCase, snake_case, kebab-case) |
 | **Best Practice**                  | Info / Warning  | `xs:any` / `xs:anyAttribute` wildcards, unbounded content without limits, deep nesting, anonymous complex types |
 | **Deprecated**                     | Warning         | Components marked as deprecated in `xs:appinfo`                     |
 | **Constraint Conflict**            | Error           | Enumeration values that conflict with length facets                |
 | **Inconsistent Definition**        | Warning         | The same name defined with different content in several places    |
 | **Duplicate Definition**           | Info            | Different names with identical structure                            |
 | **Duplicate Element in Container** | Error           | The same element declared twice in one sequence, choice, or all (ambiguity error) |
-| **Unresolved Reference**           | Error           | A `type`, `ref`, `base`, `itemType`, `memberTypes` or `substitutionGroup` naming a component that is declared nowhere (built-ins and foreign-namespace prefixes are ignored) |
+| **Unresolved Reference**           | Error           | A `type`, `ref`, `base`, `itemType`, `memberTypes`, `substitutionGroup` or XSD 1.1 `alternative` type naming a component that is declared nowhere (XSD built-ins, prefixes bound to other namespaces and unknown prefixes are ignored) |
 | **Circular Reference**             | Error / Info    | A type deriving from itself, directly or indirectly (error); a recursive content model (info) |
 | **Unused Component**               | Info            | A named type, group or attribute group that nothing references, or that is only referenced from other unused components |
 | **Missing Documentation**          | Suggestion      | A global component without `xs:documentation`                       |
-| **Inline Candidate**               | Suggestion      | A named type used exactly once as an element or attribute type - could be declared inline |
+| **Inline Candidate**               | Suggestion      | A named type used exactly once as an element or attribute type - could be declared inline (abstract types and types from included files are not suggested) |
 
 The score counts only **Error** and **Warning** issues, so the informational checks (unused
 components, recursion, missing documentation, inline candidates) never lower it; documentation
@@ -413,7 +413,7 @@ Create professional documentation from your XSD file automatically.
 ### How to Generate Documentation
 
 1. Open your XSD file in the editor host
-2. Click **Generate Documentation…** in the **Schema** panel's tool strip (or pick it from
+2. Click **Generate Documentation…** in the **Schema** panel's **TOOLS** section (or pick it from
    the editor toolbar's **Schema ▾** menu) - the generator opens as a tab in the editor area
 3. Check **SOURCE & OUTPUT**: the active schema is pre-filled; choose the output folder
    (HTML) or file (PDF/Word)
