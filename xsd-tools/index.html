@@ -3523,9 +3523,12 @@ Select an issue to read its suggestion and location and to jump to the affected 
 </tr>
 </tbody>
 </table>
-<p>The score counts only <strong>Error</strong> and <strong>Warning</strong> issues, so the informational checks (unused
-components, recursion, missing documentation, inline candidates) never lower it; documentation
-coverage has its own percentage on the Statistics tab.</p>
+<p>The score is the share of checked declarations (every named element, attribute, type and
+group) that no <strong>Error</strong> or <strong>Warning</strong> counts against: a naming deviation or a deep nesting
+costs one declaration, an inconsistent definition costs every declaration of that name, a
+duplicate element every occurrence. The informational checks (unused components, recursion,
+missing documentation, inline candidates) never lower it; documentation coverage has its own
+percentage on the Statistics tab.</p>
 <h3 id="identity-constraints">Identity Constraints<a class="headerlink" href="#identity-constraints" title="Permanent link">&para;</a></h3>
 <p>The <strong>Identity Constraints</strong> tab lists every <code>xs:key</code>, <code>xs:keyref</code>, <code>xs:unique</code>, and
 <code>xs:assert</code> with its parent element, selector, fields, referenced key or test expression, and a
