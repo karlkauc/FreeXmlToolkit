@@ -1,11 +1,13 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.analysis;
 
 import java.nio.file.Path;
+import java.util.List;
 
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdIdentityConstraintAnalyzer;
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdQualityChecker;
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdStatistics;
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdXPathValidator;
+import org.fxt.freexmltoolkit.controls.v2.editor.usage.ComponentInfo;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 
 /**
@@ -19,6 +21,7 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
  * @param quality      quality checks (score, naming, best practices, duplicates …)
  * @param constraints  identity constraints (key / keyref / unique / assert)
  * @param xpath        validation of the XPath expressions used by those constraints
+ * @param components   every global type / group / attribute group with its usage locations
  */
 public record SchemaAnalysisData(String documentName,
                                  Path path,
@@ -26,5 +29,15 @@ public record SchemaAnalysisData(String documentName,
                                  XsdStatistics statistics,
                                  XsdQualityChecker.QualityResult quality,
                                  XsdIdentityConstraintAnalyzer.AnalysisResult constraints,
-                                 XsdXPathValidator.ValidationResult xpath) {
+                                 XsdXPathValidator.ValidationResult xpath,
+                                 List<ComponentInfo> components) {
+
+    public SchemaAnalysisData {
+        components = components == null ? List.of() : List.copyOf(components);
+    }
+
+    /** @return the components no global element or attribute reaches (the removable set). */
+    public List<ComponentInfo> unreachableComponents() {
+        return components.stream().filter(ComponentInfo::unreachable).toList();
+    }
 }

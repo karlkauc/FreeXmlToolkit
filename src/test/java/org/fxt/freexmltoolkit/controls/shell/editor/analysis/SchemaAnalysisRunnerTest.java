@@ -70,6 +70,19 @@ class SchemaAnalysisRunnerTest {
         // The validator only records XPaths with findings; well-formed selectors/fields yield none.
         assertTrue(data.xpath().isAllValid(), data.xpath().issues().toString());
         assertEquals(0, data.xpath().errorCount());
+
+        // Types tab rows: both named types, with usage locations for the used one
+        assertEquals(2, data.components().size(), data.components().toString());
+        var person = data.components().stream().filter(c -> c.name().equals("PersonType")).findFirst().orElseThrow();
+        assertEquals(1, person.usageCount());
+        assertFalse(person.unreachable());
+        assertEquals(1, person.usages().size());
+        assertTrue(person.usages().getFirst().referrerXPath().contains("xs:element[@name='person']"),
+                person.usages().getFirst().referrerXPath());
+        var orphan = data.components().stream().filter(c -> c.name().equals("OrphanType")).findFirst().orElseThrow();
+        assertTrue(orphan.isUnused());
+        assertTrue(orphan.unreachable());
+        assertEquals(java.util.List.of(orphan), data.unreachableComponents());
     }
 
     @Test
