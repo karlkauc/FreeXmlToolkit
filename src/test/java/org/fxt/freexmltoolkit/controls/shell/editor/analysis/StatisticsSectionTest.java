@@ -64,4 +64,14 @@ class StatisticsSectionTest {
         assertEquals("Folder", StatisticsSection.firstMember("containment Folder → FolderType → Folder"));
         assertEquals("Node", StatisticsSection.firstMember("derivation Node → Node"));
     }
+
+    @Test
+    void nestingLimitPreferenceParsesAndClamps() {
+        assertEquals(5, NestingLimitPreference.parse(null));
+        assertEquals(5, NestingLimitPreference.parse(" "));
+        assertEquals(5, NestingLimitPreference.parse("abc"));
+        assertEquals(8, NestingLimitPreference.parse(" 8 "));
+        assertEquals(NestingLimitPreference.MIN, NestingLimitPreference.parse("0"));
+        assertEquals(NestingLimitPreference.MAX, NestingLimitPreference.parse("999"));
+    }
 }

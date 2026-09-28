@@ -46,8 +46,12 @@ public class XsdQualityChecker {
 
     private static final Logger logger = LogManager.getLogger(XsdQualityChecker.class);
 
+    /** Default limit of the deep-nesting check: element levels nested lexically inside one declaration. */
+    public static final int DEFAULT_MAX_ELEMENT_NESTING = 5;
+
     private final XsdSchema schema;
     private SchemaReferenceGraph graph;
+    private int maxElementNesting = DEFAULT_MAX_ELEMENT_NESTING;
 
     // Naming patterns
     private static final Pattern CAMEL_CASE = Pattern.compile("^[A-Z][a-zA-Z0-9]*$");
@@ -125,7 +129,8 @@ public class XsdQualityChecker {
      * @param affectedCount The number of declarations this issue counts against the score — for
      *                      most checks the size of {@code affectedElements}; for checks whose
      *                      list holds descriptive lines (variants, locations, differences) the
-     *                      number of declarations involved
+     *                      number of declarations at fault (inconsistent definitions: those
+     *                      deviating from the most frequent variant)
      */
     public record QualityIssue(
             IssueCategory category,
@@ -200,11 +205,11 @@ public class XsdQualityChecker {
          */
         public static QualityIssue inconsistentDefinitionIssue(String message, String suggestion,
                                                                 List<String> affected, XsdNode node,
-                                                                int declarations) {
+                                                                int deviatingDeclarations) {
             String xpath = node != null ? node.getXPath() : null;
             Path sourceFile = getSourceFileFromNode(node);
             return new QualityIssue(IssueCategory.INCONSISTENT_DEFINITION, IssueSeverity.WARNING, message, suggestion,
-                    affected, node, xpath, sourceFile, declarations);
+                    affected, node, xpath, sourceFile, Math.max(1, deviatingDeclarations));
         }
 
         /**
@@ -337,6 +342,23 @@ public class XsdQualityChecker {
     }
 
     /**
+     * Sets the deep-nesting limit: an element nested more than {@code levels} element levels deep
+     * inside one global declaration (anonymous types only — type references start a new
+     * declaration) is reported. Values below 1 are raised to 1.
+     *
+     * @return this checker
+     */
+    public XsdQualityChecker setMaxElementNesting(int levels) {
+        this.maxElementNesting = Math.max(1, levels);
+        return this;
+    }
+
+    /** @return the deep-nesting limit in element levels. */
+    public int getMaxElementNesting() {
+        return maxElementNesting;
+    }
+
+    /**
      * Runs all quality checks.
      *
      * @return the quality check result
@@ -427,10 +449,13 @@ public class XsdQualityChecker {
      */
     private void traverseAndCheck(XsdNode node, Map<NamingConvention, List<String>> namingByConvention,
                                   List<QualityIssue> issues, List<QualityIssue> deprecatedIssues,
-                                  Set<String> visitedIds, int depth) {
+                                  Set<String> visitedIds, int parentElementLevel) {
         if (node == null) {
             return;
         }
+        // Element nesting level: 1 for an element directly under xs:schema or directly in a
+        // named type/group, +1 for every element declared inside an element's anonymous type.
+        int elementLevel = node instanceof XsdElement ? parentElementLevel + 1 : parentElementLevel;
 
         String nodeId = node.getId();
         if (nodeId != null && visitedIds.contains(nodeId)) {
@@ -452,14 +477,14 @@ public class XsdQualityChecker {
         checkDeprecated(node, deprecatedIssues);
 
         // Best practice checks
-        checkBestPractices(node, issues, depth);
+        checkBestPractices(node, issues, elementLevel);
 
         // Check for length/enumeration conflicts
         checkLengthEnumerationConflict(node, issues);
 
         // Recurse to children
         for (XsdNode child : node.getChildren()) {
-            traverseAndCheck(child, namingByConvention, issues, deprecatedIssues, visitedIds, depth + 1);
+            traverseAndCheck(child, namingByConvention, issues, deprecatedIssues, visitedIds, elementLevel);
         }
     }
 
@@ -586,7 +611,7 @@ public class XsdQualityChecker {
     /**
      * Checks best practices.
      */
-    private void checkBestPractices(XsdNode node, List<QualityIssue> issues, int depth) {
+    private void checkBestPractices(XsdNode node, List<QualityIssue> issues, int elementLevel) {
         // Check for xs:any or xs:anyAttribute
         if (node instanceof XsdAny) {
             issues.add(QualityIssue.bestPracticeIssue(
@@ -619,14 +644,16 @@ public class XsdQualityChecker {
             ));
         }
 
-        // Check for deep nesting (depth > 10)
-        if (depth > 10 && (node instanceof XsdElement || node instanceof XsdComplexType)) {
+        // Deep nesting: elements declared more than maxElementNesting element levels deep
+        // inside one declaration (anonymous "Russian doll" types)
+        if (node instanceof XsdElement element && elementLevel > maxElementNesting) {
             issues.add(QualityIssue.bestPracticeIssue(
                     IssueSeverity.WARNING,
-                    "Deep nesting detected (depth=" + depth + ")",
-                    "Consider flattening the schema structure",
-                    List.of(node.getName() != null ? node.getName() : node.getNodeType().name()),
-                    node
+                    "Element '" + element.getName() + "' is nested " + elementLevel
+                            + " element levels deep (limit " + maxElementNesting + ")",
+                    "Extract the inner content model into a named complex type and reference it",
+                    List.of(element.getName() != null ? element.getName() : "element"),
+                    element
             ));
         }
 
@@ -865,7 +892,9 @@ public class XsdQualityChecker {
                         "Consider unifying the definitions or using different names to clarify intent",
                         affected,
                         firstNode,
-                        nodes.size()
+                        // Only the declarations deviating from the most frequent variant count
+                        // against the score; the majority variant is the baseline.
+                        nodes.size() - bySignature.values().stream().mapToInt(List::size).max().orElse(0)
                 ));
             }
         }

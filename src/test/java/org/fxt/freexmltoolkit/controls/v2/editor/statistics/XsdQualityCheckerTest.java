@@ -926,10 +926,26 @@ class XsdQualityCheckerTest {
 
             QualityIssue issue = result.issues().stream()
                     .filter(i -> i.category() == IssueCategory.INCONSISTENT_DEFINITION).findFirst().orElseThrow();
-            assertEquals(2, issue.affectedCount(), "two declarations of 'Value'");
+            assertEquals(1, issue.affectedCount(), "one declaration deviates from the (equally frequent) baseline");
             assertTrue(issue.affectedElements().size() > 2, "the description keeps its variant/location lines");
-            assertEquals(result.totalChecks() - 2, result.passedChecks());
-            assertTrue(result.score() >= 80, "score " + result.score());
+            assertEquals(result.totalChecks() - 1, result.passedChecks());
+            assertTrue(result.score() >= 90, "score " + result.score());
+        }
+
+        @Test
+        @DisplayName("only declarations deviating from the most frequent variant count")
+        void inconsistentDefinitionCountsDeviationsFromMajority() throws Exception {
+            StringBuilder body = new StringBuilder();
+            for (String type : List.of("A", "B", "C", "D")) {
+                String valueType = type.equals("D") ? "xs:int" : "xs:string";
+                body.append("<xs:complexType name=\"").append(type).append("\"><xs:sequence><xs:element name=\"Value\" type=\"")
+                        .append(valueType).append("\"/></xs:sequence></xs:complexType>");
+            }
+            XsdSchema parsed = new XsdNodeFactory().fromString(
+                    "<xs:schema xmlns:xs=\"http://www.w3.org/2001/XMLSchema\">" + body + "</xs:schema>");
+            QualityIssue issue = new XsdQualityChecker(parsed).check().issues().stream()
+                    .filter(i -> i.category() == IssueCategory.INCONSISTENT_DEFINITION).findFirst().orElseThrow();
+            assertEquals(1, issue.affectedCount(), "three xs:string declarations are the baseline, one xs:int deviates");
         }
 
         @Test
@@ -957,6 +973,61 @@ class XsdQualityCheckerTest {
             QualityIssue issue = new QualityIssue(IssueCategory.BEST_PRACTICE, IssueSeverity.INFO, "m", null,
                     List.of("a", "b", "c"), null, null, null);
             assertEquals(3, issue.affectedCount());
+        }
+    }
+
+    @Nested
+    @DisplayName("Deep nesting")
+    class DeepNestingTests {
+
+        /** Root > L2 > L3 > ... as anonymous types, {@code levels} element levels in total. */
+        private static XsdSchema nested(int levels) throws Exception {
+            StringBuilder xsd = new StringBuilder("<xs:schema xmlns:xs=\"http://www.w3.org/2001/XMLSchema\">");
+            for (int i = 1; i < levels; i++) {
+                xsd.append("<xs:element name=\"Level").append(i).append("\"><xs:complexType><xs:sequence>");
+            }
+            xsd.append("<xs:element name=\"Level").append(levels).append("\" type=\"xs:string\"/>");
+            for (int i = 1; i < levels; i++) {
+                xsd.append("</xs:sequence></xs:complexType></xs:element>");
+            }
+            return new XsdNodeFactory().fromString(xsd.append("</xs:schema>").toString());
+        }
+
+        private static List<QualityIssue> nesting(QualityResult result) {
+            return result.issues().stream()
+                    .filter(i -> i.category() == IssueCategory.BEST_PRACTICE && i.message().contains("nested")).toList();
+        }
+
+        @Test
+        @DisplayName("counts element levels, not compositor or type nodes; default limit is 5")
+        void defaultLimit() throws Exception {
+            assertEquals(5, XsdQualityChecker.DEFAULT_MAX_ELEMENT_NESTING);
+            assertTrue(nesting(new XsdQualityChecker(nested(5)).check()).isEmpty(), "five levels are within the limit");
+
+            List<QualityIssue> issues = nesting(new XsdQualityChecker(nested(7)).check());
+            assertEquals(2, issues.size(), "levels 6 and 7");
+            assertEquals("Element 'Level6' is nested 6 element levels deep (limit 5)", issues.get(0).message());
+            assertEquals(IssueSeverity.WARNING, issues.get(0).severity());
+            assertEquals(List.of("Level6"), issues.get(0).affectedElements());
+            assertTrue(issues.get(0).xpath().endsWith("xs:element[@name='Level6']"), issues.get(0).xpath());
+        }
+
+        @Test
+        @DisplayName("the limit is configurable and a type reference starts a new declaration")
+        void configurableLimit() throws Exception {
+            assertEquals(4, nesting(new XsdQualityChecker(nested(7)).setMaxElementNesting(3).check()).size());
+            assertTrue(nesting(new XsdQualityChecker(nested(7)).setMaxElementNesting(7).check()).isEmpty());
+            assertEquals(1, new XsdQualityChecker(nested(2)).setMaxElementNesting(0).getMaxElementNesting(), "raised to 1");
+
+            XsdSchema viaTypes = new XsdNodeFactory().fromString("""
+                    <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                      <xs:element name="Root" type="A"/>
+                      <xs:complexType name="A"><xs:sequence><xs:element name="InA" type="B"/></xs:sequence></xs:complexType>
+                      <xs:complexType name="B"><xs:sequence><xs:element name="InB" type="xs:string"/></xs:sequence></xs:complexType>
+                    </xs:schema>
+                    """);
+            assertTrue(nesting(new XsdQualityChecker(viaTypes).setMaxElementNesting(1).check()).isEmpty(),
+                    "named types keep every element at level 1");
         }
     }
 }

@@ -107,6 +107,10 @@ class SchemaAnalysisViewTest {
         FlowPane naming = (FlowPane) view.lookup("#analysis-quality-naming");
         assertNotNull(naming);
         assertFalse(naming.getChildren().isEmpty(), "naming convention chips");
+        javafx.scene.control.Spinner<Integer> limit =
+                (javafx.scene.control.Spinner<Integer>) view.lookup("#analysis-quality-nesting-limit");
+        assertNotNull(limit, "deep-nesting limit spinner");
+        assertTrue(limit.getValue() >= NestingLimitPreference.MIN && limit.getValue() <= NestingLimitPreference.MAX);
     }
 
     @Test

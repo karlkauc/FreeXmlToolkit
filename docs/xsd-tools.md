@@ -351,7 +351,7 @@ Select an issue to read its suggestion and location and to jump to the affected 
 | Check                              | Severity        | Description                                                        |
 |------------------------------------|-----------------|--------------------------------------------------------------------|
 | **Naming Convention**              | Warning         | Element, attribute, type and group names that deviate from the schema's dominant convention (UpperCamelCase, lowerCamelCase, snake_case, kebab-case) |
-| **Best Practice**                  | Info / Warning  | `xs:any` / `xs:anyAttribute` wildcards, unbounded content without limits, deep nesting, anonymous complex types |
+| **Best Practice**                  | Info / Warning / Suggestion | `xs:any` / `xs:anyAttribute` wildcards and unbounded content without limits (info), elements nested deeper than the **Max nesting** limit (warning), anonymous complex types (suggestion) |
 | **Deprecated**                     | Warning         | Components marked as deprecated in `xs:appinfo`                     |
 | **Constraint Conflict**            | Error           | Enumeration values that conflict with length facets                |
 | **Inconsistent Definition**        | Warning         | The same name defined with different content in several places    |
@@ -363,10 +363,16 @@ Select an issue to read its suggestion and location and to jump to the affected 
 | **Missing Documentation**          | Suggestion      | A global component without `xs:documentation`                       |
 | **Inline Candidate**               | Suggestion      | A named type used exactly once as an element or attribute type - could be declared inline (abstract types and types from included files are not suggested) |
 
+**Max nesting** (top right of the tab, default 5) is the limit of the deep-nesting check: it
+counts *element* levels declared inside one another through anonymous types - compositors and
+the types themselves do not count, and an element with a named type starts a new declaration.
+Changing the value re-runs the analysis; the setting is remembered.
+
 The score is the share of checked declarations (every named element, attribute, type and
-group) that no **Error** or **Warning** counts against: a naming deviation or a deep nesting
-costs one declaration, an inconsistent definition costs every declaration of that name, a
-duplicate element every occurrence. The informational checks (unused components, recursion,
+group) that no **Error** or **Warning** counts against: a naming deviation or a too deeply
+nested element costs one declaration, a duplicate element every occurrence, and an
+inconsistent definition the declarations that deviate from the most frequent variant of that
+name. The informational checks (unused components, recursion,
 missing documentation, inline candidates) never lower it; documentation coverage has its own
 percentage on the Statistics tab.
 

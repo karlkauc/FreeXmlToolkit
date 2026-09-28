@@ -97,6 +97,7 @@ public class SchemaAnalysisView extends BorderPane {
         statistics = new StatisticsSection(editorHost);
         types = new TypesSection(editorHost);
         quality = new QualitySection(editorHost);
+        quality.setOnNestingLimitChanged(this::refresh);
         constraints = new IdentityConstraintsSection(editorHost);
         xpath = new XPathSection(editorHost);
         tabs.setId("schema-analysis-tabs");
@@ -169,6 +170,7 @@ public class SchemaAnalysisView extends BorderPane {
         String text = documentText.get();
         String name = doc.getDisplayName();
         Path path = doc.getPath();
+        int nestingLimit = quality.nestingLimit();
         cancelRunning();
         showBusy(true);
         status.setText("Analyzing " + name + "…");
@@ -176,7 +178,7 @@ public class SchemaAnalysisView extends BorderPane {
             SchemaAnalysisData result = null;
             String outcome;
             try {
-                result = SchemaAnalysisRunner.analyze(text, name, path);
+                result = SchemaAnalysisRunner.analyze(text, name, path, nestingLimit);
                 outcome = null;
             } catch (InterruptedException | CancellationException e) {
                 outcome = "Cancelled.";

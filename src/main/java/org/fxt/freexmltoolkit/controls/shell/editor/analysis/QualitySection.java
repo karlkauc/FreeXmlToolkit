@@ -13,6 +13,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
+import javafx.scene.control.Spinner;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -60,6 +61,10 @@ final class QualitySection extends VBox {
     private final FilteredList<QualityIssue> filtered = new FilteredList<>(issues);
     private final TableView<QualityIssue> table = new TableView<>();
     private final VBox details = new VBox(4);
+    private final Spinner<Integer> nestingLimit = new Spinner<>(
+            NestingLimitPreference.MIN, NestingLimitPreference.MAX, NestingLimitPreference.load());
+    private Runnable onNestingLimitChanged = () -> { };
+    private boolean updatingLimit;
     private QualityResult result;
     private SchemaAnalysisData data;
 
@@ -70,8 +75,23 @@ final class QualitySection extends VBox {
 
         status.getStyleClass().add("fxt-placeholder-text");
         status.managedProperty().bind(status.textProperty().isNotEmpty());
+        nestingLimit.setId("analysis-quality-nesting-limit");
+        nestingLimit.setEditable(true);
+        nestingLimit.setPrefWidth(76);
+        nestingLimit.setTooltip(new Tooltip("Deep-nesting limit: elements nested more than this many element levels "
+                + "inside one declaration are reported. Changing it re-runs the analysis."));
+        nestingLimit.valueProperty().addListener((obs, o, n) -> {
+            if (n != null && !n.equals(o) && !updatingLimit) {
+                NestingLimitPreference.save(n);
+                onNestingLimitChanged.run();
+            }
+        });
+        Label nestingLabel = filterLabel("Max nesting");
+        Region toolbarSpacer = new Region();
+        HBox.setHgrow(toolbarSpacer, Priority.ALWAYS);
         HBox toolbar = new HBox(8, AnalysisSupport.reportMenu("Schema Quality", status,
-                () -> data == null ? null : SchemaAnalysisReport.quality(data)), status);
+                () -> data == null ? null : SchemaAnalysisReport.quality(data)), status,
+                toolbarSpacer, nestingLabel, nestingLimit);
         toolbar.setAlignment(Pos.CENTER_LEFT);
 
         scoreTile.getStyleClass().add("fxt-analysis-score");
@@ -220,6 +240,17 @@ final class QualitySection extends VBox {
         showDetails(null);
         applyFilter();
         status.setText("");
+    }
+
+    /** Registers what to run (re-analysis) after the user changed the deep-nesting limit. */
+    void setOnNestingLimitChanged(Runnable action) {
+        this.onNestingLimitChanged = action != null ? action : () -> { };
+    }
+
+    /** @return the deep-nesting limit currently selected. */
+    int nestingLimit() {
+        Integer value = nestingLimit.getValue();
+        return value != null ? value : NestingLimitPreference.load();
     }
 
     private static Label filterLabel(String text) {

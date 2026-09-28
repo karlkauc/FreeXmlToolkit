@@ -33,6 +33,17 @@ public final class SchemaAnalysisRunner {
      * @throws Exception if the text is not a parseable XSD
      */
     public static SchemaAnalysisData analyze(String xsdText, String documentName, Path path) throws Exception {
+        return analyze(xsdText, documentName, path, XsdQualityChecker.DEFAULT_MAX_ELEMENT_NESTING);
+    }
+
+    /**
+     * As {@link #analyze(String, String, Path)} with an explicit deep-nesting limit.
+     *
+     * @param maxElementNesting element levels allowed inside one declaration before the
+     *                          quality check reports deep nesting
+     */
+    public static SchemaAnalysisData analyze(String xsdText, String documentName, Path path,
+                                             int maxElementNesting) throws Exception {
         XsdNodeFactory factory = new XsdNodeFactory();
         XsdSchema schema = path != null
                 ? factory.fromStringWithSchemaFile(xsdText, path, path.getParent())
@@ -40,7 +51,7 @@ public final class SchemaAnalysisRunner {
         SchemaReferenceGraph graph = SchemaReferenceGraph.build(schema);
         return new SchemaAnalysisData(documentName, path, schema,
                 new XsdStatisticsCollector(schema, graph).collect(),
-                new XsdQualityChecker(schema, graph).check(),
+                new XsdQualityChecker(schema, graph).setMaxElementNesting(maxElementNesting).check(),
                 new XsdIdentityConstraintAnalyzer(schema).analyze(),
                 new XsdXPathValidator(schema).validateAll(),
                 ComponentInfo.collect(graph));
