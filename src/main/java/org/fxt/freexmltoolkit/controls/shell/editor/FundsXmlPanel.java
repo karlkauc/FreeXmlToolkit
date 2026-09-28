@@ -50,10 +50,7 @@ public class FundsXmlPanel extends VBox {
 
     public FundsXmlPanel(EditorHost editorHost) {
         this.editorHost = editorHost;
-        getStyleClass().add("fxt-side-panel-content");
-
-        Label title = new Label("FUNDSXML");
-        title.getStyleClass().addAll("fxt-side-panel-title", "fxt-panel-title");
+        HBox header = SidePanelHeader.create("FUNDSXML");
         status.getStyleClass().add("fxt-placeholder-text");
         status.setWrapText(true);
         progress.setMaxWidth(Double.MAX_VALUE);
@@ -99,11 +96,14 @@ public class FundsXmlPanel extends VBox {
         VBox spacer = new VBox();
         VBox.setVgrow(spacer, Priority.ALWAYS);
 
-        getChildren().addAll(title,
+        VBox statusBox = new VBox(6, progress, status);
+        statusBox.getStyleClass().add("fxt-tp-section-body");
+
+        getChildren().addAll(header,
                 managementHeader, versionBox, management,
                 PanelActionList.section("VALIDATE", false, validation),
                 PanelActionList.section("DOCS & RESOURCES", false, docs),
-                spacer, progress, status);
+                spacer, statusBox);
 
         // Observe background downloads (startup sync, settings toggle, this panel's button).
         FundsXmlDownloadCoordinator coordinator = FundsXmlDownloadCoordinator.getInstance();

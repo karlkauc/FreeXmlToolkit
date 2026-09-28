@@ -25,7 +25,6 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.util.Duration;
@@ -108,19 +107,11 @@ public class TransformPanel extends VBox {
         getStyleClass().add("fxt-transform-panel");
 
         // --- header: TRANSFORM ........ ⋮ ---------------------------------
-        // Carries the shared side-panel-title class too: the shell convention (and
-        // UnifiedShellViewTest) identify the active panel's title by it.
-        Label title = new Label("TRANSFORM");
-        title.getStyleClass().addAll("fxt-side-panel-title", "fxt-vp-title", "fxt-panel-title");
-        Region headerSpacer = new Region();
-        HBox.setHgrow(headerSpacer, Priority.ALWAYS);
         overflowMenu.setId("transform-overflow");
         overflowMenu.setGraphic(icon("bi-three-dots-vertical", 15));
         overflowMenu.getStyleClass().add("fxt-vp-overflow");
         buildOverflowMenu();
-        HBox header = new HBox(title, headerSpacer, overflowMenu);
-        header.getStyleClass().add("fxt-vp-header");
-        header.setAlignment(Pos.CENTER_LEFT);
+        HBox header = SidePanelHeader.create("TRANSFORM", overflowMenu);
 
         // --- STYLESHEET -----------------------------------------------------
         xsltName.getStyleClass().addAll("fxt-vp-source-name", "fxt-vp-source-none");

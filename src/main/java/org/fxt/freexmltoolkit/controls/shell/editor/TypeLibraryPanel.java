@@ -6,7 +6,6 @@ import java.util.Locale;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.geometry.Pos;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
@@ -16,7 +15,6 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
@@ -60,13 +58,7 @@ public class TypeLibraryPanel extends VBox {
         getStyleClass().add("fxt-schema-panel");
 
         // --- header: SCHEMA -----------------------------------------------------
-        Label title = new Label("SCHEMA");
-        title.getStyleClass().addAll("fxt-side-panel-title", "fxt-vp-title", "fxt-panel-title");
-        Region headerSpacer = new Region();
-        HBox.setHgrow(headerSpacer, Priority.ALWAYS);
-        HBox header = new HBox(title, headerSpacer);
-        header.getStyleClass().add("fxt-vp-header");
-        header.setAlignment(Pos.CENTER_LEFT);
+        HBox header = SidePanelHeader.create("SCHEMA");
 
         // --- schema tools: labelled action rows in a TOOLS section above the filter ----
         tools = new PanelActionList(

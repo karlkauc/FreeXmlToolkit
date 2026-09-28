@@ -147,6 +147,24 @@ class UnifiedShellViewTest {
     }
 
     @Test
+    void everySidePanelUsesTheSharedHeaderSoTitlesLineUp() {
+        for (Activity activity : Activity.values()) {
+            if (activity == Activity.SETTINGS || activity == Activity.EXPLORER) {
+                continue; // Settings opens a main-area tab; Explorer is the startup default (re-select collapses)
+            }
+            WaitForAsyncUtils.waitForAsyncFx(5000, () -> shell.getSelectionModel().select(activity));
+            WaitForAsyncUtils.waitForFxEvents();
+            javafx.scene.Node title = shell.lookup(".fxt-side-panel-title");
+            assertNotNull(title, activity + " must have a panel title");
+            assertTrue(title.getParent().getStyleClass()
+                            .contains(org.fxt.freexmltoolkit.controls.shell.editor.SidePanelHeader.STYLE_CLASS),
+                    activity + " title must sit in the shared SidePanelHeader row");
+            assertTrue(title.getStyleClass().contains("fxt-panel-title"),
+                    activity + " title must take the workflow colour");
+        }
+    }
+
+    @Test
     void queryConsoleHiddenByDefaultAndTogglesOnAndOff() {
         WaitForAsyncUtils.waitForFxEvents();
         // Hidden by default: no QueryConsole in the scene graph and toggle state is off.

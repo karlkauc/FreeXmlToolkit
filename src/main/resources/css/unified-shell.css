@@ -165,6 +165,19 @@
     -fx-text-fill: -fxt-text-secondary;
 }
 
+/* Body below the shared panel header (SidePanelHeader) for panels whose content is a plain
+   form/list rather than collapsible sections: indented like .fxt-tp-section-body. */
+.fxt-side-panel-body {
+    -fx-padding: 2 14 14 14;
+    -fx-spacing: 8;
+}
+
+/* Scrolling panel bodies keep the panel surface (the modena viewport default is grey). */
+.fxt-side-panel .scroll-pane,
+.fxt-side-panel .scroll-pane > .viewport {
+    -fx-background-color: -fxt-bg-surface;
+}
+
 /* ----- Editor host (placeholder / welcome) ---------------------------- */
 .fxt-editor-host {
     -fx-background-color: -fxt-bg-canvas;
@@ -1729,8 +1742,13 @@
     -fx-background-color: -fxt-bg-surface;
 }
 
+/* The one side-panel header row (SidePanelHeader): fixed height, so panels with trailing
+   controls (⋮ overflow, Explorer's icon actions) and without line their titles up. */
 .fxt-vp-header {
-    -fx-padding: 8 8 2 16;
+    -fx-padding: 0 8 0 16;
+    -fx-min-height: 36;
+    -fx-pref-height: 36;
+    -fx-max-height: 36;
 }
 
 .fxt-vp-title {
@@ -2888,10 +2906,6 @@
     -fx-background-color: -fxt-bg-surface;
 }
 
-.fxt-sp-header {
-    -fx-padding: 14 12 13 16;
-}
-
 /* Explorer TOOLS blocks: a full-width file picker with its labelled action row beneath.
    The picker's left padding lines its icon up with the action rows' icons. */
 .fxt-explorer-picker-block {
@@ -2901,12 +2915,6 @@
 .fxt-explorer-picker {
     -fx-padding: 4 8 4 11;
     -fx-font-size: 12.5px;
-}
-
-.fxt-sp-title {
-    -fx-font-size: 11px;
-    -fx-font-weight: bold;
-    -fx-text-fill: -fxt-text-muted;
 }
 
 .fxt-sp-action {

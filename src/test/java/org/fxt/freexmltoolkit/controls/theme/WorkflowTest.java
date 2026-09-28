@@ -42,7 +42,7 @@ class WorkflowTest {
         // Distinct families for the three workspace activities and for the two schema activities
         // (user decision 2026-09-26, after seeing the shared colours in the app).
         assertEquals(Color.web("#4c5fd5"), Workflow.SEARCH.accent().color(DesignTokens.Theme.LIGHT));
-        assertEquals(Color.web("#9775fa"), Workflow.SEARCH.rail().color(DesignTokens.Theme.LIGHT));
+        assertEquals(Color.web("#748ffc"), Workflow.SEARCH.rail().color(DesignTokens.Theme.LIGHT));
         assertEquals(Color.web("#e69500"), Workflow.FAVORITES.accent().color(DesignTokens.Theme.LIGHT));
         assertEquals(Color.web("#9a6400"), Workflow.FAVORITES.fg().color(DesignTokens.Theme.LIGHT));
         assertEquals(Color.web("#be4bdb"), Workflow.SCHEMA_LIBRARY.accent().color(DesignTokens.Theme.LIGHT));

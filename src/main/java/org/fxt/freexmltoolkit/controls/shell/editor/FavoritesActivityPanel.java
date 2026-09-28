@@ -19,6 +19,7 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -72,10 +73,7 @@ public class FavoritesActivityPanel extends VBox {
 
     public FavoritesActivityPanel(EditorHost editorHost) {
         this.editorHost = editorHost;
-        getStyleClass().add("fxt-side-panel-content");
-
-        Label title = new Label("FAVORITES");
-        title.getStyleClass().addAll("fxt-side-panel-title", "fxt-panel-title");
+        HBox header = SidePanelHeader.create("FAVORITES");
 
         PanelActionList actions = new PanelActionList(
                 PanelAction.of("favorites-add-current", "bi-star", "Add current", this::addCurrent).color(ActionColor.CREATE),
@@ -141,7 +139,10 @@ public class FavoritesActivityPanel extends VBox {
         menu.setOnShowing(e -> rebuildMoveToMenu(moveTo));
         list.setContextMenu(menu);
 
-        getChildren().addAll(title, actions, search, list);
+        VBox body = new VBox(search, list);
+        body.getStyleClass().add("fxt-side-panel-body");
+        VBox.setVgrow(body, Priority.ALWAYS);
+        getChildren().addAll(header, actions, body);
         refresh();
     }
 

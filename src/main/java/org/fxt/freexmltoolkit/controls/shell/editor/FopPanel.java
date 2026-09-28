@@ -5,7 +5,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
 import javafx.application.Platform;
-import javafx.geometry.Pos;
 import javafx.geometry.Side;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -17,7 +16,6 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 
@@ -60,13 +58,7 @@ public class FopPanel extends VBox {
         getStyleClass().add("fxt-fop-panel");
 
         // --- header: PDF / FOP -------------------------------------------------
-        Label title = new Label("PDF / FOP");
-        title.getStyleClass().addAll("fxt-side-panel-title", "fxt-vp-title", "fxt-panel-title");
-        Region headerSpacer = new Region();
-        HBox.setHgrow(headerSpacer, Priority.ALWAYS);
-        HBox header = new HBox(title, headerSpacer);
-        header.getStyleClass().add("fxt-vp-header");
-        header.setAlignment(Pos.CENTER_LEFT);
+        HBox header = SidePanelHeader.create("PDF / FOP");
 
         // --- INPUT: XML (active editor or override) + XSL-FO stylesheet --------
         xmlName.setId("fop-xml-name");

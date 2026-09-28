@@ -117,8 +117,8 @@ public final class DesignTokens {
         WF_PDF_RAIL("-fxt-wf-pdf-rail", "#f783ac", "#f783ac"),
 
         WF_SIGNATURE_ACCENT("-fxt-wf-signature-accent", "#1098ad", "#4dd4e8"),
-        WF_SIGNATURE_FG("-fxt-wf-signature-fg", "#0b7285", "#4dd4e8"),
-        WF_SIGNATURE_FILL("-fxt-wf-signature-fill", "#0b7285", "#0b7285"),
+        WF_SIGNATURE_FG("-fxt-wf-signature-fg", "#0a7d96", "#4dd4e8"),
+        WF_SIGNATURE_FILL("-fxt-wf-signature-fill", "#0a7d96", "#0b7285"),
         WF_SIGNATURE_BG("-fxt-wf-signature-bg", "#e7f6f8", "#0e2a30"),
         WF_SIGNATURE_BORDER("-fxt-wf-signature-border", "#b9e3e9", "#1f4a53"),
         WF_SIGNATURE_RAIL("-fxt-wf-signature-rail", "#4dd4e8", "#4dd4e8"),
@@ -130,12 +130,12 @@ public final class DesignTokens {
         WF_FUNDSXML_BORDER("-fxt-wf-fundsxml-border", "#a8ecd6", "#1f5348"),
         WF_FUNDSXML_RAIL("-fxt-wf-fundsxml-rail", "#38d9a9", "#38d9a9"),
 
-        WF_SEARCH_ACCENT("-fxt-wf-search-accent", "#4c5fd5", "#9775fa"),
-        WF_SEARCH_FG("-fxt-wf-search-fg", "#3f51c9", "#9775fa"),
-        WF_SEARCH_FILL("-fxt-wf-search-fill", "#3f51c9", "#5b4fd6"),
+        WF_SEARCH_ACCENT("-fxt-wf-search-accent", "#4c5fd5", "#748ffc"),
+        WF_SEARCH_FG("-fxt-wf-search-fg", "#3f51c9", "#748ffc"),
+        WF_SEARCH_FILL("-fxt-wf-search-fill", "#3f51c9", "#4263eb"),
         WF_SEARCH_BG("-fxt-wf-search-bg", "#eceefc", "#1e1b45"),
         WF_SEARCH_BORDER("-fxt-wf-search-border", "#c5cbf5", "#3d3880"),
-        WF_SEARCH_RAIL("-fxt-wf-search-rail", "#9775fa", "#9775fa"),
+        WF_SEARCH_RAIL("-fxt-wf-search-rail", "#748ffc", "#748ffc"),
 
         WF_FAVORITES_ACCENT("-fxt-wf-favorites-accent", "#e69500", "#ffd43b"),
         WF_FAVORITES_FG("-fxt-wf-favorites-fg", "#9a6400", "#ffd43b"),

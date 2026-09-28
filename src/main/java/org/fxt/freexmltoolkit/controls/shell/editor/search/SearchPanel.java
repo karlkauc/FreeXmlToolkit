@@ -3,18 +3,16 @@ package org.fxt.freexmltoolkit.controls.shell.editor.search;
 import java.nio.file.Path;
 import java.util.function.Supplier;
 
-import javafx.geometry.Pos;
-import javafx.scene.control.Label;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost;
+import org.fxt.freexmltoolkit.controls.shell.editor.SidePanelHeader;
 
 /**
  * The Search activity side panel (VS-Code-style "Find in Files"). Hosts two
@@ -31,15 +29,9 @@ public class SearchPanel extends VBox {
     private final StackPane content = new StackPane();
 
     public SearchPanel(EditorHost editorHost, Supplier<Path> workspaceRoot) {
-        getStyleClass().addAll("fxt-side-panel-content", "fxt-search-panel");
+        getStyleClass().add("fxt-search-panel");
 
-        Label title = new Label("SEARCH");
-        title.getStyleClass().addAll("fxt-side-panel-title", "fxt-vp-title", "fxt-panel-title");
-        Region headerSpacer = new Region();
-        HBox.setHgrow(headerSpacer, Priority.ALWAYS);
-        HBox header = new HBox(title, headerSpacer);
-        header.getStyleClass().add("fxt-vp-header");
-        header.setAlignment(Pos.CENTER_LEFT);
+        HBox header = SidePanelHeader.create("SEARCH");
 
         // --- mode toggle: Text | XPath ----------------------------------------
         ToggleGroup modes = new ToggleGroup();
@@ -73,7 +65,10 @@ public class SearchPanel extends VBox {
         textToggle.setSelected(true);
         showMode(false);
 
-        getChildren().addAll(header, modeRow, content);
+        VBox body = new VBox(modeRow, content);
+        body.getStyleClass().add("fxt-side-panel-body");
+        VBox.setVgrow(body, Priority.ALWAYS);
+        getChildren().addAll(header, body);
     }
 
     private void showMode(boolean xpath) {

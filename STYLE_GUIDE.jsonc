@@ -57,7 +57,7 @@
     "workflowColors": {
       "families": {
         "workspace":      { "activities": "Explorer",             "hue": "brand blue", "accentLight": "#1373d9", "accentDark": "#4c9bf5" },
-        "search":         { "activities": "Search",               "hue": "indigo",     "accentLight": "#4c5fd5", "accentDark": "#9775fa" },
+        "search":         { "activities": "Search",               "hue": "indigo",     "accentLight": "#4c5fd5", "accentDark": "#748ffc" },
         "favorites":      { "activities": "Favorites",            "hue": "amber",      "accentLight": "#e69500", "accentDark": "#ffd43b" },
         "validation": { "activities": "Validation",                  "hue": "green",        "accentLight": "#2f9e44", "accentDark": "#51cf66" },
         "transform":  { "activities": "Transform",                   "hue": "brand orange", "accentLight": "#f08c2e", "accentDark": "#f59f46" },

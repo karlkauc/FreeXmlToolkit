@@ -74,17 +74,12 @@ public class ExplorerPanel extends VBox {
         getStyleClass().add("fxt-explorer-panel");
 
         // --- header: EXPLORER ... [new file][open folder][refresh] ----------
-        Label title = new Label("EXPLORER");
-        title.getStyleClass().addAll("fxt-side-panel-title", "fxt-sp-title", "fxt-panel-title");
-        Region headerSpacer = new Region();
-        HBox.setHgrow(headerSpacer, Priority.ALWAYS);
-        HBox header = new HBox(10, title, headerSpacer,
+        HBox header = SidePanelHeader.create("EXPLORER",
                 flatAction("explorer-new-file", "bi-file-earmark-plus", "New file", this::newFile),
                 flatAction("explorer-open-folder", "bi-folder-plus", "Open folder…", this::chooseFolder),
                 flatAction("explorer-refresh", "bi-arrow-clockwise", "Refresh workspace",
                         workspace::refresh));
-        header.getStyleClass().add("fxt-sp-header");
-        header.setAlignment(Pos.CENTER_LEFT);
+        header.setSpacing(10);
 
         // --- TOOLS: the three pickers, each with its labelled action row, + file actions
         fileActions = new PanelActionList(

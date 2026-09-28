@@ -875,15 +875,12 @@ public class UnifiedShellView extends BorderPane {
 
     /** A simple titled placeholder side panel (used for Settings' pointer and not-yet-built activities). */
     private static javafx.scene.Node hintPanel(String title, String hint) {
-        VBox panel = new VBox();
-        panel.getStyleClass().add("fxt-side-panel-content");
-        Label titleLabel = new Label(title);
-        titleLabel.getStyleClass().addAll("fxt-side-panel-title", "fxt-panel-title");
         Label hintLabel = new Label(hint);
         hintLabel.getStyleClass().add("fxt-placeholder-text");
         hintLabel.setWrapText(true);
-        panel.getChildren().addAll(titleLabel, hintLabel);
-        return panel;
+        VBox body = new VBox(hintLabel);
+        body.getStyleClass().add("fxt-side-panel-body");
+        return new VBox(org.fxt.freexmltoolkit.controls.shell.editor.SidePanelHeader.create(title), body);
     }
 
     /**

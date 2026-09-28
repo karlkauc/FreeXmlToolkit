@@ -5,7 +5,6 @@ import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
-import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.CheckBoxTableCell;
@@ -68,11 +67,7 @@ public class SchemaLibraryPanel extends VBox {
         this.xmlService = xmlService;
         getStyleClass().add("fxt-schema-library-panel");
 
-        Label title = new Label("SCHEMA LIBRARY");
-        title.getStyleClass().addAll("fxt-side-panel-title", "fxt-vp-title", "fxt-panel-title");
-        HBox header = new HBox(title);
-        header.getStyleClass().add("fxt-vp-header");
-        header.setAlignment(Pos.CENTER_LEFT);
+        HBox header = SidePanelHeader.create("SCHEMA LIBRARY");
 
         filtered = new FilteredList<>(library.getEntries());
         mappingsTab.setContent(buildMappingsTab());

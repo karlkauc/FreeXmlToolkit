@@ -5,6 +5,7 @@ import java.util.List;
 import javafx.application.Platform;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 import org.fxt.freexmltoolkit.FxtGui;
@@ -27,10 +28,7 @@ public class HelpPanel extends VBox {
     private final Label updateStatus = new Label();
 
     public HelpPanel() {
-        getStyleClass().add("fxt-side-panel-content");
-
-        Label title = new Label("HELP");
-        title.getStyleClass().addAll("fxt-side-panel-title", "fxt-panel-title");
+        HBox header = SidePanelHeader.create("HELP");
 
         Label appName = new Label("FreeXmlToolkit");
         appName.getStyleClass().add("fxt-welcome-headline");
@@ -71,7 +69,10 @@ public class HelpPanel extends VBox {
         updateStatus.getStyleClass().addAll("fxt-placeholder-text", "fxt-tp-section-body");
         updateStatus.setWrapText(true);
 
-        getChildren().addAll(title, appName, version, build, vendor,
+        VBox about = new VBox(4, appName, version, build, vendor);
+        about.getStyleClass().add("fxt-tp-section-body");
+
+        getChildren().addAll(header, about,
                 PanelActionList.section("PROJECT", false, project),
                 PanelActionList.section("DOCUMENTATION", false, docs),
                 PanelActionList.section("UPDATES", false, updates), updateStatus);
