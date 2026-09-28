@@ -260,6 +260,7 @@ public class XPathIntelliSenseEngine {
 
                 Window window = codeArea.getScene().getWindow();
                 popup.show(items, window, x, y);
+                org.fxt.freexmltoolkit.service.telemetry.EditStats.feature("xpath_completion_shown");
             } else {
                 // Fallback: show at scene position
                 Bounds sceneBounds = codeArea.localToScreen(codeArea.getBoundsInLocal());
@@ -280,6 +281,7 @@ public class XPathIntelliSenseEngine {
         if (item == null) {
             return;
         }
+        org.fxt.freexmltoolkit.service.telemetry.EditStats.feature("xpath_completion_accepted");
 
         String text = codeArea.getText();
         int caretPos = codeArea.getCaretPosition();

@@ -48,6 +48,18 @@ names.
 Identical errors are sent only once per session (with a repeat counter), and at most 30 error
 events are sent per session.
 
+### Launch, session and performance information
+
+| Event | What it contains |
+|-------|------------------|
+| `app_start` | Startup time in ms, `is_first_run`, `meta.channel` (`release` or `dev`), `meta.days_since_install` (whole days since the anonymous ID was created), `meta.package` (`installer`, `portable` or `none` — only the kind of installation, never its folder) and a snapshot of a few UI settings (`meta.set_theme`, `set_toolbar_labels`, `set_toolbar_icons`, `set_activity_labels`, `set_rendering`, `set_update_check`, `set_xml_autoformat`, `set_xsd_autosave`, `set_schema_autobind` — on/off values and fixed options only). |
+| `app_exit` | Session length, number of opened files, actions, side panels and the maximum number of open tabs, plus the peak and maximum Java heap rounded to 64 MB. |
+| `prev_session_crashed` | Sent at the next start when the previous session ended without a clean exit (crash, forced close). Contains only that session's anonymous ID and app version. The detection uses small marker files in `~/.freeXmlToolkit/sessions/`. |
+| `file_open`, `view_mode`, `validate`, `schema_analysis`, `schema_bind` | How long opening a document, switching to the Text/Tree/Graphic view, validating or analyzing took, and the document size. `schema_bind` tells how a schema was found for an opened document (`declared`, `library`, `catalog`, `manual` or `none`). |
+| `ui_stall` | The user interface did not respond for at least two seconds: the duration, the side panel and view mode that were active, and a stack signature of the blocked code (code locations only, as for errors). At most 10 per session. |
+| `ui_command`, `panel_action` | Which toolbar button, keyboard shortcut (e.g. `mod+s`), Welcome page card or side-panel action was used (fixed identifiers). |
+| `edit_summary` | Counts per session of editing commands in the structured editors (e.g. `add_element: 12`, `undo: 3`) and of IntelliSense suggestions shown/accepted — command names only, never element names, values or text. |
+
 ## What is never collected
 
 - File names, folder names or paths
@@ -82,7 +94,7 @@ deleted immediately.
 
 Administrators can disable telemetry completely by starting the application with the Java
 system property `-Dfxt.telemetry.disabled=true`, or by setting these keys in
-`FreeXmlToolkit.properties`:
+`~/.freeXmlToolkit/FreeXmlToolkit.properties`:
 
 ```properties
 telemetry.usage.enabled=false

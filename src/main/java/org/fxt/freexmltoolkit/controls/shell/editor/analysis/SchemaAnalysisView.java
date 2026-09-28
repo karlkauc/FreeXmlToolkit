@@ -177,15 +177,21 @@ public class SchemaAnalysisView extends BorderPane {
         running = FxtGui.executorService.submit(() -> {
             SchemaAnalysisData result = null;
             String outcome;
+            long t0 = System.nanoTime();
+            var usageStatus = org.fxt.freexmltoolkit.service.telemetry.TelemetryEvent.Status.OK;
             try {
                 result = SchemaAnalysisRunner.analyze(text, name, path, nestingLimit);
                 outcome = null;
             } catch (InterruptedException | CancellationException e) {
                 outcome = "Cancelled.";
+                usageStatus = org.fxt.freexmltoolkit.service.telemetry.TelemetryEvent.Status.CANCELLED;
             } catch (Throwable t) {
                 logger.warn("Schema analysis failed for {}", name, t);
                 outcome = "ERROR: " + (t.getMessage() != null ? t.getMessage() : t.toString());
+                usageStatus = org.fxt.freexmltoolkit.service.telemetry.TelemetryEvent.Status.ERROR;
             }
+            org.fxt.freexmltoolkit.service.telemetry.UsageEvents.schemaAnalyzed(
+                    text != null ? text.length() : -1, t0, usageStatus);
             SchemaAnalysisData finalResult = result;
             String finalOutcome = outcome;
             Platform.runLater(() -> {

@@ -173,6 +173,7 @@ public class EditorHost extends BorderPane {
                     }
                 }
             }
+            UsageEvents.openTabsChanged(tabPane.getTabs().size());
             updateCenter();
         });
         updateCenter();
@@ -189,6 +190,8 @@ public class EditorHost extends BorderPane {
                 activeSchemaSource.set(et.schemaSource);
                 activeSchemaSourceDetail.set(et.schemaSourceDetail);
                 activeViewMode.set(et.viewMode);
+                UsageEvents.activeDocumentChanged(et.document.getFileType().docKind(),
+                        et.viewMode != null ? et.viewMode.name().toLowerCase(java.util.Locale.ROOT) : null);
             } else {
                 activeSchema.set(null);
                 activeSchemaStatus.set(SchemaStatus.NONE);
@@ -410,12 +413,17 @@ public class EditorHost extends BorderPane {
     public void setActiveViewMode(ViewMode mode) {
         withActive(et -> {
             ViewMode before = et.viewMode;
+            long t0 = System.nanoTime();
             et.setViewMode(mode);
             activeViewMode.set(et.viewMode);
             refreshSelectedNode();
             if (et.viewMode != before && et.viewMode != null) {
-                UsageEvents.viewModeChanged(et.viewMode.name().toLowerCase(java.util.Locale.ROOT),
-                        et.document.getFileType().docKind());
+                String modeName = et.viewMode.name().toLowerCase(java.util.Locale.ROOT);
+                var kind = et.document.getFileType().docKind();
+                Path docPath = et.document.getPath();
+                // Measured on the next pulse, so layout/CSS work queued by the switch is included.
+                Platform.runLater(() -> UsageEvents.viewModeChanged(modeName, kind,
+                        docPath != null ? sizeOrUnknown(docPath) : -1, t0));
             }
         });
     }
@@ -2770,6 +2778,7 @@ public class EditorHost extends BorderPane {
     }
 
     private void loadAsync(EditorTab tab, Path path) {
+        long openStart = System.nanoTime();
         tab.beginLoading();
         tab.schemaBindingGen.incrementAndGet(); // supersede queued schema reconciles
         if (tab.view.supportsSchema()) {
@@ -2779,8 +2788,6 @@ public class EditorHost extends BorderPane {
             String content;
             try {
                 content = Files.readString(path, StandardCharsets.UTF_8);
-                UsageEvents.fileOpened(tab.document.getFileType().docKind(), sizeOrUnknown(path),
-                        UsageEvents.SOURCE_FILE);
             } catch (IOException e) {
                 Platform.runLater(() -> {
                     tab.view.setText("Could not read " + path + ": " + e.getMessage());
@@ -2804,6 +2811,8 @@ public class EditorHost extends BorderPane {
                 tab.endLoading();
                 tab.document.setDirty(false);
                 tab.attachDirtyTracking();
+                UsageEvents.fileOpened(tab.document.getFileType().docKind(), sizeOrUnknown(path),
+                        UsageEvents.SOURCE_FILE, openStart);
             });
 
             if (isAbandoned(tab)) {
@@ -2846,6 +2855,11 @@ public class EditorHost extends BorderPane {
                 publishSchemaStatus(tab, detection != null
                         ? detection.status()
                         : (tab.schemaFile != null ? SchemaStatus.READY : SchemaStatus.NONE));
+                if (detection != null && tab.view.supportsSchema()) {
+                    UsageEvents.schemaBound(tab.document.getFileType().docKind(),
+                            detection.source().name().toLowerCase(java.util.Locale.ROOT),
+                            detection.status() != SchemaStatus.ERROR, openStart);
+                }
             });
         });
     }

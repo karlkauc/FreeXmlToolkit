@@ -70,6 +70,83 @@ class UsageEventsTest {
     }
 
     @Test
+    void fileOpenedCarriesOpenDuration() {
+        UsageEvents.fileOpened(DocKind.XML, 10, UsageEvents.SOURCE_FILE, System.nanoTime() - 5_000_000L);
+        assertTrue(single("file_open").durationMs() >= 5);
+    }
+
+    @Test
+    void viewModeChangeCarriesRenderTimeAndSize() {
+        UsageEvents.viewModeChanged("graphic", DocKind.XSD, 8_000_000, System.nanoTime() - 3_000_000L);
+        TelemetryEvent e = single("view_mode");
+        assertEquals(8_000_000L, e.inputBytes());
+        assertTrue(e.durationMs() >= 3);
+        assertEquals("graphic", UsageEvents.uiContext().get("view_mode"));
+        assertEquals(DocKind.XSD, UsageEvents.activeDocKind());
+    }
+
+    @Test
+    void validationCarriesDocumentSize() {
+        UsageEvents.validated("xsd", DocKind.XML, 4096, 0, 0, false, false);
+        assertEquals(4096L, single("validate").inputBytes());
+    }
+
+    @Test
+    void schemaBindingReportsSource() {
+        UsageEvents.schemaBound(DocKind.XML, "library", true, 0);
+        TelemetryEvent e = single("schema_bind");
+        assertEquals("library", e.meta().get("source"));
+        assertEquals(TelemetryEvent.Status.OK, e.status());
+    }
+
+    @Test
+    void commandsAndPanelActionsCarryTheirEntryPoint() {
+        UsageEvents.command("validate", UsageEvents.VIA_TOOLBAR);
+        UsageEvents.command("mod+s", UsageEvents.VIA_SHORTCUT);
+        UsageEvents.command(" ", UsageEvents.VIA_SHORTCUT); // ignored
+        UsageEvents.panelAction("schema-tool-analysis");
+
+        List<TelemetryEvent> commands = telemetry.events("ui_command");
+        assertEquals(2, commands.size());
+        assertEquals("toolbar", commands.get(0).meta().get("via"));
+        assertEquals("mod+s", commands.get(1).meta().get("command"));
+        assertEquals("schema-tool-analysis", single("panel_action").meta().get("action"));
+    }
+
+    @Test
+    void sessionSummaryCountsFilesActionsActivitiesAndTabs() {
+        UsageEvents.fileOpened(DocKind.XML, 1, UsageEvents.SOURCE_FILE);
+        UsageEvents.formatted(DocKind.XML, true);
+        UsageEvents.activityOpened("explorer");
+        UsageEvents.activityOpened("schema");
+        UsageEvents.openTabsChanged(3);
+        UsageEvents.openTabsChanged(1);
+
+        telemetry.trackAppExit(java.time.Duration.ofSeconds(1), UsageEvents.sessionSummary());
+        TelemetryEvent e = single("app_exit");
+        assertEquals(1, ((Number) e.meta().get("files_opened")).intValue());
+        assertEquals(2, ((Number) e.meta().get("actions")).intValue());
+        assertEquals(2, ((Number) e.meta().get("activities")).intValue());
+        assertEquals(3, ((Number) e.meta().get("max_tabs")).intValue());
+        assertTrue(((Number) e.meta().get("heap_max_mb")).longValue() >= 64);
+    }
+
+    @Test
+    void heapIsRoundedTo64Mb() {
+        assertEquals(64, UsageEvents.roundMb(10L * 1024 * 1024));
+        assertEquals(1024, UsageEvents.roundMb(1000L * 1024 * 1024));
+        assertEquals(-1, UsageEvents.roundMb(0));
+    }
+
+    @Test
+    void schemaAnalysisIsRecorded() {
+        UsageEvents.schemaAnalyzed(500, 0, TelemetryEvent.Status.CANCELLED);
+        TelemetryEvent e = single("schema_analysis");
+        assertEquals(TelemetryEvent.Status.CANCELLED, e.status());
+        assertEquals(500L, e.inputBytes());
+    }
+
+    @Test
     void fileSavedIgnoresZeroCount() {
         UsageEvents.fileSaved(null, 0);
         UsageEvents.fileSaved(null, 3);

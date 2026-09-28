@@ -25,4 +25,9 @@ public class CommandManager extends AbstractCommandManager<XsdCommand> {
     public CommandManager(int historyLimit) {
         super(historyLimit);
     }
+
+    @Override
+    protected String telemetryDomain() {
+        return org.fxt.freexmltoolkit.service.telemetry.EditStats.DOMAIN_XSD;
+    }
 }

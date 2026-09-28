@@ -3,6 +3,7 @@ package org.fxt.freexmltoolkit.service.telemetry;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -44,6 +45,13 @@ public final class UsageEvents {
     private static volatile Supplier<UsageTrackingService> localSink = REGISTRY_SINK;
     private static final Set<String> seenActivities = ConcurrentHashMap.newKeySet();
     private static final Map<String, AtomicLong> lastLiveRun = new ConcurrentHashMap<>();
+    private static final AtomicInteger sessionFilesOpened = new AtomicInteger();
+    private static final AtomicInteger sessionActions = new AtomicInteger();
+    private static final AtomicInteger sessionMaxTabs = new AtomicInteger();
+    /** Last UI context (for {@code ui_stall} events): current activity, view mode, doc kind. */
+    private static volatile String currentActivity;
+    private static volatile String currentViewMode;
+    private static volatile DocKind currentDocKind;
 
     private UsageEvents() {
     }
@@ -59,11 +67,23 @@ public final class UsageEvents {
      * @param source     one of the {@code SOURCE_*} constants
      */
     public static void fileOpened(DocKind kind, long inputBytes, String source) {
+        fileOpened(kind, inputBytes, source, 0);
+    }
+
+    /**
+     * A document was opened.
+     *
+     * @param startNanos {@link System#nanoTime()} when opening started; the duration runs until
+     *                   the document is shown and editable ({@code 0} = not measured)
+     */
+    public static void fileOpened(DocKind kind, long inputBytes, String source, long startNanos) {
+        sessionFilesOpened.incrementAndGet();
         action("file_open", b -> {
             b.docKind(kind).meta("source", source);
             if (inputBytes >= 0) {
                 b.inputBytes(inputBytes);
             }
+            duration(b, startNanos);
         });
         if (!SOURCE_GENERATED.equals(source)) {
             local(UsageTrackingService::trackFileOpened);
@@ -80,7 +100,26 @@ public final class UsageEvents {
 
     /** The active document switched view mode ({@code text|tree|graphic|preview}). */
     public static void viewModeChanged(String mode, DocKind kind) {
-        send("view_mode", TelemetryEvent.Category.NAVIGATION, b -> b.docKind(kind).meta("mode", mode));
+        viewModeChanged(mode, kind, -1, 0);
+    }
+
+    /**
+     * The active document switched view mode.
+     *
+     * @param inputBytes document size (negative = unknown)
+     * @param startNanos when the switch started; the duration covers building the view
+     *                   ({@code 0} = not measured)
+     */
+    public static void viewModeChanged(String mode, DocKind kind, long inputBytes, long startNanos) {
+        currentViewMode = mode;
+        currentDocKind = kind;
+        send("view_mode", TelemetryEvent.Category.NAVIGATION, b -> {
+            b.docKind(kind).meta("mode", mode);
+            if (inputBytes >= 0) {
+                b.inputBytes(inputBytes);
+            }
+            duration(b, startNanos);
+        });
         if (kind == DocKind.XSD && ("tree".equals(mode) || "graphic".equals(mode))) {
             local(s -> s.trackFeatureUsed("xsd_visualization"));
         }
@@ -88,6 +127,9 @@ public final class UsageEvents {
 
     /** An activity (side panel) was opened; recorded once per activity per session. */
     public static void activityOpened(String activityId) {
+        if (activityId != null) {
+            currentActivity = activityId;
+        }
         if (activityId == null || !seenActivities.add(activityId)) {
             return;
         }
@@ -95,6 +137,43 @@ public final class UsageEvents {
         if ("favorites".equals(activityId)) {
             local(s -> s.trackFeatureUsed("favorites_system"));
         }
+    }
+
+    // ------------------------------------------------------------------ entry points
+
+    /** {@code meta.via} of {@link #command}: editor toolbar button. */
+    public static final String VIA_TOOLBAR = "toolbar";
+    /** {@code meta.via} of {@link #command}: keyboard shortcut. */
+    public static final String VIA_SHORTCUT = "shortcut";
+    /** {@code meta.via} of {@link #command}: Welcome page card. */
+    public static final String VIA_WELCOME = "welcome";
+    /** {@code meta.via} of {@link #command}: files dropped onto the window. */
+    public static final String VIA_DROP = "drop";
+
+    /**
+     * A shell command was invoked; tells how users reach features (toolbar vs. keyboard).
+     *
+     * @param command fixed command id, e.g. {@code validate}, {@code format}; for shortcuts the
+     *                normalized key combination, e.g. {@code mod+s}, {@code f8}
+     * @param via     one of the {@code VIA_*} constants
+     */
+    public static void command(String command, String via) {
+        if (command == null || command.isBlank()) {
+            return;
+        }
+        send("ui_command", TelemetryEvent.Category.ACTION, b -> b.meta("command", command).meta("via", via));
+    }
+
+    /**
+     * A side-panel action row was clicked.
+     *
+     * @param actionId the stable row id, e.g. {@code schema-tool-analysis}; its prefix names the panel
+     */
+    public static void panelAction(String actionId) {
+        if (actionId == null || actionId.isBlank()) {
+            return;
+        }
+        send("panel_action", TelemetryEvent.Category.ACTION, b -> b.meta("action", actionId));
     }
 
     // ------------------------------------------------------------------ validation
@@ -124,11 +203,24 @@ public final class UsageEvents {
      */
     public static void validated(String schema, DocKind kind, int errorCount, long startNanos,
                                  boolean failed, boolean live) {
+        validated(schema, kind, -1, errorCount, startNanos, failed, live);
+    }
+
+    /**
+     * A single document was validated.
+     *
+     * @param inputChars document size in characters (negative = unknown)
+     */
+    public static void validated(String schema, DocKind kind, long inputChars, int errorCount, long startNanos,
+                                 boolean failed, boolean live) {
         if (live && !liveRunDue("validate")) {
             return;
         }
         action("validate", b -> {
             b.docKind(kind).errorCount(errorCount).status(status(!failed)).meta("schema", schema);
+            if (inputChars >= 0) {
+                b.inputBytes(inputChars);
+            }
             duration(b, startNanos);
             if (live) {
                 b.meta("trigger", "live");
@@ -350,6 +442,22 @@ public final class UsageEvents {
         }
     }
 
+    /**
+     * The Schema Analysis tool ran.
+     *
+     * @param inputChars schema size in characters (negative = unknown)
+     * @param status     {@code OK}, {@code ERROR} or {@code CANCELLED}
+     */
+    public static void schemaAnalyzed(long inputChars, long startNanos, TelemetryEvent.Status status) {
+        action("schema_analysis", b -> {
+            b.docKind(DocKind.XSD).status(status);
+            if (inputChars >= 0) {
+                b.inputBytes(inputChars);
+            }
+            duration(b, startNanos);
+        });
+    }
+
     /** XSD(s) were generated from XML instance(s). */
     public static void xsdGenerated(int fileCount, long startNanos, boolean ok) {
         action("xsd_generate", b -> {
@@ -388,6 +496,19 @@ public final class UsageEvents {
     }
 
     /**
+     * Schema auto-detection finished for an opened document (XML family or JSON).
+     *
+     * @param source how the schema was found: {@code none | declared | library | catalog | manual}
+     * @param ok     false when a schema was referenced but could not be loaded
+     */
+    public static void schemaBound(DocKind kind, String source, boolean ok, long startNanos) {
+        action("schema_bind", b -> {
+            b.docKind(kind).status(status(ok)).meta("source", source);
+            duration(b, startNanos);
+        });
+    }
+
+    /**
      * An update check finished.
      *
      * @param trigger {@code startup | manual}
@@ -396,6 +517,91 @@ public final class UsageEvents {
     public static void updateCheck(String trigger, String result) {
         action("update_check", b -> b.meta("result", result).meta("trigger", trigger)
                 .status(UPDATE_ERROR.equals(result) ? TelemetryEvent.Status.ERROR : TelemetryEvent.Status.OK));
+    }
+
+    // ------------------------------------------------------------------ session summary
+
+    /** The number of open editor tabs changed (tracks the session maximum). */
+    public static void openTabsChanged(int openTabs) {
+        sessionMaxTabs.accumulateAndGet(openTabs, Math::max);
+    }
+
+    /**
+     * Customizer for the {@code app_exit} event: session counters ({@code files_opened},
+     * {@code actions}, {@code activities}, {@code max_tabs}) and heap usage in MB, rounded
+     * to 64 MB ({@code heap_peak_mb}, {@code heap_max_mb}).
+     */
+    public static Consumer<TelemetryEvent.Builder> sessionSummary() {
+        int files = sessionFilesOpened.get();
+        int actions = sessionActions.get();
+        int activities = seenActivities.size();
+        int maxTabs = sessionMaxTabs.get();
+        long peakMb = heapPeakMb();
+        long maxMb = roundMb(Runtime.getRuntime().maxMemory());
+        return b -> {
+            b.meta("files_opened", files).meta("actions", actions).meta("activities", activities)
+                    .meta("max_tabs", maxTabs);
+            if (peakMb > 0) {
+                b.meta("heap_peak_mb", peakMb);
+            }
+            if (maxMb > 0) {
+                b.meta("heap_max_mb", maxMb);
+            }
+        };
+    }
+
+    private static long heapPeakMb() {
+        try {
+            long peak = 0;
+            for (java.lang.management.MemoryPoolMXBean pool
+                    : java.lang.management.ManagementFactory.getMemoryPoolMXBeans()) {
+                if (pool.getType() == java.lang.management.MemoryType.HEAP && pool.getPeakUsage() != null) {
+                    peak += pool.getPeakUsage().getUsed();
+                }
+            }
+            return roundMb(peak);
+        } catch (Throwable t) {
+            return -1;
+        }
+    }
+
+    /** Bytes to MB, rounded to the nearest 64 MB (coarse on purpose). */
+    static long roundMb(long bytes) {
+        if (bytes <= 0 || bytes == Long.MAX_VALUE) {
+            return -1;
+        }
+        long mb = bytes / (1024 * 1024);
+        return Math.max(64, Math.round(mb / 64.0) * 64);
+    }
+
+    // ------------------------------------------------------------------ UI context
+
+    /**
+     * @return the last known UI context as flat meta ({@code activity}, {@code view_mode});
+     *         entries are omitted when unknown
+     */
+    static Map<String, String> uiContext() {
+        Map<String, String> m = new java.util.LinkedHashMap<>();
+        String activity = currentActivity;
+        String mode = currentViewMode;
+        if (activity != null) {
+            m.put("activity", activity);
+        }
+        if (mode != null) {
+            m.put("view_mode", mode);
+        }
+        return m;
+    }
+
+    /** The active editor tab changed (UI context for {@code ui_stall}; no event is sent). */
+    public static void activeDocumentChanged(DocKind kind, String viewMode) {
+        currentDocKind = kind;
+        currentViewMode = viewMode;
+    }
+
+    /** @return the kind of the active document, or null */
+    static DocKind activeDocKind() {
+        return currentDocKind;
     }
 
     // ------------------------------------------------------------------ internals
@@ -419,6 +625,7 @@ public final class UsageEvents {
     }
 
     private static void action(String eventType, Consumer<TelemetryEvent.Builder> customizer) {
+        sessionActions.incrementAndGet();
         send(eventType, TelemetryEvent.Category.ACTION, customizer);
     }
 
@@ -451,5 +658,11 @@ public final class UsageEvents {
     static void resetSession() {
         seenActivities.clear();
         lastLiveRun.clear();
+        sessionFilesOpened.set(0);
+        sessionActions.set(0);
+        sessionMaxTabs.set(0);
+        currentActivity = null;
+        currentViewMode = null;
+        currentDocKind = null;
     }
 }

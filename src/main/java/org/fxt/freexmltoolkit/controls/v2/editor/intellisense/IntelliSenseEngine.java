@@ -180,6 +180,7 @@ public class IntelliSenseEngine {
                 double y = caretBounds.getMaxY() + 2; // 2px offset below caret
 
                 popup.show(items, ownerWindow, x, y);
+                org.fxt.freexmltoolkit.service.telemetry.EditStats.feature("completion_shown");
                 state = IntelliSenseState.SHOWING_ELEMENTS;
                 logger.debug("Popup shown at ({}, {}) with {} items", x, y, items.size());
             } else {
@@ -276,6 +277,7 @@ public class IntelliSenseEngine {
         if (item == null) {
             return;
         }
+        org.fxt.freexmltoolkit.service.telemetry.EditStats.feature("completion_accepted");
 
         logger.info("Inserting completion: {} (type: {})", item.getLabel(), item.getType());
 

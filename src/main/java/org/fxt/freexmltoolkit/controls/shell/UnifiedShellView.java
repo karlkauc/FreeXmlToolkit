@@ -267,7 +267,7 @@ public class UnifiedShellView extends BorderPane {
         updateStatusBar();
 
         // File-operation keyboard shortcuts (scoped to the shell).
-        addEventHandler(javafx.scene.input.KeyEvent.KEY_PRESSED, this::handleShortcut);
+        addEventHandler(javafx.scene.input.KeyEvent.KEY_PRESSED, this::handleShortcutTracked);
         // Welcome/Dashboard tool cards switch activities (and "open-folder" → Explorer).
         editorHost.setWelcomeActionHandler(this::handleWelcomeAction);
 
@@ -313,6 +313,10 @@ public class UnifiedShellView extends BorderPane {
     public int openDroppedFiles(java.util.List<java.io.File> files) {
         java.util.List<java.io.File> supported = org.fxt.freexmltoolkit.service.DragDropService.filterByExtensions(
                 files, org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.openableExtensions());
+        if (!supported.isEmpty()) {
+            org.fxt.freexmltoolkit.service.telemetry.UsageEvents.command("open",
+                    org.fxt.freexmltoolkit.service.telemetry.UsageEvents.VIA_DROP);
+        }
         for (java.io.File f : supported) {
             try {
                 editorHost.openFile(f.toPath());
@@ -326,6 +330,8 @@ public class UnifiedShellView extends BorderPane {
 
     /** Routes a Welcome/Dashboard action key to the matching activity. */
     private void handleWelcomeAction(String key) {
+        org.fxt.freexmltoolkit.service.telemetry.UsageEvents.command(key,
+                org.fxt.freexmltoolkit.service.telemetry.UsageEvents.VIA_WELCOME);
         if ("open-folder".equals(key)) {
             selectionModel.select(Activity.EXPLORER);
             revealSidePanel();
@@ -366,6 +372,45 @@ public class UnifiedShellView extends BorderPane {
                 }
             }
             default -> { }
+        }
+    }
+
+    /** True while a keyboard shortcut is dispatched, so toolbar handlers it reuses are not counted as clicks. */
+    private boolean dispatchingShortcut;
+
+    private void handleShortcutTracked(javafx.scene.input.KeyEvent event) {
+        dispatchingShortcut = true;
+        try {
+            handleShortcut(event);
+        } finally {
+            dispatchingShortcut = false;
+        }
+        if (event.isConsumed()) {
+            org.fxt.freexmltoolkit.service.telemetry.UsageEvents.command(shortcutName(event),
+                    org.fxt.freexmltoolkit.service.telemetry.UsageEvents.VIA_SHORTCUT);
+        }
+    }
+
+    /** Normalized key combination, e.g. {@code mod+shift+f} (mod = Ctrl, or Cmd on macOS). */
+    static String shortcutName(javafx.scene.input.KeyEvent event) {
+        StringBuilder sb = new StringBuilder();
+        if (event.isShortcutDown()) {
+            sb.append("mod+");
+        }
+        if (event.isAltDown()) {
+            sb.append("alt+");
+        }
+        if (event.isShiftDown()) {
+            sb.append("shift+");
+        }
+        return sb.append(event.getCode().name().toLowerCase(java.util.Locale.ROOT)).toString();
+    }
+
+    /** Counts a toolbar click (not when a shortcut reuses the handler). */
+    private void toolbar(String command) {
+        if (!dispatchingShortcut) {
+            org.fxt.freexmltoolkit.service.telemetry.UsageEvents.command(command,
+                    org.fxt.freexmltoolkit.service.telemetry.UsageEvents.VIA_TOOLBAR);
         }
     }
 
@@ -968,20 +1013,20 @@ public class UnifiedShellView extends BorderPane {
     }
 
     // ===== @FXML action handlers (onAction targets from shell.fxml). Public for jpackage. =====
-    @FXML public void onNew() { newDocument(); }
-    @FXML public void onOpen() { openFile(); }
-    @FXML public void onSave() { saveActive(); }
-    @FXML public void onSaveAs() { saveActiveAs(); }
-    @FXML public void onSaveAll() { editorHost.saveAll(); }
-    @FXML public void onUndo() { editorHost.undoActive(); }
-    @FXML public void onRedo() { editorHost.redoActive(); }
-    @FXML public void onFormat() { editorHost.formatActive(); }
-    @FXML public void onMinify() { editorHost.minifyActive(); }
-    @FXML public void onInsertTemplate() { insertTemplate(); }
-    @FXML public void onCompare() { compareWithFile(); }
-    @FXML public void onSpreadsheet() { convertSpreadsheet(); }
-    @FXML public void onQueryConsole() { toggleQueryConsole(); }
-    @FXML public void onTransform() { editorActions.transformActiveWithXslt(window()); }
+    @FXML public void onNew() { toolbar("new"); newDocument(); }
+    @FXML public void onOpen() { toolbar("open"); openFile(); }
+    @FXML public void onSave() { toolbar("save"); saveActive(); }
+    @FXML public void onSaveAs() { toolbar("save_as"); saveActiveAs(); }
+    @FXML public void onSaveAll() { toolbar("save_all"); editorHost.saveAll(); }
+    @FXML public void onUndo() { toolbar("undo"); editorHost.undoActive(); }
+    @FXML public void onRedo() { toolbar("redo"); editorHost.redoActive(); }
+    @FXML public void onFormat() { toolbar("format"); editorHost.formatActive(); }
+    @FXML public void onMinify() { toolbar("minify"); editorHost.minifyActive(); }
+    @FXML public void onInsertTemplate() { toolbar("insert_template"); insertTemplate(); }
+    @FXML public void onCompare() { toolbar("compare"); compareWithFile(); }
+    @FXML public void onSpreadsheet() { toolbar("spreadsheet"); convertSpreadsheet(); }
+    @FXML public void onQueryConsole() { toolbar("query_console"); toggleQueryConsole(); }
+    @FXML public void onTransform() { toolbar("transform"); editorActions.transformActiveWithXslt(window()); }
     @FXML public void onRunQuery() { editorActions.runActiveQuery(); }
     @FXML public void onRunTransform() { editorActions.runActiveTransform(); }
     @FXML public void onRunPipeline() { editorActions.runActivePipeline(); }
@@ -992,6 +1037,7 @@ public class UnifiedShellView extends BorderPane {
      * The button is disabled for non-runnable types, so falling through is a no-op.
      */
     @FXML public void onRunPrimary() {
+        toolbar("run");
         var type = editorActions.activeFileType();
         if (org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.applicableFor(
                 type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.RUN_QUERY)) {
@@ -1004,13 +1050,13 @@ public class UnifiedShellView extends BorderPane {
             onRunPipeline();
         }
     }
-    @FXML public void onSetSchema() { setSchema(); }
-    @FXML public void onGenerateDocs() { editorActions.generateDocsActive(window()); }
-    @FXML public void onTypeEditor() { editorActions.openTypeEditorActive(); }
-    @FXML public void onValidate() { validateActive(); }
-    @FXML public void onHelp() { selectionModel.select(Activity.HELP); }
-    @FXML public void onToggleTheme() { toggleTheme(); }
-    @FXML public void onSearchPillClicked() { openQueryConsole(); }
+    @FXML public void onSetSchema() { toolbar("set_schema"); setSchema(); }
+    @FXML public void onGenerateDocs() { toolbar("generate_docs"); editorActions.generateDocsActive(window()); }
+    @FXML public void onTypeEditor() { toolbar("type_editor"); editorActions.openTypeEditorActive(); }
+    @FXML public void onValidate() { toolbar("validate"); validateActive(); }
+    @FXML public void onHelp() { toolbar("help"); selectionModel.select(Activity.HELP); }
+    @FXML public void onToggleTheme() { toolbar("toggle_theme"); toggleTheme(); }
+    @FXML public void onSearchPillClicked() { toolbar("search_pill"); openQueryConsole(); }
     @FXML public void onToggleLeftPanel() { setLeftPanelVisible(leftPanelToggle.isSelected()); }
     @FXML public void onToggleInspector() { setInspectorVisible(inspectorToggle.isSelected()); }
     @FXML public void onCollapseLeftPanel() { setLeftPanelVisible(false); }

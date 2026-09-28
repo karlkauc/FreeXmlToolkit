@@ -310,6 +310,26 @@ class TelemetryServiceImplTest {
     }
 
     @Test
+    void deadPreviousSessionIsReportedAndCleanExitRemovesTheMarker(@org.junit.jupiter.api.io.TempDir java.nio.file.Path dir)
+            throws Exception {
+        new SessionMarker(dir, m -> false).begin("old-session", "2.3.0"); // crashed earlier
+        service.setSessionMarker(new SessionMarker(dir, m -> false));
+
+        service.trackAppStart();
+        service.awaitIdle();
+        TelemetryEvent crashed = queued().stream()
+                .filter(e -> e.eventType().equals("prev_session_crashed")).findFirst().orElseThrow();
+        assertEquals("old-session", crashed.meta().get("prev_session"));
+        assertEquals("2.3.0", crashed.meta().get("prev_version"));
+        assertEquals(TelemetryEvent.Category.LIFECYCLE, crashed.category());
+
+        service.trackAppExit(Duration.ofSeconds(1));
+        try (var files = java.nio.file.Files.list(dir)) {
+            assertEquals(0, files.count());
+        }
+    }
+
+    @Test
     void appExitCarriesSessionDuration() {
         service.trackAppExit(Duration.ofSeconds(90));
         TelemetryEvent e = queued().getFirst();

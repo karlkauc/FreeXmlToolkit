@@ -25,4 +25,9 @@ public class CommandManager extends AbstractCommandManager<XmlCommand> {
     public CommandManager(int historyLimit) {
         super(historyLimit);
     }
+
+    @Override
+    protected String telemetryDomain() {
+        return org.fxt.freexmltoolkit.service.telemetry.EditStats.DOMAIN_XML;
+    }
 }

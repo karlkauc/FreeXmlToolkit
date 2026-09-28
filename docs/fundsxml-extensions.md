@@ -184,7 +184,7 @@ On Windows the path is typically `C:\Users\<you>\.freeXmlToolkit\fundsxml\`. On 
 
 By default, FreeXmlToolkit checks once per day whether a newer FundsXML schema release is available on GitHub. If a new release is found, it is **downloaded and installed automatically in the background** - a toast notification confirms when the new content is in place, and the new version becomes the active one. There is no update dialog to answer.
 
-The check is throttled to at most once every 24 hours and runs quietly in the background. Missing content (for example after clearing the cache folder) is also re-downloaded automatically on the next application start. To turn the daily check off, set `fundsxml.update.check.enabled=false` in your `FreeXmlToolkit.properties` file.
+The check is throttled to at most once every 24 hours and runs quietly in the background. Missing content (for example after clearing the cache folder) is also re-downloaded automatically on the next application start. To turn the daily check off, set `fundsxml.update.check.enabled=false` in your `~/.freeXmlToolkit/FreeXmlToolkit.properties` file.
 
 ---
 
@@ -242,7 +242,7 @@ The feature's options and where to find them:
 | **Download / Update Content** | FundsXML side panel | Force a manual refresh from GitHub | - |
 | Daily update check | `fundsxml.update.check.enabled` property | Once-per-day background check that installs newer schema releases automatically | On |
 
-These preferences are stored in your `FreeXmlToolkit.properties` file in the user home directory.
+These preferences are stored in `~/.freeXmlToolkit/FreeXmlToolkit.properties` in your user home directory.
 
 ---
 

@@ -354,6 +354,7 @@ public class FxtGui extends Application {
                 startUsageTracking();
                 Telemetry.get().trackAppStart(
                         org.fxt.freexmltoolkit.service.telemetry.LaunchContext.appStart(getPropertiesService()));
+                org.fxt.freexmltoolkit.service.telemetry.FxStallWatchdog.startForCurrentFxThread();
 
                 org.fxt.freexmltoolkit.controls.shell.ShellBootstrap.getInstance().scheduleStartupTasks();
             } catch (IOException e) {
@@ -502,7 +503,10 @@ public class FxtGui extends Application {
 
         // Telemetry: record the session end and flush the queue (bounded to 3 s).
         try {
-            Telemetry.get().trackAppExit(currentDuration);
+            org.fxt.freexmltoolkit.service.telemetry.FxStallWatchdog.stopRunning();
+            org.fxt.freexmltoolkit.service.telemetry.EditStats.flush();
+            Telemetry.get().trackAppExit(currentDuration,
+                    org.fxt.freexmltoolkit.service.telemetry.UsageEvents.sessionSummary());
             Telemetry.get().shutdown(java.time.Duration.ofSeconds(3));
         } catch (Throwable t) {
             logger.debug("Telemetry shutdown failed: {}", t.toString());

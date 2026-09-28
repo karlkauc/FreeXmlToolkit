@@ -43,4 +43,9 @@ public class JsonCommandManager extends AbstractCommandManager<JsonCommand> {
     public JsonCommandManager(int historyLimit) {
         super(historyLimit);
     }
+
+    @Override
+    protected String telemetryDomain() {
+        return org.fxt.freexmltoolkit.service.telemetry.EditStats.DOMAIN_JSON;
+    }
 }

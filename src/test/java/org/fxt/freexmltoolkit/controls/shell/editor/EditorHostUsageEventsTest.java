@@ -97,6 +97,9 @@ class EditorHostUsageEventsTest {
             host.setActiveViewMode(ViewMode.TREE); // unchanged → no second event
             return null;
         });
+        // The event is recorded on the next pulse (render time included).
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> !telemetry.events("view_mode").isEmpty());
+        WaitForAsyncUtils.waitForFxEvents();
 
         List<TelemetryEvent> modes = telemetry.events("view_mode");
         assertEquals(1, modes.size(), "only actual view-mode changes are recorded: " + modes);

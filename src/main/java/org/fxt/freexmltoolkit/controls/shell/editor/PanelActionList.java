@@ -44,7 +44,11 @@ final class PanelActionList extends VBox {
 
     /** Appends a row for {@code action} and returns its button. */
     Button add(PanelAction action) {
-        Button button = row(action.label(), action.iconLiteral(), action.onAction(),
+        Runnable onAction = () -> {
+            org.fxt.freexmltoolkit.service.telemetry.UsageEvents.panelAction(action.id());
+            action.onAction().run();
+        };
+        Button button = row(action.label(), action.iconLiteral(), onAction,
                 action.primary() ? null : action.color());
         button.setId(action.id());
         if (action.primary()) {

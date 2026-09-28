@@ -115,6 +115,7 @@ public abstract class AbstractCommandManager<T extends Command<T>> {
             logger.warn("Command execution failed: {}", command.getDescription());
             return false;
         }
+        org.fxt.freexmltoolkit.service.telemetry.EditStats.executed(telemetryDomain(), command.getClass());
 
         // Try to merge with previous command (AFTER execution)
         if (!undoStack.isEmpty()) {
@@ -173,6 +174,9 @@ public abstract class AbstractCommandManager<T extends Command<T>> {
         logger.debug("Undoing command: {}", command.getDescription());
 
         boolean success = command.undo();
+        if (success) {
+            org.fxt.freexmltoolkit.service.telemetry.EditStats.undone(telemetryDomain());
+        }
 
         if (success) {
             redoStack.push(command);
@@ -203,6 +207,9 @@ public abstract class AbstractCommandManager<T extends Command<T>> {
         logger.debug("Redoing command: {}", command.getDescription());
 
         boolean success = command.execute();
+        if (success) {
+            org.fxt.freexmltoolkit.service.telemetry.EditStats.redone(telemetryDomain());
+        }
 
         if (success) {
             undoStack.push(command);
@@ -219,6 +226,14 @@ public abstract class AbstractCommandManager<T extends Command<T>> {
     }
 
     // ==================== Query Methods ====================
+
+    /**
+     * Domain under which executed commands are counted in the anonymous editing statistics
+     * ({@link org.fxt.freexmltoolkit.service.telemetry.EditStats}); {@code null} = not counted.
+     */
+    protected String telemetryDomain() {
+        return null;
+    }
 
     /**
      * Checks if undo is available.

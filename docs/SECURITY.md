@@ -332,7 +332,7 @@ update.requireChecksum=true
 
 ### Security Property Reference
 
-For advanced users, security settings are stored in the application properties file:
+For advanced users, security settings are stored in the application properties file (`~/.freeXmlToolkit/FreeXmlToolkit.properties`; earlier versions kept it in the working directory; it is copied over automatically on the first start):
 
 | Property | Values | Description |
 |----------|--------|-------------|

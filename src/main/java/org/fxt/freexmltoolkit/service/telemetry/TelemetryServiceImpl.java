@@ -88,6 +88,8 @@ public class TelemetryServiceImpl implements TelemetryService {
     private final Map<String, AtomicInteger> errorRepeats = new ConcurrentHashMap<>();
     private final AtomicInteger errorEvents = new AtomicInteger();
     private final AtomicBoolean flushPending = new AtomicBoolean();
+    /** Crash detection via per-session marker files; null = off (tests, killed). */
+    private volatile SessionMarker sessionMarker;
 
     /**
      * @param settings    persistent settings
@@ -130,8 +132,12 @@ public class TelemetryServiceImpl implements TelemetryService {
         if (killed) {
             logger.info("Telemetry disabled for this process (test/dev build or -D{}=true)", PROP_DISABLED);
         }
-        return new TelemetryServiceImpl(TelemetrySettings.of(props), queue, connection::postJson,
-                TelemetryEnvironment.current(), Clock.systemUTC(), killed);
+        TelemetryServiceImpl service = new TelemetryServiceImpl(TelemetrySettings.of(props), queue,
+                connection::postJson, TelemetryEnvironment.current(), Clock.systemUTC(), killed);
+        if (!killed) {
+            service.setSessionMarker(SessionMarker.createDefault());
+        }
+        return service;
     }
 
     /**
@@ -229,6 +235,23 @@ public class TelemetryServiceImpl implements TelemetryService {
                 context.accept(b);
             }
         });
+        SessionMarker marker = sessionMarker;
+        if (marker != null) {
+            String version = environment.appVersion();
+            runInBackground(() -> {
+                for (SessionMarker.DeadSession dead : marker.begin(sessionId, version)) {
+                    track("prev_session_crashed", TelemetryEvent.Category.LIFECYCLE, b -> b
+                            .status(TelemetryEvent.Status.ERROR)
+                            .meta("prev_session", dead.sessionId())
+                            .meta("prev_version", dead.appVersion()));
+                }
+            });
+        }
+    }
+
+    /** Enables crash detection (the production instance and tests that cover it). */
+    void setSessionMarker(SessionMarker marker) {
+        this.sessionMarker = marker;
     }
 
     @Override
@@ -240,6 +263,10 @@ public class TelemetryServiceImpl implements TelemetryService {
                 summary.accept(b);
             }
         });
+        SessionMarker marker = sessionMarker;
+        if (marker != null) {
+            marker.end();
+        }
     }
 
     /**
