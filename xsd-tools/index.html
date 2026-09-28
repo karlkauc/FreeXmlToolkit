@@ -3468,8 +3468,8 @@ Select an issue to read its suggestion and location and to jump to the affected 
 </tr>
 <tr>
 <td><strong>Best Practice</strong></td>
-<td>Info / Warning</td>
-<td><code>xs:any</code> / <code>xs:anyAttribute</code> wildcards, unbounded content without limits, deep nesting, anonymous complex types</td>
+<td>Info / Warning / Suggestion</td>
+<td><code>xs:any</code> / <code>xs:anyAttribute</code> wildcards and unbounded content without limits (info), elements nested deeper than the <strong>Max nesting</strong> limit (warning), anonymous complex types (suggestion)</td>
 </tr>
 <tr>
 <td><strong>Deprecated</strong></td>
@@ -3523,10 +3523,15 @@ Select an issue to read its suggestion and location and to jump to the affected 
 </tr>
 </tbody>
 </table>
+<p><strong>Max nesting</strong> (top right of the tab, default 5) is the limit of the deep-nesting check: it
+counts <em>element</em> levels declared inside one another through anonymous types - compositors and
+the types themselves do not count, and an element with a named type starts a new declaration.
+Changing the value re-runs the analysis; the setting is remembered.</p>
 <p>The score is the share of checked declarations (every named element, attribute, type and
-group) that no <strong>Error</strong> or <strong>Warning</strong> counts against: a naming deviation or a deep nesting
-costs one declaration, an inconsistent definition costs every declaration of that name, a
-duplicate element every occurrence. The informational checks (unused components, recursion,
+group) that no <strong>Error</strong> or <strong>Warning</strong> counts against: a naming deviation or a too deeply
+nested element costs one declaration, a duplicate element every occurrence, and an
+inconsistent definition the declarations that deviate from the most frequent variant of that
+name. The informational checks (unused components, recursion,
 missing documentation, inline candidates) never lower it; documentation coverage has its own
 percentage on the Statistics tab.</p>
 <h3 id="identity-constraints">Identity Constraints<a class="headerlink" href="#identity-constraints" title="Permanent link">&para;</a></h3>
