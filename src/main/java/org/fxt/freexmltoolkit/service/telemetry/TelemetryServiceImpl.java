@@ -3,6 +3,10 @@ package org.fxt.freexmltoolkit.service.telemetry;
 import java.io.IOException;
 import java.time.Clock;
 import java.time.Duration;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeParseException;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -76,6 +80,7 @@ public class TelemetryServiceImpl implements TelemetryService {
     private final boolean killed;
     private final TelemetrySender sender;
     private final ExecutorService executor;
+    private final Clock clock;
 
     private final String sessionId = UUID.randomUUID().toString();
     private volatile boolean firstRun;
@@ -100,6 +105,7 @@ public class TelemetryServiceImpl implements TelemetryService {
         this.poster = Objects.requireNonNull(poster);
         this.environment = Objects.requireNonNull(environment);
         this.killed = killSwitch;
+        this.clock = Objects.requireNonNull(clock);
         this.executor = Executors.newSingleThreadExecutor(r -> {
             Thread t = new Thread(r, "Telemetry-Worker");
             t.setDaemon(true);
@@ -207,18 +213,69 @@ public class TelemetryServiceImpl implements TelemetryService {
     }
 
     @Override
-    public void trackAppStart() {
+    public void trackAppStart(Consumer<TelemetryEvent.Builder> context) {
         if (!appStartTracked.compareAndSet(false, true)) {
             return;
         }
         boolean first = firstRun;
-        track("app_start", TelemetryEvent.Category.LIFECYCLE, b -> b.firstRun(first));
+        Long days = daysSinceInstall();
+        String channel = channel(environment.appVersion());
+        track("app_start", TelemetryEvent.Category.LIFECYCLE, b -> {
+            b.firstRun(first).meta("channel", channel);
+            if (days != null) {
+                b.meta("days_since_install", days);
+            }
+            if (context != null) {
+                context.accept(b);
+            }
+        });
     }
 
     @Override
-    public void trackAppExit(Duration sessionDuration) {
+    public void trackAppExit(Duration sessionDuration, Consumer<TelemetryEvent.Builder> summary) {
         long ms = sessionDuration == null ? 0 : Math.max(0, sessionDuration.toMillis());
-        track("app_exit", TelemetryEvent.Category.LIFECYCLE, b -> b.durationMs(ms));
+        track("app_exit", TelemetryEvent.Category.LIFECYCLE, b -> {
+            b.durationMs(ms);
+            if (summary != null) {
+                summary.accept(b);
+            }
+        });
+    }
+
+    /**
+     * {@code meta.channel} of {@code app_start}: {@code dev} for development versions (which
+     * only send with {@code -Dfxt.telemetry.force=true}) and pre-releases, else {@code release}.
+     */
+    static String channel(String appVersion) {
+        return appVersion == null || appVersion.isBlank() || DEV_VERSION.equals(appVersion)
+                || appVersion.contains("-") ? "dev" : "release";
+    }
+
+    /**
+     * Whole days since the install id was created, or null when unknown. Installations
+     * that predate the install date start counting today (their id was unreliable anyway).
+     */
+    private Long daysSinceInstall() {
+        LocalDate today = LocalDate.ofInstant(clock.instant(), ZoneOffset.UTC);
+        String stored = safe(settings::getInstallDate, null);
+        if (stored == null) {
+            persistInstallDate(today);
+            return null;
+        }
+        try {
+            return Math.max(0, ChronoUnit.DAYS.between(LocalDate.parse(stored), today));
+        } catch (DateTimeParseException e) {
+            persistInstallDate(today);
+            return null;
+        }
+    }
+
+    private void persistInstallDate(LocalDate day) {
+        try {
+            settings.setInstallDate(day.toString());
+        } catch (Throwable t) {
+            logger.debug("Could not persist telemetry install date: {}", t.toString());
+        }
     }
 
     // ------------------------------------------------------------------ errors
@@ -313,7 +370,10 @@ public class TelemetryServiceImpl implements TelemetryService {
             return;
         }
         String version = environment.appVersion();
-        runInBackground(() -> queue.add(sessionId, version, event));
+        // Stamp the install id now: a later reset (or a lost settings file) must not
+        // re-attribute events that were recorded under the previous id.
+        String install = getInstallId();
+        runInBackground(() -> queue.add(install, sessionId, version, event));
     }
 
     // ------------------------------------------------------------------ error report
@@ -534,6 +594,7 @@ public class TelemetryServiceImpl implements TelemetryService {
         } catch (Throwable t) {
             logger.debug("Could not persist telemetry install id: {}", t.toString());
         }
+        persistInstallDate(LocalDate.ofInstant(clock.instant(), ZoneOffset.UTC));
         firstRun = true;
         return created;
     }
@@ -542,6 +603,7 @@ public class TelemetryServiceImpl implements TelemetryService {
     public synchronized String resetInstallId() {
         String created = UUID.randomUUID().toString();
         settings.setInstallId(created);
+        persistInstallDate(LocalDate.ofInstant(clock.instant(), ZoneOffset.UTC));
         return created;
     }
 

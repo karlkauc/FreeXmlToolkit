@@ -4,13 +4,17 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.domain.XmlParserType;
+import org.fxt.freexmltoolkit.service.telemetry.Telemetry;
 
 /**
  * Implementation of the PropertiesService interface.
@@ -20,18 +24,57 @@ public class PropertiesServiceImpl implements PropertiesService {
     private static final Logger logger = LogManager.getLogger(PropertiesServiceImpl.class);
     private static final String FREE_XML_TOOLKIT_PROPERTIES = "FreeXmlToolkit.properties";
     private static final String LAST_OPEN_DIRECTORY_KEY = "last.open.directory";
+    /** Per-user application folder below {@code user.home}. */
+    static final String APP_DIR_NAME = ".freeXmlToolkit";
     /**
-     * The backing file, working-directory-relative by default. The system property
-     * {@code fxt.properties.file} overrides the location — the Gradle test tasks set
-     * it to a path under {@code build/} so test runs can never rewrite the user's
-     * real configuration (they used to flip settings like {@code toolbar.show.labels}).
+     * The backing file, {@code ~/.freeXmlToolkit/FreeXmlToolkit.properties} (see
+     * {@link #resolvePropertiesFile}). The system property {@code fxt.properties.file}
+     * overrides the location — the Gradle test tasks set it to a path under {@code build/}
+     * so test runs can never rewrite the user's real configuration.
      */
-    private static final File propertiesFile = new File(
-            System.getProperty("fxt.properties.file", FREE_XML_TOOLKIT_PROPERTIES));
+    private static final File propertiesFile = resolvePropertiesFile(
+            System.getProperty("fxt.properties.file"),
+            Path.of(System.getProperty("user.home"), APP_DIR_NAME),
+            Path.of(System.getProperty("user.dir")));
+    /** A failing save is reported to telemetry once per session, not on every setting change. */
+    private static final AtomicBoolean saveFailureReported = new AtomicBoolean();
     private static final PropertiesService instance = new PropertiesServiceImpl();
     private Properties properties = new Properties();
     private final PasswordEncryptionService passwordEncryptionService =
             PasswordEncryptionServiceImpl.getInstance();
+
+    /**
+     * Resolves the properties file. Earlier versions kept it relative to the working
+     * directory, which is not writable for installed builds (Program Files, macOS app
+     * bundles) and changes with every launch path (shortcut, file association) — settings
+     * and the telemetry install id were silently lost. It now lives in the per-user app
+     * folder; a legacy file in the working directory is copied over once (never deleted,
+     * so a downgrade still finds it).
+     *
+     * @param override   explicit file path ({@code fxt.properties.file}), wins when non-blank
+     * @param appDir     the per-user application folder
+     * @param workingDir the working directory that may hold a legacy file
+     * @return the file to load from and save to
+     */
+    static File resolvePropertiesFile(String override, Path appDir, Path workingDir) {
+        if (override != null && !override.isBlank()) {
+            return new File(override);
+        }
+        Path target = appDir.resolve(FREE_XML_TOOLKIT_PROPERTIES);
+        try {
+            if (!Files.exists(target)) {
+                Files.createDirectories(appDir);
+                Path legacy = workingDir.resolve(FREE_XML_TOOLKIT_PROPERTIES);
+                if (Files.isRegularFile(legacy)) {
+                    Files.copy(legacy, target);
+                    logger.info("Migrated settings from {} to {}", legacy, target);
+                }
+            }
+        } catch (IOException | RuntimeException e) {
+            logger.warn("Could not prepare settings file {}: {}", target, e.toString());
+        }
+        return target.toFile();
+    }
 
     /**
      * Returns the singleton instance of the PropertiesService.
@@ -97,7 +140,10 @@ public class PropertiesServiceImpl implements PropertiesService {
         try (FileOutputStream fos = new FileOutputStream(propertiesFile)) {
             saveProps.store(fos, null);
         } catch (IOException e) {
-            logger.error(e.getMessage());
+            logger.error("Could not save settings to {}: {}", propertiesFile.getAbsolutePath(), e.getMessage());
+            if (saveFailureReported.compareAndSet(false, true)) {
+                Telemetry.reportError(e, "properties.save");
+            }
         }
     }
 

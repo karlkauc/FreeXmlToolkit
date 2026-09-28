@@ -259,6 +259,57 @@ class TelemetryServiceImplTest {
     }
 
     @Test
+    void appStartCarriesChannelInstallAgeAndLaunchContext() {
+        service.trackAppStart(b -> b.durationMs(1234).meta("package", "portable"));
+        TelemetryEvent e = queued().getFirst();
+        assertEquals("release", e.meta().get("channel"));
+        assertEquals(0L, ((Number) e.meta().get("days_since_install")).longValue());
+        assertEquals("portable", e.meta().get("package"));
+        assertEquals(1234L, e.durationMs());
+    }
+
+    @Test
+    void installAgeIsCountedFromTheStoredDate() {
+        settings.setInstallDate(java.time.LocalDate.now(java.time.ZoneOffset.UTC).minusDays(10).toString());
+        service.trackAppStart();
+        assertEquals(10L, ((Number) queued().getFirst().meta().get("days_since_install")).longValue());
+    }
+
+    @Test
+    void installAgeIsUnknownForInstallationsWithoutDate() {
+        settings.setInstallDate(null);
+        service.trackAppStart();
+        TelemetryEvent e = queued().getFirst();
+        assertFalse(e.meta().containsKey("days_since_install"));
+        assertNotNull(settings.getInstallDate(), "the date is recorded for the next launch");
+    }
+
+    @Test
+    void channelClassification() {
+        assertEquals("release", TelemetryServiceImpl.channel("2.4.0"));
+        assertEquals("dev", TelemetryServiceImpl.channel("0.0.0-dev"));
+        assertEquals("dev", TelemetryServiceImpl.channel("2.4.0-rc1"));
+        assertEquals("dev", TelemetryServiceImpl.channel(null));
+    }
+
+    @Test
+    void eventsKeepTheInstallIdTheyWereRecordedWith() {
+        settings.setNoticeShown(true);
+        String before = service.getInstallId();
+        service.trackAction("validate");
+        service.awaitIdle();
+        service.resetInstallId();
+        service.trackAction("format");
+        service.flushAsync();
+        service.awaitIdle();
+        List<String> ids = requests.stream()
+                .map(r -> JsonParser.parseString(r.body()).getAsJsonObject().get("install_id").getAsString())
+                .toList();
+        assertTrue(ids.contains(before), "the old event is sent under the old id: " + ids);
+        assertTrue(ids.contains(settings.getInstallId()), "the new event under the new id: " + ids);
+    }
+
+    @Test
     void appExitCarriesSessionDuration() {
         service.trackAppExit(Duration.ofSeconds(90));
         TelemetryEvent e = queued().getFirst();

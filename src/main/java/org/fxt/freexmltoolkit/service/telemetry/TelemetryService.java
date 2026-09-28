@@ -54,10 +54,29 @@ public interface TelemetryService {
     }
 
     /** Records the {@code app_start} lifecycle event (with {@code is_first_run}). */
-    void trackAppStart();
+    default void trackAppStart() {
+        trackAppStart(null);
+    }
+
+    /**
+     * Records the {@code app_start} lifecycle event (once per session) with
+     * {@code is_first_run}, {@code meta.channel} and {@code meta.days_since_install}.
+     *
+     * @param context adds launch context (startup time, package kind, settings snapshot; nullable)
+     */
+    void trackAppStart(Consumer<TelemetryEvent.Builder> context);
 
     /** Records the {@code app_exit} lifecycle event with the session duration. */
-    void trackAppExit(Duration sessionDuration);
+    default void trackAppExit(Duration sessionDuration) {
+        trackAppExit(sessionDuration, null);
+    }
+
+    /**
+     * Records the {@code app_exit} lifecycle event with the session duration.
+     *
+     * @param summary adds the session summary (counters, heap; nullable)
+     */
+    void trackAppExit(Duration sessionDuration, Consumer<TelemetryEvent.Builder> summary);
 
     /**
      * Records an anonymous error event for {@code t} (class chain + stack signature, never the

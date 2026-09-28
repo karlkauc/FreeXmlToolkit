@@ -352,7 +352,8 @@ public class FxtGui extends Application {
                 readyPause.play();
 
                 startUsageTracking();
-                Telemetry.get().trackAppStart();
+                Telemetry.get().trackAppStart(
+                        org.fxt.freexmltoolkit.service.telemetry.LaunchContext.appStart(getPropertiesService()));
 
                 org.fxt.freexmltoolkit.controls.shell.ShellBootstrap.getInstance().scheduleStartupTasks();
             } catch (IOException e) {

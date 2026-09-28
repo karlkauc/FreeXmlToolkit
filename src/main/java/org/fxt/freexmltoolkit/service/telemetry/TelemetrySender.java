@@ -187,7 +187,7 @@ public class TelemetrySender {
         currentBackoff = doubled.compareTo(MAX_BACKOFF) > 0 ? MAX_BACKOFF : doubled;
     }
 
-    /** Oldest events that share the first event's session and app version (≤ 200). */
+    /** Oldest events that share the first event's install id, session and app version (≤ 200). */
     private List<TelemetryQueue.QueuedEvent> nextBatch() {
         List<TelemetryQueue.QueuedEvent> candidates = queue.peek(MAX_EVENTS_PER_REQUEST * 5);
         List<TelemetryQueue.QueuedEvent> batch = new ArrayList<>();
@@ -196,7 +196,8 @@ public class TelemetrySender {
         }
         TelemetryQueue.QueuedEvent first = candidates.getFirst();
         for (TelemetryQueue.QueuedEvent q : candidates) {
-            if (Objects.equals(q.sessionId(), first.sessionId())
+            if (Objects.equals(q.installId(), first.installId())
+                    && Objects.equals(q.sessionId(), first.sessionId())
                     && Objects.equals(q.appVersion(), first.appVersion())) {
                 batch.add(q);
                 if (batch.size() >= MAX_EVENTS_PER_REQUEST) {
@@ -210,7 +211,7 @@ public class TelemetrySender {
     private JsonObject envelope(List<TelemetryQueue.QueuedEvent> batch) {
         TelemetryQueue.QueuedEvent first = batch.getFirst();
         List<TelemetryEvent> events = batch.stream().map(TelemetryQueue.QueuedEvent::event).toList();
-        return buildEnvelope(installId.get(),
+        return buildEnvelope(first.installId() != null ? first.installId() : installId.get(),
                 first.sessionId() != null ? first.sessionId() : UUID.randomUUID().toString(),
                 first.appVersion() != null ? first.appVersion() : environment.appVersion(),
                 environment, events);

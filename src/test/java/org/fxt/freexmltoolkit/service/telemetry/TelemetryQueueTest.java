@@ -55,6 +55,22 @@ class TelemetryQueueTest {
     }
 
     @Test
+    void installIdIsPersistedAndLegacyLinesHaveNone() throws Exception {
+        Path file = tmp.resolve("ids.jsonl");
+        // A line written by 2.2/2.3 (no install_id) followed by a stamped one.
+        Files.writeString(file, "{\"session_id\":\"old\",\"app_version\":\"2.2.0\",\"event\":"
+                + event("open", NOW).toJson() + "}\n");
+        TelemetryQueue q = new TelemetryQueue(file, 100, Duration.ofDays(14), CLOCK);
+        q.add("11111111-1111-1111-1111-111111111111", "s2", "2.4.0", event("validate", NOW));
+
+        List<TelemetryQueue.QueuedEvent> all = new TelemetryQueue(file, 100, Duration.ofDays(14), CLOCK).snapshot();
+        assertEquals(2, all.size());
+        assertEquals(null, all.get(0).installId());
+        assertEquals("11111111-1111-1111-1111-111111111111", all.get(1).installId());
+        assertEquals("s2", all.get(1).sessionId());
+    }
+
+    @Test
     void capDropsOldestFirst() {
         TelemetryQueue q = new TelemetryQueue(tmp.resolve("cap.jsonl"), 10, Duration.ofDays(14), CLOCK);
         for (int i = 0; i < 25; i++) {

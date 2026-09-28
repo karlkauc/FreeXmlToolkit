@@ -27,7 +27,7 @@ import com.google.gson.JsonParser;
 /**
  * Persistent, bounded FIFO of telemetry events waiting to be sent.
  *
- * <p>Stored as JSON Lines (one {@code {"session_id","app_version","event"}} object per line)
+ * <p>Stored as JSON Lines (one {@code {"install_id","session_id","app_version","event"}} object per line)
  * at {@code ~/.freeXmlToolkit/telemetry-queue.jsonl} by default. The queue survives restarts
  * and offline periods but is capped at {@link #DEFAULT_MAX_EVENTS} events and
  * {@link #DEFAULT_MAX_AGE} — older/excess events are dropped oldest-first.
@@ -48,11 +48,14 @@ public class TelemetryQueue {
      * A queued event plus the session it belongs to.
      *
      * @param seq        in-memory sequence number (identity for removal; not persisted)
+     * @param installId  the install id at the time the event was recorded (null for queue
+     *                   lines written by older versions — the sender then uses the current id)
      * @param sessionId  the app session that produced the event
      * @param appVersion the app version that produced the event
      * @param event      the event
      */
-    public record QueuedEvent(long seq, String sessionId, String appVersion, TelemetryEvent event) {
+    public record QueuedEvent(long seq, String installId, String sessionId, String appVersion,
+                              TelemetryEvent event) {
     }
 
     private final Path file;
@@ -83,12 +86,17 @@ public class TelemetryQueue {
         load();
     }
 
+    /** Appends an event without an install id (the sender stamps the current one). */
+    public void add(String sessionId, String appVersion, TelemetryEvent event) {
+        add(null, sessionId, appVersion, event);
+    }
+
     /** Appends an event (and persists it). Drops the oldest events beyond the caps. */
-    public synchronized void add(String sessionId, String appVersion, TelemetryEvent event) {
+    public synchronized void add(String installId, String sessionId, String appVersion, TelemetryEvent event) {
         if (event == null) {
             return;
         }
-        QueuedEvent q = new QueuedEvent(nextSeq++, sessionId, appVersion, event);
+        QueuedEvent q = new QueuedEvent(nextSeq++, installId, sessionId, appVersion, event);
         events.add(q);
         if (pruneInMemory()) {
             rewrite();
@@ -138,7 +146,8 @@ public class TelemetryQueue {
         for (int i = 0; i < events.size(); i++) {
             QueuedEvent q = events.get(i);
             if (filter.test(q)) {
-                events.set(i, new QueuedEvent(q.seq(), q.sessionId(), q.appVersion(), update.apply(q.event())));
+                events.set(i, new QueuedEvent(q.seq(), q.installId(), q.sessionId(), q.appVersion(),
+                        update.apply(q.event())));
                 n++;
             }
         }
@@ -180,6 +189,7 @@ public class TelemetryQueue {
                     JsonObject o = JsonParser.parseString(line).getAsJsonObject();
                     TelemetryEvent e = TelemetryEvent.fromJson(o.getAsJsonObject("event"));
                     events.add(new QueuedEvent(nextSeq++,
+                            o.has("install_id") ? o.get("install_id").getAsString() : null,
                             o.has("session_id") ? o.get("session_id").getAsString() : null,
                             o.has("app_version") ? o.get("app_version").getAsString() : null,
                             e));
@@ -220,6 +230,9 @@ public class TelemetryQueue {
 
     private static String toLine(QueuedEvent q) {
         JsonObject o = new JsonObject();
+        if (q.installId() != null) {
+            o.addProperty("install_id", q.installId());
+        }
         if (q.sessionId() != null) {
             o.addProperty("session_id", q.sessionId());
         }

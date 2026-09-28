@@ -704,6 +704,20 @@ public interface PropertiesService {
         set(TELEMETRY_INSTALL_ID, installId);
     }
 
+    /** Property key: day the installation id was created (ISO date, for days-since-install). */
+    String TELEMETRY_INSTALL_DATE = "telemetry.installDate";
+
+    /** @return the day the installation id was created (ISO {@code yyyy-MM-dd}), or null */
+    default String getTelemetryInstallDate() {
+        String v = get(TELEMETRY_INSTALL_DATE);
+        return v == null || v.isBlank() ? null : v.trim();
+    }
+
+    /** @param date the day the installation id was created (ISO {@code yyyy-MM-dd}) */
+    default void setTelemetryInstallDate(String date) {
+        set(TELEMETRY_INSTALL_DATE, date);
+    }
+
     /** @return the configured telemetry endpoint override, or null */
     default String getTelemetryEndpoint() {
         String v = get(TELEMETRY_ENDPOINT);

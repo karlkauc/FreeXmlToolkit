@@ -26,6 +26,11 @@ public interface TelemetrySettings {
 
     void setInstallId(String installId);
 
+    /** @return the day the install id was created (ISO {@code yyyy-MM-dd}) or null */
+    String getInstallDate();
+
+    void setInstallDate(String isoDate);
+
     /** @return the endpoint override from the settings, or null */
     String getEndpoint();
 
@@ -73,6 +78,16 @@ public interface TelemetrySettings {
             }
 
             @Override
+            public String getInstallDate() {
+                return props.getTelemetryInstallDate();
+            }
+
+            @Override
+            public void setInstallDate(String isoDate) {
+                props.setTelemetryInstallDate(isoDate);
+            }
+
+            @Override
             public String getEndpoint() {
                 return props.getTelemetryEndpoint();
             }
@@ -85,6 +100,7 @@ public interface TelemetrySettings {
         private volatile boolean errors = true;
         private volatile boolean noticeShown;
         private volatile String installId;
+        private volatile String installDate;
         private volatile String endpoint;
 
         @Override
@@ -125,6 +141,16 @@ public interface TelemetrySettings {
         @Override
         public void setInstallId(String id) {
             installId = id;
+        }
+
+        @Override
+        public String getInstallDate() {
+            return installDate;
+        }
+
+        @Override
+        public void setInstallDate(String isoDate) {
+            installDate = isoDate;
         }
 
         @Override

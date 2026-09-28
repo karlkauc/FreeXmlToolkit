@@ -47,13 +47,20 @@ public class RecordingTelemetryService implements TelemetryService {
     }
 
     @Override
-    public void trackAppStart() {
-        noop.trackAppStart();
+    public void trackAppStart(Consumer<TelemetryEvent.Builder> context) {
+        track("app_start", TelemetryEvent.Category.LIFECYCLE, context);
     }
 
     @Override
-    public void trackAppExit(Duration sessionDuration) {
-        noop.trackAppExit(sessionDuration);
+    public void trackAppExit(Duration sessionDuration, Consumer<TelemetryEvent.Builder> summary) {
+        track("app_exit", TelemetryEvent.Category.LIFECYCLE, b -> {
+            if (sessionDuration != null) {
+                b.durationMs(sessionDuration.toMillis());
+            }
+            if (summary != null) {
+                summary.accept(b);
+            }
+        });
     }
 
     @Override

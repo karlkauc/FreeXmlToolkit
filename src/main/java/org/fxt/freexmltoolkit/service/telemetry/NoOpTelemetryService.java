@@ -23,12 +23,12 @@ final class NoOpTelemetryService implements TelemetryService {
     }
 
     @Override
-    public void trackAppStart() {
+    public void trackAppStart(Consumer<TelemetryEvent.Builder> context) {
         // no-op
     }
 
     @Override
-    public void trackAppExit(Duration sessionDuration) {
+    public void trackAppExit(Duration sessionDuration, Consumer<TelemetryEvent.Builder> summary) {
         // no-op
     }
 
