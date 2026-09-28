@@ -1757,6 +1757,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="What is collected">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#launch-session-and-performance-information" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Launch, session and performance information
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2004,6 +2021,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="What is collected">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#launch-session-and-performance-information" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Launch, session and performance information
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2225,6 +2259,45 @@ processor's standard error code in <code>error_code</code> (e.g. <code>XTSE0010<
 names.</p>
 <p>Identical errors are sent only once per session (with a repeat counter), and at most 30 error
 events are sent per session.</p>
+<h3 id="launch-session-and-performance-information">Launch, session and performance information<a class="headerlink" href="#launch-session-and-performance-information" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Event</th>
+<th>What it contains</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>app_start</code></td>
+<td>Startup time in ms, <code>is_first_run</code>, <code>meta.channel</code> (<code>release</code> or <code>dev</code>), <code>meta.days_since_install</code> (whole days since the anonymous ID was created), <code>meta.package</code> (<code>installer</code>, <code>portable</code> or <code>none</code> — only the kind of installation, never its folder) and a snapshot of a few UI settings (<code>meta.set_theme</code>, <code>set_toolbar_labels</code>, <code>set_toolbar_icons</code>, <code>set_activity_labels</code>, <code>set_rendering</code>, <code>set_update_check</code>, <code>set_xml_autoformat</code>, <code>set_xsd_autosave</code>, <code>set_schema_autobind</code> — on/off values and fixed options only).</td>
+</tr>
+<tr>
+<td><code>app_exit</code></td>
+<td>Session length, number of opened files, actions, side panels and the maximum number of open tabs, plus the peak and maximum Java heap rounded to 64 MB.</td>
+</tr>
+<tr>
+<td><code>prev_session_crashed</code></td>
+<td>Sent at the next start when the previous session ended without a clean exit (crash, forced close). Contains only that session's anonymous ID and app version. The detection uses small marker files in <code>~/.freeXmlToolkit/sessions/</code>.</td>
+</tr>
+<tr>
+<td><code>file_open</code>, <code>view_mode</code>, <code>validate</code>, <code>schema_analysis</code>, <code>schema_bind</code></td>
+<td>How long opening a document, switching to the Text/Tree/Graphic view, validating or analyzing took, and the document size. <code>schema_bind</code> tells how a schema was found for an opened document (<code>declared</code>, <code>library</code>, <code>catalog</code>, <code>manual</code> or <code>none</code>).</td>
+</tr>
+<tr>
+<td><code>ui_stall</code></td>
+<td>The user interface did not respond for at least two seconds: the duration, the side panel and view mode that were active, and a stack signature of the blocked code (code locations only, as for errors). At most 10 per session.</td>
+</tr>
+<tr>
+<td><code>ui_command</code>, <code>panel_action</code></td>
+<td>Which toolbar button, keyboard shortcut (e.g. <code>mod+s</code>), Welcome page card or side-panel action was used (fixed identifiers).</td>
+</tr>
+<tr>
+<td><code>edit_summary</code></td>
+<td>Counts per session of editing commands in the structured editors (e.g. <code>add_element: 12</code>, <code>undo: 3</code>) and of IntelliSense suggestions shown/accepted — command names only, never element names, values or text.</td>
+</tr>
+</tbody>
+</table>
 <h2 id="what-is-never-collected">What is never collected<a class="headerlink" href="#what-is-never-collected" title="Permanent link">&para;</a></h2>
 <ul>
 <li>File names, folder names or paths</li>
@@ -2253,7 +2326,7 @@ from the events currently waiting to be sent) together with your anonymous insta
 deleted immediately.</p>
 <p>Administrators can disable telemetry completely by starting the application with the Java
 system property <code>-Dfxt.telemetry.disabled=true</code>, or by setting these keys in
-<code>FreeXmlToolkit.properties</code>:</p>
+<code>~/.freeXmlToolkit/FreeXmlToolkit.properties</code>:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="na">telemetry.usage.enabled</span><span class="o">=</span><span class="s">false</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="na">telemetry.errors.enabled</span><span class="o">=</span><span class="s">false</span>
 </code></pre></div>

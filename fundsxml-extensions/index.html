@@ -2558,7 +2558,7 @@ sections:</p>
 <p>Updates are installed automatically instead of showing a dialog.</p>
 </blockquote>
 <p>By default, FreeXmlToolkit checks once per day whether a newer FundsXML schema release is available on GitHub. If a new release is found, it is <strong>downloaded and installed automatically in the background</strong> - a toast notification confirms when the new content is in place, and the new version becomes the active one. There is no update dialog to answer.</p>
-<p>The check is throttled to at most once every 24 hours and runs quietly in the background. Missing content (for example after clearing the cache folder) is also re-downloaded automatically on the next application start. To turn the daily check off, set <code>fundsxml.update.check.enabled=false</code> in your <code>FreeXmlToolkit.properties</code> file.</p>
+<p>The check is throttled to at most once every 24 hours and runs quietly in the background. Missing content (for example after clearing the cache folder) is also re-downloaded automatically on the next application start. To turn the daily check off, set <code>fundsxml.update.check.enabled=false</code> in your <code>~/.freeXmlToolkit/FreeXmlToolkit.properties</code> file.</p>
 <hr />
 <h2 id="contributing-snippets-upstream">Contributing Snippets Upstream<a class="headerlink" href="#contributing-snippets-upstream" title="Permanent link">&para;</a></h2>
 <p>The XPath/XQuery snippets in the <code>queries/</code> folder follow a simple convention so the community can grow them.</p>
@@ -2654,7 +2654,7 @@ sections:</p>
 </tr>
 </tbody>
 </table>
-<p>These preferences are stored in your <code>FreeXmlToolkit.properties</code> file in the user home directory.</p>
+<p>These preferences are stored in <code>~/.freeXmlToolkit/FreeXmlToolkit.properties</code> in your user home directory.</p>
 <hr />
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
 <h3 id="a-download-fails">A download fails<a class="headerlink" href="#a-download-fails" title="Permanent link">&para;</a></h3>
