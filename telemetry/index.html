@@ -2218,6 +2218,11 @@ first start.</p>
 </tr>
 </tbody>
 </table>
+<p>A failed <strong>XSLT transformation</strong> event (<code>xslt_transform</code> with status <code>error</code>) carries only the
+processor's standard error code in <code>error_code</code> (e.g. <code>XTSE0010</code> = invalid stylesheet element,
+<code>XPST0003</code> = XPath syntax error, <code>SXXP0003</code> = input XML not well-formed) and the failure phase in
+<code>meta.phase</code> (<code>compile</code>, <code>input</code> or <code>runtime</code>) — never the error message, which may contain file
+names.</p>
 <p>Identical errors are sent only once per session (with a repeat counter), and at most 30 error
 events are sent per session.</p>
 <h2 id="what-is-never-collected">What is never collected<a class="headerlink" href="#what-is-never-collected" title="Permanent link">&para;</a></h2>
