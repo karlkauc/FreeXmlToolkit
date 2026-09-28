@@ -2,6 +2,7 @@ package org.fxt.freexmltoolkit.service.telemetry;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -205,6 +206,25 @@ class UsageEventsTest {
 
         assertEquals(TelemetryEvent.Status.CANCELLED, single("schema_doc").status());
         verify(local, never()).trackFeatureUsed(anyString());
+    }
+
+    @Test
+    void failedTransformCarriesErrorCodeAndPhase() {
+        UsageEvents.xsltTransformed(1, 0, false, false, "XTSE0010", "compile");
+
+        TelemetryEvent event = single("xslt_transform");
+        assertEquals(TelemetryEvent.Status.ERROR, event.status());
+        assertEquals("XTSE0010", event.errorCode());
+        assertEquals("compile", event.meta().get("phase"));
+    }
+
+    @Test
+    void successfulTransformCarriesNoErrorClassification() {
+        UsageEvents.xsltTransformed(1, 0, true, false, "XTSE0010", "compile");
+
+        TelemetryEvent event = single("xslt_transform");
+        assertNull(event.errorCode());
+        assertFalse(event.meta().containsKey("phase"));
     }
 
     @Test

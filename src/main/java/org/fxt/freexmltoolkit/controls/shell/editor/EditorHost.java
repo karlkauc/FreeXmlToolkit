@@ -1502,12 +1502,13 @@ public class EditorHost extends BorderPane {
             long inputChars = -1;
             org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat format =
                     org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat.XML;
+            org.fxt.freexmltoolkit.service.XsltTransformationResult fullResult = null;
             try {
                 String xml = Files.readString(xmlFile.toPath(), StandardCharsets.UTF_8);
                 inputChars = xml.length();
                 String xsltContent = Files.readString(xsltFile.toPath(), StandardCharsets.UTF_8);
                 format = TransformRunner.detectXsltOutputFormat(xsltContent);
-                var fullResult = TransformRunner.xsltTransformResult(xml, xsltContent, java.util.Map.of(), format);
+                fullResult = TransformRunner.xsltTransformResult(xml, xsltContent, java.util.Map.of(), format);
                 result = fullResult.isSuccess()
                         ? fullResult.getOutputContent()
                         : "ERROR: " + fullResult.getErrorMessage();
@@ -1519,7 +1520,9 @@ public class EditorHost extends BorderPane {
                 result = "ERROR: " + e.getMessage();
             }
             boolean ok = !result.startsWith("ERROR");
-            UsageEvents.xsltTransformed(1, t0, ok);
+            UsageEvents.xsltTransformed(1, t0, ok, false,
+                    fullResult != null ? fullResult.getErrorCode() : null,
+                    fullResult != null ? fullResult.getErrorPhase() : null);
             long elapsedMs = probe.finish(inputChars, ok ? result.length() : -1, ok,
                     org.fxt.freexmltoolkit.service.ExecutionStats.firstLine(result));
             String finalResult = result;

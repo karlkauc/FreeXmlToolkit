@@ -910,7 +910,9 @@ public class TransformPanel extends VBox {
                 probe.phase("Transform", fullResult.getTransformationTime());
             }
             boolean ok = !result.startsWith("ERROR");
-            UsageEvents.xsltTransformed(1, t0, ok, live);
+            UsageEvents.xsltTransformed(1, t0, ok, live,
+                    fullResult != null ? fullResult.getErrorCode() : null,
+                    fullResult != null ? fullResult.getErrorPhase() : null);
             long elapsedMs = probe.finish(xml.length(), ok ? result.length() : -1, ok,
                     org.fxt.freexmltoolkit.service.ExecutionStats.firstLine(result));
             String finalResult = result;
@@ -923,7 +925,13 @@ public class TransformPanel extends VBox {
                 }
                 progress.finish();
                 transformButton.setDisable(false);
-                out.showTransformResult(finalResult, finalFormat, elapsedMs);
+                if (live && finalResult.startsWith("ERROR")) {
+                    // Automatic re-runs (live preview while typing, stylesheet watch) fail
+                    // routinely on half-edited input: show the error inline, never a modal dialog.
+                    out.showError(finalResult);
+                } else {
+                    out.showTransformResult(finalResult, finalFormat, elapsedMs);
+                }
                 if (!finalResult.startsWith("ERROR") && autoOpenResultTab.isSelected()) {
                     out.openResultInEditor();
                 }

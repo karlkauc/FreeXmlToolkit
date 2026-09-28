@@ -164,10 +164,10 @@ public final class EditorActions {
             long t0 = System.nanoTime();
             String output;
             boolean ok = false;
+            XsltTransformationResult result = null;
             try {
                 String xsltContent = Files.readString(xslt.toPath(), StandardCharsets.UTF_8);
-                XsltTransformationResult result =
-                        TransformRunner.transformForReport(xml, xsltContent, params, format);
+                result = TransformRunner.transformForReport(xml, xsltContent, params, format);
                 ok = result.isSuccess();
                 output = result.isSuccess()
                         ? result.getOutputContent()
@@ -175,7 +175,9 @@ public final class EditorActions {
             } catch (Exception e) {
                 output = "ERROR: " + e.getMessage();
             }
-            UsageEvents.xsltTransformed(1, t0, ok);
+            UsageEvents.xsltTransformed(1, t0, ok, false,
+                    result != null ? result.getErrorCode() : null,
+                    result != null ? result.getErrorPhase() : null);
             String finalOutput = output;
             Platform.runLater(() -> editorHost.openToolTab(
                     "Transform: " + xslt.getName(), "bi-arrow-left-right", textRegion(finalOutput)));
@@ -320,7 +322,8 @@ public final class EditorActions {
                 probe.phase("Compile", fullResult.getCompilationTime());
                 probe.phase("Transform", fullResult.getTransformationTime());
             }
-            UsageEvents.xsltTransformed(1, t0, fullResult.isSuccess());
+            UsageEvents.xsltTransformed(1, t0, fullResult.isSuccess(), false,
+                    fullResult.getErrorCode(), fullResult.getErrorPhase());
             long elapsedMs = probe.finish(xml.length(),
                     fullResult.isSuccess() ? result.length() : -1, fullResult.isSuccess(),
                     org.fxt.freexmltoolkit.service.ExecutionStats.firstLine(result));

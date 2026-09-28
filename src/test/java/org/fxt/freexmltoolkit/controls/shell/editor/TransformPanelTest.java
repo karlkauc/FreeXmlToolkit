@@ -244,6 +244,37 @@ class TransformPanelTest {
     }
 
     @Test
+    void failingLivePreviewShowsErrorInlineWithoutFailureDialog(@TempDir Path tmp) throws Exception {
+        openGreeting(tmp);
+        Path xslt = tmp.resolve("broken.xslt");
+        Files.writeString(xslt, XSLT.replace("<xsl:output method=\"xml\"/>", "<xsl:foo/>"));
+        var telemetry = new org.fxt.freexmltoolkit.service.telemetry.RecordingTelemetryService();
+        org.fxt.freexmltoolkit.service.telemetry.Telemetry.install(telemetry);
+        try {
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+                panel.setXsltFile(xslt.toFile());
+                panel.setLivePreview(true);
+                return null;
+            });
+            WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> panel.getOutputText().contains("XTSE0010"));
+            assertTrue(panel.getOutputText().contains("xsl:foo"), panel.getOutputText());
+            // The live run must not raise the modal failure dialog (which reports "dialog.*").
+            assertTrue(telemetry.errorReports().isEmpty(), telemetry.errorReports().toString());
+
+            // An explicit run still surfaces the failure.
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+                panel.setLivePreview(false);
+                panel.transform();
+                return null;
+            });
+            WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> !telemetry.errorReports().isEmpty());
+            assertEquals("dialog.Transform failed", telemetry.errorReports().getFirst());
+        } finally {
+            org.fxt.freexmltoolkit.service.telemetry.Telemetry.reset();
+        }
+    }
+
+    @Test
     void runsXQueryAgainstActiveXml(@TempDir Path tmp) throws Exception {
         openGreeting(tmp);
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {

@@ -39,6 +39,12 @@ Each **error event** additionally contains:
 | `error_hash` | A 16-character fingerprint of that signature, used to group identical problems. |
 | `meta.where` | Where in the app it happened, e.g. `uncaught`, `executor`, or the title of the error dialog. |
 
+A failed **XSLT transformation** event (`xslt_transform` with status `error`) carries only the
+processor's standard error code in `error_code` (e.g. `XTSE0010` = invalid stylesheet element,
+`XPST0003` = XPath syntax error, `SXXP0003` = input XML not well-formed) and the failure phase in
+`meta.phase` (`compile`, `input` or `runtime`) — never the error message, which may contain file
+names.
+
 Identical errors are sent only once per session (with a repeat counter), and at most 30 error
 events are sent per session.
 

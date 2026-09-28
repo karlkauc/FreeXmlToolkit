@@ -51,6 +51,9 @@ public class XsltTransformationResult {
     private TransformationStatus status;
     private String outputContent;
     private String errorMessage;
+    // Machine-readable failure classification (safe for anonymous telemetry: no free text)
+    private String errorCode;
+    private String errorPhase;
     private long executionTime; // in milliseconds
     private LocalDateTime executedAt;
 
@@ -121,6 +124,27 @@ public class XsltTransformationResult {
         result.errorMessage = errorMessage;
         result.outputContent = "";
 
+        return result;
+    }
+
+    /** Failure phase: the stylesheet could not be compiled. */
+    public static final String PHASE_COMPILE = "compile";
+    /** Failure phase: the input XML could not be parsed. */
+    public static final String PHASE_INPUT = "input";
+    /** Failure phase: the transformation itself raised a dynamic error. */
+    public static final String PHASE_RUNTIME = "runtime";
+
+    /**
+     * Create an error result carrying a machine-readable classification.
+     *
+     * @param errorMessage the human-readable message (may contain paths — never sent as telemetry)
+     * @param errorCode    the processor error code, e.g. {@code XTSE0010} (nullable)
+     * @param errorPhase   one of the {@code PHASE_*} constants (nullable)
+     */
+    public static XsltTransformationResult error(String errorMessage, String errorCode, String errorPhase) {
+        XsltTransformationResult result = error(errorMessage);
+        result.errorCode = errorCode;
+        result.errorPhase = errorPhase;
         return result;
     }
 
@@ -456,6 +480,16 @@ public class XsltTransformationResult {
 
     public void setErrorMessage(String errorMessage) {
         this.errorMessage = errorMessage;
+    }
+
+    /** @return the processor error code of a failed run (e.g. {@code XTSE0010}), or null */
+    public String getErrorCode() {
+        return errorCode;
+    }
+
+    /** @return the failure phase ({@code compile | input | runtime}), or null */
+    public String getErrorPhase() {
+        return errorPhase;
     }
 
     public long getExecutionTime() {

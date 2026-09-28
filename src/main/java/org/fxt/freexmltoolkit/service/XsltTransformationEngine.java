@@ -36,6 +36,7 @@ import net.sf.saxon.s9api.XdmAtomicValue;
 import net.sf.saxon.s9api.XdmEmptySequence;
 import net.sf.saxon.s9api.XdmNode;
 import net.sf.saxon.s9api.XdmValue;
+import net.sf.saxon.s9api.XmlProcessingError;
 import net.sf.saxon.s9api.XsltCompiler;
 import net.sf.saxon.s9api.XsltExecutable;
 import net.sf.saxon.s9api.XsltTransformer;
@@ -335,11 +336,13 @@ public class XsltTransformationEngine {
 
             // Compile XSLT if needed
             profile.startCompilation();
-            XsltExecutable executable = compileStylesheet(xsltContent, context);
-            profile.endCompilation();
-            if (executable == null) {
-                return XsltTransformationResult.error("Failed to compile XSLT stylesheet");
+            XsltExecutable executable;
+            try {
+                executable = compileStylesheet(xsltContent, context);
+            } catch (StylesheetCompileException e) {
+                return e.toResult();
             }
+            profile.endCompilation();
 
             // Create transformer
             XsltTransformer transformer = executable.load();
@@ -355,7 +358,12 @@ public class XsltTransformationEngine {
             }
 
             // Set up input source
-            XdmNode sourceDoc = parseXmlDocument(xmlContent);
+            XdmNode sourceDoc;
+            try {
+                sourceDoc = parseXmlDocument(xmlContent);
+            } catch (SaxonApiException e) {
+                return inputFailure(e);
+            }
             transformer.setInitialContextNode(sourceDoc);
 
             // Execute transformation
@@ -425,8 +433,8 @@ public class XsltTransformationEngine {
             return result;
 
         } catch (SaxonApiException e) {
-            logger.error("XSLT transformation failed: {}", e.getMessage(), e);
-            return XsltTransformationResult.error("Transformation failed: " + e.getMessage());
+            logger.warn("XSLT transformation failed: {}", e.getMessage());
+            return runtimeFailure(e);
 
         } catch (Exception e) {
             logger.error("Unexpected error during XSLT transformation", e);
@@ -486,9 +494,11 @@ public class XsltTransformationEngine {
             TransformationContext context = new TransformationContext(xmlContent, xsltContent,
                     parameters, outputFormat);
 
-            XsltExecutable executable = compileStylesheet(xsltContent, context);
-            if (executable == null) {
-                return XsltTransformationResult.error("Failed to compile XSLT stylesheet");
+            XsltExecutable executable;
+            try {
+                executable = compileStylesheet(xsltContent, context);
+            } catch (StylesheetCompileException e) {
+                return e.toResult();
             }
 
             XsltTransformer transformer = executable.load();
@@ -496,7 +506,12 @@ public class XsltTransformationEngine {
             transformer.setTraceListener(traceListener);
             transformer.setMessageHandler(messageListener);
 
-            XdmNode sourceDoc = parseXmlDocument(xmlContent);
+            XdmNode sourceDoc;
+            try {
+                sourceDoc = parseXmlDocument(xmlContent);
+            } catch (SaxonApiException e) {
+                return inputFailure(e);
+            }
             transformer.setInitialContextNode(sourceDoc);
 
             StringWriter outputWriter = new StringWriter();
@@ -543,8 +558,8 @@ public class XsltTransformationEngine {
             return result;
 
         } catch (SaxonApiException e) {
-            logger.error("XSLT transformation (debug) failed: {}", e.getMessage(), e);
-            return XsltTransformationResult.error("Transformation failed: " + e.getMessage());
+            logger.warn("XSLT transformation (debug) failed: {}", e.getMessage());
+            return runtimeFailure(e);
         } catch (Exception e) {
             logger.error("Unexpected error during debug XSLT transformation", e);
             return XsltTransformationResult.error("Unexpected error: " + e.getMessage());
@@ -945,7 +960,8 @@ public class XsltTransformationEngine {
 
     // ========== Stylesheet Compilation and Caching ==========
 
-    private XsltExecutable compileStylesheet(String xsltContent, TransformationContext context) {
+    private XsltExecutable compileStylesheet(String xsltContent, TransformationContext context)
+            throws StylesheetCompileException {
         String cacheKey = context.getStylesheetCacheKey();
 
         // Use separate cache key for debug compilations (tracing enabled)
@@ -960,36 +976,130 @@ public class XsltTransformationEngine {
             return cached;
         }
 
-        try {
-            logger.debug("Compiling XSLT stylesheet (debug={})", enableDebugging);
+        logger.debug("Compiling XSLT stylesheet (debug={})", enableDebugging);
 
-            // Create a new compiler instance for this compilation
-            XsltCompiler compiler = saxonProcessor.newXsltCompiler();
-            compiler.setXsltLanguageVersion("3.0");
-
-            // CRITICAL: Enable tracing when debugging is enabled
-            // This is required for TraceListener to receive events
-            if (enableDebugging) {
-                compiler.setCompileWithTracing(true);
-                logger.debug("Tracing enabled for XSLT compilation");
+        // Create a new compiler instance for this compilation
+        XsltCompiler compiler = saxonProcessor.newXsltCompiler();
+        compiler.setXsltLanguageVersion("3.0");
+        // Collect the static errors: the SaxonApiException thrown by compile() only says
+        // "Errors were reported during stylesheet compilation" — the reasons and locations
+        // are delivered to the error reporter. Saxon may report the same error more than
+        // once, so de-duplicate by location, code and message.
+        List<XmlProcessingError> staticErrors = new ArrayList<>();
+        java.util.Set<String> seenErrors = new java.util.HashSet<>();
+        compiler.setErrorReporter(error -> {
+            if (!error.isWarning() && seenErrors.add(at(error) + bracket(localCode(error.getErrorCode()))
+                    + error.getMessage())) {
+                staticErrors.add(error);
             }
+        });
 
-            StreamSource source = new StreamSource(new StringReader(xsltContent));
-            XsltExecutable executable = compiler.compile(source);
-
-            // Cache compiled stylesheet
-            compiledStylesheets.put(cacheKey, executable);
-
-            // Cleanup old cache entries
-            cleanupCache();
-
-            logger.debug("XSLT stylesheet compiled and cached successfully");
-            return executable;
-
-        } catch (SaxonApiException e) {
-            logger.error("Failed to compile XSLT stylesheet: {}", e.getMessage(), e);
-            return null;
+        // CRITICAL: Enable tracing when debugging is enabled
+        // This is required for TraceListener to receive events
+        if (enableDebugging) {
+            compiler.setCompileWithTracing(true);
+            logger.debug("Tracing enabled for XSLT compilation");
         }
+
+        StreamSource source = new StreamSource(new StringReader(xsltContent));
+        XsltExecutable executable;
+        try {
+            executable = compiler.compile(source);
+        } catch (SaxonApiException e) {
+            StylesheetCompileException failure = compileFailure(staticErrors, e);
+            logger.warn("Failed to compile XSLT stylesheet: {}", failure.getMessage());
+            throw failure;
+        }
+
+        // Cache compiled stylesheet
+        compiledStylesheets.put(cacheKey, executable);
+
+        // Cleanup old cache entries
+        cleanupCache();
+
+        logger.debug("XSLT stylesheet compiled and cached successfully");
+        return executable;
+
+    }
+
+    // ========== Failure reporting ==========
+
+    /** Maximum number of static errors listed in a compile-failure message. */
+    static final int MAX_REPORTED_COMPILE_ERRORS = 5;
+
+    /** A stylesheet had static errors; carries the formatted, user-facing failure. */
+    static final class StylesheetCompileException extends Exception {
+        private final String code;
+
+        StylesheetCompileException(String message, String code) {
+            super(message);
+            this.code = code;
+        }
+
+        XsltTransformationResult toResult() {
+            return XsltTransformationResult.error(getMessage(), code, XsltTransformationResult.PHASE_COMPILE);
+        }
+    }
+
+    /**
+     * Builds the compile failure from the reported static errors (reason, line/column and
+     * error code of each), falling back to the exception when nothing was reported.
+     */
+    static StylesheetCompileException compileFailure(List<XmlProcessingError> errors, SaxonApiException e) {
+        if (errors.isEmpty()) {
+            String code = localCode(e.getErrorCode());
+            return new StylesheetCompileException("XSLT compile error" + at(e.getLineNumber(), -1)
+                    + bracket(code) + ": " + e.getMessage(), code);
+        }
+        XmlProcessingError first = errors.getFirst();
+        String code = localCode(first.getErrorCode());
+        if (errors.size() == 1) {
+            return new StylesheetCompileException("XSLT compile error" + at(first) + bracket(code)
+                    + ": " + first.getMessage(), code);
+        }
+        StringBuilder sb = new StringBuilder("XSLT stylesheet has ").append(errors.size())
+                .append(" compile errors:");
+        errors.stream().limit(MAX_REPORTED_COMPILE_ERRORS).forEach(error -> sb.append("\n  -")
+                .append(at(error)).append(bracket(localCode(error.getErrorCode())))
+                .append(": ").append(error.getMessage()));
+        if (errors.size() > MAX_REPORTED_COMPILE_ERRORS) {
+            sb.append("\n  … and ").append(errors.size() - MAX_REPORTED_COMPILE_ERRORS).append(" more");
+        }
+        return new StylesheetCompileException(sb.toString(), code);
+    }
+
+    /** The input document is not well-formed. */
+    private static XsltTransformationResult inputFailure(SaxonApiException e) {
+        String code = localCode(e.getErrorCode());
+        return XsltTransformationResult.error("Input XML is not well-formed" + bracket(code) + ": "
+                + e.getMessage(), code, XsltTransformationResult.PHASE_INPUT);
+    }
+
+    /** The transformation raised a dynamic error. */
+    private static XsltTransformationResult runtimeFailure(SaxonApiException e) {
+        String code = localCode(e.getErrorCode());
+        return XsltTransformationResult.error("Transformation failed" + at(e.getLineNumber(), -1)
+                + bracket(code) + ": " + e.getMessage(), code, XsltTransformationResult.PHASE_RUNTIME);
+    }
+
+    private static String at(XmlProcessingError error) {
+        var location = error.getLocation();
+        return location == null ? "" : at(location.getLineNumber(), location.getColumnNumber());
+    }
+
+    private static String at(int line, int column) {
+        if (line <= 0) {
+            return "";
+        }
+        return column > 0 ? " at line " + line + ", column " + column : " at line " + line;
+    }
+
+    private static String bracket(String code) {
+        return code == null ? "" : " [" + code + "]";
+    }
+
+    private static String localCode(QName code) {
+        return code == null ? null : code.getLocalName();
     }
 
     private XdmNode parseXmlDocument(String xmlContent) throws SaxonApiException {

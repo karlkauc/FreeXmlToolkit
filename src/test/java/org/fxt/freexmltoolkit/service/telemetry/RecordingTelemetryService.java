@@ -14,11 +14,17 @@ import java.util.function.Consumer;
 public class RecordingTelemetryService implements TelemetryService {
 
     private final List<TelemetryEvent> events = new CopyOnWriteArrayList<>();
+    private final List<String> errorReports = new CopyOnWriteArrayList<>();
     private final TelemetryService noop = TelemetryService.noop();
 
     /** @return the recorded events in call order */
     public List<TelemetryEvent> events() {
         return events;
+    }
+
+    /** @return the {@code where} of every reported error ({@link #trackError}), in call order */
+    public List<String> errorReports() {
+        return errorReports;
     }
 
     /** @return the recorded events of the given type */
@@ -52,11 +58,13 @@ public class RecordingTelemetryService implements TelemetryService {
 
     @Override
     public void trackError(Throwable t, String where) {
+        errorReports.add(where);
         noop.trackError(t, where);
     }
 
     @Override
     public void trackError(String errorCode, String where) {
+        errorReports.add(where);
         noop.trackError(errorCode, where);
     }
 

@@ -192,11 +192,26 @@ public final class UsageEvents {
      * @param live triggered by live preview / stylesheet watch (throttled) rather than the user
      */
     public static void xsltTransformed(int fileCount, long startNanos, boolean ok, boolean live) {
+        xsltTransformed(fileCount, startNanos, ok, live, null, null);
+    }
+
+    /**
+     * An XSLT transformation ran; a failed run carries the processor's error classification.
+     *
+     * @param errorCode processor error code of a failed run, e.g. {@code XTSE0010} (nullable;
+     *                  a fixed code, never the message text)
+     * @param phase     failure phase {@code compile | input | runtime} (nullable)
+     */
+    public static void xsltTransformed(int fileCount, long startNanos, boolean ok, boolean live,
+                                       String errorCode, String phase) {
         if (live && !liveRunDue("xslt_transform")) {
             return;
         }
         action("xslt_transform", b -> {
             b.docKind(DocKind.XML).status(status(ok)).meta("engine", "saxon");
+            if (!ok) {
+                b.errorCode(errorCode).meta("phase", phase);
+            }
             if (fileCount > 1) {
                 b.fileCount(fileCount);
             }
