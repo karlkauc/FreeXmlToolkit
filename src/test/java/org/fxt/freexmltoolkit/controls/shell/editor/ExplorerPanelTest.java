@@ -50,6 +50,31 @@ class ExplorerPanelTest {
     }
 
     @Test
+    void favoritesRecentPaneIsNeverSqueezedAndResizesByDraggingItsGrip(org.testfx.api.FxRobot robot) {
+        var props = org.fxt.freexmltoolkit.di.ServiceRegistry.get(org.fxt.freexmltoolkit.service.PropertiesService.class);
+        String saved = props.get(ExplorerPanel.FAV_RECENT_HEIGHT_KEY);
+        try {
+            WaitForAsyncUtils.waitForFxEvents();
+            javafx.scene.layout.Region pane = (javafx.scene.layout.Region) panel.lookup("#explorer-fav-recent");
+            assertNotNull(pane, "Explorer must have the FAVORITES | RECENT pane");
+            double before = pane.getHeight();
+            assertTrue(before >= ExplorerPanel.FAV_RECENT_MIN_HEIGHT,
+                    "pane must keep at least its minimum height, was " + before);
+
+            robot.drag("#explorer-fav-recent-grip").moveBy(0, -80).release(javafx.scene.input.MouseButton.PRIMARY);
+            WaitForAsyncUtils.waitForFxEvents();
+
+            assertTrue(pane.getHeight() > before + 40,
+                    "dragging the grip up must grow the pane (" + before + " -> " + pane.getHeight() + ")");
+            assertEquals(String.valueOf(Math.round(pane.getPrefHeight())),
+                    props.get(ExplorerPanel.FAV_RECENT_HEIGHT_KEY), "the new height must be persisted");
+        } finally {
+            props.set(ExplorerPanel.FAV_RECENT_HEIGHT_KEY,
+                    saved != null ? saved : String.valueOf(Math.round(ExplorerPanel.FAV_RECENT_DEFAULT_HEIGHT)));
+        }
+    }
+
+    @Test
     void favoritesSectionListsAndOpensFavorites() throws Exception {
         WaitForAsyncUtils.waitForFxEvents();
         @SuppressWarnings("unchecked")

@@ -36,6 +36,14 @@ public class ExplorerPanel extends VBox {
 
     private final EditorHost editorHost;
     private final PropertiesService propertiesService = resolvePropertiesService();
+
+    /** Persisted height (px) of the FAVORITES | RECENT pane, set by dragging its grip. */
+    static final String FAV_RECENT_HEIGHT_KEY = "explorer.favRecent.height";
+    static final double FAV_RECENT_DEFAULT_HEIGHT = 240;
+    static final double FAV_RECENT_MIN_HEIGHT = 96;
+    static final double FAV_RECENT_MAX_HEIGHT = 2000;
+    /** Height kept free above the pane while dragging (header, section headers, a few tree rows). */
+    private static final double FAV_RECENT_RESERVED_HEIGHT = 200;
     private final ObservableList<File> recentFiles = FXCollections.observableArrayList();
     private final ListView<File> recentList = new ListView<>(recentFiles);
     private final ObservableList<org.fxt.freexmltoolkit.domain.FileFavorite> favorites =
@@ -100,8 +108,6 @@ public class ExplorerPanel extends VBox {
         recentList.getStyleClass().addAll("fxt-open-editors", "fxt-explorer-list");
         recentList.setCellFactory(lv -> new RecentFileCell());
         recentList.setFixedCellSize(28);
-        recentList.prefHeightProperty().bind(javafx.beans.binding.Bindings.createDoubleBinding(
-                () -> Math.min(170.0, Math.max(1, recentFiles.size()) * 28.0 + 2), recentFiles));
         recentList.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
             if (newV != null && newV.isFile()) {
                 java.io.File file = newV;
@@ -114,8 +120,6 @@ public class ExplorerPanel extends VBox {
         favoritesList.getStyleClass().addAll("fxt-open-editors", "fxt-explorer-list");
         favoritesList.setCellFactory(lv -> new FavoriteCell());
         favoritesList.setFixedCellSize(28);
-        favoritesList.prefHeightProperty().bind(javafx.beans.binding.Bindings.createDoubleBinding(
-                () -> Math.min(170.0, Math.max(1, favorites.size()) * 28.0 + 2), favorites));
         favoritesList.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
             if (newV != null) {
                 String favoritePath = newV.getFilePath();
@@ -140,14 +144,15 @@ public class ExplorerPanel extends VBox {
         HBox workspaceHeader = sectionHeader(workspaceTitle, workspace);
         workspaceHeader.setId("explorer-workspace-header");
 
-        // FAVORITES | RECENT as a side-by-side tab control pinned to the bottom (Figma "future").
+        // FAVORITES | RECENT as a side-by-side tab control pinned to the bottom (Figma "future"),
+        // resizable by dragging the grip above it.
         javafx.scene.layout.VBox favRecentPane = buildFavoritesRecentTabs();
 
         getChildren().addAll(header,
                 toolsHeader, toolsBody,
                 openHeader, openEditorsBox,
                 workspaceHeader, workspace,
-                favRecentPane);
+                resizeGrip(favRecentPane), favRecentPane);
         refreshFavorites();
 
         // Track recent files as documents open and keep OPEN EDITORS in sync (rebuilds the rows;
@@ -228,7 +233,75 @@ public class ExplorerPanel extends VBox {
         favTab.setSelected(true);
         sync.run();
 
-        return new javafx.scene.layout.VBox(tabs, content);
+        VBox.setVgrow(content, Priority.ALWAYS);
+        VBox pane = new VBox(tabs, content);
+        pane.setId("explorer-fav-recent");
+        // A fixed, user-chosen height: the workspace tree above (vgrow) gives way first, so the
+        // lists are never squeezed to an unreadable sliver on shorter (e.g. scaled HiDPI) screens.
+        pane.setPrefHeight(clampFavRecentHeight(loadFavRecentHeight()));
+        pane.setMinHeight(javafx.scene.layout.Region.USE_PREF_SIZE);
+        return pane;
+    }
+
+    /**
+     * A thin horizontal grip above {@code pane}: dragging it up/down changes the pane's height
+     * (clamped so the rest of the explorer stays usable); the height is persisted on release.
+     */
+    private javafx.scene.layout.Region resizeGrip(javafx.scene.layout.Region pane) {
+        javafx.scene.layout.Region grip = new javafx.scene.layout.Region();
+        grip.setId("explorer-fav-recent-grip");
+        grip.getStyleClass().add("fxt-explorer-grip");
+        grip.setCursor(javafx.scene.Cursor.V_RESIZE);
+        // Fixed size in code (not CSS): the VBox must never squeeze the grip away.
+        grip.setMinHeight(6);
+        grip.setPrefHeight(6);
+        grip.setMaxHeight(6);
+        double[] start = new double[2]; // screenY, height at press
+        grip.setOnMousePressed(e -> {
+            start[0] = e.getScreenY();
+            start[1] = pane.getHeight();
+            e.consume();
+        });
+        grip.setOnMouseDragged(e -> {
+            // Leave room for the header, section headers and a few workspace rows.
+            double max = Math.max(FAV_RECENT_MIN_HEIGHT, getHeight() - FAV_RECENT_RESERVED_HEIGHT);
+            double height = Math.min(max, clampFavRecentHeight(start[1] - (e.getScreenY() - start[0])));
+            pane.setPrefHeight(height);
+            e.consume();
+        });
+        grip.setOnMouseReleased(e -> {
+            saveFavRecentHeight(pane.getPrefHeight());
+            e.consume();
+        });
+        return grip;
+    }
+
+    static double clampFavRecentHeight(double height) {
+        return Math.max(FAV_RECENT_MIN_HEIGHT, Math.min(FAV_RECENT_MAX_HEIGHT, height));
+    }
+
+    private double loadFavRecentHeight() {
+        if (propertiesService != null) {
+            try {
+                String value = propertiesService.get(FAV_RECENT_HEIGHT_KEY);
+                if (value != null) {
+                    return Double.parseDouble(value);
+                }
+            } catch (RuntimeException ignored) {
+                // malformed value — fall back to the default
+            }
+        }
+        return FAV_RECENT_DEFAULT_HEIGHT;
+    }
+
+    private void saveFavRecentHeight(double height) {
+        if (propertiesService != null) {
+            try {
+                propertiesService.set(FAV_RECENT_HEIGHT_KEY, String.valueOf(Math.round(height)));
+            } catch (RuntimeException ignored) {
+                // properties unavailable — keep the height for this session only
+            }
+        }
     }
 
     /** Rebuilds the OPEN EDITORS rows from the host's open documents (active row highlighted). */

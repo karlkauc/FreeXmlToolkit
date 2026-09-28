@@ -798,6 +798,15 @@
     -fx-border-width: 1 0 0 0;
 }
 
+/* Drag grip above the Explorer's FAVORITES | RECENT pane (resizes it vertically). */
+.fxt-explorer-grip {
+    -fx-background-color: transparent;
+}
+
+.fxt-explorer-grip:hover {
+    -fx-background-color: -fxt-border;
+}
+
 .fxt-fav-tab {
     -fx-background-color: transparent;
     -fx-background-radius: 0;
