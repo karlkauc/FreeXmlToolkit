@@ -213,8 +213,24 @@ public class DialogHelper {
      * @param message the failure message
      */
     public static void notifyActionFailure(String title, String message) {
-        // Anonymous error telemetry: only a fixed code + the dialog title slug, never the message.
-        Telemetry.reportError(ACTION_FAILED_CODE, "dialog." + title);
+        notifyActionFailure(title, message, true);
+    }
+
+    /**
+     * Same as {@link #notifyActionFailure(String, String)}, with control over the error
+     * telemetry.
+     *
+     * @param reportError {@code false} when the failure is already recorded by the action's
+     *                    own usage event (e.g. a failed transformation is an
+     *                    {@code xslt_transform} event with status {@code error} /
+     *                    {@code invalid_input}); reporting it again as an app error would
+     *                    count a broken user stylesheet as an application failure
+     */
+    public static void notifyActionFailure(String title, String message, boolean reportError) {
+        if (reportError) {
+            // Anonymous error telemetry: only a fixed code + the dialog title slug, never the message.
+            Telemetry.reportError(ACTION_FAILED_CODE, "dialog." + title);
+        }
         if (Boolean.getBoolean("fxt.suppressErrorDialogs")) {
             return;
         }

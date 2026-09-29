@@ -82,6 +82,28 @@ class TransformOutputPanelTest {
     }
 
     @Test
+    void failedRunResultIsNotReportedAsAnAppErrorButOtherFailuresAre() {
+        var telemetry = new org.fxt.freexmltoolkit.service.telemetry.RecordingTelemetryService();
+        org.fxt.freexmltoolkit.service.telemetry.Telemetry.install(telemetry);
+        try {
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+                // a failed run is already recorded as its own usage event (xslt_transform …)
+                out.showTransformResult("ERROR: XTSE0010 broken stylesheet", null, 3);
+                return null;
+            });
+            assertTrue(telemetry.errorReports().isEmpty(), telemetry.errorReports().toString());
+
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+                out.showFailure("Could not read stylesheet: denied");
+                return null;
+            });
+            assertEquals(java.util.List.of("dialog.Transform failed"), telemetry.errorReports());
+        } finally {
+            org.fxt.freexmltoolkit.service.telemetry.Telemetry.reset();
+        }
+    }
+
+    @Test
     void closeHidesAndNextRunReshows(@TempDir Path tmp) throws Exception {
         transformGreeting(tmp);
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {

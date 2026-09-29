@@ -1,6 +1,7 @@
 package org.fxt.freexmltoolkit.service.telemetry;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
@@ -92,5 +93,21 @@ class FxStallWatchdogTest {
         assertEquals(DocKind.XSD, e.docKind());
         assertTrue(e.errorDetail().contains("EditorHost"), e.errorDetail());
         assertEquals(16, e.errorHash().length());
+        assertNull(e.inputBytes(), "no document shape known");
+    }
+
+    @Test
+    void telemetrySinkAddsTheActiveDocumentShape() {
+        RecordingTelemetryService telemetry = new RecordingTelemetryService();
+        Telemetry.install(telemetry);
+        UsageEvents.activeDocumentChanged(DocKind.XML, "text",
+                () -> new UsageEvents.DocShape(250_000, 3, 240_000));
+
+        new FxStallWatchdog.TelemetrySink().stalled(10_000, stack);
+
+        TelemetryEvent e = telemetry.events("ui_stall").getFirst();
+        assertEquals(250_000L, e.inputBytes());
+        assertEquals(3, ((Number) e.meta().get("lines")).intValue());
+        assertEquals(">=100k", e.meta().get("max_line_len"));
     }
 }

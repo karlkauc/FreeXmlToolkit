@@ -174,9 +174,19 @@ public class TransformOutputPanel extends VBox {
      * a dialog.
      */
     public void showFailure(String message) {
+        showFailure(message, true);
+    }
+
+    /**
+     * Like {@link #showFailure(String)}.
+     *
+     * @param reportError {@code false} for a failed run result — the run itself is already
+     *                    recorded as a usage event, so it must not count as an app error too
+     */
+    private void showFailure(String message, boolean reportError) {
         showError(message);
         org.fxt.freexmltoolkit.util.DialogHelper.notifyActionFailure(
-                "Transform failed", PanelStatus.strip(message));
+                "Transform failed", PanelStatus.strip(message), reportError);
     }
 
     /** Shows an error or guard message (e.g. "No document open."). */
@@ -201,7 +211,7 @@ public class TransformOutputPanel extends VBox {
     private void showRun(String verb, String text, OutputFormat format, long elapsedMs,
                          XQueryTableRunner.XQueryTable table) {
         if (text != null && text.startsWith("ERROR")) {
-            showFailure(text);
+            showFailure(text, false);
             return;
         }
         reveal();

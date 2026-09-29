@@ -912,7 +912,7 @@ public class TransformPanel extends VBox {
             boolean ok = !result.startsWith("ERROR");
             UsageEvents.xsltTransformed(1, t0, ok, live,
                     fullResult != null ? fullResult.getErrorCode() : null,
-                    fullResult != null ? fullResult.getErrorPhase() : null);
+                    fullResult != null ? fullResult.getErrorPhase() : null, xml.length());
             long elapsedMs = probe.finish(xml.length(), ok ? result.length() : -1, ok,
                     org.fxt.freexmltoolkit.service.ExecutionStats.firstLine(result));
             String finalResult = result;

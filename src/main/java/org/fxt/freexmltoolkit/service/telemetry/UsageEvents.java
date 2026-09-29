@@ -10,6 +10,7 @@ import java.util.function.Supplier;
 
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.service.UsageTrackingService;
+import org.fxt.freexmltoolkit.service.XsltTransformationResult;
 
 /**
  * One-call facade for usage events at UI hook points: every method records the anonymous
@@ -52,6 +53,18 @@ public final class UsageEvents {
     private static volatile String currentActivity;
     private static volatile String currentViewMode;
     private static volatile DocKind currentDocKind;
+    /** Measures the active text document (for {@code ui_stall}); null when none is open. */
+    private static volatile Supplier<DocShape> currentDocShape;
+
+    /**
+     * Size and line shape of the active text document — only counts, never content.
+     *
+     * @param chars      document length in characters
+     * @param lines      number of lines (paragraphs)
+     * @param maxLineLen length of the longest line
+     */
+    public record DocShape(long chars, int lines, int maxLineLen) {
+    }
 
     private UsageEvents() {
     }
@@ -296,13 +309,29 @@ public final class UsageEvents {
      */
     public static void xsltTransformed(int fileCount, long startNanos, boolean ok, boolean live,
                                        String errorCode, String phase) {
+        xsltTransformed(fileCount, startNanos, ok, live, errorCode, phase, -1);
+    }
+
+    /**
+     * An XSLT transformation ran. A failure in the {@code compile} or {@code input} phase is
+     * the user's stylesheet or source being broken, not the app, and is recorded as
+     * {@code invalid_input}; only {@code runtime} (or unclassified) failures count as
+     * {@code error}.
+     *
+     * @param inputBytes size of the source document (negative = unknown)
+     */
+    public static void xsltTransformed(int fileCount, long startNanos, boolean ok, boolean live,
+                                       String errorCode, String phase, long inputBytes) {
         if (live && !liveRunDue("xslt_transform")) {
             return;
         }
         action("xslt_transform", b -> {
-            b.docKind(DocKind.XML).status(status(ok)).meta("engine", "saxon");
+            b.docKind(DocKind.XML).status(xsltStatus(ok, phase)).meta("engine", "saxon");
             if (!ok) {
                 b.errorCode(errorCode).meta("phase", phase);
+            }
+            if (inputBytes >= 0) {
+                b.inputBytes(inputBytes);
             }
             if (fileCount > 1) {
                 b.fileCount(fileCount);
@@ -595,8 +624,43 @@ public final class UsageEvents {
 
     /** The active editor tab changed (UI context for {@code ui_stall}; no event is sent). */
     public static void activeDocumentChanged(DocKind kind, String viewMode) {
+        activeDocumentChanged(kind, viewMode, null);
+    }
+
+    /**
+     * The active editor tab changed (UI context for {@code ui_stall}; no event is sent).
+     *
+     * @param shape measures the active document on demand — called on the FX thread, only
+     *              when a stall is reported (nullable: unknown / no text document)
+     */
+    public static void activeDocumentChanged(DocKind kind, String viewMode, Supplier<DocShape> shape) {
         currentDocKind = kind;
         currentViewMode = viewMode;
+        currentDocShape = shape;
+    }
+
+    /** @return the shape of the active document, or null when unknown or not measurable */
+    static DocShape activeDocShape() {
+        Supplier<DocShape> shape = currentDocShape;
+        if (shape == null) {
+            return null;
+        }
+        try {
+            return shape.get();
+        } catch (Throwable t) {
+            return null;
+        }
+    }
+
+    /** Coarse size class of a line length ({@code <1k | <10k | <100k | >=100k}). */
+    static String lineLengthBucket(int length) {
+        if (length < 1_000) {
+            return "<1k";
+        }
+        if (length < 10_000) {
+            return "<10k";
+        }
+        return length < 100_000 ? "<100k" : ">=100k";
     }
 
     /** @return the kind of the active document, or null */
@@ -608,6 +672,15 @@ public final class UsageEvents {
 
     private static TelemetryEvent.Status status(boolean ok) {
         return ok ? TelemetryEvent.Status.OK : TelemetryEvent.Status.ERROR;
+    }
+
+    /** Compile/input-phase XSLT failures are the user's input, not an app failure. */
+    static TelemetryEvent.Status xsltStatus(boolean ok, String phase) {
+        if (ok) {
+            return TelemetryEvent.Status.OK;
+        }
+        return XsltTransformationResult.PHASE_COMPILE.equals(phase) || XsltTransformationResult.PHASE_INPUT.equals(phase)
+                ? TelemetryEvent.Status.INVALID_INPUT : TelemetryEvent.Status.ERROR;
     }
 
     private static void duration(TelemetryEvent.Builder b, long startNanos) {
@@ -664,5 +737,6 @@ public final class UsageEvents {
         currentActivity = null;
         currentViewMode = null;
         currentDocKind = null;
+        currentDocShape = null;
     }
 }

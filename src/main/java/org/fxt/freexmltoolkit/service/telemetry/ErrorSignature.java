@@ -16,7 +16,9 @@ import java.util.Set;
  *       followed by up to {@value #MAX_FRAMES} frames as {@code class#method:line}.
  *       {@code org.fxt} frames are preferred: runs of foreign frames are collapsed to
  *       {@code "… (n frames)"} (the top two frames are always kept). If the trace contains no
- *       {@code org.fxt} frame at all, the first frames are kept verbatim.</li>
+ *       {@code org.fxt} frame at all, both ends of the trace are kept verbatim (the top
+ *       ~60&nbsp;% — where it fails or hangs — and the bottom ~40&nbsp;% — what triggered it)
+ *       with the middle collapsed.</li>
  *   <li>{@link #hash()} — first 16 hex chars of SHA-256 over the class chain plus the kept
  *       frames <em>without</em> line numbers and collapse counts, so the hash is stable
  *       across unrelated code edits that only move lines.</li>
@@ -85,6 +87,24 @@ public record ErrorSignature(String errorCode, String detail, String hash) {
             }
         }
 
+        if (!hasOwn && frames.length > maxFrames) {
+            // No own frame: the top shows where it hangs/fails, the bottom what triggered it
+            // (event handler, pulse, timer, runLater) — keep both ends, drop the middle.
+            int tail = maxFrames * 2 / 5;
+            int head = maxFrames - tail;
+            for (int k = 0; k < head; k++) {
+                lines.add(frameText(frames[k], true));
+                hashLines.add(frameText(frames[k], false));
+            }
+            lines.add("… (" + (frames.length - head - tail) + " frames)");
+            hashLines.add("…");
+            for (int k = frames.length - tail; k < frames.length; k++) {
+                lines.add(frameText(frames[k], true));
+                hashLines.add(frameText(frames[k], false));
+            }
+            return build(chainText, lines, hashLines, root, maxChars);
+        }
+
         int kept = 0;
         int collapsed = 0;
         int i = 0;
@@ -108,7 +128,11 @@ public record ErrorSignature(String errorCode, String detail, String hash) {
         if (remaining > 0) {
             lines.add("… (" + remaining + " frames)");
         }
+        return build(chainText, lines, hashLines, root, maxChars);
+    }
 
+    private static ErrorSignature build(CharSequence chainText, List<String> lines, List<String> hashLines,
+                                        Throwable root, int maxChars) {
         StringBuilder detail = new StringBuilder(chainText);
         for (String line : lines) {
             detail.append('\n').append("at ").append(line);

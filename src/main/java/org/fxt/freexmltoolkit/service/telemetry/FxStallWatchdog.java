@@ -17,7 +17,9 @@ import java.util.function.Supplier;
  * ms, the FX thread's stack is captured once; when the thread recovers, one {@code ui_stall}
  * event is recorded with the total blocked time, the stack signature (code locations only,
  * like error events) and the UI context ({@code meta.activity}, {@code meta.view_mode},
- * {@code doc_kind}).
+ * {@code doc_kind}) plus the active document's shape ({@code input_bytes} = characters,
+ * {@code meta.lines}, {@code meta.max_line_len} as a size class) — long lines are the
+ * classic cause of text-layout freezes.
  *
  * <p>At most {@value #MAX_REPORTS_PER_SESSION} stalls per session, and the same stack
  * signature only once. A freeze that never ends shows up as {@code prev_session_crashed}
@@ -154,11 +156,16 @@ public final class FxStallWatchdog {
                 return;
             }
             Map<String, String> context = UsageEvents.uiContext();
+            UsageEvents.DocShape shape = UsageEvents.activeDocShape();
             Telemetry.get().track("ui_stall", TelemetryEvent.Category.ACTION, b -> {
                 b.status(TelemetryEvent.Status.TIMEOUT).durationMs(durationMs)
                         .errorDetail(sig.detail()).errorHash(sig.hash());
                 context.forEach(b::meta);
                 b.docKind(UsageEvents.activeDocKind());
+                if (shape != null) {
+                    b.inputBytes(shape.chars()).meta("lines", shape.lines())
+                            .meta("max_line_len", UsageEvents.lineLengthBucket(shape.maxLineLen()));
+                }
             });
         }
     }

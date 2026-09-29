@@ -177,7 +177,7 @@ public final class EditorActions {
             }
             UsageEvents.xsltTransformed(1, t0, ok, false,
                     result != null ? result.getErrorCode() : null,
-                    result != null ? result.getErrorPhase() : null);
+                    result != null ? result.getErrorPhase() : null, xml.length());
             String finalOutput = output;
             Platform.runLater(() -> editorHost.openToolTab(
                     "Transform: " + xslt.getName(), "bi-arrow-left-right", textRegion(finalOutput)));
@@ -323,7 +323,7 @@ public final class EditorActions {
                 probe.phase("Transform", fullResult.getTransformationTime());
             }
             UsageEvents.xsltTransformed(1, t0, fullResult.isSuccess(), false,
-                    fullResult.getErrorCode(), fullResult.getErrorPhase());
+                    fullResult.getErrorCode(), fullResult.getErrorPhase(), xml.length());
             long elapsedMs = probe.finish(xml.length(),
                     fullResult.isSuccess() ? result.length() : -1, fullResult.isSuccess(),
                     org.fxt.freexmltoolkit.service.ExecutionStats.firstLine(result));

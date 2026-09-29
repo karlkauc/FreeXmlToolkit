@@ -290,9 +290,35 @@ class UsageEventsTest {
         UsageEvents.xsltTransformed(1, 0, false, false, "XTSE0010", "compile");
 
         TelemetryEvent event = single("xslt_transform");
-        assertEquals(TelemetryEvent.Status.ERROR, event.status());
+        assertEquals(TelemetryEvent.Status.INVALID_INPUT, event.status(),
+                "a stylesheet that does not compile is the user's input, not an app failure");
         assertEquals("XTSE0010", event.errorCode());
         assertEquals("compile", event.meta().get("phase"));
+    }
+
+    @Test
+    void transformFailureStatusFollowsThePhase() {
+        assertEquals(TelemetryEvent.Status.INVALID_INPUT, UsageEvents.xsltStatus(false, "input"));
+        assertEquals(TelemetryEvent.Status.ERROR, UsageEvents.xsltStatus(false, "runtime"));
+        assertEquals(TelemetryEvent.Status.ERROR, UsageEvents.xsltStatus(false, null));
+        assertEquals(TelemetryEvent.Status.OK, UsageEvents.xsltStatus(true, "compile"));
+    }
+
+    @Test
+    void transformCarriesSourceSizeWhenKnown() {
+        UsageEvents.xsltTransformed(1, 0, false, false, "XTDE0640", "runtime", 1234);
+
+        TelemetryEvent event = single("xslt_transform");
+        assertEquals(TelemetryEvent.Status.ERROR, event.status());
+        assertEquals(1234L, event.inputBytes());
+    }
+
+    @Test
+    void lineLengthBucketsAreCoarse() {
+        assertEquals("<1k", UsageEvents.lineLengthBucket(0));
+        assertEquals("<10k", UsageEvents.lineLengthBucket(1_000));
+        assertEquals("<100k", UsageEvents.lineLengthBucket(99_999));
+        assertEquals(">=100k", UsageEvents.lineLengthBucket(5_000_000));
     }
 
     @Test

@@ -261,14 +261,20 @@ class TransformPanelTest {
             // The live run must not raise the modal failure dialog (which reports "dialog.*").
             assertTrue(telemetry.errorReports().isEmpty(), telemetry.errorReports().toString());
 
-            // An explicit run still surfaces the failure.
+            // An explicit run is recorded as a failed transform (the user's stylesheet is
+            // broken: invalid_input), and not reported a second time as an app error.
             WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
                 panel.setLivePreview(false);
                 panel.transform();
                 return null;
             });
-            WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> !telemetry.errorReports().isEmpty());
-            assertEquals("dialog.Transform failed", telemetry.errorReports().getFirst());
+            WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> telemetry.events("xslt_transform").stream()
+                    .anyMatch(e -> !e.meta().containsKey("trigger")));
+            var run = telemetry.events("xslt_transform").stream()
+                    .filter(e -> !e.meta().containsKey("trigger")).findFirst().orElseThrow();
+            assertEquals(org.fxt.freexmltoolkit.service.telemetry.TelemetryEvent.Status.INVALID_INPUT, run.status());
+            assertEquals("XTSE0010", run.errorCode());
+            assertTrue(telemetry.errorReports().isEmpty(), telemetry.errorReports().toString());
         } finally {
             org.fxt.freexmltoolkit.service.telemetry.Telemetry.reset();
         }

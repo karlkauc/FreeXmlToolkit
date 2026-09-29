@@ -104,6 +104,32 @@ class ErrorSignatureTest {
     }
 
     @Test
+    void withoutOwnFramesBothEndsOfTheTraceAreKept() {
+        StackTraceElement[] frames = new StackTraceElement[60];
+        for (int i = 0; i < frames.length; i++) {
+            frames[i] = frame("javafx.scene.Frame" + i, "m", i);
+        }
+        RuntimeException t = withFrames(new RuntimeException(), frames);
+
+        String detail = ErrorSignature.of(t).detail();
+        assertTrue(detail.contains("at javafx.scene.Frame0#m:0"), detail);
+        assertTrue(detail.contains("at javafx.scene.Frame11#m:11"), detail);
+        assertFalse(detail.contains("Frame12#"), detail);
+        assertTrue(detail.contains("at … (40 frames)"), detail);
+        assertFalse(detail.contains("Frame51#"), detail);
+        assertTrue(detail.contains("at javafx.scene.Frame52#m:52"), detail);
+        assertTrue(detail.endsWith("at javafx.scene.Frame59#m:59"), detail);
+        assertEquals(ErrorSignature.MAX_FRAMES,
+                detail.lines().filter(l -> l.startsWith("at javafx")).count());
+
+        StackTraceElement[] moved = frames.clone();
+        moved[59] = frame("javafx.scene.Frame59", "m", 999);
+        assertEquals(ErrorSignature.of(t).hash(),
+                ErrorSignature.of(withFrames(new RuntimeException(), moved)).hash(),
+                "line numbers must not change the hash");
+    }
+
+    @Test
     void atMostTwentyFramesAndMaxLength() {
         StackTraceElement[] frames = new StackTraceElement[100];
         for (int i = 0; i < frames.length; i++) {

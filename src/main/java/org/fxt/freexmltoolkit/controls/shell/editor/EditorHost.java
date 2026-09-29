@@ -191,8 +191,10 @@ public class EditorHost extends BorderPane {
                 activeSchemaSourceDetail.set(et.schemaSourceDetail);
                 activeViewMode.set(et.viewMode);
                 UsageEvents.activeDocumentChanged(et.document.getFileType().docKind(),
-                        et.viewMode != null ? et.viewMode.name().toLowerCase(java.util.Locale.ROOT) : null);
+                        et.viewMode != null ? et.viewMode.name().toLowerCase(java.util.Locale.ROOT) : null,
+                        docShapeOf(et.view.getCodeArea()));
             } else {
+                UsageEvents.activeDocumentChanged(null, null, null);
                 activeSchema.set(null);
                 activeSchemaStatus.set(SchemaStatus.NONE);
                 activeSchemaSource.set(SchemaSource.NONE);
@@ -1225,6 +1227,27 @@ public class EditorHost extends BorderPane {
     }
 
     /** Shows the welcome empty-state when no tab is open, the tab pane otherwise. */
+    /**
+     * Measures a code area for {@code ui_stall} telemetry (size and line lengths, no content).
+     * Holds the area only weakly so a closed tab is never kept alive by the telemetry context.
+     */
+    static java.util.function.Supplier<UsageEvents.DocShape> docShapeOf(
+            org.fxmisc.richtext.CodeArea area) {
+        java.lang.ref.WeakReference<org.fxmisc.richtext.CodeArea> ref = new java.lang.ref.WeakReference<>(area);
+        return () -> {
+            org.fxmisc.richtext.CodeArea a = ref.get();
+            if (a == null) {
+                return null;
+            }
+            int lines = a.getParagraphs().size();
+            int maxLen = 0;
+            for (int p = 0; p < lines; p++) {
+                maxLen = Math.max(maxLen, a.getParagraphLength(p));
+            }
+            return new UsageEvents.DocShape(a.getLength(), lines, maxLen);
+        };
+    }
+
     private void updateCenter() {
         if (tabPane.getTabs().isEmpty()) {
             welcomePane.setRecentFiles(recentFiles());
@@ -1530,7 +1553,7 @@ public class EditorHost extends BorderPane {
             boolean ok = !result.startsWith("ERROR");
             UsageEvents.xsltTransformed(1, t0, ok, false,
                     fullResult != null ? fullResult.getErrorCode() : null,
-                    fullResult != null ? fullResult.getErrorPhase() : null);
+                    fullResult != null ? fullResult.getErrorPhase() : null, inputChars);
             long elapsedMs = probe.finish(inputChars, ok ? result.length() : -1, ok,
                     org.fxt.freexmltoolkit.service.ExecutionStats.firstLine(result));
             String finalResult = result;

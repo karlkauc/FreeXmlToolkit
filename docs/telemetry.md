@@ -35,15 +35,18 @@ Each **error event** additionally contains:
 | Field | Meaning |
 |-------|---------|
 | `error_code` | The exception class, e.g. `java.lang.NullPointerException`. |
-| `error_detail` | A *stack signature*: the chain of exception classes plus up to 20 code locations (`class#method:line`), mainly from FreeXmlToolkit's own code. |
+| `error_detail` | A *stack signature*: the chain of exception classes plus up to 20 code locations (`class#method:line`), mainly from FreeXmlToolkit's own code. If the stack contains no FreeXmlToolkit code at all, its first and last locations are kept (where it failed and what triggered it). |
 | `error_hash` | A 16-character fingerprint of that signature, used to group identical problems. |
 | `meta.where` | Where in the app it happened, e.g. `uncaught`, `executor`, or the title of the error dialog. |
 
-A failed **XSLT transformation** event (`xslt_transform` with status `error`) carries only the
+A failed **XSLT transformation** event (`xslt_transform`) carries only the
 processor's standard error code in `error_code` (e.g. `XTSE0010` = invalid stylesheet element,
 `XPST0003` = XPath syntax error, `SXXP0003` = input XML not well-formed) and the failure phase in
 `meta.phase` (`compile`, `input` or `runtime`) — never the error message, which may contain file
-names.
+names. A stylesheet that does not compile or an input that is not well-formed is a problem with the
+user's files, not with the app: those runs have status `invalid_input`, only `runtime` failures have
+status `error`. The error dialog of a failed run is not reported a second time as an app error.
+`input_bytes` is the size of the source document in characters.
 
 Identical errors are sent only once per session (with a repeat counter), and at most 30 error
 events are sent per session.
@@ -56,7 +59,7 @@ events are sent per session.
 | `app_exit` | Session length, number of opened files, actions, side panels and the maximum number of open tabs, plus the peak and maximum Java heap rounded to 64 MB. |
 | `prev_session_crashed` | Sent at the next start when the previous session ended without a clean exit (crash, forced close). Contains only that session's anonymous ID and app version. The detection uses small marker files in `~/.freeXmlToolkit/sessions/`. |
 | `file_open`, `view_mode`, `validate`, `schema_analysis`, `schema_bind` | How long opening a document, switching to the Text/Tree/Graphic view, validating or analyzing took, and the document size. `schema_bind` tells how a schema was found for an opened document (`declared`, `library`, `catalog`, `manual` or `none`). |
-| `ui_stall` | The user interface did not respond for at least two seconds: the duration, the side panel and view mode that were active, and a stack signature of the blocked code (code locations only, as for errors). At most 10 per session. |
+| `ui_stall` | The user interface did not respond for at least two seconds: the duration, the side panel and view mode that were active, a stack signature of the blocked code (code locations only, as for errors), and the shape of the active document: its size in characters (`input_bytes`), its number of lines (`meta.lines`) and the length class of its longest line (`meta.max_line_len`: `<1k`, `<10k`, `<100k`, `>=100k`) — never its content. At most 10 per session. |
 | `ui_command`, `panel_action` | Which toolbar button, keyboard shortcut (e.g. `mod+s`), Welcome page card or side-panel action was used (fixed identifiers). |
 | `edit_summary` | Counts per session of editing commands in the structured editors (e.g. `add_element: 12`, `undo: 3`) and of IntelliSense suggestions shown/accepted — command names only, never element names, values or text. |
 
