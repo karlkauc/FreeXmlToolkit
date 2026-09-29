@@ -2240,7 +2240,7 @@ first start.</p>
 </tr>
 <tr>
 <td><code>error_detail</code></td>
-<td>A <em>stack signature</em>: the chain of exception classes plus up to 20 code locations (<code>class#method:line</code>), mainly from FreeXmlToolkit's own code.</td>
+<td>A <em>stack signature</em>: the chain of exception classes plus up to 20 code locations (<code>class#method:line</code>), mainly from FreeXmlToolkit's own code. If the stack contains no FreeXmlToolkit code at all, its first and last locations are kept (where it failed and what triggered it).</td>
 </tr>
 <tr>
 <td><code>error_hash</code></td>
@@ -2252,11 +2252,14 @@ first start.</p>
 </tr>
 </tbody>
 </table>
-<p>A failed <strong>XSLT transformation</strong> event (<code>xslt_transform</code> with status <code>error</code>) carries only the
+<p>A failed <strong>XSLT transformation</strong> event (<code>xslt_transform</code>) carries only the
 processor's standard error code in <code>error_code</code> (e.g. <code>XTSE0010</code> = invalid stylesheet element,
 <code>XPST0003</code> = XPath syntax error, <code>SXXP0003</code> = input XML not well-formed) and the failure phase in
 <code>meta.phase</code> (<code>compile</code>, <code>input</code> or <code>runtime</code>) — never the error message, which may contain file
-names.</p>
+names. A stylesheet that does not compile or an input that is not well-formed is a problem with the
+user's files, not with the app: those runs have status <code>invalid_input</code>, only <code>runtime</code> failures have
+status <code>error</code>. The error dialog of a failed run is not reported a second time as an app error.
+<code>input_bytes</code> is the size of the source document in characters.</p>
 <p>Identical errors are sent only once per session (with a repeat counter), and at most 30 error
 events are sent per session.</p>
 <h3 id="launch-session-and-performance-information">Launch, session and performance information<a class="headerlink" href="#launch-session-and-performance-information" title="Permanent link">&para;</a></h3>
@@ -2286,7 +2289,7 @@ events are sent per session.</p>
 </tr>
 <tr>
 <td><code>ui_stall</code></td>
-<td>The user interface did not respond for at least two seconds: the duration, the side panel and view mode that were active, and a stack signature of the blocked code (code locations only, as for errors). At most 10 per session.</td>
+<td>The user interface did not respond for at least two seconds: the duration, the side panel and view mode that were active, a stack signature of the blocked code (code locations only, as for errors), and the shape of the active document: its size in characters (<code>input_bytes</code>), its number of lines (<code>meta.lines</code>) and the length class of its longest line (<code>meta.max_line_len</code>: <code>&lt;1k</code>, <code>&lt;10k</code>, <code>&lt;100k</code>, <code>&gt;=100k</code>) — never its content. At most 10 per session.</td>
 </tr>
 <tr>
 <td><code>ui_command</code>, <code>panel_action</code></td>
