@@ -24,9 +24,29 @@
                            disableAnsi="false"/>
         </Console>
 
-        <File name="MyFile" fileName="logs//${date:yyyy-MM-dd-HH-mm}-fxt.log" immediateFlush="true">
+        <!-- Rolling log file: archives are gzipped; archives (and legacy per-launch
+             "*-fxt.log" files) older than 14 days, or beyond 100 MB in total, are deleted
+             automatically on every rollover. -->
+        <RollingFile name="MyFile" fileName="logs/fxt.log"
+                     filePattern="logs/fxt-%d{yyyy-MM-dd}-%i.log.gz"
+                     immediateFlush="true" createOnDemand="true">
             <PatternLayout pattern="%d{yyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
-        </File>
+            <Policies>
+                <OnStartupTriggeringPolicy/>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="10 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy fileIndex="nomax">
+                <Delete basePath="logs" maxDepth="1">
+                    <IfFileName glob="{fxt-*.log.gz,*-fxt.log}">
+                        <IfAny>
+                            <IfLastModified age="P14D"/>
+                            <IfAccumulatedFileSize exceeds="100 MB"/>
+                        </IfAny>
+                    </IfFileName>
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingFile>
     </Appenders>
     <Loggers>
         <Root level="WARN">
