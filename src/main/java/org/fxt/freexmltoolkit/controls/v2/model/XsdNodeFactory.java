@@ -97,6 +97,14 @@ public class XsdNodeFactory {
             Boolean.parseBoolean(System.getProperty("fxt.schema.namespaceFallback", "true"));
 
     /**
+     * Flag to control whether import resolution may download remote schemas. When false,
+     * remote imports resolve from the local schema cache only and everything that would
+     * need the network is reported by {@link #getDeferredRemoteLookups()} instead. Callers
+     * on the UI thread disable it so a slow or unreachable server cannot block the UI.
+     */
+    private boolean remoteDownloadsAllowed = true;
+
+    /**
      * Lazily created downloader for the namespace-URL fallback (avoids loading the
      * schema cache index for schemas without imports). Tests may inject a stub.
      */
@@ -172,11 +180,33 @@ public class XsdNodeFactory {
     }
 
     /**
+     * Enables or disables network access during import resolution. With downloads disabled,
+     * remote imports are resolved from the local schema cache only.
+     *
+     * @param allowed true to allow downloads (default), false for cache-only resolution
+     */
+    public void setRemoteDownloadsAllowed(boolean allowed) {
+        this.remoteDownloadsAllowed = allowed;
+    }
+
+    /**
+     * Returns the schema URLs and namespaces that the last parse could not resolve because
+     * downloads were disabled and the local cache had no copy.
+     *
+     * @return the skipped remote lookups, empty if nothing was skipped
+     */
+    public java.util.Set<String> getDeferredRemoteLookups() {
+        return importContext == null
+                ? java.util.Set.of()
+                : java.util.Set.copyOf(importContext.deferredRemoteLookups());
+    }
+
+    /**
      * Injects the downloader used for the namespace-URL fallback (used by tests).
      *
      * @param downloader the downloader to use, or null to create one lazily on first use
      */
-    void setNamespaceSchemaDownloader(NamespaceSchemaDownloader downloader) {
+    public void setNamespaceSchemaDownloader(NamespaceSchemaDownloader downloader) {
         this.namespaceSchemaDownloader = downloader;
     }
 
@@ -310,7 +340,7 @@ public class XsdNodeFactory {
         // imported schemas keep the shared context they were injected with.
         if (importDepth == 0) {
             importContext = new ImportResolutionContext(schema, remoteNamespaceFallbackEnabled,
-                    namespaceSchemaDownloader);
+                    remoteDownloadsAllowed, namespaceSchemaDownloader);
             if (currentSchemaFile != null) {
                 // Seed the resolution stack with the root schema itself so an import chain
                 // leading back to the root file is detected as a circular import.
@@ -2017,11 +2047,17 @@ public class XsdNodeFactory {
 
             // Load the schema content
             String schemaContent = null;
+            boolean deferred = false;
             if (remote) {
-                RemoteSchema remoteSchema = loadSchemaFromHTTP(schemaLocation);
-                if (remoteSchema != null) {
-                    schemaContent = remoteSchema.content();
-                    resolvedPath = remoteSchema.cachedPath();
+                if (context.isRemoteDownloadsAllowed() || context.schemaCache().isCached(schemaLocation)) {
+                    RemoteSchema remoteSchema = loadSchemaFromHTTP(schemaLocation);
+                    if (remoteSchema != null) {
+                        schemaContent = remoteSchema.content();
+                        resolvedPath = remoteSchema.cachedPath();
+                    }
+                } else {
+                    context.deferRemoteLookup(schemaLocation);
+                    deferred = true;
                 }
             } else if (resolvedPath != null) {
                 schemaContent = loadSchemaFromFile(resolvedPath);
@@ -2030,7 +2066,14 @@ public class XsdNodeFactory {
             // Fallback: if the schemaLocation cannot be resolved locally, try to find the
             // schema under the import's namespace URL (e.g. W3C-hosted schemas like xmldsig)
             if ((schemaContent == null || schemaContent.isEmpty()) && context.isRemoteNamespaceFallbackEnabled()) {
-                var namespaceResolved = context.downloader().resolve(namespace, schemaLocation);
+                var namespaceResolved = context.isRemoteDownloadsAllowed()
+                        ? context.downloader().resolve(namespace, schemaLocation)
+                        : context.downloader().resolveFromCache(namespace);
+                if (namespaceResolved.isEmpty() && !context.isRemoteDownloadsAllowed()
+                        && NamespaceSchemaDownloader.isRemoteNamespace(namespace)) {
+                    context.deferRemoteLookup(namespace);
+                    deferred = true;
+                }
                 if (namespaceResolved.isPresent()) {
                     schemaContent = namespaceResolved.get().content();
                     resolvedPath = namespaceResolved.get().cachedPath();
@@ -2048,8 +2091,13 @@ public class XsdNodeFactory {
             }
 
             if (schemaContent == null || schemaContent.isEmpty()) {
-                logger.warn("Failed to load schema content from: {}", schemaLocation);
-                xsdImport.markResolutionFailed("Failed to load schema content");
+                if (deferred) {
+                    logger.info("Remote schema not in the local cache, download deferred: {}", schemaLocation);
+                    xsdImport.markResolutionFailed("Remote schema not downloaded yet");
+                } else {
+                    logger.warn("Failed to load schema content from: {}", schemaLocation);
+                    xsdImport.markResolutionFailed("Failed to load schema content");
+                }
                 return;
             }
 
@@ -2203,6 +2251,10 @@ public class XsdNodeFactory {
         } catch (Exception e) {
             logger.debug("Schema cache lookup failed for {} ({}), falling back to direct download",
                     url, e.getMessage());
+        }
+
+        if (!importContext.isRemoteDownloadsAllowed()) {
+            return null;
         }
 
         try {

@@ -3,7 +3,9 @@ package org.fxt.freexmltoolkit.controls.v2.model;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.fxt.freexmltoolkit.service.NamespaceSchemaDownloader;
 import org.fxt.freexmltoolkit.service.SchemaResourceCache;
@@ -32,15 +34,18 @@ final class ImportResolutionContext {
 
     private final XsdSchema rootSchema;
     private final boolean remoteNamespaceFallbackEnabled;
+    private final boolean remoteDownloadsAllowed;
+    private final Set<String> deferredRemoteLookups = new LinkedHashSet<>();
     private final Deque<String> resolutionStack = new ArrayDeque<>();
     private final Map<String, XsdSchema> resolvedByKey = new HashMap<>();
     private NamespaceSchemaDownloader downloader;
     private SchemaResourceCache schemaCache;
 
     ImportResolutionContext(XsdSchema rootSchema, boolean remoteNamespaceFallbackEnabled,
-                            NamespaceSchemaDownloader downloader) {
+                            boolean remoteDownloadsAllowed, NamespaceSchemaDownloader downloader) {
         this.rootSchema = rootSchema;
         this.remoteNamespaceFallbackEnabled = remoteNamespaceFallbackEnabled;
+        this.remoteDownloadsAllowed = remoteDownloadsAllowed;
         this.downloader = downloader;
     }
 
@@ -50,6 +55,20 @@ final class ImportResolutionContext {
 
     boolean isRemoteNamespaceFallbackEnabled() {
         return remoteNamespaceFallbackEnabled;
+    }
+
+    /** False when this run may only use the local schema cache (no network I/O). */
+    boolean isRemoteDownloadsAllowed() {
+        return remoteDownloadsAllowed;
+    }
+
+    /** Remembers a schema URL or namespace that was skipped because downloads are not allowed. */
+    void deferRemoteLookup(String urlOrNamespace) {
+        deferredRemoteLookups.add(urlOrNamespace);
+    }
+
+    Set<String> deferredRemoteLookups() {
+        return deferredRemoteLookups;
     }
 
     NamespaceSchemaDownloader downloader() {
