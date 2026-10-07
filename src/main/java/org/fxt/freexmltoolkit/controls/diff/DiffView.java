@@ -296,14 +296,37 @@ public final class DiffView extends Tab {
         recomputeNow();
     }
 
+    /**
+     * Applies every non-equal chunk as one edit followed by one recompute. Applying them
+     * one by one would re-diff and re-highlight both sides once per chunk.
+     */
     private void applyAll(DiffGutter.Direction direction) {
-        List<Integer> nonEqualIndices = new ArrayList<>();
-        for (int i = 0; i < chunks.size(); i++) {
-            if (!chunks.get(i).isEqual()) nonEqualIndices.add(i);
+        boolean toRight = direction == DiffGutter.Direction.LEFT_TO_RIGHT;
+        DiffMerge.Result merged = DiffMerge.applyAll(leftArea.getText(), rightArea.getText(), chunks,
+                toRight ? DiffMerge.Direction.LEFT_TO_RIGHT : DiffMerge.Direction.RIGHT_TO_LEFT);
+        CodeArea target = toRight ? rightArea : leftArea;
+        String oldText = target.getText();
+        String newText = toRight ? merged.right() : merged.left();
+        if (oldText.equals(newText)) return;
+
+        // Replace only the span that actually differs, so caret and scroll position survive.
+        int max = Math.min(oldText.length(), newText.length());
+        int prefix = 0;
+        while (prefix < max && oldText.charAt(prefix) == newText.charAt(prefix)) prefix++;
+        int suffix = 0;
+        while (suffix < max - prefix
+                && oldText.charAt(oldText.length() - 1 - suffix) == newText.charAt(newText.length() - 1 - suffix)) {
+            suffix++;
         }
-        for (int i = nonEqualIndices.size() - 1; i >= 0; i--) {
-            applyChunkAt(nonEqualIndices.get(i), direction);
+
+        suppressDebounce = true;
+        try {
+            target.replaceText(prefix, oldText.length() - suffix, newText.substring(prefix, newText.length() - suffix));
+            setDirty(toRight ? 1 : 0, true);
+        } finally {
+            suppressDebounce = false;
         }
+        recomputeNow();
     }
 
     private void navigate(int delta) {
@@ -410,6 +433,21 @@ public final class DiffView extends Tab {
     /** For tests: returns the chunks computed for the current text pair. */
     public List<DiffChunk> getChunksForTesting() {
         return chunks;
+    }
+
+    /** For tests: the gutter between the two panes. */
+    DiffGutter getGutterForTesting() {
+        return gutter;
+    }
+
+    /** For tests: runs the "apply all" toolbar action. */
+    void applyAllForTesting(DiffGutter.Direction direction) {
+        applyAll(direction);
+    }
+
+    /** For tests: text of the left and right pane. */
+    String[] getTextsForTesting() {
+        return new String[] {leftArea.getText(), rightArea.getText()};
     }
 
     /** For tests: replace text and recompute synchronously. */
