@@ -106,8 +106,7 @@ public class NamespaceSchemaDownloader {
      * @return the resolved schema, or empty if the namespace does not yield a schema
      */
     public Optional<ResolvedNamespaceSchema> resolve(String namespace, String schemaLocation) {
-        if (namespace == null
-                || (!namespace.startsWith("http://") && !namespace.startsWith("https://"))) {
+        if (!isRemoteNamespace(namespace)) {
             return Optional.empty();
         }
 
@@ -153,6 +152,28 @@ public class NamespaceSchemaDownloader {
         }
 
         return downloadViaCache(schemaUrl, namespace);
+    }
+
+    /**
+     * Resolves the schema for the given import namespace from the local cache only — no
+     * network access, so it is safe to call on the UI thread.
+     *
+     * @param namespace the import namespace
+     * @return the cached schema, or empty if none was downloaded for this namespace yet
+     */
+    public Optional<ResolvedNamespaceSchema> resolveFromCache(String namespace) {
+        if (!isRemoteNamespace(namespace)) {
+            return Optional.empty();
+        }
+        return lookupCachedByNamespace(namespace);
+    }
+
+    /**
+     * @param namespace an import namespace
+     * @return true if the namespace is an http/https URI and can therefore be looked up remotely
+     */
+    public static boolean isRemoteNamespace(String namespace) {
+        return namespace != null && (namespace.startsWith("http://") || namespace.startsWith("https://"));
     }
 
     private Optional<ResolvedNamespaceSchema> lookupCachedByNamespace(String namespace) {

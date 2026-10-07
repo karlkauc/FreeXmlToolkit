@@ -688,14 +688,10 @@ public class EditorHost extends BorderPane {
             var doc = getActiveDocument();
             if (doc.isPresent() && doc.get().getFileType() == EditorFileType.XSD) {
                 try {
-                    var factory = new org.fxt.freexmltoolkit.controls.v2.model.XsdNodeFactory();
-                    java.nio.file.Path path = doc.get().getPath();
                     // Resolve relative xs:import/xs:include against the file's directory when
                     // it is on disk, so the Type Library sees externally defined types instead
                     // of falling back to a namespace-URL download (issue #36).
-                    schema = path != null
-                            ? factory.fromStringWithSchemaFile(getActiveText().orElse(""), path, path.getParent())
-                            : factory.fromString(getActiveText().orElse(""));
+                    schema = XsdUiParser.parse(getActiveText().orElse(""), doc.get().getPath(), null);
                 } catch (Exception ignored) {
                     return null;
                 }
@@ -3887,22 +3883,41 @@ public class EditorHost extends BorderPane {
 
         private void parseModel() {
             try {
-                var factory = new org.fxt.freexmltoolkit.controls.v2.model.XsdNodeFactory();
-                java.nio.file.Path path = document.getPath();
                 // Resolve xs:include / xs:import relative to the file's directory when on disk, so
                 // the Type Library and facet/type resolution see externally defined types. The
                 // included nodes are tagged isFromInclude (preserveIncludeStructure) and are
                 // excluded again on round-trip so the include structure is never flattened.
-                org.fxt.freexmltoolkit.controls.v2.model.XsdSchema schema = path != null
-                        ? factory.fromStringWithSchemaFile(view.getText(), path, path.getParent())
-                        : factory.fromString(view.getText());
+                // Remote imports come from the schema cache only (this runs on the FX thread);
+                // missing ones are downloaded in the background and trigger one re-parse.
+                String parsedText = view.getText();
+                org.fxt.freexmltoolkit.controls.v2.model.XsdSchema schema = XsdUiParser.parse(
+                        parsedText, document.getPath(), () -> onRemoteImportsAvailable(parsedText));
                 editorContext = new org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext(schema);
-                lastParsedText = view.getText();
+                lastParsedText = parsedText;
                 // A new context means a new schema: ensureCanvasGraphic() rebuilds the
                 // Graphic view (it compares getEditorContext() and discards the stale one).
             } catch (Exception e) {
                 editorContext = null;
                 lastParsedText = null;
+            }
+        }
+
+        /**
+         * Re-parses the model once remote imports skipped by {@link #parseModel()} are in the
+         * schema cache. Skipped when the text changed meanwhile (the next parse picks the cache
+         * up anyway) or when there is undo history a re-parse would discard.
+         */
+        private void onRemoteImportsAvailable(String parsedText) {
+            if (isAbandoned(this) || !java.util.Objects.equals(lastParsedText, parsedText)
+                    || !java.util.Objects.equals(view.getText(), parsedText)) {
+                return;
+            }
+            if (editorContext != null && editorContext.getCommandManager().canUndo()) {
+                return;
+            }
+            lastParsedText = null;
+            if (viewMode != ViewMode.TEXT) {
+                setViewMode(viewMode);
             }
         }
 

@@ -238,6 +238,8 @@ public class XsdTreeView extends TreeView<XsdNode> implements XmlSearchTarget {
     public boolean setXsdFromText(String xsdContent, java.nio.file.Path schemaFile) {
         try {
             XsdNodeFactory factory = new XsdNodeFactory();
+            // Runs on the FX thread: resolve remote imports from the schema cache only.
+            factory.setRemoteDownloadsAllowed(false);
             XsdSchema schema = schemaFile != null
                     ? factory.fromStringWithSchemaFile(xsdContent, schemaFile, schemaFile.getParent())
                     : factory.fromString(xsdContent);
