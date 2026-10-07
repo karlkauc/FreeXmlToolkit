@@ -95,6 +95,16 @@ public interface TelemetryService {
     void trackError(String errorCode, String where);
 
     /**
+     * Marks this session as ending on purpose. Call it as the first step of an orderly
+     * shutdown: whatever ends the process afterwards (the updater replacing the application,
+     * the OS logging the user off, a kill during a slow shutdown) is then not reported as a
+     * crash of this session on the next start. Idempotent.
+     */
+    default void markCleanShutdown() {
+        // no crash detection by default
+    }
+
+    /**
      * Sends a user-written error report asynchronously.
      *
      * @param description             what the user did (required, 1..4000 chars)

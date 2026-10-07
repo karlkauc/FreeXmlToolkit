@@ -453,6 +453,13 @@ public class FxtGui extends Application {
     @Override
     public void stop() {
         logger.debug("stopping Application");
+        // From here on the session ends on purpose: the executor and service shutdowns below
+        // can take seconds, and a process killed meanwhile (updater, OS logoff) is not a crash.
+        try {
+            Telemetry.get().markCleanShutdown();
+        } catch (Throwable t) {
+            logger.debug("Marking clean shutdown failed: {}", t.toString());
+        }
         shutdownExecutor(executorService);
 
         // Shell startup scheduler
