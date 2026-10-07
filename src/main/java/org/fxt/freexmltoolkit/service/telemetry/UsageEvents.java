@@ -365,38 +365,78 @@ public final class UsageEvents {
 
     /** An XQuery ran. */
     public static void xqueryExecuted(long startNanos, boolean ok) {
+        xqueryExecuted(startNanos, ok ? null : QueryFailure.UNKNOWN);
+    }
+
+    /**
+     * An XQuery ran.
+     *
+     * @param failure why it failed, or {@code null} when it succeeded
+     */
+    public static void xqueryExecuted(long startNanos, QueryFailure failure) {
         action("xquery", b -> {
-            b.docKind(DocKind.XML).status(status(ok)).meta("engine", "saxon");
+            b.docKind(DocKind.XML).meta("engine", "saxon");
+            outcome(b, failure);
             duration(b, startNanos);
         });
-        if (ok) {
+        if (failure == null) {
             local(UsageTrackingService::trackXQueryExecution);
         }
     }
 
     /** An XPath expression was evaluated. */
     public static void xpathExecuted(long startNanos, boolean ok) {
+        xpathExecuted(startNanos, ok ? null : QueryFailure.UNKNOWN);
+    }
+
+    /**
+     * An XPath expression was evaluated.
+     *
+     * @param failure why it failed, or {@code null} when it succeeded
+     */
+    public static void xpathExecuted(long startNanos, QueryFailure failure) {
         action("xpath", b -> {
-            b.docKind(DocKind.XML).status(status(ok)).meta("engine", "saxon");
+            b.docKind(DocKind.XML).meta("engine", "saxon");
+            outcome(b, failure);
             duration(b, startNanos);
         });
-        if (ok) {
+        if (failure == null) {
             local(UsageTrackingService::trackXPathQuery);
         }
     }
 
     /** A JSONPath expression was evaluated (telemetry only; no local counter exists). */
     public static void jsonPathExecuted(long startNanos, boolean ok) {
+        jsonPathExecuted(startNanos, ok ? null : QueryFailure.UNKNOWN);
+    }
+
+    /**
+     * A JSONPath expression was evaluated (telemetry only; no local counter exists).
+     *
+     * @param failure why it failed, or {@code null} when it succeeded
+     */
+    public static void jsonPathExecuted(long startNanos, QueryFailure failure) {
         action("jsonpath", b -> {
-            b.docKind(DocKind.JSON).status(status(ok));
+            b.docKind(DocKind.JSON);
+            outcome(b, failure);
             duration(b, startNanos);
         });
     }
 
     /** An XProc pipeline ran. */
     public static void xprocExecuted(long startNanos, boolean ok) {
+        xprocExecuted(startNanos, ok ? null : QueryFailure.UNKNOWN);
+    }
+
+    /**
+     * An XProc pipeline ran.
+     *
+     * @param failure why it failed, or {@code null} when it succeeded
+     */
+    public static void xprocExecuted(long startNanos, QueryFailure failure) {
         action("xproc", b -> {
-            b.status(status(ok)).meta("engine", "calabash");
+            b.meta("engine", "calabash");
+            outcome(b, failure);
             duration(b, startNanos);
         });
     }
@@ -681,6 +721,18 @@ public final class UsageEvents {
         }
         return XsltTransformationResult.PHASE_COMPILE.equals(phase) || XsltTransformationResult.PHASE_INPUT.equals(phase)
                 ? TelemetryEvent.Status.INVALID_INPUT : TelemetryEvent.Status.ERROR;
+    }
+
+    /** Sets status and, for a failed run, the error fields of a query-style action. */
+    private static void outcome(TelemetryEvent.Builder b, QueryFailure failure) {
+        if (failure == null) {
+            b.status(TelemetryEvent.Status.OK);
+            return;
+        }
+        b.status(failure.status()).errorCode(failure.errorCode());
+        if (failure.signature() != null) {
+            b.error(failure.signature());
+        }
     }
 
     private static void duration(TelemetryEvent.Builder b, long startNanos) {

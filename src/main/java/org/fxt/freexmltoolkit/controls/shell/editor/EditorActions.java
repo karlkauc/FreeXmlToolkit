@@ -239,11 +239,12 @@ public final class EditorActions {
                 return;
             }
             if (xquery) {
-                String result = TransformRunner.runXQuery(xml, query, Map.of(),
+                TransformRunner.QueryRun run = TransformRunner.xquery(xml, query, Map.of(),
                         XsltTransformationEngine.OutputFormat.XML);
+                String result = run.text();
                 XQueryTableRunner.XQueryTable table = XQueryTableRunner.run(xml, query);
                 boolean ok = !result.startsWith("ERROR");
-                UsageEvents.xqueryExecuted(t0, ok);
+                UsageEvents.xqueryExecuted(t0, run.failure());
                 long elapsedMs = probe.finish(xml.length(), ok ? result.length() : -1, ok,
                         org.fxt.freexmltoolkit.service.ExecutionStats.firstLine(result));
                 Platform.runLater(() -> {
@@ -253,9 +254,10 @@ public final class EditorActions {
                     }
                 });
             } else {
-                String result = TransformRunner.runXPath(xml, query);
+                TransformRunner.QueryRun run = TransformRunner.xpath(xml, query);
+                String result = run.text();
                 boolean ok = !result.startsWith("ERROR");
-                UsageEvents.xpathExecuted(t0, ok);
+                UsageEvents.xpathExecuted(t0, run.failure());
                 long elapsedMs = probe.finish(xml.length(), ok ? result.length() : -1, ok,
                         org.fxt.freexmltoolkit.service.ExecutionStats.firstLine(result));
                 Platform.runLater(() -> {
@@ -369,7 +371,8 @@ public final class EditorActions {
             XProcRunner.Result result =
                     XProcRunner.runPipeline(pipeline, pipelineFile, inputXmlText, inputXmlFile);
             boolean ok = !result.isError();
-            UsageEvents.xprocExecuted(t0, ok);
+            UsageEvents.xprocExecuted(t0, ok ? null : result.failure() != null ? result.failure()
+                    : org.fxt.freexmltoolkit.service.telemetry.QueryFailure.UNKNOWN);
             long elapsedMs = probe.finish(inputXmlText != null ? inputXmlText.length() : -1,
                     ok ? result.text().length() : -1, ok,
                     org.fxt.freexmltoolkit.service.ExecutionStats.firstLine(result.text()));

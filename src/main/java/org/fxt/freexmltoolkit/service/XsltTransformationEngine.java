@@ -690,7 +690,8 @@ public class XsltTransformationEngine {
 
         } catch (SaxonApiException e) {
             logger.error("XQuery transformation failed: {}", e.getMessage(), e);
-            return XsltTransformationResult.error("XQuery execution failed: " + e.getMessage());
+            return XsltTransformationResult.error("XQuery execution failed: " + e.getMessage(),
+                    localCode(e.getErrorCode()), null);
 
         } catch (Exception e) {
             logger.error("Unexpected error during XQuery transformation", e);
