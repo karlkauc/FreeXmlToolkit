@@ -1,6 +1,5 @@
 package org.fxt.freexmltoolkit.controls.diff;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -42,19 +41,34 @@ public final class DiffMerge {
 
     /**
      * Apply ALL non-equal chunks of the supplied diff in the given direction.
-     * Iterates in reverse so earlier replacements don't shift later indices.
+     * Builds the result in a single pass over the target text, so the cost does not grow
+     * with the number of chunks.
      */
     public static Result applyAll(String left, String right, List<DiffChunk> chunks, Direction dir) {
-        List<DiffChunk> nonEqual = new ArrayList<>();
-        for (DiffChunk c : chunks) if (!c.isEqual()) nonEqual.add(c);
-        String l = left;
-        String r = right;
-        for (int i = nonEqual.size() - 1; i >= 0; i--) {
-            Result step = applyChunk(l, r, nonEqual.get(i), dir);
-            l = step.left;
-            r = step.right;
+        boolean toRight = dir == Direction.LEFT_TO_RIGHT;
+        String source = toRight ? left : right;
+        String target = toRight ? right : left;
+        int[] sourceOffsets = DiffHighlighter.computeLineOffsets(source);
+        int[] targetOffsets = DiffHighlighter.computeLineOffsets(target);
+
+        StringBuilder sb = new StringBuilder(Math.max(source.length(), target.length()));
+        int cursor = 0;
+        for (DiffChunk c : chunks) {
+            if (c.isEqual()) continue;
+            int sourceStart = toRight ? c.getLeftStart() : c.getRightStart();
+            int sourceEnd = toRight ? c.getLeftEnd() : c.getRightEnd();
+            int targetStart = toRight ? c.getRightStart() : c.getLeftStart();
+            int targetEnd = toRight ? c.getRightEnd() : c.getLeftEnd();
+
+            int start = targetOffsets[Math.min(targetStart, targetOffsets.length - 1)];
+            int end = Math.min(target.length(), targetOffsets[Math.min(targetEnd, targetOffsets.length - 1)]);
+            if (start < cursor) continue; // overlapping chunk; cannot happen for a line diff
+            sb.append(target, cursor, start);
+            sb.append(sliceLines(source, sourceOffsets, sourceStart, sourceEnd));
+            cursor = Math.max(start, end);
         }
-        return new Result(l, r);
+        sb.append(target, cursor, target.length());
+        return toRight ? new Result(left, sb.toString()) : new Result(sb.toString(), right);
     }
 
     private static String sliceLines(String text, int[] offsets, int startLine, int endLine) {
