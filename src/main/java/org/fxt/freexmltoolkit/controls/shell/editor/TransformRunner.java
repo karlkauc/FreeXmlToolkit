@@ -4,6 +4,7 @@ import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XsltTransformationEngine;
 import org.fxt.freexmltoolkit.service.XsltTransformationResult;
+import org.fxt.freexmltoolkit.service.telemetry.QueryFailure;
 
 /**
  * UI-free transform/query orchestration for the Transform activity: runs an XSLT
@@ -73,12 +74,30 @@ public final class TransformRunner {
     public static String runXQuery(String xml, String xqueryContent,
                                    java.util.Map<String, Object> externalVariables,
                                    XsltTransformationEngine.OutputFormat outputFormat) {
+        return xquery(xml, xqueryContent, externalVariables, outputFormat).text();
+    }
+
+    /**
+     * A query result as shown to the user plus, for a failed run, its telemetry classification.
+     *
+     * @param text    the output, or {@code "ERROR: …"}
+     * @param failure why the run failed, or {@code null} when it succeeded
+     */
+    public record QueryRun(String text, QueryFailure failure) {
+    }
+
+    /** As {@link #runXQuery}, additionally reporting why a failed run failed. */
+    public static QueryRun xquery(String xml, String xqueryContent,
+                                  java.util.Map<String, Object> externalVariables,
+                                  XsltTransformationEngine.OutputFormat outputFormat) {
         try {
             XsltTransformationResult result = XsltTransformationEngine.getInstance()
                     .transformXQuery(xml, xqueryContent, externalVariables, outputFormat);
-            return result.isSuccess() ? result.getOutputContent() : "ERROR: " + result.getErrorMessage();
+            return result.isSuccess()
+                    ? new QueryRun(result.getOutputContent(), null)
+                    : new QueryRun("ERROR: " + result.getErrorMessage(), QueryFailure.ofCode(result.getErrorCode()));
         } catch (Exception e) {
-            return "ERROR: " + e.getMessage();
+            return new QueryRun("ERROR: " + e.getMessage(), QueryFailure.of(e));
         }
     }
 
@@ -136,20 +155,33 @@ public final class TransformRunner {
 
     /** Evaluates an XPath expression against {@code xml}; returns the result or an error message. */
     public static String runXPath(String xml, String xpath) {
+        return xpath(xml, xpath).text();
+    }
+
+    /** As {@link #runXPath}, additionally reporting why a failed run failed. */
+    public static QueryRun xpath(String xml, String xpath) {
         try {
             String result = ServiceRegistry.get(XmlService.class).getXmlFromXpath(xml, xpath);
-            return result != null ? result : "";
+            return new QueryRun(result != null ? result : "", null);
         } catch (Throwable t) {
-            return "ERROR: " + t.getMessage();
+            return new QueryRun("ERROR: " + t.getMessage(), QueryFailure.of(t));
         }
     }
 
     /** Evaluates a JSONPath expression against {@code json}; returns the result or an error message. */
     public static String runJsonPath(String json, String jsonPath) {
+        return jsonPath(json, jsonPath).text();
+    }
+
+    /** As {@link #runJsonPath}, additionally reporting why a failed run failed. */
+    public static QueryRun jsonPath(String json, String jsonPath) {
         try {
-            return new org.fxt.freexmltoolkit.service.JsonService().executeJsonPathAsString(json, jsonPath);
+            String result = new org.fxt.freexmltoolkit.service.JsonService().executeJsonPathAsString(json, jsonPath);
+            // The service reports a broken path or document as text instead of throwing.
+            return new QueryRun(result, result != null && result.startsWith("JSONPath error:")
+                    ? QueryFailure.invalidInput("jsonpath.error") : null);
         } catch (Throwable t) {
-            return "ERROR: " + t.getMessage();
+            return new QueryRun("ERROR: " + t.getMessage(), QueryFailure.of(t));
         }
     }
 }

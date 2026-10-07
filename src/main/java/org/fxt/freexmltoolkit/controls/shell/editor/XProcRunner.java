@@ -37,8 +37,17 @@ public final class XProcRunner {
     private XProcRunner() {
     }
 
-    /** Serialized primary-output text (or {@code "ERROR: …"}) plus the detected output format. */
-    public record Result(String text, XsltTransformationEngine.OutputFormat format) {
+    /**
+     * Serialized primary-output text (or {@code "ERROR: …"}) plus the detected output format.
+     *
+     * @param failure telemetry classification of a failed run, {@code null} when it succeeded
+     */
+    public record Result(String text, XsltTransformationEngine.OutputFormat format,
+                         org.fxt.freexmltoolkit.service.telemetry.QueryFailure failure) {
+        public Result(String text, XsltTransformationEngine.OutputFormat format) {
+            this(text, format, null);
+        }
+
         public boolean isError() {
             return text.startsWith("ERROR:");
         }
@@ -78,7 +87,8 @@ public final class XProcRunner {
                 } else if (inputPort.getDefaultBindings().isEmpty()) {
                     return error("The pipeline declares an input port ('" + inputPort.getName()
                             + "') but no XML target is available — open an XML document or pick "
-                            + "one via the Target dropdown.");
+                            + "one via the Target dropdown.",
+                            org.fxt.freexmltoolkit.service.telemetry.QueryFailure.invalidInput("xproc.no_input"));
                 }
             }
 
@@ -93,15 +103,16 @@ public final class XProcRunner {
             }
             return new Result(serialize(outputs), detectFormat(outputs.getFirst()));
         } catch (XProcException e) {
-            return error(xprocMessage(e));
+            return error(xprocMessage(e), org.fxt.freexmltoolkit.service.telemetry.QueryFailure
+                    .ofCode(e.getError().getCode().toString()));
         } catch (Throwable t) {
             String message = t.getMessage() != null ? t.getMessage() : t.getClass().getSimpleName();
-            return error(message);
+            return error(message, org.fxt.freexmltoolkit.service.telemetry.QueryFailure.of(t));
         }
     }
 
-    private static Result error(String message) {
-        return new Result("ERROR: " + message, XsltTransformationEngine.OutputFormat.TEXT);
+    private static Result error(String message, org.fxt.freexmltoolkit.service.telemetry.QueryFailure failure) {
+        return new Result("ERROR: " + message, XsltTransformationEngine.OutputFormat.TEXT, failure);
     }
 
     /** Formats an {@link XProcException} as {@code "[err:XC0050] message"}. */

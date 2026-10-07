@@ -187,7 +187,8 @@ public class FundsXmlPanel extends VBox {
                 java.awt.Desktop.getDesktop().open(dir.toFile());
             }
         } catch (Exception e) {
-            PanelStatus.failure(status, "Could not open folder", "Could not open folder: " + e.getMessage());
+            PanelStatus.failure(status, "Could not open folder", "Could not open folder: " + e.getMessage(),
+                    "Open the folder in your file manager instead.", e);
         }
     }
 
@@ -197,7 +198,8 @@ public class FundsXmlPanel extends VBox {
                 java.awt.Desktop.getDesktop().browse(new java.net.URI(url));
             }
         } catch (Exception e) {
-            PanelStatus.failure(status, "Could not open browser", "Could not open browser: " + e.getMessage());
+            PanelStatus.failure(status, "Could not open browser", "Could not open browser: " + e.getMessage(),
+                    "Copy the address into your browser instead.", e);
         }
     }
 

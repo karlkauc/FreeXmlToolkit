@@ -365,10 +365,11 @@ public class TransformPanel extends VBox {
             long t0 = System.nanoTime();
             var probe = org.fxt.freexmltoolkit.service.ExecutionStatsService.getInstance()
                     .begin(org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.XQUERY, "XQuery editor");
-            String result = TransformRunner.runXQuery(xml, xquery, params, format);
+            TransformRunner.QueryRun run = TransformRunner.xquery(xml, xquery, params, format);
+            String result = run.text();
             XQueryTableRunner.XQueryTable table = XQueryTableRunner.run(xml, xquery);
             boolean ok = !result.startsWith("ERROR");
-            UsageEvents.xqueryExecuted(t0, ok);
+            UsageEvents.xqueryExecuted(t0, run.failure());
             long elapsedMs = probe.finish(xml.length(), ok ? result.length() : -1, ok,
                     org.fxt.freexmltoolkit.service.ExecutionStats.firstLine(result));
             Platform.runLater(() -> out.showXQueryResult(result, table, format, elapsedMs));
@@ -982,13 +983,14 @@ public class TransformPanel extends VBox {
                     json ? org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.JSONPATH
                             : org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.XPATH,
                     path.length() > 60 ? path.substring(0, 57) + "…" : path);
-            String result = json ? TransformRunner.runJsonPath(content, path)
-                    : TransformRunner.runXPath(content, path);
+            TransformRunner.QueryRun run = json ? TransformRunner.jsonPath(content, path)
+                    : TransformRunner.xpath(content, path);
+            String result = run.text();
             boolean ok = !result.startsWith("ERROR");
             if (json) {
-                UsageEvents.jsonPathExecuted(t0, ok);
+                UsageEvents.jsonPathExecuted(t0, run.failure());
             } else {
-                UsageEvents.xpathExecuted(t0, ok);
+                UsageEvents.xpathExecuted(t0, run.failure());
             }
             long elapsedMs = probe.finish(content.length(), ok ? result.length() : -1, ok,
                     org.fxt.freexmltoolkit.service.ExecutionStats.firstLine(result));
