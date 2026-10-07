@@ -273,9 +273,11 @@ public class TransformOutputPanel extends VBox {
             json = trimmed.startsWith("{") || trimmed.startsWith("[");
         }
         if (xml) {
-            output.setStyleSpans(0, XmlSyntaxHighlighter.computeHighlighting(value));
+            output.setStyleSpans(0, org.fxt.freexmltoolkit.controls.shared.DenseLineGuard.flattenDenseLines(
+                    value, XmlSyntaxHighlighter.computeHighlighting(value)));
         } else if (json) {
-            output.setStyleSpans(0, JsonSyntaxHighlighter.computeHighlighting(value));
+            output.setStyleSpans(0, org.fxt.freexmltoolkit.controls.shared.DenseLineGuard.flattenDenseLines(
+                    value, JsonSyntaxHighlighter.computeHighlighting(value)));
         }
     }
 

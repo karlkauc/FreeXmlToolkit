@@ -468,9 +468,11 @@ public class QueryConsole extends Region {
         }
         String trimmed = value.stripLeading();
         if (trimmed.startsWith("<")) {
-            resultsArea.setStyleSpans(0, XmlSyntaxHighlighter.computeHighlighting(value));
+            resultsArea.setStyleSpans(0, org.fxt.freexmltoolkit.controls.shared.DenseLineGuard.flattenDenseLines(
+                    value, XmlSyntaxHighlighter.computeHighlighting(value)));
         } else if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
-            resultsArea.setStyleSpans(0, JsonSyntaxHighlighter.computeHighlighting(value));
+            resultsArea.setStyleSpans(0, org.fxt.freexmltoolkit.controls.shared.DenseLineGuard.flattenDenseLines(
+                    value, JsonSyntaxHighlighter.computeHighlighting(value)));
         }
     }
 
