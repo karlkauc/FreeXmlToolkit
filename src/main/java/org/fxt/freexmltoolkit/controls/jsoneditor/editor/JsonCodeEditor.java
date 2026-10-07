@@ -411,7 +411,9 @@ public class JsonCodeEditor extends VBox {
         }
 
         try {
-            StyleSpans<Collection<String>> highlighting = JsonSyntaxHighlighter.computeHighlighting(text);
+            // Minified JSON: lines with thousands of spans freeze the editor's line layout.
+            StyleSpans<Collection<String>> highlighting = org.fxt.freexmltoolkit.controls.shared.DenseLineGuard
+                    .flattenDenseLines(text, JsonSyntaxHighlighter.computeHighlighting(text));
             codeArea.setStyleSpans(0, highlighting);
 
             // Detect format

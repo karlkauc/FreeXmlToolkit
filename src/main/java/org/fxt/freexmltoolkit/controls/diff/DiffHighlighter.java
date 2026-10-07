@@ -38,7 +38,8 @@ public final class DiffHighlighter {
      * Builds a syntax + diff overlay for one side of the comparison.
      */
     public static StyleSpans<Collection<String>> computeHighlighting(String text, List<DiffChunk> chunks, Side side) {
-        StyleSpans<Collection<String>> syntax = XmlSyntaxHighlighter.computeHighlighting(text);
+        StyleSpans<Collection<String>> syntax = org.fxt.freexmltoolkit.controls.shared.DenseLineGuard
+                .flattenDenseLines(text, XmlSyntaxHighlighter.computeHighlighting(text));
         StyleSpans<Collection<String>> diff = computeDiffOverlay(text, chunks, side);
         return syntax.overlay(diff, DiffHighlighter::merge);
     }

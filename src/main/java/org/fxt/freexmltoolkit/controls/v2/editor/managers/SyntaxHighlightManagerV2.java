@@ -267,7 +267,9 @@ public class SyntaxHighlightManagerV2 {
      * @return style spans with CSS classes (tagmark, anytag, attribute, avalue, comment)
      */
     private StyleSpans<Collection<String>> computeHighlighting(String text) {
-        return XmlSyntaxHighlighter.computeHighlighting(text);
+        // Minified content: lines with thousands of spans freeze the editor's line layout.
+        return org.fxt.freexmltoolkit.controls.shared.DenseLineGuard.flattenDenseLines(
+                text, XmlSyntaxHighlighter.computeHighlighting(text));
     }
 
     /**
