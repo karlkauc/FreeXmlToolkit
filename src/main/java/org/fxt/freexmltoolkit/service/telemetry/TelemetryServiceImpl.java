@@ -255,6 +255,14 @@ public class TelemetryServiceImpl implements TelemetryService {
     }
 
     @Override
+    public void markCleanShutdown() {
+        SessionMarker marker = sessionMarker;
+        if (marker != null) {
+            marker.end();
+        }
+    }
+
+    @Override
     public void trackAppExit(Duration sessionDuration, Consumer<TelemetryEvent.Builder> summary) {
         long ms = sessionDuration == null ? 0 : Math.max(0, sessionDuration.toMillis());
         track("app_exit", TelemetryEvent.Category.LIFECYCLE, b -> {

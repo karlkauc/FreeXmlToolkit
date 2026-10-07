@@ -330,6 +330,24 @@ class TelemetryServiceImplTest {
     }
 
     @Test
+    void markedCleanShutdownIsNotReportedAsCrashEvenWithoutAppExit(@org.junit.jupiter.api.io.TempDir java.nio.file.Path dir)
+            throws Exception {
+        service.setSessionMarker(new SessionMarker(dir, m -> false));
+        service.trackAppStart();
+        service.awaitIdle();
+        try (var files = java.nio.file.Files.list(dir)) {
+            assertEquals(1, files.count(), "a running session has a marker");
+        }
+
+        // Shutdown began, then the process is killed before app_exit is recorded.
+        service.markCleanShutdown();
+        service.markCleanShutdown(); // idempotent
+
+        assertTrue(new SessionMarker(dir, m -> false).begin("next-session", "2.3.0").isEmpty(),
+                "a session that began an orderly shutdown must not count as crashed");
+    }
+
+    @Test
     void appExitCarriesSessionDuration() {
         service.trackAppExit(Duration.ofSeconds(90));
         TelemetryEvent e = queued().getFirst();
