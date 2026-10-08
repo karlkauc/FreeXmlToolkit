@@ -29,6 +29,18 @@ final class XsdUiParser {
     /** Schema URLs / namespaces whose download was already attempted in this session. */
     private static final Set<String> ATTEMPTED = ConcurrentHashMap.newKeySet();
 
+    /** Creates the factories used by the three-argument entry points; replaceable in tests. */
+    private static volatile Supplier<XsdNodeFactory> defaultFactories = XsdNodeFactory::new;
+
+    /**
+     * A parsed schema plus whether remote imports were skipped because they are not cached.
+     *
+     * @param schema               the parsed schema
+     * @param remoteImportsMissing {@code true} when at least one remote import was left out
+     */
+    record Result(XsdSchema schema, boolean remoteImportsMissing) {
+    }
+
     private XsdUiParser() {
         // utility
     }
@@ -44,12 +56,22 @@ final class XsdUiParser {
      * @throws Exception if the text cannot be parsed
      */
     static XsdSchema parse(String text, Path path, Runnable onRemoteAvailable) throws Exception {
-        return parse(text, path, onRemoteAvailable, XsdNodeFactory::new);
+        return parseDetailed(text, path, onRemoteAvailable).schema();
+    }
+
+    /** As {@link #parse(String, Path, Runnable)}, also reporting whether remote imports were skipped. */
+    static Result parseDetailed(String text, Path path, Runnable onRemoteAvailable) throws Exception {
+        return parseDetailed(text, path, onRemoteAvailable, defaultFactories);
     }
 
     /** As {@link #parse(String, Path, Runnable)}, with the factory source injectable for tests. */
     static XsdSchema parse(String text, Path path, Runnable onRemoteAvailable,
                            Supplier<XsdNodeFactory> factories) throws Exception {
+        return parseDetailed(text, path, onRemoteAvailable, factories).schema();
+    }
+
+    private static Result parseDetailed(String text, Path path, Runnable onRemoteAvailable,
+                                        Supplier<XsdNodeFactory> factories) throws Exception {
         XsdNodeFactory factory = factories.get();
         factory.setRemoteDownloadsAllowed(false);
         XsdSchema schema = parse(factory, text, path);
@@ -62,7 +84,7 @@ final class XsdUiParser {
         if (anyNew) {
             FxtGui.executorService.submit(() -> download(text, path, deferred, onRemoteAvailable, factories));
         }
-        return schema;
+        return new Result(schema, !deferred.isEmpty());
     }
 
     private static void download(String text, Path path, Set<String> deferred, Runnable onRemoteAvailable,
@@ -89,8 +111,14 @@ final class XsdUiParser {
                 : factory.fromString(text);
     }
 
-    /** For tests: forget which downloads were already attempted. */
+    /** For tests: replaces the factory source of the entry points that do not take one. */
+    static void setFactoriesForTesting(Supplier<XsdNodeFactory> factories) {
+        defaultFactories = factories;
+    }
+
+    /** For tests: forget which downloads were already attempted and restore the default factories. */
     static void resetForTesting() {
         ATTEMPTED.clear();
+        defaultFactories = XsdNodeFactory::new;
     }
 }

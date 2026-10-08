@@ -250,6 +250,8 @@ public class InspectorPanel extends VBox {
             debounce.playFromStart();
         });
         editorHost.activeSelectedNodeProperty().addListener((obs, oldV, newV) -> debounce.playFromStart());
+        // Remote imports downloaded in the background add types to the type list.
+        editorHost.schemaImportsRevisionProperty().addListener((obs, oldV, newV) -> debounce.playFromStart());
         editorHost.activeXmlNodeProperty().addListener((obs, oldV, newV) -> debounce.playFromStart());
         editorHost.activeJsonNodeProperty().addListener((obs, oldV, newV) -> debounce.playFromStart());
         refresh();

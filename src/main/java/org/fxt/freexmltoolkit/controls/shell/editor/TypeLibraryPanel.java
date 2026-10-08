@@ -108,6 +108,8 @@ public class TypeLibraryPanel extends VBox {
         refresh();
         editorHost.activeTabProperty().addListener((obs, oldV, newV) -> refresh());
         editorHost.activeViewModeProperty().addListener((obs, oldV, newV) -> refresh());
+        // Imported types arrive late when a remote import had to be downloaded first.
+        editorHost.schemaImportsRevisionProperty().addListener((obs, oldV, newV) -> refresh());
         // The document text loads asynchronously AFTER the tab change. Refresh again
         // once content lands - but ONLY while the library is still unpopulated:
         // refresh parses the XSD text, so it must not run per keystroke.

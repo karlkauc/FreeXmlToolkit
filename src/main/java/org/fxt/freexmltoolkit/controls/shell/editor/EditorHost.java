@@ -40,6 +40,8 @@ public class EditorHost extends BorderPane {
     private javafx.scene.layout.Region viewSwitch;
     private final ObservableList<OpenDocument> openDocuments = FXCollections.observableArrayList();
     private final ReadOnlyIntegerWrapper activeCaret = new ReadOnlyIntegerWrapper(this, "activeCaret", 0);
+    private final ReadOnlyIntegerWrapper schemaImportsRevision =
+            new ReadOnlyIntegerWrapper(this, "schemaImportsRevision", 0);
     private final ReadOnlyObjectWrapper<File> activeSchema = new ReadOnlyObjectWrapper<>(this, "activeSchema", null);
     private final ReadOnlyObjectWrapper<SchemaStatus> activeSchemaStatus =
             new ReadOnlyObjectWrapper<>(this, "activeSchemaStatus", SchemaStatus.NONE);
@@ -401,6 +403,28 @@ public class EditorHost extends BorderPane {
         return activeSchemaSourceDetail.getReadOnlyProperty();
     }
 
+    /**
+     * @return a counter that increases whenever remote {@code xs:import}s that were missing
+     *         from the schema cache have been downloaded in the background; views that list
+     *         the active schema's types refresh on it.
+     */
+    public ReadOnlyIntegerProperty schemaImportsRevisionProperty() {
+        return schemaImportsRevision.getReadOnlyProperty();
+    }
+
+    /**
+     * Runs on the FX thread after a background download made skipped remote imports
+     * resolvable: re-parses the XSD tabs that were parsed without them, then signals observers.
+     */
+    private void onRemoteImportsAvailable() {
+        for (Tab tab : tabPane.getTabs()) {
+            if (tab instanceof EditorTab et && et.remoteImportsMissing && et.lastParsedText != null) {
+                et.onRemoteImportsAvailable(et.lastParsedText);
+            }
+        }
+        schemaImportsRevision.set(schemaImportsRevision.get() + 1);
+    }
+
     /** @return the active document's current view mode (Text/Tree/Graphic). */
     public ReadOnlyObjectProperty<ViewMode> activeViewModeProperty() {
         return activeViewMode.getReadOnlyProperty();
@@ -691,7 +715,8 @@ public class EditorHost extends BorderPane {
                     // Resolve relative xs:import/xs:include against the file's directory when
                     // it is on disk, so the Type Library sees externally defined types instead
                     // of falling back to a namespace-URL download (issue #36).
-                    schema = XsdUiParser.parse(getActiveText().orElse(""), doc.get().getPath(), null);
+                    schema = XsdUiParser.parse(getActiveText().orElse(""), doc.get().getPath(),
+                            this::onRemoteImportsAvailable);
                 } catch (Exception ignored) {
                     return null;
                 }
@@ -2694,6 +2719,7 @@ public class EditorHost extends BorderPane {
     }
 
     private void addTab(EditorTab tab) {
+        tab.remoteImportsCallback = this::onRemoteImportsAvailable;
         tabPane.getTabs().add(tab);
         tabPane.getSelectionModel().select(tab);
         // No-op for non-query views; the lazy indirection tolerates the handler
@@ -3662,6 +3688,10 @@ public class EditorHost extends BorderPane {
         private boolean dirtyTrackingAttached;
         /** Editor text the current {@link #editorContext} was parsed from (P2: avoid needless re-parse). */
         private String lastParsedText;
+        /** Whether the last model parse left out remote imports that were not in the schema cache. */
+        private boolean remoteImportsMissing;
+        /** Host callback for remote imports that became available after a background download. */
+        private Runnable remoteImportsCallback;
         /** Shared XML-instance model+command context across Text/Tree/Grid (mirrors {@link #editorContext}). */
         private org.fxt.freexmltoolkit.controls.v2.xmleditor.editor.XmlEditorContext xmlEditorContext;
         /** Editor text {@link #xmlEditorContext} was parsed from (avoid needless re-parse; detect external edits). */
@@ -3890,15 +3920,17 @@ public class EditorHost extends BorderPane {
                 // Remote imports come from the schema cache only (this runs on the FX thread);
                 // missing ones are downloaded in the background and trigger one re-parse.
                 String parsedText = view.getText();
-                org.fxt.freexmltoolkit.controls.v2.model.XsdSchema schema = XsdUiParser.parse(
-                        parsedText, document.getPath(), () -> onRemoteImportsAvailable(parsedText));
-                editorContext = new org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext(schema);
+                XsdUiParser.Result parsed = XsdUiParser.parseDetailed(
+                        parsedText, document.getPath(), remoteImportsCallback);
+                editorContext = new org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext(parsed.schema());
                 lastParsedText = parsedText;
+                remoteImportsMissing = parsed.remoteImportsMissing();
                 // A new context means a new schema: ensureCanvasGraphic() rebuilds the
                 // Graphic view (it compares getEditorContext() and discards the stale one).
             } catch (Exception e) {
                 editorContext = null;
                 lastParsedText = null;
+                remoteImportsMissing = false;
             }
         }
 
