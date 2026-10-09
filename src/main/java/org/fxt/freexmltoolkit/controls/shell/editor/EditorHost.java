@@ -144,6 +144,15 @@ public class EditorHost extends BorderPane {
             this::requestNewDocument, this::openFileChooser, this::openFile,
             this::clearRecentFiles, this::fireWelcomeAction);
 
+    /** Watches the open documents' files for changes made by other programs. */
+    private final ExternalChangeMonitor externalChangeMonitor = new ExternalChangeMonitor(
+            this::watchedDocuments, this::handleExternalChanges,
+            task -> org.fxt.freexmltoolkit.FxtGui.executorService.execute(task));
+
+    /** Asks what to do about an externally changed/deleted file; replaceable in tests. */
+    private ExternalChangePrompt externalChangePrompt =
+            ExternalChangePrompt.dialogs(() -> getScene() != null ? getScene().getWindow() : null);
+
     public EditorHost() {
         getStyleClass().add("fxt-editor-tabs");
         // The style class on the TabPane itself (not this BorderPane) so CSS can target the
@@ -163,6 +172,7 @@ public class EditorHost extends BorderPane {
         tabArea.getChildren().setAll(tabPane);
 
         setupDragAndDrop();
+        externalChangeMonitor.attachTo(this);
         // Show the welcome empty-state while no document is open; swap to the tab
         // pane as soon as one opens, and back again when the last tab closes.
         tabPane.getTabs().addListener((javafx.collections.ListChangeListener<Tab>) c -> {
@@ -1214,12 +1224,9 @@ public class EditorHost extends BorderPane {
             left.view.setText(newText);
             Path path = left.document.getPath();
             if (path != null) {
-                try {
-                    Files.writeString(path, newText, StandardCharsets.UTF_8);
-                    left.document.setDirty(false);
-                } catch (IOException e) {
-                    // surface via the document staying dirty; the diff view reports save errors itself
-                }
+                // Through write() so the disk stamp follows; a failure surfaces via the document
+                // staying dirty (the diff view reports save errors itself).
+                write(left, path);
             }
         };
         org.fxt.freexmltoolkit.controls.diff.DiffView diff =
@@ -2749,12 +2756,7 @@ public class EditorHost extends BorderPane {
             }
         });
         openDocuments.add(tab.document);
-        tab.setOnClosed(e -> {
-            openDocuments.remove(tab.document);
-            queryTargets.remove(tab.document);
-            queryTargets.values().removeIf(t ->
-                    t instanceof QueryTarget.OpenDoc od && od.document() == tab.document);
-        });
+        tab.setOnClosed(e -> disposeTab(tab));
         tab.setOnCloseRequest(e -> confirmCloseIfDirty(tab, e));
         tab.view.getCodeArea().caretPositionProperty().addListener((obs, oldV, newV) -> {
             if (tab.isSelected()) {
@@ -2767,6 +2769,23 @@ public class EditorHost extends BorderPane {
                 }
             }
         });
+    }
+
+    /** Drops the host's bookkeeping for a tab that was closed (by the user or programmatically). */
+    private void disposeTab(EditorTab tab) {
+        openDocuments.remove(tab.document);
+        queryTargets.remove(tab.document);
+        queryTargets.values().removeIf(t ->
+                t instanceof QueryTarget.OpenDoc od && od.document() == tab.document);
+    }
+
+    /**
+     * Closes a tab without the unsaved-changes prompt. Removing a tab from the pane does not
+     * fire its {@code onClosed} handler, so the bookkeeping is dropped here.
+     */
+    private void closeTabNow(EditorTab tab) {
+        tabPane.getTabs().remove(tab);
+        disposeTab(tab);
     }
 
     /**
@@ -2824,12 +2843,16 @@ public class EditorHost extends BorderPane {
 
     private void loadAsync(EditorTab tab, Path path) {
         long openStart = System.nanoTime();
+        tab.loading = true;
         tab.beginLoading();
         tab.schemaBindingGen.incrementAndGet(); // supersede queued schema reconciles
         if (tab.view.supportsSchema()) {
             publishSchemaStatus(tab, SchemaStatus.LOADING);
         }
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            // Stamp taken BEFORE the read: a change landing mid-read is then caught by the
+            // next external-change check instead of being silently missed.
+            DiskStamp stamp = DiskStamp.of(path);
             String content;
             try {
                 content = Files.readString(path, StandardCharsets.UTF_8);
@@ -2837,6 +2860,8 @@ public class EditorHost extends BorderPane {
                 Platform.runLater(() -> {
                     tab.view.setText("Could not read " + path + ": " + e.getMessage());
                     tab.endLoading();
+                    tab.document.setDiskStamp(stamp);
+                    tab.loading = false;
                     publishSchemaStatus(tab, SchemaStatus.NONE);
                 });
                 return;
@@ -2855,6 +2880,8 @@ public class EditorHost extends BorderPane {
                 tab.refreshPreviewIfActive();
                 tab.endLoading();
                 tab.document.setDirty(false);
+                tab.document.setDiskStamp(stamp);
+                tab.loading = false;
                 tab.attachDirtyTracking();
                 UsageEvents.fileOpened(tab.document.getFileType().docKind(), sizeOrUnknown(path),
                         UsageEvents.SOURCE_FILE, openStart);
@@ -3557,10 +3584,139 @@ public class EditorHost extends BorderPane {
         try {
             Files.writeString(target, tab.view.getText(), StandardCharsets.UTF_8);
             tab.document.setDirty(false);
+            // Our own write must not be reported as an external change.
+            tab.document.setDiskStamp(DiskStamp.of(target));
             return true;
         } catch (IOException e) {
             return false;
         }
+    }
+
+    // ----- external changes ------------------------------------------------
+
+    /** The titled, fully loaded documents whose files are watched for external changes. */
+    private java.util.List<ExternalChangeMonitor.Watched> watchedDocuments() {
+        java.util.List<ExternalChangeMonitor.Watched> watched = new java.util.ArrayList<>();
+        for (Tab tab : tabPane.getTabs()) {
+            if (tab instanceof EditorTab et && !et.document.isUntitled() && !et.loading) {
+                watched.add(new ExternalChangeMonitor.Watched(
+                        et.document, et.document.getPath(), et.document.getDiskStamp()));
+            }
+        }
+        return watched;
+    }
+
+    /**
+     * Handles files that were changed or deleted on disk by another program: asks the user,
+     * one document after the other, whether to reload/ignore (changed) or keep/close (deleted).
+     * Results that were overtaken meanwhile - tab closed, saved, reloaded, saved under another
+     * name - are dropped; the next check re-evaluates them.
+     */
+    private void handleExternalChanges(java.util.List<ExternalChangeMonitor.Change> changes) {
+        for (ExternalChangeMonitor.Change change : changes) {
+            EditorTab tab = null;
+            for (Tab candidate : tabPane.getTabs()) {
+                if (candidate instanceof EditorTab et && et.document == change.document()) {
+                    tab = et;
+                    break;
+                }
+            }
+            if (tab == null || tab.loading || !change.path().equals(tab.document.getPath())
+                    || !java.util.Objects.equals(change.known(), tab.document.getDiskStamp())) {
+                continue;
+            }
+            OpenDocument document = tab.document;
+            if (change.known() == null) {
+                document.setDiskStamp(change.current()); // first known state: nothing to compare
+                continue;
+            }
+            if (change.deleted()) {
+                tabPane.getSelectionModel().select(tab);
+                if (externalChangePrompt.fileDeleted(document, document.isDirty())
+                        == ExternalChangePrompt.DeletedChoice.CLOSE) {
+                    closeTabNow(tab);
+                } else {
+                    document.setDiskStamp(DiskStamp.MISSING);
+                    document.setDirty(true); // the content now only exists in the editor
+                }
+                continue;
+            }
+            if (change.diskText() != null && change.diskText().equals(tab.view.getText())) {
+                // Touched or rewritten with identical content: nothing to ask.
+                document.setDiskStamp(change.current());
+                document.setDirty(false);
+                continue;
+            }
+            tabPane.getSelectionModel().select(tab);
+            ExternalChangePrompt.ChangedChoice choice =
+                    externalChangePrompt.fileChanged(document, document.isDirty());
+            // Either way the user has seen this state of the file: do not ask about it again.
+            document.setDiskStamp(change.current());
+            if (choice == ExternalChangePrompt.ChangedChoice.RELOAD) {
+                reloadFromDisk(tab, change.path());
+            } else {
+                document.setDirty(true); // editor and disk differ; saving overwrites the disk
+            }
+        }
+    }
+
+    /**
+     * Replaces a tab's content with the file's current content, discarding unsaved changes.
+     * The caret, the view mode and the schema binding are kept (a changed schema reference is
+     * picked up by the validation-time reconcile). On a read failure the editor content stays.
+     */
+    private void reloadFromDisk(EditorTab tab, Path path) {
+        tab.loading = true;
+        tab.beginLoading();
+        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            DiskStamp stamp = DiskStamp.of(path); // before the read, as in loadAsync
+            String content;
+            try {
+                content = Files.readString(path, StandardCharsets.UTF_8);
+            } catch (IOException e) {
+                Platform.runLater(() -> {
+                    tab.endLoading();
+                    tab.loading = false;
+                    if (isAbandoned(tab)) {
+                        return;
+                    }
+                    tab.document.setDirty(true); // still the old content, which is not on disk
+                    org.fxt.freexmltoolkit.util.DialogHelper.showActionError("Reload Failed",
+                            "Could not read " + path + ".",
+                            "The editor still shows the previous content.", e);
+                });
+                return;
+            }
+            Platform.runLater(() -> {
+                tab.endLoading();
+                tab.loading = false;
+                if (isAbandoned(tab)) {
+                    return;
+                }
+                tab.replaceContentFromDisk(content);
+                tab.document.setDirty(false);
+                tab.document.setDiskStamp(stamp);
+                if (tab.isSelected()) {
+                    activeViewMode.set(tab.viewMode);
+                    refreshSelectedNode();
+                }
+            });
+        });
+    }
+
+    /** Test seam: answers external-change prompts without a blocking dialog. */
+    void setExternalChangePrompt(ExternalChangePrompt prompt) {
+        this.externalChangePrompt = java.util.Objects.requireNonNull(prompt, "prompt");
+    }
+
+    /** Test seam: checks the open documents' files now, regardless of window focus. */
+    void checkExternalChangesNow() {
+        externalChangeMonitor.checkNow();
+    }
+
+    /** Test seam: whether an external-change check is running or being handled. */
+    boolean isExternalChangeCheckRunning() {
+        return externalChangeMonitor.isBusy();
     }
 
     private String untitledName() {
@@ -3686,6 +3842,8 @@ public class EditorHost extends BorderPane {
         private org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonNode currentJsonSelection;
         private ViewMode viewMode = ViewMode.TEXT;
         private boolean dirtyTrackingAttached;
+        /** True while the file is being (re)read; the external-change check skips the tab. */
+        private boolean loading;
         /** Editor text the current {@link #editorContext} was parsed from (P2: avoid needless re-parse). */
         private String lastParsedText;
         /** Whether the last model parse left out remote imports that were not in the schema cache. */
@@ -5088,6 +5246,26 @@ public class EditorHost extends BorderPane {
                 child.setVisible(visible);
                 child.setManaged(visible);
             }
+        }
+
+        /**
+         * Replaces the editor text with content re-read from disk: pending model edits are
+         * dropped rather than written back over the new text, the caret stays where it was
+         * (clamped), and a visible Tree/Graphic/Preview view is rebuilt from the new text.
+         */
+        void replaceContentFromDisk(String content) {
+            roundTripDebounce.stop();
+            int caret = view.getCodeArea().getCaretPosition();
+            view.setText(content);
+            view.getCodeArea().moveTo(Math.min(caret, view.getCodeArea().getLength()));
+            view.getCodeArea().requestFollowCaret();
+            lastParsedText = null;
+            lastParsedXmlText = null;
+            lastParsedJsonText = null;
+            if (viewMode != ViewMode.TEXT) {
+                setViewMode(viewMode);
+            }
+            refreshPreviewIfActive();
         }
 
         void attachDirtyTracking() {

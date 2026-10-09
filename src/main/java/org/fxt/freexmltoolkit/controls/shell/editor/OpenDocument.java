@@ -19,6 +19,7 @@ public class OpenDocument {
     private Path path; // null = untitled
     private final StringProperty displayName = new SimpleStringProperty();
     private final BooleanProperty dirty = new SimpleBooleanProperty(false);
+    private DiskStamp diskStamp; // FX thread only
 
     private OpenDocument(Path path, String displayName) {
         this.path = path;
@@ -82,6 +83,19 @@ public class OpenDocument {
 
     public BooleanProperty dirtyProperty() {
         return dirty;
+    }
+
+    /**
+     * @return the file's state as of the last load or save, or {@code null} when none has been
+     *         recorded yet (untitled, still loading, or the state could not be determined)
+     */
+    public DiskStamp getDiskStamp() {
+        return diskStamp;
+    }
+
+    /** Records the file's state on disk that the editor content corresponds to. */
+    public void setDiskStamp(DiskStamp diskStamp) {
+        this.diskStamp = diskStamp;
     }
 
     private static String fileName(Path path) {
