@@ -869,6 +869,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#external-changes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Files Changed Outside the Editor
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#supported-file-types" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3121,6 +3132,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#external-changes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Files Changed Outside the Editor
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#supported-file-types" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4365,6 +4387,54 @@ would show it:</p>
 <li><strong>Ctrl+F</strong> in the Preview searches the document's underlying <strong>markup text</strong>, not
   the rendered page.</li>
 <li>The Preview is <strong>read-only</strong> - all editing happens in the Text view.</li>
+</ul>
+</div>
+<h2 id="external-changes">Files Changed Outside the Editor<a class="headerlink" href="#external-changes" title="Permanent link">&para;</a></h2>
+<p>The shell watches the files of all open tabs. When another program changes or deletes one
+of them, a dialog asks what to do - checked every two seconds while the FreeXmlToolkit
+window is active, and immediately when you switch back to it.</p>
+<table>
+<thead>
+<tr>
+<th>Situation</th>
+<th>Choice</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>File changed on disk</strong></td>
+<td><strong>Reload</strong></td>
+<td>The tab shows the file's new content. Unsaved changes in that tab are discarded (the dialog warns you when there are any). Caret position and view mode (Text / Tree / Graphic) are kept.</td>
+</tr>
+<tr>
+<td></td>
+<td><strong>Ignore</strong></td>
+<td>The tab keeps its content and is marked as unsaved (<strong>●</strong>), because it now differs from the file. Saving overwrites the external change. You are not asked again until the file changes once more.</td>
+</tr>
+<tr>
+<td><strong>File deleted on disk</strong></td>
+<td><strong>Keep</strong></td>
+<td>The tab stays open and is marked as unsaved (<strong>●</strong>). <strong>Save</strong> creates the file again.</td>
+</tr>
+<tr>
+<td></td>
+<td><strong>Close</strong></td>
+<td>The tab is closed, including any unsaved changes.</td>
+</tr>
+</tbody>
+</table>
+<p>Closing the dialog with <strong>Esc</strong> counts as <strong>Ignore</strong> / <strong>Keep</strong>. With several affected files
+the dialogs appear one after the other, each with its tab brought to the front.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<ul>
+<li>Saving from the editor itself never triggers the dialog, and neither does a file that
+  was merely touched or rewritten with identical content.</li>
+<li>Changing a tab's file from elsewhere in the application - for example saving the right
+  side of a diff, or exporting a result over a file that is open - is reported like any
+  other outside change.</li>
+<li>Untitled documents are not watched.</li>
 </ul>
 </div>
 <h2 id="supported-file-types">Supported File Types<a class="headerlink" href="#supported-file-types" title="Permanent link">&para;</a></h2>
