@@ -31,6 +31,7 @@ Legacy per-tool tabs/controllers are gone; `controller/` only keeps `UnifiedShel
 | `Activity` / `ActivityBar` / `ActivitySelectionModel` | Activity Bar (Explorer…Settings), stable ids | `controls/shell/` |
 | `ShellBootstrap` | Startup/shutdown tasks, scheduler | `controls/shell/` |
 | `EditorHost` | Center: file tabs (`EditorTab`), view-mode switching, schema/schematron binding, tool tabs, welcome page | `controls/shell/editor/` |
+| `ExternalChangeMonitor` + `DiskStamp` / `ExternalChangePrompt` | Polls open tabs' files off-thread (2 s while the window is focused + on focus gain; no `WatchService` — network drives); `EditorHost.handleExternalChanges` asks Reload/Ignore or Keep/Close. Every editor write must go through `EditorHost.write()` so the stamp follows | `controls/shell/editor/` |
 | `ViewMode` | `TEXT` / `TREE` / `GRAPHIC` (no Grid mode — Graphic shows the XSD diagram for schemas, the XMLSpy-style instance grid for XML-family files) | `controls/shell/editor/` |
 | `EditorView` + `XmlEditorView`/`JsonEditorView` (`EditorViews` factory) | Per-file-type text editor adapter (wraps `XmlCodeEditorV2`) | `controls/shell/editor/` |
 | `ExplorerPanel`, `ValidationPanel`, `TransformPanel`, `FavoritesActivityPanel`, `FopPanel`, `SignaturePanel`, `FundsXmlPanel`, `SchemaLibraryPanel`, `HelpPanel`, `SettingsPanel` | Side-panel content per activity (Settings opens as a main-area tab instead) | `controls/shell/editor/` |

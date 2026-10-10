@@ -269,6 +269,30 @@ would show it:
       the rendered page.
     - The Preview is **read-only** - all editing happens in the Text view.
 
+## Files Changed Outside the Editor {#external-changes}
+
+The shell watches the files of all open tabs. When another program changes or deletes one
+of them, a dialog asks what to do - checked every two seconds while the FreeXmlToolkit
+window is active, and immediately when you switch back to it.
+
+| Situation | Choice | Result |
+|-----------|--------|--------|
+| **File changed on disk** | **Reload** | The tab shows the file's new content. Unsaved changes in that tab are discarded (the dialog warns you when there are any). Caret position and view mode (Text / Tree / Graphic) are kept. |
+| | **Ignore** | The tab keeps its content and is marked as unsaved (**●**), because it now differs from the file. Saving overwrites the external change. You are not asked again until the file changes once more. |
+| **File deleted on disk** | **Keep** | The tab stays open and is marked as unsaved (**●**). **Save** creates the file again. |
+| | **Close** | The tab is closed, including any unsaved changes. |
+
+Closing the dialog with **Esc** counts as **Ignore** / **Keep**. With several affected files
+the dialogs appear one after the other, each with its tab brought to the front.
+
+!!! note
+    - Saving from the editor itself never triggers the dialog, and neither does a file that
+      was merely touched or rewritten with identical content.
+    - Changing a tab's file from elsewhere in the application - for example saving the right
+      side of a diff, or exporting a result over a file that is open - is reported like any
+      other outside change.
+    - Untitled documents are not watched.
+
 ## Supported File Types
 
 | Type | Extensions | Features |
