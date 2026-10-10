@@ -56,7 +56,7 @@ FreeXmlToolkit is built using modern Java technologies and libraries to provide 
 - **Mockito:** 5.23.0 - Mocking framework for unit tests
 
 ### Logging
-- **Log4j2:** 2.25.3 - Comprehensive logging framework
+- **Log4j2:** 2.26.1 - Comprehensive logging framework
 - **SLF4J:** Logging facade for library compatibility (routed into Log4j2)
 
 ### UI Enhancements
