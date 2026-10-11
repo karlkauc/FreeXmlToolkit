@@ -14,7 +14,6 @@ FreeXmlToolkit is built using modern Java technologies and libraries to provide 
 ### UI Framework
 - **JavaFX:** 25 for cross-platform desktop GUI (bundled with Liberica Full JDK)
 - **FXML:** Declarative UI layout with MVC architecture
-- **AtlantaFX:** 2.1.0 - Modern theme library for enhanced styling
 - **RichTextFX:** 0.11.7 - Advanced text editing component with syntax highlighting
 - **ControlsFX:** 11.2.5 - Extended JavaFX controls
 
@@ -169,7 +168,6 @@ dependencies {
 
     // UI Components
     implementation("org.fxmisc.richtext:richtextfx:0.11.7")
-    implementation("io.github.mkpaz:atlantafx-base:2.1.0")
     implementation("org.controlsfx:controlsfx:11.2.5")
 
     // Security

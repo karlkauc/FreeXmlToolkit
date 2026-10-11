@@ -69,7 +69,7 @@ import fr.brouillard.oss.cssfx.CSSFX;
  *   <li>PDF generation from XML/XSL-FO documents</li>
  * </ul>
  *
- * <p>The application features a modern tab-based interface built with JavaFX and AtlantaFX theming.
+ * <p>The application features a modern tab-based interface built with JavaFX and the project's own CSS theme.
  * It includes advanced XML editing capabilities with IntelliSense, schema-based auto-completion,
  * and real-time validation feedback.
  *

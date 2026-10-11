@@ -89,7 +89,6 @@ dependencies {
     implementation("com.jayway.jsonpath:json-path:3.0.0")          // JSONPath queries
     // Icons are rendered by the in-house IconifyIcon control (controls/icons) using bundled
     // Iconify SVG data under resources/icons/iconify/. Ikonli was removed in favour of it.
-    implementation("io.github.mkpaz:atlantafx-base:2.1.0")
 
     implementation("org.fxmisc.richtext:richtextfx:0.11.7")
 
