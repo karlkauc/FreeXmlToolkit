@@ -12,7 +12,7 @@
   "metadata": {
     "version": "2.1",
     "framework": "JavaFX 24.0.1 (Java 25, preview features)",
-    "theme": "AtlantaFX Base 2.1.0 + -fxt-* design tokens (css/design-tokens.css)",
+    "theme": "-fxt-* design tokens (css/design-tokens.css)",
     // Icons are rendered by the project's own IconifyIcon control (bundled Iconify
     // Bootstrap Icons SVG data) — NOT Ikonli. Same bi-* names / iconLiteral / iconSize /
     // iconColor API. Unknown names render a placeholder + log a warning (they no longer

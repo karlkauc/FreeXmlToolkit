@@ -39,7 +39,6 @@ FreeXmlToolkit (Version 2.1.0) uses several third-party libraries. The following
 | Library | Version | License |
 |---------|---------|---------|
 | **JavaFX** (Liberica Full JDK) | 25 | [GPL v2 with Classpath Exception](https://openjdk.java.net/legal/gplv2+ce.html) |
-| **AtlantaFX** (io.github.mkpaz:atlantafx-base) | 2.1.0 | [MIT License](https://opensource.org/licenses/MIT) |
 | **RichTextFX** (org.fxmisc.richtext:richtextfx) | 0.11.7 | [BSD-2-Clause License](https://opensource.org/licenses/BSD-2-Clause) |
 | **ControlsFX** (org.controlsfx:controlsfx) | 11.2.5 | [BSD 3-Clause License](https://opensource.org/licenses/BSD-3-Clause) |
 | **CSSFX** (fr.brouillard.oss:cssfx) | 11.5.1 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |

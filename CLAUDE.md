@@ -61,7 +61,7 @@ The style guide covers: color palette, typography, icons, components, CSS classe
 ### Core Principles
 
 - Use `xmlspy-style-config.json` for general styling
-- Modern and colorful styled UI (AtlantaFX theme)
+- Modern and colorful styled UI (custom `-fxt-*` design-token theme)
 - Menus and context menus should always have icons and text
 - User-friendly error dialogs and alerts
 - Graceful degradation on errors
@@ -137,7 +137,7 @@ Requires `<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>`.
 - **XSLT/XQuery:** Saxon HE 12.10 for XSLT 3.0, XPath 3.1, XQuery 3.1 (pinned by XML Calabash 3)
 - **XProc:** XML Calabash 3.0.54 for XProc 3.0 pipelines (Run Pipeline on .xpl documents)
 - **XML Validation:** Xerces 2.12.2 (exist-db fork) for XSD 1.1
-- **UI Framework:** JavaFX 25 with AtlantaFX theme
+- **UI Framework:** JavaFX 25 with the project's own `-fxt-*` design-token CSS theme
 - **Icons:** `IconifyIcon` control (bundled Iconify Bootstrap Icons SVG); graceful fallback on unknown names
 - **Async Operations:** `Platform.runLater()` for UI updates from background threads
 - **Background Tasks:** `FxtGui.executorService` or `ThreadPoolManager`
