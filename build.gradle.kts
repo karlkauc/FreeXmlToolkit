@@ -96,9 +96,9 @@ dependencies {
     // Side-by-side diff/merge for XML & XSD text editors
     implementation("io.github.java-diff-utils:java-diff-utils:4.17")
 
-    implementation("org.apache.logging.log4j:log4j-api:2.25.3")
-    implementation("org.apache.logging.log4j:log4j-core:2.25.3")
-    implementation("org.apache.logging.log4j:log4j-slf4j2-impl:2.25.3")
+    implementation("org.apache.logging.log4j:log4j-api:2.26.1")
+    implementation("org.apache.logging.log4j:log4j-core:2.26.1")
+    implementation("org.apache.logging.log4j:log4j-slf4j2-impl:2.26.1")
 
     implementation("org.apache.santuario:xmlsec:4.0.4")
     implementation("org.bouncycastle:bcpkix-jdk18on:1.84")

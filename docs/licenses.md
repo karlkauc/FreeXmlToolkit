@@ -106,9 +106,9 @@ Icons are rendered by the in-house `IconifyIcon` control from bundled
 
 | Library | Version | License |
 |---------|---------|---------|
-| **Log4j API** (org.apache.logging.log4j:log4j-api) | 2.25.3 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
-| **Log4j Core** (org.apache.logging.log4j:log4j-core) | 2.25.3 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
-| **Log4j SLF4J2 Implementation** (org.apache.logging.log4j:log4j-slf4j2-impl) | 2.25.3 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
+| **Log4j API** (org.apache.logging.log4j:log4j-api) | 2.26.1 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
+| **Log4j Core** (org.apache.logging.log4j:log4j-core) | 2.26.1 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
+| **Log4j SLF4J2 Implementation** (org.apache.logging.log4j:log4j-slf4j2-impl) | 2.26.1 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 
 ## Additional APIs
 
