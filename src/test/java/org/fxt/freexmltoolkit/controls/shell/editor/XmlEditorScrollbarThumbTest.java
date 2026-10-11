@@ -9,15 +9,14 @@ import javafx.scene.control.ScrollBar;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 
+import org.fxt.freexmltoolkit.controls.shell.ThemeManager;
+import org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2;
+import org.fxt.freexmltoolkit.controls.v2.editor.services.MutableXmlSchemaProvider;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
 import org.testfx.util.WaitForAsyncUtils;
-
-import org.fxt.freexmltoolkit.controls.shell.ThemeManager;
-import org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2;
-import org.fxt.freexmltoolkit.controls.v2.editor.services.MutableXmlSchemaProvider;
 
 /**
  * Regression test: the text editor's vertical scrollbar thumb must stay grabbable for

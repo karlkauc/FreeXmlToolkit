@@ -1,5 +1,16 @@
 package org.fxt.freexmltoolkit.screenshots;
 
+import java.awt.Rectangle;
+import java.awt.Robot;
+import java.awt.Toolkit;
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import javax.imageio.ImageIO;
+
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
@@ -9,6 +20,7 @@ import javafx.scene.SnapshotParameters;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.TabPane;
 import javafx.stage.Stage;
+
 import org.fxt.freexmltoolkit.controls.shell.Activity;
 import org.fxt.freexmltoolkit.controls.shell.UnifiedShellView;
 import org.fxt.freexmltoolkit.controls.shell.editor.CatalogImportDialog;
@@ -25,16 +37,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
 import org.testfx.util.WaitForAsyncUtils;
-
-import javax.imageio.ImageIO;
-import java.awt.Rectangle;
-import java.awt.Robot;
-import java.awt.Toolkit;
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Visual verification of the Schema Library feature (not a documentation harness — output goes

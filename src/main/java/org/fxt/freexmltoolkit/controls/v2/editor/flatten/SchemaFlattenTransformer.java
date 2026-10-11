@@ -3,33 +3,24 @@ package org.fxt.freexmltoolkit.controls.v2.editor.flatten;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdAlternative;
+import org.fxt.freexmltoolkit.controls.v2.editor.usage.SchemaReferenceGraph;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdAppInfo;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdAttributeGroup;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdComment;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdExtension;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdGroup;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdInclude;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdList;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdOverride;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdRedefine;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdRestriction;
-import org.fxt.freexmltoolkit.controls.v2.editor.usage.SchemaReferenceGraph;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdUnion;
 
 /**
  * One-shot reduction pass applied to a freshly parsed, throwaway {@link XsdSchema}

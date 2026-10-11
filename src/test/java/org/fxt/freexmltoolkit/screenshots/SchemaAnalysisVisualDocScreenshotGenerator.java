@@ -3,6 +3,8 @@ package org.fxt.freexmltoolkit.screenshots;
 import java.io.File;
 import java.util.concurrent.TimeUnit;
 
+import javax.imageio.ImageIO;
+
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -23,8 +25,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
 import org.testfx.util.WaitForAsyncUtils;
-
-import javax.imageio.ImageIO;
 
 /**
  * Visual verification of the Schema Analysis tool tab in Light and Dark theme (output goes to

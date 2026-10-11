@@ -1,8 +1,13 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import javafx.scene.Scene;
 import javafx.scene.control.CheckBox;
 import javafx.stage.Stage;
+
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.junit.jupiter.api.AfterEach;
@@ -12,10 +17,6 @@ import org.testfx.api.FxRobot;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
 import org.testfx.util.WaitForAsyncUtils;
-
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(ApplicationExtension.class)
 class SettingsPanelSchemaLibraryTest {

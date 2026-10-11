@@ -1,15 +1,5 @@
 package org.fxt.freexmltoolkit.service;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import org.apache.commons.io.FileUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.domain.*;
-import org.fxt.freexmltoolkit.util.PathValidator;
-
 import java.io.*;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -19,6 +9,18 @@ import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.util.*;
 import java.util.function.Supplier;
+
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.domain.*;
+import org.fxt.freexmltoolkit.util.PathValidator;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 /**
  * Default {@link SchemaLibraryService} implementation.

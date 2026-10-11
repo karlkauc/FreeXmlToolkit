@@ -22,9 +22,9 @@ import javafx.stage.FileChooser;
 
 import org.fxt.freexmltoolkit.FxtGui;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.controls.theme.ActionColor;
 import org.fxt.freexmltoolkit.service.SignatureService;
 import org.fxt.freexmltoolkit.service.telemetry.UsageEvents;
-import org.fxt.freexmltoolkit.controls.theme.ActionColor;
 
 /**
  * The Signature activity side panel, laid out after the Figma mockup

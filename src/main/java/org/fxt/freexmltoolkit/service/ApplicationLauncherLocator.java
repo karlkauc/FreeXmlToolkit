@@ -1,10 +1,10 @@
 package org.fxt.freexmltoolkit.service;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Locates the installed application directory and native launcher of the running

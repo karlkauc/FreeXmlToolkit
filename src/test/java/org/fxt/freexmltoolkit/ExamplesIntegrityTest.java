@@ -1,5 +1,15 @@
 package org.fxt.freexmltoolkit;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Map;
+
 import org.fxt.freexmltoolkit.service.SignatureService;
 import org.fxt.freexmltoolkit.service.TemplateFileService;
 import org.fxt.freexmltoolkit.service.XmlService;
@@ -8,16 +18,6 @@ import org.fxt.freexmltoolkit.service.XsltTransformationEngine;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Guards the integrity of the bundled example collection in {@code release/examples}:

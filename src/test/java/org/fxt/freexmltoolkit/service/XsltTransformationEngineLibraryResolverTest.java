@@ -1,16 +1,16 @@
 package org.fxt.freexmltoolkit.service;
 
-import org.fxt.freexmltoolkit.di.ServiceRegistry;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.ByteArrayInputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 /**
  * Verifies that Saxon's {@code doc()}/{@code document()} resolution (wired via

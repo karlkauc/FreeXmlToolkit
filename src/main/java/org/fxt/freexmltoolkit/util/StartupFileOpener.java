@@ -1,16 +1,16 @@
 package org.fxt.freexmltoolkit.util;
 
-import javafx.application.Platform;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Consumer;
+
+import javafx.application.Platform;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Decouples "open this file" events (command-line arguments, macOS open-file Apple

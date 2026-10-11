@@ -27,9 +27,9 @@ plugins {
     jacoco
     pmd
     checkstyle
-    id("com.github.spotbugs") version "6.5.8"
-    id("com.diffplug.spotless") version "8.8.0"
-    id("com.github.ben-manes.versions") version "0.54.0"
+    id("com.github.spotbugs") version "6.5.12"
+    id("com.diffplug.spotless") version "8.10.4"
+    id("io.github.ben-manes.versions") version "0.65.0"
 }
 
 version = "2.3.1"

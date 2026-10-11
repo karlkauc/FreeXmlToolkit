@@ -1,5 +1,10 @@
 package org.fxt.freexmltoolkit.screenshots;
 
+import java.io.File;
+import java.util.concurrent.TimeUnit;
+
+import javax.imageio.ImageIO;
+
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Bounds;
@@ -8,6 +13,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.SnapshotParameters;
 import javafx.stage.Stage;
+
 import org.fxt.freexmltoolkit.controls.shell.Activity;
 import org.fxt.freexmltoolkit.controls.shell.UnifiedShellView;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
@@ -16,10 +22,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
 import org.testfx.util.WaitForAsyncUtils;
-
-import javax.imageio.ImageIO;
-import java.io.File;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Visual verification of the side-panel headers (title colour, spacing, indent, background) across

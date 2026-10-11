@@ -18,10 +18,10 @@
 
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.fxt.freexmltoolkit.controls.shell.editor.SchemaRebindPolicy.RebindAction.*;
 import static org.fxt.freexmltoolkit.controls.shell.editor.SchemaRebindPolicy.SchemaBindingOrigin.*;
 import static org.fxt.freexmltoolkit.controls.shell.editor.SchemaRebindPolicy.decideRebind;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

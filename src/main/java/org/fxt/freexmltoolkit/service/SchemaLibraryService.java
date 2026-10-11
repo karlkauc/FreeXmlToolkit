@@ -1,17 +1,18 @@
 package org.fxt.freexmltoolkit.service;
 
-import javafx.collections.ObservableList;
-import org.fxt.freexmltoolkit.domain.SchemaCatalogRef;
-import org.fxt.freexmltoolkit.domain.SchemaEntryStatus;
-import org.fxt.freexmltoolkit.domain.SchemaKind;
-import org.fxt.freexmltoolkit.domain.SchemaLibraryEntry;
-
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
+import javafx.collections.ObservableList;
+
+import org.fxt.freexmltoolkit.domain.SchemaCatalogRef;
+import org.fxt.freexmltoolkit.domain.SchemaEntryStatus;
+import org.fxt.freexmltoolkit.domain.SchemaKind;
+import org.fxt.freexmltoolkit.domain.SchemaLibraryEntry;
 
 /**
  * The Schema Library: persistent namespace → schema mappings fed by user entries,

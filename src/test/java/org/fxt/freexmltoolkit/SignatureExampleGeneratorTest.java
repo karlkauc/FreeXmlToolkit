@@ -1,12 +1,6 @@
 package org.fxt.freexmltoolkit;
 
-import org.bouncycastle.asn1.x500.X500NameBuilder;
-import org.bouncycastle.asn1.x500.style.BCStyle;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.fxt.freexmltoolkit.service.SignatureService;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
@@ -16,7 +10,13 @@ import java.nio.file.StandardCopyOption;
 import java.security.Security;
 import java.util.Comparator;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.bouncycastle.asn1.x500.X500NameBuilder;
+import org.bouncycastle.asn1.x500.style.BCStyle;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.fxt.freexmltoolkit.service.SignatureService;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 /**
  * Manual generator for the bundled signature example in {@code release/examples/signature/}.

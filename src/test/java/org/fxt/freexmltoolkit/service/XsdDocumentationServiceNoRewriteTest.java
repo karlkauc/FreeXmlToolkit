@@ -1,9 +1,6 @@
 package org.fxt.freexmltoolkit.service;
 
-import org.fxt.freexmltoolkit.di.ServiceRegistry;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.ByteArrayInputStream;
 import java.nio.file.Files;
@@ -12,7 +9,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 /**
  * Regression: processing a schema with a remote {@code xs:import} must never rewrite the

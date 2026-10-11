@@ -21,7 +21,6 @@ import java.util.Arrays;
 
 import org.fxt.freexmltoolkit.controls.v2.model.XsdAppInfo;
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 import com.vladsch.flexmark.ext.gfm.strikethrough.StrikethroughExtension;
 import com.vladsch.flexmark.ext.tables.TablesExtension;

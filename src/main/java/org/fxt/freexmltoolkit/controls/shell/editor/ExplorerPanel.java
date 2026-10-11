@@ -20,9 +20,9 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.controls.theme.ActionColor;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.service.PropertiesService;
-import org.fxt.freexmltoolkit.controls.theme.ActionColor;
 
 /**
  * The Explorer activity side panel, laid out after the Figma mockup

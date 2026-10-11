@@ -1,10 +1,12 @@
 package org.fxt.freexmltoolkit.service;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
+import static org.junit.jupiter.api.Assertions.*;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
-import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 class XmlServiceLegacySchemaCacheTest {
     @Test void listsAndClearsMd5Dirs(@TempDir Path root) throws Exception {

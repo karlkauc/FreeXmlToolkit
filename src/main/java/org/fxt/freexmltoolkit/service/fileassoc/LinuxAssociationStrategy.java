@@ -1,10 +1,5 @@
 package org.fxt.freexmltoolkit.service.fileassoc;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.domain.FileAssociationResult;
-import org.fxt.freexmltoolkit.service.FileAssociationService.RegistrationState;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -13,6 +8,11 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.domain.FileAssociationResult;
+import org.fxt.freexmltoolkit.service.FileAssociationService.RegistrationState;
 
 /**
  * Linux implementation: writes a per-user desktop entry to

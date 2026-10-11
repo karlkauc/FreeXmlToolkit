@@ -296,4 +296,22 @@
         <Method name="positionViewportCanvas"/>
     </Match>
 
+    <!-- Tri-state by design: the @markdown appinfo flag is TRUE/FALSE when stated and null when
+         the annotation says nothing, so the caller can fall back to the type or the global mode. -->
+    <Match>
+        <Bug pattern="NP_BOOLEAN_RETURN_NULL"/>
+        <Class name="org.fxt.freexmltoolkit.controls.v2.model.XsdAppInfo"/>
+        <Method name="parseBooleanFlag"/>
+    </Match>
+    <Match>
+        <Bug pattern="NP_BOOLEAN_RETURN_NULL"/>
+        <Class name="org.fxt.freexmltoolkit.util.MarkdownSupport"/>
+        <Method name="markdownFlag"/>
+    </Match>
+    <Match>
+        <Bug pattern="NP_BOOLEAN_RETURN_NULL"/>
+        <Class name="org.fxt.freexmltoolkit.service.XsdDocumentationService"/>
+        <Method name="processAnnotations"/>
+    </Match>
+
 </FindBugsFilter>

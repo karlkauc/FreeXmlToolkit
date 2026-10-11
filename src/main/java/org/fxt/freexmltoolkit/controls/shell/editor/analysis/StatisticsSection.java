@@ -32,8 +32,8 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost;
-import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdStatistics;
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdSchemaReferenceInfo;
+import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdStatistics;
 import org.fxt.freexmltoolkit.controls.v2.editor.usage.ComponentInfo;
 import org.fxt.freexmltoolkit.controls.v2.editor.usage.SchemaReferenceGraph.ComponentKind;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdFacetType;

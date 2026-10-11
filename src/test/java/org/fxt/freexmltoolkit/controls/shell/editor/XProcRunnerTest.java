@@ -1,16 +1,16 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
-import org.fxt.freexmltoolkit.service.XsltTransformationEngine;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.fxt.freexmltoolkit.service.XsltTransformationEngine;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 /**
  * Exercises {@link XProcRunner} the way the editor does: live pipeline text plus

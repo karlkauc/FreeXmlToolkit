@@ -30,8 +30,8 @@ import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
-import org.fxt.freexmltoolkit.util.MarkdownSupport;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement.DocumentationInfo;
+import org.fxt.freexmltoolkit.util.MarkdownSupport;
 import org.w3c.dom.Node;
 
 /**
