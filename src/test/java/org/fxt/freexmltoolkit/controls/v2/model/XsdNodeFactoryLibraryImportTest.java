@@ -1,5 +1,11 @@
 package org.fxt.freexmltoolkit.controls.v2.model;
 
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.io.ByteArrayInputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.SchemaKind;
 import org.fxt.freexmltoolkit.domain.SchemaLibraryEntry;
@@ -7,12 +13,6 @@ import org.fxt.freexmltoolkit.service.*;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-
-import java.io.ByteArrayInputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Verifies that the V2 {@link XsdNodeFactory} consults the Schema Library

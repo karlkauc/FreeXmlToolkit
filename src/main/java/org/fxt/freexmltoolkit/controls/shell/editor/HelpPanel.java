@@ -3,15 +3,14 @@ package org.fxt.freexmltoolkit.controls.shell.editor;
 import java.util.List;
 
 import javafx.application.Platform;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 import org.fxt.freexmltoolkit.FxtGui;
+import org.fxt.freexmltoolkit.controls.theme.ActionColor;
 import org.fxt.freexmltoolkit.util.ProjectLinks;
 import org.fxt.freexmltoolkit.util.VersionUtil;
-import org.fxt.freexmltoolkit.controls.theme.ActionColor;
 
 /**
  * The Help activity side panel: about / version information and quick links.

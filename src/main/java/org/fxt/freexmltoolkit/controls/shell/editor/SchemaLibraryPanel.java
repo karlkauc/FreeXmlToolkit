@@ -1,5 +1,9 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import java.io.File;
+import java.nio.file.Path;
+import java.util.Locale;
+
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
@@ -10,17 +14,14 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.layout.*;
 import javafx.stage.FileChooser;
+
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.controls.theme.ActionColor;
+import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.*;
 import org.fxt.freexmltoolkit.service.*;
 import org.fxt.freexmltoolkit.util.DialogHelper;
-
-import java.io.File;
-import java.nio.file.Path;
-import java.util.Locale;
-import org.fxt.freexmltoolkit.controls.theme.ActionColor;
-import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
 
 /**
  * Side panel of the Schema Library activity: namespace mappings, registered XML catalogs

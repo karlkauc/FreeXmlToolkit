@@ -1,5 +1,16 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Map;
+
+import javax.xml.transform.stream.StreamSource;
+
+import org.fxt.freexmltoolkit.service.XsltTransformationEngine;
+
 import com.xmlcalabash.XmlCalabash;
 import com.xmlcalabash.datamodel.DeclareStepInstruction;
 import com.xmlcalabash.documents.XProcDocument;
@@ -8,16 +19,8 @@ import com.xmlcalabash.io.DocumentWriter;
 import com.xmlcalabash.runtime.XProcPipeline;
 import com.xmlcalabash.runtime.api.RuntimePort;
 import com.xmlcalabash.util.BufferingReceiver;
-import net.sf.saxon.s9api.XdmNode;
-import org.fxt.freexmltoolkit.service.XsltTransformationEngine;
 
-import javax.xml.transform.stream.StreamSource;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.StringReader;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Map;
+import net.sf.saxon.s9api.XdmNode;
 
 /**
  * UI-free XProc 3.0 pipeline execution via XML Calabash: runs a pipeline (the

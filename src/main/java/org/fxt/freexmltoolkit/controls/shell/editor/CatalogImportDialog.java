@@ -1,13 +1,14 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
-import javafx.scene.control.*;
-import javafx.scene.layout.VBox;
-import org.fxt.freexmltoolkit.domain.SchemaLibraryEntry;
-import org.fxt.freexmltoolkit.util.DialogHelper;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+
+import javafx.scene.control.*;
+import javafx.scene.layout.VBox;
+
+import org.fxt.freexmltoolkit.domain.SchemaLibraryEntry;
+import org.fxt.freexmltoolkit.util.DialogHelper;
 
 /** Lets the user pick which catalog entries to copy into the library as USER mappings. */
 public class CatalogImportDialog extends Dialog<List<SchemaLibraryEntry>> {

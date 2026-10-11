@@ -1,10 +1,8 @@
 package org.fxt.freexmltoolkit.service.fileassoc;
 
-import org.fxt.freexmltoolkit.domain.FileAssociationResult;
-import org.fxt.freexmltoolkit.service.FileAssociationService.RegistrationState;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -12,9 +10,11 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.fxt.freexmltoolkit.domain.FileAssociationResult;
+import org.fxt.freexmltoolkit.service.FileAssociationService.RegistrationState;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 class LinuxAssociationStrategyTest {
 

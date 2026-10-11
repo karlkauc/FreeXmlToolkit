@@ -20,11 +20,11 @@ import javafx.scene.layout.VBox;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.shell.editor.analysis.SchemaAnalysisView;
 import org.fxt.freexmltoolkit.controls.shell.schema.XsdNodeLabels;
+import org.fxt.freexmltoolkit.controls.theme.ActionColor;
+import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNodeType;
 import org.fxt.freexmltoolkit.service.telemetry.UsageEvents;
-import org.fxt.freexmltoolkit.controls.theme.ActionColor;
-import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
 
 /**
  * The Schema activity side panel, laid out after the Figma mockup

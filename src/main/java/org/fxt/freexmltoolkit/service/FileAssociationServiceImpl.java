@@ -1,5 +1,13 @@
 package org.fxt.freexmltoolkit.service;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
@@ -13,14 +21,6 @@ import org.fxt.freexmltoolkit.service.fileassoc.LinuxAssociationStrategy;
 import org.fxt.freexmltoolkit.service.fileassoc.MacAssociationStrategy;
 import org.fxt.freexmltoolkit.service.fileassoc.ProcessCommandRunner;
 import org.fxt.freexmltoolkit.service.fileassoc.WindowsAssociationStrategy;
-
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.EnumMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Default {@link FileAssociationService} implementation. Selects the platform strategy

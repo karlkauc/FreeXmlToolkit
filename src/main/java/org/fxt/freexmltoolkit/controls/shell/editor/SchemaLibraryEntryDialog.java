@@ -1,5 +1,9 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import java.io.File;
+import java.nio.file.Path;
+import java.util.UUID;
+
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
@@ -7,6 +11,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.stage.FileChooser;
+
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.domain.EntrySource;
 import org.fxt.freexmltoolkit.domain.SchemaKind;
@@ -14,10 +19,6 @@ import org.fxt.freexmltoolkit.domain.SchemaLibraryEntry;
 import org.fxt.freexmltoolkit.service.SchemaLibraryService;
 import org.fxt.freexmltoolkit.service.SchemaLibraryServiceImpl;
 import org.fxt.freexmltoolkit.util.DialogHelper;
-
-import java.io.File;
-import java.nio.file.Path;
-import java.util.UUID;
 
 /** Add / edit one Schema Library mapping. Returns the entry (with the original id when editing). */
 public class SchemaLibraryEntryDialog extends Dialog<SchemaLibraryEntry> {

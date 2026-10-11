@@ -1,15 +1,16 @@
 package org.fxt.freexmltoolkit.service;
 
-import org.fxt.freexmltoolkit.util.SecureXmlFactory;
-
-import javax.xml.stream.XMLStreamConstants;
-import javax.xml.stream.XMLStreamReader;
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
+
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamReader;
+
+import org.fxt.freexmltoolkit.util.SecureXmlFactory;
 
 /** Cheap StAX sniffing of the document element (namespace, local name) or an XSD's targetNamespace. */
 public final class XmlRootElementSniffer {

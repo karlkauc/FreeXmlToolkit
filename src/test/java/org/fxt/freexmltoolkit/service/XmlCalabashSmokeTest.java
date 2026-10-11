@@ -1,18 +1,10 @@
 package org.fxt.freexmltoolkit.service;
 
-import com.xmlcalabash.XmlCalabash;
-import com.xmlcalabash.datamodel.DeclareStepInstruction;
-import com.xmlcalabash.documents.XProcDocument;
-import com.xmlcalabash.io.DocumentWriter;
-import com.xmlcalabash.parsers.xpl.XplParser;
-import com.xmlcalabash.runtime.XProcPipeline;
-import com.xmlcalabash.util.BufferingReceiver;
-import net.sf.saxon.s9api.DocumentBuilder;
-import net.sf.saxon.s9api.XdmNode;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import javax.xml.transform.stream.StreamSource;
 import java.io.ByteArrayOutputStream;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
@@ -21,10 +13,21 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import javax.xml.transform.stream.StreamSource;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import com.xmlcalabash.XmlCalabash;
+import com.xmlcalabash.datamodel.DeclareStepInstruction;
+import com.xmlcalabash.documents.XProcDocument;
+import com.xmlcalabash.io.DocumentWriter;
+import com.xmlcalabash.parsers.xpl.XplParser;
+import com.xmlcalabash.runtime.XProcPipeline;
+import com.xmlcalabash.util.BufferingReceiver;
+
+import net.sf.saxon.s9api.DocumentBuilder;
+import net.sf.saxon.s9api.XdmNode;
 
 /**
  * Pins the exact XML Calabash 3.x API call sequence used by

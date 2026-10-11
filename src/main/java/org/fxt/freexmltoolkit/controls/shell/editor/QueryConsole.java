@@ -45,8 +45,8 @@ import org.fxt.freexmltoolkit.domain.XPathSnippet;
 import org.fxt.freexmltoolkit.service.FavoritesService;
 import org.fxt.freexmltoolkit.service.XPathSnippetRepository;
 import org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat;
-import org.fxt.freexmltoolkit.service.telemetry.UsageEvents;
 import org.fxt.freexmltoolkit.service.fundsxml.FundsXmlPostDownloadRegistrar;
+import org.fxt.freexmltoolkit.service.telemetry.UsageEvents;
 import org.fxt.freexmltoolkit.util.DialogHelper;
 
 /**

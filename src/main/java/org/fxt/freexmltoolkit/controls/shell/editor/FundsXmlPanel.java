@@ -1,7 +1,6 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
 import javafx.application.Platform;
-import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
@@ -10,8 +9,8 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
 import org.fxt.freexmltoolkit.FxtGui;
-import org.fxt.freexmltoolkit.service.fundsxml.FundsXmlExtensionService;
 import org.fxt.freexmltoolkit.controls.theme.ActionColor;
+import org.fxt.freexmltoolkit.service.fundsxml.FundsXmlExtensionService;
 
 /** The FundsXML activity side panel: manage versions, validate the active document, docs/resources. */
 public class FundsXmlPanel extends VBox {

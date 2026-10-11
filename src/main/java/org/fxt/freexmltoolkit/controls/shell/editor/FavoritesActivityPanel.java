@@ -9,7 +9,6 @@ import java.util.TreeMap;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
@@ -25,10 +24,10 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
-import org.fxt.freexmltoolkit.domain.FileFavorite;
-import org.fxt.freexmltoolkit.service.FavoritesService;
 import org.fxt.freexmltoolkit.controls.theme.ActionColor;
 import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
+import org.fxt.freexmltoolkit.domain.FileFavorite;
+import org.fxt.freexmltoolkit.service.FavoritesService;
 
 /**
  * The Favorites activity side panel: lists saved file favorites — grouped by

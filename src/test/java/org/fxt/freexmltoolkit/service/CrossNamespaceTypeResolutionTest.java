@@ -10,9 +10,9 @@ import java.nio.file.Path;
 import javax.xml.transform.stream.StreamSource;
 
 import org.fxt.freexmltoolkit.domain.GenerationProfile;
+import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.junit.jupiter.api.io.TempDir;
 
 /**
  * A type may derive from a type with the same local name in another namespace (UBL {@code udt:IdentifierType}

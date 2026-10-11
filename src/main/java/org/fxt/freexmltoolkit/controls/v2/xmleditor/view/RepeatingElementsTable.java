@@ -13,7 +13,6 @@ import java.util.Set;
 
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode;
-import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlText;
 
 /**
  * Represents a table view for repeating XML elements with the same name.

@@ -1,13 +1,8 @@
 package org.fxt.freexmltoolkit.service;
 
-import org.fxt.freexmltoolkit.domain.FileAssociationResult;
-import org.fxt.freexmltoolkit.domain.UnifiedEditorFileType;
-import org.fxt.freexmltoolkit.service.fileassoc.CommandRunner;
-import org.fxt.freexmltoolkit.service.fileassoc.KeyValueStore;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.EnabledOnOs;
-import org.junit.jupiter.api.condition.OS;
-import org.junit.jupiter.api.io.TempDir;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -19,9 +14,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.fxt.freexmltoolkit.domain.FileAssociationResult;
+import org.fxt.freexmltoolkit.domain.UnifiedEditorFileType;
+import org.fxt.freexmltoolkit.service.fileassoc.CommandRunner;
+import org.fxt.freexmltoolkit.service.fileassoc.KeyValueStore;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledOnOs;
+import org.junit.jupiter.api.condition.OS;
+import org.junit.jupiter.api.io.TempDir;
 
 class FileAssociationServiceImplTest {
 

@@ -7,8 +7,8 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import javafx.application.Platform;
-import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.Property;
+import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.Label;

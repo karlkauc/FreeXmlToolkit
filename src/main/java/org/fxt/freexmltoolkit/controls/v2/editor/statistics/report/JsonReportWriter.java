@@ -10,9 +10,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.fxt.freexmltoolkit.service.ExportMetadataService;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.fxt.freexmltoolkit.service.ExportMetadataService;
 
 /**
  * JSON rendering, machine-friendly: sections keyed by id, facts as an object, tables as arrays

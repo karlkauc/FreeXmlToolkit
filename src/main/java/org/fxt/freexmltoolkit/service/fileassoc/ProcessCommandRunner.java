@@ -1,12 +1,12 @@
 package org.fxt.freexmltoolkit.service.fileassoc;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Default {@link CommandRunner} backed by {@link ProcessBuilder}. Commands are executed

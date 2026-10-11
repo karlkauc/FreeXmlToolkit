@@ -32,13 +32,13 @@ import javafx.util.Duration;
 import org.fxt.freexmltoolkit.FxtGui;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.shell.editor.debug.BatchTransformView;
+import org.fxt.freexmltoolkit.controls.theme.ActionColor;
+import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
 import org.fxt.freexmltoolkit.domain.FileFavorite;
 import org.fxt.freexmltoolkit.service.FavoritesService;
 import org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat;
 import org.fxt.freexmltoolkit.service.telemetry.UsageEvents;
 import org.fxt.freexmltoolkit.util.DialogHelper;
-import org.fxt.freexmltoolkit.controls.theme.ActionColor;
-import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
 
 /**
  * The Transform activity side panel, laid out after the Figma mockup

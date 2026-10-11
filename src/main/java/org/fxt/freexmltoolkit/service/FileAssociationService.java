@@ -1,9 +1,9 @@
 package org.fxt.freexmltoolkit.service;
 
+import java.util.Set;
+
 import org.fxt.freexmltoolkit.domain.FileAssociationResult;
 import org.fxt.freexmltoolkit.domain.UnifiedEditorFileType;
-
-import java.util.Set;
 
 /**
  * Registers FreeXmlToolkit as handler (and, where the OS allows it, as the default

@@ -1,9 +1,9 @@
 package org.fxt.freexmltoolkit.service.fileassoc;
 
+import java.util.Collection;
+
 import org.fxt.freexmltoolkit.domain.FileAssociationResult;
 import org.fxt.freexmltoolkit.service.FileAssociationService.RegistrationState;
-
-import java.util.Collection;
 
 /**
  * Platform-specific implementation of file-association registration.

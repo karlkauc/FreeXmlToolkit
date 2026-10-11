@@ -28,10 +28,10 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
-import org.fxt.freexmltoolkit.domain.FileFavorite;
-import org.fxt.freexmltoolkit.service.FavoritesService;
 import org.fxt.freexmltoolkit.controls.theme.ActionColor;
 import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
+import org.fxt.freexmltoolkit.domain.FileFavorite;
+import org.fxt.freexmltoolkit.service.FavoritesService;
 
 /**
  * The full favorites management view, shown as a tool tab in the main editor

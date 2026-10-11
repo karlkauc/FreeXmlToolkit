@@ -1,15 +1,15 @@
 package org.fxt.freexmltoolkit.service.fileassoc;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.domain.FileAssociationResult;
-import org.fxt.freexmltoolkit.service.FileAssociationService.RegistrationState;
-
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.domain.FileAssociationResult;
+import org.fxt.freexmltoolkit.service.FileAssociationService.RegistrationState;
 
 /**
  * Windows implementation: registers ProgIds and application capabilities under
