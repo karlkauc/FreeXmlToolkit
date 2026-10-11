@@ -7,7 +7,7 @@ FreeXmlToolkit (Version 2.1.0) uses several third-party libraries. The following
 | Library | Version | License |
 |---------|---------|---------|
 | **Saxon-HE** (net.sf.saxon:Saxon-HE) | 12.10 | [Mozilla Public License 2.0](https://www.mozilla.org/en-US/MPL/2.0/) |
-| **XML Calabash** (com.xmlcalabash:xmlcalabash) | 3.0.51 | [MIT License](https://opensource.org/licenses/MIT) |
+| **XML Calabash** (com.xmlcalabash:xmlcalabash) | 3.0.54 | [MIT License](https://opensource.org/licenses/MIT) |
 | **Jakarta XML Bind API** (jakarta.xml.bind:jakarta.xml.bind-api) | 4.0.5 | [Eclipse Distribution License 1.0](https://www.eclipse.org/org/documents/edl-v10.php) |
 | **Gson** (com.google.code.gson:gson) | 2.14.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 
@@ -16,7 +16,7 @@ FreeXmlToolkit (Version 2.1.0) uses several third-party libraries. The following
 | Library | Version | License |
 |---------|---------|---------|
 | **JSONPath** (com.jayway.jsonpath:json-path) | 3.0.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
-| **JSON Schema Validator** (com.networknt:json-schema-validator) | 3.0.6 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
+| **JSON Schema Validator** (com.networknt:json-schema-validator) | 3.0.8 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 | **JSON5 Java** (de.marhali:json5-java) | 3.0.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 
 ## Schematron Validation
@@ -41,7 +41,7 @@ FreeXmlToolkit (Version 2.1.0) uses several third-party libraries. The following
 | **JavaFX** (Liberica Full JDK) | 25 | [GPL v2 with Classpath Exception](https://openjdk.java.net/legal/gplv2+ce.html) |
 | **AtlantaFX** (io.github.mkpaz:atlantafx-base) | 2.1.0 | [MIT License](https://opensource.org/licenses/MIT) |
 | **RichTextFX** (org.fxmisc.richtext:richtextfx) | 0.11.7 | [BSD-2-Clause License](https://opensource.org/licenses/BSD-2-Clause) |
-| **ControlsFX** (org.controlsfx:controlsfx) | 11.2.3 | [BSD 3-Clause License](https://opensource.org/licenses/BSD-3-Clause) |
+| **ControlsFX** (org.controlsfx:controlsfx) | 11.2.5 | [BSD 3-Clause License](https://opensource.org/licenses/BSD-3-Clause) |
 | **CSSFX** (fr.brouillard.oss:cssfx) | 11.5.1 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 
 ## Icons and Graphics
@@ -58,7 +58,7 @@ Icons are rendered by the in-house `IconifyIcon` control from bundled
 | Library | Version | License |
 |---------|---------|---------|
 | **Apache FOP** (org.apache.xmlgraphics:fop) | 2.11 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
-| **Apache PDFBox** (org.apache.pdfbox:pdfbox) | 3.0.7 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
+| **Apache PDFBox** (org.apache.pdfbox:pdfbox) | 3.0.8 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 | **Apache POI** (org.apache.poi:poi) | 5.5.1 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 | **Apache POI OOXML** (org.apache.poi:poi-ooxml) | 5.5.1 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 
@@ -75,18 +75,18 @@ Icons are rendered by the in-house `IconifyIcon` control from bundled
 | Library | Version | License |
 |---------|---------|---------|
 | **Apache Santuario** (org.apache.santuario:xmlsec) | 4.0.4 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
-| **Bouncy Castle** (org.bouncycastle:bcpkix-jdk18on) | 1.84 | [MIT License](https://www.bouncycastle.org/licence.html) |
+| **Bouncy Castle** (org.bouncycastle:bcpkix-jdk18on) | 1.86 | [MIT License](https://www.bouncycastle.org/licence.html) |
 
 ## Utilities and Commons
 
 | Library | Version | License |
 |---------|---------|---------|
-| **Apache Commons Lang3** (org.apache.commons:commons-lang3) | 3.20.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
+| **Apache Commons Lang3** (org.apache.commons:commons-lang3) | 3.21.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 | **Apache Commons IO** (commons-io:commons-io) | 2.22.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 | **Apache HttpClient 5** (org.apache.httpcomponents.client5:httpclient5) | 5.6.2 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 | **java-diff-utils** (io.github.java-diff-utils:java-diff-utils) | 4.17 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 | **Apache Commons Text** (org.apache.commons:commons-text) | 1.15.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
-| **Apache Commons Validator** (commons-validator:commons-validator) | 1.10.1 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
+| **Apache Commons Validator** (commons-validator:commons-validator) | 1.11.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 
 ## Templating and Markdown
 
@@ -120,8 +120,8 @@ Icons are rendered by the in-house `IconifyIcon` control from bundled
 
 | Library | Version | License |
 |---------|---------|---------|
-| **JUnit Jupiter** (org.junit.jupiter:junit-jupiter, via org.junit:junit-bom) | 6.1.1 | [Eclipse Public License 2.0](https://www.eclipse.org/legal/epl-2.0/) |
-| **Mockito** (org.mockito:mockito-core) | 5.23.0 | [MIT License](https://opensource.org/licenses/MIT) |
+| **JUnit Jupiter** (org.junit.jupiter:junit-jupiter, via org.junit:junit-bom) | 6.1.3 | [Eclipse Public License 2.0](https://www.eclipse.org/legal/epl-2.0/) |
+| **Mockito** (org.mockito:mockito-core) | 5.24.0 | [MIT License](https://opensource.org/licenses/MIT) |
 | **TestFX Core** (org.testfx:testfx-core) | 4.0.18 | [EUPL-1.1](https://joinup.ec.europa.eu/software/page/eupl) |
 | **TestFX JUnit5** (org.testfx:testfx-junit5) | 4.0.18 | [EUPL-1.1](https://joinup.ec.europa.eu/software/page/eupl) |
 | **OpenJFX Monocle** (org.testfx:openjfx-monocle) | 21.0.2 | [GPL v2 with Classpath Exception](https://openjdk.java.net/legal/gplv2+ce.html) |

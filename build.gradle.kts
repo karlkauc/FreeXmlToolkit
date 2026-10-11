@@ -53,7 +53,7 @@ dependencies {
     implementation("net.sf.saxon:Saxon-HE:12.10")
 
     // XProc 3.0/3.1 pipeline engine (MIT)
-    implementation("com.xmlcalabash:xmlcalabash:3.0.51") {
+    implementation("com.xmlcalabash:xmlcalabash:3.0.54") {
         // project routes SLF4J -> Log4j2 (log4j-slf4j2-impl); Calabash's log4j-to-slf4j would recurse
         exclude(group = "org.apache.logging.log4j", module = "log4j-to-slf4j")
         // CLI-only dead weight (interactive debugger terminal)
@@ -85,7 +85,7 @@ dependencies {
 
     // JSON Editor support
     implementation("de.marhali:json5-java:3.0.0")                  // JSON5 support (comments, trailing commas)
-    implementation("com.networknt:json-schema-validator:3.0.6")    // JSON Schema validation
+    implementation("com.networknt:json-schema-validator:3.0.8")    // JSON Schema validation
     implementation("com.jayway.jsonpath:json-path:3.0.0")          // JSONPath queries
     // Icons are rendered by the in-house IconifyIcon control (controls/icons) using bundled
     // Iconify SVG data under resources/icons/iconify/. Ikonli was removed in favour of it.
@@ -101,12 +101,12 @@ dependencies {
     implementation("org.apache.logging.log4j:log4j-slf4j2-impl:2.26.1")
 
     implementation("org.apache.santuario:xmlsec:4.0.4")
-    implementation("org.bouncycastle:bcpkix-jdk18on:1.84")
+    implementation("org.bouncycastle:bcpkix-jdk18on:1.86")
 
-    implementation("org.controlsfx:controlsfx:11.2.3")
+    implementation("org.controlsfx:controlsfx:11.2.5")
 
     implementation("org.apache.xmlgraphics:fop:2.11")
-    implementation("org.apache.pdfbox:pdfbox:3.0.7")
+    implementation("org.apache.pdfbox:pdfbox:3.0.8")
     implementation("org.apache.xmlgraphics:batik-svggen:1.19")
     implementation("org.apache.xmlgraphics:batik-all:1.19")
     implementation("org.apache.xmlgraphics:batik-transcoder:1.19")
@@ -114,10 +114,10 @@ dependencies {
     implementation("org.apache.poi:poi:5.5.1")
     implementation("org.apache.poi:poi-ooxml:5.5.1")
 
-    implementation("org.apache.commons:commons-lang3:3.20.0")
+    implementation("org.apache.commons:commons-lang3:3.21.0")
     implementation("commons-io:commons-io:2.22.0")
     implementation("org.apache.commons:commons-text:1.15.0")
-    implementation("commons-validator:commons-validator:1.10.1")
+    implementation("commons-validator:commons-validator:1.11.0")
 
     implementation("fr.brouillard.oss:cssfx:11.5.1")
     implementation("org.thymeleaf:thymeleaf:3.1.5.RELEASE")
@@ -133,11 +133,11 @@ dependencies {
     // Note: Guice 7.0.0 doesn't support Java 25 (class file version 69)
     // Using manual DI pattern instead - see org.fxt.freexmltoolkit.di package
 
-    testImplementation(platform("org.junit:junit-bom:6.1.1"))
+    testImplementation(platform("org.junit:junit-bom:6.1.3"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-    testImplementation("org.mockito:mockito-core:5.23.0")
-    testImplementation("org.mockito:mockito-junit-jupiter:5.23.0")
+    testImplementation("org.mockito:mockito-core:5.24.0")
+    testImplementation("org.mockito:mockito-junit-jupiter:5.24.0")
     testImplementation("org.testfx:testfx-core:4.0.18")
     testImplementation("org.testfx:testfx-junit5:4.0.18")
     testImplementation("org.testfx:openjfx-monocle:21.0.2")
@@ -145,7 +145,7 @@ dependencies {
 
     implementation(platform("com.helger.schematron:ph-schematron-parent-pom:9.2.0"))
     implementation("com.helger.schematron:ph-schematron-api:9.2.0")
-    runtimeOnly("org.glassfish.jaxb:jaxb-runtime:4.0.6") // JAXB impl for ph-schematron's SVRL marshalling
+    runtimeOnly("org.glassfish.jaxb:jaxb-runtime:4.0.9") // JAXB impl for ph-schematron's SVRL marshalling
     implementation("com.helger.schematron:ph-schematron-xslt:9.2.0")
     implementation("com.helger.schematron:ph-schematron-pure:9.2.0")
     implementation("com.helger.schematron:ph-schematron-schxslt:9.2.0")

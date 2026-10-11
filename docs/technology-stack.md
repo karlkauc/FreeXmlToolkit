@@ -16,13 +16,13 @@ FreeXmlToolkit is built using modern Java technologies and libraries to provide 
 - **FXML:** Declarative UI layout with MVC architecture
 - **AtlantaFX:** 2.1.0 - Modern theme library for enhanced styling
 - **RichTextFX:** 0.11.7 - Advanced text editing component with syntax highlighting
-- **ControlsFX:** 11.2.3 - Extended JavaFX controls
+- **ControlsFX:** 11.2.5 - Extended JavaFX controls
 
 ## Key Libraries
 
 ### XML Processing
 - **Saxon HE:** 12.10 - XSLT 3.0, XPath 3.1 and XQuery processing engine
-- **XML Calabash:** 3.0.51 - XProc 3.0 pipeline engine (Run Pipeline for `.xpl`/`.xproc` files)
+- **XML Calabash:** 3.0.54 - XProc 3.0 pipeline engine (Run Pipeline for `.xpl`/`.xproc` files)
 - **ph-schematron:** 9.2.0 - Schematron validation (pure, XSLT and SchXslt engines)
 - **Jakarta XML Bind API:** 4.0.5 - XML binding and marshalling
 - **Apache Xerces:** 2.12.2 (exist-db fork) - XSD 1.1 validation with assertions support
@@ -30,30 +30,30 @@ FreeXmlToolkit is built using modern Java technologies and libraries to provide 
 ### JSON Processing
 - **Gson:** 2.14.0 - JSON parsing and serialization
 - **JSONPath:** 3.0.0 (Jayway) - JSONPath query language support
-- **JSON Schema Validator:** 3.0.6 (NetworkNT) - JSON Schema validation (Draft-07, 2019-09, 2020-12)
+- **JSON Schema Validator:** 3.0.8 (NetworkNT) - JSON Schema validation (Draft-07, 2019-09, 2020-12)
 
 ### PDF Generation
 - **Apache FOP:** 2.11 - XSL-FO to PDF transformation
-- **Apache PDFBox:** 3.0.7 - PDF manipulation
+- **Apache PDFBox:** 3.0.8 - PDF manipulation
 - **Apache Batik:** 1.19 - SVG processing and rendering
 
 ### Digital Signatures
 - **Apache Santuario:** 4.0.4 - XML Security (XML-DSig)
-- **BouncyCastle:** 1.84 - Cryptographic operations for XML digital signatures
+- **BouncyCastle:** 1.86 - Cryptographic operations for XML digital signatures
 - **Java Cryptography Architecture (JCA):** Native Java crypto support
 
 ### Office Integration
 - **Apache POI:** 5.5.1 - Excel export for validation results
 
 ### Utilities
-- **Apache Commons Lang3:** 3.20.0 - String manipulation and utilities
+- **Apache Commons Lang3:** 3.21.0 - String manipulation and utilities
 - **Apache Commons IO:** 2.22.0 - File and IO utilities
 - **Apache Commons Text:** 1.15.0 - Text algorithms
 
 ### Testing Framework
-- **JUnit Jupiter:** 6.1.1 - Unit and integration testing
+- **JUnit Jupiter:** 6.1.3 - Unit and integration testing
 - **TestFX:** 4.0.18 - JavaFX application testing framework
-- **Mockito:** 5.23.0 - Mocking framework for unit tests
+- **Mockito:** 5.24.0 - Mocking framework for unit tests
 
 ### Logging
 - **Log4j2:** 2.26.1 - Comprehensive logging framework
@@ -160,7 +160,7 @@ repositories {
 dependencies {
     // XML Processing
     implementation("net.sf.saxon:Saxon-HE:12.10")
-    implementation("com.xmlcalabash:xmlcalabash:3.0.51")
+    implementation("com.xmlcalabash:xmlcalabash:3.0.54")
     implementation("jakarta.xml.bind:jakarta.xml.bind-api:4.0.5")
     implementation("org.exist-db.thirdparty.xerces:xercesImpl:2.12.2")
 
@@ -170,14 +170,14 @@ dependencies {
     // UI Components
     implementation("org.fxmisc.richtext:richtextfx:0.11.7")
     implementation("io.github.mkpaz:atlantafx-base:2.1.0")
-    implementation("org.controlsfx:controlsfx:11.2.3")
+    implementation("org.controlsfx:controlsfx:11.2.5")
 
     // Security
     implementation("org.apache.santuario:xmlsec:4.0.4")
-    implementation("org.bouncycastle:bcpkix-jdk18on:1.84")
+    implementation("org.bouncycastle:bcpkix-jdk18on:1.86")
 
     // Testing
-    testImplementation(platform("org.junit:junit-bom:6.1.1"))
+    testImplementation(platform("org.junit:junit-bom:6.1.3"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation("org.testfx:testfx-junit5:4.0.18")
 }

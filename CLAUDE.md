@@ -135,7 +135,7 @@ Requires `<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>`.
 ## Project-Specific Patterns
 
 - **XSLT/XQuery:** Saxon HE 12.10 for XSLT 3.0, XPath 3.1, XQuery 3.1 (pinned by XML Calabash 3)
-- **XProc:** XML Calabash 3.0.51 for XProc 3.0 pipelines (Run Pipeline on .xpl documents)
+- **XProc:** XML Calabash 3.0.54 for XProc 3.0 pipelines (Run Pipeline on .xpl documents)
 - **XML Validation:** Xerces 2.12.2 (exist-db fork) for XSD 1.1
 - **UI Framework:** JavaFX 25 with AtlantaFX theme
 - **Icons:** `IconifyIcon` control (bundled Iconify Bootstrap Icons SVG); graceful fallback on unknown names
