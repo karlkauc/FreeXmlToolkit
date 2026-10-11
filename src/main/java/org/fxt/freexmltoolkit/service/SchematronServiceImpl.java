@@ -15,6 +15,7 @@ import org.apache.logging.log4j.Logger;
 
 import com.helger.schematron.ISchematronResource;
 import com.helger.schematron.schxslt.xslt2.SchematronResourceSchXslt_XSLT2;
+import com.helger.schematron.schxslt.xslt2.SchematronSchXslt_XSLT2Cache;
 import com.helger.schematron.svrl.AbstractSVRLMessage;
 import com.helger.schematron.svrl.SVRLHelper;
 import com.helger.schematron.svrl.SVRLMarshaller;
@@ -57,15 +58,19 @@ public class SchematronServiceImpl implements SchematronService {
             if (old != null) {
                 // ph-schematron's internal provider cache is keyed by path only and
                 // would keep serving the stale compiled XSLT for the changed file
-                com.helger.schematron.schxslt.xslt2.SchematronResourceSchXslt_XSLT2Cache.clearCache();
+                SchematronSchXslt_XSLT2Cache.shared().clear();
             }
-            SchematronResourceSchXslt_XSLT2 r = SchematronResourceSchXslt_XSLT2.fromFile(schematronFile);
-            r.setUseCache(true);
-            // Schematrons without @queryBinding must compile like the previous
-            // Saxon/XSLT2 skeleton pipeline did, not fail with SchXslt's E0002.
-            r.parameters().put("schxslt.compile.default-query-binding", "xslt2");
-            // Custom parameters would otherwise disable caching of the compiled XSLT
-            r.setForceCacheResult(true);
+            SchematronResourceSchXslt_XSLT2 r = SchematronResourceSchXslt_XSLT2.builderFromFile(schematronFile)
+                    .useCache(true)
+                    // Schematrons without @queryBinding must compile like the previous
+                    // Saxon/XSLT2 skeleton pipeline did, not fail with SchXslt's E0002.
+                    .parameter("schxslt.compile.default-query-binding", "xslt2")
+                    // Custom parameters would otherwise disable caching of the compiled XSLT
+                    .forceCacheResult(true)
+                    // SchXslt emits svrl:metadata, which the strict SVRL schema check of
+                    // ph-schematron 10 rejects; the report itself is read fine without it.
+                    .validateSVRL(false)
+                    .build();
             return new CachedResource(lastModified, r);
         });
         return cached.resource();
@@ -158,7 +163,8 @@ public class SchematronServiceImpl implements SchematronService {
 
         String svrlString = null;
         try {
-            svrlString = new SVRLMarshaller().getAsString(svrl);
+            // unvalidated for the same reason as validateSVRL(false) above
+            svrlString = new SVRLMarshaller(false).getAsString(svrl);
         } catch (Exception e) {
             logger.warn("Could not marshal SVRL report for {}: {}", schematronFile, e.getMessage());
         }

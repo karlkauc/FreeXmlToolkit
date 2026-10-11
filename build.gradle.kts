@@ -143,12 +143,12 @@ dependencies {
     testImplementation("org.testfx:openjfx-monocle:21.0.2")
     testImplementation("org.hamcrest:hamcrest:3.0")
 
-    implementation(platform("com.helger.schematron:ph-schematron-parent-pom:9.2.0"))
-    implementation("com.helger.schematron:ph-schematron-api:9.2.0")
+    implementation(platform("com.helger.schematron:ph-schematron-parent-pom:10.2.0"))
+    implementation("com.helger.schematron:ph-schematron-api:10.2.0")
     runtimeOnly("org.glassfish.jaxb:jaxb-runtime:4.0.9") // JAXB impl for ph-schematron's SVRL marshalling
-    implementation("com.helger.schematron:ph-schematron-xslt:9.2.0")
-    implementation("com.helger.schematron:ph-schematron-pure:9.2.0")
-    implementation("com.helger.schematron:ph-schematron-schxslt:9.2.0")
+    implementation("com.helger.schematron:ph-schematron-xslt:10.2.0")
+    implementation("com.helger.schematron:ph-schematron-pure:10.2.0")
+    implementation("com.helger.schematron:ph-schematron-schxslt:10.2.0")
 }
 
 // Java Toolchain Configuration - Use JDK with JavaFX included

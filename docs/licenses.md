@@ -23,7 +23,7 @@ FreeXmlToolkit (Version 2.1.0) uses several third-party libraries. The following
 
 | Library | Version | License |
 |---------|---------|---------|
-| **ph-schematron** (com.helger.schematron:ph-schematron-pure / -xslt / -schxslt / -api) | 9.2.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
+| **ph-schematron** (com.helger.schematron:ph-schematron-pure / -xslt / -schxslt / -api) | 10.2.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 | **ph-commons** (com.helger.commons:ph-commons / ph-xml / ph-io) | 12.x | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 
 ## XML Validation (XSD 1.1 Support)
