@@ -73,6 +73,29 @@ class SessionMarkerTest {
     }
 
     @Test
+    void countsOtherLiveInstancesOnly() throws Exception {
+        long own = ProcessHandle.current().pid();
+        SessionMarker mine = new SessionMarker(dir, m -> true);
+        mine.begin("mine", "2.4.0");
+        assertEquals(0, mine.otherLiveSessions(own), "the own marker does not count");
+
+        Files.writeString(dir.resolve("other-1.running"), "other-1\n2.4.0\n" + (own + 1) + "\n0\n");
+        Files.writeString(dir.resolve("other-2.running"), "other-2\n2.4.0\n" + (own + 2) + "\n0\n");
+        Files.writeString(dir.resolve("garbage.running"), "not a marker");
+        assertEquals(2, mine.otherLiveSessions(own));
+
+        Set<Long> dead = Set.of(own + 2);
+        assertEquals(1, new SessionMarker(dir, m -> !dead.contains(m.pid())).otherLiveSessions(own),
+                "a marker whose process is gone is not a running instance");
+        assertEquals(4, markerCount(dir), "counting never removes markers");
+    }
+
+    @Test
+    void missingMarkerFolderCountsAsNoOtherInstance() {
+        assertEquals(0, new SessionMarker(dir.resolve("missing"), m -> true).otherLiveSessions(1));
+    }
+
+    @Test
     void ownProcessIsAliveAndGarbageIsNot() {
         long pid = ProcessHandle.current().pid();
         assertTrue(SessionMarker.processAlive(new SessionMarker.Marker("s", "v", pid, 0)));

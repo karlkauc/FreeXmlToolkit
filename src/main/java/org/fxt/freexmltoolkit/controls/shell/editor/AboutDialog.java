@@ -32,6 +32,7 @@ import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.UpdateInfo;
 import org.fxt.freexmltoolkit.service.UpdateCheckService;
+import org.fxt.freexmltoolkit.service.telemetry.SessionMarker;
 import org.fxt.freexmltoolkit.util.ProjectLinks;
 import org.fxt.freexmltoolkit.util.VersionUtil;
 
@@ -273,19 +274,61 @@ public final class AboutDialog {
 
     // Ported from MainController.startAutoUpdate (helper of showUpdateDialog).
     private static void startAutoUpdate(UpdateInfo updateInfo) {
+        if (!confirmNoOtherInstances()) {
+            logger.info("Auto-update postponed: other application instances are running");
+            return;
+        }
         logger.info("Starting auto-update to version {}", updateInfo.latestVersion());
+        try {
+            UpdateProgressDialog progressDialog = new UpdateProgressDialog(updateInfo);
+            progressDialog.startUpdate(result -> {
+                if (result.success()) {
+                    logger.info("Auto-update initiated successfully. Application will restart.");
+                } else {
+                    logger.warn("Auto-update failed: {}", result.errorMessage());
+                    Platform.runLater(() -> org.fxt.freexmltoolkit.util.DialogHelper.showError(
+                            "Update Failed", "Could not complete the update",
+                            result.errorMessage()
+                                    + "\n\nYou can try again or download the update manually from GitHub."));
+                }
+            });
+        } catch (Exception | LinkageError e) {
+            // A LinkageError here means the installation changed under this process,
+            // typically because another instance has already installed the update.
+            logger.error("Could not start the auto-update", e);
+            org.fxt.freexmltoolkit.util.DialogHelper.showError("Update Failed",
+                    "The update could not be started",
+                    "The installation was changed while this window was open, probably by an update"
+                            + " started in another window.\n\nPlease close and restart FreeXmlToolkit.");
+        }
+    }
 
-        UpdateProgressDialog progressDialog = new UpdateProgressDialog(updateInfo);
-        progressDialog.startUpdate(result -> {
-            if (result.success()) {
-                logger.info("Auto-update initiated successfully. Application will restart.");
-            } else {
-                logger.warn("Auto-update failed: {}", result.errorMessage());
-                Platform.runLater(() -> org.fxt.freexmltoolkit.util.DialogHelper.showError(
-                        "Update Failed", "Could not complete the update",
-                        result.errorMessage()
-                                + "\n\nYou can try again or download the update manually from GitHub."));
+    /**
+     * The updater replaces the installation, which breaks every other running instance
+     * (they lose their JARs mid-session). Asks the user to close them first.
+     *
+     * @return {@code true} when no other instance runs (any more), {@code false} on cancel
+     */
+    private static boolean confirmNoOtherInstances() {
+        SessionMarker marker = SessionMarker.createDefault();
+        long ownPid = ProcessHandle.current().pid();
+        int others;
+        while ((others = marker.otherLiveSessions(ownPid)) > 0) {
+            boolean retry = org.fxt.freexmltoolkit.util.DialogHelper.showConfirmation("Update",
+                    "Close the other FreeXmlToolkit windows first", otherInstancesMessage(others),
+                    "Retry", "Cancel");
+            if (!retry) {
+                return false;
             }
-        });
+        }
+        return true;
+    }
+
+    static String otherInstancesMessage(int others) {
+        return (others == 1
+                ? "FreeXmlToolkit is running in 1 other window."
+                : "FreeXmlToolkit is running in " + others + " other windows.")
+                + " The update replaces the installed files, so the other windows would stop working"
+                + " and unsaved changes there could be lost.\n\nSave your work, close them and choose Retry.";
     }
 }
