@@ -60,8 +60,8 @@ HARTE RANDBEDINGUNGEN (nicht verhandelbar)
 PROJEKT-KONTEXT (vorher einlesen)
  - CLAUDE.md und .claude/rules/*.md (architecture, domain, quick-reference,
    xsd-editor-v2-details) für Architektur, Konventionen, Tech-Stack
-   (Java 25, JavaFX 24, Saxon HE, Xerces XSD 1.1, FOP, RichTextFX, Log4j2,
-   AtlantaFX, IconifyIcon).
+   (Java 25, JavaFX 25, Saxon HE, Xerces XSD 1.1, FOP, RichTextFX, Log4j2,
+   eigenes -fxt-*-Theme, IconifyIcon).
  - Aktuelle Controller/FXML/Services, insbes. XSD-Editor V2 (controls/v2/,
    MVVM + Command-Pattern), MainController, die ~24 FXML-Seiten.
 
