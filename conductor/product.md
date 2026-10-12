@@ -17,7 +17,7 @@ FreeXmlToolkit is a high-performance, all-in-one XML workstation designed to mak
 
 ## Strategic Features
 *   **Intelligent Editing:** Real-time validation and context-aware auto-completion (IntelliSense) based on XSD schemas.
-*   **Visual Data Management:** Multiple view modes (Text, Grid, Tree) to cater to different data structures and user preferences, including seamless export to Excel and PDF.
+*   **Visual Data Management:** Multiple view modes (Text, Tree, Graphic) to cater to different data structures and user preferences, including seamless export to Excel and PDF.
 *   **Advanced Schema Support:** Full XSD 1.1 support, including assertions, alongside professional HTML documentation generation from schemas.
 *   **Large File Optimization:** Engineered to handle extremely large XML files (hundreds of megabytes) with high performance and stability.
 
