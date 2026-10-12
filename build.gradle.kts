@@ -1168,6 +1168,9 @@ fun createJlinkRuntimeTask(taskName: String, platform: String, arch: String) {
             "java.net.http",
             // Log4j's Interpolator JMX lookup (avoids a startup stack trace)
             "java.management",
+            // Java Access Bridge: AWT loads the assistive technologies registered in
+            // .accessibility.properties and fails with an AWTError when the class is missing
+            "jdk.accessibility",
             "javafx.base",
             "javafx.controls",
             "javafx.fxml",
