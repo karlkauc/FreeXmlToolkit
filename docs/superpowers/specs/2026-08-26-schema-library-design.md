@@ -228,7 +228,7 @@ Each entry: `namespace`, `location`, `kind`, `description`, optional `rootElemen
 
 ## 7. Testing
 
-Unit (JUnit 5, Mockito, `@TempDir`, properties file redirected via `fxt.properties.file`):
+Unit (JUnit 6, Mockito, `@TempDir`, properties file redirected via `fxt.properties.file`):
 
 - `SchemaLibraryServiceImplTest`: CRUD + persistence round trip; bundled merge/override/
   disable; resolution order USER → CATALOG → BUNDLED; `resolveByRootElement`;

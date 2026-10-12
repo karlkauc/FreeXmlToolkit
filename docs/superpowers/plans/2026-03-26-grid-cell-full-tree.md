@@ -6,7 +6,7 @@
 
 **Architecture:** Replace the simplified sub-row rendering in `renderInlineTable()` with calls to the same `drawRow()`, `drawExpandBars()`, `drawTreeLines()` methods used by the main view, but offset to render within cell bounds. Use `FlatRow.toggleExpand()` on the cell's sub-row list for expand/collapse. Attach `RepeatingElementsTable` instances to sub-rows that have repeating children.
 
-**Tech Stack:** Java 25, JavaFX 24.0.1, Canvas (GraphicsContext)
+**Tech Stack:** Java 25, JavaFX 25, Canvas (GraphicsContext)
 
 ---
 

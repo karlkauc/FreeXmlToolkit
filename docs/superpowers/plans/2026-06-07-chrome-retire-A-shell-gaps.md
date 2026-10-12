@@ -6,7 +6,7 @@
 
 **Architecture:** Four independent ports, each landing in an existing shell surface (Help/Settings/Welcome panels) except FundsXML which gets a new conditional activity. Overwhelmingly UI wiring over existing services (`VersionUtil`, `UpdateCheckService`, `PropertiesService`, `UsageTrackingService`, `SkillTracker`, `FavoritesService`, the `fundsxml/` services). The legacy chrome stays untouched.
 
-**Tech Stack:** Java 25, JavaFX 24, JUnit 5 + TestFX (Monocle headless). Single-class test: `./gradlew test --tests "FQCN"` (prefix `xvfb-run -a` if a display is needed). Do NOT rely on full `./gradlew build` going green — it hits the documented headless TestFX toolkit-init cascade; verify per-class.
+**Tech Stack:** Java 25, JavaFX 25, JUnit 6 + TestFX (Monocle headless). Single-class test: `./gradlew test --tests "FQCN"` (prefix `xvfb-run -a` if a display is needed). Do NOT rely on full `./gradlew build` going green — it hits the documented headless TestFX toolkit-init cascade; verify per-class.
 
 **Spec:** `docs/superpowers/specs/2026-06-07-chrome-retire-A-shell-gaps-design.md`
 

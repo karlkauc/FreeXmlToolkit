@@ -6,7 +6,7 @@
 
 **Architecture:** Replace `gc.fillText(arrow, ...)` calls for cell expand indicators with `gc.fillPolygon()` calls that draw triangles directly, matching the approach used for tree expand bars.
 
-**Tech Stack:** Java 25, JavaFX 24.0.1, Canvas (GraphicsContext)
+**Tech Stack:** Java 25, JavaFX 25, Canvas (GraphicsContext)
 
 **Spec:** `docs/superpowers/specs/2026-03-26-grid-cell-expansion-design.md`
 

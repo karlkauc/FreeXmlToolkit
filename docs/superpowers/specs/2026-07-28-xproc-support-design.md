@@ -12,13 +12,13 @@ Plus a bundled example collection in `release/examples/xproc/`.
 
 ## Engine choice
 
-**XML Calabash 3** (`com.xmlcalabash:xmlcalabash:3.0.51`, MIT, Maven Central) —
+**XML Calabash 3** (`com.xmlcalabash:xmlcalabash:3.0.54`, MIT, Maven Central; 3.0.51 when this was written) —
 effectively the only option: MorganaXProc-IIIse is GPL-3.0 and not on Maven
 Central; XML Calabash 1.x (XProc 1.0) is archived.
 
 ### Saxon pin: 13.0 → 12.10
 
-Calabash 3.0.51 is compiled against Saxon-HE **12.10** and uses Saxon internals
+Calabash 3 (3.0.51 through 3.0.54) is compiled against Saxon-HE **12.10** and uses Saxon internals
 (its POM even constrains `Saxon-HE` to `strictly 12.10`). Running it against
 Saxon 13 fails at pipeline-compile time. Decision (user-approved): downgrade the
 project to Saxon-HE 12.10. The only source change was reverting the

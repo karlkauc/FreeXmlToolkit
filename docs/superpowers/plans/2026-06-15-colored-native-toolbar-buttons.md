@@ -6,7 +6,7 @@
 
 **Architecture:** Two new persisted settings (`toolbar.show.labels`, `toolbar.icon.size`) in `PropertiesService`. A pure helper `ToolbarDisplay` maps the size setting to pixel size + CSS size-class (unit-testable, no JavaFX). `UnifiedShellView` gets a `ToolColor` enum and a refactored `toolButton(...)` core that tags each button with a color class + stored label, registers it, and applies the current display settings; a `setOnSaved` hook re-applies settings live. All visuals come from new `-fxt-tool-*` design tokens (light+dark) and reworked `.fxt-tool-button` CSS variants.
 
-**Tech Stack:** Java 25 + JavaFX 24, JavaFX CSS (`-fxt-*` looked-up colors), JUnit 5. Build: `./gradlew`.
+**Tech Stack:** Java 25 + JavaFX 25, JavaFX CSS (`-fxt-*` looked-up colors), JUnit 6. Build: `./gradlew`.
 
 **Spec:** `docs/superpowers/specs/2026-06-15-colored-native-toolbar-buttons-design.md`
 

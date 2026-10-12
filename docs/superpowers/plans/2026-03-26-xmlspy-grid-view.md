@@ -6,7 +6,7 @@
 
 **Architecture:** Replace `NestedGridNode`-based nested grid rendering in `XmlCanvasView` with a flat `FlatRow` list. Each XML item (element, attribute, text) becomes one row. Rendering iterates visible rows sequentially. The expand bar and tree lines are drawn as overlays based on depth/parent relationships. `RepeatingElementsTable` is enhanced with column-header icons and row numbers.
 
-**Tech Stack:** Java 25, JavaFX 24.0.1, Canvas (GraphicsContext), JUnit 5
+**Tech Stack:** Java 25, JavaFX 25, Canvas (GraphicsContext), JUnit 6
 
 **Spec:** `docs/superpowers/specs/2026-03-26-xmlspy-grid-view-design.md`
 

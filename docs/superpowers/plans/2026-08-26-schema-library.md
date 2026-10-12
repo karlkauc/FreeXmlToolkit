@@ -6,7 +6,7 @@
 
 **Architecture:** A new `SchemaLibraryService` singleton (JSON persistence in `~/.freeXmlToolkit/schema-library.json`, own OASIS catalog parser) is placed as a facade *in front of* the four existing resolvers (Xerces/Saxon `LSResourceResolver`, V2 `XsdNodeFactory`, legacy `SchemaResolver`, Saxon `ResourceResolver`) and the `EditorHost` auto-binding. `SchemaResourceCache` becomes a registry singleton with list/remove/refresh so the new panel can manage it. No existing resolution logic is rewritten.
 
-**Tech Stack:** Java 25 (preview), JavaFX 25 / AtlantaFX, Gson, StAX, JUnit 5 + Mockito, TestFX (Monocle headless), Gradle (Kotlin DSL).
+**Tech Stack:** Java 25 (preview), JavaFX 25, Gson, StAX, JUnit 6 + Mockito, TestFX (Monocle headless), Gradle (Kotlin DSL).
 
 **Spec:** `docs/superpowers/specs/2026-08-26-schema-library-design.md`
 

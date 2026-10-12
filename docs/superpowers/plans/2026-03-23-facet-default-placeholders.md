@@ -6,7 +6,7 @@
 
 **Architecture:** Add a `getDefaultFacetPlaceholder(String datatype, XsdFacetType facetType)` method to `XsdDatatypeFacets` that returns the XSD spec default value for any facet/datatype combination. Then replace the `setPromptText("Enter " + ...)` in `XsdPropertiesPanel.updateFacets()` with the default value. For facets with no meaningful default (e.g., `length` on `xs:string`), keep a short descriptive fallback. This is a pure data lookup + one-line UI change.
 
-**Tech Stack:** Java 25, JUnit 5
+**Tech Stack:** Java 25, JUnit 6
 
 ---
 

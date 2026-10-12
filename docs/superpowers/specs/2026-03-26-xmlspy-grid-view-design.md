@@ -6,7 +6,7 @@
 
 ## Summary
 
-Redesign the graphical XML view (`XmlCanvasView`) from a nested-grids layout to a flat, row-based layout inspired by Altova XMLSpy's Grid View. The view retains the modern AtlantaFX styling (subtle colors, light rounding) while adopting XMLSpy's structural features: distinctive node icons, tall vertical expand/collapse buttons with tree lines, a flat attribute/element list, and automatic grid/table view for repeating elements.
+Redesign the graphical XML view (`XmlCanvasView`) from a nested-grids layout to a flat, row-based layout inspired by Altova XMLSpy's Grid View. The view retains the modern application styling (subtle colors, light rounding) while adopting XMLSpy's structural features: distinctive node icons, tall vertical expand/collapse buttons with tree lines, a flat attribute/element list, and automatic grid/table view for repeating elements.
 
 ## Reference
 
