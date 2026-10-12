@@ -320,7 +320,7 @@ the replacement runs.
 
 ## F.2 Assumptions
 
-- Java 25 + JavaFX 24 + AtlantaFX retained (no platform change).
+- Java 25 + JavaFX 25 retained (no platform change); theming is the project's own `-fxt-*` token CSS (AtlantaFX was never applied and has since been removed).
 - RichTextFX remains the code editor; the new renderer is for Tree/Graphic, not the text view.
 - Saxon HE / Xerces (XSD 1.1) / FOP / Santuario libraries unchanged.
 - Figma is the source of truth for layout, tokens, icon set (bi-*).

@@ -6,7 +6,7 @@
 
 **Architecture:** A non-gating `PerfBenchmark` test prints median timings on the real FundsXML inputs (`src/test/resources/FundsXML_428.{xsd,xml}`). Two equivalence tests (a SHA-256 golden over the expanded-element map; a caret-battery over `ContextAnalyzer`) are the hard correctness gate — written/captured on the CURRENT code first, then every optimization must keep them green. Optimizations: guard hot per-node debug logs; memoize node-only metadata (identity constraints + annotations) keyed by the source DOM node; eliminate the per-keystroke `substring(0, caret)` allocation.
 
-**Tech Stack:** Java 25, JUnit 5, Xerces DOM, Log4j2. Pure-Java (no JavaFX) — run with plain `./gradlew test --tests "FQCN"`.
+**Tech Stack:** Java 25, JUnit 6, Xerces DOM, Log4j2. Pure-Java (no JavaFX) — run with plain `./gradlew test --tests "FQCN"`.
 
 **Spec:** `docs/superpowers/specs/2026-06-08-perf-hotspots-design.md`
 

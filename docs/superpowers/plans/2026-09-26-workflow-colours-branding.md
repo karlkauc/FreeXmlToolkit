@@ -6,7 +6,7 @@
 
 **Architecture:** Two new enums in `controls/theme` (`Workflow`, `ActionColor`) map onto `DesignTokens.ColorToken` entries and matching `-fxt-*` looked-up colours in `design-tokens.css`. The shell attaches a `fxt-wf-<id>` style class to the rail button and the side-panel host, and CSS selectors scoped to that class recolour header, primary button, row hover and badge. Icons that CSS would override are **bound** (not set) via a new `SemanticIcon.bind`, so per-item colours survive CSS passes and re-tint on theme switch.
 
-**Tech Stack:** Java 25 / JavaFX 25, JUnit 5 + TestFX, Gradle 9 (`./gradlew test --tests "<exact.ClassName>"` — never a leading wildcard, see memory `gradle-tests-leading-wildcard-trap`).
+**Tech Stack:** Java 25 / JavaFX 25, JUnit 6 + TestFX, Gradle 9 (`./gradlew test --tests "<exact.ClassName>"` — never a leading wildcard, see memory `gradle-tests-leading-wildcard-trap`).
 
 **Spec:** `docs/superpowers/specs/2026-09-26-workflow-colours-branding-design.md` (decisions D1–D7; §1 palette, §2 surfaces, §3 action table, §5 token mapping, §6 code sites).
 

@@ -6,7 +6,7 @@
 
 **Architecture:** Currently, `XmlUnifiedTab.setMainController()` wires the Go to Definition handler to `mainController.switchToXsdViewAndNavigate()`, which leaves the Unified Editor entirely. We change this so that `UnifiedEditorTabManager` provides its own navigation handler that opens/reuses an `XsdUnifiedTab` and navigates within it. `XsdUnifiedTab` gains a `navigateToElement()` method with deferred-navigation support (same pattern as `XsdController.pendingNavigationElement`).
 
-**Tech Stack:** Java 25, JavaFX 24.0.1, JUnit 5, TestFX
+**Tech Stack:** Java 25, JavaFX 25, JUnit 6, TestFX
 
 ---
 

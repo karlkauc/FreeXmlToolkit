@@ -6,7 +6,7 @@
 
 **Architecture:** Reuse the existing `debugger/` domain, `BreakpointGutterFactory`, and `XsltTransformationEngine` (which already has `transformWithDebugSession`, profiling, and batch methods). Add shell-native panels/views + UI-free runners following the established `TransformRunner`/`SchematronCheckResultView`/`openToolTab` patterns. Add one thin gutter seam on `EditorView` so the shell editor can host breakpoint markers.
 
-**Tech Stack:** Java 25, JavaFX 24, RichTextFX `CodeArea`, Saxon HE 12.9, JUnit 5 + TestFX (Monocle headless).
+**Tech Stack:** Java 25, JavaFX 25, RichTextFX `CodeArea`, Saxon HE 12.10, JUnit 6 + TestFX (Monocle headless).
 
 **Spec:** `docs/superpowers/specs/2026-06-07-xslt-developer-shell-port-design.md`
 

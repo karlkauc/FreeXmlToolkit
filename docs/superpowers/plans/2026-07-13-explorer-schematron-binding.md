@@ -6,7 +6,7 @@
 
 **Architecture:** Mirrors the existing Explorer transform bar exactly: a sticky picker backed by a new shared recent-Schematron store in `PropertiesService`, a Validate button that delegates via a shell-wired callback (`setSchematronValidateAction`, analogous to `setNewFileAction`) to the cached `ValidationPanel` — single active document → `revalidate()`, anything else → a new `runBatch(files, schematron)` overload. No new result UI, no new threading.
 
-**Tech Stack:** Java 25 (preview), JavaFX 25, TestFX (`ApplicationExtension`), JUnit 5, Gradle.
+**Tech Stack:** Java 25 (preview), JavaFX 25, TestFX (`ApplicationExtension`), JUnit 6, Gradle.
 
 **Spec:** `docs/superpowers/specs/2026-07-13-explorer-schematron-binding-design.md`
 

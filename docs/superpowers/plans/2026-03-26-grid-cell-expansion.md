@@ -6,7 +6,7 @@
 
 **Architecture:** Add cell-level expand state to `TableRow`, use `FlatRow.flattenElement()` to produce child rows on demand, render them inline within the cell with dynamic row heights, and handle click/edit interactions on the expanded content.
 
-**Tech Stack:** Java 25, JavaFX 24.0.1, Canvas (GraphicsContext), JUnit 5
+**Tech Stack:** Java 25, JavaFX 25, Canvas (GraphicsContext), JUnit 6
 
 **Spec:** `docs/superpowers/specs/2026-03-26-grid-cell-expansion-design.md`
 

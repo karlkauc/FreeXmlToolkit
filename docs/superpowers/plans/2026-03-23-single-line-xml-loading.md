@@ -6,7 +6,7 @@
 
 **Architecture:** Three-layer defense: (1) Detection at load time offers auto-format, (2) FoldingManagerV2 guards against O(n^2) regex on long lines, (3) SyntaxHighlightManagerV2 disables highlighting for long lines. All guards use a simple char-by-char loop to find max line length — no regex, no Stream allocation.
 
-**Tech Stack:** Java 25, JavaFX 24.0.1, RichTextFX, JUnit 5
+**Tech Stack:** Java 25, JavaFX 25, RichTextFX, JUnit 6
 
 **Spec:** `docs/superpowers/specs/2026-03-23-single-line-xml-loading-design.md`
 

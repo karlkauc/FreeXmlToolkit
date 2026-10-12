@@ -6,7 +6,7 @@
 
 **Architecture:** Four safe refactors with the boot UNCHANGED (Tasks 1–4: `ThemeManager`, recent-on-open, shell drag-drop, `ShellBootstrap`), then one cutover (Task 5: flip `FxtGui` to load `tab_unified_shell.fxml` as root + rewire `FxtGui.stop()`). The shell already owns the status-bar memory monitor, file-op keyboard shortcuts, and the file-open API.
 
-**Tech Stack:** Java 25, JavaFX 24, JUnit 5 + TestFX (Monocle headless). Single-class test: `./gradlew test --tests "FQCN"` (prefix `xvfb-run -a` if a display is needed). Do NOT rely on full `./gradlew build` going green — it hits the documented headless TestFX toolkit-init cascade; verify per class.
+**Tech Stack:** Java 25, JavaFX 25, JUnit 6 + TestFX (Monocle headless). Single-class test: `./gradlew test --tests "FQCN"` (prefix `xvfb-run -a` if a display is needed). Do NOT rely on full `./gradlew build` going green — it hits the documented headless TestFX toolkit-init cascade; verify per class.
 
 **Spec:** `docs/superpowers/specs/2026-06-07-chrome-retire-B-shell-root-design.md`
 

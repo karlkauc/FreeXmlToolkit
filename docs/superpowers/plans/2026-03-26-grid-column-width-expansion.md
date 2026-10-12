@@ -6,7 +6,7 @@
 
 **Architecture:** Recalculate column widths after cell expand/collapse, considering the widths needed by expanded sub-rows. Increase `MAX_COLUMN_WIDTH` for expanded columns. Fix sub-row rendering to use the full column width instead of splitting it in half.
 
-**Tech Stack:** Java 25, JavaFX 24.0.1, Canvas (GraphicsContext)
+**Tech Stack:** Java 25, JavaFX 25, Canvas (GraphicsContext)
 
 ---
 
