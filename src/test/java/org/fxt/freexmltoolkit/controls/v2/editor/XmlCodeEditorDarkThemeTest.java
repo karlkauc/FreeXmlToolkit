@@ -84,7 +84,7 @@ class XmlCodeEditorDarkThemeTest {
         assertEquals(org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.BG_SURFACE
                 .color(org.fxt.freexmltoolkit.controls.theme.DesignTokens.Theme.DARK), surface,
                 "dark editor background is the surface token (Figma bg/surface), not the legacy #1e1e1e");
-        Color caretLine = WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
+        Color caretLine = eventually(() -> {
             List<Node> lines = new java.util.ArrayList<>();
             collectByClass(editor.getCodeArea(), "current-line", lines);
             assertFalse(lines.isEmpty(), "the caret line carries the current-line style class");
@@ -109,7 +109,7 @@ class XmlCodeEditorDarkThemeTest {
     }
 
     private Color contentTextFill() {
-        return WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
+        return eventually(() -> {
             List<Text> all = new java.util.ArrayList<>();
             collectTexts(editor.getCodeArea(), all);
             List<Text> texts = all.stream().filter(t -> t.getText().contains("Root element")).toList();
@@ -117,6 +117,34 @@ class XmlCodeEditorDarkThemeTest {
                     + all.stream().map(t -> "[" + t.getText() + "|" + t.getStyleClass() + "]").toList());
             return (Color) texts.get(0).getFill();
         });
+    }
+
+    /**
+     * Reads a value from the rendered paragraph cells, retrying until the read succeeds.
+     *
+     * <p>The cells are virtualized and rebuilt asynchronously (text change, deferred syntax
+     * highlighting, theme switch), so a single sample right after {@code waitForFxEvents()}
+     * can hit a pulse in which the wanted cell does not exist yet. Each attempt runs a CSS
+     * and layout pass first; the last failure is rethrown after the timeout.
+     */
+    private <T> T eventually(java.util.function.Supplier<T> read) {
+        long deadline = System.nanoTime() + java.util.concurrent.TimeUnit.SECONDS.toNanos(10);
+        while (true) {
+            try {
+                return WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
+                    editor.getScene().getRoot().applyCss();
+                    editor.getScene().getRoot().layout();
+                    return read.get();
+                });
+            } catch (AssertionError | RuntimeException e) {
+                WaitForAsyncUtils.clearExceptions();
+                if (System.nanoTime() > deadline) {
+                    throw e;
+                }
+                WaitForAsyncUtils.sleep(50, java.util.concurrent.TimeUnit.MILLISECONDS);
+                WaitForAsyncUtils.waitForFxEvents();
+            }
+        }
     }
 
     /** Walks the scene graph (RichTextFX paragraph cells are not reachable via lookupAll). */
@@ -143,7 +171,7 @@ class XmlCodeEditorDarkThemeTest {
     }
 
     private Color gutterBackground() {
-        return WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
+        return eventually(() -> {
             List<Node> gutters = new java.util.ArrayList<>();
             collectByClass(editor.getCodeArea(), "lineno", gutters);
             Node gutter = gutters.isEmpty() ? null : gutters.get(0);
