@@ -18,8 +18,6 @@
 
 package org.fxt.freexmltoolkit;
 
-import java.awt.Taskbar;
-import java.awt.Toolkit;
 import java.io.File;
 import java.io.IOException;
 import java.util.Objects;
@@ -357,9 +355,15 @@ public class FxtGui extends Application {
                 org.fxt.freexmltoolkit.service.telemetry.FxStallWatchdog.startForCurrentFxThread();
 
                 org.fxt.freexmltoolkit.controls.shell.ShellBootstrap.getInstance().scheduleStartupTasks();
-            } catch (IOException e) {
+            } catch (Exception | LinkageError e) {
+                // Without this the splash would stay up forever with no window behind it.
                 logger.error("Failed to load main UI", e);
+                Telemetry.reportError(e, "startup");
                 splash.dismiss(null);
+                org.fxt.freexmltoolkit.util.DialogHelper.showError("FreeXmlToolkit",
+                        "The application could not be started",
+                        e + "\n\nDetails are in the log file. Please report this problem.");
+                Platform.exit();
             }
         });
     }
@@ -370,14 +374,8 @@ public class FxtGui extends Application {
      * @param primaryStage the stage to set icons on
      */
     private void setupTaskbarIcons(Stage primaryStage) {
-        // MAC Taskbar Image
-        try {
-            final Toolkit defaultToolkit = Toolkit.getDefaultToolkit();
-            final Taskbar taskbar = Taskbar.getTaskbar();
-            taskbar.setIconImage(defaultToolkit.getImage(FxtGui.class.getClassLoader().getResource(APP_ICON_PATH)));
-        } catch (UnsupportedOperationException ignored) {
-            // Taskbar icon is not supported on this platform; non-fatal.
-        }
+        // macOS Dock icon (AWT); guarded, a failing AWT toolkit must not abort the start
+        org.fxt.freexmltoolkit.app.TaskbarIcon.apply(FxtGui.class.getClassLoader().getResource(APP_ICON_PATH));
 
         // Icon in Taskbar WINDOWS
         try {
