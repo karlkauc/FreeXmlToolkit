@@ -90,6 +90,27 @@ public final class SessionMarker {
         return dead;
     }
 
+    /**
+     * Counts the other app instances that currently run: live markers that belong to a
+     * different process. Read-only and never throws; an unreadable folder counts as none.
+     *
+     * @param ownPid the process id of the calling instance
+     */
+    public int otherLiveSessions(long ownPid) {
+        int others = 0;
+        try (DirectoryStream<Path> files = Files.newDirectoryStream(dir, "*" + SUFFIX)) {
+            for (Path file : files) {
+                Optional<Marker> marker = read(file);
+                if (marker.isPresent() && marker.get().pid() != ownPid && alive.test(marker.get())) {
+                    others++;
+                }
+            }
+        } catch (IOException | RuntimeException e) {
+            // markers are best effort
+        }
+        return others;
+    }
+
     /** Removes this session's marker (clean shutdown). Never throws. */
     public synchronized void end() {
         ended = true;
