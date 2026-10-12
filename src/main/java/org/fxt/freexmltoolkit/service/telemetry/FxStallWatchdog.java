@@ -133,9 +133,30 @@ public final class FxStallWatchdog {
             capturedStack = null;
             durationMs = elapsedMs(postedAt, nanoClock.getAsLong());
         }
-        if (stack != null && durationMs >= STALL_THRESHOLD_MS) {
+        if (stack != null && durationMs >= STALL_THRESHOLD_MS && !isNativeWait(stack)) {
             sink.stalled(durationMs, stack);
         }
+    }
+
+    /**
+     * Whether the FX thread sat in a native toolkit loop when the stack was captured: the
+     * platform event loop itself (an OS modal loop such as dragging or resizing the window
+     * keeps it from running posted work) or a native file/folder dialog. No application
+     * code is stuck there, so these are not stalls worth reporting.
+     */
+    static boolean isNativeWait(StackTraceElement[] stack) {
+        if (stack == null || stack.length == 0) {
+            return false;
+        }
+        StackTraceElement top = stack[0];
+        String cls = top.getClassName();
+        String method = top.getMethodName();
+        if (!cls.startsWith("com.sun.glass.ui.")) {
+            return false;
+        }
+        return method.startsWith("_runLoop")
+                || method.startsWith("_enterNestedEventLoop")
+                || (cls.endsWith("CommonDialogs") && method.startsWith("_show"));
     }
 
     private static long elapsedMs(long fromNanos, long toNanos) {

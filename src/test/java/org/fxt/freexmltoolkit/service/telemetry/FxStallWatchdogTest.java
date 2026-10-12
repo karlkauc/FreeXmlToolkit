@@ -110,4 +110,51 @@ class FxStallWatchdogTest {
         assertEquals(3, ((Number) e.meta().get("lines")).intValue());
         assertEquals(">=100k", e.meta().get("max_line_len"));
     }
+
+    private static StackTraceElement frame(String cls, String method) {
+        return new StackTraceElement(cls, method, null, -1);
+    }
+
+    @Test
+    void nativeToolkitLoopsAreNotStalls() {
+        // Telemetry hash 1fd8d05696bfded4: the bare platform event loop (OS modal loop)
+        assertTrue(FxStallWatchdog.isNativeWait(new StackTraceElement[] {
+                frame("com.sun.glass.ui.win.WinApplication", "_runLoop"),
+                frame("com.sun.glass.ui.win.WinApplication", "lambda$runLoop$0"),
+                frame("java.lang.Thread", "run")}));
+        // Telemetry hash d404a692e81c46c4: waiting in the native Windows file dialog
+        assertTrue(FxStallWatchdog.isNativeWait(new StackTraceElement[] {
+                frame("com.sun.glass.ui.win.WinCommonDialogs", "_showFileChooser"),
+                frame("com.sun.glass.ui.win.WinCommonDialogs", "showFileChooser_impl"),
+                frame("org.fxt.freexmltoolkit.util.FileChooserHelper", "showOpenDialog")}));
+        assertTrue(FxStallWatchdog.isNativeWait(new StackTraceElement[] {
+                frame("com.sun.glass.ui.gtk.GtkApplication", "_enterNestedEventLoopImpl")}));
+    }
+
+    @Test
+    void applicationAndRenderStallsStayReportable() {
+        assertEquals(false, FxStallWatchdog.isNativeWait(stack));
+        assertEquals(false, FxStallWatchdog.isNativeWait(null));
+        assertEquals(false, FxStallWatchdog.isNativeWait(new StackTraceElement[0]));
+        // Telemetry hash e4d6d1573ad9696a: the FX thread waits for the render thread
+        assertEquals(false, FxStallWatchdog.isNativeWait(new StackTraceElement[] {
+                frame("jdk.internal.misc.Unsafe", "park"),
+                frame("com.sun.javafx.tk.quantum.PaintCollector", "waitForRenderingToComplete")}));
+        // native code below application code is still an application stall
+        assertEquals(false, FxStallWatchdog.isNativeWait(new StackTraceElement[] {
+                frame("org.fxt.freexmltoolkit.controls.diff.DiffGutter", "relayout"),
+                frame("com.sun.glass.ui.win.WinApplication", "_runLoop")}));
+    }
+
+    @Test
+    void nativeWaitIsNotReported() {
+        StackTraceElement[] idle = {frame("com.sun.glass.ui.win.WinApplication", "_runLoop")};
+        FxStallWatchdog idleWatchdog = new FxStallWatchdog(fxQueue::add, () -> idle, nanos::get,
+                (ms, s) -> stalls.add(ms));
+        idleWatchdog.tick();
+        advanceMs(3000);
+        idleWatchdog.tick();
+        runFx();
+        assertTrue(stalls.isEmpty());
+    }
 }
