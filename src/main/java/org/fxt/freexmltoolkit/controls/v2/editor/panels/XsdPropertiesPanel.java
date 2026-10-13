@@ -2,6 +2,7 @@ package org.fxt.freexmltoolkit.controls.v2.editor.panels;
 
 import java.util.Optional;
 
+import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
@@ -14,7 +15,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.Separator;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
@@ -33,6 +33,7 @@ import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.shared.CustomizableSectionContainer;
 import org.fxt.freexmltoolkit.controls.shared.SectionDefinition;
+import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.AddAssertionCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.AddEnumerationCommand;
@@ -80,68 +81,82 @@ public class XsdPropertiesPanel extends BorderPane {
 
     private static final Logger logger = LogManager.getLogger(XsdPropertiesPanel.class);
 
-    // Tab colors for styling
-    private static final String ATTRIBUTES_COLOR = "#007bff"; // Blue
-    private static final String FACETS_COLOR = "#fd7e14";     // Orange
-    private static final String DOCS_COLOR = "#28a745";       // Green
-
     private final XsdEditorContext editorContext;
     private VisualNode currentNode;
 
     // Main TabPane container
-    private TabPane mainTabPane;
+    @FXML private TabPane mainTabPane;
 
-    // Tabs
-    private Tab attributesTab;
-    private Tab facetsTab;
-    private Tab docsTab;
+    // Tabs and the scroll panes that take the section containers
+    @FXML private Tab attributesTab;
+    @FXML private Tab facetsTab;
+    @FXML private Tab docsTab;
+    @FXML private ScrollPane attributesScroll;
+    @FXML private ScrollPane facetsScroll;
+    @FXML private ScrollPane docsScroll;
+
+    // Sections (declared in fx:define, registered in the section containers)
+    @FXML private TitledPane generalPane;
+    @FXML private TitledPane cardinalityPane;
+    @FXML private TitledPane constraintsPane;
+    @FXML private TitledPane advancedPane;
+    @FXML private TitledPane facetsPane;
+    @FXML private TitledPane patternsPane;
+    @FXML private TitledPane enumerationsPane;
+    @FXML private TitledPane assertionsPane;
+    @FXML private TitledPane documentationPane;
+    @FXML private TitledPane appInfoPane;
+    @FXML private VBox appInfoBox;
 
     // Customizable section containers (one per tab)
     private CustomizableSectionContainer attributesSectionContainer;
     private CustomizableSectionContainer facetsSectionContainer;
     private CustomizableSectionContainer docsSectionContainer;
 
+    // Header
+    @FXML private Button gearButton;
+
     // General section controls
-    private TextField nameField;
-    private ComboBox<String> typeComboBox;
-    private IconifyIcon typeIcon;
+    @FXML private TextField nameField;
+    @FXML private ComboBox<String> typeComboBox;
+    @FXML private IconifyIcon typeIcon;
     private java.util.List<String> allAvailableTypes; // For autocomplete filtering
-    private Spinner<Integer> minOccursSpinner;
-    private Spinner<Integer> maxOccursSpinner;
-    private CheckBox unboundedCheckBox;
+    @FXML private Spinner<Integer> minOccursSpinner;
+    @FXML private Spinner<Integer> maxOccursSpinner;
+    @FXML private CheckBox unboundedCheckBox;
 
     // Documentation section controls
     private InlineDocumentationEditor documentationEditor;
     private AppInfoEditorPanel appInfoEditorPanel;
 
     // Constraints section controls
-    private CheckBox nillableCheckBox;
-    private CheckBox abstractCheckBox;
-    private CheckBox fixedCheckBox;
-    private TextField fixedValueField;
+    @FXML private CheckBox nillableCheckBox;
+    @FXML private CheckBox abstractCheckBox;
+    @FXML private CheckBox fixedCheckBox;
+    @FXML private TextField fixedValueField;
 
     // Advanced section controls
-    private ComboBox<String> formComboBox;
-    private ComboBox<String> useComboBox;
-    private TextField substitutionGroupField;
+    @FXML private ComboBox<String> formComboBox;
+    @FXML private ComboBox<String> useComboBox;
+    @FXML private TextField substitutionGroupField;
 
     // Facets controls
-    private GridPane facetsGridPane;
-    private ListView<String> patternsListView;
-    private ListView<String> enumerationsListView;
-    private ListView<String> assertionsListView;
+    @FXML private GridPane facetsGridPane;
+    @FXML private ListView<String> patternsListView;
+    @FXML private ListView<String> enumerationsListView;
+    @FXML private ListView<String> assertionsListView;
 
     // Buttons for pattern editing
-    private Button addPatternBtn;
-    private Button removePatternBtn;
+    @FXML private Button addPatternBtn;
+    @FXML private Button removePatternBtn;
 
     // Buttons for enumeration editing
-    private Button addEnumerationBtn;
-    private Button removeEnumerationBtn;
+    @FXML private Button addEnumerationBtn;
+    @FXML private Button removeEnumerationBtn;
 
     // Buttons for assertion editing
-    private Button addAssertionBtn;
-    private Button removeAssertionBtn;
+    @FXML private Button addAssertionBtn;
+    @FXML private Button removeAssertionBtn;
 
     // Facet controls (will be created dynamically based on datatype)
     private final java.util.Map<XsdFacetType, TextField> facetFields = new java.util.HashMap<>();
@@ -154,18 +169,20 @@ public class XsdPropertiesPanel extends BorderPane {
     private boolean assertionsFromReferencedType = false; // Track if assertions come from referenced type (read-only)
 
     // Schema Information section controls
-    private Label schemaFilePathLabel;
-    private Label schemaNamespaceLabel;
-    private Label schemaVersionLabel;
-    private TitledPane schemaInfoPane;
+    @FXML private Label schemaFilePathLabel;
+    @FXML private Label schemaNamespaceLabel;
+    @FXML private Label schemaVersionLabel;
+    @FXML private TitledPane schemaInfoPane;
 
     /**
-     * Creates a new properties panel.
+     * Creates a new properties panel. The layout is loaded from
+     * {@code /pages/views/XsdPropertiesPanel.fxml}.
      *
      * @param editorContext the editor context
      */
     public XsdPropertiesPanel(XsdEditorContext editorContext) {
         this.editorContext = editorContext;
+        FxmlViews.load(this, "/pages/views/XsdPropertiesPanel.fxml");
 
         initializeUI();
         setupListeners();
@@ -197,122 +214,12 @@ public class XsdPropertiesPanel extends BorderPane {
     }
 
     /**
-     * Initializes the UI components with TabPane layout.
+     * Wires the loaded layout: registers the sections in the customizable section containers of
+     * the three tabs and sets up the data-driven parts (editors, list cells, autocomplete).
      */
     private void initializeUI() {
-        // Create the main TabPane
-        mainTabPane = new TabPane();
-        mainTabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
-
-        // Create tabs with content
-        attributesTab = createAttributesTab();
-        facetsTab = createFacetsTab();
-        docsTab = createDocsTab();
-
-        // Add tabs to TabPane
-        mainTabPane.getTabs().addAll(attributesTab, facetsTab, docsTab);
-
-        setCenter(mainTabPane);
-
-        // Top: unified header + fixed Schema Information section (file-global, not node-dependent)
-        schemaInfoPane = createSchemaInformationTitledPane();
-        javafx.scene.layout.VBox topContainer = new javafx.scene.layout.VBox(
-                createUnifiedHeader(),
-                new javafx.scene.control.Separator(),
-                schemaInfoPane
-        );
-        topContainer.setSpacing(0);
-        setTop(topContainer);
-
-        // Initially disabled until a node is selected
-        // (header + schema info remain enabled — they show file-global info)
-        mainTabPane.setDisable(true);
-    }
-
-    /**
-     * Creates the unified panel header: [title | spacer | gear | close].
-     * The gear opens section settings for the active tab; close hides the panel.
-     */
-    private javafx.scene.layout.HBox createUnifiedHeader() {
-        javafx.scene.control.Label titleLabel = new javafx.scene.control.Label("Schema Properties");
-        titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13px;");
-
-        javafx.scene.layout.Region spacer = new javafx.scene.layout.Region();
-        javafx.scene.layout.HBox.setHgrow(spacer, javafx.scene.layout.Priority.ALWAYS);
-
-        javafx.scene.control.Button gearButton = new javafx.scene.control.Button();
-        IconifyIcon gearIcon = new IconifyIcon("bi-gear");
-        gearIcon.setIconSize(14);
-        gearButton.setGraphic(gearIcon);
-        gearButton.setTooltip(new javafx.scene.control.Tooltip("Customize sections"));
-        gearButton.getStyleClass().addAll("settings-gear-button", "flat-button");
-        gearButton.setOnAction(e -> showActiveTabSectionSettings(gearButton));
-
-        javafx.scene.control.Button closeButton = new javafx.scene.control.Button();
-        IconifyIcon closeIcon = new IconifyIcon("bi-x");
-        closeIcon.setIconSize(14);
-        closeButton.setGraphic(closeIcon);
-        closeButton.setTooltip(new javafx.scene.control.Tooltip("Hide Panel"));
-        closeButton.getStyleClass().add("flat-button");
-        closeButton.setOnAction(e -> {
-            setVisible(false);
-            setManaged(false);
-        });
-
-        javafx.scene.layout.HBox header = new javafx.scene.layout.HBox(8,
-                titleLabel, spacer, gearButton, closeButton);
-        header.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-        header.setPadding(new Insets(8, 12, 8, 12));
-        header.getStyleClass().add("side-pane-header");
-        return header;
-    }
-
-    /**
-     * Opens the section settings popup for the section container of the currently active tab.
-     */
-    private void showActiveTabSectionSettings(javafx.scene.Node anchor) {
-        CustomizableSectionContainer container = getActiveSectionContainer();
-        if (container == null || anchor == null) return;
-
-        org.fxt.freexmltoolkit.controls.shared.SectionSettingsPopup popup =
-                new org.fxt.freexmltoolkit.controls.shared.SectionSettingsPopup(container);
-        var order = container.getCurrentOrder();
-        var visibility = new java.util.HashMap<String, Boolean>();
-        var enabled = new java.util.HashMap<String, Boolean>();
-        for (String id : order) {
-            visibility.put(id, container.isSectionVisible(id));
-            enabled.put(id, container.isSectionEnabled(id));
-        }
-        popup.refresh(order, visibility, enabled);
-        popup.show(anchor);
-    }
-
-    /**
-     * Wraps a node in a ScrollPane for vertical scrolling.
-     */
-    private ScrollPane wrapInScrollPane(VBox content) {
-        ScrollPane scrollPane = new ScrollPane(content);
-        scrollPane.setFitToWidth(true);
-        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        // No node caching: caching a tall, dynamic panel forces a large backing texture and
-        // adds to GPU VRAM pressure (see XsdGraphView canvas notes).
-        return scrollPane;
-    }
-
-    /**
-     * Creates the Attributes tab.
-     * Contains: Schema Information, General, Cardinality, Constraints, Advanced
-     */
-    private Tab createAttributesTab() {
-        // Schema Information is now a fixed section at the top of the panel,
+        // Attributes tab. Schema Information is a fixed section at the top of the panel,
         // outside the TabPane, so it stays visible regardless of selection.
-        TitledPane generalPane = createGeneralTitledPane();
-        TitledPane cardinalityPane = createCardinalityTitledPane();
-        TitledPane constraintsPane = createConstraintsTitledPane();
-        TitledPane advancedPane = createAdvancedTitledPane();
-
-        // Wrap in customizable section container
         attributesSectionContainer = new CustomizableSectionContainer("xsd-attributes");
         attributesSectionContainer.addSection(new SectionDefinition("general", "General", generalPane, true, 1));
         attributesSectionContainer.addSection(new SectionDefinition("cardinality", "Cardinality", cardinalityPane, true, 2));
@@ -320,30 +227,9 @@ public class XsdPropertiesPanel extends BorderPane {
         attributesSectionContainer.addSection(new SectionDefinition("advanced", "Advanced", advancedPane, true, 4));
         attributesSectionContainer.setPadding(new Insets(10));
         attributesSectionContainer.initialize();
+        attributesScroll.setContent(attributesSectionContainer);
 
-        ScrollPane scrollPane = wrapInScrollPane(attributesSectionContainer);
-
-        Tab tab = new Tab("Attributes", scrollPane);
-        IconifyIcon icon = new IconifyIcon("bi-tags");
-        icon.setIconSize(16);
-        icon.setIconColor(Color.web(ATTRIBUTES_COLOR));
-        tab.setGraphic(icon);
-
-        return tab;
-    }
-
-    /**
-     * Creates the Facets tab.
-     * Contains: Facets Grid, Patterns, Enumerations, Assertions
-     */
-    private Tab createFacetsTab() {
-        // Create TitledPanes for facets
-        TitledPane facetsPane = createFacetsTitledPane();
-        TitledPane patternsPane = createPatternsTitledPane();
-        TitledPane enumerationsPane = createEnumerationsTitledPane();
-        TitledPane assertionsPane = createAssertionsTitledPane();
-
-        // Wrap in customizable section container
+        // Facets tab
         facetsSectionContainer = new CustomizableSectionContainer("xsd-facets");
         facetsSectionContainer.addSection(new SectionDefinition("facets", "Facets", facetsPane, true, 1));
         facetsSectionContainer.addSection(new SectionDefinition("enumerations", "Enumerations", enumerationsPane, true, 2));
@@ -351,292 +237,24 @@ public class XsdPropertiesPanel extends BorderPane {
         facetsSectionContainer.addSection(new SectionDefinition("assertions", "Assertions", assertionsPane, true, 4));
         facetsSectionContainer.setPadding(new Insets(10));
         facetsSectionContainer.initialize();
+        facetsScroll.setContent(facetsSectionContainer);
 
-        ScrollPane scrollPane = wrapInScrollPane(facetsSectionContainer);
-
-        Tab tab = new Tab("Facets", scrollPane);
-        IconifyIcon icon = new IconifyIcon("bi-sliders");
-        icon.setIconSize(16);
-        icon.setIconColor(Color.web(FACETS_COLOR));
-        tab.setGraphic(icon);
-
-        return tab;
-    }
-
-    /**
-     * Creates the Docs tab.
-     * Contains: Documentation, AppInfo
-     */
-    private Tab createDocsTab() {
-        // Inline documentation editor (replaces old GridPane + modal dialogs)
+        // Docs tab: inline documentation editor and the structured AppInfo editor (XsdDoc)
         documentationEditor = new InlineDocumentationEditor(editorContext);
-        TitledPane documentationPane = new TitledPane("Documentation", documentationEditor);
-        documentationPane.setExpanded(true);
-        IconifyIcon docIcon = new IconifyIcon("bi-book");
-        docIcon.setIconSize(14);
-        docIcon.setIconColor(Color.web(DOCS_COLOR));
-        documentationPane.setGraphic(docIcon);
+        documentationPane.setContent(documentationEditor);
+        appInfoEditorPanel = new AppInfoEditorPanel(editorContext);
+        appInfoBox.getChildren().add(appInfoEditorPanel);
+        VBox.setVgrow(appInfoEditorPanel, Priority.ALWAYS);
 
-        TitledPane appInfoPane = createAppInfoTitledPane();
-
-        // Wrap in customizable section container
         docsSectionContainer = new CustomizableSectionContainer("xsd-docs");
         docsSectionContainer.addSection(new SectionDefinition("documentation", "Documentation", documentationPane, true, 1));
         docsSectionContainer.addSection(new SectionDefinition("appInfo", "AppInfo", appInfoPane, true, 2));
         docsSectionContainer.setPadding(new Insets(10));
         docsSectionContainer.initialize();
-
-        ScrollPane scrollPane = wrapInScrollPane(docsSectionContainer);
-
-        Tab tab = new Tab("Docs", scrollPane);
-        IconifyIcon icon = new IconifyIcon("bi-journal-text");
-        icon.setIconSize(16);
-        icon.setIconColor(Color.web(DOCS_COLOR));
-        tab.setGraphic(icon);
-
-        return tab;
-    }
-
-    /**
-     * Creates the Schema Information TitledPane.
-     * Displays metadata about the loaded XSD schema.
-     */
-    private TitledPane createSchemaInformationTitledPane() {
-        GridPane grid = createGridPane();
-        int row = 0;
-
-        // File Path
-        grid.add(new Label("File Path:"), 0, row);
-        schemaFilePathLabel = new Label("No file loaded");
-        schemaFilePathLabel.setWrapText(true);
-        schemaFilePathLabel.getStyleClass().add("theme-text-secondary");
-        grid.add(schemaFilePathLabel, 1, row++);
-
-        // Target Namespace
-        grid.add(new Label("Target Namespace:"), 0, row);
-        schemaNamespaceLabel = new Label("No namespace");
-        schemaNamespaceLabel.setWrapText(true);
-        schemaNamespaceLabel.getStyleClass().add("theme-text-secondary");
-        grid.add(schemaNamespaceLabel, 1, row++);
-
-        // Version
-        grid.add(new Label("Version:"), 0, row);
-        schemaVersionLabel = new Label("-");
-        schemaVersionLabel.getStyleClass().add("theme-text-secondary");
-        grid.add(schemaVersionLabel, 1, row);
-
-        TitledPane pane = new TitledPane("Schema Information", grid);
-        pane.setExpanded(true);
-
-        // Add icon to title
-        IconifyIcon icon = new IconifyIcon("bi-info-circle");
-        icon.setIconSize(14);
-        icon.setIconColor(Color.web("#17a2b8"));
-        pane.setGraphic(icon);
-
-        return pane;
-    }
-
-    /**
-     * Creates the General properties TitledPane.
-     */
-    private TitledPane createGeneralTitledPane() {
-        GridPane grid = createGridPane();
-        int row = 0;
-
-        // Name
-        grid.add(new Label("Name:"), 0, row);
-        nameField = new TextField();
-        nameField.setPromptText("Element/Attribute name");
-        grid.add(nameField, 1, row++);
-
-        // Type with icon
-        grid.add(new Label("Type:"), 0, row);
-        HBox typeBox = new HBox(8);
-        typeBox.setAlignment(Pos.CENTER_LEFT);
-
-        typeComboBox = new ComboBox<>();
-        typeComboBox.setEditable(true);
-        typeComboBox.setPromptText("xs:string, MyCustomType");
-        typeComboBox.setMaxWidth(Double.MAX_VALUE);
-        HBox.setHgrow(typeComboBox, Priority.ALWAYS);
-
-        typeIcon = new IconifyIcon("bi-diagram-3");
-        typeIcon.setIconSize(18);
-        typeIcon.setIconColor(Color.web("#666666"));
-
-        typeBox.getChildren().addAll(typeComboBox, typeIcon);
-        grid.add(typeBox, 1, row);
+        docsScroll.setContent(docsSectionContainer);
 
         // Setup autocomplete for type combobox
         setupTypeComboBoxAutoComplete();
-
-        TitledPane titledPane = new TitledPane("General", grid);
-        titledPane.setExpanded(true);
-
-        IconifyIcon icon = new IconifyIcon("bi-gear");
-        icon.setIconSize(14);
-        icon.setIconColor(Color.web(ATTRIBUTES_COLOR));
-        titledPane.setGraphic(icon);
-
-        return titledPane;
-    }
-
-    /**
-     * Creates the Cardinality TitledPane.
-     */
-    private TitledPane createCardinalityTitledPane() {
-        GridPane grid = createGridPane();
-        int row = 0;
-
-        // minOccurs
-        grid.add(new Label("Min Occurs:"), 0, row);
-        minOccursSpinner = new Spinner<>(0, 999, 1);
-        minOccursSpinner.setEditable(true);
-        minOccursSpinner.setPrefWidth(100);
-        grid.add(minOccursSpinner, 1, row++);
-
-        // maxOccurs
-        grid.add(new Label("Max Occurs:"), 0, row);
-        maxOccursSpinner = new Spinner<>(1, 999, 1);
-        maxOccursSpinner.setEditable(true);
-        maxOccursSpinner.setPrefWidth(100);
-        grid.add(maxOccursSpinner, 1, row++);
-
-        // Unbounded checkbox
-        unboundedCheckBox = new CheckBox("Unbounded");
-        grid.add(unboundedCheckBox, 1, row);
-
-        TitledPane titledPane = new TitledPane("Cardinality", grid);
-        titledPane.setExpanded(true);
-
-        IconifyIcon icon = new IconifyIcon("bi-hash");
-        icon.setIconSize(14);
-        icon.setIconColor(Color.web(ATTRIBUTES_COLOR));
-        titledPane.setGraphic(icon);
-
-        return titledPane;
-    }
-
-    /**
-     * Creates the Constraints TitledPane.
-     */
-    private TitledPane createConstraintsTitledPane() {
-        VBox vbox = new VBox(10);
-        vbox.setPadding(new Insets(10));
-
-        nillableCheckBox = new CheckBox("Nillable (allows xsi:nil='true')");
-        abstractCheckBox = new CheckBox("Abstract (cannot be used directly)");
-
-        // Fixed value section with checkbox and text field
-        fixedCheckBox = new CheckBox("Fixed value");
-        fixedValueField = new TextField();
-        fixedValueField.setPromptText("Enter fixed value");
-        fixedValueField.setDisable(true); // Initially disabled, enabled when checkbox is checked
-
-        HBox fixedHBox = new HBox(10);
-        fixedHBox.getChildren().addAll(fixedCheckBox, fixedValueField);
-        HBox.setHgrow(fixedValueField, Priority.ALWAYS);
-
-        vbox.getChildren().addAll(nillableCheckBox, abstractCheckBox, fixedHBox);
-
-        TitledPane titledPane = new TitledPane("Constraints", vbox);
-        titledPane.setExpanded(false);
-
-        IconifyIcon icon = new IconifyIcon("bi-lock");
-        icon.setIconSize(14);
-        icon.setIconColor(Color.web(ATTRIBUTES_COLOR));
-        titledPane.setGraphic(icon);
-
-        return titledPane;
-    }
-
-    /**
-     * Creates the Advanced TitledPane.
-     */
-    private TitledPane createAdvancedTitledPane() {
-        GridPane grid = createGridPane();
-        int row = 0;
-
-        // Form
-        grid.add(new Label("Form:"), 0, row);
-        formComboBox = new ComboBox<>();
-        formComboBox.getItems().addAll("qualified", "unqualified");
-        formComboBox.setPromptText("Select form");
-        grid.add(formComboBox, 1, row++);
-
-        // Use
-        grid.add(new Label("Use:"), 0, row);
-        useComboBox = new ComboBox<>();
-        useComboBox.getItems().addAll("required", "optional", "prohibited");
-        useComboBox.setPromptText("Select use");
-        grid.add(useComboBox, 1, row++);
-
-        // Substitution Group
-        grid.add(new Label("Substitution Group:"), 0, row);
-        substitutionGroupField = new TextField();
-        substitutionGroupField.setPromptText("Element name");
-        grid.add(substitutionGroupField, 1, row);
-
-        TitledPane titledPane = new TitledPane("Advanced", grid);
-        titledPane.setExpanded(false);
-
-        IconifyIcon icon = new IconifyIcon("bi-sliders");
-        icon.setIconSize(14);
-        icon.setIconColor(Color.web(ATTRIBUTES_COLOR));
-        titledPane.setGraphic(icon);
-
-        return titledPane;
-    }
-
-    /**
-     * Creates the Facets TitledPane for the Facets column.
-     */
-    private TitledPane createFacetsTitledPane() {
-        VBox vbox = new VBox(10);
-        vbox.setPadding(new Insets(10));
-
-        // Description
-        Label descLabel = new Label("Facets define restrictions on data types (e.g., minLength, maxLength, totalDigits)");
-        descLabel.setWrapText(true);
-        descLabel.getStyleClass().add("desc-label");
-
-        // Grid for facet name/value pairs
-        facetsGridPane = new GridPane();
-        facetsGridPane.setHgap(10);
-        facetsGridPane.setVgap(8);
-        facetsGridPane.setPadding(new Insets(5));
-
-        vbox.getChildren().addAll(descLabel, new Separator(), facetsGridPane);
-        VBox.setVgrow(facetsGridPane, Priority.ALWAYS);
-
-        TitledPane pane = new TitledPane("Facets", vbox);
-        pane.setExpanded(true);
-
-        IconifyIcon icon = new IconifyIcon("bi-funnel");
-        icon.setIconSize(14);
-        icon.setIconColor(Color.web(FACETS_COLOR));
-        pane.setGraphic(icon);
-
-        return pane;
-    }
-
-    /**
-     * Creates the Patterns TitledPane for the Facets column.
-     */
-    private TitledPane createPatternsTitledPane() {
-        VBox vbox = new VBox(10);
-        vbox.setPadding(new Insets(10));
-
-        // Description
-        Label descLabel = new Label("Define regex patterns that values must match");
-        descLabel.setWrapText(true);
-        descLabel.getStyleClass().add("desc-label");
-
-        // Patterns list
-        patternsListView = new ListView<>();
-        patternsListView.setPrefHeight(120);
-        patternsListView.setPlaceholder(new Label("No patterns defined"));
 
         // Custom cell factory to show read-only indicator
         patternsListView.setCellFactory(lv -> new ListCell<String>() {
@@ -665,198 +283,88 @@ public class XsdPropertiesPanel extends BorderPane {
             }
         });
 
-        // Add/Remove buttons
-        HBox buttonBox = new HBox(10);
-        addPatternBtn = new Button("Add");
-        addPatternBtn.setGraphic(new IconifyIcon("bi-plus-circle"));
-        removePatternBtn = new Button("Remove");
-        removePatternBtn.setGraphic(new IconifyIcon("bi-trash"));
-        removePatternBtn.setDisable(true);
-
-        // Enable/disable remove button based on selection
+        // Enable/disable the remove buttons based on selection
         patternsListView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             removePatternBtn.setDisable(newVal == null || patternsFromReferencedType);
         });
-
-        // Add button action
-        addPatternBtn.setOnAction(e -> handleAddPattern());
-
-        // Remove button action
-        removePatternBtn.setOnAction(e -> {
-            String selectedPattern = patternsListView.getSelectionModel().getSelectedItem();
-            if (selectedPattern != null) {
-                handleDeletePattern(selectedPattern);
-            }
-        });
-
-        buttonBox.getChildren().addAll(addPatternBtn, removePatternBtn);
-
-        vbox.getChildren().addAll(descLabel, new Separator(), patternsListView, buttonBox);
-
-        TitledPane pane = new TitledPane("Patterns", vbox);
-        pane.setExpanded(true);
-
-        IconifyIcon icon = new IconifyIcon("bi-braces");
-        icon.setIconSize(14);
-        icon.setIconColor(Color.web(FACETS_COLOR));
-        pane.setGraphic(icon);
-
-        return pane;
-    }
-
-    /**
-     * Creates the Enumerations TitledPane for the Facets column.
-     */
-    private TitledPane createEnumerationsTitledPane() {
-        VBox vbox = new VBox(10);
-        vbox.setPadding(new Insets(10));
-
-        // Description
-        Label descLabel = new Label("Define allowed values for this element");
-        descLabel.setWrapText(true);
-        descLabel.getStyleClass().add("desc-label");
-
-        // Enumerations list
-        enumerationsListView = new ListView<>();
-        enumerationsListView.setPrefHeight(120);
-        enumerationsListView.setPlaceholder(new Label("No enumeration values defined"));
-
-        // Add/Remove buttons
-        HBox buttonBox = new HBox(10);
-        addEnumerationBtn = new Button("Add");
-        addEnumerationBtn.setGraphic(new IconifyIcon("bi-plus-circle"));
-        removeEnumerationBtn = new Button("Remove");
-        removeEnumerationBtn.setGraphic(new IconifyIcon("bi-trash"));
-        removeEnumerationBtn.setDisable(true);
-
-        // Enable/disable remove button based on selection
         enumerationsListView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             removeEnumerationBtn.setDisable(newVal == null || enumerationsFromReferencedType);
         });
-
-        // Add button action
-        addEnumerationBtn.setOnAction(e -> handleAddEnumeration());
-
-        // Remove button action
-        removeEnumerationBtn.setOnAction(e -> {
-            String selectedEnum = enumerationsListView.getSelectionModel().getSelectedItem();
-            if (selectedEnum != null) {
-                handleDeleteEnumeration(selectedEnum);
-            }
-        });
-
-        buttonBox.getChildren().addAll(addEnumerationBtn, removeEnumerationBtn);
-
-        vbox.getChildren().addAll(descLabel, new Separator(), enumerationsListView, buttonBox);
-
-        TitledPane pane = new TitledPane("Enumerations", vbox);
-        pane.setExpanded(true);
-
-        IconifyIcon icon = new IconifyIcon("bi-list-ul");
-        icon.setIconSize(14);
-        icon.setIconColor(Color.web(FACETS_COLOR));
-        pane.setGraphic(icon);
-
-        return pane;
-    }
-
-    /**
-     * Creates the Assertions TitledPane for the Facets column.
-     */
-    private TitledPane createAssertionsTitledPane() {
-        VBox vbox = new VBox(10);
-        vbox.setPadding(new Insets(10));
-
-        // Description
-        Label descLabel = new Label("XPath-based assertions (XSD 1.1)");
-        descLabel.setWrapText(true);
-        descLabel.getStyleClass().add("desc-label");
-
-        // Assertions list
-        assertionsListView = new ListView<>();
-        assertionsListView.setPrefHeight(120);
-        assertionsListView.setPlaceholder(new Label("No assertions defined"));
-
-        // Add/Remove buttons
-        HBox buttonBox = new HBox(10);
-        addAssertionBtn = new Button("Add");
-        addAssertionBtn.setGraphic(new IconifyIcon("bi-plus-circle"));
-        removeAssertionBtn = new Button("Remove");
-        removeAssertionBtn.setGraphic(new IconifyIcon("bi-trash"));
-        removeAssertionBtn.setDisable(true);
-
-        // Enable/disable remove button based on selection
         assertionsListView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             removeAssertionBtn.setDisable(newVal == null || assertionsFromReferencedType);
         });
+    }
 
-        // Add button action
-        addAssertionBtn.setOnAction(e -> handleAddAssertion());
+    /** Header gear: opens the section settings for the active tab. */
+    @FXML
+    public void onCustomizeSections() {
+        showActiveTabSectionSettings(gearButton);
+    }
 
-        // Remove button action
-        removeAssertionBtn.setOnAction(e -> {
-            String selectedAssertion = assertionsListView.getSelectionModel().getSelectedItem();
-            if (selectedAssertion != null) {
-                handleDeleteAssertion(selectedAssertion);
-            }
-        });
+    /** Header close button: hides the panel. */
+    @FXML
+    public void onHidePanel() {
+        setVisible(false);
+        setManaged(false);
+    }
 
-        buttonBox.getChildren().addAll(addAssertionBtn, removeAssertionBtn);
+    @FXML
+    public void onAddPattern() {
+        handleAddPattern();
+    }
 
-        // Info note about XSD 1.1
-        Label infoLabel = new Label("Note: Assertions are an XSD 1.1 feature");
-        infoLabel.setStyle("-fx-text-fill: #ff8c00; -fx-font-size: 10px; -fx-font-style: italic;");
-        infoLabel.setWrapText(true);
+    @FXML
+    public void onRemovePattern() {
+        String selectedPattern = patternsListView.getSelectionModel().getSelectedItem();
+        if (selectedPattern != null) {
+            handleDeletePattern(selectedPattern);
+        }
+    }
 
-        vbox.getChildren().addAll(descLabel, new Separator(), assertionsListView, buttonBox, infoLabel);
+    @FXML
+    public void onAddEnumeration() {
+        handleAddEnumeration();
+    }
 
-        TitledPane pane = new TitledPane("Assertions", vbox);
-        pane.setExpanded(false);
+    @FXML
+    public void onRemoveEnumeration() {
+        String selectedEnum = enumerationsListView.getSelectionModel().getSelectedItem();
+        if (selectedEnum != null) {
+            handleDeleteEnumeration(selectedEnum);
+        }
+    }
 
-        IconifyIcon icon = new IconifyIcon("bi-check2-square");
-        icon.setIconSize(14);
-        icon.setIconColor(Color.web(FACETS_COLOR));
-        pane.setGraphic(icon);
+    @FXML
+    public void onAddAssertion() {
+        handleAddAssertion();
+    }
 
-        return pane;
+    @FXML
+    public void onRemoveAssertion() {
+        String selectedAssertion = assertionsListView.getSelectionModel().getSelectedItem();
+        if (selectedAssertion != null) {
+            handleDeleteAssertion(selectedAssertion);
+        }
     }
 
     /**
-     * Creates the AppInfo TitledPane for the Docs column.
+     * Opens the section settings popup for the section container of the currently active tab.
      */
-    private TitledPane createAppInfoTitledPane() {
-        VBox vbox = new VBox(10);
-        vbox.setPadding(new Insets(10));
+    private void showActiveTabSectionSettings(javafx.scene.Node anchor) {
+        CustomizableSectionContainer container = getActiveSectionContainer();
+        if (container == null || anchor == null) return;
 
-        // AppInfo - Structured Editor (XsdDoc)
-        Label appInfoLabel = new Label("XsdDoc structured metadata:");
-        appInfoLabel.getStyleClass().add("desc-label");
-        vbox.getChildren().add(appInfoLabel);
-
-        appInfoEditorPanel = new AppInfoEditorPanel(editorContext);
-        vbox.getChildren().add(appInfoEditorPanel);
-        VBox.setVgrow(appInfoEditorPanel, Priority.ALWAYS);
-
-        TitledPane titledPane = new TitledPane("AppInfo", vbox);
-        titledPane.setExpanded(true);
-
-        IconifyIcon icon = new IconifyIcon("bi-info-square");
-        icon.setIconSize(14);
-        icon.setIconColor(Color.web(DOCS_COLOR));
-        titledPane.setGraphic(icon);
-
-        return titledPane;
-    }
-
-    /**
-     * Creates a standard grid pane for forms.
-     */
-    private GridPane createGridPane() {
-        GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(10);
-        grid.setPadding(new Insets(10));
-        return grid;
+        org.fxt.freexmltoolkit.controls.shared.SectionSettingsPopup popup =
+                new org.fxt.freexmltoolkit.controls.shared.SectionSettingsPopup(container);
+        var order = container.getCurrentOrder();
+        var visibility = new java.util.HashMap<String, Boolean>();
+        var enabled = new java.util.HashMap<String, Boolean>();
+        for (String id : order) {
+            visibility.put(id, container.isSectionVisible(id));
+            enabled.put(id, container.isSectionEnabled(id));
+        }
+        popup.refresh(order, visibility, enabled);
+        popup.show(anchor);
     }
 
     /**

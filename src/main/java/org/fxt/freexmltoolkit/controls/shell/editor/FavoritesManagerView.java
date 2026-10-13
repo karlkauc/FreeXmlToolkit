@@ -7,9 +7,7 @@ import java.util.TreeSet;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.scene.control.Button;
+import javafx.fxml.FXML;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
@@ -22,12 +20,9 @@ import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.cell.ComboBoxTableCell;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.VBox;
 
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.controls.theme.ActionColor;
 import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
 import org.fxt.freexmltoolkit.domain.FileFavorite;
@@ -50,100 +45,47 @@ public class FavoritesManagerView extends BorderPane {
     static final String MOST_POPULAR = "Most Popular";
 
     private final EditorHost editorHost;
-    private final TextField search = new TextField();
-    private final ListView<String> folderList = new ListView<>();
+    @FXML private TextField search;
+    @FXML private ListView<String> folderList;
     private final ObservableList<FileFavorite> tableItems = FXCollections.observableArrayList();
-    private final TableView<FileFavorite> table = new TableView<>(tableItems);
+    @FXML private TableView<FileFavorite> table;
+    @FXML private TableColumn<FileFavorite, String> nameColumn;
+    @FXML private TableColumn<FileFavorite, String> typeColumn;
+    @FXML private TableColumn<FileFavorite, String> folderColumn;
+    @FXML private TableColumn<FileFavorite, String> pathColumn;
     private final ObservableList<String> folderOptions = FXCollections.observableArrayList();
-    private final Label detailPath = detailValue();
-    private final Label detailType = detailValue();
-    private final Label detailAdded = detailValue();
-    private final Label detailUsage = detailValue();
-    private final javafx.scene.control.TextArea notesArea = new javafx.scene.control.TextArea();
+    @FXML private Label detailPath;
+    @FXML private Label detailType;
+    @FXML private Label detailAdded;
+    @FXML private Label detailUsage;
+    @FXML private javafx.scene.control.TextArea notesArea;
     private FileFavorite detailFavorite;
     private boolean populatingDetails;
 
+    /** Loads the layout from {@code /pages/views/FavoritesManagerView.fxml} and wires the table. */
     public FavoritesManagerView(EditorHost editorHost) {
         this.editorHost = editorHost;
-        getStyleClass().add("fxt-favmgr");
+        FxmlViews.load(this, "/pages/views/FavoritesManagerView.fxml");
 
-        // --- header: title + search --------------------------------------------
-        Label title = new Label("Manage Favorites", icon("bi-star", 18));
-        title.getStyleClass().add("fxt-favmgr-title");
-        Label subtitle = new Label("Rename favorites, group them into folders, search.");
-        subtitle.getStyleClass().add("fxt-favmgr-subtitle");
-        Region headerSpacer = new Region();
-        HBox.setHgrow(headerSpacer, Priority.ALWAYS);
-        search.setId("favmgr-search");
-        search.setPromptText("Search favorites…");
         search.textProperty().addListener((obs, oldV, newV) -> refreshTable());
-        Button cleanupButton = toolButton("Clean up", "bi-eraser", "favmgr-cleanup", this::cleanup);
-        cleanupButton.setTooltip(new javafx.scene.control.Tooltip(
-                "Remove favorites whose files no longer exist"));
-        HBox header = new HBox(12, new VBox(2, title, subtitle), headerSpacer, search, cleanupButton);
-        header.setAlignment(Pos.CENTER_LEFT);
-        header.getStyleClass().add("fxt-favmgr-header");
-
-        // --- left: folders -------------------------------------------------------
-        Label foldersLabel = new Label("FOLDERS");
-        foldersLabel.getStyleClass().add("fxt-sp-section-label");
-        folderList.setId("favmgr-folders");
-        folderList.setPrefWidth(200);
         folderList.getSelectionModel().selectedItemProperty()
                 .addListener((obs, oldV, newV) -> refreshTable());
-        Button newFolder = toolButton("New…", "bi-folder-plus", "favmgr-folder-new", () ->
-                prompt("New Folder", "Folder name:", "").ifPresent(this::createFolder));
-        Button renameFolder = toolButton("Rename…", "bi-pencil", "favmgr-folder-rename", () -> {
-            String selected = selectedFolder();
-            if (isRealFolder(selected)) {
-                prompt("Rename Folder", "New name:", selected)
-                        .ifPresent(newName -> renameFolder(selected, newName));
-            }
-        });
-        Button deleteFolder = toolButton("Delete", "bi-x-circle", "favmgr-folder-delete", () -> {
-            String selected = selectedFolder();
-            if (isRealFolder(selected)) {
-                deleteFolder(selected);
-            }
-        });
-        HBox folderActions = new HBox(6, newFolder, renameFolder, deleteFolder);
-        VBox left = new VBox(8, foldersLabel, folderList, folderActions);
-        VBox.setVgrow(folderList, Priority.ALWAYS);
-        left.setPadding(new Insets(0, 16, 0, 0));
 
-        // --- center: favorites table ---------------------------------------------
-        table.setId("favmgr-table");
-        table.setEditable(true);
+        table.setItems(tableItems);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
-        table.setPlaceholder(new Label("No favorites"));
-
-        TableColumn<FileFavorite, String> nameCol = new TableColumn<>("Name");
-        nameCol.setCellValueFactory(d -> new javafx.beans.property.SimpleStringProperty(
+        nameColumn.setCellValueFactory(d -> new javafx.beans.property.SimpleStringProperty(
                 displayName(d.getValue())));
-        nameCol.setCellFactory(TextFieldTableCell.forTableColumn());
-        nameCol.setOnEditCommit(e -> renameFavorite(e.getRowValue(), e.getNewValue()));
-        nameCol.setPrefWidth(220);
-
-        TableColumn<FileFavorite, String> typeCol = new TableColumn<>("Type");
-        typeCol.setCellValueFactory(d -> new javafx.beans.property.SimpleStringProperty(
+        nameColumn.setCellFactory(TextFieldTableCell.forTableColumn());
+        nameColumn.setOnEditCommit(e -> renameFavorite(e.getRowValue(), e.getNewValue()));
+        typeColumn.setCellValueFactory(d -> new javafx.beans.property.SimpleStringProperty(
                 d.getValue().getFileType() != null ? d.getValue().getFileType().getDisplayName() : ""));
-        typeCol.setEditable(false);
-        typeCol.setPrefWidth(110);
-
-        TableColumn<FileFavorite, String> folderCol = new TableColumn<>("Folder");
-        folderCol.setCellValueFactory(d -> new javafx.beans.property.SimpleStringProperty(
+        folderColumn.setCellValueFactory(d -> new javafx.beans.property.SimpleStringProperty(
                 d.getValue().getFolderName() != null && !d.getValue().getFolderName().isBlank()
                         ? d.getValue().getFolderName() : UNCATEGORIZED));
-        folderCol.setCellFactory(ComboBoxTableCell.forTableColumn(folderOptions));
-        folderCol.setOnEditCommit(e -> moveToFolder(e.getRowValue(), e.getNewValue()));
-        folderCol.setPrefWidth(150);
-
-        TableColumn<FileFavorite, String> pathCol = new TableColumn<>("Path");
-        pathCol.setCellValueFactory(d -> new javafx.beans.property.SimpleStringProperty(
+        folderColumn.setCellFactory(ComboBoxTableCell.forTableColumn(folderOptions));
+        folderColumn.setOnEditCommit(e -> moveToFolder(e.getRowValue(), e.getNewValue()));
+        pathColumn.setCellValueFactory(d -> new javafx.beans.property.SimpleStringProperty(
                 d.getValue().getFilePath()));
-        pathCol.setEditable(false);
-
-        table.getColumns().setAll(List.of(nameCol, typeCol, folderCol, pathCol));
 
         ContextMenu rowMenu = new ContextMenu();
         MenuItem open = new MenuItem("Open", SemanticIcon.paint(icon("bi-folder2-open", 16), ActionColor.NAVIGATE));
@@ -158,46 +100,45 @@ public class FavoritesManagerView extends BorderPane {
             }
         });
 
-        // --- right: DETAILS + NOTES for the selected favorite ----------------------
-        Label detailsLabel = new Label("DETAILS");
-        detailsLabel.getStyleClass().add("fxt-sp-section-label");
-        Label notesLabel = new Label("NOTES");
-        notesLabel.getStyleClass().add("fxt-sp-section-label");
-        notesArea.setId("favmgr-notes");
-        notesArea.setPromptText("Your notes for this favorite…");
-        notesArea.setWrapText(true);
-        notesArea.setPrefRowCount(7);
-        notesArea.setDisable(true);
         // Persist on focus loss (typing must not trigger a store write per key).
         notesArea.focusedProperty().addListener((obs, oldV, focused) -> {
             if (!focused) {
                 commitNotes();
             }
         });
-        VBox details = new VBox(6, detailsLabel,
-                detailRow("Path", detailPath), detailRow("Type", detailType),
-                detailRow("Added", detailAdded), detailRow("Usage", detailUsage),
-                notesLabel, notesArea);
-        details.setPrefWidth(280);
-        details.setPadding(new Insets(0, 0, 0, 16));
         table.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
             commitNotes();
             populateDetails(newV);
         });
         populateDetails(null);
-
-        BorderPane content = new BorderPane(table);
-        content.setLeft(left);
-        content.setRight(details);
-        content.setPadding(new Insets(16, 0, 0, 0));
-
-        BorderPane card = new BorderPane(content);
-        card.setTop(header);
-        card.getStyleClass().add("fxt-favmgr-card");
-
-        setCenter(card);
-        BorderPane.setMargin(card, new Insets(24));
         refresh();
+    }
+
+    @FXML
+    public void onCleanup() {
+        cleanup();
+    }
+
+    @FXML
+    public void onNewFolder() {
+        prompt("New Folder", "Folder name:", "").ifPresent(this::createFolder);
+    }
+
+    @FXML
+    public void onRenameFolder() {
+        String selected = selectedFolder();
+        if (isRealFolder(selected)) {
+            prompt("Rename Folder", "New name:", selected)
+                    .ifPresent(newName -> renameFolder(selected, newName));
+        }
+    }
+
+    @FXML
+    public void onDeleteFolder() {
+        String selected = selectedFolder();
+        if (isRealFolder(selected)) {
+            deleteFolder(selected);
+        }
     }
 
     // ----- actions (package-private: also driven directly by tests) -----------
@@ -355,19 +296,6 @@ public class FavoritesManagerView extends BorderPane {
                 ? date.format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")) : "–";
     }
 
-    private static Label detailValue() {
-        Label label = new Label("–");
-        label.getStyleClass().add("fxt-favmgr-detail");
-        label.setWrapText(true);
-        return label;
-    }
-
-    private static VBox detailRow(String key, Label value) {
-        Label keyLabel = new Label(key);
-        keyLabel.getStyleClass().add("fxt-sig-field-label");
-        return new VBox(1, keyLabel, value);
-    }
-
     private void removeSelected() {
         FileFavorite selected = table.getSelectionModel().getSelectedItem();
         if (selected != null) {
@@ -460,14 +388,6 @@ public class FavoritesManagerView extends BorderPane {
         dialog.setHeaderText(null);
         dialog.setContentText(label);
         return dialog.showAndWait().map(String::strip).filter(s -> !s.isEmpty());
-    }
-
-    private Button toolButton(String text, String iconLiteral, String id, Runnable action) {
-        Button button = new Button(text, icon(iconLiteral, 14));
-        button.setId(id);
-        button.getStyleClass().add("fxt-tool-button");
-        button.setOnAction(e -> action.run());
-        return button;
     }
 
     private static IconifyIcon icon(String literal, int size) {

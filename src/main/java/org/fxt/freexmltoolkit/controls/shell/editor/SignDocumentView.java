@@ -2,9 +2,9 @@ package org.fxt.freexmltoolkit.controls.shell.editor;
 
 import java.io.File;
 
+import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
-import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.ScrollPane;
@@ -13,13 +13,11 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 
 /**
  * The "Sign XML Document" card shown in the main editor area (Figma mockup
@@ -32,130 +30,46 @@ import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
  */
 public class SignDocumentView extends ScrollPane {
 
-    private final Label docName = new Label("none");
-    private final Label docInfo = new Label("no document open");
-    private final VBox certificateBox = new VBox(8);
-    private ToggleButton enveloped;
-    private ToggleButton enveloping;
-    private ToggleButton detached;
+    private final SignaturePanel panel;
+    @FXML private ToggleGroup typeGroup;
+    @FXML private Label docName;
+    @FXML private Label docInfo;
+    @FXML private TextField alias;
+    @FXML private PasswordField password;
+    @FXML private Label status;
+    @FXML private VBox certificateBox;
+    @FXML private ToggleButton enveloped;
+    @FXML private ToggleButton enveloping;
+    @FXML private ToggleButton detached;
     private File xmlFile;
 
+    /** Loads the layout from {@code /pages/views/SignDocumentView.fxml} and binds it to the side panel. */
     SignDocumentView(SignaturePanel panel, EditorHost editorHost) {
-        getStyleClass().add("fxt-sign-view");
-        setFitToWidth(true);
-        setHbarPolicy(ScrollBarPolicy.NEVER);
+        this.panel = panel;
+        FxmlViews.load(this, "/pages/views/SignDocumentView.fxml");
 
-        // --- card header -------------------------------------------------------
-        IconifyIcon headIcon = new IconifyIcon("bi-pencil");
-        headIcon.setIconSize(20);
-        StackPane iconTile = new StackPane(headIcon);
-        iconTile.getStyleClass().add("fxt-sign-icon-tile");
-        Label title = new Label("Sign XML Document");
-        title.getStyleClass().add("fxt-sign-card-title");
-        Label subtitle = new Label("XML Digital Signature · XML-DSig");
-        subtitle.getStyleClass().add("fxt-sign-card-sub");
-        HBox head = new HBox(14, iconTile, new VBox(2, title, subtitle));
-        head.setAlignment(Pos.CENTER_LEFT);
-
-        // --- DOCUMENT ------------------------------------------------------------
-        docName.setId("sign-doc-name");
-        docName.getStyleClass().add("fxt-sign-doc-name");
-        docInfo.getStyleClass().add("fxt-sign-doc-info");
-        Region docSpacer = new Region();
-        HBox.setHgrow(docSpacer, Priority.ALWAYS);
-        Hyperlink browse = new Hyperlink("Browse");
-        browse.getStyleClass().add("fxt-vp-change");
-        browse.setOnAction(e -> chooseDocument());
-        IconifyIcon docIcon = new IconifyIcon("bi-code-slash");
-        docIcon.setIconSize(18);
-        HBox docRow = new HBox(12, docIcon, new VBox(2, docName, docInfo), docSpacer, browse);
-        docRow.getStyleClass().add("fxt-sign-doc-row");
-        docRow.setAlignment(Pos.CENTER_LEFT);
-
-        // --- keystore credentials (shared with the side panel) ---------------------
-        TextField alias = new TextField();
-        alias.setId("sign-card-alias");
-        alias.setPromptText("alias");
+        // Keystore credentials and status are shared with the side panel.
         alias.textProperty().bindBidirectional(panel.aliasField().textProperty());
-        PasswordField password = new PasswordField();
-        password.setId("sign-card-password");
-        password.setPromptText("keystore password");
         password.textProperty().bindBidirectional(panel.keystorePasswordField().textProperty());
-        VBox aliasBox = fieldBox("Keystore alias", alias);
-        VBox passwordBox = fieldBox("Keystore password", password);
-        HBox.setHgrow(aliasBox, Priority.ALWAYS);
-        HBox.setHgrow(passwordBox, Priority.ALWAYS);
-        HBox credentials = new HBox(16, aliasBox, passwordBox);
-
-        // --- SIGNATURE OPTIONS ------------------------------------------------------
-        Label optionsLabel = sectionLabel("SIGNATURE OPTIONS");
-        Label typeLabel = new Label("Signature type");
-        typeLabel.getStyleClass().add("fxt-sig-field-label");
-        ToggleGroup typeGroup = new ToggleGroup();
-        enveloped = segment("Enveloped", typeGroup);
-        enveloped.setId("sign-type-enveloped");
-        enveloped.setSelected(true);
-        enveloped.setTooltip(new Tooltip("The signature is inserted into the signed document"));
-        enveloping = segment("Enveloping", typeGroup);
-        enveloping.setId("sign-type-enveloping");
-        enveloping.setTooltip(new Tooltip("The signed content is wrapped inside the signature document"));
-        detached = segment("Detached", typeGroup);
-        detached.setId("sign-type-detached");
-        detached.setTooltip(new Tooltip("A standalone .sig.xml referencing the file - keep both together"));
+        status.textProperty().bind(panel.statusTextProperty());
         typeGroup.selectedToggleProperty().addListener((obs, oldV, newV) -> {
             if (newV == null) {
                 typeGroup.selectToggle(oldV);
             }
         });
-        HBox typeSeg = new HBox(2, enveloped, enveloping, detached);
-        typeSeg.getStyleClass().add("fxt-seg-group");
-
-        Label algoLabel = new Label("Algorithm");
-        algoLabel.getStyleClass().add("fxt-sig-field-label");
-        Region algoSpacer = new Region();
-        HBox.setHgrow(algoSpacer, Priority.ALWAYS);
-        Label algoValue = new Label("RSA-SHA256 · C14N exclusive");
-        algoValue.getStyleClass().add("fxt-sign-algo");
-        HBox algoRow = new HBox(algoLabel, algoSpacer, algoValue);
-        algoRow.setAlignment(Pos.CENTER_LEFT);
-
-        // --- Sign + status ------------------------------------------------------------
-        Button sign = new Button("Sign Document", icon("bi-shield-lock", 15));
-        sign.setId("sign-card-run");
-        sign.getStyleClass().add("fxt-primary-button");
-        sign.setMaxWidth(Double.MAX_VALUE);
-        sign.setOnAction(e -> panel.signFile(xmlFile, selectedSignatureType()));
-        Label status = new Label();
-        status.getStyleClass().add("fxt-vp-status");
-        status.setWrapText(true);
-        status.textProperty().bind(panel.statusTextProperty());
-
-        // --- CERTIFICATE (the mockup's certificate inspector) -----------------------
-        Hyperlink showCertificate = new Hyperlink("Show certificate details");
-        showCertificate.setId("sign-cert-load");
-        showCertificate.getStyleClass().add("fxt-vp-change");
-        showCertificate.setOnAction(e -> loadCertificate(panel, alias.getText(), password.getText()));
-        certificateBox.setId("sign-cert-box");
-        certificateBox.setVisible(false);
-        certificateBox.setManaged(false);
-
-        VBox card = new VBox(16, head,
-                sectionLabel("DOCUMENT"), docRow,
-                credentials,
-                optionsLabel, typeLabel, typeSeg, algoRow,
-                sign, status,
-                new HBox(sectionLabel("CERTIFICATE"), hSpacer(), showCertificate),
-                certificateBox);
-        card.getStyleClass().add("fxt-sign-card");
-        card.setMaxWidth(560);
-
-        StackPane wrap = new StackPane(card);
-        wrap.getStyleClass().add("fxt-sign-view-wrap");
-        StackPane.setAlignment(card, Pos.TOP_CENTER);
-        setContent(wrap);
 
         setDocument(editorHost.getActiveDocument()
                 .map(OpenDocument::getPath).map(p -> p != null ? p.toFile() : null).orElse(null));
+    }
+
+    @FXML
+    public void onSign() {
+        panel.signFile(xmlFile, selectedSignatureType());
+    }
+
+    @FXML
+    public void onShowCertificate() {
+        loadCertificate(panel, alias.getText(), password.getText());
     }
 
     /** @return the certificate box (lookups on an unskinned ScrollPane cannot reach the content; for tests). */
@@ -279,13 +193,8 @@ public class SignDocumentView extends ScrollPane {
         return row;
     }
 
-    private static Region hSpacer() {
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-        return spacer;
-    }
-
-    private void chooseDocument() {
+    @FXML
+    public void onChooseDocument() {
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Select XML document");
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML", "*.xml"));
@@ -293,27 +202,6 @@ public class SignDocumentView extends ScrollPane {
         if (file != null) {
             setDocument(file);
         }
-    }
-
-    private static VBox fieldBox(String label, Region field) {
-        Label fieldLabel = new Label(label);
-        fieldLabel.getStyleClass().add("fxt-sig-field-label");
-        return new VBox(4, fieldLabel, field);
-    }
-
-    private static Label sectionLabel(String text) {
-        Label label = new Label(text);
-        label.getStyleClass().add("fxt-sign-section-label");
-        return label;
-    }
-
-    private static ToggleButton segment(String text, ToggleGroup group) {
-        ToggleButton toggle = new ToggleButton(text);
-        toggle.setToggleGroup(group);
-        toggle.getStyleClass().add("fxt-seg");
-        toggle.setMaxWidth(Double.MAX_VALUE);
-        HBox.setHgrow(toggle, Priority.ALWAYS);
-        return toggle;
     }
 
     private static IconifyIcon icon(String literal, int size) {

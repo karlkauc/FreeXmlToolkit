@@ -3,17 +3,17 @@ package org.fxt.freexmltoolkit.controls.shell.editor;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.fxml.FXML;
 import javafx.geometry.Pos;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 
 /**
  * The PROBLEMS panel below the editor (Figma "Redesign · Unified — Validation",
@@ -27,53 +27,33 @@ public class ProblemsPanel extends VBox {
 
     private final EditorHost editorHost;
     private final ObservableList<ValidationProblem> items = FXCollections.observableArrayList();
-    private final ListView<ValidationProblem> list = new ListView<>(items);
-    private final Label errorChip = new Label();
-    private final Label warningChip = new Label();
-    private final IconifyIcon collapseIcon = new IconifyIcon("bi-chevron-down");
+    @FXML private ListView<ValidationProblem> list;
+    @FXML private Label errorChip;
+    @FXML private Label warningChip;
+    @FXML private IconifyIcon collapseIcon;
     private boolean collapsed;
 
+    /** Loads the layout from {@code /pages/panels/ProblemsPanel.fxml} and binds the list to the host's problems. */
     public ProblemsPanel(EditorHost editorHost) {
         this.editorHost = editorHost;
-        getStyleClass().add("fxt-problems-panel");
+        FxmlViews.load(this, "/pages/panels/ProblemsPanel.fxml");
 
-        Label title = new Label("PROBLEMS");
-        title.getStyleClass().add("fxt-problems-title");
-
-        errorChip.getStyleClass().add("fxt-problems-chip-error");
-        errorChip.setGraphic(icon("bi-x-circle", 13));
-        warningChip.getStyleClass().add("fxt-problems-chip-warning");
-        warningChip.setGraphic(icon("bi-exclamation-triangle-fill", 13));
-
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-
-        collapseIcon.setIconSize(13);
-        Button collapseButton = new Button(null, collapseIcon);
-        collapseButton.setId("problems-panel-collapse");
-        collapseButton.getStyleClass().add("fxt-problems-collapse");
-        collapseButton.setOnAction(e -> setCollapsed(!collapsed));
-
-        HBox header = new HBox(10, title, errorChip, warningChip, spacer, collapseButton);
-        header.getStyleClass().add("fxt-problems-header");
-        header.setAlignment(Pos.CENTER_LEFT);
-
-        list.setId("problems-panel-list");
-        list.getStyleClass().add("fxt-problems-list");
-        list.setPrefHeight(192);
+        list.setItems(items);
         list.setCellFactory(lv -> new ProblemRowCell());
         list.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
             if (newV != null && newV.line() > 0) {
                 editorHost.goToLine(newV.line());
             }
         });
-        VBox.setVgrow(list, Priority.ALWAYS);
-
-        getChildren().addAll(header, list);
 
         editorHost.getActiveProblems().addListener(
                 (ListChangeListener<ValidationProblem>) c -> refresh());
         refresh();
+    }
+
+    @FXML
+    public void onToggleCollapsed() {
+        setCollapsed(!collapsed);
     }
 
     /**

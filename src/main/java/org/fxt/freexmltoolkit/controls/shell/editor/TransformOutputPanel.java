@@ -6,18 +6,13 @@ import java.nio.file.Files;
 import java.util.List;
 
 import javafx.beans.property.ReadOnlyStringWrapper;
-import javafx.geometry.Pos;
-import javafx.scene.control.Button;
+import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
-import javafx.scene.control.Tooltip;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
@@ -29,6 +24,7 @@ import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.shared.CodeAreaFontZoom;
 import org.fxt.freexmltoolkit.controls.shared.JsonSyntaxHighlighter;
 import org.fxt.freexmltoolkit.controls.shared.XmlSyntaxHighlighter;
+import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat;
 
 /**
@@ -51,14 +47,16 @@ public class TransformOutputPanel extends VBox {
     // numbers, syntax highlighting and font zoom like the main text editor.
     private final CodeArea output = new CodeArea();
     private final VirtualizedScrollPane<CodeArea> outputScroll = new VirtualizedScrollPane<>(output);
-    private final TableView<List<String>> resultTable = new TableView<>();
-    private final StackPane previewHolder = new StackPane();
-    private final Label badge = new Label();
-    private final IconifyIcon statusIcon = new IconifyIcon("bi-check-circle-fill");
-    private final Label statusLabel = new Label();
-    private final ToggleButton previewToggle = new ToggleButton("Preview");
-    private final ToggleButton textToggle = new ToggleButton("Text");
-    private final ToggleButton tableToggle = new ToggleButton("Table");
+    @FXML private ToggleGroup viewGroup;
+    @FXML private StackPane content;
+    @FXML private TableView<List<String>> resultTable;
+    @FXML private StackPane previewHolder;
+    @FXML private Label badge;
+    @FXML private IconifyIcon statusIcon;
+    @FXML private Label statusLabel;
+    @FXML private ToggleButton previewToggle;
+    @FXML private ToggleButton textToggle;
+    @FXML private ToggleButton tableToggle;
     /** Lazily created WebView updater (or a text fallback in stripped runtimes). */
     private java.util.function.Consumer<String> htmlPreviewUpdater;
     /** The raw "N ms · M chars" stats of the latest run ("error" for a failed one). */
@@ -71,34 +69,13 @@ public class TransformOutputPanel extends VBox {
     /** Results above this size are shown without highlighting to keep the FX thread responsive. */
     private static final int HIGHLIGHT_LIMIT_CHARS = 512 * 1024;
 
+    /** Loads the layout from {@code /pages/panels/TransformOutputPanel.fxml} and adds the Text view. */
     public TransformOutputPanel(EditorHost editorHost) {
         this.editorHost = editorHost;
-        getStyleClass().add("fxt-output-panel");
-        setPrefHeight(260);
-        setMinHeight(120);
-
-        Label title = new Label("OUTPUT");
-        title.getStyleClass().add("fxt-output-title");
-        badge.getStyleClass().add("fxt-output-badge");
-        badge.setVisible(false);
-        statusIcon.setIconSize(12);
-        statusIcon.setVisible(false);
-        statusLabel.getStyleClass().add("fxt-output-status");
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
+        FxmlViews.load(this, "/pages/panels/TransformOutputPanel.fxml");
 
         // Preview/Text/Table view toggles: exactly one stays selected; Preview only
         // appears for HTML results, Table only for tabular XQuery results.
-        ToggleGroup viewGroup = new ToggleGroup();
-        for (ToggleButton toggle : List.of(previewToggle, textToggle, tableToggle)) {
-            toggle.setToggleGroup(viewGroup);
-            toggle.getStyleClass().add("fxt-seg");
-        }
-        HBox viewSeg = new HBox(2, previewToggle, textToggle, tableToggle);
-        viewSeg.getStyleClass().add("fxt-seg-group");
-        textToggle.setSelected(true);
-        setToggleAvailable(previewToggle, false);
-        setToggleAvailable(tableToggle, false);
         viewGroup.selectedToggleProperty().addListener((obs, oldT, newT) -> {
             if (newT == null) {
                 oldT.setSelected(true); // a segmented control always has one active segment
@@ -107,34 +84,14 @@ public class TransformOutputPanel extends VBox {
             }
         });
 
-        Button editorAction = flatAction("transform-output-editor", "bi-file-earmark-plus",
-                "Open result as editor tab", this::openResultInEditor);
-        Button browserAction = flatAction("transform-output-browser", "bi-box-arrow-up-right",
-                "Open in browser", this::openInBrowser);
-        Button saveAction = flatAction("transform-output-save", "bi-download",
-                "Save result…", this::saveResult);
-        Button closeAction = flatAction("transform-output-close", "bi-x",
-                "Hide output panel", this::hide);
-
-        HBox header = new HBox(10, title, badge, statusIcon, statusLabel, spacer,
-                viewSeg, editorAction, browserAction, saveAction, closeAction);
-        header.getStyleClass().add("fxt-output-header");
-        header.setAlignment(Pos.CENTER_LEFT);
-
         output.setEditable(false);
         output.setWrapText(false);
         output.setPlaceholder(new Label("Run a transform or query to see the result here."));
         output.getStyleClass().addAll("fxt-transform-output", "fxt-query-results");
         output.setParagraphGraphicFactory(LineNumberFactory.get(output));
         CodeAreaFontZoom.install(output);
-        resultTable.setPlaceholder(new Label("Run an XQuery returning a sequence to see a table."));
-        previewHolder.setVisible(false);
-        previewHolder.setManaged(false);
-        StackPane content = new StackPane(outputScroll, resultTable, previewHolder);
-        VBox.setVgrow(content, Priority.ALWAYS);
+        content.getChildren().add(0, outputScroll);
         updateContentView();
-
-        getChildren().addAll(header, content);
     }
 
     // ----- result display (called on the FX thread by TransformPanel) ------
@@ -292,6 +249,7 @@ public class TransformOutputPanel extends VBox {
     // ----- header actions ---------------------------------------------------
 
     /** Opens (or refreshes) the current result text as an untitled editor tab. */
+    @FXML
     public void openResultInEditor() {
         String result = output.getText();
         if (result == null || result.isBlank() || result.startsWith("ERROR")
@@ -318,6 +276,7 @@ public class TransformOutputPanel extends VBox {
     }
 
     /** Opens the current result in the system browser (renders HTML output). */
+    @FXML
     public void openInBrowser() {
         try {
             File file = writeHtmlPreview(output.getText());
@@ -331,6 +290,7 @@ public class TransformOutputPanel extends VBox {
     }
 
     /** Saves the current result to a file chosen by the user (extension per format). */
+    @FXML
     public void saveResult() {
         String result = output.getText();
         if (result == null || result.isBlank()) {
@@ -443,6 +403,7 @@ public class TransformOutputPanel extends VBox {
     }
 
     /** Hides the panel (the ✕ header action); the next run re-shows it. */
+    @FXML
     public void hide() {
         setVisible(false);
         setManaged(false);
@@ -498,17 +459,5 @@ public class TransformOutputPanel extends VBox {
     /** @return the current result-table row count (for tests/observers). */
     public int getResultRowCount() {
         return resultTable.getItems().size();
-    }
-
-    private static Button flatAction(String id, String iconLiteral, String tooltip, Runnable action) {
-        Button button = new Button();
-        button.setId(id);
-        button.getStyleClass().add("fxt-sp-action");
-        IconifyIcon icon = new IconifyIcon(iconLiteral);
-        icon.setIconSize(14);
-        button.setGraphic(icon);
-        button.setTooltip(new Tooltip(tooltip));
-        button.setOnAction(e -> action.run());
-        return button;
     }
 }

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
+
+<!--
+  Inline tab-based editor for multi-language XSD documentation: a pill tab bar, a shared text
+  area and a bottom bar (language + delete), or an empty state when there is no documentation.
+  Loaded by InlineDocumentationEditor via the fx:root pattern (FxmlViews.load);
+  InlineDocumentationEditor is root and controller. It shows either text area + bottom bar or
+  the empty state (it swaps the children), and rebuilds the language pills from the model.
+-->
+<fx:root type="javafx.scene.layout.VBox" spacing="6"
+         xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <padding>
+        <Insets topRightBottomLeft="8"/>
+    </padding>
+    <children>
+        <!-- Tab bar: the add button, followed by one pill per documentation entry -->
+        <HBox fx:id="tabBar" spacing="4" alignment="CENTER_LEFT" styleClass="doc-tab-bar">
+            <children>
+                <Button fx:id="addButton" styleClass="doc-tab-pill" onAction="#onAdd">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-plus-circle" iconSize="14"/>
+                    </graphic>
+                    <tooltip>
+                        <Tooltip text="Add documentation entry"/>
+                    </tooltip>
+                </Button>
+            </children>
+        </HBox>
+
+        <TextArea fx:id="docTextArea" wrapText="true" prefRowCount="5" promptText="Enter documentation text..."
+                  VBox.vgrow="ALWAYS"/>
+
+        <HBox fx:id="bottomBar" spacing="8" alignment="CENTER_LEFT">
+            <children>
+                <Label text="Lang:"/>
+                <ComboBox fx:id="langComboBox" editable="true" prefWidth="100">
+                    <tooltip>
+                        <Tooltip text="Select or type a language code"/>
+                    </tooltip>
+                </ComboBox>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button fx:id="deleteButton" text="Delete" styleClass="btn-danger" onAction="#onDelete">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-trash" iconSize="14"/>
+                    </graphic>
+                    <tooltip>
+                        <Tooltip text="Delete this documentation entry"/>
+                    </tooltip>
+                </Button>
+            </children>
+        </HBox>
+
+        <VBox fx:id="emptyState" spacing="8" alignment="CENTER" styleClass="doc-empty-state" VBox.vgrow="ALWAYS">
+            <padding>
+                <Insets topRightBottomLeft="20"/>
+            </padding>
+            <children>
+                <IconifyIcon iconLiteral="bi-journal-text" iconSize="48" iconColor="#adb5bd"/>
+                <Label text="No documentation. Click + to add."
+                       style="-fx-text-fill: #6c757d; -fx-font-style: italic;"/>
+            </children>
+        </VBox>
+    </children>
+</fx:root>

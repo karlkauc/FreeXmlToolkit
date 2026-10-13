@@ -6,23 +6,20 @@ import java.util.function.Consumer;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.geometry.Insets;
+import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
 import javafx.geometry.Pos;
-import javafx.scene.control.Button;
-import javafx.scene.control.Hyperlink;
+import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.layout.ColumnConstraints;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.util.ProjectLinks;
 import org.fxt.freexmltoolkit.util.VersionUtil;
 
@@ -35,12 +32,21 @@ import org.fxt.freexmltoolkit.util.VersionUtil;
 public class EditorWelcomePane extends VBox {
 
     private final ObservableList<File> recentFiles = FXCollections.observableArrayList();
-    private ListView<File> recentList;
-    private final Label recentStat = new Label("0");
-    private final Label favoritesStat = new Label("0");
-    private final Label templatesStat = new Label("0");
-    private final Label queriesStat = new Label("0");
-    private Region fundsXmlSection;
+    private final Consumer<EditorFileType> onNew;
+    private final Runnable onOpen;
+    private final Runnable onClearRecent;
+    private final Consumer<String> onAction;
+    @FXML private Label versionBadge;
+    @FXML private Region fundsXmlSection;
+    @FXML private WelcomeStatCard recentStat;
+    @FXML private WelcomeStatCard favoritesStat;
+    @FXML private WelcomeStatCard templatesStat;
+    @FXML private WelcomeStatCard queriesStat;
+    @FXML private VBox trendBox;
+    @FXML private javafx.scene.shape.Polyline sparkline;
+    @FXML private HBox trendRow;
+    @FXML private HBox sponsorBanner;
+    @FXML private ListView<File> recentList;
     private int sparklinePointCount;
 
     /** Data-backed dashboard counters (recent files, favorites, templates, saved queries). */
@@ -59,36 +65,68 @@ public class EditorWelcomePane extends VBox {
      */
     public EditorWelcomePane(Consumer<EditorFileType> onNew, Runnable onOpen, Consumer<File> onOpenRecent,
             Runnable onClearRecent, Consumer<String> onAction) {
-        getStyleClass().add("fxt-editor-empty-state");
+        this.onNew = onNew;
+        this.onOpen = onOpen;
+        this.onClearRecent = onClearRecent;
+        this.onAction = onAction;
+        FxmlViews.load(this, "/pages/views/EditorWelcomePane.fxml");
 
-        fundsXmlSection = buildFundsXmlSection(onAction);
-        VBox content = new VBox(24,
-                buildHero(),
-                buildQuickActions(onNew, onOpen, onAction),
-                fundsXmlSection,
-                buildStats(),
-                buildTrend(),
-                buildTips(),
-                buildSponsor(),
-                buildLowerRow(onOpenRecent, onClearRecent, onAction));
-        content.getStyleClass().add("fxt-welcome-content");
-        content.setPadding(new Insets(40));
+        versionBadge.setText("v" + VersionUtil.getVersion() + " · up to date");
+        sponsorBanner.getChildren().add(0, ProjectLinks.sponsorIcon(16));
+        fillTrend();
 
-        ScrollPane scroll = new ScrollPane(content);
-        scroll.setFitToWidth(true);
-        scroll.getStyleClass().add("fxt-welcome-scroll");
-        scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        VBox.setVgrow(scroll, Priority.ALWAYS);
-        getChildren().add(scroll);
+        recentList.setItems(recentFiles);
+        recentList.setCellFactory(lv -> new RecentCell());
+        recentList.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
+            if (newV != null) {
+                // Defer out of the selection-change processing (opening builds an editor and
+                // mutates other lists); running it inline re-enters the ListViewBehavior
+                // listener and throws (see javafx-listview-setall-crash).
+                javafx.application.Platform.runLater(() -> {
+                    recentList.getSelectionModel().clearSelection();
+                    onOpenRecent.accept(newV);
+                });
+            }
+        });
+    }
+
+    @FXML
+    public void onNew() {
+        onNew.accept(EditorFileType.XML);
+    }
+
+    @FXML
+    public void onOpen() {
+        onOpen.run();
+    }
+
+    /** Reports the action key a card carries as {@code userData} (e.g. {@code open-folder}). */
+    @FXML
+    public void onCardAction(ActionEvent event) {
+        onAction.accept((String) ((Node) event.getSource()).getUserData());
+    }
+
+    /** Reports the activity id of the clicked tool card. */
+    @FXML
+    public void onTool(ActionEvent event) {
+        onAction.accept(((WelcomeToolCard) event.getSource()).getActivity());
+    }
+
+    @FXML
+    public void onSponsor() {
+        ProjectLinks.openInBrowser(ProjectLinks.SPONSORS_URL);
+    }
+
+    @FXML
+    public void onClearRecent() {
+        onClearRecent.run();
     }
 
     /** Replaces the recent-files list (most-recent first). */
     public void setRecentFiles(List<File> files) {
         // Clear the selection before replacing the items to avoid a JavaFX
         // ListViewBehavior IndexOutOfBoundsException (see javafx-listview-setall-crash).
-        if (recentList != null) {
-            recentList.getSelectionModel().clearSelection();
-        }
+        recentList.getSelectionModel().clearSelection();
         recentFiles.setAll(files);
     }
 
@@ -106,70 +144,27 @@ public class EditorWelcomePane extends VBox {
         if (stats == null) {
             return;
         }
-        recentStat.setText(Integer.toString(stats.recentFiles()));
-        favoritesStat.setText(Integer.toString(stats.favorites()));
-        templatesStat.setText(Integer.toString(stats.templates()));
-        queriesStat.setText(Integer.toString(stats.savedQueries()));
+        recentStat.setValue(Integer.toString(stats.recentFiles()));
+        favoritesStat.setValue(Integer.toString(stats.favorites()));
+        templatesStat.setValue(Integer.toString(stats.templates()));
+        queriesStat.setValue(Integer.toString(stats.savedQueries()));
     }
 
-    // ----- stats + tips ----------------------------------------------------
+    // ----- activity trend ----------------------------------------------------
 
-    private Region buildStats() {
-        HBox row = new HBox(16,
-                statCard("welcome-stat-recent", "bi-clock-history", "Recent files", recentStat),
-                statCard("welcome-stat-favorites", "bi-star", "Favorites", favoritesStat),
-                statCard("welcome-stat-templates", "bi-collection", "Templates", templatesStat),
-                statCard("welcome-stat-queries", "bi-braces", "Saved queries", queriesStat));
-        for (javafx.scene.Node card : row.getChildren()) {
-            HBox.setHgrow(card, Priority.ALWAYS);
-        }
-        return row;
-    }
-
-    private Region statCard(String numberId, String iconLiteral, String label, Label numberLabel) {
-        StackPane tile = new StackPane(icon(iconLiteral, 16));
-        tile.getStyleClass().add("fxt-card-icon");
-
-        numberLabel.setId(numberId);
-        numberLabel.getStyleClass().add("fxt-welcome-stat-number");
-        Label caption = new Label(label);
-        caption.getStyleClass().add("fxt-welcome-stat-label");
-
-        HBox card = new HBox(12, tile, new VBox(0, numberLabel, caption));
-        card.setAlignment(Pos.CENTER_LEFT);
-        card.setMaxWidth(Double.MAX_VALUE);
-        card.getStyleClass().add("fxt-welcome-stat-card");
-        return card;
-    }
-
-    private javafx.scene.layout.Region buildTrend() {
-        javafx.scene.layout.VBox box = new javafx.scene.layout.VBox(8);
-        box.getStyleClass().add("fxt-welcome-trend");
-
-        Label title = new Label("ACTIVITY (LAST 7 DAYS)");
-        title.getStyleClass().add("fxt-side-panel-title");
-
+    /** Draws the 7-day sparkline and adds one colour-coded mini-card per feature category. */
+    private void fillTrend() {
         java.util.List<Double> norm = WelcomeTrend.normalize(WelcomeTrend.dailyTotals(7));
-        javafx.scene.shape.Polyline line = new javafx.scene.shape.Polyline();
-        line.getStyleClass().add("fxt-welcome-sparkline");
         double w = 220, h = 40;
         if (norm.size() >= 2) {
             double step = w / (norm.size() - 1);
             for (int i = 0; i < norm.size(); i++) {
-                line.getPoints().addAll(i * step, h - norm.get(i) * h);
+                sparkline.getPoints().addAll(i * step, h - norm.get(i) * h);
             }
         }
-        this.sparklinePointCount = line.getPoints().size() / 2;
-        javafx.scene.layout.Pane spark = new javafx.scene.layout.Pane(line);
-        spark.setMinSize(w, h);
-        spark.setPrefSize(w, h);
-        spark.setMaxSize(w, h);
+        this.sparklinePointCount = sparkline.getPoints().size() / 2;
 
-        // Feature-progress strip: one colour-coded mini-card per category, laid side by side.
-        HBox catRow = new HBox(12);
-        catRow.getStyleClass().add("fxt-welcome-trend-row");
         var stats = org.fxt.freexmltoolkit.service.UsageTrackingServiceImpl.getInstance();
-        int count = 0;
         try {
             var statsModel = stats.getStatistics();
             for (var cat : org.fxt.freexmltoolkit.service.SkillTracker.getFeaturesByCategory()) {
@@ -177,18 +172,14 @@ public class EditorWelcomePane extends VBox {
                         .getCategoryProgress(cat.name(), statsModel);
                 Region card = trendCategoryCard(cat.name(), progress, categoryAccent(cat.name()));
                 HBox.setHgrow(card, Priority.ALWAYS);
-                catRow.getChildren().add(card);
-                count++;
+                trendRow.getChildren().add(card);
             }
         } catch (Throwable ignored) {
             // no stats model available → omit the strip gracefully
         }
-
-        box.getChildren().addAll(title, spark);
-        if (count > 0) {
-            box.getChildren().add(catRow);
+        if (trendRow.getChildren().isEmpty()) {
+            trendBox.getChildren().remove(trendRow);
         }
-        return box;
     }
 
     /**
@@ -240,261 +231,7 @@ public class EditorWelcomePane extends VBox {
         return sparklinePointCount;
     }
 
-    private Region buildTips() {
-        Label tip = new Label("Tip: drag a file onto the window to open it · Ctrl+F to find, Ctrl+H to "
-                + "replace · drop an XSD on an XML to bind it for validation.");
-        tip.setWrapText(true);
-        HBox banner = new HBox(10, icon("bi-lightbulb", 16), tip);
-        banner.setAlignment(Pos.CENTER_LEFT);
-        banner.getStyleClass().add("fxt-welcome-tips");
-        return banner;
-    }
-
-    /** Low-key sponsor banner (same shape as the tips banner) linking to GitHub Sponsors. */
-    private Region buildSponsor() {
-        Label text = new Label("FreeXmlToolkit is free and open source. If it saves you time, "
-                + "consider sponsoring its development.");
-        text.setWrapText(true);
-        Hyperlink link = new Hyperlink("Sponsor on GitHub");
-        link.setId("welcome-sponsor");
-        link.setOnAction(e -> ProjectLinks.openInBrowser(ProjectLinks.SPONSORS_URL));
-        HBox banner = new HBox(10, ProjectLinks.sponsorIcon(16), text, link);
-        banner.setAlignment(Pos.CENTER_LEFT);
-        banner.getStyleClass().add("fxt-welcome-sponsor");
-        return banner;
-    }
-
-    // ----- hero ------------------------------------------------------------
-
-    private Region buildHero() {
-        StackPane tile = new StackPane(icon("bi-code-slash", 28));
-        tile.getStyleClass().add("fxt-welcome-hero-icon");
-
-        Label title = new Label("Welcome to FreeXmlToolkit");
-        title.getStyleClass().add("fxt-welcome-hero-title");
-
-        Label subtitle = new Label("The modern XML · XSD · XSLT · Schematron workbench");
-        subtitle.getStyleClass().add("fxt-welcome-hero-subtitle");
-
-        Label badge = new Label("v" + VersionUtil.getVersion() + " · up to date",
-                icon("bi-check-circle-fill", 12));
-        badge.getStyleClass().add("fxt-welcome-version-badge");
-
-        HBox subRow = new HBox(10, subtitle, badge);
-        subRow.setAlignment(Pos.CENTER_LEFT);
-
-        VBox text = new VBox(6, title, subRow);
-        text.setAlignment(Pos.CENTER_LEFT);
-
-        HBox hero = new HBox(18, tile, text);
-        hero.setAlignment(Pos.CENTER_LEFT);
-        return hero;
-    }
-
-    // ----- quick actions ---------------------------------------------------
-
-    private Region buildQuickActions(Consumer<EditorFileType> onNew, Runnable onOpen, Consumer<String> onAction) {
-        Button neu = quickCard("welcome-new", "bi-file-earmark-plus", "New File", "XML · XSD · XSLT", true);
-        neu.setOnAction(e -> onNew.accept(EditorFileType.XML));
-
-        Button open = quickCard("welcome-open", "bi-folder2-open", "Open File", "Browse your disk", false);
-        open.setOnAction(e -> onOpen.run());
-
-        Button folder = quickCard("welcome-openfolder", "bi-folder", "Open Folder", "Open a workspace", false);
-        folder.setOnAction(e -> onAction.accept("open-folder"));
-
-        Button url = quickCard("welcome-url", "bi-box-arrow-up-right", "From URL", "Fetch & open", false);
-        url.setOnAction(e -> onAction.accept("from-url"));
-
-        HBox row = new HBox(16, neu, open, folder, url);
-        for (Button b : List.of(neu, open, folder, url)) {
-            HBox.setHgrow(b, Priority.ALWAYS);
-            b.setMaxWidth(Double.MAX_VALUE);
-        }
-        return row;
-    }
-
-    /**
-     * FundsXML quick-access row — hidden by default, toggled by
-     * {@link #setFundsXmlVisible(boolean)} when the extension is active and content
-     * is cached. Emits the {@code fundsxml-*} action keys.
-     */
-    private Region buildFundsXmlSection(Consumer<String> onAction) {
-        Label header = new Label("FUNDSXML");
-        header.getStyleClass().add("fxt-welcome-section-title");
-
-        Button example = quickCard("welcome-fundsxml-example", "bi-file-earmark-play",
-                "Open Example", "Starter FundsXML sample", false);
-        example.setOnAction(e -> onAction.accept("fundsxml-open-example"));
-
-        Button schema = quickCard("welcome-fundsxml-schema", "bi-file-earmark-code",
-                "Open Schema", "FundsXML4.xsd in the editor", false);
-        schema.setOnAction(e -> onAction.accept("fundsxml-open-schema"));
-
-        Button browse = quickCard("welcome-fundsxml-browse", "bi-folder2-open",
-                "Browse Examples", "Cached example files", false);
-        browse.setOnAction(e -> onAction.accept("fundsxml-browse-examples"));
-
-        HBox row = new HBox(16, example, schema, browse);
-        for (Button b : List.of(example, schema, browse)) {
-            HBox.setHgrow(b, Priority.ALWAYS);
-            b.setMaxWidth(Double.MAX_VALUE);
-        }
-
-        VBox section = new VBox(12, header, row);
-        section.setVisible(false);
-        section.setManaged(false);
-        return section;
-    }
-
-    private Button quickCard(String id, String iconLiteral, String title, String subtitle, boolean primary) {
-        StackPane tile = new StackPane(icon(iconLiteral, 18));
-        tile.getStyleClass().add(primary ? "fxt-card-icon-primary" : "fxt-card-icon");
-
-        Label t = new Label(title);
-        t.getStyleClass().add(primary ? "fxt-card-title-on-primary" : "fxt-card-title");
-        Label s = new Label(subtitle);
-        s.getStyleClass().add(primary ? "fxt-card-subtitle-on-primary" : "fxt-card-subtitle");
-
-        HBox g = new HBox(12, tile, new VBox(2, t, s));
-        g.setAlignment(Pos.CENTER_LEFT);
-
-        Button b = new Button();
-        b.setId(id);
-        b.setGraphic(g);
-        b.setAlignment(Pos.CENTER_LEFT);
-        b.setMaxWidth(Double.MAX_VALUE);
-        b.getStyleClass().add("fxt-quick-card");
-        if (primary) {
-            b.getStyleClass().add("fxt-quick-card-primary");
-        }
-        return b;
-    }
-
-    // ----- recent files + tools -------------------------------------------
-
-    private Region buildLowerRow(Consumer<File> onOpenRecent, Runnable onClearRecent, Consumer<String> onAction) {
-        VBox recent = buildRecent(onOpenRecent, onClearRecent);
-        VBox tools = buildTools(onAction);
-        HBox row = new HBox(24, recent, tools);
-        HBox.setHgrow(recent, Priority.ALWAYS);
-        HBox.setHgrow(tools, Priority.ALWAYS);
-        recent.setMaxWidth(Double.MAX_VALUE);
-        tools.setMaxWidth(Double.MAX_VALUE);
-        VBox.setVgrow(row, Priority.ALWAYS);
-        return row;
-    }
-
-    private VBox buildRecent(Consumer<File> onOpenRecent, Runnable onClearRecent) {
-        Label header = new Label("Recent files");
-        header.getStyleClass().add("fxt-welcome-section-title");
-
-        Hyperlink clear = new Hyperlink("Clear");
-        clear.setId("welcome-clear");
-        clear.getStyleClass().add("fxt-welcome-clear");
-        clear.setOnAction(e -> onClearRecent.run());
-
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-        HBox headerRow = new HBox(header, spacer, clear);
-        headerRow.setAlignment(Pos.CENTER_LEFT);
-
-        recentList = new ListView<>(recentFiles);
-        recentList.getStyleClass().add("fxt-welcome-recent");
-        recentList.setPlaceholder(new Label("No recent files"));
-        recentList.setCellFactory(lv -> new RecentCell());
-        recentList.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
-            if (newV != null) {
-                // Defer out of the selection-change processing (opening builds an editor and
-                // mutates other lists); running it inline re-enters the ListViewBehavior
-                // listener and throws (see javafx-listview-setall-crash).
-                javafx.application.Platform.runLater(() -> {
-                    recentList.getSelectionModel().clearSelection();
-                    onOpenRecent.accept(newV);
-                });
-            }
-        });
-        VBox.setVgrow(recentList, Priority.ALWAYS);
-
-        return new VBox(12, headerRow, recentList);
-    }
-
-    private VBox buildTools(Consumer<String> onAction) {
-        Label header = new Label("Tools");
-        header.getStyleClass().add("fxt-welcome-section-title");
-
-        GridPane grid = new GridPane();
-        grid.setHgap(16);
-        grid.setVgap(12);
-        grid.getColumnConstraints().addAll(equalColumn(), equalColumn());
-
-        Button[] cards = {
-                toolCard("tool-explorer", "explorer", "bi-folder2-open", "Explorer", "Files & workspace", onAction),
-                toolCard("tool-search", "search", "bi-search", "Search", "Find in files & XPath", onAction),
-                toolCard("tool-validation", "validation", "bi-check2-circle", "Validate", "XSD & Schematron", onAction),
-                toolCard("tool-transform", "transform", "bi-arrow-repeat", "Transform", "XSLT 3.0 / XQuery", onAction),
-                toolCard("tool-schema", "schema", "bi-diagram-3", "Schema", "Graphical XSD editor", onAction),
-                toolCard("tool-pdf", "pdf", "bi-file-earmark-pdf", "PDF / FOP", "XSL-FO to PDF", onAction),
-                toolCard("tool-signature", "signature", "bi-shield-lock", "Signature", "XML-DSig sign & verify", onAction),
-                toolCard("tool-favorites", "favorites", "bi-star", "Favorites", "Pinned files", onAction),
-                toolCard("tool-settings", "settings", "bi-gear", "Settings", "Application preferences", onAction)
-        };
-        for (int i = 0; i < cards.length; i++) {
-            grid.add(cards[i], i % 2, i / 2);
-            GridPane.setHgrow(cards[i], Priority.ALWAYS);
-        }
-
-        return new VBox(12, header, grid);
-    }
-
-    private static ColumnConstraints equalColumn() {
-        ColumnConstraints col = new ColumnConstraints();
-        col.setPercentWidth(50);
-        col.setHgrow(Priority.ALWAYS);
-        return col;
-    }
-
-    private Button toolCard(String id, String activityKey, String iconLiteral, String title, String subtitle,
-            Consumer<String> onAction) {
-        StackPane tile = new StackPane(icon(iconLiteral, 16));
-        tile.getStyleClass().add("fxt-card-icon");
-        // Workflow colour chip: bg tint + accent icon (spec 2026-09-26 §2, Welcome tool cards).
-        org.fxt.freexmltoolkit.controls.shell.Activity.fromId(activityKey).ifPresent(a ->
-                org.fxt.freexmltoolkit.controls.theme.WorkflowStyle.apply(tile, a.workflow()));
-
-        Label t = new Label(title);
-        t.getStyleClass().add("fxt-card-title");
-        Label s = new Label(subtitle);
-        s.getStyleClass().add("fxt-card-subtitle");
-
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-
-        HBox g = new HBox(12, tile, new VBox(2, t, s), spacer, icon("bi-chevron-right", 14));
-        g.setAlignment(Pos.CENTER_LEFT);
-
-        Button b = new Button();
-        b.setId(id);
-        b.setGraphic(g);
-        b.setAlignment(Pos.CENTER_LEFT);
-        b.setMaxWidth(Double.MAX_VALUE);
-        b.getStyleClass().add("fxt-tool-card");
-        // The card itself carries the workflow class too, for the hover border (.fxt-tool-card.fxt-wf-<id>:hover).
-        org.fxt.freexmltoolkit.controls.shell.Activity.fromId(activityKey).ifPresent(a ->
-                org.fxt.freexmltoolkit.controls.theme.WorkflowStyle.apply(b, a.workflow()));
-        // Make the graphic fill the button so the chevron sits flush right (CSS padding is 16).
-        g.prefWidthProperty().bind(b.widthProperty().subtract(32));
-        b.setOnAction(e -> onAction.accept(activityKey));
-        return b;
-    }
-
     // ----- helpers ---------------------------------------------------------
-
-    private static IconifyIcon icon(String literal, int size) {
-        IconifyIcon i = new IconifyIcon(literal);
-        i.setIconSize(size);
-        return i;
-    }
 
     private static String relativeTime(long millis) {
         if (millis <= 0) {

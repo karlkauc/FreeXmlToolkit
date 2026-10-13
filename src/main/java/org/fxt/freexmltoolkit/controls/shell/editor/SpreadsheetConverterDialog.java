@@ -1,5 +1,6 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
@@ -10,6 +11,7 @@ import javafx.scene.control.RadioButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.GridPane;
 
+import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.service.CsvHandler;
 import org.fxt.freexmltoolkit.service.XmlSpreadsheetConverterService.ConversionConfig;
 
@@ -50,24 +52,21 @@ public class SpreadsheetConverterDialog extends Dialog<SpreadsheetConverterDialo
     public record Settings(Direction direction, Format format, Delimiter delimiter, ConversionConfig config) {
     }
 
-    private final ToggleGroup directionGroup = new ToggleGroup();
-    private final RadioButton toSpreadsheet = new RadioButton("XML → Spreadsheet");
-    private final RadioButton toXml = new RadioButton("Spreadsheet → XML");
-    private final ComboBox<Format> format = new ComboBox<>();
-    private final ComboBox<Delimiter> delimiter = new ComboBox<>();
-    private final CheckBox includeComments = new CheckBox("Include comments");
-    private final CheckBox includeNamespaces = new CheckBox("Include namespaces");
-    private final CheckBox includeCData = new CheckBox("Include CDATA");
-    private final CheckBox includeTypeColumn = new CheckBox("Include type column");
-    private final CheckBox prettyPrintXml = new CheckBox("Pretty-print XML");
+    @FXML private RadioButton toSpreadsheet;
+    @FXML private RadioButton toXml;
+    @FXML private ComboBox<Format> format;
+    @FXML private ComboBox<Delimiter> delimiter;
+    @FXML private CheckBox includeComments;
+    @FXML private CheckBox includeNamespaces;
+    @FXML private CheckBox includeCData;
+    @FXML private CheckBox includeTypeColumn;
+    @FXML private CheckBox prettyPrintXml;
 
     public SpreadsheetConverterDialog() {
         setTitle("Spreadsheet Converter");
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
 
-        toSpreadsheet.setToggleGroup(directionGroup);
-        toXml.setToggleGroup(directionGroup);
-        toSpreadsheet.setSelected(true);
+        getDialogPane().setContent(FxmlViews.loadContent(this, "/pages/dialogs/SpreadsheetConverterDialog.fxml"));
 
         format.getItems().setAll(Format.values());
         format.setValue(Format.EXCEL);
@@ -75,33 +74,6 @@ public class SpreadsheetConverterDialog extends Dialog<SpreadsheetConverterDialo
         delimiter.setValue(Delimiter.COMMA);
         delimiter.disableProperty().bind(format.valueProperty().isNotEqualTo(Format.CSV));
 
-        // Defaults mirror the service defaults (everything on).
-        includeComments.setSelected(true);
-        includeNamespaces.setSelected(true);
-        includeCData.setSelected(true);
-        includeTypeColumn.setSelected(true);
-        prettyPrintXml.setSelected(true);
-
-        GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(8);
-        grid.setPadding(new Insets(16));
-        int r = 0;
-        grid.add(new Label("Direction:"), 0, r);
-        grid.add(toSpreadsheet, 1, r++);
-        grid.add(toXml, 1, r++);
-        grid.add(new Label("Format:"), 0, r);
-        grid.add(format, 1, r++);
-        grid.add(new Label("CSV delimiter:"), 0, r);
-        grid.add(delimiter, 1, r++);
-        grid.add(new Label("Options:"), 0, r);
-        grid.add(includeComments, 1, r++);
-        grid.add(includeNamespaces, 1, r++);
-        grid.add(includeCData, 1, r++);
-        grid.add(includeTypeColumn, 1, r++);
-        grid.add(prettyPrintXml, 1, r);
-
-        getDialogPane().setContent(grid);
         setResultConverter(button -> button == ButtonType.OK ? currentSettings() : null);
     }
 

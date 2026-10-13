@@ -7,23 +7,19 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.Future;
 
 import javafx.application.Platform;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
+import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.FxtGui;
+import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType;
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost;
 import org.fxt.freexmltoolkit.controls.shell.editor.OpenDocument;
@@ -44,16 +40,22 @@ public class SchemaAnalysisView extends BorderPane {
     private static final Logger logger = LogManager.getLogger(SchemaAnalysisView.class);
 
     private final EditorHost editorHost;
-    private final Label subtitle = new Label();
-    private final Label status = new Label();
-    private final Button refresh = new Button("Refresh", AnalysisSupport.icon("bi-arrow-clockwise", 16));
-    private final TabPane tabs = new TabPane();
+    @FXML private HBox header;
+    @FXML private Label subtitle;
+    @FXML private Label status;
+    @FXML private Button refresh;
+    @FXML private TabPane tabs;
+    @FXML private Tab statisticsTab;
+    @FXML private Tab typesTab;
+    @FXML private Tab qualityTab;
+    @FXML private Tab constraintsTab;
+    @FXML private Tab xpathTab;
     private final StatisticsSection statistics;
     private final TypesSection types;
     private final QualitySection quality;
     private final IdentityConstraintsSection constraints;
     private final XPathSection xpath;
-    private final StackPane overlay = new StackPane();
+    @FXML private StackPane overlay;
     private Future<?> running;
     private SchemaAnalysisData data;
     /** The document analyzed last (refresh target while this tool tab is the active one). */
@@ -73,26 +75,11 @@ public class SchemaAnalysisView extends BorderPane {
 
     private SchemaAnalysisView(EditorHost editorHost, SchemaAnalysisData initial) {
         this.editorHost = editorHost;
-        getStyleClass().add("fxt-analysis");
-        setPadding(new Insets(12, 16, 12, 16));
+        FxmlViews.load(this, "/pages/views/SchemaAnalysisView.fxml");
 
-        Label title = new Label("SCHEMA ANALYSIS");
-        title.getStyleClass().add("fxt-side-panel-title");
-        subtitle.getStyleClass().add("fxt-analysis-subtitle");
-        VBox titles = new VBox(2, title, subtitle);
-        HBox.setHgrow(titles, Priority.ALWAYS);
-        refresh.setId("analysis-refresh");
-        refresh.getStyleClass().add("fxt-tool-button");
-        refresh.setOnAction(e -> refresh());
-        status.setId("analysis-status");
-        status.getStyleClass().add("fxt-placeholder-text");
-        HBox header = new HBox(12, titles, status,
-                AnalysisSupport.reportMenu("Schema Analysis Report", status, () -> data == null ? null : SchemaAnalysisReport.full(data)),
-                refresh);
-        header.getStyleClass().add("fxt-analysis-header");
-        header.setAlignment(Pos.CENTER_LEFT);
-        header.setPadding(new Insets(0, 0, 10, 0));
-        setTop(header);
+        // Export sits between the status and Refresh.
+        header.getChildren().add(header.getChildren().indexOf(refresh), AnalysisSupport.reportMenu(
+                "Schema Analysis Report", status, () -> data == null ? null : SchemaAnalysisReport.full(data)));
 
         statistics = new StatisticsSection(editorHost);
         types = new TypesSection(editorHost);
@@ -100,34 +87,16 @@ public class SchemaAnalysisView extends BorderPane {
         quality.setOnNestingLimitChanged(this::refresh);
         constraints = new IdentityConstraintsSection(editorHost);
         xpath = new XPathSection(editorHost);
-        tabs.setId("schema-analysis-tabs");
-        tabs.getStyleClass().add("fxt-analysis-tabs");
-        tabs.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
-        tabs.getTabs().addAll(
-                tab("Statistics", "bi-bar-chart", statistics),
-                tab("Types", "bi-collection", types),
-                tab("Quality Checks", "bi-award", quality),
-                tab("Identity Constraints", "bi-key", constraints),
-                tab("XPath Validation", "bi-check2-circle", xpath));
-
-        ProgressIndicator spinner = new ProgressIndicator();
-        spinner.setMaxSize(48, 48);
-        Label analyzing = new Label("Analyzing…");
-        analyzing.getStyleClass().add("fxt-placeholder-text");
-        VBox overlayContent = new VBox(8, spinner, analyzing);
-        overlayContent.setAlignment(Pos.CENTER);
-        overlay.getStyleClass().add("fxt-analysis-overlay");
-        overlay.getChildren().add(overlayContent);
-        overlay.setVisible(false);
-        overlay.setManaged(false);
-        setCenter(new StackPane(tabs, overlay));
+        statisticsTab.setContent(statistics);
+        typesTab.setContent(types);
+        qualityTab.setContent(quality);
+        constraintsTab.setContent(constraints);
+        xpathTab.setContent(xpath);
     }
 
-    private static Tab tab(String text, String icon, Region content) {
-        Tab tab = new Tab(text, content);
-        tab.setGraphic(AnalysisSupport.icon(icon, 14));
-        tab.setClosable(false);
-        return tab;
+    @FXML
+    public void onRefresh() {
+        refresh();
     }
 
     /**

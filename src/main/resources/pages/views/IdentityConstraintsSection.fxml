@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
+
+<!--
+  "Identity Constraints" sub-tab of the Schema Analysis tool tab: header (Export, type chips ·
+  status chips, count, export status), the constraint table and the details of the selected
+  constraint. Loaded by IdentityConstraintsSection via the fx:root pattern (FxmlViews.load);
+  IdentityConstraintsSection is root and controller. Built in code: the Export menu, the filter
+  chips, all cell factories and the details content.
+-->
+<fx:root type="javafx.scene.layout.VBox" spacing="10" styleClass="fxt-analysis-section"
+         xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <children>
+        <HBox fx:id="header" spacing="10" alignment="CENTER_LEFT">
+            <children>
+                <FlowPane fx:id="typeChips" id="analysis-constraints-type-chips" hgap="6" vgap="6"
+                          alignment="CENTER_LEFT"/>
+                <Label text="·" styleClass="fxt-analysis-key"/>
+                <FlowPane fx:id="statusChips" id="analysis-constraints-status-chips" hgap="6" vgap="6"
+                          alignment="CENTER_LEFT"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label fx:id="count" id="analysis-constraints-count" styleClass="fxt-analysis-count"/>
+                <Label fx:id="exportStatus" id="analysis-constraints-status" styleClass="fxt-placeholder-text"/>
+            </children>
+        </HBox>
+
+        <TableView fx:id="table" id="analysis-constraints-table" styleClass="fxt-analysis-table"
+                   VBox.vgrow="ALWAYS">
+            <columns>
+                <TableColumn fx:id="typeColumn" text="Type" prefWidth="95"/>
+                <TableColumn fx:id="nameColumn" text="Name" prefWidth="170"/>
+                <TableColumn fx:id="parentColumn" text="Parent element" prefWidth="150"/>
+                <TableColumn fx:id="selectorColumn" text="Selector" prefWidth="220"/>
+                <TableColumn fx:id="fieldsColumn" text="Fields" prefWidth="170"/>
+                <TableColumn fx:id="referColumn" text="Refers to / test" prefWidth="170"/>
+                <TableColumn fx:id="statusColumn" text="Status" prefWidth="110"/>
+            </columns>
+            <placeholder>
+                <Label text="The schema declares no identity constraints or assertions." contentDisplay="TOP"
+                       graphicTextGap="8" styleClass="fxt-analysis-empty">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-key" iconSize="28"/>
+                    </graphic>
+                </Label>
+            </placeholder>
+        </TableView>
+
+        <VBox fx:id="details" spacing="4" minHeight="90" styleClass="fxt-analysis-details"/>
+    </children>
+</fx:root>

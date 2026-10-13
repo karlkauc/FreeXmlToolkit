@@ -4,6 +4,7 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.UUID;
 
+import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
@@ -13,6 +14,7 @@ import javafx.scene.layout.Region;
 import javafx.stage.FileChooser;
 
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.domain.EntrySource;
 import org.fxt.freexmltoolkit.domain.SchemaKind;
 import org.fxt.freexmltoolkit.domain.SchemaLibraryEntry;
@@ -23,12 +25,13 @@ import org.fxt.freexmltoolkit.util.DialogHelper;
 /** Add / edit one Schema Library mapping. Returns the entry (with the original id when editing). */
 public class SchemaLibraryEntryDialog extends Dialog<SchemaLibraryEntry> {
 
-    private final TextField namespace = new TextField();
-    private final TextField location = new TextField();
-    private final ComboBox<SchemaKind> kind = new ComboBox<>();
-    private final TextField description = new TextField();
-    private final TextField rootElement = new TextField();
-    private final Label error = new Label();
+    @FXML private TextField namespace;
+    @FXML private TextField locationField;
+    @FXML private ComboBox<SchemaKind> kind;
+    @FXML private TextField description;
+    @FXML private TextField rootElement;
+    @FXML private Label error;
+    private final SchemaLibraryService library;
 
     /** Add ({@code existing == null}) or edit ({@code existing != null}, id and source are preserved). */
     public SchemaLibraryEntryDialog(SchemaLibraryService library, SchemaLibraryEntry existing) {
@@ -45,6 +48,7 @@ public class SchemaLibraryEntryDialog extends Dialog<SchemaLibraryEntry> {
      */
     public SchemaLibraryEntryDialog(SchemaLibraryService library, SchemaLibraryEntry existing, boolean asNew) {
         // "asNew" prefills the fields from `existing` but the OK result is a brand-new USER entry.
+        this.library = library;
         SchemaLibraryEntry editing = asNew ? null : existing;
         SchemaLibraryEntry prefill = existing;
 
@@ -55,61 +59,14 @@ public class SchemaLibraryEntryDialog extends Dialog<SchemaLibraryEntry> {
         getDialogPane().getStylesheets().addAll(DialogHelper.getThemeStylesheets());
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
 
+        getDialogPane().setContent(FxmlViews.loadContent(this, "/pages/dialogs/SchemaLibraryEntryDialog.fxml"));
         kind.getItems().addAll(SchemaKind.values());
         kind.setValue(SchemaKind.XSD);
-        namespace.setPromptText("http://www.example.org/ns  (empty for no-namespace XSD)");
-        location.setPromptText("/path/to/schema.xsd or https://…/schema.xsd");
-        rootElement.setPromptText("document element local name (optional, no-namespace XSD only)");
-        error.getStyleClass().add("fxt-lib-error");
-        error.setWrapText(true);
-
-        Button browse = new Button("Browse…", new IconifyIcon("bi-folder2-open"));
-        browse.setOnAction(e -> {
-            FileChooser fc = new FileChooser();
-            fc.setTitle("Select schema file");
-            fc.getExtensionFilters().addAll(
-                    new FileChooser.ExtensionFilter("Schemas", "*.xsd", "*.json", "*.dtd"),
-                    new FileChooser.ExtensionFilter("All files", "*.*"));
-            File f = fc.showOpenDialog(getOwner());
-            if (f != null) {
-                location.setText(f.getAbsolutePath());
-                library.entryFromFile(Path.of(f.getAbsolutePath())).ifPresent(pre -> {
-                    if (namespace.getText().isBlank()) namespace.setText(pre.namespace());
-                    kind.setValue(pre.kind());
-                });
-            }
-        });
-        HBox locationRow = new HBox(6, location, browse);
-        HBox.setHgrow(location, Priority.ALWAYS);
-
-        GridPane grid = new GridPane();
-        grid.setHgap(8); grid.setVgap(8); grid.setPadding(new Insets(12));
-        grid.addRow(0, new Label("Namespace / $schema:"), namespace);
-        grid.addRow(1, new Label("Location:"), locationRow);
-        grid.addRow(2, new Label("Kind:"), kind);
-        grid.addRow(3, new Label("Root element:"), rootElement);
-        grid.addRow(4, new Label("Description:"), description);
-        grid.add(error, 0, 5, 2, 1);
-        // Label column sized to its content, input column takes the rest so the fields fill
-        // the dialog width instead of shrinking to their prompt text.
-        javafx.scene.layout.ColumnConstraints labelCol = new javafx.scene.layout.ColumnConstraints();
-        labelCol.setMinWidth(Region.USE_PREF_SIZE);
-        javafx.scene.layout.ColumnConstraints fieldCol = new javafx.scene.layout.ColumnConstraints();
-        fieldCol.setHgrow(Priority.ALWAYS);
-        fieldCol.setFillWidth(true);
-        grid.getColumnConstraints().addAll(labelCol, fieldCol);
-        GridPane.setHgrow(namespace, Priority.ALWAYS);
-        GridPane.setHgrow(locationRow, Priority.ALWAYS);
-        GridPane.setHgrow(kind, Priority.ALWAYS);
-        GridPane.setHgrow(rootElement, Priority.ALWAYS);
-        GridPane.setHgrow(description, Priority.ALWAYS);
-        kind.setMaxWidth(Double.MAX_VALUE);
-        getDialogPane().setContent(grid);
         getDialogPane().setPrefWidth(560);
 
         if (prefill != null) {
             namespace.setText(prefill.namespace());
-            location.setText(prefill.location());
+            locationField.setText(prefill.location());
             kind.setValue(prefill.kind());
             description.setText(prefill.description());
             rootElement.setText(prefill.rootElement() == null ? "" : prefill.rootElement());
@@ -129,9 +86,27 @@ public class SchemaLibraryEntryDialog extends Dialog<SchemaLibraryEntry> {
         setResultConverter(bt -> bt == ButtonType.OK ? build(editing) : null);
     }
 
+    /** Picks a schema file and prefills namespace and kind from it. */
+    @FXML
+    public void onBrowse() {
+        FileChooser fc = new FileChooser();
+        fc.setTitle("Select schema file");
+        fc.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("Schemas", "*.xsd", "*.json", "*.dtd"),
+                new FileChooser.ExtensionFilter("All files", "*.*"));
+        File f = fc.showOpenDialog(getOwner());
+        if (f != null) {
+            locationField.setText(f.getAbsolutePath());
+            library.entryFromFile(Path.of(f.getAbsolutePath())).ifPresent(pre -> {
+                if (namespace.getText().isBlank()) namespace.setText(pre.namespace());
+                kind.setValue(pre.kind());
+            });
+        }
+    }
+
     private SchemaLibraryEntry build(SchemaLibraryEntry editing) {
         String id = editing != null ? editing.id() : UUID.randomUUID().toString();
-        return new SchemaLibraryEntry(id, namespace.getText(), location.getText().trim(), kind.getValue(),
+        return new SchemaLibraryEntry(id, namespace.getText(), locationField.getText().trim(), kind.getValue(),
                 editing != null ? editing.source() : EntrySource.USER,
                 editing == null || editing.enabled(), description.getText(), rootElement.getText());
     }

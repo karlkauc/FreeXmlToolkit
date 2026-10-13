@@ -1,5 +1,6 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
@@ -7,6 +8,8 @@ import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
 import javafx.scene.layout.GridPane;
+
+import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 
 /**
  * Collects options for sample-XML generation (the common generation-profile
@@ -20,26 +23,15 @@ public class SampleXmlOptionsDialog extends Dialog<SampleXmlOptionsDialog.Option
     public record Options(boolean mandatoryOnly, int maxOccurrences, boolean realistic) {
     }
 
-    private final CheckBox mandatoryOnly = new CheckBox("Only mandatory elements");
-    private final Spinner<Integer> maxOccurrences = new Spinner<>(1, 20, 2);
-    private final CheckBox realistic =
-            new CheckBox("Realistic values (honor enumerations, patterns, ranges)");
+    @FXML private CheckBox mandatoryOnly;
+    @FXML private Spinner<Integer> maxOccurrences;
+    @FXML private CheckBox realistic;
 
     public SampleXmlOptionsDialog() {
         setTitle("Generate Sample XML");
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
 
-        maxOccurrences.setEditable(true);
-
-        GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(8);
-        grid.setPadding(new Insets(16));
-        grid.add(mandatoryOnly, 0, 0, 2, 1);
-        grid.add(new Label("Max. repetitions:"), 0, 1);
-        grid.add(maxOccurrences, 1, 1);
-        grid.add(realistic, 0, 2, 2, 1);
-        getDialogPane().setContent(grid);
+        getDialogPane().setContent(FxmlViews.loadContent(this, "/pages/dialogs/SampleXmlOptionsDialog.fxml"));
 
         setResultConverter(button -> button == ButtonType.OK ? currentOptions() : null);
     }

@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.layout.VBox?>
+<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.PanelActionButton?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.PanelActionList?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.SidePanelHeader?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.SidePanelSection?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.SourceRow?>
+
+<!--
+  Signature activity side panel (Figma "Redesign · Unified — Signature", node 50:2).
+  Loaded by SignaturePanel via the fx:root pattern (FxmlViews.load); SignaturePanel is root and
+  controller. The nav shows exactly one of the validate / create / expert sections; "Sign XML
+  File" has no section here, its form is the SignDocumentView card in the editor area. The
+  favourites menus of the source rows are data-driven and added in code.
+-->
+<fx:root type="javafx.scene.layout.VBox" styleClass="fxt-signature-panel"
+         xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <fx:define>
+        <ToggleGroup fx:id="navGroup"/>
+    </fx:define>
+    <children>
+        <SidePanelHeader title="SIGNATURE"/>
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="edge-to-edge" VBox.vgrow="ALWAYS">
+            <content>
+                <VBox>
+                    <children>
+                        <!-- Action nav (mockup order; Sign is the default) -->
+                        <VBox styleClass="fxt-sig-nav-box">
+                            <children>
+                                <ToggleButton fx:id="navCreate" id="sig-nav-create" text="Create Certificate"
+                                              toggleGroup="$navGroup" maxWidth="Infinity" alignment="CENTER_LEFT"
+                                              styleClass="fxt-sig-nav" onAction="#onNavCreate">
+                                    <graphic>
+                                        <IconifyIcon iconLiteral="bi-patch-plus" iconSize="15"/>
+                                    </graphic>
+                                </ToggleButton>
+                                <ToggleButton fx:id="navSign" id="sig-nav-sign" text="Sign XML File"
+                                              toggleGroup="$navGroup" maxWidth="Infinity" alignment="CENTER_LEFT"
+                                              styleClass="fxt-sig-nav" onAction="#onNavSign">
+                                    <graphic>
+                                        <IconifyIcon iconLiteral="bi-pencil" iconSize="15"/>
+                                    </graphic>
+                                </ToggleButton>
+                                <ToggleButton fx:id="navValidate" id="sig-nav-validate" text="Validate Signature"
+                                              toggleGroup="$navGroup" maxWidth="Infinity" alignment="CENTER_LEFT"
+                                              styleClass="fxt-sig-nav" onAction="#onNavValidate">
+                                    <graphic>
+                                        <IconifyIcon iconLiteral="bi-check2-circle" iconSize="15"/>
+                                    </graphic>
+                                </ToggleButton>
+                                <ToggleButton fx:id="navExpert" id="sig-nav-expert" text="Expert Mode"
+                                              toggleGroup="$navGroup" maxWidth="Infinity" alignment="CENTER_LEFT"
+                                              styleClass="fxt-sig-nav" onAction="#onNavExpert">
+                                    <graphic>
+                                        <IconifyIcon iconLiteral="bi-gear" iconSize="15"/>
+                                    </graphic>
+                                </ToggleButton>
+                            </children>
+                        </VBox>
+
+                        <!-- KEYSTORE (shared by sign + create) -->
+                        <SidePanelSection title="KEYSTORE">
+                            <children>
+                                <SourceRow fx:id="keystoreRow" id="sig-keystore-row" iconLiteral="bi-file-earmark-lock"
+                                           onChange="#onChooseKeystore">
+                                    <name>
+                                        <Label fx:id="keystoreName" id="sig-keystore-name" text="none"
+                                               styleClass="fxt-vp-source-name, fxt-vp-source-none"/>
+                                    </name>
+                                </SourceRow>
+                                <VBox spacing="4" styleClass="fxt-tp-section-body">
+                                    <children>
+                                        <Label text="Keystore alias" styleClass="fxt-sig-field-label"/>
+                                        <TextField fx:id="alias" promptText="alias"/>
+                                        <Label text="Keystore password" styleClass="fxt-sig-field-label"/>
+                                        <PasswordField fx:id="keystorePassword" promptText="keystore password"/>
+                                        <Label text="Alias password" styleClass="fxt-sig-field-label"/>
+                                        <PasswordField fx:id="aliasPassword" promptText="alias password"/>
+                                    </children>
+                                </VBox>
+                            </children>
+                        </SidePanelSection>
+
+                        <!-- VALIDATE -->
+                        <VBox fx:id="validateSection" id="sig-section-validate">
+                            <children>
+                                <VBox spacing="8" styleClass="fxt-vp-run-box">
+                                    <children>
+                                        <Button id="sig-validate-run" text="Validate Signature" maxWidth="Infinity"
+                                                styleClass="fxt-primary-button" onAction="#validateActive">
+                                            <graphic>
+                                                <IconifyIcon iconLiteral="bi-shield-check" iconSize="14"/>
+                                            </graphic>
+                                        </Button>
+                                    </children>
+                                </VBox>
+                                <PanelActionList>
+                                    <children>
+                                        <PanelActionButton id="sig-validate-details" iconLiteral="bi-card-list"
+                                                           text="Validate (Details)" color="CREATE"
+                                                           onAction="#validateDetailsActive"/>
+                                    </children>
+                                </PanelActionList>
+                            </children>
+                        </VBox>
+
+                        <!-- CREATE CERTIFICATE -->
+                        <VBox fx:id="createSection" id="sig-section-create">
+                            <children>
+                                <SidePanelSection title="CERTIFICATE">
+                                    <children>
+                                        <VBox spacing="4" styleClass="fxt-tp-section-body">
+                                            <children>
+                                                <Label text="Creates a self-signed certificate using the keystore alias and passwords."
+                                                       wrapText="true" styleClass="fxt-sig-hint"/>
+                                                <TextField fx:id="cnField" promptText="Common Name (CN)"/>
+                                                <TextField fx:id="orgField" promptText="Organization (O)"/>
+                                                <TextField fx:id="ouField" promptText="Organizational Unit (OU)"/>
+                                                <TextField fx:id="localityField" promptText="Locality (L)"/>
+                                                <TextField fx:id="stateField" promptText="State (ST)"/>
+                                                <TextField fx:id="countryField" promptText="Country (C)"/>
+                                                <TextField fx:id="emailField" promptText="Email"/>
+                                            </children>
+                                        </VBox>
+                                    </children>
+                                </SidePanelSection>
+                                <VBox spacing="8" styleClass="fxt-vp-run-box">
+                                    <children>
+                                        <Button id="sig-create-run" text="Create Certificate" maxWidth="Infinity"
+                                                styleClass="fxt-primary-button" onAction="#createCertificate">
+                                            <graphic>
+                                                <IconifyIcon iconLiteral="bi-patch-plus" iconSize="14"/>
+                                            </graphic>
+                                        </Button>
+                                    </children>
+                                </VBox>
+                            </children>
+                        </VBox>
+
+                        <!-- EXPERT (PKIX trust validation) -->
+                        <VBox fx:id="expertSection" id="sig-section-expert">
+                            <children>
+                                <SidePanelSection title="TRUST STORE">
+                                    <children>
+                                        <SourceRow fx:id="trustRow" id="sig-truststore-row" iconLiteral="bi-key"
+                                                   onChange="#chooseTrustStore">
+                                            <name>
+                                                <Label fx:id="trustStoreName" id="sig-truststore-name"
+                                                       text="default (cacerts)" styleClass="fxt-vp-source-name"/>
+                                            </name>
+                                        </SourceRow>
+                                        <VBox spacing="6" styleClass="fxt-tp-section-body">
+                                            <children>
+                                                <CheckBox fx:id="checkRevocation" text="Check revocation (OCSP/CRL)"/>
+                                            </children>
+                                        </VBox>
+                                    </children>
+                                </SidePanelSection>
+                                <VBox spacing="8" styleClass="fxt-vp-run-box">
+                                    <children>
+                                        <Button id="sig-trust-run" text="Validate (Trust)" maxWidth="Infinity"
+                                                styleClass="fxt-primary-button" onAction="#validateTrustActive">
+                                            <graphic>
+                                                <IconifyIcon iconLiteral="bi-patch-check" iconSize="14"/>
+                                            </graphic>
+                                        </Button>
+                                    </children>
+                                </VBox>
+                            </children>
+                        </VBox>
+
+                        <Label fx:id="status" text="Not signed/validated" wrapText="true" styleClass="fxt-vp-status"/>
+                    </children>
+                </VBox>
+            </content>
+        </ScrollPane>
+    </children>
+</fx:root>

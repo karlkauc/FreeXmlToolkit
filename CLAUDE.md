@@ -36,6 +36,16 @@ the tag-pinning gotcha), invoke the **`release` skill** (`.claude/skills/release
 
 **Pattern:** The shell **chrome** (root layout, header bar, editor toolbar, status bar, work-area skeleton) lives in `pages/shell.fxml` and is loaded by `UnifiedShellView` via the `fx:root` pattern (`loader.setRoot(this)/setController(this)`), so it is editable in Scene Builder. `UnifiedShellView.initialize()` wires the dynamic, `EditorHost`-dependent custom controls (ActivityBar, Inspector, side panels, Query Console, view switch) into the FXML `fx:id` placeholders — those can't live in FXML because they need constructor args. The XSD Editor V2 model layer (`controls/v2/`) uses MVVM with Command Pattern and backs the shell's structured views.
 
+**Layout lives in FXML, behaviour in Java.** Side panels, main-area pages, dialogs and the
+Inspector follow the same `fx:root` pattern: the class loads `pages/{panels,views,dialogs,inspector}/<ClassName>.fxml`
+in its constructor via `FxmlViews.load(this, …)` (dialog content: `FxmlViews.loadContent(this, …)`)
+and is its own controller, so constructor signatures stay unchanged. Static structure, texts, icons
+and `id`s go into the FXML; cell factories, bindings and data-driven lists stay in code. Recurring
+building blocks are FXML tags (`SidePanelHeader`, `SidePanelSection`, `PanelActionList` /
+`PanelActionButton`, `SourceRow`, `SettingsCard`, `Welcome*Card`). `FxmlContractTest` checks every
+FXML against its class (`@FXML` fields ↔ `fx:id`, handlers public, unique `id`s). See
+`.claude/rules/quick-reference.md` → "FXML Views".
+
 > **Scene Builder note:** this project runs on Java 25 with `--enable-preview`; Scene Builder (JDK ~21) cannot load/render the bundled custom controls (`IconifyIcon`, `EditorHost`, …), so they appear as non-rendering placeholder tags. Standard JavaFX nodes (layout, buttons, labels) edit normally. `@FXML` handlers must be `public` (non-modular jpackage build).
 
 See `.claude/rules/architecture.md` for the shell layout, panel/class table, threading model, and observable pattern. See `.claude/rules/xsd-editor-v2-details.md` for V2 internals.

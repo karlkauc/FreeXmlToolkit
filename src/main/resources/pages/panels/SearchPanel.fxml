@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.SidePanelHeader?>
+
+<!--
+  Search activity side panel (VS-Code-style "Find in Files"): a Text | XPath mode toggle above
+  the two search panes. Loaded by SearchPanel via the fx:root pattern (FxmlViews.load);
+  SearchPanel is root and controller. The panes need constructor arguments, so SearchPanel
+  builds them and puts them into the "content" placeholder.
+-->
+<fx:root type="javafx.scene.layout.VBox" styleClass="fxt-search-panel"
+         xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <fx:define>
+        <ToggleGroup fx:id="modes"/>
+    </fx:define>
+    <children>
+        <SidePanelHeader title="SEARCH"/>
+        <VBox styleClass="fxt-side-panel-body" VBox.vgrow="ALWAYS">
+            <children>
+                <HBox spacing="4" styleClass="fxt-search-mode-row">
+                    <children>
+                        <ToggleButton fx:id="textToggle" id="search-mode-text" text="Text" toggleGroup="$modes"
+                                      maxWidth="Infinity" HBox.hgrow="ALWAYS"
+                                      styleClass="fxt-tool-button, fxt-search-mode-toggle">
+                            <tooltip>
+                                <Tooltip text="Plain-text search across files"/>
+                            </tooltip>
+                        </ToggleButton>
+                        <ToggleButton fx:id="xpathToggle" id="search-mode-xpath" text="XPath" toggleGroup="$modes"
+                                      maxWidth="Infinity" HBox.hgrow="ALWAYS"
+                                      styleClass="fxt-tool-button, fxt-search-mode-toggle">
+                            <tooltip>
+                                <Tooltip text="XPath-based search/replace"/>
+                            </tooltip>
+                        </ToggleButton>
+                    </children>
+                </HBox>
+                <StackPane fx:id="content" VBox.vgrow="ALWAYS"/>
+            </children>
+        </VBox>
+    </children>
+</fx:root>

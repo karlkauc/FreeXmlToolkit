@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.VBox?>
+<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.SidePanelHeader?>
+
+<!--
+  Schema Library activity side panel: three icon-only tabs (Mappings, Catalogs, Cache), each
+  with a compact list-editing toolbar above its table/list, and a status line. Loaded by
+  SchemaLibraryPanel via the fx:root pattern (FxmlViews.load); SchemaLibraryPanel is root and
+  controller. Built in code: cell/row factories, the selection-bound enablement of the toolbar
+  buttons and the mappings context menu.
+
+  The tabs are icon-only (the tooltip carries the name): at the default side-panel width
+  (~260px) text labels do not fit without the TabPane overflow menu. For the same reason the
+  Kind/Source and Downloaded/Hits columns start hidden; the table menu button brings them back.
+-->
+<fx:root type="javafx.scene.layout.VBox" styleClass="fxt-schema-library-panel"
+         xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <children>
+        <SidePanelHeader title="SCHEMA LIBRARY"/>
+
+        <TabPane fx:id="tabs" id="schema-library-tabs" tabMinWidth="0" VBox.vgrow="ALWAYS">
+            <tabs>
+                <!-- Mappings -->
+                <Tab fx:id="mappingsTab" closable="false" styleClass="utility-tab">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-diagram-3" iconSize="16"/>
+                    </graphic>
+                    <tooltip>
+                        <Tooltip text="Mappings"/>
+                    </tooltip>
+                    <content>
+                        <VBox spacing="4">
+                            <children>
+                                <FlowPane hgap="2" vgap="2" styleClass="fxt-schema-tools">
+                                    <children>
+                                        <Button id="library-add" styleClass="fxt-sp-action, fxt-schema-tools-button"
+                                                onAction="#addEntry">
+                                            <graphic>
+                                                <IconifyIcon iconLiteral="bi-plus-circle" iconSize="16"/>
+                                            </graphic>
+                                            <tooltip>
+                                                <Tooltip text="Add mapping…"/>
+                                            </tooltip>
+                                        </Button>
+                                        <Button fx:id="editButton" id="library-edit"
+                                                styleClass="fxt-sp-action, fxt-schema-tools-button"
+                                                onAction="#editSelected">
+                                            <graphic>
+                                                <IconifyIcon iconLiteral="bi-pencil" iconSize="16"/>
+                                            </graphic>
+                                            <tooltip>
+                                                <Tooltip text="Edit…"/>
+                                            </tooltip>
+                                        </Button>
+                                        <Button fx:id="removeButton" id="library-remove"
+                                                styleClass="fxt-sp-action, fxt-schema-tools-button"
+                                                onAction="#removeSelected">
+                                            <graphic>
+                                                <IconifyIcon iconLiteral="bi-trash" iconSize="16"/>
+                                            </graphic>
+                                            <tooltip>
+                                                <Tooltip text="Remove"/>
+                                            </tooltip>
+                                        </Button>
+                                        <Button fx:id="toggleButton" id="library-toggle"
+                                                styleClass="fxt-sp-action, fxt-schema-tools-button"
+                                                onAction="#toggleSelected">
+                                            <graphic>
+                                                <IconifyIcon iconLiteral="bi-toggle-on" iconSize="16"/>
+                                            </graphic>
+                                            <tooltip>
+                                                <Tooltip text="Enable / disable"/>
+                                            </tooltip>
+                                        </Button>
+                                        <Button fx:id="addCurrentButton" id="library-add-current"
+                                                styleClass="fxt-sp-action, fxt-schema-tools-button"
+                                                onAction="#addCurrentSchema">
+                                            <graphic>
+                                                <IconifyIcon iconLiteral="bi-file-earmark-plus" iconSize="16"/>
+                                            </graphic>
+                                            <tooltip>
+                                                <Tooltip text="Add schema of current document"/>
+                                            </tooltip>
+                                        </Button>
+                                        <Button fx:id="downloadButton" id="library-download"
+                                                styleClass="fxt-sp-action, fxt-schema-tools-button"
+                                                onAction="#downloadSelected">
+                                            <graphic>
+                                                <IconifyIcon iconLiteral="bi-cloud-download" iconSize="16"/>
+                                            </graphic>
+                                            <tooltip>
+                                                <Tooltip text="Download / verify"/>
+                                            </tooltip>
+                                        </Button>
+                                    </children>
+                                </FlowPane>
+                                <TextField fx:id="filter" id="library-filter"
+                                           promptText="Filter namespace, location, description, root element…"/>
+                                <TableView fx:id="mappings" id="library-mappings-table" tableMenuButtonVisible="true"
+                                           VBox.vgrow="ALWAYS">
+                                    <columns>
+                                        <TableColumn fx:id="statusColumn" minWidth="28" prefWidth="28"
+                                                     maxWidth="28"/>
+                                        <TableColumn fx:id="namespaceColumn" text="Namespace" minWidth="60"/>
+                                        <TableColumn fx:id="locationColumn" text="Location" minWidth="60"/>
+                                        <TableColumn fx:id="kindColumn" text="Kind" visible="false"/>
+                                        <TableColumn fx:id="sourceColumn" text="Source" visible="false"/>
+                                        <TableColumn fx:id="enabledColumn" text="On" minWidth="40" prefWidth="40"
+                                                     maxWidth="40"/>
+                                    </columns>
+                                    <placeholder>
+                                        <Label text="No schema mappings yet. Click Add to map a namespace to a schema."/>
+                                    </placeholder>
+                                </TableView>
+                            </children>
+                        </VBox>
+                    </content>
+                </Tab>
+
+                <!-- Catalogs -->
+                <Tab fx:id="catalogsTab" closable="false" styleClass="utility-tab">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-journal-bookmark" iconSize="16"/>
+                    </graphic>
+                    <tooltip>
+                        <Tooltip text="Catalogs"/>
+                    </tooltip>
+                    <content>
+                        <VBox spacing="4">
+                            <children>
+                                <FlowPane hgap="2" vgap="2" styleClass="fxt-schema-tools">
+                                    <children>
+                                        <Button id="library-catalog-add"
+                                                styleClass="fxt-sp-action, fxt-schema-tools-button"
+                                                onAction="#chooseCatalog">
+                                            <graphic>
+                                                <IconifyIcon iconLiteral="bi-plus-circle" iconSize="16"/>
+                                            </graphic>
+                                            <tooltip>
+                                                <Tooltip text="Add catalog…"/>
+                                            </tooltip>
+                                        </Button>
+                                        <Button fx:id="catalogRemoveButton" id="library-catalog-remove"
+                                                styleClass="fxt-sp-action, fxt-schema-tools-button"
+                                                onAction="#onRemoveCatalog">
+                                            <graphic>
+                                                <IconifyIcon iconLiteral="bi-trash" iconSize="16"/>
+                                            </graphic>
+                                            <tooltip>
+                                                <Tooltip text="Remove"/>
+                                            </tooltip>
+                                        </Button>
+                                        <Button fx:id="catalogToggleButton" id="library-catalog-toggle"
+                                                styleClass="fxt-sp-action, fxt-schema-tools-button"
+                                                onAction="#onToggleCatalog">
+                                            <graphic>
+                                                <IconifyIcon iconLiteral="bi-toggle-on" iconSize="16"/>
+                                            </graphic>
+                                            <tooltip>
+                                                <Tooltip text="Enable / disable"/>
+                                            </tooltip>
+                                        </Button>
+                                        <Button id="library-catalog-reload"
+                                                styleClass="fxt-sp-action, fxt-schema-tools-button"
+                                                onAction="#onReloadCatalogs">
+                                            <graphic>
+                                                <IconifyIcon iconLiteral="bi-arrow-clockwise" iconSize="16"/>
+                                            </graphic>
+                                            <tooltip>
+                                                <Tooltip text="Reload catalogs"/>
+                                            </tooltip>
+                                        </Button>
+                                        <Button fx:id="catalogImportButton" id="library-catalog-import"
+                                                styleClass="fxt-sp-action, fxt-schema-tools-button"
+                                                onAction="#importSelectedCatalog">
+                                            <graphic>
+                                                <IconifyIcon iconLiteral="bi-box-arrow-in-down" iconSize="16"/>
+                                            </graphic>
+                                            <tooltip>
+                                                <Tooltip text="Import entries into Mappings…"/>
+                                            </tooltip>
+                                        </Button>
+                                    </children>
+                                </FlowPane>
+                                <ListView fx:id="catalogList" id="library-catalogs-list" VBox.vgrow="ALWAYS">
+                                    <placeholder>
+                                        <Label text="No XML catalogs registered. Add an OASIS catalog.xml to map system IDs and URIs."/>
+                                    </placeholder>
+                                </ListView>
+                            </children>
+                        </VBox>
+                    </content>
+                </Tab>
+
+                <!-- Cache -->
+                <Tab fx:id="cacheTab" closable="false" styleClass="utility-tab">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-hdd" iconSize="16"/>
+                    </graphic>
+                    <tooltip>
+                        <Tooltip text="Cache"/>
+                    </tooltip>
+                    <content>
+                        <VBox spacing="4">
+                            <children>
+                                <FlowPane hgap="2" vgap="2" styleClass="fxt-schema-tools">
+                                    <children>
+                                        <Button fx:id="cacheOpenButton" id="library-cache-open"
+                                                styleClass="fxt-sp-action, fxt-schema-tools-button"
+                                                onAction="#onOpenCached">
+                                            <graphic>
+                                                <IconifyIcon iconLiteral="bi-box-arrow-up-right" iconSize="16"/>
+                                            </graphic>
+                                            <tooltip>
+                                                <Tooltip text="Open cached file"/>
+                                            </tooltip>
+                                        </Button>
+                                        <Button id="library-cache-reveal"
+                                                styleClass="fxt-sp-action, fxt-schema-tools-button"
+                                                onAction="#onRevealCacheFolder">
+                                            <graphic>
+                                                <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16"/>
+                                            </graphic>
+                                            <tooltip>
+                                                <Tooltip text="Show in system file manager"/>
+                                            </tooltip>
+                                        </Button>
+                                        <Button fx:id="cacheRefreshButton" id="library-cache-refresh"
+                                                styleClass="fxt-sp-action, fxt-schema-tools-button"
+                                                onAction="#onRefreshCached">
+                                            <graphic>
+                                                <IconifyIcon iconLiteral="bi-arrow-clockwise" iconSize="16"/>
+                                            </graphic>
+                                            <tooltip>
+                                                <Tooltip text="Re-download"/>
+                                            </tooltip>
+                                        </Button>
+                                        <Button fx:id="cacheDeleteButton" id="library-cache-delete"
+                                                styleClass="fxt-sp-action, fxt-schema-tools-button"
+                                                onAction="#onDeleteCached">
+                                            <graphic>
+                                                <IconifyIcon iconLiteral="bi-trash" iconSize="16"/>
+                                            </graphic>
+                                            <tooltip>
+                                                <Tooltip text="Delete cached file"/>
+                                            </tooltip>
+                                        </Button>
+                                        <Button id="library-cache-clear"
+                                                styleClass="fxt-sp-action, fxt-schema-tools-button"
+                                                onAction="#onClearCache">
+                                            <graphic>
+                                                <IconifyIcon iconLiteral="bi-x-octagon" iconSize="16"/>
+                                            </graphic>
+                                            <tooltip>
+                                                <Tooltip text="Clear entire cache"/>
+                                            </tooltip>
+                                        </Button>
+                                    </children>
+                                </FlowPane>
+                                <TextField fx:id="cacheFilter" id="library-cache-filter"
+                                           promptText="Filter URL or namespace…"/>
+                                <TableView fx:id="cacheTable" id="library-cache-table" tableMenuButtonVisible="true"
+                                           VBox.vgrow="ALWAYS">
+                                    <columns>
+                                        <TableColumn fx:id="cacheUrlColumn" text="URL" minWidth="80"/>
+                                        <TableColumn fx:id="cacheNamespaceColumn" text="Target namespace"/>
+                                        <TableColumn fx:id="cacheSizeColumn" text="Size"/>
+                                        <TableColumn fx:id="cacheDownloadedColumn" text="Downloaded" visible="false"/>
+                                        <TableColumn fx:id="cacheHitsColumn" text="Hits" visible="false"/>
+                                    </columns>
+                                    <placeholder>
+                                        <Label text="No cached remote schemas."/>
+                                    </placeholder>
+                                </TableView>
+                                <Label fx:id="cacheFooter" id="library-cache-footer" styleClass="fxt-lib-status"/>
+
+                                <!-- Legacy auto-detected cache (~/.freeXmlToolkit/cache/<MD5>/): read-only + clear -->
+                                <TitledPane text="Auto-detected schemas (legacy cache)" expanded="false">
+                                    <content>
+                                        <VBox spacing="4">
+                                            <children>
+                                                <Label fx:id="legacyInfo" wrapText="true" styleClass="fxt-lib-status"/>
+                                                <Button id="library-legacy-cache-clear"
+                                                        styleClass="fxt-sp-action, fxt-schema-tools-button"
+                                                        onAction="#onClearLegacyCache">
+                                                    <graphic>
+                                                        <IconifyIcon iconLiteral="bi-trash" iconSize="16"/>
+                                                    </graphic>
+                                                    <tooltip>
+                                                        <Tooltip text="Clear auto-detected schema cache"/>
+                                                    </tooltip>
+                                                </Button>
+                                            </children>
+                                        </VBox>
+                                    </content>
+                                </TitledPane>
+                            </children>
+                        </VBox>
+                    </content>
+                </Tab>
+            </tabs>
+        </TabPane>
+
+        <Label fx:id="status" id="library-status" wrapText="true" styleClass="fxt-lib-status"/>
+    </children>
+</fx:root>

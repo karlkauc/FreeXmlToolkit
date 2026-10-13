@@ -7,8 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import javafx.application.Platform;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
+import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
@@ -19,12 +18,10 @@ import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
-import javafx.scene.control.Tooltip;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
@@ -40,6 +37,7 @@ import org.fxt.freexmltoolkit.controls.shared.CodeAreaFontZoom;
 import org.fxt.freexmltoolkit.controls.shared.JsonSyntaxHighlighter;
 import org.fxt.freexmltoolkit.controls.shared.XPathSyntaxHighlighter;
 import org.fxt.freexmltoolkit.controls.shared.XmlSyntaxHighlighter;
+import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.XPathIntelliSenseEngine;
 import org.fxt.freexmltoolkit.domain.XPathSnippet;
 import org.fxt.freexmltoolkit.service.FavoritesService;
@@ -68,18 +66,21 @@ public class QueryConsole extends Region {
 
     private final EditorHost editorHost;
 
-    private final ToggleButton xpathToggle = new ToggleButton("XPath");
-    private final ToggleButton xqueryToggle = new ToggleButton("XQuery");
+    @FXML private ToggleGroup modeGroup;
+    @FXML private ToggleButton xpathToggle;
+    @FXML private ToggleButton xqueryToggle;
+    @FXML private Label target;
     // RichTextFX CodeAreas so the XPath/XQuery IntelliSense engine can attach (autocomplete).
     private final CodeArea xpathField = new CodeArea();
     private final CodeArea xqueryArea = new CodeArea();
-    private final StackPane inputStack = new StackPane(xpathField, xqueryArea);
+    @FXML private StackPane inputStack;
+    @FXML private VBox resultsBox;
     // Results are a read-only CodeArea (not a TextArea) so XML/JSON output can be
     // syntax-highlighted like the main text editor.
     private final CodeArea resultsArea = new CodeArea();
 
     /** Per-run statistics ("42 ms · 1234 chars"), shown only when execution statistics are enabled. */
-    private final Label statsLabel = new Label();
+    @FXML private Label statsLabel;
 
     /** Results above this size are shown without highlighting to keep the FX thread responsive. */
     private static final int HIGHLIGHT_LIMIT_CHARS = 512 * 1024;
@@ -88,22 +89,21 @@ public class QueryConsole extends Region {
     private XPathIntelliSenseEngine xpathIntelliSense;
     private XPathIntelliSenseEngine xqueryIntelliSense;
 
-    // The Run button, created in buildInput() so the constructor can wire enablement.
-    private Button runButton;
+    @FXML private Button runButton;
 
     /** Monotonic run id; a late async result is dropped if a newer run has started (FX-thread only). */
     private int runGeneration;
 
     // The snippets menu, refreshed from FavoritesService on showing.
-    private final MenuButton snippetsMenu = new MenuButton("Snippets");
+    @FXML private MenuButton snippetsMenu;
 
     public QueryConsole(EditorHost editorHost) {
         this.editorHost = editorHost;
         getStyleClass().add("fxt-query-console");
 
-        SplitPane split = new SplitPane(buildInput(), buildResults());
-        // Favour the results side: queries (especially XPath) are short, while results need room.
-        split.setDividerPositions(0.38);
+        SplitPane split = FxmlViews.loadContent(this, "/pages/views/QueryConsole.fxml");
+        initInput();
+        initResults();
 
         // Fill this Region with the SplitPane.
         getChildren().add(split);
@@ -114,28 +114,13 @@ public class QueryConsole extends Region {
         editorHost.activeTabProperty().addListener((obs, oldV, newV) -> updateRunDisabled());
     }
 
-    private Region buildInput() {
-        Label title = new Label("QUERY");
-        title.getStyleClass().add("fxt-side-panel-title");
-
+    private void initInput() {
         // Make explicit which document the query runs against (always the active editor tab).
-        Label target = new Label();
-        target.getStyleClass().add("fxt-toolbar-status");
-        target.setMaxWidth(200);
-        target.setTooltip(new Tooltip("The query runs against the active document"));
         target.textProperty().bind(javafx.beans.binding.Bindings.createStringBinding(
                 () -> editorHost.getActiveDocument()
                         .map(d -> "→ " + d.getDisplayName()).orElse("→ no document"),
                 editorHost.activeTabProperty()));
 
-        ToggleGroup modeGroup = new ToggleGroup();
-        xpathToggle.setToggleGroup(modeGroup);
-        xqueryToggle.setToggleGroup(modeGroup);
-        xpathToggle.getStyleClass().add("fxt-tool-button");
-        xqueryToggle.getStyleClass().add("fxt-tool-button");
-        xpathToggle.setTooltip(new Tooltip("Evaluate an XPath expression against the active document"));
-        xqueryToggle.setTooltip(new Tooltip("Run an XQuery script against the active document"));
-        xpathToggle.setSelected(true);
         modeGroup.selectedToggleProperty().addListener((obs, oldT, newT) -> {
             if (newT == null) {
                 oldT.setSelected(true); // keep one mode always selected
@@ -143,9 +128,8 @@ public class QueryConsole extends Region {
                 updateMode();
             }
         });
-        HBox modeRow = new HBox(6, xpathToggle, xqueryToggle);
-        modeRow.setAlignment(Pos.CENTER_LEFT);
 
+        inputStack.getChildren().addAll(xpathField, xqueryArea);
         xpathField.getStyleClass().addAll("fxt-xpath-field", "fxt-query-input");
         xpathField.setWrapText(true);
         xpathField.setPrefHeight(96);
@@ -193,52 +177,19 @@ public class QueryConsole extends Region {
         });
 
         updateMode();
-
-        Button run = button("Run", "bi-play-fill", this::run);
-        run.setTooltip(new Tooltip("Run the query against the active document (Ctrl+Enter)"));
-        runButton = run;
-
-        Button saveSnippet = button("Save", "bi-save", this::saveSnippet);
-        saveSnippet.setTooltip(new Tooltip("Save the current query as a reusable snippet"));
-
-        IconifyIcon snippetsIcon = new IconifyIcon("bi-folder2-open");
-        snippetsIcon.setIconSize(16);
-        snippetsMenu.setGraphic(snippetsIcon);
-        snippetsMenu.getStyleClass().add("fxt-tool-button");
-        snippetsMenu.setTooltip(new Tooltip("Load a saved XPath/XQuery snippet"));
-        snippetsMenu.setOnShowing(e -> refreshSnippetsMenu());
-
-        // Run / Save / snippets live in the header (top-right, mirroring the RESULTS "Copy"
-        // button) so they stay visible and are never hidden by the IntelliSense completion
-        // popup, which opens downward from the input field.
-        Region headerSpacer = new Region();
-        HBox.setHgrow(headerSpacer, Priority.ALWAYS);
-        HBox header = new HBox(8, title, target, headerSpacer, run, saveSnippet, snippetsMenu);
-        header.setAlignment(Pos.CENTER_LEFT);
-
-        VBox box = new VBox(8, header, modeRow, inputStack);
-        box.setPadding(new Insets(8));
-        box.getStyleClass().add("fxt-side-panel-content");
-        // No max-width cap: the user can drag the divider freely to give the QUERY column as much
-        // room as the (now full multi-line) editor needs. A small min-width keeps it usable.
-        box.setMinWidth(160);
-        return box;
     }
 
-    private Region buildResults() {
-        Label title = new Label("RESULTS");
-        title.getStyleClass().add("fxt-side-panel-title");
+    @FXML
+    public void onSnippetsShowing() {
+        refreshSnippetsMenu();
+    }
 
-        Button copy = button("Copy", "bi-clipboard", this::copyResults);
-        copy.setTooltip(new Tooltip("Copy the full result to the clipboard"));
-        Button save = button("Save", "bi-save", this::saveResults);
-        save.setTooltip(new Tooltip("Save the result to a file"));
-        statsLabel.getStyleClass().add("fxt-output-status");
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-        HBox header = new HBox(8, title, statsLabel, spacer, copy, save);
-        header.setAlignment(Pos.CENTER_LEFT);
+    @FXML
+    public void onCopyResults() {
+        copyResults();
+    }
 
+    private void initResults() {
         resultsArea.setEditable(false);
         resultsArea.setWrapText(false);
         resultsArea.setPlaceholder(new Label("Run a query to see results here."));
@@ -247,11 +198,7 @@ public class QueryConsole extends Region {
         CodeAreaFontZoom.install(resultsArea);
         VirtualizedScrollPane<CodeArea> resultsScroll = new VirtualizedScrollPane<>(resultsArea);
         VBox.setVgrow(resultsScroll, Priority.ALWAYS);
-
-        VBox box = new VBox(8, header, resultsScroll);
-        box.setPadding(new Insets(8));
-        box.getStyleClass().add("fxt-side-panel-content");
-        return box;
+        resultsBox.getChildren().add(resultsScroll);
     }
 
     /** Shows the XPath field in XPath mode and the XQuery area in XQuery mode. */
@@ -261,10 +208,6 @@ public class QueryConsole extends Region {
         xqueryArea.setManaged(xquery);
         xpathField.setVisible(!xquery);
         xpathField.setManaged(!xquery);
-        // Both modes get the same full-height editor: the input always grows to fill the QUERY
-        // pane (Ctrl+Enter runs, Enter inserts a newline), so XPath is as large as XQuery.
-        VBox.setVgrow(inputStack, Priority.ALWAYS);
-        inputStack.setMaxHeight(Double.MAX_VALUE);
     }
 
     /** Enables/disables Run based on whether a document is currently open. */
@@ -294,6 +237,7 @@ public class QueryConsole extends Region {
     }
 
     /** Runs the current query (XPath or XQuery) against the active document. */
+    @FXML
     public void run() {
         if (xqueryToggle.isSelected()) {
             runXQuery();
@@ -418,6 +362,7 @@ public class QueryConsole extends Region {
      * with a hint and no dialog; I/O failures degrade to a message in the results
      * pane.
      */
+    @FXML
     public void saveResults() {
         String text = resultsArea.getText();
         if (text == null || text.isBlank()) {
@@ -506,6 +451,7 @@ public class QueryConsole extends Region {
      * {@code .xquery}). Blank expressions are rejected with a hint in the results
      * pane and no prompt.
      */
+    @FXML
     public void saveSnippet() {
         String expression = currentExpression();
         if (expression == null || expression.isBlank()) {
@@ -795,15 +741,6 @@ public class QueryConsole extends Region {
         } catch (Exception e) {
             setResultsText("Could not load snippet: " + e.getMessage());
         }
-    }
-
-    private Button button(String text, String icon, Runnable action) {
-        IconifyIcon graphic = new IconifyIcon(icon);
-        graphic.setIconSize(16);
-        Button button = new Button(text, graphic);
-        button.getStyleClass().add("fxt-tool-button");
-        button.setOnAction(e -> action.run());
-        return button;
     }
 
     // ---------------------------------------------------------------------

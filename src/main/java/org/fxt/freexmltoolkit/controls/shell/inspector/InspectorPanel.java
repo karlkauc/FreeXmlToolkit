@@ -5,27 +5,25 @@ import java.util.List;
 
 import javafx.animation.PauseTransition;
 import javafx.collections.FXCollections;
-import javafx.geometry.Pos;
+import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Spinner;
-import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.shared.utilities.XmlElementAtCaret;
+import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType;
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost;
 import org.fxt.freexmltoolkit.controls.shell.schema.SchemaConstraints;
@@ -73,173 +71,148 @@ public class InspectorPanel extends VBox {
     private XmlNode currentXmlNode;
     private org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonNode currentJsonNode;
 
-    private final Label nodeHeaderName = new Label(PLACEHOLDER);
-    private final Label nodeHeaderKind = new Label();
-    private final Label validationBadge = new Label();
+    @FXML private Label nodeHeaderName;
+    @FXML private Label nodeHeaderKind;
+    @FXML private Label validationBadge;
 
     // Read-only values
-    private final Label kindValue = roLabel();
-    private final Label xpathValue = roLabel();
-    private final Label depthValue = roLabel();
+    @FXML private Label kindValue;
+    @FXML private Label xpathValue;
+    @FXML private Label depthValue;
     // Editable controls
-    private final TextField nameField = editField("inspector-name");
-    private final ComboBox<String> typeCombo = editCombo("inspector-type");
-    private final Spinner<Integer> minSpinner = intSpinner("inspector-min");
-    private final Spinner<Integer> maxSpinner = intSpinner("inspector-max");
-    private final CheckBox unboundedCheck = new CheckBox("unbounded");
-    private final ComboBox<String> useCombo = editCombo("inspector-use");
-    private final ComboBox<String> formCombo = editCombo("inspector-form");
-    private final CheckBox nillableCheck = new CheckBox();
-    private final CheckBox abstractCheck = new CheckBox();
-    private final TextField fixedField = editField("inspector-fixed");
-    private final TextField substField = editField("inspector-subst");
+    @FXML private TextField nameField;
+    @FXML private ComboBox<String> typeCombo;
+    @FXML private Spinner<Integer> minSpinner;
+    @FXML private Spinner<Integer> maxSpinner;
+    @FXML private CheckBox unboundedCheck;
+    @FXML private ComboBox<String> useCombo;
+    @FXML private ComboBox<String> formCombo;
+    @FXML private CheckBox nillableCheck;
+    @FXML private CheckBox abstractCheck;
+    @FXML private TextField fixedField;
+    @FXML private TextField substField;
     // Advanced XSD properties (default/ref/block/final/mixed + wildcard) — section toggled by node type.
-    private final TextField defaultField = editField("inspector-default");
-    private final TextField refField = editField("inspector-ref");
-    private final TextField blockField = editField("inspector-block");
-    private final TextField finalField = editField("inspector-final");
-    private final CheckBox mixedCheck = new CheckBox();
-    private final TextField wildcardNsField = editField("inspector-wildcard-ns");
-    private final ComboBox<String> wildcardProcessCombo = editCombo("inspector-wildcard-process");
+    @FXML private TextField defaultField;
+    @FXML private TextField refField;
+    @FXML private TextField blockField;
+    @FXML private TextField finalField;
+    @FXML private CheckBox mixedCheck;
+    @FXML private TextField wildcardNsField;
+    @FXML private ComboBox<String> wildcardProcessCombo;
     // Schema-level (xs:schema root) attributes.
-    private final TextField schemaTargetNsField = editField("inspector-schema-targetns");
-    private final TextField schemaVersionField = editField("inspector-schema-version");
-    private final ComboBox<String> schemaElementFormCombo = editCombo("inspector-schema-elementform");
-    private final ComboBox<String> schemaAttributeFormCombo = editCombo("inspector-schema-attrform");
+    @FXML private TextField schemaTargetNsField;
+    @FXML private TextField schemaVersionField;
+    @FXML private ComboBox<String> schemaElementFormCombo;
+    @FXML private ComboBox<String> schemaAttributeFormCombo;
     // Schema imports/includes management.
-    private final javafx.scene.control.ListView<XsdNode> schemaRefList = new javafx.scene.control.ListView<>();
-    private final ComboBox<String> schemaRefKindCombo = new ComboBox<>();
-    private final TextField schemaRefNsField = new TextField();
-    private final TextField schemaRefLocationField = new TextField();
-    private final DocLanguagesEditor docEditor = new DocLanguagesEditor();
+    @FXML private javafx.scene.control.ListView<XsdNode> schemaRefList;
+    @FXML private ComboBox<String> schemaRefKindCombo;
+    @FXML private TextField schemaRefNsField;
+    @FXML private TextField schemaRefLocationField;
+    @FXML private DocLanguagesEditor docEditor;
     private AppInfoFieldsEditor appInfoFieldsEditor;
-    private final TextArea appinfoArea = new TextArea();
-    private final TableView<XsdFacet> facetTable = new TableView<>();
-    private VBox facetBox;
+    @FXML private TextArea appinfoArea;
+    @FXML private TableView<XsdFacet> facetTable;
+    @FXML private VBox facetBox;
     /** Facets currently shown that are inherited via a named-type reference (read-only). */
     private final java.util.Set<XsdFacet> inheritedFacets = new java.util.HashSet<>();
-    private final ComboBox<org.fxt.freexmltoolkit.controls.v2.model.XsdFacetType> facetTypeCombo = new ComboBox<>();
-    private final TextField facetValueField = new TextField();
+    @FXML private ComboBox<org.fxt.freexmltoolkit.controls.v2.model.XsdFacetType> facetTypeCombo;
+    @FXML private TextField facetValueField;
     // XML-instance value/attributes
-    private final TextArea xmlTextArea = new TextArea();
-    private final TableView<AttrEntry> xmlAttrTable = new TableView<>();
-    private Label xmlTextLabel;
-    private VBox xmlTextBox;
-    private VBox xmlAttrBox;
-    private final TextField attrNameField = new TextField();
-    private final TextField attrValueField = new TextField();
+    @FXML private TextArea xmlTextArea;
+    @FXML private TableView<AttrEntry> xmlAttrTable;
+    @FXML private Label xmlTextLabel;
+    @FXML private VBox xmlTextBox;
+    @FXML private VBox xmlAttrBox;
+    @FXML private TextField attrNameField;
+    @FXML private TextField attrValueField;
     // XML element namespace (prefix + URI)
-    private final TextField nsPrefixField = editField("inspector-ns-prefix");
-    private final TextField nsUriField = editField("inspector-ns-uri");
-    private TitledPane namespaceSection;
+    @FXML private TextField nsPrefixField;
+    @FXML private TextField nsUriField;
+    @FXML private TitledPane namespaceSection;
     // Non-element XML nodes: comment / CDATA / text content, and processing instructions
-    private final TextArea contentArea = new TextArea();
-    private Label contentLabel;
-    private TitledPane contentSection;
-    private final TextField piTargetField = editField("inspector-pi-target");
-    private final TextField piDataField = editField("inspector-pi-data");
-    private TitledPane piSection;
+    @FXML private TextArea contentArea;
+    @FXML private Label contentLabel;
+    @FXML private TitledPane contentSection;
+    @FXML private TextField piTargetField;
+    @FXML private TextField piDataField;
+    @FXML private TitledPane piSection;
     // XML declaration (document node)
-    private final TextField declVersionField = editField("inspector-decl-version");
-    private final TextField declEncodingField = editField("inspector-decl-encoding");
-    private final ComboBox<String> declStandaloneCombo = new ComboBox<>();
-    private TitledPane declarationSection;
+    @FXML private TextField declVersionField;
+    @FXML private TextField declEncodingField;
+    @FXML private ComboBox<String> declStandaloneCombo;
+    @FXML private TitledPane declarationSection;
     // XSD-derived, read-only info shown for an XML element when a schema is bound
-    private final Label xmlSchemaTypeValue = roLabel();
-    private final Label xmlSchemaDocValue = roLabel();
-    private final javafx.scene.control.ListView<String> validChildrenList = new javafx.scene.control.ListView<>();
-    private final javafx.scene.control.ListView<String> exampleValuesList = new javafx.scene.control.ListView<>();
-    private VBox xmlSchemaBox;
-    private TitledPane typeFacetsSection;
-    private TitledPane cardUseSection;
-    private TitledPane docSection;
-    private TitledPane valueAttrSection;
-    private TitledPane constraintsSection;
+    @FXML private Label xmlSchemaTypeValue;
+    @FXML private Label xmlSchemaDocValue;
+    @FXML private javafx.scene.control.ListView<String> validChildrenList;
+    @FXML private javafx.scene.control.ListView<String> exampleValuesList;
+    @FXML private VBox xmlSchemaBox;
+    @FXML private TitledPane typeFacetsSection;
+    @FXML private TitledPane cardUseSection;
+    @FXML private TitledPane docSection;
+    @FXML private TitledPane valueAttrSection;
+    @FXML private TitledPane constraintsSection;
     // Read-only identity constraints / assertions of the selected node.
-    private final TableView<SchemaConstraints.ConstraintInfo> constraintsTable = new TableView<>();
+    @FXML private TableView<SchemaConstraints.ConstraintInfo> constraintsTable;
     // Add identity constraint (key/keyref/unique) — element-only.
-    private final ComboBox<String> constraintKindCombo = new ComboBox<>();
-    private final TextField constraintNameField = new TextField();
-    private final TextField constraintSelectorField = new TextField();
-    private final TextField constraintFieldField = new TextField();
-    private final TextField constraintReferField = new TextField();
-    private VBox constraintAddBox;
+    @FXML private ComboBox<String> constraintKindCombo;
+    @FXML private TextField constraintNameField;
+    @FXML private TextField constraintSelectorField;
+    @FXML private TextField constraintFieldField;
+    @FXML private TextField constraintReferField;
+    @FXML private VBox constraintAddBox;
 
     // Rows toggled by node type
-    private HBox typeRow;
-    private HBox minRow;
-    private HBox maxRow;
-    private HBox useRow;
-    private HBox formRow;
-    private HBox nillableRow;
-    private HBox abstractRow;
-    private HBox fixedRow;
-    private HBox substRow;
-    private HBox defaultRow;
-    private HBox refRow;
-    private HBox blockRow;
-    private HBox finalRow;
-    private HBox mixedRow;
-    private HBox wildcardNsRow;
-    private HBox wildcardProcessRow;
-    private TitledPane advancedSection;
-    private TitledPane schemaSection;
-    private VBox docBox;
+    @FXML private HBox typeRow;
+    @FXML private HBox minRow;
+    @FXML private HBox maxRow;
+    @FXML private HBox useRow;
+    @FXML private HBox formRow;
+    @FXML private HBox nillableRow;
+    @FXML private HBox abstractRow;
+    @FXML private HBox fixedRow;
+    @FXML private HBox substRow;
+    @FXML private HBox defaultRow;
+    @FXML private HBox refRow;
+    @FXML private HBox blockRow;
+    @FXML private HBox finalRow;
+    @FXML private HBox mixedRow;
+    @FXML private HBox wildcardNsRow;
+    @FXML private HBox wildcardProcessRow;
+    @FXML private TitledPane advancedSection;
+    @FXML private TitledPane schemaSection;
+    @FXML private VBox docBox;
+    // Nodes that only need wiring: copy buttons, table columns, the bound Delete button.
+    @FXML private javafx.scene.control.Button copyXPathButton;
+    @FXML private javafx.scene.control.Button copyNodeButton;
+    @FXML private TableColumn<XsdFacet, String> facetNameCol;
+    @FXML private TableColumn<XsdFacet, String> facetValueCol;
+    @FXML private TableColumn<AttrEntry, String> attrNameCol;
+    @FXML private TableColumn<AttrEntry, String> attrValueCol;
+    @FXML private TableColumn<SchemaConstraints.ConstraintInfo, String> constraintKindCol;
+    @FXML private TableColumn<SchemaConstraints.ConstraintInfo, String> constraintNameCol;
+    @FXML private TableColumn<SchemaConstraints.ConstraintInfo, String> constraintDetailCol;
+    @FXML private javafx.scene.control.Button deleteConstraintButton;
 
+    /** Loads the layout from {@code /pages/inspector/InspectorPanel.fxml} and wires editing and refresh. */
     public InspectorPanel(EditorHost editorHost) {
         this.editorHost = editorHost;
-        getStyleClass().add("fxt-inspector");
         // Width is owned by the shell's horizontal work SplitPane (user-draggable divider,
         // persisted per user; shell default 288 px). No fixed width here — the inspector
         // tables use CONSTRAINED_RESIZE_POLICY, so they follow whatever width the pane gets.
-
-        Label header = new Label("PROPERTIES");
-        header.getStyleClass().add("fxt-inspector-header");
-        getChildren().add(header);
-
-        nodeHeaderName.getStyleClass().add("fxt-inspector-node-name");
-        nodeHeaderKind.getStyleClass().add("fxt-inspector-kind-chip");
-        validationBadge.setId("inspector-validation-badge");
-        validationBadge.setVisible(false);
-        validationBadge.setManaged(false);
-        Region headerSpacer = new Region();
-        HBox.setHgrow(headerSpacer, Priority.ALWAYS);
-        HBox nodeHeader = new HBox(8, nodeHeaderName, nodeHeaderKind, headerSpacer, validationBadge);
-        nodeHeader.setAlignment(Pos.CENTER_LEFT);
-        nodeHeader.getStyleClass().add("fxt-inspector-node-header");
-        getChildren().add(nodeHeader);
+        FxmlViews.load(this, "/pages/inspector/InspectorPanel.fxml");
 
         editorHost.validationStatusProperty().addListener((obs, oldV, newV) -> updateValidationBadge(newV));
         updateValidationBadge(editorHost.validationStatusProperty().get());
 
-        TitledPane nodeXPathSection = section("NODE & XPATH", new VBox(4,
-                row("Kind", kindValue), row("Name", nameField), xpathRow(), row("Depth", depthValue)));
-        typeFacetsSection = section("TYPE & FACETS", buildTypeFacetsBody());
-        namespaceSection = section("NAMESPACE", buildNamespaceBody());
-        valueAttrSection = section("VALUE & ATTRIBUTES", buildValueAttrBody());
-        contentSection = section("CONTENT", buildContentBody());
-        piSection = section("PROCESSING INSTRUCTION", buildPiBody());
-        declarationSection = section("XML DECLARATION", buildDeclarationBody());
-        cardUseSection = section("CARDINALITY & USE", buildCardinalityBody());
-        advancedSection = section("ADVANCED", buildAdvancedBody());
-        schemaSection = section("SCHEMA", buildSchemaBody());
-        constraintsSection = section("CONSTRAINTS", buildConstraintsBody());
-        docSection = section("DOCUMENTATION & REFS", buildDocBody());
-
-        // The sections can exceed the window height; host them in a vertical ScrollPane so the
-        // pane never overflows the screen, while the PROPERTIES header stays pinned at the top.
-        VBox sectionsBox = new VBox(8, nodeXPathSection, typeFacetsSection, namespaceSection,
-                valueAttrSection, contentSection, piSection, declarationSection, cardUseSection,
-                advancedSection, schemaSection, constraintsSection, docSection);
-        ScrollPane scroller = new ScrollPane(sectionsBox);
-        scroller.setFitToWidth(true);
-        scroller.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        scroller.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        scroller.setMinHeight(0);
-        scroller.getStyleClass().add("fxt-inspector-scroll");
-        VBox.setVgrow(scroller, Priority.ALWAYS);
-        getChildren().add(scroller);
-
+        initXPathRow();
+        initTypeFacets();
+        initValueAttr();
+        initXmlNodeSections();
+        initSchemaSections();
+        initConstraints();
+        initDoc();
         wireEditing();
 
         debounce.setOnFinished(e -> refresh());
@@ -257,19 +230,33 @@ public class InspectorPanel extends VBox {
         refresh();
     }
 
-    // ----- section bodies --------------------------------------------------
+    // ----- wiring of the FXML-defined sections ------------------------------
 
-    @SuppressWarnings("unchecked")
-    private Node buildTypeFacetsBody() {
-        TableColumn<XsdFacet, String> nameCol = new TableColumn<>("Facet");
-        nameCol.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(
+    /**
+     * The "XPath" block: the two copy buttons ("Copy XPath" positional, "Copy Node (XML)") and the
+     * value itself (one click copies the XPath) act on the selected model node when one is present
+     * (grid/graphic mode), otherwise on the element enclosing the editor caret (text mode), and are
+     * inert while no node/XPath is shown.
+     */
+    private void initXPathRow() {
+        var disabled = javafx.beans.binding.Bindings.createBooleanBinding(
+                () -> {
+                    String t = xpathValue.getText();
+                    return t == null || t.isBlank() || PLACEHOLDER.equals(t);
+                },
+                xpathValue.textProperty());
+        copyXPathButton.disableProperty().bind(disabled);
+        copyNodeButton.disableProperty().bind(disabled);
+        xpathValue.cursorProperty().bind(javafx.beans.binding.Bindings.when(disabled)
+                .then(javafx.scene.Cursor.DEFAULT).otherwise(javafx.scene.Cursor.HAND));
+    }
+
+    private void initTypeFacets() {
+        facetNameCol.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(
                 c.getValue().getFacetType().getXmlName()));
-        nameCol.setPrefWidth(140);
-        TableColumn<XsdFacet, String> valueCol = new TableColumn<>("Value");
-        valueCol.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(c.getValue().getValue()));
-        valueCol.setPrefWidth(180);
+        facetValueCol.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(c.getValue().getValue()));
         // Editable facet value (inline facets); inherited facets are read-only.
-        valueCol.setCellFactory(col -> new javafx.scene.control.cell.TextFieldTableCell<XsdFacet, String>(
+        facetValueCol.setCellFactory(col -> new javafx.scene.control.cell.TextFieldTableCell<XsdFacet, String>(
                 new javafx.util.converter.DefaultStringConverter()) {
             @Override
             public void startEdit() {
@@ -280,8 +267,7 @@ public class InspectorPanel extends VBox {
                 super.startEdit();
             }
         });
-        valueCol.setEditable(true);
-        valueCol.setOnEditCommit(e -> {
+        facetValueCol.setOnEditCommit(e -> {
             if (!updating && e.getRowValue() != null && !inheritedFacets.contains(e.getRowValue())) {
                 editorHost.editActiveFacet(e.getRowValue(), e.getNewValue());
             }
@@ -298,24 +284,9 @@ public class InspectorPanel extends VBox {
                         : null);
             }
         });
-        facetTable.getColumns().setAll(nameCol, valueCol);
-        facetTable.setEditable(true);
-        facetTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
-        facetTable.setPrefHeight(120);
-        facetTable.getStyleClass().add("fxt-facet-table");
-        facetTable.setPlaceholder(new Label("No facets"));
 
-        typeRow = row("Type", typeCombo);
-        facetBox = new VBox(4, facetTable, buildFacetAddRow());
-        return new VBox(4, typeRow, facetBox);
-    }
-
-    /** Row to add a facet (type + value) and delete the selected one. */
-    private Node buildFacetAddRow() {
         facetTypeCombo.getItems().setAll(
                 org.fxt.freexmltoolkit.controls.v2.model.XsdFacetType.values());
-        facetTypeCombo.setId("inspector-facet-type");
-        facetTypeCombo.getStyleClass().add("fxt-inspector-edit");
         facetTypeCombo.setConverter(new javafx.util.StringConverter<>() {
             @Override
             public String toString(org.fxt.freexmltoolkit.controls.v2.model.XsdFacetType t) {
@@ -327,89 +298,116 @@ public class InspectorPanel extends VBox {
                 return null;
             }
         });
-
-        facetValueField.setId("inspector-facet-value");
-        facetValueField.getStyleClass().add("fxt-inspector-edit");
-        facetValueField.setPromptText("value");
-        HBox.setHgrow(facetValueField, Priority.ALWAYS);
-
-        javafx.scene.control.Button addBtn = new javafx.scene.control.Button("Add");
-        addBtn.setId("inspector-facet-add");
-        addBtn.setMinWidth(javafx.scene.layout.Region.USE_PREF_SIZE);
-        addBtn.setOnAction(e -> {
-            var type = facetTypeCombo.getValue();
-            String value = facetValueField.getText();
-            if (type != null && value != null && !value.isBlank()) {
-                editorHost.addActiveFacet(type, value.trim());
-                facetValueField.clear();
-            }
-        });
-        javafx.scene.control.Button delBtn = new javafx.scene.control.Button("Delete");
-        delBtn.setId("inspector-facet-delete");
-        delBtn.setMinWidth(javafx.scene.layout.Region.USE_PREF_SIZE);
-        delBtn.setOnAction(e -> {
-            XsdFacet sel = facetTable.getSelectionModel().getSelectedItem();
-            if (sel != null && !inheritedFacets.contains(sel)) {
-                editorHost.deleteActiveFacet(sel);
-            }
-        });
-
-        HBox addRow = new HBox(6, facetTypeCombo, facetValueField, addBtn, delBtn);
-        addRow.setAlignment(Pos.CENTER_LEFT);
-        return addRow;
     }
 
-    private Node buildCardinalityBody() {
-        HBox maxBox = new HBox(8, maxSpinner, unboundedCheck);
-        maxBox.setAlignment(Pos.CENTER_LEFT);
-        HBox.setHgrow(maxSpinner, Priority.ALWAYS);
-        minRow = row("minOccurs", minSpinner);
-        maxRow = row("maxOccurs", maxBox);
-        useRow = row("Use", useCombo);
-        formRow = row("Form", formCombo);
-        nillableRow = row("Nillable", nillableCheck);
-        abstractRow = row("Abstract", abstractCheck);
-        fixedRow = row("Fixed", fixedField);
-        substRow = row("Subst. Group", substField);
-        return new VBox(4, minRow, maxRow, useRow, formRow, nillableRow, abstractRow, fixedRow, substRow);
+    /** Adds a facet (type + value) to the selected node. */
+    @FXML
+    public void onAddFacet() {
+        var type = facetTypeCombo.getValue();
+        String value = facetValueField.getText();
+        if (type != null && value != null && !value.isBlank()) {
+            editorHost.addActiveFacet(type, value.trim());
+            facetValueField.clear();
+        }
     }
 
-    /**
-     * Advanced XSD attributes that the model parses but that have no place in the other sections:
-     * {@code default}/{@code ref} (element &amp; attribute), {@code block} (element &amp; complex type),
-     * {@code final}/{@code mixed} (complex type) and the {@code xs:any}/{@code xs:anyAttribute}
-     * wildcard {@code namespace}/{@code processContents}. Each row is toggled per node type.
-     */
-    private Node buildAdvancedBody() {
+    /** Deletes the selected facet unless it is inherited from a referenced named type. */
+    @FXML
+    public void onDeleteFacet() {
+        XsdFacet sel = facetTable.getSelectionModel().getSelectedItem();
+        if (sel != null && !inheritedFacets.contains(sel)) {
+            editorHost.deleteActiveFacet(sel);
+        }
+    }
+
+    private void initValueAttr() {
+        xmlTextArea.focusedProperty().addListener((o, was, isNow) -> {
+            if (!isNow) {
+                commit(this::commitValueText);
+            }
+        });
+
+        attrNameCol.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(c.getValue().getName()));
+        attrNameCol.setCellFactory(javafx.scene.control.cell.TextFieldTableCell.forTableColumn());
+        attrNameCol.setOnEditCommit(e -> {
+            if (!updating && e.getRowValue() != null && !e.getNewValue().isBlank()) {
+                editorHost.renameActiveXmlAttribute(e.getRowValue().getName(), e.getNewValue().trim());
+            }
+        });
+        attrValueCol.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(c.getValue().getValue()));
+        attrValueCol.setCellFactory(javafx.scene.control.cell.TextFieldTableCell.forTableColumn());
+        attrValueCol.setOnEditCommit(e -> {
+            if (!updating && e.getRowValue() != null) {
+                editorHost.setActiveXmlAttribute(e.getRowValue().getName(), e.getNewValue());
+            }
+        });
+    }
+
+    /** Adds (or overwrites) the attribute named in the add row on the selected XML element. */
+    @FXML
+    public void onAddXmlAttribute() {
+        String name = attrNameField.getText();
+        if (name != null && !name.isBlank()) {
+            editorHost.setActiveXmlAttribute(name.trim(),
+                    attrValueField.getText() == null ? "" : attrValueField.getText());
+            attrNameField.clear();
+            attrValueField.clear();
+        }
+    }
+
+    /** Removes the attribute selected in the XML attributes table. */
+    @FXML
+    public void onDeleteXmlAttribute() {
+        AttrEntry sel = xmlAttrTable.getSelectionModel().getSelectedItem();
+        if (sel != null) {
+            editorHost.removeActiveXmlAttribute(sel.getName());
+        }
+    }
+
+    /** A double-click on a valid child adds it to the selected XML element. */
+    @FXML
+    public void onValidChildClicked(MouseEvent e) {
+        String sel = validChildrenList.getSelectionModel().getSelectedItem();
+        if (e.getClickCount() == 2 && sel != null) {
+            editorHost.addActiveXmlChildElement(sel);
+        }
+    }
+
+    /** A double-click on an example value sets it as the selected XML element's text. */
+    @FXML
+    public void onExampleValueClicked(MouseEvent e) {
+        String sel = exampleValuesList.getSelectionModel().getSelectedItem();
+        if (e.getClickCount() == 2 && sel != null) {
+            editorHost.setActiveXmlElementText(sel);
+        }
+    }
+
+    /** Namespace, comment/CDATA/text content, processing instruction and XML declaration. */
+    private void initXmlNodeSections() {
+        commitOnEnterAndBlur(nsPrefixField, this::commitNamespace);
+        commitOnEnterAndBlur(nsUriField, this::commitNamespace);
+
+        contentArea.focusedProperty().addListener((o, was, isNow) -> {
+            if (!isNow) {
+                commitContent();
+            }
+        });
+
+        commitOnEnterAndBlur(piTargetField, this::commitPi);
+        commitOnEnterAndBlur(piDataField, this::commitPi);
+
+        declStandaloneCombo.getItems().setAll("(omit)", "yes", "no");
+        commitOnEnterAndBlur(declVersionField, this::commitDeclaration);
+        commitOnEnterAndBlur(declEncodingField, this::commitDeclaration);
+        declStandaloneCombo.valueProperty().addListener((o, was, isNow) -> commitDeclaration());
+    }
+
+    /** Choices of the ADVANCED and SCHEMA sections and the xs:import/xs:include list. */
+    private void initSchemaSections() {
         wildcardProcessCombo.getItems().setAll("strict", "lax", "skip");
-        defaultRow = row("Default", defaultField);
-        refRow = row("Ref", refField);
-        blockRow = row("Block", blockField);
-        finalRow = row("Final", finalField);
-        mixedRow = row("Mixed", mixedCheck);
-        wildcardNsRow = row("Namespace", wildcardNsField);
-        wildcardProcessRow = row("Process", wildcardProcessCombo);
-        return new VBox(4, defaultRow, refRow, blockRow, finalRow, mixedRow, wildcardNsRow, wildcardProcessRow);
-    }
-
-    /** Schema-level attributes, shown only when the {@code xs:schema} root is selected. */
-    private Node buildSchemaBody() {
         schemaElementFormCombo.getItems().setAll("", "qualified", "unqualified");
         schemaAttributeFormCombo.getItems().setAll("", "qualified", "unqualified");
-        return new VBox(4,
-                row("Target NS", schemaTargetNsField),
-                row("Version", schemaVersionField),
-                row("Element form", schemaElementFormCombo),
-                row("Attr form", schemaAttributeFormCombo),
-                buildSchemaRefsBox());
-    }
 
-    /** List of xs:import/xs:include directives with add/delete (schema root only). */
-    private Node buildSchemaRefsBox() {
-        schemaRefList.setId("inspector-schema-refs");
-        schemaRefList.setPrefHeight(90);
-        schemaRefList.setPlaceholder(new Label("No imports/includes"));
-        schemaRefList.getStyleClass().add("fxt-facet-table");
         schemaRefList.setCellFactory(lv -> new javafx.scene.control.ListCell<>() {
             @Override
             protected void updateItem(XsdNode item, boolean empty) {
@@ -417,41 +415,66 @@ public class InspectorPanel extends VBox {
                 setText(empty || item == null ? null : describeSchemaRef(item));
             }
         });
-
-        schemaRefKindCombo.setId("inspector-schema-ref-kind");
         schemaRefKindCombo.getItems().setAll("import", "include");
         schemaRefKindCombo.setValue("import");
-        schemaRefKindCombo.getStyleClass().add("fxt-inspector-edit");
-        schemaRefNsField.setId("inspector-schema-ref-ns");
-        schemaRefNsField.setPromptText("namespace (import)");
-        schemaRefNsField.getStyleClass().add("fxt-inspector-edit");
-        schemaRefLocationField.setId("inspector-schema-ref-location");
-        schemaRefLocationField.setPromptText("schemaLocation");
-        schemaRefLocationField.getStyleClass().add("fxt-inspector-edit");
         // namespace applies to import only.
         schemaRefKindCombo.valueProperty().addListener((o, ov, nv) ->
                 schemaRefNsField.setDisable(!"import".equals(nv)));
+    }
 
-        javafx.scene.control.Button addBtn = new javafx.scene.control.Button("Add");
-        addBtn.setId("inspector-schema-ref-add");
-        addBtn.setMinWidth(Region.USE_PREF_SIZE);
-        addBtn.setOnAction(e -> commitAddSchemaRef());
-        javafx.scene.control.Button delBtn = new javafx.scene.control.Button("Delete");
-        delBtn.setId("inspector-schema-ref-delete");
-        delBtn.setMinWidth(Region.USE_PREF_SIZE);
-        delBtn.setOnAction(e -> {
-            XsdNode sel = schemaRefList.getSelectionModel().getSelectedItem();
-            if (sel != null) {
-                commit(() -> editorHost.removeActiveSchemaReference(sel));
-            }
-        });
-        HBox buttons = new HBox(6, addBtn, delBtn);
-        buttons.setAlignment(Pos.CENTER_LEFT);
+    @FXML
+    public void onAddSchemaRef() {
+        commitAddSchemaRef();
+    }
 
-        Label header = new Label("Imports / Includes");
-        header.getStyleClass().add("fxt-inspector-sub-label");
-        return new VBox(4, header, schemaRefList, schemaRefKindCombo,
-                schemaRefNsField, schemaRefLocationField, buttons);
+    /** Removes the xs:import/xs:include selected in the list. */
+    @FXML
+    public void onDeleteSchemaRef() {
+        XsdNode sel = schemaRefList.getSelectionModel().getSelectedItem();
+        if (sel != null) {
+            commit(() -> editorHost.removeActiveSchemaReference(sel));
+        }
+    }
+
+    private void initConstraints() {
+        constraintKindCol.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(c.getValue().kind()));
+        constraintNameCol.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(c.getValue().name()));
+        constraintDetailCol.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(c.getValue().detail()));
+        deleteConstraintButton.disableProperty().bind(
+                constraintsTable.getSelectionModel().selectedItemProperty().isNull());
+
+        constraintKindCombo.getItems().setAll("key", "unique", "keyref");
+        constraintKindCombo.setValue("key");
+        // refer applies to keyref only.
+        constraintKindCombo.valueProperty().addListener((o, ov, nv) ->
+                constraintReferField.setDisable(!"keyref".equals(nv)));
+    }
+
+    /** Identity constraints (key/keyref/unique) and assertions are deleted via the command stack. */
+    @FXML
+    public void onDeleteConstraint() {
+        var sel = constraintsTable.getSelectionModel().getSelectedItem();
+        if (sel != null && sel.node() != null) {
+            commit(() -> editorHost.deleteConstraintNode(sel.node()));
+        }
+    }
+
+    @FXML
+    public void onAddConstraint() {
+        commitAddConstraint();
+    }
+
+    private void initDoc() {
+        docEditor.setOnChange(docs -> commit(() -> editorHost.changeActiveDocumentations(docs)));
+
+        // Structured @since/@version/@author/@see/@deprecated editor with {@link} autocomplete.
+        // It commits an XsdAppInfo object (preserving complex/raw appinfo entries) through the
+        // command stack; the raw display string stays available below for power users.
+        appInfoFieldsEditor = new AppInfoFieldsEditor(
+                () -> editorHost.getActiveSchema().orElse(null),
+                appinfo -> commit(() -> editorHost.changeActiveAppinfo(appinfo)));
+        // Between the "App info (@tags)" label and the "Raw appinfo" sub-pane.
+        docBox.getChildren().add(2, appInfoFieldsEditor);
     }
 
     private static String describeSchemaRef(XsdNode node) {
@@ -481,162 +504,6 @@ public class InspectorPanel extends VBox {
         }
     }
 
-    private Node buildDocBody() {
-        docEditor.setId("inspector-doc");
-        docEditor.setOnChange(docs -> commit(() -> editorHost.changeActiveDocumentations(docs)));
-
-        // Structured @since/@version/@author/@see/@deprecated editor with {@link} autocomplete.
-        // It commits an XsdAppInfo object (preserving complex/raw appinfo entries) through the
-        // command stack; the raw display string stays available below for power users.
-        appInfoFieldsEditor = new AppInfoFieldsEditor(
-                () -> editorHost.getActiveSchema().orElse(null),
-                appinfo -> commit(() -> editorHost.changeActiveAppinfo(appinfo)));
-
-        appinfoArea.setId("inspector-appinfo");
-        appinfoArea.getStyleClass().add("fxt-inspector-edit");
-        appinfoArea.setWrapText(true);
-        appinfoArea.setPrefRowCount(2);
-        appinfoArea.setPromptText("xs:appinfo (raw display string)");
-        TitledPane rawPane = new TitledPane("Raw appinfo", appinfoArea);
-        rawPane.setExpanded(false);
-        // A nested sub-pane inside DOCUMENTATION & REFS — it shares the section look but is
-        // deliberately NOT a top-level "fxt-inspector-section" (which marks the flat sections).
-        rawPane.getStyleClass().add("fxt-inspector-subsection");
-
-        Label appinfoLabel = new Label("App info (@tags)");
-        appinfoLabel.getStyleClass().add("fxt-inspector-sub-label");
-        docBox = new VBox(4, docEditor, appinfoLabel, appInfoFieldsEditor, rawPane);
-        return docBox;
-    }
-
-    @SuppressWarnings("unchecked")
-    private Node buildValueAttrBody() {
-        xmlTextArea.setId("inspector-xml-text");
-        xmlTextArea.getStyleClass().add("fxt-inspector-edit");
-        xmlTextArea.setWrapText(true);
-        xmlTextArea.setPrefRowCount(2);
-        xmlTextArea.focusedProperty().addListener((o, was, isNow) -> {
-            if (!isNow) {
-                commit(this::commitValueText);
-            }
-        });
-
-        TableColumn<AttrEntry, String> nameCol = new TableColumn<>("Attribute");
-        nameCol.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(c.getValue().getName()));
-        nameCol.setCellFactory(javafx.scene.control.cell.TextFieldTableCell.forTableColumn());
-        nameCol.setPrefWidth(140);
-        nameCol.setEditable(true);
-        nameCol.setOnEditCommit(e -> {
-            if (!updating && e.getRowValue() != null && !e.getNewValue().isBlank()) {
-                editorHost.renameActiveXmlAttribute(e.getRowValue().getName(), e.getNewValue().trim());
-            }
-        });
-        TableColumn<AttrEntry, String> valueCol = new TableColumn<>("Value");
-        valueCol.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(c.getValue().getValue()));
-        valueCol.setCellFactory(javafx.scene.control.cell.TextFieldTableCell.forTableColumn());
-        valueCol.setEditable(true);
-        valueCol.setOnEditCommit(e -> {
-            if (!updating && e.getRowValue() != null) {
-                editorHost.setActiveXmlAttribute(e.getRowValue().getName(), e.getNewValue());
-            }
-        });
-        xmlAttrTable.getColumns().setAll(nameCol, valueCol);
-        xmlAttrTable.setEditable(true);
-        xmlAttrTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
-        xmlAttrTable.setId("inspector-xml-attrs");
-        xmlAttrTable.setPrefHeight(120);
-        xmlAttrTable.getStyleClass().add("fxt-facet-table");
-        xmlAttrTable.setPlaceholder(new Label("No attributes"));
-
-        xmlTextLabel = new Label("Text");
-        xmlTextLabel.getStyleClass().add("fxt-inspector-key");
-        xmlTextBox = new VBox(4, xmlTextLabel, xmlTextArea);
-        Label attrLabel = new Label("Attributes");
-        attrLabel.getStyleClass().add("fxt-inspector-key");
-        xmlAttrBox = new VBox(4, attrLabel, xmlAttrTable, buildXmlAttrAddRow());
-        validChildrenList.setId("inspector-valid-children");
-        validChildrenList.setPrefHeight(90);
-        validChildrenList.setPlaceholder(new Label("—"));
-        validChildrenList.setOnMouseClicked(e -> {
-            String sel = validChildrenList.getSelectionModel().getSelectedItem();
-            if (e.getClickCount() == 2 && sel != null) {
-                editorHost.addActiveXmlChildElement(sel);
-            }
-        });
-        exampleValuesList.setId("inspector-example-values");
-        exampleValuesList.setPrefHeight(70);
-        exampleValuesList.setPlaceholder(new Label("—"));
-        exampleValuesList.setOnMouseClicked(e -> {
-            String sel = exampleValuesList.getSelectionModel().getSelectedItem();
-            if (e.getClickCount() == 2 && sel != null) {
-                editorHost.setActiveXmlElementText(sel);
-            }
-        });
-        Label childrenLabel = new Label("Valid children (double-click to add)");
-        childrenLabel.getStyleClass().add("fxt-inspector-key");
-        Label examplesLabel = new Label("Example values (double-click to set)");
-        examplesLabel.getStyleClass().add("fxt-inspector-key");
-        // "Documentation" sits ABOVE its (often long, wrapping) text — a side-by-side
-        // key/value row would waste the narrow panel's width on the label column.
-        Label docLabel = new Label("Documentation");
-        docLabel.getStyleClass().add("fxt-inspector-key");
-        xmlSchemaBox = new VBox(4, row("Schema type", xmlSchemaTypeValue), docLabel, xmlSchemaDocValue,
-                childrenLabel, validChildrenList, examplesLabel, exampleValuesList);
-        return new VBox(4, xmlTextBox, xmlAttrBox, xmlSchemaBox);
-    }
-
-    /** Add-attribute (name + value) and Delete (selected) row for the XML attributes table. */
-    private Node buildXmlAttrAddRow() {
-        attrNameField.setId("inspector-xml-attr-name");
-        attrNameField.getStyleClass().add("fxt-inspector-edit");
-        attrNameField.setPromptText("name");
-        attrValueField.setId("inspector-xml-attr-value");
-        attrValueField.getStyleClass().add("fxt-inspector-edit");
-        attrValueField.setPromptText("value");
-        HBox.setHgrow(attrValueField, Priority.ALWAYS);
-
-        javafx.scene.control.Button add = new javafx.scene.control.Button("Add");
-        add.setId("inspector-xml-attr-add");
-        add.setMinWidth(javafx.scene.layout.Region.USE_PREF_SIZE);
-        add.setOnAction(e -> {
-            String name = attrNameField.getText();
-            if (name != null && !name.isBlank()) {
-                editorHost.setActiveXmlAttribute(name.trim(),
-                        attrValueField.getText() == null ? "" : attrValueField.getText());
-                attrNameField.clear();
-                attrValueField.clear();
-            }
-        });
-        javafx.scene.control.Button del = new javafx.scene.control.Button("Delete");
-        del.setId("inspector-xml-attr-delete");
-        del.setMinWidth(javafx.scene.layout.Region.USE_PREF_SIZE);
-        del.setOnAction(e -> {
-            AttrEntry sel = xmlAttrTable.getSelectionModel().getSelectedItem();
-            if (sel != null) {
-                editorHost.removeActiveXmlAttribute(sel.getName());
-            }
-        });
-        HBox addRow = new HBox(6, attrNameField, attrValueField, add, del);
-        addRow.setAlignment(Pos.CENTER_LEFT);
-        return addRow;
-    }
-
-    /** Editable content for a comment / CDATA / text node (dispatched by the selected node type). */
-    private Node buildContentBody() {
-        contentLabel = new Label("Content");
-        contentLabel.getStyleClass().add("fxt-inspector-key");
-        contentArea.setId("inspector-content");
-        contentArea.getStyleClass().add("fxt-inspector-edit");
-        contentArea.setWrapText(true);
-        contentArea.setPrefRowCount(3);
-        contentArea.focusedProperty().addListener((o, was, isNow) -> {
-            if (!isNow) {
-                commitContent();
-            }
-        });
-        return new VBox(4, contentLabel, contentArea);
-    }
-
     private void commitContent() {
         if (updating) {
             return;
@@ -655,27 +522,8 @@ public class InspectorPanel extends VBox {
         }
     }
 
-    /** Editable processing-instruction target + data. */
-    private Node buildPiBody() {
-        commitOnEnterAndBlur(piTargetField, this::commitPi);
-        commitOnEnterAndBlur(piDataField, this::commitPi);
-        return new VBox(4, row("Target", piTargetField), row("Data", piDataField));
-    }
-
     private void commitPi() {
         commit(() -> editorHost.setActiveProcessingInstruction(piTargetField.getText(), piDataField.getText()));
-    }
-
-    /** Editable XML declaration: version, encoding, standalone (yes/no/omit). */
-    private Node buildDeclarationBody() {
-        declStandaloneCombo.setId("inspector-decl-standalone");
-        declStandaloneCombo.getStyleClass().add("fxt-inspector-edit");
-        declStandaloneCombo.getItems().setAll("(omit)", "yes", "no");
-        commitOnEnterAndBlur(declVersionField, this::commitDeclaration);
-        commitOnEnterAndBlur(declEncodingField, this::commitDeclaration);
-        declStandaloneCombo.valueProperty().addListener((o, was, isNow) -> commitDeclaration());
-        return new VBox(4, row("Version", declVersionField), row("Encoding", declEncodingField),
-                row("Standalone", declStandaloneCombo));
     }
 
     private void commitDeclaration() {
@@ -688,13 +536,6 @@ public class InspectorPanel extends VBox {
             default -> null;
         };
         editorHost.setActiveXmlDeclaration(declVersionField.getText(), declEncodingField.getText(), standalone);
-    }
-
-    /** Editable element namespace prefix + URI; both commit via setActiveElementNamespace. */
-    private Node buildNamespaceBody() {
-        commitOnEnterAndBlur(nsPrefixField, this::commitNamespace);
-        commitOnEnterAndBlur(nsUriField, this::commitNamespace);
-        return new VBox(4, row("Prefix", nsPrefixField), row("URI", nsUriField));
     }
 
     private void commitNamespace() {
@@ -1267,72 +1108,6 @@ public class InspectorPanel extends VBox {
         return depth;
     }
 
-    @SuppressWarnings("unchecked")
-    private Node buildConstraintsBody() {
-        TableColumn<SchemaConstraints.ConstraintInfo, String> kindCol = new TableColumn<>("Kind");
-        kindCol.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(c.getValue().kind()));
-        kindCol.setPrefWidth(70);
-        TableColumn<SchemaConstraints.ConstraintInfo, String> nameCol = new TableColumn<>("Name");
-        nameCol.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(c.getValue().name()));
-        nameCol.setPrefWidth(90);
-        TableColumn<SchemaConstraints.ConstraintInfo, String> detailCol = new TableColumn<>("Detail");
-        detailCol.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(c.getValue().detail()));
-        detailCol.setPrefWidth(200);
-        constraintsTable.getColumns().setAll(kindCol, nameCol, detailCol);
-        constraintsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
-        constraintsTable.setPrefHeight(110);
-        constraintsTable.getStyleClass().add("fxt-facet-table");
-        constraintsTable.setPlaceholder(new Label("No constraints"));
-
-        // Identity constraints (key/keyref/unique) and assertions can be deleted via the command stack.
-        javafx.scene.control.Button deleteConstraint = new javafx.scene.control.Button("Delete constraint");
-        deleteConstraint.setMinWidth(javafx.scene.layout.Region.USE_PREF_SIZE);
-        deleteConstraint.disableProperty().bind(
-                constraintsTable.getSelectionModel().selectedItemProperty().isNull());
-        deleteConstraint.setOnAction(e -> {
-            var sel = constraintsTable.getSelectionModel().getSelectedItem();
-            if (sel != null && sel.node() != null) {
-                commit(() -> editorHost.deleteConstraintNode(sel.node()));
-            }
-        });
-        constraintAddBox = buildConstraintAddBox();
-        return new VBox(4, constraintsTable, deleteConstraint, constraintAddBox);
-    }
-
-    /** Compact form to add an identity constraint (key/unique/keyref) to the selected element. */
-    private VBox buildConstraintAddBox() {
-        constraintKindCombo.setId("inspector-constraint-kind");
-        constraintKindCombo.getItems().setAll("key", "unique", "keyref");
-        constraintKindCombo.setValue("key");
-        constraintKindCombo.getStyleClass().add("fxt-inspector-edit");
-        constraintNameField.setId("inspector-constraint-name");
-        constraintNameField.setPromptText("name");
-        constraintSelectorField.setId("inspector-constraint-selector");
-        constraintSelectorField.setPromptText("selector XPath, e.g. .//item");
-        constraintFieldField.setId("inspector-constraint-field");
-        constraintFieldField.setPromptText("field XPath, e.g. @id");
-        constraintReferField.setId("inspector-constraint-refer");
-        constraintReferField.setPromptText("refer (keyref only)");
-        constraintReferField.setDisable(true);
-        for (TextField f : List.of(constraintNameField, constraintSelectorField,
-                constraintFieldField, constraintReferField)) {
-            f.getStyleClass().add("fxt-inspector-edit");
-        }
-        // refer applies to keyref only.
-        constraintKindCombo.valueProperty().addListener((o, ov, nv) ->
-                constraintReferField.setDisable(!"keyref".equals(nv)));
-
-        javafx.scene.control.Button addBtn = new javafx.scene.control.Button("Add constraint");
-        addBtn.setId("inspector-constraint-add");
-        addBtn.setMinWidth(Region.USE_PREF_SIZE);
-        addBtn.setOnAction(e -> commitAddConstraint());
-
-        Label header = new Label("Add identity constraint");
-        header.getStyleClass().add("fxt-inspector-sub-label");
-        return new VBox(4, header, constraintKindCombo, constraintNameField,
-                constraintSelectorField, constraintFieldField, constraintReferField, addBtn);
-    }
-
     private void commitAddConstraint() {
         AddIdentityConstraintCommand.Kind kind = switch (constraintKindCombo.getValue()) {
             case "keyref" -> AddIdentityConstraintCommand.Kind.KEYREF;
@@ -1469,66 +1244,10 @@ public class InspectorPanel extends VBox {
         validationBadge.setManaged(true);
     }
 
-    // ----- small builders --------------------------------------------------
-
-    private TitledPane section(String title, Node body) {
-        TitledPane pane = new TitledPane(title, body);
-        pane.setExpanded(true);
-        pane.getStyleClass().add("fxt-inspector-section");
-        return pane;
-    }
-
-    /**
-     * The "XPath" block: a header line with the "XPath" key and the two copy affordances
-     * ("Copy XPath" positional, "Copy Node (XML)"), and the XPath value on its own full-width
-     * line below (long paths need the room a trailing icon column would steal). Clicking the
-     * value itself also copies the XPath. All copy actions act on the selected model node when
-     * one is present (grid/graphic mode), otherwise on the element enclosing the editor caret
-     * (text mode), and are inert while no node/XPath is shown.
-     */
-    private VBox xpathRow() {
-        Label k = new Label("XPath");
-        k.getStyleClass().add("fxt-inspector-key");
-        k.setMinWidth(92);
-
-        javafx.scene.control.Button copyXPathButton = iconButton("bi-clipboard", "Copy XPath", this::copyXPathToClipboard);
-        javafx.scene.control.Button copyNodeButton = iconButton("bi-clipboard-data", "Copy Node (XML)", this::copyNodeToClipboard);
-        var disabled = javafx.beans.binding.Bindings.createBooleanBinding(
-                () -> {
-                    String t = xpathValue.getText();
-                    return t == null || t.isBlank() || PLACEHOLDER.equals(t);
-                },
-                xpathValue.textProperty());
-        copyXPathButton.disableProperty().bind(disabled);
-        copyNodeButton.disableProperty().bind(disabled);
-
-        HBox header = new HBox(4, k, copyXPathButton, copyNodeButton);
-        header.setAlignment(Pos.CENTER_LEFT);
-
-        // The value doubles as a copy target: one click puts the XPath on the clipboard.
-        xpathValue.setId("inspector-xpath-value");
-        xpathValue.setMaxWidth(Double.MAX_VALUE);
-        xpathValue.setTooltip(new javafx.scene.control.Tooltip("Click to copy XPath"));
-        xpathValue.setOnMouseClicked(e -> copyXPathToClipboard());
-        xpathValue.cursorProperty().bind(javafx.beans.binding.Bindings.when(disabled)
-                .then(javafx.scene.Cursor.DEFAULT).otherwise(javafx.scene.Cursor.HAND));
-
-        VBox row = new VBox(2, header, xpathValue);
-        row.getStyleClass().add("fxt-inspector-row");
-        return row;
-    }
-
-    private javafx.scene.control.Button iconButton(String icon, String tooltip, Runnable action) {
-        IconifyIcon graphic = new IconifyIcon(icon);
-        graphic.setIconSize(13);
-        javafx.scene.control.Button button = new javafx.scene.control.Button(null, graphic);
-        button.getStyleClass().add("fxt-inspector-icon-button");
-        button.setTooltip(new javafx.scene.control.Tooltip(tooltip));
-        button.setOnAction(e -> action.run());
-        return button;
-    }
+    // ----- small helpers ---------------------------------------------------
 
     /** Copies the positional XPath of the selected node, or of the element at the caret. */
+    @FXML
     public void copyXPathToClipboard() {
         String xpath = currentXmlNode != null
                 ? XmlNodeXPath.positional(currentXmlNode)
@@ -1539,6 +1258,7 @@ public class InspectorPanel extends VBox {
     }
 
     /** Copies the XML of the selected node, or of the element at the caret. */
+    @FXML
     public void copyNodeToClipboard() {
         String xml = currentXmlNode != null
                 ? currentXmlNode.serialize(0)
@@ -1559,20 +1279,6 @@ public class InspectorPanel extends VBox {
         javafx.scene.input.Clipboard.getSystemClipboard().setContent(content);
     }
 
-    private HBox row(String key, Node control) {
-        Label k = new Label(key);
-        k.getStyleClass().add("fxt-inspector-key");
-        k.setMinWidth(92);
-        if (control instanceof Region r) {
-            r.setMaxWidth(Double.MAX_VALUE);
-            HBox.setHgrow(control, Priority.ALWAYS);
-        }
-        HBox row = new HBox(8, k, control);
-        row.setAlignment(Pos.CENTER_LEFT);
-        row.getStyleClass().add("fxt-inspector-row");
-        return row;
-    }
-
     private static void show(Node node, boolean visible) {
         node.setVisible(visible);
         node.setManaged(visible);
@@ -1584,36 +1290,6 @@ public class InspectorPanel extends VBox {
         for (Node child : row.getChildren()) {
             show(child, visible);
         }
-    }
-
-    private Label roLabel() {
-        Label label = new Label(PLACEHOLDER);
-        label.getStyleClass().add("fxt-inspector-value");
-        label.setWrapText(true);
-        return label;
-    }
-
-    private TextField editField(String id) {
-        TextField f = new TextField();
-        f.setId(id);
-        f.getStyleClass().add("fxt-inspector-edit");
-        return f;
-    }
-
-    private ComboBox<String> editCombo(String id) {
-        ComboBox<String> c = new ComboBox<>();
-        c.setId(id);
-        c.setEditable(true);
-        c.getStyleClass().add("fxt-inspector-edit");
-        return c;
-    }
-
-    private Spinner<Integer> intSpinner(String id) {
-        Spinner<Integer> s = new Spinner<>();
-        s.setId(id);
-        s.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 9999, 1));
-        s.getStyleClass().add("fxt-inspector-edit");
-        return s;
     }
 
     private void commitOnEnterAndBlur(TextField field, Runnable edit) {

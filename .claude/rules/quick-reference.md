@@ -65,6 +65,45 @@ public void handleSave() { ... }
 
 ---
 
+## FXML Views
+
+Layout goes into `src/main/resources/pages/{panels,views,dialogs,inspector}/<ClassName>.fxml`,
+behaviour stays in the class.
+
+```java
+public final class FopPanel extends VBox {
+    @FXML private Button generateButton;    // fx:id="generateButton" id="fop-generate"
+
+    public FopPanel(EditorHost editorHost) {
+        this.editorHost = editorHost;       // 1. constructor-arg fields first
+        FxmlViews.load(this, "/pages/panels/FopPanel.fxml");   // 2. fx:root: this = root + controller
+        generateButton.disableProperty().bind(…); // 3. dynamic wiring (bindings, cell factories, menus)
+    }
+
+    @FXML
+    public void onGenerate() { … }
+}
+```
+
+- Dialogs / non-`fx:root` content: `Node content = FxmlViews.loadContent(this, "/pages/dialogs/X.fxml")`.
+- Keep the test `id="…"` next to `fx:id`; tests look nodes up by `#id`.
+- Building blocks as tags: `SidePanelHeader`, `SidePanelSection`, `PanelActionList` +
+  `PanelActionButton` (`iconLiteral`, `color` = `ActionColor`, `primary`), `SourceRow`,
+  `PanelProgress`, `SettingsCard`, `WelcomeQuickCard` / `WelcomeToolCard` / `WelcomeStatCard`;
+  table columns in FXML, value binding via `FxmlColumns.text(column, fn)`.
+- No `stylesheets=` in panel FXMLs (inherited from the shell root).
+- `FxmlContractTest` fails for an `@FXML` field without `fx:id`, a missing or non-public
+  handler, or a duplicate `id`.
+
+| FXML pitfall | Solution |
+|--------------|----------|
+| Nested class tag "is not a valid type" | Fully qualified tag: `<javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory min="1" max="9" initialValue="2"/>` |
+| Text starting with `@` is read as a resource path | Escape it: `text="\@since"` |
+| `USE_PREF_SIZE` / `Double.MAX_VALUE` | `-Infinity` / `Infinity` |
+| Initial `setValue` on a combo fires `onAction` | Guard the handler while filling (see `FundsXmlPanel`) |
+
+---
+
 ## UI Threading
 
 ```java

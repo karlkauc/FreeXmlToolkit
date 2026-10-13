@@ -6,8 +6,8 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.fxml.FXML;
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
@@ -15,7 +15,6 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
-import javafx.scene.control.Separator;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -24,13 +23,11 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 
 /**
  * Visual Rule Builder for creating Schematron rules through a graphical interface.
@@ -40,20 +37,23 @@ public class SchematronVisualBuilder extends VBox {
 
     private static final Logger logger = LogManager.getLogger(SchematronVisualBuilder.class);
 
-    // UI Components
-    private ComboBox<String> patternSelector;
-    private TextField patternIdField;
-    private TextField patternTitleField;
-    private TextField ruleContextField;
-    private TextField ruleIdField;
-    private TableView<AssertionItem> assertionsTable;
-    private TableView<ReportItem> reportsTable;
-    private TextArea previewArea;
-    private Button addPatternButton;
-    private Button addRuleButton;
-    private Button addAssertionButton;
-    private Button addReportButton;
-    private Button generateCodeButton;
+    // UI components (defined in /pages/views/SchematronVisualBuilder.fxml)
+    @FXML private ComboBox<String> patternSelector;
+    @FXML private TextField patternIdField;
+    @FXML private TextField patternTitleField;
+    @FXML private TextField ruleContextField;
+    @FXML private TextField ruleIdField;
+    @FXML private TableView<AssertionItem> assertionsTable;
+    @FXML private TableColumn<AssertionItem, String> assertionTestColumn;
+    @FXML private TableColumn<AssertionItem, String> assertionMessageColumn;
+    @FXML private TableColumn<AssertionItem, String> assertionFlagColumn;
+    @FXML private TableColumn<AssertionItem, Void> assertionActionsColumn;
+    @FXML private TableView<ReportItem> reportsTable;
+    @FXML private TableColumn<ReportItem, String> reportTestColumn;
+    @FXML private TableColumn<ReportItem, String> reportMessageColumn;
+    @FXML private TableColumn<ReportItem, String> reportFlagColumn;
+    @FXML private TableColumn<ReportItem, Void> reportActionsColumn;
+    @FXML private TextArea previewArea;
 
     // Data models
     private final ObservableList<PatternItem> patterns = FXCollections.observableArrayList();
@@ -61,116 +61,50 @@ public class SchematronVisualBuilder extends VBox {
     private final ObservableList<ReportItem> reports = FXCollections.observableArrayList();
 
     /**
-     * Constructor - Initialize the Visual Rule Builder
+     * Constructor - loads the layout from {@code /pages/views/SchematronVisualBuilder.fxml}
+     * and wires the tables and the live preview.
      */
     public SchematronVisualBuilder() {
-        this.setSpacing(10);
-        this.setPadding(new Insets(10));
+        FxmlViews.load(this, "/pages/views/SchematronVisualBuilder.fxml");
 
-        initializeComponents();
-        layoutComponents();
-        setupEventHandlers();
+        wireAssertionsTable();
+        wireReportsTable();
+
+        // Update preview when fields change
+        patternTitleField.textProperty().addListener((obs, oldVal, newVal) -> updatePreview());
+        ruleContextField.textProperty().addListener((obs, oldVal, newVal) -> updatePreview());
+        ruleIdField.textProperty().addListener((obs, oldVal, newVal) -> updatePreview());
 
         logger.debug("SchematronVisualBuilder initialized");
     }
 
     /**
-     * Initialize all UI components
+     * Configures the assertions table: editable columns for test expression, message and
+     * flag, and a delete action per row.
      */
-    private void initializeComponents() {
-        // Pattern section
-        patternSelector = new ComboBox<>();
-        patternSelector.setPromptText("Select pattern or create new");
-        patternSelector.setPrefWidth(250);
-
-        patternIdField = new TextField();
-        patternIdField.setPromptText("Pattern ID (optional)");
-        patternIdField.setPrefWidth(200);
-
-        patternTitleField = new TextField();
-        patternTitleField.setPromptText("Pattern Title");
-        patternTitleField.setPrefWidth(300);
-
-        addPatternButton = new Button("Add Pattern");
-        addPatternButton.getStyleClass().add("primary-button");
-
-        // Rule section
-        ruleContextField = new TextField();
-        ruleContextField.setPromptText("XPath context (e.g., //Order, /root/element)");
-        ruleContextField.setPrefWidth(400);
-
-        ruleIdField = new TextField();
-        ruleIdField.setPromptText("Rule ID (optional)");
-        ruleIdField.setPrefWidth(200);
-
-        addRuleButton = new Button("Add Rule");
-        addRuleButton.getStyleClass().add("primary-button");
-
-        // Assertions table
-        assertionsTable = createAssertionsTable();
-        addAssertionButton = new Button("Add Assertion");
-        addAssertionButton.getStyleClass().add("secondary-button");
-
-        // Reports table
-        reportsTable = createReportsTable();
-        addReportButton = new Button("Add Report");
-        addReportButton.getStyleClass().add("secondary-button");
-
-        // Preview and generation
-        previewArea = new TextArea();
-        previewArea.setEditable(false);
-        previewArea.setPrefHeight(200);
-        previewArea.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 11px;");
-
-        generateCodeButton = new Button("Generate Schematron Code");
-        generateCodeButton.getStyleClass().add("primary-button");
-        generateCodeButton.setPrefWidth(200);
-    }
-
-    /**
-     * Creates and configures the assertions table with editable columns
-     * for test expression, message, flag, and delete action.
-     *
-     * @return the configured TableView for assertion items
-     */
-    private TableView<AssertionItem> createAssertionsTable() {
-        TableView<AssertionItem> table = new TableView<>();
-        table.setEditable(true);
-        table.setPrefHeight(150);
-
-        // Test column
-        TableColumn<AssertionItem, String> testColumn = new TableColumn<>("XPath Test");
-        testColumn.setCellValueFactory(new PropertyValueFactory<>("test"));
-        testColumn.setCellFactory(TextFieldTableCell.forTableColumn());
-        testColumn.setPrefWidth(200);
-        testColumn.setOnEditCommit(event -> {
+    private void wireAssertionsTable() {
+        assertionTestColumn.setCellValueFactory(new PropertyValueFactory<>("test"));
+        assertionTestColumn.setCellFactory(TextFieldTableCell.forTableColumn());
+        assertionTestColumn.setOnEditCommit(event -> {
             event.getRowValue().setTest(event.getNewValue());
             updatePreview();
         });
 
-        // Message column
-        TableColumn<AssertionItem, String> messageColumn = new TableColumn<>("Message");
-        messageColumn.setCellValueFactory(new PropertyValueFactory<>("message"));
-        messageColumn.setCellFactory(TextFieldTableCell.forTableColumn());
-        messageColumn.setPrefWidth(250);
-        messageColumn.setOnEditCommit(event -> {
+        assertionMessageColumn.setCellValueFactory(new PropertyValueFactory<>("message"));
+        assertionMessageColumn.setCellFactory(TextFieldTableCell.forTableColumn());
+        assertionMessageColumn.setOnEditCommit(event -> {
             event.getRowValue().setMessage(event.getNewValue());
             updatePreview();
         });
 
-        // Flag column
-        TableColumn<AssertionItem, String> flagColumn = new TableColumn<>("Flag");
-        flagColumn.setCellValueFactory(new PropertyValueFactory<>("flag"));
-        flagColumn.setCellFactory(TextFieldTableCell.forTableColumn());
-        flagColumn.setPrefWidth(100);
-        flagColumn.setOnEditCommit(event -> {
+        assertionFlagColumn.setCellValueFactory(new PropertyValueFactory<>("flag"));
+        assertionFlagColumn.setCellFactory(TextFieldTableCell.forTableColumn());
+        assertionFlagColumn.setOnEditCommit(event -> {
             event.getRowValue().setFlag(event.getNewValue());
             updatePreview();
         });
 
-        // Actions column
-        TableColumn<AssertionItem, Void> actionsColumn = new TableColumn<>("Actions");
-        actionsColumn.setCellFactory(param -> new TableCell<AssertionItem, Void>() {
+        assertionActionsColumn.setCellFactory(param -> new TableCell<AssertionItem, Void>() {
             private final Button deleteButton = new Button("Delete");
 
             {
@@ -192,58 +126,37 @@ public class SchematronVisualBuilder extends VBox {
                 }
             }
         });
-        actionsColumn.setPrefWidth(80);
 
-        table.getColumns().addAll(java.util.List.of(testColumn, messageColumn, flagColumn, actionsColumn));
-        table.setItems(assertions);
-
-        return table;
+        assertionsTable.setItems(assertions);
     }
 
     /**
-     * Creates and configures the reports table with editable columns
-     * for test expression, message, flag, and delete action.
-     *
-     * @return the configured TableView for report items
+     * Configures the reports table: editable columns for test expression, message and
+     * flag, and a delete action per row.
      */
-    private TableView<ReportItem> createReportsTable() {
-        TableView<ReportItem> table = new TableView<>();
-        table.setEditable(true);
-        table.setPrefHeight(150);
-
-        // Test column
-        TableColumn<ReportItem, String> testColumn = new TableColumn<>("XPath Test");
-        testColumn.setCellValueFactory(new PropertyValueFactory<>("test"));
-        testColumn.setCellFactory(TextFieldTableCell.forTableColumn());
-        testColumn.setPrefWidth(200);
-        testColumn.setOnEditCommit(event -> {
+    private void wireReportsTable() {
+        reportTestColumn.setCellValueFactory(new PropertyValueFactory<>("test"));
+        reportTestColumn.setCellFactory(TextFieldTableCell.forTableColumn());
+        reportTestColumn.setOnEditCommit(event -> {
             event.getRowValue().setTest(event.getNewValue());
             updatePreview();
         });
 
-        // Message column
-        TableColumn<ReportItem, String> messageColumn = new TableColumn<>("Message");
-        messageColumn.setCellValueFactory(new PropertyValueFactory<>("message"));
-        messageColumn.setCellFactory(TextFieldTableCell.forTableColumn());
-        messageColumn.setPrefWidth(250);
-        messageColumn.setOnEditCommit(event -> {
+        reportMessageColumn.setCellValueFactory(new PropertyValueFactory<>("message"));
+        reportMessageColumn.setCellFactory(TextFieldTableCell.forTableColumn());
+        reportMessageColumn.setOnEditCommit(event -> {
             event.getRowValue().setMessage(event.getNewValue());
             updatePreview();
         });
 
-        // Flag column
-        TableColumn<ReportItem, String> flagColumn = new TableColumn<>("Flag");
-        flagColumn.setCellValueFactory(new PropertyValueFactory<>("flag"));
-        flagColumn.setCellFactory(TextFieldTableCell.forTableColumn());
-        flagColumn.setPrefWidth(100);
-        flagColumn.setOnEditCommit(event -> {
+        reportFlagColumn.setCellValueFactory(new PropertyValueFactory<>("flag"));
+        reportFlagColumn.setCellFactory(TextFieldTableCell.forTableColumn());
+        reportFlagColumn.setOnEditCommit(event -> {
             event.getRowValue().setFlag(event.getNewValue());
             updatePreview();
         });
 
-        // Actions column
-        TableColumn<ReportItem, Void> actionsColumn = new TableColumn<>("Actions");
-        actionsColumn.setCellFactory(param -> new TableCell<ReportItem, Void>() {
+        reportActionsColumn.setCellFactory(param -> new TableCell<ReportItem, Void>() {
             private final Button deleteButton = new Button("Delete");
 
             {
@@ -265,195 +178,15 @@ public class SchematronVisualBuilder extends VBox {
                 }
             }
         });
-        actionsColumn.setPrefWidth(80);
 
-        table.getColumns().addAll(java.util.List.of(testColumn, messageColumn, flagColumn, actionsColumn));
-        table.setItems(reports);
-
-        return table;
-    }
-
-    /**
-     * Layout all components in the UI
-     */
-    private void layoutComponents() {
-        // Header
-        Label headerLabel = new Label("Visual Schematron Rule Builder");
-        headerLabel.setFont(Font.font("System", FontWeight.BOLD, 16));
-
-        // Pattern section
-        VBox patternSection = createSection("Pattern Configuration",
-                createPatternControls());
-
-        // Rule section
-        VBox ruleSection = createSection("Rule Configuration",
-                createRuleControls());
-
-        // Assertions section
-        VBox assertionsSection = createSection("Assertions (Must be true)",
-                createAssertionsControls());
-
-        // Reports section
-        VBox reportsSection = createSection("Reports (Warnings when true)",
-                createReportsControls());
-
-        // Preview section
-        VBox previewSection = createSection("Generated Code Preview",
-                createPreviewControls());
-
-        // Add all sections
-        this.getChildren().addAll(
-                headerLabel,
-                new Separator(),
-                patternSection,
-                ruleSection,
-                assertionsSection,
-                reportsSection,
-                previewSection
-        );
-    }
-
-    /**
-     * Creates a titled section with the specified content.
-     * Each section has a bold title label and styled container.
-     *
-     * @param title the title text for the section
-     * @param content the VBox containing the section content
-     * @return the configured VBox container for the section
-     */
-    private VBox createSection(String title, VBox content) {
-        VBox section = new VBox(5);
-        section.setPadding(new Insets(5));
-        section.getStyleClass().add("visual-builder-section");
-
-        Label titleLabel = new Label(title);
-        titleLabel.setFont(Font.font("System", FontWeight.BOLD, 12));
-        titleLabel.getStyleClass().add("section-title");
-
-        section.getChildren().addAll(titleLabel, content);
-
-        return section;
-    }
-
-    /**
-     * Creates the pattern configuration controls including pattern selector,
-     * ID field, title field, and add button.
-     *
-     * @return the VBox containing pattern configuration controls
-     */
-    private VBox createPatternControls() {
-        HBox patternRow1 = new HBox(10);
-        patternRow1.setAlignment(Pos.CENTER_LEFT);
-        patternRow1.getChildren().addAll(
-                new Label("Pattern:"), patternSelector,
-                new Label("ID:"), patternIdField
-        );
-
-        HBox patternRow2 = new HBox(10);
-        patternRow2.setAlignment(Pos.CENTER_LEFT);
-        patternRow2.getChildren().addAll(
-                new Label("Title:"), patternTitleField,
-                addPatternButton
-        );
-
-        VBox patternControls = new VBox(5);
-        patternControls.getChildren().addAll(patternRow1, patternRow2);
-
-        return patternControls;
-    }
-
-    /**
-     * Creates the rule configuration controls including context field,
-     * ID field, and add rule button.
-     *
-     * @return the VBox containing rule configuration controls
-     */
-    private VBox createRuleControls() {
-        HBox ruleRow = new HBox(10);
-        ruleRow.setAlignment(Pos.CENTER_LEFT);
-        ruleRow.getChildren().addAll(
-                new Label("Context:"), ruleContextField,
-                new Label("ID:"), ruleIdField,
-                addRuleButton
-        );
-
-        VBox ruleControls = new VBox(5);
-        ruleControls.getChildren().addAll(ruleRow);
-
-        return ruleControls;
-    }
-
-    /**
-     * Creates the assertions section controls including the add assertion button
-     * and the assertions table.
-     *
-     * @return the VBox containing assertions section controls
-     */
-    private VBox createAssertionsControls() {
-        HBox buttonRow = new HBox(10);
-        buttonRow.setAlignment(Pos.CENTER_LEFT);
-        buttonRow.getChildren().addAll(addAssertionButton);
-
-        VBox assertionsControls = new VBox(5);
-        assertionsControls.getChildren().addAll(buttonRow, assertionsTable);
-
-        return assertionsControls;
-    }
-
-    /**
-     * Creates the reports section controls including the add report button
-     * and the reports table.
-     *
-     * @return the VBox containing reports section controls
-     */
-    private VBox createReportsControls() {
-        HBox buttonRow = new HBox(10);
-        buttonRow.setAlignment(Pos.CENTER_LEFT);
-        buttonRow.getChildren().addAll(addReportButton);
-
-        VBox reportsControls = new VBox(5);
-        reportsControls.getChildren().addAll(buttonRow, reportsTable);
-
-        return reportsControls;
-    }
-
-    /**
-     * Creates the preview section controls including the generate button
-     * and the code preview text area.
-     *
-     * @return the VBox containing preview section controls
-     */
-    private VBox createPreviewControls() {
-        HBox buttonRow = new HBox(10);
-        buttonRow.setAlignment(Pos.CENTER_LEFT);
-        buttonRow.getChildren().addAll(generateCodeButton);
-
-        VBox previewControls = new VBox(5);
-        previewControls.getChildren().addAll(buttonRow, previewArea);
-
-        return previewControls;
-    }
-
-    /**
-     * Set up event handlers for all interactive components
-     */
-    private void setupEventHandlers() {
-        addPatternButton.setOnAction(e -> addNewPattern());
-        addRuleButton.setOnAction(e -> addNewRule());
-        addAssertionButton.setOnAction(e -> addNewAssertion());
-        addReportButton.setOnAction(e -> addNewReport());
-        generateCodeButton.setOnAction(e -> generateAndDisplayCode());
-
-        // Update preview when fields change
-        patternTitleField.textProperty().addListener((obs, oldVal, newVal) -> updatePreview());
-        ruleContextField.textProperty().addListener((obs, oldVal, newVal) -> updatePreview());
-        ruleIdField.textProperty().addListener((obs, oldVal, newVal) -> updatePreview());
+        reportsTable.setItems(reports);
     }
 
     /**
      * Add a new pattern
      */
-    private void addNewPattern() {
+    @FXML
+    public void onAddPattern() {
         String title = patternTitleField.getText().trim();
         String id = patternIdField.getText().trim();
 
@@ -478,7 +211,8 @@ public class SchematronVisualBuilder extends VBox {
     /**
      * Add a new rule (currently just updates UI state)
      */
-    private void addNewRule() {
+    @FXML
+    public void onAddRule() {
         String context = ruleContextField.getText().trim();
 
         if (context.isEmpty()) {
@@ -493,7 +227,8 @@ public class SchematronVisualBuilder extends VBox {
     /**
      * Add a new assertion
      */
-    private void addNewAssertion() {
+    @FXML
+    public void onAddAssertion() {
         AssertionDialog dialog = new AssertionDialog();
         Optional<AssertionItem> result = dialog.showAndWait();
 
@@ -507,7 +242,8 @@ public class SchematronVisualBuilder extends VBox {
     /**
      * Add a new report
      */
-    private void addNewReport() {
+    @FXML
+    public void onAddReport() {
         ReportDialog dialog = new ReportDialog();
         Optional<ReportItem> result = dialog.showAndWait();
 
@@ -521,7 +257,8 @@ public class SchematronVisualBuilder extends VBox {
     /**
      * Generate and display the complete Schematron code
      */
-    private void generateAndDisplayCode() {
+    @FXML
+    public void onGenerateCode() {
         String code = generateSchematronCode();
         previewArea.setText(code);
         logger.debug("Generated Schematron code preview");

@@ -2,6 +2,7 @@ package org.fxt.freexmltoolkit.controls.shell.editor;
 
 import java.util.List;
 
+import javafx.fxml.FXML;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
@@ -11,6 +12,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
+import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.domain.XmlTemplate;
 
 /**
@@ -21,7 +23,8 @@ import org.fxt.freexmltoolkit.domain.XmlTemplate;
  */
 public class TemplateInsertDialog extends Dialog<XmlTemplate> {
 
-    private final ListView<XmlTemplate> list = new ListView<>();
+    @FXML private ListView<XmlTemplate> list;
+    @FXML private TextArea preview;
 
     public TemplateInsertDialog() {
         this(TemplateRunner.list());
@@ -31,21 +34,12 @@ public class TemplateInsertDialog extends Dialog<XmlTemplate> {
         setTitle("Insert Template");
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
 
-        list.getItems().setAll(templates);
-        list.setPrefHeight(260);
-        list.setCellFactory(lv -> new TemplateCell());
+        getDialogPane().setContent(FxmlViews.loadContent(this, "/pages/dialogs/TemplateInsertDialog.fxml"));
 
-        TextArea preview = new TextArea();
-        preview.setEditable(false);
-        preview.setPrefRowCount(8);
-        preview.setWrapText(false);
+        list.getItems().setAll(templates);
+        list.setCellFactory(lv -> new TemplateCell());
         list.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) ->
                 preview.setText(newV == null ? "" : newV.getContent()));
-
-        Label previewLabel = new Label("Preview");
-        VBox box = new VBox(8, new Label("Templates"), list, previewLabel, preview);
-        VBox.setVgrow(list, Priority.ALWAYS);
-        getDialogPane().setContent(box);
 
         // OK only enabled once a template is selected.
         javafx.scene.Node ok = getDialogPane().lookupButton(ButtonType.OK);

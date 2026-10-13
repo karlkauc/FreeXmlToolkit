@@ -11,6 +11,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
+import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Hyperlink;
@@ -21,10 +22,10 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
+import org.fxt.freexmltoolkit.controls.shell.FxmlColumns;
+import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost;
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdIdentityConstraintAnalyzer.AnalysisResult;
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdIdentityConstraintAnalyzer.ConstraintType;
@@ -44,60 +45,44 @@ final class IdentityConstraintsSection extends VBox {
     static final String ALL = "All";
 
     private final EditorHost editorHost;
-    private final FlowPane typeChips = new FlowPane(6, 6);
-    private final FlowPane statusChips = new FlowPane(6, 6);
+    @FXML private HBox header;
+    @FXML private FlowPane typeChips;
+    @FXML private FlowPane statusChips;
     private final StringProperty typeFilter = new SimpleStringProperty(ALL);
     private final StringProperty statusFilter = new SimpleStringProperty(ALL);
-    private final Label count = new Label();
-    private final Label exportStatus = new Label();
+    @FXML private Label count;
+    @FXML private Label exportStatus;
     private SchemaAnalysisData data;
     private final ObservableList<IdentityConstraintInfo> constraints = FXCollections.observableArrayList();
     private final FilteredList<IdentityConstraintInfo> filtered = new FilteredList<>(constraints);
-    private final TableView<IdentityConstraintInfo> table = new TableView<>();
-    private final VBox details = new VBox(4);
+    @FXML private TableView<IdentityConstraintInfo> table;
+    @FXML private TableColumn<IdentityConstraintInfo, ConstraintType> typeColumn;
+    @FXML private TableColumn<IdentityConstraintInfo, String> nameColumn;
+    @FXML private TableColumn<IdentityConstraintInfo, String> parentColumn;
+    @FXML private TableColumn<IdentityConstraintInfo, String> selectorColumn;
+    @FXML private TableColumn<IdentityConstraintInfo, String> fieldsColumn;
+    @FXML private TableColumn<IdentityConstraintInfo, String> referColumn;
+    @FXML private TableColumn<IdentityConstraintInfo, ValidationStatus> statusColumn;
+    @FXML private VBox details;
 
     IdentityConstraintsSection(EditorHost editorHost) {
         this.editorHost = editorHost;
-        getStyleClass().add("fxt-analysis-section");
-        setSpacing(10);
+        FxmlViews.load(this, "/pages/views/IdentityConstraintsSection.fxml");
 
-        typeChips.setId("analysis-constraints-type-chips");
-        typeChips.setAlignment(Pos.CENTER_LEFT);
-        statusChips.setId("analysis-constraints-status-chips");
-        statusChips.setAlignment(Pos.CENTER_LEFT);
-        count.setId("analysis-constraints-count");
-        count.getStyleClass().add("fxt-analysis-count");
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-        Label divider = new Label("·");
-        divider.getStyleClass().add("fxt-analysis-key");
-        exportStatus.setId("analysis-constraints-status");
-        exportStatus.getStyleClass().add("fxt-placeholder-text");
         exportStatus.managedProperty().bind(exportStatus.textProperty().isNotEmpty());
-        HBox header = new HBox(10, AnalysisSupport.reportMenu("Identity Constraints", exportStatus,
-                () -> data == null ? null : SchemaAnalysisReport.constraints(data)),
-                typeChips, divider, statusChips, spacer, count, exportStatus);
-        header.setAlignment(Pos.CENTER_LEFT);
+        header.getChildren().add(0, AnalysisSupport.reportMenu("Identity Constraints", exportStatus,
+                () -> data == null ? null : SchemaAnalysisReport.constraints(data)));
         typeFilter.addListener((obs, o, n) -> applyFilter());
         statusFilter.addListener((obs, o, n) -> applyFilter());
 
-        table.setId("analysis-constraints-table");
-        table.getStyleClass().add("fxt-analysis-table");
-        table.getColumns().add(typeColumn());
-        table.getColumns().add(AnalysisSupport.column("Name", IdentityConstraintInfo::name, 170));
-        table.getColumns().add(AnalysisSupport.column("Parent element", IdentityConstraintInfo::parentElementName, 150));
-        table.getColumns().add(monoColumn("Selector", IdentityConstraintInfo::selectorXPath, 220));
-        table.getColumns().add(monoColumn("Fields",
-                i -> i.fieldXPaths() == null ? "" : String.join(", ", i.fieldXPaths()), 170));
-        table.getColumns().add(monoColumn("Refers to / test",
-                i -> i.isAssert() ? i.testExpression() : i.referTo(), 170));
-        table.getColumns().add(statusColumn());
+        configureTypeColumn(typeColumn);
+        FxmlColumns.text(nameColumn, IdentityConstraintInfo::name);
+        FxmlColumns.text(parentColumn, IdentityConstraintInfo::parentElementName);
+        configureMonoColumn(selectorColumn, IdentityConstraintInfo::selectorXPath);
+        configureMonoColumn(fieldsColumn, i -> i.fieldXPaths() == null ? "" : String.join(", ", i.fieldXPaths()));
+        configureMonoColumn(referColumn, i -> i.isAssert() ? i.testExpression() : i.referTo());
+        configureStatusColumn(statusColumn);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
-        Label empty = AnalysisSupport.emptyLabel("The schema declares no identity constraints or assertions.");
-        empty.setGraphic(AnalysisSupport.icon("bi-key", 28));
-        empty.setContentDisplay(javafx.scene.control.ContentDisplay.TOP);
-        empty.setGraphicTextGap(8);
-        table.setPlaceholder(empty);
         SortedList<IdentityConstraintInfo> sorted = new SortedList<>(filtered);
         sorted.comparatorProperty().bind(table.comparatorProperty());
         table.setItems(sorted);
@@ -107,12 +92,6 @@ final class IdentityConstraintsSection extends VBox {
                 editorHost.revealSchemaNodeByXPath(n.sourceNode().getXPath());
             }
         });
-        VBox.setVgrow(table, Priority.ALWAYS);
-
-        details.getStyleClass().add("fxt-analysis-details");
-        details.setMinHeight(90);
-
-        getChildren().addAll(header, table, details);
         applyFilter();
         showDetails(null);
     }
@@ -182,9 +161,7 @@ final class IdentityConstraintsSection extends VBox {
 
     // ---------------------------------------------------------------- columns
 
-    private static TableColumn<IdentityConstraintInfo, ConstraintType> typeColumn() {
-        TableColumn<IdentityConstraintInfo, ConstraintType> column = new TableColumn<>("Type");
-        column.setPrefWidth(95);
+    private static void configureTypeColumn(TableColumn<IdentityConstraintInfo, ConstraintType> column) {
         column.setCellValueFactory(c -> new ReadOnlyObjectWrapper<>(c.getValue().type()));
         column.setCellFactory(col -> new TableCell<>() {
             @Override
@@ -200,12 +177,9 @@ final class IdentityConstraintsSection extends VBox {
                 setGraphicTextGap(6);
             }
         });
-        return column;
     }
 
-    private static TableColumn<IdentityConstraintInfo, ValidationStatus> statusColumn() {
-        TableColumn<IdentityConstraintInfo, ValidationStatus> column = new TableColumn<>("Status");
-        column.setPrefWidth(110);
+    private static void configureStatusColumn(TableColumn<IdentityConstraintInfo, ValidationStatus> column) {
         column.setCellValueFactory(c -> new ReadOnlyObjectWrapper<>(c.getValue().status()));
         column.setCellFactory(col -> new TableCell<>() {
             @Override
@@ -227,13 +201,12 @@ final class IdentityConstraintsSection extends VBox {
                 setTooltip(message == null || message.isBlank() ? null : new Tooltip(message));
             }
         });
-        return column;
     }
 
     /** A monospace text column whose full value is available as a tooltip. */
-    private static TableColumn<IdentityConstraintInfo, String> monoColumn(
-            String title, Function<IdentityConstraintInfo, String> value, double prefWidth) {
-        TableColumn<IdentityConstraintInfo, String> column = AnalysisSupport.column(title, value, prefWidth);
+    private static void configureMonoColumn(
+            TableColumn<IdentityConstraintInfo, String> column, Function<IdentityConstraintInfo, String> value) {
+        FxmlColumns.text(column, value);
         column.getStyleClass().add("fxt-analysis-cell-mono");
         column.setCellFactory(col -> new TableCell<>() {
             @Override
@@ -248,7 +221,6 @@ final class IdentityConstraintsSection extends VBox {
                 setTooltip(new Tooltip(item));
             }
         });
-        return column;
     }
 
     // ---------------------------------------------------------------- details

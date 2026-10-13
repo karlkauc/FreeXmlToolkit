@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
+
+<!--
+  "Quality Checks" sub-tab of the Schema Analysis tool tab: toolbar (Export, status, nesting
+  limit), the score tile with the issue summaries, the filter bar, the issue table and the
+  details of the selected issue. Loaded by QualitySection via the fx:root pattern
+  (FxmlViews.load); QualitySection is root and controller. Built in code: the Export menu, the
+  summary chips, the filter choices (from the severity/category enums), the nesting-limit range,
+  all cell factories and the details content.
+-->
+<fx:root type="javafx.scene.layout.VBox" spacing="10" styleClass="fxt-analysis-section"
+         xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <children>
+        <HBox fx:id="toolbar" spacing="8" alignment="CENTER_LEFT">
+            <children>
+                <Label fx:id="status" styleClass="fxt-placeholder-text"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label text="Max nesting" styleClass="fxt-analysis-key"/>
+                <Spinner fx:id="nestingLimit" id="analysis-quality-nesting-limit" editable="true" prefWidth="76">
+                    <tooltip>
+                        <Tooltip text="Deep-nesting limit: elements nested more than this many element levels inside one declaration are reported. Changing it re-runs the analysis."/>
+                    </tooltip>
+                </Spinner>
+            </children>
+        </HBox>
+
+        <HBox spacing="16" alignment="CENTER_LEFT">
+            <children>
+                <VBox fx:id="scoreTile" spacing="2" alignment="CENTER" styleClass="fxt-analysis-score">
+                    <children>
+                        <Label fx:id="scoreNumber" text="–" styleClass="fxt-analysis-score-number"/>
+                        <Label fx:id="scoreDescription" styleClass="fxt-analysis-score-description"/>
+                        <Label fx:id="scoreChecks" styleClass="fxt-analysis-key"/>
+                        <Label fx:id="scoreNaming" styleClass="fxt-analysis-key"/>
+                    </children>
+                </VBox>
+                <VBox spacing="6" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
+                    <children>
+                        <Label text="ISSUES BY SEVERITY" styleClass="fxt-analysis-group-title"/>
+                        <FlowPane fx:id="severityChips" id="analysis-quality-severity-chips" hgap="6" vgap="6"
+                                  alignment="CENTER_LEFT"/>
+                        <Label text="ISSUES BY CATEGORY" styleClass="fxt-analysis-group-title"/>
+                        <FlowPane fx:id="categoryChips" id="analysis-quality-category-chips" hgap="6" vgap="6"
+                                  alignment="CENTER_LEFT"/>
+                        <Label text="NAMING CONVENTIONS" styleClass="fxt-analysis-group-title"/>
+                        <FlowPane fx:id="namingChips" id="analysis-quality-naming" hgap="6" vgap="6"
+                                  alignment="CENTER_LEFT"/>
+                    </children>
+                </VBox>
+            </children>
+        </HBox>
+
+        <HBox spacing="8" alignment="CENTER_LEFT" styleClass="fxt-analysis-filter">
+            <children>
+                <Label>
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-funnel" iconSize="14"/>
+                    </graphic>
+                </Label>
+                <Label text="Severity" styleClass="fxt-analysis-key"/>
+                <ComboBox fx:id="severityFilter" id="analysis-quality-severity"/>
+                <Label text="Category" styleClass="fxt-analysis-key"/>
+                <ComboBox fx:id="categoryFilter" id="analysis-quality-category"/>
+                <TextField fx:id="search" id="analysis-quality-search" promptText="Search issues…"
+                           prefWidth="220"/>
+                <Button text="Clear" styleClass="fxt-tool-button" onAction="#onClearFilters">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-x-circle" iconSize="14"/>
+                    </graphic>
+                </Button>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label fx:id="count" id="analysis-quality-count" styleClass="fxt-analysis-count"/>
+            </children>
+        </HBox>
+
+        <TableView fx:id="table" id="analysis-quality-table" styleClass="fxt-analysis-table" VBox.vgrow="ALWAYS">
+            <columns>
+                <TableColumn fx:id="severityColumn" text="Severity" prefWidth="110"/>
+                <TableColumn fx:id="categoryColumn" text="Category" prefWidth="170"/>
+                <TableColumn fx:id="messageColumn" text="Message" prefWidth="420"/>
+                <TableColumn fx:id="fileColumn" text="File" prefWidth="100"/>
+                <TableColumn fx:id="locationColumn" text="Location"/>
+            </columns>
+            <placeholder>
+                <Label text="No quality issues found." styleClass="fxt-analysis-empty"/>
+            </placeholder>
+        </TableView>
+
+        <VBox fx:id="details" spacing="4" minHeight="90" styleClass="fxt-analysis-details"/>
+    </children>
+</fx:root>

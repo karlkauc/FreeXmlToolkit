@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<!--
+  Visual Schematron Rule Builder: pattern and rule forms, the editable assertions and reports
+  tables, and the generated-code preview. Loaded by SchematronVisualBuilder via the fx:root
+  pattern (FxmlViews.load); SchematronVisualBuilder is root and controller. Cell factories, the
+  edit-commit handlers and the table items stay in code.
+-->
+<fx:root type="javafx.scene.layout.VBox" spacing="10"
+         xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <padding>
+        <Insets topRightBottomLeft="10"/>
+    </padding>
+    <children>
+        <Label text="Visual Schematron Rule Builder">
+            <font>
+                <Font name="System Bold" size="16"/>
+            </font>
+        </Label>
+        <Separator/>
+
+        <!-- Pattern Configuration -->
+        <VBox spacing="5" styleClass="visual-builder-section">
+            <padding>
+                <Insets topRightBottomLeft="5"/>
+            </padding>
+            <children>
+                <Label text="Pattern Configuration" styleClass="section-title">
+                    <font>
+                        <Font name="System Bold" size="12"/>
+                    </font>
+                </Label>
+                <VBox spacing="5">
+                    <children>
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <children>
+                                <Label text="Pattern:"/>
+                                <ComboBox fx:id="patternSelector" promptText="Select pattern or create new"
+                                          prefWidth="250"/>
+                                <Label text="ID:"/>
+                                <TextField fx:id="patternIdField" promptText="Pattern ID (optional)"
+                                           prefWidth="200"/>
+                            </children>
+                        </HBox>
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <children>
+                                <Label text="Title:"/>
+                                <TextField fx:id="patternTitleField" promptText="Pattern Title" prefWidth="300"/>
+                                <Button text="Add Pattern" styleClass="primary-button" onAction="#onAddPattern"/>
+                            </children>
+                        </HBox>
+                    </children>
+                </VBox>
+            </children>
+        </VBox>
+
+        <!-- Rule Configuration -->
+        <VBox spacing="5" styleClass="visual-builder-section">
+            <padding>
+                <Insets topRightBottomLeft="5"/>
+            </padding>
+            <children>
+                <Label text="Rule Configuration" styleClass="section-title">
+                    <font>
+                        <Font name="System Bold" size="12"/>
+                    </font>
+                </Label>
+                <VBox spacing="5">
+                    <children>
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <children>
+                                <Label text="Context:"/>
+                                <TextField fx:id="ruleContextField"
+                                           promptText="XPath context (e.g., //Order, /root/element)"
+                                           prefWidth="400"/>
+                                <Label text="ID:"/>
+                                <TextField fx:id="ruleIdField" promptText="Rule ID (optional)" prefWidth="200"/>
+                                <Button text="Add Rule" styleClass="primary-button" onAction="#onAddRule"/>
+                            </children>
+                        </HBox>
+                    </children>
+                </VBox>
+            </children>
+        </VBox>
+
+        <!-- Assertions -->
+        <VBox spacing="5" styleClass="visual-builder-section">
+            <padding>
+                <Insets topRightBottomLeft="5"/>
+            </padding>
+            <children>
+                <Label text="Assertions (Must be true)" styleClass="section-title">
+                    <font>
+                        <Font name="System Bold" size="12"/>
+                    </font>
+                </Label>
+                <VBox spacing="5">
+                    <children>
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <children>
+                                <Button text="Add Assertion" styleClass="secondary-button"
+                                        onAction="#onAddAssertion"/>
+                            </children>
+                        </HBox>
+                        <TableView fx:id="assertionsTable" editable="true" prefHeight="150">
+                            <columns>
+                                <TableColumn fx:id="assertionTestColumn" text="XPath Test" prefWidth="200"/>
+                                <TableColumn fx:id="assertionMessageColumn" text="Message" prefWidth="250"/>
+                                <TableColumn fx:id="assertionFlagColumn" text="Flag" prefWidth="100"/>
+                                <TableColumn fx:id="assertionActionsColumn" text="Actions" prefWidth="80"/>
+                            </columns>
+                        </TableView>
+                    </children>
+                </VBox>
+            </children>
+        </VBox>
+
+        <!-- Reports -->
+        <VBox spacing="5" styleClass="visual-builder-section">
+            <padding>
+                <Insets topRightBottomLeft="5"/>
+            </padding>
+            <children>
+                <Label text="Reports (Warnings when true)" styleClass="section-title">
+                    <font>
+                        <Font name="System Bold" size="12"/>
+                    </font>
+                </Label>
+                <VBox spacing="5">
+                    <children>
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <children>
+                                <Button text="Add Report" styleClass="secondary-button" onAction="#onAddReport"/>
+                            </children>
+                        </HBox>
+                        <TableView fx:id="reportsTable" editable="true" prefHeight="150">
+                            <columns>
+                                <TableColumn fx:id="reportTestColumn" text="XPath Test" prefWidth="200"/>
+                                <TableColumn fx:id="reportMessageColumn" text="Message" prefWidth="250"/>
+                                <TableColumn fx:id="reportFlagColumn" text="Flag" prefWidth="100"/>
+                                <TableColumn fx:id="reportActionsColumn" text="Actions" prefWidth="80"/>
+                            </columns>
+                        </TableView>
+                    </children>
+                </VBox>
+            </children>
+        </VBox>
+
+        <!-- Generated Code Preview -->
+        <VBox spacing="5" styleClass="visual-builder-section">
+            <padding>
+                <Insets topRightBottomLeft="5"/>
+            </padding>
+            <children>
+                <Label text="Generated Code Preview" styleClass="section-title">
+                    <font>
+                        <Font name="System Bold" size="12"/>
+                    </font>
+                </Label>
+                <VBox spacing="5">
+                    <children>
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <children>
+                                <Button text="Generate Schematron Code" prefWidth="200" styleClass="primary-button"
+                                        onAction="#onGenerateCode"/>
+                            </children>
+                        </HBox>
+                        <TextArea fx:id="previewArea" editable="false" prefHeight="200"
+                                  style="-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 11px;"/>
+                    </children>
+                </VBox>
+            </children>
+        </VBox>
+    </children>
+</fx:root>

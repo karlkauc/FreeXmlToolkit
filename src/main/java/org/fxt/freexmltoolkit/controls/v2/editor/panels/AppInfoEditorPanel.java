@@ -5,7 +5,7 @@ import java.util.Set;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.geometry.Insets;
+import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -17,15 +17,13 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.TitledPane;
-import javafx.scene.layout.ColumnConstraints;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeAppinfoCommand;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdAppInfo;
@@ -49,19 +47,20 @@ public class AppInfoEditorPanel extends VBox {
     private final XsdEditorContext editorContext;
 
     // Version Info fields
-    private TextField sinceField;
-    private TextField versionField;
-    private TextField authorField;
+    @FXML private TextField sinceField;
+    @FXML private TextField versionField;
+    @FXML private TextField authorField;
 
     // See References
-    private ListView<String> seeListView;
-    private ObservableList<String> seeItems;
-    private Button addSeeButton;
-    private Button removeSeeButton;
+    @FXML private ListView<String> seeListView;
+    private final ObservableList<String> seeItems = FXCollections.observableArrayList();
+    @FXML private Button addSeeButton;
+    @FXML private Button removeSeeButton;
 
     // Deprecation
-    private CheckBox deprecatedCheckBox;
-    private TextArea deprecatedTextArea;
+    @FXML private TitledPane deprecationPane;
+    @FXML private CheckBox deprecatedCheckBox;
+    @FXML private TextArea deprecatedTextArea;
 
     // Current state
     private XsdNode currentNode;
@@ -72,154 +71,29 @@ public class AppInfoEditorPanel extends VBox {
     private LinkAutocompletePopup autocompletePopup;
 
     /**
-     * Creates a new AppInfo editor panel.
+     * Creates a new AppInfo editor panel. The layout is loaded from
+     * {@code /pages/views/AppInfoEditorPanel.fxml}.
      *
      * @param editorContext the editor context
      */
     public AppInfoEditorPanel(XsdEditorContext editorContext) {
         this.editorContext = editorContext;
+        FxmlViews.load(this, "/pages/views/AppInfoEditorPanel.fxml");
         initializeUI();
         setupListeners();
         initializeAutocomplete();
     }
 
     /**
-     * Initializes the UI components.
+     * Wires the data-driven parts of the loaded layout.
      */
     private void initializeUI() {
-        setSpacing(5);
-        setPadding(new Insets(5));
-
-        // Version Info TitledPane
-        TitledPane versionPane = createVersionInfoPane();
-        versionPane.setExpanded(false);
-
-        // See References TitledPane
-        TitledPane seePane = createSeeReferencesPane();
-        seePane.setExpanded(false);
-
-        // Deprecation TitledPane
-        TitledPane deprecationPane = createDeprecationPane();
-        deprecationPane.setExpanded(false);
-
-        getChildren().addAll(versionPane, seePane, deprecationPane);
-    }
-
-    /**
-     * Creates the Version Info pane with @since, @version, @author fields.
-     */
-    private TitledPane createVersionInfoPane() {
-        GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(8);
-        grid.setPadding(new Insets(10));
-
-        // @since
-        Label sinceLabel = new Label("@since:");
-        sinceLabel.setStyle("-fx-font-weight: bold;");
-        sinceField = new TextField();
-        sinceField.setPromptText("e.g., 4.0.0");
-        sinceField.setPrefWidth(200);
-        grid.add(sinceLabel, 0, 0);
-        grid.add(sinceField, 1, 0);
-
-        // @version
-        Label versionLabel = new Label("@version:");
-        versionLabel.setStyle("-fx-font-weight: bold;");
-        versionField = new TextField();
-        versionField.setPromptText("e.g., 1.0");
-        versionField.setPrefWidth(200);
-        grid.add(versionLabel, 0, 1);
-        grid.add(versionField, 1, 1);
-
-        // @author
-        Label authorLabel = new Label("@author:");
-        authorLabel.setStyle("-fx-font-weight: bold;");
-        authorField = new TextField();
-        authorField.setPromptText("e.g., John Doe");
-        authorField.setPrefWidth(200);
-        grid.add(authorLabel, 0, 2);
-        grid.add(authorField, 1, 2);
-
-        // Make text fields grow
-        ColumnConstraints col1 = new ColumnConstraints();
-        col1.setHgrow(Priority.NEVER);
-        ColumnConstraints col2 = new ColumnConstraints();
-        col2.setHgrow(Priority.ALWAYS);
-        grid.getColumnConstraints().addAll(col1, col2);
-
-        TitledPane pane = new TitledPane("Version Info", grid);
-        pane.setGraphic(new IconifyIcon("bi-info-circle"));
-        return pane;
-    }
-
-    /**
-     * Creates the See References pane with a list of @see entries.
-     */
-    private TitledPane createSeeReferencesPane() {
-        VBox content = new VBox(8);
-        content.setPadding(new Insets(10));
-
-        // Description
-        Label descLabel = new Label("Add references to related elements. Use {@link /XPath} for links.");
-        descLabel.setWrapText(true);
-        descLabel.setStyle("-fx-text-fill: #666; -fx-font-size: 11px;");
-
-        // List view
-        seeItems = FXCollections.observableArrayList();
-        seeListView = new ListView<>(seeItems);
-        seeListView.setPrefHeight(100);
-        seeListView.setPlaceholder(new Label("No @see references defined"));
+        seeListView.setItems(seeItems);
         seeListView.setCellFactory(lv -> new SeeReferenceCell());
-        VBox.setVgrow(seeListView, Priority.ALWAYS);
-
-        // Buttons
-        addSeeButton = new Button("Add");
-        addSeeButton.setGraphic(new IconifyIcon("bi-plus-circle"));
-        addSeeButton.setOnAction(e -> handleAddSeeReference());
-
-        removeSeeButton = new Button("Remove");
-        removeSeeButton.setGraphic(new IconifyIcon("bi-dash-circle"));
-        removeSeeButton.setOnAction(e -> handleRemoveSeeReference());
-        removeSeeButton.setDisable(true);
-
-        HBox buttonBox = new HBox(8, addSeeButton, removeSeeButton);
-        buttonBox.setAlignment(Pos.CENTER_LEFT);
 
         // Enable/disable remove button based on selection
         seeListView.getSelectionModel().selectedItemProperty().addListener(
                 (obs, oldVal, newVal) -> removeSeeButton.setDisable(newVal == null));
-
-        content.getChildren().addAll(descLabel, seeListView, buttonBox);
-
-        TitledPane pane = new TitledPane("See Also (@see)", content);
-        pane.setGraphic(new IconifyIcon("bi-link-45deg"));
-        return pane;
-    }
-
-    /**
-     * Creates the Deprecation pane.
-     */
-    private TitledPane createDeprecationPane() {
-        VBox content = new VBox(8);
-        content.setPadding(new Insets(10));
-
-        // Checkbox
-        deprecatedCheckBox = new CheckBox("Mark as deprecated");
-        deprecatedCheckBox.setStyle("-fx-font-weight: bold;");
-
-        // Description
-        Label descLabel = new Label("Provide a deprecation message. Use {@link /XPath} for replacement references.");
-        descLabel.setWrapText(true);
-        descLabel.setStyle("-fx-text-fill: #666; -fx-font-size: 11px;");
-
-        // Text area
-        deprecatedTextArea = new TextArea();
-        deprecatedTextArea.setPromptText("e.g., Use {@link /NewElement} instead");
-        deprecatedTextArea.setPrefRowCount(2);
-        deprecatedTextArea.setWrapText(true);
-        deprecatedTextArea.setDisable(true);
-        VBox.setVgrow(deprecatedTextArea, Priority.ALWAYS);
 
         // Enable/disable text area based on checkbox
         deprecatedCheckBox.selectedProperty().addListener((obs, oldVal, newVal) -> {
@@ -230,21 +104,24 @@ public class AppInfoEditorPanel extends VBox {
             }
         });
 
-        content.getChildren().addAll(deprecatedCheckBox, descLabel, deprecatedTextArea);
-
-        TitledPane pane = new TitledPane("Deprecation (@deprecated)", content);
-        pane.setGraphic(new IconifyIcon("bi-exclamation-triangle"));
-
         // Style the pane header when deprecated
         deprecatedCheckBox.selectedProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal) {
-                pane.setStyle("-fx-color: #fff3cd;");
+                deprecationPane.setStyle("-fx-color: #fff3cd;");
             } else {
-                pane.setStyle("");
+                deprecationPane.setStyle("");
             }
         });
+    }
 
-        return pane;
+    @FXML
+    public void onAddSeeReference() {
+        handleAddSeeReference();
+    }
+
+    @FXML
+    public void onRemoveSeeReference() {
+        handleRemoveSeeReference();
     }
 
     /**

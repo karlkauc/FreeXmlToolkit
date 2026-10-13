@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.HBox?>
+
+<!--
+  Structured editor for the JavaDoc-style xs:appinfo tags (@since, @version, @see, @deprecated,
+  @markdown, example values) inside the inspector's DOCUMENTATION & REFS section.
+  Loaded by AppInfoFieldsEditor via the fx:root pattern (FxmlViews.load); AppInfoFieldsEditor is
+  root and controller, fills the lists and the Markdown choices, and commits through its callback.
+  A leading "@" in an attribute value would be read as a resource location, hence the "\@" escapes.
+-->
+<fx:root type="javafx.scene.layout.VBox" spacing="4" styleClass="fxt-appinfo-editor"
+         xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <children>
+        <Label text="\@since" styleClass="fxt-inspector-sub-label"/>
+        <TextField fx:id="sinceField" id="inspector-appinfo-since" promptText="e.g. 4.0.0"
+                   styleClass="fxt-inspector-edit"/>
+        <Label text="\@version" styleClass="fxt-inspector-sub-label"/>
+        <TextField fx:id="versionField" id="inspector-appinfo-version" promptText="e.g. 1.0"
+                   styleClass="fxt-inspector-edit"/>
+
+        <Label text="\@see" styleClass="fxt-inspector-sub-label"/>
+        <ListView fx:id="seeList" id="inspector-appinfo-see" prefHeight="70" styleClass="fxt-facet-table">
+            <placeholder>
+                <Label text="No @see references"/>
+            </placeholder>
+        </ListView>
+        <HBox spacing="6" alignment="CENTER_LEFT">
+            <children>
+                <Button id="inspector-appinfo-see-add" text="Add" minWidth="-Infinity" onAction="#onAddSee"/>
+                <Button fx:id="removeSeeButton" id="inspector-appinfo-see-remove" text="Remove" minWidth="-Infinity"
+                        disable="true" onAction="#onRemoveSee"/>
+            </children>
+        </HBox>
+
+        <CheckBox fx:id="deprecatedCheck" id="inspector-appinfo-deprecated" text="Deprecated"/>
+        <TextArea fx:id="deprecatedArea" id="inspector-appinfo-deprecated-note" wrapText="true" prefRowCount="2"
+                  promptText="e.g. Use {@link /NewElement} instead" disable="true"
+                  styleClass="fxt-inspector-edit"/>
+
+        <Label text="Markdown" styleClass="fxt-inspector-sub-label"/>
+        <ComboBox fx:id="markdownChoice" id="inspector-appinfo-markdown" maxWidth="Infinity">
+            <tooltip>
+                <Tooltip text="Whether this node's documentation is rendered as Markdown. Only used when the documentation generator is set to &quot;Per node&quot;."/>
+            </tooltip>
+        </ComboBox>
+
+        <Label text="Example values" styleClass="fxt-inspector-sub-label"/>
+        <ListView fx:id="exampleList" id="inspector-appinfo-examples" prefHeight="70" styleClass="fxt-facet-table">
+            <placeholder>
+                <Label text="No example values"/>
+            </placeholder>
+        </ListView>
+        <HBox spacing="6" alignment="CENTER_LEFT">
+            <children>
+                <Button id="inspector-appinfo-example-add" text="Add" minWidth="-Infinity" onAction="#onAddExample"/>
+                <Button fx:id="removeExampleButton" id="inspector-appinfo-example-remove" text="Remove"
+                        minWidth="-Infinity" disable="true" onAction="#onRemoveExample"/>
+            </children>
+        </HBox>
+    </children>
+</fx:root>

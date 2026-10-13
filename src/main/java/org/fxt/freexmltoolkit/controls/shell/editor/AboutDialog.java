@@ -4,22 +4,18 @@ import java.util.Objects;
 
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.DialogPane;
-import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
-import javafx.scene.control.Separator;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Window;
 import javafx.util.Duration;
@@ -29,6 +25,7 @@ import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.dialogs.UpdateNotificationDialog;
 import org.fxt.freexmltoolkit.controls.dialogs.UpdateProgressDialog;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.UpdateInfo;
 import org.fxt.freexmltoolkit.service.UpdateCheckService;
@@ -41,6 +38,16 @@ public final class AboutDialog {
 
     private static final Logger logger = LogManager.getLogger(AboutDialog.class);
 
+    @FXML private HBox header;
+    @FXML private ImageView logo;
+    @FXML private Label versionPill;
+    @FXML private GridPane info;
+    @FXML private Label copyright;
+    @FXML private HBox links;
+    @FXML private Button sponsorButton;
+    @FXML private Button reportButton;
+
+    /** Controller instance of {@code /pages/dialogs/AboutDialog.fxml}; created by {@link #build(Window)}. */
     private AboutDialog() {
     }
 
@@ -73,84 +80,9 @@ public final class AboutDialog {
             }
         });
 
-        ImageView logo = null;
-        try {
-            logo = new ImageView(new Image(Objects.requireNonNull(
-                    AboutDialog.class.getResourceAsStream("/img/logo.png"))));
-            logo.setFitHeight(72);
-            logo.setPreserveRatio(true);
-            logo.setSmooth(true);
-        } catch (Exception e) {
-            logger.warn("Could not load logo for about dialog graphic.", e);
-        }
-
-        Label title = new Label("FreeXmlToolkit");
-        title.setStyle("-fx-font-size: 22px; -fx-font-weight: 700; -fx-text-fill: #1f2937;");
-        Label tagline = new Label("Universal Toolkit for XML, XSD, XSLT, Schematron & FOP");
-        tagline.setStyle("-fx-font-size: 12.5px; -fx-text-fill: #6b7280;");
-        tagline.setWrapText(true);
-        Label versionPill = new Label("v" + version);
-        versionPill.setStyle("-fx-background-color: #e7f3ff;-fx-text-fill: #0b5ed7;-fx-font-weight: 600;"
-                + "-fx-font-size: 12px;-fx-padding: 3 10 3 10;-fx-background-radius: 12;");
-        VBox titleBox = new VBox(4, title, tagline, versionPill);
-        titleBox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-        HBox header = new HBox(16);
-        header.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-        if (logo != null) {
-            header.getChildren().add(logo);
-        }
-        header.getChildren().add(titleBox);
-        HBox.setHgrow(titleBox, Priority.ALWAYS);
-
-        GridPane info = new GridPane();
-        info.setHgap(14);
-        info.setVgap(6);
-        info.setStyle("-fx-background-color: #f9fafb;-fx-background-radius: 8;-fx-border-color: #e5e7eb;"
-                + "-fx-border-radius: 8;-fx-padding: 12;");
-        ColumnConstraints c1 = new ColumnConstraints();
-        c1.setMinWidth(120);
-        c1.setHalignment(javafx.geometry.HPos.LEFT);
-        ColumnConstraints c2 = new ColumnConstraints();
-        c2.setHgrow(Priority.ALWAYS);
-        info.getColumnConstraints().addAll(c1, c2);
-        int row = 0;
-        addInfoRow(info, row++, "Version", version);
-        if (!buildTs.isBlank()) {
-            addInfoRow(info, row++, "Build", buildTs);
-        }
-        addInfoRow(info, row++, "Java", System.getProperty("java.version", "?")
-                + "  (" + System.getProperty("java.vm.vendor", "?") + ")");
-        addInfoRow(info, row++, "JavaFX", System.getProperty("javafx.runtime.version", "?"));
-        addInfoRow(info, row++, "OS", System.getProperty("os.name", "?") + " "
-                + System.getProperty("os.version", "") + "  (" + System.getProperty("os.arch", "?") + ")");
-
-        Label copyright = new Label("Copyright © " + VersionUtil.getVendor()
-                + " 2024-2026. All rights reserved.");
-        copyright.setStyle("-fx-font-size: 11.5px; -fx-text-fill: #6b7280;");
-        Hyperlink licenseLink = new Hyperlink("Licensed under the Apache License, Version 2.0");
-        licenseLink.setOnAction(e -> openExternalUrl("http://www.apache.org/licenses/LICENSE-2.0"));
-        licenseLink.setStyle("-fx-padding: 0; -fx-text-fill: #0b5ed7;");
-        VBox legal = new VBox(2, copyright, licenseLink);
-
-        Button githubBtn = linkButton("bi-github", "GitHub", ProjectLinks.GITHUB_URL);
-        Button sponsorBtn = linkButton("bi-heart-fill", "Sponsor", ProjectLinks.SPONSORS_URL);
-        sponsorBtn.setId("about-sponsor");
-        sponsorBtn.setGraphic(ProjectLinks.sponsorIcon(16));
-        Button docsBtn = linkButton("bi-book", "Documentation", ProjectLinks.DOCS_URL);
-        Button issueBtn = linkButton("bi-bug", "Report an issue", ProjectLinks.ISSUES_URL);
-        HBox links = new HBox(8, githubBtn, sponsorBtn, docsBtn, issueBtn);
-        if (org.fxt.freexmltoolkit.controls.dialogs.ErrorReportDialog.isAvailable()) {
-            // Anonymous, in-app problem report (no GitHub account needed).
-            Button reportBtn = linkButton("bi-send", "Report a problem…", null);
-            reportBtn.setOnAction(e -> org.fxt.freexmltoolkit.controls.dialogs.ErrorReportDialog.show(
-                    dialogPane.getScene() == null ? null : dialogPane.getScene().getWindow(), null));
-            links.getChildren().add(reportBtn);
-        }
-        links.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-
-        VBox content = new VBox(14, header, new Separator(), info, legal, links);
-        content.setStyle("-fx-padding: 18 20 8 20;");
-        dialogPane.setContent(content);
+        AboutDialog view = new AboutDialog();
+        dialogPane.setContent(FxmlViews.loadContent(view, "/pages/dialogs/AboutDialog.fxml"));
+        view.fill(version, buildTs);
 
         ButtonType copyVersionType = new ButtonType("Copy version", ButtonBar.ButtonData.LEFT);
         ButtonType checkUpdatesType = new ButtonType("Check for updates", ButtonBar.ButtonData.LEFT);
@@ -180,6 +112,66 @@ public final class AboutDialog {
         return dialog;
     }
 
+    /** Fills the data-dependent parts of the loaded layout. */
+    private void fill(String version, String buildTs) {
+        try {
+            logo.setImage(new Image(Objects.requireNonNull(
+                    AboutDialog.class.getResourceAsStream("/img/logo.png"))));
+        } catch (Exception e) {
+            logger.warn("Could not load logo for about dialog graphic.", e);
+            header.getChildren().remove(logo);
+        }
+        versionPill.setText("v" + version);
+
+        int row = 0;
+        addInfoRow(info, row++, "Version", version);
+        if (!buildTs.isBlank()) {
+            addInfoRow(info, row++, "Build", buildTs);
+        }
+        addInfoRow(info, row++, "Java", System.getProperty("java.version", "?")
+                + "  (" + System.getProperty("java.vm.vendor", "?") + ")");
+        addInfoRow(info, row++, "JavaFX", System.getProperty("javafx.runtime.version", "?"));
+        addInfoRow(info, row++, "OS", System.getProperty("os.name", "?") + " "
+                + System.getProperty("os.version", "") + "  (" + System.getProperty("os.arch", "?") + ")");
+
+        copyright.setText("Copyright © " + VersionUtil.getVendor() + " 2024-2026. All rights reserved.");
+        sponsorButton.setGraphic(ProjectLinks.sponsorIcon(16));
+        if (!org.fxt.freexmltoolkit.controls.dialogs.ErrorReportDialog.isAvailable()) {
+            links.getChildren().remove(reportButton);
+        }
+    }
+
+    @FXML
+    public void onLicense() {
+        openExternalUrl("http://www.apache.org/licenses/LICENSE-2.0");
+    }
+
+    @FXML
+    public void onGitHub() {
+        openExternalUrl(ProjectLinks.GITHUB_URL);
+    }
+
+    @FXML
+    public void onSponsor() {
+        openExternalUrl(ProjectLinks.SPONSORS_URL);
+    }
+
+    @FXML
+    public void onDocs() {
+        openExternalUrl(ProjectLinks.DOCS_URL);
+    }
+
+    @FXML
+    public void onIssues() {
+        openExternalUrl(ProjectLinks.ISSUES_URL);
+    }
+
+    @FXML
+    public void onReportProblem() {
+        org.fxt.freexmltoolkit.controls.dialogs.ErrorReportDialog.show(
+                links.getScene() == null ? null : links.getScene().getWindow(), null);
+    }
+
     /** Convenience: build and show. */
     public static void show(Window owner) {
         build(owner).showAndWait();
@@ -194,22 +186,6 @@ public final class AboutDialog {
         v.setWrapText(true);
         grid.add(k, 0, row);
         grid.add(v, 1, row);
-    }
-
-    // Ported verbatim from MainController.linkButton.
-    private static Button linkButton(String iconLiteral, String text, String url) {
-        Button btn = new Button(text);
-        btn.setGraphic(new IconifyIcon(iconLiteral));
-        btn.setStyle(
-                "-fx-background-color: transparent;" +
-                        "-fx-border-color: #d1d5db;" +
-                        "-fx-border-radius: 6;" +
-                        "-fx-background-radius: 6;" +
-                        "-fx-text-fill: #1f2937;" +
-                        "-fx-padding: 5 12 5 12;" +
-                        "-fx-cursor: hand;");
-        btn.setOnAction(e -> openExternalUrl(url));
-        return btn;
     }
 
     private static void openExternalUrl(String url) {

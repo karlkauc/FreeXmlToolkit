@@ -1,5 +1,6 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
@@ -8,6 +9,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.GridPane;
 
+import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.controls.v2.editor.flatten.FlattenOptions;
 
 /**
@@ -18,43 +20,18 @@ import org.fxt.freexmltoolkit.controls.v2.editor.flatten.FlattenOptions;
  */
 public class FlattenOptionsDialog extends Dialog<FlattenOptions> {
 
-    private final CheckBox removeAnnotations =
-            new CheckBox("Remove annotations (documentation, appinfo)");
-    private final CheckBox removeComments = new CheckBox("Remove XML comments");
-    private final CheckBox minify = new CheckBox("Minified output (no indentation)");
-    private final CheckBox removeUnusedTypes =
-            new CheckBox("Remove unused global types and groups");
-    private final CheckBox trackSourceFiles =
-            new CheckBox("Track source files (xs:appinfo)");
+    @FXML private CheckBox removeAnnotations;
+    @FXML private CheckBox removeComments;
+    @FXML private CheckBox minify;
+    @FXML private CheckBox removeUnusedTypes;
+    @FXML private CheckBox trackSourceFiles;
 
     public FlattenOptionsDialog() {
         setTitle("Flatten Schema");
         setHeaderText("Create a standalone schema, optionally reduced for server-side validation.");
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
 
-        removeAnnotations.setSelected(true);
-        removeComments.setSelected(true);
-        minify.setSelected(true);
-        removeUnusedTypes.setSelected(true);
-        trackSourceFiles.setSelected(false);
-        trackSourceFiles.setTooltip(new Tooltip(
-                "Marks every component that came from an included file with an fxt:sourceFile "
-                        + "annotation naming that file."));
-
-        Label hint = new Label("Uncheck all options for a plain flatten that keeps documentation.");
-        hint.setOpacity(0.7);
-
-        GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(8);
-        grid.setPadding(new Insets(16));
-        grid.add(removeAnnotations, 0, 0);
-        grid.add(removeComments, 0, 1);
-        grid.add(removeUnusedTypes, 0, 2);
-        grid.add(minify, 0, 3);
-        grid.add(trackSourceFiles, 0, 4);
-        grid.add(hint, 0, 5);
-        getDialogPane().setContent(grid);
+        getDialogPane().setContent(FxmlViews.loadContent(this, "/pages/dialogs/FlattenOptionsDialog.fxml"));
 
         setResultConverter(button -> button == ButtonType.OK ? currentOptions() : null);
     }

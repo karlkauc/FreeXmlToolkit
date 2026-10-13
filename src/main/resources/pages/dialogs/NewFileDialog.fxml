@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.GridPane?>
+
+<!--
+  Content of the guided "New File" dialog: file type, (type-filtered) template, schema source for
+  plain XML, the mandatory-nodes option and an optional save location. Loaded by NewFileDialog
+  (FxmlViews.loadContent), which is the controller, fills the choice boxes, toggles the
+  schema controls per type and adds title, header and buttons.
+-->
+<GridPane hgap="10" vgap="10" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <padding>
+        <Insets topRightBottomLeft="16"/>
+    </padding>
+    <children>
+        <Label text="File type:" GridPane.rowIndex="0"/>
+        <ComboBox fx:id="typeBox" maxWidth="Infinity" GridPane.rowIndex="0" GridPane.columnIndex="1"
+                  GridPane.columnSpan="2"/>
+
+        <Label text="Template:" GridPane.rowIndex="1"/>
+        <ComboBox fx:id="templateBox" maxWidth="Infinity" GridPane.rowIndex="1" GridPane.columnIndex="1"
+                  GridPane.columnSpan="2"/>
+
+        <!-- Schema source: favorites + recents, or a file picker -->
+        <Label text="Schema:" GridPane.rowIndex="2"/>
+        <ComboBox fx:id="schemaSourceBox" promptText="From favorites / recent…" maxWidth="Infinity"
+                  GridPane.rowIndex="2" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS"/>
+        <Button fx:id="schemaBrowse" text="Browse…" onAction="#onBrowseSchema" GridPane.rowIndex="2"
+                GridPane.columnIndex="2"/>
+        <TextField fx:id="schemaPath" editable="false" promptText="no schema selected" GridPane.rowIndex="3"
+                   GridPane.columnIndex="1" GridPane.columnSpan="2"/>
+        <CheckBox fx:id="generateMandatory" text="Pre-fill mandatory nodes (empty)" selected="true"
+                  GridPane.rowIndex="4" GridPane.columnIndex="1" GridPane.columnSpan="2"/>
+
+        <Label text="Save to:" GridPane.rowIndex="5"/>
+        <TextField fx:id="saveLocation" promptText="(optional) leave empty to open as untitled"
+                   GridPane.rowIndex="5" GridPane.columnIndex="1"/>
+        <Button text="Browse…" onAction="#onBrowseSaveLocation" GridPane.rowIndex="5"
+                GridPane.columnIndex="2"/>
+    </children>
+</GridPane>

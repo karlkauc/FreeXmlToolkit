@@ -14,9 +14,9 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
+import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableCell;
@@ -25,10 +25,10 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
+import org.fxt.freexmltoolkit.controls.shell.FxmlColumns;
+import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost;
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdIdentityConstraintAnalyzer.ConstraintType;
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdIdentityConstraintAnalyzer.IdentityConstraintInfo;
@@ -111,49 +111,37 @@ final class XPathSection extends VBox {
     }
 
     private final EditorHost editorHost;
-    private final FlowPane chips = new FlowPane(6, 6);
+    @FXML private HBox header;
+    @FXML private FlowPane chips;
     private final StringProperty statusFilter = new SimpleStringProperty(ALL);
-    private final Label count = new Label();
-    private final Label exportStatus = new Label();
+    @FXML private Label count;
+    @FXML private Label exportStatus;
     private SchemaAnalysisData data;
     private final ObservableList<Row> rows = FXCollections.observableArrayList();
     private final FilteredList<Row> filtered = new FilteredList<>(rows);
-    private final TableView<Row> table = new TableView<>();
-    private final VBox details = new VBox(4);
+    @FXML private TableView<Row> table;
+    @FXML private TableColumn<Row, Status> statusColumn;
+    @FXML private TableColumn<Row, Row> constraintColumn;
+    @FXML private TableColumn<Row, String> sourceColumn;
+    @FXML private TableColumn<Row, String> xpathColumn;
+    @FXML private TableColumn<Row, String> messageColumn;
+    @FXML private VBox details;
 
     XPathSection(EditorHost editorHost) {
         this.editorHost = editorHost;
-        getStyleClass().add("fxt-analysis-section");
-        setSpacing(10);
+        FxmlViews.load(this, "/pages/views/XPathSection.fxml");
 
-        chips.setId("analysis-xpath-chips");
-        chips.setAlignment(Pos.CENTER_LEFT);
-        count.setId("analysis-xpath-count");
-        count.getStyleClass().add("fxt-analysis-count");
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-        exportStatus.setId("analysis-xpath-status");
-        exportStatus.getStyleClass().add("fxt-placeholder-text");
         exportStatus.managedProperty().bind(exportStatus.textProperty().isNotEmpty());
-        HBox header = new HBox(10, AnalysisSupport.reportMenu("XPath Validation", exportStatus,
-                () -> data == null ? null : SchemaAnalysisReport.xpath(data)),
-                chips, spacer, count, exportStatus);
-        header.setAlignment(Pos.CENTER_LEFT);
+        header.getChildren().add(0, AnalysisSupport.reportMenu("XPath Validation", exportStatus,
+                () -> data == null ? null : SchemaAnalysisReport.xpath(data)));
         statusFilter.addListener((obs, o, n) -> applyFilter());
 
-        table.setId("analysis-xpath-table");
-        table.getStyleClass().add("fxt-analysis-table");
-        table.getColumns().add(statusColumn());
-        table.getColumns().add(constraintColumn());
-        table.getColumns().add(AnalysisSupport.column("Source", r -> sourceLabel(r.source()), 90));
-        table.getColumns().add(xpathColumn());
-        table.getColumns().add(AnalysisSupport.column("Message", Row::message, -1));
+        configureStatusColumn(statusColumn);
+        configureConstraintColumn(constraintColumn);
+        FxmlColumns.text(sourceColumn, r -> sourceLabel(r.source()));
+        configureXpathColumn(xpathColumn);
+        FxmlColumns.text(messageColumn, Row::message);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
-        Label empty = AnalysisSupport.emptyLabel("The schema declares no constraint XPath expressions.");
-        empty.setGraphic(AnalysisSupport.icon("bi-check2-circle", 28));
-        empty.setContentDisplay(ContentDisplay.TOP);
-        empty.setGraphicTextGap(8);
-        table.setPlaceholder(empty);
         SortedList<Row> sorted = new SortedList<>(filtered);
         sorted.comparatorProperty().bind(table.comparatorProperty());
         table.setItems(sorted);
@@ -163,12 +151,6 @@ final class XPathSection extends VBox {
                 editorHost.revealSchemaNodeByXPath(n.sourceNode().getXPath());
             }
         });
-        VBox.setVgrow(table, Priority.ALWAYS);
-
-        details.getStyleClass().add("fxt-analysis-details");
-        details.setMinHeight(90);
-
-        getChildren().addAll(header, table, details);
         applyFilter();
         showDetails(null);
     }
@@ -271,9 +253,7 @@ final class XPathSection extends VBox {
 
     // ---------------------------------------------------------------- columns
 
-    private static TableColumn<Row, Status> statusColumn() {
-        TableColumn<Row, Status> column = new TableColumn<>("Status");
-        column.setPrefWidth(105);
+    private static void configureStatusColumn(TableColumn<Row, Status> column) {
         column.setCellValueFactory(c -> new ReadOnlyObjectWrapper<>(c.getValue().status()));
         column.setCellFactory(col -> new TableCell<>() {
             @Override
@@ -291,12 +271,9 @@ final class XPathSection extends VBox {
                 getStyleClass().add("fxt-analysis-sev-" + tone(item));
             }
         });
-        return column;
     }
 
-    private static TableColumn<Row, Row> constraintColumn() {
-        TableColumn<Row, Row> column = new TableColumn<>("Constraint");
-        column.setPrefWidth(190);
+    private static void configureConstraintColumn(TableColumn<Row, Row> column) {
         column.setCellValueFactory(c -> new ReadOnlyObjectWrapper<>(c.getValue()));
         column.setComparator((a, b) -> AnalysisSupport.nullSafe(a.constraintName())
                 .compareToIgnoreCase(AnalysisSupport.nullSafe(b.constraintName())));
@@ -314,11 +291,10 @@ final class XPathSection extends VBox {
                 setGraphicTextGap(6);
             }
         });
-        return column;
     }
 
-    private static TableColumn<Row, String> xpathColumn() {
-        TableColumn<Row, String> column = AnalysisSupport.column("XPath", Row::xpath, 260);
+    private static void configureXpathColumn(TableColumn<Row, String> column) {
+        FxmlColumns.text(column, Row::xpath);
         column.getStyleClass().add("fxt-analysis-cell-mono");
         column.setCellFactory(col -> new TableCell<>() {
             @Override
@@ -333,7 +309,6 @@ final class XPathSection extends VBox {
                 setTooltip(new Tooltip(item));
             }
         });
-        return column;
     }
 
     // ---------------------------------------------------------------- details

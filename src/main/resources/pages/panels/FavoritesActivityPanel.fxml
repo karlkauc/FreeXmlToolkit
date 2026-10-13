@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.VBox?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.PanelActionButton?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.PanelActionList?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.SidePanelHeader?>
+
+<!--
+  Favorites activity side panel: the two actions, a search field and the favorites list.
+  Loaded by FavoritesActivityPanel via the fx:root pattern (FxmlViews.load);
+  FavoritesActivityPanel is root and controller. The list rows (grouped favorites), their cells
+  and the context menu (with its dynamic "Move to folder" submenu) are built in code.
+-->
+<fx:root type="javafx.scene.layout.VBox"
+         xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <children>
+        <SidePanelHeader title="FAVORITES"/>
+        <PanelActionList>
+            <children>
+                <PanelActionButton id="favorites-add-current" iconLiteral="bi-star" text="Add current"
+                                   color="CREATE" onAction="#addCurrent"/>
+                <PanelActionButton id="favorites-manage" iconLiteral="bi-sliders" text="Manage…"
+                                   onAction="#openManager"/>
+            </children>
+        </PanelActionList>
+        <VBox styleClass="fxt-side-panel-body" VBox.vgrow="ALWAYS">
+            <children>
+                <TextField fx:id="search" id="favorites-search" promptText="Search…"/>
+                <ListView fx:id="list" styleClass="fxt-open-editors" VBox.vgrow="ALWAYS">
+                    <placeholder>
+                        <Label text="No favorites"/>
+                    </placeholder>
+                </ListView>
+            </children>
+        </VBox>
+    </children>
+</fx:root>

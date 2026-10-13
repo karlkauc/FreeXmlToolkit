@@ -125,6 +125,15 @@ public void setName(String name) {
 |------|---------|
 | `tab_unified_shell.fxml` | Bootstrap page; its `UnifiedShellController` instantiates `UnifiedShellView` |
 | `shell.fxml` | The shell chrome (`fx:root` BorderPane: header · toolbar · status bar · work-area skeleton + `fx:id` placeholders), loaded by `UnifiedShellView`; **the Scene-Builder-editable layout** |
+| `panels/<Class>.fxml` | Activity side panels and their panes (Explorer, Validation, Transform, FOP, Signature, FundsXML, Help, Search, Schema Library, Favorites, Type Library, Problems, Transform Output) |
+| `views/<Class>.fxml` | Main-area pages and embedded views (Settings, Welcome, Documentation, Sign Document, Favorites Manager, Query Console, Execution Stats, Schema Analysis + sections, grid header, XSD properties / documentation / appinfo editors, Schematron builder and template library) |
+| `dialogs/<Class>.fxml` | Content of the `DialogPane`; buttons, result converter and theme stylesheets stay in code |
+| `inspector/<Class>.fxml` | `InspectorPanel` and `AppInfoFieldsEditor` |
+
+Every file is named after the class that loads it (`FxmlViews.load(this, "/pages/…")`, `fx:root`,
+the class is root and controller). Panel FXMLs declare no `stylesheets=` — they inherit the shell
+root's sheets so the `ThemeManager` Light/Dark switch keeps working. Canvas/editor views, cells and
+data-generated content (`ActivityBar`, `FavoritesMenu`, `NodeContextMenu`, `FacetsPanel`, …) stay in code.
 
 ## CSS
 

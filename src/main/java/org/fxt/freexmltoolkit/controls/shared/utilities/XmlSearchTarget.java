@@ -22,8 +22,8 @@ package org.fxt.freexmltoolkit.controls.shared.utilities;
  * Abstraction for a component that can be searched with a simple
  * "find next / find previous" interaction.
  *
- * <p>This lets a single search UI (the inline {@code UnifiedSearchBar} or the
- * modal {@code FindReplaceDialog}) drive different editor views — the text
+ * <p>This lets a single search UI (the inline {@code UnifiedSearchBar}) drive
+ * different editor views — the text
  * editor ({@code XmlCodeEditorV2}) as well as the graphical canvas view
  * ({@code XmlCanvasView}) — without coupling the UI to a concrete view type.</p>
  */

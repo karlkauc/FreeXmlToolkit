@@ -14,7 +14,7 @@ import java.util.regex.PatternSyntaxException;
 
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
-import javafx.geometry.Pos;
+import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
@@ -22,14 +22,12 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.Tooltip;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
 import javafx.util.Duration;
 
 import org.fxt.freexmltoolkit.FxtGui;
-import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost;
 import org.fxt.freexmltoolkit.controls.shell.editor.OpenDocument;
 import org.fxt.freexmltoolkit.controls.shell.editor.PanelProgress;
@@ -52,19 +50,19 @@ public class TextSearchPane extends VBox {
     private final EditorHost editorHost;
     private final Supplier<Path> workspaceRoot;
 
-    private final TextField queryField = new TextField();
-    private final ToggleButton caseToggle = optionToggle("Aa", "Match case");
-    private final ToggleButton wordToggle = optionToggle("W", "Whole word");
-    private final ToggleButton regexToggle = optionToggle(".*", "Regular expression");
-    private final TextField replaceField = new TextField();
-    private final Button replaceButton = new Button("Replace…");
-    private final VBox replaceRow = new VBox(4);
-    private final Label folderLabel = new Label("(no folder)");
-    private final TextField globField = new TextField();
-    private final ToggleButton replaceToggle = optionToggle("⇄", "Toggle replace");
-    private final Label status = new Label("Type to search");
-    private final PanelProgress progress = new PanelProgress();
-    private final SearchResultsTree resultsTree = new SearchResultsTree();
+    @FXML private TextField queryField;
+    @FXML private ToggleButton caseToggle;
+    @FXML private ToggleButton wordToggle;
+    @FXML private ToggleButton regexToggle;
+    @FXML private TextField replaceField;
+    @FXML private Button replaceButton;
+    @FXML private VBox replaceRow;
+    @FXML private Label folderLabel;
+    @FXML private TextField globField;
+    @FXML private ToggleButton replaceToggle;
+    @FXML private Label status;
+    @FXML private PanelProgress progress;
+    @FXML private SearchResultsTree resultsTree;
     private final PauseTransition debounce = new PauseTransition(Duration.millis(400));
 
     /** Explicit folder chosen via Browse; when null the Explorer workspace is used. */
@@ -79,55 +77,14 @@ public class TextSearchPane extends VBox {
     public TextSearchPane(EditorHost editorHost, Supplier<Path> workspaceRoot) {
         this.editorHost = editorHost;
         this.workspaceRoot = workspaceRoot;
-        getStyleClass().add("fxt-search-text-pane");
-        setSpacing(6);
+        FxmlViews.load(this, "/pages/panels/TextSearchPane.fxml");
 
-        // --- query row --------------------------------------------------------
-        queryField.setId("search-query");
-        queryField.setPromptText("Search");
-        HBox.setHgrow(queryField, Priority.ALWAYS);
-        HBox queryRow = new HBox(4, queryField, caseToggle, wordToggle, regexToggle);
-        queryRow.setAlignment(Pos.CENTER_LEFT);
-
-        // --- replace row (collapsed until requested) --------------------------
-        replaceField.setId("search-replace");
-        replaceField.setPromptText("Replace");
-        replaceButton.setId("search-replace-button");
-        replaceButton.getStyleClass().add("fxt-primary-button");
-        replaceButton.setMaxWidth(Double.MAX_VALUE);
-        replaceButton.setOnAction(e -> onReplaceChecked());
-        replaceRow.getChildren().addAll(replaceField, replaceButton);
-        setReplaceRowVisible(false);
-        replaceToggle.setId("search-replace-toggle");
         replaceToggle.selectedProperty().addListener(
                 (obs, oldV, newV) -> setReplaceRowVisible(newV));
-        queryRow.getChildren().add(replaceToggle);
-
-        // --- scope: folder + glob --------------------------------------------
-        folderLabel.setId("search-folder");
-        folderLabel.getStyleClass().add("fxt-vp-source-name");
-        Button browse = new Button();
-        browse.setGraphic(new IconifyIcon("bi-folder2-open"));
-        browse.getStyleClass().add("fxt-tool-button");
-        browse.setTooltip(new Tooltip("Choose folder to search"));
-        browse.setOnAction(e -> chooseFolder());
-        HBox.setHgrow(folderLabel, Priority.ALWAYS);
-        folderLabel.setMaxWidth(Double.MAX_VALUE);
-        HBox folderRow = new HBox(6, folderLabel, browse);
-        folderRow.setAlignment(Pos.CENTER_LEFT);
-        globField.setId("search-glob");
-        globField.setPromptText("File globs, e.g. *.xml,*.xsd");
         globField.setText(loadPref("search.glob", String.join(",", FileSearchRunner.DEFAULT_GLOBS)));
-
-        // --- status + progress + results -------------------------------------
-        status.getStyleClass().add("fxt-vp-status");
-        status.setWrapText(true);
-        VBox.setVgrow(resultsTree, Priority.ALWAYS);
         resultsTree.setOnNavigate(match -> Platform.runLater(() ->
                 editorHost.openFileAndSelect(match.file(), match.start(), match.end(),
                         match.matched(), match.lineNumber())));
-
-        getChildren().addAll(queryRow, replaceRow, folderRow, globField, status, progress, resultsTree);
 
         // --- behavior ---------------------------------------------------------
         debounce.setOnFinished(e -> runSearch());
@@ -174,14 +131,8 @@ public class TextSearchPane extends VBox {
         replaceRow.setManaged(visible);
     }
 
-    private static ToggleButton optionToggle(String text, String tooltip) {
-        ToggleButton toggle = new ToggleButton(text);
-        toggle.getStyleClass().addAll("fxt-tool-button", "fxt-search-option-toggle");
-        toggle.setTooltip(new Tooltip(tooltip));
-        return toggle;
-    }
-
-    private void chooseFolder() {
+    @FXML
+    public void onChooseFolder() {
         DirectoryChooser chooser = new DirectoryChooser();
         chooser.setTitle("Choose folder to search");
         Path current = effectiveFolder();
@@ -346,7 +297,8 @@ public class TextSearchPane extends VBox {
 
     // --- replace -----------------------------------------------------------
 
-    private void onReplaceChecked() {
+    @FXML
+    public void onReplaceChecked() {
         if (lastResults == null || lastQuery == null) {
             PanelStatus.precondition(status, "Run a search first");
             return;

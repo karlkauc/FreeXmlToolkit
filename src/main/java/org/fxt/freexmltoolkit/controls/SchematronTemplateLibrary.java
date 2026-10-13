@@ -7,28 +7,24 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.fxml.FXML;
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
-import javafx.scene.control.Separator;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 
 /**
  * Template library for common Schematron patterns and rules.
@@ -38,13 +34,16 @@ public class SchematronTemplateLibrary extends VBox {
 
     private static final Logger logger = LogManager.getLogger(SchematronTemplateLibrary.class);
 
-    // UI Components
-    private ComboBox<String> categoryComboBox;
-    private TextField searchField;
-    private TableView<TemplateItem> templatesTable;
-    private TextArea previewArea;
-    private Button insertButton;
-    private Button customizeButton;
+    // UI components (defined in /pages/views/SchematronTemplateLibrary.fxml)
+    @FXML private ComboBox<String> categoryComboBox;
+    @FXML private TextField searchField;
+    @FXML private TableView<TemplateItem> templatesTable;
+    @FXML private TableColumn<TemplateItem, String> nameColumn;
+    @FXML private TableColumn<TemplateItem, String> categoryColumn;
+    @FXML private TableColumn<TemplateItem, String> descColumn;
+    @FXML private TextArea previewArea;
+    @FXML private Button insertButton;
+    @FXML private Button customizeButton;
 
     // Data models
     private final ObservableList<TemplateItem> allTemplates = FXCollections.observableArrayList();
@@ -54,186 +53,19 @@ public class SchematronTemplateLibrary extends VBox {
     private Consumer<String> templateInsertCallback;
 
     /**
-     * Constructor - Initialize the Template Library
+     * Constructor - loads the layout from {@code /pages/views/SchematronTemplateLibrary.fxml},
+     * wires the table and the filters and loads the default templates.
      */
     public SchematronTemplateLibrary() {
-        this.setSpacing(10);
-        this.setPadding(new Insets(10));
+        FxmlViews.load(this, "/pages/views/SchematronTemplateLibrary.fxml");
 
-        initializeComponents();
-        layoutComponents();
-        setupEventHandlers();
-        loadDefaultTemplates();
-
-        logger.debug("SchematronTemplateLibrary initialized");
-    }
-
-    /**
-     * Initialize all UI components
-     */
-    private void initializeComponents() {
-        // Category filter
-        categoryComboBox = new ComboBox<>();
-        categoryComboBox.getItems().addAll(
-                "All Categories",
-                "Business Rules",
-                "Data Validation",
-                "Structure Validation",
-                "Cross-References",
-                "Financial",
-                "Healthcare",
-                "Government",
-                "Custom"
-        );
-        categoryComboBox.setValue("All Categories");
-        categoryComboBox.setPrefWidth(150);
-
-        // Search
-        searchField = new TextField();
-        searchField.setPromptText("Search templates...");
-        searchField.setPrefWidth(200);
-
-        // Templates table
-        templatesTable = createTemplatesTable();
-
-        // Preview area
-        previewArea = new TextArea();
-        previewArea.setEditable(false);
-        previewArea.setPrefHeight(200);
-        previewArea.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 11px;");
-        previewArea.setPromptText("Select a template to preview...");
-
-        // Action buttons
-        insertButton = new Button("Insert Template");
-        insertButton.getStyleClass().add("primary-button");
-        insertButton.setDisable(true);
-
-        customizeButton = new Button("Customize & Insert");
-        customizeButton.getStyleClass().add("secondary-button");
-        customizeButton.setDisable(true);
-    }
-
-    /**
-     * Create the templates table
-     */
-    private TableView<TemplateItem> createTemplatesTable() {
-        TableView<TemplateItem> table = new TableView<>(filteredTemplates);
-        table.setPrefHeight(250);
-
-        // Name column
-        TableColumn<TemplateItem, String> nameColumn = new TableColumn<>("Template");
         nameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
-        nameColumn.setPrefWidth(200);
-
-        // Category column
-        TableColumn<TemplateItem, String> categoryColumn = new TableColumn<>("Category");
         categoryColumn.setCellValueFactory(new PropertyValueFactory<>("category"));
-        categoryColumn.setPrefWidth(120);
-
-        // Description column
-        TableColumn<TemplateItem, String> descColumn = new TableColumn<>("Description");
         descColumn.setCellValueFactory(new PropertyValueFactory<>("description"));
-        descColumn.setPrefWidth(300);
+        templatesTable.setItems(filteredTemplates);
 
-        table.getColumns().addAll(java.util.List.of(nameColumn, categoryColumn, descColumn));
-
-        return table;
-    }
-
-    /**
-     * Layout all components in the UI
-     */
-    private void layoutComponents() {
-        // Header
-        Label headerLabel = new Label("Schematron Template Library");
-        headerLabel.setFont(Font.font("System", FontWeight.BOLD, 16));
-
-        // Filter section
-        VBox filterSection = createSection("Filter Templates", createFilterControls());
-
-        // Templates section
-        VBox templatesSection = createSection("Available Templates", createTemplatesControls());
-
-        // Preview section
-        VBox previewSection = createSection("Template Preview", createPreviewControls());
-
-        // Add all sections
-        this.getChildren().addAll(
-                headerLabel,
-                new Separator(),
-                filterSection,
-                templatesSection,
-                previewSection
-        );
-
-        // Make the templates table expand
-        VBox.setVgrow(templatesSection, Priority.ALWAYS);
-    }
-
-    /**
-     * Create a titled section with content
-     */
-    private VBox createSection(String title, VBox content) {
-        VBox section = new VBox(5);
-        section.setPadding(new Insets(5));
-        section.getStyleClass().add("template-library-section");
-
-        Label titleLabel = new Label(title);
-        titleLabel.setFont(Font.font("System", FontWeight.BOLD, 12));
-        titleLabel.getStyleClass().add("section-title");
-
-        section.getChildren().addAll(titleLabel, content);
-
-        return section;
-    }
-
-    /**
-     * Create filter controls
-     */
-    private VBox createFilterControls() {
-        HBox filterRow = new HBox(10);
-        filterRow.setAlignment(Pos.CENTER_LEFT);
-        filterRow.getChildren().addAll(
-                new Label("Category:"), categoryComboBox,
-                new Label("Search:"), searchField
-        );
-
-        VBox controls = new VBox(5);
-        controls.getChildren().addAll(filterRow);
-
-        return controls;
-    }
-
-    /**
-     * Create templates controls
-     */
-    private VBox createTemplatesControls() {
-        VBox controls = new VBox(5);
-        controls.getChildren().addAll(templatesTable);
-        VBox.setVgrow(templatesTable, Priority.ALWAYS);
-
-        return controls;
-    }
-
-    /**
-     * Create preview controls
-     */
-    private VBox createPreviewControls() {
-        HBox buttonRow = new HBox(10);
-        buttonRow.setAlignment(Pos.CENTER_LEFT);
-        buttonRow.getChildren().addAll(insertButton, customizeButton);
-
-        VBox controls = new VBox(5);
-        controls.getChildren().addAll(previewArea, buttonRow);
-
-        return controls;
-    }
-
-    /**
-     * Set up event handlers for all interactive components
-     */
-    private void setupEventHandlers() {
-        // Filter by category
+        // Filter by category (wired after the initial value so it does not count as a user choice)
+        categoryComboBox.setValue("All Categories");
         categoryComboBox.setOnAction(e -> filterTemplates());
 
         // Search filter
@@ -252,9 +84,9 @@ public class SchematronTemplateLibrary extends VBox {
             }
         });
 
-        // Button actions
-        insertButton.setOnAction(e -> insertSelectedTemplate());
-        customizeButton.setOnAction(e -> customizeAndInsertTemplate());
+        loadDefaultTemplates();
+
+        logger.debug("SchematronTemplateLibrary initialized");
     }
 
     /**
@@ -406,7 +238,8 @@ public class SchematronTemplateLibrary extends VBox {
     /**
      * Insert selected template
      */
-    private void insertSelectedTemplate() {
+    @FXML
+    public void onInsertTemplate() {
         TemplateItem selected = templatesTable.getSelectionModel().getSelectedItem();
         if (selected != null && templateInsertCallback != null) {
             templateInsertCallback.accept(selected.getTemplate());
@@ -417,7 +250,8 @@ public class SchematronTemplateLibrary extends VBox {
     /**
      * Customize and insert template
      */
-    private void customizeAndInsertTemplate() {
+    @FXML
+    public void onCustomizeAndInsert() {
         TemplateItem selected = templatesTable.getSelectionModel().getSelectedItem();
         if (selected != null) {
             TemplateCustomizationDialog dialog = new TemplateCustomizationDialog(selected);

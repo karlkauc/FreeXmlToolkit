@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckMenuItem?>
+<?import javafx.scene.control.ContextMenu?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.SeparatorMenuItem?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.VBox?>
+<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.PanelActionButton?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.PanelActionList?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.PanelProgress?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.SidePanelHeader?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.SidePanelSection?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.SourceRow?>
+
+<!--
+  Transform activity side panel (Figma "Redesign · Unified — Transform (XSLT)"): stylesheet and
+  input rows, output method, parameters, "Run Transform", the TOOLS rows and the collapsed
+  XPath/JSONPath and XQuery sections. The result lives in the editor-docked TransformOutputPanel.
+  Loaded by TransformPanel via the fx:root pattern (FxmlViews.load); TransformPanel is root and
+  controller. Added in code: the recent/favourites menus and ◀/▶ browse controls of the source
+  rows, the output-method segments (one per FormatChoice), the parameter rows with their
+  "Add parameter" row, and the "Saved Queries" / "Examples" menu rows. The title of the query
+  section switches between XPATH and JSONPATH with the active document.
+-->
+<fx:root type="javafx.scene.layout.VBox" styleClass="fxt-transform-panel"
+         xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <fx:define>
+        <!-- Shown by "Change" in the INPUT row -->
+        <ContextMenu fx:id="inputMenu">
+            <items>
+                <MenuItem text="Select XML file…" onAction="#onChooseInputFile"/>
+                <MenuItem text="Use active editor" onAction="#onUseActiveEditor"/>
+            </items>
+        </ContextMenu>
+    </fx:define>
+    <children>
+        <!-- The ⋮ overflow menu keeps only the toggles; the tools are visible rows in TOOLS. -->
+        <SidePanelHeader title="TRANSFORM">
+            <children>
+                <MenuButton fx:id="overflowMenu" id="transform-overflow" styleClass="fxt-vp-overflow">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-three-dots-vertical" iconSize="15"/>
+                    </graphic>
+                    <items>
+                        <CheckMenuItem fx:id="livePreview" text="Live preview" onAction="#onLivePreviewToggled"/>
+                        <CheckMenuItem fx:id="watchXslt" text="Watch stylesheet file"/>
+                        <SeparatorMenuItem/>
+                        <CheckMenuItem fx:id="profileCheck" text="Profile run"/>
+                        <CheckMenuItem fx:id="traceCheck" text="Trace run"/>
+                        <SeparatorMenuItem/>
+                        <CheckMenuItem fx:id="autoOpenResultTab" text="Auto-open result tab"/>
+                    </items>
+                </MenuButton>
+            </children>
+        </SidePanelHeader>
+
+        <!-- The sections scroll on short windows. -->
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="edge-to-edge" VBox.vgrow="ALWAYS">
+            <content>
+                <VBox>
+                    <children>
+                        <SidePanelSection title="STYLESHEET">
+                            <children>
+                                <SourceRow fx:id="xsltRow" id="transform-xslt-row" iconLiteral="bi-arrow-repeat"
+                                           onChange="#onChooseXslt">
+                                    <name>
+                                        <Label fx:id="xsltName" text="none"
+                                               styleClass="fxt-vp-source-name, fxt-vp-source-none"/>
+                                    </name>
+                                </SourceRow>
+                            </children>
+                        </SidePanelSection>
+
+                        <SidePanelSection title="INPUT">
+                            <children>
+                                <SourceRow fx:id="inputRow" id="transform-input-row" iconLiteral="bi-code-slash"
+                                           onChange="#onChangeInput">
+                                    <name>
+                                        <Label fx:id="inputName" text="none" styleClass="fxt-vp-source-name"/>
+                                    </name>
+                                </SourceRow>
+                            </children>
+                        </SidePanelSection>
+
+                        <!-- Segmented control: all six choices in a 2×3 grid, one selected -->
+                        <SidePanelSection title="OUTPUT METHOD">
+                            <children>
+                                <VBox fx:id="formatGrid" spacing="2" styleClass="fxt-tp-format-grid"/>
+                            </children>
+                        </SidePanelSection>
+
+                        <SidePanelSection title="PARAMETERS">
+                            <children>
+                                <VBox fx:id="paramsBox" spacing="4" styleClass="fxt-tp-params">
+                                    <children>
+                                        <VBox fx:id="paramRows" spacing="4"/>
+                                    </children>
+                                </VBox>
+                            </children>
+                        </SidePanelSection>
+
+                        <VBox fx:id="runBox" spacing="8" styleClass="fxt-vp-run-box">
+                            <children>
+                                <Button fx:id="transformButton" id="transform-run" text="Run Transform"
+                                        maxWidth="Infinity" styleClass="fxt-primary-button" onAction="#onTransform">
+                                    <graphic>
+                                        <IconifyIcon iconLiteral="bi-play-fill" iconSize="14"/>
+                                    </graphic>
+                                </Button>
+                                <PanelProgress fx:id="progress"/>
+                            </children>
+                        </VBox>
+
+                        <!-- The advanced tools as visible rows (formerly ⋮ entries) -->
+                        <SidePanelSection title="TOOLS">
+                            <children>
+                                <PanelActionList fx:id="tools" id="transform-tools">
+                                    <children>
+                                        <PanelActionButton id="transform-tool-debug" iconLiteral="bi-bug"
+                                                           text="Debug XSLT…" color="TOOL" onAction="#startDebug"/>
+                                        <PanelActionButton id="transform-tool-batch" iconLiteral="bi-collection"
+                                                           text="Batch Transform…" color="TOOL"
+                                                           onAction="#openBatch"/>
+                                        <PanelActionButton id="transform-tool-stats" iconLiteral="bi-speedometer2"
+                                                           text="Execution Statistics" color="NAVIGATE"
+                                                           onAction="#onOpenExecutionStats"/>
+                                    </children>
+                                </PanelActionList>
+                            </children>
+                        </SidePanelSection>
+
+                        <!-- XPATH / JSONPATH (collapsed) -->
+                        <SidePanelSection fx:id="pathSection" title="XPATH" collapsed="true">
+                            <children>
+                                <VBox spacing="6" styleClass="fxt-tp-section-body">
+                                    <children>
+                                        <TextField fx:id="xpathField" styleClass="fxt-xpath-field"
+                                                   onAction="#runXPath"/>
+                                        <PanelActionList fx:id="xpathActions">
+                                            <children>
+                                                <PanelActionButton id="transform-xpath-run"
+                                                                   iconLiteral="bi-lightning-charge" text="Run Query"
+                                                                   color="TOOL" primary="true" onAction="#runXPath"/>
+                                                <PanelActionButton id="transform-xpath-save" iconLiteral="bi-save"
+                                                                   text="Save Query" color="TOOL"
+                                                                   onAction="#saveCurrentQuery"/>
+                                            </children>
+                                        </PanelActionList>
+                                    </children>
+                                </VBox>
+                            </children>
+                        </SidePanelSection>
+
+                        <!-- XQUERY (collapsed) -->
+                        <SidePanelSection title="XQUERY" collapsed="true">
+                            <children>
+                                <VBox spacing="6" styleClass="fxt-tp-section-body">
+                                    <children>
+                                        <TextArea fx:id="xqueryArea" prefRowCount="4"
+                                                  promptText="for $x in /root/item return string($x)"
+                                                  styleClass="fxt-xpath-field"/>
+                                        <PanelActionList fx:id="xqueryActions">
+                                            <children>
+                                                <PanelActionButton id="transform-xquery-run" iconLiteral="bi-braces"
+                                                                   text="Run XQuery" color="TOOL" primary="true"
+                                                                   onAction="#runXQuery"/>
+                                            </children>
+                                        </PanelActionList>
+                                    </children>
+                                </VBox>
+                            </children>
+                        </SidePanelSection>
+                    </children>
+                </VBox>
+            </content>
+        </ScrollPane>
+    </children>
+</fx:root>

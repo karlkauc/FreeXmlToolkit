@@ -3,12 +3,13 @@ package org.fxt.freexmltoolkit.controls.shell.editor;
 import java.util.List;
 
 import javafx.application.Platform;
+import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 import org.fxt.freexmltoolkit.FxtGui;
-import org.fxt.freexmltoolkit.controls.theme.ActionColor;
+import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.util.ProjectLinks;
 import org.fxt.freexmltoolkit.util.VersionUtil;
 
@@ -23,77 +24,87 @@ public class HelpPanel extends VBox {
     private static final String FUNDSXML_SITE_URL = "http://www.fundsxml.org";
     private static final String SCHEMA_DOCS_URL = "https://fundsxml.github.io/";
 
-    private final Label version = new Label();
-    private final Label updateStatus = new Label();
+    @FXML private Label version;
+    @FXML private Label build;
+    @FXML private Label vendor;
+    @FXML private Label updateStatus;
+    @FXML private PanelActionList projectActions;
+    @FXML private Button sponsorButton;
+    @FXML private Button reportProblemButton;
+    @FXML private SidePanelSection fundsSection;
+    @FXML private Label fundsStatus;
 
+    /** Loads the layout from {@code /pages/panels/HelpPanel.fxml} and fills the version texts. */
     public HelpPanel() {
-        HBox header = SidePanelHeader.create("HELP");
-
-        Label appName = new Label("FreeXmlToolkit");
-        appName.getStyleClass().add("fxt-welcome-headline");
+        FxmlViews.load(this, "/pages/panels/HelpPanel.fxml");
 
         version.setText("Version " + VersionUtil.getVersion());
-        version.getStyleClass().add("fxt-placeholder-text");
+        build.setText("Build: " + VersionUtil.getBuildTimestampFormatted());
+        vendor.setText(VersionUtil.getVendor());
+        sponsorButton.setGraphic(ProjectLinks.sponsorIcon(16));
 
-        Label build = new Label("Build: " + VersionUtil.getBuildTimestampFormatted());
-        build.getStyleClass().add("fxt-placeholder-text");
-        Label vendor = new Label(VersionUtil.getVendor());
-        vendor.getStyleClass().add("fxt-placeholder-text");
-
-        PanelActionList project = new PanelActionList(
-                PanelAction.of("help-github", "bi-github", "GitHub", () -> browse(GITHUB_URL)).color(ActionColor.NAVIGATE),
-                PanelAction.of("help-sponsor", "bi-heart-fill", "Sponsor this Project",
-                        () -> browse(ProjectLinks.SPONSORS_URL)),
-                PanelAction.of("help-about", "bi-info-circle", "About",
-                        () -> AboutDialog.show(getScene() != null ? getScene().getWindow() : null)),
-                PanelAction.of("help-shortcuts", "bi-keyboard", "Keyboard Shortcuts", KeyboardShortcutsDialog::show));
-        project.button("help-sponsor").setGraphic(ProjectLinks.sponsorIcon(16));
         // Anonymous in-app problem report — only when error reporting is enabled.
-        if (org.fxt.freexmltoolkit.controls.dialogs.ErrorReportDialog.isAvailable()) {
-            project.add(PanelAction.of("help-report-problem", "bi-send", "Report a Problem…",
-                    () -> org.fxt.freexmltoolkit.controls.dialogs.ErrorReportDialog.show(
-                            getScene() != null ? getScene().getWindow() : null, null)).color(ActionColor.NAVIGATE));
+        if (!org.fxt.freexmltoolkit.controls.dialogs.ErrorReportDialog.isAvailable()) {
+            projectActions.getChildren().remove(reportProblemButton);
         }
-
-        // Documentation quick links — open in the system browser (replaces the legacy
-        // Help tab's embedded WebViews for the FXT docs, FundsXML site and schema docs).
-        PanelActionList docs = new PanelActionList(
-                PanelAction.of("help-docs", "bi-book", "Documentation", () -> browse(DOCS_URL)).color(ActionColor.NAVIGATE),
-                PanelAction.of("help-fundsxml-site", "bi-globe", "FundsXML Website", () -> browse(FUNDSXML_SITE_URL)).color(ActionColor.NAVIGATE),
-                PanelAction.of("help-schema-docs", "bi-file-earmark-text", "FundsXML4 Schema Docs",
-                        () -> browse(SCHEMA_DOCS_URL)).color(ActionColor.NAVIGATE));
-
-        PanelActionList updates = new PanelActionList(
-                PanelAction.of("help-check-updates", "bi-arrow-clockwise", "Check for Updates", this::checkForUpdates).color(ActionColor.TOOL));
-        updateStatus.getStyleClass().addAll("fxt-placeholder-text", "fxt-tp-section-body");
-        updateStatus.setWrapText(true);
-
-        VBox about = new VBox(4, appName, version, build, vendor);
-        about.getStyleClass().add("fxt-tp-section-body");
-
-        getChildren().addAll(header, about,
-                PanelActionList.section("PROJECT", false, project),
-                PanelActionList.section("DOCUMENTATION", false, docs),
-                PanelActionList.section("UPDATES", false, updates), updateStatus);
-
         // FundsXML extension — only when enabled in the settings (conditional).
-        if (FundsXmlActionRunner.isEnabled()) {
-            Label fundsStatus = new Label();
-            fundsStatus.getStyleClass().addAll("fxt-placeholder-text", "fxt-tp-section-body");
-            fundsStatus.setWrapText(true);
-            PanelActionList funds = new PanelActionList(
-                    PanelAction.of("help-fundsxml-updates", "bi-cloud-arrow-down", "Check FundsXML Updates", () -> {
-                        fundsStatus.setText("Checking…");
-                        FxtGui.executorService.submit(() -> {
-                            String msg = FundsXmlActionRunner.checkForUpdate();
-                            Platform.runLater(() -> fundsStatus.setText(msg));
-                        });
-                    }).color(ActionColor.TOOL));
-            getChildren().addAll(PanelActionList.section("FUNDSXML", false, funds), fundsStatus);
+        if (!FundsXmlActionRunner.isEnabled()) {
+            getChildren().removeAll(fundsSection, fundsStatus);
         }
     }
 
+    @FXML
+    public void onGitHub() {
+        browse(GITHUB_URL);
+    }
+
+    @FXML
+    public void onSponsor() {
+        browse(ProjectLinks.SPONSORS_URL);
+    }
+
+    @FXML
+    public void onAbout() {
+        AboutDialog.show(getScene() != null ? getScene().getWindow() : null);
+    }
+
+    @FXML
+    public void onShortcuts() {
+        KeyboardShortcutsDialog.show();
+    }
+
+    @FXML
+    public void onReportProblem() {
+        org.fxt.freexmltoolkit.controls.dialogs.ErrorReportDialog.show(
+                getScene() != null ? getScene().getWindow() : null, null);
+    }
+
+    @FXML
+    public void onDocs() {
+        browse(DOCS_URL);
+    }
+
+    @FXML
+    public void onFundsXmlSite() {
+        browse(FUNDSXML_SITE_URL);
+    }
+
+    @FXML
+    public void onSchemaDocs() {
+        browse(SCHEMA_DOCS_URL);
+    }
+
+    @FXML
+    public void onCheckFundsXmlUpdates() {
+        fundsStatus.setText("Checking…");
+        FxtGui.executorService.submit(() -> {
+            String msg = FundsXmlActionRunner.checkForUpdate();
+            Platform.runLater(() -> fundsStatus.setText(msg));
+        });
+    }
+
     /** Checks for application updates asynchronously and shows the result. */
+    @FXML
     public void checkForUpdates() {
         updateStatus.setText("Checking…");
         UpdateActionRunner.check().whenComplete((info, err) -> {
@@ -125,5 +136,4 @@ public class HelpPanel extends VBox {
     private void browse(String url) {
         ProjectLinks.openInBrowser(url);
     }
-
 }

@@ -3,18 +3,15 @@ package org.fxt.freexmltoolkit.controls.shell.editor.analysis;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Locale;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 import javafx.application.Platform;
 import javafx.beans.property.Property;
-import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
-import javafx.scene.control.TableColumn;
 import javafx.scene.control.Tooltip;
 import javafx.stage.FileChooser;
 
@@ -41,16 +38,6 @@ final class AnalysisSupport {
     @FunctionalInterface
     interface ExportWriter {
         void write(ReportFormat format, Path target) throws Exception;
-    }
-
-    /** A read-only text column backed by {@code value}. */
-    static <T> TableColumn<T, String> column(String title, Function<T, String> value, double prefWidth) {
-        TableColumn<T, String> column = new TableColumn<>(title);
-        column.setCellValueFactory(c -> new ReadOnlyStringWrapper(nullSafe(value.apply(c.getValue()))));
-        if (prefWidth > 0) {
-            column.setPrefWidth(prefWidth);
-        }
-        return column;
     }
 
     /** A small rounded count chip, e.g. "3 errors", tinted by {@code tone} (error/warning/info/suggestion/ok). */

@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<!--
+  "Statistics" sub-tab of the Schema Analysis tool tab: toolbar (Export + status), then a
+  scrolling column of KPI row, detail-card grid, schema-reference table, most used / unused
+  types and unused groups / circular references. Loaded by StatisticsSection via the fx:root
+  pattern (FxmlViews.load); StatisticsSection is root and controller. Built in code: the Export
+  menu, the KPI tiles and detail cards, the card grid's column constraints, all cell factories
+  and the counts appended to the group titles.
+-->
+<fx:root type="javafx.scene.layout.VBox" spacing="10" styleClass="fxt-analysis-section"
+         xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <children>
+        <HBox fx:id="toolbar" spacing="8" alignment="CENTER_LEFT">
+            <children>
+                <Label fx:id="status" styleClass="fxt-placeholder-text"/>
+            </children>
+        </HBox>
+        <ScrollPane fx:id="scroll" fitToWidth="true" styleClass="edge-to-edge" VBox.vgrow="ALWAYS">
+            <content>
+                <VBox fx:id="content" spacing="16">
+                    <padding>
+                        <Insets top="4" right="4" bottom="12" left="4"/>
+                    </padding>
+                    <children>
+                        <HBox fx:id="kpis" id="analysis-kpis" spacing="12" alignment="CENTER_LEFT"/>
+                        <GridPane fx:id="cards" id="analysis-cards" hgap="12" vgap="12"/>
+
+                        <!-- Includes / imports with their resolution status; hidden when there are none -->
+                        <VBox fx:id="referencesBox" spacing="6" visible="false">
+                            <children>
+                                <Label fx:id="referencesTitle" text="SCHEMA REFERENCES"
+                                       styleClass="fxt-analysis-group-title"/>
+                                <TableView fx:id="references" id="analysis-references" minHeight="110"
+                                           prefHeight="150" styleClass="fxt-analysis-table">
+                                    <columns>
+                                        <TableColumn fx:id="referenceTypeColumn" text="Type" prefWidth="80"/>
+                                        <TableColumn fx:id="referenceLocationColumn" text="Location" prefWidth="260"/>
+                                        <TableColumn fx:id="referenceStatusColumn" text="Status" prefWidth="90"/>
+                                        <TableColumn fx:id="referenceNamespaceColumn" text="Namespace"
+                                                     prefWidth="220"/>
+                                        <TableColumn fx:id="referenceElementsColumn" text="Elements" prefWidth="80"/>
+                                        <TableColumn fx:id="referenceTypesColumn" text="Types" prefWidth="70"/>
+                                        <TableColumn fx:id="referenceGroupsColumn" text="Groups" prefWidth="70"/>
+                                    </columns>
+                                </TableView>
+                            </children>
+                        </VBox>
+
+                        <HBox spacing="12" VBox.vgrow="ALWAYS">
+                            <children>
+                                <VBox spacing="6" HBox.hgrow="ALWAYS">
+                                    <children>
+                                        <Label fx:id="topTypesTitle" text="MOST USED TYPES"
+                                               styleClass="fxt-analysis-group-title"/>
+                                        <TableView fx:id="topTypes" id="analysis-top-types" minHeight="180"
+                                                   prefHeight="220" styleClass="fxt-analysis-table"
+                                                   VBox.vgrow="ALWAYS">
+                                            <columns>
+                                                <TableColumn fx:id="typeNameColumn" text="Type" prefWidth="260"/>
+                                                <TableColumn fx:id="usageColumn" text="Usages" prefWidth="160"/>
+                                            </columns>
+                                            <placeholder>
+                                                <Label text="No user-defined types are referenced."
+                                                       styleClass="fxt-analysis-empty"/>
+                                            </placeholder>
+                                        </TableView>
+                                    </children>
+                                </VBox>
+                                <VBox spacing="6" HBox.hgrow="ALWAYS">
+                                    <children>
+                                        <Label fx:id="unusedTitle" text="UNUSED TYPES"
+                                               styleClass="fxt-analysis-group-title"/>
+                                        <ListView fx:id="unusedTypes" id="analysis-unused-types" minHeight="180"
+                                                  prefHeight="220" styleClass="fxt-analysis-list"
+                                                  VBox.vgrow="ALWAYS">
+                                            <placeholder>
+                                                <Label text="All named types are used."
+                                                       styleClass="fxt-analysis-empty"/>
+                                            </placeholder>
+                                        </ListView>
+                                    </children>
+                                </VBox>
+                            </children>
+                        </HBox>
+
+                        <HBox spacing="12">
+                            <children>
+                                <VBox spacing="6" HBox.hgrow="ALWAYS">
+                                    <children>
+                                        <Label fx:id="unusedGroupsTitle" text="UNUSED GROUPS"
+                                               styleClass="fxt-analysis-group-title"/>
+                                        <ListView fx:id="unusedGroups" id="analysis-unused-groups" minHeight="120"
+                                                  prefHeight="160" maxWidth="Infinity"
+                                                  styleClass="fxt-analysis-list">
+                                            <placeholder>
+                                                <Label text="All groups and attribute groups are used."
+                                                       styleClass="fxt-analysis-empty"/>
+                                            </placeholder>
+                                        </ListView>
+                                    </children>
+                                </VBox>
+                                <VBox spacing="6" HBox.hgrow="ALWAYS">
+                                    <children>
+                                        <Label fx:id="cyclesTitle" text="CIRCULAR REFERENCES"
+                                               styleClass="fxt-analysis-group-title"/>
+                                        <ListView fx:id="cycles" id="analysis-cycles" minHeight="120"
+                                                  prefHeight="160" maxWidth="Infinity"
+                                                  styleClass="fxt-analysis-list">
+                                            <placeholder>
+                                                <Label text="No circular references."
+                                                       styleClass="fxt-analysis-empty"/>
+                                            </placeholder>
+                                        </ListView>
+                                    </children>
+                                </VBox>
+                            </children>
+                        </HBox>
+                    </children>
+                </VBox>
+            </content>
+        </ScrollPane>
+    </children>
+</fx:root>

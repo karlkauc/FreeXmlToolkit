@@ -18,14 +18,13 @@
 
 package org.fxt.freexmltoolkit.controls.v2.editor.panels;
 
-import javafx.geometry.Insets;
-import javafx.scene.control.ScrollPane;
+import javafx.fxml.FXML;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
-import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 
@@ -47,66 +46,31 @@ public class TypeDocumentationPanel extends BorderPane {
     private final XsdEditorContext editorContext;
     private XsdNode currentNode;
 
+    @FXML private TitledPane documentationPane;
+    @FXML private VBox appInfoContent;
+
     // Documentation UI
-    private InlineDocumentationEditor documentationEditor;
+    private final InlineDocumentationEditor documentationEditor;
 
     // AppInfo UI
-    private AppInfoEditorPanel appInfoPanel;
+    private final AppInfoEditorPanel appInfoPanel;
 
     /**
-     * Creates a new TypeDocumentationPanel.
+     * Creates a new TypeDocumentationPanel. The layout is loaded from
+     * {@code /pages/views/TypeDocumentationPanel.fxml}; the two editors are added to its placeholders.
      *
      * @param editorContext the editor context for command execution
      */
     public TypeDocumentationPanel(XsdEditorContext editorContext) {
         this.editorContext = editorContext;
-        initializeUI();
-    }
+        FxmlViews.load(this, "/pages/views/TypeDocumentationPanel.fxml");
 
-    /**
-     * Initializes the UI components.
-     */
-    private void initializeUI() {
-        VBox contentBox = new VBox(10);
-        contentBox.setPadding(new Insets(10));
-
-        // Documentation TitledPane with inline editor
         documentationEditor = new InlineDocumentationEditor(editorContext);
-        TitledPane documentationPane = new TitledPane("Documentation", documentationEditor);
-        documentationPane.setExpanded(true);
-        documentationPane.setGraphic(new IconifyIcon("bi-file-text"));
-
-        // AppInfo TitledPane with embedded AppInfoEditorPanel
-        TitledPane appInfoPane = createAppInfoPane();
-        appInfoPane.setExpanded(false);
-
-        contentBox.getChildren().addAll(documentationPane, appInfoPane);
-
-        // Wrap in ScrollPane for scrollability
-        ScrollPane scrollPane = new ScrollPane(contentBox);
-        scrollPane.setFitToWidth(true);
-        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-
-        setCenter(scrollPane);
-    }
-
-    /**
-     * Creates the AppInfo pane with embedded AppInfoEditorPanel.
-     *
-     * @return the AppInfo TitledPane
-     */
-    private TitledPane createAppInfoPane() {
-        VBox content = new VBox(5);
-        content.setPadding(new Insets(5));
+        documentationPane.setContent(documentationEditor);
 
         appInfoPanel = new AppInfoEditorPanel(editorContext);
-        content.getChildren().add(appInfoPanel);
+        appInfoContent.getChildren().add(appInfoPanel);
         VBox.setVgrow(appInfoPanel, Priority.ALWAYS);
-
-        TitledPane pane = new TitledPane("Application Info (AppInfo)", content);
-        pane.setGraphic(new IconifyIcon("bi-gear"));
-        return pane;
     }
 
     /**

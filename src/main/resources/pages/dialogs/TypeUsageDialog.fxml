@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.ContextMenu?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.SeparatorMenuItem?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
+
+<!--
+  Content of the "Find Usages" dialog: a header line, then either the usages table with its help
+  line or the "not used anywhere" message. Loaded by TypeUsageDialog (FxmlViews.loadContent),
+  which is the controller: it sets the header text, supplies the rows and cell value factories
+  and removes the part that does not apply.
+-->
+<VBox fx:id="content" spacing="10" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <padding>
+        <Insets topRightBottomLeft="15"/>
+    </padding>
+    <children>
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <children>
+                <IconifyIcon iconLiteral="bi-search" iconSize="20" iconColor="DODGERBLUE"/>
+                <Label fx:id="headerLabel"/>
+            </children>
+        </HBox>
+
+        <!-- Shown when the type has no usages -->
+        <VBox fx:id="noUsagesBox" spacing="10" alignment="CENTER">
+            <padding>
+                <Insets topRightBottomLeft="40"/>
+            </padding>
+            <children>
+                <IconifyIcon fx:id="checkIcon" iconLiteral="bi-check-circle" iconSize="48"/>
+                <Label text="This type is not used anywhere in the schema.&#10;It can be safely deleted."
+                       wrapText="true" style="-fx-font-size: 13px; -fx-text-alignment: center;"/>
+            </children>
+        </VBox>
+
+        <!-- Shown when usages were found -->
+        <TableView fx:id="tableView" onMouseClicked="#onTableClicked" VBox.vgrow="ALWAYS">
+            <columns>
+                <TableColumn fx:id="nodeNameCol" text="Node" prefWidth="150"/>
+                <TableColumn fx:id="nodeTypeCol" text="Type" prefWidth="100"/>
+                <TableColumn fx:id="refTypeCol" text="Reference" prefWidth="120"/>
+                <TableColumn fx:id="pathCol" text="Path" prefWidth="200"/>
+                <TableColumn fx:id="fileCol" text="File" prefWidth="100"/>
+            </columns>
+            <placeholder>
+                <Label text="No usages found"/>
+            </placeholder>
+            <contextMenu>
+                <ContextMenu>
+                    <items>
+                        <MenuItem text="Navigate to Node" onAction="#onNavigate">
+                            <graphic>
+                                <IconifyIcon iconLiteral="bi-arrow-right-circle"/>
+                            </graphic>
+                        </MenuItem>
+                        <SeparatorMenuItem/>
+                        <MenuItem text="Copy Path" onAction="#onCopyPath">
+                            <graphic>
+                                <IconifyIcon iconLiteral="bi-clipboard"/>
+                            </graphic>
+                        </MenuItem>
+                    </items>
+                </ContextMenu>
+            </contextMenu>
+        </TableView>
+        <Label fx:id="helpLabel" text="Double-click a row to navigate to the usage location"
+               styleClass="desc-label"/>
+    </children>
+</VBox>

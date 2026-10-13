@@ -934,7 +934,7 @@
       "shadow": "dropshadow(gaussian, rgba(0, 0, 0, 0.05), 10, 0, 0, 2)"
     },
 
-    // Side-panel actions (PanelActionList / PanelAction / SourceRow in controls/shell/editor/)
+    // Side-panel actions (PanelActionList / PanelActionButton / SourceRow in controls/shell/editor/)
     // Follow-on actions of an activity side panel ("Generate Documentation…", "Debug XSLT…",
     // "Open PDF") are NEVER icon-only buttons, hyperlinks or hidden ⋮ entries: they are
     // full-width rows with icon + label under a collapsible section header (TOOLS, RESULT, …).
@@ -1283,8 +1283,17 @@
       "notes": "Use fill variants for status indicators"
     },
     "panelAction": {
-      "example": "PanelActionList tools = new PanelActionList(PanelAction.of(\"schema-tool-documentation\", \"bi-file-earmark-text\", \"Generate Documentation…\", this::generateDocumentation).disabledWhen(noSchema)); VBox section = PanelActionList.section(\"TOOLS\", false, tools);",
-      "notes": "Java only (side panels are built in code). Use SourceRow for 'icon · file name · Change' rows. Never add a Hyperlink or icon-only Button for a follow-on action."
+      "example": "<SidePanelSection title=\"TOOLS\"><PanelActionList><PanelActionButton id=\"fop-preview\" iconLiteral=\"bi-eye\" text=\"Preview PDF\" color=\"NAVIGATE\" onAction=\"#onPreview\"/></PanelActionList></SidePanelSection>",
+      "javaExample": "PanelActionList tools = new PanelActionList(PanelAction.of(\"schema-tool-documentation\", \"bi-file-earmark-text\", \"Generate Documentation…\", this::generateDocumentation).disabledWhen(noSchema)); VBox section = PanelActionList.section(\"TOOLS\", false, tools);",
+      "notes": "Declare static rows in the panel's FXML (pages/panels/<Class>.fxml); use the Java form only for data-driven rows. primary=\"true\" gives the filled variant (one per list). Use SourceRow for 'icon · file name · Change' rows. Never add a Hyperlink or icon-only Button for a follow-on action."
+    },
+    "sidePanel": {
+      "example": "<fx:root type=\"javafx.scene.layout.VBox\" ...><SidePanelHeader title=\"PDF / FOP\"/><SidePanelSection title=\"INPUT\">…</SidePanelSection><SidePanelSection title=\"OPTIONS\" collapsed=\"true\">…</SidePanelSection></fx:root>",
+      "notes": "Every side panel starts with SidePanelHeader (children = trailing controls) followed by collapsible SidePanelSections. Loaded with FxmlViews.load(this, …); no stylesheets attribute."
+    },
+    "settingsCard": {
+      "example": "<SettingsCard title=\"EDITOR\" iconLiteral=\"bi-pencil-square\" color=\"#17a2b8\">…rows…</SettingsCard>",
+      "notes": "One card per settings group on the Settings page (pages/views/SettingsPanel.fxml)."
     }
   }
 }

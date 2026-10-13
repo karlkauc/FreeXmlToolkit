@@ -249,7 +249,7 @@ org.fxt.freexmltoolkit/
 ```
 
 ### Resources
-- **FXML:** `src/main/resources/pages/` (tab_unified_shell.fxml only)
+- **FXML:** `src/main/resources/pages/` (`tab_unified_shell.fxml`, `shell.fxml`, and one `<ClassName>.fxml` per view under `panels/`, `views/`, `dialogs/`, `inspector/`)
 - **CSS:** `src/main/resources/css/` (design-tokens.css, unified-shell.css)
 - **Icons:** `src/main/resources/icons/iconify/bi.json`
 - **Images:** `src/main/resources/img/`

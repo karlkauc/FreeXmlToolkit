@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.String?>
+<?import javafx.collections.FXCollections?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<!--
+  Schematron Template Library: category/search filter, the templates table and a preview with
+  the insert actions. Loaded by SchematronTemplateLibrary via the fx:root pattern
+  (FxmlViews.load); SchematronTemplateLibrary is root and controller. The table items, the value
+  factories and the filter/selection listeners stay in code.
+-->
+<fx:root type="javafx.scene.layout.VBox" spacing="10"
+         xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <padding>
+        <Insets topRightBottomLeft="10"/>
+    </padding>
+    <children>
+        <Label text="Schematron Template Library">
+            <font>
+                <Font name="System Bold" size="16"/>
+            </font>
+        </Label>
+        <Separator/>
+
+        <!-- Filter Templates -->
+        <VBox spacing="5" styleClass="template-library-section">
+            <padding>
+                <Insets topRightBottomLeft="5"/>
+            </padding>
+            <children>
+                <Label text="Filter Templates" styleClass="section-title">
+                    <font>
+                        <Font name="System Bold" size="12"/>
+                    </font>
+                </Label>
+                <VBox spacing="5">
+                    <children>
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <children>
+                                <Label text="Category:"/>
+                                <ComboBox fx:id="categoryComboBox" prefWidth="150">
+                                    <items>
+                                        <FXCollections fx:factory="observableArrayList">
+                                            <String fx:value="All Categories"/>
+                                            <String fx:value="Business Rules"/>
+                                            <String fx:value="Data Validation"/>
+                                            <String fx:value="Structure Validation"/>
+                                            <String fx:value="Cross-References"/>
+                                            <String fx:value="Financial"/>
+                                            <String fx:value="Healthcare"/>
+                                            <String fx:value="Government"/>
+                                            <String fx:value="Custom"/>
+                                        </FXCollections>
+                                    </items>
+                                </ComboBox>
+                                <Label text="Search:"/>
+                                <TextField fx:id="searchField" promptText="Search templates..." prefWidth="200"/>
+                            </children>
+                        </HBox>
+                    </children>
+                </VBox>
+            </children>
+        </VBox>
+
+        <!-- Available Templates (takes the spare height) -->
+        <VBox spacing="5" styleClass="template-library-section" VBox.vgrow="ALWAYS">
+            <padding>
+                <Insets topRightBottomLeft="5"/>
+            </padding>
+            <children>
+                <Label text="Available Templates" styleClass="section-title">
+                    <font>
+                        <Font name="System Bold" size="12"/>
+                    </font>
+                </Label>
+                <VBox spacing="5">
+                    <children>
+                        <TableView fx:id="templatesTable" prefHeight="250" VBox.vgrow="ALWAYS">
+                            <columns>
+                                <TableColumn fx:id="nameColumn" text="Template" prefWidth="200"/>
+                                <TableColumn fx:id="categoryColumn" text="Category" prefWidth="120"/>
+                                <TableColumn fx:id="descColumn" text="Description" prefWidth="300"/>
+                            </columns>
+                        </TableView>
+                    </children>
+                </VBox>
+            </children>
+        </VBox>
+
+        <!-- Template Preview -->
+        <VBox spacing="5" styleClass="template-library-section">
+            <padding>
+                <Insets topRightBottomLeft="5"/>
+            </padding>
+            <children>
+                <Label text="Template Preview" styleClass="section-title">
+                    <font>
+                        <Font name="System Bold" size="12"/>
+                    </font>
+                </Label>
+                <VBox spacing="5">
+                    <children>
+                        <TextArea fx:id="previewArea" editable="false" prefHeight="200"
+                                  promptText="Select a template to preview..."
+                                  style="-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 11px;"/>
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <children>
+                                <Button fx:id="insertButton" text="Insert Template" disable="true"
+                                        styleClass="primary-button" onAction="#onInsertTemplate"/>
+                                <Button fx:id="customizeButton" text="Customize &amp; Insert" disable="true"
+                                        styleClass="secondary-button" onAction="#onCustomizeAndInsert"/>
+                            </children>
+                        </HBox>
+                    </children>
+                </VBox>
+            </children>
+        </VBox>
+    </children>
+</fx:root>

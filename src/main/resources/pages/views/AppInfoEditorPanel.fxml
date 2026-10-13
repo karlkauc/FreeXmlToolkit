@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
+
+<!--
+  Structured editor for XSD AppInfo annotations (XsdDoc): three collapsed sections for
+  @since/@version/@author, the @see references and @deprecated.
+  Loaded by AppInfoEditorPanel via the fx:root pattern (FxmlViews.load); AppInfoEditorPanel is
+  root and controller. The @see list cells are rendered in code.
+  A label text starting with "@" is written "\@…": FXML would otherwise read it as a location.
+-->
+<fx:root type="javafx.scene.layout.VBox" spacing="5"
+         xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <padding>
+        <Insets topRightBottomLeft="5"/>
+    </padding>
+    <children>
+        <TitledPane text="Version Info" expanded="false">
+            <graphic>
+                <IconifyIcon iconLiteral="bi-info-circle"/>
+            </graphic>
+            <content>
+                <GridPane hgap="10" vgap="8">
+                    <padding>
+                        <Insets topRightBottomLeft="10"/>
+                    </padding>
+                    <columnConstraints>
+                        <ColumnConstraints hgrow="NEVER"/>
+                        <ColumnConstraints hgrow="ALWAYS"/>
+                    </columnConstraints>
+                    <children>
+                        <Label text="\@since:" style="-fx-font-weight: bold;" GridPane.rowIndex="0"/>
+                        <TextField fx:id="sinceField" promptText="e.g., 4.0.0" prefWidth="200"
+                                   GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+                        <Label text="\@version:" style="-fx-font-weight: bold;" GridPane.rowIndex="1"/>
+                        <TextField fx:id="versionField" promptText="e.g., 1.0" prefWidth="200"
+                                   GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+                        <Label text="\@author:" style="-fx-font-weight: bold;" GridPane.rowIndex="2"/>
+                        <TextField fx:id="authorField" promptText="e.g., John Doe" prefWidth="200"
+                                   GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+                    </children>
+                </GridPane>
+            </content>
+        </TitledPane>
+
+        <TitledPane text="See Also (@see)" expanded="false">
+            <graphic>
+                <IconifyIcon iconLiteral="bi-link-45deg"/>
+            </graphic>
+            <content>
+                <VBox spacing="8">
+                    <padding>
+                        <Insets topRightBottomLeft="10"/>
+                    </padding>
+                    <children>
+                        <Label text="Add references to related elements. Use {@link /XPath} for links."
+                               wrapText="true" style="-fx-text-fill: #666; -fx-font-size: 11px;"/>
+                        <ListView fx:id="seeListView" prefHeight="100" VBox.vgrow="ALWAYS">
+                            <placeholder>
+                                <Label text="No @see references defined"/>
+                            </placeholder>
+                        </ListView>
+                        <HBox spacing="8" alignment="CENTER_LEFT">
+                            <children>
+                                <Button fx:id="addSeeButton" text="Add" onAction="#onAddSeeReference">
+                                    <graphic>
+                                        <IconifyIcon iconLiteral="bi-plus-circle"/>
+                                    </graphic>
+                                </Button>
+                                <Button fx:id="removeSeeButton" text="Remove" disable="true"
+                                        onAction="#onRemoveSeeReference">
+                                    <graphic>
+                                        <IconifyIcon iconLiteral="bi-dash-circle"/>
+                                    </graphic>
+                                </Button>
+                            </children>
+                        </HBox>
+                    </children>
+                </VBox>
+            </content>
+        </TitledPane>
+
+        <!-- AppInfoEditorPanel tints this pane's header while "Mark as deprecated" is checked -->
+        <TitledPane fx:id="deprecationPane" text="Deprecation (@deprecated)" expanded="false">
+            <graphic>
+                <IconifyIcon iconLiteral="bi-exclamation-triangle"/>
+            </graphic>
+            <content>
+                <VBox spacing="8">
+                    <padding>
+                        <Insets topRightBottomLeft="10"/>
+                    </padding>
+                    <children>
+                        <CheckBox fx:id="deprecatedCheckBox" text="Mark as deprecated"
+                                  style="-fx-font-weight: bold;"/>
+                        <Label text="Provide a deprecation message. Use {@link /XPath} for replacement references."
+                               wrapText="true" style="-fx-text-fill: #666; -fx-font-size: 11px;"/>
+                        <TextArea fx:id="deprecatedTextArea" promptText="e.g., Use {@link /NewElement} instead"
+                                  prefRowCount="2" wrapText="true" disable="true" VBox.vgrow="ALWAYS"/>
+                    </children>
+                </VBox>
+            </content>
+        </TitledPane>
+    </children>
+</fx:root>
