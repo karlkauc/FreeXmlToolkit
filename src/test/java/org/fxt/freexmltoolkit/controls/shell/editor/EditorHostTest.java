@@ -288,4 +288,38 @@ class EditorHostTest {
         assertTrue(written.contains("<Id>1</Id>"), "the body is untouched");
         assertEquals(written, host.getActiveText().orElseThrow(), "the editor buffer shows the saved text");
     }
+
+    @Test
+    void closeActiveTabClosesACleanDocumentAndReportsNothingToClose() {
+        assertFalse(WaitForAsyncUtils.waitForAsyncFx(2000, host::closeActiveTab),
+                "without a tab there is nothing to close");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.newDocument(EditorFileType.XML));
+        OpenDocument second = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.newDocument(EditorFileType.JSON));
+        assertEquals(2, host.getOpenDocuments().size());
+
+        assertTrue(WaitForAsyncUtils.waitForAsyncFx(2000, host::closeActiveTab));
+        WaitForAsyncUtils.waitForFxEvents();
+
+        assertEquals(1, host.getOpenDocuments().size(), "only the active tab is closed");
+        assertFalse(host.getOpenDocuments().contains(second), "the bookkeeping of the closed tab is dropped");
+    }
+
+    @Test
+    void closeActiveTabHonoursAVetoOfTheCloseRequest() {
+        javafx.scene.control.Tab tool = WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> host.openToolTab("Tool", "bi-gear", new javafx.scene.layout.StackPane()));
+        java.util.concurrent.atomic.AtomicBoolean closed = new java.util.concurrent.atomic.AtomicBoolean();
+        tool.setOnClosed(e -> closed.set(true));
+        tool.setOnCloseRequest(javafx.event.Event::consume);
+
+        assertFalse(WaitForAsyncUtils.waitForAsyncFx(2000, host::closeActiveTab), "a vetoed close keeps the tab");
+        assertTrue(host.containsTab(tool));
+        assertFalse(closed.get());
+
+        tool.setOnCloseRequest(null);
+        assertTrue(WaitForAsyncUtils.waitForAsyncFx(2000, host::closeActiveTab));
+        assertFalse(host.containsTab(tool));
+        assertTrue(closed.get(), "the tab's closed handler runs like on a click on its close button");
+    }
 }

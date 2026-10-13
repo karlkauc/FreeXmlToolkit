@@ -324,6 +324,9 @@ public class FxtGui extends Application {
                 primaryStage.setOpacity(0);
                 primaryStage.show();
 
+                // macOS: system menu bar with a proper application and Window menu
+                org.fxt.freexmltoolkit.app.MacMenuIntegration.install(shellController.getShellView().getMenuBar());
+
                 splash.updateProgress(LoadingStep.READY);
 
                 // Brief pause to show "Ready" state, then dismiss splash and fade in main window

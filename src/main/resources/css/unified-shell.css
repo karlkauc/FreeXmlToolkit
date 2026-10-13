@@ -526,6 +526,36 @@
     -fx-icon-color: #e9ecf1;
 }
 
+/* ===== Menu bar (File / Edit / View / Tools / Help; Windows and Linux — macOS uses the system
+   menu bar). Same dark, theme-independent chrome as the header bar and the activity bar it
+   spans; the opened menus are popups and keep the themed context-menu look. ===== */
+.fxt-menu-bar {
+    -fx-background-color: #2a284c;
+    -fx-border-color: #3b3866;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 0 6 0 6;
+}
+.fxt-menu-bar > .container > .menu-button {
+    -fx-background-color: transparent;
+    -fx-background-radius: 6;
+    -fx-padding: 3 6 3 6;
+}
+.fxt-menu-bar > .container > .menu-button > .label {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 12.5px;
+    -fx-text-fill: #a5a3c4;
+}
+.fxt-menu-bar > .container > .menu-button:hover,
+.fxt-menu-bar > .container > .menu-button:focused,
+.fxt-menu-bar > .container > .menu-button:showing {
+    -fx-background-color: #3b3866;
+}
+.fxt-menu-bar > .container > .menu-button:hover > .label,
+.fxt-menu-bar > .container > .menu-button:focused > .label,
+.fxt-menu-bar > .container > .menu-button:showing > .label {
+    -fx-text-fill: #e9ecf1;
+}
+
 /* The action ToolBar is flush with the editor toolbar: no chrome, just its buttons.
    Its built-in overflow chevron appears only when the editor area is too narrow. */
 .fxt-editor-actionbar {

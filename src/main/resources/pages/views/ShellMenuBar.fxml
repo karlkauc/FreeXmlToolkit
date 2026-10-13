@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.SeparatorMenuItem?>
+<?import org.fxt.freexmltoolkit.controls.shell.ShellMenuItem?>
+
+<!--
+  The shell's menu bar. Loaded by ShellMenuBar via the fx:root pattern (FxmlViews.load);
+  ShellMenuBar is root and controller. Every item triggers an existing shell action.
+  Data-driven parts are filled in code: the view modes at the top of "View", the "Open Recent"
+  and "Activities" submenus. On macOS the bar moves into the system menu bar and
+  Settings / Exit / Check for Updates / About move into the application menu
+  (app/MacMenuIntegration). Accelerators use "Shortcut" (Ctrl, or Cmd on macOS).
+-->
+<fx:root type="javafx.scene.control.MenuBar" id="shell-menu-bar" styleClass="fxt-menu-bar"
+         xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <menus>
+        <Menu fx:id="fileMenu" id="menu-file" text="_File">
+            <items>
+                <ShellMenuItem id="menu-file-new" text="New…" iconLiteral="bi-file-earmark-plus" color="CREATE"
+                               accelerator="Shortcut+N" onAction="#onNew"/>
+                <ShellMenuItem id="menu-file-open" text="Open…" iconLiteral="bi-folder2-open" color="TOOL"
+                               accelerator="Shortcut+O" onAction="#onOpen"/>
+                <ShellMenuItem id="menu-file-open-url" text="Open from URL…" iconLiteral="bi-globe" color="TOOL"
+                               onAction="#onOpenFromUrl"/>
+                <Menu fx:id="openRecentMenu" id="menu-file-open-recent" text="Open Recent"/>
+                <SeparatorMenuItem/>
+                <ShellMenuItem fx:id="closeTabItem" id="menu-file-close-tab" text="Close Tab" iconLiteral="bi-x-lg"
+                               color="NEUTRAL" accelerator="Shortcut+W" onAction="#onCloseTab"/>
+                <SeparatorMenuItem/>
+                <ShellMenuItem id="menu-file-save" text="Save" iconLiteral="bi-save" color="TOOL"
+                               accelerator="Shortcut+S" onAction="#onSave"/>
+                <ShellMenuItem id="menu-file-save-as" text="Save As…" iconLiteral="bi-save2" color="TOOL"
+                               accelerator="Shortcut+Shift+S" onAction="#onSaveAs"/>
+                <ShellMenuItem id="menu-file-save-all" text="Save All" iconLiteral="bi-files" color="TOOL"
+                               onAction="#onSaveAll"/>
+                <SeparatorMenuItem fx:id="fileAppSeparator"/>
+                <ShellMenuItem fx:id="settingsItem" id="menu-file-settings" text="Settings…" iconLiteral="bi-gear"
+                               color="NEUTRAL" accelerator="Shortcut+Comma" onAction="#onSettings"/>
+                <ShellMenuItem fx:id="exitItem" id="menu-file-exit" text="Exit" iconLiteral="bi-box-arrow-right"
+                               color="NEUTRAL" onAction="#onExit"/>
+            </items>
+        </Menu>
+
+        <Menu id="menu-edit" text="_Edit">
+            <items>
+                <ShellMenuItem id="menu-edit-undo" text="Undo" iconLiteral="bi-arrow-counterclockwise"
+                               color="NEUTRAL" accelerator="Shortcut+Z" onAction="#onUndo"/>
+                <ShellMenuItem id="menu-edit-redo" text="Redo" iconLiteral="bi-arrow-clockwise" color="NEUTRAL"
+                               accelerator="Shortcut+Shift+Z" onAction="#onRedo"/>
+                <SeparatorMenuItem/>
+                <ShellMenuItem id="menu-edit-find" text="Find…" iconLiteral="bi-search" color="NAVIGATE"
+                               accelerator="Shortcut+F" onAction="#onFind"/>
+                <ShellMenuItem fx:id="replaceItem" id="menu-edit-replace" text="Replace…"
+                               iconLiteral="bi-arrow-left-right" color="MODIFY"
+                               accelerator="Shortcut+H" onAction="#onReplace"/>
+                <ShellMenuItem id="menu-edit-find-in-files" text="Find in Files…" iconLiteral="bi-search"
+                               color="NAVIGATE" accelerator="Shortcut+Shift+F" onAction="#onFindInFiles"/>
+                <ShellMenuItem id="menu-edit-replace-in-files" text="Replace in Files…"
+                               iconLiteral="bi-arrow-left-right" color="MODIFY"
+                               accelerator="Shortcut+Shift+H" onAction="#onReplaceInFiles"/>
+                <SeparatorMenuItem/>
+                <ShellMenuItem id="menu-edit-format" text="Format Document" iconLiteral="bi-text-indent-left"
+                               color="TOOL" accelerator="Shift+Alt+F" onAction="#onFormat"/>
+                <ShellMenuItem id="menu-edit-minify" text="Minify" iconLiteral="bi-arrows-collapse" color="TOOL"
+                               onAction="#onMinify"/>
+                <ShellMenuItem id="menu-edit-insert-template" text="Insert Template…"
+                               iconLiteral="bi-file-earmark-code" color="CREATE"
+                               accelerator="Shortcut+T" onAction="#onInsertTemplate"/>
+            </items>
+        </Menu>
+
+        <Menu fx:id="viewMenu" id="menu-view" text="_View">
+            <items>
+                <!-- The view-mode items (Text / Tree / Graphic / Preview) are inserted here in code. -->
+                <SeparatorMenuItem/>
+                <ShellMenuItem id="menu-view-side-panel" text="Side Panel" iconLiteral="bi-layout-sidebar"
+                               color="NEUTRAL" accelerator="Shortcut+L" onAction="#onToggleSidePanel"/>
+                <ShellMenuItem id="menu-view-inspector" text="Properties Inspector"
+                               iconLiteral="bi-layout-sidebar-reverse" color="NEUTRAL"
+                               accelerator="Shortcut+Shift+P" onAction="#onToggleInspector"/>
+                <ShellMenuItem id="menu-view-query-console" text="Query Console" iconLiteral="bi-terminal"
+                               color="NEUTRAL" accelerator="Shortcut+Shift+X" onAction="#onToggleQueryConsole"/>
+                <ShellMenuItem id="menu-view-favorites" text="Favorites Panel" iconLiteral="bi-star"
+                               color="NEUTRAL" accelerator="Shortcut+Shift+D" onAction="#onToggleFavorites"/>
+                <Menu fx:id="activitiesMenu" id="menu-view-activities" text="Activities"/>
+                <SeparatorMenuItem/>
+                <ShellMenuItem id="menu-view-theme" text="Toggle Light / Dark Theme" iconLiteral="bi-moon-stars"
+                               color="NEUTRAL" onAction="#onToggleTheme"/>
+                <ShellMenuItem fx:id="fullScreenItem" id="menu-view-full-screen" text="Full Screen"
+                               iconLiteral="bi-arrows-fullscreen" color="NEUTRAL"
+                               accelerator="F11" onAction="#onToggleFullScreen"/>
+            </items>
+        </Menu>
+
+        <Menu id="menu-tools" text="_Tools">
+            <items>
+                <ShellMenuItem id="menu-tools-validate" text="Validate" iconLiteral="bi-check2-circle"
+                               color="CREATE" accelerator="F8" onAction="#onValidate"/>
+                <ShellMenuItem id="menu-tools-run" text="Run" iconLiteral="bi-play-fill" color="TOOL"
+                               accelerator="F5" onAction="#onRun"/>
+                <ShellMenuItem id="menu-tools-transform" text="Transform with XSLT…" iconLiteral="bi-shuffle"
+                               color="TOOL" onAction="#onTransform"/>
+                <SeparatorMenuItem/>
+                <ShellMenuItem id="menu-tools-set-schema" text="Set Schema…" iconLiteral="bi-link-45deg"
+                               color="STRUCTURE" onAction="#onSetSchema"/>
+                <ShellMenuItem id="menu-tools-generate-docs" text="Generate Documentation…"
+                               iconLiteral="bi-file-earmark-richtext" color="CREATE" onAction="#onGenerateDocs"/>
+                <ShellMenuItem id="menu-tools-type-editor" text="Type Editor" iconLiteral="bi-diagram-3"
+                               color="NAVIGATE" onAction="#onTypeEditor"/>
+                <SeparatorMenuItem/>
+                <ShellMenuItem id="menu-tools-compare" text="Compare with File…" iconLiteral="bi-file-diff"
+                               color="TOOL" onAction="#onCompare"/>
+                <ShellMenuItem id="menu-tools-spreadsheet" text="Spreadsheet Converter…" iconLiteral="bi-table"
+                               color="TOOL" accelerator="Shortcut+E" onAction="#onSpreadsheet"/>
+                <SeparatorMenuItem/>
+                <ShellMenuItem id="menu-tools-add-favorite" text="Add to Favorites" iconLiteral="bi-star-fill"
+                               color="CREATE" accelerator="Shortcut+D" onAction="#onAddToFavorites"/>
+            </items>
+        </Menu>
+
+        <Menu fx:id="helpMenu" id="menu-help" text="_Help">
+            <items>
+                <ShellMenuItem id="menu-help-panel" text="Help" iconLiteral="bi-question-circle" color="NAVIGATE"
+                               accelerator="F1" onAction="#onHelp"/>
+                <ShellMenuItem id="menu-help-docs" text="Documentation" iconLiteral="bi-book" color="NAVIGATE"
+                               onAction="#onDocs"/>
+                <ShellMenuItem id="menu-help-shortcuts" text="Keyboard Shortcuts" iconLiteral="bi-keyboard"
+                               color="NAVIGATE" onAction="#onShortcuts"/>
+                <SeparatorMenuItem/>
+                <ShellMenuItem fx:id="reportProblemItem" id="menu-help-report" text="Report a Problem…"
+                               iconLiteral="bi-bug" color="MODIFY" onAction="#onReportProblem"/>
+                <ShellMenuItem id="menu-help-github" text="GitHub Repository" iconLiteral="bi-github"
+                               color="NAVIGATE" onAction="#onGitHub"/>
+                <SeparatorMenuItem fx:id="helpAppSeparator"/>
+                <ShellMenuItem fx:id="updatesItem" id="menu-help-updates" text="Check for Updates…"
+                               iconLiteral="bi-arrow-repeat" color="TOOL" onAction="#onCheckForUpdates"/>
+                <ShellMenuItem fx:id="aboutItem" id="menu-help-about" text="About FreeXmlToolkit"
+                               iconLiteral="bi-info-circle" color="NAVIGATE" onAction="#onAbout"/>
+            </items>
+        </Menu>
+    </menus>
+</fx:root>

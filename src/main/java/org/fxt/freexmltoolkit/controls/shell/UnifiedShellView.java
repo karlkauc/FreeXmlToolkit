@@ -36,6 +36,8 @@ public class UnifiedShellView extends BorderPane {
     private final ActivitySelectionModel selectionModel = new ActivitySelectionModel();
     /** Code-built activity rail (needs the selection model); injected into {@link #activityBarHost}. */
     private ActivityBar activityBar;
+    /** Menu bar (needs this shell for its actions); injected into {@link #menuBarHost}. */
+    private ShellMenuBar menuBar;
     /** Cached so the editor toolbar "Validate" action can drive the same panel. */
     private org.fxt.freexmltoolkit.controls.shell.editor.ValidationPanel validationPanel;
     /** Cached so Ctrl+Shift+F / Ctrl+Shift+H can focus the same panel's query field. */
@@ -61,6 +63,8 @@ public class UnifiedShellView extends BorderPane {
     private org.fxt.freexmltoolkit.controls.shell.editor.QueryConsole queryConsole;
 
     // ----- FXML-injected nodes (defined in /pages/shell.fxml; populated by FXMLLoader) -----
+    /** Full-width host of the code-built {@link ShellMenuBar} (empty on macOS: system menu bar). */
+    @FXML private StackPane menuBarHost;
     @FXML private StackPane activityBarHost;
     @FXML private StackPane sidePanelHost;
     @FXML private org.fxt.freexmltoolkit.controls.shell.editor.EditorHost editorHost;
@@ -160,6 +164,8 @@ public class UnifiedShellView extends BorderPane {
         queryConsole = new org.fxt.freexmltoolkit.controls.shell.editor.QueryConsole(editorHost);
         queryConsole.setMinHeight(180);
         queryConsole.setPrefHeight(220);
+        menuBar = new ShellMenuBar(this);
+        menuBarHost.getChildren().setAll(menuBar);
         viewSwitchHost.getChildren().setAll(editorHost.getViewSwitch());
         // Inspector below the chevron (chevron stays on top of the StackPane).
         inspectorWrapper.getChildren().add(0,
@@ -368,8 +374,48 @@ public class UnifiedShellView extends BorderPane {
         }
     }
 
-    /** True while a keyboard shortcut is dispatched, so toolbar handlers it reuses are not counted as clicks. */
+    /**
+     * True while a keyboard shortcut or menu item is dispatched, so toolbar handlers it reuses
+     * are not counted as clicks.
+     */
     private boolean dispatchingShortcut;
+
+    /**
+     * Runs a menu-bar action and counts it as a menu command (not as the toolbar click the
+     * reused handler would otherwise log).
+     *
+     * @param command fixed command id, e.g. {@code save}
+     * @param action  the action to run
+     */
+    public void runFromMenu(String command, Runnable action) {
+        boolean nested = dispatchingShortcut;
+        dispatchingShortcut = true;
+        try {
+            action.run();
+        } finally {
+            dispatchingShortcut = nested;
+        }
+        org.fxt.freexmltoolkit.service.telemetry.UsageEvents.command(command,
+                org.fxt.freexmltoolkit.service.telemetry.UsageEvents.VIA_MENU);
+    }
+
+    /** @return the shell's menu bar (in the window on Windows/Linux, the system menu bar on macOS). */
+    public ShellMenuBar getMenuBar() {
+        return menuBar;
+    }
+
+    /**
+     * Shows an activity like a press on its Activity Bar button: selects it and reveals its side
+     * panel (Settings opens its main-area page instead).
+     */
+    public void showActivity(Activity activity) {
+        if (activity == Activity.SETTINGS) {
+            openSettings();
+            return;
+        }
+        selectionModel.select(activity);
+        revealSidePanel();
+    }
 
     private void handleShortcutTracked(javafx.scene.input.KeyEvent event) {
         dispatchingShortcut = true;
@@ -469,7 +515,13 @@ public class UnifiedShellView extends BorderPane {
                 event.consume();
             }
             case F -> {
-                if (event.isShiftDown()) {
+                if (ShellMenuBar.MAC && event.isControlDown()) {
+                    // Ctrl+Cmd+F — the macOS full-screen shortcut.
+                    toggleFullScreen();
+                } else if (ShellMenuBar.MAC && event.isAltDown()) {
+                    // Alt+Cmd+F — Find & Replace on macOS, where Cmd+H hides the application.
+                    showSearch(true);
+                } else if (event.isShiftDown()) {
                     // Ctrl+Shift+F — Find in Files (VS Code convention).
                     openSearchPanel(false);
                 } else {
@@ -481,9 +533,22 @@ public class UnifiedShellView extends BorderPane {
                 if (event.isShiftDown()) {
                     // Ctrl+Shift+H — Replace in Files.
                     openSearchPanel(true);
-                } else {
+                    event.consume();
+                } else if (!ShellMenuBar.MAC) {
+                    // Not on macOS: Cmd+H belongs to the system ("Hide FreeXmlToolkit").
                     showSearch(true);
+                    event.consume();
                 }
+            }
+            case W -> {
+                if (!event.isShiftDown()) {
+                    editorHost.closeActiveTab();
+                    event.consume();
+                }
+            }
+            case COMMA -> {
+                // Ctrl/Cmd+, opens the settings (macOS "Settings…" convention).
+                openSettings();
                 event.consume();
             }
             case X -> {
@@ -1059,7 +1124,7 @@ public class UnifiedShellView extends BorderPane {
      * F5: runs the active document when its type is runnable (the Run split button's
      * primary action), otherwise validates it. Does nothing without an open document.
      */
-    private void executeActive() {
+    public void executeActive() {
         if (editorHost.getActiveDocument().isEmpty()) {
             return;
         }
@@ -1071,7 +1136,7 @@ public class UnifiedShellView extends BorderPane {
     }
 
     /** F11: toggles the shell window's full-screen mode. */
-    private void toggleFullScreen() {
+    public void toggleFullScreen() {
         if (window() instanceof javafx.stage.Stage stage) {
             stage.setFullScreen(!stage.isFullScreen());
         }
@@ -1135,7 +1200,7 @@ public class UnifiedShellView extends BorderPane {
      * Shows the find (or find+replace) bar bound to the active view. In structured
      * views (Tree/Graphic) replace is unavailable, so Ctrl+H degrades to find-only.
      */
-    private void showSearch(boolean replace) {
+    public void showSearch(boolean replace) {
         if (!bindSearchBar()) {
             return;
         }
@@ -1152,7 +1217,7 @@ public class UnifiedShellView extends BorderPane {
      *
      * @param replace whether to expand the replace row (Ctrl+Shift+H)
      */
-    private void openSearchPanel(boolean replace) {
+    public void openSearchPanel(boolean replace) {
         String prefill = null;
         var codeArea = editorHost.getActiveCodeArea();
         if (codeArea != null) {
