@@ -4,7 +4,9 @@
 
 ```
 FxtGui → /pages/tab_unified_shell.fxml → UnifiedShellController → UnifiedShellView
-┌──┬──────────────┬──────────────────────────────────────┬─────────────┐
+┌──────────────────────────────────────────────────────────────────────┐
+│ menu bar (File · Edit · View · Tools · Help; macOS: system menu bar) │
+├──┬──────────────┬──────────────────────────────────────┬─────────────┤
 │A │ Side panel   │ header (breadcrumb · search · theme) │ Inspector   │
 │c │ (per         ├──────────────────────────────────────┤ (Properties │
 │t │  activity)   │ file tabs · editor toolbar           │  panel)     │
@@ -28,6 +30,8 @@ Legacy per-tool tabs/controllers are gone; `controller/` only keeps `UnifiedShel
 | Class | Purpose | Location |
 |-------|---------|----------|
 | `UnifiedShellView` | Shell layout, editor toolbar, status bar, activity→panel wiring | `controls/shell/` |
+| `ShellMenuBar` + `ShellMenuItem` | Menu bar (layout `views/ShellMenuBar.fxml`); items call the shell's existing actions via `UnifiedShellView.runFromMenu`, enabled state follows the active document. Accelerators only *display* the shortcuts — `UnifiedShellView.handleShortcut` consumes the key first and stays the executing path | `controls/shell/` |
+| `MacMenuIntegration` | macOS only (NSMenuFX, the sole class referencing it): system menu bar, application menu (About/Updates/Settings/Hide/Quit), Window menu. The app-menu *title* comes from the bundle's `CFBundleName`, not from code | `app/` |
 | `Activity` / `ActivityBar` / `ActivitySelectionModel` | Activity Bar (Explorer…Settings), stable ids | `controls/shell/` |
 | `ShellBootstrap` | Startup/shutdown tasks, scheduler | `controls/shell/` |
 | `EditorHost` | Center: file tabs (`EditorTab`), view-mode switching, schema/schematron binding, tool tabs, welcome page | `controls/shell/editor/` |

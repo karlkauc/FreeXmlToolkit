@@ -34,6 +34,12 @@
          xmlns:fx="http://javafx.com/fxml/1" styleClass="fxt-shell"
          stylesheets="@../css/design-tokens.css, @../css/app-theme.css, @../css/fxt-theme.css, @../css/unified-shell.css">
 
+    <!-- Menu bar across the window (controller injects the code-built ShellMenuBar; on macOS it
+         moves into the system menu bar and this host stays empty). -->
+    <top>
+        <StackPane fx:id="menuBarHost"/>
+    </top>
+
     <!-- Full-height activity rail (controller injects the code-built ActivityBar). -->
     <left>
         <StackPane fx:id="activityBarHost"/>

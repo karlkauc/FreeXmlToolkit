@@ -1012,6 +1012,19 @@
       }
     },
 
+    // Menu Bar (File / Edit / View / Tools / Help) — controls/shell/ShellMenuBar,
+    // layout in pages/views/ShellMenuBar.fxml, style class .fxt-menu-bar (unified-shell.css)
+    "menuBar": {
+      "background": "#2a284c",          // same theme-independent dark chrome as header bar + activity bar
+      "borderColor": "#3b3866",
+      "textColor": "#a5a3c4",
+      "hoverBackground": "#3b3866",
+      "hoverTextColor": "#e9ecf1",
+      "items": "<ShellMenuItem text iconLiteral=\"bi-*\" color=\"<ActionColor>\" accelerator=\"Shortcut+…\"/> — every item has text, a 16px icon and an id (menu-<menu>-<action>)",
+      "accelerators": "Always 'Shortcut+…' (Ctrl / Cmd), never 'Ctrl+…'",
+      "macOS": "System menu bar via app/MacMenuIntegration (NSMenuFX): About / Check for Updates / Settings / Quit live in the application menu; native menus show no icons"
+    },
+
     // Context Menu
     "contextMenu": {
       "background": "#f5f5f5",

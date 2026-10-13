@@ -2789,6 +2789,30 @@ public class EditorHost extends BorderPane {
     }
 
     /**
+     * Closes the active tab the way its close button does (File &gt; Close Tab, Ctrl/Cmd+W): the
+     * tab's close-request handler runs first, so a dirty document asks to save and can veto.
+     *
+     * @return {@code true} if a tab was closed; {@code false} without a closable active tab or
+     *         when the close was cancelled
+     */
+    public boolean closeActiveTab() {
+        Tab tab = tabPane.getSelectionModel().getSelectedItem();
+        if (tab == null || !tab.isClosable()) {
+            return false;
+        }
+        // Source and target are set up front: fireEvent would otherwise dispatch a copy and
+        // the veto (consume) of the close-request handler would be lost.
+        javafx.event.Event request = new javafx.event.Event(tab, tab, Tab.TAB_CLOSE_REQUEST_EVENT);
+        javafx.event.Event.fireEvent(tab, request);
+        if (request.isConsumed()) {
+            return false;
+        }
+        tabPane.getTabs().remove(tab);
+        javafx.event.Event.fireEvent(tab, new javafx.event.Event(tab, tab, Tab.CLOSED_EVENT));
+        return true;
+    }
+
+    /**
      * Records a tab's schema-binding status and mirrors it into {@link #activeSchemaStatus}
      * when the tab is front-most. Must be called on the FX thread (same publish pattern as
      * {@link #activeSchema}).

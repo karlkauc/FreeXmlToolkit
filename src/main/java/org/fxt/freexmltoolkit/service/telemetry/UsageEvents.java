@@ -158,6 +158,8 @@ public final class UsageEvents {
     public static final String VIA_TOOLBAR = "toolbar";
     /** {@code meta.via} of {@link #command}: keyboard shortcut. */
     public static final String VIA_SHORTCUT = "shortcut";
+    /** {@code meta.via} of {@link #command}: menu bar item. */
+    public static final String VIA_MENU = "menu";
     /** {@code meta.via} of {@link #command}: Welcome page card. */
     public static final String VIA_WELCOME = "welcome";
     /** {@code meta.via} of {@link #command}: files dropped onto the window. */

@@ -21,6 +21,7 @@ XML file next to its XSD schema, XSLT stylesheets and Schematron rules at the sa
 | Area | Purpose |
 |------|---------|
 | **Activity bar** (far left) | Switch tools / side panels: Explorer, Search, Favorites, Validation, Transform, Schema, Schema Library, PDF/FOP, Signature, Help, Settings - plus a **FundsXML** activity when the optional [FundsXML extension](fundsxml-extensions.md) is enabled (see [FundsXML Panel](#fundsxml-panel)). **Always visible** - it cannot be collapsed. (Settings opens as a full page in the editor area - see [Settings Page](#settings-page).) |
+| **Menu bar** (very top) | **File / Edit / View / Tools / Help** - every action of the toolbar, the Activity Bar and the keyboard shortcuts in one place (see [Menu Bar](#menu-bar)). On macOS it is the system menu bar at the top of the screen. |
 | **Header bar** (top) | The breadcrumb (application / active file), a centered **search pill** (*"Search · run XPath / XQuery…"*, shortcut **Ctrl+K**) that opens the bottom [Query Console](#query-console) when clicked, and the Help and Theme buttons. |
 | **Side panel** | The panel for the selected activity (e.g. the Transform panel, the Validation panel). **Resizable and collapsible** (see [Resizing and collapsing the side panels](#collapsing-the-side-panels)). |
 | **Editor host** (center) | Tabs of open documents, each with the Text, Tree and Graphic view modes - plus a rendered **Preview** for HTML documents (see [View Modes](#view-modes)). |
@@ -306,6 +307,31 @@ the dialogs appear one after the other, each with its tab brought to the front.
 | **Schematron** | .sch, .schematron | Code editor + Visual Builder + Tester + Documentation Generator |
 | **JSON** | .json, .jsonc, .json5 | Text + tree + editable **grid** view (see [The Grid for JSON](#json-grid)), JSONPath queries, JSON Schema validation. The JSON/JSONC/JSON5 flavor is detected from the content, so comments and trailing commas are accepted in any of the three. |
 | **HTML** | .html, .htm, .xhtml | Rendered read-only **Preview** (the default view) + Text editing; also the format of HTML/XHTML transform results opened as editor tabs - see [HTML Preview](#html-preview) |
+
+## Menu Bar {#menu-bar}
+
+The menu bar offers every shell action by name, with its keyboard shortcut next to it. Items that
+do not apply to the active document are greyed out (e.g. **Type Editor** is only available for XSD
+schemas, **Save** needs an open document).
+
+| Menu | Contents |
+|------|----------|
+| **File** | New…, Open…, Open from URL…, **Open Recent** (the last opened files), Close Tab, Save, Save As…, Save All, Settings…, Exit |
+| **Edit** | Undo, Redo, Find…, Replace…, Find in Files…, Replace in Files…, Format Document, Minify, Insert Template… |
+| **View** | The view modes (Text / Tree / Graphic / Preview), Side Panel, Properties Inspector, Query Console, Favorites Panel, **Activities** (jump to any activity), Toggle Light / Dark Theme, Full Screen |
+| **Tools** | Validate, Run, Transform with XSLT…, Set Schema…, Generate Documentation…, Type Editor, Compare with File…, Spreadsheet Converter…, Add to Favorites |
+| **Help** | Help panel, Documentation, Keyboard Shortcuts, Report a Problem… (when error reporting is enabled), GitHub Repository, Check for Updates…, About FreeXmlToolkit |
+
+### macOS
+
+On macOS the menus appear in the **system menu bar** and follow the platform conventions:
+
+- The **FreeXmlToolkit** application menu holds **About FreeXmlToolkit**, **Check for Updates…**,
+  **Settings…** (**Cmd+,**), **Hide FreeXmlToolkit** (**Cmd+H**), **Hide Others**, **Show All** and
+  **Quit FreeXmlToolkit** (**Cmd+Q**). These items are therefore not repeated in File and Help.
+- A **Window** menu offers Minimize, Zoom and Bring All to Front.
+- All shortcuts use **Cmd** instead of Ctrl. Because **Cmd+H** hides the application, **Find and
+  Replace** is **Alt+Cmd+F** on macOS; full screen is **Ctrl+Cmd+F** (F11 works too).
 
 ## Toolbar
 
@@ -1529,9 +1555,11 @@ The status bar at the bottom of the window includes (left to right):
 | Ctrl+O | Open file |
 | Ctrl+S | Save current tab |
 | Ctrl+Shift+S | Save As (the Save ▾ menu also offers Save All) |
+| Ctrl+W | Close the active tab (asks to save unsaved changes) |
+| Ctrl+, | Open the Settings page |
 | Ctrl+Z / Ctrl+Y (or Ctrl+Shift+Z) | Undo / Redo (works from the Text, Tree and Graphic views) |
 | Ctrl+F | Find (in the active document) |
-| Ctrl+H | Find and Replace (in the active document) |
+| Ctrl+H | Find and Replace (in the active document); **Alt+Cmd+F** on macOS |
 | Ctrl+Shift+F | **Find in Files** - opens the [Search panel](#search-panel), prefilled with the editor selection |
 | Ctrl+Shift+H | **Replace in Files** - opens the Search panel with the replace row expanded |
 | F8 | Validate |
@@ -1543,7 +1571,7 @@ The status bar at the bottom of the window includes (left to right):
 | Ctrl+Enter | Run the active XPath/XQuery, XSLT or XProc document (Run Query / Run Transform / Run Pipeline) |
 | F5 | Execute: runs the active XPath/XQuery, XSLT or XProc document, validates any other document |
 | F1 | Open the Help panel |
-| F11 | Toggle full screen |
+| F11 | Toggle full screen (also **Ctrl+Cmd+F** on macOS) |
 | Ctrl+L | Show/hide the left side panel |
 | Ctrl+Shift+P | Show/hide the Properties inspector |
 | Ctrl+E | Spreadsheet Converter… (Excel / CSV ↔ XML) |
@@ -1552,6 +1580,8 @@ The status bar at the bottom of the window includes (left to right):
 | Ctrl++ / Ctrl+- | Graphic view: zoom the grid in / out (10 % steps, 50-300 %) |
 | Ctrl+0 | Reset the zoom to 100 % (Text view: font size, Graphic view: the grid) |
 | Ctrl+mouse wheel | Zoom (Text view: font size, Graphic view: the whole grid) |
+
+On macOS use **Cmd** instead of Ctrl for the shortcuts above (see [Menu Bar → macOS](#macos)).
 
 !!! warning "Changed shortcut"
     **Ctrl+Shift+F no longer formats the document.** Following the VS Code convention, it

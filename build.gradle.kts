@@ -103,6 +103,11 @@ dependencies {
     implementation("org.bouncycastle:bcpkix-jdk18on:1.86")
 
     implementation("org.controlsfx:controlsfx:11.2.5")
+    // Native macOS application/window menu (only touched on macOS, see app/MacMenuIntegration)
+    implementation("de.jangassen:nsmenufx:3.1.0") {
+        // JavaFX comes from the Liberica Full JDK; keep the library's OpenJFX 11 jars off the classpath
+        exclude(group = "org.openjfx")
+    }
 
     implementation("org.apache.xmlgraphics:fop:2.11")
     implementation("org.apache.pdfbox:pdfbox:3.0.8")
