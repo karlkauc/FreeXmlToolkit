@@ -170,6 +170,7 @@ class MyUITest {
 | ListView IndexOutOfBounds | `items.setAll` while a row is selected | `clearSelection()` first; open files via `Platform.runLater` |
 | Flaky TestFX assertion | Asserting a sibling effect of the same `runLater` pulse | `waitFor`/poll the combined condition |
 | Wrong code in search results | Stale `.claude/worktrees/*` copies | Ignore worktree paths |
+| macOS notarization rejects "binary is not signed" in a jar | A dependency ships a native library inside its jar; `jpackage --mac-sign` does not sign jar contents | `scripts/sign-macos-jar-natives.sh` signs `*.dylib`/`*.jnilib` before jpackage (see `scripts/README.md`) |
 | macOS app-image build breaks | jpackage app root is `FreeXmlToolkit.app` (not `FreeXmlToolkit/`); the bundle must not be modified after codesign | Ship extras next to the bundle (see build.gradle.kts doLast) |
 
 ---

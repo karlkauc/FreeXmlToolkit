@@ -4,6 +4,9 @@ name: Build and Release Executables
 on:
   release:
     types: [ created ]
+  # Manueller Start (z. B. zum Testen der macOS-Signierung): baut dieselben Pakete, legt sie
+  # aber als Workflow-Artefakte ab statt sie an ein Release zu hängen.
+  workflow_dispatch:
 
 jobs:
   build:
@@ -68,6 +71,10 @@ jobs:
     # Der Job wird auf dem in der Matrix definierten Betriebssystem ausgeführt
     runs-on: ${{ matrix.os }}
 
+    env:
+      # Secrets sind in `if:` nicht verfügbar – ohne Zertifikat (z. B. in Forks) wird unsigniert gebaut
+      MACOS_SIGNING_AVAILABLE: ${{ secrets.MACOS_APP_CERT_P12_BASE64 != '' }}
+
     steps:
       # Schritt 1: Code auschecken
       - name: Checkout repository
@@ -106,9 +113,60 @@ jobs:
         if: runner.os != 'Windows'
         run: chmod +x ./gradlew
 
+      # Schritt 3.5: Developer-ID-Zertifikate und Notarisierungs-Key bereitstellen (nur macOS)
+      # Einrichtung der Secrets: siehe scripts/README.md
+      - name: Import macOS signing certificates
+        if: runner.os == 'macOS' && env.MACOS_SIGNING_AVAILABLE == 'true'
+        env:
+          APP_CERT_P12_BASE64: ${{ secrets.MACOS_APP_CERT_P12_BASE64 }}
+          INSTALLER_CERT_P12_BASE64: ${{ secrets.MACOS_INSTALLER_CERT_P12_BASE64 }}
+          CERT_PASSWORD: ${{ secrets.MACOS_CERT_PASSWORD }}
+          API_KEY_P8_BASE64: ${{ secrets.APPLE_API_KEY_P8_BASE64 }}
+        run: |
+          KEYCHAIN_PATH="$RUNNER_TEMP/fxt-signing.keychain-db"
+          KEYCHAIN_PASSWORD="$(openssl rand -hex 24)"
+
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+          # Zwischen-CA, damit die Zertifikatskette auf dem Runner vollständig ist
+          curl -fsSL https://www.apple.com/certificateauthority/DeveloperIDG2CA.cer -o "$RUNNER_TEMP/DeveloperIDG2CA.cer"
+          security import "$RUNNER_TEMP/DeveloperIDG2CA.cer" -k "$KEYCHAIN_PATH"
+
+          echo "$APP_CERT_P12_BASE64" | base64 --decode > "$RUNNER_TEMP/app.p12"
+          security import "$RUNNER_TEMP/app.p12" -P "$CERT_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          if [ -n "$INSTALLER_CERT_P12_BASE64" ]; then
+            echo "$INSTALLER_CERT_P12_BASE64" | base64 --decode > "$RUNNER_TEMP/installer.p12"
+            security import "$RUNNER_TEMP/installer.p12" -P "$CERT_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          fi
+          rm -f "$RUNNER_TEMP"/*.p12
+
+          security set-key-partition-list -S apple-tool:,apple:,codesign:,productbuild: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH" > /dev/null
+          security list-keychains -d user -s "$KEYCHAIN_PATH" $(security list-keychains -d user | tr -d '"')
+          security find-identity -v "$KEYCHAIN_PATH"
+
+          echo "MACOS_SIGNING_KEYCHAIN=$KEYCHAIN_PATH" >> "$GITHUB_ENV"
+          if [ -n "$API_KEY_P8_BASE64" ]; then
+            echo "$API_KEY_P8_BASE64" | base64 --decode > "$RUNNER_TEMP/AuthKey.p8"
+            echo "APPLE_API_KEY_PATH=$RUNNER_TEMP/AuthKey.p8" >> "$GITHUB_ENV"
+          fi
+
       # Schritt 4: Führe die architektur-spezifischen Gradle-Tasks aus
+      # Die macOS-Variablen schalten im Gradle-Build Signierung und Notarisierung ein;
+      # auf Windows/Linux werden sie ignoriert.
       - name: Build with Gradle (${{ matrix.arch }})
+        env:
+          MACOS_SIGNING_IDENTITY: ${{ env.MACOS_SIGNING_AVAILABLE == 'true' && secrets.MACOS_SIGNING_IDENTITY || '' }}
+          APPLE_API_KEY_ID: ${{ env.MACOS_SIGNING_AVAILABLE == 'true' && secrets.APPLE_API_KEY_ID || '' }}
+          APPLE_API_ISSUER_ID: ${{ secrets.APPLE_API_ISSUER_ID }}
         run: ./gradlew ${{ matrix.gradle-tasks }}
+
+      - name: Remove macOS signing keychain
+        if: always() && runner.os == 'macOS' && env.MACOS_SIGNING_AVAILABLE == 'true'
+        run: |
+          security delete-keychain "$RUNNER_TEMP/fxt-signing.keychain-db" || true
+          rm -f "$RUNNER_TEMP/AuthKey.p8"
 
       # Der build.rs des Helpers soft-failt, wenn rc.exe fehlt — ohne Manifest
       # stuft UAC-Installer-Detection den Helper wieder als elevierungspflichtig
@@ -128,8 +186,25 @@ jobs:
           }
           Write-Host "✅ fxt-update-helper.exe manifest requests asInvoker"
 
+      # Manueller Lauf: Pakete als Workflow-Artefakt ablegen
+      - name: Upload workflow artifacts (manual run)
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.gradle-tasks }}
+          if-no-files-found: error
+          path: |
+            build/dist/*.zip
+            build/dist/*/*.exe
+            build/dist/*/*.msi
+            build/dist/*/*.dmg
+            build/dist/*/*.pkg
+            build/dist/*/*.deb
+            build/dist/*/*.rpm
+
       # Schritt 5: Lade alle erstellten Artefakte mit dem GitHub CLI hoch
       - name: Upload Release Assets (${{ matrix.arch }})
+        if: github.event_name == 'release'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash

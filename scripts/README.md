@@ -1,172 +1,127 @@
-# macOS Code Signing Scripts
+# macOS Code Signing and Notarization
 
-This directory contains scripts for signing and notarizing macOS DMG files.
+The macOS packages (`.dmg`, `.pkg`, app-image `.zip`) are signed with a **Developer ID**
+certificate, notarized by Apple and stapled, so Gatekeeper opens them without a warning.
+All of it happens in the release workflow
+(`.github/workflows/build-packages-on-new-release.yml`); nothing has to be done by hand
+per release.
 
-## Scripts Overview
+## How it works
 
-### 1. `sign-macos-adhoc.sh`
-**Purpose:** Ad-hoc signing for local testing only
-**Requirements:** macOS with Xcode Command Line Tools
-**Distribution:** ❌ Cannot be distributed to other users
+| Step | Where | What |
+|------|-------|------|
+| 1 | workflow | Imports the certificates into a temporary keychain, writes the API key to `$RUNNER_TEMP` |
+| 2 | `sign-macos-jar-natives.sh` | Signs native libraries inside jars (JNA's `libjnidispatch.jnilib`) – jpackage does not reach into jars, and the notary service rejects unsigned ones |
+| 3 | `jpackage --mac-sign` | Signs the bundle and the jlink runtime with the hardened runtime and `release/macos/entitlements.plist`; signs the `.pkg` with the installer certificate |
+| 4 | `notarize-macos.sh` | Signs the `.dmg` itself, submits the artifact (`notarytool`), staples the ticket and verifies with `codesign`, `stapler validate` and `spctl` |
+| 5 | Gradle | The app-image is archived with `ditto` **after** stapling (a regular zip would break the signature) |
 
-```bash
-./sign-macos-adhoc.sh <dmg-file>
+Gradle switches this on by environment (`build.gradle.kts`, "macOS code signing and notarization"):
 
-# Example
-./sign-macos-adhoc.sh build/dist/macos-arm64-dmg/FreeXmlToolkit-arm64-1.0.0.dmg
-```
+| Variable | Effect |
+|----------|--------|
+| `MACOS_SIGNING_IDENTITY` | `Name (TEAMID)`. Set on a macOS host → packages are signed |
+| `MACOS_SIGNING_KEYCHAIN` | Optional keychain holding the certificates |
+| `APPLE_API_KEY_ID`, `APPLE_API_ISSUER_ID`, `APPLE_API_KEY_PATH` | Set in addition → packages are notarized and stapled |
 
-**Use when:**
-- Testing on your own Mac
-- No Apple Developer Account
-- Not planning to distribute
+Without these variables the build produces unsigned (ad-hoc signed) packages as before.
+The `notarizeMacOS{Dmg,Pkg,AppImage}{X64,Arm64}` tasks run automatically as part of
+`createMacOSExecutable*`, `createMacOSPkg*` and `createMacOSAppImage*Zip`.
 
-### 2. `sign-macos-dmg.sh`
-**Purpose:** Sign with Developer ID certificate
-**Requirements:** Apple Developer Account ($99/year) + Developer ID certificate
-**Distribution:** ✅ Can be distributed (users see one-time warning)
+## One-time setup
 
-```bash
-./sign-macos-dmg.sh <dmg-file> [identity]
+No Mac is required for any of this.
 
-# Auto-detect certificate
-./sign-macos-dmg.sh build/dist/macos-arm64-dmg/FreeXmlToolkit-arm64-1.0.0.dmg
+### 1. Private keys and certificate signing requests
 
-# Specify certificate
-./sign-macos-dmg.sh \
-  build/dist/macos-arm64-dmg/FreeXmlToolkit-arm64-1.0.0.dmg \
-  "Developer ID Application: Your Name"
-```
-
-**Use when:**
-- Distributing to team members or customers
-- Have Apple Developer Account
-- Want better security than ad-hoc
-
-### 3. `notarize-macos-dmg.sh`
-**Purpose:** Notarize DMG with Apple (best for public distribution)
-**Requirements:** Developer ID signed DMG + Apple credentials
-**Distribution:** ✅ Zero security warnings for users
+Apple accepts a signing request only once, so each certificate gets its own key and request:
 
 ```bash
-./notarize-macos-dmg.sh <dmg-file> <apple-id> <team-id> <app-password>
+openssl genrsa -out developer_id.key 2048
+openssl req -new -key developer_id.key -out developer_id.csr -subj "/CN=Karl Kauc/C=AT"
 
-# Example
-./notarize-macos-dmg.sh \
-  build/dist/macos-arm64-dmg/FreeXmlToolkit-arm64-1.0.0.dmg \
-  your@email.com \
-  TEAM123456 \
-  abcd-efgh-ijkl-mnop
+openssl genrsa -out developer_id_installer.key 2048
+openssl req -new -key developer_id_installer.key -out developer_id_installer.csr -subj "/CN=Karl Kauc Installer/C=AT"
 ```
 
-**Use when:**
-- Public distribution (GitHub releases, downloads)
-- Want zero security warnings
-- Have completed Developer ID signing
+### 2. Create the two certificates
 
-## Quick Start Guide
+At <https://developer.apple.com/account/resources/certificates> click **+**, choose the
+*G2 Sub-CA* profile and upload the matching request:
 
-### For Testing (No Apple Account)
-```bash
-# 1. Build DMG
-./gradlew createMacOSExecutableArm64
+- **Developer ID Application** (`developer_id.csr`) – signs the app and the `.dmg`
+- **Developer ID Installer** (`developer_id_installer.csr`) – signs the `.pkg`
 
-# 2. Ad-hoc sign
-./scripts/sign-macos-adhoc.sh build/dist/macos-arm64-dmg/FreeXmlToolkit-arm64-1.0.0.dmg
+Only the Account Holder of the team can create Developer ID certificates.
 
-# 3. Install on your Mac (may need to approve in System Settings)
-```
-
-### For Distribution (With Apple Developer Account)
-```bash
-# 1. Build DMG
-./gradlew createMacOSExecutableArm64
-
-# 2. Sign with Developer ID
-./scripts/sign-macos-dmg.sh build/dist/macos-arm64-dmg/FreeXmlToolkit-arm64-1.0.0.dmg
-
-# 3. Notarize (optional but recommended)
-./scripts/notarize-macos-dmg.sh \
-  build/dist/macos-arm64-dmg/FreeXmlToolkit-arm64-1.0.0.dmg \
-  your@email.com \
-  TEAM123456 \
-  abcd-efgh-ijkl-mnop
-```
-
-## Gradle Integration
-
-These scripts can also be invoked via Gradle tasks:
+### 3. Convert to `.p12`
 
 ```bash
-# Ad-hoc signing (testing)
-./gradlew signMacOSExecutableArm64AdHoc
-./gradlew signMacOSExecutableX64AdHoc
+openssl x509 -inform DER -in developerID_application.cer -out app.pem
+openssl pkcs12 -export -legacy -inkey developer_id.key -in app.pem -out app.p12
 
-# Developer ID signing
-./gradlew signMacOSExecutableArm64
-./gradlew signMacOSExecutableX64
-
-# Notarization (requires environment variables)
-export APPLE_ID="your@email.com"
-export APPLE_TEAM_ID="TEAM123456"
-export APPLE_APP_PASSWORD="abcd-efgh-ijkl-mnop"
-./gradlew notarizeMacOSDMG
+openssl x509 -inform DER -in developerID_installer.cer -out installer.pem
+openssl pkcs12 -export -legacy -inkey developer_id_installer.key -in installer.pem -out installer.p12
 ```
 
-## Prerequisites
+Use the same export password for both. `-legacy` is required: the macOS `security` tool
+cannot read the default OpenSSL 3 encryption.
 
-### All Scripts
-- macOS operating system
-- Xcode Command Line Tools: `xcode-select --install`
+### 4. App Store Connect API key
 
-### Developer ID Signing
-- Apple Developer Account ($99/year)
-- Developer ID Application certificate installed in Keychain
+At <https://appstoreconnect.apple.com/access/integrations/api> create a **Team Key** with
+the *Developer* role. Download the `.p8` file (possible only once) and note the **Key ID**
+and the **Issuer ID**. The **Team ID** is shown under *Membership details* in the
+developer account.
 
-### Notarization
-- Everything from Developer ID Signing, plus:
-- App-specific password from https://appleid.apple.com
-- Team ID from https://developer.apple.com/account
+### 5. GitHub secrets
+
+| Secret | Value |
+|--------|-------|
+| `MACOS_APP_CERT_P12_BASE64` | `base64 -w0 app.p12` |
+| `MACOS_INSTALLER_CERT_P12_BASE64` | `base64 -w0 installer.p12` |
+| `MACOS_CERT_PASSWORD` | export password of the `.p12` files |
+| `MACOS_SIGNING_IDENTITY` | `Karl Kauc (TEAMID)` – the part after `Developer ID Application: ` |
+| `APPLE_API_KEY_P8_BASE64` | `base64 -w0 AuthKey_XXXXXXXXXX.p8` |
+| `APPLE_API_KEY_ID` | Key ID |
+| `APPLE_API_ISSUER_ID` | Issuer ID |
+
+```bash
+base64 -w0 app.p12 | gh secret set MACOS_APP_CERT_P12_BASE64
+gh secret set MACOS_SIGNING_IDENTITY --body "Karl Kauc (TEAMID)"
+```
+
+Keep the two `.key` files, the `.p12` files and the `.p8` file somewhere safe and **out of
+the repository**. Developer ID certificates are valid for five years; packages signed
+before the expiry keep working.
+
+## Testing without a release
+
+The workflow has a manual trigger: *Actions → Build and Release Executables → Run
+workflow* (or `gh workflow run build-packages-on-new-release.yml --ref <branch>`). A manual
+run uploads the packages as workflow artifacts instead of attaching them to a release.
+GitHub only offers the trigger once the workflow file containing `workflow_dispatch` is on
+the default branch.
+
+To check the result on a Mac, download a package **with a browser** (so the quarantine
+attribute is set) and open it, or run:
+
+```bash
+spctl --assess --type exec -vv /Applications/FreeXmlToolkit.app   # "accepted, source=Notarized Developer ID"
+xcrun stapler validate FreeXmlToolkit-arm64-<version>.dmg
+```
 
 ## Troubleshooting
 
-### "codesign command not found"
-```bash
-xcode-select --install
-```
+| Symptom | Cause / fix |
+|---------|-------------|
+| jpackage: *"No certificate found matching ..."* | `MACOS_SIGNING_IDENTITY` does not match the certificate name exactly, or the installer certificate is missing (`.pkg` jobs). The import step prints `security find-identity` |
+| `security import` fails with a MAC / password error | The `.p12` was exported without `-legacy` |
+| Notarization *Invalid*: "The binary is not signed" for a path inside a jar | A new dependency ships a native library in a form `sign-macos-jar-natives.sh` does not match (it handles `*.dylib` / `*.jnilib`) |
+| Notarization *Invalid*: "The executable does not have the hardened runtime enabled" | Something was signed outside jpackage without `--options runtime` |
+| App crashes at start only when signed | A missing hardened-runtime entitlement – see `release/macos/entitlements.plist` |
+| `notarytool` returns 401 / 403 | Wrong Key ID / Issuer ID, revoked key, or a pending agreement in the developer account |
+| Notarization times out | The first submissions of a new account can take much longer; raise `NOTARIZE_TIMEOUT` (default `45m`) or re-run the job |
 
-### "No Developer ID certificate found"
-1. Go to https://developer.apple.com/account
-2. Download Developer ID Application certificate
-3. Install in Keychain Access
-4. Verify: `security find-identity -v -p codesigning`
-
-### "App still shows security warning"
-- Make sure DMG is **both signed AND notarized**
-- Verify: `xcrun stapler validate your-app.dmg`
-
-## Complete Documentation
-
-For detailed instructions, troubleshooting, and CI/CD integration:
-
-**📖 [docs/MACOS_CODE_SIGNING.md](../docs/MACOS_CODE_SIGNING.md)**
-
-## Script Features
-
-All scripts include:
-- ✅ Colored output for better readability
-- ✅ Error checking and validation
-- ✅ Automatic certificate detection
-- ✅ Deep code signing
-- ✅ Hardened runtime (for Developer ID)
-- ✅ Timestamp signatures
-- ✅ Signature verification
-- ✅ Clear error messages and help text
-
-## Support
-
-If you encounter issues:
-1. Check the [Complete Documentation](../docs/MACOS_CODE_SIGNING.md)
-2. Verify prerequisites are installed
-3. Check script output for specific errors
-4. Open an issue with error details
+On rejection `notarize-macos.sh` prints Apple's notarization log, which names the
+offending files.

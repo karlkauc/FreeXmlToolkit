@@ -146,7 +146,7 @@ While FreeXmlToolkit is powerful and comprehensive, there are some schema format
 1. Go to the [Releases page](https://github.com/karlkauc/FreeXmlToolkit/releases/latest) (or use the download buttons on the [documentation home page](https://karlkauc.github.io/FreeXmlToolkit/))
 2. Download the package for your operating system:
     - **Windows** (x64): `.exe` installer (no administrator rights required), `.msi` for managed deployments, or the portable `…windows-x64-app-image….zip`
-    - **macOS** (Apple Silicon `arm64` or Intel `x64`): `.dmg` (drag to Applications), `.pkg` installer, or the portable app-image `.zip`
+    - **macOS** (Apple Silicon `arm64` or Intel `x64`): `.dmg` (drag to Applications), `.pkg` installer, or the portable app-image `.zip` — all signed with a Developer ID and notarized by Apple
     - **Linux** (x64): `.deb` (`sudo dpkg -i …`), `.rpm` (`sudo rpm -i …`), or the portable app-image `.zip`
 3. Run the installer, or extract the portable ZIP to a folder and start `FreeXmlToolkit` from there
 

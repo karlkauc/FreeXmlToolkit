@@ -536,6 +536,37 @@ val jpackageTask = tasks.register("jpackage") {
     dependsOn("jar")
 }
 
+// ----------------------------------------------------------------------
+// macOS code signing and notarization
+// ----------------------------------------------------------------------
+// Signing is active on a macOS host when MACOS_SIGNING_IDENTITY is set to the
+// "Name (TEAMID)" part of the Developer ID certificates; jpackage then signs the
+// bundle (and the .pkg) itself. Notarization additionally needs an App Store Connect
+// API key (APPLE_API_KEY_PATH / APPLE_API_KEY_ID / APPLE_API_ISSUER_ID). Without
+// these variables the packages are built unsigned, exactly as before.
+// See scripts/README.md.
+val isMacHost = System.getProperty("os.name").lowercase().contains("mac")
+val macSigningIdentity = System.getenv("MACOS_SIGNING_IDENTITY").orEmpty().trim()
+val macSigningKeychain = System.getenv("MACOS_SIGNING_KEYCHAIN").orEmpty().trim()
+val macSigningEnabled = isMacHost && macSigningIdentity.isNotEmpty()
+val macNotarizationEnabled = macSigningEnabled && !System.getenv("APPLE_API_KEY_ID").isNullOrBlank()
+
+interface InjectedExecOperations {
+    @get:Inject
+    val execOperations: ExecOperations
+}
+
+val scriptExec = objects.newInstance<InjectedExecOperations>().execOperations
+
+// Name of the task that notarizes the macOS artifact of the given package type
+fun macNotarizeTaskName(packageType: String, arch: String): String {
+    val typeName = when (packageType) {
+        "app-image" -> "AppImage"
+        else -> packageType.replaceFirstChar { it.uppercaseChar() }
+    }
+    return "notarizeMacOS$typeName${if (arch == "x64") "X64" else "Arm64"}"
+}
+
 // Helper function to create ZIP task for app-image
 fun createZipTask(jpackageTaskName: String, platform: String, arch: String): String {
     val currentOs = when {
@@ -564,6 +595,40 @@ fun createZipTask(jpackageTaskName: String, platform: String, arch: String): Str
         return zipTaskName
     }
     
+    // macOS: archive with ditto instead of Gradle's Zip, which would replace symlinks by
+    // copies and thereby break the code signature of FreeXmlToolkit.app.
+    if (platform == "macos") {
+        tasks.register<Exec>(zipTaskName) {
+            group = "distribution"
+            description = "Create ZIP archive for $platform-$arch app-image"
+            dependsOn(jpackageTaskName)
+            // The notarization ticket is stapled to the bundle, so it has to happen first
+            if (macNotarizationEnabled) {
+                dependsOn(macNotarizeTaskName("app-image", arch))
+            }
+
+            val sourceDir = file("build/dist/$platform-$arch-app-image")
+            val zipFile = file("build/dist/FreeXmlToolkit-$platform-$arch-app-image-${project.version}.zip")
+
+            doFirst {
+                if (!sourceDir.exists()) {
+                    throw GradleException("Source directory $sourceDir does not exist")
+                }
+                delete(zipFile)
+                println("Creating ZIP: ${zipFile.name} from $sourceDir")
+            }
+
+            commandLine("ditto", "-c", "-k", "--sequesterRsrc", sourceDir.absolutePath, zipFile.absolutePath)
+
+            doLast {
+                println("ZIP created successfully: ${zipFile.absolutePath} (${zipFile.length()} bytes)")
+                // Clean up the directory after successful zipping
+                delete(sourceDir)
+            }
+        }
+        return zipTaskName
+    }
+
     tasks.register<Zip>(zipTaskName) {
         group = "distribution"
         description = "Create ZIP archive for $platform-$arch app-image"
@@ -696,12 +761,20 @@ fun createJPackageTask(taskName: String, platform: String, arch: String, package
 --win-dir-chooser
 --win-menu
 --win-shortcut"""
-            platform == "macos" && packageType != "app-image" -> """
---icon """ + project.projectDir.resolve("release/logo.icns") + """
+            // The bundle identifier is set for the app-image too: MacAssociationStrategy
+            // addresses the app by it, and it is part of the code signature.
+            platform == "macos" -> """
 --mac-package-identifier
 org.fxt.freexmltoolkit
 --mac-package-name
-FreeXmlToolkit"""
+FreeXmlToolkit""" + if (macSigningEnabled) """
+--mac-sign
+--mac-signing-key-user-name
+"$macSigningIdentity"
+--mac-entitlements
+""" + project.projectDir.resolve("release/macos/entitlements.plist") +
+                    (if (macSigningKeychain.isNotEmpty()) "\n--mac-signing-keychain\n$macSigningKeychain" else "")
+            else ""
             platform == "linux" && packageType != "app-image" -> """
 --icon """ + project.projectDir.resolve("src/main/resources/img/logo.png") + """
 --linux-package-name
@@ -718,7 +791,15 @@ Development
                 from(configurations.runtimeClasspath.get())
                 into("build/libs/lib")
             }
-            
+
+            // Native libraries inside jars (JNA's libjnidispatch) are not reached by
+            // jpackage's signing, but unsigned ones make the notarization fail.
+            if (platform == "macos" && macSigningEnabled) {
+                scriptExec.exec {
+                    commandLine("bash", file("scripts/sign-macos-jar-natives.sh").absolutePath, file("build/libs").absolutePath)
+                }
+            }
+
             // Create arguments file to avoid command line length issues on Windows  
             val argsFile = File(project.layout.buildDirectory.asFile.get(), "jpackage-args-$platform-$arch-$packageType.txt")
             
@@ -838,6 +919,13 @@ $platformArgs""".trimIndent())
             val sourceDir = "build/dist/$platform-$arch-$packageType"
             val version = project.version.toString()
 
+            // A failed jpackage run (e.g. signing error) must not surface only as a
+            // missing artifact at upload time.
+            val jpackageExitValue = executionResult.get().exitValue
+            if (platform == "macos" && jpackageExitValue != 0) {
+                throw GradleException("jpackage failed for $platform-$arch $packageType (exit code $jpackageExitValue)")
+            }
+
             // Verify Rust helper made it into the package (Windows only)
             if (platform == "windows" && packageType == "app-image") {
                 val expected = File("$sourceDir/FreeXmlToolkit/fxt-update-helper.exe")
@@ -948,6 +1036,31 @@ $platformArgs""".trimIndent())
                 }
                 println("Updated timestamps in $sourceDir to build time")
             }
+        }
+    }
+
+    if (platform == "macos") {
+        val notarizeTaskName = macNotarizeTaskName(packageType, arch)
+        val distDir = "build/dist/$platform-$arch-$packageType"
+        val artifact = when (packageType) {
+            "app-image" -> "$distDir/FreeXmlToolkit.app"
+            else -> "$distDir/FreeXmlToolkit-$arch-${project.version}.$packageType"
+        }
+
+        tasks.register<Exec>(notarizeTaskName) {
+            group = "distribution"
+            description = "Notarize and staple the signed $platform-$arch $packageType (see scripts/README.md)"
+            dependsOn(taskName)
+            // As a finalizer it would otherwise also run after a failed jpackage task
+            val jpackageTask = tasks.named(taskName)
+            onlyIf { jpackageTask.get().state.failure == null }
+            commandLine("bash", "scripts/notarize-macos.sh", artifact)
+        }
+
+        // dmg/pkg are finished artifacts, so notarization simply follows the build; the
+        // app-image is notarized by its ZIP task (before archiving).
+        if (macNotarizationEnabled && packageType != "app-image") {
+            tasks.named(taskName) { finalizedBy(notarizeTaskName) }
         }
     }
 }
@@ -1260,141 +1373,6 @@ tasks.register<JavaExec>("runCanvasViewDemo") {
     description = "Run XML Canvas View Demo (Canvas-based with embedded tables)"
     classpath = sourceSets["main"].runtimeClasspath
     mainClass.set("org.fxt.freexmltoolkit.demo.XmlCanvasViewDemo")
-}
-
-// ===============================
-// macOS Code Signing Tasks
-// ===============================
-
-// Helper function to create code signing tasks
-fun createMacOSSigningTask(taskName: String, jpackageTaskName: String, arch: String, signType: String) {
-    val currentOs = when {
-        System.getProperty("os.name").lowercase().contains("mac") -> "macos"
-        else -> "other"
-    }
-
-    // Only create signing tasks on macOS
-    if (currentOs != "macos") {
-        tasks.register(taskName) {
-            group = "distribution"
-            description = "Skip macOS code signing (can only sign on macOS)"
-            doFirst {
-                println("⚠️ Skipping macOS code signing (not running on macOS)")
-            }
-        }
-        return
-    }
-
-    tasks.register(taskName, Exec::class) {
-        group = "distribution"
-        description = "Sign macOS DMG with $signType signing"
-        dependsOn(jpackageTaskName)
-
-        val scriptName = if (signType == "Developer ID") "sign-macos-dmg.sh" else "sign-macos-adhoc.sh"
-        val version = project.version.toString()
-        val dmgPath = "build/dist/macos-$arch-dmg/FreeXmlToolkit-$arch-$version.dmg"
-
-        // Get signing identity from environment variable (for Developer ID signing)
-        val signingIdentity = System.getenv("MACOS_SIGNING_IDENTITY") ?: ""
-
-        doFirst {
-            if (!file(dmgPath).exists()) {
-                throw GradleException("DMG file not found: $dmgPath. Please run $jpackageTaskName first.")
-            }
-
-            val scriptPath = file("scripts/$scriptName")
-            if (!scriptPath.exists()) {
-                throw GradleException("Signing script not found: ${scriptPath.absolutePath}")
-            }
-
-            println("🔐 Signing DMG with $signType: $dmgPath")
-        }
-
-        if (signType == "Developer ID" && signingIdentity.isNotEmpty()) {
-            commandLine("bash", "scripts/$scriptName", dmgPath, signingIdentity)
-        } else {
-            commandLine("bash", "scripts/$scriptName", dmgPath)
-        }
-
-        doLast {
-            println("✅ DMG signed successfully: $dmgPath")
-            println("")
-            if (signType == "ad-hoc") {
-                println("⚠️  Ad-hoc signing is for LOCAL TESTING ONLY")
-                println("    This DMG cannot be distributed to other users")
-            } else {
-                println("ℹ️  Next step: Notarize the DMG with scripts/notarize-macos-dmg.sh")
-            }
-        }
-    }
-}
-
-// Create ad-hoc signing tasks (for testing without Developer ID)
-createMacOSSigningTask("signMacOSExecutableX64AdHoc", "createMacOSExecutableX64", "x64", "ad-hoc")
-createMacOSSigningTask("signMacOSExecutableArm64AdHoc", "createMacOSExecutableArm64", "arm64", "ad-hoc")
-
-// Create Developer ID signing tasks (requires Developer ID certificate)
-createMacOSSigningTask("signMacOSExecutableX64", "createMacOSExecutableX64", "x64", "Developer ID")
-createMacOSSigningTask("signMacOSExecutableArm64", "createMacOSExecutableArm64", "arm64", "Developer ID")
-
-// Convenience task to sign all macOS packages with Developer ID
-tasks.register("signAllMacOSPackages") {
-    group = "distribution"
-    description = "Sign all macOS DMG files with Developer ID"
-    dependsOn("signMacOSExecutableX64", "signMacOSExecutableArm64")
-}
-
-// Convenience task for ad-hoc signing (testing)
-tasks.register("signAllMacOSPackagesAdHoc") {
-    group = "distribution"
-    description = "Sign all macOS DMG files with ad-hoc signature (testing only)"
-    dependsOn("signMacOSExecutableX64AdHoc", "signMacOSExecutableArm64AdHoc")
-}
-
-// Task to notarize macOS DMG files
-tasks.register("notarizeMacOSDMG", Exec::class) {
-    group = "distribution"
-    description = "Notarize macOS DMG files with Apple (requires Apple Developer Account)"
-
-    doFirst {
-        val appleId = System.getenv("APPLE_ID")
-        val teamId = System.getenv("APPLE_TEAM_ID")
-        val appPassword = System.getenv("APPLE_APP_PASSWORD")
-
-        if (appleId.isNullOrEmpty() || teamId.isNullOrEmpty() || appPassword.isNullOrEmpty()) {
-            println("⚠️  Notarization requires environment variables:")
-            println("    APPLE_ID - Your Apple Developer email")
-            println("    APPLE_TEAM_ID - Your Apple Developer Team ID")
-            println("    APPLE_APP_PASSWORD - App-specific password from appleid.apple.com")
-            println("")
-            println("Or run the script manually:")
-            println("    ./scripts/notarize-macos-dmg.sh <dmg-file> <apple-id> <team-id> <app-password>")
-            throw GradleException("Missing notarization credentials")
-        }
-
-        println("🍎 Starting notarization process...")
-        println("   This may take several minutes...")
-
-        val currentArch = when {
-            System.getProperty("os.arch").contains("aarch64") || System.getProperty("os.arch")
-                .contains("arm") -> "arm64"
-
-            else -> "x64"
-        }
-
-        val version = project.version.toString()
-        val dmgPath = "build/dist/macos-$currentArch-dmg/FreeXmlToolkit-$currentArch-$version.dmg"
-
-        // Important: set command line at execution time (env vars may be null during configuration)
-        commandLine(
-            "bash",
-            "scripts/notarize-macos-dmg.sh",
-            dmgPath,
-            appleId,
-            teamId,
-            appPassword
-        )
-    }
 }
 
 // Task to collect LOC data from git history
