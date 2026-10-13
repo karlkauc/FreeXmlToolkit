@@ -891,6 +891,34 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#menu-bar" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Menu Bar
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Menu Bar">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#macos" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        macOS
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#toolbar" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3154,6 +3182,34 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#menu-bar" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Menu Bar
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Menu Bar">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#macos" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        macOS
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#toolbar" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4095,6 +4151,10 @@ XML file next to its XSD schema, XSLT stylesheets and Schematron rules at the sa
 <td>Switch tools / side panels: Explorer, Search, Favorites, Validation, Transform, Schema, Schema Library, PDF/FOP, Signature, Help, Settings - plus a <strong>FundsXML</strong> activity when the optional <a href="../fundsxml-extensions/">FundsXML extension</a> is enabled (see <a href="#fundsxml-panel">FundsXML Panel</a>). <strong>Always visible</strong> - it cannot be collapsed. (Settings opens as a full page in the editor area - see <a href="#settings-page">Settings Page</a>.)</td>
 </tr>
 <tr>
+<td><strong>Menu bar</strong> (very top)</td>
+<td><strong>File / Edit / View / Tools / Help</strong> - every action of the toolbar, the Activity Bar and the keyboard shortcuts in one place (see <a href="#menu-bar">Menu Bar</a>). On macOS it is the system menu bar at the top of the screen.</td>
+</tr>
+<tr>
 <td><strong>Header bar</strong> (top)</td>
 <td>The breadcrumb (application / active file), a centered <strong>search pill</strong> (<em>"Search · run XPath / XQuery…"</em>, shortcut <strong>Ctrl+K</strong>) that opens the bottom <a href="#query-console">Query Console</a> when clicked, and the Help and Theme buttons.</td>
 </tr>
@@ -4494,6 +4554,50 @@ the dialogs appear one after the other, each with its tab brought to the front.<
 </tr>
 </tbody>
 </table>
+<h2 id="menu-bar">Menu Bar<a class="headerlink" href="#menu-bar" title="Permanent link">&para;</a></h2>
+<p>The menu bar offers every shell action by name, with its keyboard shortcut next to it. Items that
+do not apply to the active document are greyed out (e.g. <strong>Type Editor</strong> is only available for XSD
+schemas, <strong>Save</strong> needs an open document).</p>
+<table>
+<thead>
+<tr>
+<th>Menu</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>File</strong></td>
+<td>New…, Open…, Open from URL…, <strong>Open Recent</strong> (the last opened files), Close Tab, Save, Save As…, Save All, Settings…, Exit</td>
+</tr>
+<tr>
+<td><strong>Edit</strong></td>
+<td>Undo, Redo, Find…, Replace…, Find in Files…, Replace in Files…, Format Document, Minify, Insert Template…</td>
+</tr>
+<tr>
+<td><strong>View</strong></td>
+<td>The view modes (Text / Tree / Graphic / Preview), Side Panel, Properties Inspector, Query Console, Favorites Panel, <strong>Activities</strong> (jump to any activity), Toggle Light / Dark Theme, Full Screen</td>
+</tr>
+<tr>
+<td><strong>Tools</strong></td>
+<td>Validate, Run, Transform with XSLT…, Set Schema…, Generate Documentation…, Type Editor, Compare with File…, Spreadsheet Converter…, Add to Favorites</td>
+</tr>
+<tr>
+<td><strong>Help</strong></td>
+<td>Help panel, Documentation, Keyboard Shortcuts, Report a Problem… (when error reporting is enabled), GitHub Repository, Check for Updates…, About FreeXmlToolkit</td>
+</tr>
+</tbody>
+</table>
+<h3 id="macos">macOS<a class="headerlink" href="#macos" title="Permanent link">&para;</a></h3>
+<p>On macOS the menus appear in the <strong>system menu bar</strong> and follow the platform conventions:</p>
+<ul>
+<li>The <strong>FreeXmlToolkit</strong> application menu holds <strong>About FreeXmlToolkit</strong>, <strong>Check for Updates…</strong>,
+  <strong>Settings…</strong> (<strong>Cmd+,</strong>), <strong>Hide FreeXmlToolkit</strong> (<strong>Cmd+H</strong>), <strong>Hide Others</strong>, <strong>Show All</strong> and
+  <strong>Quit FreeXmlToolkit</strong> (<strong>Cmd+Q</strong>). These items are therefore not repeated in File and Help.</li>
+<li>A <strong>Window</strong> menu offers Minimize, Zoom and Bring All to Front.</li>
+<li>All shortcuts use <strong>Cmd</strong> instead of Ctrl. Because <strong>Cmd+H</strong> hides the application, <strong>Find and
+  Replace</strong> is <strong>Alt+Cmd+F</strong> on macOS; full screen is <strong>Ctrl+Cmd+F</strong> (F11 works too).</li>
+</ul>
 <h2 id="toolbar">Toolbar<a class="headerlink" href="#toolbar" title="Permanent link">&para;</a></h2>
 <blockquote>
 <p>The editor toolbar is a <strong>single slim row</strong>. Related actions sit in <strong>split buttons</strong>
@@ -5939,6 +6043,14 @@ glows <strong>green</strong> while a loadable file hovers over it and <strong>re
 <td>Save As (the Save ▾ menu also offers Save All)</td>
 </tr>
 <tr>
+<td>Ctrl+W</td>
+<td>Close the active tab (asks to save unsaved changes)</td>
+</tr>
+<tr>
+<td>Ctrl+,</td>
+<td>Open the Settings page</td>
+</tr>
+<tr>
 <td>Ctrl+Z / Ctrl+Y (or Ctrl+Shift+Z)</td>
 <td>Undo / Redo (works from the Text, Tree and Graphic views)</td>
 </tr>
@@ -5948,7 +6060,7 @@ glows <strong>green</strong> while a loadable file hovers over it and <strong>re
 </tr>
 <tr>
 <td>Ctrl+H</td>
-<td>Find and Replace (in the active document)</td>
+<td>Find and Replace (in the active document); <strong>Alt+Cmd+F</strong> on macOS</td>
 </tr>
 <tr>
 <td>Ctrl+Shift+F</td>
@@ -5996,7 +6108,7 @@ glows <strong>green</strong> while a loadable file hovers over it and <strong>re
 </tr>
 <tr>
 <td>F11</td>
-<td>Toggle full screen</td>
+<td>Toggle full screen (also <strong>Ctrl+Cmd+F</strong> on macOS)</td>
 </tr>
 <tr>
 <td>Ctrl+L</td>
@@ -6032,6 +6144,7 @@ glows <strong>green</strong> while a loadable file hovers over it and <strong>re
 </tr>
 </tbody>
 </table>
+<p>On macOS use <strong>Cmd</strong> instead of Ctrl for the shortcuts above (see <a href="#macos">Menu Bar → macOS</a>).</p>
 <div class="admonition warning">
 <p class="admonition-title">Changed shortcut</p>
 <p><strong>Ctrl+Shift+F no longer formats the document.</strong> Following the VS Code convention, it
