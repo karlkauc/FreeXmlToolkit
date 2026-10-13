@@ -9,8 +9,8 @@ import java.util.TreeMap;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.fxml.FXML;
 import javafx.scene.control.ContextMenu;
-import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.Menu;
@@ -18,12 +18,11 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.controls.theme.ActionColor;
 import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
 import org.fxt.freexmltoolkit.domain.FileFavorite;
@@ -67,24 +66,17 @@ public class FavoritesActivityPanel extends VBox {
 
     private final EditorHost editorHost;
     private final ObservableList<Row> rows = FXCollections.observableArrayList();
-    private final ListView<Row> list = new ListView<>(rows);
-    private final TextField search = new TextField();
+    @FXML private ListView<Row> list;
+    @FXML private TextField search;
 
+    /** Loads the layout from {@code /pages/panels/FavoritesActivityPanel.fxml} and wires the list. */
     public FavoritesActivityPanel(EditorHost editorHost) {
         this.editorHost = editorHost;
-        HBox header = SidePanelHeader.create("FAVORITES");
+        FxmlViews.load(this, "/pages/panels/FavoritesActivityPanel.fxml");
 
-        PanelActionList actions = new PanelActionList(
-                PanelAction.of("favorites-add-current", "bi-star", "Add current", this::addCurrent).color(ActionColor.CREATE),
-                PanelAction.of("favorites-manage", "bi-sliders", "Manage…", this::openManager));
-
-        search.setId("favorites-search");
-        search.setPromptText("Search…");
         search.textProperty().addListener((obs, oldV, newV) -> refresh());
 
-        list.getStyleClass().add("fxt-open-editors");
-        VBox.setVgrow(list, Priority.ALWAYS);
-        list.setPlaceholder(new Label("No favorites"));
+        list.setItems(rows);
         list.setCellFactory(lv -> new FavoriteCell());
         list.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
             if (newV != null && !newV.isHeader() && newV.favorite().getFilePath() != null) {
@@ -138,14 +130,11 @@ public class FavoritesActivityPanel extends VBox {
         menu.setOnShowing(e -> rebuildMoveToMenu(moveTo));
         list.setContextMenu(menu);
 
-        VBox body = new VBox(search, list);
-        body.getStyleClass().add("fxt-side-panel-body");
-        VBox.setVgrow(body, Priority.ALWAYS);
-        getChildren().addAll(header, actions, body);
         refresh();
     }
 
     /** Adds the active document to favorites (no-op for untitled). */
+    @FXML
     public void addCurrent() {
         editorHost.getActiveDocument()
                 .filter(doc -> doc.getPath() != null)
@@ -175,7 +164,8 @@ public class FavoritesActivityPanel extends VBox {
     }
 
     /** Opens (or focuses) the full management view in the editor area. */
-    void openManager() {
+    @FXML
+    public void openManager() {
         editorHost.openOrFocusToolTab("Favorites", "bi-star",
                 () -> new FavoritesManagerView(editorHost));
     }

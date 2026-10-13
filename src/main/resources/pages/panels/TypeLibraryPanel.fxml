@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.VBox?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.PanelActionButton?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.PanelActionList?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.SidePanelHeader?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.SidePanelSection?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.analysis.SchemaAnalysisView?>
+
+<!--
+  Schema activity side panel (Figma "Redesign · Unified — Schema (graphical)", node 37:2): the
+  schema tools, a filter field and the active XSD's top-level declarations in three groups.
+  Loaded by TypeLibraryPanel via the fx:root pattern (FxmlViews.load); TypeLibraryPanel is root
+  and controller. The list contents, cells, heights and context menus are wired in code.
+-->
+<fx:root type="javafx.scene.layout.VBox" styleClass="fxt-schema-panel"
+         xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <children>
+        <SidePanelHeader title="SCHEMA"/>
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="edge-to-edge" VBox.vgrow="ALWAYS">
+            <content>
+                <VBox>
+                    <children>
+                        <SidePanelSection title="TOOLS">
+                            <children>
+                                <PanelActionList fx:id="tools" id="schema-tools">
+                                    <children>
+                                        <PanelActionButton id="schema-tool-generate" iconLiteral="bi-magic"
+                                                           text="Generate XSD from XML" color="CREATE"
+                                                           onAction="#generateXsdFromActive"/>
+                                        <PanelActionButton id="schema-tool-generate-batch" iconLiteral="bi-files"
+                                                           text="Generate XSD (Batch)…" color="CREATE"
+                                                           onAction="#generateXsdBatch"/>
+                                        <PanelActionButton id="schema-tool-sample" iconLiteral="bi-filetype-xml"
+                                                           text="Generate Sample XML…" color="CREATE"
+                                                           onAction="#generateSampleXmlForActive"/>
+                                        <PanelActionButton id="schema-tool-sample-advanced" iconLiteral="bi-sliders"
+                                                           text="Generate Sample XML (Advanced)…" color="CREATE"
+                                                           onAction="#generateProfiledSampleForActive"/>
+                                        <PanelActionButton id="schema-tool-flatten" iconLiteral="bi-layers"
+                                                           text="Flatten Schema…" color="TOOL"
+                                                           onAction="#onFlatten"/>
+                                        <PanelActionButton id="schema-tool-analysis" text="Schema Analysis"
+                                                           color="NAVIGATE" onAction="#analyzeActive">
+                                            <iconLiteral>
+                                                <SchemaAnalysisView fx:constant="ICON"/>
+                                            </iconLiteral>
+                                        </PanelActionButton>
+                                        <PanelActionButton id="schema-tool-documentation"
+                                                           iconLiteral="bi-file-earmark-text"
+                                                           text="Generate Documentation…" color="CREATE"
+                                                           onAction="#generateDocumentationForActive"/>
+                                    </children>
+                                </PanelActionList>
+                            </children>
+                        </SidePanelSection>
+
+                        <VBox styleClass="fxt-tp-section-body">
+                            <children>
+                                <TextField fx:id="filter" id="schema-filter" promptText="Filter types…"/>
+                            </children>
+                        </VBox>
+
+                        <!-- Grouped declaration lists -->
+                        <SidePanelSection title="GLOBAL ELEMENTS">
+                            <children>
+                                <ListView fx:id="elementsList" id="schema-elements-list" fixedCellSize="26"
+                                          styleClass="fxt-open-editors, fxt-explorer-list">
+                                    <placeholder>
+                                        <Label text="None"/>
+                                    </placeholder>
+                                </ListView>
+                            </children>
+                        </SidePanelSection>
+                        <SidePanelSection title="COMPLEX TYPES">
+                            <children>
+                                <ListView fx:id="complexList" id="schema-complex-list" fixedCellSize="26"
+                                          styleClass="fxt-open-editors, fxt-explorer-list">
+                                    <placeholder>
+                                        <Label text="None"/>
+                                    </placeholder>
+                                </ListView>
+                            </children>
+                        </SidePanelSection>
+                        <SidePanelSection title="SIMPLE TYPES">
+                            <children>
+                                <ListView fx:id="simpleList" id="schema-simple-list" fixedCellSize="26"
+                                          styleClass="fxt-open-editors, fxt-explorer-list">
+                                    <placeholder>
+                                        <Label text="None"/>
+                                    </placeholder>
+                                </ListView>
+                            </children>
+                        </SidePanelSection>
+                    </children>
+                </VBox>
+            </content>
+        </ScrollPane>
+    </children>
+</fx:root>

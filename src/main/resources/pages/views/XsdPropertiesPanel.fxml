@@ -1,0 +1,426 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import java.lang.String?>
+<?import javafx.collections.FXCollections?>
+<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
+
+<!--
+  Properties panel of the XSD graph view: a header (title · customize sections · hide), the
+  file-global "Schema Information" section and three tabs — Attributes (blue #007bff), Facets
+  (orange #fd7e14) and Docs (green #28a745).
+  Loaded by XsdPropertiesPanel via the fx:root pattern (FxmlViews.load); XsdPropertiesPanel is
+  root and controller.
+
+  The sections of the tabs are declared in fx:define: XsdPropertiesPanel registers them in one
+  CustomizableSectionContainer per tab (user-defined order and visibility, restored at runtime)
+  and puts that container into the tab's scroll pane. Data-driven parts stay in code: the type
+  choices and their autocomplete, the facet rows of "facetsGridPane" (rebuilt per datatype), the
+  list contents and cells, and the two documentation editors (they need the editor context).
+-->
+<fx:root type="javafx.scene.layout.BorderPane"
+         xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <fx:define>
+        <!-- ===== Attributes tab sections ===== -->
+        <TitledPane fx:id="generalPane" text="General" expanded="true">
+            <graphic>
+                <IconifyIcon iconLiteral="bi-gear" iconSize="14" iconColor="#007bff"/>
+            </graphic>
+            <content>
+                <GridPane hgap="10" vgap="10">
+                    <padding>
+                        <Insets topRightBottomLeft="10"/>
+                    </padding>
+                    <children>
+                        <Label text="Name:" GridPane.rowIndex="0"/>
+                        <TextField fx:id="nameField" promptText="Element/Attribute name"
+                                   GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+                        <Label text="Type:" GridPane.rowIndex="1"/>
+                        <HBox spacing="8" alignment="CENTER_LEFT" GridPane.rowIndex="1" GridPane.columnIndex="1">
+                            <children>
+                                <ComboBox fx:id="typeComboBox" editable="true" promptText="xs:string, MyCustomType"
+                                          maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                                <!-- XsdPropertiesPanel swaps literal and colour to match the datatype -->
+                                <IconifyIcon fx:id="typeIcon" iconLiteral="bi-diagram-3" iconSize="18"
+                                             iconColor="#666666"/>
+                            </children>
+                        </HBox>
+                    </children>
+                </GridPane>
+            </content>
+        </TitledPane>
+
+        <TitledPane fx:id="cardinalityPane" text="Cardinality" expanded="true">
+            <graphic>
+                <IconifyIcon iconLiteral="bi-hash" iconSize="14" iconColor="#007bff"/>
+            </graphic>
+            <content>
+                <GridPane hgap="10" vgap="10">
+                    <padding>
+                        <Insets topRightBottomLeft="10"/>
+                    </padding>
+                    <children>
+                        <Label text="Min Occurs:" GridPane.rowIndex="0"/>
+                        <Spinner fx:id="minOccursSpinner" editable="true" prefWidth="100"
+                                 GridPane.rowIndex="0" GridPane.columnIndex="1">
+                            <valueFactory>
+                                <javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory min="0" max="999" initialValue="1"/>
+                            </valueFactory>
+                        </Spinner>
+                        <Label text="Max Occurs:" GridPane.rowIndex="1"/>
+                        <Spinner fx:id="maxOccursSpinner" editable="true" prefWidth="100"
+                                 GridPane.rowIndex="1" GridPane.columnIndex="1">
+                            <valueFactory>
+                                <javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory min="1" max="999" initialValue="1"/>
+                            </valueFactory>
+                        </Spinner>
+                        <CheckBox fx:id="unboundedCheckBox" text="Unbounded"
+                                  GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+                    </children>
+                </GridPane>
+            </content>
+        </TitledPane>
+
+        <TitledPane fx:id="constraintsPane" text="Constraints" expanded="false">
+            <graphic>
+                <IconifyIcon iconLiteral="bi-lock" iconSize="14" iconColor="#007bff"/>
+            </graphic>
+            <content>
+                <VBox spacing="10">
+                    <padding>
+                        <Insets topRightBottomLeft="10"/>
+                    </padding>
+                    <children>
+                        <CheckBox fx:id="nillableCheckBox" text="Nillable (allows xsi:nil='true')"/>
+                        <CheckBox fx:id="abstractCheckBox" text="Abstract (cannot be used directly)"/>
+                        <!-- The value field is enabled while "Fixed value" is checked -->
+                        <HBox spacing="10">
+                            <children>
+                                <CheckBox fx:id="fixedCheckBox" text="Fixed value"/>
+                                <TextField fx:id="fixedValueField" promptText="Enter fixed value" disable="true"
+                                           HBox.hgrow="ALWAYS"/>
+                            </children>
+                        </HBox>
+                    </children>
+                </VBox>
+            </content>
+        </TitledPane>
+
+        <TitledPane fx:id="advancedPane" text="Advanced" expanded="false">
+            <graphic>
+                <IconifyIcon iconLiteral="bi-sliders" iconSize="14" iconColor="#007bff"/>
+            </graphic>
+            <content>
+                <GridPane hgap="10" vgap="10">
+                    <padding>
+                        <Insets topRightBottomLeft="10"/>
+                    </padding>
+                    <children>
+                        <Label text="Form:" GridPane.rowIndex="0"/>
+                        <ComboBox fx:id="formComboBox" promptText="Select form"
+                                  GridPane.rowIndex="0" GridPane.columnIndex="1">
+                            <items>
+                                <FXCollections fx:factory="observableArrayList">
+                                    <String fx:value="qualified"/>
+                                    <String fx:value="unqualified"/>
+                                </FXCollections>
+                            </items>
+                        </ComboBox>
+                        <Label text="Use:" GridPane.rowIndex="1"/>
+                        <ComboBox fx:id="useComboBox" promptText="Select use"
+                                  GridPane.rowIndex="1" GridPane.columnIndex="1">
+                            <items>
+                                <FXCollections fx:factory="observableArrayList">
+                                    <String fx:value="required"/>
+                                    <String fx:value="optional"/>
+                                    <String fx:value="prohibited"/>
+                                </FXCollections>
+                            </items>
+                        </ComboBox>
+                        <Label text="Substitution Group:" GridPane.rowIndex="2"/>
+                        <TextField fx:id="substitutionGroupField" promptText="Element name"
+                                   GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+                    </children>
+                </GridPane>
+            </content>
+        </TitledPane>
+
+        <!-- ===== Facets tab sections ===== -->
+        <TitledPane fx:id="facetsPane" text="Facets" expanded="true">
+            <graphic>
+                <IconifyIcon iconLiteral="bi-funnel" iconSize="14" iconColor="#fd7e14"/>
+            </graphic>
+            <content>
+                <VBox spacing="10">
+                    <padding>
+                        <Insets topRightBottomLeft="10"/>
+                    </padding>
+                    <children>
+                        <Label text="Facets define restrictions on data types (e.g., minLength, maxLength, totalDigits)"
+                               wrapText="true" styleClass="desc-label"/>
+                        <Separator/>
+                        <!-- Facet name/value rows, rebuilt per datatype -->
+                        <GridPane fx:id="facetsGridPane" hgap="10" vgap="8" VBox.vgrow="ALWAYS">
+                            <padding>
+                                <Insets topRightBottomLeft="5"/>
+                            </padding>
+                        </GridPane>
+                    </children>
+                </VBox>
+            </content>
+        </TitledPane>
+
+        <TitledPane fx:id="patternsPane" text="Patterns" expanded="true">
+            <graphic>
+                <IconifyIcon iconLiteral="bi-braces" iconSize="14" iconColor="#fd7e14"/>
+            </graphic>
+            <content>
+                <VBox spacing="10">
+                    <padding>
+                        <Insets topRightBottomLeft="10"/>
+                    </padding>
+                    <children>
+                        <Label text="Define regex patterns that values must match" wrapText="true"
+                               styleClass="desc-label"/>
+                        <Separator/>
+                        <ListView fx:id="patternsListView" prefHeight="120">
+                            <placeholder>
+                                <Label text="No patterns defined"/>
+                            </placeholder>
+                        </ListView>
+                        <HBox spacing="10">
+                            <children>
+                                <Button fx:id="addPatternBtn" text="Add" onAction="#onAddPattern">
+                                    <graphic>
+                                        <IconifyIcon iconLiteral="bi-plus-circle"/>
+                                    </graphic>
+                                </Button>
+                                <Button fx:id="removePatternBtn" text="Remove" disable="true"
+                                        onAction="#onRemovePattern">
+                                    <graphic>
+                                        <IconifyIcon iconLiteral="bi-trash"/>
+                                    </graphic>
+                                </Button>
+                            </children>
+                        </HBox>
+                    </children>
+                </VBox>
+            </content>
+        </TitledPane>
+
+        <TitledPane fx:id="enumerationsPane" text="Enumerations" expanded="true">
+            <graphic>
+                <IconifyIcon iconLiteral="bi-list-ul" iconSize="14" iconColor="#fd7e14"/>
+            </graphic>
+            <content>
+                <VBox spacing="10">
+                    <padding>
+                        <Insets topRightBottomLeft="10"/>
+                    </padding>
+                    <children>
+                        <Label text="Define allowed values for this element" wrapText="true"
+                               styleClass="desc-label"/>
+                        <Separator/>
+                        <ListView fx:id="enumerationsListView" prefHeight="120">
+                            <placeholder>
+                                <Label text="No enumeration values defined"/>
+                            </placeholder>
+                        </ListView>
+                        <HBox spacing="10">
+                            <children>
+                                <Button fx:id="addEnumerationBtn" text="Add" onAction="#onAddEnumeration">
+                                    <graphic>
+                                        <IconifyIcon iconLiteral="bi-plus-circle"/>
+                                    </graphic>
+                                </Button>
+                                <Button fx:id="removeEnumerationBtn" text="Remove" disable="true"
+                                        onAction="#onRemoveEnumeration">
+                                    <graphic>
+                                        <IconifyIcon iconLiteral="bi-trash"/>
+                                    </graphic>
+                                </Button>
+                            </children>
+                        </HBox>
+                    </children>
+                </VBox>
+            </content>
+        </TitledPane>
+
+        <TitledPane fx:id="assertionsPane" text="Assertions" expanded="false">
+            <graphic>
+                <IconifyIcon iconLiteral="bi-check2-square" iconSize="14" iconColor="#fd7e14"/>
+            </graphic>
+            <content>
+                <VBox spacing="10">
+                    <padding>
+                        <Insets topRightBottomLeft="10"/>
+                    </padding>
+                    <children>
+                        <Label text="XPath-based assertions (XSD 1.1)" wrapText="true" styleClass="desc-label"/>
+                        <Separator/>
+                        <ListView fx:id="assertionsListView" prefHeight="120">
+                            <placeholder>
+                                <Label text="No assertions defined"/>
+                            </placeholder>
+                        </ListView>
+                        <HBox spacing="10">
+                            <children>
+                                <Button fx:id="addAssertionBtn" text="Add" onAction="#onAddAssertion">
+                                    <graphic>
+                                        <IconifyIcon iconLiteral="bi-plus-circle"/>
+                                    </graphic>
+                                </Button>
+                                <Button fx:id="removeAssertionBtn" text="Remove" disable="true"
+                                        onAction="#onRemoveAssertion">
+                                    <graphic>
+                                        <IconifyIcon iconLiteral="bi-trash"/>
+                                    </graphic>
+                                </Button>
+                            </children>
+                        </HBox>
+                        <Label text="Note: Assertions are an XSD 1.1 feature" wrapText="true"
+                               style="-fx-text-fill: #ff8c00; -fx-font-size: 10px; -fx-font-style: italic;"/>
+                    </children>
+                </VBox>
+            </content>
+        </TitledPane>
+
+        <!-- ===== Docs tab sections ===== -->
+        <!-- Content: the InlineDocumentationEditor, set by XsdPropertiesPanel -->
+        <TitledPane fx:id="documentationPane" text="Documentation" expanded="true">
+            <graphic>
+                <IconifyIcon iconLiteral="bi-book" iconSize="14" iconColor="#28a745"/>
+            </graphic>
+        </TitledPane>
+
+        <TitledPane fx:id="appInfoPane" text="AppInfo" expanded="true">
+            <graphic>
+                <IconifyIcon iconLiteral="bi-info-square" iconSize="14" iconColor="#28a745"/>
+            </graphic>
+            <content>
+                <!-- XsdPropertiesPanel appends the AppInfoEditorPanel (XsdDoc structured editor) -->
+                <VBox fx:id="appInfoBox" spacing="10">
+                    <padding>
+                        <Insets topRightBottomLeft="10"/>
+                    </padding>
+                    <children>
+                        <Label text="XsdDoc structured metadata:" styleClass="desc-label"/>
+                    </children>
+                </VBox>
+            </content>
+        </TitledPane>
+    </fx:define>
+
+    <!-- Header + Schema Information stay enabled without a selection: they show file-global info -->
+    <top>
+        <VBox spacing="0">
+            <children>
+                <HBox spacing="8" alignment="CENTER_LEFT" styleClass="side-pane-header">
+                    <padding>
+                        <Insets top="8" right="12" bottom="8" left="12"/>
+                    </padding>
+                    <children>
+                        <Label text="Schema Properties" style="-fx-font-weight: bold; -fx-font-size: 13px;"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button fx:id="gearButton" styleClass="settings-gear-button, flat-button"
+                                onAction="#onCustomizeSections">
+                            <graphic>
+                                <IconifyIcon iconLiteral="bi-gear" iconSize="14"/>
+                            </graphic>
+                            <tooltip>
+                                <Tooltip text="Customize sections"/>
+                            </tooltip>
+                        </Button>
+                        <Button styleClass="flat-button" onAction="#onHidePanel">
+                            <graphic>
+                                <IconifyIcon iconLiteral="bi-x" iconSize="14"/>
+                            </graphic>
+                            <tooltip>
+                                <Tooltip text="Hide Panel"/>
+                            </tooltip>
+                        </Button>
+                    </children>
+                </HBox>
+                <Separator/>
+                <TitledPane fx:id="schemaInfoPane" text="Schema Information" expanded="true">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-info-circle" iconSize="14" iconColor="#17a2b8"/>
+                    </graphic>
+                    <content>
+                        <GridPane hgap="10" vgap="10">
+                            <padding>
+                                <Insets topRightBottomLeft="10"/>
+                            </padding>
+                            <children>
+                                <Label text="File Path:" GridPane.rowIndex="0"/>
+                                <Label fx:id="schemaFilePathLabel" text="No file loaded" wrapText="true"
+                                       styleClass="theme-text-secondary" GridPane.rowIndex="0"
+                                       GridPane.columnIndex="1"/>
+                                <Label text="Target Namespace:" GridPane.rowIndex="1"/>
+                                <Label fx:id="schemaNamespaceLabel" text="No namespace" wrapText="true"
+                                       styleClass="theme-text-secondary" GridPane.rowIndex="1"
+                                       GridPane.columnIndex="1"/>
+                                <Label text="Version:" GridPane.rowIndex="2"/>
+                                <Label fx:id="schemaVersionLabel" text="-" styleClass="theme-text-secondary"
+                                       GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+                            </children>
+                        </GridPane>
+                    </content>
+                </TitledPane>
+            </children>
+        </VBox>
+    </top>
+
+    <!-- Disabled until a node is selected. No node caching on the scroll panes: caching a tall,
+         dynamic panel forces a large backing texture (see XsdGraphView canvas notes). -->
+    <center>
+        <TabPane fx:id="mainTabPane" tabClosingPolicy="UNAVAILABLE" disable="true">
+            <tabs>
+                <Tab fx:id="attributesTab" text="Attributes">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-tags" iconSize="16" iconColor="#007bff"/>
+                    </graphic>
+                    <content>
+                        <ScrollPane fx:id="attributesScroll" fitToWidth="true" hbarPolicy="NEVER"
+                                    vbarPolicy="AS_NEEDED"/>
+                    </content>
+                </Tab>
+                <Tab fx:id="facetsTab" text="Facets">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-sliders" iconSize="16" iconColor="#fd7e14"/>
+                    </graphic>
+                    <content>
+                        <ScrollPane fx:id="facetsScroll" fitToWidth="true" hbarPolicy="NEVER"
+                                    vbarPolicy="AS_NEEDED"/>
+                    </content>
+                </Tab>
+                <Tab fx:id="docsTab" text="Docs">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-journal-text" iconSize="16" iconColor="#28a745"/>
+                    </graphic>
+                    <content>
+                        <ScrollPane fx:id="docsScroll" fitToWidth="true" hbarPolicy="NEVER"
+                                    vbarPolicy="AS_NEEDED"/>
+                    </content>
+                </Tab>
+            </tabs>
+        </TabPane>
+    </center>
+</fx:root>

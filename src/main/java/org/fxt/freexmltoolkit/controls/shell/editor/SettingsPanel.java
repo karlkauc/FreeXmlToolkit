@@ -2,26 +2,20 @@ package org.fxt.freexmltoolkit.controls.shell.editor;
 
 import java.io.File;
 
-import javafx.geometry.Pos;
+import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
-import javafx.scene.control.ToggleGroup;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
-import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.controls.theme.DesignTokens;
-import org.fxt.freexmltoolkit.controls.theme.SemanticColors;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.FileAssociationResult;
 import org.fxt.freexmltoolkit.domain.UnifiedEditorFileType;
@@ -44,94 +38,95 @@ import org.fxt.freexmltoolkit.util.ProjectLinks;
  */
 public class SettingsPanel extends VBox {
 
-    private final ToggleButton light = themeButton("Light", "bi-sun");
-    private final ToggleButton dark = themeButton("Dark", "bi-moon");
+    @FXML private ToggleButton light;
+    @FXML private ToggleButton dark;
 
     // Editor
-    private final Spinner<Integer> indentSpaces = new Spinner<>(1, 8, 2);
-    private final Spinner<Integer> jsonIndent = new Spinner<>(1, 8, 2);
-    private final CheckBox autoFormat = new CheckBox("Auto-format after loading");
-    private final CheckBox xsdPrettyPrint = new CheckBox("Pretty-print XSD on save");
-    private final CheckBox schematronPretty = new CheckBox("Pretty-print Schematron on load");
+    @FXML private Spinner<Integer> indentSpaces;
+    @FXML private Spinner<Integer> jsonIndent;
+    @FXML private CheckBox autoFormat;
+    @FXML private CheckBox xsdPrettyPrint;
+    @FXML private CheckBox schematronPretty;
 
     // XSD
-    private final CheckBox xsdAutoSave = new CheckBox("Auto-save");
-    private final Spinner<Integer> xsdAutoSaveInterval = new Spinner<>(1, 120, 5);
-    private final CheckBox xsdBackup = new CheckBox("Create backups on save");
-    private final Spinner<Integer> xsdBackupVersions = new Spinner<>(1, 50, 5);
-    private final CheckBox backupSeparateDir = new CheckBox("Use a separate backup directory");
-    private final TextField backupDir = new TextField();
+    @FXML private CheckBox xsdAutoSave;
+    @FXML private Spinner<Integer> xsdAutoSaveInterval;
+    @FXML private CheckBox xsdBackup;
+    @FXML private Spinner<Integer> xsdBackupVersions;
+    @FXML private CheckBox backupSeparateDir;
+    @FXML private TextField backupDir;
 
     // Parser
-    private final ComboBox<XmlParserType> parserType = new ComboBox<>();
-    private final CheckBox xsltExtensions = new CheckBox("Allow XSLT extension functions");
+    @FXML private ComboBox<XmlParserType> parserType;
+    @FXML private CheckBox xsltExtensions;
 
     // Rendering (JavaFX Prism pipeline; applied at next startup)
-    private final ComboBox<String> renderingMode = new ComboBox<>();
-    private final Label renderingActiveStatus = new Label();
-    private final Label renderingGpuStatus = new Label();
+    @FXML private ComboBox<String> renderingMode;
+    @FXML private Label renderingActiveStatus;
+    @FXML private Label renderingGpuStatus;
 
     // Temp & cache
-    private final CheckBox useSystemTemp = new CheckBox("Use system temp folder");
-    private final TextField customTempDir = new TextField();
-    private final Label tempStatus = new Label();
+    @FXML private CheckBox useSystemTemp;
+    @FXML private TextField customTempDir;
+    @FXML private Label tempStatus;
 
     // General
-    private final CheckBox updateCheck = new CheckBox("Check for updates on startup");
-    private final CheckBox smallIcons = new CheckBox("Use small icons");
-    private final CheckBox toolbarLabels = new CheckBox("Show toolbar button labels");
-    private final CheckBox activityBarLabels = new CheckBox("Show activity bar labels");
-    private final ToggleButton toolbarIconSmall = new ToggleButton("Small");
-    private final ToggleButton toolbarIconLarge = new ToggleButton("Large");
-    private final CheckBox showLeftPanel = new CheckBox("Show left side panel");
-    private final CheckBox showInspector = new CheckBox("Show Properties (inspector) panel");
+    @FXML private CheckBox updateCheck;
+    @FXML private CheckBox smallIcons;
+    @FXML private CheckBox toolbarLabels;
+    @FXML private CheckBox activityBarLabels;
+    @FXML private ToggleButton toolbarIconSmall;
+    @FXML private ToggleButton toolbarIconLarge;
+    @FXML private CheckBox showLeftPanel;
+    @FXML private CheckBox showInspector;
 
     // Proxy
-    private final CheckBox useSystemProxy = new CheckBox("Use system proxy");
-    private final TextField proxyHost = new TextField();
-    private final TextField proxyPort = new TextField();
+    @FXML private CheckBox useSystemProxy;
+    @FXML private TextField proxyHost;
+    @FXML private TextField proxyPort;
 
     // User info
-    private final TextField userName = new TextField();
-    private final TextField userEmail = new TextField();
-    private final TextField userCompany = new TextField();
+    @FXML private TextField userName;
+    @FXML private TextField userEmail;
+    @FXML private TextField userCompany;
 
     // Security
-    private final CheckBox trustAllCerts = new CheckBox("Trust all certificates");
+    @FXML private CheckBox trustAllCerts;
 
     // Usage statistics
-    private final CheckBox trackingEnabled = new CheckBox("Enable usage tracking");
-    private final Label usageStatus = new Label();
+    @FXML private CheckBox trackingEnabled;
+    @FXML private Label usageStatus;
     // Anonymous telemetry (opt-out, see docs/telemetry.md)
-    private final CheckBox telemetryUsage = new CheckBox("Send anonymous usage statistics");
-    private final CheckBox telemetryErrors = new CheckBox("Send anonymous error reports");
+    @FXML private CheckBox telemetryUsage;
+    @FXML private CheckBox telemetryErrors;
 
     // Developer
-    private final CheckBox execStatsEnabled = new CheckBox("Record execution statistics");
-    private final Label execStatsHint = new Label(
-            "Collects duration, CPU and memory per XSLT/XQuery/validation run. "
-                    + "View them in the \"Execution Statistics\" tool tab.");
-
+    @FXML private CheckBox execStatsEnabled;
+    
     // FundsXML extension
-    private final CheckBox fundsXmlEnabled = new CheckBox("Enable FundsXML extensions");
+    @FXML private CheckBox fundsXmlEnabled;
 
     // File associations
-    private final CheckBox assocXml = new CheckBox("XML (.xml)");
-    private final CheckBox assocXsd = new CheckBox("XSD Schema (.xsd)");
-    private final CheckBox assocXslt = new CheckBox("XSLT Stylesheet (.xsl, .xslt)");
-    private final CheckBox assocSch = new CheckBox("Schematron (.sch, .schematron)");
-    private final CheckBox assocJson = new CheckBox("JSON (.json)");
-    private final Button assocRegister = new Button("Register", iconGraphic("bi-box-arrow-in-down"));
-    private final Button assocUnregister = new Button("Unregister", iconGraphic("bi-x-circle"));
-    private final Label assocStatus = new Label();
+    @FXML private CheckBox assocXml;
+    @FXML private CheckBox assocXsd;
+    @FXML private CheckBox assocXslt;
+    @FXML private CheckBox assocSch;
+    @FXML private CheckBox assocJson;
+    @FXML private Button assocRegister;
+    @FXML private Button assocUnregister;
+    @FXML private Label assocStatus;
 
     // Templates
-    private final TextField templatesDir = new TextField();
-    private final ListView<XmlTemplate> templatesList = new ListView<>();
+    @FXML private TextField templatesDir;
+    @FXML private ListView<XmlTemplate> templatesList;
 
     // Schema Library
-    private final CheckBox schemaLibraryAutoBind = new CheckBox("Use the Schema Library to bind schemas automatically");
-    private final javafx.scene.control.Hyperlink manageSchemaCache = new javafx.scene.control.Hyperlink("Manage schema cache…");
+    @FXML private CheckBox schemaLibraryAutoBind;
+
+    @FXML private Label libraryFile;
+    @FXML private Button editTemplateButton;
+    @FXML private Button deleteTemplateButton;
+    @FXML private Button sponsorButton;
 
     /** Optional hook invoked after {@link #saveSettings()} (e.g. to refresh the activity bar). */
     private Runnable onSaved;
@@ -147,289 +142,129 @@ public class SettingsPanel extends VBox {
         this.manageSchemaCacheAction = action == null ? () -> { } : action;
     }
 
+    /** Loads the layout from {@code /pages/views/SettingsPanel.fxml} and fills in the saved values. */
     public SettingsPanel() {
-        getStyleClass().add("fxt-side-panel-content");
+        FxmlViews.load(this, "/pages/views/SettingsPanel.fxml");
 
-        Label title = new Label("SETTINGS");
-        title.getStyleClass().addAll("fxt-side-panel-title", "fxt-panel-title");
-
-        ToggleGroup themeGroup = new ToggleGroup();
-        light.setToggleGroup(themeGroup);
-        dark.setToggleGroup(themeGroup);
         boolean isDark = DesignTokens.Theme.fromProperty(currentThemeProperty()) == DesignTokens.Theme.DARK;
         (isDark ? dark : light).setSelected(true);
-        light.setOnAction(e -> applyTheme(false));
-        dark.setOnAction(e -> applyTheme(true));
 
-        ToggleGroup toolbarIconSizeGroup = new ToggleGroup();
-        toolbarIconSmall.setToggleGroup(toolbarIconSizeGroup);
-        toolbarIconLarge.setToggleGroup(toolbarIconSizeGroup);
-
-        indentSpaces.setEditable(true);
-        jsonIndent.setEditable(true);
-        xsdAutoSaveInterval.setEditable(true);
-        xsdBackupVersions.setEditable(true);
         parserType.getItems().setAll(XmlParserType.values());
-        renderingMode.getItems().setAll("Auto", "Hardware", "Software");
-        backupDir.setPromptText("backup directory");
         backupDir.disableProperty().bind(backupSeparateDir.selectedProperty().not());
-        customTempDir.setPromptText("custom temp folder");
         customTempDir.disableProperty().bind(useSystemTemp.selectedProperty());
-        tempStatus.getStyleClass().add("fxt-placeholder-text");
-        usageStatus.getStyleClass().add("fxt-placeholder-text");
-
-        proxyHost.setPromptText("host");
-        proxyPort.setPromptText("port");
         proxyHost.disableProperty().bind(useSystemProxy.selectedProperty());
         proxyPort.disableProperty().bind(useSystemProxy.selectedProperty());
 
-        Button clearTemp = new Button("Clear Temp Folder", iconGraphic("bi-trash"));
-        clearTemp.getStyleClass().add("fxt-tool-button");
-        clearTemp.setOnAction(e -> tempStatus.setText("Cleared " + clearTempFolder() + " file(s)."));
-
-        Button clearCache = new Button("Clear Cache Folder", iconGraphic("bi-trash"));
-        clearCache.getStyleClass().add("fxt-tool-button");
-        clearCache.setOnAction(e -> {
-            if (org.fxt.freexmltoolkit.util.DialogHelper.showConfirmation("Clear Cache",
-                    "Clear the local cache folder?",
-                    "This deletes all cached files (downloaded schemas etc.) under\n"
-                            + cacheFolder().getAbsolutePath() + "\n\nThis action cannot be undone.")) {
-                tempStatus.setText("Cleared " + clearCacheFolder() + " cached file(s).");
-            }
-        });
-
-        userName.setPromptText("name");
-        userEmail.setPromptText("email");
-        userCompany.setPromptText("company");
-
-        Button clearStats = new Button("Clear statistics", iconGraphic("bi-trash"));
-        clearStats.getStyleClass().add("fxt-tool-button");
-        clearStats.setOnAction(e -> {
-            if (org.fxt.freexmltoolkit.util.DialogHelper.showConfirmation("Clear Statistics",
-                    "Clear all progress data?",
-                    "This will permanently delete all your usage statistics. "
-                            + "This action cannot be undone.")) {
-                UsageTrackingServiceImpl.getInstance().clearStatistics();
-                usageStatus.setText("Usage statistics cleared.");
-            }
-        });
-
-        telemetryUsage.setId("settings-telemetry-usage");
-        telemetryErrors.setId("settings-telemetry-errors");
-        telemetryUsage.setWrapText(true);
-        telemetryErrors.setWrapText(true);
-        Label telemetryHint = new Label("Helps improve FreeXmlToolkit. Only anonymous data is sent "
-                + "(feature usage, timings, document type, error signatures) — never file names, "
-                + "paths or content. The local statistics above stay on this computer.");
-        telemetryHint.setWrapText(true);
-        telemetryHint.setMinHeight(Region.USE_PREF_SIZE); // wrap fully instead of ellipsizing
-        telemetryHint.getStyleClass().add("fxt-placeholder-text");
-        javafx.scene.control.Hyperlink whatIsSent = new javafx.scene.control.Hyperlink("What is sent?");
-        whatIsSent.setId("settings-telemetry-what");
-        whatIsSent.setGraphic(iconGraphic("bi-info-circle"));
-        whatIsSent.setOnAction(e -> org.fxt.freexmltoolkit.controls.dialogs.TelemetryInfoDialog.show(
-                getScene() != null ? getScene().getWindow() : null));
-
-        templatesDir.setPromptText("templates directory (leave empty for default)");
-        templatesList.setPrefHeight(140);
         templatesList.setCellFactory(lv -> templateCell());
-        Button newTemplate = new Button("New", iconGraphic("bi-plus-lg"));
-        Button editTemplate = new Button("Edit", iconGraphic("bi-pencil"));
-        Button deleteTemplate = new Button("Delete", iconGraphic("bi-trash"));
-        for (Button b : new Button[]{newTemplate, editTemplate, deleteTemplate}) {
-            b.getStyleClass().add("fxt-tool-button");
-        }
-        editTemplate.disableProperty().bind(
+        editTemplateButton.disableProperty().bind(
                 templatesList.getSelectionModel().selectedItemProperty().isNull());
-        deleteTemplate.disableProperty().bind(
+        deleteTemplateButton.disableProperty().bind(
                 templatesList.getSelectionModel().selectedItemProperty().isNull());
-        newTemplate.setOnAction(e -> editTemplate(null));
-        editTemplate.setOnAction(e -> editTemplate(templatesList.getSelectionModel().getSelectedItem()));
-        deleteTemplate.setOnAction(e -> deleteSelectedTemplate());
-        HBox templateButtons = new HBox(6, newTemplate, editTemplate, deleteTemplate);
-        templateButtons.setAlignment(Pos.CENTER_LEFT);
 
-        Label renderingHint = new Label(
-                "Auto picks GPU rendering on dedicated graphics, software otherwise. "
-                        + "Takes effect after restart.");
-        renderingHint.setWrapText(true);
-        renderingHint.getStyleClass().add("fxt-placeholder-text");
-        renderingActiveStatus.setWrapText(true);
-        renderingGpuStatus.setWrapText(true);
-        renderingGpuStatus.getStyleClass().add("fxt-placeholder-text");
-
-        Label assocHint = new Label("Make FreeXmlToolkit the default application for the "
-                + "selected file types (current user only).");
-        assocHint.setWrapText(true);
-        assocHint.getStyleClass().add("fxt-placeholder-text");
-        execStatsHint.setWrapText(true);
-        execStatsHint.setMinHeight(Region.USE_PREF_SIZE);
-        execStatsHint.getStyleClass().add("fxt-placeholder-text");
-        assocStatus.setWrapText(true);
-        assocStatus.getStyleClass().add("fxt-placeholder-text");
-        assocRegister.getStyleClass().add("fxt-tool-button");
-        assocUnregister.getStyleClass().add("fxt-tool-button");
-        assocRegister.setOnAction(e -> runAssociationAction(true));
-        assocUnregister.setOnAction(e -> runAssociationAction(false));
-        HBox assocButtons = new HBox(6, assocRegister, assocUnregister);
-        assocButtons.setAlignment(Pos.CENTER_LEFT);
         initFileAssociationControls();
-
-        schemaLibraryAutoBind.setId("settings-schema-library-autobind");
-        schemaLibraryAutoBind.setWrapText(true);
-        manageSchemaCache.setId("settings-manage-schema-cache");
-        manageSchemaCache.setGraphic(iconGraphic("bi-collection"));
-        manageSchemaCache.setOnAction(e -> manageSchemaCacheAction.run());
-        Label libraryFile = new Label("Library file: "
+        libraryFile.setText("Library file: "
                 + org.fxt.freexmltoolkit.service.SchemaLibraryServiceImpl.shared().getStorageFile());
-        libraryFile.setWrapText(true);
-        libraryFile.getStyleClass().add("fxt-lib-status");
-
-        javafx.scene.control.Hyperlink manageSchemaCache2 = new javafx.scene.control.Hyperlink("Manage schema cache…");
-        manageSchemaCache2.setId("settings-manage-schema-cache-2");
-        manageSchemaCache2.setGraphic(iconGraphic("bi-collection"));
-        manageSchemaCache2.setOnAction(e -> manageSchemaCacheAction.run());
-
-        Button save = new Button("Save Settings", iconGraphic("bi-save"));
-        save.getStyleClass().add("fxt-tool-button");
-        save.setOnAction(e -> {
-            saveSettings();
-            tempStatus.setText("Settings saved.");
-        });
+        sponsorButton.setGraphic(ProjectLinks.sponsorIcon(14));
 
         loadSettings();
         refreshRenderingStatus();
-
-        // Section cards, color-coded by topic (the panel now lives in the main editor
-        // area as a Settings page, so there is room for a two-column card layout).
-        javafx.scene.layout.FlowPane cards = new javafx.scene.layout.FlowPane(16, 16,
-                card("THEME", "bi-palette", "#1373D9",
-                        new HBox(6, light, dark)),
-                card("EDITOR", "bi-pencil-square", "#17a2b8",
-                        labeled("XML indent:", indentSpaces), labeled("JSON indent:", jsonIndent),
-                        autoFormat, xsdPrettyPrint, schematronPretty),
-                card("XSD", "bi-diagram-3", "#6f42c1",
-                        xsdAutoSave, labeled("Interval (min):", xsdAutoSaveInterval),
-                        xsdBackup, labeled("Keep versions:", xsdBackupVersions),
-                        backupSeparateDir, browseRow(backupDir, this::chooseBackupDir)),
-                card("SCHEMA LIBRARY", "bi-collection", "#20c997",
-                        schemaLibraryAutoBind, libraryFile, manageSchemaCache),
-                card("PARSER", "bi-cpu", "#fd7e14",
-                        labeled("XML parser:", parserType), xsltExtensions),
-                card("RENDERING", "bi-gpu-card", "#e83e8c",
-                        labeled("Mode:", renderingMode),
-                        renderingActiveStatus, renderingGpuStatus, renderingHint),
-                card("TEMP & CACHE", "bi-trash", "#ffc107",
-                        useSystemTemp, browseRow(customTempDir, this::chooseTempDir),
-                        fill(clearTemp), fill(clearCache), tempStatus, manageSchemaCache2),
-                card("GENERAL", "bi-sliders", "#007bff",
-                        updateCheck, smallIcons, toolbarLabels, activityBarLabels,
-                        labeled("Toolbar icons:", new HBox(6, toolbarIconSmall, toolbarIconLarge)),
-                        showLeftPanel, showInspector),
-                card("FILE ASSOCIATIONS", "bi-file-earmark-check", "#0dcaf0",
-                        assocHint, assocXml, assocXsd, assocXslt, assocSch, assocJson,
-                        assocButtons, assocStatus),
-                card("USER INFO", "bi-person", "#28a745",
-                        labeled("Name:", userName), labeled("Email:", userEmail),
-                        labeled("Company:", userCompany)),
-                card("SECURITY", "bi-shield-lock", "#dc3545",
-                        trustAllCerts),
-                card("USAGE STATISTICS", "bi-graph-up", "#6c757d",
-                        trackingEnabled, fill(clearStats), usageStatus,
-                        new javafx.scene.control.Separator(),
-                        telemetryUsage, telemetryErrors, telemetryHint, whatIsSent),
-                card("DEVELOPER", "bi-speedometer2", "#495057",
-                        execStatsEnabled, execStatsHint),
-                card("FUNDSXML", "bi-file-earmark-code", "#20c997",
-                        fundsXmlEnabled),
-                card("TEMPLATES", "bi-file-earmark-plus", "#0d6efd",
-                        new Label("Templates directory:"),
-                        browseRow(templatesDir, this::chooseTemplatesDir),
-                        new Label("Your templates:"),
-                        fill(templatesList), templateButtons),
-                card("HTTP PROXY", "bi-globe", "#6610f2",
-                        useSystemProxy, proxyHost, proxyPort),
-                buildSupportCard());
-        cards.setPrefWrapLength(820);
-
-        save.getStyleClass().add("fxt-primary-button");
-        VBox content = new VBox(16, title, cards, fill(save));
-        content.getStyleClass().add("fxt-settings-page");
-
-        ScrollPane scroll = new ScrollPane(content);
-        scroll.setFitToWidth(true);
-        scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        scroll.getStyleClass().add("fxt-settings-scroll");
-        VBox.setVgrow(scroll, Priority.ALWAYS);
-        getChildren().add(scroll);
     }
 
-    /** "Support the Project" card: short pitch plus a button to the GitHub Sponsors page. */
-    private static VBox buildSupportCard() {
-        Label pitch = new Label("FreeXmlToolkit is free and open source. If it saves you time, "
-                + "please consider sponsoring its development on GitHub.");
-        pitch.setWrapText(true);
-        pitch.getStyleClass().add("fxt-placeholder-text");
-        Button sponsor = new Button("Sponsor on GitHub", ProjectLinks.sponsorIcon(14));
-        sponsor.setId("settings-sponsor");
-        sponsor.getStyleClass().add("fxt-tool-button");
-        sponsor.setOnAction(e -> ProjectLinks.openInBrowser(ProjectLinks.SPONSORS_URL));
-        return card("SUPPORT THE PROJECT", "bi-heart-fill", SemanticColors.SPONSOR, pitch, sponsor);
+    @FXML
+    public void onThemeLight() {
+        applyTheme(false);
     }
 
-    /** A color-coded settings card: tinted icon tile + title, then the section's controls. */
-    private static VBox card(String titleText, String iconLiteral, String color, Region... controls) {
-        IconifyIcon icon = new IconifyIcon(iconLiteral);
-        icon.setIconSize(15);
-        icon.iconColorProperty().bind(new javafx.beans.property.SimpleObjectProperty<>(
-                javafx.scene.paint.Color.web(color)));
-        javafx.scene.layout.StackPane tile = new javafx.scene.layout.StackPane(icon);
-        tile.getStyleClass().add("fxt-settings-card-icon");
-        tile.setStyle("-fx-background-color: " + color + "22;"); // ~13% alpha tint
-
-        Label label = new Label(titleText);
-        label.getStyleClass().add("fxt-settings-card-title");
-        HBox header = new HBox(10, tile, label);
-        header.setAlignment(Pos.CENTER_LEFT);
-
-        VBox card = new VBox(8, header);
-        card.getStyleClass().add("fxt-settings-card");
-        card.setStyle("-fx-border-color: " + color + "55 transparent transparent transparent;"
-                + "-fx-border-width: 3 0 0 0;");
-        card.getChildren().addAll(controls);
-        card.setPrefWidth(390);
-        return card;
+    @FXML
+    public void onThemeDark() {
+        applyTheme(true);
     }
 
-    private static HBox labeled(String text, Region control) {
-        HBox row = new HBox(6, new Label(text), control);
-        row.setAlignment(Pos.CENTER_LEFT);
-        return row;
+    @FXML
+    public void onClearTemp() {
+        tempStatus.setText("Cleared " + clearTempFolder() + " file(s).");
     }
 
-    private static HBox browseRow(TextField field, Runnable onBrowse) {
-        HBox.setHgrow(field, Priority.ALWAYS);
-        Button browse = new Button("…");
-        browse.setOnAction(e -> onBrowse.run());
-        HBox row = new HBox(6, field, browse);
-        row.setAlignment(Pos.CENTER_LEFT);
-        return row;
+    @FXML
+    public void onClearCache() {
+        if (org.fxt.freexmltoolkit.util.DialogHelper.showConfirmation("Clear Cache",
+                "Clear the local cache folder?",
+                "This deletes all cached files (downloaded schemas etc.) under\n"
+                        + cacheFolder().getAbsolutePath() + "\n\nThis action cannot be undone.")) {
+            tempStatus.setText("Cleared " + clearCacheFolder() + " cached file(s).");
+        }
     }
 
-    private static Region fill(Region node) {
-        node.setMaxWidth(Double.MAX_VALUE);
-        return node;
+    @FXML
+    public void onClearStatistics() {
+        if (org.fxt.freexmltoolkit.util.DialogHelper.showConfirmation("Clear Statistics",
+                "Clear all progress data?",
+                "This will permanently delete all your usage statistics. "
+                        + "This action cannot be undone.")) {
+            UsageTrackingServiceImpl.getInstance().clearStatistics();
+            usageStatus.setText("Usage statistics cleared.");
+        }
     }
 
-    private void chooseBackupDir() {
+    @FXML
+    public void onWhatIsSent() {
+        org.fxt.freexmltoolkit.controls.dialogs.TelemetryInfoDialog.show(
+                getScene() != null ? getScene().getWindow() : null);
+    }
+
+    @FXML
+    public void onNewTemplate() {
+        editTemplate(null);
+    }
+
+    @FXML
+    public void onEditTemplate() {
+        editTemplate(templatesList.getSelectionModel().getSelectedItem());
+    }
+
+    @FXML
+    public void onDeleteTemplate() {
+        deleteSelectedTemplate();
+    }
+
+    @FXML
+    public void onRegisterAssociations() {
+        runAssociationAction(true);
+    }
+
+    @FXML
+    public void onUnregisterAssociations() {
+        runAssociationAction(false);
+    }
+
+    @FXML
+    public void onManageSchemaCache() {
+        manageSchemaCacheAction.run();
+    }
+
+    @FXML
+    public void onSponsor() {
+        ProjectLinks.openInBrowser(ProjectLinks.SPONSORS_URL);
+    }
+
+    @FXML
+    public void onSave() {
+        saveSettings();
+        tempStatus.setText("Settings saved.");
+    }
+
+    @FXML
+    public void onBrowseBackupDir() {
         chooseDirInto(backupDir);
     }
 
-    private void chooseTempDir() {
+    @FXML
+    public void onBrowseTempDir() {
         chooseDirInto(customTempDir);
     }
 
-    private void chooseTemplatesDir() {
+    @FXML
+    public void onBrowseTemplatesDir() {
         chooseDirInto(templatesDir);
     }
 
@@ -965,12 +800,6 @@ public class SettingsPanel extends VBox {
         };
     }
 
-    private IconifyIcon iconGraphic(String literal) {
-        IconifyIcon graphic = new IconifyIcon(literal);
-        graphic.setIconSize(16);
-        return graphic;
-    }
-
     /** Applies the theme to the scene and persists it (for tests/observers). */
     public void applyTheme(boolean darkTheme) {
         (darkTheme ? dark : light).setSelected(true);
@@ -988,14 +817,5 @@ public class SettingsPanel extends VBox {
         } catch (Throwable t) {
             return null;
         }
-    }
-
-    private ToggleButton themeButton(String text, String icon) {
-        IconifyIcon graphic = new IconifyIcon(icon);
-        graphic.setIconSize(16);
-        ToggleButton button = new ToggleButton(text, graphic);
-        button.getStyleClass().add("fxt-view-seg");
-        button.setFocusTraversable(false);
-        return button;
     }
 }

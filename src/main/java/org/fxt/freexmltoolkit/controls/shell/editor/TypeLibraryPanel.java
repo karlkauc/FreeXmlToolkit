@@ -6,18 +6,16 @@ import java.util.Locale;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.fxml.FXML;
 import javafx.scene.control.ContextMenu;
-import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.MenuItem;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.controls.shell.editor.analysis.SchemaAnalysisView;
 import org.fxt.freexmltoolkit.controls.shell.schema.XsdNodeLabels;
 import org.fxt.freexmltoolkit.controls.theme.ActionColor;
@@ -39,66 +37,31 @@ import org.fxt.freexmltoolkit.service.telemetry.UsageEvents;
 public class TypeLibraryPanel extends VBox {
 
     private final EditorHost editorHost;
-    private final PanelActionList tools;
-    private final TextField filter = new TextField();
+    @FXML private PanelActionList tools;
+    @FXML private TextField filter;
     private final ObservableList<XsdNode> elements = FXCollections.observableArrayList();
     private final ObservableList<XsdNode> complexTypes = FXCollections.observableArrayList();
     private final ObservableList<XsdNode> simpleTypes = FXCollections.observableArrayList();
-    private final ListView<XsdNode> elementsList = new ListView<>(elements);
-    private final ListView<XsdNode> complexList = new ListView<>(complexTypes);
-    private final ListView<XsdNode> simpleList = new ListView<>(simpleTypes);
+    @FXML private ListView<XsdNode> elementsList;
+    @FXML private ListView<XsdNode> complexList;
+    @FXML private ListView<XsdNode> simpleList;
     private String selectedTypeName;
     private boolean syncingSelection;
     private boolean lastRefreshEmpty = true;
     private final javafx.animation.PauseTransition refreshDebounce =
             new javafx.animation.PauseTransition(javafx.util.Duration.millis(400));
 
+    /** Loads the layout from {@code /pages/panels/TypeLibraryPanel.fxml} and wires the lists. */
     public TypeLibraryPanel(EditorHost editorHost) {
         this.editorHost = editorHost;
-        getStyleClass().add("fxt-schema-panel");
+        FxmlViews.load(this, "/pages/panels/TypeLibraryPanel.fxml");
 
-        // --- header: SCHEMA -----------------------------------------------------
-        HBox header = SidePanelHeader.create("SCHEMA");
-
-        // --- schema tools: labelled action rows in a TOOLS section above the filter ----
-        tools = new PanelActionList(
-                PanelAction.of("schema-tool-generate", "bi-magic", "Generate XSD from XML", this::generateXsdFromActive).color(ActionColor.CREATE),
-                PanelAction.of("schema-tool-generate-batch", "bi-files", "Generate XSD (Batch)…", this::generateXsdBatch).color(ActionColor.CREATE),
-                PanelAction.of("schema-tool-sample", "bi-filetype-xml", "Generate Sample XML…", this::generateSampleXmlForActive).color(ActionColor.CREATE),
-                PanelAction.of("schema-tool-sample-advanced", "bi-sliders", "Generate Sample XML (Advanced)…", this::generateProfiledSampleForActive).color(ActionColor.CREATE),
-                PanelAction.of("schema-tool-flatten", "bi-layers", "Flatten Schema…", this::flattenActive).color(ActionColor.TOOL),
-                PanelAction.of("schema-tool-analysis", SchemaAnalysisView.ICON, "Schema Analysis", this::analyzeActive).color(ActionColor.NAVIGATE),
-                PanelAction.of("schema-tool-documentation", "bi-file-earmark-text", "Generate Documentation…", this::generateDocumentationForActive).color(ActionColor.CREATE));
-        tools.setId("schema-tools");
-        VBox toolsSection = PanelActionList.section("TOOLS", false, tools);
-
-        // --- filter ----------------------------------------------------------------
-        filter.setId("schema-filter");
-        filter.setPromptText("Filter types…");
         filter.textProperty().addListener((obs, oldV, newV) -> refresh());
-        VBox filterBox = new VBox(filter);
-        filterBox.getStyleClass().add("fxt-tp-section-body");
 
         // --- grouped declaration lists ----------------------------------------------
-        configureList(elementsList, "schema-elements-list", elements, false);
-        configureList(complexList, "schema-complex-list", complexTypes, true);
-        configureList(simpleList, "schema-simple-list", simpleTypes, true);
-
-        HBox elementsHeader = SidePanelLayout.sectionHeader(new Label("GLOBAL ELEMENTS"), elementsList);
-        HBox complexHeader = SidePanelLayout.sectionHeader(new Label("COMPLEX TYPES"), complexList);
-        HBox simpleHeader = SidePanelLayout.sectionHeader(new Label("SIMPLE TYPES"), simpleList);
-
-        VBox content = new VBox(toolsSection, filterBox,
-                elementsHeader, elementsList,
-                complexHeader, complexList,
-                simpleHeader, simpleList);
-        ScrollPane scroll = new ScrollPane(content);
-        scroll.setFitToWidth(true);
-        scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        scroll.getStyleClass().add("edge-to-edge");
-        VBox.setVgrow(scroll, Priority.ALWAYS);
-
-        getChildren().addAll(header, scroll);
+        configureList(elementsList, elements, false);
+        configureList(complexList, complexTypes, true);
+        configureList(simpleList, simpleTypes, true);
 
         // Dropping an XSD anywhere on the panel opens it as a document; the library then
         // follows the newly active tab. Other extensions are rejected (red feedback).
@@ -134,14 +97,10 @@ public class TypeLibraryPanel extends VBox {
                 .toList();
     }
 
-    /** Shared list styling + selection/double-click/context-menu wiring. */
-    private void configureList(ListView<XsdNode> list, String id,
-                               ObservableList<XsdNode> items, boolean isTypeList) {
-        list.setId(id);
-        list.getStyleClass().addAll("fxt-open-editors", "fxt-explorer-list");
+    /** Shared list contents + selection/double-click/context-menu wiring. */
+    private void configureList(ListView<XsdNode> list, ObservableList<XsdNode> items, boolean isTypeList) {
+        list.setItems(items);
         list.setCellFactory(lv -> new TypeCell());
-        list.setFixedCellSize(26);
-        list.setPlaceholder(new Label("None"));
         list.prefHeightProperty().bind(javafx.beans.binding.Bindings.createDoubleBinding(
                 () -> Math.min(234.0, Math.max(1, items.size()) * 26.0 + 2), items));
         list.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
@@ -225,6 +184,7 @@ public class TypeLibraryPanel extends VBox {
      * Infers a single XSD from several user-selected XML files (batch) and opens
      * the result as a new tab (async). Reuses {@link SchemaActionRunner#generateXsdFromMultiple}.
      */
+    @FXML
     public void generateXsdBatch() {
         javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
         chooser.setTitle("Select XML files to infer a schema from");
@@ -249,9 +209,15 @@ public class TypeLibraryPanel extends VBox {
     }
 
     /** Infers an XSD from the active XML document and opens it as a new tab (async). */
+    @FXML
     public void generateXsdFromActive() {
         runAsync(SchemaActionRunner::generateXsdFromXml, EditorFileType.XSD, "Generated.xsd",
                 (t0, ok) -> UsageEvents.xsdGenerated(1, t0, ok));
+    }
+
+    @FXML
+    public void onFlatten() {
+        flattenActive();
     }
 
     /**
@@ -283,6 +249,7 @@ public class TypeLibraryPanel extends VBox {
      * types, quality checks, identity constraints and XPath validation for the active XSD.
      * Re-focusing an existing tab re-runs the analysis so the report follows the active document.
      */
+    @FXML
     public void analyzeActive() {
         boolean existed = editorHost.hasToolTab(SchemaAnalysisView.TITLE);
         // Capture the document before the tool tab takes over as the active tab.
@@ -306,6 +273,7 @@ public class TypeLibraryPanel extends VBox {
      * the full option set (format, HTML rendering options, languages, output) with a
      * live progress log — "big" editing happens in the main window.
      */
+    @FXML
     public void generateDocumentationForActive() {
         editorHost.openOrFocusToolTab("Documentation", "bi-file-earmark-text",
                 () -> new DocumentationView(editorHost));
@@ -315,6 +283,7 @@ public class TypeLibraryPanel extends VBox {
      * Generates a sample XML instance from the active schema (off the UI thread)
      * and opens it as a new editor tab.
      */
+    @FXML
     public void generateSampleXmlForActive() {
         File xsd = activeXsdFileOrAlert("Generate Sample XML");
         if (xsd == null) {
@@ -347,6 +316,7 @@ public class TypeLibraryPanel extends VBox {
      * {@link ProfiledSampleDialog} for per-XPath rules + batch options, then generates a single
      * document (new tab) or a batch of files written to a chosen directory.
      */
+    @FXML
     public void generateProfiledSampleForActive() {
         String title = "Generate Sample XML (Advanced)";
         File xsd = activeXsdFileOrAlert(title);

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
+
+<!--
+  Header bar of the shell's Grid views (XML and JSON): table icon · "Grid view" · subtitle ·…·
+  zoom pill [ − 100% + ] · Expand all · Collapse all. Loaded by GridViewHeader via the fx:root
+  pattern (FxmlViews.load); GridViewHeader is root and controller and forwards the actions to
+  the grid canvas. The subtitle and the zoom percentage are set in code.
+-->
+<fx:root type="javafx.scene.layout.HBox" spacing="8" alignment="CENTER_LEFT" styleClass="fxt-grid-header"
+         xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <children>
+        <Label text="Grid view" styleClass="fxt-grid-title">
+            <graphic>
+                <IconifyIcon iconLiteral="bi-table" iconSize="15"/>
+            </graphic>
+        </Label>
+        <Label fx:id="subtitle" styleClass="fxt-grid-subtitle"/>
+        <Region HBox.hgrow="ALWAYS"/>
+
+        <!-- Zoom pill; clicking the percentage resets to 100 % -->
+        <HBox alignment="CENTER" styleClass="fxt-graph-zoom-pill, fxt-grid-zoom-pill">
+            <children>
+                <Button id="grid-zoom-out" text="−" focusTraversable="false" styleClass="fxt-graph-zoom-button"
+                        onAction="#onZoomOut">
+                    <tooltip>
+                        <Tooltip text="Zoom out (Ctrl −)"/>
+                    </tooltip>
+                </Button>
+                <Label fx:id="zoomLabel" id="grid-zoom-label" styleClass="fxt-graph-zoom-label"
+                       onMouseClicked="#onZoomReset">
+                    <tooltip>
+                        <Tooltip text="Reset zoom to 100% (Ctrl 0)"/>
+                    </tooltip>
+                </Label>
+                <Button id="grid-zoom-in" text="+" focusTraversable="false" styleClass="fxt-graph-zoom-button"
+                        onAction="#onZoomIn">
+                    <tooltip>
+                        <Tooltip text="Zoom in (Ctrl +)"/>
+                    </tooltip>
+                </Button>
+            </children>
+        </HBox>
+
+        <Button id="grid-expand-all" text="Expand all" styleClass="fxt-tool-button" onAction="#onExpandAll">
+            <graphic>
+                <IconifyIcon iconLiteral="bi-arrows-expand" iconSize="13"/>
+            </graphic>
+        </Button>
+        <Button id="grid-collapse-all" text="Collapse all" styleClass="fxt-tool-button" onAction="#onCollapseAll">
+            <graphic>
+                <IconifyIcon iconLiteral="bi-arrows-collapse" iconSize="13"/>
+            </graphic>
+        </Button>
+    </children>
+</fx:root>

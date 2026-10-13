@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
+
+<!--
+  Developer tool tab "Execution Statistics": header with the export/clear actions, the history
+  table and the per-run detail report. Loaded by ExecutionStatsView via the fx:root pattern
+  (FxmlViews.load); ExecutionStatsView is root and controller and binds the column values.
+-->
+<fx:root type="javafx.scene.layout.VBox" spacing="10" styleClass="fxt-side-panel-content"
+         xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <padding>
+        <Insets topRightBottomLeft="16"/>
+    </padding>
+    <children>
+        <HBox spacing="8" alignment="CENTER_LEFT">
+            <children>
+                <Label text="EXECUTION STATISTICS" styleClass="fxt-side-panel-title"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button text="Export CSV" styleClass="fxt-tool-button" onAction="#onExportCsv">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-download" iconSize="14"/>
+                    </graphic>
+                    <tooltip>
+                        <Tooltip text="Export the history as CSV"/>
+                    </tooltip>
+                </Button>
+                <Button text="Export JSON" styleClass="fxt-tool-button" onAction="#onExportJson">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-filetype-json" iconSize="14"/>
+                    </graphic>
+                    <tooltip>
+                        <Tooltip text="Export the history as JSON"/>
+                    </tooltip>
+                </Button>
+                <Button text="Clear" styleClass="fxt-tool-button" onAction="#onClear">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-trash" iconSize="14"/>
+                    </graphic>
+                    <tooltip>
+                        <Tooltip text="Clear the recorded history"/>
+                    </tooltip>
+                </Button>
+            </children>
+        </HBox>
+
+        <Label text="Resource usage per operation. Memory deltas are approximate in a shared JVM — use these numbers to compare runs, not as absolute costs."
+               wrapText="true" styleClass="fxt-placeholder-text"/>
+
+        <TableView fx:id="table" id="execution-stats-table" VBox.vgrow="ALWAYS">
+            <columns>
+                <TableColumn fx:id="timeColumn" text="Time" prefWidth="70"/>
+                <TableColumn fx:id="operationColumn" text="Operation" prefWidth="90"/>
+                <TableColumn fx:id="targetColumn" text="Target" prefWidth="200"/>
+                <TableColumn fx:id="durationColumn" text="Duration" prefWidth="80"/>
+                <TableColumn fx:id="cpuColumn" text="CPU" prefWidth="80"/>
+                <TableColumn fx:id="memoryColumn" text="Memory Δ" prefWidth="90"/>
+                <TableColumn fx:id="gcColumn" text="GC" prefWidth="80"/>
+                <TableColumn fx:id="inColumn" text="In" prefWidth="70"/>
+                <TableColumn fx:id="outColumn" text="Out" prefWidth="70"/>
+                <TableColumn fx:id="statusColumn" text="Status" prefWidth="60"/>
+            </columns>
+            <placeholder>
+                <Label text="Run a transform, query or validation to record statistics."/>
+            </placeholder>
+        </TableView>
+
+        <TextArea fx:id="detail" editable="false" wrapText="false" prefRowCount="9"
+                  promptText="Select a run to see its detail report." styleClass="fxt-query-results"/>
+    </children>
+</fx:root>

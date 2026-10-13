@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
+
+<!--
+  OUTPUT panel docked below the editor tabs (Figma "Redesign · Unified — Transform (XSLT)",
+  node 47:3): a header (format badge, status, Preview/Text/Table toggle, result actions) above
+  the result area. Loaded by TransformOutputPanel via the fx:root pattern (FxmlViews.load);
+  TransformOutputPanel is root and controller. Built in code: the read-only CodeArea of the Text
+  view (put first into the "content" stack), the table columns and the lazily created HTML
+  preview. Preview and Table are only offered for matching results, so they start hidden.
+-->
+<fx:root type="javafx.scene.layout.VBox" prefHeight="260" minHeight="120" styleClass="fxt-output-panel"
+         xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <fx:define>
+        <ToggleGroup fx:id="viewGroup"/>
+    </fx:define>
+    <children>
+        <HBox spacing="10" alignment="CENTER_LEFT" styleClass="fxt-output-header">
+            <children>
+                <Label text="OUTPUT" styleClass="fxt-output-title"/>
+                <Label fx:id="badge" visible="false" styleClass="fxt-output-badge"/>
+                <IconifyIcon fx:id="statusIcon" iconLiteral="bi-check-circle-fill" iconSize="12" visible="false"/>
+                <Label fx:id="statusLabel" styleClass="fxt-output-status"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <HBox spacing="2" styleClass="fxt-seg-group">
+                    <children>
+                        <ToggleButton fx:id="previewToggle" text="Preview" toggleGroup="$viewGroup"
+                                      visible="false" managed="false" styleClass="fxt-seg"/>
+                        <ToggleButton fx:id="textToggle" text="Text" toggleGroup="$viewGroup" selected="true"
+                                      styleClass="fxt-seg"/>
+                        <ToggleButton fx:id="tableToggle" text="Table" toggleGroup="$viewGroup"
+                                      visible="false" managed="false" styleClass="fxt-seg"/>
+                    </children>
+                </HBox>
+                <Button id="transform-output-editor" styleClass="fxt-sp-action" onAction="#openResultInEditor">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-file-earmark-plus" iconSize="14"/>
+                    </graphic>
+                    <tooltip>
+                        <Tooltip text="Open result as editor tab"/>
+                    </tooltip>
+                </Button>
+                <Button id="transform-output-browser" styleClass="fxt-sp-action" onAction="#openInBrowser">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-box-arrow-up-right" iconSize="14"/>
+                    </graphic>
+                    <tooltip>
+                        <Tooltip text="Open in browser"/>
+                    </tooltip>
+                </Button>
+                <Button id="transform-output-save" styleClass="fxt-sp-action" onAction="#saveResult">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-download" iconSize="14"/>
+                    </graphic>
+                    <tooltip>
+                        <Tooltip text="Save result…"/>
+                    </tooltip>
+                </Button>
+                <Button id="transform-output-close" styleClass="fxt-sp-action" onAction="#hide">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-x" iconSize="14"/>
+                    </graphic>
+                    <tooltip>
+                        <Tooltip text="Hide output panel"/>
+                    </tooltip>
+                </Button>
+            </children>
+        </HBox>
+        <StackPane fx:id="content" VBox.vgrow="ALWAYS">
+            <children>
+                <TableView fx:id="resultTable">
+                    <placeholder>
+                        <Label text="Run an XQuery returning a sequence to see a table."/>
+                    </placeholder>
+                </TableView>
+                <StackPane fx:id="previewHolder" visible="false" managed="false"/>
+            </children>
+        </StackPane>
+    </children>
+</fx:root>

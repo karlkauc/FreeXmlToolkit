@@ -5,23 +5,19 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
 import javafx.application.Platform;
+import javafx.fxml.FXML;
 import javafx.geometry.Side;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 
 import org.fxt.freexmltoolkit.FxtGui;
-import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
-import org.fxt.freexmltoolkit.controls.theme.ActionColor;
+import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 
 /**
  * The PDF/FOP activity side panel, laid out after the Figma mockup
@@ -35,122 +31,85 @@ import org.fxt.freexmltoolkit.controls.theme.ActionColor;
 public class FopPanel extends VBox {
 
     private final EditorHost editorHost;
-    private final Label xmlName = new Label("none");
-    private final Label xslName = new Label("none");
-    private javafx.scene.control.MenuButton xmlFavoritesMenu;
-    private javafx.scene.control.MenuButton xslFavoritesMenu;
-    private final TextField titleField = new TextField();
-    private final TextField authorField = new TextField();
-    private final TextField subjectField = new TextField();
-    private final CheckBox pdfACompliant = new CheckBox("PDF/A-1b compliant");
-    private final ComboBox<String> pageSize = new ComboBox<>();
-    private final Label status = new Label("No PDF generated");
-    private final PanelProgress progress = new PanelProgress();
-    private Button generateButton;
-    private final Button openButton;
-    private final Button previewButton;
+    @FXML private ContextMenu xmlMenu;
+    @FXML private SourceRow xmlRow;
+    @FXML private SourceRow xslRow;
+    @FXML private Label xmlName;
+    @FXML private Label xslName;
+    @FXML private TextField titleField;
+    @FXML private TextField authorField;
+    @FXML private TextField subjectField;
+    @FXML private CheckBox pdfACompliant;
+    @FXML private ComboBox<String> pageSize;
+    @FXML private Label status;
+    @FXML private PanelProgress progress;
+    @FXML private Button generateButton;
+    @FXML private Button openButton;
+    @FXML private Button previewButton;
+    private final javafx.scene.control.MenuButton xmlFavoritesMenu;
+    private final javafx.scene.control.MenuButton xslFavoritesMenu;
     private File xmlOverride;
     private File xslFile;
     private File lastPdf;
 
+    /** Loads the layout from {@code /pages/panels/FopPanel.fxml} and wires the data-driven parts. */
     public FopPanel(EditorHost editorHost) {
         this.editorHost = editorHost;
-        getStyleClass().add("fxt-fop-panel");
+        FxmlViews.load(this, "/pages/panels/FopPanel.fxml");
 
-        // --- header: PDF / FOP -------------------------------------------------
-        HBox header = SidePanelHeader.create("PDF / FOP");
-
-        // --- INPUT: XML (active editor or override) + XSL-FO stylesheet --------
-        xmlName.setId("fop-xml-name");
-        xmlName.getStyleClass().add("fxt-vp-source-name");
-        ContextMenu xmlMenu = new ContextMenu();
-        MenuItem pickXml = new MenuItem("Select XML file…");
-        pickXml.setOnAction(e -> chooseXmlOverride());
-        MenuItem useActive = new MenuItem("Use active editor");
-        useActive.setOnAction(e -> setXmlOverride(null));
-        xmlMenu.getItems().addAll(pickXml, useActive);
         xmlFavoritesMenu = FavoritesMenu.create(
                 org.fxt.freexmltoolkit.domain.FileFavorite.FileType.XML,
                 "XML favorites", this::setXmlOverride);
-        HBox xmlRow = new SourceRow("bi-code-slash", xmlName, () ->
-                xmlMenu.show(xmlName, Side.BOTTOM, 0, 0), xmlFavoritesMenu);
-        xmlRow.setId("fop-xml-row");
+        xmlRow.addExtras(xmlFavoritesMenu);
         org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(xmlRow,
                 org.fxt.freexmltoolkit.service.DragDropService.XML_EXTENSIONS, this::setXmlOverride);
         refreshXmlName();
         editorHost.activeTabProperty().addListener((obs, oldV, newV) -> refreshXmlName());
 
-        xslName.setId("fop-xsl-name");
-        xslName.getStyleClass().addAll("fxt-vp-source-name", "fxt-vp-source-none");
         xslFavoritesMenu = FavoritesMenu.create(
                 org.fxt.freexmltoolkit.domain.FileFavorite.FileType.XSLT,
                 "XSLT favorites", this::setXslFile);
-        HBox xslRow = new SourceRow("bi-file-earmark-code", xslName, this::chooseXsl, xslFavoritesMenu);
-        xslRow.setId("fop-xsl-row");
+        xslRow.addExtras(xslFavoritesMenu);
         org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(xslRow,
                 org.fxt.freexmltoolkit.service.DragDropService.XSLT_EXTENSIONS, this::setXslFile);
-        HBox inputHeader = SidePanelLayout.sectionHeader(new Label("INPUT"), xmlRow, xslRow);
 
-        // --- METADATA ------------------------------------------------------------
-        titleField.setId("fop-meta-title");
-        titleField.setPromptText("Document title");
-        authorField.setId("fop-meta-author");
-        authorField.setPromptText("Author");
-        subjectField.setId("fop-meta-subject");
-        subjectField.setPromptText("Subject");
         prefillAuthor();
-        VBox metadataBox = new VBox(4,
-                fieldLabel("Title"), titleField,
-                fieldLabel("Author"), authorField,
-                fieldLabel("Subject"), subjectField);
-        metadataBox.getStyleClass().add("fxt-tp-section-body");
-        HBox metadataHeader = SidePanelLayout.sectionHeader(new Label("METADATA"), metadataBox);
-
-        // --- OPTIONS ---------------------------------------------------------------
-        pdfACompliant.setId("fop-pdfa");
-        pdfACompliant.setTooltip(new javafx.scene.control.Tooltip(
-                "Requires embeddable fonts: the stylesheet must use system fonts, not the PDF base-14 set"));
-        pageSize.setId("fop-page-size");
-        pageSize.getItems().addAll("A4 · Portrait", "A4 · Landscape", "Letter · Portrait", "Letter · Landscape");
         pageSize.getSelectionModel().selectFirst();
-        pageSize.setMaxWidth(Double.MAX_VALUE);
-        VBox optionsBox = new VBox(6, pdfACompliant, fieldLabel("Page size"), pageSize);
-        optionsBox.getStyleClass().add("fxt-tp-section-body");
-        HBox optionsHeader = SidePanelLayout.sectionHeader(new Label("OPTIONS"), optionsBox);
+    }
 
-        // --- Generate + result actions ----------------------------------------------
-        Button generate = new Button("Generate PDF", icon("bi-file-earmark-pdf", 14));
-        generate.setId("fop-generate");
-        generate.getStyleClass().add("fxt-primary-button");
-        generate.setMaxWidth(Double.MAX_VALUE);
-        generate.setOnAction(e -> chooseTargetAndGenerate());
-        generateButton = generate;
-        VBox runBox = new VBox(8, generate, progress);
-        runBox.getStyleClass().add("fxt-vp-run-box");
+    @FXML
+    public void onChangeXml() {
+        xmlMenu.show(xmlName, Side.BOTTOM, 0, 0);
+    }
 
-        status.getStyleClass().add("fxt-vp-status");
-        status.setWrapText(true);
+    @FXML
+    public void onSelectXmlFile() {
+        chooseXmlOverride();
+    }
 
-        // Result actions: enabled once a PDF has been generated.
-        PanelActionList resultActions = new PanelActionList();
-        previewButton = resultActions.add(PanelAction.of("fop-preview", "bi-eye", "Preview PDF", this::previewPdf).color(ActionColor.NAVIGATE));
-        previewButton.setDisable(true);
-        openButton = resultActions.add(PanelAction.of("fop-open", "bi-box-arrow-up-right", "Open PDF", this::openPdf).color(ActionColor.NAVIGATE));
-        openButton.setDisable(true);
-        VBox resultBox = PanelActionList.section("RESULT", false, resultActions);
+    @FXML
+    public void onUseActiveEditor() {
+        setXmlOverride(null);
+    }
 
-        VBox content = new VBox(
-                inputHeader, xmlRow, xslRow,
-                metadataHeader, metadataBox,
-                optionsHeader, optionsBox,
-                runBox, status, resultBox);
-        ScrollPane scroll = new ScrollPane(content);
-        scroll.setFitToWidth(true);
-        scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        scroll.getStyleClass().add("edge-to-edge");
-        VBox.setVgrow(scroll, Priority.ALWAYS);
+    @FXML
+    public void onChooseXsl() {
+        chooseXsl();
+    }
 
-        getChildren().addAll(header, scroll);
+    @FXML
+    public void onGenerate() {
+        chooseTargetAndGenerate();
+    }
+
+    @FXML
+    public void onPreviewPdf() {
+        previewPdf();
+    }
+
+    @FXML
+    public void onOpenPdf() {
+        openPdf();
     }
 
     /** Sets the XSL(-FO) stylesheet (also from the file chooser). */
@@ -363,17 +322,5 @@ public class FopPanel extends VBox {
         if (name == null) {
             label.getStyleClass().add("fxt-vp-source-none");
         }
-    }
-
-    private static Label fieldLabel(String text) {
-        Label label = new Label(text);
-        label.getStyleClass().add("fxt-sig-field-label");
-        return label;
-    }
-
-    private static IconifyIcon icon(String literal, int size) {
-        IconifyIcon icon = new IconifyIcon(literal);
-        icon.setIconSize(size);
-        return icon;
     }
 }

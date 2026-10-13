@@ -9,6 +9,7 @@ import java.util.Map;
 
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
+import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckMenuItem;
@@ -31,6 +32,7 @@ import javafx.util.Duration;
 
 import org.fxt.freexmltoolkit.FxtGui;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.controls.shell.editor.debug.BatchTransformView;
 import org.fxt.freexmltoolkit.controls.theme.ActionColor;
 import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
@@ -57,22 +59,30 @@ public class TransformPanel extends VBox {
 
     private final EditorHost editorHost;
     private final TransformOutputPanel out;
-    private final TextArea xqueryArea = new TextArea();
-    private final TextField xpathField = new TextField();
-    private final Label pathLabel = new Label("XPATH");
-    private final Label xsltName = new Label("none");
-    private final Label inputName = new Label("none");
-    private final VBox paramRows = new VBox(4);
+    @FXML private TextArea xqueryArea;
+    @FXML private TextField xpathField;
+    @FXML private SidePanelSection pathSection;
+    @FXML private SourceRow xsltRow;
+    @FXML private SourceRow inputRow;
+    @FXML private Label xsltName;
+    @FXML private Label inputName;
+    @FXML private ContextMenu inputMenu;
+    @FXML private VBox formatGrid;
+    @FXML private VBox paramsBox;
+    @FXML private VBox paramRows;
+    @FXML private VBox runBox;
+    @FXML private PanelActionList xpathActions;
+    @FXML private PanelActionList xqueryActions;
     private final ToggleGroup formatGroup = new ToggleGroup();
     private final MenuButton savedQueriesMenu;
     private final MenuButton recentXsltMenu = new MenuButton();
-    private final MenuButton overflowMenu = new MenuButton();
-    private PanelActionList tools;
-    private final CheckMenuItem livePreview = new CheckMenuItem("Live preview");
-    private final CheckMenuItem watchXslt = new CheckMenuItem("Watch stylesheet file");
-    private final CheckMenuItem profileCheck = new CheckMenuItem("Profile run");
-    private final CheckMenuItem traceCheck = new CheckMenuItem("Trace run");
-    private final CheckMenuItem autoOpenResultTab = new CheckMenuItem("Auto-open result tab");
+    @FXML private MenuButton overflowMenu;
+    @FXML private PanelActionList tools;
+    @FXML private CheckMenuItem livePreview;
+    @FXML private CheckMenuItem watchXslt;
+    @FXML private CheckMenuItem profileCheck;
+    @FXML private CheckMenuItem traceCheck;
+    @FXML private CheckMenuItem autoOpenResultTab;
     private final PauseTransition liveDebounce = new PauseTransition(Duration.millis(600));
     private File xsltFile;
     private long lastXsltModified;
@@ -80,8 +90,8 @@ public class TransformPanel extends VBox {
     private File inputOverride;
     /** The source document of the latest transform (so a re-run from the result tab works). */
     private OpenDocument sourceDocument;
-    private final PanelProgress progress = new PanelProgress();
-    private Button transformButton;
+    @FXML private PanelProgress progress;
+    @FXML private Button transformButton;
 
     // --- favorites browsing (◀/▶ through XSLT / XML favorites, optionally folder-scoped) ---
     /** Star menu listing XSLT favorites (grouped by folder) for the STYLESHEET row. */
@@ -101,20 +111,13 @@ public class TransformPanel extends VBox {
     private final Label xsltPos = new Label();
     private final Label inputPos = new Label();
 
+    /** Loads the layout from {@code /pages/panels/TransformPanel.fxml} and wires the data-driven parts. */
     public TransformPanel(EditorHost editorHost) {
         this.editorHost = editorHost;
         this.out = editorHost.transformOutputPanel();
-        getStyleClass().add("fxt-transform-panel");
-
-        // --- header: TRANSFORM ........ ⋮ ---------------------------------
-        overflowMenu.setId("transform-overflow");
-        overflowMenu.setGraphic(icon("bi-three-dots-vertical", 15));
-        overflowMenu.getStyleClass().add("fxt-vp-overflow");
-        buildOverflowMenu();
-        HBox header = SidePanelHeader.create("TRANSFORM", overflowMenu);
+        FxmlViews.load(this, "/pages/panels/TransformPanel.fxml");
 
         // --- STYLESHEET -----------------------------------------------------
-        xsltName.getStyleClass().addAll("fxt-vp-source-name", "fxt-vp-source-none");
         recentXsltMenu.setGraphic(icon("bi-clock-history", 13));
         recentXsltMenu.getStyleClass().add("fxt-vp-source-fav");
         recentXsltMenu.setOnShowing(e -> refreshRecentXsltMenu());
@@ -122,89 +125,43 @@ public class TransformPanel extends VBox {
         xsltFavMenu.getStyleClass().add("fxt-vp-source-fav");
         xsltFavMenu.setOnShowing(e -> refreshXsltFavMenu());
         xsltPos.getStyleClass().add("fxt-vp-browse-pos");
-        HBox xsltRow = new SourceRow("bi-arrow-repeat", xsltName, this::chooseXslt,
-                recentXsltMenu, xsltFavMenu, prevXsltBtn, xsltPos, nextXsltBtn);
-        xsltRow.setId("transform-xslt-row");
+        xsltRow.addExtras(recentXsltMenu, xsltFavMenu, prevXsltBtn, xsltPos, nextXsltBtn);
         // Drops behave like picking a favorite: record access, sync the browse position, auto-run.
         org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(xsltRow,
                 org.fxt.freexmltoolkit.service.DragDropService.XSLT_EXTENSIONS, this::applyXslt);
         updateXsltPos();
-        HBox stylesheetHeader = SidePanelLayout.sectionHeader(new Label("STYLESHEET"), xsltRow);
 
         // --- INPUT ------------------------------------------------------------
-        inputName.getStyleClass().add("fxt-vp-source-name");
-        ContextMenu inputMenu = new ContextMenu(
-                menuItem("Select XML file…", this::chooseInputFile),
-                menuItem("Use active editor", () -> setInputOverride(null)));
         inputFavMenu.setGraphic(icon("bi-star", 13));
         inputFavMenu.getStyleClass().add("fxt-vp-source-fav");
         inputFavMenu.setOnShowing(e -> refreshInputFavMenu());
         inputPos.getStyleClass().add("fxt-vp-browse-pos");
-        HBox inputRow = new SourceRow("bi-code-slash", inputName, () ->
-                inputMenu.show(inputName, javafx.geometry.Side.BOTTOM, 0, 0),
-                inputFavMenu, prevInputBtn, inputPos, nextInputBtn);
-        inputRow.setId("transform-input-row");
+        inputRow.addExtras(inputFavMenu, prevInputBtn, inputPos, nextInputBtn);
         org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(inputRow,
                 org.fxt.freexmltoolkit.service.DragDropService.XML_EXTENSIONS, this::applyInput);
         updateInputPos();
-        HBox inputHeader = SidePanelLayout.sectionHeader(new Label("INPUT"), inputRow);
         refreshInputName();
         editorHost.activeTabProperty().addListener((obs, oldV, newV) -> refreshInputName());
 
         // --- OUTPUT METHOD -----------------------------------------------------
-        VBox formatGrid = buildFormatGrid();
-        HBox outputHeader = SidePanelLayout.sectionHeader(new Label("OUTPUT METHOD"), formatGrid);
+        fillFormatGrid();
 
         // --- PARAMETERS ----------------------------------------------------------
         Button addParam = PanelActionList.inlineRow("Add parameter", "bi-plus-circle", () -> addParameter("", ""));
         addParam.setId("transform-add-parameter");
-        VBox paramsBox = new VBox(4, paramRows, addParam);
-        paramsBox.getStyleClass().add("fxt-tp-params");
-        HBox paramsHeader = SidePanelLayout.sectionHeader(new Label("PARAMETERS"), paramsBox);
+        paramsBox.getChildren().add(addParam);
 
         // --- Run Transform ----------------------------------------------------
-        Button run = new Button("Run Transform", icon("bi-play-fill", 14));
-        run.setId("transform-run");
-        run.getStyleClass().add("fxt-primary-button");
-        run.setMaxWidth(Double.MAX_VALUE);
-        run.setOnAction(e -> transform());
-        transformButton = run;
-        VBox runBox = new VBox(8, run, progress);
-        runBox.getStyleClass().add("fxt-vp-run-box");
-        run.prefWidthProperty().bind(runBox.widthProperty());
-
-        // --- TOOLS: the advanced tools as visible rows (formerly ⋮ entries) ----------
-        tools = new PanelActionList(
-                PanelAction.of("transform-tool-debug", "bi-bug", "Debug XSLT…", this::startDebug).color(ActionColor.TOOL),
-                PanelAction.of("transform-tool-batch", "bi-collection", "Batch Transform…", this::openBatch).color(ActionColor.TOOL),
-                PanelAction.of("transform-tool-stats", "bi-speedometer2", "Execution Statistics",
-                        editorHost::openExecutionStats).color(ActionColor.NAVIGATE));
-        tools.setId("transform-tools");
-        VBox toolsSection = PanelActionList.section("TOOLS", false, tools);
+        transformButton.prefWidthProperty().bind(runBox.widthProperty());
 
         // --- XPATH / JSONPATH (collapsed) -------------------------------------
-        xpathField.getStyleClass().add("fxt-xpath-field");
-        HBox.setHgrow(xpathField, Priority.ALWAYS);
-        xpathField.setOnAction(e -> runXPath());
         updatePathMode();
         editorHost.activeTabProperty().addListener((obs, oldV, newV) -> updatePathMode());
-        PanelActionList xpathActions = new PanelActionList(
-                PanelAction.of("transform-xpath-run", "bi-lightning-charge", "Run Query", this::runXPath).color(ActionColor.TOOL)
-                        .asPrimary(),
-                PanelAction.of("transform-xpath-save", "bi-save", "Save Query", this::saveCurrentQuery).color(ActionColor.TOOL));
         savedQueriesMenu = new MenuButton();
         savedQueriesMenu.setOnShowing(e -> refreshSavedQueriesMenu());
         xpathActions.addMenu(savedQueriesMenu, "transform-xpath-saved", "bi-collection", "Saved Queries");
-        VBox xpathBox = new VBox(6, xpathField, xpathActions);
-        xpathBox.getStyleClass().add("fxt-tp-section-body");
-        HBox xpathHeader = SidePanelLayout.sectionHeader(true, pathLabel, xpathBox);
 
         // --- XQUERY (collapsed) -------------------------------------------------
-        xqueryArea.setPromptText("for $x in /root/item return string($x)");
-        xqueryArea.setPrefRowCount(4);
-        xqueryArea.getStyleClass().add("fxt-xpath-field");
-        PanelActionList xqueryActions = new PanelActionList(
-                PanelAction.of("transform-xquery-run", "bi-braces", "Run XQuery", this::runXQuery).color(ActionColor.TOOL).asPrimary());
         MenuButton examplesMenu = new MenuButton();
         examplesMenu.getItems().addAll(
                 exampleItem("Simple", "simple"),
@@ -212,9 +169,6 @@ public class TransformPanel extends VBox {
                 exampleItem("HTML report", "html"),
                 exampleItem("Data-quality check", "dq"));
         xqueryActions.addMenu(examplesMenu, "transform-xquery-examples", "bi-journal-code", "Examples");
-        VBox xqueryBox = new VBox(6, xqueryArea, xqueryActions);
-        xqueryBox.getStyleClass().add("fxt-tp-section-body");
-        HBox xqueryHeader = SidePanelLayout.sectionHeader(true, new Label("XQUERY"), xqueryBox);
 
         // Live preview: re-run the XSLT transform shortly after the active document
         // changes (typing / tab switch), when enabled and a stylesheet is set.
@@ -224,7 +178,6 @@ public class TransformPanel extends VBox {
                 transform(true);
             }
         });
-        livePreview.setOnAction(e -> scheduleLivePreview());
         editorHost.activeCaretProperty().addListener((obs, oldV, newV) -> scheduleLivePreview());
         editorHost.activeTabProperty().addListener((obs, oldV, newV) -> scheduleLivePreview());
 
@@ -245,33 +198,31 @@ public class TransformPanel extends VBox {
                 xsltWatch.stop();
             }
         });
-
-        // The sections scroll on short windows (the OUTPUT result lives in the
-        // editor-docked TransformOutputPanel, not in this side panel).
-        VBox controls = new VBox(
-                stylesheetHeader, xsltRow,
-                inputHeader, inputRow,
-                outputHeader, formatGrid,
-                paramsHeader, paramsBox,
-                runBox,
-                toolsSection,
-                xpathHeader, xpathBox,
-                xqueryHeader, xqueryBox);
-        javafx.scene.control.ScrollPane controlsScroll = new javafx.scene.control.ScrollPane(controls);
-        controlsScroll.setFitToWidth(true);
-        controlsScroll.setHbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER);
-        controlsScroll.getStyleClass().add("edge-to-edge");
-        VBox.setVgrow(controlsScroll, Priority.ALWAYS);
-
-        getChildren().addAll(header, controlsScroll);
     }
 
-    /** The ⋮ overflow menu keeps only the toggles; the tools are visible rows in TOOLS. */
-    private void buildOverflowMenu() {
-        overflowMenu.getItems().addAll(
-                livePreview, watchXslt,
-                new SeparatorMenuItem(), profileCheck, traceCheck,
-                new SeparatorMenuItem(), autoOpenResultTab);
+    @FXML
+    public void onLivePreviewToggled() {
+        scheduleLivePreview();
+    }
+
+    @FXML
+    public void onChangeInput() {
+        inputMenu.show(inputName, javafx.geometry.Side.BOTTOM, 0, 0);
+    }
+
+    @FXML
+    public void onUseActiveEditor() {
+        setInputOverride(null);
+    }
+
+    @FXML
+    public void onTransform() {
+        transform();
+    }
+
+    @FXML
+    public void onOpenExecutionStats() {
+        editorHost.openExecutionStats();
     }
 
     /** @return the TOOLS rows' labels in display order (for tests/observers). */
@@ -279,8 +230,8 @@ public class TransformPanel extends VBox {
         return tools.labels();
     }
 
-    /** The segmented OUTPUT METHOD control: all six choices in a 2×3 grid, one selected. */
-    private VBox buildFormatGrid() {
+    /** Fills the segmented OUTPUT METHOD control: all six choices in a 2×3 grid, one selected. */
+    private void fillFormatGrid() {
         HBox row1 = formatRow(FormatChoice.AUTO, FormatChoice.XML, FormatChoice.HTML);
         HBox row2 = formatRow(FormatChoice.XHTML, FormatChoice.TEXT, FormatChoice.JSON);
         formatGroup.getToggles().getFirst().setSelected(true);
@@ -290,9 +241,7 @@ public class TransformPanel extends VBox {
                 formatGroup.selectToggle(oldV);
             }
         });
-        VBox grid = new VBox(2, row1, row2);
-        grid.getStyleClass().add("fxt-tp-format-grid");
-        return grid;
+        formatGrid.getChildren().addAll(row1, row2);
     }
 
     private HBox formatRow(FormatChoice... choices) {
@@ -312,7 +261,8 @@ public class TransformPanel extends VBox {
 
     // ----- INPUT (active editor vs explicit file) ---------------------------
 
-    private void chooseInputFile() {
+    @FXML
+    public void onChooseInputFile() {
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Select Input XML");
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML", "*.xml"));
@@ -347,6 +297,7 @@ public class TransformPanel extends VBox {
     // ----- XQuery ------------------------------------------------------------
 
     /** Executes the XQuery against the active XML (async), honouring params + output format. */
+    @FXML
     public void runXQuery() {
         if (editorHost.getActiveDocument().isEmpty()) {
             out.showError("No document open.");
@@ -454,6 +405,7 @@ public class TransformPanel extends VBox {
     // ----- advanced tools (TOOLS rows) ---------------------------------------
 
     /** Launches the interactive XSLT debugger for the active XML + selected stylesheet. */
+    @FXML
     public void startDebug() {
         if (xsltFile == null) {
             out.showError("Select an XSLT stylesheet first.");
@@ -474,6 +426,7 @@ public class TransformPanel extends VBox {
     }
 
     /** Opens the batch-transform tool tab for the active stylesheet/XQuery. */
+    @FXML
     public void openBatch() {
         String xqueryText = xqueryArea.getText();
         BatchTransformView view;
@@ -965,6 +918,7 @@ public class TransformPanel extends VBox {
     // ----- XPath / JSONPath -------------------------------------------------
 
     /** Evaluates the XPath field against the active XML (async). */
+    @FXML
     public void runXPath() {
         if (editorHost.getActiveDocument().isEmpty()) {
             out.showError("No document open.");
@@ -1005,7 +959,7 @@ public class TransformPanel extends VBox {
 
     private void updatePathMode() {
         boolean json = isJsonActive();
-        pathLabel.setText(json ? "JSONPATH" : "XPATH");
+        pathSection.setTitle(json ? "JSONPATH" : "XPATH");
         xpathField.setPromptText(json ? "$.root.element" : "/root/element");
     }
 
@@ -1029,6 +983,7 @@ public class TransformPanel extends VBox {
     }
 
     /** Saves the current query expression under a chosen name (reuses FavoritesService). */
+    @FXML
     public void saveCurrentQuery() {
         String expression = xpathField.getText();
         if (expression == null || expression.isBlank()) {
@@ -1248,7 +1203,8 @@ public class TransformPanel extends VBox {
 
     // ----- helpers --------------------------------------------------------------
 
-    private void chooseXslt() {
+    @FXML
+    public void onChooseXslt() {
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Select XSLT");
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XSLT", "*.xsl", "*.xslt"));

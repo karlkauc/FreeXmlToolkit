@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Hyperlink?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
+
+<!--
+  "Sign XML Document" card in the main editor area (Figma "Redesign · Unified — Signature",
+  node 50:2): document row, keystore credentials (shared with the Signature side panel),
+  signature type + fixed algorithm, the primary "Sign Document" button and the certificate
+  inspector. Loaded by SignDocumentView via the fx:root pattern (FxmlViews.load);
+  SignDocumentView is root and controller. The certificate details are rendered in code.
+-->
+<fx:root type="javafx.scene.control.ScrollPane" fitToWidth="true" hbarPolicy="NEVER" styleClass="fxt-sign-view"
+         xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <fx:define>
+        <ToggleGroup fx:id="typeGroup"/>
+    </fx:define>
+    <content>
+        <StackPane styleClass="fxt-sign-view-wrap">
+            <children>
+                <VBox spacing="16" maxWidth="560" styleClass="fxt-sign-card" StackPane.alignment="TOP_CENTER">
+                    <children>
+                        <!-- Card header -->
+                        <HBox spacing="14" alignment="CENTER_LEFT">
+                            <children>
+                                <StackPane styleClass="fxt-sign-icon-tile">
+                                    <children>
+                                        <IconifyIcon iconLiteral="bi-pencil" iconSize="20"/>
+                                    </children>
+                                </StackPane>
+                                <VBox spacing="2">
+                                    <children>
+                                        <Label text="Sign XML Document" styleClass="fxt-sign-card-title"/>
+                                        <Label text="XML Digital Signature · XML-DSig" styleClass="fxt-sign-card-sub"/>
+                                    </children>
+                                </VBox>
+                            </children>
+                        </HBox>
+
+                        <Label text="DOCUMENT" styleClass="fxt-sign-section-label"/>
+                        <HBox spacing="12" alignment="CENTER_LEFT" styleClass="fxt-sign-doc-row">
+                            <children>
+                                <IconifyIcon iconLiteral="bi-code-slash" iconSize="18"/>
+                                <VBox spacing="2">
+                                    <children>
+                                        <Label fx:id="docName" id="sign-doc-name" text="none"
+                                               styleClass="fxt-sign-doc-name"/>
+                                        <Label fx:id="docInfo" text="no document open" styleClass="fxt-sign-doc-info"/>
+                                    </children>
+                                </VBox>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <Hyperlink text="Browse" styleClass="fxt-vp-change" onAction="#onChooseDocument"/>
+                            </children>
+                        </HBox>
+
+                        <!-- Keystore credentials (shared with the side panel) -->
+                        <HBox spacing="16">
+                            <children>
+                                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                    <children>
+                                        <Label text="Keystore alias" styleClass="fxt-sig-field-label"/>
+                                        <TextField fx:id="alias" id="sign-card-alias" promptText="alias"/>
+                                    </children>
+                                </VBox>
+                                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                    <children>
+                                        <Label text="Keystore password" styleClass="fxt-sig-field-label"/>
+                                        <PasswordField fx:id="password" id="sign-card-password"
+                                                       promptText="keystore password"/>
+                                    </children>
+                                </VBox>
+                            </children>
+                        </HBox>
+
+                        <Label text="SIGNATURE OPTIONS" styleClass="fxt-sign-section-label"/>
+                        <Label text="Signature type" styleClass="fxt-sig-field-label"/>
+                        <HBox spacing="2" styleClass="fxt-seg-group">
+                            <children>
+                                <ToggleButton fx:id="enveloped" id="sign-type-enveloped" text="Enveloped"
+                                              toggleGroup="$typeGroup" selected="true" maxWidth="Infinity"
+                                              HBox.hgrow="ALWAYS" styleClass="fxt-seg">
+                                    <tooltip>
+                                        <Tooltip text="The signature is inserted into the signed document"/>
+                                    </tooltip>
+                                </ToggleButton>
+                                <ToggleButton fx:id="enveloping" id="sign-type-enveloping" text="Enveloping"
+                                              toggleGroup="$typeGroup" maxWidth="Infinity" HBox.hgrow="ALWAYS"
+                                              styleClass="fxt-seg">
+                                    <tooltip>
+                                        <Tooltip text="The signed content is wrapped inside the signature document"/>
+                                    </tooltip>
+                                </ToggleButton>
+                                <ToggleButton fx:id="detached" id="sign-type-detached" text="Detached"
+                                              toggleGroup="$typeGroup" maxWidth="Infinity" HBox.hgrow="ALWAYS"
+                                              styleClass="fxt-seg">
+                                    <tooltip>
+                                        <Tooltip text="A standalone .sig.xml referencing the file - keep both together"/>
+                                    </tooltip>
+                                </ToggleButton>
+                            </children>
+                        </HBox>
+                        <HBox alignment="CENTER_LEFT">
+                            <children>
+                                <Label text="Algorithm" styleClass="fxt-sig-field-label"/>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <Label text="RSA-SHA256 · C14N exclusive" styleClass="fxt-sign-algo"/>
+                            </children>
+                        </HBox>
+
+                        <!-- Sign + status (mirrors the side panel's status) -->
+                        <Button id="sign-card-run" text="Sign Document" maxWidth="Infinity"
+                                styleClass="fxt-primary-button" onAction="#onSign">
+                            <graphic>
+                                <IconifyIcon iconLiteral="bi-shield-lock" iconSize="15"/>
+                            </graphic>
+                        </Button>
+                        <Label fx:id="status" wrapText="true" styleClass="fxt-vp-status"/>
+
+                        <!-- CERTIFICATE (the mockup's certificate inspector) -->
+                        <HBox>
+                            <children>
+                                <Label text="CERTIFICATE" styleClass="fxt-sign-section-label"/>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <Hyperlink id="sign-cert-load" text="Show certificate details"
+                                           styleClass="fxt-vp-change" onAction="#onShowCertificate"/>
+                            </children>
+                        </HBox>
+                        <VBox fx:id="certificateBox" id="sign-cert-box" spacing="8" visible="false" managed="false"/>
+                    </children>
+                </VBox>
+            </children>
+        </StackPane>
+    </content>
+</fx:root>

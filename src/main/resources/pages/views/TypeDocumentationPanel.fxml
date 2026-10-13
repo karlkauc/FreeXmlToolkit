@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.layout.VBox?>
+<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
+
+<!--
+  Type documentation panel of the SimpleType / ComplexType editors: a "Documentation" section and
+  a collapsed "Application Info (AppInfo)" section. Loaded by TypeDocumentationPanel via the
+  fx:root pattern (FxmlViews.load); TypeDocumentationPanel is root and controller. The two
+  editors need the editor context as a constructor argument, so TypeDocumentationPanel builds
+  them and puts them into the "documentationPane" / "appInfoContent" placeholders.
+-->
+<fx:root type="javafx.scene.layout.BorderPane"
+         xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <center>
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED">
+            <content>
+                <VBox spacing="10">
+                    <padding>
+                        <Insets topRightBottomLeft="10"/>
+                    </padding>
+                    <children>
+                        <TitledPane fx:id="documentationPane" text="Documentation" expanded="true">
+                            <graphic>
+                                <IconifyIcon iconLiteral="bi-file-text"/>
+                            </graphic>
+                        </TitledPane>
+                        <TitledPane text="Application Info (AppInfo)" expanded="false">
+                            <graphic>
+                                <IconifyIcon iconLiteral="bi-gear"/>
+                            </graphic>
+                            <content>
+                                <VBox fx:id="appInfoContent" spacing="5">
+                                    <padding>
+                                        <Insets topRightBottomLeft="5"/>
+                                    </padding>
+                                </VBox>
+                            </content>
+                        </TitledPane>
+                    </children>
+                </VBox>
+            </content>
+        </ScrollPane>
+    </center>
+</fx:root>

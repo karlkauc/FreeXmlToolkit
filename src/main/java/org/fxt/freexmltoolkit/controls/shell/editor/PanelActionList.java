@@ -8,7 +8,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Labeled;
 import javafx.scene.control.MenuButton;
-import javafx.scene.control.OverrunStyle;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
@@ -20,14 +19,14 @@ import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
 /**
  * The shared "follow-on actions" block of the activity side panels: a vertical list of
  * full-width rows (icon + label, style class {@code fxt-action-row}) built from
- * {@link PanelAction}s. Rows have a fixed height and only change colour on hover, press
+ * {@link PanelAction}s, or declared in FXML as {@link PanelActionButton} children. Rows have a fixed height and only change colour on hover, press
  * and focus, so nothing in the panel moves while the user interacts with it.
  *
  * <p>Wrap a list in a collapsible section with {@link #section(String, boolean, PanelActionList)}.
  * The rendered buttons are plain {@link Button}s; keep a reference via {@link #add} or
  * {@link #button(String)} when the caller needs to swap the graphic or toggle state.
  */
-final class PanelActionList extends VBox {
+public final class PanelActionList extends VBox {
 
     static final String ROW_STYLE_CLASS = "fxt-action-row";
     static final String PRIMARY_STYLE_CLASS = "fxt-action-row-primary";
@@ -35,8 +34,13 @@ final class PanelActionList extends VBox {
     static final String MENU_STYLE_CLASS = "fxt-action-row-menu";
     private static final int ICON_SIZE = 15;
 
-    PanelActionList(PanelAction... actions) {
+    /** An empty list; FXML adds {@link PanelActionButton} children. */
+    public PanelActionList() {
         getStyleClass().add("fxt-action-list");
+    }
+
+    PanelActionList(PanelAction... actions) {
+        this();
         for (PanelAction action : actions) {
             add(action);
         }
@@ -44,16 +48,13 @@ final class PanelActionList extends VBox {
 
     /** Appends a row for {@code action} and returns its button. */
     Button add(PanelAction action) {
-        Runnable onAction = () -> {
-            org.fxt.freexmltoolkit.service.telemetry.UsageEvents.panelAction(action.id());
-            action.onAction().run();
-        };
-        Button button = row(action.label(), action.iconLiteral(), onAction,
-                action.primary() ? null : action.color());
+        PanelActionButton button = new PanelActionButton();
+        button.setText(action.label());
+        button.setIconLiteral(action.iconLiteral());
+        button.setColor(action.color());
+        button.setPrimary(action.primary());
         button.setId(action.id());
-        if (action.primary()) {
-            button.getStyleClass().add(PRIMARY_STYLE_CLASS);
-        }
+        button.setOnAction(e -> action.onAction().run());
         if (action.tooltip() != null && !action.tooltip().isBlank()) {
             button.setTooltip(new Tooltip(action.tooltip()));
         }
@@ -121,37 +122,15 @@ final class PanelActionList extends VBox {
      * {@code iconLiteral} may be {@code null} where horizontal space is scarce.
      */
     static Button inlineRow(String label, String iconLiteral, Runnable onAction) {
-        Button button = row(label, iconLiteral, onAction, ActionColor.NEUTRAL);
+        PanelActionButton button = new PanelActionButton();
+        button.setText(label);
+        button.setIconLiteral(iconLiteral);
+        button.setOnAction(e -> onAction.run());
         button.getStyleClass().add(INLINE_STYLE_CLASS);
         // Never shrink below the label: in a crowded SourceRow the file name ellipsises
         // first, the action verb stays legible.
         button.setMinWidth(Region.USE_PREF_SIZE);
         button.setMaxWidth(Region.USE_PREF_SIZE);
-        return button;
-    }
-
-    /**
-     * @param color the action-colour role bound to the icon, or {@code null} to leave the colour to CSS
-     *              (primary rows: white icon on the workflow fill)
-     */
-    private static Button row(String label, String iconLiteral, Runnable onAction, ActionColor color) {
-        Button button = new Button(label);
-        if (iconLiteral != null) {
-            IconifyIcon icon = new IconifyIcon(iconLiteral);
-            icon.setIconSize(ICON_SIZE);
-            if (color != null) {
-                // Bound, not set: the .fxt-action-row .iconify-icon CSS rule would otherwise repaint it.
-                SemanticIcon.bind(icon, color);
-            }
-            button.setGraphic(icon);
-        }
-        button.getStyleClass().add(ROW_STYLE_CLASS);
-        button.setMaxWidth(Double.MAX_VALUE);
-        button.setAlignment(Pos.CENTER_LEFT);
-        button.setMnemonicParsing(false);
-        button.setWrapText(false);
-        button.setTextOverrun(OverrunStyle.ELLIPSIS);
-        button.setOnAction(e -> onAction.run());
         return button;
     }
 }

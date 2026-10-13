@@ -2,7 +2,7 @@ package org.fxt.freexmltoolkit.controls.dialogs;
 
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
-import javafx.geometry.Insets;
+import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
@@ -13,14 +13,12 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 import javafx.stage.Window;
 
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.controls.theme.SemanticColors;
 import org.fxt.freexmltoolkit.service.telemetry.ErrorReportResult;
 import org.fxt.freexmltoolkit.service.telemetry.Telemetry;
@@ -35,6 +33,14 @@ import org.fxt.freexmltoolkit.util.DialogHelper;
  */
 public final class ErrorReportDialog {
 
+    @FXML private TextArea description;
+    @FXML private TextField contact;
+    @FXML private CheckBox technical;
+    @FXML private TextArea preview;
+    @FXML private TitledPane previewPane;
+    @FXML private Label status;
+
+    /** Controller instance of {@code /pages/dialogs/ErrorReportDialog.fxml}; created by {@link #build}. */
     private ErrorReportDialog() {
     }
 
@@ -101,37 +107,19 @@ public final class ErrorReportDialog {
         headerIcon.setIconColor(Color.web(SemanticColors.INFO));
         pane.setGraphic(headerIcon);
 
-        Label intro = new Label("Describe what you were doing when the problem occurred. "
-                + "The report is sent anonymously to the FreeXmlToolkit developers. "
-                + "File names, paths and document content are never included.");
-        intro.setWrapText(true);
-        intro.setMinHeight(Region.USE_PREF_SIZE); // never truncate the privacy statement
+        ErrorReportDialog view = new ErrorReportDialog();
+        pane.setContent(FxmlViews.loadContent(view, "/pages/dialogs/ErrorReportDialog.fxml"));
+        TextArea description = view.description;
+        TextField contact = view.contact;
+        CheckBox technical = view.technical;
+        TextArea preview = view.preview;
+        TitledPane previewPane = view.previewPane;
+        Label status = view.status;
 
-        TextArea description = new TextArea();
-        description.setPromptText("What did you do, what happened, what did you expect? (required)");
-        description.setWrapText(true);
-        description.setPrefRowCount(6);
-        description.setMinHeight(90);
-        description.setId("error-report-description");
-
-        TextField contact = new TextField();
-        contact.setPromptText("Email (optional — only if you would like a reply)");
-        contact.setId("error-report-contact");
-
-        CheckBox technical = new CheckBox(error != null
+        technical.setText(error != null
                 ? "Include technical details (exception type and stack signature)"
                 : "Include technical details (none available for this report)");
-        technical.setSelected(true);
         technical.setDisable(error == null);
-
-        TextArea preview = new TextArea();
-        preview.setEditable(false);
-        preview.setWrapText(false);
-        preview.setPrefRowCount(10);
-        preview.setStyle("-fx-font-family: 'JetBrains Mono', monospace; -fx-font-size: 11px;");
-        TitledPane previewPane = new TitledPane("Preview of the data that will be sent", preview);
-        previewPane.setExpanded(false);
-        previewPane.setAnimated(false);
 
         Runnable refreshPreview = () -> preview.setText(telemetry.previewErrorReport(
                 description.getText(), contact.getText(), error, technical.isSelected()));
@@ -153,17 +141,6 @@ public final class ErrorReportDialog {
             fitWindow(pane);
         });
         refreshPreview.run();
-
-        Label status = new Label();
-        status.setWrapText(true);
-        status.setMinHeight(Region.USE_PREF_SIZE);
-
-        VBox content = new VBox(10, intro, new Label("Description:"), description,
-                new Label("Contact (optional):"), contact, technical, previewPane, status);
-        content.setPadding(new Insets(12, 16, 4, 16));
-        content.setPrefWidth(560);
-        VBox.setVgrow(description, Priority.ALWAYS);
-        pane.setContent(content);
 
         ButtonType sendType = new ButtonType("Send", ButtonBar.ButtonData.OK_DONE);
         pane.getButtonTypes().addAll(sendType, ButtonType.CANCEL);

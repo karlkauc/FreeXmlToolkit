@@ -11,17 +11,15 @@ import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.geometry.Insets;
+import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ProgressIndicator;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.BorderPane;
@@ -29,7 +27,6 @@ import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
@@ -37,6 +34,7 @@ import javafx.util.Duration;
 
 import org.fxt.freexmltoolkit.FxtGui;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.controls.theme.DesignTokens;
 import org.fxt.freexmltoolkit.domain.PdfDocumentationConfig;
 import org.fxt.freexmltoolkit.domain.WordDocumentationConfig;
@@ -82,55 +80,57 @@ public class DocumentationView extends BorderPane {
     }
 
     private final EditorHost editorHost;
-    private final Label xsdName = new Label("none");
-    private final Label outputName = new Label("none");
-    private final ToggleButton html = segment("HTML");
-    private final ToggleButton pdf = segment("PDF");
-    private final ToggleButton word = segment("Word");
+    @FXML private Label xsdName;
+    @FXML private Label outputName;
+    @FXML private ToggleButton html;
+    @FXML private ToggleButton pdf;
+    @FXML private ToggleButton word;
     /** The three labels of the Markdown rendering choice. */
     static final String MARKDOWN_ALL = "All documentation";
     static final String MARKDOWN_PER_NODE = "Per node (@markdown)";
     static final String MARKDOWN_OFF = "Off";
 
-    private final ComboBox<String> markdownMode = new ComboBox<>();
-    private final CheckBox includeTypeDefs = new CheckBox("Include type definitions in source code");
-    private final CheckBox showDocInSvg = new CheckBox("Show documentation in diagrams");
-    private final CheckBox svgOverview = new CheckBox("Generate SVG overview page");
-    private final CheckBox addMetadata = new CheckBox("Add metadata in output");
-    private final CheckBox dedupDataDictionary = new CheckBox("Deduplicate data dictionary by type");
-    private final ComboBox<String> imageFormat = new ComboBox<>();
-    private final FlowPane languagesPane = new FlowPane(10, 6);
-    private final ComboBox<String> fallbackLanguage = new ComboBox<>();
-    private final Label languagesStatus = new Label("Not scanned - all languages are included.");
-    private final Label faviconName = new Label("none");
+    @FXML private ComboBox<String> markdownMode;
+    @FXML private CheckBox includeTypeDefs;
+    @FXML private CheckBox showDocInSvg;
+    @FXML private CheckBox svgOverview;
+    @FXML private CheckBox addMetadata;
+    @FXML private CheckBox dedupDataDictionary;
+    @FXML private ComboBox<String> imageFormat;
+    @FXML private FlowPane languagesPane;
+    @FXML private ComboBox<String> fallbackLanguage;
+    @FXML private Label languagesStatus;
+    @FXML private Label faviconName;
     // PDF/Word detail options (the section shows only for those formats).
-    private final Label formatOptionsLabel = new Label("PDF OPTIONS");
-    private final VBox formatOptionsBox = new VBox(8);
-    private final VBox pdfOnlyBox = new VBox(8);
-    private final ComboBox<String> docPageSize = new ComboBox<>();
-    private final ToggleButton portrait = segment("Portrait");
-    private final ToggleButton landscape = segment("Landscape");
-    private final CheckBox coverPage = new CheckBox("Cover page");
-    private final CheckBox tableOfContents = new CheckBox("Table of contents");
-    private final CheckBox dataDictionary = new CheckBox("Data dictionary");
-    private final CheckBox schemaDiagram = new CheckBox("Schema diagram");
-    private final CheckBox elementDiagrams = new CheckBox("Element diagrams");
-    private final ComboBox<String> pdfColorScheme = new ComboBox<>();
-    private final ComboBox<String> pdfWatermark = new ComboBox<>();
-    private final CheckBox pageNumbers = new CheckBox("Page numbers");
-    private final CheckBox pdfBookmarks = new CheckBox("PDF bookmarks");
-    private final CheckBox openAfter = new CheckBox("Open the generated documentation after creation");
-    private final Button generate = new Button("Generate Documentation");
-    private final Button cancel = new Button("Cancel");
+    @FXML private Label formatOptionsLabel;
+    @FXML private VBox formatOptionsBox;
+    @FXML private VBox pdfOnlyBox;
+    @FXML private ComboBox<String> docPageSize;
+    @FXML private ToggleButton portrait;
+    @FXML private ToggleButton landscape;
+    @FXML private CheckBox coverPage;
+    @FXML private CheckBox tableOfContents;
+    @FXML private CheckBox dataDictionary;
+    @FXML private CheckBox schemaDiagram;
+    @FXML private CheckBox elementDiagrams;
+    @FXML private ComboBox<String> pdfColorScheme;
+    @FXML private ComboBox<String> pdfWatermark;
+    @FXML private CheckBox pageNumbers;
+    @FXML private CheckBox pdfBookmarks;
+    @FXML private CheckBox openAfter;
+    @FXML private Button generate;
+    @FXML private Button cancel;
+    @FXML private ToggleGroup formatGroup;
+    @FXML private ToggleGroup orientationGroup;
     private final ObservableList<StepRow> progressItems = FXCollections.observableArrayList();
-    private final ListView<StepRow> progressList = new ListView<>(progressItems);
+    @FXML private ListView<StepRow> progressList;
     /** Maps a task name to its row index in {@link #progressItems} so a step's row is updated in place. */
     private final java.util.Map<String, Integer> stepIndex = new java.util.HashMap<>();
-    private final Label status = new Label("Ready.");
+    @FXML private Label status;
     /** Spinner shown in the PROGRESS header while a generation is running. */
-    private final ProgressIndicator spinner = new ProgressIndicator();
+    @FXML private ProgressIndicator spinner;
     /** Live elapsed-time label shown next to the spinner while running. */
-    private final Label elapsedLabel = new Label();
+    @FXML private Label elapsedLabel;
     /** Drives {@link #elapsedLabel} (~5 Hz) while a generation is running. */
     private Timeline elapsedTimer;
     private File xsdFile;
@@ -142,36 +142,11 @@ public class DocumentationView extends BorderPane {
     private record StepRow(String name, TaskProgressListener.ProgressUpdate.Status status, long durationMillis) {
     }
 
+    /** Loads the layout from {@code /pages/views/DocumentationView.fxml} and fills the choices. */
     public DocumentationView(EditorHost editorHost) {
         this.editorHost = editorHost;
-        getStyleClass().add("fxt-docgen");
+        FxmlViews.load(this, "/pages/views/DocumentationView.fxml");
 
-        // --- header ---------------------------------------------------------------
-        IconifyIcon headIcon = new IconifyIcon("bi-file-earmark-text");
-        headIcon.setIconSize(20);
-        StackPane iconTile = new StackPane(headIcon);
-        iconTile.getStyleClass().add("fxt-sign-icon-tile");
-        Label title = new Label("Generate Documentation");
-        title.getStyleClass().add("fxt-favmgr-title");
-        Label subtitle = new Label("HTML, PDF, or Word documentation for an XSD schema.");
-        subtitle.getStyleClass().add("fxt-favmgr-subtitle");
-        HBox header = new HBox(14, iconTile, new VBox(2, title, subtitle));
-        header.setAlignment(Pos.CENTER_LEFT);
-
-        // --- SOURCE & OUTPUT ---------------------------------------------------------
-        xsdName.setId("docgen-xsd-name");
-        xsdName.getStyleClass().addAll("fxt-vp-source-name", "fxt-vp-source-none");
-        outputName.setId("docgen-output-name");
-        outputName.getStyleClass().addAll("fxt-vp-source-name", "fxt-vp-source-none");
-        HBox xsdRow = sourceRow("bi-diagram-3", xsdName, "Browse", this::chooseXsd);
-        HBox outputRow = sourceRow("bi-folder2-open", outputName, "Browse", this::chooseOutput);
-
-        // --- FORMAT ---------------------------------------------------------------------
-        ToggleGroup formatGroup = new ToggleGroup();
-        for (ToggleButton segment : new ToggleButton[]{html, pdf, word}) {
-            segment.setToggleGroup(formatGroup);
-        }
-        html.setSelected(true);
         formatGroup.selectedToggleProperty().addListener((obs, oldV, newV) -> {
             if (newV == null) {
                 formatGroup.selectToggle(oldV);
@@ -181,174 +156,45 @@ public class DocumentationView extends BorderPane {
                 refreshFormatOptions();
             }
         });
-        HBox formatSeg = new HBox(2, html, pdf, word);
-        formatSeg.getStyleClass().add("fxt-seg-group");
-
-        // --- PDF/WORD detail options (visible only for those formats) ----------------
-        docPageSize.setId("docgen-page-size");
-        docPageSize.setMaxWidth(Double.MAX_VALUE);
-        ToggleGroup orientationGroup = new ToggleGroup();
-        portrait.setToggleGroup(orientationGroup);
-        landscape.setToggleGroup(orientationGroup);
-        portrait.setSelected(true);
         orientationGroup.selectedToggleProperty().addListener((obs, oldV, newV) -> {
             if (newV == null) {
                 orientationGroup.selectToggle(oldV);
             }
         });
-        HBox orientationSeg = new HBox(2, portrait, landscape);
-        orientationSeg.getStyleClass().add("fxt-seg-group");
-        tableOfContents.setSelected(true);
-        dataDictionary.setSelected(true);
-        schemaDiagram.setSelected(true);
-        pdfColorScheme.setId("docgen-color-scheme");
+
         for (PdfDocumentationConfig.ColorScheme scheme : PdfDocumentationConfig.ColorScheme.values()) {
             pdfColorScheme.getItems().add(scheme.getDisplayName());
         }
         pdfColorScheme.getSelectionModel().selectFirst();
-        pdfWatermark.setId("docgen-watermark");
         for (PdfDocumentationConfig.Watermark mark : PdfDocumentationConfig.Watermark.values()) {
             pdfWatermark.getItems().add(mark.getDisplayName());
         }
         pdfWatermark.getSelectionModel().selectFirst();
-        pageNumbers.setSelected(true);
-        pdfBookmarks.setSelected(true);
-        pdfOnlyBox.setId("docgen-pdf-only");
-        pdfOnlyBox.getChildren().addAll(
-                fieldLabel("Color scheme"), pdfColorScheme,
-                fieldLabel("Watermark"), pdfWatermark,
-                pageNumbers, pdfBookmarks);
-        formatOptionsLabel.getStyleClass().add("fxt-sign-section-label");
-        formatOptionsBox.setId("docgen-format-options");
-        formatOptionsBox.getChildren().addAll(formatOptionsLabel,
-                fieldLabel("Page size"), docPageSize,
-                fieldLabel("Orientation"), orientationSeg,
-                coverPage, tableOfContents, dataDictionary, schemaDiagram, elementDiagrams,
-                pdfOnlyBox);
         refreshFormatOptions();
 
-        // --- OPTIONS ----------------------------------------------------------------------
-        markdownMode.setId("docgen-markdown-mode");
         markdownMode.getItems().addAll(MARKDOWN_ALL, MARKDOWN_PER_NODE, MARKDOWN_OFF);
         markdownMode.getSelectionModel().selectFirst();
-        markdownMode.setTooltip(new javafx.scene.control.Tooltip(
-                "A node's own xs:appinfo @markdown always wins over this setting. "
-                        + "\"All documentation\" renders every node that does not say @markdown = false; "
-                        + "\"Per node\" renders only the nodes that say @markdown = true; "
-                        + "\"Off\" never renders, whatever the nodes say."));
-        Label markdownLabel = new Label("Markdown rendering");
-        markdownLabel.getStyleClass().add("fxt-sig-field-label");
-        showDocInSvg.setSelected(true);
-        imageFormat.getItems().addAll("SVG", "PNG", "JPG");
         imageFormat.getSelectionModel().selectFirst();
-        Label imageLabel = new Label("Diagram image format");
-        imageLabel.getStyleClass().add("fxt-sig-field-label");
-        Label faviconLabel = new Label("Favicon (HTML)");
-        faviconLabel.getStyleClass().add("fxt-sig-field-label");
-        faviconName.setId("docgen-favicon-name");
-        faviconName.getStyleClass().addAll("fxt-vp-source-name", "fxt-vp-source-none");
-        Hyperlink chooseFavicon = new Hyperlink("Browse");
-        chooseFavicon.getStyleClass().add("fxt-vp-change");
-        chooseFavicon.setOnAction(e -> chooseFavicon());
-        Hyperlink clearFavicon = new Hyperlink("Clear");
-        clearFavicon.getStyleClass().add("fxt-vp-change");
-        clearFavicon.setOnAction(e -> setFavicon(null));
-        Region faviconSpacer = new Region();
-        HBox.setHgrow(faviconSpacer, Priority.ALWAYS);
-        HBox faviconRow = new HBox(8, icon("bi-image", 15), faviconName, faviconSpacer,
-                chooseFavicon, clearFavicon);
-        faviconRow.setAlignment(Pos.CENTER_LEFT);
-        dedupDataDictionary.setTooltip(new javafx.scene.control.Tooltip(
-                "List each named complex/simple type only once instead of every recursive occurrence "
-                        + "(elements with a built-in or no type are still listed individually)."));
-        VBox optionsBox = new VBox(8, markdownLabel, markdownMode, includeTypeDefs, showDocInSvg, svgOverview,
-                addMetadata, dedupDataDictionary, imageLabel, imageFormat, faviconLabel, faviconRow);
 
-        // --- LANGUAGES -----------------------------------------------------------------------
-        Hyperlink scan = new Hyperlink("Scan languages");
-        scan.setId("docgen-scan-languages");
-        scan.getStyleClass().add("fxt-vp-change");
-        scan.setOnAction(e -> scanLanguages());
-        languagesStatus.getStyleClass().add("fxt-favmgr-subtitle");
-        Label fallbackLabel = new Label("Fallback language");
-        fallbackLabel.getStyleClass().add("fxt-sig-field-label");
-        fallbackLanguage.setPromptText("(none)");
-        VBox languagesBox = new VBox(8, new HBox(10, scan, languagesStatus),
-                languagesPane, fallbackLabel, fallbackLanguage);
-
-        // --- generate + progress ------------------------------------------------------------
-        openAfter.setSelected(true);
-        generate.setId("docgen-generate");
-        generate.setGraphic(icon("bi-play-fill", 14));
-        generate.getStyleClass().add("fxt-primary-button");
-        generate.setMaxWidth(Double.MAX_VALUE);
-        generate.setOnAction(e -> generate(currentOptions()));
-        cancel.setId("docgen-cancel");
-        cancel.getStyleClass().add("fxt-tool-button");
-        cancel.setDisable(true);
-        cancel.setOnAction(e -> cancelRunning());
-        HBox runRow = new HBox(8, generate, cancel);
-        HBox.setHgrow(generate, Priority.ALWAYS);
-
-        status.setId("docgen-status");
-        status.getStyleClass().add("fxt-vp-status");
-        status.setWrapText(true);
-        progressList.setId("docgen-progress");
-        progressList.getStyleClass().add("fxt-docgen-progress");
-        progressList.setPlaceholder(new Label("Progress messages appear here during generation."));
-        progressList.setFocusTraversable(false);
+        progressList.setItems(progressItems);
         progressList.setCellFactory(lv -> new StepCell());
-        VBox.setVgrow(progressList, Priority.ALWAYS);
-
-        // Spinner + live elapsed timer for the PROGRESS header (hidden while idle).
-        spinner.getStyleClass().add("fxt-docgen-spinner");
-        spinner.setPrefSize(16, 16);
-        spinner.setMaxSize(16, 16);
-        spinner.setMinSize(16, 16);
-        spinner.setVisible(false);
-        spinner.setManaged(false);
-        elapsedLabel.getStyleClass().add("fxt-docgen-elapsed");
-        elapsedLabel.setVisible(false);
-        elapsedLabel.setManaged(false);
-
-        VBox form = new VBox(10,
-                sectionLabel("SOURCE & OUTPUT"), xsdRow, outputRow,
-                sectionLabel("FORMAT"), formatSeg,
-                sectionLabel("OPTIONS"), optionsBox,
-                formatOptionsBox,
-                sectionLabel("LANGUAGES"), languagesBox,
-                openAfter, runRow, status);
-        form.getStyleClass().add("fxt-docgen-form");
-        // The form is the primary, comfortably-sized area: it grows but is capped
-        // so it never stretches absurdly wide on large displays.
-        form.setMaxWidth(640);
-        ScrollPane formScroll = new ScrollPane(form);
-        formScroll.setFitToWidth(true);
-        formScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        formScroll.getStyleClass().add("edge-to-edge");
-
-        // PROGRESS is a bounded-width secondary panel on the right.
-        Region progressHeaderSpacer = new Region();
-        HBox.setHgrow(progressHeaderSpacer, Priority.ALWAYS);
-        HBox progressHeader = new HBox(8, sectionLabel("PROGRESS"), progressHeaderSpacer, spinner, elapsedLabel);
-        progressHeader.setAlignment(Pos.CENTER_LEFT);
-        VBox progressBox = new VBox(8, progressHeader, progressList);
-        progressBox.getStyleClass().add("fxt-docgen-progress-pane");
-        progressBox.setPrefWidth(300);
-        progressBox.setMinWidth(240);
-        progressBox.setMaxWidth(340);
-
-        HBox body = new HBox(20, formScroll, progressBox);
-        HBox.setHgrow(formScroll, Priority.ALWAYS);
-
-        BorderPane card = new BorderPane(body);
-        card.setTop(new VBox(16, header, new Region()));
-        card.getStyleClass().add("fxt-favmgr-card");
-
-        setCenter(card);
-        BorderPane.setMargin(card, new Insets(24));
 
         prefillFromActiveDocument();
+    }
+
+    @FXML
+    public void onClearFavicon() {
+        setFavicon(null);
+    }
+
+    @FXML
+    public void onScanLanguages() {
+        scanLanguages();
+    }
+
+    @FXML
+    public void onGenerate() {
+        generate(currentOptions());
     }
 
     // ----- option capture --------------------------------------------------------
@@ -708,7 +554,8 @@ public class DocumentationView extends BorderPane {
         return java.util.List.copyOf(docPageSize.getItems());
     }
 
-    private void cancelRunning() {
+    @FXML
+    public void onCancel() {
         Future<?> current = running;
         if (current != null) {
             current.cancel(true);
@@ -773,7 +620,8 @@ public class DocumentationView extends BorderPane {
         setSourceName(faviconName, file != null ? file.getName() : null);
     }
 
-    private void chooseFavicon() {
+    @FXML
+    public void onChooseFavicon() {
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Select favicon");
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(
@@ -784,7 +632,8 @@ public class DocumentationView extends BorderPane {
         }
     }
 
-    private void chooseXsd() {
+    @FXML
+    public void onChooseXsd() {
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Select XSD schema");
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XSD", "*.xsd"));
@@ -795,7 +644,8 @@ public class DocumentationView extends BorderPane {
         }
     }
 
-    private void chooseOutput() {
+    @FXML
+    public void onChooseOutput() {
         var window = getScene() != null ? getScene().getWindow() : null;
         String baseName = xsdFile != null ? xsdFile.getName().replaceFirst("\\.[^.]+$", "") : "documentation";
         switch (selectedFormat()) {
@@ -836,35 +686,12 @@ public class DocumentationView extends BorderPane {
         }
     }
 
-    private HBox sourceRow(String iconLiteral, Label nameLabel, String linkText, Runnable action) {
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-        Hyperlink link = new Hyperlink(linkText);
-        link.getStyleClass().add("fxt-vp-change");
-        link.setOnAction(e -> action.run());
-        HBox row = new HBox(8, icon(iconLiteral, 15), nameLabel, spacer, link);
-        row.setAlignment(Pos.CENTER_LEFT);
-        return row;
-    }
-
     private static void setSourceName(Label label, String name) {
         label.setText(name != null ? name : "none");
         label.getStyleClass().remove("fxt-vp-source-none");
         if (name == null) {
             label.getStyleClass().add("fxt-vp-source-none");
         }
-    }
-
-    private static Label sectionLabel(String text) {
-        Label label = new Label(text);
-        label.getStyleClass().add("fxt-sign-section-label");
-        return label;
-    }
-
-    private static Label fieldLabel(String text) {
-        Label label = new Label(text);
-        label.getStyleClass().add("fxt-sig-field-label");
-        return label;
     }
 
     /**
@@ -896,14 +723,6 @@ public class DocumentationView extends BorderPane {
         }
         docPageSize.getSelectionModel().select(
                 keep != null && docPageSize.getItems().contains(keep) ? keep : "A4");
-    }
-
-    private static ToggleButton segment(String text) {
-        ToggleButton toggle = new ToggleButton(text);
-        toggle.getStyleClass().add("fxt-seg");
-        toggle.setMaxWidth(Double.MAX_VALUE);
-        HBox.setHgrow(toggle, Priority.ALWAYS);
-        return toggle;
     }
 
     private static IconifyIcon icon(String literal, int size) {

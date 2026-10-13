@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.layout.VBox?>
+
+<!--
+  Content of the "Send Error Report" dialog: privacy statement, description (required), optional
+  contact, the technical-details option, a collapsible preview of the JSON that will be sent and
+  the status line. Loaded by ErrorReportDialog (FxmlViews.loadContent); an ErrorReportDialog
+  instance is the controller. The text of the technical-details check box depends on whether an
+  error is attached and is set in code. minHeight -Infinity = USE_PREF_SIZE (never truncate).
+-->
+<VBox spacing="10" prefWidth="560" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <padding>
+        <Insets top="12" right="16" bottom="4" left="16"/>
+    </padding>
+    <children>
+        <Label wrapText="true" minHeight="-Infinity"
+               text="Describe what you were doing when the problem occurred. The report is sent anonymously to the FreeXmlToolkit developers. File names, paths and document content are never included."/>
+        <Label text="Description:"/>
+        <TextArea fx:id="description" id="error-report-description" wrapText="true" prefRowCount="6"
+                  minHeight="90"
+                  promptText="What did you do, what happened, what did you expect? (required)"
+                  VBox.vgrow="ALWAYS"/>
+        <Label text="Contact (optional):"/>
+        <TextField fx:id="contact" id="error-report-contact"
+                   promptText="Email (optional — only if you would like a reply)"/>
+        <CheckBox fx:id="technical" selected="true"/>
+        <TitledPane fx:id="previewPane" text="Preview of the data that will be sent" expanded="false"
+                    animated="false">
+            <content>
+                <TextArea fx:id="preview" editable="false" wrapText="false" prefRowCount="10"
+                          style="-fx-font-family: 'JetBrains Mono', monospace; -fx-font-size: 11px;"/>
+            </content>
+        </TitledPane>
+        <Label fx:id="status" wrapText="true" minHeight="-Infinity"/>
+    </children>
+</VBox>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
+
+<!--
+  Content of the "Add / Edit Schema Mapping" dialog. Loaded by SchemaLibraryEntryDialog
+  (FxmlViews.loadContent), which is the controller, fills the schema kinds and adds title,
+  header and buttons. The label column is sized to its content (minWidth -Infinity =
+  USE_PREF_SIZE); the input column takes the rest.
+-->
+<GridPane hgap="8" vgap="8" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <padding>
+        <Insets topRightBottomLeft="12"/>
+    </padding>
+    <columnConstraints>
+        <ColumnConstraints minWidth="-Infinity"/>
+        <ColumnConstraints hgrow="ALWAYS" fillWidth="true"/>
+    </columnConstraints>
+    <children>
+        <Label text="Namespace / $schema:" GridPane.rowIndex="0"/>
+        <TextField fx:id="namespace" promptText="http://www.example.org/ns  (empty for no-namespace XSD)"
+                   GridPane.rowIndex="0" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS"/>
+        <Label text="Location:" GridPane.rowIndex="1"/>
+        <HBox spacing="6" GridPane.rowIndex="1" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS">
+            <children>
+                <TextField fx:id="locationField" promptText="/path/to/schema.xsd or https://…/schema.xsd"
+                           HBox.hgrow="ALWAYS"/>
+                <Button text="Browse…" onAction="#onBrowse">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-folder2-open"/>
+                    </graphic>
+                </Button>
+            </children>
+        </HBox>
+        <Label text="Kind:" GridPane.rowIndex="2"/>
+        <ComboBox fx:id="kind" maxWidth="Infinity" GridPane.rowIndex="2" GridPane.columnIndex="1"
+                  GridPane.hgrow="ALWAYS"/>
+        <Label text="Root element:" GridPane.rowIndex="3"/>
+        <TextField fx:id="rootElement"
+                   promptText="document element local name (optional, no-namespace XSD only)"
+                   GridPane.rowIndex="3" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS"/>
+        <Label text="Description:" GridPane.rowIndex="4"/>
+        <TextField fx:id="description" GridPane.rowIndex="4" GridPane.columnIndex="1"
+                   GridPane.hgrow="ALWAYS"/>
+        <Label fx:id="error" wrapText="true" styleClass="fxt-lib-error" GridPane.rowIndex="5"
+               GridPane.columnSpan="2"/>
+    </children>
+</GridPane>

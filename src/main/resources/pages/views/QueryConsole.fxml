@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
+
+<!--
+  XPath/XQuery console: the QUERY column (target document, Run / Save / Snippets, the XPath |
+  XQuery mode toggle and the editor) and the RESULTS column (statistics, Copy / Save and the
+  output). Loaded by QueryConsole (FxmlViews.loadContent), which is the controller and puts
+  this SplitPane inside itself. Built in code: the RichTextFX editors (query inputs go into
+  "inputStack", the result viewer is appended to "resultsBox") and the Snippets menu items.
+
+  The divider favours the results side: queries are short, results need room. Run / Save /
+  Snippets sit in the header so the completion popup, which opens downward, never hides them.
+-->
+<SplitPane dividerPositions="0.38" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <fx:define>
+        <ToggleGroup fx:id="modeGroup"/>
+    </fx:define>
+    <items>
+        <!-- No max-width cap: the divider can be dragged freely; the min-width keeps it usable. -->
+        <VBox spacing="8" minWidth="160" styleClass="fxt-side-panel-content">
+            <padding>
+                <Insets topRightBottomLeft="8"/>
+            </padding>
+            <children>
+                <HBox spacing="8" alignment="CENTER_LEFT">
+                    <children>
+                        <Label text="QUERY" styleClass="fxt-side-panel-title"/>
+                        <Label fx:id="target" maxWidth="200" styleClass="fxt-toolbar-status">
+                            <tooltip>
+                                <Tooltip text="The query runs against the active document"/>
+                            </tooltip>
+                        </Label>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button fx:id="runButton" text="Run" styleClass="fxt-tool-button" onAction="#run">
+                            <graphic>
+                                <IconifyIcon iconLiteral="bi-play-fill" iconSize="16"/>
+                            </graphic>
+                            <tooltip>
+                                <Tooltip text="Run the query against the active document (Ctrl+Enter)"/>
+                            </tooltip>
+                        </Button>
+                        <Button text="Save" styleClass="fxt-tool-button" onAction="#saveSnippet">
+                            <graphic>
+                                <IconifyIcon iconLiteral="bi-save" iconSize="16"/>
+                            </graphic>
+                            <tooltip>
+                                <Tooltip text="Save the current query as a reusable snippet"/>
+                            </tooltip>
+                        </Button>
+                        <MenuButton fx:id="snippetsMenu" text="Snippets" styleClass="fxt-tool-button"
+                                    onShowing="#onSnippetsShowing">
+                            <graphic>
+                                <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16"/>
+                            </graphic>
+                            <tooltip>
+                                <Tooltip text="Load a saved XPath/XQuery snippet"/>
+                            </tooltip>
+                        </MenuButton>
+                    </children>
+                </HBox>
+                <HBox spacing="6" alignment="CENTER_LEFT">
+                    <children>
+                        <ToggleButton fx:id="xpathToggle" text="XPath" toggleGroup="$modeGroup" selected="true"
+                                      styleClass="fxt-tool-button">
+                            <tooltip>
+                                <Tooltip text="Evaluate an XPath expression against the active document"/>
+                            </tooltip>
+                        </ToggleButton>
+                        <ToggleButton fx:id="xqueryToggle" text="XQuery" toggleGroup="$modeGroup"
+                                      styleClass="fxt-tool-button">
+                            <tooltip>
+                                <Tooltip text="Run an XQuery script against the active document"/>
+                            </tooltip>
+                        </ToggleButton>
+                    </children>
+                </HBox>
+                <StackPane fx:id="inputStack" maxHeight="Infinity" VBox.vgrow="ALWAYS"/>
+            </children>
+        </VBox>
+
+        <VBox fx:id="resultsBox" spacing="8" styleClass="fxt-side-panel-content">
+            <padding>
+                <Insets topRightBottomLeft="8"/>
+            </padding>
+            <children>
+                <HBox spacing="8" alignment="CENTER_LEFT">
+                    <children>
+                        <Label text="RESULTS" styleClass="fxt-side-panel-title"/>
+                        <Label fx:id="statsLabel" styleClass="fxt-output-status"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button text="Copy" styleClass="fxt-tool-button" onAction="#onCopyResults">
+                            <graphic>
+                                <IconifyIcon iconLiteral="bi-clipboard" iconSize="16"/>
+                            </graphic>
+                            <tooltip>
+                                <Tooltip text="Copy the full result to the clipboard"/>
+                            </tooltip>
+                        </Button>
+                        <Button text="Save" styleClass="fxt-tool-button" onAction="#saveResults">
+                            <graphic>
+                                <IconifyIcon iconLiteral="bi-save" iconSize="16"/>
+                            </graphic>
+                            <tooltip>
+                                <Tooltip text="Save the result to a file"/>
+                            </tooltip>
+                        </Button>
+                    </children>
+                </HBox>
+            </children>
+        </VBox>
+    </items>
+</SplitPane>

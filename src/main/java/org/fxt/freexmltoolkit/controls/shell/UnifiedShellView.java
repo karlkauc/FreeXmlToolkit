@@ -136,14 +136,7 @@ public class UnifiedShellView extends BorderPane {
      * custom controls are built and wired in {@link #initialize()} after FXML field injection.
      */
     public UnifiedShellView() {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/pages/shell.fxml"));
-        loader.setRoot(this);
-        loader.setController(this);
-        try {
-            loader.load();
-        } catch (java.io.IOException e) {
-            throw new IllegalStateException("Failed to load /pages/shell.fxml", e);
-        }
+        FxmlViews.load(this, "/pages/shell.fxml");
     }
 
     /**

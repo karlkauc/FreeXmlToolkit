@@ -8,20 +8,18 @@ import java.util.function.Supplier;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.geometry.Pos;
+import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.control.TextInputDialog;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
+import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.controls.v2.editor.panels.LinkAutocompletePopup;
 import org.fxt.freexmltoolkit.controls.v2.editor.panels.XsdElementPathExtractor;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdAppInfo;
@@ -50,17 +48,17 @@ public final class AppInfoFieldsEditor extends VBox {
     private final Supplier<XsdSchema> schemaSupplier;
     private final Consumer<XsdAppInfo> onCommit;
 
-    private final TextField sinceField = new TextField();
-    private final TextField versionField = new TextField();
+    @FXML private TextField sinceField;
+    @FXML private TextField versionField;
     private final ObservableList<String> seeItems = FXCollections.observableArrayList();
-    private final ListView<String> seeList = new ListView<>(seeItems);
-    private final Button removeSeeButton = new Button("Remove");
-    private final ComboBox<String> markdownChoice = new ComboBox<>();
-    private final CheckBox deprecatedCheck = new CheckBox("Deprecated");
-    private final TextArea deprecatedArea = new TextArea();
+    @FXML private ListView<String> seeList;
+    @FXML private Button removeSeeButton;
+    @FXML private ComboBox<String> markdownChoice;
+    @FXML private CheckBox deprecatedCheck;
+    @FXML private TextArea deprecatedArea;
     private final ObservableList<String> exampleItems = FXCollections.observableArrayList();
-    private final ListView<String> exampleList = new ListView<>(exampleItems);
-    private final Button removeExampleButton = new Button("Remove");
+    @FXML private ListView<String> exampleList;
+    @FXML private Button removeExampleButton;
 
     /** The appinfo last loaded — its non-managed entries are carried over on each commit. */
     private XsdAppInfo base;
@@ -79,80 +77,13 @@ public final class AppInfoFieldsEditor extends VBox {
     public AppInfoFieldsEditor(Supplier<XsdSchema> schemaSupplier, Consumer<XsdAppInfo> onCommit) {
         this.schemaSupplier = schemaSupplier;
         this.onCommit = onCommit;
-        setSpacing(4);
-        getStyleClass().add("fxt-appinfo-editor");
-        build();
-        wire();
-    }
+        FxmlViews.load(this, "/pages/inspector/AppInfoFieldsEditor.fxml");
 
-    private void build() {
-        sinceField.setId("inspector-appinfo-since");
-        sinceField.setPromptText("e.g. 4.0.0");
-        versionField.setId("inspector-appinfo-version");
-        versionField.setPromptText("e.g. 1.0");
-        for (TextField f : List.of(sinceField, versionField)) {
-            f.getStyleClass().add("fxt-inspector-edit");
-        }
-
-        seeList.setId("inspector-appinfo-see");
-        seeList.setPrefHeight(70);
-        seeList.setPlaceholder(new Label("No @see references"));
-        seeList.getStyleClass().add("fxt-facet-table");
-        Button addSee = new Button("Add");
-        addSee.setId("inspector-appinfo-see-add");
-        addSee.setMinWidth(Region.USE_PREF_SIZE);
-        addSee.setOnAction(e -> handleAddSee());
-        removeSeeButton.setId("inspector-appinfo-see-remove");
-        removeSeeButton.setMinWidth(Region.USE_PREF_SIZE);
-        removeSeeButton.setDisable(true);
-        removeSeeButton.setOnAction(e -> handleRemoveSee());
-        HBox seeButtons = new HBox(6, addSee, removeSeeButton);
-        seeButtons.setAlignment(Pos.CENTER_LEFT);
-
-        markdownChoice.setId("inspector-appinfo-markdown");
+        seeList.setItems(seeItems);
+        exampleList.setItems(exampleItems);
         markdownChoice.getItems().addAll(MARKDOWN_UNSET, MARKDOWN_ON, MARKDOWN_OFF);
         markdownChoice.getSelectionModel().selectFirst();
-        markdownChoice.setMaxWidth(Double.MAX_VALUE);
-        markdownChoice.setTooltip(new javafx.scene.control.Tooltip(
-                "Whether this node's documentation is rendered as Markdown. Only used when the "
-                        + "documentation generator is set to \"Per node\"."));
-
-        deprecatedCheck.setId("inspector-appinfo-deprecated");
-        deprecatedArea.setId("inspector-appinfo-deprecated-note");
-        deprecatedArea.getStyleClass().add("fxt-inspector-edit");
-        deprecatedArea.setWrapText(true);
-        deprecatedArea.setPrefRowCount(2);
-        deprecatedArea.setPromptText("e.g. Use {@link /NewElement} instead");
-        deprecatedArea.setDisable(true);
-
-        exampleList.setId("inspector-appinfo-examples");
-        exampleList.setPrefHeight(70);
-        exampleList.setPlaceholder(new Label("No example values"));
-        exampleList.getStyleClass().add("fxt-facet-table");
-        Button addExample = new Button("Add");
-        addExample.setId("inspector-appinfo-example-add");
-        addExample.setMinWidth(Region.USE_PREF_SIZE);
-        addExample.setOnAction(e -> handleAddExample());
-        removeExampleButton.setId("inspector-appinfo-example-remove");
-        removeExampleButton.setMinWidth(Region.USE_PREF_SIZE);
-        removeExampleButton.setDisable(true);
-        removeExampleButton.setOnAction(e -> handleRemoveExample());
-        HBox exampleButtons = new HBox(6, addExample, removeExampleButton);
-        exampleButtons.setAlignment(Pos.CENTER_LEFT);
-
-        getChildren().addAll(
-                subLabel("@since"), sinceField,
-                subLabel("@version"), versionField,
-                subLabel("@see"), seeList, seeButtons,
-                deprecatedCheck, deprecatedArea,
-                subLabel("Markdown"), markdownChoice,
-                subLabel("Example values"), exampleList, exampleButtons);
-    }
-
-    private Label subLabel(String text) {
-        Label l = new Label(text);
-        l.getStyleClass().add("fxt-inspector-sub-label");
-        return l;
+        wire();
     }
 
     private void wire() {
@@ -273,7 +204,8 @@ public final class AppInfoFieldsEditor extends VBox {
         }
     }
 
-    private void handleAddSee() {
+    @FXML
+    public void onAddSee() {
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle("Add @see Reference");
         dialog.setHeaderText("Enter a reference (use {@link /XPath} for a link)");
@@ -292,7 +224,8 @@ public final class AppInfoFieldsEditor extends VBox {
         });
     }
 
-    private void handleRemoveSee() {
+    @FXML
+    public void onRemoveSee() {
         String selected = seeList.getSelectionModel().getSelectedItem();
         if (selected != null) {
             seeItems.remove(selected);
@@ -300,7 +233,8 @@ public final class AppInfoFieldsEditor extends VBox {
         }
     }
 
-    private void handleAddExample() {
+    @FXML
+    public void onAddExample() {
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle("Add Example Value");
         dialog.setHeaderText("Enter a sample value for this element/attribute");
@@ -313,7 +247,8 @@ public final class AppInfoFieldsEditor extends VBox {
         });
     }
 
-    private void handleRemoveExample() {
+    @FXML
+    public void onRemoveExample() {
         String selected = exampleList.getSelectionModel().getSelectedItem();
         if (selected != null) {
             exampleItems.remove(selected);

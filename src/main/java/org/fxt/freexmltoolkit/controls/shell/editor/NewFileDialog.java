@@ -10,20 +10,17 @@ import java.util.Set;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
-import javafx.geometry.Insets;
+import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Dialog;
-import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
 import javafx.stage.FileChooser;
 
+import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.domain.FileFavorite;
 import org.fxt.freexmltoolkit.domain.XmlTemplate;
 import org.fxt.freexmltoolkit.service.FavoritesService;
@@ -62,13 +59,13 @@ public class NewFileDialog extends Dialog<NewFileDialog.Result> {
             EditorFileType.XQUERY, EditorFileType.XPATH, EditorFileType.HTML
     };
 
-    private final ComboBox<EditorFileType> typeBox = new ComboBox<>();
-    private final ComboBox<XmlTemplate> templateBox = new ComboBox<>();
-    private final ComboBox<File> schemaSourceBox = new ComboBox<>();
-    private final Button schemaBrowse = new Button("Browse…");
-    private final CheckBox generateMandatory = new CheckBox("Pre-fill mandatory nodes (empty)");
-    private final TextField saveLocation = new TextField();
-    private final Button saveBrowse = new Button("Browse…");
+    @FXML private ComboBox<EditorFileType> typeBox;
+    @FXML private ComboBox<XmlTemplate> templateBox;
+    @FXML private ComboBox<File> schemaSourceBox;
+    @FXML private Button schemaBrowse;
+    @FXML private TextField schemaPath;
+    @FXML private CheckBox generateMandatory;
+    @FXML private TextField saveLocation;
 
     private final ObjectProperty<File> schemaFile = new SimpleObjectProperty<>(null);
     private final List<XmlTemplate> allTemplates;
@@ -83,69 +80,28 @@ public class NewFileDialog extends Dialog<NewFileDialog.Result> {
         setHeaderText("Choose what to create");
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
 
+        getDialogPane().setContent(FxmlViews.loadContent(this, "/pages/dialogs/NewFileDialog.fxml"));
+
         // --- File type ---
         typeBox.getItems().setAll(CREATABLE);
         typeBox.getSelectionModel().select(EditorFileType.XML);
         typeBox.setButtonCell(typeCell());
         typeBox.setCellFactory(lv -> typeCell());
-        typeBox.setMaxWidth(Double.MAX_VALUE);
 
         // --- Template ---
         templateBox.setButtonCell(templateCell());
         templateBox.setCellFactory(lv -> templateCell());
-        templateBox.setMaxWidth(Double.MAX_VALUE);
 
         // --- Schema source (favorites + recents) ---
-        schemaSourceBox.setPromptText("From favorites / recent…");
         schemaSourceBox.setButtonCell(fileCell());
         schemaSourceBox.setCellFactory(lv -> fileCell());
-        schemaSourceBox.setMaxWidth(Double.MAX_VALUE);
         schemaSourceBox.getItems().setAll(collectSchemaSources());
         schemaSourceBox.valueProperty().addListener((obs, o, n) -> {
             if (n != null) {
                 schemaFile.set(n);
             }
         });
-        schemaBrowse.setOnAction(e -> browseSchema());
-        generateMandatory.setSelected(true);
-
-        // --- Save location ---
-        saveLocation.setPromptText("(optional) leave empty to open as untitled");
-        HBox.setHgrow(saveLocation, Priority.ALWAYS);
-        saveBrowse.setOnAction(e -> browseSaveLocation());
-
-        // --- Layout ---
-        GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(10);
-        grid.setPadding(new Insets(16));
-
-        int row = 0;
-        grid.add(new Label("File type:"), 0, row);
-        grid.add(typeBox, 1, row++, 2, 1);
-
-        grid.add(new Label("Template:"), 0, row);
-        grid.add(templateBox, 1, row++, 2, 1);
-
-        Label schemaLabel = new Label("Schema:");
-        grid.add(schemaLabel, 0, row);
-        grid.add(schemaSourceBox, 1, row);
-        grid.add(schemaBrowse, 2, row++);
-        GridPane.setHgrow(schemaSourceBox, Priority.ALWAYS);
-
-        TextField schemaPath = new TextField();
-        schemaPath.setEditable(false);
-        schemaPath.setPromptText("no schema selected");
         schemaFile.addListener((obs, o, n) -> schemaPath.setText(n == null ? "" : n.getAbsolutePath()));
-        grid.add(schemaPath, 1, row++, 2, 1);
-
-        grid.add(generateMandatory, 1, row++, 2, 1);
-
-        grid.add(new Label("Save to:"), 0, row);
-        grid.add(saveLocation, 1, row);
-        grid.add(saveBrowse, 2, row++);
-
-        getDialogPane().setContent(grid);
 
         // --- Dynamic enable/disable & template filtering ---
         typeBox.valueProperty().addListener((obs, o, n) -> {
@@ -204,7 +160,8 @@ public class NewFileDialog extends Dialog<NewFileDialog.Result> {
         saveLocation.setPromptText("(optional) ." + type.primaryExtension() + " — empty = untitled");
     }
 
-    private void browseSchema() {
+    @FXML
+    public void onBrowseSchema() {
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Select XSD Schema");
         chooser.getExtensionFilters().addAll(
@@ -220,7 +177,8 @@ public class NewFileDialog extends Dialog<NewFileDialog.Result> {
         }
     }
 
-    private void browseSaveLocation() {
+    @FXML
+    public void onBrowseSaveLocation() {
         EditorFileType type = typeBox.getValue();
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Save New File As");

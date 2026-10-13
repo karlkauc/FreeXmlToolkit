@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.String?>
+<?import javafx.collections.FXCollections?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.ContextMenu?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.VBox?>
+<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.PanelActionButton?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.PanelActionList?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.PanelProgress?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.SidePanelHeader?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.SidePanelSection?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.SourceRow?>
+
+<!--
+  PDF/FOP activity side panel (Figma "Redesign · Unified — PDF · FOP", node 49:2).
+  Loaded by FopPanel via the fx:root pattern (FxmlViews.load); FopPanel is root and controller.
+  Stylesheets are inherited from the shell root. The favourites menus of the two source rows
+  are data-driven and added in code.
+-->
+<fx:root type="javafx.scene.layout.VBox" styleClass="fxt-fop-panel"
+         xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <fx:define>
+        <ContextMenu fx:id="xmlMenu">
+            <items>
+                <MenuItem text="Select XML file…" onAction="#onSelectXmlFile"/>
+                <MenuItem text="Use active editor" onAction="#onUseActiveEditor"/>
+            </items>
+        </ContextMenu>
+    </fx:define>
+    <children>
+        <SidePanelHeader title="PDF / FOP"/>
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="edge-to-edge" VBox.vgrow="ALWAYS">
+            <content>
+                <VBox>
+                    <children>
+                        <!-- INPUT: XML (active editor or override) + XSL-FO stylesheet -->
+                        <SidePanelSection title="INPUT">
+                            <children>
+                                <SourceRow fx:id="xmlRow" id="fop-xml-row" iconLiteral="bi-code-slash"
+                                           onChange="#onChangeXml">
+                                    <name>
+                                        <Label fx:id="xmlName" id="fop-xml-name" text="none"
+                                               styleClass="fxt-vp-source-name"/>
+                                    </name>
+                                </SourceRow>
+                                <SourceRow fx:id="xslRow" id="fop-xsl-row" iconLiteral="bi-file-earmark-code"
+                                           onChange="#onChooseXsl">
+                                    <name>
+                                        <Label fx:id="xslName" id="fop-xsl-name" text="none"
+                                               styleClass="fxt-vp-source-name, fxt-vp-source-none"/>
+                                    </name>
+                                </SourceRow>
+                            </children>
+                        </SidePanelSection>
+
+                        <SidePanelSection title="METADATA">
+                            <children>
+                                <VBox spacing="4" styleClass="fxt-tp-section-body">
+                                    <children>
+                                        <Label text="Title" styleClass="fxt-sig-field-label"/>
+                                        <TextField fx:id="titleField" id="fop-meta-title" promptText="Document title"/>
+                                        <Label text="Author" styleClass="fxt-sig-field-label"/>
+                                        <TextField fx:id="authorField" id="fop-meta-author" promptText="Author"/>
+                                        <Label text="Subject" styleClass="fxt-sig-field-label"/>
+                                        <TextField fx:id="subjectField" id="fop-meta-subject" promptText="Subject"/>
+                                    </children>
+                                </VBox>
+                            </children>
+                        </SidePanelSection>
+
+                        <SidePanelSection title="OPTIONS">
+                            <children>
+                                <VBox spacing="6" styleClass="fxt-tp-section-body">
+                                    <children>
+                                        <CheckBox fx:id="pdfACompliant" id="fop-pdfa" text="PDF/A-1b compliant">
+                                            <tooltip>
+                                                <Tooltip text="Requires embeddable fonts: the stylesheet must use system fonts, not the PDF base-14 set"/>
+                                            </tooltip>
+                                        </CheckBox>
+                                        <Label text="Page size" styleClass="fxt-sig-field-label"/>
+                                        <ComboBox fx:id="pageSize" id="fop-page-size" maxWidth="Infinity">
+                                            <items>
+                                                <FXCollections fx:factory="observableArrayList">
+                                                    <String fx:value="A4 · Portrait"/>
+                                                    <String fx:value="A4 · Landscape"/>
+                                                    <String fx:value="Letter · Portrait"/>
+                                                    <String fx:value="Letter · Landscape"/>
+                                                </FXCollections>
+                                            </items>
+                                        </ComboBox>
+                                    </children>
+                                </VBox>
+                            </children>
+                        </SidePanelSection>
+
+                        <!-- Generate + progress -->
+                        <VBox spacing="8" styleClass="fxt-vp-run-box">
+                            <children>
+                                <Button fx:id="generateButton" id="fop-generate" text="Generate PDF"
+                                        maxWidth="Infinity" styleClass="fxt-primary-button" onAction="#onGenerate">
+                                    <graphic>
+                                        <IconifyIcon iconLiteral="bi-file-earmark-pdf" iconSize="14"/>
+                                    </graphic>
+                                </Button>
+                                <PanelProgress fx:id="progress"/>
+                            </children>
+                        </VBox>
+
+                        <Label fx:id="status" text="No PDF generated" wrapText="true" styleClass="fxt-vp-status"/>
+
+                        <!-- Result actions: enabled once a PDF has been generated -->
+                        <SidePanelSection title="RESULT">
+                            <children>
+                                <PanelActionList>
+                                    <children>
+                                        <PanelActionButton fx:id="previewButton" id="fop-preview" iconLiteral="bi-eye"
+                                                           text="Preview PDF" color="NAVIGATE" disable="true"
+                                                           onAction="#onPreviewPdf"/>
+                                        <PanelActionButton fx:id="openButton" id="fop-open"
+                                                           iconLiteral="bi-box-arrow-up-right" text="Open PDF"
+                                                           color="NAVIGATE" disable="true" onAction="#onOpenPdf"/>
+                                    </children>
+                                </PanelActionList>
+                            </children>
+                        </SidePanelSection>
+                    </children>
+                </VBox>
+            </content>
+        </ScrollPane>
+    </children>
+</fx:root>

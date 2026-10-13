@@ -25,21 +25,15 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import javafx.application.Platform;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
+import javafx.fxml.FXML;
+import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
-import javafx.scene.control.Tooltip;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 
-import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
-import org.fxt.freexmltoolkit.controls.shell.editor.debug.DebugTableColumns;
+import org.fxt.freexmltoolkit.controls.shell.FxmlColumns;
+import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.service.ExecutionStats;
 import org.fxt.freexmltoolkit.service.ExecutionStatsService;
 import org.fxt.freexmltoolkit.util.FormattingUtils;
@@ -57,65 +51,38 @@ public class ExecutionStatsView extends VBox {
 
     private static final DateTimeFormatter TIME = DateTimeFormatter.ofPattern("HH:mm:ss");
 
-    private final TableView<ExecutionStats> table = new TableView<>();
-    private final TextArea detail = new TextArea();
+    @FXML private TableView<ExecutionStats> table;
+    @FXML private TableColumn<ExecutionStats, String> timeColumn;
+    @FXML private TableColumn<ExecutionStats, String> operationColumn;
+    @FXML private TableColumn<ExecutionStats, String> targetColumn;
+    @FXML private TableColumn<ExecutionStats, String> durationColumn;
+    @FXML private TableColumn<ExecutionStats, String> cpuColumn;
+    @FXML private TableColumn<ExecutionStats, String> memoryColumn;
+    @FXML private TableColumn<ExecutionStats, String> gcColumn;
+    @FXML private TableColumn<ExecutionStats, String> inColumn;
+    @FXML private TableColumn<ExecutionStats, String> outColumn;
+    @FXML private TableColumn<ExecutionStats, String> statusColumn;
+    @FXML private TextArea detail;
     private final Consumer<ExecutionStats> listener =
             stats -> Platform.runLater(() -> table.getItems().add(0, stats));
 
+    /** Loads the layout from {@code /pages/views/ExecutionStatsView.fxml} and binds the columns. */
     public ExecutionStatsView() {
-        setSpacing(10);
-        setPadding(new Insets(16));
-        getStyleClass().add("fxt-side-panel-content");
+        FxmlViews.load(this, "/pages/views/ExecutionStatsView.fxml");
 
-        Label title = new Label("EXECUTION STATISTICS");
-        title.getStyleClass().add("fxt-side-panel-title");
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-        Button exportCsv = toolButton("Export CSV", "bi-download",
-                "Export the history as CSV", () -> export("csv"));
-        Button exportJson = toolButton("Export JSON", "bi-filetype-json",
-                "Export the history as JSON", () -> export("json"));
-        Button clear = toolButton("Clear", "bi-trash", "Clear the recorded history", this::clear);
-        HBox header = new HBox(8, title, spacer, exportCsv, exportJson, clear);
-        header.setAlignment(Pos.CENTER_LEFT);
-
-        Label hint = new Label("Resource usage per operation. Memory deltas are approximate "
-                + "in a shared JVM — use these numbers to compare runs, not as absolute costs.");
-        hint.setWrapText(true);
-        hint.getStyleClass().add("fxt-placeholder-text");
-
-        table.setId("execution-stats-table");
-        table.getColumns().add(DebugTableColumns.col("Time",
-                s -> s.startedAt() != null ? TIME.format(s.startedAt()) : "", 70));
-        table.getColumns().add(DebugTableColumns.col("Operation", s -> s.type().name(), 90));
-        table.getColumns().add(DebugTableColumns.col("Target", ExecutionStats::target, 200));
-        table.getColumns().add(DebugTableColumns.col("Duration",
-                s -> ExecutionStats.formatMillis(s.wallMillis()), 80));
-        table.getColumns().add(DebugTableColumns.col("CPU",
-                s -> s.cpuMillis() >= 0 ? ExecutionStats.formatMillis(s.cpuMillis()) : "-", 80));
-        table.getColumns().add(DebugTableColumns.col("Memory Δ",
-                s -> formatSignedBytes(s.heapDeltaBytes()), 90));
-        table.getColumns().add(DebugTableColumns.col("GC",
-                s -> s.gcCount() > 0 ? s.gcCount() + " (" + s.gcTimeMillis() + " ms)" : "-", 80));
-        table.getColumns().add(DebugTableColumns.col("In",
-                s -> s.inputChars() >= 0 ? FormattingUtils.formatFileSize(s.inputChars()) : "-", 70));
-        table.getColumns().add(DebugTableColumns.col("Out",
-                s -> s.outputChars() >= 0 ? FormattingUtils.formatFileSize(s.outputChars()) : "-", 70));
-        table.getColumns().add(DebugTableColumns.col("Status",
-                s -> s.success() ? "ok" : "error", 60));
+        FxmlColumns.text(timeColumn, s -> s.startedAt() != null ? TIME.format(s.startedAt()) : "");
+        FxmlColumns.text(operationColumn, s -> s.type().name());
+        FxmlColumns.text(targetColumn, ExecutionStats::target);
+        FxmlColumns.text(durationColumn, s -> ExecutionStats.formatMillis(s.wallMillis()));
+        FxmlColumns.text(cpuColumn, s -> s.cpuMillis() >= 0 ? ExecutionStats.formatMillis(s.cpuMillis()) : "-");
+        FxmlColumns.text(memoryColumn, s -> formatSignedBytes(s.heapDeltaBytes()));
+        FxmlColumns.text(gcColumn, s -> s.gcCount() > 0 ? s.gcCount() + " (" + s.gcTimeMillis() + " ms)" : "-");
+        FxmlColumns.text(inColumn, s -> s.inputChars() >= 0 ? FormattingUtils.formatFileSize(s.inputChars()) : "-");
+        FxmlColumns.text(outColumn, s -> s.outputChars() >= 0 ? FormattingUtils.formatFileSize(s.outputChars()) : "-");
+        FxmlColumns.text(statusColumn, s -> s.success() ? "ok" : "error");
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
-        table.setPlaceholder(new Label("Run a transform, query or validation to record statistics."));
         table.getSelectionModel().selectedItemProperty().addListener(
                 (obs, old, selected) -> detail.setText(selected != null ? buildReportText(selected) : ""));
-        VBox.setVgrow(table, Priority.ALWAYS);
-
-        detail.setEditable(false);
-        detail.setWrapText(false);
-        detail.setPrefRowCount(9);
-        detail.getStyleClass().add("fxt-query-results");
-        detail.setPromptText("Select a run to see its detail report.");
-
-        getChildren().addAll(header, hint, table, detail);
 
         table.getItems().setAll(ExecutionStatsService.getInstance().snapshot());
         ExecutionStatsService.getInstance().addListener(listener);
@@ -126,7 +93,18 @@ public class ExecutionStatsView extends VBox {
         ExecutionStatsService.getInstance().removeListener(listener);
     }
 
-    private void clear() {
+    @FXML
+    public void onExportCsv() {
+        export("csv");
+    }
+
+    @FXML
+    public void onExportJson() {
+        export("json");
+    }
+
+    @FXML
+    public void onClear() {
         ExecutionStatsService.getInstance().clear();
         table.getItems().clear();
         detail.clear();
@@ -193,16 +171,6 @@ public class ExecutionStatsView extends VBox {
             return "-" + FormattingUtils.formatFileSize(-bytes);
         }
         return FormattingUtils.formatFileSize(bytes);
-    }
-
-    private static Button toolButton(String text, String icon, String tooltip, Runnable action) {
-        IconifyIcon graphic = new IconifyIcon(icon);
-        graphic.setIconSize(14);
-        Button button = new Button(text, graphic);
-        button.getStyleClass().add("fxt-tool-button");
-        button.setTooltip(new Tooltip(tooltip));
-        button.setOnAction(e -> action.run());
-        return button;
     }
 
     // ----- test/observer accessors ---

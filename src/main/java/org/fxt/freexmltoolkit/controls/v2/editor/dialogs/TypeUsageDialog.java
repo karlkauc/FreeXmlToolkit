@@ -5,28 +5,24 @@ import java.util.function.Consumer;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
+import javafx.fxml.FXML;
 import javafx.scene.control.ButtonType;
-import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
-import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
-import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.controls.theme.DesignTokens;
+import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
 import org.fxt.freexmltoolkit.controls.theme.SemanticStyle;
 import org.fxt.freexmltoolkit.controls.v2.editor.usage.TypeUsageLocation;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
@@ -44,7 +40,17 @@ public class TypeUsageDialog extends Dialog<TypeUsageLocation> {
 
     private final String typeName;
     private final List<TypeUsageLocation> usages;
-    private final TableView<TypeUsageLocation> tableView;
+    @FXML private VBox content;
+    @FXML private Label headerLabel;
+    @FXML private VBox noUsagesBox;
+    @FXML private IconifyIcon checkIcon;
+    @FXML private TableView<TypeUsageLocation> tableView;
+    @FXML private TableColumn<TypeUsageLocation, String> nodeNameCol;
+    @FXML private TableColumn<TypeUsageLocation, String> nodeTypeCol;
+    @FXML private TableColumn<TypeUsageLocation, String> refTypeCol;
+    @FXML private TableColumn<TypeUsageLocation, String> pathCol;
+    @FXML private TableColumn<TypeUsageLocation, String> fileCol;
+    @FXML private Label helpLabel;
     private Consumer<XsdNode> onNavigateToNode;
 
     /**
@@ -56,7 +62,6 @@ public class TypeUsageDialog extends Dialog<TypeUsageLocation> {
     public TypeUsageDialog(String typeName, List<TypeUsageLocation> usages) {
         this.typeName = typeName;
         this.usages = usages;
-        this.tableView = new TableView<>();
 
         initializeDialog();
     }
@@ -88,25 +93,19 @@ public class TypeUsageDialog extends Dialog<TypeUsageLocation> {
             logger.warn("Could not load dialog theme CSS", e);
         }
 
-        // Content
-        VBox content = new VBox(10);
-        content.setPadding(new Insets(15));
-
-        // Header
-        HBox headerBox = createHeader();
-        content.getChildren().add(headerBox);
-
-        // TableView or "No usages" message
+        // Content: header, then the table with its help line or the "no usages" message
+        dialogPane.setContent(FxmlViews.loadContent(this, "/pages/dialogs/TypeUsageDialog.fxml"));
         if (usages.isEmpty()) {
-            content.getChildren().add(createNoUsagesMessage());
+            headerLabel.setText("No usages found for type '" + typeName + "'");
+            SemanticStyle.style(headerLabel, DesignTokens.ColorToken.SUCCESS, c -> "-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: " + c + ";");
+            SemanticIcon.paint(checkIcon, DesignTokens.ColorToken.SUCCESS);
+            content.getChildren().removeAll(tableView, helpLabel);
         } else {
+            headerLabel.setText(usages.size() + " usage" + (usages.size() == 1 ? "" : "s") + " of type '" + typeName + "'");
+            headerLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
+            content.getChildren().remove(noUsagesBox);
             configureTableView();
-            VBox.setVgrow(tableView, Priority.ALWAYS);
-            content.getChildren().add(tableView);
-            content.getChildren().add(createHelpText());
         }
-
-        dialogPane.setContent(content);
 
         // Buttons
         dialogPane.getButtonTypes().addAll(ButtonType.CLOSE);
@@ -120,128 +119,48 @@ public class TypeUsageDialog extends Dialog<TypeUsageLocation> {
         });
     }
 
-    private HBox createHeader() {
-        HBox headerBox = new HBox(10);
-        headerBox.setAlignment(Pos.CENTER_LEFT);
-
-        IconifyIcon icon = new IconifyIcon("bi-search");
-        icon.setIconSize(20);
-        icon.setIconColor(Color.DODGERBLUE);
-
-        Label headerLabel = new Label();
-        if (usages.isEmpty()) {
-            headerLabel.setText("No usages found for type '" + typeName + "'");
-            SemanticStyle.style(headerLabel, DesignTokens.ColorToken.SUCCESS, c -> "-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: " + c + ";");
-        } else {
-            headerLabel.setText(usages.size() + " usage" + (usages.size() == 1 ? "" : "s") + " of type '" + typeName + "'");
-            headerLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
-        }
-
-        headerBox.getChildren().addAll(icon, headerLabel);
-        return headerBox;
-    }
-
-    private VBox createNoUsagesMessage() {
-        VBox messageBox = new VBox(10);
-        messageBox.setAlignment(Pos.CENTER);
-        messageBox.setPadding(new Insets(40));
-
-        IconifyIcon checkIcon = new IconifyIcon("bi-check-circle");
-        checkIcon.setIconSize(48);
-        org.fxt.freexmltoolkit.controls.theme.SemanticIcon.paint(checkIcon, org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.SUCCESS);
-
-        Label messageLabel = new Label("This type is not used anywhere in the schema.\nIt can be safely deleted.");
-        messageLabel.setStyle("-fx-font-size: 13px; -fx-text-alignment: center;");
-        messageLabel.setWrapText(true);
-
-        messageBox.getChildren().addAll(checkIcon, messageLabel);
-        return messageBox;
-    }
-
-    private Label createHelpText() {
-        Label helpLabel = new Label("Double-click a row to navigate to the usage location");
-        helpLabel.getStyleClass().add("desc-label");
-        return helpLabel;
-    }
-
-    @SuppressWarnings("unchecked")
     private void configureTableView() {
-        // Node Name column
-        TableColumn<TypeUsageLocation, String> nodeNameCol = new TableColumn<>("Node");
         nodeNameCol.setCellValueFactory(data ->
                 new SimpleStringProperty(data.getValue().getNodeName()));
-        nodeNameCol.setPrefWidth(150);
-
-        // Node Type column
-        TableColumn<TypeUsageLocation, String> nodeTypeCol = new TableColumn<>("Type");
         nodeTypeCol.setCellValueFactory(data ->
                 new SimpleStringProperty(data.getValue().getNodeTypeName()));
-        nodeTypeCol.setPrefWidth(100);
-
-        // Reference Type column
-        TableColumn<TypeUsageLocation, String> refTypeCol = new TableColumn<>("Reference");
         refTypeCol.setCellValueFactory(data ->
                 new SimpleStringProperty(data.getValue().referenceType().getDisplayName()));
-        refTypeCol.setPrefWidth(120);
-
-        // Path column
-        TableColumn<TypeUsageLocation, String> pathCol = new TableColumn<>("Path");
         pathCol.setCellValueFactory(data ->
                 new SimpleStringProperty(data.getValue().getPath()));
-        pathCol.setPrefWidth(200);
-
-        // File column
-        TableColumn<TypeUsageLocation, String> fileCol = new TableColumn<>("File");
         fileCol.setCellValueFactory(data ->
                 new SimpleStringProperty(data.getValue().getSourceFileName()));
-        fileCol.setPrefWidth(100);
 
-        tableView.getColumns().addAll(java.util.List.of(nodeNameCol, nodeTypeCol, refTypeCol, pathCol, fileCol));
         tableView.setItems(FXCollections.observableArrayList(usages));
-
-        // Selection mode
         tableView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+    }
 
-        // Double-click handler
-        tableView.setOnMouseClicked(event -> {
-            if (event.getClickCount() == 2) {
-                TypeUsageLocation selected = tableView.getSelectionModel().getSelectedItem();
-                if (selected != null && onNavigateToNode != null) {
-                    onNavigateToNode.accept(selected.node());
-                    close();
-                }
-            }
-        });
+    /** Double-click on a row navigates to the usage location. */
+    @FXML
+    public void onTableClicked(MouseEvent event) {
+        if (event.getClickCount() == 2) {
+            onNavigate();
+        }
+    }
 
-        // Context menu
-        ContextMenu contextMenu = new ContextMenu();
+    /** Navigates to the selected usage and closes the dialog. */
+    @FXML
+    public void onNavigate() {
+        TypeUsageLocation selected = tableView.getSelectionModel().getSelectedItem();
+        if (selected != null && onNavigateToNode != null) {
+            onNavigateToNode.accept(selected.node());
+            close();
+        }
+    }
 
-        MenuItem navigateItem = new MenuItem("Navigate to Node");
-        navigateItem.setGraphic(new IconifyIcon("bi-arrow-right-circle"));
-        navigateItem.setOnAction(e -> {
-            TypeUsageLocation selected = tableView.getSelectionModel().getSelectedItem();
-            if (selected != null && onNavigateToNode != null) {
-                onNavigateToNode.accept(selected.node());
-                close();
-            }
-        });
-
-        MenuItem copyPathItem = new MenuItem("Copy Path");
-        copyPathItem.setGraphic(new IconifyIcon("bi-clipboard"));
-        copyPathItem.setOnAction(e -> {
-            TypeUsageLocation selected = tableView.getSelectionModel().getSelectedItem();
-            if (selected != null) {
-                javafx.scene.input.Clipboard clipboard = javafx.scene.input.Clipboard.getSystemClipboard();
-                javafx.scene.input.ClipboardContent content = new javafx.scene.input.ClipboardContent();
-                content.putString(selected.getPath());
-                clipboard.setContent(content);
-            }
-        });
-
-        contextMenu.getItems().addAll(navigateItem, new SeparatorMenuItem(), copyPathItem);
-        tableView.setContextMenu(contextMenu);
-
-        // Placeholder for empty table
-        tableView.setPlaceholder(new Label("No usages found"));
+    @FXML
+    public void onCopyPath() {
+        TypeUsageLocation selected = tableView.getSelectionModel().getSelectedItem();
+        if (selected != null) {
+            javafx.scene.input.Clipboard clipboard = javafx.scene.input.Clipboard.getSystemClipboard();
+            javafx.scene.input.ClipboardContent content = new javafx.scene.input.ClipboardContent();
+            content.putString(selected.getPath());
+            clipboard.setContent(content);
+        }
     }
 }

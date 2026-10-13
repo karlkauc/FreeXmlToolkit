@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckMenuItem?>
+<?import javafx.scene.control.ContextMenu?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.PanelActionButton?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.PanelActionList?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.PanelProgress?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.SidePanelHeader?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.SidePanelSection?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.SourceRow?>
+
+<!--
+  Validation activity side panel (Figma "Redesign · Unified — Validation", node 40:48): the
+  bound sources, the Single-file/Batch toggle with "Run Validation", the status line and the
+  TOOLS rows. Loaded by ValidationPanel via the fx:root pattern (FxmlViews.load);
+  ValidationPanel is root and controller.
+  Added in code: the favourites menus of the source rows, and - below the TOOLS section - the
+  collapsible RESULTS and PROBLEMS sections with their data-driven lists. Only the source rows
+  matching the active document type are shown; "Validate against FundsXML" is removed when the
+  extension is switched off.
+-->
+<fx:root type="javafx.scene.layout.VBox" styleClass="fxt-validation-panel"
+         xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <fx:define>
+        <ToggleGroup fx:id="modeGroup"/>
+        <!-- Shown below "Run Validation" in batch mode -->
+        <ContextMenu fx:id="batchSourceMenu">
+            <items>
+                <MenuItem text="Select XML files…" onAction="#onChooseBatch">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-file-earmark-text" iconSize="16"/>
+                    </graphic>
+                </MenuItem>
+                <MenuItem text="Select folder…" onAction="#onChooseBatchFolder">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16"/>
+                    </graphic>
+                </MenuItem>
+            </items>
+        </ContextMenu>
+    </fx:define>
+    <children>
+        <!-- The ⋮ overflow menu keeps only toggles; every tool is a visible row in TOOLS. -->
+        <SidePanelHeader title="VALIDATION">
+            <children>
+                <MenuButton fx:id="overflowMenu" id="validation-overflow" styleClass="fxt-vp-overflow">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-three-dots-vertical" iconSize="15"/>
+                    </graphic>
+                    <items>
+                        <CheckMenuItem fx:id="liveValidation" text="Validate while typing" selected="true"
+                                       onAction="#onLiveValidationToggled"/>
+                    </items>
+                </MenuButton>
+            </children>
+        </SidePanelHeader>
+
+        <!-- SOURCES -->
+        <HBox spacing="6" alignment="CENTER_LEFT" styleClass="fxt-vp-section-header">
+            <children>
+                <IconifyIcon iconLiteral="bi-chevron-down" iconSize="11"/>
+                <Label text="SOURCES"/>
+            </children>
+        </HBox>
+        <SourceRow fx:id="xsdRow" id="validation-xsd-row" iconLiteral="bi-diagram-3" onChange="#onChooseXsd">
+            <name>
+                <Label fx:id="xsdName" text="none" styleClass="fxt-vp-source-name"/>
+            </name>
+        </SourceRow>
+        <SourceRow fx:id="schematronRow" id="validation-schematron-row" iconLiteral="bi-ui-checks-grid"
+                   onChange="#onChooseSchematron">
+            <name>
+                <Label fx:id="schematronName" text="none" styleClass="fxt-vp-source-name"/>
+            </name>
+        </SourceRow>
+        <SourceRow fx:id="jsonSchemaRow" id="validation-json-schema-row" iconLiteral="bi-braces"
+                   onChange="#onChooseJsonSchema">
+            <name>
+                <Label fx:id="jsonSchemaName" text="none" styleClass="fxt-vp-source-name"/>
+            </name>
+        </SourceRow>
+
+        <!-- Mode toggle + Run Validation -->
+        <VBox spacing="10" styleClass="fxt-vp-run-box">
+            <children>
+                <HBox spacing="2" styleClass="fxt-seg-group">
+                    <children>
+                        <ToggleButton fx:id="singleMode" text="Single file" toggleGroup="$modeGroup" selected="true"
+                                      maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-seg"/>
+                        <ToggleButton fx:id="batchMode" text="Batch" toggleGroup="$modeGroup" maxWidth="Infinity"
+                                      HBox.hgrow="ALWAYS" styleClass="fxt-seg"/>
+                    </children>
+                </HBox>
+                <Button fx:id="run" id="validation-run" text="Run Validation" maxWidth="Infinity"
+                        styleClass="fxt-primary-button" onAction="#onRun">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-play-fill" iconSize="14"/>
+                    </graphic>
+                </Button>
+                <PanelProgress fx:id="progress"/>
+            </children>
+        </VBox>
+
+        <Label fx:id="status" text="Not validated" styleClass="fxt-vp-status"/>
+
+        <!-- TOOLS: starts collapsed, the RESULTS/PROBLEMS lists below need the space -->
+        <SidePanelSection title="TOOLS" collapsed="true">
+            <children>
+                <PanelActionList fx:id="tools" id="validation-tools">
+                    <children>
+                        <PanelActionButton id="validation-tool-templates" iconLiteral="bi-journal-code"
+                                           text="Rule Templates" color="NAVIGATE"
+                                           onAction="#openSchematronTemplates"/>
+                        <PanelActionButton id="validation-tool-tester" iconLiteral="bi-flask"
+                                           text="Schematron Tester" color="NAVIGATE"
+                                           onAction="#openSchematronTester"/>
+                        <PanelActionButton id="validation-tool-builder" iconLiteral="bi-tools" text="Rule Builder"
+                                           color="NAVIGATE" onAction="#openSchematronBuilder"/>
+                        <PanelActionButton id="validation-tool-check" iconLiteral="bi-check2-square"
+                                           text="Check Rules" color="CREATE" onAction="#openSchematronCheck"/>
+                        <!-- Enabled after a validation run with a bound Schematron -->
+                        <PanelActionButton fx:id="schematronReportButton" id="validation-schematron-report"
+                                           iconLiteral="bi-journal-check" text="Validation Report" color="NAVIGATE"
+                                           disable="true" onAction="#openSchematronReport">
+                            <tooltip>
+                                <Tooltip text="Detailed report of the last Schematron run"/>
+                            </tooltip>
+                        </PanelActionButton>
+                        <PanelActionButton id="validation-tool-documentation" iconLiteral="bi-book"
+                                           text="Schematron Documentation" color="NAVIGATE"
+                                           onAction="#openSchematronDocumentation"/>
+                        <PanelActionButton fx:id="exportProblems" id="validation-export-problems"
+                                           iconLiteral="bi-file-earmark-excel" text="Export Problems to Excel"
+                                           color="TOOL" onAction="#exportProblemsToExcel"/>
+                        <PanelActionButton fx:id="batchReportButton" id="validation-tool-batch-report"
+                                           iconLiteral="bi-file-earmark-text" text="Open Last Batch Report"
+                                           color="NAVIGATE" onAction="#onOpenBatchReport"/>
+                        <PanelActionButton fx:id="fundsXmlButton" id="validation-tool-fundsxml"
+                                           iconLiteral="bi-shield-check" text="Validate against FundsXML"
+                                           color="CREATE" onAction="#onValidateFundsXml"/>
+                    </children>
+                </PanelActionList>
+            </children>
+        </SidePanelSection>
+    </children>
+</fx:root>

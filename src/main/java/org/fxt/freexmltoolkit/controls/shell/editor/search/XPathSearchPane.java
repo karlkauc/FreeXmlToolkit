@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
 import javafx.application.Platform;
-import javafx.geometry.Pos;
+import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
@@ -23,13 +23,11 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
 
 import org.fxt.freexmltoolkit.FxtGui;
-import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost;
 import org.fxt.freexmltoolkit.controls.shell.editor.PanelProgress;
 import org.fxt.freexmltoolkit.controls.shell.editor.PanelStatus;
@@ -55,19 +53,20 @@ public class XPathSearchPane extends VBox {
     private final EditorHost editorHost;
     private final Supplier<Path> workspaceRoot;
 
-    private final TextArea xpathArea = new TextArea();
-    private final TextArea nsArea = new TextArea();
-    private final ToggleButton currentDocToggle = new ToggleButton("Document");
-    private final ToggleButton folderToggle = new ToggleButton("Folder");
-    private final Label folderLabel = new Label("(no folder)");
-    private final TextField globField = new TextField();
-    private final HBox folderRow;
-    private final ChoiceBox<String> modeChoice = new ChoiceBox<>();
-    private final TextArea argumentArea = new TextArea();
-    private final Button applyButton = new Button("Replace checked…");
-    private final Label status = new Label("Enter an XPath and find matches");
-    private final PanelProgress progress = new PanelProgress();
-    private final SearchResultsTree resultsTree = new SearchResultsTree();
+    @FXML private ToggleGroup scope;
+    @FXML private TextArea xpathArea;
+    @FXML private TextArea nsArea;
+    @FXML private ToggleButton currentDocToggle;
+    @FXML private ToggleButton folderToggle;
+    @FXML private Label folderLabel;
+    @FXML private TextField globField;
+    @FXML private HBox folderRow;
+    @FXML private ChoiceBox<String> modeChoice;
+    @FXML private TextArea argumentArea;
+    @FXML private Button applyButton;
+    @FXML private Label status;
+    @FXML private PanelProgress progress;
+    @FXML private SearchResultsTree resultsTree;
 
     private static final String[] MODE_LABELS = {
             "Set value", "Compute value (XPath)", "Delete nodes", "Replace with XML"};
@@ -87,55 +86,9 @@ public class XPathSearchPane extends VBox {
     public XPathSearchPane(EditorHost editorHost, Supplier<Path> workspaceRoot) {
         this.editorHost = editorHost;
         this.workspaceRoot = workspaceRoot;
-        getStyleClass().add("fxt-search-xpath-pane");
-        setSpacing(6);
+        FxmlViews.load(this, "/pages/panels/XPathSearchPane.fxml");
 
-        // --- XPath input ------------------------------------------------------
-        xpathArea.setId("xpath-query");
-        xpathArea.setPromptText("//Amount[@ccy='EUR']");
-        xpathArea.setPrefRowCount(2);
-        xpathArea.getStyleClass().add("fxt-query-input");
-        xpathArea.setWrapText(true);
-
-        // --- namespaces -------------------------------------------------------
-        nsArea.setId("xpath-namespaces");
-        nsArea.setPromptText("prefix=uri per line (empty prefix = default namespace)");
-        nsArea.setPrefRowCount(2);
         nsArea.setText(loadPref("search.xpath.namespaces", ""));
-        Button detect = new Button("Detect");
-        detect.getStyleClass().add("fxt-tool-button");
-        detect.setTooltip(new Tooltip("Read the namespace bindings from the active document's root"));
-        detect.setOnAction(e -> detectNamespaces());
-        Label nsLabel = new Label("Namespaces");
-        nsLabel.getStyleClass().add("fxt-sp-section-label");
-        Region nsSpacer = new Region();
-        HBox.setHgrow(nsSpacer, Priority.ALWAYS);
-        HBox nsHeader = new HBox(6, nsLabel, nsSpacer, detect);
-        nsHeader.setAlignment(Pos.CENTER_LEFT);
-
-        // --- scope ------------------------------------------------------------
-        ToggleGroup scope = new ToggleGroup();
-        for (ToggleButton toggle : new ToggleButton[]{currentDocToggle, folderToggle}) {
-            toggle.setToggleGroup(scope);
-            toggle.getStyleClass().addAll("fxt-tool-button", "fxt-search-mode-toggle");
-            toggle.setMaxWidth(Double.MAX_VALUE);
-            HBox.setHgrow(toggle, Priority.ALWAYS);
-        }
-        currentDocToggle.setId("xpath-scope-doc");
-        folderToggle.setId("xpath-scope-folder");
-        HBox scopeRow = new HBox(4, currentDocToggle, folderToggle);
-        folderLabel.getStyleClass().add("fxt-vp-source-name");
-        folderLabel.setMaxWidth(Double.MAX_VALUE);
-        HBox.setHgrow(folderLabel, Priority.ALWAYS);
-        Button browse = new Button();
-        browse.setGraphic(new IconifyIcon("bi-folder2-open"));
-        browse.getStyleClass().add("fxt-tool-button");
-        browse.setTooltip(new Tooltip("Choose folder"));
-        browse.setOnAction(e -> chooseFolder());
-        folderRow = new HBox(6, folderLabel, browse);
-        folderRow.setAlignment(Pos.CENTER_LEFT);
-        globField.setId("xpath-glob");
-        globField.setPromptText("File globs, e.g. *.xml");
         globField.setText(loadPref("search.xpath.glob", "*.xml"));
         scope.selectedToggleProperty().addListener((obs, oldV, newV) -> {
             if (newV == null) {
@@ -155,38 +108,12 @@ public class XPathSearchPane extends VBox {
         globField.setVisible(false);
         globField.setManaged(false);
 
-        // --- find -------------------------------------------------------------
-        Button find = new Button("Find matches");
-        find.setId("xpath-find");
-        find.getStyleClass().add("fxt-primary-button");
-        find.setMaxWidth(Double.MAX_VALUE);
-        find.setOnAction(e -> runSearch());
-
-        // --- replace section --------------------------------------------------
         modeChoice.getItems().addAll(MODE_LABELS);
         modeChoice.getSelectionModel().select(0);
-        modeChoice.setMaxWidth(Double.MAX_VALUE);
-        modeChoice.setId("xpath-mode");
-        argumentArea.setId("xpath-argument");
-        argumentArea.setPrefRowCount(2);
-        argumentArea.setWrapText(true);
         modeChoice.getSelectionModel().selectedIndexProperty().addListener(
                 (obs, oldV, newV) -> refreshArgumentPrompt(newV.intValue()));
         refreshArgumentPrompt(0);
-        applyButton.setId("xpath-apply");
-        applyButton.getStyleClass().add("fxt-primary-button");
-        applyButton.setMaxWidth(Double.MAX_VALUE);
-        applyButton.setOnAction(e -> onApply());
-        Label replaceLabel = new Label("Replace");
-        replaceLabel.getStyleClass().add("fxt-sp-section-label");
-
-        status.getStyleClass().add("fxt-vp-status");
-        status.setWrapText(true);
-        VBox.setVgrow(resultsTree, Priority.ALWAYS);
         resultsTree.setOnNavigate(this::navigateTo);
-
-        getChildren().addAll(xpathArea, nsHeader, nsArea, scopeRow, folderRow, globField, find,
-                replaceLabel, modeChoice, argumentArea, applyButton, status, progress, resultsTree);
         refreshFolderLabel();
     }
 
@@ -224,7 +151,8 @@ public class XPathSearchPane extends VBox {
         return namespaces;
     }
 
-    private void detectNamespaces() {
+    @FXML
+    public void onDetectNamespaces() {
         String text = editorHost.getActiveText().orElse(null);
         if (text == null || text.isBlank()) {
             PanelStatus.precondition(status, "Open an XML document to detect its namespaces");
@@ -242,7 +170,8 @@ public class XPathSearchPane extends VBox {
         PanelStatus.success(status, namespaces.size() + " namespace binding(s) detected");
     }
 
-    private void chooseFolder() {
+    @FXML
+    public void onChooseFolder() {
         DirectoryChooser chooser = new DirectoryChooser();
         chooser.setTitle("Choose folder");
         Path current = effectiveFolder();
@@ -275,6 +204,11 @@ public class XPathSearchPane extends VBox {
     }
 
     // --- search ------------------------------------------------------------
+
+    @FXML
+    public void onFind() {
+        runSearch();
+    }
 
     private void runSearch() {
         String xpath = xpathArea.getText();
@@ -446,7 +380,8 @@ public class XPathSearchPane extends VBox {
 
     // --- apply -------------------------------------------------------------
 
-    private void onApply() {
+    @FXML
+    public void onApply() {
         List<SearchResultsTree.MatchRow> checked = resultsTree.getCheckedMatches();
         if (checked.isEmpty() || lastQuery == null) {
             PanelStatus.precondition(status, "Find matches first and keep at least one checked");

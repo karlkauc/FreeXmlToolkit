@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
+
+<!--
+  "XPath Validation" sub-tab of the Schema Analysis tool tab: header (Export, status chips,
+  count, export status), the expression table and the details of the selected expression.
+  Loaded by XPathSection via the fx:root pattern (FxmlViews.load); XPathSection is root and
+  controller. Built in code: the Export menu, the filter chips, all cell factories and the
+  details content.
+-->
+<fx:root type="javafx.scene.layout.VBox" spacing="10" styleClass="fxt-analysis-section"
+         xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <children>
+        <HBox fx:id="header" spacing="10" alignment="CENTER_LEFT">
+            <children>
+                <FlowPane fx:id="chips" id="analysis-xpath-chips" hgap="6" vgap="6" alignment="CENTER_LEFT"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label fx:id="count" id="analysis-xpath-count" styleClass="fxt-analysis-count"/>
+                <Label fx:id="exportStatus" id="analysis-xpath-status" styleClass="fxt-placeholder-text"/>
+            </children>
+        </HBox>
+
+        <TableView fx:id="table" id="analysis-xpath-table" styleClass="fxt-analysis-table" VBox.vgrow="ALWAYS">
+            <columns>
+                <TableColumn fx:id="statusColumn" text="Status" prefWidth="105"/>
+                <TableColumn fx:id="constraintColumn" text="Constraint" prefWidth="190"/>
+                <TableColumn fx:id="sourceColumn" text="Source" prefWidth="90"/>
+                <TableColumn fx:id="xpathColumn" text="XPath" prefWidth="260"/>
+                <TableColumn fx:id="messageColumn" text="Message"/>
+            </columns>
+            <placeholder>
+                <Label text="The schema declares no constraint XPath expressions." contentDisplay="TOP"
+                       graphicTextGap="8" styleClass="fxt-analysis-empty">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-check2-circle" iconSize="28"/>
+                    </graphic>
+                </Label>
+            </placeholder>
+        </TableView>
+
+        <VBox fx:id="details" spacing="4" minHeight="90" styleClass="fxt-analysis-details"/>
+    </children>
+</fx:root>

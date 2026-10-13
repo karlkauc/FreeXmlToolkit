@@ -2,6 +2,7 @@ package org.fxt.freexmltoolkit.controls.shell.editor;
 
 import java.util.Set;
 
+import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.ButtonType;
@@ -14,6 +15,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 
+import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.domain.XmlTemplate;
 
 /**
@@ -30,11 +32,11 @@ public class TemplateEditDialog extends Dialog<XmlTemplate> {
             EditorFileType.SCHEMATRON, EditorFileType.JSON
     };
 
-    private final TextField nameField = new TextField();
-    private final TextField categoryField = new TextField();
-    private final TextField descriptionField = new TextField();
-    private final ComboBox<EditorFileType> typeBox = new ComboBox<>();
-    private final TextArea contentArea = new TextArea();
+    @FXML private TextField nameField;
+    @FXML private TextField categoryField;
+    @FXML private TextField descriptionField;
+    @FXML private ComboBox<EditorFileType> typeBox;
+    @FXML private TextArea contentArea;
     private final XmlTemplate existing;
 
     public TemplateEditDialog(XmlTemplate existing) {
@@ -43,35 +45,12 @@ public class TemplateEditDialog extends Dialog<XmlTemplate> {
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
         getDialogPane().setPrefWidth(620);
 
+        getDialogPane().setContent(FxmlViews.loadContent(this, "/pages/dialogs/TemplateEditDialog.fxml"));
+
         typeBox.getItems().setAll(TYPES);
         typeBox.setButtonCell(typeCell());
         typeBox.setCellFactory(lv -> typeCell());
-        typeBox.setMaxWidth(Double.MAX_VALUE);
-        categoryField.setPromptText("Custom");
-        contentArea.setPrefRowCount(14);
-        contentArea.setStyle("-fx-font-family: 'monospace';");
-
         prefill();
-
-        GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(10);
-        grid.setPadding(new Insets(16));
-        int row = 0;
-        grid.add(new Label("Name:"), 0, row);
-        grid.add(nameField, 1, row++);
-        grid.add(new Label("Category:"), 0, row);
-        grid.add(categoryField, 1, row++);
-        grid.add(new Label("Description:"), 0, row);
-        grid.add(descriptionField, 1, row++);
-        grid.add(new Label("File type:"), 0, row);
-        grid.add(typeBox, 1, row++);
-        grid.add(new Label("Content:"), 0, row);
-        grid.add(contentArea, 1, row++);
-        GridPane.setHgrow(nameField, Priority.ALWAYS);
-        GridPane.setHgrow(contentArea, Priority.ALWAYS);
-        GridPane.setVgrow(contentArea, Priority.ALWAYS);
-        getDialogPane().setContent(grid);
 
         Node ok = getDialogPane().lookupButton(ButtonType.OK);
         Runnable validate = () -> ok.setDisable(

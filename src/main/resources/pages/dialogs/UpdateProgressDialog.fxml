@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
+
+<!--
+  Content of the "Updating FreeXmlToolkit" dialog: stage icon + stage text, the target version,
+  the progress bar with its status line and a details line. Loaded by UpdateProgressDialog
+  (FxmlViews.loadContent), which is the controller and updates icon, texts and progress as the
+  update proceeds.
+-->
+<VBox spacing="15" alignment="TOP_LEFT" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <padding>
+        <Insets topRightBottomLeft="20"/>
+    </padding>
+    <children>
+        <!-- Header -->
+        <VBox spacing="5">
+            <children>
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <children>
+                        <IconifyIcon fx:id="stageIcon" iconLiteral="bi-cloud-download" iconSize="24"/>
+                        <Label fx:id="stageLabel" text="Preparing update..."
+                               style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+                    </children>
+                </HBox>
+                <Label fx:id="versionLabel" styleClass="theme-text-secondary" style="-fx-font-size: 12px;"/>
+            </children>
+        </VBox>
+
+        <!-- Progress -->
+        <VBox spacing="8">
+            <children>
+                <ProgressBar fx:id="progressBar" progress="0" prefWidth="Infinity" maxWidth="Infinity"/>
+                <Label fx:id="statusLabel" text="Initializing..." style="-fx-font-size: 12px;"/>
+            </children>
+        </VBox>
+
+        <!-- Details -->
+        <VBox spacing="5">
+            <children>
+                <Label fx:id="detailsLabel" styleClass="desc-label"/>
+            </children>
+        </VBox>
+    </children>
+</VBox>

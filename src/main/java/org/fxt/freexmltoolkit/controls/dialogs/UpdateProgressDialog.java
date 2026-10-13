@@ -23,8 +23,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 import javafx.application.Platform;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
+import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
@@ -32,15 +31,13 @@ import javafx.scene.control.Dialog;
 import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.StageStyle;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.controls.theme.DesignTokens;
 import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
@@ -70,12 +67,13 @@ public class UpdateProgressDialog extends Dialog<UpdateResult> {
     private final UpdateInfo updateInfo;
     private final AutoUpdateService autoUpdateService;
 
-    private ProgressBar progressBar;
-    private Label stageLabel;
-    private Label statusLabel;
-    private Label detailsLabel;
+    @FXML private ProgressBar progressBar;
+    @FXML private Label stageLabel;
+    @FXML private Label versionLabel;
+    @FXML private Label statusLabel;
+    @FXML private Label detailsLabel;
+    @FXML private IconifyIcon stageIcon;
     private Button cancelButton;
-    private IconifyIcon stageIcon;
 
     private CompletableFuture<UpdateResult> updateFuture;
     private volatile boolean cancelled = false;
@@ -111,21 +109,12 @@ public class UpdateProgressDialog extends Dialog<UpdateResult> {
             logger.warn("Could not load dialog theme CSS", e);
         }
 
-        // Build content
-        VBox content = new VBox(15);
-        content.setPadding(new Insets(20));
-        content.setAlignment(Pos.TOP_LEFT);
-
-        // Header
-        content.getChildren().add(createHeader());
-
-        // Progress section
-        content.getChildren().add(createProgressSection());
-
-        // Details section
-        content.getChildren().add(createDetailsSection());
-
-        dialogPane.setContent(content);
+        // Content: header, progress, details
+        dialogPane.setContent(FxmlViews.loadContent(this, "/pages/dialogs/UpdateProgressDialog.fxml"));
+        SemanticIcon.paint(stageIcon, DesignTokens.ColorToken.PRIMARY);
+        versionLabel.setText(String.format("Updating to version %s",
+                updateInfo.latestVersion() != null ? updateInfo.latestVersion() : "latest"));
+        detailsLabel.setText("Platform: " + autoUpdateService.getPlatformIdentifier());
 
         // Custom buttons - only Cancel during download
         ButtonType cancelButtonType = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
@@ -149,58 +138,6 @@ public class UpdateProgressDialog extends Dialog<UpdateResult> {
                 handleCancel();
             }
         });
-    }
-
-    private VBox createHeader() {
-        VBox header = new VBox(5);
-
-        HBox headerRow = new HBox(10);
-        headerRow.setAlignment(Pos.CENTER_LEFT);
-
-        stageIcon = new IconifyIcon("bi-cloud-download");
-        stageIcon.setIconSize(24);
-        SemanticIcon.paint(stageIcon, DesignTokens.ColorToken.PRIMARY);
-
-        stageLabel = new Label("Preparing update...");
-        stageLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
-
-        headerRow.getChildren().addAll(stageIcon, stageLabel);
-        header.getChildren().add(headerRow);
-
-        Label versionLabel = new Label(String.format("Updating to version %s",
-                updateInfo.latestVersion() != null ? updateInfo.latestVersion() : "latest"));
-        versionLabel.getStyleClass().add("theme-text-secondary");
-        versionLabel.setStyle("-fx-font-size: 12px;");
-        header.getChildren().add(versionLabel);
-
-        return header;
-    }
-
-    private VBox createProgressSection() {
-        VBox section = new VBox(8);
-
-        progressBar = new ProgressBar(0);
-        progressBar.setPrefWidth(Double.MAX_VALUE);
-        progressBar.setMaxWidth(Double.MAX_VALUE);
-        HBox.setHgrow(progressBar, Priority.ALWAYS);
-
-        statusLabel = new Label("Initializing...");
-        statusLabel.setStyle("-fx-font-size: 12px;");
-
-        section.getChildren().addAll(progressBar, statusLabel);
-
-        return section;
-    }
-
-    private VBox createDetailsSection() {
-        VBox section = new VBox(5);
-
-        detailsLabel = new Label("Platform: " + autoUpdateService.getPlatformIdentifier());
-        detailsLabel.getStyleClass().add("desc-label");
-
-        section.getChildren().add(detailsLabel);
-
-        return section;
     }
 
     /**

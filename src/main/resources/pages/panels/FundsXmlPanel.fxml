@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.layout.VBox?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.PanelActionButton?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.PanelActionList?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.SidePanelHeader?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.SidePanelSection?>
+
+<!--
+  FundsXML activity side panel: manage versions, validate the active document, docs/resources.
+  Loaded by FundsXmlPanel via the fx:root pattern (FxmlViews.load); FundsXmlPanel is root and
+  controller. The installed versions are filled in code.
+-->
+<fx:root type="javafx.scene.layout.VBox"
+         xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <children>
+        <SidePanelHeader title="FUNDSXML"/>
+
+        <SidePanelSection title="MANAGEMENT">
+            <children>
+                <VBox spacing="4" styleClass="fxt-tp-section-body">
+                    <children>
+                        <Label text="Active version"/>
+                        <ComboBox fx:id="versionCombo" onAction="#onVersionSelected"/>
+                    </children>
+                </VBox>
+                <PanelActionList>
+                    <children>
+                        <PanelActionButton id="fundsxml-download" iconLiteral="bi-cloud-arrow-down"
+                                           text="Download / Update Content" color="TOOL" onAction="#onDownload"/>
+                    </children>
+                </PanelActionList>
+            </children>
+        </SidePanelSection>
+
+        <SidePanelSection title="VALIDATE">
+            <children>
+                <PanelActionList>
+                    <children>
+                        <PanelActionButton id="fundsxml-validate" iconLiteral="bi-check2-circle"
+                                           text="Validate active document" color="CREATE" onAction="#onValidate"/>
+                    </children>
+                </PanelActionList>
+            </children>
+        </SidePanelSection>
+
+        <SidePanelSection title="DOCS &amp; RESOURCES">
+            <children>
+                <PanelActionList>
+                    <children>
+                        <PanelActionButton id="fundsxml-open-schema" iconLiteral="bi-file-earmark-code"
+                                           text="Open Schema in Editor" color="NAVIGATE" onAction="#onOpenSchema"/>
+                        <PanelActionButton id="fundsxml-generate-docs" iconLiteral="bi-file-earmark-text"
+                                           text="Generate Schema Documentation" color="CREATE"
+                                           onAction="#onGenerateDocs"/>
+                        <PanelActionButton id="fundsxml-examples-folder" iconLiteral="bi-folder2-open"
+                                           text="Open Examples Folder" color="NAVIGATE"
+                                           onAction="#onOpenExamplesFolder"/>
+                        <PanelActionButton id="fundsxml-schema-folder" iconLiteral="bi-folder2-open"
+                                           text="Open Schema Folder" color="NAVIGATE" onAction="#onOpenSchemaFolder"/>
+                        <PanelActionButton id="fundsxml-schematron-folder" iconLiteral="bi-folder2-open"
+                                           text="Open Schematron Folder" color="NAVIGATE"
+                                           onAction="#onOpenSchematronFolder"/>
+                        <PanelActionButton id="fundsxml-online-docs" iconLiteral="bi-globe" text="Open Online Docs"
+                                           color="NAVIGATE" onAction="#onOpenOnlineDocs"/>
+                    </children>
+                </PanelActionList>
+            </children>
+        </SidePanelSection>
+
+        <VBox VBox.vgrow="ALWAYS"/>
+
+        <VBox spacing="6" styleClass="fxt-tp-section-body">
+            <children>
+                <ProgressBar fx:id="progress" maxWidth="Infinity"/>
+                <Label fx:id="status" wrapText="true" styleClass="fxt-placeholder-text"/>
+            </children>
+        </VBox>
+    </children>
+</fx:root>

@@ -8,12 +8,12 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
-import javafx.geometry.Pos;
-import javafx.scene.control.Button;
+import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
+import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -21,10 +21,10 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
+import org.fxt.freexmltoolkit.controls.shell.FxmlColumns;
+import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost;
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdQualityChecker;
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdQualityChecker.IssueCategory;
@@ -44,25 +44,30 @@ final class QualitySection extends VBox {
     static final String ALL = "All";
 
     private final EditorHost editorHost;
-    private final Label status = new Label();
-    private final Label scoreNumber = new Label("–");
-    private final Label scoreDescription = new Label();
-    private final Label scoreChecks = new Label();
-    private final Label scoreNaming = new Label();
-    private final VBox scoreTile = new VBox(2, scoreNumber, scoreDescription, scoreChecks, scoreNaming);
-    private final FlowPane severityChips = new FlowPane(6, 6);
-    private final FlowPane categoryChips = new FlowPane(6, 6);
-    private final FlowPane namingChips = new FlowPane(6, 6);
-    private final ComboBox<String> severityFilter = new ComboBox<>();
-    private final ComboBox<String> categoryFilter = new ComboBox<>();
-    private final TextField search = new TextField();
-    private final Label count = new Label();
+    @FXML private HBox toolbar;
+    @FXML private Label status;
+    @FXML private Label scoreNumber;
+    @FXML private Label scoreDescription;
+    @FXML private Label scoreChecks;
+    @FXML private Label scoreNaming;
+    @FXML private VBox scoreTile;
+    @FXML private FlowPane severityChips;
+    @FXML private FlowPane categoryChips;
+    @FXML private FlowPane namingChips;
+    @FXML private ComboBox<String> severityFilter;
+    @FXML private ComboBox<String> categoryFilter;
+    @FXML private TextField search;
+    @FXML private Label count;
     private final ObservableList<QualityIssue> issues = FXCollections.observableArrayList();
     private final FilteredList<QualityIssue> filtered = new FilteredList<>(issues);
-    private final TableView<QualityIssue> table = new TableView<>();
-    private final VBox details = new VBox(4);
-    private final Spinner<Integer> nestingLimit = new Spinner<>(
-            NestingLimitPreference.MIN, NestingLimitPreference.MAX, NestingLimitPreference.load());
+    @FXML private TableView<QualityIssue> table;
+    @FXML private TableColumn<QualityIssue, IssueSeverity> severityColumn;
+    @FXML private TableColumn<QualityIssue, String> categoryColumn;
+    @FXML private TableColumn<QualityIssue, String> messageColumn;
+    @FXML private TableColumn<QualityIssue, String> fileColumn;
+    @FXML private TableColumn<QualityIssue, String> locationColumn;
+    @FXML private VBox details;
+    @FXML private Spinner<Integer> nestingLimit;
     private Runnable onNestingLimitChanged = () -> { };
     private boolean updatingLimit;
     private QualityResult result;
@@ -70,97 +75,40 @@ final class QualitySection extends VBox {
 
     QualitySection(EditorHost editorHost) {
         this.editorHost = editorHost;
-        getStyleClass().add("fxt-analysis-section");
-        setSpacing(10);
+        FxmlViews.load(this, "/pages/views/QualitySection.fxml");
 
-        status.getStyleClass().add("fxt-placeholder-text");
         status.managedProperty().bind(status.textProperty().isNotEmpty());
-        nestingLimit.setId("analysis-quality-nesting-limit");
-        nestingLimit.setEditable(true);
-        nestingLimit.setPrefWidth(76);
-        nestingLimit.setTooltip(new Tooltip("Deep-nesting limit: elements nested more than this many element levels "
-                + "inside one declaration are reported. Changing it re-runs the analysis."));
+        toolbar.getChildren().add(0, AnalysisSupport.reportMenu("Schema Quality", status,
+                () -> data == null ? null : SchemaAnalysisReport.quality(data)));
+        nestingLimit.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(
+                NestingLimitPreference.MIN, NestingLimitPreference.MAX, NestingLimitPreference.load()));
         nestingLimit.valueProperty().addListener((obs, o, n) -> {
             if (n != null && !n.equals(o) && !updatingLimit) {
                 NestingLimitPreference.save(n);
                 onNestingLimitChanged.run();
             }
         });
-        Label nestingLabel = filterLabel("Max nesting");
-        Region toolbarSpacer = new Region();
-        HBox.setHgrow(toolbarSpacer, Priority.ALWAYS);
-        HBox toolbar = new HBox(8, AnalysisSupport.reportMenu("Schema Quality", status,
-                () -> data == null ? null : SchemaAnalysisReport.quality(data)), status,
-                toolbarSpacer, nestingLabel, nestingLimit);
-        toolbar.setAlignment(Pos.CENTER_LEFT);
 
-        scoreTile.getStyleClass().add("fxt-analysis-score");
-        scoreTile.setAlignment(Pos.CENTER);
-        scoreNumber.getStyleClass().add("fxt-analysis-score-number");
-        scoreDescription.getStyleClass().add("fxt-analysis-score-description");
-        scoreChecks.getStyleClass().add("fxt-analysis-key");
-        scoreNaming.getStyleClass().add("fxt-analysis-key");
-        severityChips.setId("analysis-quality-severity-chips");
-        severityChips.setAlignment(Pos.CENTER_LEFT);
-        categoryChips.setId("analysis-quality-category-chips");
-        categoryChips.setAlignment(Pos.CENTER_LEFT);
-        namingChips.setId("analysis-quality-naming");
-        namingChips.setAlignment(Pos.CENTER_LEFT);
-        VBox summary = new VBox(6,
-                AnalysisSupport.groupTitle("Issues by severity"), severityChips,
-                AnalysisSupport.groupTitle("Issues by category"), categoryChips,
-                AnalysisSupport.groupTitle("Naming conventions"), namingChips);
-        summary.setAlignment(Pos.CENTER_LEFT);
-        HBox.setHgrow(summary, Priority.ALWAYS);
-        HBox header = new HBox(16, scoreTile, summary);
-        header.setAlignment(Pos.CENTER_LEFT);
-
-        severityFilter.setId("analysis-quality-severity");
         severityFilter.getItems().add(ALL);
         for (IssueSeverity s : IssueSeverity.values()) {
             severityFilter.getItems().add(AnalysisSupport.titleCase(s));
         }
         severityFilter.setValue(ALL);
-        categoryFilter.setId("analysis-quality-category");
         categoryFilter.getItems().add(ALL);
         for (IssueCategory c : IssueCategory.values()) {
             categoryFilter.getItems().add(AnalysisSupport.titleCase(c));
         }
         categoryFilter.setValue(ALL);
-        search.setId("analysis-quality-search");
-        search.setPromptText("Search issues…");
-        search.setPrefWidth(220);
-        Button clear = new Button("Clear", AnalysisSupport.icon("bi-x-circle", 14));
-        clear.getStyleClass().add("fxt-tool-button");
-        clear.setOnAction(e -> {
-            severityFilter.setValue(ALL);
-            categoryFilter.setValue(ALL);
-            search.clear();
-        });
         severityFilter.valueProperty().addListener((obs, o, n) -> applyFilter());
         categoryFilter.valueProperty().addListener((obs, o, n) -> applyFilter());
         search.textProperty().addListener((obs, o, n) -> applyFilter());
-        count.setId("analysis-quality-count");
-        count.getStyleClass().add("fxt-analysis-count");
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-        HBox filterBar = new HBox(8,
-                new Label(null, AnalysisSupport.icon("bi-funnel", 14)),
-                filterLabel("Severity"), severityFilter,
-                filterLabel("Category"), categoryFilter,
-                search, clear, spacer, count);
-        filterBar.getStyleClass().add("fxt-analysis-filter");
-        filterBar.setAlignment(Pos.CENTER_LEFT);
 
-        table.setId("analysis-quality-table");
-        table.getStyleClass().add("fxt-analysis-table");
-        table.getColumns().add(severityColumn());
-        table.getColumns().add(AnalysisSupport.column("Category", i -> AnalysisSupport.titleCase(i.category()), 170));
-        table.getColumns().add(AnalysisSupport.column("Message", QualityIssue::message, 420));
-        table.getColumns().add(fileColumn());
-        table.getColumns().add(locationColumn());
+        configureSeverityColumn(severityColumn);
+        FxmlColumns.text(categoryColumn, i -> AnalysisSupport.titleCase(i.category()));
+        FxmlColumns.text(messageColumn, QualityIssue::message);
+        configureFileColumn(fileColumn);
+        configureLocationColumn(locationColumn);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
-        table.setPlaceholder(AnalysisSupport.emptyLabel("No quality issues found."));
         SortedList<QualityIssue> sorted = new SortedList<>(filtered);
         sorted.comparatorProperty().bind(table.comparatorProperty());
         table.setItems(sorted);
@@ -170,12 +118,13 @@ final class QualitySection extends VBox {
                 reveal(n);
             }
         });
-        VBox.setVgrow(table, Priority.ALWAYS);
+    }
 
-        details.getStyleClass().add("fxt-analysis-details");
-        details.setMinHeight(90);
-
-        getChildren().addAll(toolbar, header, filterBar, table, details);
+    @FXML
+    public void onClearFilters() {
+        severityFilter.setValue(ALL);
+        categoryFilter.setValue(ALL);
+        search.clear();
     }
 
     void setData(SchemaAnalysisData data) {
@@ -253,12 +202,6 @@ final class QualitySection extends VBox {
         return value != null ? value : NestingLimitPreference.load();
     }
 
-    private static Label filterLabel(String text) {
-        Label label = new Label(text);
-        label.getStyleClass().add("fxt-analysis-key");
-        return label;
-    }
-
     private void applyFilter() {
         String sev = severityFilter.getValue();
         String cat = categoryFilter.getValue();
@@ -285,9 +228,7 @@ final class QualitySection extends VBox {
         return haystack != null && haystack.toLowerCase(Locale.ROOT).contains(needle);
     }
 
-    private static TableColumn<QualityIssue, IssueSeverity> severityColumn() {
-        TableColumn<QualityIssue, IssueSeverity> column = new TableColumn<>("Severity");
-        column.setPrefWidth(110);
+    private static void configureSeverityColumn(TableColumn<QualityIssue, IssueSeverity> column) {
         column.setCellValueFactory(c -> new javafx.beans.property.ReadOnlyObjectWrapper<>(c.getValue().severity()));
         column.setCellFactory(col -> new TableCell<>() {
             @Override
@@ -305,12 +246,11 @@ final class QualitySection extends VBox {
                 getStyleClass().add("fxt-analysis-sev-" + item.name().toLowerCase(Locale.ROOT));
             }
         });
-        return column;
     }
 
     /** Source file of the finding (include file name), full path in the tooltip. */
-    private static TableColumn<QualityIssue, String> fileColumn() {
-        TableColumn<QualityIssue, String> column = AnalysisSupport.column("File", QualityIssue::getSourceFileName, 100);
+    private static void configureFileColumn(TableColumn<QualityIssue, String> column) {
+        FxmlColumns.text(column, QualityIssue::getSourceFileName);
         column.setCellFactory(col -> new TableCell<>() {
             @Override
             protected void updateItem(String item, boolean empty) {
@@ -325,11 +265,10 @@ final class QualitySection extends VBox {
                 setTooltip(issue != null && issue.sourceFile() != null ? new Tooltip(issue.sourceFile().toString()) : null);
             }
         });
-        return column;
     }
 
-    private static TableColumn<QualityIssue, String> locationColumn() {
-        TableColumn<QualityIssue, String> column = AnalysisSupport.column("Location", QualitySection::location, -1);
+    private static void configureLocationColumn(TableColumn<QualityIssue, String> column) {
+        FxmlColumns.text(column, QualitySection::location);
         column.setCellFactory(col -> new TableCell<>() {
             @Override
             protected void updateItem(String item, boolean empty) {
@@ -344,7 +283,6 @@ final class QualitySection extends VBox {
             }
         });
         column.getStyleClass().add("fxt-analysis-cell-mono");
-        return column;
     }
 
     private void showDetails(QualityIssue issue) {

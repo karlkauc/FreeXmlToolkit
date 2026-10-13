@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Hyperlink?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Polyline?>
+<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.WelcomeQuickCard?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.WelcomeStatCard?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.WelcomeToolCard?>
+
+<!--
+  Welcome / Dashboard landing shown when no document is open (Figma "Redesign · Unified —
+  Welcome / Dashboard"): hero, quick-action cards, FundsXML quick access, counters, activity
+  trend, tips, sponsor banner, recent files and the Tools grid.
+  Loaded by EditorWelcomePane via the fx:root pattern (FxmlViews.load); EditorWelcomePane is root
+  and controller. Data-driven parts stay in code: the version badge text, the sparkline points
+  and category cards of the trend, the sponsor heart and the recent-files cells.
+  Cards with a userData key report it through #onCardAction; tool cards report their activity.
+-->
+<fx:root type="javafx.scene.layout.VBox" styleClass="fxt-editor-empty-state"
+         xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <children>
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="fxt-welcome-scroll" VBox.vgrow="ALWAYS">
+            <content>
+                <VBox spacing="24" styleClass="fxt-welcome-content">
+                    <padding>
+                        <Insets topRightBottomLeft="40"/>
+                    </padding>
+                    <children>
+                        <!-- Hero -->
+                        <HBox spacing="18" alignment="CENTER_LEFT">
+                            <children>
+                                <StackPane styleClass="fxt-welcome-hero-icon">
+                                    <children>
+                                        <IconifyIcon iconLiteral="bi-code-slash" iconSize="28"/>
+                                    </children>
+                                </StackPane>
+                                <VBox spacing="6" alignment="CENTER_LEFT">
+                                    <children>
+                                        <Label text="Welcome to FreeXmlToolkit" styleClass="fxt-welcome-hero-title"/>
+                                        <HBox spacing="10" alignment="CENTER_LEFT">
+                                            <children>
+                                                <Label text="The modern XML · XSD · XSLT · Schematron workbench"
+                                                       styleClass="fxt-welcome-hero-subtitle"/>
+                                                <Label fx:id="versionBadge" styleClass="fxt-welcome-version-badge">
+                                                    <graphic>
+                                                        <IconifyIcon iconLiteral="bi-check-circle-fill" iconSize="12"/>
+                                                    </graphic>
+                                                </Label>
+                                            </children>
+                                        </HBox>
+                                    </children>
+                                </VBox>
+                            </children>
+                        </HBox>
+
+                        <!-- Quick actions -->
+                        <HBox spacing="16">
+                            <children>
+                                <WelcomeQuickCard id="welcome-new" iconLiteral="bi-file-earmark-plus" title="New File"
+                                                  subtitle="XML · XSD · XSLT" primary="true" HBox.hgrow="ALWAYS"
+                                                  onAction="#onNew"/>
+                                <WelcomeQuickCard id="welcome-open" iconLiteral="bi-folder2-open" title="Open File"
+                                                  subtitle="Browse your disk" HBox.hgrow="ALWAYS" onAction="#onOpen"/>
+                                <WelcomeQuickCard id="welcome-openfolder" iconLiteral="bi-folder" title="Open Folder"
+                                                  subtitle="Open a workspace" userData="open-folder"
+                                                  HBox.hgrow="ALWAYS" onAction="#onCardAction"/>
+                                <WelcomeQuickCard id="welcome-url" iconLiteral="bi-box-arrow-up-right" title="From URL"
+                                                  subtitle="Fetch &amp; open" userData="from-url" HBox.hgrow="ALWAYS"
+                                                  onAction="#onCardAction"/>
+                            </children>
+                        </HBox>
+
+                        <!-- FundsXML quick access: hidden until the extension is active and content is cached -->
+                        <VBox fx:id="fundsXmlSection" spacing="12" visible="false" managed="false">
+                            <children>
+                                <Label text="FUNDSXML" styleClass="fxt-welcome-section-title"/>
+                                <HBox spacing="16">
+                                    <children>
+                                        <WelcomeQuickCard id="welcome-fundsxml-example"
+                                                          iconLiteral="bi-file-earmark-play" title="Open Example"
+                                                          subtitle="Starter FundsXML sample"
+                                                          userData="fundsxml-open-example" HBox.hgrow="ALWAYS"
+                                                          onAction="#onCardAction"/>
+                                        <WelcomeQuickCard id="welcome-fundsxml-schema"
+                                                          iconLiteral="bi-file-earmark-code" title="Open Schema"
+                                                          subtitle="FundsXML4.xsd in the editor"
+                                                          userData="fundsxml-open-schema" HBox.hgrow="ALWAYS"
+                                                          onAction="#onCardAction"/>
+                                        <WelcomeQuickCard id="welcome-fundsxml-browse" iconLiteral="bi-folder2-open"
+                                                          title="Browse Examples" subtitle="Cached example files"
+                                                          userData="fundsxml-browse-examples" HBox.hgrow="ALWAYS"
+                                                          onAction="#onCardAction"/>
+                                    </children>
+                                </HBox>
+                            </children>
+                        </VBox>
+
+                        <!-- Counters -->
+                        <HBox spacing="16">
+                            <children>
+                                <WelcomeStatCard fx:id="recentStat" numberId="welcome-stat-recent"
+                                                 iconLiteral="bi-clock-history" caption="Recent files"
+                                                 HBox.hgrow="ALWAYS"/>
+                                <WelcomeStatCard fx:id="favoritesStat" numberId="welcome-stat-favorites"
+                                                 iconLiteral="bi-star" caption="Favorites" HBox.hgrow="ALWAYS"/>
+                                <WelcomeStatCard fx:id="templatesStat" numberId="welcome-stat-templates"
+                                                 iconLiteral="bi-collection" caption="Templates" HBox.hgrow="ALWAYS"/>
+                                <WelcomeStatCard fx:id="queriesStat" numberId="welcome-stat-queries"
+                                                 iconLiteral="bi-braces" caption="Saved queries" HBox.hgrow="ALWAYS"/>
+                            </children>
+                        </HBox>
+
+                        <!-- Activity trend: sparkline + one colour-coded card per feature category -->
+                        <VBox fx:id="trendBox" spacing="8" styleClass="fxt-welcome-trend">
+                            <children>
+                                <Label text="ACTIVITY (LAST 7 DAYS)" styleClass="fxt-side-panel-title"/>
+                                <Pane minWidth="220" minHeight="40" prefWidth="220" prefHeight="40" maxWidth="220"
+                                      maxHeight="40">
+                                    <children>
+                                        <Polyline fx:id="sparkline" styleClass="fxt-welcome-sparkline"/>
+                                    </children>
+                                </Pane>
+                                <HBox fx:id="trendRow" spacing="12" styleClass="fxt-welcome-trend-row"/>
+                            </children>
+                        </VBox>
+
+                        <!-- Tips -->
+                        <HBox spacing="10" alignment="CENTER_LEFT" styleClass="fxt-welcome-tips">
+                            <children>
+                                <IconifyIcon iconLiteral="bi-lightbulb" iconSize="16"/>
+                                <Label text="Tip: drag a file onto the window to open it · Ctrl+F to find, Ctrl+H to replace · drop an XSD on an XML to bind it for validation."
+                                       wrapText="true"/>
+                            </children>
+                        </HBox>
+
+                        <!-- Sponsor banner; EditorWelcomePane prepends the sponsor heart -->
+                        <HBox fx:id="sponsorBanner" spacing="10" alignment="CENTER_LEFT"
+                              styleClass="fxt-welcome-sponsor">
+                            <children>
+                                <Label text="FreeXmlToolkit is free and open source. If it saves you time, consider sponsoring its development."
+                                       wrapText="true"/>
+                                <Hyperlink id="welcome-sponsor" text="Sponsor on GitHub" onAction="#onSponsor"/>
+                            </children>
+                        </HBox>
+
+                        <!-- Recent files + Tools -->
+                        <HBox spacing="24" VBox.vgrow="ALWAYS">
+                            <children>
+                                <VBox spacing="12" maxWidth="Infinity" HBox.hgrow="ALWAYS">
+                                    <children>
+                                        <HBox alignment="CENTER_LEFT">
+                                            <children>
+                                                <Label text="Recent files" styleClass="fxt-welcome-section-title"/>
+                                                <Region HBox.hgrow="ALWAYS"/>
+                                                <Hyperlink id="welcome-clear" text="Clear"
+                                                           styleClass="fxt-welcome-clear" onAction="#onClearRecent"/>
+                                            </children>
+                                        </HBox>
+                                        <ListView fx:id="recentList" styleClass="fxt-welcome-recent"
+                                                  VBox.vgrow="ALWAYS">
+                                            <placeholder>
+                                                <Label text="No recent files"/>
+                                            </placeholder>
+                                        </ListView>
+                                    </children>
+                                </VBox>
+
+                                <VBox spacing="12" maxWidth="Infinity" HBox.hgrow="ALWAYS">
+                                    <children>
+                                        <Label text="Tools" styleClass="fxt-welcome-section-title"/>
+                                        <GridPane hgap="16" vgap="12">
+                                            <columnConstraints>
+                                                <ColumnConstraints percentWidth="50" hgrow="ALWAYS"/>
+                                                <ColumnConstraints percentWidth="50" hgrow="ALWAYS"/>
+                                            </columnConstraints>
+                                            <children>
+                                                <WelcomeToolCard id="tool-explorer" activity="explorer"
+                                                                 iconLiteral="bi-folder2-open" title="Explorer"
+                                                                 subtitle="Files &amp; workspace"
+                                                                 GridPane.columnIndex="0" GridPane.rowIndex="0"
+                                                                 GridPane.hgrow="ALWAYS" onAction="#onTool"/>
+                                                <WelcomeToolCard id="tool-search" activity="search"
+                                                                 iconLiteral="bi-search" title="Search"
+                                                                 subtitle="Find in files &amp; XPath"
+                                                                 GridPane.columnIndex="1" GridPane.rowIndex="0"
+                                                                 GridPane.hgrow="ALWAYS" onAction="#onTool"/>
+                                                <WelcomeToolCard id="tool-validation" activity="validation"
+                                                                 iconLiteral="bi-check2-circle" title="Validate"
+                                                                 subtitle="XSD &amp; Schematron"
+                                                                 GridPane.columnIndex="0" GridPane.rowIndex="1"
+                                                                 GridPane.hgrow="ALWAYS" onAction="#onTool"/>
+                                                <WelcomeToolCard id="tool-transform" activity="transform"
+                                                                 iconLiteral="bi-arrow-repeat" title="Transform"
+                                                                 subtitle="XSLT 3.0 / XQuery"
+                                                                 GridPane.columnIndex="1" GridPane.rowIndex="1"
+                                                                 GridPane.hgrow="ALWAYS" onAction="#onTool"/>
+                                                <WelcomeToolCard id="tool-schema" activity="schema"
+                                                                 iconLiteral="bi-diagram-3" title="Schema"
+                                                                 subtitle="Graphical XSD editor"
+                                                                 GridPane.columnIndex="0" GridPane.rowIndex="2"
+                                                                 GridPane.hgrow="ALWAYS" onAction="#onTool"/>
+                                                <WelcomeToolCard id="tool-pdf" activity="pdf"
+                                                                 iconLiteral="bi-file-earmark-pdf" title="PDF / FOP"
+                                                                 subtitle="XSL-FO to PDF"
+                                                                 GridPane.columnIndex="1" GridPane.rowIndex="2"
+                                                                 GridPane.hgrow="ALWAYS" onAction="#onTool"/>
+                                                <WelcomeToolCard id="tool-signature" activity="signature"
+                                                                 iconLiteral="bi-shield-lock" title="Signature"
+                                                                 subtitle="XML-DSig sign &amp; verify"
+                                                                 GridPane.columnIndex="0" GridPane.rowIndex="3"
+                                                                 GridPane.hgrow="ALWAYS" onAction="#onTool"/>
+                                                <WelcomeToolCard id="tool-favorites" activity="favorites"
+                                                                 iconLiteral="bi-star" title="Favorites"
+                                                                 subtitle="Pinned files"
+                                                                 GridPane.columnIndex="1" GridPane.rowIndex="3"
+                                                                 GridPane.hgrow="ALWAYS" onAction="#onTool"/>
+                                                <WelcomeToolCard id="tool-settings" activity="settings"
+                                                                 iconLiteral="bi-gear" title="Settings"
+                                                                 subtitle="Application preferences"
+                                                                 GridPane.columnIndex="0" GridPane.rowIndex="4"
+                                                                 GridPane.hgrow="ALWAYS" onAction="#onTool"/>
+                                            </children>
+                                        </GridPane>
+                                    </children>
+                                </VBox>
+                            </children>
+                        </HBox>
+                    </children>
+                </VBox>
+            </content>
+        </ScrollPane>
+    </children>
+</fx:root>

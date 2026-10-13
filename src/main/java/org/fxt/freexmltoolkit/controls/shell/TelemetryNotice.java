@@ -2,14 +2,8 @@ package org.fxt.freexmltoolkit.controls.shell;
 
 import javafx.animation.FadeTransition;
 import javafx.beans.value.ChangeListener;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.scene.control.Button;
-import javafx.scene.control.Hyperlink;
+import javafx.fxml.FXML;
 import javafx.scene.control.Label;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Popup;
@@ -40,13 +34,20 @@ public final class TelemetryNotice extends VBox {
     public static final String MESSAGE = "FreeXmlToolkit sends anonymous usage statistics and error reports "
             + "to help improve the app. No file names, paths or content are ever sent.";
 
+    private final Runnable onOk;
+    private final Runnable onSettings;
+    private final Runnable onWhatIsSent;
+    @FXML private IconifyIcon icon;
+    @FXML private Label title;
+    @FXML private Label message;
     private Popup popup;
 
-    private TelemetryNotice(Runnable onOk, Runnable onSettings, Runnable onWhatIsSent, boolean dark) {
-        super(10);
-        setPadding(new Insets(14, 16, 12, 16));
-        setMaxWidth(380);
-        setPrefWidth(380);
+    TelemetryNotice(Runnable onOk, Runnable onSettings, Runnable onWhatIsSent, boolean dark) {
+        this.onOk = onOk;
+        this.onSettings = onSettings;
+        this.onWhatIsSent = onWhatIsSent;
+        FxmlViews.load(this, "/pages/views/TelemetryNotice.fxml");
+
         String background = dark ? "rgb(37,41,48)" : "white";
         String text = dark ? "rgb(229,231,235)" : "rgb(31,41,55)";
         setStyle("-fx-background-color: " + background + ";"
@@ -55,38 +56,26 @@ public final class TelemetryNotice extends VBox {
                 + "-fx-border-radius: 10;"
                 + "-fx-border-width: 1;"
                 + "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.25), 14, 0, 0, 4);");
-
-        IconifyIcon icon = new IconifyIcon("bi-shield-check");
-        icon.setIconSize(20);
         icon.iconColorProperty().bind(new javafx.beans.property.SimpleObjectProperty<>(
                 Color.web(SemanticColors.INFO)));
-        Label title = new Label("Anonymous usage statistics");
         title.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: " + text + ";");
-        HBox header = new HBox(8, icon, title);
-        header.setAlignment(Pos.CENTER_LEFT);
-
-        Label message = new Label(MESSAGE);
-        message.setWrapText(true);
+        message.setText(MESSAGE);
         message.setStyle("-fx-font-size: 12px; -fx-text-fill: " + text + ";");
+    }
 
-        Hyperlink whatIsSent = new Hyperlink("What is sent?");
-        whatIsSent.setId("telemetry-notice-what");
-        whatIsSent.setOnAction(e -> onWhatIsSent.run());
+    @FXML
+    public void onWhatIsSent() {
+        onWhatIsSent.run();
+    }
 
-        Button settings = new Button("Settings…");
-        settings.setId("telemetry-notice-settings");
-        settings.setOnAction(e -> onSettings.run());
-        Button ok = new Button("OK");
-        ok.setId("telemetry-notice-ok");
-        ok.setDefaultButton(true);
-        ok.setOnAction(e -> onOk.run());
+    @FXML
+    public void onSettings() {
+        onSettings.run();
+    }
 
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-        HBox actions = new HBox(8, whatIsSent, spacer, settings, ok);
-        actions.setAlignment(Pos.CENTER_LEFT);
-
-        getChildren().addAll(header, message, actions);
+    @FXML
+    public void onOk() {
+        onOk.run();
     }
 
     /**

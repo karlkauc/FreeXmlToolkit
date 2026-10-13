@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
+
+<!--
+  "Types" sub-tab of the Schema Analysis tool tab: toolbar (Export, Remove unused, status),
+  filter bar (kind chips, search, count), the component table and the "Used in" /
+  documentation details. Loaded by TypesSection via the fx:root pattern (FxmlViews.load);
+  TypesSection is root and controller. Built in code: the Export menu, the filter chips and all
+  cell factories.
+-->
+<fx:root type="javafx.scene.layout.VBox" spacing="10" styleClass="fxt-analysis-section"
+         xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <children>
+        <HBox fx:id="toolbar" spacing="8" alignment="CENTER_LEFT">
+            <children>
+                <Button fx:id="removeUnused" id="analysis-types-remove-unused" text="Remove unused…"
+                        disable="true" styleClass="fxt-tool-button" onAction="#onRemoveUnused">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-trash" iconSize="14"/>
+                    </graphic>
+                    <tooltip>
+                        <Tooltip text="Delete every type, group and attribute group that no global element or attribute reaches (one undo step)"/>
+                    </tooltip>
+                </Button>
+                <Label fx:id="status" id="analysis-types-status" styleClass="fxt-placeholder-text"/>
+            </children>
+        </HBox>
+
+        <HBox spacing="8" alignment="CENTER_LEFT" styleClass="fxt-analysis-filter">
+            <children>
+                <Label>
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-funnel" iconSize="14"/>
+                    </graphic>
+                </Label>
+                <FlowPane fx:id="chips" id="analysis-types-chips" hgap="6" vgap="6" alignment="CENTER_LEFT"/>
+                <TextField fx:id="search" id="analysis-types-search" promptText="Search types…" prefWidth="220"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label fx:id="count" id="analysis-types-count" styleClass="fxt-analysis-count"/>
+            </children>
+        </HBox>
+
+        <TableView fx:id="table" id="analysis-types-table" styleClass="fxt-analysis-table" VBox.vgrow="ALWAYS">
+            <columns>
+                <TableColumn fx:id="kindColumn" text="Kind" prefWidth="130"/>
+                <TableColumn fx:id="nameColumn" text="Name" prefWidth="220"/>
+                <TableColumn fx:id="baseColumn" text="Base" prefWidth="180"/>
+                <TableColumn fx:id="documentationColumn" text="Documentation" prefWidth="260"/>
+                <TableColumn fx:id="usageColumn" text="Usages" prefWidth="110"/>
+                <TableColumn fx:id="fileColumn" text="File" prefWidth="110"/>
+            </columns>
+            <placeholder>
+                <Label text="No global types, groups or attribute groups." styleClass="fxt-analysis-empty"/>
+            </placeholder>
+        </TableView>
+
+        <HBox spacing="12">
+            <children>
+                <VBox spacing="6" HBox.hgrow="ALWAYS">
+                    <children>
+                        <Label fx:id="usagesTitle" text="USED IN" styleClass="fxt-analysis-group-title"/>
+                        <ListView fx:id="usages" id="analysis-types-usages" prefHeight="150" maxWidth="Infinity"
+                                  styleClass="fxt-analysis-list">
+                            <placeholder>
+                                <Label text="Select a component to see where it is used."
+                                       styleClass="fxt-analysis-empty"/>
+                            </placeholder>
+                        </ListView>
+                    </children>
+                </VBox>
+                <VBox spacing="6" HBox.hgrow="ALWAYS">
+                    <children>
+                        <Label text="DOCUMENTATION" styleClass="fxt-analysis-group-title"/>
+                        <TextArea fx:id="documentation" id="analysis-types-documentation" editable="false"
+                                  wrapText="true" prefRowCount="4" maxWidth="Infinity"
+                                  styleClass="fxt-analysis-details"/>
+                    </children>
+                </VBox>
+            </children>
+        </HBox>
+    </children>
+</fx:root>

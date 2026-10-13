@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.VBox?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.PanelActionButton?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.PanelActionList?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.SidePanelHeader?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.SidePanelSection?>
+
+<!--
+  Help activity side panel: about / version information and quick links.
+  Loaded by HelpPanel via the fx:root pattern (FxmlViews.load); HelpPanel is root and controller.
+  The version/build/vendor texts are set in code. "Report a Problem…" and the FUNDSXML section
+  are conditional: HelpPanel removes them when the feature is switched off.
+-->
+<fx:root type="javafx.scene.layout.VBox"
+         xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <children>
+        <SidePanelHeader title="HELP"/>
+
+        <VBox spacing="4" styleClass="fxt-tp-section-body">
+            <children>
+                <Label text="FreeXmlToolkit" styleClass="fxt-welcome-headline"/>
+                <Label fx:id="version" styleClass="fxt-placeholder-text"/>
+                <Label fx:id="build" styleClass="fxt-placeholder-text"/>
+                <Label fx:id="vendor" styleClass="fxt-placeholder-text"/>
+            </children>
+        </VBox>
+
+        <SidePanelSection title="PROJECT">
+            <children>
+                <PanelActionList fx:id="projectActions">
+                    <children>
+                        <PanelActionButton id="help-github" iconLiteral="bi-github" text="GitHub"
+                                           color="NAVIGATE" onAction="#onGitHub"/>
+                        <!-- The sponsor heart keeps its own colour; HelpPanel swaps the graphic. -->
+                        <PanelActionButton fx:id="sponsorButton" id="help-sponsor" iconLiteral="bi-heart-fill"
+                                           text="Sponsor this Project" onAction="#onSponsor"/>
+                        <PanelActionButton id="help-about" iconLiteral="bi-info-circle" text="About"
+                                           onAction="#onAbout"/>
+                        <PanelActionButton id="help-shortcuts" iconLiteral="bi-keyboard" text="Keyboard Shortcuts"
+                                           onAction="#onShortcuts"/>
+                        <PanelActionButton fx:id="reportProblemButton" id="help-report-problem" iconLiteral="bi-send"
+                                           text="Report a Problem…" color="NAVIGATE" onAction="#onReportProblem"/>
+                    </children>
+                </PanelActionList>
+            </children>
+        </SidePanelSection>
+
+        <!-- Documentation quick links: open in the system browser -->
+        <SidePanelSection title="DOCUMENTATION">
+            <children>
+                <PanelActionList>
+                    <children>
+                        <PanelActionButton id="help-docs" iconLiteral="bi-book" text="Documentation"
+                                           color="NAVIGATE" onAction="#onDocs"/>
+                        <PanelActionButton id="help-fundsxml-site" iconLiteral="bi-globe" text="FundsXML Website"
+                                           color="NAVIGATE" onAction="#onFundsXmlSite"/>
+                        <PanelActionButton id="help-schema-docs" iconLiteral="bi-file-earmark-text"
+                                           text="FundsXML4 Schema Docs" color="NAVIGATE" onAction="#onSchemaDocs"/>
+                    </children>
+                </PanelActionList>
+            </children>
+        </SidePanelSection>
+
+        <SidePanelSection title="UPDATES">
+            <children>
+                <PanelActionList>
+                    <children>
+                        <PanelActionButton id="help-check-updates" iconLiteral="bi-arrow-clockwise"
+                                           text="Check for Updates" color="TOOL" onAction="#checkForUpdates"/>
+                    </children>
+                </PanelActionList>
+            </children>
+        </SidePanelSection>
+        <Label fx:id="updateStatus" wrapText="true" styleClass="fxt-placeholder-text, fxt-tp-section-body"/>
+
+        <!-- FundsXML extension: only when enabled in the settings -->
+        <SidePanelSection fx:id="fundsSection" title="FUNDSXML">
+            <children>
+                <PanelActionList>
+                    <children>
+                        <PanelActionButton id="help-fundsxml-updates" iconLiteral="bi-cloud-arrow-down"
+                                           text="Check FundsXML Updates" color="TOOL"
+                                           onAction="#onCheckFundsXmlUpdates"/>
+                    </children>
+                </PanelActionList>
+            </children>
+        </SidePanelSection>
+        <Label fx:id="fundsStatus" wrapText="true" styleClass="fxt-placeholder-text, fxt-tp-section-body"/>
+    </children>
+</fx:root>

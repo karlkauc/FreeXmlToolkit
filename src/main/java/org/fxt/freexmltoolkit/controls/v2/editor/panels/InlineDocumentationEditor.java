@@ -24,23 +24,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javafx.collections.FXCollections;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
+import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeDocumentationsCommand;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdDocumentation;
@@ -74,14 +69,14 @@ public class InlineDocumentationEditor extends VBox implements PropertyChangeLis
     private final XsdEditorContext editorContext;
 
     // UI components
-    private final HBox tabBar;
-    private final ToggleGroup tabGroup;
-    private final Button addButton;
-    private final TextArea docTextArea;
-    private final HBox bottomBar;
-    private final ComboBox<String> langComboBox;
-    private final Button deleteButton;
-    private final VBox emptyState;
+    private final ToggleGroup tabGroup = new ToggleGroup();
+    @FXML private HBox tabBar;
+    @FXML private Button addButton;
+    @FXML private TextArea docTextArea;
+    @FXML private HBox bottomBar;
+    @FXML private ComboBox<String> langComboBox;
+    @FXML private Button deleteButton;
+    @FXML private VBox emptyState;
 
     // State
     private XsdNode currentNode;
@@ -90,38 +85,14 @@ public class InlineDocumentationEditor extends VBox implements PropertyChangeLis
     private boolean updating = false;
 
     /**
-     * Creates a new InlineDocumentationEditor.
+     * Creates a new InlineDocumentationEditor. The layout is loaded from
+     * {@code /pages/views/InlineDocumentationEditor.fxml}.
      *
      * @param editorContext the editor context for command execution
      */
     public InlineDocumentationEditor(XsdEditorContext editorContext) {
         this.editorContext = editorContext;
-
-        setSpacing(6);
-        setPadding(new Insets(8));
-
-        // Tab bar
-        tabGroup = new ToggleGroup();
-        tabBar = new HBox(4);
-        tabBar.setAlignment(Pos.CENTER_LEFT);
-        tabBar.getStyleClass().add("doc-tab-bar");
-
-        addButton = new Button();
-        IconifyIcon addIcon = new IconifyIcon("bi-plus-circle");
-        addIcon.setIconSize(14);
-        addButton.setGraphic(addIcon);
-        addButton.setTooltip(new Tooltip("Add documentation entry"));
-        addButton.getStyleClass().add("doc-tab-pill");
-        addButton.setOnAction(e -> handleAdd());
-
-        tabBar.getChildren().add(addButton);
-
-        // TextArea
-        docTextArea = new TextArea();
-        docTextArea.setWrapText(true);
-        docTextArea.setPrefRowCount(5);
-        docTextArea.setPromptText("Enter documentation text...");
-        VBox.setVgrow(docTextArea, Priority.ALWAYS);
+        FxmlViews.load(this, "/pages/views/InlineDocumentationEditor.fxml");
 
         // Auto-save on focus lost
         docTextArea.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
@@ -130,56 +101,29 @@ public class InlineDocumentationEditor extends VBox implements PropertyChangeLis
             }
         });
 
-        // Bottom bar
-        bottomBar = new HBox(8);
-        bottomBar.setAlignment(Pos.CENTER_LEFT);
-
-        Label langLabel = new Label("Lang:");
-        langComboBox = new ComboBox<>(FXCollections.observableArrayList(COMMON_LANGUAGES));
-        langComboBox.setEditable(true);
-        langComboBox.setPrefWidth(100);
-        langComboBox.setTooltip(new Tooltip("Select or type a language code"));
+        langComboBox.setItems(FXCollections.observableArrayList(COMMON_LANGUAGES));
         langComboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
             if (!updating && newVal != null) {
                 handleLangChange(newVal);
             }
         });
 
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-
-        deleteButton = new Button("Delete");
-        IconifyIcon deleteIcon = new IconifyIcon("bi-trash");
-        deleteIcon.setIconSize(14);
-        deleteButton.setGraphic(deleteIcon);
-        deleteButton.getStyleClass().add("btn-danger");
-        deleteButton.setTooltip(new Tooltip("Delete this documentation entry"));
-        deleteButton.setOnAction(e -> handleDelete());
-
-        bottomBar.getChildren().addAll(langLabel, langComboBox, spacer, deleteButton);
-
-        // Empty state
-        emptyState = new VBox(8);
-        emptyState.setAlignment(Pos.CENTER);
-        emptyState.setPadding(new Insets(20));
-        emptyState.getStyleClass().add("doc-empty-state");
-
-        IconifyIcon emptyIcon = new IconifyIcon("bi-journal-text");
-        emptyIcon.setIconSize(48);
-        emptyIcon.setIconColor(javafx.scene.paint.Color.web("#adb5bd"));
-
-        Label emptyLabel = new Label("No documentation. Click + to add.");
-        emptyLabel.setStyle("-fx-text-fill: #6c757d; -fx-font-style: italic;");
-
-        emptyState.getChildren().addAll(emptyIcon, emptyLabel);
-        VBox.setVgrow(emptyState, Priority.ALWAYS);
-
         // Initial layout (empty state)
-        getChildren().addAll(tabBar, emptyState);
+        getChildren().setAll(tabBar, emptyState);
         bottomBar.setVisible(false);
         docTextArea.setVisible(false);
 
         setEditMode(false);
+    }
+
+    @FXML
+    public void onAdd() {
+        handleAdd();
+    }
+
+    @FXML
+    public void onDelete() {
+        handleDelete();
     }
 
     /**

@@ -21,8 +21,7 @@ package org.fxt.freexmltoolkit.controls.dialogs;
 import java.awt.Desktop;
 import java.net.URI;
 
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
+import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
@@ -31,15 +30,14 @@ import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
-import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.UpdateInfo;
 import org.fxt.freexmltoolkit.service.UpdateCheckService;
@@ -77,6 +75,11 @@ public class UpdateNotificationDialog extends Dialog<UpdateNotificationDialog.Up
 
     private final UpdateInfo updateInfo;
     private final UpdateCheckService updateCheckService;
+    @FXML private Label currentVersion;
+    @FXML private Label latestVersion;
+    @FXML private HBox notesHeader;
+    @FXML private Label publishedDate;
+    @FXML private TextArea releaseNotes;
 
     /**
      * Creates a new update notification dialog.
@@ -111,23 +114,20 @@ public class UpdateNotificationDialog extends Dialog<UpdateNotificationDialog.Up
             logger.warn("Could not load dialog theme CSS", e);
         }
 
-        // Build content
-        VBox content = new VBox(20);
-        content.setPadding(new Insets(0));
-
-        // Header
-        content.getChildren().add(createHeader());
-
-        // Version info
-        content.getChildren().add(createVersionInfo());
-
-        // Release notes
-        content.getChildren().add(createReleaseNotesSection());
-
-        // Info box
-        content.getChildren().add(createInfoBox());
-
-        dialogPane.setContent(content);
+        // Content: header, versions, release notes, info tip
+        dialogPane.setContent(FxmlViews.loadContent(this, "/pages/dialogs/UpdateNotificationDialog.fxml"));
+        currentVersion.setText(versionText(updateInfo.currentVersion()));
+        latestVersion.setText(versionText(updateInfo.latestVersion()));
+        if (updateInfo.publishedDate() != null && !updateInfo.publishedDate().isBlank()) {
+            publishedDate.setText(" - " + updateInfo.publishedDate());
+        } else {
+            notesHeader.getChildren().remove(publishedDate);
+        }
+        String notes = updateInfo.releaseNotes();
+        if (notes == null || notes.isBlank()) {
+            notes = "No release notes available for this version.";
+        }
+        releaseNotes.setText(notes);
 
         // Custom buttons
         ButtonType installButton = new ButtonType("Download & Install", ButtonBar.ButtonData.OK_DONE);
@@ -182,156 +182,8 @@ public class UpdateNotificationDialog extends Dialog<UpdateNotificationDialog.Up
         });
     }
 
-    private VBox createHeader() {
-        VBox header = new VBox(5);
-        header.getStyleClass().add("dialog-header");
-        header.setStyle("-fx-background-color: linear-gradient(to right, #28a745, #20c997); -fx-padding: 20px;");
-
-        HBox headerContent = new HBox(15);
-        headerContent.setAlignment(Pos.CENTER_LEFT);
-
-        // Icon
-        IconifyIcon icon = new IconifyIcon("bi-arrow-up-circle-fill");
-        icon.setIconSize(48);
-        icon.setIconColor(Color.WHITE);
-
-        // Text
-        VBox textBox = new VBox(5);
-
-        Label titleLabel = new Label("Update Available");
-        titleLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: white;");
-
-        Label subtitleLabel = new Label("A new version of FreeXmlToolkit is available");
-        subtitleLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: rgba(255,255,255,0.9);");
-
-        textBox.getChildren().addAll(titleLabel, subtitleLabel);
-        headerContent.getChildren().addAll(icon, textBox);
-        header.getChildren().add(headerContent);
-
-        return header;
-    }
-
-    private HBox createVersionInfo() {
-        HBox versionBox = new HBox(30);
-        versionBox.setAlignment(Pos.CENTER);
-        versionBox.setPadding(new Insets(15));
-        versionBox.getStyleClass().add("theme-bg-secondary");
-        versionBox.setStyle("-fx-background-radius: 6px;");
-
-        // Current version
-        VBox currentBox = createVersionBox("Current Version", updateInfo.currentVersion(), "#6c757d");
-
-        // Arrow
-        IconifyIcon arrowIcon = new IconifyIcon("bi-arrow-right");
-        arrowIcon.setIconSize(24);
-        arrowIcon.setIconColor(Color.web("#28a745"));
-
-        // New version
-        VBox newBox = createVersionBox("New Version", updateInfo.latestVersion(), "#28a745");
-
-        versionBox.getChildren().addAll(currentBox, arrowIcon, newBox);
-
-        HBox container = new HBox(versionBox);
-        container.setPadding(new Insets(0, 20, 0, 20));
-        container.setAlignment(Pos.CENTER);
-
-        return container;
-    }
-
-    private VBox createVersionBox(String label, String version, String color) {
-        VBox box = new VBox(5);
-        box.setAlignment(Pos.CENTER);
-
-        Label labelLbl = new Label(label);
-        labelLbl.getStyleClass().add("desc-label");
-
-        Label versionLbl = new Label(version != null ? version : "Unknown");
-        versionLbl.setStyle(String.format(
-                "-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: %s;", color));
-
-        box.getChildren().addAll(labelLbl, versionLbl);
-        return box;
-    }
-
-    private VBox createReleaseNotesSection() {
-        VBox section = new VBox(10);
-        section.setPadding(new Insets(0, 20, 0, 20));
-        VBox.setVgrow(section, Priority.ALWAYS);
-
-        // Header with icon
-        HBox headerBox = new HBox(10);
-        headerBox.setAlignment(Pos.CENTER_LEFT);
-
-        IconifyIcon notesIcon = new IconifyIcon("bi-journal-text");
-        notesIcon.setIconSize(18);
-        notesIcon.setIconColor(Color.web("#007bff"));
-
-        Label headerLabel = new Label("What's New");
-        headerLabel.getStyleClass().add("theme-text-primary");
-        headerLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
-
-        if (updateInfo.publishedDate() != null && !updateInfo.publishedDate().isBlank()) {
-            Label dateLabel = new Label(" - " + updateInfo.publishedDate());
-            dateLabel.getStyleClass().add("theme-text-secondary");
-            dateLabel.setStyle("-fx-font-size: 12px;");
-            headerBox.getChildren().addAll(notesIcon, headerLabel, dateLabel);
-        } else {
-            headerBox.getChildren().addAll(notesIcon, headerLabel);
-        }
-
-        section.getChildren().add(headerBox);
-
-        // Release notes text area
-        TextArea releaseNotes = new TextArea();
-        releaseNotes.setEditable(false);
-        releaseNotes.setWrapText(true);
-        VBox.setVgrow(releaseNotes, Priority.ALWAYS);
-        releaseNotes.getStyleClass().add("theme-bg-secondary");
-        releaseNotes.setStyle(
-                "-fx-font-family: 'Consolas', 'Courier New', monospace; " +
-                        "-fx-font-size: 12px; " +
-                        "-fx-border-color: -border-light; " +
-                        "-fx-border-radius: 4px; " +
-                        "-fx-background-radius: 4px;"
-        );
-
-        String notes = updateInfo.releaseNotes();
-        if (notes == null || notes.isBlank()) {
-            notes = "No release notes available for this version.";
-        }
-        releaseNotes.setText(notes);
-
-        section.getChildren().add(releaseNotes);
-
-        return section;
-    }
-
-    private HBox createInfoBox() {
-        HBox infoBox = new HBox(10);
-        infoBox.setAlignment(Pos.CENTER_LEFT);
-        infoBox.setPadding(new Insets(10, 15, 10, 15));
-        infoBox.getStyleClass().add("info-tip-box");
-        infoBox.setStyle(
-                "-fx-background-radius: 4px; " +
-                        "-fx-border-radius: 4px;"
-        );
-
-        IconifyIcon infoIcon = new IconifyIcon("bi-info-circle-fill");
-        infoIcon.setIconSize(16);
-        infoIcon.setIconColor(Color.web("#0d6efd"));
-
-        Label infoLabel = new Label("Click 'Download & Install' to automatically update. The application will restart after installation.");
-        infoLabel.getStyleClass().add("info-tip-text");
-        infoLabel.setStyle("-fx-font-size: 12px;");
-        infoLabel.setWrapText(true);
-
-        infoBox.getChildren().addAll(infoIcon, infoLabel);
-
-        HBox container = new HBox(infoBox);
-        container.setPadding(new Insets(0, 20, 10, 20));
-        HBox.setHgrow(infoBox, Priority.ALWAYS);
-
-        return container;
+    private static String versionText(String version) {
+        return version != null ? version : "Unknown";
     }
 
     private void openDownloadPage() {

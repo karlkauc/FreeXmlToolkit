@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.layout.GridPane?>
+
+<!--
+  Content of the "Generate Sample XML" dialog. Loaded by SampleXmlOptionsDialog
+  (FxmlViews.loadContent), which is the controller and adds title and buttons.
+-->
+<GridPane hgap="10" vgap="8" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <padding>
+        <Insets topRightBottomLeft="16"/>
+    </padding>
+    <children>
+        <CheckBox fx:id="mandatoryOnly" text="Only mandatory elements" GridPane.rowIndex="0"
+                  GridPane.columnSpan="2"/>
+        <Label text="Max. repetitions:" GridPane.rowIndex="1"/>
+        <Spinner fx:id="maxOccurrences" editable="true" GridPane.rowIndex="1" GridPane.columnIndex="1">
+            <valueFactory>
+                <javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory min="1" max="20" initialValue="2"/>
+            </valueFactory>
+        </Spinner>
+        <CheckBox fx:id="realistic" text="Realistic values (honor enumerations, patterns, ranges)"
+                  GridPane.rowIndex="2" GridPane.columnSpan="2"/>
+    </children>
+</GridPane>

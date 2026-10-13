@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ChoiceBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.PanelProgress?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.search.SearchResultsTree?>
+
+<!--
+  XPath mode of the Search side panel: XPath input, namespace bindings, scope (Document |
+  Folder with folder + glob), "Find matches", the replace section (mode, argument, apply),
+  status, progress and the results tree. Loaded by XPathSearchPane via the fx:root pattern
+  (FxmlViews.load); XPathSearchPane is root and controller. The replace modes are filled in
+  code (they map to ReplaceMode values); the folder row and glob field show in Folder scope only.
+-->
+<fx:root type="javafx.scene.layout.VBox" spacing="6" styleClass="fxt-search-xpath-pane"
+         xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <fx:define>
+        <ToggleGroup fx:id="scope"/>
+    </fx:define>
+    <children>
+        <TextArea fx:id="xpathArea" id="xpath-query" promptText="//Amount[@ccy='EUR']" prefRowCount="2"
+                  wrapText="true" styleClass="fxt-query-input"/>
+
+        <HBox spacing="6" alignment="CENTER_LEFT">
+            <children>
+                <Label text="Namespaces" styleClass="fxt-sp-section-label"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button text="Detect" styleClass="fxt-tool-button" onAction="#onDetectNamespaces">
+                    <tooltip>
+                        <Tooltip text="Read the namespace bindings from the active document's root"/>
+                    </tooltip>
+                </Button>
+            </children>
+        </HBox>
+        <TextArea fx:id="nsArea" id="xpath-namespaces"
+                  promptText="prefix=uri per line (empty prefix = default namespace)" prefRowCount="2"/>
+
+        <!-- Scope -->
+        <HBox spacing="4">
+            <children>
+                <ToggleButton fx:id="currentDocToggle" id="xpath-scope-doc" text="Document" toggleGroup="$scope"
+                              maxWidth="Infinity" HBox.hgrow="ALWAYS"
+                              styleClass="fxt-tool-button, fxt-search-mode-toggle"/>
+                <ToggleButton fx:id="folderToggle" id="xpath-scope-folder" text="Folder" toggleGroup="$scope"
+                              maxWidth="Infinity" HBox.hgrow="ALWAYS"
+                              styleClass="fxt-tool-button, fxt-search-mode-toggle"/>
+            </children>
+        </HBox>
+        <HBox fx:id="folderRow" spacing="6" alignment="CENTER_LEFT" visible="false" managed="false">
+            <children>
+                <Label fx:id="folderLabel" text="(no folder)" maxWidth="Infinity" styleClass="fxt-vp-source-name"
+                       HBox.hgrow="ALWAYS"/>
+                <Button styleClass="fxt-tool-button" onAction="#onChooseFolder">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-folder2-open"/>
+                    </graphic>
+                    <tooltip>
+                        <Tooltip text="Choose folder"/>
+                    </tooltip>
+                </Button>
+            </children>
+        </HBox>
+        <TextField fx:id="globField" id="xpath-glob" promptText="File globs, e.g. *.xml" visible="false"
+                   managed="false"/>
+
+        <Button id="xpath-find" text="Find matches" maxWidth="Infinity" styleClass="fxt-primary-button"
+                onAction="#onFind"/>
+
+        <!-- Replace -->
+        <Label text="Replace" styleClass="fxt-sp-section-label"/>
+        <ChoiceBox fx:id="modeChoice" id="xpath-mode" maxWidth="Infinity"/>
+        <TextArea fx:id="argumentArea" id="xpath-argument" prefRowCount="2" wrapText="true"/>
+        <Button fx:id="applyButton" id="xpath-apply" text="Replace checked…" maxWidth="Infinity"
+                styleClass="fxt-primary-button" onAction="#onApply"/>
+
+        <Label fx:id="status" text="Enter an XPath and find matches" wrapText="true" styleClass="fxt-vp-status"/>
+        <PanelProgress fx:id="progress"/>
+        <SearchResultsTree fx:id="resultsTree" VBox.vgrow="ALWAYS"/>
+    </children>
+</fx:root>

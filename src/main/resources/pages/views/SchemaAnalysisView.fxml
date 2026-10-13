@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressIndicator?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
+
+<!--
+  "Schema Analysis" tool tab: header (title, subtitle, status, Export, Refresh), the five
+  sub-tabs and the "Analyzing…" overlay. Loaded by SchemaAnalysisView via the fx:root pattern
+  (FxmlViews.load); SchemaAnalysisView is root and controller. Built in code: the Export menu
+  (inserted before Refresh) and the content of each tab (the sections need the editor host).
+-->
+<fx:root type="javafx.scene.layout.BorderPane" styleClass="fxt-analysis"
+         xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <padding>
+        <Insets top="12" right="16" bottom="12" left="16"/>
+    </padding>
+    <top>
+        <HBox fx:id="header" spacing="12" alignment="CENTER_LEFT" styleClass="fxt-analysis-header">
+            <padding>
+                <Insets bottom="10"/>
+            </padding>
+            <children>
+                <VBox spacing="2" HBox.hgrow="ALWAYS">
+                    <children>
+                        <Label text="SCHEMA ANALYSIS" styleClass="fxt-side-panel-title"/>
+                        <Label fx:id="subtitle" styleClass="fxt-analysis-subtitle"/>
+                    </children>
+                </VBox>
+                <Label fx:id="status" id="analysis-status" styleClass="fxt-placeholder-text"/>
+                <Button fx:id="refresh" id="analysis-refresh" text="Refresh" styleClass="fxt-tool-button"
+                        onAction="#onRefresh">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-arrow-clockwise" iconSize="16"/>
+                    </graphic>
+                </Button>
+            </children>
+        </HBox>
+    </top>
+    <center>
+        <StackPane>
+            <children>
+                <TabPane fx:id="tabs" id="schema-analysis-tabs" tabClosingPolicy="UNAVAILABLE"
+                         styleClass="fxt-analysis-tabs">
+                    <tabs>
+                        <Tab fx:id="statisticsTab" text="Statistics" closable="false">
+                            <graphic>
+                                <IconifyIcon iconLiteral="bi-bar-chart" iconSize="14"/>
+                            </graphic>
+                        </Tab>
+                        <Tab fx:id="typesTab" text="Types" closable="false">
+                            <graphic>
+                                <IconifyIcon iconLiteral="bi-collection" iconSize="14"/>
+                            </graphic>
+                        </Tab>
+                        <Tab fx:id="qualityTab" text="Quality Checks" closable="false">
+                            <graphic>
+                                <IconifyIcon iconLiteral="bi-award" iconSize="14"/>
+                            </graphic>
+                        </Tab>
+                        <Tab fx:id="constraintsTab" text="Identity Constraints" closable="false">
+                            <graphic>
+                                <IconifyIcon iconLiteral="bi-key" iconSize="14"/>
+                            </graphic>
+                        </Tab>
+                        <Tab fx:id="xpathTab" text="XPath Validation" closable="false">
+                            <graphic>
+                                <IconifyIcon iconLiteral="bi-check2-circle" iconSize="14"/>
+                            </graphic>
+                        </Tab>
+                    </tabs>
+                </TabPane>
+                <StackPane fx:id="overlay" visible="false" managed="false" styleClass="fxt-analysis-overlay">
+                    <children>
+                        <VBox spacing="8" alignment="CENTER">
+                            <children>
+                                <ProgressIndicator maxWidth="48" maxHeight="48"/>
+                                <Label text="Analyzing…" styleClass="fxt-placeholder-text"/>
+                            </children>
+                        </VBox>
+                    </children>
+                </StackPane>
+            </children>
+        </StackPane>
+    </center>
+</fx:root>

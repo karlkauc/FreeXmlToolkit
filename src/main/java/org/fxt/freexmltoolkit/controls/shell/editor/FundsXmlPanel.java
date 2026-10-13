@@ -1,24 +1,23 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
 import javafx.application.Platform;
+import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
 import org.fxt.freexmltoolkit.FxtGui;
-import org.fxt.freexmltoolkit.controls.theme.ActionColor;
+import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.service.fundsxml.FundsXmlExtensionService;
 
 /** The FundsXML activity side panel: manage versions, validate the active document, docs/resources. */
 public class FundsXmlPanel extends VBox {
 
     private final EditorHost editorHost;
-    private final ComboBox<String> versionCombo = new ComboBox<>();
-    private final Label status = new Label();
-    private final ProgressBar progress = new ProgressBar();
+    @FXML private ComboBox<String> versionCombo;
+    @FXML private Label status;
+    @FXML private ProgressBar progress;
     private final FundsXmlDownloadCoordinator.Listener downloadListener = new FundsXmlDownloadCoordinator.Listener() {
         @Override
         public void onStarted() {
@@ -47,62 +46,16 @@ public class FundsXmlPanel extends VBox {
         }
     };
 
+    /** Loads the layout from {@code /pages/panels/FundsXmlPanel.fxml} and fills the versions. */
     public FundsXmlPanel(EditorHost editorHost) {
         this.editorHost = editorHost;
-        HBox header = SidePanelHeader.create("FUNDSXML");
-        status.getStyleClass().add("fxt-placeholder-text");
-        status.setWrapText(true);
-        progress.setMaxWidth(Double.MAX_VALUE);
+        FxmlViews.load(this, "/pages/panels/FundsXmlPanel.fxml");
         hideProgress();
-
-        // --- Management ---
-        versionCombo.getItems().setAll(FundsXmlRunner.installedVersions());
-        String active = FundsXmlRunner.activeVersion();
-        if (active != null) {
-            versionCombo.getSelectionModel().select(active);
-        }
-        versionCombo.setOnAction(e -> {
-            String v = versionCombo.getValue();
-            if (v != null && FundsXmlRunner.setActiveVersion(v)) {
-                PanelStatus.info(status, "Active schema version: " + v);
-            }
-        });
-        VBox versionBox = new VBox(4, new Label("Active version"), versionCombo);
-        versionBox.getStyleClass().add("fxt-tp-section-body");
-        PanelActionList management = new PanelActionList(
-                PanelAction.of("fundsxml-download", "bi-cloud-arrow-down", "Download / Update Content", this::download).color(ActionColor.TOOL));
-        HBox managementHeader = SidePanelLayout.sectionHeader(new Label("MANAGEMENT"), versionBox, management);
-
-        // --- Action ---
-        PanelActionList validation = new PanelActionList(
-                PanelAction.of("fundsxml-validate", "bi-check2-circle", "Validate active document", this::validate).color(ActionColor.CREATE));
-
-        // --- Docs & resources ---
-        PanelActionList docs = new PanelActionList(
-                PanelAction.of("fundsxml-open-schema", "bi-file-earmark-code", "Open Schema in Editor",
-                        this::openSchemaInEditor).color(ActionColor.NAVIGATE),
-                PanelAction.of("fundsxml-generate-docs", "bi-file-earmark-text", "Generate Schema Documentation",
-                        this::generateDocs).color(ActionColor.CREATE),
-                PanelAction.of("fundsxml-examples-folder", "bi-folder2-open", "Open Examples Folder",
-                        () -> openFolder(FundsXmlRunner.examplesDir())).color(ActionColor.NAVIGATE),
-                PanelAction.of("fundsxml-schema-folder", "bi-folder2-open", "Open Schema Folder",
-                        () -> openFolder(FundsXmlRunner.schemaDir())).color(ActionColor.NAVIGATE),
-                PanelAction.of("fundsxml-schematron-folder", "bi-folder2-open", "Open Schematron Folder",
-                        () -> openFolder(FundsXmlRunner.schematronDir())).color(ActionColor.NAVIGATE),
-                PanelAction.of("fundsxml-online-docs", "bi-globe", "Open Online Docs",
-                        () -> openUrl("https://fundsxml.org/")).color(ActionColor.NAVIGATE));
-
-        VBox spacer = new VBox();
-        VBox.setVgrow(spacer, Priority.ALWAYS);
-
-        VBox statusBox = new VBox(6, progress, status);
-        statusBox.getStyleClass().add("fxt-tp-section-body");
-
-        getChildren().addAll(header,
-                managementHeader, versionBox, management,
-                PanelActionList.section("VALIDATE", false, validation),
-                PanelActionList.section("DOCS & RESOURCES", false, docs),
-                spacer, statusBox);
+        // Initial fill: showing the active version must not count as the user picking one.
+        var onVersionSelected = versionCombo.getOnAction();
+        versionCombo.setOnAction(null);
+        refreshVersions();
+        versionCombo.setOnAction(onVersionSelected);
 
         // Observe background downloads (startup sync, settings toggle, this panel's button).
         FundsXmlDownloadCoordinator coordinator = FundsXmlDownloadCoordinator.getInstance();
@@ -113,13 +66,43 @@ public class FundsXmlPanel extends VBox {
         }
     }
 
-    private void download() {
+    @FXML
+    public void onVersionSelected() {
+        String v = versionCombo.getValue();
+        if (v != null && FundsXmlRunner.setActiveVersion(v)) {
+            PanelStatus.info(status, "Active schema version: " + v);
+        }
+    }
+
+    @FXML
+    public void onOpenExamplesFolder() {
+        openFolder(FundsXmlRunner.examplesDir());
+    }
+
+    @FXML
+    public void onOpenSchemaFolder() {
+        openFolder(FundsXmlRunner.schemaDir());
+    }
+
+    @FXML
+    public void onOpenSchematronFolder() {
+        openFolder(FundsXmlRunner.schematronDir());
+    }
+
+    @FXML
+    public void onOpenOnlineDocs() {
+        openUrl("https://fundsxml.org/");
+    }
+
+    @FXML
+    public void onDownload() {
         if (!FundsXmlDownloadCoordinator.getInstance().startBackgroundDownload("panel")) {
             PanelStatus.info(status, "Download already in progress…");
         }
     }
 
-    private void openSchemaInEditor() {
+    @FXML
+    public void onOpenSchema() {
         java.nio.file.Path schemaFile = FundsXmlRunner.activeSchemaFile();
         if (schemaFile == null) {
             PanelStatus.info(status, "No active schema — download content first.");
@@ -147,7 +130,8 @@ public class FundsXmlPanel extends VBox {
         progress.setManaged(false);
     }
 
-    private void validate() {
+    @FXML
+    public void onValidate() {
         String xml = editorHost.getActiveText().orElse(null);
         PanelStatus.info(status, "Validating…");
         FxtGui.executorService.submit(() -> {
@@ -156,7 +140,8 @@ public class FundsXmlPanel extends VBox {
         });
     }
 
-    private void generateDocs() {
+    @FXML
+    public void onGenerateDocs() {
         PanelStatus.info(status, "Generating documentation…");
         FxtGui.executorService.submit(() -> {
             String msg;
@@ -201,5 +186,4 @@ public class FundsXmlPanel extends VBox {
                     "Copy the address into your browser instead.", e);
         }
     }
-
 }

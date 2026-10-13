@@ -13,7 +13,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
-import javafx.geometry.Pos;
+import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
@@ -28,10 +28,10 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
+import org.fxt.freexmltoolkit.controls.shell.FxmlColumns;
+import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost;
 import org.fxt.freexmltoolkit.controls.shell.editor.OpenDocument;
 import org.fxt.freexmltoolkit.controls.v2.editor.usage.ComponentInfo;
@@ -56,64 +56,47 @@ final class TypesSection extends VBox {
     static final String SINGLE_USE = "Single use";
 
     private final EditorHost editorHost;
-    private final Label status = new Label();
+    @FXML private HBox toolbar;
+    @FXML private Label status;
     private final StringProperty filter = new SimpleStringProperty(ALL);
-    private final FlowPane chips = new FlowPane(6, 6);
-    private final TextField search = new TextField();
-    private final Label count = new Label();
-    private final Button removeUnused = new Button("Remove unused…", AnalysisSupport.icon("bi-trash", 14));
+    @FXML private FlowPane chips;
+    @FXML private TextField search;
+    @FXML private Label count;
+    @FXML private Button removeUnused;
     private final ObservableList<ComponentInfo> components = FXCollections.observableArrayList();
     private final FilteredList<ComponentInfo> filtered = new FilteredList<>(components);
-    private final TableView<ComponentInfo> table = new TableView<>();
-    private final ListView<UsageRef> usages = new ListView<>();
-    private final Label usagesTitle = AnalysisSupport.groupTitle("Used in");
-    private final TextArea documentation = new TextArea();
+    @FXML private TableView<ComponentInfo> table;
+    @FXML private TableColumn<ComponentInfo, ComponentKind> kindColumn;
+    @FXML private TableColumn<ComponentInfo, String> nameColumn;
+    @FXML private TableColumn<ComponentInfo, String> baseColumn;
+    @FXML private TableColumn<ComponentInfo, String> documentationColumn;
+    @FXML private TableColumn<ComponentInfo, ComponentInfo> usageColumn;
+    @FXML private TableColumn<ComponentInfo, String> fileColumn;
+    @FXML private ListView<UsageRef> usages;
+    @FXML private Label usagesTitle;
+    @FXML private TextArea documentation;
     private SchemaAnalysisData data;
     private OpenDocument document;
     private Runnable afterRemoval = () -> { };
 
     TypesSection(EditorHost editorHost) {
         this.editorHost = editorHost;
-        getStyleClass().add("fxt-analysis-section");
-        setSpacing(10);
+        FxmlViews.load(this, "/pages/views/TypesSection.fxml");
 
-        status.setId("analysis-types-status");
-        status.getStyleClass().add("fxt-placeholder-text");
         status.managedProperty().bind(status.textProperty().isNotEmpty());
-        removeUnused.setId("analysis-types-remove-unused");
-        removeUnused.getStyleClass().add("fxt-tool-button");
-        removeUnused.setTooltip(new Tooltip("Delete every type, group and attribute group that no global element or attribute reaches (one undo step)"));
-        removeUnused.setDisable(true);
-        removeUnused.setOnAction(e -> confirmAndRemove());
-        HBox toolbar = new HBox(8, AnalysisSupport.reportMenu("Schema Types", status,
-                () -> data == null ? null : SchemaAnalysisReport.types(data)), removeUnused, status);
-        toolbar.setAlignment(Pos.CENTER_LEFT);
+        toolbar.getChildren().add(0, AnalysisSupport.reportMenu("Schema Types", status,
+                () -> data == null ? null : SchemaAnalysisReport.types(data)));
 
-        chips.setId("analysis-types-chips");
-        chips.setAlignment(Pos.CENTER_LEFT);
-        search.setId("analysis-types-search");
-        search.setPromptText("Search types…");
-        search.setPrefWidth(220);
         search.textProperty().addListener((obs, o, n) -> applyFilter());
         filter.addListener((obs, o, n) -> applyFilter());
-        count.setId("analysis-types-count");
-        count.getStyleClass().add("fxt-analysis-count");
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-        HBox filterBar = new HBox(8, new Label(null, AnalysisSupport.icon("bi-funnel", 14)), chips, search, spacer, count);
-        filterBar.getStyleClass().add("fxt-analysis-filter");
-        filterBar.setAlignment(Pos.CENTER_LEFT);
 
-        table.setId("analysis-types-table");
-        table.getStyleClass().add("fxt-analysis-table");
-        table.getColumns().add(kindColumn());
-        table.getColumns().add(AnalysisSupport.column("Name", ComponentInfo::name, 220));
-        table.getColumns().add(AnalysisSupport.column("Base", ComponentInfo::baseType, 180));
-        table.getColumns().add(AnalysisSupport.column("Documentation", c -> firstLine(c.documentation()), 260));
-        table.getColumns().add(usageColumn());
-        table.getColumns().add(fileColumn());
+        configureKindColumn(kindColumn);
+        FxmlColumns.text(nameColumn, ComponentInfo::name);
+        FxmlColumns.text(baseColumn, ComponentInfo::baseType);
+        FxmlColumns.text(documentationColumn, c -> firstLine(c.documentation()));
+        configureUsageColumn(usageColumn);
+        configureFileColumn(fileColumn);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
-        table.setPlaceholder(AnalysisSupport.emptyLabel("No global types, groups or attribute groups."));
         SortedList<ComponentInfo> sorted = new SortedList<>(filtered);
         sorted.comparatorProperty().bind(table.comparatorProperty());
         table.setItems(sorted);
@@ -125,12 +108,7 @@ final class TypesSection extends VBox {
                 }
             }
         });
-        VBox.setVgrow(table, Priority.ALWAYS);
 
-        usages.setId("analysis-types-usages");
-        usages.getStyleClass().add("fxt-analysis-list");
-        usages.setPlaceholder(AnalysisSupport.emptyLabel("Select a component to see where it is used."));
-        usages.setPrefHeight(150);
         usages.setCellFactory(list -> new ListCell<>() {
             @Override
             protected void updateItem(UsageRef item, boolean empty) {
@@ -152,21 +130,12 @@ final class TypesSection extends VBox {
                 editorHost.revealSchemaNodeByXPath(n.referrerXPath());
             }
         });
-        documentation.setId("analysis-types-documentation");
-        documentation.setEditable(false);
-        documentation.setWrapText(true);
-        documentation.setPrefRowCount(4);
-        documentation.getStyleClass().add("fxt-analysis-details");
-        VBox usageBox = new VBox(6, usagesTitle, usages);
-        VBox docBox = new VBox(6, AnalysisSupport.groupTitle("Documentation"), documentation);
-        HBox.setHgrow(usageBox, Priority.ALWAYS);
-        HBox.setHgrow(docBox, Priority.ALWAYS);
-        usages.setMaxWidth(Double.MAX_VALUE);
-        documentation.setMaxWidth(Double.MAX_VALUE);
-        HBox details = new HBox(12, usageBox, docBox);
-
-        getChildren().addAll(toolbar, filterBar, table, details);
         applyFilter();
+    }
+
+    @FXML
+    public void onRemoveUnused() {
+        confirmAndRemove();
     }
 
     void setData(SchemaAnalysisData data) {
@@ -273,9 +242,7 @@ final class TypesSection extends VBox {
 
     // ---------------------------------------------------------------- columns
 
-    private static TableColumn<ComponentInfo, ComponentKind> kindColumn() {
-        TableColumn<ComponentInfo, ComponentKind> column = new TableColumn<>("Kind");
-        column.setPrefWidth(130);
+    private static void configureKindColumn(TableColumn<ComponentInfo, ComponentKind> column) {
         column.setCellValueFactory(c -> new ReadOnlyObjectWrapper<>(c.getValue().kind()));
         column.setCellFactory(col -> new TableCell<>() {
             @Override
@@ -291,7 +258,6 @@ final class TypesSection extends VBox {
                 setGraphicTextGap(6);
             }
         });
-        return column;
     }
 
     static String kindIcon(ComponentKind kind) {
@@ -306,9 +272,7 @@ final class TypesSection extends VBox {
     }
 
     /** Usage count as a chip: 0 = error, ≤ 3 = warning, else ok; unreachable adds a tooltip. */
-    private static TableColumn<ComponentInfo, ComponentInfo> usageColumn() {
-        TableColumn<ComponentInfo, ComponentInfo> column = new TableColumn<>("Usages");
-        column.setPrefWidth(110);
+    private static void configureUsageColumn(TableColumn<ComponentInfo, ComponentInfo> column) {
         column.setCellValueFactory(c -> new ReadOnlyObjectWrapper<>(c.getValue()));
         column.setComparator((a, b) -> Integer.compare(a.usageCount(), b.usageCount()));
         column.setCellFactory(col -> new TableCell<>() {
@@ -329,12 +293,10 @@ final class TypesSection extends VBox {
                 setGraphic(chip);
             }
         });
-        return column;
     }
 
-    private static TableColumn<ComponentInfo, String> fileColumn() {
-        TableColumn<ComponentInfo, String> column = AnalysisSupport.column("File",
-                c -> c.fromInclude() ? c.sourceFileName() : "", 110);
+    private static void configureFileColumn(TableColumn<ComponentInfo, String> column) {
+        FxmlColumns.text(column, c -> c.fromInclude() ? c.sourceFileName() : "");
         column.setCellFactory(col -> new TableCell<>() {
             @Override
             protected void updateItem(String item, boolean empty) {
@@ -349,7 +311,6 @@ final class TypesSection extends VBox {
                 setGraphicTextGap(4);
             }
         });
-        return column;
     }
 
     // ---------------------------------------------------------------- remove unused

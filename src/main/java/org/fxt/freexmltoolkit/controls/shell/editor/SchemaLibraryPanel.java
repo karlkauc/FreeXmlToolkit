@@ -9,13 +9,14 @@ import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
-import javafx.scene.Node;
+import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.layout.*;
 import javafx.stage.FileChooser;
 
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.controls.theme.ActionColor;
 import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
@@ -34,81 +35,78 @@ public class SchemaLibraryPanel extends VBox {
     private final SchemaResourceCache cache;
     private final XmlService xmlService;
 
-    private final TabPane tabs = new TabPane();
-    private final Tab mappingsTab = new Tab();
-    private final Tab catalogsTab = new Tab();
-    private final Tab cacheTab = new Tab();
+    @FXML private TabPane tabs;
+    @FXML private Tab mappingsTab;
+    @FXML private Tab catalogsTab;
+    @FXML private Tab cacheTab;
 
     // Mappings
-    private final TextField filter = new TextField();
+    @FXML private TextField filter;
     private final FilteredList<SchemaLibraryEntry> filtered;
-    private final TableView<SchemaLibraryEntry> mappings = new TableView<>();
-    private final Label status = new Label();
+    @FXML private TableView<SchemaLibraryEntry> mappings;
+    @FXML private TableColumn<SchemaLibraryEntry, SchemaLibraryEntry> statusColumn;
+    @FXML private TableColumn<SchemaLibraryEntry, String> namespaceColumn;
+    @FXML private TableColumn<SchemaLibraryEntry, String> locationColumn;
+    @FXML private TableColumn<SchemaLibraryEntry, String> kindColumn;
+    @FXML private TableColumn<SchemaLibraryEntry, String> sourceColumn;
+    @FXML private TableColumn<SchemaLibraryEntry, Boolean> enabledColumn;
+    @FXML private Button editButton;
+    @FXML private Button removeButton;
+    @FXML private Button toggleButton;
+    @FXML private Button addCurrentButton;
+    @FXML private Button downloadButton;
+    @FXML private Label status;
 
     // Catalogs
-    private final ListView<SchemaCatalogRef> catalogList = new ListView<>();
+    @FXML private ListView<SchemaCatalogRef> catalogList;
+    @FXML private Button catalogRemoveButton;
+    @FXML private Button catalogToggleButton;
+    @FXML private Button catalogImportButton;
 
     // Cache
     private final ObservableList<SchemaCacheEntry> cacheEntries = FXCollections.observableArrayList();
     private final FilteredList<SchemaCacheEntry> cacheFiltered = new FilteredList<>(cacheEntries);
-    private final TableView<SchemaCacheEntry> cacheTable = new TableView<>(cacheFiltered);
-    private final Label cacheFooter = new Label();
-    private final Label legacyInfo = new Label();
+    @FXML private TextField cacheFilter;
+    @FXML private TableView<SchemaCacheEntry> cacheTable;
+    @FXML private TableColumn<SchemaCacheEntry, String> cacheUrlColumn;
+    @FXML private TableColumn<SchemaCacheEntry, String> cacheNamespaceColumn;
+    @FXML private TableColumn<SchemaCacheEntry, String> cacheSizeColumn;
+    @FXML private TableColumn<SchemaCacheEntry, String> cacheDownloadedColumn;
+    @FXML private TableColumn<SchemaCacheEntry, String> cacheHitsColumn;
+    @FXML private Button cacheOpenButton;
+    @FXML private Button cacheRefreshButton;
+    @FXML private Button cacheDeleteButton;
+    @FXML private Label cacheFooter;
+    @FXML private Label legacyInfo;
 
     public SchemaLibraryPanel(EditorHost editorHost) {
         this(editorHost, SchemaLibraryServiceImpl.shared(), SchemaResourceCache.shared(),
                 ServiceRegistry.get(XmlService.class));
     }
 
+    /** Loads the layout from {@code /pages/panels/SchemaLibraryPanel.fxml} and wires the three tabs. */
     public SchemaLibraryPanel(EditorHost editorHost, SchemaLibraryService library,
                               SchemaResourceCache cache, XmlService xmlService) {
         this.editorHost = editorHost;
         this.library = library;
         this.cache = cache;
         this.xmlService = xmlService;
-        getStyleClass().add("fxt-schema-library-panel");
-
-        HBox header = SidePanelHeader.create("SCHEMA LIBRARY");
-
         filtered = new FilteredList<>(library.getEntries());
-        mappingsTab.setContent(buildMappingsTab());
-        catalogsTab.setContent(buildCatalogsTab());
-        cacheTab.setContent(buildCacheTab());
+        FxmlViews.load(this, "/pages/panels/SchemaLibraryPanel.fxml");
+
+        initMappingsTab();
+        initCatalogsTab();
+        initCacheTab();
         tabs.getSelectionModel().selectedItemProperty().addListener((o, a, t) -> {
             if (t == cacheTab) refreshCache();
         });
-        for (Tab t : new Tab[]{mappingsTab, catalogsTab, cacheTab}) {
-            t.setClosable(false);
-            t.getStyleClass().add("utility-tab");
-        }
-        // Icon-only tabs (with a tooltip carrying the full name): at the default side-panel
-        // width (~260px) even text-only labels ("Mappings"/"Catalogs"/"Cache") were too wide
-        // for all three to fit without triggering the TabPane overflow menu. A 16px icon per
-        // tab plus the tightened header/tab padding below comfortably fits three tabs.
-        mappingsTab.setGraphic(tabIcon("bi-diagram-3"));
-        catalogsTab.setGraphic(tabIcon("bi-journal-bookmark"));
-        cacheTab.setGraphic(tabIcon("bi-hdd"));
-        mappingsTab.setTooltip(new Tooltip("Mappings"));
-        catalogsTab.setTooltip(new Tooltip("Catalogs"));
-        cacheTab.setTooltip(new Tooltip("Cache"));
-        tabs.setTabMinWidth(0);
-        tabs.setId("schema-library-tabs");
-        tabs.getTabs().addAll(mappingsTab, catalogsTab, cacheTab);
-        VBox.setVgrow(tabs, Priority.ALWAYS);
-
-        status.setId("library-status");
-        status.getStyleClass().add("fxt-lib-status");
-        status.setWrapText(true);
-        getChildren().addAll(header, tabs, status);
     }
 
     public void showCacheTab() { tabs.getSelectionModel().select(cacheTab); }
 
     // ------------------------------------------------------------------ Mappings
 
-    private Node buildMappingsTab() {
-        filter.setId("library-filter");
-        filter.setPromptText("Filter namespace, location, description, root element…");
+    private void initMappingsTab() {
         filter.textProperty().addListener((o, a, text) -> {
             String q = text == null ? "" : text.trim().toLowerCase(Locale.ROOT);
             filtered.setPredicate(q.isEmpty() ? null : e ->
@@ -118,14 +116,11 @@ public class SchemaLibraryPanel extends VBox {
                             || (e.rootElement() != null && e.rootElement().toLowerCase(Locale.ROOT).contains(q)));
         });
 
-        mappings.setId("library-mappings-table");
         mappings.setItems(filtered);
         mappings.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
-        mappings.setPlaceholder(new Label("No schema mappings yet. Click Add to map a namespace to a schema."));
 
-        TableColumn<SchemaLibraryEntry, SchemaLibraryEntry> statusCol = new TableColumn<>("");
-        statusCol.setCellValueFactory(cd -> new javafx.beans.property.SimpleObjectProperty<>(cd.getValue()));
-        statusCol.setCellFactory(c -> new TableCell<>() {
+        statusColumn.setCellValueFactory(cd -> new javafx.beans.property.SimpleObjectProperty<>(cd.getValue()));
+        statusColumn.setCellFactory(c -> new TableCell<>() {
             @Override protected void updateItem(SchemaLibraryEntry item, boolean empty) {
                 super.updateItem(item, empty);
                 if (empty || item == null) { setGraphic(null); setTooltip(null); return; }
@@ -141,29 +136,16 @@ public class SchemaLibraryPanel extends VBox {
                         + library.lastError(item).map(e -> ": " + e).orElse("")));
             }
         });
-        statusCol.setPrefWidth(28); statusCol.setMinWidth(28); statusCol.setMaxWidth(28);
 
-        TableColumn<SchemaLibraryEntry, String> nsCol = new TableColumn<>("Namespace");
-        nsCol.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(
+        namespaceColumn.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(
                 namespaceLabel(cd.getValue())));
-        nsCol.setCellFactory(c -> tooltipCell());
-        nsCol.setMinWidth(60);
-        TableColumn<SchemaLibraryEntry, String> locCol = new TableColumn<>("Location");
-        locCol.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(cd.getValue().location()));
-        locCol.setCellFactory(c -> tooltipCell());
-        locCol.setMinWidth(60);
-        // Kind and Source are hidden by default: at the default ~260px side-panel width there
-        // is only room for Namespace/Location to stay readable. Both remain reachable via the
-        // table's column-visibility menu button (setTableMenuButtonVisible below).
-        TableColumn<SchemaLibraryEntry, String> kindCol = new TableColumn<>("Kind");
-        kindCol.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(cd.getValue().kind().label()));
-        kindCol.setVisible(false);
-        TableColumn<SchemaLibraryEntry, String> srcCol = new TableColumn<>("Source");
-        srcCol.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(cd.getValue().source().name().toLowerCase(Locale.ROOT)));
-        srcCol.setVisible(false);
-        TableColumn<SchemaLibraryEntry, Boolean> enabledCol = new TableColumn<>("On");
-        enabledCol.setCellValueFactory(cd -> new javafx.beans.property.SimpleBooleanProperty(cd.getValue().enabled()));
-        enabledCol.setCellFactory(c -> new CheckBoxTableCell<>(idx -> {
+        namespaceColumn.setCellFactory(c -> tooltipCell());
+        locationColumn.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(cd.getValue().location()));
+        locationColumn.setCellFactory(c -> tooltipCell());
+        kindColumn.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(cd.getValue().kind().label()));
+        sourceColumn.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(cd.getValue().source().name().toLowerCase(Locale.ROOT)));
+        enabledColumn.setCellValueFactory(cd -> new javafx.beans.property.SimpleBooleanProperty(cd.getValue().enabled()));
+        enabledColumn.setCellFactory(c -> new CheckBoxTableCell<>(idx -> {
             SchemaLibraryEntry e = mappings.getItems().get(idx);
             var prop = new javafx.beans.property.SimpleBooleanProperty(e.enabled());
             prop.addListener((o, was, now) -> {
@@ -175,9 +157,6 @@ public class SchemaLibraryPanel extends VBox {
             });
             return prop;
         }));
-        enabledCol.setPrefWidth(40); enabledCol.setMinWidth(40); enabledCol.setMaxWidth(40);
-        mappings.getColumns().setAll(java.util.List.of(statusCol, nsCol, locCol, kindCol, srcCol, enabledCol));
-        mappings.setTableMenuButtonVisible(true);
         mappings.setRowFactory(tv -> {
             TableRow<SchemaLibraryEntry> row = new TableRow<>() {
                 @Override protected void updateItem(SchemaLibraryEntry item, boolean empty) {
@@ -194,31 +173,17 @@ public class SchemaLibraryPanel extends VBox {
         mappings.setContextMenu(mappingsContextMenu());
 
         var selected = mappings.getSelectionModel().selectedItemProperty();
-        Button add = toolButton("library-add", "Add mapping…", "bi-plus-circle", this::addEntry);
-        Button edit = toolButton("library-edit", "Edit…", "bi-pencil", this::editSelected);
-        Button remove = toolButton("library-remove", "Remove", "bi-trash", this::removeSelected);
-        Button toggle = toolButton("library-toggle", "Enable / disable", "bi-toggle-on", this::toggleSelected);
-        Button addCurrent = toolButton("library-add-current", "Add schema of current document", "bi-file-earmark-plus", this::addCurrentSchema);
-        Button download = toolButton("library-download", "Download / verify", "bi-cloud-download", this::downloadSelected);
-        edit.disableProperty().bind(Bindings.createBooleanBinding(
+        editButton.disableProperty().bind(Bindings.createBooleanBinding(
                 () -> selected.get() == null || selected.get().source() != EntrySource.USER, selected));
-        remove.disableProperty().bind(edit.disableProperty());
-        toggle.disableProperty().bind(selected.isNull());
-        download.disableProperty().bind(selected.isNull());
-        addCurrent.disableProperty().bind(editorHost.activeSchemaProperty().isNull());
-        FlowPane tools = new FlowPane(2, 2, add, edit, remove, toggle, addCurrent, download);
-        tools.getStyleClass().add("fxt-schema-tools");
-
-        VBox box = new VBox(4, tools, filter, mappings);
-        VBox.setVgrow(mappings, Priority.ALWAYS);
-        return box;
+        removeButton.disableProperty().bind(editButton.disableProperty());
+        toggleButton.disableProperty().bind(selected.isNull());
+        downloadButton.disableProperty().bind(selected.isNull());
+        addCurrentButton.disableProperty().bind(editorHost.activeSchemaProperty().isNull());
     }
 
     // ------------------------------------------------------------------ Catalogs
 
-    private Node buildCatalogsTab() {
-        catalogList.setId("library-catalogs-list");
-        catalogList.setPlaceholder(new Label("No XML catalogs registered. Add an OASIS catalog.xml to map system IDs and URIs."));
+    private void initCatalogsTab() {
         catalogList.setCellFactory(lv -> new ListCell<>() {
             @Override protected void updateItem(SchemaCatalogRef ref, boolean empty) {
                 super.updateItem(ref, empty);
@@ -248,27 +213,28 @@ public class SchemaLibraryPanel extends VBox {
         });
 
         var selected = catalogList.getSelectionModel().selectedItemProperty();
-        Button add = toolButton("library-catalog-add", "Add catalog…", "bi-plus-circle", this::chooseCatalog);
-        Button remove = toolButton("library-catalog-remove", "Remove", "bi-trash", () -> {
-            SchemaCatalogRef s = selected.get();
-            if (s != null) { catalogList.getSelectionModel().clearSelection(); library.removeCatalog(s.id()); refreshCatalogs(); }
-        });
-        Button toggle = toolButton("library-catalog-toggle", "Enable / disable", "bi-toggle-on", () -> {
-            SchemaCatalogRef s = selected.get();
-            if (s != null) { library.setCatalogEnabled(s.id(), !s.enabled()); refreshCatalogs(); }
-        });
-        Button reload = toolButton("library-catalog-reload", "Reload catalogs", "bi-arrow-clockwise", () -> { library.reloadCatalogs(); refreshCatalogs(); });
-        Button importBtn = toolButton("library-catalog-import", "Import entries into Mappings…", "bi-box-arrow-in-down", this::importSelectedCatalog);
-        remove.disableProperty().bind(selected.isNull());
-        toggle.disableProperty().bind(selected.isNull());
-        importBtn.disableProperty().bind(selected.isNull());
-        FlowPane tools = new FlowPane(2, 2, add, remove, toggle, reload, importBtn);
-        tools.getStyleClass().add("fxt-schema-tools");
-
-        VBox box = new VBox(4, tools, catalogList);
-        VBox.setVgrow(catalogList, Priority.ALWAYS);
+        catalogRemoveButton.disableProperty().bind(selected.isNull());
+        catalogToggleButton.disableProperty().bind(selected.isNull());
+        catalogImportButton.disableProperty().bind(selected.isNull());
         refreshCatalogs();
-        return box;
+    }
+
+    @FXML
+    public void onRemoveCatalog() {
+        SchemaCatalogRef s = catalogList.getSelectionModel().getSelectedItem();
+        if (s != null) { catalogList.getSelectionModel().clearSelection(); library.removeCatalog(s.id()); refreshCatalogs(); }
+    }
+
+    @FXML
+    public void onToggleCatalog() {
+        SchemaCatalogRef s = catalogList.getSelectionModel().getSelectedItem();
+        if (s != null) { library.setCatalogEnabled(s.id(), !s.enabled()); refreshCatalogs(); }
+    }
+
+    @FXML
+    public void onReloadCatalogs() {
+        library.reloadCatalogs();
+        refreshCatalogs();
     }
 
     void refreshCatalogs() {
@@ -278,10 +244,7 @@ public class SchemaLibraryPanel extends VBox {
 
     // ------------------------------------------------------------------ Cache
 
-    private Node buildCacheTab() {
-        TextField cacheFilter = new TextField();
-        cacheFilter.setId("library-cache-filter");
-        cacheFilter.setPromptText("Filter URL or namespace…");
+    private void initCacheTab() {
         cacheFilter.textProperty().addListener((o, a, text) -> {
             String q = text == null ? "" : text.trim().toLowerCase(Locale.ROOT);
             // remoteUrl() is null for files indexed from disk without an index entry
@@ -293,34 +256,21 @@ public class SchemaLibraryPanel extends VBox {
                                 && e.schema().targetNamespace().toLowerCase(Locale.ROOT).contains(q)));
         });
 
-        cacheTable.setId("library-cache-table");
+        cacheTable.setItems(cacheFiltered);
         cacheTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
-        cacheTable.setPlaceholder(new Label("No cached remote schemas."));
-        TableColumn<SchemaCacheEntry, String> url = new TableColumn<>("URL");
-        url.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(urlOf(cd.getValue())));
-        url.setCellFactory(c -> tooltipCell());
-        url.setMinWidth(80);
-        TableColumn<SchemaCacheEntry, String> ns = new TableColumn<>("Target namespace");
-        ns.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(
+        cacheUrlColumn.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(urlOf(cd.getValue())));
+        cacheUrlColumn.setCellFactory(c -> tooltipCell());
+        cacheNamespaceColumn.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(
                 cd.getValue().schema() == null || cd.getValue().schema().targetNamespace() == null ? "" : cd.getValue().schema().targetNamespace()));
-        ns.setCellFactory(c -> tooltipCell());
-        TableColumn<SchemaCacheEntry, String> size = new TableColumn<>("Size");
-        size.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(
+        cacheNamespaceColumn.setCellFactory(c -> tooltipCell());
+        cacheSizeColumn.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(
                 org.apache.commons.io.FileUtils.byteCountToDisplaySize(cd.getValue().fileSizeBytes())));
-        // Downloaded and Hits are hidden by default to keep URL/Size readable at the default
-        // ~260px side-panel width; both remain reachable via the table menu button below.
-        TableColumn<SchemaCacheEntry, String> when = new TableColumn<>("Downloaded");
-        when.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(
+        cacheDownloadedColumn.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(
                 cd.getValue().downloadTimestamp() == null ? "" :
                         java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
                                 .withZone(java.time.ZoneId.systemDefault()).format(cd.getValue().downloadTimestamp())));
-        when.setVisible(false);
-        TableColumn<SchemaCacheEntry, String> hits = new TableColumn<>("Hits");
-        hits.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(
+        cacheHitsColumn.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(
                 cd.getValue().usage() == null ? "0" : String.valueOf(cd.getValue().usage().accessCount())));
-        hits.setVisible(false);
-        cacheTable.getColumns().setAll(java.util.List.of(url, ns, size, when, hits));
-        cacheTable.setTableMenuButtonVisible(true);
         cacheTable.setRowFactory(tv -> {
             TableRow<SchemaCacheEntry> row = new TableRow<>();
             row.setOnMouseClicked(ev -> { if (ev.getClickCount() == 2 && !row.isEmpty()) editorHost.openFile(cache.pathOf(row.getItem()).toFile()); });
@@ -328,70 +278,70 @@ public class SchemaLibraryPanel extends VBox {
         });
 
         var selected = cacheTable.getSelectionModel().selectedItemProperty();
-        Button open = toolButton("library-cache-open", "Open cached file", "bi-box-arrow-up-right",
-                () -> { var s = selected.get(); if (s != null) editorHost.openFile(cache.pathOf(s).toFile()); });
-        Button reveal = toolButton("library-cache-reveal", "Show in system file manager", "bi-folder2-open", () -> {
-            var s = selected.get();
-            if (s != null) org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
-                try { java.awt.Desktop.getDesktop().open(cache.getCacheDirectory().toFile()); }
-                catch (Exception e) { Platform.runLater(() -> setStatus("Cannot open folder: " + e.getMessage())); }
-            });
-        });
-        Button refresh = toolButton("library-cache-refresh", "Re-download", "bi-arrow-clockwise", () -> {
-            var s = selected.get();
-            if (s == null || s.remoteUrl() == null) return;   // nothing to re-download
-            String remote = s.remoteUrl();
-            setStatus("Refreshing " + remote + "…");
-            org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
-                var result = cache.refresh(remote);
-                Platform.runLater(() -> { setStatus(result.isPresent() ? "Refreshed " + remote : "Refresh failed for " + remote); refreshCache(); });
-            });
-        });
-        Button delete = toolButton("library-cache-delete", "Delete cached file", "bi-trash", () -> {
-            var s = selected.get();
-            if (s != null && DialogHelper.showConfirmation("Delete Cached Schema", "Delete the cached copy of\n" + urlOf(s) + "?",
-                    "It will be downloaded again on next use.")) {
-                deleteSelectedCacheEntryWithoutConfirm();
-            }
-        });
-        Button clear = toolButton("library-cache-clear", "Clear entire cache", "bi-x-octagon", () -> {
-            if (DialogHelper.showConfirmation("Clear Schema Cache", "Delete all cached remote schemas?",
-                    cache.getCacheDirectory() + "\n\nThis action cannot be undone.")) {
-                org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
-                    int n = cache.clearCache();
-                    Platform.runLater(() -> { setStatus("Deleted " + n + " cached file(s)."); refreshCache(); });
-                });
-            }
-        });
-        open.disableProperty().bind(selected.isNull());
+        cacheOpenButton.disableProperty().bind(selected.isNull());
         // A file indexed from disk has no remote URL, so there is nothing to re-download.
-        refresh.disableProperty().bind(javafx.beans.binding.Bindings.createBooleanBinding(
+        cacheRefreshButton.disableProperty().bind(javafx.beans.binding.Bindings.createBooleanBinding(
                 () -> selected.get() == null || selected.get().remoteUrl() == null, selected));
-        delete.disableProperty().bind(selected.isNull());
-        FlowPane tools = new FlowPane(2, 2, open, reveal, refresh, delete, clear);
-        tools.getStyleClass().add("fxt-schema-tools");
+        cacheDeleteButton.disableProperty().bind(selected.isNull());
+    }
 
-        cacheFooter.setId("library-cache-footer");
-        cacheFooter.getStyleClass().add("fxt-lib-status");
+    @FXML
+    public void onOpenCached() {
+        var s = cacheTable.getSelectionModel().getSelectedItem();
+        if (s != null) editorHost.openFile(cache.pathOf(s).toFile());
+    }
 
-        // Legacy auto-detected cache (~/.freeXmlToolkit/cache/<MD5>/), read-only + clear
-        legacyInfo.getStyleClass().add("fxt-lib-status");
-        legacyInfo.setWrapText(true);
-        Button clearLegacy = toolButton("library-legacy-cache-clear", "Clear auto-detected schema cache", "bi-trash", () -> {
-            if (DialogHelper.showConfirmation("Clear Auto-detected Schemas", "Delete all schemas cached from xsi:schemaLocation downloads?",
-                    "They are downloaded again when a document referencing them is opened.")) {
-                org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
-                    int n = xmlService.clearAutoDetectedSchemaCache();
-                    Platform.runLater(() -> { setStatus("Deleted " + n + " file(s)."); refreshCache(); });
-                });
-            }
+    @FXML
+    public void onRevealCacheFolder() {
+        var s = cacheTable.getSelectionModel().getSelectedItem();
+        if (s != null) org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            try { java.awt.Desktop.getDesktop().open(cache.getCacheDirectory().toFile()); }
+            catch (Exception e) { Platform.runLater(() -> setStatus("Cannot open folder: " + e.getMessage())); }
         });
-        TitledPane legacy = new TitledPane("Auto-detected schemas (legacy cache)", new VBox(4, legacyInfo, clearLegacy));
-        legacy.setExpanded(false);
+    }
 
-        VBox box = new VBox(4, tools, cacheFilter, cacheTable, cacheFooter, legacy);
-        VBox.setVgrow(cacheTable, Priority.ALWAYS);
-        return box;
+    @FXML
+    public void onRefreshCached() {
+        var s = cacheTable.getSelectionModel().getSelectedItem();
+        if (s == null || s.remoteUrl() == null) return;   // nothing to re-download
+        String remote = s.remoteUrl();
+        setStatus("Refreshing " + remote + "…");
+        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            var result = cache.refresh(remote);
+            Platform.runLater(() -> { setStatus(result.isPresent() ? "Refreshed " + remote : "Refresh failed for " + remote); refreshCache(); });
+        });
+    }
+
+    @FXML
+    public void onDeleteCached() {
+        var s = cacheTable.getSelectionModel().getSelectedItem();
+        if (s != null && DialogHelper.showConfirmation("Delete Cached Schema", "Delete the cached copy of\n" + urlOf(s) + "?",
+                "It will be downloaded again on next use.")) {
+            deleteSelectedCacheEntryWithoutConfirm();
+        }
+    }
+
+    @FXML
+    public void onClearCache() {
+        if (DialogHelper.showConfirmation("Clear Schema Cache", "Delete all cached remote schemas?",
+                cache.getCacheDirectory() + "\n\nThis action cannot be undone.")) {
+            org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+                int n = cache.clearCache();
+                Platform.runLater(() -> { setStatus("Deleted " + n + " cached file(s)."); refreshCache(); });
+            });
+        }
+    }
+
+    /** Clears the legacy auto-detected cache (~/.freeXmlToolkit/cache/&lt;MD5&gt;/). */
+    @FXML
+    public void onClearLegacyCache() {
+        if (DialogHelper.showConfirmation("Clear Auto-detected Schemas", "Delete all schemas cached from xsi:schemaLocation downloads?",
+                "They are downloaded again when a document referencing them is opened.")) {
+            org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+                int n = xmlService.clearAutoDetectedSchemaCache();
+                Platform.runLater(() -> { setStatus("Deleted " + n + " file(s)."); refreshCache(); });
+            });
+        }
     }
 
     /**
@@ -438,7 +388,8 @@ public class SchemaLibraryPanel extends VBox {
         setStatus("Deleted cached copy of " + urlOf(s));
     }
 
-    private void chooseCatalog() {
+    @FXML
+    public void chooseCatalog() {
         FileChooser fc = new FileChooser();
         fc.setTitle("Select XML catalog");
         fc.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("XML catalogs", "*.xml"),
@@ -455,7 +406,8 @@ public class SchemaLibraryPanel extends VBox {
         setStatus(err != null ? "Catalog added but unparsable: " + err : "Catalog added: " + catalog.getFileName());
     }
 
-    private void importSelectedCatalog() {
+    @FXML
+    public void importSelectedCatalog() {
         SchemaCatalogRef s = catalogList.getSelectionModel().getSelectedItem();
         if (s == null) return;
         try {
@@ -516,14 +468,16 @@ public class SchemaLibraryPanel extends VBox {
         return new ContextMenu(open, edit, remove, new SeparatorMenuItem(), copy);
     }
 
-    private void addEntry() {
+    @FXML
+    public void addEntry() {
         new SchemaLibraryEntryDialog(library, null).showAndWait().ifPresent(e -> {
             try { library.addEntry(e); setStatus("Added mapping for " + display(e)); }
             catch (IllegalArgumentException ex) { setStatus(ex.getMessage()); }
         });
     }
 
-    private void editSelected() {
+    @FXML
+    public void editSelected() {
         SchemaLibraryEntry s = mappings.getSelectionModel().getSelectedItem();
         if (s == null || s.source() != EntrySource.USER) return;
         new SchemaLibraryEntryDialog(library, s).showAndWait().ifPresent(e -> {
@@ -532,7 +486,8 @@ public class SchemaLibraryPanel extends VBox {
         });
     }
 
-    private void removeSelected() {
+    @FXML
+    public void removeSelected() {
         SchemaLibraryEntry s = mappings.getSelectionModel().getSelectedItem();
         if (s == null || s.source() != EntrySource.USER) return;
         if (DialogHelper.showConfirmation("Remove Mapping", "Remove the mapping for " + display(s) + "?",
@@ -551,7 +506,8 @@ public class SchemaLibraryPanel extends VBox {
         }
     }
 
-    private void toggleSelected() {
+    @FXML
+    public void toggleSelected() {
         SchemaLibraryEntry s = mappings.getSelectionModel().getSelectedItem();
         if (s == null) return;
         String id = s.id();
@@ -566,7 +522,8 @@ public class SchemaLibraryPanel extends VBox {
                 .ifPresent(e -> mappings.getSelectionModel().select(e)));
     }
 
-    private void addCurrentSchema() {
+    @FXML
+    public void addCurrentSchema() {
         File xsd = editorHost.activeSchemaProperty().get();
         if (xsd == null) return;
         library.entryFromFile(xsd.toPath()).ifPresent(pre ->
@@ -576,7 +533,8 @@ public class SchemaLibraryPanel extends VBox {
                 }));
     }
 
-    private void downloadSelected() {
+    @FXML
+    public void downloadSelected() {
         SchemaLibraryEntry s = mappings.getSelectionModel().getSelectedItem();
         if (s == null) return;
         if (library instanceof SchemaLibraryServiceImpl impl) impl.clearFailure(s);
@@ -625,30 +583,10 @@ public class SchemaLibraryPanel extends VBox {
         };
     }
 
-    /** 16px icon for a tab graphic (icon-only tabs; the full name lives in the Tab's tooltip). */
-    private static IconifyIcon tabIcon(String literal) {
-        IconifyIcon i = new IconifyIcon(literal);
-        i.setIconSize(16);
-        return i;
-    }
-
     private static IconifyIcon icon(String literal, String color) {
         IconifyIcon i = new IconifyIcon(literal);
         i.setIconSize(14);
         i.iconColorProperty().bind(new javafx.beans.property.SimpleObjectProperty<>(javafx.scene.paint.Color.web(color)));
         return i;
-    }
-
-    private static Button toolButton(String id, String tooltip, String iconLiteral, Runnable action) {
-        IconifyIcon i = new IconifyIcon(iconLiteral);
-        i.setIconSize(16);
-        Button b = new Button(null, i);
-        b.setId(id);
-        b.setTooltip(new Tooltip(tooltip));
-        // Compact, size-stable list-editing toolbar (selection-bound CRUD, not follow-on
-        // actions): the shared flat icon class plus a fixed 26 px square.
-        b.getStyleClass().addAll("fxt-sp-action", "fxt-schema-tools-button");
-        b.setOnAction(e -> action.run());
-        return b;
     }
 }
