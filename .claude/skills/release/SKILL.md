@@ -20,3 +20,10 @@ and are pinned to the tag's commit — a `gh run rerun` rebuilds the OLD commit.
 If the release needs a fix commit: delete the release and tag
 (`gh release delete <tag> --yes` + `git push origin :refs/tags/<tag>`), push the
 fix, and recreate the release (lossless while no assets are attached).
+
+**macOS signing:** the macOS jobs sign with Developer ID and notarize with Apple, driven
+by repository secrets (`MACOS_*`, `APPLE_API_*`; setup and troubleshooting in
+`scripts/README.md`). A rejected notarization fails the job and prints Apple's log.
+To test signing without a release, start the workflow manually (`workflow_dispatch`) —
+it uploads workflow artifacts instead of release assets. The Developer ID certificates
+expire after five years; without the secrets the packages are built unsigned.

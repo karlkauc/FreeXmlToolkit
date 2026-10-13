@@ -71,6 +71,8 @@ FreeXmlToolkit is available for Windows, macOS, and Linux in multiple formats. C
 | `.pkg` | Intel (x64), Apple Silicon (ARM64) | **Package Installer** - Guided installation wizard. Useful for managed deployments. |
 | `.zip` | Intel (x64), Apple Silicon (ARM64) | **Portable** - No installation needed. Extract and run the app directly. |
 
+The macOS packages are signed with an Apple Developer ID and notarized by Apple, so they open without a Gatekeeper warning.
+
 #### Linux
 
 | Format | Architecture | Description |
