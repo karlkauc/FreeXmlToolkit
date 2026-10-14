@@ -1,0 +1,723 @@
+/* =================================================================
+   Modernes, professionelles Theme für das FreeXMLToolkit
+   ================================================================= */
+.h1 {
+  -fx-font-family: Inter;
+  -fx-font-size: 4em;
+}
+
+.h2 {
+  -fx-font-family: Inter;
+  -fx-font-weight: bold;
+  -fx-font-size: 1.5em;
+  -fx-padding: 0 0 5px 0;
+}
+
+.h3 {
+  -fx-font-family: Inter;
+  -fx-font-weight: bold;
+  -fx-font-size: 1.1em;
+}
+
+.bottom_line {
+  -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #2A9D8F 0%, #264653 100%);
+  -fx-pref-height: 20;
+  -fx-max-height: 20;
+  -fx-min-height: 20;
+}
+
+.menu_box {
+  -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #fdeec5 0%, #fc9040 100%);
+  -fx-pref-width: 150;
+  -fx-font-weight: bold;
+}
+
+/* =================================================================
+   Allgemeine Steuerelemente
+   ================================================================= */
+.button {
+  -fx-background-color: linear-gradient(from 0% 0% to 0% 100%, #ffffff, #f0f2f5);
+  -fx-text-fill: #24292f;
+  -fx-padding: 5px 15px;
+  -fx-font-weight: bold;
+  -fx-cursor: hand;
+  -fx-border-color: #d0d7de;
+  -fx-border-width: 1px;
+  -fx-background-radius: 4px;
+  -fx-border-radius: 6px;
+}
+
+.button:hover {
+  -fx-background-color: linear-gradient(from 0% 0% to 0% 100%, #ffffff, #e9ecef);
+}
+
+.button:pressed {
+  -fx-background-color: #e9ecef;
+}
+
+.menu_button {
+  -fx-pref-height: 50;
+  -fx-min-width: 200;
+  -fx-pref-width: 200;
+  -fx-max-width: 200;
+  -fx-alignment: baseline-left;
+  -fx-text-fill: #24292f;
+  -fx-padding: 5px 15px;
+  -fx-font-weight: bold;
+  -fx-background-color: transparent;
+  -fx-border-width: 0px;
+}
+
+.menu_button:hover {
+  -fx-background-color: #e9ecef;
+}
+
+.menu_button:pressed {
+  -fx-background-color: #e9ecef;
+}
+
+.menu_button.active {
+  -fx-background-color: #d0e7ff;
+  -fx-border-color: #0969da;
+  -fx-border-width: 0 0 0 3px;
+  -fx-border-insets: 0;
+}
+
+.menu_button.active:hover {
+  -fx-background-color: #b8deff;
+}
+
+.menu_button_collapsed {
+    -fx-pref-height: 50;
+    -fx-min-width: 50;
+    -fx-pref-width: 50;
+    -fx-max-width: 50;
+    -fx-alignment: center;
+    -fx-background-color: transparent;
+    -fx-border-width: 0px;
+    -fx-padding: 5px;
+}
+
+.menu_button_collapsed:hover {
+    -fx-background-color: rgba(233, 236, 239, 0.3);
+}
+
+.menu_button_collapsed:pressed {
+    -fx-background-color: rgba(233, 236, 239, 0.5);
+}
+
+.menu_button_collapsed.active {
+    -fx-background-color: rgba(208, 231, 255, 0.8);
+    -fx-border-color: #0969da;
+    -fx-border-width: 0 0 0 3px;
+    -fx-border-insets: 0;
+}
+
+.menu_button_collapsed.active:hover {
+    -fx-background-color: rgba(184, 222, 255, 0.9);
+}
+
+.button:default {
+  -fx-background-color: linear-gradient(from 0% 0% to 0% 100%, #2b8aff, #0969da);
+  -fx-text-fill: white;
+  -fx-border-color: #0550ae; /* Dunklerer Blauton für den Rand */
+}
+
+.button:default:hover {
+  -fx-background-color: linear-gradient(from 0% 0% to 0% 100%, #3c9aff, #0a5ccb);
+}
+
+.button:default:pressed {
+  -fx-background-color: #0a5ccb;
+}
+
+.label {
+  -fx-text-fill: #24292f;
+}
+
+.text-field, .text-area {
+  -fx-background-color: #ffffff;
+  -fx-background-insets: 0;
+  -fx-background-radius: 6px;
+  -fx-prompt-text-fill: #8c959f;
+}
+
+.text-field:focused, .text-area:focused {
+  -fx-border-color: #0969da;
+  -fx-effect: dropshadow(gaussian, rgba(9, 105, 218, 0.3), 5, 0, 0, 0);
+}
+
+.code-area {
+  -fx-background-color: #ffffff;
+}
+
+/* JSON editor's internal status bar (was an inline style; class so themes can override) */
+.json-editor-statusbar {
+  -fx-padding: 3 10;
+  -fx-background-color: #f5f5f5;
+  -fx-border-color: #ddd;
+  -fx-border-width: 1 0 0 0;
+}
+
+.code-area .paragraph-box:has-caret {
+  -fx-background-color: #f6f8fa;
+}
+
+/* =================================================================
+   Welcome Page
+   ================================================================= */
+.my_container {
+  -fx-background-color: #f5f5f5;
+}
+
+.feature-box {
+  -fx-background-color: #ffffff;
+  -fx-border-color: #e1e4e8;
+  -fx-border-width: 1px;
+  -fx-border-radius: 6px;
+  -fx-background-radius: 6px;
+  -fx-padding: 15px;
+  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.05), 5, 0, 0, 1);
+}
+
+/* =================================================================
+   Tab-Pane (für den Editor)
+   ================================================================= */
+.tab-pane {
+  -fx-tab-min-height: 20px;
+  -fx-tab-max-height: 20px;
+}
+
+.tab-pane .tab-header-area {
+  -fx-background-color: #f6f8fa;
+  -fx-padding: 0 0 0 5px;
+}
+
+.tab-pane .tab {
+  -fx-background-color: transparent;
+  -fx-border-color: transparent;
+  -fx-border-width: 0 0 2px 0;
+  -fx-padding: 8px 12px;
+  -fx-background-insets: 0;
+}
+
+.tab-pane .tab:hover {
+  -fx-background-color: #e9ecef;
+}
+
+.tab-pane .tab:selected {
+  -fx-background-color: #f5f5f5;
+  -fx-border-color: #0969da;
+  -fx-font-weight: bold;
+}
+
+.tab-pane .tab:selected .tab-label {
+  -fx-text-fill: #24292f;
+}
+
+.tab-pane .tab .tab-label {
+  -fx-text-fill: #57606a;
+  -fx-font-smoothing-type: gray;
+  -fx-font-size: 1.2em;
+}
+
+.tab-pane > .tab-content-area {
+  -fx-background-color: #f5f5f5;
+  -fx-padding: 0;
+}
+
+/* =================================================================
+   Listen und Bäume (TreeView, ListView)
+   ================================================================= */
+.tree-cell, .list-cell {
+  -fx-padding: 8px 12px;
+  -fx-background-color: transparent;
+  -fx-text-fill: #24292f;
+}
+
+.tree-cell:hover, .list-cell:hover {
+  -fx-background-color: #e9ecef;
+}
+
+.tree-cell:selected, .list-cell:selected {
+  -fx-background-color: #0969da;
+  -fx-text-fill: white;
+}
+
+.tree-cell:selected:focused, .list-cell:selected:focused {
+  -fx-background-color: #0969da;
+}
+
+/* Override for table cells to keep black text when selected */
+.table-row-cell:selected .table-cell {
+    -fx-text-fill: #24292f !important;
+}
+
+/* More specific override for focused table cells */
+.table-row-cell:selected:focused .table-cell {
+    -fx-text-fill: #24292f !important;
+}
+
+/* Ensure all table cell content is readable when selected */
+.table-view .table-row-cell:selected .table-cell .text {
+    -fx-fill: #24292f !important;
+}
+
+/* Override for specific table cell content types */
+.table-row-cell:selected .table-cell .label {
+    -fx-text-fill: #24292f !important;
+}
+
+.tree-cell > .tree-disclosure-node > .arrow {
+  -fx-background-color: #57606a;
+}
+
+.tree-cell:selected > .tree-disclosure-node > .arrow {
+  -fx-background-color: white;
+}
+
+/* =================================================================
+   Menüs (MenuBar, ContextMenu)
+   ================================================================= */
+.menu-bar {
+  -fx-background-color: #f5f5f5;
+  -fx-border-width: 0 0 1px 0;
+  -fx-border-color: #e1e4e8;
+  -fx-padding: 2px 5px;
+}
+
+.menu-button:hover, .menu-button:focused, .menu-button:showing {
+  -fx-background-color: #e9ecef;
+}
+
+.context-menu {
+  -fx-background-color: #f5f5f5;
+  -fx-background-insets: 0;
+  -fx-padding: 5px;
+  -fx-border-color: #d0d7de;
+  -fx-border-radius: 6px;
+  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 10, 0, 0, 2);
+}
+
+.menu-item {
+  -fx-padding: 8px 12px;
+}
+
+.menu-item:focused {
+  -fx-background-color: #0969da;
+}
+
+.menu-item:focused .label {
+  -fx-text-fill: white;
+}
+
+/* =================================================================
+   Scroll- und Split-Panes
+   ================================================================= */
+.scroll-pane {
+  -fx-background-color: transparent;
+}
+
+.scroll-bar:vertical, .scroll-bar:horizontal {
+  -fx-background-color: transparent;
+}
+
+.scroll-bar .thumb {
+    -fx-background-color: #c1c1c1; /* Explizite Farbe hinzugefügt, um Endlosschleife zu verhindern */
+  -fx-background-insets: 2px;
+  -fx-background-radius: 8px;
+}
+
+.scroll-bar .thumb:hover {
+    -fx-background-color: #a8a8a8;
+}
+
+/* XML Editor ScrollPane - ensure scrollbars are visible */
+.xml-editor-scroll-pane > .scroll-bar:vertical {
+    -fx-pref-width: 14;
+    -fx-background-color: #f0f0f0;
+}
+
+.xml-editor-scroll-pane > .scroll-bar:vertical .track {
+    -fx-background-color: #f0f0f0;
+    -fx-border-color: #e0e0e0;
+    -fx-border-width: 0 0 0 1;
+}
+
+.xml-editor-scroll-pane > .scroll-bar:vertical .thumb {
+    -fx-background-color: #c1c1c1;
+    -fx-background-insets: 2;
+    -fx-background-radius: 6;
+    -fx-pref-height: 30;
+}
+
+.xml-editor-scroll-pane > .scroll-bar:vertical .thumb:hover {
+    -fx-background-color: #a0a0a0;
+}
+
+.xml-editor-scroll-pane > .scroll-bar:vertical .thumb:pressed {
+    -fx-background-color: #888888;
+}
+
+.xml-editor-scroll-pane > .scroll-bar:horizontal {
+    -fx-pref-height: 14;
+    -fx-background-color: #f0f0f0;
+}
+
+.xml-editor-scroll-pane > .scroll-bar:horizontal .track {
+    -fx-background-color: #f0f0f0;
+    -fx-border-color: #e0e0e0;
+    -fx-border-width: 1 0 0 0;
+}
+
+.xml-editor-scroll-pane > .scroll-bar:horizontal .thumb {
+    -fx-background-color: #c1c1c1;
+    -fx-background-insets: 2;
+    -fx-background-radius: 6;
+}
+
+.xml-editor-scroll-pane > .scroll-bar:horizontal .thumb:hover {
+    -fx-background-color: #a0a0a0;
+}
+
+.xml-editor-scroll-pane > .scroll-bar:horizontal .thumb:pressed {
+    -fx-background-color: #888888;
+}
+
+/* Cross-axis padding only: ScrollBarSkin clamps the thumb to 1.5 × the arrow buttons'
+   cross-axis size, so fully zero-padded buttons let the thumb collapse to ~1 px on huge
+   documents. Padding along the track axis stays 0 so the buttons take no track space. */
+.xml-editor-scroll-pane > .scroll-bar:vertical .increment-button,
+.xml-editor-scroll-pane > .scroll-bar:vertical .decrement-button {
+    -fx-padding: 0 6 0 6;
+    -fx-background-color: transparent;
+}
+
+.xml-editor-scroll-pane > .scroll-bar:horizontal .increment-button,
+.xml-editor-scroll-pane > .scroll-bar:horizontal .decrement-button {
+    -fx-padding: 6 0 6 0;
+    -fx-background-color: transparent;
+}
+
+.xml-editor-scroll-pane > .scroll-bar:vertical .increment-arrow,
+.xml-editor-scroll-pane > .scroll-bar:vertical .decrement-arrow,
+.xml-editor-scroll-pane > .scroll-bar:horizontal .increment-arrow,
+.xml-editor-scroll-pane > .scroll-bar:horizontal .decrement-arrow {
+    -fx-shape: " ";
+    -fx-padding: 0;
+}
+
+.split-pane:horizontal > .split-pane-divider {
+  -fx-border-color: transparent;
+  -fx-background-color: #e1e4e8;
+  -fx-padding: 0 1px;
+}
+
+.split-pane:vertical > .split-pane-divider {
+  -fx-border-color: transparent;
+  -fx-background-color: #e1e4e8;
+  -fx-padding: 1px 0;
+}
+
+/* =================================================================
+   Karten-Layout (für Formulare und gruppierte Inhalte)
+   ================================================================= */
+.card {
+  -fx-background-color: #f5f5f5;
+  -fx-border-color: #e1e4e8;
+  -fx-border-width: 1px;
+  -fx-border-radius: 6px;
+  -fx-background-radius: 6px;
+  -fx-padding: 20px;
+  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.05), 10, 0, 0, 2);
+}
+
+.card-title {
+  -fx-font-size: 1.2em;
+  -fx-font-weight: bold;
+  -fx-text-fill: #24292f;
+  -fx-padding: 0 0 10px 0;
+}
+
+/* =================================================================
+   Modernes Layout für die XML-Baumansicht (XmlGraphicEditor)
+   ================================================================= */
+.simple-node-element {
+  -fx-padding: 0 0 0 5px;
+}
+
+.children-container {
+  -fx-padding: 2px 0 2px 20px;
+  -fx-border-color: #e1e4e8 transparent transparent transparent;
+  -fx-border-width: 1px;
+  -fx-border-style: solid;
+  -fx-spacing: 4px;
+}
+
+.element-box {
+  -fx-padding: 4px;
+  -fx-alignment: center-left;
+  -fx-background-radius: 6px;
+  -fx-cursor: hand;
+}
+
+.element-box:hover {
+  -fx-background-color: #e9ecef;
+}
+
+.node-label-complex {
+  -fx-font-size: 1.05em;
+  -fx-font-weight: bold;
+  -fx-text-fill: #24292f;
+}
+
+.node-count-label {
+  -fx-font-size: 0.9em;
+  -fx-text-fill: #57606a;
+  -fx-padding: 0 0 0 5px;
+}
+
+.tree-toggle-button {
+  -fx-background-color: transparent;
+  -fx-min-width: 18px;
+  -fx-min-height: 18px;
+  -fx-max-width: 18px;
+  -fx-max-height: 18px;
+  -fx-padding: 0;
+  -fx-background-radius: 100px;
+}
+
+.tree-toggle-button:hover {
+  -fx-background-color: #e9ecef;
+}
+
+.tree-toggle-button .icon {
+  -fx-min-width: 8px;
+  -fx-min-height: 8px;
+  -fx-max-width: 8px;
+  -fx-max-height: 8px;
+  -fx-background-color: #57606a;
+}
+
+.tree-toggle-button:hover .icon {
+  -fx-background-color: #24292f;
+}
+
+.icon.toggle-expand {
+  -fx-shape: "M 0 0 L 8 4 L 0 8 Z";
+}
+
+.icon.toggle-collapse {
+  -fx-shape: "M 0 0 L 8 0 L 4 8 Z";
+}
+
+.xml-tree-text {
+  -fx-background-color: #f5f5f5;
+  -fx-padding: 8px;
+  -fx-border-color: #e1e4e8;
+  -fx-border-width: 1px;
+  -fx-border-radius: 6px;
+  -fx-background-radius: 6px;
+  -fx-hgap: 10px;
+  -fx-vgap: 4px;
+}
+
+.node-name-box, .attribute-box {
+  -fx-alignment: center-left;
+  -fx-text-fill: #57606a;
+  -fx-font-weight: bold;
+}
+
+.attribute-box .label {
+  -fx-text-fill: #0550ae;
+}
+
+.node-value-box, .attribute-value-box {
+  -fx-alignment: center-left;
+  -fx-text-fill: #24292f;
+  -fx-background-radius: 4px;
+  -fx-padding: 2px 5px;
+}
+
+.node-value-box:hover, .attribute-value-box:hover {
+  -fx-background-color: #0969da;
+  -fx-cursor: hand;
+}
+
+.node-value-box:hover .label,
+.attribute-value-box:hover .label {
+  -fx-text-fill: white;
+}
+
+.collapse-bar {
+  -fx-min-width: 20px;
+  -fx-max-width: 20px;
+  -fx-background-color: transparent;
+  -fx-cursor: hand;
+  -fx-border-color: transparent #e1e4e8 transparent transparent;
+  -fx-border-width: 1px;
+  -fx-border-style: solid;
+}
+
+.collapse-bar:hover {
+  -fx-background-color: #e9ecef;
+}
+
+.xml-tree-comment {
+  -fx-text-fill: #8c959f;
+  -fx-font-style: italic;
+    -fx-padding: 5px 10px;
+    -fx-background-color: #f8f9fa;
+    -fx-background-radius: 4px;
+    -fx-border-radius: 4px;
+}
+
+/* =================================================================
+   XML Code Editor - Erweiterungen
+   ================================================================= */
+.table-grid {
+  -fx-hgap: 1px;
+  -fx-vgap: 1px;
+  -fx-background-color: #e1e4e8;
+  -fx-border-width: 1px;
+  -fx-border-style: solid;
+  -fx-border-radius: 6px;
+  -fx-background-radius: 6px;
+  -fx-padding: 1px;
+}
+
+.table-header {
+  -fx-background-color: #f6f8fa;
+  -fx-font-weight: bold;
+  -fx-padding: 6px 8px;
+  -fx-text-fill: #24292f;
+  -fx-alignment: center-left;
+}
+
+.table-cell {
+  -fx-background-color: #ffffff;
+  -fx-padding: 6px 8px;
+  -fx-alignment: center-left;
+}
+
+.table-cell:hover {
+  -fx-background-color: #f6f8fa;
+}
+
+.search-highlight {
+  -fx-fill: black;
+  -fx-background-color: #ffdd00;
+}
+
+.diagnostic-error {
+  -fx-underline: true;
+    -fx-stroke: #ff6b6b;
+  -fx-stroke-type: outside;
+  -fx-stroke-width: 1;
+    -fx-stroke-dash-array: 2 3;
+}
+
+.diagnostic-warning {
+  -fx-underline: true;
+  -fx-stroke: orange;
+  -fx-stroke-type: outside;
+  -fx-stroke-width: 1;
+  -fx-stroke-dash-array: 1 2;
+}
+
+/* Live Error Highlighting Styles */
+.error-marker {
+    -fx-background-color: #d32f2f;
+    -fx-background-radius: 50%;
+    -fx-border-radius: 50%;
+    -fx-effect: dropshadow(gaussian, rgba(211, 47, 47, 0.3), 2, 0.5, 0, 0);
+}
+
+.diagnostic-error {
+    -rtfx-underline-color: #ff6b6b;
+    -rtfx-underline-width: 1px;
+    -rtfx-underline-dash-array: 3 2;
+}
+
+/* Code Minimap Styles */
+.minimap-container {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #dee2e6;
+    -fx-border-width: 0 0 0 1px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 3, 0.2, -1, 0);
+}
+
+.minimap-toggle-button {
+    -fx-background-color: transparent;
+    -fx-border-color: #6c757d;
+    -fx-border-width: 1px;
+    -fx-border-radius: 3px;
+    -fx-background-radius: 3px;
+    -fx-text-fill: #6c757d;
+}
+
+.minimap-toggle-button:hover {
+    -fx-background-color: #e9ecef;
+    -fx-border-color: #495057;
+    -fx-text-fill: #495057;
+}
+
+/* Go-to-Definition Styles */
+.xml-element-clickable {
+    -fx-text-fill: #0066cc;
+    -fx-underline: true;
+    -fx-cursor: hand;
+}
+
+.xml-element-hover {
+    -fx-background-color: rgba(0, 102, 204, 0.1);
+    -fx-border-color: #0066cc;
+    -fx-border-width: 1px;
+    -fx-border-style: dashed;
+}
+
+/* =================================================================
+   Modern XMLSpy-inspired Status Line Styles
+   ================================================================= */
+.status-line {
+    -fx-background-color: linear-gradient(to bottom, #f5f5f5 0%, #e8e8e8 100%);
+    -fx-border-color: #c0c0c0;
+    -fx-border-width: 1 0 0 0;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.1), 1, 0, 0, -1);
+    -fx-padding: 4 8 4 8;
+    -fx-alignment: center-left;
+}
+
+.status-label {
+    -fx-text-fill: #333333;
+    -fx-font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+    -fx-font-size: 11px;
+    -fx-background-color: transparent;
+    -fx-border-radius: 3px;
+    -fx-background-radius: 3px;
+    -fx-border-color: transparent;
+    -fx-border-width: 1px;
+    -fx-padding: 2 8 2 8;
+    -fx-alignment: center-left;
+}
+
+.status-label:hover {
+    -fx-background-color: rgba(74, 144, 226, 0.1);
+    -fx-border-color: #4a90e2;
+    -fx-border-width: 1px;
+    -fx-cursor: hand;
+}
+
+/* XSD Parsing Status Animation */
+.parsing-status {
+    -fx-background-color: rgba(255, 193, 7, 0.1);
+    -fx-border-color: #ffc107;
+    -fx-text-fill: #e65100;
+    -fx-border-width: 1px;
+}
+
+.status-separator {
+    -fx-background-color: #c0c0c0;
+    -fx-border-color: #c0c0c0;
+    -fx-padding: 2 4 2 4;
+}

@@ -1,0 +1,40 @@
+.tagmark {
+  -fx-fill: rgb(0, 0, 255);
+}
+
+.anytag {
+  -fx-fill: rgb(128, 0, 0);
+}
+
+.paren {
+  -fx-fill: firebrick;
+  -fx-font-weight: bold;
+}
+
+.attribute {
+  -fx-fill: darkviolet;
+}
+
+.avalue {
+  -fx-fill: black;
+}
+
+.enumeration-content {
+    -fx-fill: #ff0000;
+    -fx-font-weight: bold;
+    -fx-background-color: #ffff00;
+}
+
+.comment {
+  -fx-fill: teal;
+}
+
+/* line Number */
+.lineno {
+  -fx-background-color: #e3e3e3;
+}
+
+/* defaults */
+.code-area {
+  -fx-font-family: monospace;
+}

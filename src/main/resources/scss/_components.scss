@@ -1,0 +1,178 @@
+/* Welcome Action Card Icon Wrapper Color Variants */
+.action-card-icon-blue {
+    -fx-background-color: #dbeafe;
+}
+
+.action-card-icon-purple {
+    -fx-background-color: #f3e8ff;
+}
+
+.action-card-icon-green {
+    -fx-background-color: #dcfce7;
+}
+
+.action-card-icon-yellow {
+    -fx-background-color: #fef3c7;
+}
+
+.action-card-icon-orange {
+    -fx-background-color: #fff7ed;
+}
+
+.action-card-icon-pink {
+    -fx-background-color: #fce7f3;
+}
+
+.action-card-icon-cyan {
+    -fx-background-color: #cffafe;
+}
+
+.action-card-icon-violet {
+    -fx-background-color: #ede9fe;
+}
+
+.action-card-icon-amber {
+    -fx-background-color: #fef9c3;
+}
+
+/* Clickable card cursor */
+.action-card {
+    -fx-cursor: hand;
+}
+
+/* Footer label styling */
+.footer-label {
+    -fx-text-fill: #6c757d;
+    -fx-font-size: 11px;
+}
+
+/* Favorites action bar */
+.favorites-action-bar {
+    -fx-background-color: #f0f8ff;
+    -fx-background-radius: 4px;
+    -fx-padding: 12px;
+}
+
+/* Category management section */
+.category-management-section {
+    -fx-background-color: #fff8dc;
+    -fx-background-radius: 4px;
+    -fx-padding: 16px;
+    -fx-border-color: #dee2e6;
+    -fx-border-width: 1px;
+    -fx-border-radius: 4px;
+}
+
+/* Info tip box (light blue background) */
+.info-tip-box {
+    -fx-background-color: #d1ecf1;
+    -fx-padding: 15;
+}
+
+.info-tip-text {
+    -fx-text-fill: #0c5460;
+    -fx-font-size: 12px;
+}
+
+/* Empty State Styling */
+.empty-state-title {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #495057;
+}
+
+.empty-state-description {
+    -fx-font-size: 14px;
+    -fx-text-fill: #6c757d;
+}
+
+.empty-state-hint {
+    -fx-font-size: 12px;
+    -fx-text-fill: #adb5bd;
+}
+
+/* Table Placeholder Styling */
+.placeholder-title {
+    -fx-font-size: 14px;
+    -fx-text-fill: #6c757d;
+}
+
+.placeholder-description {
+    -fx-font-size: 12px;
+    -fx-text-fill: #adb5bd;
+}
+
+/* Execute / Action Button (green filled) */
+.btn-execute {
+    -fx-background-color: #28a745;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 4px;
+    -fx-border-radius: 4px;
+    -fx-cursor: hand;
+}
+
+.btn-execute:hover {
+    -fx-background-color: #218838;
+}
+
+/* Status Bar */
+.status-bar {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #dee2e6;
+    -fx-border-width: 1 0 0 0;
+    -fx-padding: 4 12;
+}
+
+.status-bar-label {
+    -fx-text-fill: #6c757d;
+    -fx-font-size: 11px;
+}
+
+/* Card Grid Padding (top padding inside cards after separator) */
+.card-grid {
+    -fx-padding: 15 0 0 0;
+}
+
+/* Field Label Bold (form field labels) */
+.field-label-bold {
+    -fx-font-weight: bold;
+    -fx-font-size: 11px;
+}
+
+/* Light panel with border */
+.panel-light {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #dee2e6;
+    -fx-border-width: 1;
+    -fx-border-radius: 5;
+    -fx-background-radius: 5;
+    -fx-padding: 10;
+}
+
+/* Section panel header (file selection, etc.) */
+.panel-header {
+    -fx-padding: 12;
+    -fx-background-color: #ffffff;
+    -fx-border-color: #dee2e6;
+    -fx-border-width: 0 0 1 0;
+}
+
+.panel-header-label {
+    -fx-font-weight: bold;
+    -fx-font-size: 12px;
+}
+
+/* Query editor border */
+.query-editor-border {
+    -fx-border-color: #cccccc;
+    -fx-border-width: 1;
+    -fx-border-radius: 3;
+    -fx-background-color: white;
+}
+
+/* Expert mode sub-section label */
+.expert-section-label {
+    -fx-font-weight: bold;
+    -fx-padding: 10 0 0 0;
+}

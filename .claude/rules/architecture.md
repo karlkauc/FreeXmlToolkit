@@ -144,4 +144,5 @@ data-generated content (`ActivityBar`, `FavoritesMenu`, `NodeContextMenu`, `Face
 - `css/design-tokens.css` — `-fxt-*` variables (Light + Dark), saturated blue `#1373D9` primary (Thunderbird-Supernova look); workflow families `-fxt-wf-<id>-{accent,fg,fill,bg,border,rail}` and action aliases `-fxt-action-*` (Java mirror: `controls/theme/Workflow`, `ActionColor`; guarded by `WorkflowTokensCssSyncTest`)
 - Workflow colour scope: `ActivityBar` and `UnifiedShellView` put `fxt-wf-<id>` on the rail button / side-panel host (`WorkflowStyle.apply`); `unified-shell.css` scopes title, primary action, row hover and badge rules by that class
 - `css/unified-shell.css` — all shell styling (`fxt-*` classes)
+- `css/fxt-theme.css` — **generated** from `scss/input.scss` + partials (`cd src/main/resources/scss && npm run build`); edit the `scss/_*.scss` partials, never the CSS directly. `scss/xml-highlighting.css` is not part of that build — `XmlCodeEditorV2` loads it as is
 - Figma source of truth: file `oqJVcInD6RgKaQ4dYmMWYh` ("FreeXmlToolkit — UI Modernization")

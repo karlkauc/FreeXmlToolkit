@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "build": "sass input.scss ../css/fxt-theme.css --no-charset"
+    "build": "sass input.scss ../css/fxt-theme.css --no-charset --no-source-map"
   },
   "dependencies": {
     "immutable": "^5.1.5",

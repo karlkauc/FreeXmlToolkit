@@ -1,12 +1,11 @@
 /*
  * Style für den TreeTableView im FileExplorer, um Plus/Minus-Symbole anzuzeigen.
  */
-
 /*
  * Richtet die Spaltenüberschriften linksbündig aus.
  */
 .tree-table-view .column-header .label {
-    -fx-alignment: center-left;
+  -fx-alignment: center-left;
 }
 
 /*
@@ -14,8 +13,8 @@
  * Er wird für alle aufklappbaren Knoten gerendert, aber wir verstecken ihn.
  */
 .tree-table-view .tree-disclosure-node .arrow {
-    -fx-background-color: transparent;
-    -fx-shape: " "; /* Leere Form, um sicherzugehen, dass nichts gezeichnet wird */
+  -fx-background-color: transparent;
+  -fx-shape: " "; /* Leere Form, um sicherzugehen, dass nichts gezeichnet wird */
 }
 
 /*
@@ -24,7 +23,7 @@
  */
 .tree-table-view .tree-table-row-cell.has-subdirectories .tree-disclosure-node .arrow {
     -fx-background-color: #24292f; /* Direkte Farbe ohne CSS-Lookup */
-    -fx-padding: 4px; /* Abstand wiederherstellen */
+  -fx-padding: 4px; /* Abstand wiederherstellen */
 }
 
 /*
@@ -32,8 +31,8 @@
  * die unsere Klasse haben.
  */
 .tree-table-view .tree-table-row-cell.has-subdirectories:expanded .tree-disclosure-node .arrow {
-    /* Wir zeichnen eine einfache horizontale Linie. */
-    -fx-shape: "M 0 3.5 L 8 3.5 L 8 4.5 L 0 4.5 Z";
+  /* Wir zeichnen eine einfache horizontale Linie. */
+  -fx-shape: "M 0 3.5 L 8 3.5 L 8 4.5 L 0 4.5 Z";
 }
 
 /*
@@ -41,6 +40,6 @@
  * die unsere Klasse haben.
  */
 .tree-table-view .tree-table-row-cell.has-subdirectories:not(:expanded) .tree-disclosure-node .arrow {
-    /* Wir zeichnen ein Kreuz. */
-    -fx-shape: "M 0 3.5 L 8 3.5 L 8 4.5 L 0 4.5 Z M 3.5 0 L 4.5 0 L 4.5 8 L 3.5 8 Z";
+  /* Wir zeichnen ein Kreuz. */
+  -fx-shape: "M 0 3.5 L 8 3.5 L 8 4.5 L 0 4.5 Z M 3.5 0 L 4.5 0 L 4.5 8 L 3.5 8 Z";
 }
