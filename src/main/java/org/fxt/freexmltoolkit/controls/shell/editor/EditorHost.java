@@ -109,11 +109,24 @@ public class EditorHost extends BorderPane {
     /**
      * Outcome of a schema auto-detection run: the bound XSD (or null) plus the terminal
      * status, how the binding was resolved, and an optional human-readable detail
-     * (catalog target / namespace / root element) for the status bar tooltip.
+     * (catalog target / namespace / root element) for the status bar tooltip. A failed
+     * detection keeps the source that was tried and why it failed (anonymous telemetry).
      */
-    private record SchemaDetection(File schema, SchemaStatus status, SchemaSource source, String sourceDetail) {
+    private record SchemaDetection(File schema, SchemaStatus status, SchemaSource source, String sourceDetail,
+                                   String failure) {
         static final SchemaDetection NOT_FOUND = new SchemaDetection(null, SchemaStatus.NONE, SchemaSource.NONE, null);
-        static final SchemaDetection FAILED = new SchemaDetection(null, SchemaStatus.ERROR, SchemaSource.NONE, null);
+        /** {@link #failure} value: the referenced schema could not be resolved / reached. */
+        static final String UNRESOLVED = "unresolved";
+        /** {@link #failure} value: the schema file was found but is missing or not loadable. */
+        static final String UNLOADABLE = "unloadable";
+
+        SchemaDetection(File schema, SchemaStatus status, SchemaSource source, String sourceDetail) {
+            this(schema, status, source, sourceDetail, null);
+        }
+
+        static SchemaDetection failed(SchemaSource source, String failure) {
+            return new SchemaDetection(null, SchemaStatus.ERROR, source, null, failure);
+        }
     }
 
     /** A Schema Library / catalog resolution result, carrying provenance for the status bar. */
@@ -2954,7 +2967,7 @@ public class EditorHost extends BorderPane {
                 if (detection != null && tab.view.supportsSchema()) {
                     UsageEvents.schemaBound(tab.document.getFileType().docKind(),
                             detection.source().name().toLowerCase(java.util.Locale.ROOT),
-                            detection.status() != SchemaStatus.ERROR, openStart);
+                            detection.status() != SchemaStatus.ERROR, detection.failure(), openStart);
                 }
             });
         });
@@ -3242,7 +3255,7 @@ public class EditorHost extends BorderPane {
                 }
                 tab.lastDetectedSchemaLocation = fromLibrary.file().getAbsolutePath();
                 if (!tab.view.loadSchema(fromLibrary.file())) {
-                    return SchemaDetection.FAILED;
+                    return SchemaDetection.failed(fromLibrary.source(), SchemaDetection.UNLOADABLE);
                 }
                 return new SchemaDetection(fromLibrary.file(), SchemaStatus.READY,
                         fromLibrary.source(), fromLibrary.detail());
@@ -3266,7 +3279,8 @@ public class EditorHost extends BorderPane {
                     // document's namespace (user mapping, catalog `uri`, bundled entry).
                     LibraryHit fallback = schemaFromLibrary(content);
                     if (fallback == null) {
-                        return SchemaDetection.FAILED; // referenced, but not resolvable
+                        // referenced, but not resolvable
+                        return SchemaDetection.failed(SchemaSource.DECLARED, SchemaDetection.UNRESOLVED);
                     }
                     xsd = fallback.file();
                     source = fallback.source();
@@ -3278,7 +3292,7 @@ public class EditorHost extends BorderPane {
                 }
             }
             if (xsd == null || !xsd.exists() || !tab.view.loadSchema(xsd)) {
-                return SchemaDetection.FAILED; // resolved, but missing or unparsable
+                return SchemaDetection.failed(source, SchemaDetection.UNLOADABLE); // resolved, but missing or unparsable
             }
             return new SchemaDetection(xsd, SchemaStatus.READY, source, detail);
         } catch (Exception e) {
@@ -3380,9 +3394,11 @@ public class EditorHost extends BorderPane {
                         .map(java.nio.file.Path::toFile).orElse(null);
                 if (mapped != null) {
                     tab.lastDetectedSchemaLocation = raw.get();
-                    if (!tab.view.loadSchema(mapped)) return SchemaDetection.FAILED;
                     SchemaSource source = entry.get().source() == org.fxt.freexmltoolkit.domain.EntrySource.CATALOG
                             ? SchemaSource.CATALOG : SchemaSource.LIBRARY;
+                    if (!tab.view.loadSchema(mapped)) {
+                        return SchemaDetection.failed(source, SchemaDetection.UNLOADABLE);
+                    }
                     String detail = source == SchemaSource.CATALOG ? entry.get().location() : raw.get();
                     return new SchemaDetection(mapped, SchemaStatus.READY, source, detail);
                 }
@@ -3397,8 +3413,11 @@ public class EditorHost extends BorderPane {
             // A reference exists — from here on, every failure is an ERROR (the user
             // expects schema validation but won't get it), not a silent "No Schema".
             File schema = service.resolveJsonSchemaLocation(declared.get(), baseDir);
-            if (schema == null || !schema.exists() || !tab.view.loadSchema(schema)) {
-                return SchemaDetection.FAILED; // referenced, but not resolvable/parsable
+            if (schema == null || !schema.exists()) {
+                return SchemaDetection.failed(SchemaSource.DECLARED, SchemaDetection.UNRESOLVED);
+            }
+            if (!tab.view.loadSchema(schema)) {
+                return SchemaDetection.failed(SchemaSource.DECLARED, SchemaDetection.UNLOADABLE);
             }
             return new SchemaDetection(schema, SchemaStatus.READY, SchemaSource.DECLARED, declared.get());
         } catch (Exception e) {

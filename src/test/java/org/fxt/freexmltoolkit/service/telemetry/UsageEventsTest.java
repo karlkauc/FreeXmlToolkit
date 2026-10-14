@@ -92,6 +92,21 @@ class UsageEventsTest {
     }
 
     @Test
+    void failedSchemaBindingReportsTriedSourceAndReason() {
+        UsageEvents.schemaBound(DocKind.XML, "declared", false, "unresolved", 0);
+        TelemetryEvent e = single("schema_bind");
+        assertEquals(TelemetryEvent.Status.ERROR, e.status());
+        assertEquals("declared", e.meta().get("source"));
+        assertEquals("unresolved", e.meta().get("failure"));
+    }
+
+    @Test
+    void successfulSchemaBindingHasNoFailureReason() {
+        UsageEvents.schemaBound(DocKind.XML, "catalog", true, "unloadable", 0);
+        assertFalse(single("schema_bind").meta().containsKey("failure"));
+    }
+
+    @Test
     void schemaBindingReportsSource() {
         UsageEvents.schemaBound(DocKind.XML, "library", true, 0);
         TelemetryEvent e = single("schema_bind");
