@@ -13,7 +13,7 @@ per release.
 | 1 | workflow | Imports the certificates into a temporary keychain, writes the API key to `$RUNNER_TEMP` |
 | 2 | `sign-macos-jar-natives.sh` | Signs native libraries inside jars (JNA's `libjnidispatch.jnilib`) – jpackage does not reach into jars, and the notary service rejects unsigned ones |
 | 3 | `jpackage --mac-sign` | Signs the bundle and the jlink runtime with the hardened runtime and `release/macos/entitlements.plist`; signs the `.pkg` with the installer certificate |
-| 4 | `notarize-macos.sh` | Signs the `.dmg` itself, submits the artifact (`notarytool`), staples the ticket and verifies with `codesign`, `stapler validate` and `spctl` |
+| 4 | `notarize-macos.sh` | Signs the `.dmg` itself, submits the artifact (`notarytool`), staples the ticket (retried on network errors) and verifies with `codesign` and `spctl` |
 | 5 | Gradle | The app-image is archived with `ditto` **after** stapling (a regular zip would break the signature) |
 
 Gradle switches this on by environment (`build.gradle.kts`, "macOS code signing and notarization"):
