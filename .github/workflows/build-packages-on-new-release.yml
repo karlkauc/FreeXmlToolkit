@@ -12,6 +12,8 @@ jobs:
   build:
     # Definiere eine Build-Matrix für alle jpackage Kombinationen
     strategy:
+      # Ein fehlgeschlagenes Paket (z. B. Notarisierungs-Timeout) soll die übrigen nicht abbrechen
+      fail-fast: false
       matrix:
         include:
           # Windows builds - nur x64 (GitHub Actions hat keine ARM64 Windows Runner)
