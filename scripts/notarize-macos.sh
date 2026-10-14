@@ -64,9 +64,19 @@ submit() {
     echo "Notarization accepted (submission $id)"
 }
 
+# `stapler staple` validates the ticket itself; it talks to Apple's CDN, so retry
+# transient network errors (seen on the Intel runners) instead of failing the job.
 staple() {
-    xcrun stapler staple "$1"
-    xcrun stapler validate "$1"
+    local attempt
+    for attempt in 1 2 3; do
+        if xcrun stapler staple "$1"; then
+            return 0
+        fi
+        echo "Stapling attempt $attempt failed, retrying in 15 s..." >&2
+        sleep 15
+    done
+    echo "Stapling failed after 3 attempts" >&2
+    exit 1
 }
 
 case "$ARTIFACT" in
