@@ -22,18 +22,33 @@ import java.util.function.Supplier;
  * classic cause of text-layout freezes.
  *
  * <p>At most {@value #MAX_REPORTS_PER_SESSION} stalls per session, and the same stack
- * signature only once. A freeze that never ends shows up as {@code prev_session_crashed}
- * on the next start instead (see {@link SessionMarker}).
+ * signature only once.
+ *
+ * <p>A freeze that never ends (the user kills the app) would never reach {@code ui_stall}.
+ * Therefore a block that lasts {@value #FREEZE_REPORT_MS} ms is reported <em>while it is still
+ * ongoing</em> as one {@code ui_freeze} event (fresh stack, UI context, no document shape — that
+ * one can only be measured on the blocked FX thread) and flushed right away; the queue is
+ * persistent, so it is also sent at the next start. When the thread recovers, the regular
+ * {@code ui_stall} follows, so a {@code ui_freeze} without a {@code ui_stall} of the same session
+ * marks a freeze that never ended (usually followed by {@code prev_session_crashed}, see
+ * {@link SessionMarker}). At most {@value #MAX_FREEZE_REPORTS_PER_SESSION} per session.
  */
 public final class FxStallWatchdog {
 
     static final long PING_INTERVAL_MS = 500;
     static final long STALL_THRESHOLD_MS = 2000;
     static final int MAX_REPORTS_PER_SESSION = 10;
+    /** Block duration after which an ongoing freeze is reported before it ends. */
+    static final long FREEZE_REPORT_MS = 10_000;
+    static final int MAX_FREEZE_REPORTS_PER_SESSION = 3;
 
     /** Receives a finished stall: duration and the FX stack captured while it was blocked. */
     interface StallSink {
         void stalled(long durationMs, StackTraceElement[] stack);
+
+        /** The FX thread has been blocked for {@code blockedMs} so far and still is. */
+        default void freezing(long blockedMs, StackTraceElement[] stack) {
+        }
     }
 
     private static volatile FxStallWatchdog running;
@@ -47,6 +62,8 @@ public final class FxStallWatchdog {
     private boolean pingOutstanding;
     private long pingPostedAt;
     private StackTraceElement[] capturedStack;
+    /** Whether the outstanding ping was already checked for an ongoing freeze. */
+    private boolean freezeChecked;
     private ScheduledExecutorService scheduler;
 
     FxStallWatchdog(Consumer<Runnable> fxExecutor, Supplier<StackTraceElement[]> fxStack,
@@ -104,20 +121,35 @@ public final class FxStallWatchdog {
         }
     }
 
-    /** One watchdog step: post a ping, or capture the stack of an overdue one. */
+    /**
+     * One watchdog step: post a ping, capture the stack of an overdue one, or report an
+     * ongoing freeze once it lasts {@value #FREEZE_REPORT_MS} ms.
+     */
     void tick() {
+        long freezeMs = -1;
+        StackTraceElement[] freezeStack = null;
         synchronized (lock) {
             long now = nanoClock.getAsLong();
             if (!pingOutstanding) {
                 pingOutstanding = true;
                 pingPostedAt = now;
+                freezeChecked = false;
                 long postedAt = now;
                 fxExecutor.accept(() -> pong(postedAt));
                 return;
             }
-            if (capturedStack == null && elapsedMs(pingPostedAt, now) >= STALL_THRESHOLD_MS) {
+            long elapsed = elapsedMs(pingPostedAt, now);
+            if (capturedStack == null && elapsed >= STALL_THRESHOLD_MS) {
                 capturedStack = fxStack.get();
+            } else if (!freezeChecked && elapsed >= FREEZE_REPORT_MS) {
+                freezeChecked = true;
+                // fresh stack: after 10 s it shows where the thread is stuck, not where it was at 2 s
+                freezeStack = fxStack.get();
+                freezeMs = elapsed;
             }
+        }
+        if (freezeStack != null && !isNativeWait(freezeStack)) {
+            sink.freezing(freezeMs, freezeStack); // outside the lock: the sink enqueues and flushes
         }
     }
 
@@ -168,11 +200,12 @@ public final class FxStallWatchdog {
         private final Set<String> seenHashes = ConcurrentHashMap.newKeySet();
         private final AtomicInteger reports = new AtomicInteger();
 
+        private final Set<String> seenFreezeHashes = ConcurrentHashMap.newKeySet();
+        private final AtomicInteger freezeReports = new AtomicInteger();
+
         @Override
         public void stalled(long durationMs, StackTraceElement[] stack) {
-            Throwable carrier = new Throwable();
-            carrier.setStackTrace(stack == null ? new StackTraceElement[0] : stack);
-            ErrorSignature sig = ErrorSignature.of(carrier);
+            ErrorSignature sig = signature(stack);
             if (!seenHashes.add(sig.hash()) || reports.incrementAndGet() > MAX_REPORTS_PER_SESSION) {
                 return;
             }
@@ -188,6 +221,35 @@ public final class FxStallWatchdog {
                             .meta("max_line_len", UsageEvents.lineLengthBucket(shape.maxLineLen()));
                 }
             });
+        }
+
+        /**
+         * Runs on the watchdog thread while the FX thread is blocked: only reads volatile UI
+         * context (the document shape would have to be measured on the FX thread).
+         */
+        @Override
+        public void freezing(long blockedMs, StackTraceElement[] stack) {
+            ErrorSignature sig = signature(stack);
+            if (!seenFreezeHashes.add(sig.hash())
+                    || freezeReports.incrementAndGet() > MAX_FREEZE_REPORTS_PER_SESSION) {
+                return;
+            }
+            Map<String, String> context = UsageEvents.uiContext();
+            TelemetryService telemetry = Telemetry.get();
+            telemetry.track("ui_freeze", TelemetryEvent.Category.ACTION, b -> {
+                b.status(TelemetryEvent.Status.TIMEOUT).durationMs(blockedMs)
+                        .errorDetail(sig.detail()).errorHash(sig.hash());
+                context.forEach(b::meta);
+                b.docKind(UsageEvents.activeDocKind());
+            });
+            // the app may be killed any moment now — send it instead of waiting for the next flush
+            telemetry.flushAsync();
+        }
+
+        private static ErrorSignature signature(StackTraceElement[] stack) {
+            Throwable carrier = new Throwable();
+            carrier.setStackTrace(stack == null ? new StackTraceElement[0] : stack);
+            return ErrorSignature.of(carrier);
         }
     }
 }

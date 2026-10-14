@@ -1676,7 +1676,7 @@ public class UnifiedShellView extends BorderPane {
                 return;
             }
             org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
-                String result = excel
+                var result = excel
                         ? org.fxt.freexmltoolkit.controls.shell.editor.SpreadsheetActionRunner
                                 .exportToExcel(xml, out, settings.config())
                         : org.fxt.freexmltoolkit.controls.shell.editor.SpreadsheetActionRunner
@@ -1695,16 +1695,16 @@ public class UnifiedShellView extends BorderPane {
             // Infer the actual format from the chosen file's extension.
             boolean isExcel = in.getName().toLowerCase().endsWith(".xlsx");
             org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
-                String xml = isExcel
+                var result = isExcel
                         ? org.fxt.freexmltoolkit.controls.shell.editor.SpreadsheetActionRunner
                                 .excelToXml(in, settings.config())
                         : org.fxt.freexmltoolkit.controls.shell.editor.SpreadsheetActionRunner
                                 .csvToXml(in, settings.delimiter().config(), settings.config());
                 javafx.application.Platform.runLater(() -> {
-                    if (xml.startsWith("ERROR:")) {
-                        reportConversion(xml, in, true);
+                    if (result.isError()) {
+                        reportConversion(result, in, true);
                     } else {
-                        editorHost.openGeneratedDocument(xml,
+                        editorHost.openGeneratedDocument(result.text(),
                                 org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.XML, "Imported.xml");
                     }
                 });
@@ -1712,9 +1712,9 @@ public class UnifiedShellView extends BorderPane {
         }
     }
 
-    private void reportConversion(String result, java.io.File file, boolean imported) {
-        boolean ok = result.startsWith("OK:") || (imported && !result.startsWith("ERROR:"));
-        if (ok) {
+    private void reportConversion(org.fxt.freexmltoolkit.controls.shell.editor.SpreadsheetActionRunner.Result result,
+                                  java.io.File file, boolean imported) {
+        if (!result.isError()) {
             org.fxt.freexmltoolkit.util.DialogHelper.showInformation("Spreadsheet Converter",
                     "Conversion finished", "Done: " + file.getAbsolutePath());
         } else {
@@ -1723,7 +1723,8 @@ public class UnifiedShellView extends BorderPane {
                     imported
                             ? "Check that the spreadsheet is a valid .xlsx/.csv file and not open in another program, then try again."
                             : "Check that the document is well-formed and the target file is writable (not open elsewhere), then try again.",
-                    org.fxt.freexmltoolkit.controls.shell.editor.PanelStatus.strip(result));
+                    // the exception (not just its message): class + stack reach the details and the error report
+                    result.error());
         }
     }
 

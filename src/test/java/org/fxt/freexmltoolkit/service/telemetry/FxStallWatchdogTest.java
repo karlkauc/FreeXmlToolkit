@@ -17,10 +17,21 @@ class FxStallWatchdogTest {
     private final AtomicLong nanos = new AtomicLong(1_000_000_000L);
     private final List<Runnable> fxQueue = new ArrayList<>();
     private final List<Long> stalls = new ArrayList<>();
+    private final List<Long> freezes = new ArrayList<>();
     private final StackTraceElement[] stack = {
             new StackTraceElement("org.fxt.freexmltoolkit.controls.shell.editor.EditorHost", "render", "EditorHost.java", 42)};
     private final FxStallWatchdog watchdog = new FxStallWatchdog(fxQueue::add, () -> stack, nanos::get,
-            (ms, s) -> stalls.add(ms));
+            new FxStallWatchdog.StallSink() {
+                @Override
+                public void stalled(long durationMs, StackTraceElement[] s) {
+                    stalls.add(durationMs);
+                }
+
+                @Override
+                public void freezing(long blockedMs, StackTraceElement[] s) {
+                    freezes.add(blockedMs);
+                }
+            });
 
     @AfterEach
     void tearDown() {
@@ -60,6 +71,99 @@ class FxStallWatchdogTest {
         assertTrue(stalls.isEmpty(), "reported only after recovery");
         runFx();
         assertEquals(List.of(4000L), stalls);
+    }
+
+    @Test
+    void ongoingFreezeIsReportedOnceBeforeItEnds() {
+        watchdog.tick();            // ping posted
+        for (int i = 0; i < 30; i++) {
+            advanceMs(500);
+            watchdog.tick();
+        }
+        assertEquals(List.of(10_000L), freezes, "reported once at 10 s, while still blocked");
+        assertTrue(stalls.isEmpty());
+        runFx();                    // the thread recovers: the regular ui_stall follows
+        assertEquals(List.of(15_000L), stalls);
+
+        // the next freeze is checked again
+        watchdog.tick();
+        for (int i = 0; i < 20; i++) {
+            advanceMs(500);
+            watchdog.tick();
+        }
+        assertEquals(List.of(10_000L, 10_000L), freezes);
+    }
+
+    @Test
+    void stallShorterThanFreezeThresholdIsNoFreeze() {
+        watchdog.tick();
+        for (int i = 0; i < 19; i++) {
+            advanceMs(500);
+            watchdog.tick();
+        }
+        runFx();
+        assertTrue(freezes.isEmpty());
+        assertEquals(List.of(9_500L), stalls);
+    }
+
+    @Test
+    void telemetrySinkReportsFreezeAndFlushesImmediately() {
+        RecordingTelemetryService telemetry = new RecordingTelemetryService();
+        Telemetry.install(telemetry);
+        UsageEvents.activityOpened("explorer");
+        UsageEvents.activeDocumentChanged(DocKind.OTHER, "text",
+                () -> { throw new AssertionError("document shape must not be measured off the FX thread"); });
+
+        FxStallWatchdog.TelemetrySink sink = new FxStallWatchdog.TelemetrySink();
+        sink.freezing(10_000, stack);
+        sink.freezing(10_500, stack); // same signature
+
+        List<TelemetryEvent> events = telemetry.events("ui_freeze");
+        assertEquals(1, events.size());
+        TelemetryEvent e = events.getFirst();
+        assertEquals(TelemetryEvent.Status.TIMEOUT, e.status());
+        assertEquals(10_000L, e.durationMs());
+        assertEquals("explorer", e.meta().get("activity"));
+        assertEquals(DocKind.OTHER, e.docKind());
+        assertEquals(16, e.errorHash().length());
+        assertNull(e.inputBytes());
+        assertEquals(1, telemetry.flushCount);
+        assertTrue(telemetry.events("ui_stall").isEmpty(), "a freeze does not use up the ui_stall dedup");
+    }
+
+    @Test
+    void freezeReportsAreCappedPerSession() {
+        RecordingTelemetryService telemetry = new RecordingTelemetryService();
+        Telemetry.install(telemetry);
+        FxStallWatchdog.TelemetrySink sink = new FxStallWatchdog.TelemetrySink();
+        for (int i = 0; i < FxStallWatchdog.MAX_FREEZE_REPORTS_PER_SESSION + 2; i++) {
+            sink.freezing(10_000, new StackTraceElement[] {
+                    new StackTraceElement("org.fxt.freexmltoolkit.X", "m" + i, "X.java", i)});
+        }
+        assertEquals(FxStallWatchdog.MAX_FREEZE_REPORTS_PER_SESSION, telemetry.events("ui_freeze").size());
+    }
+
+    @Test
+    void nativeWaitIsNoFreeze() {
+        StackTraceElement[] idle = {frame("com.sun.glass.ui.win.WinCommonDialogs", "_showFileChooser")};
+        List<Long> idleFreezes = new ArrayList<>();
+        FxStallWatchdog idleWatchdog = new FxStallWatchdog(fxQueue::add, () -> idle, nanos::get,
+                new FxStallWatchdog.StallSink() {
+                    @Override
+                    public void stalled(long durationMs, StackTraceElement[] s) {
+                    }
+
+                    @Override
+                    public void freezing(long blockedMs, StackTraceElement[] s) {
+                        idleFreezes.add(blockedMs);
+                    }
+                });
+        idleWatchdog.tick();
+        for (int i = 0; i < 30; i++) {
+            advanceMs(500);
+            idleWatchdog.tick();
+        }
+        assertTrue(idleFreezes.isEmpty());
     }
 
     @Test

@@ -13,11 +13,34 @@ import org.xml.sax.InputSource;
 
 /**
  * UI-free XML &harr; spreadsheet conversion for the shell, reusing
- * {@link XmlSpreadsheetConverterService}. Export results are returned as
- * {@code "OK: <path>"}; imports return the resulting XML string. Failures are
- * returned as {@code "ERROR: …"}.
+ * {@link XmlSpreadsheetConverterService}. Every call returns a {@link Result}: exports carry
+ * {@code "OK: <path>"}, imports the resulting XML string; failures carry {@code "ERROR: …"}
+ * plus the exception, so the error dialog (and the anonymous error report) gets its class
+ * and stack instead of the bare message.
  */
 public final class SpreadsheetActionRunner {
+
+    /**
+     * Outcome of a conversion.
+     *
+     * @param text  {@code "OK: <path>"} (export), the XML (import) or {@code "ERROR: …"}
+     * @param error the failure, or null on success
+     */
+    public record Result(String text, Exception error) {
+
+        static Result ok(String text) {
+            return new Result(text, null);
+        }
+
+        static Result failed(Exception e) {
+            return new Result("ERROR: " + e.getMessage(), e);
+        }
+
+        /** @return whether the conversion failed */
+        public boolean isError() {
+            return error != null;
+        }
+    }
 
     private SpreadsheetActionRunner() {
     }
@@ -25,67 +48,67 @@ public final class SpreadsheetActionRunner {
     // ----- XML -> spreadsheet ---------------------------------------------
 
     /** Converts the XML to a comma-separated CSV file (default options). */
-    public static String exportToCsv(String xmlContent, File output) {
+    public static Result exportToCsv(String xmlContent, File output) {
         return exportToCsv(xmlContent, output, CsvHandler.CsvConfig.comma(), new ConversionConfig());
     }
 
     /** Converts the XML to a CSV file with the given delimiter/conversion options. */
-    public static String exportToCsv(String xmlContent, File output,
+    public static Result exportToCsv(String xmlContent, File output,
                                      CsvHandler.CsvConfig csvConfig, ConversionConfig config) {
         try {
             Document doc = parseXml(xmlContent);
             new XmlSpreadsheetConverterService().convertXmlToCsv(doc, output, csvConfig, config);
-            return "OK: " + output.getAbsolutePath();
+            return Result.ok("OK: " + output.getAbsolutePath());
         } catch (Exception e) {
-            return "ERROR: " + e.getMessage();
+            return Result.failed(e);
         }
     }
 
     /** Converts the XML to an Excel (.xlsx) workbook (default options). */
-    public static String exportToExcel(String xmlContent, File output) {
+    public static Result exportToExcel(String xmlContent, File output) {
         return exportToExcel(xmlContent, output, new ConversionConfig());
     }
 
     /** Converts the XML to an Excel (.xlsx) workbook with the given conversion options. */
-    public static String exportToExcel(String xmlContent, File output, ConversionConfig config) {
+    public static Result exportToExcel(String xmlContent, File output, ConversionConfig config) {
         try {
             Document doc = parseXml(xmlContent);
             new XmlSpreadsheetConverterService().convertXmlToExcel(doc, output, config);
-            return "OK: " + output.getAbsolutePath();
+            return Result.ok("OK: " + output.getAbsolutePath());
         } catch (Exception e) {
-            return "ERROR: " + e.getMessage();
+            return Result.failed(e);
         }
     }
 
     // ----- spreadsheet -> XML ---------------------------------------------
 
-    /** Imports an Excel (.xlsx) workbook back to XML (default options). @return XML or {@code "ERROR: …"}. */
-    public static String excelToXml(File excelFile) {
+    /** Imports an Excel (.xlsx) workbook back to XML (default options). @return the XML, or the failure. */
+    public static Result excelToXml(File excelFile) {
         return excelToXml(excelFile, new ConversionConfig());
     }
 
-    /** Imports an Excel (.xlsx) workbook back to XML. @return XML or {@code "ERROR: …"}. */
-    public static String excelToXml(File excelFile, ConversionConfig config) {
+    /** Imports an Excel (.xlsx) workbook back to XML. @return the XML, or the failure. */
+    public static Result excelToXml(File excelFile, ConversionConfig config) {
         try {
             XmlSpreadsheetConverterService service = new XmlSpreadsheetConverterService();
-            return service.documentToString(service.convertExcelToXml(excelFile, config), config);
+            return Result.ok(service.documentToString(service.convertExcelToXml(excelFile, config), config));
         } catch (Exception e) {
-            return "ERROR: " + e.getMessage();
+            return Result.failed(e);
         }
     }
 
-    /** Imports a comma-separated CSV file back to XML (default options). @return XML or {@code "ERROR: …"}. */
-    public static String csvToXml(File csvFile) {
+    /** Imports a comma-separated CSV file back to XML (default options). @return the XML, or the failure. */
+    public static Result csvToXml(File csvFile) {
         return csvToXml(csvFile, CsvHandler.CsvConfig.comma(), new ConversionConfig());
     }
 
-    /** Imports a CSV file back to XML with the given delimiter/options. @return XML or {@code "ERROR: …"}. */
-    public static String csvToXml(File csvFile, CsvHandler.CsvConfig csvConfig, ConversionConfig config) {
+    /** Imports a CSV file back to XML with the given delimiter/options. @return the XML, or the failure. */
+    public static Result csvToXml(File csvFile, CsvHandler.CsvConfig csvConfig, ConversionConfig config) {
         try {
             XmlSpreadsheetConverterService service = new XmlSpreadsheetConverterService();
-            return service.documentToString(service.convertCsvToXml(csvFile, csvConfig, config), config);
+            return Result.ok(service.documentToString(service.convertCsvToXml(csvFile, csvConfig, config), config));
         } catch (Exception e) {
-            return "ERROR: " + e.getMessage();
+            return Result.failed(e);
         }
     }
 

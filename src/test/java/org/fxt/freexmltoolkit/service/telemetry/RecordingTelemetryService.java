@@ -117,9 +117,12 @@ public class RecordingTelemetryService implements TelemetryService {
         // not needed in tests
     }
 
+    /** Number of {@link #flushAsync()} calls. */
+    public int flushCount;
+
     @Override
     public void flushAsync() {
-        // not needed in tests
+        flushCount++;
     }
 
     @Override

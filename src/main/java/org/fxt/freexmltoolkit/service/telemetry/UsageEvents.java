@@ -569,12 +569,26 @@ public final class UsageEvents {
     /**
      * Schema auto-detection finished for an opened document (XML family or JSON).
      *
-     * @param source how the schema was found: {@code none | declared | library | catalog | manual}
+     * @param source how the schema was found: {@code none | declared | library | catalog | manual};
+     *               on failure the source that was tried
      * @param ok     false when a schema was referenced but could not be loaded
      */
     public static void schemaBound(DocKind kind, String source, boolean ok, long startNanos) {
+        schemaBound(kind, source, ok, null, startNanos);
+    }
+
+    /**
+     * Same as {@link #schemaBound(DocKind, String, boolean, long)} with the failure reason.
+     *
+     * @param failure why the binding failed: {@code unresolved} (reference not resolvable /
+     *                reachable) or {@code unloadable} (schema missing or not parsable); null on success
+     */
+    public static void schemaBound(DocKind kind, String source, boolean ok, String failure, long startNanos) {
         action("schema_bind", b -> {
             b.docKind(kind).status(status(ok)).meta("source", source);
+            if (!ok && failure != null) {
+                b.meta("failure", failure);
+            }
             duration(b, startNanos);
         });
     }
