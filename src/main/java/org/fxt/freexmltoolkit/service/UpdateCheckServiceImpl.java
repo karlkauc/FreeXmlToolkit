@@ -71,7 +71,7 @@ public class UpdateCheckServiceImpl implements UpdateCheckService {
      * The build now generates build-info.properties from {@code build.gradle.kts}, so this
      * constant is only used in degenerate test/classpath scenarios.
      */
-    private static final String DEFAULT_VERSION = "0.0.0-dev";
+    private static final String DEFAULT_VERSION = "2.5.0";
 
     // Lazy-initialized services to avoid circular dependency
     private PropertiesService propertiesService;
