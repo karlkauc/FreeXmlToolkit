@@ -25,6 +25,7 @@ NC='\033[0m' # No Color
 # Files to update
 BUILD_GRADLE="build.gradle.kts"
 UPDATE_SERVICE="src/main/java/org/fxt/freexmltoolkit/service/UpdateCheckServiceImpl.java"
+METAINFO="packaging/linux/share/metainfo/io.github.karlkauc.FreeXmlToolkit.metainfo.xml"
 
 print_step() {
     echo -e "${BLUE}==>${NC} $1"
@@ -160,6 +161,23 @@ else
 fi
 print_success "Updated $UPDATE_SERVICE"
 
+# Step 2b: Add the release to the AppStream metainfo (Flathub release history)
+if ! grep -q "<release version=\"$VERSION\"" "$METAINFO"; then
+    print_step "Adding release $VERSION to $METAINFO..."
+    RELEASE_DATE=$(date +%Y-%m-%d)
+    python3 - "$METAINFO" "$VERSION" "$RELEASE_DATE" <<'PY'
+import sys
+path, version, date = sys.argv[1:4]
+text = open(path, encoding="utf-8").read()
+entry = (f'    <release version="{version}" date="{date}">\n'
+         f'      <url type="details">https://github.com/karlkauc/FreeXmlToolkit/releases/tag/v{version}</url>\n'
+         f'    </release>\n')
+text = text.replace("  <releases>\n", "  <releases>\n" + entry, 1)
+open(path, "w", encoding="utf-8").write(text)
+PY
+    print_success "Updated $METAINFO"
+fi
+
 # Step 3: Verify changes
 print_step "Verifying changes..."
 echo ""
@@ -172,7 +190,7 @@ echo ""
 
 # Step 4: Commit changes
 print_step "Committing version changes..."
-git add "$BUILD_GRADLE" "$UPDATE_SERVICE"
+git add "$BUILD_GRADLE" "$UPDATE_SERVICE" "$METAINFO"
 git commit -m "chore: Bump version to $VERSION
 
 Co-Authored-By: Release Script <noreply@freexmltoolkit.org>"

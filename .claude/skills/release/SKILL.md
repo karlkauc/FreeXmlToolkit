@@ -27,3 +27,9 @@ by repository secrets (`MACOS_*`, `APPLE_API_*`; setup and troubleshooting in
 To test signing without a release, start the workflow manually (`workflow_dispatch`) —
 it uploads workflow artifacts instead of release assets. The Developer ID certificates
 expire after five years; without the secrets the packages are built unsigned.
+
+**Package managers:** after the build, the workflow writes `SHA256SUMS.txt` and updates the
+Scoop bucket, the Homebrew tap and winget (jobs gated by repository variables); Flathub's
+bot opens its own update PR. Every version needs a `<release>` entry in
+`packaging/linux/share/metainfo/io.github.karlkauc.FreeXmlToolkit.metainfo.xml`
+(`release.sh` adds it; `PackagingMetadataTest` checks it). Details: `packaging/README.md`.

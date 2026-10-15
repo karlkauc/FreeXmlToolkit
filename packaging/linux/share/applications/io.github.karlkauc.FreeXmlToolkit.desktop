@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=FreeXmlToolkit
+GenericName=XML Editor
+Comment=Edit, validate and transform XML, XSD, XSLT, Schematron and JSON
+Exec=freexmltoolkit %F
+Icon=io.github.karlkauc.FreeXmlToolkit
+Terminal=false
+Categories=Development;IDE;TextEditor;
+Keywords=xml;xsd;xslt;xquery;xpath;schematron;json;schema;validation;
+MimeType=application/xml;text/xml;application/xslt+xml;application/x-schematron+xml;application/json;
+StartupNotify=true

@@ -14,8 +14,8 @@ import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.UpdateCheckService;
 
 /**
- * Owns the application's startup background tasks (app-update + FundsXML-update
- * checks, periodic telemetry flush) and their scheduler.
+ * Owns the application's startup background tasks (install-source detection, app-update +
+ * FundsXML-update checks, periodic telemetry flush) and their scheduler.
  * Invoked once at boot by FxtGui; shut down by FxtGui.stop().
  */
 public final class ShellBootstrap {
@@ -47,6 +47,9 @@ public final class ShellBootstrap {
             return;
         }
         scheduled = true;
+        // Full install-source detection (winget needs a process) for the next app_start event
+        scheduler.schedule(() -> org.fxt.freexmltoolkit.service.telemetry.LaunchContext.recordInstallSource(
+                ServiceRegistry.get(PropertiesService.class)), 1, TimeUnit.SECONDS);
         scheduler.schedule(this::checkForAppUpdate, 2, TimeUnit.SECONDS);
         scheduler.schedule(this::fundsXmlStartupSync, 5, TimeUnit.SECONDS);
         // Anonymous telemetry: first flush after ~60 s, then every 5 minutes. The flush itself

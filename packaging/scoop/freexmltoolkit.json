@@ -1,0 +1,32 @@
+{
+    "version": "@@VERSION@@",
+    "description": "Universal toolkit for XML: edit, validate and transform XML, XSD, XSLT, Schematron and JSON",
+    "homepage": "https://github.com/karlkauc/FreeXmlToolkit",
+    "license": "Apache-2.0",
+    "architecture": {
+        "64bit": {
+            "url": "https://github.com/karlkauc/FreeXmlToolkit/releases/download/v@@VERSION@@/FreeXmlToolkit-windows-x64-app-image-@@VERSION@@.zip",
+            "hash": "@@SHA256_WINDOWS_X64_ZIP@@"
+        }
+    },
+    "extract_dir": "FreeXmlToolkit",
+    "post_install": "Set-Content -Path \"$dir\\.fxt-install-source\" -Value 'scoop' -NoNewline",
+    "shortcuts": [
+        [
+            "FreeXmlToolkit.exe",
+            "FreeXmlToolkit"
+        ]
+    ],
+    "checkver": "github",
+    "autoupdate": {
+        "architecture": {
+            "64bit": {
+                "url": "https://github.com/karlkauc/FreeXmlToolkit/releases/download/v$version/FreeXmlToolkit-windows-x64-app-image-$version.zip",
+                "hash": {
+                    "url": "https://github.com/karlkauc/FreeXmlToolkit/releases/download/v$version/SHA256SUMS.txt",
+                    "regex": "$sha256\\s+$basename"
+                }
+            }
+        }
+    }
+}
