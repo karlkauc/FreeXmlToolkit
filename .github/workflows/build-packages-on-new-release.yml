@@ -278,3 +278,101 @@ jobs:
           else
             echo "🎉 Successfully uploaded $found_files file(s)"
           fi
+
+  # SHA256SUMS.txt für alle Release-Assets. Nutzt die SHA-256-Digests, die GitHub zu jedem
+  # Asset liefert (kein Download der ~1 GB Pakete); fehlt ein Digest, wird die Datei geladen.
+  checksums:
+    needs: build
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      TAG: ${{ github.event.release.tag_name }}
+    steps:
+      - name: Create and upload SHA256SUMS.txt
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api "repos/${{ github.repository }}/releases/tags/$TAG" \
+            --jq '.assets[] | select(.name != "SHA256SUMS.txt") | [.name, (.digest // "")] | @tsv' > assets.tsv
+          : > SHA256SUMS.txt
+          while IFS=$'\t' read -r name digest; do
+            if [[ "$digest" == sha256:* ]]; then
+              echo "${digest#sha256:}  $name" >> SHA256SUMS.txt
+            else
+              gh release download "$TAG" -R "${{ github.repository }}" -p "$name" -D dl --clobber
+              (cd dl && sha256sum "$name") >> SHA256SUMS.txt
+              rm -f "dl/$name"
+            fi
+          done < assets.tsv
+          sort -k2 -o SHA256SUMS.txt SHA256SUMS.txt
+          cat SHA256SUMS.txt
+          gh release upload "$TAG" SHA256SUMS.txt --clobber -R "${{ github.repository }}"
+
+  # Paketmanager-Manifeste aktualisieren (Einrichtung: packaging/README.md).
+  # Vorabversionen werden nicht veröffentlicht; ohne Token/Variable wird der Job übersprungen.
+  publish-scoop:
+    needs: checksums
+    if: github.event_name == 'release' && !github.event.release.prerelease && vars.SCOOP_BUCKET_REPO != ''
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      TAG: ${{ github.event.release.tag_name }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: Render manifest
+        run: |
+          gh release download "$TAG" -p SHA256SUMS.txt
+          python3 -I packaging/render-manifests.py "${TAG#v}" SHA256SUMS.txt out scoop
+      - name: Push to bucket
+        env:
+          PACKAGING_REPO_TOKEN: ${{ secrets.PACKAGING_REPO_TOKEN }}
+        run: |
+          git clone "https://x-access-token:${PACKAGING_REPO_TOKEN}@github.com/${{ vars.SCOOP_BUCKET_REPO }}.git" bucket
+          mkdir -p bucket/bucket
+          cp out/scoop/freexmltoolkit.json bucket/bucket/freexmltoolkit.json
+          cd bucket
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add bucket/freexmltoolkit.json
+          git diff --cached --quiet || { git commit -m "freexmltoolkit: Update to version ${TAG#v}"; git push; }
+
+  publish-homebrew:
+    needs: checksums
+    if: github.event_name == 'release' && !github.event.release.prerelease && vars.HOMEBREW_TAP_REPO != ''
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      TAG: ${{ github.event.release.tag_name }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: Render cask
+        run: |
+          gh release download "$TAG" -p SHA256SUMS.txt
+          python3 -I packaging/render-manifests.py "${TAG#v}" SHA256SUMS.txt out homebrew
+      - name: Push to tap
+        env:
+          PACKAGING_REPO_TOKEN: ${{ secrets.PACKAGING_REPO_TOKEN }}
+        run: |
+          git clone "https://x-access-token:${PACKAGING_REPO_TOKEN}@github.com/${{ vars.HOMEBREW_TAP_REPO }}.git" tap
+          mkdir -p tap/Casks
+          cp out/homebrew/Casks/freexmltoolkit.rb tap/Casks/freexmltoolkit.rb
+          cd tap
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Casks/freexmltoolkit.rb
+          git diff --cached --quiet || { git commit -m "freexmltoolkit ${TAG#v}"; git push; }
+
+  # Erst aktivieren (Variable WINGET_ENABLED=true), wenn die Erstaufnahme in
+  # microsoft/winget-pkgs gemergt ist – winget-releaser kann nur bestehende Pakete aktualisieren.
+  publish-winget:
+    needs: checksums
+    if: github.event_name == 'release' && !github.event.release.prerelease && vars.WINGET_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: vedantmgoyal9/winget-releaser@v2
+        with:
+          identifier: KarlKauc.FreeXmlToolkit
+          installers-regex: '\.msi$'
+          release-tag: ${{ github.event.release.tag_name }}
+          token: ${{ secrets.WINGET_TOKEN }}

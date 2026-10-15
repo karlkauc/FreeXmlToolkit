@@ -45,6 +45,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.UpdateInfo;
+import org.fxt.freexmltoolkit.service.update.InstallSource;
+import org.fxt.freexmltoolkit.service.update.InstallSourceDetector;
 
 /**
  * Implementation of AutoUpdateService that downloads and applies updates from GitHub Releases.
@@ -122,6 +124,14 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
     public CompletableFuture<UpdateResult> downloadAndApplyUpdate(
             UpdateInfo updateInfo,
             Consumer<UpdateProgress> progressCallback) {
+
+        InstallSource installSource = InstallSourceDetector.current();
+        if (installSource.isManaged()) {
+            // Never overwrite an installation a package manager owns
+            return CompletableFuture.completedFuture(UpdateResult.failure(
+                    "This installation is managed by " + installSource.displayName()
+                            + ". Update it with: " + installSource.upgradeCommand()));
+        }
 
         if (!updateInProgress.compareAndSet(false, true)) {
             return CompletableFuture.completedFuture(

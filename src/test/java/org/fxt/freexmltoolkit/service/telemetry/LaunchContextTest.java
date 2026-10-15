@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.nio.file.Path;
 import java.util.Map;
 
+import org.fxt.freexmltoolkit.service.update.InstallSource;
 import org.junit.jupiter.api.Test;
 
 class LaunchContextTest {
@@ -50,5 +51,18 @@ class LaunchContextTest {
     @Test
     void startupMillisIsPositive() {
         assertTrue(LaunchContext.startupMillis() > 0);
+    }
+
+    @Test
+    void installSourceUsesQuickDetection() {
+        assertEquals("flatpak", LaunchContext.installSource(InstallSource.FLATPAK, null));
+        assertEquals("scoop", LaunchContext.installSource(InstallSource.SCOOP, "winget"));
+        assertEquals("standalone", LaunchContext.installSource(InstallSource.STANDALONE, null));
+        assertEquals("standalone", LaunchContext.installSource(InstallSource.STANDALONE, "homebrew"));
+    }
+
+    @Test
+    void wingetComesFromThePreviousFullDetection() {
+        assertEquals("winget", LaunchContext.installSource(InstallSource.STANDALONE, "winget"));
     }
 }

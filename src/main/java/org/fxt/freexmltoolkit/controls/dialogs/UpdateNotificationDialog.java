@@ -29,6 +29,8 @@ import javafx.scene.control.Dialog;
 import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
+import javafx.scene.input.ClipboardContent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
@@ -41,6 +43,8 @@ import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.UpdateInfo;
 import org.fxt.freexmltoolkit.service.UpdateCheckService;
+import org.fxt.freexmltoolkit.service.update.InstallSource;
+import org.fxt.freexmltoolkit.service.update.InstallSourceDetector;
 
 /**
  * Dialog that displays update notification with release notes.
@@ -52,6 +56,8 @@ import org.fxt.freexmltoolkit.service.UpdateCheckService;
  *   <li>Remind Me Later - Closes the dialog without action</li>
  *   <li>Skip This Version - Skips the current version and won't show the dialog again for it</li>
  * </ul>
+ * When a package manager owns the installation ({@link InstallSource#isManaged()}),
+ * "Download &amp; Install" is replaced by the package manager's upgrade command.
  *
  * @since 2.0
  */
@@ -80,6 +86,9 @@ public class UpdateNotificationDialog extends Dialog<UpdateNotificationDialog.Up
     @FXML private HBox notesHeader;
     @FXML private Label publishedDate;
     @FXML private TextArea releaseNotes;
+    @FXML private Label infoText;
+    @FXML private HBox managedBox;
+    @FXML private TextField upgradeCommand;
 
     /**
      * Creates a new update notification dialog.
@@ -129,18 +138,31 @@ public class UpdateNotificationDialog extends Dialog<UpdateNotificationDialog.Up
         }
         releaseNotes.setText(notes);
 
+        InstallSource installSource = InstallSourceDetector.peek();
+        boolean managed = installSource.isManaged();
+        if (managed) {
+            infoText.setText("This installation is managed by " + installSource.displayName()
+                    + ". Run the command above to update it.");
+            upgradeCommand.setText(installSource.upgradeCommand());
+            managedBox.setVisible(true);
+            managedBox.setManaged(true);
+        }
+
         // Custom buttons
         ButtonType installButton = new ButtonType("Download & Install", ButtonBar.ButtonData.OK_DONE);
         ButtonType downloadButton = new ButtonType("Open in Browser", ButtonBar.ButtonData.LEFT);
         ButtonType remindLaterButton = new ButtonType("Remind Me Later", ButtonBar.ButtonData.CANCEL_CLOSE);
         ButtonType skipVersionButton = new ButtonType("Skip This Version", ButtonBar.ButtonData.OTHER);
 
-        dialogPane.getButtonTypes().addAll(installButton, downloadButton, remindLaterButton, skipVersionButton);
+        if (!managed) {
+            dialogPane.getButtonTypes().add(installButton);
+        }
+        dialogPane.getButtonTypes().addAll(downloadButton, remindLaterButton, skipVersionButton);
 
         // ButtonBar enforces a uniform default min-width that truncates the
         // longer labels ("Open in Browser", "Skip This Version"). Force each
         // button to grow to its natural label width so nothing gets clipped.
-        for (ButtonType bt : new ButtonType[]{installButton, downloadButton, remindLaterButton, skipVersionButton}) {
+        for (ButtonType bt : dialogPane.getButtonTypes()) {
             Button b = (Button) dialogPane.lookupButton(bt);
             if (b != null) {
                 b.setMinWidth(Region.USE_PREF_SIZE);
@@ -202,6 +224,14 @@ public class UpdateNotificationDialog extends Dialog<UpdateNotificationDialog.Up
         } catch (Exception e) {
             logger.error("Failed to open download page", e);
         }
+    }
+
+    /** Copies the package manager's upgrade command to the clipboard. */
+    @FXML
+    public void copyUpgradeCommand() {
+        ClipboardContent content = new ClipboardContent();
+        content.putString(upgradeCommand.getText());
+        javafx.scene.input.Clipboard.getSystemClipboard().setContent(content);
     }
 
     private void skipVersion() {

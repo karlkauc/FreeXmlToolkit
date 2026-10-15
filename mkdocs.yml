@@ -127,6 +127,7 @@ nav:
     - Security Features: SECURITY.md
     - Digital Signatures: digital-signatures.md
     - Privacy & Telemetry: telemetry.md
+    - Code Signing Policy: code-signing-policy.md
   - Reference:
     - Technology Stack: technology-stack.md
     - Licenses: licenses.md

@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
@@ -11,7 +13,8 @@
   Content of the "Update Available" dialog: green header, current → new version, the release
   notes and an info tip. Loaded by UpdateNotificationDialog (FxmlViews.loadContent), which is the
   controller, fills in the versions, the publish date (removed when unknown) and the notes, and
-  adds the four buttons.
+  adds the buttons. For package-manager installs it shows the upgrade command (managedBox)
+  instead of offering "Download & Install".
 -->
 <VBox spacing="20" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
     <children>
@@ -88,6 +91,22 @@
             </children>
         </VBox>
 
+        <!-- Upgrade command for package-manager installs (hidden otherwise) -->
+        <HBox fx:id="managedBox" spacing="8" alignment="CENTER_LEFT" visible="false" managed="false">
+            <padding>
+                <Insets right="20" left="20"/>
+            </padding>
+            <children>
+                <TextField fx:id="upgradeCommand" id="update-upgrade-command" editable="false" HBox.hgrow="ALWAYS"
+                           style="-fx-font-family: 'Consolas', 'Courier New', monospace;"/>
+                <Button id="update-copy-command" text="Copy" onAction="#copyUpgradeCommand">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-clipboard" iconSize="14"/>
+                    </graphic>
+                </Button>
+            </children>
+        </HBox>
+
         <!-- Info box -->
         <HBox>
             <padding>
@@ -101,7 +120,8 @@
                     </padding>
                     <children>
                         <IconifyIcon iconLiteral="bi-info-circle-fill" iconSize="16" iconColor="#0d6efd"/>
-                        <Label text="Click 'Download &amp; Install' to automatically update. The application will restart after installation."
+                        <Label fx:id="infoText"
+                               text="Click 'Download &amp; Install' to automatically update. The application will restart after installation."
                                wrapText="true" styleClass="info-tip-text" style="-fx-font-size: 12px;"/>
                     </children>
                 </HBox>

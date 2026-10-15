@@ -8,10 +8,12 @@ import java.util.function.Consumer;
 
 import org.fxt.freexmltoolkit.service.ApplicationLauncherLocator;
 import org.fxt.freexmltoolkit.service.PropertiesService;
+import org.fxt.freexmltoolkit.service.update.InstallSource;
+import org.fxt.freexmltoolkit.service.update.InstallSourceDetector;
 
 /**
  * Builds the launch context of the {@code app_start} event: startup time, how the app was
- * installed and a snapshot of a few UI settings (to see whether the defaults fit).
+ * installed (kind of installation and distribution channel) and a snapshot of a few UI settings (to see whether the defaults fit).
  *
  * <p>Privacy: only fixed enum values and booleans — never the install path, proxy
  * settings, user info or any other free text.
@@ -25,6 +27,13 @@ public final class LaunchContext {
     /** {@code meta.package}: no native launcher (IDE, {@code gradlew run}, plain jar). */
     public static final String PACKAGE_NONE = "none";
 
+    /**
+     * Settings key holding the last full {@link InstallSource} detection. The winget rule
+     * starts a process, so {@code app_start} (sent on the FX thread) cannot run it; the
+     * startup task stores the result here and the next {@code app_start} reports it.
+     */
+    public static final String PROP_LAST_INSTALL_SOURCE = "telemetry.install.source";
+
     private LaunchContext() {
     }
 
@@ -36,11 +45,13 @@ public final class LaunchContext {
     public static Consumer<TelemetryEvent.Builder> appStart(PropertiesService props) {
         long startupMs = startupMillis();
         String pkg = currentPackageKind();
+        String source = currentInstallSource(props);
         return b -> {
             if (startupMs > 0) {
                 b.durationMs(startupMs);
             }
             b.meta("package", pkg);
+            b.meta("install_source", source);
             settingsSnapshot(props).forEach(b::meta);
         };
     }
@@ -52,6 +63,50 @@ public final class LaunchContext {
             return jvmStart > 0 ? Math.max(0, System.currentTimeMillis() - jvmStart) : -1;
         } catch (Throwable t) {
             return -1;
+        }
+    }
+
+    private static String currentInstallSource(PropertiesService props) {
+        try {
+            String lastFull = null;
+            if (props != null) {
+                lastFull = props.get(PROP_LAST_INSTALL_SOURCE);
+            }
+            return installSource(InstallSourceDetector.peek(), lastFull);
+        } catch (Throwable t) {
+            return InstallSource.STANDALONE.id();
+        }
+    }
+
+    /**
+     * Distribution channel for {@code meta.install_source}.
+     *
+     * @param quick    detection without the winget process ({@link InstallSourceDetector#peek()})
+     * @param lastFull id stored by the previous full detection (nullable)
+     * @return an {@link InstallSource#id()}
+     */
+    static String installSource(InstallSource quick, String lastFull) {
+        // Only winget needs the stored value; every other source is known right away and wins
+        if (quick == InstallSource.STANDALONE && InstallSource.WINGET.id().equals(lastFull)) {
+            return InstallSource.WINGET.id();
+        }
+        return quick.id();
+    }
+
+    /**
+     * Runs the full install-source detection (may start {@code winget}, call off the FX thread)
+     * and stores its result for the next {@code app_start}.
+     *
+     * @param props the settings (nullable: nothing stored then)
+     */
+    public static void recordInstallSource(PropertiesService props) {
+        try {
+            String id = InstallSourceDetector.current().id();
+            if (props != null && !id.equals(props.get(PROP_LAST_INSTALL_SOURCE))) {
+                props.set(PROP_LAST_INSTALL_SOURCE, id);
+            }
+        } catch (Throwable t) {
+            // telemetry context is best effort
         }
     }
 

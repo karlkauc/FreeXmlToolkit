@@ -26,3 +26,13 @@ updater dispatch:
 - **Mac/Linux:** No separate helper — `AutoUpdateServiceImpl` performs
   in-process recursive copy then exec's the new launcher (POSIX inode
   semantics allow overwriting files of running processes).
+
+## Package-manager installs (no self-update)
+
+`service/update/InstallSourceDetector` classifies the install as `FLATPAK`, `SCOOP`,
+`HOMEBREW`, `WINGET` or `STANDALONE` (`InstallSource`). Only `STANDALONE` may self-update:
+`AutoUpdateServiceImpl.downloadAndApplyUpdate` refuses managed installs, the
+`UpdateNotificationDialog` replaces "Download & Install" with the package manager's upgrade
+command, and Flatpak disables the update check. `InstallSourceDetector.current()` may start
+`winget list` (≤5 s) — it is warmed in `UpdateCheckServiceImpl.checkForUpdates` (background);
+FX-thread code uses `peek()`. Distribution setup: `packaging/README.md`.

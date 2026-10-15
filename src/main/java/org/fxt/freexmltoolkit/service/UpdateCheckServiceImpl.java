@@ -29,6 +29,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.UpdateInfo;
+import org.fxt.freexmltoolkit.service.update.InstallSourceDetector;
 import org.fxt.freexmltoolkit.util.VersionUtil;
 
 import com.google.gson.JsonObject;
@@ -179,6 +180,9 @@ public class UpdateCheckServiceImpl implements UpdateCheckService {
 
             String currentVersion = getCurrentVersion();
             logger.info("Checking for updates. Current version: {}", currentVersion);
+            // Resolve (and cache) the install source off the FX thread: the update dialog
+            // needs it, and on Windows it may start a short winget process.
+            InstallSourceDetector.current();
 
             try {
                 // Fetch latest release from GitHub API
@@ -254,6 +258,10 @@ public class UpdateCheckServiceImpl implements UpdateCheckService {
 
     @Override
     public boolean isUpdateCheckEnabled() {
+        if (InstallSourceDetector.isFlatpakSandbox()) {
+            // Flathub delivers updates through the software center
+            return false;
+        }
         Properties props = getPropertiesService().loadProperties();
         return Boolean.parseBoolean(props.getProperty(PROP_UPDATE_CHECK_ENABLED, "true"));
     }

@@ -33,6 +33,12 @@ plugins {
 }
 
 version = "2.4.0"
+
+// MSI UpgradeCode. Pinned to the value jpackage derived from vendor + name up to 2.4.0, so
+// existing installations keep upgrading in place and winget can match the package.
+// Never change it.
+val WINDOWS_UPGRADE_UUID = "11DB45AD-E06B-3CE5-914E-EDDFE486316E"
+
 group = "org.fxt"
 
 repositories {
@@ -760,7 +766,9 @@ fun createJPackageTask(taskName: String, platform: String, arch: String, package
 --icon """ + project.projectDir.resolve("release/logo.ico") + """
 --win-dir-chooser
 --win-menu
---win-shortcut"""
+--win-shortcut
+--win-upgrade-uuid
+$WINDOWS_UPGRADE_UUID"""
             // The bundle identifier is set for the app-image too: MacAssociationStrategy
             // addresses the app by it, and it is part of the code signature.
             platform == "macos" -> """
@@ -976,6 +984,16 @@ $platformArgs""".trimIndent())
                             }
                             println("Copied log4j2.xml to app root")
                         }
+
+                        // Linux: freedesktop metadata (desktop entry, AppStream, icons) for
+                        // Flatpak and other repackagers, see packaging/README.md
+                        if (platform == "linux") {
+                            copy {
+                                from("packaging/linux/share")
+                                into(File(appRootDir, "share"))
+                            }
+                            println("Copied freedesktop metadata to app root")
+                        }
                         println("App-image created successfully in: $sourceDir")
                         println("Note: Use corresponding ZIP task to create archive")
                     } else {
@@ -1012,14 +1030,16 @@ $platformArgs""".trimIndent())
                 }
                 packageType == "deb" -> {
                     // Rename deb files to match required naming convention
-                    val expectedName = "freexmltoolkit-${arch}_${version}_amd64.deb"
+                    val debArch = if (arch == "arm64") "arm64" else "amd64"
+                    val expectedName = "freexmltoolkit-${arch}_${version}_$debArch.deb"
                     fileTree(sourceDir).filter { it.name.endsWith(".deb") }.forEach { file ->
                         file.renameTo(File(file.parent, expectedName))
                     }
                 }
                 packageType == "rpm" -> {
                     // Rename rpm files to match required naming convention
-                    val expectedName = "freexmltoolkit-$arch-$version-1.x86_64.rpm"
+                    val rpmArch = if (arch == "arm64") "aarch64" else "x86_64"
+                    val expectedName = "freexmltoolkit-$arch-$version-1.$rpmArch.rpm"
                     fileTree(sourceDir).filter { it.name.endsWith(".rpm") }.forEach { file ->
                         file.renameTo(File(file.parent, expectedName))
                     }

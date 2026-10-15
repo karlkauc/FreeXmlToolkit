@@ -1,0 +1,48 @@
+# Flathub manifest. Repackages the official Linux app-image (it bundles its own jlink runtime
+# incl. JavaFX), because a Gradle + jlink build cannot run offline inside flatpak-builder.
+# After the initial Flathub submission this file lives in flathub/io.github.karlkauc.FreeXmlToolkit;
+# the x-checker-data block lets the Flathub bot open an update PR for every new release.
+id: io.github.karlkauc.FreeXmlToolkit
+runtime: org.freedesktop.Platform
+runtime-version: '24.08'
+sdk: org.freedesktop.Sdk
+command: freexmltoolkit
+
+finish-args:
+  # JavaFX has no native Wayland backend; under Wayland it runs through XWayland
+  - --socket=x11
+  - --share=ipc
+  - --device=dri
+  # Schema downloads, HTTP imports, update notifications
+  - --share=network
+  # The JavaFX (GTK) file chooser does not use portals, and XML projects reference
+  # schemas and stylesheets by relative path all over the user's files
+  - --filesystem=home
+  # Belt and braces next to FLATPAK_ID: the app must never self-update inside the sandbox
+  - --env=FXT_INSTALL_SOURCE=flatpak
+
+modules:
+  - name: freexmltoolkit
+    buildsystem: simple
+    build-commands:
+      - mkdir -p /app/lib/freexmltoolkit
+      - cp -a bin lib /app/lib/freexmltoolkit/
+      - cp -a log4j2.xml examples /app/lib/freexmltoolkit/ || true
+      - install -Dm755 freexmltoolkit.sh /app/bin/freexmltoolkit
+      - cp -a share/. /app/share/
+    sources:
+      - type: archive
+        url: https://github.com/karlkauc/FreeXmlToolkit/releases/download/v@@VERSION@@/FreeXmlToolkit-linux-x64-app-image-@@VERSION@@.zip
+        sha256: '@@SHA256_LINUX_X64_ZIP@@'
+        only-arches:
+          - x86_64
+        x-checker-data:
+          type: json
+          url: https://api.github.com/repos/karlkauc/FreeXmlToolkit/releases/latest
+          version-query: .tag_name | sub("^v"; "")
+          url-query: '.assets[] | select(.name == "FreeXmlToolkit-linux-x64-app-image-" + $version + ".zip") | .browser_download_url'
+          is-main-source: true
+      - type: script
+        dest-filename: freexmltoolkit.sh
+        commands:
+          - exec /app/lib/freexmltoolkit/bin/FreeXmlToolkit "$@"

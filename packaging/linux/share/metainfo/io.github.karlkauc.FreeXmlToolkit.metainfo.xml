@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- AppStream metadata for Flathub and Linux software centers. Add a <release> entry per version. -->
+<component type="desktop-application">
+  <id>io.github.karlkauc.FreeXmlToolkit</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>Apache-2.0</project_license>
+
+  <name>FreeXmlToolkit</name>
+  <summary>Edit, validate and transform XML, XSD and JSON</summary>
+  <developer id="io.github.karlkauc">
+    <name>Karl Kauc</name>
+  </developer>
+
+  <description>
+    <p>
+      FreeXmlToolkit is a free desktop toolkit for working with XML and related formats.
+      Open a file and switch between a text editor, a tree view and a graphical view.
+    </p>
+    <ul>
+      <li>XML editor with schema-aware IntelliSense, formatting and an XMLSpy-style grid</li>
+      <li>Visual XSD editor with type library, statistics and documentation generation</li>
+      <li>Validation against XSD 1.0/1.1 and Schematron, including Schematron Quick Fixes</li>
+      <li>XSLT 3.0, XQuery 3.1, XPath 3.1 and XProc 3.0 with Saxon and XML Calabash</li>
+      <li>PDF generation with Apache FOP and XML digital signatures</li>
+      <li>JSON editing with text, tree and grid views</li>
+    </ul>
+  </description>
+
+  <launchable type="desktop-id">io.github.karlkauc.FreeXmlToolkit.desktop</launchable>
+
+  <url type="homepage">https://github.com/karlkauc/FreeXmlToolkit</url>
+  <url type="bugtracker">https://github.com/karlkauc/FreeXmlToolkit/issues</url>
+  <url type="help">https://karlkauc.github.io/FreeXmlToolkit/</url>
+  <url type="vcs-browser">https://github.com/karlkauc/FreeXmlToolkit</url>
+
+  <screenshots>
+    <screenshot type="default">
+      <caption>Unified shell with the XML editor</caption>
+      <image>https://raw.githubusercontent.com/karlkauc/FreeXmlToolkit/main/docs/img/unified-shell-overview.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Graphical XSD schema view</caption>
+      <image>https://raw.githubusercontent.com/karlkauc/FreeXmlToolkit/main/docs/img/unified-shell-schema-graphic.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Validation against XSD and Schematron</caption>
+      <image>https://raw.githubusercontent.com/karlkauc/FreeXmlToolkit/main/docs/img/unified-shell-validation.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>XSLT transformation</caption>
+      <image>https://raw.githubusercontent.com/karlkauc/FreeXmlToolkit/main/docs/img/unified-shell-transform.png</image>
+    </screenshot>
+  </screenshots>
+
+  <categories>
+    <category>Development</category>
+  </categories>
+
+  <provides>
+    <mediatype>application/xml</mediatype>
+    <mediatype>text/xml</mediatype>
+    <mediatype>application/xslt+xml</mediatype>
+    <mediatype>application/x-schematron+xml</mediatype>
+    <mediatype>application/json</mediatype>
+  </provides>
+
+  <supports>
+    <control>pointing</control>
+    <control>keyboard</control>
+  </supports>
+  <requires>
+    <display_length compare="ge">1024</display_length>
+  </requires>
+
+  <content_rating type="oars-1.1"/>
+
+  <releases>
+    <release version="2.4.0" date="2026-10-14">
+      <url type="details">https://github.com/karlkauc/FreeXmlToolkit/releases/tag/v2.4.0</url>
+    </release>
+    <release version="2.3.1" date="2026-10-08">
+      <url type="details">https://github.com/karlkauc/FreeXmlToolkit/releases/tag/v2.3.1</url>
+    </release>
+    <release version="2.3.0" date="2026-09-28">
+      <url type="details">https://github.com/karlkauc/FreeXmlToolkit/releases/tag/v2.3.0</url>
+    </release>
+  </releases>
+</component>
