@@ -18,7 +18,7 @@
         <link rel="prev" href="../digital-signatures/">
       
       
-        <link rel="next" href="../technology-stack/">
+        <link rel="next" href="../code-signing-policy/">
       
       
         
@@ -1862,6 +1862,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../code-signing-policy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code Signing Policy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -2273,7 +2301,7 @@ events are sent per session.</p>
 <tbody>
 <tr>
 <td><code>app_start</code></td>
-<td>Startup time in ms, <code>is_first_run</code>, <code>meta.channel</code> (<code>release</code> or <code>dev</code>), <code>meta.days_since_install</code> (whole days since the anonymous ID was created), <code>meta.package</code> (<code>installer</code>, <code>portable</code> or <code>none</code> — only the kind of installation, never its folder) and a snapshot of a few UI settings (<code>meta.set_theme</code>, <code>set_toolbar_labels</code>, <code>set_toolbar_icons</code>, <code>set_activity_labels</code>, <code>set_rendering</code>, <code>set_update_check</code>, <code>set_xml_autoformat</code>, <code>set_xsd_autosave</code>, <code>set_schema_autobind</code> — on/off values and fixed options only).</td>
+<td>Startup time in ms, <code>is_first_run</code>, <code>meta.channel</code> (<code>release</code> or <code>dev</code>), <code>meta.days_since_install</code> (whole days since the anonymous ID was created), <code>meta.package</code> (<code>installer</code>, <code>portable</code> or <code>none</code> — only the kind of installation, never its folder), <code>meta.install_source</code> (distribution channel: <code>standalone</code> for a direct download, <code>winget</code>, <code>scoop</code>, <code>homebrew</code> or <code>flatpak</code>; a winget install is recognised from the second start on) and a snapshot of a few UI settings (<code>meta.set_theme</code>, <code>set_toolbar_labels</code>, <code>set_toolbar_icons</code>, <code>set_activity_labels</code>, <code>set_rendering</code>, <code>set_update_check</code>, <code>set_xml_autoformat</code>, <code>set_xsd_autosave</code>, <code>set_schema_autobind</code> — on/off values and fixed options only).</td>
 </tr>
 <tr>
 <td><code>app_exit</code></td>
@@ -2409,13 +2437,13 @@ retried later with increasing pauses (up to six hours); the application is never
         
         
           
-          <a href="../technology-stack/" class="md-footer__link md-footer__link--next" aria-label="Next: Technology Stack">
+          <a href="../code-signing-policy/" class="md-footer__link md-footer__link--next" aria-label="Next: Code Signing Policy">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Technology Stack
+                Code Signing Policy
               </div>
             </div>
             <div class="md-footer__button md-icon">
