@@ -643,7 +643,13 @@ fun createZipTask(jpackageTaskName: String, platform: String, arch: String): Str
         val sourceDir = "build/dist/$platform-$arch-app-image"
         val zipFileName = "FreeXmlToolkit-$platform-$arch-app-image-${project.version}.zip"
 
-        from(sourceDir)
+        from(sourceDir) {
+            // Gradle 9 archives normalize file permissions to 644 (reproducible builds), which
+            // drops the executable bit of the launcher and the JDK helpers on Linux/Unix.
+            filesMatching(listOf("*/bin/*", "*/lib/runtime/lib/jspawnhelper", "*/lib/runtime/lib/jexec")) {
+                permissions { unix("rwxr-xr-x") }
+            }
+        }
 
         archiveFileName.set(zipFileName)
         destinationDirectory.set(file("build/dist"))

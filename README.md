@@ -11,7 +11,7 @@ provides everything you need in one convenient application.
 
 ![FreeXmlToolkit Application](docs/img/main-window.png)
 
-**[⬇ Download the latest release](https://github.com/karlkauc/FreeXmlToolkit/releases/latest)** – Windows (.exe/.msi/portable), macOS (.dmg/.pkg, Apple Silicon & Intel), Linux (.deb/.rpm/portable). Full guide: [karlkauc.github.io/FreeXmlToolkit](https://karlkauc.github.io/FreeXmlToolkit/).
+**[⬇ Download the latest release](https://github.com/karlkauc/FreeXmlToolkit/releases/latest)** – Windows (.exe/.msi/portable), macOS (.dmg/.pkg, Apple Silicon & Intel), Linux (.deb/.rpm/portable) – or via `scoop install freexmltoolkit` / `brew install --cask karlkauc/tap/freexmltoolkit` ([details](#option-2-install-with-a-package-manager)). Full guide: [karlkauc.github.io/FreeXmlToolkit](https://karlkauc.github.io/FreeXmlToolkit/).
 
 ## <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: inline; vertical-align: middle; margin-right: 8px;"><circle cx="12" cy="12" r="10" stroke="#007bff" stroke-width="2"/><circle cx="12" cy="12" r="6" stroke="#007bff" stroke-width="1.5"/><circle cx="12" cy="12" r="2" fill="#007bff"/></svg> What is FreeXmlToolkit?
 
@@ -153,7 +153,28 @@ While FreeXmlToolkit is powerful and comprehensive, there are some schema format
 **Note**: FreeXmlToolkit is designed to be user-friendly. On Windows, you don't need administrator privileges to install
 the application - standard installation process without elevated permissions required!
 
-### **Option 2: Build from Source Code**
+### **Option 2: Install with a Package Manager**
+
+**Windows – [Scoop](https://scoop.sh/)**
+
+```powershell
+scoop bucket add karlkauc https://github.com/karlkauc/scoop-bucket
+scoop install freexmltoolkit
+```
+
+**macOS – [Homebrew](https://brew.sh/)**
+
+```bash
+brew install --cask karlkauc/tap/freexmltoolkit
+```
+
+Package-manager installations are updated by the package manager (`scoop update freexmltoolkit`,
+`brew upgrade --cask freexmltoolkit`). The app still tells you when a new version is out and shows
+the matching command, but it does not replace its own files.
+
+**Coming soon:** `winget` (Windows) and [Flathub](https://flathub.org/) (Linux) – the submissions are in preparation.
+
+### **Option 3: Build from Source Code**
 
 If you're a developer or want the latest features:
 

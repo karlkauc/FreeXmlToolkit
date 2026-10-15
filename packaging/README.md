@@ -86,9 +86,15 @@ OSS, Azure Trusted Signing) is a recommended follow-up.
    flatpak run io.github.karlkauc.FreeXmlToolkit
    flatpak run --command=flatpak-builder-lint org.flatpak.Builder manifest io.github.karlkauc.FreeXmlToolkit.yml
    ```
+   `flatpak-builder-lint` can only read files below `$HOME` (not `/tmp`). Under a headless
+   `xvfb-run`, wrap the run in `dbus-run-session --` — without a session bus the JDK's
+   system-proxy lookup in `FxtGui.init` blocks and no window appears.
 2. Open a PR against the `new-pr` branch of `flathub/flathub` with the rendered manifest and
-   `flatpak/flathub.json`. Explain in the PR why a prebuilt binary is repackaged (Gradle +
-   jlink cannot build offline in flatpak-builder).
+   `flatpak/flathub.json`. Explain in the PR:
+   - why a prebuilt binary is repackaged (Gradle + jlink cannot build offline in flatpak-builder);
+   - the linter exception for `finish-args-home-filesystem-access` (the only linter error):
+     JavaFX's GTK file chooser does not use the document portal, and XML projects reference
+     schemas, includes and stylesheets by relative path across the user's files.
 3. After acceptance, Flathub creates `flathub/io.github.karlkauc.FreeXmlToolkit`; you get
    write access and merge the bot's update PRs there. Verify the app id via the GitHub
    namespace on flathub.org to get the "verified" badge.

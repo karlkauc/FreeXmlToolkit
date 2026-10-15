@@ -4,7 +4,7 @@
 # the x-checker-data block lets the Flathub bot open an update PR for every new release.
 id: io.github.karlkauc.FreeXmlToolkit
 runtime: org.freedesktop.Platform
-runtime-version: '24.08'
+runtime-version: '26.08'
 sdk: org.freedesktop.Sdk
 command: freexmltoolkit
 
@@ -25,6 +25,8 @@ modules:
   - name: freexmltoolkit
     buildsystem: simple
     build-commands:
+      # ZIPs up to 2.5.0 were built without executable bits
+      - chmod 755 bin/FreeXmlToolkit lib/runtime/lib/jspawnhelper lib/runtime/lib/jexec
       - mkdir -p /app/lib/freexmltoolkit
       - cp -a bin lib /app/lib/freexmltoolkit/
       - cp -a log4j2.xml examples /app/lib/freexmltoolkit/ || true
