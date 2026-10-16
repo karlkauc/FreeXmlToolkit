@@ -122,7 +122,8 @@ public final class ValidationRunner {
         long xsdStart = System.nanoTime();
         try {
             for (SAXParseException e : ServiceRegistry.get(XmlService.class).validateText(xml, xsd)) {
-                problems.add(new ValidationProblem(source, "error", e.getLineNumber(), e.getMessage()));
+                problems.add(new ValidationProblem(source, "error", e.getLineNumber(), e.getMessage())
+                        .withColumn(e.getColumnNumber()));
             }
         } catch (Throwable ignored) {
             // validation unavailable (e.g. no service registry) — skip

@@ -162,4 +162,20 @@ class SchemaStatusIndicatorMappingTest {
         assertTrue(UnifiedShellView.schemaStatusTooltip(SchemaStatus.NONE, null, JSON_KIND)
                 .contains("well-formedness"));
     }
+
+    @Test
+    void anXsdDocumentShowsItsXsdVersionInsteadOfNoXsd() {
+        assertEquals("XSD 1.1 schema", UnifiedShellView.xsdDocumentStatusText(
+                "<xs:schema xmlns:xs=\"http://www.w3.org/2001/XMLSchema\""
+                        + " xmlns:vc=\"http://www.w3.org/2007/XMLSchema-versioning\" vc:minVersion=\"1.1\"/>"));
+        assertEquals("XSD 1.0 schema", UnifiedShellView.xsdDocumentStatusText(
+                "<xs:schema xmlns:xs=\"http://www.w3.org/2001/XMLSchema\"/>"));
+    }
+
+    @Test
+    void problemCountsUseSingularAndPlural() {
+        assertEquals("1 problem", org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.problemCount(1));
+        assertEquals("3 problems", org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.problemCount(3));
+        assertEquals("0 problems", org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.problemCount(0));
+    }
 }

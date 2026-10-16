@@ -87,7 +87,8 @@ class SearchPanelSmokeTest {
 
         // debounce (400 ms) + async search → poll the combined condition
         WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () ->
-                tree.getRoot() != null && !tree.getRoot().getChildren().isEmpty());
+                tree.getRoot() != null && !tree.getRoot().getChildren().isEmpty()
+                        && tree.getRoot().getChildren().get(0).getValue() instanceof SearchResultsTree.FileRow);
         assertEquals(1, tree.getRoot().getChildren().size(), "only a.xml matches");
         assertEquals(1, tree.getCheckedMatches().size());
         SearchResultsTree.MatchRow match = tree.getCheckedMatches().get(0);

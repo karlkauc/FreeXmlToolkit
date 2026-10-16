@@ -27,7 +27,10 @@ import org.fxt.freexmltoolkit.util.VersionUtil;
  * The Welcome / Dashboard landing shown when no document is open, implementing the
  * Figma "Redesign · Unified — Welcome / Dashboard" frame: a hero, a row of
  * quick-action cards (New File / Open File / Open Folder / From URL), a recent-files
- * list with a Clear link, and a Tools grid whose cards switch shell activities.
+ * list with a Clear link, and a task list whose rows lead into a workflow.
+ *
+ * <p>First start (UX plan 5.1): counters and the activity trend appear only once they show
+ * something; until there are recent files an "Open an Example" card is offered.
  */
 public class EditorWelcomePane extends VBox {
 
@@ -38,6 +41,9 @@ public class EditorWelcomePane extends VBox {
     private final Consumer<String> onAction;
     @FXML private Label versionBadge;
     @FXML private Region fundsXmlSection;
+    @FXML private WelcomeQuickCard exampleCard;
+    @FXML private HBox statsRow;
+    @FXML private VBox taskList;
     @FXML private WelcomeStatCard recentStat;
     @FXML private WelcomeStatCard favoritesStat;
     @FXML private WelcomeStatCard templatesStat;
@@ -59,9 +65,10 @@ public class EditorWelcomePane extends VBox {
      * @param onOpenRecent  invoked with a recent file when the user selects it
      * @param onClearRecent invoked when the Clear link is pressed
      * @param onAction      invoked with an action key for the remaining cards:
-     *                      {@code open-folder}, {@code from-url}, and the tool/activity ids
-     *                      {@code explorer}, {@code validation}, {@code transform}, {@code schema},
-     *                      {@code pdf}, {@code signature}, {@code favorites}, {@code settings}
+     *                      {@code open-folder}, {@code from-url}, {@code open-example}, the FundsXML
+     *                      keys ({@code fundsxml-*}) and the task keys {@code task-validate},
+     *                      {@code task-transform}, {@code task-query}, {@code task-schema},
+     *                      {@code task-pdf}, {@code task-sign}
      */
     public EditorWelcomePane(Consumer<EditorFileType> onNew, Runnable onOpen, Consumer<File> onOpenRecent,
             Runnable onClearRecent, Consumer<String> onAction) {
@@ -106,12 +113,6 @@ public class EditorWelcomePane extends VBox {
         onAction.accept((String) ((Node) event.getSource()).getUserData());
     }
 
-    /** Reports the activity id of the clicked tool card. */
-    @FXML
-    public void onTool(ActionEvent event) {
-        onAction.accept(((WelcomeToolCard) event.getSource()).getActivity());
-    }
-
     @FXML
     public void onSponsor() {
         ProjectLinks.openInBrowser(ProjectLinks.SPONSORS_URL);
@@ -139,7 +140,11 @@ public class EditorWelcomePane extends VBox {
         fundsXmlSection.setManaged(visible);
     }
 
-    /** Updates the dashboard stat cards with the latest counts. */
+    /**
+     * Updates the dashboard stat cards with the latest counts. A row of zeros says nothing, so
+     * the counters only show once one of them is above zero; the example card is offered while
+     * there are no recent files (UX plan 5.1).
+     */
     public void setStats(WelcomeStats stats) {
         if (stats == null) {
             return;
@@ -148,13 +153,30 @@ public class EditorWelcomePane extends VBox {
         favoritesStat.setValue(Integer.toString(stats.favorites()));
         templatesStat.setValue(Integer.toString(stats.templates()));
         queriesStat.setValue(Integer.toString(stats.savedQueries()));
+        boolean anyData = stats.recentFiles() > 0 || stats.favorites() > 0
+                || stats.templates() > 0 || stats.savedQueries() > 0;
+        show(statsRow, anyData);
+        show(exampleCard, stats.recentFiles() == 0);
+    }
+
+    /** @return the keys of the task rows, in order (for tests) */
+    java.util.List<String> taskKeys() {
+        return taskList.getChildren().stream().map(n -> (String) n.getUserData()).toList();
+    }
+
+    private static void show(Node node, boolean visible) {
+        node.setVisible(visible);
+        node.setManaged(visible);
     }
 
     // ----- activity trend ----------------------------------------------------
 
     /** Draws the 7-day sparkline and adds one colour-coded mini-card per feature category. */
     private void fillTrend() {
-        java.util.List<Double> norm = WelcomeTrend.normalize(WelcomeTrend.dailyTotals(7));
+        java.util.List<Integer> totals = WelcomeTrend.dailyTotals(7);
+        // Nothing recorded in the last 7 days: a flat line and 0 % bars say nothing (UX plan 5.1).
+        show(trendBox, totals.stream().anyMatch(t -> t > 0));
+        java.util.List<Double> norm = WelcomeTrend.normalize(totals);
         double w = 220, h = 40;
         if (norm.size() >= 2) {
             double step = w / (norm.size() - 1);

@@ -48,7 +48,7 @@ class ActionToolbarOverflowTest {
 
         // Every trailing action must be present and enabled for an XML document
         // (Set Schema is a SplitMenuButton since the variant-E toolbar → ButtonBase).
-        for (String id : new String[]{"#action-spreadsheet", "#action-query-console",
+        for (String id : new String[]{"#action-query-console",
                 "#doc-action-validate", "#action-set-schema"}) {
             javafx.scene.control.ButtonBase b = (javafx.scene.control.ButtonBase) shell.lookup(id);
             assertNotNull(b, id + " must exist");

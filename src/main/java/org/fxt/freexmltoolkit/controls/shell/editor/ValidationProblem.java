@@ -15,9 +15,16 @@ import org.fxt.freexmltoolkit.service.sqf.SqfFixSuggestion;
  * @param ruleId   the failed rule/test expression (Schematron {@code test}), or {@code null}
  * @param context  the failing node's XPath (Schematron SVRL {@code location}), or {@code null}
  * @param fixes    the SQF quick fixes offered for this finding (empty when none)
+ * @param column   1-based column number, or 0 if unknown (the jump then goes to the line start)
  */
 public record ValidationProblem(String source, String severity, int line, String message,
-                                String ruleId, String context, List<SqfFixSuggestion> fixes) {
+                                String ruleId, String context, List<SqfFixSuggestion> fixes, int column) {
+
+    /** Constructor for findings without a known column. */
+    public ValidationProblem(String source, String severity, int line, String message,
+                             String ruleId, String context, List<SqfFixSuggestion> fixes) {
+        this(source, severity, line, message, ruleId, context, fixes, 0);
+    }
 
     /** Convenience constructor for findings without rule/context details (e.g. XSD). */
     public ValidationProblem(String source, String severity, int line, String message) {
@@ -28,6 +35,11 @@ public record ValidationProblem(String source, String severity, int line, String
     public ValidationProblem(String source, String severity, int line, String message,
                              String ruleId, String context) {
         this(source, severity, line, message, ruleId, context, List.of());
+    }
+
+    /** @return a copy of this problem with the given 1-based column (values below 1 mean unknown) */
+    public ValidationProblem withColumn(int col) {
+        return new ValidationProblem(source, severity, line, message, ruleId, context, fixes, Math.max(0, col));
     }
 
     /** @return {@code true} when the problem carries Schematron rule/XPath details. */

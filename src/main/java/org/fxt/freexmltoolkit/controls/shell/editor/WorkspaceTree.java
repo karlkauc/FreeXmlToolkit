@@ -29,6 +29,9 @@ public class WorkspaceTree extends VBox {
 
     private final TreeView<Path> tree = new TreeView<>();
     private final Consumer<Path> fileOpener;
+    /** Shown instead of the (empty) tree while no folder is open: says what to do next. */
+    private final VBox emptyState = new VBox(8);
+    private Runnable onOpenFolder;
 
     public WorkspaceTree(Consumer<Path> fileOpener) {
         this.fileOpener = fileOpener;
@@ -53,7 +56,43 @@ public class WorkspaceTree extends VBox {
             }
         });
 
-        getChildren().add(tree);
+        javafx.scene.control.Label hint = new javafx.scene.control.Label(
+                "No folder open. Open a folder to browse its XML, XSD and stylesheet files here.");
+        hint.setWrapText(true);
+        hint.getStyleClass().add("fxt-placeholder-text");
+        javafx.scene.control.Button open = PanelActionList.inlineRow("Open folder…", "bi-folder2-open", () -> {
+            if (onOpenFolder != null) {
+                onOpenFolder.run();
+            }
+        });
+        open.setId("explorer-workspace-open-folder");
+        emptyState.getChildren().addAll(hint, open);
+        emptyState.getStyleClass().add("fxt-workspace-empty");
+
+        getChildren().addAll(emptyState, tree);
+        showEmptyState(true);
+    }
+
+    /** Sets the context menu offered on the files of the tree (e.g. transform / validate the selection). */
+    public void setFileContextMenu(javafx.scene.control.ContextMenu menu) {
+        tree.setContextMenu(menu);
+    }
+
+    /** Sets the action of the empty state's "Open folder…" button. */
+    public void setOnOpenFolder(Runnable action) {
+        this.onOpenFolder = action;
+    }
+
+    /** @return whether the "no folder open" hint is currently shown (for tests) */
+    boolean isEmptyStateShown() {
+        return emptyState.isVisible();
+    }
+
+    private void showEmptyState(boolean empty) {
+        emptyState.setVisible(empty);
+        emptyState.setManaged(empty);
+        tree.setVisible(!empty);
+        tree.setManaged(!empty);
     }
 
     /** Sets the workspace root folder and expands it. */
@@ -64,6 +103,7 @@ public class WorkspaceTree extends VBox {
         FileExplorerTreeItem root = new FileExplorerTreeItem(folder, ALLOWED);
         root.setExpanded(true);
         tree.setRoot(root);
+        showEmptyState(false);
     }
 
     /** Re-reads the current root folder from disk (no-op without a root). */

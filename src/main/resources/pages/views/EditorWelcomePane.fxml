@@ -5,8 +5,6 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.ScrollPane?>
-<?import javafx.scene.layout.ColumnConstraints?>
-<?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.Region?>
@@ -21,11 +19,12 @@
 <!--
   Welcome / Dashboard landing shown when no document is open (Figma "Redesign · Unified —
   Welcome / Dashboard"): hero, quick-action cards, FundsXML quick access, counters, activity
-  trend, tips, sponsor banner, recent files and the Tools grid.
+  trend, tips, sponsor banner, recent files and the task list. On a first start (no data yet) the
+  counters and the trend stay hidden and an "Open an Example" card is offered instead (UX plan 5.1).
   Loaded by EditorWelcomePane via the fx:root pattern (FxmlViews.load); EditorWelcomePane is root
   and controller. Data-driven parts stay in code: the version badge text, the sparkline points
   and category cards of the trend, the sponsor heart and the recent-files cells.
-  Cards with a userData key report it through #onCardAction; tool cards report their activity.
+  Cards and task rows report their userData key through #onCardAction.
 -->
 <fx:root type="javafx.scene.layout.VBox" styleClass="fxt-editor-empty-state"
          xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
@@ -78,6 +77,11 @@
                                 <WelcomeQuickCard id="welcome-url" iconLiteral="bi-box-arrow-up-right" title="From URL"
                                                   subtitle="Fetch &amp; open" userData="from-url" HBox.hgrow="ALWAYS"
                                                   onAction="#onCardAction"/>
+                                <!-- First start only (no recent files yet): a small XML + XSD + XSLT to try -->
+                                <WelcomeQuickCard fx:id="exampleCard" id="welcome-example"
+                                                  iconLiteral="bi-file-earmark-play" title="Open an Example"
+                                                  subtitle="XML with schema &amp; stylesheet" userData="open-example"
+                                                  HBox.hgrow="ALWAYS" onAction="#onCardAction"/>
                             </children>
                         </HBox>
 
@@ -106,8 +110,8 @@
                             </children>
                         </VBox>
 
-                        <!-- Counters -->
-                        <HBox spacing="16">
+                        <!-- Counters: shown once at least one of them is above zero (UX plan 5.1) -->
+                        <HBox fx:id="statsRow" spacing="16">
                             <children>
                                 <WelcomeStatCard fx:id="recentStat" numberId="welcome-stat-recent"
                                                  iconLiteral="bi-clock-history" caption="Recent files"
@@ -121,7 +125,8 @@
                             </children>
                         </HBox>
 
-                        <!-- Activity trend: sparkline + one colour-coded card per feature category -->
+                        <!-- Activity trend: sparkline + one colour-coded card per feature category;
+                             shown only when the last 7 days recorded any activity (UX plan 5.1) -->
                         <VBox fx:id="trendBox" spacing="8" styleClass="fxt-welcome-trend">
                             <children>
                                 <Label text="ACTIVITY (LAST 7 DAYS)" styleClass="fxt-side-panel-title"/>
@@ -170,68 +175,47 @@
                                         <ListView fx:id="recentList" styleClass="fxt-welcome-recent"
                                                   VBox.vgrow="ALWAYS">
                                             <placeholder>
-                                                <Label text="No recent files"/>
+                                                <Label text="No recent files yet. Files you open or create appear here — start with Open File or New File above."
+                                                       wrapText="true" styleClass="fxt-placeholder-text"/>
                                             </placeholder>
                                         </ListView>
                                     </children>
                                 </VBox>
 
+                                <!-- Tasks (UX plan 5.2): each row leads into its workflow - pick a file where one
+                                     is needed, then the matching panel opens. Replaces the Tools grid, which only
+                                     repeated the Activity Bar. -->
                                 <VBox spacing="12" maxWidth="Infinity" HBox.hgrow="ALWAYS">
                                     <children>
-                                        <Label text="Tools" styleClass="fxt-welcome-section-title"/>
-                                        <GridPane hgap="16" vgap="12">
-                                            <columnConstraints>
-                                                <ColumnConstraints percentWidth="50" hgrow="ALWAYS"/>
-                                                <ColumnConstraints percentWidth="50" hgrow="ALWAYS"/>
-                                            </columnConstraints>
+                                        <Label text="What do you want to do?" styleClass="fxt-welcome-section-title"/>
+                                        <VBox fx:id="taskList" id="welcome-tasks" spacing="8">
                                             <children>
-                                                <WelcomeToolCard id="tool-explorer" activity="explorer"
-                                                                 iconLiteral="bi-folder2-open" title="Explorer"
-                                                                 subtitle="Files &amp; workspace"
-                                                                 GridPane.columnIndex="0" GridPane.rowIndex="0"
-                                                                 GridPane.hgrow="ALWAYS" onAction="#onTool"/>
-                                                <WelcomeToolCard id="tool-search" activity="search"
-                                                                 iconLiteral="bi-search" title="Search"
-                                                                 subtitle="Find in files &amp; XPath"
-                                                                 GridPane.columnIndex="1" GridPane.rowIndex="0"
-                                                                 GridPane.hgrow="ALWAYS" onAction="#onTool"/>
-                                                <WelcomeToolCard id="tool-validation" activity="validation"
-                                                                 iconLiteral="bi-check2-circle" title="Validate"
-                                                                 subtitle="XSD &amp; Schematron"
-                                                                 GridPane.columnIndex="0" GridPane.rowIndex="1"
-                                                                 GridPane.hgrow="ALWAYS" onAction="#onTool"/>
-                                                <WelcomeToolCard id="tool-transform" activity="transform"
-                                                                 iconLiteral="bi-arrow-repeat" title="Transform"
-                                                                 subtitle="XSLT 3.0 / XQuery"
-                                                                 GridPane.columnIndex="1" GridPane.rowIndex="1"
-                                                                 GridPane.hgrow="ALWAYS" onAction="#onTool"/>
-                                                <WelcomeToolCard id="tool-schema" activity="schema"
-                                                                 iconLiteral="bi-diagram-3" title="Schema"
-                                                                 subtitle="Graphical XSD editor"
-                                                                 GridPane.columnIndex="0" GridPane.rowIndex="2"
-                                                                 GridPane.hgrow="ALWAYS" onAction="#onTool"/>
-                                                <WelcomeToolCard id="tool-pdf" activity="pdf"
-                                                                 iconLiteral="bi-file-earmark-pdf" title="PDF / FOP"
-                                                                 subtitle="XSL-FO to PDF"
-                                                                 GridPane.columnIndex="1" GridPane.rowIndex="2"
-                                                                 GridPane.hgrow="ALWAYS" onAction="#onTool"/>
-                                                <WelcomeToolCard id="tool-signature" activity="signature"
-                                                                 iconLiteral="bi-shield-lock" title="Signature"
-                                                                 subtitle="XML-DSig sign &amp; verify"
-                                                                 GridPane.columnIndex="0" GridPane.rowIndex="3"
-                                                                 GridPane.hgrow="ALWAYS" onAction="#onTool"/>
-                                                <WelcomeToolCard id="tool-favorites" activity="favorites"
-                                                                 iconLiteral="bi-star" title="Favorites"
-                                                                 subtitle="Pinned files"
-                                                                 GridPane.columnIndex="1" GridPane.rowIndex="3"
-                                                                 GridPane.hgrow="ALWAYS" onAction="#onTool"/>
-                                                <WelcomeToolCard id="tool-settings" activity="settings"
-                                                                 iconLiteral="bi-gear" title="Settings"
-                                                                 subtitle="Application preferences"
-                                                                 GridPane.columnIndex="0" GridPane.rowIndex="4"
-                                                                 GridPane.hgrow="ALWAYS" onAction="#onTool"/>
+                                                <WelcomeToolCard id="task-validate" activity="validation"
+                                                                 iconLiteral="bi-check2-circle" title="Validate an XML file"
+                                                                 subtitle="Pick a file, then check it against its XSD or Schematron" userData="task-validate"
+                                                                 onAction="#onCardAction"/>
+                                                <WelcomeToolCard id="task-transform" activity="transform"
+                                                                 iconLiteral="bi-arrow-left-right" title="Run an XSLT transformation"
+                                                                 subtitle="Pick an XML file, then choose a stylesheet" userData="task-transform"
+                                                                 onAction="#onCardAction"/>
+                                                <WelcomeToolCard id="task-query" activity="search"
+                                                                 iconLiteral="bi-terminal" title="Query a document"
+                                                                 subtitle="Pick an XML file and run XPath or XQuery in the Query Console" userData="task-query"
+                                                                 onAction="#onCardAction"/>
+                                                <WelcomeToolCard id="task-schema" activity="schema"
+                                                                 iconLiteral="bi-diagram-3" title="Edit a schema"
+                                                                 subtitle="Open an XSD, then edit it as text, tree or diagram" userData="task-schema"
+                                                                 onAction="#onCardAction"/>
+                                                <WelcomeToolCard id="task-pdf" activity="pdf"
+                                                                 iconLiteral="bi-file-earmark-pdf" title="Create a PDF"
+                                                                 subtitle="Pick an XML file, then render it with an XSL-FO stylesheet" userData="task-pdf"
+                                                                 onAction="#onCardAction"/>
+                                                <WelcomeToolCard id="task-sign" activity="signature"
+                                                                 iconLiteral="bi-shield-lock" title="Sign or verify a document"
+                                                                 subtitle="XML digital signatures with your keystore" userData="task-sign"
+                                                                 onAction="#onCardAction"/>
                                             </children>
-                                        </GridPane>
+                                        </VBox>
                                     </children>
                                 </VBox>
                             </children>

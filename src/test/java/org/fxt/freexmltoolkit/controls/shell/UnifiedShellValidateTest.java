@@ -69,10 +69,10 @@ class UnifiedShellValidateTest {
         clickToolbarValidate();
 
         WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS, () -> validationPanel() != null
-                && "Well-formed".equals(validationPanel().getStatusText()));
+                && "Well-formed · no schema bound".equals(validationPanel().getStatusText()));
         assertEquals(0, validationPanel().getProblemCount(),
                 "a well-formed XML without an XSD must report no problems");
-        assertEquals("Well-formed", validationPanel().getStatusText());
+        assertEquals("Well-formed · no schema bound", validationPanel().getStatusText());
     }
 
     @Test
@@ -97,7 +97,7 @@ class UnifiedShellValidateTest {
     }
 
     @Test
-    void f5ShortcutValidatesANonRunnableDocument(@TempDir Path tmp) throws Exception {
+    void f5DoesNotSilentlyValidateANonRunnableDocument(@TempDir Path tmp) throws Exception {
         Path xml = tmp.resolve("malformed3.xml");
         Files.writeString(xml, "<root><a></root>"); // not well-formed
 
@@ -111,10 +111,11 @@ class UnifiedShellValidateTest {
             return null;
         });
 
-        WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS, () -> validationPanel() != null
-                && validationPanel().getProblemCount() > 0);
-        assertTrue(validationPanel().getProblemCount() > 0,
-                "pressing F5 on an XML document must validate it (Execute = validate for non-runnable types)");
+        // One key per task (UX plan 3.1): F5 runs runnable documents only; validating is F8.
+        WaitForAsyncUtils.sleep(800, TimeUnit.MILLISECONDS);
+        WaitForAsyncUtils.waitForFxEvents();
+        assertTrue(validationPanel() == null || validationPanel().getProblemCount() == 0,
+                "F5 on an XML document must not validate it");
     }
 
     @Test

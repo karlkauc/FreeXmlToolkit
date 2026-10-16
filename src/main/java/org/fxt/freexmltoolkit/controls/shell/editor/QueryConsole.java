@@ -96,6 +96,12 @@ public class QueryConsole extends Region {
 
     // The snippets menu, refreshed from FavoritesService on showing.
     @FXML private MenuButton snippetsMenu;
+    @FXML private MenuButton examplesMenu;
+    @FXML private Button tableButton;
+    /** The last XQuery run's text, tabular projection and duration (for "Table"). */
+    private String lastXQueryResult;
+    private XQueryTableRunner.XQueryTable lastXQueryTable;
+    private long lastXQueryElapsedMs;
 
     public QueryConsole(EditorHost editorHost) {
         this.editorHost = editorHost;
@@ -111,7 +117,12 @@ public class QueryConsole extends Region {
         split.prefHeightProperty().bind(heightProperty());
 
         updateRunDisabled();
-        editorHost.activeTabProperty().addListener((obs, oldV, newV) -> updateRunDisabled());
+        editorHost.activeTabProperty().addListener((obs, oldV, newV) -> {
+            updateRunDisabled();
+            updatePathLabel();
+        });
+        updatePathLabel();
+        fillExamplesMenu();
     }
 
     private void initInput() {
@@ -199,6 +210,45 @@ public class QueryConsole extends Region {
         VirtualizedScrollPane<CodeArea> resultsScroll = new VirtualizedScrollPane<>(resultsArea);
         VBox.setVgrow(resultsScroll, Priority.ALWAYS);
         resultsBox.getChildren().add(resultsScroll);
+    }
+
+    /** The XPath toggle reads "JSONPath" while a JSON document is active (it then runs JSONPath). */
+    private void updatePathLabel() {
+        xpathToggle.setText(isJsonActive() ? "JSONPath" : "XPath");
+    }
+
+    /** Fills the Examples menu with the built-in XQuery examples (formerly in the Transform panel). */
+    private void fillExamplesMenu() {
+        String[][] examples = {{"Simple", "simple"}, {"FLWOR", "flwor"}, {"HTML report", "html"},
+                {"Data-quality check", "dq"}};
+        for (String[] example : examples) {
+            MenuItem item = new MenuItem(example[0], snippetIcon(true));
+            item.setOnAction(e -> {
+                setXQuery(xqueryExample(example[1]));
+                focusInput();
+            });
+            examplesMenu.getItems().add(item);
+        }
+    }
+
+    /** @return the built-in XQuery example for {@code key} (simple, flwor, html, dq) */
+    static String xqueryExample(String key) {
+        return switch (key) {
+            case "flwor" -> "for $x in //item\norder by $x\nreturn <row>{string($x)}</row>";
+            case "html" -> "<html><body><ul>{\n  for $x in //item return <li>{string($x)}</li>\n}</ul></body></html>";
+            case "dq" -> "(: data-quality: items missing a value :)\nfor $x in //item[not(normalize-space())]\n"
+                    + "return <missing>{name($x)}</missing>";
+            default -> "for $x in //item return string($x)";
+        };
+    }
+
+    /** "Table": shows the last XQuery result with its tabular projection in the OUTPUT panel. */
+    @FXML
+    public void onShowTable() {
+        if (lastXQueryTable != null && !lastXQueryTable.isEmpty()) {
+            editorHost.transformOutputPanel().showXQueryResult(lastXQueryResult, lastXQueryTable,
+                    OutputFormat.XML, lastXQueryElapsedMs);
+        }
     }
 
     /** Shows the XPath field in XPath mode and the XQuery area in XQuery mode. */
@@ -316,10 +366,15 @@ public class QueryConsole extends Region {
             UsageEvents.xqueryExecuted(t0, run.failure());
             long elapsedMs = probe.finish(xml.length(), ok ? result.length() : -1, ok,
                     org.fxt.freexmltoolkit.service.ExecutionStats.firstLine(result));
+            XQueryTableRunner.XQueryTable table = ok ? XQueryTableRunner.run(xml, xquery) : null;
             Platform.runLater(() -> {
                 if (gen == runGeneration) {
                     setResultsText(result);
                     updateStatsLabel(result, elapsedMs);
+                    lastXQueryResult = result;
+                    lastXQueryTable = table;
+                    lastXQueryElapsedMs = elapsedMs;
+                    tableButton.setDisable(table == null || table.isEmpty());
                 }
             });
         });
@@ -765,6 +820,21 @@ public class QueryConsole extends Region {
     /** Replaces the entire text of a query {@link CodeArea} (null-safe). */
     private static void setText(CodeArea area, String text) {
         area.replaceText(text == null ? "" : text);
+    }
+
+    /** Test seam: whether the last XQuery result can be shown as a table. */
+    boolean isTableAvailableForTest() {
+        return !tableButton.isDisable();
+    }
+
+    /** Test seam: the labels of the Examples menu. */
+    java.util.List<String> exampleNamesForTest() {
+        return examplesMenu.getItems().stream().map(MenuItem::getText).toList();
+    }
+
+    /** Test seam: the XPath/JSONPath toggle text. */
+    String pathModeLabelForTest() {
+        return xpathToggle.getText();
     }
 
     /** Test seam: runs the current query (same as the Run button / Enter). */

@@ -30,6 +30,12 @@ public final class ProjectLinks {
     /** The maintainer's GitHub Sponsors page. */
     public static final String SPONSORS_URL = "https://github.com/sponsors/karlkauc";
 
+    /** Website of the FundsXML standard (offered only while the FundsXML extension is enabled). */
+    public static final String FUNDSXML_SITE_URL = "https://fundsxml.org/";
+
+    /** Online documentation of the FundsXML schemas. */
+    public static final String FUNDSXML_SCHEMA_DOCS_URL = "https://fundsxml.github.io/";
+
     private ProjectLinks() {
         // constants holder
     }

@@ -58,7 +58,7 @@
         </HBox>
         <HBox fx:id="folderRow" spacing="6" alignment="CENTER_LEFT" visible="false" managed="false">
             <children>
-                <Label fx:id="folderLabel" text="(no folder)" maxWidth="Infinity" styleClass="fxt-vp-source-name"
+                <Label fx:id="folderLabel" text="No folder — choose one" maxWidth="Infinity" styleClass="fxt-vp-source-name"
                        HBox.hgrow="ALWAYS"/>
                 <Button styleClass="fxt-tool-button" onAction="#onChooseFolder">
                     <graphic>

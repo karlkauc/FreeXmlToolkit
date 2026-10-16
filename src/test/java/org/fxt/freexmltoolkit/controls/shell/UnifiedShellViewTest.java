@@ -262,10 +262,78 @@ class UnifiedShellViewTest {
     }
 
     @Test
-    void f1OpensTheHelpActivity() {
+    void f1ShowsTheHelpMenuUnderTheHeaderButton() {
         WaitForAsyncUtils.waitForFxEvents();
+        Activity before = shell.getSelectionModel().getActive();
         fireKey(javafx.scene.input.KeyCode.F1);
-        assertEquals(Activity.HELP, shell.getSelectionModel().getActive(), "F1 opens the Help activity");
+        javafx.scene.control.ContextMenu popup = shell.helpPopup();
+        assertNotNull(popup, "F1 shows the Help menu");
+        assertTrue(popup.isShowing());
+        assertEquals(before, shell.getSelectionModel().getActive(), "Help is no activity any more");
+        assertTrue(popup.getItems().stream().anyMatch(i -> "help-popup-docs".equals(i.getId())),
+                "the popup is a copy of the menu bar's Help menu");
+        fireKey(javafx.scene.input.KeyCode.F1);
+        assertFalse(popup.isShowing(), "a second F1 closes it");
+    }
+
+    @Test
+    void toolTabsHideTheInspectorAndADocumentTabBringsItBack() {
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            shell.setInspectorVisible(true);
+            shell.getEditorHost().newDocument(org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.XML);
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        javafx.scene.control.Tab documentTab = shell.getEditorHost().activeTabProperty().get();
+        assertTrue(shell.getWorkArea().getItems().contains(shell.getInspectorWrapper()), "a document shows the inspector");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            shell.openSettings();
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        assertFalse(shell.getWorkArea().getItems().contains(shell.getInspectorWrapper()),
+                "the Settings tab has nothing to inspect");
+        assertTrue(shell.isInspectorOpen(), "hiding it for a tool tab keeps the user's choice");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            shell.getEditorHost().selectTab(documentTab);
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        assertTrue(shell.getWorkArea().getItems().contains(shell.getInspectorWrapper()),
+                "back on the document the inspector returns");
+    }
+
+    @Test
+    void schemaLibraryOpensAsAPageAndItsPanelListsTheSections() {
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            shell.showActivity(Activity.SCHEMA_LIBRARY);
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        javafx.scene.control.Tab tab = shell.getEditorHost().activeTabProperty().get();
+        assertNotNull(tab);
+        assertEquals("Schema Library", tab.getText(), "the activity opens a main-area tab, like Settings");
+        assertInstanceOf(org.fxt.freexmltoolkit.controls.shell.editor.SchemaLibraryView.class, tab.getContent());
+        assertFalse(shell.getWorkArea().getItems().contains(shell.getInspectorWrapper()), "no inspector on the page");
+
+        javafx.scene.control.Button cacheRow = (javafx.scene.control.Button) shell.lookup("#library-nav-cache");
+        assertNotNull(cacheRow, "the side panel lists the page's sections");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            cacheRow.fire();
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        var tabs = (javafx.scene.control.TabPane) shell.lookup("#schema-library-tabs");
+        assertEquals("Cache", tabs.getSelectionModel().getSelectedItem().getText());
+        assertTrue(cacheRow.getStyleClass().contains("fxt-nav-current"), "the shown section is marked");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            shell.showSchemaCache();
+            return null;
+        });
+        assertSame(tab, shell.getEditorHost().activeTabProperty().get(), "a second open re-uses the page");
     }
 
     @Test

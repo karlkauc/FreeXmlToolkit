@@ -16,14 +16,17 @@
 <?import javafx.scene.control.ToggleGroup?>
 <?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 <?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
 <?import org.fxt.freexmltoolkit.controls.shell.editor.SettingsCard?>
 <?import org.fxt.freexmltoolkit.controls.theme.SemanticColors?>
 
 <!--
-  The Settings page (a tab in the main editor area): one colour-coded SettingsCard per topic in a
-  wrapping two-column flow, then "Save Settings". Loaded by SettingsPanel via the fx:root pattern
+  The Settings page (a tab in the main editor area): seven groups (Appearance, Editor, Schemas &amp;
+  Validation, Files &amp; Cache, Network &amp; Security, Privacy, Extensions), each a wrapping
+  two-column flow of colour-coded SettingsCards, and a fixed save bar below the scroll area.
+  The Settings side panel lists the groups and filters them (SettingsPanel.sections / filter). Loaded by SettingsPanel via the fx:root pattern
   (FxmlViews.load); SettingsPanel is root and controller and loads/saves the values.
   Stylesheets are inherited from the shell root.
 -->
@@ -34,384 +37,458 @@
         <ToggleGroup fx:id="toolbarIconSizeGroup"/>
     </fx:define>
     <children>
-        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="fxt-settings-scroll" VBox.vgrow="ALWAYS">
+        <ScrollPane fx:id="scroll" fitToWidth="true" hbarPolicy="NEVER" styleClass="fxt-settings-scroll" VBox.vgrow="ALWAYS">
             <content>
-                <VBox spacing="16" styleClass="fxt-settings-page">
+                <VBox fx:id="page" spacing="16" styleClass="fxt-settings-page">
                     <children>
                         <Label text="SETTINGS" styleClass="fxt-side-panel-title, fxt-panel-title"/>
 
-                        <FlowPane hgap="16" vgap="16" prefWrapLength="820">
+                        <!-- One group per topic; the side panel (PageNavigator) lists the groups. -->
+                        <VBox fx:id="groups" spacing="28">
                             <children>
-                                <SettingsCard title="THEME" iconLiteral="bi-palette" color="#1373D9">
+                                <VBox id="settings-group-appearance" spacing="12" styleClass="fxt-settings-group">
                                     <children>
-                                        <HBox spacing="6">
+                                        <Label text="Appearance" styleClass="fxt-settings-group-title"/>
+                                        <FlowPane hgap="16" vgap="16" prefWrapLength="820">
                                             <children>
-                                                <ToggleButton fx:id="light" text="Light" toggleGroup="$themeGroup"
-                                                              focusTraversable="false" styleClass="fxt-view-seg"
-                                                              onAction="#onThemeLight">
-                                                    <graphic>
-                                                        <IconifyIcon iconLiteral="bi-sun" iconSize="16"/>
-                                                    </graphic>
-                                                </ToggleButton>
-                                                <ToggleButton fx:id="dark" text="Dark" toggleGroup="$themeGroup"
-                                                              focusTraversable="false" styleClass="fxt-view-seg"
-                                                              onAction="#onThemeDark">
-                                                    <graphic>
-                                                        <IconifyIcon iconLiteral="bi-moon" iconSize="16"/>
-                                                    </graphic>
-                                                </ToggleButton>
-                                            </children>
-                                        </HBox>
-                                    </children>
-                                </SettingsCard>
-
-                                <SettingsCard title="EDITOR" iconLiteral="bi-pencil-square" color="#17a2b8">
-                                    <children>
-                                        <HBox spacing="6" alignment="CENTER_LEFT">
+                                        <SettingsCard title="THEME" iconLiteral="bi-palette" color="#1373D9">
                                             <children>
-                                                <Label text="XML indent:"/>
-                                                <Spinner fx:id="indentSpaces" editable="true">
-                                                    <valueFactory>
-                                                        <javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory min="1" max="8" initialValue="2"/>
-                                                    </valueFactory>
-                                                </Spinner>
-                                            </children>
-                                        </HBox>
-                                        <HBox spacing="6" alignment="CENTER_LEFT">
-                                            <children>
-                                                <Label text="JSON indent:"/>
-                                                <Spinner fx:id="jsonIndent" editable="true">
-                                                    <valueFactory>
-                                                        <javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory min="1" max="8" initialValue="2"/>
-                                                    </valueFactory>
-                                                </Spinner>
-                                            </children>
-                                        </HBox>
-                                        <CheckBox fx:id="autoFormat" text="Auto-format after loading"/>
-                                        <CheckBox fx:id="xsdPrettyPrint" text="Pretty-print XSD on save"/>
-                                        <CheckBox fx:id="schematronPretty" text="Pretty-print Schematron on load"/>
-                                    </children>
-                                </SettingsCard>
-
-                                <SettingsCard title="XSD" iconLiteral="bi-diagram-3" color="#6f42c1">
-                                    <children>
-                                        <CheckBox fx:id="xsdAutoSave" text="Auto-save"/>
-                                        <HBox spacing="6" alignment="CENTER_LEFT">
-                                            <children>
-                                                <Label text="Interval (min):"/>
-                                                <Spinner fx:id="xsdAutoSaveInterval" editable="true">
-                                                    <valueFactory>
-                                                        <javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory min="1" max="120" initialValue="5"/>
-                                                    </valueFactory>
-                                                </Spinner>
-                                            </children>
-                                        </HBox>
-                                        <CheckBox fx:id="xsdBackup" text="Create backups on save"/>
-                                        <HBox spacing="6" alignment="CENTER_LEFT">
-                                            <children>
-                                                <Label text="Keep versions:"/>
-                                                <Spinner fx:id="xsdBackupVersions" editable="true">
-                                                    <valueFactory>
-                                                        <javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory min="1" max="50" initialValue="5"/>
-                                                    </valueFactory>
-                                                </Spinner>
-                                            </children>
-                                        </HBox>
-                                        <CheckBox fx:id="backupSeparateDir" text="Use a separate backup directory"/>
-                                        <HBox spacing="6" alignment="CENTER_LEFT">
-                                            <children>
-                                                <TextField fx:id="backupDir" promptText="backup directory"
-                                                           HBox.hgrow="ALWAYS"/>
-                                                <Button text="…" onAction="#onBrowseBackupDir"/>
-                                            </children>
-                                        </HBox>
-                                    </children>
-                                </SettingsCard>
-
-                                <SettingsCard title="SCHEMA LIBRARY" iconLiteral="bi-collection" color="#20c997">
-                                    <children>
-                                        <CheckBox fx:id="schemaLibraryAutoBind" id="settings-schema-library-autobind"
-                                                  text="Use the Schema Library to bind schemas automatically"
-                                                  wrapText="true"/>
-                                        <Label fx:id="libraryFile" wrapText="true" styleClass="fxt-lib-status"/>
-                                        <Hyperlink id="settings-manage-schema-cache"
-                                                   text="Manage schema cache…" onAction="#onManageSchemaCache">
-                                            <graphic>
-                                                <IconifyIcon iconLiteral="bi-collection" iconSize="16"/>
-                                            </graphic>
-                                        </Hyperlink>
-                                    </children>
-                                </SettingsCard>
-
-                                <SettingsCard title="PARSER" iconLiteral="bi-cpu" color="#fd7e14">
-                                    <children>
-                                        <HBox spacing="6" alignment="CENTER_LEFT">
-                                            <children>
-                                                <Label text="XML parser:"/>
-                                                <ComboBox fx:id="parserType"/>
-                                            </children>
-                                        </HBox>
-                                        <CheckBox fx:id="xsltExtensions" text="Allow XSLT extension functions"/>
-                                    </children>
-                                </SettingsCard>
-
-                                <!-- JavaFX Prism pipeline; applied at next startup -->
-                                <SettingsCard title="RENDERING" iconLiteral="bi-gpu-card" color="#e83e8c">
-                                    <children>
-                                        <HBox spacing="6" alignment="CENTER_LEFT">
-                                            <children>
-                                                <Label text="Mode:"/>
-                                                <ComboBox fx:id="renderingMode">
-                                                    <items>
-                                                        <FXCollections fx:factory="observableArrayList">
-                                                            <String fx:value="Auto"/>
-                                                            <String fx:value="Hardware"/>
-                                                            <String fx:value="Software"/>
-                                                        </FXCollections>
-                                                    </items>
-                                                </ComboBox>
-                                            </children>
-                                        </HBox>
-                                        <Label fx:id="renderingActiveStatus" wrapText="true"/>
-                                        <Label fx:id="renderingGpuStatus" wrapText="true"
-                                               styleClass="fxt-placeholder-text"/>
-                                        <Label text="Auto picks GPU rendering on dedicated graphics, software otherwise. Takes effect after restart."
-                                               wrapText="true" styleClass="fxt-placeholder-text"/>
-                                    </children>
-                                </SettingsCard>
-
-                                <SettingsCard title="TEMP &amp; CACHE" iconLiteral="bi-trash" color="#ffc107">
-                                    <children>
-                                        <CheckBox fx:id="useSystemTemp" text="Use system temp folder"/>
-                                        <HBox spacing="6" alignment="CENTER_LEFT">
-                                            <children>
-                                                <TextField fx:id="customTempDir" promptText="custom temp folder"
-                                                           HBox.hgrow="ALWAYS"/>
-                                                <Button text="…" onAction="#onBrowseTempDir"/>
-                                            </children>
-                                        </HBox>
-                                        <Button text="Clear Temp Folder" maxWidth="Infinity"
-                                                styleClass="fxt-tool-button" onAction="#onClearTemp">
-                                            <graphic>
-                                                <IconifyIcon iconLiteral="bi-trash" iconSize="16"/>
-                                            </graphic>
-                                        </Button>
-                                        <Button text="Clear Cache Folder" maxWidth="Infinity"
-                                                styleClass="fxt-tool-button" onAction="#onClearCache">
-                                            <graphic>
-                                                <IconifyIcon iconLiteral="bi-trash" iconSize="16"/>
-                                            </graphic>
-                                        </Button>
-                                        <Label fx:id="tempStatus" styleClass="fxt-placeholder-text"/>
-                                        <Hyperlink id="settings-manage-schema-cache-2" text="Manage schema cache…"
-                                                   onAction="#onManageSchemaCache">
-                                            <graphic>
-                                                <IconifyIcon iconLiteral="bi-collection" iconSize="16"/>
-                                            </graphic>
-                                        </Hyperlink>
-                                    </children>
-                                </SettingsCard>
-
-                                <SettingsCard title="GENERAL" iconLiteral="bi-sliders" color="#007bff">
-                                    <children>
-                                        <CheckBox fx:id="updateCheck" text="Check for updates on startup"/>
-                                        <CheckBox fx:id="smallIcons" text="Use small icons"/>
-                                        <CheckBox fx:id="toolbarLabels" text="Show toolbar button labels"/>
-                                        <CheckBox fx:id="activityBarLabels" text="Show activity bar labels"/>
-                                        <HBox spacing="6" alignment="CENTER_LEFT">
-                                            <children>
-                                                <Label text="Toolbar icons:"/>
                                                 <HBox spacing="6">
                                                     <children>
-                                                        <ToggleButton fx:id="toolbarIconSmall" text="Small"
-                                                                      toggleGroup="$toolbarIconSizeGroup"/>
-                                                        <ToggleButton fx:id="toolbarIconLarge" text="Large"
-                                                                      toggleGroup="$toolbarIconSizeGroup"/>
+                                                        <ToggleButton fx:id="light" text="Light" toggleGroup="$themeGroup"
+                                                                      focusTraversable="false" styleClass="fxt-view-seg"
+                                                                      onAction="#onThemeLight">
+                                                            <graphic>
+                                                                <IconifyIcon iconLiteral="bi-sun" iconSize="16"/>
+                                                            </graphic>
+                                                        </ToggleButton>
+                                                        <ToggleButton fx:id="dark" text="Dark" toggleGroup="$themeGroup"
+                                                                      focusTraversable="false" styleClass="fxt-view-seg"
+                                                                      onAction="#onThemeDark">
+                                                            <graphic>
+                                                                <IconifyIcon iconLiteral="bi-moon" iconSize="16"/>
+                                                            </graphic>
+                                                        </ToggleButton>
                                                     </children>
                                                 </HBox>
                                             </children>
-                                        </HBox>
-                                        <CheckBox fx:id="showLeftPanel" text="Show left side panel"/>
-                                        <CheckBox fx:id="showInspector" text="Show Properties (inspector) panel"/>
-                                    </children>
-                                </SettingsCard>
-
-                                <SettingsCard title="FILE ASSOCIATIONS" iconLiteral="bi-file-earmark-check"
-                                              color="#0dcaf0">
-                                    <children>
-                                        <Label text="Make FreeXmlToolkit the default application for the selected file types (current user only)."
-                                               wrapText="true" styleClass="fxt-placeholder-text"/>
-                                        <CheckBox fx:id="assocXml" text="XML (.xml)"/>
-                                        <CheckBox fx:id="assocXsd" text="XSD Schema (.xsd)"/>
-                                        <CheckBox fx:id="assocXslt" text="XSLT Stylesheet (.xsl, .xslt)"/>
-                                        <CheckBox fx:id="assocSch" text="Schematron (.sch, .schematron)"/>
-                                        <CheckBox fx:id="assocJson" text="JSON (.json)"/>
-                                        <HBox spacing="6" alignment="CENTER_LEFT">
+                                        </SettingsCard>
+                                        <SettingsCard title="LAYOUT" iconLiteral="bi-layout-sidebar" color="#007bff">
                                             <children>
-                                                <Button fx:id="assocRegister" text="Register"
-                                                        styleClass="fxt-tool-button"
-                                                        onAction="#onRegisterAssociations">
+                                                <CheckBox fx:id="smallIcons" text="Use small icons"/>
+                                                <CheckBox fx:id="toolbarLabels" text="Show toolbar button labels"/>
+                                                <CheckBox fx:id="activityBarLabels" text="Show activity bar labels"/>
+                                                <HBox spacing="6" alignment="CENTER_LEFT">
+                                                    <children>
+                                                        <Label text="Toolbar icons:"/>
+                                                        <HBox spacing="6">
+                                                            <children>
+                                                                <ToggleButton fx:id="toolbarIconSmall" text="Small"
+                                                                              toggleGroup="$toolbarIconSizeGroup"/>
+                                                                <ToggleButton fx:id="toolbarIconLarge" text="Large"
+                                                                              toggleGroup="$toolbarIconSizeGroup"/>
+                                                            </children>
+                                                        </HBox>
+                                                    </children>
+                                                </HBox>
+                                                <CheckBox fx:id="showLeftPanel" text="Show left side panel"/>
+                                                <CheckBox fx:id="showInspector" text="Show Properties (inspector) panel"/>
+                                            </children>
+                                        </SettingsCard>
+                                        <!-- JavaFX Prism pipeline; applied at next startup -->
+                                        <SettingsCard title="RENDERING" iconLiteral="bi-gpu-card" color="#e83e8c">
+                                            <children>
+                                                <HBox spacing="6" alignment="CENTER_LEFT">
+                                                    <children>
+                                                        <Label text="Mode:"/>
+                                                        <ComboBox fx:id="renderingMode">
+                                                            <items>
+                                                                <FXCollections fx:factory="observableArrayList">
+                                                                    <String fx:value="Auto"/>
+                                                                    <String fx:value="Hardware"/>
+                                                                    <String fx:value="Software"/>
+                                                                </FXCollections>
+                                                            </items>
+                                                        </ComboBox>
+                                                    </children>
+                                                </HBox>
+                                                <Label fx:id="renderingActiveStatus" wrapText="true"/>
+                                                <Label fx:id="renderingGpuStatus" wrapText="true"
+                                                       styleClass="fxt-placeholder-text"/>
+                                                <Label text="Auto picks GPU rendering on dedicated graphics, software otherwise. Takes effect after restart."
+                                                       wrapText="true" styleClass="fxt-placeholder-text"/>
+                                            </children>
+                                        </SettingsCard>
+                                            </children>
+                                        </FlowPane>
+                                    </children>
+                                </VBox>
+                                <VBox id="settings-group-editor" spacing="12" styleClass="fxt-settings-group">
+                                    <children>
+                                        <Label text="Editor" styleClass="fxt-settings-group-title"/>
+                                        <FlowPane hgap="16" vgap="16" prefWrapLength="820">
+                                            <children>
+                                        <SettingsCard title="EDITOR" iconLiteral="bi-pencil-square" color="#17a2b8">
+                                            <children>
+                                                <HBox spacing="6" alignment="CENTER_LEFT">
+                                                    <children>
+                                                        <Label text="XML indent:"/>
+                                                        <Spinner fx:id="indentSpaces" editable="true">
+                                                            <valueFactory>
+                                                                <javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory min="1" max="8" initialValue="2"/>
+                                                            </valueFactory>
+                                                        </Spinner>
+                                                    </children>
+                                                </HBox>
+                                                <HBox spacing="6" alignment="CENTER_LEFT">
+                                                    <children>
+                                                        <Label text="JSON indent:"/>
+                                                        <Spinner fx:id="jsonIndent" editable="true">
+                                                            <valueFactory>
+                                                                <javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory min="1" max="8" initialValue="2"/>
+                                                            </valueFactory>
+                                                        </Spinner>
+                                                    </children>
+                                                </HBox>
+                                                <CheckBox fx:id="autoFormat" text="Auto-format after loading"/>
+                                                <CheckBox fx:id="xsdPrettyPrint" text="Pretty-print XSD on save"/>
+                                                <CheckBox fx:id="schematronPretty" text="Pretty-print Schematron on load"/>
+                                            </children>
+                                        </SettingsCard>
+                                        <SettingsCard title="TEMPLATES" iconLiteral="bi-file-earmark-plus" color="#0d6efd">
+                                            <children>
+                                                <Label text="Templates directory:"/>
+                                                <HBox spacing="6" alignment="CENTER_LEFT">
+                                                    <children>
+                                                        <TextField fx:id="templatesDir"
+                                                                   promptText="templates directory (leave empty for default)"
+                                                                   HBox.hgrow="ALWAYS"/>
+                                                        <Button text="…" onAction="#onBrowseTemplatesDir"/>
+                                                    </children>
+                                                </HBox>
+                                                <Label text="Your templates:"/>
+                                                <ListView fx:id="templatesList" prefHeight="140" maxWidth="Infinity"/>
+                                                <HBox spacing="6" alignment="CENTER_LEFT">
+                                                    <children>
+                                                        <Button text="New" styleClass="fxt-tool-button"
+                                                                onAction="#onNewTemplate">
+                                                            <graphic>
+                                                                <IconifyIcon iconLiteral="bi-plus-lg" iconSize="16"/>
+                                                            </graphic>
+                                                        </Button>
+                                                        <Button fx:id="editTemplateButton" text="Edit"
+                                                                styleClass="fxt-tool-button" onAction="#onEditTemplate">
+                                                            <graphic>
+                                                                <IconifyIcon iconLiteral="bi-pencil" iconSize="16"/>
+                                                            </graphic>
+                                                        </Button>
+                                                        <Button fx:id="deleteTemplateButton" text="Delete"
+                                                                styleClass="fxt-tool-button" onAction="#onDeleteTemplate">
+                                                            <graphic>
+                                                                <IconifyIcon iconLiteral="bi-trash" iconSize="16"/>
+                                                            </graphic>
+                                                        </Button>
+                                                    </children>
+                                                </HBox>
+                                            </children>
+                                        </SettingsCard>
+                                        <SettingsCard title="USER INFO" iconLiteral="bi-person" color="#28a745">
+                                            <children>
+                                                <HBox spacing="6" alignment="CENTER_LEFT">
+                                                    <children>
+                                                        <Label text="Name:"/>
+                                                        <TextField fx:id="userName" promptText="name"/>
+                                                    </children>
+                                                </HBox>
+                                                <HBox spacing="6" alignment="CENTER_LEFT">
+                                                    <children>
+                                                        <Label text="Email:"/>
+                                                        <TextField fx:id="userEmail" promptText="email"/>
+                                                    </children>
+                                                </HBox>
+                                                <HBox spacing="6" alignment="CENTER_LEFT">
+                                                    <children>
+                                                        <Label text="Company:"/>
+                                                        <TextField fx:id="userCompany" promptText="company"/>
+                                                    </children>
+                                                </HBox>
+                                            </children>
+                                        </SettingsCard>
+                                            </children>
+                                        </FlowPane>
+                                    </children>
+                                </VBox>
+                                <VBox id="settings-group-schemas" spacing="12" styleClass="fxt-settings-group">
+                                    <children>
+                                        <Label text="Schemas &amp; Validation" styleClass="fxt-settings-group-title"/>
+                                        <FlowPane hgap="16" vgap="16" prefWrapLength="820">
+                                            <children>
+                                        <SettingsCard title="XSD" iconLiteral="bi-diagram-3" color="#6f42c1">
+                                            <children>
+                                                <CheckBox fx:id="xsdAutoSave" text="Auto-save"/>
+                                                <HBox spacing="6" alignment="CENTER_LEFT">
+                                                    <children>
+                                                        <Label text="Interval (min):"/>
+                                                        <Spinner fx:id="xsdAutoSaveInterval" editable="true">
+                                                            <valueFactory>
+                                                                <javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory min="1" max="120" initialValue="5"/>
+                                                            </valueFactory>
+                                                        </Spinner>
+                                                    </children>
+                                                </HBox>
+                                                <CheckBox fx:id="xsdBackup" text="Create backups on save"/>
+                                                <HBox spacing="6" alignment="CENTER_LEFT">
+                                                    <children>
+                                                        <Label text="Keep versions:"/>
+                                                        <Spinner fx:id="xsdBackupVersions" editable="true">
+                                                            <valueFactory>
+                                                                <javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory min="1" max="50" initialValue="5"/>
+                                                            </valueFactory>
+                                                        </Spinner>
+                                                    </children>
+                                                </HBox>
+                                                <CheckBox fx:id="backupSeparateDir" text="Use a separate backup directory"/>
+                                                <HBox spacing="6" alignment="CENTER_LEFT">
+                                                    <children>
+                                                        <TextField fx:id="backupDir" promptText="backup directory"
+                                                                   HBox.hgrow="ALWAYS"/>
+                                                        <Button text="…" onAction="#onBrowseBackupDir"/>
+                                                    </children>
+                                                </HBox>
+                                            </children>
+                                        </SettingsCard>
+                                        <SettingsCard title="SCHEMA LIBRARY" iconLiteral="bi-collection" color="#20c997">
+                                            <children>
+                                                <CheckBox fx:id="schemaLibraryAutoBind" id="settings-schema-library-autobind"
+                                                          text="Use the Schema Library to bind schemas automatically"
+                                                          wrapText="true"/>
+                                                <Label fx:id="libraryFile" wrapText="true" styleClass="fxt-lib-status"/>
+                                                <Hyperlink id="settings-manage-schema-cache"
+                                                           text="Manage schema cache…" onAction="#onManageSchemaCache">
                                                     <graphic>
-                                                        <IconifyIcon iconLiteral="bi-box-arrow-in-down" iconSize="16"/>
+                                                        <IconifyIcon iconLiteral="bi-collection" iconSize="16"/>
                                                     </graphic>
-                                                </Button>
-                                                <Button fx:id="assocUnregister" text="Unregister"
-                                                        styleClass="fxt-tool-button"
-                                                        onAction="#onUnregisterAssociations">
-                                                    <graphic>
-                                                        <IconifyIcon iconLiteral="bi-x-circle" iconSize="16"/>
-                                                    </graphic>
-                                                </Button>
+                                                </Hyperlink>
                                             </children>
-                                        </HBox>
-                                        <Label fx:id="assocStatus" wrapText="true" styleClass="fxt-placeholder-text"/>
-                                    </children>
-                                </SettingsCard>
-
-                                <SettingsCard title="USER INFO" iconLiteral="bi-person" color="#28a745">
-                                    <children>
-                                        <HBox spacing="6" alignment="CENTER_LEFT">
+                                        </SettingsCard>
+                                        <SettingsCard title="PARSER" iconLiteral="bi-cpu" color="#fd7e14">
                                             <children>
-                                                <Label text="Name:"/>
-                                                <TextField fx:id="userName" promptText="name"/>
+                                                <HBox spacing="6" alignment="CENTER_LEFT">
+                                                    <children>
+                                                        <Label text="XML parser:"/>
+                                                        <ComboBox fx:id="parserType"/>
+                                                    </children>
+                                                </HBox>
+                                                <CheckBox fx:id="xsltExtensions" text="Allow XSLT extension functions"/>
                                             </children>
-                                        </HBox>
-                                        <HBox spacing="6" alignment="CENTER_LEFT">
-                                            <children>
-                                                <Label text="Email:"/>
-                                                <TextField fx:id="userEmail" promptText="email"/>
+                                        </SettingsCard>
                                             </children>
-                                        </HBox>
-                                        <HBox spacing="6" alignment="CENTER_LEFT">
+                                        </FlowPane>
+                                    </children>
+                                </VBox>
+                                <VBox id="settings-group-files" spacing="12" styleClass="fxt-settings-group">
+                                    <children>
+                                        <Label text="Files &amp; Cache" styleClass="fxt-settings-group-title"/>
+                                        <FlowPane hgap="16" vgap="16" prefWrapLength="820">
                                             <children>
-                                                <Label text="Company:"/>
-                                                <TextField fx:id="userCompany" promptText="company"/>
-                                            </children>
-                                        </HBox>
-                                    </children>
-                                </SettingsCard>
-
-                                <SettingsCard title="SECURITY" iconLiteral="bi-shield-lock" color="#dc3545">
-                                    <children>
-                                        <CheckBox fx:id="trustAllCerts" text="Trust all certificates"/>
-                                    </children>
-                                </SettingsCard>
-
-                                <SettingsCard title="USAGE STATISTICS" iconLiteral="bi-graph-up" color="#6c757d">
-                                    <children>
-                                        <CheckBox fx:id="trackingEnabled" text="Enable usage tracking"/>
-                                        <Button text="Clear statistics" maxWidth="Infinity"
-                                                styleClass="fxt-tool-button" onAction="#onClearStatistics">
-                                            <graphic>
-                                                <IconifyIcon iconLiteral="bi-trash" iconSize="16"/>
-                                            </graphic>
-                                        </Button>
-                                        <Label fx:id="usageStatus" styleClass="fxt-placeholder-text"/>
-                                        <Separator/>
-                                        <!-- Anonymous telemetry (opt-out, see docs/telemetry.md) -->
-                                        <CheckBox fx:id="telemetryUsage" id="settings-telemetry-usage"
-                                                  text="Send anonymous usage statistics" wrapText="true"/>
-                                        <CheckBox fx:id="telemetryErrors" id="settings-telemetry-errors"
-                                                  text="Send anonymous error reports" wrapText="true"/>
-                                        <!-- minHeight -Infinity = USE_PREF_SIZE: wrap fully instead of ellipsizing -->
-                                        <Label text="Helps improve FreeXmlToolkit. Only anonymous data is sent (feature usage, timings, document type, error signatures) — never file names, paths or content. The local statistics above stay on this computer."
-                                               wrapText="true" minHeight="-Infinity"
-                                               styleClass="fxt-placeholder-text"/>
-                                        <Hyperlink id="settings-telemetry-what" text="What is sent?"
-                                                   onAction="#onWhatIsSent">
-                                            <graphic>
-                                                <IconifyIcon iconLiteral="bi-info-circle" iconSize="16"/>
-                                            </graphic>
-                                        </Hyperlink>
-                                    </children>
-                                </SettingsCard>
-
-                                <SettingsCard title="DEVELOPER" iconLiteral="bi-speedometer2" color="#495057">
-                                    <children>
-                                        <CheckBox fx:id="execStatsEnabled" text="Record execution statistics"/>
-                                        <Label text="Collects duration, CPU and memory per XSLT/XQuery/validation run. View them in the &quot;Execution Statistics&quot; tool tab."
-                                               wrapText="true" minHeight="-Infinity"
-                                               styleClass="fxt-placeholder-text"/>
-                                    </children>
-                                </SettingsCard>
-
-                                <SettingsCard title="FUNDSXML" iconLiteral="bi-file-earmark-code" color="#20c997">
-                                    <children>
-                                        <CheckBox fx:id="fundsXmlEnabled" text="Enable FundsXML extensions"/>
-                                    </children>
-                                </SettingsCard>
-
-                                <SettingsCard title="TEMPLATES" iconLiteral="bi-file-earmark-plus" color="#0d6efd">
-                                    <children>
-                                        <Label text="Templates directory:"/>
-                                        <HBox spacing="6" alignment="CENTER_LEFT">
+                                        <SettingsCard title="TEMP &amp; CACHE" iconLiteral="bi-trash" color="#ffc107">
                                             <children>
-                                                <TextField fx:id="templatesDir"
-                                                           promptText="templates directory (leave empty for default)"
-                                                           HBox.hgrow="ALWAYS"/>
-                                                <Button text="…" onAction="#onBrowseTemplatesDir"/>
-                                            </children>
-                                        </HBox>
-                                        <Label text="Your templates:"/>
-                                        <ListView fx:id="templatesList" prefHeight="140" maxWidth="Infinity"/>
-                                        <HBox spacing="6" alignment="CENTER_LEFT">
-                                            <children>
-                                                <Button text="New" styleClass="fxt-tool-button"
-                                                        onAction="#onNewTemplate">
-                                                    <graphic>
-                                                        <IconifyIcon iconLiteral="bi-plus-lg" iconSize="16"/>
-                                                    </graphic>
-                                                </Button>
-                                                <Button fx:id="editTemplateButton" text="Edit"
-                                                        styleClass="fxt-tool-button" onAction="#onEditTemplate">
-                                                    <graphic>
-                                                        <IconifyIcon iconLiteral="bi-pencil" iconSize="16"/>
-                                                    </graphic>
-                                                </Button>
-                                                <Button fx:id="deleteTemplateButton" text="Delete"
-                                                        styleClass="fxt-tool-button" onAction="#onDeleteTemplate">
+                                                <CheckBox fx:id="useSystemTemp" text="Use system temp folder"/>
+                                                <HBox spacing="6" alignment="CENTER_LEFT">
+                                                    <children>
+                                                        <TextField fx:id="customTempDir" promptText="custom temp folder"
+                                                                   HBox.hgrow="ALWAYS"/>
+                                                        <Button text="…" onAction="#onBrowseTempDir"/>
+                                                    </children>
+                                                </HBox>
+                                                <Button text="Clear Temp Folder" maxWidth="Infinity"
+                                                        styleClass="fxt-tool-button" onAction="#onClearTemp">
                                                     <graphic>
                                                         <IconifyIcon iconLiteral="bi-trash" iconSize="16"/>
                                                     </graphic>
                                                 </Button>
+                                                <Button text="Clear Cache Folder" maxWidth="Infinity"
+                                                        styleClass="fxt-tool-button" onAction="#onClearCache">
+                                                    <graphic>
+                                                        <IconifyIcon iconLiteral="bi-trash" iconSize="16"/>
+                                                    </graphic>
+                                                </Button>
+                                                <Label fx:id="tempStatus" styleClass="fxt-placeholder-text"/>
+                                                <Hyperlink id="settings-manage-schema-cache-2" text="Manage schema cache…"
+                                                           onAction="#onManageSchemaCache">
+                                                    <graphic>
+                                                        <IconifyIcon iconLiteral="bi-collection" iconSize="16"/>
+                                                    </graphic>
+                                                </Hyperlink>
                                             </children>
-                                        </HBox>
+                                        </SettingsCard>
+                                        <SettingsCard title="FILE ASSOCIATIONS" iconLiteral="bi-file-earmark-check"
+                                                      color="#0dcaf0">
+                                            <children>
+                                                <Label text="Make FreeXmlToolkit the default application for the selected file types (current user only)."
+                                                       wrapText="true" styleClass="fxt-placeholder-text"/>
+                                                <CheckBox fx:id="assocXml" text="XML (.xml)"/>
+                                                <CheckBox fx:id="assocXsd" text="XSD Schema (.xsd)"/>
+                                                <CheckBox fx:id="assocXslt" text="XSLT Stylesheet (.xsl, .xslt)"/>
+                                                <CheckBox fx:id="assocSch" text="Schematron (.sch, .schematron)"/>
+                                                <CheckBox fx:id="assocJson" text="JSON (.json)"/>
+                                                <HBox spacing="6" alignment="CENTER_LEFT">
+                                                    <children>
+                                                        <Button fx:id="assocRegister" text="Register"
+                                                                styleClass="fxt-tool-button"
+                                                                onAction="#onRegisterAssociations">
+                                                            <graphic>
+                                                                <IconifyIcon iconLiteral="bi-box-arrow-in-down" iconSize="16"/>
+                                                            </graphic>
+                                                        </Button>
+                                                        <Button fx:id="assocUnregister" text="Unregister"
+                                                                styleClass="fxt-tool-button"
+                                                                onAction="#onUnregisterAssociations">
+                                                            <graphic>
+                                                                <IconifyIcon iconLiteral="bi-x-circle" iconSize="16"/>
+                                                            </graphic>
+                                                        </Button>
+                                                    </children>
+                                                </HBox>
+                                                <Label fx:id="assocStatus" wrapText="true" styleClass="fxt-placeholder-text"/>
+                                            </children>
+                                        </SettingsCard>
+                                            </children>
+                                        </FlowPane>
                                     </children>
-                                </SettingsCard>
-
-                                <SettingsCard title="HTTP PROXY" iconLiteral="bi-globe" color="#6610f2">
+                                </VBox>
+                                <VBox id="settings-group-network" spacing="12" styleClass="fxt-settings-group">
                                     <children>
-                                        <CheckBox fx:id="useSystemProxy" text="Use system proxy"/>
-                                        <TextField fx:id="proxyHost" promptText="host"/>
-                                        <TextField fx:id="proxyPort" promptText="port"/>
+                                        <Label text="Network &amp; Security" styleClass="fxt-settings-group-title"/>
+                                        <FlowPane hgap="16" vgap="16" prefWrapLength="820">
+                                            <children>
+                                        <SettingsCard title="HTTP PROXY" iconLiteral="bi-globe" color="#6610f2">
+                                            <children>
+                                                <CheckBox fx:id="useSystemProxy" text="Use system proxy"/>
+                                                <TextField fx:id="proxyHost" promptText="host"/>
+                                                <TextField fx:id="proxyPort" promptText="port"/>
+                                            </children>
+                                        </SettingsCard>
+                                        <SettingsCard title="SECURITY" iconLiteral="bi-shield-lock" color="#dc3545">
+                                            <children>
+                                                <CheckBox fx:id="trustAllCerts" text="Trust all certificates"/>
+                                            </children>
+                                        </SettingsCard>
+                                        <SettingsCard title="UPDATES" iconLiteral="bi-arrow-repeat" color="#007bff">
+                                            <children>
+                                                <CheckBox fx:id="updateCheck" text="Check for updates on startup"/>
+                                            </children>
+                                        </SettingsCard>
+                                            </children>
+                                        </FlowPane>
                                     </children>
-                                </SettingsCard>
-
-                                <!-- "Support the Project": short pitch plus a button to GitHub Sponsors -->
-                                <SettingsCard title="SUPPORT THE PROJECT" iconLiteral="bi-heart-fill">
-                                    <color>
-                                        <SemanticColors fx:constant="SPONSOR"/>
-                                    </color>
+                                </VBox>
+                                <VBox id="settings-group-privacy" spacing="12" styleClass="fxt-settings-group">
                                     <children>
-                                        <Label text="FreeXmlToolkit is free and open source. If it saves you time, please consider sponsoring its development on GitHub."
-                                               wrapText="true" styleClass="fxt-placeholder-text"/>
-                                        <!-- The sponsor heart keeps its own colour; SettingsPanel sets the graphic. -->
-                                        <Button fx:id="sponsorButton" id="settings-sponsor" text="Sponsor on GitHub"
-                                                styleClass="fxt-tool-button" onAction="#onSponsor"/>
+                                        <Label text="Privacy" styleClass="fxt-settings-group-title"/>
+                                        <FlowPane hgap="16" vgap="16" prefWrapLength="820">
+                                            <children>
+                                        <SettingsCard title="USAGE STATISTICS" iconLiteral="bi-graph-up" color="#6c757d">
+                                            <children>
+                                                <CheckBox fx:id="trackingEnabled" text="Enable usage tracking"/>
+                                                <Button text="Clear statistics" maxWidth="Infinity"
+                                                        styleClass="fxt-tool-button" onAction="#onClearStatistics">
+                                                    <graphic>
+                                                        <IconifyIcon iconLiteral="bi-trash" iconSize="16"/>
+                                                    </graphic>
+                                                </Button>
+                                                <Label fx:id="usageStatus" styleClass="fxt-placeholder-text"/>
+                                                <Separator/>
+                                                <!-- Anonymous telemetry (opt-out, see docs/telemetry.md) -->
+                                                <CheckBox fx:id="telemetryUsage" id="settings-telemetry-usage"
+                                                          text="Send anonymous usage statistics" wrapText="true"/>
+                                                <CheckBox fx:id="telemetryErrors" id="settings-telemetry-errors"
+                                                          text="Send anonymous error reports" wrapText="true"/>
+                                                <!-- minHeight -Infinity = USE_PREF_SIZE: wrap fully instead of ellipsizing -->
+                                                <Label text="Helps improve FreeXmlToolkit. Only anonymous data is sent (feature usage, timings, document type, error signatures) — never file names, paths or content. The local statistics above stay on this computer."
+                                                       wrapText="true" minHeight="-Infinity"
+                                                       styleClass="fxt-placeholder-text"/>
+                                                <Hyperlink id="settings-telemetry-what" text="What is sent?"
+                                                           onAction="#onWhatIsSent">
+                                                    <graphic>
+                                                        <IconifyIcon iconLiteral="bi-info-circle" iconSize="16"/>
+                                                    </graphic>
+                                                </Hyperlink>
+                                            </children>
+                                        </SettingsCard>
+                                            </children>
+                                        </FlowPane>
                                     </children>
-                                </SettingsCard>
+                                </VBox>
+                                <VBox id="settings-group-extensions" spacing="12" styleClass="fxt-settings-group">
+                                    <children>
+                                        <Label text="Extensions" styleClass="fxt-settings-group-title"/>
+                                        <FlowPane hgap="16" vgap="16" prefWrapLength="820">
+                                            <children>
+                                        <SettingsCard title="FUNDSXML" iconLiteral="bi-file-earmark-code" color="#20c997">
+                                            <children>
+                                                <CheckBox fx:id="fundsXmlEnabled" text="Enable FundsXML extensions"/>
+                                            </children>
+                                        </SettingsCard>
+                                        <SettingsCard title="DEVELOPER" iconLiteral="bi-speedometer2" color="#495057">
+                                            <children>
+                                                <CheckBox fx:id="execStatsEnabled" text="Record execution statistics"/>
+                                                <Label text="Collects duration, CPU and memory per XSLT/XQuery/validation run. View them in the &quot;Execution Statistics&quot; tool tab."
+                                                       wrapText="true" minHeight="-Infinity"
+                                                       styleClass="fxt-placeholder-text"/>
+                                            </children>
+                                        </SettingsCard>
+                                        <!-- "Support the Project": short pitch plus a button to GitHub Sponsors -->
+                                        <SettingsCard title="SUPPORT THE PROJECT" iconLiteral="bi-heart-fill">
+                                            <color>
+                                                <SemanticColors fx:constant="SPONSOR"/>
+                                            </color>
+                                            <children>
+                                                <Label text="FreeXmlToolkit is free and open source. If it saves you time, please consider sponsoring its development on GitHub."
+                                                       wrapText="true" styleClass="fxt-placeholder-text"/>
+                                                <!-- The sponsor heart keeps its own colour; SettingsPanel sets the graphic. -->
+                                                <Button fx:id="sponsorButton" id="settings-sponsor" text="Sponsor on GitHub"
+                                                        styleClass="fxt-tool-button" onAction="#onSponsor"/>
+                                            </children>
+                                        </SettingsCard>
+                                            </children>
+                                        </FlowPane>
+                                    </children>
+                                </VBox>
                             </children>
-                        </FlowPane>
+                        </VBox>
+                        <Label fx:id="noMatch" id="settings-no-match" text="No settings match the search."
+                               visible="false" managed="false" styleClass="fxt-placeholder-text"/>
 
-                        <Button text="Save Settings" maxWidth="Infinity"
-                                styleClass="fxt-tool-button, fxt-primary-button" onAction="#onSave">
-                            <graphic>
-                                <IconifyIcon iconLiteral="bi-save" iconSize="16"/>
-                            </graphic>
-                        </Button>
                     </children>
                 </VBox>
             </content>
         </ScrollPane>
+
+        <!-- Fixed save bar (decision E5): changes apply on Save; the hint shows unsaved edits. -->
+        <HBox id="settings-save-bar" spacing="8" alignment="CENTER_LEFT" styleClass="fxt-settings-save-bar">
+            <children>
+                <Label fx:id="dirtyHint" id="settings-dirty" text="Unsaved changes" visible="false"
+                       styleClass="fxt-settings-dirty">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-circle-fill" iconSize="8"/>
+                    </graphic>
+                </Label>
+                <Label fx:id="saveStatus" id="settings-save-status" styleClass="fxt-placeholder-text"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button id="settings-reset" text="Reset to Defaults…" styleClass="fxt-tool-button"
+                        onAction="#onResetDefaults">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-arrow-counterclockwise" iconSize="16"/>
+                    </graphic>
+                </Button>
+                <Button fx:id="saveButton" id="settings-save" text="Save Settings"
+                        styleClass="fxt-tool-button, fxt-primary-button" onAction="#onSave">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-save" iconSize="16"/>
+                    </graphic>
+                </Button>
+            </children>
+        </HBox>
     </children>
 </fx:root>

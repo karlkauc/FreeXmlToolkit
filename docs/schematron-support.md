@@ -6,7 +6,8 @@
 > `.sch` files open as ordinary editor tabs in the [Unified Shell](unified-shell.md),
 > and validation runs in the **Validation activity panel**. The Schematron tools —
 > rule check, templates, tester, visual builder, documentation, and the validation
-> report — sit in the Validation panel's **⋮ menu → Schematron Tools**. The
+> report — are labelled rows in the Validation panel's **SCHEMATRON AUTHORING** and
+> **REPORTS & CHECKS** sections. The
 > capabilities below are unchanged; they are reached through the shell rather than a
 > dedicated sidebar tab.
 
@@ -84,17 +85,18 @@ expression before putting it into a rule. See
 
 ## Schematron Tools in the Unified Shell
 
-The **Validation** activity panel offers a set of Schematron tools in its **⋮ menu**
-under *Schematron Tools*. Each one opens as a closable tool tab in the editor area:
+The **Validation** activity panel offers the Schematron tools as labelled rows in two
+collapsible sections (both collapsed at first - click a header to expand it). Each tool
+opens as a closable tool tab in the editor area:
 
-| Tool | What It Does |
-|------|--------------|
-| **Rule Templates** | Insert ready-made Schematron rule patterns into the active editor |
-| **Tester** | Run the rules against an XML file (pre-loads the bound Schematron, if any) |
-| **Rule Builder** | Build rules visually |
-| **Check Rules** | Inspect the Schematron file itself for problems |
-| **Documentation** | Generate documentation for the Schematron file |
-| **Validation Report** | Open a detailed report of the last Schematron validation run |
+| Tool | Section | What It Does |
+|------|---------|--------------|
+| **Rule Templates** | SCHEMATRON AUTHORING | Insert ready-made Schematron rule patterns into the active editor |
+| **Schematron Tester** | SCHEMATRON AUTHORING | Run the rules against an XML file (pre-loads the bound Schematron, if any) |
+| **Rule Builder** | SCHEMATRON AUTHORING | Build rules visually |
+| **Check Rules** | SCHEMATRON AUTHORING | Inspect the Schematron file itself for problems |
+| **Schematron Documentation** | SCHEMATRON AUTHORING | Generate documentation for the Schematron file |
+| **Validation Report** | REPORTS & CHECKS | Open a detailed report of the last Schematron validation run |
 
 ### Check Rules
 
@@ -112,14 +114,13 @@ grouped into categories:
 
 ### Documentation
 
-**Documentation** opens the Schematron documentation generator, which produces readable
+**Schematron Documentation** opens the Schematron documentation generator, which produces readable
 documentation describing the patterns, rules, and assertions in your Schematron file.
 
 ### Validation Report
 
 After validating an XML document that has a Schematron file bound, **Validation Report**
-(in the ⋮ menu under *Schematron Tools*, or via the report button in the Validation panel's
-PROBLEMS header) opens a **Schematron Report** tool tab. It shows the document name, the
+(a row in the Validation panel's **REPORTS & CHECKS** section) opens a **Schematron Report** tool tab. It shows the document name, the
 Schematron file, an error/warning summary, and a table with one row per finding - severity,
 line, message, the failed rule/test expression, and the failing node's XPath context.
 Clicking a row jumps to that line in the editor.
@@ -221,14 +222,16 @@ Shell guide.
 
 ### Test Against XML Files
 
-1. Open the **Validation** activity and choose **⋮ → Schematron Tools → Tester**
+1. Open the **Validation** activity and click **Schematron Tester** in the **SCHEMATRON
+   AUTHORING** section
 2. Pick the Schematron file with **Browse…** (the one bound to the active document is
    pre-loaded) and add the XML file(s) to test with **Add XML Files**
 3. Click **Run Tests** and review the results in the Tester tab
 
-For a quick check of many files at once, the Explorer's
-[Schematron bar](unified-shell.md#schematron-bar-one-click-validation-from-the-explorer)
-validates the selected XML files against a sticky Schematron in one click.
+For a quick check of many files at once, select the XML files in the Explorer's workspace
+tree, right-click and choose
+[Validate with *&lt;Schematron&gt;*](unified-shell.md#explorer-context-menu) - it validates
+them against the last-used Schematron.
 
 ### Integration with XML Editor
 
@@ -237,8 +240,7 @@ Use Schematron validation directly in the XML Editor:
 1. Open an XML file in the editor
 2. In the **Validation** panel's SOURCES section, click the **Schematron** row to select
    your Schematron file (or pick one from its favorites menu) - or simply **drop** a
-   `.sch` / `.schematron` file from your file manager onto that row or onto the
-   Explorer's Schematron picker
+   `.sch` / `.schematron` file from your file manager onto that row
 3. Press **Validate** (F8) or click **Run Validation** in the panel; with **Validate while
    typing** on, the document is re-checked as you edit
 4. Errors are highlighted in the editor; click a problem to jump to its location

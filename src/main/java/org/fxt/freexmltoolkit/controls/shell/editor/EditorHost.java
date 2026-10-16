@@ -69,7 +69,7 @@ public class EditorHost extends BorderPane {
      *
      * @param state        valid / invalid / not-yet-validated
      * @param problemCount the number of problems (0 when valid)
-     * @param summary      a short human-readable label (e.g. "Valid", "Well-formed", "3 problem(s)")
+     * @param summary      a short human-readable label (e.g. "Valid", "Well-formed", "3 problems")
      */
     public record ValidationStatus(ValidationState state, int problemCount, String summary) {
         public static final ValidationStatus NONE =
@@ -149,6 +149,9 @@ public class EditorHost extends BorderPane {
 
     /** Handler for Welcome/Dashboard action keys (activity ids, open-folder); set by the shell. */
     private java.util.function.Consumer<String> welcomeActionHandler = key -> { };
+
+    /** Called on the FX thread with each document read from disk and its content (e.g. the FundsXML hint). */
+    private java.util.function.BiConsumer<OpenDocument, String> documentLoadedHandler = (doc, content) -> { };
 
     /** Optional override for "new document" requests (e.g. the shell's guided New File dialog). */
     private Runnable newDocumentOverride;
@@ -624,6 +627,95 @@ public class EditorHost extends BorderPane {
         return false;
     }
 
+    /** Bumped by {@link #revealProblems()}; the PROBLEMS dock expands and focuses on each change. */
+    private final javafx.beans.property.IntegerProperty problemsRevealRequests =
+            new javafx.beans.property.SimpleIntegerProperty(this, "problemsRevealRequests");
+
+    /** Asks the PROBLEMS dock below the editor to expand and take focus (e.g. from the Validation panel). */
+    public void revealProblems() {
+        problemsRevealRequests.set(problemsRevealRequests.get() + 1);
+    }
+
+    /** @return the reveal counter the PROBLEMS dock listens to */
+    public javafx.beans.property.ReadOnlyIntegerProperty problemsRevealRequestsProperty() {
+        return problemsRevealRequests;
+    }
+
+    /** Bumped by {@link #requestQueryConsole()}; the shell opens the Query Console on each change. */
+    private final javafx.beans.property.IntegerProperty queryConsoleRequests =
+            new javafx.beans.property.SimpleIntegerProperty(this, "queryConsoleRequests");
+
+    /** Asks the shell to open the Query Console (e.g. from the Transform panel's pointer). */
+    public void requestQueryConsole() {
+        queryConsoleRequests.set(queryConsoleRequests.get() + 1);
+    }
+
+    /** @return the request counter the shell listens to */
+    public javafx.beans.property.ReadOnlyIntegerProperty queryConsoleRequestsProperty() {
+        return queryConsoleRequests;
+    }
+
+    /** The answer to "save before running a tool that reads the file from disk?". */
+    public enum SaveBeforeTool { SAVE, CONTINUE, CANCEL }
+
+    /** Test hook replacing the dialog: (file name, tool name) → answer; {@code null} shows the dialog. */
+    private java.util.function.BiFunction<String, String, SaveBeforeTool> saveBeforeToolPrompt;
+
+    void setSaveBeforeToolPrompt(java.util.function.BiFunction<String, String, SaveBeforeTool> prompt) {
+        this.saveBeforeToolPrompt = prompt;
+    }
+
+    /**
+     * Guards a tool that reads {@code file} from disk (sample XML, documentation, signing):
+     * when the file is open with unsaved changes, asks whether to save first so the tool
+     * does not silently work on the old state.
+     *
+     * @param file     the file the tool will read; {@code null} or not open → nothing to ask
+     * @param toolName the tool's name for the dialog (e.g. "Generate Sample XML")
+     * @return {@code true} to run the tool (saved, or the user chose to continue anyway),
+     *         {@code false} when the user cancelled or saving failed
+     */
+    public boolean ensureSavedBeforeTool(java.nio.file.Path file, String toolName) {
+        if (file == null) {
+            return true;
+        }
+        EditorTab dirty = null;
+        for (Tab tab : tabPane.getTabs()) {
+            if (tab instanceof EditorTab et && file.equals(et.document.getPath()) && et.document.isDirty()) {
+                dirty = et;
+                break;
+            }
+        }
+        if (dirty == null) {
+            return true;
+        }
+        String name = dirty.document.getDisplayName();
+        SaveBeforeTool choice;
+        if (saveBeforeToolPrompt != null) {
+            choice = saveBeforeToolPrompt.apply(name, toolName);
+        } else {
+            javafx.scene.control.Alert alert = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
+                    javafx.scene.control.Alert.AlertType.CONFIRMATION, "Unsaved Changes",
+                    "Save changes to " + name + " first?",
+                    toolName + " reads the saved file. Changes that are only in the editor would not be included.");
+            javafx.scene.control.ButtonType save = new javafx.scene.control.ButtonType(
+                    "Save and Continue", javafx.scene.control.ButtonBar.ButtonData.YES);
+            javafx.scene.control.ButtonType proceed = new javafx.scene.control.ButtonType(
+                    "Use Saved Version", javafx.scene.control.ButtonBar.ButtonData.NO);
+            javafx.scene.control.ButtonType cancel = new javafx.scene.control.ButtonType(
+                    "Cancel", javafx.scene.control.ButtonBar.ButtonData.CANCEL_CLOSE);
+            alert.getButtonTypes().setAll(save, proceed, cancel);
+            var answer = alert.showAndWait();
+            choice = answer.isEmpty() || answer.get() == cancel ? SaveBeforeTool.CANCEL
+                    : answer.get() == save ? SaveBeforeTool.SAVE : SaveBeforeTool.CONTINUE;
+        }
+        return switch (choice) {
+            case SAVE -> write(dirty, file);
+            case CONTINUE -> true;
+            case CANCEL -> false;
+        };
+    }
+
     /** Rebuilds the line → fixable-problems index and the lightbulb gutter contribution. */
     private void rebuildQuickFixGutter(java.util.List<ValidationProblem> problems) {
         fixableProblemsByLine.clear();
@@ -1076,6 +1168,21 @@ public class EditorHost extends BorderPane {
         }
     }
 
+    /** @return whether the active document's file is still being read from disk */
+    public boolean isActiveDocumentLoading() {
+        return tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et && et.loading;
+    }
+
+    /** Brings the tab whose content is {@code content} (e.g. a tool page) to the front, if open. */
+    public void selectTabShowing(javafx.scene.Node content) {
+        for (Tab tab : tabPane.getTabs()) {
+            if (tab.getContent() == content) {
+                tabPane.getSelectionModel().select(tab);
+                return;
+            }
+        }
+    }
+
     /** Open type-editor tabs, keyed by type name, so a type is edited in at most one tab. */
     private final java.util.Map<String, Tab> openTypeTabs = new java.util.HashMap<>();
 
@@ -1353,6 +1460,13 @@ public class EditorHost extends BorderPane {
             buttons.forEach((mode, button) -> {
                 button.setSelected(mode == active);
                 button.setDisable(!hasDoc || !activeSupportsView(mode));
+                if (mode == ViewMode.PREVIEW) {
+                    // Preview exists for HTML only: hide the segment instead of showing it
+                    // permanently disabled for every other document.
+                    boolean shown = hasDoc && activeSupportsView(mode);
+                    button.setVisible(shown);
+                    button.setManaged(shown);
+                }
             });
         };
         sync.run();
@@ -1399,6 +1513,11 @@ public class EditorHost extends BorderPane {
      */
     public void setWelcomeActionHandler(java.util.function.Consumer<String> handler) {
         this.welcomeActionHandler = handler != null ? handler : key -> { };
+    }
+
+    /** Sets the handler told about every document read from disk, with its content (FX thread). */
+    public void setDocumentLoadedHandler(java.util.function.BiConsumer<OpenDocument, String> handler) {
+        this.documentLoadedHandler = handler != null ? handler : (doc, content) -> { };
     }
 
     private void fireWelcomeAction(String key) {
@@ -2520,12 +2639,21 @@ public class EditorHost extends BorderPane {
 
     /** Switches to Text mode and moves the caret to the given 1-based line (jump-to-problem). */
     public void goToLine(int line) {
+        goToLine(line, 0);
+    }
+
+    /**
+     * Switches to Text mode and moves the caret to the given 1-based line and column (a column
+     * below 1 means the line start; one past the line end is clamped to it).
+     */
+    public void goToLine(int line, int column) {
         setActiveViewMode(ViewMode.TEXT);
         withActive(et -> {
             var codeArea = et.view.getCodeArea();
             int paragraphs = codeArea.getParagraphs().size();
             int paragraph = Math.max(0, Math.min(line - 1, Math.max(0, paragraphs - 1)));
-            codeArea.moveTo(paragraph, 0);
+            int col = Math.max(0, Math.min(column - 1, codeArea.getParagraphLength(paragraph)));
+            codeArea.moveTo(paragraph, col);
             codeArea.requestFollowCaret();
             et.view.getNode().requestFocus();
         });
@@ -2922,6 +3050,7 @@ public class EditorHost extends BorderPane {
                 tab.attachDirtyTracking();
                 UsageEvents.fileOpened(tab.document.getFileType().docKind(), sizeOrUnknown(path),
                         UsageEvents.SOURCE_FILE, openStart);
+                documentLoadedHandler.accept(tab.document, content);
             });
 
             if (isAbandoned(tab)) {

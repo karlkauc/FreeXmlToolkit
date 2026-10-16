@@ -128,16 +128,49 @@ public class FavoritesService {
         }
     }
     
+    /** Listeners told about every change of the favorites set (added, removed, renamed, moved). */
+    private final java.util.List<Runnable> changeListeners = new java.util.concurrent.CopyOnWriteArrayList<>();
+
     /**
-     * Save favorites to the JSON file
+     * Registers a listener that runs after the favorites changed. It is called on the
+     * mutating thread; UI listeners must hop to the FX thread themselves.
+     */
+    public void addChangeListener(Runnable listener) {
+        changeListeners.add(listener);
+    }
+
+    public void removeChangeListener(Runnable listener) {
+        changeListeners.remove(listener);
+    }
+
+    /**
+     * Save favorites to the JSON file and notify the change listeners.
      */
     private void saveFavorites() {
+        saveFavorites(true);
+    }
+
+    /**
+     * Save favorites to the JSON file.
+     *
+     * @param notify whether to notify the change listeners (not for pure access statistics)
+     */
+    private void saveFavorites(boolean notify) {
         try {
             String json = gson.toJson(favorites);
             Files.writeString(favoritesFile, json);
             logger.debug("Saved {} favorites", favorites.size());
         } catch (IOException e) {
             logger.error("Failed to save favorites", e);
+        }
+        if (notify) {
+            for (Runnable listener : changeListeners) {
+                try {
+                    listener.run();
+                } catch (RuntimeException e) {
+                    logger.warn("Favorites change listener failed", e);
+                }
+            }
         }
     }
     
@@ -359,7 +392,7 @@ public class FavoritesService {
             .ifPresent(f -> {
                 f.setLastAccessed(java.time.LocalDateTime.now());
                 f.setAccessCount(f.getAccessCount() + 1);
-                saveFavorites();
+                saveFavorites(false); // statistics only - the set of favorites is unchanged
             });
     }
     

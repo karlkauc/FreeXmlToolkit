@@ -2,6 +2,7 @@ package org.fxt.freexmltoolkit.controls.shell;
 
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
 import javafx.scene.layout.BorderPane;
@@ -45,7 +46,15 @@ public class UnifiedShellView extends BorderPane {
     /** Cached so the Search panel can default its scope to the Explorer's workspace folder. */
     private org.fxt.freexmltoolkit.controls.shell.editor.ExplorerPanel explorerPanel;
     /** Cached so {@link #showSchemaCache()} can select the panel's Cache tab. */
-    private org.fxt.freexmltoolkit.controls.shell.editor.SchemaLibraryPanel schemaLibraryPanel;
+    /** The Schema Library page (a main-area tab, like Settings) and its tab. */
+    private org.fxt.freexmltoolkit.controls.shell.editor.SchemaLibraryView schemaLibraryView;
+    private javafx.scene.control.Tab schemaLibraryTab;
+    /** The Signature page (a main-area tab), its tab and the side panel picking its action. */
+    private org.fxt.freexmltoolkit.controls.shell.editor.SignatureView signaturePage;
+    private javafx.scene.control.Tab signatureTab;
+    private org.fxt.freexmltoolkit.controls.shell.editor.PageNavigator signatureNavigator;
+    /** The Schema Library activity's side panel: the page's sections. */
+    private org.fxt.freexmltoolkit.controls.shell.editor.PageNavigator schemaLibraryNavigator;
     /**
      * One cached side panel per activity, so entered state (PDF metadata, signature
      * form, transform parameters, search text, …) survives switching activities and
@@ -56,6 +65,9 @@ public class UnifiedShellView extends BorderPane {
             new java.util.EnumMap<>(Activity.class);
     /** The Settings page tab in the main editor area (reused across activity selections). */
     private javafx.scene.control.Tab settingsTab;
+    /** The Settings page shown in {@link #settingsTab}, and the side panel listing its groups. */
+    private org.fxt.freexmltoolkit.controls.shell.editor.SettingsPanel settingsPage;
+    private org.fxt.freexmltoolkit.controls.shell.editor.PageNavigator settingsNavigator;
 
     /** Editor-level document actions; created in {@link #initialize()} once {@link #editorHost} is injected. */
     private org.fxt.freexmltoolkit.controls.shell.editor.EditorActions editorActions;
@@ -65,6 +77,9 @@ public class UnifiedShellView extends BorderPane {
     // ----- FXML-injected nodes (defined in /pages/shell.fxml; populated by FXMLLoader) -----
     /** Full-width host of the code-built {@link ShellMenuBar} (empty on macOS: system menu bar). */
     @FXML private StackPane menuBarHost;
+    /** The header's Help button; anchors the Help popup ({@link #showHelpMenu()}). */
+    @FXML private Button helpButton;
+    private javafx.scene.control.ContextMenu helpPopup;
     @FXML private StackPane activityBarHost;
     @FXML private StackPane sidePanelHost;
     @FXML private org.fxt.freexmltoolkit.controls.shell.editor.EditorHost editorHost;
@@ -85,6 +100,8 @@ public class UnifiedShellView extends BorderPane {
     @FXML private javafx.scene.control.SplitMenuButton actionRun;
     @FXML private javafx.scene.control.MenuItem actionGenerateDocs;
     @FXML private javafx.scene.control.MenuItem actionTypeEditor;
+    @FXML private javafx.scene.control.MenuItem actionGenerateSample;
+    @FXML private javafx.scene.control.MenuItem actionGenerateXsd;
     @FXML private javafx.scene.control.MenuItem actionRunQuery;
     @FXML private javafx.scene.control.MenuItem actionRunTransform;
     @FXML private javafx.scene.control.MenuItem actionRunPipeline;
@@ -174,6 +191,7 @@ public class UnifiedShellView extends BorderPane {
         editorCenter.getChildren().add(
                 new org.fxt.freexmltoolkit.controls.shell.editor.ProblemsPanel(editorHost));
         searchBar.hide(); // shown on Ctrl+F / Ctrl+H
+        editorHost.queryConsoleRequestsProperty().addListener((obs, oldV, newV) -> openQueryConsole());
         // Keep the open search bar bound to the right view when the user switches
         // view mode or tab (otherwise it would keep searching the previous view).
         editorHost.activeViewModeProperty().addListener((obs, oldMode, newMode) -> {
@@ -188,17 +206,21 @@ public class UnifiedShellView extends BorderPane {
         });
 
         // --- Panel visibility: dashboard is full-width (both panels hidden until a document opens
-        //     or an activity is picked); the user collapse state hides a panel even with a doc open. ---
+        //     or an activity is picked); the user collapse state hides a panel even with a doc open.
+        //     The inspector only has something to show for a document tab: tool tabs (Settings,
+        //     Sign, reports, …) hide it without touching the user's choice, so it comes back
+        //     as it was when a document tab is selected again (UX plan 4.5). ---
         chromeUpdater = () -> {
             boolean hasDocument = !editorHost.isEmpty();
+            boolean documentTab = editorHost.getActiveDocument().isPresent();
             boolean leftArea = hasDocument || activityChosen;
             boolean showLeft = leftArea && leftPanelOpen;
-            boolean showRight = hasDocument && inspectorOpen;
+            boolean showRight = documentTab && inspectorOpen;
             syncWorkItem(leftPanelWrapper, showLeft, true, LEFT_WIDTH_KEY, LEFT_WIDTH_DEFAULT);
             syncWorkItem(inspectorWrapper, showRight, false, INSPECTOR_WIDTH_KEY, INSPECTOR_WIDTH_DEFAULT);
             leftPanelToggle.setDisable(!leftArea);
             leftPanelToggle.setSelected(leftPanelOpen);
-            inspectorToggle.setDisable(!hasDocument);
+            inspectorToggle.setDisable(!documentTab);
             inspectorToggle.setSelected(inspectorOpen);
         };
         // Apply the persisted panel widths to the FXML-declared items before the first layout,
@@ -213,6 +235,7 @@ public class UnifiedShellView extends BorderPane {
         inspectorWrapper.widthProperty().addListener(obs -> queueWidthSave());
         chromeUpdater.run();
         editorHost.getOpenDocuments().addListener((javafx.beans.InvalidationListener) obs -> chromeUpdater.run());
+        editorHost.activeTabProperty().addListener((obs, oldTab, newTab) -> chromeUpdater.run());
 
         // --- Toolbar: keep the action FlowPane single-row (its preferred height must match the
         //     rendered width, not the default 400px wrap; it only wraps as narrow-window
@@ -221,7 +244,7 @@ public class UnifiedShellView extends BorderPane {
         //     permanently (variant E: secondary tools carry their name in the tooltip). ---
         toolbarActions.prefWrapLengthProperty().bind(toolbarActions.widthProperty());
         for (javafx.scene.Node node : toolbarActions.getChildren()) {
-            // The Target dropdown's label is dynamic ("Target: <doc>") — registering it
+            // The Input dropdown's label is dynamic ("Input: <doc>") — registering it
             // would clobber that label on every settings refresh.
             if (node instanceof javafx.scene.control.ButtonBase button && node != queryTargetButton) {
                 registerToolButton(button, button.getText());
@@ -269,6 +292,16 @@ public class UnifiedShellView extends BorderPane {
         addEventHandler(javafx.scene.input.KeyEvent.KEY_PRESSED, this::handleShortcutTracked);
         // Welcome/Dashboard tool cards switch activities (and "open-folder" → Explorer).
         editorHost.setWelcomeActionHandler(this::handleWelcomeAction);
+        // A FundsXML document while the extension is off: offer it once (UX plan 5.5).
+        editorHost.setDocumentLoadedHandler((doc, content) -> {
+            if (doc == validateWhenLoaded) {
+                validateWhenLoaded = null;
+                validateActive();
+            }
+            if (org.fxt.freexmltoolkit.controls.shell.editor.FundsXmlHint.shouldOffer(content)) {
+                showFundsXmlHint();
+            }
+        });
 
         // After a FundsXML background download completes, surface the new content:
         // the welcome page's quick-access section and the version list appear live.
@@ -340,10 +373,136 @@ public class UnifiedShellView extends BorderPane {
             handleFundsXmlWelcomeAction(key);
             return;
         }
-        Activity.fromId(key).ifPresent(activity -> {
-            selectionModel.select(activity);
-            revealSidePanel();
+        if ("open-example".equals(key)) {
+            openExample();
+            return;
+        }
+        if (key != null && key.startsWith("task-")) {
+            runWelcomeTask(key);
+            return;
+        }
+        Activity.fromId(key).ifPresent(this::showActivity);
+    }
+
+    /**
+     * Picks the file a welcome task needs; replaceable in tests (the real one shows a file
+     * chooser). Returns whether a document is active afterwards.
+     */
+    private java.util.function.BooleanSupplier welcomeFilePicker = () -> {
+        editorHost.openFileChooser();
+        return editorHost.getActiveDocument().isPresent();
+    };
+
+    /** Test seam: replaces the file chooser of the welcome tasks. */
+    void setWelcomeFilePicker(java.util.function.BooleanSupplier picker) {
+        this.welcomeFilePicker = picker;
+    }
+
+    /**
+     * Runs a task row of the Welcome page (UX plan 5.2): tasks that work on a file first ask for
+     * one, then open the panel (or console) where the task continues; cancelling the file
+     * chooser does nothing.
+     */
+    private void runWelcomeTask(String key) {
+        switch (key) {
+            case "task-validate" -> pickFileThen(() -> {
+                showActivity(Activity.VALIDATION);
+                validateOnceLoaded();
+            });
+            case "task-transform" -> pickFileThen(() -> showActivity(Activity.TRANSFORM));
+            case "task-query" -> pickFileThen(this::openQueryConsole);
+            case "task-schema" -> pickFileThen(() -> showActivity(Activity.SCHEMA));
+            case "task-pdf" -> pickFileThen(() -> showActivity(Activity.PDF_FOP));
+            case "task-sign" -> showActivity(Activity.SIGNATURE);
+            default -> { }
+        }
+    }
+
+    /** The document the Validate task waits for (validated as soon as its file is read), or null. */
+    private org.fxt.freexmltoolkit.controls.shell.editor.OpenDocument validateWhenLoaded;
+
+    /** Validates the active document now, or as soon as its file has been read. */
+    private void validateOnceLoaded() {
+        if (editorHost.isActiveDocumentLoading()) {
+            validateWhenLoaded = editorHost.getActiveDocument().orElse(null);
+        } else {
+            validateActive();
+        }
+    }
+
+    private void pickFileThen(Runnable next) {
+        if (welcomeFilePicker.getAsBoolean()) {
+            next.run();
+        }
+    }
+
+    /**
+     * Welcome "Open an Example" (UX plan 5.1): copies the bundled order example (XML + XSD +
+     * XSLT) to the user folder off the UI thread and opens the XML; its schema binds through
+     * {@code xsi:noNamespaceSchemaLocation}, so validation works right away.
+     */
+    private void openExample() {
+        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            try {
+                java.nio.file.Path document = org.fxt.freexmltoolkit.controls.shell.editor.ExampleFiles
+                        .install(org.fxt.freexmltoolkit.controls.shell.editor.ExampleFiles.defaultTarget());
+                javafx.application.Platform.runLater(() -> editorHost.openFile(document));
+            } catch (java.io.IOException e) {
+                javafx.application.Platform.runLater(() -> org.fxt.freexmltoolkit.util.DialogHelper.showError(
+                        "Open an Example", "The example could not be created",
+                        e.getMessage()));
+            }
         });
+    }
+
+    /** Downloads the FundsXML content (or registers the cached one) after the extension was turned on. */
+    private void fetchFundsXmlContent(String trigger) {
+        var coordinator = org.fxt.freexmltoolkit.controls.shell.editor.FundsXmlDownloadCoordinator.getInstance();
+        var service = org.fxt.freexmltoolkit.service.fundsxml.FundsXmlExtensionService.getInstance();
+        if (service.isCacheEmpty()) {
+            coordinator.startBackgroundDownload(trigger);
+        } else {
+            coordinator.runRegisterOnly();
+        }
+    }
+
+    /** Shows the one-time FundsXML hint above the editor (no-op while one is showing). */
+    void showFundsXmlHint() {
+        if (editorCenter.lookup("#fundsxml-hint") != null) {
+            return;
+        }
+        org.fxt.freexmltoolkit.controls.shell.editor.FundsXmlHint.markShown();
+        var bar = new org.fxt.freexmltoolkit.controls.shell.editor.FundsXmlHintBar(
+                this::enableFundsXmlFromHint, () -> { });
+        editorCenter.getChildren().add(editorCenter.getChildren().indexOf(editorHost), bar);
+    }
+
+    /**
+     * "Enable FundsXML extensions" in the hint: the same as ticking the box in Settings and saving
+     * it - the flag is stored, the rail gets its FundsXML button and the content is fetched.
+     */
+    private void enableFundsXmlFromHint() {
+        try {
+            org.fxt.freexmltoolkit.di.ServiceRegistry.get(org.fxt.freexmltoolkit.service.PropertiesService.class)
+                    .set(org.fxt.freexmltoolkit.service.fundsxml.FundsXmlPropertyKeys.ENABLED, "true");
+        } catch (Throwable t) {
+            org.apache.logging.log4j.LogManager.getLogger(UnifiedShellView.class)
+                    .warn("Could not enable the FundsXML extension: {}", t.getMessage());
+            return;
+        }
+        if (settingsPage != null) {
+            settingsPage.markFundsXmlEnabled(); // an open Settings page must not save it off again
+        }
+        activityBar.refresh();
+        fundsXmlContentFetcher.accept("hint-enable");
+    }
+
+    /** Fetches the FundsXML content after the hint turned the extension on; replaceable in tests. */
+    private java.util.function.Consumer<String> fundsXmlContentFetcher = this::fetchFundsXmlContent;
+
+    /** Test seam: replaces the FundsXML content download started by the hint. */
+    void setFundsXmlContentFetcher(java.util.function.Consumer<String> fetcher) {
+        this.fundsXmlContentFetcher = fetcher;
     }
 
     /** Handles the Welcome page's FundsXML quick-access cards. */
@@ -457,8 +616,8 @@ public class UnifiedShellView extends BorderPane {
         // Function keys (no modifier) - all listed in the Keyboard Shortcuts dialog.
         switch (event.getCode()) {
             case F1 -> {
-                // F1 opens the Help activity, like the header's Help button.
-                selectionModel.select(Activity.HELP);
+                // F1 shows the Help menu under the header's Help button.
+                showHelpMenu();
                 event.consume();
                 return;
             }
@@ -738,11 +897,50 @@ public class UnifiedShellView extends BorderPane {
         return true;
     }
 
-    /** Shows the Schema Library activity with its Cache tab selected. */
+    /** Shows the Schema Library page with its Cache tab selected. */
     public void showSchemaCache() {
         selectionModel.select(Activity.SCHEMA_LIBRARY);
         revealSidePanel();
-        if (schemaLibraryPanel != null) schemaLibraryPanel.showCacheTab();
+        openSchemaLibraryTab().showCacheTab();
+    }
+
+    /**
+     * Opens (or re-selects) the Signature page as a tab in the main editor area; the document row
+     * follows the active editor document on every open.
+     *
+     * @return the page
+     */
+    private org.fxt.freexmltoolkit.controls.shell.editor.SignatureView openSignaturePage() {
+        if (signatureTab != null && editorHost.containsTab(signatureTab)) {
+            signaturePage.useActiveDocument();
+            editorHost.selectTab(signatureTab);
+            return signaturePage;
+        }
+        signaturePage = new org.fxt.freexmltoolkit.controls.shell.editor.SignatureView(editorHost);
+        if (signatureNavigator != null) {
+            signaturePage.setOnActionShown(signatureNavigator::setCurrent);
+        }
+        signatureTab = editorHost.openToolTab("Signature", "bi-shield-lock", signaturePage);
+        return signaturePage;
+    }
+
+    /**
+     * Opens (or re-selects) the Schema Library page as a tab in the main editor area: its
+     * tables need the editor's width, the side panel only lists the page's sections.
+     *
+     * @return the page
+     */
+    private org.fxt.freexmltoolkit.controls.shell.editor.SchemaLibraryView openSchemaLibraryTab() {
+        if (schemaLibraryTab != null && editorHost.containsTab(schemaLibraryTab)) {
+            editorHost.selectTab(schemaLibraryTab);
+            return schemaLibraryView;
+        }
+        schemaLibraryView = new org.fxt.freexmltoolkit.controls.shell.editor.SchemaLibraryView(editorHost);
+        if (schemaLibraryNavigator != null) {
+            schemaLibraryView.setOnSectionShown(schemaLibraryNavigator::setCurrent);
+        }
+        schemaLibraryTab = editorHost.openToolTab("Schema Library", "bi-collection", schemaLibraryView);
+        return schemaLibraryView;
     }
 
     /** Shows/hides the right inspector (Properties) panel and persists the choice (default open). */
@@ -933,6 +1131,12 @@ public class UnifiedShellView extends BorderPane {
             // Settings content lives in a main-area tab; (re)open/focus it on every
             // selection. The side panel only carries a pointer to it.
             openSettingsTab();
+        } else if (activity == Activity.SCHEMA_LIBRARY) {
+            // Same for the Schema Library: a page in the main area, its sections in the panel.
+            openSchemaLibraryTab();
+        } else if (activity == Activity.SIGNATURE) {
+            // And for Signature: one page with the form of the action picked in the panel.
+            openSignaturePage();
         }
         // Workflow colour scope for the panel's title, primary action and row hover (spec 2026-09-26 §2).
         org.fxt.freexmltoolkit.controls.theme.WorkflowStyle.apply(sidePanelHost,
@@ -952,38 +1156,51 @@ public class UnifiedShellView extends BorderPane {
                 var explorer = new org.fxt.freexmltoolkit.controls.shell.editor.ExplorerPanel(editorHost);
                 explorer.setNewFileAction(this::newDocument);
                 explorer.setSchematronValidateAction(this::validateWithSchematron);
-                explorer.setXsdValidateAction(() -> validationPanel().revalidate());
                 explorerPanel = explorer;
                 yield explorer;
             }
             case SEARCH -> searchPanel();
             case SCHEMA -> new org.fxt.freexmltoolkit.controls.shell.editor.TypeLibraryPanel(editorHost);
             case SCHEMA_LIBRARY -> {
-                var lib = new org.fxt.freexmltoolkit.controls.shell.editor.SchemaLibraryPanel(editorHost);
-                schemaLibraryPanel = lib;
-                yield lib;
+                var nav = new org.fxt.freexmltoolkit.controls.shell.editor.PageNavigator("library", "SCHEMA LIBRARY",
+                        "The library opens as a page in the main window.",
+                        org.fxt.freexmltoolkit.controls.shell.editor.SchemaLibraryView.SECTIONS,
+                        key -> openSchemaLibraryTab().showSection(key), false);
+                schemaLibraryNavigator = nav;
+                if (schemaLibraryView != null) {
+                    schemaLibraryView.setOnSectionShown(nav::setCurrent);
+                }
+                yield nav;
             }
             case VALIDATION -> validationPanel();
             case TRANSFORM -> new org.fxt.freexmltoolkit.controls.shell.editor.TransformPanel(editorHost);
             case FAVORITES -> new org.fxt.freexmltoolkit.controls.shell.editor.FavoritesActivityPanel(editorHost);
             case PDF_FOP -> new org.fxt.freexmltoolkit.controls.shell.editor.FopPanel(editorHost);
-            case SIGNATURE -> new org.fxt.freexmltoolkit.controls.shell.editor.SignaturePanel(editorHost);
+            case SIGNATURE -> {
+                // The panel only picks the action; keystore and form are on the Signature page.
+                var nav = new org.fxt.freexmltoolkit.controls.shell.editor.PageNavigator("sig", "SIGNATURE",
+                        null, org.fxt.freexmltoolkit.controls.shell.editor.SignatureView.SECTIONS,
+                        key -> openSignaturePage().selectAction(
+                                org.fxt.freexmltoolkit.controls.shell.editor.SignatureView.Action.fromKey(key)),
+                        false);
+                signatureNavigator = nav;
+                if (signaturePage != null) {
+                    signaturePage.setOnActionShown(nav::setCurrent);
+                }
+                yield nav;
+            }
             case FUNDSXML -> new org.fxt.freexmltoolkit.controls.shell.editor.FundsXmlPanel(editorHost);
-            case HELP -> new org.fxt.freexmltoolkit.controls.shell.editor.HelpPanel();
-            case SETTINGS -> hintPanel("SETTINGS", "Settings are edited in the main window.");
-            default -> hintPanel(activity.label().toUpperCase(),
-                    "'" + activity.label() + "' panel — coming in a later phase.");
+            case SETTINGS -> {
+                // The groups of the Settings page, with a search that filters page and list.
+                var page = openSettingsTab();
+                var nav = new org.fxt.freexmltoolkit.controls.shell.editor.PageNavigator("settings", "SETTINGS",
+                        null, page.sections(), key -> openSettingsTab().showSection(key), true);
+                nav.setOnFilter(query -> openSettingsTab().filter(query));
+                page.setOnSectionShown(nav::setCurrent);
+                settingsNavigator = nav;
+                yield nav;
+            }
         };
-    }
-
-    /** A simple titled placeholder side panel (used for Settings' pointer and not-yet-built activities). */
-    private static javafx.scene.Node hintPanel(String title, String hint) {
-        Label hintLabel = new Label(hint);
-        hintLabel.getStyleClass().add("fxt-placeholder-text");
-        hintLabel.setWrapText(true);
-        VBox body = new VBox(hintLabel);
-        body.getStyleClass().add("fxt-side-panel-body");
-        return new VBox(org.fxt.freexmltoolkit.controls.shell.editor.SidePanelHeader.create(title), body);
     }
 
     /**
@@ -999,12 +1216,19 @@ public class UnifiedShellView extends BorderPane {
      * Opens (or re-selects) the Settings page as a tab in the main editor area —
      * the Settings activity's content lives there, not in the narrow side panel.
      */
-    private void openSettingsTab() {
+    private org.fxt.freexmltoolkit.controls.shell.editor.SettingsPanel openSettingsTab() {
         if (settingsTab != null && editorHost.containsTab(settingsTab)) {
             editorHost.selectTab(settingsTab);
-            return;
+            return settingsPage;
         }
         var settings = new org.fxt.freexmltoolkit.controls.shell.editor.SettingsPanel();
+        settingsPage = settings;
+        if (settingsNavigator != null) {
+            // A reopened page starts with the side panel's current search and mark.
+            var filter = settingsNavigator.filterField();
+            settings.filter(filter != null ? filter.getText() : "");
+            settings.setOnSectionShown(settingsNavigator::setCurrent);
+        }
         settings.setManageSchemaCacheAction(this::showSchemaCache);
         settings.setOnSaved(() -> {
             activityBar.refreshLabels();
@@ -1016,17 +1240,9 @@ public class UnifiedShellView extends BorderPane {
                 statusLastRun.setGraphic(null);
             }
         });
-        settings.setOnFundsXmlEnabled(() -> {
-            var coordinator = org.fxt.freexmltoolkit.controls.shell.editor
-                    .FundsXmlDownloadCoordinator.getInstance();
-            var service = org.fxt.freexmltoolkit.service.fundsxml.FundsXmlExtensionService.getInstance();
-            if (service.isCacheEmpty()) {
-                coordinator.startBackgroundDownload("settings-enable");
-            } else {
-                coordinator.runRegisterOnly();
-            }
-        });
+        settings.setOnFundsXmlEnabled(() -> fetchFundsXmlContent("settings-enable"));
         settingsTab = editorHost.openToolTab("Settings", "bi-gear", settings);
+        return settings;
     }
 
     /** @return the cached Search panel (created on first use). */
@@ -1080,11 +1296,32 @@ public class UnifiedShellView extends BorderPane {
     @FXML public void onRedo() { toolbar("redo"); editorHost.redoActive(); }
     @FXML public void onFormat() { toolbar("format"); editorHost.formatActive(); }
     @FXML public void onMinify() { toolbar("minify"); editorHost.minifyActive(); }
-    @FXML public void onInsertTemplate() { toolbar("insert_template"); insertTemplate(); }
-    @FXML public void onCompare() { toolbar("compare"); compareWithFile(); }
-    @FXML public void onSpreadsheet() { toolbar("spreadsheet"); convertSpreadsheet(); }
+    // Menu-bar only (Edit → Insert Template…, Tools → Compare / Spreadsheet Converter; UX plan 5.4).
+    public void onInsertTemplate() { toolbar("insert_template"); insertTemplate(); }
+    public void onCompare() { toolbar("compare"); compareWithFile(); }
+    public void onSpreadsheet() { toolbar("spreadsheet"); convertSpreadsheet(); }
     @FXML public void onQueryConsole() { toolbar("query_console"); toggleQueryConsole(); }
-    @FXML public void onTransform() { toolbar("transform"); editorActions.transformActiveWithXslt(window()); }
+    /**
+     * Toolbar / Tools → Transform with XSLT…: one way to transform (UX plan 3.2) - opens the
+     * Transform panel on the active document, asks for a stylesheet if none is set yet, and
+     * runs it there (parameters, output method, OUTPUT dock with Save are all available).
+     */
+    @FXML public void onTransform() {
+        toolbar("transform");
+        if (editorHost.getActiveDocument().isEmpty()) {
+            return;
+        }
+        var panel = (org.fxt.freexmltoolkit.controls.shell.editor.TransformPanel) sidePanel(Activity.TRANSFORM);
+        selectionModel.select(Activity.TRANSFORM);
+        setLeftPanelVisible(true);
+        panel.setInputOverride(null); // the active document
+        if (!panel.hasStylesheet()) {
+            panel.onChooseXslt();
+        }
+        if (panel.hasStylesheet()) {
+            panel.transform();
+        }
+    }
     @FXML public void onRunQuery() { editorActions.runActiveQuery(); }
     @FXML public void onRunTransform() { editorActions.runActiveTransform(); }
     @FXML public void onRunPipeline() { editorActions.runActivePipeline(); }
@@ -1111,8 +1348,39 @@ public class UnifiedShellView extends BorderPane {
     @FXML public void onSetSchema() { toolbar("set_schema"); setSchema(); }
     @FXML public void onGenerateDocs() { toolbar("generate_docs"); editorActions.generateDocsActive(window()); }
     @FXML public void onTypeEditor() { toolbar("type_editor"); editorActions.openTypeEditorActive(); }
+    /** Schema ▾ / Tools → Generate Sample XML… for the active XSD (same as the Schema panel tool). */
+    @FXML public void onGenerateSample() { toolbar("generate_sample"); schemaTools().generateSampleXmlForActive(); }
+
+    /** Schema ▾ → Generate XSD from XML: infers a schema from the active XML document. */
+    @FXML public void onGenerateXsdFromXml() { toolbar("generate_xsd"); schemaTools().generateXsdFromActive(); }
+
+    /** Schema ▾ → Generate XSD from XML Files…: infers one schema from several XML files. */
+    @FXML public void onGenerateXsdBatch() { toolbar("generate_xsd_batch"); schemaTools().generateXsdBatch(); }
+
+    /** The Schema activity panel, whose tools the toolbar reuses (created on first use). */
+    private org.fxt.freexmltoolkit.controls.shell.editor.TypeLibraryPanel schemaTools() {
+        return (org.fxt.freexmltoolkit.controls.shell.editor.TypeLibraryPanel) sidePanel(Activity.SCHEMA);
+    }
     @FXML public void onValidate() { toolbar("validate"); validateActive(); }
-    @FXML public void onHelp() { toolbar("help"); selectionModel.select(Activity.HELP); }
+    @FXML public void onHelp() { toolbar("help"); showHelpMenu(); }
+
+    /**
+     * Shows the Help menu (a copy of the menu bar's Help menu) under the header's Help button;
+     * a second call while it is open closes it.
+     */
+    public void showHelpMenu() {
+        if (helpPopup != null && helpPopup.isShowing()) {
+            helpPopup.hide();
+            return;
+        }
+        helpPopup = menuBar.createHelpPopup();
+        helpPopup.show(helpButton, javafx.geometry.Side.BOTTOM, 0, 0);
+    }
+
+    /** @return the Help popup last shown by {@link #showHelpMenu()}, or {@code null} (for tests) */
+    javafx.scene.control.ContextMenu helpPopup() {
+        return helpPopup;
+    }
     @FXML public void onToggleTheme() { toolbar("toggle_theme"); toggleTheme(); }
     @FXML public void onSearchPillClicked() { toolbar("search_pill"); openQueryConsole(); }
     @FXML public void onToggleLeftPanel() { setLeftPanelVisible(leftPanelToggle.isSelected()); }
@@ -1121,18 +1389,20 @@ public class UnifiedShellView extends BorderPane {
     @FXML public void onCollapseInspector() { setInspectorVisible(false); }
 
     /**
-     * F5: runs the active document when its type is runnable (the Run split button's
-     * primary action), otherwise validates it. Does nothing without an open document.
+     * F5 / Tools → Run: runs the active document when its type is runnable (the Run split
+     * button's primary action). For other documents it does nothing - validating is F8,
+     * one key per task instead of a silent switch (UX plan 3.1).
      */
     public void executeActive() {
-        if (editorHost.getActiveDocument().isEmpty()) {
+        if (editorHost.getActiveDocument().isEmpty() || actionRun.isDisabled()) {
             return;
         }
-        if (!actionRun.isDisabled()) {
-            onRunPrimary();
-        } else {
-            validateActive();
-        }
+        onRunPrimary();
+    }
+
+    /** @return whether the active document can be run (query / XSLT / XProc), as the toolbar's Run button */
+    public boolean isActiveDocumentRunnable() {
+        return editorHost.getActiveDocument().isPresent() && !actionRun.isDisabled();
     }
 
     /** F11: toggles the shell window's full-screen mode. */
@@ -1317,8 +1587,11 @@ public class UnifiedShellView extends BorderPane {
                 .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.TRANSFORM));
         actionGenerateDocs.setDisable(!org.fxt.freexmltoolkit.controls.shell.editor.EditorActions
                 .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.GENERATE_DOCS));
+        actionGenerateSample.setDisable(!org.fxt.freexmltoolkit.controls.shell.editor.EditorActions
+                .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.TYPE_EDITOR));
         actionTypeEditor.setDisable(!org.fxt.freexmltoolkit.controls.shell.editor.EditorActions
                 .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.TYPE_EDITOR));
+        actionGenerateXsd.setDisable(type != org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.XML);
         actionRunQuery.setDisable(!org.fxt.freexmltoolkit.controls.shell.editor.EditorActions
                 .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.RUN_QUERY));
         actionRunTransform.setDisable(!org.fxt.freexmltoolkit.controls.shell.editor.EditorActions
@@ -1327,7 +1600,7 @@ public class UnifiedShellView extends BorderPane {
                 .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.RUN_PIPELINE));
 
         // The Target dropdown is hidden (not just disabled) for other document types:
-        // unlike the action buttons, a "Target: …" selector label is meaningless there.
+        // unlike the action buttons, an "Input: …" selector label is meaningless there.
         boolean targetable = org.fxt.freexmltoolkit.controls.shell.editor.EditorActions
                 .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.RUN_QUERY)
                 || org.fxt.freexmltoolkit.controls.shell.editor.EditorActions
@@ -1349,6 +1622,19 @@ public class UnifiedShellView extends BorderPane {
         for (String id : DOC_DEPENDENT_TOOLBAR_IDS) {
             setToolbarButtonDisabled(id, !hasDoc);
         }
+        // Without a document (welcome page, Settings and other tool tabs) the document groups
+        // are hidden instead of shown disabled (UX plan 5.3); the Target dropdown keeps its own
+        // type-based visibility above.
+        for (javafx.scene.Node node : toolbarActions.getChildren()) {
+            if (node == queryTargetButton
+                    || node.getId() != null && ALWAYS_SHOWN_TOOLBAR_IDS.contains(node.getId())) {
+                continue;
+            }
+            node.setVisible(hasDoc);
+            node.setManaged(hasDoc);
+        }
+        viewSwitchHost.setVisible(hasDoc);
+        viewSwitchHost.setManaged(hasDoc);
     }
 
     /**
@@ -1361,9 +1647,11 @@ public class UnifiedShellView extends BorderPane {
             "action-save",
             "action-undo", "action-redo",
             "action-format",
-            "action-insert-template", "action-compare",
             "action-query-console", "action-set-schema"
     };
+
+    /** Toolbar ids that stay visible without a document (UX plan 5.3: everything else is hidden). */
+    private static final java.util.Set<String> ALWAYS_SHOWN_TOOLBAR_IDS = java.util.Set.of("action-new", "action-open");
 
     /**
      * Rebuilds the Target dropdown's items from the currently open XML-family documents:
@@ -1474,7 +1762,7 @@ public class UnifiedShellView extends BorderPane {
             label = fs.file().getName();
             tooltip = fs.file().getAbsolutePath();
         }
-        queryTargetButton.setText("Target: " + label);
+        queryTargetButton.setText("Input: " + label);
         queryTargetButton.setTooltip(new javafx.scene.control.Tooltip(tooltip));
     }
 
@@ -1843,8 +2131,12 @@ public class UnifiedShellView extends BorderPane {
         // setSchemaForActiveDocument. The drop target is installed once with the union of both
         // extensions (FileDropSupport has no uninstall); the consumer binds only when the dropped
         // kind matches the active document's kind and silently ignores the mismatch.
-        statusSchema.setCursor(javafx.scene.Cursor.HAND);
-        statusSchema.setOnMouseClicked(e -> setSchema());
+        statusSchema.setOnMouseClicked(e -> {
+            // An XSD document is a schema itself; its indicator only reports the version.
+            if (!isActiveDocumentXsd()) {
+                setSchema();
+            }
+        });
         java.util.List<String> schemaDropExtensions = java.util.stream.Stream.concat(
                 org.fxt.freexmltoolkit.service.DragDropService.XSD_EXTENSIONS.stream(),
                 org.fxt.freexmltoolkit.service.DragDropService.JSON_SCHEMA_EXTENSIONS.stream()).toList();
@@ -1876,6 +2168,20 @@ public class UnifiedShellView extends BorderPane {
             statusSchema.setTooltip(null);
             return;
         }
+        if (doc.getFileType() == org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.XSD) {
+            // The document IS a schema: "No XSD" would be misleading, show its XSD version instead.
+            statusSchema.setCursor(javafx.scene.Cursor.DEFAULT);
+            statusSchema.setText(xsdDocumentStatusText(editorHost.getActiveText().orElse("")));
+            IconifyIcon icon = new IconifyIcon("bi-diagram-3");
+            icon.setIconSize(12);
+            statusSchema.setGraphic(icon);
+            statusSchema.getStyleClass().add("fxt-status-schema-ready");
+            statusSchema.setTooltip(new javafx.scene.control.Tooltip(
+                    "This document is an XSD schema. The version comes from vc:minVersion on xs:schema;"
+                            + " without it the schema is treated as XSD 1.0 (1.1 features still validate)."));
+            return;
+        }
+        statusSchema.setCursor(javafx.scene.Cursor.HAND);
         String kind = schemaKindLabel(doc.getFileType());
         var status = editorHost.activeSchemaStatusProperty().get();
         java.io.File schema = editorHost.activeSchemaProperty().get();
@@ -1887,6 +2193,26 @@ public class UnifiedShellView extends BorderPane {
         statusSchema.setGraphic(icon);
         statusSchema.getStyleClass().add(schemaStatusStyleClass(status));
         statusSchema.setTooltip(new javafx.scene.control.Tooltip(schemaStatusTooltip(status, schema, kind, source, detail)));
+    }
+
+    /** Matches {@code vc:minVersion="1.1"} (any prefix) on the schema root. */
+    private static final java.util.regex.Pattern XSD_MIN_VERSION =
+            java.util.regex.Pattern.compile("\\b[\\w.-]*:?minVersion\\s*=\\s*[\"'](1\\.[01])[\"']");
+
+    /**
+     * @return the indicator text for an XSD document: its XSD version from {@code vc:minVersion}
+     *         ({@code "XSD 1.1 schema"}), else {@code "XSD 1.0 schema"} (package-private for unit tests)
+     */
+    static String xsdDocumentStatusText(String schemaText) {
+        String head = schemaText.length() > 8192 ? schemaText.substring(0, 8192) : schemaText;
+        java.util.regex.Matcher m = XSD_MIN_VERSION.matcher(head);
+        return "XSD " + (m.find() ? m.group(1) : "1.0") + " schema";
+    }
+
+    private boolean isActiveDocumentXsd() {
+        return editorHost.getActiveDocument()
+                .map(d -> d.getFileType() == org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.XSD)
+                .orElse(false);
     }
 
     /** @return the indicator's schema-kind label for a file type (package-private for unit tests). */

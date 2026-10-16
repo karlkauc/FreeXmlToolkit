@@ -25,12 +25,13 @@ The FundsXML Extensions feature downloads all of this from the official GitHub r
 
 ## Enabling the Feature
 
-The feature is opt-in. Until you enable it, nothing in the application changes.
+The feature is opt-in. Until you enable it, nothing in the application changes - apart from a
+one-time hint when you open a FundsXML document (see [The FundsXML hint bar](#the-fundsxml-hint-bar)).
 
 1. Open **Settings** (the gear icon at the bottom of the activity bar).
-2. Scroll to the **FUNDSXML** card.
+2. Select the **Extensions** group in the side panel (or type *FundsXML* into the settings search field) to reach the **FUNDSXML** card.
 3. Check **Enable FundsXML extensions**.
-4. Save your settings.
+4. Click **Save Settings** in the save bar at the bottom of the page.
 
 > Enabling the feature is all you need to do: the FundsXML content
 > starts downloading automatically in the background, and a small toast notification tells
@@ -43,9 +44,29 @@ Once enabled, the FundsXML integration appears in several places:
 | **Activity bar** | A new **FundsXML** activity with its own side panel |
 | **Welcome page** | A **FUNDSXML** quick-access row with **Open Example**, **Open Schema**, and **Browse Examples** cards (shown as soon as content is cached) |
 | **Query Console** | A **FUNDSXML** section in the **Snippets** menu with the community's example queries |
-| **Validation panel** | A **Validate against FundsXML** entry in the ⋮ menu |
+| **Help menu** | The **FundsXML Website** and **FundsXML Schema Docs** links |
 
 You can turn the feature off again at any time from the same Settings card. Disabling it hides these entries, but leaves the downloaded content on disk intact.
+
+### The FundsXML hint bar
+
+You do not have to know about the extension in advance. When you open a document whose root
+element is a FundsXML root (for example `FundsXML4`) while the extension is **off**, a hint bar
+appears above the editor:
+
+> *This looks like a FundsXML document. The FundsXML extension adds its schemas, examples and
+> quality checks.*
+
+- **Enable FundsXML extensions** - does the same as checking the box on the **FUNDSXML** Settings card
+  and saving: the **FundsXML** activity appears in the activity bar and the content is
+  downloaded in the background (or, if it was downloaded before, the cached content is used
+  right away).
+- **Not now** - closes the bar.
+
+The hint is shown **only once**. If you dismiss it and change your mind later, enable the
+feature in Settings as described above.
+
+![FundsXML hint bar above the editor](img/unified-shell-fundsxml-hint.png)
 
 ---
 
@@ -103,7 +124,7 @@ back and forth freely.
 The fastest way to check an XML file against the FundsXML schema:
 
 1. Open your XML document in the editor.
-2. Click **Validate active document** in the **FundsXML** side panel, or choose **Validate against FundsXML** from the Validation panel's ⋮ menu.
+2. Click **Validate active document** in the **FundsXML** side panel (FundsXML validation lives only there).
 3. If the document is valid, you get a confirmation message.
 4. If there are errors, they are listed line-by-line in an alert dialog so you can locate and fix each one.
 
@@ -133,7 +154,7 @@ The DOCS & RESOURCES buttons:
 | Button | What it does |
 |--------|--------------|
 | **Open Schema in Editor** | Opens the active version's `FundsXML4.xsd` directly as an editor tab - explore it in the Text view or as a diagram in the Graphic view |
-| **Generate Schema Documentation** | Generates browsable HTML documentation for the active schema into `~/.freeXmlToolkit/fundsxml/docs/<version>/` |
+| **Generate Documentation…** | Generates browsable HTML documentation for the active schema into `~/.freeXmlToolkit/fundsxml/docs/<version>/` |
 | **Open Examples Folder** | The folder with downloaded sample XML documents |
 | **Open Schema Folder** | The folder containing the active schema and its include files |
 | **Open Schematron Folder** | The folder with downloaded `.sch` rule files |

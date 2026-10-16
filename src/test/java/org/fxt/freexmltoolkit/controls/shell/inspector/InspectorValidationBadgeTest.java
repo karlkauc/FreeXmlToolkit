@@ -35,7 +35,7 @@ class InspectorValidationBadgeTest {
     @Test
     void showsInvalidBadgeWithProblemCount() throws Exception {
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
-            host.setValidationStatus(EditorHost.ValidationState.INVALID, 2, "2 problem(s)");
+            host.setValidationStatus(EditorHost.ValidationState.INVALID, 2, "2 problems");
             return null;
         });
         WaitForAsyncUtils.waitForFxEvents();
@@ -43,7 +43,7 @@ class InspectorValidationBadgeTest {
         Label badge = badge();
         assertNotNull(badge, "the validation badge must exist");
         assertTrue(badge.isVisible(), "the badge must be visible when validated");
-        assertTrue(badge.getText().contains("2 problem(s)"), "badge shows the problem summary: " + badge.getText());
+        assertTrue(badge.getText().contains("2 problems"), "badge shows the problem summary: " + badge.getText());
     }
 
     @Test
@@ -67,6 +67,19 @@ class InspectorValidationBadgeTest {
         });
         WaitForAsyncUtils.waitForFxEvents();
         assertFalse(badge().isVisible(), "the badge is hidden until the document is validated");
+    }
+
+    @Test
+    void wellFormedWithoutASchemaIsNeutralNotGreen() throws Exception {
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.setValidationStatus(EditorHost.ValidationState.VALID, 0,
+                    org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.WELL_FORMED_NO_SCHEMA);
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        Label badge = badge();
+        assertTrue(badge.getStyleClass().contains("fxt-inspector-neutral-badge"), badge.getStyleClass().toString());
+        assertFalse(badge.getStyleClass().contains("fxt-inspector-valid-badge"), "no green check without a schema");
     }
 
     private Label badge() {

@@ -28,7 +28,7 @@ There are two places where templates are used:
 
 | Where | What it does |
 |-------|--------------|
-| **Insert Template** (toolbar button or **Ctrl+T**) | Inserts a template at the caret of the active document |
+| **Insert Template** (**Edit → Insert Template…** or **Ctrl+T**) | Inserts a template at the caret of the active document |
 | **New File** dialog (toolbar **New** or **Ctrl+N**) | Creates a new document from a template of the selected file type |
 
 ---
@@ -36,7 +36,7 @@ There are two places where templates are used:
 ## Inserting a Template
 
 1. Open (or create) the document you want to edit and place the caret where the snippet should go.
-2. Press **Ctrl+T** or click **Insert Template** on the editor toolbar.
+2. Press **Ctrl+T** or choose **Edit → Insert Template…** in the menu bar.
 3. The **Insert Template** dialog lists all templates as *name — category*; select one to see its
    content in the **Preview** box. **OK** is enabled once a template is selected.
 4. If the template has parameters, a second dialog asks for each value (defaults are pre-filled
@@ -68,7 +68,7 @@ it freely.
 ## Managing Your Own Templates
 
 Your templates are managed in **Settings** (gear icon at the bottom of the activity bar), in the
-**TEMPLATES** card.
+**TEMPLATES** card (group **Editor** in the Settings side panel). Template changes are saved right away - you do not need to click **Save Settings**.
 
 ### Set the templates folder
 

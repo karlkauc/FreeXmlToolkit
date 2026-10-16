@@ -75,7 +75,7 @@ events are sent per session.
 
 ## Error reports you send yourself
 
-Error dialogs, the **About** dialog and the **Help** panel offer **Send error report…** /
+Error dialogs, the **About** dialog and the **Help** menu offer **Send error report…** /
 **Report a problem…**. There you describe the problem in your own words and may optionally
 leave a contact address if you would like a reply. The checkbox **Include technical details**
 attaches the exception class, fingerprint and stack signature described above. A collapsible

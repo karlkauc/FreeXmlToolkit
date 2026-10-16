@@ -68,7 +68,7 @@ very same grid the shell uses for XML files, so it is instantly familiar:
 | **Type glyphs** | `{}` object, `[]` array, `"` string, `#` number, `T`/`F` boolean, `∅` null - each in its own colour; strings are shown quoted |
 | **Arrays of objects** | Rendered as embedded tables (one column per key); click a column header to sort, expand nested objects inline |
 | **Inline editing** | Double-click a value; the type is kept (numbers must stay numbers, booleans toggle, `null` stays `null` unless you type text). Double-click a key to rename it |
-| **Context menu** | Add Property / Array Item / Sibling Before / After, Rename Key (F2), Duplicate (Ctrl+D), Copy / Cut / Paste as Sibling / Paste as Child, Copy Cell Content (Ctrl+Shift+C), Copy JSONPath (Ctrl+Shift+X), Copy Node (JSON) (Ctrl+Alt+C), Change Type, Move Up/Down (Alt+↑/↓), Expand All / Collapse All, Sort Column, Delete |
+| **Context menu** | Add Property / Array Item / Sibling Before / After, Rename Key (F2), Duplicate (Ctrl+D), Copy / Cut / Paste as Sibling / Paste as Child, Copy Cell Content (Ctrl+Shift+C), Copy JSONPath (Ctrl+Alt+X), Copy Node (JSON) (Ctrl+Alt+C), Change Type, Move Up/Down (Alt+↑/↓), Expand All / Collapse All, Sort Column, Delete |
 | **Undo/Redo** | Every grid edit is one undo step (Ctrl+Z / Ctrl+Y) and is written back into the text |
 | **Search** | Ctrl+F finds keys and values, revealing matches inside collapsed nodes |
 | **Zoom & layout** | Zoom the whole grid with Ctrl+mouse wheel, Ctrl + / Ctrl − or the header's zoom pill (Ctrl 0 resets; the factor is shared with the XML grid). Nothing is cut off - long strings wrap onto further lines - and the columns of an array table can be dragged to a new width (double-click the separator to auto-fit). **Expand all** / **Collapse all** buttons sit in the header |
@@ -112,7 +112,7 @@ Execute JSONPath queries to extract data from your JSON documents:
 | `$.store.book[-1:]` | Last book |
 
 **To run a query:**
-1. Open the **Query Console** (terminal icon in the toolbar, or Ctrl+Shift+X) - with a JSON document active it evaluates JSONPath
+1. Open the **Query Console** (terminal icon in the toolbar, or Ctrl+Shift+X) - with a JSON document active its mode toggle reads **JSONPath** and it evaluates JSONPath
 2. Enter your JSONPath expression
 3. Run it to see the results in the console's result pane
 
@@ -171,7 +171,8 @@ resolve as expected.
 | `F2` | Rename the selected key (grid) |
 | `Ctrl+D` | Duplicate the selected node (grid; elsewhere Ctrl+D adds the file to favorites) |
 | `Alt+↑` / `Alt+↓` | Move the selected node up / down (grid) |
-| `Ctrl+Shift+X` | Copy JSONPath (grid; elsewhere it toggles the Query Console) |
+| `Ctrl+Alt+X` | Copy JSONPath (grid) |
+| `Ctrl+Shift+X` | Toggle the Query Console (also while the grid has focus) |
 | `Ctrl+Shift+C` | Copy Cell Content (grid) |
 | `Ctrl+Alt+C` | Copy Node (JSON) (grid) |
 | `Ctrl++` | Zoom in (Text view: font size, Graphic view: the grid) |

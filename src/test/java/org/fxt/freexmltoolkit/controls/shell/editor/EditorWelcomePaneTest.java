@@ -21,8 +21,8 @@ import org.testfx.util.WaitForAsyncUtils;
 
 /**
  * Verifies the Welcome / Dashboard landing (Figma "Redesign · Unified — Welcome /
- * Dashboard"): a hero, quick-action cards, a recent-files list with Clear, and a
- * Tools grid whose cards switch activities via stable activity ids.
+ * Dashboard"): a hero, quick-action cards, a recent-files list with Clear, and the
+ * task list; on a first start the empty counters give way to "Open an Example".
  */
 @ExtendWith(ApplicationExtension.class)
 class EditorWelcomePaneTest {
@@ -65,27 +65,36 @@ class EditorWelcomePaneTest {
     }
 
     @Test
-    void toolCardSwitchesActivityById() {
-        fire("#tool-validation");
-        assertEquals("validation", action.get(), "the Validate tool must request the validation activity");
+    void taskRowsReplaceTheToolsGridAndReportTheirKeys() {
+        assertEquals(java.util.List.of("task-validate", "task-transform", "task-query", "task-schema",
+                "task-pdf", "task-sign"), WaitForAsyncUtils.waitForAsyncFx(2000, pane::taskKeys));
+        assertNull(WaitForAsyncUtils.waitForAsyncFx(2000, () -> pane.lookup("#tool-explorer")),
+                "the Tools grid that repeated the Activity Bar is gone");
+        fire("#task-validate");
+        assertEquals("task-validate", action.get());
+        fire("#task-sign");
+        assertEquals("task-sign", action.get());
     }
 
     @Test
-    void schemaToolCardSwitchesToSchema() {
-        fire("#tool-schema");
-        assertEquals("schema", action.get());
-    }
+    void firstStartHidesEmptyCountersAndOffersTheExample() {
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            pane.setStats(new EditorWelcomePane.WelcomeStats(0, 0, 0, 0));
+            return null;
+        });
+        Node counter = WaitForAsyncUtils.waitForAsyncFx(2000, () -> pane.lookup("#welcome-stat-recent"));
+        Node example = WaitForAsyncUtils.waitForAsyncFx(2000, () -> pane.lookup("#welcome-example"));
+        assertFalse(isEffectivelyVisible(counter), "a row of zeros is not shown");
+        assertTrue(isEffectivelyVisible(example), "the example is offered on a first start");
+        fire("#welcome-example");
+        assertEquals("open-example", action.get());
 
-    @Test
-    void explorerToolCardSwitchesToExplorer() {
-        fire("#tool-explorer");
-        assertEquals("explorer", action.get(), "the Explorer card must request the explorer activity");
-    }
-
-    @Test
-    void settingsToolCardSwitchesToSettings() {
-        fire("#tool-settings");
-        assertEquals("settings", action.get(), "the Settings card must request the settings activity");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            pane.setStats(new EditorWelcomePane.WelcomeStats(2, 0, 0, 0));
+            return null;
+        });
+        assertTrue(isEffectivelyVisible(counter), "counters appear once they show something");
+        assertFalse(isEffectivelyVisible(example), "with recent files the example card goes away");
     }
 
     @Test

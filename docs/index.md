@@ -203,7 +203,7 @@ Opt-in integration with the [FundsXML](https://fundsxml.org/) industry standard 
 | **Schematron Rules** | Ready-made business-rule checks for FundsXML documents |
 | **Query Snippets** | Pre-built XPath/XQuery expressions, ready to load in the Query Console |
 
-This feature is **off by default**. Enable it from Settings only if you work with FundsXML files.
+This feature is **off by default**. Enable it from Settings only if you work with FundsXML files - when you open a FundsXML document, the app offers to enable it once.
 
 Learn more: [FundsXML Extensions Guide](fundsxml-extensions.md)
 
@@ -222,11 +222,11 @@ Learn more: [FundsXML Extensions Guide](fundsxml-extensions.md)
 
 ### Your First Steps
 
-1. **Open a file**: The app opens into the Unified Shell - use the Explorer activity or Open (Ctrl+O), or drag files into the window
+1. **Open a file**: The app opens on the Welcome page - use **Open File** (Ctrl+O), the Explorer activity, or drag files into the window. No file at hand? Click **Open an Example** on the Welcome page to open a small order document that already has a schema and a stylesheet, or pick a task under **What do you want to do?** (for example *Validate an XML file*)
 2. **Edit multiple files**: The shell handles XML, XSD, XSLT, Schematron and JSON files in tabs, each with Text / Tree / Graphic views - HTML files get a rendered read-only Preview view instead
 3. **Start editing**: Type `<` to see auto-completion suggestions
 4. **Validate**: Use the Validation activity (or the toolbar's **Validate** button, F8) to check your document for errors
-5. **Reach every tool**: Pick a tool from the activity bar on the left (Explorer, Search, Favorites, Validation, Transform, Schema, Schema Library, PDF/FOP, Signature, FundsXML, Help, Settings)
+5. **Reach every tool**: Pick a tool from the activity bar on the left (Explorer, Search, Favorites, Validation, Transform, Schema, Schema Library, PDF/FOP, Signature, FundsXML, Settings). Help, the documentation and **About** are in the **Help** menu (also **F1** or the **?** button in the header)
 
 Learn more: [Unified Shell Guide](unified-shell.md)
 
@@ -286,8 +286,8 @@ If the interface appears blurry or animations are slow, your system may be using
 | `Shift+Alt+F` | Format (pretty-print) the document |
 | `F8` | Validate the current document |
 | `Ctrl+Enter` | Run the current transformation / query |
-| `F5` | Execute: run a query / stylesheet / pipeline, or validate any other document |
-| `F1` | Open the Help panel |
+| `F5` | Run the active XQuery / XPath / XSLT / XProc document |
+| `F1` | Show the Help menu |
 | `F11` | Toggle full screen |
 | `Ctrl+T` | Insert a template |
 | `Ctrl+Shift+X` | Toggle the Query Console |
@@ -352,7 +352,7 @@ FreeXmlToolkit is free and open source. If it saves you time, please consider sp
 
 [&#9829; Sponsor on GitHub](https://github.com/sponsors/karlkauc){ .md-button .md-button--primary }
 
-Inside the application the sponsor link is available in the **Help** panel (**Sponsor this Project**), in the **About** dialog, on the **Welcome** page and under **Settings → Support the Project**. Starring the repository and reporting bugs helps too.
+Inside the application the sponsor link is available in the **Help** menu (**Sponsor this Project**), in the **About** dialog, on the **Welcome** page and under **Settings → Support the Project**. Starring the repository and reporting bugs helps too.
 
 ---
 

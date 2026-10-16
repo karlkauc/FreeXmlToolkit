@@ -183,4 +183,26 @@ class ProblemsPanelTest {
         }
         assertEquals(1, panel.getProblemCount());
     }
+
+    @Test
+    void selectingAProblemJumpsToItsColumn(@TempDir Path tmp) throws Exception {
+        Path xml = tmp.resolve("doc.xml");
+        Files.writeString(xml, "<root>\n  <a x=\"1\"/>\n</root>");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("root")).orElse(false));
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.setActiveProblems(List.of(new ValidationProblem("XSD", "error", 2, "bad attribute").withColumn(6)));
+            return null;
+        });
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            @SuppressWarnings("unchecked")
+            var list = (ListView<ValidationProblem>) panel.lookup("#problems-panel-list");
+            list.getSelectionModel().select(0);
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> host.getActiveCaretLineColumn()[0] == 2);
+        assertArrayEquals(new int[]{2, 6}, host.getActiveCaretLineColumn(),
+                "the caret lands on the reported column, not the line start");
+    }
 }

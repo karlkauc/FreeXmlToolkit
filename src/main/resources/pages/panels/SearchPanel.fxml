@@ -25,18 +25,18 @@
             <children>
                 <HBox spacing="4" styleClass="fxt-search-mode-row">
                     <children>
-                        <ToggleButton fx:id="textToggle" id="search-mode-text" text="Text" toggleGroup="$modes"
+                        <ToggleButton fx:id="textToggle" id="search-mode-text" text="Find text" toggleGroup="$modes"
                                       maxWidth="Infinity" HBox.hgrow="ALWAYS"
                                       styleClass="fxt-tool-button, fxt-search-mode-toggle">
                             <tooltip>
                                 <Tooltip text="Plain-text search across files"/>
                             </tooltip>
                         </ToggleButton>
-                        <ToggleButton fx:id="xpathToggle" id="search-mode-xpath" text="XPath" toggleGroup="$modes"
+                        <ToggleButton fx:id="xpathToggle" id="search-mode-xpath" text="Find by XPath" toggleGroup="$modes"
                                       maxWidth="Infinity" HBox.hgrow="ALWAYS"
                                       styleClass="fxt-tool-button, fxt-search-mode-toggle">
                             <tooltip>
-                                <Tooltip text="XPath-based search/replace"/>
+                                <Tooltip text="Find &amp; replace by XPath in a document or across a folder (queries for the open document: Query Console, Ctrl+K)"/>
                             </tooltip>
                         </ToggleButton>
                     </children>

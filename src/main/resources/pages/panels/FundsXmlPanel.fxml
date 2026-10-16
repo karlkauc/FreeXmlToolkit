@@ -54,7 +54,7 @@
                         <PanelActionButton id="fundsxml-open-schema" iconLiteral="bi-file-earmark-code"
                                            text="Open Schema in Editor" color="NAVIGATE" onAction="#onOpenSchema"/>
                         <PanelActionButton id="fundsxml-generate-docs" iconLiteral="bi-file-earmark-text"
-                                           text="Generate Schema Documentation" color="CREATE"
+                                           text="Generate Documentation…" color="CREATE"
                                            onAction="#onGenerateDocs"/>
                         <PanelActionButton id="fundsxml-examples-folder" iconLiteral="bi-folder2-open"
                                            text="Open Examples Folder" color="NAVIGATE"

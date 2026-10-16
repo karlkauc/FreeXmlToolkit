@@ -32,15 +32,17 @@ With an XML file active, the toolbar offers:
 | **Save ▾** | Ctrl+S | Save the current file; the arrow menu holds **Save As…** (Ctrl+Shift+S) and **Save All** |
 | **Undo** / **Redo** | Ctrl+Z / Ctrl+Y | Undo / redo the last change (icon buttons) |
 | **Format ▾** | Shift+Alt+F | Pretty-print the document; the arrow menu holds **Minify**. (Note: Ctrl+Shift+F opens [Find in Files](unified-shell.md#search-panel), not document search.) |
-| **Insert Template** | - | Insert a snippet from the template system (icon button) |
-| **Compare** | - | Compare the document with another file, side by side (icon button) |
-| **Spreadsheet** | - | Excel / CSV ↔ XML converter (icon button) |
 | **Query Console** | Ctrl+Shift+X | Toggle the bottom XPath/XQuery console (icon button) |
 | **Transform XSLT** | - | Pick a stylesheet and transform the active XML (icon button) |
-| **Schema ▾** | - | **Set XSD Schema…** for IntelliSense and validation; the arrow menu also holds **Generate Documentation…** and **Type Editor…** (enabled for XSD files) |
+| **Schema ▾** | - | **Set XSD Schema…** for IntelliSense and validation; the arrow menu also holds **Generate Documentation…** and **Type Editor…** (enabled for XSD files) and **Generate XSD from XML** / **Generate XSD from XML Files…** |
 | **Validate** | F8 | Validate the document (the toolbar's primary action, filled in Validation green - see [Colours: workflows and actions](unified-shell.md#colours-workflows-and-actions)) |
 
-The **Run ▾** button and the **Target** dropdown appear when a query, XSLT, or XProc document
+**Insert Template…** (Ctrl+T, **Edit** menu), **Compare with File…** and **Spreadsheet
+Converter…** (Ctrl+E, both in the **Tools** menu) are menu commands, not toolbar buttons.
+Without an open document (for example on the Welcome page) the toolbar shows only **New** and
+**Open**.
+
+The **Run ▾** button and the **Input** dropdown (*"Input: …"*) appear when a query, XSLT, or XProc document
 is active - see [Query Documents](unified-shell.md#query-documents-the-target-selector).
 
 ---
@@ -296,7 +298,7 @@ against the **active** document.
 2. Choose **XPath** or **XQuery** with the mode toggle
 3. Enter your expression - it is syntax-highlighted, and IntelliSense suggests element
    names, functions, and axes as you type (or on **Ctrl+Space**)
-4. Click **Run** (in XPath mode, **Enter** also runs; in XQuery mode use **Ctrl+Enter**)
+4. Click **Run** or press **Ctrl+Enter** (Enter inserts a new line; the hint below the query says so)
 5. The result appears in the read-only results pane on the right, with syntax highlighting;
    **Copy** puts it on the clipboard
 
@@ -343,7 +345,7 @@ collections in the `examples` folder next to the application:
 All examples target the FundsXML4 sample documents in `examples/xml/`. The simplest way
 to run one: **open the file directly** and press the toolbar's **Run** button
 (`Ctrl+Enter`) - query, XSLT and XProc files are first-class editor documents that run
-against the [Target dropdown](unified-shell.md#query-documents-the-target-selector)'s
+against the [Input dropdown](unified-shell.md#query-documents-the-target-selector)'s
 selection (by default the most recently active XML document). Alternatively paste a query
 into the query panel or the [Query Console](unified-shell.md#query-console) - the
 `map:`, `array:` and `math:` function namespaces are pre-declared, so expressions using
@@ -354,7 +356,7 @@ into the query panel or the [Query Console](unified-shell.md#query-console) - th
 
 ## XML/Excel/CSV Converter
 
-Click the **Spreadsheet Converter** toolbar button (Ctrl+E) to open the converter dialog:
+Choose **Tools → Spreadsheet Converter…** (Ctrl+E) to open the converter dialog:
 
 - **XML to Excel**: Export XML data to Excel spreadsheet
 - **XML to CSV**: Export XML data to CSV file
@@ -365,7 +367,7 @@ Click the **Spreadsheet Converter** toolbar button (Ctrl+E) to open the converte
 
 ## Templates
 
-Click the **Insert Template** toolbar button (Ctrl+T) to insert a snippet:
+Choose **Edit → Insert Template…** (Ctrl+T) to insert a snippet:
 
 - Insert pre-defined XML snippets
 - Create your own templates (Settings → Templates)
@@ -377,8 +379,9 @@ Learn more: [Template Management](template-management.md)
 
 ## Schema Generator
 
-Open the **Schema** activity and click its **Generate XSD from XML** tool button (or
-**Generate XSD (Batch)…** for several files) to generate an XSD schema from your XML:
+With the XML document active, open the editor toolbar's **Schema ▾** menu (click the small
+arrow next to the **Schema** button) and choose **Generate XSD from XML** (or **Generate XSD
+from XML Files…** for several files) to generate an XSD schema from your XML:
 
 - Analyze XML structure
 - Generate matching XSD schema
@@ -393,8 +396,7 @@ Save frequently used files for quick access:
 - **Add Favorite** (Ctrl+D) - Save the current file to favorites
 - **Favorites activity** - Click the star icon in the activity bar to open the Favorites
   panel; click any entry to open it as a tab
-- Your favorites also appear in the Explorer panel's **FAVORITES** section and as **star
-  menus** next to the file rows of the Transform, Validation, PDF/FOP, and Signature panels
+- Your favorites appear as **star menus** next to the file rows of the Transform, Validation, PDF/FOP panels and the Signature page
 
 Learn more: [Favorites System](favorites-system.md)
 

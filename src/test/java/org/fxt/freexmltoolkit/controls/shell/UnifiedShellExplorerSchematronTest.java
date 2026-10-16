@@ -62,7 +62,7 @@ class UnifiedShellExplorerSchematronTest {
         assertNotNull(explorer, "the Explorer activity is the default side panel");
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
             explorer.useSchematron(sch.toFile());
-            ((Button) explorer.lookup("#explorer-validate")).fire();
+            explorer.runValidationOnSelection(); // the "Validate with …" context action
             return null;
         });
 

@@ -151,7 +151,7 @@ class PanelActionListTest {
     void sourceRowKeepsSharedStyleAndOrder() {
         WaitForAsyncUtils.waitForFxEvents();
         assertTrue(sourceRow.getStyleClass().contains("fxt-vp-source-row"));
-        var children = sourceRow.getChildren();
+        var children = sourceRow.head().getChildren();
         assertSame(sourceRow.changeButton(), children.get(children.size() - 1), "Change is the last node");
         assertTrue(children.get(children.size() - 2) instanceof Label extra && "extra".equals(extra.getText()),
                 "extras sit directly before Change");

@@ -127,9 +127,16 @@ class TransformOutputPanelTest {
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
         WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
                 () -> host.getActiveText().map(t -> t.contains("order")).orElse(false));
+        // XQuery runs in the Query Console (UX plan 3.3); "Table" shows the result in this panel.
+        QueryConsole console = WaitForAsyncUtils.waitForAsyncFx(2000, () -> new QueryConsole(host));
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
-            panel.setXQuery("for $i in /order/item return $i");
-            panel.runXQuery();
+            console.setXQuery("for $i in /order/item return $i");
+            console.runForTest();
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, console::isTableAvailableForTest);
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            console.onShowTable();
             return null;
         });
         WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> out.getResultRowCount() == 2);

@@ -511,4 +511,46 @@ class QueryConsoleTest {
                 .orElseThrow(() -> new AssertionError(
                         "submenu must contain '" + text + "': " + menu.getItems()));
     }
+
+    @Test
+    void examplesMenuInsertsTheBuiltInXQueryExamples() {
+        QueryConsole console = WaitForAsyncUtils.waitForAsyncFx(2000, () -> new QueryConsole(host));
+        assertEquals(List.of("Simple", "FLWOR", "HTML report", "Data-quality check"), console.exampleNamesForTest());
+        for (String key : new String[]{"simple", "flwor", "html", "dq"}) {
+            assertFalse(QueryConsole.xqueryExample(key).isBlank(), "example for " + key);
+        }
+    }
+
+    @Test
+    void xqueryResultCanBeShownAsATable(@TempDir Path tmp) throws Exception {
+        Path file = tmp.resolve("order.xml");
+        Files.writeString(file, "<order><item><sku>A</sku><qty>2</qty></item><item><sku>B</sku><qty>5</qty></item></order>");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(file));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("order")).orElse(false));
+        QueryConsole console = WaitForAsyncUtils.waitForAsyncFx(2000, () -> new QueryConsole(host));
+        assertFalse(console.isTableAvailableForTest(), "no table before a run");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            console.setXQuery("for $i in /order/item return $i");
+            console.runForTest();
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, console::isTableAvailableForTest);
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            console.onShowTable();
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> host.transformOutputPanel().getResultRowCount() == 2);
+    }
+
+    @Test
+    void pathModeReadsJsonPathForJsonDocuments(@TempDir Path tmp) throws Exception {
+        QueryConsole console = WaitForAsyncUtils.waitForAsyncFx(2000, () -> new QueryConsole(host));
+        assertEquals("XPath", console.pathModeLabelForTest());
+        Path json = tmp.resolve("data.json");
+        Files.writeString(json, "{\"items\": [1, 2]}");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(json));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> "JSONPath".equals(
+                WaitForAsyncUtils.waitForAsyncFx(2000, console::pathModeLabelForTest)));
+    }
 }

@@ -43,7 +43,7 @@
                                       visible="false" managed="false" styleClass="fxt-seg"/>
                     </children>
                 </HBox>
-                <Button id="transform-output-editor" styleClass="fxt-sp-action" onAction="#openResultInEditor">
+                <Button id="transform-output-editor" text="Open as Tab" styleClass="fxt-sp-action, fxt-output-action" onAction="#openResultInEditor">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-file-earmark-plus" iconSize="14"/>
                     </graphic>
@@ -51,7 +51,7 @@
                         <Tooltip text="Open result as editor tab"/>
                     </tooltip>
                 </Button>
-                <Button id="transform-output-browser" styleClass="fxt-sp-action" onAction="#openInBrowser">
+                <Button id="transform-output-browser" text="Browser" styleClass="fxt-sp-action, fxt-output-action" onAction="#openInBrowser">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-box-arrow-up-right" iconSize="14"/>
                     </graphic>
@@ -59,7 +59,7 @@
                         <Tooltip text="Open in browser"/>
                     </tooltip>
                 </Button>
-                <Button id="transform-output-save" styleClass="fxt-sp-action" onAction="#saveResult">
+                <Button id="transform-output-save" text="Save…" styleClass="fxt-sp-action, fxt-output-action" onAction="#saveResult">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-download" iconSize="14"/>
                     </graphic>

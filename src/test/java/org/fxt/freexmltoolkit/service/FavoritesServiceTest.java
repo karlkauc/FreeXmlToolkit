@@ -188,4 +188,19 @@ public class FavoritesServiceTest {
         assertTrue(newService.isFavorite("/persist.xml"));
         assertEquals(1, newService.getFavoritesByFolder("PFolder").size());
     }
+
+    @Test
+    void changeListenersHearAddAndRemoveButNotAccessStatistics() {
+        java.util.concurrent.atomic.AtomicInteger calls = new java.util.concurrent.atomic.AtomicInteger();
+        service.addChangeListener(calls::incrementAndGet);
+
+        service.addFavorite("/listened.xml", "listened", "Folder");
+        assertEquals(1, calls.get(), "adding notifies (e.g. the Explorer FAVORITES list)");
+
+        service.recordAccess("/listened.xml");
+        assertEquals(1, calls.get(), "opening a favorite only updates statistics - no refresh");
+
+        service.removeFavoriteByPath("/listened.xml");
+        assertEquals(2, calls.get(), "removing notifies");
+    }
 }

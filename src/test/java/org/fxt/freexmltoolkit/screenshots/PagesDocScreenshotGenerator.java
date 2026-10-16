@@ -15,7 +15,6 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.SnapshotParameters;
-import javafx.scene.control.ToggleButton;
 import javafx.stage.Stage;
 
 import org.fxt.freexmltoolkit.controls.shell.Activity;
@@ -61,6 +60,9 @@ class PagesDocScreenshotGenerator {
     @Start
     void start(Stage stage) throws Exception {
         org.fxt.freexmltoolkit.di.ServiceRegistry.initialize();
+        // The one-time FundsXML hint would sit above the editor in every later image.
+        org.fxt.freexmltoolkit.di.ServiceRegistry.get(org.fxt.freexmltoolkit.service.PropertiesService.class)
+                .set(org.fxt.freexmltoolkit.controls.shell.editor.FundsXmlHint.SHOWN_KEY, "true");
         org.fxt.freexmltoolkit.controls.v2.view.XsdTypeIconPaths.registerAll();
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/pages/tab_unified_shell.fxml"));
         root = loader.load();
@@ -382,8 +384,8 @@ class PagesDocScreenshotGenerator {
             openAndWait(signedXml, "FundsXML4");
             onFx(() -> shell.getSelectionModel().select(Activity.SIGNATURE));
             settle();
-            var panel = (org.fxt.freexmltoolkit.controls.shell.editor.SignaturePanel)
-                    shell.lookup(".fxt-signature-panel");
+            var panel = (org.fxt.freexmltoolkit.controls.shell.editor.SignatureView)
+                    shell.lookup(".fxt-sign-view");
 
             fireNav("#sig-nav-create");
             shot("signature-create-cert");
@@ -398,7 +400,7 @@ class PagesDocScreenshotGenerator {
             settle(400);
             shot("signature-validation");
 
-            // Sign: demo keystore + credentials, then the Sign card in the editor area.
+            // Sign: demo keystore + credentials on the Signature page.
             onFx(() -> {
                 panel.setKeystore(demoKeystore);
                 panel.setCredentials("fundsxml-demo", "changeit", "changeit");
@@ -490,11 +492,11 @@ class PagesDocScreenshotGenerator {
                 shell.lookup(".fxt-validation-panel");
     }
 
-    /** Fires a Signature panel nav toggle by its {@code fx:id} selector. */
+    /** Fires a Signature side-panel row (the page's action) by its id selector. */
     private void fireNav(String selector) {
         onFx(() -> {
-            if (shell.lookup(selector) instanceof ToggleButton toggle) {
-                toggle.fire();
+            if (shell.lookup(selector) instanceof javafx.scene.control.ButtonBase row) {
+                row.fire();
             }
         });
         settle(500);

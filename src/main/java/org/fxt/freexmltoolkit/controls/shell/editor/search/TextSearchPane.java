@@ -82,6 +82,7 @@ public class TextSearchPane extends VBox {
         replaceToggle.selectedProperty().addListener(
                 (obs, oldV, newV) -> setReplaceRowVisible(newV));
         globField.setText(loadPref("search.glob", String.join(",", FileSearchRunner.DEFAULT_GLOBS)));
+        resultsTree.setEmptyHint("Results appear here. Type a word, phrase or regular expression above; all matching files in the folder are searched.");
         resultsTree.setOnNavigate(match -> Platform.runLater(() ->
                 editorHost.openFileAndSelect(match.file(), match.start(), match.end(),
                         match.matched(), match.lineNumber())));
@@ -157,8 +158,9 @@ public class TextSearchPane extends VBox {
 
     private void refreshFolderLabel() {
         Path folder = effectiveFolder();
-        folderLabel.setText(folder != null ? folder.getFileName() + "  (" + folder + ")" : "(no folder)");
-        folderLabel.setTooltip(folder != null ? new Tooltip(folder.toString()) : null);
+        folderLabel.setText(folder != null ? String.valueOf(folder.getFileName()) : "No folder — choose one");
+        folderLabel.setTooltip(new Tooltip(folder != null ? folder.toString() : "Choose the folder to search"));
+        folderLabel.setTextOverrun(javafx.scene.control.OverrunStyle.CENTER_ELLIPSIS);
     }
 
     private List<String> globs() {

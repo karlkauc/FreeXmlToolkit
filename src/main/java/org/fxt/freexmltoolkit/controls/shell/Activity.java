@@ -12,6 +12,9 @@ import org.fxt.freexmltoolkit.controls.theme.Workflow;
  * Each activity carries a stable {@link #id()} (used for persistence and
  * {@link #fromId(String)} lookup), a human-readable {@link #label()}, and a
  * Bootstrap {@link #icon()} literal resolvable by {@code IconifyIcon}.
+ * <p>
+ * Help is not an activity: it is the Help menu of the menu bar, also opened by the
+ * header's Help button and F1 (UX plan 4.4).
  */
 public enum Activity {
     EXPLORER("explorer", "Explorer", "bi-folder2-open", Workflow.WORKSPACE),
@@ -24,7 +27,6 @@ public enum Activity {
     PDF_FOP("pdf", "PDF / FOP", "bi-file-earmark-pdf", Workflow.PDF),
     SIGNATURE("signature", "Signature", "bi-shield-lock", Workflow.SIGNATURE),
     FUNDSXML("fundsxml", "FundsXML", "bi-file-earmark-code", Workflow.FUNDSXML),
-    HELP("help", "Help", "bi-question-circle", Workflow.NEUTRAL),
     SETTINGS("settings", "Settings", "bi-gear", Workflow.NEUTRAL);
 
     private final String id;

@@ -115,7 +115,7 @@ public class FopPanel extends VBox {
     /** Sets the XSL(-FO) stylesheet (also from the file chooser). */
     public void setXslFile(File file) {
         this.xslFile = file;
-        setSourceName(xslName, file != null ? file.getName() : null);
+        xslRow.showFile(file);
     }
 
     /** Fixes the XML input to a file, or {@code null} to follow the active editor again. */
@@ -245,10 +245,14 @@ public class FopPanel extends VBox {
 
     /** Updates the INPUT row label: the override file, or the active document (live). */
     private void refreshXmlName() {
-        String name = xmlOverride != null
-                ? xmlOverride.getName()
-                : editorHost.getActiveDocument().map(OpenDocument::getDisplayName).orElse(null);
-        setSourceName(xmlName, name);
+        if (xmlOverride != null) {
+            xmlRow.showFile(xmlOverride);
+            return;
+        }
+        var active = editorHost.getActiveDocument();
+        xmlRow.showName(active.map(OpenDocument::getDisplayName).orElse(null),
+                active.map(d -> d.getPath() != null ? d.getPath().toString() + " (active document)" : "Active document (unsaved)")
+                        .orElse(null));
     }
 
     private void chooseXsl() {
@@ -315,12 +319,4 @@ public class FopPanel extends VBox {
 
     // ----- shared mockup-language helpers ------------------------------------
 
-    /** Sets a source-row name, toggling the muted "none" style. */
-    private static void setSourceName(Label label, String name) {
-        label.setText(name != null ? name : "none");
-        label.getStyleClass().remove("fxt-vp-source-none");
-        if (name == null) {
-            label.getStyleClass().add("fxt-vp-source-none");
-        }
-    }
 }

@@ -42,12 +42,19 @@ public class ProblemsPanel extends VBox {
         list.setCellFactory(lv -> new ProblemRowCell());
         list.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
             if (newV != null && newV.line() > 0) {
-                editorHost.goToLine(newV.line());
+                editorHost.goToLine(newV.line(), newV.column());
             }
         });
 
         editorHost.getActiveProblems().addListener(
                 (ListChangeListener<ValidationProblem>) c -> refresh());
+        editorHost.problemsRevealRequestsProperty().addListener((obs, oldV, newV) -> {
+            setCollapsed(false);
+            list.requestFocus();
+            if (!items.isEmpty() && list.getSelectionModel().isEmpty()) {
+                list.getFocusModel().focus(0);
+            }
+        });
         refresh();
     }
 

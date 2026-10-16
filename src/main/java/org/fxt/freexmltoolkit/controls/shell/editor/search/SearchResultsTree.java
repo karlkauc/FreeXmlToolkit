@@ -50,6 +50,8 @@ public class SearchResultsTree extends TreeView<SearchResultsTree.Row> {
     }
 
     private Consumer<MatchRow> onNavigate;
+    /** Shown as the only row while there are no results yet (empty state with next step). */
+    private String emptyHint;
 
     public SearchResultsTree() {
         getStyleClass().add("fxt-search-results");
@@ -108,10 +110,27 @@ public class SearchResultsTree extends TreeView<SearchResultsTree.Row> {
         }
     }
 
-    /** Clears all results. */
+    /** Clears all results; shows the {@linkplain #setEmptyHint empty hint} if one is set. */
     public void clearResults() {
         getSelectionModel().clearSelection();
-        setRoot(new CheckBoxTreeItem<>(null));
+        CheckBoxTreeItem<Row> root = new CheckBoxTreeItem<>(null);
+        if (emptyHint != null) {
+            // Plain TreeItem: a note must not participate in the checkbox tri-state.
+            root.getChildren().add(new TreeItem<>(new NoteRow(emptyHint)));
+        }
+        setRoot(root);
+    }
+
+    /**
+     * Sets the hint shown while no search has run (e.g. "Type a word above …"), so the
+     * result area says what to do next instead of staying blank.
+     */
+    public void setEmptyHint(String hint) {
+        this.emptyHint = hint;
+        if (getRoot() == null || getRoot().getChildren().isEmpty()
+                || getRoot().getChildren().stream().allMatch(c -> c.getValue() instanceof NoteRow)) {
+            clearResults();
+        }
     }
 
     /** @return the match rows whose checkbox is still checked (replace scope). */
@@ -155,6 +174,10 @@ public class SearchResultsTree extends TreeView<SearchResultsTree.Row> {
                 case NoteRow note -> {
                     Label label = new Label(note.text());
                     label.getStyleClass().add("fxt-placeholder-text");
+                    // Hints can be a sentence long: wrap within the panel instead of clipping.
+                    label.setWrapText(true);
+                    label.maxWidthProperty().bind(SearchResultsTree.this.widthProperty().subtract(36));
+                    label.setMinHeight(javafx.scene.layout.Region.USE_PREF_SIZE);
                     setGraphic(label);
                 }
             }

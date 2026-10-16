@@ -19,10 +19,15 @@ class ActivityTest {
         Activity[] expected = {
                 Activity.EXPLORER, Activity.SEARCH, Activity.FAVORITES, Activity.VALIDATION,
                 Activity.TRANSFORM, Activity.SCHEMA, Activity.SCHEMA_LIBRARY, Activity.PDF_FOP,
-                Activity.SIGNATURE, Activity.FUNDSXML, Activity.HELP, Activity.SETTINGS
+                Activity.SIGNATURE, Activity.FUNDSXML, Activity.SETTINGS
         };
         assertArrayEquals(expected, Activity.values(),
                 "Activity order drives the Activity Bar layout");
+    }
+
+    @Test
+    void helpIsAMenuNotAnActivity() {
+        assertTrue(Activity.fromId("help").isEmpty(), "a persisted 'help' activity falls back to the default");
     }
 
     @Test
@@ -76,7 +81,6 @@ class ActivityTest {
         assertEquals(org.fxt.freexmltoolkit.controls.theme.Workflow.PDF, Activity.PDF_FOP.workflow());
         assertEquals(org.fxt.freexmltoolkit.controls.theme.Workflow.SIGNATURE, Activity.SIGNATURE.workflow());
         assertEquals(org.fxt.freexmltoolkit.controls.theme.Workflow.FUNDSXML, Activity.FUNDSXML.workflow());
-        assertEquals(org.fxt.freexmltoolkit.controls.theme.Workflow.NEUTRAL, Activity.HELP.workflow());
         assertEquals(org.fxt.freexmltoolkit.controls.theme.Workflow.NEUTRAL, Activity.SETTINGS.workflow());
         for (Activity a : Activity.values()) {
             assertNotNull(a.workflow(), () -> a + " has no workflow");

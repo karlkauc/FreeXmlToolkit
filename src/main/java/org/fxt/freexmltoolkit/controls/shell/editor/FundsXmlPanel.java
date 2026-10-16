@@ -91,7 +91,7 @@ public class FundsXmlPanel extends VBox {
 
     @FXML
     public void onOpenOnlineDocs() {
-        openUrl("https://fundsxml.org/");
+        openUrl(org.fxt.freexmltoolkit.util.ProjectLinks.FUNDSXML_SITE_URL);
     }
 
     @FXML

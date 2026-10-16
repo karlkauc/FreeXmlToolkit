@@ -59,7 +59,7 @@ class ShellMenuBarTest {
     @Test
     void documentItemsAreDisabledWithoutADocumentAndEnabledWithOne() {
         String[] documentItems = {"menu-file-save", "menu-file-save-as", "menu-edit-undo", "menu-edit-find",
-                "menu-edit-format", "menu-tools-validate", "menu-tools-run", "menu-file-close-tab"};
+                "menu-edit-format", "menu-tools-validate", "menu-file-close-tab"};
         for (String id : documentItems) {
             assertTrue(item(id).isDisable(), id + " must be disabled without a document");
         }
@@ -74,6 +74,7 @@ class ShellMenuBarTest {
             assertFalse(item(id).isDisable(), id + " must be enabled for an XML document");
         }
         assertTrue(item("menu-tools-type-editor").isDisable(), "the Type Editor is for schemas only");
+        assertTrue(item("menu-tools-run").isDisable(), "Run is only for query / XSLT / XProc documents, like the toolbar");
         assertFalse(item("menu-view-mode-text").isDisable(), "an XML document has a Text view");
     }
 
@@ -100,8 +101,26 @@ class ShellMenuBarTest {
         fire("menu-view-activity-validation");
         assertEquals(Activity.VALIDATION, shell.getSelectionModel().getActive());
         assertTrue(shell.isLeftPanelOpen(), "choosing an activity reveals its side panel");
-        fire("menu-help-panel");
-        assertEquals(Activity.HELP, shell.getSelectionModel().getActive());
+    }
+
+    @Test
+    void helpMenuReplacesTheHelpActivity() {
+        assertTrue(menuBar.allItems().stream().noneMatch(i -> "menu-help-panel".equals(i.getId())));
+        assertTrue(menuBar.allItems().stream().noneMatch(i -> "menu-view-activity-help".equals(i.getId())));
+        assertNotNull(item("menu-help-sponsor"), "Sponsor moved from the Help panel into the menu");
+        javafx.scene.control.ContextMenu popup = WaitForAsyncUtils.waitForAsyncFx(2000, menuBar::createHelpPopup);
+        List<String> ids = popup.getItems().stream().map(MenuItem::getId).toList();
+        assertTrue(ids.containsAll(List.of("help-popup-docs", "help-popup-shortcuts", "help-popup-github",
+                "help-popup-sponsor", "help-popup-about")), ids.toString());
+        // The FundsXML links follow the extension switch; never a doubled separator.
+        assertEquals(org.fxt.freexmltoolkit.controls.shell.editor.FundsXmlRunner.isEnabled(),
+                ids.contains("help-popup-fundsxml-site"));
+        for (int i = 1; i < popup.getItems().size(); i++) {
+            assertFalse(popup.getItems().get(i) instanceof SeparatorMenuItem
+                    && popup.getItems().get(i - 1) instanceof SeparatorMenuItem, "doubled separator at " + i);
+        }
+        assertFalse(popup.getItems().getFirst() instanceof SeparatorMenuItem);
+        assertFalse(popup.getItems().getLast() instanceof SeparatorMenuItem);
     }
 
     @Test

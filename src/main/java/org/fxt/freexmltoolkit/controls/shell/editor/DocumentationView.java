@@ -194,6 +194,10 @@ public class DocumentationView extends BorderPane {
 
     @FXML
     public void onGenerate() {
+        // The generator reads the XSD from disk: offer to save editor changes first.
+        if (xsdFile != null && !editorHost.ensureSavedBeforeTool(xsdFile.toPath(), "Generate Documentation")) {
+            return;
+        }
         generate(currentOptions());
     }
 
@@ -687,7 +691,7 @@ public class DocumentationView extends BorderPane {
     }
 
     private static void setSourceName(Label label, String name) {
-        label.setText(name != null ? name : "none");
+        label.setText(name != null ? name : "Not selected");
         label.getStyleClass().remove("fxt-vp-source-none");
         if (name == null) {
             label.getStyleClass().add("fxt-vp-source-none");

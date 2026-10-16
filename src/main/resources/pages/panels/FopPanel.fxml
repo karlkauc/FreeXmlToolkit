@@ -45,14 +45,16 @@
                         <!-- INPUT: XML (active editor or override) + XSL-FO stylesheet -->
                         <SidePanelSection title="INPUT">
                             <children>
-                                <SourceRow fx:id="xmlRow" id="fop-xml-row" iconLiteral="bi-code-slash"
+                                <SourceRow fx:id="xmlRow" id="fop-xml-row" iconLiteral="bi-code-slash" caption="XML"
+                                           emptyText="No XML — open a document or drop a file"
                                            onChange="#onChangeXml">
                                     <name>
                                         <Label fx:id="xmlName" id="fop-xml-name" text="none"
                                                styleClass="fxt-vp-source-name"/>
                                     </name>
                                 </SourceRow>
-                                <SourceRow fx:id="xslRow" id="fop-xsl-row" iconLiteral="bi-file-earmark-code"
+                                <SourceRow fx:id="xslRow" id="fop-xsl-row" iconLiteral="bi-file-earmark-code" caption="XSL-FO"
+                                           emptyText="No stylesheet — choose or drop a file"
                                            onChange="#onChooseXsl">
                                     <name>
                                         <Label fx:id="xslName" id="fop-xsl-name" text="none"
@@ -87,7 +89,8 @@
                                             </tooltip>
                                         </CheckBox>
                                         <Label text="Page size" styleClass="fxt-sig-field-label"/>
-                                        <ComboBox fx:id="pageSize" id="fop-page-size" maxWidth="Infinity">
+                                        <ComboBox fx:id="pageSize" id="fop-page-size" maxWidth="Infinity"
+                                                  styleClass="fxt-neutral-combo">
                                             <items>
                                                 <FXCollections fx:factory="observableArrayList">
                                                     <String fx:value="A4 · Portrait"/>
@@ -97,6 +100,8 @@
                                                 </FXCollections>
                                             </items>
                                         </ComboBox>
+                                        <Label id="fop-page-size-hint" wrapText="true" styleClass="fxt-placeholder-text"
+                                               text="Passed as the page-size and page-orientation parameters; it only applies if the stylesheet uses them."/>
                                     </children>
                                 </VBox>
                             </children>

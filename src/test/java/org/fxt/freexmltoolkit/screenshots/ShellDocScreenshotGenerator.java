@@ -52,6 +52,9 @@ class ShellDocScreenshotGenerator {
     @Start
     void start(Stage stage) throws Exception {
         org.fxt.freexmltoolkit.di.ServiceRegistry.initialize();
+        // The one-time FundsXML hint would sit above the editor in every later image.
+        org.fxt.freexmltoolkit.di.ServiceRegistry.get(org.fxt.freexmltoolkit.service.PropertiesService.class)
+                .set(org.fxt.freexmltoolkit.controls.shell.editor.FundsXmlHint.SHOWN_KEY, "true");
         org.fxt.freexmltoolkit.controls.v2.view.XsdTypeIconPaths.registerAll();
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/pages/tab_unified_shell.fxml"));
         root = loader.load();
@@ -70,6 +73,24 @@ class ShellDocScreenshotGenerator {
         shell = (UnifiedShellView) root.lookup(".fxt-shell");
         EditorHost host = shell.getEditorHost();
         settle();
+
+        // --- Welcome on a first start: task list, "Open an Example", no empty counters ---
+        shot("unified-shell-welcome");
+
+        // --- The one-time FundsXML hint (extension off, FundsXML document opened) ---
+        File fundsHintSample = new File(EXAMPLES, "xml/FundsXML4_Equity_Fund.xml");
+        if (fundsHintSample.exists()) {
+            var props = org.fxt.freexmltoolkit.di.ServiceRegistry.get(
+                    org.fxt.freexmltoolkit.service.PropertiesService.class);
+            props.set(org.fxt.freexmltoolkit.controls.shell.editor.FundsXmlHint.SHOWN_KEY, "false");
+            onFx(() -> host.openFile(fundsHintSample.toPath()));
+            WaitForAsyncUtils.waitFor(8, TimeUnit.SECONDS, () -> root.lookup("#fundsxml-hint") != null);
+            settle();
+            shot("unified-shell-fundsxml-hint");
+            onFx(() -> ((javafx.scene.control.ButtonBase) root.lookup("#fundsxml-hint-dismiss")).fire());
+            onFx(host::closeActiveTab);
+            settle();
+        }
 
         // --- Overview: an XML document open (Explorer + Text editor + inspector) ---
         File xml = new File(EXAMPLES, "xml/context-sensitive-demo.xml");
@@ -178,6 +199,9 @@ class ShellDocScreenshotGenerator {
             shot("unified-shell-transform-favorites");
         }
 
+        // The pages below fill the main area: close the OUTPUT dock the transform scenes left open.
+        onFx(this::hideOutputDock);
+        settle();
         onFx(() -> shell.getSelectionModel().select(Activity.SIGNATURE));
         settle();
         shot("unified-shell-signature");
@@ -200,6 +224,27 @@ class ShellDocScreenshotGenerator {
         } catch (Exception e) {
             System.out.println("[shell-screenshot] Schema Library scenes failed: " + e);
         }
+        darkShot("unified-shell-schema-library-dark");
+
+        // --- Settings page (grouped cards, section list with search, save bar) ---
+        onFx(() -> shell.getSelectionModel().select(Activity.SETTINGS));
+        settle(600);
+        shot("unified-shell-settings");
+        darkShot("unified-shell-settings-dark");
+
+        // --- Signature page in the dark theme ---
+        onFx(() -> shell.getSelectionModel().select(Activity.SIGNATURE));
+        settle();
+        darkShot("unified-shell-signature-dark");
+
+        // --- Help menu under the header's ? button (a popup: capture the whole screen) ---
+        onFx(() -> shell.getSelectionModel().select(Activity.EXPLORER));
+        settle();
+        onFx(shell::showHelpMenu);
+        settle(400);
+        shotScreen("unified-shell-help-menu");
+        onFx(shell::showHelpMenu);
+        settle();
 
         // --- JSON document in the Tree view ---
         Path json = Path.of(System.getProperty("java.io.tmpdir"), "fxt-shell-doc-sample.json");
@@ -495,6 +540,16 @@ class ShellDocScreenshotGenerator {
     private void settle(long millis) {
         WaitForAsyncUtils.sleep(millis, TimeUnit.MILLISECONDS);
         WaitForAsyncUtils.waitForFxEvents();
+    }
+
+    /** Hides the transform/query OUTPUT dock if it is showing. */
+    private void hideOutputDock() {
+        for (Node node : root.lookupAll("*")) {
+            if (node instanceof org.fxt.freexmltoolkit.controls.shell.editor.TransformOutputPanel output
+                    && output.isVisible()) {
+                output.hide();
+            }
+        }
     }
 
     /** Switches the scene to the dark theme, captures {@code name}, and switches back to light. */

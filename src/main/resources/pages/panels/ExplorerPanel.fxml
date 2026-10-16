@@ -2,16 +2,11 @@
 
 <?import javafx.scene.Cursor?>
 <?import javafx.scene.control.Button?>
-<?import javafx.scene.control.ContextMenu?>
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
-<?import javafx.scene.control.MenuButton?>
-<?import javafx.scene.control.MenuItem?>
-<?import javafx.scene.control.ToggleButton?>
-<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Tooltip?>
-<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
-<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
 <?import org.fxt.freexmltoolkit.controls.shell.editor.PanelActionButton?>
@@ -29,9 +24,6 @@
 -->
 <fx:root type="javafx.scene.layout.VBox" styleClass="fxt-explorer-panel"
          xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
-    <fx:define>
-        <ToggleGroup fx:id="favRecentGroup"/>
-    </fx:define>
     <children>
         <!-- Flat 14px header icon actions (no button chrome, per the mockup) -->
         <SidePanelHeader title="EXPLORER" spacing="10">
@@ -63,65 +55,22 @@
             </children>
         </SidePanelHeader>
 
-        <!-- TOOLS: each picker is a full-width MenuButton with its labelled action row beneath -->
+        <!-- OPEN EDITORS: a plain VBox of rows (see ExplorerPanel), rebuilt in code. Capped at about
+             six rows and scrolling beyond, so the workspace tree below keeps its space. -->
+        <ScrollPane fx:id="openEditorsScroll" id="explorer-open-editors-scroll" fitToWidth="true"
+                    hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" maxHeight="176" minHeight="0"
+                    styleClass="fxt-open-editors-scroll">
+            <content>
+                <VBox fx:id="openEditorsBox" styleClass="fxt-open-editors-box"/>
+            </content>
+        </ScrollPane>
+
+        <!-- WORKSPACE header + tree are inserted here in code (they need the tree instance). -->
+
+        <!-- TOOLS (below the files, collapsed by default, state remembered). Transform / validate
+             the selected files from the workspace context menu (UX plan 3.1/3.2). -->
         <VBox fx:id="toolsBody">
             <children>
-                <VBox id="explorer-transform-bar" styleClass="fxt-explorer-picker-block">
-                    <children>
-                        <MenuButton fx:id="stylesheetMenu" id="explorer-stylesheet" maxWidth="Infinity"
-                                    alignment="CENTER_LEFT" styleClass="fxt-tool-button, fxt-explorer-picker">
-                            <graphic>
-                                <IconifyIcon iconLiteral="bi-file-earmark-code" iconSize="14"/>
-                            </graphic>
-                        </MenuButton>
-                        <PanelActionList fx:id="transformActions">
-                            <children>
-                                <PanelActionButton id="explorer-transform" iconLiteral="bi-play-fill"
-                                                   text="Transform selected file(s)" color="TOOL"
-                                                   onAction="#onRunTransform">
-                                    <tooltip>
-                                        <Tooltip text="Transform selected XML file(s) with the current stylesheet"/>
-                                    </tooltip>
-                                </PanelActionButton>
-                            </children>
-                        </PanelActionList>
-                    </children>
-                </VBox>
-                <!-- Rebinding validates right away, so the XSD picker needs no action row. -->
-                <VBox id="explorer-xsd-bar" styleClass="fxt-explorer-picker-block">
-                    <children>
-                        <MenuButton fx:id="xsdMenu" id="explorer-xsd" maxWidth="Infinity" alignment="CENTER_LEFT"
-                                    styleClass="fxt-tool-button, fxt-explorer-picker">
-                            <graphic>
-                                <IconifyIcon iconLiteral="bi-file-earmark-code" iconSize="14"/>
-                            </graphic>
-                            <tooltip>
-                                <Tooltip text="XSD schema of the active document — pick another to rebind and validate"/>
-                            </tooltip>
-                        </MenuButton>
-                    </children>
-                </VBox>
-                <VBox id="explorer-schematron-bar" styleClass="fxt-explorer-picker-block">
-                    <children>
-                        <MenuButton fx:id="schematronMenu" id="explorer-schematron" maxWidth="Infinity"
-                                    alignment="CENTER_LEFT" styleClass="fxt-tool-button, fxt-explorer-picker">
-                            <graphic>
-                                <IconifyIcon iconLiteral="bi-ui-checks-grid" iconSize="14"/>
-                            </graphic>
-                        </MenuButton>
-                        <PanelActionList fx:id="validateActions">
-                            <children>
-                                <PanelActionButton id="explorer-validate" iconLiteral="bi-play-fill"
-                                                   text="Validate with Schematron" color="CREATE"
-                                                   onAction="#onRunValidation">
-                                    <tooltip>
-                                        <Tooltip text="Validate selected XML file(s) with the current Schematron"/>
-                                    </tooltip>
-                                </PanelActionButton>
-                            </children>
-                        </PanelActionList>
-                    </children>
-                </VBox>
                 <PanelActionList fx:id="fileActions">
                     <children>
                         <PanelActionButton id="explorer-open-file" iconLiteral="bi-folder2-open" text="Open file…"
@@ -133,8 +82,6 @@
             </children>
         </VBox>
 
-        <!-- OPEN EDITORS: a plain VBox of rows (see ExplorerPanel), rebuilt in code -->
-        <VBox fx:id="openEditorsBox" styleClass="fxt-open-editors-box"/>
 
         <!-- Drag to resize the pane below; fixed size so the VBox never squeezes the grip away -->
         <Region fx:id="favRecentGrip" id="explorer-fav-recent-grip" minHeight="6" prefHeight="6" maxHeight="6"
@@ -144,40 +91,17 @@
             </cursor>
         </Region>
 
-        <!-- FAVORITES | RECENT tabs; minHeight -Infinity = USE_PREF_SIZE (the user-chosen height) -->
+        <!-- RECENT (UX plan 3.4: favourites are managed in the Favorites activity and used via the
+             star menus); minHeight -Infinity = USE_PREF_SIZE (the user-chosen height) -->
         <VBox fx:id="favRecentPane" id="explorer-fav-recent" minHeight="-Infinity">
             <children>
-                <HBox styleClass="fxt-fav-tabs">
-                    <children>
-                        <ToggleButton fx:id="favTab" id="explorer-tab-favorites" text="FAVORITES"
-                                      toggleGroup="$favRecentGroup" selected="true" focusTraversable="false"
-                                      maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-fav-tab"
-                                      onAction="#onShowFavorites"/>
-                        <ToggleButton fx:id="recentTab" id="explorer-tab-recent" text="RECENT"
-                                      toggleGroup="$favRecentGroup" focusTraversable="false" maxWidth="Infinity"
-                                      HBox.hgrow="ALWAYS" styleClass="fxt-fav-tab" onAction="#onShowRecent"/>
-                    </children>
-                </HBox>
-                <StackPane VBox.vgrow="ALWAYS">
-                    <children>
-                        <ListView fx:id="favoritesList" id="explorer-favorites-list" fixedCellSize="28"
-                                  styleClass="fxt-open-editors, fxt-explorer-list">
-                            <contextMenu>
-                                <ContextMenu>
-                                    <items>
-                                        <MenuItem text="Remove from favorites" onAction="#onRemoveFavorite">
-                                            <graphic>
-                                                <IconifyIcon iconLiteral="bi-x-circle" iconSize="16"/>
-                                            </graphic>
-                                        </MenuItem>
-                                    </items>
-                                </ContextMenu>
-                            </contextMenu>
-                        </ListView>
-                        <ListView fx:id="recentList" fixedCellSize="28" visible="false" managed="false"
-                                  styleClass="fxt-open-editors, fxt-explorer-list"/>
-                    </children>
-                </StackPane>
+                <Label text="RECENT" styleClass="fxt-sp-section-label, fxt-explorer-recent-header"/>
+                <ListView fx:id="recentList" id="explorer-recent-list" fixedCellSize="28" VBox.vgrow="ALWAYS"
+                          styleClass="fxt-open-editors, fxt-explorer-list">
+                    <placeholder>
+                        <Label text="Files you open appear here." styleClass="fxt-placeholder-text"/>
+                    </placeholder>
+                </ListView>
             </children>
         </VBox>
     </children>

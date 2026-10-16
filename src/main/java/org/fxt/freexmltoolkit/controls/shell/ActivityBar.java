@@ -17,15 +17,15 @@ import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 /**
  * The slim, VS-Code-style left rail of the Unified shell. Renders one icon
  * button per {@link Activity} and keeps its selection in sync with an
- * {@link ActivitySelectionModel}. Per the Figma mockups, {@link Activity#HELP}
- * and {@link Activity#SETTINGS} are pinned to the bottom.
+ * {@link ActivitySelectionModel}. Per the Figma mockups, {@link Activity#SETTINGS}
+ * is pinned to the bottom.
  * <p>
  * Visuals come from {@code unified-shell.css} via the design-token variables,
  * so the bar themes for light/dark automatically.
  */
 public class ActivityBar extends VBox {
 
-    private static final EnumSet<Activity> BOTTOM = EnumSet.of(Activity.HELP, Activity.SETTINGS);
+    private static final EnumSet<Activity> BOTTOM = EnumSet.of(Activity.SETTINGS);
 
     private final ActivitySelectionModel selectionModel;
     private final Map<Activity, ToggleButton> buttons = new EnumMap<>(Activity.class);
@@ -147,6 +147,10 @@ public class ActivityBar extends VBox {
         if (showLabels()) {
             button.setText(activity.label());
             button.setContentDisplay(javafx.scene.control.ContentDisplay.TOP);
+            // Two-word names ("Schema Library") wrap onto a second line instead of
+            // being cut to "Schema Li…" in the 66 px rail.
+            button.setWrapText(true);
+            button.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
             button.getStyleClass().add("fxt-activity-button-labeled");
         }
 

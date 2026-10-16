@@ -29,14 +29,41 @@ import org.fxt.freexmltoolkit.service.UsageTrackingServiceImpl;
 import org.fxt.freexmltoolkit.util.ProjectLinks;
 
 /**
- * The Settings page, opened as a tab in the main editor area (the Settings
- * activity's side panel only shows a pointer to it). Surfaces the full {@link PropertiesService} configuration in
- * sections — Theme, Editor (XML/JSON indent, auto-format, pretty-print), XSD (auto-save, backups),
- * Parser (XML parser engine, XSLT extensions), Temp &amp; Cache (system/custom temp folder + clear),
- * General (update check, small icons) and HTTP Proxy — loading the saved values into the controls
- * and persisting them on "Save Settings". Theme switches apply live.
+ * The Settings page, opened as a tab in the main editor area. Surfaces the full
+ * {@link PropertiesService} configuration in seven groups of cards (Appearance, Editor,
+ * Schemas &amp; Validation, Files &amp; Cache, Network &amp; Security, Privacy, Extensions); the
+ * Settings side panel lists the groups ({@link #sections()}), jumps to them
+ * ({@link #showSection(String)}) and filters them ({@link #filter(String)}).
+ *
+ * <p>Values are loaded into the controls and persisted by "Save Settings" in the fixed bar at
+ * the bottom, which also shows a hint while there are unsaved changes (decision E5). Theme
+ * switches, file-association registration and template edits apply at once and do not count
+ * as unsaved changes.
  */
 public class SettingsPanel extends VBox {
+
+    /** Group key → side-panel icon (keys are the {@code settings-group-<key>} ids of the FXML). */
+    private static final java.util.Map<String, String> GROUP_ICONS = java.util.Map.of(
+            "appearance", "bi-palette", "editor", "bi-pencil-square", "schemas", "bi-diagram-3",
+            "files", "bi-folder2", "network", "bi-globe", "privacy", "bi-incognito",
+            "extensions", "bi-puzzle");
+    private static final String GROUP_ID_PREFIX = "settings-group-";
+
+    @FXML private javafx.scene.control.ScrollPane scroll;
+    @FXML private VBox page;
+    @FXML private VBox groups;
+    @FXML private Label noMatch;
+    @FXML private Label dirtyHint;
+    @FXML private Label saveStatus;
+    @FXML private Button saveButton;
+
+    /** Whether a control changed since the last load or save. */
+    private final javafx.beans.property.BooleanProperty dirty =
+            new javafx.beans.property.SimpleBooleanProperty(this, "dirty", false);
+    /** Suppresses the dirty flag while values are filled in by code. */
+    private boolean loading;
+    private java.util.function.Consumer<String> onSectionShown = key -> { };
+    private String shownSection;
 
     @FXML private ToggleButton light;
     @FXML private ToggleButton dark;
@@ -168,6 +195,228 @@ public class SettingsPanel extends VBox {
 
         loadSettings();
         refreshRenderingStatus();
+
+        trackChanges(groups);
+        dirtyHint.visibleProperty().bind(dirty);
+        scroll.vvalueProperty().addListener(obs -> reportShownSection());
+        page.heightProperty().addListener(obs -> reportShownSection());
+    }
+
+    // ----- groups, side-panel navigation and filter --------------------------
+
+    /**
+     * @return the page's groups for the side panel, in page order; the keywords are all texts of
+     *         the group's cards, so the panel's filter finds a group by any setting inside it
+     */
+    public java.util.List<PageNavigator.Entry> sections() {
+        java.util.List<PageNavigator.Entry> sections = new java.util.ArrayList<>();
+        for (VBox group : groupNodes()) {
+            String key = group.getId().substring(GROUP_ID_PREFIX.length());
+            String title = ((Label) group.getChildren().getFirst()).getText();
+            StringBuilder words = new StringBuilder();
+            for (javafx.scene.Node card : cards(group)) {
+                collectTexts(card, words);
+            }
+            sections.add(new PageNavigator.Entry(key, title, GROUP_ICONS.getOrDefault(key, "bi-sliders"),
+                    words.toString()));
+        }
+        return sections;
+    }
+
+    /** Scrolls the group with the given key to the top of the page (as far as the page allows). */
+    public void showSection(String key) {
+        javafx.scene.Node group = groups.lookup("#" + GROUP_ID_PREFIX + key);
+        if (group == null) {
+            return;
+        }
+        page.applyCss();
+        page.layout();
+        double max = page.getHeight() - scroll.getViewportBounds().getHeight();
+        double y = groups.getBoundsInParent().getMinY() + group.getBoundsInParent().getMinY();
+        scroll.setVvalue(max <= 0 ? 0 : Math.min(1, Math.max(0, y / max)));
+        // The last groups may not reach the top: the chosen one is still the one shown.
+        setShownSection(key);
+    }
+
+    /** Reports the key of the group at the top of the page now and whenever it changes. */
+    public void setOnSectionShown(java.util.function.Consumer<String> handler) {
+        this.onSectionShown = handler != null ? handler : key -> { };
+        reportShownSection();
+        if (shownSection != null) {
+            onSectionShown.accept(shownSection);
+        }
+    }
+
+    /**
+     * Shows only the cards whose texts contain the query (case-insensitive) and hides groups
+     * without a match; an empty query shows everything.
+     */
+    public void filter(String query) {
+        String q = query == null ? "" : query.trim().toLowerCase(java.util.Locale.ROOT);
+        boolean any = false;
+        for (VBox group : groupNodes()) {
+            boolean groupMatch = false;
+            for (javafx.scene.Node card : cards(group)) {
+                StringBuilder words = new StringBuilder();
+                collectTexts(card, words);
+                boolean match = q.isEmpty() || words.toString().toLowerCase(java.util.Locale.ROOT).contains(q);
+                card.setVisible(match);
+                card.setManaged(match);
+                groupMatch |= match;
+            }
+            group.setVisible(groupMatch);
+            group.setManaged(groupMatch);
+            any |= groupMatch;
+        }
+        noMatch.setVisible(!any);
+        noMatch.setManaged(!any);
+        scroll.setVvalue(0);
+    }
+
+    /** @return whether a control was changed since the settings were loaded or saved */
+    public boolean isDirty() {
+        return dirty.get();
+    }
+
+    private java.util.List<VBox> groupNodes() {
+        java.util.List<VBox> list = new java.util.ArrayList<>();
+        for (javafx.scene.Node node : groups.getChildren()) {
+            if (node instanceof VBox group && group.getId() != null && group.getId().startsWith(GROUP_ID_PREFIX)) {
+                list.add(group);
+            }
+        }
+        return list;
+    }
+
+    /** @return the cards of a group (the children of its FlowPane) */
+    private static java.util.List<javafx.scene.Node> cards(VBox group) {
+        for (javafx.scene.Node node : group.getChildren()) {
+            if (node instanceof javafx.scene.layout.FlowPane flow) {
+                return flow.getChildren();
+            }
+        }
+        return java.util.List.of();
+    }
+
+    /** Appends every label, button, check box text and field prompt below {@code node}. */
+    private static void collectTexts(javafx.scene.Node node, StringBuilder into) {
+        if (node instanceof javafx.scene.control.Labeled labeled && labeled.getText() != null) {
+            into.append(labeled.getText()).append(' ');
+        } else if (node instanceof javafx.scene.control.TextInputControl input && input.getPromptText() != null) {
+            into.append(input.getPromptText()).append(' ');
+        }
+        if (node instanceof SettingsCard card) {
+            into.append(card.getTitle()).append(' ');
+        }
+        // Not into controls: their skin children are not part of the page's content.
+        if (node instanceof javafx.scene.Parent parent && !(node instanceof javafx.scene.control.Control)) {
+            for (javafx.scene.Node child : parent.getChildrenUnmodifiable()) {
+                collectTexts(child, into);
+            }
+        }
+    }
+
+    private void reportShownSection() {
+        java.util.List<VBox> visible = groupNodes().stream().filter(javafx.scene.Node::isVisible).toList();
+        if (visible.isEmpty()) {
+            return;
+        }
+        double max = page.getHeight() - scroll.getViewportBounds().getHeight();
+        double top = Math.max(0, max) * scroll.getVvalue();
+        String key = visible.getFirst().getId();
+        for (VBox group : visible) {
+            // Before the first layout every group sits at y = 0; only laid-out groups count,
+            // otherwise the last group would be reported for a page scrolled to the top.
+            if (group.getHeight() > 0
+                    && groups.getBoundsInParent().getMinY() + group.getBoundsInParent().getMinY() <= top + 24) {
+                key = group.getId();
+            }
+        }
+        setShownSection(key.substring(GROUP_ID_PREFIX.length()));
+    }
+
+    private void setShownSection(String key) {
+        if (!key.equals(shownSection)) {
+            shownSection = key;
+            onSectionShown.accept(key);
+        }
+    }
+
+    // ----- unsaved changes ------------------------------------------------------
+
+    /**
+     * Marks the page dirty when a setting control changes. Skips the controls that apply at
+     * once (theme, file associations: they are not saved by "Save Settings").
+     */
+    private void trackChanges(javafx.scene.Parent root) {
+        java.util.Set<javafx.scene.Node> immediate = new java.util.HashSet<>(java.util.List.of(light, dark));
+        immediate.addAll(associationCheckBoxes().keySet());
+        javafx.beans.InvalidationListener mark = obs -> {
+            if (!loading) {
+                dirty.set(true);
+                saveStatus.setText("");
+            }
+        };
+        for (javafx.scene.Node node : root.getChildrenUnmodifiable()) {
+            if (immediate.contains(node)) {
+                continue;
+            }
+            switch (node) {
+                case CheckBox box -> box.selectedProperty().addListener(mark);
+                case ToggleButton toggle -> toggle.selectedProperty().addListener(mark);
+                case TextField field -> field.textProperty().addListener(mark);
+                case Spinner<?> spinner -> spinner.valueProperty().addListener(mark);
+                case ComboBox<?> combo -> combo.valueProperty().addListener(mark);
+                case javafx.scene.control.Control control -> { }
+                case javafx.scene.Parent parent -> trackChanges(parent);
+                default -> { }
+            }
+        }
+    }
+
+    /**
+     * Resets the preferences to their built-in defaults after a confirmation. The values only
+     * show in the controls; "Save Settings" persists them. Personal data and opt-outs stay:
+     * user info, templates, file associations, privacy and extension switches.
+     */
+    @FXML
+    public void onResetDefaults() {
+        if (org.fxt.freexmltoolkit.util.DialogHelper.showConfirmation("Reset Settings",
+                "Reset the settings to their defaults?",
+                "Appearance, editor, schema, temp-folder and network settings return to their defaults. "
+                        + "User info, templates, file associations, privacy and extension settings stay as they are.\n\n"
+                        + "Nothing is stored until you click Save Settings.")) {
+            resetToDefaults();
+        }
+    }
+
+    /** Puts the built-in defaults into the controls (not persisted until saved). */
+    void resetToDefaults() {
+        smallIcons.setSelected(false);
+        toolbarLabels.setSelected(true);
+        activityBarLabels.setSelected(true);
+        toolbarIconSmall.setSelected(true);
+        showLeftPanel.setSelected(true);
+        showInspector.setSelected(true);
+        renderingMode.setValue("Auto");
+        indentSpaces.getValueFactory().setValue(4);
+        jsonIndent.getValueFactory().setValue(2);
+        autoFormat.setSelected(false);
+        xsdPrettyPrint.setSelected(true);
+        schematronPretty.setSelected(false);
+        xsdAutoSave.setSelected(false);
+        xsdAutoSaveInterval.getValueFactory().setValue(5);
+        xsdBackup.setSelected(true);
+        xsdBackupVersions.getValueFactory().setValue(3);
+        backupSeparateDir.setSelected(false);
+        parserType.setValue(XmlParserType.XERCES);
+        xsltExtensions.setSelected(false);
+        schemaLibraryAutoBind.setSelected(true);
+        useSystemTemp.setSelected(true);
+        useSystemProxy.setSelected(true);
+        trustAllCerts.setSelected(false);
+        updateCheck.setSelected(true);
+        saveStatus.setText("Defaults restored — click Save Settings to keep them.");
     }
 
     @FXML
@@ -250,7 +499,8 @@ public class SettingsPanel extends VBox {
     @FXML
     public void onSave() {
         saveSettings();
-        tempStatus.setText("Settings saved.");
+        dirty.set(false);
+        saveStatus.setText("Settings saved.");
     }
 
     @FXML
@@ -409,6 +659,7 @@ public class SettingsPanel extends VBox {
 
     /** Loads the persisted settings into the controls. */
     private void loadSettings() {
+        loading = true;
         try {
             PropertiesService props = ServiceRegistry.get(PropertiesService.class);
             indentSpaces.getValueFactory().setValue(props.getXmlIndentSpaces());
@@ -458,6 +709,8 @@ public class SettingsPanel extends VBox {
             schemaLibraryAutoBind.setSelected(props.isSchemaLibraryAutoBindEnabled());
         } catch (Throwable ignored) {
             // properties service unavailable (e.g. tests) — controls keep their defaults
+        } finally {
+            loading = false;
         }
         reloadTemplatesList();
     }
@@ -709,6 +962,20 @@ public class SettingsPanel extends VBox {
      */
     public void setOnFundsXmlEnabled(Runnable onFundsXmlEnabled) {
         this.onFundsXmlEnabled = onFundsXmlEnabled;
+    }
+
+    /**
+     * Ticks the FundsXML box after the extension was turned on elsewhere (the FundsXML hint),
+     * without marking the page dirty, so a later save keeps it on.
+     */
+    public void markFundsXmlEnabled() {
+        boolean wasLoading = loading;
+        loading = true;
+        try {
+            fundsXmlEnabled.setSelected(true);
+        } finally {
+            loading = wasLoading;
+        }
     }
 
     /** Test seam: drives the FundsXML enable checkbox. */

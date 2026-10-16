@@ -85,7 +85,8 @@ Save frequently used Schematron files for quick access:
   Favorites panel while the `.sch` file is open)
 - Organize them in favorites folders like "Business Rules"
 - Bind a saved rules file in one click via the **star** menu on the Validation panel's
-  Schematron row - or from the Explorer's Schematron bar
+  Schematron row - or via **Validate with Other Schematron ▸ Favorites** in the Explorer's
+  right-click menu
 
 Learn more: [Schematron Support](schematron-support.md) | [Favorites System](favorites-system.md)
 

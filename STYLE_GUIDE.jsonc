@@ -938,7 +938,8 @@
     // Follow-on actions of an activity side panel ("Generate Documentation…", "Debug XSLT…",
     // "Open PDF") are NEVER icon-only buttons, hyperlinks or hidden ⋮ entries: they are
     // full-width rows with icon + label under a collapsible section header (TOOLS, RESULT, …).
-    // ⋮ overflow menus keep only toggles (CheckMenuItems). Rows keep their geometry in every
+    // ⋮ overflow menus keep only toggles (CheckMenuItems), and only in panels without an
+    // OPTIONS & TOOLS section (see components.sidePanel.schema). Rows keep their geometry in every
     // state - hover/pressed/focus change colours only (ShellCssStabilityTest guards this).
     "panelActions": {
       "rowStyleClass": "fxt-action-row",
@@ -1302,11 +1303,38 @@
     },
     "sidePanel": {
       "example": "<fx:root type=\"javafx.scene.layout.VBox\" ...><SidePanelHeader title=\"PDF / FOP\"/><SidePanelSection title=\"INPUT\">…</SidePanelSection><SidePanelSection title=\"OPTIONS\" collapsed=\"true\">…</SidePanelSection></fx:root>",
-      "notes": "Every side panel starts with SidePanelHeader (children = trailing controls) followed by collapsible SidePanelSections. Loaded with FxmlViews.load(this, …); no stylesheets attribute."
+      "notes": "Every side panel starts with SidePanelHeader (children = trailing controls) followed by collapsible SidePanelSections. Loaded with FxmlViews.load(this, …); no stylesheets attribute.",
+      // Panel schema (UX rework 2.1, reference: PDF / FOP). Top to bottom, never in another order:
+      "schema": [
+        "1. Main content or sources: what the panel is opened for (files, type lists, SOURCES/INPUT slots).",
+        "2. The primary action (one filled button, e.g. Run Validation / Run Transform / Generate PDF) with its status line.",
+        "3. Results of that action, if the panel shows any (e.g. batch RESULTS).",
+        "4. Secondary options and tools, in collapsed SidePanelSections (TOOLS, OPTIONS & TOOLS, REPORTS & CHECKS)."
+      ],
+      "rules": [
+        "Tools never sit above the content the panel is opened for.",
+        "Options and tools live in one place: no ⋮ menu next to a TOOLS section (a ⋮ menu may only hold toggles when the panel has no tools section).",
+        "Source slots use SourceRow: two lines, the name over the full width; an empty slot shows emptyText ('No XSD bound — choose or drop a file') and is clickable.",
+        "Long lists that share the panel with other sections get a capped height and scroll (e.g. OPEN EDITORS).",
+        "A collapsed section remembers its state where the user toggles it often (e.g. Explorer TOOLS: explorer.tools.collapsed).",
+        "Every empty list or slot names the action that fills it."
+      ]
     },
     "settingsCard": {
       "example": "<SettingsCard title=\"EDITOR\" iconLiteral=\"bi-pencil-square\" color=\"#17a2b8\">…rows…</SettingsCard>",
-      "notes": "One card per settings group on the Settings page (pages/views/SettingsPanel.fxml)."
+      "notes": "One card per topic on the Settings page (pages/views/SettingsPanel.fxml); the cards sit in seven groups (VBox id settings-group-<key>, heading .fxt-settings-group-title). Changes apply via the fixed save bar (.fxt-settings-save-bar) with an 'Unsaved changes' hint."
+    },
+    "mainAreaPage": {
+      "notes": "Activities whose content needs width (tables, long forms) open a page as a main-area tab: Settings, Schema Library, Signature. Their side panel is a PageNavigator (rows = the page's sections, the shown one marked .fxt-nav-current, optional search). Tool tabs hide the Inspector.",
+      "classes": ".fxt-page (canvas + 24px padding) > .fxt-page-card with .fxt-page-header / .fxt-page-title / .fxt-page-subtitle; labelled .fxt-tool-button actions; labelled tabs."
+    },
+    "hintBar": {
+      "notes": "A one-time, dismissible bar above the editor (FundsXmlHintBar, id fundsxml-hint): bulb icon, one sentence, one primary action and 'Not now'. Shown once per user (a property remembers it), never as a modal dialog.",
+      "classes": ".fxt-hint-bar (+ the workflow class, e.g. .fxt-wf-fundsxml, for the tint), .fxt-hint-bar-icon, .fxt-hint-bar-text"
+    },
+    "editorToolbarStates": {
+      "notes": "Without a document only New and Open are shown; document groups and the view switch are hidden, not disabled. Rarely used tools (Insert Template, Compare, Spreadsheet Converter) live in the menu bar only.",
+      "welcome": "The Welcome page shows a task list (WelcomeToolCard rows with userData task-*) instead of a tools grid; counters and the activity trend appear only once they show data."
     }
   }
 }

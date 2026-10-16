@@ -10,7 +10,7 @@ platform.
 ## Registering from the app
 
 1. Open **Settings** (Activity Bar → gear icon).
-2. Find the **FILE ASSOCIATIONS** card.
+2. Find the **FILE ASSOCIATIONS** card (group **Files & Cache** in the side panel).
 3. Tick the file types you want (XML, XSD Schema, XSLT Stylesheet, Schematron, JSON).
 4. Click **Register**.
 
